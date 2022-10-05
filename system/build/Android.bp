@@ -23,8 +23,20 @@ bootstrap_go_package {
     pluginFor: ["soong_build"],
 }
 
+cc_defaults {
+    name: "fluoride_common_options",
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        // there are too many unused parameters in all the code.
+        "-Wno-unused-parameter",
+    ],
+}
+
 fluoride_defaults {
     name: "libchrome_support_defaults",
+    defaults: ["fluoride_common_options"],
     static_libs: [
         "libchrome",
         "libmodpb64",
@@ -32,11 +44,6 @@ fluoride_defaults {
     ],
     shared_libs: [
       "libbase",
-    ],
-    cflags: [
-        "-Wall",
-        "-Wextra",
-        "-Werror",
     ],
     target: {
         darwin: {
@@ -54,12 +61,8 @@ fluoride_defaults {
 // default to be used only on platform libs that can rely on shared libchrome
 fluoride_defaults {
     name: "libchrome_shared_support_defaults",
+    defaults: ["fluoride_common_options"],
     shared_libs: ["libchrome"],
-    cflags: [
-        "-Wall",
-        "-Wextra",
-        "-Werror",
-    ],
     target: {
         darwin: {
             enabled: false,
@@ -72,13 +75,12 @@ fluoride_defaults {
 // requires no shared libraries, and no explicit sanitization.
 fluoride_defaults {
     name: "fluoride_types_defaults_fuzzable",
+    defaults: ["fluoride_common_options"],
     cflags: [
         "-DEXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
         "-fvisibility=hidden",
         // struct BT_HDR is defined as a variable-size header in a struct.
         "-Wno-gnu-variable-sized-type-not-at-end",
-        // there are too many unused parameters in all the code.
-        "-Wno-unused-parameter",
         "-DLOG_NDEBUG=1",
     ],
     conlyflags: [
