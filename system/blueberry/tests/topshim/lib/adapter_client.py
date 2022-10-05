@@ -19,11 +19,12 @@ import grpc
 
 from blueberry.facade.topshim import facade_pb2
 from blueberry.facade.topshim import facade_pb2_grpc
+from blueberry.tests.topshim.lib.async_closable import AsyncClosable
 
 from google.protobuf import empty_pb2 as empty_proto
 
 
-class AdapterClient():
+class AdapterClient(AsyncClosable):
     """
     Wrapper gRPC interface to the Topshim/BTIF layer
     """
@@ -39,7 +40,7 @@ class AdapterClient():
         self.__adapter_stub = facade_pb2_grpc.AdapterServiceStub(self.__channel)
         self.__adapter_event_stream = self.__adapter_stub.FetchEvents(facade_pb2.FetchEventsRequest())
 
-    async def terminate(self):
+    async def close(self):
         for task in self.__task_list:
             task.cancel()
             task = None
@@ -75,9 +76,15 @@ class AdapterClient():
         await self.__adapter_stub.ToggleStack(facade_pb2.ToggleStackRequest(start_stack=is_start))
         return await self._verify_adapter_started()
 
-    async def set_enable_page_scan(self):
+    async def enable_page_scan(self):
         """Enable page scan (might be used for A2dp sink to be discoverable)"""
         await self.__adapter_stub.SetDiscoveryMode(facade_pb2.SetDiscoveryModeRequest(enable_page_scan=True))
+        return await self.le_rand()
+
+    async def disable_page_scan(self):
+        """Enable page scan (might be used for A2dp sink to be discoverable)"""
+        await self.__adapter_stub.SetDiscoveryMode(facade_pb2.SetDiscoveryModeRequest(enable_page_scan=False))
+        return await self.le_rand()
 
     async def clear_event_filter(self):
         await self.__adapter_stub.ClearEventFilter(empty_proto.Empty())
@@ -110,9 +117,6 @@ class AdapterClient():
 
     async def allow_wake_by_hid(self):
         await self.__adapter_stub.AllowWakeByHid(empty_proto.Empty())
-
-    async def remove_bond(self, address):
-        await self.__adapter_stub.RemoveBond(facade_pb2.RemoveBondRequest(address=address))
 
 
 class A2dpAutomationHelper():

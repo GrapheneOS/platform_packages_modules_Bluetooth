@@ -19,11 +19,13 @@ import grpc
 
 from blueberry.facade.topshim import facade_pb2
 from blueberry.facade.topshim import facade_pb2_grpc
+from blueberry.tests.topshim.lib.async_closable import AsyncClosable
+from blueberry.tests.topshim.lib.async_closable import asyncSafeClose
 
 from google.protobuf import empty_pb2 as empty_proto
 
 
-class GattClient():
+class GattClient(AsyncClosable):
     """
     Wrapper gRPC interface to the GATT Service
     """
@@ -39,7 +41,7 @@ class GattClient():
         self.__gatt_stub = facade_pb2_grpc.GattServiceStub(self.__channel)
         #self.__gatt_event_stream = self.__gatt_stub.FetchEvents(facade_pb2.FetchEventsRequest())
 
-    async def terminate(self):
+    async def close(self):
         """
         Terminate the current tasks
         """
