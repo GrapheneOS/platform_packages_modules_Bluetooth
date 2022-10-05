@@ -23,6 +23,7 @@ from mmi2grpc._streaming import StreamWrapper
 
 from pandora_experimental.security_grpc import Security
 from pandora_experimental.host_grpc import Host
+from pandora_experimental.host_pb2 import ConnectabilityMode, AddressType
 
 
 def debug(*args, **kwargs):
@@ -89,7 +90,10 @@ class SMProxy(ProfileProxy):
         """
         Action: Place the IUT in connectable mode
         """
-        self.host.SetLEConnectable()
+        self.host.StartAdvertising(
+            connectability_mode=ConnectabilityMode.CONECTABILITY_CONNECTABLE,
+            own_address_type=AddressType.PUBLIC,
+        )
         return "OK"
 
     @assert_description
@@ -140,12 +144,31 @@ class SMProxy(ProfileProxy):
 
         return "OK"
 
+    @assert_description
+    def MMI_IUT_ACCEPT_CONNECTION_BR_EDR(self, **kwargs):
+        """
+        Please prepare IUT into a connectable mode in BR/EDR.
+
+        Description:
+        Verify that the Implementation Under Test (IUT) can accept a connect
+        request from PTS.
+        """
+
+        return "OK"
+
+    @assert_description
+    def _mmi_2001(self, **kwargs):
+        """
+        Please verify the passKey is correct: 000000
+        """
+        return "OK"
+
     def _handle_pairing_requests(self):
 
         def task():
             pairing_events = self.security.OnPairing()
             for event in pairing_events:
-                if event.just_works:
+                if event.just_works or event.numeric_comparison:
                     pairing_events.send(event=event, confirm=True)
                 if event.passkey_entry_request:
                     try:

@@ -18,6 +18,7 @@ from blueberry.tests.sl4a_sl4a.advertising.le_advertising import LeAdvertisingTe
 from blueberry.tests.sl4a_sl4a.gatt.gatt_connect_test import GattConnectTest
 from blueberry.tests.sl4a_sl4a.gatt.gatt_connect_with_irk_test import GattConnectWithIrkTest
 from blueberry.tests.sl4a_sl4a.gatt.gatt_notify_test import GattNotifyTest
+from blueberry.tests.sl4a_sl4a.scanning.le_scanning import LeScanningTest
 from blueberry.tests.sl4a_sl4a.security.irk_rotation_test import IrkRotationTest
 from blueberry.tests.sl4a_sl4a.security.oob_pairing_test import OobPairingTest
 
@@ -30,6 +31,7 @@ ALL_TESTS = [
     GattNotifyTest,
     IrkRotationTest,
     LeAdvertisingTest,
+    LeScanningTest,
     OobPairingTest,
 ]
 
