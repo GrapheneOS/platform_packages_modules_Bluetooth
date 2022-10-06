@@ -41,7 +41,9 @@ import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.x.com.android.modules.utils.SynchronousResultReceiver;
@@ -73,6 +75,7 @@ public class VolumeControlServiceTest {
     private VolumeControlService mService;
     private VolumeControlService.BluetoothVolumeControlBinder mServiceBinder;
     private BluetoothDevice mDevice;
+    private BluetoothDevice mDeviceTwo;
     private HashMap<BluetoothDevice, LinkedBlockingQueue<Intent>> mDeviceQueueMap;
     private static final int TIMEOUT_MS = 1000;
     private static final int BT_LE_AUDIO_MAX_VOL = 255;
@@ -87,6 +90,8 @@ public class VolumeControlServiceTest {
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private VolumeControlNativeInterface mNativeInterface;
     @Mock private AudioManager mAudioManager;
+    @Mock private ServiceFactory mServiceFactory;
+    @Mock private CsipSetCoordinatorService mCsipService;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -119,8 +124,11 @@ public class VolumeControlServiceTest {
         startService();
         mService.mVolumeControlNativeInterface = mNativeInterface;
         mService.mAudioManager = mAudioManager;
+        mService.mFactory = mServiceFactory;
         mServiceBinder = (VolumeControlService.BluetoothVolumeControlBinder) mService.initBinder();
         mServiceBinder.mIsTesting = true;
+
+        doReturn(mCsipService).when(mServiceFactory).getCsipSetCoordinatorService();
 
         // Override the timeout value to speed up the test
         VolumeControlStateMachine.sConnectTimeoutMs = TIMEOUT_MS;    // 1s
@@ -134,8 +142,10 @@ public class VolumeControlServiceTest {
 
         // Get a device for testing
         mDevice = TestUtils.getTestDevice(mAdapter, 0);
+        mDeviceTwo = TestUtils.getTestDevice(mAdapter, 1);
         mDeviceQueueMap = new HashMap<>();
         mDeviceQueueMap.put(mDevice, new LinkedBlockingQueue<>());
+        mDeviceQueueMap.put(mDeviceTwo, new LinkedBlockingQueue<>());
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
         doReturn(new ParcelUuid[]{BluetoothUuid.VOLUME_CONTROL}).when(mAdapterService)
@@ -629,6 +639,92 @@ public class VolumeControlServiceTest {
         mService.messageFromNative(stackEvent);
 
         Assert.assertEquals(volume, mService.getGroupVolume(groupId));
+    }
+
+    /**
+     * Test setting volume for a group member who connects after the volume level
+     * for a group was already changed and cached.
+     */
+    @Test
+    public void testLateConnectingDevice() throws Exception {
+        int groupId = 1;
+        int groupVolume = 56;
+
+        // Both devices are in the same group
+        when(mCsipService.getGroupId(mDevice, BluetoothUuid.CAP)).thenReturn(groupId);
+        when(mCsipService.getGroupId(mDeviceTwo, BluetoothUuid.CAP)).thenReturn(groupId);
+
+        // Update the device policy so okToConnect() returns true
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(any(BluetoothDevice.class),
+                        eq(BluetoothProfile.VOLUME_CONTROL)))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        doReturn(true).when(mNativeInterface).connectVolumeControl(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectVolumeControl(any(BluetoothDevice.class));
+
+        generateConnectionMessageFromNative(mDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mDevice));
+        Assert.assertTrue(mService.getDevices().contains(mDevice));
+
+        mService.setGroupVolume(groupId, groupVolume);
+        verify(mNativeInterface, times(1)).setGroupVolume(eq(groupId), eq(groupVolume));
+        verify(mNativeInterface, times(0)).setVolume(eq(mDeviceTwo), eq(groupVolume));
+
+        // Verify that second device gets the proper group volume level when connected
+        generateConnectionMessageFromNative(mDeviceTwo, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mDeviceTwo));
+        Assert.assertTrue(mService.getDevices().contains(mDeviceTwo));
+        verify(mNativeInterface, times(1)).setVolume(eq(mDeviceTwo), eq(groupVolume));
+    }
+
+    /**
+     * Test setting volume for a new group member who is discovered after the volume level
+     * for a group was already changed and cached.
+     */
+    @Test
+    public void testLateDiscoveredGroupMember() throws Exception {
+        int groupId = 1;
+        int groupVolume = 56;
+
+        // For now only one device is in the group
+        when(mCsipService.getGroupId(mDevice, BluetoothUuid.CAP)).thenReturn(groupId);
+        when(mCsipService.getGroupId(mDeviceTwo, BluetoothUuid.CAP)).thenReturn(-1);
+
+        // Update the device policy so okToConnect() returns true
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(any(BluetoothDevice.class),
+                        eq(BluetoothProfile.VOLUME_CONTROL)))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        doReturn(true).when(mNativeInterface).connectVolumeControl(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectVolumeControl(any(BluetoothDevice.class));
+
+        generateConnectionMessageFromNative(mDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mDevice));
+        Assert.assertTrue(mService.getDevices().contains(mDevice));
+
+        // Set the group volume
+        mService.setGroupVolume(groupId, groupVolume);
+
+        // Verify that second device will not get the group volume level if it is not a group member
+        generateConnectionMessageFromNative(mDeviceTwo, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mDeviceTwo));
+        Assert.assertTrue(mService.getDevices().contains(mDeviceTwo));
+        verify(mNativeInterface, times(0)).setVolume(eq(mDeviceTwo), eq(groupVolume));
+
+        // But gets the volume when it becomes the group member
+        when(mCsipService.getGroupId(mDeviceTwo, BluetoothUuid.CAP)).thenReturn(groupId);
+        mService.handleGroupNodeAdded(groupId, mDeviceTwo);
+        verify(mNativeInterface, times(1)).setVolume(eq(mDeviceTwo), eq(groupVolume));
     }
 
     @Test
