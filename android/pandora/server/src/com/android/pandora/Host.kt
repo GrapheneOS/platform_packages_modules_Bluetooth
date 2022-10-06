@@ -22,7 +22,6 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.ADDRESS_TYPE_PUBLIC
 import android.bluetooth.BluetoothDevice.ADDRESS_TYPE_RANDOM
 import android.bluetooth.BluetoothDevice.BOND_BONDED
-import android.bluetooth.BluetoothDevice.TRANSPORT_AUTO
 import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
@@ -310,7 +309,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
       bluetoothDevice.disconnect()
       connectionStateChangedFlow.filter { it == BluetoothAdapter.STATE_DISCONNECTED }.first()
-     
+
       DisconnectResponse.getDefaultInstance()
     }
   }
@@ -413,15 +412,19 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       callbackFlow {
           val callback =
             object : AdvertiseCallback() {
+              var advertisingStarted = false
               override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-                sendBlocking(
-                  StartAdvertisingResponse.newBuilder()
-                    .setHandle(
-                      AdvertisingHandle.newBuilder()
-                        .setCookie(ByteString.copyFromUtf8(handle.toString()))
-                    )
-                    .build()
-                )
+                if (!advertisingStarted) {
+                  advertisingStarted = true
+                  sendBlocking(
+                    StartAdvertisingResponse.newBuilder()
+                      .setHandle(
+                        AdvertisingHandle.newBuilder()
+                          .setCookie(ByteString.copyFromUtf8(handle.toString()))
+                      )
+                      .build()
+                  )
+                }
               }
               override fun onStartFailure(errorCode: Int) {
                 error("failed to start advertising")
@@ -488,11 +491,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
           val device = it.getBluetoothDeviceExtra()
           Log.i(TAG, "Device found: $device")
           RunInquiryResponse.newBuilder()
-            .addDevice(
-              Device.newBuilder()
-                .setName(device.name)
-                .setAddress(device.toByteString())
-            )
+            .addDevice(Device.newBuilder().setName(device.name).setAddress(device.toByteString()))
             .build()
         }
     }
