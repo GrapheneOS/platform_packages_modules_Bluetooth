@@ -25,8 +25,8 @@ from blueberry.tests.sl4a_sl4a.lib.oob_data import OobData
 class Security:
 
     # Events sent from SL4A
-    SL4A_EVENT_GENERATED = "GeneratedOobData"
-    SL4A_EVENT_ERROR = "ErrorOobData"
+    SL4A_EVENT_GENERATE_OOB_DATA_SUCCESS = "GeneratedOobData"
+    SL4A_EVENT_GENERATE_OOB_DATA_ERROR = "ErrorOobData"
     SL4A_EVENT_BONDED = "Bonded"
     SL4A_EVENT_UNBONDED = "Unbonded"
 
@@ -44,15 +44,34 @@ class Security:
         self.__device = device
         self.__device.sl4a.bluetoothStartPairingHelper(True)
 
-    def generate_oob_data(self, transport):
+    # Returns a tuple formatted as <statuscode, OobData>. The OobData is
+    # populated if the statuscode is 0 (SUCCESS), else it will be None
+    def generate_oob_data(self, transport, wait_for_oob_data_callback=True):
+        logging.info("Generating local OOB data")
         self.__device.sl4a.bluetoothGenerateLocalOobData(transport)
-        try:
-            event_info = self.__device.ed.pop_event(self.SL4A_EVENT_GENERATED, self.__default_timeout)
-        except queue.Empty as error:
-            logging.error("Failed to generate OOB data!")
-            return None
-        return OobData(event_info["data"]["address_with_type"], event_info["data"]["confirmation"],
-                       event_info["data"]["randomizer"])
+
+        if wait_for_oob_data_callback is False:
+            return 0, None
+        else:
+            # Check for oob data generation success
+            try:
+                generate_success_event = self.__device.ed.pop_event(self.SL4A_EVENT_GENERATE_OOB_DATA_SUCCESS,
+                                                                    self.__default_timeout)
+            except queue.Empty as error:
+                logging.error("Failed to generate OOB data!")
+                # Check if generating oob data failed without blocking
+                try:
+                    generate_failure_event = self.__device.ed.pop_event(self.SL4A_EVENT_GENERATE_OOB_DATA_FAILURE, 0)
+                except queue.Empty as error:
+                    logging.error("Failed to generate OOB Data without error code")
+                    assertThat(True).isFalse()
+
+                errorcode = generate_failure_event["data"]["Error"]
+                logging.info("Generating local oob data failed with error code %d", errorcode)
+                return errorcode, None
+
+        return 0, OobData(generate_success_event["data"]["address_with_type"],
+                          generate_success_event["data"]["confirmation"], generate_success_event["data"]["randomizer"])
 
     def ensure_device_bonded(self):
         bond_state = None
@@ -65,14 +84,18 @@ class Security:
         logging.info("Bonded: %s", bond_state["data"]["bonded_state"])
         assertThat(bond_state["data"]["bonded_state"]).isEqualTo(True)
 
-    def create_bond_out_of_band(self, oob_data):
+    def create_bond_out_of_band(self, oob_data, wait_for_device_bonded=True):
         assertThat(oob_data).isNotNone()
         address = oob_data.to_sl4a_address()
-        self.__device.sl4a.bluetoothCreateBondOutOfBand(address, self.TRANSPORT_LE, oob_data.confirmation,
-                                                        oob_data.randomizer)
-        self.ensure_device_bonded()
+        address_type = oob_data.to_sl4a_address_type()
+        logging.info("Bonding OOB with %s and address type=%s", address, address_type)
+        self.__device.sl4a.bluetoothCreateLeBondOutOfBand(address, oob_data.confirmation, oob_data.randomizer,
+                                                          address_type)
 
-    def create_bond_numeric_comparison(self, address, transport=TRANSPORT_LE):
+        if wait_for_device_bonded:
+            self.ensure_device_bonded()
+
+    def create_bond_numeric_comparison(self, address, transport=TRANSPORT_LE, wait_for_device_bonded=True):
         assertThat(address).isNotNone()
         if transport == self.TRANSPORT_LE:
             self.__device.sl4a.bluetoothLeBond(address)
@@ -83,18 +106,20 @@ class Security:
     def remove_all_bonded_devices(self):
         bonded_devices = self.__device.sl4a.bluetoothGetBondedDevices()
         for device in bonded_devices:
+            logging.info(device)
             self.remove_bond(device["address"])
 
     def remove_bond(self, address):
-        self.__device.sl4a.bluetoothUnbond(address)
-        bond_state = None
-        try:
-            bond_state = self.__device.ed.pop_event(self.SL4A_EVENT_UNBONDED, self.__default_timeout)
-        except queue.Empty as error:
-            logging.error("Failed to get bond event!")
-
-        assertThat(bond_state).isNotNone()
-        assertThat(bond_state["data"]["bonded_state"]).isEqualTo(False)
+        if self.__device.sl4a.bluetoothUnbond(address):
+            bond_state = None
+            try:
+                bond_state = self.__device.ed.pop_event(self.SL4A_EVENT_UNBONDED, self.__default_timeout)
+            except queue.Empty as error:
+                logging.error("Failed to get bond event!")
+            assertThat(bond_state).isNotNone()
+            assertThat(bond_state["data"]["bonded_state"]).isEqualTo(False)
+        else:
+            logging.info("remove_bond: Bluetooth Device with address: %s does not exist", address)
 
     def close(self):
         self.remove_all_bonded_devices()
