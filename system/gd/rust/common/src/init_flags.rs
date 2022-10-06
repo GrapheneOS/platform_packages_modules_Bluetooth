@@ -78,7 +78,8 @@ init_flags!(
         gd_core,
         gd_security,
         gd_l2cap,
-        gatt_robust_caching,
+        gatt_robust_caching_client,
+        gatt_robust_caching_server,
         btaa_hci,
         gd_rust,
         gd_link_policy

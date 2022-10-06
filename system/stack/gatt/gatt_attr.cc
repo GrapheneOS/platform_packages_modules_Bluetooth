@@ -79,6 +79,8 @@ static void gatt_cl_op_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
 
 static void gatt_cl_start_config_ccc(tGATT_PROFILE_CLCB* p_clcb);
 
+static bool gatt_cl_is_robust_caching_enabled();
+
 static bool gatt_sr_is_robust_caching_enabled();
 
 static bool read_sr_supported_feat_req(
@@ -430,7 +432,7 @@ void gatt_profile_db_init(void) {
   gatt_cb.gatt_svr_supported_feat_mask |= BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK;
   gatt_cb.gatt_cl_supported_feat_mask |= BLE_GATT_CL_ANDROID_SUP_FEAT;
 
-  if (gatt_sr_is_robust_caching_enabled())
+  if (gatt_cl_is_robust_caching_enabled())
     gatt_cb.gatt_cl_supported_feat_mask |= BLE_GATT_CL_SUP_FEAT_CACHING_BITMASK;
 
   VLOG(1) << __func__ << ": gatt_if=" << gatt_cb.gatt_if << " EATT supported";
@@ -848,6 +850,19 @@ bool gatt_profile_get_eatt_support(const RawAddress& remote_bda) {
 
 /*******************************************************************************
  *
+ * Function         gatt_cl_is_robust_caching_enabled
+ *
+ * Description      Check if Robust Caching is enabled on client side.
+ *
+ * Returns          true if enabled in gd flag, otherwise false
+ *
+ ******************************************************************************/
+static bool gatt_cl_is_robust_caching_enabled() {
+  return bluetooth::common::init_flags::gatt_robust_caching_client_is_enabled();
+}
+
+/*******************************************************************************
+ *
  * Function         gatt_sr_is_robust_caching_enabled
  *
  * Description      Check if Robust Caching is enabled on server side.
@@ -856,7 +871,7 @@ bool gatt_profile_get_eatt_support(const RawAddress& remote_bda) {
  *
  ******************************************************************************/
 static bool gatt_sr_is_robust_caching_enabled() {
-  return bluetooth::common::init_flags::gatt_robust_caching_is_enabled();
+  return bluetooth::common::init_flags::gatt_robust_caching_server_is_enabled();
 }
 
 /*******************************************************************************
