@@ -72,6 +72,10 @@ pub enum Profile {
     CoordinatedSet,
 }
 
+// Unsigned integer representation of UUIDs.
+pub const BASE_UUID_NUM: u128 = 0x0000000000001000800000805f9b34fbu128;
+pub const BASE_UUID_MASK: u128 = !(0xffffffffu128 << 96);
+
 /// Wraps a reference of Uuid128Bit, which is the raw array of bytes of UUID.
 /// This is useful in implementing standard Rust traits which can't be implemented directly on
 /// built-in types (Rust's Orphan Rule).
@@ -90,6 +94,14 @@ impl<'a> Display for KnownUuidWrapper<'a> {
         let _ = Uuid::format(&self.0, f);
         write!(f, ": {:?}", self.1)
     }
+}
+
+/// Represents binary encoding of UUID in big-endian.
+#[derive(Debug)]
+pub enum UuidBytes {
+    Uuid16Bit([u8; 2]),
+    Uuid32Bit([u8; 4]),
+    Uuid128Bit([u8; 16]),
 }
 
 pub struct UuidHelper {
@@ -214,6 +226,31 @@ impl UuidHelper {
 
         Some(uuid)
     }
+
+    /// Parses an 128-bit UUID into a byte array of shortest representation.
+    pub fn get_shortest_bytes(uuid: &Uuid128Bit) -> UuidBytes {
+        if UuidHelper::in_16bit_uuid_range(uuid) {
+            return UuidBytes::Uuid16Bit([uuid[2], uuid[3]]);
+        } else if UuidHelper::in_32bit_uuid_range(uuid) {
+            return UuidBytes::Uuid32Bit([uuid[0], uuid[1], uuid[2], uuid[3]]);
+        } else {
+            return UuidBytes::Uuid128Bit(*uuid);
+        }
+    }
+
+    /// Checks whether the UUID value is in the 16-bit Bluetooth UUID range.
+    fn in_16bit_uuid_range(uuid: &Uuid128Bit) -> bool {
+        if !UuidHelper::in_32bit_uuid_range(uuid) {
+            return false;
+        }
+        uuid[0] == 0 && uuid[1] == 0
+    }
+
+    /// Checks whether the UUID value is in the 32-bit Bluetooth UUID range.
+    fn in_32bit_uuid_range(uuid: &Uuid128Bit) -> bool {
+        let num = u128::from_be_bytes(*uuid);
+        (num & BASE_UUID_MASK) == BASE_UUID_NUM
+    }
 }
 
 // Temporary util that covers only basic string conversion.
@@ -254,5 +291,27 @@ mod tests {
                 None
             });
         }
+    }
+
+    #[test]
+    fn test_get_shortest_bytes() {
+        let uuid_16 = UuidHelper::from_string("0000fef3-0000-1000-8000-00805f9b34fb").unwrap();
+        assert!(matches!(
+            UuidHelper::get_shortest_bytes(&uuid_16),
+            UuidBytes::Uuid16Bit([0xfe, 0xf3])
+        ));
+
+        let uuid_32 = UuidHelper::from_string("00112233-0000-1000-8000-00805f9b34fb").unwrap();
+        assert!(matches!(
+            UuidHelper::get_shortest_bytes(&uuid_32),
+            UuidBytes::Uuid32Bit([0x00, 0x11, 0x22, 0x33])
+        ));
+
+        let uuid_128 = UuidHelper::from_string("00112233-4455-6677-8899-aabbccddeeff").unwrap();
+        let exp_bytes: Vec<u8> = (0..16).map(|d| (d << 4) + d).collect();
+        assert!(matches!(
+            UuidHelper::get_shortest_bytes(&uuid_128),
+            UuidBytes::Uuid128Bit(exp_bytes)
+        ));
     }
 }
