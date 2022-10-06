@@ -28,6 +28,7 @@
 #include "module.h"
 #include "os/handler.h"
 #include "os/log.h"
+#include "storage/storage_module.h"
 
 namespace bluetooth {
 namespace hci {
@@ -235,12 +236,14 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       hci::HciLayer* hci_layer,
       hci::Controller* controller,
       hci::AclManager* acl_manager,
-      hci::VendorSpecificEventManager* vendor_specific_event_manager) {
+      hci::VendorSpecificEventManager* vendor_specific_event_manager,
+      storage::StorageModule* storage_module) {
     module_handler_ = handler;
     hci_layer_ = hci_layer;
     controller_ = controller;
     acl_manager_ = acl_manager;
     vendor_specific_event_manager_ = vendor_specific_event_manager;
+    storage_module_ = storage_module;
     le_address_manager_ = acl_manager->GetLeAddressManager();
     le_scanning_interface_ = hci_layer_->GetLeScanningInterface(
         module_handler_->BindOn(this, &LeScanningManager::impl::handle_scan_results));
@@ -381,13 +384,6 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
           return;
       }
 
-      std::vector<uint8_t> advertising_data = {};
-      for (auto gap_data : report.advertising_data_) {
-        advertising_data.push_back((uint8_t)gap_data.size() - 1);
-        advertising_data.push_back((uint8_t)gap_data.data_type_);
-        advertising_data.insert(advertising_data.end(), gap_data.data_.begin(), gap_data.data_.end());
-      }
-
       process_advertising_package_content(
           extended_event_type,
           (uint8_t)report.address_type_,
@@ -398,7 +394,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
           kTxPowerInformationNotPresent,
           report.rssi_,
           kNotPeriodicAdvertisement,
-          advertising_data);
+          report.advertising_data_);
     }
   }
 
@@ -456,10 +452,18 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       int8_t tx_power,
       int8_t rssi,
       uint16_t periodic_advertising_interval,
-      std::vector<uint8_t> advertising_data) {
+      std::vector<bluetooth::hci::LengthAndData> advertising_data) {
     bool is_scannable = event_type & (1 << kScannableBit);
     bool is_scan_response = event_type & (1 << kScanResponseBit);
     bool is_legacy = event_type & (1 << kLegacyBit);
+
+    auto significant_data = std::vector<uint8_t>{};
+    for (const auto& datum : advertising_data) {
+      if (!datum.data_.empty()) {
+        significant_data.push_back(static_cast<uint8_t>(datum.data_.size()));
+        significant_data.insert(significant_data.end(), datum.data_.begin(), datum.data_.end());
+      }
+    }
 
     if (address_type == (uint8_t)DirectAdvertisingAddressType::NO_ADDRESS) {
       scanning_callbacks_->OnScanResult(
@@ -472,7 +476,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
           tx_power,
           rssi,
           periodic_advertising_interval,
-          advertising_data);
+          significant_data);
       return;
     } else if (address == Address::kEmpty) {
       LOG_WARN("Receive non-anonymous advertising report with empty address, skip!");
@@ -487,8 +491,8 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
     bool is_start = is_legacy && is_scannable && !is_scan_response;
 
-    std::vector<uint8_t> const& adv_data = is_start ? advertising_cache_.Set(address_with_type, advertising_data)
-                                                    : advertising_cache_.Append(address_with_type, advertising_data);
+    std::vector<uint8_t> const& adv_data = is_start ? advertising_cache_.Set(address_with_type, significant_data)
+                                                    : advertising_cache_.Append(address_with_type, significant_data);
 
     uint8_t data_status = event_type >> kDataStatusBits;
     if (data_status == (uint8_t)DataStatus::CONTINUING) {
@@ -501,6 +505,16 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       return;
     }
 
+    switch (address_type) {
+      case (uint8_t)AddressType::PUBLIC_DEVICE_ADDRESS:
+      case (uint8_t)AddressType::PUBLIC_IDENTITY_ADDRESS:
+        address_type = (uint8_t)AddressType::PUBLIC_DEVICE_ADDRESS;
+        break;
+      case (uint8_t)AddressType::RANDOM_DEVICE_ADDRESS:
+      case (uint8_t)AddressType::RANDOM_IDENTITY_ADDRESS:
+        address_type = (uint8_t)AddressType::RANDOM_DEVICE_ADDRESS;
+        break;
+    }
     scanning_callbacks_->OnScanResult(
         event_type,
         address_type,
@@ -701,6 +715,17 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
         module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
   }
 
+  bool is_bonded(Address target_address) {
+    for (auto device : storage_module_->GetBondedDevices()) {
+      if (device.GetAddress() == target_address) {
+        LOG_DEBUG("Addresses match!");
+        return true;
+      }
+    }
+    LOG_DEBUG("Addresse DON'Ts match!");
+    return false;
+  }
+
   void scan_filter_parameter_setup(
       ApcfAction action, uint8_t filter_index, AdvertisingFilterParameter advertising_filter_parameter) {
     if (!is_filter_support_) {
@@ -708,6 +733,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       return;
     }
 
+    auto entry = remove_me_later_map_.find(filter_index);
     switch (action) {
       case ApcfAction::ADD:
         le_scanning_interface_->EnqueueCommand(
@@ -730,11 +756,33 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
         le_scanning_interface_->EnqueueCommand(
             LeAdvFilterDeleteFilteringParametersBuilder::Create(filter_index),
             module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+
+        // IRK Scanning
+        if (entry != remove_me_later_map_.end()) {
+          // Don't want to remove for a bonded device
+          if (!is_bonded(entry->second.GetAddress())) {
+            le_address_manager_->RemoveDeviceFromResolvingList(
+                static_cast<PeerAddressType>(entry->second.GetAddressType()), entry->second.GetAddress());
+          }
+          remove_me_later_map_.erase(filter_index);
+        }
+
         break;
       case ApcfAction::CLEAR:
         le_scanning_interface_->EnqueueCommand(
             LeAdvFilterClearFilteringParametersBuilder::Create(),
             module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+
+        // IRK Scanning
+        if (entry != remove_me_later_map_.end()) {
+          // Don't want to remove for a bonded device
+          if (!is_bonded(entry->second.GetAddress())) {
+            le_address_manager_->RemoveDeviceFromResolvingList(
+                static_cast<PeerAddressType>(entry->second.GetAddressType()), entry->second.GetAddress());
+          }
+          remove_me_later_map_.erase(filter_index);
+        }
+
         break;
       default:
         LOG_ERROR("Unknown action type: %d", (uint16_t)action);
@@ -779,12 +827,18 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
           update_service_data_filter(apcf_action, filter_index, filter.data, filter.data_mask);
           break;
         }
+        case ApcfFilterType::AD_TYPE: {
+          update_ad_type_filter(apcf_action, filter_index, filter.ad_type, filter.data, filter.data_mask);
+          break;
+        }
         default:
           LOG_ERROR("Unknown filter type: %d", (uint16_t)filter.filter_type);
           break;
       }
     }
   }
+
+  std::unordered_map<uint8_t, AddressWithType> remove_me_later_map_;
 
   void update_address_filter(
       ApcfAction action,
@@ -813,14 +867,35 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
               action, filter_index, address, ApcfApplicationAddressType::NOT_APPLICABLE),
           module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
       if (!is_empty_128bit(irk)) {
+        // If an entry exists for this filter index, replace data because the filter has been
+        // updated.
+        auto entry = remove_me_later_map_.find(filter_index);
+        // IRK Scanning
+        if (entry != remove_me_later_map_.end()) {
+          // Don't want to remove for a bonded device
+          if (!is_bonded(entry->second.GetAddress())) {
+            le_address_manager_->RemoveDeviceFromResolvingList(
+                static_cast<PeerAddressType>(entry->second.GetAddressType()), entry->second.GetAddress());
+          }
+          remove_me_later_map_.erase(filter_index);
+        }
+
+        // Now replace it with a new one
         std::array<uint8_t, 16> empty_irk;
         le_address_manager_->AddDeviceToResolvingList(
             static_cast<PeerAddressType>(address_type), address, irk, empty_irk);
+        remove_me_later_map_.emplace(filter_index, AddressWithType(address, static_cast<AddressType>(address_type)));
       }
     } else {
       le_scanning_interface_->EnqueueCommand(
           LeAdvFilterClearBroadcasterAddressBuilder::Create(filter_index),
           module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+      auto entry = remove_me_later_map_.find(filter_index);
+      if (entry != remove_me_later_map_.end()) {
+        // TODO(optedoblivion): If not bonded
+        le_address_manager_->RemoveDeviceFromResolvingList(static_cast<PeerAddressType>(address_type), address);
+        remove_me_later_map_.erase(filter_index);
+      }
     }
   }
 
@@ -943,6 +1018,31 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
     le_scanning_interface_->EnqueueCommand(
         LeAdvFilterServiceDataBuilder::Create(action, filter_index, combined_data),
+        module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+  }
+
+  void update_ad_type_filter(
+      ApcfAction action,
+      uint8_t filter_index,
+      uint8_t ad_type,
+      std::vector<uint8_t> data,
+      std::vector<uint8_t> data_mask) {
+    if (data.size() != data_mask.size()) {
+      LOG_ERROR("ad type mask should have the same length as ad type data");
+      return;
+    }
+    std::vector<uint8_t> combined_data = {};
+    if (action != ApcfAction::CLEAR) {
+      combined_data.push_back((uint8_t)ad_type);
+      combined_data.push_back((uint8_t)(data.size()));
+      if (data.size() != 0) {
+        combined_data.insert(combined_data.end(), data.begin(), data.end());
+        combined_data.insert(combined_data.end(), data_mask.begin(), data_mask.end());
+      }
+    }
+
+    le_scanning_interface_->EnqueueCommand(
+        LeAdvFilterADTypeBuilder::Create(action, filter_index, combined_data),
         module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
   }
 
@@ -1299,6 +1399,15 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
             complete_view.GetApcfAction(),
             (uint8_t)complete_view.GetStatus());
       } break;
+      case ApcfOpcode::AD_TYPE: {
+        auto complete_view = LeAdvFilterADTypeCompleteView::Create(status_view);
+        ASSERT(complete_view.IsValid());
+        scanning_callbacks_->OnFilterConfigCallback(
+            ApcfFilterType::AD_TYPE,
+            complete_view.GetApcfAvailableSpaces(),
+            complete_view.GetApcfAction(),
+            (uint8_t)complete_view.GetStatus());
+      } break;
       default:
         LOG_WARN("Unexpected event type %s", OpCodeText(view.GetCommandOpCode()).c_str());
     }
@@ -1434,6 +1543,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
   hci::Controller* controller_;
   hci::AclManager* acl_manager_;
   hci::VendorSpecificEventManager* vendor_specific_event_manager_;
+  storage::StorageModule* storage_module_;
   hci::LeScanningInterface* le_scanning_interface_;
   hci::LeAddressManager* le_address_manager_;
   bool address_manager_registered_ = false;
@@ -1492,6 +1602,7 @@ void LeScanningManager::ListDependencies(ModuleList* list) const {
   list->add<hci::VendorSpecificEventManager>();
   list->add<hci::Controller>();
   list->add<hci::AclManager>();
+  list->add<storage::StorageModule>();
 }
 
 void LeScanningManager::Start() {
@@ -1500,7 +1611,8 @@ void LeScanningManager::Start() {
       GetDependency<hci::HciLayer>(),
       GetDependency<hci::Controller>(),
       GetDependency<AclManager>(),
-      GetDependency<VendorSpecificEventManager>());
+      GetDependency<VendorSpecificEventManager>(),
+      GetDependency<storage::StorageModule>());
 }
 
 void LeScanningManager::Stop() {

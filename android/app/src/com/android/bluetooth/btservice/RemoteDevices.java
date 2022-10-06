@@ -19,6 +19,7 @@ package com.android.bluetooth.btservice;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 
+import android.app.admin.SecurityLog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothClass;
@@ -805,6 +806,27 @@ final class RemoteDevices {
         mDualDevicesMap.put(deviceProperties.getIdentityAddress(), Utils.getAddressStringFromByte(mainAddress));
     }
 
+    /**
+     * Callback to associate an LE-only device's RPA with its identity address
+     *
+     * @param mainAddress the device's RPA
+     * @param secondaryAddress the device's identity address
+     */
+    void leAddressAssociateCallback(byte[] mainAddress, byte[] secondaryAddress) {
+        BluetoothDevice device = getDevice(mainAddress);
+        if (device == null) {
+            errorLog("leAddressAssociateCallback: device is NULL, address="
+                    + Utils.getAddressStringFromByte(mainAddress) + ", secondaryAddress="
+                    + Utils.getAddressStringFromByte(secondaryAddress));
+            return;
+        }
+        Log.d(TAG, "leAddressAssociateCallback device: " + device + ", secondaryAddress:"
+                + Utils.getAddressStringFromByte(secondaryAddress));
+
+        DeviceProperties deviceProperties = getDeviceProperties(device);
+        deviceProperties.mIdentityAddress = Utils.getAddressStringFromByte(secondaryAddress);
+    }
+
     void aclStateChangeCallback(int status, byte[] address, int newState,
                                 int transportLinkType, int hciReason) {
         BluetoothDevice device = getDevice(address);
@@ -829,6 +851,8 @@ final class RemoteDevices {
             if (batteryService != null) {
                 batteryService.connect(device);
             }
+            SecurityLog.writeEvent(SecurityLog.TAG_BLUETOOTH_CONNECTION,
+                    Utils.getLoggableAddress(device), /* success */ 1, /* reason */ "");
             debugLog(
                     "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
                             + " Connected: " + device);
@@ -862,6 +886,10 @@ final class RemoteDevices {
                     deviceProp.setBondingInitiatedLocally(false);
                 }
             }
+            SecurityLog.writeEvent(SecurityLog.TAG_BLUETOOTH_DISCONNECTION,
+                    Utils.getLoggableAddress(device),
+                    BluetoothAdapter.BluetoothConnectionCallback.disconnectReasonToString(
+                            AdapterService.hciToAndroidDisconnectReason(hciReason)));
             debugLog(
                     "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
                             + " Disconnected: " + device

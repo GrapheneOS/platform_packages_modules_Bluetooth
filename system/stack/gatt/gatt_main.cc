@@ -27,6 +27,7 @@
 #include "btif/include/btif_storage.h"
 #include "connection_manager.h"
 #include "device/include/interop.h"
+#include "internal_include/stack_config.h"
 #include "l2c_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
@@ -80,6 +81,7 @@ static const tL2CAP_APPL_INFO dyn_info = {gatt_l2cif_connect_ind_cback,
                                           gatt_l2cif_congest_cback,
                                           NULL,
                                           gatt_on_l2cap_error,
+                                          NULL,
                                           NULL,
                                           NULL,
                                           NULL};
@@ -510,7 +512,10 @@ static void gatt_le_connect_cback(uint16_t chan, const RawAddress& bd_addr,
     }
   }
 
-  EattExtension::GetInstance()->Connect(bd_addr);
+  if (stack_config_get_interface()->get_pts_connect_eatt_before_encryption()) {
+    LOG_INFO(" Start EATT before encryption ");
+    EattExtension::GetInstance()->Connect(bd_addr);
+  }
 }
 
 /** This function is called to process the congestion callback from lcb */

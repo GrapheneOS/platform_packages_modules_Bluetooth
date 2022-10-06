@@ -29,6 +29,7 @@
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "hci/include/hci_layer.h"
+#include "internal_include/stack_config.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
@@ -200,8 +201,12 @@ struct iso_impl {
     cig_callbacks_->OnCigEvent(kIsoEventCigOnRemoveCmpl, &evt);
   }
 
-  void remove_cig(uint8_t cig_id) {
-    LOG_ASSERT(IsCigKnown(cig_id)) << "No such cig: " << +cig_id;
+  void remove_cig(uint8_t cig_id, bool force) {
+    if (!force) {
+      LOG_ASSERT(IsCigKnown(cig_id)) << "No such cig: " << +cig_id;
+    } else {
+      LOG_WARN("Forcing to remove CIG %d", cig_id);
+    }
 
     btsnd_hcic_remove_cig(cig_id, base::BindOnce(&iso_impl::on_remove_cig,
                                                  base::Unretained(this)));
@@ -656,6 +661,12 @@ struct iso_impl {
   void create_big(uint8_t big_id, struct big_create_params big_params) {
     LOG_ASSERT(!IsBigKnown(big_id))
         << "Invalid big - already exists: " << +big_id;
+
+    if (stack_config_get_interface()->get_pts_unencrypt_broadcast()) {
+      LOG_INFO("Force create broadcst without encryption for PTS test");
+      big_params.enc = 0;
+      big_params.enc_code = {0};
+    }
 
     last_big_create_req_sdu_itv_ = big_params.sdu_itv;
     btsnd_hcic_create_big(

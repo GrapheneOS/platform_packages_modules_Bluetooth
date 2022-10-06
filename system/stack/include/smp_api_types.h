@@ -98,7 +98,8 @@ typedef enum : uint8_t {
   SMP_UNUSED11 = 11,
   SMP_BR_KEYS_REQ_EVT = 12, /* SMP over BR keys request event */
   SMP_UNUSED13 = 13,
-  SMP_CONSENT_REQ_EVT = 14, /* Consent request event */
+  SMP_CONSENT_REQ_EVT = 14,   /* Consent request event */
+  SMP_LE_ADDR_ASSOC_EVT = 15, /* Identity address association event */
 } tSMP_EVT;
 
 /* pairing failure reason code */
@@ -297,6 +298,7 @@ typedef union {
   tSMP_CMPL cmplt;
   tSMP_OOB_DATA_TYPE req_oob_type;
   tSMP_LOC_OOB_DATA loc_oob_data;
+  RawAddress id_addr;
 } tSMP_EVT_DATA;
 
 /* AES Encryption output */

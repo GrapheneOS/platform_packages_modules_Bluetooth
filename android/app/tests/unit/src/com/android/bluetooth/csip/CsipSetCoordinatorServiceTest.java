@@ -57,6 +57,8 @@ import org.mockito.MockitoAnnotations;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class CsipSetCoordinatorServiceTest {
+    private final String mFlagDexmarker = System.getProperty("dexmaker.share_classloader", "false");
+
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
     private Context mTargetContext;
     private BluetoothAdapter mAdapter;
@@ -73,11 +75,14 @@ public class CsipSetCoordinatorServiceTest {
     @Mock private AdapterService mAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private CsipSetCoordinatorNativeInterface mCsipSetCoordinatorNativeInterface;
-    @Mock private CsipSetCoordinatorService mCsipSetCoordinatorService;
     @Mock private IBluetoothCsipSetCoordinatorLockCallback mCsipSetCoordinatorLockCallback;
 
     @Before
     public void setUp() throws Exception {
+        if (!mFlagDexmarker.equals("true")) {
+            System.setProperty("dexmaker.share_classloader", "true");
+        }
+
         mTargetContext = InstrumentationRegistry.getTargetContext();
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -132,6 +137,18 @@ public class CsipSetCoordinatorServiceTest {
 
     @After
     public void tearDown() throws Exception {
+        if (!mFlagDexmarker.equals("true")) {
+            System.setProperty("dexmaker.share_classloader", mFlagDexmarker);
+        }
+
+        if (Looper.myLooper() == null) {
+            return;
+        }
+
+        if (mService == null) {
+            return;
+        }
+
         stopService();
         mTargetContext.unregisterReceiver(mCsipSetCoordinatorIntentReceiver);
         TestUtils.clearAdapterService(mAdapterService);
@@ -201,6 +218,20 @@ public class CsipSetCoordinatorServiceTest {
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         Assert.assertEquals("Setting device policy to POLICY_ALLOWED",
                 BluetoothProfile.CONNECTION_POLICY_ALLOWED,
+                mService.getConnectionPolicy(mTestDevice));
+    }
+
+    /**
+     * Test if getProfileConnectionPolicy works after the service is stopped.
+     */
+    @Test
+    public void testGetPolicyAfterStopped() {
+        mService.stop();
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(mTestDevice, BluetoothProfile.CSIP_SET_COORDINATOR))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        Assert.assertEquals("Initial device policy",
+                BluetoothProfile.CONNECTION_POLICY_UNKNOWN,
                 mService.getConnectionPolicy(mTestDevice));
     }
 

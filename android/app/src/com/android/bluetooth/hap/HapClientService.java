@@ -49,6 +49,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
@@ -79,6 +80,7 @@ public class HapClientService extends ProfileService {
     @VisibleForTesting
     HapClientNativeInterface mHapClientNativeInterface;
     private AdapterService mAdapterService;
+    private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
@@ -151,10 +153,12 @@ public class HapClientService extends ProfileService {
             throw new IllegalStateException("start() called twice");
         }
 
-        // Get AdapterService, HapClientNativeInterface, AudioManager.
+        // Get AdapterService, HapClientNativeInterface, DatabaseManager, AudioManager.
         // None of them can be null.
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when HapClientService starts");
+        mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
+                "DatabaseManager cannot be null when HapClientService starts");
         mHapClientNativeInterface = Objects.requireNonNull(
                 HapClientNativeInterface.getInstance(),
                 "HapClientNativeInterface cannot be null when HapClientService starts");
@@ -368,8 +372,7 @@ public class HapClientService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
-        mAdapterService.getDatabase()
-                .setProfileConnectionPolicy(device, BluetoothProfile.HAP_CLIENT,
+        mDatabaseManager.setProfileConnectionPolicy(device, BluetoothProfile.HAP_CLIENT,
                         connectionPolicy);
         if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
             connect(device);
@@ -392,8 +395,7 @@ public class HapClientService extends ProfileService {
      * @hide
      */
     public int getConnectionPolicy(BluetoothDevice device) {
-        return mAdapterService.getDatabase()
-                .getProfileConnectionPolicy(device, BluetoothProfile.HAP_CLIENT);
+        return mDatabaseManager.getProfileConnectionPolicy(device, BluetoothProfile.HAP_CLIENT);
     }
 
     /**
@@ -694,6 +696,12 @@ public class HapClientService extends ProfileService {
         BluetoothHapPresetInfo defaultValue = null;
         if (presetIndex == BluetoothHapClient.PRESET_INDEX_UNAVAILABLE) return defaultValue;
 
+        if (Utils.isPtsTestMode()) {
+            /* We want native to be called for PTS testing even we have all
+             * the data in the cache here
+             */
+            mHapClientNativeInterface.getPresetInfo(device, presetIndex);
+        }
         List<BluetoothHapPresetInfo> current_presets = mPresetsMap.get(device);
         if (current_presets != null) {
             for (BluetoothHapPresetInfo preset : current_presets) {
@@ -1201,6 +1209,8 @@ public class HapClientService extends ProfileService {
     @VisibleForTesting
     static class BluetoothHapClientBinder extends IBluetoothHapClient.Stub
             implements IProfileServiceBinder {
+        @VisibleForTesting
+        boolean mIsTesting = false;
         private HapClientService mService;
 
         BluetoothHapClientBinder(HapClientService svc) {
@@ -1208,6 +1218,9 @@ public class HapClientService extends ProfileService {
         }
 
         private HapClientService getService(AttributionSource source) {
+            if (mIsTesting) {
+                return mService;
+            }
             if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkServiceAvailable(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {

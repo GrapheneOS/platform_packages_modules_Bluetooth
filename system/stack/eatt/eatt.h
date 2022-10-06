@@ -24,6 +24,7 @@
 
 #define EATT_MIN_MTU_MPS (64)
 #define EATT_DEFAULT_MTU (256)
+#define EATT_ALL_CIDS (0xFFFF)
 
 namespace bluetooth {
 namespace eatt {
@@ -129,8 +130,10 @@ class EattExtension {
    * Disconnect all EATT channels to peer device.
    *
    * @param bd_addr peer device address
+   * @param cid remote channel id (EATT_ALL_CIDS for all)
    */
-  virtual void Disconnect(const RawAddress& bd_addr);
+  virtual void Disconnect(const RawAddress& bd_addr,
+                          uint16_t cid = EATT_ALL_CIDS);
 
   /**
    * Reconfigure EATT channel for give CID
@@ -221,7 +224,8 @@ class EattExtension {
    *
    * @return pointer to EATT channel.
    */
-  virtual EattChannel* GetChannelWithQueuedData(const RawAddress& bd_addr);
+  virtual EattChannel* GetChannelWithQueuedDataToSend(
+      const RawAddress& bd_addr);
 
   /**
    * Get EATT channel available to send GATT request.

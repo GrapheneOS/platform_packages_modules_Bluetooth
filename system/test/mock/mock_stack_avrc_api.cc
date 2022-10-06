@@ -66,6 +66,9 @@ uint16_t AVRC_OpenBrowse(uint8_t handle, uint8_t conn_role) {
   mock_function_count_map[__func__]++;
   return 0;
 }
+void AVRC_SaveControllerVersion(const RawAddress& bdaddr, uint16_t version) {
+  mock_function_count_map[__func__]++;
+}
 uint16_t AVRC_PassCmd(uint8_t handle, uint8_t label, tAVRC_MSG_PASS* p_msg) {
   mock_function_count_map[__func__]++;
   return 0;

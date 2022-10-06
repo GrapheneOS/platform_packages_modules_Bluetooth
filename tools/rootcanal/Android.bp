@@ -9,6 +9,7 @@ package {
     default_visibility: [
         "//device:__subpackages__",
         "//packages/modules/Bluetooth:__subpackages__",
+        "//tools/netsim:__subpackages__"
     ],
 }
 
@@ -35,6 +36,7 @@ cc_defaults {
     ],
     generated_headers: [
         "RootCanalGeneratedPackets_h",
+        "RootCanalBrEdrBBGeneratedPackets_h",
         "BluetoothGeneratedPackets_h",
         "libbt_init_flags_bridge_header",
     ],
@@ -51,24 +53,19 @@ cc_library_static {
     srcs: [
         "model/controller/acl_connection.cc",
         "model/controller/acl_connection_handler.cc",
+        "model/controller/controller_properties.cc",
         "model/controller/dual_mode_controller.cc",
         "model/controller/isochronous_connection_handler.cc",
         "model/controller/le_advertiser.cc",
         "model/controller/link_layer_controller.cc",
         "model/controller/sco_connection.cc",
         "model/controller/security_manager.cc",
+        "model/devices/baseband_sniffer.cc",
         "model/devices/beacon.cc",
         "model/devices/beacon_swarm.cc",
-        "model/devices/broken_adv.cc",
-        "model/devices/car_kit.cc",
-        "model/devices/classic.cc",
         "model/devices/device.cc",
-        "model/devices/device_properties.cc",
         "model/devices/hci_device.cc",
-        "model/devices/keyboard.cc",
         "model/devices/link_layer_socket_device.cc",
-        "model/devices/loopback.cc",
-        "model/devices/remote_loopback_device.cc",
         "model/devices/scripted_beacon.cc",
         "model/devices/sniffer.cc",
         "model/hci/h4_data_channel_packetizer.cc",
@@ -93,6 +90,9 @@ cc_library_static {
     export_include_dirs: [
         "include",
         ".",
+    ],
+    export_generated_headers: [
+        "BluetoothGeneratedPackets_h"
     ],
     shared_libs: [
         "liblog",
@@ -218,6 +218,20 @@ genrule {
     ],
     out: [
         "packets/link_layer_packets.h",
+    ],
+}
+
+genrule {
+    name: "RootCanalBrEdrBBGeneratedPackets_h",
+    tools: [
+        "bluetooth_packetgen",
+    ],
+    cmd: "$(location bluetooth_packetgen) --root_namespace=bredr_bb --include=packages/modules/Bluetooth/tools/rootcanal/packets --out=$(genDir) $(in)",
+    srcs: [
+        "packets/bredr_bb.pdl",
+    ],
+    out: [
+        "bredr_bb.h",
     ],
 }
 

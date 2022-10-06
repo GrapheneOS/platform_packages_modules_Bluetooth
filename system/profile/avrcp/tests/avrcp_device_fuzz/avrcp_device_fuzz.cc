@@ -54,9 +54,17 @@ class FakeA2dpInterface : public A2dpInterface {
 
 bool get_pts_avrcp_test(void) { return false; }
 
-const stack_config_t interface = {
-    nullptr, get_pts_avrcp_test, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr};
+const stack_config_t interface = {nullptr, get_pts_avrcp_test,
+                                  nullptr, nullptr,
+                                  nullptr, nullptr,
+                                  nullptr, nullptr,
+                                  nullptr, nullptr,
+                                  nullptr, nullptr,
+                                  nullptr, nullptr,
+                                  nullptr, nullptr,
+                                  nullptr, nullptr,
+                                  nullptr, nullptr,
+                                  nullptr, nullptr};
 
 void Callback(uint8_t, bool, std::unique_ptr<::bluetooth::PacketBuilder>) {}
 

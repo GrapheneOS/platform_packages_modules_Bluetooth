@@ -106,6 +106,12 @@ class AvrcpInterfaceImpl : public AvrcpInterface {
                   BT_HDR* p_pkt) override {
     return AVRC_MsgReq(handle, label, ctype, p_pkt);
   }
+
+  void SaveControllerVersion(const RawAddress& bdaddr,
+                             uint16_t version) override {
+    AVRC_SaveControllerVersion(bdaddr, version);
+  }
+
 } avrcp_interface_;
 
 class SdpInterfaceImpl : public SdpInterface {

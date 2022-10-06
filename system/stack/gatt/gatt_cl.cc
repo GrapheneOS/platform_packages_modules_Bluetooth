@@ -200,6 +200,11 @@ void gatt_act_read(tGATT_CLCB* p_clcb, uint16_t offset) {
       memcpy(&msg.read_multi, p_clcb->p_attr_buf, sizeof(tGATT_READ_MULTI));
       break;
 
+    case GATT_READ_MULTIPLE_VAR_LEN:
+      op_code = GATT_REQ_READ_MULTI_VAR;
+      memcpy(&msg.read_multi, p_clcb->p_attr_buf, sizeof(tGATT_READ_MULTI));
+      break;
+
     case GATT_READ_INC_SRV_UUID128:
       op_code = GATT_REQ_READ;
       msg.handle = p_clcb->s_handle;
@@ -1133,7 +1138,8 @@ bool gatt_cl_send_next_cmd_inq(tGATT_TCB& tcb) {
       cl_cmd_q = &tcb.cl_cmd_q;
     } else {
       EattChannel* channel =
-          EattExtension::GetInstance()->GetChannelWithQueuedData(tcb.peer_bda);
+          EattExtension::GetInstance()->GetChannelWithQueuedDataToSend(
+              tcb.peer_bda);
       cl_cmd_q = &channel->cl_cmd_q_;
     }
 

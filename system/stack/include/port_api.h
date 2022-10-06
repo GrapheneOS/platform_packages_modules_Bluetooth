@@ -191,13 +191,6 @@ extern int RFCOMM_CreateConnectionWithSecurity(uint16_t uuid, uint8_t scn,
                                                tPORT_CALLBACK* p_mgmt_cb,
                                                uint16_t sec_mask);
 
-extern void RFCOMM_ClearSecurityRecord(uint32_t scn);
-
-extern int RFCOMM_CreateConnection(uint16_t uuid, uint8_t scn, bool is_server,
-                                   uint16_t mtu, const RawAddress& bd_addr,
-                                   uint16_t* p_handle,
-                                   tPORT_CALLBACK* p_mgmt_cb);
-
 /*******************************************************************************
  *
  * Function         RFCOMM_RemoveConnection
@@ -433,5 +426,16 @@ extern uint8_t PORT_SetTraceLevel(uint8_t new_level);
  *
  ******************************************************************************/
 extern const char* PORT_GetResultString(const uint8_t result_code);
+
+/*******************************************************************************
+ *
+ * Function         PORT_GetSecurityMask
+ *
+ * Description      This function returns the security bitmask for a port.
+ *
+ * Returns          the security bitmask.
+ *
+ ******************************************************************************/
+extern int PORT_GetSecurityMask(uint16_t handle, uint16_t* sec_mask);
 
 #endif /* PORT_API_H */

@@ -37,6 +37,7 @@ enum class ConnectionState {
 enum class GroupStatus {
   INACTIVE = 0,
   ACTIVE,
+  TURNED_IDLE_DURING_CALL,
 };
 
 enum class GroupStreamStatus {
@@ -152,6 +153,9 @@ class LeAudioClientInterface {
 
   /* Set Ccid for context type */
   virtual void SetCcidInformation(int ccid, int context_type) = 0;
+
+  /* Set In call flag */
+  virtual void SetInCall(bool in_call) = 0;
 };
 
 /* Represents the broadcast source state. */
@@ -161,12 +165,6 @@ enum class BroadcastState {
   CONFIGURED,
   STOPPING,
   STREAMING,
-};
-
-/* A general hint for the codec configuration process. */
-enum class BroadcastAudioProfile {
-  SONIFICATION = 0,
-  MEDIA,
 };
 
 using BroadcastId = uint32_t;
@@ -259,7 +257,6 @@ class LeAudioBroadcasterInterface {
   virtual void Cleanup(void) = 0;
   /* Create Broadcast instance */
   virtual void CreateBroadcast(std::vector<uint8_t> metadata,
-                               BroadcastAudioProfile profile,
                                std::optional<BroadcastCode> broadcast_code) = 0;
   /* Update the ongoing Broadcast metadata */
   virtual void UpdateMetadata(uint32_t broadcast_id,

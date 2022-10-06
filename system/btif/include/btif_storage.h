@@ -171,15 +171,17 @@ bt_status_t btif_storage_remove_bonded_device(const RawAddress* remote_bd_addr);
 
 /*******************************************************************************
  *
- * Function         btif_storage_load_consolidate_devices
+ * Function         btif_storage_load_le_devices
  *
- * Description      BTIF storage API - Load the consolidate devices from NVRAM
- *                  Additionally, this API also invokes the adaper_properties_cb
- *                  and invoke_address_consolidate_cb for each of the
- *                  consolidate devices.
+ * Description      BTIF storage API - Loads all LE-only and Dual Mode devices
+ *                  from NVRAM. This API invokes the adaper_properties_cb.
+ *                  It also invokes invoke_address_consolidate_cb
+ *                  to consolidate each Dual Mode device and
+ *                  invoke_le_address_associate_cb to associate each LE-only
+ *                  device between its RPA and identity address.
  *
  ******************************************************************************/
-void btif_storage_load_consolidate_devices(void);
+void btif_storage_load_le_devices(void);
 
 /*******************************************************************************
  *
@@ -282,6 +284,25 @@ bool btif_storage_get_hearing_aid_prop(
 /** Store Le Audio device autoconnect flag */
 void btif_storage_set_leaudio_autoconnect(const RawAddress& addr,
                                           bool autoconnect);
+
+/** Store PACs information */
+void btif_storage_leaudio_update_pacs_bin(const RawAddress& addr);
+
+/** Store ASEs information */
+void btif_storage_leaudio_update_ase_bin(const RawAddress& addr);
+
+/** Store Handles information */
+void btif_storage_leaudio_update_handles_bin(const RawAddress& addr);
+
+/** Store Le Audio device audio locations */
+void btif_storage_set_leaudio_audio_location(const RawAddress& addr,
+                                             uint32_t sink_location,
+                                             uint32_t source_location);
+
+/** Store Le Audio device context types */
+void btif_storage_set_leaudio_supported_context_types(
+    const RawAddress& addr, uint16_t sink_supported_context_type,
+    uint16_t source_supported_context_type);
 
 /** Remove Le Audio device from the storage */
 void btif_storage_remove_leaudio(const RawAddress& address);

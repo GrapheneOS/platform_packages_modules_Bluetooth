@@ -42,13 +42,34 @@
             android:text="Program Info:" />
 
         <EditText
-            android:id="@+id/broadcast_meta_input"
+            android:id="@+id/broadcast_program_info_input"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="2"
             android:ems="10"
             android:gravity="start|top"
             android:inputType="text|textAutoCorrect" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView26"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Context type:" />
+
+        <NumberPicker
+            android:id="@+id/context_picker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|bottom"
+            android:orientation="horizontal"
+            max="11"
+            min="1" />
     </LinearLayout>
 
 </LinearLayout>

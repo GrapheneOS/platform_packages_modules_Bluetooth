@@ -20,6 +20,7 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Debug
 import android.util.Log
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.runner.MonitoringInstrumentation
 
@@ -46,9 +47,14 @@ class Main : MonitoringInstrumentation() {
     super.onStart()
 
     val context: Context = getApplicationContext()
+    val uiAutomation = InstrumentationRegistry.getInstrumentation().getUiAutomation()
+    // Adopt all the permissions of the shell
+    uiAutomation.adoptShellPermissionIdentity()
 
     while (true) {
-      Server(context).awaitTermination()
+      val server = Server(context)
+      server.awaitTermination()
+      server.deinit()
     }
   }
 }

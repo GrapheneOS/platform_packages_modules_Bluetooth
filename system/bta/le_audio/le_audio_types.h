@@ -68,6 +68,9 @@ static const bluetooth::Uuid kPublishedAudioCapabilityServiceUuid =
 static const bluetooth::Uuid kAudioStreamControlServiceUuid =
     bluetooth::Uuid::From16Bit(0x184E);
 
+static const bluetooth::Uuid kTelephonyMediaAudioServiceUuid =
+    bluetooth::Uuid::From16Bit(0x1855);
+
 /* Published Audio Capabilities Service Characteristics */
 static const bluetooth::Uuid kSinkPublishedAudioCapabilityCharacteristicUuid =
     bluetooth::Uuid::From16Bit(0x2BC9);
@@ -92,6 +95,10 @@ static const bluetooth::Uuid kSourceAudioStreamEndpointUuid =
 static const bluetooth::Uuid
     kAudioStreamEndpointControlPointCharacteristicUuid =
         bluetooth::Uuid::From16Bit(0x2BC6);
+
+/* Telephony and Media Audio Service Characteristics */
+static const bluetooth::Uuid kTelephonyMediaAudioProfileRoleCharacteristicUuid =
+    bluetooth::Uuid::From16Bit(0x2B51);
 }  // namespace uuid
 
 namespace codec_spec_conf {
@@ -304,7 +311,7 @@ constexpr uint16_t kMaxTransportLatencyMin = 0x0005;
 constexpr uint16_t kMaxTransportLatencyMax = 0x0FA0;
 
 /* Enums */
-enum class CigState : uint8_t { NONE, CREATING, CREATED, REMOVING };
+enum class CigState : uint8_t { NONE, CREATING, CREATED, REMOVING, RECOVERING };
 
 /* ASE states according to BAP defined state machine states */
 enum class AseState : uint8_t {
@@ -324,6 +331,19 @@ enum class AudioStreamDataPathState {
   CIS_PENDING,
   CIS_ESTABLISHED,
   DATA_PATH_ESTABLISHED,
+};
+
+enum class CisType {
+  CIS_TYPE_BIDIRECTIONAL,
+  CIS_TYPE_UNIDIRECTIONAL_SINK,
+  CIS_TYPE_UNIDIRECTIONAL_SOURCE,
+};
+
+struct cis {
+  uint8_t id;
+  CisType type;
+  uint16_t conn_handle;
+  RawAddress addr;
 };
 
 enum class CodecLocation {
@@ -391,6 +411,10 @@ class LeAudioLtvMap {
       : values(std::move(values)) {}
 
   std::optional<std::vector<uint8_t>> Find(uint8_t type) const;
+  void Add(uint8_t type, std::vector<uint8_t> value) {
+    values.insert_or_assign(type, std::move(value));
+  }
+  void Remove(uint8_t type) { values.erase(type); }
   bool IsEmpty() const { return values.empty(); }
   void Clear() { values.clear(); }
   size_t Size() const { return values.size(); }
@@ -510,15 +534,17 @@ struct hdl_pair {
 struct ase {
   static constexpr uint8_t kAseIdInvalid = 0x00;
 
-  ase(uint16_t val_hdl, uint16_t ccc_hdl, uint8_t direction)
+  ase(uint16_t val_hdl, uint16_t ccc_hdl, uint8_t direction,
+      uint8_t initial_id = kAseIdInvalid)
       : hdls(val_hdl, ccc_hdl),
-        id(kAseIdInvalid),
+        id(initial_id),
         cis_id(kInvalidCisId),
         direction(direction),
         target_latency(types::kTargetLatencyBalancedLatencyReliability),
         active(false),
         reconfigure(false),
         data_path_state(AudioStreamDataPathState::IDLE),
+        configured_for_context_type(LeAudioContextType::UNINITIALIZED),
         preferred_phy(0),
         state(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {}
 
@@ -532,6 +558,7 @@ struct ase {
   bool active;
   bool reconfigure;
   AudioStreamDataPathState data_path_state;
+  LeAudioContextType configured_for_context_type;
 
   /* Codec configuration */
   LeAudioCodecId codec_id;
@@ -572,6 +599,7 @@ using AudioContexts = std::bitset<16>;
 std::ostream& operator<<(std::ostream& os, const AseState& state);
 std::ostream& operator<<(std::ostream& os, const CigState& state);
 std::ostream& operator<<(std::ostream& os, const LeAudioLc3Config& config);
+std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context);
 }  // namespace types
 
 namespace set_configurations {
@@ -640,6 +668,11 @@ static constexpr uint32_t kChannelAllocationStereo =
     codec_spec_conf::kLeAudioLocationFrontRight;
 
 /* Declarations */
+void get_cis_count(const AudioSetConfigurations* audio_set_configurations,
+                   types::LeAudioConfigurationStrategy strategy,
+                   int group_ase_snk_cnt, int group_ase_src_count,
+                   uint8_t* cis_count_bidir, uint8_t* cis_count_unidir_sink,
+                   uint8_t* cis_count_unidir_source);
 bool check_if_may_cover_scenario(
     const AudioSetConfigurations* audio_set_configurations, uint8_t group_size);
 bool check_if_may_cover_scenario(
@@ -671,6 +704,14 @@ struct stream_configuration {
   int sink_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> sink_streams;
+  /* cis_handle, target allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      sink_offloader_streams_target_allocation;
+  /* cis_handle, current allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      sink_offloader_streams_current_allocation;
+  bool sink_offloader_changed;
+  bool sink_is_initial;
 
   /* Source configuration */
   /* For now we have always same frequency for all the channels */
@@ -684,11 +725,20 @@ struct stream_configuration {
   int source_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> source_streams;
+  /* cis_handle, target allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      source_offloader_streams_target_allocation;
+  /* cis_handle, current allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      source_offloader_streams_current_allocation;
+  bool source_offloader_changed;
+  bool source_is_initial;
 };
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
-                                       int ccid);
+                                       const std::vector<uint8_t>& ccid_list);
 void AppendMetadataLtvEntryForStreamingContext(
-    std::vector<uint8_t>& metadata, types::LeAudioContextType context_type);
+    std::vector<uint8_t>& metadata, types::AudioContexts context_type);
 uint8_t GetMaxCodecFramesPerSduFromPac(const types::acs_ac_record* pac_record);
+uint32_t AdjustAllocationForOffloader(uint32_t allocation);
 }  // namespace le_audio

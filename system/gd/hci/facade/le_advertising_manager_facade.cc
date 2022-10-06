@@ -109,7 +109,7 @@ bool AdvertisingConfigFromProto(const AdvertisingConfig& config_proto, hci::Exte
       config->connectable = true;
       config->scannable = true;
     } break;
-    case AdvertisingType::ADV_DIRECT_IND: {
+    case AdvertisingType::ADV_DIRECT_IND_HIGH: {
       config->connectable = true;
       config->directed = true;
       config->high_duty_directed_connectable = true;

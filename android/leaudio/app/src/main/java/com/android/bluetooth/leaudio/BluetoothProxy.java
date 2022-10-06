@@ -88,7 +88,7 @@ public class BluetoothProxy {
                                                 .equals(groupId))
                                 .collect(Collectors.toList());
             for (LeAudioDeviceStateWrapper dev : valid_devices) {
-                dev.leAudioData.groupStatusMutable.setValue(
+                dev.leAudioData.groupStatusMutable.postValue(
                         new Pair<>(groupId, new Pair<>(groupStatus, 0)));
             }
         }
@@ -112,8 +112,8 @@ public class BluetoothProxy {
             LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
             LeAudioDeviceStateWrapper.LeAudioData svc_data = valid_device.leAudioData;
 
-            svc_data.nodeStatusMutable.setValue(new Pair<>(groupId, GROUP_NODE_ADDED));
-            svc_data.groupStatusMutable.setValue(new Pair<>(groupId, new Pair<>(-1, -1)));
+            svc_data.nodeStatusMutable.postValue(new Pair<>(groupId, GROUP_NODE_ADDED));
+            svc_data.groupStatusMutable.postValue(new Pair<>(groupId, new Pair<>(-1, -1)));
         }
         @Override
         public void onGroupNodeRemoved(BluetoothDevice device, int groupId) {
@@ -141,8 +141,8 @@ public class BluetoothProxy {
             LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
             LeAudioDeviceStateWrapper.LeAudioData svc_data = valid_device.leAudioData;
 
-            svc_data.nodeStatusMutable.setValue(new Pair<>(groupId, GROUP_NODE_REMOVED));
-            svc_data.groupStatusMutable.setValue(new Pair<>(groupId, new Pair<>(-1, -1)));
+            svc_data.nodeStatusMutable.postValue(new Pair<>(groupId, GROUP_NODE_REMOVED));
+            svc_data.groupStatusMutable.postValue(new Pair<>(groupId, new Pair<>(-1, -1)));
         }
     };
 
@@ -155,9 +155,9 @@ public class BluetoothProxy {
                 int toState =
                         intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 if (toState == BluetoothAdapter.STATE_ON) {
-                    enabledBluetoothMutable.setValue(true);
+                    enabledBluetoothMutable.postValue(true);
                 } else if (toState == BluetoothAdapter.STATE_OFF) {
-                    enabledBluetoothMutable.setValue(false);
+                    enabledBluetoothMutable.postValue(false);
                 }
             }
         }
@@ -192,10 +192,10 @@ public class BluetoothProxy {
                                             .postValue(toState == BluetoothLeAudio.STATE_CONNECTED);
 
                                 group_id = bluetoothLeAudio.getGroupId(device);
-                                svc_data.nodeStatusMutable.setValue(
+                                svc_data.nodeStatusMutable.postValue(
                                         new Pair<>(group_id, GROUP_NODE_ADDED));
                                 svc_data.groupStatusMutable
-                                        .setValue(new Pair<>(group_id, new Pair<>(-1, -1)));
+                                        .postValue(new Pair<>(group_id, new Pair<>(-1, -1)));
                                 break;
                             }
                         }
@@ -416,10 +416,6 @@ public class BluetoothProxy {
                 LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
                 LeAudioDeviceStateWrapper.BassData svc_data = valid_device.bassData;
 
-                // TODO: Is the receiver_id same with BluetoothLeBroadcastReceiveState.getSourceId()?
-                //       If not, find getSourceId() usages and fix the issues.
-//                rstate.receiver_id = intent.getIntExtra(
-//                        BluetoothBroadcastAudioScan.EXTRA_BASS_RECEIVER_ID, -1);
                 /**
                  * From "Introducing-Bluetooth-LE-Audio-book" 8.6.3.1:
                  *
@@ -435,8 +431,6 @@ public class BluetoothProxy {
                  */
 
                 /**
-                 * From BluetoothBroadcastAudioScan.EXTRA_BASS_RECEIVER_ID:
-                 *
                  * Broadcast receiver's endpoint identifier.
                  */
                 synchronized(this) {
@@ -669,18 +663,30 @@ public class BluetoothProxy {
                         break;
                     case BluetoothProfile.HAP_CLIENT:
                         bluetoothHapClient = (BluetoothHapClient) bluetoothProfile;
-                        bluetoothHapClient.registerCallback(mExecutor, hapCallback);
+                        try {
+                            bluetoothHapClient.registerCallback(mExecutor, hapCallback);
+                        } catch (IllegalArgumentException e) {
+                            Log.e("HAP", "Application callback already registered.");
+                        }
                         break;
                     case BluetoothProfile.LE_AUDIO_BROADCAST:
                         mBluetoothLeBroadcast = (BluetoothLeBroadcast) bluetoothProfile;
-                        mBluetoothLeBroadcast.registerCallback(mExecutor, mBroadcasterCallback);
+                        try {
+                            mBluetoothLeBroadcast.registerCallback(mExecutor, mBroadcasterCallback);
+                        } catch (IllegalArgumentException e) {
+                            Log.e("Broadcast", "Application callback already registered.");
+                        }
                         break;
                     case BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT:
                         Log.d("BluetoothProxy", "LE_AUDIO_BROADCAST_ASSISTANT Service connected");
                         mBluetoothLeBroadcastAssistant = (BluetoothLeBroadcastAssistant)
                                 bluetoothProfile;
-                        mBluetoothLeBroadcastAssistant.registerCallback(mExecutor,
+                        try {
+                            mBluetoothLeBroadcastAssistant.registerCallback(mExecutor,
                                 mBroadcastAssistantCallback);
+                        } catch (IllegalArgumentException e) {
+                            Log.e("BASS", "Application callback already registered.");
+                        }
                         break;
                 }
                 queryLeAudioDevices();
@@ -973,7 +979,7 @@ public class BluetoothProxy {
 
         try {
             Method groupAddNodeMethod = BluetoothLeAudio.class.getDeclaredMethod("groupAddNode",
-                    Integer.class, BluetoothDevice.class);
+                    int.class, BluetoothDevice.class);
             groupAddNodeMethod.setAccessible(true);
             groupAddNodeMethod.invoke(bluetoothLeAudio, group_id, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -986,7 +992,7 @@ public class BluetoothProxy {
 
         try {
             Method groupRemoveNodeMethod = BluetoothLeAudio.class
-                    .getDeclaredMethod("groupRemoveNode", Integer.class, BluetoothDevice.class);
+                    .getDeclaredMethod("groupRemoveNode", int.class, BluetoothDevice.class);
             groupRemoveNodeMethod.setAccessible(true);
             groupRemoveNodeMethod.invoke(bluetoothLeAudio, group_id, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -999,7 +1005,10 @@ public class BluetoothProxy {
 
         Log.d("Lock", "lock: " + lock);
         if (lock) {
-            if (mGroupLocks.containsKey(group_id)) return;
+            if (mGroupLocks.containsKey(group_id)) {
+                Log.e("Lock", "group" + group_id + " is already in locking process or locked: " + lock);
+                return;
+            }
 
             UUID uuid = bluetoothCsis.lockGroup(group_id, mExecutor,
                     (int group, int op_status, boolean is_locked) -> {
@@ -1121,8 +1130,10 @@ public class BluetoothProxy {
     }
 
     public void setVolume(BluetoothDevice device, int volume) {
-        if (bluetoothLeAudio != null) {
+        if (bluetoothLeAudio != null && !bluetoothLeAudio.getConnectedDevices().isEmpty()) {
             bluetoothLeAudio.setVolume(volume);
+        } else if (bluetoothVolumeControl != null) {
+            bluetoothVolumeControl.setVolumeOffset(device, volume);
         }
     }
 
@@ -1155,7 +1166,7 @@ public class BluetoothProxy {
         // Use hidden API
         try {
             Method getPresetInfoMethod = BluetoothHapClient.class.getDeclaredMethod("getPresetInfo",
-                    BluetoothDevice.class, Integer.class);
+                    BluetoothDevice.class, int.class);
             getPresetInfoMethod.setAccessible(true);
 
             new_preset = (BluetoothHapPresetInfo) getPresetInfoMethod.invoke(bluetoothHapClient,
@@ -1202,6 +1213,15 @@ public class BluetoothProxy {
         return true;
     }
 
+    public boolean hapSetActivePresetForGroup(BluetoothDevice device, int preset_index) {
+        if (bluetoothHapClient == null)
+            return false;
+
+        int groupId = bluetoothLeAudio.getGroupId(device);
+        bluetoothHapClient.selectPresetForGroup(groupId, preset_index);
+        return true;
+    }
+
     public boolean hapChangePresetName(BluetoothDevice device, int preset_index, String name) {
         if (bluetoothHapClient == null)
             return false;
@@ -1222,7 +1242,7 @@ public class BluetoothProxy {
 
             switchToPreviousPresetMethod.invoke(bluetoothHapClient, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1239,7 +1259,7 @@ public class BluetoothProxy {
 
             switchToNextPresetMethod.invoke(bluetoothHapClient, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1251,12 +1271,12 @@ public class BluetoothProxy {
         // Use hidden API
         try {
             Method switchToPreviousPresetForGroupMethod = BluetoothHapClient.class
-                    .getDeclaredMethod("switchToPreviousPresetForGroup", Integer.class);
+                    .getDeclaredMethod("switchToPreviousPresetForGroup", int.class);
             switchToPreviousPresetForGroupMethod.setAccessible(true);
 
             switchToPreviousPresetForGroupMethod.invoke(bluetoothHapClient, group_id);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1268,12 +1288,12 @@ public class BluetoothProxy {
         // Use hidden API
         try {
             Method switchToNextPresetForGroupMethod = BluetoothHapClient.class
-                    .getDeclaredMethod("switchToNextPresetForGroup", Integer.class);
+                    .getDeclaredMethod("switchToNextPresetForGroup", int.class);
             switchToNextPresetForGroupMethod.setAccessible(true);
 
             switchToNextPresetForGroupMethod.invoke(bluetoothHapClient, group_id);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1335,16 +1355,10 @@ public class BluetoothProxy {
         return mBroadcastStatusMutableLive;
     }
 
-    public boolean startBroadcast(String programInfo, byte[] code) {
+    public boolean startBroadcast(BluetoothLeAudioContentMetadata meta, byte[] code) {
         if (mBluetoothLeBroadcast == null)
             return false;
-
-        BluetoothLeAudioContentMetadata.Builder contentBuilder =
-                new BluetoothLeAudioContentMetadata.Builder();
-        if (!programInfo.isEmpty()) {
-            contentBuilder.setProgramInfo(programInfo);
-        }
-        mBluetoothLeBroadcast.startBroadcast(contentBuilder.build(), code);
+        mBluetoothLeBroadcast.startBroadcast(meta, code);
         return true;
     }
 

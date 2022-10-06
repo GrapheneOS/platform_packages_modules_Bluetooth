@@ -138,10 +138,12 @@ class CsisClientImpl : public CsisClient {
   std::shared_ptr<bluetooth::csis::CsisGroup> AssignCsisGroup(
       const RawAddress& address, int group_id,
       bool create_group_if_non_existing, const bluetooth::Uuid& uuid) {
+    LOG_DEBUG("Device: %s, group_id: %d", address.ToString().c_str(), group_id);
     auto csis_group = FindCsisGroup(group_id);
     if (!csis_group) {
       if (create_group_if_non_existing) {
         /* Let's create a group */
+        LOG(INFO) << __func__ << ": Create a new group";
         auto g = std::make_shared<CsisGroup>(group_id, uuid);
         csis_groups_.push_back(g);
         csis_group = FindCsisGroup(group_id);
@@ -290,14 +292,14 @@ class CsisClientImpl : public CsisClient {
     csis_group->SetTargetLockState(CsisLockState::CSIS_STATE_UNSET);
 
     int group_id = csis_group->GetGroupId();
-    CsisLockState current_lock_state = csis_group->GetCurrentLockState();
     /* Send unlock to previous devices. It shall be done in reverse order. */
     auto prev_dev = csis_group->GetPrevDevice(csis_device);
     while (prev_dev) {
       if (prev_dev->IsConnected()) {
         auto prev_csis_instance = prev_dev->GetCsisInstanceByGroupId(group_id);
         LOG_ASSERT(prev_csis_instance) << " prev_csis_instance does not exist!";
-        SetLock(prev_dev, prev_csis_instance, current_lock_state);
+        SetLock(prev_dev, prev_csis_instance,
+                CsisLockState::CSIS_STATE_UNLOCKED);
       }
       prev_dev = csis_group->GetPrevDevice(prev_dev);
     }
@@ -321,6 +323,10 @@ class CsisClientImpl : public CsisClient {
     }
 
     CsisLockState target_lock_state = csis_group->GetTargetLockState();
+
+    LOG_DEBUG("Device %s, target lock: %d, status: 0x%02x",
+              device->addr.ToString().c_str(), (int)target_lock_state,
+              (int)status);
     if (target_lock_state == CsisLockState::CSIS_STATE_UNSET) return;
 
     if (status != GATT_SUCCESS &&
@@ -370,14 +376,16 @@ class CsisClientImpl : public CsisClient {
       if (next_dev) {
         auto next_csis_inst = next_dev->GetCsisInstanceByGroupId(group_id);
         LOG_ASSERT(csis_instance) << " csis_instance does not exist!";
+#if CSIP_UPPER_TESTER_FORCE_TO_SEND_LOCK == FALSE
         if (next_csis_inst->GetLockState() ==
             CsisLockState::CSIS_STATE_LOCKED) {
           /* Somebody else managed to lock it.
            * Unlock previous devices
            */
-          HandleCsisLockProcedureError(csis_group, device);
+          HandleCsisLockProcedureError(csis_group, next_dev);
           return;
         }
+#endif
         SetLock(next_dev, next_csis_inst, CsisLockState::CSIS_STATE_LOCKED);
       }
     }
@@ -473,6 +481,7 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
+#if CSIP_UPPER_TESTER_FORCE_TO_SEND_LOCK == FALSE
     if (lock && !csis_group->IsAvailableForCsisLockOperation()) {
       DLOG(INFO) << __func__ << " Group " << group_id << " locked by other";
       NotifyGroupStatus(group_id, false,
@@ -480,6 +489,7 @@ class CsisClientImpl : public CsisClient {
                         std::move(cb));
       return;
     }
+#endif
 
     csis_group->SetTargetLockState(new_lock_state, std::move(cb));
 
@@ -489,6 +499,10 @@ class CsisClientImpl : public CsisClient {
        * can revert lock previously locked devices as per specification.
        */
       auto csis_device = csis_group->GetFirstDevice();
+      while (!csis_device->IsConnected()) {
+        csis_device = csis_group->GetNextDevice(csis_device);
+      }
+
       auto csis_instance = csis_device->GetCsisInstanceByGroupId(group_id);
       LOG_ASSERT(csis_instance) << " csis_instance does not exist!";
       SetLock(csis_device, csis_instance, new_lock_state);
@@ -675,7 +689,9 @@ class CsisClientImpl : public CsisClient {
         if (!instance) {
           stream << "          No csis instance available\n";
         } else {
-          stream << "          rank: " << instance->GetRank() << "\n";
+          stream << "          service handle: "
+                 << loghex(instance->svc_data.start_handle)
+                 << "          rank: " << +instance->GetRank() << "\n";
         }
 
         if (!device->IsConnected()) {
@@ -1208,7 +1224,7 @@ class CsisClientImpl : public CsisClient {
 
     auto csis_device = FindDeviceByAddress(result->bd_addr);
     if (csis_device) {
-      DLOG(INFO) << __func__ << " Drop same device .." << result->bd_addr;
+      LOG_DEBUG("Drop known device %s", result->bd_addr.ToString().c_str());
       return;
     }
 
@@ -1219,8 +1235,15 @@ class CsisClientImpl : public CsisClient {
     for (auto& group : csis_groups_) {
       for (auto& rsi : all_rsi) {
         if (group->IsRsiMatching(rsi)) {
-          DLOG(INFO) << " Found set member in background scan "
-                     << result->bd_addr;
+          LOG_INFO("Device %s match to group id %d",
+                   result->bd_addr.ToString().c_str(), group->GetGroupId());
+          if (group->GetDesiredSize() > 0 &&
+              (group->GetCurrentSize() == group->GetDesiredSize())) {
+            LOG_WARN(
+                "Group is already completed. Some other device use same SIRK");
+            break;
+          }
+
           callbacks_->OnSetMemberAvailable(result->bd_addr,
                                            group->GetGroupId());
           break;
@@ -1340,11 +1363,6 @@ class CsisClientImpl : public CsisClient {
         group_id =
             dev_groups_->AddDevice(device->addr, csis_instance->GetUuid());
         LOG_ASSERT(group_id != -1);
-
-        /* Create new group */
-        auto g =
-            std::make_shared<CsisGroup>(group_id, csis_instance->GetUuid());
-        csis_groups_.push_back(g);
       } else {
         dev_groups_->AddDevice(device->addr, csis_instance->GetUuid(),
                                group_id);

@@ -28,7 +28,6 @@
 
 using base::Bind;
 using base::Unretained;
-using bluetooth::le_audio::BroadcastAudioProfile;
 using bluetooth::le_audio::BroadcastId;
 using bluetooth::le_audio::BroadcastState;
 using bluetooth::le_audio::LeAudioBroadcasterCallbacks;
@@ -52,15 +51,12 @@ class LeAudioBroadcasterInterfaceImpl : public LeAudioBroadcasterInterface,
   }
 
   void CreateBroadcast(
-      std::vector<uint8_t> metadata, BroadcastAudioProfile profile,
+      std::vector<uint8_t> metadata,
       std::optional<std::array<uint8_t, 16>> broadcast_code) override {
     DVLOG(2) << __func__;
-    do_in_main_thread(
-        FROM_HERE,
-        Bind(&LeAudioBroadcaster::CreateAudioBroadcast,
-             Unretained(LeAudioBroadcaster::Get()), std::move(metadata),
-             static_cast<LeAudioBroadcaster::AudioProfile>(profile),
-             broadcast_code));
+    do_in_main_thread(FROM_HERE, Bind(&LeAudioBroadcaster::CreateAudioBroadcast,
+                                      Unretained(LeAudioBroadcaster::Get()),
+                                      std::move(metadata), broadcast_code));
   }
 
   void UpdateMetadata(uint32_t broadcast_id,

@@ -75,6 +75,7 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AbstractionLayer;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.BluetoothAdapterProxy;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.util.NumberUtils;
 import com.android.internal.annotations.VisibleForTesting;
@@ -262,6 +263,7 @@ public class GattService extends ProfileService {
     private final HashMap<String, AtomicBoolean> mPermits = new HashMap<>();
 
     private AdapterService mAdapterService;
+    private BluetoothAdapterProxy mBluetoothAdapterProxy;
     private AdvertiseManager mAdvertiseManager;
     private PeriodicScanManager mPeriodicScanManager;
     private ScanManager mScanManager;
@@ -319,12 +321,13 @@ public class GattService extends ProfileService {
 
         initializeNative();
         mAdapterService = AdapterService.getAdapterService();
+        mBluetoothAdapterProxy = BluetoothAdapterProxy.getInstance();
         mCompanionManager = getSystemService(CompanionDeviceManager.class);
         mAppOps = getSystemService(AppOpsManager.class);
         mAdvertiseManager = new AdvertiseManager(this, mAdapterService);
         mAdvertiseManager.start();
 
-        mScanManager = new ScanManager(this, mAdapterService);
+        mScanManager = new ScanManager(this, mAdapterService, mBluetoothAdapterProxy);
         mScanManager.start();
 
         mPeriodicScanManager = new PeriodicScanManager(mAdapterService);
@@ -424,6 +427,15 @@ public class GattService extends ProfileService {
             return null;
         }
         return sGattService;
+    }
+
+    @VisibleForTesting
+    ScanManager getScanManager() {
+        if (mScanManager == null) {
+            Log.w(TAG, "getScanManager(): scan manager is null");
+            return null;
+        }
+        return mScanManager;
     }
 
     private static synchronized void setGattService(GattService instance) {

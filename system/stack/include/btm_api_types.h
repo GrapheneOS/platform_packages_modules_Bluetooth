@@ -283,6 +283,7 @@ inline std::string security_mode_text(const tSECURITY_MODE& security_mode) {
   }
 }
 
+/* BTM_SEC security masks */
 enum : uint16_t {
   /* Nothing required */
   BTM_SEC_NONE = 0x0000,
@@ -602,6 +603,8 @@ typedef void(tBTM_BOND_CANCEL_CMPL_CALLBACK)(tBTM_STATUS result);
 /* KEY update event */
 #define BTM_LE_KEY_EVT (BTM_LE_LAST_FROM_SMP + 1)
 #define BTM_LE_CONSENT_REQ_EVT SMP_CONSENT_REQ_EVT
+/* Identity address associate event */
+#define BTM_LE_ADDR_ASSOC_EVT SMP_LE_ADDR_ASSOC_EVT
 typedef uint8_t tBTM_LE_EVT;
 
 enum : uint8_t {

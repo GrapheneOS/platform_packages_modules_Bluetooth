@@ -25,7 +25,6 @@
 #include "com_android_bluetooth.h"
 #include "hardware/bt_le_audio.h"
 
-using bluetooth::le_audio::BroadcastAudioProfile;
 using bluetooth::le_audio::BroadcastId;
 using bluetooth::le_audio::BroadcastState;
 using bluetooth::le_audio::btle_audio_codec_config_t;
@@ -533,6 +532,16 @@ static void setCcidInformationNative(JNIEnv* env, jobject object, jint ccid,
   sLeAudioClientInterface->SetCcidInformation(ccid, contextType);
 }
 
+static void setInCallNative(JNIEnv* env, jobject object, jboolean inCall) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
+  if (!sLeAudioClientInterface) {
+    LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
+    return;
+  }
+
+  sLeAudioClientInterface->SetInCall(inCall);
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "([Landroid/bluetooth/BluetoothLeAudioCodecConfig;)V",
@@ -548,6 +557,7 @@ static JNINativeMethod sMethods[] = {
      "BluetoothLeAudioCodecConfig;)V",
      (void*)setCodecConfigPreferenceNative},
     {"setCcidInformationNative", "(II)V", (void*)setCcidInformationNative},
+    {"setInCallNative", "(Z)V", (void*)setInCallNative},
 };
 
 /* Le Audio Broadcaster */
@@ -595,7 +605,7 @@ jbyteArray prepareRawLtvArray(
                             (const jbyte*)&kv_pair.first);
     offset += 1;
     // Value
-    env->SetByteArrayRegion(raw_metadata, offset, 1,
+    env->SetByteArrayRegion(raw_metadata, offset, kv_pair.second.size(),
                             (const jbyte*)kv_pair.second.data());
     offset += kv_pair.second.size();
   }
@@ -829,7 +839,19 @@ jobject prepareBluetoothLeBroadcastMetadataObject(
     return nullptr;
   }
 
-  ScopedLocalRef<jbyteArray> code(env, env->NewByteArray(sizeof(RawAddress)));
+  // Skip the leading null char bytes
+  int nativeCodeSize = 16;
+  int nativeCodeLeadingZeros = 0;
+  if (broadcast_metadata.broadcast_code) {
+    auto& nativeCode = broadcast_metadata.broadcast_code.value();
+    nativeCodeLeadingZeros =
+        std::find_if(nativeCode.cbegin(), nativeCode.cend(),
+                     [](int x) { return x != 0x00; }) -
+        nativeCode.cbegin();
+    nativeCodeSize = nativeCode.size() - nativeCodeLeadingZeros;
+  }
+
+  ScopedLocalRef<jbyteArray> code(env, env->NewByteArray(nativeCodeSize));
   if (!code.get()) {
     LOG(ERROR) << "Failed to create new jbyteArray for the broadcast code";
     return nullptr;
@@ -837,8 +859,10 @@ jobject prepareBluetoothLeBroadcastMetadataObject(
 
   if (broadcast_metadata.broadcast_code) {
     env->SetByteArrayRegion(
-        code.get(), 0, sizeof(RawAddress),
-        (jbyte*)broadcast_metadata.broadcast_code.value().data());
+        code.get(), 0, nativeCodeSize,
+        (const jbyte*)broadcast_metadata.broadcast_code->data() +
+            nativeCodeLeadingZeros);
+    CHECK(!env->ExceptionCheck());
   }
 
   return env->NewObject(
@@ -1125,20 +1149,29 @@ static void BroadcasterCleanupNative(JNIEnv* env, jobject object) {
 }
 
 static void CreateBroadcastNative(JNIEnv* env, jobject object,
-                                  jbyteArray metadata, jint audio_profile,
+                                  jbyteArray metadata,
                                   jbyteArray broadcast_code) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
   if (!sLeAudioBroadcasterInterface) return;
 
-  std::array<uint8_t, 16> code_array;
-  if (broadcast_code)
-    env->GetByteArrayRegion(broadcast_code, 0, 16, (jbyte*)code_array.data());
+  std::array<uint8_t, 16> code_array{0};
+  if (broadcast_code) {
+    jsize size = env->GetArrayLength(broadcast_code);
+    if (size > 16) {
+      ALOGE("%s: broadcast code to long", __func__);
+      return;
+    }
+
+    // Padding with zeros on LSB positions if code is shorter than 16 octets
+    env->GetByteArrayRegion(
+        broadcast_code, 0, size,
+        (jbyte*)code_array.data() + code_array.size() - size);
+  }
 
   jbyte* meta = env->GetByteArrayElements(metadata, nullptr);
   sLeAudioBroadcasterInterface->CreateBroadcast(
       std::vector<uint8_t>(meta, meta + env->GetArrayLength(metadata)),
-      static_cast<BroadcastAudioProfile>(audio_profile),
       broadcast_code ? std::optional<std::array<uint8_t, 16>>(code_array)
                      : std::nullopt);
   env->ReleaseByteArrayElements(metadata, meta, 0);
@@ -1198,7 +1231,7 @@ static JNINativeMethod sBroadcasterMethods[] = {
     {"initNative", "()V", (void*)BroadcasterInitNative},
     {"stopNative", "()V", (void*)BroadcasterStopNative},
     {"cleanupNative", "()V", (void*)BroadcasterCleanupNative},
-    {"createBroadcastNative", "([BI[B)V", (void*)CreateBroadcastNative},
+    {"createBroadcastNative", "([B[B)V", (void*)CreateBroadcastNative},
     {"updateMetadataNative", "(I[B)V", (void*)UpdateMetadataNative},
     {"startBroadcastNative", "(I)V", (void*)StartBroadcastNative},
     {"stopBroadcastNative", "(I)V", (void*)StopBroadcastNative},

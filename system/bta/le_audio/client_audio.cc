@@ -191,18 +191,18 @@ bool LeAudioClientAudioSource::SinkOnMetadataUpdateReq(
     return false;
   }
 
+  std::vector<struct playback_track_metadata> metadata;
+  for (size_t i = 0; i < source_metadata.track_count; i++) {
+    metadata.push_back(source_metadata.tracks[i]);
+  }
+
   // Call OnAudioSuspend and block till it returns.
-  std::promise<void> do_update_metadata_promise;
-  std::future<void> do_update_metadata_future =
-      do_update_metadata_promise.get_future();
   bt_status_t status = do_in_main_thread(
       FROM_HERE,
       base::BindOnce(&LeAudioClientAudioSinkReceiver::OnAudioMetadataUpdate,
-                     base::Unretained(audioSinkReceiver_),
-                     std::move(do_update_metadata_promise), source_metadata));
+                     base::Unretained(audioSinkReceiver_), metadata));
 
   if (status == BT_STATUS_SUCCESS) {
-    do_update_metadata_future.wait();
     return true;
   }
 
@@ -262,18 +262,17 @@ bool LeAudioUnicastClientAudioSink::SourceOnMetadataUpdateReq(
     return false;
   }
 
-  // Call OnAudioSuspend and block till it returns.
-  std::promise<void> do_update_metadata_promise;
-  std::future<void> do_update_metadata_future =
-      do_update_metadata_promise.get_future();
+  std::vector<struct record_track_metadata> metadata;
+  for (size_t i = 0; i < sink_metadata.track_count; i++) {
+    metadata.push_back(sink_metadata.tracks[i]);
+  }
+
   bt_status_t status = do_in_main_thread(
       FROM_HERE,
       base::BindOnce(&LeAudioClientAudioSourceReceiver::OnAudioMetadataUpdate,
-                     base::Unretained(audioSourceReceiver_),
-                     std::move(do_update_metadata_promise), sink_metadata));
+                     base::Unretained(audioSourceReceiver_), metadata));
 
   if (status == BT_STATUS_SUCCESS) {
-    do_update_metadata_future.wait();
     return true;
   }
 
@@ -450,6 +449,17 @@ void LeAudioClientAudioSource::SuspendedForReconfiguration() {
   sinkClientInterface_->SuspendedForReconfiguration();
 }
 
+void LeAudioClientAudioSource::ReconfigurationComplete() {
+  LOG(INFO) << __func__;
+  if ((sinkClientInterface_ == nullptr) ||
+      (le_audio_sink_hal_state != HAL_STARTED)) {
+    LOG(ERROR) << "LE audio device HAL was not started!";
+    return;
+  }
+
+  sinkClientInterface_->ReconfigurationComplete();
+}
+
 void LeAudioClientAudioSource::CancelStreamingRequest() {
   LOG(INFO) << __func__;
   if ((sinkClientInterface_ == nullptr) ||
@@ -500,6 +510,17 @@ void LeAudioClientAudioSource::UpdateAudioConfigToHal(
   }
 
   sinkClientInterface_->UpdateAudioConfigToHal(config);
+}
+
+void LeAudioClientAudioSource::UpdateBroadcastAudioConfigToHal(
+    const ::le_audio::broadcast_offload_config& config) {
+  LOG(INFO) << __func__;
+  if (sinkClientInterface_ == nullptr) {
+    LOG(ERROR) << "sinkClientInterface is not Acquired!";
+    return;
+  }
+
+  sinkClientInterface_->UpdateBroadcastAudioConfigToHal(config);
 }
 
 bool LeAudioUnicastClientAudioSink::Start(
@@ -692,4 +713,15 @@ void LeAudioUnicastClientAudioSink::SuspendedForReconfiguration() {
   }
 
   sourceClientInterface_->SuspendedForReconfiguration();
+}
+
+void LeAudioUnicastClientAudioSink::ReconfigurationComplete() {
+  LOG(INFO) << __func__;
+  if ((sourceClientInterface_ == nullptr) ||
+      (le_audio_source_hal_state != HAL_STARTED)) {
+    LOG(ERROR) << "LE audio device HAL was not started!";
+    return;
+  }
+
+  sourceClientInterface_->ReconfigurationComplete();
 }

@@ -78,6 +78,7 @@
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
+#include "gd/common/lru_cache.h"
 #include "internal_include/stack_config.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/shim.h"
@@ -164,9 +165,6 @@ typedef struct {
   bool is_le_nc; /* LE Numeric comparison */
   btif_dm_ble_cb_t ble;
   uint8_t fail_reason;
-  Uuid::UUID128Bit eir_uuids[32];
-  uint8_t num_eir_uuids;
-  std::set<Uuid::UUID128Bit> uuids;
 } btif_dm_pairing_cb_t;
 
 // TODO(jpawlowski): unify ?
@@ -213,6 +211,11 @@ typedef struct {
 #define BTA_SERVICE_ID_TO_SERVICE_MASK(id) (1 << (id))
 
 #define MAX_BTIF_BOND_EVENT_ENTRIES 15
+
+#define MAX_NUM_DEVICES_IN_EIR_UUID_CACHE 128
+
+static bluetooth::common::LruCache<RawAddress, std::set<Uuid>> eir_uuids_cache(
+    MAX_NUM_DEVICES_IN_EIR_UUID_CACHE);
 
 static skip_sdp_entry_t sdp_rejectlist[] = {{76}};  // Apple Mouse and Keyboard
 
@@ -1302,13 +1305,16 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
         /* Cache EIR queried services */
         if (num_uuids > 0) {
           uint16_t* p_uuid16 = (uint16_t*)uuid_list;
-          pairing_cb.num_eir_uuids = 0;
-          LOG_INFO("EIR UUIDS:");
+          auto uuid_iter = eir_uuids_cache.find(bdaddr);
+          if (uuid_iter == eir_uuids_cache.end()) {
+            auto triple = eir_uuids_cache.try_emplace(bdaddr, std::set<Uuid>{});
+            uuid_iter = std::get<0>(triple);
+          }
+          LOG_INFO("EIR UUIDs for %s:", bdaddr.ToString().c_str());
           for (int i = 0; i < num_uuids; ++i) {
             Uuid uuid = Uuid::From16Bit(p_uuid16[i]);
             LOG_INFO("        %s", uuid.ToString().c_str());
-            pairing_cb.eir_uuids[i] = uuid.To128BitBE();
-            pairing_cb.num_eir_uuids++;
+            uuid_iter->second.insert(uuid);
           }
         }
 
@@ -1363,6 +1369,10 @@ static void btif_get_existing_uuids(RawAddress* bd_addr, Uuid* existing_uuids) {
   btif_storage_get_remote_device_property(bd_addr, &tmp_prop);
 }
 
+static bool btif_should_ignore_uuid(const Uuid& uuid) {
+  return uuid.IsEmpty() || uuid.IsBase();
+}
+
 /*******************************************************************************
  *
  * Function         btif_dm_search_services_evt
@@ -1405,7 +1415,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         LOG_INFO("New UUIDs for %s:", bd_addr.ToString().c_str());
         for (i = 0; i < p_data->disc_res.num_uuids; i++) {
           auto uuid = p_data->disc_res.p_uuid_list + i;
-          if (uuid->IsEmpty()) {
+          if (btif_should_ignore_uuid(*uuid)) {
             continue;
           }
           LOG_INFO("index:%d uuid:%s", i, uuid->ToString().c_str());
@@ -1417,7 +1427,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
 
         for (int i = 0; i < BT_MAX_NUM_UUIDS; i++) {
           Uuid uuid = existing_uuids[i];
-          if (uuid.IsEmpty()) {
+          if (btif_should_ignore_uuid(uuid)) {
             continue;
           }
           if (btif_is_interesting_le_service(uuid)) {
@@ -1438,6 +1448,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       /* onUuidChanged requires getBondedDevices to be populated.
       ** bond_state_changed needs to be sent prior to remote_device_property
       */
+      auto num_eir_uuids = 0;
+      Uuid uuid = {};
       if (pairing_cb.state == BT_BOND_STATE_BONDED && pairing_cb.sdp_attempts &&
           (p_data->disc_res.bd_addr == pairing_cb.bd_addr ||
            p_data->disc_res.bd_addr == pairing_cb.static_bdaddr)) {
@@ -1448,33 +1460,33 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         // when SDP failed or no UUID is discovered
         if (p_data->disc_res.result != BTA_SUCCESS ||
             p_data->disc_res.num_uuids == 0) {
-          LOG_INFO("SDP failed, send %d EIR UUIDs to unblock bonding %s",
-                   pairing_cb.num_eir_uuids, bd_addr.ToString().c_str());
-          bt_property_t prop_uuids;
-          Uuid uuid = {};
-          prop_uuids.type = BT_PROPERTY_UUIDS;
-          if (pairing_cb.num_eir_uuids > 0) {
-            prop_uuids.val = pairing_cb.eir_uuids;
-            prop_uuids.len = pairing_cb.num_eir_uuids * Uuid::kNumBytes128;
-          } else {
-            prop_uuids.val = &uuid;
-            prop_uuids.len = Uuid::kNumBytes128;
+          auto uuids_iter = eir_uuids_cache.find(bd_addr);
+          if (uuids_iter != eir_uuids_cache.end()) {
+            num_eir_uuids = static_cast<int>(uuids_iter->second.size());
+            LOG_INFO("SDP failed, send %d EIR UUIDs to unblock bonding %s",
+                     num_eir_uuids, bd_addr.ToString().c_str());
+            for (auto eir_uuid : uuids_iter->second) {
+              auto uuid_128bit = eir_uuid.To128BitBE();
+              property_value.insert(property_value.end(), uuid_128bit.begin(),
+                                    uuid_128bit.end());
+            }
+            eir_uuids_cache.erase(uuids_iter);
           }
-
-          /* Send the event to the BTIF
-           * prop_uuids will be deep copied by this call
-           */
-          invoke_remote_device_properties_cb(BT_STATUS_SUCCESS, bd_addr, 1,
-                                             &prop_uuids);
-          pairing_cb = {};
-          break;
+          if (num_eir_uuids > 0) {
+            prop.val = (void*)property_value.data();
+            prop.len = num_eir_uuids * Uuid::kNumBytes128;
+          } else {
+            LOG_WARN("SDP failed and we have no EIR UUIDs to report either");
+            prop.val = &uuid;
+            prop.len = Uuid::kNumBytes128;
+          }
         }
         // Both SDP and bonding are done, clear pairing control block in case
         // it is not already cleared
         pairing_cb = {};
       }
 
-      if (p_data->disc_res.num_uuids != 0) {
+      if (p_data->disc_res.num_uuids != 0 || num_eir_uuids != 0) {
         /* Also write this to the NVRAM */
         ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
         ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed",
@@ -1503,7 +1515,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       LOG_INFO("New BLE UUIDs for %s:", bd_addr.ToString().c_str());
       for (Uuid uuid : *p_data->disc_ble_res.services) {
         if (btif_is_interesting_le_service(uuid)) {
-          if (uuid.IsEmpty()) {
+          if (btif_should_ignore_uuid(uuid)) {
             continue;
           }
           LOG_INFO("index:%d uuid:%s", static_cast<int>(uuids.size()),
@@ -1634,7 +1646,7 @@ void BTIF_dm_enable() {
   pairing_cb.bond_type = tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT;
   if (enable_address_consolidate) {
     LOG_INFO("enable address consolidate");
-    btif_storage_load_consolidate_devices();
+    btif_storage_load_le_devices();
   }
 
   /* This function will also trigger the adapter_properties_cb
@@ -1892,6 +1904,12 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
                                    pairing_cb.fail_reason);
       btif_dm_remove_bond(bd_addr);
       break;
+
+    case BTA_DM_LE_ADDR_ASSOC_EVT:
+      invoke_le_address_associate_cb(p_data->proc_id_addr.pairing_bda,
+                                     p_data->proc_id_addr.id_addr);
+      break;
+
     default:
       BTIF_TRACE_WARNING("%s: unhandled event (%d)", __func__, event);
       break;
@@ -2605,11 +2623,13 @@ void btif_dm_load_local_oob(void) {
 }
 
 static bool waiting_on_oob_advertiser_start = false;
-static uint8_t oob_advertiser_id = 0;
+static std::unique_ptr<uint8_t> oob_advertiser_id_;
 static void stop_oob_advertiser() {
+  // For chasing an advertising bug b/237023051
+  LOG_DEBUG("oob_advertiser_id: %s", oob_advertiser_id_.get());
   auto advertiser = get_ble_advertiser_instance();
-  advertiser->Unregister(oob_advertiser_id);
-  oob_advertiser_id = 0;
+  advertiser->Unregister(*oob_advertiser_id_);
+  oob_advertiser_id_ = nullptr;
 }
 
 /*******************************************************************************
@@ -2630,7 +2650,9 @@ void btif_dm_generate_local_oob_data(tBT_TRANSPORT transport) {
     // the state machine lifecycle.  Rather, lets create the data, then start
     // advertising then request the address.
     if (!waiting_on_oob_advertiser_start) {
-      if (oob_advertiser_id != 0) {
+      // For chasing an advertising bug b/237023051
+      LOG_DEBUG("oob_advertiser_id: %s", oob_advertiser_id_.get());
+      if (oob_advertiser_id_ != nullptr) {
         stop_oob_advertiser();
       }
       waiting_on_oob_advertiser_start = true;
@@ -2659,7 +2681,7 @@ static void start_advertising_callback(uint8_t id, tBT_TRANSPORT transport,
     invoke_oob_data_request_cb(transport, false, c, r, RawAddress{}, 0x00);
     SMP_ClearLocScOobData();
     waiting_on_oob_advertiser_start = false;
-    oob_advertiser_id = 0;
+    oob_advertiser_id_ = nullptr;
     return;
   }
   LOG_DEBUG("OOB advertiser with id %hhd", id);
@@ -2675,7 +2697,7 @@ static void timeout_cb(uint8_t id, tBTM_STATUS status) {
   advertiser->Unregister(id);
   SMP_ClearLocScOobData();
   waiting_on_oob_advertiser_start = false;
-  oob_advertiser_id = 0;
+  oob_advertiser_id_ = nullptr;
 }
 
 // Step Two: CallBack from Step One, advertise and get address
@@ -2687,11 +2709,12 @@ static void id_status_callback(tBT_TRANSPORT transport, bool is_valid,
     invoke_oob_data_request_cb(transport, false, c, r, RawAddress{}, 0x00);
     SMP_ClearLocScOobData();
     waiting_on_oob_advertiser_start = false;
-    oob_advertiser_id = 0;
+    oob_advertiser_id_ = nullptr;
     return;
   }
 
-  oob_advertiser_id = id;
+  oob_advertiser_id_ = std::make_unique<uint8_t>(id);
+  LOG_ERROR("oob_advertiser_id: %s", oob_advertiser_id_.get());
 
   auto advertiser = get_ble_advertiser_instance();
   AdvertiseParameters parameters;
@@ -2711,7 +2734,7 @@ static void id_status_callback(tBT_TRANSPORT transport, bool is_valid,
   advertiser->StartAdvertising(
       id,
       base::Bind(&start_advertising_callback, id, transport, is_valid, c, r),
-      parameters, advertisement, scan_data, 3600 /* timeout_s */,
+      parameters, advertisement, scan_data, 120 /* timeout_s */,
       base::Bind(&timeout_cb, id));
 }
 
@@ -2947,6 +2970,7 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
     bond_state_changed(status, bd_addr, BT_BOND_STATE_BONDING);
   }
   bond_state_changed(status, bd_addr, state);
+  // TODO(240451061): Calling `stop_oob_advertiser();` gets command disallowed...
 }
 
 void btif_dm_load_ble_local_keys(void) {

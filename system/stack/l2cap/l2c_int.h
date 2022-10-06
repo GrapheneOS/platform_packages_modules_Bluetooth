@@ -397,8 +397,6 @@ typedef struct {
 #define L2CAP_GET_PRIORITY_QUOTA(pri) \
   ((L2CAP_NUM_CHNL_PRIORITY - (pri)) * L2CAP_CHNL_PRIORITY_WEIGHT)
 
-#define L2CAP_CREDIT_BASED_MAX_CIDS 5
-
 /* CCBs within the same LCB are served in round robin with priority It will make
  * sure that low priority channel (for example, HF signaling on RFCOMM) can be
  * sent to the headset even if higher priority channel (for example, AV media
@@ -494,6 +492,19 @@ typedef struct t_l2c_linkcb {
   bool set_priority(tL2CAP_PRIORITY priority) {
     if (acl_priority != priority) {
       acl_priority = priority;
+      return true;
+    }
+    return false;
+  }
+
+  bool use_latency_mode = false;
+  tL2CAP_LATENCY preset_acl_latency = L2CAP_LATENCY_NORMAL;
+  tL2CAP_LATENCY acl_latency = L2CAP_LATENCY_NORMAL;
+  bool is_normal_latency() const { return acl_latency == L2CAP_LATENCY_NORMAL; }
+  bool is_low_latency() const { return acl_latency == L2CAP_LATENCY_LOW; }
+  bool set_latency(tL2CAP_LATENCY latency) {
+    if (acl_latency != latency) {
+      acl_latency = latency;
       return true;
     }
     return false;
@@ -682,6 +693,8 @@ extern tL2C_LCB* l2cu_find_lcb_by_handle(uint16_t handle);
 extern bool l2cu_set_acl_priority(const RawAddress& bd_addr,
                                   tL2CAP_PRIORITY priority,
                                   bool reset_after_rs);
+extern bool l2cu_set_acl_latency(const RawAddress& bd_addr,
+                                 tL2CAP_LATENCY latency);
 
 extern void l2cu_enqueue_ccb(tL2C_CCB* p_ccb);
 extern void l2cu_dequeue_ccb(tL2C_CCB* p_ccb);

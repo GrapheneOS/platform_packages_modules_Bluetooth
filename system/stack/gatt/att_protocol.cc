@@ -353,8 +353,8 @@ tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB& tcb, uint16_t lcid,
 }
 
 /** Build ATT Server PDUs */
-BT_HDR* attp_build_sr_msg(tGATT_TCB& tcb, uint8_t op_code,
-                          tGATT_SR_MSG* p_msg) {
+BT_HDR* attp_build_sr_msg(tGATT_TCB& tcb, uint8_t op_code, tGATT_SR_MSG* p_msg,
+                          uint16_t payload_size) {
   uint16_t offset = 0;
 
   switch (op_code) {
@@ -370,7 +370,7 @@ BT_HDR* attp_build_sr_msg(tGATT_TCB& tcb, uint8_t op_code,
     case GATT_HANDLE_VALUE_NOTIF:
     case GATT_HANDLE_VALUE_IND:
       return attp_build_value_cmd(
-          tcb.payload_size, op_code, p_msg->attr_value.handle, offset,
+          payload_size, op_code, p_msg->attr_value.handle, offset,
           p_msg->attr_value.len, p_msg->attr_value.value);
 
     case GATT_RSP_WRITE:

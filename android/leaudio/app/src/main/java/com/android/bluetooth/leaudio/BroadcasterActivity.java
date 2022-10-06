@@ -17,6 +17,7 @@
 
 package com.android.bluetooth.leaudio;
 
+import android.bluetooth.BluetoothLeAudioContentMetadata;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +38,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.android.bluetooth.leaudio.R;
+
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class BroadcasterActivity extends AppCompatActivity {
     private BroadcasterViewModel mViewModel;
@@ -55,12 +60,41 @@ public class BroadcasterActivity extends AppCompatActivity {
 
                 View alertView = inflater.inflate(R.layout.broadcaster_add_broadcast_dialog, null);
                 final EditText code_input_text = alertView.findViewById(R.id.broadcast_code_input);
-                EditText metadata_input_text = alertView.findViewById(R.id.broadcast_meta_input);
+                final EditText program_info = alertView.findViewById(R.id.broadcast_program_info_input);
+                final NumberPicker contextPicker = alertView.findViewById(R.id.context_picker);
+
+                // Add context type selector
+                contextPicker.setMinValue(1);
+                contextPicker.setMaxValue(
+                        alertView.getResources().getStringArray(R.array.content_types).length - 1);
+                contextPicker.setDisplayedValues(
+                        alertView.getResources().getStringArray(R.array.content_types));
 
                 alert.setView(alertView).setNegativeButton("Cancel", (dialog, which) -> {
                     // Do nothing
                 }).setPositiveButton("Start", (dialog, which) -> {
-                    if (mViewModel.startBroadcast(metadata_input_text.getText().toString(),
+
+                    final BluetoothLeAudioContentMetadata.Builder contentBuilder =
+                            new BluetoothLeAudioContentMetadata.Builder();
+                    final String programInfo = program_info.getText().toString();
+                    if (!programInfo.isEmpty()) {
+                        contentBuilder.setProgramInfo(programInfo);
+                    }
+
+                    // Extract raw metadata
+                    byte[] metaBuffer = contentBuilder.build().getRawMetadata();
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    stream.write(metaBuffer, 0 , metaBuffer.length);
+
+                    // Extend raw metadata with context type
+                    final int contextValue = 1 << (contextPicker.getValue() - 1);
+                    stream.write((byte)0x03); // Length
+                    stream.write((byte)0x02); // Type for the Streaming Audio Context
+                    stream.write((byte)(contextValue & 0x00FF)); // Value LSB
+                    stream.write((byte)((contextValue & 0xFF00) >> 8)); // Value MSB
+
+                    if (mViewModel.startBroadcast(
+                                BluetoothLeAudioContentMetadata.fromRawBytes(stream.toByteArray()),
                             code_input_text.getText() == null
                                     || code_input_text.getText().length() == 0 ? null
                                             : code_input_text.getText().toString().getBytes()))
@@ -115,7 +149,8 @@ public class BroadcasterActivity extends AppCompatActivity {
                 byte[] code = metadata.getBroadcastCode();
                 addr_text = metaLayout.findViewById(R.id.broadcast_code_text);
                 if (code != null) {
-                    addr_text.setText("Broadcast Code: " + metadata.getBroadcastCode().toString());
+                    addr_text.setText("Broadcast Code: "
+                            + new String(code, StandardCharsets.UTF_8));
                 } else {
                     addr_text.setVisibility(View.INVISIBLE);
                 }
@@ -135,7 +170,7 @@ public class BroadcasterActivity extends AppCompatActivity {
 
                 LayoutInflater inflater = getLayoutInflater();
                 View alertView = inflater.inflate(R.layout.broadcaster_add_broadcast_dialog, null);
-                EditText metadata_input_text = alertView.findViewById(R.id.broadcast_meta_input);
+                EditText program_info_input_text = alertView.findViewById(R.id.broadcast_program_info_input);
 
                 // The Code cannot be changed, so just hide it
                 final EditText code_input_text = alertView.findViewById(R.id.broadcast_code_input);
@@ -146,7 +181,7 @@ public class BroadcasterActivity extends AppCompatActivity {
                             // Do nothing
                         }).setPositiveButton("Update", (modifyDialog, modifyWhich) -> {
                             if (mViewModel.updateBroadcast(broadcastId,
-                                    metadata_input_text.getText().toString()))
+                                    program_info_input_text.getText().toString()))
                                 Toast.makeText(BroadcasterActivity.this, "Broadcast was updated.",
                                         Toast.LENGTH_SHORT).show();
                         });

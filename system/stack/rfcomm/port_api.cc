@@ -71,30 +71,13 @@ static const char* result_code_strings[] = {"Success",
                                             "Invalid SCN",
                                             "Unknown result code"};
 
-int RFCOMM_CreateConnectionWithSecurity(uint16_t uuid, uint8_t scn,
-                                        bool is_server, uint16_t mtu,
-                                        const RawAddress& bd_addr,
-                                        uint16_t* p_handle,
-                                        tPORT_CALLBACK* p_mgmt_cb,
-                                        uint16_t sec_mask) {
-  rfcomm_security_records[scn] = sec_mask;
-
-  return RFCOMM_CreateConnection(uuid, scn, is_server, mtu, bd_addr, p_handle,
-                                 p_mgmt_cb);
-}
-
-extern void RFCOMM_ClearSecurityRecord(uint32_t scn) {
-  rfcomm_security_records.erase(scn);
-}
-
 /*******************************************************************************
  *
- * Function         RFCOMM_CreateConnection
+ * Function         RFCOMM_CreateConnectionWithSecurity
  *
- * Description      RFCOMM_CreateConnection function is used from the
- *                  application to establish serial port connection to the peer
- *                  device, or allow RFCOMM to accept a connection from the peer
- *                  application.
+ * Description      RFCOMM_CreateConnectionWithSecurity function is used from
+ *the application to establish serial port connection to the peer device, or
+ *allow RFCOMM to accept a connection from the peer application.
  *
  * Parameters:      scn          - Service Channel Number as registered with
  *                                 the SDP (server) or obtained using SDP from
@@ -102,12 +85,12 @@ extern void RFCOMM_ClearSecurityRecord(uint32_t scn) {
  *                  is_server    - true if requesting application is a server
  *                  mtu          - Maximum frame size the application can accept
  *                  bd_addr      - address of the peer (client)
- *                  mask         - specifies events to be enabled.  A value
- *                                 of zero disables all events.
  *                  p_handle     - OUT pointer to the handle.
  *                  p_mgmt_cb    - pointer to callback function to receive
  *                                 connection up/down events.
- * Notes:
+ *                  sec_mask     - bitmask of BTM_SEC_* values indicating the
+ *                                 minimum security requirements for this
+ *connection Notes:
  *
  * Server can call this function with the same scn parameter multiple times if
  * it is ready to accept multiple simulteneous connections.
@@ -118,9 +101,12 @@ extern void RFCOMM_ClearSecurityRecord(uint32_t scn) {
  * (scn * 2 + 1) dlci.
  *
  ******************************************************************************/
-int RFCOMM_CreateConnection(uint16_t uuid, uint8_t scn, bool is_server,
-                            uint16_t mtu, const RawAddress& bd_addr,
-                            uint16_t* p_handle, tPORT_CALLBACK* p_mgmt_cb) {
+int RFCOMM_CreateConnectionWithSecurity(uint16_t uuid, uint8_t scn,
+                                        bool is_server, uint16_t mtu,
+                                        const RawAddress& bd_addr,
+                                        uint16_t* p_handle,
+                                        tPORT_CALLBACK* p_mgmt_cb,
+                                        uint16_t sec_mask) {
   *p_handle = 0;
 
   if ((scn == 0) || (scn >= PORT_MAX_RFC_PORTS)) {
@@ -176,6 +162,7 @@ int RFCOMM_CreateConnection(uint16_t uuid, uint8_t scn, bool is_server,
                << ", dlci=" << +dlci;
     return PORT_NO_RESOURCES;
   }
+  p_port->sec_mask = sec_mask;
   *p_handle = p_port->handle;
 
   // Get default signal state
@@ -1126,7 +1113,6 @@ int PORT_WriteData(uint16_t handle, const char* p_data, uint16_t max_len,
  ******************************************************************************/
 void RFCOMM_Init(void) {
   memset(&rfc_cb, 0, sizeof(tRFC_CB)); /* Init RFCOMM control block */
-  rfcomm_security_records = {};
   rfc_lcid_mcb = {};
 
   rfc_cb.rfc.last_mux = MAX_BD_CONNECTIONS;
@@ -1172,4 +1158,24 @@ const char* PORT_GetResultString(const uint8_t result_code) {
   }
 
   return result_code_strings[result_code];
+}
+
+/*******************************************************************************
+ *
+ * Function         PORT_GetSecurityMask
+ *
+ * Description      This function returns the security bitmask for a port.
+ *
+ * Returns          A result code, and writes the bitmask into the output
+ *parameter.
+ *
+ ******************************************************************************/
+int PORT_GetSecurityMask(uint16_t handle, uint16_t* sec_mask) {
+  /* Check if handle is valid to avoid crashing */
+  if ((handle == 0) || (handle > MAX_RFC_PORTS)) {
+    return (PORT_BAD_HANDLE);
+  }
+  tPORT* p_port = &rfc_cb.port.port[handle - 1];
+  *sec_mask = p_port->sec_mask;
+  return (PORT_SUCCESS);
 }

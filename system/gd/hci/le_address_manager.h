@@ -71,7 +71,7 @@ class LeAddressManager {
       crypto_toolbox::Octet16 rotation_irk,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time);
-  AddressPolicy GetAddressPolicy();
+  virtual AddressPolicy GetAddressPolicy();
   void AckPause(LeAddressManagerCallback* callback);
   void AckResume(LeAddressManagerCallback* callback);
   virtual AddressPolicy Register(LeAddressManagerCallback* callback);

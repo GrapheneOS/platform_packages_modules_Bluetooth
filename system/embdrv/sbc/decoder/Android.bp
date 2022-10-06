@@ -32,6 +32,9 @@ cc_library_static {
         "srce",
     ],
     host_supported: true,
+    apex_available: [
+        "com.android.bluetooth",
+    ],
     min_sdk_version: "Tiramisu"
 }
 

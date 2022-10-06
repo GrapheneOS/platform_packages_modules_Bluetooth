@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "SDP_Utils"
+
 /******************************************************************************
  *
  *  This file contains SDP utility functions
@@ -28,12 +30,17 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <ostream>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "btif/include/btif_config.h"
+#include "device/include/interop.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
+#include "osi/include/properties.h"
+#include "stack/include/avrc_api.h"
 #include "stack/include/avrc_defs.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/sdp_api.h"
@@ -1200,5 +1207,146 @@ uint16_t sdpu_is_avrcp_profile_description_list(const tSDP_ATTRIBUTE* p_attr) {
       return AVRC_REV_1_6;
     default:
       return 0;
+  }
+}
+/*******************************************************************************
+ *
+ * Function         sdpu_is_service_id_avrc_target
+ *
+ * Description      This function is to check if attirbute is A/V Remote Control
+ *                  Target
+ *
+ *                  p_attr: attribute to be checked
+ *
+ * Returns          true if service id of attirbute is A/V Remote Control
+ *                  Target, else false
+ *
+ ******************************************************************************/
+bool sdpu_is_service_id_avrc_target(const tSDP_ATTRIBUTE* p_attr) {
+  if (p_attr->id != ATTR_ID_SERVICE_CLASS_ID_LIST || p_attr->len != 3) {
+    return false;
+  }
+
+  uint8_t* p_uuid = p_attr->value_ptr + 1;
+  // check UUID of A/V Remote Control Target
+  if (p_uuid[0] != 0x11 || p_uuid[1] != 0xc) {
+    return false;
+  }
+
+  return true;
+}
+/*******************************************************************************
+ *
+ * Function         spdu_is_avrcp_version_valid
+ *
+ * Description      Check avrcp version is valid
+ *
+ *                  version: the avrcp version to check
+ *
+ * Returns          true if avrcp version is valid, else false
+ *
+ ******************************************************************************/
+bool spdu_is_avrcp_version_valid(const uint16_t version) {
+  return version == AVRC_REV_1_0 || version == AVRC_REV_1_3 ||
+         version == AVRC_REV_1_4 || version == AVRC_REV_1_5 ||
+         version == AVRC_REV_1_6;
+}
+/*******************************************************************************
+ *
+ * Function         sdpu_set_avrc_target_version
+ *
+ * Description      This function is to set AVRCP version of A/V Remote Control
+ *                  Target according to IOP table and cached Bluetooth config
+ *
+ *                  p_attr: attribute to be modified
+ *                  bdaddr: for searching IOP table and BT config
+ *
+ *
+ * Returns          true if service id of attirbute is A/V Remote Control
+ *                  Target, else false
+ *
+ ******************************************************************************/
+void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
+                                  const RawAddress* bdaddr) {
+  // Check attribute is AVRCP profile description list and get AVRC Target
+  // version
+  uint16_t avrcp_version = sdpu_is_avrcp_profile_description_list(p_attr);
+  if (avrcp_version == 0) {
+    LOG_INFO("Not AVRCP version attribute or version not valid for device %s",
+             bdaddr->ToString().c_str());
+    return;
+  }
+
+  // Some remote devices will have interoperation issue when receive higher
+  // AVRCP version. If those devices are in IOP database and our version higher
+  // than device, we reply a lower version to them.
+  uint16_t iop_version = 0;
+  if (avrcp_version > AVRC_REV_1_4 &&
+      interop_match_addr(INTEROP_AVRCP_1_4_ONLY, bdaddr)) {
+    iop_version = AVRC_REV_1_4;
+  } else if (avrcp_version > AVRC_REV_1_3 &&
+             interop_match_addr(INTEROP_AVRCP_1_3_ONLY, bdaddr)) {
+    iop_version = AVRC_REV_1_3;
+  }
+
+  if (iop_version != 0) {
+    LOG_INFO(
+        "device=%s is in IOP database. "
+        "Reply AVRC Target version %x instead of %x.",
+        bdaddr->ToString().c_str(), iop_version, avrcp_version);
+    uint8_t* p_version = p_attr->value_ptr + 6;
+    UINT16_TO_BE_FIELD(p_version, iop_version);
+    return;
+  }
+
+  // Dynamic ACRCP version. If our version high than remote device's version,
+  // reply version same as its. Otherwise, reply default version.
+  if (!osi_property_get_bool(AVRC_DYNAMIC_AVRCP_ENABLE_PROPERTY, true)) {
+    LOG_INFO(
+        "Dynamic AVRCP version feature is not enabled, skipping this method");
+    return;
+  }
+
+  // Read the remote device's AVRC Controller version from local storage
+  uint16_t cached_version = 0;
+  size_t version_value_size = btif_config_get_bin_length(
+      bdaddr->ToString(), AVRCP_CONTROLLER_VERSION_CONFIG_KEY);
+  if (version_value_size != sizeof(cached_version)) {
+    LOG_ERROR(
+        "cached value len wrong, bdaddr=%s. Len is %zu but should be %zu.",
+        bdaddr->ToString().c_str(), version_value_size, sizeof(cached_version));
+    return;
+  }
+
+  if (!btif_config_get_bin(bdaddr->ToString(),
+                           AVRCP_CONTROLLER_VERSION_CONFIG_KEY,
+                           (uint8_t*)&cached_version, &version_value_size)) {
+    LOG_INFO(
+        "no cached AVRC Controller version for %s. "
+        "Reply default AVRC Target version %x.",
+        bdaddr->ToString().c_str(), avrcp_version);
+    return;
+  }
+
+  if (!spdu_is_avrcp_version_valid(cached_version)) {
+    LOG_ERROR(
+        "cached AVRC Controller version %x of %s is not valid. "
+        "Reply default AVRC Target version %x.",
+        cached_version, bdaddr->ToString().c_str(), avrcp_version);
+    return;
+  }
+
+  if (avrcp_version > cached_version) {
+    LOG_INFO(
+        "read cached AVRC Controller version %x of %s. "
+        "Reply AVRC Target version %x.",
+        cached_version, bdaddr->ToString().c_str(), cached_version);
+    uint8_t* p_version = p_attr->value_ptr + 6;
+    UINT16_TO_BE_FIELD(p_version, cached_version);
+  } else {
+    LOG_INFO(
+        "read cached AVRC Controller version %x of %s. "
+        "Reply default AVRC Target version %x.",
+        cached_version, bdaddr->ToString().c_str(), avrcp_version);
   }
 }

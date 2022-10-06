@@ -216,6 +216,9 @@ cc_library {
     defaults: [
         "libbluetooth_gd_defaults",
     ],
+    apex_available: [
+        "com.android.bluetooth",
+    ],
     min_sdk_version: "31",
 }
 
@@ -225,10 +228,24 @@ cc_library {
         "libbluetooth_gd_defaults",
     ],
     srcs: [
-        ":BluetoothOsSources_fuzz",
+        ":BluetoothOsSources_fake_timer",
     ],
     cflags: [
         "-DFUZZ_TARGET",
+        "-DUSE_FAKE_TIMERS",
+    ],
+}
+
+cc_library {
+    name: "libbluetooth_gd_unit_tests",
+    defaults: [
+        "libbluetooth_gd_defaults",
+    ],
+    srcs: [
+        ":BluetoothOsSources_fake_timer",
+    ],
+    cflags: [
+        "-DUSE_FAKE_TIMERS",
     ],
 }
 
@@ -384,7 +401,7 @@ cc_test {
         "libbluetooth-dumpsys-test",
         "libbluetooth-dumpsys-unittest",
         "libbluetooth-protos",
-        "libbluetooth_gd",
+        "libbluetooth_gd_unit_tests",
         "libc++fs",
         "libflatbuffers-cpp",
         "libgmock",
@@ -486,6 +503,7 @@ cc_defaults {
     ],
     cflags: [
         "-DFUZZ_TARGET",
+        "-DUSE_FAKE_TIMERS",
     ],
     target: {
         android: {
@@ -610,6 +628,24 @@ rust_library {
     ],
     apex_available: [
         "com.android.bluetooth",
+    ],
+    min_sdk_version: "30",
+}
+
+rust_library {
+    name: "libbt_packets_nonapex",
+    defaults: ["gd_rust_defaults"],
+    crate_name: "bt_packets",
+    srcs: ["rust/packets/lib.rs", ":BluetoothGeneratedPackets_rust"],
+    edition: "2018",
+    vendor_available : true,
+    host_supported: true,
+    proc_macros: ["libnum_derive"],
+    rustlibs: [
+        "libbytes",
+        "libnum_traits",
+        "libthiserror",
+        "liblog_rust",
     ],
     min_sdk_version: "30",
 }

@@ -97,6 +97,7 @@ struct BroadcastStateMachineConfig {
   bluetooth::le_audio::BroadcastId broadcast_id;
   uint8_t streaming_phy;
   BroadcastCodecWrapper codec_wrapper;
+  BroadcastQosConfig qos_config;
   bluetooth::le_audio::BasicAudioAnnouncementData announcement;
   std::optional<bluetooth::le_audio::BroadcastCode> broadcast_code;
 };
@@ -190,9 +191,7 @@ class IBroadcastStateMachineCallbacks {
                                    const void* data = nullptr) = 0;
   virtual void OnOwnAddressResponse(uint32_t broadcast_id, uint8_t addr_type,
                                     RawAddress address) = 0;
-  virtual uint8_t GetNumRetransmit(uint32_t broadcast_id) = 0;
-  virtual uint32_t GetSduItv(uint32_t broadcast_id) = 0;
-  virtual uint16_t GetMaxTransportLatency(uint32_t broadcast_id) = 0;
+  virtual void OnBigCreated(const std::vector<uint16_t>& conn_handle) = 0;
 };
 
 std::ostream& operator<<(

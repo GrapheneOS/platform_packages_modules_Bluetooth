@@ -286,7 +286,7 @@ tGATT_STATUS gatt_sr_process_app_rsp(tGATT_TCB& tcb, tGATT_IF gatt_if,
                                      tGATTS_RSP* p_msg,
                                      tGATT_SR_CMD* sr_res_p) {
   tGATT_STATUS ret_code = GATT_SUCCESS;
-  uint16_t payload_size = gatt_tcb_get_payload_size_rx(tcb, sr_res_p->cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, sr_res_p->cid);
 
   VLOG(1) << __func__ << " gatt_if=" << +gatt_if;
 
@@ -308,8 +308,8 @@ tGATT_STATUS gatt_sr_process_app_rsp(tGATT_TCB& tcb, tGATT_IF gatt_if,
 
     if (gatt_sr_is_cback_cnt_zero(tcb) && status == GATT_SUCCESS) {
       if (sr_res_p->p_rsp_msg == NULL) {
-        sr_res_p->p_rsp_msg = attp_build_sr_msg(tcb, (uint8_t)(op_code + 1),
-                                                (tGATT_SR_MSG*)p_msg);
+        sr_res_p->p_rsp_msg = attp_build_sr_msg(
+            tcb, (uint8_t)(op_code + 1), (tGATT_SR_MSG*)p_msg, payload_size);
       } else {
         LOG(ERROR) << "Exception!!! already has respond message";
       }
@@ -828,7 +828,8 @@ static void gatts_process_mtu_req(tGATT_TCB& tcb, uint16_t cid, uint16_t len,
 
   tGATT_SR_MSG gatt_sr_msg;
   gatt_sr_msg.mtu = tcb.payload_size;
-  BT_HDR* p_buf = attp_build_sr_msg(tcb, GATT_RSP_MTU, &gatt_sr_msg);
+  BT_HDR* p_buf =
+      attp_build_sr_msg(tcb, GATT_RSP_MTU, &gatt_sr_msg, tcb.payload_size);
   attp_send_sr_msg(tcb, cid, p_buf);
 
   tGATTS_DATA gatts_data;

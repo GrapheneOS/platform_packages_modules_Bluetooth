@@ -458,6 +458,12 @@ typedef void (*bond_state_changed_callback)(bt_status_t status,
 typedef void (*address_consolidate_callback)(RawAddress* main_bd_addr,
                                              RawAddress* secondary_bd_addr);
 
+/** Bluetooth LE Address association callback */
+/* Callback for the upper layer to associate the LE-only device's RPA to the
+ * identity address */
+typedef void (*le_address_associate_callback)(RawAddress* main_bd_addr,
+                                              RawAddress* secondary_bd_addr);
+
 /** Bluetooth ACL connection state changed callback */
 typedef void (*acl_state_changed_callback)(bt_status_t status,
                                            RawAddress* remote_bd_addr,
@@ -527,6 +533,7 @@ typedef struct {
   ssp_request_callback ssp_request_cb;
   bond_state_changed_callback bond_state_changed_cb;
   address_consolidate_callback address_consolidate_cb;
+  le_address_associate_callback le_address_associate_cb;
   acl_state_changed_callback acl_state_changed_cb;
   callback_thread_event thread_evt_cb;
   dut_mode_recv_callback dut_mode_recv_cb;

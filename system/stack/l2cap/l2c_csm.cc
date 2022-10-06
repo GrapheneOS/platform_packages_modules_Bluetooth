@@ -801,6 +801,7 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
 static void l2c_csm_w4_l2ca_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
                                         void* p_data) {
   tL2C_CONN_INFO* p_ci;
+  tL2C_LCB* p_lcb = p_ccb->p_lcb;
   tL2CA_DISCONNECT_IND_CB* disconnect_ind =
       p_ccb->p_rcb->api.pL2CA_DisconnectInd_Cb;
   uint16_t local_cid = p_ccb->local_cid;
@@ -818,7 +819,7 @@ static void l2c_csm_w4_l2ca_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
 
     case L2CEVT_L2CA_CREDIT_BASED_CONNECT_RSP:
       p_ci = (tL2C_CONN_INFO*)p_data;
-      if (p_ccb->p_lcb && p_ccb->p_lcb->transport != BT_TRANSPORT_LE) {
+      if ((p_lcb == nullptr) || (p_lcb && p_lcb->transport != BT_TRANSPORT_LE)) {
         LOG_WARN("LE link doesn't exist");
         return;
       }
@@ -826,14 +827,14 @@ static void l2c_csm_w4_l2ca_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
                                            p_ci->l2cap_result);
       alarm_cancel(p_ccb->l2c_ccb_timer);
 
-      for (int i = 0; i < p_ccb->p_lcb->pending_ecoc_conn_cnt; i++) {
-        uint16_t cid = p_ccb->p_lcb->pending_ecoc_connection_cids[i];
+      for (int i = 0; i < p_lcb->pending_ecoc_conn_cnt; i++) {
+        uint16_t cid = p_lcb->pending_ecoc_connection_cids[i];
         if (cid == 0) {
             LOG_WARN("pending_ecoc_connection_cids[%d] is %d", i, cid);
             continue;
         }
 
-        tL2C_CCB* temp_p_ccb = l2cu_find_ccb_by_cid(p_ccb->p_lcb, cid);
+        tL2C_CCB* temp_p_ccb = l2cu_find_ccb_by_cid(p_lcb, cid);
         if (temp_p_ccb) {
           auto it = std::find(p_ci->lcids.begin(), p_ci->lcids.end(), cid);
           if (it != p_ci->lcids.end()) {
@@ -846,8 +847,8 @@ static void l2c_csm_w4_l2ca_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
             LOG_WARN("temp_p_ccb is NULL, pending_ecoc_connection_cids[%d] is %d", i, cid);
         }
       }
-      p_ccb->p_lcb->pending_ecoc_conn_cnt = 0;
-      memset(p_ccb->p_lcb->pending_ecoc_connection_cids, 0,
+      p_lcb->pending_ecoc_conn_cnt = 0;
+      memset(p_lcb->pending_ecoc_connection_cids, 0,
              L2CAP_CREDIT_BASED_MAX_CIDS);
 
       break;
@@ -887,19 +888,19 @@ static void l2c_csm_w4_l2ca_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
     case L2CEVT_L2CA_CREDIT_BASED_CONNECT_RSP_NEG:
       p_ci = (tL2C_CONN_INFO*)p_data;
       alarm_cancel(p_ccb->l2c_ccb_timer);
-      if (p_ccb->p_lcb != nullptr) {
-        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE) {
+      if (p_lcb != nullptr) {
+        if (p_lcb->transport == BT_TRANSPORT_LE) {
           l2cu_send_peer_credit_based_conn_res(p_ccb, p_ci->lcids,
                                                p_ci->l2cap_result);
         }
-        for (int i = 0; i < p_ccb->p_lcb->pending_ecoc_conn_cnt; i++) {
-          uint16_t cid = p_ccb->p_lcb->pending_ecoc_connection_cids[i];
-          tL2C_CCB* temp_p_ccb = l2cu_find_ccb_by_cid(p_ccb->p_lcb, cid);
+        for (int i = 0; i < p_lcb->pending_ecoc_conn_cnt; i++) {
+          uint16_t cid = p_lcb->pending_ecoc_connection_cids[i];
+          tL2C_CCB* temp_p_ccb = l2cu_find_ccb_by_cid(p_lcb, cid);
           l2cu_release_ccb(temp_p_ccb);
         }
 
-        p_ccb->p_lcb->pending_ecoc_conn_cnt = 0;
-        memset(p_ccb->p_lcb->pending_ecoc_connection_cids, 0,
+        p_lcb->pending_ecoc_conn_cnt = 0;
+        memset(p_lcb->pending_ecoc_connection_cids, 0,
                L2CAP_CREDIT_BASED_MAX_CIDS);
       }
       break;
@@ -1619,6 +1620,10 @@ static const char* l2c_csm_get_event_name(tL2CEVT event) {
     case L2CEVT_L2CA_CREDIT_BASED_CONNECT_RSP: /* Upper layer credit based
                                                   connect response */
       return ("SEND_CREDIT_BASED_CONNECT_RSP");
+    case L2CEVT_L2CA_CREDIT_BASED_CONNECT_RSP_NEG: /* Upper layer credit based
+                                                      connect response
+                                                      (failed)*/
+      return ("SEND_CREDIT_BASED_CONNECT_RSP_NEG");
     case L2CEVT_L2CA_CREDIT_BASED_RECONFIG_REQ: /* Upper layer credit based
                                                    reconfig request */
       return ("SEND_CREDIT_BASED_RECONFIG_REQ");

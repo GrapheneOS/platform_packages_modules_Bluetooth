@@ -238,6 +238,7 @@ cc_test {
         "libFraunhoferAAC",
         "libg722codec",
         "liblc3",
+        "libopus",
         "libosi",
         "libudrv-uipc",
    ],

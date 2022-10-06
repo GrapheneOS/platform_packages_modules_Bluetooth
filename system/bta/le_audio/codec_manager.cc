@@ -89,7 +89,13 @@ struct codec_manager_impl {
           update_receiver) {
     if (stream_conf.sink_streams.empty()) return;
 
-    sink_config.stream_map = std::move(stream_conf.sink_streams);
+    if (stream_conf.sink_is_initial) {
+      sink_config.stream_map =
+          stream_conf.sink_offloader_streams_target_allocation;
+    } else {
+      sink_config.stream_map =
+          stream_conf.sink_offloader_streams_current_allocation;
+    }
     // TODO: set the default value 16 for now, would change it if we support
     // mode bits_per_sample
     sink_config.bits_per_sample = 16;
@@ -107,7 +113,13 @@ struct codec_manager_impl {
           update_receiver) {
     if (stream_conf.source_streams.empty()) return;
 
-    source_config.stream_map = std::move(stream_conf.source_streams);
+    if (stream_conf.source_is_initial) {
+      source_config.stream_map =
+          stream_conf.source_offloader_streams_target_allocation;
+    } else {
+      source_config.stream_map =
+          stream_conf.source_offloader_streams_current_allocation;
+    }
     // TODO: set the default value 16 for now, would change it if we support
     // mode bits_per_sample
     source_config.bits_per_sample = 16;
@@ -123,6 +135,46 @@ struct codec_manager_impl {
   const AudioSetConfigurations* GetOffloadCodecConfig(
       types::LeAudioContextType ctx_type) {
     return &context_type_offload_config_map_[ctx_type];
+  }
+
+  const broadcast_offload_config* GetBroadcastOffloadConfig() {
+    // TODO: Need to check the offload capabilities and audio policy further
+    // Use 48_1_2 for the media quality as default by now.
+    broadcast_config.stream_map.resize(
+        LeAudioCodecConfiguration::kChannelNumberStereo);
+    broadcast_config.bits_per_sample =
+        LeAudioCodecConfiguration::kBitsPerSample16;
+    broadcast_config.sampling_rate =
+        LeAudioCodecConfiguration::kSampleRate48000;
+    broadcast_config.frame_duration =
+        LeAudioCodecConfiguration::kInterval7500Us;
+    broadcast_config.octets_per_frame = 75;
+    broadcast_config.blocks_per_sdu = 1;
+    broadcast_config.codec_bitrate = 80000;
+    broadcast_config.retransmission_number = 4;
+    broadcast_config.max_transport_latency = 60;
+    return &broadcast_config;
+  }
+
+  void UpdateBroadcastConnHandle(
+      const std::vector<uint16_t>& conn_handle,
+      std::function<void(const ::le_audio::broadcast_offload_config& config)>
+          update_receiver) {
+    LOG_ASSERT(conn_handle.size() == broadcast_config.stream_map.size());
+
+    if (broadcast_config.stream_map.size() ==
+        LeAudioCodecConfiguration::kChannelNumberStereo) {
+      broadcast_config.stream_map[0] = std::pair<uint16_t, uint32_t>{
+          conn_handle[0], codec_spec_conf::kLeAudioLocationFrontLeft};
+      broadcast_config.stream_map[1] = std::pair<uint16_t, uint32_t>{
+          conn_handle[1], codec_spec_conf::kLeAudioLocationFrontRight};
+    } else if (broadcast_config.stream_map.size() ==
+               LeAudioCodecConfiguration::kChannelNumberMono) {
+      broadcast_config.stream_map[0] = std::pair<uint16_t, uint32_t>{
+          conn_handle[0], codec_spec_conf::kLeAudioLocationFrontCenter};
+    }
+
+    update_receiver(broadcast_config);
   }
 
  private:
@@ -262,6 +314,7 @@ struct codec_manager_impl {
   bool offload_enable_ = false;
   le_audio::offload_config sink_config;
   le_audio::offload_config source_config;
+  le_audio::broadcast_offload_config broadcast_config;
   std::unordered_map<types::LeAudioContextType, AudioSetConfigurations>
       context_type_offload_config_map_;
   std::unordered_map<btle_audio_codec_index_t, uint8_t>
@@ -335,6 +388,25 @@ const AudioSetConfigurations* CodecManager::GetOffloadCodecConfig(
   }
 
   return nullptr;
+}
+
+const ::le_audio::broadcast_offload_config*
+CodecManager::GetBroadcastOffloadConfig() {
+  if (pimpl_->IsRunning()) {
+    return pimpl_->codec_manager_impl_->GetBroadcastOffloadConfig();
+  }
+
+  return nullptr;
+}
+
+void CodecManager::UpdateBroadcastConnHandle(
+    const std::vector<uint16_t>& conn_handle,
+    std::function<void(const ::le_audio::broadcast_offload_config& config)>
+        update_receiver) {
+  if (pimpl_->IsRunning()) {
+    return pimpl_->codec_manager_impl_->UpdateBroadcastConnHandle(
+        conn_handle, update_receiver);
+  }
 }
 
 }  // namespace le_audio

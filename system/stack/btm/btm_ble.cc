@@ -1880,6 +1880,15 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
         }
         break;
 
+      case SMP_LE_ADDR_ASSOC_EVT:
+        if (btm_cb.api.p_le_callback) {
+          BTM_TRACE_DEBUG("btm_cb.api.p_le_callback=0x%x",
+                          btm_cb.api.p_le_callback);
+          (*btm_cb.api.p_le_callback)(event, bd_addr,
+                                      (tBTM_LE_EVT_DATA*)p_data);
+        }
+        break;
+
       default:
         BTM_TRACE_DEBUG("unknown event = %d", event);
         break;

@@ -76,6 +76,9 @@ final class A2dpStateMachine extends StateMachine {
     private static final boolean DBG = true;
     private static final String TAG = "A2dpStateMachine";
 
+    // TODO(b/240635097): remove in U
+    private static final int SOURCE_CODEC_TYPE_OPUS = 6;
+
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
     @VisibleForTesting
@@ -480,6 +483,7 @@ final class A2dpStateMachine extends StateMachine {
             // codecs (perhaps it's had a firmware update, etc.) and save that state if
             // it differs from what we had saved before.
             mA2dpService.updateOptionalCodecsSupport(mDevice);
+            mA2dpService.updateLowLatencyAudioSupport(mDevice);
             broadcastConnectionState(mConnectionState, mLastConnectionState);
             // Upon connected, the audio starts out as stopped
             broadcastAudioState(BluetoothA2dp.STATE_NOT_PLAYING,
@@ -652,6 +656,7 @@ final class A2dpStateMachine extends StateMachine {
             // for this codec change event.
             mA2dpService.updateOptionalCodecsSupport(mDevice);
         }
+        mA2dpService.updateLowLatencyAudioSupport(mDevice);
         if (mA2dpOffloadEnabled) {
             boolean update = false;
             BluetoothCodecConfig newCodecConfig = mCodecStatus.getCodecConfig();
@@ -663,6 +668,13 @@ final class A2dpStateMachine extends StateMachine {
             } else if ((newCodecConfig.getCodecType()
                         == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC)
                     && (prevCodecConfig != null)
+                    && (prevCodecConfig.getCodecSpecific1()
+                        != newCodecConfig.getCodecSpecific1())) {
+                update = true;
+            } else if ((newCodecConfig.getCodecType()
+                        == SOURCE_CODEC_TYPE_OPUS) // TODO(b/240635097): update in U
+                    && (prevCodecConfig != null)
+                    // check framesize field
                     && (prevCodecConfig.getCodecSpecific1()
                         != newCodecConfig.getCodecSpecific1())) {
                 update = true;

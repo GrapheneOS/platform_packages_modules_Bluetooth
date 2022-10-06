@@ -1411,7 +1411,10 @@ void btm_process_remote_name(const RawAddress* bda, const BD_NAME bdn,
   uint16_t temp_evt_len;
 
   if (bda) {
+    rem_name.bd_addr = *bda;
     VLOG(2) << "BDA " << *bda;
+  } else {
+    rem_name.bd_addr = RawAddress::kEmpty;
   }
 
   VLOG(2) << "Inquire BDA " << p_inq->remname_bda;

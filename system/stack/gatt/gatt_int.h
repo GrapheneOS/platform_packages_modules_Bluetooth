@@ -485,6 +485,7 @@ extern void gatt_cl_init_sr_status(tGATT_TCB& tcb);
 extern bool gatt_cl_read_sr_supp_feat_req(
     const RawAddress& peer_bda,
     base::OnceCallback<void(const RawAddress&, uint8_t)> cb);
+extern bool gatt_sr_is_cl_multi_variable_len_notif_supported(tGATT_TCB& tcb);
 
 extern bool gatt_sr_is_cl_change_aware(tGATT_TCB& tcb);
 extern void gatt_sr_init_cl_status(tGATT_TCB& tcb);
@@ -495,7 +496,7 @@ extern tGATT_STATUS attp_send_cl_confirmation_msg(tGATT_TCB& tcb, uint16_t cid);
 extern tGATT_STATUS attp_send_cl_msg(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
                                      uint8_t op_code, tGATT_CL_MSG* p_msg);
 extern BT_HDR* attp_build_sr_msg(tGATT_TCB& tcb, uint8_t op_code,
-                                 tGATT_SR_MSG* p_msg);
+                                 tGATT_SR_MSG* p_msg, uint16_t payload_size);
 extern tGATT_STATUS attp_send_sr_msg(tGATT_TCB& tcb, uint16_t cid,
                                      BT_HDR* p_msg);
 extern tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB& tcb, uint16_t cid,

@@ -98,12 +98,6 @@ int PORT_WriteDataCO(uint16_t handle, int* p_len) {
   mock_function_count_map[__func__]++;
   return 0;
 }
-int RFCOMM_CreateConnection(uint16_t uuid, uint8_t scn, bool is_server,
-                            uint16_t mtu, const RawAddress& bd_addr,
-                            uint16_t* p_handle, tPORT_CALLBACK* p_mgmt_cb) {
-  mock_function_count_map[__func__]++;
-  return 0;
-}
 int RFCOMM_CreateConnectionWithSecurity(uint16_t uuid, uint8_t scn,
                                         bool is_server, uint16_t mtu,
                                         const RawAddress& bd_addr,
@@ -125,7 +119,8 @@ uint8_t PORT_SetTraceLevel(uint8_t new_level) {
   mock_function_count_map[__func__]++;
   return 0;
 }
-void RFCOMM_ClearSecurityRecord(uint32_t scn) {
+int PORT_GetSecurityMask(uint16_t handle, uint16_t* sec_mask) {
   mock_function_count_map[__func__]++;
+  return 0;
 }
 void RFCOMM_Init(void) { mock_function_count_map[__func__]++; }

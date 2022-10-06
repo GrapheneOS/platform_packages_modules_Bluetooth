@@ -107,6 +107,8 @@ class BluetoothAudioClientInterface {
 
   std::shared_ptr<IBluetoothAudioProvider> provider_;
 
+  std::shared_ptr<IBluetoothAudioProviderFactory> provider_factory_;
+
   bool session_started_;
   std::unique_ptr<DataMQ> data_mq_;
 

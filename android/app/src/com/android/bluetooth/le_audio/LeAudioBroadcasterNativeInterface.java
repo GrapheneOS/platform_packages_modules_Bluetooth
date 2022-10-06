@@ -169,12 +169,11 @@ public class LeAudioBroadcasterNativeInterface {
      * Creates LeAudio Broadcast instance.
      *
      * @param metadata metadata buffer with TLVs
-     * @param audioProfile broadcast audio profile
      * @param broadcastCode optional code if broadcast should be encrypted
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    public void createBroadcast(byte[] metadata, int audioProfile, byte[] broadcastCode) {
-        createBroadcastNative(metadata, audioProfile, broadcastCode);
+    public void createBroadcast(byte[] metadata, byte[] broadcastCode) {
+        createBroadcastNative(metadata, broadcastCode);
     }
 
     /**
@@ -241,7 +240,7 @@ public class LeAudioBroadcasterNativeInterface {
     private native void initNative();
     private native void stopNative();
     private native void cleanupNative();
-    private native void createBroadcastNative(byte[] metadata, int profile, byte[] broadcastCode);
+    private native void createBroadcastNative(byte[] metadata, byte[] broadcastCode);
     private native void updateMetadataNative(int broadcastId, byte[] metadata);
     private native void startBroadcastNative(int broadcastId);
     private native void stopBroadcastNative(int broadcastId);

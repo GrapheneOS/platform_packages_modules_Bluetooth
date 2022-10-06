@@ -55,6 +55,7 @@ cc_library_static {
         "external/aac/libSYS/include",
         "external/libldac/inc",
         "external/libldac/abr/inc",
+        "external/libopus/include",
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/vnd/include",
@@ -85,6 +86,9 @@ cc_library_static {
         "a2dp/a2dp_vendor_ldac.cc",
         "a2dp/a2dp_vendor_ldac_decoder.cc",
         "a2dp/a2dp_vendor_ldac_encoder.cc",
+        "a2dp/a2dp_vendor_opus.cc",
+        "a2dp/a2dp_vendor_opus_encoder.cc",
+        "a2dp/a2dp_vendor_opus_decoder.cc",
         "avct/avct_api.cc",
         "avct/avct_bcb_act.cc",
         "avct/avct_ccb.cc",
@@ -268,6 +272,7 @@ cc_test {
         "libbtdevice",
         "libg722codec",
         "liblc3",
+        "libopus",
         "libosi",
         "libudrv-uipc",
         "libbt-protos-lite",
@@ -668,6 +673,7 @@ cc_test {
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: crypto_toolbox_srcs + [
+        ":TestCommonMainHandler",
         ":TestMockStackBtm",
         "gatt/gatt_db.cc",
         "gatt/gatt_sr_hash.cc",
@@ -719,6 +725,7 @@ cc_test {
         "test/common/mock_controller.cc",
         "test/common/mock_gatt_layer.cc",
         "test/common/mock_hcic_layer.cc",
+        ":TestCommonStackConfig"
     ],
     static_libs: [
         "libbt-common",
@@ -762,6 +769,7 @@ cc_test {
     include_dirs:[
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/internal_include"
     ],
     srcs: [
         "eatt/eatt.cc",
@@ -772,6 +780,8 @@ cc_test {
         "test/common/mock_l2cap_layer.cc",
         "test/gatt/mock_gatt_utils_ref.cc",
         "test/eatt/eatt_test.cc",
+        ":TestCommonMainHandler",
+        ":TestCommonStackConfig",
     ],
     shared_libs: [
         "libcutils",
@@ -862,6 +872,7 @@ cc_test {
         "metrics/stack_metrics_logging.cc",
         "test/btm/stack_btm_test.cc",
         "test/btm/peer_packet_types_test.cc",
+        "test/common/mock_eatt.cc",
     ],
     static_libs: [
         "libbt-common",
@@ -1073,6 +1084,8 @@ cc_test {
     ],
     srcs: [
         ":OsiCompatSources",
+        ":TestCommonMainHandler",
+        ":TestCommonStackConfig",
         ":TestMockBta",
         ":TestMockBtif",
         ":TestMockHci",
@@ -1264,4 +1277,37 @@ cc_test {
             undefined : true
         },
     },
+}
+
+// Bluetooth stack connection multiplexing
+cc_test {
+    name: "net_test_stack_sdp",
+    defaults: ["fluoride_defaults"],
+    local_include_dirs: [
+        "include",
+        "test/common",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/device/include/",
+        "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/internal_include",
+        "packages/modules/Bluetooth/system/utils/include",
+    ],
+    srcs: [
+        ":TestCommonMockFunctions",
+        "sdp/sdp_main.cc",
+        "sdp/sdp_utils.cc",
+        "test/common/mock_btif_config.cc",
+        "test/stack_sdp_utils_test.cc",
+    ],
+    shared_libs: [
+        "libcutils",
+    ],
+    static_libs: [
+        "libbt-common",
+        "libbluetooth-types",
+        "liblog",
+        "libgmock",
+    ],
 }

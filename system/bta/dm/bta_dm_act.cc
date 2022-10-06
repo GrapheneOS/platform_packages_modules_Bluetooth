@@ -626,6 +626,15 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
   if (other_address == bd_addr) other_address = other_address2;
 
   if (other_address_connected) {
+    // Get real transport
+    if (other_transport == BT_TRANSPORT_AUTO) {
+      bool connected_with_br_edr =
+          BTM_IsAclConnectionUp(other_address, BT_TRANSPORT_BR_EDR);
+      other_transport =
+          connected_with_br_edr ? BT_TRANSPORT_BR_EDR : BT_TRANSPORT_LE;
+    }
+    LOG_INFO("other_address %s with transport %d connected",
+             PRIVATE_ADDRESS(other_address), other_transport);
     /* Take the link down first, and mark the device for removal when
      * disconnected */
     for (int i = 0; i < bta_dm_cb.device_list.count; i++) {
@@ -633,6 +642,7 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
       if (peer_device.peer_bdaddr == other_address &&
           peer_device.transport == other_transport) {
         peer_device.conn_state = BTA_DM_UNPAIRING;
+        LOG_INFO("Remove ACL of address %s", PRIVATE_ADDRESS(other_address));
 
         /* Make sure device is not in acceptlist before we disconnect */
         GATT_CancelConnect(0, bd_addr, false);
@@ -957,7 +967,7 @@ static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
 
     /* Remote name discovery is on going now so BTM cannot notify through
      * "bta_dm_remname_cback" */
-    /* adding callback to get notified that current reading remore name done */
+    /* adding callback to get notified that current reading remote name done */
 
     if (bluetooth::shim::is_gd_security_enabled()) {
       bluetooth::shim::BTM_SecAddRmtNameNotifyCallback(
@@ -1872,6 +1882,7 @@ static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
 
   /* if this is what we are looking for */
   if (bta_dm_search_cb.peer_bdaddr == bd_addr) {
+    rem_name.bd_addr = bd_addr;
     rem_name.length = strlcpy((char*)rem_name.remote_bd_name, (char*)bd_name,
                               BD_NAME_LEN + 1);
     if (rem_name.length > BD_NAME_LEN) {
@@ -1893,6 +1904,9 @@ static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
       APPL_TRACE_WARNING("%s: BTM_ReadRemoteDeviceName returns 0x%02X",
                          __func__, btm_status);
 
+      // needed so our response is not ignored, since this corresponds to the
+      // actual peer_bdaddr
+      rem_name.bd_addr = bta_dm_search_cb.peer_bdaddr;
       rem_name.length = 0;
       rem_name.remote_bd_name[0] = 0;
       rem_name.status = btm_status;
@@ -1915,11 +1929,6 @@ static void bta_dm_remname_cback(void* p) {
   APPL_TRACE_DEBUG("bta_dm_remname_cback len = %d name=<%s>",
                    p_remote_name->length, p_remote_name->remote_bd_name);
 
-  /* remote name discovery is done but it could be failed */
-  bta_dm_search_cb.name_discover_done = true;
-  strlcpy((char*)bta_dm_search_cb.peer_name,
-          (char*)p_remote_name->remote_bd_name, BD_NAME_LEN + 1);
-
   if (bta_dm_search_cb.peer_bdaddr == p_remote_name->bd_addr) {
     if (bluetooth::shim::is_gd_security_enabled()) {
       bluetooth::shim::BTM_SecDeleteRmtNameNotifyCallback(
@@ -1927,7 +1936,18 @@ static void bta_dm_remname_cback(void* p) {
     } else {
       BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
     }
+  } else {
+    // if we got a different response, ignore it
+    // we will have made a request directly from BTM_ReadRemoteDeviceName so we
+    // expect a dedicated response for us
+    LOG_INFO("ignoring remote name response in DM callback since it's for the wrong bd_addr");
+    return;
   }
+
+  /* remote name discovery is done but it could be failed */
+  bta_dm_search_cb.name_discover_done = true;
+  strlcpy((char*)bta_dm_search_cb.peer_name,
+          (char*)p_remote_name->remote_bd_name, BD_NAME_LEN + 1);
 
   if (bta_dm_search_cb.transport == BT_TRANSPORT_LE) {
     GAP_BleReadPeerPrefConnParams(bta_dm_search_cb.peer_bdaddr);
@@ -3603,7 +3623,8 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
                 (static_cast<uint8_t>(p_data->complt.reason))));
 
         if (btm_sec_is_a_bonded_dev(bda) &&
-            p_data->complt.reason == SMP_CONN_TOUT) {
+            p_data->complt.reason == SMP_CONN_TOUT &&
+            !p_data->complt.smp_over_br) {
           // Bonded device failed to encrypt - to test this remove battery from
           // HID device right after connection, but before encryption is
           // established
@@ -3625,6 +3646,12 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
         // bta_dm_cb.p_sec_cback(BTA_DM_AUTH_CMPL_EVT, &sec_event);
         bta_dm_cb.p_sec_cback(BTA_DM_BLE_AUTH_CMPL_EVT, &sec_event);
       }
+      break;
+
+    case BTM_LE_ADDR_ASSOC_EVT:
+      sec_event.proc_id_addr.pairing_bda = bda;
+      sec_event.proc_id_addr.id_addr = p_data->id_addr;
+      bta_dm_cb.p_sec_cback(BTA_DM_LE_ADDR_ASSOC_EVT, &sec_event);
       break;
 
     default:

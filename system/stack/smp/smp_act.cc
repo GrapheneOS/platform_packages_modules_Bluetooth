@@ -138,6 +138,10 @@ void smp_send_app_cback(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
         cb_data.io_req.resp_keys = SMP_BR_SEC_DEFAULT_KEY;
         break;
 
+      case SMP_LE_ADDR_ASSOC_EVT:
+        cb_data.id_addr = p_cb->id_addr;
+        break;
+
       default:
         LOG_ERROR("Unexpected event:%hhu", p_cb->cb_evt);
         break;
@@ -212,6 +216,7 @@ void smp_send_app_cback(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
         // Expected, but nothing to do
         case SMP_SC_LOC_OOB_DATA_UP_EVT:
+        case SMP_LE_ADDR_ASSOC_EVT:
           break;
 
         default:
@@ -543,6 +548,14 @@ void smp_proc_pair_cmd(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   STREAM_TO_UINT8(p_cb->peer_enc_size, p);
   STREAM_TO_UINT8(p_cb->peer_i_key, p);
   STREAM_TO_UINT8(p_cb->peer_r_key, p);
+
+  tSMP_STATUS reason = p_cb->cert_failure;
+  if (reason == SMP_ENC_KEY_SIZE) {
+    tSMP_INT_DATA smp_int_data;
+    smp_int_data.status = reason;
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &smp_int_data);
+    return;
+  }
 
   if (smp_command_has_invalid_parameters(p_cb)) {
     tSMP_INT_DATA smp_int_data;
@@ -1050,8 +1063,11 @@ void smp_proc_id_addr(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
   /* store the ID key from peer device */
   if ((p_cb->peer_auth_req & SMP_AUTH_BOND) &&
-      (p_cb->loc_auth_req & SMP_AUTH_BOND))
+      (p_cb->loc_auth_req & SMP_AUTH_BOND)) {
     btm_sec_save_le_key(p_cb->pairing_bda, BTM_LE_KEY_PID, &pid_key, true);
+    p_cb->cb_evt = SMP_LE_ADDR_ASSOC_EVT;
+    smp_send_app_cback(p_cb, NULL);
+  }
   smp_key_distribution_by_transport(p_cb, NULL);
 }
 

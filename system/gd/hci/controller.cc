@@ -146,7 +146,7 @@ struct Controller::impl {
       LOG_INFO("LE_READ_PERIODIC_ADVERTISING_LIST_SIZE not supported, defaulting to 0");
       le_periodic_advertiser_list_size_ = 0;
     }
-    if (is_supported(OpCode::LE_SET_HOST_FEATURE)) {
+    if (is_supported(OpCode::LE_SET_HOST_FEATURE) && module_.SupportsBleConnectedIsochronousStreamCentral()) {
       hci_->EnqueueCommand(
           LeSetHostFeatureBuilder::Create(LeHostFeatureBits::CONNECTED_ISO_STREAM_HOST_SUPPORT, Enable::ENABLED),
           handler->BindOnceOn(this, &Controller::impl::le_set_host_feature_handler));
@@ -754,10 +754,10 @@ struct Controller::impl {
       OP_CODE_MAPPING(LE_SET_PHY)
       OP_CODE_MAPPING(LE_ENHANCED_RECEIVER_TEST)
       OP_CODE_MAPPING(LE_ENHANCED_TRANSMITTER_TEST)
-      OP_CODE_MAPPING(LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS)
+      OP_CODE_MAPPING(LE_SET_ADVERTISING_SET_RANDOM_ADDRESS)
       OP_CODE_MAPPING(LE_SET_EXTENDED_ADVERTISING_PARAMETERS)
       OP_CODE_MAPPING(LE_SET_EXTENDED_ADVERTISING_DATA)
-      OP_CODE_MAPPING(LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE)
+      OP_CODE_MAPPING(LE_SET_EXTENDED_SCAN_RESPONSE_DATA)
       OP_CODE_MAPPING(LE_SET_EXTENDED_ADVERTISING_ENABLE)
       OP_CODE_MAPPING(LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH)
       OP_CODE_MAPPING(LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS)

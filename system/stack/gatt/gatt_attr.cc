@@ -79,7 +79,12 @@ static void gatt_cl_op_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
 
 static void gatt_cl_start_config_ccc(tGATT_PROFILE_CLCB* p_clcb);
 
+static bool gatt_cl_is_robust_caching_enabled();
+
 static bool gatt_sr_is_robust_caching_enabled();
+
+static bool read_sr_supported_feat_req(
+    uint16_t conn_id, base::OnceCallback<void(const RawAddress&, uint8_t)> cb);
 
 static tGATT_STATUS gatt_sr_read_db_hash(uint16_t conn_id,
                                          tGATT_VALUE* p_value);
@@ -427,7 +432,7 @@ void gatt_profile_db_init(void) {
   gatt_cb.gatt_svr_supported_feat_mask |= BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK;
   gatt_cb.gatt_cl_supported_feat_mask |= BLE_GATT_CL_ANDROID_SUP_FEAT;
 
-  if (gatt_sr_is_robust_caching_enabled())
+  if (gatt_cl_is_robust_caching_enabled())
     gatt_cb.gatt_cl_supported_feat_mask |= BLE_GATT_CL_SUP_FEAT_CACHING_BITMASK;
 
   VLOG(1) << __func__ << ": gatt_if=" << gatt_cb.gatt_if << " EATT supported";
@@ -567,16 +572,35 @@ static void gatt_cl_op_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
           << " status: " << status
           << " conn id: " << loghex(static_cast<uint8_t>(conn_id));
 
-  if (op != GATTC_OPTYPE_READ) return;
+  if (op != GATTC_OPTYPE_READ && op != GATTC_OPTYPE_WRITE) {
+    LOG_DEBUG("Not interested in opcode %d", op);
+    return;
+  }
 
   if (iter == OngoingOps.end()) {
-    LOG(ERROR) << __func__ << " Unexpected read complete";
+    /* If OngoingOps is empty it means we are not interested in the result here.
+     */
+    LOG_DEBUG("Unexpected read complete");
     return;
   }
 
   gatt_op_cb_data* operation_callback_data = &iter->second;
   uint16_t cl_op_uuid = operation_callback_data->op_uuid;
   operation_callback_data->op_uuid = 0;
+
+  if (op == GATTC_OPTYPE_WRITE) {
+    if (cl_op_uuid == GATT_UUID_GATT_SRV_CHGD) {
+      LOG_DEBUG("Write response from Service Changed CCC");
+      OngoingOps.erase(iter);
+      /* Read server supported features here supported */
+      read_sr_supported_feat_req(
+          conn_id, base::BindOnce([](const RawAddress& bdaddr,
+                                     uint8_t support) { return; }));
+    } else {
+      LOG_DEBUG("Not interested in that write response");
+    }
+    return;
+  }
 
   uint8_t* pp = p_data->att_value.value;
 
@@ -666,6 +690,13 @@ static void gatt_cl_start_config_ccc(tGATT_PROFILE_CLCB* p_clcb) {
       ccc_value.len = 2;
       ccc_value.value[0] = GATT_CLT_CONFIG_INDICATION;
       GATTC_Write(p_clcb->conn_id, GATT_WRITE, &ccc_value);
+
+      gatt_op_cb_data cb_data;
+      cb_data.cb = base::BindOnce(
+          [](const RawAddress& bdaddr, uint8_t support) { return; });
+      cb_data.op_uuid = GATT_UUID_GATT_SRV_CHGD;
+      OngoingOps[p_clcb->conn_id] = std::move(cb_data);
+
       break;
     }
   }
@@ -723,6 +754,30 @@ void gatt_cl_init_sr_status(tGATT_TCB& tcb) {
     bluetooth::eatt::EattExtension::AddFromStorage(tcb.peer_bda);
 }
 
+static bool read_sr_supported_feat_req(
+    uint16_t conn_id, base::OnceCallback<void(const RawAddress&, uint8_t)> cb) {
+  tGATT_READ_PARAM param = {};
+
+  param.service.s_handle = 1;
+  param.service.e_handle = 0xFFFF;
+  param.service.auth_req = 0;
+
+  param.service.uuid = bluetooth::Uuid::From16Bit(GATT_UUID_SERVER_SUP_FEAT);
+
+  if (GATTC_Read(conn_id, GATT_READ_BY_TYPE, &param) != GATT_SUCCESS) {
+    LOG_ERROR("Read GATT Support features GATT_Read Failed");
+    return false;
+  }
+
+  gatt_op_cb_data cb_data;
+
+  cb_data.cb = std::move(cb);
+  cb_data.op_uuid = GATT_UUID_SERVER_SUP_FEAT;
+  OngoingOps[conn_id] = std::move(cb_data);
+
+  return true;
+}
+
 /*******************************************************************************
  *
  * Function         gatt_cl_read_sr_supp_feat_req
@@ -736,7 +791,6 @@ bool gatt_cl_read_sr_supp_feat_req(
     const RawAddress& peer_bda,
     base::OnceCallback<void(const RawAddress&, uint8_t)> cb) {
   tGATT_PROFILE_CLCB* p_clcb;
-  tGATT_READ_PARAM param;
   uint16_t conn_id;
 
   if (!cb) return false;
@@ -765,25 +819,7 @@ bool gatt_cl_read_sr_supp_feat_req(
     return false;
   }
 
-  memset(&param, 0, sizeof(tGATT_READ_PARAM));
-
-  param.service.s_handle = 1;
-  param.service.e_handle = 0xFFFF;
-  param.service.auth_req = 0;
-
-  param.service.uuid = bluetooth::Uuid::From16Bit(GATT_UUID_SERVER_SUP_FEAT);
-
-  if (GATTC_Read(conn_id, GATT_READ_BY_TYPE, &param) != GATT_SUCCESS) {
-    LOG(ERROR) << __func__ << " Read GATT Support features GATT_Read Failed";
-    return false;
-  }
-
-  gatt_op_cb_data cb_data;
-  cb_data.cb = std::move(cb);
-  cb_data.op_uuid = GATT_UUID_SERVER_SUP_FEAT;
-  OngoingOps[conn_id] = std::move(cb_data);
-
-  return true;
+  return read_sr_supported_feat_req(conn_id, std::move(cb));
 }
 
 /*******************************************************************************
@@ -814,6 +850,19 @@ bool gatt_profile_get_eatt_support(const RawAddress& remote_bda) {
 
 /*******************************************************************************
  *
+ * Function         gatt_cl_is_robust_caching_enabled
+ *
+ * Description      Check if Robust Caching is enabled on client side.
+ *
+ * Returns          true if enabled in gd flag, otherwise false
+ *
+ ******************************************************************************/
+static bool gatt_cl_is_robust_caching_enabled() {
+  return bluetooth::common::init_flags::gatt_robust_caching_client_is_enabled();
+}
+
+/*******************************************************************************
+ *
  * Function         gatt_sr_is_robust_caching_enabled
  *
  * Description      Check if Robust Caching is enabled on server side.
@@ -822,7 +871,7 @@ bool gatt_profile_get_eatt_support(const RawAddress& remote_bda) {
  *
  ******************************************************************************/
 static bool gatt_sr_is_robust_caching_enabled() {
-  return bluetooth::common::init_flags::gatt_robust_caching_is_enabled();
+  return bluetooth::common::init_flags::gatt_robust_caching_server_is_enabled();
 }
 
 /*******************************************************************************
@@ -838,6 +887,20 @@ static bool gatt_sr_is_cl_robust_caching_supported(tGATT_TCB& tcb) {
   // if robust caching is not enabled, should always return false
   if (!gatt_sr_is_robust_caching_enabled()) return false;
   return (tcb.cl_supp_feat & BLE_GATT_CL_SUP_FEAT_CACHING_BITMASK);
+}
+
+/*******************************************************************************
+ *
+ * Function         gatt_sr_is_cl_multi_variable_len_notif_supported
+ *
+ * Description      Check if Multiple Variable Length Notifications
+ *                  supported for the connection
+ *
+ * Returns          true if enabled by client side, otherwise false
+ *
+ ******************************************************************************/
+bool gatt_sr_is_cl_multi_variable_len_notif_supported(tGATT_TCB& tcb) {
+  return (tcb.cl_supp_feat & BLE_GATT_CL_SUP_FEAT_MULTI_NOTIF_BITMASK);
 }
 
 /*******************************************************************************

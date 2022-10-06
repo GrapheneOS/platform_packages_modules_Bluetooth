@@ -71,9 +71,6 @@ struct BroadcastCodecWrapper {
     return *this;
   };
 
-  static const BroadcastCodecWrapper& getCodecConfigForProfile(
-      LeAudioBroadcaster::AudioProfile profile);
-
   types::LeAudioLtvMap GetSubgroupCodecSpecData() const;
   types::LeAudioLtvMap GetBisCodecSpecData(uint8_t bis_idx) const;
 
@@ -90,7 +87,7 @@ struct BroadcastCodecWrapper {
   }
 
   uint16_t GetMaxSduSize() const {
-    return GetNumChannels() * GetMaxSduSizePerChannel();
+    return GetNumChannelsPerBis() * GetMaxSduSizePerChannel();
   }
 
   const LeAudioCodecConfiguration& GetLeAudioCodecConfiguration() const {
@@ -115,6 +112,11 @@ struct BroadcastCodecWrapper {
     return source_codec_config.data_interval_us;
   }
 
+  uint8_t GetNumChannelsPerBis() const {
+    // TODO: Need to handle each BIS has more than one channel case
+    return 1;
+  }
+
  private:
   types::LeAudioCodecId codec_id;
   LeAudioCodecConfiguration source_codec_config;
@@ -126,6 +128,32 @@ struct BroadcastCodecWrapper {
 std::ostream& operator<<(
     std::ostream& os,
     const le_audio::broadcaster::BroadcastCodecWrapper& config);
+
+struct BroadcastQosConfig {
+  BroadcastQosConfig(uint8_t retransmission_number,
+                     uint16_t max_transport_latency)
+      : retransmission_number(retransmission_number),
+        max_transport_latency(max_transport_latency) {}
+
+  BroadcastQosConfig& operator=(const BroadcastQosConfig& other) {
+    retransmission_number = other.retransmission_number;
+    max_transport_latency = other.max_transport_latency;
+    return *this;
+  };
+
+  uint8_t getRetransmissionNumber() const { return retransmission_number; }
+  uint16_t getMaxTransportLatency() const { return max_transport_latency; }
+
+ private:
+  uint8_t retransmission_number;
+  uint16_t max_transport_latency;
+};
+
+std::ostream& operator<<(
+    std::ostream& os, const le_audio::broadcaster::BroadcastQosConfig& config);
+
+std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+getStreamConfigForContext(uint16_t context);
 
 }  // namespace broadcaster
 }  // namespace le_audio

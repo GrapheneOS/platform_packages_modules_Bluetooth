@@ -33,8 +33,6 @@ std::map<std::string, int> mock_function_count_map;
 
 void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 
-bluetooth::common::MessageLoopThread* get_main_thread() { return nullptr; }
-
 class StackGattTest : public ::testing::Test {};
 
 namespace {

@@ -47,10 +47,12 @@ import android.util.Pair;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +78,7 @@ public class CsipSetCoordinatorService extends ProfileService {
     private static CsipSetCoordinatorService sCsipSetCoordinatorService;
 
     private AdapterService mAdapterService;
+    private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
     private BluetoothDevice mPreviousAudioDevice;
 
@@ -121,10 +124,12 @@ public class CsipSetCoordinatorService extends ProfileService {
             throw new IllegalStateException("start() called twice");
         }
 
-        // Get AdapterService, CsipSetCoordinatorNativeInterface.
+        // Get AdapterService, DatabaseManager, CsipSetCoordinatorNativeInterface.
         // None of them can be null.
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when CsipSetCoordinatorService starts");
+        mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
+                "DatabaseManager cannot be null when CsipSetCoordinatorService starts");
         mCsipSetCoordinatorNativeInterface = Objects.requireNonNull(
                 CsipSetCoordinatorNativeInterface.getInstance(),
                 "CsipSetCoordinatorNativeInterface cannot be null when"
@@ -461,7 +466,7 @@ public class CsipSetCoordinatorService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
-        mAdapterService.getDatabase().setProfileConnectionPolicy(
+        mDatabaseManager.setProfileConnectionPolicy(
                 device, BluetoothProfile.CSIP_SET_COORDINATOR, connectionPolicy);
         if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
             connect(device);
@@ -479,7 +484,7 @@ public class CsipSetCoordinatorService extends ProfileService {
      */
     public int getConnectionPolicy(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
-        return mAdapterService.getDatabase().getProfileConnectionPolicy(
+        return mDatabaseManager.getProfileConnectionPolicy(
                 device, BluetoothProfile.CSIP_SET_COORDINATOR);
     }
 
@@ -494,6 +499,9 @@ public class CsipSetCoordinatorService extends ProfileService {
     public @Nullable UUID lockGroup(
             int groupId, @NonNull IBluetoothCsipSetCoordinatorLockCallback callback) {
         if (callback == null) {
+            if (DBG) {
+                Log.d(TAG, "lockGroup(): " + groupId + ", callback not provided ");
+            }
             return null;
         }
 
@@ -520,12 +528,18 @@ public class CsipSetCoordinatorService extends ProfileService {
                 } catch (RemoteException e) {
                     throw e.rethrowFromSystemServer();
                 }
+                if (DBG) {
+                    Log.d(TAG, "lockGroup(): " + groupId + ", ERROR_CSIP_GROUP_LOCKED_BY_OTHER ");
+                }
                 return null;
             }
 
             mLocks.put(groupId, new Pair<>(uuid, callback));
         }
 
+        if (DBG) {
+            Log.d(TAG, "lockGroup(): locking group: " + groupId);
+        }
         mCsipSetCoordinatorNativeInterface.groupLockSet(groupId, true);
         return uuid;
     }
@@ -538,6 +552,9 @@ public class CsipSetCoordinatorService extends ProfileService {
      */
     public void unlockGroup(@NonNull UUID lockUuid) {
         if (lockUuid == null) {
+            if (DBG) {
+                Log.d(TAG, "unlockGroup(): lockUuid is null");
+            }
             return;
         }
 
@@ -546,6 +563,9 @@ public class CsipSetCoordinatorService extends ProfileService {
                     mLocks.entrySet()) {
                 Pair<UUID, IBluetoothCsipSetCoordinatorLockCallback> uuidCbPair = entry.getValue();
                 if (uuidCbPair.first.equals(lockUuid)) {
+                    if (DBG) {
+                        Log.d(TAG, "unlockGroup(): unlocking ... " + lockUuid);
+                    }
                     mCsipSetCoordinatorNativeInterface.groupLockSet(entry.getKey(), false);
                     return;
                 }
@@ -566,7 +586,7 @@ public class CsipSetCoordinatorService extends ProfileService {
 
     /**
      * Get collection of group IDs for a given UUID
-     * @param uuid
+     * @param uuid profile context UUID
      * @return list of group IDs
      */
     public List<Integer> getAllGroupIds(ParcelUuid uuid) {
@@ -579,7 +599,7 @@ public class CsipSetCoordinatorService extends ProfileService {
 
     /**
      * Get device's groups/
-     * @param device
+     * @param device group member device
      * @return map of group id and related uuids.
      */
     public Map<Integer, ParcelUuid> getGroupUuidMapByDevice(BluetoothDevice device) {
@@ -612,6 +632,24 @@ public class CsipSetCoordinatorService extends ProfileService {
                 .sorted(Map.Entry.comparingByValue())
                 .map(e -> e.getKey())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get grouped devices
+     * @param device group member device
+     * @param uuid profile context UUID
+     * @return related list of devices sorted from the lowest to the highest rank value.
+     */
+    public @NonNull List<BluetoothDevice> getGroupDevicesOrdered(BluetoothDevice device,
+            ParcelUuid uuid) {
+        List<Integer> groupIds = getAllGroupIds(uuid);
+        for (Integer id : groupIds) {
+            List<BluetoothDevice> devices = getGroupDevicesOrdered(id);
+            if (devices.contains(device)) {
+                return devices;
+            }
+        }
+        return Collections.emptyList();
     }
 
     /**

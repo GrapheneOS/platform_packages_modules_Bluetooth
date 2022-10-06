@@ -27,6 +27,8 @@
 #include "bta_gatt_api.h"
 #include "bta_groups.h"
 #include "gap_api.h"
+#include "gd/common/init_flags.h"
+#include "gd/common/strings.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 
 namespace bluetooth {
@@ -173,7 +175,7 @@ class CsisInstance {
   uint8_t GetRank(void) const { return rank_; }
   void SetRank(uint8_t rank) {
     DLOG(INFO) << __func__ << " current rank state: " << loghex(rank_)
-               << " new lock state: " << loghex(rank);
+               << " new rank state: " << loghex(rank);
     rank_ = rank;
   }
 
@@ -363,15 +365,34 @@ class CsisGroup {
 
   bool IsAvailableForCsisLockOperation(void) {
     int id = group_id_;
-    auto iter = std::find_if(devices_.begin(), devices_.end(), [id](auto& d) {
-      if (!d->IsConnected()) return false;
-      auto inst = d->GetCsisInstanceByGroupId(id);
-      LOG_ASSERT(inst);
-      return inst->GetLockState() == CsisLockState::CSIS_STATE_LOCKED;
-    });
+    int number_of_connected = 0;
+    auto iter = std::find_if(
+        devices_.begin(), devices_.end(), [id, &number_of_connected](auto& d) {
+          if (!d->IsConnected()) {
+            LOG_DEBUG("Device %s is not connected in group %d",
+                      d->addr.ToString().c_str(), id);
+            return false;
+          }
+          auto inst = d->GetCsisInstanceByGroupId(id);
+          if (!inst) {
+            LOG_DEBUG("Instance not available for group %d", id);
+            return false;
+          }
+          number_of_connected++;
+          LOG_DEBUG("Device %s,  lock state: %d", d->addr.ToString().c_str(),
+                    (int)inst->GetLockState());
+          return inst->GetLockState() == CsisLockState::CSIS_STATE_LOCKED;
+        });
 
+    LOG_DEBUG("Locked set: %d, number of connected %d", iter != devices_.end(),
+              number_of_connected);
     /* If there is no locked device, we are good to go */
-    return iter == devices_.end();
+    if (iter != devices_.end()) {
+      LOG_WARN("Device %s is locked ", (*iter)->addr.ToString().c_str());
+      return false;
+    }
+
+    return (number_of_connected > 0);
   }
 
   void SortByCsisRank(void) {
