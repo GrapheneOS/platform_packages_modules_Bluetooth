@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "log_capture.h"
+#include "../log_capture.h"
 
 #include <gtest/gtest.h>
 
@@ -102,6 +102,7 @@ TEST_F(LogCaptureTest, log_size) {
 }
 
 TEST_F(LogCaptureTest, typical) {
+  bluetooth::common::InitFlags::Load(nullptr);
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   LOG_ERROR("%s", kLogError);
