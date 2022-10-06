@@ -749,8 +749,9 @@ public class AdapterService extends Service {
             nonSupportedProfiles.add(BassClientService.class);
         }
 
-        if (isLeAudioBroadcastSourceSupported()) {
-            Config.addSupportedProfile(BluetoothProfile.LE_AUDIO_BROADCAST);
+        if (!isLeAudioBroadcastSourceSupported()) {
+            Config.updateSupportedProfileMask(
+                    false, LeAudioService.class, BluetoothProfile.LE_AUDIO_BROADCAST);
         }
 
         if (!nonSupportedProfiles.isEmpty()) {
@@ -3399,7 +3400,8 @@ public class AdapterService extends Service {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
 
-            if (service.isLeAudioBroadcastSourceSupported()) {
+            long supportBitMask = Config.getSupportedProfilesBitMask();
+            if ((supportBitMask & (1 << BluetoothProfile.LE_AUDIO_BROADCAST)) != 0) {
                 return BluetoothStatusCodes.FEATURE_SUPPORTED;
             }
 
@@ -4656,8 +4658,7 @@ public class AdapterService extends Service {
      * @return true, if the LE audio broadcast source is supported
      */
     public boolean isLeAudioBroadcastSourceSupported() {
-        return  BluetoothProperties.isProfileBapBroadcastSourceEnabled().orElse(false)
-                && mAdapterProperties.isLePeriodicAdvertisingSupported()
+        return  mAdapterProperties.isLePeriodicAdvertisingSupported()
                 && mAdapterProperties.isLeExtendedAdvertisingSupported()
                 && mAdapterProperties.isLeIsochronousBroadcasterSupported();
     }
@@ -4672,6 +4673,10 @@ public class AdapterService extends Service {
             && mAdapterProperties.isLeExtendedAdvertisingSupported()
             && (mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported()
                 || mAdapterProperties.isLePeriodicAdvertisingSyncTransferRecipientSupported());
+    }
+
+    public long getSupportedProfilesBitMask() {
+        return Config.getSupportedProfilesBitMask();
     }
 
     /**
