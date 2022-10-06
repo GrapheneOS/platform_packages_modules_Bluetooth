@@ -137,6 +137,7 @@ class VolumeControlDevice {
   void EnqueueRemainingRequests(tGATT_IF gatt_if, GATT_READ_OP_CB chrc_read_cb,
                                 GATT_WRITE_OP_CB cccd_write_cb);
   bool VerifyReady(uint16_t handle);
+  bool IsReady() { return device_ready; }
 
  private:
   /*
