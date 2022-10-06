@@ -33,6 +33,7 @@
 #include "device/include/controller.h"
 #include "gd/common/bidi_queue.h"
 #include "gd/common/bind.h"
+#include "gd/common/init_flags.h"
 #include "gd/common/strings.h"
 #include "gd/common/sync_map_count.h"
 #include "gd/hci/acl_manager.h"
@@ -61,6 +62,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_status.h"
+#include "stack/include/gatt_api.h"
 #include "stack/include/pan_api.h"
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
@@ -753,9 +755,17 @@ class LeShimAclConnection
 
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy,
                    uint8_t rx_phy) override {
-    TRY_POSTING_ON_MAIN(interface_.on_phy_update,
-                        ToLegacyHciErrorCode(hci_status), handle_, tx_phy,
-                        rx_phy);
+    if (common::init_flags::pass_phy_update_callback_is_enabled()) {
+      TRY_POSTING_ON_MAIN(
+          interface_.on_phy_update,
+          static_cast<tGATT_STATUS>(ToLegacyHciErrorCode(hci_status)), handle_,
+          tx_phy, rx_phy);
+    } else {
+      LOG_WARN(
+          "Not posting OnPhyUpdate callback since it is disabled: (tx:%x, "
+          "rx:%x, status:%s)",
+          tx_phy, rx_phy, hci::ErrorCodeText(hci_status).c_str());
+    }
   }
 
   void OnLocalAddressUpdate(hci::AddressWithType address_with_type) override {
