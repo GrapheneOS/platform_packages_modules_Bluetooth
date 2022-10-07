@@ -34,7 +34,7 @@ NEEDS_WAIT_CONNECTION_BEFORE_TEST = {
 class HFPProxy(ProfileProxy):
 
     def __init__(self, channel):
-        super().__init__()
+        super().__init__(channel)
         self.hfp = HFP(channel)
         self.host = Host(channel)
 
