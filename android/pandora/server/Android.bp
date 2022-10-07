@@ -131,6 +131,7 @@ genrule {
          "    --python_out=$(genDir)" +
          "    $(in)",
     srcs: [
+        "proto/pandora_experimental/_android.proto",
         "proto/pandora_experimental/a2dp.proto",
         "proto/pandora_experimental/avrcp.proto",
         "proto/pandora_experimental/gatt.proto",
@@ -141,6 +142,8 @@ genrule {
         "proto/pandora_experimental/security.proto",
     ],
     out: [
+        "pandora_experimental/_android_grpc.py",
+        "pandora_experimental/_android_pb2.py",
         "pandora_experimental/a2dp_grpc.py",
         "pandora_experimental/a2dp_pb2.py",
         "pandora_experimental/avrcp_grpc.py",

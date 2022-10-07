@@ -18,7 +18,7 @@ class L2CAPProxy(ProfileProxy):
     connection: Optional[Connection] = None
 
     def __init__(self, channel):
-        super().__init__()
+        super().__init__(channel)
         self.l2cap = L2CAP(channel)
         self.host = Host(channel)
 
