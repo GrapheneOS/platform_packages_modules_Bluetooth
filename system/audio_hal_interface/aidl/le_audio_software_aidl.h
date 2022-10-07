@@ -77,6 +77,8 @@ class LeAudioTransport {
 
   void StopRequest();
 
+  void SetLowLatency(bool is_low_latency);
+
   bool GetPresentationPosition(uint64_t* remote_delay_report_ns,
                                uint64_t* total_bytes_processed,
                                timespec* data_position);
@@ -131,6 +133,8 @@ class LeAudioSinkTransport
 
   void StopRequest() override;
 
+  void SetLowLatency(bool is_low_latency) override;
+
   bool GetPresentationPosition(uint64_t* remote_delay_report_ns,
                                uint64_t* total_bytes_read,
                                timespec* data_position) override;
@@ -183,6 +187,8 @@ class LeAudioSourceTransport
   BluetoothAudioCtrlAck SuspendRequest() override;
 
   void StopRequest() override;
+
+  void SetLowLatency(bool is_low_latency) override;
 
   bool GetPresentationPosition(uint64_t* remote_delay_report_ns,
                                uint64_t* total_bytes_written,

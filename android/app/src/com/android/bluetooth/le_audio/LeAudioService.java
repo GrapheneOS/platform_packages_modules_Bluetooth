@@ -1042,20 +1042,6 @@ public class LeAudioService extends ProfileService {
         }
     }
 
-    BluetoothProfileConnectionInfo getBroadcastProfile(boolean suppressNoisyIntent) {
-        Parcel parcel = Parcel.obtain();
-        parcel.writeInt(BluetoothProfile.LE_AUDIO_BROADCAST);
-        parcel.writeBoolean(suppressNoisyIntent);
-        parcel.writeInt(-1 /* mVolume */);
-        parcel.writeBoolean(true /* mIsLeOutput */);
-        parcel.setDataPosition(0);
-
-        BluetoothProfileConnectionInfo profileInfo =
-                BluetoothProfileConnectionInfo.CREATOR.createFromParcel(parcel);
-        parcel.recycle();
-        return profileInfo;
-    }
-
     BluetoothProfileConnectionInfo getLeAudioOutputProfile(boolean suppressNoisyIntent,
             int volume) {
         /* TODO - b/236618595 */
@@ -1064,6 +1050,20 @@ public class LeAudioService extends ProfileService {
         parcel.writeBoolean(suppressNoisyIntent);
         parcel.writeInt(volume);
         parcel.writeBoolean(true /* isLeOutput */);
+        parcel.setDataPosition(0);
+
+        BluetoothProfileConnectionInfo profileInfo =
+                BluetoothProfileConnectionInfo.CREATOR.createFromParcel(parcel);
+        parcel.recycle();
+        return profileInfo;
+    }
+
+    BluetoothProfileConnectionInfo getBroadcastProfile(boolean suppressNoisyIntent) {
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(BluetoothProfile.LE_AUDIO_BROADCAST);
+        parcel.writeBoolean(suppressNoisyIntent);
+        parcel.writeInt(-1 /* mVolume */);
+        parcel.writeBoolean(true /* mIsLeOutput */);
         parcel.setDataPosition(0);
 
         BluetoothProfileConnectionInfo profileInfo =

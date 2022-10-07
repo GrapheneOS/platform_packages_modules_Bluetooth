@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="8612187577686515660">"حسنًا"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="3221412098281076974">"انتهت المهلة أثناء قبول ملف وراد من \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5381395500920804895">"ملف وارد"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="2669135531488877921">"‏‫<xliff:g id="SENDER">%1$s</xliff:g> على استعداد لإرسال ملف: <xliff:g id="FILE">%2$s</xliff:g>"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="2669135531488877921">"<xliff:g id="SENDER">%1$s</xliff:g> على استعداد لإرسال ملف: <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="8445265771083510696">"مشاركة البلوتوث: يتم استلام <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="2330252358543000567">"مشاركة البلوتوث: تم استلام <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="9059153354809379374">"مشاركة البلوتوث: لم يتم استلام الملف <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -109,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"سيتم محو جميع العناصر من القائمة."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"مشاركة البلوتوث: الملفات المرسلة"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"مشاركة البلوتوث: الملفات المستلمة"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{وتعذّر إرسال ملف واحد.}zero{وتعذّر إرسال # ملف.}two{وتعذّر إرسال ملفين.}few{وتعذّر إرسال # ملفات.}many{وتعذّر إرسال # ملفًا.}other{وتعذّر إرسال # ملف.}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‏تم إرسال ملف واحد بنجاح، %1$s}zero{‏تم إرسال # ملف بنجاح، %1$s}two{‏تم إرسال ملفين بنجاح، %1$s}few{‏تم إرسال # ملفات بنجاح، %1$s}many{‏تم إرسال # ملفًا بنجاح، %1$s}other{‏تم إرسال # ملف بنجاح، %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"محو القائمة"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"فتح"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"محو من القائمة"</string>
@@ -128,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"بث صوتي عبر البلوتوث"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"يتعذّر نقل الملفات التي يزيد حجمها عن 4 غيغابايت"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"الاتصال ببلوتوث"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"البلوتوث في \"وضع الطيران\""</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"إذا واصلت تفعيل تقنية البلوتوث، ستظل مفعَّلة في المرة القادمة التي تفعِّل فيها \"وضع الطيران\"."</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"إبقاء البلوتوث مفعلاً"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"يتذكر هاتفك الاحتفاظ بتقنية البلوتوث مفعَّلة في \"وضع الطيران\". لتغيير هذا الخيار، أوقِف البلوتوث."</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"‏تظل شبكة Wi‑Fi وتقنية البلوتوث مفعَّلتَين."</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"‏يتذكر هاتفك الاحتفاظ بشبكة Wi‑Fi وتقنية البلوتوث مفعَّلتَين في \"وضع الطيران\". لتغيير هذا الخيار، عليك إيقافهما."</string>
 </resources>

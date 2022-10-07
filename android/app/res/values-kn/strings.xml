@@ -109,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"ಪಟ್ಟಿಯಿಂದ ಎಲ್ಲ ಐಟಂಗಳನ್ನು ತೆರವುಗೊಳಿಸಲಾಗುವುದು."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"ಬ್ಲೂಟೂತ್‌ ಹಂಚಿಕೆ: ಕಳುಹಿಸಲಾಗಿರುವ ಫೈಲ್‌‌ಗಳು"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"ಬ್ಲೂಟೂತ್‌ ಹಂಚಿಕೆ: ಫೈಲ್‌ಗಳನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆ"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# ವಿಫಲಗೊಂಡಿದೆ.}one{# ವಿಫಲಗೊಂಡಿದೆ.}other{# ವಿಫಲಗೊಂಡಿದೆ.}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# ಯಶಸ್ವಿಯಾಗಿದೆ, %1$s}one{# ಯಶಸ್ವಿಯಾಗಿದೆ, %1$s}other{# ಯಶಸ್ವಿಯಾಗಿದೆ, %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"ಪಟ್ಟಿಯನ್ನು ತೆರವುಗೊಳಿಸಿ"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"ತೆರೆಯಿರಿ"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"ಪಟ್ಟಿಯಿಂದ ತೆರವುಗೊಳಿಸಿ"</string>
@@ -123,15 +125,9 @@
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"ಅಪ್ಲಿಕೇಶನ್‌ ಐಕಾನ್‌"</string>
     <string name="bluetooth_map_settings_title" msgid="4226030082708590023">"ಬ್ಲೂಟೂತ್ ಸಂದೇಶ ಹಂಚಿಕೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="755024228476065757">"ಖಾತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. 0 ಸ್ಲಾಟ್‌ಗಳು ಉಳಿದಿವೆ"</string>
-    <string name="bluetooth_connected" msgid="5687474377090799447">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೋ ಸಂಪರ್ಕಗೊಂಡಿದೆ"</string>
-    <string name="bluetooth_disconnected" msgid="6841396291728343534">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೋ ಸಂಪರ್ಕ ಕಡಿತಗೊಂಡಿದೆ"</string>
-    <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೋ"</string>
+    <string name="bluetooth_connected" msgid="5687474377090799447">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೊ ಸಂಪರ್ಕಗೊಂಡಿದೆ"</string>
+    <string name="bluetooth_disconnected" msgid="6841396291728343534">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೊ ಸಂಪರ್ಕ ಕಡಿತಗೊಂಡಿದೆ"</string>
+    <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೊ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB ಗಿಂತ ದೊಡ್ಡದಾದ ಫೈಲ್‌ಗಳನ್ನು ವರ್ಗಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ಬ್ಲೂಟೂತ್‌ಗೆ ಕನೆಕ್ಟ್ ಮಾಡಿ"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ಏರ್‌ಪ್ಲೇನ್ ಮೋಡ್‌ನಲ್ಲಿ ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿದೆ"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"ನೀವು ಬ್ಲೂಟೂತ್ ಅನ್ನು ಆನ್ ಮಾಡಿದರೆ, ಮುಂದಿನ ಬಾರಿ ನೀವು ಏರ್‌ಪ್ಲೇನ್ ಮೋಡ್‌ನಲ್ಲಿರುವಾಗ ಅದು ಆನ್ ಆಗಿರುತ್ತದೆ"</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿರುತ್ತದೆ"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"ಬ್ಲೂಟೂತ್ ಅನ್ನು ಏರ್‌ಪ್ಲೇನ್ ಮೋಡ್‌ನಲ್ಲಿ ಇರಿಸಿಕೊಳ್ಳಲು ನಿಮ್ಮ ಫೋನ್ ನೆನಪಿನಲ್ಲಿರಿಸಿಕೊಳ್ಳುತ್ತದೆ. ಇದನ್ನು ಬದಲಾಯಿಸಲು, ಬ್ಲೂಟೂತ್ ಅನ್ನು ಆಫ್ ಮಾಡಿ."</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ವೈ-ಫೈ ಮತ್ತು ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿರುತ್ತದೆ"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"ವೈ-ಫೈ ಮತ್ತು ಬ್ಲೂಟೂತ್ ಅನ್ನು ಏರ್‌ಪ್ಲೇನ್ ಮೋಡ್‌ನಲ್ಲಿ ಇರಿಸಿಕೊಳ್ಳಲು ನಿಮ್ಮ ಫೋನ್ ನೆನಪಿಸಿಕೊಳ್ಳುತ್ತದೆ. ಇದನ್ನು ಬದಲಾಯಿಸಲು, ಅವುಗಳನ್ನು ಆಫ್ ಮಾಡಿ."</string>
 </resources>

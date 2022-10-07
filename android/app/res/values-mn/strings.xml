@@ -109,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Жагсаалтаас бүгдийг нь арилгах болно."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth хуваалцах: Илгээсэн файлууд"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth хуваалцах: Хүлээн авсан файлууд"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# амжилтгүй.}other{# амжилтгүй.}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# амжилттай, %1$s}other{# амжилттай, %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Жагсаалтыг арилгах"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Нээх"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Жагсаалтаас арилгах"</string>
@@ -128,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth Аудио"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4ГБ-с дээш хэмжээтэй файлыг шилжүүлэх боломжгүй"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth-тэй холбогдох"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Нислэгийн горимд Bluetooth асаалттай"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Хэрэв та Bluetooth-г асаалттай байлгавал энэ нь таныг дараагийн удаа нислэгийн горимд байхад асаалттай хэвээр байна"</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth асаалттай хэвээр байна"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Таны утас Bluetooth-г нислэгийн горимд асаалттай байлгахыг санана. Үүнийг өөрчлөхийн тулд Bluetooth-г унтраана уу."</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi болон Bluetooth асаалттай хэвээр байна"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Таны утас Wi-Fi болон Bluetooth-г нислэгийн горимд асаалттай байлгахыг санана. Үүнийг өөрчлөхийн тулд тэдгээрийг унтраана уу."</string>
 </resources>

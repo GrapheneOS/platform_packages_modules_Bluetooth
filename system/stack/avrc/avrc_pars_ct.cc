@@ -141,7 +141,7 @@ static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
 
 tAVRC_STS avrc_parse_notification_rsp(uint8_t* p_stream, uint16_t len,
                                       tAVRC_REG_NOTIF_RSP* p_rsp) {
-  uint16_t min_len = 1;
+  uint32_t min_len = 1;
 
   if (len < min_len) goto length_error;
   BE_STREAM_TO_UINT8(p_rsp->event_id, p_stream);
@@ -237,7 +237,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
   }
   BE_STREAM_TO_UINT8(pdu, p);
   uint16_t pkt_len;
-  uint16_t min_len = 0;
+  uint32_t min_len = 0;
   /* read the entire packet len */
   BE_STREAM_TO_UINT16(pkt_len, p);
 
@@ -279,7 +279,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
           get_item_rsp->uid_counter, get_item_rsp->item_count);
 
       /* get each of the items */
-      get_item_rsp->p_item_list = (tAVRC_ITEM*)osi_malloc(
+      get_item_rsp->p_item_list = (tAVRC_ITEM*)osi_calloc(
           get_item_rsp->item_count * (sizeof(tAVRC_ITEM)));
       tAVRC_ITEM* curr_item = get_item_rsp->p_item_list;
       for (int i = 0; i < get_item_rsp->item_count; i++) {
@@ -369,7 +369,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
                              __func__, media->type, media->name.charset_id,
                              media->name.str_len, media->attr_count);
 
-            media->p_attr_list = (tAVRC_ATTR_ENTRY*)osi_malloc(
+            media->p_attr_list = (tAVRC_ATTR_ENTRY*)osi_calloc(
                 media->attr_count * sizeof(tAVRC_ATTR_ENTRY));
             for (int jk = 0; jk < media->attr_count; jk++) {
               tAVRC_ATTR_ENTRY* attr_entry = &(media->p_attr_list[jk]);
@@ -441,7 +441,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
       }
       BE_STREAM_TO_UINT8(get_attr_rsp->status, p)
       BE_STREAM_TO_UINT8(get_attr_rsp->num_attrs, p);
-      get_attr_rsp->p_attrs = (tAVRC_ATTR_ENTRY*)osi_malloc(
+      get_attr_rsp->p_attrs = (tAVRC_ATTR_ENTRY*)osi_calloc(
           get_attr_rsp->num_attrs * sizeof(tAVRC_ATTR_ENTRY));
       for (int i = 0; i < get_attr_rsp->num_attrs; i++) {
         tAVRC_ATTR_ENTRY* attr_entry = &(get_attr_rsp->p_attrs[i]);
@@ -493,7 +493,7 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE* p_msg,
           __func__, set_br_pl_rsp->status, set_br_pl_rsp->num_items,
           set_br_pl_rsp->charset_id, set_br_pl_rsp->folder_depth);
 
-      set_br_pl_rsp->p_folders = (tAVRC_NAME*)osi_malloc(
+      set_br_pl_rsp->p_folders = (tAVRC_NAME*)osi_calloc(
           set_br_pl_rsp->folder_depth * sizeof(tAVRC_NAME));
 
       /* Read each of the folder in the depth */
@@ -553,7 +553,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
   p++; /* skip the reserved/packe_type byte */
 
   uint16_t len;
-  uint16_t min_len = 0;
+  uint32_t min_len = 0;
   BE_STREAM_TO_UINT16(len, p);
   AVRC_TRACE_DEBUG("%s ctype:0x%x pdu:0x%x, len:%d  vendor_len=0x%x", __func__,
                    p_msg->hdr.ctype, p_result->pdu, len, p_msg->vendor_len);

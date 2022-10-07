@@ -31,12 +31,12 @@
     <string name="bt_enable_cancel" msgid="6770180540581977614">"취소"</string>
     <string name="bt_enable_ok" msgid="4224374055813566166">"사용"</string>
     <string name="incoming_file_confirm_title" msgid="938251186275547290">"파일 전송"</string>
-    <string name="incoming_file_confirm_content" msgid="6573502088511901157">"파일 수신을 수락하시겠습니까?"</string>
+    <string name="incoming_file_confirm_content" msgid="6573502088511901157">"수신 파일을 수락하시겠습니까?"</string>
     <string name="incoming_file_confirm_cancel" msgid="9205906062663982692">"거부"</string>
     <string name="incoming_file_confirm_ok" msgid="5046926299036238623">"수락"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="8612187577686515660">"확인"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="3221412098281076974">"\'<xliff:g id="SENDER">%1$s</xliff:g>\'님이 보내는 파일을 수락하는 동안 제한 시간을 초과했습니다."</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="5381395500920804895">"파일 수신"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5381395500920804895">"수신 파일"</string>
     <string name="incoming_file_confirm_Notification_content" msgid="2669135531488877921">"<xliff:g id="SENDER">%1$s</xliff:g>에서 <xliff:g id="FILE">%2$s</xliff:g> 파일을 전송할 준비가 되었습니다."</string>
     <string name="notification_receiving" msgid="8445265771083510696">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 받는 중"</string>
     <string name="notification_received" msgid="2330252358543000567">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 받음"</string>
@@ -109,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"목록에서 모든 항목이 삭제됩니다."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"블루투스 공유: 파일 보냄"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"블루투스 공유: 파일 받음"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{#개 실패}other{#개 실패}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{#개 성공, %1$s}other{#개 성공, %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"목록 지우기"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"열기"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"목록에서 지우기"</string>
@@ -128,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"블루투스 오디오"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB보다 큰 파일은 전송할 수 없습니다"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"블루투스에 연결"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"비행기 모드에서 블루투스 사용 설정"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"블루투스를 켜진 상태로 유지하면 다음에 비행기 모드를 사용할 때도 블루투스 연결이 유지됩니다."</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"블루투스가 켜진 상태로 유지됨"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"휴대전화가 비행기 모드에서 블루투스를 켜진 상태로 유지합니다. 변경하려면 블루투스를 사용 중지하세요."</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi 및 블루투스 계속 사용"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"휴대전화가 비행기 모드에서 Wi-Fi 및 블루투스를 켜진 상태로 유지합니다. 변경하려면 Wi-Fi 및 블루투스를 사용 중지하세요."</string>
 </resources>
