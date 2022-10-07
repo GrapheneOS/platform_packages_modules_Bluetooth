@@ -226,7 +226,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
     /**
      * Add base (Inbox/Outbox/Sent/Deleted)
-     * @param root
      */
     private void addBaseFolders(BluetoothMapFolderElement root) {
         root.addFolder(BluetoothMapContract.FOLDER_NAME_INBOX);         // root/telecom/msg/inbox
@@ -237,7 +236,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
     /**
      * Add SMS / MMS Base folders
-     * @param root
      */
     private void addSmsMmsFolders(BluetoothMapFolderElement root) {
         root.addSmsMmsFolder(BluetoothMapContract.FOLDER_NAME_INBOX);   // root/telecom/msg/inbox
@@ -272,7 +270,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
      *       referring to currentFolder.
      *       It is unclear what to set as current folder to be able to go one level up...
      *       The best solution would be to keep the folder structure constant during a connection.
-     * @param folder the parent folder to which subFolders needs to be added. The
+     * @param parentFolder the parent folder to which subFolders needs to be added. The
      *        folder.getFolderId() will be used to query sub-folders.
      *        Use a parentFolder with id -1 to get all folders from root.
      */
@@ -529,7 +527,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                             + appParams.getChatState() + ", ChatStatusConvoId: "
                             + appParams.getChatStateConvoIdString());
                 }
-                return setOwnerStatus(name, appParams);
+                return setOwnerStatus(appParams);
             }
 
         } catch (RemoteException e) {
@@ -773,6 +771,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     bMsgStream.close();
                 } catch (IOException e) {
+                    if (D) Log.d(TAG, "", e);
                 }
             }
         }
@@ -841,7 +840,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
-    private int setOwnerStatus(String msgHandle, BluetoothMapAppParams appParams)
+    private int setOwnerStatus(BluetoothMapAppParams appParams)
             throws RemoteException {
         // This does only work for IM
         if (mAccount != null && mAccount.getType() == BluetoothMapUtils.TYPE.IM) {
@@ -1071,7 +1070,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
                 }
                 // Block until all packets have been send.
-                return sendConvoListingRsp(op, appParams, name);
+                return sendConvoListingRsp(op, appParams);
             } else if (type.equals(TYPE_GET_MAS_INSTANCE_INFORMATION)) {
                 if (V && appParams != null) {
                     Log.d(TAG,
@@ -1225,7 +1224,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 mObserver.refreshFolderVersionCounter();
                 outAppParams.setFolderVerCounter(mMasInstance.getFolderVersionCounter(), 0);
             }
-            outAppParams.setMseTime(Calendar.getInstance().getTime().getTime());
+            outAppParams.setMseTime(Calendar.getInstance().getTimeInMillis());
             replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.encodeParams());
             op.sendHeaders(replyHeaders);
 
@@ -1237,6 +1236,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException ex) {
+                    if (D) Log.d(TAG, "", ex);
                 }
             }
             if (mIsAborted) {
@@ -1254,6 +1254,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException ex) {
+                    if (D) Log.d(TAG, "", ex);
                 }
             }
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
@@ -1277,6 +1278,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     try {
                         outStream.close();
                     } catch (IOException e) {
+                        if (D) Log.d(TAG, "", e);
                     }
                 }
             }
@@ -1290,6 +1292,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException e) {
+                    if (D) Log.d(TAG, "", e);
                 }
             }
         }
@@ -1348,8 +1351,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
      * @return {@link ResponseCodes.OBEX_HTTP_OK} on success or
      *         {@link ResponseCodes.OBEX_HTTP_BAD_REQUEST} on error.
      */
-    private int sendConvoListingRsp(Operation op, BluetoothMapAppParams appParams,
-            String folderName) {
+    private int sendConvoListingRsp(Operation op, BluetoothMapAppParams appParams) {
         OutputStream outStream = null;
         byte[] outBytes = null;
         int maxChunkSize, bytesToWrite, bytesWritten = 0;
@@ -1411,7 +1413,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
             // Build the application parameter header
             // The MseTime is not in the CR - but I think it is missing.
-            outAppParams.setMseTime(Calendar.getInstance().getTime().getTime());
+            outAppParams.setMseTime(Calendar.getInstance().getTimeInMillis());
             replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.encodeParams());
             op.sendHeaders(replyHeaders);
 
@@ -1423,6 +1425,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException ex) {
+                    if (D) Log.d(TAG, "", ex);
                 }
             }
             if (mIsAborted) {
@@ -1440,6 +1443,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException ex) {
+                    if (D) Log.d(TAG, "", ex);
                 }
             }
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
@@ -1463,6 +1467,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     try {
                         outStream.close();
                     } catch (IOException e) {
+                        if (D) Log.d(TAG, "", e);
                     }
                 }
             }
@@ -1476,6 +1481,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException e) {
+                    if (D) Log.d(TAG, "", e);
                 }
             }
         }
@@ -1545,6 +1551,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException e) {
+                    if (D) Log.d(TAG, "", e);
                 }
             }
             if (mIsAborted) {
@@ -1562,6 +1569,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException e) {
+                    if (D) Log.d(TAG, "", e);
                 }
             }
             return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
@@ -1583,6 +1591,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     try {
                         outStream.close();
                     } catch (IOException e) {
+                        if (D) Log.d(TAG, "", e);
                     }
                 }
             }
@@ -1687,6 +1696,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     try {
                         outStream.close();
                     } catch (IOException e) {
+                        if (D) Log.d(TAG, "", e);
                     }
                 }
             }
@@ -1752,6 +1762,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException ex) {
+                    if (D) Log.d(TAG, "", ex);
                 }
             }
             if (mIsAborted) {
@@ -1769,6 +1780,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 try {
                     outStream.close();
                 } catch (IOException ex) {
+                    if (D) Log.d(TAG, "", ex);
                 }
             }
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
@@ -1793,6 +1805,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     try {
                         outStream.close();
                     } catch (IOException e) {
+                        if (D) Log.d(TAG, "", e);
                     }
                 }
             }
@@ -1845,7 +1858,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                             + appParams.getChatState() + ", ChatStatusConvoId: "
                             + appParams.getChatStateConvoIdString());
                 }
-                return setOwnerStatus(name, appParams);
+                return setOwnerStatus(appParams);
             }
 
         } catch (RemoteException e) {
@@ -1881,17 +1894,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     }
 
     private static void logHeader(HeaderSet hs) {
-        Log.v(TAG, "Dumping HeaderSet " + hs.toString());
-        try {
-            Log.v(TAG, "CONNECTION_ID : " + hs.getHeader(HeaderSet.CONNECTION_ID));
-            Log.v(TAG, "NAME : " + hs.getHeader(HeaderSet.NAME));
-            Log.v(TAG, "TYPE : " + hs.getHeader(HeaderSet.TYPE));
-            Log.v(TAG, "TARGET : " + hs.getHeader(HeaderSet.TARGET));
-            Log.v(TAG, "WHO : " + hs.getHeader(HeaderSet.WHO));
-            Log.v(TAG, "APPLICATION_PARAMETER : " + hs.getHeader(HeaderSet.APPLICATION_PARAMETER));
-        } catch (IOException e) {
-            Log.e(TAG, "dump HeaderSet error " + e);
-        }
-        Log.v(TAG, "NEW!!! Dumping HeaderSet END");
+        Log.v(TAG, hs.dump());
     }
 }
