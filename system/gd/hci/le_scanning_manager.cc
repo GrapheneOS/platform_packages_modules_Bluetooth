@@ -274,7 +274,6 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
     }
     batch_scan_config_.current_state = BatchScanState::DISABLED_STATE;
     batch_scan_config_.ref_value = kInvalidScannerId;
-    configure_scan();
   }
 
   void stop() {
