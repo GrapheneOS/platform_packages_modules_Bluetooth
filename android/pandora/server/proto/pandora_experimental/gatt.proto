@@ -189,8 +189,19 @@ message ReadCharacteristicDescriptorResponse {
   AttStatusCode status = 2;
 }
 
+message GattServiceParams {
+  string uuid = 1;
+  repeated GattCharacteristicParams characteristics = 2;
+}
+
+message GattCharacteristicParams {
+  uint32 properties = 1;
+  uint32 permissions = 2;
+  string uuid = 3;
+}
+
 message RegisterServiceRequest {
-  GattService service = 1;
+  GattServiceParams service = 1;
 }
 
 message RegisterServiceResponse {
