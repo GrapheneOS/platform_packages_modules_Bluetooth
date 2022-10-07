@@ -2589,13 +2589,18 @@ LeAudioDevice* LeAudioDevices::FindByConnId(uint16_t conn_id) {
   return (iter == leAudioDevices_.end()) ? nullptr : iter->get();
 }
 
-LeAudioDevice* LeAudioDevices::FindByCisConnHdl(const uint16_t conn_hdl) {
+LeAudioDevice* LeAudioDevices::FindByCisConnHdl(uint8_t cig_id,
+                                                uint16_t conn_hdl) {
   auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
-                           [&conn_hdl](auto& d) {
+                           [&conn_hdl, &cig_id](auto& d) {
                              LeAudioDevice* dev;
                              BidirectAsesPair ases;
 
                              dev = d.get();
+                             if (dev->group_id_ != cig_id) {
+                               return false;
+                             }
+
                              ases = dev->GetAsesByCisConnHdl(conn_hdl);
                              if (ases.sink || ases.source)
                                return true;
