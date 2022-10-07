@@ -101,21 +101,92 @@ def generate_service(imports, file, service):
         f'    {methods}\n'
     ).split('\n')
 
+def generate_servicer_method(method):
+    input_mode = 'stream' if method.client_streaming else 'unary'
+
+    if input_mode == 'stream':
+        return (
+            f'def {method.name}(self, request_iterator, context):\n'
+            f'    context.set_code(grpc.StatusCode.UNIMPLEMENTED)\n'
+            f'    context.set_details("Method not implemented!")\n'
+            f'    raise NotImplementedError("Method not implemented!")'
+        ).split('\n')
+    else:
+        return (
+            f'def {method.name}(self, request, context):\n'
+            f'    context.set_code(grpc.StatusCode.UNIMPLEMENTED)\n'
+            f'    context.set_details("Method not implemented!")\n'
+            f'    raise NotImplementedError("Method not implemented!")'
+        ).split('\n')
+
+
+def generate_servicer(service):
+    methods = '\n\n    '.join([
+        '\n    '.join(
+            generate_servicer_method(method)
+        ) for method in service.method
+    ])
+    if len(methods) == 0:
+        methods = 'pass'
+    return (
+        f'class {service.name}Servicer:\n'
+        f'\n'
+        f'    {methods}\n'
+    ).split('\n')
+
+def generate_rpc_method_handler(imports, method):
+    input_mode = 'stream' if method.client_streaming else 'unary'
+    output_mode = 'stream' if method.server_streaming else 'unary'
+
+    input_type = import_type(imports, method.input_type)
+    output_type = import_type(imports, method.output_type)
+
+    return (
+        f"'{method.name}': grpc.{input_mode}_{output_mode}_rpc_method_handler(\n"
+        f'        servicer.{method.name},\n'
+        f'        request_deserializer={input_type}.FromString,\n'
+        f'        response_serializer={output_type}.SerializeToString,\n'
+        f'    ),\n'
+    ).split('\n')
+
+def generate_add_servicer_to_server_method(imports, file, service):
+    method_handlers = '    '.join([
+        '\n    '.join(
+            generate_rpc_method_handler(imports, method)
+        ) for method in service.method
+    ])
+    return (
+        f'def add_{service.name}Servicer_to_server(servicer, server):\n'
+        f'    rpc_method_handlers = {{\n'
+        f'        {method_handlers}\n'
+        f'    }}\n'
+        f'    generic_handler = grpc.method_handlers_generic_handler(\n'
+        f"        '{file.package}.{service.name}', rpc_method_handlers)\n"
+        f'    server.add_generic_rpc_handlers((generic_handler,))'
+    ).split('\n')
 
 files = []
 
 for file_name in request.file_to_generate:
     file = next(filter(lambda x: x.name == file_name, request.proto_file))
 
-    imports = set([])
+    imports = set(['import grpc'])
 
     services = '\n'.join(sum([
         generate_service(imports, file, service) for service in file.service
     ], []))
 
+    servicers = '\n'.join(sum([
+        generate_servicer(service) for service in file.service
+    ], []))
+
+    add_servicer_methods = '\n'.join(sum([
+        generate_add_servicer_to_server_method(imports, file, service) for service in file.service
+    ], []))
+
     files.append(CodeGeneratorResponse.File(
         name=file_name.replace('.proto', '_grpc.py'),
-        content='\n'.join(imports) + '\n\n' + services
+        content='\n'.join(imports) + '\n\n' + services  + '\n\n' + servicers + '\n\n' + add_servicer_methods + '\n'
     ))
 
 reponse = CodeGeneratorResponse(file=files)
