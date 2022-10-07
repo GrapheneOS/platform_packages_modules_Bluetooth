@@ -66,7 +66,7 @@ static tBTA_HD_APP_INFO app_info;
 static tBTA_HD_QOS_INFO in_qos;
 static tBTA_HD_QOS_INFO out_qos;
 
-static void intr_data_copy_cb(uint16_t event, char* p_dst, char* p_src) {
+static void intr_data_copy_cb(uint16_t event, char* p_dst, const char* p_src) {
   tBTA_HD_INTR_DATA* p_dst_data = (tBTA_HD_INTR_DATA*)p_dst;
   tBTA_HD_INTR_DATA* p_src_data = (tBTA_HD_INTR_DATA*)p_src;
   uint8_t* p_data;
@@ -84,7 +84,7 @@ static void intr_data_copy_cb(uint16_t event, char* p_dst, char* p_src) {
   p_dst_data->p_data = p_data;
 }
 
-static void set_report_copy_cb(uint16_t event, char* p_dst, char* p_src) {
+static void set_report_copy_cb(uint16_t event, char* p_dst, const char* p_src) {
   tBTA_HD_SET_REPORT* p_dst_data = (tBTA_HD_SET_REPORT*)p_dst;
   tBTA_HD_SET_REPORT* p_src_data = (tBTA_HD_SET_REPORT*)p_src;
   uint8_t* p_data;
