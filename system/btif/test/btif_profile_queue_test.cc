@@ -27,7 +27,7 @@
 #include "types/raw_address.h"
 
 typedef void(tBTIF_CBACK)(uint16_t event, char* p_param);
-typedef void(tBTIF_COPY_CBACK)(uint16_t event, char* p_dest, char* p_src);
+typedef void(tBTIF_COPY_CBACK)(uint16_t event, char* p_dest, const char* p_src);
 
 // NOTE: Local re-implementation of functions to avoid thread context switching
 static bool sStackRunning;
