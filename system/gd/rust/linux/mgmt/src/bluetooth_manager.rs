@@ -7,7 +7,9 @@ use crate::iface_bluetooth_experimental::IBluetoothExperimental;
 use crate::iface_bluetooth_manager::{
     AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
 };
-use crate::state_machine::{state_to_enabled, AdapterState, Message, StateMachineProxy};
+use crate::state_machine::{
+    state_to_enabled, AdapterState, Message, StateMachineProxy, VirtualHciIndex,
+};
 use crate::{config_util, migrate};
 
 const BLUEZ_INIT_TARGET: &str = "bluetoothd";
@@ -23,11 +25,11 @@ impl BluetoothManager {
         BluetoothManager { proxy, callbacks: HashMap::new() }
     }
 
-    fn is_adapter_enabled(&self, hci_device: i32) -> bool {
+    fn is_adapter_enabled(&self, hci_device: VirtualHciIndex) -> bool {
         state_to_enabled(self.proxy.get_process_state(hci_device))
     }
 
-    fn is_adapter_present(&self, hci_device: i32) -> bool {
+    fn is_adapter_present(&self, hci_device: VirtualHciIndex) -> bool {
         self.proxy.get_state(hci_device, move |a| Some(a.present)).unwrap_or(false)
     }
 
@@ -68,15 +70,17 @@ impl IBluetoothManager for BluetoothManager {
             error!("Config is not successfully modified");
         }
 
+        let virt_hci = VirtualHciIndex(hci_interface);
+
         // Store that this adapter is meant to be started in state machine.
-        self.proxy.modify_state(hci_interface, move |a: &mut AdapterState| a.config_enabled = true);
+        self.proxy.modify_state(virt_hci, move |a: &mut AdapterState| a.config_enabled = true);
 
         // Ignore the request if adapter is already enabled or not present.
-        if self.is_adapter_enabled(hci_interface) || !self.is_adapter_present(hci_interface) {
+        if self.is_adapter_enabled(virt_hci) || !self.is_adapter_present(virt_hci) {
             return;
         }
 
-        self.proxy.start_bluetooth(hci_interface);
+        self.proxy.start_bluetooth(virt_hci);
     }
 
     fn stop(&mut self, hci_interface: i32) {
@@ -85,20 +89,21 @@ impl IBluetoothManager for BluetoothManager {
             error!("Config is not successfully modified");
         }
 
+        let virt_hci = VirtualHciIndex(hci_interface);
+
         // Store that this adapter is meant to be stopped in state machine.
-        self.proxy
-            .modify_state(hci_interface, move |a: &mut AdapterState| a.config_enabled = false);
+        self.proxy.modify_state(virt_hci, move |a: &mut AdapterState| a.config_enabled = false);
 
         // Ignore the request if adapter is already disabled.
-        if !self.is_adapter_enabled(hci_interface) {
+        if !self.is_adapter_enabled(virt_hci) {
             return;
         }
 
-        self.proxy.stop_bluetooth(hci_interface);
+        self.proxy.stop_bluetooth(virt_hci);
     }
 
     fn get_adapter_enabled(&mut self, hci_interface: i32) -> bool {
-        self.is_adapter_enabled(hci_interface)
+        self.is_adapter_enabled(VirtualHciIndex(hci_interface))
     }
 
     fn register_callback(&mut self, mut callback: Box<dyn IBluetoothManagerCallback + Send>) {
@@ -129,13 +134,13 @@ impl IBluetoothManager for BluetoothManager {
             migrate::migrate_bluez_devices();
             for hci in config_util::list_hci_devices() {
                 if config_util::is_hci_n_enabled(hci) {
-                    let _ = self.proxy.start_bluetooth(hci);
+                    let _ = self.proxy.start_bluetooth(VirtualHciIndex(hci));
                 }
             }
         } else if prev != enabled {
             for hci in config_util::list_hci_devices() {
                 if config_util::is_hci_n_enabled(hci) {
-                    let _ = self.proxy.stop_bluetooth(hci);
+                    let _ = self.proxy.stop_bluetooth(VirtualHciIndex(hci));
                 }
             }
             migrate::migrate_floss_devices();
@@ -150,18 +155,18 @@ impl IBluetoothManager for BluetoothManager {
             .get_valid_adapters()
             .iter()
             .map(|a| AdapterWithEnabled {
-                hci_interface: a.hci,
+                hci_interface: a.virt_hci.to_i32(),
                 enabled: state_to_enabled(a.state),
             })
             .collect::<Vec<AdapterWithEnabled>>()
     }
 
     fn get_default_adapter(&mut self) -> i32 {
-        self.proxy.get_default_adapter()
+        self.proxy.get_default_adapter().to_i32()
     }
 
     fn set_desired_default_adapter(&mut self, adapter_index: i32) {
-        self.proxy.set_desired_default_adapter(adapter_index);
+        self.proxy.set_desired_default_adapter(VirtualHciIndex(adapter_index));
     }
 }
 

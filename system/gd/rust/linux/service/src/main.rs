@@ -58,6 +58,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .takes_value(true)
                 .help("The HCI index"),
         )
+        .arg(
+            Arg::with_name("index")
+                .long("index")
+                .value_name("INDEX")
+                .takes_value(true)
+                .help("The Virtual index"),
+        )
         .arg(Arg::with_name("debug").long("debug").short("d").help("Enables debug level logs"))
         .arg(Arg::from_usage("[init-flags] 'Fluoride INIT_ flags'").multiple(true))
         .arg(
@@ -73,10 +80,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let is_debug = matches.is_present("debug");
     let log_output = matches.value_of("log-output").unwrap_or("syslog");
 
-    let adapter_index = match matches.value_of("hci") {
-        Some(idx) => idx.parse::<i32>().unwrap_or(0),
-        None => 0,
-    };
+    let adapter_index = matches.value_of("index").map_or(0, |idx| idx.parse::<i32>().unwrap_or(0));
+    let hci_index = matches.value_of("hci").map_or(0, |idx| idx.parse::<i32>().unwrap_or(0));
 
     // The remaining flags are passed down to Fluoride as is.
     let mut init_flags: Vec<String> = match matches.values_of("init-flags") {
@@ -90,7 +95,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // Forward --hci to Fluoride.
-    init_flags.push(format!("--hci={}", adapter_index));
+    init_flags.push(format!("--hci={}", hci_index));
 
     let level_filter = if is_debug { LevelFilter::Debug } else { LevelFilter::Info };
 
