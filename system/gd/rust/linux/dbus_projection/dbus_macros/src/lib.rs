@@ -373,19 +373,18 @@ pub fn generate_dbus_interface_client(attr: TokenStream, item: TokenStream) -> T
                                         path
                                     };
                             };
-
-                            input_list = quote! {
-                                #input_list
-                                #ident,
-                            };
                         } else {
                             // Convert every parameter to its corresponding type recognized by
                             // the D-Bus library.
-                            input_list = quote! {
-                                #input_list
-                                <#arg_type as DBusArg>::to_dbus(#ident).unwrap(),
+                            object_conversions = quote! {
+                                #object_conversions
+                                    let #ident = <#arg_type as DBusArg>::to_dbus(#ident).unwrap();
                             };
                         }
+                        input_list = quote! {
+                            #input_list
+                            #ident,
+                        };
                     }
                 }
             }
