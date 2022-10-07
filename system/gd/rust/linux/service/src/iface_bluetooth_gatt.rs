@@ -1,8 +1,9 @@
-use bt_topshim::btif::{BtStatus, BtTransport, Uuid128Bit};
+use bt_topshim::btif::{BtStatus, BtTransport, Uuid, Uuid128Bit};
 use bt_topshim::profiles::gatt::{GattStatus, LePhy};
 
 use btstack::bluetooth_adv::{
-    AdvertiseData, AdvertisingSetParameters, IAdvertisingSetCallback, PeriodicAdvertisingParameters,
+    AdvertiseData, AdvertisingSetParameters, IAdvertisingSetCallback, ManfId,
+    PeriodicAdvertisingParameters,
 };
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
@@ -415,10 +416,10 @@ struct AdvertisingSetParametersDBus {
 
 #[dbus_propmap(AdvertiseData)]
 pub struct AdvertiseDataDBus {
-    service_uuids: Vec<String>,
-    solicit_uuids: Vec<String>,
+    service_uuids: Vec<Uuid>,
+    solicit_uuids: Vec<Uuid>,
     transport_discovery_data: Vec<Vec<u8>>,
-    manufacturer_data: HashMap<i32, Vec<u8>>,
+    manufacturer_data: HashMap<ManfId, Vec<u8>>,
     service_data: HashMap<String, Vec<u8>>,
     include_tx_power_level: bool,
     include_device_name: bool,
