@@ -19,6 +19,7 @@ import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -318,7 +319,8 @@ public abstract class BluetoothMapbMessage {
 
     ;
 
-    private static class BMsgReader {
+    @VisibleForTesting
+    static class BMsgReader {
         InputStream mInStream;
 
         BMsgReader(InputStream is) {
