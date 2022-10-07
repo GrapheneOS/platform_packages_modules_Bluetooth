@@ -56,6 +56,8 @@ import pandora.HostProto.Connection
 import pandora.HostProto.InternalConnectionRef
 import pandora.HostProto.Transport
 
+private const val TAG = "PandoraUtils"
+
 fun shell(cmd: String): String {
   val fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd)
   val input_stream = ParcelFileDescriptor.AutoCloseInputStream(fd)

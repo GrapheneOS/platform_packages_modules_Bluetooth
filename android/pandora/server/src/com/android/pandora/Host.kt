@@ -322,13 +322,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       val address = request.address.decodeAsMacAddressToString()
       Log.i(TAG, "connect LE: $address")
       val device = scanLeDevice(address)!!
-      GattInstance(device, TRANSPORT_LE, context)
-
-      flow
-        .filter { it.action == BluetoothDevice.ACTION_ACL_CONNECTED }
-        .filter { it.getBluetoothDeviceExtra() == device }
-        .first()
-
+      GattInstance(device!!, TRANSPORT_LE, context).waitForState(BluetoothProfile.STATE_CONNECTED)
       ConnectLEResponse.newBuilder()
         .setConnection(newConnection(device, Transport.TRANSPORT_LE))
         .build()
@@ -412,19 +406,15 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       callbackFlow {
           val callback =
             object : AdvertiseCallback() {
-              var advertisingStarted = false
               override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-                if (!advertisingStarted) {
-                  advertisingStarted = true
-                  sendBlocking(
-                    StartAdvertisingResponse.newBuilder()
-                      .setHandle(
-                        AdvertisingHandle.newBuilder()
-                          .setCookie(ByteString.copyFromUtf8(handle.toString()))
-                      )
-                      .build()
-                  )
-                }
+                trySendBlocking(
+                  StartAdvertisingResponse.newBuilder()
+                    .setHandle(
+                      AdvertisingHandle.newBuilder()
+                        .setCookie(ByteString.copyFromUtf8(handle.toString()))
+                    )
+                    .build()
+                )
               }
               override fun onStartFailure(errorCode: Int) {
                 error("failed to start advertising")
