@@ -25,7 +25,7 @@ import socket
 class SDPProxy(ProfileProxy):
 
     def __init__(self, channel: str):
-        super().__init__()
+        super().__init__(channel)
 
     @assert_description
     def _mmi_6000(self, **kwargs):

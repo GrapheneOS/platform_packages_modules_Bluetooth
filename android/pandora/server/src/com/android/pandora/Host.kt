@@ -22,7 +22,6 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.ADDRESS_TYPE_PUBLIC
 import android.bluetooth.BluetoothDevice.ADDRESS_TYPE_RANDOM
 import android.bluetooth.BluetoothDevice.BOND_BONDED
-import android.bluetooth.BluetoothDevice.TRANSPORT_AUTO
 import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
@@ -310,7 +309,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
       bluetoothDevice.disconnect()
       connectionStateChangedFlow.filter { it == BluetoothAdapter.STATE_DISCONNECTED }.first()
-     
+
       DisconnectResponse.getDefaultInstance()
     }
   }
@@ -323,13 +322,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       val address = request.address.decodeAsMacAddressToString()
       Log.i(TAG, "connect LE: $address")
       val device = scanLeDevice(address)!!
-      GattInstance(device, TRANSPORT_LE, context)
-
-      flow
-        .filter { it.action == BluetoothDevice.ACTION_ACL_CONNECTED }
-        .filter { it.getBluetoothDeviceExtra() == device }
-        .first()
-
+      GattInstance(device!!, TRANSPORT_LE, context).waitForState(BluetoothProfile.STATE_CONNECTED)
       ConnectLEResponse.newBuilder()
         .setConnection(newConnection(device, Transport.TRANSPORT_LE))
         .build()
@@ -414,7 +407,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
           val callback =
             object : AdvertiseCallback() {
               override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-                sendBlocking(
+                trySendBlocking(
                   StartAdvertisingResponse.newBuilder()
                     .setHandle(
                       AdvertisingHandle.newBuilder()
@@ -488,11 +481,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
           val device = it.getBluetoothDeviceExtra()
           Log.i(TAG, "Device found: $device")
           RunInquiryResponse.newBuilder()
-            .addDevice(
-              Device.newBuilder()
-                .setName(device.name)
-                .setAddress(device.toByteString())
-            )
+            .addDevice(Device.newBuilder().setName(device.name).setAddress(device.toByteString()))
             .build()
         }
     }
