@@ -202,6 +202,20 @@ pub enum BtStatus {
     Unknown = 0xff,
 }
 
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BtConnectionDirection {
+    Unknown = 0,
+    Outgoing,
+    Incoming,
+}
+
+impl From<u32> for BtConnectionDirection {
+    fn from(item: u32) -> Self {
+        BtConnectionDirection::from_u32(item).unwrap_or(BtConnectionDirection::Unknown)
+    }
+}
+
 pub fn ascii_to_string(data: &[u8], length: usize) -> String {
     // We need to reslice data because from_utf8 tries to interpret the
     // whole slice and not just what is before the null terminated portion
