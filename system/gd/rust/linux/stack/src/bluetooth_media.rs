@@ -1,6 +1,6 @@
 //! Anything related to audio and media API.
 
-use bt_topshim::btif::{BluetoothInterface, BtStatus, RawAddress};
+use bt_topshim::btif::{BluetoothInterface, BtConnectionDirection, BtStatus, RawAddress};
 use bt_topshim::profiles::a2dp::{
     A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, A2dpCodecBitsPerSample, A2dpCodecChannelMode,
     A2dpCodecConfig, A2dpCodecSampleRate, BtavAudioState, BtavConnectionState,
@@ -151,6 +151,7 @@ pub struct BluetoothMedia {
     adapter: Option<Arc<Mutex<Box<Bluetooth>>>>,
     a2dp: Option<A2dp>,
     avrcp: Option<Avrcp>,
+    avrcp_direction: BtConnectionDirection,
     a2dp_states: HashMap<RawAddress, BtavConnectionState>,
     a2dp_audio_state: HashMap<RawAddress, BtavAudioState>,
     hfp: Option<Hfp>,
@@ -178,6 +179,7 @@ impl BluetoothMedia {
             adapter: None,
             a2dp: None,
             avrcp: None,
+            avrcp_direction: BtConnectionDirection::Unknown,
             a2dp_states: HashMap::new(),
             a2dp_audio_state: HashMap::new(),
             hfp: None,
@@ -301,12 +303,24 @@ impl BluetoothMedia {
 
                 self.absolute_volume = supported;
 
+                // If is device initiated the AVRCP connection, emit a fake connecting state as
+                // stack don't receive one.
+                if self.avrcp_direction != BtConnectionDirection::Outgoing {
+                    metrics::profile_connection_state_changed(
+                        addr,
+                        Profile::AvrcpController as u32,
+                        BtStatus::Success,
+                        BtavConnectionState::Connecting as u32,
+                    );
+                }
                 metrics::profile_connection_state_changed(
                     addr,
                     Profile::AvrcpController as u32,
                     BtStatus::Success,
                     BtavConnectionState::Connected as u32,
                 );
+                // Reset direction to unknown.
+                self.avrcp_direction = BtConnectionDirection::Unknown;
 
                 self.add_connected_profile(addr, uuid::Profile::AvrcpController);
             }
@@ -325,12 +339,24 @@ impl BluetoothMedia {
                     None => false,
                 };
 
+                // If the peer device initiated the AVRCP disconnection, emit a fake connecting
+                // state as stack don't receive one.
+                if self.avrcp_direction != BtConnectionDirection::Outgoing {
+                    metrics::profile_connection_state_changed(
+                        addr,
+                        Profile::AvrcpController as u32,
+                        BtStatus::Success,
+                        BtavConnectionState::Disconnecting as u32,
+                    );
+                }
                 metrics::profile_connection_state_changed(
                     addr,
                     Profile::AvrcpController as u32,
                     BtStatus::Success,
                     BtavConnectionState::Disconnected as u32,
                 );
+                // Reset direction to unknown.
+                self.avrcp_direction = BtConnectionDirection::Unknown;
 
                 self.rm_connected_profile(
                     addr,
@@ -816,8 +842,11 @@ impl IBluetoothMedia for BluetoothMedia {
                     );
                     match self.avrcp.as_mut() {
                         Some(avrcp) => {
+                            self.avrcp_direction = BtConnectionDirection::Outgoing;
                             let status: BtStatus = avrcp.connect(addr);
                             if BtStatus::Success != status {
+                                // Reset direction to unknown.
+                                self.avrcp_direction = BtConnectionDirection::Unknown;
                                 metrics::profile_connection_state_changed(
                                     addr,
                                     Profile::AvrcpController as u32,
@@ -938,8 +967,11 @@ impl IBluetoothMedia for BluetoothMedia {
                     );
                     match self.avrcp.as_mut() {
                         Some(avrcp) => {
+                            self.avrcp_direction = BtConnectionDirection::Outgoing;
                             let status: BtStatus = avrcp.disconnect(addr);
                             if BtStatus::Success != status {
+                                // Reset direction to unknown.
+                                self.avrcp_direction = BtConnectionDirection::Unknown;
                                 metrics::profile_connection_state_changed(
                                     addr,
                                     Profile::AvrcpController as u32,
