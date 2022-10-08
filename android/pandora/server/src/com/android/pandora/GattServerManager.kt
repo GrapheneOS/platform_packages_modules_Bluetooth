@@ -43,7 +43,7 @@ class GattServerManager(
   val callback =
     object : BluetoothGattServerCallback() {
       override fun onServiceAdded(status: Int, service: BluetoothGattService) {
-        Log.i(TAG, "onServiceAdded")
+        Log.i(TAG, "onServiceAdded status=$status")
         check(status == BluetoothGatt.GATT_SUCCESS)
         check(newServiceFlow.tryEmit(service))
       }
@@ -68,7 +68,7 @@ class GattServerManager(
             ByteArray(negociatedMtu)
           )
         } else {
-          server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, ByteArray(512))
+          server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, ByteArray(0))
         }
       }
 

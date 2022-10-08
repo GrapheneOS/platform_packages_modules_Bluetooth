@@ -31,6 +31,10 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 #endif
 
+std::unique_ptr<tUIPC_STATE> mock_uipc_init_ret;
+uint32_t mock_uipc_read_ret;
+bool mock_uipc_send_ret;
+
 bool UIPC_Open(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK* p_cback,
                const char* socket_path) {
   mock_function_count_map[__func__]++;
@@ -40,7 +44,7 @@ bool UIPC_Send(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
                UNUSED_ATTR uint16_t msg_evt, const uint8_t* p_buf,
                uint16_t msglen) {
   mock_function_count_map[__func__]++;
-  return false;
+  return mock_uipc_send_ret;
 }
 int uipc_start_main_server_thread(tUIPC_STATE& uipc) {
   mock_function_count_map[__func__]++;
@@ -48,7 +52,7 @@ int uipc_start_main_server_thread(tUIPC_STATE& uipc) {
 }
 std::unique_ptr<tUIPC_STATE> UIPC_Init() {
   mock_function_count_map[__func__]++;
-  return nullptr;
+  return std::move(mock_uipc_init_ret);
 }
 const char* dump_uipc_event(tUIPC_EVENT event) {
   mock_function_count_map[__func__]++;
@@ -57,7 +61,7 @@ const char* dump_uipc_event(tUIPC_EVENT event) {
 uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
                    uint32_t len) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return mock_uipc_read_ret;
 }
 bool UIPC_Ioctl(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint32_t request,
                 void* param) {
