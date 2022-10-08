@@ -21,6 +21,7 @@
 #include "hci/hci_packets.h"
 #include "include/hardware/bluetooth.h"
 #include "include/hardware/bt_av.h"
+#include "include/hardware/bt_hf.h"
 #include "include/hardware/bt_hh.h"
 
 namespace bluetooth {
@@ -34,6 +35,8 @@ typedef bt_status_t BtStatus;
 typedef btav_connection_state_t BtavConnectionState;
 // topshim::profile::hid_host::BthhConnectionState is a copy of hardware/bt_hh.h:bthh_connection_state_t
 typedef bthh_connection_state_t BthhConnectionState;
+// topshim::profile::hid_host::BthfConnectionState is a copy of hardware/bt_hh.h:bthf_connection_state_t
+typedef headset::bthf_connection_state_t BthfConnectionState;
 
 // A copy of topshim::btif::BtDeviceType
 enum class BtDeviceType {
@@ -355,9 +358,48 @@ static std::pair<uint32_t, uint32_t> ToProfileConnectionState(uint32_t profile, 
     // case ProfilesFloss::AdvAudioDist:
     // case ProfilesFloss::Hsp:
     // case ProfilesFloss::HspAg:
-    // case ProfilesFloss::Hfp:
+    case ProfilesFloss::Hfp:
+      output.first = (uint32_t)Profile::HFP;
+      switch ((BthfConnectionState)state) {
+        case BthfConnectionState::BTHF_CONNECTION_STATE_DISCONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTED;
+          break;
+        case BthfConnectionState::BTHF_CONNECTION_STATE_CONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTING;
+          break;
+        case BthfConnectionState::BTHF_CONNECTION_STATE_CONNECTED:
+        case BthfConnectionState::BTHF_CONNECTION_STATE_SLC_CONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTED;
+          break;
+        case BthfConnectionState::BTHF_CONNECTION_STATE_DISCONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTING;
+          break;
+        default:
+          output.second = (uint32_t)ProfilesConnectionState::UNKNOWN;
+          break;
+      }
+      break;
     // case ProfilesFloss::HfpAg:
-    // case ProfilesFloss::AvrcpController:
+    case ProfilesFloss::AvrcpController:
+      output.first = (uint32_t)Profile::AVRCP;
+      switch ((BtavConnectionState)state) {
+        case BtavConnectionState::BTAV_CONNECTION_STATE_CONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTED;
+          break;
+        case BtavConnectionState::BTAV_CONNECTION_STATE_CONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTING;
+          break;
+        case BtavConnectionState::BTAV_CONNECTION_STATE_DISCONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTED;
+          break;
+        case BtavConnectionState::BTAV_CONNECTION_STATE_DISCONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTING;
+          break;
+        default:
+          output.second = (uint32_t)ProfilesConnectionState::UNKNOWN;
+          break;
+      }
+      break;
     // case ProfilesFloss::AvrcpTarget:
     // case ProfilesFloss::ObexObjectPush:
     case ProfilesFloss::Hid:
