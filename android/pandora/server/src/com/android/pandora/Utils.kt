@@ -56,6 +56,8 @@ import pandora.HostProto.Connection
 import pandora.HostProto.InternalConnectionRef
 import pandora.HostProto.Transport
 
+private const val TAG = "PandoraUtils"
+
 fun shell(cmd: String): String {
   val fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd)
   val input_stream = ParcelFileDescriptor.AutoCloseInputStream(fd)
@@ -177,7 +179,7 @@ fun <T, U> grpcBidirectionalStream(
     override fun onNext(req: T) {
       // Note: this should be made a blocking call, and the handler should run in a separate thread
       // so we get flow control - but for now we can live with this
-      if (!inputChannel.offer(req)) {
+      if (inputChannel.trySend(req).isFailure) {
         job.cancel(CancellationException("too many incoming requests, buffer exceeded"))
         responseObserver.onError(
           CancellationException("too many incoming requests, buffer exceeded")

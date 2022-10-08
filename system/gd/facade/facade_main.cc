@@ -74,7 +74,7 @@ bool crash_callback(const void* crash_context, size_t crash_context_size, void* 
   std::optional<pid_t> tid;
   if (crash_context_size >= sizeof(google_breakpad::ExceptionHandler::CrashContext)) {
     auto* ctx = static_cast<const google_breakpad::ExceptionHandler::CrashContext*>(crash_context);
-    *tid = ctx->tid;
+    tid = ctx->tid;
     int signal_number = ctx->siginfo.si_signo;
     LOG_ERROR("Process crashed, signal: %s[%d], tid: %d", strsignal(signal_number), signal_number, ctx->tid);
   } else {
