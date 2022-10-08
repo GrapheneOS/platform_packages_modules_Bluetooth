@@ -82,7 +82,7 @@ pub struct A2dpError {
     /// Standard BT status come from a function return or the cloest approximation to the real
     /// error.
     pub status: BtStatus,
-    /// An additional value to help explain the error. In the A2Dp context, this is often referring
+    /// An additional value to help explain the error. In the A2DP context, this is often referring
     /// to the BTA_AV_XXX status.
     pub error: i32,
     /// An optional error message that the lower layer wants to deliver.
