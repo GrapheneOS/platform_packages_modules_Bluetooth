@@ -351,12 +351,16 @@ cc_test {
             srcs: [
                 ":BluetoothHalTestSources_hci_host",
                 ":BluetoothOsTestSources_host",
+                ":BluetoothHostTestingLogCapture",
+                ":BluetoothHostTestingLogCaptureTest",
             ],
         },
         android: {
             srcs: [
                 ":BluetoothHalTestSources_hci_android_hidl",
                 ":BluetoothOsTestSources_android",
+                ":BluetoothAndroidTestingLogCapture",
+                ":BluetoothAndroidTestingLogCaptureTest",
             ],
             static_libs: [
                 "android.system.suspend.control-V1-ndk",
