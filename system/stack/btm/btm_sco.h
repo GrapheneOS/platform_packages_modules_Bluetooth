@@ -54,12 +54,9 @@ namespace bluetooth::audio::sco::wbs {
  *    pkt_size - Length of the SCO packet. It is determined based on the BT-USB
  *    adapter's capability and alt mode setting. The value should be queried
  *    from HAL interface. It will be used to determine the size of the SCO
- *    packet buffer. Currently, the stack only supports 60 and 72.
- * Returns:
- *    The selected packet size. Will fallback to the typical mSBC packet
- *    length(60) if the pkt_size argument is not supported.
+ *    packet buffer.
  */
-size_t init(size_t pkt_size);
+void init(size_t pkt_size);
 
 /* Clean up when the SCO connection is done */
 void cleanup();
@@ -68,7 +65,7 @@ void cleanup();
  * Args:
  *    data - Pointer to received packet data bytes.
  *    pkt_size - Length of input packet. Passing packet with inconsistent size
- *        from the pkt_size set in init() will fail the call.
+ *        from the pkt_size set in init() will trigger a reset of the buffer.
  * Returns:
  *    The length of enqueued bytes. 0 if failed.
  */
