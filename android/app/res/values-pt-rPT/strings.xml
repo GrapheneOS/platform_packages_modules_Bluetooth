@@ -86,7 +86,7 @@
     <string name="bt_sm_2_1_nosdcard" msgid="288667514869424273">"Não existe espaço suficiente na memória USB para guardar o ficheiro."</string>
     <string name="bt_sm_2_1_default" msgid="5070195264206471656">"Não existe espaço suficiente no cartão SD para guardar o ficheiro."</string>
     <string name="bt_sm_2_2" msgid="6200119660562110560">"Espaço necessário: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
-    <string name="ErrorTooManyRequests" msgid="5049670841391761475">"Existem demasiados pedidos em processamento. Tente novamente mais tarde."</string>
+    <string name="ErrorTooManyRequests" msgid="5049670841391761475">"Existem demasiados pedidos em processamento. Tente mais tarde."</string>
     <string name="status_pending" msgid="4781040740237733479">"Ainda não foi iniciada a transferência do ficheiro."</string>
     <string name="status_running" msgid="7419075903776657351">"Transferência do ficheiro em curso."</string>
     <string name="status_success" msgid="7963589000098719541">"Transferência de ficheiros concluída com êxito."</string>
