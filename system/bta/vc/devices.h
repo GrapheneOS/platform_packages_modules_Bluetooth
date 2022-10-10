@@ -130,7 +130,7 @@ class VolumeControlDevice {
                                         GATT_WRITE_OP_CB cb, void* cb_data);
   bool IsEncryptionEnabled();
 
-  bool EnableEncryption(tBTM_SEC_CALLBACK* callback);
+  void EnableEncryption();
 
   bool EnqueueInitialRequests(tGATT_IF gatt_if, GATT_READ_OP_CB chrc_read_cb,
                               GATT_WRITE_OP_CB cccd_write_cb);
