@@ -98,8 +98,8 @@ interface IBluetooth
 
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     oneway void getAdapterConnectionState(in SynchronousResultReceiver receiver);
-    @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
-    oneway void getProfileConnectionState(int profile, in SynchronousResultReceiver receiver);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
+    oneway void getProfileConnectionState(int profile, in AttributionSource source, in SynchronousResultReceiver receiver);
 
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     oneway void getBondedDevices(in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
