@@ -166,3 +166,7 @@ class IrkRotationTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         self.dut.sl4a.gattClientReconnect(gatt_callback)
         expected_event_name = GattCallbackString.GATT_CONN_CHANGE.format(gatt_callback)
         assertThat(self._wait_for_event(expected_event_name, self.dut)).isTrue()
+
+
+if __name__ == '__main__':
+    test_runner.main()
