@@ -34,6 +34,7 @@
 #include "bta_hh_api.h"
 #include "btif_hh.h"
 #include "btif_util.h"
+#include "device/include/controller.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/osi.h"
@@ -563,6 +564,13 @@ void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev, const char* dev_name,
   strlcpy((char*)ev.u.create.name, dev_name, sizeof(ev.u.create.name));
   snprintf((char*)ev.u.create.uniq, sizeof(ev.u.create.uniq), "%s",
            p_dev->bd_addr.ToString().c_str());
+
+  // Write controller address to phys field to correlate the hid device with a
+  // specific bluetooth controller.
+  const controller_t* controller = controller_get_interface();
+  snprintf((char*)ev.u.create.phys, sizeof(ev.u.create.phys), "%s",
+           controller->get_address()->ToString().c_str());
+
   ev.u.create.rd_size = dscp_len;
   ev.u.create.rd_data = p_dscp;
   ev.u.create.bus = BUS_BLUETOOTH;
