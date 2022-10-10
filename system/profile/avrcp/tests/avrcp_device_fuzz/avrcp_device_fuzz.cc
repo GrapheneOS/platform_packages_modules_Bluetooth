@@ -64,7 +64,8 @@ const stack_config_t interface = {nullptr, get_pts_avrcp_test,
                                   nullptr, nullptr,
                                   nullptr, nullptr,
                                   nullptr, nullptr,
-                                  nullptr, nullptr};
+                                  nullptr, nullptr,
+                                  nullptr};
 
 void Callback(uint8_t, bool, std::unique_ptr<::bluetooth::PacketBuilder>) {}
 

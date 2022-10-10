@@ -51,6 +51,7 @@ const char* PTS_L2CAP_ECOC_SEND_NUM_OF_SDU = "PTS_L2capEcocSendNumOfSdu";
 const char* PTS_L2CAP_ECOC_RECONFIGURE = "PTS_L2capEcocReconfigure";
 const char* PTS_BROADCAST_AUDIO_CONFIG_OPTION =
     "PTS_BroadcastAudioConfigOption";
+const char* PTS_LE_AUDIO_SUSPEND_STREAMING = "PTS_LeAudioSuspendStreaming";
 
 static std::unique_ptr<config_t> config;
 }  // namespace
@@ -202,6 +203,11 @@ static const std::string* get_pts_broadcast_audio_config_options(void) {
                            PTS_BROADCAST_AUDIO_CONFIG_OPTION, NULL);
 }
 
+static bool get_pts_le_audio_disable_ases_before_stopping(void) {
+  return config_get_bool(*config, CONFIG_DEFAULT_SECTION,
+                         PTS_LE_AUDIO_SUSPEND_STREAMING, false);
+}
+
 static config_t* get_all(void) { return config.get(); }
 
 const stack_config_t interface = {
@@ -226,6 +232,7 @@ const stack_config_t interface = {
     get_pts_l2cap_ecoc_send_num_of_sdu,
     get_pts_l2cap_ecoc_reconfigure,
     get_pts_broadcast_audio_config_options,
+    get_pts_le_audio_disable_ases_before_stopping,
     get_all};
 
 const stack_config_t* stack_config_get_interface(void) { return &interface; }

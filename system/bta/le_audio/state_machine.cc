@@ -617,6 +617,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
+    /* mark ASEs as not used. */
+    leAudioDevice->DeactivateAllAses();
+
     /* If group is in Idle there is nothing to do here */
     if ((group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) &&
         (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE)) {
@@ -624,9 +627,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       group->UpdateActiveContextsMap();
       return;
     }
-
-    /* mark ASEs as not used. */
-    leAudioDevice->DeactivateAllAses();
 
     LOG_DEBUG(
         " device: %s, group connected: %d, all active ase disconnected:: %d",

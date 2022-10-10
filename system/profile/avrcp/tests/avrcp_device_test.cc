@@ -60,7 +60,8 @@ const stack_config_t interface = {nullptr, get_pts_avrcp_test,
                                   nullptr, nullptr,
                                   nullptr, nullptr,
                                   nullptr, nullptr,
-                                  nullptr, nullptr};
+                                  nullptr, nullptr,
+                                  nullptr};
 
 // TODO (apanicke): All the tests below are just basic positive unit tests.
 // Add more tests to increase code coverage.

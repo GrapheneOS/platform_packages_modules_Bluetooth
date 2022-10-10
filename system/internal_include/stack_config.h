@@ -47,6 +47,7 @@ typedef struct {
   int (*get_pts_l2cap_ecoc_send_num_of_sdu)(void);
   bool (*get_pts_l2cap_ecoc_reconfigure)(void);
   const std::string* (*get_pts_broadcast_audio_config_options)(void);
+  bool (*get_pts_le_audio_disable_ases_before_stopping)(void);
   config_t* (*get_all)(void);
 } stack_config_t;
 

@@ -177,7 +177,7 @@ class LeAudioDevices {
   LeAudioDevice* FindByAddress(const RawAddress& address);
   std::shared_ptr<LeAudioDevice> GetByAddress(const RawAddress& address);
   LeAudioDevice* FindByConnId(uint16_t conn_id);
-  LeAudioDevice* FindByCisConnHdl(const uint16_t conn_hdl);
+  LeAudioDevice* FindByCisConnHdl(uint8_t cig_id, uint16_t conn_hdl);
   size_t Size(void);
   void Dump(int fd, int group_id);
   void Cleanup(void);
