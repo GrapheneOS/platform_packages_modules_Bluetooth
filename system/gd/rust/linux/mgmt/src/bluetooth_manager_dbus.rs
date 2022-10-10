@@ -8,7 +8,7 @@ use btstack::RPCProxy;
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 use crate::iface_bluetooth_manager::{
-    AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
+    AdapterWithEnabled, BluetoothManagerMixin, IBluetoothManager, IBluetoothManagerCallback,
 };
 
 #[dbus_propmap(AdapterWithEnabled)]
@@ -20,7 +20,12 @@ pub struct AdapterWithEnabledDbus {
 /// D-Bus projection of IBluetoothManager.
 struct BluetoothManagerDBus {}
 
-#[generate_dbus_exporter(export_bluetooth_manager_dbus_intf, "org.chromium.bluetooth.Manager")]
+#[generate_dbus_exporter(
+    export_bluetooth_manager_dbus_intf,
+    "org.chromium.bluetooth.Manager",
+    BluetoothManagerMixin,
+    manager
+)]
 impl IBluetoothManager for BluetoothManagerDBus {
     #[dbus_method("Start")]
     fn start(&mut self, hci_interface: i32) {
