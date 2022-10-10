@@ -1,9 +1,20 @@
 use btstack::RPCProxy;
 
+use std::sync::{Arc, Mutex};
+
+use crate::bluetooth_manager::BluetoothManager;
+
 #[derive(Debug, Default)]
 pub struct AdapterWithEnabled {
     pub hci_interface: i32,
     pub enabled: bool,
+}
+
+/// A mixin of the several interfaces. The naming of the fields in the mixin must match
+/// what is listed in the `generate_dbus_exporter` invocation.
+pub struct BluetoothManagerMixin {
+    pub manager: Arc<Mutex<Box<BluetoothManager>>>,
+    pub experimental: Arc<Mutex<Box<BluetoothManager>>>,
 }
 
 /// Bluetooth stack management API.
