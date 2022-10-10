@@ -3625,8 +3625,8 @@ class LeAudioClientImpl : public LeAudioClient {
             static_cast<bluetooth::hci::iso_manager::cis_establish_cmpl_evt*>(
                 data);
 
-        LeAudioDevice* leAudioDevice =
-            leAudioDevices_.FindByCisConnHdl(event->cis_conn_hdl);
+        LeAudioDevice* leAudioDevice = leAudioDevices_.FindByCisConnHdl(
+            event->cig_id, event->cis_conn_hdl);
         if (!leAudioDevice) {
           LOG(ERROR) << __func__ << ", no bonded Le Audio Device with CIS: "
                      << +event->cis_conn_hdl;
@@ -3650,8 +3650,8 @@ class LeAudioClientImpl : public LeAudioClient {
             static_cast<bluetooth::hci::iso_manager::cis_disconnected_evt*>(
                 data);
 
-        LeAudioDevice* leAudioDevice =
-            leAudioDevices_.FindByCisConnHdl(event->cis_conn_hdl);
+        LeAudioDevice* leAudioDevice = leAudioDevices_.FindByCisConnHdl(
+            event->cig_id, event->cis_conn_hdl);
         if (!leAudioDevice) {
           LOG(ERROR) << __func__ << ", no bonded Le Audio Device with CIS: "
                      << +event->cis_conn_hdl;
@@ -3670,9 +3670,9 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void IsoSetupIsoDataPathCb(uint8_t status, uint16_t conn_handle,
-                             uint8_t /* cig_id */) {
+                             uint8_t cig_id) {
     LeAudioDevice* leAudioDevice =
-        leAudioDevices_.FindByCisConnHdl(conn_handle);
+        leAudioDevices_.FindByCisConnHdl(cig_id, conn_handle);
     LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
 
     instance->groupStateMachine_->ProcessHciNotifSetupIsoDataPath(
@@ -3680,9 +3680,9 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void IsoRemoveIsoDataPathCb(uint8_t status, uint16_t conn_handle,
-                              uint8_t /* cig_id */) {
+                              uint8_t cig_id) {
     LeAudioDevice* leAudioDevice =
-        leAudioDevices_.FindByCisConnHdl(conn_handle);
+        leAudioDevices_.FindByCisConnHdl(cig_id, conn_handle);
     LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
 
     instance->groupStateMachine_->ProcessHciNotifRemoveIsoDataPath(
@@ -3695,7 +3695,7 @@ class LeAudioClientImpl : public LeAudioClient {
       uint32_t retransmittedPackets, uint32_t crcErrorPackets,
       uint32_t rxUnreceivedPackets, uint32_t duplicatePackets) {
     LeAudioDevice* leAudioDevice =
-        leAudioDevices_.FindByCisConnHdl(conn_handle);
+        leAudioDevices_.FindByCisConnHdl(cig_id, conn_handle);
     if (!leAudioDevice) {
       LOG(WARNING) << __func__ << ", device under connection handle: "
                    << loghex(conn_handle)
