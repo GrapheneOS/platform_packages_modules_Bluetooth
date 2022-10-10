@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"ডাউনল’ড মেনেজাৰ ব্যৱহাৰ কৰিব পাৰে।"</string>
+    <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"ডাউনল’ড মেনেজাৰ এক্সেছ কৰিব পাৰে।"</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"এপটোক BluetoothShare মেনেজাৰ ব্যৱহাৰ কৰি ফাইল স্থানান্তৰ কৰিবলৈ অনুমতি দিয়ে।"</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"ব্লুটুথ ডিভাইচ এক্সেছ কৰাৰ স্বীকৃতি দিয়ে।"</string>
     <string name="permdesc_bluetoothAcceptlist" msgid="259308920158011885">"এপ্‌টোক এটা ব্লুটুথ ডিভাইচ অস্থায়ীৰূপে স্বীকাৰ কৰাৰ অনুমতি দিয়ে যিয়ে ডিভাইচটোক ব্যৱহাৰকাৰীৰ নিশ্চিতিকৰণৰ অবিহনেই ইয়ালৈ ফাইল পঠিওৱাৰ অনুমতি দিয়ে।"</string>
@@ -118,7 +118,7 @@
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"এতিয়া প্লে’ হৈ আছে"</string>
     <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"ছেভ কৰক"</string>
     <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"বাতিল কৰক"</string>
-    <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"ব্লুটুথৰ জৰিয়তে শ্বেয়াৰ কৰিব খোজা একাউণ্টসমূহ বাছক। তথাপিও সংযোগ কৰি থাকোঁতে আপুনি একাউণ্টসমূহক সকলো ধৰণৰ অনুমতি দিবই লাগিব।"</string>
+    <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"ব্লুটুথৰ জৰিয়তে শ্বেয়াৰ কৰিব খোজা একাউণ্টসমূহ বাছক। তথাপিও সংযোগ কৰি থাকোঁতে আপুনি একাউণ্টসমূহক সকলো ধৰণৰ এক্সেছ দিবই লাগিব।"</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"বাকী থকা শ্লটবোৰ:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"এপ্লিকেশ্বন আইকন"</string>
     <string name="bluetooth_map_settings_title" msgid="4226030082708590023">"ব্লুটুথৰ জৰিয়তে বাৰ্তা শ্বেয়াৰ কৰাৰ ছেটিং"</string>
