@@ -1,13 +1,12 @@
 //! Suspend/Resume API.
 
-use crate::bluetooth::Bluetooth;
+use crate::bluetooth::{Bluetooth, BtifBluetoothCallbacks};
 use crate::callbacks::Callbacks;
 use crate::{bluetooth_gatt::IBluetoothGatt, BluetoothGatt, Message, RPCProxy};
-use bt_topshim::{btif::BluetoothInterface, topstack};
+use bt_topshim::btif::BluetoothInterface;
 use log::warn;
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::Sender;
-use tokio::sync::oneshot::channel as OneShotChannel;
 
 /// Defines the Suspend/Resume API.
 ///
@@ -30,7 +29,7 @@ pub trait ISuspend {
     ///
     /// Returns a positive number identifying the suspend if it can be started. If there is already
     /// a suspend, that active suspend id is returned.
-    fn suspend(&self, suspend_type: SuspendType);
+    fn suspend(&mut self, suspend_type: SuspendType);
 
     /// Undoes previous suspend preparation identified by `suspend_id`.
     ///
@@ -58,6 +57,10 @@ pub enum SuspendType {
     Other,
 }
 
+struct SuspendState {
+    le_rand_expected: bool,
+}
+
 /// Implementation of the suspend API.
 pub struct Suspend {
     bt: Arc<Mutex<Box<Bluetooth>>>,
@@ -67,6 +70,8 @@ pub struct Suspend {
     callbacks: Callbacks<dyn ISuspendCallback + Send>,
     is_connected_suspend: bool,
     was_a2dp_connected: bool,
+    suspend_timeout_joinhandle: Option<tokio::task::JoinHandle<()>>,
+    suspend_state: Arc<Mutex<SuspendState>>,
 }
 
 impl Suspend {
@@ -77,13 +82,15 @@ impl Suspend {
         tx: Sender<Message>,
     ) -> Suspend {
         Self {
-            bt: bt,
-            intf: intf,
-            gatt: gatt,
+            bt,
+            intf,
+            gatt,
             tx: tx.clone(),
             callbacks: Callbacks::new(tx.clone(), Message::SuspendCallbackDisconnected),
             is_connected_suspend: false,
             was_a2dp_connected: false,
+            suspend_timeout_joinhandle: None,
+            suspend_state: Arc::new(Mutex::new(SuspendState { le_rand_expected: false })),
         }
     }
 
@@ -96,6 +103,12 @@ impl Suspend {
 
     pub(crate) fn remove_callback(&mut self, id: u32) -> bool {
         self.callbacks.remove_callback(id)
+    }
+
+    pub(crate) fn suspend_ready(&self, suspend_id: u32) {
+        self.callbacks.for_all_callbacks(|callback| {
+            callback.on_suspend_ready(suspend_id);
+        });
     }
 }
 
@@ -115,7 +128,7 @@ impl ISuspend for Suspend {
         self.remove_callback(callback_id)
     }
 
-    fn suspend(&self, suspend_type: SuspendType) {
+    fn suspend(&mut self, suspend_type: SuspendType) {
         // self.was_a2dp_connected = TODO(230604670): check if A2DP is connected
         // self.current_advertiser_ids = TODO(224603198): save all advertiser ids
         self.intf.lock().unwrap().clear_event_mask();
@@ -143,17 +156,26 @@ impl ISuspend for Suspend {
         }
         self.intf.lock().unwrap().clear_filter_accept_list();
         self.intf.lock().unwrap().disconnect_all_acls();
-        self.intf.lock().unwrap().le_rand();
-        // Wait on LE Rand before firing callbacks
-        let (p, mut c) = OneShotChannel::<u64>();
-        self.bt.lock().unwrap().le_rand(p);
-        let rt = topstack::get_runtime();
-        rt.block_on(async {
-            let _ = c.try_recv();
-        });
-        self.callbacks.for_all_callbacks(|callback| {
-            callback.on_suspend_ready(1 as u32);
-        });
+
+        self.bt.lock().unwrap().le_rand();
+        self.suspend_state.lock().unwrap().le_rand_expected = true;
+
+        if let Some(join_handle) = &self.suspend_timeout_joinhandle {
+            join_handle.abort();
+            self.suspend_timeout_joinhandle = None;
+        }
+
+        let tx = self.tx.clone();
+        let suspend_state = self.suspend_state.clone();
+        self.suspend_timeout_joinhandle = Some(tokio::spawn(async move {
+            tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+            log::error!("Suspend did not complete in 2 seconds, continuing anyway.");
+
+            suspend_state.lock().unwrap().le_rand_expected = false;
+            tokio::spawn(async move {
+                let _result = tx.send(Message::SuspendReady(1)).await;
+            });
+        }));
     }
 
     fn resume(&self) -> bool {
@@ -173,5 +195,26 @@ impl ISuspend for Suspend {
         });
 
         true
+    }
+}
+
+impl BtifBluetoothCallbacks for Suspend {
+    fn le_rand_cb(&mut self, _random: u64) {
+        // TODO(b/232547719): Suspend readiness may not depend only on LeRand, make a generic state
+        // machine to support waiting for other conditions.
+        if !self.suspend_state.lock().unwrap().le_rand_expected {
+            log::warn!("Unexpected LE Rand callback, ignoring.");
+            return;
+        }
+
+        if let Some(join_handle) = &self.suspend_timeout_joinhandle {
+            join_handle.abort();
+            self.suspend_timeout_joinhandle = None;
+        }
+
+        let tx = self.tx.clone();
+        tokio::spawn(async move {
+            let _result = tx.send(Message::SuspendReady(1)).await;
+        });
     }
 }
