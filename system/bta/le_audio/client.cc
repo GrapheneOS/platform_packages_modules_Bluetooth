@@ -3337,22 +3337,20 @@ class LeAudioClientImpl : public LeAudioClient {
       return LeAudioContextType::UNSPECIFIED;
     }
 
-    auto adjusted_contexts = adjustMetadataContexts(available_contexts);
-
     using T = std::underlying_type<LeAudioContextType>::type;
 
     /* Mini policy. Voice is prio 1, game prio 2, media is prio 3 */
-    if ((adjusted_contexts &
+    if ((available_contexts &
          AudioContexts(static_cast<T>(LeAudioContextType::CONVERSATIONAL)))
             .any())
       return LeAudioContextType::CONVERSATIONAL;
 
-    if ((adjusted_contexts &
+    if ((available_contexts &
          AudioContexts(static_cast<T>(LeAudioContextType::GAME)))
             .any())
       return LeAudioContextType::GAME;
 
-    if ((adjusted_contexts &
+    if ((available_contexts &
          AudioContexts(static_cast<T>(LeAudioContextType::RINGTONE)))
             .any()) {
       if (!in_call_) {
@@ -3361,7 +3359,7 @@ class LeAudioClientImpl : public LeAudioClient {
       return LeAudioContextType::RINGTONE;
     }
 
-    if ((adjusted_contexts &
+    if ((available_contexts &
          AudioContexts(static_cast<T>(LeAudioContextType::MEDIA)))
             .any())
       return LeAudioContextType::MEDIA;
@@ -3369,8 +3367,8 @@ class LeAudioClientImpl : public LeAudioClient {
     /*TODO do something smarter here */
     /* Get context for the first non-zero bit */
     uint16_t context_type = 0b1;
-    while (adjusted_contexts != 0b1) {
-      adjusted_contexts = adjusted_contexts >> 1;
+    while (available_contexts != 0b1) {
+      available_contexts = available_contexts >> 1;
       context_type = context_type << 1;
     }
 
@@ -3428,7 +3426,7 @@ class LeAudioClientImpl : public LeAudioClient {
         (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
     if (audio_receiver_state_ == AudioState::STARTED) {
-      /* If the receiver is starte. Take into account current context type */
+      /* If the receiver is started. Take into account current context type */
       metadata_context_types_ = adjustMetadataContexts(metadata_context_types_);
     } else {
       metadata_context_types_ = 0;
@@ -3478,12 +3476,12 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (new_configuration_context == configuration_context_type_) {
       LOG_INFO("Context did not changed.");
-      return;
-    }
 
-    configuration_context_type_ = new_configuration_context;
-    if (StopStreamIfNeeded(group, new_configuration_context)) {
-      return;
+    } else {
+      configuration_context_type_ = new_configuration_context;
+      if (StopStreamIfNeeded(group, new_configuration_context)) {
+        return;
+      }
     }
 
     if (is_group_streaming) {
