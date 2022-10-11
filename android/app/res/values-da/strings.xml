@@ -109,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Alle elementer vil blive fjernet fra listen."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth-deling: Sendte filer"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth-deling: Modtagne filer"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# blev ikke sendt.}one{# unsuccessful.}other{# blev ikke sendt.}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# blev sendt, %1$s}one{# successful, %1$s}other{# blev sendt, %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Ryd liste"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Åbn"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Fjern fra listen"</string>
@@ -128,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth-lyd"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"File, der er større end 4 GB, kan ikke overføres"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Opret forbindelse til Bluetooth"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth er aktiveret i flytilstand"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Hvis du beholder Bluetooth aktiveret, forbliver det aktiveret, næste gang enheden er i flytilstand"</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth forbliver aktiveret"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Din telefon beholder Bluetooth aktiveret i flytilstand. Du kan ændre dette ved at deaktivere Bluetooth."</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi og Bluetooth forbliver aktiveret"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Din telefon beholder Wi-Fi og Bluetooth aktiveret i flytilstand. Du kan ændre dette ved at deaktivere Wi-Fi og Bluetooth."</string>
 </resources>

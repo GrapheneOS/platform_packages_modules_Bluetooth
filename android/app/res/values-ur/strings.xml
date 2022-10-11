@@ -109,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"سبھی آئٹمز فہرست سے صاف کر دیے جائیں گے۔"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"بلوٹوتھ اشتراک: ارسال کردہ فائلیں"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"بلوٹوتھ اشتراک: فائلیں موصول ہو گئیں"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# ناکام۔}other{# ناکام۔}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‏# کامیاب، ‎%1$s‎}other{‏# کامیاب، ‎%1$s‎}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"فہرست صاف کریں"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"کھولیں"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"فہرست سے صاف کریں"</string>
@@ -128,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"بلوٹوتھ آڈیو"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"‏4GB سے بڑی فائلیں منتقل نہیں کی جا سکتیں"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"بلوٹوتھ سے منسلک کریں"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ہوائی جہاز وضع میں بلوٹوتھ آن ہے"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"اگر آپ بلوٹوتھ آن رکھتے ہیں تو آپ کے اگلی مرتبہ ہوائی جہاز وضع میں ہونے پر یہ آن ہی رہے گا"</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"بلوٹوتھ آن رہتا ہے"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"آپ کا فون ہوائی جہاز وضع میں بلوٹوتھ کو آن رکھنا یاد رکھتا ہے۔ اسے تبدیل کرنے کے لیے، بلوٹوتھ آف کریں۔"</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"‏Wi-Fi اور بلوٹوتھ آن رہنے دیں"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"‏آپ کا فون ہوائی جہاز وضع میں Wi-Fi اور بلوٹوتھ کو آن رکھنا یاد رکھتا ہے۔ اسے تبدیل کرنے کیلئے، انہیں آف کریں۔"</string>
 </resources>

@@ -28,6 +28,7 @@
 #include "module.h"
 #include "os/handler.h"
 #include "os/log.h"
+#include "storage/storage_module.h"
 
 namespace bluetooth {
 namespace hci {
@@ -235,12 +236,14 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       hci::HciLayer* hci_layer,
       hci::Controller* controller,
       hci::AclManager* acl_manager,
-      hci::VendorSpecificEventManager* vendor_specific_event_manager) {
+      hci::VendorSpecificEventManager* vendor_specific_event_manager,
+      storage::StorageModule* storage_module) {
     module_handler_ = handler;
     hci_layer_ = hci_layer;
     controller_ = controller;
     acl_manager_ = acl_manager;
     vendor_specific_event_manager_ = vendor_specific_event_manager;
+    storage_module_ = storage_module;
     le_address_manager_ = acl_manager->GetLeAddressManager();
     le_scanning_interface_ = hci_layer_->GetLeScanningInterface(
         module_handler_->BindOn(this, &LeScanningManager::impl::handle_scan_results));
@@ -713,6 +716,17 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
         module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
   }
 
+  bool is_bonded(Address target_address) {
+    for (auto device : storage_module_->GetBondedDevices()) {
+      if (device.GetAddress() == target_address) {
+        LOG_DEBUG("Addresses match!");
+        return true;
+      }
+    }
+    LOG_DEBUG("Addresse DON'Ts match!");
+    return false;
+  }
+
   void scan_filter_parameter_setup(
       ApcfAction action, uint8_t filter_index, AdvertisingFilterParameter advertising_filter_parameter) {
     if (!is_filter_support_) {
@@ -720,6 +734,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       return;
     }
 
+    auto entry = remove_me_later_map_.find(filter_index);
     switch (action) {
       case ApcfAction::ADD:
         le_scanning_interface_->EnqueueCommand(
@@ -742,11 +757,33 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
         le_scanning_interface_->EnqueueCommand(
             LeAdvFilterDeleteFilteringParametersBuilder::Create(filter_index),
             module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+
+        // IRK Scanning
+        if (entry != remove_me_later_map_.end()) {
+          // Don't want to remove for a bonded device
+          if (!is_bonded(entry->second.GetAddress())) {
+            le_address_manager_->RemoveDeviceFromResolvingList(
+                static_cast<PeerAddressType>(entry->second.GetAddressType()), entry->second.GetAddress());
+          }
+          remove_me_later_map_.erase(filter_index);
+        }
+
         break;
       case ApcfAction::CLEAR:
         le_scanning_interface_->EnqueueCommand(
             LeAdvFilterClearFilteringParametersBuilder::Create(),
             module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+
+        // IRK Scanning
+        if (entry != remove_me_later_map_.end()) {
+          // Don't want to remove for a bonded device
+          if (!is_bonded(entry->second.GetAddress())) {
+            le_address_manager_->RemoveDeviceFromResolvingList(
+                static_cast<PeerAddressType>(entry->second.GetAddressType()), entry->second.GetAddress());
+          }
+          remove_me_later_map_.erase(filter_index);
+        }
+
         break;
       default:
         LOG_ERROR("Unknown action type: %d", (uint16_t)action);
@@ -802,6 +839,8 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
     }
   }
 
+  std::unordered_map<uint8_t, AddressWithType> remove_me_later_map_;
+
   void update_address_filter(
       ApcfAction action,
       uint8_t filter_index,
@@ -829,14 +868,35 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
               action, filter_index, address, ApcfApplicationAddressType::NOT_APPLICABLE),
           module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
       if (!is_empty_128bit(irk)) {
+        // If an entry exists for this filter index, replace data because the filter has been
+        // updated.
+        auto entry = remove_me_later_map_.find(filter_index);
+        // IRK Scanning
+        if (entry != remove_me_later_map_.end()) {
+          // Don't want to remove for a bonded device
+          if (!is_bonded(entry->second.GetAddress())) {
+            le_address_manager_->RemoveDeviceFromResolvingList(
+                static_cast<PeerAddressType>(entry->second.GetAddressType()), entry->second.GetAddress());
+          }
+          remove_me_later_map_.erase(filter_index);
+        }
+
+        // Now replace it with a new one
         std::array<uint8_t, 16> empty_irk;
         le_address_manager_->AddDeviceToResolvingList(
             static_cast<PeerAddressType>(address_type), address, irk, empty_irk);
+        remove_me_later_map_.emplace(filter_index, AddressWithType(address, static_cast<AddressType>(address_type)));
       }
     } else {
       le_scanning_interface_->EnqueueCommand(
           LeAdvFilterClearBroadcasterAddressBuilder::Create(filter_index),
           module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+      auto entry = remove_me_later_map_.find(filter_index);
+      if (entry != remove_me_later_map_.end()) {
+        // TODO(optedoblivion): If not bonded
+        le_address_manager_->RemoveDeviceFromResolvingList(static_cast<PeerAddressType>(address_type), address);
+        remove_me_later_map_.erase(filter_index);
+      }
     }
   }
 
@@ -1484,6 +1544,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
   hci::Controller* controller_;
   hci::AclManager* acl_manager_;
   hci::VendorSpecificEventManager* vendor_specific_event_manager_;
+  storage::StorageModule* storage_module_;
   hci::LeScanningInterface* le_scanning_interface_;
   hci::LeAddressManager* le_address_manager_;
   bool address_manager_registered_ = false;
@@ -1542,6 +1603,7 @@ void LeScanningManager::ListDependencies(ModuleList* list) const {
   list->add<hci::VendorSpecificEventManager>();
   list->add<hci::Controller>();
   list->add<hci::AclManager>();
+  list->add<storage::StorageModule>();
 }
 
 void LeScanningManager::Start() {
@@ -1550,7 +1612,8 @@ void LeScanningManager::Start() {
       GetDependency<hci::HciLayer>(),
       GetDependency<hci::Controller>(),
       GetDependency<AclManager>(),
-      GetDependency<VendorSpecificEventManager>());
+      GetDependency<VendorSpecificEventManager>(),
+      GetDependency<storage::StorageModule>());
 }
 
 void LeScanningManager::Stop() {

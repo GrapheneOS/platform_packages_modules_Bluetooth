@@ -221,6 +221,9 @@ cc_library {
     defaults: [
         "libbluetooth_gd_defaults",
     ],
+    apex_available: [
+        "com.android.btservices",
+    ],
     min_sdk_version: "31",
 }
 

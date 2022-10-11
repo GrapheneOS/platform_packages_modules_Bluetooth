@@ -109,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"பட்டியலிலிருந்து அனைத்தும் அழிக்கப்படும்."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"புளூடூத் பகிர்வு: அனுப்பியவை"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"புளூடூத் பகிர்வு: பெற்ற ஃபைல்கள்"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# அனுப்பப்படவில்லை.}other{# அனுப்பப்படவில்லை.}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# அனுப்பப்பட்டது, %1$s}other{# அனுப்பப்பட்டன, %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"பட்டியலை அழி"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"திற"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"பட்டியலிலிருந்து அழி"</string>
@@ -128,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"புளூடூத் ஆடியோ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4ஜி.பை.க்கு மேலிருக்கும் ஃபைல்களை இடமாற்ற முடியாது"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"புளூடூத் உடன் இணை"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"விமானப் பயன்முறையில் புளூடூத்தை இயக்குதல்"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"நீங்கள் புளூடூத்தை இயக்கத்தில் வைத்திருந்தால், அடுத்த முறை நீங்கள் விமானப் பயன்முறையில் இருக்கும்போது அது இயக்கத்திலேயே இருக்கும்"</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"புளூடூத் இயக்கத்திலேயே இருக்கும்"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"விமானப் பயன்முறையில் புளூடூத்தை உங்கள் மொபைல் இயக்கத்திலேயே வைத்திருக்கும். இதை மாற்ற புளூடூத்தை முடக்கவும்."</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"வைஃபையும் புளூடூத்தும் இயக்கத்திலேயே இருத்தல்"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"விமானப் பயன்முறையில் வைஃபையையும் புளூடூத்தையும் உங்கள் மொபைல் இயக்கத்திலேயே வைத்திருக்கும். இதை மாற்ற அவற்றை முடக்குங்கள்."</string>
 </resources>

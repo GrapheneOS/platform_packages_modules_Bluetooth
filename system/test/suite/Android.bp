@@ -90,6 +90,7 @@ cc_defaults {
         "libg722codec",
         "libgmock",
         "liblc3",
+        "libopus",
         "libosi",
         "libstatslog_bt",
         "libc++fs",

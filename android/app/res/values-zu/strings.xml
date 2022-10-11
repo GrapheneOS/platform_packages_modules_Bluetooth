@@ -109,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Zonke izintwana zizosulwa ohlwini."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Abelana ne-Bluetooth. Amafayela athunyelwe"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Abelana ne-Bluetooth: Amafayela atholakele"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{okungaphumelele #}one{okungaphumelele #}other{okungaphumelele #}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{okuphumelele #, %1$s}one{okuphumelele #, %1$s}other{okuphumelele #, %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Sula uhlu"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Vula"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Sula ohlwini"</string>
@@ -128,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Umsindo we-Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Amafayela amakhulu kuno-4GB awakwazi ukudluliselwa"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Xhumeka ku-Bluetooth"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"I-Bluetooth ivuliwe kumodi yendiza"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Uma ugcina i-Bluetooth ivuliwe, izohlala ivuliwe esikhathini esizayo lapho ukumodi yendiza"</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"I-Bluetooth ihlala ivuliwe"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Ifoni yakho ikhumbula ukugcina i-Bluetooth ivuliwe kumodi yendiza. Ukuze ushintshe lokhu, vala i-Bluetooth."</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"I-Wi-Fi ne-Bluetooth kuhlala kuvuliwe"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Ifoni yakho ikhumbula ukugcina i-Wi-Fi ne-Bluetooth kuvuliwe kumodi yendiza. Ukushintsha lokhu, kuvale."</string>
 </resources>

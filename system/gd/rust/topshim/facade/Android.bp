@@ -55,6 +55,7 @@ rust_binary_host {
         "libFraunhoferAAC",
         "libg722codec",
         "liblc3",
+        "libopus",
         "libudrv-uipc",
         "libbluetooth_gd", // Gabeldorsche
         "libbluetooth-dumpsys",

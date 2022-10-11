@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"ଡାଉନଲୋଡ ମ୍ୟାନେଜର୍‌କୁ ଆକ୍ସେସ୍‌ କରନ୍ତୁ।"</string>
+    <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"ଡାଉନଲୋଡ୍‌ ମ୍ୟାନେଜର୍‌କୁ ଆକ୍ସେସ୍‌ କରନ୍ତୁ।"</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"BluetoothShare ମ୍ୟାନେଜର୍‌ ଆକ୍ସେସ୍‌ କରି ଫାଇଲ୍‌ଗୁଡ଼ିକ ଟ୍ରାନ୍ସଫର୍‌ କରିବାକୁ ବ୍ୟବହାର କରିବା ପାଇଁ ଆପ୍‌କୁ ଅନୁମତି ଦିଅନ୍ତୁ।"</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"ବ୍ଲୁଟୁଥ୍ ଡିଭାଇସର ଆକ୍ସେସକୁ ଗ୍ରହଣ-ସୂଚୀରେ ରଖନ୍ତୁ।"</string>
     <string name="permdesc_bluetoothAcceptlist" msgid="259308920158011885">"ଏକ ବ୍ଲୁଟୁଥ୍ ଡିଭାଇସକୁ ଅସ୍ଥାୟୀ ଭାବେ ଗ୍ରହଣ-ସୂଚୀରେ ରଖିବାକୁ ଆପଟିକୁ ଅନୁମତି ଦେଇଥାଏ, ଯାହା ଦ୍ୱାରା ଉପଯୋଗକର୍ତ୍ତାଙ୍କ ସୁନିଶ୍ଚିତକରଣ ବିନା ଏହି ଡିଭାଇସକୁ ଫାଇଲ୍ ପଠାଇବା ପାଇଁ ସେହି ଡିଭାଇସକୁ ଅନୁମତି ମିଳିଥାଏ।"</string>
@@ -28,10 +28,10 @@
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
     <string name="bt_enable_line1" msgid="8429910585843481489">"ବ୍ଲୁଟୂଥ୍‍‌ ସେବା ବ୍ୟବହାର କରିବା ପାଇଁ, ଆପଣଙ୍କୁ ପ୍ରଥମେ ବ୍ଲୁଟୂଥ୍‍‌ ଅନ୍‌ କରିବାକୁ ପଡ଼ିବ।"</string>
     <string name="bt_enable_line2" msgid="1466367120348920892">"ବ୍ଲୁ-ଟୁଥ୍‌କୁ ଏବେ ଅନ୍‌ କରିବେ?"</string>
-    <string name="bt_enable_cancel" msgid="6770180540581977614">"ବାତିଲ କରନ୍ତୁ"</string>
+    <string name="bt_enable_cancel" msgid="6770180540581977614">"ବାତିଲ୍ କରନ୍ତୁ"</string>
     <string name="bt_enable_ok" msgid="4224374055813566166">"ଚାଲୁ କରନ୍ତୁ"</string>
     <string name="incoming_file_confirm_title" msgid="938251186275547290">"ଫାଇଲ୍‌ ଟ୍ରାନ୍ସଫର୍‌ କରନ୍ତୁ"</string>
-    <string name="incoming_file_confirm_content" msgid="6573502088511901157">"ଆସୁଥିବା ଫାଇଲକୁ ଗ୍ରହଣ କରିବେ?"</string>
+    <string name="incoming_file_confirm_content" msgid="6573502088511901157">"ଆସୁଥିବା ଫାଇଲ୍‌କୁ ସ୍ୱୀକାର କରିବେ?"</string>
     <string name="incoming_file_confirm_cancel" msgid="9205906062663982692">"ଅସ୍ୱୀକାର"</string>
     <string name="incoming_file_confirm_ok" msgid="5046926299036238623">"ସ୍ୱୀକାର କରନ୍ତୁ"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="8612187577686515660">"ଠିକ୍‌ ଅଛି"</string>
@@ -109,15 +109,17 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"ତାଲିକାରୁ ସମସ୍ତ ଆଇଟମ୍‌କୁ ଖାଲି କରିଦିଆଯିବ।"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: ପଠାଯାଇଥିବା ଫାଇଲ୍‌"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: ପ୍ରାପ୍ତ କରାଯାଇଥିବା ଫାଇଲ୍‌"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{#ଟି ଅସଫଳ ହୋଇଛି।}other{#ଟି ଅସଫଳ ହୋଇଛି।}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{#ଟି ସଫଳ ହୋଇଛି, %1$s}other{#ଟି ସଫଳ ହୋଇଛି, %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"ତାଲିକା ଖାଲି କରନ୍ତୁ"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"ଖୋଲନ୍ତୁ"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"ତାଲିକାରୁ ଖାଲି କରନ୍ତୁ"</string>
     <string name="transfer_clear_dlg_title" msgid="128904516163257225">"ଖାଲି କରନ୍ତୁ"</string>
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"ବର୍ତ୍ତମାନ ଚାଲୁଛି"</string>
     <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"ସେଭ୍‌ କରନ୍ତୁ"</string>
-    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"ବାତିଲ କରନ୍ତୁ"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"ବାତିଲ୍ କରନ୍ତୁ"</string>
     <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"ବ୍ଲୁଟୂଥ୍‍‌ ମାଧ୍ୟମରେ ସେୟାର୍‌ କରିବାକୁ ଚାହୁଁଥିବା ଆକାଉଣ୍ଟଗୁଡ଼ିକୁ ଚୟନ କରନ୍ତୁ। ଆପଣଙ୍କୁ ତଥାପି ସଂଯୋଗ କରୁଥିବା ସମୟରେ ଆକାଉଣ୍ଟଗୁଡ଼ିକ ପ୍ରତି ଯେକୌଣସି ଆକ୍ସେସ୍‌କୁ ସ୍ୱୀକାର କରିବାକୁ ପଡ଼ିବ।"</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"ବଳକା ସ୍ଲଟ୍‌:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"ଆପ୍ଲିକେଶନ୍‌ ଆଇକନ୍‌"</string>
@@ -128,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ବ୍ଲୁଟୂଥ୍‍‌ ଅଡିଓ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GBରୁ ବଡ଼ ଫାଇଲ୍‌ଗୁଡ଼ିକୁ ଟ୍ରାନ୍ସଫର୍‌ କରାଯାଇପାରିବ ନାହିଁ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ବ୍ଲୁଟୁଥ୍ ସହ ସଂଯୋଗ କରନ୍ତୁ"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ଏୟାରପ୍ଲେନ ମୋଡରେ ବ୍ଲୁଟୁଥ ଚାଲୁ ଅଛି"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"ଯଦି ଆପଣ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖନ୍ତି, ତେବେ ଆପଣ ପରବର୍ତ୍ତୀ ଥର ଏୟାରପ୍ଲେନ ମୋଡରେ ଥିବା ସମୟରେ ଏହା ଚାଲୁ ରହିବ"</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ବ୍ଲୁଟୁଥ ଚାଲୁ ରହେ"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"ଆପଣଙ୍କ ଫୋନ ଏୟାରପ୍ଲେନ ମୋଡରେ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖିବାକୁ ମନେ ରଖେ। ଏହାକୁ ପରିବର୍ତ୍ତନ କରିବା ପାଇଁ, ବ୍ଲୁଟୁଥ ବନ୍ଦ କରନ୍ତୁ।"</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ୱାଇ-ଫାଇ ଏବଂ ବ୍ଲୁଟୁଥ ଚାଲୁ ରହେ"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"ଆପଣଙ୍କ ଫୋନ ଏୟାରପ୍ଲେନ ମୋଡରେ ୱାଇ-ଫାଇ ଏବଂ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖିବାକୁ ମନେ ରଖେ। ଏହାକୁ ପରିବର୍ତ୍ତନ କରିବା ପାଇଁ, ସେଗୁଡ଼ିକୁ ବନ୍ଦ କରନ୍ତୁ।"</string>
 </resources>

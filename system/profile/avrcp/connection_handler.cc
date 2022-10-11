@@ -490,7 +490,7 @@ void ConnectionHandler::SdpCb(RawAddress bdaddr, SdpCallback cb,
         }
       }
 
-      if (osi_property_get_bool(AVRC_DYNAMIC_AVRCP_ENABLE_PROPERTY, false)) {
+      if (osi_property_get_bool(AVRC_DYNAMIC_AVRCP_ENABLE_PROPERTY, true)) {
         avrc_->SaveControllerVersion(bdaddr, peer_avrcp_version);
       }
     }

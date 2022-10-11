@@ -28,5 +28,8 @@ cc_library_static {
         },
     },
     host_supported: true,
+    apex_available: [
+        "com.android.btservices",
+    ],
     min_sdk_version: "Tiramisu"
 }

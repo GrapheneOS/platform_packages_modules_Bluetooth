@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="8612187577686515660">"تأیید"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="3221412098281076974">"هنگام پذیرش یک فایل ورودی از \"<xliff:g id="SENDER">%1$s</xliff:g>\" درنگ پیش آمد"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5381395500920804895">"فایل ورودی"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="2669135531488877921">"‏<xliff:g id="SENDER">%1$s</xliff:g> آماده ارسال فایل است: <xliff:g id="FILE">%2$s</xliff:g>"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="2669135531488877921">"<xliff:g id="SENDER">%1$s</xliff:g> آماده ارسال فایل است: <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="8445265771083510696">"اشتراک بلوتوث: در حال دریافت <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="2330252358543000567">"اشتراک بلوتوث: <xliff:g id="FILE">%1$s</xliff:g> دریافت شد"</string>
     <string name="notification_received_fail" msgid="9059153354809379374">"اشتراک بلوتوث: فایل <xliff:g id="FILE">%1$s</xliff:g>دریافت نشد"</string>
@@ -109,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"همهٔ موارد از فهرست پاک می‌شوند."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"اشتراک بلوتوث: فایل‌های ارسال شده"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"اشتراک بلوتوث: فایل‌های دریافت شده"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# مورد ناموفق.}one{# مورد ناموفق.}other{# مورد ناموفق.}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‏# مورد موفق، %1$s}one{‏# مورد موفق، %1$s}other{‏# مورد موفق، %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"پاک کردن فهرست"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"باز کردن"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"پاک کردن از فهرست"</string>
@@ -128,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"بلوتوث‌ صوتی"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"فایل‌های بزرگ‌تر از ۴ گیگابایت نمی‌توانند منتقل شوند"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"اتصال به بلوتوث"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"بلوتوث در حالت هواپیما روشن است"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"اگر بلوتوث را روشن نگه دارید، دفعه بعد که در حالت هواپیما هستید روشن می‌ماند"</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"بلوتوث روشن می‌ماند"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"تلفنتان به‌یاد می‌آورد که بلوتوث را در حالت هواپیما روشن نگه دارد. برای تغییر این مورد، بلوتوث را خاموش کنید."</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"‏Wi-Fi و بلوتوث روشن می‌ماند"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"‏تلفنتان به‌یاد می‌آورد که Wi-Fi و بلوتوث را در حالت هواپیما روشن نگه دارد. برای تغییر این مورد، آن‌ها را خاموش کنید."</string>
 </resources>
