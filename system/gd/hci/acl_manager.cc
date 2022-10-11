@@ -22,6 +22,7 @@
 #include <set>
 
 #include "common/bidi_queue.h"
+#include "hci/acl_manager/acl_scheduler.h"
 #include "hci/acl_manager/classic_impl.h"
 #include "hci/acl_manager/connection_management_callbacks.h"
 #include "hci/acl_manager/le_acl_connection.h"
@@ -52,6 +53,8 @@ using acl_manager::LeConnectionCallbacks;
 
 using acl_manager::RoundRobinScheduler;
 
+using acl_manager::AclScheduler;
+
 struct AclManager::impl {
   impl(const AclManager& acl_manager) : acl_manager_(acl_manager) {}
 
@@ -60,6 +63,7 @@ struct AclManager::impl {
     handler_ = acl_manager_.GetHandler();
     controller_ = acl_manager_.GetDependency<Controller>();
     round_robin_scheduler_ = new RoundRobinScheduler(handler_, controller_, hci_layer_->GetAclQueueEnd());
+    acl_scheduler_ = acl_manager_.GetDependency<AclScheduler>();
 
     hci_queue_end_ = hci_layer_->GetAclQueueEnd();
     hci_queue_end_->RegisterDequeue(
@@ -67,8 +71,8 @@ struct AclManager::impl {
     bool crash_on_unknown_handle = false;
     {
       const std::lock_guard<std::mutex> lock(dumpsys_mutex_);
-      classic_impl_ =
-          new classic_impl(hci_layer_, controller_, handler_, round_robin_scheduler_, crash_on_unknown_handle);
+      classic_impl_ = new classic_impl(
+          hci_layer_, controller_, handler_, round_robin_scheduler_, crash_on_unknown_handle, acl_scheduler_);
       le_impl_ = new le_impl(hci_layer_, controller_, handler_, round_robin_scheduler_, crash_on_unknown_handle);
     }
   }
@@ -90,6 +94,7 @@ struct AclManager::impl {
     hci_queue_end_ = nullptr;
     handler_ = nullptr;
     hci_layer_ = nullptr;
+    acl_scheduler_ = nullptr;
   }
 
   // Invoked from some external Queue Reactable context 2
@@ -118,6 +123,7 @@ struct AclManager::impl {
 
   classic_impl* classic_impl_ = nullptr;
   le_impl* le_impl_ = nullptr;
+  AclScheduler* acl_scheduler_ = nullptr;
   os::Handler* handler_ = nullptr;
   Controller* controller_ = nullptr;
   HciLayer* hci_layer_ = nullptr;
@@ -315,6 +321,7 @@ void AclManager::ListDependencies(ModuleList* list) const {
   list->add<HciLayer>();
   list->add<Controller>();
   list->add<storage::StorageModule>();
+  list->add<AclScheduler>();
 }
 
 void AclManager::Start() {
