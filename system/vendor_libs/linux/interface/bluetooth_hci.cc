@@ -306,7 +306,8 @@ Return<void> BluetoothHci::initialize_impl(
       [cb](const hidl_vec<uint8_t>& packet) { cb->scoDataReceived(packet); },
       [cb_1_1](const hidl_vec<uint8_t>& packet) {
         cb_1_1->isoDataReceived(packet);
-      });
+      },
+      []() { ALOGE("UART disconnected."); });
 
   fd_watcher_.WatchFdForNonBlockingReads(
           hci_fd, [h4_hci](int fd) { h4_hci->OnDataReady(fd); });
