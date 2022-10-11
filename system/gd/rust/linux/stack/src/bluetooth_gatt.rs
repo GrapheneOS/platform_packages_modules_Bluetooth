@@ -1493,7 +1493,7 @@ impl IBluetoothGatt for BluetoothGatt {
     }
 }
 
-#[btif_callbacks_dispatcher(BluetoothGatt, dispatch_gatt_client_callbacks, GattClientCallbacks)]
+#[btif_callbacks_dispatcher(dispatch_gatt_client_callbacks, GattClientCallbacks)]
 pub(crate) trait BtifGattClientCallbacks {
     #[btif_callback(RegisterClient)]
     fn register_client_cb(&mut self, status: GattStatus, client_id: i32, app_uuid: Uuid);
@@ -2097,7 +2097,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
     }
 }
 
-#[btif_callbacks_dispatcher(BluetoothGatt, dispatch_le_scanner_callbacks, GattScannerCallbacks)]
+#[btif_callbacks_dispatcher(dispatch_le_scanner_callbacks, GattScannerCallbacks)]
 pub(crate) trait BtifGattScannerCallbacks {
     #[btif_callback(OnScannerRegistered)]
     fn on_scanner_registered(&mut self, uuid: Uuid, scanner_id: u8, status: GattStatus);
@@ -2118,11 +2118,7 @@ pub(crate) trait BtifGattScannerCallbacks {
     );
 }
 
-#[btif_callbacks_dispatcher(
-    BluetoothGatt,
-    dispatch_le_scanner_inband_callbacks,
-    GattScannerInbandCallbacks
-)]
+#[btif_callbacks_dispatcher(dispatch_le_scanner_inband_callbacks, GattScannerInbandCallbacks)]
 pub(crate) trait BtifGattScannerInbandCallbacks {
     #[btif_callback(RegisterCallback)]
     fn inband_register_callback(&mut self, app_uuid: Uuid, scanner_id: u8, btm_status: u8);
@@ -2368,7 +2364,7 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
     }
 }
 
-#[btif_callbacks_dispatcher(BluetoothGatt, dispatch_le_adv_callbacks, GattAdvCallbacks)]
+#[btif_callbacks_dispatcher(dispatch_le_adv_callbacks, GattAdvCallbacks)]
 pub(crate) trait BtifGattAdvCallbacks {
     #[btif_callback(OnAdvertisingSetStarted)]
     fn on_advertising_set_started(
