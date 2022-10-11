@@ -11,6 +11,7 @@ filegroup {
     name: "BluetoothHciSources",
     srcs: [
         "acl_manager/acl_connection.cc",
+        "acl_manager/acl_scheduler.cc",
         "acl_manager/classic_acl_connection.cc",
         "acl_manager/le_acl_connection.cc",
         "acl_manager/round_robin_scheduler.cc",
@@ -37,6 +38,7 @@ filegroup {
         "acl_manager/classic_acl_connection_test.cc",
         "acl_builder_test.cc",
         "acl_manager_unittest.cc",
+        "acl_manager/acl_scheduler_test.cc",
         "address_unittest.cc",
         "address_with_type_test.cc",
         "class_of_device_unittest.cc",
