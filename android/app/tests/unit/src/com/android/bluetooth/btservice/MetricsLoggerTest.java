@@ -51,8 +51,9 @@ public class MetricsLoggerTest {
         public HashMap<Integer, Long> mTestableCounters = new HashMap<>();
 
         @Override
-        protected void writeCounter(int key, long count) {
+        public boolean count(int key, long count) {
             mTestableCounters.put(key, count);
+          return true;
         }
 
         @Override
@@ -141,18 +142,18 @@ public class MetricsLoggerTest {
     @Test
     public void testAddAndSendCountersNormalCases() {
         mTestableMetricsLogger.init(mMockAdapterService);
-        mTestableMetricsLogger.count(1, 10);
-        mTestableMetricsLogger.count(1, 10);
-        mTestableMetricsLogger.count(2, 5);
+        mTestableMetricsLogger.cacheCount(1, 10);
+        mTestableMetricsLogger.cacheCount(1, 10);
+        mTestableMetricsLogger.cacheCount(2, 5);
         mTestableMetricsLogger.drainBufferedCounters();
 
         Assert.assertEquals(20L, mTestableMetricsLogger.mTestableCounters.get(1).longValue());
         Assert.assertEquals(5L, mTestableMetricsLogger.mTestableCounters.get(2).longValue());
 
-        mTestableMetricsLogger.count(1, 3);
-        mTestableMetricsLogger.count(2, 5);
-        mTestableMetricsLogger.count(2, 5);
-        mTestableMetricsLogger.count(3, 1);
+        mTestableMetricsLogger.cacheCount(1, 3);
+        mTestableMetricsLogger.cacheCount(2, 5);
+        mTestableMetricsLogger.cacheCount(2, 5);
+        mTestableMetricsLogger.cacheCount(3, 1);
         mTestableMetricsLogger.drainBufferedCounters();
         Assert.assertEquals(
                 3L, mTestableMetricsLogger.mTestableCounters.get(1).longValue());
@@ -166,10 +167,10 @@ public class MetricsLoggerTest {
     public void testAddAndSendCountersCornerCases() {
         mTestableMetricsLogger.init(mMockAdapterService);
         Assert.assertTrue(mTestableMetricsLogger.isInitialized());
-        mTestableMetricsLogger.count(1, -1);
-        mTestableMetricsLogger.count(3, 0);
-        mTestableMetricsLogger.count(2, 10);
-        mTestableMetricsLogger.count(2, Long.MAX_VALUE - 8L);
+        mTestableMetricsLogger.cacheCount(1, -1);
+        mTestableMetricsLogger.cacheCount(3, 0);
+        mTestableMetricsLogger.cacheCount(2, 10);
+        mTestableMetricsLogger.cacheCount(2, Long.MAX_VALUE - 8L);
         mTestableMetricsLogger.drainBufferedCounters();
 
         Assert.assertFalse(mTestableMetricsLogger.mTestableCounters.containsKey(1));
@@ -181,9 +182,9 @@ public class MetricsLoggerTest {
     @Test
     public void testMetricsLoggerClose() {
         mTestableMetricsLogger.init(mMockAdapterService);
-        mTestableMetricsLogger.count(1, 1);
-        mTestableMetricsLogger.count(2, 10);
-        mTestableMetricsLogger.count(2, Long.MAX_VALUE);
+        mTestableMetricsLogger.cacheCount(1, 1);
+        mTestableMetricsLogger.cacheCount(2, 10);
+        mTestableMetricsLogger.cacheCount(2, Long.MAX_VALUE);
         mTestableMetricsLogger.close();
 
         Assert.assertEquals(
@@ -194,7 +195,7 @@ public class MetricsLoggerTest {
 
     @Test
     public void testMetricsLoggerNotInit() {
-        Assert.assertFalse(mTestableMetricsLogger.count(1, 1));
+        Assert.assertFalse(mTestableMetricsLogger.cacheCount(1, 1));
         mTestableMetricsLogger.drainBufferedCounters();
         Assert.assertFalse(mTestableMetricsLogger.mTestableCounters.containsKey(1));
         Assert.assertFalse(mTestableMetricsLogger.close());
