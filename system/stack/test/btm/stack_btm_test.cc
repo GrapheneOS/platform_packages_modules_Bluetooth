@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <vector>
 
 #include "btif/include/btif_hh.h"
@@ -396,4 +397,27 @@ TEST_F(StackBtmWithInitFreeTest, BTM_SetEncryption) {
                                               nullptr, sec_act));
 
   wipe_secrets_and_remove(device_record);
+}
+
+TEST_F(StackBtmTest, sco_state_text) {
+  std::vector<std::pair<tSCO_STATE, std::string>> states = {
+      std::make_pair(SCO_ST_UNUSED, "SCO_ST_UNUSED"),
+      std::make_pair(SCO_ST_LISTENING, "SCO_ST_LISTENING"),
+      std::make_pair(SCO_ST_W4_CONN_RSP, "SCO_ST_W4_CONN_RSP"),
+      std::make_pair(SCO_ST_CONNECTING, "SCO_ST_CONNECTING"),
+      std::make_pair(SCO_ST_CONNECTED, "SCO_ST_CONNECTED"),
+      std::make_pair(SCO_ST_DISCONNECTING, "SCO_ST_DISCONNECTING"),
+      std::make_pair(SCO_ST_PEND_UNPARK, "SCO_ST_PEND_UNPARK"),
+      std::make_pair(SCO_ST_PEND_ROLECHANGE, "SCO_ST_PEND_ROLECHANGE"),
+      std::make_pair(SCO_ST_PEND_MODECHANGE, "SCO_ST_PEND_MODECHANGE"),
+  };
+  for (const auto& state : states) {
+    ASSERT_STREQ(state.second.c_str(), sco_state_text(state.first).c_str());
+  }
+  std::ostringstream oss;
+  oss << "unknown_sco_state: " << std::numeric_limits<std::uint16_t>::max();
+  ASSERT_STREQ(oss.str().c_str(),
+               sco_state_text(static_cast<tSCO_STATE>(
+                                  std::numeric_limits<std::uint16_t>::max()))
+                   .c_str());
 }
