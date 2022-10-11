@@ -154,6 +154,7 @@ impl DisconnectWatcher {
 
 /// A client proxy to conveniently call API methods generated with the
 /// [`generate_dbus_interface_client`](dbus_macros::generate_dbus_interface_client) macro.
+#[derive(Clone)]
 pub struct ClientDBusProxy {
     conn: Arc<SyncConnection>,
     bus_name: String,
