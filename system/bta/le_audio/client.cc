@@ -3692,6 +3692,12 @@ class LeAudioClientImpl : public LeAudioClient {
                              uint8_t cig_id) {
     LeAudioDevice* leAudioDevice =
         leAudioDevices_.FindByCisConnHdl(cig_id, conn_handle);
+    /* In case device has been disconnected before data path was setup */
+    if (!leAudioDevice) {
+      LOG_WARN("Device for CIG %d and using cis_handle 0x%04x is disconnected.",
+               cig_id, conn_handle);
+      return;
+    }
     LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
 
     instance->groupStateMachine_->ProcessHciNotifSetupIsoDataPath(
@@ -3702,6 +3708,17 @@ class LeAudioClientImpl : public LeAudioClient {
                               uint8_t cig_id) {
     LeAudioDevice* leAudioDevice =
         leAudioDevices_.FindByCisConnHdl(cig_id, conn_handle);
+
+    /* If CIS has been disconnected just before ACL being disconnected by the
+     * remote device, leAudioDevice might be already cleared i.e. has no
+     * information about conn_handle, when the data path remove compete arrives.
+     */
+    if (!leAudioDevice) {
+      LOG_WARN("Device for CIG %d and using cis_handle 0x%04x is disconnected.",
+               cig_id, conn_handle);
+      return;
+    }
+
     LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
 
     instance->groupStateMachine_->ProcessHciNotifRemoveIsoDataPath(
