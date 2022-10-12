@@ -548,6 +548,11 @@ impl IBluetooth for BluetoothDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("GetRemoteWakeAllowed")]
+    fn get_remote_wake_allowed(&self, _device: BluetoothDevice) -> bool {
+        dbus_generated!()
+    }
+
     #[dbus_method("GetConnectedDevices")]
     fn get_connected_devices(&self) -> Vec<BluetoothDevice> {
         dbus_generated!()
@@ -1442,7 +1447,7 @@ impl ISuspend for SuspendDBus {
     }
 
     #[dbus_method("Suspend")]
-    fn suspend(&self, _suspend_type: SuspendType) {
+    fn suspend(&mut self, _suspend_type: SuspendType) {
         dbus_generated!()
     }
 

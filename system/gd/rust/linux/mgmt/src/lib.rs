@@ -1,8 +1,10 @@
+pub mod bluetooth_experimental_dbus;
 pub mod bluetooth_manager;
 pub mod bluetooth_manager_dbus;
 pub mod config_util;
 pub mod dbus_arg;
 pub mod dbus_iface;
+pub mod iface_bluetooth_experimental;
 pub mod iface_bluetooth_manager;
 pub mod migrate;
 pub mod powerd_suspend_manager;
