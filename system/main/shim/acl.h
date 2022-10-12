@@ -32,6 +32,8 @@
 #include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 
+using LeRandCallback = base::Callback<void(uint64_t)>;
+
 namespace bluetooth {
 namespace shim {
 namespace legacy {
@@ -106,13 +108,17 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
   void Dump(int fd) const;
   void DumpConnectionHistory(int fd) const;
 
+  void DisconnectAllForSuspend();
   void Shutdown();
   void FinalShutdown();
+  void LeRand(LeRandCallback cb);
 
   void ClearFilterAcceptList();
 
   void AddDeviceToFilterAcceptList(
       const hci::AddressWithType& address_with_type);
+
+  void ClearEventFilter();
 
  protected:
   void on_incoming_acl_credits(uint16_t handle, uint16_t credits);
