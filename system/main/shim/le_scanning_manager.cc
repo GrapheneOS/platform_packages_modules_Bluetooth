@@ -728,6 +728,10 @@ void bluetooth::shim::init_scanning_manager() {
       ->Init();
 }
 
+bool bluetooth::shim::is_ad_type_filter_supported() {
+  return bluetooth::shim::GetScanning()->IsAdTypeFilterSupported();
+}
+
 void bluetooth::shim::set_ad_type_rsi_filter(bool enable) {
   bluetooth::hci::AdvertisingFilterParameter advertising_filter_parameter;
   bluetooth::shim::GetScanning()->ScanFilterParameterSetup(
