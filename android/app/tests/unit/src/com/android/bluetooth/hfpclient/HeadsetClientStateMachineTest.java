@@ -58,6 +58,7 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfp.HeadsetStackEvent;
 
 import org.hamcrest.core.AllOf;
@@ -93,6 +94,8 @@ public class HeadsetClientStateMachineTest {
     private AdapterService mAdapterService;
     @Mock
     private Resources mMockHfpResources;
+    @Mock
+    private HeadsetService mHeadsetService;
     @Mock
     private HeadsetClientService mHeadsetClientService;
     @Mock
@@ -138,7 +141,7 @@ public class HeadsetClientStateMachineTest {
         mHandlerThread.start();
         // Manage looper execution in main test thread explicitly to guarantee timing consistency
         mHeadsetClientStateMachine = new TestHeadsetClientStateMachine(mHeadsetClientService,
-                mHandlerThread.getLooper(), mNativeInterface);
+                mHeadsetService, mHandlerThread.getLooper(), mNativeInterface);
         mHeadsetClientStateMachine.start();
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
     }
@@ -149,10 +152,12 @@ public class HeadsetClientStateMachineTest {
             return;
         }
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
-        TestUtils.clearAdapterService(mAdapterService);
         mHeadsetClientStateMachine.allowConnect = null;
         mHeadsetClientStateMachine.doQuit();
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         mHandlerThread.quit();
+        TestUtils.clearAdapterService(mAdapterService);
+        verifyNoMoreInteractions(mHeadsetService);
     }
 
     /**
@@ -245,6 +250,7 @@ public class HeadsetClientStateMachineTest {
         // Check we are in connecting state now.
         Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Connected.class));
+        verify(mHeadsetService).updateInbandRinging(eq(mTestDevice), eq(true));
     }
 
     /**
@@ -287,6 +293,7 @@ public class HeadsetClientStateMachineTest {
         // Check we are in connecting state now.
         Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Disconnected.class));
+        verify(mHeadsetService).updateInbandRinging(eq(mTestDevice), eq(false));
     }
 
     /**
@@ -337,6 +344,8 @@ public class HeadsetClientStateMachineTest {
 
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
                 intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        verify(mHeadsetService).updateInbandRinging(eq(mTestDevice), eq(true));
 
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_IN_BAND_RINGTONE);
         event.valueInt = 0;
@@ -455,6 +464,7 @@ public class HeadsetClientStateMachineTest {
                 intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
         Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Connected.class));
+        verify(mHeadsetService).updateInbandRinging(eq(mTestDevice), eq(true));
 
         startBroadcastIndex++;
         return startBroadcastIndex;
@@ -1164,6 +1174,7 @@ public class HeadsetClientStateMachineTest {
         sendMessageAndVerifyTransition(
                 mHeadsetClientStateMachine.obtainMessage(StackEvent.STACK_EVENT, event),
                 HeadsetClientStateMachine.Disconnected.class);
+        verify(mHeadsetService).updateInbandRinging(eq(mTestDevice), eq(false));
     }
 
     @Test
@@ -1228,6 +1239,7 @@ public class HeadsetClientStateMachineTest {
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Connected.class));
+        verify(mHeadsetService).updateInbandRinging(eq(mTestDevice), eq(true));
     }
 
     @Test
@@ -1236,6 +1248,7 @@ public class HeadsetClientStateMachineTest {
         Message msg = mHeadsetClientStateMachine
                 .obtainMessage(HeadsetClientStateMachine.CONNECTING_TIMEOUT);
         sendMessageAndVerifyTransition(msg, HeadsetClientStateMachine.Disconnected.class);
+        verify(mHeadsetService).updateInbandRinging(eq(mTestDevice), eq(false));
     }
 
     @Test
@@ -1324,6 +1337,7 @@ public class HeadsetClientStateMachineTest {
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Disconnected.class));
+        verify(mHeadsetService).updateInbandRinging(eq(mTestDevice), eq(false));
     }
 
     @Test
@@ -1369,6 +1383,7 @@ public class HeadsetClientStateMachineTest {
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Connected.class));
+        verify(mHeadsetService).updateInbandRinging(eq(mTestDevice), eq(true));
     }
 
     private void initToAudioOnState() {
@@ -1399,9 +1414,9 @@ public class HeadsetClientStateMachineTest {
 
         Boolean allowConnect = null;
 
-        TestHeadsetClientStateMachine(HeadsetClientService context, Looper looper,
-                NativeInterface nativeInterface) {
-            super(context, looper, nativeInterface);
+        TestHeadsetClientStateMachine(HeadsetClientService context, HeadsetService headsetService,
+                Looper looper, NativeInterface nativeInterface) {
+            super(context, headsetService, looper, nativeInterface);
         }
 
         public boolean doesSuperHaveDeferredMessages(int what) {
