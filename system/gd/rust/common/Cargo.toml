@@ -31,5 +31,8 @@ tokio = { version = "*", features = ['bytes', 'macros', 'net', 'rt-multi-thread'
 # Proc Macro dependency
 paste = "*"
 
+[dev-dependencies]
+tokio = { version = "*", features = ['bytes', 'macros', 'net', 'rt-multi-thread', 'time', 'sync'] }
+
 [lib]
 crate-type = ["rlib"]
