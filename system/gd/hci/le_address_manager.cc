@@ -223,9 +223,15 @@ AddressWithType LeAddressManager::GetAnotherAddress() {
 
 void LeAddressManager::pause_registered_clients() {
   for (auto& client : registered_clients_) {
-    if (client.second != ClientState::PAUSED && client.second != ClientState::WAITING_FOR_PAUSE) {
-      client.second = ClientState::WAITING_FOR_PAUSE;
-      client.first->OnPause();
+    switch (client.second) {
+      case ClientState::PAUSED:
+      case ClientState::WAITING_FOR_PAUSE:
+        break;
+      case WAITING_FOR_RESUME:
+      case RESUMED:
+        client.second = ClientState::WAITING_FOR_PAUSE;
+        client.first->OnPause();
+        break;
     }
   }
 }
@@ -241,14 +247,19 @@ void LeAddressManager::ack_pause(LeAddressManagerCallback* callback) {
   }
   registered_clients_.find(callback)->second = ClientState::PAUSED;
   for (auto client : registered_clients_) {
-    if (client.second != ClientState::PAUSED) {
-      // make sure all client paused
-      if (client.second != ClientState::WAITING_FOR_PAUSE) {
+    switch (client.second) {
+      case ClientState::PAUSED:
+        break;
+      case ClientState::WAITING_FOR_PAUSE:
+        // make sure all client paused
+        LOG_DEBUG("Wait all clients paused, return");
+        return;
+      case WAITING_FOR_RESUME:
+      case RESUMED:
         LOG_DEBUG("Trigger OnPause for client that not paused and not waiting for pause");
         client.second = ClientState::WAITING_FOR_PAUSE;
         client.first->OnPause();
-      }
-      return;
+        return;
     }
   }
 
