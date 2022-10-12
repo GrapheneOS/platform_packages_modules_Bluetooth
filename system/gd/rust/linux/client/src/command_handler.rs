@@ -604,6 +604,7 @@ impl CommandHandler {
                         bonded,
                         connection_state,
                         uuids,
+                        wake_allowed,
                     ) = {
                         let ctx = self.context.lock().unwrap();
                         let adapter = ctx.adapter_dbus.as_ref().unwrap();
@@ -620,6 +621,7 @@ impl CommandHandler {
                             _ => "Connected and Paired",
                         };
                         let uuids = adapter.get_remote_uuids(device.clone());
+                        let wake_allowed = adapter.get_remote_wake_allowed(device.clone());
 
                         (
                             name,
@@ -630,6 +632,7 @@ impl CommandHandler {
                             bonded,
                             connection_state,
                             uuids,
+                            wake_allowed,
                         )
                     };
 
@@ -640,6 +643,7 @@ impl CommandHandler {
                     print_info!("Type: {:?}", device_type);
                     print_info!("Class: {}", class);
                     print_info!("Appearance: {}", appearance);
+                    print_info!("Wake Allowed: {}", wake_allowed);
                     print_info!("Bond State: {:?}", bonded);
                     print_info!("Connection State: {}", connection_state);
                     print_info!(

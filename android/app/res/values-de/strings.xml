@@ -80,9 +80,9 @@
     <string name="bt_toast_1" msgid="8791691594887576215">"Die Datei wird empfangen. Überprüfe den Fortschritt in der Benachrichtigungskonsole."</string>
     <string name="bt_toast_2" msgid="2041575937953174042">"Die Datei kann nicht empfangen werden."</string>
     <string name="bt_toast_3" msgid="3053157171297761920">"Der Empfang der Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\" wurde angehalten."</string>
-    <string name="bt_toast_4" msgid="480365991944956695">"Datei wird an \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" gesendet..."</string>
+    <string name="bt_toast_4" msgid="480365991944956695">"Datei wird an „<xliff:g id="RECIPIENT">%1$s</xliff:g>“ gesendet..."</string>
     <string name="bt_toast_5" msgid="4818264207982268297">"<xliff:g id="NUMBER">%1$s</xliff:g> Dateien werden an \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\" gesendet."</string>
-    <string name="bt_toast_6" msgid="8814166471030694787">"Die Übertragung der Datei an \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" wurde abgebrochen"</string>
+    <string name="bt_toast_6" msgid="8814166471030694787">"Die Übertragung der Datei an „<xliff:g id="RECIPIENT">%1$s</xliff:g>“ wurde abgebrochen"</string>
     <string name="bt_sm_2_1_nosdcard" msgid="288667514869424273">"Auf dem USB-Speicher ist nicht genügend Platz, um die Datei zu speichern."</string>
     <string name="bt_sm_2_1_default" msgid="5070195264206471656">"Auf der SD-Karte ist nicht genügend Platz, um die Datei zu speichern."</string>
     <string name="bt_sm_2_2" msgid="6200119660562110560">"Erforderlicher Speicherplatz: <xliff:g id="SIZE">%1$s</xliff:g>"</string>

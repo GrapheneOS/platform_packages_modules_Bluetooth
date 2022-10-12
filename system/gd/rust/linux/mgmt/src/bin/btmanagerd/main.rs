@@ -14,6 +14,7 @@ use dbus_tokio::connection;
 use log::LevelFilter;
 use manager_service::bluetooth_manager::BluetoothManager;
 use manager_service::powerd_suspend_manager::PowerdSuspendManager;
+use manager_service::{bluetooth_experimental_dbus, iface_bluetooth_manager};
 use manager_service::{bluetooth_manager_dbus, config_util, state_machine};
 use std::sync::{Arc, Mutex};
 use syslog::{BasicLogger, Facility, Formatter3164};
@@ -121,11 +122,22 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         &mut cr.lock().unwrap(),
         disconnect_watcher.clone(),
     );
-    cr.lock().unwrap().insert(
-        "/org/chromium/bluetooth/Manager",
-        &[iface],
-        bluetooth_manager.clone(),
+
+    // Let's add the "/org/chromium/bluetooth/Experimental" path, which implements
+    // the org.chromium.bluetooth.Experimental interface, to the crossroads instance
+    let iface_exp = bluetooth_experimental_dbus::export_bluetooth_experimental_dbus_intf(
+        conn.clone(),
+        &mut cr.lock().unwrap(),
+        disconnect_watcher.clone(),
     );
+
+    // Create mixin object for Manager + Experimental interfaces.
+    let mixin = Box::new(iface_bluetooth_manager::BluetoothManagerMixin {
+        manager: bluetooth_manager.clone(),
+        experimental: bluetooth_manager.clone(),
+    });
+
+    cr.lock().unwrap().insert("/org/chromium/bluetooth/Manager", &[iface, iface_exp], mixin);
 
     // We add the Crossroads instance to the connection so that incoming method calls will be handled.
     let cr_clone = cr.clone();
