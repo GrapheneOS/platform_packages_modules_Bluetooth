@@ -24,6 +24,7 @@
 #include "hci/hci_layer.h"
 #include "hci/hci_packets.h"
 #include "hci/le_advertising_interface.h"
+#include "hci/vendor_specific_event_manager.h"
 #include "module.h"
 #include "os/handler.h"
 #include "os/log.h"
@@ -103,17 +104,25 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     advertising_sets_.clear();
   }
 
-  void start(os::Handler* handler, hci::HciLayer* hci_layer, hci::Controller* controller,
-             hci::AclManager* acl_manager) {
+  void start(
+      os::Handler* handler,
+      hci::HciLayer* hci_layer,
+      hci::Controller* controller,
+      hci::AclManager* acl_manager,
+      hci::VendorSpecificEventManager* vendor_specific_event_manager) {
     module_handler_ = handler;
     hci_layer_ = hci_layer;
     controller_ = controller;
     le_maximum_advertising_data_length_ = controller_->GetLeMaximumAdvertisingDataLength();
     acl_manager_ = acl_manager;
     le_address_manager_ = acl_manager->GetLeAddressManager();
+    num_instances_ = controller_->GetLeNumberOfSupportedAdverisingSets();
+
     le_advertising_interface_ =
         hci_layer_->GetLeAdvertisingInterface(module_handler_->BindOn(this, &LeAdvertisingManager::impl::handle_event));
-    num_instances_ = controller_->GetLeNumberOfSupportedAdverisingSets();
+    vendor_specific_event_manager->RegisterEventHandler(
+        hci::VseSubeventCode::BLE_STCHANGE,
+        handler->BindOn(this, &LeAdvertisingManager::impl::multi_advertising_state_change));
 
     if (controller_->SupportsBleExtendedAdvertising()) {
       advertising_api_type_ = AdvertisingApiType::EXTENDED;
@@ -150,6 +159,33 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
   void register_advertising_callback(AdvertisingCallback* advertising_callback) {
     advertising_callbacks_ = advertising_callback;
+  }
+
+  void multi_advertising_state_change(hci::VendorSpecificEventView event) {
+    auto view = hci::LEAdvertiseStateChangeEventView::Create(event);
+    ASSERT(view.IsValid());
+
+    auto advertiser_id = view.GetAdvertisingInstance();
+
+    LOG_INFO(
+        "Instance: 0x%x StateChangeReason: 0x%s Handle: 0x%x Address: %s",
+        advertiser_id,
+        VseStateChangeReasonText(view.GetStateChangeReason()).c_str(),
+        view.GetConnectionHandle(),
+        advertising_sets_[view.GetAdvertisingInstance()].current_address.ToString().c_str());
+
+    if (view.GetStateChangeReason() == VseStateChangeReason::CONNECTION_RECEIVED) {
+      acl_manager_->OnAdvertisingSetTerminated(
+          ErrorCode::SUCCESS, view.GetConnectionHandle(), advertising_sets_[advertiser_id].current_address);
+
+      enabled_sets_[advertiser_id].advertising_handle_ = kInvalidHandle;
+
+      if (!advertising_sets_[advertiser_id].directed) {
+        // TODO(250666237) calculate remaining duration and advertising events
+        LOG_INFO("Resuming advertising, since not directed");
+        enable_advertiser(advertiser_id, true, 0, 0);
+      }
+    }
   }
 
   void handle_event(LeMetaEventView event) {
@@ -1344,11 +1380,16 @@ void LeAdvertisingManager::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
   list->add<hci::Controller>();
   list->add<hci::AclManager>();
+  list->add<hci::VendorSpecificEventManager>();
 }
 
 void LeAdvertisingManager::Start() {
-  pimpl_->start(GetHandler(), GetDependency<hci::HciLayer>(), GetDependency<hci::Controller>(),
-                GetDependency<AclManager>());
+  pimpl_->start(
+      GetHandler(),
+      GetDependency<hci::HciLayer>(),
+      GetDependency<hci::Controller>(),
+      GetDependency<AclManager>(),
+      GetDependency<VendorSpecificEventManager>());
 }
 
 void LeAdvertisingManager::Stop() {
