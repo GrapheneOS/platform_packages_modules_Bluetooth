@@ -228,13 +228,13 @@ impl UuidHelper {
     }
 
     /// Parses an 128-bit UUID into a byte array of shortest representation.
-    pub fn get_shortest_bytes(uuid: &Uuid128Bit) -> UuidBytes {
+    pub fn get_shortest_slice(uuid: &Uuid128Bit) -> &[u8] {
         if UuidHelper::in_16bit_uuid_range(uuid) {
-            return UuidBytes::Uuid16Bit([uuid[2], uuid[3]]);
+            return &uuid[2..4];
         } else if UuidHelper::in_32bit_uuid_range(uuid) {
-            return UuidBytes::Uuid32Bit([uuid[0], uuid[1], uuid[2], uuid[3]]);
+            return &uuid[0..4];
         } else {
-            return UuidBytes::Uuid128Bit(*uuid);
+            return &uuid[..];
         }
     }
 
@@ -294,24 +294,20 @@ mod tests {
     }
 
     #[test]
-    fn test_get_shortest_bytes() {
+    fn test_get_shortest_slice() {
         let uuid_16 = UuidHelper::from_string("0000fef3-0000-1000-8000-00805f9b34fb").unwrap();
-        assert!(matches!(
-            UuidHelper::get_shortest_bytes(&uuid_16),
-            UuidBytes::Uuid16Bit([0xfe, 0xf3])
-        ));
+        assert_eq!(UuidHelper::get_shortest_slice(&uuid_16), [0xfe, 0xf3]);
 
         let uuid_32 = UuidHelper::from_string("00112233-0000-1000-8000-00805f9b34fb").unwrap();
-        assert!(matches!(
-            UuidHelper::get_shortest_bytes(&uuid_32),
-            UuidBytes::Uuid32Bit([0x00, 0x11, 0x22, 0x33])
-        ));
+        assert_eq!(UuidHelper::get_shortest_slice(&uuid_32), [0x00, 0x11, 0x22, 0x33]);
 
         let uuid_128 = UuidHelper::from_string("00112233-4455-6677-8899-aabbccddeeff").unwrap();
-        let exp_bytes: Vec<u8> = (0..16).map(|d| (d << 4) + d).collect();
-        assert!(matches!(
-            UuidHelper::get_shortest_bytes(&uuid_128),
-            UuidBytes::Uuid128Bit(exp_bytes)
-        ));
+        assert_eq!(
+            UuidHelper::get_shortest_slice(&uuid_128),
+            [
+                0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd,
+                0xee, 0xff
+            ]
+        );
     }
 }
