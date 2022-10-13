@@ -337,16 +337,18 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             Log.d(TAG, "onUnauthorizedGattOperation device: " + device);
         }
 
-        List<GattOpContext> operations = mPendingGattOperations.get(device);
-        if (operations == null) {
-            operations = new ArrayList<>();
-            mPendingGattOperations.put(device, operations);
-        }
+        synchronized (mPendingGattOperations) {
+            List<GattOpContext> operations = mPendingGattOperations.get(device);
+            if (operations == null) {
+                operations = new ArrayList<>();
+                mPendingGattOperations.put(device, operations);
+            }
 
-        operations.add(op);
-        // Send authorization request for each device only for it's first GATT request
-        if (operations.size() == 1) {
-            mMcpService.onDeviceUnauthorized(device);
+            operations.add(op);
+            // Send authorization request for each device only for it's first GATT request
+            if (operations.size() == 1) {
+                mMcpService.onDeviceUnauthorized(device);
+            }
         }
     }
 
@@ -494,7 +496,9 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             Log.d(TAG, "ClearUnauthorizedGattOperations device: " + device);
         }
 
-        mPendingGattOperations.remove(device);
+        synchronized (mPendingGattOperations) {
+            mPendingGattOperations.remove(device);
+        }
     }
 
     private void ProcessPendingGattOperations(BluetoothDevice device) {
@@ -502,18 +506,19 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             Log.d(TAG, "ProcessPendingGattOperations device: " + device);
         }
 
-        if (mPendingGattOperations.containsKey(device)) {
-            if (getDeviceAuthorization(device) == BluetoothDevice.ACCESS_ALLOWED) {
-                for (GattOpContext op : mPendingGattOperations.get(device)) {
-                    onAuthorizedGattOperation(device, op);
+        synchronized (mPendingGattOperations) {
+            if (mPendingGattOperations.containsKey(device)) {
+                if (getDeviceAuthorization(device) == BluetoothDevice.ACCESS_ALLOWED) {
+                    for (GattOpContext op : mPendingGattOperations.get(device)) {
+                        onAuthorizedGattOperation(device, op);
+                    }
+                } else {
+                    for (GattOpContext op : mPendingGattOperations.get(device)) {
+                        onRejectedAuthorizationGattOperation(device, op);
+                    }
                 }
-            } else {
-                for (GattOpContext op : mPendingGattOperations.get(device)) {
-                    onRejectedAuthorizationGattOperation(device, op);
-                }
+                ClearUnauthorizedGattOperations(device);
             }
-
-            ClearUnauthorizedGattOperations(device);
         }
     }
 
