@@ -105,6 +105,7 @@ enum {
   BTA_HF_CLIENT_AT_BIND_READ_ENABLED_IND,
   BTA_HF_CLIENT_AT_BIEV,
   BTA_HF_CLIENT_AT_VENDOR_SPECIFIC,
+  BTA_HF_CLIENT_AT_ANDROID,
 };
 
 /*****************************************************************************
