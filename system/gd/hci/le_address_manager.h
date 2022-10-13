@@ -96,6 +96,11 @@ class LeAddressManager {
   void OnCommandComplete(CommandCompleteView view);
   std::chrono::milliseconds GetNextPrivateAddressIntervalMs();
 
+  // Unsynchronized check for testing purposes
+  size_t NumberCachedCommands() const {
+    return cached_commands_.size();
+  }
+
  private:
   enum ClientState {
     WAITING_FOR_PAUSE,
