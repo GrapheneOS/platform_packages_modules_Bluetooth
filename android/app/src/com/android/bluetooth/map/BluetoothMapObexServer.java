@@ -1163,7 +1163,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             // If messageHandle or convoId filtering ignore folder
             Log.v(TAG, "sendMessageListingRsp: ignore folder ");
             folderToList = mCurrentFolder.getRoot();
-            folderToList.setIngore(true);
+            folderToList.setIgnore(true);
         } else {
             folderToList = getFolderElementFromName(folderName);
             if (folderToList == null) {
@@ -1207,7 +1207,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 outAppParams.setMessageListingSize(listSize);
                 op.noBodyHeader();
             }
-            folderToList.setIngore(false);
+            folderToList.setIgnore(false);
             // Build the application parameter header
             // let the peer know if there are unread messages in the list
             if (hasUnread) {
