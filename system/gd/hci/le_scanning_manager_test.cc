@@ -74,6 +74,7 @@ class TestHciLayer : public HciLayer {
   void EnqueueCommand(
       std::unique_ptr<CommandBuilder> command,
       common::ContextualOnceCallback<void(CommandStatusView)> on_status) override {
+    std::lock_guard<std::mutex> lock(mutex_);
     command_queue_.push(std::move(command));
     command_status_callbacks.push_back(std::move(on_status));
     command_count_--;
@@ -86,6 +87,7 @@ class TestHciLayer : public HciLayer {
   void EnqueueCommand(
       std::unique_ptr<CommandBuilder> command,
       common::ContextualOnceCallback<void(CommandCompleteView)> on_complete) override {
+    std::lock_guard<std::mutex> lock(mutex_);
     command_queue_.push(std::move(command));
     command_complete_callbacks.push_back(std::move(on_complete));
     command_count_--;
@@ -103,31 +105,21 @@ class TestHciLayer : public HciLayer {
     command_future_ = std::make_unique<std::future<void>>(command_promise_->get_future());
   }
 
-  CommandView GetLastCommand() {
-    if (command_queue_.size() == 0) {
-      return empty_command_view_;
-    }
-    auto last = std::move(command_queue_.front());
-    command_queue_.pop();
-    return CommandView::Create(GetPacketView(std::move(last)));
-  }
-
   CommandView GetCommand() {
-    if (!command_queue_.empty()) {
-      std::lock_guard<std::mutex> lock(mutex_);
-      if (command_future_ != nullptr) {
-        command_future_.reset();
-        command_promise_.reset();
-      }
-    } else if (command_future_ != nullptr) {
+    // Wait for EnqueueCommand if command_queue_ is empty
+    if (command_queue_.empty() && command_future_ != nullptr) {
       command_future_->wait_for(std::chrono::milliseconds(1000));
     }
+
     std::lock_guard<std::mutex> lock(mutex_);
     if (command_queue_.empty()) {
       LOG_ERROR("Command queue is empty");
       return empty_command_view_;
     }
-    CommandView command_packet_view = GetLastCommand();
+
+    auto last = std::move(command_queue_.front());
+    command_queue_.pop();
+    CommandView command_packet_view = CommandView::Create(GetPacketView(std::move(last)));
     if (!command_packet_view.IsValid()) {
       LOG_ERROR("Got invalid command");
       return empty_command_view_;
@@ -283,7 +275,12 @@ class LeScanningManagerTest : public ::testing::Test {
     fake_registry_.InjectTestModule(&AclManager::Factory, test_acl_manager_);
     client_handler_ = fake_registry_.GetTestModuleHandler(&HciLayer::Factory);
     ASSERT_NE(client_handler_, nullptr);
-    test_hci_layer_->SetCommandFuture(1);
+    if (is_filter_support_) {
+      // Will send APCF read extended features command if APCF supported
+      test_hci_layer_->SetCommandFuture(2);
+    } else {
+      test_hci_layer_->SetCommandFuture(1);
+    }
     // configure_scan will be trigger by impl.start() and enqueue set scan parameter command
     fake_registry_.Start<LeScanningManager>(&thread_);
     le_scanning_manager =
@@ -293,6 +290,7 @@ class LeScanningManagerTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    sync_client_handler();
     fake_registry_.SynchronizeModuleHandler(&LeScanningManager::Factory, std::chrono::milliseconds(20));
     fake_registry_.StopAll();
   }
@@ -378,9 +376,13 @@ class LeAndroidHciScanningManagerTest : public LeScanningManagerTest {
     is_filter_support_ = true;
     is_batch_scan_support_ = true;
     LeScanningManagerTest::SetUp();
+    sync_client_handler();
   }
 
   void HandleConfiguration() override {
+    ASSERT_EQ(OpCode::LE_ADV_FILTER, test_hci_layer_->GetCommand().GetOpCode());
+    test_hci_layer_->IncomingEvent(LeAdvFilterReadExtendedFeaturesCompleteBuilder::Create(1, ErrorCode::SUCCESS, 0x01));
+    sync_client_handler();
     ASSERT_EQ(param_opcode_, test_hci_layer_->GetCommand().GetOpCode());
     test_hci_layer_->IncomingEvent(LeExtendedScanParamsCompleteBuilder::Create(1, ErrorCode::SUCCESS));
   }
@@ -432,6 +434,22 @@ TEST_F(LeScanningManagerTest, start_scan_test) {
   test_hci_layer_->IncomingLeMetaEvent(LeAdvertisingReportBuilder::Create({report}));
 }
 
+TEST_F(LeScanningManagerTest, is_ad_type_filter_supported_false_test) {
+  ASSERT_FALSE(le_scanning_manager->IsAdTypeFilterSupported());
+}
+
+TEST_F(LeScanningManagerTest, scan_filter_add_ad_type_not_supported_test) {
+  test_hci_layer_->SetCommandFuture(1);
+  std::vector<AdvertisingPacketContentFilterCommand> filters = {};
+  AdvertisingPacketContentFilterCommand filter{};
+  filter.filter_type = ApcfFilterType::AD_TYPE;
+  filter.ad_type = 0x09;
+  filter.data = {0x12, 0x34, 0x56, 0x78};
+  filter.data_mask = {0xff, 0xff, 0xff, 0xff};
+  filters.push_back(filter);
+  le_scanning_manager->ScanFilterAdd(0x01, filters);
+}
+
 TEST_F(LeAndroidHciScanningManagerTest, startup_teardown) {}
 
 TEST_F(LeAndroidHciScanningManagerTest, start_scan_test) {
@@ -462,6 +480,10 @@ TEST_F(LeAndroidHciScanningManagerTest, start_scan_test) {
   EXPECT_CALL(mock_callbacks_, OnScanResult);
 
   test_hci_layer_->IncomingLeMetaEvent(LeAdvertisingReportBuilder::Create({report}));
+}
+
+TEST_F(LeAndroidHciScanningManagerTest, is_ad_type_filter_supported_true_test) {
+  ASSERT_TRUE(le_scanning_manager->IsAdTypeFilterSupported());
 }
 
 TEST_F(LeAndroidHciScanningManagerTest, scan_filter_enable_test) {
