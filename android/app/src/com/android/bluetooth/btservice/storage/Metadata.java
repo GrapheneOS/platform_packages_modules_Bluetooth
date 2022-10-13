@@ -51,6 +51,9 @@ class Metadata {
     public long last_active_time;
     public boolean is_active_a2dp_device;
 
+    @Embedded
+    public AudioPolicyEntity audioPolicyMetadata;
+
     Metadata(String address) {
         this.address = address;
         migrated = false;
@@ -60,6 +63,7 @@ class Metadata {
         a2dpOptionalCodecsEnabled = BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
         last_active_time = MetadataDatabase.sCurrentConnectionNumber++;
         is_active_a2dp_device = true;
+        audioPolicyMetadata = new AudioPolicyEntity();
     }
 
     String getAddress() {
@@ -387,6 +391,8 @@ class Metadata {
             .append(a2dpOptionalCodecsEnabled)
             .append("), custom metadata(")
             .append(publicMetadata)
+            .append("), hfp client audio policy(")
+            .append(audioPolicyMetadata)
             .append(")}");
 
         return builder.toString();
