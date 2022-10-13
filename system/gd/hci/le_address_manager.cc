@@ -169,8 +169,10 @@ void LeAddressManager::register_client(LeAddressManagerCallback* callback) {
       address_policy_ == AddressPolicy::USE_NON_RESOLVABLE_ADDRESS) {
       if (registered_clients_.size() == 1) {
         schedule_rotate_random_address();
+        LOG_INFO("Scheduled address rotation for first client registered");
       }
   }
+  LOG_INFO("Client registered");
 }
 
 void LeAddressManager::Unregister(LeAddressManagerCallback* callback) {
@@ -185,9 +187,11 @@ void LeAddressManager::unregister_client(LeAddressManagerCallback* callback) {
       ack_resume(callback);
     }
     registered_clients_.erase(callback);
+    LOG_INFO("Client unregistered");
   }
   if (registered_clients_.empty() && address_rotation_alarm_ != nullptr) {
     address_rotation_alarm_->Cancel();
+    LOG_INFO("Cancelled address rotation alarm");
   }
 }
 
@@ -243,12 +247,14 @@ void LeAddressManager::push_command(Command command) {
 
 void LeAddressManager::ack_pause(LeAddressManagerCallback* callback) {
   if (registered_clients_.find(callback) == registered_clients_.end()) {
+    LOG_INFO("No clients registered to ack pause");
     return;
   }
   registered_clients_.find(callback)->second = ClientState::PAUSED;
   for (auto client : registered_clients_) {
     switch (client.second) {
       case ClientState::PAUSED:
+        LOG_INFO("Client already in paused state");
         break;
       case ClientState::WAITING_FOR_PAUSE:
         // make sure all client paused
@@ -260,6 +266,8 @@ void LeAddressManager::ack_pause(LeAddressManagerCallback* callback) {
         client.second = ClientState::WAITING_FOR_PAUSE;
         client.first->OnPause();
         return;
+      default:
+        LOG_ERROR("Found client in unexpected state:%u", client.second);
     }
   }
 
@@ -275,6 +283,7 @@ void LeAddressManager::resume_registered_clients() {
     return;
   }
 
+  LOG_INFO("Resuming registered clients");
   for (auto& client : registered_clients_) {
     client.second = ClientState::WAITING_FOR_RESUME;
     client.first->OnResume();
