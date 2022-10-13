@@ -58,16 +58,16 @@ pub fn extract_flags(bytes: &[u8]) -> u8 {
 pub fn extract_service_uuids(bytes: &[u8]) -> Vec<Uuid128Bit> {
     iterate_adv_data(bytes, COMPLETE_LIST_16_BIT_SERVICE_UUIDS)
         .flat_map(|slice| slice.chunks(2))
-        .filter_map(|chunk| Uuid::try_from(chunk.to_vec()).ok().map(|uuid| uuid.uu))
+        .filter_map(|chunk| Uuid::try_from_little_endian(chunk).ok().map(|uuid| uuid.uu))
         .chain(
             iterate_adv_data(bytes, COMPLETE_LIST_32_BIT_SERVICE_UUIDS)
                 .flat_map(|slice| slice.chunks(4))
-                .filter_map(|chunk| Uuid::try_from(chunk.to_vec()).ok().map(|uuid| uuid.uu)),
+                .filter_map(|chunk| Uuid::try_from_little_endian(chunk).ok().map(|uuid| uuid.uu)),
         )
         .chain(
             iterate_adv_data(bytes, COMPLETE_LIST_128_BIT_SERVICE_UUIDS)
                 .flat_map(|slice| slice.chunks(16))
-                .filter_map(|chunk| Uuid::try_from(chunk.to_vec()).ok().map(|uuid| uuid.uu)),
+                .filter_map(|chunk| Uuid::try_from_little_endian(chunk).ok().map(|uuid| uuid.uu)),
         )
         .collect()
 }
@@ -84,17 +84,17 @@ pub fn extract_name(bytes: &[u8]) -> String {
 pub fn extract_service_data(bytes: &[u8]) -> HashMap<String, Vec<u8>> {
     iterate_adv_data(bytes, SERVICE_DATA_16_BIT_UUID)
         .filter_map(|slice| {
-            Uuid::try_from(slice.get(0..2)?.to_vec())
+            Uuid::try_from_little_endian(slice.get(0..2)?)
                 .ok()
                 .map(|uuid| (uuid.to_string(), slice[2..].to_vec()))
         })
         .chain(iterate_adv_data(bytes, SERVICE_DATA_32_BIT_UUID).filter_map(|slice| {
-            Uuid::try_from(slice.get(0..4)?.to_vec())
+            Uuid::try_from_little_endian(slice.get(0..4)?)
                 .ok()
                 .map(|uuid| (uuid.to_string(), slice[4..].to_vec()))
         }))
         .chain(iterate_adv_data(bytes, SERVICE_DATA_128_BIT_UUID).filter_map(|slice| {
-            Uuid::try_from(slice.get(0..16)?.to_vec())
+            Uuid::try_from_little_endian(slice.get(0..16)?)
                 .ok()
                 .map(|uuid| (uuid.to_string(), slice[16..].to_vec()))
         }))
@@ -155,8 +155,8 @@ mod tests {
             3,
             3,
             COMPLETE_LIST_16_BIT_SERVICE_UUIDS,
-            0xFE,
             0x2C,
+            0xFE,
             5,
             COMPLETE_LIST_32_BIT_SERVICE_UUIDS,
             2,
@@ -196,7 +196,7 @@ mod tests {
         assert_eq!(
             uuids[1],
             Uuid::try_from(vec![
-                0x2, 0x3, 0x4, 0x5, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34,
+                0x5, 0x4, 0x3, 0x2, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34,
                 0xfb
             ])
             .unwrap()
@@ -204,7 +204,7 @@ mod tests {
         );
         assert_eq!(
             uuids[2],
-            Uuid::try_from(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]).unwrap().uu
+            Uuid::try_from(vec![15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]).unwrap().uu
         );
     }
 
@@ -232,8 +232,8 @@ mod tests {
         let payload: Vec<u8> = vec![
             4,
             SERVICE_DATA_16_BIT_UUID,
-            0xFE,
             0x2C,
+            0xFE,
             0xFF,
             6,
             SERVICE_DATA_32_BIT_UUID,
@@ -289,18 +289,18 @@ mod tests {
         .to_string();
         assert_eq!(service_data.get(&expected_uuid), Some(&vec![0xFF]));
         let expected_uuid = Uuid::try_from(vec![
-            0x2, 0x3, 0x4, 0x5, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34, 0xfb,
+            0x5, 0x4, 0x3, 0x2, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34, 0xfb,
         ])
         .unwrap()
         .to_string();
         assert_eq!(service_data.get(&expected_uuid), Some(&vec![0xFE]));
         let expected_uuid =
-            Uuid::try_from(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+            Uuid::try_from(vec![15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
                 .unwrap()
                 .to_string();
         assert_eq!(service_data.get(&expected_uuid), Some(&vec![16]));
         let expected_uuid =
-            Uuid::try_from(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+            Uuid::try_from(vec![16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
                 .unwrap()
                 .to_string();
         assert_eq!(service_data.get(&expected_uuid), Some(&vec![]));
