@@ -182,6 +182,10 @@ impl ContextMap {
 pub trait IBluetoothGatt {
     // Scanning
 
+    /// Returns whether LE Scan can be performed by hardware offload defined by
+    /// [MSFT HCI Extension](https://learn.microsoft.com/en-us/windows-hardware/drivers/bluetooth/microsoft-defined-bluetooth-hci-commands-and-events).
+    fn is_msft_supported(&self) -> bool;
+
     /// Registers an LE scanner callback.
     ///
     /// Returns the callback id.
@@ -936,6 +940,11 @@ struct ScannerInfo {
 }
 
 impl IBluetoothGatt for BluetoothGatt {
+    fn is_msft_supported(&self) -> bool {
+        // TODO(b/244505567): Wire the real capability from lower layer.
+        false
+    }
+
     fn register_scanner_callback(&mut self, callback: Box<dyn IScannerCallback + Send>) -> u32 {
         self.scanner_callbacks.add_callback(callback)
     }
