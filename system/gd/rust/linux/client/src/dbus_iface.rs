@@ -860,6 +860,11 @@ impl BluetoothGattDBus {
 impl IBluetoothGatt for BluetoothGattDBus {
     // Scanning
 
+    #[dbus_method("IsMsftSupported")]
+    fn is_msft_supported(&self) -> bool {
+        dbus_generated!()
+    }
+
     #[dbus_method("RegisterScannerCallback")]
     fn register_scanner_callback(&mut self, _callback: Box<dyn IScannerCallback + Send>) -> u32 {
         dbus_generated!()
