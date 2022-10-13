@@ -454,9 +454,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
     }
 
     private void onRejectedAuthorizationGattOperation(BluetoothDevice device, GattOpContext op) {
-        if (VDBG) {
-            Log.d(TAG, "onRejectedAuthorizationGattOperation device: " + device);
-        }
+        Log.w(TAG, "onRejectedAuthorizationGattOperation device: " + device);
 
         switch (op.mOperation) {
             case READ_CHARACTERISTIC:
