@@ -21,6 +21,8 @@
 #include <unordered_set>
 
 #include "common/bind.h"
+#include "common/init_flags.h"
+#include "hci/acl_manager/acl_scheduler.h"
 #include "hci/acl_manager/assembler.h"
 #include "hci/acl_manager/event_checkers.h"
 #include "hci/acl_manager/round_robin_scheduler.h"
@@ -50,8 +52,12 @@ struct classic_impl : public security::ISecurityManagerListener {
       Controller* controller,
       os::Handler* handler,
       RoundRobinScheduler* round_robin_scheduler,
-      bool crash_on_unknown_handle)
-      : hci_layer_(hci_layer), controller_(controller), round_robin_scheduler_(round_robin_scheduler) {
+      bool crash_on_unknown_handle,
+      AclScheduler* acl_scheduler)
+      : hci_layer_(hci_layer),
+        controller_(controller),
+        round_robin_scheduler_(round_robin_scheduler),
+        acl_scheduler_(acl_scheduler) {
     hci_layer_ = hci_layer;
     controller_ = controller;
     handler_ = handler;
@@ -255,7 +261,8 @@ struct classic_impl : public security::ISecurityManagerListener {
         return;
     }
 
-    incoming_connecting_address_set_.insert(address);
+    acl_scheduler_->RegisterPendingIncomingConnection(address);
+
     if (is_classic_link_already_connected(address)) {
       auto reason = RejectConnectionReason::UNACCEPTABLE_BD_ADDR;
       this->reject_connection(RejectConnectionRequestBuilder::Create(address, reason));
@@ -282,43 +289,29 @@ struct classic_impl : public security::ISecurityManagerListener {
     std::unique_ptr<CreateConnectionBuilder> packet = CreateConnectionBuilder::Create(
         address, packet_type, page_scan_repetition_mode, clock_offset, clock_offset_valid, allow_role_switch);
 
-    pending_outgoing_connections_.emplace(address, std::move(packet));
-    dequeue_next_connection();
+    acl_scheduler_->EnqueueOutgoingAclConnection(
+        address, handler_->BindOnceOn(this, &classic_impl::actually_create_connection, address, std::move(packet)));
   }
 
-  void dequeue_next_connection() {
-    if (incoming_connecting_address_set_.empty() && outgoing_connecting_address_.IsEmpty()) {
-      while (!pending_outgoing_connections_.empty()) {
-        LOG_INFO("Pending connections is not empty; so sending next connection");
-        auto create_connection_packet_and_address = std::move(pending_outgoing_connections_.front());
-        pending_outgoing_connections_.pop();
-        if (!is_classic_link_already_connected(create_connection_packet_and_address.first)) {
-          outgoing_connecting_address_ = create_connection_packet_and_address.first;
-          acl_connection_interface_->EnqueueCommand(
-              std::move(create_connection_packet_and_address.second),
-              handler_->BindOnceOn(this, &classic_impl::on_create_connection_status));
-          break;
-        }
-      }
+  void actually_create_connection(Address address, std::unique_ptr<CreateConnectionBuilder> packet) {
+    if (is_classic_link_already_connected(address)) {
+      LOG_WARN("already connected: %s", address.ToString().c_str());
+      acl_scheduler_->ReportOutgoingAclConnectionFailure();
     }
+    acl_connection_interface_->EnqueueCommand(
+        std::move(packet), handler_->BindOnceOn(this, &classic_impl::on_create_connection_status, address));
   }
 
-  void on_create_connection_status(CommandStatusView status) {
+  void on_create_connection_status(Address address, CommandStatusView status) {
     ASSERT(status.IsValid());
     ASSERT(status.GetCommandOpCode() == OpCode::CREATE_CONNECTION);
     if (status.GetStatus() != hci::ErrorCode::SUCCESS /* = pending */) {
       // something went wrong, but unblock queue and report to caller
-      LOG_ERROR(
-          "Failed to create connection to %s, reporting failure and continuing",
-          outgoing_connecting_address_.ToString().c_str());
+      LOG_ERROR("Failed to create connection, reporting failure and continuing");
       ASSERT(client_callbacks_ != nullptr);
       client_handler_->Post(common::BindOnce(
-          &ConnectionCallbacks::OnConnectFail,
-          common::Unretained(client_callbacks_),
-          outgoing_connecting_address_,
-          status.GetStatus()));
-      outgoing_connecting_address_ = Address::kEmpty;
-      dequeue_next_connection();
+          &ConnectionCallbacks::OnConnectFail, common::Unretained(client_callbacks_), address, status.GetStatus()));
+      acl_scheduler_->ReportOutgoingAclConnectionFailure();
     } else {
       // everything is good, resume when a connection_complete event arrives
       return;
@@ -374,35 +367,44 @@ struct classic_impl : public security::ISecurityManagerListener {
     ASSERT(connection_complete.IsValid());
     auto status = connection_complete.GetStatus();
     auto address = connection_complete.GetBdAddr();
-    Role current_role = Role::CENTRAL;
-    auto initiator = Initiator::LOCALLY_INITIATED;
-    if (outgoing_connecting_address_ == address) {
-      outgoing_connecting_address_ = Address::kEmpty;
-    } else {
-      auto incoming_address = incoming_connecting_address_set_.find(address);
-      if (incoming_address == incoming_connecting_address_set_.end()) {
-        ASSERT_LOG(
-            status != ErrorCode::UNKNOWN_CONNECTION,
-            "No prior connection request for %s expecting:%s",
-            address.ToString().c_str(),
-            set_of_incoming_connecting_addresses().c_str());
-        LOG_WARN("No matching connection to %s (%s)", address.ToString().c_str(), ErrorCodeText(status).c_str());
-        LOG_WARN("Firmware error after RemoteNameRequestCancel?");
-        return;
-      }
-      incoming_connecting_address_set_.erase(incoming_address);
-      current_role = Role::PERIPHERAL;
-      initiator = Initiator::REMOTE_INITIATED;
-    }
-    create_and_announce_connection(connection_complete, current_role, initiator);
-    dequeue_next_connection();
+    acl_scheduler_->ReportAclConnectionCompletion(
+        address,
+        handler_->BindOnceOn(
+            this,
+            &classic_impl::create_and_announce_connection,
+            connection_complete,
+            Role::CENTRAL,
+            Initiator::LOCALLY_INITIATED),
+        handler_->BindOnceOn(
+            this,
+            &classic_impl::create_and_announce_connection,
+            connection_complete,
+            Role::PERIPHERAL,
+            Initiator::REMOTE_INITIATED),
+        handler_->BindOnce(
+            [=](AclScheduler* scheduler, Address address, ErrorCode status, std::string valid_incoming_addresses) {
+              ASSERT_LOG(
+                  status == ErrorCode::UNKNOWN_CONNECTION,
+                  "No prior connection request for %s expecting:%s",
+                  address.ToString().c_str(),
+                  valid_incoming_addresses.c_str());
+              LOG_WARN("No matching connection to %s (%s)", address.ToString().c_str(), ErrorCodeText(status).c_str());
+              LOG_WARN("Firmware error after RemoteNameRequestCancel?");
+            },
+            common::Unretained(acl_scheduler_),
+            address,
+            status));
   }
 
   void cancel_connect(Address address) {
-    if (outgoing_connecting_address_ == address) {
-      LOG_INFO("Cannot cancel non-existent connection to %s", address.ToString().c_str());
-      return;
-    }
+    acl_scheduler_->CancelAclConnection(
+        address,
+        handler_->BindOnceOn(this, &classic_impl::actually_cancel_connect, address),
+        client_handler_->BindOnceOn(
+            client_callbacks_, &ConnectionCallbacks::OnConnectFail, address, ErrorCode::UNKNOWN_CONNECTION));
+  }
+
+  void actually_cancel_connect(Address address) {
     std::unique_ptr<CreateConnectionCancelBuilder> packet = CreateConnectionCancelBuilder::Create(address);
     acl_connection_interface_->EnqueueCommand(
         std::move(packet), handler_->BindOnce(&check_command_complete<CreateConnectionCancelCompleteView>));
@@ -743,20 +745,13 @@ struct classic_impl : public security::ISecurityManagerListener {
   HciLayer* hci_layer_ = nullptr;
   Controller* controller_ = nullptr;
   RoundRobinScheduler* round_robin_scheduler_ = nullptr;
+  AclScheduler* acl_scheduler_ = nullptr;
   AclConnectionInterface* acl_connection_interface_ = nullptr;
   os::Handler* handler_ = nullptr;
   ConnectionCallbacks* client_callbacks_ = nullptr;
   os::Handler* client_handler_ = nullptr;
-  Address outgoing_connecting_address_{Address::kEmpty};
-  std::unordered_set<Address> incoming_connecting_address_set_;
-  const std::string set_of_incoming_connecting_addresses() const {
-    std::stringstream buffer;
-    for (const auto& c : incoming_connecting_address_set_) buffer << " " << c;
-    return buffer.str();
-  }
 
   common::Callback<bool(Address, ClassOfDevice)> should_accept_connection_;
-  std::queue<std::pair<Address, std::unique_ptr<CreateConnectionBuilder>>> pending_outgoing_connections_;
   std::unique_ptr<RoleChangeView> delayed_role_change_ = nullptr;
 
   std::unique_ptr<security::SecurityManager> security_manager_;

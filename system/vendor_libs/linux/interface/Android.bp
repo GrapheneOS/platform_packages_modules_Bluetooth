@@ -66,3 +66,32 @@ cc_library_static {
         ".",
     ],
 }
+
+cc_test_host {
+    name: "bluetooth-btlinux-hci-test",
+    srcs: [
+        "async_fd_watcher.cc",
+        "hci_packetizer.cc",
+        "h4_protocol.cc",
+        "h4_protocol_unittest.cc",
+    ],
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-DNO_THREAD_PRIORITY",
+    ],
+    shared_libs: [
+        "libbase",
+        "libhidlbase",
+        "liblog",
+        "libutils",
+    ],
+    static_libs: [
+        "libgmock",
+    ],
+    sanitize: {
+        address: true,
+        cfi: true,
+    },
+    test_suites: ["general-tests"],
+}

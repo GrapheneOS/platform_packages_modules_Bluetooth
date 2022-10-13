@@ -877,3 +877,71 @@ cc_test {
         },
     },
 }
+
+cc_test {
+    name: "bluetooth_hh_test",
+    test_suites: ["device-tests"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "clang_coverage_bin",
+        "mts_defaults",
+    ],
+    host_supported: true,
+    // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
+    isolated: false,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/test/common",
+        "packages/modules/Bluetooth/system/stack/include",
+    ],
+    srcs : [
+        ":TestMockMainShim",
+        ":TestCommonMainHandler",
+        ":TestCommonMockFunctions",
+        ":TestMockBtaGatt",
+        ":TestMockBtaSys",
+        ":TestMockBtif",
+        ":TestMockDevice",
+        ":TestMockOsi",
+        ":TestMockStack",
+        "dm/bta_dm_act.cc",
+        "dm/bta_dm_cfg.cc",
+        "dm/bta_dm_ci.cc",
+        "dm/bta_dm_main.cc",
+        "dm/bta_dm_pm.cc",
+        "gatt/bta_gattc_queue.cc",
+        "hh/bta_hh_act.cc",
+        "hh/bta_hh_api.cc",
+        "hh/bta_hh_cfg.cc",
+        "hh/bta_hh_le.cc",
+        "hh/bta_hh_main.cc",
+        "hh/bta_hh_utils.cc",
+        "test/bta_hh_test.cc",
+    ],
+    shared_libs: [
+        "libprotobuf-cpp-lite",
+        "libcrypto",
+    ],
+    static_libs : [
+        "crypto_toolbox_for_tests",
+        "libgmock",
+        "libbt-common",
+        "libbt-protos-lite",
+        "libosi", // ADDED
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
+    sanitize: {
+        cfi: true,
+        scs: true,
+        address: true,
+        all_undefined: true,
+        integer_overflow: true,
+        diag: {
+            undefined : true
+        },
+    },
+}
