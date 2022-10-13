@@ -67,9 +67,6 @@ void l2c_link_hci_conn_req(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
 }
 void l2c_link_init() { mock_function_count_map[__func__]++; }
-void l2c_link_process_num_completed_pkts(uint8_t* p, uint8_t evt_len) {
-  mock_function_count_map[__func__]++;
-}
 void l2c_link_role_changed(const RawAddress* bd_addr, uint8_t new_role,
                            uint8_t hci_status) {
   mock_function_count_map[__func__]++;
