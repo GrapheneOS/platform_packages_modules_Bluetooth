@@ -441,19 +441,32 @@ class VolumeControlTest : public ::testing::Test {
     gatt_callback(BTA_GATTC_SEARCH_CMPL_EVT, (tBTA_GATTC*)&event_data);
   }
 
+  void GetEncryptionCompleteEvt(const RawAddress& bda) {
+    tBTA_GATTC cb_data{};
+
+    cb_data.enc_cmpl.client_if = gatt_if;
+    cb_data.enc_cmpl.remote_bda = bda;
+    gatt_callback(BTA_GATTC_ENC_CMPL_CB_EVT, &cb_data);
+  }
+
   void SetEncryptionResult(const RawAddress& address, bool success) {
     ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
         .WillByDefault(DoAll(Return(false)));
-    EXPECT_CALL(btm_interface,
-                SetEncryption(address, _, NotNull(), _, BTM_BLE_SEC_ENCRYPT))
-        .WillOnce(Invoke(
-            [&success](const RawAddress& bd_addr, tBT_TRANSPORT transport,
-                       tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
-                       tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
-              p_callback(&bd_addr, transport, p_ref_data,
-                         success ? BTM_SUCCESS : BTM_FAILED_ON_SECURITY);
+    ON_CALL(btm_interface, SetEncryption(address, _, _, _, BTM_BLE_SEC_ENCRYPT))
+        .WillByDefault(Invoke(
+            [&success, this](const RawAddress& bd_addr, tBT_TRANSPORT transport,
+                             tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
+                             tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
+              if (p_callback) {
+                p_callback(&bd_addr, transport, p_ref_data,
+                           success ? BTM_SUCCESS : BTM_FAILED_ON_SECURITY);
+              }
+              GetEncryptionCompleteEvt(bd_addr);
               return BTM_SUCCESS;
             }));
+    EXPECT_CALL(btm_interface,
+                SetEncryption(address, _, _, _, BTM_BLE_SEC_ENCRYPT))
+        .Times(1);
   }
 
   void SetSampleDatabaseVCS(uint16_t conn_id) {
