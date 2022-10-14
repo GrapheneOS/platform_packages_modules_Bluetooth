@@ -750,6 +750,7 @@ mod ffi {
 /// }
 /// ```
 pub type RawAddress = bindings::RawAddress;
+pub type OobData = bindings::bt_oob_data_s;
 
 unsafe impl ExternType for RawAddress {
     type Id = type_id!("bluetooth::topshim::rust::RawAddress");
@@ -833,9 +834,9 @@ pub enum BaseCallbacks {
     // le_test_mode_cb
     // energy_info_cb
     // link_quality_report_cb
-    // generate_local_oob_data_cb
     // switch_buffer_size_cb
     // switch_codec_cb
+    GenerateLocalOobData(u8, OobData),
     LeRandCallback(u64),
 }
 
@@ -892,6 +893,8 @@ cb_variant!(BaseCb, acl_state_cb -> BaseCallbacks::AclState,
 u32 -> BtStatus, *mut RawAddress, bindings::bt_acl_state_t -> BtAclState, i32 -> BtTransport, bindings::bt_hci_error_code_t -> BtHciErrorCode, bindings::bt_conn_direction_t -> BtConnectionDirection, {
     let _1 = unsafe { *(_1 as *const RawAddress) };
 });
+
+cb_variant!(BaseCb, generate_local_oob_data_cb -> BaseCallbacks::GenerateLocalOobData, u8, OobData);
 
 cb_variant!(BaseCb, le_rand_cb -> BaseCallbacks::LeRandCallback, u64);
 
@@ -1011,7 +1014,7 @@ impl BluetoothInterface {
             le_test_mode_cb: None,
             energy_info_cb: None,
             link_quality_report_cb: None,
-            generate_local_oob_data_cb: None,
+            generate_local_oob_data_cb: Some(generate_local_oob_data_cb),
             switch_buffer_size_cb: None,
             switch_codec_cb: None,
             le_rand_cb: Some(le_rand_cb),
@@ -1177,6 +1180,10 @@ impl BluetoothInterface {
 
     pub fn le_rand(&self) -> i32 {
         ccall!(self, le_rand)
+    }
+
+    pub fn generate_local_oob_data(&self, transport: i32) -> i32 {
+        ccall!(self, generate_local_oob_data, transport as u8)
     }
 
     pub fn restore_filter_accept_list(&self) -> i32 {
