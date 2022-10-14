@@ -114,7 +114,6 @@ struct acl_disconnect_from_handle acl_disconnect_from_handle;
 struct acl_link_segments_xmitted acl_link_segments_xmitted;
 struct acl_packets_completed acl_packets_completed;
 struct acl_process_extended_features acl_process_extended_features;
-struct acl_process_num_completed_pkts acl_process_num_completed_pkts;
 struct acl_process_supported_features acl_process_supported_features;
 struct acl_rcv_acl_data acl_rcv_acl_data;
 struct acl_reject_connection_request acl_reject_connection_request;
@@ -475,10 +474,6 @@ void acl_process_extended_features(uint16_t handle, uint8_t current_page_number,
   mock_function_count_map[__func__]++;
   test::mock::stack_acl::acl_process_extended_features(
       handle, current_page_number, max_page_number, features);
-}
-void acl_process_num_completed_pkts(uint8_t* p, uint8_t evt_len) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_acl::acl_process_num_completed_pkts(p, evt_len);
 }
 void acl_process_supported_features(uint16_t handle, uint64_t features) {
   mock_function_count_map[__func__]++;
