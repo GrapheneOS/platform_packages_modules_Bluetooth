@@ -31,6 +31,7 @@ namespace rust {
 struct A2dpCodecConfig;
 struct RustPresentationPosition;
 struct RustRawAddress;
+struct RustPlayStatus;
 
 class A2dpIntf {
  public:
@@ -70,6 +71,11 @@ class AvrcpIntf {
 
   // interface for Audio server
   void set_volume(int8_t volume);
+
+  void set_playback_status(const ::rust::String& status) {}
+  void set_position(int64_t position_us) {}
+  void set_metadata(
+      const ::rust::String& title, const ::rust::String& artist, const ::rust::String& album, int64_t length_us) {}
 
  private:
   bluetooth::avrcp::ServiceInterface* intf_;
