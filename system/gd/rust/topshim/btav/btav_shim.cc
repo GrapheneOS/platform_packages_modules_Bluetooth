@@ -37,9 +37,13 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
     rusty::avrcp_send_key_event(key, state == KeyState::PUSHED);
   }
 
-  void GetSongInfo([[maybe_unused]] SongInfoCallback cb) override {}
+  void GetSongInfo(SongInfoCallback cb) override {
+    cb.Run(songInfo_);
+  }
 
-  void GetPlayStatus([[maybe_unused]] PlayStatusCallback cb) override {}
+  void GetPlayStatus(PlayStatusCallback cb) override {
+    cb.Run(playStatus_);
+  }
 
   void GetNowPlayingList([[maybe_unused]] NowPlayingCallback cb) override {}
 
@@ -53,9 +57,13 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
   void SetBrowsedPlayer(
       [[maybe_unused]] uint16_t player_id, [[maybe_unused]] SetBrowsedPlayerCallback browse_cb) override {}
 
-  void RegisterUpdateCallback([[maybe_unused]] MediaCallbacks* callback) override {}
+  void RegisterUpdateCallback(MediaCallbacks* callback) override {
+    mediaCb_ = callback;
+  }
 
-  void UnregisterUpdateCallback([[maybe_unused]] MediaCallbacks* callback) override {}
+  void UnregisterUpdateCallback([[maybe_unused]] MediaCallbacks* callback) override {
+    mediaCb_ = nullptr;
+  }
 
   void PlayItem(
       [[maybe_unused]] uint16_t player_id,
@@ -66,6 +74,39 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
     topshim::rust::RustRawAddress addr = rusty::CopyToRustAddress(address);
     rusty::avrcp_set_active_device(addr);
   }
+
+  void SetPlaybackStatus(const PlayState& state) {
+    playStatus_.state = state;
+    if (mediaCb_) mediaCb_->SendMediaUpdate(/*track_changed*/ false, /*play_state*/ true, /*queuefalse*/ false);
+  }
+
+  void SetPosition(int64_t position_us) {
+    // Unit conversion from microsecond to millisecond.
+    playStatus_.position = position_us / 1000;
+    if (mediaCb_) mediaCb_->SendMediaUpdate(/*track_changed*/ false, /*play_state*/ true, /*queuefalse*/ false);
+  }
+
+  void SetMetadata(const std::string& title, const std::string& artist, const std::string& album, int64_t length_us) {
+    if (title.length() || artist.length() || album.length()) {
+      songInfo_.attributes.clear();
+      if (title.length()) songInfo_.attributes.emplace(avrcp::AttributeEntry(avrcp::Attribute::TITLE, title));
+      if (artist.length()) songInfo_.attributes.emplace(avrcp::AttributeEntry(avrcp::Attribute::ARTIST_NAME, artist));
+      if (album.length()) songInfo_.attributes.emplace(avrcp::AttributeEntry(avrcp::Attribute::ALBUM_NAME, album));
+      if (mediaCb_) mediaCb_->SendMediaUpdate(/*track_changed*/ true, /*play_state*/ false, /*queuefalse*/ false);
+    }
+
+    if (length_us) {
+      // Unit conversion from microsecond to millisecond.
+      playStatus_.duration = length_us / 1000;
+      if (mediaCb_) mediaCb_->SendMediaUpdate(/*track_changed*/ true, /*play_state*/ false, /*queuefalse*/ false);
+    }
+  }
+
+ private:
+  MediaCallbacks* mediaCb_;
+
+  PlayStatus playStatus_;
+  SongInfo songInfo_;
 };
 
 class VolumeInterfaceImpl : public VolumeInterface {
@@ -307,6 +348,26 @@ uint32_t AvrcpIntf::disconnect(RustRawAddress bt_addr) {
 void AvrcpIntf::set_volume(int8_t volume) {
   return mVolumeInterface.SetDeviceVolume(volume);
 }
+
+void AvrcpIntf::set_playback_status(const ::rust::String& status) {
+  avrcp::PlayState state = avrcp::PlayState::STOPPED;
+
+  if (status == "stopped") state = avrcp::PlayState::STOPPED;
+  if (status == "playing") state = avrcp::PlayState::PLAYING;
+  if (status == "paused") state = avrcp::PlayState::PAUSED;
+
+  mAvrcpInterface.SetPlaybackStatus(state);
+}
+
+void AvrcpIntf::set_position(int64_t position) {
+  mAvrcpInterface.SetPosition(position);
+}
+
+void AvrcpIntf::set_metadata(
+    const ::rust::String& title, const ::rust::String& artist, const ::rust::String& album, int64_t length_us) {
+  mAvrcpInterface.SetMetadata(std::string(title), std::string(artist), std::string(album), length_us);
+}
+
 }  // namespace rust
 }  // namespace topshim
 }  // namespace bluetooth
