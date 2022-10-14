@@ -237,29 +237,29 @@ impl UuidHelper {
         let num = u128::from_be_bytes(*uuid);
         (num & BASE_UUID_MASK) == BASE_UUID_NUM
     }
-}
 
-// Temporary util that covers only basic string conversion.
-// TODO(b/193685325): Implement more UUID utils by using Uuid from gd/hci/uuid.h with cxx.
-pub fn parse_uuid_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
-    let uuid = uuid.into();
+    // Temporary util that covers only basic string conversion.
+    // TODO(b/193685325): Implement more UUID utils by using Uuid from gd/hci/uuid.h with cxx.
+    pub fn parse_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
+        let uuid = uuid.into();
 
-    // Strip un-needed characters before parsing to handle the common
-    // case of including dashes in UUID strings. UUID expects only
-    // 0-9, a-f, A-F with no other characters. |is_digit| with radix
-    // 16 (hex) supports that exact behavior.
-    let uuid = uuid.chars().filter(|char| char.is_digit(16)).collect::<String>();
-    if uuid.len() != 32 {
-        return None;
+        // Strip un-needed characters before parsing to handle the common
+        // case of including dashes in UUID strings. UUID expects only
+        // 0-9, a-f, A-F with no other characters. |is_digit| with radix
+        // 16 (hex) supports that exact behavior.
+        let uuid = uuid.chars().filter(|char| char.is_digit(16)).collect::<String>();
+        if uuid.len() != 32 {
+            return None;
+        }
+
+        let mut raw = [0; 16];
+
+        for i in 0..16 {
+            raw[i] = u8::from_str_radix(&uuid[i * 2..i * 2 + 2], 16).ok()?;
+        }
+
+        Some(Uuid::from(raw))
     }
-
-    let mut raw = [0; 16];
-
-    for i in 0..16 {
-        raw[i] = u8::from_str_radix(&uuid[i * 2..i * 2 + 2], 16).ok()?;
-    }
-
-    Some(Uuid::from(raw))
 }
 
 #[cfg(test)]

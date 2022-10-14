@@ -11,7 +11,7 @@ use std::sync::atomic::{AtomicIsize, Ordering};
 use tokio::sync::mpsc::Sender;
 
 use crate::callbacks::Callbacks;
-use crate::uuid::{parse_uuid_string, UuidHelper};
+use crate::uuid::UuidHelper;
 use crate::{Message, RPCProxy};
 
 pub type AdvertiserId = i32;
@@ -262,7 +262,7 @@ impl AdvertiseData {
 
     fn append_service_data(dest: &mut Vec<u8>, service_data: &HashMap<String, Vec<u8>>) {
         for (uuid, data) in
-            service_data.iter().filter_map(|(s, d)| parse_uuid_string(s).map(|s| (s, d)))
+            service_data.iter().filter_map(|(s, d)| UuidHelper::parse_string(s).map(|s| (s, d)))
         {
             let uuid_slice = UuidHelper::get_shortest_slice(&uuid.uu);
             let concated: Vec<u8> = uuid_slice.iter().rev().chain(data).cloned().collect();
