@@ -461,7 +461,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       }
     }
 
-    if (address_type == (uint8_t)DirectAdvertisingAddressType::NO_ADDRESS) {
+    if (address_type == (uint8_t)DirectAdvertisingAddressType::NO_ADDRESS_PROVIDED) {
       scanning_callbacks_->OnScanResult(
           event_type,
           address_type,
