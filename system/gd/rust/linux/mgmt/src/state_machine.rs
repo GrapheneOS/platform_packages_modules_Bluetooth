@@ -1323,7 +1323,7 @@ mod tests {
     const WANT_DEFAULT_ADAPTER: i32 = 0;
 
     fn make_state_machine(process_manager: MockProcessManager) -> StateMachineInternal {
-        let mut state_machine =
+        let state_machine =
             StateMachineInternal::new(Box::new(process_manager), true, WANT_DEFAULT_ADAPTER);
         state_machine
     }
@@ -1332,7 +1332,7 @@ mod tests {
     fn initial_state_is_off() {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let process_manager = MockProcessManager::new();
-            let mut state_machine = make_state_machine(process_manager);
+            let state_machine = make_state_machine(process_manager);
             assert_eq!(state_machine.get_process_state(0), ProcessState::Off);
         })
     }

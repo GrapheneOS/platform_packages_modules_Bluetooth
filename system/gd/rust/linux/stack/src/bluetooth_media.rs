@@ -660,16 +660,14 @@ impl BluetoothMedia {
             let audio_profiles =
                 vec![uuid::Profile::A2dpSink, uuid::Profile::Hfp, uuid::Profile::AvrcpController];
 
-            let uuid_helper = uuid::UuidHelper::new();
-
             adapter
                 .lock()
                 .unwrap()
                 .get_remote_uuids(device)
                 .into_iter()
-                .map(|u| uuid_helper.is_known_profile(&u))
+                .map(|u| uuid::UuidHelper::is_known_profile(&u))
                 .filter(|u| u.is_some())
-                .map(|u| *u.unwrap())
+                .map(|u| u.unwrap())
                 .filter(|u| audio_profiles.contains(&u))
                 .collect()
         } else {
