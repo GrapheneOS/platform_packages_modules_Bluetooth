@@ -341,20 +341,26 @@ impl TryFrom<Vec<u8>> for Uuid {
         match value.len() {
             2 => {
                 uu[2..4].copy_from_slice(&value[0..2]);
-                Ok(Uuid { uu })
+                Ok(Uuid::from(uu))
             }
             4 => {
                 uu[0..4].copy_from_slice(&value[0..4]);
-                Ok(Uuid { uu })
+                Ok(Uuid::from(uu))
             }
             16 => {
                 uu.copy_from_slice(&value[0..16]);
-                Ok(Uuid { uu })
+                Ok(Uuid::from(uu))
             }
             _ => {
                 Err("Vector size must be exactly 2 (16 bit UUID), 4 (32 bit UUID), or 16 (128 bit UUID).")
             }
         }
+    }
+}
+
+impl From<[u8; 16]> for Uuid {
+    fn from(value: [u8; 16]) -> Self {
+        Self { uu: value }
     }
 }
 
@@ -1319,7 +1325,7 @@ mod tests {
 
         {
             let orig_record = BtServiceRecord {
-                uuid: Uuid { uu: [0; 16] },
+                uuid: Uuid::from([0; 16]),
                 channel: 3,
                 name: "FooBar".to_string(),
             };
