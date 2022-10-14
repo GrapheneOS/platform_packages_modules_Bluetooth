@@ -23,8 +23,7 @@ python_test_host {
         "connect.py",
     ],
     libs: [
-        "libavatar",
-        "pandora_experimental-python",
+        "libavatar_experimental",
     ],
     required: ["PandoraServer"],
     test_suites: ["general-tests"],
