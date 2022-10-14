@@ -157,7 +157,7 @@ impl BtSocket {
     ) -> (BtStatus, Result<File, FdError>) {
         let mut sockfd: i32 = -1;
         let uuid = match service_uuid {
-            Some(uu) => Some(Uuid { uu }),
+            Some(uu) => Some(Uuid::from(uu)),
             None => None,
         };
 
@@ -194,7 +194,7 @@ impl BtSocket {
     ) -> (BtStatus, Result<File, FdError>) {
         let mut sockfd: i32 = -1;
         let uuid = match service_uuid {
-            Some(uu) => Some(Uuid { uu }),
+            Some(uu) => Some(Uuid::from(uu)),
             None => None,
         };
 

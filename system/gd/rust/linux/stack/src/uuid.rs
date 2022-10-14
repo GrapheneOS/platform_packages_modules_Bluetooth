@@ -259,7 +259,7 @@ pub fn parse_uuid_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
         raw[i] = u8::from_str_radix(&uuid[i * 2..i * 2 + 2], 16).ok()?;
     }
 
-    Some(Uuid { uu: raw })
+    Some(Uuid::from(raw))
 }
 
 #[cfg(test)]

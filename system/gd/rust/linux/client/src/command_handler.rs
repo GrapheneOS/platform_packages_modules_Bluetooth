@@ -15,7 +15,6 @@ use btstack::bluetooth_gatt::{
 use btstack::socket_manager::{IBluetoothSocketManager, SocketResult};
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
-use std::convert::TryFrom;
 
 const INDENT_CHAR: &str = " ";
 const BAR1_CHAR: &str = "=";
@@ -961,11 +960,10 @@ impl CommandHandler {
                 };
 
                 let data = AdvertiseData {
-                    service_uuids: vec![Uuid::try_from(vec![
+                    service_uuids: vec![Uuid::from([
                         0x00, 0x00, 0xfe, 0xf3, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80,
                         0x5f, 0x9b, 0x34, 0xfb,
-                    ])
-                    .unwrap()],
+                    ])],
                     solicit_uuids: Vec::new(),
                     transport_discovery_data: Vec::new(),
                     manufacturer_data: HashMap::from([(0, vec![0, 1, 2])]),

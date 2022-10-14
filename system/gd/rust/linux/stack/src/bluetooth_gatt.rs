@@ -956,7 +956,7 @@ impl IBluetoothGatt for BluetoothGatt {
     fn register_scanner(&mut self, callback_id: u32) -> Uuid128Bit {
         let mut bytes: [u8; 16] = [0; 16];
         self.small_rng.fill_bytes(&mut bytes);
-        let uuid = Uuid { uu: bytes };
+        let uuid = Uuid::from(bytes);
 
         self.scanners.insert(uuid, ScannerInfo { callback_id, scanner_id: None, is_active: false });
 
@@ -2674,7 +2674,7 @@ mod tests {
             0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab,
             0xcd, 0xef,
         ];
-        assert_eq!(Uuid { uu: expected }, uuid.unwrap());
+        assert_eq!(Uuid::from(expected), uuid.unwrap());
     }
 
     #[test]

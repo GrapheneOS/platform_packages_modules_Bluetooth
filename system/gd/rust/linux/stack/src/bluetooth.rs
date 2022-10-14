@@ -1517,7 +1517,7 @@ impl IBluetooth for Bluetooth {
             return false;
         }
 
-        let uu = Uuid { uu: uuid };
+        let uu = Uuid::from(uuid);
         self.sdp.as_ref().unwrap().sdp_search(&mut addr.unwrap(), &uu) == BtStatus::Success
     }
 
