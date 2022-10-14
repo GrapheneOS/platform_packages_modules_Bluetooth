@@ -100,6 +100,14 @@ service GattService {
   rpc ServerReadPhy(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
+service HfpService {
+  rpc StartSlc(StartSlcRequest) returns (google.protobuf.Empty) {}
+  rpc StopSlc(StopSlcRequest) returns (google.protobuf.Empty) {}
+  rpc ConnectAudio(ConnectAudioRequest) returns (google.protobuf.Empty) {}
+  rpc DisconnectAudio(DisconnectAudioRequest) returns (google.protobuf.Empty) {}
+  rpc SetVolume(SetVolumeRequest) returns (google.protobuf.Empty) {}
+}
+
 enum EventType {
   ADAPTER_STATE = 0;
   SSP_REQUEST = 1;
@@ -151,4 +159,34 @@ message A2dpSourceSetActiveDevicetResponse {}
 
 message RemoveBondRequest {
   string address = 1;
+}
+
+message StartSlcRequest {
+  Connection connection = 1;
+}
+
+message StopSlcRequest {
+  Connection connection = 1;
+}
+
+message ConnectAudioRequest {
+  Connection connection = 1;
+  bool is_sco_offload_enabled = 2;
+  bool force_cvsd = 3;
+}
+
+message DisconnectAudioRequest {
+  Connection connection = 1;
+}
+
+message SetVolumeRequest {
+  Connection connection = 1;
+  int32 volume = 2;
+}
+
+// A Token representing an ACL connection.
+// It's acquired via a Connect on the Host service (Bluetooth Core stack in our case).
+message Connection {
+// For our HFP APIs this would store the bluetooth address but staying consistent with Pandora naming.
+  bytes cookie = 1;
 }
