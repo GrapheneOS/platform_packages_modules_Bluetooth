@@ -365,6 +365,11 @@ impl Hash for Uuid {
 }
 
 impl Uuid {
+    /// Creates a Uuid from little endian slice of bytes
+    pub fn try_from_little_endian(value: &[u8]) -> std::result::Result<Uuid, &'static str> {
+        Uuid::try_from(value.iter().rev().cloned().collect::<Vec<u8>>())
+    }
+
     /// Formats this UUID to a human-readable representation.
     pub fn format(uuid: &Uuid128Bit, f: &mut Formatter) -> Result {
         write!(f, "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",

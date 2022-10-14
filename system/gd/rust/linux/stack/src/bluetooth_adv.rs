@@ -1,7 +1,9 @@
 //! BLE Advertising types and utilities
 
+use bt_topshim::btif::Uuid;
 use bt_topshim::profiles::gatt::{Gatt, GattStatus, LePhy};
 
+use itertools::Itertools;
 use log::warn;
 use num_traits::clamp;
 use std::collections::HashMap;
@@ -9,12 +11,13 @@ use std::sync::atomic::{AtomicIsize, Ordering};
 use tokio::sync::mpsc::Sender;
 
 use crate::callbacks::Callbacks;
-use crate::uuid::parse_uuid_string;
+use crate::uuid::{parse_uuid_string, UuidHelper};
 use crate::{Message, RPCProxy};
 
 pub type AdvertiserId = i32;
 pub type CallbackId = u32;
 pub type RegId = i32;
+pub type ManfId = u16;
 
 /// Advertising parameters for each BLE advertising set.
 #[derive(Debug, Default)]
@@ -50,13 +53,13 @@ pub struct AdvertisingSetParameters {
 pub struct AdvertiseData {
     /// A list of service UUIDs within the advertisement that are used to identify
     /// the Bluetooth GATT services.
-    pub service_uuids: Vec<String>,
+    pub service_uuids: Vec<Uuid>,
     /// A list of service solicitation UUIDs within the advertisement that we invite to connect.
-    pub solicit_uuids: Vec<String>,
+    pub solicit_uuids: Vec<Uuid>,
     /// A list of transport discovery data.
     pub transport_discovery_data: Vec<Vec<u8>>,
     /// A collection of manufacturer Id and the corresponding manufacturer specific data.
-    pub manufacturer_data: HashMap<i32, Vec<u8>>,
+    pub manufacturer_data: HashMap<ManfId, Vec<u8>>,
     /// A map of 128-bit UUID and its corresponding service data.
     pub service_data: HashMap<String, Vec<u8>>,
     /// Whether TX Power level will be included in the advertising packet.
@@ -149,14 +152,30 @@ const PERIODIC_INTERVAL_DELTA: i32 = 16; // 20 ms gap between min and max
 const DEVICE_NAME_MAX: usize = 26;
 
 // Advertising data types.
+const COMPLETE_LIST_16_BIT_SERVICE_UUIDS: u8 = 0x03;
+const COMPLETE_LIST_32_BIT_SERVICE_UUIDS: u8 = 0x05;
 const COMPLETE_LIST_128_BIT_SERVICE_UUIDS: u8 = 0x07;
 const SHORTENED_LOCAL_NAME: u8 = 0x08;
 const COMPLETE_LOCAL_NAME: u8 = 0x09;
 const TX_POWER_LEVEL: u8 = 0x0a;
+const LIST_16_BIT_SERVICE_SOLICITATION_UUIDS: u8 = 0x14;
 const LIST_128_BIT_SERVICE_SOLICITATION_UUIDS: u8 = 0x15;
+const SERVICE_DATA_16_BIT_UUID: u8 = 0x16;
+const LIST_32_BIT_SERVICE_SOLICITATION_UUIDS: u8 = 0x1f;
+const SERVICE_DATA_32_BIT_UUID: u8 = 0x20;
 const SERVICE_DATA_128_BIT_UUID: u8 = 0x21;
 const TRANSPORT_DISCOVERY_DATA: u8 = 0x26;
 const MANUFACTURER_SPECIFIC_DATA: u8 = 0xff;
+const SERVICE_AD_TYPES: [u8; 3] = [
+    COMPLETE_LIST_16_BIT_SERVICE_UUIDS,
+    COMPLETE_LIST_32_BIT_SERVICE_UUIDS,
+    COMPLETE_LIST_128_BIT_SERVICE_UUIDS,
+];
+const SOLICIT_AD_TYPES: [u8; 3] = [
+    LIST_16_BIT_SERVICE_SOLICITATION_UUIDS,
+    LIST_32_BIT_SERVICE_SOLICITATION_UUIDS,
+    LIST_128_BIT_SERVICE_SOLICITATION_UUIDS,
+];
 
 // Invalid advertising set id.
 const INVALID_ADV_ID: i32 = 0xff;
@@ -204,97 +223,102 @@ impl AdvertiseData {
         dest.extend(&ad_payload[..len]);
     }
 
+    fn append_uuids(dest: &mut Vec<u8>, ad_types: &[u8; 3], uuids: &Vec<Uuid>) {
+        let mut uuid16_bytes = Vec::<u8>::new();
+        let mut uuid32_bytes = Vec::<u8>::new();
+        let mut uuid128_bytes = Vec::<u8>::new();
+
+        // For better transmission efficiency, we generate a compact
+        // advertisement data byconverting UUIDs into shorter binary forms
+        // and then group them by their length in order.
+        // The data generated for UUIDs looks like:
+        // [16-bit_UUID_LIST, 32-bit_UUID_LIST, 128-bit_UUID_LIST].
+        for uuid in uuids {
+            let uuid_slice = UuidHelper::get_shortest_slice(&uuid.uu);
+            let id: Vec<u8> = uuid_slice.iter().rev().cloned().collect();
+            match id.len() {
+                2 => uuid16_bytes.extend(id),
+                4 => uuid32_bytes.extend(id),
+                16 => uuid128_bytes.extend(id),
+                _ => (),
+            }
+        }
+
+        let bytes_list = vec![uuid16_bytes, uuid32_bytes, uuid128_bytes];
+        for (ad_type, bytes) in
+            ad_types.iter().zip(bytes_list.iter()).filter(|(_, bytes)| bytes.len() > 0)
+        {
+            AdvertiseData::append_adv_data(dest, *ad_type, bytes);
+        }
+    }
+
+    fn append_service_uuids(dest: &mut Vec<u8>, uuids: &Vec<Uuid>) {
+        AdvertiseData::append_uuids(dest, &SERVICE_AD_TYPES, uuids);
+    }
+
+    fn append_solicit_uuids(dest: &mut Vec<u8>, uuids: &Vec<Uuid>) {
+        AdvertiseData::append_uuids(dest, &SOLICIT_AD_TYPES, uuids);
+    }
+
+    fn append_service_data(dest: &mut Vec<u8>, service_data: &HashMap<String, Vec<u8>>) {
+        for (uuid, data) in
+            service_data.iter().filter_map(|(s, d)| parse_uuid_string(s).map(|s| (s, d)))
+        {
+            let uuid_slice = UuidHelper::get_shortest_slice(&uuid.uu);
+            let concated: Vec<u8> = uuid_slice.iter().rev().chain(data).cloned().collect();
+            match uuid_slice.len() {
+                2 => AdvertiseData::append_adv_data(dest, SERVICE_DATA_16_BIT_UUID, &concated),
+                4 => AdvertiseData::append_adv_data(dest, SERVICE_DATA_32_BIT_UUID, &concated),
+                16 => AdvertiseData::append_adv_data(dest, SERVICE_DATA_128_BIT_UUID, &concated),
+                _ => (),
+            }
+        }
+    }
+
+    fn append_device_name(dest: &mut Vec<u8>, device_name: &String) {
+        if device_name.len() == 0 {
+            return;
+        }
+
+        let (ad_type, name) = if device_name.len() > DEVICE_NAME_MAX {
+            (SHORTENED_LOCAL_NAME, [&device_name.as_bytes()[..DEVICE_NAME_MAX], &[0]].concat())
+        } else {
+            (COMPLETE_LOCAL_NAME, [device_name.as_bytes(), &[0]].concat())
+        };
+        AdvertiseData::append_adv_data(dest, ad_type, &name);
+    }
+
+    fn append_manufacturer_data(dest: &mut Vec<u8>, manufacturer_data: &HashMap<ManfId, Vec<u8>>) {
+        for (m, data) in manufacturer_data.iter().sorted() {
+            let concated = [&m.to_le_bytes()[..], data].concat();
+            AdvertiseData::append_adv_data(dest, MANUFACTURER_SPECIFIC_DATA, &concated);
+        }
+    }
+
+    fn append_transport_discovery_data(
+        dest: &mut Vec<u8>,
+        transport_discovery_data: &Vec<Vec<u8>>,
+    ) {
+        for tdd in transport_discovery_data.iter().filter(|tdd| tdd.len() > 0) {
+            AdvertiseData::append_adv_data(dest, TRANSPORT_DISCOVERY_DATA, &tdd);
+        }
+    }
+
     /// Creates raw data from the AdvertiseData.
     pub fn make_with(&self, device_name: &String) -> Vec<u8> {
         let mut bytes = Vec::<u8>::new();
-
-        if device_name.len() > 0 && self.include_device_name {
-            let mut name: Vec<u8> = device_name.as_bytes().to_vec();
-            let mut ad_type = COMPLETE_LOCAL_NAME;
-            if name.len() > DEVICE_NAME_MAX {
-                ad_type = SHORTENED_LOCAL_NAME;
-                name.resize(DEVICE_NAME_MAX, 0);
-            }
-            name.push(0);
-            AdvertiseData::append_adv_data(&mut bytes, ad_type, &name);
+        if self.include_device_name {
+            AdvertiseData::append_device_name(&mut bytes, device_name);
         }
-
-        let mut manufacturers: Vec<&i32> = self.manufacturer_data.keys().collect();
-        manufacturers.sort();
-        for m in manufacturers {
-            let len = 2 + self.manufacturer_data[m].len();
-            let mut concated = Vec::<u8>::with_capacity(len);
-            concated.push((m & 0xff) as u8);
-            concated.push((m >> 8 & 0xff) as u8);
-            concated.extend(&self.manufacturer_data[m]);
-            AdvertiseData::append_adv_data(&mut bytes, MANUFACTURER_SPECIFIC_DATA, &concated);
-        }
-
         if self.include_tx_power_level {
             // Lower layers will fill tx power level.
             AdvertiseData::append_adv_data(&mut bytes, TX_POWER_LEVEL, &[0]);
         }
-
-        let mut uu128_services = Vec::<u8>::new();
-        for uuid_str in &self.service_uuids {
-            if let Some(uuid) = parse_uuid_string(uuid_str) {
-                match uuid.uu.len() {
-                    16 => uu128_services.extend(uuid.uu),
-                    _ => (),
-                };
-            }
-        }
-        if uu128_services.len() > 0 {
-            AdvertiseData::append_adv_data(
-                &mut bytes,
-                COMPLETE_LIST_128_BIT_SERVICE_UUIDS,
-                &uu128_services,
-            );
-        }
-
-        let uuids: Vec<&String> = self.service_data.keys().collect();
-        for uuid_str in uuids {
-            if let Some(uuid) = parse_uuid_string(uuid_str) {
-                let uu_len = uuid.uu.len();
-                let len = uu_len + self.service_data[uuid_str].len();
-                let mut concated = Vec::<u8>::with_capacity(len);
-                concated.extend(uuid.uu);
-                concated.extend(&self.service_data[uuid_str]);
-
-                match uu_len {
-                    16 => AdvertiseData::append_adv_data(
-                        &mut bytes,
-                        SERVICE_DATA_128_BIT_UUID,
-                        &concated,
-                    ),
-                    _ => (),
-                };
-            }
-        }
-
-        let mut uu128_solicits = Vec::<u8>::new();
-        for uuid_str in &self.solicit_uuids {
-            if let Some(uuid) = parse_uuid_string(uuid_str) {
-                match uuid.uu.len() {
-                    16 => uu128_solicits.extend(uuid.uu),
-                    _ => (),
-                };
-            }
-        }
-        if uu128_solicits.len() > 0 {
-            AdvertiseData::append_adv_data(
-                &mut bytes,
-                LIST_128_BIT_SERVICE_SOLICITATION_UUIDS,
-                &uu128_solicits,
-            );
-        }
-
-        for tdd in &self.transport_discovery_data {
-            if tdd.len() > 0 {
-                AdvertiseData::append_adv_data(&mut bytes, TRANSPORT_DISCOVERY_DATA, &tdd);
-            }
-        }
-
+        AdvertiseData::append_manufacturer_data(&mut bytes, &self.manufacturer_data);
+        AdvertiseData::append_service_uuids(&mut bytes, &self.service_uuids);
+        AdvertiseData::append_service_data(&mut bytes, &self.service_data);
+        AdvertiseData::append_solicit_uuids(&mut bytes, &self.solicit_uuids);
+        AdvertiseData::append_transport_discovery_data(&mut bytes, &self.transport_discovery_data);
         bytes
     }
 }
@@ -503,5 +527,147 @@ mod tests {
             assert_eq!(s.callback_id(), callback_id);
             assert_eq!(uniq.insert(s.reg_id()), true);
         }
+    }
+
+    #[test]
+    fn test_append_service_uuids() {
+        let mut bytes = Vec::<u8>::new();
+        let uuid_16 =
+            Uuid { uu: UuidHelper::from_string("0000fef3-0000-1000-8000-00805f9b34fb").unwrap() };
+        let uuids = vec![uuid_16.clone()];
+        let exp_16: Vec<u8> = vec![3, 0x3, 0xf3, 0xfe];
+        AdvertiseData::append_service_uuids(&mut bytes, &uuids);
+        assert_eq!(bytes, exp_16);
+
+        let mut bytes = Vec::<u8>::new();
+        let uuid_32 =
+            Uuid { uu: UuidHelper::from_string("00112233-0000-1000-8000-00805f9b34fb").unwrap() };
+        let uuids = vec![uuid_32.clone()];
+        let exp_32: Vec<u8> = vec![5, 0x5, 0x33, 0x22, 0x11, 0x0];
+        AdvertiseData::append_service_uuids(&mut bytes, &uuids);
+        assert_eq!(bytes, exp_32);
+
+        let mut bytes = Vec::<u8>::new();
+        let uuid_128 =
+            Uuid { uu: UuidHelper::from_string("00010203-0405-0607-0809-0a0b0c0d0e0f").unwrap() };
+        let uuids = vec![uuid_128.clone()];
+        let exp_128: Vec<u8> = vec![
+            17, 0x7, 0xf, 0xe, 0xd, 0xc, 0xb, 0xa, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0,
+        ];
+        AdvertiseData::append_service_uuids(&mut bytes, &uuids);
+        assert_eq!(bytes, exp_128);
+
+        let mut bytes = Vec::<u8>::new();
+        let uuids = vec![uuid_16, uuid_32, uuid_128];
+        let exp_bytes: Vec<u8> =
+            [exp_16.as_slice(), exp_32.as_slice(), exp_128.as_slice()].concat();
+        AdvertiseData::append_service_uuids(&mut bytes, &uuids);
+        assert_eq!(bytes, exp_bytes);
+
+        // Interleaved UUIDs.
+        let mut bytes = Vec::<u8>::new();
+        let uuid_16_2 =
+            Uuid { uu: UuidHelper::from_string("0000aabb-0000-1000-8000-00805f9b34fb").unwrap() };
+        let uuids = vec![uuid_16, uuid_128, uuid_16_2, uuid_32];
+        let exp_16: Vec<u8> = vec![5, 0x3, 0xf3, 0xfe, 0xbb, 0xaa];
+        let exp_bytes: Vec<u8> =
+            [exp_16.as_slice(), exp_32.as_slice(), exp_128.as_slice()].concat();
+        AdvertiseData::append_service_uuids(&mut bytes, &uuids);
+        assert_eq!(bytes, exp_bytes);
+    }
+
+    #[test]
+    fn test_append_solicit_uuids() {
+        let mut bytes = Vec::<u8>::new();
+        let uuid_16 =
+            Uuid { uu: UuidHelper::from_string("0000fef3-0000-1000-8000-00805f9b34fb").unwrap() };
+        let uuid_32 =
+            Uuid { uu: UuidHelper::from_string("00112233-0000-1000-8000-00805f9b34fb").unwrap() };
+        let uuid_128 =
+            Uuid { uu: UuidHelper::from_string("00010203-0405-0607-0809-0a0b0c0d0e0f").unwrap() };
+        let uuids = vec![uuid_16, uuid_32, uuid_128];
+        let exp_16: Vec<u8> = vec![3, 0x14, 0xf3, 0xfe];
+        let exp_32: Vec<u8> = vec![5, 0x1f, 0x33, 0x22, 0x11, 0x0];
+        let exp_128: Vec<u8> = vec![
+            17, 0x15, 0xf, 0xe, 0xd, 0xc, 0xb, 0xa, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1,
+            0x0,
+        ];
+        let exp_bytes: Vec<u8> =
+            [exp_16.as_slice(), exp_32.as_slice(), exp_128.as_slice()].concat();
+        AdvertiseData::append_solicit_uuids(&mut bytes, &uuids);
+        assert_eq!(bytes, exp_bytes);
+    }
+
+    #[test]
+    fn test_append_service_data_good_id() {
+        let mut bytes = Vec::<u8>::new();
+        let uuid_str = "0000fef3-0000-1000-8000-00805f9b34fb".to_string();
+        let mut service_data = HashMap::new();
+        let data: Vec<u8> = vec![
+            0x4A, 0x17, 0x23, 0x41, 0x39, 0x37, 0x45, 0x11, 0x16, 0x60, 0x1D, 0xB8, 0x27, 0xA2,
+            0xEF, 0xAA, 0xFE, 0x58, 0x04, 0x9F, 0xE3, 0x8F, 0xD0, 0x04, 0x29, 0x4F, 0xC2,
+        ];
+        service_data.insert(uuid_str, data.clone());
+        let mut exp_bytes: Vec<u8> = vec![30, 0x16, 0xf3, 0xfe];
+        exp_bytes.extend(data);
+        AdvertiseData::append_service_data(&mut bytes, &service_data);
+        assert_eq!(bytes, exp_bytes);
+    }
+
+    #[test]
+    fn test_append_service_data_bad_id() {
+        let mut bytes = Vec::<u8>::new();
+        let uuid_str = "fef3".to_string();
+        let mut service_data = HashMap::new();
+        let data: Vec<u8> = vec![
+            0x4A, 0x17, 0x23, 0x41, 0x39, 0x37, 0x45, 0x11, 0x16, 0x60, 0x1D, 0xB8, 0x27, 0xA2,
+            0xEF, 0xAA, 0xFE, 0x58, 0x04, 0x9F, 0xE3, 0x8F, 0xD0, 0x04, 0x29, 0x4F, 0xC2,
+        ];
+        service_data.insert(uuid_str, data.clone());
+        let exp_bytes: Vec<u8> = Vec::new();
+        AdvertiseData::append_service_data(&mut bytes, &service_data);
+        assert_eq!(bytes, exp_bytes);
+    }
+
+    #[test]
+    fn test_append_device_name() {
+        let mut bytes = Vec::<u8>::new();
+        let complete_name = "abc".to_string();
+        let exp_bytes: Vec<u8> = vec![5, 0x9, 0x61, 0x62, 0x63, 0x0];
+        AdvertiseData::append_device_name(&mut bytes, &complete_name);
+        assert_eq!(bytes, exp_bytes);
+
+        let mut bytes = Vec::<u8>::new();
+        let shortened_name = "abcdefghijklmnopqrstuvwxyz7890".to_string();
+        let exp_bytes: Vec<u8> = vec![
+            28, 0x8, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d,
+            0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x0,
+        ];
+        AdvertiseData::append_device_name(&mut bytes, &shortened_name);
+        assert_eq!(bytes, exp_bytes);
+    }
+
+    #[test]
+    fn test_append_manufacturer_data() {
+        let mut bytes = Vec::<u8>::new();
+        let manufacturer_data = HashMap::from([(0x0123 as u16, vec![0, 1, 2])]);
+        let exp_bytes: Vec<u8> = vec![6, 0xff, 0x23, 0x01, 0x0, 0x1, 0x2];
+        AdvertiseData::append_manufacturer_data(&mut bytes, &manufacturer_data);
+        assert_eq!(bytes, exp_bytes);
+    }
+
+    #[test]
+    fn test_append_transport_discovery_data() {
+        let mut bytes = Vec::<u8>::new();
+        let transport_discovery_data = vec![vec![0, 1, 2]];
+        let exp_bytes: Vec<u8> = vec![0x4, 0x26, 0x0, 0x1, 0x2];
+        AdvertiseData::append_transport_discovery_data(&mut bytes, &transport_discovery_data);
+        assert_eq!(bytes, exp_bytes);
+
+        let mut bytes = Vec::<u8>::new();
+        let transport_discovery_data = vec![vec![1, 2, 4, 8], vec![0xa, 0xb]];
+        let exp_bytes: Vec<u8> = vec![0x5, 0x26, 0x1, 0x2, 0x4, 0x8, 3, 0x26, 0xa, 0xb];
+        AdvertiseData::append_transport_discovery_data(&mut bytes, &transport_discovery_data);
+        assert_eq!(bytes, exp_bytes);
     }
 }
