@@ -396,7 +396,7 @@ impl Default for PeriodicAdvertisingParameters {
 
 impl From<ffi::RustUuid> for Uuid {
     fn from(item: ffi::RustUuid) -> Self {
-        Uuid { uu: item.uu }
+        Uuid::from(item.uu)
     }
 }
 

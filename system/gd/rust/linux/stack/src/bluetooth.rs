@@ -349,7 +349,6 @@ pub struct Bluetooth {
     sdp: Option<Sdp>,
     state: BtState,
     tx: Sender<Message>,
-    uuid_helper: UuidHelper,
     /// Used to delay connection until we have SDP results.
     wait_to_connect: bool,
     // Internal API members
@@ -388,7 +387,6 @@ impl Bluetooth {
             sdp: None,
             state: BtState::Off,
             tx,
-            uuid_helper: UuidHelper::new(),
             wait_to_connect: false,
             // Internal API members
             discoverable_timeout: None,
@@ -1424,10 +1422,9 @@ impl IBluetooth for Bluetooth {
         // Wake is allowed if the device supports HIDP or HOGP only.
         match self.get_remote_device_property(&device, &BtPropertyType::Uuids) {
             Some(BluetoothProperty::Uuids(uuids)) => {
-                let uu_helper = UuidHelper::new();
                 return uuids.iter().any(|&x| {
-                    uu_helper.is_known_profile(&x.uu).map_or(false, |profile| {
-                        profile == &Profile::Hid || profile == &Profile::Hogp
+                    UuidHelper::is_known_profile(&x.uu).map_or(false, |profile| {
+                        profile == Profile::Hid || profile == Profile::Hogp
                     })
                 });
             }
@@ -1520,7 +1517,7 @@ impl IBluetooth for Bluetooth {
             return false;
         }
 
-        let uu = Uuid { uu: uuid };
+        let uu = Uuid::from(uuid);
         self.sdp.as_ref().unwrap().sdp_search(&mut addr.unwrap(), &uu) == BtStatus::Success
     }
 
@@ -1540,15 +1537,15 @@ impl IBluetooth for Bluetooth {
         let mut has_enabled_uuids = false;
         let uuids = self.get_remote_uuids(device.clone());
         for uuid in uuids.iter() {
-            match self.uuid_helper.is_known_profile(uuid) {
+            match UuidHelper::is_known_profile(uuid) {
                 Some(p) => {
-                    if self.uuid_helper.is_profile_enabled(&p) {
+                    if UuidHelper::is_profile_enabled(&p) {
                         match p {
                             Profile::Hid | Profile::Hogp => {
                                 let status = self.hh.as_ref().unwrap().connect(&mut addr.unwrap());
                                 metrics::profile_connection_state_changed(
                                     addr.unwrap(),
-                                    *p as u32,
+                                    p as u32,
                                     BtStatus::Success,
                                     BthhConnectionState::Connecting as u32,
                                 );
@@ -1556,7 +1553,7 @@ impl IBluetooth for Bluetooth {
                                 if status != BtStatus::Success {
                                     metrics::profile_connection_state_changed(
                                         addr.unwrap(),
-                                        *p as u32,
+                                        p as u32,
                                         status,
                                         BthhConnectionState::Disconnected as u32,
                                     );
@@ -1604,9 +1601,9 @@ impl IBluetooth for Bluetooth {
 
         let uuids = self.get_remote_uuids(device.clone());
         for uuid in uuids.iter() {
-            match self.uuid_helper.is_known_profile(uuid) {
+            match UuidHelper::is_known_profile(uuid) {
                 Some(p) => {
-                    if self.uuid_helper.is_profile_enabled(&p) {
+                    if UuidHelper::is_profile_enabled(&p) {
                         match p {
                             Profile::Hid | Profile::Hogp => {
                                 self.hh.as_ref().unwrap().disconnect(&mut addr.unwrap());
