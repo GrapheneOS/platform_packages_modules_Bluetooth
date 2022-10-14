@@ -751,15 +751,6 @@ struct acl_process_extended_features {
   };
 };
 extern struct acl_process_extended_features acl_process_extended_features;
-// Name: acl_process_num_completed_pkts
-// Params: uint8_t* p, uint8_t evt_len
-// Returns: void
-struct acl_process_num_completed_pkts {
-  std::function<void(uint8_t* p, uint8_t evt_len)> body{
-      [](uint8_t* p, uint8_t evt_len) { ; }};
-  void operator()(uint8_t* p, uint8_t evt_len) { body(p, evt_len); };
-};
-extern struct acl_process_num_completed_pkts acl_process_num_completed_pkts;
 // Name: acl_process_supported_features
 // Params: uint16_t handle, uint64_t features
 // Returns: void
