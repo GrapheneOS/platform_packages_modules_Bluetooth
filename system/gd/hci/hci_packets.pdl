@@ -94,7 +94,7 @@ packet Acl {
 enum PacketStatusFlag : 2 {
   CORRECTLY_RECEIVED = 0,
   POSSIBLY_INCOMPLETE = 1,
-  NO_DATA = 2,
+  NO_DATA_RECEIVED = 2,
   PARTIALLY_LOST = 3,
 }
 
@@ -5672,7 +5672,7 @@ enum DirectAdvertisingAddressType : 8 {
   PUBLIC_IDENTITY_ADDRESS = 0x02,
   RANDOM_IDENTITY_ADDRESS = 0x03,
   CONTROLLER_UNABLE_TO_RESOLVE = 0xFE,
-  NO_ADDRESS = 0xFF,
+  NO_ADDRESS_PROVIDED = 0xFF,
 }
 
 enum DirectAdvertisingEventType : 8 {
