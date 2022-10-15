@@ -186,26 +186,21 @@ mod tests {
         assert_eq!(uuids.len(), 3);
         assert_eq!(
             uuids[0],
-            Uuid::try_from(vec![
+            Uuid::from([
                 0x0, 0x0, 0xFE, 0x2C, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34,
                 0xfb
             ])
-            .unwrap()
             .uu
         );
         assert_eq!(
             uuids[1],
-            Uuid::try_from(vec![
+            Uuid::from([
                 0x5, 0x4, 0x3, 0x2, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34,
                 0xfb
             ])
-            .unwrap()
             .uu
         );
-        assert_eq!(
-            uuids[2],
-            Uuid::try_from(vec![15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]).unwrap().uu
-        );
+        assert_eq!(uuids[2], Uuid::from([15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]).uu);
     }
 
     #[test]
@@ -282,27 +277,21 @@ mod tests {
         ];
         let service_data = extract_service_data(payload.as_slice());
         assert_eq!(service_data.len(), 4);
-        let expected_uuid = Uuid::try_from(vec![
+        let expected_uuid = Uuid::from([
             0x0, 0x0, 0xFE, 0x2C, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34, 0xfb,
         ])
-        .unwrap()
         .to_string();
         assert_eq!(service_data.get(&expected_uuid), Some(&vec![0xFF]));
-        let expected_uuid = Uuid::try_from(vec![
+        let expected_uuid = Uuid::from([
             0x5, 0x4, 0x3, 0x2, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34, 0xfb,
         ])
-        .unwrap()
         .to_string();
         assert_eq!(service_data.get(&expected_uuid), Some(&vec![0xFE]));
         let expected_uuid =
-            Uuid::try_from(vec![15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
-                .unwrap()
-                .to_string();
+            Uuid::from([15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]).to_string();
         assert_eq!(service_data.get(&expected_uuid), Some(&vec![16]));
         let expected_uuid =
-            Uuid::try_from(vec![16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
-                .unwrap()
-                .to_string();
+            Uuid::from([16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]).to_string();
         assert_eq!(service_data.get(&expected_uuid), Some(&vec![]));
     }
 

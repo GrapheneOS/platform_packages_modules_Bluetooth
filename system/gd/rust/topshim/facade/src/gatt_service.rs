@@ -132,7 +132,7 @@ impl GattServiceImpl {
     }
 
     fn create_uuid(&self) -> Uuid {
-        Uuid { uu: [0; 16] }
+        Uuid::from([0; 16])
     }
 }
 

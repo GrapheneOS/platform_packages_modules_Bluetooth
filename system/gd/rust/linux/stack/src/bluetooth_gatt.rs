@@ -20,7 +20,7 @@ use crate::bluetooth_adv::{
     IAdvertisingSetCallback, PeriodicAdvertisingParameters,
 };
 use crate::callbacks::Callbacks;
-use crate::uuid::parse_uuid_string;
+use crate::uuid::UuidHelper;
 use crate::{Message, RPCProxy, SuspendMode};
 use log::{debug, warn};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
@@ -956,7 +956,7 @@ impl IBluetoothGatt for BluetoothGatt {
     fn register_scanner(&mut self, callback_id: u32) -> Uuid128Bit {
         let mut bytes: [u8; 16] = [0; 16];
         self.small_rng.fill_bytes(&mut bytes);
-        let uuid = Uuid { uu: bytes };
+        let uuid = Uuid::from(bytes);
 
         self.scanners.insert(uuid, ScannerInfo { callback_id, scanner_id: None, is_active: false });
 
@@ -1186,7 +1186,7 @@ impl IBluetoothGatt for BluetoothGatt {
         callback: Box<dyn IBluetoothGattCallback + Send>,
         eatt_support: bool,
     ) {
-        let uuid = match parse_uuid_string(&app_uuid) {
+        let uuid = match UuidHelper::parse_string(&app_uuid) {
             Some(id) => id,
             None => {
                 log::info!("Uuid is malformed: {}", app_uuid);
@@ -1266,7 +1266,7 @@ impl IBluetoothGatt for BluetoothGatt {
             return;
         }
 
-        let uuid = parse_uuid_string(uuid);
+        let uuid = UuidHelper::parse_string(uuid);
         if uuid.is_none() {
             return;
         }
@@ -1303,7 +1303,7 @@ impl IBluetoothGatt for BluetoothGatt {
             return;
         }
 
-        let uuid = parse_uuid_string(uuid);
+        let uuid = UuidHelper::parse_string(uuid);
         if uuid.is_none() {
             return;
         }
@@ -2665,16 +2665,16 @@ mod tests {
 
     #[test]
     fn test_uuid_from_string() {
-        let uuid = parse_uuid_string("abcdef");
+        let uuid = UuidHelper::parse_string("abcdef");
         assert!(uuid.is_none());
 
-        let uuid = parse_uuid_string("0123456789abcdef0123456789abcdef");
+        let uuid = UuidHelper::parse_string("0123456789abcdef0123456789abcdef");
         assert!(uuid.is_some());
         let expected: [u8; 16] = [
             0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab,
             0xcd, 0xef,
         ];
-        assert_eq!(Uuid { uu: expected }, uuid.unwrap());
+        assert_eq!(Uuid::from(expected), uuid.unwrap());
     }
 
     #[test]
@@ -2684,7 +2684,7 @@ mod tests {
 
         // Add client 1.
         let callback1 = Box::new(TestBluetoothGattCallback::new(String::from("Callback 1")));
-        let uuid1 = parse_uuid_string("00000000000000000000000000000001").unwrap().uu;
+        let uuid1 = UuidHelper::parse_string("00000000000000000000000000000001").unwrap().uu;
         map.add(&uuid1, callback1);
         let found = map.get_by_uuid(&uuid1);
         assert!(found.is_some());
@@ -2704,7 +2704,7 @@ mod tests {
 
         // Add client 2.
         let callback2 = Box::new(TestBluetoothGattCallback::new(String::from("Callback 2")));
-        let uuid2 = parse_uuid_string("00000000000000000000000000000002").unwrap().uu;
+        let uuid2 = UuidHelper::parse_string("00000000000000000000000000000002").unwrap().uu;
         map.add(&uuid2, callback2);
         let found = map.get_by_uuid(&uuid2);
         assert!(found.is_some());
