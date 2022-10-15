@@ -96,91 +96,77 @@ impl<'a> Display for KnownUuidWrapper<'a> {
     }
 }
 
-/// Represents binary encoding of UUID in big-endian.
-#[derive(Debug)]
-pub enum UuidBytes {
-    Uuid16Bit([u8; 2]),
-    Uuid32Bit([u8; 4]),
-    Uuid128Bit([u8; 16]),
+pub struct UuidHelper {}
+
+lazy_static! {
+    static ref ENABLED_PROFILES: HashSet<Profile> = [
+        Profile::A2dpSink,
+        Profile::A2dpSource,
+        Profile::Hsp,
+        Profile::Hfp,
+        Profile::Hid,
+        Profile::Hogp,
+        Profile::Panu,
+        Profile::PbapPce,
+        Profile::Map,
+        Profile::HearingAid,
+        Profile::VolumeControl,
+        Profile::CoordinatedSet,
+    ]
+    .iter()
+    .cloned()
+    .collect();
 }
 
-pub struct UuidHelper {
-    /// A list of enabled profiles on the system. These may be modified by policy.
-    pub enabled_profiles: HashSet<Profile>,
-
-    /// Map a UUID to a known profile
-    pub profiles: HashMap<Uuid128Bit, Profile>,
+lazy_static! {
+    static ref PROFILES: HashMap<Uuid128Bit, Profile> = [
+        (UuidHelper::from_string(A2DP_SINK).unwrap(), Profile::A2dpSink),
+        (UuidHelper::from_string(A2DP_SOURCE).unwrap(), Profile::A2dpSource),
+        (UuidHelper::from_string(ADV_AUDIO_DIST).unwrap(), Profile::AdvAudioDist),
+        (UuidHelper::from_string(HSP).unwrap(), Profile::Hsp),
+        (UuidHelper::from_string(HSP_AG).unwrap(), Profile::HspAg),
+        (UuidHelper::from_string(HFP).unwrap(), Profile::Hfp),
+        (UuidHelper::from_string(HFP_AG).unwrap(), Profile::HfpAg),
+        (UuidHelper::from_string(AVRCP_CONTROLLER).unwrap(), Profile::AvrcpController),
+        (UuidHelper::from_string(AVRCP_TARGET).unwrap(), Profile::AvrcpTarget),
+        (UuidHelper::from_string(OBEX_OBJECT_PUSH).unwrap(), Profile::ObexObjectPush),
+        (UuidHelper::from_string(HID).unwrap(), Profile::Hid),
+        (UuidHelper::from_string(HOGP).unwrap(), Profile::Hogp),
+        (UuidHelper::from_string(PANU).unwrap(), Profile::Panu),
+        (UuidHelper::from_string(NAP).unwrap(), Profile::Nap),
+        (UuidHelper::from_string(BNEP).unwrap(), Profile::Bnep),
+        (UuidHelper::from_string(PBAP_PCE).unwrap(), Profile::PbapPce),
+        (UuidHelper::from_string(PBAP_PSE).unwrap(), Profile::PbapPse),
+        (UuidHelper::from_string(MAP).unwrap(), Profile::Map),
+        (UuidHelper::from_string(MNS).unwrap(), Profile::Mns),
+        (UuidHelper::from_string(MAS).unwrap(), Profile::Mas),
+        (UuidHelper::from_string(SAP).unwrap(), Profile::Sap),
+        (UuidHelper::from_string(HEARING_AID).unwrap(), Profile::HearingAid),
+        (UuidHelper::from_string(LE_AUDIO).unwrap(), Profile::LeAudio),
+        (UuidHelper::from_string(DIP).unwrap(), Profile::Dip),
+        (UuidHelper::from_string(VOLUME_CONTROL).unwrap(), Profile::VolumeControl),
+        (UuidHelper::from_string(GENERIC_MEDIA_CONTROL).unwrap(), Profile::GenericMediaControl),
+        (UuidHelper::from_string(MEDIA_CONTROL).unwrap(), Profile::MediaControl),
+        (UuidHelper::from_string(COORDINATED_SET).unwrap(), Profile::CoordinatedSet),
+    ]
+    .iter()
+    .cloned()
+    .collect();
 }
 
 impl UuidHelper {
-    pub fn new() -> Self {
-        let enabled_profiles: HashSet<Profile> = [
-            Profile::A2dpSink,
-            Profile::A2dpSource,
-            Profile::Hsp,
-            Profile::Hfp,
-            Profile::Hid,
-            Profile::Hogp,
-            Profile::Panu,
-            Profile::PbapPce,
-            Profile::Map,
-            Profile::HearingAid,
-            Profile::VolumeControl,
-            Profile::CoordinatedSet,
-        ]
-        .iter()
-        .cloned()
-        .collect();
-
-        let profiles: HashMap<Uuid128Bit, Profile> = [
-            (UuidHelper::from_string(A2DP_SINK).unwrap(), Profile::A2dpSink),
-            (UuidHelper::from_string(A2DP_SOURCE).unwrap(), Profile::A2dpSource),
-            (UuidHelper::from_string(ADV_AUDIO_DIST).unwrap(), Profile::AdvAudioDist),
-            (UuidHelper::from_string(HSP).unwrap(), Profile::Hsp),
-            (UuidHelper::from_string(HSP_AG).unwrap(), Profile::HspAg),
-            (UuidHelper::from_string(HFP).unwrap(), Profile::Hfp),
-            (UuidHelper::from_string(HFP_AG).unwrap(), Profile::HfpAg),
-            (UuidHelper::from_string(AVRCP_CONTROLLER).unwrap(), Profile::AvrcpController),
-            (UuidHelper::from_string(AVRCP_TARGET).unwrap(), Profile::AvrcpTarget),
-            (UuidHelper::from_string(OBEX_OBJECT_PUSH).unwrap(), Profile::ObexObjectPush),
-            (UuidHelper::from_string(HID).unwrap(), Profile::Hid),
-            (UuidHelper::from_string(HOGP).unwrap(), Profile::Hogp),
-            (UuidHelper::from_string(PANU).unwrap(), Profile::Panu),
-            (UuidHelper::from_string(NAP).unwrap(), Profile::Nap),
-            (UuidHelper::from_string(BNEP).unwrap(), Profile::Bnep),
-            (UuidHelper::from_string(PBAP_PCE).unwrap(), Profile::PbapPce),
-            (UuidHelper::from_string(PBAP_PSE).unwrap(), Profile::PbapPse),
-            (UuidHelper::from_string(MAP).unwrap(), Profile::Map),
-            (UuidHelper::from_string(MNS).unwrap(), Profile::Mns),
-            (UuidHelper::from_string(MAS).unwrap(), Profile::Mas),
-            (UuidHelper::from_string(SAP).unwrap(), Profile::Sap),
-            (UuidHelper::from_string(HEARING_AID).unwrap(), Profile::HearingAid),
-            (UuidHelper::from_string(LE_AUDIO).unwrap(), Profile::LeAudio),
-            (UuidHelper::from_string(DIP).unwrap(), Profile::Dip),
-            (UuidHelper::from_string(VOLUME_CONTROL).unwrap(), Profile::VolumeControl),
-            (UuidHelper::from_string(GENERIC_MEDIA_CONTROL).unwrap(), Profile::GenericMediaControl),
-            (UuidHelper::from_string(MEDIA_CONTROL).unwrap(), Profile::MediaControl),
-            (UuidHelper::from_string(COORDINATED_SET).unwrap(), Profile::CoordinatedSet),
-        ]
-        .iter()
-        .cloned()
-        .collect();
-
-        UuidHelper { enabled_profiles, profiles }
-    }
-
     /// Checks whether a UUID corresponds to a currently enabled profile.
-    pub fn is_profile_enabled(&self, profile: &Profile) -> bool {
-        self.enabled_profiles.contains(profile)
+    pub fn is_profile_enabled(profile: &Profile) -> bool {
+        ENABLED_PROFILES.contains(profile)
     }
 
     /// Converts a UUID to a known profile enum.
-    pub fn is_known_profile(&self, uuid: &Uuid128Bit) -> Option<&Profile> {
-        self.profiles.get(uuid)
+    pub fn is_known_profile(uuid: &Uuid128Bit) -> Option<Profile> {
+        PROFILES.get(uuid).cloned()
     }
 
-    pub fn get_enabled_profiles(&self) -> HashSet<Profile> {
-        self.enabled_profiles.clone()
+    pub fn get_enabled_profiles() -> HashSet<Profile> {
+        ENABLED_PROFILES.clone()
     }
 
     /// Converts a UUID byte array into a formatted string.
@@ -190,8 +176,8 @@ impl UuidHelper {
 
     /// If a uuid is known to be a certain service, convert it into a formatted
     /// string that shows the service name. Else just format the uuid.
-    pub fn known_uuid_to_string(&self, uuid: &Uuid128Bit) -> String {
-        if let Some(p) = self.is_known_profile(uuid) {
+    pub fn known_uuid_to_string(uuid: &Uuid128Bit) -> String {
+        if let Some(p) = Self::is_known_profile(uuid) {
             return KnownUuidWrapper(&uuid, &p).to_string();
         }
 
@@ -251,29 +237,29 @@ impl UuidHelper {
         let num = u128::from_be_bytes(*uuid);
         (num & BASE_UUID_MASK) == BASE_UUID_NUM
     }
-}
 
-// Temporary util that covers only basic string conversion.
-// TODO(b/193685325): Implement more UUID utils by using Uuid from gd/hci/uuid.h with cxx.
-pub fn parse_uuid_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
-    let uuid = uuid.into();
+    // Temporary util that covers only basic string conversion.
+    // TODO(b/193685325): Implement more UUID utils by using Uuid from gd/hci/uuid.h with cxx.
+    pub fn parse_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
+        let uuid = uuid.into();
 
-    // Strip un-needed characters before parsing to handle the common
-    // case of including dashes in UUID strings. UUID expects only
-    // 0-9, a-f, A-F with no other characters. |is_digit| with radix
-    // 16 (hex) supports that exact behavior.
-    let uuid = uuid.chars().filter(|char| char.is_digit(16)).collect::<String>();
-    if uuid.len() != 32 {
-        return None;
+        // Strip un-needed characters before parsing to handle the common
+        // case of including dashes in UUID strings. UUID expects only
+        // 0-9, a-f, A-F with no other characters. |is_digit| with radix
+        // 16 (hex) supports that exact behavior.
+        let uuid = uuid.chars().filter(|char| char.is_digit(16)).collect::<String>();
+        if uuid.len() != 32 {
+            return None;
+        }
+
+        let mut raw = [0; 16];
+
+        for i in 0..16 {
+            raw[i] = u8::from_str_radix(&uuid[i * 2..i * 2 + 2], 16).ok()?;
+        }
+
+        Some(Uuid::from(raw))
     }
-
-    let mut raw = [0; 16];
-
-    for i in 0..16 {
-        raw[i] = u8::from_str_radix(&uuid[i * 2..i * 2 + 2], 16).ok()?;
-    }
-
-    Some(Uuid { uu: raw })
 }
 
 #[cfg(test)]
@@ -282,8 +268,7 @@ mod tests {
 
     #[test]
     fn test_uuidhelper() {
-        let uuidhelper = UuidHelper::new();
-        for (uuid, _) in uuidhelper.profiles.iter() {
+        for (uuid, _) in PROFILES.iter() {
             let converted = UuidHelper::from_string(UuidHelper::to_string(&uuid));
             assert_eq!(converted.is_some(), true);
             converted.and_then::<Uuid128Bit, _>(|uu: Uuid128Bit| {

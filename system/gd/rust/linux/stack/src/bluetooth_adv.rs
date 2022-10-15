@@ -11,7 +11,7 @@ use std::sync::atomic::{AtomicIsize, Ordering};
 use tokio::sync::mpsc::Sender;
 
 use crate::callbacks::Callbacks;
-use crate::uuid::{parse_uuid_string, UuidHelper};
+use crate::uuid::UuidHelper;
 use crate::{Message, RPCProxy};
 
 pub type AdvertiserId = i32;
@@ -262,7 +262,7 @@ impl AdvertiseData {
 
     fn append_service_data(dest: &mut Vec<u8>, service_data: &HashMap<String, Vec<u8>>) {
         for (uuid, data) in
-            service_data.iter().filter_map(|(s, d)| parse_uuid_string(s).map(|s| (s, d)))
+            service_data.iter().filter_map(|(s, d)| UuidHelper::parse_string(s).map(|s| (s, d)))
         {
             let uuid_slice = UuidHelper::get_shortest_slice(&uuid.uu);
             let concated: Vec<u8> = uuid_slice.iter().rev().chain(data).cloned().collect();
@@ -533,7 +533,7 @@ mod tests {
     fn test_append_service_uuids() {
         let mut bytes = Vec::<u8>::new();
         let uuid_16 =
-            Uuid { uu: UuidHelper::from_string("0000fef3-0000-1000-8000-00805f9b34fb").unwrap() };
+            Uuid::from(UuidHelper::from_string("0000fef3-0000-1000-8000-00805f9b34fb").unwrap());
         let uuids = vec![uuid_16.clone()];
         let exp_16: Vec<u8> = vec![3, 0x3, 0xf3, 0xfe];
         AdvertiseData::append_service_uuids(&mut bytes, &uuids);
@@ -541,7 +541,7 @@ mod tests {
 
         let mut bytes = Vec::<u8>::new();
         let uuid_32 =
-            Uuid { uu: UuidHelper::from_string("00112233-0000-1000-8000-00805f9b34fb").unwrap() };
+            Uuid::from(UuidHelper::from_string("00112233-0000-1000-8000-00805f9b34fb").unwrap());
         let uuids = vec![uuid_32.clone()];
         let exp_32: Vec<u8> = vec![5, 0x5, 0x33, 0x22, 0x11, 0x0];
         AdvertiseData::append_service_uuids(&mut bytes, &uuids);
@@ -549,7 +549,7 @@ mod tests {
 
         let mut bytes = Vec::<u8>::new();
         let uuid_128 =
-            Uuid { uu: UuidHelper::from_string("00010203-0405-0607-0809-0a0b0c0d0e0f").unwrap() };
+            Uuid::from(UuidHelper::from_string("00010203-0405-0607-0809-0a0b0c0d0e0f").unwrap());
         let uuids = vec![uuid_128.clone()];
         let exp_128: Vec<u8> = vec![
             17, 0x7, 0xf, 0xe, 0xd, 0xc, 0xb, 0xa, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0,
@@ -567,7 +567,7 @@ mod tests {
         // Interleaved UUIDs.
         let mut bytes = Vec::<u8>::new();
         let uuid_16_2 =
-            Uuid { uu: UuidHelper::from_string("0000aabb-0000-1000-8000-00805f9b34fb").unwrap() };
+            Uuid::from(UuidHelper::from_string("0000aabb-0000-1000-8000-00805f9b34fb").unwrap());
         let uuids = vec![uuid_16, uuid_128, uuid_16_2, uuid_32];
         let exp_16: Vec<u8> = vec![5, 0x3, 0xf3, 0xfe, 0xbb, 0xaa];
         let exp_bytes: Vec<u8> =
@@ -580,11 +580,11 @@ mod tests {
     fn test_append_solicit_uuids() {
         let mut bytes = Vec::<u8>::new();
         let uuid_16 =
-            Uuid { uu: UuidHelper::from_string("0000fef3-0000-1000-8000-00805f9b34fb").unwrap() };
+            Uuid::from(UuidHelper::from_string("0000fef3-0000-1000-8000-00805f9b34fb").unwrap());
         let uuid_32 =
-            Uuid { uu: UuidHelper::from_string("00112233-0000-1000-8000-00805f9b34fb").unwrap() };
+            Uuid::from(UuidHelper::from_string("00112233-0000-1000-8000-00805f9b34fb").unwrap());
         let uuid_128 =
-            Uuid { uu: UuidHelper::from_string("00010203-0405-0607-0809-0a0b0c0d0e0f").unwrap() };
+            Uuid::from(UuidHelper::from_string("00010203-0405-0607-0809-0a0b0c0d0e0f").unwrap());
         let uuids = vec![uuid_16, uuid_32, uuid_128];
         let exp_16: Vec<u8> = vec![3, 0x14, 0xf3, 0xfe];
         let exp_32: Vec<u8> = vec![5, 0x1f, 0x33, 0x22, 0x11, 0x0];

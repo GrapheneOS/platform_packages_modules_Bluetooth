@@ -3,7 +3,7 @@ use crate::bluetooth_gatt::{
 };
 use crate::callbacks::Callbacks;
 use crate::uuid;
-use crate::uuid::parse_uuid_string;
+use crate::uuid::UuidHelper;
 use crate::Message;
 use crate::RPCProxy;
 use bt_topshim::btif::BtTransport;
@@ -144,8 +144,8 @@ impl BatteryService {
                     return;
                 }
                 let (bas_uuid, battery_level_uuid) = match (
-                    parse_uuid_string(uuid::BAS),
-                    parse_uuid_string(CHARACTERISTIC_BATTERY_LEVEL),
+                    UuidHelper::parse_string(uuid::BAS),
+                    UuidHelper::parse_string(CHARACTERISTIC_BATTERY_LEVEL),
                 ) {
                     (Some(bas_uuid), Some(battery_level_uuid)) => (bas_uuid, battery_level_uuid),
                     _ => return,

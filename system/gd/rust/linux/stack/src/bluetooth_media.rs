@@ -6,7 +6,9 @@ use bt_topshim::profiles::a2dp::{
     A2dpCodecConfig, A2dpCodecSampleRate, BtavAudioState, BtavConnectionState,
     PresentationPosition,
 };
-use bt_topshim::profiles::avrcp::{Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher};
+use bt_topshim::profiles::avrcp::{
+    Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher, PlayerMetadata,
+};
 use bt_topshim::profiles::hfp::{
     BthfAudioState, BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher,
     HfpCodecCapability,
@@ -84,6 +86,17 @@ pub trait IBluetoothMedia {
     // Start the SCO setup to connect audio
     fn start_sco_call(&mut self, address: String, sco_offload: bool, force_cvsd: bool);
     fn stop_sco_call(&mut self, address: String);
+
+    /// Set the current playback status: e.g., playing, paused, stopped, etc. The method is a copy
+    /// of the existing CRAS API, hence not following Floss API conventions.
+    fn set_player_playback_status(&mut self, status: String);
+    /// Set the position of the current media in microseconds. The method is a copy of the existing
+    /// CRAS API, hence not following Floss API conventions.
+    fn set_player_posistion(&mut self, position: i64);
+    /// Set the media metadata, including title, artist, album, and length. The method is a
+    /// copy of the existing CRAS API, hence not following Floss API conventions. PlayerMetadata is
+    /// a custom data type that requires special handlng.
+    fn set_player_metadata(&mut self, metadata: PlayerMetadata);
 }
 
 pub trait IBluetoothMediaCallback: RPCProxy {
@@ -660,16 +673,14 @@ impl BluetoothMedia {
             let audio_profiles =
                 vec![uuid::Profile::A2dpSink, uuid::Profile::Hfp, uuid::Profile::AvrcpController];
 
-            let uuid_helper = uuid::UuidHelper::new();
-
             adapter
                 .lock()
                 .unwrap()
                 .get_remote_uuids(device)
                 .into_iter()
-                .map(|u| uuid_helper.is_known_profile(&u))
+                .map(|u| uuid::UuidHelper::is_known_profile(&u))
                 .filter(|u| u.is_some())
-                .map(|u| *u.unwrap())
+                .map(|u| u.unwrap())
                 .filter(|u| audio_profiles.contains(&u))
                 .collect()
         } else {
@@ -1218,4 +1229,8 @@ impl IBluetoothMedia for BluetoothMedia {
             data_position_nsec: position.data_position_nsec,
         }
     }
+
+    fn set_player_playback_status(&mut self, _status: String) {}
+    fn set_player_posistion(&mut self, _position: i64) {}
+    fn set_player_metadata(&mut self, _metadata: PlayerMetadata) {}
 }
