@@ -4,6 +4,14 @@ use crate::topstack::get_dispatchers;
 use std::sync::{Arc, Mutex};
 use topshim_macros::cb_variant;
 
+#[derive(Debug, Default)]
+pub struct PlayerMetadata {
+    pub title: String,
+    pub artist: String,
+    pub album: String,
+    pub length: i64,
+}
+
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 pub mod ffi {
     #[derive(Debug, Copy, Clone)]
