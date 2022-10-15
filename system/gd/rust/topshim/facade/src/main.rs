@@ -20,6 +20,7 @@ use tokio::runtime::Runtime;
 
 mod adapter_service;
 mod gatt_service;
+mod hfp_service;
 mod media_service;
 mod security_service;
 
@@ -85,6 +86,8 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
 
     let gatt_service_impl = gatt_service::GattServiceImpl::create(rt.clone(), btif_intf.clone());
 
+    let hfp_service_impl = hfp_service::HfpServiceImpl::create(rt.clone(), btif_intf.clone());
+
     let media_service_impl = media_service::MediaServiceImpl::create(rt.clone(), btif_intf.clone());
 
     let start_stack_now = value_t!(matches, "start-stack-now", bool).unwrap();
@@ -97,6 +100,7 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
         .register_service(adapter_service_impl)
         .register_service(security_service_impl)
         .register_service(gatt_service_impl)
+        .register_service(hfp_service_impl)
         .register_service(media_service_impl)
         .bind("0.0.0.0", grpc_port)
         .build()
