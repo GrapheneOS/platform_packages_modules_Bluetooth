@@ -189,8 +189,9 @@ public abstract class BluetoothProfileConnector<T> {
 
     void disconnect() {
         if (mServiceListener != null) {
-            mServiceListener.onServiceDisconnected(mProfileId);
+            BluetoothProfile.ServiceListener listener = mServiceListener;
             mServiceListener = null;
+            listener.onServiceDisconnected(mProfileId);
         }
         IBluetoothManager mgr = BluetoothAdapter.getDefaultAdapter().getBluetoothManager();
         if (mgr != null) {
