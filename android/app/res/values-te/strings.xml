@@ -72,7 +72,7 @@
     <string name="upload_fail_cancel" msgid="1632528037932779727">"మూసివేయి"</string>
     <string name="bt_error_btn_ok" msgid="2802751202009957372">"సరే"</string>
     <string name="unknown_file" msgid="3719981572107052685">"తెలియని ఫైల్"</string>
-    <string name="unknown_file_desc" msgid="9185609398960437760">"ఈ రకమైన ఫైల్‌ను నిర్వహించడానికి యాప్ ఏదీ లేదు. \n"</string>
+    <string name="unknown_file_desc" msgid="9185609398960437760">"ఈ రకమైన ఫైల్‌ను మేనేజ్ చేయడానికి యాప్ ఏదీ లేదు. \n"</string>
     <string name="not_exist_file" msgid="5097565588949092486">"ఫైల్ లేదు"</string>
     <string name="not_exist_file_desc" msgid="250802392160941265">"ఫైల్ ఉనికిలో లేదు. \n"</string>
     <string name="enabling_progress_title" msgid="5262637688863903594">"దయచేసి వేచి ఉండండి..."</string>
