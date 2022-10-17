@@ -19,6 +19,7 @@
 #include "hci/address.h"
 #include "hci/hci_packets.h"
 #include "hci/le_rand_callback.h"
+#include "hci_controller_generated.h"
 #include "module.h"
 #include "os/handler.h"
 
@@ -227,6 +228,8 @@ class Controller : public Module {
   void Stop() override;
 
   std::string ToString() const override;
+
+  DumpsysDataFinisher GetDumpsysData(flatbuffers::FlatBufferBuilder* builder) const override;  // Module
 
  private:
   virtual uint64_t GetLocalFeatures(uint8_t page_number) const;
