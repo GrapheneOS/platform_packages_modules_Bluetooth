@@ -214,6 +214,7 @@ public class BatteryService extends ProfileService {
             BatteryStateMachine sm = getOrCreateStateMachine(device);
             if (sm == null) {
                 Log.e(TAG, "Cannot connect to " + device + " : no state machine");
+                return false;
             }
             sm.sendMessage(BatteryStateMachine.CONNECT);
         }
