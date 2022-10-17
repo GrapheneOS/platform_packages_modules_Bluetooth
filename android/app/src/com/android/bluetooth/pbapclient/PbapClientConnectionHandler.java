@@ -17,7 +17,6 @@ package com.android.bluetooth.pbapclient;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothUuid;
@@ -32,6 +31,7 @@ import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.R;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.ClientSession;
 import com.android.obex.HeaderSet;
 import com.android.obex.ResponseCodes;
@@ -102,7 +102,9 @@ class PbapClientConnectionHandler extends Handler {
     private static final long PBAP_REQUESTED_FIELDS =
             PBAP_FILTER_VERSION | PBAP_FILTER_FN | PBAP_FILTER_N | PBAP_FILTER_PHOTO
                     | PBAP_FILTER_ADR | PBAP_FILTER_EMAIL | PBAP_FILTER_TEL | PBAP_FILTER_NICKNAME;
-    private static final int L2CAP_INVALID_PSM = -1;
+
+    @VisibleForTesting
+    static final int L2CAP_INVALID_PSM = -1;
 
     public static final String PB_PATH = "telecom/pb.vcf";
     public static final String FAV_PATH = "telecom/fav.vcf";
@@ -126,7 +128,6 @@ class PbapClientConnectionHandler extends Handler {
     private Account mAccount;
     private AccountManager mAccountManager;
     private BluetoothSocket mSocket;
-    private final BluetoothAdapter mAdapter;
     private final BluetoothDevice mDevice;
     // PSE SDP Record for current device.
     private SdpPseRecord mPseRec = null;
@@ -136,19 +137,6 @@ class PbapClientConnectionHandler extends Handler {
     private final PbapClientStateMachine mPbapClientStateMachine;
     private boolean mAccountCreated;
 
-    PbapClientConnectionHandler(Looper looper, Context context, PbapClientStateMachine stateMachine,
-            BluetoothDevice device) {
-        super(looper);
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mDevice = device;
-        mContext = context;
-        mPbapClientStateMachine = stateMachine;
-        mAuth = new BluetoothPbapObexAuthenticator(this);
-        mAccountManager = AccountManager.get(mPbapClientStateMachine.getContext());
-        mAccount =
-                new Account(mDevice.getAddress(), mContext.getString(R.string.pbap_account_type));
-    }
-
     /**
      * Constructs PCEConnectionHandler object
      *
@@ -156,7 +144,6 @@ class PbapClientConnectionHandler extends Handler {
      */
     PbapClientConnectionHandler(Builder pceHandlerbuild) {
         super(pceHandlerbuild.mLooper);
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
         mDevice = pceHandlerbuild.mDevice;
         mContext = pceHandlerbuild.mContext;
         mPbapClientStateMachine = pceHandlerbuild.mClientStateMachine;
@@ -252,8 +239,8 @@ class PbapClientConnectionHandler extends Handler {
                 if (DBG) {
                     Log.d(TAG, "Completing Disconnect");
                 }
-                removeAccount(mAccount);
-                removeCallLog(mAccount);
+                removeAccount();
+                removeCallLog();
 
                 mPbapClientStateMachine.sendMessage(PbapClientStateMachine.MSG_CONNECTION_CLOSED);
                 break;
@@ -286,9 +273,20 @@ class PbapClientConnectionHandler extends Handler {
         return;
     }
 
+    @VisibleForTesting
+    synchronized void setPseRecord(SdpPseRecord record) {
+        mPseRec = record;
+    }
+
+    @VisibleForTesting
+    synchronized BluetoothSocket getSocket() {
+        return mSocket;
+    }
+
     /* Utilize SDP, if available, to create a socket connection over L2CAP, RFCOMM specified
      * channel, or RFCOMM default channel. */
-    private synchronized boolean connectSocket() {
+    @VisibleForTesting
+    synchronized boolean connectSocket() {
         try {
             /* Use BluetoothSocket to connect */
             if (mPseRec == null) {
@@ -318,7 +316,8 @@ class PbapClientConnectionHandler extends Handler {
 
     /* Connect an OBEX session over the already connected socket.  First establish an OBEX Transport
      * abstraction, then establish a Bluetooth Authenticator, and finally issue the connect call */
-    private boolean connectObexSession() {
+    @VisibleForTesting
+    boolean connectObexSession() {
         boolean connectionSuccessful = false;
 
         try {
@@ -357,13 +356,13 @@ class PbapClientConnectionHandler extends Handler {
             // Will get NPE if a null mSocket is passed to BluetoothObexTransport.
             // mSocket can be set to null if an abort() --> closeSocket() was called between
             // the calls to connectSocket() and connectObexSession().
-            Log.w(TAG, "CONNECT Failure " + e.toString());
+            Log.w(TAG, "CONNECT Failure ", e);
             closeSocket();
         }
         return connectionSuccessful;
     }
 
-    public void abort() {
+    void abort() {
         // Perform forced cleanup, it is ok if the handler throws an exception this will free the
         // handler to complete what it is doing and finish with cleanup.
         closeSocket();
@@ -385,6 +384,7 @@ class PbapClientConnectionHandler extends Handler {
         }
     }
 
+    @VisibleForTesting
     void downloadContacts(String path) {
         try {
             PhonebookPullRequest processor =
@@ -438,6 +438,7 @@ class PbapClientConnectionHandler extends Handler {
         }
     }
 
+    @VisibleForTesting
     void downloadCallLog(String path, HashMap<String, Integer> callCounter) {
         try {
             BluetoothPbapRequestPullPhoneBook request =
@@ -453,7 +454,8 @@ class PbapClientConnectionHandler extends Handler {
         }
     }
 
-    private boolean addAccount(Account account) {
+    @VisibleForTesting
+    boolean addAccount(Account account) {
         if (mAccountManager.addAccountExplicitly(account, null, null)) {
             if (DBG) {
                 Log.d(TAG, "Added account " + mAccount);
@@ -463,17 +465,19 @@ class PbapClientConnectionHandler extends Handler {
         return false;
     }
 
-    private void removeAccount(Account account) {
-        if (mAccountManager.removeAccountExplicitly(account)) {
+    @VisibleForTesting
+    void removeAccount() {
+        if (mAccountManager.removeAccountExplicitly(mAccount)) {
             if (DBG) {
-                Log.d(TAG, "Removed account " + account);
+                Log.d(TAG, "Removed account " + mAccount);
             }
         } else {
             Log.e(TAG, "Failed to remove account " + mAccount);
         }
     }
 
-    private void removeCallLog(Account account) {
+    @VisibleForTesting
+    void removeCallLog() {
         try {
             // need to check call table is exist ?
             if (mContext.getContentResolver() == null) {
@@ -489,7 +493,8 @@ class PbapClientConnectionHandler extends Handler {
         }
     }
 
-    private boolean isRepositorySupported(int mask) {
+    @VisibleForTesting
+    boolean isRepositorySupported(int mask) {
         if (mPseRec == null) {
             if (VDBG) Log.v(TAG, "No PBAP Server SDP Record");
             return false;
