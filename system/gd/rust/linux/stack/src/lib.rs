@@ -81,7 +81,8 @@ pub enum Message {
     // Suspend related
     SuspendCallbackRegistered(u32),
     SuspendCallbackDisconnected(u32),
-    SuspendReady(u32),
+    SuspendReady(i32),
+    ResumeReady(i32),
 
     // Scanner related
     ScannerCallbackDisconnected(u32),
@@ -228,6 +229,10 @@ impl Stack {
 
                 Message::SuspendReady(suspend_id) => {
                     suspend.lock().unwrap().suspend_ready(suspend_id);
+                }
+
+                Message::ResumeReady(suspend_id) => {
+                    suspend.lock().unwrap().resume_ready(suspend_id);
                 }
 
                 Message::ScannerCallbackDisconnected(id) => {

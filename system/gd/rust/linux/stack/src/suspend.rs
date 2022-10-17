@@ -29,12 +29,12 @@ pub trait ISuspend {
     ///
     /// Returns a positive number identifying the suspend if it can be started. If there is already
     /// a suspend, that active suspend id is returned.
-    fn suspend(&mut self, suspend_type: SuspendType);
+    fn suspend(&mut self, suspend_type: SuspendType, suspend_id: i32);
 
     /// Undoes previous suspend preparation identified by `suspend_id`.
     ///
     /// Returns true if suspend can be resumed, and false if there is no suspend to resume.
-    fn resume(&self) -> bool;
+    fn resume(&mut self) -> bool;
 }
 
 /// Suspend events.
@@ -43,7 +43,7 @@ pub trait ISuspendCallback: RPCProxy {
     fn on_callback_registered(&self, callback_id: u32);
 
     /// Triggered when the stack is ready for suspend and tell the observer the id of the suspend.
-    fn on_suspend_ready(&self, suspend_id: u32);
+    fn on_suspend_ready(&self, suspend_id: i32);
 
     /// Triggered when the stack has resumed the previous suspend.
     fn on_resumed(&self, suspend_id: i32);
@@ -59,6 +59,20 @@ pub enum SuspendType {
 
 struct SuspendState {
     le_rand_expected: bool,
+    suspend_expected: bool,
+    resume_expected: bool,
+    suspend_id: Option<i32>,
+}
+
+impl SuspendState {
+    pub fn new() -> SuspendState {
+        Self {
+            le_rand_expected: false,
+            suspend_expected: false,
+            resume_expected: false,
+            suspend_id: None,
+        }
+    }
 }
 
 /// Implementation of the suspend API.
@@ -90,7 +104,7 @@ impl Suspend {
             is_connected_suspend: false,
             was_a2dp_connected: false,
             suspend_timeout_joinhandle: None,
-            suspend_state: Arc::new(Mutex::new(SuspendState { le_rand_expected: false })),
+            suspend_state: Arc::new(Mutex::new(SuspendState::new())),
         }
     }
 
@@ -105,9 +119,15 @@ impl Suspend {
         self.callbacks.remove_callback(id)
     }
 
-    pub(crate) fn suspend_ready(&self, suspend_id: u32) {
+    pub(crate) fn suspend_ready(&self, suspend_id: i32) {
         self.callbacks.for_all_callbacks(|callback| {
             callback.on_suspend_ready(suspend_id);
+        });
+    }
+
+    pub(crate) fn resume_ready(&self, suspend_id: i32) {
+        self.callbacks.for_all_callbacks(|callback| {
+            callback.on_resumed(suspend_id);
         });
     }
 }
@@ -128,37 +148,30 @@ impl ISuspend for Suspend {
         self.remove_callback(callback_id)
     }
 
-    fn suspend(&mut self, suspend_type: SuspendType) {
-        // self.was_a2dp_connected = TODO(230604670): check if A2DP is connected
-        // self.current_advertiser_ids = TODO(224603198): save all advertiser ids
+    fn suspend(&mut self, suspend_type: SuspendType, suspend_id: i32) {
         self.intf.lock().unwrap().clear_event_mask();
         self.intf.lock().unwrap().clear_event_filter();
         self.intf.lock().unwrap().clear_filter_accept_list();
-        // self.gatt.lock().unwrap().advertising_disable(); TODO(224602924): suspend all adv.
+        // TODO(224602924): How do we get the advertising ids?
+        self.gatt.lock().unwrap().stop_advertising_set(0);
+        // TODO(224602924): How do we get the scanning ids?
         self.gatt.lock().unwrap().stop_scan(0);
         self.intf.lock().unwrap().disconnect_all_acls();
 
         // Handle wakeful cases (Connected/Other)
         // Treat Other the same as Connected
         match suspend_type {
-            SuspendType::AllowWakeFromHid => {
-                // TODO(231345733): API For allowing classic HID only
-                // TODO(230604670): check if A2DP is connected
-                // TODO(224603198): save all advertiser information
-            }
-            SuspendType::NoWakesAllowed => {
-                self.intf.lock().unwrap().clear_event_filter();
-                self.intf.lock().unwrap().clear_event_mask();
-            }
-            _ => {
+            SuspendType::AllowWakeFromHid | SuspendType::Other => {
                 self.intf.lock().unwrap().allow_wake_by_hid();
+                // self.was_a2dp_connected = TODO(230604670): check if A2DP is connected
+                // TODO(230604670): check if A2DP is connected
             }
+            _ => {}
         }
-        self.intf.lock().unwrap().clear_filter_accept_list();
-        self.intf.lock().unwrap().disconnect_all_acls();
-
-        self.bt.lock().unwrap().le_rand();
         self.suspend_state.lock().unwrap().le_rand_expected = true;
+        self.suspend_state.lock().unwrap().suspend_expected = true;
+        self.suspend_state.lock().unwrap().suspend_id = Some(suspend_id);
+        self.bt.lock().unwrap().le_rand();
 
         if let Some(join_handle) = &self.suspend_timeout_joinhandle {
             join_handle.abort();
@@ -172,27 +185,42 @@ impl ISuspend for Suspend {
             log::error!("Suspend did not complete in 2 seconds, continuing anyway.");
 
             suspend_state.lock().unwrap().le_rand_expected = false;
+            suspend_state.lock().unwrap().suspend_expected = false;
+            suspend_state.lock().unwrap().suspend_id = None;
             tokio::spawn(async move {
-                let _result = tx.send(Message::SuspendReady(1)).await;
+                let _result = tx.send(Message::SuspendReady(suspend_id)).await;
             });
         }));
     }
 
-    fn resume(&self) -> bool {
+    fn resume(&mut self) -> bool {
         self.intf.lock().unwrap().set_default_event_mask();
         self.intf.lock().unwrap().set_event_filter_inquiry_result_all_devices();
         self.intf.lock().unwrap().set_event_filter_connection_setup_all_devices();
         if self.is_connected_suspend {
             if self.was_a2dp_connected {
-                // TODO(230604670): self.intf.lock().unwrap().restore_filter_accept_list();
                 // TODO(230604670): reconnect to a2dp device
             }
             // TODO(224603198): start all advertising again
         }
 
-        self.callbacks.for_all_callbacks(|callback| {
-            callback.on_resumed(1);
-        });
+        self.suspend_state.lock().unwrap().le_rand_expected = true;
+        self.suspend_state.lock().unwrap().resume_expected = true;
+        self.bt.lock().unwrap().le_rand();
+
+        let tx = self.tx.clone();
+        let suspend_state = self.suspend_state.clone();
+        let suspend_id = self.suspend_state.lock().unwrap().suspend_id.unwrap();
+        self.suspend_timeout_joinhandle = Some(tokio::spawn(async move {
+            tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+            log::error!("Resume did not complete in 2 seconds, continuing anyway.");
+
+            suspend_state.lock().unwrap().le_rand_expected = false;
+            suspend_state.lock().unwrap().resume_expected = false;
+            tokio::spawn(async move {
+                let _result = tx.send(Message::ResumeReady(suspend_id)).await;
+            });
+        }));
 
         true
     }
@@ -206,15 +234,30 @@ impl BtifBluetoothCallbacks for Suspend {
             log::warn!("Unexpected LE Rand callback, ignoring.");
             return;
         }
+        self.suspend_state.lock().unwrap().le_rand_expected = false;
 
         if let Some(join_handle) = &self.suspend_timeout_joinhandle {
             join_handle.abort();
             self.suspend_timeout_joinhandle = None;
         }
 
-        let tx = self.tx.clone();
-        tokio::spawn(async move {
-            let _result = tx.send(Message::SuspendReady(1)).await;
-        });
+        let suspend_id = self.suspend_state.lock().unwrap().suspend_id.unwrap();
+
+        if self.suspend_state.lock().unwrap().suspend_expected {
+            self.suspend_state.lock().unwrap().suspend_expected = false;
+            let tx = self.tx.clone();
+            tokio::spawn(async move {
+                let _result = tx.send(Message::SuspendReady(suspend_id)).await;
+            });
+        }
+
+        self.suspend_state.lock().unwrap().suspend_id = Some(suspend_id);
+        if self.suspend_state.lock().unwrap().resume_expected {
+            self.suspend_state.lock().unwrap().resume_expected = false;
+            let tx = self.tx.clone();
+            tokio::spawn(async move {
+                let _result = tx.send(Message::ResumeReady(suspend_id)).await;
+            });
+        }
     }
 }

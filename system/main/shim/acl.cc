@@ -840,12 +840,30 @@ struct shim::legacy::Acl::impl {
     handle_to_le_connection_map_[handle]->EnqueuePacket(std::move(packet));
   }
 
+  void DisconnectClassicConnections(std::promise<void> promise) {
+    LOG_INFO("Disconnect gd acl shim classic connections");
+    for (auto& connection : handle_to_classic_connection_map_) {
+      disconnect_classic(connection.first, HCI_ERR_REMOTE_POWER_OFF,
+                         "Suspend disconnect");
+    }
+    promise.set_value();
+  }
+
   void ShutdownClassicConnections(std::promise<void> promise) {
     LOG_INFO("Shutdown gd acl shim classic connections");
     for (auto& connection : handle_to_classic_connection_map_) {
       connection.second->Shutdown();
     }
     handle_to_classic_connection_map_.clear();
+    promise.set_value();
+  }
+
+  void DisconnectLeConnections(std::promise<void> promise) {
+    LOG_INFO("Disconnect gd acl shim le connections");
+    for (auto& connection : handle_to_le_connection_map_) {
+      disconnect_le(connection.first, HCI_ERR_REMOTE_POWER_OFF,
+                    "Suspend disconnect");
+    }
     promise.set_value();
   }
 
@@ -993,6 +1011,10 @@ struct shim::legacy::Acl::impl {
     GetAclManager()->ClearFilterAcceptList();
     shadow_acceptlist_.Clear();
     LOG_DEBUG("Cleared entire Le address acceptlist count:%zu", count);
+  }
+
+  void le_rand(LeRandCallback cb ) {
+    controller_get_interface()->le_rand(cb);
   }
 
   void AddToAddressResolution(const hci::AddressWithType& address_with_type,
@@ -1650,6 +1672,24 @@ void shim::legacy::Acl::DumpConnectionHistory(int fd) const {
   pimpl_->DumpConnectionHistory(fd);
 }
 
+void shim::legacy::Acl::DisconnectAllForSuspend() {
+  if (CheckForOrphanedAclConnections()) {
+    std::promise<void> disconnect_promise;
+    auto disconnect_future = disconnect_promise.get_future();
+    handler_->CallOn(pimpl_.get(), &Acl::impl::DisconnectClassicConnections,
+                     std::move(disconnect_promise));
+    disconnect_future.wait();
+
+    disconnect_promise = std::promise<void>();
+
+    disconnect_future = disconnect_promise.get_future();
+    handler_->CallOn(pimpl_.get(), &Acl::impl::DisconnectLeConnections,
+                     std::move(disconnect_promise));
+    disconnect_future.wait();
+    LOG_WARN("Disconnected open ACL connections");
+  }
+}
+
 void shim::legacy::Acl::Shutdown() {
   if (CheckForOrphanedAclConnections()) {
     std::promise<void> shutdown_promise;
@@ -1692,6 +1732,10 @@ void shim::legacy::Acl::FinalShutdown() {
 
 void shim::legacy::Acl::ClearFilterAcceptList() {
   handler_->CallOn(pimpl_.get(), &Acl::impl::clear_acceptlist);
+}
+
+void shim::legacy::Acl::LeRand(LeRandCallback cb) {
+  handler_->CallOn(pimpl_.get(), &Acl::impl::le_rand, cb);
 }
 
 void shim::legacy::Acl::AddToAddressResolution(
