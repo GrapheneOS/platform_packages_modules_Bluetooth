@@ -3527,27 +3527,27 @@ bool btif_get_address_type(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type) {
 
 void btif_dm_clear_event_filter() {
   LOG_VERBOSE("%s: called", __func__);
-  bta_dm_clear_event_filter();
+  BTA_DmClearEventFilter();
 }
 
 void btif_dm_clear_event_mask() {
   LOG_VERBOSE("%s: called", __func__);
-  bta_dm_clear_event_mask();
+  BTA_DmClearEventMask();
 }
 
 void btif_dm_clear_filter_accept_list() {
   LOG_VERBOSE("%s: called", __func__);
-  bta_dm_clear_filter_accept_list();
+  BTA_DmClearFilterAcceptList();
 }
 
 void btif_dm_disconnect_all_acls() {
   LOG_VERBOSE("%s: called", __func__);
-  bta_dm_disconnect_all_acls();
+  BTA_DmDisconnectAllAcls();
 }
 
 void btif_dm_le_rand(LeRandCallback callback) {
   LOG_VERBOSE("%s: called", __func__);
-  bta_dm_le_rand(callback);
+  BTA_DmLeRand(callback);
 }
 
 void btif_dm_set_event_filter_connection_setup_all_devices() {
