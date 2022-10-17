@@ -116,6 +116,7 @@ typedef struct {
   uint8_t ble_advertising_sid;
   int8_t ble_tx_power;
   uint16_t ble_periodic_adv_int;
+  RawAddress ble_ad_rsi; /* Resolvable Set Identifier from advertising */
   uint8_t flag;
   bool include_rsi;
   RawAddress original_bda;
