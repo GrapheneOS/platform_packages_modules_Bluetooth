@@ -181,6 +181,10 @@ public class LeAudioService extends ProfileService {
         return BluetoothProperties.isProfileBapUnicastClientEnabled().orElse(false);
     }
 
+    public static boolean isBroadcastEnabled() {
+        return BluetoothProperties.isProfileBapBroadcastSourceEnabled().orElse(false);
+    }
+
     @Override
     protected void create() {
         Log.i(TAG, "create()");
@@ -239,7 +243,9 @@ public class LeAudioService extends ProfileService {
                 LeAudioTmapGattServer.TMAP_ROLE_FLAG_CG | LeAudioTmapGattServer.TMAP_ROLE_FLAG_UMS;
 
         // Initialize Broadcast native interface
-        if (mAdapterService.isLeAudioBroadcastSourceSupported()) {
+        if ((mAdapterService.getSupportedProfilesBitMask()
+                    & (1 << BluetoothProfile.LE_AUDIO_BROADCAST)) != 0) {
+            Log.i(TAG, "Init Le Audio broadcaster");
             mBroadcastCallbacks = new RemoteCallbackList<IBluetoothLeBroadcastCallback>();
             mLeAudioBroadcasterNativeInterface = Objects.requireNonNull(
                     LeAudioBroadcasterNativeInterface.getInstance(),
