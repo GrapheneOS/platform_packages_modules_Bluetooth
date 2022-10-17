@@ -20,14 +20,16 @@
 
 #include <stdbool.h>
 
+#include "core_callbacks.h"
 #include "osi/include/future.h"
 
 using ProfileStartCallback = void();
 using ProfileStopCallback = void();
 
 typedef struct {
-  void (*init_stack)(void);
-  void (*start_up_stack_async)(ProfileStartCallback, ProfileStopCallback);
+  void (*init_stack)(bluetooth::core::CoreInterface*);
+  void (*start_up_stack_async)(bluetooth::core::CoreInterface*,
+                               ProfileStartCallback, ProfileStopCallback);
   void (*shut_down_stack_async)(ProfileStopCallback);
   void (*clean_up_stack)(void);
 
@@ -39,3 +41,5 @@ const stack_manager_t* stack_manager_get_interface();
 // TODO(zachoverflow): remove this terrible hack once the startup sequence is
 // more sane
 future_t* stack_manager_get_hack_future();
+
+bluetooth::core::CoreInterface* GetInterfaceToProfiles();

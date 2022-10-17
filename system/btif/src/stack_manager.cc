@@ -21,6 +21,7 @@
 #include "btif/include/stack_manager.h"
 
 #include <hardware/bluetooth.h>
+
 #include <cstdlib>
 #include <cstring>
 
@@ -29,6 +30,7 @@
 #include "btif_api.h"
 #include "btif_common.h"
 #include "common/message_loop_thread.h"
+#include "core_callbacks.h"
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
@@ -133,14 +135,22 @@ static bool stack_is_initialized;
 // If running, the stack is fully up and able to bluetooth.
 static bool stack_is_running;
 
-static void event_init_stack(void* context);
-static void event_start_up_stack(ProfileStartCallback startProfiles,
+static void event_init_stack(semaphore_t* semaphore,
+                             bluetooth::core::CoreInterface* interface);
+static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
+                                 ProfileStartCallback startProfiles,
                                  ProfileStopCallback stopProfiles);
 static void event_shut_down_stack(ProfileStopCallback stopProfiles);
 static void event_clean_up_stack(std::promise<void> promise);
 
 static void event_signal_stack_up(void* context);
 static void event_signal_stack_down(void* context);
+
+static bluetooth::core::CoreInterface* interfaceToProfiles;
+
+bluetooth::core::CoreInterface* GetInterfaceToProfiles() {
+  return interfaceToProfiles;
+}
 
 // Unvetted includes/imports, etc which should be removed or vetted in the
 // future
@@ -149,22 +159,25 @@ static future_t* hack_future;
 
 // Interface functions
 
-static void init_stack() {
+static void init_stack(bluetooth::core::CoreInterface* interface) {
   // This is a synchronous process. Post it to the thread though, so
   // state modification only happens there. Using the thread to perform
   // all stack operations ensures that the operations are done serially
   // and do not overlap.
   semaphore_t* semaphore = semaphore_new(0);
-  management_thread.DoInThread(FROM_HERE,
-                               base::Bind(event_init_stack, semaphore));
+  management_thread.DoInThread(
+      FROM_HERE,
+      base::Bind(event_init_stack, semaphore, base::Unretained(interface)));
   semaphore_wait(semaphore);
   semaphore_free(semaphore);
 }
 
-static void start_up_stack_async(ProfileStartCallback startProfiles,
+static void start_up_stack_async(bluetooth::core::CoreInterface* interface,
+                                 ProfileStartCallback startProfiles,
                                  ProfileStopCallback stopProfiles) {
   management_thread.DoInThread(
-      FROM_HERE, base::Bind(event_start_up_stack, startProfiles, stopProfiles));
+      FROM_HERE,
+      base::Bind(event_start_up_stack, interface, startProfiles, stopProfiles));
 }
 
 static void shut_down_stack_async(ProfileStopCallback stopProfiles) {
@@ -235,14 +248,16 @@ inline const module_t* get_local_module(const char* name) {
 }
 
 // Synchronous function to initialize the stack
-static void event_init_stack(void* context) {
-  semaphore_t* semaphore = (semaphore_t*)context;
-
+static void event_init_stack(semaphore_t* semaphore,
+                             bluetooth::core::CoreInterface* interface) {
   LOG_INFO("is initializing the stack");
 
   if (stack_is_initialized) {
     LOG_INFO("found the stack already in initialized state");
   } else {
+    // all callbacks out of libbluetooth-core happen via this interface
+    interfaceToProfiles = interface;
+
     module_management_start();
 
     module_init(get_local_module(OSI_MODULE));
@@ -264,24 +279,26 @@ static void event_init_stack(void* context) {
   if (semaphore) semaphore_post(semaphore);
 }
 
-static void ensure_stack_is_initialized() {
+static void ensure_stack_is_initialized(
+    bluetooth::core::CoreInterface* interface) {
   if (!stack_is_initialized) {
     LOG_WARN("%s found the stack was uninitialized. Initializing now.",
              __func__);
     // No semaphore needed since we are calling it directly
-    event_init_stack(nullptr);
+    event_init_stack(nullptr, interface);
   }
 }
 
 // Synchronous function to start up the stack
-static void event_start_up_stack(ProfileStartCallback startProfiles,
+static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
+                                 ProfileStartCallback startProfiles,
                                  ProfileStopCallback stopProfiles) {
   if (stack_is_running) {
     LOG_INFO("%s stack already brought up", __func__);
     return;
   }
 
-  ensure_stack_is_initialized();
+  ensure_stack_is_initialized(interface);
 
   LOG_INFO("%s is bringing up the stack", __func__);
   future_t* local_hack_future = future_new();

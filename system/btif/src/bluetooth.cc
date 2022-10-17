@@ -164,6 +164,19 @@ extern CsisClientInterface* btif_csis_client_get_interface();
 extern VolumeControlInterface* btif_volume_control_get_interface();
 
 /*******************************************************************************
+ *  Callbacks from bluetooth::core (see go/invisalign-bt)
+ ******************************************************************************/
+
+struct CoreInterfaceImpl : bluetooth::core::CoreInterface {
+  using bluetooth::core::CoreInterface::CoreInterface;
+};
+
+static bluetooth::core::CoreInterface* CreateInterfaceToProfiles() {
+  static auto interfaceForCore = CoreInterfaceImpl();
+  return &interfaceForCore;
+}
+
+/*******************************************************************************
  *  Functions
  ******************************************************************************/
 
@@ -231,7 +244,7 @@ static int init(bt_callbacks_t* callbacks, bool start_restricted,
 
   is_local_device_atv = is_atv;
 
-  stack_manager_get_interface()->init_stack();
+  stack_manager_get_interface()->init_stack(CreateInterfaceToProfiles());
   return BT_STATUS_SUCCESS;
 }
 
@@ -258,8 +271,8 @@ static void stop_profiles() {
 static int enable() {
   if (!interface_ready()) return BT_STATUS_NOT_READY;
 
-  stack_manager_get_interface()->start_up_stack_async(&start_profiles,
-                                                      &stop_profiles);
+  stack_manager_get_interface()->start_up_stack_async(
+      CreateInterfaceToProfiles(), &start_profiles, &stop_profiles);
   return BT_STATUS_SUCCESS;
 }
 
