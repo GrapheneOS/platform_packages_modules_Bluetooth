@@ -20,7 +20,9 @@
     "A2DP/SRC/SDP/BV-01-I",
     "A2DP/SRC/SET/BV-01-I",
     "A2DP/SRC/SET/BV-02-I",
+    "A2DP/SRC/SET/BV-03-I",
     "A2DP/SRC/SET/BV-04-I",
+    "A2DP/SRC/SUS/BV-01-I",
     "AVCTP/CT/CCM/BV-03-C",
     "AVCTP/CT/CCM/BV-04-C",
     "AVCTP/TG/CCM/BV-03-C",
@@ -336,6 +338,9 @@
     "SM/PER/SCPK/BI-03-C",
     "SM/PER/SCPK/BV-02-C"
   ],
+  "flaky": [
+    "A2DP/SRC/SUS/BV-02-I"
+  ],
   "skip": [
     "A2DP/SNK/SDP/BV-02-I",
     "A2DP/SNK/SET/BV-04-I",
@@ -347,10 +352,8 @@
     "A2DP/SRC/AS/BV-02-I",
     "A2DP/SRC/AS/BV-03-I",
     "A2DP/SRC/CC/BV-10-I",
-    "A2DP/SRC/SET/BV-03-I",
     "A2DP/SRC/SET/BV-05-I",
     "A2DP/SRC/SET/BV-06-I",
-    "A2DP/SRC/SUS/BV-01-I",
     "A2DP/SRC/SUS/BV-02-I",
     "A2DP/SRC/SYN/BV-02-I",
     "AVCTP/CT/CCM/BV-01-C",
