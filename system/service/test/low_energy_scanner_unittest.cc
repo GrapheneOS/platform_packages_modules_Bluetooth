@@ -93,6 +93,15 @@ class MockScannerHandler : public BleScannerInterface {
     ScanFilterParamSetupImpl(client_if, action, filt_index, filt_param.get(),
                              std::move(cb));
   }
+
+  void MsftAdvMonitorAdd(MsftAdvMonitor monitor,
+                         MsftAdvMonitorAddCallback cb) override{};
+
+  void MsftAdvMonitorRemove(uint8_t monitor_handle,
+                            MsftAdvMonitorRemoveCallback cb) override{};
+
+  void MsftAdvMonitorEnable(bool enable,
+                            MsftAdvMonitorEnableCallback cb) override{};
 };
 
 class TestDelegate : public LowEnergyScanner::Delegate {
