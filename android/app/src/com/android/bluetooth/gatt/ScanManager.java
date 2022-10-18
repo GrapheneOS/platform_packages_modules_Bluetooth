@@ -45,6 +45,7 @@ import android.view.Display;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.BluetoothAdapterProxy;
+import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayDeque;
@@ -110,7 +111,9 @@ public class ScanManager {
     // Scan parameters for batch scan.
     private BatchScanParams mBatchScanParms;
 
-    private Integer mCurUsedTrackableAdvertisements;
+    private final Object mCurUsedTrackableAdvertisementsLock = new Object();
+    @GuardedBy("mCurUsedTrackableAdvertisementsLock")
+    private int mCurUsedTrackableAdvertisements = 0;
     private final GattService mService;
     private final AdapterService mAdapterService;
     private BroadcastReceiver mBatchAlarmReceiver;
@@ -157,7 +160,6 @@ public class ScanManager {
                 Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
         mService = service;
         mScanNative = new ScanNative();
-        mCurUsedTrackableAdvertisements = 0;
         mDm = mService.getSystemService(DisplayManager.class);
         mActivityManager = mService.getSystemService(ActivityManager.class);
         mLocationManager = mService.getSystemService(LocationManager.class);
@@ -716,7 +718,9 @@ public class ScanManager {
     }
 
     public int getCurrentUsedTrackingAdvertisement() {
-        return mCurUsedTrackableAdvertisements;
+        synchronized (mCurUsedTrackableAdvertisementsLock) {
+            return mCurUsedTrackableAdvertisements;
+        }
     }
 
     private class ScanNative {
@@ -1508,7 +1512,7 @@ public class ScanManager {
                 boolean allocate) {
             int maxTotalTrackableAdvertisements =
                     AdapterService.getAdapterService().getTotalNumOfTrackableAdvertisements();
-            synchronized (mCurUsedTrackableAdvertisements) {
+            synchronized (mCurUsedTrackableAdvertisementsLock) {
                 int availableEntries =
                         maxTotalTrackableAdvertisements - mCurUsedTrackableAdvertisements;
                 if (allocate) {
