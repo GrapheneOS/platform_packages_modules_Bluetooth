@@ -952,20 +952,6 @@ public class MetadataTest {
     }
 
     /**
-     * Make sure two Metadata objects are different if image doesn't match
-     */
-    @Test
-    public void testEqualsDifferentImage() {
-        MediaMetadata m =
-                getMediaMetadataWithBitmap(MediaMetadata.METADATA_KEY_ART, mTestBitmap);
-        MediaMetadata m2 =
-                getMediaMetadataWithBitmap(MediaMetadata.METADATA_KEY_ART, mTestBitmap2);
-        Metadata metadata = new Metadata.Builder().fromMediaMetadata(m).build();
-        Metadata metadata2 = new Metadata.Builder().fromMediaMetadata(m2).build();
-        assertThat(metadata).isNotEqualTo(metadata2);
-    }
-
-    /**
      * Make sure you can get any non-null string representation of Metadata
      */
     @Test
