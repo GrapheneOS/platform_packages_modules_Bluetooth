@@ -12,6 +12,7 @@ pub mod battery_manager;
 pub mod battery_provider_manager;
 pub mod battery_service;
 pub mod bluetooth;
+pub mod bluetooth_admin;
 pub mod bluetooth_adv;
 pub mod bluetooth_gatt;
 pub mod bluetooth_media;
@@ -32,6 +33,7 @@ use crate::bluetooth::{
     dispatch_base_callbacks, dispatch_hid_host_callbacks, dispatch_sdp_callbacks, Bluetooth,
     BluetoothDevice, IBluetooth,
 };
+use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
 use crate::bluetooth_gatt::{
     dispatch_gatt_client_callbacks, dispatch_le_adv_callbacks, dispatch_le_scanner_callbacks,
     dispatch_le_scanner_inband_callbacks, BluetoothGatt,
@@ -107,6 +109,9 @@ pub enum Message {
     BatteryManagerCallbackDisconnected(u32),
 
     GattClientCallbackDisconnected(u32),
+
+    // Admin policy related
+    AdminCallbackDisconnected(u32),
 }
 
 /// Represents suspend mode of a module.
@@ -141,6 +146,7 @@ impl Stack {
         bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
         suspend: Arc<Mutex<Box<Suspend>>>,
         bluetooth_socketmgr: Arc<Mutex<Box<BluetoothSocketManager>>>,
+        bluetooth_admin: Arc<Mutex<Box<BluetoothAdmin>>>,
     ) {
         loop {
             let m = rx.recv().await;
@@ -288,6 +294,9 @@ impl Stack {
                 }
                 Message::GattClientCallbackDisconnected(id) => {
                     bluetooth_gatt.lock().unwrap().remove_client_callback(id);
+                }
+                Message::AdminCallbackDisconnected(id) => {
+                    bluetooth_admin.lock().unwrap().unregister_admin_policy_callback(id);
                 }
             }
         }

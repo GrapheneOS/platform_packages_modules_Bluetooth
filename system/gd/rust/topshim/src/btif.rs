@@ -258,6 +258,12 @@ impl Into<u32> for BtStatus {
     }
 }
 
+impl Into<i32> for BtStatus {
+    fn into(self) -> i32 {
+        self.to_i32().unwrap_or_default()
+    }
+}
+
 impl From<bindings::bt_bdname_t> for String {
     fn from(item: bindings::bt_bdname_t) -> Self {
         ascii_to_string(&item.name, item.name.len())
@@ -378,7 +384,7 @@ impl Uuid {
 
     /// Formats this UUID to a human-readable representation.
     pub fn format(uuid: &Uuid128Bit, f: &mut Formatter) -> Result {
-        write!(f, "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
+        write!(f, "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
             uuid[0], uuid[1], uuid[2], uuid[3],
             uuid[4], uuid[5],
             uuid[6], uuid[7],
@@ -1226,6 +1232,12 @@ impl BluetoothInterface {
     pub(crate) fn as_raw_ptr(&self) -> *const u8 {
         self.internal.raw as *const u8
     }
+}
+
+pub trait ToggleableProfile {
+    fn is_enabled(&self) -> bool;
+    fn enable(&mut self) -> bool;
+    fn disable(&mut self) -> bool;
 }
 
 pub fn get_btinterface() -> Option<BluetoothInterface> {
