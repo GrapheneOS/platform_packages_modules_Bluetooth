@@ -347,9 +347,19 @@ final class BondStateMachine extends StateMachine {
             boolean result;
             // If we have some data
             if (remoteP192Data != null || remoteP256Data != null) {
+                BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                      mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
+                      BluetoothDevice.BOND_BONDING,
+                      BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_START_PAIRING_OOB,
+                      BluetoothProtoEnums.UNBOND_REASON_UNKNOWN);
                 result = mAdapterService.createBondOutOfBandNative(addr, transport,
                     remoteP192Data, remoteP256Data);
             } else {
+                BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                      mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
+                      BluetoothDevice.BOND_BONDING,
+                      BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_START_PAIRING,
+                      BluetoothProtoEnums.UNBOND_REASON_UNKNOWN);
                 result = mAdapterService.createBondNative(addr, transport);
             }
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
