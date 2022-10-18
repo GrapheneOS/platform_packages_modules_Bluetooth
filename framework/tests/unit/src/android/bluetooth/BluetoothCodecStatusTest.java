@@ -360,77 +360,61 @@ public class BluetoothCodecStatusTest extends TestCase {
                                 BluetoothCodecConfig.CHANNEL_MODE_STEREO,
                                 1000, 2000, 3000, 4000);
 
-    private static final List<BluetoothCodecConfig> LOCAL_CAPABILITY_A =
-            new ArrayList() {{
-                    add(LOCAL_CAPABILITY_1_A);
-                    add(LOCAL_CAPABILITY_2_A);
-                    add(LOCAL_CAPABILITY_3_A);
-                    add(LOCAL_CAPABILITY_4_A);
-                    add(LOCAL_CAPABILITY_5_A);
-            }};
+    private static final List<BluetoothCodecConfig> LOCAL_CAPABILITY_A = List.of(
+            LOCAL_CAPABILITY_1_A,
+            LOCAL_CAPABILITY_2_A,
+            LOCAL_CAPABILITY_3_A,
+            LOCAL_CAPABILITY_4_A,
+            LOCAL_CAPABILITY_5_A);
 
-    private static final List<BluetoothCodecConfig> LOCAL_CAPABILITY_B =
-            new ArrayList() {{
-                    add(LOCAL_CAPABILITY_1_B);
-                    add(LOCAL_CAPABILITY_2_B);
-                    add(LOCAL_CAPABILITY_3_B);
-                    add(LOCAL_CAPABILITY_4_B);
-                    add(LOCAL_CAPABILITY_5_B);
-            }};
+    private static final List<BluetoothCodecConfig> LOCAL_CAPABILITY_B = List.of(
+            LOCAL_CAPABILITY_1_B,
+            LOCAL_CAPABILITY_2_B,
+            LOCAL_CAPABILITY_3_B,
+            LOCAL_CAPABILITY_4_B,
+            LOCAL_CAPABILITY_5_B);
 
-    private static final List<BluetoothCodecConfig> LOCAL_CAPABILITY_B_REORDERED =
-            new ArrayList() {{
-                    add(LOCAL_CAPABILITY_5_B);
-                    add(LOCAL_CAPABILITY_4_B);
-                    add(LOCAL_CAPABILITY_2_B);
-                    add(LOCAL_CAPABILITY_3_B);
-                    add(LOCAL_CAPABILITY_1_B);
-            }};
+    private static final List<BluetoothCodecConfig> LOCAL_CAPABILITY_B_REORDERED = List.of(
+            LOCAL_CAPABILITY_5_B,
+            LOCAL_CAPABILITY_4_B,
+            LOCAL_CAPABILITY_2_B,
+            LOCAL_CAPABILITY_3_B,
+            LOCAL_CAPABILITY_1_B);
 
-    private static final List<BluetoothCodecConfig> LOCAL_CAPABILITY_C =
-            new ArrayList() {{
-                    add(LOCAL_CAPABILITY_1_C);
-                    add(LOCAL_CAPABILITY_2_C);
-                    add(LOCAL_CAPABILITY_3_C);
-                    add(LOCAL_CAPABILITY_4_C);
-                    add(LOCAL_CAPABILITY_5_C);
-            }};
+    private static final List<BluetoothCodecConfig> LOCAL_CAPABILITY_C = List.of(
+            LOCAL_CAPABILITY_1_C,
+            LOCAL_CAPABILITY_2_C,
+            LOCAL_CAPABILITY_3_C,
+            LOCAL_CAPABILITY_4_C,
+            LOCAL_CAPABILITY_5_C);
 
-    private static final List<BluetoothCodecConfig> SELECTABLE_CAPABILITY_A =
-            new ArrayList() {{
-                    add(SELECTABE_CAPABILITY_1_A);
-                    add(SELECTABE_CAPABILITY_2_A);
-                    add(SELECTABE_CAPABILITY_3_A);
-                    add(SELECTABE_CAPABILITY_4_A);
-                    add(SELECTABE_CAPABILITY_5_A);
-            }};
+    private static final List<BluetoothCodecConfig> SELECTABLE_CAPABILITY_A = List.of(
+            SELECTABE_CAPABILITY_1_A,
+            SELECTABE_CAPABILITY_2_A,
+            SELECTABE_CAPABILITY_3_A,
+            SELECTABE_CAPABILITY_4_A,
+            SELECTABE_CAPABILITY_5_A);
 
-    private static final List<BluetoothCodecConfig> SELECTABLE_CAPABILITY_B =
-            new ArrayList() {{
-                    add(SELECTABE_CAPABILITY_1_B);
-                    add(SELECTABE_CAPABILITY_2_B);
-                    add(SELECTABE_CAPABILITY_3_B);
-                    add(SELECTABE_CAPABILITY_4_B);
-                    add(SELECTABE_CAPABILITY_5_B);
-            }};
+    private static final List<BluetoothCodecConfig> SELECTABLE_CAPABILITY_B = List.of(
+            SELECTABE_CAPABILITY_1_B,
+            SELECTABE_CAPABILITY_2_B,
+            SELECTABE_CAPABILITY_3_B,
+            SELECTABE_CAPABILITY_4_B,
+            SELECTABE_CAPABILITY_5_B);
 
-    private static final List<BluetoothCodecConfig> SELECTABLE_CAPABILITY_B_REORDERED =
-            new ArrayList() {{
-                    add(SELECTABE_CAPABILITY_5_B);
-                    add(SELECTABE_CAPABILITY_4_B);
-                    add(SELECTABE_CAPABILITY_2_B);
-                    add(SELECTABE_CAPABILITY_3_B);
-                    add(SELECTABE_CAPABILITY_1_B);
-            }};
+    private static final List<BluetoothCodecConfig> SELECTABLE_CAPABILITY_B_REORDERED = List.of(
+            SELECTABE_CAPABILITY_5_B,
+            SELECTABE_CAPABILITY_4_B,
+            SELECTABE_CAPABILITY_2_B,
+            SELECTABE_CAPABILITY_3_B,
+            SELECTABE_CAPABILITY_1_B);
 
-    private static final List<BluetoothCodecConfig> SELECTABLE_CAPABILITY_C =
-            new ArrayList() {{
-                    add(SELECTABE_CAPABILITY_1_C);
-                    add(SELECTABE_CAPABILITY_2_C);
-                    add(SELECTABE_CAPABILITY_3_C);
-                    add(SELECTABE_CAPABILITY_4_C);
-                    add(SELECTABE_CAPABILITY_5_C);
-            }};
+    private static final List<BluetoothCodecConfig> SELECTABLE_CAPABILITY_C = List.of(
+            SELECTABE_CAPABILITY_1_C,
+            SELECTABE_CAPABILITY_2_C,
+            SELECTABE_CAPABILITY_3_C,
+            SELECTABE_CAPABILITY_4_C,
+            SELECTABE_CAPABILITY_5_C);
 
     private static final BluetoothCodecStatus BCS_A =
             new BluetoothCodecStatus(CONFIG_A, LOCAL_CAPABILITY_A, SELECTABLE_CAPABILITY_A);
