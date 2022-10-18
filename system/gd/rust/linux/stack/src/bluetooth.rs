@@ -1004,6 +1004,10 @@ impl BtifBluetoothCallbacks for Bluetooth {
                             self.connection_callbacks.for_all_callbacks(|callback| {
                                 callback.on_device_connected(device.clone());
                             });
+                            let tx = self.tx.clone();
+                            tokio::spawn(async move {
+                                let _ = tx.send(Message::OnDeviceConnected(device.clone())).await;
+                            });
                         }
                         BtAclState::Disconnected => {
                             self.connection_callbacks.for_all_callbacks(|callback| {
