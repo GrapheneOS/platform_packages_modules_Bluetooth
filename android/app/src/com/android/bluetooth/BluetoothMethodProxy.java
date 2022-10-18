@@ -75,6 +75,15 @@ public class BluetoothMethodProxy {
     }
 
     /**
+     * Proxies {@link ContentResolver#delete(Uri, String, String[])}.
+     */
+    public int contentResolverDelete(ContentResolver contentResolver, final Uri url,
+            final String where,
+            final String[] selectionArgs) {
+        return contentResolver.delete(url, where, selectionArgs);
+    }
+
+    /**
      * Proxies {@link HeaderSet#getHeader}.
      */
     public Object getHeader(HeaderSet headerSet, int headerId) throws IOException {
