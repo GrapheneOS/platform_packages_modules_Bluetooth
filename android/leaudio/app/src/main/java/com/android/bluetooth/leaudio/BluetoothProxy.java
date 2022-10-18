@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -810,7 +811,7 @@ public class BluetoothProxy {
         Boolean current_state = bluetoothAdapter.isEnabled();
 
         // Force the update since event may not come if bt was already enabled
-        if (enabledBluetoothMutable.getValue() != current_state)
+        if (!Objects.equals(enabledBluetoothMutable.getValue(), current_state))
             enabledBluetoothMutable.setValue(current_state);
 
         return current_state;

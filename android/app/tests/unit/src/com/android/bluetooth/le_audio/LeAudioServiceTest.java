@@ -72,7 +72,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -133,25 +132,17 @@ public class LeAudioServiceTest {
                                 | BluetoothLeAudioCodecConfig.SAMPLE_RATE_16000)
                .build();
 
-    private static final List<BluetoothLeAudioCodecConfig> INPUT_CAPABILITIES_CONFIG =
-            new ArrayList() {{
-                    add(LC3_48KHZ_16KHZ_CONFIG);
-            }};
+    private static final List<BluetoothLeAudioCodecConfig> INPUT_CAPABILITIES_CONFIG = List.of(
+            LC3_48KHZ_16KHZ_CONFIG);
 
-    private static final List<BluetoothLeAudioCodecConfig> OUTPUT_CAPABILITIES_CONFIG =
-            new ArrayList() {{
-                    add(LC3_48KHZ_16KHZ_CONFIG);
-            }};
+    private static final List<BluetoothLeAudioCodecConfig> OUTPUT_CAPABILITIES_CONFIG = List.of(
+            LC3_48KHZ_16KHZ_CONFIG);
 
-    private static final List<BluetoothLeAudioCodecConfig> INPUT_SELECTABLE_CONFIG =
-            new ArrayList() {{
-                    add(LC3_16KHZ_CONFIG);
-             }};
+    private static final List<BluetoothLeAudioCodecConfig> INPUT_SELECTABLE_CONFIG = List.of(
+            LC3_16KHZ_CONFIG);
 
-    private static final List<BluetoothLeAudioCodecConfig> OUTPUT_SELECTABLE_CONFIG =
-            new ArrayList() {{
-                    add(LC3_48KHZ_16KHZ_CONFIG);
-            }};
+    private static final List<BluetoothLeAudioCodecConfig> OUTPUT_SELECTABLE_CONFIG = List.of(
+            LC3_48KHZ_16KHZ_CONFIG);
 
     @Before
     public void setUp() throws Exception {
