@@ -1,26 +1,42 @@
-use crate::battery_service::{
-    BatteryService, BatteryServiceStatus, IBatteryService, IBatteryServiceCallback,
-};
+use crate::battery_provider_manager::BatteryProviderManager;
 use crate::callbacks::Callbacks;
+use crate::uuid;
 use crate::Message;
 use crate::RPCProxy;
-use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::Sender;
 
-/// The primary representation of battery information for internal
-/// passing and external calls.
+/// The primary representation of battery information for internal passing and external calls.
+#[derive(Debug, Clone)]
+pub struct BatterySet {
+    /// Address of the remote device.
+    pub address: String,
+    /// UUID of where the battery info is decoded from as found in BT Spec.
+    pub source_uuid: String,
+    /// Information about the battery source, e.g. "BAS" or "HFP 1.8".
+    pub source_info: String,
+    /// Collection of batteries from this source.
+    pub batteries: Vec<Battery>,
+}
+
+/// Describes an individual battery measurement, possibly one of many for a given device.
 #[derive(Debug, Clone)]
 pub struct Battery {
+    /// Battery charge percentage between 0 and 100. For protocols that use 0-5 this will be that
+    /// number multiplied by 20.
     pub percentage: u32,
-    pub source_info: String,
+    /// Description of this battery, such as Left, Right, or Case. Only present if the source has
+    /// this level of detail.
     pub variant: String,
 }
+
+/// Helper representation of a collection of BatterySet to simplify passing around data internally.
+pub struct Batteries(Vec<BatterySet>);
 
 /// Callback for interacting with the BatteryManager.
 pub trait IBatteryManagerCallback: RPCProxy {
     /// Invoked whenever battery information associated with the given remote changes.
-    fn on_battery_info_updated(&self, remote_address: String, battery: Battery);
+    fn on_battery_info_updated(&self, remote_address: String, battery_set: BatterySet);
 }
 
 /// Central point for getting battery information that might be sourced from numerous systems.
@@ -35,69 +51,36 @@ pub trait IBatteryManager {
     /// Unregister a callback.
     fn unregister_battery_callback(&mut self, callback_id: u32);
 
-    /// Enables notifications for a given callback.
-    fn enable_notifications(&mut self, callback_id: u32, enable: bool);
-
     /// Returns battery information for the remote, sourced from the highest priority origin.
-    fn get_battery_information(&self, remote_address: String) -> Option<Battery>;
+    fn get_battery_information(&self, remote_address: String) -> Option<BatterySet>;
 }
 
 /// Repesentation of the BatteryManager.
 pub struct BatteryManager {
-    bas: Arc<Mutex<Box<BatteryService>>>,
+    battery_provider_manager: Arc<Mutex<Box<BatteryProviderManager>>>,
     callbacks: Callbacks<dyn IBatteryManagerCallback + Send>,
-    /// List of callback IDs that have enabled notifications.
-    notifications_enabled: HashSet<u32>,
 }
 
 impl BatteryManager {
     /// Construct a new BatteryManager with callbacks communicating on tx.
-    pub fn new(bas: Arc<Mutex<Box<BatteryService>>>, tx: Sender<Message>) -> BatteryManager {
+    pub fn new(
+        battery_provider_manager: Arc<Mutex<Box<BatteryProviderManager>>>,
+        tx: Sender<Message>,
+    ) -> BatteryManager {
         let callbacks = Callbacks::new(tx.clone(), Message::BatteryManagerCallbackDisconnected);
-        let notifications_enabled = HashSet::new();
-        Self { bas, callbacks, notifications_enabled }
-    }
-
-    /// Invoked after BAS has been initialized.
-    pub fn init(&self) {
-        self.bas.lock().unwrap().register_callback(Box::new(BasCallback::new()));
+        Self { battery_provider_manager, callbacks }
     }
 
     /// Remove a callback due to disconnection or unregistration.
     pub fn remove_callback(&mut self, callback_id: u32) {
         self.callbacks.remove_callback(callback_id);
     }
-}
 
-struct BasCallback {}
-
-impl BasCallback {
-    pub fn new() -> BasCallback {
-        Self {}
-    }
-}
-
-impl IBatteryServiceCallback for BasCallback {
-    fn on_battery_service_status_updated(
-        &self,
-        _remote_address: String,
-        _status: BatteryServiceStatus,
-    ) {
-        todo!()
-    }
-
-    fn on_battery_level_updated(&self, _remote_address: String, _battery_level: u32) {
-        todo!()
-    }
-
-    fn on_battery_level_read(&self, _remote_address: String, _battery_level: u32) {
-        todo!()
-    }
-}
-
-impl RPCProxy for BasCallback {
-    fn get_object_id(&self) -> String {
-        "BAS Callback".to_string()
+    /// Handles a BatterySet update.
+    pub fn handle_battery_updated(&mut self, remote_address: String, battery_set: BatterySet) {
+        self.callbacks.for_all_callbacks(|callback| {
+            callback.on_battery_info_updated(remote_address.clone(), battery_set.clone())
+        });
     }
 }
 
@@ -113,24 +96,48 @@ impl IBatteryManager for BatteryManager {
         self.remove_callback(callback_id);
     }
 
-    fn enable_notifications(&mut self, callback_id: u32, enable: bool) {
-        if self.callbacks.get_by_id(callback_id).is_none() {
-            return;
+    fn get_battery_information(&self, remote_address: String) -> Option<BatterySet> {
+        self.battery_provider_manager.lock().unwrap().get_battery_info(remote_address)
+    }
+}
+
+impl BatterySet {
+    pub fn new(address: String, source_uuid: String, source_info: String) -> Self {
+        Self { address, source_uuid, source_info, batteries: vec![] }
+    }
+
+    pub fn add_or_update_battery(&mut self, new_battery: Battery) {
+        match self.batteries.iter_mut().find(|battery| battery.variant == new_battery.variant) {
+            Some(battery) => *battery = new_battery,
+            None => self.batteries.push(new_battery),
         }
-        self.notifications_enabled.remove(&callback_id);
-        if enable {
-            self.notifications_enabled.insert(callback_id);
+    }
+}
+
+impl Batteries {
+    pub fn new() -> Self {
+        Self(vec![])
+    }
+
+    /// Updates a battery matching all non-battery-level fields if found, otherwise adds new_battery
+    /// verbatim.
+    pub fn add_or_update_battery_set(&mut self, new_battery_set: BatterySet) {
+        match self
+            .0
+            .iter_mut()
+            .find(|battery_set| battery_set.source_uuid == new_battery_set.source_uuid)
+        {
+            Some(battery_set) => *battery_set = new_battery_set,
+            None => self.0.push(new_battery_set),
         }
     }
 
-    // TODO(b/233101174): update to use all available sources once
-    // BatteryProviderManager is implemented.
-    fn get_battery_information(&self, remote_address: String) -> Option<Battery> {
-        let battery_level = self.bas.lock().unwrap().get_battery_level(remote_address)?;
-        Some(Battery {
-            percentage: battery_level,
-            source_info: "BAS".to_string(),
-            variant: "".to_string(),
-        })
+    /// Returns the best BatterySet from among reported battery data.
+    pub fn pick_best(&self) -> Option<BatterySet> {
+        self.0
+            .iter()
+            .find(|battery_set| battery_set.source_uuid == uuid::BAS)
+            .or_else(|| self.0.first())
+            .cloned()
     }
 }

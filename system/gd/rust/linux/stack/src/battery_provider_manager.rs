@@ -1,56 +1,95 @@
-use crate::battery_manager::Battery;
-
-#[derive(Debug, Clone)]
-pub struct BatteryProvider {
-    pub source_info: String,
-    pub remote_address: String,
-}
+use crate::battery_manager::{Batteries, BatterySet};
+use crate::callbacks::Callbacks;
+use crate::{Message, RPCProxy};
+use std::collections::HashMap;
+use tokio::sync::mpsc::Sender;
 
 /// Callback for BatteryProvider implementers.
-pub trait IBatteryProviderCallback {
+pub trait IBatteryProviderCallback: RPCProxy {
     /// Requests that the BatteryProvider send updated battery information.
     fn refresh_battery_info(&self);
 }
 
 /// Interface for managing BatteryProvider instances.
 pub trait IBatteryProviderManager {
-    /// Registers a BatteryProvider and generates a unique batttery ID for future calls.
+    /// Registers a BatteryProvider and generates a unique batttery provider ID for future calls.
     fn register_battery_provider(
         &mut self,
-        battery_provider: BatteryProvider,
         battery_provider_callback: Box<dyn IBatteryProviderCallback + Send>,
-    ) -> i32;
+    ) -> u32;
 
-    /// Unregisters a BatteryProvider, potentially removes battery information for the remote
-    /// device if there are no other providers.
-    fn unregister_battery_provider(&mut self, battery_id: i32);
+    /// Unregisters a BatteryProvider, potentially removes battery information for the remote device
+    /// if there are no other providers.
+    fn unregister_battery_provider(&mut self, battery_provider_id: u32);
 
     /// Updates the battery information for the battery associated with battery_id.
-    fn set_battery_percentage(&mut self, battery_id: i32, battery: Battery);
+    fn set_battery_info(&mut self, battery_provider_id: u32, battery_set: BatterySet);
 }
 
-pub struct BatteryProviderManager {}
+/// Represents the BatteryProviderManager, a central point for collecting battery information from
+/// numerous sources.
+pub struct BatteryProviderManager {
+    /// Sender for callback communication with the main thread.
+    tx: Sender<Message>,
+    battery_provider_callbacks: Callbacks<dyn IBatteryProviderCallback + Send>,
+    /// Stored information merged from all battery providers.
+    battery_info: HashMap<String, Batteries>,
+}
 
 impl BatteryProviderManager {
-    pub fn new() -> BatteryProviderManager {
-        BatteryProviderManager {}
+    /// Constructs a new BatteryProviderManager with callbacks communicating on tx.
+    pub fn new(tx: Sender<Message>) -> BatteryProviderManager {
+        let battery_provider_callbacks =
+            Callbacks::new(tx.clone(), Message::BatteryProviderManagerCallbackDisconnected);
+        let battery_info = HashMap::new();
+        BatteryProviderManager { tx, battery_provider_callbacks, battery_info }
+    }
+
+    /// Request battery info refresh from all battery providers.
+    pub fn refresh_battery_info(&self) {
+        self.battery_provider_callbacks
+            .for_all_callbacks(|callback| callback.refresh_battery_info());
+    }
+
+    /// Get the best battery info available for a given device.
+    pub fn get_battery_info(&self, remote_address: String) -> Option<BatterySet> {
+        self.battery_info.get(&remote_address)?.pick_best()
+    }
+
+    /// Removes a battery provider callback.
+    pub fn remove_battery_provider_callback(&mut self, battery_provider_id: u32) {
+        self.battery_provider_callbacks.remove_callback(battery_provider_id);
     }
 }
 
 impl IBatteryProviderManager for BatteryProviderManager {
     fn register_battery_provider(
         &mut self,
-        _battery_provider: BatteryProvider,
-        _battery_provider_callback: Box<dyn IBatteryProviderCallback + Send>,
-    ) -> i32 {
-        todo!()
+        battery_provider_callback: Box<dyn IBatteryProviderCallback + Send>,
+    ) -> u32 {
+        self.battery_provider_callbacks.add_callback(battery_provider_callback)
     }
 
-    fn unregister_battery_provider(&mut self, _battery_id: i32) {
-        todo!()
+    fn unregister_battery_provider(&mut self, battery_provider_id: u32) {
+        self.remove_battery_provider_callback(battery_provider_id);
     }
 
-    fn set_battery_percentage(&mut self, _battery_id: i32, _battery: Battery) {
-        todo!()
+    fn set_battery_info(&mut self, _battery_provider_id: u32, battery_set: BatterySet) {
+        let batteries = self
+            .battery_info
+            .entry(battery_set.address.clone())
+            .or_insert_with(|| Batteries::new());
+        batteries.add_or_update_battery_set(battery_set);
+        if let Some(best_battery_set) = batteries.pick_best() {
+            let tx = self.tx.clone();
+            tokio::spawn(async move {
+                let _ = tx
+                    .send(Message::BatteryProviderManagerBatteryUpdated(
+                        best_battery_set.address.clone(),
+                        best_battery_set,
+                    ))
+                    .await;
+            });
+        }
     }
 }
