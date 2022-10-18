@@ -32,6 +32,7 @@ import com.android.bluetooth.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 class VendorCommandResponseProcessor {
 
@@ -106,7 +107,7 @@ class VendorCommandResponseProcessor {
         // replace all white spaces
         commandWord = commandWord.replaceAll("\\s+", "");
 
-        if (SUPPORTED_VENDOR_AT_COMMANDS.get(commandWord) != (Integer) (vendorId)) {
+        if (!Objects.equals(SUPPORTED_VENDOR_AT_COMMANDS.get(commandWord), vendorId)) {
             Log.e(TAG, "Invalid command " + atCommand + ", " + vendorId + ". Cand="
                     + commandWord);
             return false;
