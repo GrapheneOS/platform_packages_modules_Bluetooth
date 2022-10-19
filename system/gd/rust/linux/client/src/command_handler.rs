@@ -973,9 +973,18 @@ impl CommandHandler {
                 if let Ok(id) = scanner_id {
                     self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().start_scan(
                         id,
-                        // TODO(b/217274432): Construct real settings and filters.
+                        // TODO(b/254870159): Construct real settings and filters depending on
+                        // command line options.
                         ScanSettings { interval: 0, window: 0, scan_type: ScanType::Active },
-                        None,
+                        Some(btstack::bluetooth_gatt::ScanFilter {
+                            rssi_high_threshold: 0,
+                            rssi_low_threshold: 0,
+                            rssi_low_timeout: 0,
+                            rssi_sampling_period: 0,
+                            condition: btstack::bluetooth_gatt::ScanFilterCondition::Patterns(
+                                vec![],
+                            ),
+                        }),
                     );
                     self.context.lock().unwrap().active_scanner_ids.insert(id);
                 } else {
