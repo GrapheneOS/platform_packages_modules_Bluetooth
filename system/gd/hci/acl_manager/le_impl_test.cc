@@ -762,6 +762,121 @@ TEST_F(LeImplTest, register_with_address_manager__AddressPolicyNotSet) {
       std::move(log_capture)));
 }
 
+TEST_F(LeImplTest, disarm_connectability_DISARMED) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  le_impl_->connectability_state_ = ConnectabilityState::DISARMED;
+  le_impl_->disarm_connectability();
+  ASSERT_FALSE(le_impl_->disarmed_while_arming_);
+
+  le_impl_->on_create_connection(ReturnCommandStatus(OpCode::LE_CREATE_CONNECTION, ErrorCode::SUCCESS));
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("Attempting to disarm le connection"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("in unexpected state:ConnectabilityState::DISARMED"));
+}
+
+TEST_F(LeImplTest, disarm_connectability_DISARMED_extended) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  le_impl_->connectability_state_ = ConnectabilityState::DISARMED;
+  le_impl_->disarm_connectability();
+  ASSERT_FALSE(le_impl_->disarmed_while_arming_);
+
+  le_impl_->on_extended_create_connection(
+      ReturnCommandStatus(OpCode::LE_EXTENDED_CREATE_CONNECTION, ErrorCode::SUCCESS));
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("Attempting to disarm le connection"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("in unexpected state:ConnectabilityState::DISARMED"));
+}
+
+TEST_F(LeImplTest, disarm_connectability_ARMING) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  le_impl_->connectability_state_ = ConnectabilityState::ARMING;
+  le_impl_->disarm_connectability();
+  ASSERT_TRUE(le_impl_->disarmed_while_arming_);
+  le_impl_->on_create_connection(ReturnCommandStatus(OpCode::LE_CREATE_CONNECTION, ErrorCode::SUCCESS));
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("Queueing cancel connect until"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Le connection state machine armed state"));
+}
+
+TEST_F(LeImplTest, disarm_connectability_ARMING_extended) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  le_impl_->connectability_state_ = ConnectabilityState::ARMING;
+  le_impl_->disarm_connectability();
+  ASSERT_TRUE(le_impl_->disarmed_while_arming_);
+
+  le_impl_->on_extended_create_connection(
+      ReturnCommandStatus(OpCode::LE_EXTENDED_CREATE_CONNECTION, ErrorCode::SUCCESS));
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("Queueing cancel connect until"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Le connection state machine armed state"));
+}
+
+TEST_F(LeImplTest, disarm_connectability_ARMED) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  le_impl_->connectability_state_ = ConnectabilityState::ARMED;
+  le_impl_->disarm_connectability();
+  ASSERT_FALSE(le_impl_->disarmed_while_arming_);
+
+  le_impl_->on_create_connection(ReturnCommandStatus(OpCode::LE_CREATE_CONNECTION, ErrorCode::SUCCESS));
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("Disarming LE connection state machine"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Disarming LE connection state machine with create connection"));
+}
+
+TEST_F(LeImplTest, disarm_connectability_ARMED_extended) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  le_impl_->connectability_state_ = ConnectabilityState::ARMED;
+  le_impl_->disarm_connectability();
+  ASSERT_FALSE(le_impl_->disarmed_while_arming_);
+
+  le_impl_->on_extended_create_connection(
+      ReturnCommandStatus(OpCode::LE_EXTENDED_CREATE_CONNECTION, ErrorCode::SUCCESS));
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("Disarming LE connection state machine"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Disarming LE connection state machine with create connection"));
+}
+
+TEST_F(LeImplTest, disarm_connectability_DISARMING) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  le_impl_->connectability_state_ = ConnectabilityState::DISARMING;
+  le_impl_->disarm_connectability();
+  ASSERT_FALSE(le_impl_->disarmed_while_arming_);
+
+  le_impl_->on_create_connection(ReturnCommandStatus(OpCode::LE_CREATE_CONNECTION, ErrorCode::SUCCESS));
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("Attempting to disarm le connection"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("in unexpected state:ConnectabilityState::DISARMING"));
+}
+
+TEST_F(LeImplTest, disarm_connectability_DISARMING_extended) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  le_impl_->connectability_state_ = ConnectabilityState::DISARMING;
+  le_impl_->disarm_connectability();
+  ASSERT_FALSE(le_impl_->disarmed_while_arming_);
+
+  le_impl_->on_extended_create_connection(
+      ReturnCommandStatus(OpCode::LE_EXTENDED_CREATE_CONNECTION, ErrorCode::SUCCESS));
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("Attempting to disarm le connection"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("in unexpected state:ConnectabilityState::DISARMING"));
+}
+
 }  // namespace acl_manager
 }  // namespace hci
 }  // namespace bluetooth

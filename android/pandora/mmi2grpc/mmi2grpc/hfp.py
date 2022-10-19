@@ -34,7 +34,7 @@ NEEDS_WAIT_CONNECTION_BEFORE_TEST = {
 class HFPProxy(ProfileProxy):
 
     def __init__(self, channel):
-        super().__init__()
+        super().__init__(channel)
         self.hfp = HFP(channel)
         self.host = Host(channel)
 
@@ -107,4 +107,26 @@ class HFPProxy(ProfileProxy):
         """
 
         self.hfp.DisableSlc(connection=self.connection)
+        return "OK"
+
+    @assert_description
+    def TSC_make_battery_charged(self, **kwargs):
+        """
+        Click Ok, then manipulate the Implementation Under Test (IUT) so that
+        the battery is fully charged.
+        """
+
+        self.hfp.SetBatteryLevel(connection=self.connection, battery_percentage=100)
+
+        return "OK"
+
+    @assert_description
+    def TSC_make_battery_discharged(self, **kwargs):
+        """
+        Manipulate the Implementation Under Test (IUT) so that the battery level
+        is not fully charged, then click Ok.
+        """
+
+        self.hfp.SetBatteryLevel(connection=self.connection, battery_percentage=42)
+
         return "OK"

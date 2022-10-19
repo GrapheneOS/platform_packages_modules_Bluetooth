@@ -115,7 +115,7 @@ def format_proxy(profile, mmi_name, mmi_description):
             f'class {profile}Proxy(ProfileProxy):\n'
             f'\n'
             f'    def __init__(self, channel):\n'
-            f'        super().__init__()\n'
+            f'        super().__init__(channel)\n'
             f'        self.{profile.lower()} = {profile}(channel)\n'
             f'\n'
             f'{wrapped_function}')

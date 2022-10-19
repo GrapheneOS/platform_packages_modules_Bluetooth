@@ -16,6 +16,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.android.pandora">
+    <uses-sdk android:minSdkVersion="33"/>
 
     <application>
         <uses-library android:name="android.test.runner" />

@@ -18,7 +18,15 @@ package com.android.pandora
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothDevice.ACTION_PAIRING_REQUEST
+import android.bluetooth.BluetoothDevice.BOND_BONDED
+import android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC
+import android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL
+import android.bluetooth.BluetoothDevice.DEVICE_TYPE_LE
 import android.bluetooth.BluetoothDevice.EXTRA_PAIRING_VARIANT
+import android.bluetooth.BluetoothDevice.TRANSPORT_AUTO
+import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
+import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
@@ -29,6 +37,7 @@ import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,7 +50,7 @@ import pandora.HostProto.*
 import pandora.SecurityGrpc.SecurityImplBase
 import pandora.SecurityProto.*
 
-const val TAG = "PandoraSecurity"
+private const val TAG = "PandoraSecurity"
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Security(private val context: Context) : SecurityImplBase() {
@@ -55,6 +64,7 @@ class Security(private val context: Context) : SecurityImplBase() {
   init {
     val intentFilter = IntentFilter()
     intentFilter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST)
+    intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
 
     flow = intentFlow(context, intentFilter).shareIn(globalScope, SharingStarted.Eagerly)
   }
@@ -66,8 +76,17 @@ class Security(private val context: Context) : SecurityImplBase() {
   override fun pair(request: PairRequest, responseObserver: StreamObserver<Empty>) {
     grpcUnary(globalScope, responseObserver) {
       val bluetoothDevice = request.connection.toBluetoothDevice(bluetoothAdapter)
-      Log.i(TAG, "pair: ${bluetoothDevice.address}")
-      bluetoothDevice.createBond()
+      Log.i(
+        TAG,
+        "pair: ${bluetoothDevice.address} (current bond state: ${bluetoothDevice.bondState})"
+      )
+      bluetoothDevice.createBond(
+        when (request.connection.transport!!) {
+          Transport.TRANSPORT_LE -> TRANSPORT_LE
+          Transport.TRANSPORT_BREDR -> TRANSPORT_BREDR
+          Transport.UNRECOGNIZED -> TRANSPORT_AUTO
+        }
+      )
       Empty.getDefaultInstance()
     }
   }
@@ -76,26 +95,28 @@ class Security(private val context: Context) : SecurityImplBase() {
     request: DeletePairingRequest,
     responseObserver: StreamObserver<DeletePairingResponse>
   ) {
-    grpcUnary<DeletePairingResponse>(globalScope, responseObserver) {
+    grpcUnary(globalScope, responseObserver) {
       val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
       Log.i(TAG, "DeletePairing: device=$bluetoothDevice")
 
+      val unbonded =
+        globalScope.async {
+          flow
+            .filter { it.action == BluetoothDevice.ACTION_BOND_STATE_CHANGED }
+            .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
+            .filter {
+              it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) ==
+                BluetoothDevice.BOND_NONE
+            }
+            .first()
+        }
+
       if (bluetoothDevice.removeBond()) {
         Log.i(TAG, "DeletePairing: device=$bluetoothDevice - wait BOND_NONE intent")
-        flow
-          .filter { it.getAction() == BluetoothDevice.ACTION_BOND_STATE_CHANGED }
-          .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
-          .filter {
-            it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) ==
-              BluetoothDevice.BOND_NONE
-          }
-          .filter {
-            it.getIntExtra(BluetoothDevice.EXTRA_REASON, BluetoothAdapter.ERROR) ==
-              BluetoothDevice.BOND_SUCCESS
-          }
-          .first()
+        unbonded.await()
       } else {
         Log.i(TAG, "DeletePairing: device=$bluetoothDevice - Already unpaired")
+        unbonded.cancel()
       }
       DeletePairingResponse.getDefaultInstance()
     }
@@ -105,72 +126,81 @@ class Security(private val context: Context) : SecurityImplBase() {
     responseObserver: StreamObserver<PairingEvent>
   ): StreamObserver<PairingEventAnswer> =
     grpcBidirectionalStream(globalScope, responseObserver) {
+      Log.i(TAG, "OnPairing: Starting stream")
       it
         .map { answer ->
+          Log.i(
+            TAG,
+            "OnPairing: Handling PairingEventAnswer ${answer.answerCase} for device ${answer.event.address}"
+          )
           val device = answer.event.address.toBluetoothDevice(bluetoothAdapter)
           when (answer.answerCase!!) {
             PairingEventAnswer.AnswerCase.CONFIRM -> device.setPairingConfirmation(true)
             PairingEventAnswer.AnswerCase.PASSKEY ->
-              error("We don't support SSP PASSKEY_ENTRY, since we always have a Display")
+              device.setPin(answer.passkey.toString().toByteArray())
             PairingEventAnswer.AnswerCase.PIN -> device.setPin(answer.pin.toByteArray())
             PairingEventAnswer.AnswerCase.ANSWER_NOT_SET -> error("unexpected pairing answer type")
           }
         }
         .launchIn(this)
 
-      // TODO(243977710) - Resolve the transport on which pairing is taking place
-      // so we can disambiguate intents
-      val transport = BluetoothDevice.TRANSPORT_AUTO
+      flow
+        .filter { intent -> intent.action == ACTION_PAIRING_REQUEST }
+        .map { intent ->
+          val device = intent.getBluetoothDeviceExtra()
+          val variant = intent.getIntExtra(EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR)
+          Log.i(TAG, "OnPairing: Handling PairingEvent ${variant} for device ${device.address}")
+          val eventBuilder =
+            PairingEvent.newBuilder().setAddress(device.toByteString())
+          when (variant) {
+            // SSP / LE Just Works
+            BluetoothDevice.PAIRING_VARIANT_CONSENT ->
+              eventBuilder.justWorks = Empty.getDefaultInstance()
 
-      flow.map { intent ->
-        val device = intent.getBluetoothDeviceExtra()
-        val variant = intent.getIntExtra(EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR)
-        val eventBuilder =
-          PairingEvent.newBuilder().setAddress(ByteString.copyFrom(device.toByteArray()))
-        when (variant) {
-          // SSP / LE Just Works
-          BluetoothDevice.PAIRING_VARIANT_CONSENT ->
-            eventBuilder.justWorks = Empty.getDefaultInstance()
-
-          // SSP / LE Numeric Comparison
-          BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION ->
-            eventBuilder.numericComparison =
-              intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_KEY, BluetoothDevice.ERROR)
-
-          // Out-Of-Band not currently supported
-          BluetoothDevice.PAIRING_VARIANT_OOB_CONSENT ->
-            error("Received OOB pairing confirmation (UNSUPPORTED)")
-
-          // Legacy PIN entry, or LE legacy passkey entry, depending on transport
-          BluetoothDevice.PAIRING_VARIANT_PIN ->
-            when (transport) {
-              BluetoothDevice.TRANSPORT_BREDR ->
-                eventBuilder.pinCodeRequest = Empty.getDefaultInstance()
-              BluetoothDevice.TRANSPORT_LE ->
-                eventBuilder.passkeyEntryRequest = Empty.getDefaultInstance()
-              else -> error("cannot determine pairing variant, since transport is unknown")
+            // SSP / LE Numeric Comparison
+            BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION ->
+              eventBuilder.numericComparison =
+                intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_KEY, BluetoothDevice.ERROR)
+            BluetoothDevice.PAIRING_VARIANT_DISPLAY_PASSKEY -> {
+              val passkey =
+                intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_KEY, BluetoothDevice.ERROR)
+              Log.i(TAG, "OnPairing: passkey=${passkey}")
+              eventBuilder.passkeyEntryNotification = passkey
             }
-          BluetoothDevice.PAIRING_VARIANT_PIN_16_DIGITS ->
-            eventBuilder.pinCodeRequest = Empty.getDefaultInstance()
 
-          // Legacy PIN entry or LE legacy passkey entry, except we just generate the PIN in the
-          // stack and display it to the user for convenience
-          BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN -> {
-            val passkey =
-              intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_KEY, BluetoothDevice.ERROR)
-            when (transport) {
-              BluetoothDevice.TRANSPORT_BREDR ->
-                eventBuilder.pinCodeNotification =
-                  ByteString.copyFrom(passkey.toString().toByteArray())
-              BluetoothDevice.TRANSPORT_LE -> eventBuilder.passkeyEntryNotification = passkey
-              else -> error("cannot determine pairing variant, since transport is unknown")
+            // Out-Of-Band not currently supported
+            BluetoothDevice.PAIRING_VARIANT_OOB_CONSENT ->
+              error("Received OOB pairing confirmation (UNSUPPORTED)")
+
+            // Legacy PIN entry, or LE legacy passkey entry, depending on transport
+            BluetoothDevice.PAIRING_VARIANT_PIN ->
+              when (device.type) {
+                DEVICE_TYPE_CLASSIC -> eventBuilder.pinCodeRequest = Empty.getDefaultInstance()
+                DEVICE_TYPE_LE -> eventBuilder.passkeyEntryRequest = Empty.getDefaultInstance()
+                else -> error("cannot determine pairing variant, since transport is unknown")
+              }
+            BluetoothDevice.PAIRING_VARIANT_PIN_16_DIGITS ->
+              eventBuilder.pinCodeRequest = Empty.getDefaultInstance()
+
+            // Legacy PIN entry or LE legacy passkey entry, except we just generate the PIN in
+            // the
+            // stack and display it to the user for convenience
+            BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN -> {
+              val passkey =
+                intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_KEY, BluetoothDevice.ERROR)
+              when (device.type) {
+                DEVICE_TYPE_CLASSIC ->
+                  eventBuilder.pinCodeNotification =
+                    ByteString.copyFrom(passkey.toString().toByteArray())
+                DEVICE_TYPE_LE -> eventBuilder.passkeyEntryNotification = passkey
+                else -> error("cannot determine pairing variant, since transport is unknown")
+              }
+            }
+            else -> {
+              error("Received unknown pairing variant $variant")
             }
           }
-          else -> {
-            error("Received unknown pairing variant $variant")
-          }
+          eventBuilder.build()
         }
-        eventBuilder.build()
-      }
     }
 }

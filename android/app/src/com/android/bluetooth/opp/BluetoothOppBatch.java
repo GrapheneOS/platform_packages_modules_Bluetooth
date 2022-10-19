@@ -180,7 +180,7 @@ public class BluetoothOppBatch {
      */
 
     /** register a listener for the batch change */
-    public void registerListern(BluetoothOppBatchListener listener) {
+    public void registerListener(BluetoothOppBatchListener listener) {
         mListener = listener;
     }
 

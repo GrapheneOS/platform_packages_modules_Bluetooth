@@ -77,4 +77,15 @@ class Hfp(val context: Context) : HFPImplBase() {
       Empty.getDefaultInstance()
     }
   }
+
+  override fun setBatteryLevel(
+    request: SetBatteryLevelRequest,
+    responseObserver: StreamObserver<Empty>
+  ) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      val action = "android.intent.action.BATTERY_CHANGED"
+      shell("am broadcast -a $action --ei level ${request.batteryPercentage} --ei scale 100")
+      Empty.getDefaultInstance()
+    }
+  }
 }
