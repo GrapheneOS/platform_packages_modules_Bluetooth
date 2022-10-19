@@ -74,6 +74,9 @@ class Host(private val context: Context, private val server: Server) : HostImplB
   private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
   private val bluetoothAdapter = bluetoothManager.adapter
 
+  private var connectability = ConnectabilityMode.CONNECTABILITY_UNSPECIFIED
+  private var discoverability = DiscoverabilityMode.DISCOVERABILITY_UNSPECIFIED
+
   init {
     scope = CoroutineScope(Dispatchers.Default)
 
@@ -354,8 +357,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     grpcUnary<GetLEConnectionResponse>(scope, responseObserver) {
       val address = request.address.decodeAsMacAddressToString()
       Log.i(TAG, "getLEConnection: $address")
-      val device =
-        bluetoothAdapter.getRemoteLeDevice(address, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
+      val device = bluetoothAdapter.getRemoteLeDevice(address, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
       if (device.isConnected) {
         GetLEConnectionResponse.newBuilder()
           .setConnection(newConnection(device, Transport.TRANSPORT_LE))
@@ -441,6 +443,76 @@ class Host(private val context: Context, private val server: Server) : HostImplB
             )
             .build()
         }
+    }
+  }
+
+  override fun setConnectabilityMode(
+    request: SetConnectabilityModeRequest,
+    responseObserver: StreamObserver<SetConnectabilityModeResponse>
+  ) {
+    grpcUnary(scope, responseObserver) {
+      Log.d(TAG, "setConnectabilityMode")
+      connectability = request.connectability!!
+
+      val scanMode =
+        when (connectability) {
+          ConnectabilityMode.CONNECTABILITY_UNSPECIFIED,
+          ConnectabilityMode.UNRECOGNIZED -> null
+          ConnectabilityMode.CONNECTABILITY_NOT_CONNECTABLE -> {
+            BluetoothAdapter.SCAN_MODE_NONE
+          }
+          ConnectabilityMode.CONECTABILITY_CONNECTABLE -> {
+            if (
+              discoverability == DiscoverabilityMode.DISCOVERABILITY_LIMITED ||
+                discoverability == DiscoverabilityMode.DISCOVERABILITY_GENERAL
+            ) {
+              BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE
+            } else {
+              BluetoothAdapter.SCAN_MODE_CONNECTABLE
+            }
+          }
+        }
+
+      if (scanMode != null) {
+        bluetoothAdapter.setScanMode(scanMode)
+      }
+      SetConnectabilityModeResponse.getDefaultInstance()
+    }
+  }
+
+  override fun setDiscoverabilityMode(
+    request: SetDiscoverabilityModeRequest,
+    responseObserver: StreamObserver<SetDiscoverabilityModeResponse>
+  ) {
+    Log.d(TAG, "setDiscoverabilityMode")
+    grpcUnary(scope, responseObserver) {
+      discoverability = request.discoverability!!
+
+      val scanMode =
+        when (discoverability) {
+          DiscoverabilityMode.DISCOVERABILITY_UNSPECIFIED,
+          DiscoverabilityMode.UNRECOGNIZED -> null
+          DiscoverabilityMode.DISCOVERABILITY_NONE ->
+            if (connectability == ConnectabilityMode.CONECTABILITY_CONNECTABLE) {
+              BluetoothAdapter.SCAN_MODE_CONNECTABLE
+            } else {
+              BluetoothAdapter.SCAN_MODE_NONE
+            }
+          DiscoverabilityMode.DISCOVERABILITY_LIMITED,
+          DiscoverabilityMode.DISCOVERABILITY_GENERAL ->
+            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE
+        }
+
+      if (scanMode != null) {
+        bluetoothAdapter.setScanMode(scanMode)
+      }
+
+      if (request.discoverability == DiscoverabilityMode.DISCOVERABILITY_LIMITED) {
+        bluetoothAdapter.setDiscoverableTimeout(
+          Duration.ofSeconds(120)
+        ) // limited discoverability needs a timeout, 120s is Android default
+      }
+      SetDiscoverabilityModeResponse.getDefaultInstance()
     }
   }
 
