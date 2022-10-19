@@ -58,6 +58,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     public static final int CONNECT = 1;
     public static final int DISCONNECT = 2;
     public static final int ACTIVE_DEVICE_CHANGE = 3;
+    public static final int AUDIO_FOCUS_STATE_CHANGE = 4;
 
     //100->199 Internal Events
     protected static final int CLEANUP = 100;
@@ -110,6 +111,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     private static BluetoothDevice sActiveDevice;
     private final AudioManager mAudioManager;
+    private boolean mShouldSendPlayOnFocusRecovery = false;
     private final boolean mIsVolumeFixed;
 
     protected final BluetoothDevice mDevice;
@@ -480,9 +482,59 @@ class AvrcpControllerStateMachine extends StateMachine {
                         BluetoothMediaBrowserService.notifyChanged(
                                 mAddressedPlayer.getPlaybackState());
                         BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
+
+                        // If we switch to a device that is playing and we don't have focus, pause
+                        int focusState = getFocusState();
+                        if (mAddressedPlayer.getPlaybackState().getState()
+                                == PlaybackStateCompat.STATE_PLAYING
+                                && focusState == AudioManager.AUDIOFOCUS_NONE) {
+                            sendMessage(MSG_AVRCP_PASSTHRU,
+                                    AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                        }
                     } else {
                         sendMessage(MSG_AVRCP_PASSTHRU,
                                 AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                        mShouldSendPlayOnFocusRecovery = false;
+                    }
+                    return true;
+
+                case AUDIO_FOCUS_STATE_CHANGE:
+                    int newState = msg.arg1;
+                    logD("Audio focus changed -> " + newState);
+                    switch (newState) {
+                        case AudioManager.AUDIOFOCUS_GAIN:
+                            // Begin playing audio again if we paused the remote
+                            if (mShouldSendPlayOnFocusRecovery) {
+                                logD("Regained focus, establishing play status");
+                                sendMessage(MSG_AVRCP_PASSTHRU,
+                                        AvrcpControllerService.PASS_THRU_CMD_ID_PLAY);
+                            }
+                            mShouldSendPlayOnFocusRecovery = false;
+                            break;
+
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                            // Temporary loss of focus. Send a courtesy pause if we are playing and
+                            // note we should recover
+                            if (mAddressedPlayer.getPlaybackState().getState()
+                                    == PlaybackStateCompat.STATE_PLAYING) {
+                                logD("Transient loss, temporarily pause with intent to recover");
+                                sendMessage(MSG_AVRCP_PASSTHRU,
+                                        AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                                mShouldSendPlayOnFocusRecovery = true;
+                            }
+                            break;
+
+                        case AudioManager.AUDIOFOCUS_LOSS:
+                            // Permanent loss of focus probably due to another audio app. Send a
+                            // courtesy pause
+                            logD("Lost focus, send a courtesy pause");
+                            if (mAddressedPlayer.getPlaybackState().getState()
+                                    == PlaybackStateCompat.STATE_PLAYING) {
+                                sendMessage(MSG_AVRCP_PASSTHRU,
+                                        AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                            }
+                            mShouldSendPlayOnFocusRecovery = false;
+                            break;
                     }
                     return true;
 
@@ -537,6 +589,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     return true;
 
                 case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
+                    logd("Playback status changed to " + msg.arg1);
                     mAddressedPlayer.setPlayStatus(msg.arg1);
                     if (!isActive()) {
                         sendMessage(MSG_AVRCP_PASSTHRU,
@@ -544,22 +597,17 @@ class AvrcpControllerStateMachine extends StateMachine {
                         return true;
                     }
 
-                    PlaybackStateCompat playbackState = mAddressedPlayer.getPlaybackState();
-                    BluetoothMediaBrowserService.notifyChanged(playbackState);
+                    BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
 
-                    int focusState = AudioManager.ERROR;
-                    A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
-                    if (a2dpSinkService != null) {
-                        focusState = a2dpSinkService.getFocusState();
-                    }
-
+                    int focusState = getFocusState();
                     if (focusState == AudioManager.ERROR) {
                         sendMessage(MSG_AVRCP_PASSTHRU,
                                 AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
                         return true;
                     }
 
-                    if (playbackState.getState() == PlaybackStateCompat.STATE_PLAYING
+                    if (mAddressedPlayer.getPlaybackState().getState()
+                            == PlaybackStateCompat.STATE_PLAYING
                             && focusState == AudioManager.AUDIOFOCUS_NONE) {
                         if (shouldRequestFocus()) {
                             mSessionCallbacks.onPrepare();
@@ -1141,6 +1189,15 @@ class AvrcpControllerStateMachine extends StateMachine {
         }
     }
 
+    private int getFocusState() {
+        int focusState = AudioManager.ERROR;
+        A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+        if (a2dpSinkService != null) {
+            focusState = a2dpSinkService.getFocusState();
+        }
+        return focusState;
+    }
+
     MediaSessionCompat.Callback mSessionCallbacks = new MediaSessionCompat.Callback() {
         @Override
         public void onPlay() {
@@ -1152,6 +1209,12 @@ class AvrcpControllerStateMachine extends StateMachine {
         @Override
         public void onPause() {
             logD("onPause");
+            // If we receive a local pause/stop request and send it out then we need to signal that
+            // the intent is to stay paused if we recover focus from a transient loss
+            if (getFocusState() == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                logD("Received a pause while in a transient loss. Do not recover anymore.");
+                mShouldSendPlayOnFocusRecovery = false;
+            }
             sendMessage(MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
         }
 
@@ -1182,6 +1245,12 @@ class AvrcpControllerStateMachine extends StateMachine {
         @Override
         public void onStop() {
             logD("onStop");
+            // If we receive a local pause/stop request and send it out then we need to signal that
+            // the intent is to stay paused if we recover focus from a transient loss
+            if (getFocusState() == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                logD("Received a stop while in a transient loss. Do not recover anymore.");
+                mShouldSendPlayOnFocusRecovery = false;
+            }
             sendMessage(MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_STOP);
         }
 
