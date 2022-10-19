@@ -145,9 +145,7 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    if (!device->EnableEncryption(enc_callback_static)) {
-      device_cleanup_helper(device, device->connecting_actively);
-    }
+    device->EnableEncryption();
   }
 
   void OnEncryptionComplete(const RawAddress& address, uint8_t success) {
@@ -389,7 +387,11 @@ class VolumeControlImpl : public VolumeControl {
               << loghex(device->mute) << " change_counter "
               << loghex(device->change_counter);
 
-    if (!device->device_ready) return;
+    if (!device->IsReady()) {
+      LOG_INFO("Device: %s is not ready yet.",
+               device->address.ToString().c_str());
+      return;
+    }
 
     /* This is just a read, send single notification */
     if (!is_notification) {
@@ -462,7 +464,11 @@ class VolumeControlImpl : public VolumeControl {
               << " offset: " << loghex(offset->offset)
               << " counter: " << loghex(offset->change_counter);
 
-    if (!device->device_ready) return;
+    if (!device->IsReady()) {
+      LOG_INFO("Device: %s is not ready yet.",
+               device->address.ToString().c_str());
+      return;
+    }
 
     callbacks_->OnExtAudioOutVolumeOffsetChanged(device->address, offset->id,
                                                  offset->offset);
@@ -483,7 +489,11 @@ class VolumeControlImpl : public VolumeControl {
     LOG(INFO) << __func__ << "id " << loghex(offset->id) << "location "
               << loghex(offset->location);
 
-    if (!device->device_ready) return;
+    if (!device->IsReady()) {
+      LOG_INFO("Device: %s is not ready yet.",
+               device->address.ToString().c_str());
+      return;
+    }
 
     callbacks_->OnExtAudioOutLocationChanged(device->address, offset->id,
                                              offset->location);
@@ -514,7 +524,11 @@ class VolumeControlImpl : public VolumeControl {
 
     LOG(INFO) << __func__ << " " << description;
 
-    if (!device->device_ready) return;
+    if (!device->IsReady()) {
+      LOG_INFO("Device: %s is not ready yet.",
+               device->address.ToString().c_str());
+      return;
+    }
 
     callbacks_->OnExtAudioOutDescriptionChanged(device->address, offset->id,
                                                 std::move(description));
@@ -584,7 +598,7 @@ class VolumeControlImpl : public VolumeControl {
     }
 
     // If we get here, it means, device has not been exlicitly disconnected.
-    bool device_ready = device->device_ready;
+    bool device_ready = device->IsReady();
 
     device_cleanup_helper(device, device->connecting_actively);
 
@@ -768,14 +782,16 @@ class VolumeControlImpl : public VolumeControl {
     uint8_t opcode = mute ? kControlPointOpcodeMute : kControlPointOpcodeUnmute;
 
     if (std::holds_alternative<RawAddress>(addr_or_group_id)) {
-      LOG_DEBUG("Address: %s: ",
-                (std::get<RawAddress>(addr_or_group_id)).ToString().c_str());
       VolumeControlDevice* dev = volume_control_devices_.FindByAddress(
           std::get<RawAddress>(addr_or_group_id));
-      if (dev && dev->IsConnected()) {
-        std::vector<RawAddress> devices = {dev->address};
-        PrepareVolumeControlOperation(devices, bluetooth::groups::kGroupUnknown,
-                                      false, opcode, arg);
+      if (dev != nullptr) {
+        LOG_DEBUG("Address: %s: isReady: %s", dev->address.ToString().c_str(),
+                  dev->IsReady() ? "true" : "false");
+        if (dev->IsReady()) {
+          std::vector<RawAddress> devices = {dev->address};
+          PrepareVolumeControlOperation(
+              devices, bluetooth::groups::kGroupUnknown, false, opcode, arg);
+        }
       }
     } else {
       /* Handle group change */
@@ -790,7 +806,7 @@ class VolumeControlImpl : public VolumeControl {
       auto devices = csis_api->GetDeviceList(group_id);
       for (auto it = devices.begin(); it != devices.end();) {
         auto dev = volume_control_devices_.FindByAddress(*it);
-        if (!dev || !dev->IsConnected()) {
+        if (!dev || !dev->IsReady()) {
           it = devices.erase(it);
         } else {
           it++;
@@ -831,12 +847,16 @@ class VolumeControlImpl : public VolumeControl {
                 std::get<RawAddress>(addr_or_group_id).ToString().c_str());
       VolumeControlDevice* dev = volume_control_devices_.FindByAddress(
           std::get<RawAddress>(addr_or_group_id));
-      if (dev && dev->IsConnected() && (dev->volume != volume)) {
-        std::vector<RawAddress> devices = {dev->address};
-        RemovePendingVolumeControlOperations(devices,
-                                             bluetooth::groups::kGroupUnknown);
-        PrepareVolumeControlOperation(devices, bluetooth::groups::kGroupUnknown,
-                                      false, opcode, arg);
+      if (dev != nullptr) {
+        LOG_DEBUG("Address: %s: isReady: %s", dev->address.ToString().c_str(),
+                  dev->IsReady() ? "true" : "false");
+        if (dev->IsReady() && (dev->volume != volume)) {
+          std::vector<RawAddress> devices = {dev->address};
+          RemovePendingVolumeControlOperations(
+              devices, bluetooth::groups::kGroupUnknown);
+          PrepareVolumeControlOperation(
+              devices, bluetooth::groups::kGroupUnknown, false, opcode, arg);
+        }
       }
     } else {
       /* Handle group change */
@@ -851,7 +871,7 @@ class VolumeControlImpl : public VolumeControl {
       auto devices = csis_api->GetDeviceList(group_id);
       for (auto it = devices.begin(); it != devices.end();) {
         auto dev = volume_control_devices_.FindByAddress(*it);
-        if (!dev || !dev->IsConnected()) {
+        if (!dev || !dev->IsReady()) {
           it = devices.erase(it);
         } else {
           it++;
@@ -964,7 +984,7 @@ class VolumeControlImpl : public VolumeControl {
   int latest_operation_id_;
 
   void verify_device_ready(VolumeControlDevice* device, uint16_t handle) {
-    if (device->device_ready) return;
+    if (device->IsReady()) return;
 
     // VerifyReady sets the device_ready flag if all remaining GATT operations
     // are completed
@@ -1096,11 +1116,6 @@ class VolumeControlImpl : public VolumeControl {
 
   static void gattc_callback_static(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
     if (instance) instance->gattc_callback(event, p_data);
-  }
-
-  static void enc_callback_static(const RawAddress* address, tBT_TRANSPORT,
-                                  void*, tBTM_STATUS status) {
-    if (instance) instance->OnEncryptionComplete(*address, status);
   }
 
   static void chrc_read_callback_static(uint16_t conn_id, tGATT_STATUS status,

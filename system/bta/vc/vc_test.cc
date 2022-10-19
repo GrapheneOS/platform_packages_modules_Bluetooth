@@ -229,12 +229,15 @@ class VolumeControlTest : public ::testing::Test {
               return;
           }
 
+          if (do_not_respond_to_reads) return;
           cb(conn_id, GATT_SUCCESS, handle, value.size(), value.data(),
              cb_data);
         }));
   }
 
  protected:
+  bool do_not_respond_to_reads = false;
+
   void SetUp(void) override {
     bluetooth::manager::SetMockBtmInterface(&btm_interface);
     MockCsisClient::SetMockInstanceForTesting(&mock_csis_client_module_);
@@ -438,19 +441,32 @@ class VolumeControlTest : public ::testing::Test {
     gatt_callback(BTA_GATTC_SEARCH_CMPL_EVT, (tBTA_GATTC*)&event_data);
   }
 
+  void GetEncryptionCompleteEvt(const RawAddress& bda) {
+    tBTA_GATTC cb_data{};
+
+    cb_data.enc_cmpl.client_if = gatt_if;
+    cb_data.enc_cmpl.remote_bda = bda;
+    gatt_callback(BTA_GATTC_ENC_CMPL_CB_EVT, &cb_data);
+  }
+
   void SetEncryptionResult(const RawAddress& address, bool success) {
     ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
         .WillByDefault(DoAll(Return(false)));
-    EXPECT_CALL(btm_interface,
-                SetEncryption(address, _, NotNull(), _, BTM_BLE_SEC_ENCRYPT))
-        .WillOnce(Invoke(
-            [&success](const RawAddress& bd_addr, tBT_TRANSPORT transport,
-                       tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
-                       tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
-              p_callback(&bd_addr, transport, p_ref_data,
-                         success ? BTM_SUCCESS : BTM_FAILED_ON_SECURITY);
+    ON_CALL(btm_interface, SetEncryption(address, _, _, _, BTM_BLE_SEC_ENCRYPT))
+        .WillByDefault(Invoke(
+            [&success, this](const RawAddress& bd_addr, tBT_TRANSPORT transport,
+                             tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
+                             tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
+              if (p_callback) {
+                p_callback(&bd_addr, transport, p_ref_data,
+                           success ? BTM_SUCCESS : BTM_FAILED_ON_SECURITY);
+              }
+              GetEncryptionCompleteEvt(bd_addr);
               return BTM_SUCCESS;
             }));
+    EXPECT_CALL(btm_interface,
+                SetEncryption(address, _, _, _, BTM_BLE_SEC_ENCRYPT))
+        .Times(1);
   }
 
   void SetSampleDatabaseVCS(uint16_t conn_id) {
@@ -1027,13 +1043,6 @@ class VolumeControlCsis : public VolumeControlTest {
     SetSampleDatabase(conn_id_2);
 
     TestAppRegister();
-
-    TestConnect(test_address_1);
-    GetConnectedEvent(test_address_1, conn_id_1);
-    GetSearchCompleteEvent(conn_id_1);
-    TestConnect(test_address_2);
-    GetConnectedEvent(test_address_2, conn_id_2);
-    GetSearchCompleteEvent(conn_id_2);
   }
 
   void TearDown(void) override {
@@ -1057,6 +1066,13 @@ class VolumeControlCsis : public VolumeControlTest {
 };
 
 TEST_F(VolumeControlCsis, test_set_volume) {
+  TestConnect(test_address_1);
+  GetConnectedEvent(test_address_1, conn_id_1);
+  GetSearchCompleteEvent(conn_id_1);
+  TestConnect(test_address_2);
+  GetConnectedEvent(test_address_2, conn_id_2);
+  GetSearchCompleteEvent(conn_id_2);
+
   /* Set value for the group */
   EXPECT_CALL(gatt_queue,
               WriteCharacteristic(conn_id_1, 0x0024, _, GATT_WRITE, _, _));
@@ -1073,7 +1089,38 @@ TEST_F(VolumeControlCsis, test_set_volume) {
   GetNotificationEvent(conn_id_2, test_address_2, 0x0021, value);
 }
 
+TEST_F(VolumeControlCsis, test_set_volume_device_not_ready) {
+  /* Make sure we did not get responds to the initial reads,
+   * so that the device was not marked as ready yet.
+   */
+  do_not_respond_to_reads = true;
+
+  TestConnect(test_address_1);
+  GetConnectedEvent(test_address_1, conn_id_1);
+  GetSearchCompleteEvent(conn_id_1);
+  TestConnect(test_address_2);
+  GetConnectedEvent(test_address_2, conn_id_2);
+  GetSearchCompleteEvent(conn_id_2);
+
+  /* Set value for the group */
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id_1, 0x0024, _, GATT_WRITE, _, _))
+      .Times(0);
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id_2, 0x0024, _, GATT_WRITE, _, _))
+      .Times(0);
+
+  VolumeControl::Get()->SetVolume(group_id, 10);
+}
+
 TEST_F(VolumeControlCsis, autonomus_test_set_volume) {
+  TestConnect(test_address_1);
+  GetConnectedEvent(test_address_1, conn_id_1);
+  GetSearchCompleteEvent(conn_id_1);
+  TestConnect(test_address_2);
+  GetConnectedEvent(test_address_2, conn_id_2);
+  GetSearchCompleteEvent(conn_id_2);
+
   /* Now inject notification and make sure callback is sent up to Java layer */
   EXPECT_CALL(*callbacks, OnGroupVolumeStateChanged(group_id, 0x03, false, true));
 
@@ -1083,6 +1130,13 @@ TEST_F(VolumeControlCsis, autonomus_test_set_volume) {
 }
 
 TEST_F(VolumeControlCsis, autonomus_single_device_test_set_volume) {
+  TestConnect(test_address_1);
+  GetConnectedEvent(test_address_1, conn_id_1);
+  GetSearchCompleteEvent(conn_id_1);
+  TestConnect(test_address_2);
+  GetConnectedEvent(test_address_2, conn_id_2);
+  GetSearchCompleteEvent(conn_id_2);
+
   /* Disconnect one device. */
   EXPECT_CALL(*callbacks,
               OnConnectionState(ConnectionState::DISCONNECTED, test_address_1));
