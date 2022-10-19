@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option java_outer_classname = "AndroidProto";
+
+package pandora;
+
+import "google/protobuf/empty.proto";
+
+// This file contains Android-specific protos and rpcs that should not be part
+// of the general interface. They should not be invoked from MMIs directly since
+// this will couple them too tightly with Android.
+
+// Service for Android-specific operations.
+service Android {
+  // Log text (for utility only)
+  rpc Log(LogRequest) returns (LogResponse);
+}
+
+message LogRequest {
+  string text = 1;
+}
+
+message LogResponse {}

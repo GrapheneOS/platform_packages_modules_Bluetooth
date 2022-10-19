@@ -12,7 +12,7 @@ from mmi2grpc._rootcanal import RootCanal
 class HIDProxy(ProfileProxy):
 
     def __init__(self, channel, rootcanal):
-        super().__init__()
+        super().__init__(channel)
         self.hid = HID(channel)
         self.host = Host(channel)
         self.rootcanal = rootcanal

@@ -5,6 +5,10 @@
         <option name="install-arg" value="-g" />
     </target_preparer>
 
+    <target_preparer class="com.android.tradefed.targetprep.RootTargetPreparer">
+      <option name="force-root" value="true"/>
+    </target_preparer>
+
     <target_preparer class="com.android.tradefed.targetprep.RunHostCommandTargetPreparer">
         <option name="host-background-command" value="adb -s $SERIAL shell am instrument --no-hidden-api-checks -w com.android.pandora/.Main" />
     </target_preparer>
@@ -16,27 +20,51 @@
     </target_preparer>
 
     <test class="com.android.tradefed.testtype.pandora.PtsBotTest" >
+        <!-- Creates a randomized temp dir for pts-bot binaries and avoid
+             conflicts when running multiple pts-bot on the same machine -->
+        <option name="create-bin-temp-dir" value="true"/>
         <!-- mmi2grpc is contained inside pts-bot folder -->
         <option name="mmi2grpc" value="pts-bot" />
         <option name="tests-config-file" value="pts_bot_tests_config.json" />
+        <option name="max-flaky-tests" value="2" />
+        <option name="max-retries-per-test" value="3" />
         <option name="physical" value="false" />
         <option name="profile" value="A2DP/SRC" />
+        <option name="profile" value="A2DP/SNK" />
         <option name="profile" value="AVCTP" />
         <option name="profile" value="AVDTP/SRC" />
+        <option name="profile" value="AVDTP/SNK" />
         <option name="profile" value="AVRCP" />
+        <option name="profile" value="GAP" />
         <option name="profile" value="GATT/CL/GAC" />
         <option name="profile" value="GATT/CL/GAD" />
         <option name="profile" value="GATT/CL/GAR" />
         <option name="profile" value="GATT/CL/GAW" />
+        <option name="profile" value="GATT/SR" />
         <option name="profile" value="HFP/AG/DIS" />
         <option name="profile" value="HFP/AG/HFI" />
+        <option name="profile" value="HFP/AG/PSI" />
         <option name="profile" value="HFP/AG/SLC" />
         <option name="profile" value="HFP/AG/TCA" />
         <option name="profile" value="HID/HOS" />
         <option name="profile" value="HOGP/RH" />
+        <option name="profile" value="L2CAP/LE" />
         <option name="profile" value="SDP/SR" />
         <option name="profile" value="SM/CEN/EKS" />
         <option name="profile" value="SM/CEN/JW" />
         <option name="profile" value="SM/CEN/KDU" />
+        <option name="profile" value="SM/CEN/PROT" />
+        <option name="profile" value="SM/CEN/PKE" />
+        <option name="profile" value="SM/CEN/SCJW" />
+        <option name="profile" value="SM/CEN/SCPK" />
+        <option name="profile" value="SM/PER/PROT" />
+        <option name="profile" value="SM/PER/JW" />
+        <option name="profile" value="SM/PER/PKE" />
+        <option name="profile" value="SM/PER/EKS" />
+        <option name="profile" value="SM/PER/KDU" />
+        <option name="profile" value="SM/PER/SCJW" />
+        <option name="profile" value="SM/PER/SCPK" />
+        <option name="profile" value="SM/PER/SCCT" />
+        <option name="profile" value="HOGP/RH" />
     </test>
 </configuration>

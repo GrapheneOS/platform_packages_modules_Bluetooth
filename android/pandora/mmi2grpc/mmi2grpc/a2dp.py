@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A2DP proxy module."""
 
 import time
@@ -42,22 +41,19 @@ class A2DPProxy(ProfileProxy):
     source: Optional[Source] = None
 
     def __init__(self, channel):
-        super().__init__()
+        super().__init__(channel)
 
         self.host = Host(channel)
         self.a2dp = A2DP(channel)
 
         def convert_frame(data):
             return PlaybackAudioRequest(data=data, source=self.source)
-        self.audio = AudioSignal(
-            lambda frames: self.a2dp.PlaybackAudio(map(convert_frame, frames)),
-            AUDIO_SIGNAL_AMPLITUDE,
-            AUDIO_SIGNAL_SAMPLING_RATE
-        )
+
+        self.audio = AudioSignal(lambda frames: self.a2dp.PlaybackAudio(map(convert_frame, frames)),
+                                 AUDIO_SIGNAL_AMPLITUDE, AUDIO_SIGNAL_SAMPLING_RATE)
 
     @assert_description
-    def TSC_AVDTP_mmi_iut_accept_connect(
-            self, test: str, pts_addr: bytes, **kwargs):
+    def TSC_AVDTP_mmi_iut_accept_connect(self, test: str, pts_addr: bytes, **kwargs):
         """
         If necessary, take action to accept the AVDTP Signaling Channel
         Connection initiated by the tester.
@@ -71,25 +67,32 @@ class A2DPProxy(ProfileProxy):
         """
 
         if "SRC" in test:
-            self.connection = self.host.WaitConnection(
-                address=pts_addr).connection
+            self.connection = self.host.WaitConnection(address=pts_addr).connection
             try:
                 if "INT" in test:
-                    self.source = self.a2dp.OpenSource(
-                        connection=self.connection).source
+                    self.source = self.a2dp.OpenSource(connection=self.connection).source
                 else:
-                    self.source = self.a2dp.WaitSource(
-                        connection=self.connection).source
+                    self.source = self.a2dp.WaitSource(connection=self.connection).source
             except RpcError:
                 pass
         else:
-            self.connection = self.host.WaitConnection(
-                address=pts_addr).connection
+            self.connection = self.host.WaitConnection(address=pts_addr).connection
             try:
-                self.sink = self.a2dp.WaitSink(
-                    connection=self.connection).sink
+                self.sink = self.a2dp.WaitSink(connection=self.connection).sink
             except RpcError:
                 pass
+        return "OK"
+
+    @assert_description
+    def TSC_AVDTP_mmi_iut_accept_disconnect(self, **kwargs):
+        """
+        If necessary, take action to accept the AVDTP Signaling Channnel
+        Disconnection initiated by the tester.
+
+        Note: If an AVCTP signaling
+        channel was established it will also be disconnected.
+        """
+
         return "OK"
 
     @assert_description
@@ -152,8 +155,7 @@ class A2DPProxy(ProfileProxy):
         return "OK"
 
     @assert_description
-    def TSC_AVDTP_mmi_iut_initiate_out_of_range(
-            self, pts_addr: bytes, **kwargs):
+    def TSC_AVDTP_mmi_iut_initiate_out_of_range(self, pts_addr: bytes, **kwargs):
         """
         Move the IUT out of range to create a link loss scenario.
 
@@ -162,8 +164,7 @@ class A2DPProxy(ProfileProxy):
          """
 
         if self.connection is None:
-            self.connection = self.host.GetConnection(
-                address=pts_addr).connection
+            self.connection = self.host.GetConnection(address=pts_addr).connection
         self.host.Disconnect(connection=self.connection)
         self.connection = None
         self.sink = None
@@ -181,11 +182,8 @@ class A2DPProxy(ProfileProxy):
 
         if test == "AVDTP/SRC/ACP/SIG/SMG/BI-29-C":
             time.sleep(2)  # TODO: Remove, AVRCP SegFault
-        if test in ("A2DP/SRC/CC/BV-09-I",
-                    "A2DP/SRC/SET/BV-04-I",
-                    "AVDTP/SRC/ACP/SIG/SMG/BV-18-C",
-                    "AVDTP/SRC/ACP/SIG/SMG/BV-20-C",
-                    "AVDTP/SRC/ACP/SIG/SMG/BV-22-C"):
+        if test in ("A2DP/SRC/CC/BV-09-I", "A2DP/SRC/SET/BV-04-I", "AVDTP/SRC/ACP/SIG/SMG/BV-18-C",
+                    "AVDTP/SRC/ACP/SIG/SMG/BV-20-C", "AVDTP/SRC/ACP/SIG/SMG/BV-22-C"):
             time.sleep(1)  # TODO: Remove, AVRCP SegFault
         if test == "A2DP/SRC/SUS/BV-01-I":
             # Stream is not suspended when we receive the interaction
