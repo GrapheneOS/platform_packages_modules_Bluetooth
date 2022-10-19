@@ -1,0 +1,19 @@
+cc_library_static {
+    name: "libaptxhd_enc",
+    host_supported: true,
+    export_include_dirs: ["include"],
+    srcs: [
+        "src/aptXHDbtenc.c",
+        "src/ProcessSubband.c",
+        "src/QmfConv.c",
+        "src/QuantiseDifference.c",
+    ],
+    cflags: ["-O2", "-Werror", "-Wall", "-Wextra"],
+    min_sdk_version: "Tiramisu",
+    apex_available: [
+        "com.android.btservices",
+    ],
+    visibility: [
+        "//packages/modules/Bluetooth:__subpackages__",
+    ],
+}

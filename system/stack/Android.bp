@@ -209,6 +209,8 @@ cc_library_static {
     whole_static_libs: [
         "libldacBT_abr",
         "libldacBT_enc",
+        "libaptx_enc",
+        "libaptxhd_enc",
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu"
@@ -642,6 +644,8 @@ cc_test {
         "libprotobuf-cpp-lite",
     ],
     static_libs: [
+        "libaptx_enc",
+        "libaptxhd_enc",
         "libbt-common",
         "libbt-protos-lite",
         "liblog",
