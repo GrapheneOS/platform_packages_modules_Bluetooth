@@ -50,18 +50,20 @@ APTXBTENCEXPORT const char* aptxbtenc_version(void);
  * The function returns 0 if no error occurred during the initialisation. */
 APTXBTENCEXPORT int aptxbtenc_init(void* _state, short endian);
 
-/* aptxbtenc_setsync_mode is used to initialise the sync mode in the encoder state structure.
- * _state should be a pointer to the encoder structure (stereo, though strictly-speaking it is dual channel).
- * 'sync_mode' is an enumerated type  {stereo=0, dualmono=1, no_sync=2}
- * The function returns 0 if no error occurred during the initialisation. */
+/* aptxbtenc_setsync_mode is used to initialise the sync mode in the encoder
+ * state structure. _state should be a pointer to the encoder structure (stereo,
+ * though strictly-speaking it is dual channel). 'sync_mode' is an enumerated
+ * type  {stereo=0, dualmono=1, no_sync=2} The function returns 0 if no error
+ * occurred during the initialisation. */
 APTXBTENCEXPORT int aptxbtenc_setsync_mode(void* _state, int32_t sync_mode);
 
 /* StereoEncode will take 8 audio samples (16-bit per sample)
  * and generate one 32-bit codeword with autosync inserted. */
-APTXBTENCEXPORT int aptxbtenc_encodestereo(void* _state, void* _pcmL, void* _pcmR, void* _buffer);
+APTXBTENCEXPORT int aptxbtenc_encodestereo(void* _state, void* _pcmL,
+                                           void* _pcmR, void* _buffer);
 
 #ifdef __cplusplus
-} //  /extern "C"
+}  //  /extern "C"
 #endif
 
-#endif //APTXBTENC_H
+#endif  // APTXBTENC_H
