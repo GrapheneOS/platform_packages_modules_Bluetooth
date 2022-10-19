@@ -91,7 +91,7 @@ class L2CAPProxy(ProfileProxy):
         Place the IUT into LE connectable mode.
         """
         self.host.StartAdvertising(
-            connectability_mode=ConnectabilityMode.CONECTABILITY_CONNECTABLE,
+            connectability_mode=ConnectabilityMode.CONNECTABILITY_CONNECTABLE,
             own_address_type=AddressType.PUBLIC,
         )
         # not strictly necessary, but can save time on waiting connection
