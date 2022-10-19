@@ -26,6 +26,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.MacAddress
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.protobuf.ByteString
 import io.grpc.stub.StreamObserver
@@ -224,7 +225,10 @@ fun <T> getProfileProxy(context: Context, profile: Int): T {
     }
     proxy = withTimeoutOrNull(5_000) { flow.first() }
   }
-  return proxy!! as T
+  if (proxy == null) {
+    Log.w(TAG, "profile proxy $profile is null")
+  }
+  return proxy as T
 }
 
 fun Intent.getBluetoothDeviceExtra(): BluetoothDevice =
