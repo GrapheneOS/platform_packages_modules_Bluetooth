@@ -17,7 +17,10 @@
 package com.android.pandora
 
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothAssignedNumbers
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothDevice.ADDRESS_TYPE_PUBLIC
+import android.bluetooth.BluetoothDevice.ADDRESS_TYPE_RANDOM
 import android.bluetooth.BluetoothDevice.BOND_BONDED
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
@@ -32,6 +35,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.MacAddress
+import android.os.ParcelUuid
 import android.util.Log
 import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
@@ -67,7 +71,7 @@ import pandora.HostProto.*
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Host(private val context: Context, private val server: Server) : HostImplBase() {
   private val TAG = "PandoraHost"
-  private val ADVERTISEMENT_DURATION_MILLIS: Int = 10000
+
   private val scope: CoroutineScope
   private val flow: Flow<Intent>
 
@@ -76,6 +80,8 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
   private var connectability = ConnectabilityMode.CONNECTABILITY_UNSPECIFIED
   private var discoverability = DiscoverabilityMode.DISCOVERABILITY_UNSPECIFIED
+
+  private val advertisers = mutableMapOf<UUID, AdvertiseCallback>()
 
   init {
     scope = CoroutineScope(Dispatchers.Default)
@@ -231,48 +237,6 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     }
   }
 
-  /**
-   * Set the device in advertisement mode for #ADVERTISEMENT_DURATION_MILLIS milliseconds.
-   * @param request Request sent by the client.
-   * @param responseObserver Response to build and set back to the client.
-   */
-  override fun setLEConnectable(
-    request: Empty,
-    responseObserver: StreamObserver<Empty>,
-  ) {
-    // Creates a gRPC coroutine in a given coroutine scope which executes a given suspended function
-    // returning a gRPC response and sends it on a given gRPC stream observer.
-    grpcUnary<Empty>(scope, responseObserver) {
-      Log.i(TAG, "setLEConnectable")
-      val advertiser = bluetoothAdapter.getBluetoothLeAdvertiser()
-      val advertiseSettings =
-        AdvertiseSettings.Builder()
-          .setConnectable(true)
-          .setOwnAddressType(AdvertisingSetParameters.ADDRESS_TYPE_PUBLIC)
-          .setTimeout(ADVERTISEMENT_DURATION_MILLIS)
-          .build()
-      val advertiseData = AdvertiseData.Builder().build()
-      suspendCoroutine<Boolean> { continuation ->
-        val advertiseCallback =
-          object : AdvertiseCallback() {
-            override fun onStartFailure(errorCode: Int) {
-              Log.i(TAG, "Advertising failed: $errorCode")
-              continuation.resumeWith(failure(Exception("Advertising failed: $errorCode")))
-            }
-
-            override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-              Log.i(TAG, "Advertising success")
-              continuation.resumeWith(success(true))
-            }
-          }
-        advertiser.startAdvertising(advertiseSettings, advertiseData, advertiseCallback)
-      }
-
-      // Response sent to client
-      Empty.getDefaultInstance()
-    }
-  }
-
   override fun connect(request: ConnectRequest, responseObserver: StreamObserver<ConnectResponse>) {
     grpcUnary(scope, responseObserver) {
       val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
@@ -414,6 +378,70 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       bluetoothDevice = flow.first()
     }
     return bluetoothDevice
+  }
+
+  override fun startAdvertising(
+    request: StartAdvertisingRequest,
+    responseObserver: StreamObserver<StartAdvertisingResponse>
+  ) {
+    Log.d(TAG, "startAdvertising")
+    grpcUnary(scope, responseObserver) {
+      val handle = UUID.randomUUID()
+
+      callbackFlow {
+          val callback =
+            object : AdvertiseCallback() {
+              override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+                sendBlocking(
+                  StartAdvertisingResponse.newBuilder()
+                    .setHandle(
+                      AdvertisingHandle.newBuilder()
+                        .setCookie(ByteString.copyFromUtf8(handle.toString()))
+                    )
+                    .build()
+                )
+              }
+              override fun onStartFailure(errorCode: Int) {
+                error("failed to start advertising")
+              }
+            }
+
+          advertisers[handle] = callback
+
+          val advertisingDataBuilder = AdvertiseData.Builder()
+
+          for (service_uuid in request.advertisingData.serviceUuidsList) {
+            advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
+          }
+
+          advertisingDataBuilder
+            .setIncludeDeviceName(request.advertisingData.includeLocalName)
+            .setIncludeTxPowerLevel(request.advertisingData.includeTxPowerLevel)
+            .addManufacturerData(
+              BluetoothAssignedNumbers.GOOGLE,
+              request.advertisingData.manufacturerSpecificData.toByteArray()
+            )
+
+          bluetoothAdapter.bluetoothLeAdvertiser.startAdvertising(
+            AdvertiseSettings.Builder()
+              .setConnectable(request.connectabilityMode == ConnectabilityMode.CONECTABILITY_CONNECTABLE)
+              .setOwnAddressType(
+                when (request.ownAddressType!!) {
+                  AddressType.PUBLIC -> ADDRESS_TYPE_PUBLIC
+                  AddressType.RANDOM -> ADDRESS_TYPE_RANDOM
+                  AddressType.UNRECOGNIZED ->
+                    error("unrecognized address type ${request.ownAddressType}")
+                }
+              )
+              .build(),
+            advertisingDataBuilder.build(),
+            callback,
+          )
+
+          awaitClose { /* no-op */}
+        }
+        .first()
+    }
   }
 
   override fun runInquiry(

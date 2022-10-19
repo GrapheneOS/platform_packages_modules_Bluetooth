@@ -41,8 +41,13 @@ service Host {
   rpc GetLEConnection(GetLEConnectionRequest) returns (GetLEConnectionResponse);
   // Disconnect ongoing LE connection.
   rpc DisconnectLE(DisconnectLERequest) returns (google.protobuf.Empty);
-  // Start LE advertisement
-  rpc SetLEConnectable(google.protobuf.Empty) returns (google.protobuf.Empty);
+  // Create and enable an advertising set using legacy or extended advertising,
+  // except periodic advertising.
+  rpc StartAdvertising(StartAdvertisingRequest) returns (StartAdvertisingResponse);
+  // Create and enable a periodic advertising set.
+  rpc StartPeriodicAdvertising(StartPeriodicAdvertisingRequest) returns (StartPeriodicAdvertisingResponse);
+  // Remove an advertising set.
+  rpc StopAdvertising(StopAdvertisingRequest) returns (StopAdvertisingResponse);
   // Run BR/EDR inquiry and returns each device found
   rpc RunInquiry(RunInquiryRequest) returns (stream RunInquiryResponse);
   // Run LE discovery (scanning) and return each device found
@@ -167,6 +172,74 @@ message GetLEConnectionResponse {
 message DisconnectLERequest {
   Connection connection = 1;
 }
+
+message AdvertisingHandle {
+  bytes cookie = 1;
+}
+
+enum AddressType {
+  PUBLIC = 0x00;
+  RANDOM = 0x01;
+}
+
+// Advertising Data including one or multiple AD types.
+// Since the Flags AD type is mandatory, it must be automatically set by the
+// IUT.
+// include_<AD type> fields are used for AD type which are generally not
+// exposed and that must be set by the IUT when specified.
+// See Core Supplement, Part A, Data Types for details
+message AdvertisingData {
+  repeated string service_uuids = 1;
+  bool include_local_name = 2;
+  bytes manufacturer_specific_data = 3;
+  bool include_tx_power_level = 4;
+  bool include_peripheral_connection_interval_range = 5;
+  repeated string service_solicitation = 6;
+  map<string, bytes> service_data = 7;
+  // Must be on 16 bits.
+  uint32 appearance = 8;
+  repeated bytes public_target_addresses = 9;
+  repeated bytes random_target_addresses = 10;
+  bool include_advertising_interval = 11;
+  bool include_le_address = 12;
+  bool include_le_role = 13;
+  string uri = 14;
+}
+
+message StartAdvertisingRequest {
+  bool legacy = 1;
+  DiscoverabilityMode discovery_mode = 2;
+  ConnectabilityMode connectability_mode = 3;
+  AddressType own_address_type = 4;
+  // If none, undirected.
+  bytes peer_address = 5;
+  AdvertisingData advertising_data = 6;
+  // If none, not scannable.
+  AdvertisingData scan_response_data = 7;
+}
+
+message StartAdvertisingResponse {
+  AdvertisingHandle handle = 1;
+}
+
+message StartPeriodicAdvertisingRequest {
+  AddressType own_address_type = 1;
+  // If none, undirected.
+  bytes peer_address = 2;
+  uint32 interval_min = 3;
+  uint32 interval_max = 4;
+  AdvertisingData advertising_data = 5;
+}
+
+message StartPeriodicAdvertisingResponse {
+  AdvertisingHandle handle = 1;
+}
+
+message StopAdvertisingRequest {
+  AdvertisingHandle handle = 1;
+}
+
+message StopAdvertisingResponse {}
 
 message RunInquiryRequest {
 }
