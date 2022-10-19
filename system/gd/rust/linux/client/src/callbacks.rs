@@ -1,8 +1,9 @@
 use crate::dbus_iface::{
-    export_advertising_set_callback_dbus_intf, export_bluetooth_callback_dbus_intf,
-    export_bluetooth_connection_callback_dbus_intf, export_bluetooth_gatt_callback_dbus_intf,
-    export_bluetooth_manager_callback_dbus_intf, export_scanner_callback_dbus_intf,
-    export_socket_callback_dbus_intf, export_suspend_callback_dbus_intf,
+    export_admin_policy_callback_dbus_intf, export_advertising_set_callback_dbus_intf,
+    export_bluetooth_callback_dbus_intf, export_bluetooth_connection_callback_dbus_intf,
+    export_bluetooth_gatt_callback_dbus_intf, export_bluetooth_manager_callback_dbus_intf,
+    export_scanner_callback_dbus_intf, export_socket_callback_dbus_intf,
+    export_suspend_callback_dbus_intf,
 };
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
@@ -11,6 +12,7 @@ use bt_topshim::profiles::gatt::{GattStatus, LePhy};
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
+use btstack::bluetooth_admin::{IBluetoothAdminPolicyCallback, PolicyEffect};
 use btstack::bluetooth_adv::IAdvertisingSetCallback;
 use btstack::bluetooth_gatt::{
     BluetoothGattService, IBluetoothGattCallback, IScannerCallback, ScanResult,
@@ -341,6 +343,57 @@ impl RPCProxy for ScannerCallback {
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
         let iface = export_scanner_callback_dbus_intf(
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
+    }
+}
+
+pub(crate) struct AdminCallback {
+    objpath: String,
+
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
+}
+
+impl AdminCallback {
+    pub(crate) fn new(
+        objpath: String,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, dbus_connection, dbus_crossroads }
+    }
+}
+
+impl IBluetoothAdminPolicyCallback for AdminCallback {
+    fn on_service_allowlist_changed(&self, allowlist: Vec<Uuid128Bit>) {
+        print_info!("new allowlist: {:?}", allowlist);
+    }
+
+    fn on_device_policy_effect_changed(
+        &self,
+        device: BluetoothDevice,
+        new_policy_effect: Option<PolicyEffect>,
+    ) {
+        print_info!(
+            "new device policy effect. Device: {:?}. New Effect: {:?}",
+            device,
+            new_policy_effect
+        );
+    }
+}
+
+impl RPCProxy for AdminCallback {
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        let iface = export_admin_policy_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
             Arc::new(Mutex::new(DisconnectWatcher::new())),
@@ -797,7 +850,7 @@ impl SuspendCallback {
 impl ISuspendCallback for SuspendCallback {
     // TODO(b/224606285): Implement suspend utils in btclient.
     fn on_callback_registered(&self, _callback_id: u32) {}
-    fn on_suspend_ready(&self, _suspend_id: u32) {}
+    fn on_suspend_ready(&self, _suspend_id: i32) {}
     fn on_resumed(&self, _suspend_id: i32) {}
 }
 

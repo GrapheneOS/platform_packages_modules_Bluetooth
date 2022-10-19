@@ -1,4 +1,4 @@
-use btstack::battery_manager::{Battery, IBatteryManager, IBatteryManagerCallback};
+use btstack::battery_manager::{Battery, BatterySet, IBatteryManager, IBatteryManagerCallback};
 use btstack::RPCProxy;
 use dbus::arg::RefArg;
 use dbus::strings::Path;
@@ -7,10 +7,17 @@ use dbus_projection::{dbus_generated, DisconnectWatcher};
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 
+#[dbus_propmap(BatterySet)]
+pub struct BatterySetDBus {
+    address: String,
+    source_uuid: String,
+    source_info: String,
+    batteries: Vec<Battery>,
+}
+
 #[dbus_propmap(Battery)]
 pub struct BatteryDBus {
     percentage: u32,
-    source_info: String,
     variant: String,
 }
 
@@ -19,7 +26,7 @@ struct IBatteryManagerCallbackDBus {}
 #[dbus_proxy_obj(BatteryManagerCallback, "org.chromium.bluetooth.BatteryManagerCallback")]
 impl IBatteryManagerCallback for IBatteryManagerCallbackDBus {
     #[dbus_method("OnBatteryInfoUpdated")]
-    fn on_battery_info_updated(&self, remote_address: String, battery: Battery) {
+    fn on_battery_info_updated(&self, remote_address: String, battery_set: BatterySet) {
         dbus_generated!()
     }
 }
@@ -41,13 +48,8 @@ impl IBatteryManager for IBatteryManagerDBus {
         dbus_generated!()
     }
 
-    #[dbus_method("EnableNotifications")]
-    fn enable_notifications(&mut self, callback_id: u32, enable: bool) {
-        dbus_generated!()
-    }
-
     #[dbus_method("GetBatteryInformation")]
-    fn get_battery_information(&self, remote_address: String) -> Option<Battery> {
+    fn get_battery_information(&self, remote_address: String) -> Option<BatterySet> {
         dbus_generated!()
     }
 }

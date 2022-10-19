@@ -115,7 +115,7 @@ impl ISuspendCallback for SuspendCallback {
         log::debug!("Suspend callback registered, callback_id = {}", callback_id);
     }
 
-    fn on_suspend_ready(&self, suspend_id: u32) {
+    fn on_suspend_ready(&self, suspend_id: i32) {
         // Received when adapter is ready to suspend. Tell powerd that suspend is ready.
         log::debug!("Suspend ready, adapter suspend_id = {}", suspend_id);
 
@@ -446,11 +446,14 @@ impl PowerdSuspendManager {
                 let mut suspend_dbus_rpc = adapter_suspend_dbus.rpc.clone();
                 tokio::spawn(async move {
                     let result = suspend_dbus_rpc
-                        .suspend(match suspend_imminent.get_reason() {
-                            SuspendImminent_Reason::IDLE => SuspendType::AllowWakeFromHid,
-                            SuspendImminent_Reason::LID_CLOSED => SuspendType::NoWakesAllowed,
-                            SuspendImminent_Reason::OTHER => SuspendType::Other,
-                        })
+                        .suspend(
+                            match suspend_imminent.get_reason() {
+                                SuspendImminent_Reason::IDLE => SuspendType::AllowWakeFromHid,
+                                SuspendImminent_Reason::LID_CLOSED => SuspendType::NoWakesAllowed,
+                                SuspendImminent_Reason::OTHER => SuspendType::Other,
+                            },
+                            suspend_imminent.get_suspend_id(),
+                        )
                         .await;
 
                     log::debug!("Adapter suspend call, success = {}", result.is_ok());
@@ -485,7 +488,7 @@ impl PowerdSuspendManager {
         self.context.lock().unwrap().pending_suspend_imminent = None;
 
         if let Some(adapter_suspend_dbus) = &self.context.lock().unwrap().adapter_suspend_dbus {
-            let suspend_dbus_rpc = adapter_suspend_dbus.rpc.clone();
+            let mut suspend_dbus_rpc = adapter_suspend_dbus.rpc.clone();
             tokio::spawn(async move {
                 let result = suspend_dbus_rpc.resume().await;
                 log::debug!("Adapter resume call, success = {}", result.unwrap_or(false));

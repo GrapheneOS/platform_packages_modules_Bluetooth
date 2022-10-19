@@ -673,7 +673,7 @@ class MceStateMachine extends StateMachine {
                         case NEW_MESSAGE:
                             // Infer the timestamp for this message as 'now' and read status false
                             // instead of getting the message listing data for it
-                            if (!mMessages.contains(ev.getHandle())) {
+                            if (!mMessages.containsKey(ev.getHandle())) {
                                 Calendar calendar = Calendar.getInstance();
                                 MessageMetadata metadata = new MessageMetadata(ev.getHandle(),
                                         calendar.getTime().getTime(), false);

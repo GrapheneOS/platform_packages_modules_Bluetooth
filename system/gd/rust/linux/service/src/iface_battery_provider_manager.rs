@@ -1,20 +1,11 @@
-use btstack::battery_manager::Battery;
-use btstack::battery_provider_manager::{
-    BatteryProvider, IBatteryProviderCallback, IBatteryProviderManager,
-};
+use btstack::battery_manager::BatterySet;
+use btstack::battery_provider_manager::{IBatteryProviderCallback, IBatteryProviderManager};
 use btstack::RPCProxy;
-use dbus::arg::RefArg;
 use dbus::strings::Path;
-use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
+use dbus_macros::{dbus_method, dbus_proxy_obj, generate_dbus_exporter};
 use dbus_projection::{dbus_generated, DisconnectWatcher};
 
-use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
-
-#[dbus_propmap(BatteryProvider)]
-pub struct BatteryProviderDBus {
-    source_info: String,
-    remote_address: String,
-}
+use crate::dbus_arg::DBusArg;
 
 struct IBatteryProviderCallbackDBus {}
 
@@ -36,19 +27,18 @@ impl IBatteryProviderManager for IBatteryProviderManagerDBus {
     #[dbus_method("RegisterBatteryProvider")]
     fn register_battery_provider(
         &mut self,
-        battery_provider: BatteryProvider,
         battery_provider_callback: Box<dyn IBatteryProviderCallback + Send>,
-    ) -> i32 {
+    ) -> u32 {
         dbus_generated!()
     }
 
     #[dbus_method("UnregisterBatteryProvider")]
-    fn unregister_battery_provider(&mut self, battery_id: i32) {
+    fn unregister_battery_provider(&mut self, battery_provider_id: u32) {
         dbus_generated!()
     }
 
-    #[dbus_method("SetBatteryPercentage")]
-    fn set_battery_percentage(&mut self, battery_id: i32, battery: Battery) {
+    #[dbus_method("SetBatteryInfo")]
+    fn set_battery_info(&mut self, battery_provider_id: u32, battery_set: BatterySet) {
         dbus_generated!()
     }
 }

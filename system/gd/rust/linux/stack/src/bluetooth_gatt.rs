@@ -503,7 +503,7 @@ impl BluetoothGattService {
 /// Callback for GATT Client API.
 pub trait IBluetoothGattCallback: RPCProxy {
     /// When the `register_client` request is done.
-    fn on_client_registered(&self, _status: GattStatus, _client_id: i32) {}
+    fn on_client_registered(&self, _status: GattStatus, _client_id: i32);
 
     /// When there is a change in the state of a GATT client connection.
     fn on_client_connection_state(
@@ -512,14 +512,13 @@ pub trait IBluetoothGattCallback: RPCProxy {
         _client_id: i32,
         _connected: bool,
         _addr: String,
-    ) {
-    }
+    );
 
     /// When there is a change of PHY.
-    fn on_phy_update(&self, _addr: String, _tx_phy: LePhy, _rx_phy: LePhy, _status: GattStatus) {}
+    fn on_phy_update(&self, _addr: String, _tx_phy: LePhy, _rx_phy: LePhy, _status: GattStatus);
 
     /// The completion of IBluetoothGatt::read_phy.
-    fn on_phy_read(&self, _addr: String, _tx_phy: LePhy, _rx_phy: LePhy, _status: GattStatus) {}
+    fn on_phy_read(&self, _addr: String, _tx_phy: LePhy, _rx_phy: LePhy, _status: GattStatus);
 
     /// When GATT db is available.
     fn on_search_complete(
@@ -527,8 +526,7 @@ pub trait IBluetoothGattCallback: RPCProxy {
         _addr: String,
         _services: Vec<BluetoothGattService>,
         _status: GattStatus,
-    ) {
-    }
+    );
 
     /// The completion of IBluetoothGatt::read_characteristic.
     fn on_characteristic_read(
@@ -537,36 +535,28 @@ pub trait IBluetoothGattCallback: RPCProxy {
         _status: GattStatus,
         _handle: i32,
         _value: Vec<u8>,
-    ) {
-    }
+    );
 
     /// The completion of IBluetoothGatt::write_characteristic.
-    fn on_characteristic_write(&self, _addr: String, _status: GattStatus, _handle: i32) {}
+    fn on_characteristic_write(&self, _addr: String, _status: GattStatus, _handle: i32);
 
     /// When a reliable write is completed.
-    fn on_execute_write(&self, _addr: String, _status: GattStatus) {}
+    fn on_execute_write(&self, _addr: String, _status: GattStatus);
 
     /// The completion of IBluetoothGatt::read_descriptor.
-    fn on_descriptor_read(
-        &self,
-        _addr: String,
-        _status: GattStatus,
-        _handle: i32,
-        _value: Vec<u8>,
-    ) {
-    }
+    fn on_descriptor_read(&self, _addr: String, _status: GattStatus, _handle: i32, _value: Vec<u8>);
 
     /// The completion of IBluetoothGatt::write_descriptor.
-    fn on_descriptor_write(&self, _addr: String, _status: GattStatus, _handle: i32) {}
+    fn on_descriptor_write(&self, _addr: String, _status: GattStatus, _handle: i32);
 
     /// When notification or indication is received.
-    fn on_notify(&self, _addr: String, _handle: i32, _value: Vec<u8>) {}
+    fn on_notify(&self, _addr: String, _handle: i32, _value: Vec<u8>);
 
     /// The completion of IBluetoothGatt::read_remote_rssi.
-    fn on_read_remote_rssi(&self, _addr: String, _rssi: i32, _status: GattStatus) {}
+    fn on_read_remote_rssi(&self, _addr: String, _rssi: i32, _status: GattStatus);
 
     /// The completion of IBluetoothGatt::configure_mtu.
-    fn on_configure_mtu(&self, _addr: String, _mtu: i32, _status: GattStatus) {}
+    fn on_configure_mtu(&self, _addr: String, _mtu: i32, _status: GattStatus);
 
     /// When a connection parameter changes.
     fn on_connection_updated(
@@ -576,11 +566,10 @@ pub trait IBluetoothGattCallback: RPCProxy {
         _latency: i32,
         _timeout: i32,
         _status: GattStatus,
-    ) {
-    }
+    );
 
     /// When there is an addition, removal, or change of a GATT service.
-    fn on_service_changed(&self, _addr: String) {}
+    fn on_service_changed(&self, _addr: String);
 }
 
 /// Interface for scanner callbacks to clients, passed to

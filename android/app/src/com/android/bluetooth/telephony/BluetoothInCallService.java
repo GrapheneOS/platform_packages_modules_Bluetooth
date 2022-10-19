@@ -57,6 +57,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -988,7 +989,7 @@ public class BluetoothInCallService extends InCallService {
                 // Held BluetoothCall has changed due to it being combined into a CDMA conference.
                 // Keep track of this and ignore any future update since it doesn't really count
                 // as a BluetoothCall change.
-                if (mOldHeldCall != null && mOldHeldCall.getId() == id) {
+                if (mOldHeldCall != null && Objects.equals(mOldHeldCall.getId(), id)) {
                     ignoreHeldCallChange = true;
                     break;
                 }
@@ -1526,4 +1527,4 @@ public class BluetoothInCallService extends InCallService {
             mBluetoothLeCallControl.requestResult(requestId, BluetoothLeCallControl.RESULT_ERROR_APPLICATION);
         }
     };
-};
+}

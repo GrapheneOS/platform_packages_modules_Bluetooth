@@ -8,12 +8,12 @@ use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
 
 use crate::callbacks::{
-    AdvertisingSetCallback, BtCallback, BtConnectionCallback, BtManagerCallback,
+    AdminCallback, AdvertisingSetCallback, BtCallback, BtConnectionCallback, BtManagerCallback,
     BtSocketManagerCallback, ScannerCallback, SuspendCallback,
 };
 use crate::command_handler::CommandHandler;
 use crate::dbus_iface::{
-    BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus, BluetoothQADBus,
+    BluetoothAdminDBus, BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus, BluetoothQADBus,
     BluetoothSocketManagerDBus, SuspendDBus,
 };
 use crate::editor::AsyncEditor;
@@ -77,6 +77,9 @@ pub(crate) struct ClientContext {
     /// Proxy for GATT interface.
     pub(crate) gatt_dbus: Option<BluetoothGattDBus>,
 
+    /// Proxy for Admin interface.
+    pub(crate) admin_dbus: Option<BluetoothAdminDBus>,
+
     /// Proxy for suspend interface.
     pub(crate) suspend_dbus: Option<SuspendDBus>,
 
@@ -97,6 +100,9 @@ pub(crate) struct ClientContext {
 
     /// Identifies the callback to receive IAdvertisingSetCallback method calls.
     advertiser_callback_id: Option<u32>,
+
+    /// Identifies the callback to receive IBluetoothAdminPolicyCallback method calls.
+    admin_callback_id: Option<u32>,
 
     /// Keeps track of active LE scanners.
     active_scanner_ids: HashSet<u8>,
@@ -133,6 +139,7 @@ impl ClientContext {
             adapter_dbus: None,
             qa_dbus: None,
             gatt_dbus: None,
+            admin_dbus: None,
             suspend_dbus: None,
             socket_manager_dbus: None,
             fg: tx,
@@ -140,6 +147,7 @@ impl ClientContext {
             dbus_crossroads,
             scanner_callback_id: None,
             advertiser_callback_id: None,
+            admin_callback_id: None,
             active_scanner_ids: HashSet::new(),
             adv_sets: HashMap::new(),
             socket_manager_callback_id: None,
@@ -177,6 +185,9 @@ impl ClientContext {
 
         let gatt_dbus = BluetoothGattDBus::new(conn.clone(), idx);
         self.gatt_dbus = Some(gatt_dbus);
+
+        let admin_dbus = BluetoothAdminDBus::new(conn.clone(), idx);
+        self.admin_dbus = Some(admin_dbus);
 
         let socket_manager_dbus = BluetoothSocketManagerDBus::new(conn.clone(), idx);
         self.socket_manager_dbus = Some(socket_manager_dbus);
@@ -405,6 +416,8 @@ async fn start_interactive_shell(
                     format!("/org/chromium/bluetooth/client/{}/scanner_callback", adapter);
                 let advertiser_cb_objpath: String =
                     format!("/org/chromium/bluetooth/client/{}/advertising_set_callback", adapter);
+                let admin_cb_objpath: String =
+                    format!("/org/chromium/bluetooth/client/{}/admin_callback", adapter);
                 let socket_manager_cb_objpath: String =
                     format!("/org/chromium/bluetooth/client/{}/socket_manager_callback", adapter);
 
@@ -476,6 +489,22 @@ async fn start_interactive_shell(
                     .await
                     .expect("D-Bus error on IBluetoothGatt::RegisterAdvertiserCallback");
                 context.lock().unwrap().advertiser_callback_id = Some(advertiser_callback_id);
+
+                let admin_callback_id = context
+                    .lock()
+                    .unwrap()
+                    .admin_dbus
+                    .as_mut()
+                    .unwrap()
+                    .rpc
+                    .register_admin_policy_callback(Box::new(AdminCallback::new(
+                        admin_cb_objpath.clone(),
+                        dbus_connection.clone(),
+                        dbus_crossroads.clone(),
+                    )))
+                    .await
+                    .expect("D-Bus error on IBluetoothAdmin::RegisterAdminCallback");
+                context.lock().unwrap().admin_callback_id = Some(admin_callback_id);
 
                 let socket_manager_callback_id = context
                     .lock()

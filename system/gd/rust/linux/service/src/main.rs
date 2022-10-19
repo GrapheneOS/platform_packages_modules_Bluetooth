@@ -21,6 +21,7 @@ use btstack::{
     battery_provider_manager::BatteryProviderManager,
     battery_service::BatteryService,
     bluetooth::{get_bt_dispatcher, Bluetooth, IBluetooth},
+    bluetooth_admin::BluetoothAdmin,
     bluetooth_gatt::BluetoothGatt,
     bluetooth_media::BluetoothMedia,
     socket_manager::BluetoothSocketManager,
@@ -34,10 +35,12 @@ mod dbus_arg;
 mod iface_battery_manager;
 mod iface_battery_provider_manager;
 mod iface_bluetooth;
+mod iface_bluetooth_admin;
 mod iface_bluetooth_gatt;
 mod iface_bluetooth_media;
 
 const DBUS_SERVICE_NAME: &str = "org.chromium.bluetooth";
+const ADMIN_SETTINGS_FILE_PATH: &str = "/var/lib/bluetooth/admin_policy.json";
 
 fn make_object_name(idx: i32, name: &str) -> String {
     String::from(format!("/org/chromium/bluetooth/hci{}/{}", idx, name))
@@ -114,16 +117,27 @@ fn main() -> Result<(), Box<dyn Error>> {
         Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone(), tx.clone()))));
     let bluetooth_media =
         Arc::new(Mutex::new(Box::new(BluetoothMedia::new(tx.clone(), intf.clone()))));
-    let battery_provider_manager = Arc::new(Mutex::new(Box::new(BatteryProviderManager::new())));
-    let battery_service =
-        Arc::new(Mutex::new(Box::new(BatteryService::new(bluetooth_gatt.clone(), tx.clone()))));
-    let battery_manager =
-        Arc::new(Mutex::new(Box::new(BatteryManager::new(battery_service.clone(), tx.clone()))));
+    let battery_provider_manager =
+        Arc::new(Mutex::new(Box::new(BatteryProviderManager::new(tx.clone()))));
+    let battery_service = Arc::new(Mutex::new(Box::new(BatteryService::new(
+        bluetooth_gatt.clone(),
+        battery_provider_manager.clone(),
+        tx.clone(),
+    ))));
+    let battery_manager = Arc::new(Mutex::new(Box::new(BatteryManager::new(
+        battery_provider_manager.clone(),
+        tx.clone(),
+    ))));
+    let bluetooth_admin = Arc::new(Mutex::new(Box::new(BluetoothAdmin::new(
+        String::from(ADMIN_SETTINGS_FILE_PATH),
+        tx.clone(),
+    ))));
     let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(
         tx.clone(),
         intf.clone(),
         bluetooth_media.clone(),
         sig_notifier.clone(),
+        bluetooth_admin.clone(),
     ))));
     let suspend = Arc::new(Mutex::new(Box::new(Suspend::new(
         bluetooth.clone(),
@@ -170,9 +184,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             bluetooth_gatt.clone(),
             battery_service.clone(),
             battery_manager.clone(),
+            battery_provider_manager.clone(),
             bluetooth_media.clone(),
             suspend.clone(),
             bt_sock_mgr.clone(),
+            bluetooth_admin.clone(),
         ));
 
         // Set up the disconnect watcher to monitor client disconnects.
@@ -239,6 +255,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             disconnect_watcher.clone(),
         );
 
+        let admin_iface = iface_bluetooth_admin::export_bluetooth_admin_dbus_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
+
         // Create mixin object for Bluetooth + Suspend interfaces.
         let mixin = Box::new(iface_bluetooth::BluetoothMixin {
             adapter: bluetooth.clone(),
@@ -258,6 +280,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             &[gatt_iface],
             bluetooth_gatt.clone(),
         );
+
         cr.lock().unwrap().insert(
             make_object_name(adapter_index, "media"),
             &[media_iface],
@@ -274,6 +297,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             battery_manager.clone(),
         );
 
+        cr.lock().unwrap().insert(
+            make_object_name(adapter_index, "admin"),
+            &[admin_iface],
+            bluetooth_admin.clone(),
+        );
+
         // Hold locks and initialize all interfaces. This must be done AFTER DBus is
         // initialized so DBus can properly enforce user policies.
         {
@@ -281,6 +310,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let adapter = bluetooth.clone();
             bluetooth_media.lock().unwrap().set_adapter(adapter.clone());
+            bluetooth_admin.lock().unwrap().set_adapter(adapter.clone());
 
             let mut bluetooth = bluetooth.lock().unwrap();
             bluetooth.init_profiles();

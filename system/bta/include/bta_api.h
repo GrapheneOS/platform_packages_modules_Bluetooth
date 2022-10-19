@@ -1222,6 +1222,39 @@ extern void BTA_VendorInit(void);
  ******************************************************************************/
 extern void BTA_DmClearEventFilter(void);
 
+/*******************************************************************************
+ *
+ * Function         BTA_DmClearEventMask
+ *
+ * Description      This function clears the event mask
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTA_DmClearEventMask(void);
+
+/*******************************************************************************
+ *
+ * Function         BTA_DmDisconnectAllAcls
+ *
+ * Description      This function will disconnect all LE and Classic ACLs.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTA_DmDisconnectAllAcls(void);
+
+/*******************************************************************************
+ *
+ * Function         BTA_DmClearFilterAcceptList
+ *
+ * Description      This function clears the filter accept list
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTA_DmClearFilterAcceptList(void);
+
 using LeRandCallback = base::Callback<void(uint64_t)>;
 /*******************************************************************************
  *

@@ -1,10 +1,12 @@
-use crate::btif::{BluetoothInterface, BtStatus, RawAddress};
+use crate::btif::{BluetoothInterface, BtStatus, RawAddress, ToggleableProfile};
 use crate::topstack::get_dispatchers;
 
 use num_traits::cast::FromPrimitive;
 use std::convert::{TryFrom, TryInto};
 use std::sync::{Arc, Mutex};
-use topshim_macros::cb_variant;
+use topshim_macros::{cb_variant, profile_enabled_or};
+
+use log::warn;
 
 #[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd, Clone)]
 #[repr(u32)]
@@ -158,10 +160,30 @@ cb_variant!(
 pub struct Hfp {
     internal: cxx::UniquePtr<ffi::HfpIntf>,
     _is_init: bool,
+    _is_enabled: bool,
 }
 
 // For *const u8 opaque btif
 unsafe impl Send for Hfp {}
+
+impl ToggleableProfile for Hfp {
+    fn is_enabled(&self) -> bool {
+        self._is_enabled
+    }
+
+    fn enable(&mut self) -> bool {
+        self.internal.pin_mut().init();
+        self._is_enabled = true;
+        true
+    }
+
+    #[profile_enabled_or(false)]
+    fn disable(&mut self) -> bool {
+        self.internal.pin_mut().cleanup();
+        self._is_enabled = false;
+        true
+    }
+}
 
 impl Hfp {
     pub fn new(intf: &BluetoothInterface) -> Hfp {
@@ -170,41 +192,52 @@ impl Hfp {
             hfpif = ffi::GetHfpProfile(intf.as_raw_ptr());
         }
 
-        Hfp { internal: hfpif, _is_init: false }
+        Hfp { internal: hfpif, _is_init: false, _is_enabled: false }
+    }
+
+    pub fn is_initialized(&self) -> bool {
+        self._is_init
     }
 
     pub fn initialize(&mut self, callbacks: HfpCallbacksDispatcher) -> bool {
         if get_dispatchers().lock().unwrap().set::<HfpCb>(Arc::new(Mutex::new(callbacks))) {
             panic!("Tried to set dispatcher for HFP callbacks while it already exists");
         }
-        self.internal.pin_mut().init();
+        self._is_init = true;
         true
     }
 
+    #[profile_enabled_or(BtStatus::NotReady)]
     pub fn connect(&mut self, addr: RawAddress) -> BtStatus {
         BtStatus::from(self.internal.pin_mut().connect(addr.into()))
     }
 
+    #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn connect_audio(&mut self, addr: RawAddress, sco_offload: bool, force_cvsd: bool) -> i32 {
         self.internal.pin_mut().connect_audio(addr.into(), sco_offload, force_cvsd)
     }
 
+    #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn set_active_device(&mut self, addr: RawAddress) -> i32 {
         self.internal.pin_mut().set_active_device(addr.into())
     }
 
+    #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn set_volume(&mut self, volume: i8, addr: RawAddress) -> i32 {
         self.internal.pin_mut().set_volume(volume, addr.into())
     }
 
+    #[profile_enabled_or(BtStatus::NotReady)]
     pub fn disconnect(&mut self, addr: RawAddress) -> BtStatus {
         BtStatus::from(self.internal.pin_mut().disconnect(addr.into()))
     }
 
+    #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn disconnect_audio(&mut self, addr: RawAddress) -> i32 {
         self.internal.pin_mut().disconnect_audio(addr.into())
     }
 
+    #[profile_enabled_or(false)]
     pub fn cleanup(&mut self) -> bool {
         self.internal.pin_mut().cleanup();
         true

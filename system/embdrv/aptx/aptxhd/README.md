@@ -1,1 +1,0 @@
-# AptX High Definition Codec
