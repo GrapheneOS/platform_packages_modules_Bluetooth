@@ -183,7 +183,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         mBatch = batch;
         mSession = session;
 
-        mBatch.registerListern(this);
+        mBatch.registerListener(this);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
     }
