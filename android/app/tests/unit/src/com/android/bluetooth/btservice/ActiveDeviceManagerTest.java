@@ -526,6 +526,64 @@ public class ActiveDeviceManagerTest {
     }
 
     /**
+     * Two Hearing Aid are connected and the current active is then disconnected.
+     * Should then set active device to fallback device.
+     */
+    @Test
+    public void hearingAidSecondDeviceDisconnected_fallbackDeviceActive() {
+        hearingAidConnected(mSecondaryAudioDevice);
+        verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mSecondaryAudioDevice);
+
+        hearingAidConnected(mHearingAidDevice);
+        verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mHearingAidDevice);
+
+        leAudioDisconnected(mHearingAidDevice);
+        verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mSecondaryAudioDevice);
+    }
+
+    /**
+     * Hearing aid is connected, but active device is different BT.
+     * When the active device is disconnected, the hearing aid should be the active one.
+     */
+    @Test
+    public void activeDeviceDisconnected_fallbackToHearingAid() {
+        hearingAidConnected(mHearingAidDevice);
+        verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mHearingAidDevice);
+
+        leAudioConnected(mLeAudioDevice);
+        a2dpConnected(mA2dpDevice);
+
+        a2dpActiveDeviceChanged(mA2dpDevice);
+        TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
+
+        verify(mHearingAidService).setActiveDevice(isNull());
+        verify(mLeAudioService, never()).setActiveDevice(mLeAudioDevice);
+        verify(mA2dpService, never()).setActiveDevice(mA2dpDevice);
+
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+        when(mDatabaseManager.getMostRecentlyConnectedDevicesInList(any())).thenAnswer(
+                invocation -> {
+                    List<BluetoothDevice> devices = invocation.getArgument(0);
+                    if (devices == null) {
+                        return null;
+                    } else if (devices.contains(mA2dpDevice)) {
+                        return mA2dpDevice;
+                    } else if (devices.contains(mLeAudioDevice)) {
+                        return mLeAudioDevice;
+                    } else if (devices.contains(mHearingAidDevice)) {
+                        return mHearingAidDevice;
+                    } else {
+                        return devices.get(0);
+                    }
+                }
+        );
+        a2dpDisconnected(mA2dpDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(isNull());
+        verify(mHearingAidService, timeout(TIMEOUT_MS).times(2))
+                .setActiveDevice(mHearingAidDevice);
+    }
+
+    /**
      * One LE Hearing Aid is connected.
      */
     @Test
@@ -623,6 +681,28 @@ public class ActiveDeviceManagerTest {
     private void headsetActiveDeviceChanged(BluetoothDevice device) {
         Intent intent = new Intent(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+    }
+
+    /**
+     * Helper to indicate Hearing Aid connected for a device.
+     */
+    private void hearingAidConnected(BluetoothDevice device) {
+        Intent intent = new Intent(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
+        mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+    }
+
+    /**
+     * Helper to indicate Hearing Aid disconnected for a device.
+     */
+    private void hearingAidDisconnected(BluetoothDevice device) {
+        Intent intent = new Intent(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_CONNECTED);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
     }
 
