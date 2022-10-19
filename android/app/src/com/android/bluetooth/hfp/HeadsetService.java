@@ -1877,7 +1877,12 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
-    boolean isInbandRingingEnabled() {
+    /**
+     * Checks if headset devices are able to get inband ringing.
+     *
+     * @return True if inband ringing is enabled.
+     */
+    public boolean isInbandRingingEnabled() {
         boolean isInbandRingingSupported = getResources().getBoolean(
                 com.android.bluetooth.R.bool.config_bluetooth_hfp_inband_ringing_support);
         return isInbandRingingSupported && !SystemProperties.getBoolean(
@@ -2125,7 +2130,7 @@ public class HeadsetService extends ProfileService {
     /**
      * Retrieves the most recently connected device in the A2DP connected devices list.
      */
-    private BluetoothDevice getFallbackDevice() {
+    public BluetoothDevice getFallbackDevice() {
         DatabaseManager dbManager = mAdapterService.getDatabase();
         return dbManager != null ? dbManager
             .getMostRecentlyConnectedDevicesInList(getConnectedDevices())

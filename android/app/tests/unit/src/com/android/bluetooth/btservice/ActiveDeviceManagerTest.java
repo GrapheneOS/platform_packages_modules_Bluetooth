@@ -50,6 +50,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.List;
+
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class ActiveDeviceManagerTest {
@@ -471,6 +473,56 @@ public class ActiveDeviceManagerTest {
         verify(mHeadsetService).setActiveDevice(mA2dpHeadsetDevice);
         Assert.assertEquals(mA2dpHeadsetDevice, mActiveDeviceManager.getHfpActiveDevice());
         Assert.assertEquals(null, mActiveDeviceManager.getLeAudioActiveDevice());
+    }
+
+    /**
+     * An LE Audio connected. An A2DP connected. The A2DP disconnected.
+     * Then the LE Audio should be the active one.
+     */
+    @Test
+    public void leAudioAndA2dpConnectedThenA2dpDisconnected_fallbackToLeAudio() {
+        leAudioConnected(mLeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
+
+        a2dpConnected(mA2dpDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
+
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+        when(mDatabaseManager.getMostRecentlyConnectedDevicesInList(any())).thenAnswer(
+                invocation -> {
+                    List<BluetoothDevice> devices = invocation.getArgument(0);
+                    return (devices != null && devices.contains(mLeAudioDevice))
+                            ? mLeAudioDevice : null;
+                }
+        );
+        a2dpDisconnected(mA2dpDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS).atLeast(1)).setActiveDevice(isNull());
+        verify(mLeAudioService, timeout(TIMEOUT_MS).times(2)).setActiveDevice(mLeAudioDevice);
+    }
+
+    /**
+     * An A2DP connected. An LE Audio connected. The LE Audio disconnected.
+     * Then the A2DP should be the active one.
+     */
+    @Test
+    public void a2dpAndLeAudioConnectedThenLeAudioDisconnected_fallbackToA2dp() {
+        a2dpConnected(mA2dpDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
+
+        leAudioConnected(mLeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
+
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+        when(mA2dpService.getFallbackDevice()).thenReturn(mA2dpDevice);
+        when(mDatabaseManager.getMostRecentlyConnectedDevicesInList(any())).thenAnswer(
+                invocation -> {
+                    List<BluetoothDevice> devices = invocation.getArgument(0);
+                    return (devices != null && devices.contains(mA2dpDevice)) ? mA2dpDevice : null;
+                }
+        );
+        leAudioDisconnected(mLeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS).atLeast(1)).setActiveDevice(isNull());
+        verify(mA2dpService, timeout(TIMEOUT_MS).times(2)).setActiveDevice(mA2dpDevice);
     }
 
     /**
