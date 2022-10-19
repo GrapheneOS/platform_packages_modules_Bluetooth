@@ -25,9 +25,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.MacAddress
+import android.os.ParcelFileDescriptor
+import androidx.test.platform.app.InstrumentationRegistry
 import com.google.protobuf.ByteString
 import io.grpc.stub.StreamObserver
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.util.concurrent.CancellationException
+import java.util.stream.Collectors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
@@ -46,6 +51,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import pandora.HostProto.Connection
+
+fun shell(cmd: String): String {
+  val fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd)
+  val input_stream = ParcelFileDescriptor.AutoCloseInputStream(fd)
+  return BufferedReader(InputStreamReader(input_stream)).lines().collect(Collectors.joining("\n"))
+}
 
 /**
  * Creates a cold flow of intents based on an intent filter. If used multiple times in a same class,
