@@ -654,7 +654,19 @@ public class VolumeControlService extends ProfileService {
         Integer groupVolume = mGroupVolumeCache.getOrDefault(groupId,
                 IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME);
         if (groupVolume != IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME) {
-            mVolumeControlNativeInterface.setVolume(device, groupVolume);
+            // Correct the volume level only if device was already reported as connected.
+            boolean can_change_volume = false;
+            synchronized (mStateMachines) {
+                VolumeControlStateMachine sm = mStateMachines.get(device);
+                if (sm != null) {
+                    can_change_volume =
+                            (sm.getConnectionState() == BluetoothProfile.STATE_CONNECTED);
+                }
+            }
+            if (can_change_volume) {
+                Log.i(TAG, "Setting value:" + groupVolume + " to " + device);
+                mVolumeControlNativeInterface.setVolume(device, groupVolume);
+            }
         }
     }
 
@@ -696,8 +708,19 @@ public class VolumeControlService extends ProfileService {
 
             if (device != null && groupVolume
                             != IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME) {
-                Log.i(TAG, "Setting value:" + groupVolume + " to " + device);
-                mVolumeControlNativeInterface.setVolume(device, groupVolume);
+                // Correct the volume level only if device was already reported as connected.
+                boolean can_change_volume = false;
+                synchronized (mStateMachines) {
+                    VolumeControlStateMachine sm = mStateMachines.get(device);
+                    if (sm != null) {
+                        can_change_volume =
+                                (sm.getConnectionState() == BluetoothProfile.STATE_CONNECTED);
+                    }
+                }
+                if (can_change_volume) {
+                    Log.i(TAG, "Setting value:" + groupVolume + " to " + device);
+                    mVolumeControlNativeInterface.setVolume(device, groupVolume);
+                }
             } else {
                 Log.e(TAG, "Volume changed did not succeed. Volume: " + volume
                                 + " expected volume: " + groupVolume);
