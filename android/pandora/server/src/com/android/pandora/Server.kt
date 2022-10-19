@@ -16,6 +16,8 @@
 
 package com.android.pandora
 
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.util.Log
 import io.grpc.Server as GrpcServer
@@ -28,7 +30,8 @@ class Server(context: Context) {
   private val GRPC_PORT = 8999
 
   private var host: Host
-  private var a2dp: A2dp
+  private var a2dp: A2dp? = null
+  private var a2dpSink: A2dpSink? = null
   private var avrcp: Avrcp
   private var gatt: Gatt
   private var hfp: Hfp
@@ -39,24 +42,34 @@ class Server(context: Context) {
 
   init {
     host = Host(context, this)
-    a2dp = A2dp(context)
     avrcp = Avrcp(context)
     gatt = Gatt(context)
     hfp = Hfp(context)
     hid = Hid(context)
     l2cap = L2cap(context)
     security = Security(context)
-    grpcServer =
+
+    val grpcServerBuilder =
       NettyServerBuilder.forPort(GRPC_PORT)
         .addService(host)
-        .addService(a2dp)
         .addService(avrcp)
         .addService(gatt)
         .addService(hfp)
         .addService(hid)
         .addService(l2cap)
         .addService(security)
-        .build()
+
+    val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)!!.adapter
+    val is_a2dp_source = bluetoothAdapter.getSupportedProfiles().contains(BluetoothProfile.A2DP)
+    if (is_a2dp_source) {
+      a2dp = A2dp(context)
+      grpcServerBuilder.addService(a2dp!!)
+    } else {
+      a2dpSink = A2dpSink(context)
+      grpcServerBuilder.addService(a2dpSink!!)
+    }
+
+    grpcServer = grpcServerBuilder.build()
 
     Log.d(TAG, "Starting Pandora Server")
     grpcServer.start()
@@ -69,7 +82,8 @@ class Server(context: Context) {
 
   fun deinit() {
     host.deinit()
-    a2dp.deinit()
+    a2dp?.deinit()
+    a2dpSink?.deinit()
     avrcp.deinit()
     gatt.deinit()
     hfp.deinit()
