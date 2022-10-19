@@ -818,7 +818,6 @@ public class HearingAidService extends ProfileService {
                         BluetoothMetricsProto.ProfileId.HEARING_AID);
             }
             if (!mHiSyncIdConnectedMap.getOrDefault(myHiSyncId, false)) {
-                setActiveDevice(device);
                 mHiSyncIdConnectedMap.put(myHiSyncId, true);
             }
         }
