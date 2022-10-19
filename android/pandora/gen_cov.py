@@ -67,13 +67,13 @@ def run_unit_tests():
         '--coverage-toolchain CLANG',
         '--coverage-flush',
         # Allows tests to use hidden APIs.
-        '--test-arg '
+        '--test-arg ',
         'com.android.compatibility.testtype.LibcoreTest:hidden-api-checks:false',
-        '--test-arg '
+        '--test-arg ',
         'com.android.tradefed.testtype.AndroidJUnitTest:hidden-api-checks:false',
-        '--test-arg '
+        '--test-arg ',
         'com.android.tradefed.testtype.InstrumentationTest:hidden-api-checks:false',
-        '--skip-system-status-check '
+        '--skip-system-status-check ',
         'com.android.tradefed.suite.checker.ShellStatusChecker',
     ]
     with open(f'{logs_out}/{test}.txt', 'w') as f:
@@ -293,9 +293,9 @@ if __name__ == '__main__':
       sys.exit('Trace directory does not exist')
 
     if (args.java):
-      generate_java_coverage(args.bt_apex_name, trace_path, coverage_out)
+      generate_java_coverage(args.apex_name, trace_path, coverage_out)
     if (args.native):
-      generate_native_coverage(args.bt_apex_name, trace_path, coverage_out)
+      generate_native_coverage(args.apex_name, trace_path, coverage_out)
 
   else:
     # Compute Pandora coverage.
@@ -303,18 +303,20 @@ if __name__ == '__main__':
     coverage_out_pandora = Path(f'{coverage_out}/pandora')
     coverage_out_pandora.mkdir()
     trace_pandora = Path('trace_pandora')
+    shutil.rmtree(trace_pandora, ignore_errors=True)
     subprocess.run(['adb', 'pull', '/data/misc/trace', trace_pandora])
-    generate_java_coverage(args.bt_apex_name, trace_pandora,
+    generate_java_coverage(args.apex_name, trace_pandora,
                            coverage_out_pandora)
-    generate_native_coverage(args.bt_apex_name, trace_pandora,
+    generate_native_coverage(args.apex_name, trace_pandora,
                              coverage_out_pandora)
 
-    # Compute all coverage.
+    # # Compute all coverage.
     run_unit_tests()
     coverage_out_mainline = Path(f'{coverage_out}/mainline')
-    coverage_out_pandora.mkdir()
+    coverage_out_mainline.mkdir()
     trace_all = Path('trace_all')
+    shutil.rmtree(trace_all, ignore_errors=True)
     subprocess.run(['adb', 'pull', '/data/misc/trace', trace_all])
-    generate_java_coverage(args.bt_apex_name, trace_all, coverage_out_mainline)
-    generate_native_coverage(args.bt_apex_name, trace_all,
+    generate_java_coverage(args.apex_name, trace_all, coverage_out_mainline)
+    generate_native_coverage(args.apex_name, trace_all,
                              coverage_out_mainline)
