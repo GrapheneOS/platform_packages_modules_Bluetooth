@@ -1,7 +1,7 @@
 //! Collection of Profile UUIDs and helpers to use them.
 
 use std::collections::{HashMap, HashSet};
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 
 use bt_topshim::btif::{Uuid, Uuid128Bit};
 
@@ -76,6 +76,12 @@ pub enum Profile {
 pub const BASE_UUID_NUM: u128 = 0x0000000000001000800000805f9b34fbu128;
 pub const BASE_UUID_MASK: u128 = !(0xffffffffu128 << 96);
 
+impl Display for Profile {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
+
 /// Wraps a reference of Uuid128Bit, which is the raw array of bytes of UUID.
 /// This is useful in implementing standard Rust traits which can't be implemented directly on
 /// built-in types (Rust's Orphan Rule).
@@ -99,7 +105,7 @@ impl<'a> Display for KnownUuidWrapper<'a> {
 pub struct UuidHelper {}
 
 lazy_static! {
-    static ref ENABLED_PROFILES: HashSet<Profile> = [
+    static ref SUPPORTED_PROFILES: HashSet<Profile> = [
         Profile::A2dpSink,
         Profile::A2dpSource,
         Profile::Hsp,
@@ -154,10 +160,15 @@ lazy_static! {
     .collect();
 }
 
+lazy_static! {
+    static ref PROFILES_UUIDS: HashMap<Profile, Uuid128Bit> =
+        PROFILES.iter().map(|(k, v)| (v.clone(), k.clone())).collect();
+}
+
 impl UuidHelper {
     /// Checks whether a UUID corresponds to a currently enabled profile.
-    pub fn is_profile_enabled(profile: &Profile) -> bool {
-        ENABLED_PROFILES.contains(profile)
+    pub fn is_profile_supported(profile: &Profile) -> bool {
+        SUPPORTED_PROFILES.contains(profile)
     }
 
     /// Converts a UUID to a known profile enum.
@@ -165,8 +176,13 @@ impl UuidHelper {
         PROFILES.get(uuid).cloned()
     }
 
-    pub fn get_enabled_profiles() -> HashSet<Profile> {
-        ENABLED_PROFILES.clone()
+    pub fn get_supported_profiles() -> HashSet<Profile> {
+        SUPPORTED_PROFILES.clone()
+    }
+
+    /// Converts a profile enum to its UUID if known.
+    pub fn get_profile_uuid(profile: &Profile) -> Option<&Uuid128Bit> {
+        PROFILES_UUIDS.get(profile)
     }
 
     /// Converts a UUID byte array into a formatted string.

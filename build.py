@@ -419,7 +419,11 @@ class HostBuild():
     def _rust_build(self):
         """ Run `cargo build` from platform2/bt directory.
         """
-        self.run_command('rust', ['cargo', 'build'], cwd=os.path.join(self.platform_dir, 'bt'), env=self.env)
+        cmd = ['cargo', 'build']
+        if not self.args.rust_debug:
+            cmd.append('--release')
+
+        self.run_command('rust', cmd, cwd=os.path.join(self.platform_dir, 'bt'), env=self.env)
 
     def _target_prepare(self):
         """ Target to prepare the output directory for building.
@@ -451,8 +455,11 @@ class HostBuild():
     def _target_rootcanal(self):
         """ Build rust artifacts for RootCanal in an already prepared environment.
         """
-        self.run_command(
-            'rust', ['cargo', 'build'], cwd=os.path.join(self.platform_dir, 'bt/tools/rootcanal'), env=self.env)
+        cmd = ['cargo', 'build']
+        if not self.args.rust_debug:
+            cmd.append('--release')
+
+        self.run_command('rust', cmd, cwd=os.path.join(self.platform_dir, 'bt/tools/rootcanal'), env=self.env)
 
     def _target_main(self):
         """ Build the main GN artifacts in an already prepared environment.
@@ -464,6 +471,9 @@ class HostBuild():
         """
         # Rust tests first
         rust_test_cmd = ['cargo', 'test']
+        if not self.args.rust_debug:
+            rust_test_cmd.append('--release')
+
         if self.args.test_name:
             rust_test_cmd = rust_test_cmd + [self.args.test_name, "--", "--test-threads=1", "--nocapture"]
 
@@ -830,6 +840,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--no-vendored-rust', help='Do not use vendored rust crates', default=False, action='store_true')
     parser.add_argument('--verbose', help='Verbose logs for build.')
+    parser.add_argument('--rust-debug', help='Build Rust code as debug.', default=False, action='store_true')
     args = parser.parse_args()
 
     # Make sure we get absolute path + expanded path for bootstrap directory

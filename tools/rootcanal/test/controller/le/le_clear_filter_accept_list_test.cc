@@ -50,10 +50,9 @@ TEST_F(LeClearFilterAcceptListTest, ScanningActive) {
                 FilterAcceptListAddressType::PUBLIC, Address{1}),
             ErrorCode::SUCCESS);
 
-  controller_.LeSetScanParameters(
-      LeScanType::PASSIVE, 0x400, 0x200, OwnAddressType::PUBLIC_DEVICE_ADDRESS,
+  controller_.SetLeScanFilterPolicy(
       LeScanningFilterPolicy::FILTER_ACCEPT_LIST_ONLY);
-  controller_.LeSetScanEnable(true, false);
+  controller_.SetLeScanEnable(OpCode::LE_SET_SCAN_ENABLE);
 
   ASSERT_EQ(controller_.LeClearFilterAcceptList(),
             ErrorCode::COMMAND_DISALLOWED);
@@ -64,13 +63,10 @@ TEST_F(LeClearFilterAcceptListTest, LegacyAdvertisingActive) {
                 FilterAcceptListAddressType::PUBLIC, Address{1}),
             ErrorCode::SUCCESS);
 
-  ASSERT_EQ(controller_.LeSetAdvertisingParameters(
-                0x0800, 0x0800, AdvertisingType::ADV_IND,
-                OwnAddressType::PUBLIC_DEVICE_ADDRESS,
-                PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS,
-                Address::kEmpty, 0x7, AdvertisingFilterPolicy::LISTED_SCAN),
-            ErrorCode::SUCCESS);
-  ASSERT_EQ(controller_.LeSetAdvertisingEnable(true), ErrorCode::SUCCESS);
+  controller_.SetLeAdvertisingParameters(
+      0x0800, 0x0800, AdvertisingType::ADV_IND, 0, 0, Address::kEmpty, 0x7,
+      AdvertisingFilterPolicy::LISTED_SCAN);
+  ASSERT_EQ(controller_.SetLeAdvertisingEnable(1), ErrorCode::SUCCESS);
 
   ASSERT_EQ(controller_.LeClearFilterAcceptList(),
             ErrorCode::COMMAND_DISALLOWED);

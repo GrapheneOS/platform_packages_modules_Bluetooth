@@ -1349,12 +1349,13 @@ tBTM_STATUS bluetooth::shim::BTM_ClearFilterAcceptList() {
 }
 
 tBTM_STATUS bluetooth::shim::BTM_DisconnectAllAcls() {
-  Stack::GetInstance()->GetAcl()->Shutdown();
+  Stack::GetInstance()->GetAcl()->DisconnectAllForSuspend();
+//  Stack::GetInstance()->GetAcl()->Shutdown();
   return BTM_SUCCESS;
 }
 
 tBTM_STATUS bluetooth::shim::BTM_LeRand(LeRandCallback cb) {
-  controller_get_interface()->le_rand(cb);
+  Stack::GetInstance()->GetAcl()->LeRand(cb);
   return BTM_SUCCESS;
 }
 

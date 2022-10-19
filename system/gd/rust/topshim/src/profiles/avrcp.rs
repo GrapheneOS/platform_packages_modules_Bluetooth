@@ -1,8 +1,10 @@
-use crate::btif::{BluetoothInterface, BtStatus, RawAddress};
+use crate::btif::{BluetoothInterface, BtStatus, RawAddress, ToggleableProfile};
 use crate::topstack::get_dispatchers;
 
 use std::sync::{Arc, Mutex};
-use topshim_macros::cb_variant;
+use topshim_macros::{cb_variant, profile_enabled_or};
+
+use log::warn;
 
 #[derive(Debug, Default)]
 pub struct PlayerMetadata {
@@ -115,10 +117,30 @@ cb_variant!(
 pub struct Avrcp {
     internal: cxx::UniquePtr<ffi::AvrcpIntf>,
     _is_init: bool,
+    _is_enabled: bool,
 }
 
 // For *const u8 opaque btif
 unsafe impl Send for Avrcp {}
+
+impl ToggleableProfile for Avrcp {
+    fn is_enabled(&self) -> bool {
+        self._is_enabled
+    }
+
+    fn enable(&mut self) -> bool {
+        self.internal.pin_mut().init();
+        self._is_enabled = true;
+        true
+    }
+
+    #[profile_enabled_or(false)]
+    fn disable(&mut self) -> bool {
+        self.internal.pin_mut().cleanup();
+        self._is_enabled = false;
+        true
+    }
+}
 
 impl Avrcp {
     pub fn new(intf: &BluetoothInterface) -> Avrcp {
@@ -127,31 +149,39 @@ impl Avrcp {
             avrcpif = ffi::GetAvrcpProfile(intf.as_raw_ptr());
         }
 
-        Avrcp { internal: avrcpif, _is_init: false }
+        Avrcp { internal: avrcpif, _is_init: false, _is_enabled: false }
+    }
+
+    pub fn is_initialized(&self) -> bool {
+        self._is_init
     }
 
     pub fn initialize(&mut self, callbacks: AvrcpCallbacksDispatcher) -> bool {
         if get_dispatchers().lock().unwrap().set::<AvrcpCb>(Arc::new(Mutex::new(callbacks))) {
             panic!("Tried to set dispatcher for Avrcp callbacks while it already exists");
         }
-        self.internal.pin_mut().init();
+        self._is_init = true;
         true
     }
 
-    pub fn cleanup(&mut self) -> bool {
-        self.internal.pin_mut().cleanup();
-        true
-    }
-
+    #[profile_enabled_or(BtStatus::NotReady)]
     pub fn connect(&mut self, addr: RawAddress) -> BtStatus {
         BtStatus::from(self.internal.pin_mut().connect(addr.into()))
     }
 
+    #[profile_enabled_or(BtStatus::NotReady)]
     pub fn disconnect(&mut self, addr: RawAddress) -> BtStatus {
         BtStatus::from(self.internal.pin_mut().disconnect(addr.into()))
     }
 
+    #[profile_enabled_or]
     pub fn set_volume(&mut self, volume: i8) {
         self.internal.pin_mut().set_volume(volume);
+    }
+
+    #[profile_enabled_or(false)]
+    pub fn cleanup(&mut self) -> bool {
+        self.internal.pin_mut().cleanup();
+        true
     }
 }

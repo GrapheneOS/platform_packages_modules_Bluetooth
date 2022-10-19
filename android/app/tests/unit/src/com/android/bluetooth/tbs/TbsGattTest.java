@@ -62,6 +62,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -177,8 +178,8 @@ public class TbsGattTest {
             Assert.assertEquals((String) value, characteristic.getStringValue(0));
 
         } else if (characteristic.getUuid().equals(TbsGatt.UUID_BEARER_TECHNOLOGY)) {
-            boolean valueChanged = characteristic
-                    .getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0) != (Integer) value;
+            boolean valueChanged = !Objects.equals(characteristic
+                    .getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0), (Integer) value);
             if (valueChanged) {
                 Assert.assertTrue(mTbsGatt.setBearerTechnology((Integer) value));
             } else {
