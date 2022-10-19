@@ -62,6 +62,7 @@
         <option name="profile" value="SM/PER/KDU" />
         <option name="profile" value="SM/PER/SCJW" />
         <option name="profile" value="SM/PER/SCPK" />
+        <option name="profile" value="SM/PER/SCCT" />
         <option name="profile" value="HOGP/RH" />
     </test>
 </configuration>

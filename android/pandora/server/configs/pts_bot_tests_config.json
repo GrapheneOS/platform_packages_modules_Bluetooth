@@ -413,7 +413,11 @@
     "SM/CEN/SCPK/BV-04-C",
     "SM/PER/SCJW/BV-02-C",
     "SM/PER/SCPK/BI-04-C",
-    "SM/PER/SCPK/BV-03-C"
+    "SM/PER/SCPK/BV-03-C",
+    "SM/PER/SCCT/BV-04-C",
+    "SM/PER/SCCT/BV-06-C",
+    "SM/PER/SCCT/BV-08-C",
+    "SM/PER/SCCT/BV-10-C"
   ],
   "ics": {
     "TSPC_4.0HCI_1a_2": true,
