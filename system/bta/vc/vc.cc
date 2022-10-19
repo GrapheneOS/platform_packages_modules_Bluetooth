@@ -145,9 +145,7 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    if (!device->EnableEncryption(enc_callback_static)) {
-      device_cleanup_helper(device, device->connecting_actively);
-    }
+    device->EnableEncryption();
   }
 
   void OnEncryptionComplete(const RawAddress& address, uint8_t success) {
@@ -1118,11 +1116,6 @@ class VolumeControlImpl : public VolumeControl {
 
   static void gattc_callback_static(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
     if (instance) instance->gattc_callback(event, p_data);
-  }
-
-  static void enc_callback_static(const RawAddress* address, tBT_TRANSPORT,
-                                  void*, tBTM_STATUS status) {
-    if (instance) instance->OnEncryptionComplete(*address, status);
   }
 
   static void chrc_read_callback_static(uint16_t conn_id, tGATT_STATUS status,
