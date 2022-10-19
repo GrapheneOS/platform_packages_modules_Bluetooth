@@ -37,8 +37,12 @@ service Host {
   rpc Disconnect(DisconnectRequest) returns (DisconnectResponse);
   // Create a LE connection.
   rpc ConnectLE(ConnectLERequest) returns (ConnectLEResponse);
+  // Get an active LE connection to a peer.
+  rpc GetLEConnection(GetLEConnectionRequest) returns (GetLEConnectionResponse);
   // Disconnect ongoing LE connection.
   rpc DisconnectLE(DisconnectLERequest) returns (google.protobuf.Empty);
+  // Start LE advertisement
+  rpc SetLEConnectable(google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 
 // Response of the `ReadLocalAddress` method.
@@ -118,6 +122,18 @@ message ConnectLERequest {
 message ConnectLEResponse {
   oneof result {
       Connection connection = 1;
+  }
+}
+
+// Request of the `GetLEConnection` method
+message GetLEConnectionRequest {
+  bytes address = 1;
+}
+
+// Response of the `GetLEConnection` method
+message GetLEConnectionResponse {
+  oneof result {
+    Connection connection = 1;
   }
 }
 
