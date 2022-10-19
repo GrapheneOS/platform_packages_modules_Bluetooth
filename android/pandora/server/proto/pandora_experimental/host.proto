@@ -58,15 +58,33 @@ message ReadLocalAddressResponse {
 // A Token representing an ACL connection.
 // It's acquired via a Connect on the Host service.
 message Connection {
-  // Opaque value filled by the gRPC server, must not
-  // be modified nor crafted.
+  // Opaque value filled by the gRPC server, must not be modified nor crafted
+  // Android specific: it's secretly an encoded InternelConnectionRef created using newConnection
   bytes cookie = 1;
+}
+
+// Internal representation of a Connection - not exposed to clients, included here
+// just for code-generation convenience
+message InternalConnectionRef {
+  bytes address = 1;
+  Transport transport = 2;
+}
+
+// WARNING: Leaving this enum empty will default to BREDR, so make sure that this is a
+// valid default whenever used, and that we always populate this value.
+enum Transport {
+  TRANSPORT_BREDR = 0;
+  TRANSPORT_LE = 1;
 }
 
 // Request of the `Connect` method.
 message ConnectRequest {
   // Peer Bluetooth Device Address as array of 6 bytes.
   bytes address = 1;
+  // Whether we want to initiate pairing as part of the connection
+  bool skip_pairing = 2;
+  // Whether confirmation prompts should be auto-accepted or handled manually
+  bool manually_confirm = 3;
 }
 
 // Response of the `Connect` method.
