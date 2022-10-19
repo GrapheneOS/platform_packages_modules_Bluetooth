@@ -1231,7 +1231,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     public boolean onConnect(BluetoothDevice device, BluetoothSocket socket) {
 
         if (D) {
-            Log.d(TAG, " onConnect BluetoothSocket :" + socket + " \n :device :" + device);
+            Log.d(TAG, " onConnect BluetoothSocket :" + socket + " \n :device :" + device.getIdentityAddress());
         }
         if (!mAcceptNewConnections) {
             Log.d(TAG, " onConnect BluetoothSocket :" + socket + " rejected");
