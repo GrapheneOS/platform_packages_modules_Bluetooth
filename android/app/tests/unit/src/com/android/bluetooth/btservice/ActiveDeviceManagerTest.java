@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHapClient;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothLeAudio;
@@ -107,7 +108,7 @@ public class ActiveDeviceManagerTest {
         mA2dpHeadsetDevice = TestUtils.getTestDevice(mAdapter, 2);
         mHearingAidDevice = TestUtils.getTestDevice(mAdapter, 3);
         mLeAudioDevice = TestUtils.getTestDevice(mAdapter, 4);
-        mSecondaryAudioDevice = TestUtils.getTestDevice(mAdapter, 4);
+        mSecondaryAudioDevice = TestUtils.getTestDevice(mAdapter, 5);
     }
 
     @After
@@ -473,6 +474,29 @@ public class ActiveDeviceManagerTest {
     }
 
     /**
+     * One LE Hearing Aid is connected.
+     */
+    @Test
+    public void onlyLeHearingAIdConnected_setHeadsetActive() {
+        leAudioConnected(mLeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
+    }
+
+    /**
+     * LE audio is connected after LE Hearing Aid device.
+     * Keep LE hearing Aid active.
+     */
+    @Test
+    public void leAudioConnectedAfterLeHearingAid_setLeAudioActiveShouldNotBeCalled() {
+        leHearingAidConnected(mSecondaryAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mSecondaryAudioDevice);
+
+        leAudioConnected(mLeAudioDevice);
+        TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
+        verify(mLeAudioService, never()).setActiveDevice(mLeAudioDevice);
+    }
+
+    /**
      * A wired audio device is connected. Then all active devices are set to null.
      */
     @Test
@@ -590,4 +614,34 @@ public class ActiveDeviceManagerTest {
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
     }
 
+    /**
+     * Helper to indicate LE Hearing Aid connected for a device.
+     */
+    private void leHearingAidConnected(BluetoothDevice device) {
+        Intent intent = new Intent(BluetoothHapClient.ACTION_HAP_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
+        mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+    }
+
+    /**
+     * Helper to indicate LE Hearing Aid disconnected for a device.
+     */
+    private void leHearingAidDisconnected(BluetoothDevice device) {
+        Intent intent = new Intent(BluetoothHapClient.ACTION_HAP_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_CONNECTED);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
+        mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+    }
+
+    /**
+     * Helper to indicate LE Audio Hearing Aid device changed for a device.
+     */
+    private void leHearingAidActiveDeviceChanged(BluetoothDevice device) {
+        Intent intent = new Intent(BluetoothHapClient.ACTION_HAP_DEVICE_AVAILABLE);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+    }
 }
