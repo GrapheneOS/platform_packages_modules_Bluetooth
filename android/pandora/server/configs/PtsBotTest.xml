@@ -47,5 +47,17 @@
         <option name="profile" value="SM/CEN/EKS" />
         <option name="profile" value="SM/CEN/JW" />
         <option name="profile" value="SM/CEN/KDU" />
+        <option name="profile" value="SM/CEN/PROT" />
+        <option name="profile" value="SM/CEN/PKE" />
+        <option name="profile" value="SM/CEN/SCJW" />
+        <option name="profile" value="SM/CEN/SCPK" />
+        <option name="profile" value="SM/PER/PROT" />
+        <option name="profile" value="SM/PER/JW" />
+        <option name="profile" value="SM/PER/PKE" />
+        <option name="profile" value="SM/PER/EKS" />
+        <option name="profile" value="SM/PER/KDU" />
+        <option name="profile" value="SM/PER/SCJW" />
+        <option name="profile" value="SM/PER/SCPK" />
+        <option name="profile" value="HOGP/RH" />
     </test>
 </configuration>
