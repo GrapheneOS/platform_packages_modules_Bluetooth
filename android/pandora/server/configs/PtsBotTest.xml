@@ -23,7 +23,8 @@
         <!-- mmi2grpc is contained inside pts-bot folder -->
         <option name="mmi2grpc" value="pts-bot" />
         <option name="tests-config-file" value="pts_bot_tests_config.json" />
-        <option name="max-retries" value="3" />
+        <option name="max-flaky-tests" value="3" />
+        <option name="max-retries-per-test" value="3" />
         <option name="physical" value="false" />
         <option name="profile" value="A2DP/SRC" />
         <option name="profile" value="A2DP/SNK" />
