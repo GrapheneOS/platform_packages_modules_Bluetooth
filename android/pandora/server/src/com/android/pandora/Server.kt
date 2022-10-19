@@ -38,6 +38,7 @@ class Server(context: Context) {
   private var hid: Hid
   private var l2cap: L2cap
   private var security: Security
+  private var androidInternal : AndroidInternal
   private var grpcServer: GrpcServer
 
   init {
@@ -48,6 +49,7 @@ class Server(context: Context) {
     hid = Hid(context)
     l2cap = L2cap(context)
     security = Security(context)
+    androidInternal = AndroidInternal()
 
     val grpcServerBuilder =
       NettyServerBuilder.forPort(GRPC_PORT)
@@ -58,6 +60,7 @@ class Server(context: Context) {
         .addService(hid)
         .addService(l2cap)
         .addService(security)
+        .addService(androidInternal)
 
     val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)!!.adapter
     val is_a2dp_source = bluetoothAdapter.getSupportedProfiles().contains(BluetoothProfile.A2DP)
@@ -90,5 +93,6 @@ class Server(context: Context) {
     hid.deinit()
     l2cap.deinit()
     security.deinit()
+    androidInternal.deinit()
   }
 }

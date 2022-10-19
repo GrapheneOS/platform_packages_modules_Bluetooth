@@ -33,7 +33,7 @@ def debug(*args, **kwargs):
 class SMProxy(ProfileProxy):
 
     def __init__(self, channel):
-        super().__init__()
+        super().__init__(channel)
         self.security = Security(channel)
         self.host = Host(channel)
         self.connection = None
