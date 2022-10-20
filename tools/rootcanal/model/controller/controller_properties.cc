@@ -179,7 +179,8 @@ static bool ParseUintArray(Json::Value root, std::string field_name,
   }
 
   for (size_t n = 0; n < N; n++) {
-    unsigned long long parsed_value = std::stoull(value.asString(), nullptr, 0);
+    unsigned long long parsed_value =
+        std::stoull(value[static_cast<int>(n)].asString(), nullptr, 0);
     if (parsed_value > max_value) {
       LOG_INFO("invalid value for %s[%zu] is discarded: %llu > %llu",
                field_name.c_str(), n, parsed_value,
@@ -210,7 +211,8 @@ static bool ParseUintVector(Json::Value root, std::string field_name,
 
   output_value.clear();
   for (size_t n = 0; n < value.size(); n++) {
-    unsigned long long parsed_value = std::stoull(value.asString(), nullptr, 0);
+    unsigned long long parsed_value =
+        std::stoull(value[static_cast<int>(n)].asString(), nullptr, 0);
     if (parsed_value > max_value) {
       LOG_INFO("invalid value for %s[%zu] is discarded: %llu > %llu",
                field_name.c_str(), n, parsed_value,
@@ -283,9 +285,6 @@ ControllerProperties::ControllerProperties(const std::string& file_name)
   ParseUint(root, "ManufacturerName", company_identifier);
 
   ParseHex64(root["LeSupportedFeatures"], &le_features);
-  ParseUint(root, "LeConnectListIgnoreReasons", le_connect_list_ignore_reasons);
-  ParseUint(root, "LeResolvingListIgnoreReasons",
-            le_resolving_list_ignore_reasons);
 
   // Configuration options.
 
@@ -308,6 +307,7 @@ ControllerProperties::ControllerProperties(const std::string& file_name)
   ParseUint(root, "total_num_le_acl_data_packets ",
             total_num_le_acl_data_packets);
   ParseUint(root, "total_num_iso_data_packets ", total_num_iso_data_packets);
+  ParseUint(root, "num_supported_iac", num_supported_iac);
 
   ParseUintArray(root, "lmp_features", lmp_features);
   ParseUintVector(root, "supported_standard_codecs", supported_standard_codecs);

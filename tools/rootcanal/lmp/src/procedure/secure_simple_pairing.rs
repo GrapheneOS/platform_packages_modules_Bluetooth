@@ -4,9 +4,10 @@ use std::convert::TryInto;
 
 use num_traits::{FromPrimitive, ToPrimitive};
 
+use crate::ec::{DhKey, PrivateKey, PublicKey};
 use crate::either::Either;
 use crate::packets::{hci, lmp};
-use crate::procedure::Context;
+use crate::procedure::{authentication, features, Context};
 
 use crate::num_hci_command_packets;
 
@@ -23,7 +24,8 @@ fn has_mitm(requirements: hci::AuthenticationRequirements) -> bool {
 
 enum AuthenticationMethod {
     OutOfBand,
-    NumericComparaison,
+    NumericComparaisonJustWork,
+    NumericComparaisonUserConfirm,
     PasskeyEntry,
 }
 
@@ -47,20 +49,37 @@ fn authentication_method(
     } else if !has_mitm(initiator.authentication_requirements)
         && !has_mitm(responder.authentication_requirements)
     {
-        AuthenticationMethod::NumericComparaison
+        AuthenticationMethod::NumericComparaisonJustWork
     } else if (initiator.io_capability == KeyboardOnly
         && responder.io_capability != NoInputNoOutput)
         || (responder.io_capability == KeyboardOnly && initiator.io_capability != NoInputNoOutput)
     {
         AuthenticationMethod::PasskeyEntry
+    } else if initiator.io_capability == DisplayYesNo && responder.io_capability == DisplayYesNo {
+        AuthenticationMethod::NumericComparaisonUserConfirm
     } else {
-        AuthenticationMethod::NumericComparaison
+        AuthenticationMethod::NumericComparaisonJustWork
     }
 }
 
-const P192_PUBLIC_KEY_SIZE: usize = 48;
+// Bluetooth Core, Vol 3, Part C, 5.2.2.6
+fn link_key_type(auth_method: AuthenticationMethod, dh_key: DhKey) -> hci::KeyType {
+    use hci::KeyType::*;
+    use AuthenticationMethod::*;
 
-async fn send_public_key(ctx: &impl Context, transaction_id: u8, key: &[u8; P192_PUBLIC_KEY_SIZE]) {
+    match (dh_key, auth_method) {
+        (DhKey::P256(_), OutOfBand | PasskeyEntry | NumericComparaisonUserConfirm) => {
+            AuthenticatedP256
+        }
+        (DhKey::P192(_), OutOfBand | PasskeyEntry | NumericComparaisonUserConfirm) => {
+            AuthenticatedP192
+        }
+        (DhKey::P256(_), NumericComparaisonJustWork) => UnauthenticatedP256,
+        (DhKey::P192(_), NumericComparaisonJustWork) => UnauthenticatedP192,
+    }
+}
+
+async fn send_public_key(ctx: &impl Context, transaction_id: u8, public_key: PublicKey) {
     // TODO: handle error
     let _ = ctx
         .send_accepted_lmp_packet(
@@ -68,13 +87,13 @@ async fn send_public_key(ctx: &impl Context, transaction_id: u8, key: &[u8; P192
                 transaction_id,
                 major_type: 1,
                 minor_type: 1,
-                payload_length: P192_PUBLIC_KEY_SIZE as u8,
+                payload_length: public_key.size() as u8,
             }
             .build(),
         )
         .await;
 
-    for chunk in key.chunks(16) {
+    for chunk in public_key.as_slice().chunks(16) {
         // TODO: handle error
         let _ = ctx
             .send_accepted_lmp_packet(
@@ -85,16 +104,16 @@ async fn send_public_key(ctx: &impl Context, transaction_id: u8, key: &[u8; P192
     }
 }
 
-async fn receive_public_key(ctx: &impl Context, transaction_id: u8) -> [u8; P192_PUBLIC_KEY_SIZE] {
-    let _ = ctx.receive_lmp_packet::<lmp::EncapsulatedHeaderPacket>().await;
+async fn receive_public_key(ctx: &impl Context, transaction_id: u8) -> PublicKey {
+    let key_size: usize =
+        ctx.receive_lmp_packet::<lmp::EncapsulatedHeaderPacket>().await.get_payload_length().into();
+    let mut key = PublicKey::new(key_size).unwrap();
+
     ctx.send_lmp_packet(
         lmp::AcceptedBuilder { transaction_id, accepted_opcode: lmp::Opcode::EncapsulatedHeader }
             .build(),
     );
-
-    let mut key = [0; P192_PUBLIC_KEY_SIZE];
-
-    for chunk in key.chunks_mut(16) {
+    for chunk in key.as_mut_slice().chunks_mut(16) {
         let payload = ctx.receive_lmp_packet::<lmp::EncapsulatedPayloadPacket>().await;
         chunk.copy_from_slice(payload.get_data().as_slice());
         ctx.send_lmp_packet(
@@ -363,24 +382,36 @@ pub async fn initiate(ctx: &impl Context) -> Result<(), ()> {
     };
 
     // Public Key Exchange
-    {
-        let public_key = [0; P192_PUBLIC_KEY_SIZE];
-        send_public_key(ctx, 0, &public_key).await;
-        let _key = receive_public_key(ctx, 0).await;
-    }
+    let dh_key = {
+        use hci::LMPFeaturesPage1Bits::SecureConnectionsHostSupport;
+
+        let private_key =
+            if features::supported_on_both_page1(ctx, SecureConnectionsHostSupport).await {
+                PrivateKey::generate_p256()
+            } else {
+                PrivateKey::generate_p192()
+            };
+        ctx.set_private_key(&private_key);
+        let local_public_key = private_key.derive();
+        send_public_key(ctx, 0, local_public_key).await;
+        let peer_public_key = receive_public_key(ctx, 0).await;
+        private_key.shared_secret(peer_public_key)
+    };
 
     // Authentication Stage 1
+    let auth_method = authentication_method(initiator, responder);
     let result: Result<(), ()> = async {
-        match authentication_method(initiator, responder) {
-            AuthenticationMethod::NumericComparaison => {
+        match auth_method {
+            AuthenticationMethod::NumericComparaisonJustWork
+            | AuthenticationMethod::NumericComparaisonUserConfirm => {
                 send_commitment(ctx, true).await;
 
-                let _user_confirmation = user_confirmation_request(ctx).await?;
+                user_confirmation_request(ctx).await?;
                 Ok(())
             }
             AuthenticationMethod::PasskeyEntry => {
                 if initiator.io_capability == hci::IoCapability::KeyboardOnly {
-                    let _user_passkey = user_passkey_request(ctx).await?;
+                    user_passkey_request(ctx).await?;
                 } else {
                     ctx.send_hci_event(
                         hci::UserPasskeyNotificationBuilder {
@@ -397,7 +428,7 @@ pub async fn initiate(ctx: &impl Context) -> Result<(), ()> {
             }
             AuthenticationMethod::OutOfBand => {
                 if initiator.oob_data_present != hci::OobDataPresent::NotPresent {
-                    let _remote_oob_data = remote_oob_data_request(ctx).await?;
+                    remote_oob_data_request(ctx).await?;
                 }
 
                 send_commitment(ctx, false).await;
@@ -454,6 +485,24 @@ pub async fn initiate(ctx: &impl Context) -> Result<(), ()> {
         hci::SimplePairingCompleteBuilder {
             status: hci::ErrorCode::Success,
             bd_addr: ctx.peer_address(),
+        }
+        .build(),
+    );
+
+    // Link Key Calculation
+    let link_key = [0; 16];
+    let auth_result = authentication::send_challenge(ctx, 0, link_key).await;
+    authentication::receive_challenge(ctx, link_key).await;
+
+    if auth_result.is_err() {
+        return Err(());
+    }
+
+    ctx.send_hci_event(
+        hci::LinkKeyNotificationBuilder {
+            bd_addr: ctx.peer_address(),
+            key_type: link_key_type(auth_method, dh_key),
+            link_key,
         }
         .build(),
     );
@@ -515,16 +564,23 @@ pub async fn respond(ctx: &impl Context, request: lmp::IoCapabilityReqPacket) ->
     };
 
     // Public Key Exchange
-    {
-        let public_key = [0; P192_PUBLIC_KEY_SIZE];
-        let _key = receive_public_key(ctx, 0).await;
-        send_public_key(ctx, 0, &public_key).await;
-    }
+    let dh_key = {
+        let peer_public_key = receive_public_key(ctx, 0).await;
+        let private_key = match peer_public_key {
+            PublicKey::P192(_) => PrivateKey::generate_p192(),
+            PublicKey::P256(_) => PrivateKey::generate_p256(),
+        };
+        ctx.set_private_key(&private_key);
+        let local_public_key = private_key.derive();
+        send_public_key(ctx, 0, local_public_key).await;
+        private_key.shared_secret(peer_public_key)
+    };
 
     // Authentication Stage 1
-
-    let negative_user_confirmation = match authentication_method(initiator, responder) {
-        AuthenticationMethod::NumericComparaison => {
+    let auth_method = authentication_method(initiator, responder);
+    let negative_user_confirmation = match auth_method {
+        AuthenticationMethod::NumericComparaisonJustWork
+        | AuthenticationMethod::NumericComparaisonUserConfirm => {
             receive_commitment(ctx, true).await;
 
             let user_confirmation = user_confirmation_request(ctx).await;
@@ -616,16 +672,56 @@ pub async fn respond(ctx: &impl Context, request: lmp::IoCapabilityReqPacket) ->
         .build(),
     );
 
+    // Link Key Calculation
+    let link_key = [0; 16];
+    authentication::receive_challenge(ctx, link_key).await;
+    let auth_result = authentication::send_challenge(ctx, 0, link_key).await;
+
+    if auth_result.is_err() {
+        return Err(());
+    }
+
+    ctx.send_hci_event(
+        hci::LinkKeyNotificationBuilder {
+            bd_addr: ctx.peer_address(),
+            key_type: link_key_type(auth_method, dh_key),
+            link_key,
+        }
+        .build(),
+    );
+
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
+    use num_traits::ToPrimitive;
+
+    use crate::ec::PrivateKey;
     use crate::procedure::Context;
     use crate::test::{sequence, TestContext};
     // simple pairing is part of authentication procedure
     use super::super::authentication::initiate;
     use super::super::authentication::respond;
+
+    fn local_p192_public_key(context: &crate::test::TestContext) -> [[u8; 16]; 3] {
+        let mut buf = [[0; 16], [0; 16], [0; 16]];
+        if let Some(key) = context.get_private_key() {
+            for (dst, src) in buf.iter_mut().zip(key.derive().as_slice().chunks(16)) {
+                dst.copy_from_slice(src);
+            }
+        }
+        buf
+    }
+
+    fn peer_p192_public_key() -> [[u8; 16]; 3] {
+        let mut buf = [[0; 16], [0; 16], [0; 16]];
+        let key = PrivateKey::generate_p192().derive();
+        for (dst, src) in buf.iter_mut().zip(key.as_slice().chunks(16)) {
+            dst.copy_from_slice(src);
+        }
+        buf
+    }
 
     #[test]
     fn initiate_size() {
@@ -639,7 +735,7 @@ mod tests {
             assert!(size < limit)
         }
 
-        assert_max_size(procedure, 250);
+        assert_max_size(procedure, 512);
     }
 
     #[test]
@@ -704,5 +800,194 @@ mod tests {
         let procedure = respond;
 
         include!("../../test/SP/BV-13-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn passkey_entry_initiator_failure_on_initiating_side() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-14-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn passkey_entry_responder_failure_on_initiating_side() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-15-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn passkey_entry_initiator_failure_on_responding_side() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-16-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn passkey_entry_responder_failure_on_responding_side() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-17-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_initiator_iut_with_oob_auth_data_success() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-18-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_responder_iut_with_oob_auth_data_success() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-19-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_initiator_lower_tester_with_oob_auth_data_success() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-20-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_responder_lower_tester_with_oob_auth_data_success() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-21-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_initiator_iut_and_lower_tester_with_oob_auth_data_success() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-22-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_responder_iut_and_lower_tester_with_oob_auth_data_success() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-23-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_initiator_iut_with_oob_auth_data_failure() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-24-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_responder_iut_with_oob_auth_data_failure() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-25-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_initiator_lower_tester_with_oob_auth_data_failure() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-26-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn oob_protocol_responder_lower_tester_with_oob_auth_data_failure() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-27-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn secure_simple_pairing_failed_responder() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-30-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn host_rejects_secure_simple_pairing_initiator() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-31-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn host_rejects_secure_simple_pairing_responder() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-32-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn passkey_entry_with_keypress_notification_initiator_success() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-33-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn passkey_entry_with_keypress_notification_responder_success() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-34-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn passkey_entry_with_keypress_notification_initiator_failure_on_responding_side() {
+        let context = TestContext::new();
+        let procedure = initiate;
+
+        include!("../../test/SP/BV-35-C.in");
+    }
+
+    #[test]
+    #[should_panic] // TODO: make the test pass
+    fn passkey_entry_with_keypress_notificiation_responder_failure_on_responding_side() {
+        let context = TestContext::new();
+        let procedure = respond;
+
+        include!("../../test/SP/BV-36-C.in");
     }
 }

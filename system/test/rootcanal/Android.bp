@@ -51,9 +51,6 @@ cc_binary {
     ],
     cflags: [
         "-fvisibility=hidden",
-        "-Wall",
-        "-Wextra",
-        "-Werror",
         "-DHAS_NO_BDROID_BUILDCFG",
     ],
     generated_headers: [
@@ -106,9 +103,6 @@ cc_library_shared {
         "libprotobuf-cpp-lite",
     ],
     cflags: [
-        "-Wall",
-        "-Wextra",
-        "-Werror",
         "-DHAS_NO_BDROID_BUILDCFG",
     ],
     generated_headers: [
