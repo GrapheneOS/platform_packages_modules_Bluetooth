@@ -208,7 +208,7 @@ pub trait IBluetoothGatt {
         &mut self,
         scanner_id: u8,
         settings: ScanSettings,
-        filter: ScanFilter,
+        filter: Option<ScanFilter>,
     ) -> BtStatus;
 
     /// Deactivate scan of the given scanner id.
@@ -707,18 +707,18 @@ pub enum ScanFilterCondition {
 #[derive(Debug)]
 pub struct ScanFilter {
     /// Advertisements with RSSI above or equal this value is considered "found".
-    pub rssi_high_threshold: i16,
+    pub rssi_high_threshold: u8,
 
     /// Advertisements with RSSI below or equal this value (for a period of rssi_low_timeout) is
     /// considered "lost".
-    pub rssi_low_threshold: i16,
+    pub rssi_low_threshold: u8,
 
     /// The time in seconds over which the RSSI value should be below rssi_low_threshold before
     /// being considered "lost".
-    pub rssi_low_timeout: u16,
+    pub rssi_low_timeout: u8,
 
     /// The sampling interval in milliseconds.
-    pub rssi_sampling_period: u16,
+    pub rssi_sampling_period: u8,
 
     /// The condition to match advertisements with.
     pub condition: ScanFilterCondition,
@@ -1013,7 +1013,7 @@ impl IBluetoothGatt for BluetoothGatt {
         &mut self,
         scanner_id: u8,
         _settings: ScanSettings,
-        _filter: ScanFilter,
+        _filter: Option<ScanFilter>,
     ) -> BtStatus {
         // Multiplexing scanners happens at this layer. The implementations of start_scan
         // and stop_scan maintains the state of all registered scanners and based on the states
