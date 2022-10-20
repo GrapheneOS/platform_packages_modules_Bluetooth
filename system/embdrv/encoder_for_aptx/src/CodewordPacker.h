@@ -27,7 +27,7 @@
 
 #include "AptxParameters.h"
 
-XBT_INLINE_ int32_t packCodeword(Encoder_data* EncoderDataPt,
+XBT_INLINE_ int16_t packCodeword(Encoder_data* EncoderDataPt,
                                  uint32_t aligned) {
   int32_t syncContribution;
   int32_t hhCode;
@@ -58,7 +58,7 @@ XBT_INLINE_ int32_t packCodeword(Encoder_data* EncoderDataPt,
                ((EncoderDataPt->m_qdata[HL].qCode & 0x3L) << 11) |
                ((EncoderDataPt->m_qdata[HH].qCode & 0x7L) << 13);
   }
-  return codeword;
+  return (int16_t)codeword;
 }
 
 #endif  // CODEWORDPACKER_H

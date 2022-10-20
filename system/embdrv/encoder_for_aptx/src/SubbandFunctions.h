@@ -71,16 +71,14 @@ XBT_INLINE_ void updatePredictorPoleCoefficients(
     PoleCoeffDataPt->m_poleAdaptDelayLine.s16.h =
         PoleCoeffDataPt->m_poleAdaptDelayLine.s16.l;
     PoleCoeffDataPt->m_poleAdaptDelayLine.s16.l = -1;
-  }
-  if (adaptSum == 0L) {
+  } else if (adaptSum == 0L) {
     sgnP[k] = 0L;
     sgnP[k_1] = 0L;
     sgnP[k_2] = 0L;
     PoleCoeffDataPt->m_poleAdaptDelayLine.s16.h =
         PoleCoeffDataPt->m_poleAdaptDelayLine.s16.l;
     PoleCoeffDataPt->m_poleAdaptDelayLine.s16.l = 1;
-  }
-  if (adaptSum > 0L) {
+  } else {  // adaptSum > 0L
     sgnP[k] = oneQ22;
     sgnP[k_1] = ((int32_t)PoleCoeffDataPt->m_poleAdaptDelayLine.s16.l) << 22;
     sgnP[k_2] = ((int32_t)PoleCoeffDataPt->m_poleAdaptDelayLine.s16.h) << 22;
@@ -129,7 +127,7 @@ XBT_INLINE_ void updatePredictorPoleCoefficients(
    * back out. */
   acc2 = PoleCoeffDataPt->m_poleCoeff[a2] << 8;
   acc2 -= PoleCoeffDataPt->m_poleCoeff[a2] << 1;
-  Bacc <<= 8;
+  Bacc = (int32_t)((uint32_t)Bacc << 8);
   Bacc += acc2;
 
   tmp2_round0 = (int16_t)Bacc & 0x01FFL;
