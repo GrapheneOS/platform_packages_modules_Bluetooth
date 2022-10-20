@@ -253,21 +253,6 @@ bt_status_t btif_init_bluetooth() {
   return BT_STATUS_SUCCESS;
 }
 
-static bool btif_is_a2dp_offload_enabled() {
-  char value_sup[PROPERTY_VALUE_MAX] = {'\0'};
-  char value_dis[PROPERTY_VALUE_MAX] = {'\0'};
-  bool a2dp_offload_enabled_;
-
-  osi_property_get("ro.bluetooth.a2dp_offload.supported", value_sup, "false");
-  osi_property_get("persist.bluetooth.a2dp_offload.disabled", value_dis,
-                   "false");
-  a2dp_offload_enabled_ =
-      (strcmp(value_sup, "true") == 0) && (strcmp(value_dis, "false") == 0);
-  BTIF_TRACE_DEBUG("a2dp_offload.enable = %d", a2dp_offload_enabled_);
-
-  return a2dp_offload_enabled_;
-}
-
 /*******************************************************************************
  *
  * Function         btif_enable_bluetooth_evt
@@ -641,7 +626,7 @@ void btif_get_adapter_property(bt_property_type_t type) {
     BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
 
     prop.len = sizeof(bt_dynamic_audio_buffer_item_t);
-    if (btif_is_a2dp_offload_enabled() == false) {
+    if (GetInterfaceToProfiles()->config->isA2DPOffloadEnabled() == false) {
       BTIF_TRACE_DEBUG("%s Get buffer millis for A2DP software encoding",
                        __func__);
       for (int i = 0; i < CODEC_TYPE_NUMBER; i++) {
@@ -903,7 +888,7 @@ bt_status_t btif_set_dynamic_audio_buffer_size(int codec, int size) {
   tBTM_BLE_VSC_CB cmn_vsc_cb;
   BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
 
-  if (!btif_av_is_a2dp_offload_enabled()) {
+  if (!GetInterfaceToProfiles()->config->isA2DPOffloadEnabled()) {
     BTIF_TRACE_DEBUG("%s Set buffer size (%d) for A2DP software encoding",
                      __func__, size);
     btif_av_set_dynamic_audio_buffer_size((uint8_t(size)));
