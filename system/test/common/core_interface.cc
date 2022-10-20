@@ -39,6 +39,12 @@ static bluetooth::core::EventCallbacks eventCallbacks = {
     .invoke_link_quality_report_cb = invoke_link_quality_report_cb};
 
 struct MockCoreInterface : bluetooth::core::CoreInterface {
+  void onBluetoothEnabled() override{};
+  bt_status_t toggleProfile(tBTA_SERVICE_ID service_id, bool enable) override {
+    return BT_STATUS_SUCCESS;
+  };
+  void removeDeviceFromProfiles(const RawAddress& bd_addr) override{};
+  void onLinkDown(const RawAddress& bd_addr) override{};
   MockCoreInterface() : bluetooth::core::CoreInterface{&eventCallbacks} {};
 };
 

@@ -163,12 +163,95 @@ extern CsisClientInterface* btif_csis_client_get_interface();
 /* Volume Control client */
 extern VolumeControlInterface* btif_volume_control_get_interface();
 
+extern bt_status_t btif_av_sink_execute_service(bool b_enable);
+extern bt_status_t btif_hh_execute_service(bool b_enable);
+extern bt_status_t btif_hf_client_execute_service(bool b_enable);
+extern bt_status_t btif_sdp_execute_service(bool b_enable);
+extern bt_status_t btif_hh_connect(const RawAddress* bd_addr);
+extern bt_status_t btif_hd_execute_service(bool b_enable);
+
 /*******************************************************************************
  *  Callbacks from bluetooth::core (see go/invisalign-bt)
  ******************************************************************************/
 
 struct CoreInterfaceImpl : bluetooth::core::CoreInterface {
   using bluetooth::core::CoreInterface::CoreInterface;
+
+  void onBluetoothEnabled() override {
+    /* init pan */
+    btif_pan_init();
+  }
+
+  bt_status_t toggleProfile(tBTA_SERVICE_ID service_id, bool enable) override {
+    /* Check the service_ID and invoke the profile's BT state changed API */
+    switch (service_id) {
+      case BTA_HFP_SERVICE_ID:
+      case BTA_HSP_SERVICE_ID: {
+        bluetooth::headset::ExecuteService(enable);
+      } break;
+      case BTA_A2DP_SOURCE_SERVICE_ID: {
+        btif_av_source_execute_service(enable);
+      } break;
+      case BTA_A2DP_SINK_SERVICE_ID: {
+        btif_av_sink_execute_service(enable);
+      } break;
+      case BTA_HID_SERVICE_ID: {
+        btif_hh_execute_service(enable);
+      } break;
+      case BTA_HFP_HS_SERVICE_ID: {
+        btif_hf_client_execute_service(enable);
+      } break;
+      case BTA_HIDD_SERVICE_ID: {
+        btif_hd_execute_service(enable);
+      } break;
+      case BTA_PBAP_SERVICE_ID:
+      case BTA_PCE_SERVICE_ID:
+      case BTA_MAP_SERVICE_ID:
+      case BTA_MN_SERVICE_ID: {
+        /**
+         * Do nothing; these services were started elsewhere. However, we need
+         * to flow through this codepath in order to properly report back the
+         * local UUIDs back to adapter properties in Java. To achieve this, we
+         * need to catch these service IDs in order for {@link
+         * btif_in_execute_service_request} to return {@code BT_STATUS_SUCCESS},
+         * so that in {@link btif_dm_enable_service} the check passes and the
+         * UUIDs are allowed to be passed up into the Java layer.
+         */
+      } break;
+      default:
+        BTIF_TRACE_ERROR("%s: Unknown service %d being %s", __func__,
+                         service_id, (enable) ? "enabled" : "disabled");
+        return BT_STATUS_FAIL;
+    }
+    return BT_STATUS_SUCCESS;
+  }
+
+  void removeDeviceFromProfiles(const RawAddress& bd_addr) override {
+/*special handling for HID devices */
+#if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
+    btif_hh_remove_device(bd_addr);
+#endif
+#if (defined(BTA_HD_INCLUDED) && (BTA_HD_INCLUDED == TRUE))
+    btif_hd_remove_device(bd_addr);
+#endif
+    btif_hearing_aid_get_interface()->RemoveDevice(bd_addr);
+
+#ifndef TARGET_FLOSS
+    if (bluetooth::csis::CsisClient::IsCsisClientRunning())
+      btif_csis_client_get_interface()->RemoveDevice(bd_addr);
+
+    if (LeAudioClient::IsLeAudioClientRunning())
+      btif_le_audio_get_interface()->RemoveDevice(bd_addr);
+
+    if (VolumeControl::IsVolumeControlRunning()) {
+      btif_volume_control_get_interface()->RemoveDevice(bd_addr);
+    }
+#endif
+  }
+
+  void onLinkDown(const RawAddress& bd_addr) override {
+    btif_av_acl_disconnected(bd_addr);
+  }
 };
 
 static bluetooth::core::CoreInterface* CreateInterfaceToProfiles() {

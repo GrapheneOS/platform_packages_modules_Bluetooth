@@ -312,8 +312,7 @@ void btif_enable_bluetooth_evt() {
   /* init rfcomm & l2cap api */
   btif_sock_init(uid_set);
 
-  /* init pan */
-  btif_pan_init();
+  GetInterfaceToProfiles()->onBluetoothEnabled();
 
   /* load did configuration */
   bte_load_did_conf(BTE_DID_CONF_FILE);

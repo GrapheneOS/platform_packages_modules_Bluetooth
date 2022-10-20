@@ -262,19 +262,8 @@ static void btif_stats_add_bond_event(const RawAddress& bd_addr,
 /******************************************************************************
  *  Externs
  *****************************************************************************/
-extern bt_status_t btif_av_sink_execute_service(bool b_enable);
-extern bt_status_t btif_hh_execute_service(bool b_enable);
-extern bt_status_t btif_hf_client_execute_service(bool b_enable);
 extern bt_status_t btif_sdp_execute_service(bool b_enable);
 extern bt_status_t btif_hh_connect(const RawAddress* bd_addr);
-extern bt_status_t btif_hd_execute_service(bool b_enable);
-extern bluetooth::hearing_aid::HearingAidInterface*
-btif_hearing_aid_get_interface();
-extern bluetooth::csis::CsisClientInterface* btif_csis_client_get_interface();
-extern bluetooth::le_audio::LeAudioClientInterface*
-btif_le_audio_get_interface();
-extern bluetooth::vc::VolumeControlInterface*
-btif_volume_control_get_interface();
 
 /******************************************************************************
  *  Functions
@@ -304,52 +293,13 @@ void btif_dm_cleanup(void) {
 bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
                                             bool b_enable) {
   BTIF_TRACE_DEBUG("%s service_id: %d", __func__, service_id);
-  /* Check the service_ID and invoke the profile's BT state changed API */
-  switch (service_id) {
-    case BTA_HFP_SERVICE_ID:
-    case BTA_HSP_SERVICE_ID: {
-      bluetooth::headset::ExecuteService(b_enable);
-    } break;
-    case BTA_A2DP_SOURCE_SERVICE_ID: {
-      btif_av_source_execute_service(b_enable);
-    } break;
-    case BTA_A2DP_SINK_SERVICE_ID: {
-      btif_av_sink_execute_service(b_enable);
-    } break;
-    case BTA_HID_SERVICE_ID: {
-      btif_hh_execute_service(b_enable);
-    } break;
-    case BTA_HFP_HS_SERVICE_ID: {
-      btif_hf_client_execute_service(b_enable);
-    } break;
-    case BTA_SDP_SERVICE_ID: {
-      btif_sdp_execute_service(b_enable);
-    } break;
-    case BTA_HIDD_SERVICE_ID: {
-      btif_hd_execute_service(b_enable);
-    } break;
-    case BTA_PBAP_SERVICE_ID:
-      FALLTHROUGH_INTENDED; /* FALLTHROUGH */
-    case BTA_PCE_SERVICE_ID:
-      FALLTHROUGH_INTENDED; /* FALLTHROUGH */
-    case BTA_MAP_SERVICE_ID:
-      FALLTHROUGH_INTENDED; /* FALLTHROUGH */
-    case BTA_MN_SERVICE_ID: {
-      /**
-       * Do nothing; these services were started elsewhere. However, we need to flow through this
-       * codepath in order to properly report back the local UUIDs back to adapter properties in
-       * Java. To achieve this, we need to catch these service IDs in order for {@link
-       * btif_in_execute_service_request} to return {@code BT_STATUS_SUCCESS}, so that in {@link
-       * btif_dm_enable_service} the check passes and the UUIDs are allowed to be passed up into
-       * the Java layer.
-       */
-    } break;
-    default:
-      BTIF_TRACE_ERROR("%s: Unknown service %d being %s", __func__, service_id,
-                       (b_enable) ? "enabled" : "disabled");
-      return BT_STATUS_FAIL;
+
+  if (service_id == BTA_SDP_SERVICE_ID) {
+    btif_sdp_execute_service(b_enable);
+    return BT_STATUS_SUCCESS;
   }
-  return BT_STATUS_SUCCESS;
+
+  return GetInterfaceToProfiles()->toggleProfile(service_id, b_enable);
 }
 
 /*******************************************************************************
@@ -1839,25 +1789,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       btm_set_bond_type_dev(p_data->link_down.bd_addr,
                             tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
 
-/*special handling for HID devices */
-#if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
-      btif_hh_remove_device(bd_addr);
-#endif
-#if (defined(BTA_HD_INCLUDED) && (BTA_HD_INCLUDED == TRUE))
-      btif_hd_remove_device(bd_addr);
-#endif
-      btif_hearing_aid_get_interface()->RemoveDevice(bd_addr);
-
-      if (bluetooth::csis::CsisClient::IsCsisClientRunning())
-        btif_csis_client_get_interface()->RemoveDevice(bd_addr);
-
-      if (LeAudioClient::IsLeAudioClientRunning())
-        btif_le_audio_get_interface()->RemoveDevice(bd_addr);
-
-      if (VolumeControl::IsVolumeControlRunning()) {
-        btif_volume_control_get_interface()->RemoveDevice(bd_addr);
-      }
-
+      GetInterfaceToProfiles()->removeDeviceFromProfiles(bd_addr);
       btif_storage_remove_bonded_device(&bd_addr);
       bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_NONE);
       break;
@@ -1890,7 +1822,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       bd_addr = p_data->link_down.bd_addr;
       btm_set_bond_type_dev(p_data->link_down.bd_addr,
                             tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
-      btif_av_acl_disconnected(bd_addr);
+      GetInterfaceToProfiles()->onLinkDown(bd_addr);
 
       bt_conn_direction_t direction;
       switch (btm_get_acl_disc_reason_code()) {
