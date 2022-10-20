@@ -56,7 +56,7 @@ static const int32_t IQuant_tableLogT[32] = {
     28160 * 256, 28776 * 256, 29408 * 256, 30048 * 256, 30704 * 256,
     31376 * 256, 32064 * 256};
 
-void clearmem(void* mem, int32_t sz) {
+static void clearmem(void* mem, int32_t sz) {
   int8_t* m = (int8_t*)mem;
   int32_t i = 0;
   for (; i < sz; i++) {
@@ -183,7 +183,7 @@ APTXBTENCEXPORT int aptxbtenc_encodestereo(void* _state, void* _pcmL,
   int32_t* pcmL = (int32_t*)_pcmL;
   int32_t* pcmR = (int32_t*)_pcmR;
   int16_t* buffer = (int16_t*)_buffer;
-  int32_t tmp_reg;
+  int16_t tmp_reg;
   int16_t tmp_out;
   // Feed the PCM to the dual aptX encoders
   aptxEncode(pcmL, &state->m_qmf_l, &state->m_encoderData[0]);

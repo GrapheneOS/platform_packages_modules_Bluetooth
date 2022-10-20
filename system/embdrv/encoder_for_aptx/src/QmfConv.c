@@ -19,7 +19,7 @@
  *
  *----------------------------------------------------------------------------*/
 
-#include "AptxParameters.h"
+#include "Qmf.h"
 
 void AsmQmfConvO(const int16_t* p1dl_buffPtr, const int16_t* p2dl_buffPtr,
                  const int32_t* coeffPtr, int32_t* convSumDiff) {
