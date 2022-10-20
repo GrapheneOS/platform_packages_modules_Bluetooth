@@ -279,6 +279,48 @@ TEST_F(PeriodicSyncManagerTest, handle_advertising_sync_established_test) {
   sync_handler();
 }
 
+TEST_F(PeriodicSyncManagerTest, handle_advertising_sync_established_with_public_identity_address_test) {
+  uint16_t sync_handle = 0x12;
+  uint8_t advertiser_sid = 0x02;
+  // start scan
+  Address address;
+  Address::FromString("00:11:22:33:44:55", address);
+  AddressWithType address_with_type = AddressWithType(address, AddressType::PUBLIC_DEVICE_ADDRESS);
+  PeriodicSyncStates request{
+      .request_id = 0x01,
+      .advertiser_sid = advertiser_sid,
+      .address_with_type = address_with_type,
+      .sync_handle = sync_handle,
+      .sync_state = PeriodicSyncState::PERIODIC_SYNC_STATE_IDLE,
+  };
+  test_le_scanning_interface_->SetCommandFuture();
+  periodic_sync_manager_->StartSync(request, 0x04, 0x0A);
+  auto packet = test_le_scanning_interface_->GetCommand(OpCode::LE_PERIODIC_ADVERTISING_CREATE_SYNC);
+  auto temp_view = LePeriodicAdvertisingCreateSyncView::Create(LeScanningCommandView::Create(packet));
+  ASSERT_TRUE(temp_view.IsValid());
+
+  // Get command status
+  test_le_scanning_interface_->CommandStatusCallback(
+      LePeriodicAdvertisingCreateSyncStatusBuilder::Create(ErrorCode::SUCCESS, 0x00));
+
+  EXPECT_CALL(mock_callbacks_, OnPeriodicSyncStarted);
+
+  // Get LePeriodicAdvertisingSyncEstablished with AddressType::PUBLIC_IDENTITY_ADDRESS
+  auto builder = LePeriodicAdvertisingSyncEstablishedBuilder::Create(
+      ErrorCode::SUCCESS,
+      sync_handle,
+      advertiser_sid,
+      AddressType::PUBLIC_IDENTITY_ADDRESS,
+      address_with_type.GetAddress(),
+      SecondaryPhyType::LE_1M,
+      0xFF,
+      ClockAccuracy::PPM_250);
+  auto event_view = LePeriodicAdvertisingSyncEstablishedView::Create(
+      LeMetaEventView::Create(EventView::Create(GetPacketView(std::move(builder)))));
+  periodic_sync_manager_->HandleLePeriodicAdvertisingSyncEstablished(event_view);
+  sync_handler();
+}
+
 TEST_F(PeriodicSyncManagerTest, stop_sync_test) {
   uint16_t sync_handle = 0x12;
   uint8_t advertiser_sid = 0x02;
