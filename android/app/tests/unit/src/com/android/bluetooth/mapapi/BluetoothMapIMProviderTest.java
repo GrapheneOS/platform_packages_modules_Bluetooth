@@ -22,7 +22,10 @@ import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doReturn;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -31,6 +34,11 @@ import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+
+import android.content.ContextWrapper;
+
+import org.mockito.Mockito;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
@@ -42,9 +50,16 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.time.Instant;
+import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.AbstractMap;
 
 @RunWith(AndroidJUnit4.class)
 public class BluetoothMapIMProviderTest {
+
+    private static final String TAG = "MapIMProviderTest";
 
     private static final String AUTHORITY = "com.test";
     private static final String ACCOUNT_ID = "12345";
@@ -450,6 +465,135 @@ public class BluetoothMapIMProviderTest {
                 .build();
 
         assertThat(BluetoothMapEmailProvider.getAccountId(messageUri)).isEqualTo(ACCOUNT_ID);
+    }
+
+    @Test
+    public void onAccountChanged() {
+        ProviderInfo providerInfo = new ProviderInfo();
+        providerInfo.authority = AUTHORITY;
+        providerInfo.exported = true;
+        providerInfo.writePermission = android.Manifest.permission.BLUETOOTH_MAP;
+
+        ContentResolver resolver = mock(ContentResolver.class);
+        Context context = spy(new ContextWrapper(mContext));
+        doReturn(resolver).when(context).getContentResolver();
+        mProvider.attachInfo(context, providerInfo);
+
+        Uri expectedUri;
+
+        expectedUri = BluetoothMapContract.buildAccountUri(AUTHORITY);
+        mProvider.onAccountChanged(null);
+        verify(resolver).notifyChange(expectedUri, null);
+
+        Mockito.clearInvocations(resolver);
+        String accountId = "32608910";
+        expectedUri = BluetoothMapContract.buildAccountUriwithId(AUTHORITY, accountId);
+        mProvider.onAccountChanged(accountId);
+        verify(resolver).notifyChange(expectedUri, null);
+    }
+
+    @Test
+    public void onContactChanged() {
+        ProviderInfo providerInfo = new ProviderInfo();
+        providerInfo.authority = AUTHORITY;
+        providerInfo.exported = true;
+        providerInfo.writePermission = android.Manifest.permission.BLUETOOTH_MAP;
+
+        ContentResolver resolver = mock(ContentResolver.class);
+        Context context = spy(new ContextWrapper(mContext));
+        doReturn(resolver).when(context).getContentResolver();
+        mProvider.attachInfo(context, providerInfo);
+
+        Uri expectedUri;
+
+        expectedUri = BluetoothMapContract.buildConvoContactsUri(AUTHORITY);
+        mProvider.onContactChanged(null,null);
+        verify(resolver).notifyChange(expectedUri, null);
+
+        Mockito.clearInvocations(resolver);
+        String accountId = "32608910";
+        expectedUri = BluetoothMapContract.buildConvoContactsUri(AUTHORITY, accountId);
+        mProvider.onContactChanged(accountId, null);
+        verify(resolver).notifyChange(expectedUri, null);
+
+        Mockito.clearInvocations(resolver);
+        String contactId = "23623";
+        expectedUri = BluetoothMapContract.buildConvoContactsUriWithId(
+                AUTHORITY, accountId, contactId);
+        mProvider.onContactChanged(accountId, contactId);
+        verify(resolver).notifyChange(expectedUri, null);
+    }
+
+    @Test
+    public void onMessageChanged() {
+        ProviderInfo providerInfo = new ProviderInfo();
+        providerInfo.authority = AUTHORITY;
+        providerInfo.exported = true;
+        providerInfo.writePermission = android.Manifest.permission.BLUETOOTH_MAP;
+
+        ContentResolver resolver = mock(ContentResolver.class);
+        Context context = spy(new ContextWrapper(mContext));
+        doReturn(resolver).when(context).getContentResolver();
+        mProvider.attachInfo(context, providerInfo);
+
+        Uri expectedUri;
+
+        expectedUri = BluetoothMapContract.buildMessageUri(AUTHORITY);
+        mProvider.onMessageChanged(null, null);
+        verify(resolver).notifyChange(expectedUri, null);
+
+        Mockito.clearInvocations(resolver);
+        String accountId = "32608910";
+        expectedUri = BluetoothMapContract.buildMessageUri(AUTHORITY, accountId);
+        mProvider.onMessageChanged(accountId, null);
+        verify(resolver).notifyChange(expectedUri, null);
+
+        Mockito.clearInvocations(resolver);
+        String messageId = "23623";
+        expectedUri = BluetoothMapContract.buildMessageUriWithId(
+                AUTHORITY, accountId, messageId);
+        mProvider.onMessageChanged(accountId, messageId);
+        verify(resolver).notifyChange(expectedUri, null);
+    }
+
+    @Test
+    public void createContentValues_throwsIAE_forUnknownDataType() {
+        Set<Map.Entry<String, Object>> valueSet = new HashSet<>();
+        Map<String, String> keyMap = new HashMap<>();
+
+        String key = "test_key";
+        Uri unknownTypeObject = Uri.parse("http://www.google.com");
+        valueSet.add(new AbstractMap.SimpleEntry<String, Object>(key, unknownTypeObject));
+
+        try {
+            mProvider.createContentValues(valueSet, keyMap);
+            assertWithMessage("IllegalArgumentException should be thrown.").fail();
+        } catch (IllegalArgumentException ex) {
+            // Expected
+        }
+    }
+
+    @Test
+    public void createContentValues_success() {
+        Map<String, String> keyMap = new HashMap<>();
+        String key = "test_key";
+        String convertedKey = "test_converted_key";
+        keyMap.put(key, convertedKey);
+
+        Object[] valuesToTest = new Object[] {
+                null, true, (byte) 0x01, new byte[] {0x01, 0x02},
+                0.01, 0.01f, 123, 12345L, (short) 10, "testString"
+        };
+
+        for (Object value : valuesToTest) {
+            Log.d(TAG, "value=" + value);
+
+            Set<Map.Entry<String, Object>> valueSet = new HashSet<>();
+            valueSet.add(new AbstractMap.SimpleEntry<String, Object>(key, value));
+            ContentValues contentValues = mProvider.createContentValues(valueSet, keyMap);
+
+            assertThat(contentValues.get(convertedKey)).isEqualTo(value);
+        }
     }
 
     public static class TestBluetoothMapIMProvider extends BluetoothMapIMProvider {
