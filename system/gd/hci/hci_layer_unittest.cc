@@ -54,6 +54,7 @@ constexpr char kOurLeScanningEventHandlerWasInvoked[] = "Our LE scanning event h
 constexpr char kOurReadRemoteVersionHandlerWasInvoked[] = "Our Read Remote Version complete handler was invoked.";
 constexpr char kOurLeSecurityEventHandlerWasInvoked[] = "Our LE security event handler was invoked.";
 constexpr char kOurSecurityEventHandlerWasInvoked[] = "Our security event handler was invoked.";
+constexpr std::chrono::milliseconds kDelay = std::chrono::milliseconds(100);
 }  // namespace
 
 namespace bluetooth {
@@ -121,6 +122,10 @@ class TestHciHal : public hal::HciHal {
     return CommandView::Create(packetview);
   }
 
+  bool IsOutgoingCommandsEmpty() const {
+    return outgoing_commands_.empty();
+  }
+
   void Start() override {}
 
   void Stop() override {}
@@ -165,6 +170,7 @@ class HciLayerTest : public ::testing::Test {
     ASSERT_TRUE(fake_registry_.IsStarted<HciLayer>());
     ::testing::FLAGS_gtest_death_test_style = "threadsafe";
     InitFlags::SetAllForTesting();
+    sync_handler();
   }
 
   void TearDown() override {
@@ -178,6 +184,7 @@ class HciLayerTest : public ::testing::Test {
 
   void FailIfResetNotSent() {
     hci_handler_->BindOnceOn(this, &HciLayerTest::fail_if_reset_not_sent).Invoke();
+    sync_handler();
   }
 
   void fail_if_reset_not_sent() {
@@ -186,6 +193,16 @@ class HciLayerTest : public ::testing::Test {
     auto sent_command = hal_->GetSentCommand();
     auto reset_view = ResetView::Create(CommandView::Create(sent_command));
     ASSERT_TRUE(reset_view.IsValid());
+  }
+
+  void sync_handler(const std::chrono::milliseconds delay = std::chrono::milliseconds(0)) {
+    std::promise<void> promise;
+    auto future = promise.get_future();
+    hci_handler_->BindOnceOn(&promise, &std::promise<void>::set_value).Invoke();
+    ASSERT_EQ(std::future_status::ready, future.wait_for(2s));
+    std::promise<void> promise2;
+    auto future2 = promise2.get_future();
+    ASSERT_EQ(std::future_status::timeout, future2.wait_for(delay));
   }
 
   TestHciHal* hal_ = nullptr;
@@ -205,8 +222,12 @@ TEST_F(HciLayerTest, controller_debug_info_requested_on_hci_timeout) {
   FailIfResetNotSent();
   FakeTimerAdvance(HciLayer::kHciTimeoutMs.count());
 
+  sync_handler();
+
   std::promise<void> promise;
   log_capture_->WaitUntilLogContains(&promise, "Enqueued HCI command 2 in HAL.");
+  ASSERT_FALSE(hal_->IsOutgoingCommandsEmpty());
+
   auto sent_command = hal_->GetSentCommand();
   auto debug_info_view = ControllerDebugInfoView::Create(VendorCommandView::Create(sent_command));
   ASSERT_TRUE(debug_info_view.IsValid());
@@ -216,17 +237,24 @@ TEST_F(HciLayerTest, abort_after_hci_restart_timeout) {
   FailIfResetNotSent();
   FakeTimerAdvance(HciLayer::kHciTimeoutMs.count());
 
+  sync_handler();
+
   std::promise<void> promise;
   log_capture_->WaitUntilLogContains(&promise, "Enqueued HCI command 2 in HAL.");
+  ASSERT_FALSE(hal_->IsOutgoingCommandsEmpty());
+
   auto sent_command = hal_->GetSentCommand();
   auto debug_info_view = ControllerDebugInfoView::Create(VendorCommandView::Create(sent_command));
   ASSERT_TRUE(debug_info_view.IsValid());
+
+  sync_handler();
 
   ASSERT_DEATH(
       {
         FakeTimerAdvance(HciLayer::kHciTimeoutRestartMs.count());
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Done waiting for debug information after HCI timeout");
+        sync_handler();
       },
       "");
 }
@@ -239,11 +267,15 @@ TEST_F(HciLayerTest, abort_on_root_inflammation_event) {
   hal_->InjectEvent(std::move(root_inflammation_event));
   std::promise<void> promise;
   log_capture_->WaitUntilLogContains(&promise, "Received a Root Inflammation Event");
+
+  sync_handler();
+
   ASSERT_DEATH(
       {
         FakeTimerAdvance(HciLayer::kHciTimeoutRestartMs.count());
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Root inflammation with reason");
+        sync_handler();
       },
       "");
 }
@@ -264,10 +296,12 @@ TEST_F(HciLayerTest, abort_if_reset_complete_returns_error) {
         FailIfResetNotSent();
         auto error_code = ErrorCode::UNSPECIFIED_ERROR;
         hal_->InjectResetCompleteEventWithCode(error_code);
+        sync_handler();
         auto buf = std::make_unique<char[]>(kBufSize);
         std::snprintf(buf.get(), kBufSize, "Reset completed with status: %s", ErrorCodeText(error_code).c_str());
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, buf.get());
+        sync_handler();
       },
       "");
 }
@@ -314,6 +348,7 @@ TEST_F(HciLayerTest, abort_on_second_register_event_handler) {
         hci_->RegisterEventHandler(EventCode::COMMAND_COMPLETE, hci_handler_->Bind([](EventView view) {}));
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Can not register a second handler for");
+        sync_handler();
       },
       "");
 }
@@ -328,6 +363,7 @@ TEST_F(HciLayerTest, abort_on_second_register_le_event_handler) {
             SubeventCode::ENHANCED_CONNECTION_COMPLETE, hci_handler_->Bind([](LeMetaEventView view) {}));
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Can not register a second handler for");
+        sync_handler();
       },
       "");
 }
@@ -504,6 +540,7 @@ TEST_F(HciLayerTest, command_complete_callback_is_invoked_with_an_opcode_that_do
         hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Waiting for 0x0c03 (RESET)");
+        sync_handler(kDelay);
       },
       "");
 }
@@ -517,6 +554,7 @@ TEST_F(HciLayerTest, command_status_callback_is_invoked_with_an_opcode_that_does
         hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Waiting for 0x0c03 (RESET)");
+        sync_handler();
       },
       "");
 }
@@ -530,6 +568,7 @@ TEST_F(HciLayerTest, command_complete_callback_is_invoked_but_command_queue_empt
         hal_->InjectResetCompleteEventWithCode(error_code);
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Unexpected event complete with opcode:0x0c3");
+        sync_handler(kDelay);
       },
       "");
 }
@@ -543,6 +582,7 @@ TEST_F(HciLayerTest, command_status_callback_is_invoked_but_command_queue_empty)
         hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Unexpected event status with opcode:0x41f");
+        sync_handler(kDelay);
       },
       "");
 }
@@ -556,6 +596,7 @@ TEST_F(HciLayerTest, command_status_callback_is_invoked_with_failure_status) {
   std::promise<void> promise;
   log_capture_->WaitUntilLogContains(
       &promise, "Received UNEXPECTED command status:HARDWARE_FAILURE opcode:0x41f (READ_CLOCK_OFFSET)");
+  sync_handler();
 }
 
 }  // namespace hci
