@@ -46,10 +46,26 @@ struct MockCoreInterface : bluetooth::core::CoreInterface {
   void removeDeviceFromProfiles(const RawAddress& bd_addr) override{};
   void onLinkDown(const RawAddress& bd_addr) override{};
   MockCoreInterface()
-      : bluetooth::core::CoreInterface{&eventCallbacks, nullptr, nullptr} {};
+      : bluetooth::core::CoreInterface{&eventCallbacks, nullptr, nullptr,
+                                       nullptr} {};
 };
 
 }  // namespace
+
+// HORRIBLE HACKY "MOCK" - the BTIF test target includes bluetooth.cc, so even
+// btif-"core" tests need this symbol to be available (since the linker doesn't
+// strip it for some reason)
+//
+// TODO(rahularya): remove this once build files are changed in aosp/2258765
+bool bta_hh_le_is_hh_gatt_if(tGATT_IF client_if) {
+  // If your test is not testing HID, then this is false and we are all fine.
+  //
+  // If your test *is* testing HID, you should get a linker error since this
+  // symbol had better be available. In which case you will need to figure out
+  // how to fix this properly, or have some macro to conditionally supply this
+  // symbol. Sorry.
+  return false;
+}
 
 void InitializeCoreInterface() {
   static auto mockCoreInterface = MockCoreInterface{};

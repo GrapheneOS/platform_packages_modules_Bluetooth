@@ -17,6 +17,7 @@
 #pragma once
 
 #include "bta/include/bta_api.h"
+#include "bta/include/bta_hh_api.h"
 #include "include/hardware/bluetooth.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "types/raw_address.h"
@@ -97,6 +98,33 @@ struct CodecInterface {
   virtual ~CodecInterface() = default;
 };
 
+// Please DO NOT add any more methods to this interface.
+// It is a legacy violation of the abstraction
+// between core and profiles: the core stack should not have any
+// profile-specific functionality or call directly into profile code, as this
+// makes refactoring + testing much harder. Instead, create a *generic* callback
+// that profiles can register themselves to.
+struct HACK_ProfileInterface {
+  // HID hacks
+  bt_status_t (*btif_hh_connect)(const RawAddress* bd_addr);
+  bt_status_t (*btif_hh_virtual_unplug)(const RawAddress* bd_addr);
+  tBTA_HH_STATUS (*bta_hh_read_ssr_param)(const RawAddress& bd_addr,
+                                          uint16_t* p_max_ssr_lat,
+                                          uint16_t* p_min_ssr_tout);
+  bool (*bta_hh_le_is_hh_gatt_if)(tGATT_IF client_if);
+  void (*bta_hh_cleanup_disable)(tBTA_HH_STATUS status);
+
+  // AVDTP hacks
+  void (*btif_av_set_dynamic_audio_buffer_size)(
+      uint8_t dynamic_audio_buffer_size);
+
+  // ASHA hacks
+  int (*GetHearingAidDeviceCount)();
+
+  HACK_ProfileInterface(const HACK_ProfileInterface&) = delete;
+  HACK_ProfileInterface& operator=(const HACK_ProfileInterface&) = delete;
+};
+
 // This class defines the overall interface expected by bluetooth::core.
 struct CoreInterface {
   // generic interface
@@ -106,6 +134,9 @@ struct CoreInterface {
   // codecs
   CodecInterface* msbcCodec;
 
+  // DO NOT add any more methods here
+  HACK_ProfileInterface* profileSpecific_HACK;
+
   virtual void onBluetoothEnabled() = 0;
   virtual bt_status_t toggleProfile(tBTA_SERVICE_ID service_id,
                                     bool enable) = 0;
@@ -113,10 +144,12 @@ struct CoreInterface {
   virtual void onLinkDown(const RawAddress& bd_addr) = 0;
 
   CoreInterface(EventCallbacks* eventCallbacks,
-                ConfigInterface* configInterface, CodecInterface* msbcCodec)
+                ConfigInterface* configInterface, CodecInterface* msbcCodec,
+                HACK_ProfileInterface* profileSpecific_HACK)
       : events{eventCallbacks},
         config{configInterface},
-        msbcCodec{msbcCodec} {};
+        msbcCodec{msbcCodec},
+        profileSpecific_HACK{profileSpecific_HACK} {};
 
   CoreInterface(const CoreInterface&) = delete;
   CoreInterface& operator=(const CoreInterface&) = delete;

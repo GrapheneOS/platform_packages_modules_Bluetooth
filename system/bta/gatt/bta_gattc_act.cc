@@ -33,6 +33,8 @@
 #include "bta/gatt/bta_gattc_int.h"
 #include "bta/hh/bta_hh_int.h"
 #include "btif/include/btif_debug_conn.h"
+#include "btif/include/core_callbacks.h"
+#include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
@@ -144,7 +146,9 @@ void bta_gattc_disable() {
     bta_gattc_cb.state = BTA_GATTC_STATE_DISABLING;
 /* don't deregister HH GATT IF */
 /* HH GATT IF will be deregistered by bta_hh_le_deregister when disable HH */
-    if (!bta_hh_le_is_hh_gatt_if(bta_gattc_cb.cl_rcb[i].client_if)) {
+    if (!GetInterfaceToProfiles()
+             ->profileSpecific_HACK->bta_hh_le_is_hh_gatt_if(
+                 bta_gattc_cb.cl_rcb[i].client_if)) {
       bta_gattc_deregister(&bta_gattc_cb.cl_rcb[i]);
     }
   }
@@ -224,7 +228,8 @@ void bta_gattc_register(const Uuid& app_uuid, tBTA_GATTC_CBACK* p_cback,
 void bta_gattc_deregister(tBTA_GATTC_RCB* p_clreg) {
   if (!p_clreg) {
     LOG(ERROR) << __func__ << ": Deregister Failed unknown client cif";
-    bta_hh_cleanup_disable(BTA_HH_OK);
+    GetInterfaceToProfiles()->profileSpecific_HACK->bta_hh_cleanup_disable(
+        BTA_HH_OK);
     return;
   }
 

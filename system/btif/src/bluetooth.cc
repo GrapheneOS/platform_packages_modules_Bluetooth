@@ -50,6 +50,7 @@
 
 #include "audio_hal_interface/a2dp_encoding.h"
 #include "bt_utils.h"
+#include "bta/hh/bta_hh_int.h"  // for HID HACK profile methods
 #include "bta/include/bta_ar_api.h"
 #include "bta/include/bta_csis_api.h"
 #include "bta/include/bta_has_api.h"
@@ -59,6 +60,7 @@
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/include/bta_vc_api.h"
 #include "btif/avrcp/avrcp_service.h"
+#include "btif/include/core_callbacks.h"
 #include "btif/include/stack_manager.h"
 #include "btif_a2dp.h"
 #include "btif_activity_attribution.h"
@@ -101,6 +103,7 @@
 #include "stack/include/hfp_msbc_encoder.h"
 #include "stack/include/hidh_api.h"
 #include "stack/include/pan_api.h"
+#include "stack_config.h"
 #include "types/raw_address.h"
 
 using bluetooth::csis::CsisClientInterface;
@@ -321,8 +324,23 @@ static bluetooth::core::CoreInterface* CreateInterfaceToProfiles() {
       .invoke_link_quality_report_cb = invoke_link_quality_report_cb};
   static auto configInterface = ConfigInterfaceImpl();
   static auto msbcCodecInterface = MSBCCodec();
+  static auto profileInterface = bluetooth::core::HACK_ProfileInterface{
+      // HID
+      .btif_hh_connect = btif_hh_connect,
+      .btif_hh_virtual_unplug = btif_hh_virtual_unplug,
+      .bta_hh_read_ssr_param = bta_hh_read_ssr_param,
+      .bta_hh_le_is_hh_gatt_if = bta_hh_le_is_hh_gatt_if,
+      .bta_hh_cleanup_disable = bta_hh_cleanup_disable,
+
+      // AVDTP
+      .btif_av_set_dynamic_audio_buffer_size =
+          btif_av_set_dynamic_audio_buffer_size,
+
+      // ASHA
+      .GetHearingAidDeviceCount = HearingAid::GetDeviceCount};
   static auto interfaceForCore =
-      CoreInterfaceImpl(&eventCallbacks, &configInterface, &msbcCodecInterface);
+      CoreInterfaceImpl(&eventCallbacks, &configInterface, &msbcCodecInterface,
+                        &profileInterface);
   return &interfaceForCore;
 }
 

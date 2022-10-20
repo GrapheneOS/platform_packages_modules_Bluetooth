@@ -46,6 +46,7 @@
 #include "btif/include/btif_profile_queue.h"
 #include "btif/include/btif_sock.h"
 #include "btif/include/btif_storage.h"
+#include "btif/include/core_callbacks.h"
 #include "btif/include/stack_manager.h"
 #include "common/message_loop_thread.h"
 #include "device/include/controller.h"
@@ -891,7 +892,9 @@ bt_status_t btif_set_dynamic_audio_buffer_size(int codec, int size) {
   if (!GetInterfaceToProfiles()->config->isA2DPOffloadEnabled()) {
     BTIF_TRACE_DEBUG("%s Set buffer size (%d) for A2DP software encoding",
                      __func__, size);
-    btif_av_set_dynamic_audio_buffer_size((uint8_t(size)));
+    GetInterfaceToProfiles()
+        ->profileSpecific_HACK->btif_av_set_dynamic_audio_buffer_size(
+            uint8_t(size));
   } else {
     if (cmn_vsc_cb.dynamic_audio_buffer_support != 0) {
       BTIF_TRACE_DEBUG("%s Set buffer size (%d) for A2DP offload", __func__,
