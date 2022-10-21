@@ -29,6 +29,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/raw_address.h"
+
 BT_HDR* l2cu_get_next_buffer_to_send(tL2C_LCB* p_lcb) {
   mock_function_count_map[__func__]++;
   return nullptr;
@@ -66,7 +67,9 @@ void l2c_link_hci_conn_comp(tHCI_STATUS status, uint16_t handle,
 void l2c_link_hci_conn_req(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
 }
-void l2c_link_init() { mock_function_count_map[__func__]++; }
+void l2c_link_init(const uint16_t acl_buffer_count_classic) {
+  mock_function_count_map[__func__]++;
+}
 void l2c_link_role_changed(const RawAddress* bd_addr, uint8_t new_role,
                            uint8_t hci_status) {
   mock_function_count_map[__func__]++;
