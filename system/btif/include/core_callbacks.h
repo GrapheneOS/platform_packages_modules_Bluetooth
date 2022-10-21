@@ -82,11 +82,29 @@ struct ConfigInterface {
   virtual ~ConfigInterface() = default;
 };
 
+// This interface lets us communicate with encoders used in profiles
+struct CodecInterface {
+  virtual void initialize() = 0;
+  virtual void cleanup() = 0;
+
+  virtual uint32_t encodePacket(int16_t* input, uint8_t* output) = 0;
+  virtual bool decodePacket(const uint8_t* i_buf, int16_t* o_buf,
+                            size_t out_len) = 0;
+
+  explicit CodecInterface() = default;
+  CodecInterface(const CodecInterface&) = delete;
+  CodecInterface& operator=(const CodecInterface&) = delete;
+  virtual ~CodecInterface() = default;
+};
+
 // This class defines the overall interface expected by bluetooth::core.
 struct CoreInterface {
   // generic interface
   EventCallbacks* events;
   ConfigInterface* config;
+
+  // codecs
+  CodecInterface* msbcCodec;
 
   virtual void onBluetoothEnabled() = 0;
   virtual bt_status_t toggleProfile(tBTA_SERVICE_ID service_id,
@@ -95,8 +113,10 @@ struct CoreInterface {
   virtual void onLinkDown(const RawAddress& bd_addr) = 0;
 
   CoreInterface(EventCallbacks* eventCallbacks,
-                ConfigInterface* configInterface)
-      : events{eventCallbacks}, config{configInterface} {};
+                ConfigInterface* configInterface, CodecInterface* msbcCodec)
+      : events{eventCallbacks},
+        config{configInterface},
+        msbcCodec{msbcCodec} {};
 
   CoreInterface(const CoreInterface&) = delete;
   CoreInterface& operator=(const CoreInterface&) = delete;

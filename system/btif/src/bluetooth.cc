@@ -97,6 +97,8 @@
 #include "stack/include/avdt_api.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"
+#include "stack/include/hfp_msbc_decoder.h"
+#include "stack/include/hfp_msbc_encoder.h"
 #include "stack/include/hidh_api.h"
 #include "stack/include/pan_api.h"
 #include "types/raw_address.h"
@@ -194,6 +196,29 @@ struct ConfigInterfaceImpl : bluetooth::core::ConfigInterface {
   }
 
   bool isAndroidTVDevice() override { return is_atv_device(); }
+};
+
+// TODO(aryarahul): remove unnecessary indirection through hfp_msbc_*.cc
+struct MSBCCodec : bluetooth::core::CodecInterface {
+  MSBCCodec() : bluetooth::core::CodecInterface(){};
+
+  void initialize() override {
+    hfp_msbc_decoder_init();
+    hfp_msbc_encoder_init();
+  }
+
+  void cleanup() override {
+    hfp_msbc_decoder_cleanup();
+    hfp_msbc_encoder_cleanup();
+  }
+
+  uint32_t encodePacket(int16_t* input, uint8_t* output) {
+    return hfp_msbc_encode_frames(input, output);
+  }
+
+  bool decodePacket(const uint8_t* i_buf, int16_t* o_buf, size_t out_len) {
+    return hfp_msbc_decoder_decode_packet(i_buf, o_buf, out_len);
+  }
 };
 
 struct CoreInterfaceImpl : bluetooth::core::CoreInterface {
@@ -295,8 +320,9 @@ static bluetooth::core::CoreInterface* CreateInterfaceToProfiles() {
       .invoke_energy_info_cb = invoke_energy_info_cb,
       .invoke_link_quality_report_cb = invoke_link_quality_report_cb};
   static auto configInterface = ConfigInterfaceImpl();
+  static auto msbcCodecInterface = MSBCCodec();
   static auto interfaceForCore =
-      CoreInterfaceImpl(&eventCallbacks, &configInterface);
+      CoreInterfaceImpl(&eventCallbacks, &configInterface, &msbcCodecInterface);
   return &interfaceForCore;
 }
 
@@ -1207,18 +1233,18 @@ void invoke_energy_info_cb(bt_activity_energy_info energy_info,
           energy_info, uid_data));
 }
 
-void invoke_link_quality_report_cb(
-    uint64_t timestamp, int report_id, int rssi, int snr,
-    int retransmission_count, int packets_not_receive_count,
-    int negative_acknowledgement_count) {
+void invoke_link_quality_report_cb(uint64_t timestamp, int report_id, int rssi,
+                                   int snr, int retransmission_count,
+                                   int packets_not_receive_count,
+                                   int negative_acknowledgement_count) {
   do_in_jni_thread(
       FROM_HERE,
       base::BindOnce(
           [](uint64_t timestamp, int report_id, int rssi, int snr,
              int retransmission_count, int packets_not_receive_count,
              int negative_acknowledgement_count) {
-            HAL_CBACK(bt_hal_cbacks, link_quality_report_cb,
-                      timestamp, report_id, rssi, snr, retransmission_count,
+            HAL_CBACK(bt_hal_cbacks, link_quality_report_cb, timestamp,
+                      report_id, rssi, snr, retransmission_count,
                       packets_not_receive_count,
                       negative_acknowledgement_count);
           },
@@ -1227,14 +1253,13 @@ void invoke_link_quality_report_cb(
 }
 
 void invoke_switch_buffer_size_cb(bool is_low_latency_buffer_size) {
-  do_in_jni_thread(
-      FROM_HERE,
-      base::BindOnce(
-          [](bool is_low_latency_buffer_size) {
-            HAL_CBACK(bt_hal_cbacks, switch_buffer_size_cb,
-                      is_low_latency_buffer_size);
-          },
-          is_low_latency_buffer_size));
+  do_in_jni_thread(FROM_HERE, base::BindOnce(
+                                  [](bool is_low_latency_buffer_size) {
+                                    HAL_CBACK(bt_hal_cbacks,
+                                              switch_buffer_size_cb,
+                                              is_low_latency_buffer_size);
+                                  },
+                                  is_low_latency_buffer_size));
 }
 
 void invoke_switch_codec_cb(bool is_low_latency_buffer_size) {

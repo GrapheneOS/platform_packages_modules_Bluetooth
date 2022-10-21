@@ -35,7 +35,8 @@ struct MockCoreInterface : bluetooth::core::CoreInterface {
   };
   void removeDeviceFromProfiles(const RawAddress& bd_addr) override{};
   void onLinkDown(const RawAddress& bd_addr) override{};
-  MockCoreInterface() : bluetooth::core::CoreInterface{nullptr, nullptr} {};
+  MockCoreInterface()
+      : bluetooth::core::CoreInterface{nullptr, nullptr, nullptr} {};
 };
 
 auto interfaceToProfiles = MockCoreInterface{};
