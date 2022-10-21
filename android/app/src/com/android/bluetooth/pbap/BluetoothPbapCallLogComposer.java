@@ -24,6 +24,7 @@ import android.provider.CallLog.Calls;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.vcard.VCardBuilder;
@@ -107,7 +108,7 @@ public class BluetoothPbapCallLogComposer {
             return false;
         }
 
-        mCursor = BluetoothPbapMethodProxy.getInstance().contentResolverQuery(
+        mCursor = BluetoothMethodProxy.getInstance().contentResolverQuery(
                 mContext.getContentResolver(), contentUri, projection, selection, selectionArgs,
                 sortOrder);
 

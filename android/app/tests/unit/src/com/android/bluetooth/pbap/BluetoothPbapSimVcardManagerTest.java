@@ -35,6 +35,7 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.obex.Operation;
 import com.android.obex.ResponseCodes;
 
@@ -60,7 +61,7 @@ public class BluetoothPbapSimVcardManagerTest {
     private static final String TAG = BluetoothPbapSimVcardManagerTest.class.getSimpleName();
 
     @Spy
-    BluetoothPbapMethodProxy mPbapMethodProxy = BluetoothPbapMethodProxy.getInstance();
+    BluetoothMethodProxy mPbapMethodProxy = BluetoothMethodProxy.getInstance();
 
     Context mContext;
     BluetoothPbapSimVcardManager mManager;
@@ -70,14 +71,14 @@ public class BluetoothPbapSimVcardManagerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        BluetoothPbapMethodProxy.setInstanceForTesting(mPbapMethodProxy);
+        BluetoothMethodProxy.setInstanceForTesting(mPbapMethodProxy);
         mContext =  InstrumentationRegistry.getTargetContext();
         mManager = new BluetoothPbapSimVcardManager(mContext);
     }
 
     @After
     public void tearDown() {
-        BluetoothPbapMethodProxy.setInstanceForTesting(null);
+        BluetoothMethodProxy.setInstanceForTesting(null);
     }
 
     @Test
