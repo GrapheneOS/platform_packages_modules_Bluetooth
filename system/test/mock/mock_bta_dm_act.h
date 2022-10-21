@@ -99,6 +99,21 @@ struct BTA_dm_acl_up {
 };
 extern struct BTA_dm_acl_up BTA_dm_acl_up;
 
+// Name: BTA_dm_acl_up_failed
+// Params: const RawAddress bd_addr, tBT_TRANSPORT transport, tHCI_STATUS
+// hci_status Return: void
+struct BTA_dm_acl_up_failed {
+  std::function<void(const RawAddress bd_addr, tBT_TRANSPORT transport,
+                     tHCI_STATUS hci_status)>
+      body{[](const RawAddress bd_addr, tBT_TRANSPORT transport,
+              tHCI_STATUS hci_status) {}};
+  void operator()(const RawAddress bd_addr, tBT_TRANSPORT transport,
+                  tHCI_STATUS hci_status) {
+    body(bd_addr, transport, hci_status);
+  };
+};
+extern struct BTA_dm_acl_up_failed BTA_dm_acl_up_failed;
+
 // Name: BTA_dm_notify_remote_features_complete
 // Params: const RawAddress bd_addr
 // Return: void
