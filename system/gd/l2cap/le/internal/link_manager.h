@@ -73,7 +73,7 @@ class LinkManager : public hci::acl_manager::LeConnectionCallbacks {
   Link* GetLink(hci::AddressWithType address_with_type);
   void OnLeConnectSuccess(hci::AddressWithType connecting_address_with_type,
                           std::unique_ptr<hci::acl_manager::LeAclConnection> acl_connection) override;
-  void OnLeConnectFail(hci::AddressWithType address_with_type, hci::ErrorCode reason) override;
+  void OnLeConnectFail(hci::AddressWithType address_with_type, hci::ErrorCode reason, bool locally_initiated) override;
 
   // FixedChannelManager methods
 

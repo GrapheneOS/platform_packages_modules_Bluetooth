@@ -1825,26 +1825,48 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
 
       invoke_acl_state_changed_cb(
           BT_STATUS_SUCCESS, bd_addr, BT_ACL_STATE_CONNECTED,
-          (int)p_data->link_up.transport_link_type, HCI_SUCCESS);
+          (int)p_data->link_up.transport_link_type, HCI_SUCCESS,
+          btm_is_acl_locally_initiated()
+              ? bt_conn_direction_t::BT_CONN_DIRECTION_OUTGOING
+              : bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING);
       break;
 
     case BTA_DM_LINK_UP_FAILED_EVT:
       invoke_acl_state_changed_cb(
           BT_STATUS_FAIL, p_data->link_up_failed.bd_addr,
           BT_ACL_STATE_DISCONNECTED, p_data->link_up_failed.transport_link_type,
-          p_data->link_up_failed.status);
+          p_data->link_up_failed.status,
+          btm_is_acl_locally_initiated()
+              ? bt_conn_direction_t::BT_CONN_DIRECTION_OUTGOING
+              : bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING);
       break;
 
-    case BTA_DM_LINK_DOWN_EVT:
+    case BTA_DM_LINK_DOWN_EVT: {
       bd_addr = p_data->link_down.bd_addr;
       btm_set_bond_type_dev(p_data->link_down.bd_addr,
                             tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
       btif_av_acl_disconnected(bd_addr);
 
+      bt_conn_direction_t direction;
+      switch (btm_get_acl_disc_reason_code()) {
+        case HCI_ERR_PEER_USER:
+        case HCI_ERR_REMOTE_LOW_RESOURCE:
+        case HCI_ERR_REMOTE_POWER_OFF:
+          direction = bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING;
+          break;
+        case HCI_ERR_CONN_CAUSE_LOCAL_HOST:
+        case HCI_ERR_HOST_REJECT_SECURITY:
+          direction = bt_conn_direction_t::BT_CONN_DIRECTION_OUTGOING;
+          break;
+        default:
+          direction = bt_conn_direction_t::BT_CONN_DIRECTION_UNKNOWN;
+      }
+
       invoke_acl_state_changed_cb(
           BT_STATUS_SUCCESS, bd_addr, BT_ACL_STATE_DISCONNECTED,
           (int)p_data->link_down.transport_link_type,
-          static_cast<bt_hci_error_code_t>(btm_get_acl_disc_reason_code()));
+          static_cast<bt_hci_error_code_t>(btm_get_acl_disc_reason_code()),
+          direction);
       LOG_DEBUG(
           "Sent BT_ACL_STATE_DISCONNECTED upward as ACL link down event "
           "device:%s reason:%s",
@@ -1852,7 +1874,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
           hci_reason_code_text(
               static_cast<tHCI_REASON>(btm_get_acl_disc_reason_code()))
               .c_str());
-      break;
+    } break;
 
     case BTA_DM_BLE_KEY_EVT:
       BTIF_TRACE_DEBUG("BTA_DM_BLE_KEY_EVT key_type=0x%02x ",

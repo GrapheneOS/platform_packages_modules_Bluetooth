@@ -1,4 +1,7 @@
-use crate::btif::{BtBondState, BtDeviceType, BtState, BtStatus, RawAddress};
+use crate::btif::{
+    BtAclState, BtBondState, BtConnectionDirection, BtDeviceType, BtHciErrorCode, BtState,
+    BtStatus, BtTransport, RawAddress,
+};
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 mod ffi {
@@ -35,6 +38,15 @@ mod ffi {
             status: u32,
             state: u32,
         );
+        fn acl_connect_attempt(addr: RustRawAddress, acl_state: u32);
+        fn acl_connection_state_changed(
+            bt_addr: RustRawAddress,
+            transport: u32,
+            status: u32,
+            acl_state: u32,
+            direction: u32,
+            hci_reason: u32,
+        );
     }
 }
 
@@ -48,14 +60,6 @@ impl Into<RawAddress> for ffi::RustRawAddress {
     fn into(self) -> RawAddress {
         RawAddress { val: self.address }
     }
-}
-
-#[derive(Debug, FromPrimitive, PartialEq, PartialOrd)]
-#[repr(u32)]
-pub enum MetricsProfileConnectionIntent {
-    Unknown = 0,
-    Connect,
-    Disconnect,
 }
 
 pub fn adapter_state_changed(state: BtState) {
@@ -111,4 +115,26 @@ pub fn profile_connection_state_changed(
     state: u32,
 ) {
     ffi::profile_connection_state_changed(addr.into(), profile, status as u32, state);
+}
+
+pub fn acl_connect_attempt(addr: RawAddress, acl_state: BtAclState) {
+    ffi::acl_connect_attempt(addr.into(), acl_state as u32);
+}
+
+pub fn acl_connection_state_changed(
+    addr: RawAddress,
+    transport: BtTransport,
+    status: BtStatus,
+    acl_state: BtAclState,
+    direction: BtConnectionDirection,
+    hci_reason: BtHciErrorCode,
+) {
+    ffi::acl_connection_state_changed(
+        addr.into(),
+        transport as u32,
+        status as u32,
+        acl_state as u32,
+        direction as u32,
+        hci_reason as u32,
+    );
 }

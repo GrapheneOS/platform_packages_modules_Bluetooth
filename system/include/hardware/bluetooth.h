@@ -176,6 +176,13 @@ typedef enum {
   BT_ACL_STATE_DISCONNECTED
 } bt_acl_state_t;
 
+/** Bluetooth ACL connection direction */
+typedef enum {
+  BT_CONN_DIRECTION_UNKNOWN,
+  BT_CONN_DIRECTION_OUTGOING,
+  BT_CONN_DIRECTION_INCOMING
+} bt_conn_direction_t;
+
 /** Bluetooth SDP service record */
 typedef struct {
   bluetooth::Uuid uuid;
@@ -492,7 +499,8 @@ typedef void (*acl_state_changed_callback)(bt_status_t status,
                                            RawAddress* remote_bd_addr,
                                            bt_acl_state_t state,
                                            int transport_link_type,
-                                           bt_hci_error_code_t hci_reason);
+                                           bt_hci_error_code_t hci_reason,
+                                           bt_conn_direction_t direction);
 
 /** Bluetooth link quality report callback */
 typedef void (*link_quality_report_callback)(
