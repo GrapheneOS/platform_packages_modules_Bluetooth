@@ -69,6 +69,7 @@ constexpr char kPrivateAddressPrefix[] = "xx:xx:xx:xx";
 #include "osi/include/osi.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btu.h"
+#include "stack_manager.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
@@ -1076,10 +1077,12 @@ void btif_storage_load_le_devices(void) {
   for (const auto& device : consolidated_devices) {
     if (bonded_addresses.find(device.second) != bonded_addresses.end()) {
       // Invokes address consolidation for DuMo devices
-      invoke_address_consolidate_cb(device.first, device.second);
+      GetInterfaceToProfiles()->events->invoke_address_consolidate_cb(
+          device.first, device.second);
     } else {
       // Associates RPA & identity address for LE-only devices
-      invoke_le_address_associate_cb(device.first, device.second);
+      GetInterfaceToProfiles()->events->invoke_le_address_associate_cb(
+          device.first, device.second);
     }
   }
 }

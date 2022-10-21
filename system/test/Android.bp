@@ -432,6 +432,13 @@ filegroup {
 }
 
 filegroup {
+  name: "TestCommonCoreInterface",
+  srcs: [
+      "common/core_interface.cc",
+  ],
+}
+
+filegroup {
   name: "TestMockBluetoothInterface",
   srcs: [
       "mock/mock_bluetooth_interface.cc",

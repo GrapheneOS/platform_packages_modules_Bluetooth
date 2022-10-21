@@ -172,7 +172,24 @@ struct CoreInterfaceImpl : bluetooth::core::CoreInterface {
 };
 
 static bluetooth::core::CoreInterface* CreateInterfaceToProfiles() {
-  static auto interfaceForCore = CoreInterfaceImpl();
+  static auto eventCallbacks = bluetooth::core::EventCallbacks{
+      .invoke_adapter_state_changed_cb = invoke_adapter_state_changed_cb,
+      .invoke_adapter_properties_cb = invoke_adapter_properties_cb,
+      .invoke_remote_device_properties_cb = invoke_remote_device_properties_cb,
+      .invoke_device_found_cb = invoke_device_found_cb,
+      .invoke_discovery_state_changed_cb = invoke_discovery_state_changed_cb,
+      .invoke_pin_request_cb = invoke_pin_request_cb,
+      .invoke_ssp_request_cb = invoke_ssp_request_cb,
+      .invoke_oob_data_request_cb = invoke_oob_data_request_cb,
+      .invoke_bond_state_changed_cb = invoke_bond_state_changed_cb,
+      .invoke_address_consolidate_cb = invoke_address_consolidate_cb,
+      .invoke_le_address_associate_cb = invoke_le_address_associate_cb,
+      .invoke_acl_state_changed_cb = invoke_acl_state_changed_cb,
+      .invoke_thread_evt_cb = invoke_thread_evt_cb,
+      .invoke_le_test_mode_cb = invoke_le_test_mode_cb,
+      .invoke_energy_info_cb = invoke_energy_info_cb,
+      .invoke_link_quality_report_cb = invoke_link_quality_report_cb};
+  static auto interfaceForCore = CoreInterfaceImpl(&eventCallbacks);
   return &interfaceForCore;
 }
 
