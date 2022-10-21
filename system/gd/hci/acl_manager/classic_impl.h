@@ -310,7 +310,11 @@ struct classic_impl : public security::ISecurityManagerListener {
       LOG_ERROR("Failed to create connection, reporting failure and continuing");
       ASSERT(client_callbacks_ != nullptr);
       client_handler_->Post(common::BindOnce(
-          &ConnectionCallbacks::OnConnectFail, common::Unretained(client_callbacks_), address, status.GetStatus()));
+          &ConnectionCallbacks::OnConnectFail,
+          common::Unretained(client_callbacks_),
+          address,
+          status.GetStatus(),
+          true /* locally initiated */));
       acl_scheduler_->ReportOutgoingAclConnectionFailure();
     } else {
       // everything is good, resume when a connection_complete event arrives
@@ -333,7 +337,11 @@ struct classic_impl : public security::ISecurityManagerListener {
     }
     if (status != ErrorCode::SUCCESS) {
       client_handler_->Post(common::BindOnce(
-          &ConnectionCallbacks::OnConnectFail, common::Unretained(client_callbacks_), address, status));
+          &ConnectionCallbacks::OnConnectFail,
+          common::Unretained(client_callbacks_),
+          address,
+          status,
+          initiator == Initiator::LOCALLY_INITIATED));
       return;
     }
     uint16_t handle = connection_complete.GetConnectionHandle();
@@ -401,7 +409,11 @@ struct classic_impl : public security::ISecurityManagerListener {
         address,
         handler_->BindOnceOn(this, &classic_impl::actually_cancel_connect, address),
         client_handler_->BindOnceOn(
-            client_callbacks_, &ConnectionCallbacks::OnConnectFail, address, ErrorCode::UNKNOWN_CONNECTION));
+            client_callbacks_,
+            &ConnectionCallbacks::OnConnectFail,
+            address,
+            ErrorCode::UNKNOWN_CONNECTION,
+            true /* locally initiated */));
   }
 
   void actually_cancel_connect(Address address) {

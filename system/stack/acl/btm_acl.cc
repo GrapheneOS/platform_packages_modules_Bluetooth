@@ -1205,6 +1205,20 @@ tHCI_REASON btm_get_acl_disc_reason_code(void) {
 
 /*******************************************************************************
  *
+ * Function         btm_is_acl_locally_initiated
+ *
+ * Description      This function is called to get which side initiates the
+ *                  connection, at HCI connection complete event.
+ *
+ * Returns          true if connection is locally initiated, else false.
+ *
+ ******************************************************************************/
+bool btm_is_acl_locally_initiated(void) {
+  return btm_cb.acl_cb_.is_locally_initiated();
+}
+
+/*******************************************************************************
+ *
  * Function         BTM_GetHCIConnHandle
  *
  * Description      This function is called to get the handle for an ACL
@@ -2512,6 +2526,10 @@ void acl_set_disconnect_reason(tHCI_STATUS acl_disc_reason) {
   btm_cb.acl_cb_.set_disconnect_reason(acl_disc_reason);
 }
 
+void acl_set_locally_initiated(bool locally_initiated) {
+  btm_cb.acl_cb_.set_locally_initiated(locally_initiated);
+}
+
 bool acl_is_role_switch_allowed() {
   return btm_cb.acl_cb_.DefaultLinkPolicy() &
          HCI_ENABLE_CENTRAL_PERIPHERAL_SWITCH;
@@ -2534,7 +2552,7 @@ bool acl_set_peer_le_features_from_handle(uint16_t hci_handle,
 }
 
 void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
-                             uint8_t enc_mode) {
+                             uint8_t enc_mode, bool locally_initiated) {
   if (delayed_role_change_ != nullptr && delayed_role_change_->bd_addr == bda) {
     btm_sec_connected(bda, handle, HCI_SUCCESS, enc_mode,
                       delayed_role_change_->new_role);
@@ -2554,6 +2572,8 @@ void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
     return;
   }
 
+  acl_set_locally_initiated(locally_initiated);
+
   /*
    * The legacy code path informs the upper layer via the BTA
    * layer after all relevant read_remote_ commands are complete.
@@ -2563,7 +2583,8 @@ void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
   NotifyAclLinkUp(*p_acl);
 }
 
-void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status) {
+void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status,
+                          bool locally_initiated) {
   ASSERT_LOG(status != HCI_SUCCESS,
              "Successful connection entering failing code path");
   if (delayed_role_change_ != nullptr && delayed_role_change_->bd_addr == bda) {
@@ -2576,6 +2597,7 @@ void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status) {
   btm_acl_set_paging(false);
   l2c_link_hci_conn_comp(status, HCI_INVALID_HANDLE, bda);
 
+  acl_set_locally_initiated(locally_initiated);
   btm_acl_create_failed(bda, BT_TRANSPORT_BR_EDR, status);
 }
 
@@ -2583,9 +2605,10 @@ void btm_acl_connected(const RawAddress& bda, uint16_t handle,
                        tHCI_STATUS status, uint8_t enc_mode) {
   switch (status) {
     case HCI_SUCCESS:
-      return on_acl_br_edr_connected(bda, handle, enc_mode);
+      return on_acl_br_edr_connected(bda, handle, enc_mode,
+                                     true /* locally_initiated */);
     default:
-      return on_acl_br_edr_failed(bda, status);
+      return on_acl_br_edr_failed(bda, status, /* locally_initiated */ true);
   }
 }
 

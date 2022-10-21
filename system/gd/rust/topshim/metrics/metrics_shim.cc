@@ -65,6 +65,24 @@ void profile_connection_state_changed(RustRawAddress bt_addr, uint32_t profile, 
   metrics::LogMetricsProfileConnectionStateChanged(&addr, profile, status, state);
 }
 
+void acl_connect_attempt(RustRawAddress bt_addr, uint32_t acl_state) {
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
+
+  metrics::LogMetricsAclConnectAttempt(&addr, acl_state);
+}
+
+void acl_connection_state_changed(
+    RustRawAddress bt_addr,
+    uint32_t transport,
+    uint32_t status,
+    uint32_t acl_state,
+    uint32_t direction,
+    uint32_t hci_reason) {
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
+
+  metrics::LogMetricsAclConnectionStateChanged(&addr, transport, status, acl_state, direction, hci_reason);
+}
+
 }  // namespace rust
 }  // namespace topshim
 }  // namespace bluetooth

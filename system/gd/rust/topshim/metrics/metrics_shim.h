@@ -41,6 +41,14 @@ void device_info_report(
     uint32_t product_id,
     uint32_t version);
 void profile_connection_state_changed(RustRawAddress bt_addr, uint32_t profile, uint32_t status, uint32_t state);
+void acl_connect_attempt(RustRawAddress bt_addr, uint32_t acl_state);
+void acl_connection_state_changed(
+    RustRawAddress bt_addr,
+    uint32_t transport,
+    uint32_t status,
+    uint32_t acl_state,
+    uint32_t direction,
+    uint32_t hci_reason);
 
 }  // namespace rust
 }  // namespace topshim
