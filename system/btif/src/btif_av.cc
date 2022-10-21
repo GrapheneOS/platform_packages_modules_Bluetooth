@@ -790,6 +790,10 @@ const char* dump_av_sm_event_name(btif_av_sm_event_t event) {
   }
 }
 
+const char* dump_av_sm_event_name(int event) {
+  return dump_av_sm_event_name(static_cast<btif_av_sm_event_t>(event));
+}
+
 BtifAvEvent::BtifAvEvent(uint32_t event, const void* p_data, size_t data_length)
     : event_(event), data_(nullptr), data_length_(0) {
   DeepCopy(event, p_data, data_length);
