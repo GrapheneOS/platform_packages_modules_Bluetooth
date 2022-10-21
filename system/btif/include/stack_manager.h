@@ -22,10 +22,13 @@
 
 #include "osi/include/future.h"
 
+using ProfileStartCallback = void();
+using ProfileStopCallback = void();
+
 typedef struct {
   void (*init_stack)(void);
-  void (*start_up_stack_async)(void);
-  void (*shut_down_stack_async)(void);
+  void (*start_up_stack_async)(ProfileStartCallback, ProfileStopCallback);
+  void (*shut_down_stack_async)(ProfileStopCallback);
   void (*clean_up_stack)(void);
 
   bool (*get_stack_is_running)(void);

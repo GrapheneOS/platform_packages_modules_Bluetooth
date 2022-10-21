@@ -50,6 +50,7 @@
 
 #include "audio_hal_interface/a2dp_encoding.h"
 #include "bt_utils.h"
+#include "bta/include/bta_ar_api.h"
 #include "bta/include/bta_csis_api.h"
 #include "bta/include/bta_has_api.h"
 #include "bta/include/bta_hearing_aid_api.h"
@@ -66,9 +67,14 @@
 #include "btif_bqr.h"
 #include "btif_config.h"
 #include "btif_debug_conn.h"
+#include "btif_dm.h"
+#include "btif_hd.h"
 #include "btif_hf.h"
+#include "btif_hh.h"
 #include "btif_keystore.h"
 #include "btif_metrics_logging.h"
+#include "btif_pan.h"
+#include "btif_sock.h"
 #include "btif_storage.h"
 #include "common/address_obfuscator.h"
 #include "common/metric_id_allocator.h"
@@ -87,9 +93,12 @@
 #include "osi/include/wakelock.h"
 #include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/gatt/connection_manager.h"
+#include "stack/include/a2dp_api.h"
 #include "stack/include/avdt_api.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"
+#include "stack/include/hidh_api.h"
+#include "stack/include/pan_api.h"
 #include "types/raw_address.h"
 
 using bluetooth::csis::CsisClientInterface;
@@ -226,17 +235,38 @@ static int init(bt_callbacks_t* callbacks, bool start_restricted,
   return BT_STATUS_SUCCESS;
 }
 
+static void start_profiles() {
+#if (BNEP_INCLUDED == TRUE)
+  BNEP_Init();
+#if (PAN_INCLUDED == TRUE)
+  PAN_Init();
+#endif /* PAN */
+#endif /* BNEP Included */
+  A2DP_Init();
+  AVRC_Init();
+#if (HID_HOST_INCLUDED == TRUE)
+  HID_HostInit();
+#endif
+  bta_ar_init();
+}
+
+static void stop_profiles() {
+  btif_sock_cleanup();
+  btif_pan_cleanup();
+}
+
 static int enable() {
   if (!interface_ready()) return BT_STATUS_NOT_READY;
 
-  stack_manager_get_interface()->start_up_stack_async();
+  stack_manager_get_interface()->start_up_stack_async(&start_profiles,
+                                                      &stop_profiles);
   return BT_STATUS_SUCCESS;
 }
 
 static int disable(void) {
   if (!interface_ready()) return BT_STATUS_NOT_READY;
 
-  stack_manager_get_interface()->shut_down_stack_async();
+  stack_manager_get_interface()->shut_down_stack_async(&stop_profiles);
   return BT_STATUS_SUCCESS;
 }
 

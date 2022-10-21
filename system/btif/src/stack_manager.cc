@@ -134,8 +134,9 @@ static bool stack_is_initialized;
 static bool stack_is_running;
 
 static void event_init_stack(void* context);
-static void event_start_up_stack(void* context);
-static void event_shut_down_stack(void* context);
+static void event_start_up_stack(ProfileStartCallback startProfiles,
+                                 ProfileStopCallback stopProfiles);
+static void event_shut_down_stack(ProfileStopCallback stopProfiles);
 static void event_clean_up_stack(std::promise<void> promise);
 
 static void event_signal_stack_up(void* context);
@@ -160,14 +161,15 @@ static void init_stack() {
   semaphore_free(semaphore);
 }
 
-static void start_up_stack_async() {
-  management_thread.DoInThread(FROM_HERE,
-                               base::Bind(event_start_up_stack, nullptr));
+static void start_up_stack_async(ProfileStartCallback startProfiles,
+                                 ProfileStopCallback stopProfiles) {
+  management_thread.DoInThread(
+      FROM_HERE, base::Bind(event_start_up_stack, startProfiles, stopProfiles));
 }
 
-static void shut_down_stack_async() {
+static void shut_down_stack_async(ProfileStopCallback stopProfiles) {
   management_thread.DoInThread(FROM_HERE,
-                               base::Bind(event_shut_down_stack, nullptr));
+                               base::Bind(event_shut_down_stack, stopProfiles));
 }
 
 static void clean_up_stack() {
@@ -272,7 +274,8 @@ static void ensure_stack_is_initialized() {
 }
 
 // Synchronous function to start up the stack
-static void event_start_up_stack(UNUSED_ATTR void* context) {
+static void event_start_up_stack(ProfileStartCallback startProfiles,
+                                 ProfileStopCallback stopProfiles) {
   if (stack_is_running) {
     LOG_INFO("%s stack already brought up", __func__);
     return;
@@ -297,21 +300,12 @@ static void event_start_up_stack(UNUSED_ATTR void* context) {
   get_btm_client_interface().lifecycle.btm_ble_init();
 
   RFCOMM_Init();
-#if (BNEP_INCLUDED == TRUE)
-  BNEP_Init();
-#if (PAN_INCLUDED == TRUE)
-  PAN_Init();
-#endif /* PAN */
-#endif /* BNEP Included */
-  A2DP_Init();
-  AVRC_Init();
   GAP_Init();
-#if (HID_HOST_INCLUDED == TRUE)
-  HID_HostInit();
-#endif
+
+  startProfiles();
 
   bta_sys_init();
-  bta_ar_init();
+
   module_init(get_local_module(BTE_LOGMSG_MODULE));
 
   main_thread_start_up();
@@ -330,7 +324,7 @@ static void event_start_up_stack(UNUSED_ATTR void* context) {
   if (future_await(local_hack_future) != FUTURE_SUCCESS) {
     LOG_ERROR("%s failed to start up the stack", __func__);
     stack_is_running = true;  // So stack shutdown actually happens
-    event_shut_down_stack(nullptr);
+    event_shut_down_stack(stopProfiles);
     return;
   }
 
@@ -340,7 +334,7 @@ static void event_start_up_stack(UNUSED_ATTR void* context) {
 }
 
 // Synchronous function to shut down the stack
-static void event_shut_down_stack(UNUSED_ATTR void* context) {
+static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
   if (!stack_is_running) {
     LOG_INFO("%s stack is already brought down", __func__);
     return;
@@ -356,8 +350,7 @@ static void event_shut_down_stack(UNUSED_ATTR void* context) {
   do_in_main_thread(FROM_HERE, base::Bind(&btm_ble_scanner_cleanup));
 
   btif_dm_on_disable();
-  btif_sock_cleanup();
-  btif_pan_cleanup();
+  stopProfiles();
 
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_disable));
 
