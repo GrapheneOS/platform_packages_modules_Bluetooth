@@ -1104,8 +1104,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
     }
 
     bool is_crosskey = false;
-    if (pairing_cb.state == BT_BOND_STATE_BONDING &&
-        p_auth_cmpl->bd_addr != pairing_cb.bd_addr) {
+    if (pairing_cb.state == BT_BOND_STATE_BONDING && p_auth_cmpl->is_ctkd) {
       LOG_INFO("bonding initiated due to cross key pairing");
       is_crosskey = true;
     }
@@ -1138,8 +1137,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
       invoke_remote_device_properties_cb(BT_STATUS_SUCCESS, bd_addr, 1, &prop);
     } else {
       /* If bonded due to cross-key, save the static address too*/
-      if (pairing_cb.state == BT_BOND_STATE_BONDING &&
-          p_auth_cmpl->bd_addr != pairing_cb.bd_addr) {
+      if (is_crosskey) {
         BTIF_TRACE_DEBUG(
             "%s: bonding initiated due to cross key, adding static address",
             __func__);
