@@ -280,60 +280,6 @@ public class SapRilReceiver {
     }
 
     /**
-     * Read the message into buffer
-     * @param is
-     * @param buffer
-     * @return the length of the message
-     * @throws IOException
-     */
-    private static int readMessage(InputStream is, byte[] buffer) throws IOException {
-        int countRead;
-        int offset;
-        int remaining;
-        int messageLength;
-
-        // Read in the length of the message
-        offset = 0;
-        remaining = 4;
-        do {
-            countRead = is.read(buffer, offset, remaining);
-
-            if (countRead < 0) {
-                Log.e(TAG, "Hit EOS reading message length");
-                return -1;
-            }
-
-            offset += countRead;
-            remaining -= countRead;
-        } while (remaining > 0);
-
-        messageLength =
-                ((buffer[0] & 0xff) << 24) | ((buffer[1] & 0xff) << 16) | ((buffer[2] & 0xff) << 8)
-                        | (buffer[3] & 0xff);
-        if (VERBOSE) {
-            Log.e(TAG, "Message length found to be: " + messageLength);
-        }
-        // Read the message
-        offset = 0;
-        remaining = messageLength;
-        do {
-            countRead = is.read(buffer, offset, remaining);
-
-            if (countRead < 0) {
-                Log.e(TAG,
-                        "Hit EOS reading message.  messageLength=" + messageLength + " remaining="
-                                + remaining);
-                return -1;
-            }
-
-            offset += countRead;
-            remaining -= countRead;
-        } while (remaining > 0);
-
-        return messageLength;
-    }
-
-    /**
      * Notify SapServer that the RIL socket is connected
      */
     void sendRilConnectMessage() {
