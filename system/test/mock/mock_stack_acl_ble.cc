@@ -48,8 +48,8 @@ void acl_ble_connection_complete(const tBLE_BD_ADDR& address_with_type,
   mock_function_count_map[__func__]++;
 }
 void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
-                             uint16_t handle, bool enhanced,
-                             tHCI_STATUS status) {
+                             uint16_t handle, bool enhanced, tHCI_STATUS status,
+                             bool locally_initiated) {
   mock_function_count_map[__func__]++;
 }
 void acl_ble_enhanced_connection_complete(

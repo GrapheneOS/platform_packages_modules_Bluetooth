@@ -251,6 +251,8 @@ uint8_t acl_link_role_from_handle(uint16_t handle);
 
 void acl_set_disconnect_reason(tHCI_STATUS acl_disc_reason);
 
+void acl_set_locally_initiated(bool is_locally_initiated);
+
 bool acl_is_role_switch_allowed();
 
 uint16_t acl_get_supported_packet_types();
@@ -311,6 +313,8 @@ void btm_process_cancel_complete(uint8_t status, uint8_t mode);
 uint8_t btm_handle_to_acl_index(uint16_t hci_handle);
 
 tHCI_REASON btm_get_acl_disc_reason_code(void);
+
+bool btm_is_acl_locally_initiated(void);
 
 extern tBTM_STATUS btm_remove_acl(const RawAddress& bd_addr,
                                   tBT_TRANSPORT transport);

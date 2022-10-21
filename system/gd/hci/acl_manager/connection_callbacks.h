@@ -33,7 +33,7 @@ class ConnectionCallbacks {
   // Invoked when controller sends Connection Complete event with Success error code
   virtual void OnConnectSuccess(std::unique_ptr<ClassicAclConnection>) = 0;
   // Invoked when controller sends Connection Complete event with non-Success error code
-  virtual void OnConnectFail(Address, ErrorCode reason) = 0;
+  virtual void OnConnectFail(Address, ErrorCode reason, bool locally_initiated) = 0;
 
   virtual void HACK_OnEscoConnectRequest(Address, ClassOfDevice) = 0;
   virtual void HACK_OnScoConnectRequest(Address, ClassOfDevice) = 0;

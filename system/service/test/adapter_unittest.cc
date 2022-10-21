@@ -262,8 +262,8 @@ TEST_F(AdapterTest, IsDeviceConnected) {
 
   // status != BT_STATUS_SUCCESS should be ignored
   fake_hal_iface_->NotifyAclStateChangedCallback(
-      BT_STATUS_FAIL, hal_addr, BT_ACL_STATE_CONNECTED, BT_TRANSPORT_LE,
-      0xff);  // HCI_ERR_UNDEFINED
+      BT_STATUS_FAIL, hal_addr, BT_ACL_STATE_CONNECTED, BT_TRANSPORT_LE, 0xff,
+      BT_CONN_DIRECTION_OUTGOING);  // HCI_ERR_UNDEFINED
   EXPECT_FALSE(adapter_->IsDeviceConnected(kDeviceAddr));
   EXPECT_TRUE(observer.last_connection_state_address().empty());
   EXPECT_FALSE(observer.last_device_connected_state());
@@ -271,7 +271,7 @@ TEST_F(AdapterTest, IsDeviceConnected) {
   // Connected
   fake_hal_iface_->NotifyAclStateChangedCallback(
       BT_STATUS_SUCCESS, hal_addr, BT_ACL_STATE_CONNECTED, BT_TRANSPORT_LE,
-      0x00);  // HCI_SUCCESS
+      0x00, BT_CONN_DIRECTION_OUTGOING);  // HCI_SUCCESS
   EXPECT_TRUE(adapter_->IsDeviceConnected(kDeviceAddr));
   EXPECT_EQ(kDeviceAddr, observer.last_connection_state_address());
   EXPECT_TRUE(observer.last_device_connected_state());
@@ -279,7 +279,7 @@ TEST_F(AdapterTest, IsDeviceConnected) {
   // Disconnected
   fake_hal_iface_->NotifyAclStateChangedCallback(
       BT_STATUS_SUCCESS, hal_addr, BT_ACL_STATE_DISCONNECTED, BT_TRANSPORT_LE,
-      0x16);  // HCI_ERR_CONN_CAUSE_LOCAL_HOST
+      0x16, BT_CONN_DIRECTION_OUTGOING);  // HCI_ERR_CONN_CAUSE_LOCAL_HOST
   EXPECT_FALSE(adapter_->IsDeviceConnected(kDeviceAddr));
   EXPECT_EQ(kDeviceAddr, observer.last_connection_state_address());
   EXPECT_FALSE(observer.last_device_connected_state());

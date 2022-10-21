@@ -396,6 +396,7 @@ struct tACL_CB {
   uint16_t btm_acl_pkt_types_supported = kDefaultPacketTypeMask;
   uint16_t btm_def_link_policy;
   tHCI_STATUS acl_disc_reason = HCI_ERR_UNDEFINED;
+  bool locally_initiated;
 
  public:
   void SetDefaultPacketTypeMask(uint16_t packet_type_mask) {
@@ -404,6 +405,8 @@ struct tACL_CB {
 
   tHCI_STATUS get_disconnect_reason() const { return acl_disc_reason; }
   void set_disconnect_reason(tHCI_STATUS reason) { acl_disc_reason = reason; }
+  bool is_locally_initiated() const { return locally_initiated; }
+  void set_locally_initiated(bool value) { locally_initiated = value; }
   uint16_t DefaultPacketTypes() const { return btm_acl_pkt_types_supported; }
   uint16_t DefaultLinkPolicy() const { return btm_def_link_policy; }
 

@@ -131,6 +131,7 @@ void acl_ble_enhanced_connection_complete_from_shim(
   const bool is_in_security_db = maybe_resolve_received_address(
       address_with_type, &resolved_address_with_type);
 
+  acl_set_locally_initiated(role == tHCI_ROLE::HCI_ROLE_CENTRAL);
   acl_ble_enhanced_connection_complete(resolved_address_with_type, handle, role,
                                        is_in_security_db, conn_interval,
                                        conn_latency, conn_timeout, local_rpa,
@@ -142,8 +143,16 @@ void acl_ble_enhanced_connection_complete_from_shim(
 }
 
 void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
-                             uint16_t handle, bool enhanced,
-                             tHCI_STATUS status) {
+                             uint16_t handle, bool enhanced, tHCI_STATUS status,
+                             bool locally_initiated) {
+  acl_set_locally_initiated(locally_initiated);
+  btm_acl_create_failed(address_with_type.bda, BT_TRANSPORT_LE, status);
+
+  // Stop here if the connection is not locally initiated.
+  if (!locally_initiated) {
+    return;
+  }
+
   if (status != HCI_ERR_ADVERTISING_TIMEOUT) {
     btm_cb.ble_ctr_cb.set_connection_state_idle();
     btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
@@ -161,8 +170,6 @@ void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
   }
   btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, &address_with_type.bda,
                                 status);
-
-  btm_acl_create_failed(address_with_type.bda, BT_TRANSPORT_LE, status);
 }
 
 void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,

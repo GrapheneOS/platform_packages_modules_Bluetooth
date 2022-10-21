@@ -54,7 +54,8 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
   // hci::acl_manager::ConnectionCallbacks
   void OnConnectSuccess(
       std::unique_ptr<hci::acl_manager::ClassicAclConnection>) override;
-  void OnConnectFail(hci::Address, hci::ErrorCode reason) override;
+  void OnConnectFail(hci::Address, hci::ErrorCode reason,
+                     bool locally_initiated) override;
 
   void HACK_OnEscoConnectRequest(hci::Address, hci::ClassOfDevice) override;
   void HACK_OnScoConnectRequest(hci::Address, hci::ClassOfDevice) override;
@@ -65,7 +66,8 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
   void OnLeConnectSuccess(
       hci::AddressWithType,
       std::unique_ptr<hci::acl_manager::LeAclConnection>) override;
-  void OnLeConnectFail(hci::AddressWithType, hci::ErrorCode reason) override;
+  void OnLeConnectFail(hci::AddressWithType, hci::ErrorCode reason,
+                       bool locally_initiated) override;
   void OnLeLinkDisconnected(uint16_t handle, hci::ErrorCode reason);
   bluetooth::hci::AddressWithType GetConnectionLocalAddress(
       const RawAddress& remote_bda);

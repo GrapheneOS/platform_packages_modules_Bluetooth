@@ -389,7 +389,8 @@ class MockLeConnectionCallbacks : public LeConnectionCallbacks {
       OnLeConnectSuccess,
       (AddressWithType address_with_type, std::unique_ptr<LeAclConnection> connection),
       (override));
-  MOCK_METHOD(void, OnLeConnectFail, (AddressWithType address_with_type, ErrorCode reason), (override));
+  MOCK_METHOD(
+      void, OnLeConnectFail, (AddressWithType address_with_type, ErrorCode reason, bool locally_initiated), (override));
 };
 
 class MockLeConnectionManagementCallbacks : public LeConnectionManagementCallbacks {
@@ -1417,7 +1418,7 @@ TEST_F(LeImplTest, on_le_connection_canceled_on_pause) {
 }
 
 TEST_F(LeImplTest, on_create_connection_timeout) {
-  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectFail(_, ErrorCode::CONNECTION_ACCEPT_TIMEOUT)).Times(1);
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectFail(_, ErrorCode::CONNECTION_ACCEPT_TIMEOUT, _)).Times(1);
   le_impl_->create_connection_timeout_alarms_.emplace(
       std::piecewise_construct,
       std::forward_as_tuple(

@@ -87,6 +87,7 @@ struct BTM_SetLinkSuperTout BTM_SetLinkSuperTout;
 struct BTM_SwitchRoleToCentral BTM_SwitchRoleToCentral;
 struct btm_remove_acl btm_remove_acl;
 struct btm_get_acl_disc_reason_code btm_get_acl_disc_reason_code;
+struct btm_is_acl_locally_initiated btm_is_acl_locally_initiated;
 struct BTM_GetHCIConnHandle BTM_GetHCIConnHandle;
 struct BTM_GetMaxPacketSize BTM_GetMaxPacketSize;
 struct BTM_GetNumAclLinks BTM_GetNumAclLinks;
@@ -357,6 +358,10 @@ tBTM_STATUS btm_remove_acl(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
 tHCI_REASON btm_get_acl_disc_reason_code(void) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_acl::btm_get_acl_disc_reason_code();
+}
+bool btm_is_acl_locally_initiated(void) {
+  mock_function_count_map[__func__]++;
+  return test::mock::stack_acl::btm_is_acl_locally_initiated();
 }
 uint16_t BTM_GetHCIConnHandle(const RawAddress& remote_bda,
                               tBT_TRANSPORT transport) {
@@ -695,13 +700,15 @@ void hci_btm_set_link_supervision_timeout(tACL_CONN& link, uint16_t timeout) {
   test::mock::stack_acl::hci_btm_set_link_supervision_timeout(link, timeout);
 }
 void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
-                             uint8_t enc_mode) {
+                             uint8_t enc_mode, bool locally_initiated) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_acl::on_acl_br_edr_connected(bda, handle, enc_mode);
+  test::mock::stack_acl::on_acl_br_edr_connected(bda, handle, enc_mode,
+                                                 locally_initiated);
 }
-void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status) {
+void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status,
+                          bool locally_initiated) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_acl::on_acl_br_edr_failed(bda, status);
+  test::mock::stack_acl::on_acl_br_edr_failed(bda, status, locally_initiated);
 }
 
 // END mockcify generation

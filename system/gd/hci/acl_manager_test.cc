@@ -408,7 +408,7 @@ class AclManagerNoCallbacksTest : public ::testing::Test {
         connection_promise_.reset();
       }
     }
-    MOCK_METHOD(void, OnConnectFail, (Address, ErrorCode reason), (override));
+    MOCK_METHOD(void, OnConnectFail, (Address, ErrorCode reason, bool locally_initiated), (override));
 
     MOCK_METHOD(void, HACK_OnEscoConnectRequest, (Address, ClassOfDevice), (override));
     MOCK_METHOD(void, HACK_OnScoConnectRequest, (Address, ClassOfDevice), (override));
@@ -426,7 +426,7 @@ class AclManagerNoCallbacksTest : public ::testing::Test {
         le_connection_promise_.reset();
       }
     }
-    MOCK_METHOD(void, OnLeConnectFail, (AddressWithType, ErrorCode reason), (override));
+    MOCK_METHOD(void, OnLeConnectFail, (AddressWithType, ErrorCode reason, bool locally_initiated), (override));
 
     std::list<std::shared_ptr<LeAclConnection>> le_connections_;
     std::unique_ptr<std::promise<void>> le_connection_promise_;
@@ -582,7 +582,7 @@ TEST_F(AclManagerTest, invoke_registered_callback_connection_complete_fail) {
     last_command = test_hci_layer_->GetCommand(OpCode::CREATE_CONNECTION);
   }
 
-  EXPECT_CALL(mock_connection_callback_, OnConnectFail(remote, ErrorCode::PAGE_TIMEOUT));
+  EXPECT_CALL(mock_connection_callback_, OnConnectFail(remote, ErrorCode::PAGE_TIMEOUT, true));
   test_hci_layer_->IncomingEvent(
       ConnectionCompleteBuilder::Create(ErrorCode::PAGE_TIMEOUT, handle, remote, LinkType::ACL, Enable::DISABLED));
   fake_registry_.SynchronizeModuleHandler(&HciLayer::Factory, std::chrono::milliseconds(20));
@@ -705,8 +705,10 @@ TEST_F(AclManagerTest, invoke_registered_callback_le_connection_complete_fail) {
 
   test_hci_layer_->IncomingEvent(LeCreateConnectionStatusBuilder::Create(ErrorCode::SUCCESS, 0x01));
 
-  EXPECT_CALL(mock_le_connection_callbacks_,
-              OnLeConnectFail(remote_with_type, ErrorCode::CONNECTION_REJECTED_LIMITED_RESOURCES));
+  EXPECT_CALL(
+      mock_le_connection_callbacks_,
+      OnLeConnectFail(
+          remote_with_type, ErrorCode::CONNECTION_REJECTED_LIMITED_RESOURCES, /* locally_initiated */ true));
   test_hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
       ErrorCode::CONNECTION_REJECTED_LIMITED_RESOURCES,
       0x123,

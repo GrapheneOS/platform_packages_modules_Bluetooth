@@ -24,7 +24,7 @@ pub enum BtState {
 
 impl From<bindings::bt_state_t> for BtState {
     fn from(item: bindings::bt_state_t) -> Self {
-        BtState::from_u32(item).unwrap_or_else(|| BtState::Off)
+        BtState::from_u32(item).unwrap_or(BtState::Off)
     }
 }
 
@@ -38,13 +38,13 @@ pub enum BtTransport {
 
 impl From<i32> for BtTransport {
     fn from(item: i32) -> Self {
-        BtTransport::from_i32(item).unwrap_or_else(|| BtTransport::Auto)
+        BtTransport::from_i32(item).unwrap_or(BtTransport::Auto)
     }
 }
 
 impl From<BtTransport> for i32 {
     fn from(item: BtTransport) -> Self {
-        item.to_i32().unwrap_or_else(|| 0)
+        item.to_i32().unwrap_or(0)
     }
 }
 
@@ -59,13 +59,13 @@ pub enum BtSspVariant {
 
 impl From<bindings::bt_ssp_variant_t> for BtSspVariant {
     fn from(item: bindings::bt_ssp_variant_t) -> Self {
-        BtSspVariant::from_u32(item).unwrap_or_else(|| BtSspVariant::PasskeyConfirmation)
+        BtSspVariant::from_u32(item).unwrap_or(BtSspVariant::PasskeyConfirmation)
     }
 }
 
 impl From<BtSspVariant> for bindings::bt_ssp_variant_t {
     fn from(item: BtSspVariant) -> Self {
-        item.to_u32().unwrap_or_else(|| 0)
+        item.to_u32().unwrap_or(0)
     }
 }
 
@@ -79,7 +79,7 @@ pub enum BtBondState {
 
 impl From<bindings::bt_bond_state_t> for BtBondState {
     fn from(item: bindings::bt_bond_state_t) -> Self {
-        BtBondState::from_u32(item).unwrap_or_else(|| BtBondState::NotBonded)
+        BtBondState::from_u32(item).unwrap_or(BtBondState::NotBonded)
     }
 }
 
@@ -114,7 +114,7 @@ pub enum BtAclState {
 
 impl From<bindings::bt_acl_state_t> for BtAclState {
     fn from(item: bindings::bt_acl_state_t) -> Self {
-        BtAclState::from_u32(item).unwrap_or_else(|| BtAclState::Disconnected)
+        BtAclState::from_u32(item).unwrap_or(BtAclState::Disconnected)
     }
 }
 
@@ -156,13 +156,13 @@ pub enum BtPropertyType {
 
 impl From<u32> for BtPropertyType {
     fn from(item: u32) -> Self {
-        BtPropertyType::from_u32(item).unwrap_or_else(|| BtPropertyType::Unknown)
+        BtPropertyType::from_u32(item).unwrap_or(BtPropertyType::Unknown)
     }
 }
 
 impl From<BtPropertyType> for u32 {
     fn from(item: BtPropertyType) -> Self {
-        item.to_u32().unwrap_or_else(|| 0)
+        item.to_u32().unwrap_or(0)
     }
 }
 
@@ -175,7 +175,7 @@ pub enum BtDiscoveryState {
 
 impl From<u32> for BtDiscoveryState {
     fn from(item: u32) -> Self {
-        BtDiscoveryState::from_u32(item).unwrap_or_else(|| BtDiscoveryState::Stopped)
+        BtDiscoveryState::from_u32(item).unwrap_or(BtDiscoveryState::Stopped)
     }
 }
 
@@ -851,7 +851,7 @@ pub enum BaseCallbacks {
     BondState(BtStatus, RawAddress, BtBondState, i32),
     AddressConsolidate(RawAddress, RawAddress),
     LeAddressAssociate(RawAddress, RawAddress),
-    AclState(BtStatus, RawAddress, BtAclState, BtTransport, BtHciErrorCode),
+    AclState(BtStatus, RawAddress, BtAclState, BtTransport, BtHciErrorCode, BtConnectionDirection),
     // Unimplemented so far:
     // thread_evt_cb
     // dut_mode_recv_cb
@@ -914,7 +914,7 @@ cb_variant!(BaseCb, le_address_associate_cb -> BaseCallbacks::LeAddressAssociate
 });
 
 cb_variant!(BaseCb, acl_state_cb -> BaseCallbacks::AclState,
-u32 -> BtStatus, *mut FfiAddress, bindings::bt_acl_state_t -> BtAclState, i32 -> BtTransport, bindings::bt_hci_error_code_t -> BtHciErrorCode, {
+u32 -> BtStatus, *mut FfiAddress, bindings::bt_acl_state_t -> BtAclState, i32 -> BtTransport, bindings::bt_hci_error_code_t -> BtHciErrorCode, bindings::bt_conn_direction_t -> BtConnectionDirection, {
     let _1 = unsafe { *(_1 as *const RawAddress) };
 });
 
