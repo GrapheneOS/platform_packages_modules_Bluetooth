@@ -161,6 +161,8 @@ void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
   }
   btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, &address_with_type.bda,
                                 status);
+
+  btm_acl_create_failed(address_with_type.bda, BT_TRANSPORT_LE, status);
 }
 
 void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
