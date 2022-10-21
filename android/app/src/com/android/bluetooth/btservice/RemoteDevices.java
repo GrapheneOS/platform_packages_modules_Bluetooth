@@ -929,6 +929,11 @@ final class RemoteDevices {
     })
     void aclStateChangeCallback(int status, byte[] address, int newState,
                                 int transportLinkType, int hciReason) {
+        if (status != AbstractionLayer.BT_STATUS_SUCCESS) {
+            debugLog("aclStateChangeCallback status is " + status + ", skipping");
+            return;
+        }
+
         BluetoothDevice device = getDevice(address);
 
         if (device == null) {
