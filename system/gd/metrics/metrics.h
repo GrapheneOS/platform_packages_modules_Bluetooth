@@ -36,6 +36,10 @@ void LogMetricsDeviceInfoReport(
     uint32_t product_id,
     uint32_t version);
 void LogMetricsProfileConnectionStateChanged(RawAddress* addr, uint32_t profile, uint32_t status, uint32_t state);
+void LogMetricsAclConnectAttempt(RawAddress* addr, uint32_t acl_state);
+void LogMetricsAclConnectionStateChanged(
+    RawAddress* addr, uint32_t transport, uint32_t status, uint32_t acl_state, uint32_t direction, uint32_t hci_reason);
+void LogMetricsChipsetInfoReport();
 
 }  // namespace metrics
 }  // namespace bluetooth

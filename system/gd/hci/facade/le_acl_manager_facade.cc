@@ -314,7 +314,7 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
     }
   }
 
-  void OnLeConnectFail(AddressWithType address, ErrorCode reason) override {
+  void OnLeConnectFail(AddressWithType address, ErrorCode reason, bool locally_initiated) override {
     LOG_INFO("addr=%s, reason=%s", address.ToString().c_str(), ErrorCodeText(reason).c_str());
     std::unique_ptr<BasePacketBuilder> builder = LeConnectionCompleteBuilder::Create(
         reason, 0, Role::CENTRAL, address.GetAddressType(), address.GetAddress(), 0, 0, 0, ClockAccuracy::PPM_20);

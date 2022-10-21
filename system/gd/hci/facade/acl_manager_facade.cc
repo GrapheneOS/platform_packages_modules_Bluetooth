@@ -374,7 +374,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
     current_connection_request_++;
   }
 
-  void OnConnectFail(Address address, ErrorCode reason) override {
+  void OnConnectFail(Address address, ErrorCode reason, bool locally_initiated) override {
     LOG_INFO("addr=%s, reason=%s", address.ToString().c_str(), ErrorCodeText(reason).c_str());
     std::unique_ptr<BasePacketBuilder> builder =
         ConnectionCompleteBuilder::Create(reason, 0, address, LinkType::ACL, Enable::DISABLED);

@@ -349,7 +349,7 @@ class MockConnectionCallback : public ConnectionCallbacks {
       connection_promise_.set_value(connections_.back());
     }
   }
-  MOCK_METHOD(void, OnConnectFail, (Address, ErrorCode reason), (override));
+  MOCK_METHOD(void, OnConnectFail, (Address, ErrorCode reason, bool locally_initiated), (override));
 
   MOCK_METHOD(void, HACK_OnEscoConnectRequest, (Address, ClassOfDevice), (override));
   MOCK_METHOD(void, HACK_OnScoConnectRequest, (Address, ClassOfDevice), (override));
@@ -376,7 +376,7 @@ class MockLeConnectionCallbacks : public LeConnectionCallbacks {
       le_connection_promise_.reset();
     }
   }
-  MOCK_METHOD(void, OnLeConnectFail, (AddressWithType, ErrorCode reason), (override));
+  MOCK_METHOD(void, OnLeConnectFail, (AddressWithType, ErrorCode reason, bool locally_initiated), (override));
 
   std::deque<std::shared_ptr<LeAclConnection>> le_connections_;
   std::unique_ptr<std::promise<void>> le_connection_promise_;

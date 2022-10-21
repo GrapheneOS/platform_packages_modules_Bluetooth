@@ -368,7 +368,8 @@ static void le_address_associate_callback(RawAddress* main_bd_addr,
 static void acl_state_changed_callback(bt_status_t status, RawAddress* bd_addr,
                                        bt_acl_state_t state,
                                        int transport_link_type,
-                                       bt_hci_error_code_t hci_reason) {
+                                       bt_hci_error_code_t hci_reason,
+                                       bt_conn_direction_t direction) {
   if (!bd_addr) {
     ALOGE("Address is null in %s", __func__);
     return;
