@@ -89,7 +89,8 @@ static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
 static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
                                          DEV_CLASS dev_class,
                                          tBTM_BD_NAME bd_name,
-                                         const LinkKey& key, uint8_t key_type);
+                                         const LinkKey& key, uint8_t key_type,
+                                         bool is_ctkd);
 static void bta_dm_authentication_complete_cback(const RawAddress& bd_addr,
                                                  DEV_CLASS dev_class,
                                                  tBTM_BD_NAME bd_name,
@@ -2126,7 +2127,8 @@ static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
 static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
                                          UNUSED_ATTR DEV_CLASS dev_class,
                                          tBTM_BD_NAME bd_name,
-                                         const LinkKey& key, uint8_t key_type) {
+                                         const LinkKey& key, uint8_t key_type,
+                                         bool is_ctkd) {
   tBTA_DM_SEC sec_event;
   tBTA_DM_AUTH_CMPL* p_auth_cmpl;
   tBTA_DM_SEC_EVT event = BTA_DM_AUTH_CMPL_EVT;
@@ -2143,6 +2145,8 @@ static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
   p_auth_cmpl->key_type = key_type;
   p_auth_cmpl->success = true;
   p_auth_cmpl->key = key;
+  p_auth_cmpl->is_ctkd = is_ctkd;
+
   sec_event.auth_cmpl.fail_reason = HCI_SUCCESS;
 
   // Report the BR link key based on the BR/EDR address and type
