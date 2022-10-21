@@ -441,6 +441,11 @@ void btm_acl_created(const RawAddress& bda, uint16_t hci_handle,
   }
 }
 
+void btm_acl_create_failed(const RawAddress& bda, tBT_TRANSPORT transport,
+                           tHCI_STATUS hci_status) {
+  BTA_dm_acl_up_failed(bda, transport, hci_status);
+}
+
 void btm_acl_update_conn_addr(uint16_t handle, const RawAddress& address) {
   tACL_CONN* p_acl = internal_.acl_get_connection_from_handle(handle);
   if (p_acl == nullptr) {
@@ -2570,6 +2575,8 @@ void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status) {
   delayed_role_change_ = nullptr;
   btm_acl_set_paging(false);
   l2c_link_hci_conn_comp(status, HCI_INVALID_HANDLE, bda);
+
+  btm_acl_create_failed(bda, BT_TRANSPORT_BR_EDR, status);
 }
 
 void btm_acl_connected(const RawAddress& bda, uint16_t handle,
