@@ -17,6 +17,7 @@ filegroup {
 filegroup {
     name: "BluetoothOsSources_android",
     srcs: [
+        "system_properties_common.cc",
         "android/metrics.cc",
         "android/parameter_provider.cc",
         "android/system_properties.cc",
@@ -35,6 +36,7 @@ filegroup {
 filegroup {
     name: "BluetoothOsSources_host",
     srcs: [
+        "system_properties_common.cc",
         "host/metrics.cc",
         "host/parameter_provider.cc",
         "host/system_properties.cc",
