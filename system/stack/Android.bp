@@ -827,7 +827,10 @@ cc_test {
         ":BluetoothBtaaSources_host",
         ":BluetoothHalSources_hci_host",
         ":BluetoothOsSources_host",
+        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
+        ":TestCommonMockFunctions",
+        ":TestCommonStackConfig",
         ":TestMockBta",
         ":TestMockBtif",
         ":TestMockDevice",
@@ -895,14 +898,9 @@ cc_test {
         "libprotobuf-cpp-lite",
     ],
     sanitize: {
-        address: true,
-        all_undefined: true,
-        cfi: true,
-        integer_overflow: true,
-        scs: true,
-        diag: {
-            undefined : true
-        },
+      hwaddress: true,
+      integer_overflow: true,
+      scs: true,
     },
 }
 
