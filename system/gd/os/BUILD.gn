@@ -18,6 +18,7 @@ source_set("BluetoothOsSources_linux") {
     "linux/parameter_provider.cc",
     "linux/system_properties.cc",
     "linux/wakelock_native.cc",
+    "system_properties_common.cc",
     "syslog.cc",
   ]
 
