@@ -127,7 +127,8 @@ void LinkManager::OnLeConnectSuccess(hci::AddressWithType connecting_address_wit
   link->ReadRemoteVersionInformation();
 }
 
-void LinkManager::OnLeConnectFail(hci::AddressWithType address_with_type, hci::ErrorCode reason) {
+void LinkManager::OnLeConnectFail(
+    hci::AddressWithType address_with_type, hci::ErrorCode reason, bool locally_initiated) {
   // Notify all pending links for this device
   auto pending_link = pending_links_.find(address_with_type);
   if (pending_link == pending_links_.end()) {

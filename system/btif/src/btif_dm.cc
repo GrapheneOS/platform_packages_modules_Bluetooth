@@ -101,8 +101,6 @@ const Uuid UUID_BASS = Uuid::FromString("184F");
 const Uuid UUID_BATTERY = Uuid::FromString("180F");
 const bool enable_address_consolidate = true;  // TODO remove
 
-#define COD_MASK 0x07FF
-
 #define COD_UNCLASSIFIED ((0x1F) << 8)
 #define COD_HID_KEYBOARD 0x0540
 #define COD_HID_POINTING 0x0580
@@ -114,6 +112,8 @@ const bool enable_address_consolidate = true;  // TODO remove
 #define COD_AV_HEADPHONES 0x0418
 #define COD_AV_PORTABLE_AUDIO 0x041C
 #define COD_AV_HIFI_AUDIO 0x0428
+
+#define COD_CLASS_LE_AUDIO (1 << 14)
 
 #define BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING 2
 
@@ -470,7 +470,7 @@ static uint32_t get_cod(const RawAddress* remote_bdaddr) {
   if (btif_storage_get_remote_device_property(
           (RawAddress*)remote_bdaddr, &prop_name) == BT_STATUS_SUCCESS) {
     LOG_INFO("%s remote_cod = 0x%08x", __func__, remote_cod);
-    return remote_cod & COD_MASK;
+    return remote_cod;
   }
 
   return 0;
@@ -488,6 +488,9 @@ bool check_cod_hid(const RawAddress& bd_addr) {
   return (get_cod(&bd_addr) & COD_HID_MASK) == COD_HID_MAJOR;
 }
 
+bool check_cod_le_audio(const RawAddress& bd_addr) {
+  return (get_cod(&bd_addr) & COD_CLASS_LE_AUDIO) == COD_CLASS_LE_AUDIO;
+}
 /*****************************************************************************
  *
  * Function        check_sdp_bl
@@ -682,6 +685,33 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
                                      properties);
 }
 
+/* If device is LE Audio capable, we prefer LE connection first, this speeds
+ * up LE profile connection, and limits all possible service discovery
+ * ordering issues (first Classic, GATT over SDP, etc) */
+static bool is_device_le_audio_capable(const RawAddress bd_addr) {
+  if (!LeAudioClient::IsLeAudioClientRunning() ||
+      !check_cod_le_audio(bd_addr)) {
+    return false;
+  }
+
+  tBT_DEVICE_TYPE tmp_dev_type;
+  tBLE_ADDR_TYPE addr_type = BLE_ADDR_PUBLIC;
+  BTM_ReadDevInfo(bd_addr, &tmp_dev_type, &addr_type);
+  if (tmp_dev_type & BT_DEVICE_TYPE_BLE) {
+    return true;
+  }
+
+  int device_type = 0;
+  std::string addrstr = bd_addr.ToString();
+  const char* bdstr = addrstr.c_str();
+  btif_config_get_int(bdstr, "DevType", &device_type);
+  if ((device_type & BT_DEVICE_TYPE_BLE) == BT_DEVICE_TYPE_BLE) {
+    return true;
+  }
+
+  return false;
+}
+
 /*******************************************************************************
  *
  * Function         btif_dm_cb_create_bond
@@ -696,6 +726,11 @@ static void btif_dm_cb_create_bond(const RawAddress bd_addr,
                                    tBT_TRANSPORT transport) {
   bool is_hid = check_cod(&bd_addr, COD_HID_POINTING);
   bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING);
+
+  if (transport == BT_TRANSPORT_AUTO && is_device_le_audio_capable(bd_addr)) {
+    LOG_INFO("LE Audio && advertising over LE, use LE transport for Bonding");
+    transport = BT_TRANSPORT_LE;
+  }
 
   int device_type = 0;
   tBLE_ADDR_TYPE addr_type = BLE_ADDR_PUBLIC;
@@ -1069,8 +1104,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
     }
 
     bool is_crosskey = false;
-    if (pairing_cb.state == BT_BOND_STATE_BONDING &&
-        p_auth_cmpl->bd_addr != pairing_cb.bd_addr) {
+    if (pairing_cb.state == BT_BOND_STATE_BONDING && p_auth_cmpl->is_ctkd) {
       LOG_INFO("bonding initiated due to cross key pairing");
       is_crosskey = true;
     }
@@ -1103,8 +1137,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
       invoke_remote_device_properties_cb(BT_STATUS_SUCCESS, bd_addr, 1, &prop);
     } else {
       /* If bonded due to cross-key, save the static address too*/
-      if (pairing_cb.state == BT_BOND_STATE_BONDING &&
-          p_auth_cmpl->bd_addr != pairing_cb.bd_addr) {
+      if (is_crosskey) {
         BTIF_TRACE_DEBUG(
             "%s: bonding initiated due to cross key, adding static address",
             __func__);
@@ -1825,18 +1858,48 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
 
       invoke_acl_state_changed_cb(
           BT_STATUS_SUCCESS, bd_addr, BT_ACL_STATE_CONNECTED,
-          (int)p_data->link_up.transport_link_type, HCI_SUCCESS);
+          (int)p_data->link_up.transport_link_type, HCI_SUCCESS,
+          btm_is_acl_locally_initiated()
+              ? bt_conn_direction_t::BT_CONN_DIRECTION_OUTGOING
+              : bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING);
       break;
 
-    case BTA_DM_LINK_DOWN_EVT:
+    case BTA_DM_LINK_UP_FAILED_EVT:
+      invoke_acl_state_changed_cb(
+          BT_STATUS_FAIL, p_data->link_up_failed.bd_addr,
+          BT_ACL_STATE_DISCONNECTED, p_data->link_up_failed.transport_link_type,
+          p_data->link_up_failed.status,
+          btm_is_acl_locally_initiated()
+              ? bt_conn_direction_t::BT_CONN_DIRECTION_OUTGOING
+              : bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING);
+      break;
+
+    case BTA_DM_LINK_DOWN_EVT: {
       bd_addr = p_data->link_down.bd_addr;
       btm_set_bond_type_dev(p_data->link_down.bd_addr,
                             tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
       btif_av_acl_disconnected(bd_addr);
+
+      bt_conn_direction_t direction;
+      switch (btm_get_acl_disc_reason_code()) {
+        case HCI_ERR_PEER_USER:
+        case HCI_ERR_REMOTE_LOW_RESOURCE:
+        case HCI_ERR_REMOTE_POWER_OFF:
+          direction = bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING;
+          break;
+        case HCI_ERR_CONN_CAUSE_LOCAL_HOST:
+        case HCI_ERR_HOST_REJECT_SECURITY:
+          direction = bt_conn_direction_t::BT_CONN_DIRECTION_OUTGOING;
+          break;
+        default:
+          direction = bt_conn_direction_t::BT_CONN_DIRECTION_UNKNOWN;
+      }
+
       invoke_acl_state_changed_cb(
           BT_STATUS_SUCCESS, bd_addr, BT_ACL_STATE_DISCONNECTED,
           (int)p_data->link_down.transport_link_type,
-          static_cast<bt_hci_error_code_t>(btm_get_acl_disc_reason_code()));
+          static_cast<bt_hci_error_code_t>(btm_get_acl_disc_reason_code()),
+          direction);
       LOG_DEBUG(
           "Sent BT_ACL_STATE_DISCONNECTED upward as ACL link down event "
           "device:%s reason:%s",
@@ -1844,7 +1907,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
           hci_reason_code_text(
               static_cast<tHCI_REASON>(btm_get_acl_disc_reason_code()))
               .c_str());
-      break;
+    } break;
 
     case BTA_DM_BLE_KEY_EVT:
       BTIF_TRACE_DEBUG("BTA_DM_BLE_KEY_EVT key_type=0x%02x ",

@@ -225,6 +225,7 @@ typedef enum : uint8_t {
   BTA_DM_BLE_SC_CR_LOC_OOB_EVT = 31, /* SMP SC Create Local OOB request event */
   BTA_DM_REPORT_BONDING_EVT = 32,    /*handle for pin or key missing*/
   BTA_DM_LE_ADDR_ASSOC_EVT = 33,     /* identity address association event */
+  BTA_DM_LINK_UP_FAILED_EVT = 34,    /* Create connection failed event */
 } tBTA_DM_SEC_EVT;
 
 /* Structure associated with BTA_DM_PIN_REQ_EVT */
@@ -305,6 +306,7 @@ typedef struct {
       fail_reason; /* The HCI reason/error code for when success=false */
   tBLE_ADDR_TYPE addr_type; /* Peer device address type */
   tBT_DEVICE_TYPE dev_type;
+  bool is_ctkd; /* True if key is derived using CTKD procedure */
 } tBTA_DM_AUTH_CMPL;
 
 /* Structure associated with BTA_DM_LINK_UP_EVT */
@@ -313,10 +315,18 @@ typedef struct {
   tBT_TRANSPORT transport_link_type;
 } tBTA_DM_LINK_UP;
 
+/* Structure associated with BTA_DM_LINK_UP_FAILED_EVT */
+typedef struct {
+  RawAddress bd_addr; /* BD address peer device. */
+  tBT_TRANSPORT transport_link_type;
+  tHCI_STATUS status; /* The HCI error code associated with this event */
+} tBTA_DM_LINK_UP_FAILED;
+
 /* Structure associated with BTA_DM_LINK_DOWN_EVT */
 typedef struct {
   RawAddress bd_addr; /* BD address peer device. */
   tBT_TRANSPORT transport_link_type;
+  tHCI_STATUS status;
 } tBTA_DM_LINK_DOWN;
 
 #define BTA_AUTH_SP_YES                                                       \
@@ -393,7 +403,8 @@ typedef struct {
 typedef union {
   tBTA_DM_PIN_REQ pin_req;        /* PIN request. */
   tBTA_DM_AUTH_CMPL auth_cmpl;    /* Authentication complete indication. */
-  tBTA_DM_LINK_UP link_up;        /* ACL connection down event */
+  tBTA_DM_LINK_UP link_up;        /* ACL connection up event */
+  tBTA_DM_LINK_UP_FAILED link_up_failed; /* ACL connection up failure event */
   tBTA_DM_LINK_DOWN link_down;    /* ACL connection down event */
   tBTA_DM_SP_CFM_REQ cfm_req;     /* user confirm request */
   tBTA_DM_SP_KEY_NOTIF key_notif; /* passkey notification */
