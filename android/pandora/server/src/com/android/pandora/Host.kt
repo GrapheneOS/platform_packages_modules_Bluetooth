@@ -49,7 +49,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -567,7 +566,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
         val callback =
           object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-              sendBlocking(
+              trySendBlocking(
                 RunDiscoveryResponse.newBuilder()
                   .setDevice(
                     Device.newBuilder()

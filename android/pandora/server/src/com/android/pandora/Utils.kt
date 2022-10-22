@@ -179,7 +179,7 @@ fun <T, U> grpcBidirectionalStream(
     override fun onNext(req: T) {
       // Note: this should be made a blocking call, and the handler should run in a separate thread
       // so we get flow control - but for now we can live with this
-      if (!inputChannel.offer(req)) {
+      if (inputChannel.trySend(req).isFailure) {
         job.cancel(CancellationException("too many incoming requests, buffer exceeded"))
         responseObserver.onError(
           CancellationException("too many incoming requests, buffer exceeded")
