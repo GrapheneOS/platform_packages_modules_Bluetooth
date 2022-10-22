@@ -151,6 +151,7 @@ cc_defaults {
         "src/btif_uid.cc",
         "src/btif_util.cc",
         "src/btif_keystore.cc",
+        "src/profile_log_levels.cc",
         "src/stack_manager.cc",
     ],
     generated_headers: [
