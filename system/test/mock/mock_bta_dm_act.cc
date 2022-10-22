@@ -42,6 +42,7 @@ namespace bta_dm_act {
 struct BTA_DmSetVisibility BTA_DmSetVisibility;
 struct BTA_dm_acl_down BTA_dm_acl_down;
 struct BTA_dm_acl_up BTA_dm_acl_up;
+struct BTA_dm_acl_up_failed BTA_dm_acl_up_failed;
 struct BTA_dm_notify_remote_features_complete
     BTA_dm_notify_remote_features_complete;
 struct BTA_dm_on_hw_off BTA_dm_on_hw_off;
@@ -118,6 +119,11 @@ void BTA_dm_acl_down(const RawAddress bd_addr, tBT_TRANSPORT transport) {
 void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport) {
   mock_function_count_map[__func__]++;
   test::mock::bta_dm_act::BTA_dm_acl_up(bd_addr, transport);
+}
+void BTA_dm_acl_up_failed(const RawAddress bd_addr, tBT_TRANSPORT transport,
+                          tHCI_STATUS hci_status) {
+  mock_function_count_map[__func__]++;
+  test::mock::bta_dm_act::BTA_dm_acl_up_failed(bd_addr, transport, hci_status);
 }
 void BTA_dm_notify_remote_features_complete(const RawAddress bd_addr) {
   mock_function_count_map[__func__]++;

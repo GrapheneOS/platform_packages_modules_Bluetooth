@@ -27,7 +27,6 @@
 
 #include <cstdint>
 
-#include "device/include/controller.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
@@ -747,16 +746,14 @@ void l2c_link_adjust_chnl_allocation(void) {
   }
 }
 
-void l2c_link_init() {
+void l2c_link_init(const uint16_t acl_buffer_count_classic) {
   if (bluetooth::shim::is_gd_l2cap_enabled()) {
     // GD L2cap gets this info through GD ACL
     return;
   }
 
-  const controller_t* controller = controller_get_interface();
-
-  l2cb.num_lm_acl_bufs = controller->get_acl_buffer_count_classic();
-  l2cb.controller_xmit_window = controller->get_acl_buffer_count_classic();
+  l2cb.num_lm_acl_bufs = acl_buffer_count_classic;
+  l2cb.controller_xmit_window = acl_buffer_count_classic;
 }
 
 /*******************************************************************************

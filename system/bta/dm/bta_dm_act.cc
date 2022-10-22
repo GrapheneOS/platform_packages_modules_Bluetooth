@@ -89,7 +89,8 @@ static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
 static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
                                          DEV_CLASS dev_class,
                                          tBTM_BD_NAME bd_name,
-                                         const LinkKey& key, uint8_t key_type);
+                                         const LinkKey& key, uint8_t key_type,
+                                         bool is_ctkd);
 static void bta_dm_authentication_complete_cback(const RawAddress& bd_addr,
                                                  DEV_CLASS dev_class,
                                                  tBTM_BD_NAME bd_name,
@@ -2126,7 +2127,8 @@ static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
 static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
                                          UNUSED_ATTR DEV_CLASS dev_class,
                                          tBTM_BD_NAME bd_name,
-                                         const LinkKey& key, uint8_t key_type) {
+                                         const LinkKey& key, uint8_t key_type,
+                                         bool is_ctkd) {
   tBTA_DM_SEC sec_event;
   tBTA_DM_AUTH_CMPL* p_auth_cmpl;
   tBTA_DM_SEC_EVT event = BTA_DM_AUTH_CMPL_EVT;
@@ -2143,6 +2145,8 @@ static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
   p_auth_cmpl->key_type = key_type;
   p_auth_cmpl->success = true;
   p_auth_cmpl->key = key;
+  p_auth_cmpl->is_ctkd = is_ctkd;
+
   sec_event.auth_cmpl.fail_reason = HCI_SUCCESS;
 
   // Report the BR link key based on the BR/EDR address and type
@@ -2504,6 +2508,23 @@ void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
 
 void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport) {
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_acl_up, bd_addr, transport));
+}
+
+static void bta_dm_acl_up_failed(const RawAddress bd_addr,
+                                 tBT_TRANSPORT transport, tHCI_STATUS status) {
+  if (bta_dm_cb.p_sec_cback) {
+    tBTA_DM_SEC conn = {};
+    conn.link_up_failed.bd_addr = bd_addr;
+    conn.link_up_failed.transport_link_type = transport;
+    conn.link_up_failed.status = status;
+    bta_dm_cb.p_sec_cback(BTA_DM_LINK_UP_FAILED_EVT, &conn);
+  }
+}
+
+void BTA_dm_acl_up_failed(const RawAddress bd_addr, tBT_TRANSPORT transport,
+                          tHCI_STATUS status) {
+  do_in_main_thread(
+      FROM_HERE, base::Bind(bta_dm_acl_up_failed, bd_addr, transport, status));
 }
 
 static void bta_dm_acl_down(const RawAddress& bd_addr,

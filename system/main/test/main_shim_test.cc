@@ -122,10 +122,12 @@ void mock_on_send_data_upwards(BT_HDR*) {}
 void mock_on_packets_completed(uint16_t handle, uint16_t num_packets) {}
 
 void mock_connection_classic_on_connected(const RawAddress& bda,
-                                          uint16_t handle, uint8_t enc_mode) {}
+                                          uint16_t handle, uint8_t enc_mode,
+                                          bool locally_initiated) {}
 
 void mock_connection_classic_on_failed(const RawAddress& bda,
-                                       tHCI_STATUS status) {}
+                                       tHCI_STATUS status,
+                                       bool locally_initiated) {}
 
 void mock_connection_classic_on_disconnected(tHCI_STATUS status,
                                              uint16_t handle,
@@ -141,7 +143,7 @@ void mock_connection_le_on_connected(
     tBLE_ADDR_TYPE peer_addr_type) {}
 void mock_connection_le_on_failed(const tBLE_BD_ADDR& address_with_type,
                                   uint16_t handle, bool enhanced,
-                                  tHCI_STATUS status) {}
+                                  tHCI_STATUS status, bool locally_initiated) {}
 static std::promise<uint16_t> mock_connection_le_on_disconnected_promise;
 void mock_connection_le_on_disconnected(tHCI_STATUS status, uint16_t handle,
                                         tHCI_STATUS reason) {
