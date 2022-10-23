@@ -23,9 +23,14 @@
 #include <map>
 #include <memory>
 
+#include "btif/include/core_callbacks.h"
+#include "btif/include/stack_manager.h"
 #include "stack/btm/btm_sco.h"
+#include "stack/include/hfp_msbc_decoder.h"
+#include "stack/include/hfp_msbc_encoder.h"
 #include "udrv/include/uipc.h"
 
+extern bluetooth::core::CoreInterface* GetInterfaceToProfiles();
 extern std::map<std::string, int> mock_function_count_map;
 extern std::unique_ptr<tUIPC_STATE> mock_uipc_init_ret;
 extern uint32_t mock_uipc_read_ret;
@@ -42,6 +47,28 @@ const uint8_t msbc_zero_packet[] = {
     0x77, 0x6d, 0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6,
     0xdb, 0x77, 0x6d, 0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6c, 0x00};
 
+struct CodecInterface : bluetooth::core::CodecInterface {
+  CodecInterface() : bluetooth::core::CodecInterface(){};
+
+  void initialize() override {
+    hfp_msbc_decoder_init();
+    hfp_msbc_encoder_init();
+  }
+
+  void cleanup() override {
+    hfp_msbc_decoder_cleanup();
+    hfp_msbc_encoder_cleanup();
+  }
+
+  uint32_t encodePacket(int16_t* input, uint8_t* output) {
+    return hfp_msbc_encode_frames(input, output);
+  }
+
+  bool decodePacket(const uint8_t* i_buf, int16_t* o_buf, size_t out_len) {
+    return hfp_msbc_decoder_decode_packet(i_buf, o_buf, out_len);
+  }
+};
+
 class ScoHciTest : public Test {
  public:
  protected:
@@ -50,6 +77,9 @@ class ScoHciTest : public Test {
     mock_uipc_init_ret = nullptr;
     mock_uipc_read_ret = 0;
     mock_uipc_send_ret = true;
+
+    static auto codec = CodecInterface{};
+    GetInterfaceToProfiles()->msbcCodec = &codec;
   }
   void TearDown() override {}
 };
@@ -65,10 +95,15 @@ class ScoHciWithOpenCleanTest : public ScoHciTest {
   void TearDown() override { bluetooth::audio::sco::cleanup(); }
 };
 
-class ScoHciWbsWithInitCleanTest : public Test {
+class ScoHciWbsTest : public ScoHciTest {};
+
+class ScoHciWbsWithInitCleanTest : public ScoHciTest {
  public:
  protected:
-  void SetUp() override { bluetooth::audio::sco::wbs::init(60); }
+  void SetUp() override {
+    ScoHciTest::SetUp();
+    bluetooth::audio::sco::wbs::init(60);
+  }
   void TearDown() override { bluetooth::audio::sco::wbs::cleanup(); }
 };
 
@@ -142,7 +177,7 @@ TEST_F(ScoHciWithOpenCleanTest, ScoOverHciWrite) {
   ASSERT_EQ(mock_function_count_map["UIPC_Send"], 2);
 }
 
-TEST(ScoHciWbsTest, WbsInit) {
+TEST_F(ScoHciWbsTest, WbsInit) {
   ASSERT_EQ(bluetooth::audio::sco::wbs::init(60), size_t(60));
   ASSERT_EQ(bluetooth::audio::sco::wbs::init(72), size_t(72));
   // Fallback to 60 if the packet size is not supported
@@ -150,7 +185,7 @@ TEST(ScoHciWbsTest, WbsInit) {
   bluetooth::audio::sco::wbs::cleanup();
 }
 
-TEST(ScoHciWbsTest, WbsEnqueuePacketWithoutInit) {
+TEST_F(ScoHciWbsTest, WbsEnqueuePacketWithoutInit) {
   uint8_t payload[60];
   // Return 0 if buffer is uninitialized
   ASSERT_EQ(
@@ -175,7 +210,7 @@ TEST_F(ScoHciWbsWithInitCleanTest, WbsEnqueuePacket) {
       size_t(0));
 }
 
-TEST(ScoHciWbsTest, WbsDecodeWithoutInit) {
+TEST_F(ScoHciWbsTest, WbsDecodeWithoutInit) {
   const uint8_t* decoded = nullptr;
   // Return 0 if buffer is uninitialized
   ASSERT_EQ(bluetooth::audio::sco::wbs::decode(&decoded), size_t(0));
@@ -219,7 +254,7 @@ TEST_F(ScoHciWbsWithInitCleanTest, WbsDecode) {
   ASSERT_EQ(decoded, nullptr);
 }
 
-TEST(ScoHciWbsTest, WbsEncodeWithoutInit) {
+TEST_F(ScoHciWbsTest, WbsEncodeWithoutInit) {
   int16_t data[120] = {0};
   // Return 0 if buffer is uninitialized
   ASSERT_EQ(bluetooth::audio::sco::wbs::encode(data, sizeof(data)), size_t(0));
@@ -241,7 +276,7 @@ TEST_F(ScoHciWbsWithInitCleanTest, WbsEncode) {
   ASSERT_EQ(bluetooth::audio::sco::wbs::encode(data, sizeof(data)), size_t(0));
 }
 
-TEST(ScoHciWbsTest, WbsDequeuePacketWithoutInit) {
+TEST_F(ScoHciWbsTest, WbsDequeuePacketWithoutInit) {
   const uint8_t* encoded = nullptr;
   // Return 0 if buffer is uninitialized
   ASSERT_EQ(bluetooth::audio::sco::wbs::dequeue_packet(&encoded), size_t(0));
