@@ -33,6 +33,8 @@
 #include "bta/include/bta_api.h"
 #include "bta/include/bta_dm_api.h"
 #include "bta/sys/bta_sys.h"
+#include "btif/include/core_callbacks.h"
+#include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/log.h"
@@ -863,8 +865,9 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr) {
     /* HH has the per connection SSR preference, already read the SSR params
      * from BTA HH */
     if (current_ssr_index == BTA_DM_PM_SSR_HH) {
-      if (bta_hh_read_ssr_param(peer_addr, &p_spec_cur->max_lat,
-                                &p_spec_cur->min_rmt_to) == BTA_HH_ERR) {
+      if (GetInterfaceToProfiles()->profileSpecific_HACK->bta_hh_read_ssr_param(
+              peer_addr, &p_spec_cur->max_lat, &p_spec_cur->min_rmt_to) ==
+          BTA_HH_ERR) {
         continue;
       }
     }

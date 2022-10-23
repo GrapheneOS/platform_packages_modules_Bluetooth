@@ -30,6 +30,7 @@
 #include "btif/include/btif_api.h"
 #include "btif/include/stack_manager.h"
 #include "include/hardware/bt_hh.h"
+#include "test/common/core_interface.h"
 #include "test/common/mock_functions.h"
 #include "test/mock/mock_osi_allocator.h"
 
@@ -180,6 +181,7 @@ class BtifHhWithHalCallbacksTest : public BtifHhWithMockTest {
       g_thread_evt_promise.set_value(evt);
     };
     set_hal_cbacks(&bt_callbacks);
+    InitializeCoreInterface();
     // Start the jni callback thread
     ASSERT_EQ(BT_STATUS_SUCCESS, btif_init_bluetooth());
     ASSERT_EQ(std::future_status::ready, future.wait_for(2s));
