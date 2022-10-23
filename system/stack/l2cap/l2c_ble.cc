@@ -30,6 +30,8 @@
 
 #include "bt_target.h"
 #include "bta/include/bta_hearing_aid_api.h"
+#include "btif/include/core_callbacks.h"
+#include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
@@ -1635,7 +1637,8 @@ void L2CA_AdjustConnectionIntervals(uint16_t* min_interval,
                                     uint16_t floor_interval) {
   uint16_t phone_min_interval = floor_interval;
 
-  if (HearingAid::GetDeviceCount() > 0) {
+  if (GetInterfaceToProfiles()
+          ->profileSpecific_HACK->GetHearingAidDeviceCount()) {
     // When there are bonded Hearing Aid devices, we will constrained this
     // minimum interval.
     phone_min_interval = BTM_BLE_CONN_INT_MIN_HEARINGAID;

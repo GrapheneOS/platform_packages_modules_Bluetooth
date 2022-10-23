@@ -143,4 +143,6 @@ extern void btif_hh_getreport(btif_hh_device_t* p_dev,
                               uint16_t bufferSize);
 extern void btif_hh_service_registration(bool enable);
 
+extern void DumpsysHid(int fd);
+
 #endif

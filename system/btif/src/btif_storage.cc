@@ -60,6 +60,7 @@ constexpr char kPrivateAddressPrefix[] = "xx:xx:xx:xx";
 #include "btif_hd.h"
 #include "btif_hh.h"
 #include "btif_util.h"
+#include "core_callbacks.h"
 #include "device/include/controller.h"
 #include "gd/common/init_flags.h"
 #include "osi/include/allocator.h"
@@ -69,6 +70,7 @@ constexpr char kPrivateAddressPrefix[] = "xx:xx:xx:xx";
 #include "osi/include/osi.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btu.h"
+#include "stack_manager.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
@@ -920,7 +922,7 @@ bt_status_t btif_storage_add_bonded_device(RawAddress* remote_bd_addr,
   ret &=
       btif_config_set_bin(bdstr, "LinkKey", link_key.data(), link_key.size());
 
-  if (is_restricted_mode()) {
+  if (GetInterfaceToProfiles()->config->isRestrictedMode()) {
     BTIF_TRACE_WARNING("%s: '%s' pairing will be removed if unrestricted",
                        __func__, bdstr.c_str());
     btif_config_set_int(bdstr, "Restricted", 1);
@@ -1076,10 +1078,12 @@ void btif_storage_load_le_devices(void) {
   for (const auto& device : consolidated_devices) {
     if (bonded_addresses.find(device.second) != bonded_addresses.end()) {
       // Invokes address consolidation for DuMo devices
-      invoke_address_consolidate_cb(device.first, device.second);
+      GetInterfaceToProfiles()->events->invoke_address_consolidate_cb(
+          device.first, device.second);
     } else {
       // Associates RPA & identity address for LE-only devices
-      invoke_le_address_associate_cb(device.first, device.second);
+      GetInterfaceToProfiles()->events->invoke_le_address_associate_cb(
+          device.first, device.second);
     }
   }
 }
