@@ -29,7 +29,9 @@
 #include "btm_ble_api.h"
 #include "common/leaky_bonded_queue.h"
 #include "common/time_util.h"
+#include "core_callbacks.h"
 #include "osi/include/properties.h"
+#include "stack_manager.h"
 
 namespace bluetooth {
 namespace bqr {
@@ -429,7 +431,7 @@ void AddLinkQualityEventToQueue(uint8_t length,
   p_bqr_event->ParseBqrLinkQualityEvt(length, p_link_quality_event);
 
   LOG(WARNING) << *p_bqr_event;
-  invoke_link_quality_report_cb(
+  GetInterfaceToProfiles()->events->invoke_link_quality_report_cb(
       bluetooth::common::time_get_os_boottime_ms(),
       p_bqr_event->bqr_link_quality_event_.quality_report_id,
       p_bqr_event->bqr_link_quality_event_.rssi,
