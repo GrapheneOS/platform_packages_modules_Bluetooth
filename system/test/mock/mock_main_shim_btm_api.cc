@@ -466,7 +466,8 @@ tBTM_STATUS bluetooth::shim::BTM_RestoreFilterAcceptList() {
   return BTM_SUCCESS;
 }
 
-tBTM_STATUS bluetooth::shim::BTM_SetDefaultEventMask() {
+tBTM_STATUS bluetooth::shim::BTM_SetDefaultEventMaskExcept(uint64_t mask,
+                                                           uint64_t le_mask) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }

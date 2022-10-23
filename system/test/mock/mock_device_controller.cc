@@ -376,7 +376,9 @@ tBTM_STATUS set_event_filter_connection_setup_all_devices() {
   return BTM_SUCCESS;
 }
 tBTM_STATUS allow_wake_by_hid() { return BTM_SUCCESS; }
-tBTM_STATUS set_default_event_mask() { return BTM_SUCCESS; }
+tBTM_STATUS set_default_event_mask_except(uint64_t mask, uint64_t le_mask) {
+  return BTM_SUCCESS;
+}
 tBTM_STATUS set_event_filter_inquiry_result_all_devices() {
   return BTM_SUCCESS;
 }
@@ -471,7 +473,7 @@ const controller_t interface = {
     le_rand,
     set_event_filter_connection_setup_all_devices,
     allow_wake_by_hid,
-    set_default_event_mask,
+    set_default_event_mask_except,
     set_event_filter_inquiry_result_all_devices};
 
 }  // namespace device_controller

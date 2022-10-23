@@ -16,7 +16,7 @@ service AdapterService {
   rpc SetEventFilterConnectionSetupAllDevices(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc AllowWakeByHid(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc RestoreFilterAcceptList(google.protobuf.Empty) returns (google.protobuf.Empty) {}
-  rpc SetDefaultEventMask(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetDefaultEventMaskExcept(SetDefaultEventMaskExceptRequest) returns (google.protobuf.Empty) {}
   rpc SetEventFilterInquiryResultAllDevices(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
@@ -182,6 +182,11 @@ message DisconnectAudioRequest {
 message SetVolumeRequest {
   Connection connection = 1;
   int32 volume = 2;
+}
+
+message SetDefaultEventMaskExceptRequest {
+  uint64 mask = 1;
+  uint64 le_mask = 2;
 }
 
 // A Token representing an ACL connection.

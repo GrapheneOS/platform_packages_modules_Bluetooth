@@ -550,7 +550,8 @@ extern void bta_dm_set_event_filter_connection_setup_all_devices();
 extern void bta_dm_allow_wake_by_hid(
     std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices);
 extern void bta_dm_restore_filter_accept_list();
-extern void bta_dm_set_default_event_mask();
+extern void bta_dm_set_default_event_mask_except(uint64_t mask,
+                                                 uint64_t le_mask);
 extern void bta_dm_set_event_filter_inquiry_result_all_devices();
 
 extern void bta_dm_ble_reset_id(void);

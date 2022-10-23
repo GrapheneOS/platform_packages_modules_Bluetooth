@@ -4208,16 +4208,19 @@ void bta_dm_restore_filter_accept_list() {
 
 /*******************************************************************************
  *
- * Function        BTA_DmSetDefaultEventMask
+ * Function       BTA_DmSetDefaultEventMaskExcept
  *
- * Description    Floss: Set the default event mask for Classic and LE
+ * Description    Floss: Set the default event mask for Classic and LE except
+ *                the given values (they will be disabled in the final set
+ *                mask).
  *
- * Parameters
+ * Parameters     Bits set for event mask and le event mask that should be
+ *                disabled in the final value.
  *
  *******************************************************************************/
-void bta_dm_set_default_event_mask() {
+void bta_dm_set_default_event_mask_except(uint64_t mask, uint64_t le_mask) {
   // Autoplumbed
-  bluetooth::shim::BTM_SetDefaultEventMask();
+  bluetooth::shim::BTM_SetDefaultEventMaskExcept(mask, le_mask);
 }
 
 /*******************************************************************************

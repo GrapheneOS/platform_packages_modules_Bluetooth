@@ -1389,9 +1389,10 @@ tBTM_STATUS bluetooth::shim::BTM_RestoreFilterAcceptList() {
   return BTM_SUCCESS;
 }
 
-tBTM_STATUS bluetooth::shim::BTM_SetDefaultEventMask() {
+tBTM_STATUS bluetooth::shim::BTM_SetDefaultEventMaskExcept(uint64_t mask,
+                                                           uint64_t le_mask) {
   // Autoplumbed
-  controller_get_interface()->set_default_event_mask();
+  controller_get_interface()->set_default_event_mask_except(mask, le_mask);
   return BTM_SUCCESS;
 }
 

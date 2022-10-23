@@ -1905,14 +1905,17 @@ tBTM_STATUS BTM_RestoreFilterAcceptList(void);
 
 /*******************************************************************************
  *
- * Function        BTM_SetDefaultEventMask
+ * Function        BTM_SetDefaultEventMaskExcept
  *
- * Description    Floss: Set the default event mask for Classic and LE
+ * Description    Floss: Set the default event mask for Classic and LE except
+ *                the given values (they will be disabled in the final set
+ *                mask).
  *
- * Parameters
+ * Parameters     Bits set for event mask and le event mask that should be
+ *                disabled in the final value.
  *
  *******************************************************************************/
-tBTM_STATUS BTM_SetDefaultEventMask(void);
+tBTM_STATUS BTM_SetDefaultEventMaskExcept(uint64_t mask, uint64_t le_mask);
 
 /*******************************************************************************
  *

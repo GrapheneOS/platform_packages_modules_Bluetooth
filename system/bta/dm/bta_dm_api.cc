@@ -751,9 +751,10 @@ void BTA_DmRestoreFilterAcceptList() {
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_restore_filter_accept_list));
 }
 
-void BTA_DmSetDefaultEventMask() {
-  APPL_TRACE_API("BTA_DmSetDefaultEventMask");
-  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_set_default_event_mask));
+void BTA_DmSetDefaultEventMaskExcept(uint64_t mask, uint64_t le_mask) {
+  APPL_TRACE_API("BTA_DmSetDefaultEventMaskExcept");
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_set_default_event_mask_except,
+                                          mask, le_mask));
 }
 
 void BTA_DmSetEventFilterInquiryResultAllDevices() {
