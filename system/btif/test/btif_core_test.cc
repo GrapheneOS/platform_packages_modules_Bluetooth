@@ -23,6 +23,7 @@
 #include "btcore/include/module.h"
 #include "btif/include/btif_api.h"
 #include "btif/include/btif_common.h"
+#include "test/common/core_interface.h"
 #include "types/raw_address.h"
 
 void set_hal_cbacks(bt_callbacks_t* callbacks);
@@ -116,7 +117,7 @@ class BtifCoreTest : public ::testing::Test {
   void SetUp() override {
     callback_map_.clear();
     set_hal_cbacks(&callbacks);
-
+    InitializeCoreInterface();
     auto promise = std::promise<void>();
     auto future = promise.get_future();
     callback_map_["callback_thread_event"] = [&promise]() {

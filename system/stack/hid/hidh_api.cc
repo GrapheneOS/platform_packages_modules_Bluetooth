@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "btif/include/btif_hh.h"
 #include "btm_api.h"
 #include "hiddefs.h"
 #include "hidh_int.h"
