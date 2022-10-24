@@ -49,7 +49,6 @@
 
 constexpr uint16_t L2CAP_CREDIT_BASED_MIN_MTU = 64;
 constexpr uint16_t L2CAP_CREDIT_BASED_MIN_MPS = 64;
-#define L2CAP_NO_IDLE_TIMEOUT 0xFFFF
 
 /*
  * Timeout values (in milliseconds).

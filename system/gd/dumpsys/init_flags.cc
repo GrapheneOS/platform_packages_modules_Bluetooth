@@ -34,6 +34,7 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_btaa_hci_is_enabled(initFlags::btaa_hci_is_enabled());
   builder.add_btm_dm_flush_discovery_queue_on_search_cancel_is_enabled(
       initFlags::btm_dm_flush_discovery_queue_on_search_cancel_is_enabled());
+  builder.add_finite_att_timeout_is_enabled(initFlags::finite_att_timeout_is_enabled());
   builder.add_gatt_robust_caching_client_is_enabled(initFlags::gatt_robust_caching_client_is_enabled());
   builder.add_gatt_robust_caching_server_is_enabled(initFlags::gatt_robust_caching_server_is_enabled());
   builder.add_gd_core_is_enabled(initFlags::gd_core_is_enabled());
