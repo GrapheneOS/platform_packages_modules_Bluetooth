@@ -262,6 +262,52 @@ class DirectHciTest(gd_base_test.GdBaseTestClass):
         # LeConnectionComplete
         self._verify_le_connection_complete()
 
+    def test_le_filter_accept_list_connection_cert_advertises_legacy(self):
+        # DUT Connects
+        self.dut_hci.send_command(LeSetRandomAddressBuilder('0D:05:04:03:02:01'))
+        self.dut_hci.send_command(
+            LeAddDeviceToFilterAcceptListBuilder(FilterAcceptListAddressType.RANDOM, '0C:05:04:03:02:01'))
+        phy_scan_params = self._create_phy_scan_params()
+        self.dut_hci.send_command(
+            LeExtendedCreateConnectionBuilder(InitiatorFilterPolicy.USE_FILTER_ACCEPT_LIST,
+                                              OwnAddressType.RANDOM_DEVICE_ADDRESS, AddressType.RANDOM_DEVICE_ADDRESS,
+                                              'BA:D5:A4:A3:A2:A1', 1, [phy_scan_params]))
+
+        self.cert_hal.unmask_event(EventCode.LE_META_EVENT)
+        self.cert_hal.send_hci_command(LeSetRandomAddressBuilder('0C:05:04:03:02:01'))
+        advertisement = self.cert_hal.create_legacy_advertisement(
+            min_interval=512, max_interval=768, peer_address='A6:A5:A4:A3:A2:A1')
+        advertisement.set_data(b'Im_A_Cert')
+        advertisement.start()
+
+        # LeConnectionComplete
+        self._verify_le_connection_complete()
+
+    def test_le_ad_scan_cert_advertises_legacy(self):
+        self.dut_hci.register_for_le_events(SubeventCode.EXTENDED_ADVERTISING_REPORT, SubeventCode.ADVERTISING_REPORT)
+
+        # DUT Scans
+        self.dut_hci.send_command(LeSetRandomAddressBuilder('0D:05:04:03:02:01'))
+        phy_scan_params = PhyScanParameters()
+        phy_scan_params.le_scan_interval = 6553
+        phy_scan_params.le_scan_window = 6553
+        phy_scan_params.le_scan_type = LeScanType.ACTIVE
+
+        self.dut_hci.send_command(
+            LeSetExtendedScanParametersBuilder(OwnAddressType.RANDOM_DEVICE_ADDRESS, LeScanningFilterPolicy.ACCEPT_ALL,
+                                               1, [phy_scan_params]))
+        self.dut_hci.send_command(LeSetExtendedScanEnableBuilder(Enable.ENABLED, FilterDuplicates.DISABLED, 0, 0))
+
+        self.cert_hal.unmask_event(EventCode.LE_META_EVENT)
+        self.cert_hal.send_hci_command(LeSetRandomAddressBuilder('0C:05:04:03:02:01'))
+        advertisement = self.cert_hal.create_legacy_advertisement(
+            min_interval=512, max_interval=768, peer_address='A6:A5:A4:A3:A2:A1')
+        advertisement.set_data(b'Im_A_Cert')
+        advertisement.start()
+
+        assertThat(self.dut_hci.get_le_event_stream()).emits(
+            HciMatchers.LeAdvertisement(address='0C:05:04:03:02:01', data=b'Im_A_Cert'))
+
     def test_connection_dut_connects(self):
         self.dut_hci.send_command(WritePageTimeoutBuilder(0x4000))
 
