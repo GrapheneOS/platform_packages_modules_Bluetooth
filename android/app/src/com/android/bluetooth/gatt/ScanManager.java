@@ -20,6 +20,13 @@ import android.annotation.RequiresPermission;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothA2dpSink;
+import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothHeadsetClient;
+import android.bluetooth.BluetoothHearingAid;
+import android.bluetooth.BluetoothLeAudio;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
@@ -100,6 +107,8 @@ public class ScanManager {
     static final int MSG_SCREEN_ON = 7;
     static final int MSG_SCREEN_OFF = 8;
     static final int MSG_REVERT_SCAN_MODE_UPGRADE = 9;
+    static final int MSG_START_CONNECTING = 10;
+    static final int MSG_STOP_CONNECTING = 11;
     private static final String ACTION_REFRESH_BATCHED_SCAN =
             "com.android.bluetooth.gatt.REFRESH_BATCHED_SCAN";
 
@@ -139,6 +148,8 @@ public class ScanManager {
     private static final int SCAN_MODE_APP_IN_BACKGROUND = ScanSettings.SCAN_MODE_LOW_POWER;
     private final SparseBooleanArray mIsUidForegroundMap = new SparseBooleanArray();
     private boolean mScreenOn = false;
+    private boolean mIsConnecting;
+    private int mProfilesConnecting, mProfilesConnected, mProfilesDisconnecting;
 
     @VisibleForTesting
     static class UidImportance {
@@ -165,6 +176,7 @@ public class ScanManager {
         mLocationManager = mService.getSystemService(LocationManager.class);
         mAdapterService = adapterService;
         mBluetoothAdapterProxy = bluetoothAdapterProxy;
+        mIsConnecting = false;
 
         mPriorityMap.put(ScanSettings.SCAN_MODE_OPPORTUNISTIC, 0);
         mPriorityMap.put(ScanSettings.SCAN_MODE_SCREEN_OFF, 1);
@@ -190,6 +202,8 @@ public class ScanManager {
         }
         IntentFilter locationIntentFilter = new IntentFilter(LocationManager.MODE_CHANGED_ACTION);
         mService.registerReceiver(mLocationReceiver, locationIntentFilter);
+        mService.registerReceiver(mBluetoothConnectionReceiver,
+                getBluetoothConnectionIntentFilter());
     }
 
     void cleanup() {
@@ -224,6 +238,13 @@ public class ScanManager {
             mService.unregisterReceiver(mLocationReceiver);
         } catch (IllegalArgumentException e) {
             Log.w(TAG, "exception when invoking unregisterReceiver(mLocationReceiver)", e);
+        }
+
+        try {
+            mService.unregisterReceiver(mBluetoothConnectionReceiver);
+        } catch (IllegalArgumentException e) {
+            Log.w(TAG, "exception when invoking unregisterReceiver(mBluetoothConnectionReceiver)",
+                    e);
         }
     }
 
@@ -301,6 +322,25 @@ public class ScanManager {
         // TODO: add a callback for scan failure.
     }
 
+    void onConnectingState(boolean isConnecting) {
+        if (isConnecting) {
+            sendMessage(MSG_START_CONNECTING, null);
+        } else {
+            sendMessage(MSG_STOP_CONNECTING, null);
+        }
+    }
+
+    private IntentFilter getBluetoothConnectionIntentFilter() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
+        return filter;
+    }
+
     private void sendMessage(int what, ScanClient client) {
         final ClientHandler handler = mHandler;
         if (handler == null) {
@@ -361,6 +401,12 @@ public class ScanManager {
                 case MSG_IMPORTANCE_CHANGE:
                     handleImportanceChange((UidImportance) msg.obj);
                     break;
+                case MSG_START_CONNECTING:
+                    handleConnectingState();
+                    break;
+                case MSG_STOP_CONNECTING:
+                    handleClearConnectingState();
+                    break;
                 default:
                     // Shouldn't happen.
                     Log.e(TAG, "received an unkown message : " + msg.what);
@@ -409,12 +455,13 @@ public class ScanManager {
                 mScanNative.startBatchScan(client);
             } else {
                 updateScanModeBeforeStart(client);
+                updateScanModeConcurrency(client);
                 mRegularScanClients.add(client);
                 mScanNative.startRegularScan(client);
                 if (!mScanNative.isOpportunisticScanClient(client)) {
                     mScanNative.configureRegularScanParams();
 
-                    if (!mScanNative.isExemptFromScanDowngrade(client)) {
+                    if (!mScanNative.isExemptFromScanTimeout(client)) {
                         Message msg = obtainMessage(MSG_SCAN_TIMEOUT);
                         msg.obj = client;
                         // Only one timeout message should exist at any time
@@ -511,6 +558,55 @@ public class ScanManager {
             updateRegularScanClientsScreenOff();
         }
 
+        void handleConnectingState() {
+            if (mAdapterService.getScanDowngradeDurationMillis() == 0) {
+                return;
+            }
+            boolean updatedScanParams = false;
+            mIsConnecting = true;
+            if (DBG) {
+                Log.d(TAG, "handleConnectingState()");
+            }
+            for (ScanClient client : mRegularScanClients) {
+                if (downgradeScanModeFromMaxDuty(client)) {
+                    updatedScanParams = true;
+                    if (DBG) {
+                        Log.d(TAG, "scanMode is downgraded by connecting for " + client);
+                    }
+                }
+            }
+            if (updatedScanParams) {
+                mScanNative.configureRegularScanParams();
+            }
+            removeMessages(MSG_STOP_CONNECTING);
+            Message msg = obtainMessage(MSG_STOP_CONNECTING);
+            sendMessageDelayed(msg, mAdapterService.getScanDowngradeDurationMillis());
+        }
+
+        void handleClearConnectingState() {
+            if (!mIsConnecting) {
+                Log.e(TAG, "handleClearConnectingState() - not connecting state");
+                return;
+            }
+            if (DBG) {
+                Log.d(TAG, "handleClearConnectingState()");
+            }
+            boolean updatedScanParams = false;
+            for (ScanClient client : mRegularScanClients) {
+                if (revertDowngradeScanModeFromMaxDuty(client)) {
+                    updatedScanParams = true;
+                    if (DBG) {
+                        Log.d(TAG, "downgraded scanMode is reverted for " + client);
+                    }
+                }
+            }
+            if (updatedScanParams) {
+                mScanNative.configureRegularScanParams();
+            }
+            removeMessages(MSG_STOP_CONNECTING);
+            mIsConnecting = false;
+        }
+
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         void handleSuspendScans() {
             for (ScanClient client : mRegularScanClients) {
@@ -545,7 +641,7 @@ public class ScanManager {
         }
 
         private boolean updateScanModeScreenOff(ScanClient client) {
-            if (mScanNative.isTimeoutScanClient(client)) {
+            if (mScanNative.isForceDowngradedScanClient(client)) {
                 return false;
             }
             if (!isAppForeground(client) && !mScanNative.isOpportunisticScanClient(client)) {
@@ -560,8 +656,9 @@ public class ScanManager {
                 case ScanSettings.SCAN_MODE_BALANCED:
                 case ScanSettings.SCAN_MODE_AMBIENT_DISCOVERY:
                     return client.updateScanMode(ScanSettings.SCAN_MODE_SCREEN_OFF_BALANCED);
-                case ScanSettings.SCAN_MODE_OPPORTUNISTIC:
                 case ScanSettings.SCAN_MODE_LOW_LATENCY:
+                    return client.updateScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+                case ScanSettings.SCAN_MODE_OPPORTUNISTIC:
                 default:
                     return false;
             }
@@ -584,6 +681,13 @@ public class ScanManager {
             } else {
                 return updateScanModeScreenOff(client);
             }
+        }
+
+        private boolean updateScanModeConcurrency(ScanClient client) {
+            if (mIsConnecting) {
+                return downgradeScanModeFromMaxDuty(client);
+            }
+            return false;
         }
 
         private boolean upgradeScanModeBeforeStart(ScanClient client) {
@@ -637,7 +741,7 @@ public class ScanManager {
         }
 
         private boolean updateScanModeScreenOn(ScanClient client) {
-            if (mScanNative.isTimeoutScanClient(client)) {
+            if (mScanNative.isForceDowngradedScanClient(client)) {
                 return false;
             }
 
@@ -645,6 +749,36 @@ public class ScanManager {
                     || mScanNative.isOpportunisticScanClient(client))
                     ? client.scanModeApp : SCAN_MODE_APP_IN_BACKGROUND;
             return client.updateScanMode(newScanMode);
+        }
+
+        private boolean downgradeScanModeFromMaxDuty(ScanClient client) {
+            if (mAdapterService.getScanDowngradeDurationMillis() == 0) {
+                return false;
+            }
+            if (ScanSettings.SCAN_MODE_LOW_LATENCY == client.settings.getScanMode()) {
+                client.updateScanMode(ScanSettings.SCAN_MODE_BALANCED);
+                client.stats.setScanDowngrade(client.scannerId, true);
+                if (DBG) {
+                    Log.d(TAG, "downgradeScanModeFromMaxDuty() for " + client);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        private boolean revertDowngradeScanModeFromMaxDuty(ScanClient client) {
+            if (!mScanNative.isDowngradedScanClient(client)) {
+                return false;
+            }
+            client.stats.setScanDowngrade(client.scannerId, false);
+            if (DBG) {
+                Log.d(TAG, "revertDowngradeScanModeFromMaxDuty() for " + client);
+            }
+            if (mScreenOn) {
+                return updateScanModeScreenOn(client);
+            } else {
+                return updateScanModeScreenOff(client);
+            }
         }
 
         void handleScreenOn() {
@@ -900,7 +1034,7 @@ public class ScanManager {
             }
         }
 
-        private boolean isExemptFromScanDowngrade(ScanClient client) {
+        private boolean isExemptFromScanTimeout(ScanClient client) {
             return isOpportunisticScanClient(client) || isFirstMatchScanClient(client);
         }
 
@@ -910,6 +1044,14 @@ public class ScanManager {
 
         private boolean isTimeoutScanClient(ScanClient client) {
             return (client.stats != null) && client.stats.isScanTimeout(client.scannerId);
+        }
+
+        private boolean isDowngradedScanClient(ScanClient client) {
+            return (client.stats != null) && client.stats.isScanDowngraded(client.scannerId);
+        }
+
+        private boolean isForceDowngradedScanClient(ScanClient client) {
+            return isTimeoutScanClient(client) || isDowngradedScanClient(client);
         }
 
         private boolean isFirstMatchScanClient(ScanClient client) {
@@ -1078,7 +1220,7 @@ public class ScanManager {
         }
 
         void regularScanTimeout(ScanClient client) {
-            if (!isExemptFromScanDowngrade(client) && client.stats.isScanningTooLong()) {
+            if (!isExemptFromScanTimeout(client) && client.stats.isScanningTooLong()) {
                 if (DBG) {
                     Log.d(TAG, "regularScanTimeout - client scan time was too long");
                 }
@@ -1640,6 +1782,102 @@ public class ScanManager {
                 }
             };
 
+    private BroadcastReceiver mBluetoothConnectionReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    String action = intent.getAction();
+                    if (action == null) {
+                        Log.w(TAG, "Received intent with null action");
+                        return;
+                    }
+                    switch (action) {
+                        case BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED:
+                        case BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED:
+                        case BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED:
+                        case BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED:
+                        case BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED:
+                        case BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED:
+                            int prevState = intent.getIntExtra(
+                                    BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
+                            int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
+                            if (DBG) {
+                                Log.d(TAG, "PROFILE_CONNECTION_STATE_CHANGE: action="
+                                        + action + ", prevState=" + prevState + ", state=" + state);
+                            }
+                            boolean updatedConnectingState =
+                                    updateCountersAndCheckForConnectingState(state, prevState);
+                            if (DBG) {
+                                Log.d(TAG, "updatedConnectingState = " + updatedConnectingState);
+                            }
+                            if (updatedConnectingState) {
+                                if (!mIsConnecting) {
+                                    onConnectingState(true);
+                                }
+                            } else {
+                                if (mIsConnecting) {
+                                    onConnectingState(false);
+                                }
+                            }
+                            break;
+                        default:
+                            Log.w(TAG, "Received unknown intent " + intent);
+                            break;
+                    }
+                }
+            };
+
+    private boolean updateCountersAndCheckForConnectingState(int state, int prevState) {
+        switch (prevState) {
+            case BluetoothProfile.STATE_CONNECTING:
+                if (mProfilesConnecting > 0) {
+                    mProfilesConnecting--;
+                } else {
+                    Log.e(TAG, "mProfilesConnecting " + mProfilesConnecting);
+                    throw new IllegalStateException(
+                            "Invalid state transition, " + prevState + " -> " + state);
+                }
+                break;
+            case BluetoothProfile.STATE_CONNECTED:
+                if (mProfilesConnected > 0) {
+                    mProfilesConnected--;
+                } else {
+                    Log.e(TAG, "mProfilesConnected " + mProfilesConnected);
+                    throw new IllegalStateException(
+                            "Invalid state transition, " + prevState + " -> " + state);
+                }
+                break;
+            case BluetoothProfile.STATE_DISCONNECTING:
+                if (mProfilesDisconnecting > 0) {
+                    mProfilesDisconnecting--;
+                } else {
+                    Log.e(TAG, "mProfilesDisconnecting " + mProfilesDisconnecting);
+                    throw new IllegalStateException(
+                            "Invalid state transition, " + prevState + " -> " + state);
+                }
+                break;
+        }
+        switch (state) {
+            case BluetoothProfile.STATE_CONNECTING:
+                mProfilesConnecting++;
+                break;
+            case BluetoothProfile.STATE_CONNECTED:
+                mProfilesConnected++;
+                break;
+            case BluetoothProfile.STATE_DISCONNECTING:
+                mProfilesDisconnecting++;
+                break;
+            case BluetoothProfile.STATE_DISCONNECTED:
+                break;
+            default:
+        }
+        if (DBG) {
+            Log.d(TAG, "mProfilesConnecting " + mProfilesConnecting + ", mProfilesConnected "
+                    + mProfilesConnected + ", mProfilesDisconnecting " + mProfilesDisconnecting);
+        }
+        return (mProfilesConnecting > 0);
+    }
+
     private void handleImportanceChange(UidImportance imp) {
         if (imp == null) {
             return;
@@ -1655,7 +1893,7 @@ public class ScanManager {
         }
 
         for (ScanClient client : mRegularScanClients) {
-            if (client.appUid != uid || mScanNative.isTimeoutScanClient(client)) {
+            if (client.appUid != uid || mScanNative.isForceDowngradedScanClient(client)) {
                 continue;
             }
             if (isForeground) {
