@@ -75,6 +75,7 @@ import java.util.Objects;
         public long timestamp;
         public boolean isOpportunisticScan;
         public boolean isTimeout;
+        public boolean isDowngraded;
         public boolean isBackgroundScan;
         public boolean isFilterScan;
         public boolean isCallbackScan;
@@ -91,6 +92,7 @@ import java.util.Objects;
             this.timestamp = timestamp;
             this.isOpportunisticScan = false;
             this.isTimeout = false;
+            this.isDowngraded = false;
             this.isBackgroundScan = false;
             this.isFilterScan = isFilterScan;
             this.isCallbackScan = isCallbackScan;
@@ -172,11 +174,19 @@ import java.util.Objects;
     }
 
     synchronized boolean isScanTimeout(int scannerId) {
-        LastScan onGoingScan = getScanFromScannerId(scannerId);
-        if (onGoingScan == null) {
+        LastScan scan = getScanFromScannerId(scannerId);
+        if (scan == null) {
             return false;
         }
-        return onGoingScan.isTimeout;
+        return scan.isTimeout;
+    }
+
+    synchronized boolean isScanDowngraded(int scannerId) {
+        LastScan scan = getScanFromScannerId(scannerId);
+        if (scan == null) {
+            return false;
+        }
+        return scan.isDowngraded;
     }
 
     synchronized void recordScanStart(ScanSettings settings, List<ScanFilter> filters,
@@ -339,6 +349,17 @@ import java.util.Objects;
         LastScan scan = getScanFromScannerId(scannerId);
         if (scan != null) {
             scan.isTimeout = true;
+        }
+    }
+
+    synchronized void setScanDowngrade(int scannerId, boolean isDowngrade) {
+        if (!isScanning()) {
+            return;
+        }
+
+        LastScan scan = getScanFromScannerId(scannerId);
+        if (scan != null) {
+            scan.isDowngraded = isDowngrade;
         }
     }
 

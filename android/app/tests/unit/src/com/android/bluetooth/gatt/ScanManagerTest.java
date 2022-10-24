@@ -77,6 +77,8 @@ public class ScanManagerTest {
     private static final int DEFAULT_SCAN_REPORT_DELAY_MS = 100;
     private static final int DEFAULT_NUM_OFFLOAD_SCAN_FILTER = 16;
     private static final int DEFAULT_BYTES_OFFLOAD_SCAN_RESULT_STORAGE = 4096;
+    private static final int DELAY_SCAN_UPGRADE_DURATION_MS = 150;
+    private static final int DELAY_SCAN_DOWNGRADE_DURATION_MS = 100;
 
     private Context mTargetContext;
     private GattService mService;
@@ -211,6 +213,14 @@ public class ScanManagerTest {
         Message message = new Message();
         message.what = ScanManager.MSG_IMPORTANCE_CHANGE;
         message.obj = new ScanManager.UidImportance(uid, importance);
+        return message;
+    }
+
+    private Message createConnectingMessage(boolean isConnectingOn) {
+        Message message = new Message();
+        message.what = isConnectingOn ? ScanManager.MSG_START_CONNECTING :
+                ScanManager.MSG_STOP_CONNECTING;
+        message.obj = null;
         return message;
     }
 
@@ -563,6 +573,213 @@ public class ScanManagerTest {
             assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
             assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
             assertThat(client.settings.getScanMode()).isEqualTo(ScanMode);
+        }
+    }
+
+    @Test
+    public void testUpgradeStartScan() {
+        // Set filtered scan flag
+        final boolean isFiltered = true;
+        // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
+        SparseIntArray scanModeMap = new SparseIntArray();
+        scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_BALANCED);
+        scanModeMap.put(SCAN_MODE_BALANCED, SCAN_MODE_LOW_LATENCY);
+        scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_LOW_LATENCY);
+        scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_LOW_LATENCY);
+        // Set scan upgrade duration through Mock
+        when(mAdapterService.getScanUpgradeDurationMillis()).
+                thenReturn((long)DELAY_SCAN_UPGRADE_DURATION_MS);
+
+        for (int i = 0; i < scanModeMap.size(); i++) {
+            int ScanMode = scanModeMap.keyAt(i);
+            int expectedScanMode = scanModeMap.get(ScanMode);
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode)
+                    + " expectedScanMode: " + String.valueOf(expectedScanMode));
+
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            // Set as foreground app
+            sendMessageWaitForProcessed(createImportanceMessage(true));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
+            // Wait for upgrade duration
+            testSleep(DELAY_SCAN_UPGRADE_DURATION_MS + DELAY_ASYNC_MS);
+            assertThat(client.settings.getScanMode()).isEqualTo(ScanMode);
+        }
+    }
+
+    @Test
+    public void testUpDowngradeStartScanForConcurrency() {
+        // Set filtered scan flag
+        final boolean isFiltered = true;
+        // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
+        SparseIntArray scanModeMap = new SparseIntArray();
+        scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_BALANCED);
+        scanModeMap.put(SCAN_MODE_BALANCED, SCAN_MODE_BALANCED);
+        scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_BALANCED);
+        scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_BALANCED);
+        // Set scan upgrade duration through Mock
+        when(mAdapterService.getScanUpgradeDurationMillis()).
+                thenReturn((long)DELAY_SCAN_UPGRADE_DURATION_MS);
+        // Set scan downgrade duration through Mock
+        when(mAdapterService.getScanDowngradeDurationMillis()).
+                thenReturn((long)DELAY_SCAN_DOWNGRADE_DURATION_MS);
+
+        for (int i = 0; i < scanModeMap.size(); i++) {
+            int ScanMode = scanModeMap.keyAt(i);
+            int expectedScanMode = scanModeMap.get(ScanMode);
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode)
+                    + " expectedScanMode: " + String.valueOf(expectedScanMode));
+
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            // Set as foreground app
+            sendMessageWaitForProcessed(createImportanceMessage(true));
+            // Set connecting state
+            sendMessageWaitForProcessed(createConnectingMessage(true));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
+            // Wait for upgrade and downgrade duration
+            int max_duration = DELAY_SCAN_UPGRADE_DURATION_MS > DELAY_SCAN_DOWNGRADE_DURATION_MS ?
+                    DELAY_SCAN_UPGRADE_DURATION_MS : DELAY_SCAN_DOWNGRADE_DURATION_MS;
+            testSleep(max_duration + DELAY_ASYNC_MS);
+            assertThat(client.settings.getScanMode()).isEqualTo(ScanMode);
+        }
+    }
+
+    @Test
+    public void testDowngradeDuringScanForConcurrency() {
+        // Set filtered scan flag
+        final boolean isFiltered = true;
+        // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
+        SparseIntArray scanModeMap = new SparseIntArray();
+        scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_LOW_POWER);
+        scanModeMap.put(SCAN_MODE_BALANCED, SCAN_MODE_BALANCED);
+        scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_BALANCED);
+        scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_AMBIENT_DISCOVERY);
+        // Set scan downgrade duration through Mock
+        when(mAdapterService.getScanDowngradeDurationMillis()).
+                thenReturn((long)DELAY_SCAN_DOWNGRADE_DURATION_MS);
+
+        for (int i = 0; i < scanModeMap.size(); i++) {
+            int ScanMode = scanModeMap.keyAt(i);
+            int expectedScanMode = scanModeMap.get(ScanMode);
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode)
+                    + " expectedScanMode: " + String.valueOf(expectedScanMode));
+
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            // Set as foreground app
+            sendMessageWaitForProcessed(createImportanceMessage(true));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(client.settings.getScanMode()).isEqualTo(ScanMode);
+            // Set connecting state
+            sendMessageWaitForProcessed(createConnectingMessage(true));
+            assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
+            // Wait for downgrade duration
+            testSleep(DELAY_SCAN_DOWNGRADE_DURATION_MS + DELAY_ASYNC_MS);
+            assertThat(client.settings.getScanMode()).isEqualTo(ScanMode);
+        }
+    }
+
+    @Test
+    public void testDowngradeDuringScanForConcurrencyScreenOff() {
+        // Set filtered scan flag
+        final boolean isFiltered = true;
+        // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
+        SparseIntArray scanModeMap = new SparseIntArray();
+        scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_SCREEN_OFF);
+        scanModeMap.put(SCAN_MODE_BALANCED, SCAN_MODE_SCREEN_OFF_BALANCED);
+        scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_LOW_LATENCY);
+        scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_SCREEN_OFF_BALANCED);
+        // Set scan downgrade duration through Mock
+        when(mAdapterService.getScanDowngradeDurationMillis()).
+                thenReturn((long)DELAY_SCAN_DOWNGRADE_DURATION_MS);
+
+        for (int i = 0; i < scanModeMap.size(); i++) {
+            int ScanMode = scanModeMap.keyAt(i);
+            int expectedScanMode = scanModeMap.get(ScanMode);
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode)
+                    + " expectedScanMode: " + String.valueOf(expectedScanMode));
+
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            // Set as foreground app
+            sendMessageWaitForProcessed(createImportanceMessage(true));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(client.settings.getScanMode()).isEqualTo(ScanMode);
+            // Set connecting state
+            sendMessageWaitForProcessed(createConnectingMessage(true));
+            // Turn off screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(false));
+            // Wait for downgrade duration
+            testSleep(DELAY_SCAN_DOWNGRADE_DURATION_MS + DELAY_ASYNC_MS);
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
+        }
+    }
+
+    @Test
+    public void testDowngradeDuringScanForConcurrencyBackground() {
+        // Set filtered scan flag
+        final boolean isFiltered = true;
+        // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
+        SparseIntArray scanModeMap = new SparseIntArray();
+        scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_LOW_POWER);
+        scanModeMap.put(SCAN_MODE_BALANCED, SCAN_MODE_LOW_POWER);
+        scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_LOW_POWER);
+        scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_LOW_POWER);
+        // Set scan downgrade duration through Mock
+        when(mAdapterService.getScanDowngradeDurationMillis()).
+                thenReturn((long)DELAY_SCAN_DOWNGRADE_DURATION_MS);
+
+        for (int i = 0; i < scanModeMap.size(); i++) {
+            int ScanMode = scanModeMap.keyAt(i);
+            int expectedScanMode = scanModeMap.get(ScanMode);
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode)
+                    + " expectedScanMode: " + String.valueOf(expectedScanMode));
+
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            // Set as foreground app
+            sendMessageWaitForProcessed(createImportanceMessage(true));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(client.settings.getScanMode()).isEqualTo(ScanMode);
+            // Set connecting state
+            sendMessageWaitForProcessed(createConnectingMessage(true));
+            // Set as background app
+            sendMessageWaitForProcessed(createImportanceMessage(false));
+            // Wait for downgrade duration
+            testSleep(DELAY_SCAN_DOWNGRADE_DURATION_MS + DELAY_ASYNC_MS);
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
         }
     }
 }
