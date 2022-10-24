@@ -5315,6 +5315,9 @@ public class AdapterService extends Service {
     private int mScanUpgradeDurationMillis =
             DeviceConfigListener.DEFAULT_SCAN_UPGRADE_DURATION_MILLIS;
     @GuardedBy("mDeviceConfigLock")
+    private int mScanDowngradeDurationMillis =
+            DeviceConfigListener.DEFAULT_SCAN_DOWNGRADE_DURATION_BT_CONNECTING_MILLIS;
+    @GuardedBy("mDeviceConfigLock")
     private int mScreenOffLowPowerWindowMillis =
             ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_WINDOW_MS;
     @GuardedBy("mDeviceConfigLock")
@@ -5382,6 +5385,15 @@ public class AdapterService extends Service {
     }
 
     /**
+     * Returns scan downgrade duration in millis.
+     */
+    public long getScanDowngradeDurationMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScanDowngradeDurationMillis;
+        }
+    }
+
+    /**
      * Returns SCREEN_OFF_BALANCED scan window in millis.
      */
     public int getScreenOffBalancedWindowMillis() {
@@ -5434,6 +5446,8 @@ public class AdapterService extends Service {
                 "scan_timeout_millis";
         private static final String SCAN_UPGRADE_DURATION_MILLIS =
                 "scan_upgrade_duration_millis";
+        private static final String SCAN_DOWNGRADE_DURATION_MILLIS =
+                "scan_downgrade_duration_millis";
         private static final String SCREEN_OFF_LOW_POWER_WINDOW_MILLIS =
                 "screen_off_low_power_window_millis";
         private static final String SCREEN_OFF_LOW_POWER_INTERVAL_MILLIS =
@@ -5453,6 +5467,8 @@ public class AdapterService extends Service {
         private static final long DEFAULT_SCAN_QUOTA_WINDOW_MILLIS = 30 * SECOND_IN_MILLIS;
         private static final long DEFAULT_SCAN_TIMEOUT_MILLIS = 30 * MINUTE_IN_MILLIS;
         private static final int DEFAULT_SCAN_UPGRADE_DURATION_MILLIS = (int) SECOND_IN_MILLIS * 6;
+        private static final int DEFAULT_SCAN_DOWNGRADE_DURATION_BT_CONNECTING_MILLIS =
+                (int) SECOND_IN_MILLIS * 6;
 
         @RequiresPermission(android.Manifest.permission.READ_DEVICE_CONFIG)
         public void start() {
@@ -5481,6 +5497,8 @@ public class AdapterService extends Service {
                         DEFAULT_SCAN_TIMEOUT_MILLIS);
                 mScanUpgradeDurationMillis = properties.getInt(SCAN_UPGRADE_DURATION_MILLIS,
                         DEFAULT_SCAN_UPGRADE_DURATION_MILLIS);
+                mScanDowngradeDurationMillis = properties.getInt(SCAN_DOWNGRADE_DURATION_MILLIS,
+                        DEFAULT_SCAN_DOWNGRADE_DURATION_BT_CONNECTING_MILLIS);
                 mScreenOffLowPowerWindowMillis = properties.getInt(
                         SCREEN_OFF_LOW_POWER_WINDOW_MILLIS,
                         ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_WINDOW_MS);
