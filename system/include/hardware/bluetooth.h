@@ -852,10 +852,11 @@ typedef struct {
 
   /**
    *
-   * Floss: Set the default event mask for Classic and LE
+   * Floss: Set the default event mask for Classic and LE except the given
+   *        values (they will be disabled in the final set mask).
    *
    */
-  int (*set_default_event_mask)();
+  int (*set_default_event_mask_except)(uint64_t mask, uint64_t le_mask);
 
   /**
    *

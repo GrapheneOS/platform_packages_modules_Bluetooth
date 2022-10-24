@@ -340,11 +340,15 @@ static uint8_t controller_allow_wake_by_hid() {
   return BTM_SUCCESS;
 }
 
-static uint8_t controller_set_default_event_mask() {
-  bluetooth::shim::GetController()->SetEventMask(
-      bluetooth::hci::Controller::kDefaultEventMask);
-  bluetooth::shim::GetController()->LeSetEventMask(
-      bluetooth::hci::Controller::kDefaultLeEventMask);
+static uint8_t controller_set_default_event_mask_except(uint64_t mask,
+                                                        uint64_t le_mask) {
+  uint64_t applied_mask =
+      bluetooth::hci::Controller::kDefaultEventMask & ~(mask);
+  uint64_t applied_le_mask =
+      bluetooth::hci::Controller::kDefaultLeEventMask & ~(le_mask);
+
+  bluetooth::shim::GetController()->SetEventMask(applied_mask);
+  bluetooth::shim::GetController()->LeSetEventMask(applied_le_mask);
   return BTM_SUCCESS;
 }
 
@@ -457,7 +461,7 @@ static const controller_t interface = {
     .set_event_filter_connection_setup_all_devices =
         controller_set_event_filter_connection_setup_all_devices,
     .allow_wake_by_hid = controller_allow_wake_by_hid,
-    .set_default_event_mask = controller_set_default_event_mask,
+    .set_default_event_mask_except = controller_set_default_event_mask_except,
     .set_event_filter_inquiry_result_all_devices =
         controller_set_event_filter_inquiry_result_all_devices};
 
