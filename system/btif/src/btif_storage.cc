@@ -1711,13 +1711,22 @@ bt_status_t btif_storage_remove_hid_info(const RawAddress& remote_bd_addr) {
  * Returns          std::vector of RawAddress
  *
  ******************************************************************************/
-std::vector<RawAddress> btif_storage_get_hid_device_addresses(void) {
-  std::vector<RawAddress> hid_addresses;
+
+extern bool btif_get_address_type(const RawAddress& bda,
+                                  tBLE_ADDR_TYPE* p_addr_type);
+
+std::vector<std::pair<RawAddress, uint8_t>>
+btif_storage_get_hid_device_addresses(void) {
+  std::vector<std::pair<RawAddress, uint8_t>> hid_addresses;
   for (const auto& bd_addr : btif_config_get_paired_devices()) {
     auto name = bd_addr.ToString();
     int value;
     if (!btif_config_get_int(name, "HidAttrMask", &value)) continue;
-    hid_addresses.push_back(bd_addr);
+
+    tBLE_ADDR_TYPE type = BLE_ADDR_PUBLIC;
+    btif_get_address_type(bd_addr, &type);
+
+    hid_addresses.push_back({bd_addr, type});
     LOG_DEBUG("Remote device: %s", PRIVATE_ADDRESS(bd_addr));
   }
   return hid_addresses;

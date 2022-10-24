@@ -842,10 +842,26 @@ struct shim::legacy::Acl::impl {
 
   void DisconnectClassicConnections(std::promise<void> promise) {
     LOG_INFO("Disconnect gd acl shim classic connections");
+    std::vector<HciHandle> disconnect_handles;
     for (auto& connection : handle_to_classic_connection_map_) {
       disconnect_classic(connection.first, HCI_ERR_REMOTE_POWER_OFF,
                          "Suspend disconnect");
+      disconnect_handles.push_back(connection.first);
     }
+
+    // Since this is a suspend disconnect, we immediately also call
+    // |OnDisconnection| without waiting for it to happen. We want the stack
+    // to clean up ahead of the link layer (since we will mask away that
+    // event). The reason we do this in a separate loop is that this will also
+    // remove the handle from the connection map.
+    for (auto& handle : disconnect_handles) {
+      auto found = handle_to_classic_connection_map_.find(handle);
+      if (found != handle_to_classic_connection_map_.end()) {
+        found->second->OnDisconnection(
+            hci::ErrorCode::CONNECTION_TERMINATED_BY_LOCAL_HOST);
+      }
+    }
+
     promise.set_value();
   }
 
@@ -860,9 +876,24 @@ struct shim::legacy::Acl::impl {
 
   void DisconnectLeConnections(std::promise<void> promise) {
     LOG_INFO("Disconnect gd acl shim le connections");
+    std::vector<HciHandle> disconnect_handles;
     for (auto& connection : handle_to_le_connection_map_) {
       disconnect_le(connection.first, HCI_ERR_REMOTE_POWER_OFF,
                     "Suspend disconnect");
+      disconnect_handles.push_back(connection.first);
+    }
+
+    // Since this is a suspend disconnect, we immediately also call
+    // |OnDisconnection| without waiting for it to happen. We want the stack
+    // to clean up ahead of the link layer (since we will mask away that
+    // event). The reason we do this in a separate loop is that this will also
+    // remove the handle from the connection map.
+    for (auto& handle : disconnect_handles) {
+      auto found = handle_to_le_connection_map_.find(handle);
+      if (found != handle_to_le_connection_map_.end()) {
+        found->second->OnDisconnection(
+            hci::ErrorCode::CONNECTION_TERMINATED_BY_LOCAL_HOST);
+      }
     }
     promise.set_value();
   }

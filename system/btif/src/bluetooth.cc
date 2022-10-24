@@ -710,9 +710,11 @@ static int set_event_filter_inquiry_result_all_devices() {
   return BT_STATUS_SUCCESS;
 }
 
-static int set_default_event_mask() {
+static int set_default_event_mask_except(uint64_t mask, uint64_t le_mask) {
   if (!interface_ready()) return BT_STATUS_NOT_READY;
-  do_in_main_thread(FROM_HERE, base::BindOnce(btif_dm_set_default_event_mask));
+  do_in_main_thread(
+      FROM_HERE,
+      base::BindOnce(btif_dm_set_default_event_mask_except, mask, le_mask));
   return BT_STATUS_SUCCESS;
 }
 
@@ -1000,7 +1002,7 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     .le_rand = le_rand,
     .set_event_filter_inquiry_result_all_devices =
         set_event_filter_inquiry_result_all_devices,
-    .set_default_event_mask = set_default_event_mask,
+    .set_default_event_mask_except = set_default_event_mask_except,
     .restore_filter_accept_list = restore_filter_accept_list,
     .allow_wake_by_hid = allow_wake_by_hid,
     .set_event_filter_connection_setup_all_devices =

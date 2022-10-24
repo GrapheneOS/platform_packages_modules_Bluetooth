@@ -122,7 +122,7 @@ typedef struct controller_t {
   uint8_t (*le_rand)(LeRandCallback);
   uint8_t (*set_event_filter_connection_setup_all_devices)(void);
   uint8_t (*allow_wake_by_hid)(void);
-  uint8_t (*set_default_event_mask)(void);
+  uint8_t (*set_default_event_mask_except)(uint64_t mask, uint64_t le_mask);
   uint8_t (*set_event_filter_inquiry_result_all_devices)(void);
 
 } controller_t;

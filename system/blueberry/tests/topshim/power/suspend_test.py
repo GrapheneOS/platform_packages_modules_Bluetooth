@@ -35,7 +35,7 @@ class SuspendTest(TopshimBaseTest):
 
     def __verify_no_wake_resume(self):
         # Start resume work
-        self.dut().set_default_event_mask()
+        self.dut().set_default_event_mask_except(0, 0)
         self.dut().set_event_filter_inquiry_result_all_devices()
         self.dut().set_event_filter_connection_setup_all_devices()
         self.dut().le_rand()
@@ -55,7 +55,7 @@ class SuspendTest(TopshimBaseTest):
 
     def __verify_wakeful_resume(self, was_a2dp_connected):
         # Start resume work
-        self.dut().set_default_event_mask()
+        self.dut().set_default_event_mask_except(0, 0)
         self.dut().set_event_filter_inquiry_result_all_devices()
         self.dut().set_event_filter_connection_setup_all_devices()
         if was_a2dp_connected:
