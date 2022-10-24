@@ -1530,14 +1530,20 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       /* no-op */
       break;
 
-    case BTA_DM_DISC_BLE_RES_EVT: {
+    case BTA_DM_GATT_OVER_SDP_RES_EVT:
+    case BTA_DM_GATT_OVER_LE_RES_EVT: {
       int num_properties = 0;
       bt_property_t prop[2];
       std::vector<uint8_t> property_value;
       std::set<Uuid> uuids;
       RawAddress& bd_addr = p_data->disc_ble_res.bd_addr;
 
-      LOG_INFO("New BLE UUIDs for %s:", bd_addr.ToString().c_str());
+      if (event == BTA_DM_GATT_OVER_LE_RES_EVT) {
+        LOG_INFO("New GATT over LE UUIDs for %s:", bd_addr.ToString().c_str());
+      } else {
+        LOG_INFO("New GATT over SDP UUIDs for %s:", bd_addr.ToString().c_str());
+      }
+
       for (Uuid uuid : *p_data->disc_ble_res.services) {
         if (btif_is_interesting_le_service(uuid)) {
           if (btif_should_ignore_uuid(uuid)) {
@@ -1550,7 +1556,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       }
 
       if (uuids.empty()) {
-        LOG_INFO("No well known BLE services discovered");
+        LOG_INFO("No well known GATT services discovered");
         return;
       }
 

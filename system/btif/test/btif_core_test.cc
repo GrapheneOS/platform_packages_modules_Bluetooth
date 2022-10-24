@@ -225,10 +225,13 @@ TEST_F(BtifCoreTest, dump_dm_search_event) {
       std::make_pair(BTA_DM_INQ_RES_EVT, "BTA_DM_INQ_RES_EVT"),
       std::make_pair(BTA_DM_INQ_CMPL_EVT, "BTA_DM_INQ_CMPL_EVT"),
       std::make_pair(BTA_DM_DISC_RES_EVT, "BTA_DM_DISC_RES_EVT"),
-      std::make_pair(BTA_DM_DISC_BLE_RES_EVT, "BTA_DM_DISC_BLE_RES_EVT"),
+      std::make_pair(BTA_DM_GATT_OVER_LE_RES_EVT,
+                     "BTA_DM_GATT_OVER_LE_RES_EVT"),
       std::make_pair(BTA_DM_DISC_CMPL_EVT, "BTA_DM_DISC_CMPL_EVT"),
       std::make_pair(BTA_DM_SEARCH_CANCEL_CMPL_EVT,
                      "BTA_DM_SEARCH_CANCEL_CMPL_EVT"),
+      std::make_pair(BTA_DM_GATT_OVER_SDP_RES_EVT,
+                     "BTA_DM_GATT_OVER_SDP_RES_EVT"),
   };
   for (const auto& event : events) {
     ASSERT_STREQ(event.second.c_str(), dump_dm_search_event(event.first));
