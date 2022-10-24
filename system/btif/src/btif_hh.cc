@@ -1835,3 +1835,29 @@ const bthh_interface_t* btif_hh_get_interface() {
   BTIF_TRACE_EVENT("%s", __func__);
   return &bthhInterface;
 }
+
+#define DUMPSYS_TAG "shim::legacy::hid"
+void DumpsysHid(int fd) {
+  LOG_DUMPSYS_TITLE(fd, DUMPSYS_TAG);
+  LOG_DUMPSYS(fd, "status:%s num_devices:%u",
+              btif_hh_status_text(btif_hh_cb.status).c_str(),
+              btif_hh_cb.device_num);
+  LOG_DUMPSYS(fd, "status:%s", btif_hh_status_text(btif_hh_cb.status).c_str());
+  for (unsigned i = 0; i < BTIF_HH_MAX_HID; i++) {
+    const btif_hh_device_t* p_dev = &btif_hh_cb.devices[i];
+    if (p_dev->bd_addr != RawAddress::kEmpty) {
+      LOG_DUMPSYS(fd, "  %u: addr:%s fd:%d state:%s ready:%s thread_id:%d", i,
+                  PRIVATE_ADDRESS(p_dev->bd_addr), p_dev->fd,
+                  bthh_connection_state_text(p_dev->dev_status).c_str(),
+                  (p_dev->ready_for_data) ? ("T") : ("F"),
+                  static_cast<int>(p_dev->hh_poll_thread_id));
+    }
+  }
+  for (unsigned i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
+    const btif_hh_added_device_t* p_dev = &btif_hh_cb.added_devices[i];
+    if (p_dev->bd_addr != RawAddress::kEmpty) {
+      LOG_DUMPSYS(fd, "  %u: addr:%s", i, PRIVATE_ADDRESS(p_dev->bd_addr));
+    }
+  }
+}
+#undef DUMPSYS_TAG
