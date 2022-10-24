@@ -101,6 +101,8 @@ typedef uint8_t tL2CAP_CHNL_DATA_RATE;
 #define L2C_IS_VALID_PSM(psm) (((psm)&0x0101) == 0x0001)
 #define L2C_IS_VALID_LE_PSM(psm) (((psm) > 0x0000) && ((psm) < 0x0100))
 
+#define L2CAP_NO_IDLE_TIMEOUT 0xFFFF
+
 /*****************************************************************************
  *  Type Definitions
  ****************************************************************************/
