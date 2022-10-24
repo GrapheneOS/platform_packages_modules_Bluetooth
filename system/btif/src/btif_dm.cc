@@ -148,7 +148,7 @@ const bool enable_address_consolidate = true;  // TODO remove
 #define ENCRYPTED_BREDR 2
 #define ENCRYPTED_LE 4
 
-typedef struct {
+struct btif_dm_pairing_cb_t {
   bt_bond_state_t state;
   RawAddress static_bdaddr;
   RawAddress bd_addr;
@@ -165,7 +165,12 @@ typedef struct {
   bool is_le_nc; /* LE Numeric comparison */
   btif_dm_ble_cb_t ble;
   uint8_t fail_reason;
-} btif_dm_pairing_cb_t;
+
+  enum ServiceDiscoveryState { NOT_STARTED, SCHEDULED, FINISHED };
+
+  ServiceDiscoveryState gatt_over_le;
+  ServiceDiscoveryState sdp_over_classic;
+};
 
 // TODO(jpawlowski): unify ?
 // btif_dm_local_key_id_t == tBTM_BLE_LOCAL_ID_KEYS == tBTA_BLE_LOCAL_ID_KEYS
@@ -538,11 +543,15 @@ static void bond_state_changed(bt_status_t status, const RawAddress& bd_addr,
   }
 
   if (state == BT_BOND_STATE_BONDING ||
-      (state == BT_BOND_STATE_BONDED && pairing_cb.sdp_attempts > 0)) {
-    // Save state for the device is bonding or SDP.
+      (state == BT_BOND_STATE_BONDED &&
+       (pairing_cb.sdp_attempts > 0 ||
+        pairing_cb.gatt_over_le ==
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED))) {
+    // Save state for the device is bonding or SDP or GATT over LE discovery
     pairing_cb.state = state;
     pairing_cb.bd_addr = bd_addr;
   } else {
+    LOG_INFO("clearing btif pairing_cb");
     pairing_cb = {};
   }
 }
@@ -1129,7 +1138,14 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         } else {
           bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDED);
         }
-        btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
+
+        if (pairing_cb.sdp_over_classic ==
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED) {
+          LOG_INFO("scheduling SDP for %s", PRIVATE_ADDRESS(bd_addr));
+          pairing_cb.sdp_over_classic =
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED;
+          btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
+        }
       }
     }
     // Do not call bond_state_changed_cb yet. Wait until remote service
@@ -1425,7 +1441,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
           pairing_cb.state == BT_BOND_STATE_BONDED &&
           pairing_cb.sdp_attempts < BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING) {
         if (pairing_cb.sdp_attempts) {
-          LOG_WARN("SDP failed after bonding re-attempting");
+          LOG_WARN("SDP failed after bonding re-attempting for %s",
+                   PRIVATE_ADDRESS(bd_addr));
           pairing_cb.sdp_attempts++;
           btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
         } else {
@@ -1433,6 +1450,14 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         }
         return;
       }
+
+      if ((bd_addr == pairing_cb.bd_addr ||
+           bd_addr == pairing_cb.static_bdaddr)) {
+        LOG_INFO("SDP finished for %s:", PRIVATE_ADDRESS(bd_addr));
+        pairing_cb.sdp_over_classic =
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED;
+      }
+
       prop.type = BT_PROPERTY_UUIDS;
       prop.len = 0;
       if ((p_data->disc_res.result == BTA_SUCCESS) &&
@@ -1509,6 +1534,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         // Both SDP and bonding are done, clear pairing control block in case
         // it is not already cleared
         pairing_cb = {};
+        LOG_INFO("clearing btif pairing_cb");
       }
 
       if (p_data->disc_res.num_uuids != 0 || num_eir_uuids != 0) {
@@ -1539,9 +1565,22 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       RawAddress& bd_addr = p_data->disc_ble_res.bd_addr;
 
       if (event == BTA_DM_GATT_OVER_LE_RES_EVT) {
-        LOG_INFO("New GATT over LE UUIDs for %s:", bd_addr.ToString().c_str());
+        LOG_INFO("New GATT over LE UUIDs for %s:",
+                 PRIVATE_ADDRESS(bd_addr));
+        if ((bd_addr == pairing_cb.bd_addr ||
+             bd_addr == pairing_cb.static_bdaddr)) {
+          if (pairing_cb.gatt_over_le !=
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED) {
+            LOG_ERROR(
+                "gatt_over_le should be SCHEDULED, did someone clear the "
+                "control block for %s ?",
+                PRIVATE_ADDRESS(bd_addr));
+          }
+          pairing_cb.gatt_over_le =
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED;
+        }
       } else {
-        LOG_INFO("New GATT over SDP UUIDs for %s:", bd_addr.ToString().c_str());
+        LOG_INFO("New GATT over SDP UUIDs for %s:", PRIVATE_ADDRESS(bd_addr));
       }
 
       for (Uuid uuid : *p_data->disc_ble_res.services) {
@@ -1607,6 +1646,21 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       /* Send the event to the BTIF */
       invoke_remote_device_properties_cb(BT_STATUS_SUCCESS, bd_addr,
                                          num_properties, prop);
+
+      if ((bd_addr == pairing_cb.bd_addr ||
+           bd_addr == pairing_cb.static_bdaddr) &&
+          pairing_cb.sdp_over_classic !=
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED &&
+          pairing_cb.gatt_over_le !=
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED) {
+        // Both SDP and bonding are either done, or not scheduled, we are safe
+        // to clear the service discovery part of CB.
+        pairing_cb.gatt_over_le =
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED;
+        pairing_cb.sdp_over_classic =
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED;
+        LOG_INFO("clearing service discovery part of pairing_cb");
+      }
     } break;
 
     default: { ASSERTC(0, "unhandled search services event", event); } break;
@@ -2964,8 +3018,21 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
       btif_storage_remove_bonded_device(&bdaddr);
       state = BT_BOND_STATE_NONE;
     } else {
-      btif_dm_save_ble_bonding_keys(bdaddr);
-      btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_LE);
+      btif_dm_save_ble_bonding_keys(bd_addr);
+
+      if (pairing_cb.gatt_over_le ==
+          btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED) {
+        LOG_INFO("scheduling GATT discovery over LE for %s",
+                 PRIVATE_ADDRESS(bd_addr));
+        pairing_cb.gatt_over_le =
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED;
+        btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_LE);
+      } else {
+        LOG_INFO(
+            "skipping GATT discovery over LE - was already scheduled or "
+            "finished for %s, state: %d",
+            PRIVATE_ADDRESS(bd_addr), pairing_cb.gatt_over_le);
+      }
     }
   } else {
     /*Map the HCI fail reason  to  bt status  */
