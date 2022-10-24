@@ -3585,9 +3585,9 @@ void btif_dm_restore_filter_accept_list() {
   BTA_DmRestoreFilterAcceptList();
 }
 
-void btif_dm_set_default_event_mask() {
+void btif_dm_set_default_event_mask_except(uint64_t mask, uint64_t le_mask) {
   // Autoplumbed
-  BTA_DmSetDefaultEventMask();
+  BTA_DmSetDefaultEventMaskExcept(mask, le_mask);
 }
 
 void btif_dm_set_event_filter_inquiry_result_all_devices() {

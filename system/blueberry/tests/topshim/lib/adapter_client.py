@@ -106,8 +106,9 @@ class AdapterClient(AsyncClosable):
     async def restore_filter_accept_list(self):
         await self.__adapter_stub.RestoreFilterAcceptList(empty_proto.Empty())
 
-    async def set_default_event_mask(self):
-        await self.__adapter_stub.SetDefaultEventMask(empty_proto.Empty())
+    async def set_default_event_mask_except(self, mask, le_mask):
+        await self.__adapter_stub.SetDefaultEventMaskExcept(
+            facade_pb2.SetDefaultEventMaskExceptRequest(mask=mask, le_mask=le_mask))
 
     async def set_event_filter_inquiry_result_all_devices(self):
         await self.__adapter_stub.SetEventFilterInquiryResultAllDevices(empty_proto.Empty())

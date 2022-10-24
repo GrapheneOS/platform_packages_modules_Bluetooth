@@ -739,7 +739,8 @@ void BTA_DmSetEventFilterConnectionSetupAllDevices() {
       base::Bind(bta_dm_set_event_filter_connection_setup_all_devices));
 }
 
-void BTA_DmAllowWakeByHid(std::vector<RawAddress> le_hid_devices) {
+void BTA_DmAllowWakeByHid(
+    std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices) {
   APPL_TRACE_API("BTA_DmAllowWakeByHid");
   do_in_main_thread(FROM_HERE,
                     base::Bind(bta_dm_allow_wake_by_hid, le_hid_devices));
@@ -750,9 +751,10 @@ void BTA_DmRestoreFilterAcceptList() {
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_restore_filter_accept_list));
 }
 
-void BTA_DmSetDefaultEventMask() {
-  APPL_TRACE_API("BTA_DmSetDefaultEventMask");
-  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_set_default_event_mask));
+void BTA_DmSetDefaultEventMaskExcept(uint64_t mask, uint64_t le_mask) {
+  APPL_TRACE_API("BTA_DmSetDefaultEventMaskExcept");
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_set_default_event_mask_except,
+                                          mask, le_mask));
 }
 
 void BTA_DmSetEventFilterInquiryResultAllDevices() {
