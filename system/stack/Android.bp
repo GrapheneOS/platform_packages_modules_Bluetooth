@@ -630,11 +630,7 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs: [
-        "a2dp/a2dp_vendor_aptx_encoder.cc",
-        "a2dp/a2dp_vendor_aptx_hd_encoder.cc",
         "a2dp/a2dp_vendor_ldac_decoder.cc",
-        "test/a2dp/a2dp_vendor_aptx_encoder_test.cc",
-        "test/a2dp/a2dp_vendor_aptx_hd_encoder_test.cc",
         "test/a2dp/a2dp_vendor_ldac_decoder_test.cc",
         "test/a2dp/misc_fake.cc",
     ],
@@ -644,8 +640,6 @@ cc_test {
         "libprotobuf-cpp-lite",
     ],
     static_libs: [
-        "libaptx_enc",
-        "libaptxhd_enc",
         "libbt-common",
         "libbt-protos-lite",
         "liblog",
