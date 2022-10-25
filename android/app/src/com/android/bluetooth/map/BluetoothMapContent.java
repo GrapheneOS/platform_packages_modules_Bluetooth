@@ -36,6 +36,7 @@ import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.DeviceWorkArounds;
 import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
@@ -1215,7 +1216,8 @@ public class BluetoothMapContent {
         String uriStr = new String(Mms.CONTENT_URI + "/" + id + "/part");
         Uri uriAddress = Uri.parse(uriStr);
         // TODO: maybe use a projection with only "ct" and "text"
-        Cursor c = r.query(uriAddress, null, selection, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(r, uriAddress, null,
+                selection, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 do {
@@ -1327,7 +1329,8 @@ public class BluetoothMapContent {
         String orderBy = Contacts.DISPLAY_NAME + " ASC";
         Cursor c = null;
         try {
-            c = resolver.query(uri, projection, selection, null, orderBy);
+            c = BluetoothMethodProxy.getInstance().contentResolverQuery(resolver, uri, projection,
+                    selection, null, orderBy);
             if (c != null) {
                 int colIndex = c.getColumnIndex(Contacts.DISPLAY_NAME);
                 if (c.getCount() >= 1) {
@@ -1369,7 +1372,8 @@ public class BluetoothMapContent {
             Log.v(TAG, "whereClause is " + whereClause);
         }
         try {
-            cr = r.query(sAllThreadsUri, RECIPIENT_ID_PROJECTION, whereClause, null, null);
+            cr = BluetoothMethodProxy.getInstance().contentResolverQuery(r, sAllThreadsUri,
+                    RECIPIENT_ID_PROJECTION, whereClause, null, null);
             if (cr != null && cr.moveToFirst()) {
                 recipientIds = cr.getString(0);
                 if (V) {
@@ -1400,7 +1404,8 @@ public class BluetoothMapContent {
                 Log.v(TAG, "whereClause is " + whereClause);
             }
             try {
-                cr = r.query(sAllCanonical, null, whereClause, null, null);
+                cr = BluetoothMethodProxy.getInstance().contentResolverQuery(r, sAllCanonical, null,
+                        whereClause, null, null);
                 if (cr != null && cr.moveToFirst()) {
                     do {
                         //TODO: Multiple Recipeints are appended with ";" for now.
@@ -1432,7 +1437,8 @@ public class BluetoothMapContent {
         String[] projection = {Mms.Addr.ADDRESS};
         Cursor c = null;
         try {
-            c = r.query(uriAddress, projection, selection, null, null); // TODO: Add projection
+            c = BluetoothMethodProxy.getInstance().contentResolverQuery(r, uriAddress, projection,
+                    selection, null, null); // TODO: Add projection
             int colIndex = c.getColumnIndex(Mms.Addr.ADDRESS);
             if (c != null) {
                 if (c.moveToFirst()) {
