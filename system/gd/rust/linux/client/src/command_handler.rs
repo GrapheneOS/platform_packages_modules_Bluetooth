@@ -306,9 +306,17 @@ impl CommandHandler {
             "adapter <enable|disable|show|discoverable|connectable|set-name>",
             || match &args[0][0..] {
                 "enable" => {
+                    if self.context.lock().unwrap().is_restricted {
+                        println!("You are not allowed to toggle adapter power");
+                        return;
+                    }
                     self.context.lock().unwrap().manager_dbus.start(default_adapter);
                 }
                 "disable" => {
+                    if self.context.lock().unwrap().is_restricted {
+                        println!("You are not allowed to toggle adapter power");
+                        return;
+                    }
                     self.context.lock().unwrap().manager_dbus.stop(default_adapter);
                 }
                 "show" => {
