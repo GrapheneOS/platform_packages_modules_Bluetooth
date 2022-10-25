@@ -1,5 +1,6 @@
 /******************************************************************************
  *
+ *  Copyright (C) 2016 The Linux Foundation
  *  Copyright 2009-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,6 +85,7 @@
 #include "common/os_utils.h"
 #include "device/include/device_iot_config.h"
 #include "device/include/interop.h"
+#include "device/include/interop_config.h"
 #include "gd/common/init_flags.h"
 #include "gd/os/parameter_provider.h"
 #include "main/shim/dumpsys.h"
@@ -964,6 +966,92 @@ static void metadata_changed(const RawAddress& remote_bd_addr, int key,
                                 std::move(value)));
 }
 
+static bool interop_match_addr(const char* feature_name,
+                               const RawAddress* addr) {
+  if (feature_name == NULL || addr == NULL) {
+    return false;
+  }
+
+  int feature = interop_feature_name_to_feature_id(feature_name);
+  if (feature == -1) {
+    BTIF_TRACE_ERROR("%s: feature doesn't exist: %s", __func__, feature_name);
+    return false;
+  }
+
+  return interop_match_addr((interop_feature_t)feature, addr);
+}
+
+static bool interop_match_name(const char* feature_name, const char* name) {
+  if (feature_name == NULL || name == NULL) {
+    return false;
+  }
+
+  int feature = interop_feature_name_to_feature_id(feature_name);
+  if (feature == -1) {
+    BTIF_TRACE_ERROR("%s: feature doesn't exist: %s", __func__, feature_name);
+    return false;
+  }
+
+  return interop_match_name((interop_feature_t)feature, name);
+}
+
+static bool interop_match_addr_or_name(const char* feature_name,
+                                       const RawAddress* addr) {
+  if (feature_name == NULL || addr == NULL) {
+    return false;
+  }
+
+  int feature = interop_feature_name_to_feature_id(feature_name);
+  if (feature == -1) {
+    BTIF_TRACE_ERROR("%s: feature doesn't exist: %s", __func__, feature_name);
+    return false;
+  }
+
+  return interop_match_addr_or_name((interop_feature_t)feature, addr,
+                                    &btif_storage_get_remote_device_property);
+}
+
+static void interop_database_add_remove_addr(bool do_add,
+                                             const char* feature_name,
+                                             const RawAddress* addr,
+                                             int length) {
+  if (feature_name == NULL || addr == NULL) {
+    return;
+  }
+
+  int feature = interop_feature_name_to_feature_id(feature_name);
+  if (feature == -1) {
+    BTIF_TRACE_ERROR("%s: feature doesn't exist: %s", __func__, feature_name);
+    return;
+  }
+
+  if (do_add) {
+    interop_database_add_addr((interop_feature_t)feature, addr, (size_t)length);
+  } else {
+    interop_database_remove_addr((interop_feature_t)feature, addr);
+  }
+}
+
+static void interop_database_add_remove_name(bool do_add,
+                                             const char* feature_name,
+                                             const char* name) {
+  if (feature_name == NULL || name == NULL) {
+    return;
+  }
+
+  int feature = interop_feature_name_to_feature_id(feature_name);
+  if (feature == -1) {
+    BTIF_TRACE_ERROR("%s: feature doesn't exist: %s", __func__, feature_name);
+    return;
+  }
+
+  if (do_add) {
+    interop_database_add_name((interop_feature_t)feature, name);
+  } else {
+    interop_database_remove_name((interop_feature_t)feature, name);
+  }
+}
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     .init = init,
@@ -1017,7 +1105,13 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     .set_event_filter_connection_setup_all_devices =
         set_event_filter_connection_setup_all_devices,
     .get_wbs_supported = get_wbs_supported,
-    .metadata_changed = metadata_changed};
+    .metadata_changed = metadata_changed,
+    .interop_match_addr = interop_match_addr,
+    .interop_match_name = interop_match_name,
+    .interop_match_addr_or_name = interop_match_addr_or_name,
+    .interop_database_add_remove_addr = interop_database_add_remove_addr,
+    .interop_database_add_remove_name = interop_database_add_remove_name,
+};
 
 // callback reporting helpers
 
