@@ -159,6 +159,18 @@ pub fn check_hci_device_exists(hci: i32) -> bool {
     Path::new(format!("{}/hci{}", HCI_DEVICES_DIR, hci).as_str()).exists()
 }
 
+/// Get the devpath for a given hci index. This gives a stable path that can be
+/// used to identify a device even as the hci index fluctuates.
+pub fn get_devpath_for_hci(hci: i32) -> Option<String> {
+    match std::fs::canonicalize(format!("{}/hci{}/device", HCI_DEVICES_DIR, hci).as_str()) {
+        Ok(p) => Some(p.into_os_string().into_string().ok()?),
+        Err(e) => {
+            log::debug!("Failed to get devpath for hci{} with error: {}", hci, e);
+            None
+        }
+    }
+}
+
 fn hci_devices_string_to_int(devices: Vec<String>) -> Vec<i32> {
     devices
         .into_iter()
