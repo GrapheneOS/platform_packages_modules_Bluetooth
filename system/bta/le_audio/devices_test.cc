@@ -35,6 +35,7 @@ namespace le_audio {
 namespace internal {
 namespace {
 
+using ::le_audio::DeviceConnectState;
 using ::le_audio::LeAudioDevice;
 using ::le_audio::LeAudioDeviceGroup;
 using ::le_audio::LeAudioDevices;
@@ -72,23 +73,23 @@ class LeAudioDevicesTest : public Test {
 TEST_F(LeAudioDevicesTest, test_add) {
   RawAddress test_address_0 = GetTestAddress(0);
   ASSERT_EQ((size_t)0, devices_->Size());
-  devices_->Add(test_address_0, true);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
   ASSERT_EQ((size_t)1, devices_->Size());
-  devices_->Add(GetTestAddress(1), true, 1);
+  devices_->Add(GetTestAddress(1), DeviceConnectState::CONNECTING_BY_USER, 1);
   ASSERT_EQ((size_t)2, devices_->Size());
-  devices_->Add(test_address_0, true);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
   ASSERT_EQ((size_t)2, devices_->Size());
-  devices_->Add(GetTestAddress(1), true, 2);
+  devices_->Add(GetTestAddress(1), DeviceConnectState::CONNECTING_BY_USER, 2);
   ASSERT_EQ((size_t)2, devices_->Size());
 }
 
 TEST_F(LeAudioDevicesTest, test_remove) {
   RawAddress test_address_0 = GetTestAddress(0);
-  devices_->Add(test_address_0, true);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
   RawAddress test_address_1 = GetTestAddress(1);
-  devices_->Add(test_address_1, true);
+  devices_->Add(test_address_1, DeviceConnectState::CONNECTING_BY_USER);
   RawAddress test_address_2 = GetTestAddress(2);
-  devices_->Add(test_address_2, true);
+  devices_->Add(test_address_2, DeviceConnectState::CONNECTING_BY_USER);
   ASSERT_EQ((size_t)3, devices_->Size());
   devices_->Remove(test_address_0);
   ASSERT_EQ((size_t)2, devices_->Size());
@@ -100,11 +101,11 @@ TEST_F(LeAudioDevicesTest, test_remove) {
 
 TEST_F(LeAudioDevicesTest, test_find_by_address_success) {
   RawAddress test_address_0 = GetTestAddress(0);
-  devices_->Add(test_address_0, true);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
   RawAddress test_address_1 = GetTestAddress(1);
-  devices_->Add(test_address_1, false);
+  devices_->Add(test_address_1, DeviceConnectState::DISCONNECTED);
   RawAddress test_address_2 = GetTestAddress(2);
-  devices_->Add(test_address_2, true);
+  devices_->Add(test_address_2, DeviceConnectState::CONNECTING_BY_USER);
   LeAudioDevice* device = devices_->FindByAddress(test_address_1);
   ASSERT_NE(nullptr, device);
   ASSERT_EQ(test_address_1, device->address_);
@@ -112,20 +113,20 @@ TEST_F(LeAudioDevicesTest, test_find_by_address_success) {
 
 TEST_F(LeAudioDevicesTest, test_find_by_address_failed) {
   RawAddress test_address_0 = GetTestAddress(0);
-  devices_->Add(test_address_0, true);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
   RawAddress test_address_2 = GetTestAddress(2);
-  devices_->Add(test_address_2, true);
+  devices_->Add(test_address_2, DeviceConnectState::CONNECTING_BY_USER);
   LeAudioDevice* device = devices_->FindByAddress(GetTestAddress(1));
   ASSERT_EQ(nullptr, device);
 }
 
 TEST_F(LeAudioDevicesTest, test_get_by_address_success) {
   RawAddress test_address_0 = GetTestAddress(0);
-  devices_->Add(test_address_0, true);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
   RawAddress test_address_1 = GetTestAddress(1);
-  devices_->Add(test_address_1, false);
+  devices_->Add(test_address_1, DeviceConnectState::DISCONNECTED);
   RawAddress test_address_2 = GetTestAddress(2);
-  devices_->Add(test_address_2, true);
+  devices_->Add(test_address_2, DeviceConnectState::CONNECTING_BY_USER);
   std::shared_ptr<LeAudioDevice> device =
       devices_->GetByAddress(test_address_1);
   ASSERT_NE(nullptr, device);
@@ -134,28 +135,28 @@ TEST_F(LeAudioDevicesTest, test_get_by_address_success) {
 
 TEST_F(LeAudioDevicesTest, test_get_by_address_failed) {
   RawAddress test_address_0 = GetTestAddress(0);
-  devices_->Add(test_address_0, true);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
   RawAddress test_address_2 = GetTestAddress(2);
-  devices_->Add(test_address_2, true);
+  devices_->Add(test_address_2, DeviceConnectState::CONNECTING_BY_USER);
   std::shared_ptr<LeAudioDevice> device =
       devices_->GetByAddress(GetTestAddress(1));
   ASSERT_EQ(nullptr, device);
 }
 
 TEST_F(LeAudioDevicesTest, test_find_by_conn_id_success) {
-  devices_->Add(GetTestAddress(1), true);
+  devices_->Add(GetTestAddress(1), DeviceConnectState::CONNECTING_BY_USER);
   RawAddress test_address_0 = GetTestAddress(0);
-  devices_->Add(test_address_0, true);
-  devices_->Add(GetTestAddress(4), true);
+  devices_->Add(test_address_0, DeviceConnectState::CONNECTING_BY_USER);
+  devices_->Add(GetTestAddress(4), DeviceConnectState::CONNECTING_BY_USER);
   LeAudioDevice* device = devices_->FindByAddress(test_address_0);
   device->conn_id_ = 0x0005;
   ASSERT_EQ(device, devices_->FindByConnId(0x0005));
 }
 
 TEST_F(LeAudioDevicesTest, test_find_by_conn_id_failed) {
-  devices_->Add(GetTestAddress(1), true);
-  devices_->Add(GetTestAddress(0), true);
-  devices_->Add(GetTestAddress(4), true);
+  devices_->Add(GetTestAddress(1), DeviceConnectState::CONNECTING_BY_USER);
+  devices_->Add(GetTestAddress(0), DeviceConnectState::CONNECTING_BY_USER);
+  devices_->Add(GetTestAddress(4), DeviceConnectState::CONNECTING_BY_USER);
   ASSERT_EQ(nullptr, devices_->FindByConnId(0x0006));
 }
 
@@ -412,8 +413,8 @@ class LeAudioAseConfigurationTest : public Test {
                                int snk_ase_num_cached = 0,
                                int src_ase_num_cached = 0) {
     int index = group_->Size() + 1;
-    auto device =
-        (std::make_shared<LeAudioDevice>(GetTestAddress(index), false));
+    auto device = (std::make_shared<LeAudioDevice>(
+        GetTestAddress(index), DeviceConnectState::DISCONNECTED));
     devices_.push_back(device);
     group_->AddNode(device);
 
@@ -449,6 +450,7 @@ class LeAudioAseConfigurationTest : public Test {
         ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight;
 
     device->conn_id_ = index;
+    device->SetConnectionState(DeviceConnectState::CONNECTED);
     return device.get();
   }
 
