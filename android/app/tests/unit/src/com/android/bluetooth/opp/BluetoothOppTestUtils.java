@@ -19,6 +19,7 @@ package com.android.bluetooth.opp;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 
 import android.database.Cursor;
 
@@ -98,6 +99,12 @@ public class BluetoothOppTestUtils {
                     mockCursorData -> mockCursorData.mColumnIndex == index
             ).findFirst().orElse(new CursorMockData("", -1, null)).mValue;
         }).when(cursor).getString(anyInt());
+
+        doReturn(true).when(cursor).moveToFirst();
+        doReturn(true).when(cursor).moveToLast();
+        doReturn(true).when(cursor).moveToNext();
+        doReturn(true).when(cursor).moveToPrevious();
+        doReturn(true).when(cursor).moveToPosition(anyInt());
     }
 }
 
