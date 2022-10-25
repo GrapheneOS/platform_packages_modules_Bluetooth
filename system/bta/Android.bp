@@ -194,6 +194,39 @@ cc_test {
     ],
 }
 
+// bta unit tests for target
+cc_test {
+    name: "net_test_bta_security",
+    defaults: [
+        "fluoride_bta_defaults",
+        "mts_defaults"
+    ],
+    test_suites: ["device-tests"],
+    srcs: [
+        ":TestCommonMockFunctions",
+	":TestMockDevice",
+	":TestMockStack",
+	":TestMockBtif",
+        "test/bta_hf_client_security_test.cc",
+    ],
+    shared_libs: [
+        "android.hardware.bluetooth.audio@2.0",
+        "android.hardware.bluetooth.audio@2.1",
+        "libcrypto",
+        "liblog",
+        "libprotobuf-cpp-lite",
+    ],
+    static_libs: [
+        "crypto_toolbox_for_tests",
+        "libbtcore",
+        "libbt-bta",
+        "libbt-audio-hal-interface",
+        "libbluetooth-types",
+        "libbt-protos-lite",
+        "libosi",
+        "libbt-common",
+    ],
+}
 cc_test {
     name: "bt_host_test_bta",
     defaults: [
