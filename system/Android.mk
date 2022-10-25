@@ -48,7 +48,6 @@ LOCAL_target_libraries := \
 	$(TARGET_OUT_SHARED_LIBRARIES)/android.hardware.bluetooth@1.0.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/android.hardware.bluetooth@1.1.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libandroid_runtime_lazy.so \
-	$(TARGET_OUT_SHARED_LIBRARIES)/libbacktrace.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libbase.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libbinder_ndk.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libbinder.so \
