@@ -21,6 +21,7 @@ from pandora_experimental.host_grpc import Host
 
 import sys
 import threading
+import time
 
 # Standard time to wait before asking for waitConnection
 WAIT_DELAY_BEFORE_CONNECTION = 2
@@ -65,7 +66,7 @@ class HFPProxy(ProfileProxy):
         (IUT), then click Ok.
         """
 
-        self.host.DeletePairing(address=pts_addr)
+        self.security.DeletePairing(address=pts_addr)
         return "OK"
 
     @assert_description
@@ -106,7 +107,12 @@ class HFPProxy(ProfileProxy):
         Implementation Under Test (IUT).
         """
 
-        self.hfp.DisableSlc(connection=self.connection)
+        def go():
+            time.sleep(2)
+            self.hfp.DisableSlc(connection=self.connection)
+
+        threading.Thread(target=go).start()
+
         return "OK"
 
     @assert_description
