@@ -1,6 +1,7 @@
 [General]
 Name=Test Device
 Class=0x240418
+Appearance=0x03c2
 SupportedTechnologies=BR/EDR;
 Services=0000110b-0000-1000-8000-00805f9b34fb;0000110c-0000-1000-8000-00805f9b34fb;
 AddressType=static
