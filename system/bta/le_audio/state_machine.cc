@@ -919,6 +919,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   }
 
   void SetTargetState(LeAudioDeviceGroup* group, AseState state) {
+    LOG_DEBUG("Watchdog watch started for group=%d transition from %s to %s",
+              group->group_id_, ToString(group->GetTargetState()).c_str(),
+              ToString(state).c_str());
+
     group->SetTargetState(state);
 
     /* Group should tie in time to get requested status */
@@ -1491,8 +1495,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ase = leAudioDevice->GetFirstActiveAse();
     ASSERT_LOG(ase, "shouldn't be called without an active ASE");
     for (; ase != nullptr; ase = leAudioDevice->GetNextActiveAse(ase)) {
-      LOG_INFO(" Configure ase_id %d, cis_id %d, ase state %s", ase->id,
-               ase->cis_id, ToString(ase->state).c_str());
+      LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
+                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ase->cis_id, ToString(ase->state).c_str());
       conf.ase_id = ase->id;
       conf.target_latency = ase->target_latency;
       conf.target_phy = group->GetTargetPhy(ase->direction);
@@ -1897,6 +1902,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ase = leAudioDevice->GetFirstActiveAse();
     LOG_ASSERT(ase) << __func__ << " shouldn't be called without an active ASE";
     do {
+      LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
+                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ase->cis_id, ToString(ase->state).c_str());
       conf.ase_id = ase->id;
       conf.metadata = ase->metadata;
       confs.push_back(conf);
@@ -1915,6 +1923,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     std::vector<uint8_t> ids;
     do {
+      LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
+                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ase->cis_id, ToString(ase->state).c_str());
       ids.push_back(ase->id);
     } while ((ase = leAudioDevice->GetNextActiveAse(ase)));
 
@@ -1932,6 +1943,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     std::vector<uint8_t> ids;
     do {
+      LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
+                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ase->cis_id, ToString(ase->state).c_str());
       ids.push_back(ase->id);
     } while ((ase = leAudioDevice->GetNextActiveAse(ase)));
 
@@ -1949,6 +1963,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
          ase = leAudioDevice->GetNextActiveAse(ase)) {
+      LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
+                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ase->cis_id, ToString(ase->state).c_str());
+
       /* TODO: Configure first ASE qos according to context type */
       struct le_audio::client_parser::ascs::ctp_qos_conf conf;
       conf.ase_id = ase->id;
@@ -2006,6 +2024,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       /* Request server to update ASEs with new metadata */
       for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
            ase = leAudioDevice->GetNextActiveAse(ase)) {
+        LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
+                  leAudioDevice->address_.ToString().c_str(), ase->id,
+                  ase->cis_id, ToString(ase->state).c_str());
+
         struct le_audio::client_parser::ascs::ctp_update_metadata conf;
 
         conf.ase_id = ase->id;
