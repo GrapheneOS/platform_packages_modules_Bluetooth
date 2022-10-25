@@ -121,6 +121,46 @@ class HciMatchers(object):
         return event
 
     @staticmethod
+    def LeAdvertisement(subevent_code=hci_packets.SubeventCode.EXTENDED_ADVERTISING_REPORT, address=None, data=None):
+        return lambda msg: HciMatchers._extract_matching_le_advertisement(msg.payload, subevent_code, address, data) is not None
+
+    @staticmethod
+    def ExtractLeAdvertisement(packet_bytes,
+                               subevent_code=hci_packets.SubeventCode.EXTENDED_ADVERTISING_REPORT,
+                               address=None,
+                               data=None):
+        return HciMatchers._extract_matching_le_advertisement(packet_bytes, subevent_code, address, data)
+
+    @staticmethod
+    def _extract_matching_le_advertisement(packet_bytes,
+                                           subevent_code=hci_packets.SubeventCode.EXTENDED_ADVERTISING_REPORT,
+                                           address=None,
+                                           data=None):
+        inner_event = HciMatchers._extract_matching_le_event(packet_bytes, subevent_code)
+        if inner_event is None:
+            return None
+        matched = False
+
+        event = None
+
+        if subevent_code == hci_packets.SubeventCode.EXTENDED_ADVERTISING_REPORT:
+            event = hci_packets.LeExtendedAdvertisingReportView(inner_event)
+        else:
+            event = hci_packets.LeAdvertisingReportView(inner_event)
+
+        responses = event.GetResponses()
+
+        for response in responses:
+            if matched == False:
+                matched = (address == None or response.address.lower() == address.lower()) and (data == None or
+                                                                                                data in packet_bytes)
+
+        if not matched:
+            return None
+
+        return event
+
+    @staticmethod
     def LeConnectionComplete():
         return lambda msg: HciMatchers._extract_le_connection_complete(msg.payload) is not None
 
