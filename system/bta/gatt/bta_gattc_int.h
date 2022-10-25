@@ -25,6 +25,7 @@
 #define BTA_GATTC_INT_H
 
 #include <cstdint>
+#include <deque>
 
 #include "bt_target.h"  // Must be first to define build configuration
 #include "bta/gatt/database.h"
@@ -254,6 +255,7 @@ typedef struct {
   tBTA_GATTC_RCB* p_rcb;    /* pointer to the registration CB */
   tBTA_GATTC_SERV* p_srcb;  /* server cache CB */
   const tBTA_GATTC_DATA* p_q_cmd; /* command in queue waiting for execution */
+  std::deque<const tBTA_GATTC_DATA*> p_q_cmd_queue;
 
 // request during discover state
 #define BTA_GATTC_DISCOVER_REQ_NONE 0
@@ -423,8 +425,16 @@ extern tBTA_GATTC_SERV* bta_gattc_find_scb_by_cid(uint16_t conn_id);
 extern tBTA_GATTC_CLCB* bta_gattc_find_int_conn_clcb(tBTA_GATTC_DATA* p_msg);
 extern tBTA_GATTC_CLCB* bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA* p_msg);
 
-extern bool bta_gattc_enqueue(tBTA_GATTC_CLCB* p_clcb,
-                              const tBTA_GATTC_DATA* p_data);
+enum BtaEnqueuedResult_t {
+  ENQUEUED_READY_TO_SEND,
+  ENQUEUED_FOR_LATER,
+};
+
+extern BtaEnqueuedResult_t bta_gattc_enqueue(tBTA_GATTC_CLCB* p_clcb,
+                                             const tBTA_GATTC_DATA* p_data);
+extern bool bta_gattc_is_data_queued(tBTA_GATTC_CLCB* p_clcb,
+                                     const tBTA_GATTC_DATA* p_data);
+extern void bta_gattc_continue(tBTA_GATTC_CLCB* p_clcb);
 
 extern bool bta_gattc_check_notif_registry(tBTA_GATTC_RCB* p_clreg,
                                            tBTA_GATTC_SERV* p_srcb,
