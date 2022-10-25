@@ -172,6 +172,7 @@ fn parse_hci_adapter(flags: &mut InitFlags, values: Vec<&str>) {
 init_flags!(
     flags: {
         btaa_hci = true,
+        finite_att_timeout = true,
         gatt_robust_caching_client = true,
         gatt_robust_caching_server,
         gd_core,
