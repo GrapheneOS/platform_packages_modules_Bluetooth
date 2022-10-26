@@ -105,7 +105,7 @@ TEST(StorageHelperTest, DeserializeSinkPacs) {
   // clang-format on
 
   RawAddress test_address0 = GetTestAddress(0);
-  LeAudioDevice leAudioDevice(test_address0, false);
+  LeAudioDevice leAudioDevice(test_address0, DeviceConnectState::DISCONNECTED);
   ASSERT_TRUE(DeserializeSinkPacs(&leAudioDevice, validSinkPack));
   std::vector<uint8_t> serialize;
   ASSERT_TRUE(SerializeSinkPacs(&leAudioDevice, serialize));
@@ -189,7 +189,7 @@ TEST(StorageHelperTest, DeserializeSourcePacs) {
   // clang-format on
 
   RawAddress test_address0 = GetTestAddress(0);
-  LeAudioDevice leAudioDevice(test_address0, false);
+  LeAudioDevice leAudioDevice(test_address0, DeviceConnectState::DISCONNECTED);
   ASSERT_TRUE(DeserializeSourcePacs(&leAudioDevice, validSourcePack));
   std::vector<uint8_t> serialize;
   ASSERT_TRUE(SerializeSourcePacs(&leAudioDevice, serialize));
@@ -252,7 +252,7 @@ TEST(StorageHelperTest, DeserializeAses) {
   };
   // clang-format on
   RawAddress test_address0 = GetTestAddress(0);
-  LeAudioDevice leAudioDevice(test_address0, false);
+  LeAudioDevice leAudioDevice(test_address0, DeviceConnectState::DISCONNECTED);
   ASSERT_TRUE(DeserializeAses(&leAudioDevice, validAses));
 
   std::vector<uint8_t> serialize;
@@ -310,7 +310,7 @@ TEST(StorageHelperTest, DeserializeHandles) {
   };
   // clang-format on
   RawAddress test_address0 = GetTestAddress(0);
-  LeAudioDevice leAudioDevice(test_address0, false);
+  LeAudioDevice leAudioDevice(test_address0, DeviceConnectState::DISCONNECTED);
   ASSERT_TRUE(DeserializeHandles(&leAudioDevice, validHandles));
   std::vector<uint8_t> serialize;
   ASSERT_TRUE(SerializeHandles(&leAudioDevice, serialize));

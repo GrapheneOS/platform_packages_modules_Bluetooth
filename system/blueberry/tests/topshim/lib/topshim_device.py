@@ -135,8 +135,8 @@ class TopshimDevice(AsyncClosable):
     def allow_wake_by_hid(self):
         self.__post(self.__adapter.allow_wake_by_hid())
 
-    def set_default_event_mask(self):
-        self.__post(self.__adapter.set_default_event_mask())
+    def set_default_event_mask_except(self, mask, le_mask):
+        self.__post(self.__adapter.set_default_event_mask(mask, le_mask))
 
     def set_event_filter_inquiry_result_all_devices(self):
         self.__post(self.__adapter.set_event_filter_inquiry_result_all_devices())

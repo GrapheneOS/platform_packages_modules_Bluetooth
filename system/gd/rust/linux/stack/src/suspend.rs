@@ -49,6 +49,12 @@ pub trait ISuspendCallback: RPCProxy {
     fn on_resumed(&self, suspend_id: i32);
 }
 
+/// Events that are disabled when we go into suspend. This prevents spurious wakes from
+/// events we know can happen but are not useful.
+/// Bit 4 = Disconnect Complete.
+/// Bit 19 = Mode Change.
+const MASKED_EVENTS_FOR_SUSPEND: u64 = (1u64 << 4) | (1u64 << 19);
+
 #[derive(FromPrimitive, ToPrimitive)]
 #[repr(u32)]
 pub enum SuspendType {
@@ -149,13 +155,17 @@ impl ISuspend for Suspend {
     }
 
     fn suspend(&mut self, suspend_type: SuspendType, suspend_id: i32) {
-        self.intf.lock().unwrap().clear_event_mask();
+        // Set suspend event mask
+        self.intf.lock().unwrap().set_default_event_mask_except(MASKED_EVENTS_FOR_SUSPEND, 0u64);
+
         self.intf.lock().unwrap().clear_event_filter();
         self.intf.lock().unwrap().clear_filter_accept_list();
+
         // TODO(224602924): How do we get the advertising ids?
         self.gatt.lock().unwrap().stop_advertising_set(0);
         // TODO(224602924): How do we get the scanning ids?
         self.gatt.lock().unwrap().stop_scan(0);
+
         self.intf.lock().unwrap().disconnect_all_acls();
 
         // Handle wakeful cases (Connected/Other)
@@ -194,7 +204,7 @@ impl ISuspend for Suspend {
     }
 
     fn resume(&mut self) -> bool {
-        self.intf.lock().unwrap().set_default_event_mask();
+        self.intf.lock().unwrap().set_default_event_mask_except(0u64, 0u64);
         self.intf.lock().unwrap().set_event_filter_inquiry_result_all_devices();
         self.intf.lock().unwrap().set_event_filter_connection_setup_all_devices();
         if self.is_connected_suspend {

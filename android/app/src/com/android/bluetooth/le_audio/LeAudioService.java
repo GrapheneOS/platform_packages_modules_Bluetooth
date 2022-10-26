@@ -326,6 +326,11 @@ public class LeAudioService extends ProfileService {
         mLeAudioNativeIsInitialized = false;
         mHfpHandoverDevice = null;
 
+        mActiveAudioOutDevice = null;
+        mActiveAudioInDevice = null;
+        mDatabaseManager = null;
+        mLeAudioCodecConfig = null;
+
         // Set the service and BLE devices as inactive
         setLeAudioService(null);
 
