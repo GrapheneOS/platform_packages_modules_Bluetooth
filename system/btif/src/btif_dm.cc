@@ -651,14 +651,6 @@ static bool is_device_le_audio_capable(const RawAddress bd_addr) {
     return true;
   }
 
-  int device_type = 0;
-  std::string addrstr = bd_addr.ToString();
-  const char* bdstr = addrstr.c_str();
-  btif_config_get_int(bdstr, "DevType", &device_type);
-  if ((device_type & BT_DEVICE_TYPE_BLE) == BT_DEVICE_TYPE_BLE) {
-    return true;
-  }
-
   return false;
 }
 
