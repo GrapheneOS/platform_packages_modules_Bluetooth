@@ -424,6 +424,7 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
     nullptr, /* mtu_changed_cb */
     nullptr, /* phy_update_cb */
     nullptr, /* conn_update_cb */
+    nullptr, /* subrate_chg_cb */
 };
 
 // TODO(eisenbach): Refactor GATT interface to not require servers
@@ -449,6 +450,7 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr, /* phy_update_cb */
     nullptr, /* conn_update_cb */
     nullptr, /* service_changed_cb*/
+    nullptr, /* subrate_chg_cb */
 };
 
 const btgatt_scanner_callbacks_t gatt_scanner_callbacks = {

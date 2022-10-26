@@ -305,6 +305,9 @@ void acl_disconnect_after_role_switch(uint16_t conn_handle, tHCI_STATUS reason,
                                       std::string comment);
 
 bool acl_peer_supports_sniff_subrating(const RawAddress& remote_bda);
+bool acl_peer_supports_ble_connection_subrating(const RawAddress& remote_bda);
+bool acl_peer_supports_ble_connection_subrating_host(
+    const RawAddress& remote_bda);
 
 void btm_acl_set_paging(bool value);
 

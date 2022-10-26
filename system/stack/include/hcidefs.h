@@ -613,6 +613,7 @@ constexpr uint8_t HCI_LE_STATES_INIT_CENTRAL_PERIPHERAL_BIT = 41;
 
 #define HCI_LE_PERIODIC_ADV_SYNC_TRANSFERE_RECEIVED_EVT 0x18
 #define HCI_LE_BIGINFO_ADVERTISING_REPORT_EVT 0x22
+#define HCI_LE_SUBRATE_CHANGE_EVT 0x23
 
 #define HCI_VENDOR_SPECIFIC_EVT 0xFF /* Vendor specific events */
 
@@ -1041,6 +1042,9 @@ typedef struct {
 #define HCI_LE_CIS_PERIPHERAL(x) ((x)[3] & 0x20)
 #define HCI_LE_ISO_BROADCASTER(x) ((x)[3] & 0x40)
 #define HCI_LE_SYNCHRONIZED_RECEIVER(x) ((x)[3] & 0x80)
+
+#define HCI_LE_CONN_SUBRATING_SUPPORT(x) ((x)[4] & 0x20)
+#define HCI_LE_CONN_SUBRATING_HOST_SUPPORT(x) ((x)[4] & 0x40)
 
 /* Supported Commands*/
 #define HCI_NUM_SUPP_COMMANDS_BYTES 64

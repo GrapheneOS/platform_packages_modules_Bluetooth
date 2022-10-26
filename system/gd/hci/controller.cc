@@ -164,6 +164,13 @@ struct Controller::impl {
           handler->BindOnceOn(this, &Controller::impl::le_set_host_feature_handler));
     }
 
+    if (is_supported(OpCode::LE_SET_HOST_FEATURE) && module_.SupportsBleConnectionSubrating()) {
+      hci_->EnqueueCommand(
+          LeSetHostFeatureBuilder::Create(
+              LeHostFeatureBits::CONNECTION_SUBRATING_HOST_SUPPORT, Enable::ENABLED),
+          handler->BindOnceOn(this, &Controller::impl::le_set_host_feature_handler));
+    }
+
     hci_->EnqueueCommand(LeGetVendorCapabilitiesBuilder::Create(),
                          handler->BindOnceOn(this, &Controller::impl::le_get_vendor_capabilities_handler));
 
@@ -1051,6 +1058,8 @@ LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePowerControlRequest, 33)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePowerChangeIndication, 34)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePathLossMonitoring, 35)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePeriodicAdvertisingAdi, 36)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectionSubrating, 37)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectionSubratingHost, 38)
 
 uint64_t Controller::GetLocalFeatures(uint8_t page_number) const {
   if (page_number < impl_->extended_lmp_features_array_.size()) {

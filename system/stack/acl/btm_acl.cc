@@ -2299,6 +2299,35 @@ bool acl_peer_supports_sniff_subrating(const RawAddress& remote_bda) {
   return HCI_SNIFF_SUB_RATE_SUPPORTED(p_acl->peer_lmp_feature_pages[0]);
 }
 
+bool acl_peer_supports_ble_connection_subrating(const RawAddress& remote_bda) {
+  tACL_CONN* p_acl = internal_.btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
+  if (p_acl == nullptr) {
+    LOG_WARN("Unable to find active acl");
+    return false;
+  }
+  if (!p_acl->peer_le_features_valid) {
+    LOG_WARN(
+        "Checking remote features but remote feature read is "
+        "incomplete");
+  }
+  return HCI_LE_CONN_SUBRATING_SUPPORT(p_acl->peer_le_features);
+}
+
+bool acl_peer_supports_ble_connection_subrating_host(
+    const RawAddress& remote_bda) {
+  tACL_CONN* p_acl = internal_.btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
+  if (p_acl == nullptr) {
+    LOG_WARN("Unable to find active acl");
+    return false;
+  }
+  if (!p_acl->peer_le_features_valid) {
+    LOG_WARN(
+        "Checking remote features but remote feature read is "
+        "incomplete");
+  }
+  return HCI_LE_CONN_SUBRATING_HOST_SUPPORT(p_acl->peer_le_features);
+}
+
 /*******************************************************************************
  *
  * Function         BTM_ReadConnectionAddr
