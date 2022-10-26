@@ -126,6 +126,9 @@ static const interop_addr_entry_t interop_addr_database[] = {
     // Toyota Prius - 2015
     {{{0xfc, 0xc2, 0xde, 0, 0, 0}}, 3, INTEROP_DISABLE_ROLE_SWITCH},
 
+    // Toyota Prius - b/231092023
+    {{{0x9c, 0xdf, 0x03, 0, 0, 0}}, 3, INTEROP_DISABLE_ROLE_SWITCH},
+
     // OBU II Bluetooth dongle
     {{{0x00, 0x04, 0x3e, 0, 0, 0}}, 3, INTEROP_DISABLE_ROLE_SWITCH},
 
