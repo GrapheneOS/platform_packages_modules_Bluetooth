@@ -1087,6 +1087,23 @@ TEST_F(VolumeControlCsis, test_set_volume) {
   std::vector<uint8_t> value({0x03, 0x01, 0x02});
   GetNotificationEvent(conn_id_1, test_address_1, 0x0021, value);
   GetNotificationEvent(conn_id_2, test_address_2, 0x0021, value);
+
+  /* Verify exactly one operation with this exact value is queued for each
+   * device */
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id_1, 0x0024, _, GATT_WRITE, _, _))
+      .Times(1);
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id_2, 0x0024, _, GATT_WRITE, _, _))
+      .Times(1);
+  VolumeControl::Get()->SetVolume(test_address_1, 20);
+  VolumeControl::Get()->SetVolume(test_address_2, 20);
+  VolumeControl::Get()->SetVolume(test_address_1, 20);
+  VolumeControl::Get()->SetVolume(test_address_2, 20);
+
+  std::vector<uint8_t> value2({20, 0x00, 0x03});
+  GetNotificationEvent(conn_id_1, test_address_1, 0x0021, value2);
+  GetNotificationEvent(conn_id_2, test_address_2, 0x0021, value2);
 }
 
 TEST_F(VolumeControlCsis, test_set_volume_device_not_ready) {
