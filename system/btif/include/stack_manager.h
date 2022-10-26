@@ -31,7 +31,7 @@ typedef struct {
   void (*start_up_stack_async)(bluetooth::core::CoreInterface*,
                                ProfileStartCallback, ProfileStopCallback);
   void (*shut_down_stack_async)(ProfileStopCallback);
-  void (*clean_up_stack)(void);
+  void (*clean_up_stack)(ProfileStopCallback);
 
   bool (*get_stack_is_running)(void);
 } stack_manager_t;
