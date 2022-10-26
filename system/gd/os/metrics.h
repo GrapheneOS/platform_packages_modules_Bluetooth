@@ -268,6 +268,8 @@ void LogMetricBluetoothHalCrashReason(
     uint32_t error_code,
     uint32_t vendor_error_code);
 
+void LogMetricBluetoothLocalSupportedFeatures(uint32_t page_num, uint64_t features);
+
 void LogMetricBluetoothLocalVersions(
     uint32_t lmp_manufacturer_name,
     uint8_t lmp_version,
