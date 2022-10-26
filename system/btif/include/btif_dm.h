@@ -84,7 +84,7 @@ void btif_dm_le_rand(LeRandCallback callback);
 void btif_dm_set_event_filter_connection_setup_all_devices();
 void btif_dm_allow_wake_by_hid();
 void btif_dm_restore_filter_accept_list();
-void btif_dm_set_default_event_mask();
+void btif_dm_set_default_event_mask_except(uint64_t mask, uint64_t le_mask);
 void btif_dm_set_event_filter_inquiry_result_all_devices();
 
 /*callout for reading SMP properties from Text file*/

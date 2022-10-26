@@ -1298,7 +1298,8 @@ extern void BTA_DmSetEventFilterConnectionSetupAllDevices();
  * Parameters
  *
  *******************************************************************************/
-extern void BTA_DmAllowWakeByHid(std::vector<RawAddress> le_hid_devices);
+extern void BTA_DmAllowWakeByHid(
+    std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices);
 
 /*******************************************************************************
  *
@@ -1313,14 +1314,17 @@ extern void BTA_DmRestoreFilterAcceptList();
 
 /*******************************************************************************
  *
- * Function        BTA_DmSetDefaultEventMask
+ * Function       BTA_DmSetDefaultEventMaskExcept
  *
- * Description    Floss: Set the default event mask for Classic and LE
+ * Description    Floss: Set the default event mask for Classic and LE except
+ *                the given values (they will be disabled in the final set
+ *                mask).
  *
- * Parameters
+ * Parameters     Bits set for event mask and le event mask that should be
+ *                disabled in the final value.
  *
  *******************************************************************************/
-extern void BTA_DmSetDefaultEventMask();
+extern void BTA_DmSetDefaultEventMaskExcept(uint64_t mask, uint64_t le_mask);
 
 /*******************************************************************************
  *

@@ -2789,7 +2789,7 @@ static void id_status_callback(tBT_TRANSPORT transport, bool is_valid,
   LOG_ERROR("oob_advertiser_id: %s", oob_advertiser_id_.get());
 
   auto advertiser = get_ble_advertiser_instance();
-  AdvertiseParameters parameters;
+  AdvertiseParameters parameters{};
   parameters.advertising_event_properties = 0x0041 /* connectable, tx power */;
   parameters.min_interval = 0xa0;   // 100 ms
   parameters.max_interval = 0x500;  // 800 ms
@@ -2798,6 +2798,7 @@ static void id_status_callback(tBT_TRANSPORT transport, bool is_valid,
   parameters.primary_advertising_phy = 1;
   parameters.secondary_advertising_phy = 2;
   parameters.scan_request_notification_enable = 0;
+  parameters.own_address_type = BLE_ADDR_RANDOM;
 
   std::vector<uint8_t> advertisement{0x02, 0x01 /* Flags */,
                                      0x02 /* Connectable */};
@@ -3585,9 +3586,9 @@ void btif_dm_restore_filter_accept_list() {
   BTA_DmRestoreFilterAcceptList();
 }
 
-void btif_dm_set_default_event_mask() {
+void btif_dm_set_default_event_mask_except(uint64_t mask, uint64_t le_mask) {
   // Autoplumbed
-  BTA_DmSetDefaultEventMask();
+  BTA_DmSetDefaultEventMaskExcept(mask, le_mask);
 }
 
 void btif_dm_set_event_filter_inquiry_result_all_devices() {

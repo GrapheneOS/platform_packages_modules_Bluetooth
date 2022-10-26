@@ -1205,8 +1205,8 @@ impl BluetoothInterface {
         ccall!(self, restore_filter_accept_list)
     }
 
-    pub fn set_default_event_mask(&self) -> i32 {
-        ccall!(self, set_default_event_mask)
+    pub fn set_default_event_mask_except(&self, mask: u64, le_mask: u64) -> i32 {
+        ccall!(self, set_default_event_mask_except, mask, le_mask)
     }
 
     pub fn set_event_filter_inquiry_result_all_devices(&self) -> i32 {

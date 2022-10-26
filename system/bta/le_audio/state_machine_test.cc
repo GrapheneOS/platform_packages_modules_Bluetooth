@@ -35,6 +35,7 @@
 #include "mock_iso_manager.h"
 #include "types/bt_transport.h"
 
+using ::le_audio::DeviceConnectState;
 using ::testing::_;
 using ::testing::AnyNumber;
 using ::testing::AtLeast;
@@ -443,13 +444,13 @@ class StateMachineTest : public Test {
     ::le_audio::AudioSetConfigurationProvider::Cleanup();
   }
 
-  std::shared_ptr<LeAudioDevice> PrepareConnectedDevice(uint8_t id,
-                                                        bool first_connection,
-                                                        uint8_t num_ase_snk,
-                                                        uint8_t num_ase_src) {
-    auto leAudioDevice =
-        std::make_shared<LeAudioDevice>(GetTestAddress(id), first_connection);
+  std::shared_ptr<LeAudioDevice> PrepareConnectedDevice(
+      uint8_t id, DeviceConnectState initial_connect_state, uint8_t num_ase_snk,
+      uint8_t num_ase_src) {
+    auto leAudioDevice = std::make_shared<LeAudioDevice>(GetTestAddress(id),
+                                                         initial_connect_state);
     leAudioDevice->conn_id_ = id;
+    leAudioDevice->SetConnectionState(DeviceConnectState::CONNECTED);
 
     uint16_t attr_handle = ATTR_HANDLE_ASCS_POOL_START;
     leAudioDevice->snk_audio_locations_hdls_.val_hdl = attr_handle++;
@@ -668,7 +669,8 @@ class StateMachineTest : public Test {
                                  uint16_t update_context_type,
                                  bool insert_default_pac_records = true) {
     // Prepare fake connected device group
-    bool first_connections = true;
+    DeviceConnectState initial_connect_state =
+        DeviceConnectState::CONNECTING_BY_USER;
     int total_devices = device_cnt;
     le_audio::LeAudioDeviceGroup* group = nullptr;
 
@@ -696,7 +698,7 @@ class StateMachineTest : public Test {
 
     while (device_cnt) {
       auto leAudioDevice = PrepareConnectedDevice(
-          device_cnt--, first_connections, num_ase_snk, num_ase_src);
+          device_cnt--, initial_connect_state, num_ase_snk, num_ase_src);
 
       if (insert_default_pac_records) {
         uint16_t attr_handle = ATTR_HANDLE_PACS_POOL_START;

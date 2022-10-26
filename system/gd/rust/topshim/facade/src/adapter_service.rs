@@ -5,8 +5,8 @@ use bt_topshim::btif::{BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterfac
 
 use bt_topshim_facade_protobuf::empty::Empty;
 use bt_topshim_facade_protobuf::facade::{
-    EventType, FetchEventsRequest, FetchEventsResponse, SetDiscoveryModeRequest,
-    SetDiscoveryModeResponse, ToggleStackRequest, ToggleStackResponse,
+    EventType, FetchEventsRequest, FetchEventsResponse, SetDefaultEventMaskExceptRequest,
+    SetDiscoveryModeRequest, SetDiscoveryModeResponse, ToggleStackRequest, ToggleStackResponse,
 };
 use bt_topshim_facade_protobuf::facade_grpc::{create_adapter_service, AdapterService};
 use futures::sink::SinkExt;
@@ -185,8 +185,13 @@ impl AdapterService for AdapterServiceImpl {
         })
     }
 
-    fn set_default_event_mask(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
-        self.btif_intf.lock().unwrap().set_default_event_mask();
+    fn set_default_event_mask_except(
+        &mut self,
+        ctx: RpcContext<'_>,
+        req: SetDefaultEventMaskExceptRequest,
+        sink: UnarySink<Empty>,
+    ) {
+        self.btif_intf.lock().unwrap().set_default_event_mask_except(req.mask, req.le_mask);
         ctx.spawn(async move {
             sink.success(Empty::default()).await.unwrap();
         })
