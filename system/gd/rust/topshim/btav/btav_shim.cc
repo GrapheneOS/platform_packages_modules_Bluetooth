@@ -37,13 +37,9 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
     rusty::avrcp_send_key_event(key, state == KeyState::PUSHED);
   }
 
-  void GetSongInfo(SongInfoCallback cb) override {
-    songInfoCb_ = std::move(cb);
-  }
+  void GetSongInfo([[maybe_unused]] SongInfoCallback cb) override {}
 
-  void GetPlayStatus(PlayStatusCallback cb) override {
-    playStatusCb_ = std::move(cb);
-  }
+  void GetPlayStatus([[maybe_unused]] PlayStatusCallback cb) override {}
 
   void GetNowPlayingList([[maybe_unused]] NowPlayingCallback cb) override {}
 
@@ -70,43 +66,6 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
     topshim::rust::RustRawAddress addr = rusty::CopyToRustAddress(address);
     rusty::avrcp_set_active_device(addr);
   }
-
-  void SetPlaybackStatus(const PlayState& state) {
-    if (!playStatusCb_) return;
-
-    playStatus_.state = state;
-    playStatusCb_.Run(playStatus_);
-  }
-
-  void SetPosition(int64_t position_us) {
-    if (!playStatusCb_) return;
-
-    // Unit conversion from microsecond to millisecond.
-    playStatus_.position = position_us / 1000;
-    playStatusCb_.Run(playStatus_);
-  }
-
-  void SetMetadata(const std::string& title, const std::string& artist, const std::string& album, int64_t length_us) {
-    SongInfo song_info;
-
-    if (title.length() || artist.length() || album.length()) {
-      song_info.attributes.emplace(avrcp::AttributeEntry(avrcp::Attribute::TITLE, title));
-      song_info.attributes.emplace(avrcp::AttributeEntry(avrcp::Attribute::ARTIST_NAME, artist));
-      song_info.attributes.emplace(avrcp::AttributeEntry(avrcp::Attribute::ALBUM_NAME, album));
-
-      if (songInfoCb_) songInfoCb_.Run(song_info);
-    }
-
-    // Unit conversion from microsecond to millisecond.
-    playStatus_.duration = length_us / 1000;
-    if (playStatusCb_ && !length_us) playStatusCb_.Run(playStatus_);
-  }
-
- private:
-  PlayStatusCallback playStatusCb_;
-  SongInfoCallback songInfoCb_;
-
-  PlayStatus playStatus_;
 };
 
 class VolumeInterfaceImpl : public VolumeInterface {
@@ -347,24 +306,6 @@ uint32_t AvrcpIntf::disconnect(RustRawAddress bt_addr) {
 
 void AvrcpIntf::set_volume(int8_t volume) {
   return mVolumeInterface.SetDeviceVolume(volume);
-}
-
-void AvrcpIntf::set_playback_status(const ::rust::String& status) {
-  avrcp::PlayState state = avrcp::PlayState::STOPPED;
-
-  if (status == "stopped") state = avrcp::PlayState::STOPPED;
-  if (status == "playing") state = avrcp::PlayState::PLAYING;
-  if (status == "paused") state = avrcp::PlayState::PAUSED;
-
-  mAvrcpInterface.SetPlaybackStatus(state);
-}
-
-void AvrcpIntf::set_position(int64_t position) {
-  mAvrcpInterface.SetPosition(position);
-}
-void AvrcpIntf::set_metadata(
-    const ::rust::String& title, const ::rust::String& artist, const ::rust::String& album, int64_t length_us) {
-  mAvrcpInterface.SetMetadata((std::string&)title, (std::string&)artist, (std::string&)album, length_us);
 }
 }  // namespace rust
 }  // namespace topshim
