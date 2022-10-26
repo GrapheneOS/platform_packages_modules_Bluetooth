@@ -216,6 +216,8 @@ public class AdapterServiceTest {
         AsyncTask.setDefaultExecutor((r) -> {
             InstrumentationRegistry.getInstrumentation().runOnMainSync(r);
         });
+        InstrumentationRegistry.getInstrumentation().getUiAutomation()
+                .adoptShellPermissionIdentity();
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync(
                 () -> mAdapterService = new AdapterService());
@@ -243,6 +245,8 @@ public class AdapterServiceTest {
         mBluetoothManager = InstrumentationRegistry.getTargetContext()
                 .getSystemService(BluetoothManager.class);
 
+        when(mMockContext.getCacheDir()).thenReturn(InstrumentationRegistry.getTargetContext()
+                .getCacheDir());
         when(mMockContext.getApplicationInfo()).thenReturn(mMockApplicationInfo);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
         when(mMockContext.getApplicationContext()).thenReturn(mMockContext);
