@@ -11,7 +11,7 @@ pub struct PlayerMetadata {
     pub title: String,
     pub artist: String,
     pub album: String,
-    pub length: i64,
+    pub length_us: i64,
 }
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
@@ -33,6 +33,15 @@ pub mod ffi {
         fn connect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> u32;
         fn disconnect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> u32;
         fn set_volume(self: Pin<&mut AvrcpIntf>, volume: i8);
+        fn set_playback_status(self: Pin<&mut AvrcpIntf>, status: &String);
+        fn set_position(self: Pin<&mut AvrcpIntf>, position_us: i64);
+        fn set_metadata(
+            self: Pin<&mut AvrcpIntf>,
+            title: &String,
+            artist: &String,
+            album: &String,
+            length_us: i64,
+        );
 
     }
     extern "Rust" {
@@ -183,5 +192,25 @@ impl Avrcp {
     pub fn cleanup(&mut self) -> bool {
         self.internal.pin_mut().cleanup();
         true
+    }
+
+    #[profile_enabled_or]
+    pub fn set_playback_status(&mut self, status: &String) {
+        self.internal.pin_mut().set_playback_status(status);
+    }
+
+    #[profile_enabled_or]
+    pub fn set_position(&mut self, position_us: i64) {
+        self.internal.pin_mut().set_position(position_us);
+    }
+
+    #[profile_enabled_or]
+    pub fn set_metadata(&mut self, metadata: &PlayerMetadata) {
+        self.internal.pin_mut().set_metadata(
+            &metadata.title,
+            &metadata.artist,
+            &metadata.album,
+            metadata.length_us,
+        );
     }
 }
