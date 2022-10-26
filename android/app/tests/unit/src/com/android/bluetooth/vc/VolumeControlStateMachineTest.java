@@ -68,6 +68,7 @@ public class VolumeControlStateMachineTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
+        InstrumentationRegistry.getInstrumentation().getUiAutomation().adoptShellPermissionIdentity();
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
