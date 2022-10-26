@@ -188,6 +188,15 @@ public class AvrcpControllerStateMachineTest {
     }
 
     /**
+     * Send an audio focus changed event to the state machine under test
+     */
+    private void sendAudioFocusUpdate(int state) {
+        when(mA2dpSinkService.getFocusState()).thenReturn(state);
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.AUDIO_FOCUS_STATE_CHANGE, state);
+    }
+
+    /**
      * Setup Connected State for a given state machine
      *
      * @return number of times mAvrcpControllerService.sendBroadcastAsUser() has been invoked
@@ -1361,5 +1370,169 @@ public class AvrcpControllerStateMachineTest {
 
         List<MediaSessionCompat.QueueItem> queue = controller.getQueue();
         Assert.assertNull(queue);
+    }
+
+    /**
+     * Test receiving an audio focus changed event when we are not recovering from a transient loss.
+     * This should result in no play command being sent.
+     */
+    @Test
+    public void testOnAudioFocusGain_playNotSent() {
+        setUpConnectedState(true, true);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
+        verify(mAvrcpControllerService,never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_UP));
+    }
+
+    /**
+     * Test receiving a transient loss audio focus changed event while playing. A pause should be
+     * sent
+     */
+    @Test
+    public void testOnAudioFocusTransientLossWhilePlaying_pauseSent() {
+        when(mMockResources.getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus))
+                .thenReturn(false);
+        setUpConnectedState(true, true);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+        setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_LOSS_TRANSIENT);
+
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService, times(1)).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
+        verify(mAvrcpControllerService, times(1)).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_UP));
+    }
+
+    /**
+     * Test receiving a transient loss audio focus changed event while paused. No pause should be
+     * sent
+     */
+    @Test
+    public void testOnAudioFocusTransientLossWhilePaused_pauseNotSent() {
+        setUpConnectedState(true, true);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+        setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_LOSS_TRANSIENT);
+
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_UP));
+    }
+
+    /**
+     * Test receiving an audio focus loss event. A pause should be sent
+     */
+    @Test
+    public void testOnAudioFocusLoss_pauseSent() {
+        setUpConnectedState(true, true);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_LOSS);
+
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService, times(1)).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
+        verify(mAvrcpControllerService, times(1)).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_UP));
+
+    }
+
+    /**
+     * Test receiving an audio focus gained event following a transient loss where we sent a pause
+     * and no event happened in between that should cause us to remain paused.
+     */
+    @Test
+    public void testOnAudioFocusGainFromTransientLossWhilePlaying_playSent() {
+        testOnAudioFocusTransientLossWhilePlaying_pauseSent();
+        clearInvocations(mAvrcpControllerService);
+        setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService, times(1)).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_DOWN));
+        verify(mAvrcpControllerService, times(1)).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_UP));
+    }
+
+    /**
+     * Test receiving an audio focus changed event following a transient loss where
+     */
+    @Test
+    public void testOnAudioFocusGainFromTransientLossWhilePlayingWithPause_playNotSent() {
+        testOnAudioFocusTransientLossWhilePlaying_pauseSent();
+        clearInvocations(mAvrcpControllerService);
+        setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+
+        MediaControllerCompat.TransportControls transportControls =
+                BluetoothMediaBrowserService.getTransportControls();
+        transportControls.pause();
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_UP));
+
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_DOWN));
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_UP));
+    }
+
+    /**
+     * Test receiving an audio focus gain event coming out of a transient loss where a stop command
+     * has been sent
+     */
+    @Test
+    public void testOnAudioFocusGainFromTransientLossWithStop_playNotSent() {
+        testOnAudioFocusTransientLossWhilePlaying_pauseSent();
+        clearInvocations(mAvrcpControllerService);
+        setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+
+        MediaControllerCompat.TransportControls transportControls =
+                BluetoothMediaBrowserService.getTransportControls();
+        transportControls.stop();
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_STOP), eq(KEY_DOWN));
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_STOP), eq(KEY_UP));
+
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_DOWN));
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_UP));
+    }
+
+    /**
+     * Test receiving an audio focus gain coming out of a transient loss where we were paused going
+     * into the transient loss. No play should be sent because not play state needs to be recovered
+     */
+    @Test
+    public void testOnAudioFocusGainFromTransientLossWhilePaused_playNotSent() {
+        testOnAudioFocusTransientLossWhilePaused_pauseNotSent();
+        clearInvocations(mAvrcpControllerService);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_DOWN));
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(eq(mTestAddress),
+                eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_UP));
     }
 }
