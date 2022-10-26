@@ -125,7 +125,7 @@ impl DBusArg for PlayerMetadata {
                     )?
                 }
                 "length" => {
-                    metadata.length = i64::ref_arg_to_rust(
+                    metadata.length_us = i64::ref_arg_to_rust(
                         variant.as_static_inner(0).unwrap(),
                         String::from("PlayerMetadata::Length"),
                     )?
@@ -244,7 +244,7 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("SetPlayerPosition")]
-    fn set_player_posistion(&mut self, position: i64) {
+    fn set_player_position(&mut self, position_us: i64) {
         dbus_generated!()
     }
 
