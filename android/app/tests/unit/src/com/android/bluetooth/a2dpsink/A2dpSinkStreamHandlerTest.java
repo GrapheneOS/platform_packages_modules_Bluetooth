@@ -233,20 +233,14 @@ public class A2dpSinkStreamHandlerTest {
     }
 
     @Test
-    public void testFocusGainTransient() {
-        // Focus was lost then regained.
-        testSnkPlay();
-        mStreamHandler.handleMessage(
-                mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
-                        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT));
-        mStreamHandler.handleMessage(
-                mStreamHandler.obtainMessage(A2dpSinkStreamHandler.DELAYED_PAUSE));
+    public void testFocusGainFromTransientLoss() {
+        // Focus was lost transiently and then regained.
+        testFocusLostTransient();
+
         mStreamHandler.handleMessage(
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
                         AudioManager.AUDIOFOCUS_GAIN));
         verify(mMockAudioManager, times(0)).abandonAudioFocus(any());
-        verify(mMockNativeInterface, times(0)).informAudioFocusState(0);
-        verify(mMockNativeInterface, times(1)).informAudioTrackGain(0);
         verify(mMockNativeInterface, times(2)).informAudioTrackGain(1.0f);
 
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
