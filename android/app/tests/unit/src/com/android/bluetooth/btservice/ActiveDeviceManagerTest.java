@@ -578,7 +578,7 @@ public class ActiveDeviceManagerTest {
                 }
         );
         a2dpDisconnected(mA2dpDevice);
-        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(isNull());
+        verify(mA2dpService, timeout(TIMEOUT_MS).atLeast(1)).setActiveDevice(isNull());
         verify(mHearingAidService, timeout(TIMEOUT_MS).times(2))
                 .setActiveDevice(mHearingAidDevice);
     }
