@@ -559,6 +559,9 @@ bool A2dpCodecs::init() {
   LOG_INFO("%s", __func__);
   std::lock_guard<std::recursive_mutex> lock(codec_mutex_);
 
+  bool opus_enabled =
+      osi_property_get_bool("persist.bluetooth.opus.enabled", false);
+
   for (int i = BTAV_A2DP_CODEC_INDEX_MIN; i < BTAV_A2DP_CODEC_INDEX_MAX; i++) {
     btav_a2dp_codec_index_t codec_index =
         static_cast<btav_a2dp_codec_index_t>(i);
@@ -569,6 +572,13 @@ bool A2dpCodecs::init() {
     auto cp_iter = codec_priorities_.find(codec_index);
     if (cp_iter != codec_priorities_.end()) {
       codec_priority = cp_iter->second;
+    }
+
+    // If OPUS is not supported it is disabled
+    if (codec_index == BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS && !opus_enabled) {
+      codec_priority = BTAV_A2DP_CODEC_PRIORITY_DISABLED;
+      LOG_INFO("%s: OPUS codec disabled, updated priority to %d", __func__,
+               codec_priority);
     }
 
     A2dpCodecConfig* codec_config =
