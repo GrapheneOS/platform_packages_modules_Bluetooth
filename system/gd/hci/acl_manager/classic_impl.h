@@ -25,6 +25,7 @@
 #include "hci/acl_manager/event_checkers.h"
 #include "hci/acl_manager/round_robin_scheduler.h"
 #include "hci/controller.h"
+#include "os/metrics.h"
 #include "security/security_manager_listener.h"
 #include "security/security_module.h"
 
@@ -208,6 +209,14 @@ struct classic_impl : public security::ISecurityManagerListener {
         }
       }
       return kIllegalConnectionHandle;
+    }
+    Address get_address(uint16_t handle) const {
+      std::unique_lock<std::mutex> lock(acl_connections_guard_);
+      auto connection = acl_connections_.find(handle);
+      if (connection == acl_connections_.end()) {
+        return Address::kEmpty;
+      }
+      return connection->second.address_with_type_.GetAddress();
     }
     bool is_classic_link_already_connected(const Address& address) const {
       std::unique_lock<std::mutex> lock(acl_connections_guard_);
@@ -411,6 +420,8 @@ struct classic_impl : public security::ISecurityManagerListener {
   static constexpr bool kRemoveConnectionAfterwards = true;
   void on_classic_disconnect(uint16_t handle, ErrorCode reason) {
     bool event_also_routes_to_other_receivers = connections.crash_on_unknown_handle_;
+    bluetooth::os::LogMetricBluetoothDisconnectionReasonReported(
+        static_cast<uint32_t>(reason), connections.get_address(handle), handle);
     connections.crash_on_unknown_handle_ = false;
     connections.execute(
         handle,

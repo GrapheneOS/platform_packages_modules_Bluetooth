@@ -424,6 +424,45 @@ void LogMetricBluetoothHalCrashReason(
   }
 }
 
+void LogMetricBluetoothLocalVersions(
+    uint32_t lmp_manufacturer_name,
+    uint8_t lmp_version,
+    uint32_t lmp_subversion,
+    uint8_t hci_version,
+    uint32_t hci_revision) {
+  int ret = stats_write(
+      BLUETOOTH_LOCAL_VERSIONS_REPORTED, lmp_manufacturer_name, lmp_version, lmp_subversion, hci_version, hci_revision);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed for LogMetricBluetoothLocalVersions, "
+        "lmp_manufacturer_name %d, lmp_version %hhu, lmp_subversion %d, hci_version %hhu, hci_revision %d, error %d",
+        lmp_manufacturer_name,
+        lmp_version,
+        lmp_subversion,
+        hci_version,
+        hci_revision,
+        ret);
+  }
+}
+  
+void LogMetricBluetoothDisconnectionReasonReported(
+    uint32_t reason, const Address& address, uint32_t connection_handle) {
+  int metric_id = 0;
+  if (!address.IsEmpty()) {
+    metric_id = MetricIdManager::GetInstance().AllocateId(address);
+  }
+  int ret = stats_write(BLUETOOTH_DISCONNECTION_REASON_REPORTED, reason, metric_id, connection_handle);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed for LogMetricBluetoothDisconnectionReasonReported, "
+        "reason %d, metric_id %d, connection_handle %d, error %d",
+        reason,
+        metric_id,
+        connection_handle,
+        ret);
+  }
+}
+
 void LogMetricBluetoothCodePathCounterMetrics(int32_t key, int64_t count) {
   int ret = stats_write(BLUETOOTH_CODE_PATH_COUNTER, key, count);
   if (ret < 0) {

@@ -265,6 +265,16 @@ void LogMetricBluetoothHalCrashReason(
     uint32_t error_code,
     uint32_t vendor_error_code);
 
+void LogMetricBluetoothLocalVersions(
+    uint32_t lmp_manufacturer_name,
+    uint8_t lmp_version,
+    uint32_t lmp_subversion,
+    uint8_t hci_version,
+    uint32_t hci_revision);
+
+void LogMetricBluetoothDisconnectionReasonReported(
+    uint32_t reason, const hci::Address& address, uint32_t connection_handle);
+
 void LogMetricBluetoothCodePathCounterMetrics(int32_t key, int64_t count);
 }  // namespace os
 
