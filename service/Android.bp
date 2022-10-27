@@ -20,6 +20,7 @@ filegroup {
     name: "services.bluetooth-sources",
     srcs: [
         "java/**/*.java",
+        ":statslog-bluetooth-java-gen",
     ],
     visibility: [
         "//frameworks/base/services",
@@ -60,6 +61,7 @@ java_library {
         "framework-annotations-lib",
         "framework-bluetooth-pre-jarjar",
         "app-compat-annotations",
+        "framework-statsd.stubs.module_lib",
     ],
 
     static_libs: [
@@ -69,6 +71,9 @@ java_library {
         "bluetooth-manager-service-proto-java-gen",
         "bluetooth-proto-enums-java-gen",
         "bluetooth-nano-protos",
+        "bluetooth-protos-lite",
+        "libprotobuf-java-lite",
+        "bluetooth-proto-enums-java-gen",
     ],
 
     apex_available: [
