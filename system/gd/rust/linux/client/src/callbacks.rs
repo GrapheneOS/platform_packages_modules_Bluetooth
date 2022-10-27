@@ -436,15 +436,17 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
             tx_power,
             status
         );
+
+        let mut context = self.context.lock().unwrap();
         if status != GattStatus::Success {
             print_error!(
                 "on_advertising_set_started: remove advertising set registered ({})",
                 reg_id
             );
-            self.context.lock().unwrap().adv_sets.remove(&reg_id);
+            context.adv_sets.remove(&reg_id);
             return;
         }
-        if let Some(s) = self.context.lock().unwrap().adv_sets.get_mut(&reg_id) {
+        if let Some(s) = context.adv_sets.get_mut(&reg_id) {
             s.adv_id = Some(advertiser_id);
         } else {
             print_error!("on_advertising_set_started: invalid callback for reg_id={}", reg_id);
