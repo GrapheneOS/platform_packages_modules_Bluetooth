@@ -41,7 +41,7 @@ public class BluetoothUuidTest extends TestCase {
         byte[] uuid128 = new byte[] {
                 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, (byte) 0xFF };
-        assertEquals(ParcelUuid.fromString("FF0F0E0D-0C0B-0A09-0807-0060504030201"),
+        assertEquals(ParcelUuid.fromString("FF0F0E0D-0C0B-0A09-0807-060504030201"),
                 BluetoothUuid.parseUuidFrom(uuid128));
     }
 
