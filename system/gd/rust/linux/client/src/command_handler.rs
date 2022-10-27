@@ -9,7 +9,6 @@ use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
 use bt_topshim::profiles::gatt::LePhy;
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
-use btstack::bluetooth_adv::{AdvertiserId, RegId};
 use btstack::bluetooth_gatt::{
     IBluetoothGatt, ScanFilter, ScanFilterCondition, ScanSettings, ScanType,
 };
@@ -942,46 +941,37 @@ impl CommandHandler {
 
         enforce_arg_len(args, 1, "advertise <on|off|set-interval>", || match &args[0][0..] {
             "on" => {
-                if self.context.lock().unwrap().adv_sets.keys().len() > 0 {
+                let mut context = self.context.lock().unwrap();
+
+                if context.adv_sets.keys().len() > 0 {
                     print_error!("Already started advertising");
                     return;
                 }
 
                 let s = AdvSet::new();
-                let reg_id =
-                    self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().start_advertising_set(
-                        s.params.clone(),
-                        s.data.clone(),
-                        None,
-                        None,
-                        None,
-                        0,
-                        0,
-                        callback_id,
-                    );
+                let reg_id = context.gatt_dbus.as_mut().unwrap().start_advertising_set(
+                    s.params.clone(),
+                    s.data.clone(),
+                    None,
+                    None,
+                    None,
+                    0,
+                    0,
+                    callback_id,
+                );
                 print_info!("Starting advertising set for reg_id = {}", reg_id);
-                self.context.lock().unwrap().adv_sets.insert(reg_id, s);
+                context.adv_sets.insert(reg_id, s);
             }
             "off" => {
-                let adv_ids: Vec<AdvertiserId> = self
-                    .context
-                    .lock()
-                    .unwrap()
-                    .adv_sets
-                    .iter()
-                    .filter_map(|(_, s)| s.adv_id)
-                    .collect();
+                let mut context = self.context.lock().unwrap();
+
+                let adv_ids: Vec<_> =
+                    context.adv_sets.iter().filter_map(|(_, s)| s.adv_id).collect();
                 for adv_id in adv_ids {
                     print_info!("Stopping advertising set {}", adv_id);
-                    self.context
-                        .lock()
-                        .unwrap()
-                        .gatt_dbus
-                        .as_mut()
-                        .unwrap()
-                        .stop_advertising_set(adv_id);
+                    context.gatt_dbus.as_mut().unwrap().stop_advertising_set(adv_id);
                 }
-                self.context.lock().unwrap().adv_sets.clear();
+                context.adv_sets.clear();
             }
             "set-interval" => {
                 if args.len() < 2 {
@@ -995,30 +985,20 @@ impl CommandHandler {
                 }
                 let interval = ms.unwrap() * 8 / 5; // in 0.625 ms.
 
-                let reg_ids: Vec<RegId> =
-                    self.context.lock().unwrap().adv_sets.keys().copied().collect();
-                for reg_id in reg_ids {
-                    self.context
-                        .lock()
-                        .unwrap()
-                        .adv_sets
-                        .get_mut(&reg_id)
-                        .unwrap()
-                        .params
-                        .interval = interval;
+                let mut context = self.context.lock().unwrap();
+                context.adv_sets.iter_mut().for_each(|(_, s)| s.params.interval = interval);
 
-                    let adv_id = self.context.lock().unwrap().adv_sets[&reg_id].adv_id.clone();
-                    if let Some(adv_id) = adv_id {
-                        let params = self.context.lock().unwrap().adv_sets[&reg_id].params.clone();
-                        print_info!("Setting advertising parameters for {}", adv_id);
-                        self.context
-                            .lock()
-                            .unwrap()
-                            .gatt_dbus
-                            .as_mut()
-                            .unwrap()
-                            .set_advertising_parameters(adv_id, params);
-                    }
+                // To avoid borrowing context as mutable from an immutable borrow.
+                // Required information is collected in advance and then passed
+                // to the D-Bus call which requires a mutable borrow.
+                let advs: Vec<(_, _)> = context
+                    .adv_sets
+                    .iter()
+                    .filter_map(|(_, s)| s.adv_id.map(|adv_id| (adv_id.clone(), s.params.clone())))
+                    .collect();
+                for (adv_id, params) in advs {
+                    print_info!("Setting advertising parameters for {}", adv_id);
+                    context.gatt_dbus.as_mut().unwrap().set_advertising_parameters(adv_id, params);
                 }
             }
             _ => {
