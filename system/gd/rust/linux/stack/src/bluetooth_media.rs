@@ -18,7 +18,7 @@ use bt_topshim::profiles::hfp::{
 use bt_topshim::{metrics, topstack};
 use bt_utils::uinput::UInput;
 
-use log::{info, warn};
+use log::{debug, info, warn};
 use num_traits::cast::ToPrimitive;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
@@ -94,7 +94,7 @@ pub trait IBluetoothMedia {
     fn set_player_playback_status(&mut self, status: String);
     /// Set the position of the current media in microseconds. The method is a copy of the existing
     /// CRAS API, hence not following Floss API conventions.
-    fn set_player_posistion(&mut self, position: i64);
+    fn set_player_position(&mut self, position: i64);
     /// Set the media metadata, including title, artist, album, and length. The method is a
     /// copy of the existing CRAS API, hence not following Floss API conventions. PlayerMetadata is
     /// a custom data type that requires special handlng.
@@ -1315,7 +1315,25 @@ impl IBluetoothMedia for BluetoothMedia {
         }
     }
 
-    fn set_player_playback_status(&mut self, _status: String) {}
-    fn set_player_posistion(&mut self, _position: i64) {}
-    fn set_player_metadata(&mut self, _metadata: PlayerMetadata) {}
+    fn set_player_playback_status(&mut self, status: String) {
+        debug!("AVRCP received player playback status: {}", status);
+        match self.avrcp.as_mut() {
+            Some(avrcp) => avrcp.set_playback_status(&status),
+            None => warn!("Uninitialized AVRCP to set player playback status"),
+        };
+    }
+    fn set_player_position(&mut self, position_us: i64) {
+        debug!("AVRCP received player position: {}", position_us);
+        match self.avrcp.as_mut() {
+            Some(avrcp) => avrcp.set_position(position_us),
+            None => warn!("Uninitialized AVRCP to set player position"),
+        };
+    }
+    fn set_player_metadata(&mut self, metadata: PlayerMetadata) {
+        debug!("AVRCP received player metadata: {:?}", metadata);
+        match self.avrcp.as_mut() {
+            Some(avrcp) => avrcp.set_metadata(&metadata),
+            None => warn!("Uninitialized AVRCP to set player playback status"),
+        };
+    }
 }

@@ -99,7 +99,7 @@ int do_connect(unsigned int num_loops, const RawAddress& bd_addr,
 
   fprintf(stdout, "Just crushing stack\n");
   LOG(INFO) << "Just crushing stack";
-  stack_manager_get_interface()->clean_up_stack();
+  bluetoothInterface.disable();
 
   if (disconnect_wait_time == 0) {
     fprintf(stdout, "Waiting to disconnect from supervision timeout\n");

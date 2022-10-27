@@ -108,6 +108,8 @@ public class TbsGattTest {
             Looper.prepare();
         }
 
+        getInstrumentation().getUiAutomation().adoptShellPermissionIdentity();
+
         MockitoAnnotations.initMocks(this);
 
         TestUtils.setAdapterService(mAdapterService);
