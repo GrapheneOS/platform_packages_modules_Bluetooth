@@ -88,6 +88,7 @@ import com.android.internal.app.IBatteryStats;
 import libcore.util.HexEncoding;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -340,6 +341,11 @@ public class AdapterServiceTest {
 
         mServiceBinder.unregisterCallback(mIBluetoothCallback, mAttributionSource);
         mAdapterService.cleanup();
+    }
+
+    @AfterClass
+    public static void tearDownOnce() {
+        AsyncTask.setDefaultExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     private void verifyStateChange(int prevState, int currState, int callNumber, int timeoutMs) {
