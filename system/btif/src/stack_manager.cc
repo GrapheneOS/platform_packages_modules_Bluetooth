@@ -141,7 +141,8 @@ static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
                                  ProfileStartCallback startProfiles,
                                  ProfileStopCallback stopProfiles);
 static void event_shut_down_stack(ProfileStopCallback stopProfiles);
-static void event_clean_up_stack(std::promise<void> promise);
+static void event_clean_up_stack(std::promise<void> promise,
+                                 ProfileStopCallback stopProfiles);
 
 static void event_signal_stack_up(void* context);
 static void event_signal_stack_down(void* context);
@@ -185,13 +186,14 @@ static void shut_down_stack_async(ProfileStopCallback stopProfiles) {
                                base::Bind(event_shut_down_stack, stopProfiles));
 }
 
-static void clean_up_stack() {
+static void clean_up_stack(ProfileStopCallback stopProfiles) {
   // This is a synchronous process. Post it to the thread though, so
   // state modification only happens there.
   std::promise<void> promise;
   auto future = promise.get_future();
   management_thread.DoInThread(
-      FROM_HERE, base::BindOnce(event_clean_up_stack, std::move(promise)));
+      FROM_HERE,
+      base::BindOnce(event_clean_up_stack, std::move(promise), stopProfiles));
 
   auto status =
       future.wait_for(std::chrono::milliseconds(BT_STACK_CLEANUP_WAIT_MS));
@@ -403,22 +405,23 @@ static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
   LOG_INFO("%s finished", __func__);
 }
 
-static void ensure_stack_is_not_running() {
+static void ensure_stack_is_not_running(ProfileStopCallback stopProfiles) {
   if (stack_is_running) {
     LOG_WARN("%s found the stack was still running. Bringing it down now.",
              __func__);
-    event_shut_down_stack(nullptr);
+    event_shut_down_stack(stopProfiles);
   }
 }
 
 // Synchronous function to clean up the stack
-static void event_clean_up_stack(std::promise<void> promise) {
+static void event_clean_up_stack(std::promise<void> promise,
+                                 ProfileStopCallback stopProfiles) {
   if (!stack_is_initialized) {
     LOG_INFO("%s found the stack already in a clean state", __func__);
     goto cleanup;
   }
 
-  ensure_stack_is_not_running();
+  ensure_stack_is_not_running(stopProfiles);
 
   LOG_INFO("%s is cleaning up the stack", __func__);
   stack_is_initialized = false;

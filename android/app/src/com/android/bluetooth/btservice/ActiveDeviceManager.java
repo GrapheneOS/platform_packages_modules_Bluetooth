@@ -821,8 +821,14 @@ class ActiveDeviceManager {
         mHfpConnectedDevices.clear();
         mHfpActiveDevice = null;
 
+        mHearingAidConnectedDevices.clear();
         mHearingAidActiveDevice = null;
+
+        mLeAudioConnectedDevices.clear();
         mLeAudioActiveDevice = null;
+
+        mLeHearingAidConnectedDevices.clear();
+        mLeHearingAidActiveDevice = null;
     }
 
     @VisibleForTesting

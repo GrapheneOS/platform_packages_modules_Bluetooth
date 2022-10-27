@@ -18,8 +18,11 @@ package com.android.bluetooth.util;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import androidx.test.InstrumentationRegistry;
+
 import com.android.internal.telephony.uicc.IccUtils;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -28,6 +31,11 @@ import org.junit.runners.JUnit4;
 public final class GsmAlphabetTest {
 
   private static final String GSM_EXTENDED_CHARS = "{|}\\[~]\f\u20ac";
+
+  @Before
+  public void setUp() throws Exception {
+    InstrumentationRegistry.getInstrumentation().getUiAutomation().adoptShellPermissionIdentity();
+  }
 
   @Test
   public void gsm7BitPackedToString() throws Exception {
