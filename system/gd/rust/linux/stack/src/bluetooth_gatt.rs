@@ -1046,7 +1046,7 @@ impl IBluetoothGatt for BluetoothGatt {
         let adv_timeout = clamp(duration, 0, 0xffff) as u16;
         let adv_events = clamp(max_ext_adv_events, 0, 0xff) as u8;
 
-        let s = AdvertisingSetInfo::new(callback_id);
+        let s = AdvertisingSetInfo::new(callback_id, adv_timeout, adv_events);
         let reg_id = s.reg_id();
         self.advertisers.add(s);
 
@@ -1130,7 +1130,24 @@ impl IBluetoothGatt for BluetoothGatt {
         let params = parameters.into();
 
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            let was_enabled = s.is_enabled();
+            if was_enabled {
+                self.gatt.as_mut().unwrap().advertiser.enable(
+                    s.adv_id(),
+                    false,
+                    s.adv_timeout(),
+                    s.adv_events(),
+                );
+            }
             self.gatt.as_mut().unwrap().advertiser.set_parameters(s.adv_id(), params);
+            if was_enabled {
+                self.gatt.as_mut().unwrap().advertiser.enable(
+                    s.adv_id(),
+                    true,
+                    s.adv_timeout(),
+                    s.adv_events(),
+                );
+            }
         }
     }
 
@@ -2412,7 +2429,8 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         );
 
         if let Some(s) = self.advertisers.get_mut_by_reg_id(reg_id) {
-            s.advertiser_id = Some(advertiser_id.into());
+            s.set_adv_id(Some(advertiser_id.into()));
+            s.set_enabled(status == GattStatus::Success);
         } else {
             return;
         }
@@ -2438,11 +2456,14 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         );
 
         let advertiser_id: i32 = adv_id.into();
-        if None == self.advertisers.get_by_advertiser_id(advertiser_id) {
+
+        if let Some(s) = self.advertisers.get_mut_by_advertiser_id(advertiser_id) {
+            s.set_enabled(enabled);
+        } else {
             return;
         }
-        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
 
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
         if let Some(cb) = self.advertisers.get_callback(&s) {
             cb.on_advertising_enabled(advertiser_id, enabled, status);
         }
