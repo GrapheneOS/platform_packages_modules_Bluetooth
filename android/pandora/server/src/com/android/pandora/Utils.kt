@@ -24,6 +24,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.*
 import android.net.MacAddress
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -318,3 +319,24 @@ fun newConnection(device: BluetoothDevice, transport: Transport) =
 
 fun BluetoothDevice.toByteString() =
   ByteString.copyFrom(MacAddress.fromString(this.address).toByteArray())!!
+
+/** Creates Audio track instance and returns the reference. */
+fun buildAudioTrack(): AudioTrack? {
+  return AudioTrack.Builder()
+    .setAudioAttributes(
+      AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        .build()
+    )
+    .setAudioFormat(
+      AudioFormat.Builder()
+        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+        .setSampleRate(44100)
+        .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+        .build()
+    )
+    .setTransferMode(AudioTrack.MODE_STREAM)
+    .setBufferSizeInBytes(44100 * 2 * 2)
+    .build()
+}
