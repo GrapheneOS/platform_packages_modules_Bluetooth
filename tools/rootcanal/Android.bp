@@ -29,7 +29,6 @@ cc_defaults {
         "include",
     ],
     include_dirs: [
-        "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
     ],
     generated_headers: [
@@ -149,12 +148,7 @@ cc_test_host {
         "libbluetooth_headers",
     ],
     local_include_dirs: [
-        "include",
         ".",
-    ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
     ],
     shared_libs: [
         "liblog",
@@ -188,7 +182,6 @@ cc_test_host {
         "include",
     ],
     include_dirs: [
-        "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
     ],
     shared_libs: [
@@ -312,7 +305,6 @@ cc_library_static {
         "libbt_init_flags_bridge_header",
     ],
     include_dirs: [
-        "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
     ],
 }
