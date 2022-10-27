@@ -73,7 +73,6 @@ java_library {
         "bluetooth-nano-protos",
         "bluetooth-protos-lite",
         "libprotobuf-java-lite",
-        "bluetooth-proto-enums-java-gen",
     ],
 
     apex_available: [
