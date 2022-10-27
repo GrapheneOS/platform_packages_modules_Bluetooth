@@ -55,3 +55,7 @@ class LeAdvertisingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         self.dut_scanner_.scan_for_name(self.cert_advertiser_.get_local_advertising_name())
         self.dut_scanner_.stop_scanning()
         self.cert_advertiser_.stop_advertising()
+
+
+if __name__ == '__main__':
+    test_runner.main()
