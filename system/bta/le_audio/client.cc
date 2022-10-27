@@ -1573,13 +1573,8 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (BTM_IsLinkKeyKnown(address, BT_TRANSPORT_LE)) {
-      int result = BTM_SetEncryption(
-          address, BT_TRANSPORT_LE,
-          [](const RawAddress* bd_addr, tBT_TRANSPORT transport,
-             void* p_ref_data, tBTM_STATUS status) {
-            if (instance) instance->OnEncryptionComplete(*bd_addr, status);
-          },
-          nullptr, BTM_BLE_SEC_ENCRYPT);
+      int result = BTM_SetEncryption(address, BT_TRANSPORT_LE, nullptr, nullptr,
+                                     BTM_BLE_SEC_ENCRYPT);
 
       LOG(INFO) << __func__
                 << "Encryption required. Request result: " << result;
@@ -1675,16 +1670,16 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    if (leAudioDevice->encrypted_) {
+      LOG(INFO) << __func__ << " link already encrypted, nothing to do";
+      return;
+    }
+
     changeMtuIfPossible(leAudioDevice);
 
     /* If we know services, register for notifications */
     if (leAudioDevice->known_service_handles_)
       RegisterKnownNotifications(leAudioDevice);
-
-    if (leAudioDevice->encrypted_) {
-      LOG(INFO) << __func__ << " link already encrypted, nothing to do";
-      return;
-    }
 
     leAudioDevice->encrypted_ = true;
 
