@@ -96,6 +96,7 @@ public class BluetoothOppBatchTest {
         BluetoothMethodProxy proxy = spy(BluetoothMethodProxy.getInstance());
         BluetoothMethodProxy.setInstanceForTesting(proxy);
         doReturn(0).when(proxy).contentResolverDelete(any(), any(), any(), any());
+        doReturn(0).when(proxy).contentResolverUpdate(any(), any(), any(), any(), any());
 
         assertThat(mBluetoothOppBatch.getPendingShare()).isEqualTo(mInitShareInfo);
 
