@@ -7,6 +7,7 @@ use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
 
+use crate::bt_adv::AdvSet;
 use crate::callbacks::{
     AdminCallback, AdvertisingSetCallback, BtCallback, BtConnectionCallback, BtManagerCallback,
     BtSocketManagerCallback, ScannerCallback, SuspendCallback,
@@ -22,6 +23,7 @@ use btstack::bluetooth::{BluetoothDevice, IBluetooth};
 use btstack::suspend::ISuspend;
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
+mod bt_adv;
 mod callbacks;
 mod command_handler;
 mod console;
@@ -107,8 +109,8 @@ pub(crate) struct ClientContext {
     /// Keeps track of active LE scanners.
     active_scanner_ids: HashSet<u8>,
 
-    /// Advertising sets started/registered. Map from reg_id to advertiser_id.
-    adv_sets: HashMap<i32, Option<i32>>,
+    /// Keeps track of advertising sets registered. Map from reg_id to AdvSet.
+    adv_sets: HashMap<i32, AdvSet>,
 
     /// Identifies the callback to receive IBluetoothSocketManagerCallback method calls.
     socket_manager_callback_id: Option<u32>,
