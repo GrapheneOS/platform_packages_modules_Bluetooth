@@ -31,12 +31,15 @@
 
 #include "bt_target.h"
 #include "bt_trace.h"
+#include "gd/hal/snoop_logger.h"
+#include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/mutex.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/include/stack_metrics_logging.h"
+#include "stack/l2cap/l2c_int.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"
 
@@ -1000,6 +1003,19 @@ void port_rfc_closed(tPORT* p_port, uint8_t res) {
     p_port->dlci &= 0xfe;
 
     return;
+  }
+
+  if (p_port->state >= PORT_CONNECTION_STATE_OPENED && p_mcb) {
+    uint16_t lcid;
+    tL2C_CCB* ccb;
+
+    lcid = p_mcb->lcid;
+    ccb = l2cu_find_ccb_by_cid(nullptr, lcid);
+
+    if (ccb) {
+      bluetooth::shim::GetSnoopLogger()->SetRfcommPortClose(
+          ccb->p_lcb->Handle(), lcid, p_port->dlci, p_port->uuid);
+    }
   }
 
   if ((p_port->state != PORT_CONNECTION_STATE_CLOSING) &&

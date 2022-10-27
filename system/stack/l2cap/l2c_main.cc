@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "bt_target.h"
+#include "gd/hal/snoop_logger.h"
 #include "hcimsgs.h"  // HCID_GET_
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
@@ -254,6 +255,7 @@ void l2c_rcv_acl_data(BT_HDR* p_msg) {
  ******************************************************************************/
 static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   tL2C_CONN_INFO con_info;
+  tL2C_RCB* p_rcb;
 
   /* if l2cap command received in CID 1 on top of an LE link, ignore this
    * command */
@@ -388,7 +390,7 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
         }
         STREAM_TO_UINT16(con_info.psm, p);
         STREAM_TO_UINT16(rcid, p);
-        tL2C_RCB* p_rcb = l2cu_find_rcb_by_psm(con_info.psm);
+        p_rcb = l2cu_find_rcb_by_psm(con_info.psm);
         if (!p_rcb) {
           LOG_WARN("Rcvd conn req for unknown PSM: %d", con_info.psm);
           l2cu_reject_connection(p_lcb, rcid, id, L2CAP_CONN_NO_PSM);
@@ -411,6 +413,14 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
         p_ccb->p_rcb = p_rcb;
         p_ccb->remote_cid = rcid;
         p_ccb->connection_initiator = L2CAP_INITIATOR_REMOTE;
+
+        if (p_rcb->psm == BT_PSM_RFCOMM) {
+          bluetooth::shim::GetSnoopLogger()->AddRfcommL2capChannel(
+              p_lcb->Handle(), p_ccb->local_cid, p_ccb->remote_cid);
+        } else if (p_rcb->log_packets) {
+          bluetooth::shim::GetSnoopLogger()->AcceptlistL2capChannel(
+              p_lcb->Handle(), p_ccb->local_cid, p_ccb->remote_cid);
+        }
 
         l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_REQ, &con_info);
         break;
@@ -438,12 +448,22 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
           break;
         }
 
-        if (con_info.l2cap_result == L2CAP_CONN_OK)
+        if (con_info.l2cap_result == L2CAP_CONN_OK) {
           l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_RSP, &con_info);
-        else if (con_info.l2cap_result == L2CAP_CONN_PENDING)
+        } else if (con_info.l2cap_result == L2CAP_CONN_PENDING) {
           l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_RSP_PND, &con_info);
-        else
+        } else {
           l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CONNECT_RSP_NEG, &con_info);
+
+          p_rcb = p_ccb->p_rcb;
+          if (p_rcb->psm == BT_PSM_RFCOMM) {
+            bluetooth::shim::GetSnoopLogger()->AddRfcommL2capChannel(
+                p_lcb->Handle(), p_ccb->local_cid, p_ccb->remote_cid);
+          } else if (p_rcb->log_packets) {
+            bluetooth::shim::GetSnoopLogger()->AcceptlistL2capChannel(
+                p_lcb->Handle(), p_ccb->local_cid, p_ccb->remote_cid);
+          }
+        }
 
         break;
       }
