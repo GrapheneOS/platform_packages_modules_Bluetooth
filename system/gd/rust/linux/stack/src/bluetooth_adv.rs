@@ -20,7 +20,7 @@ pub type RegId = i32;
 pub type ManfId = u16;
 
 /// Advertising parameters for each BLE advertising set.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct AdvertisingSetParameters {
     /// Whether the advertisement will be connectable.
     pub connectable: bool,
@@ -49,7 +49,7 @@ pub struct AdvertisingSetParameters {
 }
 
 /// Represents the data to be advertised and the scan response data for active scans.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct AdvertiseData {
     /// A list of service UUIDs within the advertisement that are used to identify
     /// the Bluetooth GATT services.
