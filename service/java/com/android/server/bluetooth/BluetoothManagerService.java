@@ -1379,20 +1379,23 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         synchronized (mReceiver) {
             mQuietEnableExternal = false;
             mEnableExternal = true;
-            if (isAirplaneModeOn() && isApmEnhancementOn()) {
-                setSettingsSecureInt(BLUETOOTH_APM_STATE, BLUETOOTH_ON_APM);
-                setSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, USED);
-                if (isFirstTimeNotification(APM_BT_ENABLED_NOTIFICATION)) {
-                    final long callingIdentity = Binder.clearCallingIdentity();
-                    try {
-                        mBluetoothAirplaneModeListener.sendApmNotification(
-                                "bluetooth_enabled_apm_title",
-                                "bluetooth_enabled_apm_message",
-                                APM_BT_ENABLED_NOTIFICATION);
-                    } catch (Exception e) {
-                        Log.e(TAG, "APM enhancement BT enabled notification not shown");
-                    } finally {
-                        Binder.restoreCallingIdentity(callingIdentity);
+            if (isAirplaneModeOn()) {
+                mBluetoothAirplaneModeListener.updateBluetoothToggledTime();
+                if (isApmEnhancementOn()) {
+                    setSettingsSecureInt(BLUETOOTH_APM_STATE, BLUETOOTH_ON_APM);
+                    setSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, USED);
+                    if (isFirstTimeNotification(APM_BT_ENABLED_NOTIFICATION)) {
+                        final long callingIdentity = Binder.clearCallingIdentity();
+                        try {
+                            mBluetoothAirplaneModeListener.sendApmNotification(
+                                    "bluetooth_enabled_apm_title",
+                                    "bluetooth_enabled_apm_message",
+                                    APM_BT_ENABLED_NOTIFICATION);
+                        } catch (Exception e) {
+                            Log.e(TAG, "APM enhancement BT enabled notification not shown");
+                        } finally {
+                            Binder.restoreCallingIdentity(callingIdentity);
+                        }
                     }
                 }
             }
@@ -1436,9 +1439,12 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         }
 
         synchronized (mReceiver) {
-            if (isAirplaneModeOn() && isApmEnhancementOn()) {
-                setSettingsSecureInt(BLUETOOTH_APM_STATE, BLUETOOTH_OFF_APM);
-                setSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, USED);
+            if (isAirplaneModeOn()) {
+                mBluetoothAirplaneModeListener.updateBluetoothToggledTime();
+                if (isApmEnhancementOn()) {
+                    setSettingsSecureInt(BLUETOOTH_APM_STATE, BLUETOOTH_OFF_APM);
+                    setSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, USED);
+                }
             }
 
             if (persist) {
