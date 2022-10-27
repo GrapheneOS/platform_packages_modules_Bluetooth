@@ -4745,7 +4745,8 @@ void btm_sec_dev_rec_cback_event(tBTM_SEC_DEV_REC* p_dev_rec,
 
   if (btm_status == BTM_SUCCESS && is_le_transport) {
     /* Link is encrypted, start EATT */
-    bluetooth::eatt::EattExtension::GetInstance()->Connect(p_dev_rec->bd_addr);
+    bluetooth::eatt::EattExtension::GetInstance()->Connect(
+        p_dev_rec->ble.pseudo_addr);
   }
 }
 
