@@ -639,12 +639,6 @@ typedef uint8_t tBTM_LE_AUTH_REQ;
 #define BTM_LE_AUTH_REQ_SC_MITM_BOND SMP_AUTH_SC_MITM_GB /* 00101101 */
 #define BTM_LE_AUTH_REQ_MASK SMP_AUTH_MASK               /* 0x3D */
 
-/* LE security level */
-#define BTM_LE_SEC_NONE SMP_SEC_NONE
-#define BTM_LE_SEC_UNAUTHENTICATE SMP_SEC_UNAUTHENTICATE /* 1 */
-#define BTM_LE_SEC_AUTHENTICATED SMP_SEC_AUTHENTICATED   /* 4 */
-typedef uint8_t tBTM_LE_SEC;
-
 typedef struct {
   /* local IO capabilities */
   tBTM_IO_CAP io_cap;
