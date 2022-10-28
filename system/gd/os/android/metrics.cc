@@ -445,6 +445,43 @@ void LogMetricBluetoothLocalVersions(
   }
 }
 
+void LogMetricBluetoothDisconnectionReasonReported(
+    uint32_t reason, const Address& address, uint32_t connection_handle) {
+  int metric_id = 0;
+  if (!address.IsEmpty()) {
+    metric_id = MetricIdManager::GetInstance().AllocateId(address);
+  }
+  int ret = stats_write(BLUETOOTH_DISCONNECTION_REASON_REPORTED, reason, metric_id, connection_handle);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed for LogMetricBluetoothDisconnectionReasonReported, "
+        "reason %d, metric_id %d, connection_handle %d, error %d",
+        reason,
+        metric_id,
+        connection_handle,
+        ret);
+  }
+}
+
+void LogMetricBluetoothRemoteSupportedFeatures(
+    const Address& address, uint32_t page, uint64_t features, uint32_t connection_handle) {
+  int metric_id = 0;
+  if (!address.IsEmpty()) {
+    metric_id = MetricIdManager::GetInstance().AllocateId(address);
+  }
+  int ret = stats_write(BLUETOOTH_REMOTE_SUPPORTED_FEATURES_REPORTED, metric_id, page, features, connection_handle);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed for LogMetricBluetoothRemoteSupportedFeatures, "
+        "metric_id %d, page %d, features %s, connection_handle %d, error %d",
+        metric_id,
+        page,
+        std::to_string(features).c_str(),
+        connection_handle,
+        ret);
+  }
+}
+
 void LogMetricBluetoothCodePathCounterMetrics(int32_t key, int64_t count) {
   int ret = stats_write(BLUETOOTH_CODE_PATH_COUNTER, key, count);
   if (ret < 0) {

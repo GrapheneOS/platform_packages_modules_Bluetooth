@@ -20,7 +20,7 @@ pub type RegId = i32;
 pub type ManfId = u16;
 
 /// Advertising parameters for each BLE advertising set.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct AdvertisingSetParameters {
     /// Whether the advertisement will be connectable.
     pub connectable: bool,
@@ -49,7 +49,7 @@ pub struct AdvertisingSetParameters {
 }
 
 /// Represents the data to be advertised and the scan response data for active scans.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct AdvertiseData {
     /// A list of service UUIDs within the advertisement that are used to identify
     /// the Bluetooth GATT services.
@@ -353,38 +353,76 @@ static REG_ID_COUNTER: AtomicIsize = AtomicIsize::new(0);
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) struct AdvertisingSetInfo {
     /// Identifies the advertising set when it's started successfully.
-    pub(crate) advertiser_id: Option<AdvertiserId>,
+    adv_id: Option<AdvertiserId>,
 
     /// Identifies callback associated.
     callback_id: CallbackId,
 
     /// Identifies the advertising set when it's registered.
     reg_id: RegId,
+
+    /// Whether the advertising set has been enabled.
+    enabled: bool,
+
+    /// Advertising duration, in 10 ms unit.
+    adv_timeout: u16,
+
+    /// Maximum number of extended advertising events the controller
+    /// shall attempt to send before terminating the extended advertising.
+    adv_events: u8,
 }
 
 impl AdvertisingSetInfo {
-    pub(crate) fn new(callback_id: CallbackId) -> Self {
+    pub(crate) fn new(callback_id: CallbackId, adv_timeout: u16, adv_events: u8) -> Self {
         AdvertisingSetInfo {
-            advertiser_id: None,
+            adv_id: None,
             callback_id,
             reg_id: REG_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as RegId,
+            enabled: false,
+            adv_timeout,
+            adv_events,
         }
     }
 
-    /// Get advertising set registration ID.
+    /// Gets advertising set registration ID.
     pub(crate) fn reg_id(&self) -> RegId {
         self.reg_id
     }
 
-    /// Get associated callback ID.
+    /// Gets associated callback ID.
     pub(crate) fn callback_id(&self) -> CallbackId {
         self.callback_id
     }
 
-    /// Get adv_id, which is required for advertising |BleAdvertiserInterface|.
+    /// Updates advertiser ID.
+    pub(crate) fn set_adv_id(&mut self, id: Option<AdvertiserId>) {
+        self.adv_id = id;
+    }
+
+    /// Gets advertiser ID, which is required for advertising |BleAdvertiserInterface|.
     pub(crate) fn adv_id(&self) -> u8 {
-        // As advertiser_id was from topshim originally, type casting is safe.
-        self.advertiser_id.unwrap_or(INVALID_ADV_ID) as u8
+        // As advertiser ID was from topshim originally, type casting is safe.
+        self.adv_id.unwrap_or(INVALID_ADV_ID) as u8
+    }
+
+    /// Updates advertising set status.
+    pub(crate) fn set_enabled(&mut self, enabled: bool) {
+        self.enabled = enabled;
+    }
+
+    /// Returns true if the advertising set has been enabled, false otherwise.
+    pub(crate) fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+
+    /// Gets adv_timeout.
+    pub(crate) fn adv_timeout(&self) -> u16 {
+        self.adv_timeout
+    }
+
+    /// Gets adv_events.
+    pub(crate) fn adv_events(&self) -> u8 {
+        self.adv_events
     }
 }
 
@@ -409,9 +447,9 @@ impl Advertisers {
         }
     }
 
-    fn find_reg_id(&self, advertiser_id: AdvertiserId) -> Option<RegId> {
+    fn find_reg_id(&self, adv_id: AdvertiserId) -> Option<RegId> {
         for (_, s) in &self.sets {
-            if s.advertiser_id == Some(advertiser_id) {
+            if s.adv_id == Some(adv_id) {
                 return Some(s.reg_id());
             }
         }
@@ -423,17 +461,25 @@ impl Advertisers {
         self.sets.get_mut(&reg_id)
     }
 
-    /// Returns a reference to the advertising set with the reg_id specified.
+    /// Returns a shared reference to the advertising set with the reg_id specified.
     pub(crate) fn get_by_reg_id(&self, reg_id: RegId) -> Option<&AdvertisingSetInfo> {
         self.sets.get(&reg_id)
     }
 
-    /// Returns a reference to the advertising set with the advertiser_id specified.
-    pub(crate) fn get_by_advertiser_id(
-        &self,
-        advertiser_id: AdvertiserId,
-    ) -> Option<&AdvertisingSetInfo> {
-        if let Some(reg_id) = self.find_reg_id(advertiser_id) {
+    /// Returns a mutable reference to the advertising set with the advertiser ID specified.
+    pub(crate) fn get_mut_by_advertiser_id(
+        &mut self,
+        adv_id: AdvertiserId,
+    ) -> Option<&mut AdvertisingSetInfo> {
+        if let Some(reg_id) = self.find_reg_id(adv_id) {
+            return self.get_mut_by_reg_id(reg_id);
+        }
+        None
+    }
+
+    /// Returns a shared reference to the advertising set with the advertiser ID specified.
+    pub(crate) fn get_by_advertiser_id(&self, adv_id: AdvertiserId) -> Option<&AdvertisingSetInfo> {
+        if let Some(reg_id) = self.find_reg_id(adv_id) {
             return self.get_by_reg_id(reg_id);
         }
         None
@@ -446,14 +492,14 @@ impl Advertisers {
         self.sets.remove(&reg_id)
     }
 
-    /// Removes the advertising set with the specified advertiser_id.
+    /// Removes the advertising set with the specified advertiser ID.
     ///
     /// Returns the advertising set if found, None otherwise.
     pub(crate) fn remove_by_advertiser_id(
         &mut self,
-        advertiser_id: AdvertiserId,
+        adv_id: AdvertiserId,
     ) -> Option<AdvertisingSetInfo> {
-        if let Some(reg_id) = self.find_reg_id(advertiser_id) {
+        if let Some(reg_id) = self.find_reg_id(adv_id) {
             return self.remove_by_reg_id(reg_id);
         }
         None
@@ -477,10 +523,8 @@ impl Advertisers {
 
     /// Removes an advertiser callback and unregisters all advertising sets associated with that callback.
     pub(crate) fn remove_callback(&mut self, callback_id: CallbackId, gatt: &mut Gatt) -> bool {
-        for (_, s) in self
-            .sets
-            .iter()
-            .filter(|(_, s)| s.callback_id() == callback_id && s.advertiser_id.is_some())
+        for (_, s) in
+            self.sets.iter().filter(|(_, s)| s.callback_id() == callback_id && s.adv_id.is_some())
         {
             gatt.advertiser.unregister(s.adv_id());
         }
@@ -523,7 +567,7 @@ mod tests {
     fn test_new_advising_set_info() {
         let mut uniq = HashSet::new();
         for callback_id in 0..256 {
-            let s = AdvertisingSetInfo::new(callback_id);
+            let s = AdvertisingSetInfo::new(callback_id, 0, 0);
             assert_eq!(s.callback_id(), callback_id);
             assert_eq!(uniq.insert(s.reg_id()), true);
         }
