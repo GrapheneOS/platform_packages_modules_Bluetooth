@@ -39,6 +39,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_gatt_robust_caching_client_is_enabled(initFlags::gatt_robust_caching_client_is_enabled());
   builder.add_gatt_robust_caching_server_is_enabled(initFlags::gatt_robust_caching_server_is_enabled());
   builder.add_gd_core_is_enabled(initFlags::gd_core_is_enabled());
+  builder.add_gd_hal_snoop_logger_socket_is_enabled(
+      bluetooth::common::init_flags::gd_hal_snoop_logger_socket_is_enabled());
   builder.add_gd_l2cap_is_enabled(initFlags::gd_l2cap_is_enabled());
   builder.add_gd_link_policy_is_enabled(initFlags::gd_link_policy_is_enabled());
   builder.add_gd_remote_name_request_is_enabled(initFlags::gd_remote_name_request_is_enabled());
