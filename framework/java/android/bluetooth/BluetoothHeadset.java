@@ -68,7 +68,7 @@ import java.util.concurrent.TimeoutException;
  */
 public final class BluetoothHeadset implements BluetoothProfile {
     private static final String TAG = "BluetoothHeadset";
-    private static final boolean DBG = true;
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
     private static final boolean VDBG = false;
 
     /**
