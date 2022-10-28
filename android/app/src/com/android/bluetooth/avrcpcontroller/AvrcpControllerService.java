@@ -502,11 +502,13 @@ public class AvrcpControllerService extends ProfileService {
             // The first device to connect gets to be the active device
             if (getActiveDevice() == null) {
                 setActiveDevice(device);
+                BluetoothMediaBrowserService.setActive(true);
             }
         } else {
             stateMachine.disconnect();
             if (device.equals(getActiveDevice())) {
                 setActiveDevice(null);
+                BluetoothMediaBrowserService.setActive(false);
             }
         }
     }
@@ -555,6 +557,33 @@ public class AvrcpControllerService extends ProfileService {
         if (stateMachine != null) {
             stateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ABS_VOL_CMD,
                     absVol);
+        }
+    }
+
+    /**
+     * Notify AVRCP Controller of an audio focus state change so we can make requests of the active
+     * player to stop and start playing.
+     */
+    public void onAudioFocusStateChanged(int state) {
+        if (DBG) {
+            Log.d(TAG, "onAudioFocusStateChanged(state=" + state + ")");
+        }
+
+        // Make sure the active device isn't changed while we're processing the event so play/pause
+        // commands get routed to the correct device
+        synchronized (mActiveDeviceLock) {
+            BluetoothDevice device = getActiveDevice();
+            if (device == null) {
+                Log.w(TAG, "No active device set, ignore focus change");
+                return;
+            }
+
+            AvrcpControllerStateMachine stateMachine = mDeviceStateMap.get(device);
+            if (stateMachine == null) {
+                Log.w(TAG, "No state machine for active device.");
+                return;
+            }
+            stateMachine.sendMessage(AvrcpControllerStateMachine.AUDIO_FOCUS_STATE_CHANGE, state);
         }
     }
 

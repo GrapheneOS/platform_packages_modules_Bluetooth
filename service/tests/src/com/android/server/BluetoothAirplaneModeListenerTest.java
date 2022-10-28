@@ -84,9 +84,6 @@ public class BluetoothAirplaneModeListenerTest {
         Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
 
         when(mHelper.isMediaProfileConnected()).thenReturn(true);
-        Assert.assertFalse(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
-
-        when(mHelper.isAirplaneModeOn()).thenReturn(true);
         Assert.assertTrue(mBluetoothAirplaneModeListener.shouldSkipAirplaneModeChange());
     }
 
