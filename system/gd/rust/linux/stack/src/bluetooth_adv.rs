@@ -12,7 +12,7 @@ use tokio::sync::mpsc::Sender;
 
 use crate::callbacks::Callbacks;
 use crate::uuid::UuidHelper;
-use crate::{Message, RPCProxy};
+use crate::{Message, RPCProxy, SuspendMode};
 
 pub type AdvertiserId = i32;
 pub type CallbackId = u32;
@@ -136,6 +136,9 @@ pub trait IAdvertisingSetCallback: RPCProxy {
     /// Callback triggered in response to `set_periodic_advertising_enable` indicating result of
     /// the operation.
     fn on_periodic_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: GattStatus);
+
+    /// When advertising module changes its suspend mode due to system suspend/resume.
+    fn on_suspend_mode_change(&self, suspend_mode: SuspendMode);
 }
 
 // Advertising interval range.
@@ -179,6 +182,9 @@ const SOLICIT_AD_TYPES: [u8; 3] = [
 
 // Invalid advertising set id.
 const INVALID_ADV_ID: i32 = 0xff;
+
+// Invalid advertising set id.
+pub const INVALID_REG_ID: i32 = -1;
 
 impl Into<bt_topshim::profiles::gatt::AdvertiseParameters> for AdvertisingSetParameters {
     fn into(self) -> bt_topshim::profiles::gatt::AdvertiseParameters {
@@ -364,6 +370,9 @@ pub(crate) struct AdvertisingSetInfo {
     /// Whether the advertising set has been enabled.
     enabled: bool,
 
+    /// Whether the advertising set has been paused.
+    paused: bool,
+
     /// Advertising duration, in 10 ms unit.
     adv_timeout: u16,
 
@@ -374,11 +383,16 @@ pub(crate) struct AdvertisingSetInfo {
 
 impl AdvertisingSetInfo {
     pub(crate) fn new(callback_id: CallbackId, adv_timeout: u16, adv_events: u8) -> Self {
+        let mut reg_id = REG_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as RegId;
+        if reg_id == INVALID_REG_ID {
+            reg_id = REG_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as RegId;
+        }
         AdvertisingSetInfo {
             adv_id: None,
             callback_id,
-            reg_id: REG_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as RegId,
+            reg_id,
             enabled: false,
+            paused: false,
             adv_timeout,
             adv_events,
         }
@@ -415,6 +429,16 @@ impl AdvertisingSetInfo {
         self.enabled
     }
 
+    /// Marks the advertising set as paused or not.
+    pub(crate) fn set_paused(&mut self, paused: bool) {
+        self.paused = paused;
+    }
+
+    /// Returns true if the advertising set has been paused, false otherwise.
+    pub(crate) fn is_paused(&self) -> bool {
+        self.paused
+    }
+
     /// Gets adv_timeout.
     pub(crate) fn adv_timeout(&self) -> u16 {
         self.adv_timeout
@@ -430,6 +454,7 @@ impl AdvertisingSetInfo {
 pub(crate) struct Advertisers {
     callbacks: Callbacks<dyn IAdvertisingSetCallback + Send>,
     sets: HashMap<RegId, AdvertisingSetInfo>,
+    suspend_mode: SuspendMode,
 }
 
 impl Advertisers {
@@ -437,6 +462,7 @@ impl Advertisers {
         Advertisers {
             callbacks: Callbacks::new(tx, Message::AdvertiserCallbackDisconnected),
             sets: HashMap::new(),
+            suspend_mode: SuspendMode::Normal,
         }
     }
 
@@ -445,6 +471,31 @@ impl Advertisers {
         if let Some(old) = self.sets.insert(s.reg_id(), s) {
             warn!("An advertising set with the same reg_id ({}) exists. Drop it!", old.reg_id);
         }
+    }
+
+    /// Returns an iterator of valid advertising sets.
+    pub(crate) fn valid_sets(&self) -> impl Iterator<Item = &AdvertisingSetInfo> {
+        self.sets.iter().filter_map(|(_, s)| s.adv_id.map(|_| s))
+    }
+
+    /// Returns a mutable iterator of valid advertising sets.
+    pub(crate) fn valid_sets_mut(&mut self) -> impl Iterator<Item = &mut AdvertisingSetInfo> {
+        self.sets.iter_mut().filter_map(|(_, s)| s.adv_id.map(|_| s))
+    }
+
+    /// Returns an iterator of enabled advertising sets.
+    pub(crate) fn enabled_sets(&self) -> impl Iterator<Item = &AdvertisingSetInfo> {
+        self.valid_sets().filter(|s| s.is_enabled())
+    }
+
+    /// Returns a mutable iterator of enabled advertising sets.
+    pub(crate) fn enabled_sets_mut(&mut self) -> impl Iterator<Item = &mut AdvertisingSetInfo> {
+        self.valid_sets_mut().filter(|s| s.is_enabled())
+    }
+
+    /// Returns a mutable iterator of paused advertising sets.
+    pub(crate) fn paused_sets_mut(&mut self) -> impl Iterator<Item = &mut AdvertisingSetInfo> {
+        self.valid_sets_mut().filter(|s| s.is_paused())
     }
 
     fn find_reg_id(&self, adv_id: AdvertiserId) -> Option<RegId> {
@@ -532,6 +583,26 @@ impl Advertisers {
 
         self.callbacks.remove_callback(callback_id)
     }
+
+    /// Update suspend mode.
+    pub(crate) fn set_suspend_mode(&mut self, suspend_mode: SuspendMode) {
+        if suspend_mode != self.suspend_mode {
+            self.suspend_mode = suspend_mode;
+            self.notify_suspend_mode();
+        }
+    }
+
+    /// Gets current suspend mode.
+    pub(crate) fn suspend_mode(&mut self) -> SuspendMode {
+        self.suspend_mode.clone()
+    }
+
+    /// Notify current suspend mode to all active callbacks.
+    fn notify_suspend_mode(&mut self) {
+        self.callbacks.for_all_callbacks(|callback| {
+            callback.on_suspend_mode_change(self.suspend_mode.clone());
+        });
+    }
 }
 
 #[cfg(test)]
@@ -570,6 +641,26 @@ mod tests {
             let s = AdvertisingSetInfo::new(callback_id, 0, 0);
             assert_eq!(s.callback_id(), callback_id);
             assert_eq!(uniq.insert(s.reg_id()), true);
+        }
+    }
+
+    #[test]
+    fn test_iterate_adving_set_info() {
+        let (tx, _rx) = crate::Stack::create_channel();
+        let mut advertisers = Advertisers::new(tx.clone());
+
+        let size = 256;
+        for i in 0..size {
+            let callback_id: CallbackId = i as CallbackId;
+            let adv_id: AdvertiserId = i as AdvertiserId;
+            let mut s = AdvertisingSetInfo::new(callback_id, 0, 0);
+            s.set_adv_id(Some(adv_id));
+            advertisers.add(s);
+        }
+
+        assert_eq!(advertisers.valid_sets().count(), size);
+        for s in advertisers.valid_sets() {
+            assert_eq!(s.callback_id() as u32, s.adv_id() as u32);
         }
     }
 
