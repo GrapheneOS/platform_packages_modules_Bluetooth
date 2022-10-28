@@ -21,6 +21,7 @@ futures = "0.3.13"
 num-traits = "*"
 tokio = { version = "1", features = ['bytes', 'fs', 'io-util', 'libc', 'macros', 'memchr', 'mio', 'net', 'num_cpus', 'rt', 'rt-multi-thread', 'sync', 'time', 'tokio-macros'] }
 
+clap = "2.33.3"
 [build-dependencies]
 pkg-config = "0.3.19"
 
