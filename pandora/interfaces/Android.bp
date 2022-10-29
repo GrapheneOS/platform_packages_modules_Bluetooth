@@ -69,6 +69,7 @@ genrule {
         "pandora_experimental/hid.proto",
         "pandora_experimental/host.proto",
         "pandora_experimental/l2cap.proto",
+        "pandora_experimental/mediaplayer.proto",
         "pandora_experimental/security.proto",
     ],
     out: [
@@ -88,6 +89,8 @@ genrule {
         "pandora_experimental/host_pb2.py",
         "pandora_experimental/l2cap_grpc.py",
         "pandora_experimental/l2cap_pb2.py",
+        "pandora_experimental/mediaplayer_grpc.py",
+        "pandora_experimental/mediaplayer_pb2.py",
         "pandora_experimental/security_grpc.py",
         "pandora_experimental/security_pb2.py",
     ]
