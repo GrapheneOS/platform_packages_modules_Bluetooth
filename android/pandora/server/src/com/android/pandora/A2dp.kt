@@ -70,28 +70,6 @@ class A2dp(val context: Context) : A2DPImplBase() {
     scope.cancel()
   }
 
-  fun buildAudioTrack(): AudioTrack? {
-    audioTrack =
-      AudioTrack.Builder()
-        .setAudioAttributes(
-          AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_MEDIA)
-            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-            .build()
-        )
-        .setAudioFormat(
-          AudioFormat.Builder()
-            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-            .setSampleRate(44100)
-            .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
-            .build()
-        )
-        .setTransferMode(AudioTrack.MODE_STREAM)
-        .setBufferSizeInBytes(44100 * 2 * 2)
-        .build()
-    return audioTrack
-  }
-
   override fun openSource(
     request: OpenSourceRequest,
     responseObserver: StreamObserver<OpenSourceResponse>
@@ -332,5 +310,4 @@ class A2dp(val context: Context) : A2DPImplBase() {
         .build()
     }
   }
-
 }

@@ -18,15 +18,11 @@ package com.android.pandora
 
 import android.bluetooth.BluetoothManager
 import android.content.Context
-
-import pandora.AVRCPGrpc.AVRCPImplBase
-import pandora.AvrcpProto.*
-import com.google.protobuf.Empty
-
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-
+import pandora.AVRCPGrpc.AVRCPImplBase
+import pandora.AvrcpProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Avrcp(val context: Context) : AVRCPImplBase() {

@@ -20,6 +20,13 @@
 
     <application>
         <uses-library android:name="android.test.runner" />
+
+          <service android:name=".MediaPlayerBrowserService"
+               android:exported="true">
+               <intent-filter>
+                    <action android:name="android.media.browse.MediaBrowserService"/>
+               </intent-filter>
+          </service>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
