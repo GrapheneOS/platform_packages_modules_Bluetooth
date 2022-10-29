@@ -237,6 +237,11 @@ bool supports_configure_data_path(void) {
   return HCI_CONFIGURE_DATA_PATH_SUPPORTED(supported_commands);
 }
 
+#define HCI_SET_MIN_ENCRYPTION_KEY_SIZE_SUPPORTED(x) ((x)[45] & 0x80)
+bool supports_set_min_encryption_key_size(void) {
+  return HCI_SET_MIN_ENCRYPTION_KEY_SIZE_SUPPORTED(supported_commands);
+}
+
 bool supports_ble(void) { return ble_supported; }
 
 bool supports_ble_privacy(void) {
@@ -425,6 +430,7 @@ const controller_t interface = {
     supports_sniff_subrating,
     supports_encryption_pause,
     supports_configure_data_path,
+    supports_set_min_encryption_key_size,
 
     supports_ble,
     supports_ble_packet_extension,

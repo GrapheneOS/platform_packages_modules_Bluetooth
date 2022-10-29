@@ -1054,6 +1054,9 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   }
 
   void enable_periodic_advertising(AdvertiserId advertiser_id, bool enable, bool include_adi) {
+    if (include_adi && !controller_->SupportsBlePeriodicAdvertisingAdi()) {
+      include_adi = false;
+    }
     le_advertising_interface_->EnqueueCommand(
         hci::LeSetPeriodicAdvertisingEnableBuilder::Create(enable, include_adi, advertiser_id),
         module_handler_->BindOnceOn(

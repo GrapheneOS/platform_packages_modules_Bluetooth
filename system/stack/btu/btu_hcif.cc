@@ -1020,7 +1020,10 @@ static void btu_hcif_encryption_change_evt(uint8_t* p) {
   STREAM_TO_UINT16(handle, p);
   STREAM_TO_UINT8(encr_enable, p);
 
-  if (status != HCI_SUCCESS || encr_enable == 0 || BTM_IsBleConnection(handle)) {
+  if (status != HCI_SUCCESS || encr_enable == 0 ||
+      BTM_IsBleConnection(handle) ||
+      // Skip encryption key size check when using set_min_encryption_key_size
+      controller_get_interface()->supports_set_min_encryption_key_size()) {
     if (status == HCI_ERR_CONNECTION_TOUT) {
       smp_cancel_start_encryption_attempt();
       return;
@@ -1031,7 +1034,9 @@ static void btu_hcif_encryption_change_evt(uint8_t* p) {
     btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
                            encr_enable);
   } else {
-    btsnd_hcic_read_encryption_key_size(handle, base::Bind(&read_encryption_key_size_complete_after_encryption_change));
+    btsnd_hcic_read_encryption_key_size(
+        handle,
+        base::Bind(&read_encryption_key_size_complete_after_encryption_change));
   }
 }
 
@@ -1589,7 +1594,9 @@ static void btu_hcif_encryption_key_refresh_cmpl_evt(uint8_t* p) {
   STREAM_TO_UINT8(status, p);
   STREAM_TO_UINT16(handle, p);
 
-  if (status != HCI_SUCCESS || BTM_IsBleConnection(handle)) {
+  if (status != HCI_SUCCESS || BTM_IsBleConnection(handle) ||
+      // Skip encryption key size check when using set_min_encryption_key_size
+      controller_get_interface()->supports_set_min_encryption_key_size()) {
     btm_sec_encrypt_change(handle, static_cast<tHCI_STATUS>(status),
                            (status == HCI_SUCCESS) ? 1 : 0);
   } else {
