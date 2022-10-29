@@ -177,8 +177,6 @@ public class HeadsetServiceAndStateMachineTest {
         // Mock methods in AdapterService
         doReturn(FAKE_HEADSET_UUID).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
-        doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
-                .getBondState(any(BluetoothDevice.class));
         doAnswer(invocation -> mBondedDevices.toArray(new BluetoothDevice[]{})).when(
                 mAdapterService).getBondedDevices();
         // Mock system interface
@@ -1139,6 +1137,8 @@ public class HeadsetServiceAndStateMachineTest {
     private void connectTestDevice(BluetoothDevice device) {
         when(mDatabaseManager.getProfileConnectionPolicy(device, BluetoothProfile.HEADSET))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
+                .getBondState(eq(device));
         // Make device bonded
         mBondedDevices.add(device);
         // Use connecting event to indicate that device is connecting
