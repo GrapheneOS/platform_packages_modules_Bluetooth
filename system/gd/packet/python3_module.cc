@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <cstring>
-#include <memory>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+
+#include <cstring>
+#include <memory>
 
 #include "hci/address.h"
 #include "hci/class_of_device.h"
 #include "packet/base_packet_builder.h"
 #include "packet/bit_inserter.h"
+#include "packet/checksum_type_checker.h"
+#include "packet/custom_type_checker.h"
 #include "packet/iterator.h"
 #include "packet/packet_builder.h"
 #include "packet/packet_struct.h"
 #include "packet/packet_view.h"
-#include "packet/parser/checksum_type_checker.h"
-#include "packet/parser/custom_type_checker.h"
 #include "packet/raw_builder.h"
 
 namespace py = pybind11;
