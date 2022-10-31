@@ -41,8 +41,11 @@ class CustomTypeChecker {
   struct ToStringChecker {};
 
   template <class C, bool little_endian>
-  static int Test(SerializeChecker<C, &C::Serialize>*, SizeChecker<C, &C::size>*,
-                  ParseChecker<C, little_endian, &C::Parse>*, ToStringChecker<C, &C::ToString>*);
+  static int Test(
+      SerializeChecker<C, &C::Serialize>*,
+      SizeChecker<C, &C::size>*,
+      ParseChecker<C, little_endian, &C::Parse>*,
+      ToStringChecker<C, &C::ToString>*);
 
   template <class C, bool little_endian>
   static char Test(...);
