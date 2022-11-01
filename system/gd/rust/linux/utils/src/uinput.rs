@@ -16,12 +16,13 @@ const AVC_FORWARD: u8 = 0x4B;
 const AVC_BACKWARD: u8 = 0x4C;
 
 // Supported uinput keys
-const KEY_PLAYPAUSE: libc::c_uint = 164;
-const KEY_STOPCD: libc::c_uint = 166;
-const KEY_REWIND: libc::c_uint = 168;
-const KEY_FASTFORWAED: libc::c_uint = 208;
 const KEY_NEXTSONG: libc::c_uint = 163;
 const KEY_PREVIOUSSONG: libc::c_uint = 165;
+const KEY_STOPCD: libc::c_uint = 166;
+const KEY_REWIND: libc::c_uint = 168;
+const KEY_PLAYCD: libc::c_uint = 200;
+const KEY_PAUSECD: libc::c_uint = 201;
+const KEY_FASTFORWAED: libc::c_uint = 208;
 
 // uinput setup constants
 const UINPUT_MAX_NAME_SIZE: usize = 80;
@@ -53,9 +54,9 @@ struct KeyMap {
 }
 
 const KEY_MAP: [KeyMap; 7] = [
-    KeyMap { avc: AVC_PLAY, uinput: KEY_PLAYPAUSE },
+    KeyMap { avc: AVC_PLAY, uinput: KEY_PLAYCD },
     KeyMap { avc: AVC_STOP, uinput: KEY_STOPCD },
-    KeyMap { avc: AVC_PAUSE, uinput: KEY_PLAYPAUSE },
+    KeyMap { avc: AVC_PAUSE, uinput: KEY_PAUSECD },
     KeyMap { avc: AVC_REWIND, uinput: KEY_REWIND },
     KeyMap { avc: AVC_FAST_FORWAED, uinput: KEY_FASTFORWAED },
     KeyMap { avc: AVC_FORWARD, uinput: KEY_NEXTSONG },
