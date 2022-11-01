@@ -21,16 +21,13 @@
 
 #include "os/log.h"
 
-using bluetooth::hci::Address;
-using std::vector;
-
 namespace bluetooth {
 namespace packet {
 
 RawBuilder::RawBuilder(size_t max_bytes) : max_bytes_(max_bytes) {}
 RawBuilder::RawBuilder(std::vector<uint8_t> vec) : payload_(std::move(vec)) {}
 
-bool RawBuilder::AddOctets(size_t octets, const vector<uint8_t>& bytes) {
+bool RawBuilder::AddOctets(size_t octets, const std::vector<uint8_t>& bytes) {
   if (payload_.size() + octets > max_bytes_) return false;
 
   if (octets != bytes.size()) return false;
@@ -40,12 +37,12 @@ bool RawBuilder::AddOctets(size_t octets, const vector<uint8_t>& bytes) {
   return true;
 }
 
-bool RawBuilder::AddOctets(const vector<uint8_t>& bytes) {
+bool RawBuilder::AddOctets(const std::vector<uint8_t>& bytes) {
   return AddOctets(bytes.size(), bytes);
 }
 
 bool RawBuilder::AddOctets(size_t octets, uint64_t value) {
-  vector<uint8_t> val_vector;
+  std::vector<uint8_t> val_vector;
 
   uint64_t v = value;
 
@@ -59,15 +56,6 @@ bool RawBuilder::AddOctets(size_t octets, uint64_t value) {
   if (v != 0) return false;
 
   return AddOctets(octets, val_vector);
-}
-
-bool RawBuilder::AddAddress(const Address& address) {
-  if (payload_.size() + Address::kLength > max_bytes_) return false;
-
-  for (size_t i = 0; i < Address::kLength; i++) {
-    payload_.push_back(address.address[i]);
-  }
-  return true;
 }
 
 bool RawBuilder::AddOctets1(uint8_t value) {
