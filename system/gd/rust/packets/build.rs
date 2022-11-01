@@ -61,6 +61,7 @@ fn generate_packets() {
     }
 
     for i in 0..input_files.len() {
+        println!("cargo:rerun-if-changed={}", input_files[i].display());
         let output = Command::new(packetgen.as_os_str().to_str().unwrap())
             .arg("--source_root=".to_owned() + gd_root.as_os_str().to_str().unwrap())
             .arg("--out=".to_owned() + out_dir.as_os_str().to_str().unwrap())

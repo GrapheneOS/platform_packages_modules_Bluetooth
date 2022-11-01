@@ -21,9 +21,7 @@ cc_library_static {
     cflags: [
         "-O3",
         "-ffast-math",
-        "-Werror",
         "-Wmissing-braces",
-        "-Wno-unused-parameter",
         "-Wno-#warnings",
         "-Wuninitialized",
         "-Wno-self-assign",
