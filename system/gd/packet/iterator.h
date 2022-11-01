@@ -50,12 +50,12 @@ class Iterator : public IteratorTraits {
   virtual ~Iterator() = default;
 
   // All addition and subtraction operators are unbounded.
-  Iterator operator+(int offset);
+  Iterator operator+(int offset) const;
   Iterator& operator+=(int offset);
   Iterator& operator++();
 
-  Iterator operator-(int offset);
-  int operator-(Iterator& itr);
+  Iterator operator-(int offset) const;
+  int operator-(const Iterator& itr) const;
   Iterator& operator-=(int offset);
   Iterator& operator--();
 
