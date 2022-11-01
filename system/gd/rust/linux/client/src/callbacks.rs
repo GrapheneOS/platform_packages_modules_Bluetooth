@@ -535,6 +535,10 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
             status
         );
     }
+
+    fn on_suspend_mode_change(&self, suspend_mode: SuspendMode) {
+        print_info!("on_suspend_mode_change: advertising suspend_mode = {:?}", suspend_mode);
+    }
 }
 
 impl RPCProxy for AdvertisingSetCallback {
