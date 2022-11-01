@@ -747,7 +747,7 @@ TEST_F(HciTest, createConnectionTest) {
   PacketBoundaryFlag packet_boundary_flag = PacketBoundaryFlag::FIRST_AUTOMATICALLY_FLUSHABLE;
   BroadcastFlag broadcast_flag = BroadcastFlag::POINT_TO_POINT;
   auto acl_payload = std::make_unique<RawBuilder>();
-  acl_payload->AddAddress(bd_addr);
+  acl_payload->AddOctets(bd_addr.address);
   acl_payload->AddOctets2(handle);
   auto incoming_acl_future = upper->GetReceivedAclFuture();
   hal->callbacks->aclDataReceived(
@@ -768,7 +768,7 @@ TEST_F(HciTest, createConnectionTest) {
   BroadcastFlag broadcast_flag2 = BroadcastFlag::POINT_TO_POINT;
   auto acl_payload2 = std::make_unique<RawBuilder>();
   acl_payload2->AddOctets2(handle);
-  acl_payload2->AddAddress(bd_addr);
+  acl_payload2->AddOctets(bd_addr.address);
   auto sent_acl_future = hal->GetSentAclFuture();
   upper->SendAclData(AclBuilder::Create(handle, packet_boundary_flag2, broadcast_flag2, std::move(acl_payload2)));
 
@@ -794,7 +794,7 @@ TEST_F(HciTest, receiveMultipleAclPackets) {
   BroadcastFlag broadcast_flag = BroadcastFlag::POINT_TO_POINT;
   for (uint16_t i = 0; i < num_packets; i++) {
     auto acl_payload = std::make_unique<RawBuilder>();
-    acl_payload->AddAddress(bd_addr);
+    acl_payload->AddOctets(bd_addr.address);
     acl_payload->AddOctets2(handle);
     acl_payload->AddOctets2(i);
     hal->callbacks->aclDataReceived(
@@ -832,7 +832,7 @@ TEST_F(HciTest, receiveMultipleAclPackets) {
 
   // One last packet to make sure they were all sent.  Already got the future.
   auto acl_payload = std::make_unique<RawBuilder>();
-  acl_payload->AddAddress(bd_addr);
+  acl_payload->AddOctets(bd_addr.address);
   acl_payload->AddOctets2(handle);
   acl_payload->AddOctets2(num_packets);
   hal->callbacks->aclDataReceived(
