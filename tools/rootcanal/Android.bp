@@ -143,6 +143,7 @@ cc_test_host {
         "test/controller/le/le_set_extended_advertising_data_test.cc",
         "test/controller/le/le_set_extended_scan_response_data_test.cc",
         "test/controller/le/le_set_extended_advertising_enable_test.cc",
+        "test/controller/le/le_scanning_filter_duplicates_test.cc",
     ],
     header_libs: [
         "libbluetooth_headers",
