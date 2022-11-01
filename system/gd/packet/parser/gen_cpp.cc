@@ -96,8 +96,8 @@ bool generate_cpp_headers_one_file(
 #if defined(PACKET_FUZZ_TESTING) || defined(PACKET_TESTING) || defined(FUZZ_TARGET)
 #include "packet/raw_builder.h"
 #endif
-#include "packet/parser/checksum_type_checker.h"
-#include "packet/parser/custom_type_checker.h"
+#include "packet/checksum_type_checker.h"
+#include "packet/custom_type_checker.h"
 
 )";
 
