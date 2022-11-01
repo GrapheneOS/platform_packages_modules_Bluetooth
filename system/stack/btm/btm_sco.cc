@@ -212,11 +212,27 @@ void btm_route_sco_data(BT_HDR* p_msg) {
     osi_free(p_msg);
     return;
   }
-  uint16_t handle = handle_with_flags & 0xFFF;
-  ASSERT_LOG(handle <= 0xEFF, "Require handle <= 0xEFF, but is 0x%X", handle);
+
+  uint16_t handle = HCID_GET_HANDLE(handle_with_flags);
+  if (handle > HCI_HANDLE_MAX) {
+    LOG_ERROR(
+        "Receive invalid SCO data with handle: 0x%X, required to be <= 0x%X, "
+        "dropping",
+        handle, HCI_HANDLE_MAX);
+    osi_free(p_msg);
+    return;
+  }
 
   tSCO_CONN* active_sco = btm_get_active_sco();
-  if (active_sco == nullptr || active_sco->hci_handle != handle) {
+  if (active_sco == nullptr) {
+    LOG_ERROR("Received SCO data when there is no active SCO connection");
+    osi_free(p_msg);
+    return;
+  }
+  if (active_sco->hci_handle != handle) {
+    LOG_ERROR(
+        "Drop packet with handle(0x%X) different from the active handle(0x%X)",
+        handle, active_sco->hci_handle);
     osi_free(p_msg);
     return;
   }
