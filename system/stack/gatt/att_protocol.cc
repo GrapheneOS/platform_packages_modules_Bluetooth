@@ -436,7 +436,8 @@ static tGATT_STATUS attp_cl_send_cmd(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
   if (gatt_tcb_is_cid_busy(tcb, p_clcb->cid) &&
       cmd_code != GATT_HANDLE_VALUE_CONF) {
     gatt_cmd_enq(tcb, p_clcb, true, cmd_code, p_cmd);
-    LOG_DEBUG("Enqueued ATT command");
+    LOG_DEBUG("Enqueued ATT command %p conn_id=0x%04x, cid=%d", p_clcb,
+              p_clcb->conn_id, p_clcb->cid);
     return GATT_CMD_STARTED;
   }
 
@@ -445,7 +446,9 @@ static tGATT_STATUS attp_cl_send_cmd(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
       p_clcb->cid, tcb.eatt, bt_transport_text(tcb.transport).c_str());
   tGATT_STATUS att_ret = attp_send_msg_to_l2cap(tcb, p_clcb->cid, p_cmd);
   if (att_ret != GATT_CONGESTED && att_ret != GATT_SUCCESS) {
-    LOG_WARN("Unable to send ATT command to l2cap layer");
+    LOG_WARN(
+        "Unable to send ATT command to l2cap layer %p conn_id=0x%04x, cid=%d",
+        p_clcb, p_clcb->conn_id, p_clcb->cid);
     return GATT_INTERNAL_ERROR;
   }
 
@@ -453,7 +456,8 @@ static tGATT_STATUS attp_cl_send_cmd(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
     return att_ret;
   }
 
-  LOG_DEBUG("Starting ATT response timer");
+  LOG_DEBUG("Starting ATT response timer %p conn_id=0x%04x, cid=%d", p_clcb,
+            p_clcb->conn_id, p_clcb->cid);
   gatt_start_rsp_timer(p_clcb);
   gatt_cmd_enq(tcb, p_clcb, false, cmd_code, NULL);
   return att_ret;

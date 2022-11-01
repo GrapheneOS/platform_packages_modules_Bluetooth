@@ -39,8 +39,10 @@ class ChecksumTypeChecker {
 
   // If all the methods are defined, this one matches
   template <class C, typename CRET>
-  static int Test(InitializeChecker<C, &C::Initialize>*, AddByteChecker<C, &C::AddByte>*,
-                  GetChecksumChecker<C, CRET, &C::GetChecksum>*);
+  static int Test(
+      InitializeChecker<C, &C::Initialize>*,
+      AddByteChecker<C, &C::AddByte>*,
+      GetChecksumChecker<C, CRET, &C::GetChecksum>*);
 
   // This one matches everything else
   template <class C, typename CRET>
