@@ -983,7 +983,6 @@ tGATT_CLCB* gatt_clcb_alloc(uint16_t conn_id) {
   tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
 
-  clcb.in_use = true;
   clcb.conn_id = conn_id;
   clcb.p_reg = p_reg;
   clcb.p_tcb = p_tcb;
@@ -1137,7 +1136,7 @@ uint16_t gatt_tcb_get_payload_size_rx(tGATT_TCB& tcb, uint16_t cid) {
  *
  ******************************************************************************/
 void gatt_clcb_dealloc(tGATT_CLCB* p_clcb) {
-  if (p_clcb && p_clcb->in_use) {
+  if (p_clcb) {
     alarm_free(p_clcb->gatt_rsp_timer_ent);
     for (auto clcb_it = gatt_cb.clcb_queue.begin();
          clcb_it != gatt_cb.clcb_queue.end(); clcb_it++) {
@@ -1232,7 +1231,7 @@ uint8_t gatt_num_clcb_by_bd_addr(const RawAddress& bda) {
   uint8_t num = 0;
 
   for (auto const& clcb : gatt_cb.clcb_queue) {
-    if (clcb.in_use && clcb.p_tcb->peer_bda == bda) num++;
+    if (clcb.p_tcb->peer_bda == bda) num++;
   }
   return num;
 }
@@ -1525,6 +1524,18 @@ tGATT_STATUS gatt_send_write_msg(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
   return attp_send_cl_msg(tcb, p_clcb, op_code, &msg);
 }
 
+/*******************************************************************************
+ *
+ * Function         gatt_is_outstanding_msg_in_att_send_queue
+ *
+ * Description      checks if there is message on the ATT fixed channel to send
+ *
+ * Returns          true: on success; false otherwise
+ *
+ ******************************************************************************/
+bool gatt_is_outstanding_msg_in_att_send_queue(const tGATT_TCB& tcb) {
+  return (!tcb.cl_cmd_q.empty() && (tcb.cl_cmd_q.front()).to_send);
+}
 /*******************************************************************************
  *
  * Function         gatt_end_operation

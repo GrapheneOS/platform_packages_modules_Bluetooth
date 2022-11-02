@@ -370,7 +370,6 @@ struct tGATT_CLCB {
   tGATT_STATUS status;     /* operation status */
   bool first_read_blob_after_read;
   tGATT_READ_INC_UUID128 read_uuid128;
-  bool in_use;
   alarm_t* gatt_rsp_timer_ent; /* peer response timer */
   uint8_t retry_count;
   uint16_t read_req_current_mtu; /* This is the MTU value that the read was
@@ -646,6 +645,7 @@ extern void gatt_client_handle_server_rsp(tGATT_TCB& tcb, uint16_t cid,
                                           uint8_t* p_data);
 extern void gatt_send_queue_write_cancel(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
                                          tGATT_EXEC_FLAG flag);
+extern bool gatt_is_outstanding_msg_in_att_send_queue(const tGATT_TCB& tcb);
 
 /* gatt_auth.cc */
 extern bool gatt_security_check_start(tGATT_CLCB* p_clcb);
