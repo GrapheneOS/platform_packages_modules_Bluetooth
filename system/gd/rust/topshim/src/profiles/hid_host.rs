@@ -2,6 +2,7 @@ use crate::bindings::root as bindings;
 use crate::btif::{BluetoothInterface, BtStatus, RawAddress, SupportedProfiles, ToggleableProfile};
 use crate::profiles::hid_host::bindings::bthh_interface_t;
 use crate::topstack::get_dispatchers;
+use crate::utils::LTCheckedPtrMut;
 use crate::{cast_to_ffi_address, ccall, deref_ffi_address};
 
 use num_traits::cast::{FromPrimitive, ToPrimitive};
@@ -171,9 +172,9 @@ impl ToggleableProfile for HidHost {
     }
 
     fn enable(&mut self) -> bool {
-        let rawcb = &mut **self.callbacks.as_mut().unwrap();
+        let cb_ptr = LTCheckedPtrMut::from(self.callbacks.as_mut().unwrap());
 
-        let init = ccall!(self, init, rawcb);
+        let init = ccall!(self, init, cb_ptr.into());
         self.is_init = BtStatus::from(init) == BtStatus::Success;
         self._is_enabled = self.is_init;
         true
@@ -309,12 +310,13 @@ impl HidHost {
         report: &mut [u8],
     ) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        let report_ptr = LTCheckedPtrMut::from(report);
         BtStatus::from(ccall!(
             self,
             set_report,
             ffi_addr,
             bindings::bthh_report_type_t::from(report_type),
-            report.as_mut_ptr() as *mut std::os::raw::c_char
+            report_ptr.cast_into::<std::os::raw::c_char>()
         ))
     }
 
