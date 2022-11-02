@@ -313,6 +313,7 @@ void bta_gattc_sdp_callback(tSDP_STATUS sdp_status, const void* user_data) {
         !GATT_HANDLE_IS_VALID(end_handle)) {
       LOG(ERROR) << "invalid start_handle=" << loghex(start_handle)
                  << ", end_handle=" << loghex(end_handle);
+      p_sdp_rec = SDP_FindServiceInDb(cb_data->p_sdp_db, 0, p_sdp_rec);
       continue;
     }
 
