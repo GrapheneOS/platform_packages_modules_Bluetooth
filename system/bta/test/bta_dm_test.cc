@@ -346,3 +346,21 @@ TEST_F(BtaDmTest, bta_dm_event_text) {
                                      std::numeric_limits<uint16_t>::max()))
                    .c_str());
 }
+
+TEST_F(BtaDmTest, bta_dm_state_text) {
+  std::vector<std::pair<tBTA_DM_STATE, std::string>> states = {
+      std::make_pair(BTA_DM_SEARCH_IDLE, "BTA_DM_SEARCH_IDLE"),
+      std::make_pair(BTA_DM_SEARCH_ACTIVE, "BTA_DM_SEARCH_ACTIVE"),
+      std::make_pair(BTA_DM_SEARCH_CANCELLING, "BTA_DM_SEARCH_CANCELLING"),
+      std::make_pair(BTA_DM_DISCOVER_ACTIVE, "BTA_DM_DISCOVER_ACTIVE"),
+  };
+  for (const auto& state : states) {
+    ASSERT_STREQ(state.second.c_str(), bta_dm_state_text(state.first).c_str());
+  }
+  auto unknown =
+      base::StringPrintf("UNKNOWN[%d]", std::numeric_limits<int>::max());
+  ASSERT_STREQ(unknown.c_str(),
+               bta_dm_state_text(
+                   static_cast<tBTA_DM_STATE>(std::numeric_limits<int>::max()))
+                   .c_str());
+}
