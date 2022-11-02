@@ -35,6 +35,7 @@ using ::bluetooth::os::Thread;
 namespace bluetooth {
 namespace hci {
 namespace acl_manager {
+namespace {
 
 class TestController : public Controller {
  public:
@@ -410,6 +411,7 @@ TEST_F(RoundRobinSchedulerTest, receive_le_credit_when_next_fragment_is_classic)
   round_robin_scheduler_->Unregister(le_handle);
 }
 
+}  // namespace
 }  // namespace acl_manager
 }  // namespace hci
 }  // namespace bluetooth
