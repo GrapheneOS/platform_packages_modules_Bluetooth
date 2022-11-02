@@ -37,6 +37,8 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMethodProxy;
+
 import java.util.ArrayList;
 
 /**
@@ -148,7 +150,9 @@ public class BluetoothOppBatch {
 
             if (info.mStatus < 200) {
                 if (info.mDirection == BluetoothShare.DIRECTION_INBOUND && info.mUri != null) {
-                    mContext.getContentResolver().delete(info.mUri, null, null);
+                    BluetoothMethodProxy.getInstance().contentResolverDelete(
+                            mContext.getContentResolver(), info.mUri, null, null
+                    );
                 }
                 if (V) {
                     Log.v(TAG, "Cancel batch for info " + info.mId);

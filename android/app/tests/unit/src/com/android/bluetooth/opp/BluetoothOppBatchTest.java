@@ -17,6 +17,9 @@
 package com.android.bluetooth.opp;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 import android.content.Context;
 
@@ -24,9 +27,12 @@ import androidx.test.filters.MediumTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -85,37 +91,18 @@ public class BluetoothOppBatchTest {
     }
 
     @Test
-    public void cancelBatch_throwUnknownUri() {
-        // Array can be access and edit by the inner class
-        final boolean[] batchCancelCalled = {false};
-        mBluetoothOppBatch.registerListener(new BluetoothOppBatch.BluetoothOppBatchListener() {
-            @Override
-            public void onShareAdded(int id) {
-            }
+    public void cancelBatch_cancelSuccessfully() {
 
-            @Override
-            public void onShareDeleted(int id) {
-            }
-
-            @Override
-            public void onBatchCanceled() {
-                batchCancelCalled[0] = true;
-            }
-        });
+        BluetoothMethodProxy proxy = spy(BluetoothMethodProxy.getInstance());
+        BluetoothMethodProxy.setInstanceForTesting(proxy);
+        doReturn(0).when(proxy).contentResolverDelete(any(), any(), any(), any());
+        doReturn(0).when(proxy).contentResolverUpdate(any(), any(), any(), any(), any());
 
         assertThat(mBluetoothOppBatch.getPendingShare()).isEqualTo(mInitShareInfo);
-        try {
-            mBluetoothOppBatch.cancelBatch();
-            assertThat(mBluetoothOppBatch.isEmpty()).isTrue();
-            assertThat(batchCancelCalled[0]).isTrue();
-        } catch (IllegalArgumentException e) {
-            // the id for BluetoothOppShareInfo id is made up, so the link is invalid,
-            // leading to IllegalArgumentException. In this case, cancelBatch() failed
-            assertThat(e).hasMessageThat().isEqualTo(
-                    "Unknown URI content://com.android.bluetooth.opp/btopp/0");
-            assertThat(mBluetoothOppBatch.isEmpty()).isFalse();
-            assertThat(batchCancelCalled[0]).isFalse();
-        }
 
+        mBluetoothOppBatch.cancelBatch();
+        assertThat(mBluetoothOppBatch.isEmpty()).isTrue();
+
+        BluetoothMethodProxy.setInstanceForTesting(null);
     }
 }
