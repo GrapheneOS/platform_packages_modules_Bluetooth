@@ -644,7 +644,7 @@ class LeAudioClientImpl : public LeAudioClient {
      * Ideally, we should send all the bits we have, but not all headsets like
      * it.
      */
-    if (osi_property_get_bool(kAllowMultipleContextsInMetadata, false)) {
+    if (osi_property_get_bool(kAllowMultipleContextsInMetadata, true)) {
       return metadata_context_type;
     }
 
