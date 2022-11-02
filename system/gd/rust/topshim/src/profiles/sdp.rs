@@ -9,6 +9,7 @@ use crate::btif::{
     SupportedProfiles, Uuid,
 };
 use crate::topstack::get_dispatchers;
+use crate::utils::{LTCheckedPtr, LTCheckedPtrMut};
 use crate::{cast_to_ffi_address, ccall, deref_const_ffi_address};
 use topshim_macros::cb_variant;
 
@@ -252,18 +253,21 @@ impl From<bindings::bluetooth_sdp_record> for BtSdpRecord {
 
 impl BtSdpRecord {
     fn convert_header<'a>(hdr: &'a mut BtSdpHeaderOverlay) -> bindings::bluetooth_sdp_hdr_overlay {
+        let srv_name_ptr = LTCheckedPtrMut::from(&mut hdr.hdr.service_name);
+        let user1_ptr = LTCheckedPtr::from(&hdr.user1_data);
+        let user2_ptr = LTCheckedPtr::from(&hdr.user2_data);
         bindings::bluetooth_sdp_hdr_overlay {
             type_: hdr.hdr.sdp_type.to_u32().unwrap(),
             uuid: hdr.hdr.uuid,
             service_name_length: hdr.hdr.service_name_length,
-            service_name: hdr.hdr.service_name.as_mut_ptr() as *mut c_char,
+            service_name: srv_name_ptr.cast_into::<c_char>(),
             rfcomm_channel_number: hdr.hdr.rfcomm_channel_number,
             l2cap_psm: hdr.hdr.l2cap_psm,
             profile_version: hdr.hdr.profile_version,
             user1_ptr_len: hdr.user1_len,
-            user1_ptr: hdr.user1_data.as_mut_ptr(),
+            user1_ptr: user1_ptr.into(),
             user2_ptr_len: hdr.user2_len,
-            user2_ptr: hdr.user2_data.as_mut_ptr(),
+            user2_ptr: user2_ptr.into(),
         }
     }
 
@@ -382,9 +386,9 @@ impl Sdp {
             sdp_search_cb: Some(sdp_search_cb),
         });
 
-        let rawcb = &mut *callbacks;
+        let cb_ptr = LTCheckedPtrMut::from(&mut callbacks);
 
-        let init = ccall!(self, init, rawcb);
+        let init = ccall!(self, init, cb_ptr.into());
         self.is_init = BtStatus::from(init) == BtStatus::Success;
         self.callbacks = Some(callbacks);
 
@@ -398,8 +402,9 @@ impl Sdp {
 
     pub fn create_sdp_record(&self, record: &mut BtSdpRecord, handle: &mut i32) -> BtStatus {
         let mut converted = record.get_unsafe_record();
-        let ptr = (&mut converted) as *mut bindings::bluetooth_sdp_record;
-        BtStatus::from(ccall!(self, create_sdp_record, ptr, handle))
+        let record_ptr = LTCheckedPtrMut::from_ref(&mut converted);
+        let handle_ptr = LTCheckedPtrMut::from_ref(handle);
+        BtStatus::from(ccall!(self, create_sdp_record, record_ptr.into(), handle_ptr.into()))
     }
 
     pub fn remove_sdp_record(&self, handle: i32) -> BtStatus {
