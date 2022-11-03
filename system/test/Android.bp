@@ -355,6 +355,13 @@ filegroup {
 }
 
 filegroup {
+  name: "TestMockStackEatt",
+  srcs: [
+      "mock/mock_stack_eatt*.cc",
+  ],
+}
+
+filegroup {
   name: "TestMockStackGatt",
   srcs: [
       "mock/mock_stack_gatt*.cc",
@@ -435,6 +442,13 @@ filegroup {
   name: "TestCommonCoreInterface",
   srcs: [
       "common/core_interface.cc",
+  ],
+}
+
+filegroup {
+  name: "TestCommonLogMsg",
+  srcs: [
+      "common/log_msg.cc",
   ],
 }
 
