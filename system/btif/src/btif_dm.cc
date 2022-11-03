@@ -1621,6 +1621,12 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         num_properties++;
       }
 
+      /* If services were returned as part of SDP discovery, we will immediately
+       * send them with rest of SDP results in BTA_DM_DISC_RES_EVT */
+      if (event == BTA_DM_GATT_OVER_SDP_RES_EVT) {
+        return;
+      }
+
       /* Send the event to the BTIF */
       GetInterfaceToProfiles()->events->invoke_remote_device_properties_cb(
           BT_STATUS_SUCCESS, bd_addr, num_properties, prop);
