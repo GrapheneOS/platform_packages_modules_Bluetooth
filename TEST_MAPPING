@@ -70,6 +70,50 @@
     },
     {
       "name" : "net_test_stack_btm"
+    },
+    {
+      "name" : "BluetoothInstrumentationTests",
+      "options" : [{
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppTransferTest#eventHandler_handleMessage_MSG_CONNECT_TIMEOUT"
+      }, {
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppTransferTest#eventHandler_handleMessage_MSG_SHARE_INTERRUPTED_batchFailed"
+      }, {
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppTransferTest#eventHandler_handleMessage_TRANSPORT_ERROR_connectThreadIsNull"
+      }, {
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppTransferTest#onBatchCanceled_checkStatus"
+      }, {
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppUtilityTest#openReceivedFile_fileNotExist"
+      }]
+    },
+    {
+      "name" : "GoogleBluetoothInstrumentationTests",
+      "options" : [{
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppTransferTest#eventHandler_handleMessage_MSG_CONNECT_TIMEOUT"
+      }, {
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppTransferTest#eventHandler_handleMessage_MSG_SHARE_INTERRUPTED_batchFailed"
+      }, {
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppTransferTest#eventHandler_handleMessage_TRANSPORT_ERROR_connectThreadIsNull"
+      }, {
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppTransferTest#onBatchCanceled_checkStatus"
+      }, {
+        // b/259422308
+        "exclude-filter" : "com.android.bluetooth.opp.BluetoothOppUtilityTest#openReceivedFile_fileNotExist"
+      }]
+    },
+    {
+      "name" : "FrameworkBluetoothTests"
+    },
+    {
+      "name" : "ServiceBluetoothTests"
     }
   ]
 }
