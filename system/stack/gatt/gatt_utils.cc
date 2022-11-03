@@ -1631,7 +1631,10 @@ void gatt_cleanup_upon_disc(const RawAddress& bda, tGATT_DISCONN_REASON reason,
 
   for (auto clcb_it = gatt_cb.clcb_queue.begin();
        clcb_it != gatt_cb.clcb_queue.end();) {
-    if (clcb_it->p_tcb != p_tcb) continue;
+    if (clcb_it->p_tcb != p_tcb) {
+      ++clcb_it;
+      continue;
+    }
 
     gatt_stop_rsp_timer(&(*clcb_it));
     VLOG(1) << "found p_clcb conn_id=" << +clcb_it->conn_id;
