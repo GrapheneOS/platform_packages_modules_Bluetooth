@@ -1527,6 +1527,18 @@ tGATT_STATUS gatt_send_write_msg(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
 
 /*******************************************************************************
  *
+ * Function         gatt_is_outstanding_msg_in_att_send_queue
+ *
+ * Description      checks if there is message on the ATT fixed channel to send
+ *
+ * Returns          true: on success; false otherwise
+ *
+ ******************************************************************************/
+bool gatt_is_outstanding_msg_in_att_send_queue(const tGATT_TCB& tcb) {
+  return (!tcb.cl_cmd_q.empty() && (tcb.cl_cmd_q.front()).to_send);
+}
+/*******************************************************************************
+ *
  * Function         gatt_end_operation
  *
  * Description      This function ends a discovery, send callback and finalize
