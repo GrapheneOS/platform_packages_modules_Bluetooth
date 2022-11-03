@@ -23,7 +23,6 @@
 #include <base/strings/stringprintf.h>
 #include <string.h>
 
-#include <deque>
 #include <list>
 #include <queue>
 #include <unordered_set>
@@ -331,7 +330,7 @@ typedef struct {
   uint8_t prep_cnt[GATT_MAX_APPS];
   uint8_t ind_count;
 
-  std::deque<tGATT_CMD_Q> cl_cmd_q;
+  std::queue<tGATT_CMD_Q> cl_cmd_q;
   alarm_t* ind_ack_timer; /* local app confirm to indication timer */
 
   // TODO(hylo): support byte array data
@@ -417,14 +416,7 @@ typedef struct {
 
   fixed_queue_t* srv_chg_clt_q; /* service change clients queue */
   tGATT_REG cl_rcb[GATT_MAX_APPS];
-
-  /* list of connection link control blocks.
-   * Since clcbs are also keep in the channels (ATT and EATT) queues while
-   * processing, we want to make sure that references to elements are not
-   * invalidated when elements are added or removed from the list. This is why
-   * std::list is used.
-   */
-  std::list<tGATT_CLCB> clcb_queue;
+  tGATT_CLCB clcb[GATT_CL_MAX_LCB]; /* connection link control block*/
 
 #if (GATT_CONFORMANCE_TESTING == TRUE)
   bool enable_err_rsp;
@@ -594,7 +586,6 @@ extern bool gatt_tcb_find_indicate_handle(tGATT_TCB& tcb, uint16_t cid,
 extern uint16_t gatt_tcb_get_att_cid(tGATT_TCB& tcb, bool eatt_support);
 extern uint16_t gatt_tcb_get_payload_size_tx(tGATT_TCB& tcb, uint16_t cid);
 extern uint16_t gatt_tcb_get_payload_size_rx(tGATT_TCB& tcb, uint16_t cid);
-extern void gatt_clcb_invalidate(tGATT_TCB* p_tcb, const tGATT_CLCB* p_clcb);
 extern void gatt_clcb_dealloc(tGATT_CLCB* p_clcb);
 
 extern void gatt_sr_copy_prep_cnt_to_cback_cnt(tGATT_TCB& p_tcb);
