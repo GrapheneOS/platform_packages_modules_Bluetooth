@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -83,7 +84,7 @@ public class BluetoothOppUtility {
                 && !uri.getAuthority().equals(BluetoothShare.CONTENT_URI.getAuthority())) {
             EventLog.writeEvent(0x534e4554, "225880741", -1, "");
         }
-        return uri.getAuthority().equals(BluetoothShare.CONTENT_URI.getAuthority());
+        return Objects.equals(uri.getAuthority(), BluetoothShare.CONTENT_URI.getAuthority());
     }
 
     public static BluetoothOppTransferInfo queryRecord(Context context, Uri uri) {
