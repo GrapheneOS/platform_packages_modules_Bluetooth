@@ -983,6 +983,7 @@ tGATT_CLCB* gatt_clcb_alloc(uint16_t conn_id) {
   tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
 
+  clcb.in_use = true;
   clcb.conn_id = conn_id;
   clcb.p_reg = p_reg;
   clcb.p_tcb = p_tcb;
@@ -1136,7 +1137,7 @@ uint16_t gatt_tcb_get_payload_size_rx(tGATT_TCB& tcb, uint16_t cid) {
  *
  ******************************************************************************/
 void gatt_clcb_dealloc(tGATT_CLCB* p_clcb) {
-  if (p_clcb) {
+  if (p_clcb && p_clcb->in_use) {
     alarm_free(p_clcb->gatt_rsp_timer_ent);
     for (auto clcb_it = gatt_cb.clcb_queue.begin();
          clcb_it != gatt_cb.clcb_queue.end(); clcb_it++) {
@@ -1231,7 +1232,7 @@ uint8_t gatt_num_clcb_by_bd_addr(const RawAddress& bda) {
   uint8_t num = 0;
 
   for (auto const& clcb : gatt_cb.clcb_queue) {
-    if (clcb.p_tcb->peer_bda == bda) num++;
+    if (clcb.in_use && clcb.p_tcb->peer_bda == bda) num++;
   }
   return num;
 }
