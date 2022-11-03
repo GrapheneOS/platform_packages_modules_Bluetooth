@@ -71,7 +71,6 @@ void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason,
 /******************************************************************************/
 static void btu_hcif_inquiry_comp_evt(uint8_t* p);
 
-static void btu_hcif_connection_request_evt(const uint8_t* p);
 static void btu_hcif_disconnection_comp_evt(uint8_t* p);
 static void btu_hcif_authentication_comp_evt(uint8_t* p);
 static void btu_hcif_rmt_name_request_comp_evt(const uint8_t* p,
@@ -148,18 +147,6 @@ void btu_hcif_log_event_metrics(uint8_t evt_code, const uint8_t* p_event) {
                                 encryption_enabled);
       break;
     }
-    case HCI_CONNECTION_REQUEST_EVT: {
-      DEV_CLASS dc;
-      uint8_t link_type;
-      STREAM_TO_BDADDR(bda, p_event);
-      STREAM_TO_DEVCLASS(dc, p_event);
-      STREAM_TO_UINT8(link_type, p_event);
-      log_link_layer_connection_event(
-          &bda, bluetooth::common::kUnknownConnectionHandle,
-          android::bluetooth::DIRECTION_INCOMING, link_type, cmd, evt_code,
-          android::bluetooth::hci::BLE_EVT_UNKNOWN, status, reason);
-      break;
-    }
     case HCI_DISCONNECTION_COMP_EVT: {
       STREAM_TO_UINT8(status, p_event);
       STREAM_TO_UINT16(handle, p_event);
@@ -197,6 +184,7 @@ void btu_hcif_log_event_metrics(uint8_t evt_code, const uint8_t* p_event) {
       break;
     }
     case HCI_CONNECTION_COMP_EVT:  // EventCode::CONNECTION_COMPLETE
+    case HCI_CONNECTION_REQUEST_EVT:  // EventCode::CONNECTION_REQUEST
     default:
       LOG_ERROR(
           "Unexpectedly received event_code:0x%02x that should not be "
@@ -245,9 +233,6 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       break;
     case HCI_EXTENDED_INQUIRY_RESULT_EVT:
       btm_process_inq_results(p, hci_evt_len, BTM_INQ_RESULT_EXTENDED);
-      break;
-    case HCI_CONNECTION_REQUEST_EVT:
-      btu_hcif_connection_request_evt(p);
       break;
     case HCI_DISCONNECTION_COMP_EVT:
       btu_hcif_disconnection_comp_evt(p);
@@ -422,6 +407,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
       // Events now captured by gd::hci_layer module
     case HCI_NUM_COMPL_DATA_PKTS_EVT:  // EventCode::NUMBER_OF_COMPLETED_PACKETS
     case HCI_CONNECTION_COMP_EVT:  // EventCode::CONNECTION_COMPLETE
+    case HCI_CONNECTION_REQUEST_EVT:      // EventCode::CONNECTION_REQUEST
     case HCI_READ_RMT_FEATURES_COMP_EVT:  // EventCode::READ_REMOTE_SUPPORTED_FEATURES_COMPLETE
     case HCI_READ_RMT_VERSION_COMP_EVT:  // EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE
     case HCI_ROLE_CHANGE_EVT:            // EventCode::ROLE_CHANGE
@@ -910,31 +896,6 @@ static void btu_hcif_inquiry_comp_evt(uint8_t* p) {
 
   /* Tell inquiry processing that we are done */
   btm_process_inq_complete(to_hci_status_code(status), BTM_BR_INQUIRY_MASK);
-}
-
-/*******************************************************************************
- *
- * Function         btu_hcif_connection_request_evt
- *
- * Description      Process event HCI_CONNECTION_REQUEST_EVT
- *
- * Returns          void
- *
- ******************************************************************************/
-static void btu_hcif_connection_request_evt(const uint8_t* p) {
-  RawAddress bda;
-  DEV_CLASS dc;
-  uint8_t link_type;
-
-  STREAM_TO_BDADDR(bda, p);
-  STREAM_TO_DEVCLASS(dc, p);
-  STREAM_TO_UINT8(link_type, p);
-
-  if (link_type == HCI_LINK_TYPE_ACL) {
-    btm_acl_connection_request(bda, dc);
-  } else {
-    btm_sco_conn_req(bda, dc, link_type);
-  }
 }
 
 /*******************************************************************************
