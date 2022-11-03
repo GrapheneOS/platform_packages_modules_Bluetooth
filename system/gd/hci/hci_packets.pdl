@@ -2421,6 +2421,14 @@ packet SendKeypressNotificationComplete : CommandComplete (command_op_code = SEN
   bd_addr : Address,
 }
 
+packet SetEventMaskPage2 : Command (op_code = SET_EVENT_MASK_PAGE_2) {
+  event_mask_page_2: 64,
+}
+
+packet SetEventMaskPage2Complete : CommandComplete (command_op_code = SET_EVENT_MASK_PAGE_2) {
+  status: ErrorCode,
+}
+
 packet ReadLeHostSupport : Command (op_code = READ_LE_HOST_SUPPORT) {
 }
 
