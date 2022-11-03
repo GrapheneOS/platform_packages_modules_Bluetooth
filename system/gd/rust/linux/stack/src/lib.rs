@@ -118,7 +118,7 @@ pub enum Message {
 ///
 /// Being in suspend mode means that the module pauses some activities if required for suspend and
 /// some subsequent API calls will be blocked with a retryable error.
-#[derive(FromPrimitive, ToPrimitive)]
+#[derive(FromPrimitive, ToPrimitive, Debug, PartialEq, Clone)]
 pub enum SuspendMode {
     Normal = 0,
     Suspending = 1,

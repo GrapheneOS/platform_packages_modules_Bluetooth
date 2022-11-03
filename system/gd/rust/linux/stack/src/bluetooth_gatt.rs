@@ -17,7 +17,7 @@ use bt_utils::adv_parser;
 use crate::bluetooth::{Bluetooth, IBluetooth};
 use crate::bluetooth_adv::{
     AdvertiseData, Advertisers, AdvertisingSetInfo, AdvertisingSetParameters,
-    IAdvertisingSetCallback, PeriodicAdvertisingParameters,
+    IAdvertisingSetCallback, PeriodicAdvertisingParameters, INVALID_REG_ID,
 };
 use crate::callbacks::Callbacks;
 use crate::uuid::UuidHelper;
@@ -904,6 +904,42 @@ impl BluetoothGatt {
         // Always remove callback.
         self.context_map.remove_callback(callback_id);
     }
+
+    /// Enters suspend mode for LE advertising.
+    pub fn advertising_enter_suspend(&mut self) {
+        self.advertisers.set_suspend_mode(SuspendMode::Suspending);
+
+        let mut pausing_cnt = 0;
+        for s in self.advertisers.enabled_sets_mut() {
+            s.set_paused(true);
+            self.gatt.as_mut().unwrap().advertiser.enable(
+                s.adv_id(),
+                false,
+                s.adv_timeout(),
+                s.adv_events(),
+            );
+            pausing_cnt += 1;
+        }
+
+        if pausing_cnt == 0 {
+            self.advertisers.set_suspend_mode(SuspendMode::Suspended);
+        }
+    }
+
+    /// Exits suspend mode for LE advertising.
+    pub fn advertising_exit_suspend(&mut self) {
+        for s in self.advertisers.paused_sets_mut() {
+            s.set_paused(false);
+            self.gatt.as_mut().unwrap().advertiser.enable(
+                s.adv_id(),
+                true,
+                s.adv_timeout(),
+                s.adv_events(),
+            );
+        }
+
+        self.advertisers.set_suspend_mode(SuspendMode::Normal);
+    }
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -1031,6 +1067,10 @@ impl IBluetoothGatt for BluetoothGatt {
         max_ext_adv_events: i32,
         callback_id: u32,
     ) -> i32 {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return INVALID_REG_ID;
+        }
+
         let device_name = self.get_adapter_name();
         let params = parameters.into();
         let adv_bytes = advertise_data.make_with(&device_name);
@@ -1064,6 +1104,10 @@ impl IBluetoothGatt for BluetoothGatt {
     }
 
     fn stop_advertising_set(&mut self, advertiser_id: i32) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
         let s = self.advertisers.get_by_advertiser_id(advertiser_id);
         if None == s {
             return;
@@ -1079,6 +1123,10 @@ impl IBluetoothGatt for BluetoothGatt {
     }
 
     fn get_own_address(&mut self, advertiser_id: i32) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
             self.gatt.as_mut().unwrap().advertiser.get_own_address(s.adv_id());
         }
@@ -1091,6 +1139,10 @@ impl IBluetoothGatt for BluetoothGatt {
         duration: i32,
         max_ext_adv_events: i32,
     ) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
         let adv_timeout = clamp(duration, 0, 0xffff) as u16;
         let adv_events = clamp(max_ext_adv_events, 0, 0xff) as u8;
 
@@ -1105,6 +1157,10 @@ impl IBluetoothGatt for BluetoothGatt {
     }
 
     fn set_advertising_data(&mut self, advertiser_id: i32, data: AdvertiseData) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
         let device_name = self.get_adapter_name();
         let bytes = data.make_with(&device_name);
 
@@ -1114,6 +1170,10 @@ impl IBluetoothGatt for BluetoothGatt {
     }
 
     fn set_scan_response_data(&mut self, advertiser_id: i32, data: AdvertiseData) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
         let device_name = self.get_adapter_name();
         let bytes = data.make_with(&device_name);
 
@@ -1127,6 +1187,10 @@ impl IBluetoothGatt for BluetoothGatt {
         advertiser_id: i32,
         parameters: AdvertisingSetParameters,
     ) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
         let params = parameters.into();
 
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
@@ -1156,6 +1220,10 @@ impl IBluetoothGatt for BluetoothGatt {
         advertiser_id: i32,
         parameters: PeriodicAdvertisingParameters,
     ) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
         let params = parameters.into();
 
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
@@ -1168,6 +1236,10 @@ impl IBluetoothGatt for BluetoothGatt {
     }
 
     fn set_periodic_advertising_data(&mut self, advertiser_id: i32, data: AdvertiseData) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
         let device_name = self.get_adapter_name();
         let bytes = data.make_with(&device_name);
 
@@ -1177,6 +1249,10 @@ impl IBluetoothGatt for BluetoothGatt {
     }
 
     fn set_periodic_advertising_enable(&mut self, advertiser_id: i32, enable: bool) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
             self.gatt
                 .as_mut()
@@ -2466,6 +2542,12 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
         if let Some(cb) = self.advertisers.get_callback(&s) {
             cb.on_advertising_enabled(advertiser_id, enabled, status);
+        }
+
+        if self.advertisers.suspend_mode() == SuspendMode::Suspending {
+            if self.advertisers.enabled_sets().count() == 0 {
+                self.advertisers.set_suspend_mode(SuspendMode::Suspended);
+            }
         }
     }
 

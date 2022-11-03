@@ -314,6 +314,9 @@ class ActiveDeviceManager {
                         setHearingAidActiveDevice(null);
                         setLeAudioActiveDevice(null);
                     }
+                    if (mHfpConnectedDevices.contains(device)) {
+                        setHfpActiveDevice(device);
+                    }
                     // Just assign locally the new value
                     mA2dpActiveDevice = device;
                 }
@@ -397,6 +400,9 @@ class ActiveDeviceManager {
                     if (device != null && !Objects.equals(mHfpActiveDevice, device)) {
                         setHearingAidActiveDevice(null);
                         setLeAudioActiveDevice(null);
+                    }
+                    if (mA2dpConnectedDevices.contains(device)) {
+                        setA2dpActiveDevice(device);
                     }
                     // Just assign locally the new value
                     mHfpActiveDevice = device;
