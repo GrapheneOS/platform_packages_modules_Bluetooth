@@ -181,12 +181,12 @@ public class HeadsetServiceAndStateMachineTest {
                 mAdapterService).getBondedDevices();
         // Mock system interface
         doNothing().when(mSystemInterface).stop();
-        when(mSystemInterface.getHeadsetPhoneState()).thenReturn(mPhoneState);
-        when(mSystemInterface.getAudioManager()).thenReturn(mAudioManager);
-        when(mSystemInterface.activateVoiceRecognition()).thenReturn(true);
-        when(mSystemInterface.deactivateVoiceRecognition()).thenReturn(true);
-        when(mSystemInterface.getVoiceRecognitionWakeLock()).thenReturn(mVoiceRecognitionWakeLock);
-        when(mSystemInterface.isCallIdle()).thenReturn(true);
+        doReturn(mPhoneState).when(mSystemInterface).getHeadsetPhoneState();
+        doReturn(mAudioManager).when(mSystemInterface).getAudioManager();
+        doReturn(true).when(mSystemInterface).activateVoiceRecognition();
+        doReturn(true).when(mSystemInterface).deactivateVoiceRecognition();
+        doReturn(mVoiceRecognitionWakeLock).when(mSystemInterface).getVoiceRecognitionWakeLock();
+        doReturn(true).when(mSystemInterface).isCallIdle();
         // Mock methods in HeadsetNativeInterface
         mNativeInterface = spy(HeadsetNativeInterface.getInstance());
         doNothing().when(mNativeInterface).init(anyInt(), anyBoolean());
@@ -710,7 +710,7 @@ public class HeadsetServiceAndStateMachineTest {
      */
     @Test
     public void testVoiceRecognition_SingleHfInitiatedFailedToActivate() {
-        when(mSystemInterface.activateVoiceRecognition()).thenReturn(false);
+        doReturn(false).when(mSystemInterface).activateVoiceRecognition();
         // Connect HF
         BluetoothDevice device = TestUtils.getTestDevice(mAdapter, 0);
         connectTestDevice(device);

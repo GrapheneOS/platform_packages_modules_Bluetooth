@@ -830,6 +830,9 @@ typedef enum : uint8_t {
 /* Define an invalid value for a handle */
 #define HCI_INVALID_HANDLE 0xFFFF
 
+/* Define the max valid value for a connection handle */
+#define HCI_HANDLE_MAX 0xEFF
+
 /* Define the preamble length for all HCI Commands.
  * This is 2-bytes for opcode and 1 byte for length
 */

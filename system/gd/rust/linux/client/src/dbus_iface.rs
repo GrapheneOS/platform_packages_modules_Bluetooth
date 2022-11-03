@@ -796,6 +796,9 @@ impl IAdvertisingSetCallback for IAdvertisingSetCallbackDBus {
         status: GattStatus,
     ) {
     }
+
+    #[dbus_method("OnSuspendModeChange")]
+    fn on_suspend_mode_change(&self, suspend_mode: SuspendMode) {}
 }
 
 #[dbus_propmap(AdvertisingSetParameters)]

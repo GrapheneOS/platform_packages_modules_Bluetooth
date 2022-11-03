@@ -30,6 +30,7 @@ from blueberry.tests.sl4a_sl4a.lib import sl4a_sl4a_base_test
 from blueberry.tests.sl4a_sl4a.lib.security import Security
 from blueberry.utils.bt_gatt_constants import GattCallbackString
 from blueberry.utils.bt_gatt_constants import GattTransport
+from mobly import test_runner
 
 
 class IrkRotationTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
