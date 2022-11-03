@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.net.Uri;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
 
@@ -35,6 +34,7 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
 
 import org.junit.After;
@@ -56,7 +56,7 @@ public class BluetoothPbapVcardManagerTest {
     private static final String TAG = BluetoothPbapVcardManagerTest.class.getSimpleName();
 
     @Spy
-    BluetoothPbapMethodProxy mPbapMethodProxy = BluetoothPbapMethodProxy.getInstance();
+    BluetoothMethodProxy mPbapMethodProxy = BluetoothMethodProxy.getInstance();
 
     Context mContext;
     BluetoothPbapVcardManager mManager;
@@ -64,14 +64,14 @@ public class BluetoothPbapVcardManagerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        BluetoothPbapMethodProxy.setInstanceForTesting(mPbapMethodProxy);
+        BluetoothMethodProxy.setInstanceForTesting(mPbapMethodProxy);
         mContext = InstrumentationRegistry.getTargetContext();
         mManager = new BluetoothPbapVcardManager(mContext);
     }
 
     @After
     public void tearDown() {
-        BluetoothPbapMethodProxy.setInstanceForTesting(null);
+        BluetoothMethodProxy.setInstanceForTesting(null);
     }
 
     @Test

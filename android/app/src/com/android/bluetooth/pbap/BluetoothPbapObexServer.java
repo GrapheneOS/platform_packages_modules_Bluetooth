@@ -43,6 +43,7 @@ import android.provider.CallLog.Calls;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.ApplicationParameter;
 import com.android.obex.HeaderSet;
@@ -242,7 +243,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private PbapStateMachine mStateMachine;
 
-    private BluetoothPbapMethodProxy mPbapMethodProxy;
+    private BluetoothMethodProxy mPbapMethodProxy;
 
     private enum ContactsType {
         TYPE_PHONEBOOK , TYPE_SIM ;
@@ -272,7 +273,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         mVcardManager = new BluetoothPbapVcardManager(mContext);
         mVcardSimManager = new BluetoothPbapSimVcardManager(mContext);
         mStateMachine = stateMachine;
-        mPbapMethodProxy = BluetoothPbapMethodProxy.getInstance();
+        mPbapMethodProxy = BluetoothMethodProxy.getInstance();
     }
 
     @Override
