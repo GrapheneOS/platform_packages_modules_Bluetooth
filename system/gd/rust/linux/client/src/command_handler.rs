@@ -951,11 +951,6 @@ impl CommandHandler {
             "on" => {
                 let mut context = self.context.lock().unwrap();
 
-                if context.adv_sets.keys().len() > 0 {
-                    print_error!("Already started advertising");
-                    return;
-                }
-
                 let s = AdvSet::new();
                 let reg_id = context.gatt_dbus.as_mut().unwrap().start_advertising_set(
                     s.params.clone(),
