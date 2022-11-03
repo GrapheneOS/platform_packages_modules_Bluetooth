@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <deque>
+#include <queue>
 
 #include "stack/gatt/gatt_int.h"
 #include "types/raw_address.h"
@@ -54,7 +54,7 @@ class EattChannel {
   /* indication confirmation timer */
   alarm_t* ind_confirmation_timer_;
   /* GATT client command queue */
-  std::deque<tGATT_CMD_Q> cl_cmd_q_;
+  std::queue<tGATT_CMD_Q> cl_cmd_q_;
 
   EattChannel(RawAddress& bda, uint16_t cid, uint16_t tx_mtu, uint16_t rx_mtu)
       : bda_(bda),
@@ -79,7 +79,7 @@ class EattChannel {
   void EattChannelSetState(EattChannelState state) {
     if (state_ == EattChannelState::EATT_CHANNEL_PENDING) {
       if (state == EattChannelState::EATT_CHANNEL_OPENED) {
-        cl_cmd_q_ = std::deque<tGATT_CMD_Q>();
+        cl_cmd_q_ = std::queue<tGATT_CMD_Q>();
         memset(&server_outstanding_cmd_, 0, sizeof(tGATT_SR_CMD));
         char name[64];
         sprintf(name, "eatt_ind_ack_timer_%s_cid_0x%04x",

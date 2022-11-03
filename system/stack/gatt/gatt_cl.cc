@@ -1130,7 +1130,7 @@ uint8_t gatt_cmd_to_rsp_code(uint8_t cmd_code) {
 
 /** Find next command in queue and sent to server */
 bool gatt_cl_send_next_cmd_inq(tGATT_TCB& tcb) {
-  std::deque<tGATT_CMD_Q>* cl_cmd_q = nullptr;
+  std::queue<tGATT_CMD_Q>* cl_cmd_q;
 
   while (!tcb.cl_cmd_q.empty() ||
          EattExtension::GetInstance()->IsOutstandingMsgInSendQueue(tcb.peer_bda)) {
@@ -1153,7 +1153,7 @@ bool gatt_cl_send_next_cmd_inq(tGATT_TCB& tcb) {
 
     if (att_ret != GATT_SUCCESS && att_ret != GATT_CONGESTED) {
       LOG(ERROR) << __func__ << ": L2CAP sent error";
-      cl_cmd_q->pop_front();
+      cl_cmd_q->pop();
       continue;
     }
 
@@ -1185,7 +1185,7 @@ bool gatt_cl_send_next_cmd_inq(tGATT_TCB& tcb) {
 void gatt_client_handle_server_rsp(tGATT_TCB& tcb, uint16_t cid,
                                    uint8_t op_code, uint16_t len,
                                    uint8_t* p_data) {
-  VLOG(1) << __func__ << " opcode: " << loghex(op_code) << " cid" << +cid;
+  VLOG(1) << __func__ << " opcode: " << loghex(op_code);
 
   uint16_t payload_size = gatt_tcb_get_payload_size_rx(tcb, cid);
 
@@ -1205,13 +1205,7 @@ void gatt_client_handle_server_rsp(tGATT_TCB& tcb, uint16_t cid,
   uint8_t cmd_code = 0;
   tGATT_CLCB* p_clcb = gatt_cmd_dequeue(tcb, cid, &cmd_code);
   uint8_t rsp_code = gatt_cmd_to_rsp_code(cmd_code);
-  if (!p_clcb) {
-    LOG_WARN("ATT - clcb already not in use, ignoring response");
-    gatt_cl_send_next_cmd_inq(tcb);
-    return;
-  }
-
-  if (rsp_code != op_code && op_code != GATT_RSP_ERROR) {
+  if (!p_clcb || (rsp_code != op_code && op_code != GATT_RSP_ERROR)) {
     LOG(WARNING) << StringPrintf(
         "ATT - Ignore wrong response. Receives (%02x) Request(%02x) Ignored",
         op_code, rsp_code);
