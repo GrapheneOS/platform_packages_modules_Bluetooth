@@ -1793,6 +1793,11 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    if (!leAudioDevice->encrypted_) {
+      LOG_DEBUG("Wait for device to be encrypted");
+      return;
+    }
+
     if (!leAudioDevice->known_service_handles_)
       BTA_GATTC_ServiceSearchRequest(
           leAudioDevice->conn_id_,
