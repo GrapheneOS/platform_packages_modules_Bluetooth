@@ -61,7 +61,7 @@
 #define BTA_SERVICE_ID_TO_SERVICE_MASK(id) (1 << (id))
 
 /* DM search events */
-enum {
+typedef enum : uint16_t {
   /* DM search API events */
   BTA_DM_API_SEARCH_EVT = BTA_SYS_EVT_START(BTA_ID_DM_SEARCH),
   BTA_DM_API_DISCOVER_EVT,
@@ -71,7 +71,22 @@ enum {
   BTA_DM_SEARCH_CMPL_EVT,
   BTA_DM_DISCOVERY_RESULT_EVT,
   BTA_DM_DISC_CLOSE_TOUT_EVT,
-};
+} tBTA_DM_EVT;
+
+inline std::string bta_dm_event_text(const tBTA_DM_EVT& event) {
+  switch (event) {
+    CASE_RETURN_TEXT(BTA_DM_API_SEARCH_EVT);
+    CASE_RETURN_TEXT(BTA_DM_API_DISCOVER_EVT);
+    CASE_RETURN_TEXT(BTA_DM_INQUIRY_CMPL_EVT);
+    CASE_RETURN_TEXT(BTA_DM_REMT_NAME_EVT);
+    CASE_RETURN_TEXT(BTA_DM_SDP_RESULT_EVT);
+    CASE_RETURN_TEXT(BTA_DM_SEARCH_CMPL_EVT);
+    CASE_RETURN_TEXT(BTA_DM_DISCOVERY_RESULT_EVT);
+    CASE_RETURN_TEXT(BTA_DM_DISC_CLOSE_TOUT_EVT);
+    default:
+      return base::StringPrintf("UNKNOWN[0x%04x]", event);
+  }
+}
 
 /* data type for BTA_DM_API_SEARCH_EVT */
 typedef struct {
@@ -381,14 +396,25 @@ typedef struct {
 } tBTA_DM_DI_CB;
 
 /* DM search state */
-enum {
+typedef enum {
 
   BTA_DM_SEARCH_IDLE,
   BTA_DM_SEARCH_ACTIVE,
   BTA_DM_SEARCH_CANCELLING,
   BTA_DM_DISCOVER_ACTIVE
 
-};
+} tBTA_DM_STATE;
+
+inline std::string bta_dm_state_text(const tBTA_DM_STATE& state) {
+  switch (state) {
+    CASE_RETURN_TEXT(BTA_DM_SEARCH_IDLE);
+    CASE_RETURN_TEXT(BTA_DM_SEARCH_ACTIVE);
+    CASE_RETURN_TEXT(BTA_DM_SEARCH_CANCELLING);
+    CASE_RETURN_TEXT(BTA_DM_DISCOVER_ACTIVE);
+    default:
+      return base::StringPrintf("UNKNOWN[%d]", state);
+  }
+}
 
 typedef struct {
   uint16_t page_timeout; /* timeout for page in slots */
