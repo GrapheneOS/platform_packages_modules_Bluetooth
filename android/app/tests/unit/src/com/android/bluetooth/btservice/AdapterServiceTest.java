@@ -331,7 +331,7 @@ public class AdapterServiceTest {
 
     @AfterClass
     public static void tearDownOnce() {
-        AsyncTask.setDefaultExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        AsyncTask.setDefaultExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
     private void verifyStateChange(int prevState, int currState, int callNumber, int timeoutMs) {
