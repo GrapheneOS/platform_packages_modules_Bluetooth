@@ -39,6 +39,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import androidx.test.core.app.ApplicationProvider;
+import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -120,6 +121,7 @@ public class BluetoothInCallServiceTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        InstrumentationRegistry.getInstrumentation().getUiAutomation().adoptShellPermissionIdentity();
 
         // Create the service Intent.
         Intent serviceIntent =
