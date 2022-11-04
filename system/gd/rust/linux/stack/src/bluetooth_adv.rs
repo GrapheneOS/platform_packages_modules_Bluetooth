@@ -1,7 +1,7 @@
 //! BLE Advertising types and utilities
 
 use bt_topshim::btif::Uuid;
-use bt_topshim::profiles::gatt::{Gatt, GattStatus, LePhy};
+use bt_topshim::profiles::gatt::{AdvertisingStatus, Gatt, LePhy};
 
 use itertools::Itertools;
 use log::warn;
@@ -95,7 +95,7 @@ pub trait IAdvertisingSetCallback: RPCProxy {
         reg_id: i32,
         advertiser_id: i32,
         tx_power: i32,
-        status: GattStatus,
+        status: AdvertisingStatus,
     );
 
     /// Callback triggered in response to `get_own_address` indicating result of the operation.
@@ -107,14 +107,14 @@ pub trait IAdvertisingSetCallback: RPCProxy {
 
     /// Callback triggered in response to `enable_advertising_set` indicating result of
     /// the operation.
-    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: GattStatus);
+    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: AdvertisingStatus);
 
     /// Callback triggered in response to `set_advertising_data` indicating result of the operation.
-    fn on_advertising_data_set(&self, advertiser_id: i32, status: GattStatus);
+    fn on_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus);
 
     /// Callback triggered in response to `set_scan_response_data` indicating result of
     /// the operation.
-    fn on_scan_response_data_set(&self, advertiser_id: i32, status: GattStatus);
+    fn on_scan_response_data_set(&self, advertiser_id: i32, status: AdvertisingStatus);
 
     /// Callback triggered in response to `set_advertising_parameters` indicating result of
     /// the operation.
@@ -122,20 +122,29 @@ pub trait IAdvertisingSetCallback: RPCProxy {
         &self,
         advertiser_id: i32,
         tx_power: i32,
-        status: GattStatus,
+        status: AdvertisingStatus,
     );
 
     /// Callback triggered in response to `set_periodic_advertising_parameters` indicating result of
     /// the operation.
-    fn on_periodic_advertising_parameters_updated(&self, advertiser_id: i32, status: GattStatus);
+    fn on_periodic_advertising_parameters_updated(
+        &self,
+        advertiser_id: i32,
+        status: AdvertisingStatus,
+    );
 
     /// Callback triggered in response to `set_periodic_advertising_data` indicating result of
     /// the operation.
-    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: GattStatus);
+    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus);
 
     /// Callback triggered in response to `set_periodic_advertising_enable` indicating result of
     /// the operation.
-    fn on_periodic_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: GattStatus);
+    fn on_periodic_advertising_enabled(
+        &self,
+        advertiser_id: i32,
+        enable: bool,
+        status: AdvertisingStatus,
+    );
 
     /// When advertising module changes its suspend mode due to system suspend/resume.
     fn on_suspend_mode_change(&self, suspend_mode: SuspendMode);
