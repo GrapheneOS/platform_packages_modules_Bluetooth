@@ -48,6 +48,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
@@ -62,7 +63,11 @@ public class ActiveDeviceManagerTest {
     private BluetoothDevice mA2dpHeadsetDevice;
     private BluetoothDevice mHearingAidDevice;
     private BluetoothDevice mLeAudioDevice;
+    private BluetoothDevice mLeHearingAidDevice;
     private BluetoothDevice mSecondaryAudioDevice;
+    private BluetoothDevice mMostRecentDevice;
+    private boolean mFallbackToA2dp;
+    private boolean mFallbackToHfp;
     private ActiveDeviceManager mActiveDeviceManager;
     private static final int TIMEOUT_MS = 1000;
 
@@ -85,6 +90,7 @@ public class ActiveDeviceManagerTest {
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+
         when(mAdapterService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
         when(mAdapterService.getSystemServiceName(AudioManager.class))
                 .thenReturn(Context.AUDIO_SERVICE);
@@ -93,12 +99,6 @@ public class ActiveDeviceManagerTest {
         when(mServiceFactory.getHeadsetService()).thenReturn(mHeadsetService);
         when(mServiceFactory.getHearingAidService()).thenReturn(mHearingAidService);
         when(mServiceFactory.getLeAudioService()).thenReturn(mLeAudioService);
-        when(mA2dpService.setActiveDevice(any())).thenReturn(true);
-        when(mHeadsetService.setActiveDevice(any())).thenReturn(true);
-        when(mHearingAidService.setActiveDevice(any())).thenReturn(true);
-        when(mLeAudioService.setActiveDevice(any())).thenReturn(true);
-        when(mDatabaseManager.getMostRecentlyConnectedDevicesInList(any()))
-                .thenReturn(mSecondaryAudioDevice);
 
         mActiveDeviceManager = new ActiveDeviceManager(mAdapterService, mServiceFactory);
         mActiveDeviceManager.start();
@@ -110,7 +110,46 @@ public class ActiveDeviceManagerTest {
         mA2dpHeadsetDevice = TestUtils.getTestDevice(mAdapter, 2);
         mHearingAidDevice = TestUtils.getTestDevice(mAdapter, 3);
         mLeAudioDevice = TestUtils.getTestDevice(mAdapter, 4);
-        mSecondaryAudioDevice = TestUtils.getTestDevice(mAdapter, 5);
+        mLeHearingAidDevice = TestUtils.getTestDevice(mAdapter, 5);
+        mSecondaryAudioDevice = TestUtils.getTestDevice(mAdapter, 6);
+        mMostRecentDevice = null;
+
+        when(mA2dpService.setActiveDevice(any())).thenAnswer(invocation -> {
+            BluetoothDevice device = invocation.getArgument(0);
+            BluetoothDevice fallbackDevice = device;
+            if (device == null && mFallbackToA2dp) {
+                fallbackDevice = mA2dpDevice;
+            }
+            when(mA2dpService.getFallbackDevice()).thenReturn(fallbackDevice);
+            return true;
+        });
+        when(mHeadsetService.setActiveDevice(any())).thenAnswer(invocation -> {
+            BluetoothDevice device = invocation.getArgument(0);
+            BluetoothDevice fallbackDevice = device;
+            if (device == null && mFallbackToHfp) {
+                fallbackDevice = mHeadsetDevice;
+            }
+            when(mHeadsetService.getFallbackDevice()).thenReturn(fallbackDevice);
+            return true;
+        });
+        when(mHearingAidService.setActiveDevice(any())).thenReturn(true);
+        when(mLeAudioService.setActiveDevice(any())).thenReturn(true);
+        when(mDatabaseManager.getMostRecentlyConnectedDevicesInList(any())).thenAnswer(
+                invocation -> {
+                    List<BluetoothDevice> devices = invocation.getArgument(0);
+                    if (devices == null || devices.size() == 0) {
+                        return null;
+                    } else if (mMostRecentDevice != null && devices.contains(mMostRecentDevice)) {
+                        return mMostRecentDevice;
+                    } else if (devices.contains(mLeHearingAidDevice)) {
+                        return mLeHearingAidDevice;
+                    } else if (devices.contains(mHearingAidDevice)) {
+                        return mHearingAidDevice;
+                    } else {
+                        return devices.get(0);
+                    }
+                }
+        );
     }
 
     @After
@@ -242,7 +281,6 @@ public class ActiveDeviceManagerTest {
         verify(mHeadsetService, times(1)).setActiveDevice(mHeadsetDevice);
         Assert.assertEquals(mHeadsetDevice, mActiveDeviceManager.getHfpActiveDevice());
     }
-
 
     /**
      * Two Headsets are connected and the current active is then disconnected.
@@ -481,23 +519,18 @@ public class ActiveDeviceManagerTest {
      */
     @Test
     public void leAudioAndA2dpConnectedThenA2dpDisconnected_fallbackToLeAudio() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+
         leAudioConnected(mLeAudioDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
 
         a2dpConnected(mA2dpDevice);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
 
-        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
-        when(mDatabaseManager.getMostRecentlyConnectedDevicesInList(any())).thenAnswer(
-                invocation -> {
-                    List<BluetoothDevice> devices = invocation.getArgument(0);
-                    return (devices != null && devices.contains(mLeAudioDevice))
-                            ? mLeAudioDevice : null;
-                }
-        );
+        Mockito.clearInvocations(mLeAudioService);
         a2dpDisconnected(mA2dpDevice);
         verify(mA2dpService, timeout(TIMEOUT_MS).atLeast(1)).setActiveDevice(isNull());
-        verify(mLeAudioService, timeout(TIMEOUT_MS).times(2)).setActiveDevice(mLeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
     }
 
     /**
@@ -506,23 +539,18 @@ public class ActiveDeviceManagerTest {
      */
     @Test
     public void a2dpAndLeAudioConnectedThenLeAudioDisconnected_fallbackToA2dp() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+
         a2dpConnected(mA2dpDevice);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
 
         leAudioConnected(mLeAudioDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
 
-        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
-        when(mA2dpService.getFallbackDevice()).thenReturn(mA2dpDevice);
-        when(mDatabaseManager.getMostRecentlyConnectedDevicesInList(any())).thenAnswer(
-                invocation -> {
-                    List<BluetoothDevice> devices = invocation.getArgument(0);
-                    return (devices != null && devices.contains(mA2dpDevice)) ? mA2dpDevice : null;
-                }
-        );
+        Mockito.clearInvocations(mA2dpService);
         leAudioDisconnected(mLeAudioDevice);
         verify(mLeAudioService, timeout(TIMEOUT_MS).atLeast(1)).setActiveDevice(isNull());
-        verify(mA2dpService, timeout(TIMEOUT_MS).times(2)).setActiveDevice(mA2dpDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
     }
 
     /**
@@ -547,6 +575,8 @@ public class ActiveDeviceManagerTest {
      */
     @Test
     public void activeDeviceDisconnected_fallbackToHearingAid() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+
         hearingAidConnected(mHearingAidDevice);
         verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mHearingAidDevice);
 
@@ -560,23 +590,6 @@ public class ActiveDeviceManagerTest {
         verify(mLeAudioService, never()).setActiveDevice(mLeAudioDevice);
         verify(mA2dpService, never()).setActiveDevice(mA2dpDevice);
 
-        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
-        when(mDatabaseManager.getMostRecentlyConnectedDevicesInList(any())).thenAnswer(
-                invocation -> {
-                    List<BluetoothDevice> devices = invocation.getArgument(0);
-                    if (devices == null) {
-                        return null;
-                    } else if (devices.contains(mA2dpDevice)) {
-                        return mA2dpDevice;
-                    } else if (devices.contains(mLeAudioDevice)) {
-                        return mLeAudioDevice;
-                    } else if (devices.contains(mHearingAidDevice)) {
-                        return mHearingAidDevice;
-                    } else {
-                        return devices.get(0);
-                    }
-                }
-        );
         a2dpDisconnected(mA2dpDevice);
         verify(mA2dpService, timeout(TIMEOUT_MS).atLeast(1)).setActiveDevice(isNull());
         verify(mHearingAidService, timeout(TIMEOUT_MS).times(2))
@@ -587,9 +600,9 @@ public class ActiveDeviceManagerTest {
      * One LE Hearing Aid is connected.
      */
     @Test
-    public void onlyLeHearingAIdConnected_setHeadsetActive() {
-        leAudioConnected(mLeAudioDevice);
-        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
+    public void onlyLeHearingAIdConnected_setLeAudioActive() {
+        leHearingAidConnected(mLeHearingAidDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeHearingAidDevice);
     }
 
     /**
@@ -598,12 +611,40 @@ public class ActiveDeviceManagerTest {
      */
     @Test
     public void leAudioConnectedAfterLeHearingAid_setLeAudioActiveShouldNotBeCalled() {
-        leHearingAidConnected(mSecondaryAudioDevice);
-        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mSecondaryAudioDevice);
+        leHearingAidConnected(mLeHearingAidDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeHearingAidDevice);
 
         leAudioConnected(mLeAudioDevice);
         TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
         verify(mLeAudioService, never()).setActiveDevice(mLeAudioDevice);
+    }
+
+    /**
+     * Test connect/disconnect of devices.
+     * Hearing Aid, LE Hearing Aid, A2DP connected, then LE hearing Aid and hearing aid
+     * disconnected.
+     */
+    @Test
+    public void activeDeviceChange_withHearingAidLeHearingAidAndA2dpDevices() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+
+        hearingAidConnected(mHearingAidDevice);
+        verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mHearingAidDevice);
+
+        leHearingAidConnected(mLeHearingAidDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeHearingAidDevice);
+
+        a2dpConnected(mA2dpDevice);
+        TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
+        verify(mA2dpService, never()).setActiveDevice(mA2dpDevice);
+
+        Mockito.clearInvocations(mHearingAidService, mA2dpService);
+        leHearingAidDisconnected(mLeHearingAidDevice);
+        verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mHearingAidDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(isNull());
+
+        hearingAidDisconnected(mHearingAidDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
     }
 
     /**
@@ -631,6 +672,8 @@ public class ActiveDeviceManagerTest {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
+        mFallbackToA2dp = true;
     }
 
     /**
@@ -642,6 +685,7 @@ public class ActiveDeviceManagerTest {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_CONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mFallbackToA2dp = false;
     }
 
     /**
@@ -651,6 +695,7 @@ public class ActiveDeviceManagerTest {
         Intent intent = new Intent(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
     }
 
     /**
@@ -662,6 +707,8 @@ public class ActiveDeviceManagerTest {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
+        mFallbackToHfp = true;
     }
 
     /**
@@ -673,6 +720,7 @@ public class ActiveDeviceManagerTest {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_CONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mFallbackToHfp = false;
     }
 
     /**
@@ -682,6 +730,7 @@ public class ActiveDeviceManagerTest {
         Intent intent = new Intent(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
     }
 
     /**
@@ -693,6 +742,7 @@ public class ActiveDeviceManagerTest {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
     }
 
     /**
@@ -713,6 +763,7 @@ public class ActiveDeviceManagerTest {
         Intent intent = new Intent(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
     }
 
     /**
@@ -724,6 +775,7 @@ public class ActiveDeviceManagerTest {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
     }
 
     /**
@@ -744,6 +796,7 @@ public class ActiveDeviceManagerTest {
         Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
     }
 
     /**
@@ -755,6 +808,7 @@ public class ActiveDeviceManagerTest {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
     }
 
     /**
@@ -775,5 +829,6 @@ public class ActiveDeviceManagerTest {
         Intent intent = new Intent(BluetoothHapClient.ACTION_HAP_DEVICE_AVAILABLE);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mActiveDeviceManager.getBroadcastReceiver().onReceive(mContext, intent);
+        mMostRecentDevice = device;
     }
 }
