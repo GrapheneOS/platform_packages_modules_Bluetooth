@@ -18,6 +18,7 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.hfp_grpc import HFP
 from pandora_experimental.host_grpc import Host
+from pandora_experimental.security_grpc import Security
 
 import sys
 import threading
@@ -27,9 +28,7 @@ import time
 WAIT_DELAY_BEFORE_CONNECTION = 2
 
 # The tests needs the MMI to accept pairing confirmation request.
-NEEDS_WAIT_CONNECTION_BEFORE_TEST = {
-    'HFP/AG/WBS/BV-01-I',
-}
+NEEDS_WAIT_CONNECTION_BEFORE_TEST = {'HFP/AG/WBS/BV-01-I', 'HFP/AG/SLC/BV-05-I'}
 
 
 class HFPProxy(ProfileProxy):
@@ -38,6 +37,7 @@ class HFPProxy(ProfileProxy):
         super().__init__(channel)
         self.hfp = HFP(channel)
         self.host = Host(channel)
+        self.security = Security(channel)
 
         self.connection = None
 
@@ -98,6 +98,17 @@ class HFPProxy(ProfileProxy):
         """
 
         self.connection = self.host.Connect(address=pts_addr).connection
+        return "OK"
+
+    @assert_description
+    def TSC_iut_connectable(self, pts_addr: str, test: str, **kwargs):
+        """
+        Make the Implementation Under Test (IUT) connectable, then click Ok.
+        """
+
+        if "HFP/AG/SLC/BV-03-C" in test:
+            self.connection = self.host.WaitConnection(pts_addr).connection
+
         return "OK"
 
     @assert_description
