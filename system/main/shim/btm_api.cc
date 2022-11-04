@@ -460,7 +460,7 @@ class ShimBondListener : public bluetooth::security::ISecurityManagerListener {
         LinkKey key;  // Never want to send the key to the stack
         (*bta_callbacks_->p_link_key_callback)(
             bluetooth::ToRawAddress(device.GetAddress()), 0, name, key,
-            BTM_LKEY_TYPE_COMBINATION);
+            BTM_LKEY_TYPE_COMBINATION, false /* is_ctkd */);
       }
       if (*bta_callbacks_->p_auth_complete_callback) {
         (*bta_callbacks_->p_auth_complete_callback)(
