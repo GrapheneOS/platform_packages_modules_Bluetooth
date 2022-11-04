@@ -234,10 +234,11 @@ class LeAudioDeviceGroup {
         audio_directions_(0),
         transport_latency_mtos_us_(0),
         transport_latency_stom_us_(0),
-        active_context_type_(types::LeAudioContextType::UNINITIALIZED),
-        metadata_context_type_(0),
-        active_contexts_mask_(0),
-        pending_update_available_contexts_(std::nullopt),
+        configuration_context_type_(types::LeAudioContextType::UNINITIALIZED),
+        metadata_context_type_(types::LeAudioContextType::UNINITIALIZED),
+        group_available_contexts_(types::LeAudioContextType::UNINITIALIZED),
+        pending_group_available_contexts_change_(
+            types::LeAudioContextType::UNINITIALIZED),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {}
   ~LeAudioDeviceGroup(void);
@@ -300,9 +301,8 @@ class LeAudioDeviceGroup {
   uint8_t GetTargetPhy(uint8_t direction);
   bool GetPresentationDelay(uint32_t* delay, uint8_t direction);
   uint16_t GetRemoteDelay(uint8_t direction);
-  std::optional<types::AudioContexts> UpdateActiveContextsMap(
-      types::AudioContexts contexts);
-  std::optional<types::AudioContexts> UpdateActiveContextsMap(void);
+  bool UpdateAudioContextTypeAvailability(types::AudioContexts contexts);
+  void UpdateAudioContextTypeAvailability(void);
   bool ReloadAudioLocations(void);
   bool ReloadAudioDirections(void);
   const set_configurations::AudioSetConfiguration* GetActiveConfiguration(void);
@@ -334,25 +334,31 @@ class LeAudioDeviceGroup {
     target_state_ = state;
   }
 
-  inline std::optional<types::AudioContexts> GetPendingUpdateAvailableContexts()
-      const {
-    return pending_update_available_contexts_;
-  }
-  inline void SetPendingUpdateAvailableContexts(
-      std::optional<types::AudioContexts> audio_contexts) {
-    pending_update_available_contexts_ = audio_contexts;
+  /* Returns context types for which support was recently added or removed */
+  inline types::AudioContexts GetPendingAvailableContextsChange() const {
+    return pending_group_available_contexts_change_;
   }
 
-  inline types::LeAudioContextType GetCurrentContextType(void) const {
-    return active_context_type_;
+  /* Set which context types were recently added or removed */
+  inline void SetPendingAvailableContextsChange(
+      types::AudioContexts audio_contexts) {
+    pending_group_available_contexts_change_ = audio_contexts;
   }
 
-  inline types::AudioContexts GetMetadataContextType(void) const {
+  inline void ClearPendingAvailableContextsChange() {
+    pending_group_available_contexts_change_.clear();
+  }
+
+  inline types::LeAudioContextType GetConfigurationContextType(void) const {
+    return configuration_context_type_;
+  }
+
+  inline types::AudioContexts GetMetadataContexts(void) const {
     return metadata_context_type_;
   }
 
-  inline types::AudioContexts GetActiveContexts(void) {
-    return active_contexts_mask_;
+  inline types::AudioContexts GetAvailableContexts(void) {
+    return group_available_contexts_;
   }
 
   bool IsInTransition(void);
@@ -375,15 +381,28 @@ class LeAudioDeviceGroup {
       types::LeAudioContextType context_type);
   uint32_t GetTransportLatencyUs(uint8_t direction);
 
-  /* Mask and table of currently supported contexts */
-  types::LeAudioContextType active_context_type_;
+  /* Current configuration and metadata context types */
+  types::LeAudioContextType configuration_context_type_;
   types::AudioContexts metadata_context_type_;
-  types::AudioContexts active_contexts_mask_;
 
-  std::optional<types::AudioContexts> pending_update_available_contexts_;
+  /* Mask of contexts that the whole group can handle at it's current state
+   * It's being updated each time group members connect, disconnect or their
+   * individual available audio contexts are changed.
+   */
+  types::AudioContexts group_available_contexts_;
+
+  /* A temporary mask for bits which were either added or removed when the
+   * group available context type changes. It usually means we should refresh
+   * our group configuration capabilities to clear this.
+   */
+  types::AudioContexts pending_group_available_contexts_change_;
+
+  /* Possible configuration cache - refreshed on each group context availability
+   * change
+   */
   std::map<types::LeAudioContextType,
            const set_configurations::AudioSetConfiguration*>
-      active_context_to_configuration_map;
+      available_context_to_configuration_map;
 
   types::AseState target_state_;
   types::AseState current_state_;

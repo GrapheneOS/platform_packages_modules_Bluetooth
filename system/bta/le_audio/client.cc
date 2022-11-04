@@ -392,14 +392,14 @@ class LeAudioClientImpl : public LeAudioClient {
     auto location_update = group->ReloadAudioLocations();
     group->ReloadAudioDirections();
 
-    std::optional<AudioContexts> new_group_updated_contexts =
-        group->UpdateActiveContextsMap(leAudioDevice->GetAvailableContexts());
+    auto contexts_updated = group->UpdateAudioContextTypeAvailability(
+        leAudioDevice->GetAvailableContexts());
 
-    if (new_group_updated_contexts || location_update) {
+    if (contexts_updated || location_update) {
       callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                               group->snk_audio_locations_.to_ulong(),
                               group->src_audio_locations_.to_ulong(),
-                              group->GetActiveContexts().value());
+                              group->GetAvailableContexts().value());
     }
   }
 
@@ -528,18 +528,18 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Group may be destroyed once moved its last node to new group */
     if (aseGroups_.FindById(old_group_id) != nullptr) {
       /* Removing node from group may touch its context integrity */
-      std::optional<AudioContexts> old_group_updated_contexts =
-          old_group->UpdateActiveContextsMap(old_group->GetActiveContexts());
+      auto contexts_updated = old_group->UpdateAudioContextTypeAvailability(
+          old_group->GetAvailableContexts());
 
       bool group_conf_changed = old_group->ReloadAudioLocations();
       group_conf_changed |= old_group->ReloadAudioDirections();
-      group_conf_changed |= old_group_updated_contexts.has_value();
+      group_conf_changed |= contexts_updated;
 
       if (group_conf_changed) {
         callbacks_->OnAudioConf(old_group->audio_directions_, old_group_id,
                                 old_group->snk_audio_locations_.to_ulong(),
                                 old_group->src_audio_locations_.to_ulong(),
-                                old_group->GetActiveContexts().value());
+                                old_group->GetAvailableContexts().value());
       }
     }
 
@@ -595,18 +595,18 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     /* Removing node from group touch its context integrity */
-    std::optional<AudioContexts> updated_contexts =
-        group->UpdateActiveContextsMap(group->GetActiveContexts());
+    bool contexts_updated = group->UpdateAudioContextTypeAvailability(
+        group->GetAvailableContexts());
 
     bool group_conf_changed = group->ReloadAudioLocations();
     group_conf_changed |= group->ReloadAudioDirections();
-    group_conf_changed |= updated_contexts.has_value();
+    group_conf_changed |= contexts_updated;
 
     if (group_conf_changed)
       callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                               group->snk_audio_locations_.to_ulong(),
                               group->src_audio_locations_.to_ulong(),
-                              group->GetActiveContexts().value());
+                              group->GetAvailableContexts().value());
   }
 
   void GroupRemoveNode(const int group_id, const RawAddress& address) override {
@@ -695,7 +695,7 @@ class LeAudioClientImpl : public LeAudioClient {
       return false;
     }
 
-    if (!group->GetActiveContexts().test(context_type)) {
+    if (!group->GetAvailableContexts().test(context_type)) {
       LOG(ERROR) << " Unsupported context type by remote device: "
                  << ToHexString(context_type) << ". Switching to unspecified";
       final_context_type = LeAudioContextType::UNSPECIFIED;
@@ -1283,17 +1283,17 @@ class LeAudioClientImpl : public LeAudioClient {
       /* Update supported context types including internal capabilities */
       LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
 
-      /* Active context map should be considered to be updated in response to
+      /* Available context map should be considered to be updated in response to
        * PACs update.
        * Read of available context during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (group && group->UpdateActiveContextsMap(
+      if (group && group->UpdateAudioContextTypeAvailability(
                        leAudioDevice->GetAvailableContexts())) {
         callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                 group->snk_audio_locations_.to_ulong(),
                                 group->src_audio_locations_.to_ulong(),
-                                group->GetActiveContexts().value());
+                                group->GetAvailableContexts().value());
       }
       if (notify) {
         btif_storage_leaudio_update_pacs_bin(leAudioDevice->address_);
@@ -1317,17 +1317,17 @@ class LeAudioClientImpl : public LeAudioClient {
       /* Update supported context types including internal capabilities */
       LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
 
-      /* Active context map should be considered to be updated in response to
+      /* Available context map should be considered to be updated in response to
        * PACs update.
        * Read of available context during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (group && group->UpdateActiveContextsMap(
+      if (group && group->UpdateAudioContextTypeAvailability(
                        leAudioDevice->GetAvailableContexts())) {
         callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                 group->snk_audio_locations_.to_ulong(),
                                 group->src_audio_locations_.to_ulong(),
-                                group->GetActiveContexts().value());
+                                group->GetAvailableContexts().value());
       }
 
       if (notify) {
@@ -1378,7 +1378,7 @@ class LeAudioClientImpl : public LeAudioClient {
         callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                 group->snk_audio_locations_.to_ulong(),
                                 group->src_audio_locations_.to_ulong(),
-                                group->GetActiveContexts().value());
+                                group->GetAvailableContexts().value());
       }
     } else if (hdl == leAudioDevice->src_audio_locations_hdls_.val_hdl) {
       AudioLocations src_audio_locations;
@@ -1420,7 +1420,7 @@ class LeAudioClientImpl : public LeAudioClient {
         callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                 group->snk_audio_locations_.to_ulong(),
                                 group->src_audio_locations_.to_ulong(),
-                                group->GetActiveContexts().value());
+                                group->GetAvailableContexts().value());
       }
     } else if (hdl == leAudioDevice->audio_avail_hdls_.val_hdl) {
       le_audio::client_parser::pacs::acs_available_audio_contexts
@@ -1433,7 +1433,7 @@ class LeAudioClientImpl : public LeAudioClient {
           avail_audio_contexts.src_avail_cont);
 
       if (updated_avail_contexts.any()) {
-        /* Update scenario map considering changed active context types */
+        /* Update scenario map considering changed available context types */
         LeAudioDeviceGroup* group =
             aseGroups_.FindById(leAudioDevice->group_id_);
         /* Read of available context during initial attribute discovery.
@@ -1447,15 +1447,17 @@ class LeAudioClientImpl : public LeAudioClient {
           if (group->IsInTransition() ||
               (group->GetState() ==
                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
-            group->SetPendingUpdateAvailableContexts(updated_avail_contexts);
+            group->SetPendingAvailableContextsChange(updated_avail_contexts);
             return;
           }
 
-          if (group->UpdateActiveContextsMap(updated_avail_contexts)) {
+          auto contexts_updated =
+              group->UpdateAudioContextTypeAvailability(updated_avail_contexts);
+          if (contexts_updated) {
             callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                     group->snk_audio_locations_.to_ulong(),
                                     group->src_audio_locations_.to_ulong(),
-                                    group->GetActiveContexts().value());
+                                    group->GetAvailableContexts().value());
           }
         }
       }
@@ -3443,7 +3445,7 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     metadata_context_types_ |= GetAllowedAudioContextsFromSourceMetadata(
-        source_metadata, group->GetActiveContexts());
+        source_metadata, group->GetAvailableContexts());
 
     if (stack_config_get_interface()
             ->get_pts_force_le_audio_multiple_contexts_metadata()) {
@@ -3744,21 +3746,20 @@ class LeAudioClientImpl : public LeAudioClient {
         rxUnreceivedPackets, duplicatePackets);
   }
 
-  void HandlePendingAvailableContexts(LeAudioDeviceGroup* group) {
+  void HandlePendingAvailableContextsChange(LeAudioDeviceGroup* group) {
     if (!group) return;
 
-    /* Update group configuration with pending available context */
-    std::optional<AudioContexts> pending_update_available_contexts =
-        group->GetPendingUpdateAvailableContexts();
-    if (pending_update_available_contexts) {
-      if (group->UpdateActiveContextsMap(*pending_update_available_contexts)) {
+    /* Update group configuration with pending available context change */
+    auto contexts = group->GetPendingAvailableContextsChange();
+    if (contexts.any()) {
+      auto success = group->UpdateAudioContextTypeAvailability(contexts);
+      if (success) {
         callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                 group->snk_audio_locations_.to_ulong(),
                                 group->src_audio_locations_.to_ulong(),
-                                group->GetActiveContexts().value());
+                                group->GetAvailableContexts().value());
       }
-
-      group->SetPendingUpdateAvailableContexts(std::nullopt);
+      group->ClearPendingAvailableContextsChange();
     }
   }
 
@@ -3887,7 +3888,7 @@ class LeAudioClientImpl : public LeAudioClient {
          * so Audio HAL can Resume again.
          */
         CancelStreamingRequest();
-        HandlePendingAvailableContexts(group);
+        HandlePendingAvailableContextsChange(group);
         ReconfigurationComplete(previously_active_directions);
       } break;
       case GroupStreamStatus::CONFIGURED_AUTONOMOUS:
@@ -3915,7 +3916,7 @@ class LeAudioClientImpl : public LeAudioClient {
         CancelStreamingRequest();
         if (group) {
           NotifyUpperLayerGroupTurnedIdleDuringCall(group->group_id_);
-          HandlePendingAvailableContexts(group);
+          HandlePendingAvailableContextsChange(group);
           HandlePendingDeviceDisconnection(group);
         }
         break;

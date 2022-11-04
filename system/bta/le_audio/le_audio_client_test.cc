@@ -706,8 +706,8 @@ class UnicastTestNoInit : public Test {
             return false;
           }
 
-          group->Configure(group->GetCurrentContextType(),
-                           group->GetMetadataContextType(), {});
+          group->Configure(group->GetConfigurationContextType(),
+                           group->GetMetadataContexts(), {});
           if (!group->CigAssignCisIds(leAudioDevice)) return false;
           group->CigAssignCisConnHandlesToAses(leAudioDevice);
 
