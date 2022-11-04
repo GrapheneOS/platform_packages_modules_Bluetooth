@@ -1080,6 +1080,10 @@ class LeAudioClientImpl : public LeAudioClient {
           le_audio::types::kLeAudioDirectionSink;
     }
 
+    callbacks_->OnSinkAudioLocationAvailable(
+        leAudioDevice->address_,
+        leAudioDevice->snk_audio_locations_.to_ulong());
+
     leAudioDevice->src_audio_locations_ = source_audio_location;
     if (source_audio_location != 0) {
       leAudioDevice->audio_directions_ |=
