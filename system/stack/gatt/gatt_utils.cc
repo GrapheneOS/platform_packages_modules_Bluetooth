@@ -1585,6 +1585,10 @@ void gatt_cleanup_upon_disc(const RawAddress& bda, tGATT_DISCONN_REASON reason,
   }
 
   gatt_set_ch_state(p_tcb, GATT_CH_CLOSE);
+
+  /* Notify EATT about disconnection. */
+  EattExtension::GetInstance()->Disconnect(p_tcb->peer_bda);
+
   for (uint8_t i = 0; i < GATT_CL_MAX_LCB; i++) {
     tGATT_CLCB* p_clcb = &gatt_cb.clcb[i];
     if (!p_clcb->in_use || p_clcb->p_tcb != p_tcb) continue;
