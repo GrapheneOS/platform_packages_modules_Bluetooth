@@ -615,6 +615,8 @@ struct classic_impl : public security::ISecurityManagerListener {
     auto view = ReadRemoteSupportedFeaturesCompleteView::Create(packet);
     ASSERT_LOG(view.IsValid(), "Read remote supported features packet invalid");
     uint16_t handle = view.GetConnectionHandle();
+    bluetooth::os::LogMetricBluetoothRemoteSupportedFeatures(
+        connections.get_address(handle), 0, view.GetLmpFeatures(), handle);
     connections.execute(handle, [=](ConnectionManagementCallbacks* callbacks) {
       callbacks->OnReadRemoteSupportedFeaturesComplete(view.GetLmpFeatures());
     });
@@ -624,6 +626,8 @@ struct classic_impl : public security::ISecurityManagerListener {
     auto view = ReadRemoteExtendedFeaturesCompleteView::Create(packet);
     ASSERT_LOG(view.IsValid(), "Read remote extended features packet invalid");
     uint16_t handle = view.GetConnectionHandle();
+    bluetooth::os::LogMetricBluetoothRemoteSupportedFeatures(
+        connections.get_address(handle), view.GetPageNumber(), view.GetExtendedLmpFeatures(), handle);
     connections.execute(handle, [=](ConnectionManagementCallbacks* callbacks) {
       callbacks->OnReadRemoteExtendedFeaturesComplete(
           view.GetPageNumber(), view.GetMaximumPageNumber(), view.GetExtendedLmpFeatures());
