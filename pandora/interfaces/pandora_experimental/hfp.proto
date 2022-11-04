@@ -15,6 +15,10 @@ service HFP {
   rpc DisableSlc(DisableSlcRequest) returns (google.protobuf.Empty);
   // Change the battery level to the one requested
   rpc SetBatteryLevel(SetBatteryLevelRequest) returns (google.protobuf.Empty);
+  // Decline a call
+  rpc DeclineCall(DeclineCallRequest) returns (DeclineCallResponse);
+  // Set the audio path
+  rpc SetAudioPath(SetAudioPathRequest) returns (SetAudioPathResponse);
 }
 
 // Request of the `EnableSlc` method.
@@ -36,3 +40,19 @@ message SetBatteryLevelRequest {
   // Battery level to be set on the DUT
   int32 battery_percentage = 2;
 }
+
+message DeclineCallRequest {}
+
+message DeclineCallResponse {}
+
+enum AudioPath {
+  AUDIO_PATH_UNKNOWN = 0;
+  AUDIO_PATH_SPEAKERS = 1;
+  AUDIO_PATH_HANDSFREE = 2;
+}
+
+message SetAudioPathRequest {
+  AudioPath audio_path = 1;
+}
+
+message SetAudioPathResponse {}
