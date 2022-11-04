@@ -19,7 +19,7 @@
 
 #include <variant>
 
-#include "bta/le_audio/client_audio.h"
+#include "bta/le_audio/audio_hal_client/audio_hal_client.h"
 #include "bta/le_audio/le_audio_types.h"
 #include "bta_le_audio_api.h"
 #include "bta_le_audio_broadcaster_api.h"
