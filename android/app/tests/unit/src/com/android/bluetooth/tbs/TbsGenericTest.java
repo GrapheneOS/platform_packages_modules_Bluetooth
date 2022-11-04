@@ -82,6 +82,8 @@ public class TbsGenericTest {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mContext = getInstrumentation().getTargetContext();
 
+        getInstrumentation().getUiAutomation().adoptShellPermissionIdentity();
+
         // Default TbsGatt mock behavior
         doReturn(true).when(mTbsGatt).init(mGtbsCcidCaptor.capture(), mGtbsUciCaptor.capture(),
                 mDefaultGtbsUriSchemesCaptor.capture(), anyBoolean(), anyBoolean(),
