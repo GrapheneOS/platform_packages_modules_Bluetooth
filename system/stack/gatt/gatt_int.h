@@ -370,7 +370,6 @@ struct tGATT_CLCB {
   tGATT_STATUS status;     /* operation status */
   bool first_read_blob_after_read;
   tGATT_READ_INC_UUID128 read_uuid128;
-  bool in_use;
   alarm_t* gatt_rsp_timer_ent; /* peer response timer */
   uint8_t retry_count;
   uint16_t read_req_current_mtu; /* This is the MTU value that the read was
