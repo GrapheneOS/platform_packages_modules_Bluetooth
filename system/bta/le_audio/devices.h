@@ -357,7 +357,7 @@ class LeAudioDeviceGroup {
 
   bool IsInTransition(void);
   bool IsReleasing(void);
-  void Dump(int fd);
+  void Dump(int fd, int active_group_id);
 
  private:
   uint32_t transport_latency_mtos_us_;
@@ -403,7 +403,7 @@ class LeAudioDeviceGroups {
   size_t Size();
   bool IsAnyInTransition();
   void Cleanup(void);
-  void Dump(int fd);
+  void Dump(int fd, int active_group_id);
 
  private:
   std::vector<std::unique_ptr<LeAudioDeviceGroup>> groups_;
