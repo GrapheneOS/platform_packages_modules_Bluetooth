@@ -4,7 +4,7 @@ use bt_topshim::btif::{
     BtBondState, BtConnectionState, BtDeviceType, BtPropertyType, BtSspVariant, BtStatus,
     BtTransport, Uuid, Uuid128Bit,
 };
-use bt_topshim::profiles::gatt::{GattStatus, LePhy};
+use bt_topshim::profiles::gatt::{AdvertisingStatus, GattStatus, LePhy};
 use bt_topshim::profiles::socket::SocketType;
 
 use btstack::bluetooth::{
@@ -57,6 +57,7 @@ fn make_object_path(idx: i32, name: &str) -> dbus::Path {
     dbus::Path::new(format!("/org/chromium/bluetooth/hci{}/{}", idx, name)).unwrap()
 }
 
+impl_dbus_arg_enum!(AdvertisingStatus);
 impl_dbus_arg_enum!(BtBondState);
 impl_dbus_arg_enum!(BtConnectionState);
 impl_dbus_arg_enum!(BtDeviceType);
@@ -754,7 +755,7 @@ impl IAdvertisingSetCallback for IAdvertisingSetCallbackDBus {
         reg_id: i32,
         advertiser_id: i32,
         tx_power: i32,
-        status: GattStatus,
+        status: AdvertisingStatus,
     ) {
     }
 
@@ -765,35 +766,40 @@ impl IAdvertisingSetCallback for IAdvertisingSetCallbackDBus {
     fn on_advertising_set_stopped(&self, advertiser_id: i32) {}
 
     #[dbus_method("OnAdvertisingEnabled")]
-    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: GattStatus) {}
+    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: AdvertisingStatus) {}
 
     #[dbus_method("OnAdvertisingDataSet")]
-    fn on_advertising_data_set(&self, advertiser_id: i32, status: GattStatus) {}
+    fn on_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {}
 
     #[dbus_method("OnScanResponseDataSet")]
-    fn on_scan_response_data_set(&self, advertiser_id: i32, status: GattStatus) {}
+    fn on_scan_response_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {}
 
     #[dbus_method("OnAdvertisingParametersUpdated")]
     fn on_advertising_parameters_updated(
         &self,
         advertiser_id: i32,
         tx_power: i32,
-        status: GattStatus,
+        status: AdvertisingStatus,
     ) {
     }
 
     #[dbus_method("OnPeriodicAdvertisingParametersUpdated")]
-    fn on_periodic_advertising_parameters_updated(&self, advertiser_id: i32, status: GattStatus) {}
+    fn on_periodic_advertising_parameters_updated(
+        &self,
+        advertiser_id: i32,
+        status: AdvertisingStatus,
+    ) {
+    }
 
     #[dbus_method("OnPeriodicAdvertisingDataSet")]
-    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: GattStatus) {}
+    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {}
 
     #[dbus_method("OnPeriodicAdvertisingEnabled")]
     fn on_periodic_advertising_enabled(
         &self,
         advertiser_id: i32,
         enable: bool,
-        status: GattStatus,
+        status: AdvertisingStatus,
     ) {
     }
 
