@@ -424,6 +424,18 @@ void LogMetricBluetoothHalCrashReason(
   }
 }
 
+void LogMetricBluetoothLocalSupportedFeatures(uint32_t page_num, uint64_t features) {
+  int ret = stats_write(BLUETOOTH_LOCAL_SUPPORTED_FEATURES_REPORTED, page_num, features);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed for LogMetricBluetoothLocalSupportedFeatures, "
+        "page_num %d, features %s, error %d",
+        page_num,
+        std::to_string(features).c_str(),
+        ret);
+  }
+}
+
 void LogMetricBluetoothLocalVersions(
     uint32_t lmp_manufacturer_name,
     uint8_t lmp_version,
