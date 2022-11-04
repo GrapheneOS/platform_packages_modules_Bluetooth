@@ -515,8 +515,8 @@ class LeAudioAseConfigurationTest : public Test {
       data[i].device->src_pacs_ = src_pac_builder.Get();
     }
 
-    /* Stimulate update of active context map */
-    group_->UpdateActiveContextsMap(AudioContexts(context_type));
+    /* Stimulate update of available context map */
+    group_->UpdateAudioContextTypeAvailability(AudioContexts(context_type));
     ASSERT_EQ(success_expected,
               group_->Configure(context_type, AudioContexts(context_type)));
 
@@ -586,8 +586,8 @@ class LeAudioAseConfigurationTest : public Test {
           interesting_configuration = false;
         }
       }
-      /* Stimulate update of active context map */
-      group_->UpdateActiveContextsMap(AudioContexts(context_type));
+      /* Stimulate update of available context map */
+      group_->UpdateAudioContextTypeAvailability(AudioContexts(context_type));
       auto configuration_result =
           group_->Configure(context_type, AudioContexts(context_type));
 
@@ -699,8 +699,9 @@ class LeAudioAseConfigurationTest : public Test {
               success_expected = false;
             }
 
-            /* Stimulate update of active context map */
-            group_->UpdateActiveContextsMap(AudioContexts(context_type));
+            /* Stimulate update of available context map */
+            group_->UpdateAudioContextTypeAvailability(
+                AudioContexts(context_type));
             ASSERT_EQ(
                 success_expected,
                 group_->Configure(context_type, AudioContexts(context_type)));
@@ -976,7 +977,7 @@ TEST_F(LeAudioAseConfigurationTest, test_reconnection_media) {
   std::vector<uint8_t> ccid_list;
   for (auto& ent : configuration->confs) {
     if (ent.direction == ::le_audio::types::kLeAudioDirectionSink) {
-      left->ConfigureAses(ent, group_->GetCurrentContextType(),
+      left->ConfigureAses(ent, group_->GetConfigurationContextType(),
                           &number_of_active_ases, group_snk_audio_location,
                           group_src_audio_location, false,
                           ::le_audio::types::AudioContexts(), ccid_list);
