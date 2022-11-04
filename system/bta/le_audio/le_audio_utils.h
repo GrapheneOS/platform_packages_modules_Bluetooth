@@ -30,7 +30,7 @@ types::LeAudioContextType AudioContentToLeAudioContext(
 types::AudioContexts GetAllowedAudioContextsFromSourceMetadata(
     const std::vector<struct playback_track_metadata>& source_metadata,
     types::AudioContexts allowed_contexts);
-std::vector<uint8_t> GetAllCcids(std::bitset<16> context_types);
+std::vector<uint8_t> GetAllCcids(const types::AudioContexts& contexts);
 
 }  // namespace utils
 }  // namespace le_audio

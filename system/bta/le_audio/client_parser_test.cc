@@ -530,8 +530,8 @@ TEST(LeAudioClientParserTest, testParseAvailableAudioContextsInvalidLength) {
   };
 
   ParseAvailableAudioContexts(avail_contexts, sizeof(value1), value1);
-  ASSERT_EQ(avail_contexts.snk_avail_cont, 0u);
-  ASSERT_EQ(avail_contexts.src_avail_cont, 0u);
+  ASSERT_EQ(avail_contexts.snk_avail_cont.value(), 0u);
+  ASSERT_EQ(avail_contexts.src_avail_cont.value(), 0u);
 }
 
 TEST(LeAudioClientParserTest, testParseAvailableAudioContexts) {
@@ -546,8 +546,8 @@ TEST(LeAudioClientParserTest, testParseAvailableAudioContexts) {
   };
 
   ParseAvailableAudioContexts(avail_contexts, sizeof(value1), value1);
-  ASSERT_EQ(avail_contexts.snk_avail_cont, 0x0201u);
-  ASSERT_EQ(avail_contexts.src_avail_cont, 0x0403u);
+  ASSERT_EQ(avail_contexts.snk_avail_cont.value(), 0x0201u);
+  ASSERT_EQ(avail_contexts.src_avail_cont.value(), 0x0403u);
 }
 
 TEST(LeAudioClientParserTest, testParseSupportedAudioContextsInvalidLength) {
@@ -559,8 +559,8 @@ TEST(LeAudioClientParserTest, testParseSupportedAudioContextsInvalidLength) {
   };
 
   ParseSupportedAudioContexts(supp_contexts, sizeof(value1), value1);
-  ASSERT_EQ(supp_contexts.snk_supp_cont, 0u);
-  ASSERT_EQ(supp_contexts.src_supp_cont, 0u);
+  ASSERT_EQ(supp_contexts.snk_supp_cont.value(), 0u);
+  ASSERT_EQ(supp_contexts.src_supp_cont.value(), 0u);
 }
 
 TEST(LeAudioClientParserTest, testParseSupportedAudioContexts) {
@@ -575,8 +575,8 @@ TEST(LeAudioClientParserTest, testParseSupportedAudioContexts) {
   };
 
   ParseSupportedAudioContexts(supp_contexts, sizeof(value1), value1);
-  ASSERT_EQ(supp_contexts.snk_supp_cont, 0x0201u);
-  ASSERT_EQ(supp_contexts.src_supp_cont, 0x0403u);
+  ASSERT_EQ(supp_contexts.snk_supp_cont.value(), 0x0201u);
+  ASSERT_EQ(supp_contexts.src_supp_cont.value(), 0x0403u);
 }
 
 }  // namespace pacs
