@@ -252,7 +252,7 @@ public class BassClientServiceTest {
         filter.addAction(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED);
 
         mBassIntentReceiver = new BassIntentReceiver();
-        mTargetContext.registerReceiver(mBassIntentReceiver, filter);
+        mTargetContext.registerReceiver(mBassIntentReceiver, filter, Context.RECEIVER_EXPORTED);
     }
 
     @After
