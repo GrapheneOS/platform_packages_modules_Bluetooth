@@ -56,7 +56,6 @@ source_set("btif_cxx_bridge_code") {
     "btav/btav_shim.cc",
     "btav_sink/btav_sink_shim.cc",
     "btif/btif_shim.cc",
-    "common/utils.cc",
     "controller/controller_shim.cc",
     "gatt/gatt_ble_advertiser_shim.cc",
     "gatt/gatt_ble_scanner_shim.cc",

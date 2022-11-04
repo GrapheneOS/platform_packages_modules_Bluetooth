@@ -25,14 +25,12 @@ namespace bluetooth {
 namespace topshim {
 namespace rust {
 
-struct RustRawAddress;
-
 void adapter_state_changed(uint32_t state);
 void bond_state_changed(
-    RustRawAddress bt_addr, uint32_t device_type, uint32_t status, uint32_t bond_state, int32_t fail_reason);
-void bond_create_attempt(RustRawAddress bt_addr, uint32_t device_type);
+    RawAddress addr, uint32_t device_type, uint32_t status, uint32_t bond_state, int32_t fail_reason);
+void bond_create_attempt(RawAddress addr, uint32_t device_type);
 void device_info_report(
-    RustRawAddress bt_addr,
+    RawAddress addr,
     uint32_t device_type,
     uint32_t class_of_device,
     uint32_t appearance,
@@ -40,15 +38,10 @@ void device_info_report(
     uint32_t vendor_id_src,
     uint32_t product_id,
     uint32_t version);
-void profile_connection_state_changed(RustRawAddress bt_addr, uint32_t profile, uint32_t status, uint32_t state);
-void acl_connect_attempt(RustRawAddress bt_addr, uint32_t acl_state);
+void profile_connection_state_changed(RawAddress addr, uint32_t profile, uint32_t status, uint32_t state);
+void acl_connect_attempt(RawAddress addr, uint32_t acl_state);
 void acl_connection_state_changed(
-    RustRawAddress bt_addr,
-    uint32_t transport,
-    uint32_t status,
-    uint32_t acl_state,
-    uint32_t direction,
-    uint32_t hci_reason);
+    RawAddress addr, uint32_t transport, uint32_t status, uint32_t acl_state, uint32_t direction, uint32_t hci_reason);
 
 }  // namespace rust
 }  // namespace topshim

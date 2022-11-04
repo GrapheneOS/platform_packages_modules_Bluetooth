@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef GD_RUST_TOPSHIM_COMMON_UTILS_H
-#define GD_RUST_TOPSHIM_COMMON_UTILS_H
+#ifndef GD_RUST_TOPSHIM_COMMON_TYPE_ALIAS_H
+#define GD_RUST_TOPSHIM_COMMON_TYPE_ALIAS_H
+
+/*
+ * Declare type aliases in the topshim namespace in this file.
+ *
+ * The type declarations in cxx bridge blocks are bound to the namespace of the
+ * block. Since in topshim we always put the bridge codes in namespace
+ * `bluetooth::topshim::rust`, to reuse the existing types in GD it's necessary
+ * to define the aliases in the topshim namespace.
+ */
 
 #include "types/raw_address.h"
 
@@ -22,13 +31,10 @@ namespace bluetooth {
 namespace topshim {
 namespace rust {
 
-struct RustRawAddress;
-
-RustRawAddress CopyToRustAddress(const RawAddress& address);
-RawAddress CopyFromRustAddress(const RustRawAddress& rust_address);
+using RawAddress = ::RawAddress;
 
 }  // namespace rust
 }  // namespace topshim
 }  // namespace bluetooth
 
-#endif  // GD_RUST_TOPSHIM_COMMON_UTILS_H
+#endif  // GD_RUST_TOPSHIM_COMMON_TYPE_ALIAS_H

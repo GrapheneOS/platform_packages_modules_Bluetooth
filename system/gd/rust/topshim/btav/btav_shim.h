@@ -30,7 +30,6 @@ namespace rust {
 
 struct A2dpCodecConfig;
 struct RustPresentationPosition;
-struct RustRawAddress;
 struct RustPlayStatus;
 
 class A2dpIntf {
@@ -40,11 +39,11 @@ class A2dpIntf {
 
   // interface for Settings
   int init() const;
-  uint32_t connect(RustRawAddress bt_addr) const;
-  uint32_t disconnect(RustRawAddress bt_addr) const;
-  int set_silence_device(RustRawAddress bt_addr, bool silent) const;
-  int set_active_device(RustRawAddress bt_addr) const;
-  int config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> codec_preferences) const;
+  uint32_t connect(RawAddress addr) const;
+  uint32_t disconnect(RawAddress addr) const;
+  int set_silence_device(RawAddress addr, bool silent) const;
+  int set_active_device(RawAddress addr) const;
+  int config_codec(RawAddress addr, ::rust::Vec<A2dpCodecConfig> codec_preferences) const;
   void cleanup() const;
 
   // interface for Audio server
@@ -66,8 +65,8 @@ class AvrcpIntf {
 
   void init();
   void cleanup();
-  uint32_t connect(RustRawAddress bt_addr);
-  uint32_t disconnect(RustRawAddress bt_addr);
+  uint32_t connect(RawAddress addr);
+  uint32_t disconnect(RawAddress addr);
 
   // interface for Audio server
   void set_volume(int8_t volume);
