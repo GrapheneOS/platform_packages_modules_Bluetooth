@@ -244,10 +244,8 @@ class StateMachineTest : public Test {
 
     static uint8_t broadcast_id_lsb = 1;
 
-    auto context_int = static_cast<
-        std::underlying_type<le_audio::types::LeAudioContextType>::type>(
-        context);
-    auto codec_qos_pair = getStreamConfigForContext(context_int);
+    auto codec_qos_pair =
+        getStreamConfigForContext(types::AudioContexts(context));
     auto broadcast_id = broadcast_id_lsb++;
     pending_broadcasts_.push_back(BroadcastStateMachine::CreateInstance({
         .broadcast_id = broadcast_id,
