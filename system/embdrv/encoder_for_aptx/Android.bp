@@ -1,3 +1,16 @@
+tidy_errors = [
+    "*",
+    "-altera-struct-pack-align",
+    "-altera-unroll-loops",
+    "-bugprone-narrowing-conversions",
+    "-cppcoreguidelines-avoid-magic-numbers",
+    "-cppcoreguidelines-init-variables",
+    "-cppcoreguidelines-narrowing-conversions",
+    "-hicpp-signed-bitwise",
+    "-readability-identifier-length",
+    "-readability-magic-numbers",
+]
+
 cc_library_static {
     name: "libaptx_enc",
     host_supported: true,
@@ -9,6 +22,9 @@ cc_library_static {
         "src/QuantiseDifference.c",
     ],
     cflags: ["-O2", "-Werror", "-Wall", "-Wextra"],
+    tidy: true,
+    tidy_checks: tidy_errors,
+    tidy_checks_as_errors: tidy_errors,
     min_sdk_version: "Tiramisu",
     apex_available: [
         "com.android.btservices",
