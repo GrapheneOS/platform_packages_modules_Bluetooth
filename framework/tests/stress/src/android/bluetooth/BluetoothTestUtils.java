@@ -1534,7 +1534,7 @@ public class BluetoothTestUtils extends Assert {
         for (String action: actions) {
             filter.addAction(action);
         }
-        mContext.registerReceiver(receiver, filter);
+        mContext.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
         mReceivers.add(receiver);
     }
 

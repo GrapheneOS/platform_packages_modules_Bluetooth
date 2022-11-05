@@ -40,12 +40,15 @@ using bluetooth::hci::iso_manager::BigCallbacks;
 using bluetooth::le_audio::BasicAudioAnnouncementData;
 using bluetooth::le_audio::BroadcastId;
 using le_audio::CodecManager;
+using le_audio::LeAudioCodecConfiguration;
+using le_audio::LeAudioSourceAudioHalClient;
 using le_audio::broadcaster::BigConfig;
 using le_audio::broadcaster::BroadcastCodecWrapper;
 using le_audio::broadcaster::BroadcastQosConfig;
 using le_audio::broadcaster::BroadcastStateMachine;
 using le_audio::broadcaster::BroadcastStateMachineConfig;
 using le_audio::broadcaster::IBroadcastStateMachineCallbacks;
+using le_audio::types::AudioContexts;
 using le_audio::types::CodecLocation;
 using le_audio::types::kLeAudioCodingFormatLC3;
 using le_audio::types::LeAudioContextType;
@@ -56,7 +59,6 @@ using le_audio::utils::GetAllowedAudioContextsFromSourceMetadata;
 namespace {
 class LeAudioBroadcasterImpl;
 LeAudioBroadcasterImpl* instance;
-LeAudioBroadcastClientAudioSource* leAudioClientAudioSource;
 
 /* Class definitions */
 
@@ -79,7 +81,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       : callbacks_(callbacks_),
         current_phy_(PHY_LE_2M),
         audio_data_path_state_(AudioDataPathState::INACTIVE),
-        audio_instance_(nullptr) {
+        le_audio_source_hal_client_(nullptr) {
     LOG_INFO();
 
     /* Register State machine callbacks */
@@ -115,10 +117,9 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     broadcasts_.clear();
     callbacks_ = nullptr;
 
-    if (audio_instance_) {
-      leAudioClientAudioSource->Stop();
-      leAudioClientAudioSource->Release(audio_instance_);
-      audio_instance_ = nullptr;
+    if (le_audio_source_hal_client_) {
+      le_audio_source_hal_client_->Stop();
+      le_audio_source_hal_client_.reset();
     }
   }
 
@@ -168,18 +169,18 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     return announcement;
   }
 
-  void UpdateStreamingContextTypeOnAllSubgroups(uint16_t context_type_map) {
-    LOG_DEBUG("%s context_type_map=%d", __func__, context_type_map);
+  void UpdateStreamingContextTypeOnAllSubgroups(const AudioContexts& contexts) {
+    LOG_DEBUG("%s context_type_map=%s", __func__, contexts.to_string().c_str());
 
-    auto ccids = GetAllCcids(context_type_map);
+    auto ccids = GetAllCcids(contexts);
     if (ccids.empty()) {
-      LOG_WARN("%s No content providers available for context_type_map=%d.",
-               __func__, context_type_map);
+      LOG_WARN("%s No content providers available for context_type_map=%s.",
+               __func__, contexts.to_string().c_str());
     }
 
     std::vector<uint8_t> stream_context_vec(2);
     auto pp = stream_context_vec.data();
-    UINT16_TO_STREAM(pp, context_type_map);
+    UINT16_TO_STREAM(pp, contexts.value());
 
     for (auto const& kv_it : broadcasts_) {
       auto& broadcast = kv_it.second;
@@ -262,9 +263,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       return;
     }
 
-    uint16_t context_type =
-        static_cast<std::underlying_type<LeAudioContextType>::type>(
-            LeAudioContextType::MEDIA);
+    auto context_type = AudioContexts(LeAudioContextType::MEDIA);
 
     /* Adds multiple contexts and CCIDs regardless of the incoming audio
      * context. Android has only two CCIDs, one for Media and one for
@@ -274,15 +273,12 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     if (stack_config_get_interface()
             ->get_pts_force_le_audio_multiple_contexts_metadata()) {
       context_type =
-          static_cast<std::underlying_type<LeAudioContextType>::type>(
-              LeAudioContextType::MEDIA) |
-          static_cast<std::underlying_type<LeAudioContextType>::type>(
-              LeAudioContextType::CONVERSATIONAL);
+          LeAudioContextType::MEDIA | LeAudioContextType::CONVERSATIONAL;
       auto stream_context_vec =
           ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
       if (stream_context_vec) {
         auto pp = stream_context_vec.value().data();
-        UINT16_TO_STREAM(pp, context_type);
+        UINT16_TO_STREAM(pp, context_type.value());
       }
     }
 
@@ -290,7 +286,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
     if (stream_context_vec) {
       auto pp = stream_context_vec.value().data();
-      STREAM_TO_UINT16(context_type, pp);
+      STREAM_TO_UINT16(context_type.value_ref(), pp);
     }
 
     // Append the CCID list
@@ -322,9 +318,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       return;
     }
 
-    uint16_t context_type =
-        static_cast<std::underlying_type<LeAudioContextType>::type>(
-            LeAudioContextType::MEDIA);
+    auto context_type = AudioContexts(LeAudioContextType::MEDIA);
 
     /* Adds multiple contexts and CCIDs regardless of the incoming audio
      * context. Android has only two CCIDs, one for Media and one for
@@ -334,15 +328,12 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     if (stack_config_get_interface()
             ->get_pts_force_le_audio_multiple_contexts_metadata()) {
       context_type =
-          static_cast<std::underlying_type<LeAudioContextType>::type>(
-              LeAudioContextType::MEDIA) |
-          static_cast<std::underlying_type<LeAudioContextType>::type>(
-              LeAudioContextType::CONVERSATIONAL);
+          LeAudioContextType::MEDIA | LeAudioContextType::CONVERSATIONAL;
       auto stream_context_vec =
           ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
       if (stream_context_vec) {
         auto pp = stream_context_vec.value().data();
-        UINT16_TO_STREAM(pp, context_type);
+        UINT16_TO_STREAM(pp, context_type.value());
       }
     }
 
@@ -350,7 +341,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
     if (stream_context_vec) {
       auto pp = stream_context_vec.value().data();
-      STREAM_TO_UINT16(context_type, pp);
+      STREAM_TO_UINT16(context_type.value_ref(), pp);
     }
 
     // Append the CCID list
@@ -420,8 +411,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     LOG_INFO("broadcast_id=%d", broadcast_id);
 
     if (broadcasts_.count(broadcast_id) != 0) {
-      LOG_INFO("Stopping LeAudioClientAudioSource");
-      leAudioClientAudioSource->Stop();
+      LOG_INFO("Stopping AudioHalClient");
+      if (le_audio_source_hal_client_) le_audio_source_hal_client_->Stop();
       broadcasts_[broadcast_id]->SetMuted(true);
       broadcasts_[broadcast_id]->ProcessMessage(
           BroadcastStateMachine::Message::SUSPEND, nullptr);
@@ -451,9 +442,10 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     }
 
     if (broadcasts_.count(broadcast_id) != 0) {
-      if (!audio_instance_) {
-        audio_instance_ = leAudioClientAudioSource->Acquire();
-        if (!audio_instance_) {
+      if (!le_audio_source_hal_client_) {
+        le_audio_source_hal_client_ =
+            LeAudioSourceAudioHalClient::AcquireBroadcast();
+        if (!le_audio_source_hal_client_) {
           LOG_ERROR("Could not acquire le audio");
           return;
         }
@@ -473,9 +465,9 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       return;
     }
 
-    LOG_INFO("Stopping LeAudioClientAudioSource, broadcast_id=%d",
-             broadcast_id);
-    leAudioClientAudioSource->Stop();
+    LOG_INFO("Stopping AudioHalClient, broadcast_id=%d", broadcast_id);
+
+    if (le_audio_source_hal_client_) le_audio_source_hal_client_->Stop();
     broadcasts_[broadcast_id]->SetMuted(true);
     broadcasts_[broadcast_id]->ProcessMessage(
         BroadcastStateMachine::Message::STOP, nullptr);
@@ -603,8 +595,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         CHECK(broadcasts_.count(broadcast_id) != 0);
         broadcasts_[broadcast_id]->HandleHciEvent(HCI_BLE_TERM_BIG_CPL_EVT,
                                                   evt);
-        leAudioClientAudioSource->Release(audio_instance_);
-        audio_instance_ = nullptr;
+        le_audio_source_hal_client_.reset();
       } break;
       default:
         LOG_ERROR("Invalid event=%d", event);
@@ -688,7 +679,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
           break;
         case BroadcastStateMachine::State::STREAMING:
           if (getStreamerCount() == 1) {
-            LOG_INFO("Starting LeAudioClientAudioSource");
+            LOG_INFO("Starting AudioHalClient");
 
             if (instance->broadcasts_.count(broadcast_id) != 0) {
               const auto& broadcast = instance->broadcasts_.at(broadcast_id);
@@ -700,8 +691,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
               broadcast->SetMuted(false);
               auto cfg = static_cast<const LeAudioCodecConfiguration*>(data);
-              auto is_started =
-                  leAudioClientAudioSource->Start(*cfg, &audio_receiver_);
+              auto is_started = instance->le_audio_source_hal_client_->Start(
+                  *cfg, &audio_receiver_);
               if (!is_started) {
                 /* Audio Source setup failed - stop the broadcast */
                 instance->StopAudioBroadcast(broadcast_id);
@@ -728,20 +719,19 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       CodecManager::GetInstance()->UpdateBroadcastConnHandle(
           conn_handle,
           std::bind(
-              &LeAudioUnicastClientAudioSource::UpdateBroadcastAudioConfigToHal,
-              leAudioClientAudioSource, std::placeholders::_1));
+              &LeAudioSourceAudioHalClient::UpdateBroadcastAudioConfigToHal,
+              instance->le_audio_source_hal_client_.get(),
+              std::placeholders::_1));
     }
   } state_machine_callbacks_;
 
-  static class LeAudioClientAudioSinkReceiverImpl
-      : public LeAudioClientAudioSinkReceiver {
+  static class LeAudioSourceCallbacksImpl
+      : public LeAudioSourceAudioHalClient::Callbacks {
    public:
-    LeAudioClientAudioSinkReceiverImpl()
-        : codec_wrapper_(
-              le_audio::broadcaster::getStreamConfigForContext(
-                  static_cast<std::underlying_type<LeAudioContextType>::type>(
-                      le_audio::types::LeAudioContextType::UNSPECIFIED))
-                  .first) {}
+    LeAudioSourceCallbacksImpl()
+        : codec_wrapper_(le_audio::broadcaster::getStreamConfigForContext(
+                             AudioContexts(LeAudioContextType::UNSPECIFIED))
+                             .first) {}
 
     void CheckAndReconfigureEncoders() {
       auto const& codec_id = codec_wrapper_.GetLeAudioCodecId();
@@ -861,16 +851,17 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
     virtual void OnAudioResume(void) override {
       LOG_INFO();
+      if (!instance) return;
+
       /* TODO: Should we resume all broadcasts - recreate BIGs? */
-      if (instance)
-        instance->audio_data_path_state_ = AudioDataPathState::ACTIVE;
+      instance->audio_data_path_state_ = AudioDataPathState::ACTIVE;
 
       if (!IsAnyoneStreaming()) {
-        leAudioClientAudioSource->CancelStreamingRequest();
+        instance->le_audio_source_hal_client_->CancelStreamingRequest();
         return;
       }
 
-      leAudioClientAudioSource->ConfirmStreamingRequest();
+      instance->le_audio_source_hal_client_->ConfirmStreamingRequest();
     }
 
     virtual void OnAudioMetadataUpdate(
@@ -881,9 +872,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       /* TODO: Should we take supported contexts from ASCS? */
       auto supported_context_types = le_audio::types::kLeAudioContextAllTypes;
       auto contexts = GetAllowedAudioContextsFromSourceMetadata(
-          source_metadata,
-          static_cast<std::underlying_type<LeAudioContextType>::type>(
-              supported_context_types));
+          source_metadata, supported_context_types);
       if (contexts.any()) {
         /* NOTICE: We probably don't want to change the stream configuration
          * on each metadata change, so just update the context type metadata.
@@ -891,7 +880,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
          * they are all mixed inside a single data stream, we will update
          * the metadata of all BIS subgroups with the same combined context.
          */
-        instance->UpdateStreamingContextTypeOnAllSubgroups(contexts.to_ulong());
+        instance->UpdateStreamingContextTypeOnAllSubgroups(contexts);
       }
     }
 
@@ -909,14 +898,14 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
   /* Some BIG params are set globally */
   uint8_t current_phy_;
   AudioDataPathState audio_data_path_state_;
-  const void* audio_instance_;
+  std::unique_ptr<LeAudioSourceAudioHalClient> le_audio_source_hal_client_;
   std::vector<BroadcastId> available_broadcast_ids_;
 };
 
 /* Static members definitions */
 LeAudioBroadcasterImpl::BroadcastStateMachineCallbacks
     LeAudioBroadcasterImpl::state_machine_callbacks_;
-LeAudioBroadcasterImpl::LeAudioClientAudioSinkReceiverImpl
+LeAudioBroadcasterImpl::LeAudioSourceCallbacksImpl
     LeAudioBroadcasterImpl::audio_receiver_;
 
 } /* namespace */
@@ -940,8 +929,6 @@ void LeAudioBroadcaster::Initialize(
     LOG_ALWAYS_FATAL("HAL requirements not met. Init aborted.");
   }
 
-  /* Create new client audio broadcast instance */
-  InitializeAudioClient(nullptr);
   IsoManager::GetInstance()->Start();
 
   instance = new LeAudioBroadcasterImpl(callbacks);
@@ -974,10 +961,6 @@ void LeAudioBroadcaster::Cleanup(void) {
   instance = nullptr;
 
   ptr->CleanUp();
-  if (leAudioClientAudioSource) {
-    delete leAudioClientAudioSource;
-    leAudioClientAudioSource = nullptr;
-  }
   delete ptr;
 }
 
@@ -985,20 +968,4 @@ void LeAudioBroadcaster::DebugDump(int fd) {
   dprintf(fd, "Le Audio Broadcaster:\n");
   if (instance) instance->Dump(fd);
   dprintf(fd, "\n");
-}
-
-void LeAudioBroadcaster::InitializeAudioClient(
-    LeAudioBroadcastClientAudioSource* clientAudioSource) {
-  if (leAudioClientAudioSource) {
-    LOG(WARNING) << __func__ << ", audio clients already initialized";
-    return;
-  }
-
-  if (!clientAudioSource) {
-    /* Create new instance if no pre-created is delivered */
-    leAudioClientAudioSource = new LeAudioBroadcastClientAudioSource();
-  } else {
-    /* Use pre-created instance e.g. from test suit */
-    leAudioClientAudioSource = clientAudioSource;
-  }
 }
