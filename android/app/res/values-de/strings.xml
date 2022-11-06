@@ -80,9 +80,9 @@
     <string name="bt_toast_1" msgid="8791691594887576215">"Die Datei wird empfangen. Überprüfe den Fortschritt in der Benachrichtigungskonsole."</string>
     <string name="bt_toast_2" msgid="2041575937953174042">"Die Datei kann nicht empfangen werden."</string>
     <string name="bt_toast_3" msgid="3053157171297761920">"Der Empfang der Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\" wurde angehalten."</string>
-    <string name="bt_toast_4" msgid="480365991944956695">"Datei wird an \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" gesendet..."</string>
+    <string name="bt_toast_4" msgid="480365991944956695">"Datei wird an „<xliff:g id="RECIPIENT">%1$s</xliff:g>“ gesendet..."</string>
     <string name="bt_toast_5" msgid="4818264207982268297">"<xliff:g id="NUMBER">%1$s</xliff:g> Dateien werden an \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\" gesendet."</string>
-    <string name="bt_toast_6" msgid="8814166471030694787">"Die Übertragung der Datei an \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" wurde abgebrochen"</string>
+    <string name="bt_toast_6" msgid="8814166471030694787">"Die Übertragung der Datei an „<xliff:g id="RECIPIENT">%1$s</xliff:g>“ wurde abgebrochen"</string>
     <string name="bt_sm_2_1_nosdcard" msgid="288667514869424273">"Auf dem USB-Speicher ist nicht genügend Platz, um die Datei zu speichern."</string>
     <string name="bt_sm_2_1_default" msgid="5070195264206471656">"Auf der SD-Karte ist nicht genügend Platz, um die Datei zu speichern."</string>
     <string name="bt_sm_2_2" msgid="6200119660562110560">"Erforderlicher Speicherplatz: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
@@ -109,14 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Alle Elemente werden aus der Liste gelöscht."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth-Freigabe: Gesendete Dateien"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth-Freigabe: Empfangene Dateien"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="6511510339394311097">
-      <item quantity="other">Fehler bei <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> aufgetreten</item>
-      <item quantity="one">Fehler bei <xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> aufgetreten</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="2452887423660955489">
-      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> erfolgreich, %2$s</item>
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> erfolgreich, %2$s</item>
-    </plurals>
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# fehlgeschlagen.}other{# fehlgeschlagen.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# erfolgreich, %1$s}other{# erfolgreich, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Liste löschen"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Öffnen"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Aus Liste löschen"</string>

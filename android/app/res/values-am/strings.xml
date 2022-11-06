@@ -104,19 +104,13 @@
     <string name="download_success" msgid="3438268368708549686">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ተቀብሎ ተጠናቋል።"</string>
     <string name="upload_success" msgid="143787470859042049">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ልኮ ተጠናቋል።"</string>
     <string name="inbound_history_title" msgid="189623888169624862">"ወደ ውስጥ ማስተላለፍ"</string>
-    <string name="outbound_history_title" msgid="7614166584551065036">"ወደ ውጪ ማስተላለፍ"</string>
+    <string name="outbound_history_title" msgid="7614166584551065036">"ወደ ውጭ ማስተላለፍ"</string>
     <string name="no_transfers" msgid="740521199933899821">"የዝውውር ታሪክ ባዶ ነው።"</string>
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"ሁሉም ዓይነቶች ከዝርዝር ውስጥ ይሰረዛሉ።"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"ብሉቱዝ ማጋሪያ፡ የተላኩ ፋይሎች"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"ብሉቱዝ ማጋሪያ፡ የደረሱ ፋይሎች"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="6511510339394311097">
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> አልተሳኩም።</item>
-      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> አልተሳኩም።</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="2452887423660955489">
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> ተሳክተዋል፣ %2$s</item>
-      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> ተሳክተዋል፣ %2$s</item>
-    </plurals>
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# አልተሳካም።}one{# አልተሳካም።}other{# አልተሳኩም።}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# ተሳክቷል፣ %1$s}one{# ተሳክቷል፣ %1$s}other{# ተሳክተዋል፣ %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"ዝርዝር አጽዳ"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"ክፈት"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"ከዝርዝር አጽዳ"</string>

@@ -109,18 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Vsi elementi bodo izbrisani s seznama."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth: Poslane datoteke"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth: Prejete datoteke"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="6511510339394311097">
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> neuspešen.</item>
-      <item quantity="two"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> neuspešna.</item>
-      <item quantity="few"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> neuspešni.</item>
-      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> neuspešnih.</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="2452887423660955489">
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> uspešen, %2$s</item>
-      <item quantity="two"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> uspešna, %2$s</item>
-      <item quantity="few"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> uspešni, %2$s</item>
-      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> uspešnih, %2$s</item>
-    </plurals>
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{neuspešno: #.}one{neuspešno: #.}two{neuspešno: #.}few{neuspešno: #.}other{neuspešno: #.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{Uspešno: #, %1$s}one{Uspešno: #, %1$s}two{Uspešno: #, %1$s}few{Uspešno: #, %1$s}other{Uspešno: #, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Počisti seznam"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Odpri"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Počisti s seznama"</string>
