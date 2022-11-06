@@ -1,6 +1,7 @@
 /*
  * Copyright 2020 HIMSA II K/S - www.himsa.com.
  * Represented by EHIMA - www.ehima.com
+ * Copyright (c) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +18,12 @@
 #pragma once
 
 #include <future>
+#include <memory>
 
 #include "audio_hal_interface/le_audio_software.h"
 #include "common/repeating_timer.h"
 
-/* Implementations of Le Audio will also implement this interface */
-class LeAudioClientAudioSinkReceiver {
- public:
-  virtual ~LeAudioClientAudioSinkReceiver() = default;
-  virtual void OnAudioDataReady(const std::vector<uint8_t>& data) = 0;
-  virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
-  virtual void OnAudioResume(void) = 0;
-  virtual void OnAudioMetadataUpdate(
-      std::vector<struct playback_track_metadata> source_metadata) = 0;
-};
-class LeAudioClientAudioSourceReceiver {
- public:
-  virtual ~LeAudioClientAudioSourceReceiver() = default;
-  virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
-  virtual void OnAudioResume(void) = 0;
-  virtual void OnAudioMetadataUpdate(
-      std::vector<struct record_track_metadata> sink_metadata) = 0;
-};
-
+namespace le_audio {
 /* Represents configuration of audio codec, as exchanged between le audio and
  * phone.
  * It can also be passed to the audio source to configure its parameters.
@@ -110,87 +94,77 @@ struct LeAudioCodecConfiguration {
   }
 };
 
-/* Represents source of audio for le audio client */
-class LeAudioClientAudioSource {
+/* Used by the local BLE Audio Sink device to pass the audio data
+ * received from a remote BLE Audio Source to the Audio HAL.
+ */
+class LeAudioSinkAudioHalClient {
  public:
-  virtual ~LeAudioClientAudioSource() = default;
+  class Callbacks {
+   public:
+    virtual ~Callbacks() = default;
+    virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
+    virtual void OnAudioResume(void) = 0;
+    virtual void OnAudioMetadataUpdate(
+        std::vector<struct record_track_metadata> sink_metadata) = 0;
+  };
 
+  virtual ~LeAudioSinkAudioHalClient() = default;
   virtual bool Start(const LeAudioCodecConfiguration& codecConfiguration,
-                     LeAudioClientAudioSinkReceiver* audioReceiver);
-  virtual void Stop();
-  virtual void Release(const void* instance);
-  virtual void ConfirmStreamingRequest();
-  virtual void CancelStreamingRequest();
-  virtual void UpdateRemoteDelay(uint16_t remote_delay_ms);
-  virtual void UpdateAudioConfigToHal(const ::le_audio::offload_config& config);
-  virtual void UpdateBroadcastAudioConfigToHal(
-      const ::le_audio::broadcast_offload_config& config);
-  virtual void SuspendedForReconfiguration();
-  virtual void ReconfigurationComplete();
+                     Callbacks* audioReceiver) = 0;
+  virtual void Stop() = 0;
+  virtual size_t SendData(uint8_t* data, uint16_t size) = 0;
 
+  virtual void ConfirmStreamingRequest() = 0;
+  virtual void CancelStreamingRequest() = 0;
+
+  virtual void UpdateRemoteDelay(uint16_t remote_delay_ms) = 0;
+  virtual void UpdateAudioConfigToHal(
+      const ::le_audio::offload_config& config) = 0;
+  virtual void SuspendedForReconfiguration() = 0;
+  virtual void ReconfigurationComplete() = 0;
+
+  static std::unique_ptr<LeAudioSinkAudioHalClient> AcquireUnicast();
   static void DebugDump(int fd);
 
  protected:
-  const void* Acquire(bool is_broadcasting_session_type);
-  bool InitAudioSinkThread(const std::string name);
-
-  bluetooth::common::MessageLoopThread* worker_thread_ = nullptr;
-
- private:
-  bool SinkOnResumeReq(bool start_media_task);
-  bool SinkOnSuspendReq();
-  bool SinkOnMetadataUpdateReq(const source_metadata_t& source_metadata);
-
-  void StartAudioTicks();
-  void StopAudioTicks();
-  void SendAudioData();
-
-  bluetooth::common::RepeatingTimer audio_timer_;
-  LeAudioCodecConfiguration source_codec_config_;
-  LeAudioClientAudioSinkReceiver* audioSinkReceiver_ = nullptr;
-  bluetooth::audio::le_audio::LeAudioClientInterface::Sink*
-      sinkClientInterface_ = nullptr;
-
-  /* Guard audio sink receiver mutual access from stack with internal mutex */
-  std::mutex sinkInterfaceMutex_;
+  LeAudioSinkAudioHalClient() = default;
 };
 
-/* Represents audio sink for le audio client */
-class LeAudioUnicastClientAudioSink {
+/* Used by the local BLE Audio Source device to get data from the
+ * Audio HAL, so we could send it over to a remote BLE Audio Sink device.
+ */
+class LeAudioSourceAudioHalClient {
  public:
-  virtual ~LeAudioUnicastClientAudioSink() = default;
+  class Callbacks {
+   public:
+    virtual ~Callbacks() = default;
+    virtual void OnAudioDataReady(const std::vector<uint8_t>& data) = 0;
+    virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
+    virtual void OnAudioResume(void) = 0;
+    virtual void OnAudioMetadataUpdate(
+        std::vector<struct playback_track_metadata> source_metadata) = 0;
+  };
 
+  virtual ~LeAudioSourceAudioHalClient() = default;
   virtual bool Start(const LeAudioCodecConfiguration& codecConfiguration,
-                     LeAudioClientAudioSourceReceiver* audioReceiver);
-  virtual void Stop();
-  virtual const void* Acquire();
-  virtual void Release(const void* instance);
-  virtual size_t SendData(uint8_t* data, uint16_t size);
-  virtual void ConfirmStreamingRequest();
-  virtual void CancelStreamingRequest();
-  virtual void UpdateRemoteDelay(uint16_t remote_delay_ms);
-  virtual void UpdateAudioConfigToHal(const ::le_audio::offload_config& config);
-  virtual void SuspendedForReconfiguration();
-  virtual void ReconfigurationComplete();
+                     Callbacks* audioReceiver) = 0;
+  virtual void Stop() = 0;
+  virtual size_t SendData(uint8_t* data, uint16_t size) { return 0; }
+  virtual void ConfirmStreamingRequest() = 0;
+  virtual void CancelStreamingRequest() = 0;
+  virtual void UpdateRemoteDelay(uint16_t remote_delay_ms) = 0;
+  virtual void UpdateAudioConfigToHal(
+      const ::le_audio::offload_config& config) = 0;
+  virtual void UpdateBroadcastAudioConfigToHal(
+      const ::le_audio::broadcast_offload_config& config) = 0;
+  virtual void SuspendedForReconfiguration() = 0;
+  virtual void ReconfigurationComplete() = 0;
 
+  static std::unique_ptr<LeAudioSourceAudioHalClient> AcquireUnicast();
+  static std::unique_ptr<LeAudioSourceAudioHalClient> AcquireBroadcast();
   static void DebugDump(int fd);
 
- private:
-  bool SourceOnResumeReq(bool start_media_task);
-  bool SourceOnSuspendReq();
-  bool SourceOnMetadataUpdateReq(const sink_metadata_t& sink_metadata);
-
-  LeAudioClientAudioSourceReceiver* audioSourceReceiver_ = nullptr;
-  bluetooth::audio::le_audio::LeAudioClientInterface::Source*
-      sourceClientInterface_ = nullptr;
+ protected:
+  LeAudioSourceAudioHalClient() = default;
 };
-
-class LeAudioUnicastClientAudioSource : public LeAudioClientAudioSource {
- public:
-  virtual const void* Acquire();
-};
-
-class LeAudioBroadcastClientAudioSource : public LeAudioClientAudioSource {
- public:
-  virtual const void* Acquire();
-};
+}  // namespace le_audio

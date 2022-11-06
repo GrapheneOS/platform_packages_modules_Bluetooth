@@ -410,7 +410,7 @@ static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
     lc3_stereo_48_4_2 = {lc3_stereo_48_4, qos_config_4_65};
 
 std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
-getStreamConfigForContext(uint16_t context) {
+getStreamConfigForContext(types::AudioContexts context) {
   const std::string* options =
       stack_config_get_interface()->get_pts_broadcast_audio_config_options();
   if (options) {
@@ -420,41 +420,24 @@ getStreamConfigForContext(uint16_t context) {
     if (!options->compare("lc3_stereo_48_4_2")) return lc3_stereo_48_4_2;
   }
   // High quality, Low Latency
-  auto contexts_stereo_24_2_1 =
-      static_cast<std::underlying_type<LeAudioContextType>::type>(
-          LeAudioContextType::GAME) |
-      static_cast<std::underlying_type<LeAudioContextType>::type>(
-          LeAudioContextType::LIVE);
-  if (context & contexts_stereo_24_2_1) return lc3_stereo_24_2_1;
+  if (context.test_any(LeAudioContextType::GAME | LeAudioContextType::LIVE))
+    return lc3_stereo_24_2_1;
 
   // Low quality, Low Latency
-  auto contexts_mono_16_2_1 =
-      static_cast<std::underlying_type<LeAudioContextType>::type>(
-          LeAudioContextType::INSTRUCTIONAL);
-  if (context & contexts_mono_16_2_1) return lc3_mono_16_2_1;
+  if (context.test(LeAudioContextType::INSTRUCTIONAL)) return lc3_mono_16_2_1;
 
   // Low quality, High Reliability
-  auto contexts_stereo_16_2_2 =
-      static_cast<std::underlying_type<LeAudioContextType>::type>(
-          LeAudioContextType::SOUNDEFFECTS) |
-      static_cast<std::underlying_type<LeAudioContextType>::type>(
-          LeAudioContextType::UNSPECIFIED);
-  if (context & contexts_stereo_16_2_2) return lc3_stereo_16_2_2;
+  if (context.test_any(LeAudioContextType::SOUNDEFFECTS |
+                       LeAudioContextType::UNSPECIFIED))
+    return lc3_stereo_16_2_2;
 
-  auto contexts_mono_16_2_2 =
-      static_cast<std::underlying_type<LeAudioContextType>::type>(
-          LeAudioContextType::ALERTS) |
-      static_cast<std::underlying_type<LeAudioContextType>::type>(
-          LeAudioContextType::NOTIFICATIONS) |
-      static_cast<std::underlying_type<LeAudioContextType>::type>(
-          LeAudioContextType::EMERGENCYALARM);
-  if (context & contexts_mono_16_2_2) return lc3_mono_16_2_2;
+  if (context.test_any(LeAudioContextType::ALERTS |
+                       LeAudioContextType::NOTIFICATIONS |
+                       LeAudioContextType::EMERGENCYALARM))
+    return lc3_mono_16_2_2;
 
   // High quality, High Reliability
-  auto contexts_stereo_24_2_2 =
-      static_cast<std::underlying_type<LeAudioContextType>::type>(
-          LeAudioContextType::MEDIA);
-  if (context & contexts_stereo_24_2_2) return lc3_stereo_24_2_2;
+  if (context.test(LeAudioContextType::MEDIA)) return lc3_stereo_24_2_2;
 
   // Defaults: Low quality, High Reliability
   return lc3_mono_16_2_2;
