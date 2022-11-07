@@ -369,4 +369,7 @@ public class SapRilReceiver {
         mSapServerMsgHandler.sendMessage(newMsg);
     }
 
+    AtomicLong getSapProxyCookie() {
+        return mSapProxyCookie;
+    }
 }
