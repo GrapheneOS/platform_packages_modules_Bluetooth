@@ -158,15 +158,17 @@ static void btif_test_discovery_complete_cback(
   LOG_INFO("%s: status=%d", __func__, status);
 }
 
-static tGATT_CBACK btif_test_callbacks = {btif_test_connect_cback,
-                                          btif_test_command_complete_cback,
-                                          btif_test_discovery_result_cback,
-                                          btif_test_discovery_complete_cback,
-                                          NULL,
-                                          NULL,
-                                          NULL,
-                                          NULL,
-                                          NULL};
+static tGATT_CBACK btif_test_callbacks = {
+    btif_test_connect_cback,
+    btif_test_command_complete_cback,
+    btif_test_discovery_result_cback,
+    btif_test_discovery_complete_cback,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
 
 /*******************************************************************************
  * Implementation

@@ -106,46 +106,9 @@ namespace {
 
 uint8_t rssi_request_client_if;
 
-std::string bta_gattc_event_text(const tBTA_GATTC_EVT& event) {
-  switch (event) {
-    case BTA_GATTC_DEREG_EVT:
-      return std::string("GATT client deregistered");
-    case BTA_GATTC_OPEN_EVT:
-      return std::string("GATTC open request status");
-    case BTA_GATTC_CLOSE_EVT:
-      return std::string("GATTC close request status");
-    case BTA_GATTC_SEARCH_CMPL_EVT:
-      return std::string("GATT discovery complete");
-    case BTA_GATTC_SEARCH_RES_EVT:
-      return std::string("GATT discovery result");
-    case BTA_GATTC_SRVC_DISC_DONE_EVT:
-      return std::string("GATT service discovery done");
-    case BTA_GATTC_NOTIF_EVT:
-      return std::string("GATT attribute notification");
-    case BTA_GATTC_EXEC_EVT:
-      return std::string("execute write complete");
-    case BTA_GATTC_ACL_EVT:
-      return std::string("ACL up");
-    case BTA_GATTC_CANCEL_OPEN_EVT:
-      return std::string("cancel open");
-    case BTA_GATTC_SRVC_CHG_EVT:
-      return std::string("service change");
-    case BTA_GATTC_ENC_CMPL_CB_EVT:
-      return std::string("encryption complete callback");
-    case BTA_GATTC_CFG_MTU_EVT:
-      return std::string("configure MTU complete");
-    case BTA_GATTC_CONGEST_EVT:
-      return std::string("congestion");
-    case BTA_GATTC_PHY_UPDATE_EVT:
-      return std::string("PHY change");
-    case BTA_GATTC_CONN_UPDATE_EVT:
-      return std::string("connection parameters update");
-  }
-}
-
 static void btif_gattc_upstreams_evt(uint16_t event, char* p_param) {
   LOG_DEBUG("Event %s [%d]",
-            bta_gattc_event_text(static_cast<tBTA_GATTC_EVT>(event)).c_str(),
+            gatt_client_event_text(static_cast<tBTA_GATTC_EVT>(event)).c_str(),
             event);
 
   tBTA_GATTC* p_data = (tBTA_GATTC*)p_param;
@@ -709,4 +672,5 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_set_preferred_phy,
     btif_gattc_read_phy,
     btif_gattc_test_command,
-    btif_gattc_get_gatt_db};
+    btif_gattc_get_gatt_db,
+};
