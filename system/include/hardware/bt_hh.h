@@ -199,6 +199,10 @@ typedef struct {
   bt_status_t (*get_report)(RawAddress* bd_addr, bthh_report_type_t reportType,
                             uint8_t reportId, int bufferSize);
 
+  /** Send a GET_REPORT_REPLY to HID driver. */
+  bt_status_t (*get_report_reply)(RawAddress* bd_addr, bthh_status_t status,
+                                  char* report, uint16_t size);
+
   /** Send a SET_REPORT to HID device. */
   bt_status_t (*set_report)(RawAddress* bd_addr, bthh_report_type_t reportType,
                             char* report);
