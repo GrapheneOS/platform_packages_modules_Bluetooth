@@ -109,14 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‎‎‏‎‎‎‎‎‏‎‎‎‏‎‎‏‎‎‏‏‏‏‎‎‏‎‎‏‏‏‎‎‎‏‏‏‏‏‎‏‏‎‏‎‏‎‏‏‏‏‎‎‏‎‏‏‎‎‏‏‏‏‎All items will be cleared from the list.‎‏‎‎‏‎"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‎‏‏‏‏‎‎‎‏‏‎‎‎‏‏‎‏‎‎‏‎‏‎‏‏‎‎‏‏‎‎‎‎‏‏‏‏‎‏‎‏‎‏‏‏‎‎‏‏‏‎‎‏‎‎‏‎‏‎‎‎‏‏‎Bluetooth share: Sent files‎‏‎‎‏‎"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‎‏‏‎‎‏‏‏‏‎‎‎‏‏‏‎‎‏‎‎‏‏‎‏‏‎‎‎‏‎‎‏‏‏‏‎‎‎‏‏‎‏‎‏‎‎‏‎‎‎‏‏‎‎‏‏‎‎‏‏‎‎‏‎Bluetooth share: Received files‎‏‎‎‏‎"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="6511510339394311097">
-      <item quantity="other">‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‏‏‎‏‏‎‏‎‎‏‎‏‏‏‎‏‏‎‎‎‏‎‎‎‎‎‏‎‎‏‏‏‎‏‏‏‏‎‏‎‏‏‏‎‎‎‎‏‏‎‎‏‎‎‏‏‏‎‏‏‏‎‎‏‎‎‏‎‎‏‏‎<xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>‎‏‎‎‏‏‏‎ unsuccessful.‎‏‎‎‏‎</item>
-      <item quantity="one">‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‏‏‎‏‏‎‏‎‎‏‎‏‏‏‎‏‏‎‎‎‏‎‎‎‎‎‏‎‎‏‏‏‎‏‏‏‏‎‏‎‏‏‏‎‎‎‎‏‏‎‎‏‎‎‏‏‏‎‏‏‏‎‎‏‎‎‏‎‎‏‏‎<xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g>‎‏‎‎‏‏‏‎ unsuccessful.‎‏‎‎‏‎</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="2452887423660955489">
-      <item quantity="other">‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‎‏‎‎‎‏‎‎‎‎‎‏‎‏‎‎‏‏‎‏‎‎‎‎‎‎‏‏‏‎‏‏‎‏‎‏‎‎‏‎‏‎‏‎‏‎‏‏‎‎‏‎‏‏‏‎‏‏‎‎‎‎‏‎‎‏‎‎‏‏‎<xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g>‎‏‎‎‏‏‏‎ successful, %2$s‎‏‎‎‏‎</item>
-      <item quantity="one">‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‎‏‎‎‎‏‎‎‎‎‎‏‎‏‎‎‏‏‎‏‎‎‎‎‎‎‏‏‏‎‏‏‎‏‎‏‎‎‏‎‏‎‏‎‏‎‏‏‎‎‏‎‏‏‏‎‏‏‎‎‎‎‏‎‎‏‎‎‏‏‎<xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g>‎‏‎‎‏‏‏‎ successful, %2$s‎‏‎‎‏‎</item>
-    </plurals>
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‏‏‎‏‏‏‎‎‏‎‏‏‎‎‎‏‏‎‎‏‏‎‎‏‎‎‎‏‎‎‎‎‎‎‎‎‎‏‎‏‎‎‎‎‏‏‎‎‏‏‎‏‏‎‎‏‎‏‎‏‎‎‏‏‎# unsuccessful.‎‏‎‎‏‎}other{‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‏‏‎‏‏‏‎‎‏‎‏‏‎‎‎‏‏‎‎‏‏‎‎‏‎‎‎‏‎‎‎‎‎‎‎‎‎‏‎‏‎‎‎‎‏‏‎‎‏‏‎‏‏‎‎‏‎‏‎‏‎‎‏‏‎# unsuccessful.‎‏‎‎‏‎}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‏‏‏‎‏‎‏‎‎‎‏‏‎‏‎‎‎‎‏‎‎‎‎‎‏‎‎‏‏‎‏‎‎‏‎‏‎‎‏‏‏‎‏‎‎‎‏‏‎‎‏‎‏‎‎‏‏‎‏‏‎‎‎‏‎# successful, %1$s‎‏‎‎‏‎}other{‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‏‏‏‎‏‎‏‎‎‎‏‏‎‏‎‎‎‎‏‎‎‎‎‎‏‎‎‏‏‎‏‎‎‏‎‏‎‎‏‏‏‎‏‎‎‎‏‏‎‎‏‎‏‎‎‏‏‎‏‏‎‎‎‏‎# successful, %1$s‎‏‎‎‏‎}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‎‏‎‏‎‎‏‏‏‎‏‎‏‎‏‏‎‎‎‎‎‏‏‎‎‏‎‏‏‎‏‏‏‏‎‎‎‎‎‎‏‏‎‏‏‎‏‎‎‎‏‎‏‎‎‎‏‎‎‎‏‎‎‎Clear list‎‏‎‎‏‎"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‏‏‎‎‏‎‎‎‎‎‎‏‎‎‏‎‎‏‏‏‎‏‏‏‎‏‏‎‏‏‏‎‏‏‏‏‎‏‏‎‎‏‎‏‎‎‏‏‏‏‎‏‎‏‎‎‏‎‎‎‎‎‏‏‎Open‎‏‎‎‏‎"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"‎‏‎‎‎‎‎‏‎‏‏‏‎‎‎‎‎‏‎‎‎‎‎‏‏‏‎‏‏‏‏‏‏‏‏‎‎‏‎‎‎‎‎‏‏‎‏‏‎‏‏‏‏‎‎‎‎‎‎‏‏‎‏‎‎‎‏‎‎‏‏‏‏‏‏‎‏‎‏‏‎‎‏‎‏‏‏‏‏‎‏‏‏‎‏‎‎Clear from list‎‏‎‎‏‎"</string>
