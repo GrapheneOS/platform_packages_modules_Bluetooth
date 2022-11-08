@@ -19,6 +19,7 @@ from mmi2grpc._proxy import ProfileProxy
 from pandora_experimental.hfp_grpc import HFP
 from pandora_experimental.host_grpc import Host
 from pandora_experimental.security_grpc import Security
+from pandora_experimental.hfp_pb2 import AudioPath
 
 import sys
 import threading
@@ -30,16 +31,22 @@ WAIT_DELAY_BEFORE_CONNECTION = 2
 # The tests needs the MMI to accept pairing confirmation request.
 NEEDS_WAIT_CONNECTION_BEFORE_TEST = {'HFP/AG/WBS/BV-01-I', 'HFP/AG/SLC/BV-05-I'}
 
+IXIT_PHONE_NUMBER = 42
+
 
 class HFPProxy(ProfileProxy):
 
-    def __init__(self, channel):
+    def __init__(self, test, channel, rootcanal, modem):
         super().__init__(channel)
         self.hfp = HFP(channel)
         self.host = Host(channel)
         self.security = Security(channel)
+        self.rootcanal = rootcanal
+        self.modem = modem
 
         self.connection = None
+
+        self._auto_confirm_requests()
 
     def asyncWaitConnection(self, pts_addr, delay=WAIT_DELAY_BEFORE_CONNECTION):
         """
@@ -97,7 +104,12 @@ class HFPProxy(ProfileProxy):
         Implementation Under Test (IUT).
         """
 
-        self.connection = self.host.Connect(address=pts_addr).connection
+        def connect():
+            time.sleep(2)
+            self.connection = self.host.Connect(address=pts_addr).connection
+
+        threading.Thread(target=connect).start()
+
         return "OK"
 
     @assert_description
@@ -118,11 +130,13 @@ class HFPProxy(ProfileProxy):
         Implementation Under Test (IUT).
         """
 
-        def go():
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
+        def disable_slc():
             time.sleep(2)
             self.hfp.DisableSlc(connection=self.connection)
 
-        threading.Thread(target=go).start()
+        threading.Thread(target=disable_slc).start()
 
         return "OK"
 
@@ -147,3 +161,88 @@ class HFPProxy(ProfileProxy):
         self.hfp.SetBatteryLevel(connection=self.connection, battery_percentage=42)
 
         return "OK"
+
+    @assert_description
+    def TSC_ag_iut_enable_call(self, **kwargs):
+        """
+        Click Ok, then place a call from an external line to the Implementation
+        Under Test (IUT). Do not answer the call unless prompted to do so.
+        """
+
+        def enable_call():
+            time.sleep(2)
+            self.modem.call(IXIT_PHONE_NUMBER)
+
+        threading.Thread(target=enable_call).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_audio(self, **kwargs):
+        """
+        Verify the presence of an audio connection, then click Ok.
+        """
+
+        # TODO
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_disable_call_external(self, **kwargs):
+        """
+        Click Ok, then end the call using the external terminal.
+        """
+
+        def disable_call_external():
+            time.sleep(2)
+            self.hfp.DeclineCall()
+
+        threading.Thread(target=disable_call_external).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_iut_enable_audio_using_codec(self, **kwargs):
+        """
+        Click OK, then initiate an audio connection using the Codec Connection
+        Setup procedure.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_iut_disable_audio(self, **kwargs):
+        """
+        Click Ok, then close the audio connection (SCO) between the
+        Implementation Under Test (IUT) and the PTS.  Do not close the serivice
+        level connection (SLC) or power-off the IUT.
+        """
+
+        def disable_audio():
+            time.sleep(2)
+            self.hfp.SetAudioPath(audio_path=AudioPath.AUDIO_PATH_SPEAKERS)
+
+        threading.Thread(target=disable_audio).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_no_audio(self, **kwargs):
+        """
+        Verify the absence of an audio connection (SCO), then click Ok.
+        """
+
+        return "OK"
+
+    def _auto_confirm_requests(self, times=None):
+
+        def task():
+            cnt = 0
+            pairing_events = self.security.OnPairing()
+            for event in pairing_events:
+                if event.WhichOneof('method') in {"just_works", "numeric_comparison"}:
+                    if times is None or cnt < times:
+                        cnt += 1
+                        pairing_events.send(event=event, confirm=True)
+
+        threading.Thread(target=task).start()
