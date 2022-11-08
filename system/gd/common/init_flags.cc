@@ -30,6 +30,7 @@ namespace common {
 bool InitFlags::logging_debug_enabled_for_all = false;
 int InitFlags::hci_adapter = 0;
 std::unordered_map<std::string, bool> InitFlags::logging_debug_explicit_tag_settings = {};
+bool InitFlags::btm_dm_flush_discovery_queue_on_search_cancel = false;
 
 bool ParseBoolFlag(const std::vector<std::string>& flag_pair, const std::string& flag, bool* variable) {
   if (flag != flag_pair[0]) {
@@ -69,6 +70,11 @@ void InitFlags::Load(const char** flags) {
 
     // Parse adapter index (defaults to 0)
     ParseIntFlag(flag_pair, "--hci", &hci_adapter);
+
+    ParseBoolFlag(
+        flag_pair,
+        "INIT_btm_dm_flush_discovery_queue_on_search_cancel",
+        &btm_dm_flush_discovery_queue_on_search_cancel);
 
     ParseBoolFlag(flag_pair, "INIT_logging_debug_enabled_for_all", &logging_debug_enabled_for_all);
     if ("INIT_logging_debug_enabled_for_tags" == flag_pair[0]) {
