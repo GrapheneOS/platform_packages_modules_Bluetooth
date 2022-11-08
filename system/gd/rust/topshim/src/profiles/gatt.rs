@@ -515,26 +515,6 @@ impl Default for LePhy {
     }
 }
 
-#[derive(Clone, Copy, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
-#[repr(u32)]
-pub enum AdvertisingStatus {
-    Success = 0x0,
-    DataTooLarge = 0x1,
-    TooManyAdvertisers = 0x2,
-    AlreadyStarted = 0x3,
-    InternalError = 0x4,
-    FeatureUnsupported = 0x5,
-}
-
-impl From<u8> for AdvertisingStatus {
-    fn from(item: u8) -> Self {
-        match AdvertisingStatus::from_u8(item) {
-            Some(s) => s,
-            None => AdvertisingStatus::InternalError,
-        }
-    }
-}
-
 #[derive(Debug)]
 pub enum GattClientCallbacks {
     RegisterClient(GattStatus, i32, Uuid),
@@ -970,28 +950,28 @@ u8, *const ffi::RustRawAddress, {
 #[derive(Debug)]
 pub enum GattAdvCallbacks {
     /// Params: Reg Id, Advertiser Id, Tx Power, Status
-    OnAdvertisingSetStarted(i32, u8, i8, AdvertisingStatus),
+    OnAdvertisingSetStarted(i32, u8, i8, GattStatus),
 
     /// Params: Advertiser Id, Enabled, Status
-    OnAdvertisingEnabled(u8, bool, AdvertisingStatus),
+    OnAdvertisingEnabled(u8, bool, GattStatus),
 
     /// Params: Advertiser Id, Status
-    OnAdvertisingDataSet(u8, AdvertisingStatus),
+    OnAdvertisingDataSet(u8, GattStatus),
 
     /// Params: Advertiser Id, Status
-    OnScanResponseDataSet(u8, AdvertisingStatus),
+    OnScanResponseDataSet(u8, GattStatus),
 
     /// Params: Advertiser Id, Tx Power, Status
-    OnAdvertisingParametersUpdated(u8, i8, AdvertisingStatus),
+    OnAdvertisingParametersUpdated(u8, i8, GattStatus),
 
     /// Params: Advertiser Id, Status
-    OnPeriodicAdvertisingParametersUpdated(u8, AdvertisingStatus),
+    OnPeriodicAdvertisingParametersUpdated(u8, GattStatus),
 
     /// Params: Advertiser Id, Status
-    OnPeriodicAdvertisingDataSet(u8, AdvertisingStatus),
+    OnPeriodicAdvertisingDataSet(u8, GattStatus),
 
     /// Params: Advertiser Id, Enabled, Status
-    OnPeriodicAdvertisingEnabled(u8, bool, AdvertisingStatus),
+    OnPeriodicAdvertisingEnabled(u8, bool, GattStatus),
 
     /// Params: Advertiser Id, Address Type, Address
     OnOwnAddressRead(u8, u8, RawAddress),
@@ -1005,28 +985,28 @@ type GDAdvCb = Arc<Mutex<GattAdvCallbacksDispatcher>>;
 
 cb_variant!(GDAdvCb,
     gdadv_on_advertising_set_started -> GattAdvCallbacks::OnAdvertisingSetStarted,
-    i32, u8, i8, u8 -> AdvertisingStatus);
+    i32, u8, i8, u8 -> GattStatus);
 cb_variant!(GDAdvCb,
     gdadv_on_advertising_enabled -> GattAdvCallbacks::OnAdvertisingEnabled,
-    u8, bool, u8 -> AdvertisingStatus);
+    u8, bool, u8 -> GattStatus);
 cb_variant!(GDAdvCb,
     gdadv_on_advertising_data_set -> GattAdvCallbacks::OnAdvertisingDataSet,
-    u8, u8 -> AdvertisingStatus);
+    u8, u8 -> GattStatus);
 cb_variant!(GDAdvCb,
     gdadv_on_scan_response_data_set -> GattAdvCallbacks::OnScanResponseDataSet,
-    u8, u8 -> AdvertisingStatus);
+    u8, u8 -> GattStatus);
 cb_variant!(GDAdvCb,
     gdadv_on_advertising_parameters_updated -> GattAdvCallbacks::OnAdvertisingParametersUpdated,
-    u8, i8, u8 -> AdvertisingStatus);
+    u8, i8, u8 -> GattStatus);
 cb_variant!(GDAdvCb,
     gdadv_on_periodic_advertising_parameters_updated -> GattAdvCallbacks::OnPeriodicAdvertisingParametersUpdated,
-    u8, u8 -> AdvertisingStatus);
+    u8, u8 -> GattStatus);
 cb_variant!(GDAdvCb,
     gdadv_on_periodic_advertising_data_set -> GattAdvCallbacks::OnPeriodicAdvertisingDataSet,
-    u8, u8 -> AdvertisingStatus);
+    u8, u8 -> GattStatus);
 cb_variant!(GDAdvCb,
     gdadv_on_periodic_advertising_enabled -> GattAdvCallbacks::OnPeriodicAdvertisingEnabled,
-    u8, bool, u8 -> AdvertisingStatus);
+    u8, bool, u8 -> GattStatus);
 cb_variant!(GDAdvCb,
 gdadv_on_own_address_read -> GattAdvCallbacks::OnOwnAddressRead, u8, u8,
 *const ffi::RustRawAddress, {

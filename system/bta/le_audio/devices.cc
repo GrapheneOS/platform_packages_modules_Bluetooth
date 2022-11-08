@@ -21,12 +21,12 @@
 
 #include <map>
 
-#include "audio_hal_client/audio_hal_client.h"
 #include "bta_gatt_queue.h"
 #include "bta_groups.h"
 #include "bta_le_audio_api.h"
 #include "btm_iso_api.h"
 #include "btm_iso_api_types.h"
+#include "client_audio.h"
 #include "device/include/controller.h"
 #include "gd/common/strings.h"
 #include "le_audio_set_configuration_provider.h"
@@ -127,7 +127,7 @@ int LeAudioDeviceGroup::NumOfConnected(types::LeAudioContextType context_type) {
   if (leAudioDevices_.empty()) return 0;
 
   bool check_context_type = (context_type != LeAudioContextType::RFU);
-  AudioContexts type_set(context_type);
+  AudioContexts type_set = static_cast<uint16_t>(context_type);
 
   /* return number of connected devices from the set*/
   return std::count_if(
@@ -138,7 +138,7 @@ int LeAudioDeviceGroup::NumOfConnected(types::LeAudioContextType context_type) {
 
         if (!check_context_type) return true;
 
-        return iter.lock()->GetAvailableContexts().test_any(type_set);
+        return (iter.lock()->GetAvailableContexts() & type_set).any();
       });
 }
 
@@ -265,11 +265,12 @@ LeAudioDevice* LeAudioDeviceGroup::GetFirstDevice(void) {
 
 LeAudioDevice* LeAudioDeviceGroup::GetFirstDeviceWithActiveContext(
     types::LeAudioContextType context_type) {
+  AudioContexts type_set = static_cast<uint16_t>(context_type);
+
   auto iter = std::find_if(
-      leAudioDevices_.begin(), leAudioDevices_.end(),
-      [&context_type](auto& iter) {
+      leAudioDevices_.begin(), leAudioDevices_.end(), [&type_set](auto& iter) {
         if (iter.expired()) return false;
-        return iter.lock()->GetAvailableContexts().test(context_type);
+        return (iter.lock()->GetAvailableContexts() & type_set).any();
       });
 
   if ((iter == leAudioDevices_.end()) || (iter->expired())) return nullptr;
@@ -300,6 +301,8 @@ LeAudioDevice* LeAudioDeviceGroup::GetNextDevice(LeAudioDevice* leAudioDevice) {
 
 LeAudioDevice* LeAudioDeviceGroup::GetNextDeviceWithActiveContext(
     LeAudioDevice* leAudioDevice, types::LeAudioContextType context_type) {
+  AudioContexts type_set = static_cast<uint16_t>(context_type);
+
   auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
                            [&leAudioDevice](auto& d) {
                              if (d.expired())
@@ -315,11 +318,11 @@ LeAudioDevice* LeAudioDeviceGroup::GetNextDeviceWithActiveContext(
   /* If reference device is last in group */
   if (iter == leAudioDevices_.end()) return nullptr;
 
-  iter = std::find_if(iter, leAudioDevices_.end(), [&context_type](auto& d) {
+  iter = std::find_if(iter, leAudioDevices_.end(), [&type_set](auto& d) {
     if (d.expired())
       return false;
     else
-      return d.lock()->GetAvailableContexts().test(context_type);
+      return (d.lock()->GetAvailableContexts() & type_set).any();
     ;
   });
 
@@ -720,34 +723,35 @@ uint16_t LeAudioDeviceGroup::GetRemoteDelay(uint8_t direction) {
   return remote_delay_ms;
 }
 
-void LeAudioDeviceGroup::UpdateAudioContextTypeAvailability(void) {
-  LOG_DEBUG(" group id: %d, available contexts: %s", group_id_,
-            group_available_contexts_.to_string().c_str());
-  UpdateAudioContextTypeAvailability(group_available_contexts_);
+/* This method returns AudioContext value if support for any type has changed */
+std::optional<AudioContexts> LeAudioDeviceGroup::UpdateActiveContextsMap(void) {
+  LOG_DEBUG(" group id: %d, active contexts: 0x%04lx", group_id_,
+            active_contexts_mask_.to_ulong());
+  return UpdateActiveContextsMap(active_contexts_mask_);
 }
 
-/* Returns true if support for any type in the whole group has changed,
- * otherwise false. */
-bool LeAudioDeviceGroup::UpdateAudioContextTypeAvailability(
+/* This method returns AudioContext value if support for any type has changed */
+std::optional<AudioContexts> LeAudioDeviceGroup::UpdateActiveContextsMap(
     AudioContexts update_contexts) {
-  auto new_contexts = AudioContexts();
+  AudioContexts contexts = 0x0000;
   bool active_contexts_has_been_modified = false;
 
   if (update_contexts.none()) {
     LOG_DEBUG("No context updated");
-    return false;
+    return contexts;
   }
 
-  LOG_DEBUG("Updated context: %s", update_contexts.to_string().c_str());
-
   for (LeAudioContextType ctx_type : types::kLeAudioContextAllTypesArray) {
-    LOG_DEBUG("Checking context: %s", ToHexString(ctx_type).c_str());
-
-    if (!update_contexts.test(ctx_type)) {
-      LOG_DEBUG("Configuration not in updated context");
+    AudioContexts type_set = static_cast<uint16_t>(ctx_type);
+    LOG_DEBUG("Taking context: %s, 0x%04lx",
+              bluetooth::common::ToString(ctx_type).c_str(),
+              update_contexts.to_ulong());
+    if ((type_set & update_contexts).none()) {
+      LOG_INFO("Configuration not in updated context %s",
+               bluetooth::common::ToString(ctx_type).c_str());
       /* Fill context bitset for possible returned value if updated */
-      if (available_context_to_configuration_map.count(ctx_type) > 0)
-        new_contexts.set(ctx_type);
+      if (active_context_to_configuration_map.count(ctx_type) > 0)
+        contexts |= type_set;
 
       continue;
     }
@@ -755,8 +759,8 @@ bool LeAudioDeviceGroup::UpdateAudioContextTypeAvailability(
     auto new_conf = FindFirstSupportedConfiguration(ctx_type);
 
     bool ctx_previously_not_supported =
-        (available_context_to_configuration_map.count(ctx_type) == 0 ||
-         available_context_to_configuration_map[ctx_type] == nullptr);
+        (active_context_to_configuration_map.count(ctx_type) == 0 ||
+         active_context_to_configuration_map[ctx_type] == nullptr);
     /* Check if support for context type has changed */
     if (ctx_previously_not_supported) {
       /* Current configuration for context type is empty */
@@ -765,42 +769,45 @@ bool LeAudioDeviceGroup::UpdateAudioContextTypeAvailability(
         continue;
       } else {
         /* Configuration changes from empty to some */
-        new_contexts.set(ctx_type);
+        contexts |= type_set;
         active_contexts_has_been_modified = true;
       }
     } else {
       /* Current configuration for context type is not empty */
       if (new_conf == nullptr) {
         /* Configuration changed to empty */
-        new_contexts.unset(ctx_type);
+        contexts &= ~type_set;
         active_contexts_has_been_modified = true;
-      } else if (new_conf != available_context_to_configuration_map[ctx_type]) {
+      } else if (new_conf != active_context_to_configuration_map[ctx_type]) {
         /* Configuration changed to any other */
-        new_contexts.set(ctx_type);
+        contexts |= type_set;
         active_contexts_has_been_modified = true;
       } else {
         /* Configuration is the same */
-        new_contexts.set(ctx_type);
+        contexts |= type_set;
         continue;
       }
     }
 
     LOG_INFO(
-        "updated context: %s, %s -> %s", ToHexString(ctx_type).c_str(),
+        "updated context: %s, %s -> %s",
+        bluetooth::common::ToString(ctx_type).c_str(),
         (ctx_previously_not_supported
              ? "empty"
-             : available_context_to_configuration_map[ctx_type]->name.c_str()),
+             : active_context_to_configuration_map[ctx_type]->name.c_str()),
         (new_conf != nullptr ? new_conf->name.c_str() : "empty"));
 
-    available_context_to_configuration_map[ctx_type] = new_conf;
+    active_context_to_configuration_map[ctx_type] = new_conf;
   }
 
-  /* Some contexts have changed, return new available context bitset */
+  /* Some contexts have changed, return new active context bitset */
   if (active_contexts_has_been_modified) {
-    group_available_contexts_ = new_contexts;
+    active_contexts_mask_ = contexts;
+    return contexts;
   }
 
-  return active_contexts_has_been_modified;
+  /* Nothing has changed */
+  return std::nullopt;
 }
 
 bool LeAudioDeviceGroup::ReloadAudioLocations(void) {
@@ -1600,21 +1607,21 @@ bool LeAudioDeviceGroup::ConfigureAses(
   LOG(INFO) << "Choosed ASE Configuration for group: " << this->group_id_
             << " configuration: " << audio_set_conf->name;
 
-  configuration_context_type_ = context_type;
+  active_context_type_ = context_type;
   metadata_context_type_ = metadata_context_type;
   return true;
 }
 
 const set_configurations::AudioSetConfiguration*
 LeAudioDeviceGroup::GetActiveConfiguration(void) {
-  return available_context_to_configuration_map[configuration_context_type_];
+  return active_context_to_configuration_map[active_context_type_];
 }
 
 std::optional<LeAudioCodecConfiguration>
 LeAudioDeviceGroup::GetCodecConfigurationByDirection(
     types::LeAudioContextType group_context_type, uint8_t direction) {
   const set_configurations::AudioSetConfiguration* audio_set_conf =
-      available_context_to_configuration_map[group_context_type];
+      active_context_to_configuration_map[group_context_type];
   LeAudioCodecConfiguration group_config = {0, 0, 0, 0};
   if (!audio_set_conf) return std::nullopt;
 
@@ -1662,10 +1669,10 @@ LeAudioDeviceGroup::GetCodecConfigurationByDirection(
 
 bool LeAudioDeviceGroup::IsContextSupported(
     types::LeAudioContextType group_context_type) {
-  auto iter = available_context_to_configuration_map.find(group_context_type);
-  if (iter == available_context_to_configuration_map.end()) return false;
+  auto iter = active_context_to_configuration_map.find(group_context_type);
+  if (iter == active_context_to_configuration_map.end()) return false;
 
-  return available_context_to_configuration_map[group_context_type] != nullptr;
+  return active_context_to_configuration_map[group_context_type] != nullptr;
 }
 
 bool LeAudioDeviceGroup::IsMetadataChanged(
@@ -1872,14 +1879,14 @@ bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type,
                                    AudioContexts metadata_context_type,
                                    std::vector<uint8_t> ccid_list) {
   const set_configurations::AudioSetConfiguration* conf =
-      available_context_to_configuration_map[context_type];
+      active_context_to_configuration_map[context_type];
 
   DLOG(INFO) << __func__;
 
   if (!conf) {
     LOG(ERROR) << __func__ << ", requested context type: "
                << loghex(static_cast<uint16_t>(context_type))
-               << ", is in mismatch with cached available contexts";
+               << ", is in mismatch with cached active contexts";
     return false;
   }
 
@@ -1888,7 +1895,7 @@ bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type,
   if (!ConfigureAses(conf, context_type, metadata_context_type, ccid_list)) {
     LOG(ERROR) << __func__ << ", requested pick ASE config context type: "
                << loghex(static_cast<uint16_t>(context_type))
-               << ", is in mismatch with cached available contexts";
+               << ", is in mismatch with cached active contexts";
     return false;
   }
 
@@ -1904,15 +1911,23 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) {
   bool is_active = (group_id_ == active_group_id);
   std::stringstream stream;
   auto* active_conf = GetActiveConfiguration();
+  uint32_t context_type_mask = GetActiveContexts().to_ulong();
 
   stream << "\n    == Group id: " << group_id_
          << " == " << (is_active ? ",\tActive\n" : ",\tInactive\n")
          << "      state: " << GetState()
          << ",\ttarget state: " << GetTargetState()
          << ",\tcig state: " << cig_state_ << "\n"
-         << "      group available contexts: " << GetAvailableContexts()
-         << "      configuration context type: "
-         << bluetooth::common::ToString(GetConfigurationContextType()).c_str()
+         << "      active context type mask: " << context_type_mask;
+
+  for (auto ctx : types::kLeAudioContextAllTypesArray) {
+    if (static_cast<uint16_t>(ctx) & static_cast<uint16_t>(context_type_mask)) {
+      stream << ", " << bluetooth::common::ToString(ctx).c_str();
+    }
+  }
+
+  stream << ",\n      current context type: "
+         << bluetooth::common::ToString(GetCurrentContextType()).c_str() << "\n"
          << "      active configuration name: "
          << (active_conf ? active_conf->name : " not set") << "\n"
          << "      stream configuration: "

@@ -144,8 +144,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return false;
     }
 
-    auto context_type = group->GetConfigurationContextType();
-    auto metadata_context_type = group->GetMetadataContexts();
+    auto context_type = group->GetCurrentContextType();
+    auto metadata_context_type = group->GetMetadataContextType();
 
     auto ccid = le_audio::ContentControlIdKeeper::GetInstance()->GetCcid(
         static_cast<uint16_t>(context_type));
@@ -171,7 +171,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     switch (group->GetState()) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED:
-        if (group->GetConfigurationContextType() == context_type) {
+        if (group->GetCurrentContextType() == context_type) {
           if (group->Activate(context_type)) {
             SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
             if (CigCreate(group)) {
@@ -620,14 +620,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     /* mark ASEs as not used. */
     leAudioDevice->DeactivateAllAses();
 
-    /* If group is in Idle and not transitioning, just update the current group
-     * audio context availability which could change due to disconnected group
-     * member.
-     */
+    /* If group is in Idle there is nothing to do here */
     if ((group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) &&
-        !group->IsInTransition()) {
+        (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE)) {
       LOG(INFO) << __func__ << " group: " << group->group_id_ << " is in IDLE";
-      group->UpdateAudioContextTypeAvailability();
+      group->UpdateActiveContextsMap();
       return;
     }
 
@@ -636,14 +633,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         leAudioDevice->address_.ToString().c_str(),
         group->IsAnyDeviceConnected(), group->HaveAllActiveDevicesCisDisc());
 
-    /* Update the current group audio context availability which could change
-     * due to disconnected group member.
-     */
-    group->UpdateAudioContextTypeAvailability();
+    /* Group has changed. Lets update available contexts */
+    group->UpdateActiveContextsMap();
 
     /* ACL of one of the device has been dropped.
-     * If there is active CIS, do nothing here. Just update the available
-     * contexts table.
+     * If there is active CIS, do nothing here. Just update the active contexts
+     * table
      */
     if (group->IsAnyDeviceConnected() &&
         !group->HaveAllActiveDevicesCisDisc()) {

@@ -71,7 +71,7 @@ public class BluetoothDeviceConfigChangeTrackerTest {
 
         boolean shouldRestart =
                 changeTracker.shouldRestartWhenPropertiesUpdated(
-                        new Properties.Builder(DeviceConfig.NAMESPACE_BLUETOOTH)
+                        new Properties.Builder("another_namespace")
                                 .setString("INIT_a", "false")
                                 .build());
 

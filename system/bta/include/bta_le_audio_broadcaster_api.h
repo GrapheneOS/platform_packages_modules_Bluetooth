@@ -23,6 +23,8 @@
 
 #include "bta/include/bta_le_audio_api.h"
 
+class LeAudioBroadcastClientAudioSource;
+
 /* Interface class */
 class LeAudioBroadcaster {
  public:
@@ -37,6 +39,8 @@ class LeAudioBroadcaster {
   static void Cleanup(void);
   static LeAudioBroadcaster* Get(void);
   static bool IsLeAudioBroadcasterRunning(void);
+  static void InitializeAudioClient(
+      LeAudioBroadcastClientAudioSource* clientAudioSource);
   static void DebugDump(int fd);
 
   virtual void CreateAudioBroadcast(

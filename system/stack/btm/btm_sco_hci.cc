@@ -373,7 +373,8 @@ struct tBTM_MSBC_PLC {
 
 /* Define the structure that contains mSBC data */
 struct tBTM_MSBC_INFO {
-  size_t packet_size; /* SCO mSBC packet size supported by lower layer */
+  size_t packet_size;   /* SCO mSBC packet size supported by lower layer */
+  bool check_alignment; /* True to wait for mSBC packet to align */
   size_t buf_size; /* The size of the buffer, determined by the packet_size. */
 
   uint8_t* msbc_decode_buf; /* Buffer to store mSBC packets to decode */
@@ -426,6 +427,7 @@ struct tBTM_MSBC_INFO {
     encode_buf_ro = 0;
 
     pkt_size = get_supported_packet_size(pkt_size, &buf_size);
+    if (pkt_size != BTM_MSBC_PKT_LEN) check_alignment = true;
     if (pkt_size == packet_size) return packet_size;
     packet_size = pkt_size;
 
@@ -480,8 +482,7 @@ struct tBTM_MSBC_INFO {
 
   const uint8_t* find_msbc_pkt_head() {
     size_t rp = 0;
-    while (rp < BTM_MSBC_PKT_LEN &&
-           decode_buf_wo - (decode_buf_ro + rp) >= BTM_MSBC_PKT_LEN) {
+    while (decode_buf_wo - decode_buf_ro - rp >= BTM_MSBC_PKT_LEN) {
       if ((msbc_decode_buf[decode_buf_ro + rp] != BTM_MSBC_H2_HEADER_0) ||
           (!verify_h2_header_seq_num(
               msbc_decode_buf[decode_buf_ro + rp + 1])) ||
@@ -489,13 +490,7 @@ struct tBTM_MSBC_INFO {
         rp++;
         continue;
       }
-
-      if (rp != 0) {
-        LOG_WARN("Skipped %lu bytes of mSBC data ahead of a valid mSBC frame",
-                 (unsigned long)rp);
-        decode_buf_ro += rp;
-      }
-      return &msbc_decode_buf[decode_buf_ro];
+      return &msbc_decode_buf[decode_buf_ro + rp];
     }
 
     return nullptr;
@@ -591,6 +586,14 @@ size_t enqueue_packet(const uint8_t* data, size_t pkt_size) {
     return 0;
   }
 
+  if (msbc_info->check_alignment) {
+    if (data[0] != BTM_MSBC_H2_HEADER_0 || data[2] != BTM_MSBC_SYNC_WORD) {
+      LOG_DEBUG("Waiting for valid mSBC frame head");
+      return 0;
+    }
+    msbc_info->check_alignment = false;
+  }
+
   if (msbc_info->write(data, pkt_size) != pkt_size) {
     LOG_DEBUG("Fail to write packet with size %lu to buffer",
               (unsigned long)pkt_size);
@@ -623,9 +626,8 @@ size_t decode(const uint8_t** out_data) {
     LOG_DEBUG("No valid mSBC packet to decode %lu, %lu",
               (unsigned long)msbc_info->decode_buf_ro,
               (unsigned long)msbc_info->decode_buf_wo);
-    /* Done with parsing the raw bytes just read. If we couldn't find a valid
-     * mSBC frame head, we shall treat the existing BTM_MSBC_PKT_LEN length
-     * of mSBC data as a corrupted packet and conduct the PLC. */
+    /* Done with parsing the raw bytes just read. If mSBC frame head not found,
+     * we shall handle it as packet loss. */
     goto packet_loss;
   }
 

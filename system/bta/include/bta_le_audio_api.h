@@ -24,6 +24,9 @@
 
 #include <vector>
 
+class LeAudioUnicastClientAudioSource;
+class LeAudioUnicastClientAudioSink;
+
 class LeAudioHalVerifier {
  public:
   static bool SupportsLeAudio();
@@ -43,6 +46,9 @@ class LeAudioClient {
           offloading_preference);
   static void Cleanup(base::Callback<void()> cleanupCb);
   static LeAudioClient* Get(void);
+  static void InitializeAudioClients(
+      LeAudioUnicastClientAudioSource* clientAudioSource,
+      LeAudioUnicastClientAudioSink* clientAudioSink);
   static void DebugDump(int fd);
 
   virtual void RemoveDevice(const RawAddress& address) = 0;

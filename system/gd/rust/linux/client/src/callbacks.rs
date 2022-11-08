@@ -8,7 +8,7 @@ use crate::dbus_iface::{
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtBondState, BtPropertyType, BtSspVariant, BtStatus, Uuid128Bit};
-use bt_topshim::profiles::gatt::{AdvertisingStatus, GattStatus, LePhy};
+use bt_topshim::profiles::gatt::{GattStatus, LePhy};
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
@@ -427,10 +427,10 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         reg_id: i32,
         advertiser_id: i32,
         tx_power: i32,
-        status: AdvertisingStatus,
+        status: GattStatus,
     ) {
         print_info!(
-            "on_advertising_set_started: reg_id = {}, advertiser_id = {}, tx_power = {}, status = {:?}",
+            "on_advertising_set_started: reg_id = {}, advertiser_id = {}, tx_power = {}, status = {}",
             reg_id,
             advertiser_id,
             tx_power,
@@ -438,9 +438,9 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         );
 
         let mut context = self.context.lock().unwrap();
-        if status != AdvertisingStatus::Success {
+        if status != GattStatus::Success {
             print_error!(
-                "on_advertising_set_started: removing advertising set registered ({})",
+                "on_advertising_set_started: remove advertising set registered ({})",
                 reg_id
             );
             context.adv_sets.remove(&reg_id);
@@ -464,28 +464,29 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
 
     fn on_advertising_set_stopped(&self, advertiser_id: i32) {
         print_info!("on_advertising_set_stopped: advertiser_id = {}", advertiser_id);
+        self.context.lock().unwrap().adv_sets.retain(|_, s| s.adv_id != Some(advertiser_id));
     }
 
-    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: AdvertisingStatus) {
+    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: GattStatus) {
         print_info!(
-            "on_advertising_enabled: advertiser_id = {}, enable = {}, status = {:?}",
+            "on_advertising_enabled: advertiser_id = {}, enable = {}, status = {}",
             advertiser_id,
             enable,
             status
         );
     }
 
-    fn on_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {
+    fn on_advertising_data_set(&self, advertiser_id: i32, status: GattStatus) {
         print_info!(
-            "on_advertising_data_set: advertiser_id = {}, status = {:?}",
+            "on_advertising_data_set: advertiser_id = {}, status = {}",
             advertiser_id,
             status
         );
     }
 
-    fn on_scan_response_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {
+    fn on_scan_response_data_set(&self, advertiser_id: i32, status: GattStatus) {
         print_info!(
-            "on_scan_response_data_set: advertiser_id = {}, status = {:?}",
+            "on_scan_response_data_set: advertiser_id = {}, status = {}",
             advertiser_id,
             status
         );
@@ -495,31 +496,27 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         &self,
         advertiser_id: i32,
         tx_power: i32,
-        status: AdvertisingStatus,
+        status: GattStatus,
     ) {
         print_info!(
-            "on_advertising_parameters_updated: advertiser_id = {}, tx_power: {}, status = {:?}",
+            "on_advertising_parameters_updated: advertiser_id = {}, tx_power: {}, status = {}",
             advertiser_id,
             tx_power,
             status
         );
     }
 
-    fn on_periodic_advertising_parameters_updated(
-        &self,
-        advertiser_id: i32,
-        status: AdvertisingStatus,
-    ) {
+    fn on_periodic_advertising_parameters_updated(&self, advertiser_id: i32, status: GattStatus) {
         print_info!(
-            "on_periodic_advertising_parameters_updated: advertiser_id = {}, status = {:?}",
+            "on_periodic_advertising_parameters_updated: advertiser_id = {}, status = {}",
             advertiser_id,
             status
         );
     }
 
-    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {
+    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: GattStatus) {
         print_info!(
-            "on_periodic_advertising_data_set: advertiser_id = {}, status = {:?}",
+            "on_periodic_advertising_data_set: advertiser_id = {}, status = {}",
             advertiser_id,
             status
         );
@@ -529,10 +526,10 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         &self,
         advertiser_id: i32,
         enable: bool,
-        status: AdvertisingStatus,
+        status: GattStatus,
     ) {
         print_info!(
-            "on_periodic_advertising_enabled: advertiser_id = {}, enable = {}, status = {:?}",
+            "on_periodic_advertising_enabled: advertiser_id = {}, enable = {}, status = {}",
             advertiser_id,
             enable,
             status

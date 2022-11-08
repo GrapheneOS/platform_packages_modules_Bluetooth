@@ -153,7 +153,7 @@ public class HapClientTest {
         mService.mCallbacks.register(mCallback);
 
         mHasIntentReceiver = new HasIntentReceiver();
-        mTargetContext.registerReceiver(mHasIntentReceiver, filter, Context.RECEIVER_EXPORTED);
+        mTargetContext.registerReceiver(mHasIntentReceiver, filter);
 
         mDevice = TestUtils.getTestDevice(mAdapter, 0);
         when(mNativeInterface.getDevice(getByteAddress(mDevice))).thenReturn(mDevice);

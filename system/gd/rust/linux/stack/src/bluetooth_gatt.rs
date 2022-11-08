@@ -5,11 +5,11 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use bt_topshim::bindings::root::bluetooth::Uuid;
 use bt_topshim::btif::{BluetoothInterface, BtStatus, BtTransport, RawAddress, Uuid128Bit};
 use bt_topshim::profiles::gatt::{
-    AdvertisingStatus, BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt,
-    GattAdvCallbacks, GattAdvCallbacksDispatcher, GattAdvInbandCallbacksDispatcher,
-    GattClientCallbacks, GattClientCallbacksDispatcher, GattScannerCallbacks,
-    GattScannerCallbacksDispatcher, GattScannerInbandCallbacks,
-    GattScannerInbandCallbacksDispatcher, GattServerCallbacksDispatcher, GattStatus, LePhy,
+    BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattAdvCallbacks,
+    GattAdvCallbacksDispatcher, GattAdvInbandCallbacksDispatcher, GattClientCallbacks,
+    GattClientCallbacksDispatcher, GattScannerCallbacks, GattScannerCallbacksDispatcher,
+    GattScannerInbandCallbacks, GattScannerInbandCallbacksDispatcher,
+    GattServerCallbacksDispatcher, GattStatus, LePhy,
 };
 use bt_topshim::topstack;
 use bt_utils::adv_parser;
@@ -2463,39 +2463,29 @@ pub(crate) trait BtifGattAdvCallbacks {
         reg_id: i32,
         advertiser_id: u8,
         tx_power: i8,
-        status: AdvertisingStatus,
+        status: GattStatus,
     );
 
     #[btif_callback(OnAdvertisingEnabled)]
-    fn on_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: AdvertisingStatus);
+    fn on_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: GattStatus);
 
     #[btif_callback(OnAdvertisingDataSet)]
-    fn on_advertising_data_set(&mut self, adv_id: u8, status: AdvertisingStatus);
+    fn on_advertising_data_set(&mut self, adv_id: u8, status: GattStatus);
 
     #[btif_callback(OnScanResponseDataSet)]
-    fn on_scan_response_data_set(&mut self, adv_id: u8, status: AdvertisingStatus);
+    fn on_scan_response_data_set(&mut self, adv_id: u8, status: GattStatus);
 
     #[btif_callback(OnAdvertisingParametersUpdated)]
-    fn on_advertising_parameters_updated(
-        &mut self,
-        adv_id: u8,
-        tx_power: i8,
-        status: AdvertisingStatus,
-    );
+    fn on_advertising_parameters_updated(&mut self, adv_id: u8, tx_power: i8, status: GattStatus);
 
     #[btif_callback(OnPeriodicAdvertisingParametersUpdated)]
-    fn on_periodic_advertising_parameters_updated(&mut self, adv_id: u8, status: AdvertisingStatus);
+    fn on_periodic_advertising_parameters_updated(&mut self, adv_id: u8, status: GattStatus);
 
     #[btif_callback(OnPeriodicAdvertisingDataSet)]
-    fn on_periodic_advertising_data_set(&mut self, adv_id: u8, status: AdvertisingStatus);
+    fn on_periodic_advertising_data_set(&mut self, adv_id: u8, status: GattStatus);
 
     #[btif_callback(OnPeriodicAdvertisingEnabled)]
-    fn on_periodic_advertising_enabled(
-        &mut self,
-        adv_id: u8,
-        enabled: bool,
-        status: AdvertisingStatus,
-    );
+    fn on_periodic_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: GattStatus);
 
     #[btif_callback(OnOwnAddressRead)]
     fn on_own_address_read(&mut self, adv_id: u8, addr_type: u8, address: RawAddress);
@@ -2507,7 +2497,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         reg_id: i32,
         advertiser_id: u8,
         tx_power: i8,
-        status: AdvertisingStatus,
+        status: GattStatus,
     ) {
         debug!(
             "on_advertising_set_started(): reg_id = {}, advertiser_id = {}, tx_power = {}, status = {:?}",
@@ -2516,7 +2506,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
 
         if let Some(s) = self.advertisers.get_mut_by_reg_id(reg_id) {
             s.set_adv_id(Some(advertiser_id.into()));
-            s.set_enabled(status == AdvertisingStatus::Success);
+            s.set_enabled(status == GattStatus::Success);
         } else {
             return;
         }
@@ -2526,7 +2516,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
             cb.on_advertising_set_started(reg_id, advertiser_id.into(), tx_power.into(), status);
         }
 
-        if status != AdvertisingStatus::Success {
+        if status != GattStatus::Success {
             warn!(
                 "on_advertising_set_started(): failed! reg_id = {}, status = {:?}",
                 reg_id, status
@@ -2535,7 +2525,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         }
     }
 
-    fn on_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: AdvertisingStatus) {
+    fn on_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: GattStatus) {
         debug!(
             "on_advertising_enabled(): adv_id = {}, enabled = {}, status = {:?}",
             adv_id, enabled, status
@@ -2561,7 +2551,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         }
     }
 
-    fn on_advertising_data_set(&mut self, adv_id: u8, status: AdvertisingStatus) {
+    fn on_advertising_data_set(&mut self, adv_id: u8, status: GattStatus) {
         debug!("on_advertising_data_set(): adv_id = {}, status = {:?}", adv_id, status);
 
         let advertiser_id: i32 = adv_id.into();
@@ -2575,7 +2565,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         }
     }
 
-    fn on_scan_response_data_set(&mut self, adv_id: u8, status: AdvertisingStatus) {
+    fn on_scan_response_data_set(&mut self, adv_id: u8, status: GattStatus) {
         debug!("on_scan_response_data_set(): adv_id = {}, status = {:?}", adv_id, status);
 
         let advertiser_id: i32 = adv_id.into();
@@ -2589,12 +2579,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         }
     }
 
-    fn on_advertising_parameters_updated(
-        &mut self,
-        adv_id: u8,
-        tx_power: i8,
-        status: AdvertisingStatus,
-    ) {
+    fn on_advertising_parameters_updated(&mut self, adv_id: u8, tx_power: i8, status: GattStatus) {
         debug!(
             "on_advertising_parameters_updated(): adv_id = {}, tx_power = {}, status = {:?}",
             adv_id, tx_power, status
@@ -2611,11 +2596,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         }
     }
 
-    fn on_periodic_advertising_parameters_updated(
-        &mut self,
-        adv_id: u8,
-        status: AdvertisingStatus,
-    ) {
+    fn on_periodic_advertising_parameters_updated(&mut self, adv_id: u8, status: GattStatus) {
         debug!(
             "on_periodic_advertising_parameters_updated(): adv_id = {}, status = {:?}",
             adv_id, status
@@ -2632,7 +2613,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         }
     }
 
-    fn on_periodic_advertising_data_set(&mut self, adv_id: u8, status: AdvertisingStatus) {
+    fn on_periodic_advertising_data_set(&mut self, adv_id: u8, status: GattStatus) {
         debug!("on_periodic_advertising_data_set(): adv_id = {}, status = {:?}", adv_id, status);
 
         let advertiser_id: i32 = adv_id.into();
@@ -2646,12 +2627,7 @@ impl BtifGattAdvCallbacks for BluetoothGatt {
         }
     }
 
-    fn on_periodic_advertising_enabled(
-        &mut self,
-        adv_id: u8,
-        enabled: bool,
-        status: AdvertisingStatus,
-    ) {
+    fn on_periodic_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: GattStatus) {
         debug!(
             "on_periodic_advertising_enabled(): adv_id = {}, enabled = {}, status = {:?}",
             adv_id, enabled, status

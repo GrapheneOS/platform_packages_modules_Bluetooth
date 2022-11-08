@@ -135,6 +135,7 @@
     "AVRCP/TG/NFY/BV-02-C",
     "AVRCP/TG/PTT/BV-01-I",
     "AVRCP/TG/PTT/BV-05-I",
+    "AVRCP/TG/RCR/BV-02-C",
     "AVRCP/TG/RCR/BV-04-C",
     "GAP/ADV/BV-01-C",
     "GAP/ADV/BV-02-C",
@@ -225,6 +226,7 @@
     "GATT/SR/GAR/BV-03-C",
     "GATT/SR/GAR/BV-04-C",
     "GATT/SR/GAR/BV-05-C",
+    "GATT/SR/GAR/BV-06-C",
     "GATT/SR/GAW/BI-02-C",
     "GATT/SR/GAW/BI-03-C",
     "GATT/SR/GAW/BI-05-C",
@@ -380,8 +382,7 @@
     "SM/PER/SCPK/BV-02-C"
   ],
   "flaky": [
-    "A2DP/SRC/SUS/BV-02-I",
-    "AVRCP/TG/RCR/BV-02-C"
+    "A2DP/SRC/SUS/BV-02-I"
   ],
   "skip": [
     "A2DP/SNK/SDP/BV-02-I",
@@ -448,7 +449,6 @@
     "AVRCP/TG/NFY/BV-04-C",
     "AVRCP/TG/NFY/BV-06-C",
     "AVRCP/TG/NFY/BV-07-C",
-    "AVRCP/TG/RCR/BV-02-C",
     "GAP/BOND/BON/BV-01-C",
     "GAP/BOND/BON/BV-02-C",
     "GAP/BOND/BON/BV-03-C",
@@ -556,7 +556,6 @@
     "GATT/SR/GAR/BI-11-C",
     "GATT/SR/GAR/BI-17-C",
     "GATT/SR/GAR/BI-22-C",
-    "GATT/SR/GAR/BV-06-C",
     "GATT/SR/GAR/BV-07-C",
     "GATT/SR/GAR/BV-08-C",
     "GATT/SR/GAS/BV-01-C",

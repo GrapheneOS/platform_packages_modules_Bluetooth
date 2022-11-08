@@ -82,7 +82,6 @@ public class DataMigrationTest {
 
         mMockContentResolver = new MockContentResolver(mTargetContext);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
-        when(mMockContext.getCacheDir()).thenReturn(mTargetContext.getCacheDir());
 
         when(mMockContext.getSharedPreferences(anyString(), anyInt())).thenReturn(mPrefs);
 
