@@ -856,7 +856,7 @@ bool LeAudioDeviceGroup::IsInTransition(void) {
   return target_state_ != current_state_;
 }
 
-bool LeAudioDeviceGroup::IsReleasing(void) {
+bool LeAudioDeviceGroup::IsReleasingOrIdle(void) {
   return target_state_ == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
 }
 
