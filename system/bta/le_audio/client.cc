@@ -2511,8 +2511,9 @@ class LeAudioClientImpl : public LeAudioClient {
     cached_channel_is_left_ = false;
   }
 
-  void SendAudioData(uint8_t* data, uint16_t size, uint16_t cis_conn_hdl,
-                     uint32_t timestamp) {
+  /* Handles audio data packets coming from the controller */
+  void HandleIncomingCisData(uint8_t* data, uint16_t size,
+                             uint16_t cis_conn_hdl, uint32_t timestamp) {
     /* Get only one channel for MONO microphone */
     /* Gather data for channel */
     if ((active_group_id_ == bluetooth::groups::kGroupUnknown) ||
@@ -3061,9 +3062,9 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnLocalAudioSourceSuspend() {
-    LOG_DEBUG(" IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
-              ToString(audio_receiver_state_).c_str(),
-              ToString(audio_sender_state_).c_str());
+    LOG_INFO("IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
+             ToString(audio_receiver_state_).c_str(),
+             ToString(audio_sender_state_).c_str());
 
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Sink for Audio Framework.
@@ -3092,14 +3093,15 @@ class LeAudioClientImpl : public LeAudioClient {
       le_audio::MetricsCollector::Get()->OnStreamEnded(active_group_id_);
     }
 
-    DLOG(INFO) << __func__
-               << " OUT: audio_receiver_state_: " << audio_receiver_state_
-               << " audio_sender_state_: " << audio_sender_state_;
+    LOG_INFO("OUT: audio_receiver_state_: %s,  audio_sender_state_: %s",
+             ToString(audio_receiver_state_).c_str(),
+             ToString(audio_sender_state_).c_str());
   }
 
   void OnLocalAudioSourceResume() {
-    LOG(INFO) << __func__;
-
+    LOG_INFO("IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
+             ToString(audio_receiver_state_).c_str(),
+             ToString(audio_sender_state_).c_str());
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Sink for Audio Framework.
      * e.g. Peer is a speaker
@@ -3205,9 +3207,9 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnLocalAudioSinkSuspend() {
-    LOG_DEBUG(" IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
-              ToString(audio_receiver_state_).c_str(),
-              ToString(audio_sender_state_).c_str());
+    LOG_INFO("IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
+             ToString(audio_receiver_state_).c_str(),
+             ToString(audio_sender_state_).c_str());
 
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Source for Audio Framework.
@@ -3234,9 +3236,9 @@ class LeAudioClientImpl : public LeAudioClient {
         (audio_sender_state_ == AudioState::READY_TO_RELEASE))
       OnAudioSuspend();
 
-    DLOG(INFO) << __func__
-               << " OUT: audio_receiver_state_: " << audio_receiver_state_
-               << " audio_sender_state_: " << audio_sender_state_;
+    LOG_INFO("OUT: audio_receiver_state_: %s,  audio_sender_state_: %s",
+             ToString(audio_receiver_state_).c_str(),
+             ToString(audio_sender_state_).c_str());
   }
 
   bool IsAudioSourceAvailableForCurrentConfiguration() {
@@ -3249,7 +3251,9 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnLocalAudioSinkResume() {
-    LOG(INFO) << __func__;
+    LOG_INFO("IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
+             ToString(audio_receiver_state_).c_str(),
+             ToString(audio_sender_state_).c_str());
 
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Source for Audio Framework.
@@ -3399,8 +3403,9 @@ class LeAudioClientImpl : public LeAudioClient {
     auto reconfig_result = UpdateConfigAndCheckIfReconfigurationIsNeeded(
         group->group_id_, new_context_type);
 
-    LOG_INFO("group_id %d, context type %s, reconfig_needed %s",
-             group->group_id_, ToHexString(new_context_type).c_str(),
+    LOG_INFO("group_id %d, context type %s (%s), %s", group->group_id_,
+             ToString(new_context_type).c_str(),
+             ToHexString(new_context_type).c_str(),
              ToString(reconfig_result).c_str());
     if (reconfig_result ==
         AudioReconfigurationResult::RECONFIGURATION_NOT_NEEDED) {
@@ -3640,9 +3645,9 @@ class LeAudioClientImpl : public LeAudioClient {
           break;
         }
 
-        SendAudioData(event->p_msg->data + event->p_msg->offset,
-                      event->p_msg->len - event->p_msg->offset,
-                      event->cis_conn_hdl, event->ts);
+        HandleIncomingCisData(event->p_msg->data + event->p_msg->offset,
+                              event->p_msg->len - event->p_msg->offset,
+                              event->cis_conn_hdl, event->ts);
       } break;
       case bluetooth::hci::iso_manager::kIsoEventCisEstablishCmpl: {
         auto* event =
@@ -3847,7 +3852,7 @@ class LeAudioClientImpl : public LeAudioClient {
     stream_setup_start_timestamp_ = 0;
   }
 
-  void StatusReportCb(int group_id, GroupStreamStatus status) {
+  void OnStateMachineStatusReportCb(int group_id, GroupStreamStatus status) {
     LOG_INFO("status: %d , audio_sender_state %s, audio_receiver_state %s",
              static_cast<int>(status),
              bluetooth::common::ToString(audio_sender_state_).c_str(),
@@ -4130,7 +4135,7 @@ LeAudioStateMachineHciCallbacksImpl stateMachineHciCallbacksImpl;
 class CallbacksImpl : public LeAudioGroupStateMachine::Callbacks {
  public:
   void StatusReportCb(int group_id, GroupStreamStatus status) override {
-    if (instance) instance->StatusReportCb(group_id, status);
+    if (instance) instance->OnStateMachineStatusReportCb(group_id, status);
   }
 
   void OnStateTransitionTimeout(int group_id) override {
@@ -4156,7 +4161,8 @@ class SourceCallbacksImpl : public LeAudioSourceAudioHalClient::Callbacks {
 
   void OnAudioMetadataUpdate(
       std::vector<struct playback_track_metadata> source_metadata) override {
-    if (instance) instance->OnLocalAudioSourceMetadataUpdate(source_metadata);
+    if (instance)
+      instance->OnLocalAudioSourceMetadataUpdate(std::move(source_metadata));
   }
 };
 
@@ -4172,7 +4178,8 @@ class SinkCallbacksImpl : public LeAudioSinkAudioHalClient::Callbacks {
 
   void OnAudioMetadataUpdate(
       std::vector<struct record_track_metadata> sink_metadata) override {
-    if (instance) instance->OnLocalAudioSinkMetadataUpdate(sink_metadata);
+    if (instance)
+      instance->OnLocalAudioSinkMetadataUpdate(std::move(sink_metadata));
   }
 };
 
@@ -4321,7 +4328,7 @@ void LeAudioClient::DebugDump(int fd) {
 
   LeAudioSinkAudioHalClient::DebugDump(fd);
   LeAudioSourceAudioHalClient::DebugDump(fd);
-  le_audio::AudioSetConfigurationProvider::Get()->DebugDump(fd);
+  le_audio::AudioSetConfigurationProvider::DebugDump(fd);
   IsoManager::GetInstance()->Dump(fd);
   dprintf(fd, "\n");
 }
