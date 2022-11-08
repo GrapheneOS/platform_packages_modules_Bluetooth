@@ -1203,6 +1203,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onClientConnUpdate", "(IIIII)V");
   method_onServiceChanged =
       env->GetMethodID(clazz, "onServiceChanged", "(I)V");
+  method_onClientSubrateChange =
+      env->GetMethodID(clazz, "onClientSubrateChange", "(IIIIII)V");
 
   // Server callbacks
 
@@ -1239,6 +1241,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onServerPhyUpdate", "(IIII)V");
   method_onServerConnUpdate =
       env->GetMethodID(clazz, "onServerConnUpdate", "(IIIII)V");
+  method_onServerSubrateChange =
+      env->GetMethodID(clazz, "onServerSubrateChange", "(IIIIII)V");
 
   info("classInitNative: Success!");
 }
@@ -1813,6 +1817,17 @@ static void gattConnectionParameterUpdateNative(JNIEnv* env, jobject object,
   sGattIf->client->conn_parameter_update(
       str2addr(env, address), min_interval, max_interval, latency, timeout,
       (uint16_t)min_ce_len, (uint16_t)max_ce_len);
+}
+
+static void gattSubrateRequestNative(JNIEnv* env, jobject object,
+                                     jint client_if, jstring address,
+                                     jint subrate_min, jint subrate_max,
+                                     jint max_latency, jint cont_num,
+                                     jint sup_timeout) {
+  if (!sGattIf) return;
+  sGattIf->client->subrate_request(str2addr(env, address), subrate_min,
+                                   subrate_max, max_latency, cont_num,
+                                   sup_timeout);
 }
 
 void batchscan_cfg_storage_cb(uint8_t client_if, uint8_t status) {
@@ -2616,6 +2631,8 @@ static JNINativeMethod sMethods[] = {
      (void*)gattServerSendNotificationNative},
     {"gattServerSendResponseNative", "(IIIIII[BI)V",
      (void*)gattServerSendResponseNative},
+    {"gattSubrateRequestNative", "(ILjava/lang/String;IIIII)V",
+     (void*)gattSubrateRequestNative},
 
     {"gattTestNative", "(IJJLjava/lang/String;IIIII)V", (void*)gattTestNative},
 };
