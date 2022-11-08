@@ -579,7 +579,7 @@ impl BtGattCallback {
 impl IBluetoothGattCallback for BtGattCallback {
     fn on_client_registered(&self, status: GattStatus, client_id: i32) {
         print_info!("GATT Client registered status = {}, client_id = {}", status, client_id);
-        self.context.lock().unwrap().gatt_client_id = Some(client_id);
+        self.context.lock().unwrap().gatt_client_context.client_id = Some(client_id);
     }
 
     fn on_client_connection_state(

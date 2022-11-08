@@ -603,7 +603,7 @@ enum GattDbElementType {
     Descriptor = 4,
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[derive(Debug, FromPrimitive, ToPrimitive, Copy, Clone)]
 #[repr(u8)]
 /// GATT write type.
 pub enum GattWriteType {

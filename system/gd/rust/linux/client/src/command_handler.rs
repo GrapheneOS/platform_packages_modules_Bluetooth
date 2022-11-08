@@ -4,13 +4,14 @@ use std::slice::SliceIndex;
 use std::sync::{Arc, Mutex};
 
 use crate::bt_adv::AdvSet;
+use crate::bt_gatt::AuthReq;
 use crate::callbacks::BtGattCallback;
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
 use bt_topshim::profiles::gatt::LePhy;
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
-use btstack::bluetooth_gatt::{IBluetoothGatt, ScanSettings, ScanType};
+use btstack::bluetooth_gatt::{GattWriteType, IBluetoothGatt, ScanSettings, ScanType};
 use btstack::socket_manager::{IBluetoothSocketManager, SocketResult};
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
@@ -26,6 +27,18 @@ enum CommandError {
     InvalidArgs,
     // Command handled but failed with the given reason.
     Failed(String),
+}
+
+impl From<&str> for CommandError {
+    fn from(s: &str) -> CommandError {
+        CommandError::Failed(String::from(s))
+    }
+}
+
+impl From<String> for CommandError {
+    fn from(s: String) -> CommandError {
+        CommandError::Failed(s)
+    }
 }
 
 type CommandResult = Result<(), CommandError>;
@@ -147,6 +160,15 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from("gatt client-discover-services <address>"),
                 String::from("gatt client-disconnect <address>"),
                 String::from("gatt configure-mtu <address> <mtu>"),
+                String::from("gatt set-direct-connect <true|false>"),
+                String::from("gatt set-connect-transport <Bredr|LE|Auto>"),
+                String::from("gatt set-connect-opportunistic <true|false>"),
+                String::from("gatt set-connect-phy <Phy1m|Phy2m|PhyCoded>"),
+                String::from("gatt set-auth-req <MITM|SIGNED> <enable|disable>"),
+                String::from(
+                    "gatt write-characteristic <address> <handle> <NoRsp|Write|Prepare> <value>",
+                ),
+                String::from("gatt read-characteristic <address> <handle>"),
             ],
             description: String::from("GATT tools"),
             function_pointer: CommandHandler::cmd_gatt,
@@ -271,10 +293,11 @@ impl CommandHandler {
 
     // Common message for when the adapter isn't ready
     fn adapter_not_ready(&self) -> CommandError {
-        CommandError::Failed(format!(
+        format!(
             "Default adapter {} is not enabled. Enable the adapter before using this command.",
             self.context.lock().unwrap().default_adapter
-        ))
+        )
+        .into()
     }
 
     fn cmd_help(&mut self, args: &Vec<String>) -> CommandResult {
@@ -330,9 +353,7 @@ impl CommandHandler {
 
     fn cmd_adapter(&mut self, args: &Vec<String>) -> CommandResult {
         if !self.context.lock().unwrap().manager_dbus.get_floss_enabled() {
-            return Err(CommandError::Failed(
-                "Floss is not enabled. First run, `floss enable`".into(),
-            ));
+            return Err("Floss is not enabled. First run, `floss enable`".into());
         }
 
         let default_adapter = self.context.lock().unwrap().default_adapter;
@@ -342,17 +363,13 @@ impl CommandHandler {
         match &command[..] {
             "enable" => {
                 if self.context.lock().unwrap().is_restricted {
-                    return Err(CommandError::Failed(
-                        "You are not allowed to toggle adapter power".into(),
-                    ));
+                    return Err("You are not allowed to toggle adapter power".into());
                 }
                 self.context.lock().unwrap().manager_dbus.start(default_adapter);
             }
             "disable" => {
                 if self.context.lock().unwrap().is_restricted {
-                    return Err(CommandError::Failed(
-                        "You are not allowed to toggle adapter power".into(),
-                    ));
+                    return Err("You are not allowed to toggle adapter power".into());
                 }
                 self.context.lock().unwrap().manager_dbus.stop(default_adapter);
             }
@@ -529,13 +546,11 @@ impl CommandHandler {
                     &self.context.lock().unwrap().bonding_attempt.as_ref().cloned();
 
                 if bonding_attempt.is_some() {
-                    return Err(CommandError::Failed(
-                        format!(
-                            "Already bonding [{}]. Cancel bonding first.",
-                            bonding_attempt.as_ref().unwrap().address,
-                        )
-                        .into(),
-                    ));
+                    return Err(format!(
+                        "Already bonding [{}]. Cancel bonding first.",
+                        bonding_attempt.as_ref().unwrap().address,
+                    )
+                    .into());
                 }
 
                 let success = self
@@ -734,7 +749,7 @@ impl CommandHandler {
                     "accept" => true,
                     "reject" => false,
                     other => {
-                        return Err(CommandError::Failed(format!("Failed to parse '{}'", other)));
+                        return Err(format!("Failed to parse '{}'", other).into());
                     }
                 };
 
@@ -756,7 +771,7 @@ impl CommandHandler {
                     (_, Ok(p)) => (true, Vec::from(p.to_ne_bytes())),
                     ("reject", _) => (false, vec![]),
                     _ => {
-                        return Err(CommandError::Failed(format!("Failed to parse '{}'", pin)));
+                        return Err(format!("Failed to parse '{}'", pin).into());
                     }
                 };
 
@@ -776,7 +791,7 @@ impl CommandHandler {
                     (_, Ok(p)) => (true, Vec::from(p.to_ne_bytes())),
                     ("reject", _) => (false, vec![]),
                     _ => {
-                        return Err(CommandError::Failed(format!("Failed to parse '{}'", passkey)));
+                        return Err(format!("Failed to parse '{}'", passkey).into());
                     }
                 };
 
@@ -840,30 +855,39 @@ impl CommandHandler {
                 );
             }
             "client-connect" => {
-                let client_id = self.context.lock().unwrap().gatt_client_id;
-                if client_id.is_none() {
-                    return Err(CommandError::Failed(format!(
-                        "GATT client is not yet registered."
-                    )));
-                }
+                let client_id = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
 
                 let addr = String::from(get_arg(args, 1)?);
+                let is_direct = self.context.lock().unwrap().gatt_client_context.is_connect_direct;
+                let transport = self.context.lock().unwrap().gatt_client_context.connect_transport;
+                let oppurtunistic =
+                    self.context.lock().unwrap().gatt_client_context.connect_opportunistic;
+                let phy = self.context.lock().unwrap().gatt_client_context.connect_phy;
+
+                println!("Initiating GATT client connect. client_id: {}, addr: {}, is_direct: {}, transport: {:?}, oppurtunistic: {}, phy: {:?}", client_id, addr, is_direct, transport, oppurtunistic, phy);
                 self.context.lock().unwrap().gatt_dbus.as_ref().unwrap().client_connect(
-                    client_id.unwrap(),
+                    client_id,
                     addr,
-                    false,
-                    BtTransport::Le,
-                    false,
-                    LePhy::Phy1m,
+                    is_direct,
+                    transport,
+                    oppurtunistic,
+                    phy,
                 );
             }
             "client-disconnect" => {
-                let client_id = self.context.lock().unwrap().gatt_client_id;
-                if client_id.is_none() {
-                    return Err(CommandError::Failed(format!(
-                        "GATT client is not yet registered."
-                    )));
-                }
+                let client_id = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
 
                 let addr = String::from(get_arg(args, 1)?);
                 self.context
@@ -872,16 +896,16 @@ impl CommandHandler {
                     .gatt_dbus
                     .as_ref()
                     .unwrap()
-                    .client_disconnect(client_id.unwrap(), addr);
+                    .client_disconnect(client_id, addr);
             }
             "client-read-phy" => {
-                let client_id = self.context.lock().unwrap().gatt_client_id;
-                if client_id.is_none() {
-                    return Err(CommandError::Failed(format!(
-                        "GATT client is not yet registered."
-                    )));
-                }
-
+                let client_id = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
                 let addr = String::from(get_arg(args, 1)?);
                 self.context
                     .lock()
@@ -889,15 +913,16 @@ impl CommandHandler {
                     .gatt_dbus
                     .as_mut()
                     .unwrap()
-                    .client_read_phy(client_id.unwrap(), addr);
+                    .client_read_phy(client_id, addr);
             }
             "client-discover-services" => {
-                let client_id = self.context.lock().unwrap().gatt_client_id;
-                if client_id.is_none() {
-                    return Err(CommandError::Failed(format!(
-                        "GATT client is not yet registered."
-                    )));
-                }
+                let client_id = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
 
                 let addr = String::from(get_arg(args, 1)?);
                 self.context
@@ -906,31 +931,150 @@ impl CommandHandler {
                     .gatt_dbus
                     .as_ref()
                     .unwrap()
-                    .discover_services(client_id.unwrap(), addr);
+                    .discover_services(client_id, addr);
             }
             "configure-mtu" => {
-                let client_id = self.context.lock().unwrap().gatt_client_id;
-                if client_id.is_none() {
-                    return Err(CommandError::Failed(format!(
-                        "GATT client is not yet registered."
-                    )));
-                }
+                let client_id = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
 
                 let addr = String::from(get_arg(args, 1)?);
-                let mtu = String::from(get_arg(args, 2)?).parse::<i32>();
-                if let Ok(m) = mtu {
-                    self.context.lock().unwrap().gatt_dbus.as_ref().unwrap().configure_mtu(
-                        client_id.unwrap(),
-                        addr,
-                        m,
-                    );
-                } else {
-                    return Err(CommandError::Failed(format!("Failed parsing mtu")));
-                }
+                let mtu =
+                    String::from(get_arg(args, 2)?).parse::<i32>().or(Err("Failed parsing mtu"))?;
+
+                self.context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_ref()
+                    .unwrap()
+                    .configure_mtu(client_id, addr, mtu)
+            }
+            "set-direct-connect" => {
+                let is_direct = String::from(get_arg(args, 1)?)
+                    .parse::<bool>()
+                    .or(Err("Failed to parse is_direct"))?;
+
+                self.context.lock().unwrap().gatt_client_context.is_connect_direct = is_direct;
+            }
+            "set-connect-transport" => {
+                let transport = match &get_arg(args, 1)?[..] {
+                    "Bredr" => BtTransport::Bredr,
+                    "LE" => BtTransport::Le,
+                    "Auto" => BtTransport::Auto,
+                    _ => {
+                        return Err("Failed to parse transport".into());
+                    }
+                };
+                self.context.lock().unwrap().gatt_client_context.connect_transport = transport;
+            }
+            "set-connect-opportunistic" => {
+                let opportunistic = String::from(get_arg(args, 1)?)
+                    .parse::<bool>()
+                    .or(Err("Failed to parse opportunistic"))?;
+
+                self.context.lock().unwrap().gatt_client_context.connect_opportunistic =
+                    opportunistic;
+            }
+            "set-connect-phy" => {
+                let phy = match &get_arg(args, 1)?[..] {
+                    "Phy1m" => LePhy::Phy1m,
+                    "Phy2m" => LePhy::Phy2m,
+                    "PhyCoded" => LePhy::PhyCoded,
+                    _ => {
+                        return Err("Failed to parse phy".into());
+                    }
+                };
+
+                self.context.lock().unwrap().gatt_client_context.connect_phy = phy;
+            }
+            "set-auth-req" => {
+                let flag = match &get_arg(args, 1)?[..] {
+                    "MITM" => AuthReq::MITM,
+                    "SIGNED" => AuthReq::SIGNED,
+                    _ => {
+                        return Err("Failed to parse auth-req".into());
+                    }
+                };
+
+                let enable = match &get_arg(args, 2)?[..] {
+                    "enable" => true,
+                    "disable" => false,
+                    _ => {
+                        return Err("Failed to parse enable".into());
+                    }
+                };
+
+                self.context.lock().unwrap().gatt_client_context.auth_req.set(flag, enable);
+                println!(
+                    "AuthReq: {:?}",
+                    self.context.lock().unwrap().gatt_client_context.auth_req
+                );
+            }
+            "write-characteristic" => {
+                let addr = String::from(get_arg(args, 1)?);
+                let handle = String::from(get_arg(args, 2)?)
+                    .parse::<i32>()
+                    .or(Err("Failed to parse handle"))?;
+
+                let write_type = match &get_arg(args, 3)?[..] {
+                    "NoRsp" => GattWriteType::WriteNoRsp,
+                    "Write" => GattWriteType::Write,
+                    "Prepare" => GattWriteType::WritePrepare,
+                    _ => {
+                        return Err("Failed to parse write-type".into());
+                    }
+                };
+
+                let value = hex::decode(&get_arg(args, 4)?).or(Err("Failed to parse value"))?;
+
+                let client_id = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
+
+                let auth_req = self.context.lock().unwrap().gatt_client_context.get_auth_req_bits();
+
+                self.context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_ref()
+                    .unwrap()
+                    .write_characteristic(client_id, addr, handle, write_type, auth_req, value);
+            }
+            "read-characteristic" => {
+                let addr = String::from(get_arg(args, 1)?);
+                let handle = String::from(get_arg(args, 2)?)
+                    .parse::<i32>()
+                    .or(Err("Failed to parse handle"))?;
+                let client_id = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
+
+                let auth_req = self.context.lock().unwrap().gatt_client_context.get_auth_req_bits();
+
+                self.context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_ref()
+                    .unwrap()
+                    .read_characteristic(client_id, addr, handle, auth_req);
             }
             _ => return Err(CommandError::InvalidArgs),
         }
-
         Ok(())
     }
 
@@ -964,7 +1108,7 @@ impl CommandHandler {
                 if let Ok(id) = scanner_id {
                     self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().unregister_scanner(id);
                 } else {
-                    return Err(CommandError::Failed(format!("Failed parsing scanner id")));
+                    return Err("Failed parsing scanner id".into());
                 }
             }
             "start-scan" => {
@@ -979,7 +1123,7 @@ impl CommandHandler {
                     );
                     self.context.lock().unwrap().active_scanner_ids.insert(id);
                 } else {
-                    return Err(CommandError::Failed(format!("Failed parsing scanner id")));
+                    return Err("Failed parsing scanner id".into());
                 }
             }
             "stop-scan" => {
@@ -989,7 +1133,7 @@ impl CommandHandler {
                     self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().stop_scan(id);
                     self.context.lock().unwrap().active_scanner_ids.remove(&id);
                 } else {
-                    return Err(CommandError::Failed(format!("Failed parsing scanner id")));
+                    return Err("Failed parsing scanner id".into());
                 }
             }
             _ => return Err(CommandError::InvalidArgs),
@@ -1006,7 +1150,7 @@ impl CommandHandler {
         }
 
         if self.context.lock().unwrap().advertiser_callback_id == None {
-            return Err(CommandError::Failed("No advertiser callback registered".into()));
+            return Err("No advertiser callback registered".into());
         }
 
         let callback_id = self.context.lock().unwrap().advertiser_callback_id.clone().unwrap();
@@ -1030,7 +1174,7 @@ impl CommandHandler {
             "set-interval" => {
                 let ms = String::from(get_arg(args, 1)?).parse::<i32>();
                 if !ms.is_ok() {
-                    return Err(CommandError::Failed(format!("Failed parsing interval")));
+                    return Err("Failed parsing interval".into());
                 }
                 let interval = ms.unwrap() * 8 / 5; // in 0.625 ms.
 
@@ -1089,7 +1233,7 @@ impl CommandHandler {
         let callback_id = match self.context.lock().unwrap().socket_manager_callback_id.clone() {
             Some(id) => id,
             None => {
-                return Err(CommandError::Failed("No socket manager callback registered.".into()));
+                return Err("No socket manager callback registered.".into());
             }
         };
 
@@ -1107,10 +1251,11 @@ impl CommandHandler {
                     .listen_using_l2cap_channel(callback_id);
 
                 if status != BtStatus::Success {
-                    return Err(CommandError::Failed(format!(
+                    return Err(format!(
                         "Failed to request for listening using l2cap channel, status = {:?}",
                         status,
-                    )));
+                    )
+                    .into());
                 }
                 print_info!("Requested for listening using l2cap channel on socket {}", id);
             }
