@@ -65,6 +65,7 @@ constexpr uint8_t PHY_LE_NO_PACKET = 0x00;
 constexpr uint8_t PHY_LE_1M = 0x01;
 constexpr uint8_t PHY_LE_2M = 0x02;
 constexpr uint8_t PHY_LE_CODED = 0x04;
+constexpr bool kEnableBlePrivacy = true;
 
 static const std::string kPropertyMinConnInterval = "bluetooth.core.le.min_connection_interval";
 static const std::string kPropertyMaxConnInterval = "bluetooth.core.le.max_connection_interval";
@@ -77,6 +78,7 @@ static const std::string kPropertyConnScanWindow2mFast = "bluetooth.core.le.conn
 static const std::string kPropertyConnScanWindowCodedFast = "bluetooth.core.le.connection_scan_window_coded_fast";
 static const std::string kPropertyConnScanIntervalSlow = "bluetooth.core.le.connection_scan_interval_slow";
 static const std::string kPropertyConnScanWindowSlow = "bluetooth.core.le.connection_scan_window_slow";
+static const std::string kPropertyEnableBlePrivacy = "bluetooth.core.gap.le.privacy.enabled";
 
 enum class ConnectabilityState {
   DISARMED = 0,
@@ -996,7 +998,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         address_policy,
         fixed_address,
         rotation_irk,
-        controller_->SupportsBlePrivacy(),
+        controller_->SupportsBlePrivacy() && os::GetSystemPropertyBool(kPropertyEnableBlePrivacy, kEnableBlePrivacy),
         minimum_rotation_time,
         maximum_rotation_time);
   }
