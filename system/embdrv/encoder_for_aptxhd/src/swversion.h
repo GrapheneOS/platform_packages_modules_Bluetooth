@@ -16,6 +16,6 @@
 #ifndef SWVERSION_H
 #define SWVERSION_H
 
-static const char* swversion = "1.0.0";
+static const char* const swversion = "1.0.0";
 
 #endif  // SWVERSION_H

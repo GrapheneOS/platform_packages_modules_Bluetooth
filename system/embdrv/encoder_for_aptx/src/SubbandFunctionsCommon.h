@@ -57,10 +57,14 @@ XBT_INLINE_ void invertQuantisation(const int32_t qCode,
    * element at table base). Then set invQ to be +/- the threshold value,
    * depending on the code sign. */
   index = qCode;
-  if (qCode < 0) index = (~index);
+  if (qCode < 0) {
+    index = (~index);
+  }
   index = index + 1;
   invQ = iqdata_pt->thresholdTablePtr_sl1[index];
-  if (qCode < 0) invQ = -invQ;
+  if (qCode < 0) {
+    invQ = -invQ;
+  }
 
   /* Load invQ into the accumulator. Add the product of the dither value times
    * the indexed dither table value. Then get the result back from the
@@ -71,11 +75,15 @@ XBT_INLINE_ void invertQuantisation(const int32_t qCode,
   acc = tmp_r64.s32.h;
 
   tmp_round1 = tmp_r64.s32.h & 0x00000001L;
-  if (tmp_r64.u32.l >= 0x80000000) acc++;
-  if (tmp_round1 == 0 && tmp_r64.s32.l == (int32_t)0x80000000L) acc--;
+  if (tmp_r64.u32.l >= 0x80000000) {
+    acc++;
+  }
+  if (tmp_round1 == 0 && tmp_r64.s32.l == (int32_t)0x80000000L) {
+    acc--;
+  }
   acc = ssat24(acc);
 
-  invQ = (int32_t)acc;
+  invQ = acc;
 
   /* Scale invQ by the current delta value. Left-shift the result (in the
    * accumulator) by 4 positions for the delta scaling. Get the updated invQ
@@ -101,12 +109,20 @@ XBT_INLINE_ void invertQuantisation(const int32_t qCode,
 
   tmp_round0 = tmp_r64.u32.l;
   tmp_round1 = (int32_t)(tmp_r64.u64 >> 1);
-  if (tmp_round0 >= 0x80000000L) acc++;
-  if (tmp_round1 == 0x40000000L) acc--;
+  if (tmp_round0 >= 0x80000000L) {
+    acc++;
+  }
+  if (tmp_round1 == 0x40000000L) {
+    acc--;
+  }
 
   /* Limit the updated logDelta between 0 and its subband-specific maximum. */
-  if (acc < 0) acc = 0;
-  if (acc > iqdata_pt->maxLogDelta) acc = iqdata_pt->maxLogDelta;
+  if (acc < 0) {
+    acc = 0;
+  }
+  if (acc > iqdata_pt->maxLogDelta) {
+    acc = iqdata_pt->maxLogDelta;
+  }
 
   iqdata_pt->logDelta = (uint16_t)acc;
 
@@ -142,10 +158,14 @@ XBT_INLINE_ void invertQuantisationHL(const int32_t qCode,
    * element at table base). Then set invQ to be +/- the threshold value,
    * depending on the code sign. */
   index = qCode;
-  if (qCode < 0) index = (~index);
+  if (qCode < 0) {
+    index = (~index);
+  }
   index = index + 1;
   invQ = iqdata_pt->thresholdTablePtr_sl1[index];
-  if (qCode < 0) invQ = -invQ;
+  if (qCode < 0) {
+    invQ = -invQ;
+  }
 
   /* Load invQ into the accumulator. Add the product of the dither value times
    * the indexed dither table value. Then get the result back from the
@@ -156,11 +176,15 @@ XBT_INLINE_ void invertQuantisationHL(const int32_t qCode,
   acc = tmp_r64.s32.h;
 
   tmp_round1 = tmp_r64.s32.h & 0x00000001L;
-  if (tmp_r64.u32.l >= 0x80000000) acc++;
-  if (tmp_round1 == 0 && tmp_r64.u32.l == 0x80000000L) acc--;
+  if (tmp_r64.u32.l >= 0x80000000) {
+    acc++;
+  }
+  if (tmp_round1 == 0 && tmp_r64.u32.l == 0x80000000L) {
+    acc--;
+  }
   acc = ssat24(acc);
 
-  invQ = (int32_t)acc;
+  invQ = acc;
 
   /* Scale invQ by the current delta value. Left-shift the result (in the
    * accumulator) by 4 positions for the delta scaling. Get the updated invQ
@@ -185,12 +209,20 @@ XBT_INLINE_ void invertQuantisationHL(const int32_t qCode,
 
   tmp_round0 = tmp_r64.u32.l;
   tmp_round1 = (int32_t)(tmp_r64.u64 >> 1);
-  if (tmp_round0 >= 0x80000000L) acc++;
-  if (tmp_round1 == 0x40000000L) acc--;
+  if (tmp_round0 >= 0x80000000L) {
+    acc++;
+  }
+  if (tmp_round1 == 0x40000000L) {
+    acc--;
+  }
 
   /* Limit the updated logDelta between 0 and its subband-specific maximum. */
-  if (acc < 0) acc = 0;
-  if (acc > iqdata_pt->maxLogDelta) acc = iqdata_pt->maxLogDelta;
+  if (acc < 0) {
+    acc = 0;
+  }
+  if (acc > iqdata_pt->maxLogDelta) {
+    acc = iqdata_pt->maxLogDelta;
+  }
 
   iqdata_pt->logDelta = (uint16_t)acc;
 
@@ -259,8 +291,9 @@ XBT_INLINE_ void performPredictionFiltering(const int32_t invQ,
   pointer = (SubbandDataPt->m_predData.m_zeroDelayLine.pointer++) + 12;
   cbuf_pt = &SubbandDataPt->m_predData.m_zeroDelayLine.buffer[pointer];
   /* partial manual unrolling to improve performance */
-  if (SubbandDataPt->m_predData.m_zeroDelayLine.pointer >= 12)
+  if (SubbandDataPt->m_predData.m_zeroDelayLine.pointer >= 12) {
     SubbandDataPt->m_predData.m_zeroDelayLine.pointer = 0;
+  }
 
   SubbandDataPt->m_predData.m_zeroDelayLine.modulo = invQ;
 
@@ -280,7 +313,9 @@ XBT_INLINE_ void performPredictionFiltering(const int32_t invQ,
     }
     tmp_round0 = acc;
     acc = (acc >> 8) + coeffValue;
-    if (((tmp_round0 << 23) ^ 0x80000000) == 0) acc--;
+    if (((tmp_round0 << 23) ^ 0x80000000) == 0) {
+      acc--;
+    }
     accL += (int64_t)acc * (int64_t)(oldZData);
     oldZData = zData0;
     *(zeroCoeffPt + k) = acc;
@@ -360,8 +395,9 @@ XBT_INLINE_ void performPredictionFilteringLL(const int32_t invQ,
   pointer = (SubbandDataPt->m_predData.m_zeroDelayLine.pointer++) + 24;
   cbuf_pt = &SubbandDataPt->m_predData.m_zeroDelayLine.buffer[pointer];
   /* partial manual unrolling to improve performance */
-  if (SubbandDataPt->m_predData.m_zeroDelayLine.pointer >= 24)
+  if (SubbandDataPt->m_predData.m_zeroDelayLine.pointer >= 24) {
     SubbandDataPt->m_predData.m_zeroDelayLine.pointer = 0;
+  }
 
   SubbandDataPt->m_predData.m_zeroDelayLine.modulo = invQ;
 
@@ -380,7 +416,9 @@ XBT_INLINE_ void performPredictionFilteringLL(const int32_t invQ,
     } else {
       acc = invQincr_pos - coeffValue;
     }
-    if (((acc << 23) ^ 0x80000000) == 0) coeffValue--;
+    if (((acc << 23) ^ 0x80000000) == 0) {
+      coeffValue--;
+    }
     acc = (acc >> 8) + coeffValue;
     accL += (int64_t)acc * (int64_t)(oldZData);
     oldZData = zData0;
@@ -461,8 +499,9 @@ XBT_INLINE_ void performPredictionFilteringHL(const int32_t invQ,
   pointer = (SubbandDataPt->m_predData.m_zeroDelayLine.pointer++) + 6;
   cbuf_pt = &SubbandDataPt->m_predData.m_zeroDelayLine.buffer[pointer];
   /* partial manual unrolling to improve performance */
-  if (SubbandDataPt->m_predData.m_zeroDelayLine.pointer >= 6)
+  if (SubbandDataPt->m_predData.m_zeroDelayLine.pointer >= 6) {
     SubbandDataPt->m_predData.m_zeroDelayLine.pointer = 0;
+  }
 
   SubbandDataPt->m_predData.m_zeroDelayLine.modulo = invQ;
 
@@ -483,7 +522,9 @@ XBT_INLINE_ void performPredictionFilteringHL(const int32_t invQ,
     }
     tmp_round0 = acc;
     acc = (acc >> 8) + coeffValue;
-    if (((tmp_round0 << 23) ^ roundCte) == 0) acc--;
+    if (((tmp_round0 << 23) ^ roundCte) == 0) {
+      acc--;
+    }
     accL += (int64_t)acc * (int64_t)(oldZData);
     oldZData = zData0;
     *(zeroCoeffPt + k) = acc;
