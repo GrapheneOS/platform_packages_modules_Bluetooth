@@ -877,6 +877,250 @@ TEST_F(LeImplTest, disarm_connectability_DISARMING_extended) {
   ASSERT_TRUE(log_capture->Rewind()->Find("in unexpected state:ConnectabilityState::DISARMING"));
 }
 
+TEST_F(LeImplTest, register_with_address_manager__AddressPolicyPublicAddress) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
+
+  le_impl_->register_with_address_manager();
+  sync_handler();  // Let |eAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();  // Let |LeAddressManager::unregister_client| execute on handler
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("SetPrivacyPolicyForInitiatorAddress with policy 1"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Client unregistered"));
+}
+
+TEST_F(LeImplTest, register_with_address_manager__AddressPolicyStaticAddress) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_STATIC_ADDRESS);
+
+  le_impl_->register_with_address_manager();
+  sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();  // Let |LeAddressManager::unregister_client| execute on handler
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("SetPrivacyPolicyForInitiatorAddress with policy 2"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Client unregistered"));
+}
+
+TEST_F(LeImplTest, register_with_address_manager__AddressPolicyNonResolvableAddress) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_NON_RESOLVABLE_ADDRESS);
+
+  le_impl_->register_with_address_manager();
+  sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();  // Let |LeAddressManager::unregister_client| execute on handler
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("SetPrivacyPolicyForInitiatorAddress with policy 3"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Client unregistered"));
+}
+
+TEST_F(LeImplTest, register_with_address_manager__AddressPolicyResolvableAddress) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS);
+
+  le_impl_->register_with_address_manager();
+  sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();  // Let |LeAddressManager::unregister_client| execute on handler
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("SetPrivacyPolicyForInitiatorAddress with policy 4"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Client unregistered"));
+}
+
+TEST_F(LeImplTest, add_device_to_resolving_list) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+
+  // Some kind of privacy policy must be set for LeAddressManager to operate properly
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
+  // Let LeAddressManager::resume_registered_clients execute
+  sync_handler();
+
+  ASSERT_EQ(0UL, hci_layer_->NumberOfQueuedCommands());
+
+  // le_impl should not be registered with address manager
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_EQ(0UL, le_impl_->le_address_manager_->NumberCachedCommands());
+  // Acknowledge that the le_impl has quiesced all relevant controller state
+  le_impl_->add_device_to_resolving_list(remote_public_address_, kPeerIdentityResolvingKey, kLocalIdentityResolvingKey);
+  ASSERT_EQ(3UL, le_impl_->le_address_manager_->NumberCachedCommands());
+
+  sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->le_address_manager_->AckPause(le_impl_);
+  sync_handler();  // Allow |LeAddressManager::ack_pause| to complete
+
+  ASSERT_FALSE(hci_layer_->IsPacketQueueEmpty());
+  {
+    // Inform controller to disable address resolution
+    auto command = CreateCommand<LeSetAddressResolutionEnableView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(command.IsValid());
+    ASSERT_EQ(Enable::DISABLED, command.GetAddressResolutionEnable());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_SET_ADDRESS_RESOLUTION_ENABLE, ErrorCode::SUCCESS));
+  }
+  sync_handler();  // |LeAddressManager::check_cached_commands|
+
+  ASSERT_FALSE(hci_layer_->IsPacketQueueEmpty());
+  {
+    auto command = CreateCommand<LeAddDeviceToResolvingListView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(command.IsValid());
+    ASSERT_EQ(PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS, command.GetPeerIdentityAddressType());
+    ASSERT_EQ(remote_public_address_.GetAddress(), command.GetPeerIdentityAddress());
+    ASSERT_EQ(kPeerIdentityResolvingKey, command.GetPeerIrk());
+    ASSERT_EQ(kLocalIdentityResolvingKey, command.GetLocalIrk());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_ADD_DEVICE_TO_RESOLVING_LIST, ErrorCode::SUCCESS));
+  }
+  sync_handler();  // |LeAddressManager::check_cached_commands|
+
+  ASSERT_FALSE(hci_layer_->IsPacketQueueEmpty());
+  {
+    auto command = CreateCommand<LeSetAddressResolutionEnableView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(command.IsValid());
+    ASSERT_EQ(Enable::ENABLED, command.GetAddressResolutionEnable());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_SET_ADDRESS_RESOLUTION_ENABLE, ErrorCode::SUCCESS));
+  }
+  sync_handler();  // |LeAddressManager::check_cached_commands|
+
+  ASSERT_TRUE(hci_layer_->IsPacketQueueEmpty());
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+}
+
+TEST_F(LeImplTest, add_device_to_resolving_list__SupportsBlePrivacy) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+
+  controller_->supports_ble_privacy_ = true;
+
+  // Some kind of privacy policy must be set for LeAddressManager to operate properly
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
+  // Let LeAddressManager::resume_registered_clients execute
+  sync_handler();
+
+  ASSERT_EQ(0UL, hci_layer_->NumberOfQueuedCommands());
+
+  // le_impl should not be registered with address manager
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_EQ(0UL, le_impl_->le_address_manager_->NumberCachedCommands());
+  // Acknowledge that the le_impl has quiesced all relevant controller state
+  le_impl_->add_device_to_resolving_list(remote_public_address_, kPeerIdentityResolvingKey, kLocalIdentityResolvingKey);
+  ASSERT_EQ(4UL, le_impl_->le_address_manager_->NumberCachedCommands());
+
+  sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->le_address_manager_->AckPause(le_impl_);
+  sync_handler();  // Allow |LeAddressManager::ack_pause| to complete
+
+  ASSERT_FALSE(hci_layer_->IsPacketQueueEmpty());
+  {
+    // Inform controller to disable address resolution
+    auto command = CreateCommand<LeSetAddressResolutionEnableView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(command.IsValid());
+    ASSERT_EQ(Enable::DISABLED, command.GetAddressResolutionEnable());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_SET_ADDRESS_RESOLUTION_ENABLE, ErrorCode::SUCCESS));
+  }
+  sync_handler();  // |LeAddressManager::check_cached_commands|
+
+  ASSERT_FALSE(hci_layer_->IsPacketQueueEmpty());
+  {
+    auto command = CreateCommand<LeAddDeviceToResolvingListView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(command.IsValid());
+    ASSERT_EQ(PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS, command.GetPeerIdentityAddressType());
+    ASSERT_EQ(remote_public_address_.GetAddress(), command.GetPeerIdentityAddress());
+    ASSERT_EQ(kPeerIdentityResolvingKey, command.GetPeerIrk());
+    ASSERT_EQ(kLocalIdentityResolvingKey, command.GetLocalIrk());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_ADD_DEVICE_TO_RESOLVING_LIST, ErrorCode::SUCCESS));
+  }
+  sync_handler();  // |LeAddressManager::check_cached_commands|
+
+  ASSERT_FALSE(hci_layer_->IsPacketQueueEmpty());
+  {
+    auto command = CreateCommand<LeSetPrivacyModeView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(command.IsValid());
+    ASSERT_EQ(PrivacyMode::DEVICE, command.GetPrivacyMode());
+    ASSERT_EQ(remote_public_address_.GetAddress(), command.GetPeerIdentityAddress());
+    ASSERT_EQ(PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS, command.GetPeerIdentityAddressType());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_SET_PRIVACY_MODE, ErrorCode::SUCCESS));
+  }
+  sync_handler();  // |LeAddressManager::check_cached_commands|
+
+  ASSERT_FALSE(hci_layer_->IsPacketQueueEmpty());
+  {
+    auto command = CreateCommand<LeSetAddressResolutionEnableView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(command.IsValid());
+    ASSERT_EQ(Enable::ENABLED, command.GetAddressResolutionEnable());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_SET_ADDRESS_RESOLUTION_ENABLE, ErrorCode::SUCCESS));
+  }
+  sync_handler();  // |LeAddressManager::check_cached_commands|
+
+  ASSERT_TRUE(hci_layer_->IsPacketQueueEmpty());
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+}
+
 }  // namespace acl_manager
 }  // namespace hci
 }  // namespace bluetooth
