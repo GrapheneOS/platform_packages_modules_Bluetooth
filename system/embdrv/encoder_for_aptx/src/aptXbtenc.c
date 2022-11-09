@@ -215,13 +215,13 @@ APTXBTENCEXPORT int aptxbtenc_encodestereo(void* _state, void* _pcmL,
   tmp_out = tmp_reg >> state->m_endian;
   tmp_out |= tmp_reg << state->m_endian;
 
-  buffer[0] = (int16_t)tmp_out;
+  buffer[0] = tmp_out;
   tmp_reg = packCodeword(&state->m_encoderData[1], state->m_sync_mode);
   // Swap bytes to output data in big-endian as expected by bc5 code...
   tmp_out = tmp_reg >> state->m_endian;
   tmp_out |= tmp_reg << state->m_endian;
 
-  buffer[1] = (int16_t)tmp_out;
+  buffer[1] = tmp_out;
 
   return 0;
 }

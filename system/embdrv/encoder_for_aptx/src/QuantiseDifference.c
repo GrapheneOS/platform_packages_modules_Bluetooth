@@ -30,31 +30,43 @@ XBT_INLINE_ int32_t BsearchLL(const int32_t absDiffSignalShifted,
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[32];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode = 32;
+  if (tmp <= 0) {
+    qCode = 32;
+  }
 
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[qCode + 16];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode += 16;
+  if (tmp <= 0) {
+    qCode += 16;
+  }
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[qCode + 8];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode += 8;
+  if (tmp <= 0) {
+    qCode += 8;
+  }
 
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[qCode + 4];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode += 4;
+  if (tmp <= 0) {
+    qCode += 4;
+  }
 
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[qCode + 2];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode += 2;
+  if (tmp <= 0) {
+    qCode += 2;
+  }
 
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[qCode + 1];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode++;
+  if (tmp <= 0) {
+    qCode++;
+  }
 
   return (qCode);
 }
@@ -67,10 +79,7 @@ XBT_INLINE_ int32_t BsearchHL(const int32_t absDiffSignalShifted,
   /* first iteration */
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)(97040 << 1);
   tmp_acc.s32.h -= absDiffSignalShifted;
-  if (tmp_acc.s64 <= 0)
-    return (1);
-  else
-    return (0);
+  return (tmp_acc.s64 <= 0);
 }
 
 XBT_INLINE_ int32_t BsearchHH(const int32_t absDiffSignalShifted,
@@ -86,11 +95,15 @@ XBT_INLINE_ int32_t BsearchHH(const int32_t absDiffSignalShifted,
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[2];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode += 2;
+  if (tmp <= 0) {
+    qCode += 2;
+  }
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[qCode + 1];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode++;
+  if (tmp <= 0) {
+    qCode++;
+  }
 
   return (qCode);
 }
@@ -109,16 +122,22 @@ XBT_INLINE_ int32_t BsearchLH(const int32_t absDiffSignalShifted,
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[4];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode = 4;
+  if (tmp <= 0) {
+    qCode = 4;
+  }
 
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[qCode + 2];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode += 2;
+  if (tmp <= 0) {
+    qCode += 2;
+  }
   tmp_acc.s64 = (int64_t)lc_delta * (int64_t)dqbitTablePrt[qCode + 1];
   tmp_acc.s32.h -= absDiffSignalShifted;
   tmp = tmp_acc.s32.h | (tmp_acc.u32.l >> 1);
-  if (tmp <= 0) qCode++;
+  if (tmp <= 0) {
+    qCode++;
+  }
 
   return (qCode);
 }
@@ -143,7 +162,9 @@ void quantiseDifferenceHL(const int32_t diffSignal, const int32_t ditherVal,
   /* Form the absolute value of the difference signal and maintain a version
    * that is right-shifted 4 places for delta scaling. */
   absDiffSignal = -diffSignal;
-  if (diffSignal >= 0) absDiffSignal = diffSignal;
+  if (diffSignal >= 0) {
+    absDiffSignal = diffSignal;
+  }
   absDiffSignal = ssat24(absDiffSignal);
   absDiffSignalShifted = absDiffSignal >> deltaScale;
   absDiffSignalShifted = ssat24(absDiffSignalShifted);
@@ -175,7 +196,9 @@ void quantiseDifferenceHL(const int32_t diffSignal, const int32_t ditherVal,
 
   acc = (acc >> 6) + 1;
   acc >>= 1;
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
 
   acc = ssat24(acc);
 
@@ -186,15 +209,17 @@ void quantiseDifferenceHL(const int32_t diffSignal, const int32_t ditherVal,
    * applied to the difference calculation. */
   minusLambdaD = qdata_pt->minusLambdaDTable[index];
 
-  tmp_accL = (1 << 23) - (int32_t)dithSquared;
+  tmp_accL = (1 << 23) - dithSquared;
   tmp_acc.s64 = (int64_t)tmp_accL * minusLambdaD;
 
-  tmp_round0 = (int32_t)tmp_acc.s32.l << 8;
+  tmp_round0 = tmp_acc.s32.l << 8;
 
   acc = (tmp_acc.u32.l >> 22) | (tmp_acc.s32.h << 10);
   acc++;
   acc >>= 1;
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
 
   // worst case value for acc = 0x000d3e08
   // no saturation required
@@ -214,18 +239,24 @@ void quantiseDifferenceHL(const int32_t diffSignal, const int32_t ditherVal,
   /* Based on the sign of the difference signal, either add or subtract the
    * threshold table difference from the accumulated value. Recover the final
    * accumulated value (saturated/rounded) */
-  if (diffSignal < 0) threshDiff = -threshDiff;
+  if (diffSignal < 0) {
+    threshDiff = -threshDiff;
+  }
   tmp_reg64.s64 = ((int64_t)ditherVal * (int64_t)threshDiff);
 
   tmp_reg64.s32.h += acc;
   acc = tmp_reg64.s32.h;
 
-  if (tmp_reg64.u32.l >= 0x80000000) acc++;
+  if (tmp_reg64.u32.l >= 0x80000000) {
+    acc++;
+  }
   tmp_round0 = (tmp_reg64.u32.l >> 1) | (tmp_reg64.s32.h << 31);
 
   acc = ssat24(acc);
 
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
   _delta = -delta << 8;
 
   acc = (int32_t)((uint32_t)acc << 4);
@@ -288,7 +319,9 @@ void quantiseDifferenceHH(const int32_t diffSignal, const int32_t ditherVal,
   /* Form the absolute value of the difference signal and maintain a version
    * that is right-shifted 4 places for delta scaling. */
   absDiffSignal = -diffSignal;
-  if (diffSignal >= 0) absDiffSignal = diffSignal;
+  if (diffSignal >= 0) {
+    absDiffSignal = diffSignal;
+  }
   absDiffSignal = ssat24(absDiffSignal);
   absDiffSignalShifted = absDiffSignal >> deltaScale;
   absDiffSignalShifted = ssat24(absDiffSignalShifted);
@@ -321,7 +354,9 @@ void quantiseDifferenceHH(const int32_t diffSignal, const int32_t ditherVal,
 
   acc = (acc >> 6) + 1;
   acc >>= 1;
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
 
   acc = ssat24(acc);
 
@@ -332,15 +367,17 @@ void quantiseDifferenceHH(const int32_t diffSignal, const int32_t ditherVal,
    * applied to the difference calculation. */
   minusLambdaD = qdata_pt->minusLambdaDTable[index];
 
-  tmp_accL = (1 << 23) - (int32_t)dithSquared;
+  tmp_accL = (1 << 23) - dithSquared;
   tmp_acc.s64 = (int64_t)tmp_accL * minusLambdaD;
 
-  tmp_round0 = (int32_t)tmp_acc.s32.l << 8;
+  tmp_round0 = tmp_acc.s32.l << 8;
 
   acc = (tmp_acc.u32.l >> 22) | (tmp_acc.s32.h << 10);
   acc++;
   acc >>= 1;
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
 
   // worst case value for acc = 0x000d3e08
   // no saturation required
@@ -360,17 +397,23 @@ void quantiseDifferenceHH(const int32_t diffSignal, const int32_t ditherVal,
   /* Based on the sign of the difference signal, either add or subtract the
    * threshold table difference from the accumulated value. Recover the final
    * accumulated value (saturated/rounded) */
-  if (diffSignal < 0) threshDiff = -threshDiff;
+  if (diffSignal < 0) {
+    threshDiff = -threshDiff;
+  }
   tmp_reg64.s64 = ((int64_t)ditherVal * (int64_t)threshDiff);
   tmp_reg64.s32.h += acc;
   acc = tmp_reg64.s32.h;
 
-  if (tmp_reg64.u32.l >= 0x80000000) acc++;
+  if (tmp_reg64.u32.l >= 0x80000000) {
+    acc++;
+  }
   tmp_round0 = (tmp_reg64.u32.l >> 1) | (tmp_reg64.s32.h << 31);
 
   acc = ssat24(acc);
 
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
   _delta = -delta << 8;
 
   acc = (int32_t)((uint32_t)acc << 4);
@@ -433,7 +476,9 @@ void quantiseDifferenceLL(const int32_t diffSignal, const int32_t ditherVal,
   /* Form the absolute value of the difference signal and maintain a version
    * that is right-shifted 4 places for delta scaling. */
   absDiffSignal = -diffSignal;
-  if (diffSignal >= 0) absDiffSignal = diffSignal;
+  if (diffSignal >= 0) {
+    absDiffSignal = diffSignal;
+  }
   absDiffSignal = ssat24(absDiffSignal);
   absDiffSignalShifted = absDiffSignal >> deltaScale;
 
@@ -465,7 +510,9 @@ void quantiseDifferenceLL(const int32_t diffSignal, const int32_t ditherVal,
 
   acc = (acc >> 6) + 1;
   acc >>= 1;
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
 
   acc = ssat24(acc);
 
@@ -476,16 +523,18 @@ void quantiseDifferenceLL(const int32_t diffSignal, const int32_t ditherVal,
    * applied to the difference calculation. */
   minusLambdaD = qdata_pt->minusLambdaDTable[index];
 
-  tmp_accL = (1 << 23) - (int32_t)dithSquared;
+  tmp_accL = (1 << 23) - dithSquared;
   tmp_acc.s64 = (int64_t)tmp_accL * minusLambdaD;
 
-  tmp_round0 = (int32_t)tmp_acc.s32.l << 8;
+  tmp_round0 = tmp_acc.s32.l << 8;
 
   tmp_acc.s64 >>= 22;
   acc = tmp_acc.s32.l;
   acc++;
   acc >>= 1;
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
 
   // worst case value for acc = 0x000d3e08
   // no saturation required
@@ -505,17 +554,23 @@ void quantiseDifferenceLL(const int32_t diffSignal, const int32_t ditherVal,
   /* Based on the sign of the difference signal, either add or subtract the
    * threshold table difference from the accumulated value. Recover the final
    * accumulated value (saturated/rounded) */
-  if (diffSignal < 0) threshDiff = -threshDiff;
+  if (diffSignal < 0) {
+    threshDiff = -threshDiff;
+  }
   tmp_reg64.s64 = ((int64_t)ditherVal * (int64_t)threshDiff);
   tmp_reg64.s32.h += acc;
   acc = tmp_reg64.s32.h;
 
-  if (tmp_reg64.u32.l >= 0x80000000) acc++;
+  if (tmp_reg64.u32.l >= 0x80000000) {
+    acc++;
+  }
   tmp_round0 = (tmp_reg64.u32.l >> 1) | (tmp_reg64.s32.h << 31);
 
   acc = ssat24(acc);
 
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
   _delta = -delta << 8;
 
   acc = (int32_t)((uint32_t)acc << 4);
@@ -579,7 +634,9 @@ void quantiseDifferenceLH(const int32_t diffSignal, const int32_t ditherVal,
   /* Form the absolute value of the difference signal and maintain a version
    * that is right-shifted 4 places for delta scaling. */
   absDiffSignal = -diffSignal;
-  if (diffSignal >= 0) absDiffSignal = diffSignal;
+  if (diffSignal >= 0) {
+    absDiffSignal = diffSignal;
+  }
   absDiffSignal = ssat24(absDiffSignal);
   absDiffSignalShifted = absDiffSignal >> deltaScale;
 
@@ -611,7 +668,9 @@ void quantiseDifferenceLH(const int32_t diffSignal, const int32_t ditherVal,
 
   acc = (acc >> 6) + 1;
   acc >>= 1;
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
 
   acc = ssat24(acc);
 
@@ -622,13 +681,15 @@ void quantiseDifferenceLH(const int32_t diffSignal, const int32_t ditherVal,
    * applied to the difference calculation. */
   minusLambdaD = qdata_pt->minusLambdaDTable[index];
 
-  tmp_accL = (1 << 23) - (int32_t)dithSquared;
+  tmp_accL = (1 << 23) - dithSquared;
   tmp_acc.s64 = (int64_t)tmp_accL * minusLambdaD;
 
-  tmp_round0 = (int32_t)tmp_acc.s32.l << 8;
+  tmp_round0 = tmp_acc.s32.l << 8;
 
   acc = (tmp_acc.u32.l >> 22) | (tmp_acc.s32.h << 10);
-  if (tmp_round0 == 0x40000000L) acc -= 2;
+  if (tmp_round0 == 0x40000000L) {
+    acc -= 2;
+  }
   acc++;
 
   // worst case value for acc = 0x000d3e08
@@ -648,18 +709,24 @@ void quantiseDifferenceLH(const int32_t diffSignal, const int32_t ditherVal,
   /* Based on the sign of the difference signal, either add or subtract the
    * threshold table difference from the accumulated value. Recover the final
    * accumulated value (saturated/rounded) */
-  if (diffSignal < 0) threshDiff = -threshDiff;
+  if (diffSignal < 0) {
+    threshDiff = -threshDiff;
+  }
   tmp_reg64.s64 = ((int64_t)ditherVal * (int64_t)threshDiff);
 
   tmp_reg64.s32.h += acc;
   acc = tmp_reg64.s32.h;
 
-  if (tmp_reg64.u32.l >= 0x80000000) acc++;
+  if (tmp_reg64.u32.l >= 0x80000000) {
+    acc++;
+  }
   tmp_round0 = (tmp_reg64.u32.l >> 1) | (tmp_reg64.s32.h << 31);
 
   acc = ssat24(acc);
 
-  if (tmp_round0 == 0x40000000L) acc--;
+  if (tmp_round0 == 0x40000000L) {
+    acc--;
+  }
   _delta = -delta << 8;
 
   acc = (int32_t)((uint32_t)acc << 4);

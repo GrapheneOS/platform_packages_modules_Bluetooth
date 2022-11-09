@@ -65,13 +65,12 @@ APTXHDBTENCEXPORT const char* aptxhdbtenc_version() { return (swversion); }
 
 APTXHDBTENCEXPORT int aptxhdbtenc_init(void* _state, short endian) {
   aptxhdbtenc* state = (aptxhdbtenc*)_state;
-  int32_t j = 0;
-  int32_t k;
-  int32_t t;
 
   clearmem_HD(_state, sizeof(aptxhdbtenc));
 
-  if (state == 0) return 1;
+  if (state == 0) {
+    return 1;
+  }
   state->m_syncWordPhase = 7L;
 
   if (endian == 0) {
@@ -80,7 +79,7 @@ APTXHDBTENCEXPORT int aptxhdbtenc_init(void* _state, short endian) {
     state->m_endian = 8;
   }
 
-  for (j = 0; j < 2; j++) {
+  for (int j = 0; j < 2; j++) {
     Encoder_data* encode_dat = &state->m_encoderData[j];
     uint32_t i;
 
@@ -123,7 +122,7 @@ APTXHDBTENCEXPORT int aptxhdbtenc_init(void* _state, short endian) {
       encode_dat->m_SubbandData[i].m_predData.m_zeroDelayLine.modulo =
           subbandParameters[i].numZeros;
 
-      for (t = 0; t < 48; t++) {
+      for (int t = 0; t < 48; t++) {
         encode_dat->m_SubbandData[i].m_predData.m_zeroDelayLine.buffer[t] = 0;
       }
 
@@ -138,7 +137,7 @@ APTXHDBTENCEXPORT int aptxhdbtenc_init(void* _state, short endian) {
       encode_dat->m_SubbandData[i].m_predData.m_poleDelayLine[0] = 0L;
       encode_dat->m_SubbandData[i].m_predData.m_poleDelayLine[1] = 0L;
 
-      for (k = 0; k < 24; k++) {
+      for (int k = 0; k < 24; k++) {
         encode_dat->m_SubbandData[i].m_ZeroCoeffData.m_zeroCoeff[k] = 0;
       }
 
@@ -165,7 +164,6 @@ APTXHDBTENCEXPORT int aptxhdbtenc_encodestereo(void* _state, void* _pcmL,
   int32_t* pcmL = (int32_t*)_pcmL;
   int32_t* pcmR = (int32_t*)_pcmR;
   int32_t* buffer = (int32_t*)_buffer;
-  int32_t tmp_reg;
 
   // Feed the PCM to the dual aptX HD encoders
   aptxhdEncode(pcmL, &state->m_qmf_l, &state->m_encoderData[0]);
@@ -179,11 +177,8 @@ APTXHDBTENCEXPORT int aptxhdbtenc_encodestereo(void* _state, void* _pcmL,
   aptxhdPostEncode(&state->m_encoderData[1]);
 
   // Pack the (possibly adjusted) codes into a 24-bit codeword per channel
-  tmp_reg = packCodeword(&state->m_encoderData[0]);
-  buffer[0] = (int32_t)tmp_reg;
-
-  tmp_reg = packCodeword(&state->m_encoderData[1]);
-  buffer[1] = (int32_t)tmp_reg;
+  buffer[0] = packCodeword(&state->m_encoderData[0]);
+  buffer[1] = packCodeword(&state->m_encoderData[1]);
 
   return 0;
 }
