@@ -7,6 +7,8 @@ tidy_errors = [
     "-cppcoreguidelines-init-variables",
     "-cppcoreguidelines-narrowing-conversions",
     "-hicpp-signed-bitwise",
+    "-llvm-header-guard",
+    "-readability-avoid-const-params-in-decls",
     "-readability-identifier-length",
     "-readability-magic-numbers",
 ]
