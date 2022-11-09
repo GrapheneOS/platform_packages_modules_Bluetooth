@@ -147,20 +147,36 @@ XBT_INLINE_ void QmfAnalysisFilter(const int32_t pcm[4], Qmf_storage* Qmf_St,
    * per-subband basis. Ensure these values are saturated, if necessary.
    * Manual unrolling */
   aqmfOutputs[LL] = filterOutputs[LL] - predVals[LL];
-  if (aqmfOutputs[LL] > 8388607) aqmfOutputs[LL] = 8388607;
-  if (aqmfOutputs[LL] < -8388608) aqmfOutputs[LL] = -8388608;
+  if (aqmfOutputs[LL] > 8388607) {
+    aqmfOutputs[LL] = 8388607;
+  }
+  if (aqmfOutputs[LL] < -8388608) {
+    aqmfOutputs[LL] = -8388608;
+  }
 
   aqmfOutputs[LH] = filterOutputs[LH] - predVals[LH];
-  if (aqmfOutputs[LH] > 8388607) aqmfOutputs[LH] = 8388607;
-  if (aqmfOutputs[LH] < -8388608) aqmfOutputs[LH] = -8388608;
+  if (aqmfOutputs[LH] > 8388607) {
+    aqmfOutputs[LH] = 8388607;
+  }
+  if (aqmfOutputs[LH] < -8388608) {
+    aqmfOutputs[LH] = -8388608;
+  }
 
   aqmfOutputs[HL] = filterOutputs[HL] - predVals[HL];
-  if (aqmfOutputs[HL] > 8388607) aqmfOutputs[HL] = 8388607;
-  if (aqmfOutputs[HL] < -8388608) aqmfOutputs[HL] = -8388608;
+  if (aqmfOutputs[HL] > 8388607) {
+    aqmfOutputs[HL] = 8388607;
+  }
+  if (aqmfOutputs[HL] < -8388608) {
+    aqmfOutputs[HL] = -8388608;
+  }
 
   aqmfOutputs[HH] = filterOutputs[HH] - predVals[HH];
-  if (aqmfOutputs[HH] > 8388607) aqmfOutputs[HH] = 8388607;
-  if (aqmfOutputs[HH] < -8388608) aqmfOutputs[HH] = -8388608;
+  if (aqmfOutputs[HH] > 8388607) {
+    aqmfOutputs[HH] = 8388607;
+  }
+  if (aqmfOutputs[HH] < -8388608) {
+    aqmfOutputs[HH] = -8388608;
+  }
 
   (Qmf_St->QmfO_pt) = lc_QmfO_pt;
   (Qmf_St->QmfI_pt) = lc_QmfI_pt;

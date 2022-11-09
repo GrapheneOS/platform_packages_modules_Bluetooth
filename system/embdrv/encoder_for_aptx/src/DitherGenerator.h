@@ -29,7 +29,7 @@
 /* This function updates an internal bit-pool (private
  * variable in DitherGenerator) based on bits obtained from
  * previously encoded or received aptX codewords. */
-XBT_INLINE_ int32_t xbtEncupdateCodewordHistory(int32_t quantisedCodes[4],
+XBT_INLINE_ int32_t xbtEncupdateCodewordHistory(const int32_t quantisedCodes[4],
                                                 int32_t m_codewordHistory) {
   int32_t newBits;
   int32_t updatedCodewordHistory;
@@ -62,7 +62,8 @@ XBT_INLINE_ int32_t xbtEncupdateCodewordHistory(int32_t quantisedCodes[4],
 XBT_INLINE_ int32_t xbtEncgenerateDither(int32_t m_codewordHistory,
                                          int32_t* m_ditherOutputs) {
   int32_t history24b;
-  int32_t upperAcc, lowerAcc;
+  int32_t upperAcc;
+  int32_t lowerAcc;
   int32_t accSum;
   int64_t tmp_acc;
   int32_t ditherSample;
