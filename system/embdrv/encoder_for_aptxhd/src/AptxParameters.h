@@ -45,8 +45,12 @@
 
 /* Signed saturate to a 24bit value */
 XBT_INLINE_ int32_t ssat24(int32_t val) {
-  if (val > 0x7FFFFF) val = 0x7FFFFF;
-  if (val < -0x800000) val = -0x800000;
+  if (val > 0x7FFFFF) {
+    val = 0x7FFFFF;
+  }
+  if (val < -0x800000) {
+    val = -0x800000;
+  }
   return val;
 }
 

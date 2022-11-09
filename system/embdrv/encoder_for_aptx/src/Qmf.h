@@ -77,8 +77,9 @@ void AsmQmfConvI(const int32_t* p1dl_buffPtr, const int32_t* p2dl_buffPtr,
 void AsmQmfConvO(const int16_t* p1dl_buffPtr, const int16_t* p2dl_buffPtr,
                  const int32_t* coeffPtr, int32_t* convSumDiff);
 
-XBT_INLINE_ void QmfAnalysisFilter(int32_t pcm[4], Qmf_storage* Qmf_St,
-                                   int32_t* predVals, int32_t* aqmfOutputs) {
+XBT_INLINE_ void QmfAnalysisFilter(const int32_t pcm[4], Qmf_storage* Qmf_St,
+                                   const int32_t predVals[4],
+                                   int32_t* aqmfOutputs) {
   int32_t convSumDiff[4];
   int32_t filterOutputs[4];
 
