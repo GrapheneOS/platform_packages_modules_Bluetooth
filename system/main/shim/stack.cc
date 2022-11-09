@@ -36,6 +36,7 @@
 #include "gd/hci/hci_layer.h"
 #include "gd/hci/le_advertising_manager.h"
 #include "gd/hci/le_scanning_manager.h"
+#include "gd/hci/msft.h"
 #include "gd/hci/vendor_specific_event_manager.h"
 #include "gd/l2cap/classic/l2cap_classic_module.h"
 #include "gd/l2cap/le/l2cap_le_module.h"
@@ -158,6 +159,7 @@ void Stack::StartEverything() {
     modules.add<security::SecurityModule>();
   }
   modules.add<hci::LeAdvertisingManager>();
+  modules.add<hci::MsftExtensionManager>();
   modules.add<hci::LeScanningManager>();
   if (common::init_flags::btaa_hci_is_enabled()) {
     modules.add<activity_attribution::ActivityAttribution>();
