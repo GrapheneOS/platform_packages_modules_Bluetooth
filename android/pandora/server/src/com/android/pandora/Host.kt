@@ -123,7 +123,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
   }
 
   override fun hardReset(request: Empty, responseObserver: StreamObserver<Empty>) {
-    grpcUnary<Empty>(scope, responseObserver) {
+    grpcUnary<Empty>(scope, responseObserver, 6) {
       Log.i(TAG, "hardReset")
 
       bluetoothAdapter.clearBluetooth()
