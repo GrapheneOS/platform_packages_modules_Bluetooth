@@ -750,6 +750,7 @@ public class BassClientStateMachine extends StateMachine {
                     BassConstants.BCAST_RCVR_STATE_SRC_ADDR_SIZE);
             byte sourceAddressType = receiverState[BassConstants
                     .BCAST_RCVR_STATE_SRC_ADDR_TYPE_IDX];
+            BassUtils.reverse(sourceAddress);
             String address = Utils.getAddressStringFromByte(sourceAddress);
             BluetoothDevice device = btAdapter.getRemoteLeDevice(
                     address, sourceAddressType);
@@ -1267,7 +1268,9 @@ public class BassClientStateMachine extends StateMachine {
         stream.write(metaData.getSourceAddressType());
 
         // Advertiser_Address
-        stream.write(Utils.getBytesFromAddress(advSource.getAddress()), 0, 6);
+        byte[] bcastSourceAddr = Utils.getBytesFromAddress(advSource.getAddress());
+        BassUtils.reverse(bcastSourceAddr);
+        stream.write(bcastSourceAddr, 0, 6);
         log("Address bytes: " + advSource.getAddress());
 
         // Advertising_SID
