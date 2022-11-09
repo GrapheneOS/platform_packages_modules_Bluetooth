@@ -111,8 +111,10 @@ public class AtPhonebookTest {
     @Test
     public void handleCpbsCommand() {
         mAtPhonebook.handleCpbsCommand(INVALID_COMMAND, AtPhonebook.TYPE_READ, mTestDevice);
+        int size = mAtPhonebook.getPhonebookResult("ME", true).cursor.getCount();
+        int maxSize = mAtPhonebook.getMaxPhoneBookSize(size);
         verify(mNativeInterface).atResponseString(mTestDevice,
-                "+CPBS: \"" + "ME" + "\"," + 0 + "," + 256);
+                "+CPBS: \"" + "ME" + "\"," + size + "," + maxSize);
 
         mAtPhonebook.handleCpbsCommand(INVALID_COMMAND, AtPhonebook.TYPE_TEST, mTestDevice);
         verify(mNativeInterface).atResponseString(mTestDevice,
@@ -138,7 +140,11 @@ public class AtPhonebookTest {
     @Test
     public void handleCpbrCommand() {
         mAtPhonebook.handleCpbrCommand(INVALID_COMMAND, AtPhonebook.TYPE_TEST, mTestDevice);
-        verify(mNativeInterface).atResponseString(mTestDevice, "+CPBR: (1-" + 1 + "),30,30");
+        int size = mAtPhonebook.getPhonebookResult("ME", true).cursor.getCount();
+        if (size == 0) {
+            size = 1;
+        }
+        verify(mNativeInterface).atResponseString(mTestDevice, "+CPBR: (1-" + size + "),30,30");
         verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK,
                 -1);
 
