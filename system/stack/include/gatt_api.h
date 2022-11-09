@@ -1063,8 +1063,7 @@ extern void GATT_StartIf(tGATT_IF gatt_if);
  *
  * Parameters       gatt_if: applicaiton interface
  *                  bd_addr: peer device address.
- *                  is_direct: is a direct connection or a background auto
- *                             connection
+ *                  connection_type: connection type
  *                  transport : Physical transport for GATT connection
  *                              (BR/EDR or LE)
  *                  opportunistic: will not keep device connected if other apps
@@ -1075,11 +1074,12 @@ extern void GATT_StartIf(tGATT_IF gatt_if);
  *
  ******************************************************************************/
 extern bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
-                         bool is_direct, tBT_TRANSPORT transport,
-                         bool opportunistic);
+                         tBTM_BLE_CONN_TYPE connection_type,
+                         tBT_TRANSPORT transport, bool opportunistic);
 extern bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
-                         bool is_direct, tBT_TRANSPORT transport,
-                         bool opportunistic, uint8_t initiating_phys);
+                         tBTM_BLE_CONN_TYPE connection_type,
+                         tBT_TRANSPORT transport, bool opportunistic,
+                         uint8_t initiating_phys);
 
 /*******************************************************************************
  *

@@ -324,13 +324,13 @@ class HearingAidImpl : public HearingAid {
   void Connect(const RawAddress& address) override {
     LOG_DEBUG("%s", address.ToStringForLogging().c_str());
     hearingDevices.Add(HearingDevice(address, true));
-    BTA_GATTC_Open(gatt_if, address, true, false);
+    BTA_GATTC_Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, false);
   }
 
   void AddToAcceptlist(const RawAddress& address) override {
     LOG_DEBUG("%s", address.ToStringForLogging().c_str());
     hearingDevices.Add(HearingDevice(address, true));
-    BTA_GATTC_Open(gatt_if, address, false, false);
+    BTA_GATTC_Open(gatt_if, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
   }
 
   void AddFromStorage(const HearingDevice& dev_info, uint16_t is_acceptlisted) {
@@ -345,7 +345,8 @@ class HearingAidImpl : public HearingAid {
       // BTM_BleSetConnScanParams(2048, 1024);
 
       /* add device into BG connection to accept remote initiated connection */
-      BTA_GATTC_Open(gatt_if, dev_info.address, false, false);
+      BTA_GATTC_Open(gatt_if, dev_info.address, BTM_BLE_BKG_CONNECT_ALLOW_LIST,
+                     false);
     }
 
     callbacks->OnDeviceAvailable(dev_info.capabilities, dev_info.hi_sync_id,
@@ -1664,7 +1665,8 @@ class HearingAidImpl : public HearingAid {
 
     // This is needed just for the first connection. After stack is restarted,
     // code that loads device will add them to acceptlist.
-    BTA_GATTC_Open(gatt_if, hearingDevice->address, false, false);
+    BTA_GATTC_Open(gatt_if, hearingDevice->address,
+                   BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
 
     callbacks->OnConnectionState(ConnectionState::DISCONNECTED, remote_bda);
 
