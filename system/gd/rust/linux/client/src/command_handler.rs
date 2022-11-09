@@ -165,7 +165,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
         String::from("advertise"),
         CommandOption {
             rules: vec![
-                String::from("advertise <on|off>"),
+                String::from("advertise <on|off|ext>"),
                 String::from("advertise set-interval <ms>"),
                 String::from("advertise set-scan-rsp <enable|disable>"),
             ],
@@ -951,35 +951,20 @@ impl CommandHandler {
         }
         let callback_id = self.context.lock().unwrap().advertiser_callback_id.clone().unwrap();
 
-        let cmd_usage = "advertise <on|off|set-interval|set-scan-rsp>";
+        let cmd_usage = "advertise <on|off|ext|set-interval|set-scan-rsp>";
         enforce_arg_len(args, 1, cmd_usage, || match &args[0][0..] {
             "on" => {
-                let mut context = self.context.lock().unwrap();
-
-                let s = AdvSet::new();
-                let reg_id = context.gatt_dbus.as_mut().unwrap().start_advertising_set(
-                    s.params.clone(),
-                    s.data.clone(),
-                    None,
-                    None,
-                    None,
-                    0,
-                    0,
-                    callback_id,
-                );
-                print_info!("Starting advertising set for reg_id = {}", reg_id);
-                context.adv_sets.insert(reg_id, s);
+                print_info!("Creating legacy advertising set...");
+                let s = AdvSet::new(true); // legacy advertising
+                AdvSet::start(self.context.clone(), s, callback_id);
             }
             "off" => {
-                let mut context = self.context.lock().unwrap();
-
-                let adv_ids: Vec<_> =
-                    context.adv_sets.iter().filter_map(|(_, s)| s.adv_id).collect();
-                for adv_id in adv_ids {
-                    print_info!("Stopping advertising set {}", adv_id);
-                    context.gatt_dbus.as_mut().unwrap().stop_advertising_set(adv_id);
-                }
-                context.adv_sets.clear();
+                AdvSet::stop_all(self.context.clone());
+            }
+            "ext" => {
+                print_info!("Creating extended advertising set...");
+                let s = AdvSet::new(false); // extended advertising
+                AdvSet::start(self.context.clone(), s, callback_id);
             }
             "set-interval" => {
                 if args.len() < 2 {
