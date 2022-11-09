@@ -50,7 +50,7 @@ static const int32_t IQuant_tableLogT[32] = {
     28160 * 256, 28776 * 256, 29408 * 256, 30048 * 256, 30704 * 256,
     31376 * 256, 32064 * 256};
 
-void clearmem_HD(void* mem, int32_t sz) {
+static void clearmem_HD(void* mem, int32_t sz) {
   int8_t* m = (int8_t*)mem;
   int32_t i = 0;
   for (; i < sz; i++) {

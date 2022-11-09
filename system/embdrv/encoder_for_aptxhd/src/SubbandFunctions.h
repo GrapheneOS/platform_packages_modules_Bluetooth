@@ -127,7 +127,7 @@ XBT_INLINE_ void updatePredictorPoleCoefficients(
    * back out. */
   acc2 = PoleCoeffDataPt->m_poleCoeff[a2] << 8;
   acc2 -= PoleCoeffDataPt->m_poleCoeff[a2] << 1;
-  Bacc <<= 8;
+  Bacc = (int32_t)((uint32_t)Bacc << 8);
   Bacc += acc2;
 
   tmp2_round0 = (int16_t)Bacc & 0x01FFL;

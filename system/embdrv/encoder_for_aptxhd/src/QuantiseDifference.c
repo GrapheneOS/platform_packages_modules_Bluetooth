@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "AptxParameters.h"
+
+#include "Quantiser.h"
 
 XBT_INLINE_ int32_t BsearchLL(const int32_t absDiffSignalShifted,
                               const int32_t delta,
@@ -232,7 +233,7 @@ void quantiseDifference_HDHL(const int32_t diffSignal, const int32_t ditherVal,
   if (tmp_round0 == 0x40000000L) acc--;
   _delta = -delta << 8;
 
-  acc = acc << 4;
+  acc = (int32_t)((uint32_t)acc << 4);
 
   /* Form (absDiffSignal * 0.125) - (acc * delta), which is the final distance
    * signal used to determine if dithering alters the quantised code value or
@@ -375,7 +376,7 @@ void quantiseDifference_HDHH(const int32_t diffSignal, const int32_t ditherVal,
   if (tmp_round0 == 0x40000000L) acc--;
   _delta = -delta << 8;
 
-  acc = acc << 4;
+  acc = (int32_t)((uint32_t)acc << 4);
 
   /* Form (absDiffSignal * 0.125) - (acc * delta), which is the final distance
    * signal used to determine if dithering alters the quantised code value or
@@ -443,8 +444,6 @@ void quantiseDifference_HDLL(const int32_t diffSignal, const int32_t ditherVal,
    * table index of the LARGEST threshold table value for which
    * absDiffSignalShifted >= (delta * threshold)
    */
-  index = 0;
-
   index =
       BsearchLL(absDiffSignalShifted, delta, qdata_pt->thresholdTablePtr_sl1);
 
@@ -522,7 +521,7 @@ void quantiseDifference_HDLL(const int32_t diffSignal, const int32_t ditherVal,
   if (tmp_round0 == 0x40000000L) acc--;
   _delta = -delta << 8;
 
-  acc = acc << 4;
+  acc = (int32_t)((uint32_t)acc << 4);
 
   /* Form (absDiffSignal * 0.125) - (acc * delta), which is the final distance
    * signal used to determine if dithering alters the quantised code value or
@@ -564,8 +563,8 @@ void quantiseDifference_HDLL(const int32_t diffSignal, const int32_t ditherVal,
   qdata_pt->qCode = tmp_qCode;
 }
 
-int32_t BsearchLH(const int32_t absDiffSignalShifted, const int32_t delta,
-                  const int32_t* dqbitTablePrt) {
+static int32_t BsearchLH(const int32_t absDiffSignalShifted,
+                         const int32_t delta, const int32_t* dqbitTablePrt) {
   int32_t qCode;
   reg64_t tmp_acc;
   int32_t tmp;
@@ -711,7 +710,7 @@ void quantiseDifference_HDLH(const int32_t diffSignal, const int32_t ditherVal,
   if (tmp_round0 == 0x40000000L) acc--;
   _delta = -delta << 8;
 
-  acc = acc << 4;
+  acc = (int32_t)((uint32_t)acc << 4);
 
   /* Form (absDiffSignal * 0.125) - (acc * delta), which is the final distance
    * signal used to determine if dithering alters the quantised code value or
