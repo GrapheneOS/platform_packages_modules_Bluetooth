@@ -51,7 +51,7 @@ APTXHDBTENCEXPORT const char* aptxhdbtenc_version(void);
 APTXHDBTENCEXPORT int aptxhdbtenc_init(void* _state, short endian);
 
 /* StereoEncode will take 8 audio samples (24-bit per sample)
- * and generate one 24-bit codeword with autosync inserted.
+ * and generate two 24-bit codeword with autosync inserted.
  * The bitstream is compatible with be BC05 implementation. */
 APTXHDBTENCEXPORT int aptxhdbtenc_encodestereo(void* _state, void* _pcmL,
                                                void* _pcmR, void* _buffer);
