@@ -187,8 +187,7 @@ class IUT:
         # Handles HFP MMIs.
         if profile in ('HFP'):
             if not self._hfp:
-                self._hfp = HFPProxy(test, grpc.insecure_channel(f'localhost:{self.pandora_server_port}'),
-                                     self.rootcanal, self.modem)
+                self._hfp = HFPProxy(grpc.insecure_channel(f'localhost:{self.pandora_server_port}'))
             return self._hfp.interact(test, interaction, description, pts_address)
         # Handles HID MMIs.
         if profile in ('HID'):
