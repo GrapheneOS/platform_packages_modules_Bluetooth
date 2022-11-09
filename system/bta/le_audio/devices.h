@@ -23,10 +23,10 @@
 #include <tuple>
 #include <vector>
 
+#include "audio_hal_client/audio_hal_client.h"
 #include "bt_types.h"
 #include "bta_groups.h"
 #include "btm_iso_api_types.h"
-#include "client_audio.h"
 #include "gatt_api.h"
 #include "le_audio_types.h"
 #include "osi/include/alarm.h"
