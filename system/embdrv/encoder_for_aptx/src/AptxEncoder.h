@@ -35,7 +35,7 @@
 #include "SubbandFunctionsCommon.h"
 
 /* Function to carry out a single-channel aptX encode on 4 new PCM samples */
-XBT_INLINE_ void aptxEncode(int32_t pcm[4], Qmf_storage* Qmf_St,
+XBT_INLINE_ void aptxEncode(const int32_t pcm[4], Qmf_storage* Qmf_St,
                             Encoder_data* EncoderDataPt) {
   int32_t predVals[4];
   int32_t qCodes[4];
