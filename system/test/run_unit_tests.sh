@@ -10,6 +10,7 @@ known_tests=(
   net_test_bluetooth
   net_test_btcore
   net_test_bta
+  net_test_bta_security
   net_test_btif
   net_test_btif_profile_queue
   net_test_btif_config_cache
@@ -118,6 +119,9 @@ do
   name="${spec%%.*}"
   if [[ $target_arch == *"64"* ]]; then
     binary="/data/nativetest64/${name}/${name}"
+    if [ -e "${ANDROID_PRODUCT_OUT}${binary}64" ]; then
+      binary="/data/nativetest64/${name}/${name}64"
+    fi
   else
     binary="/data/nativetest/${name}/${name}"
   fi
