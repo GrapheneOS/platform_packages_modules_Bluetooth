@@ -396,14 +396,25 @@ typedef struct {
 } tBTA_DM_DI_CB;
 
 /* DM search state */
-enum {
+typedef enum {
 
   BTA_DM_SEARCH_IDLE,
   BTA_DM_SEARCH_ACTIVE,
   BTA_DM_SEARCH_CANCELLING,
   BTA_DM_DISCOVER_ACTIVE
 
-};
+} tBTA_DM_STATE;
+
+inline std::string bta_dm_state_text(const tBTA_DM_STATE& state) {
+  switch (state) {
+    CASE_RETURN_TEXT(BTA_DM_SEARCH_IDLE);
+    CASE_RETURN_TEXT(BTA_DM_SEARCH_ACTIVE);
+    CASE_RETURN_TEXT(BTA_DM_SEARCH_CANCELLING);
+    CASE_RETURN_TEXT(BTA_DM_DISCOVER_ACTIVE);
+    default:
+      return base::StringPrintf("UNKNOWN[%d]", state);
+  }
+}
 
 typedef struct {
   uint16_t page_timeout; /* timeout for page in slots */
