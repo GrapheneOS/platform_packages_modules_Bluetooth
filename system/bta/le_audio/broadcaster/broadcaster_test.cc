@@ -33,6 +33,7 @@
 
 using namespace std::chrono_literals;
 
+using le_audio::types::AudioContexts;
 using le_audio::types::LeAudioContextType;
 
 using testing::_;
@@ -536,13 +537,11 @@ TEST_F(BroadcasterTest, UpdateMetadataFromAudioTrackMetadata) {
 
   // Verify context type
   ASSERT_NE(context_types_map.size(), 0u);
-  uint16_t context_type;
+  AudioContexts context_type;
   auto pp = context_types_map.data();
-  STREAM_TO_UINT16(context_type, pp);
-  ASSERT_NE(context_type &
-                static_cast<std::underlying_type<LeAudioContextType>::type>(
-                    LeAudioContextType::MEDIA | LeAudioContextType::GAME),
-            0);
+  STREAM_TO_UINT16(context_type.value_ref(), pp);
+  ASSERT_TRUE(context_type.test_all(LeAudioContextType::MEDIA |
+                                    LeAudioContextType::GAME));
 }
 
 TEST_F(BroadcasterTest, GetMetadata) {

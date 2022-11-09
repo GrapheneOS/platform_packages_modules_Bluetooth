@@ -438,10 +438,10 @@ class LeAudioAseConfigurationTest : public Test {
       device->ases_.push_back(ase);
     }
 
-    device->SetSupportedContexts((uint16_t)kLeAudioContextAllTypes,
-                                 (uint16_t)kLeAudioContextAllTypes);
-    device->SetAvailableContexts((uint16_t)kLeAudioContextAllTypes,
-                                 (uint16_t)kLeAudioContextAllTypes);
+    device->SetSupportedContexts(AudioContexts(kLeAudioContextAllTypes),
+                                 AudioContexts(kLeAudioContextAllTypes));
+    device->SetAvailableContexts(AudioContexts(kLeAudioContextAllTypes),
+                                 AudioContexts(kLeAudioContextAllTypes));
     device->snk_audio_locations_ =
         ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft |
         ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight;
@@ -515,12 +515,10 @@ class LeAudioAseConfigurationTest : public Test {
       data[i].device->src_pacs_ = src_pac_builder.Get();
     }
 
-    /* Stimulate update of active context map */
-    group_->UpdateActiveContextsMap(static_cast<uint16_t>(context_type));
-    ASSERT_EQ(
-        success_expected,
-        group_->Configure(context_type,
-                          AudioContexts(static_cast<uint16_t>(context_type))));
+    /* Stimulate update of available context map */
+    group_->UpdateAudioContextTypeAvailability(AudioContexts(context_type));
+    ASSERT_EQ(success_expected,
+              group_->Configure(context_type, AudioContexts(context_type)));
 
     for (int i = 0; i < data_size; i++) {
       TestGroupAseConfigurationVerdict(data[i]);
@@ -588,10 +586,10 @@ class LeAudioAseConfigurationTest : public Test {
           interesting_configuration = false;
         }
       }
-      /* Stimulate update of active context map */
-      group_->UpdateActiveContextsMap(static_cast<uint16_t>(context_type));
-      auto configuration_result = group_->Configure(
-          context_type, AudioContexts(static_cast<uint16_t>(context_type)));
+      /* Stimulate update of available context map */
+      group_->UpdateAudioContextTypeAvailability(AudioContexts(context_type));
+      auto configuration_result =
+          group_->Configure(context_type, AudioContexts(context_type));
 
       /* In case of configuration #ase is same as the one we expected to be
        * activated verify, ASEs are actually active */
@@ -701,13 +699,12 @@ class LeAudioAseConfigurationTest : public Test {
               success_expected = false;
             }
 
-            /* Stimulate update of active context map */
-            group_->UpdateActiveContextsMap(
-                static_cast<uint16_t>(context_type));
-            ASSERT_EQ(success_expected,
-                      group_->Configure(
-                          context_type,
-                          AudioContexts(static_cast<uint16_t>(context_type))));
+            /* Stimulate update of available context map */
+            group_->UpdateAudioContextTypeAvailability(
+                AudioContexts(context_type));
+            ASSERT_EQ(
+                success_expected,
+                group_->Configure(context_type, AudioContexts(context_type)));
             if (success_expected) {
               TestAsesActive(LeAudioCodecIdLc3, sampling_frequency,
                              frame_duration, octets_per_frame);
@@ -980,9 +977,10 @@ TEST_F(LeAudioAseConfigurationTest, test_reconnection_media) {
   std::vector<uint8_t> ccid_list;
   for (auto& ent : configuration->confs) {
     if (ent.direction == ::le_audio::types::kLeAudioDirectionSink) {
-      left->ConfigureAses(ent, group_->GetCurrentContextType(),
+      left->ConfigureAses(ent, group_->GetConfigurationContextType(),
                           &number_of_active_ases, group_snk_audio_location,
-                          group_src_audio_location, false, 0, ccid_list);
+                          group_src_audio_location, false,
+                          ::le_audio::types::AudioContexts(), ccid_list);
     }
   }
 

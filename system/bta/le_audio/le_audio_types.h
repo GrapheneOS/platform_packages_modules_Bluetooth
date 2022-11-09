@@ -369,6 +369,75 @@ enum class LeAudioContextType : uint16_t {
   RFU = 0x1000,
 };
 
+class AudioContexts {
+  using T = std::underlying_type<LeAudioContextType>::type;
+  T mValue;
+
+ public:
+  explicit constexpr AudioContexts()
+      : mValue(static_cast<T>(LeAudioContextType::UNINITIALIZED)) {}
+  explicit constexpr AudioContexts(const T& v) : mValue(v) {}
+  explicit constexpr AudioContexts(const LeAudioContextType& v)
+      : mValue(static_cast<T>(v)) {}
+  constexpr AudioContexts(const AudioContexts& other)
+      : mValue(static_cast<T>(other.value())) {}
+
+  constexpr T value() const { return mValue; }
+  T& value_ref() { return mValue; }
+  bool none() const {
+    return mValue == static_cast<T>(LeAudioContextType::UNINITIALIZED);
+  }
+  bool any() const { return !none(); }
+
+  void set(LeAudioContextType const& v) { mValue |= static_cast<T>(v); }
+  void unset(const LeAudioContextType& v) { mValue &= ~static_cast<T>(v); }
+
+  bool test(const LeAudioContextType& v) const {
+    return (mValue & static_cast<T>(v)) != 0;
+  }
+  bool test_all(const AudioContexts& v) const {
+    return (mValue & v.value()) == v.value();
+  }
+  bool test_any(const AudioContexts& v) const {
+    return (mValue & v.value()) != 0;
+  }
+  void clear() { mValue = static_cast<T>(LeAudioContextType::UNINITIALIZED); }
+
+  std::string to_string() const;
+
+  AudioContexts& operator=(AudioContexts&& other) = default;
+  AudioContexts& operator=(const AudioContexts&) = default;
+};
+
+AudioContexts operator|(std::underlying_type<LeAudioContextType>::type lhs,
+                        const LeAudioContextType rhs);
+AudioContexts& operator|=(AudioContexts& lhs, AudioContexts const& rhs);
+AudioContexts& operator&=(AudioContexts& lhs, AudioContexts const& rhs);
+
+constexpr AudioContexts operator^(const AudioContexts& lhs,
+                                  const AudioContexts& rhs) {
+  return AudioContexts(lhs.value() ^ rhs.value());
+}
+constexpr AudioContexts operator|(const AudioContexts& lhs,
+                                  const AudioContexts& rhs) {
+  return AudioContexts(lhs.value() | rhs.value());
+}
+constexpr AudioContexts operator|(const LeAudioContextType& lhs,
+                                  const LeAudioContextType& rhs) {
+  using T = std::underlying_type<LeAudioContextType>::type;
+  return AudioContexts(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+constexpr AudioContexts operator|(const LeAudioContextType& lhs,
+                                  const AudioContexts& rhs) {
+  return AudioContexts(lhs) | rhs;
+}
+constexpr AudioContexts operator|(const AudioContexts& lhs,
+                                  const LeAudioContextType& rhs) {
+  return lhs | AudioContexts(rhs);
+}
+
+std::string ToHexString(const types::LeAudioContextType& value);
+
 /* Configuration strategy */
 enum class LeAudioConfigurationStrategy : uint8_t {
   MONO_ONE_CIS_PER_DEVICE = 0x00, /* Common true wireless speakers */
@@ -377,13 +446,6 @@ enum class LeAudioConfigurationStrategy : uint8_t {
   STEREO_ONE_CIS_PER_DEVICE = 0x02, /* Requires channel count 2*/
   RFU = 0x03,
 };
-
-constexpr LeAudioContextType operator|(LeAudioContextType lhs,
-                                       LeAudioContextType rhs) {
-  return static_cast<LeAudioContextType>(
-      static_cast<std::underlying_type<LeAudioContextType>::type>(lhs) |
-      static_cast<std::underlying_type<LeAudioContextType>::type>(rhs));
-}
 
 constexpr LeAudioContextType kLeAudioContextAllTypesArray[] = {
     LeAudioContextType::UNSPECIFIED,   LeAudioContextType::CONVERSATIONAL,
@@ -394,7 +456,7 @@ constexpr LeAudioContextType kLeAudioContextAllTypesArray[] = {
     LeAudioContextType::ALERTS,        LeAudioContextType::EMERGENCYALARM,
 };
 
-constexpr LeAudioContextType kLeAudioContextAllTypes =
+constexpr AudioContexts kLeAudioContextAllTypes =
     LeAudioContextType::UNSPECIFIED | LeAudioContextType::CONVERSATIONAL |
     LeAudioContextType::MEDIA | LeAudioContextType::GAME |
     LeAudioContextType::INSTRUCTIONAL | LeAudioContextType::VOICEASSISTANTS |
@@ -593,7 +655,6 @@ struct acs_ac_record {
 using PublishedAudioCapabilities =
     std::vector<std::tuple<hdl_pair, std::vector<acs_ac_record>>>;
 using AudioLocations = std::bitset<32>;
-using AudioContexts = std::bitset<16>;
 
 std::ostream& operator<<(std::ostream& os, const AseState& state);
 std::ostream& operator<<(std::ostream& os, const CigState& state);
@@ -601,6 +662,7 @@ std::ostream& operator<<(std::ostream& os, const LeAudioLc3Config& config);
 std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context);
 std::ostream& operator<<(std::ostream& os,
                          const AudioStreamDataPathState& state);
+std::ostream& operator<<(std::ostream& os, const AudioContexts& contexts);
 }  // namespace types
 
 namespace set_configurations {
