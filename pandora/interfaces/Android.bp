@@ -39,6 +39,9 @@ java_library {
         "libprotobuf-java-lite",
     ],
     proto: {
+        // Disable canonical path as this breaks the identification of
+        // well known protobufs
+        canonical_path_from_root: false,
         type: "lite",
         include_dirs: [
             "external/protobuf/src",
