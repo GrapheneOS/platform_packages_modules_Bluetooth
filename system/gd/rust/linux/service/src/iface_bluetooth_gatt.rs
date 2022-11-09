@@ -1,5 +1,5 @@
 use bt_topshim::btif::{BtStatus, BtTransport, Uuid, Uuid128Bit};
-use bt_topshim::profiles::gatt::{GattStatus, LePhy};
+use bt_topshim::profiles::gatt::{AdvertisingStatus, GattStatus, LePhy};
 
 use btstack::bluetooth_adv::{
     AdvertiseData, AdvertisingSetParameters, IAdvertisingSetCallback, ManfId,
@@ -228,6 +228,7 @@ struct ScanResultDBus {
     adv_data: Vec<u8>,
 }
 
+impl_dbus_arg_enum!(AdvertisingStatus);
 impl_dbus_arg_enum!(GattStatus);
 impl_dbus_arg_enum!(GattWriteRequestStatus);
 impl_dbus_arg_enum!(GattWriteType);
@@ -339,7 +340,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallbackDBus {
         reg_id: i32,
         advertiser_id: i32,
         tx_power: i32,
-        status: GattStatus,
+        status: AdvertisingStatus,
     ) {
         dbus_generated!()
     }
@@ -355,17 +356,17 @@ impl IAdvertisingSetCallback for AdvertisingSetCallbackDBus {
     }
 
     #[dbus_method("OnAdvertisingEnabled")]
-    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: GattStatus) {
+    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: AdvertisingStatus) {
         dbus_generated!()
     }
 
     #[dbus_method("OnAdvertisingDataSet")]
-    fn on_advertising_data_set(&self, advertiser_id: i32, status: GattStatus) {
+    fn on_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {
         dbus_generated!()
     }
 
     #[dbus_method("OnScanResponseDataSet")]
-    fn on_scan_response_data_set(&self, advertiser_id: i32, status: GattStatus) {
+    fn on_scan_response_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {
         dbus_generated!()
     }
 
@@ -374,18 +375,22 @@ impl IAdvertisingSetCallback for AdvertisingSetCallbackDBus {
         &self,
         advertiser_id: i32,
         tx_power: i32,
-        status: GattStatus,
+        status: AdvertisingStatus,
     ) {
         dbus_generated!()
     }
 
     #[dbus_method("OnPeriodicAdvertisingParametersUpdated")]
-    fn on_periodic_advertising_parameters_updated(&self, advertiser_id: i32, status: GattStatus) {
+    fn on_periodic_advertising_parameters_updated(
+        &self,
+        advertiser_id: i32,
+        status: AdvertisingStatus,
+    ) {
         dbus_generated!()
     }
 
     #[dbus_method("OnPeriodicAdvertisingDataSet")]
-    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: GattStatus) {
+    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {
         dbus_generated!()
     }
 
@@ -394,7 +399,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallbackDBus {
         &self,
         advertiser_id: i32,
         enable: bool,
-        status: GattStatus,
+        status: AdvertisingStatus,
     ) {
         dbus_generated!()
     }
