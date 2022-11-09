@@ -30,6 +30,7 @@
 
 #include "gd/common/init_flags.h"
 #include "hal/hci_hal.h"
+#include "hal/mgmt.h"
 #include "hal/snoop_logger.h"
 #include "metrics/counter_metrics.h"
 #include "os/log.h"
@@ -264,6 +265,10 @@ class HciHalHost : public HciHal {
     btsnoop_logger_->Capture(packet, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ISO);
     packet.insert(packet.cbegin(), kH4Iso);
     write_to_fd(packet);
+  }
+
+  uint16_t getMsftOpcode() override {
+    return Mgmt().get_vs_opcode(MGMT_VS_OPCODE_MSFT);
   }
 
  protected:
