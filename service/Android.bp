@@ -71,8 +71,6 @@ java_library {
         "androidx.appcompat_appcompat",
         "modules-utils-shell-command-handler",
         "bluetooth-nano-protos",
-        "bluetooth-protos-lite",
-        "libprotobuf-java-lite",
     ],
 
     apex_available: [
