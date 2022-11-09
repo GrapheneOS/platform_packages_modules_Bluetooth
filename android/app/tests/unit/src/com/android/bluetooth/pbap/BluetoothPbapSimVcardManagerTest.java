@@ -240,71 +240,82 @@ public class BluetoothPbapSimVcardManagerTest {
 
     @Test
     public void testGetSIMPhonebookNameList_orderByIndexed() {
-        final String localPhoneName = "test_local_phone_name";
-        Cursor cursor = initManager();
-        List<String> nameList = Arrays.asList("D", "C", "A", "B");
+        String prevLocalPhoneName = BluetoothPbapService.getLocalPhoneName();
+        try {
+            final String localPhoneName = "test_local_phone_name";
+            BluetoothPbapService.setLocalPhoneName(localPhoneName);
+            Cursor cursor = initManager();
+            List<String> nameList = Arrays.asList("D", "C", "A", "B");
 
-        // Implement Cursor iteration
-        final int size = nameList.size();
-        AtomicInteger currentPosition = new AtomicInteger(0);
-        when(cursor.moveToFirst()).then((Answer<Boolean>) i -> {
-            currentPosition.set(0);
-            return true;
-        });
-        when(cursor.isAfterLast()).then((Answer<Boolean>) i -> {
-            return currentPosition.get() >= size;
-        });
-        when(cursor.moveToNext()).then((Answer<Boolean>) i -> {
-            int pos = currentPosition.addAndGet(1);
-            return pos < size;
-        });
-        when(cursor.getString(anyInt())).then((Answer<String>) i -> {
-            return nameList.get(currentPosition.get());
-        });
+            // Implement Cursor iteration
+            final int size = nameList.size();
+            AtomicInteger currentPosition = new AtomicInteger(0);
+            when(cursor.moveToFirst()).then((Answer<Boolean>) i -> {
+                currentPosition.set(0);
+                return true;
+            });
+            when(cursor.isAfterLast()).then((Answer<Boolean>) i -> {
+                return currentPosition.get() >= size;
+            });
+            when(cursor.moveToNext()).then((Answer<Boolean>) i -> {
+                int pos = currentPosition.addAndGet(1);
+                return pos < size;
+            });
+            when(cursor.getString(anyInt())).then((Answer<String>) i -> {
+                return nameList.get(currentPosition.get());
+            });
 
-        ArrayList<String> result = mManager.getSIMPhonebookNameList(
-                BluetoothPbapObexServer.ORDER_BY_INDEXED);
+            ArrayList<String> result = mManager.getSIMPhonebookNameList(
+                    BluetoothPbapObexServer.ORDER_BY_INDEXED);
 
-        ArrayList<String> expectedResult = new ArrayList<>();
-        expectedResult.add(localPhoneName);
-        expectedResult.addAll(nameList);
+            ArrayList<String> expectedResult = new ArrayList<>();
+            expectedResult.add(localPhoneName);
+            expectedResult.addAll(nameList);
 
-        assertThat(result).isEqualTo(expectedResult);
+            assertThat(result).isEqualTo(expectedResult);
+        } finally {
+            BluetoothPbapService.setLocalPhoneName(prevLocalPhoneName);
+        }
     }
 
     @Test
     public void testGetSIMPhonebookNameList_orderByAlphabet() {
-        final String localPhoneName = "test_local_phone_name";
-        BluetoothPbapService.setLocalPhoneName(localPhoneName);
-        Cursor cursor = initManager();
-        List<String> nameList = Arrays.asList("D", "C", "A", "B");
+        String prevLocalPhoneName = BluetoothPbapService.getLocalPhoneName();
+        try {
+            final String localPhoneName = "test_local_phone_name";
+            BluetoothPbapService.setLocalPhoneName(localPhoneName);
+            Cursor cursor = initManager();
+            List<String> nameList = Arrays.asList("D", "C", "A", "B");
 
-        // Implement Cursor iteration
-        final int size = nameList.size();
-        AtomicInteger currentPosition = new AtomicInteger(0);
-        when(cursor.moveToFirst()).then((Answer<Boolean>) i -> {
-            currentPosition.set(0);
-            return true;
-        });
-        when(cursor.isAfterLast()).then((Answer<Boolean>) i -> {
-            return currentPosition.get() >= size;
-        });
-        when(cursor.moveToNext()).then((Answer<Boolean>) i -> {
-            int pos = currentPosition.addAndGet(1);
-            return pos < size;
-        });
-        when(cursor.getString(anyInt())).then((Answer<String>) i -> {
-            return nameList.get(currentPosition.get());
-        });
+            // Implement Cursor iteration
+            final int size = nameList.size();
+            AtomicInteger currentPosition = new AtomicInteger(0);
+            when(cursor.moveToFirst()).then((Answer<Boolean>) i -> {
+                currentPosition.set(0);
+                return true;
+            });
+            when(cursor.isAfterLast()).then((Answer<Boolean>) i -> {
+                return currentPosition.get() >= size;
+            });
+            when(cursor.moveToNext()).then((Answer<Boolean>) i -> {
+                int pos = currentPosition.addAndGet(1);
+                return pos < size;
+            });
+            when(cursor.getString(anyInt())).then((Answer<String>) i -> {
+                return nameList.get(currentPosition.get());
+            });
 
-        List<String> result = mManager.getSIMPhonebookNameList(
-                BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL);
+            List<String> result = mManager.getSIMPhonebookNameList(
+                    BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL);
 
-        List<String> expectedResult = new ArrayList<>(nameList);
-        Collections.sort(expectedResult, String.CASE_INSENSITIVE_ORDER);
-        expectedResult.add(0, localPhoneName);
+            List<String> expectedResult = new ArrayList<>(nameList);
+            Collections.sort(expectedResult, String.CASE_INSENSITIVE_ORDER);
+            expectedResult.add(0, localPhoneName);
 
-        assertThat(result).isEqualTo(expectedResult);
+            assertThat(result).isEqualTo(expectedResult);
+        } finally {
+            BluetoothPbapService.setLocalPhoneName(prevLocalPhoneName);
+        }
     }
 
     @Test
