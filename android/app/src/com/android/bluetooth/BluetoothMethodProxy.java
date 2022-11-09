@@ -21,11 +21,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.HeaderSet;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -91,6 +93,15 @@ public class BluetoothMethodProxy {
             final ContentValues contentValues, String where, String[] selectionArgs) {
         return contentResolver.update(contentUri, contentValues, where, selectionArgs);
     }
+
+    /**
+     * Proxies {@link ContentResolver#openFileDescriptor(Uri, String)}.
+     */
+    public ParcelFileDescriptor contentResolverOpenFileDescriptor(ContentResolver contentResolver,
+            final Uri uri, final String mode) throws FileNotFoundException {
+        return contentResolver.openFileDescriptor(uri, mode);
+    }
+
 
     /**
      * Proxies {@link HeaderSet#getHeader}.
