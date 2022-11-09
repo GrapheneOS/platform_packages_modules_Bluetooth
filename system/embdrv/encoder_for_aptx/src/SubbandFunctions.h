@@ -167,7 +167,7 @@ XBT_INLINE_ void updatePredictorPoleCoefficients(
     acc--;
   }
 
-  newCoeffs[a1] = (int32_t)acc;
+  newCoeffs[a1] = acc;
 
   /* Clip the new value of a1(k) to +/- (1 - 2^4 - a2(k)). The constant 1 -
    * 2^4 is expressed in Q22 format (as is a1 and a2) */
