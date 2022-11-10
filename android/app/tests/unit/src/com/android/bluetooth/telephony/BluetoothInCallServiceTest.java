@@ -665,8 +665,6 @@ public class BluetoothInCallServiceTest {
     public void testListCurrentCallsImsConference() throws Exception {
         ArrayList<BluetoothCall> calls = new ArrayList<>();
         BluetoothCall parentCall = createActiveCall();
-        calls.add(parentCall);
-        mBluetoothInCallService.onCallAdded(parentCall);
 
         addCallCapability(parentCall, Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
         when(parentCall.isConference()).thenReturn(true);
@@ -674,6 +672,9 @@ public class BluetoothInCallServiceTest {
         when(parentCall.isIncoming()).thenReturn(true);
         when(parentCall.getHandle()).thenReturn(Uri.parse("tel:555-0000"));
         when(mMockCallInfo.getBluetoothCalls()).thenReturn(calls);
+
+        calls.add(parentCall);
+        mBluetoothInCallService.onCallAdded(parentCall);
 
         clearInvocations(mMockBluetoothHeadset);
         mBluetoothInCallService.listCurrentCalls();
@@ -731,9 +732,7 @@ public class BluetoothInCallServiceTest {
         ArrayList<BluetoothCall> calls = new ArrayList<>();
         BluetoothCall conferenceCall = createActiveCall();
         when(conferenceCall.getHandle()).thenReturn(Uri.parse("tel:555-1234"));
-        calls.add(conferenceCall);
 
-        mBluetoothInCallService.onCallAdded(conferenceCall);
         addCallCapability(conferenceCall, Connection.CAPABILITY_MANAGE_CONFERENCE);
         when(conferenceCall.isConference()).thenReturn(true);
         when(conferenceCall.getState()).thenReturn(Call.STATE_ACTIVE);
@@ -742,6 +741,9 @@ public class BluetoothInCallServiceTest {
           .thenReturn(false);
         when(conferenceCall.isIncoming()).thenReturn(true);
         when(mMockCallInfo.getBluetoothCalls()).thenReturn(calls);
+
+        calls.add(conferenceCall);
+        mBluetoothInCallService.onCallAdded(conferenceCall);
 
         clearInvocations(mMockBluetoothHeadset);
         mBluetoothInCallService.listCurrentCalls();
