@@ -39,8 +39,6 @@
 
 extern tBTM_CB btm_cb;
 
-extern void btm_ble_create_conn_cancel();
-
 namespace {
 
 
