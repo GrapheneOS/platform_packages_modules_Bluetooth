@@ -3709,10 +3709,8 @@ TEST_F(UnicastTest, MicrophoneAttachToCurrentMediaScenario) {
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
 
-  EXPECT_CALL(
-      mock_state_machine_,
-      StartStream(_, le_audio::types::LeAudioContextType::VOICEASSISTANTS, _,
-                  _))
+  EXPECT_CALL(mock_state_machine_,
+              StartStream(_, le_audio::types::LeAudioContextType::LIVE, _, _))
       .Times(1);
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id,
