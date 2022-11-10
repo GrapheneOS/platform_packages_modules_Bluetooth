@@ -26,19 +26,17 @@ namespace bluetooth {
 namespace topshim {
 namespace rust {
 
-struct RustRawAddress;
-
 class HfpIntf {
  public:
   HfpIntf(headset::Interface* intf) : intf_(intf){};
 
   int init();
-  uint32_t connect(RustRawAddress bt_addr);
-  int connect_audio(RustRawAddress bt_addr, bool sco_offload, bool force_cvsd);
-  int set_active_device(RustRawAddress bt_addr);
-  int set_volume(int8_t volume, RustRawAddress bt_addr);
-  uint32_t disconnect(RustRawAddress bt_addr);
-  int disconnect_audio(RustRawAddress bt_addr);
+  uint32_t connect(RawAddress addr);
+  int connect_audio(RawAddress addr, bool sco_offload, bool force_cvsd);
+  int set_active_device(RawAddress addr);
+  int set_volume(int8_t volume, RawAddress addr);
+  uint32_t disconnect(RawAddress addr);
+  int disconnect_audio(RawAddress addr);
   void cleanup();
 
  private:
