@@ -272,6 +272,9 @@ class Metadata {
             case BluetoothDevice.METADATA_FAST_PAIR_CUSTOMIZED_FIELDS:
                 publicMetadata.fastpair_customized = value;
                 break;
+            case BluetoothDevice.METADATA_LE_AUDIO:
+                publicMetadata.le_audio = value;
+                break;
         }
     }
 
@@ -355,6 +358,9 @@ class Metadata {
                 break;
             case BluetoothDevice.METADATA_FAST_PAIR_CUSTOMIZED_FIELDS:
                 value = publicMetadata.fastpair_customized;
+                break;
+            case BluetoothDevice.METADATA_LE_AUDIO:
+                value = publicMetadata.le_audio;
                 break;
         }
         return value;
