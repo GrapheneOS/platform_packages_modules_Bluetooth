@@ -26,6 +26,8 @@
 
 static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
 
+#include "os/logging/log_adapter.h"
+
 #if defined(OS_ANDROID)
 
 #include <log/log.h>
