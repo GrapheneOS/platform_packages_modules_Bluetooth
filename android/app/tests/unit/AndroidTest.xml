@@ -26,8 +26,10 @@
     <target_preparer class="com.android.tradefed.targetprep.RunCommandTargetPreparer">
         <option name="run-command" value="settings put global ble_scan_always_enabled 0" />
         <option name="run-command" value="su u$(am get-current-user)_system svc bluetooth disable" />
+        <option name="run-command" value="setprop bluetooth.profile.hfp.hf.enabled true" />
         <option name="teardown-command" value="su u$(am get-current-user)_system svc bluetooth enable" />
         <option name="teardown-command" value="settings put global ble_scan_always_enabled 1" />
+        <option name="teardown-command" value="setprop bluetooth.profile.hfp.hf.enabled false" />
     </target_preparer>
     <target_preparer class="com.android.tradefed.targetprep.FolderSaver">
         <option name="device-path" value="/data/vendor/ssrdump" />
