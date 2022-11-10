@@ -78,14 +78,6 @@ struct btm_ble_conn_complete {
   };
 };
 extern struct btm_ble_conn_complete btm_ble_conn_complete;
-// Name: btm_ble_create_conn_cancel
-// Params:
-// Returns: void
-struct btm_ble_create_conn_cancel {
-  std::function<void()> body{[]() {}};
-  void operator()() { body(); };
-};
-extern struct btm_ble_create_conn_cancel btm_ble_create_conn_cancel;
 // Name: btm_ble_create_conn_cancel_complete
 // Params: uint8_t* p
 // Returns: void
