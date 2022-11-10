@@ -385,6 +385,8 @@ public final class DatabaseManagerTest {
                 value, true);
         testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_FAST_PAIR_CUSTOMIZED_FIELDS,
                 value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_LE_AUDIO,
+                value, true);
         testSetGetCustomMetaCase(false, badKey, value, false);
 
         // Device is in database
@@ -442,6 +444,8 @@ public final class DatabaseManagerTest {
         testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_SPATIAL_AUDIO,
                 value, true);
         testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_FAST_PAIR_CUSTOMIZED_FIELDS,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_LE_AUDIO,
                 value, true);
     }
 
@@ -1180,6 +1184,28 @@ public final class DatabaseManagerTest {
             // Check the new columns was added with default value
             assertColumnBlobData(cursor, "spatial_audio", null);
             assertColumnBlobData(cursor, "fastpair_customized", null);
+        }
+    }
+
+    @Test
+    public void testDatabaseMigration_113_114() throws IOException {
+        // Create a database with version 112
+        SupportSQLiteDatabase db = testHelper.createDatabase(DB_NAME, 113);
+        // insert a device to the database
+        ContentValues device = new ContentValues();
+        device.put("address", TEST_BT_ADDR);
+        device.put("migrated", false);
+        assertThat(db.insert("metadata", SQLiteDatabase.CONFLICT_IGNORE, device),
+                CoreMatchers.not(-1));
+        // Migrate database from 113 to 114
+        db.close();
+        db = testHelper.runMigrationsAndValidate(DB_NAME, 114, true,
+                MetadataDatabase.MIGRATION_113_114);
+        Cursor cursor = db.query("SELECT * FROM metadata");
+        assertHasColumn(cursor, "le_audio", true);
+        while (cursor.moveToNext()) {
+            // Check the new columns was added with default value
+            assertColumnBlobData(cursor, "le_audio", null);
         }
     }
 
