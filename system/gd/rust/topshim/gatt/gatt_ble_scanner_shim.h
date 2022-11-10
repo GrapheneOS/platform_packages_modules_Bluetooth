@@ -28,7 +28,6 @@ namespace rust {
 
 struct RustApcfCommand;
 struct RustGattFilterParam;
-struct RustRawAddress;
 struct RustUuid;
 
 class BleScannerIntf : public ScanningCallbacks {
@@ -128,23 +127,23 @@ class BleScannerIntf : public ScanningCallbacks {
 
   // Start periodic sync. Gets responses via |OnStartSyncCb|. Periodic reports
   // come via |OnSyncReportCb| and |OnSyncLostCb|.
-  void StartSync(uint8_t sid, RustRawAddress address, uint16_t skip, uint16_t timeout);
+  void StartSync(uint8_t sid, RawAddress addr, uint16_t skip, uint16_t timeout);
 
   // Stop periodic sync.
   void StopSync(uint16_t handle);
 
   // Cancel creating a periodic sync.
-  void CancelCreateSync(uint8_t sid, RustRawAddress address);
+  void CancelCreateSync(uint8_t sid, RawAddress addr);
 
   // Transfer sync data to target address. Gets responses via
   // |OnSyncTransferCb|.
-  void TransferSync(RustRawAddress address, uint16_t service_data, uint16_t sync_handle);
+  void TransferSync(RawAddress addr, uint16_t service_data, uint16_t sync_handle);
 
   // Transfer set info to target address. Gets responses via |OnSyncTransferCb|.
-  void TransferSetInfo(RustRawAddress address, uint16_t service_data, uint8_t adv_handle);
+  void TransferSetInfo(RawAddress addr, uint16_t service_data, uint8_t adv_handle);
 
   // Sync tx parameters to target address. Gets responses via |OnStartSyncCb|.
-  void SyncTxParameters(RustRawAddress address, uint8_t mode, uint16_t skip, uint16_t timeout);
+  void SyncTxParameters(RawAddress addr, uint8_t mode, uint16_t skip, uint16_t timeout);
 
   // Register scanning callbacks to be dispatched to the Rust layer via static
   // methods.

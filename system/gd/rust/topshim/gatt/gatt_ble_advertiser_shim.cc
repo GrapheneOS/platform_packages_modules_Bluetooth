@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "bind_helpers.h"
-#include "gd/rust/topshim/common/utils.h"
 #include "include/hardware/bt_common_types.h"
 #include "rust/cxx.h"
 #include "src/profiles/gatt.rs.h"
@@ -92,9 +91,8 @@ void BleAdvertiserIntf::OnPeriodicAdvertisingDataSet(uint8_t advertiser_id, uint
 void BleAdvertiserIntf::OnPeriodicAdvertisingEnabled(uint8_t advertiser_id, bool enable, uint8_t status) {
   rusty::gdadv_on_periodic_advertising_enabled(advertiser_id, enable, status);
 }
-void BleAdvertiserIntf::OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type, RawAddress address) {
-  RustRawAddress converted = rusty::CopyToRustAddress(address);
-  rusty::gdadv_on_own_address_read(advertiser_id, address_type, &converted);
+void BleAdvertiserIntf::OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type, RawAddress addr) {
+  rusty::gdadv_on_own_address_read(advertiser_id, address_type, &addr);
 }
 
 // BleAdvertiserInterface implementations
@@ -224,9 +222,8 @@ void BleAdvertiserIntf::OnIdTxPowerStatusCallback(uint8_t adv_id, int8_t tx_powe
 void BleAdvertiserIntf::OnParametersCallback(uint8_t adv_id, uint8_t status, int8_t tx_power) {
   gdadv_parameters_callback(adv_id, status, tx_power);
 }
-void BleAdvertiserIntf::OnGetAddressCallback(uint8_t adv_id, uint8_t addr_type, RawAddress address) {
-  RustRawAddress converted = rusty::CopyToRustAddress(address);
-  gdadv_getaddress_callback(adv_id, addr_type, &converted);
+void BleAdvertiserIntf::OnGetAddressCallback(uint8_t adv_id, uint8_t addr_type, RawAddress addr) {
+  gdadv_getaddress_callback(adv_id, addr_type, &addr);
 }
 
 std::unique_ptr<BleAdvertiserIntf> GetBleAdvertiserIntf(const unsigned char* gatt_intf) {

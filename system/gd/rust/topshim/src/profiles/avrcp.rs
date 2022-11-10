@@ -16,9 +16,9 @@ pub struct PlayerMetadata {
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 pub mod ffi {
-    #[derive(Debug, Copy, Clone)]
-    pub struct RustRawAddress {
-        address: [u8; 6],
+    unsafe extern "C++" {
+        include!("gd/rust/topshim/common/type_alias.h");
+        type RawAddress = crate::btif::RawAddress;
     }
 
     unsafe extern "C++" {
@@ -30,8 +30,8 @@ pub mod ffi {
 
         fn init(self: Pin<&mut AvrcpIntf>);
         fn cleanup(self: Pin<&mut AvrcpIntf>);
-        fn connect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> u32;
-        fn disconnect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> u32;
+        fn connect(self: Pin<&mut AvrcpIntf>, bt_addr: RawAddress) -> u32;
+        fn disconnect(self: Pin<&mut AvrcpIntf>, bt_addr: RawAddress) -> u32;
         fn set_volume(self: Pin<&mut AvrcpIntf>, volume: i8);
         fn set_playback_status(self: Pin<&mut AvrcpIntf>, status: &String);
         fn set_position(self: Pin<&mut AvrcpIntf>, position_us: i64);
@@ -45,23 +45,11 @@ pub mod ffi {
 
     }
     extern "Rust" {
-        fn avrcp_device_connected(addr: RustRawAddress, absolute_volume_enabled: bool);
-        fn avrcp_device_disconnected(addr: RustRawAddress);
+        fn avrcp_device_connected(addr: RawAddress, absolute_volume_enabled: bool);
+        fn avrcp_device_disconnected(addr: RawAddress);
         fn avrcp_absolute_volume_update(volume: u8);
         fn avrcp_send_key_event(key: u8, state: u8);
-        fn avrcp_set_active_device(addr: RustRawAddress);
-    }
-}
-
-impl From<RawAddress> for ffi::RustRawAddress {
-    fn from(addr: RawAddress) -> Self {
-        ffi::RustRawAddress { address: addr.val }
-    }
-}
-
-impl Into<RawAddress> for ffi::RustRawAddress {
-    fn into(self) -> RawAddress {
-        RawAddress { val: self.address }
+        fn avrcp_set_active_device(addr: RawAddress);
     }
 }
 
@@ -93,16 +81,12 @@ type AvrcpCb = Arc<Mutex<AvrcpCallbacksDispatcher>>;
 cb_variant!(
     AvrcpCb,
     avrcp_device_connected -> AvrcpCallbacks::AvrcpDeviceConnected,
-    ffi::RustRawAddress -> RawAddress, bool, {
-        let _0 = _0.into();
-});
+    RawAddress, bool);
 
 cb_variant!(
     AvrcpCb,
     avrcp_device_disconnected -> AvrcpCallbacks::AvrcpDeviceDisconnected,
-    ffi::RustRawAddress -> RawAddress, {
-        let _0 = _0.into();
-});
+    RawAddress);
 
 cb_variant!(
     AvrcpCb,
@@ -119,9 +103,7 @@ cb_variant!(
 cb_variant!(
     AvrcpCb,
     avrcp_set_active_device -> AvrcpCallbacks::AvrcpSetActiveDevice,
-    ffi::RustRawAddress -> RawAddress, {
-        let _0 = _0.into();
-});
+    RawAddress);
 
 pub struct Avrcp {
     internal: cxx::UniquePtr<ffi::AvrcpIntf>,

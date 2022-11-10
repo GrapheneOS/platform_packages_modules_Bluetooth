@@ -18,7 +18,6 @@
 
 #include "base/bind.h"
 #include "base/callback.h"
-#include "gd/rust/topshim/common/utils.h"
 #include "rust/cxx.h"
 #include "src/profiles/gatt.rs.h"
 #include "types/raw_address.h"
@@ -29,15 +28,14 @@ namespace rust {
 
 namespace internal {
 
-void ReadPhyCallback(int client_if, RawAddress address, uint8_t tx_phy, uint8_t rx_phy, uint8_t status) {
-  bluetooth::topshim::rust::read_phy_callback(client_if, CopyToRustAddress(address), tx_phy, rx_phy, status);
+void ReadPhyCallback(int client_if, RawAddress addr, uint8_t tx_phy, uint8_t rx_phy, uint8_t status) {
+  bluetooth::topshim::rust::read_phy_callback(client_if, addr, tx_phy, rx_phy, status);
 }
 
 }  // namespace internal
 
-int GattClientIntf::read_phy(int client_if, RustRawAddress addr) {
-  RawAddress address = CopyFromRustAddress(addr);
-  return client_intf_->read_phy(address, base::Bind(&internal::ReadPhyCallback, client_if, address));
+int GattClientIntf::read_phy(int client_if, RawAddress addr) {
+  return client_intf_->read_phy(addr, base::Bind(&internal::ReadPhyCallback, client_if, addr));
 }
 
 std::unique_ptr<GattClientIntf> GetGattClientProfile(const unsigned char* gatt_intf) {
