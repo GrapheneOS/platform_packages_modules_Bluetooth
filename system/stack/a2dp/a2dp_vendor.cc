@@ -790,16 +790,3 @@ std::string A2DP_VendorCodecInfoString(const uint8_t* p_codec_info) {
   return "Unsupported codec vendor_id: " + loghex(vendor_id) +
          " codec_id: " + loghex(codec_id);
 }
-
-void* A2DP_VendorCodecLoadExternalLib(const std::string& lib_name,
-                                      const std::string& friendly_name) {
-  void* lib_handle = dlopen(lib_name.c_str(), RTLD_NOW);
-  if (lib_handle == NULL) {
-    LOG(ERROR) << __func__
-               << ": Failed to load codec library: " << friendly_name
-               << ". Err: [" << dlerror() << "]";
-    return nullptr;
-  }
-  LOG(INFO) << __func__ << ": Codec library loaded: " << friendly_name;
-  return lib_handle;
-}

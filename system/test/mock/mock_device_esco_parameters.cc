@@ -49,5 +49,10 @@ enh_esco_params_t esco_parameters_for_codec(esco_codec_t codec) {
   mock_function_count_map[__func__]++;
   return test::mock::device_esco_parameters::esco_parameters_for_codec(codec);
 }
+
+enh_esco_params_t esco_parameters_for_codec(esco_codec_t codec, bool b) {
+  mock_function_count_map[__func__]++;
+  return test::mock::device_esco_parameters::esco_parameters_for_codec(codec);
+}
 // Mocked functions complete
 // END mockcify generation
