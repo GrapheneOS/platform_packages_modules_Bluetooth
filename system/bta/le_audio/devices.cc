@@ -1629,9 +1629,9 @@ LeAudioDeviceGroup::GetActiveConfiguration(void) {
 
 std::optional<LeAudioCodecConfiguration>
 LeAudioDeviceGroup::GetCodecConfigurationByDirection(
-    types::LeAudioContextType group_context_type, uint8_t direction) {
+    types::LeAudioContextType group_context_type, uint8_t direction) const {
   const set_configurations::AudioSetConfiguration* audio_set_conf =
-      available_context_to_configuration_map[group_context_type];
+      available_context_to_configuration_map.at(group_context_type);
   LeAudioCodecConfiguration group_config = {0, 0, 0, 0};
   if (!audio_set_conf) return std::nullopt;
 

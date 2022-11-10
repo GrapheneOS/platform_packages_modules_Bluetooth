@@ -313,7 +313,7 @@ class LeAudioDeviceGroup {
       LeAudioDevice* leAudioDevice,
       const set_configurations::AudioSetConfiguration* audio_set_conf);
   std::optional<LeAudioCodecConfiguration> GetCodecConfigurationByDirection(
-      types::LeAudioContextType group_context_type, uint8_t direction);
+      types::LeAudioContextType group_context_type, uint8_t direction) const;
   bool IsContextSupported(types::LeAudioContextType group_context_type);
   bool IsMetadataChanged(types::AudioContexts group_context_type,
                          const std::vector<uint8_t>& ccid_list);

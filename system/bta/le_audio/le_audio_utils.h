@@ -30,7 +30,20 @@ types::LeAudioContextType AudioContentToLeAudioContext(
 types::AudioContexts GetAllowedAudioContextsFromSourceMetadata(
     const std::vector<struct playback_track_metadata>& source_metadata,
     types::AudioContexts allowed_contexts);
+types::AudioContexts GetAllowedAudioContextsFromSinkMetadata(
+    const std::vector<struct record_track_metadata>& source_metadata,
+    types::AudioContexts allowed_contexts);
 std::vector<uint8_t> GetAllCcids(const types::AudioContexts& contexts);
+
+static inline bool IsContextForAudioSource(types::LeAudioContextType c) {
+  if (c == types::LeAudioContextType::CONVERSATIONAL ||
+      c == types::LeAudioContextType::VOICEASSISTANTS ||
+      c == types::LeAudioContextType::LIVE ||
+      c == types::LeAudioContextType::GAME) {
+    return true;
+  }
+  return false;
+}
 
 }  // namespace utils
 }  // namespace le_audio
