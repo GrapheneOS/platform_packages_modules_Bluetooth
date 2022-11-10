@@ -191,6 +191,7 @@ cc_defaults {
         ":BluetoothSecuritySources",
         ":BluetoothStorageSources",
         ":BluetoothSyspropsSources",
+        ":BluetoothLogRedactionSources",
     ],
     generated_headers: [
         "BluetoothGeneratedBundlerSchema_h_bfbs",
