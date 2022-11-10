@@ -642,7 +642,17 @@ uint8_t LeAudioDeviceGroup::GetPhyBitmask(uint8_t direction) {
         phy_bitfield &= leAudioDevice->GetPhyBitmask();
 
         // A value of 0x00 denotes no preference
-        if (ase->preferred_phy) phy_bitfield &= ase->preferred_phy;
+        if (ase->preferred_phy && (phy_bitfield & ase->preferred_phy)) {
+          phy_bitfield &= ase->preferred_phy;
+          LOG_DEBUG("Using ASE preferred phy 0x%02x",
+                    static_cast<int>(phy_bitfield));
+        } else {
+          LOG_WARN(
+              "ASE preferred 0x%02x has nothing common with phy_bitfield "
+              "0x%02x ",
+              static_cast<int>(ase->preferred_phy),
+              static_cast<int>(phy_bitfield));
+        }
       }
     } while ((ase = leAudioDevice->GetNextActiveAseWithSameDirection(ase)));
   } while ((leAudioDevice = GetNextActiveDevice(leAudioDevice)));
