@@ -90,7 +90,7 @@ impl GattServiceImpl {
     }
 
     fn create_raw_address(&self) -> RawAddress {
-        RawAddress { val: [0; 6] }
+        RawAddress { address: [0; 6] }
     }
 
     fn create_advertise_parameters(&self) -> AdvertiseParameters {
