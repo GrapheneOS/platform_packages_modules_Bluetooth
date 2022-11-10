@@ -303,6 +303,25 @@ impl HidHost {
     }
 
     #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn get_report_reply(
+        &self,
+        addr: &mut RawAddress,
+        status: BthhStatus,
+        report: &mut [u8],
+        size: u16,
+    ) -> BtStatus {
+        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        BtStatus::from(ccall!(
+            self,
+            get_report_reply,
+            ffi_addr,
+            status as bindings::bthh_status_t,
+            report.as_mut_ptr() as *mut std::os::raw::c_char,
+            size
+        ))
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
     pub fn set_report(
         &self,
         addr: &mut RawAddress,
