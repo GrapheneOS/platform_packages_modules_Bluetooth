@@ -1063,11 +1063,11 @@ public class LeAudioService extends ProfileService {
      * Get the active LE audio devices.
      *
      * Note: When LE audio group is active, one of the Bluetooth device address
-     * which belongs to the group, represents the active LE audio group.
+     * which belongs to the group, represents the active LE audio group - it is called
+     * Lead device.
      * Internally, this address is translated to LE audio group id.
      *
-     * @return List of two elements. First element is an active output device
-     *         and second element is an active input device.
+     * @return List of active group members. First element is a Lead device.
      */
     public List<BluetoothDevice> getActiveDevices() {
         if (DBG) {
@@ -1081,8 +1081,23 @@ public class LeAudioService extends ProfileService {
         if (currentlyActiveGroupId == LE_AUDIO_GROUP_ID_INVALID) {
             return activeDevices;
         }
-        activeDevices.set(0, mActiveAudioOutDevice);
-        activeDevices.set(1, mActiveAudioInDevice);
+
+        BluetoothDevice leadDevice = getConnectedGroupLeadDevice(currentlyActiveGroupId);
+        activeDevices.set(0, leadDevice);
+
+        int i = 1;
+        for (BluetoothDevice dev : getGroupDevices(currentlyActiveGroupId)) {
+            if (Objects.equals(dev, leadDevice)) {
+                continue;
+            }
+            if (i == 1) {
+                /* Already has a spot for first member */
+                activeDevices.set(i++, dev);
+            } else {
+                /* Extend list with other members */
+                activeDevices.add(dev);
+            }
+        }
         return activeDevices;
     }
 
