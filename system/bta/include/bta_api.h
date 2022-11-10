@@ -58,6 +58,29 @@ typedef enum : uint8_t {
   BTA_WRONG_MODE = 5,
 } tBTA_STATUS;
 
+#ifndef CASE_RETURN_TEXT
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+#endif
+
+inline std::string bta_status_text(const tBTA_STATUS& status) {
+  switch (status) {
+    CASE_RETURN_TEXT(BTA_SUCCESS);
+    CASE_RETURN_TEXT(BTA_FAILURE);
+    CASE_RETURN_TEXT(BTA_PENDING);
+    CASE_RETURN_TEXT(BTA_BUSY);
+    CASE_RETURN_TEXT(BTA_NO_RESOURCES);
+    CASE_RETURN_TEXT(BTA_WRONG_MODE);
+    default:
+      return base::StringPrintf("UNKNOWN[%d]", status);
+  }
+}
+
+#undef CASE_RETURN_TEXT
+
+using tSDP_DISC_WAIT = int;
+
 /*
  * Service ID
  */
