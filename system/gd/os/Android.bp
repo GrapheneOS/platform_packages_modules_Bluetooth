@@ -95,6 +95,13 @@ name: "BluetoothOsBenchmarkSources",
 }
 
 filegroup {
+    name: "BluetoothLogRedactionSources",
+    srcs: [
+        "logging/log_redaction.cc",
+    ],
+}
+
+filegroup {
     name: "BluetoothOsSources_fake_timer",
     srcs: [
         "fake_timer/fake_timerfd.cc",
