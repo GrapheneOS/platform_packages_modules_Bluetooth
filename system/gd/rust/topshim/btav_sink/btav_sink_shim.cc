@@ -18,7 +18,6 @@
 
 #include <memory>
 
-#include "gd/rust/topshim/common/utils.h"
 #include "include/hardware/bluetooth.h"
 #include "rust/cxx.h"
 #include "src/profiles/a2dp.rs.h"
@@ -63,16 +62,16 @@ int A2dpSinkIntf::init() const {
   return intf_->init(&internal::g_a2dp_sink_callbacks, 1);
 }
 
-int A2dpSinkIntf::connect(RustRawAddress bt_addr) const {
-  return intf_->connect(rusty::CopyFromRustAddress(bt_addr));
+int A2dpSinkIntf::connect(RawAddress addr) const {
+  return intf_->connect(addr);
 }
 
-int A2dpSinkIntf::disconnect(RustRawAddress bt_addr) const {
-  return intf_->disconnect(rusty::CopyFromRustAddress(bt_addr));
+int A2dpSinkIntf::disconnect(RawAddress addr) const {
+  return intf_->disconnect(addr);
 }
 
-int A2dpSinkIntf::set_active_device(RustRawAddress bt_addr) const {
-  return intf_->set_active_device(rusty::CopyFromRustAddress(bt_addr));
+int A2dpSinkIntf::set_active_device(RawAddress addr) const {
+  return intf_->set_active_device(addr);
 }
 
 void A2dpSinkIntf::cleanup() const {

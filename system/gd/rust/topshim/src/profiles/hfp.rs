@@ -64,9 +64,9 @@ impl TryFrom<i32> for HfpCodecCapability {
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 pub mod ffi {
-    #[derive(Debug, Copy, Clone)]
-    pub struct RustRawAddress {
-        address: [u8; 6],
+    unsafe extern "C++" {
+        include!("gd/rust/topshim/common/type_alias.h");
+        type RawAddress = crate::btif::RawAddress;
     }
 
     unsafe extern "C++" {
@@ -77,37 +77,25 @@ pub mod ffi {
         unsafe fn GetHfpProfile(btif: *const u8) -> UniquePtr<HfpIntf>;
 
         fn init(self: Pin<&mut HfpIntf>) -> i32;
-        fn connect(self: Pin<&mut HfpIntf>, bt_addr: RustRawAddress) -> u32;
+        fn connect(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> u32;
         fn connect_audio(
             self: Pin<&mut HfpIntf>,
-            bt_addr: RustRawAddress,
+            bt_addr: RawAddress,
             sco_offload: bool,
             force_cvsd: bool,
         ) -> i32;
-        fn set_active_device(self: Pin<&mut HfpIntf>, bt_addr: RustRawAddress) -> i32;
-        fn set_volume(self: Pin<&mut HfpIntf>, volume: i8, bt_addr: RustRawAddress) -> i32;
-        fn disconnect(self: Pin<&mut HfpIntf>, bt_addr: RustRawAddress) -> u32;
-        fn disconnect_audio(self: Pin<&mut HfpIntf>, bt_addr: RustRawAddress) -> i32;
+        fn set_active_device(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> i32;
+        fn set_volume(self: Pin<&mut HfpIntf>, volume: i8, bt_addr: RawAddress) -> i32;
+        fn disconnect(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> u32;
+        fn disconnect_audio(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> i32;
         fn cleanup(self: Pin<&mut HfpIntf>);
 
     }
     extern "Rust" {
-        fn hfp_connection_state_callback(state: u32, addr: RustRawAddress);
-        fn hfp_audio_state_callback(state: u32, addr: RustRawAddress);
-        fn hfp_volume_update_callback(volume: u8, addr: RustRawAddress);
-        fn hfp_caps_update_callback(wbs_supported: bool, addr: RustRawAddress);
-    }
-}
-
-impl From<RawAddress> for ffi::RustRawAddress {
-    fn from(addr: RawAddress) -> Self {
-        ffi::RustRawAddress { address: addr.val }
-    }
-}
-
-impl Into<RawAddress> for ffi::RustRawAddress {
-    fn into(self) -> RawAddress {
-        RawAddress { val: self.address }
+        fn hfp_connection_state_callback(state: u32, addr: RawAddress);
+        fn hfp_audio_state_callback(state: u32, addr: RawAddress);
+        fn hfp_volume_update_callback(volume: u8, addr: RawAddress);
+        fn hfp_caps_update_callback(wbs_supported: bool, addr: RawAddress);
     }
 }
 
@@ -128,34 +116,22 @@ type HfpCb = Arc<Mutex<HfpCallbacksDispatcher>>;
 cb_variant!(
     HfpCb,
     hfp_connection_state_callback -> HfpCallbacks::ConnectionState,
-    u32 -> BthfConnectionState, ffi::RustRawAddress -> RawAddress, {
-        let _1 = _1.into();
-    }
-);
+    u32 -> BthfConnectionState, RawAddress);
 
 cb_variant!(
     HfpCb,
     hfp_audio_state_callback -> HfpCallbacks::AudioState,
-    u32 -> BthfAudioState, ffi::RustRawAddress -> RawAddress, {
-        let _1 = _1.into();
-    }
-);
+    u32 -> BthfAudioState, RawAddress);
 
 cb_variant!(
     HfpCb,
     hfp_volume_update_callback -> HfpCallbacks::VolumeUpdate,
-    u8, ffi::RustRawAddress -> RawAddress, {
-        let _1 = _1.into();
-    }
-);
+    u8, RawAddress);
 
 cb_variant!(
     HfpCb,
     hfp_caps_update_callback -> HfpCallbacks::CapsUpdate,
-    bool, ffi::RustRawAddress -> RawAddress, {
-        let _1 = _1.into();
-    }
-);
+    bool, RawAddress);
 
 pub struct Hfp {
     internal: cxx::UniquePtr<ffi::HfpIntf>,
@@ -209,32 +185,32 @@ impl Hfp {
 
     #[profile_enabled_or(BtStatus::NotReady)]
     pub fn connect(&mut self, addr: RawAddress) -> BtStatus {
-        BtStatus::from(self.internal.pin_mut().connect(addr.into()))
+        BtStatus::from(self.internal.pin_mut().connect(addr))
     }
 
     #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn connect_audio(&mut self, addr: RawAddress, sco_offload: bool, force_cvsd: bool) -> i32 {
-        self.internal.pin_mut().connect_audio(addr.into(), sco_offload, force_cvsd)
+        self.internal.pin_mut().connect_audio(addr, sco_offload, force_cvsd)
     }
 
     #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn set_active_device(&mut self, addr: RawAddress) -> i32 {
-        self.internal.pin_mut().set_active_device(addr.into())
+        self.internal.pin_mut().set_active_device(addr)
     }
 
     #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn set_volume(&mut self, volume: i8, addr: RawAddress) -> i32 {
-        self.internal.pin_mut().set_volume(volume, addr.into())
+        self.internal.pin_mut().set_volume(volume, addr)
     }
 
     #[profile_enabled_or(BtStatus::NotReady)]
     pub fn disconnect(&mut self, addr: RawAddress) -> BtStatus {
-        BtStatus::from(self.internal.pin_mut().disconnect(addr.into()))
+        BtStatus::from(self.internal.pin_mut().disconnect(addr))
     }
 
     #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn disconnect_audio(&mut self, addr: RawAddress) -> i32 {
-        self.internal.pin_mut().disconnect_audio(addr.into())
+        self.internal.pin_mut().disconnect_audio(addr)
     }
 
     #[profile_enabled_or(false)]
