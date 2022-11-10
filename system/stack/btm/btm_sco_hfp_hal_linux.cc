@@ -328,8 +328,9 @@ bool get_offload_enabled() { return offload_supported && offload_enabled; }
 
 // Set offload enable/disable
 bool enable_offload(bool enable) {
-  if (!offload_supported) {
-    LOG_ERROR("%s: Hardware does not support SCO-offload.", __func__);
+  if (!offload_supported && enable) {
+    LOG_ERROR("%s: Cannot enable SCO-offload since it is not supported.",
+              __func__);
     return false;
   }
   offload_enabled = enable;

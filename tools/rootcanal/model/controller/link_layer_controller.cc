@@ -1349,17 +1349,6 @@ void LinkLayerController::SetExtendedInquiryResponse(
             extended_inquiry_response_.begin());
 }
 
-void LinkLayerController::SendLeLinkLayerPacketWithRssi(
-    Address source, Address dest, uint8_t rssi,
-    std::unique_ptr<model::packets::LinkLayerPacketBuilder> packet) {
-  std::shared_ptr<model::packets::RssiWrapperBuilder> shared_packet =
-      model::packets::RssiWrapperBuilder::Create(source, dest, rssi,
-                                                 std::move(packet));
-  ScheduleTask(kNoDelayMs, [this, shared_packet]() {
-    send_to_remote_(shared_packet, Phy::Type::LOW_ENERGY);
-  });
-}
-
 #ifdef ROOTCANAL_LMP
 LinkLayerController::LinkLayerController(const Address& address,
                                          const ControllerProperties& properties)
@@ -1442,6 +1431,17 @@ void LinkLayerController::SendLinkLayerPacket(
       std::move(packet);
   ScheduleTask(kNoDelayMs, [this, shared_packet]() {
     send_to_remote_(shared_packet, Phy::Type::BR_EDR);
+  });
+}
+
+void LinkLayerController::SendLeLinkLayerPacketWithRssi(
+    Address source_address, Address destination_address, uint8_t rssi,
+    std::unique_ptr<model::packets::LinkLayerPacketBuilder> packet) {
+  std::shared_ptr<model::packets::RssiWrapperBuilder> shared_packet =
+      model::packets::RssiWrapperBuilder::Create(
+          source_address, destination_address, rssi, std::move(packet));
+  ScheduleTask(kNoDelayMs, [this, shared_packet]() {
+    send_to_remote_(shared_packet, Phy::Type::LOW_ENERGY);
   });
 }
 
@@ -4268,11 +4268,14 @@ void LinkLayerController::ProcessIncomingLegacyScanRequest(
   // device address (AdvA field) in the SCAN_RSP PDU shall be the same as
   // the advertiser’s device address (AdvA field) in the SCAN_REQ PDU to
   // which it is responding.
-  SendLeLinkLayerPacket(model::packets::LeScanResponseBuilder::Create(
+  SendLeLinkLayerPacketWithRssi(
       advertising_address.GetAddress(), scanning_address.GetAddress(),
-      static_cast<model::packets::AddressType>(
-          advertising_address.GetAddressType()),
-      legacy_advertiser_.scan_response_data));
+      properties_.le_advertising_physical_channel_tx_power,
+      model::packets::LeScanResponseBuilder::Create(
+          advertising_address.GetAddress(), scanning_address.GetAddress(),
+          static_cast<model::packets::AddressType>(
+              advertising_address.GetAddressType()),
+          legacy_advertiser_.scan_response_data));
 }
 
 void LinkLayerController::ProcessIncomingExtendedScanRequest(
@@ -4350,11 +4353,14 @@ void LinkLayerController::ProcessIncomingExtendedScanRequest(
   // device address (AdvA field) in the SCAN_RSP PDU shall be the same as
   // the advertiser’s device address (AdvA field) in the SCAN_REQ PDU to
   // which it is responding.
-  SendLeLinkLayerPacket(model::packets::LeScanResponseBuilder::Create(
+  SendLeLinkLayerPacketWithRssi(
       advertising_address.GetAddress(), scanning_address.GetAddress(),
-      static_cast<model::packets::AddressType>(
-          advertising_address.GetAddressType()),
-      advertiser.scan_response_data));
+      advertiser.advertising_tx_power,
+      model::packets::LeScanResponseBuilder::Create(
+          advertising_address.GetAddress(), scanning_address.GetAddress(),
+          static_cast<model::packets::AddressType>(
+              advertising_address.GetAddressType()),
+          advertiser.scan_response_data));
 }
 
 void LinkLayerController::IncomingLeScanPacket(
@@ -6048,33 +6054,74 @@ ErrorCode LinkLayerController::LeLongTermKeyRequestNegativeReply(
 }
 
 void LinkLayerController::Reset() {
+  host_supported_features_ = 0;
+  le_host_support_ = false;
+  secure_simple_pairing_host_support_ = false;
+  secure_connections_host_support_ = false;
+  le_host_supported_features_ = 0;
+  connected_isochronous_stream_host_support_ = false;
+  connection_subrating_host_support_ = false;
+  random_address_ = Address::kEmpty;
+  page_scan_enable_ = false;
+  inquiry_scan_enable_ = false;
+  inquiry_scan_interval_ = 0x1000;
+  inquiry_scan_window_ = 0x0012;
+  page_timeout_ = 0x2000;
+  connection_accept_timeout_ = 0x1FA0;
+  page_scan_interval_ = 0x0800;
+  page_scan_window_ = 0x0012;
+  voice_setting_ = 0x0060;
+  authentication_enable_ = AuthenticationEnable::NOT_REQUIRED;
+  default_link_policy_settings_ = 0x0000;
+  sco_flow_control_enable_ = false;
+  local_name_.fill(0);
+  extended_inquiry_response_.fill(0);
+  class_of_device_ = ClassOfDevice({0, 0, 0});
+  min_encryption_key_size_ = 16;
+  event_mask_ = 0x00001fffffffffff;
+  event_mask_page_2_ = 0x0;
+  le_event_mask_ = 0x01f;
+  le_suggested_max_tx_octets_ = 0x001b;
+  le_suggested_max_tx_time_ = 0x0148;
+  resolvable_private_address_timeout_ = std::chrono::seconds(0x0384);
+  page_scan_repetition_mode_ = PageScanRepetitionMode::R0;
   connections_ = AclConnectionHandler();
+  oob_id_ = 1;
+  key_id_ = 1;
   le_filter_accept_list_.clear();
   le_resolving_list_.clear();
   le_resolving_list_enabled_ = false;
-  if (inquiry_timer_task_id_ != kInvalidTaskId) {
-    CancelScheduledTask(inquiry_timer_task_id_);
-    inquiry_timer_task_id_ = kInvalidTaskId;
-  }
+  legacy_advertising_in_use_ = false;
+  extended_advertising_in_use_ = false;
+  legacy_advertiser_ = LegacyAdvertiser{};
+  extended_advertisers_.clear();
+  scanner_ = Scanner{};
+  initiator_ = Initiator{};
   last_inquiry_ = steady_clock::now();
-  page_scan_enable_ = false;
-  inquiry_scan_enable_ = false;
+  inquiry_mode_ = InquiryType::STANDARD;
+  inquiry_lap_ = 0;
+  inquiry_max_responses_ = 0;
 
   bluetooth::hci::Lap general_iac;
   general_iac.lap_ = 0x33;  // 0x9E8B33
   current_iac_lap_list_.clear();
   current_iac_lap_list_.emplace_back(general_iac);
 
+  if (inquiry_timer_task_id_ != kInvalidTaskId) {
+    CancelScheduledTask(inquiry_timer_task_id_);
+    inquiry_timer_task_id_ = kInvalidTaskId;
+  }
+
+  if (page_timeout_task_id_ != kInvalidTaskId) {
+    CancelScheduledTask(page_timeout_task_id_);
+    page_timeout_task_id_ = kInvalidTaskId;
+  }
+
 #ifdef ROOTCANAL_LMP
   lm_.reset(link_manager_create(ops_));
+#else
+  security_manager_ = SecurityManager(10);
 #endif
-  legacy_advertising_in_use_ = false;
-  extended_advertising_in_use_ = false;
-
-  extended_advertisers_.clear();
-  legacy_advertiser_ = LegacyAdvertiser{};
-  scanner_ = Scanner{};
-  initiator_ = Initiator{};
 }
 
 void LinkLayerController::StartInquiry(milliseconds timeout) {

@@ -736,6 +736,7 @@ class ActiveDeviceManager {
         }
 
         mAudioManager.unregisterAudioDeviceCallback(mAudioManagerAudioDeviceCallback);
+        mAudioManager.removeOnModeChangedListener(mAudioManagerOnModeChangedListener);
         mAdapterService.unregisterReceiver(mReceiver);
         if (mHandlerThread != null) {
             mHandlerThread.quit();
