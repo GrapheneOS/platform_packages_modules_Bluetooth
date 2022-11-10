@@ -108,6 +108,7 @@ lazy_static! {
     static ref SUPPORTED_PROFILES: HashSet<Profile> = [
         Profile::A2dpSink,
         Profile::A2dpSource,
+        Profile::Bas,
         Profile::Hsp,
         Profile::Hfp,
         Profile::Hid,
@@ -129,6 +130,7 @@ lazy_static! {
         (UuidHelper::from_string(A2DP_SINK).unwrap(), Profile::A2dpSink),
         (UuidHelper::from_string(A2DP_SOURCE).unwrap(), Profile::A2dpSource),
         (UuidHelper::from_string(ADV_AUDIO_DIST).unwrap(), Profile::AdvAudioDist),
+        (UuidHelper::from_string(BAS).unwrap(), Profile::Bas),
         (UuidHelper::from_string(HSP).unwrap(), Profile::Hsp),
         (UuidHelper::from_string(HSP_AG).unwrap(), Profile::HspAg),
         (UuidHelper::from_string(HFP).unwrap(), Profile::Hfp),
