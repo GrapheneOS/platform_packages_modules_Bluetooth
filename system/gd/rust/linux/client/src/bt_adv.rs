@@ -1,8 +1,13 @@
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
+use crate::ClientContext;
+use crate::{console_yellow, print_info};
 
 use bt_topshim::btif::Uuid;
 use bt_topshim::profiles::gatt::LePhy;
 use btstack::bluetooth_adv::{AdvertiseData, AdvertiserId, AdvertisingSetParameters};
+use btstack::bluetooth_gatt::IBluetoothGatt;
 
 /// Avertisement parameter and data for a BLE advertising set.
 #[derive(Debug, Clone)]
@@ -21,11 +26,11 @@ pub(crate) struct AdvSet {
 }
 
 impl AdvSet {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(is_legacy: bool) -> Self {
         let params = AdvertisingSetParameters {
             connectable: false,
             scannable: false,
-            is_legacy: true,
+            is_legacy,
             is_anonymous: false,
             include_tx_power: true,
             primary_phy: LePhy::Phy1m,
@@ -62,5 +67,33 @@ impl AdvSet {
         };
 
         AdvSet { adv_id: None, params, data, scan_rsp }
+    }
+
+    pub(crate) fn start(context: Arc<Mutex<ClientContext>>, s: AdvSet, callback_id: u32) {
+        let mut context = context.lock().unwrap();
+
+        let reg_id = context.gatt_dbus.as_mut().unwrap().start_advertising_set(
+            s.params.clone(),
+            s.data.clone(),
+            None,
+            None,
+            None,
+            0,
+            0,
+            callback_id,
+        );
+        print_info!("Starting advertising set for reg_id = {}", reg_id);
+        context.adv_sets.insert(reg_id, s);
+    }
+
+    pub(crate) fn stop_all(context: Arc<Mutex<ClientContext>>) {
+        let mut context = context.lock().unwrap();
+
+        let adv_ids: Vec<_> = context.adv_sets.iter().filter_map(|(_, s)| s.adv_id).collect();
+        for adv_id in adv_ids {
+            print_info!("Stopping advertising set {}", adv_id);
+            context.gatt_dbus.as_mut().unwrap().stop_advertising_set(adv_id);
+        }
+        context.adv_sets.clear();
     }
 }

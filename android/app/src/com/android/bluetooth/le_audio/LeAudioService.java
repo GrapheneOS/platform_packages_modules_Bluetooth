@@ -42,6 +42,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioDeviceCallback;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.BluetoothProfileConnectionInfo;
 import android.os.Handler;
@@ -166,6 +168,10 @@ public class LeAudioService extends ProfileService {
     private BroadcastReceiver mMuteStateChangedReceiver;
     private int mStoredRingerMode = -1;
     private Handler mHandler = new Handler(Looper.getMainLooper());
+    private final AudioManagerAddAudioDeviceCallback mAudioManagerAddAudioDeviceCallback =
+            new AudioManagerAddAudioDeviceCallback();
+    private final AudioManagerRemoveAudioDeviceCallback mAudioManagerRemoveAudioDeviceCallback =
+            new AudioManagerRemoveAudioDeviceCallback();
 
     private final Map<Integer, Integer> mBroadcastStateMap = new HashMap<>();
     private final Map<Integer, Boolean> mBroadcastsPlaybackMap = new HashMap<>();
@@ -821,9 +827,6 @@ public class LeAudioService extends ProfileService {
                         + " isLeOutput: false");
             }
 
-            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioInDevice,previousInDevice,
-                    BluetoothProfileConnectionInfo.createLeAudioInfo(false, false));
-
             return true;
         }
         Log.d(TAG, "updateActiveInDevice: Nothing to do.");
@@ -876,26 +879,58 @@ public class LeAudioService extends ProfileService {
         if (!Objects.equals(device, previousOutDevice)
                 || (oldSupportedByDeviceOutput != newSupportedByDeviceOutput)) {
             mActiveAudioOutDevice = newSupportedByDeviceOutput ? device : null;
-            final boolean suppressNoisyIntent = (mActiveAudioOutDevice != null)
-                    || (getConnectionState(previousOutDevice) == BluetoothProfile.STATE_CONNECTED);
-
             if (DBG) {
                 Log.d(TAG, " handleBluetoothActiveDeviceChanged previousOutDevice: "
                         + previousOutDevice + ", mActiveOutDevice: " + mActiveAudioOutDevice
                         + " isLeOutput: true");
             }
-            int volume = IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME;
-            if (mActiveAudioOutDevice != null) {
-                volume = getAudioDeviceGroupVolume(groupId);
-            }
-
-            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
-                    previousOutDevice,
-                    getLeAudioOutputProfile(suppressNoisyIntent, volume));
             return true;
         }
         Log.d(TAG, "updateActiveOutDevice: Nothing to do.");
         return false;
+    }
+
+    private void notifyActiveDeviceChanged() {
+        Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE,
+                mActiveAudioOutDevice != null ? mActiveAudioOutDevice : mActiveAudioInDevice);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        sendBroadcast(intent, BLUETOOTH_CONNECT);
+    }
+
+    /* Notifications of audio device disconnection events. */
+    private class AudioManagerRemoveAudioDeviceCallback extends AudioDeviceCallback {
+        @Override
+        public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+            for (AudioDeviceInfo deviceInfo : removedDevices) {
+                if (deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_HEADSET
+                        || deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_SPEAKER) {
+                    notifyActiveDeviceChanged();
+                    if (DBG) {
+                        Log.d(TAG, " onAudioDevicesRemoved: device type: " + deviceInfo.getType());
+                    }
+                    mAudioManager.unregisterAudioDeviceCallback(this);
+                }
+            }
+        }
+    }
+
+    /* Notifications of audio device connection events. */
+    private class AudioManagerAddAudioDeviceCallback extends AudioDeviceCallback {
+        @Override
+        public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+            for (AudioDeviceInfo deviceInfo : addedDevices) {
+                if (deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_HEADSET
+                        || deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_SPEAKER) {
+                    notifyActiveDeviceChanged();
+                    if (DBG) {
+                        Log.d(TAG, " onAudioDevicesAdded: device type: " + deviceInfo.getType());
+                    }
+                    mAudioManager.unregisterAudioDeviceCallback(this);
+                }
+            }
+        }
     }
 
     /**
@@ -909,24 +944,57 @@ public class LeAudioService extends ProfileService {
     private boolean updateActiveDevices(Integer groupId, Integer oldSupportedAudioDirections,
             Integer newSupportedAudioDirections, boolean isActive) {
         BluetoothDevice device = null;
+        BluetoothDevice previousActiveOutDevice = mActiveAudioOutDevice;
+        BluetoothDevice previousActiveInDevice = mActiveAudioInDevice;
 
         if (isActive) {
             device = getFirstDeviceFromGroup(groupId);
         }
 
-        boolean outReplaced =
-                updateActiveOutDevice(device, groupId, oldSupportedAudioDirections,
-                        newSupportedAudioDirections);
-        boolean inReplaced =
-                updateActiveInDevice(device, groupId, oldSupportedAudioDirections,
-                        newSupportedAudioDirections);
+        boolean isNewActiveOutDevice = updateActiveOutDevice(device, groupId,
+                oldSupportedAudioDirections, newSupportedAudioDirections);
+        boolean isNewActiveInDevice = updateActiveInDevice(device, groupId,
+                oldSupportedAudioDirections, newSupportedAudioDirections);
 
-        if (outReplaced || inReplaced) {
-            Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
-            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mActiveAudioOutDevice);
-            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
-                    | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-            sendBroadcast(intent, BLUETOOTH_CONNECT);
+        if (DBG) {
+            Log.d(TAG, " isNewActiveOutDevice: " + isNewActiveOutDevice + ", "
+                    + mActiveAudioOutDevice + ", isNewActiveInDevice: " + isNewActiveInDevice
+                    + ", " + mActiveAudioInDevice);
+        }
+
+        /* Active device changed, there is need to inform about new active LE Audio device */
+        if (isNewActiveOutDevice || isNewActiveInDevice) {
+            /* Register for new device connection/disconnection in Audio Manager */
+            if (mActiveAudioOutDevice != null || mActiveAudioInDevice != null) {
+                /* Register for any device connection in case if any of devices become connected */
+                mAudioManager.registerAudioDeviceCallback(mAudioManagerAddAudioDeviceCallback,
+                        mHandler);
+            } else {
+                /* Register for disconnection if active devices become non-active */
+                mAudioManager.registerAudioDeviceCallback(mAudioManagerRemoveAudioDeviceCallback,
+                        mHandler);
+            }
+        }
+
+        if (isNewActiveOutDevice) {
+            int volume = IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME;
+
+            if (mActiveAudioOutDevice != null) {
+                volume = getAudioDeviceGroupVolume(groupId);
+            }
+
+            final boolean suppressNoisyIntent = (mActiveAudioOutDevice != null)
+                    || (getConnectionState(previousActiveOutDevice)
+                    == BluetoothProfile.STATE_CONNECTED);
+
+            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
+                    previousActiveOutDevice, getLeAudioOutputProfile(suppressNoisyIntent, volume));
+        }
+
+        if (isNewActiveInDevice) {
+            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioInDevice,
+                    previousActiveInDevice, BluetoothProfileConnectionInfo.createLeAudioInfo(false,
+                            false));
         }
 
         return mActiveAudioOutDevice != null;
