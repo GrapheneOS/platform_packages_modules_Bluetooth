@@ -1210,10 +1210,6 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       LOG(ERROR) << "No command complete expected, but received!";
       break;
 
-    case HCI_BLE_CREATE_CONN_CANCEL:
-      btm_ble_create_conn_cancel_complete(p);
-      break;
-
     case HCI_BLE_TRANSMITTER_TEST:
     case HCI_BLE_RECEIVER_TEST:
     case HCI_BLE_TEST_END:
@@ -1239,6 +1235,14 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
     case HCI_BLE_READ_RESOLVABLE_ADDR_LOCAL:
     case HCI_BLE_SET_ADDR_RESOLUTION_ENABLE:
     case HCI_BLE_SET_RAND_PRIV_ADDR_TIMOUT:
+      break;
+
+    case HCI_BLE_CREATE_CONN_CANCEL:
+      LOG_ERROR(
+          "Unexpectedly received command complete for opcode:0x%02x that "
+          "should not be "
+          "handled here",
+          opcode);
       break;
     default:
       if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)

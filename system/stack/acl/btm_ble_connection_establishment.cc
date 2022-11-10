@@ -99,15 +99,6 @@ bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
   return is_in_security_db;
 }
 
-void btm_ble_create_conn_cancel() {
-  ASSERT_LOG(false,
-             "When gd_acl enabled this code path should not be exercised");
-
-  btsnd_hcic_ble_create_conn_cancel();
-  btm_cb.ble_ctr_cb.set_connection_state_cancelled();
-  btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
-}
-
 void btm_ble_create_conn_cancel_complete(uint8_t* p) {
   uint8_t status;
   STREAM_TO_UINT8(status, p);
