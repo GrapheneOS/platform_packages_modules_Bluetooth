@@ -307,11 +307,11 @@ impl HidHost {
         report: &mut [u8],
         size: u16,
     ) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        let addr_ptr = LTCheckedPtrMut::from_ref(addr);
         BtStatus::from(ccall!(
             self,
             get_report_reply,
-            ffi_addr,
+            addr_ptr.into(),
             status as bindings::bthh_status_t,
             report.as_mut_ptr() as *mut std::os::raw::c_char,
             size
