@@ -243,6 +243,7 @@ enum OpCode : 16 {
   READ_LOCAL_OOB_EXTENDED_DATA = 0x0C7D,
   SET_ECOSYSTEM_BASE_INTERVAL = 0x0C82,
   CONFIGURE_DATA_PATH = 0x0C83,
+  SET_MIN_ENCRYPTION_KEY_SIZE = 0x0C84,
 
   // INFORMATIONAL_PARAMETERS
   READ_LOCAL_VERSION_INFORMATION = 0x1001,
@@ -381,6 +382,9 @@ enum OpCode : 16 {
   LE_SET_PATH_LOSS_REPORTING_PARAMETERS = 0x2078,
   LE_SET_PATH_LOSS_REPORTING_ENABLE = 0x2079,
   LE_SET_TRANSMIT_POWER_REPORTING_ENABLE = 0x207A,
+  LE_SET_DATA_RELATED_ADDRESS_CHANGES = 0x207C,
+  LE_SET_DEFAULT_SUBRATE = 0x207D,
+  LE_SUBRATE_REQUEST = 0x207E,
 
   // VENDOR_SPECIFIC
   LE_GET_VENDOR_CAPABILITIES = 0xFD53,
@@ -649,6 +653,10 @@ enum OpCodeIndex : 16 {
   READ_LOCAL_SUPPORTED_CODEC_CAPABILITIES = 453,
   READ_LOCAL_SUPPORTED_CONTROLLER_DELAY = 454,
   CONFIGURE_DATA_PATH = 455,
+  LE_SET_DATA_RELATED_ADDRESS_CHANGES = 456,
+  SET_MIN_ENCRYPTION_KEY_SIZE = 457,
+  LE_SET_DEFAULT_SUBRATE = 460,
+  LE_SUBRATE_REQUEST = 461,
 }
 
 packet Command {
@@ -772,6 +780,7 @@ enum SubeventCode : 8 {
   PATH_LOSS_THRESHOLD = 0x20,
   TRANSMIT_POWER_REPORTING = 0x21,
   BIG_INFO_ADVERTISING_REPORT = 0x22,
+  LE_SUBRATE_CHANGE = 0x23,
 }
 
 // Vendor specific events
@@ -2503,6 +2512,14 @@ packet ConfigureDataPath : Command (op_code = CONFIGURE_DATA_PATH) {
 }
 
 packet ConfigureDataPathComplete : CommandComplete (command_op_code = CONFIGURE_DATA_PATH) {
+  status : ErrorCode,
+}
+
+packet SetMinEncryptionKeySize : Command (op_code = SET_MIN_ENCRYPTION_KEY_SIZE) {
+  min_encryption_key_size : 8,
+}
+
+packet SetMinEncryptionKeySizeComplete : CommandComplete (command_op_code = SET_MIN_ENCRYPTION_KEY_SIZE) {
   status : ErrorCode,
 }
 
@@ -4601,6 +4618,50 @@ packet LeSetTransmitPowerReportingEnableComplete : CommandComplete (command_op_c
   _reserved_ : 4,
 }
 
+packet LeSetDataRelatedAddressChanges : Command (op_code = LE_SET_DATA_RELATED_ADDRESS_CHANGES) {
+  advertising_handle : 8,
+  change_reasons : 8,
+}
+
+packet LeSetDataRelatedAddressChangesComplete : CommandComplete (command_op_code = LE_SET_DATA_RELATED_ADDRESS_CHANGES) {
+  status : ErrorCode,
+}
+
+packet LeSetDefaultSubrate : Command (op_code = LE_SET_DEFAULT_SUBRATE) {
+  subrate_min : 9,
+  _reserved_ : 7,
+  subrate_max : 9,
+  _reserved_ : 7,
+  max_latency : 9,
+  _reserved_ : 7,
+  continuation_number : 9,
+  _reserved_ : 7,
+  supervision_timeout: 12,
+  _reserved_ : 4,
+}
+
+packet LeSetDefaultSubrateComplete : CommandComplete (command_op_code = LE_SET_DEFAULT_SUBRATE) {
+  status : ErrorCode,
+}
+
+packet LeSubrateRequest : Command (op_code = LE_SUBRATE_REQUEST) {
+  connection_handle : 12,
+  _reserved_ : 4,
+  subrate_min : 9,
+  _reserved_ : 7,
+  subrate_max : 9,
+  _reserved_ : 7,
+  max_latency : 9,
+  _reserved_ : 7,
+  continuation_number : 9,
+  _reserved_ : 7,
+  supervision_timeout: 12,
+  _reserved_ : 4,
+}
+
+packet LeSubrateRequestStatus : CommandStatus (command_op_code = LE_SUBRATE_REQUEST) {
+}
+
   // VENDOR_SPECIFIC
 packet LeGetVendorCapabilities : VendorCommand (op_code = LE_GET_VENDOR_CAPABILITIES) {
 }
@@ -5977,6 +6038,20 @@ packet LeBigInfoAdvertisingReport : LeMetaEvent (subevent_code = BIG_INFO_ADVERT
   encryption : Enable,
 }
 
+packet LeSubrateChange : LeMetaEvent (subevent_code = LE_SUBRATE_CHANGE) {
+  status : ErrorCode,
+  connection_handle : 12,
+  _reserved_ : 4,
+  subrate_factor : 9,
+  _reserved_ : 7,
+  peripheral_latency : 9,
+  _reserved_ : 7,
+  continuation_number : 9,
+  _reserved_ : 7,
+  supervision_timeout: 12,
+  _reserved_ : 4,
+}
+
 // Vendor specific events
 
 packet VendorSpecificEvent : Event (event_code = VENDOR_SPECIFIC) {
@@ -6009,7 +6084,7 @@ packet LEAdvertiseStateChangeEvent : VendorSpecificEvent (subevent_code = BLE_ST
   advertising_instance : 8,
   state_change_reason : VseStateChangeReason,
   connection_handle : 12,
-  reserved : 4,
+  _reserved_ : 4,
 }
 
 packet LEAdvertisementTrackingWithInfoEvent : LEAdvertisementTrackingEvent {
