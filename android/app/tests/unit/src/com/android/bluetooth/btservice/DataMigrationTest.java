@@ -66,6 +66,8 @@ public class DataMigrationTest {
 
     private static final String AUTHORITY = "bluetooth_legacy.provider";
 
+    private static final String TEST_PREF = "TestPref";
+
     private MockContentResolver mMockContentResolver;
 
     private Context mTargetContext;
@@ -78,7 +80,8 @@ public class DataMigrationTest {
         MockitoAnnotations.initMocks(this);
 
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        mPrefs = mTargetContext.getSharedPreferences("TestPref", Context.MODE_PRIVATE);
+        mTargetContext.deleteSharedPreferences(TEST_PREF);
+        mPrefs = mTargetContext.getSharedPreferences(TEST_PREF, Context.MODE_PRIVATE);
 
         mMockContentResolver = new MockContentResolver(mTargetContext);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
@@ -86,7 +89,6 @@ public class DataMigrationTest {
 
         when(mMockContext.getSharedPreferences(anyString(), anyInt())).thenReturn(mPrefs);
 
-        mTargetContext.deleteSharedPreferences("TestPref");
     }
 
     @After
@@ -162,22 +164,18 @@ public class DataMigrationTest {
      */
     @Test
     public void testTooManyAttempt() {
-        SharedPreferences pref = mMockContext
-                .getSharedPreferences(DataMigration.BLUETOOTH_CONFIG,
-                        Context.MODE_PRIVATE);
-
-        assertThat(pref.getInt(DataMigration.MIGRATION_ATTEMPT_PROPERTY, -1))
+        assertThat(mPrefs.getInt(DataMigration.MIGRATION_ATTEMPT_PROPERTY, -1))
             .isEqualTo(-1);
 
         for (int i = 0; i < DataMigration.MAX_ATTEMPT; i++) {
             assertThat(DataMigration.incrementeMigrationAttempt(mMockContext))
                 .isTrue();
-            assertThat(pref.getInt(DataMigration.MIGRATION_ATTEMPT_PROPERTY, -1))
+            assertThat(mPrefs.getInt(DataMigration.MIGRATION_ATTEMPT_PROPERTY, -1))
                 .isEqualTo(i + 1);
         }
         assertThat(DataMigration.incrementeMigrationAttempt(mMockContext))
             .isFalse();
-        assertThat(pref.getInt(DataMigration.MIGRATION_ATTEMPT_PROPERTY, -1))
+        assertThat(mPrefs.getInt(DataMigration.MIGRATION_ATTEMPT_PROPERTY, -1))
             .isEqualTo(DataMigration.MAX_ATTEMPT + 1);
 
         mMockContentResolver.addProvider(AUTHORITY, new MockContentProvider(mMockContext));
