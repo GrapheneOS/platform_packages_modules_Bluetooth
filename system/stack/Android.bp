@@ -678,6 +678,7 @@ cc_test {
         "a2dp/a2dp_vendor_opus_decoder.cc",
         "test/a2dp/a2dp_aac_unittest.cc",
         "test/a2dp/a2dp_sbc_unittest.cc",
+        "test/a2dp/a2dp_opus_unittest.cc",
         "test/a2dp/a2dp_vendor_ldac_unittest.cc",
         "test/a2dp/mock_bta_av_codec.cc",
         "test/a2dp/test_util.cc",
