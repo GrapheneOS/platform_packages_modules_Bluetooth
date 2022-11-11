@@ -16,11 +16,7 @@
 package com.android.bluetooth.btservice;
 
 import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -56,16 +52,11 @@ public class MetricsLogger {
     private boolean mInitialized = false;
     static final private Object mLock = new Object();
 
-    private BroadcastReceiver mDrainReceiver = new BroadcastReceiver() {
+    private AlarmManager.OnAlarmListener mOnAlarmListener = new AlarmManager.OnAlarmListener () {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (DEBUG) {
-                Log.d(TAG, "onReceive: " + action);
-            }
-            if (action.equals(BLUETOOTH_COUNTER_METRICS_ACTION)) {
-                drainBufferedCounters();
-            }
+        public void onAlarm() {
+            drainBufferedCounters();
+            scheduleDrains();
         }
     };
 
@@ -90,9 +81,6 @@ public class MetricsLogger {
         }
         mInitialized = true;
         mContext = context;
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BLUETOOTH_COUNTER_METRICS_ACTION);
-        mContext.registerReceiver(mDrainReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
         scheduleDrains();
         return true;
     }
@@ -154,17 +142,16 @@ public class MetricsLogger {
     }
 
     protected void scheduleDrains() {
-        if (DEBUG) {
-            Log.d(TAG, "setCounterMetricsAlarm()");
-        }
+        Log.i(TAG, "setCounterMetricsAlarm()");
         if (mAlarmManager == null) {
             mAlarmManager = mContext.getSystemService(AlarmManager.class);
         }
-        mAlarmManager.setRepeating(
+        mAlarmManager.set(
                 AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                SystemClock.elapsedRealtime(),
-                BLUETOOTH_COUNTER_METRICS_ACTION_DURATION_MILLIS,
-                getDrainIntent());
+                SystemClock.elapsedRealtime() + BLUETOOTH_COUNTER_METRICS_ACTION_DURATION_MILLIS,
+                TAG,
+                mOnAlarmListener,
+                null);
     }
 
     public boolean count(int key, long count) {
@@ -207,15 +194,6 @@ public class MetricsLogger {
         return true;
     }
     protected void cancelPendingDrain() {
-        PendingIntent pIntent = getDrainIntent();
-        pIntent.cancel();
-        mAlarmManager.cancel(pIntent);
-    }
-
-    private PendingIntent getDrainIntent() {
-        Intent counterMetricsIntent = new Intent(BLUETOOTH_COUNTER_METRICS_ACTION);
-        counterMetricsIntent.setPackage(mContext.getPackageName());
-        return PendingIntent.getBroadcast(
-                mContext, 0, counterMetricsIntent, PendingIntent.FLAG_IMMUTABLE);
+        mAlarmManager.cancel(mOnAlarmListener);
     }
 }
