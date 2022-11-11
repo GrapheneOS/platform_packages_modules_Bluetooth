@@ -142,9 +142,9 @@ impl A2dpCodecChannelMode {
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 pub mod ffi {
-    #[derive(Debug, Copy, Clone)]
-    pub struct RustRawAddress {
-        address: [u8; 6],
+    unsafe extern "C++" {
+        include!("gd/rust/topshim/common/type_alias.h");
+        type RawAddress = crate::btif::RawAddress;
     }
 
     #[derive(Debug, Copy, Clone)]
@@ -185,13 +185,13 @@ pub mod ffi {
         unsafe fn GetA2dpProfile(btif: *const u8) -> UniquePtr<A2dpIntf>;
 
         fn init(self: &A2dpIntf) -> i32;
-        fn connect(self: &A2dpIntf, bt_addr: RustRawAddress) -> u32;
-        fn disconnect(self: &A2dpIntf, bt_addr: RustRawAddress) -> u32;
-        fn set_silence_device(self: &A2dpIntf, bt_addr: RustRawAddress, silent: bool) -> i32;
-        fn set_active_device(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
+        fn connect(self: &A2dpIntf, bt_addr: RawAddress) -> u32;
+        fn disconnect(self: &A2dpIntf, bt_addr: RawAddress) -> u32;
+        fn set_silence_device(self: &A2dpIntf, bt_addr: RawAddress, silent: bool) -> i32;
+        fn set_active_device(self: &A2dpIntf, bt_addr: RawAddress) -> i32;
         fn config_codec(
             self: &A2dpIntf,
-            bt_addr: RustRawAddress,
+            bt_addr: RawAddress,
             codec_preferences: Vec<A2dpCodecConfig>,
         ) -> i32;
         fn set_audio_config(self: &A2dpIntf, config: A2dpCodecConfig) -> bool;
@@ -204,40 +204,27 @@ pub mod ffi {
         unsafe fn GetA2dpSinkProfile(btif: *const u8) -> UniquePtr<A2dpSinkIntf>;
 
         fn init(self: &A2dpSinkIntf) -> i32;
-        fn connect(self: &A2dpSinkIntf, bt_addr: RustRawAddress) -> i32;
-        fn disconnect(self: &A2dpSinkIntf, bt_addr: RustRawAddress) -> i32;
-        fn set_active_device(self: &A2dpSinkIntf, bt_addr: RustRawAddress) -> i32;
+        fn connect(self: &A2dpSinkIntf, bt_addr: RawAddress) -> i32;
+        fn disconnect(self: &A2dpSinkIntf, bt_addr: RawAddress) -> i32;
+        fn set_active_device(self: &A2dpSinkIntf, bt_addr: RawAddress) -> i32;
         fn cleanup(self: &A2dpSinkIntf);
     }
     extern "Rust" {
-        fn connection_state_callback(addr: RustRawAddress, state: u32, error: A2dpError);
-        fn audio_state_callback(addr: RustRawAddress, state: u32);
+        fn connection_state_callback(addr: RawAddress, state: u32, error: A2dpError);
+        fn audio_state_callback(addr: RawAddress, state: u32);
         fn audio_config_callback(
-            addr: RustRawAddress,
+            addr: RawAddress,
             codec_config: A2dpCodecConfig,
             codecs_local_capabilities: Vec<A2dpCodecConfig>,
             codecs_selectable_capabilities: Vec<A2dpCodecConfig>,
         );
-        fn mandatory_codec_preferred_callback(addr: RustRawAddress);
+        fn mandatory_codec_preferred_callback(addr: RawAddress);
     }
 }
 
-pub type FfiAddress = ffi::RustRawAddress;
 pub type A2dpCodecConfig = ffi::A2dpCodecConfig;
 pub type PresentationPosition = ffi::RustPresentationPosition;
 pub type FfiA2dpError = ffi::A2dpError;
-
-impl From<RawAddress> for FfiAddress {
-    fn from(addr: RawAddress) -> Self {
-        FfiAddress { address: addr.val }
-    }
-}
-
-impl Into<RawAddress> for FfiAddress {
-    fn into(self) -> RawAddress {
-        RawAddress { val: self.address }
-    }
-}
 
 impl Default for A2dpCodecConfig {
     fn default() -> A2dpCodecConfig {
@@ -279,25 +266,16 @@ pub struct A2dpCallbacksDispatcher {
 type A2dpCb = Arc<Mutex<A2dpCallbacksDispatcher>>;
 
 cb_variant!(A2dpCb, connection_state_callback -> A2dpCallbacks::ConnectionState,
-FfiAddress -> RawAddress, u32 -> BtavConnectionState, FfiA2dpError -> A2dpError,{
-    let _0 = _0.into();
+RawAddress, u32 -> BtavConnectionState, FfiA2dpError -> A2dpError,{
     let _2 = _2.into();
 });
 
-cb_variant!(A2dpCb, audio_state_callback -> A2dpCallbacks::AudioState,
-FfiAddress -> RawAddress, u32 -> BtavAudioState, {
-    let _0 = _0.into();
-});
+cb_variant!(A2dpCb, audio_state_callback -> A2dpCallbacks::AudioState, RawAddress, u32 -> BtavAudioState);
 
-cb_variant!(A2dpCb, mandatory_codec_preferred_callback -> A2dpCallbacks::MandatoryCodecPreferred,
-FfiAddress -> RawAddress, {
-    let _0 = _0.into();
-});
+cb_variant!(A2dpCb, mandatory_codec_preferred_callback -> A2dpCallbacks::MandatoryCodecPreferred, RawAddress);
 
 cb_variant!(A2dpCb, audio_config_callback -> A2dpCallbacks::AudioConfig,
-FfiAddress -> RawAddress, A2dpCodecConfig, Vec<A2dpCodecConfig>, Vec<A2dpCodecConfig>, {
-    let _0 = _0.into();
-});
+RawAddress, A2dpCodecConfig, Vec<A2dpCodecConfig>, Vec<A2dpCodecConfig>);
 
 pub struct A2dp {
     internal: cxx::UniquePtr<ffi::A2dpIntf>,
@@ -356,17 +334,17 @@ impl A2dp {
 
     #[profile_enabled_or(BtStatus::NotReady)]
     pub fn connect(&mut self, addr: RawAddress) -> BtStatus {
-        BtStatus::from(self.internal.connect(addr.into()))
+        BtStatus::from(self.internal.connect(addr))
     }
 
     #[profile_enabled_or]
     pub fn set_active_device(&mut self, addr: RawAddress) {
-        self.internal.set_active_device(addr.into());
+        self.internal.set_active_device(addr);
     }
 
     #[profile_enabled_or(BtStatus::NotReady)]
     pub fn disconnect(&mut self, addr: RawAddress) -> BtStatus {
-        BtStatus::from(self.internal.disconnect(addr.into()))
+        BtStatus::from(self.internal.disconnect(addr))
     }
 
     #[profile_enabled_or]
@@ -455,17 +433,17 @@ impl A2dpSink {
 
     #[profile_enabled_or]
     pub fn connect(&mut self, bt_addr: RawAddress) {
-        self.internal.connect(bt_addr.into());
+        self.internal.connect(bt_addr);
     }
 
     #[profile_enabled_or]
     pub fn disconnect(&mut self, bt_addr: RawAddress) {
-        self.internal.disconnect(bt_addr.into());
+        self.internal.disconnect(bt_addr);
     }
 
     #[profile_enabled_or]
     pub fn set_active_device(&mut self, bt_addr: RawAddress) {
-        self.internal.set_active_device(bt_addr.into());
+        self.internal.set_active_device(bt_addr);
     }
 
     #[profile_enabled_or]
