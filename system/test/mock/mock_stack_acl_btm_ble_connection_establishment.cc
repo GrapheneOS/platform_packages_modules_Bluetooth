@@ -53,7 +53,6 @@ namespace stack_acl_btm_ble_connection_establishment {
 struct btm_ble_create_ll_conn_complete btm_ble_create_ll_conn_complete;
 struct maybe_resolve_address maybe_resolve_address;
 struct btm_ble_conn_complete btm_ble_conn_complete;
-struct btm_ble_create_conn_cancel btm_ble_create_conn_cancel;
 struct btm_ble_create_conn_cancel_complete btm_ble_create_conn_cancel_complete;
 
 }  // namespace stack_acl_btm_ble_connection_establishment
@@ -74,11 +73,6 @@ void btm_ble_conn_complete(uint8_t* p, uint16_t evt_len, bool enhanced) {
   mock_function_count_map[__func__]++;
   test::mock::stack_acl_btm_ble_connection_establishment::btm_ble_conn_complete(
       p, evt_len, enhanced);
-}
-void btm_ble_create_conn_cancel() {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_acl_btm_ble_connection_establishment::
-      btm_ble_create_conn_cancel();
 }
 void btm_ble_create_conn_cancel_complete(uint8_t* p) {
   mock_function_count_map[__func__]++;

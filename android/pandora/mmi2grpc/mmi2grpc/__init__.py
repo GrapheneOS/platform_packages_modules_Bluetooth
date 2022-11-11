@@ -35,11 +35,13 @@ from mmi2grpc.sdp import SDPProxy
 from mmi2grpc.sm import SMProxy
 from mmi2grpc._helpers import format_proxy
 from mmi2grpc._rootcanal import RootCanal
+from mmi2grpc._modem import Modem
 
 from pandora_experimental.host_grpc import Host
 
 PANDORA_SERVER_PORT = 8999
 ROOTCANAL_CONTROL_PORT = 6212
+MODEM_SIMULATOR_PORT = 4242
 MAX_RETRIES = 10
 GRPC_SERVER_INIT_TIMEOUT = 10  # seconds
 
@@ -60,8 +62,10 @@ class IUT:
         """
         self.pandora_server_port = int(args[0]) if len(args) > 0 else PANDORA_SERVER_PORT
         self.rootcanal_control_port = int(args[1]) if len(args) > 1 else ROOTCANAL_CONTROL_PORT
+        self.modem_simulator_port = int(args[2]) if len(args) > 2 else MODEM_SIMULATOR_PORT
         self.test = test
         self.rootcanal = None
+        self.modem = None
 
         # Profile proxies.
         self._a2dp = None
@@ -81,6 +85,8 @@ class IUT:
         self.rootcanal = RootCanal(port=self.rootcanal_control_port)
         self.rootcanal.reconnect_phone()
 
+        self.modem = Modem(port=self.modem_simulator_port)
+
         # Note: we don't keep a single gRPC channel instance in the IUT class
         # because reset is allowed to close the gRPC server.
         with grpc.insecure_channel(f'localhost:{self.pandora_server_port}') as channel:
@@ -89,6 +95,9 @@ class IUT:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.rootcanal.close()
         self.rootcanal = None
+
+        self.modem.close()
+        self.modem = None
 
         self._a2dp = None
         self._avrcp = None

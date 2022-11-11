@@ -5,11 +5,9 @@ use std::fs::File;
 use std::os::unix::io::FromRawFd;
 
 use crate::bindings::root as bindings;
-use crate::btif::{
-    BluetoothInterface, BtStatus, FfiAddress, RawAddress, SupportedProfiles, Uuid, Uuid128Bit,
-};
+use crate::btif::{BluetoothInterface, BtStatus, RawAddress, SupportedProfiles, Uuid, Uuid128Bit};
+use crate::ccall;
 use crate::utils::{LTCheckedPtr, LTCheckedPtrMut};
-use crate::{cast_to_ffi_address, ccall};
 
 #[derive(Clone, Debug, FromPrimitive, ToPrimitive)]
 #[repr(u32)]
@@ -202,12 +200,12 @@ impl BtSocket {
         };
         let uuid_ptr = LTCheckedPtr::from(&uuid);
 
-        let ffi_addr = cast_to_ffi_address!(&addr as *const RawAddress);
+        let addr_ptr = LTCheckedPtr::from_ref(&addr);
 
         let status: BtStatus = ccall!(
             self,
             connect,
-            ffi_addr,
+            addr_ptr.into(),
             sock_type.into(),
             uuid_ptr.into(),
             channel,
@@ -221,8 +219,7 @@ impl BtSocket {
     }
 
     pub fn request_max_tx_data_length(&self, addr: RawAddress) {
-        let ffi_addr = cast_to_ffi_address!(&addr as *const RawAddress);
-        ccall!(self, request_max_tx_data_length, ffi_addr);
+        ccall!(self, request_max_tx_data_length, &addr);
     }
 }
 
@@ -246,7 +243,7 @@ mod tests {
         assert_eq!(false, ConnectionComplete::try_from(size_no_match.as_slice()).is_ok());
 
         // Valid input with various values.
-        let raw_addr = RawAddress { val: [0x1, 0x2, 0x3, 0x4, 0x5, 0x6] };
+        let raw_addr = RawAddress { address: [0x1, 0x2, 0x3, 0x4, 0x5, 0x6] };
         let mut valid: Vec<u8> = vec![];
         valid.extend(u16::to_ne_bytes(20));
         valid.extend(raw_addr.to_byte_arr());

@@ -157,6 +157,9 @@ cc_defaults {
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
+    local_include_dirs: [
+        "include"
+    ],
     target: {
         android: {
             srcs: ["src/btif_avrcp_audio_track.cc"],

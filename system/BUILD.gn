@@ -77,6 +77,7 @@ config("target_defaults") {
     "//bt/system/linux_include",
     "//bt/system/types",
     "//bt/system/include",
+    "//bt/system/gd",
 
     # For flatbuffer generated headers
     "${root_gen_dir}/bt/system/gd/",

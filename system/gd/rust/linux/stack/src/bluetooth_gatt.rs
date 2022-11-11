@@ -1769,7 +1769,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             self.context_map.get_callback_from_callback_id(cbid).and_then(
                 |cb: &mut GattClientCallback| {
                     cb.on_notify(
-                        RawAddress { val: data.bda.address }.to_string(),
+                        data.bda.to_string(),
                         data.handle as i32,
                         data.value[0..data.len as usize].to_vec(),
                     );

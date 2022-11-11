@@ -19,6 +19,8 @@
 #include <optional>
 #include <string>
 
+#define DEBUGGABLE_SYS_PROP_NAME "ro.debuggable"
+
 namespace bluetooth {
 namespace os {
 
