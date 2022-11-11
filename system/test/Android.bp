@@ -192,6 +192,13 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockStackA2dpApi",
+    srcs: [
+      "mock/mock_stack_a2dp_api.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockStackL2cap",
     srcs: [
       "mock/mock_stack_l2cap_*.cc",

@@ -616,6 +616,105 @@ cc_test {
 }
 
 cc_test {
+    name: "net_test_stack_a2dp_codecs_native",
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
+    test_suites: ["device-tests"],
+    host_supported: true,
+    test_options: {
+        unit_test: true,
+    },
+    include_dirs: [
+        "external/aac/libAACenc/include",
+        "external/aac/libAACdec/include",
+        "external/aac/libSYS/include",
+        "external/libldac/inc",
+        "external/libldac/abr/inc",
+        "external/libopus/include",
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/btif/include",
+        "packages/modules/Bluetooth/system/embdrv/encoder_for_aptxhd/include",
+        "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/utils/include",
+    ],
+    target: {
+        host: {
+            srcs: [
+                ":BluetoothHostTestingLogCapture",
+            ],
+        },
+        android: {
+            srcs: [
+                ":BluetoothAndroidTestingLogCapture",
+            ],
+            test_config: "test/a2dp/AndroidTest.xml",
+        }
+    },
+    data: [
+        "test/a2dp/raw_data/*",
+    ],
+    srcs: [
+        "a2dp/a2dp_aac.cc",
+        "a2dp/a2dp_aac_decoder.cc",
+        "a2dp/a2dp_aac_encoder.cc",
+        "a2dp/a2dp_codec_config.cc",
+        "a2dp/a2dp_sbc.cc",
+        "a2dp/a2dp_sbc_decoder.cc",
+        "a2dp/a2dp_sbc_encoder.cc",
+        "a2dp/a2dp_sbc_up_sample.cc",
+        "a2dp/a2dp_vendor.cc",
+        "a2dp/a2dp_vendor_aptx.cc",
+        "a2dp/a2dp_vendor_aptx_hd.cc",
+        "a2dp/a2dp_vendor_aptx_encoder.cc",
+        "a2dp/a2dp_vendor_aptx_hd_encoder.cc",
+        "a2dp/a2dp_vendor_ldac.cc",
+        "a2dp/a2dp_vendor_ldac_decoder.cc",
+        "a2dp/a2dp_vendor_ldac_encoder.cc",
+        "a2dp/a2dp_vendor_opus.cc",
+        "a2dp/a2dp_vendor_opus_encoder.cc",
+        "a2dp/a2dp_vendor_opus_decoder.cc",
+        "test/a2dp/a2dp_aac_unittest.cc",
+        "test/a2dp/mock_bta_av_codec.cc",
+        "test/a2dp/test_util.cc",
+        "test/a2dp/wav_reader.cc",
+        "test/a2dp/wav_reader_unittest.cc",
+        ":TestMockBta",
+        ":TestMockStackA2dpApi",
+    ],
+    shared_libs: [
+        "libcrypto",
+        "libcutils",
+        "libprotobuf-cpp-lite",
+    ],
+    static_libs: [
+        "libbt-common",
+        "libbt-protos-lite",
+        "libbt-sbc-decoder",
+        "libbt-sbc-encoder",
+        "libFraunhoferAAC",
+        "libgmock",
+        "liblog",
+        "libopus",
+        "libosi",
+        "libosi-AllocationTestHarness",
+    ],
+    whole_static_libs: [
+        "libaptx_enc",
+        "libaptxhd_enc",
+        "libldacBT_abr",
+        "libldacBT_enc",
+    ],
+    sanitize: {
+        address: true,
+        cfi: true,
+        misc_undefined: ["bounds"],
+    },
+}
+
+cc_test {
     name: "net_test_stack_a2dp_native",
     defaults: [
         "fluoride_defaults",
