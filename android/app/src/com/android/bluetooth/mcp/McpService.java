@@ -184,6 +184,7 @@ public class McpService extends ProfileService {
             return;
         }
         Log.w(TAG, "onDeviceUnauthorized - authorization notification not implemented yet ");
+        setDeviceAuthorized(device, false);
     }
 
     public void setDeviceAuthorized(BluetoothDevice device, boolean isAuthorized) {

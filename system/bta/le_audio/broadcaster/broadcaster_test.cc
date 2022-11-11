@@ -33,11 +33,13 @@
 
 using namespace std::chrono_literals;
 
+using le_audio::types::AudioContexts;
 using le_audio::types::LeAudioContextType;
 
 using testing::_;
 using testing::AtLeast;
 using testing::DoAll;
+using testing::Matcher;
 using testing::Mock;
 using testing::NotNull;
 using testing::Return;
@@ -46,6 +48,11 @@ using testing::SaveArg;
 using testing::Test;
 
 using namespace bluetooth::le_audio;
+
+using le_audio::LeAudioCodecConfiguration;
+using le_audio::LeAudioSourceAudioHalClient;
+using le_audio::broadcaster::BigConfig;
+using le_audio::broadcaster::BroadcastCodecWrapper;
 
 std::map<std::string, int> mock_function_count_map;
 
@@ -109,8 +116,21 @@ static void cleanup_message_loop_thread() {
 }
 
 namespace le_audio {
-namespace broadcaster {
-namespace {
+class MockAudioHalClientEndpoint;
+MockAudioHalClientEndpoint* mock_audio_source_;
+bool is_audio_hal_acquired;
+
+std::unique_ptr<LeAudioSourceAudioHalClient>
+LeAudioSourceAudioHalClient::AcquireBroadcast() {
+  if (mock_audio_source_) {
+    std::unique_ptr<LeAudioSourceAudioHalClient> ptr(
+        (LeAudioSourceAudioHalClient*)mock_audio_source_);
+    is_audio_hal_acquired = true;
+    return std::move(ptr);
+  }
+  return nullptr;
+}
+
 static constexpr uint8_t default_ccid = 0xDE;
 static constexpr auto default_context =
     static_cast<std::underlying_type<LeAudioContextType>::type>(
@@ -149,21 +169,26 @@ class MockLeAudioBroadcasterCallbacks
               (override));
 };
 
-class MockLeAudioBroadcastClientAudioSource
-    : public LeAudioBroadcastClientAudioSource {
+class MockAudioHalClientEndpoint : public LeAudioSourceAudioHalClient {
  public:
+  MockAudioHalClientEndpoint() = default;
   MOCK_METHOD((bool), Start,
               (const LeAudioCodecConfiguration& codecConfiguration,
-               LeAudioClientAudioSinkReceiver* audioReceiver));
-  MOCK_METHOD((void), Stop, ());
-  MOCK_METHOD((const void*), Acquire, ());
-  MOCK_METHOD((void), Release, (const void*));
-  MOCK_METHOD((void), ConfirmStreamingRequest, ());
-  MOCK_METHOD((void), CancelStreamingRequest, ());
-  MOCK_METHOD((void), UpdateRemoteDelay, (uint16_t delay));
-  MOCK_METHOD((void), DebugDump, (int fd));
+               LeAudioSourceAudioHalClient::Callbacks* audioReceiver),
+              (override));
+  MOCK_METHOD((void), Stop, (), (override));
+  MOCK_METHOD((void), ConfirmStreamingRequest, (), (override));
+  MOCK_METHOD((void), CancelStreamingRequest, (), (override));
+  MOCK_METHOD((void), UpdateRemoteDelay, (uint16_t delay), (override));
   MOCK_METHOD((void), UpdateAudioConfigToHal,
-              (const ::le_audio::offload_config&));
+              (const ::le_audio::offload_config&), (override));
+  MOCK_METHOD((void), UpdateBroadcastAudioConfigToHal,
+              (const ::le_audio::broadcast_offload_config&), (override));
+  MOCK_METHOD((void), SuspendedForReconfiguration, (), (override));
+  MOCK_METHOD((void), ReconfigurationComplete, (), (override));
+
+  MOCK_METHOD((void), OnDestroyed, ());
+  virtual ~MockAudioHalClientEndpoint() { OnDestroyed(); }
 };
 
 class BroadcasterTest : public Test {
@@ -180,29 +205,15 @@ class BroadcasterTest : public Test {
     ASSERT_NE(iso_manager_, nullptr);
     iso_manager_->Start();
 
-    mock_audio_source_ = new MockLeAudioBroadcastClientAudioSource();
-
-    ON_CALL(*mock_audio_source_, Start).WillByDefault(Return(true));
-
     is_audio_hal_acquired = false;
-    ON_CALL(*mock_audio_source_, Acquire).WillByDefault([this]() -> void* {
-      if (!is_audio_hal_acquired) {
-        is_audio_hal_acquired = true;
-        return mock_audio_source_;
-      }
-
-      return nullptr;
+    mock_audio_source_ = new MockAudioHalClientEndpoint();
+    ON_CALL(*mock_audio_source_, Start).WillByDefault(Return(true));
+    ON_CALL(*mock_audio_source_, OnDestroyed).WillByDefault([]() {
+      mock_audio_source_ = nullptr;
+      is_audio_hal_acquired = false;
     });
 
-    ON_CALL(*mock_audio_source_, Release)
-        .WillByDefault([this](const void* inst) -> void {
-          if (is_audio_hal_acquired) {
-            is_audio_hal_acquired = false;
-          }
-        });
-
     ASSERT_FALSE(LeAudioBroadcaster::IsLeAudioBroadcasterRunning());
-    LeAudioBroadcaster::InitializeAudioClient(mock_audio_source_);
     LeAudioBroadcaster::Initialize(&mock_broadcaster_callbacks_,
                                    base::Bind([]() -> bool { return true; }));
 
@@ -243,11 +254,9 @@ class BroadcasterTest : public Test {
   }
 
  protected:
-  MockLeAudioBroadcastClientAudioSource* mock_audio_source_;
   MockLeAudioBroadcasterCallbacks mock_broadcaster_callbacks_;
   controller::MockControllerInterface controller_interface_;
   bluetooth::hci::IsoManager* iso_manager_;
-  bool is_audio_hal_acquired;
 };
 
 TEST_F(BroadcasterTest, Initialize) {
@@ -297,7 +306,7 @@ TEST_F(BroadcasterTest, StartAudioBroadcast) {
               OnBroadcastStateChanged(broadcast_id, BroadcastState::STREAMING))
       .Times(1);
 
-  LeAudioClientAudioSinkReceiver* audio_receiver;
+  LeAudioSourceAudioHalClient::Callbacks* audio_receiver;
   EXPECT_CALL(*mock_audio_source_, Start)
       .WillOnce(DoAll(SaveArg<1>(&audio_receiver), Return(true)));
 
@@ -329,7 +338,7 @@ TEST_F(BroadcasterTest, StartAudioBroadcastMedia) {
               OnBroadcastStateChanged(broadcast_id, BroadcastState::STREAMING))
       .Times(1);
 
-  LeAudioClientAudioSinkReceiver* audio_receiver;
+  LeAudioSourceAudioHalClient::Callbacks* audio_receiver;
   EXPECT_CALL(*mock_audio_source_, Start)
       .WillOnce(DoAll(SaveArg<1>(&audio_receiver), Return(true)));
 
@@ -470,7 +479,7 @@ TEST_F(BroadcasterTest, UpdateMetadataFromAudioTrackMetadata) {
   ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
   auto broadcast_id = InstantiateBroadcast();
 
-  LeAudioClientAudioSinkReceiver* audio_receiver;
+  LeAudioSourceAudioHalClient::Callbacks* audio_receiver;
   EXPECT_CALL(*mock_audio_source_, Start)
       .WillOnce(DoAll(SaveArg<1>(&audio_receiver), Return(true)));
 
@@ -528,13 +537,11 @@ TEST_F(BroadcasterTest, UpdateMetadataFromAudioTrackMetadata) {
 
   // Verify context type
   ASSERT_NE(context_types_map.size(), 0u);
-  uint16_t context_type;
+  AudioContexts context_type;
   auto pp = context_types_map.data();
-  STREAM_TO_UINT16(context_type, pp);
-  ASSERT_NE(context_type &
-                static_cast<std::underlying_type<LeAudioContextType>::type>(
-                    LeAudioContextType::MEDIA | LeAudioContextType::GAME),
-            0);
+  STREAM_TO_UINT16(context_type.value_ref(), pp);
+  ASSERT_TRUE(context_type.test_all(LeAudioContextType::MEDIA |
+                                    LeAudioContextType::GAME));
 }
 
 TEST_F(BroadcasterTest, GetMetadata) {
@@ -629,6 +636,4 @@ TEST_F(BroadcasterTest, StreamParamsMedia) {
   // Note: Num of bises at IsoManager level is verified by state machine tests
 }
 
-}  // namespace
-}  // namespace broadcaster
 }  // namespace le_audio

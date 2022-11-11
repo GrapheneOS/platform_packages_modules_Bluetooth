@@ -638,8 +638,8 @@ bool ParseSupportedAudioContexts(struct acs_supported_audio_contexts& contexts,
     return false;
   }
 
-  STREAM_TO_UINT16(contexts.snk_supp_cont, value);
-  STREAM_TO_UINT16(contexts.src_supp_cont, value);
+  STREAM_TO_UINT16(contexts.snk_supp_cont.value_ref(), value);
+  STREAM_TO_UINT16(contexts.src_supp_cont.value_ref(), value);
 
   LOG(INFO) << "Supported Audio Contexts: "
             << "\n\tSupported Sink Contexts: "
@@ -657,8 +657,8 @@ bool ParseAvailableAudioContexts(struct acs_available_audio_contexts& contexts,
     return false;
   }
 
-  STREAM_TO_UINT16(contexts.snk_avail_cont, value);
-  STREAM_TO_UINT16(contexts.src_avail_cont, value);
+  STREAM_TO_UINT16(contexts.snk_avail_cont.value_ref(), value);
+  STREAM_TO_UINT16(contexts.src_avail_cont.value_ref(), value);
 
   LOG(INFO) << "Available Audio Contexts: "
             << "\n\tAvailable Sink Contexts: "
