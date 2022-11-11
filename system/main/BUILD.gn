@@ -115,7 +115,6 @@ target(lib_type, "bluetooth") {
     "resolv",
     "rt",
     "z",
-    "bt_shim_ffi",
   ]
 
   lib_dirs = [ "${root_out_dir}/rust" ]
