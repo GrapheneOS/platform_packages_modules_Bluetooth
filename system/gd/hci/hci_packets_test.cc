@@ -25,7 +25,6 @@
 #include "packet/raw_builder.h"
 
 using bluetooth::packet::BitInserter;
-using bluetooth::packet::RawBuilder;
 using std::vector;
 
 namespace bluetooth {
@@ -442,6 +441,188 @@ TEST(HciPacketsTest, testLeMultiAdvSetScanResponseDataBuilderLength) {
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(view.GetAdvertisingData()[0].data_, gap_data.data_);
   ASSERT_EQ(view.GetAdvertisingInstance(), 3);
+}
+
+TEST(HciPacketsTest, testMsftReadSupportedFeatures) {
+  // MSFT opcode is not defined in PDL.
+  auto msft_opcode = static_cast<OpCode>(0xfc01);
+
+  auto builder = MsftReadSupportedFeaturesBuilder::Create(msft_opcode);
+
+  auto packet_bytes = std::make_shared<std::vector<uint8_t>>();
+  packet_bytes->reserve(builder->size());
+  BitInserter bit_inserter(*packet_bytes);
+  builder->Serialize(bit_inserter);
+
+  std::vector<uint8_t> expected_bytes{
+      0x01,  // Vendor command opcode and MSFT base code.
+      0xfc,
+      0x01,  // Packet length
+      0x00,  // Subcommand Opcode for Read Supported Features
+  };
+  ASSERT_EQ(expected_bytes, *packet_bytes);
+}
+
+TEST(HciPacketsTest, testMsftLeMonitorAdvUuid) {
+  // MSFT opcode is not defined in PDL.
+  auto msft_opcode = static_cast<OpCode>(0xfc01);
+
+  auto builder = MsftLeMonitorAdvConditionUuid2Builder::Create(
+      msft_opcode,
+      0x10 /* RSSI threshold high */,
+      0x11 /* RSSI threshold low */,
+      0x12 /* RSSI threshold low timeout */,
+      0x13 /* RSSI sampling period */,
+      std::array<uint8_t, 2>{0x71, 0x72} /* 16-bit UUID */);
+
+  auto packet_bytes = std::make_shared<std::vector<uint8_t>>();
+  packet_bytes->reserve(builder->size());
+  BitInserter bit_inserter(*packet_bytes);
+  builder->Serialize(bit_inserter);
+
+  std::vector<uint8_t> expected_bytes{
+      0x01,  // Vendor command opcode and MSFT base code.
+      0xfc,
+      0x09,  // Packet length
+      0x03,  // Subcommand Opcode for LE Monitor Adv
+      0x10,  // RSSI threshold high
+      0x11,  // RSSI threshold low
+      0x12,  // RSSI threshold low timeout
+      0x13,  // RSSI sampling period
+      0x02,  // Condition type = UUID
+      0x01,  // UUID type = 16-bit UUID
+      0x71,  // UUID content
+      0x72,
+  };
+  ASSERT_EQ(expected_bytes, *packet_bytes);
+}
+
+TEST(HciPacketsTest, testMsftLeMonitorAdvPatternsEmpty) {
+  // MSFT opcode is not defined in PDL.
+  auto msft_opcode = static_cast<OpCode>(0xfc01);
+
+  std::vector<MsftLeMonitorAdvConditionPattern> patterns;
+
+  auto builder = MsftLeMonitorAdvConditionPatternsBuilder::Create(
+      msft_opcode,
+      0x10 /* RSSI threshold high */,
+      0x11 /* RSSI threshold low */,
+      0x12 /* RSSI threshold low timeout */,
+      0x13 /* RSSI sampling period */,
+      patterns);
+
+  auto packet_bytes = std::make_shared<std::vector<uint8_t>>();
+  packet_bytes->reserve(builder->size());
+  BitInserter bit_inserter(*packet_bytes);
+  builder->Serialize(bit_inserter);
+
+  std::vector<uint8_t> expected_bytes{
+      0x01,  // Vendor command opcode and MSFT base code.
+      0xfc,
+      0x07,  // Packet length
+      0x03,  // Subcommand Opcode for LE Monitor Adv
+      0x10,  // RSSI threshold high
+      0x11,  // RSSI threshold low
+      0x12,  // RSSI threshold low timeout
+      0x13,  // RSSI sampling period
+      0x01,  // Condition type = Patterns
+      0x00,  // Number of patterns
+  };
+  ASSERT_EQ(expected_bytes, *packet_bytes);
+}
+
+TEST(HciPacketsTest, testMsftLeMonitorAdvPatterns) {
+  // MSFT opcode is not defined in PDL.
+  auto msft_opcode = static_cast<OpCode>(0xfc01);
+
+  MsftLeMonitorAdvConditionPattern pattern1;
+  pattern1.ad_type_ = 0x03;
+  pattern1.start_of_pattern_ = 0x00;
+  pattern1.pattern_ = {1, 2, 3};
+
+  MsftLeMonitorAdvConditionPattern pattern2;
+  pattern2.ad_type_ = 0x0f;
+  pattern2.start_of_pattern_ = 0x10;
+  pattern2.pattern_ = {0xa1, 0xa2};
+
+  std::vector<MsftLeMonitorAdvConditionPattern> patterns{pattern1, pattern2};
+
+  auto builder = MsftLeMonitorAdvConditionPatternsBuilder::Create(
+      msft_opcode,
+      0x10 /* RSSI threshold high */,
+      0x11 /* RSSI threshold low */,
+      0x12 /* RSSI threshold low timeout */,
+      0x13 /* RSSI sampling period */,
+      patterns);
+
+  auto packet_bytes = std::make_shared<std::vector<uint8_t>>();
+  packet_bytes->reserve(builder->size());
+  BitInserter bit_inserter(*packet_bytes);
+  builder->Serialize(bit_inserter);
+
+  std::vector<uint8_t> expected_bytes{
+      0x01,  // Vendor command opcode and MSFT base code.
+      0xfc,
+      0x12,  // Packet length
+      0x03,  // Subcommand Opcode for LE Monitor Adv
+      0x10,  // RSSI threshold high
+      0x11,  // RSSI threshold low
+      0x12,  // RSSI threshold low timeout
+      0x13,  // RSSI sampling period
+      0x01,  // Condition type = Patterns
+      0x02,  // Number of patterns
+      // Pattern 1
+      0x05,  // Length
+      0x03,  // AD Type
+      0x00,  // Start of pattern
+      0x01,  // Pattern
+      0x02,
+      0x03,
+      // Pattern 2
+      0x04,  // Length
+      0x0f,  // AD Type
+      0x10,  // Start of pattern
+      0xa1,  // Pattern
+      0xa2,
+  };
+  ASSERT_EQ(expected_bytes, *packet_bytes);
+}
+
+std::vector<uint8_t> msft_read_supported_features_complete{
+    0x0e,  // command complete event code
+    0x10,  // event size
+    0x01,  // num_hci_command_packets
+    0x1e,
+    0xfc,  // vendor specific MSFT opcode assigned by Intel
+    0x00,  // status
+    0x00,  // MSFT subcommand opcode
+    0x7f,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,  // supported features
+    0x02,  // MSFT event prefix length
+    0x87,
+    0x80,  // prefix: MSFT event prefix provided by Intel
+};
+TEST(HciPacketsTest, testMsftReadSupportedFeaturesComplete) {
+  PacketView<kLittleEndian> packet_bytes_view(
+      std::make_shared<std::vector<uint8_t>>(msft_read_supported_features_complete));
+  auto view = MsftReadSupportedFeaturesCommandCompleteView::Create(
+      MsftCommandCompleteView::Create(CommandCompleteView::Create(EventView::Create(packet_bytes_view))));
+
+  ASSERT_TRUE(view.IsValid());
+  ASSERT_EQ(ErrorCode::SUCCESS, view.GetStatus());
+  ASSERT_EQ((uint8_t)0x00, (uint8_t)view.GetSubcommandOpcode());
+  ASSERT_EQ((uint64_t)0x000000000000007f, view.GetSupportedFeatures());
+  ASSERT_EQ(2ul, view.GetPrefix().size());
+
+  uint16_t prefix = 0;
+  for (auto p : view.GetPrefix()) prefix = (prefix << 8) + p;
+  ASSERT_EQ((uint16_t)0x8780, prefix);
 }
 
 }  // namespace hci
