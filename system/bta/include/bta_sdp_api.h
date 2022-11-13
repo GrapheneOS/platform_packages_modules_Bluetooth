@@ -24,10 +24,12 @@
 #ifndef BTA_SDP_API_H
 #define BTA_SDP_API_H
 
+#include <base/strings/stringprintf.h>
+
 #include <cstdint>
+#include <string>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/include/bta_api.h"
 #include "bta/include/bta_sdp_api.h"
 #include "include/hardware/bt_sdp.h"  // bluetooth_sdp_record
@@ -37,11 +39,29 @@
 using bluetooth::Uuid;
 
 /* status values */
-#define BTA_SDP_SUCCESS 0 /* Successful operation. */
-#define BTA_SDP_FAILURE 1 /* Generic failure. */
-#define BTA_SDP_BUSY 2    /* Temporarily can not handle this request. */
+typedef enum : uint8_t {
+  BTA_SDP_SUCCESS = 0, /* Successful operation. */
+  BTA_SDP_FAILURE = 1, /* Generic failure. */
+  BTA_SDP_BUSY = 2,    /* Temporarily can not handle this request. */
+} tBTA_SDP_STATUS;
 
-typedef uint8_t tBTA_SDP_STATUS;
+#ifndef CASE_RETURN_TEXT
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+#endif
+
+inline std::string bta_sdp_status_text(const tBTA_SDP_STATUS& status) {
+  switch (status) {
+    CASE_RETURN_TEXT(BTA_SDP_SUCCESS);
+    CASE_RETURN_TEXT(BTA_SDP_FAILURE);
+    CASE_RETURN_TEXT(BTA_SDP_BUSY);
+    default:
+      return base::StringPrintf("UNKNOWN[%d]", status);
+  }
+}
+
+#undef CASE_RETURN_TEXT
 
 /* SDP I/F callback events */
 /* events received by tBTA_SDP_DM_CBACK */
