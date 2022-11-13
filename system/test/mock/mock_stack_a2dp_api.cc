@@ -56,7 +56,7 @@ uint16_t A2DP_GetAvdtpVersion() {
 }
 uint8_t A2DP_BitsSet(uint64_t num) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return 1;
 }
 uint8_t A2DP_SetTraceLevel(uint8_t new_level) {
   mock_function_count_map[__func__]++;
