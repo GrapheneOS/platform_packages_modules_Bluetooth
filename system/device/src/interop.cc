@@ -44,6 +44,8 @@ static bool interop_match_fixed_(const interop_feature_t feature,
                                  const RawAddress* addr);
 static bool interop_match_dynamic_(const interop_feature_t feature,
                                    const RawAddress* addr);
+static bool interop_match_range_(const interop_feature_t feature,
+                                 const RawAddress* addr);
 
 // Interface functions
 
@@ -52,7 +54,8 @@ bool interop_match_addr(const interop_feature_t feature,
   CHECK(addr);
 
   if (interop_match_fixed_(feature, addr) ||
-      interop_match_dynamic_(feature, addr)) {
+      interop_match_dynamic_(feature, addr) ||
+      interop_match_range_(feature, addr)) {
     LOG_INFO("%s() Device %s is a match for interop workaround %s.", __func__,
              addr->ToString().c_str(), interop_feature_string_(feature));
     return true;
@@ -185,6 +188,23 @@ static bool interop_match_fixed_(const interop_feature_t feature,
     if (feature == interop_addr_database[i].feature &&
         memcmp(addr, &interop_addr_database[i].addr,
                interop_addr_database[i].length) == 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static bool interop_match_range_(const interop_feature_t feature,
+                                 const RawAddress* addr) {
+  CHECK(addr);
+
+  const size_t db_size =
+      sizeof(interop_addr_range_database) / sizeof(interop_addr_range_entry_t);
+  for (size_t i = 0; i != db_size; ++i) {
+    if (feature == interop_addr_range_database[i].feature &&
+        *addr >= interop_addr_range_database[i].addr_start &&
+        *addr <= interop_addr_range_database[i].addr_end) {
       return true;
     }
   }
