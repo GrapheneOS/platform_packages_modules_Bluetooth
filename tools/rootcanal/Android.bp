@@ -103,84 +103,6 @@ cc_library_static {
     ],
 }
 
-// This library implements Python bindings to the DualModeController
-// class to enable scripted testing in Python.
-cc_library_host_shared {
-    name: "lib_rootcanal_python3",
-    defaults: [
-        "bluetooth_py3_native_extension_defaults",
-        "rootcanal_defaults",
-    ],
-    srcs: [
-        "model/controller/acl_connection.cc",
-        "model/controller/acl_connection_handler.cc",
-        "model/controller/controller_properties.cc",
-        "model/controller/dual_mode_controller.cc",
-        "model/controller/dual_mode_controller_python3.cc",
-        "model/controller/isochronous_connection_handler.cc",
-        "model/controller/le_advertiser.cc",
-        "model/controller/link_layer_controller.cc",
-        "model/controller/sco_connection.cc",
-        "model/controller/security_manager.cc",
-        "model/devices/device.cc",
-        "model/setup/async_manager.cc",
-        ":BluetoothPacketSources",
-        ":BluetoothHciClassSources",
-        ":BluetoothCryptoToolboxSources",
-    ],
-    export_include_dirs: [
-        "include",
-        ".",
-    ],
-    stl: "libc++_static",
-    static_libs: [
-        "liblog",
-        "libjsoncpp",
-    ],
-    whole_static_libs: [
-        "liblmp",
-    ],
-    header_libs: [
-        "pybind11_headers",
-    ],
-    cflags: [
-        "-fexceptions",
-    ],
-    rtti: true,
-}
-
-// Generate the python parser+serializer backend for
-// packets/link_layer_packets.pdl.
-genrule {
-    name: "link_layer_packets_python3_gen",
-    defaults: [ "pdl_python_generator_defaults" ],
-    cmd: "$(location :pdl) $(in) |" +
-        " $(location :pdl_python_generator)" +
-        " --output $(out) --custom-type-location py.bluetooth",
-    srcs: [
-        "packets/link_layer_packets.pdl",
-    ],
-    out: [
-        "link_layer_packets.py",
-    ],
-}
-
-// Generate the python parser+serializer backend for
-// hci_packets.pdl.
-genrule {
-    name: "hci_packets_python3_gen",
-    defaults: [ "pdl_python_generator_defaults" ],
-    cmd: "$(location :pdl) $(in) |" +
-        " $(location :pdl_python_generator)" +
-        " --output $(out) --custom-type-location py.bluetooth",
-    srcs: [
-        ":BluetoothHciPackets",
-    ],
-    out: [
-        "hci_packets.py",
-    ],
-}
-
 cc_library_static {
     name: "libscriptedbeaconpayload-protos-lite",
     host_supported: true,
@@ -236,29 +158,6 @@ cc_test_host {
         "libbt-rootcanal",
         "libjsoncpp",
     ],
-}
-
-// Implement the Bluetooth official LL test suite for root-canal.
-python_test_host {
-    name: "rootcanal_ll_test",
-    main: "test/main.py",
-    srcs: [
-        "py/controller.py",
-        "py/bluetooth.py",
-        ":hci_packets_python3_gen",
-        ":link_layer_packets_python3_gen",
-        "test/main.py",
-        "test/LL/DDI/SCN/BV_13_C.py",
-    ],
-    data: [
-        ":lib_rootcanal_python3",
-    ],
-    libs: [
-        "typing_extensions",
-    ],
-    test_options: {
-        unit_test: true,
-    },
 }
 
 // test-vendor unit tests for host
