@@ -373,7 +373,8 @@ static void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
   /* Make sure this SCO handle is not already in use */
   if (p_scb->sco_idx != BTM_INVALID_SCO_INDEX) {
     APPL_TRACE_ERROR("%s: device %s, index 0x%04x already in use!", __func__,
-                     p_scb->peer_addr.ToString().c_str(), p_scb->sco_idx);
+                     ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr),
+                     p_scb->sco_idx);
     return;
   }
 
@@ -1233,13 +1234,13 @@ void bta_ag_sco_codec_nego(tBTA_AG_SCB* p_scb, bool result) {
   if (result) {
     /* Subsequent SCO connection will skip codec negotiation */
     LOG_INFO("Succeeded for index 0x%04x, device %s", p_scb->sco_idx,
-             p_scb->peer_addr.ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
     p_scb->codec_updated = false;
     bta_ag_sco_event(p_scb, BTA_AG_SCO_CN_DONE_E);
   } else {
     /* codec negotiation failed */
     LOG_INFO("Failed for index 0x%04x, device %s", p_scb->sco_idx,
-             p_scb->peer_addr.ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
     bta_ag_sco_event(p_scb, BTA_AG_SCO_CLOSE_E);
   }
 }

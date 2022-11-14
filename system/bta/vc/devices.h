@@ -24,6 +24,7 @@
 
 #include "bta/include/bta_gatt_api.h"
 #include "bta/vc/types.h"
+#include "common/interfaces/ILoggable.h"
 #include "include/hardware/bt_vc.h"
 #include "types/raw_address.h"
 
@@ -31,7 +32,7 @@ namespace bluetooth {
 namespace vc {
 namespace internal {
 
-class VolumeControlDevice {
+class VolumeControlDevice : public bluetooth::common::IRedactableLoggable {
  public:
   RawAddress address;
   /* This is true only during first connection to profile, until we store the
@@ -83,11 +84,21 @@ class VolumeControlDevice {
 
   ~VolumeControlDevice() = default;
 
+  // TODO: remove
   inline std::string ToString() { return address.ToString(); }
+
+  std::string ToStringForLogging() const override {
+    return address.ToStringForLogging();
+  }
+
+  std::string ToRedactedStringForLogging() const override {
+    return address.ToRedactedStringForLogging();
+  }
 
   void DebugDump(int fd) {
     std::stringstream stream;
-    stream << "   == device address: " << address << " == \n";
+    stream << "   == device address: " << ADDRESS_TO_LOGGABLE_STR(address)
+           << " == \n";
 
     if (connection_id == GATT_INVALID_CONN_ID)
       stream << "    Not connected\n";

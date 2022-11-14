@@ -452,8 +452,8 @@ tBTA_AV_LCB* bta_av_find_lcb(const RawAddress& addr, uint8_t op) {
   uint8_t mask;
   tBTA_AV_LCB* p_lcb = NULL;
 
-  APPL_TRACE_DEBUG("%s: address: %s op:%d", __func__, addr.ToString().c_str(),
-                   op);
+  APPL_TRACE_DEBUG("%s: address: %s op:%d", __func__,
+                   ADDRESS_TO_LOGGABLE_CSTR(addr), op);
   for (xx = 0; xx < BTA_AV_NUM_LINKS; xx++) {
     mask = 1 << xx; /* the used mask for this lcb */
     if ((mask & p_cb->conn_lcb) && p_cb->lcb[xx].addr == addr) {
@@ -548,7 +548,7 @@ void bta_av_rc_opened(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
     p_cb->rcb[i].lidx = p_lcb->lidx;
     p_lcb->conn_msk = 1;
     APPL_TRACE_ERROR("%s: bd_addr: %s rcb[%d].lidx=%d, lcb.conn_msk=x%x",
-                     __func__, p_lcb->addr.ToString().c_str(), i,
+                     __func__, ADDRESS_TO_LOGGABLE_CSTR(p_lcb->addr), i,
                      p_cb->rcb[i].lidx, p_lcb->conn_msk);
     disc = p_data->rc_conn_chg.handle | BTA_AV_CHNL_MSK;
   }
@@ -1087,7 +1087,7 @@ void bta_av_stream_chg(tBTA_AV_SCB* p_scb, bool started) {
   uint8_t started_msk = BTA_AV_HNDL_TO_MSK(p_scb->hdi);
 
   APPL_TRACE_DEBUG("%s: peer %s started:%s started_msk:0x%x", __func__,
-                   p_scb->PeerAddress().ToString().c_str(),
+                   ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()),
                    logbool(started).c_str(), started_msk);
 
   if (started) {
@@ -1166,8 +1166,8 @@ void bta_av_conn_chg(tBTA_AV_DATA* p_data) {
             __func__, p_lcb_rc->conn_msk);
         /* check if the RC is connected to the scb addr */
         LOG_INFO("%s: p_lcb_rc->addr: %s conn_chg.peer_addr: %s", __func__,
-                 p_lcb_rc->addr.ToString().c_str(),
-                 p_data->conn_chg.peer_addr.ToString().c_str());
+                 ADDRESS_TO_LOGGABLE_CSTR(p_lcb_rc->addr),
+                 ADDRESS_TO_LOGGABLE_CSTR(p_data->conn_chg.peer_addr));
 
         if (p_lcb_rc->conn_msk &&
             p_lcb_rc->addr == p_data->conn_chg.peer_addr) {
@@ -1386,7 +1386,7 @@ void bta_av_api_set_latency(tBTA_AV_DATA* p_data) {
 static uint8_t bta_av_find_lcb_index_by_scb_and_address(
     const RawAddress& peer_address) {
   APPL_TRACE_DEBUG("%s: peer_address: %s conn_lcb: 0x%x", __func__,
-                   peer_address.ToString().c_str(), bta_av_cb.conn_lcb);
+                   ADDRESS_TO_LOGGABLE_CSTR(peer_address), bta_av_cb.conn_lcb);
 
   // Find the index if there is already SCB entry for the peer address
   for (uint8_t index = 0; index < BTA_AV_NUM_LINKS; index++) {
@@ -1440,7 +1440,7 @@ void bta_av_sig_chg(tBTA_AV_DATA* p_data) {
   APPL_TRACE_DEBUG("%s: event: %d", __func__, event);
   if (event == AVDT_CONNECT_IND_EVT) {
     APPL_TRACE_DEBUG("%s: AVDT_CONNECT_IND_EVT: peer %s", __func__,
-                     p_data->str_msg.bd_addr.ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(p_data->str_msg.bd_addr));
 
     p_lcb = bta_av_find_lcb(p_data->str_msg.bd_addr, BTA_AV_LCB_FIND);
     if (!p_lcb) {
@@ -1452,12 +1452,13 @@ void bta_av_sig_chg(tBTA_AV_DATA* p_data) {
         /* We do not have scb for this avdt connection.     */
         /* Silently close the connection.                   */
         APPL_TRACE_ERROR("%s: av scb not available for avdt connection for %s",
-                         __func__, p_data->str_msg.bd_addr.ToString().c_str());
+                         __func__,
+                         ADDRESS_TO_LOGGABLE_CSTR(p_data->str_msg.bd_addr));
         AVDT_DisconnectReq(p_data->str_msg.bd_addr, NULL);
         return;
       }
       LOG_INFO("%s: AVDT_CONNECT_IND_EVT: peer %s selected lcb_index %d",
-               __func__, p_data->str_msg.bd_addr.ToString().c_str(), xx);
+               __func__, ADDRESS_TO_LOGGABLE_CSTR(p_data->str_msg.bd_addr), xx);
 
       tBTA_AV_SCB* p_scb = p_cb->p_scb[xx];
       mask = 1 << xx;
@@ -1531,9 +1532,9 @@ void bta_av_sig_chg(tBTA_AV_DATA* p_data) {
         if (((mask & p_lcb->conn_msk) || bta_av_cb.conn_lcb) &&
             p_cb->p_scb[xx] &&
             p_cb->p_scb[xx]->PeerAddress() == p_data->str_msg.bd_addr) {
-          APPL_TRACE_WARNING("%s: Sending AVDT_DISCONNECT_EVT peer_addr=%s",
-                             __func__,
-                             p_cb->p_scb[xx]->PeerAddress().ToString().c_str());
+          APPL_TRACE_WARNING(
+              "%s: Sending AVDT_DISCONNECT_EVT peer_addr=%s", __func__,
+              ADDRESS_TO_LOGGABLE_CSTR(p_cb->p_scb[xx]->PeerAddress()));
           bta_av_ssm_execute(p_cb->p_scb[xx], BTA_AV_AVDT_DISCONNECT_EVT, NULL);
         }
       }
@@ -1570,8 +1571,8 @@ void bta_av_signalling_timer(UNUSED_ATTR tBTA_AV_DATA* p_data) {
     mask = 1 << xx;
     APPL_TRACE_DEBUG(
         "%s: index=%d conn_lcb=0x%x peer=%s conn_mask=0x%x lidx=%d", __func__,
-        xx, p_cb->conn_lcb, p_lcb->addr.ToString().c_str(), p_lcb->conn_msk,
-        p_lcb->lidx);
+        xx, p_cb->conn_lcb, ADDRESS_TO_LOGGABLE_CSTR(p_lcb->addr),
+        p_lcb->conn_msk, p_lcb->lidx);
     if (mask & p_cb->conn_lcb) {
       /* this entry is used. check if it is connected */
       if (!p_lcb->conn_msk) {
@@ -1585,8 +1586,8 @@ void bta_av_signalling_timer(UNUSED_ATTR tBTA_AV_DATA* p_data) {
         bta_av_data.pend = pend;
         APPL_TRACE_DEBUG(
             "%s: BTA_AV_PENDING_EVT for %s index=%d conn_mask=0x%x lidx=%d",
-            __func__, pend.bd_addr.ToString().c_str(), xx, p_lcb->conn_msk,
-            p_lcb->lidx);
+            __func__, ADDRESS_TO_LOGGABLE_CSTR(pend.bd_addr), xx,
+            p_lcb->conn_msk, p_lcb->lidx);
         (*p_cb->p_cback)(BTA_AV_PENDING_EVT, &bta_av_data);
       }
     }
@@ -2127,7 +2128,7 @@ void bta_av_rc_closed(tBTA_AV_DATA* p_data) {
         p_lcb = &p_cb->lcb[BTA_AV_NUM_LINKS];
         rc_close.peer_addr = p_msg->peer_addr;
         LOG_INFO("%s: rc_only closed bd_addr: %s", __func__,
-                 p_msg->peer_addr.ToString().c_str());
+                 ADDRESS_TO_LOGGABLE_CSTR(p_msg->peer_addr));
         p_lcb->conn_msk = 0;
         p_lcb->lidx = 0;
       }
@@ -2180,7 +2181,7 @@ void bta_av_rc_browse_opened(tBTA_AV_DATA* p_data) {
   tBTA_AV_RC_BROWSE_OPEN rc_browse_open;
 
   LOG_INFO("%s: peer_addr: %s rc_handle:%d", __func__,
-           p_msg->peer_addr.ToString().c_str(), p_msg->handle);
+           ADDRESS_TO_LOGGABLE_CSTR(p_msg->peer_addr), p_msg->handle);
 
   rc_browse_open.status = BTA_AV_SUCCESS;
   rc_browse_open.rc_handle = p_msg->handle;
@@ -2206,7 +2207,7 @@ void bta_av_rc_browse_closed(tBTA_AV_DATA* p_data) {
   tBTA_AV_RC_BROWSE_CLOSE rc_browse_close;
 
   LOG_INFO("%s: peer_addr: %s rc_handle:%d", __func__,
-           p_msg->peer_addr.ToString().c_str(), p_msg->handle);
+           ADDRESS_TO_LOGGABLE_CSTR(p_msg->peer_addr), p_msg->handle);
 
   rc_browse_close.rc_handle = p_msg->handle;
   rc_browse_close.peer_addr = p_msg->peer_addr;
