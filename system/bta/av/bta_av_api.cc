@@ -149,8 +149,8 @@ void BTA_AvDeregister(tBTA_AV_HNDL hndl) {
 void BTA_AvOpen(const RawAddress& bd_addr, tBTA_AV_HNDL handle, bool use_rc,
                 uint16_t uuid) {
   LOG_INFO("%s: peer %s bta_handle:0x%x use_rc=%s uuid=0x%x", __func__,
-           bd_addr.ToString().c_str(), handle, (use_rc) ? "true" : "false",
-           uuid);
+           ADDRESS_TO_LOGGABLE_CSTR(bd_addr), handle,
+           (use_rc) ? "true" : "false", uuid);
 
   tBTA_AV_API_OPEN* p_buf =
       (tBTA_AV_API_OPEN*)osi_malloc(sizeof(tBTA_AV_API_OPEN));
