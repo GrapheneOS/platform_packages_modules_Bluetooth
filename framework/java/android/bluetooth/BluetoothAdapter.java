@@ -3245,16 +3245,22 @@ public final class BluetoothAdapter {
         if (!pendingIntent.isImmutable()) {
             throw new IllegalArgumentException("The provided PendingIntent is not immutable");
         }
+        mServiceLock.readLock().lock();
         try {
-            final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
-            mService.startRfcommListener(
-                    name, new ParcelUuid(uuid), pendingIntent, mAttributionSource, recv);
-            return recv.awaitResultNoInterrupt(getSyncTimeout())
-                .getValue(BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND);
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                mService.startRfcommListener(
+                        name, new ParcelUuid(uuid), pendingIntent, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout())
+                    .getValue(BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND);
+            }
         } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "Failed to transact RFCOMM listener start request", e);
             return BluetoothStatusCodes.ERROR_TIMEOUT;
+        } finally {
+            mServiceLock.readLock().unlock();
         }
+        return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
     }
 
     /**
@@ -3274,15 +3280,21 @@ public final class BluetoothAdapter {
     })
     @RfcommListenerResult
     public int stopRfcommServer(@NonNull UUID uuid) {
+        mServiceLock.readLock().lock();
         try {
-            final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
-            mService.stopRfcommListener(new ParcelUuid(uuid), mAttributionSource, recv);
-            return recv.awaitResultNoInterrupt(getSyncTimeout())
-                .getValue(BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND);
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                mService.stopRfcommListener(new ParcelUuid(uuid), mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout())
+                    .getValue(BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND);
+            }
         } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "Failed to transact RFCOMM listener stop request", e);
             return BluetoothStatusCodes.ERROR_TIMEOUT;
+        } finally {
+            mServiceLock.readLock().unlock();
         }
+        return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
     }
 
     /**
@@ -3307,17 +3319,22 @@ public final class BluetoothAdapter {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public @NonNull BluetoothSocket retrieveConnectedRfcommSocket(@NonNull UUID uuid) {
-        IncomingRfcommSocketInfo socketInfo;
+        IncomingRfcommSocketInfo socketInfo = null;
 
+        mServiceLock.readLock().lock();
         try {
-            final SynchronousResultReceiver<IncomingRfcommSocketInfo> recv =
-                    SynchronousResultReceiver.get();
-            mService.retrievePendingSocketForServiceRecord(new ParcelUuid(uuid),
-                    mAttributionSource, recv);
-            socketInfo = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            if (mService != null) {
+                final SynchronousResultReceiver<IncomingRfcommSocketInfo> recv =
+                        SynchronousResultReceiver.get();
+                mService.retrievePendingSocketForServiceRecord(new ParcelUuid(uuid),
+                        mAttributionSource, recv);
+                socketInfo = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            }
         } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             return null;
+        } finally {
+            mServiceLock.readLock().unlock();
         }
         if (socketInfo == null) {
             return null;
