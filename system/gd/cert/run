@@ -82,8 +82,8 @@ OUT_TARGET="${ANDROID_BUILD_TOP}/out/target"
 TEST_CONFIG="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/blueberry/tests/gd/host_config.yaml"
 TEST_FILTER="--presubmit"
 TEST_RUNNER="blueberry/tests/gd/gd_test_runner.py"
-CPP_BUILD_TARGET="bluetooth_stack_with_facade root-canal bluetooth_packets_python3"
-RUST_BUILD_TARGET="bluetooth_with_facades root-canal bluetooth_packets_python3 bt_topshim_facade"
+CPP_BUILD_TARGET="bluetooth_stack_with_facade root-canal bluetooth_packets_python3 gd_hci_packets_python3_gen"
+RUST_BUILD_TARGET="bluetooth_with_facades root-canal bluetooth_packets_python3 bt_topshim_facade gd_hci_packets_python3_gen"
 BUILD_TARGET=$CPP_BUILD_TARGET
 
 CLEAN_VENV=false
