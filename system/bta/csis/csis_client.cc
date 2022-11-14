@@ -138,7 +138,8 @@ class CsisClientImpl : public CsisClient {
   std::shared_ptr<bluetooth::csis::CsisGroup> AssignCsisGroup(
       const RawAddress& address, int group_id,
       bool create_group_if_non_existing, const bluetooth::Uuid& uuid) {
-    LOG_DEBUG("Device: %s, group_id: %d", address.ToString().c_str(), group_id);
+    LOG_DEBUG("Device: %s, group_id: %d", ADDRESS_TO_LOGGABLE_CSTR(address),
+              group_id);
     auto csis_group = FindCsisGroup(group_id);
     if (!csis_group) {
       if (create_group_if_non_existing) {
@@ -325,7 +326,7 @@ class CsisClientImpl : public CsisClient {
     CsisLockState target_lock_state = csis_group->GetTargetLockState();
 
     LOG_DEBUG("Device %s, target lock: %d, status: 0x%02x",
-              device->addr.ToString().c_str(), (int)target_lock_state,
+              ADDRESS_TO_LOGGABLE_CSTR(device->addr), (int)target_lock_state,
               (int)status);
     if (target_lock_state == CsisLockState::CSIS_STATE_UNSET) return;
 
@@ -1231,7 +1232,8 @@ class CsisClientImpl : public CsisClient {
 
     auto csis_device = FindDeviceByAddress(result->bd_addr);
     if (csis_device) {
-      LOG_DEBUG("Drop known device %s", result->bd_addr.ToString().c_str());
+      LOG_DEBUG("Drop known device %s",
+                ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr));
       return;
     }
 
@@ -1243,7 +1245,8 @@ class CsisClientImpl : public CsisClient {
       for (auto& rsi : all_rsi) {
         if (group->IsRsiMatching(rsi)) {
           LOG_INFO("Device %s match to group id %d",
-                   result->bd_addr.ToString().c_str(), group->GetGroupId());
+                   ADDRESS_TO_LOGGABLE_CSTR(result->bd_addr),
+                   group->GetGroupId());
           if (group->GetDesiredSize() > 0 &&
               (group->GetCurrentSize() == group->GetDesiredSize())) {
             LOG_WARN(
