@@ -1861,6 +1861,8 @@ static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
   result.inq_res.p_eir = const_cast<uint8_t*>(p_eir);
   result.inq_res.eir_len = eir_len;
 
+  result.inq_res.ble_evt_type = p_inq->ble_evt_type;
+
   p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
   if (p_inq_info != NULL) {
     /* initialize remt_name_not_required to false so that we get the name by
