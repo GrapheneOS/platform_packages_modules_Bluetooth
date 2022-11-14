@@ -172,6 +172,8 @@ struct hci_btm_set_link_supervision_timeout
     hci_btm_set_link_supervision_timeout;
 struct on_acl_br_edr_connected on_acl_br_edr_connected;
 struct on_acl_br_edr_failed on_acl_br_edr_failed;
+struct BTM_unblock_role_switch_and_sniff_mode_for
+    BTM_unblock_role_switch_and_sniff_mode_for;
 
 }  // namespace stack_acl
 }  // namespace mock
@@ -709,6 +711,11 @@ void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status,
                           bool locally_initiated) {
   mock_function_count_map[__func__]++;
   test::mock::stack_acl::on_acl_br_edr_failed(bda, status, locally_initiated);
+}
+
+void BTM_unblock_role_switch_and_sniff_mode_for(const RawAddress& peer_addr) {
+  mock_function_count_map[__func__]++;
+  test::mock::stack_acl::BTM_unblock_role_switch_and_sniff_mode_for(peer_addr);
 }
 
 // END mockcify generation
