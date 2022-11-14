@@ -109,9 +109,11 @@ cc_fuzz {
         "lib-bt-packets-avrcp",
         "libbase",
         "libcutils",
+        "libutils",
         "libevent",
         "liblog",
         "libstatslog_bt",
+        "libbluetooth_gd",
     ],
     header_libs: ["libbluetooth_headers"],
     corpus: [
