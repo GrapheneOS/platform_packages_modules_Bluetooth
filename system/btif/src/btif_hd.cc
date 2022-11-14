@@ -27,14 +27,14 @@
  ***********************************************************************************/
 #define LOG_TAG "BTIF_HD"
 
+#include "btif/include/btif_hd.h"
+
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/include/bta_hd_api.h"
 #include "btif/include/btif_common.h"
-#include "btif/include/btif_hd.h"
-#include "btif/include/btif_storage.h"
+#include "btif/include/btif_profile_storage.h"
 #include "btif/include/btif_util.h"
 #include "include/hardware/bt_hd.h"
 #include "osi/include/allocator.h"
