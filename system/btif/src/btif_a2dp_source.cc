@@ -422,18 +422,14 @@ static void btif_a2dp_source_start_session_delayed(
 bool btif_a2dp_source_restart_session(const RawAddress& old_peer_address,
                                       const RawAddress& new_peer_address,
                                       std::promise<void> peer_ready_promise) {
-  bool is_streaming = btif_a2dp_source_cb.media_alarm.IsScheduled();
   LOG(INFO) << __func__ << ": old_peer_address=" << old_peer_address
             << " new_peer_address=" << new_peer_address
-            << " is_streaming=" << logbool(is_streaming)
             << " state=" << btif_a2dp_source_cb.StateStr();
 
   CHECK(!new_peer_address.IsEmpty());
 
   // Must stop first the audio streaming
-  if (is_streaming) {
-    btif_a2dp_source_stop_audio_req();
-  }
+  btif_a2dp_source_stop_audio_req();
 
   // If the old active peer was valid, end the old session.
   // Otherwise, time to startup the A2DP Source processing.
@@ -542,6 +538,7 @@ bool btif_a2dp_source_media_task_is_shutting_down(void) {
   return (btif_a2dp_source_cb.State() == BtifA2dpSource::kStateShuttingDown);
 }
 
+// This runs on worker thread
 bool btif_a2dp_source_is_streaming(void) {
   return btif_a2dp_source_cb.media_alarm.IsScheduled();
 }
@@ -602,10 +599,8 @@ static void btif_a2dp_source_setup_codec_delayed(
 
 static void btif_a2dp_source_cleanup_codec() {
   LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
-  if (btif_a2dp_source_is_streaming()) {
-    // Must stop media task first before cleaning up the encoder
-    btif_a2dp_source_stop_audio_req();
-  }
+  // Must stop media task first before cleaning up the encoder
+  btif_a2dp_source_stop_audio_req();
   btif_a2dp_source_thread.DoInThread(
       FROM_HERE, base::Bind(&btif_a2dp_source_cleanup_codec_delayed));
 }
@@ -787,11 +782,9 @@ void btif_a2dp_source_set_tx_flush(bool enable) {
 }
 
 static void btif_a2dp_source_audio_tx_start_event(void) {
-  LOG_INFO(
-      "%s: media_alarm is %s, streaming %s state=%s", __func__,
-      btif_a2dp_source_cb.media_alarm.IsScheduled() ? "running" : "stopped",
-      btif_a2dp_source_is_streaming() ? "true" : "false",
-      btif_a2dp_source_cb.StateStr().c_str());
+  LOG_INFO("%s: streaming %s state=%s", __func__,
+           btif_a2dp_source_is_streaming() ? "true" : "false",
+           btif_a2dp_source_cb.StateStr().c_str());
 
   if (btif_av_is_a2dp_offload_running()) return;
 
@@ -834,13 +827,12 @@ static void btif_a2dp_source_audio_tx_start_event(void) {
 }
 
 static void btif_a2dp_source_audio_tx_stop_event(void) {
-  LOG_INFO(
-      "%s: media_alarm is %s, streaming %s state=%s", __func__,
-      btif_a2dp_source_cb.media_alarm.IsScheduled() ? "running" : "stopped",
-      btif_a2dp_source_is_streaming() ? "true" : "false",
-      btif_a2dp_source_cb.StateStr().c_str());
+  LOG_INFO("%s: streaming %s state=%s", __func__,
+           btif_a2dp_source_is_streaming() ? "true" : "false",
+           btif_a2dp_source_cb.StateStr().c_str());
 
   if (btif_av_is_a2dp_offload_running()) return;
+  if (!btif_a2dp_source_is_streaming()) return;
 
   btif_a2dp_source_cb.stats.session_end_us =
       bluetooth::common::time_get_os_boottime_us();
@@ -905,7 +897,7 @@ static void btif_a2dp_source_audio_handle_timer(void) {
 
   log_tstamps_us("A2DP Source tx scheduling timer", timestamp_us);
 
-  if (!btif_a2dp_source_cb.media_alarm.IsScheduled()) {
+  if (!btif_a2dp_source_is_streaming()) {
     LOG_ERROR("%s: ERROR Media task Scheduled after Suspend", __func__);
     return;
   }
@@ -958,7 +950,7 @@ static bool btif_a2dp_source_enqueue_callback(BT_HDR* p_buf, size_t frames_n,
   btif_a2dp_control_log_bytes_read(bytes_read);
 
   /* Check if timer was stopped (media task stopped) */
-  if (!btif_a2dp_source_cb.media_alarm.IsScheduled()) {
+  if (!btif_a2dp_source_is_streaming()) {
     osi_free(p_buf);
     return false;
   }
