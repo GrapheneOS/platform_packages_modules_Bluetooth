@@ -3618,3 +3618,6 @@ void btif_dm_clear_event_filter() {
   LOG_VERBOSE("%s: called", __func__);
   bta_dm_clear_event_filter();
 }
+
+void btif_dm_metadata_changed(const RawAddress& remote_bd_addr, int key,
+                              std::vector<uint8_t> value) {}
