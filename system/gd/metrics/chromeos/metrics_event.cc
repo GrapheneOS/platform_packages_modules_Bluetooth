@@ -646,7 +646,7 @@ static std::string GetChipsetInfoModuleName() {
   std::string path = base::StringPrintf(kChipsetInfoModaliasPath, adapter_index);
 
   if (base::ReadFileToString(base::FilePath(path), &module)) {
-    return module;
+    return base::CollapseWhitespaceASCII(module, false);
   }
   return "";
 }
