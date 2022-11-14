@@ -153,9 +153,6 @@ static const interop_addr_entry_t interop_addr_database[] = {
     // AirPods 2 - unacceptably loud volume
     {{{0x9c, 0x64, 0x8b, 0, 0, 0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
 
-    // Phonak AG - volume level not change
-    {{{0x00, 0x0f, 0x59, 0, 0, 0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
-
     // for skip name request,
     // because BR/EDR address and ADV random address are the same
     {{{0xd4, 0x7a, 0xe2, 0, 0, 0}}, 3, INTEROP_DISABLE_NAME_REQUEST},
@@ -193,6 +190,19 @@ static const interop_addr_entry_t interop_addr_database[] = {
 
     // BMW Carkit
     {{{0x00, 0x0a, 0x08, 0, 0, 0}}, 3, INTEROP_AVRCP_1_3_ONLY},
+};
+
+typedef struct {
+  RawAddress addr_start;
+  RawAddress addr_end;
+  interop_feature_t feature;
+} interop_addr_range_entry_t;
+
+static const interop_addr_range_entry_t interop_addr_range_database[] = {
+    // Phonak AG - volume level not change
+    {{{0x00, 0x0f, 0x59, 0x50, 0x00, 0x00}},
+     {{0x00, 0x0f, 0x59, 0x6f, 0xff, 0xff}},
+     INTEROP_DISABLE_ABSOLUTE_VOLUME},
 };
 
 typedef struct {

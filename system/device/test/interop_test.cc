@@ -82,3 +82,26 @@ TEST(InteropTest, test_name_miss) {
   EXPECT_FALSE(interop_match_name(INTEROP_DISABLE_AUTO_PAIRING, "audi"));
   EXPECT_FALSE(interop_match_name(INTEROP_AUTO_RETRY_PAIRING, "BMW M3"));
 }
+
+TEST(InteropTest, test_range_hit) {
+  RawAddress test_address;
+  RawAddress::FromString("00:0f:59:50:00:00", test_address);
+  ASSERT_TRUE(
+      interop_match_addr(INTEROP_DISABLE_ABSOLUTE_VOLUME, &test_address));
+  RawAddress::FromString("00:0f:59:59:12:34", test_address);
+  ASSERT_TRUE(
+      interop_match_addr(INTEROP_DISABLE_ABSOLUTE_VOLUME, &test_address));
+  RawAddress::FromString("00:0f:59:6f:ff:ff", test_address);
+  ASSERT_TRUE(
+      interop_match_addr(INTEROP_DISABLE_ABSOLUTE_VOLUME, &test_address));
+}
+
+TEST(InteropTest, test_range_miss) {
+  RawAddress test_address;
+  RawAddress::FromString("00:0f:59:49:12:34", test_address);
+  ASSERT_FALSE(
+      interop_match_addr(INTEROP_DISABLE_ABSOLUTE_VOLUME, &test_address));
+  RawAddress::FromString("00:0f:59:70:12:34", test_address);
+  ASSERT_FALSE(
+      interop_match_addr(INTEROP_DISABLE_ABSOLUTE_VOLUME, &test_address));
+}
