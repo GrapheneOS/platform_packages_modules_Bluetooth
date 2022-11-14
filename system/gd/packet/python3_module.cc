@@ -35,9 +35,6 @@ namespace py = pybind11;
 
 namespace bluetooth {
 
-namespace hci {
-void define_hci_packets_submodule(py::module&);
-}
 namespace l2cap {
 void define_l2cap_packets_submodule(py::module&);
 }
@@ -104,19 +101,6 @@ PYBIND11_MODULE(bluetooth_packets_python3, m) {
     auto bytes_shared = std::make_shared<std::vector<uint8_t>>(bytes);
     return std::make_unique<PacketView<!kLittleEndian>>(bytes_shared);
   }));
-
-  py::module hci_m = m.def_submodule("hci_packets", "A submodule of hci_packets");
-  bluetooth::hci::define_hci_packets_submodule(hci_m);
-
-  py::class_<Address>(hci_m, "Address")
-      .def(py::init<>())
-      .def("__repr__", [](const Address& a) { return a.ToString(); })
-      .def("__str__", [](const Address& a) { return a.ToString(); });
-
-  py::class_<ClassOfDevice>(hci_m, "ClassOfDevice")
-      .def(py::init<>())
-      .def("__repr__", [](const ClassOfDevice& c) { return c.ToString(); })
-      .def("__str__", [](const ClassOfDevice& c) { return c.ToString(); });
 
   py::module l2cap_m = m.def_submodule("l2cap_packets", "A submodule of l2cap_packets");
   bluetooth::l2cap::define_l2cap_packets_submodule(l2cap_m);
