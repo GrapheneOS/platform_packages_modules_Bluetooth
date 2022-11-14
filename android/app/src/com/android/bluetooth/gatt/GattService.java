@@ -24,6 +24,7 @@ import android.annotation.SuppressLint;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -52,6 +53,8 @@ import android.companion.AssociationInfo;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.Intent;
+import android.content.pm.PackageManager.PackageInfoFlags;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.MacAddress;
 import android.os.Binder;
 import android.os.Build;
@@ -3420,7 +3423,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect
                     + ", opportunistic=" + opportunistic + ", phy=" + phy);
         }
-        statsLogAppPackage(address, attributionSource.getPackageName());
+        statsLogAppPackage(address, attributionSource.getUid(), clientIf);
         statsLogGattConnectionStateChange(
                 BluetoothProfile.GATT, address, clientIf,
                 BluetoothProtoEnums.CONNECTION_STATE_CONNECTING, -1);
@@ -4013,8 +4016,17 @@ public class GattService extends ProfileService {
             connectionState = BluetoothProtoEnums.CONNECTION_STATE_DISCONNECTED;
         }
 
+        int applicationUid = -1;
+
+        try {
+          applicationUid = this.getPackageManager().getPackageUid(app.name, PackageInfoFlags.of(0));
+
+        } catch (NameNotFoundException e) {
+          Log.d(TAG, "onClientConnected() uid_not_found=" + app.name);
+        }
+
         app.callback.onServerConnectionState((byte) 0, serverIf, connected, address);
-        statsLogAppPackage(address, app.name);
+        statsLogAppPackage(address, applicationUid, serverIf);
         statsLogGattConnectionStateChange(
                 BluetoothProfile.GATT_SERVER, address, serverIf, connectionState, -1);
     }
@@ -4694,14 +4706,14 @@ public class GattService extends ProfileService {
         }
     }
 
-    private void statsLogAppPackage(String address, String app) {
+    private void statsLogAppPackage(String address, int applicationUid, int sessionIndex) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         BluetoothStatsLog.write(
-                BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
-                mAdapterService.getMetricId(device), app);
+                BluetoothStatsLog.BLUETOOTH_GATT_APP_INFO,
+                sessionIndex, mAdapterService.getMetricId(device), applicationUid);
         if (DBG) {
             Log.d(TAG, "Gatt Logging: metric_id=" + mAdapterService.getMetricId(device)
-                    + ", app=" + app);
+                    + ", app_uid=" + applicationUid);
         }
     }
 
