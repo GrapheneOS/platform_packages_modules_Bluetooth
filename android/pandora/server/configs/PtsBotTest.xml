@@ -22,12 +22,12 @@
     <test class="com.android.tradefed.testtype.pandora.PtsBotTest" >
         <!-- Creates a randomized temp dir for pts-bot binaries and avoid
              conflicts when running multiple pts-bot on the same machine -->
-        <option name="create-bin-temp-dir" value="true"/>
+        <!-- <option name="create-bin-temp-dir" value="true"/> -->
         <!-- mmi2grpc is contained inside pts-bot folder -->
         <option name="mmi2grpc" value="pts-bot" />
         <option name="tests-config-file" value="pts_bot_tests_config.json" />
-        <option name="max-flaky-tests" value="2" />
-        <option name="max-retries-per-test" value="3" />
+        <option name="max-flaky-tests" value="0" />
+        <option name="max-retries-per-test" value="0" />
         <option name="physical" value="false" />
         <option name="profile" value="A2DP/SNK" />
         <option name="profile" value="A2DP/SRC" />
