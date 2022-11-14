@@ -449,7 +449,7 @@ bool btif_a2dp_source_restart_session(const RawAddress& old_peer_address,
 
 bool btif_a2dp_source_end_session(const RawAddress& peer_address) {
   LOG_INFO("%s: peer_address=%s state=%s", __func__,
-           peer_address.ToString().c_str(),
+           ADDRESS_TO_LOGGABLE_CSTR(peer_address),
            btif_a2dp_source_cb.StateStr().c_str());
   btif_a2dp_source_thread.DoInThread(
       FROM_HERE,
@@ -461,7 +461,7 @@ bool btif_a2dp_source_end_session(const RawAddress& peer_address) {
 static void btif_a2dp_source_end_session_delayed(
     const RawAddress& peer_address) {
   LOG_INFO("%s: peer_address=%s state=%s", __func__,
-           peer_address.ToString().c_str(),
+           ADDRESS_TO_LOGGABLE_CSTR(peer_address),
            btif_a2dp_source_cb.StateStr().c_str());
   if ((btif_a2dp_source_cb.State() == BtifA2dpSource::kStateRunning) ||
       (btif_a2dp_source_cb.State() == BtifA2dpSource::kStateShuttingDown)) {
@@ -545,7 +545,7 @@ bool btif_a2dp_source_is_streaming(void) {
 
 static void btif_a2dp_source_setup_codec(const RawAddress& peer_address) {
   LOG_INFO("%s: peer_address=%s state=%s", __func__,
-           peer_address.ToString().c_str(),
+           ADDRESS_TO_LOGGABLE_CSTR(peer_address),
            btif_a2dp_source_cb.StateStr().c_str());
 
   // Check to make sure the platform has 8 bits/byte since
@@ -561,7 +561,7 @@ static void btif_a2dp_source_setup_codec(const RawAddress& peer_address) {
 static void btif_a2dp_source_setup_codec_delayed(
     const RawAddress& peer_address) {
   LOG_INFO("%s: peer_address=%s state=%s", __func__,
-           peer_address.ToString().c_str(),
+           ADDRESS_TO_LOGGABLE_CSTR(peer_address),
            btif_a2dp_source_cb.StateStr().c_str());
 
   tA2DP_ENCODER_INIT_PEER_PARAMS peer_params;
@@ -569,7 +569,7 @@ static void btif_a2dp_source_setup_codec_delayed(
 
   if (!bta_av_co_set_active_peer(peer_address)) {
     LOG_ERROR("%s: Cannot stream audio: cannot set active peer to %s", __func__,
-              peer_address.ToString().c_str());
+              ADDRESS_TO_LOGGABLE_CSTR(peer_address));
     return;
   }
   btif_a2dp_source_cb.encoder_interface = bta_av_co_get_encoder_interface();
@@ -1368,7 +1368,7 @@ static void btm_read_rssi_cb(void* data) {
                        result->hci_status, result->rssi);
 
   LOG_WARN("%s: device: %s, rssi: %d", __func__,
-           result->rem_bda.ToString().c_str(), result->rssi);
+           ADDRESS_TO_LOGGABLE_CSTR(result->rem_bda), result->rssi);
 }
 
 static void btm_read_failed_contact_counter_cb(void* data) {
@@ -1389,7 +1389,8 @@ static void btm_read_failed_contact_counter_cb(void* data) {
       result->hci_status, result->failed_contact_counter);
 
   LOG_WARN("%s: device: %s, Failed Contact Counter: %u", __func__,
-           result->rem_bda.ToString().c_str(), result->failed_contact_counter);
+           ADDRESS_TO_LOGGABLE_CSTR(result->rem_bda),
+           result->failed_contact_counter);
 }
 
 static void btm_read_tx_power_cb(void* data) {
@@ -1409,5 +1410,5 @@ static void btm_read_tx_power_cb(void* data) {
                                  result->hci_status, result->tx_power);
 
   LOG_WARN("%s: device: %s, Tx Power: %d", __func__,
-           result->rem_bda.ToString().c_str(), result->tx_power);
+           ADDRESS_TO_LOGGABLE_CSTR(result->rem_bda), result->tx_power);
 }

@@ -183,7 +183,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param) {
 
     case BTA_GATTC_OPEN_EVT: {
       LOG_DEBUG("BTA_GATTC_OPEN_EVT %s",
-                p_data->open.remote_bda.ToString().c_str());
+                ADDRESS_TO_LOGGABLE_CSTR(p_data->open.remote_bda));
       HAL_CBACK(bt_gatt_callbacks, client->open_cb, p_data->open.conn_id,
                 p_data->open.status, p_data->open.client_if,
                 p_data->open.remote_bda);

@@ -673,7 +673,7 @@ static bt_status_t connect_int(RawAddress* bd_addr, uint16_t uuid) {
   CHECK_BTHF_INIT();
   if (is_connected(bd_addr)) {
     BTIF_TRACE_WARNING("%s: device %s is already connected", __func__,
-                       bd_addr->ToString().c_str());
+                       ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_DONE;
   }
   btif_hf_cb_t* hf_cb = nullptr;
@@ -694,7 +694,7 @@ static bt_status_t connect_int(RawAddress* bd_addr, uint16_t uuid) {
   if (hf_cb == nullptr) {
     BTIF_TRACE_WARNING(
         "%s: Cannot connect %s: maximum %d clients already connected", __func__,
-        bd_addr->ToString().c_str(), btif_max_hf_clients);
+        ADDRESS_TO_LOGGABLE_CSTR(*bd_addr), btif_max_hf_clients);
     return BT_STATUS_BUSY;
   }
   hf_cb->state = BTHF_CONNECTION_STATE_CONNECTING;
@@ -828,7 +828,7 @@ bt_status_t HeadsetInterface::Disconnect(RawAddress* bd_addr) {
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   BTA_AgClose(btif_hf_cb[idx].handle);
@@ -866,7 +866,7 @@ bt_status_t HeadsetInterface::DisconnectAudio(RawAddress* bd_addr) {
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   BTA_AgAudioClose(btif_hf_cb[idx].handle);
@@ -908,7 +908,7 @@ bt_status_t HeadsetInterface::StartVoiceRecognition(RawAddress* bd_addr) {
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_NOT_READY;
   }
   if (!(btif_hf_cb[idx].peer_feat & BTA_AG_PEER_FEAT_VREC)) {
@@ -932,7 +932,7 @@ bt_status_t HeadsetInterface::StopVoiceRecognition(RawAddress* bd_addr) {
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_NOT_READY;
   }
   if (!(btif_hf_cb[idx].peer_feat & BTA_AG_PEER_FEAT_VREC)) {
@@ -956,7 +956,7 @@ bt_status_t HeadsetInterface::VolumeControl(bthf_volume_type_t type, int volume,
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   tBTA_AG_RES_DATA ag_res = {};
@@ -978,7 +978,7 @@ bt_status_t HeadsetInterface::DeviceStatusNotification(
   int idx = btif_hf_idx_by_bdaddr(bd_addr);
   if (idx < 0 || idx > BTA_AG_MAX_NUM_CLIENTS) {
     BTIF_TRACE_WARNING("%s: invalid index %d for %s", __func__, idx,
-                       bd_addr->ToString().c_str());
+                       ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   const btif_hf_cb_t& control_block = btif_hf_cb[idx];
@@ -1006,7 +1006,7 @@ bt_status_t HeadsetInterface::CopsResponse(const char* cops,
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   tBTA_AG_RES_DATA ag_res = {};
@@ -1030,7 +1030,7 @@ bt_status_t HeadsetInterface::CindResponse(int svc, int num_active,
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   tBTA_AG_RES_DATA ag_res = {};
@@ -1060,7 +1060,7 @@ bt_status_t HeadsetInterface::FormattedAtResponse(const char* rsp,
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   /* Format the response and send */
@@ -1079,7 +1079,7 @@ bt_status_t HeadsetInterface::AtResponse(bthf_at_response_t response_code,
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   send_at_result(
@@ -1100,7 +1100,7 @@ bt_status_t HeadsetInterface::ClccResponse(
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s is not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   tBTA_AG_RES_DATA ag_res = {};
@@ -1466,12 +1466,12 @@ bt_status_t HeadsetInterface::SendBsir(bool value, RawAddress* bd_addr) {
   int idx = btif_hf_idx_by_bdaddr(bd_addr);
   if ((idx < 0) || (idx >= BTA_AG_MAX_NUM_CLIENTS)) {
     BTIF_TRACE_ERROR("%s: Invalid index %d for %s", __func__, idx,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   if (!is_connected(bd_addr)) {
     BTIF_TRACE_ERROR("%s: %s not connected", __func__,
-                     bd_addr->ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     return BT_STATUS_FAIL;
   }
   tBTA_AG_RES_DATA ag_result = {};

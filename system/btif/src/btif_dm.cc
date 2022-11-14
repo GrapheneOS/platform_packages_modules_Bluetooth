@@ -1233,7 +1233,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
       RawAddress& bdaddr = p_search_data->inq_res.bd_addr;
 
       BTIF_TRACE_DEBUG("%s() %s device_type = 0x%x\n", __func__,
-                       bdaddr.ToString().c_str(),
+                       ADDRESS_TO_LOGGABLE_CSTR(bdaddr),
                        p_search_data->inq_res.device_type);
       bdname.name[0] = 0;
 
@@ -1332,7 +1332,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
             auto triple = eir_uuids_cache.try_emplace(bdaddr, std::set<Uuid>{});
             uuid_iter = std::get<0>(triple);
           }
-          LOG_INFO("EIR UUIDs for %s:", bdaddr.ToString().c_str());
+          LOG_INFO("EIR UUIDs for %s:", ADDRESS_TO_LOGGABLE_CSTR(bdaddr));
           for (int i = 0; i < num_uuids; ++i) {
             Uuid uuid = Uuid::From16Bit(p_uuid16[i]);
             LOG_INFO("        %s", uuid.ToString().c_str());
@@ -1460,7 +1460,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       prop.len = 0;
       if ((p_data->disc_res.result == BTA_SUCCESS) &&
           (p_data->disc_res.num_uuids > 0)) {
-        LOG_INFO("New UUIDs for %s:", bd_addr.ToString().c_str());
+        LOG_INFO("New UUIDs for %s:", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
         for (i = 0; i < p_data->disc_res.num_uuids; i++) {
           auto uuid = p_data->disc_res.p_uuid_list + i;
           if (btif_should_ignore_uuid(*uuid)) {
@@ -1501,7 +1501,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       if (pairing_cb.state == BT_BOND_STATE_BONDED && pairing_cb.sdp_attempts &&
           (p_data->disc_res.bd_addr == pairing_cb.bd_addr ||
            p_data->disc_res.bd_addr == pairing_cb.static_bdaddr)) {
-        LOG_INFO("SDP search done for %s", bd_addr.ToString().c_str());
+        LOG_INFO("SDP search done for %s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
         pairing_cb.sdp_attempts = 0;
 
         // Send UUIDs discovered through EIR to Java to unblock pairing intent
@@ -1512,7 +1512,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
           if (uuids_iter != eir_uuids_cache.end()) {
             num_eir_uuids = static_cast<int>(uuids_iter->second.size());
             LOG_INFO("SDP failed, send %d EIR UUIDs to unblock bonding %s",
-                     num_eir_uuids, bd_addr.ToString().c_str());
+                     num_eir_uuids, ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
             for (auto eir_uuid : uuids_iter->second) {
               auto uuid_128bit = eir_uuid.To128BitBE();
               property_value.insert(property_value.end(), uuid_128bit.begin(),
@@ -1562,9 +1562,11 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       RawAddress& bd_addr = p_data->disc_ble_res.bd_addr;
 
       if (event == BTA_DM_GATT_OVER_LE_RES_EVT) {
-        LOG_INFO("New GATT over LE UUIDs for %s:", bd_addr.ToString().c_str());
+        LOG_INFO("New GATT over LE UUIDs for %s:",
+                 ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       } else {
-        LOG_INFO("New GATT over SDP UUIDs for %s:", bd_addr.ToString().c_str());
+        LOG_INFO("New GATT over SDP UUIDs for %s:",
+                 ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       }
 
       for (Uuid uuid : *p_data->disc_ble_res.services) {
@@ -2106,7 +2108,7 @@ bool btif_dm_pairing_is_busy() {
  ******************************************************************************/
 void btif_dm_create_bond(const RawAddress bd_addr, int transport) {
   BTIF_TRACE_EVENT("%s: bd_addr=%s, transport=%d", __func__,
-                   bd_addr.ToString().c_str(), transport);
+                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr), transport);
   btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_CREATE_BOND,
                             pairing_cb.state);
 
@@ -2225,7 +2227,8 @@ void btif_dm_create_bond_out_of_band(const RawAddress bd_addr,
  *
  ******************************************************************************/
 void btif_dm_cancel_bond(const RawAddress bd_addr) {
-  BTIF_TRACE_EVENT("%s: bd_addr=%s", __func__, bd_addr.ToString().c_str());
+  BTIF_TRACE_EVENT("%s: bd_addr=%s", __func__,
+                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
   btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_CANCEL_BOND,
                             pairing_cb.state);
@@ -2282,7 +2285,8 @@ void btif_dm_hh_open_failed(RawAddress* bdaddr) {
  ******************************************************************************/
 
 void btif_dm_remove_bond(const RawAddress bd_addr) {
-  BTIF_TRACE_EVENT("%s: bd_addr=%s", __func__, bd_addr.ToString().c_str());
+  BTIF_TRACE_EVENT("%s: bd_addr=%s", __func__,
+                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
   btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_REMOVE_BOND,
                             pairing_cb.state);
@@ -2538,7 +2542,7 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t* prop) {
  ******************************************************************************/
 void btif_dm_get_remote_services(RawAddress remote_addr, const int transport) {
   BTIF_TRACE_EVENT("%s: transport=%d, remote_addr=%s", __func__, transport,
-                   remote_addr.ToString().c_str());
+                   ADDRESS_TO_LOGGABLE_CSTR(remote_addr));
 
   BTA_DmDiscover(remote_addr, btif_dm_search_services_evt, transport);
 }
@@ -3283,9 +3287,10 @@ static void btif_dm_ble_sc_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type) {
   BTIF_TRACE_DEBUG("%s", __func__);
 
   RawAddress bd_addr = req_oob_type->bd_addr;
-  BTIF_TRACE_DEBUG("%s: bd_addr: %s", __func__, bd_addr.ToString().c_str());
+  BTIF_TRACE_DEBUG("%s: bd_addr: %s", __func__,
+                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
   BTIF_TRACE_DEBUG("%s: oob_cb.bdaddr: %s", __func__,
-                   oob_cb.bdaddr.ToString().c_str());
+                   ADDRESS_TO_LOGGABLE_CSTR(oob_cb.bdaddr));
 
   /* make sure OOB data is for this particular device */
   if (req_oob_type->bd_addr != oob_cb.bdaddr) {
@@ -3516,7 +3521,7 @@ void btif_debug_bond_event_dump(int fd) {
     }
 
     dprintf(fd, "  %s  %s  %s  %s\n", eventtime,
-            event->bd_addr.ToString().c_str(), func_name, bond_state);
+            ADDRESS_TO_LOGGABLE_CSTR(event->bd_addr), func_name, bond_state);
   }
 }
 
@@ -3528,6 +3533,7 @@ bool btif_get_device_type(const RawAddress& bda, int* p_device_type) {
 
   if (!btif_config_get_int(bd_addr_str, "DevType", p_device_type)) return false;
   tBT_DEVICE_TYPE device_type = static_cast<tBT_DEVICE_TYPE>(*p_device_type);
+  // TODO: fix it to replace PRIVATE_ADDRESS in an upcoming patch
   LOG_DEBUG(" bd_addr:%s device_type:%s", PRIVATE_ADDRESS(bda),
             DeviceTypeText(device_type).c_str());
 
@@ -3543,7 +3549,7 @@ bool btif_get_address_type(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type) {
   int val = 0;
   if (!btif_config_get_int(bd_addr_str, "AddrType", &val)) return false;
   *p_addr_type = static_cast<tBLE_ADDR_TYPE>(val);
-
+  // TODO: fix PRIVATE_ADDRESS
   LOG_DEBUG(" bd_addr:%s[%s]", PRIVATE_ADDRESS(bda),
             AddressTypeText(*p_addr_type).c_str());
   return true;
