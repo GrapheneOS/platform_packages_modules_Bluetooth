@@ -359,7 +359,7 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
       APPL_TRACE_WARNING(
           "%s: Found an existing device with the same handle dev_status=%d, "
           "address=%s, attr_mask=0x%04x, sub_class=0x%02x, app_id=%d",
-          __func__, p_dev->dev_status, p_dev->bd_addr.ToString().c_str(),
+          __func__, p_dev->dev_status, ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr),
           p_dev->attr_mask, p_dev->sub_class, p_dev->app_id);
 
       if (p_dev->fd < 0) {
@@ -562,12 +562,14 @@ void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev, const char* dev_name,
   memset(&ev, 0, sizeof(ev));
   ev.type = UHID_CREATE;
   strlcpy((char*)ev.u.create.name, dev_name, sizeof(ev.u.create.name));
+  // TODO (b/258090765) fix: ToString -> ToColonSepHexString
   snprintf((char*)ev.u.create.uniq, sizeof(ev.u.create.uniq), "%s",
            p_dev->bd_addr.ToString().c_str());
 
   // Write controller address to phys field to correlate the hid device with a
   // specific bluetooth controller.
   const controller_t* controller = controller_get_interface();
+  // TODO (b/258090765) fix: ToString -> ToColonSepHexString
   snprintf((char*)ev.u.create.phys, sizeof(ev.u.create.phys), "%s",
            controller->get_address()->ToString().c_str());
 
@@ -730,8 +732,8 @@ void bta_hh_le_co_rpt_info(const RawAddress& remote_bda,
     btif_config_set_bin(bdstr, "HidReport", (const uint8_t*)sReportCache,
                         idx * sizeof(tBTA_HH_RPT_CACHE_ENTRY));
     btif_config_set_int(bdstr, "HidReportVersion", BTA_HH_CACHE_REPORT_VERSION);
-    BTIF_TRACE_DEBUG("%s() - Saving report; dev=%s, idx=%d", __func__, bdstr,
-                     idx);
+    BTIF_TRACE_DEBUG("%s() - Saving report; dev=%s, idx=%d", __func__,
+                     ADDRESS_TO_LOGGABLE_CSTR(remote_bda), idx);
   }
 }
 
@@ -774,7 +776,7 @@ tBTA_HH_RPT_CACHE_ENTRY* bta_hh_le_co_cache_load(const RawAddress& remote_bda,
   *p_num_rpt = len / sizeof(tBTA_HH_RPT_CACHE_ENTRY);
 
   BTIF_TRACE_DEBUG("%s() - Loaded %d reports; dev=%s", __func__, *p_num_rpt,
-                   bdstr);
+                   ADDRESS_TO_LOGGABLE_CSTR(remote_bda));
 
   return sReportCache;
 }
@@ -797,5 +799,6 @@ void bta_hh_le_co_reset_rpt_cache(const RawAddress& remote_bda,
 
   btif_config_remove(bdstr, "HidReport");
   btif_config_remove(bdstr, "HidReportVersion");
-  BTIF_TRACE_DEBUG("%s() - Reset cache for bda %s", __func__, bdstr);
+  BTIF_TRACE_DEBUG("%s() - Reset cache for bda %s", __func__,
+                   ADDRESS_TO_LOGGABLE_CSTR(remote_bda));
 }

@@ -134,8 +134,8 @@ void btif_a2dp_on_suspended(tBTA_AV_SUSPEND* p_av_suspend) {
 void btif_a2dp_on_offload_started(const RawAddress& peer_addr,
                                   tBTA_AV_STATUS status) {
   tA2DP_CTRL_ACK ack;
-  LOG_INFO("%s: peer %s status %d", __func__, peer_addr.ToString().c_str(),
-           status);
+  LOG_INFO("%s: peer %s status %d", __func__,
+           ADDRESS_TO_LOGGABLE_CSTR(peer_addr), status);
 
   switch (status) {
     case BTA_AV_SUCCESS:
@@ -143,12 +143,12 @@ void btif_a2dp_on_offload_started(const RawAddress& peer_addr,
       break;
     case BTA_AV_FAIL_RESOURCES:
       LOG_ERROR("%s: peer %s FAILED UNSUPPORTED", __func__,
-                peer_addr.ToString().c_str());
+                ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
       ack = A2DP_CTRL_ACK_UNSUPPORTED;
       break;
     default:
       LOG_ERROR("%s: peer %s FAILED: status = %d", __func__,
-                peer_addr.ToString().c_str(), status);
+                ADDRESS_TO_LOGGABLE_CSTR(peer_addr), status);
       ack = A2DP_CTRL_ACK_FAILURE;
       break;
   }
@@ -158,7 +158,7 @@ void btif_a2dp_on_offload_started(const RawAddress& peer_addr,
       // suspend is triggered for remote start. Disconnect only if SoC
       // returned failure for offload VSC
       LOG_ERROR("%s: peer %s offload start failed", __func__,
-                peer_addr.ToString().c_str());
+                ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
       btif_av_src_disconnect_sink(peer_addr);
     }
   }

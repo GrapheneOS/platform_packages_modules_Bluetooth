@@ -569,7 +569,7 @@ static void bta_pan_callback_transfer(uint16_t event, char* p_param) {
       btpan_conn_t* conn;
       BTIF_TRACE_DEBUG("BTA_PAN_OPENING_EVT handle %d, addr: %s",
                        p_data->opening.handle,
-                       p_data->opening.bd_addr.ToString().c_str());
+                       ADDRESS_TO_LOGGABLE_CSTR(p_data->opening.bd_addr));
       conn = btpan_find_conn_addr(p_data->opening.bd_addr);
 
       asrt(conn != NULL);

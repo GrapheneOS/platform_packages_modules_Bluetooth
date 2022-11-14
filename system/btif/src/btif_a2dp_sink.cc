@@ -276,7 +276,8 @@ bool btif_a2dp_sink_restart_session(const RawAddress& old_peer_address,
 }
 
 bool btif_a2dp_sink_end_session(const RawAddress& peer_address) {
-  LOG_INFO("%s: peer_address=%s", __func__, peer_address.ToString().c_str());
+  LOG_INFO("%s: peer_address=%s", __func__,
+           ADDRESS_TO_LOGGABLE_CSTR(peer_address));
   btif_a2dp_sink_cb.worker_thread.DoInThread(
       FROM_HERE, base::BindOnce(btif_a2dp_sink_end_session_delayed));
   return true;

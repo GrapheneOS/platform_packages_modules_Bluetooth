@@ -859,7 +859,7 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
             "%s: HF CLient open failed, but another device connected. "
             "status=%d state=%d connected device=%s",
             __func__, p_data->open.status, cb->state,
-            cb->peer_bda.ToString().c_str());
+            ADDRESS_TO_LOGGABLE_CSTR(cb->peer_bda));
         break;
       }
 
