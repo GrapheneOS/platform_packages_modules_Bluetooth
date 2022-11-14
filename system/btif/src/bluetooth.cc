@@ -961,6 +961,18 @@ static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
   return true;
 }
 
+static void metadata_changed(const RawAddress& remote_bd_addr, int key,
+                             std::vector<uint8_t> value) {
+  if (!interface_ready()) {
+    LOG_ERROR("Interface not ready!");
+    return;
+  }
+
+  do_in_main_thread(
+      FROM_HERE, base::BindOnce(btif_dm_metadata_changed, remote_bd_addr, key,
+                                std::move(value)));
+}
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     .init = init,
@@ -1013,7 +1025,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     .allow_wake_by_hid = allow_wake_by_hid,
     .set_event_filter_connection_setup_all_devices =
         set_event_filter_connection_setup_all_devices,
-    .get_wbs_supported = get_wbs_supported};
+    .get_wbs_supported = get_wbs_supported,
+    .metadata_changed = metadata_changed};
 
 // callback reporting helpers
 
