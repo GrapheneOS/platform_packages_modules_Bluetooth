@@ -76,7 +76,7 @@ class BleAdvertiserIntf : public AdvertisingCallbacks {
       uint8_t max_ext_adv_events);
   void SetPeriodicAdvertisingParameters(uint8_t adv_id, RustPeriodicAdvertisingParameters params);
   void SetPeriodicAdvertisingData(uint8_t adv_id, ::rust::Vec<uint8_t> data);
-  void SetPeriodicAdvertisingEnable(uint8_t adv_id, bool enable);
+  void SetPeriodicAdvertisingEnable(uint8_t adv_id, bool enable, bool include_adi);
 
   void RegisterCallbacks();
 

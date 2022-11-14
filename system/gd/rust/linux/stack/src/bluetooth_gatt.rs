@@ -301,7 +301,12 @@ pub trait IBluetoothGatt {
     fn set_periodic_advertising_data(&mut self, advertiser_id: i32, data: AdvertiseData);
 
     /// Enables or disables periodic advertising.
-    fn set_periodic_advertising_enable(&mut self, advertiser_id: i32, enable: bool);
+    fn set_periodic_advertising_enable(
+        &mut self,
+        advertiser_id: i32,
+        enable: bool,
+        include_adi: bool,
+    );
 
     // GATT Client
 
@@ -1248,17 +1253,21 @@ impl IBluetoothGatt for BluetoothGatt {
         }
     }
 
-    fn set_periodic_advertising_enable(&mut self, advertiser_id: i32, enable: bool) {
+    fn set_periodic_advertising_enable(
+        &mut self,
+        advertiser_id: i32,
+        enable: bool,
+        include_adi: bool,
+    ) {
         if self.advertisers.suspend_mode() != SuspendMode::Normal {
             return;
         }
-
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
-            self.gatt
-                .as_mut()
-                .unwrap()
-                .advertiser
-                .set_periodic_advertising_enable(s.adv_id(), enable);
+            self.gatt.as_mut().unwrap().advertiser.set_periodic_advertising_enable(
+                s.adv_id(),
+                enable,
+                include_adi,
+            );
         }
     }
 

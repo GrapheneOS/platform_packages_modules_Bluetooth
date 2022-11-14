@@ -3965,7 +3965,9 @@ packet LeSetPeriodicAdvertisingDataComplete : CommandComplete (command_op_code =
 }
 
 packet LeSetPeriodicAdvertisingEnable : LeAdvertisingCommand (op_code = LE_SET_PERIODIC_ADVERTISING_ENABLE) {
-  enable : Enable,
+  enable : 1,
+  include_adi: 1,
+  _reserved_: 6,
   advertising_handle : 8,
 }
 
