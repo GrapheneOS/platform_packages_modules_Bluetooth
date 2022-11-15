@@ -1603,10 +1603,6 @@ static void btu_hcif_encryption_key_refresh_cmpl_evt(uint8_t* p) {
  * BLE Events
  **********************************************/
 
-extern void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
-                                    uint16_t latency, uint16_t timeout,
-                                    tHCI_STATUS status);
-
 static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len) {
   /* LE connection update has completed successfully as a central. */
   /* We can enable the update request if the result is a success. */
