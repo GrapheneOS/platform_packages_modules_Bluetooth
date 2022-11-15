@@ -19,6 +19,10 @@
         <option name="test-file-name" value="FrameworkBluetoothTests.apk" />
     </target_preparer>
 
+    <target_preparer class="com.android.tradefed.targetprep.RootTargetPreparer">
+        <option name="force-root" value="true" />
+    </target_preparer>
+
     <option name="test-suite-tag" value="apct"/>
     <option name="test-tag" value="FrameworkBluetoothTests"/>
 
