@@ -490,12 +490,12 @@ BtmStatus Btm::ReadClassicRemoteDeviceName(const RawAddress& raw_address,
 
   if (!classic_read_remote_name_.Start(raw_address)) {
     LOG_INFO("%s Read remote name is currently busy address:%s", __func__,
-             raw_address.ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(raw_address));
     return BTM_BUSY;
   }
 
   LOG_INFO("%s Start read name from address:%s", __func__,
-           raw_address.ToString().c_str());
+           ADDRESS_TO_LOGGABLE_CSTR(raw_address));
   GetName()->ReadRemoteNameRequest(
       ToGdAddress(raw_address), hci::PageScanRepetitionMode::R1,
       0 /* clock_offset */, hci::ClockOffsetValid::INVALID,
@@ -516,7 +516,7 @@ BtmStatus Btm::ReadClassicRemoteDeviceName(const RawAddress& raw_address,
             std::copy(remote_name.begin(), remote_name.end(),
                       name.remote_bd_name);
             LOG_INFO("%s Finish read name from address:%s name:%s", __func__,
-                     address.ToString().c_str(), name.remote_bd_name);
+                     ADDRESS_TO_LOGGABLE_CSTR(address), name.remote_bd_name);
             callback(&name);
             classic_read_remote_name->Stop();
           },

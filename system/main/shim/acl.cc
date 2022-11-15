@@ -1106,7 +1106,7 @@ struct shim::legacy::Acl::impl {
               acceptlist.size(),
               controller_get_interface()->get_ble_acceptlist_size());
     for (auto& entry : acceptlist) {
-      LOG_DEBUG("acceptlist:%s", entry.ToString().c_str());
+      LOG_DEBUG("acceptlist:%s", ADDRESS_TO_LOGGABLE_CSTR(entry));
     }
   }
 
@@ -1139,7 +1139,7 @@ struct shim::legacy::Acl::impl {
                 controller_get_interface()->get_ble_acceptlist_size());
     unsigned cnt = 0;
     for (auto& entry : acceptlist) {
-      LOG_DUMPSYS(fd, "  %03u %s", ++cnt, entry.ToString().c_str());
+      LOG_DUMPSYS(fd, "  %03u %s", ++cnt, ADDRESS_TO_LOGGABLE_CSTR(entry));
     }
     auto address_resolution_list = shadow_address_resolution_list_.GetCopy();
     LOG_DUMPSYS(fd,
@@ -1149,7 +1149,7 @@ struct shim::legacy::Acl::impl {
                 controller_get_interface()->get_ble_resolving_list_max_size());
     cnt = 0;
     for (auto& entry : address_resolution_list) {
-      LOG_DUMPSYS(fd, "  %03u %s", ++cnt, entry.ToString().c_str());
+      LOG_DUMPSYS(fd, "  %03u %s", ++cnt, ADDRESS_TO_LOGGABLE_CSTR(entry));
     }
   }
 #undef DUMPSYS_TAG
@@ -1192,7 +1192,7 @@ void DumpsysAcl(int fd) {
     if (!link.in_use) continue;
 
     LOG_DUMPSYS(fd, "remote_addr:%s handle:0x%04x transport:%s",
-                link.remote_addr.ToString().c_str(), link.hci_handle,
+                ADDRESS_TO_LOGGABLE_CSTR(link.remote_addr), link.hci_handle,
                 bt_transport_text(link.transport).c_str());
     LOG_DUMPSYS(fd, "    link_up_issued:%5s",
                 (link.link_up_issued) ? "true" : "false");
@@ -1224,10 +1224,10 @@ void DumpsysAcl(int fd) {
                   bd_features_text(link.peer_le_features).c_str());
 
       LOG_DUMPSYS(fd, "    [le] active_remote_addr:%s[%s]",
-                  link.active_remote_addr.ToString().c_str(),
+                  ADDRESS_TO_LOGGABLE_CSTR(link.active_remote_addr),
                   AddressTypeText(link.active_remote_addr_type).c_str());
       LOG_DUMPSYS(fd, "    [le] conn_addr:%s[%s]",
-                  link.conn_addr.ToString().c_str(),
+                  ADDRESS_TO_LOGGABLE_CSTR(link.conn_addr),
                   AddressTypeText(link.conn_addr_type).c_str());
     }
   }
@@ -1270,6 +1270,7 @@ void DumpsysRecord(int fd) {
        node = list_next(node)) {
     tBTM_SEC_DEV_REC* p_dev_rec =
         static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
+    // TODO: handle in tBTM_SEC_DEV_REC.ToString
     LOG_DUMPSYS(fd, "%03u %s", ++cnt, p_dev_rec->ToString().c_str());
   }
 }
