@@ -1528,10 +1528,12 @@ class HearingAidImpl : public HearingAid {
     const struct AudioStats* stats = &device.audio_stats;
 
     if (stats->rssi_history.size() <= 0) {
-      dprintf(fd, "  No RSSI history for %s:\n", device.address.ToString().c_str());
+      dprintf(fd, "  No RSSI history for %s:\n",
+              ADDRESS_TO_LOGGABLE_CSTR(device.address));
       return;
     }
-    dprintf(fd, "  RSSI history for %s:\n", device.address.ToString().c_str());
+    dprintf(fd, "  RSSI history for %s:\n",
+            ADDRESS_TO_LOGGABLE_CSTR(device.address));
 
     dprintf(fd, "    Time of RSSI    0.0  0.1  0.2  0.3  0.4  0.5  0.6  0.7  0.8  0.9\n");
     for (auto& rssi_logs : stats->rssi_history) {

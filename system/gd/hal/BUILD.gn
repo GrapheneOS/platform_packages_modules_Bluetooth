@@ -22,7 +22,10 @@ source_set("BluetoothHalSources") {
 }
 
 source_set("BluetoothHalSources_hci_host") {
-  sources = [ "hci_hal_host.cc" ]
+  sources = [
+    "hci_hal_host.cc",
+    "mgmt.cc",
+  ]
 
   configs += [ "//bt/system/gd:gd_defaults" ]
   deps = [ "//bt/system/gd:gd_default_deps" ]

@@ -367,7 +367,7 @@ class HasClientImpl : public HasClient {
                                   GattStatus2SvcErrorCode(status));
 
     LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
-              device->addr.ToString().c_str());
+              ADDRESS_TO_LOGGABLE_CSTR(device->addr));
     BTA_GATTC_Close(conn_id);
   }
 
@@ -409,7 +409,7 @@ class HasClientImpl : public HasClient {
                                             GattStatus2SvcErrorCode(status));
     }
     LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
-              device->addr.ToString().c_str());
+              ADDRESS_TO_LOGGABLE_CSTR(device->addr));
     BTA_GATTC_Close(conn_id);
   }
 
@@ -818,7 +818,8 @@ class HasClientImpl : public HasClient {
     auto device = std::find_if(devices_.begin(), devices_.end(),
                                HasDevice::MatchAddress(address));
     if (device == devices_.end()) {
-      LOG(WARNING) << "Device not connected to profile" << address;
+      LOG(WARNING) << "Device not connected to profile"
+                   << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
@@ -900,7 +901,8 @@ class HasClientImpl : public HasClient {
  private:
   void WriteAllNeededCcc(const HasDevice& device) {
     if (device.conn_id == GATT_INVALID_CONN_ID) {
-      LOG_ERROR("Device %s is not connected", device.addr.ToString().c_str());
+      LOG_ERROR("Device %s is not connected",
+                ADDRESS_TO_LOGGABLE_CSTR(device.addr));
       return;
     }
 

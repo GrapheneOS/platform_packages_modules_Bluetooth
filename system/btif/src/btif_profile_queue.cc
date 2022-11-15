@@ -53,6 +53,7 @@ class ConnectNode {
       : address_(address), uuid_(uuid), busy_(false), connect_cb_(connect_cb) {}
 
   std::string ToString() const {
+    // TODO: replace PRIVATE_ADDRESS in an upcoming patch
     return base::StringPrintf("address=%s UUID=%04X busy=%s",
                               PRIVATE_ADDRESS(address_), uuid_,
                               (busy_) ? "true" : "false");

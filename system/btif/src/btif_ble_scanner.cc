@@ -377,7 +377,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
 
   void TransferSync(RawAddress address, uint16_t service_data,
                     uint16_t sync_handle, int pa_source) override {
-    LOG_DEBUG("address:%s", address.ToString().c_str());
+    LOG_DEBUG("address:%s", ADDRESS_TO_LOGGABLE_CSTR(address));
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       uint8_t status_no_resource = 2;
@@ -398,7 +398,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
 
   void TransferSetInfo(RawAddress address, uint16_t service_data,
                        uint8_t adv_handle, int pa_source) override {
-    LOG_DEBUG("address: %s", address.ToString().c_str());
+    LOG_DEBUG("address: %s", ADDRESS_TO_LOGGABLE_CSTR(address));
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       uint8_t status_no_resource = 2;
@@ -419,7 +419,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
 
   void SyncTxParameters(RawAddress addr, uint8_t mode, uint16_t skip,
                         uint16_t timeout, int reg_id) override {
-    LOG_DEBUG("address: %s", addr.ToString().c_str());
+    LOG_DEBUG("address: %s", ADDRESS_TO_LOGGABLE_CSTR(addr));
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       uint8_t status_no_resource = 2;

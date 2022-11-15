@@ -30,6 +30,7 @@
 #include <unordered_set>
 
 #include "btif/include/btif_hh.h"
+#include "common/interfaces/ILoggable.h"
 #include "device/include/controller.h"
 #include "gd/common/bidi_queue.h"
 #include "gd/common/bind.h"
@@ -76,18 +77,29 @@ bt_status_t do_in_main_thread(const base::Location& from_here,
 
 using namespace bluetooth;
 
-class ConnectAddressWithType {
+class ConnectAddressWithType : public bluetooth::common::IRedactableLoggable {
  public:
   explicit ConnectAddressWithType(hci::AddressWithType address_with_type)
       : address_(address_with_type.GetAddress()),
         type_(address_with_type.ToFilterAcceptListAddressType()) {}
 
+  // TODO: remove this method
   std::string const ToString() const {
     std::stringstream ss;
-    ss << address_ << "[" << FilterAcceptListAddressTypeText(type_) << "]";
+    ss << address_.ToString() << "[" << FilterAcceptListAddressTypeText(type_)
+       << "]";
     return ss.str();
   }
 
+  std::string ToStringForLogging() const override {
+    return ToString();
+  }
+  std::string ToRedactedStringForLogging() const override {
+    std::stringstream ss;
+    ss << address_.ToRedactedStringForLogging() << "["
+       << FilterAcceptListAddressTypeText(type_) << "]";
+    return ss.str();
+  }
   bool operator==(const ConnectAddressWithType& rhs) const {
     return address_ == rhs.address_ && type_ == rhs.type_;
   }

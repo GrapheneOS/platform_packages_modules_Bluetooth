@@ -1038,7 +1038,7 @@ class LeAudioClientImpl : public LeAudioClient {
         "restoring: %s, autoconnect %d, sink_audio_location: %d, "
         "source_audio_location: %d, sink_supported_context_types : 0x%04x, "
         "source_supported_context_types 0x%04x ",
-        address.ToString().c_str(), autoconnect, sink_audio_location,
+        ADDRESS_TO_LOGGABLE_CSTR(address), autoconnect, sink_audio_location,
         source_audio_location, sink_supported_context_types,
         source_supported_context_types);
 
@@ -1572,7 +1572,7 @@ class LeAudioClientImpl : public LeAudioClient {
     if (leAudioDevice->ctp_hdls_.val_hdl == 0) {
       LOG_ERROR(
           "Control point characteristic is mandatory - disconnecting device %s",
-          leAudioDevice->address_.ToString().c_str());
+          ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       DisconnectDevice(leAudioDevice);
       return;
     }
@@ -2246,7 +2246,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (!groupStateMachine_->AttachToStream(group, leAudioDevice)) {
       LOG_WARN("Could not add device %s to the group %d streaming. ",
-               leAudioDevice->address_.ToString().c_str(), group->group_id_);
+               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
+               group->group_id_);
       scheduleAttachDeviceToTheStream(leAudioDevice->address_);
     } else {
       stream_setup_start_timestamp_ =
@@ -2258,14 +2259,15 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(addr);
     if (leAudioDevice == nullptr ||
         leAudioDevice->conn_id_ == GATT_INVALID_CONN_ID) {
-      LOG_INFO("Device %s not available anymore", addr.ToString().c_str());
+      LOG_INFO("Device %s not available anymore",
+               ADDRESS_TO_LOGGABLE_CSTR(addr));
       return;
     }
     AttachToStreamingGroupIfNeeded(leAudioDevice);
   }
 
   void scheduleAttachDeviceToTheStream(const RawAddress& addr) {
-    LOG_INFO("Device %s scheduler for stream ", addr.ToString().c_str());
+    LOG_INFO("Device %s scheduler for stream ", ADDRESS_TO_LOGGABLE_CSTR(addr));
     do_in_main_thread_delayed(
         FROM_HERE,
         base::BindOnce(&LeAudioClientImpl::restartAttachToTheStream,
@@ -3775,7 +3777,7 @@ class LeAudioClientImpl : public LeAudioClient {
       if (leAudioDevice->closing_stream_for_disconnection_) {
         leAudioDevice->closing_stream_for_disconnection_ = false;
         LOG_DEBUG("Disconnecting group id: %d, address: %s", group->group_id_,
-                  leAudioDevice->address_.ToString().c_str());
+                  ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
         DisconnectDevice(leAudioDevice);
       }
       leAudioDevice = group->GetNextDevice(leAudioDevice);

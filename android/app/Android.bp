@@ -63,6 +63,7 @@ cc_library_shared {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/types",
+        "packages/modules/Bluetooth/system/gd",
     ],
     static_libs: [
         "libbluetooth-types",

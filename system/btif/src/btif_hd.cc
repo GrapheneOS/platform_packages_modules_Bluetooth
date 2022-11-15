@@ -200,7 +200,7 @@ static void btif_hd_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_HD_OPEN_EVT: {
       RawAddress* addr = (RawAddress*)&p_data->conn.bda;
       BTIF_TRACE_WARNING("BTA_HD_OPEN_EVT, address=%s",
-                         addr->ToString().c_str());
+                         ADDRESS_TO_LOGGABLE_CSTR(*addr));
       /* Check if the connection is from hid host and not hid device */
       if (check_cod_hid(addr)) {
         /* Incoming connection from hid device, reject it */
