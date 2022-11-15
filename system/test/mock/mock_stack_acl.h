@@ -1291,6 +1291,15 @@ struct on_acl_br_edr_failed {
 };
 extern struct on_acl_br_edr_failed on_acl_br_edr_failed;
 
+// Manually added
+struct BTM_unblock_role_switch_and_sniff_mode_for {
+  std::function<void(const RawAddress& peer_addr)> body{
+      [](const RawAddress& peer_addr) {}};
+  void operator()(const RawAddress& peer_addr) { body(peer_addr); };
+};
+extern struct BTM_unblock_role_switch_and_sniff_mode_for
+    BTM_unblock_role_switch_and_sniff_mode_for;
+
 }  // namespace stack_acl
 }  // namespace mock
 }  // namespace test

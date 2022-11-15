@@ -26,6 +26,7 @@ filegroup {
         "le_advertising_manager.cc",
         "le_scanning_manager.cc",
         "link_key.cc",
+        "msft.cc",
         "uuid.cc",
         "vendor_specific_event_manager.cc",
     ],

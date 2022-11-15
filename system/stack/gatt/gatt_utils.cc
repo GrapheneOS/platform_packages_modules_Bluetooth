@@ -977,7 +977,7 @@ bool gatt_tcb_is_cid_busy(tGATT_TCB& tcb, uint16_t cid) {
  *
  ******************************************************************************/
 tGATT_CLCB* gatt_clcb_alloc(uint16_t conn_id) {
-  tGATT_CLCB clcb;
+  tGATT_CLCB clcb = {};
   tGATT_IF gatt_if = GATT_GET_GATT_IF(conn_id);
   uint8_t tcb_idx = GATT_GET_TCB_IDX(conn_id);
   tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);

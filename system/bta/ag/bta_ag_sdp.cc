@@ -352,7 +352,8 @@ bool bta_ag_sdp_find_attr(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK service) {
           btif_config_save();
         } else {
           APPL_TRACE_WARNING("%s: Failed to store peer HFP version for %s",
-                             __func__, p_scb->peer_addr.ToString().c_str());
+                             __func__,
+                             ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
         }
       }
       /* get features if HFP */
@@ -381,7 +382,7 @@ bool bta_ag_sdp_find_attr(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK service) {
           } else {
             APPL_TRACE_WARNING(
                 "%s: Failed to store peer HFP SDP Features for %s", __func__,
-                p_scb->peer_addr.ToString().c_str());
+                ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
           }
         }
         if (p_scb->peer_features == 0) {

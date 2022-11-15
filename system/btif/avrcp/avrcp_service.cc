@@ -401,19 +401,22 @@ ServiceInterface* AvrcpService::GetServiceInterface() {
 }
 
 void AvrcpService::ConnectDevice(const RawAddress& bdaddr) {
-  LOG(INFO) << __PRETTY_FUNCTION__ << ": address=" << bdaddr.ToString();
+  LOG(INFO) << __PRETTY_FUNCTION__
+            << ": address=" << ADDRESS_TO_LOGGABLE_STR(bdaddr);
 
   connection_handler_->ConnectDevice(bdaddr);
 }
 
 void AvrcpService::DisconnectDevice(const RawAddress& bdaddr) {
-  LOG(INFO) << __PRETTY_FUNCTION__ << ": address=" << bdaddr.ToString();
+  LOG(INFO) << __PRETTY_FUNCTION__
+            << ": address=" << ADDRESS_TO_LOGGABLE_STR(bdaddr);
   connection_handler_->DisconnectDevice(bdaddr);
 }
 
 void AvrcpService::SetBipClientStatus(const RawAddress& bdaddr,
                                       bool connected) {
-  LOG(INFO) << __PRETTY_FUNCTION__ << ": address=" << bdaddr.ToString()
+  LOG(INFO) << __PRETTY_FUNCTION__
+            << ": address=" << ADDRESS_TO_LOGGABLE_STR(bdaddr)
             << ", connected=" << connected;
   connection_handler_->SetBipClientStatus(bdaddr, connected);
 }

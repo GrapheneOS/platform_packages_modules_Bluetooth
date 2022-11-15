@@ -195,7 +195,7 @@ bt_status_t btif_gattc_test_command_impl(int command,
     case 0x02: /* Connect */
     {
       LOG_INFO("%s: CONNECT - device=%s (dev_type=%d, addr_type=%d)", __func__,
-               params->bda1->ToString().c_str(), params->u1, params->u2);
+               ADDRESS_TO_LOGGABLE_CSTR(*params->bda1), params->u1, params->u2);
 
       if (params->u1 == BT_DEVICE_TYPE_BLE)
         BTM_SecAddBleDevice(*params->bda1, BT_DEVICE_TYPE_BLE,

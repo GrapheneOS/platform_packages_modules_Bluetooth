@@ -308,7 +308,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ParseAseStatusHeader(arh, len, value);
 
     LOG_INFO(" %s , ASE id: %d, state changed %s -> %s ",
-             leAudioDevice->address_.ToString().c_str(), +ase->id,
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), +ase->id,
              ToString(ase->state).c_str(),
              ToString(AseState(arh.state)).c_str());
 
@@ -633,7 +633,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     LOG_DEBUG(
         " device: %s, group connected: %d, all active ase disconnected:: %d",
-        leAudioDevice->address_.ToString().c_str(),
+        ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
         group->IsAnyDeviceConnected(), group->HaveAllActiveDevicesCisDisc());
 
     /* Update the current group audio context availability which could change
@@ -739,7 +739,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ASSERT_LOG(ase != nullptr,
                "shouldn't be called without an active ASE, device %s, group "
                "id: %d, cis handle 0x%04x",
-               leAudioDevice->address_.ToString().c_str(), event->cig_id,
+               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), event->cig_id,
                event->cis_conn_hdl);
     do {
       if (ase->direction == le_audio::types::kLeAudioDirectionSource)
@@ -1433,7 +1433,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           /* More ASEs notification from this device has to come for this group
            */
           LOG_DEBUG("Wait for more ASE to configure for device %s",
-                    leAudioDevice->address_.ToString().c_str());
+                    ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
           return;
         }
 
@@ -1442,7 +1442,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
          */
         if (group->GetTargetState() != AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
           LOG_DEBUG("Autonomus change of stated for device %s, ase id: %d",
-                    leAudioDevice->address_.ToString().c_str(), ase->id);
+                    ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id);
           return;
         }
 
@@ -1595,7 +1595,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
           /* This is autonomus change of the remote device */
           LOG_DEBUG("Autonomus change for device %s, ase id %d. Just store it.",
-                    leAudioDevice->address_.ToString().c_str(), ase->id);
+                    ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id);
           return;
         }
 
@@ -1603,7 +1603,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           /* More ASEs notification from this device has to come for this group
            */
           LOG_DEBUG("More Ases to be configured for the device %s",
-                    leAudioDevice->address_.ToString().c_str());
+                    ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
           return;
         }
 
@@ -1754,7 +1754,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           /* More ASEs notification from this device has to come for this group
            */
           LOG_DEBUG("Wait for more ASE to configure for device %s",
-                    leAudioDevice->address_.ToString().c_str());
+                    ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
           return;
         }
 
@@ -1763,7 +1763,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
          */
         if (group->GetTargetState() != AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
           LOG_DEBUG("Autonomus change of stated for device %s, ase id: %d",
-                    leAudioDevice->address_.ToString().c_str(), ase->id);
+                    ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id);
           return;
         }
 

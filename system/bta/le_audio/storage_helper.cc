@@ -141,7 +141,7 @@ bool SerializeSinkPacs(const le_audio::LeAudioDevice* leAudioDevice,
     return false;
   }
   LOG_VERBOSE("Device %s, num of PAC characteristics: %d",
-              leAudioDevice->address_.ToString().c_str(),
+              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
               static_cast<int>(leAudioDevice->snk_pacs_.size()));
   return serializePacs(leAudioDevice->snk_pacs_, out);
 }
@@ -153,7 +153,7 @@ bool SerializeSourcePacs(const le_audio::LeAudioDevice* leAudioDevice,
     return false;
   }
   LOG_VERBOSE("Device %s, num of PAC characteristics: %d",
-              leAudioDevice->address_.ToString().c_str(),
+              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
               static_cast<int>(leAudioDevice->src_pacs_.size()));
   return serializePacs(leAudioDevice->src_pacs_, out);
 }
@@ -175,7 +175,7 @@ bool deserializePacs(LeAudioDevice* leAudioDevice,
   if (magic != LEAUDIO_PACS_STORAGE_CURRENT_LAYOUT_MAGIC) {
     LOG_ERROR("Invalid magic (%d!=%d) for device %s", magic,
               LEAUDIO_PACS_STORAGE_CURRENT_LAYOUT_MAGIC,
-              leAudioDevice->address_.ToString().c_str());
+              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     return false;
   }
 
@@ -185,7 +185,7 @@ bool deserializePacs(LeAudioDevice* leAudioDevice,
   if (in.size() < LEAUDIO_STORAGE_HEADER_WITH_ENTRIES_SZ +
                       (num_of_pacs_chars * LEAUDIO_PACS_ENTRY_SZ)) {
     LOG_ERROR("Invalid persistent storage data for device %s",
-              leAudioDevice->address_.ToString().c_str());
+              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     return false;
   }
 
@@ -256,12 +256,12 @@ bool SerializeAses(const le_audio::LeAudioDevice* leAudioDevice,
 
   auto num_of_ases = leAudioDevice->ases_.size();
   LOG_DEBUG(" device: %s, number of ases %d",
-            leAudioDevice->address_.ToString().c_str(),
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
             static_cast<int>(num_of_ases));
 
   if (num_of_ases == 0 || (num_of_ases > std::numeric_limits<uint8_t>::max())) {
     LOG_WARN("No ases available for device %s",
-             leAudioDevice->address_.ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     return false;
   }
 
@@ -303,7 +303,7 @@ bool DeserializeAses(le_audio::LeAudioDevice* leAudioDevice,
   if (in.size() <
       LEAUDIO_STORAGE_HEADER_WITH_ENTRIES_SZ + LEAUDIO_ASES_ENTRY_SZ) {
     LOG_WARN("There is not single ASE stored for device %s",
-             leAudioDevice->address_.ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     return false;
   }
 
@@ -324,12 +324,12 @@ bool DeserializeAses(le_audio::LeAudioDevice* leAudioDevice,
   if (in.size() < LEAUDIO_STORAGE_HEADER_WITH_ENTRIES_SZ +
                       (num_of_ases * LEAUDIO_ASES_ENTRY_SZ)) {
     LOG_ERROR("Invalid persistent storage data for device %s",
-              leAudioDevice->address_.ToString().c_str());
+              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     return false;
   }
 
   LOG_DEBUG("Loading %d Ases for device %s", num_of_ases,
-            leAudioDevice->address_.ToString().c_str());
+            ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
   /* sets entries */
   while (num_of_ases--) {
     uint16_t handle;
@@ -371,7 +371,7 @@ bool SerializeHandles(const LeAudioDevice* leAudioDevice,
   if (leAudioDevice->ctp_hdls_.val_hdl == 0 ||
       leAudioDevice->ctp_hdls_.ccc_hdl == 0) {
     LOG_WARN("Invalid control point handles for device %s",
-             leAudioDevice->address_.ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     return false;
   }
 
@@ -404,7 +404,7 @@ bool DeserializeHandles(LeAudioDevice* leAudioDevice,
 
   if (in.size() != LEAUDIO_STORAGE_HANDLES_ENTRIES_SZ) {
     LOG_WARN("There is not single ASE stored for device %s",
-             leAudioDevice->address_.ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     return false;
   }
 
@@ -416,7 +416,7 @@ bool DeserializeHandles(LeAudioDevice* leAudioDevice,
   if (magic != LEAUDIO_HANDLES_STORAGE_CURRENT_LAYOUT_MAGIC) {
     LOG_ERROR("Invalid magic (%d!=%d) for device %s", magic,
               LEAUDIO_PACS_STORAGE_CURRENT_LAYOUT_MAGIC,
-              leAudioDevice->address_.ToString().c_str());
+              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     return false;
   }
 

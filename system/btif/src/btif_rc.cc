@@ -584,9 +584,9 @@ void handle_rc_features(btif_rc_device_cb_t* p_dev) {
       "%s: AVDTP Source Active Peer Address: %s "
       "AVDTP Sink Active Peer Address: %s "
       "AVCTP address: %s",
-      __func__, avdtp_source_active_peer_addr.ToString().c_str(),
-      avdtp_sink_active_peer_addr.ToString().c_str(),
-      p_dev->rc_addr.ToString().c_str());
+      __func__, ADDRESS_TO_LOGGABLE_CSTR(avdtp_source_active_peer_addr),
+      ADDRESS_TO_LOGGABLE_CSTR(avdtp_sink_active_peer_addr),
+      ADDRESS_TO_LOGGABLE_CSTR(p_dev->rc_addr));
 
   if (interop_match_addr(INTEROP_DISABLE_ABSOLUTE_VOLUME, &p_dev->rc_addr) ||
       absolute_volume_disabled() ||
@@ -5462,14 +5462,14 @@ static bt_status_t get_transaction(btif_rc_device_cb_t* p_dev,
   for (uint8_t i = 0; i < MAX_TRANSACTIONS_PER_SESSION; i++) {
     if (!transaction_set->transaction[i].in_use) {
       BTIF_TRACE_DEBUG("%s: p_dev=%s, label=%d, got free transaction!",
-                       __func__, p_dev->rc_addr.ToString().c_str(), i);
+                       __func__, ADDRESS_TO_LOGGABLE_CSTR(p_dev->rc_addr), i);
       transaction_set->transaction[i].in_use = true;
       *ptransaction = &(transaction_set->transaction[i]);
       return BT_STATUS_SUCCESS;
     }
   }
   BTIF_TRACE_ERROR("%s: p_dev=%s, failed to find free transaction", __func__,
-                   p_dev->rc_addr.ToString().c_str());
+                   ADDRESS_TO_LOGGABLE_CSTR(p_dev->rc_addr));
   return BT_STATUS_NOMEM;
 }
 
@@ -5482,9 +5482,9 @@ static bt_status_t get_transaction(btif_rc_device_cb_t* p_dev,
  * Returns          bt_status_t
  ******************************************************************************/
 void release_transaction(btif_rc_device_cb_t* p_dev, uint8_t lbl) {
-  BTIF_TRACE_DEBUG("%s: p_dev=%s, label=%d", __func__,
-                   p_dev == NULL ? "null" : p_dev->rc_addr.ToString().c_str(),
-                   lbl);
+  BTIF_TRACE_DEBUG(
+      "%s: p_dev=%s, label=%d", __func__,
+      p_dev == NULL ? "null" : ADDRESS_TO_LOGGABLE_CSTR(p_dev->rc_addr), lbl);
   rc_transaction_t* transaction = get_transaction_by_lbl(p_dev, lbl);
 
   /* If the transaction is in use... */
