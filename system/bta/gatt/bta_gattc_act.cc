@@ -86,7 +86,8 @@ static tGATT_CBACK bta_gattc_cl_cback = {
     .p_enc_cmpl_cb = bta_gattc_enc_cmpl_cback,
     .p_congestion_cb = bta_gattc_cong_cback,
     .p_phy_update_cb = bta_gattc_phy_update_cback,
-    .p_conn_update_cb = bta_gattc_conn_update_cback};
+    .p_conn_update_cb = bta_gattc_conn_update_cback,
+};
 
 /* opcode(tGATTC_OPTYPE) order has to be comply with internal event order */
 static uint16_t bta_gattc_opcode_to_int_evt[] = {

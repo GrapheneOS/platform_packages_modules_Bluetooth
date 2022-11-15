@@ -160,10 +160,11 @@ bool L2CA_EnableUpdateBleConnParams(const RawAddress& rem_bda, bool enable) {
     return false;
   }
 
-  if (enable)
+  if (enable) {
     p_lcb->conn_update_mask &= ~L2C_BLE_CONN_UPDATE_DISABLE;
-  else
+  } else {
     p_lcb->conn_update_mask |= L2C_BLE_CONN_UPDATE_DISABLE;
+  }
 
   l2cble_start_conn_update(p_lcb);
 
