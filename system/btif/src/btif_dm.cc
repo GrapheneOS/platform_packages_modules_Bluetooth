@@ -67,6 +67,7 @@
 #include "btif_sdp.h"
 #include "btif_storage.h"
 #include "btif_util.h"
+#include "common/lru.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
@@ -192,6 +193,10 @@ typedef struct {
 
 typedef struct { unsigned int manufact_id; } skip_sdp_entry_t;
 
+typedef struct {
+  bluetooth::common::LruCache<RawAddress, std::vector<uint8_t>> le_audio_cache;
+} btif_dm_metadata_cb_t;
+
 typedef enum {
   BTIF_DM_FUNC_CREATE_BOND,
   BTIF_DM_FUNC_CANCEL_BOND,
@@ -246,6 +251,7 @@ static void btif_dm_remove_ble_bonding_keys(void);
 static void btif_dm_save_ble_bonding_keys(RawAddress& bd_addr);
 static btif_dm_pairing_cb_t pairing_cb;
 static btif_dm_oob_cb_t oob_cb;
+static btif_dm_metadata_cb_t metadata_cb{.le_audio_cache{40}};
 static void btif_dm_cb_create_bond(const RawAddress bd_addr,
                                    tBT_TRANSPORT transport);
 static void btif_update_remote_properties(const RawAddress& bd_addr,
@@ -652,6 +658,7 @@ static bool is_device_le_audio_capable(const RawAddress bd_addr) {
   if (!GetInterfaceToProfiles()
            ->profileSpecific_HACK->IsLeAudioClientRunning() ||
       !check_cod_le_audio(bd_addr)) {
+    /* If LE Audio profile is not enabled, do nothing. */
     return false;
   }
 
@@ -659,6 +666,9 @@ static bool is_device_le_audio_capable(const RawAddress bd_addr) {
   tBLE_ADDR_TYPE addr_type = BLE_ADDR_PUBLIC;
   BTM_ReadDevInfo(bd_addr, &tmp_dev_type, &addr_type);
   if (tmp_dev_type & BT_DEVICE_TYPE_BLE) {
+    /* LE Audio capable device is discoverable over both LE and Classic using
+     * same address. Prefer to use LE transport, as we don't know if it can do
+     * CTKD from Classic to LE */
     return true;
   }
 
@@ -681,7 +691,7 @@ static void btif_dm_cb_create_bond(const RawAddress bd_addr,
   bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING);
 
   if (transport == BT_TRANSPORT_AUTO && is_device_le_audio_capable(bd_addr)) {
-    LOG_INFO("LE Audio && advertising over LE, use LE transport for Bonding");
+    LOG_INFO("LE Audio capable, forcing LE transport for Bonding");
     transport = BT_TRANSPORT_LE;
   }
 
@@ -1536,7 +1546,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
               ->profileSpecific_HACK->IsLeAudioClientRunning() &&
           pairing_cb.gatt_over_le !=
               btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED &&
-          check_cod_le_audio(bd_addr)) {
+          (check_cod_le_audio(bd_addr) ||
+           metadata_cb.le_audio_cache.contains(bd_addr))) {
         skip_reporting_wait_for_le = true;
       }
 
@@ -1591,7 +1602,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         if (skip_reporting_wait_for_le) {
           LOG_INFO(
               "Bonding LE Audio sink - must wait for le services discovery "
-              "to pass all services to java %s:",
+              "to pass all services to java %s",
               PRIVATE_ADDRESS(bd_addr));
           /* For LE Audio capable devices, we care more about passing GATT LE
            * services than about just finishing pairing. Service discovery
@@ -3702,4 +3713,11 @@ void btif_dm_set_event_filter_inquiry_result_all_devices() {
 }
 
 void btif_dm_metadata_changed(const RawAddress& remote_bd_addr, int key,
-                              std::vector<uint8_t> value) {}
+                              std::vector<uint8_t> value) {
+  static const int METADATA_LE_AUDIO = 26;
+  /* If METADATA_LE_AUDIO is present, device is LE Audio capable */
+  if (key == METADATA_LE_AUDIO) {
+    LOG_INFO("Device is LE Audio Capable %s", PRIVATE_ADDRESS(remote_bd_addr));
+    metadata_cb.le_audio_cache.insert_or_assign(remote_bd_addr, value);
+  }
+}
