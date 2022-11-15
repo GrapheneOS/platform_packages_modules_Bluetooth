@@ -170,6 +170,7 @@ fn parse_hci_adapter(flags: &mut InitFlags, values: Vec<&str>) {
 }
 
 init_flags!(
+    // LINT.IfChange
     flags: {
         btaa_hci = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
@@ -193,6 +194,7 @@ init_flags!(
     extra_fields: {
         logging_debug_explicit_tag_settings: ExplicitTagSettings,
     }
+    // LINT.ThenChange(/system/gd/common/init_flags.fbs)
     extra_parsed_flags: {
         "INIT_logging_debug_enabled_for_tags" => parse_logging_tag(_, _, true),
         "INIT_logging_debug_disabled_for_tags" => parse_logging_tag(_, _, false),
