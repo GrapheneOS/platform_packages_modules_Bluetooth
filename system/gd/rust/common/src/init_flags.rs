@@ -223,6 +223,7 @@ init_flags!(
         leaudio_targeted_announcement_reconnection_mode,
         logging_debug_enabled_for_all,
         pass_phy_update_callback = true,
+        periodic_advertising_adi = true,
         queue_l2cap_coc_while_encrypting = true,
         redact_log = true,
         sdp_serialization = true,

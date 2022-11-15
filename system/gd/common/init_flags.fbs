@@ -31,6 +31,7 @@ table InitFlagsData {
     leaudio_targeted_announcement_reconnection_mode_is_enabled: bool (privacy:"Any");
     logging_debug_enabled_for_all_is_enabled:bool (privacy:"Any");
     pass_phy_update_callback_is_enabled:bool (privacy:"Any");
+    periodic_advertising_adi_is_enabled:bool (privacy:"Any");
     queue_l2cap_coc_while_encrypting_is_enabled:bool (privacy:"Any");
     redact_log_is_enabled:bool (privacy:"Any");
     sdp_serialization_is_enabled:bool (privacy:"Any");
