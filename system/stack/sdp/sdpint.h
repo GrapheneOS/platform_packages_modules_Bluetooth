@@ -162,7 +162,7 @@ struct tCONN_CB {
 #define SDP_DISC_WAIT_CANCEL 5
 
   uint8_t disc_state;
-  uint8_t is_attr_search;
+  bool is_attr_search;
 
   uint16_t cont_offset;     /* Continuation state data in the server response */
   tSDP_CONT_INFO cont_info; /* structure to hold continuation information for
