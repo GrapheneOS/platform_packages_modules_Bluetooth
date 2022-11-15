@@ -81,6 +81,7 @@ pub mod ffi {
         fn controller_supports_connected_iso_stream_peripheral(c: &Controller) -> bool;
         fn controller_supports_iso_broadcaster(c: &Controller) -> bool;
         fn controller_supports_synchronized_receiver(c: &Controller) -> bool;
+        fn controller_supports_ble_periodic_advertising_adi(c: &Controller) -> bool;
         fn controller_supports_configure_data_path(c: &Controller) -> bool;
 
         fn controller_supports_reading_remote_extended_features(c: &Controller) -> bool;
