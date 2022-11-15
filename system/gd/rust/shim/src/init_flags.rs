@@ -13,6 +13,7 @@ mod ffi {
         fn gd_rust_is_enabled() -> bool;
         fn gd_link_policy_is_enabled() -> bool;
         fn irk_rotation_is_enabled() -> bool;
+        fn pass_phy_update_callback_is_enabled() -> bool;
     }
 }
 
