@@ -810,7 +810,8 @@ static const btgatt_server_callbacks_t sGattServerCallbacks = {
     btgatts_congestion_cb,
     btgatts_mtu_changed_cb,
     btgatts_phy_updated_cb,
-    btgatts_conn_updated_cb};
+    btgatts_conn_updated_cb,
+};
 
 /**
  * GATT callbacks
