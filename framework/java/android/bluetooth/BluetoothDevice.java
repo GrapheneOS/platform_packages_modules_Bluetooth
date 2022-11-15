@@ -740,6 +740,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * Data type should be {@link Byte} array.
      * @hide
      */
+    @SystemApi
     public static final int METADATA_LE_AUDIO = 26;
 
 
