@@ -1078,7 +1078,7 @@ void Controller::AllowWakeByHid() {
   // Allow Classic HID
   auto class_of_device = ClassOfDevice::FromUint32Legacy(COD_HID_MAJOR).value();
   auto class_of_device_mask = ClassOfDevice::FromUint32Legacy(COD_HID_MASK).value();
-  auto auto_accept_flag = AutoAcceptFlag::AUTO_ACCEPT_ON_ROLE_SWITCH_ENABLED;
+  auto auto_accept_flag = AutoAcceptFlag::AUTO_ACCEPT_OFF;
   std::unique_ptr<SetEventFilterConnectionSetupClassOfDeviceBuilder> packet =
       SetEventFilterConnectionSetupClassOfDeviceBuilder::Create(
           class_of_device, class_of_device_mask, auto_accept_flag);
