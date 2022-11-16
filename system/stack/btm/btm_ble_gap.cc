@@ -2412,6 +2412,14 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
     }
   }
 
+  if (!data.empty()) {
+    const uint8_t* p_rsi =
+        AdvertiseDataParser::GetFieldByType(data, BTM_BLE_AD_TYPE_RSI, &len);
+    if (p_rsi != nullptr && len == 6) {
+      STREAM_TO_BDADDR(p_cur->ble_ad_rsi, p_rsi);
+    }
+  }
+
   // Non-connectable packets may omit flags entirely, in which case nothing
   // should be assumed about their values (CSSv10, 1.3.1). Thus, do not
   // interpret the device type unless this packet has the flags set or is
