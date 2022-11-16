@@ -29,6 +29,7 @@ use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
 use tokio::time;
 
+use crate::battery_service::BatteryServiceActions;
 use crate::bluetooth_admin::BluetoothAdmin;
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia, MediaActions};
 use crate::callbacks::Callbacks;
@@ -1123,12 +1124,16 @@ impl BtifBluetoothCallbacks for Bluetooth {
                             });
                             let tx = self.tx.clone();
                             tokio::spawn(async move {
-                                let _ = tx.send(Message::OnDeviceConnected(device.clone())).await;
+                                let _ = tx.send(Message::OnAclConnected(device.clone())).await;
                             });
                         }
                         BtAclState::Disconnected => {
                             self.connection_callbacks.for_all_callbacks(|callback| {
                                 callback.on_device_disconnected(device.clone());
+                            });
+                            let tx = self.tx.clone();
+                            tokio::spawn(async move {
+                                let _ = tx.send(Message::OnAclDisconnected(device.clone())).await;
                             });
                         }
                     };
@@ -1726,6 +1731,19 @@ impl IBluetooth for Bluetooth {
                                         .await;
                                 });
                             }
+
+                            Profile::Bas => {
+                                let tx = self.tx.clone();
+                                let device_to_send = device.clone();
+                                topstack::get_runtime().spawn(async move {
+                                    let _ = tx
+                                        .send(Message::BatteryService(
+                                            BatteryServiceActions::Connect(device_to_send),
+                                        ))
+                                        .await;
+                                });
+                            }
+
                             // We don't connect most profiles
                             _ => (),
                         }
@@ -1790,6 +1808,18 @@ impl IBluetooth for Bluetooth {
                                 topstack::get_runtime().spawn(async move {
                                     let _ = txl
                                         .send(Message::Media(MediaActions::Disconnect(address)))
+                                        .await;
+                                });
+                            }
+
+                            Profile::Bas => {
+                                let tx = self.tx.clone();
+                                let device_to_send = device.clone();
+                                topstack::get_runtime().spawn(async move {
+                                    let _ = tx
+                                        .send(Message::BatteryService(
+                                            BatteryServiceActions::Disconnect(device_to_send),
+                                        ))
                                         .await;
                                 });
                             }
