@@ -579,7 +579,12 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     /// Enable/Disable periodic advertising of the advertising set.
     #[dbus_method("SetPeriodicAdvertisingEnable")]
-    fn set_periodic_advertising_enable(&mut self, advertiser_id: i32, enable: bool) {
+    fn set_periodic_advertising_enable(
+        &mut self,
+        advertiser_id: i32,
+        enable: bool,
+        include_adi: bool,
+    ) {
         dbus_generated!()
     }
 

@@ -331,7 +331,8 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
       ::grpc::ServerContext* context,
       const EnablePeriodicAdvertisingRequest* request,
       ::google::protobuf::Empty* response) override {
-    le_advertising_manager_->EnablePeriodicAdvertising(request->advertiser_id(), request->enable());
+    le_advertising_manager_->EnablePeriodicAdvertising(
+        request->advertiser_id(), request->enable(), request->include_adi());
     return ::grpc::Status::OK;
   }
 

@@ -60,7 +60,8 @@ typedef struct {
 } tBTM_BLE_ADV_PARAMS;
 
 typedef struct {
-  uint8_t enable;
+  bool enable;
+  bool include_adi;
   uint16_t min_interval;
   uint16_t max_interval;
   uint16_t periodic_advertising_properties;
@@ -146,7 +147,8 @@ class BleAdvertisingManager {
                                           MultiAdvCb cb) = 0;
 
   /* This function enables/disables periodic advertising on selected instance */
-  virtual void SetPeriodicAdvertisingEnable(uint8_t inst_id, uint8_t enable,
+  virtual void SetPeriodicAdvertisingEnable(uint8_t inst_id, bool enable,
+                                            bool include_adi,
                                             MultiAdvCb cb) = 0;
 
   /*  This function disable a Multi-ADV instance */
