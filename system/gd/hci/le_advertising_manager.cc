@@ -476,7 +476,8 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     if (!config.periodic_data.empty()) {
       set_periodic_parameter(id, config.periodic_advertising_parameters);
       set_periodic_data(id, config.periodic_data);
-      enable_periodic_advertising(id, true);
+      enable_periodic_advertising(
+          id, config.periodic_advertising_parameters.enable, config.periodic_advertising_parameters.include_adi);
     }
 
     if (!paused) {
@@ -520,7 +521,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
             module_handler_->BindOnce(impl::check_status<LeSetExtendedAdvertisingEnableCompleteView>));
 
         le_advertising_interface_->EnqueueCommand(
-            hci::LeSetPeriodicAdvertisingEnableBuilder::Create(Enable::DISABLED, advertiser_id),
+            hci::LeSetPeriodicAdvertisingEnableBuilder::Create(false, false, advertiser_id),
             module_handler_->BindOnce(impl::check_status<LeSetPeriodicAdvertisingEnableCompleteView>));
       } break;
     }
@@ -1041,11 +1042,9 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     }
   }
 
-  void enable_periodic_advertising(AdvertiserId advertiser_id, bool enable) {
-    Enable enable_value = enable ? Enable::ENABLED : Enable::DISABLED;
-
+  void enable_periodic_advertising(AdvertiserId advertiser_id, bool enable, bool include_adi) {
     le_advertising_interface_->EnqueueCommand(
-        hci::LeSetPeriodicAdvertisingEnableBuilder::Create(enable_value, advertiser_id),
+        hci::LeSetPeriodicAdvertisingEnableBuilder::Create(enable, include_adi, advertiser_id),
         module_handler_->BindOnceOn(
             this,
             &impl::on_set_periodic_advertising_enable_complete<LeSetPeriodicAdvertisingEnableCompleteView>,
@@ -1610,8 +1609,8 @@ void LeAdvertisingManager::SetPeriodicData(AdvertiserId advertiser_id, std::vect
   CallOn(pimpl_.get(), &impl::set_periodic_data, advertiser_id, data);
 }
 
-void LeAdvertisingManager::EnablePeriodicAdvertising(AdvertiserId advertiser_id, bool enable) {
-  CallOn(pimpl_.get(), &impl::enable_periodic_advertising, advertiser_id, enable);
+void LeAdvertisingManager::EnablePeriodicAdvertising(AdvertiserId advertiser_id, bool enable, bool include_adi) {
+  CallOn(pimpl_.get(), &impl::enable_periodic_advertising, advertiser_id, enable, include_adi);
 }
 
 void LeAdvertisingManager::RemoveAdvertiser(AdvertiserId advertiser_id) {

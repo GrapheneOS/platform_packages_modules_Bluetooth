@@ -27,6 +27,8 @@ namespace hci {
 
 class PeriodicAdvertisingParameters {
  public:
+  bool enable;
+  bool include_adi;
   uint16_t min_interval;
   uint16_t max_interval;
   uint16_t properties;
@@ -141,7 +143,7 @@ class LeAdvertisingManager : public bluetooth::Module {
 
   void SetPeriodicData(AdvertiserId advertiser_id, std::vector<GapData> data);
 
-  void EnablePeriodicAdvertising(AdvertiserId advertiser_id, bool enable);
+  void EnablePeriodicAdvertising(AdvertiserId advertiser_id, bool enable, bool include_adi);
 
   void RemoveAdvertiser(AdvertiserId advertiser_id);
 
