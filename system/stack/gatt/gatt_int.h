@@ -318,7 +318,7 @@ typedef struct {
 
   tGATT_CH_STATE ch_state;
 
-  std::unordered_set<uint8_t> app_hold_link;
+  std::unordered_set<tGATT_IF> app_hold_link;
 
   /* server needs */
   /* server response data */
