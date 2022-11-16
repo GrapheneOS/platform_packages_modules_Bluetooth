@@ -109,7 +109,8 @@ impl GattServiceImpl {
 
     fn create_periodic_advertising_parameters(&self) -> PeriodicAdvertisingParameters {
         PeriodicAdvertisingParameters {
-            enable: 0,
+            enable: false,
+            include_adi: false,
             min_interval: 0,
             max_interval: 0,
             periodic_advertising_properties: 0,
@@ -283,7 +284,7 @@ impl GattService for GattServiceImpl {
         sink: UnarySink<Empty>,
     ) {
         let advertiser = &mut self.gatt.lock().unwrap().advertiser;
-        advertiser.set_periodic_advertising_enable(0, true);
+        advertiser.set_periodic_advertising_enable(0, true, false);
         ctx.spawn(async move {
             sink.success(Empty::default()).await.unwrap();
         })

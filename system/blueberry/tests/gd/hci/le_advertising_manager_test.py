@@ -146,20 +146,19 @@ class LeAdvertisingManagerTest(gd_base_test.GdBaseTestClass):
             own_address_type=common.USE_RANDOM_DEVICE_ADDRESS,
             channel_map=7,
             filter_policy=le_advertising_facade.AdvertisingFilterPolicy.ALL_DEVICES)
-        extended_config = le_advertising_facade.ExtendedAdvertisingConfig(
-            advertising_config=config,
-            connectable=True,
-            scannable=False,
-            directed=False,
-            high_duty_directed_connectable=False,
-            legacy_pdus=True,
-            anonymous=False,
-            include_tx_power=True,
-            use_le_coded_phy=False,
-            secondary_max_skip=0x00,
-            secondary_advertising_phy=0x01,
-            sid=0x00,
-            enable_scan_request_notifications=0x00)
+        extended_config = le_advertising_facade.ExtendedAdvertisingConfig(advertising_config=config,
+                                                                          connectable=True,
+                                                                          scannable=False,
+                                                                          directed=False,
+                                                                          high_duty_directed_connectable=False,
+                                                                          legacy_pdus=True,
+                                                                          anonymous=False,
+                                                                          include_tx_power=True,
+                                                                          use_le_coded_phy=False,
+                                                                          secondary_max_skip=0x00,
+                                                                          secondary_advertising_phy=0x01,
+                                                                          sid=0x00,
+                                                                          enable_scan_request_notifications=0x00)
         request = le_advertising_facade.ExtendedCreateAdvertiserRequest(config=extended_config)
         create_response = self.dut.hci_le_advertising_manager.ExtendedCreateAdvertiser(request)
 
@@ -210,8 +209,9 @@ class LeAdvertisingManagerTest(gd_base_test.GdBaseTestClass):
         gap_name.data = list(bytes(b'Im_The_DUT2'))
         gap_data = le_advertising_facade.GapDataMsg(data=bytes(gap_name.Serialize()))
 
-        set_data_request = le_advertising_facade.SetDataRequest(
-            advertiser_id=create_response.advertiser_id, set_scan_rsp=False, data=[gap_data])
+        set_data_request = le_advertising_facade.SetDataRequest(advertiser_id=create_response.advertiser_id,
+                                                                set_scan_rsp=False,
+                                                                data=[gap_data])
         self.dut.hci_le_advertising_manager.SetData(set_data_request)
 
         assertThat(self.dut.callback_event_stream).emits(
@@ -226,8 +226,9 @@ class LeAdvertisingManagerTest(gd_base_test.GdBaseTestClass):
         gap_name.data = list(bytes(b'Im_The_DUT2'))
         gap_data = le_advertising_facade.GapDataMsg(data=bytes(gap_name.Serialize()))
 
-        set_data_request = le_advertising_facade.SetDataRequest(
-            advertiser_id=create_response.advertiser_id, set_scan_rsp=True, data=[gap_data])
+        set_data_request = le_advertising_facade.SetDataRequest(advertiser_id=create_response.advertiser_id,
+                                                                set_scan_rsp=True,
+                                                                data=[gap_data])
         self.dut.hci_le_advertising_manager.SetData(set_data_request)
 
         assertThat(self.dut.callback_event_stream).emits(
@@ -251,8 +252,8 @@ class LeAdvertisingManagerTest(gd_base_test.GdBaseTestClass):
             channel_map=7,
             filter_policy=le_advertising_facade.AdvertisingFilterPolicy.ALL_DEVICES)
 
-        set_parameters_request = le_advertising_facade.SetParametersRequest(
-            advertiser_id=create_response.advertiser_id, config=config)
+        set_parameters_request = le_advertising_facade.SetParametersRequest(advertiser_id=create_response.advertiser_id,
+                                                                            config=config)
         self.dut.hci_le_advertising_manager.SetParameters(set_parameters_request)
 
         assertThat(self.dut.callback_event_stream).emits(
@@ -296,7 +297,7 @@ class LeAdvertisingManagerTest(gd_base_test.GdBaseTestClass):
         self.set_address_policy_with_static_address()
         create_response = self.create_advertiser()
         enable_periodic_advertising_request = le_advertising_facade.EnablePeriodicAdvertisingRequest(
-            advertiser_id=create_response.advertiser_id, enable=True)
+            advertiser_id=create_response.advertiser_id, enable=True, include_adi=False)
         self.dut.hci_le_advertising_manager.EnablePeriodicAdvertising(enable_periodic_advertising_request)
 
         assertThat(self.dut.callback_event_stream).emits(

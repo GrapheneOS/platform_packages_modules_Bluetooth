@@ -85,6 +85,7 @@ void parseParams(tBTM_BLE_ADV_PARAMS* p_params,
 void parsePeriodicParams(tBLE_PERIODIC_ADV_PARAMS* p_periodic_params,
                          PeriodicAdvertisingParameters periodic_params) {
   p_periodic_params->enable = periodic_params.enable;
+  p_periodic_params->include_adi = periodic_params.include_adi;
   p_periodic_params->min_interval = periodic_params.min_interval;
   p_periodic_params->max_interval = periodic_params.max_interval;
   p_periodic_params->periodic_advertising_properties =
@@ -245,6 +246,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
   }
 
   void SetPeriodicAdvertisingEnable(int advertiser_id, bool enable,
+                                    bool include_adi,
                                     StatusCallback cb) override {
     VLOG(1) << __func__ << " advertiser_id: " << +advertiser_id
             << " ,enable: " << enable;
@@ -253,7 +255,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
     do_in_main_thread(FROM_HERE,
                       Bind(&BleAdvertisingManager::SetPeriodicAdvertisingEnable,
                            BleAdvertisingManager::Get(), advertiser_id, enable,
-                           jni_thread_wrapper(FROM_HERE, cb)));
+                           include_adi, jni_thread_wrapper(FROM_HERE, cb)));
   }
 
   void RegisterCallbacks(AdvertisingCallbacks* callbacks) {
