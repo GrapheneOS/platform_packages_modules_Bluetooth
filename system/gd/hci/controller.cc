@@ -73,7 +73,7 @@ struct Controller::impl {
     hci_->EnqueueCommand(ReadBufferSizeBuilder::Create(),
                          handler->BindOnceOn(this, &Controller::impl::read_buffer_size_complete_handler));
 
-    if (is_supported(OpCode::SET_MIN_ENCRYPTION_KEY_SIZE)) {
+    if (common::init_flags::set_min_encryption_is_enabled() && is_supported(OpCode::SET_MIN_ENCRYPTION_KEY_SIZE)) {
       hci_->EnqueueCommand(
           SetMinEncryptionKeySizeBuilder::Create(kMinEncryptionKeySize),
           handler->BindOnceOn(this, &Controller::impl::set_min_encryption_key_size_handler));

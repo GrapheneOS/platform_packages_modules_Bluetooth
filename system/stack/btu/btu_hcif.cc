@@ -36,6 +36,7 @@
 #include "btif/include/btif_config.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
+#include "gd/common/init_flags.h"
 #include "main/shim/hci_layer.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -1023,7 +1024,8 @@ static void btu_hcif_encryption_change_evt(uint8_t* p) {
   if (status != HCI_SUCCESS || encr_enable == 0 ||
       BTM_IsBleConnection(handle) ||
       // Skip encryption key size check when using set_min_encryption_key_size
-      controller_get_interface()->supports_set_min_encryption_key_size()) {
+      (bluetooth::common::init_flags::set_min_encryption_is_enabled() &&
+       controller_get_interface()->supports_set_min_encryption_key_size())) {
     if (status == HCI_ERR_CONNECTION_TOUT) {
       smp_cancel_start_encryption_attempt();
       return;
