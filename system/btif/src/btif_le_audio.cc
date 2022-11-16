@@ -23,7 +23,7 @@
 
 #include "bta_le_audio_api.h"
 #include "btif_common.h"
-#include "btif_storage.h"
+#include "btif_profile_storage.h"
 #include "stack/include/btu.h"
 
 using base::Bind;
