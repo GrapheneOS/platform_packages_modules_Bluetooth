@@ -46,6 +46,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
 
 import java.util.ArrayList;
@@ -303,7 +304,7 @@ public class BluetoothOppManager {
      */
     public boolean isEnabled() {
         if (mAdapter != null) {
-            return mAdapter.isEnabled();
+            return BluetoothMethodProxy.getInstance().bluetoothAdapterIsEnabled(mAdapter);
         } else {
             if (V) {
                 Log.v(TAG, "BLUETOOTH_SERVICE is not available! ");
