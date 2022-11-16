@@ -59,7 +59,7 @@ apex {
     ],
     key: "com.android.btservices.key",
     certificate: ":com.android.btservices.certificate",
-    updatable: true,
+    updatable: false,
     compressible: false,
 }
 
