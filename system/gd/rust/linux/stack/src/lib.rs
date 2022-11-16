@@ -28,7 +28,7 @@ use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::battery_manager::{BatteryManager, BatterySet};
 use crate::battery_provider_manager::BatteryProviderManager;
-use crate::battery_service::{BatteryService, GattBatteryCallbacks};
+use crate::battery_service::{BatteryService, BatteryServiceActions};
 use crate::bluetooth::{
     dispatch_base_callbacks, dispatch_hid_host_callbacks, dispatch_sdp_callbacks, Bluetooth,
     BluetoothDevice, IBluetooth,
@@ -81,9 +81,10 @@ pub enum Message {
     // Update list of found devices and remove old instances.
     DeviceFreshnessCheck,
 
-    // Sent whenever a device connects. Follows IBluetooth's on_device_connected
-    // callback but doesn't require depening on Bluetooth.
-    OnDeviceConnected(BluetoothDevice),
+    // Follows IBluetooth's on_device_(dis)connected callback but doesn't require depending on
+    // Bluetooth.
+    OnAclConnected(BluetoothDevice),
+    OnAclDisconnected(BluetoothDevice),
 
     // Suspend related
     SuspendCallbackRegistered(u32),
@@ -104,7 +105,7 @@ pub enum Message {
     BatteryProviderManagerCallbackDisconnected(u32),
     BatteryProviderManagerBatteryUpdated(String, BatterySet),
     BatteryServiceCallbackDisconnected(u32),
-    BatteryServiceCallbacks(GattBatteryCallbacks),
+    BatteryService(BatteryServiceActions),
     BatteryServiceRefresh,
     BatteryManagerCallbackDisconnected(u32),
 
@@ -237,8 +238,20 @@ impl Stack {
                 // Any service needing an updated list of devices can have an
                 // update method triggered from here rather than needing a
                 // reference to Bluetooth.
-                Message::OnDeviceConnected(device) => {
-                    battery_service.lock().unwrap().device_connected(device);
+                Message::OnAclConnected(device) => {
+                    battery_service
+                        .lock()
+                        .unwrap()
+                        .handle_action(BatteryServiceActions::Connect(device));
+                }
+
+                // For battery service, use this to clean up internal handles. GATT connection is
+                // already dropped if ACL disconnect has occurred.
+                Message::OnAclDisconnected(device) => {
+                    battery_service
+                        .lock()
+                        .unwrap()
+                        .handle_action(BatteryServiceActions::Disconnect(device));
                 }
 
                 Message::SuspendCallbackRegistered(id) => {
@@ -283,8 +296,8 @@ impl Stack {
                 Message::BatteryServiceCallbackDisconnected(id) => {
                     battery_service.lock().unwrap().remove_callback(id);
                 }
-                Message::BatteryServiceCallbacks(callback) => {
-                    battery_service.lock().unwrap().handle_callback(callback);
+                Message::BatteryService(action) => {
+                    battery_service.lock().unwrap().handle_action(action);
                 }
                 Message::BatteryServiceRefresh => {
                     battery_service.lock().unwrap().refresh_all_devices();
