@@ -136,6 +136,7 @@ cc_defaults {
         "src/btif_metrics_logging.cc",
         "src/btif_pan.cc",
         "src/btif_profile_queue.cc",
+        "src/btif_profile_storage.cc",
         "src/btif_rc.cc",
         "src/btif_sdp.cc",
         "src/btif_sdp_server.cc",

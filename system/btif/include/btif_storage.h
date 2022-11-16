@@ -38,9 +38,40 @@
     (p_prop)->val = (p_v);                            \
   } while (0)
 
+#define BTIF_STORAGE_PATH_REMOTE_SERVICE "Service"
+
+#define STORAGE_BDADDR_STRING_SZ (18) /* 00:11:22:33:44:55 */
+#define STORAGE_UUID_STRING_SIZE \
+  (36 + 1) /* 00001200-0000-1000-8000-00805f9b34fb; */
+#define STORAGE_PINLEN_STRING_MAX_SIZE (2)  /* ascii pinlen max chars */
+#define STORAGE_KEYTYPE_STRING_MAX_SIZE (1) /* ascii keytype max chars */
+
+#define STORAGE_KEY_TYPE_MAX (10)
+
 /*******************************************************************************
  *  Functions
  ******************************************************************************/
+
+/*******************************************************************************
+ *
+ * Function         btif_in_fetch_bonded_devices
+ *
+ * Description      Helper function to fetch the bonded devices
+ *                  from NVRAM
+ *
+ * Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
+ *
+ ******************************************************************************/
+bt_status_t btif_in_fetch_bonded_device(const std::string& bdstr);
+
+typedef struct {
+  uint32_t num_devices;
+  RawAddress devices[BTM_SEC_MAX_DEVICE_RECORDS];
+} btif_bonded_devices_t;
+
+bt_status_t btif_in_fetch_bonded_ble_device(
+    const std::string& remote_bd_addr, int add,
+    btif_bonded_devices_t* p_bonded_devices);
 
 /*******************************************************************************
  *
