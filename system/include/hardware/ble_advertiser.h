@@ -39,7 +39,8 @@ struct AdvertiseParameters {
 };
 
 struct PeriodicAdvertisingParameters {
-  uint8_t enable;
+  bool enable;
+  bool include_adi;
   uint16_t min_interval;
   uint16_t max_interval;
   uint16_t periodic_advertising_properties;
@@ -135,6 +136,7 @@ class BleAdvertiserInterface {
                                           StatusCallback cb) = 0;
 
   virtual void SetPeriodicAdvertisingEnable(int advertiser_id, bool enable,
+                                            bool include_adi,
                                             StatusCallback cb) = 0;
   virtual void RegisterCallbacks(AdvertisingCallbacks* callbacks) = 0;
 };

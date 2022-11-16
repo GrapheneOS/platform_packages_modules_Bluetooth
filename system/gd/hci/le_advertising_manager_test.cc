@@ -1199,7 +1199,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_perodic_data_with_invalid_length) {
 TEST_F(LeExtendedAdvertisingAPITest, disable_enable_periodic_advertiser_test) {
   // disable advertiser
   test_hci_layer_->SetCommandFuture(1);
-  le_advertising_manager_->EnablePeriodicAdvertising(advertiser_id_, false);
+  le_advertising_manager_->EnablePeriodicAdvertising(advertiser_id_, false, false);
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
       mock_advertising_callback_,
@@ -1209,7 +1209,7 @@ TEST_F(LeExtendedAdvertisingAPITest, disable_enable_periodic_advertiser_test) {
 
   // enable advertiser
   test_hci_layer_->SetCommandFuture(1);
-  le_advertising_manager_->EnablePeriodicAdvertising(advertiser_id_, true);
+  le_advertising_manager_->EnablePeriodicAdvertising(advertiser_id_, true, false);
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
       mock_advertising_callback_,
