@@ -78,7 +78,7 @@ static future_t* start_up(void) {
     data_.le_supported_states =
         bluetooth::shim::rust::controller_get_le_supported_states(**controller);
 
-    LOG_INFO("Mac address:%s", string_address.c_str());
+    LOG_INFO("Mac address:%s", ADDRESS_TO_LOGGABLE_CSTR(data_.raw_address));
   } else {
     std::string string_address = GetController()->GetMacAddress().ToString();
     RawAddress::FromString(string_address, data_.raw_address);
@@ -96,7 +96,7 @@ static future_t* start_up(void) {
     data_.bt_version.lmp_subversion = local_version_info.lmp_subversion_;
     data_.bt_version.manufacturer = local_version_info.manufacturer_name_;
 
-    LOG_INFO("Mac address:%s", string_address.c_str());
+    LOG_INFO("Mac address:%s", ADDRESS_TO_LOGGABLE_CSTR(data_.raw_address));
   }
 
   data_.phy = kPhyLe1M;

@@ -95,8 +95,6 @@ inline std::string gatt_client_event_text(const tBTA_GATTC_EVT& event) {
     CASE_RETURN_TEXT(BTA_GATTC_CONGEST_EVT);
     CASE_RETURN_TEXT(BTA_GATTC_PHY_UPDATE_EVT);
     CASE_RETURN_TEXT(BTA_GATTC_CONN_UPDATE_EVT);
-    default:
-      return base::StringPrintf("UNKNOWN[%hhu]", event);
   }
 }
 #undef CASE_RETURN_TEXT

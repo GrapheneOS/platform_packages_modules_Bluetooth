@@ -4445,7 +4445,7 @@ packet LeCreateBig : LeIsoCommand (op_code = LE_CREATE_BIG) {
   packing : Packing,
   framing : Enable,
   encryption : Enable,
-  broadcast_code: 16[],
+  broadcast_code: 8[16],
 }
 
 packet LeCreateBigStatus : CommandStatus (command_op_code = LE_CREATE_BIG) {
@@ -4464,7 +4464,7 @@ packet LeBigCreateSync : LeIsoCommand (op_code = LE_BIG_CREATE_SYNC) {
   sync_handle : 12,
   _reserved_ : 4,
   encryption : Enable,
-  broadcast_code : 16[],
+  broadcast_code : 8[16],
   mse : 5,
   _reserved_ : 3,
   big_sync_timeout : 16,
