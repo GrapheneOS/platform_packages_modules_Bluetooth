@@ -205,8 +205,8 @@ impl ISuspend for Suspend {
 
     fn resume(&mut self) -> bool {
         self.intf.lock().unwrap().set_default_event_mask_except(0u64, 0u64);
-        self.intf.lock().unwrap().set_event_filter_inquiry_result_all_devices();
-        self.intf.lock().unwrap().set_event_filter_connection_setup_all_devices();
+        self.intf.lock().unwrap().clear_event_filter();
+
         if self.is_connected_suspend {
             if self.was_a2dp_connected {
                 // TODO(230604670): reconnect to a2dp device
