@@ -210,10 +210,9 @@ FORWARD_IF_RUST(
     supports_configure_data_path,
     GetController()->IsSupported(bluetooth::hci::OpCode::CONFIGURE_DATA_PATH))
 
-static bool supports_set_min_encryption_key_size(void) {
-  return GetController()->IsSupported(
-      bluetooth::hci::OpCode::SET_MIN_ENCRYPTION_KEY_SIZE);
-}
+FORWARD_IF_RUST(supports_set_min_encryption_key_size,
+                GetController()->IsSupported(
+                    bluetooth::hci::OpCode::SET_MIN_ENCRYPTION_KEY_SIZE))
 
 FORWARD_IF_RUST(supports_reading_remote_extended_features,
                 GetController()->IsSupported(
