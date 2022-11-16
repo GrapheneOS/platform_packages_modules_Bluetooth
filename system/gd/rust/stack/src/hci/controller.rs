@@ -294,7 +294,7 @@ supported_features! {
 }
 
 macro_rules! supported_le_features {
-    ($($id:ident => $bit:literal),*) => {
+    ($($id:ident => $bit:literal,)*) => {
         /// Convenience struct for checking what features are supported
         #[derive(Clone)]
         #[allow(missing_docs)]
@@ -327,7 +327,7 @@ supported_le_features! {
     connected_iso_stream_central => 28,
     connected_iso_stream_peripheral => 29,
     iso_broadcaster => 30,
-    synchronized_receiver => 31
+    synchronized_receiver => 31,
 }
 
 /// Convert a null terminated C string into a Rust String
