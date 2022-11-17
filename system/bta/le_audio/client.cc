@@ -29,7 +29,7 @@
 #include "bta_gatt_queue.h"
 #include "bta_groups.h"
 #include "bta_le_audio_api.h"
-#include "btif_storage.h"
+#include "btif_profile_storage.h"
 #include "btm_iso_api.h"
 #include "client_parser.h"
 #include "codec_manager.h"
@@ -3046,8 +3046,8 @@ class LeAudioClientImpl : public LeAudioClient {
                                        timeoutMs);
 
     if (stack_config_get_interface()
-           ->get_pts_le_audio_disable_ases_before_stopping()) {
-        timeoutMs += kAudioDisableTimeoutMs;
+            ->get_pts_le_audio_disable_ases_before_stopping()) {
+      timeoutMs += kAudioDisableTimeoutMs;
     }
 
     LOG_DEBUG("Stream suspend_timeout_ started: %d ms",

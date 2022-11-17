@@ -350,7 +350,8 @@ impl Into<bt_topshim::profiles::gatt::PeriodicAdvertisingParameters>
             PERIODIC_INTERVAL_MAX - PERIODIC_INTERVAL_DELTA,
         );
 
-        p.enable = 1;
+        p.enable = true;
+        p.include_adi = false;
         p.min_interval = interval as u16;
         p.max_interval = p.min_interval + (PERIODIC_INTERVAL_DELTA as u16);
         if self.include_tx_power {

@@ -24,7 +24,7 @@
 #include "bta_dm_api_mock.h"
 #include "bta_gatt_api_mock.h"
 #include "bta_gatt_queue_mock.h"
-#include "btif_storage.h"
+#include "btif_profile_storage.h"
 #include "btm_api_mock.h"
 #include "csis_types.h"
 #include "gatt/database_builder.h"
