@@ -31,11 +31,13 @@ cc_defaults {
     include_dirs: [
         "packages/modules/Bluetooth/system/gd",
     ],
+    header_libs: [
+        "libbase_headers",
+    ],
     generated_headers: [
         "RootCanalGeneratedPackets_h",
         "RootCanalBrEdrBBGeneratedPackets_h",
         "BluetoothGeneratedPackets_h",
-        "libbt_init_flags_bridge_header",
     ],
 }
 
@@ -91,11 +93,11 @@ cc_library_static {
     export_generated_headers: [
         "BluetoothGeneratedPackets_h"
     ],
-    shared_libs: [
-        "liblog",
-    ],
     whole_static_libs: [
         "liblmp",
+    ],
+    shared_libs: [
+        "libbase",
     ],
     static_libs: [
         "libjsoncpp",
@@ -152,7 +154,7 @@ cc_test_host {
         ".",
     ],
     shared_libs: [
-        "liblog",
+        "libbase",
     ],
     static_libs: [
         "libbt-rootcanal",
@@ -186,7 +188,7 @@ cc_test_host {
         "packages/modules/Bluetooth/system/gd",
     ],
     shared_libs: [
-        "liblog",
+        "libbase",
     ],
     static_libs: [
         "libbt-rootcanal",
@@ -214,7 +216,7 @@ cc_binary_host {
         "libbluetooth_headers",
     ],
     shared_libs: [
-        "liblog",
+        "libbase",
         "libunwindstack",
     ],
     whole_static_libs: [
@@ -294,16 +296,15 @@ cc_library_static {
         "model/hci/h4_parser.cc",
         "model/hci/hci_protocol.cc",
     ],
-
+    header_libs: [
+        "libbase_headers",
+    ],
     local_include_dirs: [
         "include",
     ],
     export_include_dirs: [
         "include",
         ".",
-    ],
-    generated_headers: [
-        "libbt_init_flags_bridge_header",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/gd",
