@@ -57,8 +57,6 @@ class LibAptxHdEncTest : public ::testing::Test {
   }
 };
 
-TEST_F(LibAptxHdEncTest, encoder_size) { ASSERT_EQ(SizeofAptxhdbtenc(), 5256); }
-
 TEST_F(LibAptxHdEncTest, encode_fake_data) {
   const char input[] =
       "012345678901234567890123456789012345678901234567890123456789012345678901"
