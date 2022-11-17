@@ -31,6 +31,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 
 import org.hamcrest.core.AllOf;
 import org.hamcrest.core.IsInstanceOf;
@@ -55,6 +56,8 @@ public class HeadsetClientStateMachineTest {
     private Context mTargetContext;
 
     @Mock
+    private AdapterService mAdapterService;
+    @Mock
     private Resources mMockHfpResources;
     @Mock
     private HeadsetClientService mHeadsetClientService;
@@ -69,7 +72,7 @@ public class HeadsetClientStateMachineTest {
             * 3 / 2;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when HeadsetClientService is not enabled",
                 HeadsetClientService.isEnabled());
@@ -85,6 +88,8 @@ public class HeadsetClientStateMachineTest {
         when(mMockHfpResources.getBoolean(R.bool.hfp_clcc_poll_during_call)).thenReturn(true);
         when(mMockHfpResources.getInteger(R.integer.hfp_clcc_poll_interval_during_call))
                 .thenReturn(2000);
+
+        TestUtils.setAdapterService(mAdapterService);
         mNativeInterface = spy(NativeInterface.getInstance());
 
         // This line must be called to make sure relevant objects are initialized properly
@@ -104,11 +109,12 @@ public class HeadsetClientStateMachineTest {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         if (!HeadsetClientService.isEnabled()) {
             return;
         }
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        TestUtils.clearAdapterService(mAdapterService);
         mHeadsetClientStateMachine.doQuit();
         mHandlerThread.quit();
     }
