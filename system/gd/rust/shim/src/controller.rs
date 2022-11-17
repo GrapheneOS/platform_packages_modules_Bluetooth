@@ -88,6 +88,8 @@ le_feature_getters! {
     iso_broadcaster,
     synchronized_receiver,
     ble_periodic_advertising_adi,
+    ble_connection_subrating,
+    ble_connection_subrating_host,
 }
 
 macro_rules! opcode_getters {

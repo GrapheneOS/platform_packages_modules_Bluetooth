@@ -195,14 +195,9 @@ MAP_TO_GD(supports_connected_iso_stream_peripheral,
           SupportsBleConnectedIsochronousStreamPeripheral)
 MAP_TO_GD(supports_iso_broadcaster, SupportsBleIsochronousBroadcaster)
 MAP_TO_GD(supports_synchronized_receiver, SupportsBleSynchronizedReceiver)
-
-static bool supports_ble_connection_subrating(void) {
-  return GetController()->SupportsBleConnectionSubrating();
-}
-
-static bool supports_ble_connection_subrating_host(void) {
-  return GetController()->SupportsBleConnectionSubratingHost();
-}
+MAP_TO_GD(supports_ble_connection_subrating, SupportsBleConnectionSubrating)
+MAP_TO_GD(supports_ble_connection_subrating_host,
+          SupportsBleConnectionSubratingHost)
 
 #define FORWARD_IF_RUST(legacy, gd)                                      \
   static bool legacy(void) {                                             \
