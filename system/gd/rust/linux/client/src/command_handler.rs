@@ -112,7 +112,12 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("device"),
         CommandOption {
-            rules: vec![String::from("device <connect|disconnect|info|set-alias> <address>")],
+            rules: vec![
+                String::from("device <connect|disconnect|info|set-alias> <address>"),
+                String::from("device <set-pairing-confirmation> <address> <accept|reject>"),
+                String::from("device <set-pairing-pin> <address> <pin|reject>"),
+                String::from("device <set-pairing-passkey> <address> <passkey|reject>"),
+            ],
             description: String::from("Take action on a remote device. (i.e. info)"),
             function_pointer: CommandHandler::cmd_device,
         },
@@ -556,57 +561,84 @@ impl CommandHandler {
             return;
         }
 
-        enforce_arg_len(args, 2, "device <connect|disconnect|info|set-alias> <address>", || {
-            match &args[0][0..] {
-                "connect" => {
-                    let device = BluetoothDevice {
-                        address: String::from(&args[1]),
-                        name: String::from("Classic Device"),
-                    };
+        enforce_arg_len(args, 2, "device <commands>", || match &args[0][0..] {
+            "connect" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
 
-                    let success = self
-                        .context
-                        .lock()
-                        .unwrap()
-                        .adapter_dbus
-                        .as_mut()
-                        .unwrap()
-                        .connect_all_enabled_profiles(device.clone());
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_mut()
+                    .unwrap()
+                    .connect_all_enabled_profiles(device.clone());
 
-                    if success {
-                        println!("Connecting to {}", &device.address);
-                    } else {
-                        println!("Can't connect to {}", &device.address);
-                    }
+                if success {
+                    println!("Connecting to {}", &device.address);
+                } else {
+                    println!("Can't connect to {}", &device.address);
                 }
-                "disconnect" => {
-                    let device = BluetoothDevice {
-                        address: String::from(&args[1]),
-                        name: String::from("Classic Device"),
-                    };
+            }
+            "disconnect" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
 
-                    let success = self
-                        .context
-                        .lock()
-                        .unwrap()
-                        .adapter_dbus
-                        .as_mut()
-                        .unwrap()
-                        .disconnect_all_enabled_profiles(device.clone());
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_mut()
+                    .unwrap()
+                    .disconnect_all_enabled_profiles(device.clone());
 
-                    if success {
-                        println!("Disconnecting from {}", &device.address);
-                    } else {
-                        println!("Can't disconnect from {}", &device.address);
-                    }
+                if success {
+                    println!("Disconnecting from {}", &device.address);
+                } else {
+                    println!("Can't disconnect from {}", &device.address);
                 }
-                "info" => {
-                    let device = BluetoothDevice {
-                        address: String::from(&args[1]),
-                        name: String::from("Classic Device"),
-                    };
+            }
+            "info" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
 
-                    let (
+                let (
+                    name,
+                    alias,
+                    device_type,
+                    class,
+                    appearance,
+                    bonded,
+                    connection_state,
+                    uuids,
+                    wake_allowed,
+                ) = {
+                    let ctx = self.context.lock().unwrap();
+                    let adapter = ctx.adapter_dbus.as_ref().unwrap();
+
+                    let name = adapter.get_remote_name(device.clone());
+                    let device_type = adapter.get_remote_type(device.clone());
+                    let alias = adapter.get_remote_alias(device.clone());
+                    let class = adapter.get_remote_class(device.clone());
+                    let appearance = adapter.get_remote_appearance(device.clone());
+                    let bonded = adapter.get_bond_state(device.clone());
+                    let connection_state = match adapter.get_connection_state(device.clone()) {
+                        BtConnectionState::NotConnected => "Not Connected",
+                        BtConnectionState::ConnectedOnly => "Connected",
+                        _ => "Connected and Paired",
+                    };
+                    let uuids = adapter.get_remote_uuids(device.clone());
+                    let wake_allowed = adapter.get_remote_wake_allowed(device.clone());
+
+                    (
                         name,
                         alias,
                         device_type,
@@ -616,84 +648,124 @@ impl CommandHandler {
                         connection_state,
                         uuids,
                         wake_allowed,
-                    ) = {
-                        let ctx = self.context.lock().unwrap();
-                        let adapter = ctx.adapter_dbus.as_ref().unwrap();
+                    )
+                };
 
-                        let name = adapter.get_remote_name(device.clone());
-                        let device_type = adapter.get_remote_type(device.clone());
-                        let alias = adapter.get_remote_alias(device.clone());
-                        let class = adapter.get_remote_class(device.clone());
-                        let appearance = adapter.get_remote_appearance(device.clone());
-                        let bonded = adapter.get_bond_state(device.clone());
-                        let connection_state = match adapter.get_connection_state(device.clone()) {
-                            BtConnectionState::NotConnected => "Not Connected",
-                            BtConnectionState::ConnectedOnly => "Connected",
-                            _ => "Connected and Paired",
-                        };
-                        let uuids = adapter.get_remote_uuids(device.clone());
-                        let wake_allowed = adapter.get_remote_wake_allowed(device.clone());
-
-                        (
-                            name,
-                            alias,
-                            device_type,
-                            class,
-                            appearance,
-                            bonded,
-                            connection_state,
-                            uuids,
-                            wake_allowed,
-                        )
-                    };
-
-                    print_info!("Address: {}", &device.address);
-                    print_info!("Name: {}", name);
-                    print_info!("Alias: {}", alias);
-                    print_info!("Type: {:?}", device_type);
-                    print_info!("Class: {}", class);
-                    print_info!("Appearance: {}", appearance);
-                    print_info!("Wake Allowed: {}", wake_allowed);
-                    print_info!("Bond State: {:?}", bonded);
-                    print_info!("Connection State: {}", connection_state);
-                    print_info!(
-                        "Uuids: {}",
-                        DisplayList(
-                            uuids
-                                .iter()
-                                .map(|&x| UuidHelper::known_uuid_to_string(&x))
-                                .collect::<Vec<String>>()
-                        )
-                    );
+                print_info!("Address: {}", &device.address);
+                print_info!("Name: {}", name);
+                print_info!("Alias: {}", alias);
+                print_info!("Type: {:?}", device_type);
+                print_info!("Class: {}", class);
+                print_info!("Appearance: {}", appearance);
+                print_info!("Wake Allowed: {}", wake_allowed);
+                print_info!("Bond State: {:?}", bonded);
+                print_info!("Connection State: {}", connection_state);
+                print_info!(
+                    "Uuids: {}",
+                    DisplayList(
+                        uuids
+                            .iter()
+                            .map(|&x| UuidHelper::known_uuid_to_string(&x))
+                            .collect::<Vec<String>>()
+                    )
+                );
+            }
+            "set-alias" => {
+                if args.len() < 4 {
+                    println!("usage: device set-alias <address> <new-alias>");
+                    return;
                 }
-                "set-alias" => {
-                    if args.len() < 4 {
-                        println!("usage: device set-alias <address> <new-alias>");
+                let new_alias = &args[2];
+                let device =
+                    BluetoothDevice { address: String::from(&args[1]), name: String::from("") };
+                let old_alias = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_ref()
+                    .unwrap()
+                    .get_remote_alias(device.clone());
+                println!("Updating alias for {}: {} -> {}", &args[1], old_alias, new_alias);
+                self.context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_remote_alias(device.clone(), new_alias.clone());
+            }
+            "set-pairing-confirmation" => {
+                if args.len() < 4 {
+                    println!("usage: device set-pairing-confirmation <address> <accept|reject>");
+                    return;
+                }
+                let device =
+                    BluetoothDevice { address: String::from(&args[1]), name: String::from("") };
+                let accept = match &args[2][0..] {
+                    "accept" => true,
+                    "reject" => false,
+                    _ => {
+                        println!("Failed to parse '{}'", args[2]);
                         return;
                     }
-                    let new_alias = &args[2];
-                    let device =
-                        BluetoothDevice { address: String::from(&args[1]), name: String::from("") };
-                    let old_alias = self
-                        .context
-                        .lock()
-                        .unwrap()
-                        .adapter_dbus
-                        .as_ref()
-                        .unwrap()
-                        .get_remote_alias(device.clone());
-                    println!("Updating alias for {}: {} -> {}", &args[1], old_alias, new_alias);
-                    self.context
-                        .lock()
-                        .unwrap()
-                        .adapter_dbus
-                        .as_mut()
-                        .unwrap()
-                        .set_remote_alias(device.clone(), new_alias.clone());
+                };
+
+                self.context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_pairing_confirmation(device.clone(), accept);
+            }
+            "set-pairing-pin" => {
+                if args.len() < 4 {
+                    println!("usage: device set-pairing-pin <address> <pin|reject>");
+                    return;
                 }
-                _ => {
-                    println!("Invalid argument '{}'", args[0]);
+                let device =
+                    BluetoothDevice { address: String::from(&args[1]), name: String::from("") };
+                let (accept, pin) = match (&args[2][0..], String::from(&args[2]).parse::<u32>()) {
+                    (_, Ok(p)) => (true, Vec::from(p.to_ne_bytes())),
+                    ("reject", _) => (false, vec![]),
+                    _ => {
+                        println!("Failed to parse '{}'", args[2]);
+                        return;
+                    }
+                };
+
+                self.context.lock().unwrap().adapter_dbus.as_mut().unwrap().set_pin(
+                    device.clone(),
+                    accept,
+                    pin,
+                );
+            }
+            "set-pairing-passkey" => {
+                if args.len() < 4 {
+                    println!("usage: device set-pairing-passkey <address> <passkey|reject>");
+                    return;
                 }
+                let device =
+                    BluetoothDevice { address: String::from(&args[1]), name: String::from("") };
+                let (accept, passkey) = match (&args[2][0..], String::from(&args[2]).parse::<u32>())
+                {
+                    (_, Ok(p)) => (true, Vec::from(p.to_ne_bytes())),
+                    ("reject", _) => (false, vec![]),
+                    _ => {
+                        println!("Failed to parse '{}'", args[2]);
+                        return;
+                    }
+                };
+
+                self.context.lock().unwrap().adapter_dbus.as_mut().unwrap().set_passkey(
+                    device.clone(),
+                    accept,
+                    passkey,
+                );
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
             }
         });
     }
