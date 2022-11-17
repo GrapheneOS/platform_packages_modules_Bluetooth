@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <functional>
+
 #include "osi/include/log.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/security_device_record.h"
@@ -197,3 +199,14 @@ tBTM_SEC_DEV_REC::tBTM_BOND_TYPE btm_get_bond_type_dev(
  ******************************************************************************/
 bool btm_set_bond_type_dev(const RawAddress& bd_addr,
                            tBTM_SEC_DEV_REC::tBTM_BOND_TYPE bond_type);
+
+/*******************************************************************************
+ *
+ * Function         btm_get_sec_dev_rec
+ *
+ * Description      Get security device records satisfying given filter
+ *
+ * Returns          A vector containing pointers of security device records
+ *
+ ******************************************************************************/
+std::vector<tBTM_SEC_DEV_REC*> btm_get_sec_dev_rec();

@@ -650,3 +650,25 @@ bool btm_set_bond_type_dev(const RawAddress& bd_addr,
   p_dev_rec->bond_type = bond_type;
   return true;
 }
+
+/*******************************************************************************
+ *
+ * Function         btm_get_sec_dev_rec
+ *
+ * Description      Get security device records satisfying given filter
+ *
+ * Returns          A vector containing pointers of security device records
+ *
+ ******************************************************************************/
+std::vector<tBTM_SEC_DEV_REC*> btm_get_sec_dev_rec() {
+  std::vector<tBTM_SEC_DEV_REC*> result{};
+
+  list_node_t* end = list_end(btm_cb.sec_dev_rec);
+  for (list_node_t* node = list_begin(btm_cb.sec_dev_rec); node != end;
+       node = list_next(node)) {
+    tBTM_SEC_DEV_REC* p_dev_rec =
+        static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
+    result.push_back(p_dev_rec);
+  }
+  return result;
+}
