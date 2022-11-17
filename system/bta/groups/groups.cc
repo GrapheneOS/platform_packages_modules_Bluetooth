@@ -23,7 +23,7 @@
 #include <unordered_set>
 
 #include "bta_groups.h"
-#include "btif_storage.h"
+#include "btif_profile_storage.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 

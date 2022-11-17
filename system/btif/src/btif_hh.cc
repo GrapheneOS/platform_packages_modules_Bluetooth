@@ -35,7 +35,7 @@
 
 #include "bta_hh_co.h"
 #include "btif/include/btif_common.h"
-#include "btif/include/btif_storage.h"
+#include "btif/include/btif_profile_storage.h"
 #include "btif/include/btif_util.h"
 #include "include/hardware/bt_hh.h"
 #include "main/shim/dumpsys.h"
@@ -536,9 +536,9 @@ bt_status_t btif_hh_virtual_unplug(const RawAddress* bd_addr) {
     BTIF_TRACE_ERROR("%s: Error, device %s not opened, status = %d", __func__,
                      ADDRESS_TO_LOGGABLE_CSTR(*bd_addr), btif_hh_cb.status);
     if ((btif_hh_cb.pending_conn_address == *bd_addr) &&
-       (btif_hh_cb.status == BTIF_HH_DEV_CONNECTING)) {
-          btif_hh_cb.status = (BTIF_HH_STATUS)BTIF_HH_DEV_DISCONNECTED;
-          btif_hh_cb.pending_conn_address = RawAddress::kEmpty;
+        (btif_hh_cb.status == BTIF_HH_DEV_CONNECTING)) {
+      btif_hh_cb.status = (BTIF_HH_STATUS)BTIF_HH_DEV_DISCONNECTED;
+      btif_hh_cb.pending_conn_address = RawAddress::kEmpty;
     }
     return BT_STATUS_FAIL;
   }
@@ -602,13 +602,12 @@ bt_status_t btif_hh_connect(const RawAddress* bd_addr) {
   btif_hh_cb.pending_conn_address = *bd_addr;
   BTA_HhOpen(*bd_addr);
 
-  do_in_jni_thread(
-      base::Bind(
-          [](RawAddress *bd_addr) {
-            HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr,
-                BTHH_CONN_STATE_CONNECTING);
-          },
-          (RawAddress*)bd_addr));
+  do_in_jni_thread(base::Bind(
+      [](RawAddress* bd_addr) {
+        HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr,
+                  BTHH_CONN_STATE_CONNECTING);
+      },
+      (RawAddress*)bd_addr));
   return BT_STATUS_SUCCESS;
 }
 
@@ -946,9 +945,9 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
           p_data->hs_data.rsp_data.proto_mode,
           (p_data->hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE)
               ? "Report Mode"
-              : (p_data->hs_data.rsp_data.proto_mode == BTA_HH_PROTO_BOOT_MODE)
-                    ? "Boot Mode"
-                    : "Unsupported");
+          : (p_data->hs_data.rsp_data.proto_mode == BTA_HH_PROTO_BOOT_MODE)
+              ? "Boot Mode"
+              : "Unsupported");
       if (p_data->hs_data.rsp_data.proto_mode != BTA_HH_PROTO_UNKNOWN) {
         HAL_CBACK(bt_hh_callbacks, protocol_mode_cb,
                   (RawAddress*)&(p_dev->bd_addr),
@@ -991,7 +990,8 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_HH_GET_DSCP_EVT:
       len = p_data->dscp_info.descriptor.dl_len;
       BTIF_TRACE_DEBUG("BTA_HH_GET_DSCP_EVT: len = %d", len);
-      p_dev = btif_hh_find_connected_dev_by_handle(p_data->dscp_info.hid_handle);
+      p_dev =
+          btif_hh_find_connected_dev_by_handle(p_data->dscp_info.hid_handle);
       if (p_dev == NULL) {
         BTIF_TRACE_ERROR(
             "BTA_HH_GET_DSCP_EVT: No HID device is currently connected");

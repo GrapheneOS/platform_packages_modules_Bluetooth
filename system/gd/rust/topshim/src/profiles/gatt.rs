@@ -98,7 +98,8 @@ pub mod ffi {
 
     #[derive(Debug, Clone)]
     pub struct RustPeriodicAdvertisingParameters {
-        enable: u8,
+        enable: bool,
+        include_adi: bool,
         min_interval: u16,
         max_interval: u16,
         periodic_advertising_properties: u16,
@@ -329,6 +330,7 @@ pub mod ffi {
             self: Pin<&mut BleAdvertiserIntf>,
             adv_id: u8,
             enable: bool,
+            include_adi: bool,
         );
 
         /// Registers a C++ |AdvertisingCallbacks| implementation with the BleAdvertiser.
@@ -370,7 +372,8 @@ pub type PeriodicAdvertisingParameters = ffi::RustPeriodicAdvertisingParameters;
 impl Default for PeriodicAdvertisingParameters {
     fn default() -> Self {
         PeriodicAdvertisingParameters {
-            enable: 0,
+            enable: false,
+            include_adi: false,
             min_interval: 0,
             max_interval: 0,
             periodic_advertising_properties: 0,
@@ -1582,8 +1585,8 @@ impl BleAdvertiser {
     pub fn set_periodic_advertising_data(&mut self, adv_id: u8, data: Vec<u8>) {
         mutcxxcall!(self, SetPeriodicAdvertisingData, adv_id, data);
     }
-    pub fn set_periodic_advertising_enable(&mut self, adv_id: u8, enable: bool) {
-        mutcxxcall!(self, SetPeriodicAdvertisingEnable, adv_id, enable);
+    pub fn set_periodic_advertising_enable(&mut self, adv_id: u8, enable: bool, include_adi: bool) {
+        mutcxxcall!(self, SetPeriodicAdvertisingEnable, adv_id, enable, include_adi);
     }
 }
 
