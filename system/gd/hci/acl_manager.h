@@ -133,6 +133,10 @@ public:
 
  virtual LeAddressManager* GetLeAddressManager();
 
+ // Virtual ACL disconnect emitted during suspend.
+ virtual void OnClassicSuspendInitiatedDisconnect(uint16_t handle, ErrorCode reason);
+ virtual void OnLeSuspendInitiatedDisconnect(uint16_t handle, ErrorCode reason);
+
  static const ModuleFactory Factory;
 
 protected:
