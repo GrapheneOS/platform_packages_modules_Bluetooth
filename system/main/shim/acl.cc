@@ -862,15 +862,15 @@ struct shim::legacy::Acl::impl {
     }
 
     // Since this is a suspend disconnect, we immediately also call
-    // |OnDisconnection| without waiting for it to happen. We want the stack
-    // to clean up ahead of the link layer (since we will mask away that
-    // event). The reason we do this in a separate loop is that this will also
-    // remove the handle from the connection map.
+    // |OnClassicSuspendInitiatedDisconnect| without waiting for it to happen.
+    // We want the stack to clean up ahead of the link layer (since we will mask
+    // away that event). The reason we do this in a separate loop is that this
+    // will also remove the handle from the connection map.
     for (auto& handle : disconnect_handles) {
       auto found = handle_to_classic_connection_map_.find(handle);
       if (found != handle_to_classic_connection_map_.end()) {
-        found->second->OnDisconnection(
-            hci::ErrorCode::CONNECTION_TERMINATED_BY_LOCAL_HOST);
+        GetAclManager()->OnClassicSuspendInitiatedDisconnect(
+            found->first, hci::ErrorCode::CONNECTION_TERMINATED_BY_LOCAL_HOST);
       }
     }
 
@@ -896,15 +896,15 @@ struct shim::legacy::Acl::impl {
     }
 
     // Since this is a suspend disconnect, we immediately also call
-    // |OnDisconnection| without waiting for it to happen. We want the stack
-    // to clean up ahead of the link layer (since we will mask away that
-    // event). The reason we do this in a separate loop is that this will also
-    // remove the handle from the connection map.
+    // |OnLeSuspendInitiatedDisconnect| without waiting for it to happen. We
+    // want the stack to clean up ahead of the link layer (since we will mask
+    // away that event). The reason we do this in a separate loop is that this
+    // will also remove the handle from the connection map.
     for (auto& handle : disconnect_handles) {
       auto found = handle_to_le_connection_map_.find(handle);
       if (found != handle_to_le_connection_map_.end()) {
-        found->second->OnDisconnection(
-            hci::ErrorCode::CONNECTION_TERMINATED_BY_LOCAL_HOST);
+        GetAclManager()->OnLeSuspendInitiatedDisconnect(
+            found->first, hci::ErrorCode::CONNECTION_TERMINATED_BY_LOCAL_HOST);
       }
     }
     promise.set_value();
