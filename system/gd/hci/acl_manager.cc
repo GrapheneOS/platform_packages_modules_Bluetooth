@@ -297,6 +297,14 @@ void AclManager::SetSecurityModule(security::SecurityModule* security_module) {
   CallOn(pimpl_->classic_impl_, &classic_impl::set_security_module, security_module);
 }
 
+void AclManager::OnClassicSuspendInitiatedDisconnect(uint16_t handle, ErrorCode reason) {
+  CallOn(pimpl_->classic_impl_, &classic_impl::on_classic_disconnect, handle, reason);
+}
+
+void AclManager::OnLeSuspendInitiatedDisconnect(uint16_t handle, ErrorCode reason) {
+  CallOn(pimpl_->le_impl_, &le_impl::on_le_disconnect, handle, reason);
+}
+
 LeAddressManager* AclManager::GetLeAddressManager() {
   return pimpl_->le_impl_->le_address_manager_;
 }
