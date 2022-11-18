@@ -297,10 +297,34 @@ class TestLeAddressManager : public LeAddressManager {
       : LeAddressManager(enqueue_command, handler, public_address, connect_list_size, resolving_list_size) {}
 
   AddressPolicy Register(LeAddressManagerCallback* callback) override {
+    client_ = callback;
+    test_client_state_ = RESUMED;
     return AddressPolicy::USE_STATIC_ADDRESS;
   }
 
-  void Unregister(LeAddressManagerCallback* callback) override {}
+  void Unregister(LeAddressManagerCallback* callback) override {
+    if (!ignore_unregister_for_testing) {
+      client_ = nullptr;
+    }
+    test_client_state_ = UNREGISTERED;
+  }
+
+  void AckPause(LeAddressManagerCallback* callback) override {
+    test_client_state_ = PAUSED;
+  }
+
+  void AckResume(LeAddressManagerCallback* callback) override {
+    test_client_state_ = RESUMED;
+  }
+
+  LeAddressManagerCallback* client_;
+  bool ignore_unregister_for_testing = false;
+  enum TestClientState {
+    UNREGISTERED,
+    PAUSED,
+    RESUMED,
+  };
+  TestClientState test_client_state_ = UNREGISTERED;
 };
 
 class TestAclManager : public AclManager {
@@ -711,6 +735,35 @@ TEST_F(LeScanningManagerExtendedTest, start_scan_test) {
   EXPECT_CALL(mock_callbacks_, OnScanResult);
 
   test_hci_layer_->IncomingLeMetaEvent(LeExtendedAdvertisingReportBuilder::Create({report}));
+}
+
+TEST_F(LeScanningManagerExtendedTest, ignore_on_pause_on_resume_after_unregistered) {
+  TestLeAddressManager* test_le_address_manager = (TestLeAddressManager*)test_acl_manager_->GetLeAddressManager();
+  test_le_address_manager->ignore_unregister_for_testing = true;
+
+  // Register LeAddressManager
+  test_hci_layer_->SetCommandFuture(2);
+  le_scanning_manager->Scan(true);
+  ASSERT_EQ(OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+  ASSERT_EQ(OpCode::LE_SET_EXTENDED_SCAN_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+  sync_client_handler();
+
+  // Unregister LeAddressManager
+  test_hci_layer_->SetCommandFuture(1);
+  le_scanning_manager->Scan(false);
+  ASSERT_EQ(OpCode::LE_SET_EXTENDED_SCAN_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+  sync_client_handler();
+
+  // Unregistered client should ignore OnPause/OnResume
+  ASSERT_NE(test_le_address_manager->client_, nullptr);
+  ASSERT_EQ(test_le_address_manager->test_client_state_, TestLeAddressManager::TestClientState::UNREGISTERED);
+  test_le_address_manager->client_->OnPause();
+  ASSERT_EQ(test_le_address_manager->test_client_state_, TestLeAddressManager::TestClientState::UNREGISTERED);
+  test_le_address_manager->client_->OnResume();
+  ASSERT_EQ(test_le_address_manager->test_client_state_, TestLeAddressManager::TestClientState::UNREGISTERED);
 }
 
 TEST_F(LeScanningManagerExtendedTest, drop_insignificant_bytes_test) {

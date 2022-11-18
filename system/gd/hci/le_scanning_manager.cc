@@ -628,7 +628,7 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
 
   void start_scan() {
     // If we receive start_scan during paused, set scan_on_resume_ to true
-    if (paused_) {
+    if (paused_ && address_manager_registered_) {
       scan_on_resume_ = true;
       return;
     }
@@ -1552,6 +1552,10 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
   }
 
   void OnPause() override {
+    if (!address_manager_registered_) {
+      LOG_WARN("Unregistered!");
+      return;
+    }
     paused_ = true;
     scan_on_resume_ = is_scanning_;
     stop_scan();
@@ -1563,6 +1567,10 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
   }
 
   void OnResume() override {
+    if (!address_manager_registered_) {
+      LOG_WARN("Unregistered!");
+      return;
+    }
     paused_ = false;
     if (scan_on_resume_ == true) {
       start_scan();

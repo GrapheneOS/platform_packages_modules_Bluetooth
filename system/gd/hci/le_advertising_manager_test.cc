@@ -240,10 +240,25 @@ class TestLeAddressManager : public LeAddressManager {
       : LeAddressManager(enqueue_command, handler, public_address, connect_list_size, resolving_list_size) {}
 
   AddressPolicy Register(LeAddressManagerCallback* callback) override {
+    client_ = callback;
+    test_client_state_ = RESUMED;
     return AddressPolicy::USE_STATIC_ADDRESS;
   }
 
-  void Unregister(LeAddressManagerCallback* callback) override {}
+  void Unregister(LeAddressManagerCallback* callback) override {
+    if (!ignore_unregister_for_testing) {
+      client_ = nullptr;
+    }
+    test_client_state_ = UNREGISTERED;
+  }
+
+  void AckPause(LeAddressManagerCallback* callback) override {
+    test_client_state_ = PAUSED;
+  }
+
+  void AckResume(LeAddressManagerCallback* callback) override {
+    test_client_state_ = RESUMED;
+  }
 
   AddressPolicy GetAddressPolicy() override {
     return address_policy_;
@@ -268,6 +283,14 @@ class TestLeAddressManager : public LeAddressManager {
   }
 
   AddressPolicy address_policy_ = AddressPolicy::USE_STATIC_ADDRESS;
+  LeAddressManagerCallback* client_;
+  bool ignore_unregister_for_testing = false;
+  enum TestClientState {
+    UNREGISTERED,
+    PAUSED,
+    RESUMED,
+  };
+  TestClientState test_client_state_ = UNREGISTERED;
 };
 
 class TestAclManager : public AclManager {
@@ -734,6 +757,70 @@ TEST_F(LeExtendedAdvertisingManagerTest, create_advertiser_test) {
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   ASSERT_EQ(OpCode::LE_REMOVE_ADVERTISING_SET, test_hci_layer_->GetCommand().GetOpCode());
+}
+
+TEST_F(LeExtendedAdvertisingManagerTest, ignore_on_pause_on_resume_after_unregistered) {
+  TestLeAddressManager* test_le_address_manager = (TestLeAddressManager*)test_acl_manager_->GetLeAddressManager();
+  test_le_address_manager->ignore_unregister_for_testing = true;
+
+  // Register LeAddressManager vai ExtendedCreateAdvertiser
+  ExtendedAdvertisingConfig advertising_config{};
+  advertising_config.advertising_type = AdvertisingType::ADV_IND;
+  advertising_config.own_address_type = OwnAddressType::PUBLIC_DEVICE_ADDRESS;
+  std::vector<GapData> gap_data{};
+  GapData data_item{};
+  data_item.data_type_ = GapDataType::FLAGS;
+  data_item.data_ = {0x34};
+  gap_data.push_back(data_item);
+  data_item.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
+  data_item.data_ = {'r', 'a', 'n', 'd', 'o', 'm', ' ', 'd', 'e', 'v', 'i', 'c', 'e'};
+  gap_data.push_back(data_item);
+  advertising_config.advertisement = gap_data;
+  advertising_config.scan_response = gap_data;
+  advertising_config.channel_map = 1;
+  advertising_config.sid = 0x01;
+
+  test_hci_layer_->SetCommandFuture(4);
+  auto id = le_advertising_manager_->ExtendedCreateAdvertiser(
+      0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+  ASSERT_NE(LeAdvertisingManager::kInvalidId, id);
+  EXPECT_CALL(
+      mock_advertising_callback_,
+      OnAdvertisingSetStarted(0x00, id, -23, AdvertisingCallback::AdvertisingStatus::SUCCESS));
+  std::vector<OpCode> adv_opcodes = {
+      OpCode::LE_SET_EXTENDED_ADVERTISING_PARAMETERS,
+      OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA,
+      OpCode::LE_SET_EXTENDED_ADVERTISING_DATA,
+      OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE,
+  };
+  std::vector<uint8_t> success_vector{static_cast<uint8_t>(ErrorCode::SUCCESS)};
+  for (size_t i = 0; i < adv_opcodes.size(); i++) {
+    ASSERT_EQ(adv_opcodes[i], test_hci_layer_->GetCommand().GetOpCode());
+    if (adv_opcodes[i] == OpCode::LE_SET_EXTENDED_ADVERTISING_PARAMETERS) {
+      test_hci_layer_->IncomingEvent(LeSetExtendedAdvertisingParametersCompleteBuilder::Create(
+          uint8_t{1}, ErrorCode::SUCCESS, static_cast<uint8_t>(-23)));
+    } else {
+      test_hci_layer_->IncomingEvent(
+          CommandCompleteBuilder::Create(uint8_t{1}, adv_opcodes[i], std::make_unique<RawBuilder>(success_vector)));
+    }
+  }
+  sync_client_handler();
+
+  // Unregister LeAddressManager vai RemoveAdvertiser
+  test_hci_layer_->SetCommandFuture(3);
+  le_advertising_manager_->RemoveAdvertiser(id);
+  ASSERT_EQ(OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
+  ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
+  ASSERT_EQ(OpCode::LE_REMOVE_ADVERTISING_SET, test_hci_layer_->GetCommand().GetOpCode());
+  sync_client_handler();
+
+  // Unregistered client should ignore OnPause/OnResume
+  ASSERT_NE(test_le_address_manager->client_, nullptr);
+  ASSERT_EQ(test_le_address_manager->test_client_state_, TestLeAddressManager::TestClientState::UNREGISTERED);
+  test_le_address_manager->client_->OnPause();
+  ASSERT_EQ(test_le_address_manager->test_client_state_, TestLeAddressManager::TestClientState::UNREGISTERED);
+  test_le_address_manager->client_->OnResume();
+  ASSERT_EQ(test_le_address_manager->test_client_state_, TestLeAddressManager::TestClientState::UNREGISTERED);
 }
 
 TEST_F(LeAdvertisingAPITest, startup_teardown) {}
