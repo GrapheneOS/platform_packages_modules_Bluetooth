@@ -43,6 +43,7 @@ import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
+import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothGatt;
@@ -3378,5 +3379,52 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         } finally {
             Binder.restoreCallingIdentity(ident);
         }
+    }
+
+    /**
+     * Sets Bluetooth HCI snoop log mode
+     */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @Override
+    public int setBtHciSnoopLogMode(int mode) {
+        mContext.enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
+        switch (mode) {
+            case BluetoothAdapter.BT_SNOOP_LOG_MODE_DISABLED:
+                BluetoothProperties.snoop_log_mode(
+                        BluetoothProperties.snoop_log_mode_values.DISABLED);
+                break;
+            case BluetoothAdapter.BT_SNOOP_LOG_MODE_FILTERED:
+                BluetoothProperties.snoop_log_mode(
+                        BluetoothProperties.snoop_log_mode_values.FILTERED);
+                break;
+            case BluetoothAdapter.BT_SNOOP_LOG_MODE_FULL:
+                BluetoothProperties.snoop_log_mode(
+                        BluetoothProperties.snoop_log_mode_values.FULL);
+                break;
+            default:
+                BluetoothProperties.snoop_log_mode(
+                        BluetoothProperties.snoop_log_mode_values.EMPTY);
+                return BluetoothStatusCodes.ERROR_UNKNOWN;
+        }
+        return BluetoothStatusCodes.SUCCESS;
+    }
+
+    /**
+     * Gets Bluetooth HCI snoop log mode
+     */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @Override
+    public int getBtHciSnoopLogMode() {
+        mContext.enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
+        BluetoothProperties.snoop_log_mode_values mode = BluetoothProperties.snoop_log_mode()
+                .orElse(BluetoothProperties.snoop_log_mode_values.DISABLED);
+        if (mode == BluetoothProperties.snoop_log_mode_values.FILTERED) {
+            return BluetoothAdapter.BT_SNOOP_LOG_MODE_FILTERED;
+        } else if (mode == BluetoothProperties.snoop_log_mode_values.FULL) {
+            return BluetoothAdapter.BT_SNOOP_LOG_MODE_FULL;
+        }
+        return BluetoothAdapter.BT_SNOOP_LOG_MODE_DISABLED;
     }
 }
