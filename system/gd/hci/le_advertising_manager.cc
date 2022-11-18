@@ -1049,6 +1049,10 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   }
 
   void OnPause() override {
+    if (!address_manager_registered) {
+      LOG_WARN("Unregistered!");
+      return;
+    }
     paused = true;
     if (!advertising_sets_.empty()) {
       std::vector<EnabledSet> enabled_sets = {};
@@ -1088,6 +1092,10 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   }
 
   void OnResume() override {
+    if (!address_manager_registered) {
+      LOG_WARN("Unregistered!");
+      return;
+    }
     paused = false;
     if (!advertising_sets_.empty()) {
       std::vector<EnabledSet> enabled_sets = {};
