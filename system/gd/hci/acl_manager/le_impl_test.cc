@@ -1403,6 +1403,18 @@ TEST_F(LeImplRegisteredWithAddressManagerTest, clear_resolving_list) {
   ASSERT_TRUE(hci_layer_->IsPacketQueueEmpty());
 }
 
+TEST_F(LeImplRegisteredWithAddressManagerTest, ignore_on_pause_on_resume_after_unregistered) {
+  le_impl_->ready_to_unregister = true;
+  le_impl_->check_for_unregister();
+  // OnPause should be ignored
+  le_impl_->OnPause();
+  ASSERT_FALSE(le_impl_->pause_connection);
+  // OnResume should be ignored
+  le_impl_->pause_connection = true;
+  le_impl_->OnResume();
+  ASSERT_TRUE(le_impl_->pause_connection);
+}
+
 TEST_F(LeImplWithConnectionTest, HACK_get_handle) {
   sync_handler();
 
