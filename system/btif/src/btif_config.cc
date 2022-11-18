@@ -209,6 +209,31 @@ EXPORT_SYMBOL module_t btif_config_module = {.name = BTIF_CONFIG_MODULE,
                                              .shut_down = shut_down,
                                              .clean_up = clean_up};
 
+bool btif_get_device_clockoffset(const RawAddress& bda, int* p_clock_offset) {
+  if (p_clock_offset == NULL) return false;
+
+  std::string addrstr = bda.ToString();
+  const char* bd_addr_str = addrstr.c_str();
+
+  if (!btif_config_get_int(bd_addr_str, "ClockOffset", p_clock_offset)) return false;
+
+  LOG_DEBUG("%s: Device [%s] clock_offset %d", __func__, bd_addr_str,
+            *p_clock_offset);
+  return true;
+}
+
+bool btif_set_device_clockoffset(const RawAddress& bda, int clock_offset) {
+
+  std::string addrstr = bda.ToString();
+  const char* bd_addr_str = addrstr.c_str();
+
+  if (!btif_config_set_int(bd_addr_str, "ClockOffset", clock_offset)) return false;
+
+  LOG_DEBUG("%s: Device [%s] clock_offset %d", __func__, bd_addr_str,
+            clock_offset);
+  return true;
+}
+
 bool btif_config_exist(const std::string& section, const std::string& key) {
   CHECK(bluetooth::shim::is_gd_stack_started_up());
   return bluetooth::shim::BtifConfigInterface::HasProperty(section, key);

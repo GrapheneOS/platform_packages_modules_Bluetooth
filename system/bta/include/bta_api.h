@@ -512,6 +512,7 @@ typedef struct {
   bool include_rsi; /* true, if ADV contains RSI data */
   RawAddress original_bda; /* original address to pass up to
                               GattService#onScanResult */
+  uint16_t clock_offset;
 } tBTA_DM_INQ_RES;
 
 /* Structure associated with BTA_DM_INQ_CMPL_EVT */
