@@ -183,6 +183,10 @@ public class HearingAidServiceTest {
         if (newState == BluetoothProfile.STATE_CONNECTED) {
             // ActiveDeviceManager calls setActiveDevice when connected.
             mService.setActiveDevice(device);
+        } else if (newState == BluetoothProfile.STATE_DISCONNECTED
+                && mService.getConnectedDevices().isEmpty()) {
+            // ActiveDeviceManager calls setActiveDevice(null) when all devices are disconnected.
+            mService.setActiveDevice(null);
         }
 
     }
