@@ -88,6 +88,11 @@ struct bluetooth::hci::LeScanningManager::impl
     : public bluetooth::hci::LeAddressManagerCallback {};
 
 namespace {
+constexpr double kMaxAbsoluteError = .0000001;
+constexpr double kTicksInMs = 20479.375;
+constexpr double kTicksInSec = 20.479375;
+constexpr uint16_t kTicks = 32767;
+
 std::map<std::string, std::promise<uint16_t>> mock_function_handle_promise_map;
 
 // Utility to provide a file descriptor for /dev/null when possible, but
@@ -753,4 +758,14 @@ TEST_F(MainShimTestWithClassicConnection, read_extended_feature) {
 
 TEST_F(MainShimTest, acl_dumpsys) {
   MakeAcl()->Dump(std::make_unique<DevNullOrStdErr>()->Fd());
+}
+
+TEST_F(MainShimTest, ticks_to_milliseconds) {
+  ASSERT_THAT(kTicksInMs,
+              DoubleNear(ticks_to_milliseconds(kTicks), kMaxAbsoluteError));
+}
+
+TEST_F(MainShimTest, ticks_to_seconds) {
+  ASSERT_THAT(kTicksInSec,
+              DoubleNear(ticks_to_seconds(kTicks), kMaxAbsoluteError));
 }
