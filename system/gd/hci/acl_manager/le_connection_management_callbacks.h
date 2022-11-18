@@ -40,6 +40,12 @@ class LeConnectionManagementCallbacks {
   virtual void OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status, uint64_t features) = 0;
   virtual void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) = 0;
   virtual void OnLocalAddressUpdate(AddressWithType address_with_type) = 0;
+  virtual void OnLeSubrateChange(
+      hci::ErrorCode hci_status,
+      uint16_t subrate_factor,
+      uint16_t peripheral_latency,
+      uint16_t continuation_number,
+      uint16_t supervision_timeout) = 0;
 };
 
 }  // namespace acl_manager

@@ -74,6 +74,15 @@ class LeAclConnectionTracker : public LeConnectionManagementCallbacks {
   void OnLocalAddressUpdate(AddressWithType address_with_type) override {
     SAVE_OR_CALL(OnLocalAddressUpdate, address_with_type);
   }
+  void OnLeSubrateChange(
+      hci::ErrorCode hci_status,
+      uint16_t subrate_factor,
+      uint16_t peripheral_latency,
+      uint16_t continuation_number,
+      uint16_t supervision_timeout) override {
+    SAVE_OR_CALL(
+        OnLeSubrateChange, hci_status, subrate_factor, peripheral_latency, continuation_number, supervision_timeout);
+  }
 
   void OnDisconnection(ErrorCode reason) override {
     SAVE_OR_CALL(OnDisconnection, reason);

@@ -96,6 +96,13 @@ class Link : public l2cap::internal::ILink, public hci::acl_manager::LeConnectio
 
   void OnLocalAddressUpdate(hci::AddressWithType address_with_type) override;
 
+  void OnLeSubrateChange(
+      hci::ErrorCode hci_status,
+      uint16_t subrate_factor,
+      uint16_t peripheral_latency,
+      uint16_t continuation_number,
+      uint16_t supervision_timeout) override;
+
   virtual void Disconnect();
 
   // Handles connection parameter update request from remote

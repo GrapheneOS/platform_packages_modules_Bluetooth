@@ -418,6 +418,15 @@ class MockLeConnectionManagementCallbacks : public LeConnectionManagementCallbac
   MOCK_METHOD(void, OnLeReadRemoteFeaturesComplete, (hci::ErrorCode hci_status, uint64_t features), (override));
   MOCK_METHOD(void, OnPhyUpdate, (hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy), (override));
   MOCK_METHOD(void, OnLocalAddressUpdate, (AddressWithType address_with_type), (override));
+  MOCK_METHOD(
+      void,
+      OnLeSubrateChange,
+      (hci::ErrorCode hci_status,
+       uint16_t subrate_factor,
+       uint16_t peripheral_latency,
+       uint16_t continuation_number,
+       uint16_t supervision_timeout),
+      (override));
 };
 
 class LeImplTest : public ::testing::Test {
@@ -1311,6 +1320,18 @@ TEST_F(LeImplWithConnectionTest, on_le_event__PHY_UPDATE_COMPLETE) {
   ASSERT_EQ(ErrorCode::SUCCESS, hci_status);
   ASSERT_EQ(PhyType::LE_1M, tx_phy);
   ASSERT_EQ(PhyType::LE_2M, rx_phy);
+}
+
+TEST_F(LeImplWithConnectionTest, on_le_event__SUBRATE_CHANGE_EVENT) {
+  // Send a subrate event
+  EXPECT_CALL(connection_management_callbacks_, OnLeSubrateChange(ErrorCode::SUCCESS, 0x01, 0x02, 0x03, 0x04));
+  auto command = LeSubrateChangeBuilder::Create(ErrorCode::SUCCESS, kHciHandle, 0x01, 0x02, 0x03, 0x04);
+  auto bytes = Serialize<LeSubrateChangeBuilder>(std::move(command));
+  auto view = CreateLeEventView<hci::LeSubrateChangeView>(bytes);
+  ASSERT_TRUE(view.IsValid());
+  le_impl_->on_le_event(view);
+
+  sync_handler();
 }
 
 TEST_F(LeImplWithConnectionTest, on_le_event__DATA_LENGTH_CHANGE) {

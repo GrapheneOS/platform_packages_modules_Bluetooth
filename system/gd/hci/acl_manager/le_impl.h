@@ -169,6 +169,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       case SubeventCode::REMOTE_CONNECTION_PARAMETER_REQUEST:
         on_remote_connection_parameter_request(event_packet);
         break;
+      case SubeventCode::LE_SUBRATE_CHANGE:
+        on_le_subrate_change(event_packet);
+        break;
       default:
         LOG_ALWAYS_FATAL("Unhandled event code %s", SubeventCodeText(code).c_str());
     }
@@ -640,6 +643,23 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
               0,
               0),
           handler_->BindOnce([](CommandCompleteView status) {}));
+    });
+  }
+
+  void on_le_subrate_change(LeMetaEventView view) {
+    auto subrate_change_view = LeSubrateChangeView::Create(view);
+    if (!subrate_change_view.IsValid()) {
+      LOG_ERROR("Invalid packet");
+      return;
+    }
+    auto handle = subrate_change_view.GetConnectionHandle();
+    connections.execute(handle, [=](LeConnectionManagementCallbacks* callbacks) {
+      callbacks->OnLeSubrateChange(
+          subrate_change_view.GetStatus(),
+          subrate_change_view.GetSubrateFactor(),
+          subrate_change_view.GetPeripheralLatency(),
+          subrate_change_view.GetContinuationNumber(),
+          subrate_change_view.GetSupervisionTimeout());
     });
   }
 

@@ -750,6 +750,14 @@ class LeShimAclConnection
     TRY_POSTING_ON_MAIN(interface_.on_data_length_change, handle_,
                         max_tx_octets, max_tx_time, max_rx_octets, max_rx_time);
   }
+  void OnLeSubrateChange(hci::ErrorCode hci_status, uint16_t subrate_factor,
+                         uint16_t peripheral_latency,
+                         uint16_t continuation_number,
+                         uint16_t supervision_timeout) {
+    TRY_POSTING_ON_MAIN(interface_.on_le_subrate_change, handle_,
+                        subrate_factor, peripheral_latency, continuation_number,
+                        supervision_timeout, ToLegacyHciErrorCode(hci_status));
+  }
 
   void OnReadRemoteVersionInformationComplete(hci::ErrorCode hci_status,
                                               uint8_t lmp_version,
