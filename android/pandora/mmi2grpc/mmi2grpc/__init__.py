@@ -30,6 +30,7 @@ from mmi2grpc.hfp import HFPProxy
 from mmi2grpc.hid import HIDProxy
 from mmi2grpc.hogp import HOGPProxy
 from mmi2grpc.l2cap import L2CAPProxy
+from mmi2grpc.map import MAPProxy
 from mmi2grpc.rfcomm import RFCOMMProxy
 from mmi2grpc.sdp import SDPProxy
 from mmi2grpc.sm import SMProxy
@@ -77,6 +78,7 @@ class IUT:
         self._hid = None
         self._hogp = None
         self._l2cap = None
+        self._map = None
         self._rfcomm = None
         self._sdp = None
         self._sm = None
@@ -108,6 +110,7 @@ class IUT:
         self._l2cap = None
         self._hid = None
         self._hogp = None
+        self._map = None
         self._rfcomm = None
         self._sdp = None
         self._sm = None
@@ -152,14 +155,14 @@ class IUT:
             return mut_address
 
     def interact(
-            self,
-            pts_address: bytes,
-            profile: str,
-            test: str,
-            interaction: str,
-            description: str,
-            style: str,
-            **kwargs,
+        self,
+        pts_address: bytes,
+        profile: str,
+        test: str,
+        interaction: str,
+        description: str,
+        style: str,
+        **kwargs,
     ) -> str:
         """Routes MMI calls to corresponding profile proxy.
 
@@ -221,6 +224,11 @@ class IUT:
             if not self._l2cap:
                 self._l2cap = L2CAPProxy(grpc.insecure_channel(f"localhost:{self.pandora_server_port}"))
             return self._l2cap.interact(test, interaction, description, pts_address)
+        # Handles MAP MMIs.
+        if profile in ("MAP"):
+            if not self._map:
+                self._map = MAPProxy(grpc.insecure_channel(f"localhost:{self.pandora_server_port}"))
+            return self._map.interact(test, interaction, description, pts_address)
         # Handles RFCOMM MMIs.
         if profile in ("RFCOMM"):
             if not self._rfcomm:

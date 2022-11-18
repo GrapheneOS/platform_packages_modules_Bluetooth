@@ -41,6 +41,7 @@
         <option name="profile" value="HID/HOS" />
         <option name="profile" value="HOGP" />
         <option name="profile" value="L2CAP/LE" />
+        <option name="profile" value="MAP" />
         <option name="profile" value="RFCOMM" />
         <option name="profile" value="SDP" />
         <option name="profile" value="SM" />
