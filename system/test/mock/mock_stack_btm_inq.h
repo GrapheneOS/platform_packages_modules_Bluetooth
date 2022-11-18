@@ -425,9 +425,9 @@ extern struct btm_inq_db_init btm_inq_db_init;
 // Return: tINQ_DB_ENT*
 struct btm_inq_db_new {
   static tINQ_DB_ENT* return_value;
-  std::function<tINQ_DB_ENT*(const RawAddress& p_bda)> body{
-      [](const RawAddress& p_bda) { return return_value; }};
-  tINQ_DB_ENT* operator()(const RawAddress& p_bda) { return body(p_bda); };
+  std::function<tINQ_DB_ENT*(const RawAddress& p_bda, bool is_ble)> body{
+      [](const RawAddress& p_bda, bool is_ble) { return return_value; }};
+  tINQ_DB_ENT* operator()(const RawAddress& p_bda, bool is_ble) { return body(p_bda, is_ble); };
 };
 extern struct btm_inq_db_new btm_inq_db_new;
 
