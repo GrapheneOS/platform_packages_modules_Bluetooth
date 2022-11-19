@@ -7,20 +7,49 @@ package {
     default_applicable_licenses: ["system_bt_license"],
 }
 
-cc_test {
+sh_binary {
+  name: "headless_build_timestamp",
+  host_supported: true,
+  src: "tools/build_timestamp.sh",
+}
+
+genrule {
+  name : "HeadlessBuildTimestamp",
+  tools: [
+    "headless_build_timestamp",
+  ],
+  cmd: "$(location headless_build_timestamp) > $(out)",
+  out: [
+    "build_timestamp.h"
+  ],
+}
+
+cc_binary {
     name: "bt_headless",
-    test_suites: ["device-tests"],
     defaults: [
         "fluoride_defaults",
-        "mts_defaults",
+    ],
+    cflags: [
+        "-Wno-date-time",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+    ],
+    generated_headers: [
+        "HeadlessBuildTimestamp",
     ],
     srcs: [
+        "bt_property.cc",
         "connect/connect.cc",
         "get_options.cc",
         "headless.cc",
+        "log.cc",
         "main.cc",
+        "messenger.cc",
         "pairing/pairing.cc",
+        "discovery/discovery.cc",
         "dumpsys/dumpsys.cc",
+        "scan/scan.cc",
         "sdp/sdp.cc",
         "sdp/sdp_db.cc",
         "nop/nop.cc",
