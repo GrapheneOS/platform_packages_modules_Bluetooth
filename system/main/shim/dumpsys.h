@@ -48,6 +48,10 @@ inline double ticks_to_seconds(uint16_t ticks) {
   return (static_cast<double>(ticks) * 0.625 * 0.001);
 }
 
+inline double ticks_to_milliseconds(uint16_t ticks) {
+  return (static_cast<double>(ticks) * 0.625);
+}
+
 inline double supervision_timeout_to_seconds(uint16_t timeout) {
   return (static_cast<double>(timeout) * 0.01);
 }

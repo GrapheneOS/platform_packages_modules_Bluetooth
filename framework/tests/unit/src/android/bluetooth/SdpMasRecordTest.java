@@ -18,6 +18,8 @@ package android.bluetooth;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import android.os.Parcel;
+
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -58,5 +60,81 @@ public class SdpMasRecordTest {
         assertThat(record.getSupportedFeatures()).isEqualTo(supportedFeatures);
         assertThat(record.getSupportedMessageTypes()).isEqualTo(supportedMessageTypes);
         assertThat(record.getServiceName()).isEqualTo(serviceName);
+    }
+
+    @Test
+    public void writeToParcel() {
+        int masInstanceId = 1;
+        int l2capPsm = 1;
+        int rfcommChannelNumber = 1;
+        int profileVersion = 1;
+        int supportedFeatures = 1;
+        int supportedMessageTypes = 1;
+        String serviceName = "MasRecord";
+
+        SdpMasRecord originalRecord = new SdpMasRecord(
+                masInstanceId,
+                l2capPsm,
+                rfcommChannelNumber,
+                profileVersion,
+                supportedFeatures,
+                supportedMessageTypes,
+                serviceName
+        );
+
+        Parcel parcel = Parcel.obtain();
+        originalRecord.writeToParcel(parcel, 0);
+        parcel.setDataPosition(0);
+
+        SdpMasRecord recordOut = (SdpMasRecord) SdpMasRecord.CREATOR.createFromParcel(parcel);
+        parcel.recycle();
+
+        assertThat(recordOut.getMasInstanceId())
+                .isEqualTo(originalRecord.getMasInstanceId());
+        assertThat(recordOut.getL2capPsm())
+                .isEqualTo(originalRecord.getL2capPsm());
+        assertThat(recordOut.getRfcommCannelNumber())
+                .isEqualTo(originalRecord.getRfcommCannelNumber());
+        assertThat(recordOut.getProfileVersion())
+                .isEqualTo(originalRecord.getProfileVersion());
+        assertThat(recordOut.getSupportedFeatures())
+                .isEqualTo(originalRecord.getSupportedFeatures());
+        assertThat(recordOut.getSupportedMessageTypes())
+                .isEqualTo(originalRecord.getSupportedMessageTypes());
+        assertThat(recordOut.getServiceName())
+                .isEqualTo(originalRecord.getServiceName());
+    }
+
+    @Test
+    public void sdpMasRecordToString() {
+        int masInstanceId = 1;
+        int l2capPsm = 1;
+        int rfcommChannelNumber = 1;
+        int profileVersion = 1;
+        int supportedFeatures = 1;
+        int supportedMessageTypes = 1;
+        String serviceName = "MasRecord";
+
+        SdpMasRecord record = new SdpMasRecord(
+                masInstanceId,
+                l2capPsm,
+                rfcommChannelNumber,
+                profileVersion,
+                supportedFeatures,
+                supportedMessageTypes,
+                serviceName
+        );
+
+        String sdpMasRecordString = record.toString();
+        String expectedToString = "Bluetooth MAS SDP Record:\n"
+                + "Mas Instance Id: " + masInstanceId + "\n"
+                + "RFCOMM Chan Number: " + l2capPsm + "\n"
+                + "L2CAP PSM: " + rfcommChannelNumber + "\n"
+                + "Service Name: " + serviceName + "\n"
+                + "Profile version: " + profileVersion + "\n"
+                + "Supported msg types: " + supportedMessageTypes + "\n"
+                + "Supported features: " + supportedFeatures + "\n";
+
+        assertThat(sdpMasRecordString).isEqualTo(expectedToString);
     }
 }

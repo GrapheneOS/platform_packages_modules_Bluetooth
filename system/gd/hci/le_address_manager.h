@@ -72,8 +72,8 @@ class LeAddressManager {
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time);
   virtual AddressPolicy GetAddressPolicy();
-  void AckPause(LeAddressManagerCallback* callback);
-  void AckResume(LeAddressManagerCallback* callback);
+  virtual void AckPause(LeAddressManagerCallback* callback);
+  virtual void AckResume(LeAddressManagerCallback* callback);
   virtual AddressPolicy Register(LeAddressManagerCallback* callback);
   virtual void Unregister(LeAddressManagerCallback* callback);
   virtual bool UnregisterSync(

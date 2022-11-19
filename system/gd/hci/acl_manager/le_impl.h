@@ -1068,6 +1068,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void OnPause() override {  // bluetooth::hci::LeAddressManagerCallback
+    if (!address_manager_registered) {
+      LOG_WARN("Unregistered!");
+      return;
+    }
     pause_connection = true;
     if (connectability_state_ == ConnectabilityState::DISARMED) {
       le_address_manager_->AckPause(this);
@@ -1078,6 +1082,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void OnResume() override {  // bluetooth::hci::LeAddressManagerCallback
+    if (!address_manager_registered) {
+      LOG_WARN("Unregistered!");
+      return;
+    }
     pause_connection = false;
     if (arm_on_resume_) {
       arm_connectability();
