@@ -65,9 +65,6 @@ struct AclManager::impl {
     round_robin_scheduler_ = new RoundRobinScheduler(handler_, controller_, hci_layer_->GetAclQueueEnd());
     acl_scheduler_ = acl_manager_.GetDependency<AclScheduler>();
 
-    hci_queue_end_ = hci_layer_->GetAclQueueEnd();
-    hci_queue_end_->RegisterDequeue(
-        handler_, common::Bind(&impl::dequeue_and_route_acl_packet_to_connection, common::Unretained(this)));
     bool crash_on_unknown_handle = false;
     {
       const std::lock_guard<std::mutex> lock(dumpsys_mutex_);
@@ -75,9 +72,18 @@ struct AclManager::impl {
           hci_layer_, controller_, handler_, round_robin_scheduler_, crash_on_unknown_handle, acl_scheduler_);
       le_impl_ = new le_impl(hci_layer_, controller_, handler_, round_robin_scheduler_, crash_on_unknown_handle);
     }
+
+    hci_queue_end_ = hci_layer_->GetAclQueueEnd();
+    hci_queue_end_->RegisterDequeue(
+        handler_, common::Bind(&impl::dequeue_and_route_acl_packet_to_connection, common::Unretained(this)));
   }
 
   void Stop() {
+    hci_queue_end_->UnregisterDequeue();
+    if (enqueue_registered_.exchange(false)) {
+      hci_queue_end_->UnregisterEnqueue();
+    }
+
     {
       const std::lock_guard<std::mutex> lock(dumpsys_mutex_);
       delete le_impl_;
@@ -86,11 +92,7 @@ struct AclManager::impl {
       classic_impl_ = nullptr;
     }
 
-    hci_queue_end_->UnregisterDequeue();
     delete round_robin_scheduler_;
-    if (enqueue_registered_.exchange(false)) {
-      hci_queue_end_->UnregisterEnqueue();
-    }
     hci_queue_end_ = nullptr;
     handler_ = nullptr;
     hci_layer_ = nullptr;
