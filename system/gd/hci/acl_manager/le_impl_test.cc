@@ -547,6 +547,23 @@ class LeImplTest : public ::testing::Test {
   struct le_impl* le_impl_;
 };
 
+class LeImplRegisteredWithAddressManagerTest : public LeImplTest {
+ protected:
+  void SetUp() override {
+    LeImplTest::SetUp();
+    set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
+
+    le_impl_->register_with_address_manager();
+    sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+    ASSERT_TRUE(le_impl_->address_manager_registered);
+    ASSERT_TRUE(le_impl_->pause_connection);
+  }
+
+  void TearDown() override {
+    LeImplTest::TearDown();
+  }
+};
+
 class LeImplWithConnectionTest : public LeImplTest {
  protected:
   void SetUp() override {
@@ -1305,6 +1322,18 @@ TEST_F(LeImplTest, on_le_event__ENHANCED_CONNECTION_COMPLETE_PERIPHERAL) {
   auto view = CreateLeEventView<hci::LeEnhancedConnectionCompleteView>(bytes);
   ASSERT_TRUE(view.IsValid());
   le_impl_->on_le_event(view);
+}
+
+TEST_F(LeImplRegisteredWithAddressManagerTest, ignore_on_pause_on_resume_after_unregistered) {
+  le_impl_->ready_to_unregister = true;
+  le_impl_->check_for_unregister();
+  // OnPause should be ignored
+  le_impl_->OnPause();
+  ASSERT_FALSE(le_impl_->pause_connection);
+  // OnResume should be ignored
+  le_impl_->pause_connection = true;
+  le_impl_->OnResume();
+  ASSERT_TRUE(le_impl_->pause_connection);
 }
 
 TEST_F(LeImplWithConnectionTest, on_le_event__PHY_UPDATE_COMPLETE) {
