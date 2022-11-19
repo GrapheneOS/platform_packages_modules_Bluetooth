@@ -54,8 +54,6 @@ class LibAptxEncTest : public ::testing::Test {
   }
 };
 
-TEST_F(LibAptxEncTest, encoder_size) { ASSERT_EQ(SizeofAptxbtenc(), 5008); }
-
 TEST_F(LibAptxEncTest, encode_fake_data) {
   const char input[] =
       "012345678901234567890123456789012345678901234567890123456789012345678901"
