@@ -17,12 +17,14 @@
 #pragma once
 
 #include <assert.h>
+#include <log/log.h>
 #include <stdio.h>
 #include <sys/syscall.h> /* Definition of SYS_* constants */
 #include <unistd.h>
 
 #include <chrono>
 #include <ctime>
+#include <string>
 
 #include "build_timestamp.h"  // generated
 
@@ -40,9 +42,16 @@ constexpr char _main[7 + 1] = "  MAIN ";
 
 #define STR(obj) (obj).ToString().c_str()
 
+#define ASSERT_LOG(condition, fmt, args...)                                 \
+  do {                                                                      \
+    if (!(condition)) {                                                     \
+      LOG_ALWAYS_FATAL("assertion '" #condition "' failed - " fmt, ##args); \
+    }                                                                       \
+  } while (false)
+
 #define LOG_CONSOLE(fmt, args...)                                              \
   do {                                                                         \
-    ASSERT(console_fd != -1);                                                  \
+    ASSERT_LOG(console_fd != -1, "Console output fd has not been set");        \
     /* Also log to Android logging via INFO level */                           \
     ALOGI("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args);             \
     auto _now = std::chrono::system_clock::now();                              \
