@@ -78,6 +78,7 @@ class HeadlessRun : public HeadlessStack {
 
     T rc;
     for (loop_ = 0; loop_ < options_.loop_; loop_++) {
+      LOG_CONSOLE("Loop started: %lu", loop_);
       rc = func();
       if (options_.msec_ != 0) {
         usleep(options_.msec_ * 1000);
@@ -85,6 +86,7 @@ class HeadlessRun : public HeadlessStack {
       if (rc) {
         break;
       }
+      LOG_CONSOLE("Loop completed: %lu", loop_);
     }
     if (rc) {
       LOG(ERROR) << "FAIL:" << rc << " loop/loops:" << loop_ << "/"
