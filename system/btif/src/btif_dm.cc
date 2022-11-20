@@ -1498,7 +1498,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       /* onUuidChanged requires getBondedDevices to be populated.
       ** bond_state_changed needs to be sent prior to remote_device_property
       */
-      auto num_eir_uuids = 0;
+      size_t num_eir_uuids = 0U;
       Uuid uuid = {};
       if (pairing_cb.state == BT_BOND_STATE_BONDED && pairing_cb.sdp_attempts &&
           (p_data->disc_res.bd_addr == pairing_cb.bd_addr ||
@@ -1512,8 +1512,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
             p_data->disc_res.num_uuids == 0) {
           auto uuids_iter = eir_uuids_cache.find(bd_addr);
           if (uuids_iter != eir_uuids_cache.end()) {
-            num_eir_uuids = static_cast<int>(uuids_iter->second.size());
-            LOG_INFO("SDP failed, send %d EIR UUIDs to unblock bonding %s",
+            num_eir_uuids = uuids_iter->second.size();
+            LOG_INFO("SDP failed, send %zu EIR UUIDs to unblock bonding %s",
                      num_eir_uuids, ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
             for (auto eir_uuid : uuids_iter->second) {
               auto uuid_128bit = eir_uuid.To128BitBE();
