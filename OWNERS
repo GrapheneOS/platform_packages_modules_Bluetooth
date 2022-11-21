@@ -6,6 +6,8 @@ zachoverflow@google.com
 
 # Per-file ownership
 
+per-file TEST_MAPPING=licorne@google.com
+
 # ChromeOS team owns Linux build files
 # - build.py is used for Linux build
 # - *.gn is for GN build rules
