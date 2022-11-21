@@ -1235,6 +1235,8 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
     return false;
   }
 
+  auto required_snk_strategy = GetGroupStrategy();
+
   /* TODO For now: set ase if matching with first pac.
    * 1) We assume as well that devices will match requirements in order
    *    e.g. 1 Device - 1 Requirement, 2 Device - 2 Requirement etc.
@@ -1258,6 +1260,14 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
         "strategy: %d",
         +required_device_cnt, +ent.ase_cnt, +max_required_ase_per_dev,
         static_cast<int>(strategy));
+
+    if (ent.direction == types::kLeAudioDirectionSink &&
+        strategy != required_snk_strategy) {
+      LOG_INFO(" Sink strategy mismatch (%d!=%d)",
+               static_cast<int>(required_snk_strategy),
+               static_cast<int>(strategy));
+      return false;
+    }
 
     for (auto* device = GetFirstDeviceWithActiveContext(context_type);
          device != nullptr && required_device_cnt > 0;
