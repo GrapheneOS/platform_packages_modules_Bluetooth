@@ -26,6 +26,7 @@ namespace audio {
 namespace aidl {
 namespace le_audio {
 
+using ::aidl::android::hardware::bluetooth::audio::BroadcastCapability;
 using ::aidl::android::hardware::bluetooth::audio::
     LeAudioBroadcastConfiguration;
 using ::aidl::android::hardware::bluetooth::audio::LeAudioConfiguration;
