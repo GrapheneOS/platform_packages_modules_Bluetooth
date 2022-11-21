@@ -301,11 +301,29 @@ Return<void> BluetoothHci::initialize_impl(
   }
   hci::H4Protocol* h4_hci = new hci::H4Protocol(
       hci_fd,
-      [cb](const hidl_vec<uint8_t>& packet) { cb->hciEventReceived(packet); },
-      [cb](const hidl_vec<uint8_t>& packet) { cb->aclDataReceived(packet); },
-      [cb](const hidl_vec<uint8_t>& packet) { cb->scoDataReceived(packet); },
+      [cb](const hidl_vec<uint8_t>& packet) {
+        auto status = cb->hciEventReceived(packet);
+        if (!status.isOk()) {
+          ALOGE("VendorInterface -> Unable to call hciEventReceived");
+        }
+      },
+      [cb](const hidl_vec<uint8_t>& packet) {
+        auto status = cb->aclDataReceived(packet);
+        if (!status.isOk()) {
+          ALOGE("VendorInterface -> Unable to call hciAclReceived");
+        }
+      },
+      [cb](const hidl_vec<uint8_t>& packet) {
+        auto status = cb->scoDataReceived(packet);
+        if (!status.isOk()) {
+          ALOGE("VendorInterface -> Unable to call hciScoReceived");
+        }
+      },
       [cb_1_1](const hidl_vec<uint8_t>& packet) {
-        cb_1_1->isoDataReceived(packet);
+        auto status = cb_1_1->isoDataReceived(packet);
+        if (!status.isOk()) {
+          ALOGE("VendorInterface -> Unable to call hciIsoReceived");
+        }
       },
       []() { ALOGE("UART disconnected."); });
 
