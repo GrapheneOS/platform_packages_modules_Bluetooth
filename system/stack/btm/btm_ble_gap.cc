@@ -905,7 +905,8 @@ static void sync_queue_cleanup(remove_sync_node_t* p_param) {
         sync_request->address == p_param->address) {
       LOG_INFO("%s: removing connection request SID=%04X, bd_addr=%s, busy=%d",
                __func__, sync_request->sid,
-               sync_request->address.ToString().c_str(), sync_request->busy);
+               ADDRESS_TO_LOGGABLE_CSTR(sync_request->address),
+               sync_request->busy);
       list_remove(sync_queue, sync_request);
     }
   }
@@ -943,7 +944,7 @@ static void btm_queue_sync_next() {
   sync_node_t* p_head = (sync_node_t*)list_front(sync_queue);
 
   LOG_INFO("%s: executing sync request SID=%04X, bd_addr=%s", __func__,
-           p_head->sid, p_head->address.ToString().c_str());
+           p_head->sid, ADDRESS_TO_LOGGABLE_CSTR(p_head->address));
   if (p_head->busy) {
     LOG_DEBUG("BUSY");
     return;
@@ -974,7 +975,7 @@ static void btm_ble_sync_queue_handle(uint16_t event, char* param) {
 
 void btm_queue_start_sync_req(uint8_t sid, RawAddress address, uint16_t skip,
                               uint16_t timeout) {
-  LOG_DEBUG("address = %s, sid = %d", address.ToString().c_str(), sid);
+  LOG_DEBUG("address = %s, sid = %d", ADDRESS_TO_LOGGABLE_CSTR(address), sid);
   sync_node_t node = {};
   node.sid = sid;
   node.address = address;
@@ -1450,7 +1451,7 @@ void btm_ble_periodic_adv_sync_tx_rcvd(uint8_t* p, uint16_t param_len) {
       " sync_handle = %u, adv_sid = %u, address_type = %u, addr = %s,"
       " adv_phy = %u, pa_int = %u, clk_acc = %u",
       status, conn_handle, service_data, sync_handle, adv_sid, address_type,
-      addr.ToString().c_str(), adv_phy, pa_int, clk_acc);
+      ADDRESS_TO_LOGGABLE_CSTR(addr), adv_phy, pa_int, clk_acc);
   if (syncRcvdCbRegistered) {
     sync_rcvd_cb.Run(status, sync_handle, adv_sid, address_type, addr, adv_phy,
                      pa_int);
