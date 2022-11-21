@@ -30,7 +30,7 @@ use tokio::task::JoinHandle;
 use tokio::time;
 
 use crate::battery_service::BatteryServiceActions;
-use crate::bluetooth_admin::BluetoothAdmin;
+use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia, MediaActions};
 use crate::callbacks::Callbacks;
 use crate::uuid::{Profile, UuidHelper, HOGP};
@@ -509,7 +509,8 @@ impl Bluetooth {
             }),
         });
 
-        self.toggle_enabled_profiles(&vec![]);
+        let allowed_profiles = self.bluetooth_admin.lock().unwrap().get_allowed_services();
+        self.toggle_enabled_profiles(&allowed_profiles);
         // Mark profiles as ready
         self.profiles_ready = true;
     }
