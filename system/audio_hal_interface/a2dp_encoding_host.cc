@@ -146,13 +146,13 @@ bool StartRequest() {
     /*
      * Post start event and wait for audio path to open.
      * If we are the source, the ACK will be sent after the start
-     * procedure is completed, othewise send it now.
+     * procedure is completed.
      */
     a2dp_pending_cmd_ = A2DP_CTRL_CMD_START;
     btif_av_stream_start();
     if (btif_av_get_peer_sep() != AVDT_TSEP_SRC) {
-      LOG(INFO) << __func__ << ": accepted";
-      return false;  // TODO: should be pending
+      LOG_INFO("%s: accepted", __func__);
+      return true;  // NOTE: The request is placed, but could still fail.
     }
     a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
     return true;
