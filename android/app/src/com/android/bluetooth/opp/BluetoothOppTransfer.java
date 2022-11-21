@@ -395,7 +395,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         ContentValues updateValues = new ContentValues();
         updateValues.put(BluetoothShare.USER_CONFIRMATION,
                 BluetoothShare.USER_CONFIRMATION_TIMEOUT);
-        mContext.getContentResolver().update(contentUri, updateValues, null, null);
+        BluetoothMethodProxy.getInstance().contentResolverUpdate(mContext.getContentResolver(),
+                contentUri, updateValues, null, null);
     }
 
     private void markBatchFailed(int failReason) {
@@ -421,7 +422,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             }
             if (mCurrentShare.mDirection == BluetoothShare.DIRECTION_INBOUND
                     && mCurrentShare.mUri != null) {
-                mContext.getContentResolver().delete(mCurrentShare.mUri, null, null);
+                BluetoothMethodProxy.getInstance().contentResolverDelete(
+                        mContext.getContentResolver(), mCurrentShare.mUri, null, null);
             }
         }
 
@@ -448,7 +450,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     }
                 } else {
                     if (info.mStatus < 200 && info.mUri != null) {
-                        mContext.getContentResolver().delete(info.mUri, null, null);
+                        BluetoothMethodProxy.getInstance().contentResolverDelete(
+                                mContext.getContentResolver(), info.mUri, null, null);
                     }
                 }
                 BluetoothMethodProxy.getInstance().contentResolverUpdate(
@@ -873,7 +876,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + share.mId);
         ContentValues updateValues = new ContentValues();
         updateValues.put(BluetoothShare.DIRECTION, share.mDirection);
-        mContext.getContentResolver().update(contentUri, updateValues, null, null);
+        BluetoothMethodProxy.getInstance().contentResolverUpdate(mContext.getContentResolver(),
+                contentUri, updateValues, null, null);
     }
 
     /*
