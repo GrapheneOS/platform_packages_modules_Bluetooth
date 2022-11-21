@@ -533,6 +533,7 @@ pub fn migrate_bluez_devices() {
                 for (sec, props) in ini {
                     // Drop devices that don't exist in BlueZ
                     if sec.contains(":") && !devices.contains(&sec) {
+                        info!("Dropping a device in Floss that doesn't exist in BlueZ");
                         continue;
                     }
                     // Keep keys that weren't transferrable
@@ -551,7 +552,7 @@ pub fn migrate_bluez_devices() {
         // Write contents to file
         match conf.write(FLOSS_CONF_FILE) {
             Ok(_) => {
-                debug!("Successfully migrated devices from BlueZ to Floss for adapter {}", adapter);
+                info!("Successfully migrated devices from BlueZ to Floss for adapter {}", adapter);
             }
             Err(err) => {
                 error!(
