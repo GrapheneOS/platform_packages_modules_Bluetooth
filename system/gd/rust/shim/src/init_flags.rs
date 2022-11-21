@@ -4,6 +4,7 @@ mod ffi {
         fn load(flags: Vec<String>);
         fn set_all_for_testing();
 
+        fn asynchronously_start_l2cap_coc_is_enabled() -> bool;
         fn btaa_hci_is_enabled() -> bool;
         fn btm_dm_flush_discovery_queue_on_search_cancel_is_enabled() -> bool;
         fn finite_att_timeout_is_enabled() -> bool;

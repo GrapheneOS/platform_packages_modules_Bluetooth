@@ -172,6 +172,7 @@ fn parse_hci_adapter(flags: &mut InitFlags, values: Vec<&str>) {
 init_flags!(
     // LINT.IfChange
     flags: {
+        asynchronously_start_l2cap_coc = true,
         btaa_hci = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
         finite_att_timeout = true,
