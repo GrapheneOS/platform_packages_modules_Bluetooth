@@ -208,7 +208,7 @@
             ]
         },
         {
-            "name": "Recording",
+            "name": "Live",
             "configurations": [
                 "VND_SingleDev_TwoChanStereoSrc_48khz_100octs_Server_Preferred_1",
                 "VND_SingleDev_TwoChanStereoSrc_48khz_100octs_R11_L40_1"
