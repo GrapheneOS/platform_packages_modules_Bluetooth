@@ -57,7 +57,8 @@ bool interop_match_addr(const interop_feature_t feature,
       interop_match_dynamic_(feature, addr) ||
       interop_match_range_(feature, addr)) {
     LOG_INFO("%s() Device %s is a match for interop workaround %s.", __func__,
-             addr->ToString().c_str(), interop_feature_string_(feature));
+             ADDRESS_TO_LOGGABLE_STR(*addr).c_str(),
+             interop_feature_string_(feature));
     return true;
   }
 
