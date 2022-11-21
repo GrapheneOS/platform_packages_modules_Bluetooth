@@ -690,7 +690,7 @@ void rfc_process_mx_message(tRFC_MCB* p_mcb, BT_HDR* p_buf) {
   }
 
   RFCOMM_TRACE_DEBUG("%s: type=0x%02x, bd_addr=%s", __func__, p_rx_frame->type,
-                     p_mcb->bd_addr.ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(p_mcb->bd_addr));
   switch (p_rx_frame->type) {
     case RFCOMM_MX_PN:
       if (length != RFCOMM_MX_PN_LEN) {
