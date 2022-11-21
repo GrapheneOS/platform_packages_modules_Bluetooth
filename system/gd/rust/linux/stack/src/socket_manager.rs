@@ -839,6 +839,41 @@ impl BluetoothSocketManager {
         }
     }
 
+    /// Helper function that waits for given stream to be readable and then reads the stream into
+    /// the provided buffer.
+    async fn wait_and_read_stream(
+        timeout: Duration,
+        stream: &UnixStream,
+        buf: &mut [u8],
+    ) -> BtStatus {
+        // Wait on the stream to be readable.
+        match time::timeout(timeout, stream.readable()).await {
+            Ok(inner) => match inner {
+                Ok(()) => {}
+                Err(e) => {
+                    // Stream was not readable. This is usually due to some polling error.
+                    return BtStatus::Fail;
+                }
+            },
+            Err(_) => {
+                // Timed out waiting for stream to be readable.
+                return BtStatus::NotReady;
+            }
+        };
+
+        match stream.try_read(buf) {
+            Ok(n) => {
+                if n != buf.len() {
+                    return BtStatus::Fail;
+                }
+                return BtStatus::Success;
+            }
+            _ => {
+                return BtStatus::Fail;
+            }
+        }
+    }
+
     /// Task spawned on socket runtime to handle socket connections.
     ///
     /// This task will always result in a |SocketActions::OnOutgoingConnectionResult| message being
@@ -867,53 +902,43 @@ impl BluetoothSocketManager {
             }
         };
 
-        // Wait on the stream to be readable.
-        let ready = match time::timeout(connection_timeout, stream.readable()).await {
-            Ok(inner) => match inner {
-                Ok(()) => true,
-                Err(e) => {
-                    // Connecting socket was not readable. This is
-                    // usually due to some polling error. Log and
-                    // return failure.
-                    log::debug!("Connecting socket to {} failed: {:?}", connector.socket_info, e);
-                    let _ = tx
-                        .send(Message::SocketManagerActions(
-                            SocketActions::OnOutgoingConnectionResult(
-                                cbid,
-                                socket_id,
-                                BtStatus::Fail,
-                                None,
-                            ),
-                        ))
-                        .await;
-                    false
-                }
-            },
-            Err(_) => {
-                // Timed out waiting for connection to complete.
-                log::info!("Connecting socket to {} timed out", connector.socket_info);
-
-                let _ = tx
-                    .send(Message::SocketManagerActions(SocketActions::OnOutgoingConnectionResult(
-                        cbid,
-                        socket_id,
-                        BtStatus::NotReady,
-                        None,
-                    )))
-                    .await;
-
-                false
-            }
-        };
-
-        // If we aren't read ready, return right away.
-        if !ready {
+        // Wait for stream to be readable, then read channel
+        let mut channel_bytes = [0 as u8; 4];
+        let mut status =
+            Self::wait_and_read_stream(connection_timeout, &stream, &mut channel_bytes).await;
+        if i32::from_be_bytes(channel_bytes) <= 0 {
+            status = BtStatus::Fail;
+        }
+        if status != BtStatus::Success {
+            log::info!(
+                "Connecting socket to {} failed while trying to read channel from stream",
+                connector.socket_info
+            );
+            let _ = tx
+                .send(Message::SocketManagerActions(SocketActions::OnOutgoingConnectionResult(
+                    cbid, socket_id, status, None,
+                )))
+                .await;
             return;
         }
 
-        let mut data = [0; socket::CONNECT_COMPLETE_SIZE + 1];
-        if let Ok(n) = stream.try_read(&mut data) {
-            if let Ok(cc) = socket::ConnectionComplete::try_from(&data[0..n]) {
+        // Wait for stream to be readable, then read connect complete data
+        let mut data = [0; socket::CONNECT_COMPLETE_SIZE];
+        let status = Self::wait_and_read_stream(connection_timeout, &stream, &mut data).await;
+        if status != BtStatus::Success {
+            log::info!(
+                "Connecting socket to {} failed while trying to read connect complete from stream",
+                connector.socket_info
+            );
+            let _ = tx
+                .send(Message::SocketManagerActions(SocketActions::OnOutgoingConnectionResult(
+                    cbid, socket_id, status, None,
+                )))
+                .await;
+            return;
+        }
+        match socket::ConnectionComplete::try_from(&data[0..socket::CONNECT_COMPLETE_SIZE]) {
+            Ok(cc) => {
                 let status = BtStatus::from(cc.status as u32);
                 if status != BtStatus::Success {
                     let _ = tx
@@ -944,6 +969,17 @@ impl BluetoothSocketManager {
                         ))
                         .await;
                 }
+            }
+            Err(err) => {
+                log::info!("Unable to parse ConnectionComplete: {}", err);
+                let _ = tx
+                    .send(Message::SocketManagerActions(SocketActions::OnOutgoingConnectionResult(
+                        cbid,
+                        socket_id,
+                        BtStatus::Fail,
+                        None,
+                    )))
+                    .await;
             }
         }
     }
