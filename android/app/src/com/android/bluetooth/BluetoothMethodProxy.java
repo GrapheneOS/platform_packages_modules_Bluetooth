@@ -111,7 +111,6 @@ public class BluetoothMethodProxy {
         return contentResolver.openFileDescriptor(uri, mode);
     }
 
-
     /**
      * Proxies {@link HeaderSet#getHeader}.
      */
