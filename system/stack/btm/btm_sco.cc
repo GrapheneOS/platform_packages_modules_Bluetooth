@@ -858,7 +858,7 @@ void btm_sco_conn_req(const RawAddress& bda, const DEV_CLASS& dev_class,
 
   /* If here, no one wants the SCO connection. Reject it */
   BTM_TRACE_WARNING("%s: rejecting SCO for %s", __func__,
-                    bda.ToString().c_str());
+                    ADDRESS_TO_LOGGABLE_CSTR(bda));
   btm_esco_conn_rsp(BTM_MAX_SCO_LINKS, HCI_ERR_HOST_REJECT_RESOURCES, bda,
                     nullptr);
 }

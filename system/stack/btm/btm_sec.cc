@@ -717,7 +717,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
   VLOG(1) << __func__ << " BDA: " << bd_addr;
 
   BTM_TRACE_DEBUG("%s: Transport used %d, bd_addr=%s", __func__, transport,
-                  bd_addr.ToString().c_str());
+                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
   /* Other security process is in progress */
   if (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE) {
@@ -2498,7 +2498,7 @@ void btm_io_capabilities_req(const RawAddress& p) {
   if (btm_sec_is_a_bonded_dev(p)) {
     BTM_TRACE_WARNING(
         "%s: Incoming bond request, but %s is already bonded (removing)",
-        __func__, p.ToString().c_str());
+        __func__, ADDRESS_TO_LOGGABLE_CSTR(p));
     bta_dm_process_remove_device(p);
   }
 

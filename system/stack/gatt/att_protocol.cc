@@ -22,16 +22,17 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include "bt_target.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
+#include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "types/bluetooth/uuid.h"
-
-#include <base/logging.h>
 
 #define GATT_HDR_FIND_TYPE_VALUE_LEN 21
 #define GATT_OP_CODE_SIZE 1

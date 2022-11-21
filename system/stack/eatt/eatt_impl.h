@@ -188,7 +188,7 @@ struct eatt_impl {
     eatt_device* eatt_dev = find_device_by_address(bda);
     auto num_of_sdu =
         stack_config_get_interface()->get_pts_l2cap_ecoc_send_num_of_sdu();
-    LOG_INFO(" device %s, num: %d", eatt_dev->bda_.ToString().c_str(),
+    LOG_INFO(" device %s, num: %d", ADDRESS_TO_LOGGABLE_CSTR(eatt_dev->bda_),
              num_of_sdu);
 
     if (num_of_sdu <= 0) {
@@ -227,7 +227,7 @@ struct eatt_impl {
 
   /* This is for the L2CAP ECoC Testing. */
   void upper_tester_delay_connect_cb(const RawAddress& bda) {
-    LOG_INFO("device %s", bda.ToString().c_str());
+    LOG_INFO("device %s", ADDRESS_TO_LOGGABLE_CSTR(bda));
     eatt_device* eatt_dev = find_device_by_address(bda);
     if (eatt_dev == nullptr) {
       LOG_ERROR(" device is not available");
@@ -265,7 +265,7 @@ struct eatt_impl {
       if (key_size < min_key_size) {
         std::vector<uint16_t> empty;
         LOG_ERROR("Insufficient key size (%d<%d) for device %s", key_size,
-                  min_key_size, bda.ToString().c_str());
+                  min_key_size, ADDRESS_TO_LOGGABLE_CSTR(bda));
         L2CA_ConnectCreditBasedRsp(bda, identifier, empty,
                                    L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP_KEY_SIZE,
                                    nullptr);
@@ -308,7 +308,7 @@ struct eatt_impl {
                               std::vector<uint16_t>& lcids, uint16_t psm,
                               uint16_t peer_mtu, uint8_t identifier) {
     LOG_INFO("Device %s, num of cids: %d, psm 0x%04x, peer_mtu %d",
-             bda.ToString().c_str(), static_cast<int>(lcids.size()), psm,
+             ADDRESS_TO_LOGGABLE_CSTR(bda), static_cast<int>(lcids.size()), psm,
              peer_mtu);
 
     if (!stack_config_get_interface()
@@ -320,7 +320,8 @@ struct eatt_impl {
       if (BTM_IsLinkKeyKnown(bda, BT_TRANSPORT_LE)) {
         result = L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP;
       }
-      LOG_ERROR("ACL to device %s is unencrypted.", bda.ToString().c_str());
+      LOG_ERROR("ACL to device %s is unencrypted.",
+                ADDRESS_TO_LOGGABLE_CSTR(bda));
       L2CA_ConnectCreditBasedRsp(bda, identifier, empty, result, nullptr);
       return;
     }
@@ -351,7 +352,7 @@ struct eatt_impl {
     uint8_t role = L2CA_GetBleConnRole(eatt_dev->bda_);
     if (role == HCI_ROLE_CENTRAL) {
       LOG_INFO("Retrying EATT setup due to previous collision for device %s",
-               eatt_dev->bda_.ToString().c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(eatt_dev->bda_));
       connect_eatt_wrap(eatt_dev);
     } else if (stack_config_get_interface()
                    ->get_pts_eatt_peripheral_collision_support()) {
@@ -365,7 +366,7 @@ struct eatt_impl {
   /* This is for the L2CAP ECoC Testing. */
   void upper_tester_l2cap_connect_cfm(eatt_device* eatt_dev) {
     LOG_INFO("Upper tester for L2CAP Ecoc %s",
-             eatt_dev->bda_.ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(eatt_dev->bda_));
     if (is_channel_connection_pending(eatt_dev)) {
       LOG_INFO(" Waiting for all channels to be connected");
       return;
@@ -469,7 +470,8 @@ struct eatt_impl {
   void eatt_l2cap_collision_ind(const RawAddress& bda) {
     eatt_device* eatt_dev = find_device_by_address(bda);
     if (!eatt_dev) {
-      LOG_ERROR("Device %s not available anymore:", bda.ToString().c_str());
+      LOG_ERROR("Device %s not available anymore:",
+                ADDRESS_TO_LOGGABLE_CSTR(bda));
       return;
     }
     /* Remote wanted to setup channels as well. Let's retry remote's request
@@ -589,7 +591,7 @@ struct eatt_impl {
     };
 
     LOG_INFO("Connecting device %s, cnt count %d",
-             eatt_dev->bda_.ToString().c_str(), num_of_channels);
+             ADDRESS_TO_LOGGABLE_CSTR(eatt_dev->bda_), num_of_channels);
 
     /* Warning! CIDs in Android are unique across the ACL connections */
     std::vector<uint16_t> connecting_cids =
@@ -829,7 +831,8 @@ struct eatt_impl {
   }
 
   void reconfigure_all(const RawAddress& bd_addr, uint16_t new_mtu) {
-    LOG_INFO(" Device %s, new mtu %d", bd_addr.ToString().c_str(), new_mtu);
+    LOG_INFO(" Device %s, new mtu %d", ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
+             new_mtu);
     eatt_device* eatt_dev = find_device_by_address(bd_addr);
     if (!eatt_dev) {
       LOG(ERROR) << __func__ << "Unknown device " << bd_addr;
@@ -887,7 +890,8 @@ struct eatt_impl {
   void disconnect_channel(uint16_t cid) { L2CA_DisconnectReq(cid); }
 
   void disconnect(const RawAddress& bd_addr, uint16_t cid) {
-    LOG_INFO(" Device: %s, cid: 0x%04x", bd_addr.ToString().c_str(), cid);
+    LOG_INFO(" Device: %s, cid: 0x%04x", ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
+             cid);
 
     eatt_device* eatt_dev = find_device_by_address(bd_addr);
     if (!eatt_dev) {
@@ -905,7 +909,7 @@ struct eatt_impl {
       auto chan = find_channel_by_cid(cid);
       if (!chan) {
         LOG_WARN("Cid %d not found for device %s", cid,
-                 bd_addr.ToString().c_str());
+                 ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
         return;
       }
       LOG_INFO("Disconnecting cid %d", cid);
@@ -932,7 +936,7 @@ struct eatt_impl {
                             uint8_t role) {
     LOG_INFO(
         "L2CAP Upper tester enabled, %s (%p), role: %s(%d)",
-        bd_addr.ToString().c_str(), eatt_dev,
+        ADDRESS_TO_LOGGABLE_CSTR(bd_addr), eatt_dev,
         role == HCI_ROLE_CENTRAL ? "HCI_ROLE_CENTRAL" : "HCI_ROLE_PERIPHERAL",
         role);
 
@@ -962,7 +966,7 @@ struct eatt_impl {
             bd_addr, base::BindOnce(&eatt_impl::supported_features_cb,
                                     base::Unretained(this), role)) == false) {
       LOG_INFO("Read server supported features failed for device %s",
-               bd_addr.ToString().c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     }
   }
 
@@ -980,7 +984,7 @@ struct eatt_impl {
       return;
     }
 
-    LOG_INFO("Device %s, role %s", bd_addr.ToString().c_str(),
+    LOG_INFO("Device %s, role %s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
              (role == HCI_ROLE_CENTRAL ? "central" : "peripheral"));
 
     if (eatt_dev) {
@@ -1002,7 +1006,8 @@ struct eatt_impl {
     if (role != HCI_ROLE_CENTRAL) return;
 
     if (gatt_profile_get_eatt_support(bd_addr)) {
-      LOG_DEBUG("Eatt is supported for device %s", bd_addr.ToString().c_str());
+      LOG_DEBUG("Eatt is supported for device %s",
+                ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       supported_features_cb(role, bd_addr, BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK);
       return;
     }
@@ -1012,7 +1017,7 @@ struct eatt_impl {
             bd_addr, base::BindOnce(&eatt_impl::supported_features_cb,
                                     base::Unretained(this), role)) == false) {
       LOG_INFO("Read server supported features failed for device %s",
-               bd_addr.ToString().c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     }
   }
 
