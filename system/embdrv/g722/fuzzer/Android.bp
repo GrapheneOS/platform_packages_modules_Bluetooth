@@ -12,7 +12,7 @@ cc_fuzz {
     srcs: [
         "g722_enc_fuzzer.cc",
     ],
-    host_supported: false,
+    host_supported: true,
     static_libs: [
         "libg722codec",
     ],
