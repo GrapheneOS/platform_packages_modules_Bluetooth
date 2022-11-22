@@ -366,7 +366,11 @@ impl InternalConnectingSocket {
 // an open and valid file to operate on, converting to file via RawFd is just
 // boilerplate.
 fn unixstream_to_file(stream: UnixStream) -> std::fs::File {
-    unsafe { std::fs::File::from_raw_fd(stream.as_raw_fd()) }
+    unsafe {
+        std::fs::File::from_raw_fd(
+            stream.into_std().expect("Failed to convert tokio unixstream").into_raw_fd(),
+        )
+    }
 }
 
 // This is a safe operation in an unsafe wrapper. A file is already open and owned
