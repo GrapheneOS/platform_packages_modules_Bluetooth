@@ -8,9 +8,9 @@ package {
 }
 
 cc_fuzz {
-    name: "g722_enc_fuzzer",
+    name: "g722_fuzzer",
     srcs: [
-        "g722_enc_fuzzer.cc",
+        "g722_fuzzer.cc",
     ],
     host_supported: true,
     static_libs: [
