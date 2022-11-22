@@ -146,7 +146,8 @@ public class HeadsetStateMachine extends StateMachine {
     private boolean mHasNrecEnabled = false;
     private boolean mHasWbsEnabled = false;
     // AT Phone book keeps a group of states used by AT+CPBR commands
-    private final AtPhonebook mPhonebook;
+    @VisibleForTesting
+    final AtPhonebook mPhonebook;
     // HSP specific
     private boolean mNeedDialingOutReply;
     // Audio disconnect timeout retry count
@@ -1516,7 +1517,8 @@ public class HeadsetStateMachine extends StateMachine {
     /*
      * Put the AT command, company ID, arguments, and device in an Intent and broadcast it.
      */
-    private void broadcastVendorSpecificEventIntent(String command, int companyId, int commandType,
+    @VisibleForTesting
+    void broadcastVendorSpecificEventIntent(String command, int companyId, int commandType,
             Object[] arguments, BluetoothDevice device) {
         log("broadcastVendorSpecificEventIntent(" + command + ")");
         Intent intent = new Intent(BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT);
@@ -1540,7 +1542,8 @@ public class HeadsetStateMachine extends StateMachine {
         am.setBluetoothHeadsetProperties(getCurrentDeviceName(), mHasNrecEnabled, mHasWbsEnabled);
     }
 
-    private String parseUnknownAt(String atString) {
+    @VisibleForTesting
+    String parseUnknownAt(String atString) {
         StringBuilder atCommand = new StringBuilder(atString.length());
 
         for (int i = 0; i < atString.length(); i++) {
@@ -1561,7 +1564,8 @@ public class HeadsetStateMachine extends StateMachine {
         return atCommand.toString();
     }
 
-    private int getAtCommandType(String atCommand) {
+    @VisibleForTesting
+    int getAtCommandType(String atCommand) {
         int commandType = AtPhonebook.TYPE_UNKNOWN;
         String atString = null;
         atCommand = atCommand.trim();
@@ -1691,7 +1695,8 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
-    private void processAtChld(int chld, BluetoothDevice device) {
+    @VisibleForTesting
+    void processAtChld(int chld, BluetoothDevice device) {
         if (mSystemInterface.processChld(chld)) {
             mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_OK, 0);
         } else {
@@ -1756,7 +1761,8 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
-    private void processAtClcc(BluetoothDevice device) {
+    @VisibleForTesting
+    void processAtClcc(BluetoothDevice device) {
         if (mHeadsetService.isVirtualCallStarted()) {
             // In virtual call, send our phone number instead of remote phone number
             String phoneNumber = mSystemInterface.getSubscriberNumber();
@@ -1811,7 +1817,8 @@ public class HeadsetStateMachine extends StateMachine {
      * Find a character ch, ignoring quoted sections.
      * Return input.length() if not found.
      */
-    private static int findChar(char ch, String input, int fromIndex) {
+    @VisibleForTesting
+    static int findChar(char ch, String input, int fromIndex) {
         for (int i = fromIndex; i < input.length(); i++) {
             char c = input.charAt(i);
             if (c == '"') {
@@ -1831,7 +1838,8 @@ public class HeadsetStateMachine extends StateMachine {
      * Integer arguments are turned into Integer objects. Otherwise a String
      * object is used.
      */
-    private static Object[] generateArgs(String input) {
+    @VisibleForTesting
+    static Object[] generateArgs(String input) {
         int i = 0;
         int j;
         ArrayList<Object> out = new ArrayList<Object>();
@@ -2028,7 +2036,8 @@ public class HeadsetStateMachine extends StateMachine {
         }
     }
 
-    private void processAtBiev(int indId, int indValue, BluetoothDevice device) {
+    @VisibleForTesting
+    void processAtBiev(int indId, int indValue, BluetoothDevice device) {
         log("processAtBiev: ind_id=" + indId + ", ind_value=" + indValue);
         sendIndicatorIntent(device, indId, indValue);
     }
@@ -2105,7 +2114,8 @@ public class HeadsetStateMachine extends StateMachine {
         return builder.toString();
     }
 
-    private void handleAccessPermissionResult(Intent intent) {
+    @VisibleForTesting
+    void handleAccessPermissionResult(Intent intent) {
         log("handleAccessPermissionResult");
         BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
         if (!mPhonebook.getCheckingAccessPermission()) {
