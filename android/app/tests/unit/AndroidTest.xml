@@ -37,7 +37,11 @@
     <option name="test-tag" value="BluetoothInstrumentationTests" />
     <test class="com.android.tradefed.testtype.AndroidJUnitTest" >
         <option name="package" value="com.android.bluetooth.tests" />
-        <option name="test-filter-dir" value="/data/data/{PACKAGE}/cache" />
+        <!-- include and exclude filters go into /data/local/tmp/ajur/ by default
+             However it's prohibited for access by system uid packages.
+             So instead we use the test data folder for filter. This is applicable
+             here as we are root. -->
+        <option name="test-filter-dir" value="/data/data/com.android.bluetooth.tests" />
         <option name="hidden-api-checks" value="false"/>
     </test>
 
