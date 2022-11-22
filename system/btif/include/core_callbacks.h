@@ -121,6 +121,9 @@ struct HACK_ProfileInterface {
   // ASHA hacks
   int (*GetHearingAidDeviceCount)();
 
+  // LE Audio hacks
+  bool (*IsLeAudioClientRunning)();
+
   HACK_ProfileInterface(const HACK_ProfileInterface&) = delete;
   HACK_ProfileInterface& operator=(const HACK_ProfileInterface&) = delete;
 };
