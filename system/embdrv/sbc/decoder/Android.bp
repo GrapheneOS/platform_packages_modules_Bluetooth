@@ -49,5 +49,5 @@ cc_fuzz {
     local_include_dirs: [
         "include",
     ],
-    host_supported: false,
+    host_supported: true,
 }
