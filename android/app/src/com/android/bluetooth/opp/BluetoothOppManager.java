@@ -140,6 +140,14 @@ public class BluetoothOppManager {
     }
 
     /**
+     * Set Singleton instance. Intended for testing purpose
+     */
+    @VisibleForTesting
+    static void setInstance(BluetoothOppManager instance) {
+        sInstance = instance;
+    }
+
+    /**
      * init
      */
     private boolean init(Context context) {
@@ -485,9 +493,7 @@ public class BluetoothOppManager {
                             BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED);
                 }
                 final Uri contentUri = BluetoothMethodProxy.getInstance().contentResolverInsert(
-                        mContext.getContentResolver(), BluetoothShare.CONTENT_URI, values
-                );
-
+                        mContext.getContentResolver(), BluetoothShare.CONTENT_URI, values);
                 if (V) {
                     Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: " + getDeviceName(
                             mRemoteDevice));
@@ -508,8 +514,7 @@ public class BluetoothOppManager {
                         BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED);
             }
             final Uri contentUri = BluetoothMethodProxy.getInstance().contentResolverInsert(
-                    mContext.getContentResolver(), BluetoothShare.CONTENT_URI, values
-            );
+                    mContext.getContentResolver(), BluetoothShare.CONTENT_URI, values);
             if (V) {
                 Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: " + getDeviceName(
                         mRemoteDevice));
