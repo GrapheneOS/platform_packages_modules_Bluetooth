@@ -95,7 +95,8 @@ const Uuid UUID_HEARING_AID = Uuid::FromString("FDF0");
 const Uuid UUID_VC = Uuid::FromString("1844");
 const Uuid UUID_CSIS = Uuid::FromString("1846");
 const Uuid UUID_LE_AUDIO = Uuid::FromString("184E");
-const Uuid UUID_LE_MIDI = Uuid::FromString("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
+const Uuid UUID_LE_MIDI =
+    Uuid::FromString("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
 const Uuid UUID_HAS = Uuid::FromString("1854");
 const Uuid UUID_BASS = Uuid::FromString("184F");
 const Uuid UUID_BATTERY = Uuid::FromString("180F");
@@ -184,7 +185,9 @@ typedef struct {
   bt_oob_data_t p256_data; /* P256 Data or empty */
 } btif_dm_oob_cb_t;
 
-typedef struct { unsigned int manufact_id; } skip_sdp_entry_t;
+typedef struct {
+  unsigned int manufact_id;
+} skip_sdp_entry_t;
 
 typedef enum {
   BTIF_DM_FUNC_CREATE_BOND,
@@ -278,9 +281,7 @@ static bool is_bonding_or_sdp() {
          (pairing_cb.state == BT_BOND_STATE_BONDED && pairing_cb.sdp_attempts);
 }
 
-void btif_dm_init(uid_set_t* set) {
-  uid_set = set;
-}
+void btif_dm_init(uid_set_t* set) { uid_set = set; }
 
 void btif_dm_cleanup(void) {
   if (uid_set) {
@@ -639,7 +640,8 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
  * up LE profile connection, and limits all possible service discovery
  * ordering issues (first Classic, GATT over SDP, etc) */
 static bool is_device_le_audio_capable(const RawAddress bd_addr) {
-  if (!LeAudioClient::IsLeAudioClientRunning() ||
+  if (!GetInterfaceToProfiles()
+           ->profileSpecific_HACK->IsLeAudioClientRunning() ||
       !check_cod_le_audio(bd_addr)) {
     return false;
   }
@@ -1816,7 +1818,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       break;
 
     case BTA_DM_LINK_UP_FAILED_EVT:
-      invoke_acl_state_changed_cb(
+      GetInterfaceToProfiles()->events->invoke_acl_state_changed_cb(
           BT_STATUS_FAIL, p_data->link_up_failed.bd_addr,
           BT_ACL_STATE_DISCONNECTED, p_data->link_up_failed.transport_link_type,
           p_data->link_up_failed.status,
@@ -2405,7 +2407,8 @@ void btif_dm_get_local_class_of_device(DEV_CLASS device_class) {
     // Build a string of all the chars until the next comma, null, or end of the
     // buffer is reached. If any char is not a digit, then return the default.
     std::string value;
-    while (i < PROPERTY_VALUE_MAX && prop_cod[i] != ',' && prop_cod[i] != '\0') {
+    while (i < PROPERTY_VALUE_MAX && prop_cod[i] != ',' &&
+           prop_cod[i] != '\0') {
       char c = prop_cod[i++];
       if (!std::isdigit(c)) {
         LOG_ERROR("%s: COD malformed, '%c' is a non-digit", __func__, c);
@@ -2423,7 +2426,7 @@ void btif_dm_get_local_class_of_device(DEV_CLASS device_class) {
     // Each number in the list must be one byte, meaning 0 (0x00) -> 255 (0xFF)
     if (value.size() > 3 || value.size() == 0) {
       LOG_ERROR("%s: COD malformed, '%s' must be between [0, 255]", __func__,
-          value.c_str());
+                value.c_str());
       return;
     }
 
@@ -2431,7 +2434,7 @@ void btif_dm_get_local_class_of_device(DEV_CLASS device_class) {
     uint32_t uint32_val = static_cast<uint32_t>(std::stoul(value.c_str()));
     if (uint32_val > 0xFF) {
       LOG_ERROR("%s: COD malformed, '%s' must be between [0, 255]", __func__,
-          value.c_str());
+                value.c_str());
       return;
     }
 
@@ -2466,7 +2469,7 @@ void btif_dm_get_local_class_of_device(DEV_CLASS device_class) {
   }
 
   LOG_DEBUG("%s: Using class of device '0x%x, 0x%x, 0x%x'", __func__,
-      device_class[0], device_class[1], device_class[2]);
+            device_class[0], device_class[1], device_class[2]);
 }
 
 /*******************************************************************************
@@ -2510,9 +2513,10 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t* prop) {
       prop->len = sizeof(DEV_CLASS);
     } break;
 
-    // While fetching IO_CAP* values for the local device, we maintain backward
-    // compatibility by using the value from #define macros BTM_LOCAL_IO_CAPS,
-    // BTM_LOCAL_IO_CAPS_BLE if the values have never been explicitly set.
+      // While fetching IO_CAP* values for the local device, we maintain
+      // backward compatibility by using the value from #define macros
+      // BTM_LOCAL_IO_CAPS, BTM_LOCAL_IO_CAPS_BLE if the values have never been
+      // explicitly set.
 
     case BT_PROPERTY_LOCAL_IO_CAPS: {
       *(bt_io_cap_t*)prop->val = (bt_io_cap_t)BTM_LOCAL_IO_CAPS;
@@ -3052,7 +3056,8 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
     bond_state_changed(status, bd_addr, BT_BOND_STATE_BONDING);
   }
   bond_state_changed(status, bd_addr, state);
-  // TODO(240451061): Calling `stop_oob_advertiser();` gets command disallowed...
+  // TODO(240451061): Calling `stop_oob_advertiser();` gets command
+  // disallowed...
 }
 
 void btif_dm_load_ble_local_keys(void) {
@@ -3585,10 +3590,9 @@ void btif_dm_set_event_filter_connection_setup_all_devices() {
   BTA_DmSetEventFilterConnectionSetupAllDevices();
 }
 
-void btif_dm_allow_wake_by_hid() {
-  // Autoplumbed
-  auto le_hid_devices = btif_storage_get_hid_device_addresses();
-  BTA_DmAllowWakeByHid(le_hid_devices);
+void btif_dm_allow_wake_by_hid(
+    std::vector<std::pair<RawAddress, uint8_t>> addrs) {
+  BTA_DmAllowWakeByHid(std::move(addrs));
 }
 
 void btif_dm_restore_filter_accept_list() {
