@@ -50,7 +50,7 @@ public class A2dpSinkStateMachine extends StateMachine {
     //200->299 Events from Native
     static final int STACK_EVENT = 200;
 
-    static final int CONNECT_TIMEOUT_MS = 5000;
+    static final int CONNECT_TIMEOUT_MS = 10000;
 
     protected final BluetoothDevice mDevice;
     protected final byte[] mDeviceAddress;
