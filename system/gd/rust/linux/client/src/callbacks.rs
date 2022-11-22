@@ -156,7 +156,7 @@ impl IBluetoothCallback for BtCallback {
         passkey: u32,
     ) {
         match variant {
-            BtSspVariant::PasskeyNotification => {
+            BtSspVariant::PasskeyNotification | BtSspVariant::PasskeyConfirmation => {
                 print_info!(
                     "Device [{}: {}] would like to pair, enter passkey on remote device: {:06}",
                     &remote_device.address,
@@ -188,9 +188,6 @@ impl IBluetoothCallback for BtCallback {
             }
             BtSspVariant::PasskeyEntry => {
                 println!("Got PasskeyEntry but it is not supported...");
-            }
-            BtSspVariant::PasskeyConfirmation => {
-                println!("Got PasskeyConfirmation but there's nothing to do...");
             }
         }
     }
