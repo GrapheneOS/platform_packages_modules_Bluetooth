@@ -171,6 +171,9 @@ static int allow_wake_by_hid() { return 0; }
 
 static int set_event_filter_connection_setup_all_devices() { return 0; }
 
+static void metadata_changed(const RawAddress& remote_bd_addr, int key,
+                             std::vector<uint8_t> value) {}
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -220,7 +223,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     allow_wake_by_hid,
     restore_filter_accept_list,
     set_default_event_mask_except,
-    set_event_filter_inquiry_result_all_devices};
+    set_event_filter_inquiry_result_all_devices,
+    metadata_changed};
 
 // callback reporting helpers
 
