@@ -92,8 +92,8 @@ class IUT:
 
         # Note: we don't keep a single gRPC channel instance in the IUT class
         # because reset is allowed to close the gRPC server.
-        with grpc.insecure_channel(f"localhost:{self.pandora_server_port}") as channel:
-            self._retry(Host(channel).HardReset)(wait_for_ready=True)
+        with grpc.insecure_channel(f'localhost:{self.pandora_server_port}') as channel:
+            self._retry(Host(channel).FactoryReset)(wait_for_ready=True)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.rootcanal.close()
