@@ -338,7 +338,11 @@ static bluetooth::core::CoreInterface* CreateInterfaceToProfiles() {
           btif_av_set_dynamic_audio_buffer_size,
 
       // ASHA
-      .GetHearingAidDeviceCount = HearingAid::GetDeviceCount};
+      .GetHearingAidDeviceCount = HearingAid::GetDeviceCount,
+
+      // LE Audio
+      .IsLeAudioClientRunning = LeAudioClient::IsLeAudioClientRunning};
+
   static auto interfaceForCore =
       CoreInterfaceImpl(&eventCallbacks, &configInterface, &msbcCodecInterface,
                         &profileInterface);
