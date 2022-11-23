@@ -100,6 +100,7 @@ const Uuid UUID_LE_MIDI =
 const Uuid UUID_HAS = Uuid::FromString("1854");
 const Uuid UUID_BASS = Uuid::FromString("184F");
 const Uuid UUID_BATTERY = Uuid::FromString("180F");
+const Uuid UUID_A2DP_SINK = Uuid::FromString("110B");
 const bool enable_address_consolidate = true;  // TODO remove
 
 #define COD_UNCLASSIFIED ((0x1F) << 8)
@@ -1457,6 +1458,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       bt_status_t ret;
       std::vector<uint8_t> property_value;
       std::set<Uuid> uuids;
+      bool a2dp_sink_capable = false;
 
       RawAddress& bd_addr = p_data->disc_res.bd_addr;
 
@@ -1515,9 +1517,28 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
           auto uuid_128bit = uuid.To128BitBE();
           property_value.insert(property_value.end(), uuid_128bit.begin(),
                                 uuid_128bit.end());
+          if (uuid == UUID_A2DP_SINK) {
+            a2dp_sink_capable = true;
+          }
         }
         prop.val = (void*)property_value.data();
         prop.len = Uuid::kNumBytes128 * uuids.size();
+      }
+
+      bool skip_reporting_wait_for_le = false;
+      /* If we are doing service discovery for device that just bonded, that is
+       * capable of a2dp, and both sides can do LE Audio, and it haven't
+       * finished GATT over LE yet, then wait for LE service discovery to finish
+       * before before passing services to upper layers. */
+      if ((bd_addr == pairing_cb.bd_addr ||
+           bd_addr == pairing_cb.static_bdaddr) &&
+          a2dp_sink_capable &&
+          GetInterfaceToProfiles()
+              ->profileSpecific_HACK->IsLeAudioClientRunning() &&
+          pairing_cb.gatt_over_le !=
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED &&
+          check_cod_le_audio(bd_addr)) {
+        skip_reporting_wait_for_le = true;
       }
 
       /* onUuidChanged requires getBondedDevices to be populated.
@@ -1567,6 +1588,19 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
         ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed",
                 ret);
+
+        if (skip_reporting_wait_for_le) {
+          LOG_INFO(
+              "Bonding LE Audio sink - must wait for le services discovery "
+              "to pass all services to java %s:",
+              PRIVATE_ADDRESS(bd_addr));
+          /* For LE Audio capable devices, we care more about passing GATT LE
+           * services than about just finishing pairing. Service discovery
+           * should be scheduled when LE pairing finishes, by call to
+           * btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_LE) */
+          return;
+        }
+
         /* Send the event to the BTIF */
         GetInterfaceToProfiles()->events->invoke_remote_device_properties_cb(
             BT_STATUS_SUCCESS, bd_addr, 1, &prop);
