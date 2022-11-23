@@ -144,6 +144,7 @@ android_app {
         "framework-bluetooth-pre-jarjar",
         "framework-statsd.stubs.module_lib",
         "framework-tethering.stubs.module_lib",
+        "framework-configinfrastructure",
         "framework-connectivity.stubs.module_lib",
         "framework-mediaprovider",
         "unsupportedappusage",

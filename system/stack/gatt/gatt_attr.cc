@@ -342,12 +342,13 @@ static void gatt_connect_cback(UNUSED_ATTR tGATT_IF gatt_if,
                                const RawAddress& bda, uint16_t conn_id,
                                bool connected, tGATT_DISCONN_REASON reason,
                                tBT_TRANSPORT transport) {
-  VLOG(1) << __func__ << ": from " << bda << " connected: " << connected
-          << ", conn_id: " << loghex(conn_id);
+  VLOG(1) << __func__ << ": from " << ADDRESS_TO_LOGGABLE_STR(bda)
+          << " connected: " << connected << ", conn_id: " << loghex(conn_id);
 
   // if the device is not trusted, remove data when the link is disconnected
   if (!connected && !btm_sec_is_a_bonded_dev(bda)) {
-    LOG(INFO) << __func__ << ": remove untrusted client status, bda=" << bda;
+    LOG(INFO) << __func__ << ": remove untrusted client status, bda="
+              << ADDRESS_TO_LOGGABLE_STR(bda);
     btif_storage_remove_gatt_cl_supp_feat(bda);
     btif_storage_remove_gatt_cl_db_hash(bda);
   }
@@ -797,7 +798,7 @@ bool gatt_cl_read_sr_supp_feat_req(
 
   if (!cb) return false;
 
-  VLOG(1) << __func__ << " BDA: " << peer_bda
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(peer_bda)
           << " read gatt supported features";
 
   GATT_GetConnIdIfConnected(gatt_cb.gatt_if, peer_bda, &conn_id,
@@ -836,7 +837,8 @@ bool gatt_cl_read_sr_supp_feat_req(
 bool gatt_profile_get_eatt_support(const RawAddress& remote_bda) {
   uint16_t conn_id;
 
-  VLOG(1) << __func__ << " BDA: " << remote_bda << " read GATT support";
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(remote_bda)
+          << " read GATT support";
 
   GATT_GetConnIdIfConnected(gatt_cb.gatt_if, remote_bda, &conn_id,
                             BT_TRANSPORT_LE);
@@ -944,7 +946,7 @@ void gatt_sr_init_cl_status(tGATT_TCB& tcb) {
     tcb.is_robust_cache_change_aware = true;
   }
 
-  LOG(INFO) << __func__ << ": bda=" << tcb.peer_bda
+  LOG(INFO) << __func__ << ": bda=" << ADDRESS_TO_LOGGABLE_STR(tcb.peer_bda)
             << ", cl_supp_feat=" << loghex(tcb.cl_supp_feat)
             << ", aware=" << tcb.is_robust_cache_change_aware;
 }
@@ -970,7 +972,7 @@ void gatt_sr_update_cl_status(tGATT_TCB& tcb, bool chg_aware) {
 
   // only when the status is changed, print the log
   if (tcb.is_robust_cache_change_aware != chg_aware) {
-    LOG(INFO) << __func__ << ": bda=" << tcb.peer_bda
+    LOG(INFO) << __func__ << ": bda=" << ADDRESS_TO_LOGGABLE_STR(tcb.peer_bda)
               << ", chg_aware=" << chg_aware;
   }
 
@@ -1041,7 +1043,7 @@ static tGATT_STATUS gatt_sr_write_cl_supp_feat(uint16_t conn_id,
   // if original length is longer than new one, it must be the bit reset case.
   if (feature_list.size() > tmp.size()) {
     LOG(INFO) << __func__ << ": shorter length, conn_id=" << loghex(conn_id)
-              << ", bda=" << tcb.peer_bda;
+              << ", bda=" << ADDRESS_TO_LOGGABLE_STR(tcb.peer_bda);
     return GATT_VALUE_NOT_ALLOWED;
   }
   // new length is longer or equals to the original, need to check bits
@@ -1057,7 +1059,7 @@ static tGATT_STATUS gatt_sr_write_cl_supp_feat(uint16_t conn_id,
     if (val_and != val_xor) {
       LOG(INFO) << __func__
                 << ": bit cannot be reset, conn_id=" << loghex(conn_id)
-                << ", bda=" << tcb.peer_bda;
+                << ", bda=" << ADDRESS_TO_LOGGABLE_STR(tcb.peer_bda);
       return GATT_VALUE_NOT_ALLOWED;
     }
   }
@@ -1071,7 +1073,7 @@ static tGATT_STATUS gatt_sr_write_cl_supp_feat(uint16_t conn_id,
     tcb.cl_supp_feat &= ~BLE_GATT_CL_SUP_FEAT_CACHING_BITMASK;
     LOG(INFO) << __func__
               << ": reset robust caching bit, conn_id=" << loghex(conn_id)
-              << ", bda=" << tcb.peer_bda;
+              << ", bda=" << ADDRESS_TO_LOGGABLE_STR(tcb.peer_bda);
   }
   // TODO(hylo): save data as byte array
   btif_storage_set_gatt_cl_supp_feat(tcb.peer_bda, tcb.cl_supp_feat);

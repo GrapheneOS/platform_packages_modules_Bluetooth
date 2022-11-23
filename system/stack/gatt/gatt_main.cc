@@ -310,7 +310,7 @@ bool gatt_disconnect(tGATT_TCB* p_tcb) {
 bool gatt_update_app_hold_link_status(tGATT_IF gatt_if, tGATT_TCB* p_tcb,
                                       bool is_add) {
   LOG_DEBUG("gatt_if=%d, is_add=%d, peer_bda=%s", +gatt_if, is_add,
-            p_tcb->peer_bda.ToString().c_str());
+            ADDRESS_TO_LOGGABLE_CSTR(p_tcb->peer_bda));
   auto& holders = p_tcb->app_hold_link;
 
   if (is_add) {
@@ -373,7 +373,7 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB* p_tcb,
   if (is_add) {
     if (p_tcb->att_lcid == L2CAP_ATT_CID && is_valid_handle) {
       LOG_INFO("disable link idle timer for %s",
-               p_tcb->peer_bda.ToString().c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(p_tcb->peer_bda));
       /* acl link is connected disable the idle timeout */
       GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_NO_IDLE_TIMEOUT,
                           p_tcb->transport);

@@ -280,7 +280,7 @@ void PORT_StartInd(tRFC_MCB* p_mcb) {
 void PORT_ParNegInd(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl,
                     uint8_t k) {
   RFCOMM_TRACE_EVENT("%s: bd_addr=%s, dlci=%d, mtu=%d", __func__,
-                     p_mcb->bd_addr.ToString().c_str(), dlci, mtu);
+                     ADDRESS_TO_LOGGABLE_CSTR(p_mcb->bd_addr), dlci, mtu);
   tPORT* p_port = port_find_mcb_dlci_port(p_mcb, dlci);
   if (!p_port) {
     /* This can be a first request for this port */

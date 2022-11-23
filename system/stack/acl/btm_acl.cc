@@ -1368,7 +1368,7 @@ void btm_rejectlist_role_change_device(const RawAddress& bd_addr,
       LOG_WARN(
           "Device %s rejectlisted for role switching - "
           "multiple role switch failed attempts: %u",
-          bd_addr.ToString().c_str(), p->switch_role_failed_attempts);
+          ADDRESS_TO_LOGGABLE_CSTR(bd_addr), p->switch_role_failed_attempts);
       interop_database_add(INTEROP_DYNAMIC_ROLE_SWITCH, &bd_addr, 3);
     }
   }
