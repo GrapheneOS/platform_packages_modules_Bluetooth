@@ -31,6 +31,7 @@ from mmi2grpc.hid import HIDProxy
 from mmi2grpc.hogp import HOGPProxy
 from mmi2grpc.l2cap import L2CAPProxy
 from mmi2grpc.map import MAPProxy
+from mmi2grpc.pbap import PBAPProxy
 from mmi2grpc.rfcomm import RFCOMMProxy
 from mmi2grpc.sdp import SDPProxy
 from mmi2grpc.sm import SMProxy
@@ -79,6 +80,7 @@ class IUT:
         self._hogp = None
         self._l2cap = None
         self._map = None
+        self._pbap = None
         self._rfcomm = None
         self._sdp = None
         self._sm = None
@@ -111,6 +113,7 @@ class IUT:
         self._hid = None
         self._hogp = None
         self._map = None
+        self._pbap = None
         self._rfcomm = None
         self._sdp = None
         self._sm = None
@@ -229,6 +232,11 @@ class IUT:
             if not self._map:
                 self._map = MAPProxy(grpc.insecure_channel(f"localhost:{self.pandora_server_port}"))
             return self._map.interact(test, interaction, description, pts_address)
+        # Instantiates PBAP proxy and reroutes corresponding MMIs to it.
+        if profile in ("PBAP"):
+            if not self._pbap:
+                self._pbap = PBAPProxy(grpc.insecure_channel(f"localhost:{self.pandora_server_port}"))
+            return self._pbap.interact(test, interaction, description, pts_address)
         # Handles RFCOMM MMIs.
         if profile in ("RFCOMM"):
             if not self._rfcomm:
