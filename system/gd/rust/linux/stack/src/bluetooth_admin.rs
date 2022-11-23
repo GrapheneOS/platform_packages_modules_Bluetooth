@@ -181,6 +181,11 @@ impl BluetoothAdmin {
             _ => None,
         });
 
+        // No need to update policy effect if remote UUID is not changed.
+        if new_uuids.is_none() {
+            return;
+        }
+
         let new_effect = self.new_device_policy_effect(new_uuids);
         let cur_effect = self.device_policy_affect_cache.get(remote_device);
 
