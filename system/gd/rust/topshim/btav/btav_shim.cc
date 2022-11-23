@@ -44,9 +44,13 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
     cb.Run(playStatus_);
   }
 
-  void GetNowPlayingList([[maybe_unused]] NowPlayingCallback cb) override {}
+  void GetNowPlayingList(NowPlayingCallback cb) override {
+    cb.Run(currentSongId_, nowPlayingList_);
+  }
 
-  void GetMediaPlayerList([[maybe_unused]] MediaListCallback cb) override {}
+  void GetMediaPlayerList(MediaListCallback cb) override {
+    cb.Run(currentPlayer_, playerList_);
+  }
 
   void GetFolderItems(
       [[maybe_unused]] uint16_t player_id,
@@ -87,16 +91,26 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
   void SetMetadata(const std::string& title, const std::string& artist, const std::string& album, int64_t length_us) {
     if (title.length() || artist.length() || album.length()) {
       songInfo_.attributes.clear();
+      // Reuse title for media_id, ideally this should be a shorter UID.
+      songInfo_.media_id = title;
       if (title.length()) songInfo_.attributes.emplace(avrcp::AttributeEntry(avrcp::Attribute::TITLE, title));
       if (artist.length()) songInfo_.attributes.emplace(avrcp::AttributeEntry(avrcp::Attribute::ARTIST_NAME, artist));
       if (album.length()) songInfo_.attributes.emplace(avrcp::AttributeEntry(avrcp::Attribute::ALBUM_NAME, album));
+      // Floss's media implementation does not fully support the "Now Playing List," as Floss does not receive
+      // additional media information other than the current playing one. However, not all peripherals request metadata
+      // through the "Get Element Attributes" request. Instead, many get such information through the "Track Changed
+      // Notification." Hence, fill the playlist with one item here and have the Current Song ID always point to the
+      // only entry to support the track changed notification.
+      nowPlayingList_.clear();
+      nowPlayingList_.emplace_back(songInfo_);
+      currentSongId_ = songInfo_.media_id;
       if (mediaCb_) mediaCb_->SendMediaUpdate(/*track_changed*/ true, /*play_state*/ false, /*queuefalse*/ false);
     }
 
     if (length_us) {
       // Unit conversion from microsecond to millisecond.
       playStatus_.duration = length_us / 1000;
-      if (mediaCb_) mediaCb_->SendMediaUpdate(/*track_changed*/ true, /*play_state*/ false, /*queuefalse*/ false);
+      if (mediaCb_) mediaCb_->SendMediaUpdate(/*track_changed*/ false, /*play_state*/ true, /*queuefalse*/ false);
     }
   }
 
@@ -105,6 +119,10 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
 
   PlayStatus playStatus_;
   SongInfo songInfo_;
+  std::string currentSongId_;
+  std::vector<MediaPlayerInfo> playerList_;
+  std::vector<SongInfo> nowPlayingList_;
+  uint16_t currentPlayer_;
 };
 
 class VolumeInterfaceImpl : public VolumeInterface {
