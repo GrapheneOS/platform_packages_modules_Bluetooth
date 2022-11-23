@@ -52,6 +52,12 @@ class BleScannerInterfaceImpl : public ::BleScannerInterface,
                      FilterConfigCallback cb) override;
   void ScanFilterClear(int filter_index, FilterConfigCallback cb) override;
   void ScanFilterEnable(bool enable, EnableCallback cb) override;
+  void MsftAdvMonitorAdd(MsftAdvMonitor monitor,
+                         MsftAdvMonitorAddCallback cb) override;
+  void MsftAdvMonitorRemove(uint8_t monitor_handle,
+                            MsftAdvMonitorRemoveCallback cb) override;
+  void MsftAdvMonitorEnable(bool enable,
+                            MsftAdvMonitorEnableCallback cb) override;
   void SetScanParameters(int scanner_id, int scan_interval, int scan_window,
                          Callback cb) override;
   void BatchscanConfigStorage(int client_if, int batch_scan_full_max,
