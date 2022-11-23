@@ -15,6 +15,8 @@
  */
 #include "hci/msft.h"
 
+#include <hardware/bt_common_types.h>
+
 #include "hal/hci_hal.h"
 #include "hci/hci_layer.h"
 #include "hci/hci_packets.h"
@@ -105,6 +107,51 @@ struct MsftExtensionManager::impl {
     return true;
   }
 
+  void msft_adv_monitor_add(const MsftAdvMonitor& monitor, MsftAdvMonitorAddCallback cb) {
+    std::vector<MsftLeMonitorAdvConditionPattern> patterns;
+    MsftLeMonitorAdvConditionPattern pattern;
+    // The Microsoft Extension specifies 1 octet for the number of patterns.
+    // However, the max number of patters should not exceed 61.
+    // (255 - 1 (packet type) - 2 (OGF/OCF) - 1 (length) - 7 (MSFT command parameters)) /
+    // 4 (min size of a pattern) = 61
+    if (monitor.patterns.size() > 61) {
+      LOG_ERROR("Number of MSFT patterns %zu is too large", monitor.patterns.size());
+      return;
+    }
+    for (auto& p : monitor.patterns) {
+      pattern.ad_type_ = p.ad_type;
+      pattern.start_of_pattern_ = p.start_byte;
+      pattern.pattern_ = p.pattern;
+      patterns.push_back(pattern);
+    }
+
+    msft_adv_monitor_add_cb_ = cb;
+    hci_layer_->EnqueueCommand(
+        MsftLeMonitorAdvConditionPatternsBuilder::Create(
+            static_cast<OpCode>(msft_.opcode.value()),
+            monitor.rssi_threshold_high,
+            monitor.rssi_threshold_low,
+            monitor.rssi_threshold_low_time_interval,
+            monitor.rssi_sampling_period,
+            patterns),
+        module_handler_->BindOnceOn(this, &impl::on_msft_adv_monitor_add_complete));
+  }
+
+  void msft_adv_monitor_remove(uint8_t monitor_handle, MsftAdvMonitorRemoveCallback cb) {
+    msft_adv_monitor_remove_cb_ = cb;
+    hci_layer_->EnqueueCommand(
+        MsftLeCancelMonitorAdvBuilder::Create(
+            static_cast<OpCode>(msft_.opcode.value()), monitor_handle),
+        module_handler_->BindOnceOn(this, &impl::on_msft_adv_monitor_remove_complete));
+  }
+
+  void msft_adv_monitor_enable(bool enable, MsftAdvMonitorEnableCallback cb) {
+    msft_adv_monitor_enable_cb_ = cb;
+    hci_layer_->EnqueueCommand(
+        MsftLeSetAdvFilterEnableBuilder::Create(static_cast<OpCode>(msft_.opcode.value()), enable),
+        module_handler_->BindOnceOn(this, &impl::on_msft_adv_monitor_enable_complete));
+  }
+
   /*
    * Get the event prefix from the packet for configuring MSFT's
    * Vendor Specific events. Also get the MSFT supported features.
@@ -138,12 +185,60 @@ struct MsftExtensionManager::impl {
         "MSFT features 0x%16.16llx prefix length %u", (unsigned long long)msft_.features, (unsigned int)prefix.size());
   }
 
+  void on_msft_adv_monitor_add_complete(CommandCompleteView view) {
+    ASSERT(view.IsValid());
+    auto status_view =
+        MsftLeMonitorAdvCommandCompleteView::Create(MsftCommandCompleteView::Create(view));
+    ASSERT(status_view.IsValid());
+
+    MsftSubcommandOpcode sub_opcode = status_view.GetSubcommandOpcode();
+    if (sub_opcode != MsftSubcommandOpcode::MSFT_LE_MONITOR_ADV) {
+      LOG_WARN("Wrong MSFT subcommand opcode %hhu returned", sub_opcode);
+      return;
+    }
+
+    msft_adv_monitor_add_cb_.Run(status_view.GetMonitorHandle(), status_view.GetStatus());
+  }
+
+  void on_msft_adv_monitor_remove_complete(CommandCompleteView view) {
+    ASSERT(view.IsValid());
+    auto status_view =
+        MsftLeCancelMonitorAdvCommandCompleteView::Create(MsftCommandCompleteView::Create(view));
+    ASSERT(status_view.IsValid());
+
+    MsftSubcommandOpcode sub_opcode = status_view.GetSubcommandOpcode();
+    if (sub_opcode != MsftSubcommandOpcode::MSFT_LE_CANCEL_MONITOR_ADV) {
+      LOG_WARN("Wrong MSFT subcommand opcode %hhu returned", sub_opcode);
+      return;
+    }
+
+    msft_adv_monitor_remove_cb_.Run(status_view.GetStatus());
+  }
+
+  void on_msft_adv_monitor_enable_complete(CommandCompleteView view) {
+    ASSERT(view.IsValid());
+    auto status_view =
+        MsftLeSetAdvFilterEnableCommandCompleteView::Create(MsftCommandCompleteView::Create(view));
+    ASSERT(status_view.IsValid());
+
+    MsftSubcommandOpcode sub_opcode = status_view.GetSubcommandOpcode();
+    if (sub_opcode != MsftSubcommandOpcode::MSFT_LE_SET_ADV_FILTER_ENABLE) {
+      LOG_WARN("Wrong MSFT subcommand opcode %hhu returned", sub_opcode);
+      return;
+    }
+
+    msft_adv_monitor_enable_cb_.Run(status_view.GetStatus());
+  }
+
   Module* module_;
   os::Handler* module_handler_;
   hal::HciHal* hal_;
   hci::HciLayer* hci_layer_;
   hci::VendorSpecificEventManager* vendor_specific_event_manager_;
   Msft msft_;
+  MsftAdvMonitorAddCallback msft_adv_monitor_add_cb_;
+  MsftAdvMonitorRemoveCallback msft_adv_monitor_remove_cb_;
+  MsftAdvMonitorEnableCallback msft_adv_monitor_enable_cb_;
 };
 
 MsftExtensionManager::MsftExtensionManager() {
@@ -171,6 +266,24 @@ void MsftExtensionManager::Stop() {
 
 std::string MsftExtensionManager::ToString() const {
   return "Microsoft Extension Manager";
+}
+
+bool MsftExtensionManager::SupportsMsftExtensions() {
+  return pimpl_->supports_msft_extensions();
+}
+
+void MsftExtensionManager::MsftAdvMonitorAdd(
+    const MsftAdvMonitor& monitor, MsftAdvMonitorAddCallback cb) {
+  CallOn(pimpl_.get(), &impl::msft_adv_monitor_add, monitor, cb);
+}
+
+void MsftExtensionManager::MsftAdvMonitorRemove(
+    uint8_t monitor_handle, MsftAdvMonitorRemoveCallback cb) {
+  CallOn(pimpl_.get(), &impl::msft_adv_monitor_remove, monitor_handle, cb);
+}
+
+void MsftExtensionManager::MsftAdvMonitorEnable(bool enable, MsftAdvMonitorEnableCallback cb) {
+  CallOn(pimpl_.get(), &impl::msft_adv_monitor_enable, enable, cb);
 }
 
 }  // namespace hci
