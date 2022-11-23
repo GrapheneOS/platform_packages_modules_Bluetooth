@@ -639,7 +639,8 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
  * up LE profile connection, and limits all possible service discovery
  * ordering issues (first Classic, GATT over SDP, etc) */
 static bool is_device_le_audio_capable(const RawAddress bd_addr) {
-  if (!LeAudioClient::IsLeAudioClientRunning() ||
+  if (!GetInterfaceToProfiles()
+           ->profileSpecific_HACK->IsLeAudioClientRunning() ||
       !check_cod_le_audio(bd_addr)) {
     return false;
   }
