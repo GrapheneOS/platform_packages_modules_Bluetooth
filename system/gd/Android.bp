@@ -214,6 +214,10 @@ cc_defaults {
         "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/types",
+    ],
     export_static_lib_headers: [ "libbluetooth_rust_interop" ],
 }
 
