@@ -1394,6 +1394,9 @@ impl IBluetooth for Bluetooth {
     }
 
     fn remove_bond(&self, device: BluetoothDevice) -> bool {
+        // Temporary for debugging b/255849761. Should change to debug after fix.
+        log::info!("Removing bond for {}", device.address);
+
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {

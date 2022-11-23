@@ -585,7 +585,7 @@ void rfc_port_uplink_data(tPORT* p_port, BT_HDR* p_buf) {
 void rfc_process_pn(tRFC_MCB* p_mcb, bool is_command, MX_FRAME* p_frame) {
   RFCOMM_TRACE_DEBUG("%s: is_initiator=%d, is_cmd=%d, state=%d, bd_addr=%s",
                      __func__, p_mcb->is_initiator, is_command, p_mcb->state,
-                     p_mcb->bd_addr.ToString().c_str());
+                     ADDRESS_TO_LOGGABLE_CSTR(p_mcb->bd_addr));
   uint8_t dlci = p_frame->dlci;
 
   if (is_command) {

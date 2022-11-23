@@ -1155,7 +1155,8 @@ void btm_process_inq_results(const uint8_t* p, uint8_t hci_evt_len,
 
     /* Check if this address has already been processed for this inquiry */
     if (btm_inq_find_bdaddr(bda)) {
-      /* BTM_TRACE_DEBUG("BDA seen before %s", bda.ToString().c_str()); */
+      /* BTM_TRACE_DEBUG("BDA seen before %s", ADDRESS_TO_LOGGABLE_CSTR(bda));
+       */
 
       /* By default suppose no update needed */
       i_rssi = (int8_t)rssi;

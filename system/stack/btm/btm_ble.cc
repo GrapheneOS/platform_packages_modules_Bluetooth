@@ -1172,8 +1172,9 @@ void btm_sec_save_le_key(const RawAddress& bd_addr, tBTM_LE_KEY_TYPE key_type,
         BTM_TRACE_DEBUG(
             "%s: BTM_LE_KEY_PID key_type=0x%x save peer IRK, change bd_addr=%s "
             "to id_addr=%s id_addr_type=0x%x",
-            __func__, p_rec->ble.key_type, p_rec->bd_addr.ToString().c_str(),
-            p_keys->pid_key.identity_addr.ToString().c_str(),
+            __func__, p_rec->ble.key_type,
+            ADDRESS_TO_LOGGABLE_CSTR(p_rec->bd_addr),
+            ADDRESS_TO_LOGGABLE_CSTR(p_keys->pid_key.identity_addr),
             p_keys->pid_key.identity_addr_type);
         /* update device record address as identity address */
         p_rec->bd_addr = p_keys->pid_key.identity_addr;

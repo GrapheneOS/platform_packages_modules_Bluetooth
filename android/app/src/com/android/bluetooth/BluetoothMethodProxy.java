@@ -16,10 +16,12 @@
 
 package com.android.bluetooth;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
@@ -109,6 +111,13 @@ public class BluetoothMethodProxy {
     public ParcelFileDescriptor contentResolverOpenFileDescriptor(ContentResolver contentResolver,
             final Uri uri, final String mode) throws FileNotFoundException {
         return contentResolver.openFileDescriptor(uri, mode);
+    }
+
+    /**
+     * Proxies {@link Context#sendBroadcast(Intent)}.
+     */
+    public void contextSendBroadcast(Context context, @RequiresPermission Intent intent) {
+        context.sendBroadcast(intent);
     }
 
     /**

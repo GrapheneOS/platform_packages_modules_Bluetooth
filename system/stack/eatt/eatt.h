@@ -83,11 +83,11 @@ class EattChannel {
         memset(&server_outstanding_cmd_, 0, sizeof(tGATT_SR_CMD));
         char name[64];
         sprintf(name, "eatt_ind_ack_timer_%s_cid_0x%04x",
-                bda_.ToString().c_str(), cid_);
+                ADDRESS_TO_LOGGABLE_CSTR(bda_), cid_);
         ind_ack_timer_ = alarm_new(name);
 
         sprintf(name, "eatt_ind_conf_timer_%s_cid_0x%04x",
-                bda_.ToString().c_str(), cid_);
+                ADDRESS_TO_LOGGABLE_CSTR(bda_), cid_);
         ind_confirmation_timer_ = alarm_new(name);
       }
     }

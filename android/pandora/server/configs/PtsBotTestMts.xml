@@ -41,6 +41,7 @@
         <option name="profile" value="HID/HOS" />
         <option name="profile" value="HOGP" />
         <option name="profile" value="L2CAP/LE" />
+        <option name="profile" value="MAP" />
         <option name="profile" value="SDP" />
         <option name="profile" value="SM" />
     </test>
@@ -48,5 +49,6 @@
     <object type="module_controller"
             class="com.android.tradefed.testtype.suite.module.MainlineTestModuleController">
         <option name="mainline-module-package-name" value="com.android.btservices" />
+        <option name="mainline-module-package-name" value="com.google.android.btservices" />
     </object>
 </configuration>
