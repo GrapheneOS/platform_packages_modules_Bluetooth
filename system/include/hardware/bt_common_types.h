@@ -107,4 +107,20 @@ struct ApcfCommand {
   std::array<uint8_t, 16> irk;  // 128 bit/16 octet IRK
 };
 
+// MSFT scan filter pattern
+struct MsftAdvMonitorPattern {
+  uint8_t ad_type;
+  uint8_t start_byte;
+  std::vector<uint8_t> pattern;
+};
+
+// LE Scan filter defined by MSFT extension.
+struct MsftAdvMonitor {
+  uint8_t rssi_threshold_high;
+  uint8_t rssi_threshold_low;
+  uint8_t rssi_threshold_low_time_interval;
+  uint8_t rssi_sampling_period;
+  std::vector<MsftAdvMonitorPattern> patterns;
+};
+
 #endif /* ANDROID_INCLUDE_BT_COMMON_TYPES_H */

@@ -37,7 +37,7 @@ class HOGPProxy(ProfileProxy):
         to the PTS.
         """
 
-        self.connection = self.host.ConnectLE(address=pts_addr).connection
+        self.connection = self.host.ConnectLE(public=pts_addr).connection
         self.pairing_stream = self.security.OnPairing()
         self.security.Pair(connection=self.connection)
 

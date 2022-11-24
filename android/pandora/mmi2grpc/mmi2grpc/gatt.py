@@ -20,7 +20,7 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.gatt_grpc import GATT
 from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import ConnectabilityMode, AddressType
+from pandora_experimental.host_pb2 import ConnectabilityMode, OwnAddressType
 from pandora_experimental.gatt_pb2 import AttStatusCode, AttProperties, AttPermissions
 from pandora_experimental.gatt_pb2 import GattServiceParams
 from pandora_experimental.gatt_pb2 import GattCharacteristicParams
@@ -70,7 +70,7 @@ class GATTProxy(ProfileProxy):
         PTS.
         """
 
-        self.connection = self.host.ConnectLE(address=pts_addr).connection
+        self.connection = self.host.ConnectLE(public=pts_addr).connection
         if test in NEEDS_CACHE_CLEARED:
             self.gatt.ClearCache(connection=self.connection)
         return "OK"
@@ -86,7 +86,7 @@ class GATTProxy(ProfileProxy):
         """
 
         assert self.connection is not None
-        self.host.DisconnectLE(connection=self.connection)
+        self.host.Disconnect(connection=self.connection)
         self.connection = None
         self.services = None
         self.characteristics = None
@@ -896,8 +896,8 @@ class GATTProxy(ProfileProxy):
         PTS.
         """
         self.host.StartAdvertising(
-            connectability_mode=ConnectabilityMode.CONNECTABILITY_CONNECTABLE,
-            own_address_type=AddressType.PUBLIC,
+            connectable=True,
+            own_address_type=OwnAddressType.PUBLIC,
         )
         self.gatt.RegisterService(
             service=GattServiceParams(

@@ -67,6 +67,7 @@
 #include "btif_sdp.h"
 #include "btif_storage.h"
 #include "btif_util.h"
+#include "common/lru.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
@@ -100,6 +101,7 @@ const Uuid UUID_LE_MIDI =
 const Uuid UUID_HAS = Uuid::FromString("1854");
 const Uuid UUID_BASS = Uuid::FromString("184F");
 const Uuid UUID_BATTERY = Uuid::FromString("180F");
+const Uuid UUID_A2DP_SINK = Uuid::FromString("110B");
 const bool enable_address_consolidate = true;  // TODO remove
 
 #define COD_UNCLASSIFIED ((0x1F) << 8)
@@ -141,7 +143,7 @@ const bool enable_address_consolidate = true;  // TODO remove
 #define ENCRYPTED_BREDR 2
 #define ENCRYPTED_LE 4
 
-typedef struct {
+struct btif_dm_pairing_cb_t {
   bt_bond_state_t state;
   RawAddress static_bdaddr;
   RawAddress bd_addr;
@@ -158,7 +160,12 @@ typedef struct {
   bool is_le_nc; /* LE Numeric comparison */
   btif_dm_ble_cb_t ble;
   uint8_t fail_reason;
-} btif_dm_pairing_cb_t;
+
+  enum ServiceDiscoveryState { NOT_STARTED, SCHEDULED, FINISHED };
+
+  ServiceDiscoveryState gatt_over_le;
+  ServiceDiscoveryState sdp_over_classic;
+};
 
 // TODO(jpawlowski): unify ?
 // btif_dm_local_key_id_t == tBTM_BLE_LOCAL_ID_KEYS == tBTA_BLE_LOCAL_ID_KEYS
@@ -188,6 +195,10 @@ typedef struct {
 typedef struct {
   unsigned int manufact_id;
 } skip_sdp_entry_t;
+
+typedef struct {
+  bluetooth::common::LruCache<RawAddress, std::vector<uint8_t>> le_audio_cache;
+} btif_dm_metadata_cb_t;
 
 typedef enum {
   BTIF_DM_FUNC_CREATE_BOND,
@@ -243,6 +254,7 @@ static void btif_dm_remove_ble_bonding_keys(void);
 static void btif_dm_save_ble_bonding_keys(RawAddress& bd_addr);
 static btif_dm_pairing_cb_t pairing_cb;
 static btif_dm_oob_cb_t oob_cb;
+static btif_dm_metadata_cb_t metadata_cb{.le_audio_cache{40}};
 static void btif_dm_cb_create_bond(const RawAddress bd_addr,
                                    tBT_TRANSPORT transport);
 static void btif_update_remote_properties(const RawAddress& bd_addr,
@@ -514,11 +526,15 @@ static void bond_state_changed(bt_status_t status, const RawAddress& bd_addr,
   }
 
   if (state == BT_BOND_STATE_BONDING ||
-      (state == BT_BOND_STATE_BONDED && pairing_cb.sdp_attempts > 0)) {
-    // Save state for the device is bonding or SDP.
+      (state == BT_BOND_STATE_BONDED &&
+       (pairing_cb.sdp_attempts > 0 ||
+        pairing_cb.gatt_over_le ==
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED))) {
+    // Save state for the device is bonding or SDP or GATT over LE discovery
     pairing_cb.state = state;
     pairing_cb.bd_addr = bd_addr;
   } else {
+    LOG_INFO("clearing btif pairing_cb");
     pairing_cb = {};
   }
 }
@@ -643,6 +659,7 @@ static bool is_device_le_audio_capable(const RawAddress bd_addr) {
   if (!GetInterfaceToProfiles()
            ->profileSpecific_HACK->IsLeAudioClientRunning() ||
       !check_cod_le_audio(bd_addr)) {
+    /* If LE Audio profile is not enabled, do nothing. */
     return false;
   }
 
@@ -650,6 +667,9 @@ static bool is_device_le_audio_capable(const RawAddress bd_addr) {
   tBLE_ADDR_TYPE addr_type = BLE_ADDR_PUBLIC;
   BTM_ReadDevInfo(bd_addr, &tmp_dev_type, &addr_type);
   if (tmp_dev_type & BT_DEVICE_TYPE_BLE) {
+    /* LE Audio capable device is discoverable over both LE and Classic using
+     * same address. Prefer to use LE transport, as we don't know if it can do
+     * CTKD from Classic to LE */
     return true;
   }
 
@@ -672,7 +692,7 @@ static void btif_dm_cb_create_bond(const RawAddress bd_addr,
   bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING);
 
   if (transport == BT_TRANSPORT_AUTO && is_device_le_audio_capable(bd_addr)) {
-    LOG_INFO("LE Audio && advertising over LE, use LE transport for Bonding");
+    LOG_INFO("LE Audio capable, forcing LE transport for Bonding");
     transport = BT_TRANSPORT_LE;
   }
 
@@ -1111,7 +1131,14 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         } else {
           bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDED);
         }
-        btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
+
+        if (pairing_cb.sdp_over_classic ==
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED) {
+          LOG_INFO("scheduling SDP for %s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+          pairing_cb.sdp_over_classic =
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED;
+          btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
+        }
       }
     }
     // Do not call bond_state_changed_cb yet. Wait until remote service
@@ -1441,6 +1468,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       bt_status_t ret;
       std::vector<uint8_t> property_value;
       std::set<Uuid> uuids;
+      bool a2dp_sink_capable = false;
 
       RawAddress& bd_addr = p_data->disc_res.bd_addr;
 
@@ -1450,7 +1478,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
           pairing_cb.state == BT_BOND_STATE_BONDED &&
           pairing_cb.sdp_attempts < BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING) {
         if (pairing_cb.sdp_attempts) {
-          LOG_WARN("SDP failed after bonding re-attempting");
+          LOG_WARN("SDP failed after bonding re-attempting for %s",
+                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
           pairing_cb.sdp_attempts++;
           btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
         } else {
@@ -1458,6 +1487,14 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         }
         return;
       }
+
+      if ((bd_addr == pairing_cb.bd_addr ||
+           bd_addr == pairing_cb.static_bdaddr)) {
+        LOG_INFO("SDP finished for %s:", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+        pairing_cb.sdp_over_classic =
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED;
+      }
+
       prop.type = BT_PROPERTY_UUIDS;
       prop.len = 0;
       if ((p_data->disc_res.result == BTA_SUCCESS) &&
@@ -1490,9 +1527,29 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
           auto uuid_128bit = uuid.To128BitBE();
           property_value.insert(property_value.end(), uuid_128bit.begin(),
                                 uuid_128bit.end());
+          if (uuid == UUID_A2DP_SINK) {
+            a2dp_sink_capable = true;
+          }
         }
         prop.val = (void*)property_value.data();
         prop.len = Uuid::kNumBytes128 * uuids.size();
+      }
+
+      bool skip_reporting_wait_for_le = false;
+      /* If we are doing service discovery for device that just bonded, that is
+       * capable of a2dp, and both sides can do LE Audio, and it haven't
+       * finished GATT over LE yet, then wait for LE service discovery to finish
+       * before before passing services to upper layers. */
+      if ((bd_addr == pairing_cb.bd_addr ||
+           bd_addr == pairing_cb.static_bdaddr) &&
+          a2dp_sink_capable &&
+          GetInterfaceToProfiles()
+              ->profileSpecific_HACK->IsLeAudioClientRunning() &&
+          pairing_cb.gatt_over_le !=
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED &&
+          (check_cod_le_audio(bd_addr) ||
+           metadata_cb.le_audio_cache.contains(bd_addr))) {
+        skip_reporting_wait_for_le = true;
       }
 
       /* onUuidChanged requires getBondedDevices to be populated.
@@ -1534,6 +1591,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         // Both SDP and bonding are done, clear pairing control block in case
         // it is not already cleared
         pairing_cb = {};
+        LOG_INFO("clearing btif pairing_cb");
       }
 
       if (p_data->disc_res.num_uuids != 0 || num_eir_uuids != 0) {
@@ -1541,6 +1599,19 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
         ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed",
                 ret);
+
+        if (skip_reporting_wait_for_le) {
+          LOG_INFO(
+              "Bonding LE Audio sink - must wait for le services discovery "
+              "to pass all services to java %s",
+              PRIVATE_ADDRESS(bd_addr));
+          /* For LE Audio capable devices, we care more about passing GATT LE
+           * services than about just finishing pairing. Service discovery
+           * should be scheduled when LE pairing finishes, by call to
+           * btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_LE) */
+          return;
+        }
+
         /* Send the event to the BTIF */
         GetInterfaceToProfiles()->events->invoke_remote_device_properties_cb(
             BT_STATUS_SUCCESS, bd_addr, 1, &prop);
@@ -1566,6 +1637,18 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       if (event == BTA_DM_GATT_OVER_LE_RES_EVT) {
         LOG_INFO("New GATT over LE UUIDs for %s:",
                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+        if ((bd_addr == pairing_cb.bd_addr ||
+             bd_addr == pairing_cb.static_bdaddr)) {
+          if (pairing_cb.gatt_over_le !=
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED) {
+            LOG_ERROR(
+                "gatt_over_le should be SCHEDULED, did someone clear the "
+                "control block for %s ?",
+                ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+          }
+          pairing_cb.gatt_over_le =
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED;
+        }
       } else {
         LOG_INFO("New GATT over SDP UUIDs for %s:",
                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
@@ -1634,6 +1717,21 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       /* Send the event to the BTIF */
       GetInterfaceToProfiles()->events->invoke_remote_device_properties_cb(
           BT_STATUS_SUCCESS, bd_addr, num_properties, prop);
+
+      if ((bd_addr == pairing_cb.bd_addr ||
+           bd_addr == pairing_cb.static_bdaddr) &&
+          pairing_cb.sdp_over_classic !=
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED &&
+          pairing_cb.gatt_over_le !=
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED) {
+        // Both SDP and bonding are either done, or not scheduled, we are safe
+        // to clear the service discovery part of CB.
+        pairing_cb.gatt_over_le =
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED;
+        pairing_cb.sdp_over_classic =
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED;
+        LOG_INFO("clearing service discovery part of pairing_cb");
+      }
     } break;
 
     case BTA_DM_DID_RES_EVT: {
@@ -3014,7 +3112,20 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
       state = BT_BOND_STATE_NONE;
     } else {
       btif_dm_save_ble_bonding_keys(bd_addr);
-      btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_LE);
+
+      if (pairing_cb.gatt_over_le ==
+          btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED) {
+        LOG_INFO("scheduling GATT discovery over LE for %s",
+                 ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+        pairing_cb.gatt_over_le =
+            btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED;
+        btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_LE);
+      } else {
+        LOG_INFO(
+            "skipping GATT discovery over LE - was already scheduled or "
+            "finished for %s, state: %d",
+            ADDRESS_TO_LOGGABLE_CSTR(bd_addr), pairing_cb.gatt_over_le);
+      }
     }
   } else {
     /*Map the HCI fail reason  to  bt status  */
@@ -3608,4 +3719,14 @@ void btif_dm_set_default_event_mask_except(uint64_t mask, uint64_t le_mask) {
 void btif_dm_set_event_filter_inquiry_result_all_devices() {
   // Autoplumbed
   BTA_DmSetEventFilterInquiryResultAllDevices();
+}
+
+void btif_dm_metadata_changed(const RawAddress& remote_bd_addr, int key,
+                              std::vector<uint8_t> value) {
+  static const int METADATA_LE_AUDIO = 26;
+  /* If METADATA_LE_AUDIO is present, device is LE Audio capable */
+  if (key == METADATA_LE_AUDIO) {
+    LOG_INFO("Device is LE Audio Capable %s", PRIVATE_ADDRESS(remote_bd_addr));
+    metadata_cb.le_audio_cache.insert_or_assign(remote_bd_addr, value);
+  }
 }
