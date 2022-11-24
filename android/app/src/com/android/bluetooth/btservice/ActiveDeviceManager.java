@@ -255,26 +255,8 @@ class ActiveDeviceManager {
                             // Lazy active A2DP if it is not being used.
                             // This will prevent the deactivation of LE audio
                             // earlier than the activation of HFP.
-                            switch (mAudioManager.getMode()) {
-                                case AudioManager.MODE_NORMAL:
-                                    break;
-                                case AudioManager.MODE_RINGTONE: {
-                                    HeadsetService headsetService = mFactory.getHeadsetService();
-                                    if (mHfpActiveDevice == null && headsetService != null
-                                            && headsetService.isInbandRingingEnabled()) {
-                                        mPendingA2dpActiveDevice = device;
-                                    }
-                                    break;
-                                }
-                                case AudioManager.MODE_IN_CALL:
-                                case AudioManager.MODE_IN_COMMUNICATION:
-                                case AudioManager.MODE_CALL_SCREENING:
-                                case AudioManager.MODE_CALL_REDIRECT:
-                                case AudioManager.MODE_COMMUNICATION_REDIRECT: {
-                                    if (mHfpActiveDevice == null) {
-                                        mPendingA2dpActiveDevice = device;
-                                    }
-                                }
+                            if (!isMediaMode(mAudioManager.getMode()) && mHfpActiveDevice == null) {
+                                mPendingA2dpActiveDevice = device;
                             }
                             if (mPendingA2dpActiveDevice == null) {
                                 // select the device as active if not lazy active
@@ -346,20 +328,8 @@ class ActiveDeviceManager {
                             // Lazy active HFP if it is not being used.
                             // This will prevent the deactivation of LE audio
                             // earlier than the activation of A2DP.
-                            switch (mAudioManager.getMode()) {
-                                case AudioManager.MODE_NORMAL:
-                                    if (mA2dpActiveDevice == null) {
-                                        mPendingHfpActiveDevice = device;
-                                    }
-                                    break;
-                                case AudioManager.MODE_RINGTONE: {
-                                    HeadsetService headsetService = mFactory.getHeadsetService();
-                                    if (headsetService == null
-                                            || !headsetService.isInbandRingingEnabled()) {
-                                        mPendingHfpActiveDevice = device;
-                                    }
-                                    break;
-                                }
+                            if (isMediaMode(mAudioManager.getMode()) && mA2dpActiveDevice == null) {
+                                mPendingHfpActiveDevice = device;
                             }
                             if (mPendingHfpActiveDevice == null) {
                                 // select the device as active if not lazy active
@@ -622,33 +592,15 @@ class ActiveDeviceManager {
 
     private class AudioManagerOnModeChangedListener implements AudioManager.OnModeChangedListener {
         public void onModeChanged(int mode) {
-            switch (mode) {
-                case AudioManager.MODE_NORMAL: {
-                    if (mPendingA2dpActiveDevice != null) {
-                        setA2dpActiveDevice(mPendingA2dpActiveDevice);
-                        setLeAudioActiveDevice(null, true);
-                    }
-                    break;
+            if (isMediaMode(mode)) {
+                if (mPendingA2dpActiveDevice != null) {
+                    setA2dpActiveDevice(mPendingA2dpActiveDevice);
+                    setLeAudioActiveDevice(null, true);
                 }
-                case AudioManager.MODE_RINGTONE: {
-                    final HeadsetService headsetService = mFactory.getHeadsetService();
-                    if (headsetService != null && headsetService.isInbandRingingEnabled()
-                            && mPendingHfpActiveDevice != null) {
-                        setHfpActiveDevice(mPendingHfpActiveDevice);
-                        setLeAudioActiveDevice(null);
-                    }
-                    break;
-                }
-                case AudioManager.MODE_IN_CALL:
-                case AudioManager.MODE_IN_COMMUNICATION:
-                case AudioManager.MODE_CALL_SCREENING:
-                case AudioManager.MODE_CALL_REDIRECT:
-                case AudioManager.MODE_COMMUNICATION_REDIRECT:  {
-                    if (mPendingHfpActiveDevice != null) {
-                        setHfpActiveDevice(mPendingHfpActiveDevice);
-                        setLeAudioActiveDevice(null);
-                    }
-                    break;
+            } else {
+                if (mPendingHfpActiveDevice != null) {
+                    setHfpActiveDevice(mPendingHfpActiveDevice);
+                    setLeAudioActiveDevice(null);
                 }
             }
         }
@@ -857,6 +809,25 @@ class ActiveDeviceManager {
         }
     }
 
+    private boolean isMediaMode(int mode) {
+        switch (mode) {
+            case AudioManager.MODE_RINGTONE:
+                final HeadsetService headsetService = mFactory.getHeadsetService();
+                if (headsetService != null && headsetService.isInbandRingingEnabled()) {
+                    return false;
+                }
+                return true;
+            case AudioManager.MODE_IN_CALL:
+            case AudioManager.MODE_IN_COMMUNICATION:
+            case AudioManager.MODE_CALL_SCREENING:
+            case AudioManager.MODE_CALL_REDIRECT:
+            case AudioManager.MODE_COMMUNICATION_REDIRECT:
+                return false;
+            default:
+                return true;
+        }
+    }
+
     private boolean setFallbackDeviceActive() {
         if (DBG) {
             Log.d(TAG, "setFallbackDeviceActive");
@@ -911,25 +882,20 @@ class ActiveDeviceManager {
 
         List<BluetoothDevice> connectedDevices = new ArrayList<>();
         connectedDevices.addAll(mLeAudioConnectedDevices);
-        switch (mAudioManager.getMode()) {
-            case AudioManager.MODE_NORMAL:
-                if (a2dpFallbackDevice != null) {
-                    connectedDevices.add(a2dpFallbackDevice);
-                }
-                break;
-            case AudioManager.MODE_RINGTONE:
-                if (headsetFallbackDevice != null && headsetService.isInbandRingingEnabled()) {
-                    connectedDevices.add(headsetFallbackDevice);
-                }
-                break;
-            default:
-                if (headsetFallbackDevice != null) {
-                    connectedDevices.add(headsetFallbackDevice);
-                }
+        boolean isMediaMode = isMediaMode(mAudioManager.getMode());
+        if (isMediaMode) {
+            if (a2dpFallbackDevice != null) {
+                connectedDevices.add(a2dpFallbackDevice);
+            }
+        } else {
+            if (headsetFallbackDevice != null) {
+                connectedDevices.add(headsetFallbackDevice);
+            }
         }
+
         BluetoothDevice device = dbManager.getMostRecentlyConnectedDevicesInList(connectedDevices);
         if (device != null) {
-            if (mAudioManager.getMode() == AudioManager.MODE_NORMAL) {
+            if (isMediaMode) {
                 if (Objects.equals(a2dpFallbackDevice, device)) {
                     if (DBG) {
                         Log.d(TAG, "set A2DP device active: " + device);
