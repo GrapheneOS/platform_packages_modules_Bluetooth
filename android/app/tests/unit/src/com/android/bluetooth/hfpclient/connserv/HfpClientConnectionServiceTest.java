@@ -89,11 +89,6 @@ public class HfpClientConnectionServiceTest {
 
         Context targetContext = InstrumentationRegistry.getTargetContext();
 
-        // HfpClientConnectionService is only enabled for some form factors, and the tests should
-        // only be run if the service is enabled.
-        assumeTrue(targetContext.getResources()
-                .getBoolean(R.bool.hfp_client_connection_service_enabled));
-
         // Setup a mock TelecomManager so our calls don't start a real instance of this service
         doNothing().when(mMockTelecomManager).addNewIncomingCall(any(), any());
         doNothing().when(mMockTelecomManager).addNewUnknownCall(any(), any());

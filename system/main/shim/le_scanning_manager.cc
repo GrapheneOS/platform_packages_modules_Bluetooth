@@ -241,7 +241,25 @@ void BleScannerInterfaceImpl::ScanFilterEnable(bool enable, EnableCallback cb) {
                    base::Bind(cb, action, btm_status_value(BTM_SUCCESS)));
 }
 
-  /** Sets the LE scan interval and window in units of N*0.625 msec */
+/** Adds MSFT filter */
+void BleScannerInterfaceImpl::MsftAdvMonitorAdd(MsftAdvMonitor monitor,
+                                                MsftAdvMonitorAddCallback cb) {
+  // TODO(b/246404026): Implement.
+}
+
+/** Removes MSFT filter */
+void BleScannerInterfaceImpl::MsftAdvMonitorRemove(
+    uint8_t monitor_handle, MsftAdvMonitorRemoveCallback cb) {
+  // TODO(b/246404026): Implement.
+}
+
+/** Enable / disable MSFT scan filter */
+void BleScannerInterfaceImpl::MsftAdvMonitorEnable(
+    bool enable, MsftAdvMonitorEnableCallback cb) {
+  // TODO(b/246404026): Implement.
+}
+
+/** Sets the LE scan interval and window in units of N*0.625 msec */
 void BleScannerInterfaceImpl::SetScanParameters(int scanner_id,
                                                 int scan_interval,
                                                 int scan_window, Callback cb) {

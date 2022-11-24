@@ -82,6 +82,14 @@ public class BluetoothMethodProxy {
     }
 
     /**
+     * Proxies {@link ContentResolver#insert(Uri, ContentValues)}.
+     */
+    public Uri contentResolverInsert(ContentResolver contentResolver, final Uri contentUri,
+            final ContentValues contentValues) {
+        return contentResolver.insert(contentUri, contentValues);
+    }
+
+    /**
      * Proxies {@link ContentResolver#update(Uri, ContentValues, String, String[])}.
      */
     public int contentResolverUpdate(ContentResolver contentResolver, final Uri contentUri,

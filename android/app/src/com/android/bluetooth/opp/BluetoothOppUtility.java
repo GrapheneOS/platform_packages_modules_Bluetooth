@@ -53,6 +53,7 @@ import android.util.Log;
 
 import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,7 +78,8 @@ public class BluetoothOppUtility {
     /** Whether the device has the "nosdcard" characteristic, or null if not-yet-known. */
     private static Boolean sNoSdCard = null;
 
-    private static final ConcurrentHashMap<Uri, BluetoothOppSendFileInfo> sSendFileMap =
+    @VisibleForTesting
+    static final ConcurrentHashMap<Uri, BluetoothOppSendFileInfo> sSendFileMap =
             new ConcurrentHashMap<Uri, BluetoothOppSendFileInfo>();
 
     public static boolean isBluetoothShareUri(Uri uri) {

@@ -5160,6 +5160,12 @@ public class AdapterService extends Service {
     @VisibleForTesting
     public void metadataChanged(String address, int key, byte[] value) {
         BluetoothDevice device = mRemoteDevices.getDevice(Utils.getBytesFromAddress(address));
+
+        // pass just interesting metadata to native, to reduce spam
+        if (key == BluetoothDevice.METADATA_LE_AUDIO) {
+            metadataChangedNative(Utils.getBytesFromAddress(address), key, value);
+        }
+
         if (mMetadataListeners.containsKey(device)) {
             ArrayList<IBluetoothMetadataListener> list = mMetadataListeners.get(device);
             for (IBluetoothMetadataListener listener : list) {
@@ -5726,6 +5732,8 @@ public class AdapterService extends Service {
     /*package*/ native void requestMaximumTxDataLengthNative(byte[] address);
 
     private native boolean allowLowLatencyAudioNative(boolean allowed, byte[] address);
+
+    private native void metadataChangedNative(byte[] address, int key, byte[] value);
 
     // Returns if this is a mock object. This is currently used in testing so that we may not call
     // System.exit() while finalizing the object. Otherwise GC of mock objects unfortunately ends up

@@ -89,7 +89,7 @@ class HFPProxy(ProfileProxy):
             time.sleep(2)
 
             if test == "HFP/AG/SLC/BV-02-C":
-                self.host.SetConnectabilityMode(connectability=ConnectabilityMode.CONNECTABILITY_CONNECTABLE)
+                self.host.SetConnectabilityMode(mode=ConnectabilityMode.CONNECTABLE)
                 self.connection = self.host.Connect(address=pts_addr).connection
             else:
                 if not self.connection:
@@ -131,7 +131,7 @@ class HFPProxy(ProfileProxy):
         Make the Implementation Under Test (IUT) connectable, then click Ok.
         """
 
-        self.host.SetConnectabilityMode(connectability=ConnectabilityMode.CONNECTABILITY_CONNECTABLE)
+        self.host.SetConnectabilityMode(mode=ConnectabilityMode.CONNECTABLE)
 
         return "OK"
 
@@ -359,7 +359,7 @@ class HFPProxy(ProfileProxy):
         """
 
         self.hfp.SetInBandRingtone(enabled=False)
-        self.host.SoftReset()
+        self.host.Reset()
 
         return "OK"
 

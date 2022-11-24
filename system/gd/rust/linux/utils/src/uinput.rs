@@ -26,6 +26,8 @@ const KEY_FASTFORWAED: libc::c_uint = 208;
 
 // uinput setup constants
 const UINPUT_MAX_NAME_SIZE: usize = 80;
+const UINPUT_SUFFIX: &str = " (AVRCP)";
+const UINPUT_SUFFIX_SIZE: usize = UINPUT_SUFFIX.len();
 const ABS_MAX: usize = 0x3F;
 const BUS_BLUETOOTH: u16 = 0x05;
 const UINPUT_IOCTL_BASE: libc::c_char = 'U' as libc::c_char;
@@ -158,7 +160,8 @@ impl UInputDev {
     #[allow(temporary_cstring_as_ptr)]
     fn init(&mut self, mut name: String, addr: String) -> Result<(), String> {
         // Truncate the device name if over the max size allowed.
-        name.truncate(UINPUT_MAX_NAME_SIZE);
+        name.truncate(UINPUT_MAX_NAME_SIZE - UINPUT_SUFFIX_SIZE);
+        name.push_str(UINPUT_SUFFIX);
         for (i, ch) in name.chars().enumerate() {
             self.device.name[i] = ch as libc::c_char;
         }
