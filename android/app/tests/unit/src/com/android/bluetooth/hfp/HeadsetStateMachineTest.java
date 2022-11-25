@@ -61,6 +61,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
+
 /**
  * Tests for {@link HeadsetStateMachine}
  */
@@ -84,6 +86,7 @@ public class HeadsetStateMachineTest {
     @Mock private HeadsetSystemInterface mSystemInterface;
     @Mock private AudioManager mAudioManager;
     @Mock private HeadsetPhoneState mPhoneState;
+    @Mock private Intent mIntent;
     private MockContentResolver mMockContentResolver;
     private HeadsetNativeInterface mNativeInterface;
 
@@ -1093,6 +1096,155 @@ public class HeadsetStateMachineTest {
         mHeadsetStateMachine.setSilenceDevice(false);
         verify(mPhoneState, times(2)).listenForPhoneState(mTestDevice,
                 PhoneStateListener.LISTEN_NONE);
+    }
+
+    @Test
+    public void testBroadcastVendorSpecificEventIntent() {
+        mHeadsetStateMachine.broadcastVendorSpecificEventIntent(
+                "command", 1, 1, null, mTestDevice);
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).sendBroadcastAsUser(
+                mIntentArgument.capture(), eq(UserHandle.ALL), eq(BLUETOOTH_CONNECT),
+                any(Bundle.class));
+    }
+
+    @Test
+    public void testFindChar_withCharFound() {
+        char ch = 's';
+        String input = "test";
+        int fromIndex = 0;
+
+        Assert.assertEquals(HeadsetStateMachine.findChar(ch, input, fromIndex), 2);
+    }
+
+    @Test
+    public void testFindChar_withCharNotFound() {
+        char ch = 'x';
+        String input = "test";
+        int fromIndex = 0;
+
+        Assert.assertEquals(HeadsetStateMachine.findChar(ch, input, fromIndex), input.length());
+    }
+
+    @Test
+    public void testFindChar_withQuotes() {
+        char ch = 's';
+        String input = "te\"st";
+        int fromIndex = 0;
+
+        Assert.assertEquals(HeadsetStateMachine.findChar(ch, input, fromIndex), input.length());
+    }
+
+    @Test
+    public void testGenerateArgs() {
+        String input = "11,notint";
+        ArrayList<Object> expected = new ArrayList<Object>();
+        expected.add(11);
+        expected.add("notint");
+
+        Assert.assertEquals(HeadsetStateMachine.generateArgs(input), expected.toArray());
+    }
+
+    @Test
+    public void testGetAtCommandType() {
+        String atCommand = "start?";
+        Assert.assertEquals(mHeadsetStateMachine.getAtCommandType(atCommand),
+                AtPhonebook.TYPE_READ);
+
+        atCommand = "start=?";
+        Assert.assertEquals(mHeadsetStateMachine.getAtCommandType(atCommand),
+                AtPhonebook.TYPE_TEST);
+
+        atCommand = "start=comm";
+        Assert.assertEquals(mHeadsetStateMachine.getAtCommandType(atCommand), AtPhonebook.TYPE_SET);
+
+        atCommand = "start!";
+        Assert.assertEquals(mHeadsetStateMachine.getAtCommandType(atCommand),
+                AtPhonebook.TYPE_UNKNOWN);
+    }
+
+    @Test
+    public void testParseUnknownAt() {
+        String atString = "\"command\"";
+
+        Assert.assertEquals(mHeadsetStateMachine.parseUnknownAt(atString), "\"command\"");
+    }
+
+    @Test
+    public void testParseUnknownAt_withUnmatchingQuotes() {
+        String atString = "\"command";
+
+        Assert.assertEquals(mHeadsetStateMachine.parseUnknownAt(atString), "\"command\"");
+    }
+
+    @Test
+    public void testParseUnknownAt_withCharOutsideQuotes() {
+        String atString = "a\"command\"";
+
+        Assert.assertEquals(mHeadsetStateMachine.parseUnknownAt(atString), "A\"command\"");
+    }
+
+    @Test
+    public void testHandleAccessPermissionResult_withNoChangeInAtCommandResult() {
+        when(mIntent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)).thenReturn(null);
+        when(mIntent.getAction()).thenReturn(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
+        when(mIntent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
+                BluetoothDevice.CONNECTION_ACCESS_NO))
+                .thenReturn(BluetoothDevice.CONNECTION_ACCESS_NO);
+        when(mIntent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)).thenReturn(true);
+        mHeadsetStateMachine.mPhonebook.setCheckingAccessPermission(true);
+
+        mHeadsetStateMachine.handleAccessPermissionResult(mIntent);
+
+        verify(mNativeInterface).atResponseCode(null, 0, 0);
+    }
+
+    @Test
+    public void testProcessAtBievCommand() {
+        mHeadsetStateMachine.processAtBiev(1, 1, mTestDevice);
+
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).sendBroadcast(
+                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT), any(Bundle.class));
+    }
+
+    @Test
+    public void testProcessAtChld_withProcessChldTrue() {
+        int chld = 1;
+        when(mSystemInterface.processChld(chld)).thenReturn(true);
+
+        mHeadsetStateMachine.processAtChld(chld, mTestDevice);
+
+        verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
+    }
+
+    @Test
+    public void testProcessAtChld_withProcessChldFalse() {
+        int chld = 1;
+        when(mSystemInterface.processChld(chld)).thenReturn(false);
+
+        mHeadsetStateMachine.processAtChld(chld, mTestDevice);
+
+        verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_ERROR,
+                0);
+    }
+
+    @Test
+    public void testProcessAtClcc_withVirtualCallStarted() {
+        when(mHeadsetService.isVirtualCallStarted()).thenReturn(true);
+        when(mSystemInterface.getSubscriberNumber()).thenReturn(null);
+
+        mHeadsetStateMachine.processAtClcc(mTestDevice);
+
+        verify(mNativeInterface).clccResponse(mTestDevice, 0, 0, 0, 0, false, "", 0);
+    }
+
+    @Test
+    public void testProcessAtClcc_withVirtualCallNotStarted() {
+        when(mHeadsetService.isVirtualCallStarted()).thenReturn(false);
+        when(mSystemInterface.listCurrentCalls()).thenReturn(false);
+
+        mHeadsetStateMachine.processAtClcc(mTestDevice);
+
+        verify(mNativeInterface).clccResponse(mTestDevice, 0, 0, 0, 0, false, "", 0);
     }
 
     /**
