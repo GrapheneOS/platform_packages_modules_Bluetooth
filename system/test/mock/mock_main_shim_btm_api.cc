@@ -159,6 +159,10 @@ void bluetooth::shim::BTM_BleOpportunisticObserve(
     bool enable, tBTM_INQ_RESULTS_CB* p_results_cb) {
   mock_function_count_map[__func__]++;
 }
+void bluetooth::shim::BTM_BleTargetAnnouncementObserve(
+    bool enable, tBTM_INQ_RESULTS_CB* p_results_cb) {
+  mock_function_count_map[__func__]++;
+}
 tBTM_STATUS bluetooth::shim::BTM_CancelRemoteDeviceName(void) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;

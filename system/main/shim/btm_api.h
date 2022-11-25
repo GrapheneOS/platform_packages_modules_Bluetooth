@@ -123,6 +123,23 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
 void BTM_BleOpportunisticObserve(bool enable,
                                  tBTM_INQ_RESULTS_CB* p_results_cb);
 
+/*******************************************************************************
+ *
+ * Function         BTM_BleTargetAnnouncementObserve
+ *
+ * Description      Register/Unregister client interested in the targeted
+ *                  announcements. Not that it is client responsible for parsing
+ *                  advertising data.
+ *
+ * Parameters       start: start or stop observe.
+ *                  p_results_cb: callback for results.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void BTM_BleTargetAnnouncementObserve(bool enable,
+                                      tBTM_INQ_RESULTS_CB* p_results_cb);
+
 void BTM_EnableInterlacedInquiryScan();
 
 void BTM_EnableInterlacedPageScan();
