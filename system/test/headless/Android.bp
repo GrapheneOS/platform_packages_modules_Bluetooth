@@ -58,6 +58,7 @@ cc_binary {
         ":TestHeadlessModules",
         "bt_property.cc",
         "get_options.cc",
+        "handler.cc",
         "headless.cc",
         "log.cc",
         "main.cc",
