@@ -84,7 +84,7 @@ struct btm_client_interface_t {
                                               tBT_TRANSPORT transport);
     tBTM_STATUS (*BTM_CancelRemoteDeviceName)(void);
     tBTM_STATUS (*BTM_ReadRemoteDeviceName)(const RawAddress& bd_addr,
-                                            tBTM_CMPL_CB* p_cb,
+                                            tBTM_NAME_CMPL_CB* p_cb,
                                             tBT_TRANSPORT transport);
     uint8_t* (*BTM_ReadRemoteFeatures)(const RawAddress&);
     void (*BTM_ReadDevInfo)(const RawAddress& bd_addr,

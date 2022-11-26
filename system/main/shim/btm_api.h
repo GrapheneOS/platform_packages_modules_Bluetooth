@@ -226,7 +226,7 @@ void BTM_CancelInquiry(void);
  *
  ******************************************************************************/
 tBTM_STATUS BTM_ReadRemoteDeviceName(const RawAddress& remote_bda,
-                                     tBTM_CMPL_CB* p_cb,
+                                     tBTM_NAME_CMPL_CB* p_cb,
                                      tBT_TRANSPORT transport);
 
 /*******************************************************************************

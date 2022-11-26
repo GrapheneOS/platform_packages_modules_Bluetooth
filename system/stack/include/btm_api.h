@@ -363,7 +363,7 @@ void BTM_EnableInterlacedPageScan();
  *
  ******************************************************************************/
 tBTM_STATUS BTM_ReadRemoteDeviceName(const RawAddress& remote_bda,
-                                     tBTM_CMPL_CB* p_cb,
+                                     tBTM_NAME_CMPL_CB* p_cb,
                                      tBT_TRANSPORT transport);
 
 /*******************************************************************************
