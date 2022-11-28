@@ -115,4 +115,19 @@ public class BluetoothTetheringNetworkFactoryTest {
         verify(mPanService, times(1)).getConnectedDevices();
         verify(mPanService, times(1)).disconnect(bluetoothDevice);
     }
+
+    @Test
+    public void networkStopEmptyIface() {
+        if (Looper.myLooper() == null) {
+            Looper.prepare();
+        }
+
+        BluetoothTetheringNetworkFactory bluetoothTetheringNetworkFactory =
+                new BluetoothTetheringNetworkFactory(mContext, Looper.myLooper(), mPanService);
+
+        bluetoothTetheringNetworkFactory.stopNetwork();
+        bluetoothTetheringNetworkFactory.stopReverseTether();
+
+        assertThat(bluetoothTetheringNetworkFactory.getProvider()).isNull();
+    }
 }
