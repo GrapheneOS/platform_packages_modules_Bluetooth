@@ -83,6 +83,7 @@ init_flags!(
         gd_rust,
         gd_link_policy,
         irk_rotation,
+        sdp_skip_rnr_if_known,
         pass_phy_update_callback
     },
     dependencies: {
