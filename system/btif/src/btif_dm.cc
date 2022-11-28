@@ -1725,11 +1725,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
               btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED) {
         // Both SDP and bonding are either done, or not scheduled, we are safe
         // to clear the service discovery part of CB.
-        pairing_cb.gatt_over_le =
-            btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED;
-        pairing_cb.sdp_over_classic =
-            btif_dm_pairing_cb_t::ServiceDiscoveryState::NOT_STARTED;
-        LOG_INFO("clearing service discovery part of pairing_cb");
+        LOG_INFO("clearing pairing_cb");
+        pairing_cb = {};
       }
     } break;
 
