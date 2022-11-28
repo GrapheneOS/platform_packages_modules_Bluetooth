@@ -333,4 +333,14 @@ public class BluetoothPbapVcardManagerTest {
 
         assertThat(mManager.stripTelephoneNumber(vCard)).isEqualTo(expectedResult);
     }
+
+    @Test
+    public void getNameFromVCard() {
+        final String separator = System.getProperty("line.separator");
+        String vCard = "N:Test Name" + separator
+                + "FN:Test Full Name" + separator
+                + "EMAIL:android@android.com:" + separator;
+
+        assertThat(BluetoothPbapVcardManager.getNameFromVCard(vCard)).isEqualTo("Test Name");
+    }
 }
