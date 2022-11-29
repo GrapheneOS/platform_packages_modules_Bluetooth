@@ -249,9 +249,9 @@
     <string name="bluetooth_opp_file_limit_exceeded">Files bigger than 4GB cannot be transferred</string>
     <string name="bluetooth_connect_action">Connect to Bluetooth</string>
     <string name="bluetooth_enabled_apm_title">Bluetooth on in airplane mode</string>
-    <string name="bluetooth_enabled_apm_message">If you keep Bluetooth on, it will stay on the next time you\'re in airplane mode</string>
+    <string name="bluetooth_enabled_apm_message">If you keep Bluetooth on, your phone will remember to keep it on the next time you\'re in airplane mode</string>
     <string name="bluetooth_stays_on_title">Bluetooth stays on</string>
-    <string name="bluetooth_stays_on_message">Your phone remembers to keep Bluetooth on in airplane mode. To change this, turn off Bluetooth.</string>
+    <string name="bluetooth_stays_on_message">Your phone remembers to keep Bluetooth on in airplane mode. Turn off Bluetooth if you don\'t want it to stay on.</string>
     <string name="bluetooth_and_wifi_stays_on_title">Wi-Fi and Bluetooth stay on</string>
-    <string name="bluetooth_and_wifi_stays_on_message">Your phone remembers to keep Wi-Fi and Bluetooth on in airplane mode. To change this, turn them off.</string>
+    <string name="bluetooth_and_wifi_stays_on_message">Your phone remembers to keep Wi-Fi and Bluetooth on in airplane mode. Turn off Wi-Fi and Bluetooth if you don\'t want them to stay on.</string>
 </resources>
