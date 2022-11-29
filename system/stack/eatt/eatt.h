@@ -64,7 +64,9 @@ class EattChannel {
         state_(EattChannelState::EATT_CHANNEL_PENDING),
         indicate_handle_(0),
         ind_ack_timer_(NULL),
-        ind_confirmation_timer_(NULL) {}
+        ind_confirmation_timer_(NULL) {
+    cl_cmd_q_ = std::deque<tGATT_CMD_Q>();
+  }
 
   ~EattChannel() {
     if (ind_ack_timer_ != NULL) {
@@ -79,7 +81,6 @@ class EattChannel {
   void EattChannelSetState(EattChannelState state) {
     if (state_ == EattChannelState::EATT_CHANNEL_PENDING) {
       if (state == EattChannelState::EATT_CHANNEL_OPENED) {
-        cl_cmd_q_ = std::deque<tGATT_CMD_Q>();
         memset(&server_outstanding_cmd_, 0, sizeof(tGATT_SR_CMD));
         char name[64];
         sprintf(name, "eatt_ind_ack_timer_%s_cid_0x%04x",
