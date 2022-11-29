@@ -2019,11 +2019,28 @@ static void bta_dm_remname_cback(void* p) {
       BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
     }
   } else {
-    // if we got a different response, ignore it
+    // if we got a different response, maybe ignore it
     // we will have made a request directly from BTM_ReadRemoteDeviceName so we
     // expect a dedicated response for us
-    LOG_INFO("ignoring remote name response in DM callback since it's for the wrong bd_addr");
-    return;
+    if (p_remote_name->hci_status == HCI_ERR_CONNECTION_EXISTS) {
+      if (bluetooth::shim::is_gd_security_enabled()) {
+        bluetooth::shim::BTM_SecDeleteRmtNameNotifyCallback(
+            &bta_dm_service_search_remname_cback);
+      } else {
+        BTM_SecDeleteRmtNameNotifyCallback(
+            &bta_dm_service_search_remname_cback);
+      }
+      LOG_INFO(
+          "Assume command failed due to disconnection hci_status:%s peer:%s",
+          hci_error_code_text(p_remote_name->hci_status).c_str(),
+          ADDRESS_TO_LOGGABLE_CSTR(p_remote_name->bd_addr));
+    } else {
+      LOG_INFO(
+          "Ignored remote name response for the wrong address exp:%s act:%s",
+          ADDRESS_TO_LOGGABLE_CSTR(bta_dm_search_cb.peer_bdaddr),
+          ADDRESS_TO_LOGGABLE_CSTR(p_remote_name->bd_addr));
+      return;
+    }
   }
 
   /* remote name discovery is done but it could be failed */
