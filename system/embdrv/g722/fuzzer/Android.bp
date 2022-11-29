@@ -17,8 +17,7 @@ cc_fuzz {
         "libg722codec",
     ],
     fuzz_config: {
-        cc: [
-            "hsz@google.com",
-        ],
+        cc: ["android-bluetooth-security@google.com"],
+        componentid: 27441,
     },
 }
