@@ -640,6 +640,18 @@ static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
   return true;
 }
 
+static void metadata_changed(const RawAddress& remote_bd_addr, int key,
+                             std::vector<uint8_t> value) {
+  if (!interface_ready()) {
+    LOG_ERROR("Interface not ready!");
+    return;
+  }
+
+  do_in_main_thread(
+      FROM_HERE, base::BindOnce(btif_dm_metadata_changed, remote_bd_addr, key,
+                                std::move(value)));
+}
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -680,7 +692,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     set_dynamic_audio_buffer_size,
     generate_local_oob_data,
     allow_low_latency_audio,
-    clear_event_filter};
+    clear_event_filter,
+    metadata_changed};
 
 // callback reporting helpers
 
