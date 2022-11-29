@@ -35,37 +35,22 @@ impl Chunk<'_> {
     }
 
     /// Generate length checks for this chunk.
-    pub fn generate_length_checks(
+    pub fn generate_length_check(
         &self,
         packet_name: &str,
         offset: usize,
-    ) -> Vec<proc_macro2::TokenStream> {
-        let mut field_offset = offset;
-        let mut last_field_range_end = 0;
-        let mut length_checks = Vec::new();
-        for field in self.fields {
-            let id = field.get_id();
-            let width = field.get_width();
-            let field_range = get_field_range(field_offset, width);
-            field_offset += width;
-            if field_range.end == last_field_range_end {
-                continue;
+    ) -> proc_macro2::TokenStream {
+        let range = get_field_range(offset, self.get_width());
+        let wanted_length = syn::Index::from(range.end);
+        quote! {
+            if bytes.len() < #wanted_length {
+                return Err(Error::InvalidLengthError {
+                    obj: #packet_name.to_string(),
+                    wanted: #wanted_length,
+                    got: bytes.len(),
+                });
             }
-
-            last_field_range_end = field_range.end;
-            let range_end = syn::Index::from(field_range.end);
-            length_checks.push(quote! {
-                if bytes.len() < #range_end {
-                    return Err(Error::InvalidLengthError {
-                        obj: #packet_name.to_string(),
-                        field: #id.to_string(),
-                        wanted: #range_end,
-                        got: bytes.len(),
-                    });
-                }
-            });
         }
-        length_checks
     }
 
     /// Read data for a chunk.
@@ -88,10 +73,7 @@ impl Chunk<'_> {
 
         let range = get_field_range(offset, chunk_width);
         let indices = range.map(syn::Index::from).collect::<Vec<_>>();
-
-        // TODO(mgeisler): emit just a single length check per chunk. We
-        // could even emit a single length check per packet.
-        let length_checks = self.generate_length_checks(packet_name, offset);
+        let length_check = self.generate_length_check(packet_name, offset);
 
         // When the chunk_type.width is larger than chunk_width (e.g.
         // chunk_width is 24 but chunk_type.width is 32), then we need
@@ -112,7 +94,7 @@ impl Chunk<'_> {
         let read_adjustments = self.generate_read_adjustments();
 
         quote! {
-            #(#length_checks)*
+            #length_check
             let #chunk_name = #chunk_type::#getter([
                 #(#zero_padding_before,)* #(bytes[#indices]),* #(, #zero_padding_after)*
             ]);
@@ -199,25 +181,17 @@ impl Chunk<'_> {
 mod tests {
     use super::*;
     use crate::backends::rust::field::ScalarField;
-    use crate::test_utils::assert_expr_eq;
+    use crate::test_utils::{assert_expr_eq, assert_snapshot_eq, rustfmt};
 
     #[test]
     fn test_generate_read_8bit() {
         let fields = [Field::Scalar(ScalarField { id: String::from("a"), width: 8 })];
         let chunk = Chunk::new(&fields);
-        assert_expr_eq(
-            chunk.generate_read("Foo", ast::EndiannessValue::BigEndian, 80),
-            quote! {
-                if bytes.len() < 11 {
-                    return Err(Error::InvalidLengthError {
-                        obj: "Foo".to_string(),
-                        field: "a".to_string(),
-                        wanted: 11,
-                        got: bytes.len(),
-                    });
-                }
-                let a = u8::from_be_bytes([bytes[10]]);
-            },
+        let chunk_read = chunk.generate_read("Foo", ast::EndiannessValue::BigEndian, 80);
+        let code = quote! { fn main() { #chunk_read } };
+        assert_snapshot_eq(
+            "tests/generated/generate_chunk_read_8bit.rs",
+            &rustfmt(&code.to_string()),
         );
     }
 
@@ -225,19 +199,11 @@ mod tests {
     fn test_generate_read_16bit_le() {
         let fields = [Field::Scalar(ScalarField { id: String::from("a"), width: 16 })];
         let chunk = Chunk::new(&fields);
-        assert_expr_eq(
-            chunk.generate_read("Foo", ast::EndiannessValue::LittleEndian, 80),
-            quote! {
-                if bytes.len() < 12 {
-                    return Err(Error::InvalidLengthError {
-                        obj: "Foo".to_string(),
-                        field: "a".to_string(),
-                        wanted: 12,
-                        got: bytes.len(),
-                    });
-                }
-                let a = u16::from_le_bytes([bytes[10], bytes[11]]);
-            },
+        let chunk_read = chunk.generate_read("Foo", ast::EndiannessValue::LittleEndian, 80);
+        let code = quote! { fn main() { #chunk_read } };
+        assert_snapshot_eq(
+            "tests/generated/generate_chunk_read_16bit_le.rs",
+            &rustfmt(&code.to_string()),
         );
     }
 
@@ -245,19 +211,11 @@ mod tests {
     fn test_generate_read_16bit_be() {
         let fields = [Field::Scalar(ScalarField { id: String::from("a"), width: 16 })];
         let chunk = Chunk::new(&fields);
-        assert_expr_eq(
-            chunk.generate_read("Foo", ast::EndiannessValue::BigEndian, 80),
-            quote! {
-                if bytes.len() < 12 {
-                    return Err(Error::InvalidLengthError {
-                        obj: "Foo".to_string(),
-                        field: "a".to_string(),
-                        wanted: 12,
-                        got: bytes.len(),
-                    });
-                }
-                let a = u16::from_be_bytes([bytes[10], bytes[11]]);
-            },
+        let chunk_read = chunk.generate_read("Foo", ast::EndiannessValue::BigEndian, 80);
+        let code = quote! { fn main() { #chunk_read } };
+        assert_snapshot_eq(
+            "tests/generated/generate_chunk_read_16bit_be.rs",
+            &rustfmt(&code.to_string()),
         );
     }
 
@@ -265,19 +223,11 @@ mod tests {
     fn test_generate_read_24bit_le() {
         let fields = [Field::Scalar(ScalarField { id: String::from("a"), width: 24 })];
         let chunk = Chunk::new(&fields);
-        assert_expr_eq(
-            chunk.generate_read("Foo", ast::EndiannessValue::LittleEndian, 80),
-            quote! {
-                if bytes.len() < 13 {
-                    return Err(Error::InvalidLengthError {
-                        obj: "Foo".to_string(),
-                        field: "a".to_string(),
-                        wanted: 13,
-                        got: bytes.len(),
-                    });
-                }
-                let a = u32::from_le_bytes([bytes[10], bytes[11], bytes[12], 0]);
-            },
+        let chunk_read = chunk.generate_read("Foo", ast::EndiannessValue::LittleEndian, 80);
+        let code = quote! { fn main() { #chunk_read } };
+        assert_snapshot_eq(
+            "tests/generated/generate_chunk_read_24bit_le.rs",
+            &rustfmt(&code.to_string()),
         );
     }
 
@@ -285,19 +235,11 @@ mod tests {
     fn test_generate_read_24bit_be() {
         let fields = [Field::Scalar(ScalarField { id: String::from("a"), width: 24 })];
         let chunk = Chunk::new(&fields);
-        assert_expr_eq(
-            chunk.generate_read("Foo", ast::EndiannessValue::BigEndian, 80),
-            quote! {
-                if bytes.len() < 13 {
-                    return Err(Error::InvalidLengthError {
-                        obj: "Foo".to_string(),
-                        field: "a".to_string(),
-                        wanted: 13,
-                        got: bytes.len(),
-                    });
-                }
-                let a = u32::from_be_bytes([0, bytes[10], bytes[11], bytes[12]]);
-            },
+        let chunk_read = chunk.generate_read("Foo", ast::EndiannessValue::BigEndian, 80);
+        let code = quote! { fn main() { #chunk_read } };
+        assert_snapshot_eq(
+            "tests/generated/generate_chunk_read_24bit_be.rs",
+            &rustfmt(&code.to_string()),
         );
     }
 
@@ -308,30 +250,11 @@ mod tests {
             Field::Scalar(ScalarField { id: String::from("b"), width: 24 }),
         ];
         let chunk = Chunk::new(&fields);
-        assert_expr_eq(
-            chunk.generate_read("Foo", ast::EndiannessValue::BigEndian, 80),
-            quote! {
-                if bytes.len() < 12 {
-                    return Err(Error::InvalidLengthError {
-                        obj: "Foo".to_string(),
-                        field: "a".to_string(),
-                        wanted: 12,
-                        got: bytes.len(),
-                    });
-                }
-                if bytes.len() < 15 {
-                    return Err(Error::InvalidLengthError {
-                        obj: "Foo".to_string(),
-                        field: "b".to_string(),
-                        wanted: 15,
-                        got: bytes.len(),
-                    });
-                }
-                let chunk =
-                    u64::from_be_bytes([0, 0, 0, bytes[10], bytes[11], bytes[12], bytes[13], bytes[14]]);
-                let a = chunk as u16;
-                let b = ((chunk >> 16) & 0xffffff) as u32;
-            },
+        let chunk_read = chunk.generate_read("Foo", ast::EndiannessValue::BigEndian, 80);
+        let code = quote! { fn main() { #chunk_read } };
+        assert_snapshot_eq(
+            "tests/generated/generate_chunk_read_multiple_fields.rs",
+            &rustfmt(&code.to_string()),
         );
     }
 
