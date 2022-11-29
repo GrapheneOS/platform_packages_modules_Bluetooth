@@ -38,6 +38,10 @@ use crate::{Message, RPCProxy};
 // The timeout we have to wait for all supported profiles to connect after we
 // receive the first profile connected event.
 const PROFILE_DISCOVERY_TIMEOUT_SEC: u64 = 5;
+// The timeout we have to wait for the initiator peer device to complete the
+// initial profile connection. After this many seconds, we will begin to
+// connect the missing profiles.
+const ACCEPTOR_CONNECT_MISSING_PROFILES_TIMEOUT_SEC: u64 = 2;
 
 pub trait IBluetoothMedia {
     ///
@@ -639,8 +643,7 @@ impl BluetoothMedia {
         );
 
         let mut guard = self.device_added_tasks.lock().unwrap();
-        let now_ts = Instant::now();
-        let mut first_conn_ts = now_ts.clone();
+        let mut first_conn_ts = Instant::now();
 
         let is_profile_cleared = self.connected_profiles.get(&addr).unwrap().is_empty();
         if is_profile_cleared {
@@ -697,10 +700,6 @@ impl BluetoothMedia {
             return;
         }
 
-        let total_wait_duration = Duration::from_secs(PROFILE_DISCOVERY_TIMEOUT_SEC);
-        let remaining_wait_duration =
-            (first_conn_ts + total_wait_duration).saturating_duration_since(now_ts);
-
         let available_profiles = self.adapter_get_audio_profiles(addr);
         let connected_profiles = self.connected_profiles.get(&addr).unwrap();
         let missing_profiles =
@@ -708,24 +707,28 @@ impl BluetoothMedia {
 
         let callbacks = self.callbacks.clone();
         let device_added_tasks = self.device_added_tasks.clone();
+        let txl = self.tx.clone();
         let task = topstack::get_runtime().spawn(async move {
             if !missing_profiles.is_empty() {
+                // When the headset initiates profile connection, it will not share the same
+                // path as that of the other way around, and may selectively connect to
+                // certain profiles while missing out others.
+                // Therefore here we want to connect the missing profiles. However, we must not do
+                // so immediately, since by convention the initiating device should be given chance
+                // to connect the profiles first. Here we yield for a couple of seconds before
+                // attempting to connect the missing profiles.
+                sleep(Duration::from_secs(ACCEPTOR_CONNECT_MISSING_PROFILES_TIMEOUT_SEC)).await;
+                let _ = txl.send(Message::Media(MediaActions::Connect(addr.to_string()))).await;
+
+                let now_ts = Instant::now();
+                let total_wait_duration = Duration::from_secs(PROFILE_DISCOVERY_TIMEOUT_SEC);
+                let remaining_wait_duration =
+                    (first_conn_ts + total_wait_duration).saturating_duration_since(now_ts);
                 sleep(remaining_wait_duration).await;
             }
             device_added_cb(device_added_tasks, addr, callbacks, device, missing_profiles);
         });
-
         guard.insert(addr, Some((task, first_conn_ts)));
-        drop(guard);
-
-        // When the headset initiates profile connection, it will not share the same
-        // path as that of the other way around, and may selectively connect to
-        // certain profiles while missing out others.
-        // Therefore we make an explicit call to connect all available profiles
-        // at the first connection event as this is the best timing to do so.
-        if now_ts == first_conn_ts {
-            self.connect(addr.to_string());
-        }
     }
 
     fn adapter_get_remote_name(&self, addr: RawAddress) -> String {
