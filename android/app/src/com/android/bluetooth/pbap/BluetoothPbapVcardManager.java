@@ -62,8 +62,6 @@ import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
 import com.android.vcard.VCardPhoneNumberTranslationCallback;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -752,7 +750,7 @@ public class BluetoothPbapVcardManager {
             });
             buffer = new HandlerForStringBuffer(op, ownerVCard);
             Log.v(TAG, "contactIdCursor size: " + contactIdCursor.getCount());
-            if (!composer.init(contactIdCursor) || !buffer.onInit(mContext)) {
+            if (!composer.init(contactIdCursor) || !buffer.init()) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
             int idColumn = contactIdCursor.getColumnIndex(Data.CONTACT_ID);
@@ -789,7 +787,7 @@ public class BluetoothPbapVcardManager {
                     Log.v(TAG, "vCard after cleanup: " + vcard);
                 }
 
-                if (!buffer.onEntryCreated(vcard)) {
+                if (!buffer.writeVCard(vcard)) {
                     // onEntryCreate() already emits error.
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 }
@@ -799,7 +797,7 @@ public class BluetoothPbapVcardManager {
                 composer.terminate();
             }
             if (buffer != null) {
-                buffer.onTerminate();
+                buffer.terminate();
             }
         }
 
@@ -857,7 +855,7 @@ public class BluetoothPbapVcardManager {
             });
             buffer = new HandlerForStringBuffer(op, ownerVCard);
             Log.v(TAG, "contactIdCursor size: " + contactIdCursor.getCount());
-            if (!composer.init(contactIdCursor) || !buffer.onInit(mContext)) {
+            if (!composer.init(contactIdCursor) || !buffer.init()) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
             int idColumn = contactIdCursor.getColumnIndex(Data.CONTACT_ID);
@@ -904,7 +902,7 @@ public class BluetoothPbapVcardManager {
                         Log.v(TAG, "vCard after cleanup: " + vcard);
                     }
 
-                    if (!buffer.onEntryCreated(vcard)) {
+                    if (!buffer.writeVCard(vcard)) {
                         // onEntryCreate() already emits error.
                         return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                     }
@@ -919,7 +917,7 @@ public class BluetoothPbapVcardManager {
                 composer.terminate();
             }
             if (buffer != null) {
-                buffer.onTerminate();
+                buffer.terminate();
             }
         }
 
@@ -949,7 +947,7 @@ public class BluetoothPbapVcardManager {
             composer = new BluetoothPbapCallLogComposer(mContext);
             buffer = new HandlerForStringBuffer(op, ownerVCard);
             if (!composer.init(CallLog.Calls.CONTENT_URI, selection, null, CALLLOG_SORT_ORDER)
-                    || !buffer.onInit(mContext)) {
+                    || !buffer.init()) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
 
@@ -982,7 +980,7 @@ public class BluetoothPbapVcardManager {
                             Log.v(TAG, "Vcard Entry:");
                             Log.v(TAG, vcard);
                         }
-                        buffer.onEntryCreated(vcard);
+                        buffer.writeVCard(vcard);
                     }
                 } else {
                     if (vcard == null) {
@@ -994,7 +992,7 @@ public class BluetoothPbapVcardManager {
                         Log.v(TAG, "Vcard Entry:");
                         Log.v(TAG, vcard);
                     }
-                    buffer.onEntryCreated(vcard);
+                    buffer.writeVCard(vcard);
                 }
             }
             if (needSendBody != NEED_SEND_BODY && vCardSelct) {
@@ -1005,7 +1003,7 @@ public class BluetoothPbapVcardManager {
                 composer.terminate();
             }
             if (buffer != null) {
-                buffer.onTerminate();
+                buffer.terminate();
             }
         }
 
@@ -1048,72 +1046,6 @@ public class BluetoothPbapVcardManager {
             Log.v(TAG, "vCard with stripped telephone no.: " + stripedVCard);
         }
         return stripedVCard;
-    }
-
-    // TODO: Merge this class with BluetoothPbapSimVcardManager.HandlerForStringBuffer
-    /**
-     * Handler to emit vCards to PCE.
-     */
-    public class HandlerForStringBuffer {
-        private Operation mOperation;
-
-        private OutputStream mOutputStream;
-
-        private String mPhoneOwnVCard = null;
-
-        public HandlerForStringBuffer(Operation op, String ownerVCard) {
-            mOperation = op;
-            if (ownerVCard != null) {
-                mPhoneOwnVCard = ownerVCard;
-                if (V) {
-                    Log.v(TAG, "phone own number vcard:");
-                }
-                if (V) {
-                    Log.v(TAG, mPhoneOwnVCard);
-                }
-            }
-        }
-
-        private boolean write(String vCard) {
-            try {
-                if (vCard != null) {
-                    mOutputStream.write(vCard.getBytes());
-                    return true;
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "write outputstrem failed" + e.toString());
-            }
-            return false;
-        }
-
-        public boolean onInit(Context context) {
-            try {
-                mOutputStream = mOperation.openOutputStream();
-                if (mPhoneOwnVCard != null) {
-                    return write(mPhoneOwnVCard);
-                }
-                return true;
-            } catch (IOException e) {
-                Log.e(TAG, "open outputstrem failed" + e.toString());
-            }
-            return false;
-        }
-
-        public boolean onEntryCreated(String vcard) {
-            return write(vcard);
-        }
-
-        public void onTerminate() {
-            if (!BluetoothPbapObexServer.closeStream(mOutputStream, mOperation)) {
-                if (V) {
-                    Log.v(TAG, "CloseStream failed!");
-                }
-            } else {
-                if (V) {
-                    Log.v(TAG, "CloseStream ok!");
-                }
-            }
-        }
     }
 
     public static class VCardFilter {
