@@ -854,7 +854,7 @@ impl BluetoothSocketManager {
         match time::timeout(timeout, stream.readable()).await {
             Ok(inner) => match inner {
                 Ok(()) => {}
-                Err(e) => {
+                Err(_e) => {
                     // Stream was not readable. This is usually due to some polling error.
                     return BtStatus::Fail;
                 }
