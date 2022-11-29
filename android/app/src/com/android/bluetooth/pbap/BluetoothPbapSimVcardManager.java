@@ -38,8 +38,6 @@ import com.android.vcard.VCardBuilder;
 import com.android.vcard.VCardConfig;
 import com.android.vcard.VCardUtils;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -386,7 +384,7 @@ public class BluetoothPbapSimVcardManager {
             composer = new BluetoothPbapSimVcardManager(context);
             buffer = new HandlerForStringBuffer(op, ownerVCard);
 
-            if (!composer.init(SIM_URI, null, null, null) || !buffer.onInit(context)) {
+            if (!composer.init(SIM_URI, null, null, null) || !buffer.init()) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
             composer.moveToPosition(startPoint -1, false);
@@ -402,73 +400,17 @@ public class BluetoothPbapSimVcardManager {
                             + composer.getErrorReason() + ", count:" + count);
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 }
-                buffer.onEntryCreated(vcard);
+                buffer.writeVCard(vcard);
             }
         } finally {
             if (composer != null) {
                 composer.terminate();
             }
             if (buffer != null) {
-                buffer.onTerminate();
+                buffer.terminate();
             }
         }
         return ResponseCodes.OBEX_HTTP_OK;
-    }
-
-    /**
-     * Handler to emit vCards to PCE.
-     */
-    public static class HandlerForStringBuffer {
-        private Operation operation;
-
-        private OutputStream outputStream;
-
-        private String phoneOwnVCard = null;
-
-        public HandlerForStringBuffer(Operation op, String ownerVCard) {
-            operation = op;
-            if (ownerVCard != null) {
-                phoneOwnVCard = ownerVCard;
-                if (V) Log.v(TAG, "phoneOwnVCard \n " + phoneOwnVCard);
-            }
-        }
-
-        private boolean write(String vCard) {
-            try {
-                if (vCard != null) {
-                    outputStream.write(vCard.getBytes());
-                    return true;
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "write outputstrem failed" + e.toString());
-            }
-            return false;
-        }
-
-        public boolean onInit(Context context) {
-            try {
-                outputStream = operation.openOutputStream();
-                if (phoneOwnVCard != null) {
-                    return write(phoneOwnVCard);
-                }
-                return true;
-            } catch (IOException e) {
-                Log.e(TAG, "open outputstrem failed" + e.toString());
-            }
-            return false;
-        }
-
-        public boolean onEntryCreated(String vcard) {
-            return write(vcard);
-        }
-
-        public void onTerminate() {
-            if (!BluetoothPbapObexServer.closeStream(outputStream, operation)) {
-                if (V) Log.v(TAG, "CloseStream failed!");
-            } else {
-                if (V) Log.v(TAG, "CloseStream ok!");
-            }
-        }
     }
 
     public static final int composeAndSendSIMPhonebookOneVcard(Context context, Operation op,
@@ -484,7 +426,7 @@ public class BluetoothPbapSimVcardManager {
         try {
             composer = new BluetoothPbapSimVcardManager(context);
             buffer = new HandlerForStringBuffer(op, ownerVCard);
-            if (!composer.init(SIM_URI, null, null, null) || !buffer.onInit(context)) {
+            if (!composer.init(SIM_URI, null, null, null) || !buffer.init()) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
             if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
@@ -502,13 +444,13 @@ public class BluetoothPbapSimVcardManager {
                             + composer.getErrorReason());
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
-            buffer.onEntryCreated(vcard);
+            buffer.writeVCard(vcard);
         } finally {
             if (composer != null) {
                 composer.terminate();
             }
             if (buffer != null) {
-                buffer.onTerminate();
+                buffer.terminate();
             }
         }
 
