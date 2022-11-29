@@ -49,8 +49,6 @@ java_library {
     srcs: [
         ":services.bluetooth-sources",
     ],
-    // java_api_finder must accompany `srcs`
-    plugins: ["java_api_finder"],
 
     sdk_version: "system_server_current",
 
