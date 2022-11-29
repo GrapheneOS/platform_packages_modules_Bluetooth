@@ -540,7 +540,8 @@ cc_fuzz {
         ":BluetoothL2capFuzzTestSources",
     ],
     fuzz_config: {
-       cc: ["android-bluetooth@google.com"],
+       cc: ["android-bluetooth-security@google.com"],
+       componentid: 27441,
     },
 }
 
@@ -560,7 +561,8 @@ cc_fuzz {
         "hci/fuzz/acl_manager_fuzz_test.cc",
     ],
     fuzz_config: {
-       cc: ["zachoverflow@google.com"],
+       cc: ["android-bluetooth-security@google.com"],
+       componentid: 27441,
     },
 }
 

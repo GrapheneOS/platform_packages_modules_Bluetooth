@@ -57,10 +57,8 @@ cc_defaults {
         "libbluetooth_headers",
     ],
     fuzz_config: {
-        cc: [
-            "android-media-fuzzing-reports@google.com",
-        ],
-        componentid: 155276,
+        cc: ["android-bluetooth-security@google.com"],
+        componentid: 27441,
     },
 }
 
