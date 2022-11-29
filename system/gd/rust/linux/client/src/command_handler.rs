@@ -1138,7 +1138,7 @@ impl CommandHandler {
             return Err(self.adapter_not_ready());
         }
 
-        let command = get_arg(args, 1)?;
+        let command = get_arg(args, 0)?;
 
         match &command[..] {
             "bonded" => {
