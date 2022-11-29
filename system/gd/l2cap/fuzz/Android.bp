@@ -39,8 +39,4 @@ cc_fuzz {
     static_libs: [
         "libbte",
     ],
-    fuzz_config: {
-       cc: ["android-bluetooth-security@google.com"],
-       componentid: 27441,
-    },
 }
