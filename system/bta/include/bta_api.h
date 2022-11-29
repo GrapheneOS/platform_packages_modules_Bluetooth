@@ -419,10 +419,12 @@ typedef void(tBTA_DM_SEC_CBACK)(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data);
 #define BTA_DM_INQ_RES_EVT 0  /* Inquiry result for a peer device. */
 #define BTA_DM_INQ_CMPL_EVT 1 /* Inquiry complete. */
 #define BTA_DM_DISC_RES_EVT 2 /* Discovery result for a peer device. */
-#define BTA_DM_DISC_BLE_RES_EVT \
-  3 /* Discovery result for BLE GATT based servoce on a peer device. */
+#define BTA_DM_GATT_OVER_LE_RES_EVT \
+  3 /* GATT services over LE transport discovered */
 #define BTA_DM_DISC_CMPL_EVT 4          /* Discovery complete. */
 #define BTA_DM_SEARCH_CANCEL_CMPL_EVT 6 /* Search cancelled */
+#define BTA_DM_DID_RES_EVT 7            /* Vendor/Product ID search result */
+#define BTA_DM_GATT_OVER_SDP_RES_EVT 8  /* GATT services over SDP discovered */
 
 typedef uint8_t tBTA_DM_SEARCH_EVT;
 
