@@ -18,12 +18,12 @@ package {
 
 python_test_host {
     name: "avatar",
-    main: "connect.py",
+    main: "example.py",
     srcs: [
-        "connect.py",
+        "example.py",
     ],
     libs: [
-        "libavatar_experimental",
+        "libavatar",
     ],
     required: ["PandoraServer"],
     test_suites: ["general-tests"],
@@ -40,6 +40,6 @@ python_binary_host {
         "runner.py",
     ],
     libs: [
-        "libavatar_experimental",
+        "libavatar"
     ],
 }
