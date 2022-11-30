@@ -388,7 +388,8 @@ TEST_F(LeAddressManagerWithSingleClientTest, clear_filter_accept_list) {
   clients[0].get()->WaitForResume();
 }
 
-TEST_F(LeAddressManagerWithSingleClientTest, add_device_to_resolving_list) {
+// b/260916288
+TEST_F(LeAddressManagerWithSingleClientTest, DISABLED_add_device_to_resolving_list) {
   Address address;
   Address::FromString("01:02:03:04:05:06", address);
   Octet16 peer_irk = {0xec, 0x02, 0x34, 0xa3, 0x57, 0xc8, 0xad, 0x05, 0x34, 0x10, 0x10, 0xa6, 0x0a, 0x39, 0x7d, 0x9b};
@@ -426,7 +427,8 @@ TEST_F(LeAddressManagerWithSingleClientTest, add_device_to_resolving_list) {
   clients[0].get()->WaitForResume();
 }
 
-TEST_F(LeAddressManagerWithSingleClientTest, remove_device_from_resolving_list) {
+// b/260916288
+TEST_F(LeAddressManagerWithSingleClientTest, DISABLED_remove_device_from_resolving_list) {
   Address address;
   Address::FromString("01:02:03:04:05:06", address);
   Octet16 peer_irk = {0xec, 0x02, 0x34, 0xa3, 0x57, 0xc8, 0xad, 0x05, 0x34, 0x10, 0x10, 0xa6, 0x0a, 0x39, 0x7d, 0x9b};
@@ -472,7 +474,8 @@ TEST_F(LeAddressManagerWithSingleClientTest, remove_device_from_resolving_list) 
   clients[0].get()->WaitForResume();
 }
 
-TEST_F(LeAddressManagerWithSingleClientTest, clear_resolving_list) {
+// b/260916288
+TEST_F(LeAddressManagerWithSingleClientTest, DISABLED_clear_resolving_list) {
   Address address;
   Address::FromString("01:02:03:04:05:06", address);
   Octet16 peer_irk = {0xec, 0x02, 0x34, 0xa3, 0x57, 0xc8, 0xad, 0x05, 0x34, 0x10, 0x10, 0xa6, 0x0a, 0x39, 0x7d, 0x9b};
