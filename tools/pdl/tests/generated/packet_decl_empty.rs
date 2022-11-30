@@ -11,9 +11,6 @@ pub struct FooBuilder {}
 
 impl FooData {
     fn conforms(bytes: &[u8]) -> bool {
-        if bytes.len() < 0 {
-            return false;
-        }
         true
     }
     fn parse(bytes: &[u8]) -> Result<Self> {
@@ -24,8 +21,7 @@ impl FooData {
         self.get_size()
     }
     fn get_size(&self) -> usize {
-        let ret = 0;
-        ret
+        0
     }
 }
 
