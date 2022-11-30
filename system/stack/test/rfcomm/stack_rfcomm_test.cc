@@ -474,7 +474,7 @@ class StackRfcommTest : public Test {
   tL2CAP_APPL_INFO l2cap_appl_info_;
 };
 
-TEST_F(StackRfcommTest, SingleServerConnectionHelloWorld) {
+TEST_F(StackRfcommTest, DISABLED_SingleServerConnectionHelloWorld) {
   // Prepare a server channel at kTestChannelNumber0
   static const uint16_t acl_handle = 0x0009;
   static const uint16_t lcid = 0x0054;
@@ -497,7 +497,7 @@ TEST_F(StackRfcommTest, SingleServerConnectionHelloWorld) {
                                         "\r!dlroW olleH", 4, acl_handle, lcid));
 }
 
-TEST_F(StackRfcommTest, MultiServerPortSameDeviceHelloWorld) {
+TEST_F(StackRfcommTest, DISABLED_MultiServerPortSameDeviceHelloWorld) {
   // Prepare a server channel at kTestChannelNumber0
   static const uint16_t acl_handle = 0x0009;
   static const uint16_t lcid = 0x0054;
@@ -546,7 +546,7 @@ TEST_F(StackRfcommTest, MultiServerPortSameDeviceHelloWorld) {
       acl_handle, lcid));
 }
 
-TEST_F(StackRfcommTest, SameServerPortMultiDeviceHelloWorld) {
+TEST_F(StackRfcommTest, DISABLED_SameServerPortMultiDeviceHelloWorld) {
   // Prepare a server channel at kTestChannelNumber0
   static const uint16_t test_mtu = 1600;
   static const uint8_t test_scn = 3;
@@ -596,7 +596,7 @@ TEST_F(StackRfcommTest, SameServerPortMultiDeviceHelloWorld) {
       acl_handle_1, lcid_1));
 }
 
-TEST_F(StackRfcommTest, SingleClientConnectionHelloWorld) {
+TEST_F(StackRfcommTest, DISABLED_SingleClientConnectionHelloWorld) {
   static const uint16_t acl_handle = 0x0009;
   static const uint16_t lcid = 0x0054;
   static const uint16_t test_uuid = 0x1112;
@@ -619,7 +619,7 @@ TEST_F(StackRfcommTest, SingleClientConnectionHelloWorld) {
       lcid, 0));
 }
 
-TEST_F(StackRfcommTest, MultiClientPortSameDeviceHelloWorld) {
+TEST_F(StackRfcommTest, DISABLED_MultiClientPortSameDeviceHelloWorld) {
   static const uint16_t acl_handle = 0x0009;
   static const uint16_t lcid = 0x0054;
   static const uint16_t test_mtu = 1600;
@@ -665,7 +665,7 @@ TEST_F(StackRfcommTest, MultiClientPortSameDeviceHelloWorld) {
       acl_handle, lcid, 1));
 }
 
-TEST_F(StackRfcommTest, SameClientPortMultiDeviceHelloWorld) {
+TEST_F(StackRfcommTest, DISABLED_SameClientPortMultiDeviceHelloWorld) {
   static const uint16_t test_uuid = 0x1112;
   static const uint8_t test_scn = 8;
   static const uint16_t test_mtu = 1600;
@@ -713,7 +713,7 @@ TEST_F(StackRfcommTest, SameClientPortMultiDeviceHelloWorld) {
       acl_handle_1, lcid_1, 1));
 }
 
-TEST_F(StackRfcommTest, TestConnectionCollision) {
+TEST_F(StackRfcommTest, DISABLED_TestConnectionCollision) {
   static const uint16_t acl_handle = 0x0008;
   static const uint16_t old_lcid = 0x004a;
   static const uint16_t new_lcid = 0x005c;
