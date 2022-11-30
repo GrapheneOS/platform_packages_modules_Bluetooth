@@ -53,8 +53,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MapClientService extends ProfileService {
     private static final String TAG = "MapClientService";
 
-    static final boolean DBG = false;
-    static final boolean VDBG = false;
+    static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+    static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
 
     static final int MAXIMUM_CONNECTED_DEVICES = 4;
 
