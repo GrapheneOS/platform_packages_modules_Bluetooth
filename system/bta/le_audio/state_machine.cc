@@ -278,7 +278,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   }
 
   void StopStream(LeAudioDeviceGroup* group) override {
-    if (group->IsReleasing()) {
+    if (group->IsReleasingOrIdle()) {
       LOG(INFO) << __func__ << ", group: " << group->group_id_
                 << " already in releasing process";
       return;
