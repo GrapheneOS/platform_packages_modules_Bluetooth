@@ -122,7 +122,7 @@ struct AudioSetConfigurationProviderJson {
       case types::LeAudioContextType::GAME:
         return "Game";
       case types::LeAudioContextType::VOICEASSISTANTS:
-        return "VoiceAssinstants";
+        return "VoiceAssistants";
       default:
         return kDefaultScenario;
     }
