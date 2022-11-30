@@ -17,9 +17,11 @@
 #include "le_audio_utils.h"
 
 #include "bta/le_audio/content_control_id_keeper.h"
+#include "gd/common/strings.h"
 #include "le_audio_types.h"
 #include "osi/include/log.h"
 
+using bluetooth::common::ToString;
 using le_audio::types::AudioContexts;
 using le_audio::types::LeAudioContextType;
 
@@ -37,6 +39,8 @@ LeAudioContextType AudioContentToLeAudioContext(
   switch (usage) {
     case AUDIO_USAGE_MEDIA:
       return LeAudioContextType::MEDIA;
+    case AUDIO_USAGE_ASSISTANT:
+      return LeAudioContextType::VOICEASSISTANTS;
     case AUDIO_USAGE_VOICE_COMMUNICATION:
     case AUDIO_USAGE_CALL_ASSISTANT:
       return LeAudioContextType::CONVERSATIONAL;
@@ -130,6 +134,20 @@ static std::string contentTypeToString(audio_content_type_t content_type) {
   }
 }
 
+static const char* audioSourceToStr(audio_source_t source) {
+  const char* strArr[] = {
+      "AUDIO_SOURCE_DEFAULT",           "AUDIO_SOURCE_MIC",
+      "AUDIO_SOURCE_VOICE_UPLINK",      "AUDIO_SOURCE_VOICE_DOWNLINK",
+      "AUDIO_SOURCE_VOICE_CALL",        "AUDIO_SOURCE_CAMCORDER",
+      "AUDIO_SOURCE_VOICE_RECOGNITION", "AUDIO_SOURCE_VOICE_COMMUNICATION",
+      "AUDIO_SOURCE_REMOTE_SUBMIX",     "AUDIO_SOURCE_UNPROCESSED",
+      "AUDIO_SOURCE_VOICE_PERFORMANCE"};
+
+  if (static_cast<uint32_t>(source) < (sizeof(strArr) / sizeof(strArr[0])))
+    return strArr[source];
+  return "UNKNOWN";
+}
+
 AudioContexts GetAllowedAudioContextsFromSourceMetadata(
     const std::vector<struct playback_track_metadata>& source_metadata,
     AudioContexts allowed_contexts) {
@@ -150,6 +168,60 @@ AudioContexts GetAllowedAudioContextsFromSourceMetadata(
            track_contexts.to_string().c_str());
 
   return track_contexts;
+}
+
+AudioContexts GetAllowedAudioContextsFromSinkMetadata(
+    const std::vector<struct record_track_metadata>& sink_metadata,
+    AudioContexts allowed_contexts) {
+  AudioContexts all_track_contexts;
+
+  for (auto& track : sink_metadata) {
+    if (track.source == AUDIO_SOURCE_INVALID) continue;
+    LeAudioContextType track_context;
+
+    LOG_DEBUG(
+        "source=%s(0x%02x), gain=%f, destination device=0x%08x, destination "
+        "device address=%.32s, allowed_contexts=%s",
+        audioSourceToStr(track.source), track.source, track.gain,
+        track.dest_device, track.dest_device_address,
+        bluetooth::common::ToString(allowed_contexts).c_str());
+
+    if ((track.source == AUDIO_SOURCE_MIC) &&
+        (allowed_contexts.test(LeAudioContextType::LIVE))) {
+      track_context = LeAudioContextType::LIVE;
+
+    } else if ((track.source == AUDIO_SOURCE_VOICE_COMMUNICATION) &&
+               (allowed_contexts.test(LeAudioContextType::CONVERSATIONAL))) {
+      track_context = LeAudioContextType::CONVERSATIONAL;
+
+    } else if (allowed_contexts.test(LeAudioContextType::VOICEASSISTANTS)) {
+      /* Fallback to voice assistant
+       * This will handle also a case when the device is
+       * AUDIO_SOURCE_VOICE_RECOGNITION
+       */
+      track_context = LeAudioContextType::VOICEASSISTANTS;
+      LOG_WARN(
+          "Could not match the recording track type to group available "
+          "context. Using context %s.",
+          ToString(track_context).c_str());
+    }
+
+    all_track_contexts.set(track_context);
+  }
+
+  if (all_track_contexts.none()) {
+    all_track_contexts = AudioContexts(
+        static_cast<std::underlying_type<LeAudioContextType>::type>(
+            LeAudioContextType::UNSPECIFIED));
+    LOG_DEBUG(
+        "Unable to find supported audio source context for the remote audio "
+        "sink device. This may result in voice back channel malfunction.");
+  }
+
+  LOG_DEBUG("Allowed contexts from sink metadata: %s (0x%08hx)",
+            bluetooth::common::ToString(all_track_contexts).c_str(),
+            all_track_contexts.value());
+  return all_track_contexts;
 }
 
 std::vector<uint8_t> GetAllCcids(const AudioContexts& contexts) {
