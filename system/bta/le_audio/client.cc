@@ -217,8 +217,9 @@ DeviceGroupsCallbacks* device_group_callbacks;
 class LeAudioClientImpl : public LeAudioClient {
  public:
   ~LeAudioClientImpl() {
+    alarm_free(close_vbc_timeout_);
+    alarm_free(disable_timer_);
     alarm_free(suspend_timeout_);
-    suspend_timeout_ = nullptr;
   };
 
   LeAudioClientImpl(
@@ -246,6 +247,7 @@ class LeAudioClientImpl : public LeAudioClient {
         lc3_decoder_right(nullptr),
         le_audio_source_hal_client_(nullptr),
         le_audio_sink_hal_client_(nullptr),
+        close_vbc_timeout_(alarm_new("LeAudioCloseVbcTimeout")),
         suspend_timeout_(alarm_new("LeAudioSuspendTimeout")),
         disable_timer_(alarm_new("LeAudioDisableTimer")) {
     LeAudioGroupStateMachine::Initialize(state_machine_callbacks_);
@@ -267,6 +269,56 @@ class LeAudioClientImpl : public LeAudioClient {
         true);
 
     DeviceGroups::Get()->Initialize(device_group_callbacks);
+  }
+
+  void ReconfigureAfterVbcClose() {
+    LOG_DEBUG("VBC close timeout");
+
+    auto group = aseGroups_.FindById(active_group_id_);
+    if (!group) {
+      LOG_ERROR("Invalid group: %d", active_group_id_);
+      return;
+    }
+
+    /* Test the existing metadata against the recent availability */
+    metadata_context_types_.sink &= group->GetAvailableContexts();
+    if (metadata_context_types_.sink.none()) {
+      LOG_WARN("invalid/unknown context metadata, using 'MEDIA' instead");
+      metadata_context_types_.sink = AudioContexts(LeAudioContextType::MEDIA);
+    }
+
+    /* Choose the right configuration context */
+    auto new_configuration_context =
+        ChooseConfigurationContextType(metadata_context_types_.sink);
+
+    LOG_DEBUG("new_configuration_context= %s",
+              ToString(new_configuration_context).c_str());
+    ReconfigureOrUpdateMetadata(group, new_configuration_context,
+                                metadata_context_types_.sink);
+  }
+
+  void StartVbcCloseTimeout() {
+    if (alarm_is_scheduled(close_vbc_timeout_)) {
+      StopVbcCloseTimeout();
+    }
+
+    static const uint64_t timeoutMs = 2000;
+    LOG_DEBUG("Start VBC close timeout with %lu ms",
+              static_cast<unsigned long>(timeoutMs));
+
+    alarm_set_on_mloop(
+        close_vbc_timeout_, timeoutMs,
+        [](void*) {
+          if (instance) instance->ReconfigureAfterVbcClose();
+        },
+        nullptr);
+  }
+
+  void StopVbcCloseTimeout() {
+    if (alarm_is_scheduled(close_vbc_timeout_)) {
+      LOG_DEBUG("Cancel VBC close timeout");
+      alarm_cancel(close_vbc_timeout_);
+    }
   }
 
   void AseInitialStateReadRequest(LeAudioDevice* leAudioDevice) {
@@ -2951,6 +3003,7 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void Cleanup(base::Callback<void()> cleanupCb) {
+    StopVbcCloseTimeout();
     if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
 
     if (active_group_id_ != bluetooth::groups::kGroupUnknown) {
@@ -3237,6 +3290,8 @@ class LeAudioClientImpl : public LeAudioClient {
              ToString(audio_receiver_state_).c_str(),
              ToString(audio_sender_state_).c_str());
 
+    StartVbcCloseTimeout();
+
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Source for Audio Framework.
      * e.g. Peer is microphone.
@@ -3279,6 +3334,8 @@ class LeAudioClientImpl : public LeAudioClient {
     LOG_INFO("IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
              ToString(audio_receiver_state_).c_str(),
              ToString(audio_sender_state_).c_str());
+    /* Stop the VBC close watchdog if needed */
+    StopVbcCloseTimeout();
 
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Source for Audio Framework.
@@ -3496,6 +3553,11 @@ class LeAudioClientImpl : public LeAudioClient {
                  << ", Invalid group: " << static_cast<int>(active_group_id_);
       return;
     }
+
+    /* Stop the VBC close timeout timer, since we will reconfigure anyway if the
+     * VBC was suspended.
+     */
+    StopVbcCloseTimeout();
 
     LOG_DEBUG("group state=%s, target_state=%s",
               ToString(group->GetState()).c_str(),
@@ -4192,6 +4254,7 @@ class LeAudioClientImpl : public LeAudioClient {
   static constexpr uint64_t kAudioDisableTimeoutMs = 3000;
   static constexpr char kAudioSuspentKeepIsoAliveTimeoutMsProp[] =
       "persist.bluetooth.leaudio.audio.suspend.timeoutms";
+  alarm_t* close_vbc_timeout_;
   alarm_t* suspend_timeout_;
   alarm_t* disable_timer_;
   static constexpr uint64_t kDeviceAttachDelayMs = 500;
