@@ -31,7 +31,7 @@ PacketField* PacketDef::GetNewField(const std::string&, ParseLocation) const {
   return nullptr;  // Packets can't be fields
 }
 
-void PacketDef::GenParserDefinition(std::ostream& s) const {
+void PacketDef::GenParserDefinition(std::ostream& s, bool generate_fuzzing, bool generate_tests) const {
   s << "class " << name_ << "View";
   if (parent_ != nullptr) {
     s << " : public " << parent_->name_ << "View {";
@@ -49,7 +49,9 @@ void PacketDef::GenParserDefinition(std::ostream& s) const {
     s << "{ return " << name_ << "View(std::move(packet)); }";
   }
 
-  GenTestingParserFromBytes(s);
+  if (generate_fuzzing || generate_tests) {
+    GenTestingParserFromBytes(s);
+  }
 
   std::set<std::string> fixed_types = {
       FixedScalarField::kFieldType,
@@ -347,7 +349,7 @@ void PacketDef::GenParserToString(std::ostream& s) const {
   s << "}\n";
 }
 
-void PacketDef::GenBuilderDefinition(std::ostream& s) const {
+void PacketDef::GenBuilderDefinition(std::ostream& s, bool generate_fuzzing, bool generate_tests) const {
   s << "class " << name_ << "Builder";
   if (parent_ != nullptr) {
     s << " : public " << parent_->name_ << "Builder";
@@ -366,8 +368,10 @@ void PacketDef::GenBuilderDefinition(std::ostream& s) const {
     GenBuilderCreate(s);
     s << "\n";
 
-    GenTestingFromView(s);
-    s << "\n";
+    if (generate_fuzzing || generate_tests) {
+      GenTestingFromView(s);
+      s << "\n";
+    }
   }
 
   GenSerialize(s);
@@ -386,11 +390,20 @@ void PacketDef::GenBuilderDefinition(std::ostream& s) const {
   GenMembers(s);
   s << "};\n";
 
-  GenTestDefine(s);
-  s << "\n";
+  if (generate_tests) {
+    GenTestDefine(s);
+    s << "\n";
+  }
 
-  GenFuzzTestDefine(s);
-  s << "\n";
+  if (generate_fuzzing || generate_tests) {
+    GenReflectTestDefine(s);
+    s << "\n";
+  }
+
+  if (generate_fuzzing) {
+    GenFuzzTestDefine(s);
+    s << "\n";
+  }
 }
 
 void PacketDef::GenTestingFromView(std::ostream& s) const {
@@ -483,7 +496,7 @@ void PacketDef::GenTestDefine(std::ostream& s) const {
   s << "\n#endif";
 }
 
-void PacketDef::GenFuzzTestDefine(std::ostream& s) const {
+void PacketDef::GenReflectTestDefine(std::ostream& s) const {
   s << "#if defined(PACKET_FUZZ_TESTING) || defined(PACKET_TESTING)\n";
   s << "#define DEFINE_" << name_ << "ReflectionFuzzTest() ";
   s << "void Run" << name_ << "ReflectionFuzzTest(const uint8_t* data, size_t size) {";
@@ -497,6 +510,9 @@ void PacketDef::GenFuzzTestDefine(std::ostream& s) const {
   s << "packet->Serialize(it);";
   s << "}";
   s << "\n#endif\n";
+}
+
+void PacketDef::GenFuzzTestDefine(std::ostream& s) const {
   s << "#ifdef PACKET_FUZZ_TESTING\n";
   s << "#define DEFINE_AND_REGISTER_" << name_ << "ReflectionFuzzTest(REGISTRY) ";
   s << "DEFINE_" << name_ << "ReflectionFuzzTest();";
