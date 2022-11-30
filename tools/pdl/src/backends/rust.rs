@@ -164,21 +164,17 @@ fn generate_packet_decl(
         panic!("packet {id} does not end on a byte boundary, size: {packet_size_bits} bits",);
     }
     let packet_size_bytes = syn::Index::from(packet_size_bits / 8);
-    let get_size_adjustment = (packet_size_bytes.index > 0).then(|| {
-        Some(quote! {
-            let ret = ret + #packet_size_bytes;
-        })
-    });
+
+    let conforms = if packet_size_bytes.index == 0 {
+        quote! { true }
+    } else {
+        quote! { bytes.len() >= #packet_size_bytes }
+    };
 
     code.push_str(&quote_block! {
         impl #data_name {
             fn conforms(bytes: &[u8]) -> bool {
-                // TODO(mgeisler): return Boolean expression directly.
-                // TODO(mgeisler): skip when total_field_size == 0.
-                if bytes.len() < #packet_size_bytes {
-                    return false;
-                }
-                true
+                #conforms
             }
 
             fn parse(bytes: &[u8]) -> Result<Self> {
@@ -195,9 +191,7 @@ fn generate_packet_decl(
             }
 
             fn get_size(&self) -> usize {
-                let ret = 0;
-                #get_size_adjustment
-                ret
+                #packet_size_bytes
             }
         }
     });

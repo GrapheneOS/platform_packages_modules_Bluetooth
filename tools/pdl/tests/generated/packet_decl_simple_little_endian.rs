@@ -19,16 +19,12 @@ pub struct FooBuilder {
 
 impl FooData {
     fn conforms(bytes: &[u8]) -> bool {
-        if bytes.len() < 6 {
-            return false;
-        }
-        true
+        bytes.len() >= 6
     }
     fn parse(bytes: &[u8]) -> Result<Self> {
         if bytes.len() < 1 {
             return Err(Error::InvalidLengthError {
                 obj: "Foo".to_string(),
-                field: "x".to_string(),
                 wanted: 1,
                 got: bytes.len(),
             });
@@ -37,7 +33,6 @@ impl FooData {
         if bytes.len() < 3 {
             return Err(Error::InvalidLengthError {
                 obj: "Foo".to_string(),
-                field: "y".to_string(),
                 wanted: 3,
                 got: bytes.len(),
             });
@@ -46,7 +41,6 @@ impl FooData {
         if bytes.len() < 6 {
             return Err(Error::InvalidLengthError {
                 obj: "Foo".to_string(),
-                field: "z".to_string(),
                 wanted: 6,
                 got: bytes.len(),
             });
@@ -66,9 +60,7 @@ impl FooData {
         self.get_size()
     }
     fn get_size(&self) -> usize {
-        let ret = 0;
-        let ret = ret + 6;
-        ret
+        6
     }
 }
 
