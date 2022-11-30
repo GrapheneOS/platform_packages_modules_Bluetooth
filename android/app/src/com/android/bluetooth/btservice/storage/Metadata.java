@@ -61,6 +61,22 @@ public class Metadata {
     @Embedded
     public AudioPolicyEntity audioPolicyMetadata;
 
+    /**
+     * The preferred profile to be used for {@link BluetoothDevice#AUDIO_MODE_OUTPUT_ONLY}. This can
+     * be either {@link BluetoothProfile#A2DP} or {@link BluetoothProfile#LE_AUDIO}. This value is
+     * only used if the remote device supports both A2DP and LE Audio and both transports are
+     * connected and active.
+     */
+    public int preferred_output_only_profile;
+
+    /**
+     * The preferred profile to be used for {@link BluetoothDevice#AUDIO_MODE_DUPLEX}. This can
+     * be either {@link BluetoothProfile#HEADSET} or {@link BluetoothProfile#LE_AUDIO}. This value
+     * is only used if the remote device supports both HFP and LE Audio and both transports are
+     * connected and active.
+     */
+    public int preferred_duplex_profile;
+
     Metadata(String address) {
         this.address = address;
         migrated = false;
@@ -71,6 +87,8 @@ public class Metadata {
         last_active_time = MetadataDatabase.sCurrentConnectionNumber++;
         is_active_a2dp_device = true;
         audioPolicyMetadata = new AudioPolicyEntity();
+        preferred_output_only_profile = 0;
+        preferred_duplex_profile = 0;
     }
 
     /**
