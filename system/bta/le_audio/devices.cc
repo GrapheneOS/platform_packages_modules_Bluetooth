@@ -856,7 +856,7 @@ bool LeAudioDeviceGroup::IsInTransition(void) {
   return target_state_ != current_state_;
 }
 
-bool LeAudioDeviceGroup::IsReleasing(void) {
+bool LeAudioDeviceGroup::IsReleasingOrIdle(void) {
   return target_state_ == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
 }
 
@@ -1333,7 +1333,7 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
   return true;
 }
 
-uint32_t GetFirstLeft(const types::AudioLocations audio_locations) {
+static uint32_t GetFirstLeft(const types::AudioLocations& audio_locations) {
   uint32_t audio_location_ulong = audio_locations.to_ulong();
 
   if (audio_location_ulong & codec_spec_conf::kLeAudioLocationFrontLeft)
@@ -1366,11 +1366,11 @@ uint32_t GetFirstLeft(const types::AudioLocations audio_locations) {
   if (audio_location_ulong & codec_spec_conf::kLeAudioLocationLeftSurround)
     return codec_spec_conf::kLeAudioLocationLeftSurround;
 
-  LOG_ASSERT(0) << __func__ << " shall not happen";
+  LOG_WARN("Can't find device able to render left audio channel");
   return 0;
 }
 
-uint32_t GetFirstRight(const types::AudioLocations audio_locations) {
+static uint32_t GetFirstRight(const types::AudioLocations& audio_locations) {
   uint32_t audio_location_ulong = audio_locations.to_ulong();
 
   if (audio_location_ulong & codec_spec_conf::kLeAudioLocationFrontRight)
@@ -1404,47 +1404,41 @@ uint32_t GetFirstRight(const types::AudioLocations audio_locations) {
   if (audio_location_ulong & codec_spec_conf::kLeAudioLocationRightSurround)
     return codec_spec_conf::kLeAudioLocationRightSurround;
 
-  LOG_ASSERT(0) << __func__ << " shall not happen";
+  LOG_WARN("Can't find device able to render right audio channel");
   return 0;
 }
 
 uint32_t PickAudioLocation(types::LeAudioConfigurationStrategy strategy,
-                           types::AudioLocations audio_locations,
-                           types::AudioLocations* group_audio_locations) {
-  DLOG(INFO) << __func__ << " strategy: " << (int)strategy
-             << " locations: " << +audio_locations.to_ulong()
-             << " group locations: " << +group_audio_locations->to_ulong();
+                           types::AudioLocations device_locations,
+                           types::AudioLocations* group_locations) {
+  LOG_DEBUG("strategy: %d, locations: %lx, group locations: %lx", (int)strategy,
+            device_locations.to_ulong(), group_locations->to_ulong());
+
+  auto is_left_not_yet_assigned =
+      !(group_locations->to_ulong() & codec_spec_conf::kLeAudioLocationAnyLeft);
+  auto is_right_not_yet_assigned = !(group_locations->to_ulong() &
+                                     codec_spec_conf::kLeAudioLocationAnyRight);
+  uint32_t left_device_loc = GetFirstLeft(device_locations);
+  uint32_t right_device_loc = GetFirstRight(device_locations);
 
   switch (strategy) {
     case types::LeAudioConfigurationStrategy::MONO_ONE_CIS_PER_DEVICE:
     case types::LeAudioConfigurationStrategy::STEREO_TWO_CISES_PER_DEVICE:
-      if ((audio_locations.to_ulong() &
-           codec_spec_conf::kLeAudioLocationAnyLeft) &&
-          !(group_audio_locations->to_ulong() &
-            codec_spec_conf::kLeAudioLocationAnyLeft)) {
-        uint32_t left_location = GetFirstLeft(audio_locations);
-        *group_audio_locations |= left_location;
-        return left_location;
+      if (left_device_loc && is_left_not_yet_assigned) {
+        *group_locations |= left_device_loc;
+        return left_device_loc;
       }
 
-      if ((audio_locations.to_ulong() &
-           codec_spec_conf::kLeAudioLocationAnyRight) &&
-          !(group_audio_locations->to_ulong() &
-            codec_spec_conf::kLeAudioLocationAnyRight)) {
-        uint32_t right_location = GetFirstRight(audio_locations);
-        *group_audio_locations |= right_location;
-        return right_location;
+      if (right_device_loc && is_right_not_yet_assigned) {
+        *group_locations |= right_device_loc;
+        return right_device_loc;
       }
       break;
+
     case types::LeAudioConfigurationStrategy::STEREO_ONE_CIS_PER_DEVICE:
-      if ((audio_locations.to_ulong() &
-           codec_spec_conf::kLeAudioLocationAnyLeft) &&
-          (audio_locations.to_ulong() &
-           codec_spec_conf::kLeAudioLocationAnyRight)) {
-        uint32_t left_location = GetFirstLeft(audio_locations);
-        uint32_t right_location = GetFirstRight(audio_locations);
-        *group_audio_locations |= left_location | right_location;
-        return left_location | right_location;
+      if (left_device_loc && right_device_loc) {
+        *group_locations |= left_device_loc | right_device_loc;
+        return left_device_loc | right_device_loc;
       }
       break;
     default:
@@ -1452,12 +1446,15 @@ uint32_t PickAudioLocation(types::LeAudioConfigurationStrategy strategy,
       return 0;
   }
 
-  LOG_ALWAYS_FATAL(
-      "%s: Shall never exit switch statement, strategy: %hhu, "
-      "locations: %lx, group_locations: %lx",
-      __func__, strategy, audio_locations.to_ulong(),
-      group_audio_locations->to_ulong());
-  return 0;
+  LOG_ERROR(
+      "Can't find device for left/right channel. Strategy: %hhu, "
+      "device_locations: %lx, group_locations: %lx.",
+      strategy, device_locations.to_ulong(), group_locations->to_ulong());
+
+  /* Return either any left or any right audio location. It might result with
+   * multiple devices within the group having the same location.
+   */
+  return left_device_loc ? left_device_loc : right_device_loc;
 }
 
 bool LeAudioDevice::ConfigureAses(
@@ -1632,9 +1629,9 @@ LeAudioDeviceGroup::GetActiveConfiguration(void) {
 
 std::optional<LeAudioCodecConfiguration>
 LeAudioDeviceGroup::GetCodecConfigurationByDirection(
-    types::LeAudioContextType group_context_type, uint8_t direction) {
+    types::LeAudioContextType group_context_type, uint8_t direction) const {
   const set_configurations::AudioSetConfiguration* audio_set_conf =
-      available_context_to_configuration_map[group_context_type];
+      available_context_to_configuration_map.at(group_context_type);
   LeAudioCodecConfiguration group_config = {0, 0, 0, 0};
   if (!audio_set_conf) return std::nullopt;
 
