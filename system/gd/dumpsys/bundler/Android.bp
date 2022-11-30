@@ -69,9 +69,8 @@ cc_binary_host {
     ],
 }
 
-cc_test {
+cc_test_host {
     name: "bluetooth_flatbuffer_bundler_test",
-    host_supported: true,
     srcs: [
         ":BluetoothFlatbufferBundlerTestSources",
     ],
