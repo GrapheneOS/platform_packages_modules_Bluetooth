@@ -1045,7 +1045,8 @@ public class LeAudioServiceTest {
     @Test
     public void testGetActiveDevices() {
         int groupId = 1;
-        int direction = 2;
+        /* AUDIO_DIRECTION_OUTPUT_BIT = 0x01 */
+        int direction = 1;
         int snkAudioLocation = 3;
         int srcAudioLocation = 4;
         int availableContexts = 5;
@@ -1295,7 +1296,8 @@ public class LeAudioServiceTest {
     @Test
     public void testLeadGroupDeviceDisconnects() {
         int groupId = 1;
-        int direction = 2;
+        /* AUDIO_DIRECTION_OUTPUT_BIT = 0x01 */
+        int direction = 1;
         int snkAudioLocation = 3;
         int srcAudioLocation = 4;
         int availableContexts = 5;
@@ -1359,7 +1361,8 @@ public class LeAudioServiceTest {
     @Test
     public void testLeadGroupDeviceReconnects() {
         int groupId = 1;
-        int direction = 2;
+        /* AUDIO_DIRECTION_OUTPUT_BIT = 0x01 */
+        int direction = 1;
         int snkAudioLocation = 3;
         int srcAudioLocation = 4;
         int availableContexts = 5;
@@ -1426,7 +1429,8 @@ public class LeAudioServiceTest {
     public void testVolumeCache() {
         int groupId = 1;
         int volume = 100;
-        int direction = 2;
+        /* AUDIO_DIRECTION_OUTPUT_BIT = 0x01 */
+        int direction = 1;
         int availableContexts = 4;
 
         doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
