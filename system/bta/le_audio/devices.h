@@ -362,7 +362,7 @@ class LeAudioDeviceGroup {
   }
 
   bool IsInTransition(void);
-  bool IsReleasing(void);
+  bool IsReleasingOrIdle(void);
   void Dump(int fd, int active_group_id);
 
  private:
