@@ -1520,7 +1520,16 @@ bool LeAudioDevice::ConfigureAses(
     ase->retrans_nb = ent.qos.retransmission_number;
     ase->max_transport_latency = ent.qos.max_transport_latency;
 
-    ase->metadata = GetMetadata(metadata_context_type, ccid_list);
+    /* Filter multidirectional audio context for each ase direction */
+    auto directional_audio_context =
+        metadata_context_type & GetAvailableContexts(ase->direction);
+    if (directional_audio_context.any()) {
+      ase->metadata = GetMetadata(directional_audio_context, ccid_list);
+    } else {
+      ase->metadata =
+          GetMetadata(AudioContexts(LeAudioContextType::UNSPECIFIED),
+                      std::vector<uint8_t>());
+    }
 
     DLOG(INFO) << __func__ << " device=" << address_
                << ", activated ASE id=" << +ase->id
@@ -2402,8 +2411,8 @@ uint8_t LeAudioDevice::GetPhyBitmask(void) {
 
 void LeAudioDevice::SetSupportedContexts(AudioContexts snk_contexts,
                                          AudioContexts src_contexts) {
-  supp_snk_context_ = snk_contexts;
-  supp_src_context_ = src_contexts;
+  supp_contexts_.sink = snk_contexts;
+  supp_contexts_.source = src_contexts;
 }
 
 void LeAudioDevice::Dump(int fd) {
@@ -2445,8 +2454,14 @@ void LeAudioDevice::DisconnectAcl(void) {
   }
 }
 
-AudioContexts LeAudioDevice::GetAvailableContexts(void) {
-  return avail_snk_contexts_ | avail_src_contexts_;
+types::AudioContexts LeAudioDevice::GetAvailableContexts(int direction) {
+  if (direction ==
+      (types::kLeAudioDirectionSink | types::kLeAudioDirectionSource)) {
+    return get_bidirectional(avail_contexts_);
+  } else if (direction == types::kLeAudioDirectionSink) {
+    return avail_contexts_.sink;
+  }
+  return avail_contexts_.source;
 }
 
 /* Returns XOR of updated sink and source bitset context types */
@@ -2454,18 +2469,19 @@ AudioContexts LeAudioDevice::SetAvailableContexts(AudioContexts snk_contexts,
                                                   AudioContexts src_contexts) {
   AudioContexts updated_contexts;
 
-  updated_contexts = snk_contexts ^ avail_snk_contexts_;
-  updated_contexts |= src_contexts ^ avail_src_contexts_;
+  updated_contexts = snk_contexts ^ avail_contexts_.sink;
+  updated_contexts |= src_contexts ^ avail_contexts_.source;
 
   LOG_DEBUG(
-      "\n\t avail_snk_contexts_: %s \n\t avail_src_contexts_: %s  \n\t "
+      "\n\t avail_contexts_.sink: %s \n\t avail_contexts_.source: %s  \n\t "
       "snk_contexts: %s \n\t src_contexts: %s \n\t updated_contexts: %s",
-      avail_snk_contexts_.to_string().c_str(),
-      avail_src_contexts_.to_string().c_str(), snk_contexts.to_string().c_str(),
-      src_contexts.to_string().c_str(), updated_contexts.to_string().c_str());
+      avail_contexts_.sink.to_string().c_str(),
+      avail_contexts_.source.to_string().c_str(),
+      snk_contexts.to_string().c_str(), src_contexts.to_string().c_str(),
+      updated_contexts.to_string().c_str());
 
-  avail_snk_contexts_ = snk_contexts;
-  avail_src_contexts_ = src_contexts;
+  avail_contexts_.sink = snk_contexts;
+  avail_contexts_.source = src_contexts;
 
   return updated_contexts;
 }
