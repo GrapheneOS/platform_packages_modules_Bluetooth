@@ -364,9 +364,9 @@ struct HciLayer::impl {
       auto view = VendorSpecificEventView::Create(event);
       ASSERT(view.IsValid());
       if (view.GetSubeventCode() == VseSubeventCode::BQR_EVENT) {
-        auto bqr_quality_view = BqrLinkQualityEventView::Create(BqrEventView::Create(view));
-        auto inflammation = BqrRootInflammationEventView::Create(bqr_quality_view);
-        if (bqr_quality_view.IsValid() && inflammation.IsValid()) {
+        auto bqr_event = BqrEventView::Create(view);
+        auto inflammation = BqrRootInflammationEventView::Create(bqr_event);
+        if (bqr_event.IsValid() && inflammation.IsValid()) {
           handle_root_inflammation(inflammation.GetVendorSpecificErrorCode());
           return;
         }
