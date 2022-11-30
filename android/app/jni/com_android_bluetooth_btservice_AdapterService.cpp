@@ -2030,6 +2030,42 @@ static void interopDatabaseAddRemoveNameNative(JNIEnv* env, jclass clazz,
   env->ReleaseStringUTFChars(name, name_str);
 }
 
+static int getRemotePbapPceVersionNative(JNIEnv* env, jobject obj,
+                                         jstring address) {
+  ALOGV("%s", __func__);
+
+  if (!sBluetoothInterface) return JNI_FALSE;
+
+  const char* tmp_addr = env->GetStringUTFChars(address, NULL);
+  if (!tmp_addr) {
+    ALOGW("%s: address is null.", __func__);
+    return JNI_FALSE;
+  }
+
+  RawAddress bdaddr;
+  bool success = RawAddress::FromString(tmp_addr, bdaddr);
+
+  env->ReleaseStringUTFChars(address, tmp_addr);
+
+  if (!success) {
+    ALOGW("%s: address is invalid.", __func__);
+    return JNI_FALSE;
+  }
+
+  return sBluetoothInterface->get_remote_pbap_pce_version(&bdaddr);
+}
+
+static jboolean pbapPseDynamicVersionUpgradeIsEnabledNative(JNIEnv* env,
+                                                            jobject obj) {
+  ALOGV("%s", __func__);
+
+  if (!sBluetoothInterface) return JNI_FALSE;
+
+  return sBluetoothInterface->pbap_pse_dynamic_version_upgrade_is_enabled()
+             ? JNI_TRUE
+             : JNI_FALSE;
+}
+
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void*)classInitNative},
@@ -2086,6 +2122,10 @@ static JNINativeMethod sMethods[] = {
     {"interopDatabaseAddRemoveNameNative",
      "(ZLjava/lang/String;Ljava/lang/String;)V",
      (void*)interopDatabaseAddRemoveNameNative},
+    {"getRemotePbapPceVersionNative", "(Ljava/lang/String;)I",
+     (void*)getRemotePbapPceVersionNative},
+    {"pbapPseDynamicVersionUpgradeIsEnabledNative", "()Z",
+     (void*)pbapPseDynamicVersionUpgradeIsEnabledNative},
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env) {
