@@ -278,6 +278,7 @@ public class CsipSetCoordinatorService extends ProfileService {
             CsipSetCoordinatorStateMachine smConnect = getOrCreateStateMachine(device);
             if (smConnect == null) {
                 Log.e(TAG, "Cannot connect to " + device + " : no state machine");
+                return false;
             }
             smConnect.sendMessage(CsipSetCoordinatorStateMachine.CONNECT);
         }
