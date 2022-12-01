@@ -19,6 +19,7 @@
 
 #include "le_audio_software_aidl.h"
 
+#include <atomic>
 #include <unordered_map>
 #include <vector>
 
@@ -70,25 +71,33 @@ LeAudioTransport::LeAudioTransport(void (*flush)(void),
 BluetoothAudioCtrlAck LeAudioTransport::StartRequest(bool is_low_latency) {
   SetStartRequestState(StartRequestState::PENDING_BEFORE_RESUME);
   if (stream_cb_.on_resume_(true)) {
-    if (start_request_state_ == StartRequestState::CONFIRMED) {
+    auto expected = StartRequestState::CONFIRMED;
+    if (std::atomic_compare_exchange_strong(&start_request_state_, &expected,
+                                            StartRequestState::IDLE)) {
       LOG_INFO("Start completed.");
-      SetStartRequestState(StartRequestState::IDLE);
       return BluetoothAudioCtrlAck::SUCCESS_FINISHED;
     }
 
-    if (start_request_state_ == StartRequestState::CANCELED) {
+    expected = StartRequestState::CANCELED;
+    if (std::atomic_compare_exchange_strong(&start_request_state_, &expected,
+                                            StartRequestState::IDLE)) {
       LOG_INFO("Start request failed.");
-      SetStartRequestState(StartRequestState::IDLE);
       return BluetoothAudioCtrlAck::FAILURE;
     }
 
-    LOG_INFO("Start pending.");
-    SetStartRequestState(StartRequestState::PENDING_AFTER_RESUME);
-    return BluetoothAudioCtrlAck::PENDING;
+    expected = StartRequestState::PENDING_BEFORE_RESUME;
+    if (std::atomic_compare_exchange_strong(
+            &start_request_state_, &expected,
+            StartRequestState::PENDING_AFTER_RESUME)) {
+      LOG_INFO("Start pending.");
+      return BluetoothAudioCtrlAck::PENDING;
+    }
   }
 
   LOG_ERROR("Start request failed.");
-  SetStartRequestState(StartRequestState::IDLE);
+  auto expected = StartRequestState::PENDING_BEFORE_RESUME;
+  std::atomic_compare_exchange_strong(&start_request_state_, &expected,
+                                      StartRequestState::IDLE);
   return BluetoothAudioCtrlAck::FAILURE;
 }
 
