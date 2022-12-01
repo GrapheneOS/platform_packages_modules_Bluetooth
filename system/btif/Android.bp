@@ -610,6 +610,7 @@ cc_test {
         ],
       srcs: [
           ":LibBluetoothSources",
+          ":OsiCompatSources",
           ":TestCommonMainHandler",
           ":TestCommonMockFunctions",
           ":TestCommonCoreInterface",
@@ -639,6 +640,7 @@ cc_test {
           ":TestMockFrameworks",
           ":TestMockHci",
           ":TestMockMainShim",
+          ":TestMockOsi",
           ":TestMockStack",
           ":TestMockSystemLibfmq",
           ":TestMockUdrv",
@@ -678,7 +680,6 @@ cc_test {
           "libc++fs",
           "libflatbuffers-cpp",
           "libgmock",
-          "libosi",
       ],
       cflags: ["-DBUILDCFG"],
       target: {
