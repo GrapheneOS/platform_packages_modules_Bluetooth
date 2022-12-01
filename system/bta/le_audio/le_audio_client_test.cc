@@ -75,6 +75,10 @@ constexpr int max_num_of_ases = 5;
 
 static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
     "persist.bluetooth.leaudio.notify.idle.during.call";
+const char* test_flags[] = {
+    "INIT_logging_debug_enabled_for_all=true",
+    nullptr,
+};
 
 void osi_property_set_bool(const char* key, bool value);
 
@@ -292,6 +296,8 @@ class MockLeAudioSourceHalClient : public LeAudioSourceAudioHalClient {
 class UnicastTestNoInit : public Test {
  protected:
   void SetUpMockAudioHal() {
+    bluetooth::common::InitFlags::Load(test_flags);
+
     /* Since these are returned by the Acquire() methods as unique_ptrs, we
      * will not free them manually.
      */
@@ -3698,28 +3704,26 @@ TEST_F(UnicastTest, MicrophoneAttachToCurrentMediaScenario) {
   ConnectLeAudio(test_address0);
   ASSERT_NE(group_id, bluetooth::groups::kGroupUnknown);
 
-  // Start streaming
-  uint8_t cis_count_out = 1;
-  uint8_t cis_count_in = 0;
-
   // Audio sessions are started only when device gets active
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
-
-  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id,
-                 AUDIO_SOURCE_MIC);
 
   EXPECT_CALL(
       mock_state_machine_,
       StartStream(_, le_audio::types::LeAudioContextType::VOICEASSISTANTS, _,
                   _))
       .Times(1);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id,
+                 AUDIO_SOURCE_MIC);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
   SyncOnMainLoop();
 
   // Verify Data transfer on one audio source cis
+  uint8_t cis_count_out = 1;
+  uint8_t cis_count_in = 0;
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
   // Suspend
@@ -3727,7 +3731,6 @@ TEST_F(UnicastTest, MicrophoneAttachToCurrentMediaScenario) {
   LeAudioClient::Get()->GroupSuspend(group_id);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
-  // Mock::VerifyAndClearExpectations(&mock_audio_hal_client_);
 
   // Resume
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id,

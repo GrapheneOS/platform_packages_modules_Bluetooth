@@ -49,6 +49,20 @@ using packet::PacketView;
 using packet::RawBuilder;
 using testing::LogCapture;
 
+std::vector<uint8_t> GetPacketBytes(std::unique_ptr<packet::BasePacketBuilder> packet) {
+  std::vector<uint8_t> bytes;
+  BitInserter i(bytes);
+  bytes.reserve(packet->size());
+  packet->Serialize(i);
+  return bytes;
+}
+
+std::unique_ptr<packet::BasePacketBuilder> CreatePayload(std::vector<uint8_t> payload) {
+  auto raw_builder = std::make_unique<packet::RawBuilder>();
+  raw_builder->AddOctets(payload);
+  return raw_builder;
+}
+
 class TestHciHal : public hal::HciHal {
  public:
   TestHciHal() : hal::HciHal() {}
@@ -95,6 +109,10 @@ class TestHciHal : public hal::HciHal {
 
   int GetPendingCommands() {
     return outgoing_commands_.size();
+  }
+
+  void InjectEvent(std::unique_ptr<packet::BasePacketBuilder> packet) {
+    callbacks->hciEventReceived(GetPacketBytes(std::move(packet)));
   }
 
   std::string ToString() const override {
@@ -180,6 +198,23 @@ TEST_F(HciLayerTest, abort_after_hci_restart_timeout) {
         FakeTimerAdvance(HciLayer::kHciTimeoutRestartMs.count());
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Done waiting for debug information after HCI timeout");
+      },
+      "");
+}
+
+TEST_F(HciLayerTest, abort_on_root_inflammation_event) {
+  FailIfResetNotSent();
+
+  auto payload = CreatePayload({'0'});
+  auto root_inflammation_event = BqrRootInflammationEventBuilder::Create(0x01, 0x01, std::move(payload));
+  hal_->InjectEvent(std::move(root_inflammation_event));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, "Received a Root Inflammation Event");
+  ASSERT_DEATH(
+      {
+        FakeTimerAdvance(HciLayer::kHciTimeoutRestartMs.count());
+        std::promise<void> promise;
+        log_capture_->WaitUntilLogContains(&promise, "Root inflammation with reason");
       },
       "");
 }
