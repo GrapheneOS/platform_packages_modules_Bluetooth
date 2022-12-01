@@ -22,6 +22,7 @@ mod ffi {
         fn pass_phy_update_callback_is_enabled() -> bool;
         fn redact_log_is_enabled() -> bool;
         fn sdp_serialization_is_enabled() -> bool;
+        fn sdp_skip_rnr_if_known_is_enabled() -> bool;
     }
 }
 
