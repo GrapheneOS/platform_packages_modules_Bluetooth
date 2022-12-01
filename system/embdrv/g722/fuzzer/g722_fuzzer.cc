@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "../g722_enc_dec.h"
+
+namespace {
 
 uint32_t get_rate_from_fdp(FuzzedDataProvider* fdp) {
   uint32_t rate = fdp->ConsumeIntegralInRange<uint32_t>(
@@ -30,13 +33,9 @@ uint32_t get_rate_from_fdp(FuzzedDataProvider* fdp) {
   }
 }
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-  FuzzedDataProvider fdp(data, size);
-
-  std::vector<uint8_t> buff;
-  for (size_t i = 0; i < size; i++) {
-    buff.push_back(data[i]);
-  }
+void fuzz_encode(FuzzedDataProvider* fdp) {
+  uint32_t rate = get_rate_from_fdp(fdp);
+  std::vector<uint8_t> buff = fdp->ConsumeRemainingBytes<uint8_t>();
 
   int num_samples =
       buff.size() / (2 /*bytes_per_sample*/ * 2 /*number of channels*/);
@@ -60,8 +59,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     channel_data.push_back(mono_data);
   }
 
-  uint32_t rate = get_rate_from_fdp(&fdp);
-
   // Encoder Initialization
   g722_encode_state_t* encoder_state = nullptr;
   encoder_state = g722_encode_init(nullptr, rate, G722_PACKED);
@@ -74,7 +71,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   // the values in the above formula, the max value we can get is 1920. And I
   // used "size" of the input that libfuzzer generates as the initial
   // parameter to resize
-  encoded_data.resize(size);
+  encoded_data.resize(buff.size());
   int encoded_size =
       g722_encode(encoder_state, encoded_data.data(),
                   (const int16_t*)channel_data.data(), channel_data.size());
@@ -85,6 +82,42 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     g722_encode_release(encoder_state);
     encoder_state = nullptr;
   }
+}
 
+void fuzz_decode(FuzzedDataProvider* fdp) {
+  // Get values for primitive types from fdp
+  uint32_t rate = get_rate_from_fdp(fdp);
+  int options = fdp->ConsumeIntegral<int>();
+  uint16_t gain = fdp->ConsumeIntegral<uint16_t>();
+
+  // Decoder Initialization
+  g722_decode_state_t* decoder_state = nullptr;
+  decoder_state = g722_decode_init(decoder_state, rate, options);
+
+  std::vector<uint8_t> encoded_input = fdp->ConsumeRemainingBytes<uint8_t>();
+  int out_len =
+      encoded_input.size() * 2 /*bytes_per_sample*/ * 2 /*number of channels*/;
+
+  // Decode
+  std::vector<int16_t> decoded_output;
+  decoded_output.resize(out_len);
+  int decoded_size = g722_decode(decoder_state, decoded_output.data(),
+                                 (const uint8_t*)encoded_input.data(),
+                                 encoded_input.size(), gain);
+  if (decoded_size > decoded_output.size()) {
+    abort();
+  }
+
+  // Encoder release
+  if (decoder_state != nullptr) {
+    g722_decode_release(decoder_state);
+    decoder_state = nullptr;
+  }
+}
+}  // namespace
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
+  FuzzedDataProvider fdp(data, size);
+  fdp.ConsumeBool() ? fuzz_encode(&fdp) : fuzz_decode(&fdp);
   return 0;
 }
