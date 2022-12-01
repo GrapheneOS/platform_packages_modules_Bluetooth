@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use log::{error, info};
 use paste::paste;
 use std::collections::HashMap;

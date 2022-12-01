@@ -9,6 +9,7 @@ use crate::topstack::get_dispatchers;
 use crate::utils::LTCheckedPtr;
 use crate::{ccall, mutcxxcall};
 
+use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
 use std::fmt::{Display, Formatter, Result};

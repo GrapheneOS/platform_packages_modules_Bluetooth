@@ -1,5 +1,7 @@
 //! Collection of Profile UUIDs and helpers to use them.
 
+use lazy_static::lazy_static;
+use num_derive::{FromPrimitive, ToPrimitive};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display, Formatter};
 

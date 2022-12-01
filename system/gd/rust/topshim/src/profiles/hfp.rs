@@ -1,6 +1,8 @@
 use crate::btif::{BluetoothInterface, BtStatus, RawAddress, ToggleableProfile};
 use crate::topstack::get_dispatchers;
 
+use bitflags::bitflags;
+use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::FromPrimitive;
 use std::convert::{TryFrom, TryInto};
 use std::sync::{Arc, Mutex};
