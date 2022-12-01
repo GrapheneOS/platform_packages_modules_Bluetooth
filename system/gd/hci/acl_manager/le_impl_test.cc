@@ -1057,7 +1057,8 @@ TEST_F(LeImplTest, DISABLED_register_with_address_manager__AddressPolicyResolvab
   ASSERT_TRUE(log_capture->Rewind()->Find("Client unregistered"));
 }
 
-TEST_F(LeImplTest, add_device_to_resolving_list) {
+// b/260920739
+TEST_F(LeImplTest, DISABLED_add_device_to_resolving_list) {
   // Some kind of privacy policy must be set for LeAddressManager to operate properly
   set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
   // Let LeAddressManager::resume_registered_clients execute
@@ -1379,7 +1380,8 @@ TEST_F(LeImplWithConnectionTest, on_le_event__REMOTE_CONNECTION_PARAMETER_REQUES
   ASSERT_EQ(kTimeout, view.GetTimeout());
 }
 
-TEST_F(LeImplRegisteredWithAddressManagerTest, clear_resolving_list) {
+// b/260920739
+TEST_F(LeImplRegisteredWithAddressManagerTest, DISABLED_clear_resolving_list) {
   le_impl_->clear_resolving_list();
   ASSERT_EQ(3UL, le_impl_->le_address_manager_->NumberCachedCommands());
 
