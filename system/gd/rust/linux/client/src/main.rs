@@ -570,15 +570,14 @@ async fn start_interactive_shell(
                     break;
                 }
                 Ok(line) => {
-                    let command_vec =
-                        line.split(" ").map(|s| String::from(s)).collect::<Vec<String>>();
-                    let cmd = &command_vec[0];
+                    let mut args = line.split_whitespace();
+                    let cmd = args.next().unwrap_or("");
                     if cmd.eq("quit") {
                         break;
                     }
                     handler.process_cmd_line(
                         &String::from(cmd),
-                        &command_vec[1..command_vec.len()].to_vec(),
+                        &args.map(String::from).collect::<Vec<String>>(),
                     );
                     // Ready to do readline again.
                     semaphore_fg.add_permits(1);
