@@ -8,6 +8,7 @@ extern crate num_derive;
 #[macro_use]
 extern crate lazy_static;
 
+pub mod async_helper;
 pub mod battery_manager;
 pub mod battery_provider_manager;
 pub mod battery_service;

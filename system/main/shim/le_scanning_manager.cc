@@ -244,19 +244,44 @@ void BleScannerInterfaceImpl::ScanFilterEnable(bool enable, EnableCallback cb) {
 /** Adds MSFT filter */
 void BleScannerInterfaceImpl::MsftAdvMonitorAdd(MsftAdvMonitor monitor,
                                                 MsftAdvMonitorAddCallback cb) {
-  // TODO(b/246404026): Implement.
+  // Placeholder implementation.
+  // TODO(b/246404026): Wire with real MSFT HCI commands.
+  get_jni_message_loop()->task_runner()->PostDelayedTask(
+      FROM_HERE,
+      base::Bind(cb, /*monitor_handle=*/1, btm_status_value(BTM_SUCCESS)),
+#if BASE_VER < 931007
+      base::TimeDelta::FromMilliseconds(1000));
+#else
+      base::Milliseconds(1000));
+#endif
 }
 
 /** Removes MSFT filter */
 void BleScannerInterfaceImpl::MsftAdvMonitorRemove(
     uint8_t monitor_handle, MsftAdvMonitorRemoveCallback cb) {
-  // TODO(b/246404026): Implement.
+  // Placeholder implementation.
+  // TODO(b/246404026): Wire with real MSFT HCI commands.
+  get_jni_message_loop()->task_runner()->PostDelayedTask(
+      FROM_HERE, base::Bind(cb, btm_status_value(BTM_SUCCESS)),
+#if BASE_VER < 931007
+      base::TimeDelta::FromMilliseconds(1000));
+#else
+      base::Milliseconds(1000));
+#endif
 }
 
 /** Enable / disable MSFT scan filter */
 void BleScannerInterfaceImpl::MsftAdvMonitorEnable(
     bool enable, MsftAdvMonitorEnableCallback cb) {
-  // TODO(b/246404026): Implement.
+  // Placeholder implementation.
+  // TODO(b/246404026): Wire with real MSFT HCI commands.
+  get_jni_message_loop()->task_runner()->PostDelayedTask(
+      FROM_HERE, base::Bind(cb, btm_status_value(BTM_SUCCESS)),
+#if BASE_VER < 931007
+      base::TimeDelta::FromMilliseconds(1000));
+#else
+      base::Milliseconds(1000));
+#endif
 }
 
 /** Sets the LE scan interval and window in units of N*0.625 msec */
