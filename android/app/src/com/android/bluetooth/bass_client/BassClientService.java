@@ -636,6 +636,8 @@ public class BassClientService extends ProfileService {
                 return;
             }
             if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i(TAG, "Disconnecting device because it was unbonded.");
+                disconnect(device);
                 return;
             }
             removeStateMachine(device);
