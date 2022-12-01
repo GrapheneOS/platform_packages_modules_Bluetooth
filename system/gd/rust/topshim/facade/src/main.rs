@@ -2,7 +2,7 @@
 
 use bt_topshim::btif;
 
-use clap::{value_t, App, Arg};
+use clap::{value_parser, Arg, Command};
 use futures::channel::mpsc;
 use futures::executor::block_on;
 use futures::stream::StreamExt;
@@ -36,35 +36,40 @@ fn main() {
 }
 
 async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
-    let matches = App::new("bluetooth_topshim_facade")
+    let matches = Command::new("bluetooth_topshim_facade")
         .about("The bluetooth topshim stack, with testing facades enabled and exposed via gRPC.")
-        .arg(Arg::with_name("grpc-port").long("grpc-port").default_value("8899").takes_value(true))
         .arg(
-            Arg::with_name("root-server-port")
+            Arg::new("grpc-port")
+                .long("grpc-port")
+                .value_parser(value_parser!(u16))
+                .default_value("8899"),
+        )
+        .arg(
+            Arg::new("root-server-port")
                 .long("root-server-port")
-                .default_value("8897")
-                .takes_value(true),
+                .value_parser(value_parser!(u16))
+                .default_value("8897"),
         )
         .arg(
-            Arg::with_name("signal-port")
+            Arg::new("signal-port")
                 .long("signal-port")
-                .default_value("8895")
-                .takes_value(true),
+                .value_parser(value_parser!(u16))
+                .default_value("8895"),
         )
-        .arg(Arg::with_name("rootcanal-port").long("rootcanal-port").takes_value(true))
-        .arg(Arg::with_name("btsnoop").long("btsnoop").takes_value(true))
-        .arg(Arg::with_name("btsnooz").long("btsnooz").takes_value(true))
-        .arg(Arg::with_name("btconfig").long("btconfig").takes_value(true))
+        .arg(Arg::new("rootcanal-port").long("rootcanal-port").value_parser(value_parser!(u16)))
+        .arg(Arg::new("btsnoop").long("btsnoop"))
+        .arg(Arg::new("btsnooz").long("btsnooz"))
+        .arg(Arg::new("btconfig").long("btconfig"))
         .arg(
-            Arg::with_name("start-stack-now")
+            Arg::new("start-stack-now")
                 .long("start-stack-now")
-                .default_value("true")
-                .takes_value(true),
+                .value_parser(value_parser!(bool))
+                .default_value("true"),
         )
         .get_matches();
 
-    let grpc_port = value_t!(matches, "grpc-port", u16).unwrap();
-    let _rootcanal_port = value_t!(matches, "rootcanal-port", u16).ok();
+    let grpc_port = *matches.get_one::<u16>("grpc-port").unwrap();
+    let _rootcanal_port = matches.get_one::<u16>("rootcanal-port").cloned();
     let env = Arc::new(Environment::new(2));
 
     let btif_intf = Arc::new(Mutex::new(btif::get_btinterface().unwrap()));
@@ -75,7 +80,7 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
 
     let media_service_impl = media_service::MediaServiceImpl::create(rt.clone(), btif_intf.clone());
 
-    let start_stack_now = value_t!(matches, "start-stack-now", bool).unwrap();
+    let start_stack_now = *matches.get_one::<bool>("start-stack-now").unwrap();
 
     if start_stack_now {
         btif_intf.clone().lock().unwrap().enable();
