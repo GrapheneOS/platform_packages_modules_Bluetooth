@@ -507,7 +507,7 @@ impl Display for GattStatus {
     }
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive, Clone)]
+#[derive(Debug, FromPrimitive, ToPrimitive, Clone, Copy)]
 #[repr(u8)]
 /// Represents LE PHY.
 pub enum LePhy {
