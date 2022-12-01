@@ -5527,11 +5527,10 @@ packet ExtendedInquiryResultRaw : Event (event_code = EXTENDED_INQUIRY_RESULT) {
   clock_offset : 15,
   _reserved_ : 1,
   rssi : 8,
-  extended_inquiry_response : 8[],
   // Extended inquiry Result is always 255 bytes long
   // padded GapData with zeroes as necessary
   // Refer to BLUETOOTH CORE SPECIFICATION Version 5.2 | Vol 3, Part C Section 8 on page 1340
-  _padding_[240],
+  extended_inquiry_response : 8[240],
 }
 
 
