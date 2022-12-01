@@ -88,7 +88,7 @@ pub struct Suspend {
     gatt: Arc<Mutex<Box<BluetoothGatt>>>,
     tx: Sender<Message>,
     callbacks: Callbacks<dyn ISuspendCallback + Send>,
-    is_connected_suspend: bool,
+    is_wakeful_suspend: bool,
     was_a2dp_connected: bool,
     suspend_timeout_joinhandle: Option<tokio::task::JoinHandle<()>>,
     suspend_state: Arc<Mutex<SuspendState>>,
@@ -107,7 +107,7 @@ impl Suspend {
             gatt,
             tx: tx.clone(),
             callbacks: Callbacks::new(tx.clone(), Message::SuspendCallbackDisconnected),
-            is_connected_suspend: false,
+            is_wakeful_suspend: false,
             was_a2dp_connected: false,
             suspend_timeout_joinhandle: None,
             suspend_state: Arc::new(Mutex::new(SuspendState::new())),
@@ -161,10 +161,8 @@ impl ISuspend for Suspend {
         self.intf.lock().unwrap().clear_event_filter();
         self.intf.lock().unwrap().clear_filter_accept_list();
 
-        // TODO(224602924): How do we get the advertising ids?
-        self.gatt.lock().unwrap().stop_advertising_set(0);
-        // TODO(224602924): How do we get the scanning ids?
-        self.gatt.lock().unwrap().stop_scan(0);
+        self.gatt.lock().unwrap().advertising_enter_suspend();
+        self.gatt.lock().unwrap().scan_enter_suspend();
 
         self.intf.lock().unwrap().disconnect_all_acls();
 
@@ -207,12 +205,13 @@ impl ISuspend for Suspend {
         self.intf.lock().unwrap().set_default_event_mask_except(0u64, 0u64);
         self.intf.lock().unwrap().clear_event_filter();
 
-        if self.is_connected_suspend {
+        if self.is_wakeful_suspend {
             if self.was_a2dp_connected {
                 // TODO(230604670): reconnect to a2dp device
             }
-            // TODO(224603198): start all advertising again
         }
+        self.gatt.lock().unwrap().advertising_exit_suspend();
+        self.gatt.lock().unwrap().scan_exit_suspend();
 
         self.suspend_state.lock().unwrap().le_rand_expected = true;
         self.suspend_state.lock().unwrap().resume_expected = true;

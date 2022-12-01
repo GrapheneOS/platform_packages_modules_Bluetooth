@@ -654,6 +654,9 @@ std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context) {
     case LeAudioContextType::RINGTONE:
       os << "RINGTONE";
       break;
+    case LeAudioContextType::ALERTS:
+      os << "ALERTS";
+      break;
     case LeAudioContextType::EMERGENCYALARM:
       os << "EMERGENCYALARM";
       break;
@@ -700,6 +703,12 @@ std::string AudioContexts::to_string() const {
 std::ostream& operator<<(std::ostream& os, const AudioContexts& contexts) {
   os << contexts.to_string();
   return os;
+}
+
+/* Bidirectional getter trait for AudioContexts bidirectional pair */
+template <>
+AudioContexts get_bidirectional(BidirectionalPair<AudioContexts> p) {
+  return p.sink | p.source;
 }
 
 }  // namespace types
