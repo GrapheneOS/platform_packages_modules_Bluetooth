@@ -777,22 +777,10 @@ genrule {
     ],
     cmd: "$(location bluetooth_packetgen) --include=packages/modules/Bluetooth/system/gd --out=$(genDir) --num_shards=10 $(in)",
     srcs: [
-        "hci/hci_packets.pdl",
         "l2cap/l2cap_packets.pdl",
         "security/smp_packets.pdl",
     ],
     out: [
-        "hci/hci_packets_python3.cc",
-        "hci/hci_packets_python3_shard_0.cc",
-        "hci/hci_packets_python3_shard_1.cc",
-        "hci/hci_packets_python3_shard_2.cc",
-        "hci/hci_packets_python3_shard_3.cc",
-        "hci/hci_packets_python3_shard_4.cc",
-        "hci/hci_packets_python3_shard_5.cc",
-        "hci/hci_packets_python3_shard_6.cc",
-        "hci/hci_packets_python3_shard_7.cc",
-        "hci/hci_packets_python3_shard_8.cc",
-        "hci/hci_packets_python3_shard_9.cc",
         "l2cap/l2cap_packets_python3.cc",
         "l2cap/l2cap_packets_python3_shard_0.cc",
         "l2cap/l2cap_packets_python3_shard_1.cc",
@@ -920,3 +908,20 @@ cc_library_host_shared {
     ],
     rtti: true,
 }
+
+// Generate the python parser+serializer backend for
+// hci_packets.pdl.
+genrule {
+    name: "gd_hci_packets_python3_gen",
+    defaults: [ "pdl_python_generator_defaults" ],
+    cmd: "$(location :pdl) $(in) |" +
+        " $(location :pdl_python_generator)" +
+        " --output $(out) --custom-type-location blueberry.utils.bluetooth",
+    srcs: [
+        ":BluetoothHciPackets",
+    ],
+    out:  [
+        "hci_packets.py",
+    ],
+}
+
