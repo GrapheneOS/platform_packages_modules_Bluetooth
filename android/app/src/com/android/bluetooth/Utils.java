@@ -617,7 +617,7 @@ public final class Utils {
         return false;
     }
 
-    public static boolean checkCallerIsSystemOrActiveUser() {
+    private static boolean checkCallerIsSystemOrActiveUser() {
         int callingUid = Binder.getCallingUid();
         UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
 
@@ -638,7 +638,7 @@ public final class Utils {
         return checkCallerIsSystemOrActiveUser(tag + "." + method + "()");
     }
 
-    public static boolean checkCallerIsSystemOrActiveOrManagedUser(Context context) {
+    private static boolean checkCallerIsSystemOrActiveOrManagedUser(Context context) {
         if (context == null) {
             return checkCallerIsSystemOrActiveUser();
         }
