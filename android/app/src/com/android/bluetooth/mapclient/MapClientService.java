@@ -473,8 +473,9 @@ public class MapClientService extends ProfileService {
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private MapClientService getService(AttributionSource source) {
-            if (!(MapUtils.isSystemUser() || Utils.checkCallerIsSystemOrActiveUser(TAG))
-                    || !Utils.checkServiceAvailable(mService, TAG)
+            if (!Utils.checkServiceAvailable(mService, TAG)
+                    || !(MapUtils.isSystemUser()
+                    || Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG))
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
                 return null;
             }
