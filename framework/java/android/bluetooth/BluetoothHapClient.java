@@ -1271,7 +1271,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public boolean supportSynchronizedPresets(@NonNull BluetoothDevice device) {
+    public boolean supportsSynchronizedPresets(@NonNull BluetoothDevice device) {
         return (getFeatures(device) & FEATURE_SYNCHRONIZATED_PRESETS_MASK)
                 == FEATURE_SYNCHRONIZATED_PRESETS_MASK;
     }
@@ -1289,7 +1289,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public boolean supportIndependentPresets(@NonNull BluetoothDevice device) {
+    public boolean supportsIndependentPresets(@NonNull BluetoothDevice device) {
         return (getFeatures(device) & FEATURE_INDEPENDENT_PRESETS_MASK)
                 == FEATURE_INDEPENDENT_PRESETS_MASK;
     }
@@ -1307,7 +1307,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public boolean supportDynamicPresets(@NonNull BluetoothDevice device) {
+    public boolean supportsDynamicPresets(@NonNull BluetoothDevice device) {
         return (getFeatures(device) & FEATURE_DYNAMIC_PRESETS_MASK)
                 == FEATURE_DYNAMIC_PRESETS_MASK;
     }
@@ -1325,7 +1325,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public boolean supportWritablePresets(@NonNull BluetoothDevice device) {
+    public boolean supportsWritablePresets(@NonNull BluetoothDevice device) {
         return (getFeatures(device) & FEATURE_WRITABLE_PRESETS_MASK)
                 == FEATURE_WRITABLE_PRESETS_MASK;
     }
