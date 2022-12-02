@@ -16,12 +16,12 @@
 
 from blueberry.tests.topshim.adapter.adapter_test import AdapterTest
 from blueberry.tests.topshim.power.suspend_test import SuspendTest
-from blueberry.tests.topshim.security.classic_security_test import ClassicSecurityTest
+from blueberry.tests.topshim.security.le_security_test import LeSecurityTest
 
 from mobly import suite_runner
 import argparse
 
-ALL_TESTS = [AdapterTest, ClassicSecurityTest, SuspendTest]
+ALL_TESTS = [AdapterTest, LeSecurityTest, SuspendTest]
 
 
 def main():
@@ -30,15 +30,18 @@ def main():
     test config file location
     """
     parser = argparse.ArgumentParser(description="Run local Topshim to Topshim tests.")
-    parser.add_argument(
-        '-c', '--config', type=str, required=True, metavar='<PATH>', help='Path to the test configuration file.')
-    parser.add_argument(
-        '--tests',
-        '--test_case',
-        nargs='+',
-        type=str,
-        metavar='[ClassA[.test_a] ClassB[.test_b] ...]',
-        help='A list of test classes and optional tests to execute.')
+    parser.add_argument('-c',
+                        '--config',
+                        type=str,
+                        required=True,
+                        metavar='<PATH>',
+                        help='Path to the test configuration file.')
+    parser.add_argument('--tests',
+                        '--test_case',
+                        nargs='+',
+                        type=str,
+                        metavar='[ClassA[.test_a] ClassB[.test_b] ...]',
+                        help='A list of test classes and optional tests to execute.')
     parser.add_argument("--all_tests", "-A", type=bool, dest="all_tests", default=False, nargs="?")
     parser.add_argument("--presubmit", type=bool, dest="presubmit", default=False, nargs="?")
     parser.add_argument("--postsubmit", type=bool, dest="postsubmit", default=False, nargs="?")
