@@ -1915,7 +1915,6 @@ void bta_av_do_start(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
-  tBTA_AV_SUSPEND suspend_rsp;
   uint8_t start = p_scb->started;
   bool sus_evt = true;
   BT_HDR* p_buf;
@@ -1957,6 +1956,7 @@ void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
       L2CA_FlushChannel(p_scb->l2c_cid, L2CAP_FLUSH_CHANS_ALL);
   }
 
+  tBTA_AV_SUSPEND suspend_rsp = {};
   suspend_rsp.chnl = p_scb->chnl;
   suspend_rsp.hndl = p_scb->hndl;
 
