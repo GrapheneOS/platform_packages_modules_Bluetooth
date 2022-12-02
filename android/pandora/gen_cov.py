@@ -136,44 +136,50 @@ def generate_java_coverage(bt_apex_name, trace_path, coverage_out):
 
   # From google3/configs/wireless/android/testing/atp/prod/mainline-engprod/templates/modules/bluetooth.gcl.
   framework_exclude_classes = [
+      # Exclude statically linked & jarjar'ed classes.
       '**/com/android/bluetooth/x/**/*.class',
-      '**/*Test$*.class',
+      # Exclude AIDL generated interfaces.
       '**/android/bluetooth/I*$Default.class',
       '**/android/bluetooth/**/I*$Default.class',
       '**/android/bluetooth/I*$Stub.class',
       '**/android/bluetooth/**/I*$Stub.class',
       '**/android/bluetooth/I*$Stub$Proxy.class',
       '**/android/bluetooth/**/I*$Stub$Proxy.class',
-      '**/com/android/internal/util/**/*.class',
-      '**/android/net/**/*.class',
+      # Exclude annotations.
+      '**/android/bluetooth/annotation/**/*.class',
   ]
   service_exclude_classes = [
-      '**/com/android/bluetooth/x/**/*.class',
-      '**/androidx/**/*.class',
-      '**/android/net/**/*.class',
+      # Exclude statically linked & jarjar'ed classes.
       '**/android/support/**/*.class',
+      '**/androidx/**/*.class',
+      '**/com/android/bluetooth/x/**/*.class',
+      '**/com/android/internal/**/*.class',
+      '**/com/google/**/*.class',
       '**/kotlin/**/*.class',
-      '**/*Test$*.class',
-      '**/com/android/internal/annotations/**/*.class',
-      '**/android/annotation/**/*.class',
-      '**/android/net/**/*.class',
-      '**/com/google/**/*.class', # Added
+      '**/kotlinx/**/*.class',
+      '**/org/**/*.class',
   ]
   app_exclude_classes = [
-      '**/*Test$*.class',
-      '**/com/android/bluetooth/x/**/*.class',
-      '**/com/android/internal/annotations/**/*.class',
-      '**/com/android/internal/util/**/*.class',
-      '**/android/annotation/**/*.class',
+      # Exclude statically linked & jarjar'ed classes.
+      '**/android/hardware/**/*.class',
+      '**/android/hidl/**/*.class',
       '**/android/net/**/*.class',
-      '**/android/support/v4/**/*.class',
+      '**/android/support/**/*.class',
       '**/androidx/**/*.class',
-      '**/kotlin/**/*.class',
+      '**/com/android/bluetooth/x/**/*.class',
+      '**/com/android/internal/**/*.class',
+      '**/com/android/obex/**/*.class',
+      '**/com/android/vcard/**/*.class',
       '**/com/google/**/*.class',
+      '**/kotlin/**/*.class',
+      '**/kotlinx/**/*.class',
       '**/javax/**/*.class',
-      '**/android/hardware/**/*.class',  # Added
-      '**/android/hidl/**/*.class',  # Added
-      '**/com/android/bluetooth/**/BluetoothMetrics*.class',  # Added
+      '**/org/**/*.class',
+      # Exclude SIM Access Profile (SAP) which is being deprecated.
+      '**/com/android/bluetooth/sap/*.class',
+      # Added for local runs.
+      '**/com/android/bluetooth/**/BluetoothMetrics*.class',
+      '**/com/android/bluetooth/**/R*.class',
   ]
 
   # Merged ec files.
@@ -247,20 +253,32 @@ def generate_native_coverage(bt_apex_name, trace_path, coverage_out):
 
   # From google3/configs/wireless/android/testing/atp/prod/mainline-engprod/templates/modules/bluetooth.gcl.
   exclude_files = {
+      'android/',
+      # Exclude AIDLs definition and generated interfaces.
       'system/.*_aidl.*',
+      'system/binder/',
+      # Exclude tests.
       'system/.*_test.*',
       'system/.*_mock.*',
       'system/.*_unittest.*',
-      'system/binder/',
       'system/blueberry/',
+      'system/test/',
+      # Exclude config and doc.
       'system/build/',
       'system/conf/',
       'system/doc/',
-      'system/test/',
+      # Exclude (currently) unused GD code.
+      'system/gd/att/',
       'system/gd/l2cap/',
-      'system/gd/security/',
       'system/gd/neighbor/',
-      # 'android/', # Should not be excluded
+      'system/gd/rust/',
+      'system/gd/security/',
+      # Exclude legacy AVRCP implementation (to be removed, current AVRCP
+      # implementation is in packages/modules/Bluetooth/system/profile/avrcp)
+      'system/stack/avrc/',
+      # Exclude audio HIDL since AIDL is used instead today (in
+      # packages/modules/Bluetooth/system/audio_hal_interface/aidl)
+      'system/audio_hal_interface/hidl/',
   }
 
   # Merge profdata files.
