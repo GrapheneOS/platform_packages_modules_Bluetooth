@@ -4190,6 +4190,8 @@ tBTA_DM_PEER_DEVICE* allocate_device_for(const RawAddress& bd_addr,
   return ::allocate_device_for(bd_addr, transport);
 }
 
+void bta_dm_remname_cback(void* p) { ::bta_dm_remname_cback(p); }
+
 }  // namespace testing
 }  // namespace legacy
 }  // namespace bluetooth
