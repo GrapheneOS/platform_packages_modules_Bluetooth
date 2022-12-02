@@ -22,6 +22,7 @@ service AdapterService {
 
 service SecurityService {
     rpc RemoveBond(RemoveBondRequest) returns (google.protobuf.Empty) {}
+    rpc GenerateLocalOobData(GenerateOobDataRequest) returns (google.protobuf.Empty) {}
 }
 
 service GattService {
@@ -112,6 +113,7 @@ enum EventType {
   ADAPTER_STATE = 0;
   SSP_REQUEST = 1;
   LE_RAND = 2;
+  GENERATE_LOCAL_OOB_DATA = 3;
 }
 message FetchEventsRequest {}
 
@@ -194,4 +196,8 @@ message SetDefaultEventMaskExceptRequest {
 message Connection {
 // For our HFP APIs this would store the bluetooth address but staying consistent with Pandora naming.
   bytes cookie = 1;
+}
+
+message GenerateOobDataRequest {
+  int32 transport = 1;
 }

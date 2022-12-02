@@ -49,6 +49,15 @@ pub struct AdapterServiceImpl {
     event_tx: mpsc::Sender<BaseCallbacks>,
 }
 
+fn encode_hex(bytes: &[u8]) -> String {
+    let mut s = String::with_capacity(2 * bytes.len());
+    for &b in bytes {
+        let bstr: String = format!("{:02X}", b);
+        s.push_str(&bstr);
+    }
+    s
+}
+
 impl AdapterServiceImpl {
     /// Create a new instance of the root facade service
     pub fn create(rt: Arc<Runtime>, btif_intf: Arc<Mutex<BluetoothInterface>>) -> grpcio::Service {
@@ -88,6 +97,35 @@ impl AdapterService for AdapterServiceImpl {
                         let mut rsp = FetchEventsResponse::new();
                         rsp.event_type = EventType::LE_RAND;
                         rsp.data = random.to_string();
+                        sink.send((rsp, WriteFlags::default())).await.unwrap();
+                    }
+                    BaseCallbacks::GenerateLocalOobData(transport, data) => {
+                        let mut rsp = FetchEventsResponse::new();
+                        rsp.event_type = EventType::GENERATE_LOCAL_OOB_DATA;
+                        let delimiter = ';';
+                        // transport = 1
+                        // + delimiter = 1
+                        // + address+type = 7
+                        // + delimiter = 1
+                        // + confirmation = 32
+                        // + delimiter = 1
+                        // + randomizer = 32
+                        let cap = 75;
+                        let mut s = String::with_capacity(cap);
+                        if data.is_valid {
+                            s.push('1');
+                        } else {
+                            s.push('0');
+                        }
+                        s.push(delimiter);
+                        s.push_str(&format!("{}", transport));
+                        s.push(delimiter);
+                        s.push_str(&encode_hex(&data.address));
+                        s.push(delimiter);
+                        s.push_str(&encode_hex(&data.c));
+                        s.push(delimiter);
+                        s.push_str(&encode_hex(&data.r));
+                        rsp.data = s;
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     _ => (),
