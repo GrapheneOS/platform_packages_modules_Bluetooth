@@ -106,6 +106,9 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
   void LeSetDefaultSubrate(uint16_t subrate_min, uint16_t subrate_max,
                            uint16_t max_latency, uint16_t cont_num,
                            uint16_t sup_tout);
+  void LeSubrateRequest(uint16_t hci_handle, uint16_t subrate_min,
+                        uint16_t subrate_max, uint16_t max_latency,
+                        uint16_t cont_num, uint16_t sup_tout);
 
   void WriteData(uint16_t hci_handle,
                  std::unique_ptr<packet::RawBuilder> packet);
