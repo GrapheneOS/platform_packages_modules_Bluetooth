@@ -534,13 +534,20 @@ impl BluetoothMedia {
                 match state {
                     BthfAudioState::Connected => {
                         info!("[{}]: hfp audio connected.", addr.to_string());
+
+                        self.hfp_audio_state.insert(addr, state);
                     }
                     BthfAudioState::Disconnected => {
                         info!("[{}]: hfp audio disconnected.", addr.to_string());
 
-                        self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
-                            callback.on_hfp_audio_disconnected(addr.to_string());
-                        });
+                        // Ignore disconnected -> disconnected
+                        if let Some(BthfAudioState::Connected) =
+                            self.hfp_audio_state.insert(addr, state)
+                        {
+                            self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
+                                callback.on_hfp_audio_disconnected(addr.to_string());
+                            });
+                        }
                     }
                     BthfAudioState::Connecting => {
                         info!("[{}]: hfp audio connecting.", addr.to_string());
@@ -549,8 +556,6 @@ impl BluetoothMedia {
                         info!("[{}]: hfp audio disconnecting.", addr.to_string());
                     }
                 }
-
-                self.hfp_audio_state.insert(addr, state);
             }
             HfpCallbacks::VolumeUpdate(volume, addr) => {
                 self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
