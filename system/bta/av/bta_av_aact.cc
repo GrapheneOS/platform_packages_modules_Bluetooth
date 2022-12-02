@@ -1218,12 +1218,15 @@ void bta_av_str_opened(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
      * the connection will be rejected.
      */
     /* check if other audio channel is started. If yes, start */
-    tBTA_AV_OPEN open;
-    open.bd_addr = p_scb->PeerAddress();
-    open.chnl = p_scb->chnl;
-    open.hndl = p_scb->hndl;
-    open.status = BTA_AV_SUCCESS;
-    open.edr = 0;
+    tBTA_AV_OPEN open = {
+        .chnl = p_scb->chnl,
+        .hndl = p_scb->hndl,
+        .bd_addr = p_scb->PeerAddress(),
+        .status = BTA_AV_SUCCESS,
+        .starting = false,
+        .edr = 0,
+        .sep = AVDT_TSEP_INVALID,
+    };
     p = BTM_ReadRemoteFeatures(p_scb->PeerAddress());
     if (p != NULL) {
       if (HCI_EDR_ACL_2MPS_SUPPORTED(p)) open.edr |= BTA_AV_EDR_2MBPS;
