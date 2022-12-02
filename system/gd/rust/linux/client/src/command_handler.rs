@@ -202,7 +202,10 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("socket"),
         CommandOption {
-            rules: vec![String::from("socket test")],
+            rules: vec![
+                String::from("socket test"),
+                String::from("socket connect <addr> <l2cap|rfcomm> <psm|uuid>"),
+            ],
             description: String::from("Socket manager utilities."),
             function_pointer: CommandHandler::cmd_socket,
         },
@@ -1268,8 +1271,75 @@ impl CommandHandler {
                 }
                 print_info!("Requested for listening using l2cap channel on socket {}", id);
             }
+            "connect" => {
+                let (addr, sock_type, psm_or_uuid) =
+                    (&get_arg(args, 1)?, &get_arg(args, 2)?, &get_arg(args, 3)?);
+                let device = BluetoothDevice {
+                    address: addr.clone().into(),
+                    name: String::from("Socket Connect Device"),
+                };
+
+                let SocketResult { status, id } = match &sock_type[0..] {
+                    "l2cap" => {
+                        let psm = match psm_or_uuid.clone().parse::<i32>() {
+                            Ok(v) => v,
+                            Err(e) => {
+                                return Err(CommandError::Failed(format!(
+                                    "Bad PSM given. Error={}",
+                                    e
+                                )));
+                            }
+                        };
+
+                        self.context
+                            .lock()
+                            .unwrap()
+                            .socket_manager_dbus
+                            .as_mut()
+                            .unwrap()
+                            .create_insecure_l2cap_channel(callback_id, device, psm)
+                    }
+                    "rfcomm" => {
+                        let uuid = match UuidHelper::parse_string(psm_or_uuid.clone()) {
+                            Some(uu) => uu,
+                            None => {
+                                return Err(CommandError::Failed(format!(
+                                    "Could not parse given uuid."
+                                )));
+                            }
+                        };
+
+                        self.context
+                            .lock()
+                            .unwrap()
+                            .socket_manager_dbus
+                            .as_mut()
+                            .unwrap()
+                            .create_insecure_rfcomm_socket_to_service_record(
+                                callback_id,
+                                device,
+                                uuid,
+                            )
+                    }
+                    _ => {
+                        return Err(CommandError::Failed(format!(
+                            "Unknown socket type: {}",
+                            sock_type
+                        )));
+                    }
+                };
+
+                if status != BtStatus::Success {
+                    return Err(CommandError::Failed(format!("Failed to create socket with status={:?} against {}, type {}, with psm/uuid {}",
+                        status, addr, sock_type, psm_or_uuid)));
+                } else {
+                    return Err(CommandError::Failed(format!("Called create socket with result ({:?}, {}) against {}, type {}, with psm/uuid {}",
+                    status, id, addr, sock_type, psm_or_uuid)));
+                }
+            }
+
             _ => return Err(CommandError::InvalidArgs),
-        }
+        };
 
         Ok(())
     }
