@@ -341,7 +341,10 @@ static bluetooth::core::CoreInterface* CreateInterfaceToProfiles() {
       .GetHearingAidDeviceCount = HearingAid::GetDeviceCount,
 
       // LE Audio
-      .IsLeAudioClientRunning = LeAudioClient::IsLeAudioClientRunning};
+      .IsLeAudioClientRunning = LeAudioClient::IsLeAudioClientRunning,
+
+      // AVRCP
+      .AVRC_GetProfileVersion = AVRC_GetProfileVersion};
 
   static auto interfaceForCore =
       CoreInterfaceImpl(&eventCallbacks, &configInterface, &msbcCodecInterface,
