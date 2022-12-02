@@ -518,6 +518,11 @@ bool A2DP_VendorBuildCodecHeaderLdac(UNUSED_ATTR const uint8_t* p_codec_info,
                                      uint16_t frames_per_packet) {
   uint8_t* p;
 
+  // there is a 4 byte timestamp right following p_buf
+  if (p_buf->offset < 4 + A2DP_LDAC_MPL_HDR_LEN) {
+    return false;
+  }
+
   p_buf->offset -= A2DP_LDAC_MPL_HDR_LEN;
   p = (uint8_t*)(p_buf + 1) + p_buf->offset;
   p_buf->len += A2DP_LDAC_MPL_HDR_LEN;
