@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Não é possível transferir os ficheiros com mais de 4 GB."</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Ligar ao Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth ativado no modo de avião"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Se mantiver o Bluetooth ativado, vai permanecer assim da próxima vez que estiver no modo de avião"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Se mantiver o Bluetooth ativado, o telemóvel vai lembrar-se de o manter ativado da próxima vez que estiver no modo de avião"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"O Bluetooth mantém-se ativado"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"O seu telemóvel mantém o Bluetooth ativado no modo de avião. Para alterar isto, desative o Bluetooth."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"O seu telemóvel mantém o Bluetooth ativado no modo de avião. Desative o Bluetooth se não quiser que fique ativado."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"O Wi-Fi e o Bluetooth mantêm-se ativados"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"O seu telemóvel mantém o Wi-Fi e o Bluetooth ativados no modo de avião. Para alterar isto, desative-os."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"O seu telemóvel mantém o Wi-Fi e o Bluetooth ativados no modo de avião. Desative o Wi-Fi e o Bluetooth se não quiser que fiquem ativados."</string>
 </resources>

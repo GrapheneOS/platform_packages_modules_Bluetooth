@@ -18,10 +18,10 @@ package com.android.bluetooth.btservice;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +60,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -87,6 +86,7 @@ public class ActiveDeviceManagerTest {
     @Mock private LeAudioService mLeAudioService;
     @Mock private AudioManager mAudioManager;
     @Mock private DatabaseManager mDatabaseManager;
+    private AudioManager.OnModeChangedListener mAudioModeChangedListener;
 
     @Before
     public void setUp() throws Exception {
@@ -99,6 +99,10 @@ public class ActiveDeviceManagerTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
 
+        doAnswer(invocation -> {
+            mAudioModeChangedListener = invocation.getArgument(1);
+            return null;
+        }).when(mAudioManager).addOnModeChangedListener(any(), any());
         when(mAdapterService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
         when(mAdapterService.getSystemServiceName(AudioManager.class))
                 .thenReturn(Context.AUDIO_SERVICE);
@@ -129,15 +133,13 @@ public class ActiveDeviceManagerTest {
         when(mLeAudioService.setActiveDevice(any(), anyBoolean())).thenReturn(true);
 
         when(mA2dpService.getFallbackDevice()).thenAnswer(invocation -> {
-            if (!mDeviceConnectionStack.isEmpty() && Objects.equals(mA2dpDevice,
-                    mDeviceConnectionStack.get(mDeviceConnectionStack.size() - 1))) {
+            if (mDeviceConnectionStack.contains(mA2dpDevice)) {
                 return mA2dpDevice;
             }
             return null;
         });
         when(mHeadsetService.getFallbackDevice()).thenAnswer(invocation -> {
-            if (!mDeviceConnectionStack.isEmpty() && Objects.equals(mHeadsetDevice,
-                    mDeviceConnectionStack.get(mDeviceConnectionStack.size() - 1))) {
+            if (mDeviceConnectionStack.contains(mHeadsetDevice)) {
                 return mHeadsetDevice;
             }
             return null;
@@ -219,7 +221,7 @@ public class ActiveDeviceManagerTest {
         a2dpActiveDeviceChanged(mA2dpDevice);
         // Don't call mA2dpService.setActiveDevice()
         TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
-        verify(mA2dpService, times(1)).setActiveDevice(mA2dpDevice, false);
+        verify(mA2dpService).setActiveDevice(mA2dpDevice, false);
         Assert.assertEquals(mA2dpDevice, mActiveDeviceManager.getA2dpActiveDevice());
     }
 
@@ -295,7 +297,7 @@ public class ActiveDeviceManagerTest {
         headsetActiveDeviceChanged(mHeadsetDevice);
         // Don't call mHeadsetService.setActiveDevice()
         TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
-        verify(mHeadsetService, times(1)).setActiveDevice(mHeadsetDevice);
+        verify(mHeadsetService).setActiveDevice(mHeadsetDevice);
         Assert.assertEquals(mHeadsetDevice, mActiveDeviceManager.getHfpActiveDevice());
     }
 
@@ -366,7 +368,7 @@ public class ActiveDeviceManagerTest {
         a2dpActiveDeviceChanged(mA2dpHeadsetDevice);
 
         TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
-        verify(mHearingAidService).setActiveDevice(null, false);
+        verify(mHearingAidService).setActiveDevice(null, true);
         // Don't call mA2dpService.setActiveDevice()
         verify(mA2dpService, never()).setActiveDevice(mA2dpHeadsetDevice, false);
         Assert.assertEquals(mA2dpHeadsetDevice, mActiveDeviceManager.getA2dpActiveDevice());
@@ -386,7 +388,7 @@ public class ActiveDeviceManagerTest {
         headsetActiveDeviceChanged(mA2dpHeadsetDevice);
 
         TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
-        verify(mHearingAidService).setActiveDevice(null, false);
+        verify(mHearingAidService).setActiveDevice(null, true);
         // Don't call mHeadsetService.setActiveDevice()
         verify(mHeadsetService, never()).setActiveDevice(mA2dpHeadsetDevice);
         Assert.assertEquals(mA2dpHeadsetDevice, mActiveDeviceManager.getHfpActiveDevice());
@@ -440,7 +442,7 @@ public class ActiveDeviceManagerTest {
         leAudioActiveDeviceChanged(mLeAudioDevice);
         // Don't call mLeAudioService.setActiveDevice()
         TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
-        verify(mLeAudioService, times(1)).setActiveDevice(mLeAudioDevice, false);
+        verify(mLeAudioService).setActiveDevice(mLeAudioDevice, false);
         Assert.assertEquals(mLeAudioDevice, mActiveDeviceManager.getLeAudioActiveDevice());
     }
 
@@ -609,7 +611,7 @@ public class ActiveDeviceManagerTest {
         a2dpActiveDeviceChanged(mA2dpDevice);
         TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
 
-        verify(mHearingAidService).setActiveDevice(null, false);
+        verify(mHearingAidService).setActiveDevice(null, true);
         verify(mLeAudioService, never()).setActiveDevice(mLeAudioDevice);
         verify(mA2dpService, never()).setActiveDevice(mA2dpDevice, false);
 
@@ -691,6 +693,50 @@ public class ActiveDeviceManagerTest {
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(null, false);
         verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(isNull());
         verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(null, false);
+    }
+
+    @Test
+    public void leAudioActive_whileMediaPlayback_useLeAudioForMediaAndHeadsetForCall() {
+        leAudioConnected(mLeAudioDevice);
+        a2dpConnected(mA2dpDevice);
+        headsetConnected(mHeadsetDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice, false);
+        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice, false);
+        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
+
+        Mockito.clearInvocations(mLeAudioService, mA2dpService, mHeadsetService);
+        leAudioActiveDeviceChanged(mLeAudioDevice);
+        TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
+        verify(mA2dpService).setActiveDevice(null, true);
+        verify(mHeadsetService).setActiveDevice(null);
+
+        Mockito.clearInvocations(mLeAudioService, mA2dpService, mHeadsetService);
+        mAudioModeChangedListener.onModeChanged(AudioManager.MODE_IN_CALL);
+        verify(mHeadsetService).setActiveDevice(mHeadsetDevice);
+        verify(mLeAudioService).setActiveDevice(null, true);
+    }
+
+    @Test
+    public void leAudioActive_whileInCall_useLeAudioForCallAndHeadsetForMedia() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_IN_CALL);
+
+        leAudioConnected(mLeAudioDevice);
+        headsetConnected(mHeadsetDevice);
+        a2dpConnected(mA2dpDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice, false);
+        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice, false);
+        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
+
+        Mockito.clearInvocations(mLeAudioService, mA2dpService, mHeadsetService);
+        leAudioActiveDeviceChanged(mLeAudioDevice);
+        TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
+        verify(mA2dpService).setActiveDevice(null, true);
+        verify(mHeadsetService).setActiveDevice(null);
+
+        Mockito.clearInvocations(mLeAudioService, mA2dpService, mHeadsetService);
+        mAudioModeChangedListener.onModeChanged(AudioManager.MODE_NORMAL);
+        verify(mA2dpService).setActiveDevice(mA2dpDevice, false);
+        verify(mLeAudioService).setActiveDevice(null, true);
     }
 
     /**
