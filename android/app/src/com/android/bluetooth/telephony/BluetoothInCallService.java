@@ -138,6 +138,8 @@ public class BluetoothInCallService extends InCallService {
 
     protected boolean mOnCreateCalled = false;
 
+    private int mMaxNumberOfCalls = 0;
+
     /**
      * Listens to connections and disconnections of bluetooth headsets.  We need to save the current
      * bluetooth headset so that we know where to send BluetoothCall updates.
@@ -558,6 +560,9 @@ public class BluetoothInCallService extends InCallService {
             call.registerCallback(callback);
 
             mBluetoothCallHashMap.put(call.getId(), call);
+            if (!call.isConference()) {
+                mMaxNumberOfCalls = Integer.max(mMaxNumberOfCalls, mBluetoothCallHashMap.size());
+            }
             updateHeadsetWithCallState(false /* force */);
 
             BluetoothLeCall tbsCall = createTbsCall(call);
@@ -688,6 +693,7 @@ public class BluetoothInCallService extends InCallService {
         mCallbacks.clear();
         mBluetoothCallHashMap.clear();
         mClccIndexMap.clear();
+        mMaxNumberOfCalls = 0;
     }
 
     private static boolean isConferenceWithNoChildren(BluetoothCall call) {
@@ -845,37 +851,42 @@ public class BluetoothInCallService extends InCallService {
         if (mClccIndexMap.containsKey(key)) {
             return mClccIndexMap.get(key);
         }
-
-        int i = 1;  // Indexes for bluetooth clcc are 1-based.
-        while (mClccIndexMap.containsValue(i)) {
-            i++;
+        int index = 1; // Indexes for bluetooth clcc are 1-based.
+        if (call.isConference()) {
+            index = mMaxNumberOfCalls + 1; // The conference call should have a higher index
+            Log.i(TAG,
+                  "getIndexForCall for conference call starting from "
+                  + mMaxNumberOfCalls);
+        }
+        while (mClccIndexMap.containsValue(index)) {
+            index++;
         }
 
         // NOTE: Indexes are removed in {@link #onCallRemoved}.
-        mClccIndexMap.put(key, i);
-        return i;
+        mClccIndexMap.put(key, index);
+        return index;
     }
 
     private boolean _processChld(int chld) {
         BluetoothCall activeCall = mCallInfo.getActiveCall();
         BluetoothCall ringingCall = mCallInfo.getRingingOrSimulatedRingingCall();
         if (ringingCall == null) {
-            Log.i(TAG, "asdf ringingCall null");
+            Log.i(TAG, "ringingCall null at processChld");
         } else {
-            Log.i(TAG, "asdf ringingCall not null " + ringingCall.hashCode());
+            Log.i(TAG, "ringingCall hashcode: " + ringingCall.hashCode());
         }
 
         BluetoothCall heldCall = mCallInfo.getHeldCall();
 
         Log.i(TAG, "Active: " + activeCall
                 + " Ringing: " + ringingCall
-                + " Held: " + heldCall);
-        Log.i(TAG, "asdf chld " + chld);
+                + " Held: " + heldCall
+                + " chld: " + chld);
 
         if (chld == CHLD_TYPE_RELEASEHELD) {
-            Log.i(TAG, "asdf CHLD_TYPE_RELEASEHELD");
+            Log.i(TAG, "chld is CHLD_TYPE_RELEASEHELD");
             if (!mCallInfo.isNullCall(ringingCall)) {
-                Log.i(TAG, "asdf reject " + ringingCall.hashCode());
+                Log.i(TAG, "reject ringing call " + ringingCall.hashCode());
                 ringingCall.reject(false, null);
                 return true;
             } else if (!mCallInfo.isNullCall(heldCall)) {

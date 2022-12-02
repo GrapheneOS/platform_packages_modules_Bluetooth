@@ -103,13 +103,13 @@ class BleScannerIntf : public ScanningCallbacks {
   void ScanFilterEnable(bool enable);
 
   // Adds an MSFT filter. Gets responses via |OnMsftAdvMonitorAddCallback|.
-  void MsftAdvMonitorAdd(RustMsftAdvMonitor monitor);
+  void MsftAdvMonitorAdd(uint32_t call_id, const RustMsftAdvMonitor& monitor);
 
   // Removes a previously added MSFT scan filter.
-  void MsftAdvMonitorRemove(uint8_t monitor_handle);
+  void MsftAdvMonitorRemove(uint32_t call_id, uint8_t monitor_handle);
 
   // Enables or disables MSFT advertisement monitor.
-  void MsftAdvMonitorEnable(bool enable);
+  void MsftAdvMonitorEnable(uint32_t call_id, bool enable);
 
   // Sets the LE scan interval and window in units of N * 0.625 msec. The result
   // of this action is returned via |OnStatusCallback|.
@@ -171,9 +171,9 @@ class BleScannerIntf : public ScanningCallbacks {
   void OnFilterParamSetupCallback(uint8_t scanner_id, uint8_t avbl_space, uint8_t action_type, uint8_t btm_status);
   void OnFilterConfigCallback(
       uint8_t filt_index, uint8_t filt_type, uint8_t avbl_space, uint8_t action, uint8_t btm_status);
-  void OnMsftAdvMonitorAddCallback(uint8_t monitor_handle, uint8_t status);
-  void OnMsftAdvMonitorRemoveCallback(uint8_t status);
-  void OnMsftAdvMonitorEnableCallback(uint8_t status);
+  void OnMsftAdvMonitorAddCallback(uint32_t call_id, uint8_t monitor_handle, uint8_t status);
+  void OnMsftAdvMonitorRemoveCallback(uint32_t call_id, uint8_t status);
+  void OnMsftAdvMonitorEnableCallback(uint32_t call_id, uint8_t status);
 
   BleScannerInterface* scanner_intf_;
 };

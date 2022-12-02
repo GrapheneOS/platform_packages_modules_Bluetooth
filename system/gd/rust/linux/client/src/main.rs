@@ -12,6 +12,7 @@ use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
 
 use crate::bt_adv::AdvSet;
+use crate::bt_gatt::GattClientContext;
 use crate::callbacks::{
     AdminCallback, AdvertisingSetCallback, BtCallback, BtConnectionCallback, BtManagerCallback,
     BtSocketManagerCallback, ScannerCallback, SuspendCallback,
@@ -28,6 +29,7 @@ use btstack::suspend::ISuspend;
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
 mod bt_adv;
+mod bt_gatt;
 mod callbacks;
 mod command_handler;
 mod console;
@@ -67,9 +69,6 @@ pub(crate) struct ClientContext {
 
     /// List of bonded devices.
     pub(crate) bonded_devices: HashMap<String, BluetoothDevice>,
-
-    /// If set, the registered GATT client id. None otherwise.
-    pub(crate) gatt_client_id: Option<i32>,
 
     /// Proxy for manager interface.
     pub(crate) manager_dbus: BluetoothManagerDBus,
@@ -121,6 +120,9 @@ pub(crate) struct ClientContext {
 
     /// Is btclient running in restricted mode?
     is_restricted: bool,
+
+    /// Data of GATT client preference.
+    gatt_client_context: GattClientContext,
 }
 
 impl ClientContext {
@@ -144,7 +146,6 @@ impl ClientContext {
             discovering_state: false,
             found_devices: HashMap::new(),
             bonded_devices: HashMap::new(),
-            gatt_client_id: None,
             manager_dbus,
             adapter_dbus: None,
             qa_dbus: None,
@@ -162,6 +163,7 @@ impl ClientContext {
             adv_sets: HashMap::new(),
             socket_manager_callback_id: None,
             is_restricted,
+            gatt_client_context: GattClientContext::new(),
         }
     }
 

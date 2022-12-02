@@ -31,7 +31,7 @@ impl From<bindings::bt_state_t> for BtState {
     }
 }
 
-#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd, Copy)]
 #[repr(u32)]
 pub enum BtTransport {
     Auto = 0,

@@ -25,6 +25,8 @@
 #ifndef SDP_INT_H
 #define SDP_INT_H
 
+#include <base/strings/stringprintf.h>
+
 #include <cstdint>
 
 #include "bt_target.h"
@@ -172,6 +174,28 @@ struct tCONN_CB {
  private:
   tCONN_CB(const tCONN_CB&) = delete;
 };
+
+#ifndef CASE_RETURN_TEXT
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+#endif
+
+using tSDP_DISC_WAIT = int;
+
+inline std::string discovery_state_text(const tSDP_DISC_WAIT& state) {
+  switch (state) {
+    CASE_RETURN_TEXT(SDP_DISC_WAIT_CONN);
+    CASE_RETURN_TEXT(SDP_DISC_WAIT_HANDLES);
+    CASE_RETURN_TEXT(SDP_DISC_WAIT_ATTR);
+    CASE_RETURN_TEXT(SDP_DISC_WAIT_SEARCH_ATTR);
+    CASE_RETURN_TEXT(SDP_DISC_WAIT_CANCEL);
+    default:
+      return base::StringPrintf("UNKNOWN[%d]", state);
+  }
+}
+
+#undef CASE_RETURN_TEXT
 
 /*  The main SDP control block */
 typedef struct {

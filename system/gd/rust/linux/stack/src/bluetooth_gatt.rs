@@ -10,10 +10,12 @@ use bt_topshim::profiles::gatt::{
     GattClientCallbacks, GattClientCallbacksDispatcher, GattScannerCallbacks,
     GattScannerCallbacksDispatcher, GattScannerInbandCallbacks,
     GattScannerInbandCallbacksDispatcher, GattServerCallbacksDispatcher, GattStatus, LePhy,
+    MsftAdvMonitor, MsftAdvMonitorPattern,
 };
 use bt_topshim::topstack;
 use bt_utils::adv_parser;
 
+use crate::async_helper::{AsyncHelper, CallbackSender};
 use crate::bluetooth::{Bluetooth, IBluetooth};
 use crate::bluetooth_adv::{
     AdvertiseData, Advertisers, AdvertisingSetInfo, AdvertisingSetParameters,
@@ -28,6 +30,7 @@ use num_traits::clamp;
 use rand::rngs::SmallRng;
 use rand::{RngCore, SeedableRng};
 use std::collections::{HashMap, HashSet};
+use std::convert::TryInto;
 use std::sync::{Arc, Mutex, MutexGuard};
 use tokio::sync::mpsc::Sender;
 
@@ -603,7 +606,7 @@ enum GattDbElementType {
     Descriptor = 4,
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[derive(Debug, FromPrimitive, ToPrimitive, Copy, Clone)]
 #[repr(u8)]
 /// GATT write type.
 pub enum GattWriteType {
@@ -665,7 +668,7 @@ pub struct ScanResult {
     pub adv_data: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ScanFilterPattern {
     /// Specifies the starting byte position of the pattern immediately following AD Type.
     pub start_position: u8,
@@ -681,7 +684,7 @@ pub struct ScanFilterPattern {
 /// Represents the condition for matching advertisements.
 ///
 /// Only pattern-based matching is implemented.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ScanFilterCondition {
     /// All advertisements are matched.
     All,
@@ -704,7 +707,7 @@ pub enum ScanFilterCondition {
 /// This filter is intentionally modelled close to the MSFT hardware offload filter.
 /// Reference:
 /// https://learn.microsoft.com/en-us/windows-hardware/drivers/bluetooth/microsoft-defined-bluetooth-hci-commands-and-events
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ScanFilter {
     /// Advertisements with RSSI above or equal this value is considered "found".
     pub rssi_high_threshold: u8,
@@ -726,6 +729,76 @@ pub struct ScanFilter {
 
 type ScannersMap = HashMap<Uuid, ScannerInfo>;
 
+const DEFAULT_ASYNC_TIMEOUT_MS: u64 = 5000;
+
+/// Abstraction for async GATT operations. Contains async methods for coordinating async operations
+/// more conveniently.
+struct GattAsyncIntf {
+    scanners: Arc<Mutex<ScannersMap>>,
+    gatt: Option<Arc<Mutex<Gatt>>>,
+
+    async_helper_msft_adv_monitor_add: AsyncHelper<(u8, u8)>,
+    async_helper_msft_adv_monitor_remove: AsyncHelper<u8>,
+    async_helper_msft_adv_monitor_enable: AsyncHelper<u8>,
+}
+
+impl GattAsyncIntf {
+    /// Adds an advertisement monitor. Returns monitor handle and status.
+    async fn msft_adv_monitor_add(&mut self, monitor: MsftAdvMonitor) -> Result<(u8, u8), ()> {
+        let gatt = self.gatt.as_ref().unwrap().clone();
+
+        self.async_helper_msft_adv_monitor_add
+            .call_method(
+                move |call_id| {
+                    gatt.lock().unwrap().scanner.msft_adv_monitor_add(call_id, &monitor);
+                },
+                Some(DEFAULT_ASYNC_TIMEOUT_MS),
+            )
+            .await
+    }
+
+    /// Removes an advertisement monitor. Returns status.
+    async fn msft_adv_monitor_remove(&mut self, monitor_handle: u8) -> Result<u8, ()> {
+        let gatt = self.gatt.as_ref().unwrap().clone();
+
+        self.async_helper_msft_adv_monitor_remove
+            .call_method(
+                move |call_id| {
+                    gatt.lock().unwrap().scanner.msft_adv_monitor_remove(call_id, monitor_handle);
+                },
+                Some(DEFAULT_ASYNC_TIMEOUT_MS),
+            )
+            .await
+    }
+
+    /// Enables/disables an advertisement monitor. Returns status.
+    async fn msft_adv_monitor_enable(&mut self, enable: bool) -> Result<u8, ()> {
+        let gatt = self.gatt.as_ref().unwrap().clone();
+
+        self.async_helper_msft_adv_monitor_enable
+            .call_method(
+                move |call_id| {
+                    gatt.lock().unwrap().scanner.msft_adv_monitor_enable(call_id, enable);
+                },
+                Some(DEFAULT_ASYNC_TIMEOUT_MS),
+            )
+            .await
+    }
+
+    /// Updates the topshim's scan state depending on the states of registered scanners. Scan is
+    /// enabled if there is at least 1 active registered scanner.
+    ///
+    /// Note: this does not need to be async, but declared as async for consistency in this struct.
+    /// May be converted into real async in the future if btif supports it.
+    async fn update_scan(&mut self) {
+        if self.scanners.lock().unwrap().values().find(|scanner| scanner.is_active).is_some() {
+            self.gatt.as_ref().unwrap().lock().unwrap().scanner.start_scan();
+        } else {
+            self.gatt.as_ref().unwrap().lock().unwrap().scanner.stop_scan();
+        }
+    }
+}
+
 /// Implementation of the GATT API (IBluetoothGatt).
 pub struct BluetoothGatt {
     intf: Arc<Mutex<BluetoothInterface>>,
@@ -741,14 +814,25 @@ pub struct BluetoothGatt {
     scanners: Arc<Mutex<ScannersMap>>,
     advertisers: Advertisers,
 
+    adv_mon_add_cb_sender: CallbackSender<(u8, u8)>,
+    adv_mon_remove_cb_sender: CallbackSender<u8>,
+    adv_mon_enable_cb_sender: CallbackSender<u8>,
+
     // Used for generating random UUIDs. SmallRng is chosen because it is fast, don't use this for
     // cryptography.
     small_rng: SmallRng,
+
+    gatt_async: Arc<tokio::sync::Mutex<GattAsyncIntf>>,
 }
 
 impl BluetoothGatt {
     /// Constructs a new IBluetoothGatt implementation.
     pub fn new(intf: Arc<Mutex<BluetoothInterface>>, tx: Sender<Message>) -> BluetoothGatt {
+        let scanners = Arc::new(Mutex::new(HashMap::new()));
+
+        let async_helper_msft_adv_monitor_add = AsyncHelper::new("MsftAdvMonitorAdd");
+        let async_helper_msft_adv_monitor_remove = AsyncHelper::new("MsftAdvMonitorRemove");
+        let async_helper_msft_adv_monitor_enable = AsyncHelper::new("MsftAdvMonitorEnable");
         BluetoothGatt {
             intf,
             gatt: None,
@@ -756,9 +840,19 @@ impl BluetoothGatt {
             context_map: ContextMap::new(tx.clone()),
             reliable_queue: HashSet::new(),
             scanner_callbacks: Callbacks::new(tx.clone(), Message::ScannerCallbackDisconnected),
-            scanners: Arc::new(Mutex::new(HashMap::new())),
+            scanners: scanners.clone(),
             small_rng: SmallRng::from_entropy(),
             advertisers: Advertisers::new(tx.clone()),
+            adv_mon_add_cb_sender: async_helper_msft_adv_monitor_add.get_callback_sender(),
+            adv_mon_remove_cb_sender: async_helper_msft_adv_monitor_remove.get_callback_sender(),
+            adv_mon_enable_cb_sender: async_helper_msft_adv_monitor_enable.get_callback_sender(),
+            gatt_async: Arc::new(tokio::sync::Mutex::new(GattAsyncIntf {
+                scanners,
+                gatt: None,
+                async_helper_msft_adv_monitor_add,
+                async_helper_msft_adv_monitor_remove,
+                async_helper_msft_adv_monitor_enable,
+            })),
         }
     }
 
@@ -831,6 +925,12 @@ impl BluetoothGatt {
             gatt_adv_inband_callbacks_dispatcher,
             gatt_adv_callbacks_dispatcher,
         );
+
+        let gatt = self.gatt.clone();
+        let gatt_async = self.gatt_async.clone();
+        tokio::spawn(async move {
+            gatt_async.lock().await.gatt = gatt;
+        });
     }
 
     /// Remove a scanner callback and unregisters all scanners associated with that callback.
@@ -876,16 +976,6 @@ impl BluetoothGatt {
     pub fn scan_exit_suspend(&mut self) {
         // TODO(b/224603540): Implement
         todo!()
-    }
-
-    // Update the topshim's scan state depending on the states of registered scanners. Scan is
-    // enabled if there is at least 1 active registered scanner.
-    fn update_scan(&mut self) {
-        if self.scanners.lock().unwrap().values().find(|scanner| scanner.is_active).is_some() {
-            self.gatt.as_ref().unwrap().lock().unwrap().scanner.start_scan();
-        } else {
-            self.gatt.as_ref().unwrap().lock().unwrap().scanner.stop_scan();
-        }
     }
 
     fn find_scanner_by_id<'a>(
@@ -978,6 +1068,49 @@ struct ScannerInfo {
     scanner_id: Option<u8>,
     // If one of scanners is active, we scan.
     is_active: bool,
+    // Scan filter.
+    filter: Option<ScanFilter>,
+    // Adv monitor handle, if exists.
+    monitor_handle: Option<u8>,
+}
+
+impl ScannerInfo {
+    fn new(callback_id: u32) -> Self {
+        Self { callback_id, scanner_id: None, is_active: false, filter: None, monitor_handle: None }
+    }
+}
+
+impl Into<MsftAdvMonitorPattern> for &ScanFilterPattern {
+    fn into(self) -> MsftAdvMonitorPattern {
+        MsftAdvMonitorPattern {
+            ad_type: self.ad_type,
+            start_byte: self.start_position,
+            pattern: self.content.clone(),
+        }
+    }
+}
+
+impl Into<Vec<MsftAdvMonitorPattern>> for &ScanFilterCondition {
+    fn into(self) -> Vec<MsftAdvMonitorPattern> {
+        match self {
+            ScanFilterCondition::Patterns(patterns) => {
+                patterns.iter().map(|pattern| pattern.into()).collect()
+            }
+            _ => vec![],
+        }
+    }
+}
+
+impl Into<MsftAdvMonitor> for &ScanFilter {
+    fn into(self) -> MsftAdvMonitor {
+        MsftAdvMonitor {
+            rssi_high_threshold: self.rssi_high_threshold.try_into().unwrap(),
+            rssi_low_threshold: self.rssi_low_threshold.try_into().unwrap(),
+            rssi_low_timeout: self.rssi_low_timeout.try_into().unwrap(),
+            rssi_sampling_period: self.rssi_sampling_period.try_into().unwrap(),
+            patterns: (&self.condition).into(),
+        }
+    }
 }
 
 impl IBluetoothGatt for BluetoothGatt {
@@ -999,10 +1132,7 @@ impl IBluetoothGatt for BluetoothGatt {
         self.small_rng.fill_bytes(&mut bytes);
         let uuid = Uuid::from(bytes);
 
-        self.scanners
-            .lock()
-            .unwrap()
-            .insert(uuid, ScannerInfo { callback_id, scanner_id: None, is_active: false });
+        self.scanners.lock().unwrap().insert(uuid, ScannerInfo::new(callback_id));
 
         // libbluetooth's register_scanner takes a UUID of the scanning application. This UUID does
         // not correspond to higher level concept of "application" so we use random UUID that
@@ -1030,7 +1160,7 @@ impl IBluetoothGatt for BluetoothGatt {
         &mut self,
         scanner_id: u8,
         _settings: ScanSettings,
-        _filter: Option<ScanFilter>,
+        filter: Option<ScanFilter>,
     ) -> BtStatus {
         // Multiplexing scanners happens at this layer. The implementations of start_scan
         // and stop_scan maintains the state of all registered scanners and based on the states
@@ -1038,31 +1168,81 @@ impl IBluetoothGatt for BluetoothGatt {
         // TODO(b/217274432): Honor settings and filters.
         {
             let mut scanners_lock = self.scanners.lock().unwrap();
+
             if let Some(scanner) = Self::find_scanner_by_id(&mut scanners_lock, scanner_id) {
                 scanner.is_active = true;
+                scanner.filter = filter.clone();
             } else {
                 log::warn!("Scanner {} not found", scanner_id);
                 return BtStatus::Fail;
             }
         }
 
-        self.update_scan();
+        let gatt_async = self.gatt_async.clone();
+        tokio::spawn(async move {
+            // The three operations below (monitor add, monitor enable, update scan) happen one
+            // after another, and cannot be interleaved with other GATT async operations.
+            // So acquire the GATT async lock in the beginning of this block and will be released
+            // at the end of this block.
+            // TODO(b/217274432): Consider not using async model but instead add actions when
+            // handling callbacks.
+            let mut gatt_async = gatt_async.lock().await;
+
+            if let Some(filter) = filter {
+                let monitor_handle = match gatt_async.msft_adv_monitor_add((&filter).into()).await {
+                    Ok((handle, 0)) => handle,
+                    _ => {
+                        log::error!("Error adding advertisement monitor");
+                        return;
+                    }
+                };
+
+                log::debug!("Added adv monitor handle = {}", monitor_handle);
+
+                if !gatt_async
+                    .msft_adv_monitor_enable(true)
+                    .await
+                    .map_or(false, |status| status == 0)
+                {
+                    log::error!("Error enabling Advertisement Monitor");
+                }
+            }
+
+            gatt_async.update_scan().await;
+        });
+
         BtStatus::Success
     }
 
     fn stop_scan(&mut self, scanner_id: u8) -> BtStatus {
-        {
+        let monitor_handle = {
             let mut scanners_lock = self.scanners.lock().unwrap();
+
             if let Some(scanner) = Self::find_scanner_by_id(&mut scanners_lock, scanner_id) {
                 scanner.is_active = false;
+                scanner.monitor_handle
             } else {
                 log::warn!("Scanner {} not found", scanner_id);
                 // Clients can assume success of the removal since the scanner does not exist.
                 return BtStatus::Success;
             }
-        }
+        };
 
-        self.update_scan();
+        let gatt_async = self.gatt_async.clone();
+        tokio::spawn(async move {
+            // The two operations below (monitor remove, update scan) happen one after another, and
+            // cannot be interleaved with other GATT async operations.
+            // So acquire the GATT async lock in the beginning of this block and will be released
+            // at the end of this block.
+            let mut gatt_async = gatt_async.lock().await;
+
+            if let Some(handle) = monitor_handle {
+                let _res = gatt_async.msft_adv_monitor_remove(handle).await;
+            }
+
+            gatt_async.update_scan().await;
+        });
+
         BtStatus::Success
     }
 
@@ -2297,6 +2477,20 @@ pub(crate) trait BtifGattScannerInbandCallbacks {
         btm_status: u8,
     );
 
+    #[btif_callback(MsftAdvMonitorAddCallback)]
+    fn inband_msft_adv_monitor_add_callback(
+        &mut self,
+        call_id: u32,
+        monitor_handle: u8,
+        status: u8,
+    );
+
+    #[btif_callback(MsftAdvMonitorRemoveCallback)]
+    fn inband_msft_adv_monitor_remove_callback(&mut self, call_id: u32, status: u8);
+
+    #[btif_callback(MsftAdvMonitorEnableCallback)]
+    fn inband_msft_adv_monitor_enable_callback(&mut self, call_id: u32, status: u8);
+
     #[btif_callback(StartSyncCallback)]
     fn inband_start_sync_callback(
         &mut self,
@@ -2384,6 +2578,23 @@ impl BtifGattScannerInbandCallbacks for BluetoothGatt {
                 btm_status,
             )
         );
+    }
+
+    fn inband_msft_adv_monitor_add_callback(
+        &mut self,
+        call_id: u32,
+        monitor_handle: u8,
+        status: u8,
+    ) {
+        (self.adv_mon_add_cb_sender.lock().unwrap())(call_id, (monitor_handle, status));
+    }
+
+    fn inband_msft_adv_monitor_remove_callback(&mut self, call_id: u32, status: u8) {
+        (self.adv_mon_remove_cb_sender.lock().unwrap())(call_id, status);
+    }
+
+    fn inband_msft_adv_monitor_enable_callback(&mut self, call_id: u32, status: u8) {
+        (self.adv_mon_enable_cb_sender.lock().unwrap())(call_id, status);
     }
 
     fn inband_start_sync_callback(
