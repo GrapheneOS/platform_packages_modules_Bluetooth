@@ -2722,10 +2722,14 @@ void bta_av_suspend_cont(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   if (err_code) {
     if (AVDT_ERR_CONNECT == err_code) {
       /* report failure */
-      tBTA_AV_RECONFIG reconfig;
-      reconfig.status = BTA_AV_FAIL;
-      tBTA_AV bta_av_data;
-      bta_av_data.reconfig = reconfig;
+      tBTA_AV bta_av_data = {
+          .reconfig =
+              {
+                  .chnl = p_scb->chnl,
+                  .hndl = p_scb->hndl,
+                  .status = BTA_AV_FAIL,
+              },
+      };
       (*bta_av_cb.p_cback)(BTA_AV_RECONFIG_EVT, &bta_av_data);
       APPL_TRACE_ERROR("%s: BTA_AV_STR_DISC_FAIL_EVT: peer_addr=%s", __func__,
                        ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()));
