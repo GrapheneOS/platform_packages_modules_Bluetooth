@@ -1276,14 +1276,15 @@ void bta_av_security_ind(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   p_scb->avdt_label = p_data->str_msg.msg.hdr.label;
 
   if (bta_av_cb.features & BTA_AV_FEAT_PROTECT) {
-    tBTA_AV_PROTECT_REQ protect_req;
-    protect_req.chnl = p_scb->chnl;
-    protect_req.hndl = p_scb->hndl;
-    protect_req.p_data = p_data->str_msg.msg.security_ind.p_data;
-    protect_req.len = p_data->str_msg.msg.security_ind.len;
-
-    tBTA_AV bta_av_data;
-    bta_av_data.protect_req = protect_req;
+    tBTA_AV bta_av_data = {
+        .protect_req =
+            {
+                .chnl = p_scb->chnl,
+                .hndl = p_scb->hndl,
+                .p_data = p_data->str_msg.msg.security_ind.p_data,
+                .len = p_data->str_msg.msg.security_ind.len,
+            },
+    };
     (*bta_av_cb.p_cback)(BTA_AV_PROTECT_REQ_EVT, &bta_av_data);
   }
   /* app doesn't support security indication; respond with failure */
