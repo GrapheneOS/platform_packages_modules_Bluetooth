@@ -30,6 +30,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.gatt.GattService.AdvertiserMap;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ class AdvertiseManager {
 
     private final GattService mService;
     private final AdapterService mAdapterService;
+    private final AdvertiserMap mAdvertiserMap;
     private Handler mHandler;
     Map<IBinder, AdvertiserInfo> mAdvertisers = Collections.synchronizedMap(new HashMap<>());
     static int sTempRegistrationId = -1;
@@ -53,12 +55,14 @@ class AdvertiseManager {
     /**
      * Constructor of {@link AdvertiseManager}.
      */
-    AdvertiseManager(GattService service, AdapterService adapterService) {
+    AdvertiseManager(GattService service, AdapterService adapterService,
+            AdvertiserMap advertiserMap) {
         if (DBG) {
             Log.d(TAG, "advertise manager created");
         }
         mService = service;
         mAdapterService = adapterService;
+        mAdvertiserMap = advertiserMap;
     }
 
     /**
@@ -158,17 +162,17 @@ class AdvertiseManager {
             entry.setValue(
                     new AdvertiserInfo(advertiserId, entry.getValue().deathRecipient, callback));
 
-            mService.mAdvertiserMap.setAdvertiserIdByRegId(regId, advertiserId);
+            mAdvertiserMap.setAdvertiserIdByRegId(regId, advertiserId);
         } else {
             IBinder binder = entry.getKey();
             binder.unlinkToDeath(entry.getValue().deathRecipient, 0);
             mAdvertisers.remove(binder);
 
-            AppAdvertiseStats stats = mService.mAdvertiserMap.getAppAdvertiseStatsById(regId);
+            AppAdvertiseStats stats = mAdvertiserMap.getAppAdvertiseStatsById(regId);
             if (stats != null) {
                 stats.recordAdvertiseStop();
             }
-            mService.mAdvertiserMap.removeAppAdvertiseStats(regId);
+            mAdvertiserMap.removeAppAdvertiseStats(regId);
         }
 
         callback.onAdvertisingSetStarted(advertiserId, txPower, status);
@@ -189,6 +193,13 @@ class AdvertiseManager {
 
         IAdvertisingSetCallback callback = entry.getValue().callback;
         callback.onAdvertisingEnabled(advertiserId, enable, status);
+
+        if (!enable && status != 0) {
+            AppAdvertiseStats stats = mAdvertiserMap.getAppAdvertiseStatsById(advertiserId);
+            if (stats != null) {
+                stats.recordAdvertiseStop();
+            }
+        }
     }
 
     void startAdvertisingSet(AdvertisingSetParameters parameters, AdvertiseData advertiseData,
@@ -218,8 +229,8 @@ class AdvertiseManager {
                 Log.d(TAG, "startAdvertisingSet() - reg_id=" + cbId + ", callback: " + binder);
             }
 
-            mService.mAdvertiserMap.add(cbId, callback, mService);
-            mService.mAdvertiserMap.recordAdvertiseStart(cbId, parameters, advertiseData,
+            mAdvertiserMap.add(cbId, callback, mService);
+            mAdvertiserMap.recordAdvertiseStart(cbId, parameters, advertiseData,
                     scanResponse, periodicParameters, periodicData, duration, maxExtAdvEvents);
 
             startAdvertisingSetNative(parameters, advDataBytes, scanResponseBytes,
@@ -290,7 +301,7 @@ class AdvertiseManager {
             Log.i(TAG, "error sending onAdvertisingSetStopped callback", e);
         }
 
-        mService.mAdvertiserMap.recordAdvertiseStop(advertiserId);
+        mAdvertiserMap.recordAdvertiseStop(advertiserId);
     }
 
     void enableAdvertisingSet(int advertiserId, boolean enable, int duration, int maxExtAdvEvents) {
@@ -301,7 +312,7 @@ class AdvertiseManager {
         }
         enableAdvertisingSetNative(advertiserId, enable, duration, maxExtAdvEvents);
 
-        mService.mAdvertiserMap.enableAdvertisingSet(advertiserId,
+        mAdvertiserMap.enableAdvertisingSet(advertiserId,
                 enable, duration, maxExtAdvEvents);
     }
 
@@ -316,7 +327,7 @@ class AdvertiseManager {
             setAdvertisingDataNative(advertiserId,
                     AdvertiseHelper.advertiseDataToBytes(data, deviceName));
 
-            mService.mAdvertiserMap.setAdvertisingData(advertiserId, data);
+            mAdvertiserMap.setAdvertisingData(advertiserId, data);
         } catch (IllegalArgumentException e) {
             try {
                 onAdvertisingDataSet(advertiserId,
@@ -338,7 +349,7 @@ class AdvertiseManager {
             setScanResponseDataNative(advertiserId,
                     AdvertiseHelper.advertiseDataToBytes(data, deviceName));
 
-            mService.mAdvertiserMap.setScanResponseData(advertiserId, data);
+            mAdvertiserMap.setScanResponseData(advertiserId, data);
         } catch (IllegalArgumentException e) {
             try {
                 onScanResponseDataSet(advertiserId,
@@ -357,7 +368,7 @@ class AdvertiseManager {
         }
         setAdvertisingParametersNative(advertiserId, parameters);
 
-        mService.mAdvertiserMap.setAdvertisingParameters(advertiserId, parameters);
+        mAdvertiserMap.setAdvertisingParameters(advertiserId, parameters);
     }
 
     void setPeriodicAdvertisingParameters(int advertiserId,
@@ -369,7 +380,7 @@ class AdvertiseManager {
         }
         setPeriodicAdvertisingParametersNative(advertiserId, parameters);
 
-        mService.mAdvertiserMap.setPeriodicAdvertisingParameters(advertiserId, parameters);
+        mAdvertiserMap.setPeriodicAdvertisingParameters(advertiserId, parameters);
     }
 
     void setPeriodicAdvertisingData(int advertiserId, AdvertiseData data) {
@@ -383,7 +394,7 @@ class AdvertiseManager {
             setPeriodicAdvertisingDataNative(advertiserId,
                     AdvertiseHelper.advertiseDataToBytes(data, deviceName));
 
-            mService.mAdvertiserMap.setPeriodicAdvertisingData(advertiserId, data);
+            mAdvertiserMap.setPeriodicAdvertisingData(advertiserId, data);
         } catch (IllegalArgumentException e) {
             try {
                 onPeriodicAdvertisingDataSet(advertiserId,
@@ -502,7 +513,7 @@ class AdvertiseManager {
         IAdvertisingSetCallback callback = entry.getValue().callback;
         callback.onPeriodicAdvertisingEnabled(advertiserId, enable, status);
 
-        AppAdvertiseStats stats = mService.mAdvertiserMap.getAppAdvertiseStatsById(advertiserId);
+        AppAdvertiseStats stats = mAdvertiserMap.getAppAdvertiseStatsById(advertiserId);
         if (stats != null) {
             stats.onPeriodicAdvertiseEnabled(enable);
         }
