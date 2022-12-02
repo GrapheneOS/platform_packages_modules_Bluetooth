@@ -2397,26 +2397,30 @@ void bta_av_start_ok(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
                      ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()), suspend,
                      p_scb->role, initiator);
 
-    tBTA_AV_START start;
-    start.suspending = suspend;
-    start.initiator = initiator;
-    start.chnl = p_scb->chnl;
-    start.status = BTA_AV_SUCCESS;
-    start.hndl = p_scb->hndl;
-    tBTA_AV bta_av_data;
-    bta_av_data.start = start;
+    tBTA_AV bta_av_data = {
+        .start =
+            {
+                .chnl = p_scb->chnl,
+                .hndl = p_scb->hndl,
+                .status = BTA_AV_SUCCESS,
+                .initiator = initiator,
+                .suspending = suspend,
+            },
+    };
     (*bta_av_cb.p_cback)(BTA_AV_START_EVT, &bta_av_data);
 
     if (suspend) {
-      tBTA_AV_API_STOP stop;
       p_scb->role |= BTA_AV_ROLE_SUSPEND;
       p_scb->cong = true; /* do not allow the media data to go through */
       /* do not duplicate the media packets to this channel */
       p_scb->p_cos->stop(p_scb->hndl, p_scb->PeerAddress());
       p_scb->co_started = false;
-      stop.flush = false;
-      stop.suspend = true;
-      stop.reconfig_stop = false;
+      tBTA_AV_API_STOP stop = {
+          .hdr = {},
+          .suspend = true,
+          .flush = false,
+          .reconfig_stop = false,
+      };
       bta_av_ssm_execute(p_scb, BTA_AV_AP_STOP_EVT, (tBTA_AV_DATA*)&stop);
     }
   }
