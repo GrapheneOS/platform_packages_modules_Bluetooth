@@ -42,7 +42,7 @@
     <string name="notification_received" msgid="2330252358543000567">"Bluetooth-jako: <xliff:g id="FILE">%1$s</xliff:g> vastaanotettu"</string>
     <string name="notification_received_fail" msgid="9059153354809379374">"Bluetooth-jako: tiedostoa <xliff:g id="FILE">%1$s</xliff:g> ei vastaanotettu"</string>
     <string name="notification_sending" msgid="8269912843286868700">"Bluetooth-jako: lähetetään tiedostoa <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="2685202778935769332">"Bluetooth-jako: lähetä <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="2685202778935769332">"Bluetooth-jako: <xliff:g id="FILE">%1$s</xliff:g> lähetetty"</string>
     <string name="notification_sent_complete" msgid="6293391081175517098">"100 % valmis"</string>
     <string name="notification_sent_fail" msgid="7449832660578001579">"Bluetooth-jako: tiedostoa <xliff:g id="FILE">%1$s</xliff:g> ei lähetetty"</string>
     <string name="download_title" msgid="6449408649671518102">"Tiedostonsiirto"</string>
@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Koko luettelo tyhjennetään."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth-jako: Lähetetyt tiedostot"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth-jako: Vastaanotetut tiedostot"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# epäonnistui}other{# epäonnistui}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# onnistui, %1$s}other{# onnistui, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Tyhjennä luettelo"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Avaa"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Poista luettelosta"</string>
@@ -130,4 +128,13 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth-ääni"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Yli 4 Gt:n kokoisia tiedostoja ei voi siirtää."</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Muodosta Bluetooth-yhteys"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth päällä lentokonetilassa"</string>
+    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
+    <skip />
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth pysyy päällä"</string>
+    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
+    <skip />
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi ja Bluetooth pysyvät päällä"</string>
+    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
+    <skip />
 </resources>

@@ -31,7 +31,7 @@
     <string name="bt_enable_cancel" msgid="6770180540581977614">"ຍົກເລີກ"</string>
     <string name="bt_enable_ok" msgid="4224374055813566166">"ເປີດ"</string>
     <string name="incoming_file_confirm_title" msgid="938251186275547290">"ການໂອນໄຟລ໌"</string>
-    <string name="incoming_file_confirm_content" msgid="6573502088511901157">"ຮັບເອົາ​ໄຟລ໌​ທີ່​ເຂົາ​ມາ​ບໍ?"</string>
+    <string name="incoming_file_confirm_content" msgid="6573502088511901157">"ຮັບເອົາໄຟລ໌ທີ່ເຂົ້າມາບໍ?"</string>
     <string name="incoming_file_confirm_cancel" msgid="9205906062663982692">"ປະຕິເສດ"</string>
     <string name="incoming_file_confirm_ok" msgid="5046926299036238623">"ຮັບເອົາ"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="8612187577686515660">"ຕົກລົງ"</string>
@@ -107,12 +107,10 @@
     <string name="outbound_history_title" msgid="7614166584551065036">"ການໂອນອອກ"</string>
     <string name="no_transfers" msgid="740521199933899821">"ປະຫວັດການໂອນຫວ່າງເປົ່າ."</string>
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"ລາຍການທັງໝົດຈະຖືກລຶບອອກຈາກລາຍການດັ່ງກ່າວ."</string>
-    <string name="outbound_noti_title" msgid="2045560896819618979">"ແບ່ງປັນໃນ Bluetooth: ໄຟລ໌ສົ່ງແລ້ວ"</string>
-    <string name="inbound_noti_title" msgid="3730993443609581977">"ແບ່ງປັນໃນ Bluetooth: ໄຟລ໌ໄດ້ຮັບແລ້ວ"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="outbound_noti_title" msgid="2045560896819618979">"ແບ່ງປັນໃນ Bluetooth: ສົ່ງໄຟລ໌ແລ້ວ"</string>
+    <string name="inbound_noti_title" msgid="3730993443609581977">"ແບ່ງປັນໃນ Bluetooth: ໄດ້ຮັບໄຟລ໌ແລ້ວ"</string>
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# ບໍ່ສຳເລັດ.}other{# ບໍ່ສຳເລັດ.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# ສຳເລັດ, %1$s}other{# ສຳເລັດ, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"ລຶບລາຍການ"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"ເປີດ"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"ລຶບອອກຈາກລາຍການ"</string>
@@ -130,4 +128,13 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ສຽງ Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"ບໍ່ສາມາດໂອນຍ້າຍໄຟລ໌ທີ່ໃຫຍກວ່າ 4GB ໄດ້"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ເຊື່ອມຕໍ່ກັບ Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ເປີດ Bluetooth ໃນໂໝດຢູ່ໃນຍົນ"</string>
+    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
+    <skip />
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth ເປີດຢູ່"</string>
+    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
+    <skip />
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi ແລະ Bluetooth ຈະເປີດປະໄວ້"</string>
+    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
+    <skip />
 </resources>
