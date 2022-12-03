@@ -128,24 +128,6 @@ struct btsnd_hcic_accept_cis_req {
 };
 extern struct btsnd_hcic_accept_cis_req btsnd_hcic_accept_cis_req;
 
-// Name: btsnd_hcic_big_create_sync
-// Params: uint8_t big_handle, uint16_t sync_handle, uint8_t enc,
-// std::array<uint8_t, 16> bcst_code, uint8_t mse, uint16_t big_sync_timeout,
-// std::vector<uint8_t> bis Return: void
-struct btsnd_hcic_big_create_sync {
-  std::function<void(uint8_t, uint16_t, uint8_t, std::array<uint8_t, 16>,
-                     uint8_t, uint16_t, std::vector<uint8_t>)>
-      body{[](uint8_t big_handle, uint16_t sync_handle, uint8_t enc,
-              std::array<uint8_t, 16> bcst_code, uint8_t mse,
-              uint16_t big_sync_timeout, std::vector<uint8_t> bis) {}};
-  void operator()(uint8_t big_handle, uint16_t sync_handle, uint8_t enc,
-                  std::array<uint8_t, 16> bcst_code, uint8_t mse,
-                  uint16_t big_sync_timeout, std::vector<uint8_t> bis) {
-    body(big_handle, sync_handle, enc, bcst_code, mse, big_sync_timeout, bis);
-  };
-};
-extern struct btsnd_hcic_big_create_sync btsnd_hcic_big_create_sync;
-
 // Name: btsnd_hcic_big_term_sync
 // Params: uint8_t big_handle, base::OnceCallback<void(uint8_t*, uint16_t
 // Return: void
