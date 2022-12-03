@@ -202,7 +202,7 @@ class LeAudioDevices {
   LeAudioDevice* FindByCisConnHdl(uint8_t cig_id, uint16_t conn_hdl);
   size_t Size(void);
   void Dump(int fd, int group_id);
-  void Cleanup(void);
+  void Cleanup(tGATT_IF client_if);
 
  private:
   std::vector<std::shared_ptr<LeAudioDevice>> leAudioDevices_;
