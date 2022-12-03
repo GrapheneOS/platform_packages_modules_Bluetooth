@@ -4642,7 +4642,7 @@ packet LeSetDataRelatedAddressChangesComplete : CommandComplete (command_op_code
   status : ErrorCode,
 }
 
-packet LeSetDefaultSubrate : Command (op_code = LE_SET_DEFAULT_SUBRATE) {
+packet LeSetDefaultSubrate : AclCommand (op_code = LE_SET_DEFAULT_SUBRATE) {
   subrate_min : 9,
   _reserved_ : 7,
   subrate_max : 9,

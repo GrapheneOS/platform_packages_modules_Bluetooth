@@ -984,6 +984,18 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         std::move(packet), handler_->BindOnce([](CommandCompleteView complete) {}));
   }
 
+  void LeSetDefaultSubrate(
+      uint16_t subrate_min, uint16_t subrate_max, uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout) {
+    le_acl_connection_interface_->EnqueueCommand(
+        LeSetDefaultSubrateBuilder::Create(subrate_min, subrate_max, max_latency, cont_num, sup_tout),
+        handler_->BindOnce([](CommandCompleteView complete) {
+          auto complete_view = LeSetDefaultSubrateCompleteView::Create(complete);
+          ASSERT(complete_view.IsValid());
+          ErrorCode status = complete_view.GetStatus();
+          ASSERT_LOG(status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
+        }));
+  }
+
   void clear_resolving_list() {
     le_address_manager_->ClearResolvingList();
   }

@@ -71,6 +71,7 @@ constexpr uint16_t kLatency = 0x60;
 constexpr uint16_t kLength = 0x5678;
 constexpr uint16_t kTime = 0x1234;
 constexpr uint16_t kTimeout = 0x80;
+constexpr uint16_t kContinuationNumber = 0x32;
 constexpr std::array<uint8_t, 16> kPeerIdentityResolvingKey({
     0x00,
     0x01,
@@ -1467,6 +1468,18 @@ TEST_F(LeImplTest, set_le_suggested_default_data_parameters) {
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(kLength, view.GetTxOctets());
   ASSERT_EQ(kTime, view.GetTxTime());
+}
+
+TEST_F(LeImplTest, LeSetDefaultSubrate) {
+  le_impl_->LeSetDefaultSubrate(kIntervalMin, kIntervalMax, kLatency, kContinuationNumber, kTimeout);
+  sync_handler();
+  auto view = CreateAclCommandView<LeSetDefaultSubrateView>(hci_layer_->DequeueCommandBytes());
+  ASSERT_TRUE(view.IsValid());
+  ASSERT_EQ(kIntervalMin, view.GetSubrateMin());
+  ASSERT_EQ(kIntervalMax, view.GetSubrateMax());
+  ASSERT_EQ(kLatency, view.GetMaxLatency());
+  ASSERT_EQ(kContinuationNumber, view.GetContinuationNumber());
+  ASSERT_EQ(kTimeout, view.GetSupervisionTimeout());
 }
 
 }  // namespace acl_manager

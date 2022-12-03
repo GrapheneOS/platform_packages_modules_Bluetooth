@@ -103,6 +103,9 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
   bool SniffSubrating(uint16_t hci_handle, uint16_t maximum_latency,
                       uint16_t minimum_remote_timeout,
                       uint16_t minimum_local_timeout) override;
+  void LeSetDefaultSubrate(uint16_t subrate_min, uint16_t subrate_max,
+                           uint16_t max_latency, uint16_t cont_num,
+                           uint16_t sup_tout);
 
   void WriteData(uint16_t hci_handle,
                  std::unique_ptr<packet::RawBuilder> packet);
