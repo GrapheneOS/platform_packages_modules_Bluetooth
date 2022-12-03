@@ -244,16 +244,20 @@ static void notify_start_failed(tBTA_AV_SCB* p_scb) {
   LOG_ERROR("%s: peer %s role:0x%x bta_channel:%d bta_handle:0x%x", __func__,
             ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()), p_scb->role,
             p_scb->chnl, p_scb->hndl);
-  tBTA_AV_START start;
+  tBTA_AV bta_av_data = {
+      .start =
+          {
+              .chnl = p_scb->chnl,
+              .hndl = p_scb->hndl,
+              .status = BTA_AV_FAIL,
+              .initiator = true,
+              .suspending = false,
+          },
+  };
+
   /* if start failed, clear role */
   p_scb->role &= ~BTA_AV_ROLE_START_INT;
-  start.chnl = p_scb->chnl;
-  start.status = BTA_AV_FAIL;
-  start.initiator = true;
-  start.hndl = p_scb->hndl;
 
-  tBTA_AV bta_av_data;
-  bta_av_data.start = start;
   (*bta_av_cb.p_cback)(BTA_AV_START_EVT, &bta_av_data);
 }
 
