@@ -278,6 +278,7 @@ public class CsipSetCoordinatorService extends ProfileService {
             CsipSetCoordinatorStateMachine smConnect = getOrCreateStateMachine(device);
             if (smConnect == null) {
                 Log.e(TAG, "Cannot connect to " + device + " : no state machine");
+                return false;
             }
             smConnect.sendMessage(CsipSetCoordinatorStateMachine.CONNECT);
         }
@@ -906,6 +907,8 @@ public class CsipSetCoordinatorService extends ProfileService {
                 return;
             }
             if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i(TAG, "Disconnecting device because it was unbonded.");
+                disconnect(device);
                 return;
             }
             removeStateMachine(device);
