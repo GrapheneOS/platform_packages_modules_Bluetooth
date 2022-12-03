@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB-യിൽ കൂടുതലുള്ള ഫയലുകൾ കൈമാറാനാവില്ല"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth-ലേക്ക് കണക്‌റ്റ് ചെയ്യുക"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ഫ്ലൈറ്റ് മോഡിൽ Bluetooth ഓണാണ്"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"നിങ്ങൾ Bluetooth ഓണാക്കി വയ്ക്കുകയാണെങ്കിൽ, അടുത്ത തവണ ഫൈറ്റ് മോഡിൽ ആകുമ്പോൾ അത് ഓണായ നിലയിൽ തന്നെ തുടരും"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Bluetooth ഓണാക്കി വച്ചാൽ, അടുത്ത തവണ നിങ്ങൾ ഫ്ലൈറ്റ് മോഡിൽ ആയിരിക്കുമ്പോൾ നിങ്ങളുടെ ഫോൺ അത് ഓണാക്കി വയ്ക്കാൻ ഓർക്കും"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth ഓണാക്കിയ നിലയിൽ തുടരും"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"ഫ്ലൈറ്റ് മോഡിലായിരിക്കുമ്പോൾ Bluetooth ഓണാക്കി വയ്ക്കാൻ നിങ്ങളുടെ ഫോൺ ഓർമ്മിക്കുന്നു. ഇത് മാറ്റാൻ, Bluetooth ഓഫാക്കുക."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"ഫ്ലൈറ്റ് മോഡിലായിരിക്കുമ്പോൾ Bluetooth ഓണാക്കി വയ്ക്കാൻ നിങ്ങളുടെ ഫോൺ ഓർമ്മിക്കുന്നു. Bluetooth ഓണാക്കി വയ്ക്കാൻ താൽപ്പര്യമില്ലെങ്കിൽ അത് ഓഫാക്കുക."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"വൈഫൈ, Bluetooth എന്നിവ ഓണായ നിലയിൽ തുടരും"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"ഫ്ലൈറ്റ് മോഡിലായിരിക്കുമ്പോൾ വൈഫൈ, Bluetooth എന്നിവ ഓണാക്കി വയ്ക്കാൻ നിങ്ങളുടെ ഫോൺ ഓർമ്മിക്കുന്നു. ഇത് മാറ്റാൻ, അവ ഓഫാക്കുക."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"ഫ്ലൈറ്റ് മോഡിലായിരിക്കുമ്പോൾ വൈഫൈ, Bluetooth എന്നിവ ഓണാക്കി വയ്ക്കാൻ നിങ്ങളുടെ ഫോൺ ഓർമ്മിക്കുന്നു. വൈഫൈ, Bluetooth എന്നിവ ഓണാക്കി വയ്‌ക്കാൻ താൽപ്പര്യമില്ലെങ്കിൽ അവ ഓഫാക്കുക."</string>
 </resources>

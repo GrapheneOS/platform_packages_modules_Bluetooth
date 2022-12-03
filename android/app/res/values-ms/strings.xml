@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Fail lebih besar daripada 4GB tidak boleh dipindahkan"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Sambung ke Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth dihidupkan dalam mod pesawat"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Jika anda terus menghidupkan Bluetooth, pada kali seterusnya anda dalam mod pesawat, Bluetooth akan kekal dihidupkan"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Jika anda terus menghidupkan Bluetooth, telefon anda akan ingat untuk membiarkan Bluetooth hidup pada kali seterusnya telefon anda berada dalam mod pesawat"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth kekal dihidupkan"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Telefon anda diingatkan untuk terus menghidupkan Bluetooth dalam mod pesawat. Untuk menukar tetapan ini, matikan Bluetooth."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Telefon anda diingatkan untuk terus menghidupkan Bluetooth dalam mod pesawat. Matikan Bluetooth jika anda tidak mahu Bluetooth sentiasa hidup."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi dan Bluetooth kekal dihidupkan"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Telefon anda diingatkan untuk terus menghidupkan Wi-Fi dan Bluetooth dalam mod pesawat. Untuk menukar tetapan ini, matikan Wi-Fi dan Bluetooth."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Telefon anda diingatkan untuk terus menghidupkan Wi-Fi dan Bluetooth dalam mod pesawat. Matikan Wi-Fi dan Bluetooth jika anda tidak mahu Wi-Fi dan Bluetooth sentiasa hidup."</string>
 </resources>

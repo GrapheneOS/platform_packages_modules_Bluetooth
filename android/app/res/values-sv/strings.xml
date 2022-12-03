@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Det går inte att överföra filer som är större än 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Anslut till Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Håll Bluetooth aktiverat i flygplansläge"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Om du har Bluetooth aktiverat så fortsätter det vara aktiverat nästa gång du sätter på flygplansläget"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Om du håller wifi aktiverat kommer telefonen ihåg att hålla det aktiverat nästa gång du använder flygplansläge."</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth förblir aktiverat"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Telefonen kommer ihåg att hålla Bluetooth aktiverat i flygplansläge. Om du vill ändra det stänger du av Bluetooth."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Telefonen kommer ihåg att hålla Bluetooth aktiverat i flygplansläge. Inaktivera Bluetooth om du inte vill att det ska hållas aktiverat."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wifi och Bluetooth ska vara aktiverade"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Telefonen kommer ihåg att hålla wifi och Bluetooth aktiverade i flygplansläge. Om du vill ändra det stänger du av dem."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Telefonen kommer ihåg att hålla wifi och Bluetooth aktiverade i flygplansläge. Du kan inaktivera wifi och Bluetooth om du inte vill hålla dem aktiverade."</string>
 </resources>

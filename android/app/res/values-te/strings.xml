@@ -48,14 +48,14 @@
     <string name="download_title" msgid="6449408649671518102">"ఫైల్ బదిలీ"</string>
     <string name="download_line1" msgid="6449220145685308846">"వీరి నుండి: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="7634316500490825390">"ఫైల్: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="download_line3" msgid="6722284930665532816">"ఫైల్ పరిమాణం: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
+    <string name="download_line3" msgid="6722284930665532816">"ఫైల్ సైజ్‌: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="5234701398884321314"></string>
     <string name="download_line5" msgid="4124272066218470715">"ఫైల్‌ను స్వీకరిస్తోంది…"</string>
     <string name="download_cancel" msgid="1705762428762702342">"ఆపివేయి"</string>
     <string name="download_ok" msgid="2404442707314575833">"దాచు"</string>
     <string name="incoming_line1" msgid="6342300988329482408">"దీని నుండి"</string>
     <string name="incoming_line2" msgid="2199520895444457585">"ఫైల్ పేరు"</string>
-    <string name="incoming_line3" msgid="8630078246326525633">"పరిమాణం"</string>
+    <string name="incoming_line3" msgid="8630078246326525633">"సైజ్‌"</string>
     <string name="download_fail_line1" msgid="3149552664349685007">"ఫైల్ స్వీకరించబడలేదు"</string>
     <string name="download_fail_line2" msgid="4289018531070750414">"ఫైల్: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="2214989413171231684">"కారణం: <xliff:g id="REASON">%1$s</xliff:g>"</string>
@@ -72,7 +72,7 @@
     <string name="upload_fail_cancel" msgid="1632528037932779727">"మూసివేయి"</string>
     <string name="bt_error_btn_ok" msgid="2802751202009957372">"సరే"</string>
     <string name="unknown_file" msgid="3719981572107052685">"తెలియని ఫైల్"</string>
-    <string name="unknown_file_desc" msgid="9185609398960437760">"ఈ రకమైన ఫైల్‌ను నిర్వహించడానికి యాప్ ఏదీ లేదు. \n"</string>
+    <string name="unknown_file_desc" msgid="9185609398960437760">"ఈ రకమైన ఫైల్‌ను మేనేజ్ చేయడానికి యాప్ ఏదీ లేదు. \n"</string>
     <string name="not_exist_file" msgid="5097565588949092486">"ఫైల్ లేదు"</string>
     <string name="not_exist_file_desc" msgid="250802392160941265">"ఫైల్ ఉనికిలో లేదు. \n"</string>
     <string name="enabling_progress_title" msgid="5262637688863903594">"దయచేసి వేచి ఉండండి..."</string>
@@ -129,9 +129,12 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB కన్నా పెద్ద ఫైళ్లు బదిలీ చేయబడవు"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"బ్లూటూత్‌కు కనెక్ట్ చేయి"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్ చేయబడింది"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"మీరు బ్లూటూత్‌ని ఆన్‌లో ఉంచినట్లయితే, తదుపరిసారి మీరు విమానం మోడ్‌లో ఉన్నప్పుడు అది ఆన్‌లో ఉంటుంది"</string>
+    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
+    <skip />
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"బ్లూటూత్ ఆన్‌లో ఉంటుంది"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్‌లో ఉంచాలని మీ ఫోన్ గుర్తుంచుకుంటుంది. దీన్ని మార్చడానికి, బ్లూటూత్‌ని ఆఫ్ చేయండి."</string>
+    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
+    <skip />
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi, బ్లూటూత్ ఆన్‌లో ఉంటాయి"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"మీ ఫోన్ విమానం మోడ్‌లో Wi‑Fiని, బ్లూటూత్‌ని ఆన్‌లో ఉంచాలని గుర్తుంచుకుంటుంది. దీన్ని మార్చడానికి, వాటిని ఆఫ్ చేయండి."</string>
+    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
+    <skip />
 </resources>

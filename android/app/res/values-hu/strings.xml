@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"A 4 GB-nál nagyobb fájlokat nem lehet átvinni"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Csatlakozás Bluetooth-eszközhöz"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth bekapcsolva Repülős üzemmódban"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Ha bekapcsolva tartja a Bluetootht, bekapcsolva marad, amikor legközelebb Repülős üzemmódba kapcsol."</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Ha bekapcsolva tartja a Bluetootht, a telefon emlékezni fog arra, hogy a következő alkalommal, amikor Repülős üzemmódban van, bekapcsolva tartsa a funkciót."</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"A Bluetooth bekapcsolva marad"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"A telefon bekapcsolva tartja a Bluetootht Repülős üzemmódban. Ennek módosításához kapcsolja ki a Bluetootht."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"A telefon bekapcsolva tartja a Bluetootht Repülős üzemmódban. Kapcsolja ki a Bluetootht, ha nem szeretné, hogy bekapcsolva maradjon."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"A Wi-Fi és a Bluetooth bekapcsolva marad"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"A telefon bekapcsolva tartja a Wi‑Fi-t és a Bluetootht Repülős üzemmódban. Ennek módosításához kapcsolja ki őket."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"A telefon bekapcsolva tartja a Wi‑Fi-t és a Bluetootht Repülős üzemmódban. Ha nem szeretné, hogy bekapcsolva maradjon a Wi-Fi és a Bluetooth, kapcsolja ki őket."</string>
 </resources>

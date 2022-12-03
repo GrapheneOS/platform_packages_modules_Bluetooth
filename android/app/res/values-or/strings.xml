@@ -19,7 +19,7 @@
     <string name="permlab_bluetoothShareManager" msgid="5297865456717871041">"ଡାଉନଲୋଡ ମ୍ୟାନେଜର୍‌କୁ ଆକ୍ସେସ୍‌ କରନ୍ତୁ।"</string>
     <string name="permdesc_bluetoothShareManager" msgid="1588034776955941477">"BluetoothShare ମ୍ୟାନେଜର୍‌ ଆକ୍ସେସ୍‌ କରି ଫାଇଲ୍‌ଗୁଡ଼ିକ ଟ୍ରାନ୍ସଫର୍‌ କରିବାକୁ ବ୍ୟବହାର କରିବା ପାଇଁ ଆପ୍‌କୁ ଅନୁମତି ଦିଅନ୍ତୁ।"</string>
     <string name="permlab_bluetoothAcceptlist" msgid="5785922051395856524">"ବ୍ଲୁଟୁଥ୍ ଡିଭାଇସର ଆକ୍ସେସକୁ ଗ୍ରହଣ-ସୂଚୀରେ ରଖନ୍ତୁ।"</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="259308920158011885">"ଏକ ବ୍ଲୁଟୁଥ୍ ଡିଭାଇସକୁ ଅସ୍ଥାୟୀ ଭାବେ ଗ୍ରହଣ-ସୂଚୀରେ ରଖିବାକୁ ଆପଟିକୁ ଅନୁମତି ଦେଇଥାଏ, ଯାହା ଦ୍ୱାରା ଉପଯୋଗକର୍ତ୍ତାଙ୍କ ସୁନିଶ୍ଚିତକରଣ ବିନା ଏହି ଡିଭାଇସକୁ ଫାଇଲ୍ ପଠାଇବା ପାଇଁ ସେହି ଡିଭାଇସକୁ ଅନୁମତି ମିଳିଥାଏ।"</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="259308920158011885">"ଏକ ବ୍ଲୁଟୁଥ ଡିଭାଇସକୁ ଅସ୍ଥାୟୀ ଭାବେ ଗ୍ରହଣ-ସୂଚୀରେ ରଖିବାକୁ ଆପଟିକୁ ଅନୁମତି ଦେଇଥାଏ, ଯାହା ଦ୍ୱାରା ୟୁଜରଙ୍କ ସୁନିଶ୍ଚିତକରଣ ବିନା ଏହି ଡିଭାଇସକୁ ଫାଇଲ ପଠାଇବା ପାଇଁ ସେହି ଡିଭାଇସକୁ ଅନୁମତି ମିଳିଥାଏ।"</string>
     <string name="bt_share_picker_label" msgid="7464438494743777696">"ବ୍ଲୁଟୁଥ"</string>
     <string name="unknown_device" msgid="2317679521750821654">"ଅଜଣା ଡିଭାଇସ୍"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"ଅଜଣା"</string>
@@ -92,7 +92,7 @@
     <string name="status_success" msgid="7963589000098719541">"ଫାଇଲ୍‌ ଟ୍ରାନ୍ସଫର୍‌ ସଫଳତାପୂର୍ବକ ସମ୍ପୂର୍ଣ୍ଣ ହେଲା।"</string>
     <string name="status_not_accept" msgid="1165798802740579658">"କଣ୍ଟେଣ୍ଟ ସପୋର୍ଟ କରୁନାହିଁ।"</string>
     <string name="status_forbidden" msgid="4017060451358837245">"ଟାର୍ଗେଟ୍‌ ଡିଭାଇସ୍‌ ଦ୍ୱାରା ଟ୍ରାନ୍ସଫର୍‌ ପ୍ରତିବନ୍ଧିତ କରାଯାଇଛି।"</string>
-    <string name="status_canceled" msgid="8441679418717978515">"ୟୁଜର୍‌ଙ୍କ ଦ୍ୱାରା ଟ୍ରାନ୍ସଫର୍‌ କ୍ୟାନ୍ସଲ୍‌ କରାଗଲା।"</string>
+    <string name="status_canceled" msgid="8441679418717978515">"ୟୁଜରଙ୍କ ଦ୍ୱାରା ଟ୍ରାନ୍ସଫର କେନ୍ସଲ କରାଯାଇଛି।"</string>
     <string name="status_file_error" msgid="5379018888714679311">"ଷ୍ଟୋରେଜ୍‌ ସମସ୍ୟା।"</string>
     <string name="status_no_sd_card_nosdcard" msgid="6445646484924125975">"କୌଣସି USB ଷ୍ଟୋରେଜ୍‌ ନାହିଁ।"</string>
     <string name="status_no_sd_card_default" msgid="8878262565692541241">"କୌଣସି SD କାର୍ଡ ନାହିଁ। ଟ୍ରାନ୍ସଫର୍‌ କରାଯାଇଥିବା ଫାଇଲ୍‌ଗୁଡ଼ିକୁ ସେଭ୍‌ କରିବା ପାଇଁ ଗୋଟିଏ SD କାର୍ଡ ଭର୍ତ୍ତି କରନ୍ତୁ।"</string>
@@ -129,9 +129,12 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GBରୁ ବଡ଼ ଫାଇଲ୍‌ଗୁଡ଼ିକୁ ଟ୍ରାନ୍ସଫର୍‌ କରାଯାଇପାରିବ ନାହିଁ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ବ୍ଲୁଟୁଥ୍ ସହ ସଂଯୋଗ କରନ୍ତୁ"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ଏୟାରପ୍ଲେନ ମୋଡରେ ବ୍ଲୁଟୁଥ ଚାଲୁ ଅଛି"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"ଯଦି ଆପଣ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖନ୍ତି, ତେବେ ଆପଣ ପରବର୍ତ୍ତୀ ଥର ଏୟାରପ୍ଲେନ ମୋଡରେ ଥିବା ସମୟରେ ଏହା ଚାଲୁ ରହିବ"</string>
+    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
+    <skip />
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ବ୍ଲୁଟୁଥ ଚାଲୁ ରହେ"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"ଆପଣଙ୍କ ଫୋନ ଏୟାରପ୍ଲେନ ମୋଡରେ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖିବାକୁ ମନେ ରଖେ। ଏହାକୁ ପରିବର୍ତ୍ତନ କରିବା ପାଇଁ, ବ୍ଲୁଟୁଥ ବନ୍ଦ କରନ୍ତୁ।"</string>
+    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
+    <skip />
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ୱାଇ-ଫାଇ ଏବଂ ବ୍ଲୁଟୁଥ ଚାଲୁ ରହେ"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"ଆପଣଙ୍କ ଫୋନ ଏୟାରପ୍ଲେନ ମୋଡରେ ୱାଇ-ଫାଇ ଏବଂ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖିବାକୁ ମନେ ରଖେ। ଏହାକୁ ପରିବର୍ତ୍ତନ କରିବା ପାଇଁ, ସେଗୁଡ଼ିକୁ ବନ୍ଦ କରନ୍ତୁ।"</string>
+    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
+    <skip />
 </resources>

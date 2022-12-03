@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Lêers groter as 4 GB kan nie oorgedra word nie"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Koppel aan Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth is aan in vliegtuigmodus"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"As jy Bluetooth aan hou, sal dit aan bly wanneer jy volgende keer in vliegtuigmodus is"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"As jy Bluetooth aangeskakel hou, sal jou foon onthou om dit aan te hou wanneer jy weer in vliegtuigmodus is"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth bly aan"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Jou foon onthou om Bluetooth aan te hou in vliegtuigmodus. Skakel Bluetooth af om dit te verander."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Jou foon onthou om Bluetooth aangeskakel te hou in vliegtuigmodus. Skakel Bluetooth af as jy nie wil hê dit moet aan bly nie."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-fi en Bluetooth bly aan"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Jou foon onthou om wi‑fi en Bluetooth aan te hou in vliegtuigmodus. Skakel hulle af om dit te verander."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Jou foon onthou om wi‑fi en Bluetooth aan te hou in vliegtuigmodus. Skakel wi-fi en Bluetooth af as jy nie wil het hulle moet aan bly nie."</string>
 </resources>

@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4 GB を超えるファイルは転送できません"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth に接続する"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"機内モードで Bluetooth を ON にする"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Bluetooth を ON にしておくと、次に機内モードになったときも ON のままになります"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Bluetooth を ON にしておくと、次に機内モードになったときも ON のままになります"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth を ON にしておく"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"機内モードでも、スマートフォンの Bluetooth は ON のままになります。変更するには Bluetooth を OFF にしてください。"</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"機内モードでも、スマートフォンの Bluetooth は ON のままになります。Bluetooth を ON にしたくない場合は OFF にしてください。"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi と Bluetooth を ON のままにする"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"機内モードでも、スマートフォンの Wi-Fi と Bluetooth は ON のままになります。変更するには、両方を OFF にしてください。"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"機内モードでも、スマートフォンの Wi-Fi と Bluetooth は ON のままになります。Wi-Fi と Bluetooth を ON にしたくない場合は OFF にしてください。"</string>
 </resources>
