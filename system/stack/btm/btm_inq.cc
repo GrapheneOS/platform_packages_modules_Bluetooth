@@ -43,6 +43,7 @@
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_ble_int.h"
+#include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
@@ -682,6 +683,11 @@ tBTM_STATUS BTM_CancelRemoteDeviceName(void) {
     return (BTM_CMD_STARTED);
   } else
     return (BTM_WRONG_MODE);
+}
+
+bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
+  return (p_dev_rec == nullptr) ? false : p_dev_rec->is_name_known();
 }
 
 /*******************************************************************************
