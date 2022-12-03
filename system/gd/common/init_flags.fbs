@@ -30,6 +30,7 @@ table InitFlagsData {
     pass_phy_update_callback_is_enabled:bool (privacy:"Any");
     redact_log_is_enabled:bool (privacy:"Any");
     sdp_serialization_is_enabled:bool (privacy:"Any");
+    sdp_skip_rnr_if_known_is_enabled:bool (privacy:"Any");
 }
 // LINT.ThenChange(/system/gd/dumpsys/init_flags.cc)
 
