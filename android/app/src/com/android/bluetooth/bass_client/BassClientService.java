@@ -1495,8 +1495,8 @@ public class BassClientService extends ProfileService {
         private BassClientService mService;
 
         private BassClientService getService() {
-            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
-                    || !Utils.checkServiceAvailable(mService, TAG)) {
+            if (!Utils.checkServiceAvailable(mService, TAG)
+                    || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)) {
                 return null;
             }
             return mService;

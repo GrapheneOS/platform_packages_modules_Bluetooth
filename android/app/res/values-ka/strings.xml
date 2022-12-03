@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4 გბაიტზე დიდი მოცულობის ფაილების გადატანა ვერ მოხერხდება"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth-თან დაკავშირება"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth ჩართულია თვითმფრინავის რეჟიმში"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"თუ Bluetooth ჩართული გექნებათ, ის ჩართული დარჩება, როდესაც შემდეგ თვითმფრინავის რეჟიმში იქნებით"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"თუ Bluetooth-ს ჩართულს დატოვებთ, თქვენი ტელეფონი დაიმახსოვრებს და ჩართულს დატოვებს მას, როდესაც შემდეგ ჯერზე თვითმფრინავის რეჟიმში იქნებით"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth რᲩება Ჩართული"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"თქვენს ტელეფონს ემახსოვრება, რომ Bluetooth ჩართული უნდა იყოს თვითმფრინავის რეჟიმში. გამორთეთ Bluetooth ამის შესაცვლელად."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"თქვენს ტელეფონს ემახსოვრება, რომ Bluetooth ჩართული უნდა იყოს თვითმფრინავის რეჟიმში. გამორთეთ Bluetooth, თუ არ გსურთ, რომ ის ჩართული იყოს."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi და Bluetooth ჩართული დარჩება"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"თქვენს ტელეფონს ემახსოვრება, რომ Wi‑Fi და Bluetooth ჩართული უნდა იყოს თვითმფრინავის რეჟიმში. გამორთეთ ისინი ამის შესაცვლელად."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"თქვენს ტელეფონს ემახსოვრება, რომ Wi‑Fi და Bluetooth ჩართული უნდა იყოს თვითმფრინავის რეჟიმში. გამორთეთ Wi-Fi და Bluetooth, თუ არ გსურთ, რომ ისინი ჩართული იყოს."</string>
 </resources>

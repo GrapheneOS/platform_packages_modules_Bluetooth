@@ -1221,8 +1221,8 @@ public class HapClientService extends ProfileService {
             if (mIsTesting) {
                 return mService;
             }
-            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
-                    || !Utils.checkServiceAvailable(mService, TAG)
+            if (!Utils.checkServiceAvailable(mService, TAG)
+                    || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
                 Log.w(TAG, "Hearing Access call not allowed for non-active user");
                 return null;
