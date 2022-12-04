@@ -239,10 +239,12 @@ import java.util.UUID;
         }
 
         synchronized (mAppsLock) {
-            AppAdvertiseStats appAdvertiseStats = mAppAdvertiseStats.get(id);
-            if (appAdvertiseStats == null) {
-                appAdvertiseStats = new AppAdvertiseStats(appUid, id, appName, this, service);
-                mAppAdvertiseStats.put(id, appAdvertiseStats);
+            synchronized (this) {
+                if (!mAppAdvertiseStats.containsKey(id)) {
+                    AppAdvertiseStats appAdvertiseStats =
+                            new AppAdvertiseStats(appUid, id, appName, this, service);
+                    mAppAdvertiseStats.put(id, appAdvertiseStats);
+                }
             }
             App app = getById(appUid);
             if (app == null) {
