@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB ಗಿಂತ ದೊಡ್ಡದಾದ ಫೈಲ್‌ಗಳನ್ನು ವರ್ಗಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ಬ್ಲೂಟೂತ್‌ಗೆ ಕನೆಕ್ಟ್ ಮಾಡಿ"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ಏರ್‌ಪ್ಲೇನ್ ಮೋಡ್‌ನಲ್ಲಿ ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿದೆ"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"ನೀವು ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿರಿಸಿದರೆ, ಮುಂದಿನ ಬಾರಿ ನೀವು ಏರ್‌ಪ್ಲೇನ್ ಮೋಡ್‌ನಲ್ಲಿರುವಾಗ ಅದನ್ನು ಆನ್ ಆಗಿರಿಸಿಕೊಳ್ಳುವುದನ್ನು ನಿಮ್ಮ ಫೋನ್ ನೆನಪಿಸಿಕೊಳ್ಳುತ್ತದೆ"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿರುತ್ತದೆ"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"ಏರ್‌ಪ್ಲೇನ್ ಮೋಡ್‌ನಲ್ಲಿ ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿರಿಸಿಕೊಳ್ಳುವುದನ್ನು ನಿಮ್ಮ ಫೋನ್ ನೆನಪಿಸಿಕೊಳ್ಳುತ್ತದೆ. ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿರಿಸಲು ನೀವು ಬಯಸದಿದ್ದರೆ ಅದನ್ನು ಆಫ್ ಮಾಡಿ."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ವೈ-ಫೈ ಮತ್ತು ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿರುತ್ತದೆ"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"ಏರ್‌ಪ್ಲೇನ್ ಮೋಡ್‌ನಲ್ಲಿ ವೈಫೈ ಮತ್ತು ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿರಿಸಿಕೊಳ್ಳುವುದನ್ನು ನಿಮ್ಮ ಫೋನ್ ನೆನಪಿಸಿಕೊಳ್ಳುತ್ತದೆ. ವೈಫೈ ಮತ್ತು ಬ್ಲೂಟೂತ್ ಆನ್ ಆಗಿರಿಸಲು ನೀವು ಬಯಸದಿದ್ದರೆ ಅವುಗಳನ್ನು ಆಫ್ ಮಾಡಿ."</string>
 </resources>
