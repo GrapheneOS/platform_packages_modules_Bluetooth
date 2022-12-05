@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Negalima perkelti didesnių nei 4 GB failų"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Prisijungti prie „Bluetooth“"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"„Bluetooth“ ryšys įjungtas lėktuvo režimu"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Jei paliksite „Bluetooth“ ryšį įjungtą, telefonas, prisimins palikti jį įjungtą, kai kitą kartą įjungsite lėktuvo režimą"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"„Bluetooth“ liks įjungtas"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Telefonas prisimena, kad naudojant lėktuvo režimą reikia palikti įjungtą „Bluetooth“ ryšį. Išjunkite „Bluetooth“, jei nenorite, kad jis liktų įjungtas."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"„Wi‑Fi“ ir „Bluetooth“ ryšys lieka įjungtas"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Telefonas prisimena, kad lėktuvo režimu reikia palikti įjungtą „Wi‑Fi“ ir „Bluetooth“ ryšį. Išjunkite „Wi-Fi“ ir „Bluetooth“, jei nenorite, kad jie liktų įjungti."</string>
 </resources>

@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4ГБ-с дээш хэмжээтэй файлыг шилжүүлэх боломжгүй"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth-тэй холбогдох"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Нислэгийн горимд Bluetooth асаалттай"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Хэрэв та Bluetooth-г асаалттай байлгавал таныг дараагийн удаа нислэгийн горимд байх үед утас тань үүнийг асаалттай байлгахыг санана"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth асаалттай хэвээр байна"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Таны утас Bluetooth-г нислэгийн горимд асаалттай байлгахыг санана. Хэрэв та асаалттай байлгахыг хүсэхгүй байгаа бол Bluetooth-г унтрааж болно."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi болон Bluetooth асаалттай хэвээр байна"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Таны утас Wi-Fi болон Bluetooth-г нислэгийн горимд асаалттай байлгахыг санана. Хэрэв та асаалттай байлгахыг хүсэхгүй байгаа бол Wi-Fi болон Bluetooth-г унтрааж болно."</string>
 </resources>
