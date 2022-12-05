@@ -2,7 +2,7 @@
 
 use crate::bluetooth::{Bluetooth, BtifBluetoothCallbacks};
 use crate::callbacks::Callbacks;
-use crate::{bluetooth_gatt::IBluetoothGatt, BluetoothGatt, Message, RPCProxy};
+use crate::{BluetoothGatt, Message, RPCProxy};
 use bt_topshim::btif::BluetoothInterface;
 use log::warn;
 use std::sync::{Arc, Mutex};
