@@ -84,10 +84,17 @@ impl BtHelper {
         let mut result = HashSet::<CommandCandidate>::new();
 
         for rule in self.command_rules.iter() {
-            for (i, (rule_token, cmd_token)) in rule.split(" ").zip(cmd.split(" ")).enumerate() {
+            let n_splits = cmd.split(" ").count();
+            // The tokens should have empty strings removed from them, except the last one.
+            let tokens = cmd
+                .split(" ")
+                .enumerate()
+                .filter_map(|(i, token)| (i == n_splits - 1 || token != "").then(|| token));
+
+            let n_cmd = tokens.clone().count();
+            for (i, (rule_token, cmd_token)) in rule.split(" ").zip(tokens).enumerate() {
                 let mut candidates = Vec::<String>::new();
                 let mut match_some = false;
-                let n_cmd = cmd.split(" ").count();
 
                 for opt in rule_token.replace("<", "").replace(">", "").split("|") {
                     if opt.eq("address") {
