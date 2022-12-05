@@ -196,6 +196,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from("advertise <on|off|ext>"),
                 String::from("advertise set-interval <ms>"),
                 String::from("advertise set-scan-rsp <enable|disable>"),
+                String::from("advertise set-raw-data <raw-adv-data> <adv-id>"),
             ],
             description: String::from("Advertising utilities."),
             function_pointer: CommandHandler::cmd_advertise,
@@ -1249,6 +1250,26 @@ impl CommandHandler {
                     print_info!("Setting parameters for {}", adv_id);
                     context.gatt_dbus.as_mut().unwrap().set_advertising_parameters(adv_id, params);
                 }
+            }
+            "set-raw-data" => {
+                let data = hex::decode(get_arg(args, 1)?).or(Err("Failed parsing data"))?;
+
+                let adv_id = String::from(get_arg(args, 2)?)
+                    .parse::<i32>()
+                    .or(Err("Failed parsing adv_id"))?;
+
+                let mut context = self.context.lock().unwrap();
+                if context
+                    .adv_sets
+                    .iter()
+                    .find(|(_, s)| s.adv_id.map_or(false, |id| id == adv_id))
+                    .is_none()
+                {
+                    return Err("Failed to find advertising set".into());
+                }
+
+                print_info!("Setting advertising data for {}", adv_id);
+                context.gatt_dbus.as_mut().unwrap().set_raw_adv_data(adv_id, data);
             }
             _ => return Err(CommandError::InvalidArgs),
         }
