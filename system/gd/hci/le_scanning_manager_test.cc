@@ -166,7 +166,7 @@ class TestHciLayer : public HciLayer {
 
   // Set command future for 'num_command' commands are expected
   void SetCommandFuture(uint16_t num_command = 1) {
-    ASSERT_TRUE(command_promise_ == nullptr) << "Promises, Promises, ... Only one at a time.";
+    ASSERT_EQ(command_promise_, nullptr) << "Promises, Promises, ... Only one at a time.";
     command_count_ = num_command;
     command_promise_ = std::make_unique<std::promise<void>>();
     command_future_ = command_promise_->get_future();
@@ -466,7 +466,7 @@ class LeScanningManagerAndroidHciTest : public LeScanningManagerTest {
     start_le_scanning_manager();
     ASSERT_TRUE(fake_registry_.IsStarted(&HciLayer::Factory));
 
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     ASSERT_EQ(OpCode::LE_ADV_FILTER, test_hci_layer_->GetCommand().GetOpCode());
     ASSERT_EQ(0UL, test_hci_layer_->CommandQueueSize());
     test_hci_layer_->IncomingEvent(LeAdvFilterReadExtendedFeaturesCompleteBuilder::Create(1, ErrorCode::SUCCESS, 0x01));
@@ -492,7 +492,7 @@ TEST_F(LeScanningManagerTest, startup_teardown) {}
 TEST_F(LeScanningManagerTest, start_scan_test) {
   start_le_scanning_manager();
 
-  test_hci_layer_->SetCommandFuture(2);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(2));
   // Enable scan
   le_scanning_manager->Scan(true);
   ASSERT_EQ(OpCode::LE_SET_SCAN_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
@@ -515,7 +515,7 @@ TEST_F(LeScanningManagerTest, is_ad_type_filter_supported_false_test) {
 TEST_F(LeScanningManagerTest, scan_filter_add_ad_type_not_supported_test) {
   start_le_scanning_manager();
   ASSERT_TRUE(fake_registry_.IsStarted(&HciLayer::Factory));
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   std::vector<AdvertisingPacketContentFilterCommand> filters = {};
   filters.push_back(make_filter(hci::ApcfFilterType::AD_TYPE));
   le_scanning_manager->ScanFilterAdd(0x01, filters);
@@ -524,7 +524,7 @@ TEST_F(LeScanningManagerTest, scan_filter_add_ad_type_not_supported_test) {
 TEST_F(LeScanningManagerAndroidHciTest, startup_teardown) {}
 
 TEST_F(LeScanningManagerAndroidHciTest, start_scan_test) {
-  test_hci_layer_->SetCommandFuture(2);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(2));
   // Enable scan
   le_scanning_manager->Scan(true);
   ASSERT_EQ(OpCode::LE_EXTENDED_SCAN_PARAMS, test_hci_layer_->GetCommand().GetOpCode());
@@ -552,7 +552,7 @@ TEST_F(LeScanningManagerAndroidHciTest, scan_filter_enable_test) {
 }
 
 TEST_F(LeScanningManagerAndroidHciTest, scan_filter_parameter_test) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   AdvertisingFilterParameter advertising_filter_parameter{};
   advertising_filter_parameter.delivery_mode = DeliveryMode::IMMEDIATE;
   le_scanning_manager->ScanFilterParameterSetup(ApcfAction::ADD, 0x01, advertising_filter_parameter);
@@ -569,7 +569,7 @@ TEST_F(LeScanningManagerAndroidHciTest, scan_filter_parameter_test) {
 }
 
 TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_broadcaster_address_test) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   std::vector<AdvertisingPacketContentFilterCommand> filters = {};
   filters.push_back(make_filter(ApcfFilterType::BROADCASTER_ADDRESS));
   le_scanning_manager->ScanFilterAdd(0x01, filters);
@@ -586,7 +586,7 @@ TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_broadcaster_address_test
 }
 
 TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_service_uuid_test) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   std::vector<AdvertisingPacketContentFilterCommand> filters = {};
   filters.push_back(make_filter(ApcfFilterType::SERVICE_UUID));
   le_scanning_manager->ScanFilterAdd(0x01, filters);
@@ -603,7 +603,7 @@ TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_service_uuid_test) {
 }
 
 TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_local_name_test) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   std::vector<AdvertisingPacketContentFilterCommand> filters = {};
   filters.push_back(make_filter(ApcfFilterType::LOCAL_NAME));
   le_scanning_manager->ScanFilterAdd(0x01, filters);
@@ -620,7 +620,7 @@ TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_local_name_test) {
 }
 
 TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_manufacturer_data_test) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   std::vector<AdvertisingPacketContentFilterCommand> filters = {};
   filters.push_back(make_filter(ApcfFilterType::MANUFACTURER_DATA));
   le_scanning_manager->ScanFilterAdd(0x01, filters);
@@ -637,7 +637,7 @@ TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_manufacturer_data_test) 
 }
 
 TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_service_data_test) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   std::vector<AdvertisingPacketContentFilterCommand> filters = {};
   filters.push_back(make_filter(hci::ApcfFilterType::SERVICE_DATA));
   le_scanning_manager->ScanFilterAdd(0x01, filters);
@@ -680,20 +680,20 @@ TEST_F(LeScanningManagerAndroidHciTest, read_batch_scan_result) {
       LeBatchScanSetStorageParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
 
   // Enable batch scan
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   le_scanning_manager->BatchScanEnable(BatchScanMode::FULL, 2400, 2400, BatchScanDiscardRule::OLDEST);
   ASSERT_EQ(OpCode::LE_BATCH_SCAN, test_hci_layer_->GetCommand().GetOpCode());
   test_hci_layer_->IncomingEvent(LeBatchScanEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
 
   // Read batch scan data
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   le_scanning_manager->BatchScanReadReport(0x01, BatchScanMode::FULL);
   ASSERT_EQ(OpCode::LE_BATCH_SCAN, test_hci_layer_->GetCommand().GetOpCode());
 
   // We will send read command while num_of_record != 0
   std::vector<uint8_t> raw_data = {0x5c, 0x1f, 0xa2, 0xc3, 0x63, 0x5d, 0x01, 0xf5, 0xb3, 0x5e, 0x00, 0x0c, 0x02,
                                    0x01, 0x02, 0x05, 0x09, 0x6d, 0x76, 0x38, 0x76, 0x02, 0x0a, 0xf5, 0x00};
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   test_hci_layer_->IncomingEvent(LeBatchScanReadResultParametersCompleteRawBuilder::Create(
       uint8_t{1}, ErrorCode::SUCCESS, BatchScanDataRead::FULL_MODE_DATA, 1, raw_data));
   ASSERT_EQ(OpCode::LE_BATCH_SCAN, test_hci_layer_->GetCommand().GetOpCode());
@@ -708,7 +708,7 @@ TEST_F(LeScanningManagerExtendedTest, startup_teardown) {}
 
 TEST_F(LeScanningManagerExtendedTest, start_scan_test) {
   // Enable scan
-  test_hci_layer_->SetCommandFuture(2);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(2));
   le_scanning_manager->Scan(true);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
   test_hci_layer_->IncomingEvent(LeSetExtendedScanParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
@@ -742,7 +742,7 @@ TEST_F(LeScanningManagerExtendedTest, ignore_on_pause_on_resume_after_unregister
   test_le_address_manager->ignore_unregister_for_testing = true;
 
   // Register LeAddressManager
-  test_hci_layer_->SetCommandFuture(2);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(2));
   le_scanning_manager->Scan(true);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
   test_hci_layer_->IncomingEvent(LeSetExtendedScanParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
@@ -751,7 +751,7 @@ TEST_F(LeScanningManagerExtendedTest, ignore_on_pause_on_resume_after_unregister
   sync_client_handler();
 
   // Unregister LeAddressManager
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_scanning_manager->Scan(false);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_SCAN_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   test_hci_layer_->IncomingEvent(LeSetExtendedScanEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
@@ -768,7 +768,7 @@ TEST_F(LeScanningManagerExtendedTest, ignore_on_pause_on_resume_after_unregister
 
 TEST_F(LeScanningManagerExtendedTest, drop_insignificant_bytes_test) {
   // Enable scan
-  test_hci_layer_->SetCommandFuture(2);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(2));
   le_scanning_manager->Scan(true);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
   test_hci_layer_->IncomingEvent(LeSetExtendedScanParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));

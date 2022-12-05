@@ -146,7 +146,7 @@ class TestHciLayer : public HciLayer {
   }
 
   void SetCommandFuture() {
-    ASSERT_TRUE(hci_command_promise_ == nullptr) << "Promises, Promises, ... Only one at a time.";
+    ASSERT_EQ(hci_command_promise_, nullptr) << "Promises, Promises, ... Only one at a time.";
     hci_command_promise_ = std::make_unique<std::promise<void>>();
     command_future_ = std::make_unique<std::future<void>>(hci_command_promise_->get_future());
   }
@@ -641,11 +641,11 @@ class AclManagerWithLeConnectionTest : public AclManagerWithCallbacksTest {
 
     Address remote_public_address = Address::FromString(kRemotePublicDeviceStringA).value();
     remote_with_type_ = AddressWithType(remote_public_address, AddressType::PUBLIC_DEVICE_ADDRESS);
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     acl_manager_->CreateLeConnection(remote_with_type_, true);
     test_hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
     test_hci_layer_->SendIncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     auto packet = test_hci_layer_->GetCommand(OpCode::LE_CREATE_CONNECTION);
     auto le_connection_management_command_view =
         LeConnectionManagementCommandView::Create(AclCommandView::Create(packet));
@@ -674,7 +674,7 @@ class AclManagerWithLeConnectionTest : public AclManagerWithCallbacksTest {
         0x0C80,
         ClockAccuracy::PPM_30));
 
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
     test_hci_layer_->SendIncomingEvent(
         LeRemoveDeviceFromFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
@@ -732,7 +732,7 @@ class AclManagerWithResolvableAddressTest : public AclManagerWithCallbacksTest {
     fake_registry_.InjectTestModule(&Controller::Factory, test_controller_);
     client_handler_ = fake_registry_.GetTestModuleHandler(&HciLayer::Factory);
     ASSERT_NE(client_handler_, nullptr);
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     fake_registry_.Start<AclManager>(&thread_);
     acl_manager_ = static_cast<AclManager*>(fake_registry_.GetModuleUnderTest(&AclManager::Factory));
     hci::Address address;
