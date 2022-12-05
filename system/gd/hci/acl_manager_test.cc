@@ -151,7 +151,7 @@ class TestHciLayer : public HciLayer {
   }
 
   void SetCommandFuture() {
-    ASSERT_LOG(command_promise_ == nullptr, "Promises, Promises, ... Only one at a time.");
+    ASSERT_EQ(command_promise_, nullptr) << "Promises, Promises, ... Only one at a time.";
     command_promise_ = std::make_unique<std::promise<void>>();
     command_future_ = std::make_unique<std::future<void>>(command_promise_->get_future());
   }
@@ -329,7 +329,7 @@ class AclManagerNoCallbacksTest : public ::testing::Test {
     fake_registry_.InjectTestModule(&Controller::Factory, test_controller_);
     client_handler_ = fake_registry_.GetTestModuleHandler(&HciLayer::Factory);
     ASSERT_NE(client_handler_, nullptr);
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     fake_registry_.Start<AclManager>(&thread_);
     acl_manager_ = static_cast<AclManager*>(fake_registry_.GetModuleUnderTest(&AclManager::Factory));
     Address::FromString("A1:A2:A3:A4:A5:A6", remote);
@@ -564,7 +564,7 @@ TEST_F(AclManagerTest, startup_teardown) {}
 TEST_F(AclManagerTest, invoke_registered_callback_connection_complete_success) {
   uint16_t handle = 1;
 
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateConnection(remote);
 
   // Wait for the connection request
@@ -588,7 +588,7 @@ TEST_F(AclManagerTest, invoke_registered_callback_connection_complete_success) {
 TEST_F(AclManagerTest, invoke_registered_callback_connection_complete_fail) {
   uint16_t handle = 0x123;
 
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateConnection(remote);
 
   // Wait for the connection request
@@ -611,11 +611,11 @@ class AclManagerWithLeConnectionTest : public AclManagerTest {
     AclManagerTest::SetUp();
 
     remote_with_type_ = AddressWithType(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     acl_manager_->CreateLeConnection(remote_with_type_, true);
     test_hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
     test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     auto packet = test_hci_layer_->GetCommand(OpCode::LE_CREATE_CONNECTION);
     auto le_connection_management_command_view =
         LeConnectionManagementCommandView::Create(AclCommandView::Create(packet));
@@ -644,7 +644,7 @@ class AclManagerWithLeConnectionTest : public AclManagerTest {
         0x0C80,
         ClockAccuracy::PPM_30));
 
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
     test_hci_layer_->IncomingEvent(LeRemoveDeviceFromFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 
@@ -707,11 +707,11 @@ TEST_F(AclManagerWithLeConnectionTest, invoke_registered_callback_le_connection_
 
 TEST_F(AclManagerTest, invoke_registered_callback_le_connection_complete_fail) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateLeConnection(remote_with_type, true);
   test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
   test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
   auto le_connection_management_command_view =
       LeConnectionManagementCommandView::Create(AclCommandView::Create(packet));
@@ -742,7 +742,7 @@ TEST_F(AclManagerTest, invoke_registered_callback_le_connection_complete_fail) {
       0x0011,
       ClockAccuracy::PPM_30));
 
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   packet = test_hci_layer_->GetLastCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
   le_connection_management_command_view = LeConnectionManagementCommandView::Create(AclCommandView::Create(packet));
   auto remove_command_view = LeRemoveDeviceFromFilterAcceptListView::Create(le_connection_management_command_view);
@@ -752,15 +752,15 @@ TEST_F(AclManagerTest, invoke_registered_callback_le_connection_complete_fail) {
 
 TEST_F(AclManagerTest, cancel_le_connection) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateLeConnection(remote_with_type, true);
   test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
   test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
   test_hci_layer_->IncomingEvent(LeCreateConnectionStatusBuilder::Create(ErrorCode::SUCCESS, 0x01));
 
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CancelLeConnect(remote_with_type);
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION_CANCEL);
   auto le_connection_management_command_view =
@@ -780,7 +780,7 @@ TEST_F(AclManagerTest, cancel_le_connection) {
       0x0011,
       ClockAccuracy::PPM_30));
 
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   packet = test_hci_layer_->GetLastCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
   le_connection_management_command_view = LeConnectionManagementCommandView::Create(AclCommandView::Create(packet));
   auto remove_command_view = LeRemoveDeviceFromFilterAcceptListView::Create(le_connection_management_command_view);
@@ -791,11 +791,11 @@ TEST_F(AclManagerTest, cancel_le_connection) {
 
 TEST_F(AclManagerTest, create_connection_with_fast_mode) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateLeConnection(remote_with_type, true);
   test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
   test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
 
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
   auto command_view =
@@ -817,7 +817,7 @@ TEST_F(AclManagerTest, create_connection_with_fast_mode) {
       0x0C80,
       ClockAccuracy::PPM_30));
 
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
   test_hci_layer_->IncomingEvent(LeRemoveDeviceFromFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   auto first_connection_status = first_connection.wait_for(kTimeout);
@@ -826,11 +826,11 @@ TEST_F(AclManagerTest, create_connection_with_fast_mode) {
 
 TEST_F(AclManagerTest, create_connection_with_slow_mode) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateLeConnection(remote_with_type, false);
   test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
   test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
   auto command_view =
       LeCreateConnectionView::Create(LeConnectionManagementCommandView::Create(AclCommandView::Create(packet)));
@@ -849,7 +849,7 @@ TEST_F(AclManagerTest, create_connection_with_slow_mode) {
       0x0010,
       0x0C80,
       ClockAccuracy::PPM_30));
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
   test_hci_layer_->IncomingEvent(LeRemoveDeviceFromFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   auto first_connection_status = first_connection.wait_for(kTimeout);
@@ -895,7 +895,7 @@ TEST_F(AclManagerWithLeConnectionTest, invoke_registered_callback_le_connection_
   uint16_t connection_interval = (connection_interval_max + connection_interval_min) / 2;
   uint16_t connection_latency = 0x0001;
   uint16_t supervision_timeout = 0x0A00;
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->LeConnectionUpdate(connection_interval_min, connection_interval_max, connection_latency,
                                   supervision_timeout, 0x10, 0x20);
   auto update_packet = test_hci_layer_->GetCommand(OpCode::LE_CONNECTION_UPDATE);
@@ -978,7 +978,7 @@ TEST_F(AclManagerWithConnectionTest, acl_send_data_one_connection) {
   SendAclData(handle_, connection_->GetAclQueueEnd());
 
   sent_packet = test_hci_layer_->OutgoingAclData();
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   auto reason = ErrorCode::AUTHENTICATION_FAILURE;
   EXPECT_CALL(mock_connection_management_callbacks_, OnDisconnection(reason));
   connection_->Disconnect(DisconnectReason::AUTHENTICATION_FAILURE);
@@ -1013,7 +1013,7 @@ TEST_F(AclManagerWithConnectionTest, acl_send_data_credits) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_switch_role) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->SwitchRole(connection_->GetAddress(), Role::PERIPHERAL);
   auto packet = test_hci_layer_->GetCommand(OpCode::SWITCH_ROLE);
   auto command_view = SwitchRoleView::Create(packet);
@@ -1029,7 +1029,7 @@ TEST_F(AclManagerWithConnectionTest, send_switch_role) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_write_default_link_policy_settings) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   uint16_t link_policy_settings = 0x05;
   acl_manager_->WriteDefaultLinkPolicySettings(link_policy_settings);
   auto packet = test_hci_layer_->GetCommand(OpCode::WRITE_DEFAULT_LINK_POLICY_SETTINGS);
@@ -1047,7 +1047,7 @@ TEST_F(AclManagerWithConnectionTest, send_write_default_link_policy_settings) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_authentication_requested) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->AuthenticationRequested();
   auto packet = test_hci_layer_->GetCommand(OpCode::AUTHENTICATION_REQUESTED);
   auto command_view = AuthenticationRequestedView::Create(packet);
@@ -1060,7 +1060,7 @@ TEST_F(AclManagerWithConnectionTest, send_authentication_requested) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_clock_offset) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadClockOffset();
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_CLOCK_OFFSET);
   auto command_view = ReadClockOffsetView::Create(packet);
@@ -1073,7 +1073,7 @@ TEST_F(AclManagerWithConnectionTest, send_read_clock_offset) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_hold_mode) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->HoldMode(0x0500, 0x0020);
   auto packet = test_hci_layer_->GetCommand(OpCode::HOLD_MODE);
   auto command_view = HoldModeView::Create(packet);
@@ -1088,7 +1088,7 @@ TEST_F(AclManagerWithConnectionTest, send_hold_mode) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_sniff_mode) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->SniffMode(0x0500, 0x0020, 0x0040, 0x0014);
   auto packet = test_hci_layer_->GetCommand(OpCode::SNIFF_MODE);
   auto command_view = SniffModeView::Create(packet);
@@ -1105,7 +1105,7 @@ TEST_F(AclManagerWithConnectionTest, send_sniff_mode) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_exit_sniff_mode) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ExitSniffMode();
   auto packet = test_hci_layer_->GetCommand(OpCode::EXIT_SNIFF_MODE);
   auto command_view = ExitSniffModeView::Create(packet);
@@ -1118,7 +1118,7 @@ TEST_F(AclManagerWithConnectionTest, send_exit_sniff_mode) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_qos_setup) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->QosSetup(ServiceType::BEST_EFFORT, 0x1234, 0x1233, 0x1232, 0x1231);
   auto packet = test_hci_layer_->GetCommand(OpCode::QOS_SETUP);
   auto command_view = QosSetupView::Create(packet);
@@ -1138,7 +1138,7 @@ TEST_F(AclManagerWithConnectionTest, send_qos_setup) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_flow_specification) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->FlowSpecification(FlowDirection::OUTGOING_FLOW, ServiceType::BEST_EFFORT, 0x1234, 0x1233, 0x1232,
                                  0x1231);
   auto packet = test_hci_layer_->GetCommand(OpCode::FLOW_SPECIFICATION);
@@ -1162,7 +1162,7 @@ TEST_F(AclManagerWithConnectionTest, send_flow_specification) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_flush) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->Flush();
   auto packet = test_hci_layer_->GetCommand(OpCode::FLUSH);
   auto command_view = FlushView::Create(packet);
@@ -1175,7 +1175,7 @@ TEST_F(AclManagerWithConnectionTest, send_flush) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_role_discovery) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->RoleDiscovery();
   auto packet = test_hci_layer_->GetCommand(OpCode::ROLE_DISCOVERY);
   auto command_view = RoleDiscoveryView::Create(packet);
@@ -1190,7 +1190,7 @@ TEST_F(AclManagerWithConnectionTest, send_role_discovery) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_link_policy_settings) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadLinkPolicySettings();
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_LINK_POLICY_SETTINGS);
   auto command_view = ReadLinkPolicySettingsView::Create(packet);
@@ -1205,7 +1205,7 @@ TEST_F(AclManagerWithConnectionTest, send_read_link_policy_settings) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_write_link_policy_settings) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->WriteLinkPolicySettings(0x05);
   auto packet = test_hci_layer_->GetCommand(OpCode::WRITE_LINK_POLICY_SETTINGS);
   auto command_view = WriteLinkPolicySettingsView::Create(packet);
@@ -1220,7 +1220,7 @@ TEST_F(AclManagerWithConnectionTest, send_write_link_policy_settings) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_sniff_subrating) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->SniffSubrating(0x1234, 0x1235, 0x1236);
   auto packet = test_hci_layer_->GetCommand(OpCode::SNIFF_SUBRATING);
   auto command_view = SniffSubratingView::Create(packet);
@@ -1236,7 +1236,7 @@ TEST_F(AclManagerWithConnectionTest, send_sniff_subrating) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_automatic_flush_timeout) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadAutomaticFlushTimeout();
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_AUTOMATIC_FLUSH_TIMEOUT);
   auto command_view = ReadAutomaticFlushTimeoutView::Create(packet);
@@ -1251,7 +1251,7 @@ TEST_F(AclManagerWithConnectionTest, send_read_automatic_flush_timeout) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_write_automatic_flush_timeout) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->WriteAutomaticFlushTimeout(0x07FF);
   auto packet = test_hci_layer_->GetCommand(OpCode::WRITE_AUTOMATIC_FLUSH_TIMEOUT);
   auto command_view = WriteAutomaticFlushTimeoutView::Create(packet);
@@ -1266,7 +1266,7 @@ TEST_F(AclManagerWithConnectionTest, send_write_automatic_flush_timeout) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_transmit_power_level) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadTransmitPowerLevel(TransmitPowerLevelType::CURRENT);
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_TRANSMIT_POWER_LEVEL);
   auto command_view = ReadTransmitPowerLevelView::Create(packet);
@@ -1282,7 +1282,7 @@ TEST_F(AclManagerWithConnectionTest, send_read_transmit_power_level) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_link_supervision_timeout) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadLinkSupervisionTimeout();
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_LINK_SUPERVISION_TIMEOUT);
   auto command_view = ReadLinkSupervisionTimeoutView::Create(packet);
@@ -1297,7 +1297,7 @@ TEST_F(AclManagerWithConnectionTest, send_read_link_supervision_timeout) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_write_link_supervision_timeout) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->WriteLinkSupervisionTimeout(0x5678);
   auto packet = test_hci_layer_->GetCommand(OpCode::WRITE_LINK_SUPERVISION_TIMEOUT);
   auto command_view = WriteLinkSupervisionTimeoutView::Create(packet);
@@ -1312,7 +1312,7 @@ TEST_F(AclManagerWithConnectionTest, send_write_link_supervision_timeout) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_failed_contact_counter) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadFailedContactCounter();
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_FAILED_CONTACT_COUNTER);
   auto command_view = ReadFailedContactCounterView::Create(packet);
@@ -1327,7 +1327,7 @@ TEST_F(AclManagerWithConnectionTest, send_read_failed_contact_counter) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_reset_failed_contact_counter) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ResetFailedContactCounter();
   auto packet = test_hci_layer_->GetCommand(OpCode::RESET_FAILED_CONTACT_COUNTER);
   auto command_view = ResetFailedContactCounterView::Create(packet);
@@ -1341,7 +1341,7 @@ TEST_F(AclManagerWithConnectionTest, send_reset_failed_contact_counter) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_link_quality) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadLinkQuality();
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_LINK_QUALITY);
   auto command_view = ReadLinkQualityView::Create(packet);
@@ -1356,7 +1356,7 @@ TEST_F(AclManagerWithConnectionTest, send_read_link_quality) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_afh_channel_map) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadAfhChannelMap();
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_AFH_CHANNEL_MAP);
   auto command_view = ReadAfhChannelMapView::Create(packet);
@@ -1373,7 +1373,7 @@ TEST_F(AclManagerWithConnectionTest, send_read_afh_channel_map) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_rssi) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadRssi();
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_RSSI);
   auto command_view = ReadRssiView::Create(packet);
@@ -1387,7 +1387,7 @@ TEST_F(AclManagerWithConnectionTest, send_read_rssi) {
 }
 
 TEST_F(AclManagerWithConnectionTest, send_read_clock) {
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   connection_->ReadClock(WhichClock::LOCAL);
   auto packet = test_hci_layer_->GetCommand(OpCode::READ_CLOCK);
   auto command_view = ReadClockView::Create(packet);
@@ -1411,7 +1411,7 @@ class AclManagerWithResolvableAddressTest : public AclManagerNoCallbacksTest {
     fake_registry_.InjectTestModule(&Controller::Factory, test_controller_);
     client_handler_ = fake_registry_.GetTestModuleHandler(&HciLayer::Factory);
     ASSERT_NE(client_handler_, nullptr);
-    test_hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
     fake_registry_.Start<AclManager>(&thread_);
     acl_manager_ = static_cast<AclManager*>(fake_registry_.GetModuleUnderTest(&AclManager::Factory));
     Address::FromString("A1:A2:A3:A4:A5:A6", remote);
@@ -1436,12 +1436,12 @@ class AclManagerWithResolvableAddressTest : public AclManagerNoCallbacksTest {
 
 TEST_F(AclManagerWithResolvableAddressTest, create_connection_cancel_fail) {
   auto remote_with_type_ = AddressWithType(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateLeConnection(remote_with_type_, true);
 
   // Add device to connect list
   test_hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 
   // send create connection command
@@ -1456,7 +1456,7 @@ TEST_F(AclManagerWithResolvableAddressTest, create_connection_cancel_fail) {
   auto remote_with_type2 = AddressWithType(remote2, AddressType::PUBLIC_DEVICE_ADDRESS);
 
   // create another connection
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateLeConnection(remote_with_type2, true);
 
   // cancel previous connection
@@ -1475,7 +1475,7 @@ TEST_F(AclManagerWithResolvableAddressTest, create_connection_cancel_fail) {
       ClockAccuracy::PPM_30));
 
   // receive create connection cancel complete with ErrorCode::CONNECTION_ALREADY_EXISTS
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   test_hci_layer_->IncomingEvent(
       LeCreateConnectionCancelCompleteBuilder::Create(0x01, ErrorCode::CONNECTION_ALREADY_EXISTS));
 
@@ -1501,7 +1501,7 @@ class AclManagerLifeCycleTest : public AclManagerNoCallbacksTest {
 
 TEST_F(AclManagerLifeCycleTest, unregister_classic_after_create_connection) {
   // Inject create connection
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateConnection(remote);
   auto connection_command = test_hci_layer_->GetCommand(OpCode::CREATE_CONNECTION);
 
@@ -1521,12 +1521,12 @@ TEST_F(AclManagerLifeCycleTest, unregister_classic_after_create_connection) {
 
 TEST_F(AclManagerLifeCycleTest, unregister_le_before_connection_complete) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateLeConnection(remote_with_type, true);
   test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
   test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
   auto le_connection_management_command_view =
       LeConnectionManagementCommandView::Create(AclCommandView::Create(packet));
@@ -1563,12 +1563,12 @@ TEST_F(AclManagerLifeCycleTest, unregister_le_before_connection_complete) {
 
 TEST_F(AclManagerLifeCycleTest, unregister_le_before_enhanced_connection_complete) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   acl_manager_->CreateLeConnection(remote_with_type, true);
   test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
   test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 
-  test_hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture());
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
   auto le_connection_management_command_view =
       LeConnectionManagementCommandView::Create(AclCommandView::Create(packet));

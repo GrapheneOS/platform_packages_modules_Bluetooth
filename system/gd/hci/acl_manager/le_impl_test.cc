@@ -297,7 +297,7 @@ class TestHciLayer : public HciLayer {
   }
 
   void SetCommandFuture() {
-    ASSERT_LOG(command_promise_ == nullptr, "Promises, Promises, ... Only one at a time.");
+    ASSERT_EQ(command_promise_, nullptr) << "Promises, Promises, ... Only one at a time.";
     command_promise_ = std::make_unique<std::promise<void>>();
     command_future_ = std::make_unique<std::future<void>>(command_promise_->get_future());
   }
@@ -447,7 +447,7 @@ class LeImplTest : public ::testing::Test {
 
   void set_random_device_address_policy() {
     // Set address policy
-    hci_layer_->SetCommandFuture();
+    ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
     hci::Address address;
     Address::FromString("D0:05:04:03:02:01", address);
     hci::AddressWithType address_with_type(address, hci::AddressType::RANDOM_DEVICE_ADDRESS);
@@ -649,11 +649,11 @@ TEST_F(LeImplTest, connection_complete_with_periperal_role) {
   set_random_device_address_policy();
 
   // Create connection
-  hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
   le_impl_->create_le_connection(
       {{0x21, 0x22, 0x23, 0x24, 0x25, 0x26}, AddressType::PUBLIC_DEVICE_ADDRESS}, true, false);
   hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
-  hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
   hci_layer_->CommandCompleteCallback(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   hci_layer_->GetCommand(OpCode::LE_CREATE_CONNECTION);
   hci_layer_->CommandStatusCallback(LeCreateConnectionStatusBuilder::Create(ErrorCode::SUCCESS, 0x01));
@@ -688,11 +688,11 @@ TEST_F(LeImplTest, enhanced_connection_complete_with_periperal_role) {
 
   controller_->AddSupported(OpCode::LE_EXTENDED_CREATE_CONNECTION);
   // Create connection
-  hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
   le_impl_->create_le_connection(
       {{0x21, 0x22, 0x23, 0x24, 0x25, 0x26}, AddressType::PUBLIC_DEVICE_ADDRESS}, true, false);
   hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
-  hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
   hci_layer_->CommandCompleteCallback(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   hci_layer_->GetCommand(OpCode::LE_EXTENDED_CREATE_CONNECTION);
   hci_layer_->CommandStatusCallback(LeExtendedCreateConnectionStatusBuilder::Create(ErrorCode::SUCCESS, 0x01));
@@ -731,10 +731,10 @@ TEST_F(LeImplTest, connection_complete_with_central_role) {
   Address::FromString("D0:05:04:03:02:01", remote_address);
   hci::AddressWithType address_with_type(remote_address, hci::AddressType::PUBLIC_DEVICE_ADDRESS);
   // Create connection
-  hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
   le_impl_->create_le_connection(address_with_type, true, false);
   hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
-  hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
   hci_layer_->CommandCompleteCallback(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   hci_layer_->GetCommand(OpCode::LE_CREATE_CONNECTION);
   hci_layer_->CommandStatusCallback(LeCreateConnectionStatusBuilder::Create(ErrorCode::SUCCESS, 0x01));
@@ -769,10 +769,10 @@ TEST_F(LeImplTest, enhanced_connection_complete_with_central_role) {
   Address::FromString("D0:05:04:03:02:01", remote_address);
   hci::AddressWithType address_with_type(remote_address, hci::AddressType::PUBLIC_DEVICE_ADDRESS);
   // Create connection
-  hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
   le_impl_->create_le_connection(address_with_type, true, false);
   hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
-  hci_layer_->SetCommandFuture();
+  ASSERT_NO_FATAL_FAILURE(hci_layer_->SetCommandFuture());
   hci_layer_->CommandCompleteCallback(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   hci_layer_->GetCommand(OpCode::LE_EXTENDED_CREATE_CONNECTION);
   hci_layer_->CommandStatusCallback(LeExtendedCreateConnectionStatusBuilder::Create(ErrorCode::SUCCESS, 0x01));
