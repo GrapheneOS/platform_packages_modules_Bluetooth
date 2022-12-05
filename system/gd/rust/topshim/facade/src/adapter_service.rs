@@ -35,6 +35,12 @@ fn get_bt_dispatcher(
                     println!("State changed to {:?}", state);
                 }
                 BaseCallbacks::SspRequest(addr, _, _, variant, passkey) => {
+                    println!(
+                        "SSP Request made for address {:?} with variant {:?} and passkey {:?}",
+                        addr.to_string(),
+                        variant,
+                        passkey
+                    );
                     btif.lock().unwrap().ssp_reply(&addr, variant, 1, passkey);
                 }
                 BaseCallbacks::AdapterProperties(status, _, properties) => {
@@ -48,6 +54,13 @@ fn get_bt_dispatcher(
                 }
                 BaseCallbacks::DeviceFound(_, properties) => {
                     println!("Device found with properties : {:?}", properties)
+                }
+                BaseCallbacks::BondState(_, address, state, _) => {
+                    println!(
+                        "Device in state {:?} with device address {}",
+                        state,
+                        address.to_string()
+                    );
                 }
                 _ => (),
             }
@@ -171,7 +184,7 @@ impl AdapterService for AdapterServiceImpl {
                         let mut rsp = FetchEventsResponse::new();
                         rsp.event_type = EventType::DISCOVERY_STATE;
                         rsp.params.insert(
-                            String::from("state"),
+                            String::from("discovery_state"),
                             event_data_from_string(format!("{:?}", state)),
                         );
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
@@ -186,6 +199,19 @@ impl AdapterService for AdapterServiceImpl {
                             }
                             rsp.params.insert(key, event_data);
                         }
+                        sink.send((rsp, WriteFlags::default())).await.unwrap();
+                    }
+                    BaseCallbacks::BondState(_, address, state, _) => {
+                        let mut rsp = FetchEventsResponse::new();
+                        rsp.event_type = EventType::BOND_STATE;
+                        rsp.params.insert(
+                            String::from("bond_state"),
+                            event_data_from_string(format!("{:?}", state)),
+                        );
+                        rsp.params.insert(
+                            String::from("address"),
+                            event_data_from_string(address.to_string()),
+                        );
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     _ => (),

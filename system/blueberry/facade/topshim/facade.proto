@@ -25,6 +25,7 @@ service AdapterService {
 service SecurityService {
     rpc RemoveBond(RemoveBondRequest) returns (google.protobuf.Empty) {}
     rpc GenerateLocalOobData(GenerateOobDataRequest) returns (google.protobuf.Empty) {}
+    rpc CreateBond(CreateBondRequest) returns (CreateBondResponse) {}
 }
 
 service GattService {
@@ -128,6 +129,7 @@ enum EventType {
   ADAPTER_PROPERTY = 5;
   DISCOVERY_STATE = 6;
   DEVICE_FOUND = 7;
+  BOND_STATE = 8;
 }
 
 message FetchEventsRequest {}
@@ -255,5 +257,14 @@ message ToggleDiscoveryRequest {
 }
 
 message ToggleDiscoveryResponse {
+  int32 status = 1;
+}
+
+message CreateBondRequest {
+  string address = 1;
+  int32 transport = 2;
+}
+
+message CreateBondResponse {
   int32 status = 1;
 }

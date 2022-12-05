@@ -168,11 +168,23 @@ class TopshimDevice(AsyncClosable):
     def le_rand(self):
         self.__post(self.__adapter.le_rand())
 
+    def create_bond(self, address, transport=1):
+        """
+        Create a bonding entry for a given address with a particular transport type.
+        """
+        f = self.__post(self.__security.create_bond(address, transport))
+        return self.__post(self.__bond_change_waiter(f))
+
     def remove_bonded_device(self, address):
         """
         Removes a bonding entry for a given address.
         """
         self.__post(self.__security.remove_bond(address))
+
+    async def __bond_change_waiter(self, f):
+        params = await f
+        state, address = params["bond_state"].data[0], params["address"].data[0]
+        return (state, address)
 
     def generate_local_oob_data(self, transport=TRANSPORT_LE):
         """
@@ -206,7 +218,7 @@ class TopshimDevice(AsyncClosable):
 
         async def waiter(f):
             params = await f
-            return params["state"].data[0]
+            return params["discovery_state"].data[0]
 
         return self.__post(waiter(f))
 
