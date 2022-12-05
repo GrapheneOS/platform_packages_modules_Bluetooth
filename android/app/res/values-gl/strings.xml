@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Borraranse todos os elementos da lista."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Uso compartido por Bluetooth: ficheiros enviados"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Uso compartido por Bluetooth: ficheiros recibidos"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# non transferido.}other{# non transferidos.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# transferido, %1$s}other{# transferidos, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Borrar lista"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Abrir"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Borrar da lista"</string>
@@ -130,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Audio por Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Non se poden transferir ficheiros de máis de 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Conectar ao Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth activado no modo avión"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Se mantés o Bluetooth activado, o teléfono lembrará que ten que deixalo nese estado a próxima vez que esteas no modo avión"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"O Bluetooth permanece activado"</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"O teu teléfono lembrará manter o Bluetooth activado no modo avión. Se non queres que permaneza nese estado, desactívao."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"A wifi e o Bluetooth permanecen activados"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"O teu teléfono lembrará manter a wifi e o Bluetooth activados no modo avión. Se non queres que permanezan nese estado, desactívaos."</string>
 </resources>
