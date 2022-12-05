@@ -102,8 +102,13 @@ impl IBatteryManager for BatteryManager {
 }
 
 impl BatterySet {
-    pub fn new(address: String, source_uuid: String, source_info: String) -> Self {
-        Self { address, source_uuid, source_info, batteries: vec![] }
+    pub fn new(
+        address: String,
+        source_uuid: String,
+        source_info: String,
+        batteries: Vec<Battery>,
+    ) -> Self {
+        Self { address, source_uuid, source_info, batteries }
     }
 
     pub fn add_or_update_battery(&mut self, new_battery: Battery) {
