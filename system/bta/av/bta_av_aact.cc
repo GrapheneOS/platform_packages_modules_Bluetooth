@@ -655,13 +655,16 @@ void bta_av_role_res(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
         p_scb->role &= ~BTA_AV_ROLE_START_INT;
         bta_sys_idle(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->PeerAddress());
         /* start failed because of role switch. */
-        tBTA_AV_START start;
-        start.chnl = p_scb->chnl;
-        start.status = BTA_AV_FAIL_ROLE;
-        start.hndl = p_scb->hndl;
-        start.initiator = initiator;
-        tBTA_AV bta_av_data;
-        bta_av_data.start = start;
+        tBTA_AV bta_av_data = {
+            .start =
+                {
+                    .chnl = p_scb->chnl,
+                    .hndl = p_scb->hndl,
+                    .status = BTA_AV_FAIL_ROLE,
+                    .initiator = initiator,
+                    .suspending = false,
+                },
+        };
         (*bta_av_cb.p_cback)(BTA_AV_START_EVT, &bta_av_data);
       } else {
         bta_av_start_ok(p_scb, p_data);
@@ -2936,15 +2939,18 @@ void bta_av_open_rc(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
           __func__);
       alarm_cancel(p_scb->avrc_ct_timer);
 
-      tBTA_AV_START start;
-      start.chnl = p_scb->chnl;
-      start.status = BTA_AV_FAIL_ROLE;
-      start.initiator = true;
-      start.hndl = p_scb->hndl;
+      tBTA_AV bta_av_data = {
+          .start =
+              {
+                  .chnl = p_scb->chnl,
+                  .hndl = p_scb->hndl,
+                  .status = BTA_AV_FAIL_ROLE,
+                  .initiator = true,
+                  .suspending = false,
+              },
+      };
       p_scb->wait &= ~BTA_AV_WAIT_ROLE_SW_BITS;
       bta_av_cb.rs_idx = 0;
-      tBTA_AV bta_av_data;
-      bta_av_data.start = start;
       (*bta_av_cb.p_cback)(BTA_AV_START_EVT, &bta_av_data);
     } else {
       /* role switch is done. continue to start streaming */
