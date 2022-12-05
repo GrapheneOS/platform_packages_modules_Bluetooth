@@ -346,7 +346,7 @@ final class BondStateMachine extends StateMachine {
                       mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
                       BluetoothDevice.BOND_BONDING,
                       BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_START_PAIRING_OOB,
-                      BluetoothProtoEnums.UNBOND_REASON_UNKNOWN);
+                      BluetoothProtoEnums.UNBOND_REASON_UNKNOWN, mAdapterService.getMetricId(dev));
                 result = mAdapterService.createBondOutOfBandNative(addr, transport,
                     remoteP192Data, remoteP256Data);
             } else {
@@ -354,7 +354,7 @@ final class BondStateMachine extends StateMachine {
                       mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
                       BluetoothDevice.BOND_BONDING,
                       BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_START_PAIRING,
-                      BluetoothProtoEnums.UNBOND_REASON_UNKNOWN);
+                      BluetoothProtoEnums.UNBOND_REASON_UNKNOWN, mAdapterService.getMetricId(dev));
                 result = mAdapterService.createBondNative(addr, transport);
             }
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
