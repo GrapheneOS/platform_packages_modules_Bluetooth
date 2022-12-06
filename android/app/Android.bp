@@ -173,6 +173,7 @@ android_app {
         "net-utils-services-common",
         "networkstack-client",
         "bluetooth-proto-enums-java-gen",
+        "BluetoothApiShims",
     ],
 
     plugins: [
