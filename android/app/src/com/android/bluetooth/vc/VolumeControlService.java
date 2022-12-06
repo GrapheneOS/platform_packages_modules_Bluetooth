@@ -345,7 +345,8 @@ public class VolumeControlService extends ProfileService {
         return sVolumeControlService;
     }
 
-    private static synchronized void setVolumeControlService(VolumeControlService instance) {
+    @VisibleForTesting
+    static synchronized void setVolumeControlService(VolumeControlService instance) {
         if (DBG) {
             Log.d(TAG, "setVolumeControlService(): set to: " + instance);
         }
