@@ -148,9 +148,12 @@ message ToggleStackResponse {}
 
 message SetDiscoveryModeRequest {
   bool enable_page_scan = 1;
+  bool enable_inquiry_scan = 2;
 }
 
-message SetDiscoveryModeResponse {}
+message SetDiscoveryModeResponse {
+  int32 status = 1;
+}
 
 service MediaService {
   rpc StartA2dp(StartA2dpRequest) returns (StartA2dpResponse) {}

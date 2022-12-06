@@ -184,15 +184,26 @@ impl AdapterService for AdapterServiceImpl {
     fn set_discovery_mode(
         &mut self,
         ctx: RpcContext<'_>,
-        _req: SetDiscoveryModeRequest,
+        req: SetDiscoveryModeRequest,
         sink: UnarySink<SetDiscoveryModeResponse>,
     ) {
-        self.btif_intf.lock().unwrap().set_adapter_property(
-            btif::BluetoothProperty::AdapterScanMode(btif::BtScanMode::Connectable),
-        );
+        let scan_mode = if req.enable_inquiry_scan {
+            btif::BtScanMode::ConnectableDiscoverable
+        } else if req.enable_page_scan {
+            btif::BtScanMode::Connectable
+        } else {
+            btif::BtScanMode::None_
+        };
+        let status = self
+            .btif_intf
+            .lock()
+            .unwrap()
+            .set_adapter_property(btif::BluetoothProperty::AdapterScanMode(scan_mode));
 
+        let mut resp = SetDiscoveryModeResponse::new();
+        resp.status = status;
         ctx.spawn(async move {
-            sink.success(SetDiscoveryModeResponse::default()).await.unwrap();
+            sink.success(resp).await.unwrap();
         })
     }
 

@@ -105,11 +105,22 @@ class TopshimDevice(AsyncClosable):
         await asyncSafeClose(self.__hfp)
         await asyncSafeClose(self.__hf_client)
 
+    def enable_inquiry_scan(self):
+        f = self.__post(self.__adapter.enable_inquiry_scan())
+        return self.__post(self.__discovery_mode_waiter(f))
+
     def enable_page_scan(self):
-        self.__post(self.__adapter.enable_page_scan())
+        f = self.__post(self.__adapter.enable_page_scan())
+        return self.__post(self.__discovery_mode_waiter(f))
 
     def disable_page_scan(self):
-        self.__post(self.__adapter.disable_page_scan())
+        f = self.__post(self.__adapter.disable_page_scan())
+        return self.__post(self.__discovery_mode_waiter(f))
+
+    async def __discovery_mode_waiter(self, f):
+        params = await f
+        status, discovery_mode = params["status"].data[0], params["AdapterScanMode"].data[0]
+        return (status, discovery_mode)
 
     def start_advertising(self):
         """
