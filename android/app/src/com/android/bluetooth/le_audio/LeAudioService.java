@@ -406,7 +406,8 @@ public class LeAudioService extends ProfileService {
         return sLeAudioService;
     }
 
-    private static synchronized void setLeAudioService(LeAudioService instance) {
+    @VisibleForTesting
+    static synchronized void setLeAudioService(LeAudioService instance) {
         if (DBG) {
             Log.d(TAG, "setLeAudioService(): set to: " + instance);
         }
