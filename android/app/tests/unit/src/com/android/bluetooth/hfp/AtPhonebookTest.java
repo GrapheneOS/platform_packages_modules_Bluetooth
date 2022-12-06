@@ -18,19 +18,30 @@ package com.android.bluetooth.hfp;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.database.Cursor;
+import android.provider.CallLog;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.telephony.PhoneNumberUtils;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
+import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.internal.telephony.GsmAlphabet;
 
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +49,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 @RunWith(AndroidJUnit4.class)
 public class AtPhonebookTest {
@@ -50,6 +62,8 @@ public class AtPhonebookTest {
     private AdapterService mAdapterService;
     private HeadsetNativeInterface mNativeInterface;
     private AtPhonebook mAtPhonebook;
+    @Spy
+    private BluetoothMethodProxy mHfpMethodProxy = BluetoothMethodProxy.getInstance();
 
     @Before
     public void setUp() throws Exception {
@@ -57,6 +71,7 @@ public class AtPhonebookTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
 
+        BluetoothMethodProxy.setInstanceForTesting(mHfpMethodProxy);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
         // Spy on native interface
@@ -67,6 +82,7 @@ public class AtPhonebookTest {
     @After
     public void tearDown() throws Exception {
         TestUtils.clearAdapterService(mAdapterService);
+        BluetoothMethodProxy.setInstanceForTesting(null);
     }
 
     @Test
@@ -78,6 +94,7 @@ public class AtPhonebookTest {
     @Test
     public void getAndSetCheckingAccessPermission_setCorrectly() {
         mAtPhonebook.setCheckingAccessPermission(true);
+
         assertThat(mAtPhonebook.getCheckingAccessPermission()).isTrue();
     }
 
@@ -173,11 +190,125 @@ public class AtPhonebookTest {
         mAtPhonebook.handleCpbsCommand("command=ME", AtPhonebook.TYPE_SET, mTestDevice);
         assertThat(mAtPhonebook.processCpbrCommand(mTestDevice)).isEqualTo(
                 HeadsetHalConstants.AT_RESPONSE_OK);
+
+        mAtPhonebook.mCurrentPhonebook = "ER";
+        assertThat(mAtPhonebook.processCpbrCommand(mTestDevice)).isEqualTo(
+                HeadsetHalConstants.AT_RESPONSE_ERROR);
+    }
+
+    @Test
+    public void processCpbrCommand_withMobilePhonebook() {
+        Cursor mockCursorOne = mock(Cursor.class);
+        when(mockCursorOne.getCount()).thenReturn(1);
+        when(mockCursorOne.getColumnIndex(Phone.TYPE)).thenReturn(1); //TypeColumn
+        when(mockCursorOne.getColumnIndex(Phone.NUMBER)).thenReturn(2); //numberColumn
+        when(mockCursorOne.getColumnIndex(Phone.DISPLAY_NAME)).thenReturn(3); // nameColumn
+        when(mockCursorOne.getInt(1)).thenReturn(Phone.TYPE_WORK);
+        when(mockCursorOne.getString(2)).thenReturn(null);
+        when(mockCursorOne.getString(3)).thenReturn(null);
+        when(mockCursorOne.moveToNext()).thenReturn(false);
+        doReturn(mockCursorOne).when(mHfpMethodProxy).contentResolverQuery(any(), any(), any(),
+                any(), any());
+
+        mAtPhonebook.mCurrentPhonebook = "ME";
+        mAtPhonebook.mCpbrIndex1 = 1;
+        mAtPhonebook.mCpbrIndex2 = 2;
+
+        mAtPhonebook.processCpbrCommand(mTestDevice);
+
+        String expected = "+CPBR: " + 1 + ",\"" + "" + "\"," + PhoneNumberUtils.toaFromString("")
+                + ",\"" + "" + "/" + AtPhonebook.getPhoneType(Phone.TYPE_WORK) + "\"" + "\r\n\r\n";
+        verify(mNativeInterface).atResponseString(mTestDevice, expected);
+    }
+
+    @Test
+    public void processCpbrCommand_withMissedCalls() {
+        Cursor mockCursorOne = mock(Cursor.class);
+        when(mockCursorOne.getCount()).thenReturn(1);
+        when(mockCursorOne.getColumnIndexOrThrow(CallLog.Calls.NUMBER)).thenReturn(1);
+        when(mockCursorOne.getColumnIndexOrThrow(CallLog.Calls.NUMBER_PRESENTATION)).thenReturn(2);
+        String number = "1".repeat(31);
+        when(mockCursorOne.getString(1)).thenReturn(number);
+        when(mockCursorOne.getInt(2)).thenReturn(CallLog.Calls.PRESENTATION_RESTRICTED);
+        doReturn(mockCursorOne).when(mHfpMethodProxy).contentResolverQuery(any(), any(), any(),
+                any(), any());
+
+        Cursor mockCursorTwo = mock(Cursor.class);
+        when(mockCursorTwo.moveToFirst()).thenReturn(true);
+        String name = "k".repeat(30);
+        when(mockCursorTwo.getString(0)).thenReturn(name);
+        when(mockCursorTwo.getInt(1)).thenReturn(1);
+        doReturn(mockCursorTwo).when(mHfpMethodProxy).contentResolverQuery(any(), any(), any(),
+                any(), any(), any());
+
+        mAtPhonebook.mCurrentPhonebook = "MC";
+        mAtPhonebook.mCpbrIndex1 = 1;
+        mAtPhonebook.mCpbrIndex2 = 2;
+
+        mAtPhonebook.processCpbrCommand(mTestDevice);
+
+        String expected = "+CPBR: " + 1 + ",\"" + "" + "\"," + PhoneNumberUtils.toaFromString(
+                number) + ",\"" + mTargetContext.getString(R.string.unknownNumber) + "\""
+                + "\r\n\r\n";
+        verify(mNativeInterface).atResponseString(mTestDevice, expected);
+    }
+
+    @Test
+    public void processCpbrCommand_withReceivcedCallsAndCharsetGsm() {
+        Cursor mockCursorOne = mock(Cursor.class);
+        when(mockCursorOne.getCount()).thenReturn(1);
+        when(mockCursorOne.getColumnIndexOrThrow(CallLog.Calls.NUMBER)).thenReturn(1);
+        when(mockCursorOne.getColumnIndexOrThrow(CallLog.Calls.NUMBER_PRESENTATION)).thenReturn(-1);
+        String number = "1".repeat(31);
+        when(mockCursorOne.getString(1)).thenReturn(number);
+        when(mockCursorOne.getInt(2)).thenReturn(CallLog.Calls.PRESENTATION_RESTRICTED);
+        doReturn(mockCursorOne).when(mHfpMethodProxy).contentResolverQuery(any(), any(), any(),
+                any(), any());
+
+        Cursor mockCursorTwo = mock(Cursor.class);
+        when(mockCursorTwo.moveToFirst()).thenReturn(true);
+        String name = "k".repeat(30);
+        when(mockCursorTwo.getString(0)).thenReturn(name);
+        when(mockCursorTwo.getInt(1)).thenReturn(1);
+        doReturn(mockCursorTwo).when(mHfpMethodProxy).contentResolverQuery(any(), any(), any(),
+                any(), any(), any());
+
+        mAtPhonebook.mCurrentPhonebook = "RC";
+        mAtPhonebook.mCpbrIndex1 = 1;
+        mAtPhonebook.mCpbrIndex2 = 2;
+        mAtPhonebook.mCharacterSet = "GSM";
+
+        mAtPhonebook.processCpbrCommand(mTestDevice);
+
+        String expectedName = new String(GsmAlphabet.stringToGsm8BitPacked(name.substring(0, 28)));
+        String expected = "+CPBR: " + 1 + ",\"" + number.substring(0, 30) + "\","
+                + PhoneNumberUtils.toaFromString(number) + ",\"" + expectedName + "\"" + "\r\n\r\n";
+        verify(mNativeInterface).atResponseString(mTestDevice, expected);
+    }
+
+    @Test
+    public void setCpbrIndex() {
+        int index = 1;
+
+        mAtPhonebook.setCpbrIndex(index);
+
+        assertThat(mAtPhonebook.mCpbrIndex1).isEqualTo(index);
+        assertThat(mAtPhonebook.mCpbrIndex2).isEqualTo(index);
     }
 
     @Test
     public void resetAtState() {
         mAtPhonebook.resetAtState();
+
         assertThat(mAtPhonebook.getCheckingAccessPermission()).isFalse();
+    }
+
+    @Test
+    public void getPhoneType() {
+        assertThat(AtPhonebook.getPhoneType(Phone.TYPE_HOME)).isEqualTo("H");
+        assertThat(AtPhonebook.getPhoneType(Phone.TYPE_MOBILE)).isEqualTo("M");
+        assertThat(AtPhonebook.getPhoneType(Phone.TYPE_WORK)).isEqualTo("W");
+        assertThat(AtPhonebook.getPhoneType(Phone.TYPE_FAX_WORK)).isEqualTo("F");
+        assertThat(AtPhonebook.getPhoneType(Phone.TYPE_CUSTOM)).isEqualTo("O");
     }
 }
