@@ -274,8 +274,8 @@ public class HeadsetClientService extends ProfileService {
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private HeadsetClientService getService(AttributionSource source) {
-            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
-                    || !Utils.checkServiceAvailable(mService, TAG)
+            if (!Utils.checkServiceAvailable(mService, TAG)
+                    || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
                 return null;
             }
@@ -608,8 +608,10 @@ public class HeadsetClientService extends ProfileService {
                 List<BluetoothHeadsetClientCall> defaultValue = new ArrayList<>();
                 if (service != null) {
                     List<HfpClientCall> calls = service.getCurrentCalls(device);
-                    for (HfpClientCall call : calls) {
-                        defaultValue.add(toLegacyCall(call));
+                    if (calls != null) {
+                        for (HfpClientCall call : calls) {
+                            defaultValue.add(toLegacyCall(call));
+                        }
                     }
                 }
                 receiver.send(defaultValue);

@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"無法轉移大於 4GB 的檔案"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"使用藍牙連線"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"在飛航模式下保持藍牙開啟狀態"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"如果不關閉藍牙，下次手機進入飛航模式時，藍牙將保持開啟"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"藍牙會保持開啟狀態"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"手機會記得在飛航模式下保持藍牙開啟。如果不要保持開啟，請關閉藍牙。"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi 和藍牙會保持開啟狀態"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"手機會記得在飛航模式下保持 Wi-Fi 和藍牙開啟。如果不要保持開啟，請關閉 Wi-Fi 和藍牙。"</string>
 </resources>
