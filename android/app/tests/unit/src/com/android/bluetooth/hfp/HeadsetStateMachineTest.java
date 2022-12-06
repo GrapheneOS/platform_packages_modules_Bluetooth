@@ -1427,6 +1427,13 @@ public class HeadsetStateMachineTest {
         verify(mockAudioManager).setStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO, 2, 0);
     }
 
+    @Test
+    public void testDump_doesNotCrash() {
+        StringBuilder sb = new StringBuilder();
+
+        mHeadsetStateMachine.dump(sb);
+    }
+
     /**
      * Setup Connecting State
      * @return number of times mHeadsetService.sendBroadcastAsUser() has been invoked
