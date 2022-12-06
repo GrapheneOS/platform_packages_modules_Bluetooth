@@ -122,6 +122,11 @@ class AdapterClient(AsyncClosable):
     async def allow_wake_by_hid(self):
         await self.__adapter_stub.AllowWakeByHid(empty_proto.Empty())
 
+    async def set_local_io_caps(self, io_capability):
+        await self.__adapter_stub.SetLocalIoCaps(facade_pb2.SetLocalIoCapsRequest(io_capability=io_capability))
+        future = await self._listen_for_event(facade_pb2.EventType.ADAPTER_PROPERTY)
+        return future
+
 
 class A2dpAutomationHelper():
     """Invoke gRPC on topshim for A2DP testing"""
