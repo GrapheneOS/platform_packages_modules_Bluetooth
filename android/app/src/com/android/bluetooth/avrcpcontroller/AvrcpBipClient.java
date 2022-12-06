@@ -26,6 +26,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.ClientSession;
 import com.android.obex.HeaderSet;
 import com.android.obex.ResponseCodes;
@@ -229,7 +230,8 @@ public class AvrcpBipClient {
     /**
      * Update our client's connection state and notify of the new status
      */
-    private void setConnectionState(int state) {
+    @VisibleForTesting
+    void setConnectionState(int state) {
         int oldState = -1;
         synchronized (this) {
             oldState = mState;
@@ -428,7 +430,8 @@ public class AvrcpBipClient {
         }
     }
 
-    private String getStateName() {
+    @VisibleForTesting
+    String getStateName() {
         int state = getState();
         switch (state) {
             case BluetoothProfile.STATE_DISCONNECTED:
