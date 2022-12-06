@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"‏4GB سے بڑی فائلیں منتقل نہیں کی جا سکتیں"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"بلوٹوتھ سے منسلک کریں"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ہوائی جہاز وضع میں بلوٹوتھ آن ہے"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"اگر آپ بلوٹوتھ کو آن رکھتے ہیں تو آپ کا فون آپ کے اگلی مرتبہ ہوائی جہاز وضع میں ہونے پر اسے آن رکھنا یاد رکھے گا"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"بلوٹوتھ آن رہتا ہے"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"آپ کا فون ہوائی جہاز وضع میں بلوٹوتھ کو آن رکھنا یاد رکھتا ہے۔ اگر آپ نہیں چاہتے ہیں کہ بلوٹوتھ آن رہے تو اسے آف کریں۔"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"‏Wi-Fi اور بلوٹوتھ آن رہنے دیں"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"‏آپ کا فون ہوائی جہاز وضع میں Wi-Fi اور بلوٹوتھ کو آن رکھنا یاد رکھتا ہے۔ اگر آپ نہیں چاہتے ہیں کہ Wi-Fi اور بلوٹوتھ آن رہیں تو انہیں آف کریں۔"</string>
 </resources>

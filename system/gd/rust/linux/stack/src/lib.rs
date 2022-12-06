@@ -43,7 +43,7 @@ use crate::bluetooth_media::{BluetoothMedia, MediaActions};
 use crate::socket_manager::{BluetoothSocketManager, SocketActions};
 use crate::suspend::Suspend;
 use bt_topshim::{
-    btif::BaseCallbacks,
+    btif::{BaseCallbacks, BtDeviceType},
     profiles::{
         a2dp::A2dpCallbacks, avrcp::AvrcpCallbacks, gatt::GattAdvCallbacks,
         gatt::GattAdvInbandCallbacks, gatt::GattClientCallbacks, gatt::GattScannerCallbacks,
@@ -240,19 +240,25 @@ impl Stack {
                 // update method triggered from here rather than needing a
                 // reference to Bluetooth.
                 Message::OnAclConnected(device) => {
-                    battery_service
-                        .lock()
-                        .unwrap()
-                        .handle_action(BatteryServiceActions::Connect(device));
+                    let dev_type = bluetooth.lock().unwrap().get_remote_type(device.clone());
+                    if dev_type == BtDeviceType::Ble {
+                        battery_service
+                            .lock()
+                            .unwrap()
+                            .handle_action(BatteryServiceActions::Connect(device));
+                    }
                 }
 
                 // For battery service, use this to clean up internal handles. GATT connection is
                 // already dropped if ACL disconnect has occurred.
                 Message::OnAclDisconnected(device) => {
-                    battery_service
-                        .lock()
-                        .unwrap()
-                        .handle_action(BatteryServiceActions::Disconnect(device));
+                    let dev_type = bluetooth.lock().unwrap().get_remote_type(device.clone());
+                    if dev_type == BtDeviceType::Ble {
+                        battery_service
+                            .lock()
+                            .unwrap()
+                            .handle_action(BatteryServiceActions::Disconnect(device));
+                    }
                 }
 
                 Message::SuspendCallbackRegistered(id) => {
