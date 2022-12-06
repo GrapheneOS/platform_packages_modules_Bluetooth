@@ -203,6 +203,11 @@ impl ISuspend for Suspend {
 
     fn resume(&mut self) -> bool {
         self.intf.lock().unwrap().set_default_event_mask_except(0u64, 0u64);
+
+        // TODO(b/260922031) - This needs to be generalized and handled by LE
+        //                     manager to allow other devices to reconnect.
+        //                     Needs to be before `clear_event_filter`.
+        self.intf.lock().unwrap().allow_wake_by_hid();
         self.intf.lock().unwrap().clear_event_filter();
 
         if self.is_wakeful_suspend {
