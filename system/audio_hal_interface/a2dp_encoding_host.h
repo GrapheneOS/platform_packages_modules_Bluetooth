@@ -52,6 +52,8 @@ struct PresentationPosition {
 // Invoked by audio server to check audio presentation position periodically.
 PresentationPosition GetPresentationPosition();
 
+bool is_opus_supported();
+
 }  // namespace a2dp
 }  // namespace audio
 }  // namespace bluetooth
