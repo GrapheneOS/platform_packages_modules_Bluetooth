@@ -111,7 +111,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onConnectionStateChanged(int state, byte[] address) {
+    @VisibleForTesting
+    void onConnectionStateChanged(int state, byte[] address) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
         event.device = getDevice(address);
@@ -123,7 +124,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onGroupStatus(int groupId, int groupStatus) {
+    @VisibleForTesting
+    void onGroupStatus(int groupId, int groupStatus) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED);
         event.valueInt1 = groupId;
@@ -135,7 +137,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onGroupNodeStatus(byte[] address, int groupId, int nodeStatus) {
+    @VisibleForTesting
+    void onGroupNodeStatus(byte[] address, int groupId, int nodeStatus) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_NODE_STATUS_CHANGED);
         event.valueInt1 = groupId;
@@ -148,7 +151,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onAudioConf(int direction, int groupId, int sinkAudioLocation,
+    @VisibleForTesting
+    void onAudioConf(int direction, int groupId, int sinkAudioLocation,
                              int sourceAudioLocation, int availableContexts) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_AUDIO_CONF_CHANGED);
@@ -164,7 +168,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onSinkAudioLocationAvailable(byte[] address, int sinkAudioLocation) {
+    @VisibleForTesting
+    void onSinkAudioLocationAvailable(byte[] address, int sinkAudioLocation) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE);
         event.device = getDevice(address);
@@ -176,7 +181,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onAudioLocalCodecCapabilities(
+    @VisibleForTesting
+    void onAudioLocalCodecCapabilities(
                             BluetoothLeAudioCodecConfig[] localInputCodecCapabilities,
                             BluetoothLeAudioCodecConfig[] localOutputCodecCapabilities) {
         LeAudioStackEvent event =
@@ -192,7 +198,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onAudioGroupCodecConf(int groupId, BluetoothLeAudioCodecConfig inputCodecConfig,
+    @VisibleForTesting
+    void onAudioGroupCodecConf(int groupId, BluetoothLeAudioCodecConfig inputCodecConfig,
                             BluetoothLeAudioCodecConfig outputCodecConfig,
                             BluetoothLeAudioCodecConfig [] inputSelectableCodecConfig,
                             BluetoothLeAudioCodecConfig [] outputSelectableCodecConfig) {
