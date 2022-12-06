@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Δεν είναι δυνατή η μεταφορά αρχείων που ξεπερνούν τα 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Σύνδεση σε Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth ενεργοποιημένο σε λειτουργία πτήσης"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Αν διατηρήσετε το Bluetooth ενεργοποιημένο, το τηλέφωνό σας θα θυμάται να το διατηρήσει ενεργοποιημένο την επόμενη φορά που θα βρεθεί σε λειτουργία πτήσης"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Το Bluetooth παραμένει ενεργό"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Το τηλέφωνο θυμάται να διατηρεί ενεργοποιημένο το Bluetooth σε λειτουργία πτήσης. Απενεργοποιήστε το Bluetooth αν δεν θέλετε να παραμένει ενεργοποιημένο."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Το Wi-Fi και το Bluetooth παραμένουν ενεργοποιημένα"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Το τηλέφωνο θυμάται να διατηρεί ενεργοποιημένο το Wi‑Fi και το Bluetooth σε λειτουργία πτήσης. Απενεργοποιήστε το Wi-Fi και το Bluetooth αν δεν θέλετε να παραμένουν ενεργοποιημένα."</string>
 </resources>

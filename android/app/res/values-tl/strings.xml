@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Hindi maililipat ang mga file na mas malaki sa 4GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Kumonekta sa Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Naka-on ang Bluetooth sa airplane mode"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Kung papanatilihin mong naka-on ang Bluetooth, tatandaan ng iyong telepono na panatilihin itong naka-on sa susunod na nasa airplane mode ka"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Mananatiling naka-on ang Bluetooth"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Tinatandaan ng iyong telepono na panatilihing naka-on ang Bluetooth habang nasa airplane mode. I-off ang Bluetooth kung ayaw mo itong manatiling naka-on."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Mananatiling naka-on ang Wi-Fi at Bluetooth"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Tinatandaan ng iyong telepono na panatilihing naka-on ang Wi-Fi at Bluetooth habang nasa airplane mode. I-off ang Wi-Fi at Bluetooth kung ayaw mong manatiling naka-on ang mga ito."</string>
 </resources>
