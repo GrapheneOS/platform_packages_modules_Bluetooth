@@ -591,6 +591,10 @@ pub trait IScannerCallback: RPCProxy {
     /// requested to be filtered in.
     fn on_scan_result(&self, scan_result: ScanResult);
 
+    /// When an LE advertisement matching aggregate filters is no longer detected. The criteria of
+    /// how a device is considered lost is specified by ScanFilter.
+    fn on_scan_result_lost(&self, scan_result: ScanResult);
+
     /// When LE Scan module changes suspend mode due to system suspend/resume.
     fn on_suspend_mode_change(&self, suspend_mode: SuspendMode);
 }
