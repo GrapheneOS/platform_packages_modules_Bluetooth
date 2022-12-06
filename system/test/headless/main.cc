@@ -114,7 +114,8 @@ class Main : public HeadlessTest<int> {
   }
 
   int Run() override {
-    console_fd = fcntl(STDERR_FILENO, F_DUPFD_CLOEXEC);
+    console_fd = fcntl(STDERR_FILENO, F_DUPFD_CLOEXEC, STDERR_FILENO);
+    ASSERT(console_fd != -1);
     if (options_.close_stderr_) {
       fclose(stderr);
     }
