@@ -93,53 +93,103 @@ class Security(private val context: Context) : SecurityImplBase() {
             check(request.getLevelCase() == SecureRequest.LevelCase.LE);
             val level = request.le
             if (level == LE_LEVEL1) true
-            if (level == LE_LEVEL4) throw Status.UNKNOWN.asException()
-            false
+            else if (level == LE_LEVEL4) throw Status.UNKNOWN.asException()
+            else {
+              bluetoothDevice.createBond(transport)
+              waitLESecurityLevel(bluetoothDevice, level)
+            }
           }
           TRANSPORT_BREDR -> {
             check(request.getLevelCase() == SecureRequest.LevelCase.CLASSIC)
             val level = request.classic
             if (level == LEVEL0) true
-            if (level >= LEVEL3) throw Status.UNKNOWN.asException()
-            false
+            else if (level >= LEVEL3) throw Status.UNKNOWN.asException()
+            else {
+              bluetoothDevice.createBond(transport)
+              waitBREDRSecurityLevel(bluetoothDevice, level)
+            }
           }
           else -> throw Status.UNKNOWN.asException()
         }
-      if (!reached) {
-        bluetoothDevice.createBond(transport)
-        val bondState =
-          flow
-            .filter { it.action == BluetoothDevice.ACTION_BOND_STATE_CHANGED }
-            .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
-            .map { it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) }
-            .filter { it == BOND_BONDED || it == BOND_NONE }
-            .first()
-        val isEncrypted = bluetoothDevice.isEncrypted()
-        reached =
-          when (transport) {
-            TRANSPORT_LE -> {
-              val level = request.le
-              when (level) {
-                LE_LEVEL2 -> isEncrypted
-                LE_LEVEL3 -> isEncrypted && bondState == BOND_BONDED
-                else -> throw Status.UNKNOWN.asException()
-              }
-            }
-            TRANSPORT_BREDR -> {
-              val level = request.classic
-              when (level) {
-                LEVEL1 -> !isEncrypted || bondState == BOND_BONDED
-                LEVEL2 -> isEncrypted && bondState == BOND_BONDED
-                else -> throw Status.UNKNOWN.asException()
-              }
-            }
-            else -> throw Status.UNKNOWN.asException()
-          }
-      }
       val secureResponseBuilder = SecureResponse.newBuilder()
       if (reached) secureResponseBuilder.setSuccess(Empty.getDefaultInstance())
       else secureResponseBuilder.setNotReached(Empty.getDefaultInstance())
       secureResponseBuilder.build()
+    }
+  }
+
+  suspend fun waitBondIntent(bluetoothDevice: BluetoothDevice): Int =
+    flow
+      .filter { it.action == BluetoothDevice.ACTION_BOND_STATE_CHANGED }
+      .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
+      .map { it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) }
+      .filter { it == BOND_BONDED || it == BOND_NONE }
+      .first()
+
+  suspend fun waitBREDRSecurityLevel(
+    bluetoothDevice: BluetoothDevice,
+    level: SecurityLevel
+  ): Boolean {
+    Log.i(TAG, "waitBREDRSecurityLevel")
+    return when (level) {
+      LEVEL0 -> true
+      LEVEL3 -> throw Status.UNKNOWN.asException()
+      else -> {
+        val bondState = waitBondIntent(bluetoothDevice)
+        val isEncrypted = bluetoothDevice.isEncrypted()
+        when (level) {
+          LEVEL1 -> !isEncrypted || bondState == BOND_BONDED
+          LEVEL2 -> isEncrypted && bondState == BOND_BONDED
+          else -> false
+        }
+      }
+    }
+  }
+
+  suspend fun waitLESecurityLevel(
+    bluetoothDevice: BluetoothDevice,
+    level: LESecurityLevel
+  ): Boolean {
+    Log.i(TAG, "waitLESecurityLevel")
+    return when (level) {
+      LE_LEVEL1 -> true
+      LE_LEVEL4 -> throw Status.UNKNOWN.asException()
+      else -> {
+        val bondState = waitBondIntent(bluetoothDevice)
+        val isEncrypted = bluetoothDevice.isEncrypted()
+        when (level) {
+          LE_LEVEL2 -> isEncrypted
+          LE_LEVEL3 -> isEncrypted && bondState == BOND_BONDED
+          else -> throw Status.UNKNOWN.asException()
+        }
+      }
+    }
+  }
+
+  override fun waitSecurity(
+    request: WaitSecurityRequest,
+    responseObserver: StreamObserver<WaitSecurityResponse>
+  ) {
+    grpcUnary(globalScope, responseObserver) {
+      Log.i(TAG, "waitSecurity")
+      val bluetoothDevice = request.connection.toBluetoothDevice(bluetoothAdapter)
+      val transport = if (request.hasClassic()) TRANSPORT_BREDR else TRANSPORT_LE
+      val reached =
+        when (transport) {
+          TRANSPORT_LE -> {
+            check(request.hasLe())
+            waitLESecurityLevel(bluetoothDevice, request.le)
+          }
+          TRANSPORT_BREDR -> {
+            check(request.hasClassic())
+            waitBREDRSecurityLevel(bluetoothDevice, request.classic)
+          }
+          else -> throw Status.UNKNOWN.asException()
+        }
+      val waitSecurityBuilder = WaitSecurityResponse.newBuilder()
+      if (reached) waitSecurityBuilder.setSuccess(Empty.getDefaultInstance())
+      else waitSecurityBuilder.setPairingFailure(Empty.getDefaultInstance())
+      waitSecurityBuilder.build()
     }
   }
 
@@ -224,6 +274,7 @@ class Security(private val context: Context) : SecurityImplBase() {
               error("Received unknown pairing variant $variant")
             }
           }
+          Log.d(TAG, "OnPairing: send event: $eventBuilder")
           eventBuilder.build()
         }
     }
