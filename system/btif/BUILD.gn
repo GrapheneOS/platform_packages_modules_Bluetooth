@@ -33,6 +33,9 @@ static_library("btif") {
     # HAL layer
     "src/bluetooth.cc",
 
+    # Initializing core library
+    "src/profile_log_levels.cc",
+
     # BTIF implementation
     "src/btif_a2dp.cc",
 
@@ -87,7 +90,6 @@ static_library("btif") {
     "src/btif_storage.cc",
     "src/btif_uid.cc",
     "src/btif_util.cc",
-    "src/profile_log_levels.cc",
     "src/stack_manager.cc",
   ]
 
