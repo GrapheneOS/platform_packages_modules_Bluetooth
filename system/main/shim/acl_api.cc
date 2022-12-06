@@ -131,3 +131,18 @@ void bluetooth::shim::ACL_ClearAddressResolution() {
 void bluetooth::shim::ACL_ClearFilterAcceptList() {
   Stack::GetInstance()->GetAcl()->ClearFilterAcceptList();
 }
+void bluetooth::shim::ACL_LeSetDefaultSubrate(uint16_t subrate_min,
+                                              uint16_t subrate_max,
+                                              uint16_t max_latency,
+                                              uint16_t cont_num,
+                                              uint16_t sup_tout) {
+  Stack::GetInstance()->GetAcl()->LeSetDefaultSubrate(
+      subrate_min, subrate_max, max_latency, cont_num, sup_tout);
+}
+
+void bluetooth::shim::ACL_LeSubrateRequest(
+    uint16_t hci_handle, uint16_t subrate_min, uint16_t subrate_max,
+    uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout) {
+  Stack::GetInstance()->GetAcl()->LeSubrateRequest(
+      hci_handle, subrate_min, subrate_max, max_latency, cont_num, sup_tout);
+}
