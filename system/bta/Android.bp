@@ -316,6 +316,7 @@ cc_test {
         "sys/bta_sys_main.cc",
         "sys/utl.cc",
         "test/bta_av_test.cc",
+        "test/bta_api_test.cc",
         "test/bta_dm_test.cc",
         "test/bta_gatt_test.cc",
         "test/bta_pan_test.cc",
