@@ -24,7 +24,7 @@ impl From<u32> for BthfConnectionState {
     }
 }
 
-#[derive(Debug, FromPrimitive, PartialEq, PartialOrd)]
+#[derive(Debug, FromPrimitive, PartialEq, PartialOrd, Clone)]
 #[repr(u32)]
 pub enum BthfAudioState {
     Disconnected = 0,
@@ -99,7 +99,7 @@ pub mod ffi {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum HfpCallbacks {
     ConnectionState(BthfConnectionState, RawAddress),
     AudioState(BthfAudioState, RawAddress),
