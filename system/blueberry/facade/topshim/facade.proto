@@ -107,6 +107,7 @@ service HfpService {
   rpc ConnectAudio(ConnectAudioRequest) returns (google.protobuf.Empty) {}
   rpc DisconnectAudio(DisconnectAudioRequest) returns (google.protobuf.Empty) {}
   rpc SetVolume(SetVolumeRequest) returns (google.protobuf.Empty) {}
+  rpc FetchEvents(FetchEventsRequest) returns (stream FetchEventsResponse) {}
 }
 
 enum EventType {
@@ -114,6 +115,7 @@ enum EventType {
   SSP_REQUEST = 1;
   LE_RAND = 2;
   GENERATE_LOCAL_OOB_DATA = 3;
+  HFP_CONNECTION_STATE = 4;
 }
 message FetchEventsRequest {}
 
