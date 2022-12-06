@@ -729,6 +729,13 @@ class LeShimAclConnection
     connection_->RegisterCallbacks(this, handler_);
   }
 
+  void LeSubrateRequest(uint16_t subrate_min, uint16_t subrate_max,
+                        uint16_t max_latency, uint16_t cont_num,
+                        uint16_t sup_tout) {
+    connection_->LeSubrateRequest(subrate_min, subrate_max, max_latency,
+                                  cont_num, sup_tout);
+  }
+
   void ReadRemoteControllerInformation() override {
     // TODO Issue LeReadRemoteFeatures Command
   }
@@ -749,6 +756,14 @@ class LeShimAclConnection
                           uint16_t max_rx_octets, uint16_t max_rx_time) {
     TRY_POSTING_ON_MAIN(interface_.on_data_length_change, handle_,
                         max_tx_octets, max_tx_time, max_rx_octets, max_rx_time);
+  }
+  void OnLeSubrateChange(hci::ErrorCode hci_status, uint16_t subrate_factor,
+                         uint16_t peripheral_latency,
+                         uint16_t continuation_number,
+                         uint16_t supervision_timeout) {
+    TRY_POSTING_ON_MAIN(interface_.on_le_subrate_change, handle_,
+                        subrate_factor, peripheral_latency, continuation_number,
+                        supervision_timeout, ToLegacyHciErrorCode(hci_status));
   }
 
   void OnReadRemoteVersionInformationComplete(hci::ErrorCode hci_status,
@@ -969,6 +984,21 @@ struct shim::legacy::Acl::impl {
                handle);
     handle_to_classic_connection_map_[handle]->SniffSubrating(
         maximum_latency, minimum_remote_timeout, minimum_local_timeout);
+  }
+
+  void LeSetDefaultSubrate(uint16_t subrate_min, uint16_t subrate_max,
+                           uint16_t max_latency, uint16_t cont_num,
+                           uint16_t sup_tout) {
+    GetAclManager()->LeSetDefaultSubrate(subrate_min, subrate_max, max_latency,
+                                         cont_num, sup_tout);
+  }
+
+  void LeSubrateRequest(HciHandle handle, uint16_t subrate_min,
+                        uint16_t subrate_max, uint16_t max_latency,
+                        uint16_t cont_num, uint16_t sup_tout) {
+    ASSERT_LOG(IsLeAcl(handle), "handle %d is not a LE connection", handle);
+    handle_to_le_connection_map_[handle]->LeSubrateRequest(
+        subrate_min, subrate_max, max_latency, cont_num, sup_tout);
   }
 
   void SetConnectionEncryption(HciHandle handle, hci::Enable enable) {
@@ -1686,6 +1716,24 @@ bool shim::legacy::Acl::SniffSubrating(uint16_t hci_handle,
                    maximum_latency, minimum_remote_timeout,
                    minimum_local_timeout);
   return false;
+}
+
+void shim::legacy::Acl::LeSetDefaultSubrate(uint16_t subrate_min,
+                                            uint16_t subrate_max,
+                                            uint16_t max_latency,
+                                            uint16_t cont_num,
+                                            uint16_t sup_tout) {
+  handler_->CallOn(pimpl_.get(), &Acl::impl::LeSetDefaultSubrate, subrate_min,
+                   subrate_max, max_latency, cont_num, sup_tout);
+}
+
+void shim::legacy::Acl::LeSubrateRequest(uint16_t hci_handle,
+                                         uint16_t subrate_min,
+                                         uint16_t subrate_max,
+                                         uint16_t max_latency,
+                                         uint16_t cont_num, uint16_t sup_tout) {
+  handler_->CallOn(pimpl_.get(), &Acl::impl::LeSubrateRequest, hci_handle,
+                   subrate_min, subrate_max, max_latency, cont_num, sup_tout);
 }
 
 void shim::legacy::Acl::DumpConnectionHistory(int fd) const {
