@@ -370,6 +370,21 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
     LeConnectionManagementCallbacks* GetCallbacks() {
       return this;
     }
+    void OnLeSubrateChange(
+        hci::ErrorCode hci_status,
+        uint16_t subrate_factor,
+        uint16_t peripheral_latency,
+        uint16_t continuation_number,
+        uint16_t supervision_timeout) override {
+      LOG_INFO(
+          "hci_status: %s, subrate_factor: %#hx, peripheral_latency: %#hx, continuation_number: %#hx, "
+          "supervision_timeout: %#hx",
+          ErrorCodeText(hci_status).c_str(),
+          subrate_factor,
+          peripheral_latency,
+          continuation_number,
+          supervision_timeout);
+    }
 
     uint16_t handle_;
     std::shared_ptr<LeAclConnection> connection_;

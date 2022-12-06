@@ -383,6 +383,7 @@ tBTM_STATUS set_event_filter_inquiry_result_all_devices() {
   return BTM_SUCCESS;
 }
 
+// clang-format off
 const controller_t interface = {
     get_is_ready,
 
@@ -474,7 +475,9 @@ const controller_t interface = {
     set_event_filter_connection_setup_all_devices,
     allow_wake_by_hid,
     set_default_event_mask_except,
-    set_event_filter_inquiry_result_all_devices};
+    set_event_filter_inquiry_result_all_devices,
+};
+// clang-format on
 
 }  // namespace device_controller
 }  // namespace mock

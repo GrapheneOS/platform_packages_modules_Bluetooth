@@ -126,6 +126,10 @@ typedef struct {
       uint16_t manufacturer_name, uint16_t sub_version);
   void (*on_phy_update)(tGATT_STATUS status, uint16_t handle, uint8_t tx_phy,
                         uint8_t rx_phy);
+
+  void (*on_le_subrate_change)(uint16_t handle, uint16_t subrate_factor,
+                               uint16_t latency, uint16_t cont_num,
+                               uint16_t timeout, uint8_t status);
 } acl_le_link_interface_t;
 
 typedef struct {
