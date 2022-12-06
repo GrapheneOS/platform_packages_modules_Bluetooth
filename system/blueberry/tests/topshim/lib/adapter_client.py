@@ -133,6 +133,11 @@ class AdapterClient(AsyncClosable):
         await self.__adapter_stub.SetLocalIoCaps(facade_pb2.SetLocalIoCapsRequest(io_capability=io_capability))
         return await self._listen_for_event(facade_pb2.EventType.ADAPTER_PROPERTY)
 
+    async def toggle_discovery(self, is_start):
+        await self.__adapter_stub.ToggleDiscovery(facade_pb2.ToggleDiscoveryRequest(is_start=is_start))
+        future = await self._listen_for_event(facade_pb2.EventType.DISCOVERY_STATE)
+        return future
+
 
 class A2dpAutomationHelper():
     """Invoke gRPC on topshim for A2DP testing"""

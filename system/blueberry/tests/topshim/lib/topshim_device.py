@@ -200,3 +200,12 @@ class TopshimDevice(AsyncClosable):
             return (status, io_caps)
 
         return self.__post(waiter(f))
+
+    def toggle_discovery(self, is_start):
+        f = self.__post(self.__adapter.toggle_discovery(is_start))
+
+        async def waiter(f):
+            params = await f
+            return params["state"].data[0]
+
+        return self.__post(waiter(f))

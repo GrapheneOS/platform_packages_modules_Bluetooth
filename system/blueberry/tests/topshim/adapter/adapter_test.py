@@ -46,6 +46,17 @@ class AdapterTest(TopshimBaseTest):
         assertThat(status).isEqualTo("Success")
         assertThat(caps).isEqualTo("None_")
 
+    def test_start_discovery(self):
+        state = self.dut().toggle_discovery(True)
+        assertThat(state).isEqualTo("Started")
+        # Reset device to not discovering.
+        self.dut().toggle_discovery(False)
+
+    def test_cancel_discovery(self):
+        self.dut().toggle_discovery(True)
+        state = self.dut().toggle_discovery(False)
+        assertThat(state).isEqualTo("Stopped")
+
 
 if __name__ == "__main__":
     test_runner.main()

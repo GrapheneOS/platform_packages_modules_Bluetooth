@@ -19,6 +19,7 @@ service AdapterService {
   rpc SetDefaultEventMaskExcept(SetDefaultEventMaskExceptRequest) returns (google.protobuf.Empty) {}
   rpc SetEventFilterInquiryResultAllDevices(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetLocalIoCaps(SetLocalIoCapsRequest) returns (SetLocalIoCapsResponse) {}
+  rpc ToggleDiscovery(ToggleDiscoveryRequest) returns (ToggleDiscoveryResponse) {}
 }
 
 service SecurityService {
@@ -125,6 +126,7 @@ enum EventType {
   GENERATE_LOCAL_OOB_DATA = 3;
   HFP_CONNECTION_STATE = 4;
   ADAPTER_PROPERTY = 5;
+  DISCOVERY_STATE = 6;
 }
 
 message FetchEventsRequest {}
@@ -244,5 +246,13 @@ message SetLocalIoCapsRequest {
 }
 
 message SetLocalIoCapsResponse {
+  int32 status = 1;
+}
+
+message ToggleDiscoveryRequest {
+  bool is_start = 1;
+}
+
+message ToggleDiscoveryResponse {
   int32 status = 1;
 }
