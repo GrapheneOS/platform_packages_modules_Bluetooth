@@ -260,8 +260,8 @@ public class VolumeControlNativeInterface {
     // Callbacks from the native stack back into the Java framework.
     // All callbacks are routed via the Service which will disambiguate which
     // state machine the message should be routed to.
-    @VisibleForTesting
-    void onConnectionStateChanged(int state, byte[] address) {
+
+    private void onConnectionStateChanged(int state, byte[] address) {
         VolumeControlStackEvent event =
                 new VolumeControlStackEvent(
                         VolumeControlStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -274,8 +274,7 @@ public class VolumeControlNativeInterface {
         sendMessageToService(event);
     }
 
-    @VisibleForTesting
-    void onVolumeStateChanged(int volume, boolean mute, byte[] address,
+    private void onVolumeStateChanged(int volume, boolean mute, byte[] address,
             boolean isAutonomous) {
         VolumeControlStackEvent event =
                 new VolumeControlStackEvent(
@@ -292,8 +291,7 @@ public class VolumeControlNativeInterface {
         sendMessageToService(event);
     }
 
-    @VisibleForTesting
-    void onGroupVolumeStateChanged(int volume, boolean mute, int groupId,
+    private void onGroupVolumeStateChanged(int volume, boolean mute, int groupId,
             boolean isAutonomous) {
         VolumeControlStackEvent event =
                 new VolumeControlStackEvent(
@@ -310,8 +308,7 @@ public class VolumeControlNativeInterface {
         sendMessageToService(event);
     }
 
-    @VisibleForTesting
-    void onDeviceAvailable(int numOfExternalOutputs,
+    private void onDeviceAvailable(int numOfExternalOutputs,
                                    byte[] address) {
         VolumeControlStackEvent event =
                 new VolumeControlStackEvent(
@@ -325,8 +322,7 @@ public class VolumeControlNativeInterface {
         sendMessageToService(event);
     }
 
-    @VisibleForTesting
-    void onExtAudioOutVolumeOffsetChanged(int externalOutputId, int offset,
+    private void onExtAudioOutVolumeOffsetChanged(int externalOutputId, int offset,
                                                byte[] address) {
         VolumeControlStackEvent event =
                 new VolumeControlStackEvent(
@@ -341,8 +337,7 @@ public class VolumeControlNativeInterface {
         sendMessageToService(event);
     }
 
-    @VisibleForTesting
-    void onExtAudioOutLocationChanged(int externalOutputId, int location,
+    private void onExtAudioOutLocationChanged(int externalOutputId, int location,
                                                byte[] address) {
         VolumeControlStackEvent event =
                 new VolumeControlStackEvent(
@@ -357,8 +352,7 @@ public class VolumeControlNativeInterface {
         sendMessageToService(event);
     }
 
-    @VisibleForTesting
-    void onExtAudioOutDescriptionChanged(int externalOutputId, String descr,
+    private void onExtAudioOutDescriptionChanged(int externalOutputId, String descr,
                                                byte[] address) {
         VolumeControlStackEvent event =
                 new VolumeControlStackEvent(
