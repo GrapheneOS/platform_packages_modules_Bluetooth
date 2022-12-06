@@ -60,4 +60,8 @@ public class GattObjectsFactory {
     public GattNativeInterface getNativeInterface() {
         return GattNativeInterface.getInstance();
     }
+
+    public ScanNativeInterface getScanNativeInterface() {
+        return ScanNativeInterface.getInstance();
+    }
 }

@@ -26,6 +26,7 @@ import static android.bluetooth.le.ScanSettings.SCAN_MODE_SCREEN_OFF_BALANCED;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -89,6 +90,9 @@ public class ScanManagerTest {
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
     @Mock private AdapterService mAdapterService;
     @Mock private BluetoothAdapterProxy mBluetoothAdapterProxy;
+    @Mock private GattObjectsFactory mFactory;
+    @Mock private GattNativeInterface mNativeInterface;
+    @Mock private ScanNativeInterface mScanNativeInterface;
 
     @Before
     public void setUp() throws Exception {
@@ -100,15 +104,21 @@ public class ScanManagerTest {
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true).when(mAdapterService).isStartedProfile(anyString());
         when(mAdapterService.getScanTimeoutMillis()).
-                thenReturn((long)DELAY_DEFAULT_SCAN_TIMEOUT_MS);
+                thenReturn((long) DELAY_DEFAULT_SCAN_TIMEOUT_MS);
         when(mAdapterService.getNumOfOffloadedScanFilterSupported())
                 .thenReturn(DEFAULT_NUM_OFFLOAD_SCAN_FILTER);
         when(mAdapterService.getOffloadedScanResultStorage())
                 .thenReturn(DEFAULT_BYTES_OFFLOAD_SCAN_RESULT_STORAGE);
 
         BluetoothAdapterProxy.setInstanceForTesting(mBluetoothAdapterProxy);
-        // TODO: Need to handle Native call/callback for hw filter configuration when return true
-        when(mBluetoothAdapterProxy.isOffloadedScanFilteringSupported()).thenReturn(false);
+        // Needed to mock Native call/callback when hw offload scan filter is enabled
+        when(mBluetoothAdapterProxy.isOffloadedScanFilteringSupported()).thenReturn(true);
+
+        GattObjectsFactory.setInstanceForTesting(mFactory);
+        doReturn(mNativeInterface).when(mFactory).getNativeInterface();
+        doReturn(mScanNativeInterface).when(mFactory).getScanNativeInterface();
+        // Mock JNI callback in ScanNativeInterface
+        doReturn(true).when(mScanNativeInterface).waitForCallback(anyInt());
 
         TestUtils.startService(mServiceRule, GattService.class);
         mService = GattService.getGattService();
@@ -135,6 +145,7 @@ public class ScanManagerTest {
         assertThat(mService).isNull();
         TestUtils.clearAdapterService(mAdapterService);
         BluetoothAdapterProxy.setInstanceForTesting(null);
+        GattObjectsFactory.setInstanceForTesting(null);
     }
 
     private void testSleep(long millis) {
@@ -182,7 +193,7 @@ public class ScanManagerTest {
     private ScanSettings createScanSettings(int scanMode, boolean isBatch) {
 
         ScanSettings scanSettings = null;
-        if(isBatch) {
+        if (isBatch) {
             scanSettings = new ScanSettings.Builder().setScanMode(scanMode)
                     .setReportDelay(DEFAULT_SCAN_REPORT_DELAY_MS).build();
         } else {
@@ -419,7 +430,7 @@ public class ScanManagerTest {
         scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_OPPORTUNISTIC);
         scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_OPPORTUNISTIC);
         // Set scan timeout through Mock
-        when(mAdapterService.getScanTimeoutMillis()).thenReturn((long)DELAY_SCAN_TIMEOUT_MS);
+        when(mAdapterService.getScanTimeoutMillis()).thenReturn((long) DELAY_SCAN_TIMEOUT_MS);
 
         for (int i = 0; i < scanModeMap.size(); i++) {
             int ScanMode = scanModeMap.keyAt(i);
@@ -464,7 +475,7 @@ public class ScanManagerTest {
         scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_LOW_POWER);
         scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_LOW_POWER);
         // Set scan timeout through Mock
-        when(mAdapterService.getScanTimeoutMillis()).thenReturn((long)DELAY_SCAN_TIMEOUT_MS);
+        when(mAdapterService.getScanTimeoutMillis()).thenReturn((long) DELAY_SCAN_TIMEOUT_MS);
 
         for (int i = 0; i < scanModeMap.size(); i++) {
             int ScanMode = scanModeMap.keyAt(i);
@@ -588,7 +599,7 @@ public class ScanManagerTest {
         scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_LOW_LATENCY);
         // Set scan upgrade duration through Mock
         when(mAdapterService.getScanUpgradeDurationMillis()).
-                thenReturn((long)DELAY_SCAN_UPGRADE_DURATION_MS);
+                thenReturn((long) DELAY_SCAN_UPGRADE_DURATION_MS);
 
         for (int i = 0; i < scanModeMap.size(); i++) {
             int ScanMode = scanModeMap.keyAt(i);
@@ -625,10 +636,10 @@ public class ScanManagerTest {
         scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_BALANCED);
         // Set scan upgrade duration through Mock
         when(mAdapterService.getScanUpgradeDurationMillis()).
-                thenReturn((long)DELAY_SCAN_UPGRADE_DURATION_MS);
+                thenReturn((long) DELAY_SCAN_UPGRADE_DURATION_MS);
         // Set scan downgrade duration through Mock
         when(mAdapterService.getScanDowngradeDurationMillis()).
-                thenReturn((long)DELAY_SCAN_DOWNGRADE_DURATION_MS);
+                thenReturn((long) DELAY_SCAN_DOWNGRADE_DURATION_MS);
 
         for (int i = 0; i < scanModeMap.size(); i++) {
             int ScanMode = scanModeMap.keyAt(i);
@@ -669,7 +680,7 @@ public class ScanManagerTest {
         scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_AMBIENT_DISCOVERY);
         // Set scan downgrade duration through Mock
         when(mAdapterService.getScanDowngradeDurationMillis()).
-                thenReturn((long)DELAY_SCAN_DOWNGRADE_DURATION_MS);
+                thenReturn((long) DELAY_SCAN_DOWNGRADE_DURATION_MS);
 
         for (int i = 0; i < scanModeMap.size(); i++) {
             int ScanMode = scanModeMap.keyAt(i);
@@ -709,7 +720,7 @@ public class ScanManagerTest {
         scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_SCREEN_OFF_BALANCED);
         // Set scan downgrade duration through Mock
         when(mAdapterService.getScanDowngradeDurationMillis()).
-                thenReturn((long)DELAY_SCAN_DOWNGRADE_DURATION_MS);
+                thenReturn((long) DELAY_SCAN_DOWNGRADE_DURATION_MS);
 
         for (int i = 0; i < scanModeMap.size(); i++) {
             int ScanMode = scanModeMap.keyAt(i);
@@ -752,7 +763,7 @@ public class ScanManagerTest {
         scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_LOW_POWER);
         // Set scan downgrade duration through Mock
         when(mAdapterService.getScanDowngradeDurationMillis()).
-                thenReturn((long)DELAY_SCAN_DOWNGRADE_DURATION_MS);
+                thenReturn((long) DELAY_SCAN_DOWNGRADE_DURATION_MS);
 
         for (int i = 0; i < scanModeMap.size(); i++) {
             int ScanMode = scanModeMap.keyAt(i);
@@ -780,6 +791,79 @@ public class ScanManagerTest {
             assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
             assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
             assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
+        }
+    }
+
+    @Test
+    public void testStartUnfilteredBatchScan() {
+        // Set filtered and batch scan flag
+        final boolean isFiltered = false;
+        final boolean isBatch = true;
+        // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
+        SparseIntArray scanModeMap = new SparseIntArray();
+        scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_LOW_POWER);
+        scanModeMap.put(SCAN_MODE_BALANCED, SCAN_MODE_BALANCED);
+        scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_LOW_LATENCY);
+        scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_LOW_LATENCY);
+
+        for (int i = 0; i < scanModeMap.size(); i++) {
+            int ScanMode = scanModeMap.keyAt(i);
+            int expectedScanMode = scanModeMap.get(ScanMode);
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode)
+                    + " expectedScanMode: " + String.valueOf(expectedScanMode));
+
+            // Turn off screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(false));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode, isBatch);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isFalse();
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getBatchScanParams().scanMode).isEqualTo(expectedScanMode);
+        }
+    }
+
+    @Test
+    public void testStartFilteredBatchScan() {
+        // Set filtered and batch scan flag
+        final boolean isFiltered = true;
+        final boolean isBatch = true;
+        // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
+        SparseIntArray scanModeMap = new SparseIntArray();
+        scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_LOW_POWER);
+        scanModeMap.put(SCAN_MODE_BALANCED, SCAN_MODE_BALANCED);
+        scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_LOW_LATENCY);
+        scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_LOW_LATENCY);
+
+        for (int i = 0; i < scanModeMap.size(); i++) {
+            int ScanMode = scanModeMap.keyAt(i);
+            int expectedScanMode = scanModeMap.get(ScanMode);
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode)
+                    + " expectedScanMode: " + String.valueOf(expectedScanMode));
+
+            // Turn off screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(false));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode, isBatch);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getBatchScanParams().scanMode).isEqualTo(expectedScanMode);
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getBatchScanParams().scanMode).isEqualTo(expectedScanMode);
         }
     }
 }
