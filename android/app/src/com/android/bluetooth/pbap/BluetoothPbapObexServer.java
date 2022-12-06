@@ -696,7 +696,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     /** To parse obex application parameter */
-    private boolean parseApplicationParameter(final byte[] appParam, AppParamValue appParamValue) {
+    @VisibleForTesting
+    boolean parseApplicationParameter(final byte[] appParam, AppParamValue appParamValue) {
         int i = 0;
         boolean parseOk = true;
         while ((i < appParam.length) && (parseOk)) {
@@ -974,7 +975,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
      * Function to send obex header back to client such as get phonebook size
      * request
      */
-    private int pushHeader(final Operation op, final HeaderSet reply) {
+    @VisibleForTesting
+    static int pushHeader(final Operation op, final HeaderSet reply) {
         OutputStream outputStream = null;
 
         if (D) {
@@ -1495,7 +1497,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     /**
      * XML encode special characters in the name field
      */
-    private void xmlEncode(String name, StringBuilder result) {
+    private static void xmlEncode(String name, StringBuilder result) {
         if (name == null) {
             return;
         }
@@ -1521,7 +1523,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
     }
 
-    private void writeVCardEntry(int vcfIndex, String name, StringBuilder result) {
+    @VisibleForTesting
+    static void writeVCardEntry(int vcfIndex, String name, StringBuilder result) {
         result.append("<card handle=\"");
         result.append(vcfIndex);
         result.append(".vcf\" name=\"");
@@ -1556,13 +1559,15 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
     }
 
-    private void setDbCounters(ApplicationParameter ap) {
+    @VisibleForTesting
+    void setDbCounters(ApplicationParameter ap) {
         ap.addTriplet(ApplicationParameter.TRIPLET_TAGID.DATABASEIDENTIFIER_TAGID,
                 ApplicationParameter.TRIPLET_LENGTH.DATABASEIDENTIFIER_LENGTH,
                 getDatabaseIdentifier());
     }
 
-    private void setFolderVersionCounters(ApplicationParameter ap) {
+    @VisibleForTesting
+    static void setFolderVersionCounters(ApplicationParameter ap) {
         ap.addTriplet(ApplicationParameter.TRIPLET_TAGID.PRIMARYVERSIONCOUNTER_TAGID,
                 ApplicationParameter.TRIPLET_LENGTH.PRIMARYVERSIONCOUNTER_LENGTH,
                 getPBPrimaryFolderVersion());
@@ -1571,7 +1576,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 getPBSecondaryFolderVersion());
     }
 
-    private void setCallversionCounters(ApplicationParameter ap, AppParamValue appParamValue) {
+    @VisibleForTesting
+    static void setCallversionCounters(ApplicationParameter ap, AppParamValue appParamValue) {
         ap.addTriplet(ApplicationParameter.TRIPLET_TAGID.PRIMARYVERSIONCOUNTER_TAGID,
                 ApplicationParameter.TRIPLET_LENGTH.PRIMARYVERSIONCOUNTER_LENGTH,
                 appParamValue.callHistoryVersionCounter);
@@ -1581,7 +1587,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 appParamValue.callHistoryVersionCounter);
     }
 
-    private byte[] getDatabaseIdentifier() {
+    @VisibleForTesting
+    byte[] getDatabaseIdentifier() {
         mDatabaseIdentifierHigh = 0;
         mDatabaseIdentifierLow = BluetoothPbapUtils.sDbIdentifier.get();
         if (mDatabaseIdentifierLow != INVALID_VALUE_PARAMETER
@@ -1595,7 +1602,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
     }
 
-    private byte[] getPBPrimaryFolderVersion() {
+    @VisibleForTesting
+    static byte[] getPBPrimaryFolderVersion() {
         long primaryVcMsb = 0;
         ByteBuffer pvc = ByteBuffer.allocate(16);
         pvc.putLong(primaryVcMsb);
@@ -1605,7 +1613,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         return pvc.array();
     }
 
-    private byte[] getPBSecondaryFolderVersion() {
+    @VisibleForTesting
+    static byte[] getPBSecondaryFolderVersion() {
         long secondaryVcMsb = 0;
         ByteBuffer svc = ByteBuffer.allocate(16);
         svc.putLong(secondaryVcMsb);
