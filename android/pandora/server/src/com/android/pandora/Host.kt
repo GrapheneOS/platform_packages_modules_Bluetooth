@@ -43,6 +43,7 @@ import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import java.io.IOException
 import java.time.Duration
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -61,15 +62,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import pandora.HostGrpc.HostImplBase
 import pandora.HostProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class Host(
-  private val context: Context,
-  private val security: Security,
-  private val server: Server
-) : HostImplBase() {
+class Host(private val context: Context, private val server: Server) : HostImplBase() {
   private val TAG = "PandoraHost"
 
   private val scope: CoroutineScope
@@ -196,7 +194,7 @@ class Host(
       .first()
   }
 
-  suspend fun waitBondIntent(bluetoothDevice: BluetoothDevice) {
+  private suspend fun waitBondIntent(bluetoothDevice: BluetoothDevice) {
     // We only wait for bonding to be completed since we only need the ACL connection to be
     // established with the peer device (on Android state connected is sent when all profiles
     // have been connected).
@@ -231,7 +229,7 @@ class Host(
         throw Status.UNKNOWN.asException()
       }
 
-      if (security.manuallyConfirm) {
+      if (request.manuallyConfirm) {
         waitBondIntent(bluetoothDevice)
       } else {
         acceptPairingAndAwaitBonded(bluetoothDevice)
@@ -252,15 +250,24 @@ class Host(
       bluetoothAdapter.cancelDiscovery()
 
       if (!bluetoothDevice.isConnected()) {
-        if (bluetoothDevice.bondState == BOND_BONDED) {
-          // already bonded, just reconnect
-          bluetoothDevice.connect()
-          waitConnectionIntent(bluetoothDevice)
+        if (request.skipPairing) {
+          // do an SDP request to trigger a temporary BREDR connection
+          try {
+            withTimeout(1500) { bluetoothDevice.createRfcommSocket(3).connect() }
+          } catch (e: IOException) {
+            // ignore
+          }
         } else {
-          // need to bond
-          bluetoothDevice.createBond()
-          if (!security.manuallyConfirm) {
-            acceptPairingAndAwaitBonded(bluetoothDevice)
+          if (bluetoothDevice.bondState == BOND_BONDED) {
+            // already bonded, just reconnect
+            bluetoothDevice.connect()
+            waitConnectionIntent(bluetoothDevice)
+          } else {
+            // need to bond
+            bluetoothDevice.createBond()
+            if (!request.manuallyConfirm) {
+              acceptPairingAndAwaitBonded(bluetoothDevice)
+            }
           }
         }
       }
@@ -683,7 +690,7 @@ class Host(
       val deviceName = device.name
       if (deviceName == null) {
         GetRemoteNameResponse.newBuilder().setRemoteNotFound(Empty.getDefaultInstance()).build()
-      } else {
+      } else{
         GetRemoteNameResponse.newBuilder().setName(deviceName).build()
       }
     }

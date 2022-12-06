@@ -47,7 +47,6 @@ cc_binary {
         "main.cc",
         "messenger.cc",
         "pairing/pairing.cc",
-        "util.cc",
         "discovery/discovery.cc",
         "dumpsys/dumpsys.cc",
         "scan/scan.cc",

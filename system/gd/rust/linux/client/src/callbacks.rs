@@ -807,15 +807,11 @@ impl IBluetoothSocketManagerCallbacks for BtSocketManagerCallback {
 
     fn on_outgoing_connection_result(
         &mut self,
-        connecting_id: SocketId,
-        result: BtStatus,
-        socket: Option<BluetoothSocket>,
+        _connecting_id: SocketId,
+        _result: BtStatus,
+        _socket: Option<BluetoothSocket>,
     ) {
-        if let Some(s) = socket {
-            print_info!("Connection success on {}: {:?} for {}", connecting_id, result, s);
-        } else {
-            print_info!("Connection failed on {}: {:?}", connecting_id, result);
-        }
+        todo!();
     }
 }
 

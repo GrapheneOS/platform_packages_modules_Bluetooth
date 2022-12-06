@@ -41,13 +41,11 @@ class Server(context: Context) {
   private var pbap: Pbap
   private var rfcomm: Rfcomm
   private var security: Security
-  private var securityStorage: SecurityStorage
   private var androidInternal: AndroidInternal
   private var grpcServer: GrpcServer
 
   init {
-    security = Security(context)
-    host = Host(context, security, this)
+    host = Host(context, this)
     avrcp = Avrcp(context)
     gatt = Gatt(context)
     hfp = Hfp(context)
@@ -56,7 +54,7 @@ class Server(context: Context) {
     mediaplayer = MediaPlayer(context)
     pbap = Pbap(context)
     rfcomm = Rfcomm(context)
-    securityStorage = SecurityStorage(context)
+    security = Security(context)
     androidInternal = AndroidInternal(context)
 
     val grpcServerBuilder =
@@ -71,7 +69,6 @@ class Server(context: Context) {
         .addService(pbap)
         .addService(rfcomm)
         .addService(security)
-        .addService(securityStorage)
         .addService(androidInternal)
 
     val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)!!.adapter
@@ -108,7 +105,6 @@ class Server(context: Context) {
     pbap.deinit()
     rfcomm.deinit()
     security.deinit()
-    securityStorage.deinit()
     androidInternal.deinit()
   }
 }

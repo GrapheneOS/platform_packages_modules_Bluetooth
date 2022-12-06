@@ -64,10 +64,7 @@ class AdapterClient(AsyncClosable):
         """Start fetching events"""
         future = asyncio.get_running_loop().create_future()
         self.__task_list.append(asyncio.get_running_loop().create_task(self.__get_next_event(event, future)))
-        try:
-            await asyncio.wait_for(future, AdapterClient.DEFAULT_TIMEOUT)
-        except:
-            print("Failed to get event", event)
+        await asyncio.wait_for(future, AdapterClient.DEFAULT_TIMEOUT)
         return future
 
     async def _verify_adapter_started(self):

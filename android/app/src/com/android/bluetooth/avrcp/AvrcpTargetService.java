@@ -509,8 +509,11 @@ public class AvrcpTargetService extends ProfileService {
 
         @Override
         public void sendVolumeChanged(int volume) {
-            if (mService == null
-                    || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)) {
+            if (!Utils.callerIsSystemOrActiveUser(TAG, "sendVolumeChanged")) {
+                return;
+            }
+
+            if (mService == null) {
                 return;
             }
 

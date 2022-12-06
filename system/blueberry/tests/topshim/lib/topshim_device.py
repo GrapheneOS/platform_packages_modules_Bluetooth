@@ -21,8 +21,8 @@ from blueberry.tests.gd.cert.gd_device import MOBLY_CONTROLLER_CONFIG_NAME
 from blueberry.tests.gd.cert.os_utils import get_gd_root
 from blueberry.tests.topshim.lib.async_closable import AsyncClosable
 from blueberry.tests.topshim.lib.async_closable import asyncSafeClose
-from blueberry.tests.topshim.lib.oob_data import OobData
 from blueberry.tests.topshim.lib.gatt_client import GattClient
+from blueberry.tests.topshim.lib.security_client import SecurityClient
 
 
 def create(configs):
@@ -68,28 +68,24 @@ def get_instances_with_configs(configs):
     return devices
 
 
-TRANSPORT_CLASSIC = 1
-TRANSPORT_LE = 2
-
-
 class TopshimDevice(AsyncClosable):
     __adapter = None
     __gatt = None
     __security = None
 
     async def __le_rand_wrapper(self, async_fn):
-        result = await async_fn
-        await self.__adapter.le_rand()
-        le_rand_future = await self.__adapter._listen_for_event(facade_pb2.EventType.LE_RAND)
-        return result
+        await async_fn
+
+
+#        await self.__adapter.le_rand()
 
     def __post(self, async_fn):
-        return asyncio.get_event_loop().run_until_complete(async_fn)
+        asyncio.get_event_loop().run_until_complete(self.__le_rand_wrapper(async_fn))
 
-    def __init__(self, adapter, gatt, security):
+    def __init__(self, adapter, grpc_port):
         self.__adapter = adapter
-        self.__gatt = gatt
-        self.__security = security
+        self.__gatt = GattClient(port=grpc_port)
+        self.__security = SecurityClient(adapter, port=grpc_port)
 
     async def close(self):
         """
@@ -156,20 +152,3 @@ class TopshimDevice(AsyncClosable):
         Removes a bonding entry for a given address.
         """
         self.__post(self.__security.remove_bond(address))
-
-    def generate_local_oob_data(self, transport=TRANSPORT_LE):
-        """
-        Generate local Out of Band data
-
-        @param transport TRANSPORT_CLASSIC or TRANSPORT_LE
-
-        @return a future to await on fo the data
-        """
-        f = self.__post(self.__security.generate_local_oob_data(transport))
-
-        async def waiter(f):
-            data = await f
-            data_list = data.split(";")
-            return OobData(data_list[0], data_list[1], data_list[2], data_list[3], data_list[4])
-
-        return asyncio.get_event_loop().run_until_complete(waiter(f))

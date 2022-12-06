@@ -194,11 +194,11 @@ impl BluetoothSocket {
         }
     }
 
-    fn make_l2cap_channel(flags: i32, device: BluetoothDevice, psm: i32) -> Self {
+    fn make_l2cap_le_channel(flags: i32, device: BluetoothDevice, psm: i32) -> Self {
         BluetoothSocket {
             id: 0,
             remote_device: device,
-            sock_type: SocketType::L2cap,
+            sock_type: SocketType::L2capLe,
             flags: flags,
             fd: None,
             port: psm,
@@ -1092,7 +1092,8 @@ impl IBluetoothSocketManager for BluetoothSocketManager {
             return SocketResult::new(BtStatus::NotReady, INVALID_SOCKET_ID);
         }
 
-        let socket_info = BluetoothSocket::make_l2cap_channel(socket::SOCK_FLAG_NONE, device, psm);
+        let socket_info =
+            BluetoothSocket::make_l2cap_le_channel(socket::SOCK_FLAG_NONE, device, psm);
         self.socket_connect(socket_info, callback)
     }
 
@@ -1107,7 +1108,7 @@ impl IBluetoothSocketManager for BluetoothSocketManager {
         }
 
         let socket_info =
-            BluetoothSocket::make_l2cap_channel(socket::SOCK_META_FLAG_SECURE, device, psm);
+            BluetoothSocket::make_l2cap_le_channel(socket::SOCK_META_FLAG_SECURE, device, psm);
         self.socket_connect(socket_info, callback)
     }
 

@@ -13,6 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.matchers import IsoMatchers
 from blueberry.tests.gd.cert.metadata import metadata
 from blueberry.tests.gd.cert.py_l2cap import PyLeL2cap
@@ -28,7 +29,6 @@ from blueberry.facade.hci import le_advertising_manager_facade_pb2 as le_adverti
 from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
 from mobly import asserts
 from mobly import test_runner
-import hci_packets as hci
 
 
 class LeIsoTest(gd_base_test.GdBaseTestClass):
@@ -74,8 +74,10 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
     #cert becomes central of connection, dut peripheral
     def _setup_link_from_cert(self):
         # DUT Advertises
-        gap_name = hci.GapData(data_type=hci.GapDataType.COMPLETE_LOCAL_NAME, data=list(bytes(b'Im_The_DUT')))
-        gap_data = le_advertising_facade.GapDataMsg(data=gap_name.serialize())
+        gap_name = hci_packets.GapData()
+        gap_name.data_type = hci_packets.GapDataType.COMPLETE_LOCAL_NAME
+        gap_name.data = list(bytes(b'Im_The_DUT'))
+        gap_data = le_advertising_facade.GapDataMsg(data=bytes(gap_name.Serialize()))
         config = le_advertising_facade.AdvertisingConfig(
             advertisement=[gap_data],
             interval_min=512,
@@ -109,12 +111,13 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
 
     def skip_if_iso_not_supported(self):
         supported = self.dut.hci_controller.IsSupportedCommand(
-            controller_facade.OpCodeMsg(op_code=int(hci.OpCode.LE_SET_CIG_PARAMETERS)))
+            controller_facade.OpCodeMsg(op_code=int(hci_packets.OpCode.LE_SET_CIG_PARAMETERS)))
         if (not supported.supported):
             asserts.skip("Skipping this test.  The chip doesn't support LE ISO")
 
-    @metadata(pts_test_id="IAL/CIS/UNF/SLA/BV-01-C",
-              pts_test_name="connected isochronous stream, unframed data, peripheral role")
+    @metadata(
+        pts_test_id="IAL/CIS/UNF/SLA/BV-01-C",
+        pts_test_name="connected isochronous stream, unframed data, peripheral role")
     def test_iso_cis_unf_sla_bv_01_c(self):
         self.skip_if_iso_not_supported()
         """
@@ -137,17 +140,16 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         bn_s_to_m = 2
 
         self._setup_link_from_cert()
-        (dut_cis_stream,
-         cert_cis_stream) = self._setup_cis_from_cert(cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m,
-                                                      peripherals_clock_accuracy, packing, framing,
-                                                      max_transport_latency_m_to_s, max_transport_latency_s_to_m,
-                                                      cis_id, max_sdu_m_to_s, max_sdu_s_to_m, phy_m_to_s, phy_s_to_m,
-                                                      bn_m_to_s, bn_s_to_m)
+        (dut_cis_stream, cert_cis_stream) = self._setup_cis_from_cert(
+            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, peripherals_clock_accuracy, packing, framing,
+            max_transport_latency_m_to_s, max_transport_latency_s_to_m, cis_id, max_sdu_m_to_s, max_sdu_s_to_m,
+            phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m)
         dut_cis_stream.send(b'abcdefgh' * 10)
         assertThat(cert_cis_stream).emits(IsoMatchers.Data(b'abcdefgh' * 10))
 
-    @metadata(pts_test_id="IAL/CIS/UNF/SLA/BV-25-C",
-              pts_test_name="connected isochronous stream, unframed data, peripheral role")
+    @metadata(
+        pts_test_id="IAL/CIS/UNF/SLA/BV-25-C",
+        pts_test_name="connected isochronous stream, unframed data, peripheral role")
     def test_iso_cis_unf_sla_bv_25_c(self):
         self.skip_if_iso_not_supported()
         """
@@ -170,17 +172,16 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         bn_s_to_m = 1
 
         self._setup_link_from_cert()
-        (dut_cis_stream,
-         cert_cis_stream) = self._setup_cis_from_cert(cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m,
-                                                      peripherals_clock_accuracy, packing, framing,
-                                                      max_transport_latency_m_to_s, max_transport_latency_s_to_m,
-                                                      cis_id, max_sdu_m_to_s, max_sdu_s_to_m, phy_m_to_s, phy_s_to_m,
-                                                      bn_m_to_s, bn_s_to_m)
+        (dut_cis_stream, cert_cis_stream) = self._setup_cis_from_cert(
+            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, peripherals_clock_accuracy, packing, framing,
+            max_transport_latency_m_to_s, max_transport_latency_s_to_m, cis_id, max_sdu_m_to_s, max_sdu_s_to_m,
+            phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m)
         dut_cis_stream.send(b'abcdefgh' * 10)
         assertThat(cert_cis_stream).emits(IsoMatchers.Data(b'abcdefgh' * 10))
 
-    @metadata(pts_test_id="IAL/CIS/FRA/SLA/BV-03-C",
-              pts_test_name="connected isochronous stream, framed data, peripheral role")
+    @metadata(
+        pts_test_id="IAL/CIS/FRA/SLA/BV-03-C",
+        pts_test_name="connected isochronous stream, framed data, peripheral role")
     def test_iso_cis_fra_sla_bv_03_c(self):
         self.skip_if_iso_not_supported()
         """
@@ -203,17 +204,16 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         bn_s_to_m = 2
 
         self._setup_link_from_cert()
-        (dut_cis_stream,
-         cert_cis_stream) = self._setup_cis_from_cert(cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m,
-                                                      peripherals_clock_accuracy, packing, framing,
-                                                      max_transport_latency_m_to_s, max_transport_latency_s_to_m,
-                                                      cis_id, max_sdu_m_to_s, max_sdu_s_to_m, phy_m_to_s, phy_s_to_m,
-                                                      bn_m_to_s, bn_s_to_m)
+        (dut_cis_stream, cert_cis_stream) = self._setup_cis_from_cert(
+            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, peripherals_clock_accuracy, packing, framing,
+            max_transport_latency_m_to_s, max_transport_latency_s_to_m, cis_id, max_sdu_m_to_s, max_sdu_s_to_m,
+            phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m)
         dut_cis_stream.send(b'abcdefgh' * 10)
         assertThat(cert_cis_stream).emits(IsoMatchers.Data(b'abcdefgh' * 10))
 
-    @metadata(pts_test_id="IAL/CIS/FRA/SLA/BV-26-C",
-              pts_test_name="connected isochronous stream, framed data, peripheral role")
+    @metadata(
+        pts_test_id="IAL/CIS/FRA/SLA/BV-26-C",
+        pts_test_name="connected isochronous stream, framed data, peripheral role")
     def test_iso_cis_fra_sla_bv_26_c(self):
         self.skip_if_iso_not_supported()
         """
@@ -236,12 +236,10 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         bn_s_to_m = 1
 
         self._setup_link_from_cert()
-        (dut_cis_stream,
-         cert_cis_stream) = self._setup_cis_from_cert(cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m,
-                                                      peripherals_clock_accuracy, packing, framing,
-                                                      max_transport_latency_m_to_s, max_transport_latency_s_to_m,
-                                                      cis_id, max_sdu_m_to_s, max_sdu_s_to_m, phy_m_to_s, phy_s_to_m,
-                                                      bn_m_to_s, bn_s_to_m)
+        (dut_cis_stream, cert_cis_stream) = self._setup_cis_from_cert(
+            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, peripherals_clock_accuracy, packing, framing,
+            max_transport_latency_m_to_s, max_transport_latency_s_to_m, cis_id, max_sdu_m_to_s, max_sdu_s_to_m,
+            phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m)
         dut_cis_stream.send(b'abcdefgh' * 10)
         assertThat(cert_cis_stream).emits(IsoMatchers.Data(b'abcdefgh' * 10))
 

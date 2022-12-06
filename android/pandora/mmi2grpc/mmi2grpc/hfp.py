@@ -19,7 +19,7 @@ from mmi2grpc._proxy import ProfileProxy
 from pandora_experimental.hfp_grpc import HFP
 from pandora_experimental.host_grpc import Host
 from pandora_experimental.host_pb2 import ConnectabilityMode
-from pandora_experimental.security_grpc import Security, SecurityStorage
+from pandora_experimental.security_grpc import Security
 from pandora_experimental.hfp_pb2 import AudioPath
 
 import sys
@@ -43,7 +43,6 @@ class HFPProxy(ProfileProxy):
         self.hfp = HFP(channel)
         self.host = Host(channel)
         self.security = Security(channel)
-        self.security_storage = SecurityStorage(channel)
         self.rootcanal = rootcanal
         self.modem = modem
 
@@ -76,7 +75,7 @@ class HFPProxy(ProfileProxy):
         (IUT), then click Ok.
         """
 
-        self.security_storage.DeleteBond(public=pts_addr)
+        self.security.DeletePairing(address=pts_addr)
         return "OK"
 
     @assert_description

@@ -372,12 +372,9 @@ public final class Utils {
      */
     public static boolean isPackageNameAccurate(Context context, String callingPackage,
             int callingUid) {
-        UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
-
         // Verifies the integrity of the calling package name
         try {
-            int packageUid = context.createContextAsUser(callingUser, 0)
-                    .getPackageManager().getPackageUid(callingPackage, 0);
+            int packageUid = context.getPackageManager().getPackageUid(callingPackage, 0);
             if (packageUid != callingUid) {
                 Log.e(TAG, "isPackageNameAccurate: App with package name " + callingPackage
                         + " is UID " + packageUid + " but caller is " + callingUid);

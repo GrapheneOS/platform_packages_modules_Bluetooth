@@ -38,7 +38,6 @@
 #include "test/headless/read/read.h"
 #include "test/headless/scan/scan.h"
 #include "test/headless/sdp/sdp.h"
-#include "test/headless/util.h"
 
 using namespace bluetooth::test::headless;
 
@@ -124,11 +123,6 @@ class Main : public HeadlessTest<int> {
     }
 
     start_trick_the_android_logging_subsystem();
-    if (is_android_running()) {
-      LOG_CONSOLE("Android must be shutdown for binary to run");
-      LOG_CONSOLE("     /system/bin/stop");
-      return -1;
-    }
     LOG_CONSOLE("bt_headless version:\'%s\'", build_id().c_str());
     int rc = HeadlessTest<int>::Run();
     stop_trick_the_android_logging_subsystem();

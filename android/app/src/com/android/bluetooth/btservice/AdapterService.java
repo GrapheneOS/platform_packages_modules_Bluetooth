@@ -21,6 +21,7 @@ import static android.text.format.DateUtils.MINUTE_IN_MILLIS;
 import static android.text.format.DateUtils.SECOND_IN_MILLIS;
 
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
+import static com.android.bluetooth.Utils.callerIsSystemOrActiveUser;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.enforceCdmAssociation;
 import static com.android.bluetooth.Utils.enforceDumpPermission;
@@ -1647,7 +1648,7 @@ public class AdapterService extends Service {
         })
         private boolean enable(boolean quietMode, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "enable")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "enable")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService enable")) {
                 return false;
@@ -1667,7 +1668,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private boolean disable(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "disable")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "disable")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService disable")) {
                 return false;
@@ -1713,7 +1714,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private List<ParcelUuid> getUuids(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getUuids")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getUuids")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getUuids")) {
                 return new ArrayList<>();
@@ -1736,8 +1737,7 @@ public class AdapterService extends Service {
         }
         public String getIdentityAddress(String address) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getIdentityAddress")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getIdentityAddress")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, Utils.getCallingAttributionSource(mService),
                                 "AdapterService getIdentityAddress")) {
@@ -1758,7 +1758,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private String getName(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getName")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getName")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getName")) {
                 return null;
@@ -1779,9 +1779,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
         private int getNameLengthForAdvertise(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "getNameLengthForAdvertise")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getNameLengthForAdvertise")
                     || !Utils.checkAdvertisePermissionForDataDelivery(
                             service, attributionSource, TAG)) {
                 return -1;
@@ -1802,7 +1800,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private boolean setName(String name, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setName")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setName")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setName")) {
                 return false;
@@ -1823,8 +1821,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private BluetoothClass getBluetoothClass(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getBluetoothClass")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getBluetoothClass")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterSource getBluetoothClass")) {
                 return null;
@@ -1849,7 +1846,7 @@ public class AdapterService extends Service {
         private boolean setBluetoothClass(BluetoothClass bluetoothClass, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setBluetoothClass")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -1877,8 +1874,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getIoCapability(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getIoCapability")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getIoCapability")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getIoCapability")) {
                 return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
@@ -1903,7 +1899,7 @@ public class AdapterService extends Service {
         private boolean setIoCapability(int capability, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setIoCapability")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -1929,8 +1925,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getLeIoCapability(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getLeIoCapability")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getLeIoCapability")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getLeIoCapability")) {
                 return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
@@ -1955,7 +1950,7 @@ public class AdapterService extends Service {
         private boolean setLeIoCapability(int capability, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setLeIoCapability")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -2002,8 +1997,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private int setScanMode(int mode, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setScanMode")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setScanMode")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setScanMode")) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION;
@@ -2026,8 +2020,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private long getDiscoverableTimeout(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getDiscoverableTimeout")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getDiscoverableTimeout")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getDiscoverableTimeout")) {
                 return -1;
@@ -2048,8 +2041,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private int setDiscoverableTimeout(long timeout, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setDiscoverableTimeout")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setDiscoverableTimeout")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setDiscoverableTimeout")) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION;
@@ -2071,8 +2063,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private boolean startDiscovery(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "startDiscovery")) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "startDiscovery")) {
                 return false;
             }
 
@@ -2095,8 +2086,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         private boolean cancelDiscovery(AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "cancelDiscovery")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "cancelDiscovery")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService cancelDiscovery")) {
                 return false;
@@ -2143,7 +2133,7 @@ public class AdapterService extends Service {
         private long getDiscoveryEndMillis(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getDiscoveryEndMillis")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return -1;
             }
@@ -2291,8 +2281,7 @@ public class AdapterService extends Service {
         private boolean cancelBondProcess(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "cancelBondProcess")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "cancelBondProcess")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService cancelBondProcess")) {
                 return false;
@@ -2320,8 +2309,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private boolean removeBond(BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "removeBond")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "removeBond")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService removeBond")) {
                 return false;
@@ -2402,7 +2390,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "generateLocalOobData")
+                    || !Utils.checkCallerIsSystemOrActiveOrManagedUser(service, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return;
             }
@@ -2498,7 +2486,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "removeActiveDevice")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -2523,7 +2511,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setActiveDevice")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -2550,7 +2538,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getActiveDevices")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return new ArrayList<>();
             }
@@ -2580,7 +2568,7 @@ public class AdapterService extends Service {
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
-            if (!callerIsSystemOrActiveOrManagedUser(service, TAG, "connectAllEnabledProfiles")) {
+            if (!callerIsSystemOrActiveUser(TAG, "connectAllEnabledProfiles")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
             if (device == null) {
@@ -2623,8 +2611,7 @@ public class AdapterService extends Service {
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
-            if (!callerIsSystemOrActiveOrManagedUser(service,
-                    TAG, "disconnectAllEnabledProfiles")) {
+            if (!callerIsSystemOrActiveUser(TAG, "disconnectAllEnabledProfiles")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
             if (device == null) {
@@ -2734,7 +2721,7 @@ public class AdapterService extends Service {
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
-            if (!callerIsSystemOrActiveOrManagedUser(service, TAG, "setRemoteAlias")) {
+            if (!callerIsSystemOrActiveUser(TAG, "setRemoteAlias")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
             if (name != null && name.isEmpty()) {
@@ -2851,8 +2838,7 @@ public class AdapterService extends Service {
         private boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode,
                 AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setPin")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setPin")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setPin")) {
                 return false;
@@ -2888,8 +2874,7 @@ public class AdapterService extends Service {
         private boolean setPasskey(BluetoothDevice device, boolean accept, int len, byte[] passkey,
                 AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setPasskey")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setPasskey")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setPasskey")) {
                 return false;
@@ -2929,7 +2914,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setPairingConfirmation")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -2964,7 +2949,7 @@ public class AdapterService extends Service {
         private boolean getSilenceMode(BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getSilenceMode")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -2991,7 +2976,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setSilenceMode")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3015,9 +3000,7 @@ public class AdapterService extends Service {
         private int getPhonebookAccessPermission(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(
-                            service, TAG, "getPhonebookAccessPermission")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getPhonebookAccessPermission")
                     || !Utils.checkConnectPermissionForDataDelivery(
                     service, attributionSource, "AdapterService getPhonebookAccessPermission")) {
                 return BluetoothDevice.ACCESS_UNKNOWN;
@@ -3043,8 +3026,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "setPhonebookAccessPermission")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3068,9 +3050,7 @@ public class AdapterService extends Service {
         private int getMessageAccessPermission(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "getMessageAccessPermission")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getMessageAccessPermission")
                     || !Utils.checkConnectPermissionForDataDelivery(
                     service, attributionSource, "AdapterService getMessageAccessPermission")) {
                 return BluetoothDevice.ACCESS_UNKNOWN;
@@ -3096,8 +3076,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "setMessageAccessPermission")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3121,9 +3100,7 @@ public class AdapterService extends Service {
         private int getSimAccessPermission(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "getSimAccessPermission")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getSimAccessPermission")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getSimAccessPermission")) {
                 return BluetoothDevice.ACCESS_UNKNOWN;
@@ -3149,7 +3126,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setSimAccessPermission")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3183,8 +3160,7 @@ public class AdapterService extends Service {
         private boolean sdpSearch(
                 BluetoothDevice device, ParcelUuid uuid, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "sdpSearch")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "sdpSearch")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService sdpSearch")) {
                 return false;
@@ -3209,8 +3185,7 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getBatteryLevel(BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getBatteryLevel")
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getBatteryLevel")
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getBatteryLevel")) {
                 return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
@@ -3316,8 +3291,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "registerBluetoothConnectionCallback")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3343,8 +3317,7 @@ public class AdapterService extends Service {
                 IBluetoothConnectionCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "unregisterBluetoothConnectionCallback")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3370,7 +3343,7 @@ public class AdapterService extends Service {
         void registerCallback(IBluetoothCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "registerCallback")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return;
             }
@@ -3398,7 +3371,7 @@ public class AdapterService extends Service {
         void unregisterCallback(IBluetoothCallback callback, AttributionSource source) {
             AdapterService service = getService();
             if (service == null || service.mCallbacks == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "unregisterCallback")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return;
             }
@@ -3682,8 +3655,7 @@ public class AdapterService extends Service {
                 BluetoothDevice device, AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "registerMetadataListener")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3722,8 +3694,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "unregisterMetadataListener")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3756,7 +3727,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setMetadata")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
@@ -3786,7 +3757,7 @@ public class AdapterService extends Service {
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getMetadata")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return null;
             }
@@ -3824,7 +3795,7 @@ public class AdapterService extends Service {
         void onLeServiceUp(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "onLeServiceUp")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return;
             }
@@ -3851,7 +3822,7 @@ public class AdapterService extends Service {
         void onBrEdrDown(AttributionSource source) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "onBrEdrDown")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return;
             }
@@ -3891,7 +3862,7 @@ public class AdapterService extends Service {
         private boolean allowLowLatencyAudio(boolean allowed, BluetoothDevice device) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "allowLowLatencyAudio")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, Utils.getCallingAttributionSource(service),
                                 "AdapterService allowLowLatencyAudio")) {
@@ -3921,7 +3892,7 @@ public class AdapterService extends Service {
                 AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "startRfcommListener")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService startRfcommListener")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
@@ -3946,7 +3917,7 @@ public class AdapterService extends Service {
         private int stopRfcommListener(ParcelUuid uuid, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "stopRfcommListener")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource, "AdapterService stopRfcommListener")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
@@ -3972,8 +3943,7 @@ public class AdapterService extends Service {
                 ParcelUuid uuid, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service,
-                            TAG, "retrievePendingSocketForServiceRecord")
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(
                             service, attributionSource,
                             "AdapterService retrievePendingSocketForServiceRecord")) {

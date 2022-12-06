@@ -15,26 +15,19 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert.truth import assertThat
-from blueberry.tests.topshim.lib.adapter_client import AdapterClient
 from blueberry.tests.topshim.lib.topshim_base_test import TopshimBaseTest
-from blueberry.tests.topshim.lib.topshim_device import TRANSPORT_CLASSIC, TRANSPORT_LE
+from blueberry.tests.topshim.lib.adapter_client import AdapterClient
 
 from mobly import test_runner
 
 
-class LeSecurityTest(TopshimBaseTest):
+class ClassicSecurityTest(TopshimBaseTest):
 
-    DUMMY_ADDRESS = "01:02:03:04:05:06"
+    DEFAULT_ADDRESS = "01:02:03:04:05:06"
 
     def test_remove_bond_with_no_bonded_devices(self):
-        self.dut().remove_bonded_device(self.DUMMY_ADDRESS)
+        self.dut().remove_bonded_device(self.DEFAULT_ADDRESS)
         self.dut().le_rand()
-
-    def test_generate_local_oob_data(self):
-        oob_data = self.dut().generate_local_oob_data(TRANSPORT_CLASSIC)
-        assertThat(oob_data.is_valid()).isTrue()
-        oob_data = self.dut().generate_local_oob_data(TRANSPORT_LE)
-        assertThat(oob_data.is_valid()).isTrue()
 
 
 if __name__ == "__main__":

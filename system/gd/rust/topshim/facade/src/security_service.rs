@@ -1,9 +1,9 @@
 //! Security service facade
 
-use bt_topshim::btif::{BluetoothInterface, RawAddress};
+use bt_topshim::btif::BluetoothInterface;
 
 use bt_topshim_facade_protobuf::empty::Empty;
-use bt_topshim_facade_protobuf::facade::{GenerateOobDataRequest, RemoveBondRequest};
+use bt_topshim_facade_protobuf::facade::RemoveBondRequest;
 use bt_topshim_facade_protobuf::facade_grpc::{create_security_service, SecurityService};
 use grpcio::*;
 
@@ -28,21 +28,12 @@ impl SecurityServiceImpl {
 }
 
 impl SecurityService for SecurityServiceImpl {
-    fn remove_bond(&mut self, ctx: RpcContext<'_>, req: RemoveBondRequest, sink: UnarySink<Empty>) {
-        let raw_address = RawAddress::from_string(req.address).unwrap();
-        self.btif_intf.lock().unwrap().remove_bond(&raw_address);
-        ctx.spawn(async move {
-            sink.success(Empty::default()).await.unwrap();
-        })
-    }
-
-    fn generate_local_oob_data(
+    fn remove_bond(
         &mut self,
         ctx: RpcContext<'_>,
-        req: GenerateOobDataRequest,
+        _req: RemoveBondRequest,
         sink: UnarySink<Empty>,
     ) {
-        self.btif_intf.lock().unwrap().generate_local_oob_data(req.transport);
         ctx.spawn(async move {
             sink.success(Empty::default()).await.unwrap();
         })

@@ -43,7 +43,6 @@
         <option name="profile" value="MAP" />
         <option name="profile" value="PBAP/PSE" />
         <option name="profile" value="RFCOMM" />
-        <option name="profile" value="L2CAP/COS" />
         <option name="profile" value="SDP" />
         <option name="profile" value="SM" />
     </test>

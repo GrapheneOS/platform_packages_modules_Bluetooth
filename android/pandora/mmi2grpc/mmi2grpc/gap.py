@@ -7,8 +7,7 @@ from pandora_experimental.gatt_grpc import GATT
 from pandora_experimental.gatt_pb2 import GattServiceParams, GattCharacteristicParams
 from pandora_experimental.host_grpc import Host
 from pandora_experimental.host_pb2 import ConnectabilityMode, DataTypes, DiscoverabilityMode, OwnAddressType
-from pandora_experimental.security_grpc import Security, SecurityStorage
-from pandora_experimental.security_pb2 import LESecurityLevel
+from pandora_experimental.security_grpc import Security
 
 
 class GAPProxy(ProfileProxy):
@@ -18,7 +17,6 @@ class GAPProxy(ProfileProxy):
         self.gatt = GATT(channel)
         self.host = Host(channel)
         self.security = Security(channel)
-        self.security_storage = SecurityStorage(channel)
 
         self.connection = None
         self.pairing_events = None
@@ -134,9 +132,9 @@ class GAPProxy(ProfileProxy):
             # we also begin pairing here if we are not already paired on LE
             if self.counter == 0:
                 self.counter += 1
-                self.security_storage.DeleteBond(public=pts_addr)
+                self.security.DeletePairing(address=pts_addr)
                 self.connection = self.host.ConnectLE(public=pts_addr).connection
-                self.security.Secure(connection=self.connection, le=LESecurityLevel.LE_LEVEL3)
+                self.security.Pair(connection=self.host.GetLEConnection(address=pts_addr).connection)
                 return "OK"
 
         if test == "GAP/SEC/AUT/BV-21-C" and self.connection is not None:
@@ -160,7 +158,7 @@ class GAPProxy(ProfileProxy):
 
         self.connection = self.host.ConnectLE(public=address).connection
         if test in {"GAP/BOND/BON/BV-04-C"}:
-            self.security.Secure(connection=self.connection, le=LESecurityLevel.LE_LEVEL3)
+            self.security.Pair(connection=self.connection)
 
         return "OK"
 
@@ -561,10 +559,9 @@ class GAPProxy(ProfileProxy):
             return "OK"
 
         if test not in {"GAP/SEC/AUT/BV-21-C"}:
-            self.security_storage.DeleteBond(public=pts_addr)
+            self.security.DeletePairing(address=pts_addr)
 
-        connection = self.host.GetLEConnection(address=pts_addr).connection
-        self.security.Secure(connection=connection, le=LESecurityLevel.LE_LEVEL3)
+        self.security.Pair(connection=self.host.GetLEConnection(address=pts_addr).connection)
 
         return "OK"
 
@@ -707,8 +704,7 @@ class GAPProxy(ProfileProxy):
         """
 
         # No idea how we can bond in non-bondable mode, but this passes the tests...
-        connection = self.host.GetLEConnection(address=pts_addr).connection
-        self.security.Secure(connection=connection, le=LESecurityLevel.LE_LEVEL3)
+        self.security.Pair(connection=self.host.GetLEConnection(address=pts_addr).connection,)
 
         return "OK"
 
@@ -891,7 +887,7 @@ class GAPProxy(ProfileProxy):
         if test != "GAP/SEC/SEM/BV-08-C":
             # we already started in the Connect MMI
             self.pairing_events = self.security.OnPairing()
-            self.security.Secure(connection=connection, le=LESecurityLevel.LE_LEVEL3)
+            self.security.Pair(connection=connection)
 
         connection = self.host.GetConnection(address=pts_addr).connection
 

@@ -1,4 +1,3 @@
-import threading
 import textwrap
 import uuid
 import re
@@ -8,7 +7,6 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.host_grpc import Host
 from pandora_experimental.security_grpc import Security
-from pandora_experimental.security_pb2 import LESecurityLevel
 from pandora_experimental.gatt_grpc import GATT
 
 BASE_UUID = uuid.UUID("00000000-0000-1000-8000-00805F9B34FB")
@@ -41,9 +39,7 @@ class HOGPProxy(ProfileProxy):
 
         self.connection = self.host.ConnectLE(public=pts_addr).connection
         self.pairing_stream = self.security.OnPairing()
-        def secure():
-            self.security.Secure(connection=self.connection, le=LESecurityLevel.LE_LEVEL3)
-        threading.Thread(target=secure).start()
+        self.security.Pair(connection=self.connection)
 
         return "OK"
 

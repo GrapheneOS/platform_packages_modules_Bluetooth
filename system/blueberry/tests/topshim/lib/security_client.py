@@ -29,15 +29,18 @@ class SecurityClient(AsyncClosable):
     Wrapper gRPC interface to the GATT Service
     """
     # Timeout for async wait
+    DEFAULT_TIMEOUT = 2
     __task_list = []
     __channel = None
-    __security = None
-    __adapter = None
+    __security_stub = None
+    __adapter_event_stream = None
+    __adapter_client = None
 
-    def __init__(self, adapter, port=8999):
+    def __init__(self, adapter_client, port=8999):
         self.__channel = grpc.aio.insecure_channel("localhost:%d" % port)
-        self.__security = facade_pb2_grpc.SecurityServiceStub(self.__channel)
-        self.__adapter = adapter
+        self.__security_stub = facade_pb2_grpc.SecurityServiceStub(self.__channel)
+        self.__adapter_client = adapter_client
+        #self.__gatt_event_stream = self.__security_stub.FetchEvents(facade_pb2.FetchEventsRequest())
 
     async def close(self):
         """
@@ -53,9 +56,16 @@ class SecurityClient(AsyncClosable):
         """
         Removes a bonding entry for a given address
         """
-        await self.__security.RemoveBond(facade_pb2.RemoveBondRequest(address=address))
+        await self.__security_stub.RemoveBond(facade_pb2.RemoveBondRequest(address=address))
+        return await self.__adapter_client.le_rand()
 
-    async def generate_local_oob_data(self, transport):
-        await self.__security.GenerateLocalOobData(facade_pb2.GenerateOobDataRequest(transport=transport))
-        future = await self.__adapter._listen_for_event(facade_pb2.EventType.GENERATE_LOCAL_OOB_DATA)
-        return future
+    async def bond_using_numeric_comparison(self, address):
+        """
+        Bond to a given address using numeric comparison method
+        """
+        # Set IO Capabilities
+        # Enable Page scan
+        # Become discoverable
+        # Discover device
+        # Initiate bond
+        return await self.__adapter_client.le_rand()
