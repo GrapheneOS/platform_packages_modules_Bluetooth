@@ -173,3 +173,15 @@ class TopshimDevice(AsyncClosable):
             return OobData(data_list[0], data_list[1], data_list[2], data_list[3], data_list[4])
 
         return asyncio.get_event_loop().run_until_complete(waiter(f))
+
+    def set_local_io_caps(self, io_capability=0):
+        f = self.__post(self.__adapter.set_local_io_caps(io_capability))
+
+        async def waiter(f):
+            data = await f
+            data_list = data.split(" :: ")
+            status, properties = data_list[0].strip(), data_list[1].strip()
+            properties = list(properties[1:-1].strip().split(","))
+            return (status, properties)
+
+        return asyncio.get_event_loop().run_until_complete(waiter(f))
