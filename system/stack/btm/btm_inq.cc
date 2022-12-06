@@ -27,6 +27,7 @@
 
 #define LOG_TAG "bluetooth"
 
+#include <base/logging.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +42,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
+#include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
@@ -49,8 +51,6 @@
 #include "stack/include/inq_hci_link_interface.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 namespace {
 constexpr char kBtmLogTag[] = "SCAN";
@@ -638,6 +638,11 @@ tBTM_STATUS BTM_CancelRemoteDeviceName(void) {
     return (BTM_CMD_STARTED);
   } else
     return (BTM_WRONG_MODE);
+}
+
+bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
+  return (p_dev_rec == nullptr) ? false : p_dev_rec->is_name_known();
 }
 
 /*******************************************************************************
