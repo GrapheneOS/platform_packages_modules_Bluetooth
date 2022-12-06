@@ -1310,15 +1310,16 @@ void bta_av_security_ind(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
  ******************************************************************************/
 void bta_av_security_cfm(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   if (bta_av_cb.features & BTA_AV_FEAT_PROTECT) {
-    tBTA_AV_PROTECT_RSP protect_rsp;
-    protect_rsp.chnl = p_scb->chnl;
-    protect_rsp.hndl = p_scb->hndl;
-    protect_rsp.p_data = p_data->str_msg.msg.security_cfm.p_data;
-    protect_rsp.len = p_data->str_msg.msg.security_cfm.len;
-    protect_rsp.err_code = p_data->str_msg.msg.hdr.err_code;
-
-    tBTA_AV bta_av_data;
-    bta_av_data.protect_rsp = protect_rsp;
+    tBTA_AV bta_av_data = {
+        .protect_rsp =
+            {
+                .chnl = p_scb->chnl,
+                .hndl = p_scb->hndl,
+                .p_data = p_data->str_msg.msg.security_cfm.p_data,
+                .len = p_data->str_msg.msg.security_cfm.len,
+                .err_code = p_data->str_msg.msg.hdr.err_code,
+            },
+    };
     (*bta_av_cb.p_cback)(BTA_AV_PROTECT_RSP_EVT, &bta_av_data);
   }
 }
