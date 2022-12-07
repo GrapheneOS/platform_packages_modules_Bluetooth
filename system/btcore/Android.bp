@@ -18,10 +18,32 @@ cc_defaults {
     ],
     srcs: [
         "src/device_class.cc",
-        "src/hal_util.cc",
         "src/module.cc",
         "src/osi_module.cc",
         "src/property.cc",
+    ],
+    header_libs: ["libbluetooth_headers"],
+    host_supported: true,
+    apex_available: [
+        "com.android.btservices",
+    ],
+    target: {
+        host_linux: {
+            cflags: ["-D_GNU_SOURCE"],
+        },
+    },
+}
+
+cc_library_static {
+    name: "libbthalutils",
+    defaults: ["fluoride_basic_defaults"],
+    srcs: [
+        "src/hal_util.cc",
+    ],
+    local_include_dirs: ["include"],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
     ],
     header_libs: ["libbluetooth_headers"],
     host_supported: true,
