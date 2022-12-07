@@ -127,6 +127,7 @@ enum EventType {
   HFP_CONNECTION_STATE = 4;
   ADAPTER_PROPERTY = 5;
   DISCOVERY_STATE = 6;
+  DEVICE_FOUND = 7;
 }
 
 message FetchEventsRequest {}

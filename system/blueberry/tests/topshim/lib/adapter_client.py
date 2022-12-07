@@ -42,8 +42,9 @@ class AdapterClient(AsyncClosable):
 
     async def close(self):
         for task in self.__task_list:
+            if task.done() or task.cancelled():
+                continue
             task.cancel()
-            task = None
         self.__task_list.clear()
         await self.__channel.close()
 
@@ -63,10 +64,12 @@ class AdapterClient(AsyncClosable):
     async def _listen_for_event(self, event):
         """Start fetching events"""
         future = asyncio.get_running_loop().create_future()
-        self.__task_list.append(asyncio.get_running_loop().create_task(self.__get_next_event(event, future)))
+        task = asyncio.get_running_loop().create_task(self.__get_next_event(event, future))
+        self.__task_list.append(task)
         try:
             await asyncio.wait_for(future, AdapterClient.DEFAULT_TIMEOUT)
         except:
+            task.cancel()
             print("Failed to get event", event)
         return future
 
@@ -137,6 +140,9 @@ class AdapterClient(AsyncClosable):
         await self.__adapter_stub.ToggleDiscovery(facade_pb2.ToggleDiscoveryRequest(is_start=is_start))
         future = await self._listen_for_event(facade_pb2.EventType.DISCOVERY_STATE)
         return future
+
+    async def find_device(self):
+        return await self._listen_for_event(facade_pb2.EventType.DEVICE_FOUND)
 
 
 class A2dpAutomationHelper():

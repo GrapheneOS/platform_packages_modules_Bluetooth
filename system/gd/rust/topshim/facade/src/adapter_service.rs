@@ -46,6 +46,9 @@ fn get_bt_dispatcher(
                 BaseCallbacks::DiscoveryState(state) => {
                     println!("Discovery state changed, state = {:?}, ", state);
                 }
+                BaseCallbacks::DeviceFound(_, properties) => {
+                    println!("Device found with properties : {:?}", properties)
+                }
                 _ => (),
             }
         }),
@@ -171,6 +174,18 @@ impl AdapterService for AdapterServiceImpl {
                             String::from("state"),
                             event_data_from_string(format!("{:?}", state)),
                         );
+                        sink.send((rsp, WriteFlags::default())).await.unwrap();
+                    }
+                    BaseCallbacks::DeviceFound(_, properties) => {
+                        let mut rsp = FetchEventsResponse::new();
+                        rsp.event_type = EventType::DEVICE_FOUND;
+                        for property in properties.clone() {
+                            let (key, event_data) = bluetooth_property_to_event_data(property);
+                            if key == "skip" {
+                                continue;
+                            }
+                            rsp.params.insert(key, event_data);
+                        }
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     _ => (),

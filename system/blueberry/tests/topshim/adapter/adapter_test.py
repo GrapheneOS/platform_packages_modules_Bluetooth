@@ -57,6 +57,18 @@ class AdapterTest(TopshimBaseTest):
         state = self.dut().toggle_discovery(False)
         assertThat(state).isEqualTo("Stopped")
 
+    def test_find_device_device_available(self):
+        self.dut().enable_inquiry_scan()
+        self.cert().enable_inquiry_scan()
+        self.dut().toggle_discovery(True)
+        device_addr = self.dut().find_device()
+        assertThat(device_addr).isNotNone()
+        # Reset DUT device discovering and scanning to None
+        self.dut().disable_page_scan()
+        self.dut().toggle_discovery(False)
+        # Reset CERT device to not discoverable
+        self.cert().disable_page_scan()
+
 
 if __name__ == "__main__":
     test_runner.main()
