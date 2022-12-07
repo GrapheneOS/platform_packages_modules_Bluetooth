@@ -18,6 +18,8 @@
 #include "hci/acl_manager/le_connection_management_callbacks.h"
 #include "os/metrics.h"
 
+using bluetooth::hci::Address;
+
 namespace bluetooth {
 namespace hci {
 namespace acl_manager {
@@ -73,6 +75,15 @@ class LeAclConnectionTracker : public LeConnectionManagementCallbacks {
   }
   void OnLocalAddressUpdate(AddressWithType address_with_type) override {
     SAVE_OR_CALL(OnLocalAddressUpdate, address_with_type);
+  }
+  void OnLeSubrateChange(
+      hci::ErrorCode hci_status,
+      uint16_t subrate_factor,
+      uint16_t peripheral_latency,
+      uint16_t continuation_number,
+      uint16_t supervision_timeout) override {
+    SAVE_OR_CALL(
+        OnLeSubrateChange, hci_status, subrate_factor, peripheral_latency, continuation_number, supervision_timeout);
   }
 
   void OnDisconnection(ErrorCode reason) override {
@@ -143,6 +154,23 @@ void LeAclConnection::Disconnect(DisconnectReason reason) {
           LOG_INFO("Disconnect status %s", ErrorCodeText(error_code).c_str());
         }
       }));
+}
+
+void LeAclConnection::OnLeSubrateRequestStatus(CommandStatusView status) {
+  auto subrate_request_status = LeSubrateRequestStatusView::Create(status);
+  ASSERT(subrate_request_status.IsValid());
+  auto hci_status = subrate_request_status.GetStatus();
+  if (hci_status != ErrorCode::SUCCESS) {
+    LOG_INFO("LeSubrateRequest status %s", ErrorCodeText(hci_status).c_str());
+    pimpl_->tracker.OnLeSubrateChange(hci_status, 0, 0, 0, 0);
+  }
+}
+
+void LeAclConnection::LeSubrateRequest(
+    uint16_t subrate_min, uint16_t subrate_max, uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout) {
+  pimpl_->tracker.le_acl_connection_interface_->EnqueueCommand(
+      LeSubrateRequestBuilder::Create(handle_, subrate_min, subrate_max, max_latency, cont_num, sup_tout),
+      pimpl_->tracker.client_handler_->BindOnceOn(this, &LeAclConnection::OnLeSubrateRequestStatus));
 }
 
 LeConnectionManagementCallbacks* LeAclConnection::GetEventCallbacks(

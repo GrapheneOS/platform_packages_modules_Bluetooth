@@ -187,6 +187,11 @@ void AclManager::SetLeSuggestedDefaultDataParameters(uint16_t octets, uint16_t t
   CallOn(pimpl_->le_impl_, &le_impl::set_le_suggested_default_data_parameters, octets, time);
 }
 
+void AclManager::LeSetDefaultSubrate(
+    uint16_t subrate_min, uint16_t subrate_max, uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout) {
+  CallOn(pimpl_->le_impl_, &le_impl::LeSetDefaultSubrate, subrate_min, subrate_max, max_latency, cont_num, sup_tout);
+}
+
 void AclManager::SetPrivacyPolicyForInitiatorAddress(
     LeAddressManager::AddressPolicy address_policy,
     AddressWithType fixed_address,

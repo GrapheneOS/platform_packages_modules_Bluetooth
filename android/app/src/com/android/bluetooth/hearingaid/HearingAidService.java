@@ -1064,9 +1064,12 @@ public class HearingAidService extends ProfileService {
                 SynchronousResultReceiver receiver) {
             try {
                 HearingAidService service = getService(source);
-                int side = BluetoothHearingAid.SIDE_RIGHT;
+                int side = BluetoothHearingAid.SIDE_UNKNOWN;
                 if (service != null) {
-                    side = service.getCapabilities(device) & 1;
+                    side = service.getCapabilities(device);
+                    if (side != BluetoothHearingAid.SIDE_UNKNOWN) {
+                        side &= 1;
+                    }
                 }
                 receiver.send(side);
             } catch (RuntimeException e) {
@@ -1079,9 +1082,12 @@ public class HearingAidService extends ProfileService {
                 SynchronousResultReceiver receiver) {
             try {
                 HearingAidService service = getService(source);
-                int mode = BluetoothHearingAid.MODE_BINAURAL;
+                int mode = BluetoothHearingAid.MODE_UNKNOWN;
                 if (service != null) {
-                    mode = service.getCapabilities(device) >> 1 & 1;
+                    mode = service.getCapabilities(device);
+                    if (mode != BluetoothHearingAid.MODE_UNKNOWN) {
+                        mode = mode >> 1 & 1;
+                    }
                 }
                 receiver.send(mode);
             } catch (RuntimeException e) {

@@ -838,7 +838,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
     let gen = quote! {
-        use dbus::arg::{PropMap, RefArg};
+        use dbus::arg::RefArg;
         use dbus::nonblock::SyncConnection;
         use dbus::strings::BusName;
         use dbus_projection::DisconnectWatcher;
@@ -1144,7 +1144,6 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                 remote: Option<BusName<'static>>,
                 disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>)
                 -> Result<Option<T>, Box<dyn Error>> {
-                let mut result: Option<T> = None;
 
                 // It's Ok if the key doesn't exist. That just means we have an empty option (i.e.
                 // None).
@@ -1174,7 +1173,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
                 let value = match T::from_dbus(ref_value, conn, remote, disconnect_watcher) {
                     Ok(v) => Some(v),
-                    Err(_) => None,
+                    Err(e) => return Err(e),
                 };
 
                 Ok(value)
