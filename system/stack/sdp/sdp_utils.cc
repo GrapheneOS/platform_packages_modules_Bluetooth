@@ -393,11 +393,11 @@ tCONN_CB* sdpu_allocate_ccb(void) {
  * Returns          void
  *
  ******************************************************************************/
-void sdpu_callback(tCONN_CB* p_ccb, tSDP_REASON reason) {
-  if (p_ccb->p_cb) {
-    (*p_ccb->p_cb)(reason);
-  } else if (p_ccb->p_cb2) {
-    (*p_ccb->p_cb2)(reason, p_ccb->user_data);
+void sdpu_callback(tCONN_CB& ccb, tSDP_REASON reason) {
+  if (ccb.p_cb) {
+    (ccb.p_cb)(reason);
+  } else if (ccb.p_cb2) {
+    (ccb.p_cb2)(reason, ccb.user_data);
   }
 }
 
@@ -410,17 +410,17 @@ void sdpu_callback(tCONN_CB* p_ccb, tSDP_REASON reason) {
  * Returns          void
  *
  ******************************************************************************/
-void sdpu_release_ccb(tCONN_CB* p_ccb) {
+void sdpu_release_ccb(tCONN_CB& ccb) {
   /* Ensure timer is stopped */
-  alarm_cancel(p_ccb->sdp_conn_timer);
+  alarm_cancel(ccb.sdp_conn_timer);
 
   /* Drop any response pointer we may be holding */
-  p_ccb->con_state = SDP_STATE_IDLE;
-  p_ccb->is_attr_search = false;
+  ccb.con_state = SDP_STATE_IDLE;
+  ccb.is_attr_search = false;
 
   /* Free the response buffer */
-  if (p_ccb->rsp_list) SDP_TRACE_DEBUG("releasing SDP rsp_list");
-  osi_free_and_reset((void**)&p_ccb->rsp_list);
+  if (ccb.rsp_list) SDP_TRACE_DEBUG("releasing SDP rsp_list");
+  osi_free_and_reset((void**)&ccb.rsp_list);
 }
 
 /*******************************************************************************
@@ -468,7 +468,7 @@ uint16_t sdpu_get_active_ccb_cid(const RawAddress& remote_bd_addr) {
  * Returns          returns true if any pending ccb, else false.
  *
  ******************************************************************************/
-bool sdpu_process_pend_ccb(uint16_t cid, bool use_cur_chnl) {
+bool sdpu_process_pend_ccb(tCONN_CB& ccb, bool use_cur_chnl) {
   uint16_t xx;
   tCONN_CB* p_ccb;
 
@@ -476,7 +476,7 @@ bool sdpu_process_pend_ccb(uint16_t cid, bool use_cur_chnl) {
     // Look through each connection control block for active sdp on given remote
     for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
       if ((p_ccb->con_state == SDP_STATE_CONN_PEND) &&
-          (p_ccb->connection_id == cid) &&
+          (p_ccb->connection_id == ccb.connection_id) &&
           (p_ccb->con_flags & SDP_FLAGS_IS_ORIG)) {
         p_ccb->con_state = SDP_STATE_CONNECTED;
         sdp_disc_connected(p_ccb);
@@ -491,7 +491,7 @@ bool sdpu_process_pend_ccb(uint16_t cid, bool use_cur_chnl) {
   bool new_conn = false;
   for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
     if ((p_ccb->con_state == SDP_STATE_CONN_PEND) &&
-        (p_ccb->connection_id == cid) &&
+        (p_ccb->connection_id == ccb.connection_id) &&
         (p_ccb->con_flags & SDP_FLAGS_IS_ORIG)) {
       if (!new_conn) {
         p_ccb->con_state = SDP_STATE_CONN_SETUP;
@@ -503,8 +503,8 @@ bool sdpu_process_pend_ccb(uint16_t cid, bool use_cur_chnl) {
       if (new_cid != 0) {
         p_ccb->connection_id = new_cid;
       } else {
-        sdpu_callback(p_ccb, SDP_CONN_FAILED);
-        sdpu_release_ccb(p_ccb);
+        sdpu_callback(*p_ccb, SDP_CONN_FAILED);
+        sdpu_release_ccb(*p_ccb);
       }
     }
   }
@@ -522,17 +522,17 @@ bool sdpu_process_pend_ccb(uint16_t cid, bool use_cur_chnl) {
  * Returns          returns none.
  *
  ******************************************************************************/
-void sdpu_clear_pend_ccb(uint16_t cid) {
+void sdpu_clear_pend_ccb(tCONN_CB& ccb) {
   uint16_t xx;
   tCONN_CB* p_ccb;
 
   // Look through each connection control block for active sdp on given remote
   for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
     if ((p_ccb->con_state == SDP_STATE_CONN_PEND) &&
-        (p_ccb->connection_id == cid) &&
+        (p_ccb->connection_id == ccb.connection_id) &&
         (p_ccb->con_flags & SDP_FLAGS_IS_ORIG)) {
-      sdpu_callback(p_ccb, SDP_CONN_FAILED);
-      sdpu_release_ccb(p_ccb);
+      sdpu_callback(*p_ccb, SDP_CONN_FAILED);
+      sdpu_release_ccb(*p_ccb);
     }
   }
   return;
