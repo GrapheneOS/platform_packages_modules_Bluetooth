@@ -30,6 +30,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,6 +51,11 @@ public class VolumeControlNativeInterfaceTest {
         when(mService.isAvailable()).thenReturn(true);
         VolumeControlService.setVolumeControlService(mService);
         mNativeInterface = VolumeControlNativeInterface.getInstance();
+    }
+
+    @After
+    public void tearDown() {
+        VolumeControlService.setVolumeControlService(null);
     }
 
     @Test
