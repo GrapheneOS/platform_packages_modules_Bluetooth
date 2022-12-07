@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Impossibile trasferire file con dimensioni superiori a 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Connettiti a Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth attivo in modalità aereo"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Se lo tieni attivo, il Bluetooth rimarrà attivo la prossima volta che sarai in modalità aereo"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Se tieni attivo il Bluetooth, il telefono ricorderà di tenerlo attivo la prossima volta che sarai in modalità aereo"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Il Bluetooth rimane attivo"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Il telefono memorizza che deve tenere attivo il Bluetooth in modalità aereo. Per cambiare questa opzione, disattiva il Bluetooth."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Il telefono memorizza che deve tenere attivo il Bluetooth in modalità aereo. Disattiva il Bluetooth se non vuoi tenerlo attivo."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi e Bluetooth rimangono attivi"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Il telefono memorizza che deve tenere attivi il Wi‑Fi e il Bluetooth in modalità aereo. Per cambiare questa opzione, disattivali."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Il telefono memorizza che deve tenere attivi il Wi‑Fi e il Bluetooth in modalità aereo. Disattiva il Wi-Fi e il Bluetooth se non vuoi tenerli attivi."</string>
 </resources>

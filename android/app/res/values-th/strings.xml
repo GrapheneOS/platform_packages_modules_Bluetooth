@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"โอนไฟล์ที่มีขนาดใหญ่กว่า 4 GB ไม่ได้"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"เชื่อมต่อบลูทูธ"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"บลูทูธเปิดอยู่ในโหมดบนเครื่องบิน"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"หากคุณเปิดบลูทูธไว้ ระบบจะเปิดบลูทูธในครั้งถัดไปที่คุณอยู่ในโหมดบนเครื่องบิน"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"หากเปิดบลูทูธไว้ โทรศัพท์จะจำว่าต้องเปิดบลูทูธในครั้งถัดไปที่คุณอยู่ในโหมดบนเครื่องบิน"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"บลูทูธเปิดอยู่"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"โทรศัพท์จำว่าจะต้องเปิดบลูทูธไว้ในโหมดบนเครื่องบิน หากต้องการเปลี่ยนการตั้งค่านี้ ให้ปิดบลูทูธ"</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"โทรศัพท์จำว่าจะต้องเปิดบลูทูธไว้ในโหมดบนเครื่องบิน ปิดบลูทูธหากคุณไม่ต้องการให้เปิดไว้"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi และบลูทูธยังเปิดอยู่"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"โทรศัพท์จำว่าจะต้องเปิด Wi-Fi และบลูทูธไว้ในโหมดบนเครื่องบิน หากต้องการเปลี่ยนการตั้งค่านี้ ให้ปิด Wi-Fi และบลูทูธ"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"โทรศัพท์จำว่าจะต้องเปิด Wi-Fi และบลูทูธไว้ในโหมดบนเครื่องบิน ปิด Wi-Fi และบลูทูธหากคุณไม่ต้องการให้เปิดไว้"</string>
 </resources>

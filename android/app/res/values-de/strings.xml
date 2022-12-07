@@ -80,9 +80,9 @@
     <string name="bt_toast_1" msgid="8791691594887576215">"Die Datei wird empfangen. Überprüfe den Fortschritt in der Benachrichtigungskonsole."</string>
     <string name="bt_toast_2" msgid="2041575937953174042">"Die Datei kann nicht empfangen werden."</string>
     <string name="bt_toast_3" msgid="3053157171297761920">"Der Empfang der Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\" wurde angehalten."</string>
-    <string name="bt_toast_4" msgid="480365991944956695">"Datei wird an \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" gesendet..."</string>
+    <string name="bt_toast_4" msgid="480365991944956695">"Datei wird an „<xliff:g id="RECIPIENT">%1$s</xliff:g>“ gesendet..."</string>
     <string name="bt_toast_5" msgid="4818264207982268297">"<xliff:g id="NUMBER">%1$s</xliff:g> Dateien werden an \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\" gesendet."</string>
-    <string name="bt_toast_6" msgid="8814166471030694787">"Die Übertragung der Datei an \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" wurde abgebrochen"</string>
+    <string name="bt_toast_6" msgid="8814166471030694787">"Die Übertragung der Datei an „<xliff:g id="RECIPIENT">%1$s</xliff:g>“ wurde abgebrochen"</string>
     <string name="bt_sm_2_1_nosdcard" msgid="288667514869424273">"Auf dem USB-Speicher ist nicht genügend Platz, um die Datei zu speichern."</string>
     <string name="bt_sm_2_1_default" msgid="5070195264206471656">"Auf der SD-Karte ist nicht genügend Platz, um die Datei zu speichern."</string>
     <string name="bt_sm_2_2" msgid="6200119660562110560">"Erforderlicher Speicherplatz: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Dateien mit mehr als 4 GB können nicht übertragen werden"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Mit Bluetooth verbinden"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth im Flugmodus eingeschaltet"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Wenn du Bluetooth nicht deaktivierst, bleibt es eingeschaltet, wenn du das nächste Mal in den Flugmodus wechselst"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Wenn du Bluetooth nicht ausschaltest, bleibt es eingeschaltet, wenn du das nächste Mal in den Flugmodus wechselst"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth bleibt aktiviert"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Dein Smartphone lässt Bluetooth im Flugmodus eingeschaltet. Wenn du das ändern möchtest, deaktiviere Bluetooth."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Auf deinem Smartphone bleibt Bluetooth im Flugmodus eingeschaltet. Schalte Bluetooth aus, wenn du das nicht möchtest."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"WLAN und Bluetooth bleiben eingeschaltet"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Dein Smartphone lässt das WLAN und Bluetooth im Flugmodus eingeschaltet. Wenn du das ändern möchtest, deaktiviere das WLAN und Bluetooth."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Auf deinem Smartphone bleiben WLAN und Bluetooth im Flugmodus eingeschaltet. Schalte sie aus, wenn du das nicht möchtest."</string>
 </resources>

@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Files bigger than 4 GB cannot be transferred"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Connect to Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth on in aeroplane mode"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"If you keep Bluetooth on, it will stay on the next time that you\'re in aeroplane mode"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"If you keep Bluetooth on, your phone will remember to keep it on the next time that you\'re in aeroplane mode"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth stays on"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Your phone remembers to keep Bluetooth on in aeroplane mode. To change this, turn off Bluetooth."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Your phone remembers to keep Bluetooth on in aeroplane mode. Turn off Bluetooth if you don\'t want it to stay on."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi and Bluetooth stay on"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Your phone remembers to keep Wi-Fi and Bluetooth on in aeroplane mode. To change this, turn them off."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Your phone remembers to keep Wi-Fi and Bluetooth on in aeroplane mode. Turn off Wi-Fi and Bluetooth if you don\'t want them to stay on."</string>
 </resources>

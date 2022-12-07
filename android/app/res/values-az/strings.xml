@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB-dən böyük olan faylları köçürmək mümkün deyil"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth\'a qoşulun"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth təyyarə rejimində aktivdir"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Bluetooth\'u aktiv saxlasanız, növbəti dəfə təyyarə rejimində olduqda aktiv qalacaq"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Bluetooth\'u aktiv saxlasanız, növbəti dəfə təyyarə rejimində olduqda telefonunuz onu aktiv saxlayacaq"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth aktiv qalacaq"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Telefonunuz təyyarə rejimində Bluetooth\'u aktiv saxlayacaq. Bunu dəyişmək üçün Bluetooth\'u deaktiv edin."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Telefonunuz təyyarə rejimində Bluetooth\'u aktiv saxlayacaq. Aktiv qalmasını istəmirsinizsə, Bluetooth\'u deaktiv edin."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi və Bluetooth aktiv qalır"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Telefonunuz təyyarə rejimində Wi‑Fi və Bluetooth\'u aktiv saxlayacaq. Bunu dəyişmək üçün onları deaktiv edin."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Telefonunuz təyyarə rejimində Wi‑Fi və Bluetooth\'u aktiv saxlayacaq. Aktiv qalmasını istəmirsinizsə, Wi-Fi və Bluetooth\'u deaktiv edin."</string>
 </resources>

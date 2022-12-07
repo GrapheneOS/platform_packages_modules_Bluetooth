@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Можно перенести только файлы размером до 4 ГБ."</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Подключиться по Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Функция Bluetooth будет включена в режиме полета"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Если не отключать Bluetooth, в следующий раз эта функция останется включенной в режиме полета."</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Если не отключить функцию Bluetooth, в следующий раз она останется включенной в режиме полета."</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Функция Bluetooth остается включенной"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Bluetooth останется включенной в режиме полета. Отключить эту функцию можно в любой момент."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Функция Bluetooth останется включенной в режиме полета. Вы можете отключить ее, если хотите."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Функции Wi‑Fi и Bluetooth остаются включенными"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Wi‑Fi и Bluetooth останутся включенными в режиме полета. Отключить эти функции можно в любой момент."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Wi‑Fi и Bluetooth останутся включенными в режиме полета. Вы можете отключить их, если хотите."</string>
 </resources>

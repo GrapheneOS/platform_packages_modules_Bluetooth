@@ -109,8 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"所有内容都将从列表中清除。"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"蓝牙共享：已发送文件"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"蓝牙共享：已接收文件"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# 个文件发送失败。}other{# 个文件发送失败。}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# 个文件发送成功，%1$s}other{# 个文件发送成功，%1$s}}"</string>
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# 个文件传输失败。}other{# 个文件传输失败。}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# 个文件传输成功，%1$s}other{# 个文件传输成功，%1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"清除列表"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"打开"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"从列表中清除"</string>
@@ -129,9 +129,12 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"无法传输 4GB 以上的文件"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"连接到蓝牙"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"在飞行模式下蓝牙保持开启状态"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"如果您不关闭蓝牙，那么您下次进入飞行模式时蓝牙将保持开启状态"</string>
+    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
+    <skip />
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"蓝牙保持开启状态"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"在飞行模式下手机将记住保持蓝牙开启。如需更改此设置，请关闭蓝牙。"</string>
+    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
+    <skip />
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"WLAN 和蓝牙保持开启状态"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"在飞行模式下手机将记住保持 WLAN 和蓝牙开启。如需更改此设置，请关闭相应功能。"</string>
+    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
+    <skip />
 </resources>

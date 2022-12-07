@@ -129,9 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Súbory väčšie ako 4 GB sa nedajú preniesť"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Pripojiť k zariadeniu Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Rozhranie Bluetooth bude v režime v lietadle zapnuté"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Ak Bluetooth nevypnete, nevypne sa ani pri ďalšom aktivovaní režimu v lietadle"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Ak ponecháte rozhranie Bluetooth zapnuté, váš telefón si zapamätá, že ho má ponechať zapnuté pri ďalšom aktivovaní režimu v lietadle"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Rozhranie Bluetooth zostane zapnuté"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Telefón si pamätá, aby v režime v lietadle nevypínal Bluetooth. Ak to chcete zmeniť, vypnite Bluetooth."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Telefón si pamätá, aby v režime v lietadle nevypínal rozhranie Bluetooth. Ak ho nechcete ponechať zapnuté, vypnite ho."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi‑Fi a Bluetooth zostanú zapnuté"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Telefón si pamätá, aby v režime v lietadle nevypínal Wi‑Fi ani Bluetooth. Ak to chcete zmeniť, vypnite ich."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Telefón si pamätá, aby v režime v lietadle nevypínal Wi‑Fi ani Bluetooth. Ak ich nechcete ponechať zapnuté, vypnite ich."</string>
 </resources>
