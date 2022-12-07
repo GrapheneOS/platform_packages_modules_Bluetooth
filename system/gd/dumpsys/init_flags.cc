@@ -31,5 +31,7 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_gd_controller_enabled(true);
   builder.add_gd_core_enabled(bluetooth::common::init_flags::gd_core_is_enabled());
   builder.add_btaa_hci_log_enabled(bluetooth::common::init_flags::btaa_hci_is_enabled());
+  builder.add_sdp_skip_rnr_if_known_is_enabled(bluetooth::common::init_flags::sdp_skip_rnr_if_known_is_enabled());
+
   return builder.Finish();
 }

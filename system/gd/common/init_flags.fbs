@@ -13,6 +13,7 @@ table InitFlagsData {
     gd_core_enabled:bool (privacy:"Any");
     btaa_hci_log_enabled:bool (privacy:"Any");
     btm_dm_flush_discovery_queue_on_search_cancel:bool (privacy:"Any");
+    sdp_skip_rnr_if_known_is_enabled:bool (privacy:"Any");
 }
 
 root_type InitFlagsData;

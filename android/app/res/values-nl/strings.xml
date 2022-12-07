@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Bestanden groter dan 4 GB kunnen niet worden overgedragen"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Verbinding maken met bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth aan in de vliegtuigmodus"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Als je bluetooth laat aanstaan, onthoudt je telefoon dit en blijft bluetooth aanstaan als je de vliegtuigmodus weer aanzet"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth blijft aan"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Bluetooth op je telefoon blijft aan in de vliegtuigmodus. Zet bluetooth uit als je niet wilt dat dit aan blijft."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wifi en bluetooth blijven aan"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Wifi en bluetooth op je telefoon blijven aan in de vliegtuigmodus. Zet wifi en bluetooth uit als je niet wilt dat ze aan blijven."</string>
 </resources>

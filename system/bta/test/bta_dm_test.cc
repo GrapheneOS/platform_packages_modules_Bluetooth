@@ -27,8 +27,11 @@
 #include "bta/include/bta_hf_client_api.h"
 #include "btif/include/stack_manager.h"
 #include "common/message_loop_thread.h"
+#include "osi/include/compat.h"
 #include "stack/include/btm_status.h"
+#include "test/common/main_handler.h"
 #include "test/mock/mock_osi_alarm.h"
+#include "test/mock/mock_osi_allocator.h"
 #include "test/mock/mock_stack_acl.h"
 #include "test/mock/mock_stack_btm_sec.h"
 
@@ -46,11 +49,20 @@ class MessageLoop;
 
 namespace {
 constexpr uint8_t kUnusedTimer = BTA_ID_MAX;
+const RawAddress kRawAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
+const RawAddress kRawAddress2({0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc});
+constexpr char kRemoteName[] = "TheRemoteName";
 
 const char* test_flags[] = {
     "INIT_logging_debug_enabled_for_all=true",
     nullptr,
 };
+
+bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) { return true; }
+void bta_dm_search_sm_disable() { bta_sys_deregister(BTA_ID_DM_SEARCH); }
+
+const tBTA_SYS_REG bta_dm_search_reg = {bta_dm_search_sm_execute,
+                                        bta_dm_search_sm_disable};
 
 }  // namespace
 
@@ -70,7 +82,22 @@ class BtaDmTest : public testing::Test {
     test::mock::osi_alarm::alarm_free.body = [](alarm_t* alarm) {
       delete alarm;
     };
+    test::mock::osi_allocator::osi_malloc.body = [](size_t size) {
+      return malloc(size);
+    };
+    test::mock::osi_allocator::osi_calloc.body = [](size_t size) {
+      return calloc(1UL, size);
+    };
+    test::mock::osi_allocator::osi_free.body = [](void* ptr) { free(ptr); };
+    test::mock::osi_allocator::osi_free_and_reset.body = [](void** ptr) {
+      free(*ptr);
+      *ptr = nullptr;
+    };
 
+    main_thread_start_up();
+    post_on_bt_main([]() { LOG_INFO("Main thread started up"); });
+
+    bta_sys_register(BTA_ID_DM_SEARCH, &bta_dm_search_reg);
     bta_dm_init_cb();
 
     for (int i = 0; i < BTA_DM_NUM_PM_TIMER; i++) {
@@ -80,9 +107,17 @@ class BtaDmTest : public testing::Test {
     }
   }
   void TearDown() override {
+    bta_sys_deregister(BTA_ID_DM_SEARCH);
     bta_dm_deinit_cb();
+    post_on_bt_main([]() { LOG_INFO("Main thread shutting down"); });
+    main_thread_shut_down();
+
     test::mock::osi_alarm::alarm_new = {};
     test::mock::osi_alarm::alarm_free = {};
+    test::mock::osi_allocator::osi_malloc = {};
+    test::mock::osi_allocator::osi_calloc = {};
+    test::mock::osi_allocator::osi_free = {};
+    test::mock::osi_allocator::osi_free_and_reset = {};
   }
 };
 
@@ -212,6 +247,9 @@ namespace legacy {
 namespace testing {
 tBTA_DM_PEER_DEVICE* allocate_device_for(const RawAddress& bd_addr,
                                          tBT_TRANSPORT transport);
+
+void bta_dm_remname_cback(void* p);
+
 }  // namespace testing
 }  // namespace legacy
 }  // namespace bluetooth
@@ -363,4 +401,76 @@ TEST_F(BtaDmTest, bta_dm_state_text) {
                bta_dm_state_text(
                    static_cast<tBTA_DM_STATE>(std::numeric_limits<int>::max()))
                    .c_str());
+}
+
+TEST_F(BtaDmTest, bta_dm_remname_cback__typical) {
+  bta_dm_search_cb = {
+      .name_discover_done = false,
+      .peer_bdaddr = kRawAddress,
+  };
+
+  tBTM_REMOTE_DEV_NAME name = {
+      .status = BTM_SUCCESS,
+      .bd_addr = kRawAddress,
+      .length = static_cast<uint16_t>(strlen(kRemoteName)),
+      .remote_bd_name = {},
+      .hci_status = HCI_SUCCESS,
+  };
+  strlcpy(reinterpret_cast<char*>(&name.remote_bd_name), kRemoteName,
+          strlen(kRemoteName));
+
+  bluetooth::legacy::testing::bta_dm_remname_cback(static_cast<void*>(&name));
+
+  sync_main_handler();
+
+  ASSERT_EQ(1, mock_function_count_map["BTM_SecDeleteRmtNameNotifyCallback"]);
+  ASSERT_TRUE(bta_dm_search_cb.name_discover_done);
+}
+
+TEST_F(BtaDmTest, bta_dm_remname_cback__wrong_address) {
+  bta_dm_search_cb = {
+      .name_discover_done = false,
+      .peer_bdaddr = kRawAddress,
+  };
+
+  tBTM_REMOTE_DEV_NAME name = {
+      .status = BTM_SUCCESS,
+      .bd_addr = kRawAddress2,
+      .length = static_cast<uint16_t>(strlen(kRemoteName)),
+      .remote_bd_name = {},
+      .hci_status = HCI_SUCCESS,
+  };
+  strlcpy(reinterpret_cast<char*>(&name.remote_bd_name), kRemoteName,
+          strlen(kRemoteName));
+
+  bluetooth::legacy::testing::bta_dm_remname_cback(static_cast<void*>(&name));
+
+  sync_main_handler();
+
+  ASSERT_EQ(0, mock_function_count_map["BTM_SecDeleteRmtNameNotifyCallback"]);
+  ASSERT_FALSE(bta_dm_search_cb.name_discover_done);
+}
+
+TEST_F(BtaDmTest, bta_dm_remname_cback__HCI_ERR_CONNECTION_EXISTS) {
+  bta_dm_search_cb = {
+      .name_discover_done = false,
+      .peer_bdaddr = kRawAddress,
+  };
+
+  tBTM_REMOTE_DEV_NAME name = {
+      .status = BTM_SUCCESS,
+      .bd_addr = RawAddress::kEmpty,
+      .length = static_cast<uint16_t>(strlen(kRemoteName)),
+      .remote_bd_name = {},
+      .hci_status = HCI_ERR_CONNECTION_EXISTS,
+  };
+  strlcpy(reinterpret_cast<char*>(&name.remote_bd_name), kRemoteName,
+          strlen(kRemoteName));
+
+  bluetooth::legacy::testing::bta_dm_remname_cback(static_cast<void*>(&name));
+
+  sync_main_handler();
+
+  ASSERT_EQ(1, mock_function_count_map["BTM_SecDeleteRmtNameNotifyCallback"]);
+  ASSERT_TRUE(bta_dm_search_cb.name_discover_done);
 }

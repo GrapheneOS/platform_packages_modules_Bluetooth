@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Impossible de transférer les fichiers supérieurs à 4 Go"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Se connecter au Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth activé en mode Avion"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Si vous laissez le Bluetooth activé, votre téléphone s\'en souviendra et le Bluetooth restera activé la prochaine fois que vous serez en mode Avion"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Le Bluetooth reste activé"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Le Bluetooth restera activé en mode Avion. Vous pouvez le désactiver si vous le souhaitez."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Le Wi-Fi et le Bluetooth restent activés"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Le Wi‑Fi et le Bluetooth de votre téléphone resteront activés en mode Avion. Vous pouvez les désactivez si vous le souhaitez."</string>
 </resources>

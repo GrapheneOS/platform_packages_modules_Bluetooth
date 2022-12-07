@@ -14,6 +14,7 @@ mod ffi {
         fn gd_link_policy_is_enabled() -> bool;
         fn irk_rotation_is_enabled() -> bool;
         fn pass_phy_update_callback_is_enabled() -> bool;
+        fn sdp_skip_rnr_if_known_is_enabled() -> bool;
     }
 }
 

@@ -16,12 +16,16 @@
 
 package com.android.bluetooth;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
@@ -80,6 +84,23 @@ public class BluetoothMethodProxy {
     }
 
     /**
+     * Proxies {@link ContentResolver#query(Uri, String[], Bundle, CancellationSignal)}.
+     */
+    public Cursor contentResolverQuery(ContentResolver contentResolver, final Uri contentUri,
+            final String[] projection, final Bundle queryArgs,
+            final CancellationSignal cancellationSignal) {
+        return contentResolver.query(contentUri, projection, queryArgs, cancellationSignal);
+    }
+
+    /**
+     * Proxies {@link ContentResolver#insert(Uri, ContentValues)}.
+     */
+    public Uri contentResolverInsert(ContentResolver contentResolver, final Uri contentUri,
+            final ContentValues contentValues) {
+        return contentResolver.insert(contentUri, contentValues);
+    }
+
+    /**
      * Proxies {@link ContentResolver#update(Uri, ContentValues, String, String[])}.
      */
     public int contentResolverUpdate(ContentResolver contentResolver, final Uri contentUri,
@@ -111,6 +132,12 @@ public class BluetoothMethodProxy {
         return contentResolver.openFileDescriptor(uri, mode);
     }
 
+    /**
+     * Proxies {@link Context#sendBroadcast(Intent)}.
+     */
+    public void contextSendBroadcast(Context context, @RequiresPermission Intent intent) {
+        context.sendBroadcast(intent);
+    }
 
     /**
      * Proxies {@link HeaderSet#getHeader}.

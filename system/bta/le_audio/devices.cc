@@ -41,6 +41,7 @@ using bluetooth::hci::kIsoCigPhy1M;
 using bluetooth::hci::kIsoCigPhy2M;
 using bluetooth::hci::iso_manager::kIsoSca0To20Ppm;
 using le_audio::AudioSetConfigurationProvider;
+using le_audio::DeviceConnectState;
 using le_audio::set_configurations::CodecCapabilitySetting;
 using le_audio::types::ase;
 using le_audio::types::AseState;
@@ -2686,9 +2687,16 @@ void LeAudioDevices::Dump(int fd, int group_id) {
   }
 }
 
-void LeAudioDevices::Cleanup(void) {
+void LeAudioDevices::Cleanup(tGATT_IF client_if) {
   for (auto const& device : leAudioDevices_) {
-    if (device->conn_id_ != GATT_INVALID_CONN_ID) {
+    auto connection_state = device->GetConnectionState();
+    if (connection_state == DeviceConnectState::DISCONNECTED) {
+      continue;
+    }
+
+    if (connection_state == DeviceConnectState::CONNECTING_AUTOCONNECT) {
+      BTA_GATTC_CancelOpen(client_if, device->address_, false);
+    } else {
       BtaGattQueue::Clean(device->conn_id_);
       BTA_GATTC_Close(device->conn_id_);
       device->DisconnectAcl();

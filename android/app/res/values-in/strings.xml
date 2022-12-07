@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"File yang berukuran lebih dari 4GB tidak dapat ditransfer"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Hubungkan ke Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth aktif dalam mode pesawat"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Jika Bluetooth tetap diaktifkan, ponsel akan ingat untuk tetap mengaktifkannya saat berikutnya ponsel Anda disetel ke mode pesawat"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth tetap aktif"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Ponsel akan mengingat untuk tetap mengaktifkan Bluetooth dalam mode pesawat. Nonaktifkan jika Anda tidak ingin Bluetooth terus aktif."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi dan Bluetooth tetap aktif"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Ponsel akan mengingat untuk tetap mengaktifkan Wi-Fi dan Bluetooth dalam mode pesawat. Nonaktifkan jika Anda tidak ingin Wi-Fi dan Bluetooth terus aktif."</string>
 </resources>

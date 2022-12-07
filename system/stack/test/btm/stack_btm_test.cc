@@ -421,3 +421,14 @@ TEST_F(StackBtmTest, sco_state_text) {
                                   std::numeric_limits<std::uint16_t>::max()))
                    .c_str());
 }
+
+TEST_F(StackBtmTest, btm_ble_sec_req_act_text) {
+  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_NONE",
+            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_NONE));
+  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_ENCRYPT",
+            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_ENCRYPT));
+  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_PAIR",
+            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_PAIR));
+  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_DISCARD",
+            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_DISCARD));
+}

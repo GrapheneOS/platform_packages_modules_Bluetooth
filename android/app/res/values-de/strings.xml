@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Dateien mit mehr als 4 GB können nicht übertragen werden"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Mit Bluetooth verbinden"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth im Flugmodus eingeschaltet"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Wenn du Bluetooth nicht ausschaltest, bleibt es eingeschaltet, wenn du das nächste Mal in den Flugmodus wechselst"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth bleibt aktiviert"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Auf deinem Smartphone bleibt Bluetooth im Flugmodus eingeschaltet. Schalte Bluetooth aus, wenn du das nicht möchtest."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"WLAN und Bluetooth bleiben eingeschaltet"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Auf deinem Smartphone bleiben WLAN und Bluetooth im Flugmodus eingeschaltet. Schalte sie aus, wenn du das nicht möchtest."</string>
 </resources>

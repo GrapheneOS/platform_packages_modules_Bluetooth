@@ -36,6 +36,9 @@
 #include "a2dp_vendor_opus.h"
 #endif
 
+#if !defined(UNIT_TESTS)
+#include "audio_hal_interface/a2dp_encoding.h"
+#endif
 #include "bta/av/bta_av_int.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
@@ -573,6 +576,16 @@ bool A2dpCodecs::init() {
     if (cp_iter != codec_priorities_.end()) {
       codec_priority = cp_iter->second;
     }
+
+#if !defined(UNIT_TESTS)
+    if (codec_index == BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS) {
+      if (!bluetooth::audio::a2dp::is_opus_supported()) {
+        // We are using HIDL HAL which does not support OPUS codec
+        // Mark OPUS as disabled
+        opus_enabled = false;
+      }
+    }
+#endif
 
     // If OPUS is not supported it is disabled
     if (codec_index == BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS && !opus_enabled) {

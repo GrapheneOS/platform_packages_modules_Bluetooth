@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Nevar pārsūtīt failus, kas lielāki par 4 GB."</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Izveidot savienojumu ar Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Tehnoloģija Bluetooth lidojuma režīmā paliek ieslēgta"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Ja Bluetooth savienojums paliks ieslēgts, tālrunī tas paliks ieslēgts arī nākamreiz, kad ieslēgsiet lidojuma režīmu."</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth savienojums joprojām ir ieslēgts"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Lidojuma režīmā tālrunī joprojām būs ieslēgts Bluetooth savienojums. Izslēdziet Bluetooth savienojumu, ja nevēlaties, lai tas paliktu ieslēgts."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi savienojums un tehnoloģija Bluetooth paliek ieslēgta"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Lidojuma režīmā tālrunī joprojām būs ieslēgti Wi-Fi un Bluetooth savienojumi. Izslēdziet Wi-Fi un Bluetooth savienojumus, ja nevēlaties, lai tie paliktu ieslēgti."</string>
 </resources>

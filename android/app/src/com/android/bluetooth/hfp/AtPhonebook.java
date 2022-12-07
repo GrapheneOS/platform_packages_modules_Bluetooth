@@ -32,6 +32,7 @@ import android.provider.ContactsContract.PhoneLookup;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.util.DevicePolicyUtils;
@@ -83,16 +84,20 @@ public class AtPhonebook {
     private Context mContext;
     private ContentResolver mContentResolver;
     private HeadsetNativeInterface mNativeInterface;
-    private String mCurrentPhonebook;
-    private String mCharacterSet = "UTF-8";
+    @VisibleForTesting
+    String mCurrentPhonebook;
+    @VisibleForTesting
+    String mCharacterSet = "UTF-8";
 
-    private int mCpbrIndex1, mCpbrIndex2;
+    @VisibleForTesting
+    int mCpbrIndex1, mCpbrIndex2;
     private boolean mCheckingAccessPermission;
 
     // package and class name to which we send intent to check phone book access permission
     private final String mPairingPackage;
 
-    private final HashMap<String, PhonebookResult> mPhonebooks =
+    @VisibleForTesting
+    final HashMap<String, PhonebookResult> mPhonebooks =
             new HashMap<String, PhonebookResult>(4);
 
     static final int TYPE_UNKNOWN = -1;
@@ -434,8 +439,8 @@ public class AtPhonebook {
             queryArgs.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, where);
             queryArgs.putString(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, Calls.DEFAULT_SORT_ORDER);
             queryArgs.putInt(ContentResolver.QUERY_ARG_LIMIT, MAX_PHONEBOOK_SIZE);
-            pbr.cursor = mContentResolver.query(Calls.CONTENT_URI, CALLS_PROJECTION,
-                    queryArgs, null);
+            pbr.cursor = BluetoothMethodProxy.getInstance().contentResolverQuery(mContentResolver,
+                    Calls.CONTENT_URI, CALLS_PROJECTION, queryArgs, null);
 
             if (pbr.cursor == null) {
                 return false;
@@ -450,8 +455,8 @@ public class AtPhonebook {
             queryArgs.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, where);
             queryArgs.putInt(ContentResolver.QUERY_ARG_LIMIT, MAX_PHONEBOOK_SIZE);
             final Uri phoneContentUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
-            pbr.cursor = mContentResolver.query(phoneContentUri, PHONES_PROJECTION,
-                    queryArgs, null);
+            pbr.cursor = BluetoothMethodProxy.getInstance().contentResolverQuery(mContentResolver,
+                    phoneContentUri, PHONES_PROJECTION, queryArgs, null);
 
             if (pbr.cursor == null) {
                 return false;
@@ -547,7 +552,7 @@ public class AtPhonebook {
                 // try caller id lookup
                 // TODO: This code is horribly inefficient. I saw it
                 // take 7 seconds to process 100 missed calls.
-                Cursor c = mContentResolver.query(
+                Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mContentResolver,
                         Uri.withAppendedPath(PhoneLookup.ENTERPRISE_CONTENT_FILTER_URI, number),
                         new String[]{
                                 PhoneLookup.DISPLAY_NAME, PhoneLookup.TYPE
@@ -658,7 +663,8 @@ public class AtPhonebook {
         return permission;
     }
 
-    private static String getPhoneType(int type) {
+    @VisibleForTesting
+    static String getPhoneType(int type) {
         switch (type) {
             case Phone.TYPE_HOME:
                 return "H";
