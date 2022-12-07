@@ -112,6 +112,19 @@ void log_manufacturer_info(const RawAddress& address,
       address, source_type, source_name, manufacturer, model, hardware_version,
       software_version);
 }
+void log_manufacturer_info(const RawAddress& address,
+                           android::bluetooth::AddressTypeEnum address_type,
+                           android::bluetooth::DeviceInfoSrcEnum source_type,
+                           const std::string& source_name,
+                           const std::string& manufacturer,
+                           const std::string& model,
+                           const std::string& hardware_version,
+                           const std::string& software_version) {
+  mock_function_count_map[__func__]++;
+  test::mock::stack_metrics_logging::log_manufacturer_info(
+      address, address_type, source_type, source_name, manufacturer, model,
+      hardware_version, software_version);
+}
 
 void log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum key,
                          int64_t value) {
