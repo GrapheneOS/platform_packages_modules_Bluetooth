@@ -16,19 +16,19 @@
 
 #include "hci/le_advertising_manager.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <algorithm>
 #include <chrono>
 #include <future>
 #include <map>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
 #include "common/bind.h"
 #include "hci/acl_manager.h"
 #include "hci/address.h"
 #include "hci/controller.h"
-#include "hci/hci_layer.h"
+#include "hci/hci_layer_fake.h"
 #include "os/thread.h"
 #include "packet/raw_builder.h"
 
@@ -36,17 +36,7 @@ namespace bluetooth {
 namespace hci {
 namespace {
 
-using packet::kLittleEndian;
-using packet::PacketView;
 using packet::RawBuilder;
-
-PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilder> packet) {
-  auto bytes = std::make_shared<std::vector<uint8_t>>();
-  BitInserter i(*bytes);
-  bytes->reserve(packet->size());
-  packet->Serialize(i);
-  return packet::PacketView<packet::kLittleEndian>(bytes);
-}
 
 class TestController : public Controller {
  public:
@@ -89,144 +79,6 @@ class TestController : public Controller {
  private:
   std::set<OpCode> supported_opcodes_{};
   bool support_ble_extended_advertising_ = false;
-};
-
-class TestHciLayer : public HciLayer {
- public:
-  void EnqueueCommand(
-      std::unique_ptr<CommandBuilder> command,
-      common::ContextualOnceCallback<void(CommandStatusView)> on_status) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    command_queue_.push(std::move(command));
-    command_status_callbacks.push_back(std::move(on_status));
-    command_count_--;
-    if (command_promise_ != nullptr && command_count_ == 0) {
-      command_promise_->set_value();
-      command_promise_.reset();
-    }
-  }
-
-  void EnqueueCommand(
-      std::unique_ptr<CommandBuilder> command,
-      common::ContextualOnceCallback<void(CommandCompleteView)> on_complete) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    command_queue_.push(std::move(command));
-    command_complete_callbacks.push_back(std::move(on_complete));
-    command_count_--;
-    if (command_promise_ != nullptr && command_count_ == 0) {
-      command_promise_->set_value();
-      command_promise_.reset();
-    }
-  }
-
-  // Set command future for 'num_command' commands are expected
-  void SetCommandFuture(uint16_t num_command) {
-    ASSERT_TRUE(command_promise_ == nullptr) << "Promises, Promises, ... Only one at a time.";
-    command_count_ = num_command;
-    command_promise_ = std::make_unique<std::promise<void>>();
-    command_future_ = std::make_unique<std::future<void>>(command_promise_->get_future());
-  }
-
-  CommandView GetCommand() {
-    // Wait for EnqueueCommand if command_queue_ is empty
-    if (command_queue_.empty() && command_future_ != nullptr) {
-      command_future_->wait_for(std::chrono::milliseconds(1000));
-    }
-
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (command_queue_.empty()) {
-      LOG_ERROR("Command queue is empty");
-      return empty_command_view_;
-    }
-
-    auto last = std::move(command_queue_.front());
-    command_queue_.pop();
-    CommandView command_packet_view = CommandView::Create(GetPacketView(std::move(last)));
-    if (!command_packet_view.IsValid()) {
-      LOG_ERROR("Got invalid command");
-      return empty_command_view_;
-    }
-    return command_packet_view;
-  }
-
-  void RegisterEventHandler(EventCode event_code, common::ContextualCallback<void(EventView)> event_handler) override {
-    registered_events_[event_code] = event_handler;
-  }
-
-  void UnregisterEventHandler(EventCode event_code) override {
-    registered_events_.erase(event_code);
-  }
-
-  void RegisterLeEventHandler(
-      SubeventCode subevent_code, common::ContextualCallback<void(LeMetaEventView)> event_handler) override {
-    registered_le_events_[subevent_code] = event_handler;
-  }
-
-  void UnregisterLeEventHandler(SubeventCode subevent_code) override {
-    registered_le_events_.erase(subevent_code);
-  }
-
-  void IncomingEvent(std::unique_ptr<EventBuilder> event_builder) {
-    auto packet = GetPacketView(std::move(event_builder));
-    EventView event = EventView::Create(packet);
-    ASSERT_TRUE(event.IsValid());
-    EventCode event_code = event.GetEventCode();
-    ASSERT_NE(registered_events_.find(event_code), registered_events_.end()) << EventCodeText(event_code);
-    registered_events_[event_code].Invoke(event);
-  }
-
-  void IncomingLeMetaEvent(std::unique_ptr<LeMetaEventBuilder> event_builder) {
-    auto packet = GetPacketView(std::move(event_builder));
-    EventView event = EventView::Create(packet);
-    LeMetaEventView meta_event_view = LeMetaEventView::Create(event);
-    ASSERT_TRUE(meta_event_view.IsValid());
-    SubeventCode subevent_code = meta_event_view.GetSubeventCode();
-    ASSERT_TRUE(registered_le_events_.find(subevent_code) != registered_le_events_.end());
-    registered_le_events_[subevent_code].Invoke(meta_event_view);
-  }
-
-  void CommandCompleteCallback(EventView event) {
-    CommandCompleteView complete_view = CommandCompleteView::Create(event);
-    ASSERT_TRUE(complete_view.IsValid());
-    std::move(command_complete_callbacks.front()).Invoke(complete_view);
-    command_complete_callbacks.pop_front();
-  }
-
-  void CommandStatusCallback(EventView event) {
-    CommandStatusView status_view = CommandStatusView::Create(event);
-    ASSERT_TRUE(status_view.IsValid());
-    std::move(command_status_callbacks.front()).Invoke(status_view);
-    command_status_callbacks.pop_front();
-  }
-
-  void InitEmptyCommand() {
-    auto payload = std::make_unique<bluetooth::packet::RawBuilder>();
-    auto command_builder = CommandBuilder::Create(OpCode::NONE, std::move(payload));
-    empty_command_view_ = CommandView::Create(GetPacketView(std::move(command_builder)));
-    ASSERT_TRUE(empty_command_view_.IsValid());
-  }
-
-  void ListDependencies(ModuleList* list) const {}
-  void Start() override {
-    InitEmptyCommand();
-    RegisterEventHandler(
-        EventCode::COMMAND_COMPLETE, GetHandler()->BindOn(this, &TestHciLayer::CommandCompleteCallback));
-    RegisterEventHandler(EventCode::COMMAND_STATUS, GetHandler()->BindOn(this, &TestHciLayer::CommandStatusCallback));
-  }
-  void Stop() override {}
-
- private:
-  std::map<EventCode, common::ContextualCallback<void(EventView)>> registered_events_;
-  std::map<SubeventCode, common::ContextualCallback<void(LeMetaEventView)>> registered_le_events_;
-  std::list<common::ContextualOnceCallback<void(CommandCompleteView)>> command_complete_callbacks;
-  std::list<common::ContextualOnceCallback<void(CommandStatusView)>> command_status_callbacks;
-  std::queue<std::unique_ptr<CommandBuilder>> command_queue_;
-  std::unique_ptr<std::promise<void>> command_promise_;
-  std::unique_ptr<std::future<void>> command_future_;
-  mutable std::mutex mutex_;
-  uint16_t command_count_ = 0;
-  CommandView empty_command_view_ =
-      CommandView::Create(PacketView<kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
 };
 
 class TestLeAddressManager : public LeAddressManager {

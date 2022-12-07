@@ -163,6 +163,8 @@ namespace bluetooth {
 namespace hci {
 namespace acl_manager {
 
+namespace {
+
 PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilder> packet) {
   auto bytes = std::make_shared<std::vector<uint8_t>>();
   BitInserter i(*bytes);
@@ -382,6 +384,7 @@ class TestHciLayer : public HciLayer {
   std::unique_ptr<std::future<void>> command_future_;
   CommandInterfaceImpl<AclCommandBuilder> le_acl_connection_manager_interface_{*this};
 };
+}  // namespace
 
 class MockLeConnectionCallbacks : public LeConnectionCallbacks {
  public:
