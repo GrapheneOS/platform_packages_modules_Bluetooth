@@ -393,7 +393,11 @@ impl BluetoothMedia {
     pub fn dispatch_avrcp_callbacks(&mut self, cb: AvrcpCallbacks) {
         match cb {
             AvrcpCallbacks::AvrcpDeviceConnected(addr, supported) => {
-                info!("[{}]: avrcp connected.", addr.to_string());
+                info!(
+                    "[{}]: avrcp connected. Absolute volume support: {}.",
+                    addr.to_string(),
+                    supported
+                );
 
                 match self.uinput.create(self.adapter_get_remote_name(addr), addr.to_string()) {
                     Ok(()) => info!("uinput device created for: {}", addr.to_string()),
