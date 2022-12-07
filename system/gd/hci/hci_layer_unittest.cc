@@ -214,11 +214,13 @@ class HciLayerTest : public ::testing::Test {
 
 TEST_F(HciLayerTest, setup_teardown) {}
 
-TEST_F(HciLayerTest, reset_command_sent_on_start) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_reset_command_sent_on_start) {
   FailIfResetNotSent();
 }
 
-TEST_F(HciLayerTest, controller_debug_info_requested_on_hci_timeout) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_controller_debug_info_requested_on_hci_timeout) {
   FailIfResetNotSent();
   FakeTimerAdvance(HciLayer::kHciTimeoutMs.count());
 
@@ -233,7 +235,8 @@ TEST_F(HciLayerTest, controller_debug_info_requested_on_hci_timeout) {
   ASSERT_TRUE(debug_info_view.IsValid());
 }
 
-TEST_F(HciLayerTest, abort_after_hci_restart_timeout) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_abort_after_hci_restart_timeout) {
   FailIfResetNotSent();
   FakeTimerAdvance(HciLayer::kHciTimeoutMs.count());
 
@@ -259,7 +262,8 @@ TEST_F(HciLayerTest, abort_after_hci_restart_timeout) {
       "");
 }
 
-TEST_F(HciLayerTest, abort_on_root_inflammation_event) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_abort_on_root_inflammation_event) {
   FailIfResetNotSent();
 
   auto payload = CreatePayload({'0'});
@@ -280,7 +284,8 @@ TEST_F(HciLayerTest, abort_on_root_inflammation_event) {
       "");
 }
 
-TEST_F(HciLayerTest, successful_reset) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_successful_reset) {
   FailIfResetNotSent();
   auto error_code = ErrorCode::SUCCESS;
   hal_->InjectResetCompleteEventWithCode(error_code);
@@ -290,7 +295,8 @@ TEST_F(HciLayerTest, successful_reset) {
   log_capture_->WaitUntilLogContains(&promise, buf.get());
 }
 
-TEST_F(HciLayerTest, abort_if_reset_complete_returns_error) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_abort_if_reset_complete_returns_error) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();
@@ -306,7 +312,8 @@ TEST_F(HciLayerTest, abort_if_reset_complete_returns_error) {
       "");
 }
 
-TEST_F(HciLayerTest, event_handler_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_event_handler_is_invoked) {
   FailIfResetNotSent();
   hci_->UnregisterEventHandler(EventCode::COMMAND_COMPLETE);
   hci_->RegisterEventHandler(EventCode::COMMAND_COMPLETE, hci_handler_->Bind([](EventView view) {
@@ -318,7 +325,8 @@ TEST_F(HciLayerTest, event_handler_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurEventHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, le_event_handler_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_le_event_handler_is_invoked) {
   FailIfResetNotSent();
   hci_->RegisterLeEventHandler(SubeventCode::ENHANCED_CONNECTION_COMPLETE, hci_handler_->Bind([](LeMetaEventView view) {
     LOG_DEBUG("%s", kOurLeEventHandlerWasInvoked);
@@ -341,7 +349,8 @@ TEST_F(HciLayerTest, le_event_handler_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurLeEventHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, abort_on_second_register_event_handler) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_abort_on_second_register_event_handler) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();
@@ -353,7 +362,8 @@ TEST_F(HciLayerTest, abort_on_second_register_event_handler) {
       "");
 }
 
-TEST_F(HciLayerTest, abort_on_second_register_le_event_handler) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_abort_on_second_register_le_event_handler) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();
@@ -368,7 +378,8 @@ TEST_F(HciLayerTest, abort_on_second_register_le_event_handler) {
       "");
 }
 
-TEST_F(HciLayerTest, our_acl_event_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_acl_event_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetAclConnectionInterface(
       hci_handler_->Bind([](EventView view) { LOG_DEBUG("%s", kOurAclEventHandlerWasInvoked); }),
@@ -383,7 +394,8 @@ TEST_F(HciLayerTest, our_acl_event_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurAclEventHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_disconnect_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_disconnect_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetAclConnectionInterface(
       hci_handler_->Bind([](EventView view) {}),
@@ -399,7 +411,8 @@ TEST_F(HciLayerTest, our_disconnect_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurDisconnectHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_read_remote_version_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_read_remote_version_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetAclConnectionInterface(
       hci_handler_->Bind([](EventView view) {}),
@@ -415,7 +428,8 @@ TEST_F(HciLayerTest, our_read_remote_version_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurReadRemoteVersionHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_le_acl_event_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_le_acl_event_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetLeAclConnectionInterface(
       hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeAclEventHandlerWasInvoked); }),
@@ -430,7 +444,8 @@ TEST_F(HciLayerTest, our_le_acl_event_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurLeAclEventHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_le_disconnect_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_le_disconnect_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetLeAclConnectionInterface(
       hci_handler_->Bind([](LeMetaEventView view) {}),
@@ -446,7 +461,8 @@ TEST_F(HciLayerTest, our_le_disconnect_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurLeDisconnectHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_le_read_remote_version_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_le_read_remote_version_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetLeAclConnectionInterface(
       hci_handler_->Bind([](LeMetaEventView view) {}),
@@ -462,7 +478,8 @@ TEST_F(HciLayerTest, our_le_read_remote_version_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurLeReadRemoteVersionHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_security_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_security_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetSecurityInterface(
       hci_handler_->Bind([](EventView view) { LOG_DEBUG("%s", kOurSecurityEventHandlerWasInvoked); }));
@@ -471,7 +488,8 @@ TEST_F(HciLayerTest, our_security_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurSecurityEventHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_le_security_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_le_security_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetLeSecurityInterface(
       hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeSecurityEventHandlerWasInvoked); }));
@@ -480,7 +498,8 @@ TEST_F(HciLayerTest, our_le_security_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurLeSecurityEventHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_le_advertising_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_le_advertising_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetLeAdvertisingInterface(
       hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeAdvertisementEventHandlerWasInvoked); }));
@@ -489,7 +508,8 @@ TEST_F(HciLayerTest, our_le_advertising_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurLeAdvertisementEventHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_le_scanning_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_le_scanning_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetLeScanningInterface(
       hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeScanningEventHandlerWasInvoked); }));
@@ -498,7 +518,8 @@ TEST_F(HciLayerTest, our_le_scanning_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurLeScanningEventHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_le_iso_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_le_iso_callback_is_invoked) {
   FailIfResetNotSent();
   hci_->GetLeIsoInterface(
       hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeIsoEventHandlerWasInvoked); }));
@@ -507,7 +528,8 @@ TEST_F(HciLayerTest, our_le_iso_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurLeIsoEventHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_command_complete_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_command_complete_callback_is_invoked) {
   FailIfResetNotSent();
   auto error_code = ErrorCode::SUCCESS;
   hal_->InjectResetCompleteEventWithCode(error_code);
@@ -519,7 +541,8 @@ TEST_F(HciLayerTest, our_command_complete_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurCommandCompleteHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, our_command_status_callback_is_invoked) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_our_command_status_callback_is_invoked) {
   FailIfResetNotSent();
   auto error_code = ErrorCode::SUCCESS;
   hal_->InjectResetCompleteEventWithCode(error_code);
@@ -531,7 +554,8 @@ TEST_F(HciLayerTest, our_command_status_callback_is_invoked) {
   log_capture_->WaitUntilLogContains(&promise, kOurCommandStatusHandlerWasInvoked);
 }
 
-TEST_F(HciLayerTest, command_complete_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_command_complete_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();
@@ -545,7 +569,8 @@ TEST_F(HciLayerTest, command_complete_callback_is_invoked_with_an_opcode_that_do
       "");
 }
 
-TEST_F(HciLayerTest, command_status_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_command_status_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();
@@ -559,7 +584,8 @@ TEST_F(HciLayerTest, command_status_callback_is_invoked_with_an_opcode_that_does
       "");
 }
 
-TEST_F(HciLayerTest, command_complete_callback_is_invoked_but_command_queue_empty) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_command_complete_callback_is_invoked_but_command_queue_empty) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();
@@ -573,7 +599,8 @@ TEST_F(HciLayerTest, command_complete_callback_is_invoked_but_command_queue_empt
       "");
 }
 
-TEST_F(HciLayerTest, command_status_callback_is_invoked_but_command_queue_empty) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_command_status_callback_is_invoked_but_command_queue_empty) {
   ASSERT_DEATH(
       {
         FailIfResetNotSent();
@@ -587,7 +614,8 @@ TEST_F(HciLayerTest, command_status_callback_is_invoked_but_command_queue_empty)
       "");
 }
 
-TEST_F(HciLayerTest, command_status_callback_is_invoked_with_failure_status) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_command_status_callback_is_invoked_with_failure_status) {
   FailIfResetNotSent();
   auto error_code = ErrorCode::SUCCESS;
   hal_->InjectResetCompleteEventWithCode(error_code);
