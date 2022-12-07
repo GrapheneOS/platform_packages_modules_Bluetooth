@@ -4,8 +4,7 @@ package {
 
 java_defaults {
     name: "bluetooth-module-sdk-version-defaults",
-    min_sdk_version: "current",
-    target_sdk_version: "current",
+    min_sdk_version: "Tiramisu",
 }
 
 filegroup {
