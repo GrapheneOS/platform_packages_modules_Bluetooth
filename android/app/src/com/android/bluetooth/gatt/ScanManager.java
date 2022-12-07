@@ -60,6 +60,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -866,7 +867,9 @@ public class ScanManager {
         }
 
         void handleResumeScans() {
-            for (ScanClient client : mSuspendedScanClients) {
+            Iterator<ScanClient> iterator = mSuspendedScanClients.iterator();
+            while (iterator.hasNext()) {
+                ScanClient client = iterator.next();
                 if ((!requiresScreenOn(client) || mScreenOn)
                         && (!requiresLocationOn(client) || mLocationManager.isLocationEnabled())) {
                     if (client.stats != null) {
@@ -876,9 +879,9 @@ public class ScanManager {
                         Log.d(TAG, "resume scan " + client);
                     }
                     handleStartScan(client);
+                    iterator.remove();
                 }
             }
-            mSuspendedScanClients.clear();
         }
 
         private void updateRegularScanClientsScreenOn() {
