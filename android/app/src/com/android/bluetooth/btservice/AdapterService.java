@@ -5164,6 +5164,7 @@ public class AdapterService extends Service {
     }
 
     // Boolean flags
+    private static final String SDP_SERIALIZATION_FLAG = "INIT_sdp_serialization";
     private static final String GD_CORE_FLAG = "INIT_gd_core";
     private static final String GD_ADVERTISING_FLAG = "INIT_gd_advertising";
     private static final String GD_SCANNING_FLAG = "INIT_gd_scanning";
@@ -5205,6 +5206,10 @@ public class AdapterService extends Service {
         ArrayList<String> initFlags = new ArrayList<>();
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_CORE_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GD_CORE_FLAG, "true"));
+        }
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
+                    SDP_SERIALIZATION_FLAG, true)) {
+            initFlags.add(String.format("%s=%s", SDP_SERIALIZATION_FLAG, "true"));
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_ADVERTISING_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GD_ADVERTISING_FLAG, "true"));
