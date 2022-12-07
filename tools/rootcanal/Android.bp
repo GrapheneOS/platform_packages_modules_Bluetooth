@@ -252,6 +252,8 @@ python_test_host {
         ":link_layer_packets_python3_gen",
         "test/main.py",
         "test/LL/DDI/ADV/BV_01_C.py",
+        "test/LL/DDI/ADV/BV_02_C.py",
+        "test/LL/DDI/ADV/BV_03_C.py",
         "test/LL/DDI/SCN/BV_13_C.py",
         "test/LL/DDI/SCN/BV_14_C.py",
         "test/LL/DDI/SCN/BV_18_C.py",
