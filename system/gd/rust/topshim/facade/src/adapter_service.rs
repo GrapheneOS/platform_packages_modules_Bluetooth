@@ -1,16 +1,18 @@
 //! Adapter service facade
 
 use bt_topshim::btif;
-use bt_topshim::btif::{BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface};
+use bt_topshim::btif::{BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BtIoCap};
 
 use bt_topshim_facade_protobuf::empty::Empty;
 use bt_topshim_facade_protobuf::facade::{
     EventType, FetchEventsRequest, FetchEventsResponse, SetDefaultEventMaskExceptRequest,
-    SetDiscoveryModeRequest, SetDiscoveryModeResponse, ToggleStackRequest, ToggleStackResponse,
+    SetDiscoveryModeRequest, SetDiscoveryModeResponse, SetLocalIoCapsRequest,
+    SetLocalIoCapsResponse, ToggleStackRequest, ToggleStackResponse,
 };
 use bt_topshim_facade_protobuf::facade_grpc::{create_adapter_service, AdapterService};
 use futures::sink::SinkExt;
 use grpcio::*;
+use num_traits::cast::FromPrimitive;
 
 use std::sync::{Arc, Mutex};
 use tokio::runtime::Runtime;
@@ -31,6 +33,12 @@ fn get_bt_dispatcher(
                 }
                 BaseCallbacks::SspRequest(addr, _, _, variant, passkey) => {
                     btif.lock().unwrap().ssp_reply(&addr, variant, 1, passkey);
+                }
+                BaseCallbacks::AdapterProperties(status, _, properties) => {
+                    println!(
+                        "Adapter attributes changed, status = {:?}, properties = {:?}",
+                        status, properties
+                    );
                 }
                 _ => (),
             }
@@ -126,6 +134,12 @@ impl AdapterService for AdapterServiceImpl {
                         s.push(delimiter);
                         s.push_str(&encode_hex(&data.r));
                         rsp.data = s;
+                        sink.send((rsp, WriteFlags::default())).await.unwrap();
+                    }
+                    BaseCallbacks::AdapterProperties(status, _, properties) => {
+                        let mut rsp = FetchEventsResponse::new();
+                        rsp.event_type = EventType::ADAPTER_PROPERTY;
+                        rsp.data = format!("{:?} :: {:?}", status, properties);
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     _ => (),
@@ -256,6 +270,24 @@ impl AdapterService for AdapterServiceImpl {
         self.btif_intf.lock().unwrap().set_event_filter_connection_setup_all_devices();
         ctx.spawn(async move {
             sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn set_local_io_caps(
+        &mut self,
+        ctx: RpcContext<'_>,
+        req: SetLocalIoCapsRequest,
+        sink: UnarySink<SetLocalIoCapsResponse>,
+    ) {
+        let status = self.btif_intf.lock().unwrap().set_adapter_property(
+            btif::BluetoothProperty::LocalIoCaps(
+                BtIoCap::from_i32(req.io_capability).unwrap_or(BtIoCap::Unknown),
+            ),
+        );
+        let mut resp = SetLocalIoCapsResponse::new();
+        resp.status = status;
+        ctx.spawn(async move {
+            sink.success(resp).await.unwrap();
         })
     }
 }

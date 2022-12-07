@@ -71,6 +71,7 @@ constexpr uint16_t kLatency = 0x60;
 constexpr uint16_t kLength = 0x5678;
 constexpr uint16_t kTime = 0x1234;
 constexpr uint16_t kTimeout = 0x80;
+constexpr uint16_t kContinuationNumber = 0x32;
 constexpr std::array<uint8_t, 16> kPeerIdentityResolvingKey({
     0x00,
     0x01,
@@ -417,6 +418,15 @@ class MockLeConnectionManagementCallbacks : public LeConnectionManagementCallbac
   MOCK_METHOD(void, OnLeReadRemoteFeaturesComplete, (hci::ErrorCode hci_status, uint64_t features), (override));
   MOCK_METHOD(void, OnPhyUpdate, (hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy), (override));
   MOCK_METHOD(void, OnLocalAddressUpdate, (AddressWithType address_with_type), (override));
+  MOCK_METHOD(
+      void,
+      OnLeSubrateChange,
+      (hci::ErrorCode hci_status,
+       uint16_t subrate_factor,
+       uint16_t peripheral_latency,
+       uint16_t continuation_number,
+       uint16_t supervision_timeout),
+      (override));
 };
 
 class LeImplTest : public ::testing::Test {
@@ -1312,6 +1322,18 @@ TEST_F(LeImplWithConnectionTest, on_le_event__PHY_UPDATE_COMPLETE) {
   ASSERT_EQ(PhyType::LE_2M, rx_phy);
 }
 
+TEST_F(LeImplWithConnectionTest, on_le_event__SUBRATE_CHANGE_EVENT) {
+  // Send a subrate event
+  EXPECT_CALL(connection_management_callbacks_, OnLeSubrateChange(ErrorCode::SUCCESS, 0x01, 0x02, 0x03, 0x04));
+  auto command = LeSubrateChangeBuilder::Create(ErrorCode::SUCCESS, kHciHandle, 0x01, 0x02, 0x03, 0x04);
+  auto bytes = Serialize<LeSubrateChangeBuilder>(std::move(command));
+  auto view = CreateLeEventView<hci::LeSubrateChangeView>(bytes);
+  ASSERT_TRUE(view.IsValid());
+  le_impl_->on_le_event(view);
+
+  sync_handler();
+}
+
 TEST_F(LeImplWithConnectionTest, on_le_event__DATA_LENGTH_CHANGE) {
   uint16_t tx_octets{0};
   uint16_t tx_time{0};
@@ -1467,6 +1489,18 @@ TEST_F(LeImplTest, set_le_suggested_default_data_parameters) {
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(kLength, view.GetTxOctets());
   ASSERT_EQ(kTime, view.GetTxTime());
+}
+
+TEST_F(LeImplTest, LeSetDefaultSubrate) {
+  le_impl_->LeSetDefaultSubrate(kIntervalMin, kIntervalMax, kLatency, kContinuationNumber, kTimeout);
+  sync_handler();
+  auto view = CreateAclCommandView<LeSetDefaultSubrateView>(hci_layer_->DequeueCommandBytes());
+  ASSERT_TRUE(view.IsValid());
+  ASSERT_EQ(kIntervalMin, view.GetSubrateMin());
+  ASSERT_EQ(kIntervalMax, view.GetSubrateMax());
+  ASSERT_EQ(kLatency, view.GetMaxLatency());
+  ASSERT_EQ(kContinuationNumber, view.GetContinuationNumber());
+  ASSERT_EQ(kTimeout, view.GetSupervisionTimeout());
 }
 
 }  // namespace acl_manager

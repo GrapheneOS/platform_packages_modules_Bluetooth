@@ -965,7 +965,7 @@ impl BluetoothGatt {
     /// subsequent API calls will be blocked in this mode.
     pub fn scan_enter_suspend(&mut self) {
         // TODO(b/224603540): Implement
-        todo!()
+        log::error!("TODO - scan_enter_suspend");
     }
 
     /// Exits suspend mode for LE Scan.
@@ -975,7 +975,7 @@ impl BluetoothGatt {
     /// mode.
     pub fn scan_exit_suspend(&mut self) {
         // TODO(b/224603540): Implement
-        todo!()
+        log::error!("TODO - scan_exit_suspend");
     }
 
     fn find_scanner_by_id<'a>(

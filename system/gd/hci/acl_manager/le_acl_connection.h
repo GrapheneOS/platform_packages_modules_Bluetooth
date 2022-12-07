@@ -96,6 +96,9 @@ class LeAclConnection : public AclConnection {
   virtual bool ReadRemoteVersionInformation() override;
   virtual bool LeReadRemoteFeatures();
 
+  virtual void LeSubrateRequest(
+      uint16_t subrate_min, uint16_t subrate_max, uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout);
+
   // TODO implement LeRemoteConnectionParameterRequestReply, LeRemoteConnectionParameterRequestNegativeReply
 
   // Called once before passing the connection to the client
@@ -107,6 +110,7 @@ class LeAclConnection : public AclConnection {
   Role role_;
 
  private:
+  void OnLeSubrateRequestStatus(CommandStatusView status);
   virtual bool check_connection_parameters(
       uint16_t conn_interval_min,
       uint16_t conn_interval_max,

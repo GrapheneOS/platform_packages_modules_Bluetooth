@@ -335,11 +335,19 @@ package android.bluetooth {
 
   public final class BluetoothHearingAid implements android.bluetooth.BluetoothProfile {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getDeviceMode(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getDeviceSide(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public long getHiSyncId(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void setVolume(int);
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_ACTIVE_DEVICE_CHANGED = "android.bluetooth.hearingaid.profile.action.ACTIVE_DEVICE_CHANGED";
     field public static final long HI_SYNC_ID_INVALID = 0L; // 0x0L
+    field public static final int MODE_BINAURAL = 1; // 0x1
+    field public static final int MODE_MONAURAL = 0; // 0x0
+    field public static final int MODE_UNKNOWN = -1; // 0xffffffff
+    field public static final int SIDE_LEFT = 0; // 0x0
+    field public static final int SIDE_RIGHT = 1; // 0x1
+    field public static final int SIDE_UNKNOWN = -1; // 0xffffffff
   }
 
   public final class BluetoothHidDevice implements android.bluetooth.BluetoothProfile {

@@ -169,6 +169,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       case SubeventCode::REMOTE_CONNECTION_PARAMETER_REQUEST:
         on_remote_connection_parameter_request(event_packet);
         break;
+      case SubeventCode::LE_SUBRATE_CHANGE:
+        on_le_subrate_change(event_packet);
+        break;
       default:
         LOG_ALWAYS_FATAL("Unhandled event code %s", SubeventCodeText(code).c_str());
     }
@@ -643,6 +646,23 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     });
   }
 
+  void on_le_subrate_change(LeMetaEventView view) {
+    auto subrate_change_view = LeSubrateChangeView::Create(view);
+    if (!subrate_change_view.IsValid()) {
+      LOG_ERROR("Invalid packet");
+      return;
+    }
+    auto handle = subrate_change_view.GetConnectionHandle();
+    connections.execute(handle, [=](LeConnectionManagementCallbacks* callbacks) {
+      callbacks->OnLeSubrateChange(
+          subrate_change_view.GetStatus(),
+          subrate_change_view.GetSubrateFactor(),
+          subrate_change_view.GetPeripheralLatency(),
+          subrate_change_view.GetContinuationNumber(),
+          subrate_change_view.GetSupervisionTimeout());
+    });
+  }
+
   uint16_t HACK_get_handle(Address address) {
     return connections.HACK_get_handle(address);
   }
@@ -982,6 +1002,18 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     auto packet = LeWriteSuggestedDefaultDataLengthBuilder::Create(length, time);
     le_acl_connection_interface_->EnqueueCommand(
         std::move(packet), handler_->BindOnce([](CommandCompleteView complete) {}));
+  }
+
+  void LeSetDefaultSubrate(
+      uint16_t subrate_min, uint16_t subrate_max, uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout) {
+    le_acl_connection_interface_->EnqueueCommand(
+        LeSetDefaultSubrateBuilder::Create(subrate_min, subrate_max, max_latency, cont_num, sup_tout),
+        handler_->BindOnce([](CommandCompleteView complete) {
+          auto complete_view = LeSetDefaultSubrateCompleteView::Create(complete);
+          ASSERT(complete_view.IsValid());
+          ErrorCode status = complete_view.GetStatus();
+          ASSERT_LOG(status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
+        }));
   }
 
   void clear_resolving_list() {
