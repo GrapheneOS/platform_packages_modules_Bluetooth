@@ -460,40 +460,56 @@ uint16_t sdpu_get_active_ccb_cid(const RawAddress& remote_bd_addr) {
  * Function         sdpu_process_pend_ccb
  *
  * Description      This function process if any sdp ccb pending for connection
+ *                  and reuse the same connection id
  *
- *                  uint16_t : Remote CID
- *                  bool: if true will reuse current channel else will create a
- *                         new L2CAP connection
+ *                  tCONN_CB&: connection control block that trigget the process
  *
  * Returns          returns true if any pending ccb, else false.
  *
  ******************************************************************************/
-bool sdpu_process_pend_ccb(tCONN_CB& ccb, bool use_cur_chnl) {
+bool sdpu_process_pend_ccb_same_cid(tCONN_CB& ccb) {
   uint16_t xx;
   tCONN_CB* p_ccb;
 
-  if (use_cur_chnl) {
-    // Look through each connection control block for active sdp on given remote
-    for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
-      if ((p_ccb->con_state == SDP_STATE_CONN_PEND) &&
-          (p_ccb->connection_id == ccb.connection_id) &&
-          (p_ccb->con_flags & SDP_FLAGS_IS_ORIG)) {
-        p_ccb->con_state = SDP_STATE_CONNECTED;
-        sdp_disc_connected(p_ccb);
-        return true;
-      }
+  // Look through each connection control block for active sdp on given remote
+  for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
+    if ((p_ccb->con_state == SDP_STATE_CONN_PEND) &&
+        (p_ccb->connection_id == ccb.connection_id) &&
+        (p_ccb->con_flags & SDP_FLAGS_IS_ORIG)) {
+      p_ccb->con_state = SDP_STATE_CONNECTED;
+      sdp_disc_connected(p_ccb);
+      return true;
     }
-    // No pending SDP channel for this remote
-    return false;
   }
+  // No pending SDP channel for this remote
+  return false;
+}
 
+/*******************************************************************************
+ *
+ * Function         sdpu_process_pend_ccb_new_cid
+ *
+ * Description      This function process if any sdp ccb pending for connection
+ *                  and update their connection id with a new L2CA connection
+ *
+ *                  tCONN_CB&: connection control block that trigget the process
+ *
+ * Returns          returns true if any pending ccb, else false.
+ *
+ ******************************************************************************/
+bool sdpu_process_pend_ccb_new_cid(tCONN_CB& ccb) {
+  uint16_t xx;
+  tCONN_CB* p_ccb;
   uint16_t new_cid = 0;
   bool new_conn = false;
+
+  // Look through each ccb to replace the obsolete cid with a new one.
   for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
     if ((p_ccb->con_state == SDP_STATE_CONN_PEND) &&
         (p_ccb->connection_id == ccb.connection_id) &&
         (p_ccb->con_flags & SDP_FLAGS_IS_ORIG)) {
       if (!new_conn) {
+        // Only change state of the first ccb
         p_ccb->con_state = SDP_STATE_CONN_SETUP;
         new_cid =
             L2CA_ConnectReq2(BT_PSM_SDP, p_ccb->device_address, BTM_SEC_NONE);
@@ -501,6 +517,7 @@ bool sdpu_process_pend_ccb(tCONN_CB& ccb, bool use_cur_chnl) {
       }
       // Check if L2CAP started the connection process
       if (new_cid != 0) {
+        // update alls cid to the new one for future reference
         p_ccb->connection_id = new_cid;
       } else {
         sdpu_callback(*p_ccb, SDP_CONN_FAILED);
