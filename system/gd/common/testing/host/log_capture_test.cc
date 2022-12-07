@@ -62,7 +62,8 @@ TEST_F(LogCaptureTest, no_output) {
   ASSERT_TRUE(log_capture->Size() == 0);
 }
 
-TEST_F(LogCaptureTest, truncate) {
+// b/260917913
+TEST_F(LogCaptureTest, DISABLED_truncate) {
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   CalibrateOneLine(kLogError);
@@ -76,7 +77,8 @@ TEST_F(LogCaptureTest, truncate) {
   ASSERT_EQ(size, log_capture->Size());
 }
 
-TEST_F(LogCaptureTest, log_size) {
+// b/260917913
+TEST_F(LogCaptureTest, DISABLED_log_size) {
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   CalibrateOneLine(kEmptyLine);
@@ -101,7 +103,8 @@ TEST_F(LogCaptureTest, log_size) {
   ASSERT_TRUE(log_capture->Rewind()->Find(kLogInfo));
 }
 
-TEST_F(LogCaptureTest, typical) {
+// b/260917913
+TEST_F(LogCaptureTest, DISABLED_typical) {
   bluetooth::common::InitFlags::Load(nullptr);
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
@@ -118,7 +121,8 @@ TEST_F(LogCaptureTest, typical) {
   ASSERT_FALSE(log_capture->Rewind()->Find(kLogVerbose));
 }
 
-TEST_F(LogCaptureTest, with_logging_debug_enabled_for_all) {
+// b/260917913
+TEST_F(LogCaptureTest, DISABLED_with_logging_debug_enabled_for_all) {
   bluetooth::common::InitFlags::Load(test_flags);
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
@@ -136,7 +140,8 @@ TEST_F(LogCaptureTest, with_logging_debug_enabled_for_all) {
   bluetooth::common::InitFlags::Load(nullptr);
 }
 
-TEST_F(LogCaptureTest, wait_until_log_contains) {
+// b/260917913
+TEST_F(LogCaptureTest, DISABLED_wait_until_log_contains) {
   bluetooth::common::InitFlags::Load(test_flags);
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
