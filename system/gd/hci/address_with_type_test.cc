@@ -73,25 +73,24 @@ TEST(AddressWithTypeTest, IsRpa) {
 
   // Must have proper Most Significant Bit configuration
   EXPECT_FALSE(
-      AddressWithType(Address{{0x30, 0x02, 0x03, 0x04, 0x05, 0x06}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
+      AddressWithType(Address{{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
   EXPECT_TRUE(
-      AddressWithType(Address{{0x40, 0x02, 0x03, 0x04, 0x05, 0x03}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
+      AddressWithType(Address{{0x01, 0x02, 0x03, 0x04, 0x05, 0x40}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
   EXPECT_TRUE(
-      AddressWithType(Address{{0x50, 0x02, 0x03, 0x04, 0x05, 0x06}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
+      AddressWithType(Address{{0x01, 0x02, 0x03, 0x04, 0x05, 0x50}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
   EXPECT_TRUE(
-      AddressWithType(Address{{0x60, 0x02, 0x03, 0x04, 0x05, 0x06}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
+      AddressWithType(Address{{0x01, 0x02, 0x03, 0x04, 0x05, 0x60}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
   EXPECT_TRUE(
-      AddressWithType(Address{{0x70, 0x02, 0x03, 0x04, 0x05, 0x06}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
+      AddressWithType(Address{{0x01, 0x02, 0x03, 0x04, 0x05, 0x70}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
   EXPECT_FALSE(
-      AddressWithType(Address{{0x80, 0x02, 0x03, 0x04, 0x05, 0x06}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
+      AddressWithType(Address{{0x01, 0x02, 0x03, 0x04, 0x05, 0x80}}, AddressType::RANDOM_DEVICE_ADDRESS).IsRpa());
 }
 
 TEST(AddressWithTypeTest, IsRpaThatMatchesIrk) {
-  // Public address can't be RPA
   AddressWithType address_1 =
-      AddressWithType(Address{{0x50, 0x02, 0x03, 0xC9, 0x12, 0xDE}}, AddressType::RANDOM_DEVICE_ADDRESS);
+      AddressWithType(Address{{0xDE, 0x12, 0xC9, 0x03, 0x02, 0x50}}, AddressType::RANDOM_DEVICE_ADDRESS);
   AddressWithType address_2 =
-      AddressWithType(Address{{0x50, 0x02, 0x03, 0xC9, 0x12, 0xDD}}, AddressType::RANDOM_DEVICE_ADDRESS);
+      AddressWithType(Address{{0xDD, 0x12, 0xC9, 0x03, 0x02, 0x50}}, AddressType::RANDOM_DEVICE_ADDRESS);
   crypto_toolbox::Octet16 irk_1{0x90, 0x5e, 0x60, 0x59, 0xc9, 0x11, 0x43, 0x7b,
                                 0x04, 0x09, 0x6a, 0x53, 0x28, 0xe6, 0x59, 0x6d};
 
