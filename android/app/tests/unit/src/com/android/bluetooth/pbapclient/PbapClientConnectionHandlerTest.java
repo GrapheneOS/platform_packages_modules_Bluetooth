@@ -173,63 +173,14 @@ public class PbapClientConnectionHandlerTest {
     }
 
     @Test
-    public void downloadContacts() {
-        final String path = PbapClientConnectionHandler.PB_PATH;
+    public void removeCallLog_doesNotCrash() {
+        ContentResolver res = mock(ContentResolver.class);
+        when(mTargetContext.getContentResolver()).thenReturn(res);
+        mHandler.removeCallLog();
 
-        try {
-            mHandler.downloadContacts(path);
-        } catch (Exception e) {
-            Log.e(TAG, "Exception happened.", e);
-            assertWithMessage("Exception should not be thrown!").fail();
-        }
-    }
-
-    @Test
-    public void downloadCallLog() {
-        final String path = PbapClientConnectionHandler.ICH_PATH;
-        final HashMap<String, Integer> callCounter = new HashMap<>();
-
-        try {
-            mHandler.downloadCallLog(path, callCounter);
-        } catch (Exception e) {
-            Log.e(TAG, "Exception happened.", e);
-            assertWithMessage("Exception should not be thrown!").fail();
-        }
-    }
-
-    @Test
-    public void addAccount() {
-        try {
-            mHandler.addAccount(mock(Account.class));
-        } catch (Exception e) {
-            Log.e(TAG, "Exception happened.", e);
-            assertWithMessage("Exception should not be thrown!").fail();
-        }
-    }
-
-    @Test
-    public void removeAccount() {
-        try {
-            mHandler.removeAccount();
-        } catch (Exception e) {
-            Log.e(TAG, "Exception happened.", e);
-            assertWithMessage("Exception should not be thrown!").fail();
-        }
-    }
-
-    @Test
-    public void removeCallLog() {
-        try {
-            ContentResolver res = mock(ContentResolver.class);
-            when(mTargetContext.getContentResolver()).thenReturn(res);
-            mHandler.removeCallLog();
-
-            when(mTargetContext.getContentResolver()).thenReturn(null);
-            mHandler.removeCallLog();
-        } catch (Exception e) {
-            Log.e(TAG, "Exception happened.", e);
-            assertWithMessage("Exception should not be thrown!").fail();
-        }
+        // Also test when content resolver is null.
+        when(mTargetContext.getContentResolver()).thenReturn(null);
+        mHandler.removeCallLog();
     }
 
     @Test
