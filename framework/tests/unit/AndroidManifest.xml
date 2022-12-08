@@ -21,6 +21,6 @@
         <uses-library android:name="android.test.runner" />
     </application>
     <instrumentation android:name="androidx.test.runner.AndroidJUnitRunner"
-        android:targetPackage="com.android.bluetooth"
+        android:targetPackage="com.android.framework.bluetooth.tests"
         android:label="Framework Bluetooth Tests"/>
 </manifest>
