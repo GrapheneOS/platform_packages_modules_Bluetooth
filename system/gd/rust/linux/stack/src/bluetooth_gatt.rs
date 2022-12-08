@@ -5,10 +5,10 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use bt_topshim::bindings::root::bluetooth::Uuid;
 use bt_topshim::btif::{BluetoothInterface, BtStatus, BtTransport, RawAddress, Uuid128Bit};
 use bt_topshim::profiles::gatt::{
-    AdvertisingStatus, BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt,
-    GattAdvCallbacks, GattAdvCallbacksDispatcher, GattAdvInbandCallbacksDispatcher,
-    GattClientCallbacks, GattClientCallbacksDispatcher, GattScannerCallbacks,
-    GattScannerCallbacksDispatcher, GattScannerInbandCallbacks,
+    ffi::RustAdvertisingTrackInfo, AdvertisingStatus, BtGattDbElement, BtGattNotifyParams,
+    BtGattReadParams, Gatt, GattAdvCallbacks, GattAdvCallbacksDispatcher,
+    GattAdvInbandCallbacksDispatcher, GattClientCallbacks, GattClientCallbacksDispatcher,
+    GattScannerCallbacks, GattScannerCallbacksDispatcher, GattScannerInbandCallbacks,
     GattScannerInbandCallbacksDispatcher, GattServerCallbacksDispatcher, GattStatus, LePhy,
     MsftAdvMonitor, MsftAdvMonitorPattern,
 };
@@ -2449,6 +2449,9 @@ pub(crate) trait BtifGattScannerCallbacks {
         periodic_adv_int: u16,
         adv_data: Vec<u8>,
     );
+
+    #[btif_callback(OnTrackAdvFoundLost)]
+    fn on_track_adv_found_lost(&mut self, adv_track_info: RustAdvertisingTrackInfo);
 }
 
 #[btif_callbacks_dispatcher(dispatch_le_scanner_inband_callbacks, GattScannerInbandCallbacks)]
@@ -2724,6 +2727,33 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
                 service_data: adv_parser::extract_service_data(adv_data.as_slice()),
                 manufacturer_data: adv_parser::extract_manufacturer_data(adv_data.as_slice()),
                 adv_data: adv_data.clone(),
+            });
+        });
+    }
+
+    fn on_track_adv_found_lost(&mut self, track_adv_info: RustAdvertisingTrackInfo) {
+        self.scanner_callbacks.for_all_callbacks(|callback| {
+            let adv_data =
+                [&track_adv_info.adv_packet[..], &track_adv_info.scan_response[..]].concat();
+
+            callback.on_scan_result_lost(ScanResult {
+                name: adv_parser::extract_name(adv_data.as_slice()),
+                address: track_adv_info.advertiser_address.to_string(),
+                addr_type: track_adv_info.advertiser_address_type,
+                event_type: 0, /* not used */
+                primary_phy: LePhy::Phy1m as u8,
+                secondary_phy: 0,      /* not used */
+                advertising_sid: 0xff, /* not present */
+                /* A bug in libbluetooth that uses u8 for TX power.
+                 * TODO(b/261482382): Fix the data type in C++ layer to use i8 instead of u8. */
+                tx_power: track_adv_info.tx_power as i8,
+                rssi: track_adv_info.rssi,
+                periodic_adv_int: 0, /* not used */
+                flags: adv_parser::extract_flags(adv_data.as_slice()),
+                service_uuids: adv_parser::extract_service_uuids(adv_data.as_slice()),
+                service_data: adv_parser::extract_service_data(adv_data.as_slice()),
+                manufacturer_data: adv_parser::extract_manufacturer_data(adv_data.as_slice()),
+                adv_data,
             });
         });
     }
