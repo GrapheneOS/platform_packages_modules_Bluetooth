@@ -215,7 +215,7 @@ class LeAdvertisingManagerTest : public ::testing::Test {
   LeAdvertisingManager* le_advertising_manager_ = nullptr;
   os::Handler* client_handler_ = nullptr;
   OpCode param_opcode_{OpCode::LE_SET_ADVERTISING_PARAMETERS};
-  uint8_t num_instances_ = 0x01;
+  uint8_t num_instances_ = 8;
   bool support_ble_extended_advertising_ = false;
 
   const common::Callback<void(Address, AddressType)> scan_callback =
@@ -1121,6 +1121,60 @@ TEST_F(LeExtendedAdvertisingAPITest, disable_enable_periodic_advertiser_test) {
       OnPeriodicAdvertisingEnabled(advertiser_id_, true, AdvertisingCallback::AdvertisingStatus::SUCCESS));
   test_hci_layer_->IncomingEvent(LeSetPeriodicAdvertisingEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
   sync_client_handler();
+}
+
+TEST_F(LeExtendedAdvertisingAPITest, trigger_advertiser_callbacks_if_started_while_paused) {
+  // arrange
+  auto test_le_address_manager = (TestLeAddressManager*)test_acl_manager_->GetLeAddressManager();
+  auto id_promise = std::promise<uint8_t>{};
+  auto id_future = id_promise.get_future();
+  le_advertising_manager_->RegisterAdvertiser(base::BindOnce(
+      [](std::promise<uint8_t> promise, uint8_t id, uint8_t _status) { promise.set_value(id); },
+      std::move(id_promise)));
+  sync_client_handler();
+  LOG_INFO("start");
+  auto set_id = id_future.get();
+
+  auto status_promise = std::promise<ErrorCode>{};
+  auto status_future = status_promise.get_future();
+
+  test_le_address_manager->client_->OnPause();
+
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(LeSetExtendedAdvertisingEnableCompleteBuilder::Create(1, ErrorCode::SUCCESS));
+  sync_client_handler();
+
+  // act
+  le_advertising_manager_->StartAdvertising(
+      set_id,
+      {},
+      0,
+      base::BindOnce(
+          [](std::promise<ErrorCode> promise, uint8_t status) { promise.set_value((ErrorCode)status); },
+          std::move(status_promise)),
+      base::Bind([](uint8_t _status) {}),
+      base::Bind([](Address _address, AddressType _address_type) {}),
+      base::Bind([](ErrorCode _status, uint8_t _unused_1, uint8_t _unused_2) {}),
+      client_handler_);
+
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(LeSetExtendedAdvertisingParametersCompleteBuilder::Create(1, ErrorCode::SUCCESS, 0));
+
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanResponseDataCompleteBuilder::Create(1, ErrorCode::SUCCESS));
+
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(LeSetExtendedAdvertisingDataCompleteBuilder::Create(1, ErrorCode::SUCCESS));
+
+  EXPECT_EQ(status_future.wait_for(std::chrono::milliseconds(100)), std::future_status::timeout);
+
+  test_le_address_manager->client_->OnResume();
+
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(LeSetExtendedAdvertisingEnableCompleteBuilder::Create(1, ErrorCode::SUCCESS));
+
+  // assert
+  EXPECT_EQ(status_future.get(), ErrorCode::SUCCESS);
 }
 
 }  // namespace
