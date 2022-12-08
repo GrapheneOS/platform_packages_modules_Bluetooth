@@ -580,7 +580,7 @@ pub enum GattClientCallbacks {
 
 #[derive(Debug)]
 pub enum GattServerCallbacks {
-    RegisterServer(i32, i32, Uuid),
+    RegisterServer(GattStatus, i32, Uuid),
     Connection(i32, i32, i32, RawAddress),
     ServiceAdded(i32, i32, Vec<BtGattDbElement>, usize),
     ServiceStopped(i32, i32, i32),
@@ -741,7 +741,7 @@ cb_variant!(
 cb_variant!(
     GattServerCb,
     gs_register_server_cb -> GattServerCallbacks::RegisterServer,
-    i32, i32, *const Uuid, {
+    i32 -> GattStatus, i32, *const Uuid, {
         let _2 = unsafe { *_2.clone() };
     }
 );
