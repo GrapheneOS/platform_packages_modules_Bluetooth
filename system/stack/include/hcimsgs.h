@@ -573,12 +573,6 @@ extern void btsnd_hcic_create_big(uint8_t big_handle, uint8_t adv_handle,
 
 extern void btsnd_hcic_term_big(uint8_t big_handle, uint8_t reason);
 
-extern void btsnd_hcic_big_create_sync(uint8_t big_handle, uint16_t sync_handle,
-                                       uint8_t enc,
-                                       std::array<uint8_t, 16> bcst_code,
-                                       uint8_t mse, uint16_t big_sync_timeout,
-                                       std::vector<uint8_t> bis);
-
 extern void btsnd_hcic_big_term_sync(
     uint8_t big_handle, base::OnceCallback<void(uint8_t*, uint16_t)> cb);
 
