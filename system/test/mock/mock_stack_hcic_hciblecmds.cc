@@ -46,7 +46,6 @@ struct btsnd_hci_ble_read_periodic_advertiser_list_size
 struct btsnd_hci_ble_remove_device_from_periodic_advertiser_list
     btsnd_hci_ble_remove_device_from_periodic_advertiser_list;
 struct btsnd_hcic_accept_cis_req btsnd_hcic_accept_cis_req;
-struct btsnd_hcic_big_create_sync btsnd_hcic_big_create_sync;
 struct btsnd_hcic_big_term_sync btsnd_hcic_big_term_sync;
 struct btsnd_hcic_ble_add_acceptlist btsnd_hcic_ble_add_acceptlist;
 struct btsnd_hcic_ble_clear_acceptlist btsnd_hcic_ble_clear_acceptlist;
@@ -167,14 +166,6 @@ void btsnd_hci_ble_remove_device_from_periodic_advertiser_list(
 void btsnd_hcic_accept_cis_req(uint16_t conn_handle) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_accept_cis_req(conn_handle);
-}
-void btsnd_hcic_big_create_sync(uint8_t big_handle, uint16_t sync_handle,
-                                uint8_t enc, std::array<uint8_t, 16> bcst_code,
-                                uint8_t mse, uint16_t big_sync_timeout,
-                                std::vector<uint8_t> bis) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_big_create_sync(
-      big_handle, sync_handle, enc, bcst_code, mse, big_sync_timeout, bis);
 }
 void btsnd_hcic_big_term_sync(uint8_t big_handle,
                               base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
