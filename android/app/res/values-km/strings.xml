@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"ឯកសារ​ដែល​មាន​ទំហំ​ធំ​ជាង 4 GB មិន​អាចផ្ទេរ​បាន​ទេ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ភ្ជាប់​ប៊្លូធូស"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"បើកប៊្លូធូស​នៅក្នុង​មុខងារពេលជិះយន្តហោះ"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"ប្រសិនបើអ្នក​បើកប៊្លូធូស នោះទូរសព្ទ​របស់អ្នកនឹង​ចាំថាត្រូវបើកវា នៅលើកក្រោយ​ដែលអ្នកស្ថិតក្នុង​មុខងារពេលជិះយន្តហោះ"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ប៊្លូធូសបន្តបើក"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"ទូរសព្ទរបស់អ្នក​ចាំថាត្រូវបើកប៊្លូធូស​នៅក្នុង​មុខងារពេលជិះយន្តហោះ។ បិទប៊្លូធូស ប្រសិនបើអ្នក​មិនចង់បើកទេ។"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi និងប៊្លូធូស​បន្តបើក"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"ទូរសព្ទរបស់អ្នក​ចាំថាត្រូវបើក Wi-Fi និងប៊្លូធូស​នៅក្នុង​មុខងារពេលជិះយន្តហោះ។ បិទ Wi-Fi និង​ប៊្លូធូស ប្រសិនបើអ្នក​មិនចង់បើកទេ។"</string>
 </resources>

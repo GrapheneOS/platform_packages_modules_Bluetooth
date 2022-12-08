@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"فایل‌های بزرگ‌تر از ۴ گیگابایت نمی‌توانند منتقل شوند"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"اتصال به بلوتوث"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"بلوتوث در «حالت هواپیما» روشن باشد"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"اگر بلوتوث را روشن نگه دارید، تلفنتان به‌یاد خواهد داشت تا دفعه بعدی که در «حالت هواپیما» هستید آن را روشن نگه دارد"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"بلوتوث روشن بماند"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"تلفنتان به‌یاد می‌آورد که بلوتوث را در «حالت هواپیما» روشن نگه دارد. اگر نمی‌خواهید بلوتوث روشن بماند، آن را خاموش کنید."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"‏‫Wi-Fi و بلوتوث روشن بماند"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"‏تلفنتان به‌یاد می‌آورد که Wi-Fi و بلوتوث را در «حالت هواپیما» روشن نگه دارد. اگر نمی‌خواهید Wi-Fi و بلوتوث روشن بمانند، آن‌ها را خاموش کنید."</string>
 </resources>

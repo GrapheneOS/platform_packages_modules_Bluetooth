@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GBට වඩා විශාල ගොනු මාරු කළ නොහැකිය"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"බ්ලූටූත් වෙත සබඳින්න"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"අහස්යානා ආකාරයේ බ්ලූටූත් ක්‍රියාත්මකයි"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"ඔබ බ්ලූටූත් ක්‍රියාත්මක කර තබා ගන්නේ නම්, ඔබ අහස්යානා ආකාරයේ සිටින මීළඟ වතාවේ එය ක්‍රියාත්මක කිරීමට ඔබේ දුරකථනයට මතක තිබෙනු ඇත."</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"බ්ලූටූත් ක්‍රියාත්මකව පවතී"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"ඔබේ දුරකථනයට අහස්යානා ආකාරයේ බ්ලූටූත් ක්‍රියාත්මකව තබා ගැනීමට මතකයි. ඔබට බ්ලූටූත් ක්‍රියාත්මක වීමට අවශ්‍ය නොවේ නම් එය ක්‍රියාවිරහිත කරන්න."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi සහ බ්ලූටූත් ක්‍රියාත්මකව පවතී"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"ඔබේ දුරකථනයට අහස්යානා ආකාරයේ Wi-Fi සහ බ්ලූටූත් ක්‍රියාත්මකව තබා ගැනීමට මතකයි. Wi-Fi සහ බ්ලූටූත් ඒවා ක්‍රියාත්මක වීමට ඔබට අවශ්‍ය නැතිනම් ක්‍රියා විරහිත කරන්න."</string>
 </resources>
