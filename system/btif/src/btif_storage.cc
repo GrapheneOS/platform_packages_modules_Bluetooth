@@ -943,7 +943,6 @@ static void remove_devices_with_sample_ltk() {
   }
 
   for (RawAddress address : bad_ltk) {
-    android_errorWriteLog(0x534e4554, "128437297");
     LOG(ERROR) << __func__
                << ": removing bond to device using test TLK: " << address;
 

@@ -476,7 +476,6 @@ void bta_ag_do_disc(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK service) {
   }
 
   if (p_scb->p_disc_db != nullptr) {
-    android_errorWriteLog(0x534e4554, "174052148");
     LOG_ERROR("Discovery already in progress... returning.");
     return;
   }

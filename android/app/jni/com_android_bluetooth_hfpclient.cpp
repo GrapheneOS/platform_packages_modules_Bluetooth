@@ -170,7 +170,6 @@ static void current_operator_cb(const RawAddress* bd_addr, const char* name) {
 
   const char null_str[] = "";
   if (!sCallbackEnv.isValidUtf(name)) {
-    android_errorWriteLog(0x534e4554, "109838537");
     ALOGE("%s: name is not a valid UTF string.", __func__);
     name = null_str;
   }
@@ -246,7 +245,6 @@ static void clip_cb(const RawAddress* bd_addr, const char* number) {
 
   const char null_str[] = "";
   if (!sCallbackEnv.isValidUtf(number)) {
-    android_errorWriteLog(0x534e4554, "109838537");
     ALOGE("%s: number is not a valid UTF string.", __func__);
     number = null_str;
   }
@@ -267,7 +265,6 @@ static void call_waiting_cb(const RawAddress* bd_addr, const char* number) {
 
   const char null_str[] = "";
   if (!sCallbackEnv.isValidUtf(number)) {
-    android_errorWriteLog(0x534e4554, "109838537");
     ALOGE("%s: number is not a valid UTF string.", __func__);
     number = null_str;
   }
@@ -292,7 +289,6 @@ static void current_calls_cb(const RawAddress* bd_addr, int index,
 
   const char null_str[] = "";
   if (!sCallbackEnv.isValidUtf(number)) {
-    android_errorWriteLog(0x534e4554, "109838537");
     ALOGE("%s: number is not a valid UTF string.", __func__);
     number = null_str;
   }
@@ -338,7 +334,6 @@ static void subscriber_info_cb(const RawAddress* bd_addr, const char* name,
 
   const char null_str[] = "";
   if (!sCallbackEnv.isValidUtf(name)) {
-    android_errorWriteLog(0x534e4554, "109838537");
     ALOGE("%s: name is not a valid UTF string.", __func__);
     name = null_str;
   }
@@ -372,7 +367,6 @@ static void last_voice_tag_number_cb(const RawAddress* bd_addr,
 
   const char null_str[] = "";
   if (!sCallbackEnv.isValidUtf(number)) {
-    android_errorWriteLog(0x534e4554, "109838537");
     ALOGE("%s: number is not a valid UTF string.", __func__);
     number = null_str;
   }

@@ -2024,7 +2024,6 @@ static void gattServerSendResponseNative(JNIEnv* env, jobject object,
     if (env->GetArrayLength(val) < BTGATT_MAX_ATTR_LEN) {
       response.attr_value.len = (uint16_t)env->GetArrayLength(val);
     } else {
-      android_errorWriteLog(0x534e4554, "78787521");
       response.attr_value.len = BTGATT_MAX_ATTR_LEN;
     }
 

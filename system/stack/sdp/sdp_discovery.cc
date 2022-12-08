@@ -213,7 +213,6 @@ void sdp_disc_server_rsp(tCONN_CB* p_ccb, BT_HDR* p_msg) {
   uint8_t* p_end = p + p_msg->len;
 
   if (p_msg->len < 1) {
-    android_errorWriteLog(0x534e4554, "79883568");
     sdp_disconnect(p_ccb, SDP_GENERIC_ERROR);
     return;
   }
@@ -269,7 +268,6 @@ static void process_service_search_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
   uint8_t cont_len;
 
   if (p_reply + 8 > p_reply_end) {
-    android_errorWriteLog(0x534e4554, "74249842");
     sdp_disconnect(p_ccb, SDP_GENERIC_ERROR);
     return;
   }
@@ -292,7 +290,6 @@ static void process_service_search_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
     p_ccb->num_handles = sdp_cb.max_recs_per_search;
 
   if (p_reply + ((p_ccb->num_handles - orig) * 4) + 1 > p_reply_end) {
-    android_errorWriteLog(0x534e4554, "74249842");
     sdp_disconnect(p_ccb, SDP_GENERIC_ERROR);
     return;
   }
@@ -307,7 +304,6 @@ static void process_service_search_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
       return;
     }
     if (p_reply + cont_len > p_reply_end) {
-      android_errorWriteLog(0x534e4554, "68161546");
       sdp_disconnect(p_ccb, SDP_INVALID_CONT_STATE);
       return;
     }
@@ -481,8 +477,6 @@ static void process_service_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
       if ((p_reply + *p_reply + 1) <= p_reply_end) {
         memcpy(p, p_reply, *p_reply + 1);
         p += *p_reply + 1;
-      } else {
-        android_errorWriteLog(0x534e4554, "68161546");
       }
     } else
       UINT8_TO_BE_STREAM(p, 0);
@@ -528,7 +522,6 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
   if (p_reply) {
     if (p_reply + 4 /* transaction ID and length */ + sizeof(lists_byte_count) >
         p_reply_end) {
-      android_errorWriteLog(0x534e4554, "79884292");
       sdp_disconnect(p_ccb, SDP_INVALID_PDU_SIZE);
       return;
     }
@@ -546,7 +539,6 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
     }
 
     if (p_reply + lists_byte_count + 1 /* continuation */ > p_reply_end) {
-      android_errorWriteLog(0x534e4554, "79884292");
       sdp_disconnect(p_ccb, SDP_INVALID_PDU_SIZE);
       return;
     }
@@ -602,8 +594,6 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
       if ((p_reply + *p_reply + 1) <= p_reply_end) {
         memcpy(p, p_reply, *p_reply + 1);
         p += *p_reply + 1;
-      } else {
-        android_errorWriteLog(0x534e4554, "68161546");
       }
     } else
       UINT8_TO_BE_STREAM(p, 0);
@@ -641,7 +631,6 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
 
   if ((type >> 3) != DATA_ELE_SEQ_DESC_TYPE) {
     LOG_WARN("Wrong element in attr_rsp type:0x%02x", type);
-    android_errorWriteLog(0x534e4554, "224545125");
     sdp_disconnect(p_ccb, SDP_ILLEGAL_PARAMETER);
     return;
   }
@@ -815,7 +804,6 @@ static uint8_t* add_attr(uint8_t* p, uint8_t* p_end, tSDP_DISCOVERY_DB* p_db,
 
   p_attr_end = p + attr_len;
   if (p_attr_end > p_end) {
-    android_errorWriteLog(0x534e4554, "115900043");
     SDP_TRACE_WARNING("%s: SDP - Attribute length beyond p_end", __func__);
     return NULL;
   }

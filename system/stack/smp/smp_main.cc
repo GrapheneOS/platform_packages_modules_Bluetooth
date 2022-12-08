@@ -983,7 +983,6 @@ void smp_sm_event(tSMP_CB* p_cb, tSMP_EVENT event, tSMP_INT_DATA* p_data) {
 
   if (p_cb->role >= 2) {
     SMP_TRACE_DEBUG("Invalid role: %d", p_cb->role);
-    android_errorWriteLog(0x534e4554, "74121126");
     return;
   }
 
