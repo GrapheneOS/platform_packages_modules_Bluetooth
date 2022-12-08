@@ -29,6 +29,7 @@ using ::bluetooth::os::Thread;
 namespace bluetooth {
 namespace hci {
 
+namespace {
 using packet::kLittleEndian;
 using packet::PacketView;
 using packet::RawBuilder;
@@ -459,5 +460,6 @@ TEST_F(LeAddressManagerWithSingleClientTest, register_during_command_complete) {
   clients[1].get()->WaitForResume();
 }
 
+}  // namespace
 }  // namespace hci
 }  // namespace bluetooth
