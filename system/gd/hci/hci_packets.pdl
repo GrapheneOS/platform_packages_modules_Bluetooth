@@ -3187,6 +3187,12 @@ packet LeSetScanResponseData : LeAdvertisingCommand (op_code = LE_SET_SCAN_RESPO
   _padding_[31], // Zero padding to 31 bytes of advertising_data
 }
 
+packet LeSetScanResponseDataRaw : LeAdvertisingCommand (op_code = LE_SET_SCAN_RESPONSE_DATA) {
+  _size_(advertising_data) : 8,
+  advertising_data : 8[],
+  _padding_[31], // Zero padding to 31 bytes of advertising_data
+}
+
 packet LeSetScanResponseDataComplete : CommandComplete (command_op_code = LE_SET_SCAN_RESPONSE_DATA) {
   status : ErrorCode,
 }
