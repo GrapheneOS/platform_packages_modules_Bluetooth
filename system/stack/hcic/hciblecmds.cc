@@ -971,39 +971,6 @@ void btsnd_hcic_term_big(uint8_t big_handle, uint8_t reason) {
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
 
-void btsnd_hcic_big_create_sync(uint8_t big_handle, uint16_t sync_handle,
-                                uint8_t enc, std::array<uint8_t, 16> bcst_code,
-                                uint8_t mse, uint16_t big_sync_timeout,
-                                std::vector<uint8_t> bis) {
-  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
-  uint8_t* pp = (uint8_t*)(p + 1);
-  uint8_t num_bis = bis.size();
-
-  const int param_len = 24 + num_bis;
-  p->len = HCIC_PREAMBLE_SIZE + param_len;
-  p->offset = 0;
-
-  UINT16_TO_STREAM(pp, HCI_LE_BIG_CREATE_SYNC);
-  UINT8_TO_STREAM(pp, param_len);
-
-  UINT8_TO_STREAM(pp, big_handle);
-  UINT16_TO_STREAM(pp, sync_handle);
-  UINT8_TO_STREAM(pp, enc);
-
-  uint8_t* buf_ptr = bcst_code.data();
-  ARRAY_TO_STREAM(pp, buf_ptr, 16);
-
-  UINT8_TO_STREAM(pp, mse);
-  UINT16_TO_STREAM(pp, big_sync_timeout);
-  UINT8_TO_STREAM(pp, num_bis);
-
-  for (int i = 0; i < num_bis; i++) {
-    UINT8_TO_STREAM(pp, bis[i]);
-  }
-
-  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
-}
-
 void btsnd_hcic_big_term_sync(uint8_t big_handle,
                               base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
   const int params_len = 1;
