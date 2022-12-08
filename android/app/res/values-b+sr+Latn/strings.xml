@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Ne mogu da se prenose datoteke veće od 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Poveži sa Bluetooth-om"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth je uključen u režimu rada u avionu"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Ako odlučite da ne isključujete Bluetooth, telefon će zapamtiti da ga ne isključuje sledeći put kada budete u režimu rada u avionu"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth se ne isključuje"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Telefon pamti da ne treba da isključuje Bluetooth u režimu rada u avionu. Isključite Bluetooth ako ne želite da ostane uključen."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"WiFi i Bluetooth ostaju uključeni"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Telefon pamti da ne treba da isključuje WiFi i Bluetooth u režimu rada u avionu. Isključite WiFi i Bluetooth ako ne želite da ostanu uključeni."</string>
 </resources>
