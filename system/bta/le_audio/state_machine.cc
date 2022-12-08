@@ -103,6 +103,7 @@ using le_audio::types::AudioContexts;
 using le_audio::types::AudioStreamDataPathState;
 using le_audio::types::CigState;
 using le_audio::types::CodecLocation;
+using le_audio::types::LeAudioContextType;
 
 namespace {
 
@@ -2026,8 +2027,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
          leAudioDevice = group->GetNextActiveDevice(leAudioDevice)) {
       if (!leAudioDevice->IsMetadataChanged(context_type, ccid_list)) continue;
 
-      auto new_metadata = leAudioDevice->GetMetadata(context_type, ccid_list);
-
       /* Request server to update ASEs with new metadata */
       for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
            ase = leAudioDevice->GetNextActiveAse(ase)) {
@@ -2035,10 +2034,22 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                   leAudioDevice->address_.ToString().c_str(), ase->id,
                   ase->cis_id, ToString(ase->state).c_str());
 
+        /* Filter multidirectional audio context for each ase direction */
+        auto directional_audio_context =
+            context_type & leAudioDevice->GetAvailableContexts(ase->direction);
+        if (directional_audio_context.any()) {
+          ase->metadata =
+              leAudioDevice->GetMetadata(directional_audio_context, ccid_list);
+        } else {
+          ase->metadata = leAudioDevice->GetMetadata(
+              AudioContexts(LeAudioContextType::UNSPECIFIED),
+              std::vector<uint8_t>());
+        }
+
         struct le_audio::client_parser::ascs::ctp_update_metadata conf;
 
         conf.ase_id = ase->id;
-        conf.metadata = new_metadata;
+        conf.metadata = ase->metadata;
 
         confs.push_back(conf);
       }
