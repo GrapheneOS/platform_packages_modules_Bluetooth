@@ -30,6 +30,7 @@ import com.android.bluetooth.hfp.HeadsetHalConstants;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -274,6 +275,7 @@ public class RemoteDevicesTest {
     }
 
     @Test
+    @Ignore("b/266128644")
     public void testResetBatteryLevel_testAclStateChangeCallback() {
         int batteryLevel = 10;
 
