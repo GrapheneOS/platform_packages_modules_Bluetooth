@@ -992,6 +992,13 @@ public class HeadsetServiceTest {
         Assert.assertEquals(null, mHeadsetService.getActiveDevice());
     }
 
+    @Test
+    public void testDump_doesNotCrash() {
+        StringBuilder sb = new StringBuilder();
+
+        mHeadsetService.dump(sb);
+    }
+
     /*
      *  Helper function to test okToAcceptConnection() method
      *
