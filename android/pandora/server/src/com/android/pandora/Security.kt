@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothDevice.EXTRA_PAIRING_VARIANT
 import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -70,16 +71,40 @@ class Security(private val context: Context) : SecurityImplBase() {
 
   var manuallyConfirm = false
 
+  private val pairingReceiver: BroadcastReceiver =
+    object : BroadcastReceiver() {
+      override fun onReceive(context: Context, intent: Intent) {
+        if (!manuallyConfirm && intent.action == BluetoothDevice.ACTION_PAIRING_REQUEST) {
+          val bluetoothDevice = intent.getBluetoothDeviceExtra()
+          val pairingVariant =
+            intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR)
+          val confirmationCases =
+            intArrayOf(
+              BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION,
+              BluetoothDevice.PAIRING_VARIANT_CONSENT,
+              BluetoothDevice.PAIRING_VARIANT_PIN,
+            )
+          if (pairingVariant in confirmationCases) {
+            bluetoothDevice.setPairingConfirmation(true)
+          }
+        }
+      }
+    }
+
   init {
     val intentFilter = IntentFilter()
     intentFilter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST)
     intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+
+    Log.d(TAG, "registering pairingReceiver")
+    context.registerReceiver(pairingReceiver, intentFilter)
 
     flow = intentFlow(context, intentFilter).shareIn(globalScope, SharingStarted.Eagerly)
   }
 
   fun deinit() {
     globalScope.cancel()
+    context.unregisterReceiver(pairingReceiver)
   }
 
   override fun secure(request: SecureRequest, responseObserver: StreamObserver<SecureResponse>) {
@@ -90,7 +115,7 @@ class Security(private val context: Context) : SecurityImplBase() {
       var reached =
         when (transport) {
           TRANSPORT_LE -> {
-            check(request.getLevelCase() == SecureRequest.LevelCase.LE);
+            check(request.getLevelCase() == SecureRequest.LevelCase.LE)
             val level = request.le
             if (level == LE_LEVEL1) true
             else if (level == LE_LEVEL4) throw Status.UNKNOWN.asException()
