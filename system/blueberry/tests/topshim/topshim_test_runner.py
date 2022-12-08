@@ -15,6 +15,7 @@
 #   limitations under the License.
 
 from blueberry.tests.topshim.adapter.adapter_test import AdapterTest
+from blueberry.tests.topshim.hfp.hfp_test import HfpTest
 from blueberry.tests.topshim.power.suspend_test import SuspendTest
 from blueberry.tests.topshim.security.classic_security_test import ClassicSecurityTest
 from blueberry.tests.topshim.security.le_security_test import LeSecurityTest
@@ -22,7 +23,7 @@ from blueberry.tests.topshim.security.le_security_test import LeSecurityTest
 from mobly import suite_runner
 import argparse
 
-ALL_TESTS = [AdapterTest, ClassicSecurityTest, LeSecurityTest, SuspendTest]
+ALL_TESTS = [AdapterTest, ClassicSecurityTest, HfpTest, LeSecurityTest, SuspendTest]
 
 
 def main():

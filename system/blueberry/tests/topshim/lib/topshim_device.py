@@ -240,3 +240,21 @@ class TopshimDevice(AsyncClosable):
             return None
 
         return self.__post(waiter(f))
+
+    def start_slc(self, address):
+        f = self.__post(self.__hfp.start_slc(address))
+        return self.__post(self.__hfp_connection_state_waiter(f))
+
+    def stop_slc(self, address):
+        f = self.__post(self.__hfp.stop_slc(address))
+        return self.__post(self.__hfp_connection_state_waiter(f))
+
+    def wait_for_hfp_connection_state_change(self):
+        f = self.__post(self.__hfp.wait_for_hfp_connection_state_change())
+        return self.__post(self.__hfp_connection_state_waiter(f))
+
+    async def __hfp_connection_state_waiter(self, f):
+        data = await f
+        data_list = data.split(", ")
+        state, address = data_list[0].strip(), data_list[1].strip()
+        return (state, address)
