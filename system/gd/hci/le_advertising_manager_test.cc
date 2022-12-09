@@ -121,7 +121,7 @@ class TestHciLayer : public HciLayer {
 
   // Set command future for 'num_command' commands are expected
   void SetCommandFuture(uint16_t num_command) {
-    ASSERT_TRUE(command_promise_ == nullptr) << "Promises, Promises, ... Only one at a time.";
+    ASSERT_EQ(command_promise_, nullptr) << "Promises, Promises, ... Only one at a time.";
     command_count_ = num_command;
     command_promise_ = std::make_unique<std::promise<void>>();
     command_future_ = std::make_unique<std::future<void>>(command_promise_->get_future());
@@ -419,7 +419,7 @@ class LeAdvertisingAPITest : public LeAdvertisingManagerTest {
     advertising_config.scan_response = gap_data;
     advertising_config.channel_map = 1;
 
-    test_hci_layer_->SetCommandFuture(4);
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(4));
     advertiser_id_ = le_advertising_manager_->ExtendedCreateAdvertiser(
         0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
     ASSERT_NE(LeAdvertisingManager::kInvalidId, advertiser_id_);
@@ -477,7 +477,7 @@ class LeAndroidHciAdvertisingAPITest : public LeAndroidHciAdvertisingManagerTest
     advertising_config.scan_response = gap_data;
     advertising_config.channel_map = 1;
 
-    test_hci_layer_->SetCommandFuture(5);
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(5));
     advertiser_id_ = le_advertising_manager_->ExtendedCreateAdvertiser(
         0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
     ASSERT_NE(LeAdvertisingManager::kInvalidId, advertiser_id_);
@@ -524,7 +524,7 @@ class LeAndroidHciAdvertisingAPIPublicAddressTest : public LeAndroidHciAdvertisi
     advertising_config.channel_map = 1;
 
     test_acl_manager_->SetAddressPolicy(LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
-    test_hci_layer_->SetCommandFuture(4);
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(4));
     advertiser_id_ = le_advertising_manager_->ExtendedCreateAdvertiser(
         0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
     ASSERT_NE(LeAdvertisingManager::kInvalidId, advertiser_id_);
@@ -580,7 +580,7 @@ class LeExtendedAdvertisingAPITest : public LeExtendedAdvertisingManagerTest {
     advertising_config.channel_map = 1;
     advertising_config.sid = 0x01;
 
-    test_hci_layer_->SetCommandFuture(4);
+    ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(4));
     advertiser_id_ = le_advertising_manager_->ExtendedCreateAdvertiser(
         0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
     ASSERT_NE(LeAdvertisingManager::kInvalidId, advertiser_id_);
@@ -632,7 +632,7 @@ TEST_F(LeAdvertisingManagerTest, create_advertiser_test) {
   advertising_config.scan_response = gap_data;
   advertising_config.channel_map = 1;
 
-  test_hci_layer_->SetCommandFuture(4);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(4));
   auto id = le_advertising_manager_->ExtendedCreateAdvertiser(
       0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
   ASSERT_NE(LeAdvertisingManager::kInvalidId, id);
@@ -659,7 +659,7 @@ TEST_F(LeAdvertisingManagerTest, create_advertiser_test) {
   }
 
   // Disable the advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->RemoveAdvertiser(id);
   ASSERT_EQ(OpCode::LE_SET_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
 }
@@ -680,7 +680,7 @@ TEST_F(LeAndroidHciAdvertisingManagerTest, create_advertiser_test) {
   advertising_config.scan_response = gap_data;
   advertising_config.channel_map = 1;
 
-  test_hci_layer_->SetCommandFuture(5);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(5));
   auto id = le_advertising_manager_->ExtendedCreateAdvertiser(
       0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
   ASSERT_NE(LeAdvertisingManager::kInvalidId, id);
@@ -702,7 +702,7 @@ TEST_F(LeAndroidHciAdvertisingManagerTest, create_advertiser_test) {
   }
 
   // Disable the advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->RemoveAdvertiser(id);
   ASSERT_EQ(OpCode::LE_MULTI_ADVT, test_hci_layer_->GetCommand().GetOpCode());
   test_hci_layer_->IncomingEvent(LeMultiAdvtSetEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
@@ -725,7 +725,7 @@ TEST_F(LeExtendedAdvertisingManagerTest, create_advertiser_test) {
   advertising_config.channel_map = 1;
   advertising_config.sid = 0x01;
 
-  test_hci_layer_->SetCommandFuture(4);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(4));
   auto id = le_advertising_manager_->ExtendedCreateAdvertiser(
       0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
   ASSERT_NE(LeAdvertisingManager::kInvalidId, id);
@@ -752,7 +752,7 @@ TEST_F(LeExtendedAdvertisingManagerTest, create_advertiser_test) {
   sync_client_handler();
 
   // Remove the advertiser
-  test_hci_layer_->SetCommandFuture(3);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(3));
   le_advertising_manager_->RemoveAdvertiser(id);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
@@ -780,7 +780,7 @@ TEST_F(LeExtendedAdvertisingManagerTest, ignore_on_pause_on_resume_after_unregis
   advertising_config.channel_map = 1;
   advertising_config.sid = 0x01;
 
-  test_hci_layer_->SetCommandFuture(4);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(4));
   auto id = le_advertising_manager_->ExtendedCreateAdvertiser(
       0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
   ASSERT_NE(LeAdvertisingManager::kInvalidId, id);
@@ -807,7 +807,7 @@ TEST_F(LeExtendedAdvertisingManagerTest, ignore_on_pause_on_resume_after_unregis
   sync_client_handler();
 
   // Unregister LeAddressManager vai RemoveAdvertiser
-  test_hci_layer_->SetCommandFuture(3);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(3));
   le_advertising_manager_->RemoveAdvertiser(id);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
@@ -842,7 +842,7 @@ TEST_F(LeAdvertisingAPITest, set_parameter) {
   gap_data.push_back(data_item);
   advertising_config.advertisement = gap_data;
   advertising_config.channel_map = 1;
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetParameters(advertiser_id_, advertising_config);
   ASSERT_EQ(OpCode::LE_SET_ADVERTISING_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -862,7 +862,7 @@ TEST_F(LeAndroidHciAdvertisingAPITest, set_parameter) {
   gap_data.push_back(data_item);
   advertising_config.advertisement = gap_data;
   advertising_config.channel_map = 1;
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetParameters(advertiser_id_, advertising_config);
   auto packet = test_hci_layer_->GetCommand();
   auto sub_packet = LeMultiAdvtView::Create(LeAdvertisingCommandView::Create(packet));
@@ -887,7 +887,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_parameter) {
   advertising_config.channel_map = 1;
   advertising_config.sid = 0x01;
   advertising_config.tx_power = 0x08;
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetParameters(advertiser_id_, advertising_config);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_ADVERTISING_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -904,7 +904,7 @@ TEST_F(LeAdvertisingAPITest, set_data_test) {
   data_item.data_type_ = GapDataType::TX_POWER_LEVEL;
   data_item.data_ = {0x00};
   advertising_data.push_back(data_item);
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetData(advertiser_id_, false, advertising_data);
   ASSERT_EQ(OpCode::LE_SET_ADVERTISING_DATA, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -918,7 +918,7 @@ TEST_F(LeAdvertisingAPITest, set_data_test) {
   data_item2.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
   data_item2.data_ = {'t', 'e', 's', 't', ' ', 'd', 'e', 'v', 'i', 'c', 'e'};
   response_data.push_back(data_item2);
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetData(advertiser_id_, true, response_data);
   ASSERT_EQ(OpCode::LE_SET_SCAN_RESPONSE_DATA, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -934,7 +934,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_data_test) {
   data_item.data_type_ = GapDataType::TX_POWER_LEVEL;
   data_item.data_ = {0x00};
   advertising_data.push_back(data_item);
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetData(advertiser_id_, false, advertising_data);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_ADVERTISING_DATA, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -948,7 +948,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_data_test) {
   data_item2.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
   data_item2.data_ = {'t', 'e', 's', 't', ' ', 'd', 'e', 'v', 'i', 'c', 'e'};
   response_data.push_back(data_item2);
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetData(advertiser_id_, true, response_data);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -964,7 +964,7 @@ TEST_F(LeAndroidHciAdvertisingAPITest, set_data_test) {
   data_item.data_type_ = GapDataType::TX_POWER_LEVEL;
   data_item.data_ = {0x00};
   advertising_data.push_back(data_item);
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetData(advertiser_id_, false, advertising_data);
   auto packet = test_hci_layer_->GetCommand();
   auto sub_packet = LeMultiAdvtView::Create(LeAdvertisingCommandView::Create(packet));
@@ -981,7 +981,7 @@ TEST_F(LeAndroidHciAdvertisingAPITest, set_data_test) {
   data_item2.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
   data_item2.data_ = {'t', 'e', 's', 't', ' ', 'd', 'e', 'v', 'i', 'c', 'e'};
   response_data.push_back(data_item2);
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetData(advertiser_id_, true, response_data);
   packet = test_hci_layer_->GetCommand();
   sub_packet = LeMultiAdvtView::Create(LeAdvertisingCommandView::Create(packet));
@@ -1009,7 +1009,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_data_fragments_test) {
   }
   le_advertising_manager_->SetData(advertiser_id_, false, advertising_data);
 
-  test_hci_layer_->SetCommandFuture(3);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(3));
   // First fragment
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_ADVERTISING_DATA, test_hci_layer_->GetCommand().GetOpCode());
   // Intermediate fragment
@@ -1040,7 +1040,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_scan_response_fragments_test) {
   }
   le_advertising_manager_->SetData(advertiser_id_, true, advertising_data);
 
-  test_hci_layer_->SetCommandFuture(3);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(3));
   // First fragment
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA, test_hci_layer_->GetCommand().GetOpCode());
   // Intermediate fragment
@@ -1111,7 +1111,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_data_with_invalid_length) {
 
 TEST_F(LeAdvertisingAPITest, disable_enable_advertiser_test) {
   // disable advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->EnableAdvertiser(advertiser_id_, false, 0x00, 0x00);
   ASSERT_EQ(OpCode::LE_SET_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -1121,7 +1121,7 @@ TEST_F(LeAdvertisingAPITest, disable_enable_advertiser_test) {
   sync_client_handler();
 
   // enable advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->EnableAdvertiser(advertiser_id_, true, 0x00, 0x00);
   ASSERT_EQ(OpCode::LE_SET_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -1132,7 +1132,7 @@ TEST_F(LeAdvertisingAPITest, disable_enable_advertiser_test) {
 
 TEST_F(LeAndroidHciAdvertisingAPITest, disable_enable_advertiser_test) {
   // disable advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->EnableAdvertiser(advertiser_id_, false, 0x00, 0x00);
   auto packet = test_hci_layer_->GetCommand();
   auto sub_packet = LeMultiAdvtView::Create(LeAdvertisingCommandView::Create(packet));
@@ -1146,7 +1146,7 @@ TEST_F(LeAndroidHciAdvertisingAPITest, disable_enable_advertiser_test) {
   sync_client_handler();
 
   // enable advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->EnableAdvertiser(advertiser_id_, true, 0x00, 0x00);
   packet = test_hci_layer_->GetCommand();
   sub_packet = LeMultiAdvtView::Create(LeAdvertisingCommandView::Create(packet));
@@ -1161,7 +1161,7 @@ TEST_F(LeAndroidHciAdvertisingAPITest, disable_enable_advertiser_test) {
 
 TEST_F(LeExtendedAdvertisingAPITest, disable_enable_advertiser_test) {
   // disable advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->EnableAdvertiser(advertiser_id_, false, 0x00, 0x00);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -1171,7 +1171,7 @@ TEST_F(LeExtendedAdvertisingAPITest, disable_enable_advertiser_test) {
   sync_client_handler();
 
   // enable advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->EnableAdvertiser(advertiser_id_, true, 0x00, 0x00);
   ASSERT_EQ(OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -1184,7 +1184,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_periodic_parameter) {
   PeriodicAdvertisingParameters advertising_config{};
   advertising_config.max_interval = 0x1000;
   advertising_config.min_interval = 0x0006;
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetPeriodicParameters(advertiser_id_, advertising_config);
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_PARAM, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -1201,7 +1201,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_periodic_data_test) {
   data_item.data_type_ = GapDataType::TX_POWER_LEVEL;
   data_item.data_ = {0x00};
   advertising_data.push_back(data_item);
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->SetPeriodicData(advertiser_id_, advertising_data);
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_DATA, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -1226,7 +1226,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_periodic_data_fragments_test) {
   }
   le_advertising_manager_->SetPeriodicData(advertiser_id_, advertising_data);
 
-  test_hci_layer_->SetCommandFuture(3);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(3));
   // First fragment
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_DATA, test_hci_layer_->GetCommand().GetOpCode());
   // Intermediate fragment
@@ -1285,7 +1285,7 @@ TEST_F(LeExtendedAdvertisingAPITest, set_perodic_data_with_invalid_length) {
 
 TEST_F(LeExtendedAdvertisingAPITest, disable_enable_periodic_advertiser_test) {
   // disable advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->EnablePeriodicAdvertising(advertiser_id_, false, false);
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
@@ -1295,7 +1295,7 @@ TEST_F(LeExtendedAdvertisingAPITest, disable_enable_periodic_advertiser_test) {
   sync_client_handler();
 
   // enable advertiser
-  test_hci_layer_->SetCommandFuture(1);
+  ASSERT_NO_FATAL_FAILURE(test_hci_layer_->SetCommandFuture(1));
   le_advertising_manager_->EnablePeriodicAdvertising(advertiser_id_, true, false);
   ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
