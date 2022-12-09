@@ -63,7 +63,7 @@ void btm_read_remote_version_complete(tHCI_STATUS status, uint16_t handle,
                                       uint16_t manufacturer,
                                       uint16_t lmp_subversion);
 void btm_read_rssi_complete(uint8_t* p);
-void btm_read_tx_power_complete(uint8_t* p, bool is_ble);
+void btm_read_tx_power_complete(uint8_t* p, uint16_t evt_len, bool is_ble);
 
 void acl_rcv_acl_data(BT_HDR* p_msg);
 void acl_link_segments_xmitted(BT_HDR* p_msg);
