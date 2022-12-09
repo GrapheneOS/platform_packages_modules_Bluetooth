@@ -46,6 +46,8 @@ using ::aidl::android::hardware::bluetooth::audio::LdacCapabilities;
 using ::aidl::android::hardware::bluetooth::audio::LdacChannelMode;
 using ::aidl::android::hardware::bluetooth::audio::LdacConfiguration;
 using ::aidl::android::hardware::bluetooth::audio::LdacQualityIndex;
+using ::aidl::android::hardware::bluetooth::audio::OpusCapabilities;
+using ::aidl::android::hardware::bluetooth::audio::OpusConfiguration;
 using ::aidl::android::hardware::bluetooth::audio::SbcAllocMethod;
 using ::aidl::android::hardware::bluetooth::audio::SbcCapabilities;
 using ::aidl::android::hardware::bluetooth::audio::SbcChannelMode;
@@ -144,6 +146,25 @@ bool ldac_offloading_capability_match(const LdacCapabilities& ldac_capability,
             << " capability=" << ldac_capability.toString();
   return true;
 }
+
+bool opus_offloading_capability_match(
+    const std::optional<OpusCapabilities>& opus_capability,
+    const std::optional<OpusConfiguration>& opus_config) {
+  if (!ContainedInVector(opus_capability->channelMode,
+                         opus_config->channelMode) ||
+      !ContainedInVector(opus_capability->frameDurationUs,
+                         opus_config->frameDurationUs) ||
+      !ContainedInVector(opus_capability->samplingFrequencyHz,
+                         opus_config->samplingFrequencyHz)) {
+    LOG(WARNING) << __func__ << ": software codec=" << opus_config->toString()
+                 << " capability=" << opus_capability->toString();
+    return false;
+  }
+  LOG(INFO) << __func__ << ": offloading codec=" << opus_config->toString()
+            << " capability=" << opus_capability->toString();
+  return true;
+}
+
 }  // namespace
 
 const CodecConfiguration kInvalidCodecConfiguration = {};
@@ -453,6 +474,50 @@ bool A2dpLdacToHalConfig(CodecConfiguration* codec_config,
   return true;
 }
 
+bool A2dpOpusToHalConfig(CodecConfiguration* codec_config,
+                         A2dpCodecConfig* a2dp_config) {
+  btav_a2dp_codec_config_t current_codec = a2dp_config->getCodecConfig();
+  if (current_codec.codec_type != BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS) {
+    codec_config = {};
+    return false;
+  }
+  tBT_A2DP_OFFLOAD a2dp_offload;
+  a2dp_config->getCodecSpecificConfig(&a2dp_offload);
+  codec_config->codecType = CodecType::OPUS;
+  OpusConfiguration opus_config = {};
+
+  opus_config.pcmBitDepth = A2dpCodecToHalBitsPerSample(current_codec);
+  if (opus_config.pcmBitDepth <= 0) {
+    LOG(ERROR) << __func__ << ": Unknown Opus bits_per_sample="
+               << current_codec.bits_per_sample;
+    return false;
+  }
+  opus_config.samplingFrequencyHz = A2dpCodecToHalSampleRate(current_codec);
+  if (opus_config.samplingFrequencyHz <= 0) {
+    LOG(ERROR) << __func__
+               << ": Unknown Opus sample_rate=" << current_codec.sample_rate;
+    return false;
+  }
+  opus_config.channelMode = A2dpCodecToHalChannelMode(current_codec);
+  if (opus_config.channelMode == ChannelMode::UNKNOWN) {
+    LOG(ERROR) << __func__
+               << ": Unknown Opus channel_mode=" << current_codec.channel_mode;
+    return false;
+  }
+
+  opus_config.frameDurationUs = 20000;
+
+  if (opus_config.channelMode == ChannelMode::STEREO) {
+    opus_config.octetsPerFrame = 640;
+  } else {
+    opus_config.octetsPerFrame = 320;
+  }
+
+  codec_config->config.set<CodecConfiguration::CodecSpecific::opusConfig>(
+      opus_config);
+  return true;
+}
+
 bool UpdateOffloadingCapabilities(
     const std::vector<btav_a2dp_codec_config_t>& framework_preference) {
   audio_hal_capabilities =
@@ -475,6 +540,9 @@ bool UpdateOffloadingCapabilities(
         break;
       case BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC:
         codec_type_set.insert(CodecType::LDAC);
+        break;
+      case BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS:
+        codec_type_set.insert(CodecType::OPUS);
         break;
       case BTAV_A2DP_CODEC_INDEX_SINK_SBC:
         [[fallthrough]];
@@ -559,6 +627,15 @@ bool IsCodecOffloadingEnabled(const CodecConfiguration& codec_config) {
             codec_config.config
                 .get<CodecConfiguration::CodecSpecific::ldacConfig>();
         return ldac_offloading_capability_match(ldac_capability, ldac_config);
+      }
+      case CodecType::OPUS: {
+        std::optional<OpusCapabilities> opus_capability =
+            codec_capability.capabilities
+                .get<CodecCapabilities::Capabilities::opusCapabilities>();
+        std::optional<OpusConfiguration> opus_config =
+            codec_config.config
+                .get<CodecConfiguration::CodecSpecific::opusConfig>();
+        return opus_offloading_capability_match(opus_capability, opus_config);
       }
       case CodecType::UNKNOWN:
         [[fallthrough]];

@@ -56,6 +56,8 @@ typedef enum {
   BTAV_A2DP_CODEC_INDEX_SOURCE_APTX,
   BTAV_A2DP_CODEC_INDEX_SOURCE_APTX_HD,
   BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC,
+  BTAV_A2DP_CODEC_INDEX_SOURCE_LC3,
+  BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS,
 
   BTAV_A2DP_CODEC_INDEX_SOURCE_MAX,
 
@@ -65,6 +67,7 @@ typedef enum {
   BTAV_A2DP_CODEC_INDEX_SINK_SBC = BTAV_A2DP_CODEC_INDEX_SINK_MIN,
   BTAV_A2DP_CODEC_INDEX_SINK_AAC,
   BTAV_A2DP_CODEC_INDEX_SINK_LDAC,
+  BTAV_A2DP_CODEC_INDEX_SINK_OPUS,
 
   BTAV_A2DP_CODEC_INDEX_SINK_MAX,
 
@@ -96,6 +99,14 @@ typedef enum {
   BTAV_A2DP_CODEC_SAMPLE_RATE_16000 = 0x1 << 6,
   BTAV_A2DP_CODEC_SAMPLE_RATE_24000 = 0x1 << 7
 } btav_a2dp_codec_sample_rate_t;
+
+typedef enum {
+  BTAV_A2DP_CODEC_FRAME_SIZE_NONE = 0x0,
+  BTAV_A2DP_CODEC_FRAME_SIZE_20MS = 0x1 << 0,
+  BTAV_A2DP_CODEC_FRAME_SIZE_15MS = 0x1 << 1,
+  BTAV_A2DP_CODEC_FRAME_SIZE_10MS = 0x1 << 2,
+  BTAV_A2DP_CODEC_FRAME_SIZE_75MS = 0x1 << 3,
+} btav_a2dp_codec_frame_size_t;
 
 typedef enum {
   BTAV_A2DP_CODEC_BITS_PER_SAMPLE_NONE = 0x0,
@@ -164,6 +175,15 @@ struct btav_a2dp_codec_config_t {
         break;
       case BTAV_A2DP_CODEC_INDEX_SINK_LDAC:
         codec_name_str = "LDAC (Sink)";
+        break;
+      case BTAV_A2DP_CODEC_INDEX_SOURCE_LC3:
+        codec_name_str = "LC3";
+        break;
+      case BTAV_A2DP_CODEC_INDEX_SINK_OPUS:
+        codec_name_str = "Opus (Sink)";
+        break;
+      case BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS:
+        codec_name_str = "Opus";
         break;
       case BTAV_A2DP_CODEC_INDEX_MAX:
         codec_name_str = "Unknown(CODEC_INDEX_MAX)";
