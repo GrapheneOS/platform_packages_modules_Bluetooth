@@ -14,6 +14,7 @@
 
 import re
 import sys
+from threading import Thread
 
 from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
@@ -440,8 +441,25 @@ class GATTProxy(ProfileProxy):
 
         assert self.connection is not None
         handle = stringHandleToInt(re.findall("'([a0-Z9]*)'O", description)[0])
-        self.read_response = self.gatt.ReadCharacteristicFromHandle(\
-                connection=self.connection, handle=handle)
+        def read():
+            nonlocal handle
+            self.read_response = self.gatt.ReadCharacteristicFromHandle(\
+                    connection=self.connection, handle=handle)
+        worker = Thread(target=read)
+        worker.start()
+        worker.join(timeout=30)
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_READ_TIMEOUT(self, **kwargs):
+        """
+        Please wait for 30 seconds timeout to abort the procedure.
+
+        Description:
+        Verify that the Implementation Under Test (IUT) can handle timeout after
+        send Read characteristic without receiving response in 30 seconds.
+        """
+
         return "OK"
 
     @assert_description
@@ -714,8 +732,26 @@ class GATTProxy(ProfileProxy):
         matches = re.findall("'([a0-Z9]*)'O with <= '([a0-Z9]*)'", description)
         handle = stringHandleToInt(matches[0][0])
         data = bytes([1]) * int(matches[0][1])
-        self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
+        def write():
+            nonlocal handle
+            nonlocal data
+            self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
                 handle=handle, value=data)
+        worker = Thread(target=write)
+        worker.start()
+        worker.join(timeout=30)
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_WRITE_TIMEOUT(self, **kwargs):
+        """
+        Please wait for 30 second timeout to abort the procedure.
+
+        Description:
+        Verify that the Implementation Under Test (IUT) can handle timeout after
+        send Write characteristic without receiving response in 30 seconds.
+        """
+
         return "OK"
 
     @assert_description
@@ -761,6 +797,22 @@ class GATTProxy(ProfileProxy):
         matches = re.findall("'([a0-Z9]*)'O <= '([a0-Z9]*)'", description)
         handle = stringHandleToInt(matches[0][0])
         data = bytes([1]) * int(matches[0][1])
+        self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
+                handle=handle, value=data)
+        return "OK"
+
+    def _mmi_150(self, description: str, **kwargs):
+        """
+        Please send an ATT_Write_Request to Client Support Features handle =
+        'XXXX'O to enable Multiple Handle Value Notifications.
+
+        Discover all
+        characteristics if needed.
+        """
+
+        assert self.connection is not None
+        handle = stringHandleToInt(re.findall("'([a0-Z9]*)'O", description)[0])
+        data = bytes([4]) # Multiple Handle Value Notifications
         self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
                 handle=handle, value=data)
         return "OK"
