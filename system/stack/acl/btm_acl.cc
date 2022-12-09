@@ -1898,7 +1898,7 @@ void btm_read_rssi_timeout(UNUSED_ATTR void* data) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_read_rssi_complete(uint8_t* p) {
+void btm_read_rssi_complete(uint8_t* p, uint16_t evt_len) {
   tBTM_CMPL_CB* p_cb = btm_cb.devcb.p_rssi_cmpl_cb;
   tBTM_RSSI_RESULT result;
 
@@ -1907,11 +1907,19 @@ void btm_read_rssi_complete(uint8_t* p) {
 
   /* If there was a registered callback, call it */
   if (p_cb) {
+    if (evt_len < 1) {
+      goto err_out;
+    }
+
     STREAM_TO_UINT8(result.hci_status, p);
     result.status = BTM_ERR_PROCESSING;
 
     if (result.hci_status == HCI_SUCCESS) {
       uint16_t handle;
+
+      if (evt_len < 4) {
+        goto err_out;
+      }
       STREAM_TO_UINT16(handle, p);
 
       STREAM_TO_UINT8(result.rssi, p);
@@ -1927,6 +1935,11 @@ void btm_read_rssi_complete(uint8_t* p) {
     }
     (*p_cb)(&result);
   }
+
+  return;
+
+ err_out:
+  LOG_ERROR("Bogus event packet, too short");
 }
 
 /*******************************************************************************
