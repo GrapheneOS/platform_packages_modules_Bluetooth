@@ -91,28 +91,6 @@ cc_test {
     ],
 }
 
-// HCI native unit tests for target
-cc_test {
-    name: "net_test_hci_native",
-    test_suites: ["device-tests"],
-    defaults: [
-        "fluoride_unit_test_defaults",
-        "mts_defaults",
-    ],
-    local_include_dirs: [
-        "include",
-    ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/stack/include",
-    ],
-    srcs: [
-        "test/hci_layer_test.cc",
-        "test/other_stack_stub.cc",
-    ],
-}
-
 cc_test {
     name: "net_test_hci_fragmenter_native",
     test_suites: ["device-tests"],
