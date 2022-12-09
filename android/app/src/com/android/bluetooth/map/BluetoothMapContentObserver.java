@@ -536,7 +536,8 @@ public class BluetoothMapContentObserver {
         this.mFolders = folderStructure;
     }
 
-    private static class ConvoContactInfo {
+    @VisibleForTesting
+    static class ConvoContactInfo {
         public int mConvoColConvoId = -1;
         public int mConvoColLastActivity = -1;
         public int mConvoColName = -1;
