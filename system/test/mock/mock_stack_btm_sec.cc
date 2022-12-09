@@ -239,7 +239,7 @@ void BTM_SetPinType(uint8_t pin_type, PIN_CODE pin_code, uint8_t pin_code_len) {
 void NotifyBondingCanceled(tBTM_STATUS btm_status) {
   mock_function_count_map[__func__]++;
 }
-void btm_create_conn_cancel_complete(const uint8_t* p) {
+void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
   mock_function_count_map[__func__]++;
 }
 void btm_io_capabilities_req(const RawAddress& p) {
