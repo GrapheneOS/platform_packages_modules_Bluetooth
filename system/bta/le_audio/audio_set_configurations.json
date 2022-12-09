@@ -1008,6 +1008,16 @@
             "qos_config_name": ["QoS_Config_Server_Preferred"]
         },
         {
+            "name": "DualDev_OneChanStereoSnk_OneChanStereoSrc_48_1_Server_Preferred",
+            "codec_config_name": "DualDev_OneChanStereoSnk_OneChanStereoSrc_48_1",
+            "qos_config_name": ["QoS_Config_Server_Preferred"]
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_OneChanStereoSrc_48_2_Server_Preferred",
+            "codec_config_name": "DualDev_OneChanStereoSnk_OneChanStereoSrc_48_2",
+            "qos_config_name": ["QoS_Config_Server_Preferred"]
+        },
+        {
             "name": "VND_SingleDev_TwoChanStereoSrc_48khz_100octs_Server_Preferred_1",
             "codec_config_name": "VND_SingleDev_TwoChanStereoSrc_48khz_100octs_1",
             "qos_config_name": ["QoS_Config_Server_Preferred"]
@@ -1903,6 +1913,7 @@
             "name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -1964,6 +1975,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -2030,6 +2042,7 @@
             "name": "DualDev_OneChanStereoSnk_OneChanStereoSrc_16_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -2091,6 +2104,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SOURCE",
@@ -2157,6 +2171,7 @@
             "name": "DualDev_OneChanStereoSnk_OneChanStereoSrc_16_1",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -2218,6 +2233,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SOURCE",
@@ -2284,6 +2300,7 @@
             "name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -2345,6 +2362,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -2411,6 +2429,7 @@
             "name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 4,
                     "direction": "SINK",
@@ -2473,6 +2492,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -2539,6 +2559,7 @@
             "name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 4,
                     "direction": "SINK",
@@ -2601,6 +2622,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -2667,6 +2689,7 @@
             "name": "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_32_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -2729,6 +2752,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -2796,6 +2820,7 @@
             "name": "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_16_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -2858,6 +2883,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -2925,6 +2951,7 @@
             "name": "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_16_1",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -2987,6 +3014,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -3054,6 +3082,7 @@
             "name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -3116,6 +3145,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -3182,6 +3212,7 @@
             "name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -3244,6 +3275,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -3310,6 +3342,7 @@
             "name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -3372,6 +3405,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -3438,6 +3472,7 @@
             "name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -3500,6 +3535,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -3566,6 +3602,7 @@
             "name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -3627,6 +3664,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -3693,6 +3731,7 @@
             "name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -3754,6 +3793,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -4546,6 +4586,7 @@
             "name": "DualDev_OneChanStereoSnk_48_4",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -4613,6 +4654,7 @@
             "name": "DualDev_OneChanStereoSnk_48_3",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -4680,6 +4722,7 @@
             "name": "DualDev_OneChanStereoSnk_48_2",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -4747,6 +4790,7 @@
             "name": "DualDev_OneChanStereoSnk_48_1",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -4814,6 +4858,7 @@
             "name": "SingleDev_OneChanStereoSnk_48_4",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -4881,6 +4926,7 @@
             "name": "SingleDev_OneChanStereoSnk_48_3",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -4948,6 +4994,7 @@
             "name": "SingleDev_OneChanStereoSnk_48_2",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -5015,6 +5062,7 @@
             "name": "SingleDev_OneChanStereoSnk_48_1",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -5082,6 +5130,7 @@
             "name": "SingleDev_TwoChanStereoSnk_48_4",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -5149,6 +5198,7 @@
             "name": "SingleDev_TwoChanStereoSnk_48_3",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -5216,6 +5266,7 @@
             "name": "SingleDev_TwoChanStereoSnk_48_2",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -5283,6 +5334,7 @@
             "name": "SingleDev_TwoChanStereoSnk_48_1",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -5350,6 +5402,7 @@
             "name": "SingleDev_OneChanMonoSnk_48_4",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -5417,6 +5470,7 @@
             "name": "SingleDev_OneChanMonoSnk_48_3",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -5484,6 +5538,7 @@
             "name": "SingleDev_OneChanMonoSnk_48_2",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -5551,6 +5606,7 @@
             "name": "SingleDev_OneChanMonoSnk_48_1",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -5618,6 +5674,7 @@
             "name": "VND_SingleDev_TwoChanStereoSnk_48khz_100octs_1",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -5685,6 +5742,7 @@
             "name": "VND_DualDev_OneChanStereoSnk_48khz_100octs_1",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -5752,6 +5810,7 @@
             "name": "VND_SingleDev_OneChanStereoSnk_48khz_100octs_1",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -5819,6 +5878,7 @@
             "name": "VND_SingleDev_TwoChanStereoSnk_48khz_75octs_1",
             "subconfigurations": [
                 {
+                    "target_latency": "HIGH_RELIABILITY",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -8565,6 +8625,268 @@
             ]
         },
         {
+            "name": "DualDev_OneChanStereoSnk_OneChanStereoSrc_48_1",
+            "subconfigurations": [
+                {
+                    "target_latency": "BALANCED_RELIABILITY",
+                    "device_cnt": 2,
+                    "ase_cnt": 2,
+                    "direction": "SOURCE",
+                    "configuration_strategy": "STEREO_ONE_CIS_PER_DEVICE",
+                    "codec_id": {
+                        "coding_format": 6,
+                        "vendor_company_id": 0,
+                        "vendor_codec_id": 0
+                    },
+                    "codec_configuration": [
+                        {
+                            "name": "sampling_frequency",
+                            "type": 1,
+                            "compound_value": {
+                                "value": [
+                                    8
+                                ]
+                            }
+                        },
+                        {
+                            "name": "frame_duration",
+                            "type": 2,
+                            "compound_value": {
+                                "value": [
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "audio_channel_allocation",
+                            "type": 3,
+                            "compound_value": {
+                                "value": [
+                                    3,
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "octets_per_codec_frame",
+                            "type": 4,
+                            "compound_value": {
+                                "value": [
+                                    75,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "codec_frame_blocks_per_sdu",
+                            "type": 5,
+                            "compound_value": {
+                                "value": [
+                                    1
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "target_latency": "BALANCED_RELIABILITY",
+                    "device_cnt": 2,
+                    "ase_cnt": 2,
+                    "direction": "SINK",
+                    "configuration_strategy": "STEREO_ONE_CIS_PER_DEVICE",
+                    "codec_id": {
+                        "coding_format": 6,
+                        "vendor_company_id": 0,
+                        "vendor_codec_id": 0
+                    },
+                    "codec_configuration": [
+                        {
+                            "name": "sampling_frequency",
+                            "type": 1,
+                            "compound_value": {
+                                "value": [
+                                    8
+                                ]
+                            }
+                        },
+                        {
+                            "name": "frame_duration",
+                            "type": 2,
+                            "compound_value": {
+                                "value": [
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "audio_channel_allocation",
+                            "type": 3,
+                            "compound_value": {
+                                "value": [
+                                    3,
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "octets_per_codec_frame",
+                            "type": 4,
+                            "compound_value": {
+                                "value": [
+                                    75,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "codec_frame_blocks_per_sdu",
+                            "type": 5,
+                            "compound_value": {
+                                "value": [
+                                    1
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_OneChanStereoSrc_48_2",
+            "subconfigurations": [
+                {
+                    "target_latency": "BALANCED_RELIABILITY",
+                    "device_cnt": 2,
+                    "ase_cnt": 2,
+                    "direction": "SOURCE",
+                    "configuration_strategy": "STEREO_ONE_CIS_PER_DEVICE",
+                    "codec_id": {
+                        "coding_format": 6,
+                        "vendor_company_id": 0,
+                        "vendor_codec_id": 0
+                    },
+                    "codec_configuration": [
+                        {
+                            "name": "sampling_frequency",
+                            "type": 1,
+                            "compound_value": {
+                                "value": [
+                                    8
+                                ]
+                            }
+                        },
+                        {
+                            "name": "frame_duration",
+                            "type": 2,
+                            "compound_value": {
+                                "value": [
+                                    1
+                                ]
+                            }
+                        },
+                        {
+                            "name": "audio_channel_allocation",
+                            "type": 3,
+                            "compound_value": {
+                                "value": [
+                                    3,
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "octets_per_codec_frame",
+                            "type": 4,
+                            "compound_value": {
+                                "value": [
+                                    100,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "codec_frame_blocks_per_sdu",
+                            "type": 5,
+                            "compound_value": {
+                                "value": [
+                                    1
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "target_latency": "BALANCED_RELIABILITY",
+                    "device_cnt": 2,
+                    "ase_cnt": 2,
+                    "direction": "SINK",
+                    "configuration_strategy": "STEREO_ONE_CIS_PER_DEVICE",
+                    "codec_id": {
+                        "coding_format": 6,
+                        "vendor_company_id": 0,
+                        "vendor_codec_id": 0
+                    },
+                    "codec_configuration": [
+                        {
+                            "name": "sampling_frequency",
+                            "type": 1,
+                            "compound_value": {
+                                "value": [
+                                    8
+                                ]
+                            }
+                        },
+                        {
+                            "name": "frame_duration",
+                            "type": 2,
+                            "compound_value": {
+                                "value": [
+                                    1
+                                ]
+                            }
+                        },
+                        {
+                            "name": "audio_channel_allocation",
+                            "type": 3,
+                            "compound_value": {
+                                "value": [
+                                    3,
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "octets_per_codec_frame",
+                            "type": 4,
+                            "compound_value": {
+                                "value": [
+                                    100,
+                                    0
+                                ]
+                            }
+                        },
+                        {
+                            "name": "codec_frame_blocks_per_sdu",
+                            "type": 5,
+                            "compound_value": {
+                                "value": [
+                                    1
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "name": "VND_SingleDev_TwoChanStereoSrc_48khz_100octs_1",
             "subconfigurations": [
                 {
@@ -8635,6 +8957,7 @@
             "name": "VND_SingleDev_TwoChanStereoSnk_OneChanStereoSrc_32khz_60octs_1",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -8697,6 +9020,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -9160,6 +9484,7 @@
             "name": "DualDev_OneChanStereoSnk_OneChanStereoSrc_32_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -9221,6 +9546,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SOURCE",
@@ -9287,6 +9613,7 @@
             "name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_32_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -9348,6 +9675,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -9414,6 +9742,7 @@
             "name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_32_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 2,
                     "ase_cnt": 4,
                     "direction": "SINK",
@@ -9476,6 +9805,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -9542,6 +9872,7 @@
             "name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_32_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -9604,6 +9935,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -9670,6 +10002,7 @@
             "name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_32_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 2,
                     "direction": "SINK",
@@ -9732,6 +10065,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",
@@ -9798,6 +10132,7 @@
             "name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_32_2",
             "subconfigurations": [
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SINK",
@@ -9859,6 +10194,7 @@
                     ]
                 },
                 {
+                    "target_latency": "LOW",
                     "device_cnt": 1,
                     "ase_cnt": 1,
                     "direction": "SOURCE",

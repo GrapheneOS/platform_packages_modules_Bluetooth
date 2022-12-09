@@ -855,6 +855,14 @@ public class VolumeControlServiceTest {
         Assert.assertEquals(0, descriptor.size());
     }
 
+    @Test
+    public void testDump_doesNotCrash() throws Exception {
+        connectDevice(mDevice);
+
+        StringBuilder sb = new StringBuilder();
+        mService.dump(sb);
+    }
+
     private void connectDevice(BluetoothDevice device) throws Exception {
         VolumeControlStackEvent connCompletedEvent;
 
