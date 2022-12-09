@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Fișierele mai mari de 4 GB nu pot fi transferate"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Conectează-te la Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth activat în modul Avion"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Dacă păstrezi Bluetooth activat, telefonul tău va reține să-l păstreze activat data viitoare când ești în modul Avion"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth rămâne activat"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Telefonul reține să păstreze Bluetooth activat în modul Avion. Dezactivează Bluetooth dacă nu vrei să rămână activat."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi și Bluetooth rămân activate"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Telefonul reține să păstreze funcțiile Wi-Fi și Bluetooth activate în modul Avion. Dezactivează Wi-Fi și Bluetooth dacă nu vrei să rămână activate."</string>
 </resources>
