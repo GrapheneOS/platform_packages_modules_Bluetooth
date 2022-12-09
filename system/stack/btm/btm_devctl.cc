@@ -721,7 +721,7 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(const RawAddress* bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_delete_stored_link_key_complete(uint8_t* p) {
+void btm_delete_stored_link_key_complete(uint8_t* p, uint16_t evt_len) {
   tBTM_CMPL_CB* p_cb = btm_cb.devcb.p_stored_link_key_cmpl_cb;
   tBTM_DELETE_STORED_LINK_KEY_COMPLETE result;
 
@@ -731,6 +731,11 @@ void btm_delete_stored_link_key_complete(uint8_t* p) {
   if (p_cb) {
     /* Set the call back event to indicate command complete */
     result.event = BTM_CB_EVT_DELETE_STORED_LINK_KEYS;
+
+    if (evt_len < 3) {
+      LOG(ERROR) << __func__ << "Malformatted event packet, too short";
+      return;
+    }
 
     /* Extract the result fields from the HCI event */
     STREAM_TO_UINT8(result.status, p);
