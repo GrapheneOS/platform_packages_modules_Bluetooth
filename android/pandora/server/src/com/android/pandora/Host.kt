@@ -120,14 +120,14 @@ class Host(
     }
 
     // TODO: b/234892968
-    delay(2000L)
+    delay(3000L)
 
     bluetoothAdapter.enable()
     stateFlow.filter { it == BluetoothAdapter.STATE_ON }.first()
   }
 
   override fun factoryReset(request: Empty, responseObserver: StreamObserver<Empty>) {
-    grpcUnary<Empty>(scope, responseObserver, 6) {
+    grpcUnary<Empty>(scope, responseObserver, 10) {
       Log.i(TAG, "factoryReset")
 
       bluetoothAdapter.clearBluetooth()
