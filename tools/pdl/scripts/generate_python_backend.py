@@ -177,6 +177,41 @@ class FieldParser:
             element = f"{field.type_id}.parse_all({span})"
             self.append_(f"    {field.id}.append({element})")
 
+    def parse_byte_array_field_(self, field: ast.ArrayField):
+        """Parse the selected u8 array field."""
+        array_size = core.get_array_field_size(field)
+        padded_size = field.padded_size
+
+        # Shift the span to reset the offset to 0.
+        self.consume_span_()
+
+        # Derive the array size.
+        if isinstance(array_size, int):
+            size = array_size
+        elif isinstance(array_size, ast.SizeField):
+            size = f'{field.id}_size - {field.size_modifier}' if field.size_modifier else f'{field.id}_size'
+        elif isinstance(array_size, ast.CountField):
+            size = f'{field.id}_count'
+        else:
+            size = None
+
+        # Parse from the padded array if padding is present.
+        if padded_size and size is not None:
+            self.check_size_(padded_size)
+            self.append_(f"if {size} > {padded_size}:")
+            self.append_("    raise Exception('Array size is larger than the padding size')")
+            self.append_(f"fields['{field.id}'] = list(span[:{size}])")
+            self.append_(f"span = span[{padded_size}:]")
+
+        elif size is not None:
+            self.check_size_(size)
+            self.append_(f"fields['{field.id}'] = list(span[:{size}])")
+            self.append_(f"span = span[{size}:]")
+
+        else:
+            self.append_(f"fields['{field.id}'] = list(span)")
+            self.append_(f"span = bytes()")
+
     def parse_array_field_(self, field: ast.ArrayField):
         """Parse the selected array field."""
         array_size = core.get_array_field_size(field)
@@ -261,12 +296,13 @@ class FieldParser:
             if size is not None:
                 self.check_size_(size)
             array_size = size or 'len(span)'
-            array_count = size
             if element_width != 1:
                 self.append_(f"if {array_size} % {element_width} != 0:")
                 self.append_("    raise Exception('Array size is not a multiple of the element size')")
                 self.append_(f"{field.id}_count = int({array_size} / {element_width})")
                 array_count = f'{field.id}_count'
+            else:
+                array_count = array_size
             self.append_(f"{field.id} = []")
             self.append_(f"for n in range({array_count}):")
             span = ('span[n:n + 1]' if element_width == 1 else f'span[n * {element_width}:(n + 1) * {element_width}]')
@@ -274,6 +310,8 @@ class FieldParser:
             self.append_(f"fields['{field.id}'] = {field.id}")
             if size is not None:
                 self.append_(f"span = span[{size}:]")
+            else:
+                self.append_(f"span = bytes()")
 
         # Drop the padding
         if padded_size:
@@ -483,6 +521,9 @@ class FieldParser:
             pass
 
         # Array fields.
+        elif isinstance(field, ast.ArrayField) and field.width == 8:
+            self.parse_byte_array_field_(field)
+
         elif isinstance(field, ast.ArrayField):
             self.parse_array_field_(field)
 
@@ -592,17 +633,20 @@ class FieldSerializer:
                 size_modifier = f' + {value_field.size_modifier}'
 
             if isinstance(value_field, (ast.PayloadField, ast.BodyField)):
-                self.append_(f"_size = len(payload or self.payload or []){size_modifier}")
-                self.append_(f"if _size > {max_size}:")
+                self.append_(f"_payload_size = len(payload or self.payload or []){size_modifier}")
+                self.append_(f"if _payload_size > {max_size}:")
                 self.append_(f"    print(f\"Invalid length for payload field:" +
-                             f"  {{_size}} > {max_size}; the packet cannot be generated\")")
+                             f"  {{_payload_size}} > {max_size}; the packet cannot be generated\")")
                 self.append_(f"    raise Exception(\"Invalid payload length\")")
-                array_size = "_size"
+                array_size = "_payload_size"
             elif isinstance(value_field, ast.ArrayField) and value_field.width:
                 array_size = f"(len(self.{value_field.id}) * {int(value_field.width / 8)}{size_modifier})"
+            elif isinstance(value_field, ast.ArrayField) and isinstance(value_field.type, ast.EnumDeclaration):
+                array_size = f"(len(self.{value_field.id}) * {int(value_field.type.width / 8)}{size_modifier})"
             elif isinstance(value_field, ast.ArrayField):
-                self.append_(f"_size = sum([elt.size for elt in self.{value_field.id}]){size_modifier}")
-                array_size = "_size"
+                self.append_(
+                    f"_{value_field.id}_size = sum([elt.size for elt in self.{value_field.id}]){size_modifier}")
+                array_size = f"_{value_field.id}_size"
             else:
                 raise Exception("Unsupported field type")
             self.value.append(f"({array_size} << {shift})")

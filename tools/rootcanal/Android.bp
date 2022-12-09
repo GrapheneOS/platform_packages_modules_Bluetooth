@@ -208,6 +208,7 @@ cc_test_host {
         "rootcanal_defaults",
     ],
     srcs: [
+        "test/controller/le/rpa_generation_test.cc",
         "test/controller/le/le_set_random_address_test.cc",
         "test/controller/le/le_clear_filter_accept_list_test.cc",
         "test/controller/le/le_add_device_to_filter_accept_list_test.cc",
@@ -257,8 +258,8 @@ python_test_host {
         ":hci_packets_python3_gen",
         ":link_layer_packets_python3_gen",
         "test/main.py",
-        "test/LL/DDI/SCN/BV_13_C.py",
-        "test/LL/DDI/SCN/BV_14_C.py",
+        "test/LL/DDI/ADV/*.py",
+        "test/LL/DDI/SCN/*.py",
     ],
     data: [
         ":lib_rootcanal_python3",
