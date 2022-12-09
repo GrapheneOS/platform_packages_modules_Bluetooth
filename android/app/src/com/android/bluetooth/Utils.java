@@ -60,6 +60,8 @@ import android.provider.DeviceConfig;
 import android.provider.Telephony;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
@@ -76,6 +78,7 @@ import java.nio.charset.CharsetDecoder;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -350,7 +353,7 @@ public final class Utils {
                     + " is inaccurate for calling uid " + callingUid);
         }
 
-        for (AssociationInfo association : cdm.getAllAssociations()) {
+        for (AssociationInfo association : getCdmAssociations(cdm)) {
             if (association.getPackageName().equals(callingPackage)
                     && !association.isSelfManaged() && device.getAddress() != null
                     && association.getDeviceMacAddress() != null
@@ -361,6 +364,22 @@ public final class Utils {
         }
         throw new SecurityException("The application with package name " + callingPackage
                 + " does not have a CDM association with the Bluetooth Device");
+    }
+
+    /**
+     * Obtains the complete list of registered CDM associations.
+     *
+     * @param cdm the CompanionDeviceManager object
+     * @return the list of AssociationInfo objects
+     */
+    @RequiresPermission("android.permission.MANAGE_COMPANION_DEVICES")
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    // TODO(b/193460475): Android Lint handles change from SystemApi to public incorrectly.
+    // CompanionDeviceManager#getAllAssociations() is public in U,
+    // but existed in T as an identical SystemApi.
+    @SuppressLint("NewApi")
+    public static List<AssociationInfo> getCdmAssociations(CompanionDeviceManager cdm) {
+        return cdm.getAllAssociations();
     }
 
     /**
