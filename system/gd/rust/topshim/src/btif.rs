@@ -814,6 +814,14 @@ impl RawAddress {
     }
 }
 
+/// Address that is safe to display in logs.
+pub struct DisplayAddress(pub RawAddress);
+impl Display for DisplayAddress {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "xx:xx:xx:xx:{:2X}:{:2X}", &self.0.address[4], &self.0.address[5])
+    }
+}
+
 /// An enum representing `bt_callbacks_t` from btif.
 #[derive(Clone, Debug)]
 pub enum BaseCallbacks {
