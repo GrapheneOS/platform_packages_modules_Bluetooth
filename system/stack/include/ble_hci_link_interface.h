@@ -34,7 +34,8 @@ extern void btm_ble_create_ll_conn_complete(tHCI_STATUS status);
 extern void btm_ble_ltk_request(uint16_t handle, uint8_t rand[8],
                                 uint16_t ediv);
 extern void btm_ble_test_command_complete(uint8_t* p);
-extern void btm_ble_rand_enc_complete(uint8_t* p, uint16_t op_code,
+extern void btm_ble_rand_enc_complete(uint8_t* p, uint16_t evt_len,
+                                      uint16_t op_code,
                                       tBTM_RAND_ENC_CB* p_enc_cplt_cback);
 extern bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
                                                tBLE_ADDR_TYPE* p_addr_type,
