@@ -251,7 +251,7 @@ void btm_io_capabilities_rsp(const uint8_t* p) {
 void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
   mock_function_count_map[__func__]++;
 }
-void btm_read_local_oob_complete(uint8_t* p) {
+void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len) {
   mock_function_count_map[__func__]++;
 }
 void btm_rem_oob_req(const uint8_t* p) { mock_function_count_map[__func__]++; }
