@@ -26,7 +26,7 @@
 // This header contains functions for HCIF-Security Management to invoke
 //
 
-void btm_create_conn_cancel_complete(const uint8_t* p);
+void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len);
 void btm_io_capabilities_req(const RawAddress& p);
 void btm_io_capabilities_rsp(const uint8_t* p);
 void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p);
