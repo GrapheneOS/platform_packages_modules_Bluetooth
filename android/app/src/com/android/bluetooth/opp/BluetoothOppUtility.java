@@ -48,6 +48,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.os.SystemProperties;
+import android.util.EventLog;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMethodProxy;
@@ -64,6 +65,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -81,7 +83,11 @@ public class BluetoothOppUtility {
             new ConcurrentHashMap<Uri, BluetoothOppSendFileInfo>();
 
     public static boolean isBluetoothShareUri(Uri uri) {
-        return uri.toString().startsWith(BluetoothShare.CONTENT_URI.toString());
+        if (uri.toString().startsWith(BluetoothShare.CONTENT_URI.toString())
+                && !uri.getAuthority().equals(BluetoothShare.CONTENT_URI.getAuthority())) {
+            EventLog.writeEvent(0x534e4554, "225880741", -1, "");
+        }
+        return Objects.equals(uri.getAuthority(), BluetoothShare.CONTENT_URI.getAuthority());
     }
 
     public static BluetoothOppTransferInfo queryRecord(Context context, Uri uri) {
