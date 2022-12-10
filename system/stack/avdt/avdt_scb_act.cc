@@ -263,7 +263,6 @@ void avdt_scb_hdl_pkt_no_frag(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
   }
 
   if ((p - p_start) > len) {
-    android_errorWriteLog(0x534e4554, "142546355");
     osi_free_and_reset((void**)&p_data->p_pkt);
     return;
   }
@@ -297,7 +296,6 @@ void avdt_scb_hdl_pkt_no_frag(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
   }
   return;
 length_error:
-  android_errorWriteLog(0x534e4554, "111450156");
   AVDT_TRACE_WARNING("%s: hdl packet length %d too short: must be at least %d",
                      __func__, len, offset);
   osi_free_and_reset((void**)&p_data->p_pkt);
@@ -326,7 +324,6 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
     /* parse report packet header */
     min_len += 8;
     if (min_len > len) {
-      android_errorWriteLog(0x534e4554, "111450156");
       AVDT_TRACE_WARNING(
           "%s: hdl packet length %d too short: must be at least %d", __func__,
           len, min_len);
@@ -341,7 +338,6 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
       case AVDT_RTCP_PT_SR: /* the packet type - SR (Sender Report) */
         min_len += 20;
         if (min_len > len) {
-          android_errorWriteLog(0x534e4554, "111450156");
           AVDT_TRACE_WARNING(
               "%s: hdl packet length %d too short: must be at least %d",
               __func__, len, min_len);
@@ -357,7 +353,6 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
       case AVDT_RTCP_PT_RR: /* the packet type - RR (Receiver Report) */
         min_len += 20;
         if (min_len > len) {
-          android_errorWriteLog(0x534e4554, "111450156");
           AVDT_TRACE_WARNING(
               "%s: hdl packet length %d too short: must be at least %d",
               __func__, len, min_len);
@@ -376,7 +371,6 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
         uint8_t sdes_type;
         min_len += 1;
         if (min_len > len) {
-          android_errorWriteLog(0x534e4554, "111450156");
           AVDT_TRACE_WARNING(
               "%s: hdl packet length %d too short: must be at least %d",
               __func__, len, min_len);
@@ -387,7 +381,6 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
           uint8_t name_length;
           min_len += 1;
           if (min_len > len) {
-            android_errorWriteLog(0x534e4554, "111450156");
             AVDT_TRACE_WARNING(
                 "%s: hdl packet length %d too short: must be at least %d",
                 __func__, len, min_len);
@@ -402,7 +395,6 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
           }
         } else {
           if (min_len + 1 > len) {
-            android_errorWriteLog(0x534e4554, "111450156");
             AVDT_TRACE_WARNING(
                 "%s: hdl packet length %d too short: must be at least %d",
                 __func__, len, min_len);
@@ -1024,7 +1016,6 @@ void avdt_scb_hdl_write_req(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
   /* Build a media packet, and add an RTP header if required. */
   if (add_rtp_header) {
     if (p_data->apiwrite.p_buf->offset < AVDT_MEDIA_HDR_SIZE) {
-      android_errorWriteWithInfoLog(0x534e4554, "242535997", -1, NULL, 0);
       return;
     }
 
