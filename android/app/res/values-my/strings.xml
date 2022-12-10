@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB ထက်ပိုကြီးသည့် ဖိုင်များကို လွှဲပြောင်းမရနိုင်ပါ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ဘလူးတုသ်သို့ ချိတ်ဆက်ရန်"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"လေယာဉ်ပျံမုဒ်တွင် ဘလူးတုသ် ပွင့်နေသည်"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"ဘလူးတုသ် ဆက်ဖွင့်ထားပါက နောက်တစ်ကြိမ်လေယာဉ်ပျံမုဒ် သုံးချိန်တွင် ၎င်းဆက်ဖွင့်ရန် သင့်ဖုန်းက မှတ်ထားမည်။"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ဘလူးတုသ် ဆက်ပွင့်နေသည်"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"လေယာဉ်ပျံမုဒ်သုံးစဉ် ဘလူးတုသ် ဆက်ဖွင့်ထားရန် သင့်ဖုန်းက မှတ်မိသည်။ ဘလူးတုသ် ဆက်ဖွင့်မထားလိုပါက ပိတ်နိုင်သည်။"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi နှင့် ဘလူးတုသ် ဆက်ဖွင့်ထားသည်"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"လေယာဉ်ပျံမုဒ်သုံးစဉ် Wi-Fi နှင့် ဘလူးတုသ် ဆက်ဖွင့်ထားရန် သင့်ဖုန်းက မှတ်မိသည်။ Wi-Fi နှင့် ဘလူးတုသ် ဆက်ဖွင့်မထားလိုပါက ပိတ်နိုင်သည်။"</string>
 </resources>

@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Немагчыма перадаць файлы, большыя за 4 ГБ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Падключыцца да Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"У рэжыме палёту Bluetooth уключаны"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Калі вы не выключыце Bluetooth, падчас наступнага пераходу ў рэжым палёту тэлефон будзе захоўваць яго ўключаным"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth застаецца ўключаным"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"На тэлефоне ў рэжыме палёту Bluetooth застанецца ўключаным, але вы можаце выключыць яго."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi і Bluetooth застаюцца ўключанымі"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"На тэлефоне ў рэжыме палёту сетка Wi‑Fi і Bluetooth будуць заставацца ўключанымі, але вы можаце выключыць іх."</string>
 </resources>

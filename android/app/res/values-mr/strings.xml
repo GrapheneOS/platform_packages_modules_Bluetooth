@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4 GB हून मोठ्या फाइल ट्रान्सफर करता येणार नाहीत"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ब्लूटूथशी कनेक्ट करा"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"विमान मोडमध्ये ब्लूटूथ सुरू आहे"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"तुम्ही ब्लूटूथ सुरू ठेवल्यास, पुढील वेळी विमान मोडमध्ये असाल, तेव्हा तुमचा फोन ते सुरू ठेवण्याचे लक्षात ठेवेल"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ब्लूटूथ सुरू राहते"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"तुमचा फोन विमान मोडमध्ये ब्लूटूथ सुरू ठेवण्याचे लक्षात ठेवतो. तुम्हाला ब्लूटूथ सुरू ठेवायचे नसल्यास ते बंद करा."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"वाय-फाय आणि ब्लूटूथ सुरू राहते"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"तुमचा फोन विमान मोडमध्ये वाय-फाय आणि ब्लूटूथ सुरू ठेवण्याचे लक्षात ठेवतो. तुम्हाला वाय-फाय आणि ब्लूटूथ सुरू ठेवायचे नसल्यास ते बंद करा."</string>
 </resources>
