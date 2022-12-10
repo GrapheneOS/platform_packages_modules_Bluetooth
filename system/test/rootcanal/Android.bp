@@ -48,6 +48,7 @@ cc_binary {
         "liblog",
         "libutils",
         "libprotobuf-cpp-lite",
+        "libcrypto",
     ],
     cflags: [
         "-fvisibility=hidden",
@@ -68,7 +69,6 @@ cc_binary {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
     ],
@@ -119,7 +119,6 @@ cc_library_shared {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
     ],

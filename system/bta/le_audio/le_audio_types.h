@@ -410,6 +410,7 @@ class AudioContexts {
   bool operator==(const AudioContexts& other) const {
     return value() == other.value();
   };
+  constexpr AudioContexts operator~() const { return AudioContexts(~value()); }
 };
 
 AudioContexts operator|(std::underlying_type<LeAudioContextType>::type lhs,
@@ -424,6 +425,10 @@ constexpr AudioContexts operator^(const AudioContexts& lhs,
 constexpr AudioContexts operator|(const AudioContexts& lhs,
                                   const AudioContexts& rhs) {
   return AudioContexts(lhs.value() | rhs.value());
+}
+constexpr AudioContexts operator&(const AudioContexts& lhs,
+                                  const AudioContexts& rhs) {
+  return AudioContexts(lhs.value() & rhs.value());
 }
 constexpr AudioContexts operator|(const LeAudioContextType& lhs,
                                   const LeAudioContextType& rhs) {
