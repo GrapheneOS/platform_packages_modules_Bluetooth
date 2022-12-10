@@ -68,3 +68,9 @@ TEST(InitFlagsTest, test_debug_logging_multiple_flags) {
   ASSERT_FALSE(InitFlags::IsDebugLoggingEnabledForTag("Foo"));
   ASSERT_FALSE(InitFlags::IsDebugLoggingEnabledForAll());
 }
+
+TEST(InitFlagsTest, test_enable_snoop_logger_socket) {
+  const char* input[] = {"INIT_gd_hal_snoop_logger_socket=true", nullptr};
+  InitFlags::Load(input);
+  ASSERT_TRUE(InitFlags::IsSnoopLoggerSocketEnabled());
+}
