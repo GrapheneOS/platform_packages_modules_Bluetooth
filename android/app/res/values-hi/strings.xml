@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4 जीबी से बड़ी फ़ाइलें ट्रांसफ़र नहीं की जा सकतीं"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ब्लूटूथ से कनेक्ट करें"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"हवाई जहाज़ मोड में ब्लूटूथ चालू है"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"ब्लूटूथ चालू रखने पर आपका फ़ोन, अगली बार हवाई जहाज़ मोड चालू होने पर भी ब्लूटूथ चालू रखेगा"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ब्लूटूथ चालू रहता है"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"हवाई जहाज़ मोड में भी, आपका फ़ोन ब्लूटूथ चालू रखता है. अगर ब्लूटूथ चालू नहीं रखना है, तो उसे बंद कर दें."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"वाई-फ़ाई और ब्लूटूथ चालू रहते हैं"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"हवाई जहाज़ मोड में भी, आपका फ़ोन वाई-फ़ाई और ब्लूटूथ को चालू रखता है. अगर आपको वाई-फ़ाई और ब्लूटूथ चालू नहीं रखना है, तो उन्हें बंद कर दें."</string>
 </resources>
