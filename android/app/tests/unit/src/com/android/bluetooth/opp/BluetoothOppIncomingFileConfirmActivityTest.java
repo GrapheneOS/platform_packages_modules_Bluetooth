@@ -16,10 +16,7 @@
 
 package com.android.bluetooth.opp;
 
-import static android.content.pm.PackageManager.DONT_KILL_APP;
-import static android.service.pm.PackageProto.UserInfoProto.COMPONENT_ENABLED_STATE_DEFAULT;
-import static android.service.pm.PackageProto.UserInfoProto.COMPONENT_ENABLED_STATE_ENABLED;
-
+import static androidx.lifecycle.Lifecycle.State.DESTROYED;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -36,16 +33,13 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
-import android.app.Activity;
-import android.app.Application;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Bundle;
-import android.test.ActivityInstrumentationTestCase2;
 
+import androidx.lifecycle.Lifecycle;
+import androidx.test.core.app.ActivityScenario;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -67,8 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(AndroidJUnit4.class)
-public class BluetoothOppIncomingFileConfirmActivityTest extends
-        ActivityInstrumentationTestCase2<BluetoothOppIncomingFileConfirmActivity> {
+public class BluetoothOppIncomingFileConfirmActivityTest {
     @Mock
     Cursor mCursor;
     @Spy
@@ -80,10 +73,6 @@ public class BluetoothOppIncomingFileConfirmActivityTest extends
     Context mTargetContext;
 
     boolean mDestroyed;
-
-    public BluetoothOppIncomingFileConfirmActivityTest() {
-        super(BluetoothOppIncomingFileConfirmActivity.class);
-    }
 
     @Before
     public void setUp() {
@@ -98,8 +87,6 @@ public class BluetoothOppIncomingFileConfirmActivityTest extends
         mIntent = new Intent();
         mIntent.setClass(mTargetContext, BluetoothOppIncomingFileConfirmActivity.class);
         mIntent.setData(dataUrl);
-        setActivityIntent(mIntent);
-        injectInstrumentation(InstrumentationRegistry.getInstrumentation());
 
         doReturn(mCursor).when(mBluetoothMethodProxy).contentResolverQuery(any(), eq(dataUrl),
                 eq(null), eq(null),
@@ -134,13 +121,13 @@ public class BluetoothOppIncomingFileConfirmActivityTest extends
                         BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)
         ));
 
-        enableActivity(true);
+        BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
     }
 
     @After
     public void tearDown() {
         BluetoothMethodProxy.setInstanceForTesting(null);
-        enableActivity(false);
+        BluetoothOppTestUtils.enableOppActivities(false, mTargetContext);
     }
 
     @Test
@@ -148,10 +135,13 @@ public class BluetoothOppIncomingFileConfirmActivityTest extends
             throws InterruptedException {
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
 
-        BluetoothOppIncomingFileConfirmActivity activity = getActivity();
+        ActivityScenario<BluetoothOppIncomingFileConfirmActivity> activityScenario
+                = ActivityScenario.launch(mIntent);
+        activityScenario.onActivity(activity -> {});
 
-        // To work around (possibly) Epresso's bug. The dialog button is clicked (no error throw)
-        // but onClick() is not triggered. It works normally if sleep for a few seconds
+        // To work around (possibly) ActivityScenario's bug.
+        // The dialog button is clicked (no error throw) but onClick() is not triggered.
+        // It works normally if sleep for a few seconds
         Thread.sleep(3_000);
         onView(withText(mTargetContext.getText(R.string.incoming_file_confirm_cancel).toString()))
                 .inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
@@ -168,10 +158,11 @@ public class BluetoothOppIncomingFileConfirmActivityTest extends
             throws InterruptedException {
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
 
-        BluetoothOppIncomingFileConfirmActivity activity = getActivity();
+        ActivityScenario.launch(mIntent);
 
-        // To work around (possibly) Espresso's bug. The dialog button is clicked (no error throw)
-        // but onClick() is not triggered. It works normally if sleep for a few seconds
+        // To work around (possibly) ActivityScenario's bug.
+        // The dialog button is clicked (no error throw) but onClick() is not triggered.
+        // It works normally if sleep for a few seconds
         Thread.sleep(3_000);
         onView(withText(mTargetContext.getText(R.string.incoming_file_confirm_ok).toString()))
                 .inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
@@ -186,60 +177,17 @@ public class BluetoothOppIncomingFileConfirmActivityTest extends
     @Test
     public void onTimeout_sendIntentWithUSER_CONFIRMATION_TIMEOUT_ACTION_finish() throws Exception {
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
+        ActivityScenario<BluetoothOppIncomingFileConfirmActivity> scenario =
+                ActivityScenario.launch(mIntent);
 
-        mDestroyed = false;
-        BluetoothOppIncomingFileConfirmActivity activity = getActivity();
-
-        activity.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-            @Override
-            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-            }
-
-            @Override
-            public void onActivityStarted(Activity activity) {
-            }
-
-            @Override
-            public void onActivityResumed(Activity activity) {
-            }
-
-            @Override
-            public void onActivityPaused(Activity activity) {
-            }
-
-            @Override
-            public void onActivityStopped(Activity activity) {
-            }
-
-            @Override
-            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-            }
-
-            @Override
-            public void onActivityDestroyed(Activity activity) {
-                mDestroyed = true;
-            }
-        });
-        assertThat(mDestroyed).isFalse();
+        assertThat(scenario.getState()).isNotEqualTo(Lifecycle.State.DESTROYED);
         Intent in = new Intent(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION);
         mTargetContext.sendBroadcast(in);
 
-        // To work around (possibly) Espresso's bug. The dialog button is clicked (no error throw)
-        // but onClick() is not triggered. It works normally if sleep for a few seconds
+        // To work around (possibly) ActivityScenario's bug.
+        // The dialog button is clicked (no error throw) but onClick() is not triggered.
+        // It works normally if sleep for a few seconds
         Thread.sleep(3_000);
-        assertThat(mDestroyed).isTrue();
-    }
-
-    private void enableActivity(boolean enable) {
-        int enabledState = enable ? COMPONENT_ENABLED_STATE_ENABLED
-                : COMPONENT_ENABLED_STATE_DEFAULT;
-
-        mTargetContext.getPackageManager().setApplicationEnabledSetting(
-                mTargetContext.getPackageName(), enabledState, DONT_KILL_APP);
-
-        ComponentName activityName = new ComponentName(mTargetContext,
-                BluetoothOppIncomingFileConfirmActivity.class);
-        mTargetContext.getPackageManager().setComponentEnabledSetting(
-                activityName, enabledState, DONT_KILL_APP);
+        assertThat(scenario.getState()).isEqualTo(Lifecycle.State.DESTROYED);
     }
 }
