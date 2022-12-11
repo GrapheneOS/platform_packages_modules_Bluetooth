@@ -239,7 +239,6 @@ static tGATT_STATUS read_attr_value(tGATT_ATTR& attr16, uint16_t offset,
     *p_len = 2;
 
     if (mtu < *p_len) {
-      android_errorWriteWithInfoLog(0x534e4554, "228078096", -1, NULL, 0);
       return GATT_NO_RESOURCES;
     }
 
