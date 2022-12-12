@@ -44,7 +44,6 @@ import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 
@@ -109,8 +108,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             Uri uri = intent.getData();
             ContentValues values = new ContentValues();
             values.put(BluetoothShare.USER_CONFIRMATION, BluetoothShare.USER_CONFIRMATION_DENIED);
-            BluetoothMethodProxy.getInstance().contentResolverUpdate(context.getContentResolver(),
-                    uri, values, null, null);
+            context.getContentResolver().update(uri, values, null, null);
             cancelNotification(context, BluetoothOppNotification.NOTIFICATION_ID_PROGRESS);
 
         } else if (action.equals(Constants.ACTION_ACCEPT)) {
@@ -122,8 +120,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             ContentValues values = new ContentValues();
             values.put(BluetoothShare.USER_CONFIRMATION,
                     BluetoothShare.USER_CONFIRMATION_CONFIRMED);
-            BluetoothMethodProxy.getInstance().contentResolverUpdate(context.getContentResolver(),
-                    uri, values, null, null);
+            context.getContentResolver().update(uri, values, null, null);
         } else if (action.equals(Constants.ACTION_OPEN) || action.equals(Constants.ACTION_LIST)) {
             if (V) {
                 if (action.equals(Constants.ACTION_OPEN)) {
@@ -186,8 +183,8 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             if (V) {
                 Log.v(TAG, "Receiver hide for " + intent.getData());
             }
-            Cursor cursor = BluetoothMethodProxy.getInstance().contentResolverQuery(
-                    context.getContentResolver(), intent.getData(), null, null, null, null);
+            Cursor cursor =
+                    context.getContentResolver().query(intent.getData(), null, null, null, null);
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
                     int visibilityColumn = cursor.getColumnIndexOrThrow(BluetoothShare.VISIBILITY);
@@ -199,9 +196,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                             && visibility == BluetoothShare.VISIBILITY_VISIBLE) {
                         ContentValues values = new ContentValues();
                         values.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_HIDDEN);
-                        BluetoothMethodProxy.getInstance().contentResolverUpdate(
-                                context.getContentResolver(), intent.getData(), values, null,
-                                null);
+                        context.getContentResolver().update(intent.getData(), values, null, null);
                         if (V) {
                             Log.v(TAG, "Action_hide received and db updated");
                         }
@@ -215,9 +210,9 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             }
             ContentValues updateValues = new ContentValues();
             updateValues.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_HIDDEN);
-            BluetoothMethodProxy.getInstance().contentResolverUpdate(
-                    context.getContentResolver(), BluetoothShare.CONTENT_URI, updateValues,
-                    BluetoothOppNotification.WHERE_COMPLETED, null);
+            context.getContentResolver()
+                    .update(BluetoothShare.CONTENT_URI, updateValues,
+                            BluetoothOppNotification.WHERE_COMPLETED, null);
         } else if (action.equals(BluetoothShare.TRANSFER_COMPLETED_ACTION)) {
             if (V) {
                 Log.v(TAG, "Receiver Transfer Complete Intent for " + intent.getData());
