@@ -54,8 +54,8 @@ pub enum BatteryServiceActions {
     OnCharacteristicRead(String, GattStatus, i32, Vec<u8>),
     /// Params: addr, handle, value
     OnNotify(String, i32, Vec<u8>),
-    /// Params: remote_device
-    Connect(BluetoothDevice),
+    /// Params: remote_device, transport
+    Connect(BluetoothDevice, BtTransport),
     /// Params: remote_device
     Disconnect(BluetoothDevice),
 }
@@ -227,8 +227,11 @@ impl BatteryService {
                 });
             }
 
-            BatteryServiceActions::Connect(device) => {
-                self.init_device(device.address);
+            BatteryServiceActions::Connect(device, transport) => {
+                if transport != BtTransport::Le {
+                    return;
+                }
+                self.init_device(device.address, transport);
             }
 
             BatteryServiceActions::Disconnect(device) => {
@@ -256,7 +259,7 @@ impl BatteryService {
         battery_set.clone()
     }
 
-    fn init_device(&self, remote_address: String) {
+    fn init_device(&self, remote_address: String, transport: BtTransport) {
         let client_id = match self.client_id {
             Some(id) => id,
             None => return,
@@ -266,7 +269,7 @@ impl BatteryService {
             client_id,
             remote_address,
             false,
-            BtTransport::Le,
+            transport,
             false,
             LePhy::Phy1m,
         );
@@ -307,10 +310,7 @@ impl BatteryService {
         };
         let handle = match self.handles.get(&remote_address) {
             Some(id) => *id,
-            None => {
-                self.init_device(remote_address);
-                return true;
-            }
+            None => return false,
         };
         self.gatt.lock().unwrap().read_characteristic(client_id, remote_address.clone(), handle, 0);
         true
