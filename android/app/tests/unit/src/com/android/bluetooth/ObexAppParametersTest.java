@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.pbapclient;
+package com.android.bluetooth;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
