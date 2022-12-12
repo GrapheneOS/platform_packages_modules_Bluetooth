@@ -42,6 +42,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "btif/include/stack_manager.h"
 #include "btif_api.h"
 #include "btif_config.h"
 #include "btif_util.h"
@@ -55,7 +56,6 @@
 #include "osi/include/osi.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btu.h"
-#include "stack_manager.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
