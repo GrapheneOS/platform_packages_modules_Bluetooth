@@ -694,7 +694,6 @@ void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
     if (p_buf->len < sizeof(sdu_length)) {
       L2CAP_TRACE_ERROR("%s: buffer length=%d too small. Need at least 2.",
                         __func__, p_buf->len);
-      android_errorWriteWithInfoLog(0x534e4554, "120665616", -1, NULL, 0);
       /* Discard the buffer */
       osi_free(p_buf);
       return;
@@ -716,7 +715,6 @@ void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
 
     if (sdu_length < p_buf->len) {
       L2CAP_TRACE_ERROR("%s: Invalid sdu_length: %d", __func__, sdu_length);
-      android_errorWriteWithInfoLog(0x534e4554, "112321180", -1, NULL, 0);
       /* Discard the buffer */
       osi_free(p_buf);
       return;
@@ -740,7 +738,6 @@ void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
       L2CAP_TRACE_ERROR("%s: buffer length=%d too big. max=%d. Dropped",
                         __func__, p_data->len,
                         (p_ccb->ble_sdu_length - p_data->len));
-      android_errorWriteWithInfoLog(0x534e4554, "75298652", -1, NULL, 0);
       osi_free(p_buf);
 
       /* Throw away all pending fragments and disconnects */

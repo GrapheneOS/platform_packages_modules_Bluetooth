@@ -176,9 +176,9 @@ std::optional<std::string> ConfigCache::GetProperty(const std::string& section, 
 
 void ConfigCache::SetProperty(std::string section, std::string property, std::string value) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
-  if (TrimAfterNewLine(section) || TrimAfterNewLine(property) || TrimAfterNewLine(value)) {
-    android_errorWriteLog(0x534e4554, "70808273");
-  }
+  TrimAfterNewLine(section);
+  TrimAfterNewLine(property);
+  TrimAfterNewLine(value);
   ASSERT_LOG(!section.empty(), "Empty section name not allowed");
   ASSERT_LOG(!property.empty(), "Empty property name not allowed");
   if (!IsDeviceSection(section)) {

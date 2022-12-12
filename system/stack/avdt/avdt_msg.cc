@@ -610,7 +610,6 @@ static uint8_t avdt_msg_prs_cfg(AvdtpSepConfig* p_cfg, uint8_t* p, uint16_t len,
         p_cfg->psc_mask &= ~AVDT_PSC_PROTECT;
         if (p + elem_len > p_end) {
           err = AVDT_ERR_LENGTH;
-          android_errorWriteLog(0x534e4554, "78288378");
           break;
         }
         if ((elem_len + protect_offset) < AVDT_PROTECT_SIZE) {
@@ -639,7 +638,6 @@ static uint8_t avdt_msg_prs_cfg(AvdtpSepConfig* p_cfg, uint8_t* p, uint16_t len,
         }
         if (p + tmp > p_end) {
           err = AVDT_ERR_LENGTH;
-          android_errorWriteLog(0x534e4554, "78288378");
           break;
         }
         p_cfg->num_codec++;
@@ -1003,7 +1001,6 @@ static uint8_t avdt_msg_prs_rej(tAVDT_MSG* p_msg, uint8_t* p, uint16_t len,
   }
 
   if (len < 1) {
-    android_errorWriteLog(0x534e4554, "79702484");
     error = AVDT_ERR_LENGTH;
   } else {
     p_msg->hdr.err_code = *p;
@@ -1215,7 +1212,6 @@ BT_HDR* avdt_msg_asmbl(AvdtpCcb* p_ccb, BT_HDR* p_buf) {
 
   /* Check if is valid length */
   if (p_buf->len < 1) {
-    android_errorWriteLog(0x534e4554, "78287084");
     osi_free(p_buf);
     p_ret = NULL;
     return p_ret;
@@ -1252,7 +1248,6 @@ BT_HDR* avdt_msg_asmbl(AvdtpCcb* p_ccb, BT_HDR* p_buf) {
      * would have allocated smaller buffer.
      */
     if (sizeof(BT_HDR) + p_buf->offset + p_buf->len > BT_DEFAULT_BUFFER_SIZE) {
-      android_errorWriteLog(0x534e4554, "232023771");
       osi_free(p_buf);
       p_ret = NULL;
       return p_ret;

@@ -396,11 +396,6 @@ static bt_status_t register_app(bthd_app_param_t* p_app_param,
     return BT_STATUS_BUSY;
   }
 
-  if (strlen(p_app_param->name) >= BTIF_HD_APP_NAME_LEN ||
-      strlen(p_app_param->description) >= BTIF_HD_APP_DESCRIPTION_LEN ||
-      strlen(p_app_param->provider) >= BTIF_HD_APP_PROVIDER_LEN) {
-    android_errorWriteLog(0x534e4554, "113037220");
-  }
   app_info.p_name = (char*)osi_calloc(BTIF_HD_APP_NAME_LEN);
   strlcpy(app_info.p_name, p_app_param->name, BTIF_HD_APP_NAME_LEN);
   app_info.p_description = (char*)osi_calloc(BTIF_HD_APP_DESCRIPTION_LEN);
