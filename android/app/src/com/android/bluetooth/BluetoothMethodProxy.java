@@ -47,6 +47,7 @@ import com.android.obex.HeaderSet;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Set;
 
 /**
@@ -169,6 +170,14 @@ public class BluetoothMethodProxy {
     public ContentProviderClient contentResolverAcquireUnstableContentProviderClient(
             ContentResolver contentResolver, @NonNull String name) {
         return contentResolver.acquireUnstableContentProviderClient(name);
+    }
+
+    /**
+     * Proxies {@link ContentResolver#openOutputStream(Uri)}.
+     */
+    public OutputStream contentResolverOpenOutputStream(ContentResolver contentResolver, Uri uri)
+            throws FileNotFoundException {
+        return contentResolver.openOutputStream(uri);
     }
 
     /**
