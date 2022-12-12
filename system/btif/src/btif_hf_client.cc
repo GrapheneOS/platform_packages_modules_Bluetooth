@@ -318,7 +318,7 @@ static bt_status_t connect_int(RawAddress* bd_addr, uint16_t uuid) {
   return BT_STATUS_SUCCESS;
 }
 
-static bt_status_t connect(RawAddress* bd_addr) {
+static bt_status_t connect(const RawAddress* bd_addr) {
   BTIF_TRACE_EVENT("HFP Client version is  %s", btif_hf_client_version);
   CHECK_BTHF_CLIENT_INIT();
   return btif_queue_connect(UUID_SERVCLASS_HF_HANDSFREE, bd_addr, connect_int);

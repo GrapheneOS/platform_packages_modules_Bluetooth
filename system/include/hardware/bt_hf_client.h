@@ -337,7 +337,7 @@ typedef struct {
   bt_status_t (*init)(bthf_client_callbacks_t* callbacks);
 
   /** connect to audio gateway */
-  bt_status_t (*connect)(RawAddress* bd_addr);
+  bt_status_t (*connect)(const RawAddress* bd_addr);
 
   /** disconnect from audio gateway */
   bt_status_t (*disconnect)(const RawAddress* bd_addr);
