@@ -24,10 +24,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 
+import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.BluetoothMethodProxy;
@@ -44,6 +46,12 @@ import org.mockito.Spy;
 public class BluetoothMapContentTest {
     private static final String TEST_TEXT = "text";
 
+    private Context mTargetContext;
+
+    @Mock
+    private BluetoothMapAccountItem mAccountItem;
+    @Mock
+    private BluetoothMapMasInstance mMasInstance;
     @Mock
     private ContentResolver mContentResolver;
     @Spy
@@ -51,6 +59,7 @@ public class BluetoothMapContentTest {
 
     @Before
     public void setUp() {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
         BluetoothMethodProxy.setInstanceForTesting(mMapMethodProxy);
     }
@@ -58,6 +67,21 @@ public class BluetoothMapContentTest {
     @After
     public void tearDown() {
         BluetoothMethodProxy.setInstanceForTesting(null);
+    }
+
+    @Test
+    public void constructor_withNonNullAccountItem() {
+        BluetoothMapContent content = new BluetoothMapContent(mTargetContext, mAccountItem,
+                mMasInstance);
+
+        assertThat(content.mBaseUri).isNotNull();
+    }
+
+    @Test
+    public void constructor_withNullAccountItem() {
+        BluetoothMapContent content = new BluetoothMapContent(mTargetContext, null, mMasInstance);
+
+        assertThat(content.mBaseUri).isNull();
     }
 
     @Test
