@@ -18,8 +18,12 @@ package com.android.bluetooth.mapclient;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import android.annotation.Nullable;
 import android.app.BroadcastOptions;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -49,9 +53,12 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.obex.HeaderSet;
 import com.android.vcard.VCardConstants;
 import com.android.vcard.VCardEntry;
 import com.android.vcard.VCardProperty;
+
+import com.google.common.truth.Correspondence;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -66,6 +73,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @MediumTest
@@ -101,6 +109,17 @@ public class MapClientStateMachineTest {
 
     @Mock
     private SubscriptionManager mMockSubscriptionManager;
+
+    private static final String TEST_OWN_PHONE_NUMBER = "555-1234";
+    @Mock
+    private RequestGetMessagesListingForOwnNumber mMockRequestOwnNumberCompletedWithNumber;
+    @Mock
+    private RequestGetMessagesListingForOwnNumber mMockRequestOwnNumberIncompleteSearch;
+
+    private static final Correspondence<Request, String> GET_FOLDER_NAME =
+            Correspondence.transforming(
+            MapClientStateMachineTest::getFolderNameFromRequestGetMessagesListing,
+            "has folder name of");
 
     @Before
     public void setUp() throws Exception {
@@ -138,6 +157,12 @@ public class MapClientStateMachineTest {
             Looper.prepare();
         }
         mHandler = new Handler();
+
+        when(mMockRequestOwnNumberCompletedWithNumber.isSearchCompleted()).thenReturn(true);
+        when(mMockRequestOwnNumberCompletedWithNumber.getOwnNumber()).thenReturn(
+                TEST_OWN_PHONE_NUMBER);
+        when(mMockRequestOwnNumberIncompleteSearch.isSearchCompleted()).thenReturn(false);
+        when(mMockRequestOwnNumberIncompleteSearch.getOwnNumber()).thenReturn(null);
     }
 
     @After
@@ -235,7 +260,6 @@ public class MapClientStateMachineTest {
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED, mMceStateMachine.getState());
     }
 
-
     /**
      * Test receiving an empty event report
      */
@@ -280,7 +304,6 @@ public class MapClientStateMachineTest {
         Assert.assertTrue(
                 mMceStateMachine.setMessageStatus("123456789AB", BluetoothMapClient.READ));
     }
-
 
     /**
      * Test disconnect
@@ -397,6 +420,155 @@ public class MapClientStateMachineTest {
         Assert.assertEquals(1, mMockContentProvider.mInsertOperationCount);
     }
 
+    /**
+     * Preconditions:
+     * - In {@code STATE_CONNECTED}.
+     * - {@code MSG_SEARCH_OWN_NUMBER_TIMEOUT} has been set.
+     * - Next stage of connection process has NOT begun, i.e.:
+     *   - Request for Notification Registration not sent
+     *   - Request for MessageListing of SENT folder not sent
+     *   - Request for MessageListing of INBOX folder not sent
+     */
+    private void testGetOwnNumber_setup() {
+        testStateTransitionFromConnectingToConnected();
+        verify(mMockMasClient, after(ASYNC_CALL_TIMEOUT_MILLIS).never()).makeRequest(
+                any(RequestSetNotificationRegistration.class));
+        verify(mMockMasClient, never()).makeRequest(any(RequestGetMessagesListing.class));
+        assertThat(mMceStateMachine.getHandler().hasMessages(
+                MceStateMachine.MSG_SEARCH_OWN_NUMBER_TIMEOUT)).isTrue();
+    }
+
+    /**
+     * Assert whether the next stage of connection process has begun, i.e., whether the following
+     * {@link Request} are sent or not:
+     * - Request for Notification Registration,
+     * - Request for MessageListing of SENT folder (to start downloading),
+     * - Request for MessageListing of INBOX folder (to start downloading).
+     */
+    private void testGetOwnNumber_assertNextStageStarted(boolean hasStarted) {
+        if (hasStarted) {
+            verify(mMockMasClient).makeRequest(any(RequestSetNotificationRegistration.class));
+            verify(mMockMasClient, times(2)).makeRequest(any(RequestGetMessagesListing.class));
+
+            ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+            verify(mMockMasClient, atLeastOnce()).makeRequest(requestCaptor.capture());
+            // There will be multiple calls to {@link MasClient#makeRequest} with different
+            // {@link Request} subtypes; not all of them will be {@link
+            // RequestGetMessagesListing}.
+            List<Request> capturedRequests = requestCaptor.getAllValues();
+            assertThat(capturedRequests).comparingElementsUsing(GET_FOLDER_NAME).contains(
+                    MceStateMachine.FOLDER_INBOX);
+            assertThat(capturedRequests).comparingElementsUsing(GET_FOLDER_NAME).contains(
+                    MceStateMachine.FOLDER_SENT);
+        } else {
+            verify(mMockMasClient, never()).makeRequest(
+                    any(RequestSetNotificationRegistration.class));
+            verify(mMockMasClient, never()).makeRequest(any(RequestGetMessagesListing.class));
+        }
+    }
+
+    /**
+     * Preconditions:
+     * - See {@link testGetOwnNumber_setup}.
+     *
+     * Actions:
+     * - Send a {@code MSG_MAS_REQUEST_COMPLETED} with a {@link
+     *   RequestGetMessagesListingForOwnNumber} object that has completed its search.
+     *
+     * Outcome:
+     * - {@code MSG_SEARCH_OWN_NUMBER_TIMEOUT} has been cancelled.
+     * - Next stage of connection process has begun, i.e.:
+     *   - Request for Notification Registration is made.
+     *   - Request for MessageListing of SENT folder is made (to start downloading).
+     *   - Request for MessageListing of INBOX folder is made (to start downloading).
+     */
+    @Test
+    public void testGetOwnNumberCompleted() {
+        testGetOwnNumber_setup();
+
+        Message requestCompletedMsg = Message.obtain(mHandler,
+                MceStateMachine.MSG_MAS_REQUEST_COMPLETED,
+                mMockRequestOwnNumberCompletedWithNumber);
+        mMceStateMachine.sendMessage(requestCompletedMsg);
+
+        verify(mMockMasClient, after(ASYNC_CALL_TIMEOUT_MILLIS).never()).makeRequest(
+                eq(mMockRequestOwnNumberCompletedWithNumber));
+        assertThat(mMceStateMachine.getHandler().hasMessages(
+                MceStateMachine.MSG_SEARCH_OWN_NUMBER_TIMEOUT)).isFalse();
+        testGetOwnNumber_assertNextStageStarted(true);
+    }
+
+    /**
+     * Preconditions:
+     * - See {@link testGetOwnNumber_setup}.
+     *
+     * Actions:
+     * - Send a {@code MSG_SEARCH_OWN_NUMBER_TIMEOUT}.
+     *
+     * Outcome:
+     * - {@link MasClient#abortRequest} invoked on a {@link RequestGetMessagesListingForOwnNumber}.
+     * - Any existing {@code MSG_MAS_REQUEST_COMPLETED} (corresponding to a
+     *   {@link RequestGetMessagesListingForOwnNumber}) has been dropped.
+     * - Next stage of connection process has begun, i.e.:
+     *   - Request for Notification Registration is made.
+     *   - Request for MessageListing of SENT folder is made (to start downloading).
+     *   - Request for MessageListing of INBOX folder is made (to start downloading).
+     */
+    @Test
+    public void testGetOwnNumberTimedOut() {
+        testGetOwnNumber_setup();
+        Message requestIncompleteMsg = Message.obtain(mHandler,
+                MceStateMachine.MSG_MAS_REQUEST_COMPLETED,
+                mMockRequestOwnNumberIncompleteSearch);
+        mMceStateMachine.sendMessage(requestIncompleteMsg);
+        assertThat(mMceStateMachine.getHandler().hasMessages(
+                MceStateMachine.MSG_MAS_REQUEST_COMPLETED)).isTrue();
+
+        Message timeoutMsg = Message.obtain(mHandler,
+                MceStateMachine.MSG_SEARCH_OWN_NUMBER_TIMEOUT,
+                mMockRequestOwnNumberIncompleteSearch);
+        mMceStateMachine.sendMessage(timeoutMsg);
+
+        verify(mMockMasClient, after(ASYNC_CALL_TIMEOUT_MILLIS)).abortRequest(
+                mMockRequestOwnNumberIncompleteSearch);
+        assertThat(mMceStateMachine.getHandler().hasMessages(
+                MceStateMachine.MSG_MAS_REQUEST_COMPLETED)).isFalse();
+        testGetOwnNumber_assertNextStageStarted(true);
+    }
+
+    /**
+     * Preconditions:
+     * - See {@link testGetOwnNumber_setup}.
+     *
+     * Actions:
+     * - Send a {@code MSG_MAS_REQUEST_COMPLETED} with a {@link
+     *   RequestGetMessagesListingForOwnNumber} object that has not completed its search.
+     *
+     * Outcome:
+     * - {@link Request} made to continue searching for own number (using existing/same
+     *   {@link Request}).
+     * - {@code MSG_SEARCH_OWN_NUMBER_TIMEOUT} has not been cancelled.
+     * - Next stage of connection process has not begun, i.e.:
+     *   - No Request for Notification Registration,
+     *   - No Request for MessageListing of SENT folder is made (to start downloading),
+     *   - No Request for MessageListing of INBOX folder is made (to start downloading).
+     */
+    @Test
+    public void testGetOwnNumberIncomplete() {
+        testGetOwnNumber_setup();
+
+        Message requestIncompleteMsg = Message.obtain(mHandler,
+                MceStateMachine.MSG_MAS_REQUEST_COMPLETED,
+                mMockRequestOwnNumberIncompleteSearch);
+        mMceStateMachine.sendMessage(requestIncompleteMsg);
+
+        verify(mMockMasClient, after(ASYNC_CALL_TIMEOUT_MILLIS)).makeRequest(
+                eq(mMockRequestOwnNumberIncompleteSearch));
+        assertThat(mMceStateMachine.getHandler().hasMessages(
+                MceStateMachine.MSG_SEARCH_OWN_NUMBER_TIMEOUT)).isTrue();
+        testGetOwnNumber_assertNextStageStarted(false);
+    }
+
     private void setupSdpRecordReceipt() {
         // Perform first part of MAP connection logic.
         verify(mMockMapClientService,
@@ -440,4 +612,18 @@ public class MapClientStateMachineTest {
         }
     }
 
+    private static String getFolderNameFromRequestGetMessagesListing(
+            Request request) {
+        Log.d(TAG, "getFolderName, Request type=" + request);
+        String folderName = null;
+        if (request instanceof RequestGetMessagesListing) {
+            try {
+                folderName = (String) request.mHeaderSet.getHeader(HeaderSet.NAME);
+            } catch (Exception e) {
+                Log.e(TAG, "in getFolderNameFromRequestGetMessagesListing", e);
+            }
+        }
+        Log.d(TAG, "getFolderName, name=" + folderName);
+        return folderName;
+    }
 }
