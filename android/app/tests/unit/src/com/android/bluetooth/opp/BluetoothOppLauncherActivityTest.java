@@ -83,7 +83,7 @@ public class BluetoothOppLauncherActivityTest {
         mIntent = new Intent();
         mIntent.setClass(mTargetContext, BluetoothOppLauncherActivity.class);
 
-        enableActivity(true);
+        BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
         Intents.init();
     }
 
@@ -91,7 +91,7 @@ public class BluetoothOppLauncherActivityTest {
     public void tearDown() {
         BluetoothMethodProxy.setInstanceForTesting(null);
         Intents.release();
-        enableActivity(false);
+        BluetoothOppTestUtils.enableOppActivities(false, mTargetContext);
     }
 
     @Test
