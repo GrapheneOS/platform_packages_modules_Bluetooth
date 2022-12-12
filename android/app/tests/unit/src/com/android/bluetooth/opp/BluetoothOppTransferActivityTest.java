@@ -35,8 +35,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.test.ActivityInstrumentationTestCase2;
 
+import androidx.test.core.app.ActivityScenario;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -53,10 +53,10 @@ import org.mockito.Spy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RunWith(AndroidJUnit4.class)
-public class BluetoothOppTransferActivityTest extends
-        ActivityInstrumentationTestCase2<BluetoothOppTransferActivity> {
+public class BluetoothOppTransferActivityTest {
     @Mock
     Cursor mCursor;
     @Spy
@@ -67,10 +67,6 @@ public class BluetoothOppTransferActivityTest extends
     Intent mIntent;
     Context mTargetContext;
 
-    public BluetoothOppTransferActivityTest() {
-        super(BluetoothOppTransferActivity.class);
-    }
-
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -78,7 +74,6 @@ public class BluetoothOppTransferActivityTest extends
         BluetoothMethodProxy.setInstanceForTesting(mBluetoothMethodProxy);
 
         Uri dataUrl = Uri.parse("content://com.android.bluetooth.opp.test/random");
-        injectInstrumentation(InstrumentationRegistry.getInstrumentation());
         mTargetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
         mIntent = new Intent();
@@ -128,11 +123,15 @@ public class BluetoothOppTransferActivityTest extends
         mCursorMockDataList.add(new CursorMockData(BluetoothShare.CURRENT_BYTES, 4, 0));
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
 
-        setActivityIntent(mIntent);
-        BluetoothOppTransferActivity activity = getActivity();
+        AtomicBoolean check = new AtomicBoolean(false);
+        ActivityScenario<BluetoothOppTransferActivity> activityScenario = ActivityScenario.launch(
+                mIntent);
 
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
-        assertThat(activity.mWhichDialog).isEqualTo(DIALOG_SEND_ONGOING);
+        activityScenario.onActivity(activity -> {
+            check.set(activity.mWhichDialog == DIALOG_SEND_ONGOING);
+        });
+
+        assertThat(check.get()).isTrue();
     }
 
     @Test
@@ -148,12 +147,15 @@ public class BluetoothOppTransferActivityTest extends
                 new CursorMockData(BluetoothShare.CURRENT_BYTES, 4, 100));
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
 
-        setActivityIntent(mIntent);
-        BluetoothOppTransferActivity activity = getActivity();
+        AtomicBoolean check = new AtomicBoolean(false);
+        ActivityScenario<BluetoothOppTransferActivity> activityScenario = ActivityScenario.launch(
+                mIntent);
 
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        activityScenario.onActivity(activity -> {
+            check.set(activity.mWhichDialog == DIALOG_SEND_COMPLETE_SUCCESS);
+        });
 
-        assertThat(activity.mWhichDialog).isEqualTo(DIALOG_SEND_COMPLETE_SUCCESS);
+        assertThat(check.get()).isTrue();
     }
 
     @Test
@@ -167,12 +169,15 @@ public class BluetoothOppTransferActivityTest extends
         mCursorMockDataList.add(new CursorMockData(BluetoothShare.CURRENT_BYTES, 4, 42));
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
 
-        setActivityIntent(mIntent);
-        BluetoothOppTransferActivity activity = getActivity();
+        AtomicBoolean check = new AtomicBoolean(false);
+        ActivityScenario<BluetoothOppTransferActivity> activityScenario = ActivityScenario.launch(
+                mIntent);
 
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        activityScenario.onActivity(activity -> {
+            check.set(activity.mWhichDialog == DIALOG_SEND_COMPLETE_FAIL);
+        });
 
-        assertThat(activity.mWhichDialog).isEqualTo(DIALOG_SEND_COMPLETE_FAIL);
+        assertThat(check.get()).isTrue();
     }
 
     @Test
@@ -186,12 +191,15 @@ public class BluetoothOppTransferActivityTest extends
         mCursorMockDataList.add(new CursorMockData(BluetoothShare.CURRENT_BYTES, 4, 0));
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
 
-        setActivityIntent(mIntent);
-        BluetoothOppTransferActivity activity = getActivity();
+        AtomicBoolean check = new AtomicBoolean(false);
+        ActivityScenario<BluetoothOppTransferActivity> activityScenario = ActivityScenario.launch(
+                mIntent);
 
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        activityScenario.onActivity(activity -> {
+            check.set(activity.mWhichDialog == DIALOG_RECEIVE_ONGOING);
+        });
 
-        assertThat(activity.mWhichDialog).isEqualTo(DIALOG_RECEIVE_ONGOING);
+        assertThat(check.get()).isTrue();
     }
 
     @Test
@@ -208,12 +216,15 @@ public class BluetoothOppTransferActivityTest extends
 
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
 
-        setActivityIntent(mIntent);
-        BluetoothOppTransferActivity activity = getActivity();
+        AtomicBoolean check = new AtomicBoolean(false);
+        ActivityScenario<BluetoothOppTransferActivity> activityScenario = ActivityScenario.launch(
+                mIntent);
 
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        activityScenario.onActivity(activity -> {
+            check.set(activity.mWhichDialog == DIALOG_RECEIVE_COMPLETE_SUCCESS);
+        });
 
-        assertThat(activity.mWhichDialog).isEqualTo(DIALOG_RECEIVE_COMPLETE_SUCCESS);
+        assertThat(check.get()).isTrue();
     }
 
     @Test
@@ -228,11 +239,14 @@ public class BluetoothOppTransferActivityTest extends
 
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
 
-        setActivityIntent(mIntent);
-        BluetoothOppTransferActivity activity = getActivity();
+        AtomicBoolean check = new AtomicBoolean(false);
+        ActivityScenario<BluetoothOppTransferActivity> activityScenario = ActivityScenario.launch(
+                mIntent);
 
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        activityScenario.onActivity(activity -> {
+            check.set(activity.mWhichDialog == DIALOG_RECEIVE_COMPLETE_FAIL);
+        });
 
-        assertThat(activity.mWhichDialog).isEqualTo(DIALOG_RECEIVE_COMPLETE_FAIL);
+        assertThat(check.get()).isTrue();
     }
 }
