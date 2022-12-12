@@ -220,7 +220,7 @@ void btm_ble_update_mode_operation(uint8_t link_role, const RawAddress* bd_addr,
                                    tHCI_STATUS status) {
   mock_function_count_map[__func__]++;
 }
-void btm_ble_write_adv_enable_complete(uint8_t* p) {
+void btm_ble_write_adv_enable_complete(uint8_t* p, uint16_t evt_len) {
   mock_function_count_map[__func__]++;
 }
 void btm_clear_all_pending_le_entry(void) {
