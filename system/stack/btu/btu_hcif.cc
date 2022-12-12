@@ -1025,7 +1025,6 @@ static void read_encryption_key_size_complete_after_encryption_change(uint8_t st
   }
 
   if (key_size < MIN_KEY_SIZE) {
-    android_errorWriteLog(0x534e4554, "124301137");
     LOG(ERROR) << __func__ << " encryption key too short, disconnecting. handle: " << loghex(handle)
                << " key_size: " << +key_size;
 
@@ -1600,7 +1599,6 @@ static void read_encryption_key_size_complete_after_key_refresh(uint8_t status, 
   }
 
   if (key_size < MIN_KEY_SIZE) {
-    android_errorWriteLog(0x534e4554, "124301137");
     LOG(ERROR) << __func__ << " encryption key too short, disconnecting. handle: " << loghex(handle)
                << " key_size: " << +key_size;
 

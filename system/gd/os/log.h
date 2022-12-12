@@ -114,15 +114,6 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
     abort();                                \
   } while (false)
 
-#ifndef android_errorWriteLog
-#define android_errorWriteLog(tag, subTag) LOG_ERROR("ERROR tag: 0x%x, sub_tag: %s", tag, subTag)
-#endif
-
-#ifndef android_errorWriteWithInfoLog
-#define android_errorWriteWithInfoLog(tag, subTag, uid, data, dataLen) \
-  LOG_ERROR("ERROR tag: 0x%x, sub_tag: %s", tag, subTag)
-#endif
-
 #ifndef LOG_EVENT_INT
 #define LOG_EVENT_INT(...)
 #endif
@@ -190,15 +181,6 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
     LOGWRAPPER(__VA_ARGS__);  \
     abort();                  \
   } while (false)
-#endif
-
-#ifndef android_errorWriteLog
-#define android_errorWriteLog(tag, subTag) LOG_ERROR("ERROR tag: 0x%x, sub_tag: %s", tag, subTag)
-#endif
-
-#ifndef android_errorWriteWithInfoLog
-#define android_errorWriteWithInfoLog(tag, subTag, uid, data, dataLen) \
-  LOG_ERROR("ERROR tag: 0x%x, sub_tag: %s", tag, subTag)
 #endif
 
 #ifndef LOG_EVENT_INT

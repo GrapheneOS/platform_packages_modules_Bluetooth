@@ -1724,7 +1724,6 @@ void bta_hf_client_at_parse(tBTA_HF_CLIENT_CB* client_cb, char* buf,
   /* prevent buffer overflow in cases where LEN exceeds available buffer space
    */
   if (len > BTA_HF_CLIENT_AT_PARSER_MAX_LEN - client_cb->at_cb.offset) {
-    android_errorWriteWithInfoLog(0x534e4554, "231156521", -1, NULL, 0);
     return;
   }
 
