@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doAnswer;
@@ -74,10 +75,12 @@ public class BluetoothOppUtilityTest {
         MockitoAnnotations.initMocks(this);
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         BluetoothMethodProxy.setInstanceForTesting(mCallProxy);
+        BluetoothOppTestUtils.enableOppActivities(true, mContext);
     }
 
     @After
     public void tearDown() {
+        BluetoothOppTestUtils.enableOppActivities(false, mContext);
         BluetoothMethodProxy.setInstanceForTesting(null);
     }
 
@@ -135,17 +138,22 @@ public class BluetoothOppUtilityTest {
 
     @Test
     public void openReceivedFile_fileNotExist() {
+
         Uri contentResolverUri = Uri.parse("content://com.android.bluetooth.opp/btopp/0123");
         Uri fileUri = Uri.parse("content:///tmp/randomFileName.txt");
 
         Context spiedContext = spy(new ContextWrapper(mContext));
 
+        doReturn(0).when(mCallProxy).contentResolverDelete(any(), any(), any(), any());
         doReturn(mCursor).when(mCallProxy).contentResolverQuery(any(),
                 eq(contentResolverUri), any(), eq(null),
                 eq(null), eq(null));
 
         doReturn(true).when(mCursor).moveToFirst();
         doReturn(fileUri.toString()).when(mCursor).getString(anyInt());
+
+        doReturn(0).when(mCallProxy).contentResolverDelete(any(), any(), nullable(String.class),
+                nullable(String[].class));
 
         BluetoothOppUtility.openReceivedFile(spiedContext, "randomFileName.txt",
                 "text/plain", 0L, contentResolverUri);

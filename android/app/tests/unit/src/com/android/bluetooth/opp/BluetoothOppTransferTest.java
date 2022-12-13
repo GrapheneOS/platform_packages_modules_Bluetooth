@@ -21,6 +21,7 @@ import static com.android.bluetooth.opp.BluetoothOppTransfer.TRANSPORT_ERROR;
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -28,9 +29,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Looper;
@@ -49,7 +50,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
@@ -84,8 +84,12 @@ public class BluetoothOppTransferTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         BluetoothMethodProxy.setInstanceForTesting(mCallProxy);
+        doReturn(0).when(mCallProxy).contentResolverDelete(any(), nullable(Uri.class),
+                nullable(String.class), nullable(String[].class));
+        doReturn(0).when(mCallProxy).contentResolverUpdate(any(), nullable(Uri.class),
+                nullable(ContentValues.class), nullable(String.class), nullable(String[].class));
 
-        mInitShareInfo = new BluetoothOppShareInfo(123, mUri, mHintString, mFilename, mMimetype,
+        mInitShareInfo = new BluetoothOppShareInfo(8765, mUri, mHintString, mFilename, mMimetype,
                 mDirection, mDestination, mVisibility, mConfirm, mStatus, mTotalBytes,
                 mCurrentBytes,
                 mTimestamp, mMediaScanned);
@@ -125,7 +129,6 @@ public class BluetoothOppTransferTest {
 
     @Test
     public void onBatchCanceled_checkStatus() {
-        doReturn(0).when(mCallProxy).contentResolverDelete(any(), any(), any(), any());
         // This will trigger mTransfer.onBatchCanceled(),
         // which will then change the status of the batch accordingly
         mBluetoothOppBatch.cancelBatch();
