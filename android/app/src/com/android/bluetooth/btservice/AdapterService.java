@@ -91,6 +91,7 @@ import android.os.PowerManager;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.DeviceConfig;
@@ -187,6 +188,8 @@ public class AdapterService extends Service {
     private final ArrayList<String> mStartedProfiles = new ArrayList<>();
     private final ArrayList<ProfileService> mRegisteredProfiles = new ArrayList<>();
     private final ArrayList<ProfileService> mRunningProfiles = new ArrayList<>();
+    private HashSet<String> mLeAudioAllowDevices = new HashSet<>();
+    private boolean mLeAudioAllowListEnabled = false;
 
     public static final String ACTION_LOAD_ADAPTER_PROPERTIES =
             "com.android.bluetooth.btservice.action.LOAD_ADAPTER_PROPERTIES";
@@ -216,6 +219,9 @@ public class AdapterService extends Service {
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
     static final String LOCAL_MAC_ADDRESS_PERM = android.Manifest.permission.LOCAL_MAC_ADDRESS;
     static final String RECEIVE_MAP_PERM = android.Manifest.permission.RECEIVE_BLUETOOTH_MAP;
+    static final String BLUETOOTH_LE_AUDIO_ALLOW_LIST = "persist.bluetooth.leaudio.allow_list";
+    static final String BLUETOOTH_ENABLE_LE_AUDIO_ALLOW_LIST =
+            "persist.bluetooth.leaudio.enable_allow_list";
 
     private static final String PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE =
             "phonebook_access_permission";
@@ -545,6 +551,7 @@ public class AdapterService extends Service {
 
         mSdpManager = SdpManager.init(this);
         registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
+        loadLeAudioAllowDevices();
 
         mDatabaseManager = new DatabaseManager(this);
         mDatabaseManager.start(MetadataDatabase.createDatabase(this));
@@ -1217,7 +1224,8 @@ public class AdapterService extends Service {
             return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.COORDINATED_SET);
         }
         if (profile == BluetoothProfile.LE_AUDIO) {
-            return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.LE_AUDIO);
+            return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.LE_AUDIO)
+                    && isLeAudioAllowed(device);
         }
         if (profile == BluetoothProfile.HAP_CLIENT) {
             return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.HAS);
@@ -6065,6 +6073,8 @@ public class AdapterService extends Service {
     @GuardedBy("mDeviceConfigLock")
     private int mScreenOffBalancedIntervalMillis =
             ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_INTERVAL_MS;
+    @GuardedBy("mDeviceConfigLock")
+    private String mLeAudioAllowList;
 
     public @NonNull Predicate<String> getLocationDenylistName() {
         synchronized (mDeviceConfigLock) {
@@ -6192,6 +6202,8 @@ public class AdapterService extends Service {
                 "screen_off_balanced_window_millis";
         private static final String SCREEN_OFF_BALANCED_INTERVAL_MILLIS =
                 "screen_off_balanced_interval_millis";
+        private static final String LE_AUDIO_ALLOW_LIST =
+                "le_audio_allow_list";
 
         /**
          * Default denylist which matches Eddystone and iBeacon payloads.
@@ -6247,6 +6259,18 @@ public class AdapterService extends Service {
                 mScreenOffBalancedIntervalMillis = properties.getInt(
                         SCREEN_OFF_BALANCED_INTERVAL_MILLIS,
                         ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_INTERVAL_MS);
+                mLeAudioAllowList = properties.getString(LE_AUDIO_ALLOW_LIST, "");
+
+                if (mLeAudioAllowList.isEmpty()) {
+                    List<String> leAudioAllowDevices = BluetoothProperties.le_audio_allow_list();
+                    if (leAudioAllowDevices != null && !leAudioAllowDevices.isEmpty()) {
+                        mLeAudioAllowDevices = new HashSet<String>(leAudioAllowDevices);
+                    }
+                } else {
+                    List<String> leAudioAllowDevices = Arrays.asList(mLeAudioAllowList.split(","));
+                    BluetoothProperties.le_audio_allow_list(leAudioAllowDevices);
+                    mLeAudioAllowDevices = new HashSet<String>(leAudioAllowDevices);
+                }
             }
         }
     }
@@ -6454,6 +6478,57 @@ public class AdapterService extends Service {
 
     public void interopDatabaseRemoveName(InteropFeature feature, String name) {
         interopDatabaseAddRemoveNameNative(false, feature.name(), name);
+    }
+
+    private void loadLeAudioAllowDevices() {
+        Log.i(TAG, "loadLeAudioAllowDevices");
+        mLeAudioAllowListEnabled =
+                SystemProperties.getBoolean(BLUETOOTH_ENABLE_LE_AUDIO_ALLOW_LIST, false);
+
+        if (!mLeAudioAllowListEnabled) {
+            Log.i(TAG, "LE Audio allow list is disabled.");
+            return;
+        }
+
+        synchronized (mDeviceConfigLock) {
+            mLeAudioAllowDevices = new HashSet<String>(Arrays.asList(mLeAudioAllowList.split(",")));
+        }
+        return;
+    }
+
+    /**
+     *  Checks the remote device is in the LE Audio allow list or not.
+     *
+     *  @param device the device to check
+     *  @return boolean true if le audio allow list is not enabled or the device
+     *          is in the allow list, false otherwise.
+     */
+    public boolean isLeAudioAllowed(BluetoothDevice device) {
+        if (!mLeAudioAllowListEnabled) {
+            return true;
+        }
+
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+
+        if (deviceProp == null || deviceProp.getModelName() == null
+                || !mLeAudioAllowDevices.contains(deviceProp.getModelName())) {
+
+            if (mLeAudioService != null) {
+                mLeAudioService.setConnectionPolicy(device,
+                        BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+            }
+
+            Log.e(TAG, String.format("Device %s not in the LE Audio allow list, ", device)
+                    + "force LE Audio policy to forbidden");
+            return false;
+        }
+
+        if (mLeAudioService != null) {
+            mLeAudioService.setConnectionPolicy(device,
+                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        }
+
+        return true;
     }
 
     static native void classInitNative();

@@ -489,6 +489,13 @@ filegroup {
   ],
 }
 
+filegroup {
+  name: "TestMockSrvcDis",
+  srcs: [
+      "mock/mock_stack_srvc_dis.cc"
+  ],
+}
+
 cc_defaults {
     name: "mts_defaults",
     target: {
