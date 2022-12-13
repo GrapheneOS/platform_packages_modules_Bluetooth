@@ -11,6 +11,7 @@ mod ffi {
         fn gatt_robust_caching_client_is_enabled() -> bool;
         fn gatt_robust_caching_server_is_enabled() -> bool;
         fn gd_core_is_enabled() -> bool;
+        fn gd_hal_snoop_logger_socket_is_enabled() -> bool;
         fn gd_l2cap_is_enabled() -> bool;
         fn gd_link_policy_is_enabled() -> bool;
         fn gd_remote_name_request_is_enabled() -> bool;

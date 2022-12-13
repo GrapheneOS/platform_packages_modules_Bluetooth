@@ -12,12 +12,14 @@ table InitFlagsData {
     gd_hci_enabled:bool (privacy:"Any");
     gd_controller_enabled:bool (privacy:"Any");
 
+    asynchronously_start_l2cap_coc_is_enabled:bool (privacy:"Any");
     btaa_hci_is_enabled:bool (privacy:"Any");
     btm_dm_flush_discovery_queue_on_search_cancel_is_enabled:bool (privacy:"Any");
     finite_att_timeout_is_enabled:bool (privacy:"Any");
     gatt_robust_caching_client_is_enabled:bool (privacy:"Any");
     gatt_robust_caching_server_is_enabled:bool (privacy:"Any");
     gd_core_is_enabled:bool (privacy:"Any");
+    gd_hal_snoop_logger_socket_is_enabled:bool (privacy:"Any");
     gd_l2cap_is_enabled:bool (privacy:"Any");
     gd_link_policy_is_enabled:bool (privacy:"Any");
     gd_remote_name_request_is_enabled:bool (privacy:"Any");

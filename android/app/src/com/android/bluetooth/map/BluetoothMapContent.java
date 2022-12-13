@@ -43,6 +43,7 @@ import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
 import com.android.bluetooth.mapapi.BluetoothMapContract.ConversationColumns;
+import com.android.internal.annotations.VisibleForTesting;
 
 import com.google.android.mms.pdu.CharacterSets;
 import com.google.android.mms.pdu.PduHeaders;
@@ -143,7 +144,8 @@ public class BluetoothMapContent {
 
     private final Context mContext;
     private final ContentResolver mResolver;
-    private final String mBaseUri;
+    @VisibleForTesting
+    final String mBaseUri;
     private final BluetoothMapAccountItem mAccount;
     /* The MasInstance reference is used to update persistent (over a connection) version counters*/
     private final BluetoothMapMasInstance mMasInstance;
@@ -250,7 +252,8 @@ public class BluetoothMapContent {
         MMS_SMS_THREAD_COL_RECIPIENT_IDS = projection.indexOf(Threads.RECIPIENT_IDS);
     }
 
-    private static class FilterInfo {
+    @VisibleForTesting
+    static class FilterInfo {
         public static final int TYPE_SMS = 0;
         public static final int TYPE_MMS = 1;
         public static final int TYPE_EMAIL = 2;

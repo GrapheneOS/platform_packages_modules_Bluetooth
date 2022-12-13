@@ -30,6 +30,7 @@ import android.provider.CallLog.Calls;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.ObexAppParameters;
 import com.android.bluetooth.R;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.ClientSession;
