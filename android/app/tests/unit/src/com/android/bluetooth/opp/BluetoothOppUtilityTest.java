@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doAnswer;
@@ -146,6 +147,9 @@ public class BluetoothOppUtilityTest {
 
         doReturn(true).when(mCursor).moveToFirst();
         doReturn(fileUri.toString()).when(mCursor).getString(anyInt());
+
+        doReturn(0).when(mCallProxy).contentResolverDelete(any(), any(), nullable(String.class),
+                nullable(String[].class));
 
         BluetoothOppUtility.openReceivedFile(spiedContext, "randomFileName.txt",
                 "text/plain", 0L, contentResolverUri);
