@@ -64,13 +64,15 @@ PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilde
 
 }  // namespace
 
+namespace {
+
 class TestHciLayer : public HciLayer {
  public:
   void EnqueueCommand(
       std::unique_ptr<CommandBuilder> command,
       common::ContextualOnceCallback<void(CommandCompleteView)> on_complete) override {
-    GetHandler()->Post(common::BindOnce(&TestHciLayer::HandleCommand, common::Unretained(this), std::move(command),
-                                        std::move(on_complete)));
+    GetHandler()->Post(common::BindOnce(
+        &TestHciLayer::HandleCommand, common::Unretained(this), std::move(command), std::move(on_complete)));
   }
 
   void EnqueueCommand(
@@ -100,8 +102,8 @@ class TestHciLayer : public HciLayer {
         local_version_information.lmp_version_ = LmpVersion::V_4_2;
         local_version_information.manufacturer_name_ = 0xBAD;
         local_version_information.lmp_subversion_ = 0x5678;
-        event_builder = ReadLocalVersionInformationCompleteBuilder::Create(num_packets, ErrorCode::SUCCESS,
-                                                                           local_version_information);
+        event_builder = ReadLocalVersionInformationCompleteBuilder::Create(
+            num_packets, ErrorCode::SUCCESS, local_version_information);
       } break;
       case (OpCode::READ_LOCAL_SUPPORTED_COMMANDS): {
         std::array<uint8_t, 64> supported_commands;
@@ -120,13 +122,17 @@ class TestHciLayer : public HciLayer {
         uint8_t page_bumber = read_command.GetPageNumber();
         uint64_t lmp_features = 0x012345678abcdef;
         lmp_features += page_bumber;
-        event_builder = ReadLocalExtendedFeaturesCompleteBuilder::Create(num_packets, ErrorCode::SUCCESS, page_bumber,
-                                                                         0x02, lmp_features);
+        event_builder = ReadLocalExtendedFeaturesCompleteBuilder::Create(
+            num_packets, ErrorCode::SUCCESS, page_bumber, 0x02, lmp_features);
       } break;
       case (OpCode::READ_BUFFER_SIZE): {
         event_builder = ReadBufferSizeCompleteBuilder::Create(
-            num_packets, ErrorCode::SUCCESS, acl_data_packet_length, synchronous_data_packet_length,
-            total_num_acl_data_packets, total_num_synchronous_data_packets);
+            num_packets,
+            ErrorCode::SUCCESS,
+            acl_data_packet_length,
+            synchronous_data_packet_length,
+            total_num_acl_data_packets,
+            total_num_synchronous_data_packets);
       } break;
       case (OpCode::READ_BD_ADDR): {
         event_builder = ReadBdAddrCompleteBuilder::Create(num_packets, ErrorCode::SUCCESS, Address::kAny);
@@ -178,8 +184,8 @@ class TestHciLayer : public HciLayer {
           payload->AddOctets2(feature_spec_version);
           payload->AddOctets(payload_bytes);
         }
-        event_builder = LeGetVendorCapabilitiesCompleteBuilder::Create(num_packets, ErrorCode::SUCCESS,
-                                                                       base_vendor_capabilities, std::move(payload));
+        event_builder = LeGetVendorCapabilitiesCompleteBuilder::Create(
+            num_packets, ErrorCode::SUCCESS, base_vendor_capabilities, std::move(payload));
       } break;
       case (OpCode::SET_EVENT_MASK): {
         auto view = SetEventMaskView::Create(command);
@@ -303,6 +309,7 @@ class ControllerTest : public ::testing::Test {
   os::Handler* client_handler_ = nullptr;
   uint16_t feature_spec_version_ = 98;
 };
+}  // namespace
 
 class Controller055Test : public ControllerTest {
  protected:
