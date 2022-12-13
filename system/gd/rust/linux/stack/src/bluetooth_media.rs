@@ -29,6 +29,10 @@ use tokio::sync::mpsc::Sender;
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration, Instant};
 
+use crate::battery_manager::{Battery, BatterySet};
+use crate::battery_provider_manager::{
+    BatteryProviderManager, IBatteryProviderCallback, IBatteryProviderManager,
+};
 use crate::bluetooth::{Bluetooth, BluetoothDevice, IBluetooth};
 use crate::callbacks::Callbacks;
 use crate::uuid;
@@ -164,6 +168,8 @@ pub enum MediaActions {
 
 pub struct BluetoothMedia {
     intf: Arc<Mutex<BluetoothInterface>>,
+    battery_provider_manager: Arc<Mutex<Box<BatteryProviderManager>>>,
+    battery_provider_id: u32,
     initialized: bool,
     callbacks: Arc<Mutex<Callbacks<dyn IBluetoothMediaCallback + Send>>>,
     tx: Sender<Message>,
@@ -187,9 +193,19 @@ pub struct BluetoothMedia {
 }
 
 impl BluetoothMedia {
-    pub fn new(tx: Sender<Message>, intf: Arc<Mutex<BluetoothInterface>>) -> BluetoothMedia {
+    pub fn new(
+        tx: Sender<Message>,
+        intf: Arc<Mutex<BluetoothInterface>>,
+        battery_provider_manager: Arc<Mutex<Box<BatteryProviderManager>>>,
+    ) -> BluetoothMedia {
+        let battery_provider_id = battery_provider_manager
+            .lock()
+            .unwrap()
+            .register_battery_provider(Box::new(BatteryProviderCallback::new()));
         BluetoothMedia {
             intf,
+            battery_provider_manager,
+            battery_provider_id,
             initialized: false,
             callbacks: Arc::new(Mutex::new(Callbacks::new(
                 tx.clone(),
@@ -566,6 +582,18 @@ impl BluetoothMedia {
                     callback.on_hfp_volume_changed(volume, addr.to_string());
                 });
             }
+            HfpCallbacks::BatteryLevelUpdate(battery_level, addr) => {
+                let battery_set = BatterySet::new(
+                    addr.to_string(),
+                    uuid::HFP.to_string(),
+                    "HFP".to_string(),
+                    vec![Battery { percentage: battery_level as u32, variant: "".to_string() }],
+                );
+                self.battery_provider_manager
+                    .lock()
+                    .unwrap()
+                    .set_battery_info(self.battery_provider_id, battery_set);
+            }
             HfpCallbacks::CapsUpdate(wbs_supported, addr) => {
                 let hfp_cap = match wbs_supported {
                     true => HfpCodecCapability::CVSD | HfpCodecCapability::MSBC,
@@ -857,7 +885,6 @@ impl IBluetoothMedia for BluetoothMedia {
         // avrcp is disabled.
         // TODO: fix b/251692015
         self.enable_profile(&Profile::AvrcpTarget);
-
         true
     }
 
@@ -1353,5 +1380,24 @@ impl IBluetoothMedia for BluetoothMedia {
             Some(avrcp) => avrcp.set_metadata(&metadata),
             None => warn!("Uninitialized AVRCP to set player playback status"),
         };
+    }
+}
+
+struct BatteryProviderCallback {}
+
+impl BatteryProviderCallback {
+    fn new() -> Self {
+        Self {}
+    }
+}
+
+impl IBatteryProviderCallback for BatteryProviderCallback {
+    // We do not support refreshing HFP battery information.
+    fn refresh_battery_info(&self) {}
+}
+
+impl RPCProxy for BatteryProviderCallback {
+    fn get_object_id(&self) -> String {
+        "HFP BatteryProvider Callback".to_string()
     }
 }
