@@ -20,7 +20,9 @@ import static com.android.bluetooth.opp.BluetoothOppManager.OPP_PREFERENCE_FILE;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.nullable;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
@@ -43,7 +45,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +52,8 @@ import java.util.List;
 @RunWith(AndroidJUnit4.class)
 public class BluetoothOppManagerTest {
     Context mContext;
-    @Spy
-    BluetoothMethodProxy mCallProxy = BluetoothMethodProxy.getInstance();
+
+    BluetoothMethodProxy mCallProxy;
 
     @Before
     public void setUp() {
@@ -60,7 +61,11 @@ public class BluetoothOppManagerTest {
         mContext = spy(new ContextWrapper(
                 InstrumentationRegistry.getInstrumentation().getTargetContext()));
 
+        mCallProxy = spy(BluetoothMethodProxy.getInstance());
         BluetoothMethodProxy.setInstanceForTesting(mCallProxy);
+
+        doReturn(null).when(mCallProxy).contentResolverInsert(
+                any(), eq(BluetoothShare.CONTENT_URI), any());
     }
 
     @After
