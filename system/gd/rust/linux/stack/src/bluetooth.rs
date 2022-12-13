@@ -4,7 +4,8 @@ use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtAclState,
     BtBondState, BtConnectionDirection, BtConnectionState, BtDeviceType, BtDiscoveryState,
     BtHciErrorCode, BtPinCode, BtPropertyType, BtScanMode, BtSspVariant, BtState, BtStatus,
-    BtTransport, BtVendorProductInfo, RawAddress, ToggleableProfile, Uuid, Uuid128Bit,
+    BtTransport, BtVendorProductInfo, DisplayAddress, RawAddress, ToggleableProfile, Uuid,
+    Uuid128Bit,
 };
 use bt_topshim::{
     metrics,
@@ -206,6 +207,15 @@ pub trait IBluetoothQA {
     fn set_connectable(&mut self, mode: bool) -> bool;
 }
 
+/// Delayed actions from adapter events.
+pub enum DelayedActions {
+    /// Check whether the current set of found devices are still fresh.
+    DeviceFreshnessCheck,
+
+    /// Connect to all supported profiles on target device.
+    ConnectAllProfiles(BluetoothDevice),
+}
+
 /// Serializable device used in various apis.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct BluetoothDevice {
@@ -240,11 +250,21 @@ impl BluetoothDevice {
 
 /// Internal data structure that keeps a map of cached properties for a remote device.
 struct BluetoothDeviceContext {
-    pub bond_state: BtBondState,
+    /// Transport type reported by ACL connection (if completed).
+    pub acl_reported_transport: BtTransport,
+
     pub acl_state: BtAclState,
+    pub bond_state: BtBondState,
     pub info: BluetoothDevice,
     pub last_seen: Instant,
     pub properties: HashMap<BtPropertyType, BluetoothProperty>,
+
+    /// Keep track of whether services have been resolved.
+    pub services_resolved: bool,
+
+    /// If supported UUIDs weren't available in EIR, wait for services to be
+    /// resolved to connect.
+    pub wait_to_connect: bool,
 }
 
 impl BluetoothDeviceContext {
@@ -256,11 +276,14 @@ impl BluetoothDeviceContext {
         properties: Vec<BluetoothProperty>,
     ) -> BluetoothDeviceContext {
         let mut device = BluetoothDeviceContext {
-            bond_state,
+            acl_reported_transport: BtTransport::Auto,
             acl_state,
+            bond_state,
             info,
             last_seen,
             properties: HashMap::new(),
+            services_resolved: false,
+            wait_to_connect: false,
         };
         device.update_properties(&properties);
         device
@@ -369,8 +392,6 @@ pub struct Bluetooth {
     sdp: Option<Sdp>,
     state: BtState,
     tx: Sender<Message>,
-    /// Used to delay connection until we have SDP results.
-    wait_to_connect: bool,
     // Internal API members
     discoverable_timeout: Option<JoinHandle<()>>,
 
@@ -409,7 +430,6 @@ impl Bluetooth {
             sdp: None,
             state: BtState::Off,
             tx,
-            wait_to_connect: false,
             // Internal API members
             discoverable_timeout: None,
             sig_notifier,
@@ -580,7 +600,7 @@ impl Bluetooth {
 
     /// Check whether found devices are still fresh. If they're outside the
     /// freshness window, send a notification to clear the device from clients.
-    pub(crate) fn trigger_freshness_check(&mut self) {
+    fn trigger_freshness_check(&mut self) {
         if let Some(ref handle) = self.freshness_check {
             // Abort and drop the previous JoinHandle.
             handle.abort();
@@ -620,7 +640,9 @@ impl Bluetooth {
 
             self.freshness_check = Some(tokio::spawn(async move {
                 time::sleep(FOUND_DEVICE_FRESHNESS).await;
-                let _ = txl.send(Message::DeviceFreshnessCheck).await;
+                let _ = txl
+                    .send(Message::DelayedAdapterActions(DelayedActions::DeviceFreshnessCheck))
+                    .await;
             }));
         }
     }
@@ -662,6 +684,19 @@ impl Bluetooth {
             vpi.product_id,
             vpi.version,
         );
+    }
+
+    /// Handle some delayed and recurring actions within the adapter.
+    pub(crate) fn handle_delayed_actions(&mut self, action: DelayedActions) {
+        match action {
+            DelayedActions::DeviceFreshnessCheck => {
+                self.trigger_freshness_check();
+            }
+
+            DelayedActions::ConnectAllProfiles(device) => {
+                self.connect_all_enabled_profiles(device);
+            }
+        }
     }
 }
 
@@ -970,8 +1005,8 @@ impl BtifBluetoothCallbacks for Bluetooth {
         else if &bond_state == &BtBondState::Bonded && !self.bonded_devices.contains_key(&address)
         {
             // We either need to construct a new BluetoothDeviceContext or grab it from the found
-            // devices map
-            let device = match self.found_devices.remove(&address) {
+            // devices map. Immediately insert that into the bonded list.
+            let mut device = match self.found_devices.remove(&address) {
                 Some(mut v) => {
                     v.bond_state = bond_state.clone();
                     v
@@ -984,8 +1019,13 @@ impl BtifBluetoothCallbacks for Bluetooth {
                     vec![],
                 ),
             };
+            let device_info = device.info.clone();
 
+            // Since this is a newly bonded device, we also need to trigger SDP
+            // on it.
+            device.services_resolved = false;
             self.bonded_devices.insert(address.clone(), device);
+            self.fetch_remote_uuids(device_info);
         } else {
             // If we're bonding, we need to update the found devices list
             self.found_devices
@@ -1013,6 +1053,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
         properties: Vec<BluetoothProperty>,
     ) {
         let address = addr.to_string();
+        let txl = self.tx.clone();
         let device = match self.get_remote_device_if_found_mut(&address) {
             None => {
                 self.found_devices.insert(
@@ -1036,12 +1077,30 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 d.update_properties(&properties);
                 d.seen();
 
+                // Services are resolved.
+                d.services_resolved = true;
+
                 Bluetooth::send_metrics_remote_device_info(d);
 
                 let info = d.info.clone();
-                let uuids = self.get_remote_uuids(info.clone());
-                if self.wait_to_connect && uuids.len() > 0 {
-                    self.connect_all_enabled_profiles(info.clone());
+                let has_uuids = d
+                    .properties
+                    .get(&BtPropertyType::Uuids)
+                    .and_then(|prop| match prop {
+                        BluetoothProperty::Uuids(uu) => Some(uu.len() > 0),
+                        _ => None,
+                    })
+                    .map_or(false, |v| v);
+
+                if d.wait_to_connect && has_uuids {
+                    d.wait_to_connect = false;
+
+                    let sent_info = info.clone();
+                    tokio::spawn(async move {
+                        let _ = txl.send(Message::DelayedAdapterActions(
+                            DelayedActions::ConnectAllProfiles(sent_info),
+                        ));
+                    });
                 }
 
                 self.bluetooth_admin
@@ -1050,7 +1109,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
                     .on_remote_device_properties_changed(&info, &properties);
             }
             None => (),
-        };
+        }
     }
 
     fn acl_state(
@@ -1106,6 +1165,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 if prev_state != &state {
                     let device = found.info.clone();
                     found.acl_state = state.clone();
+                    found.acl_reported_transport = link_type;
 
                     metrics::acl_connection_state_changed(
                         addr,
@@ -1645,18 +1705,30 @@ impl IBluetooth for Bluetooth {
         }
     }
 
-    fn fetch_remote_uuids(&self, device: BluetoothDevice) -> bool {
-        if self.get_remote_device_if_found(&device.address).is_none() {
-            warn!("Won't fetch UUIDs on unknown device {}", device.address);
-            return false;
-        }
+    fn fetch_remote_uuids(&self, remote_device: BluetoothDevice) -> bool {
+        let device = match self.get_remote_device_if_found(&remote_device.address) {
+            Some(v) => v,
+            None => {
+                warn!("Won't fetch UUIDs on unknown device {}", remote_device.address);
+                return false;
+            }
+        };
 
-        let addr = RawAddress::from_string(device.address.clone());
-        if addr.is_none() {
-            warn!("Can't fetch UUIDs. Address {} is not valid.", device.address);
-            return false;
-        }
-        self.intf.lock().unwrap().get_remote_services(&mut addr.unwrap(), BtTransport::Auto) == 0
+        let mut addr = match RawAddress::from_string(device.info.address.clone()) {
+            Some(v) => v,
+            None => {
+                warn!("Can't fetch UUIDs. Address {} is not valid.", device.info.address);
+                return false;
+            }
+        };
+
+        let transport = match self.get_remote_type(device.info.clone()) {
+            BtDeviceType::Bredr => BtTransport::Bredr,
+            BtDeviceType::Ble => BtTransport::Le,
+            _ => device.acl_reported_transport,
+        };
+
+        self.intf.lock().unwrap().get_remote_services(&mut addr, transport) == 0
     }
 
     fn sdp_search(&self, device: BluetoothDevice, uuid: Uuid128Bit) -> bool {
@@ -1681,18 +1753,20 @@ impl IBluetooth for Bluetooth {
             return false;
         }
 
-        let addr = RawAddress::from_string(device.address.clone());
-        if addr.is_none() {
-            warn!("Can't connect profiles on invalid address [{}]", &device.address);
-            return false;
-        }
+        let mut addr = match RawAddress::from_string(device.address.clone()) {
+            Some(v) => v,
+            None => {
+                warn!("Can't connect profiles on invalid address [{}]", &device.address);
+                return false;
+            }
+        };
 
         // log ACL connection attempt if it's not already connected.
         let is_connected = self
             .get_remote_device_if_found(&device.address)
             .map_or(false, |d| d.acl_state == BtAclState::Connected);
         if !is_connected {
-            metrics::acl_connect_attempt(addr.unwrap(), BtAclState::Connected);
+            metrics::acl_connect_attempt(addr, BtAclState::Connected);
         }
 
         // Check all remote uuids to see if they match enabled profiles and connect them.
@@ -1704,9 +1778,9 @@ impl IBluetooth for Bluetooth {
                     if UuidHelper::is_profile_supported(&p) {
                         match p {
                             Profile::Hid | Profile::Hogp => {
-                                let status = self.hh.as_ref().unwrap().connect(&mut addr.unwrap());
+                                let status = self.hh.as_ref().unwrap().connect(&mut addr);
                                 metrics::profile_connection_state_changed(
-                                    addr.unwrap(),
+                                    addr,
                                     p as u32,
                                     BtStatus::Success,
                                     BthhConnectionState::Connecting as u32,
@@ -1714,7 +1788,7 @@ impl IBluetooth for Bluetooth {
 
                                 if status != BtStatus::Success {
                                     metrics::profile_connection_state_changed(
-                                        addr.unwrap(),
+                                        addr,
                                         p as u32,
                                         status,
                                         BthhConnectionState::Disconnected as u32,
@@ -1759,21 +1833,19 @@ impl IBluetooth for Bluetooth {
 
         // If SDP isn't completed yet, we wait for it to complete and retry the connection again.
         // Otherwise, this connection request is done, no retry is required.
-        self.wait_to_connect = !has_enabled_uuids;
-        if self.wait_to_connect {
-            warn!(
-                "[{}] SDP hasn't completed for device, wait to connect.",
-                addr.unwrap().to_string()
-            );
+        if !has_enabled_uuids {
+            warn!("[{}] SDP hasn't completed for device, wait to connect.", DisplayAddress(addr));
+            if let Some(d) = self.get_remote_device_if_found_mut(&device.address) {
+                if uuids.len() == 0 || !d.services_resolved {
+                    d.wait_to_connect = true;
+                }
+            }
         }
 
         return true;
     }
 
     fn disconnect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool {
-        // No need to retry connection as we are going to disconnect all enabled profiles.
-        self.wait_to_connect = false;
-
         if !self.profiles_ready {
             return false;
         }

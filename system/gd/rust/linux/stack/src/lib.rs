@@ -32,7 +32,7 @@ use crate::battery_provider_manager::BatteryProviderManager;
 use crate::battery_service::{BatteryService, BatteryServiceActions};
 use crate::bluetooth::{
     dispatch_base_callbacks, dispatch_hid_host_callbacks, dispatch_sdp_callbacks, Bluetooth,
-    BluetoothDevice, IBluetooth,
+    BluetoothDevice, DelayedActions, IBluetooth,
 };
 use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
 use crate::bluetooth_gatt::{
@@ -79,8 +79,8 @@ pub enum Message {
     AdapterCallbackDisconnected(u32),
     ConnectionCallbackDisconnected(u32),
 
-    // Update list of found devices and remove old instances.
-    DeviceFreshnessCheck,
+    // Some delayed actions for the adapter.
+    DelayedAdapterActions(DelayedActions),
 
     // Follows IBluetooth's on_device_(dis)connected callback but doesn't require depending on
     // Bluetooth.
@@ -232,8 +232,8 @@ impl Stack {
                     bluetooth.lock().unwrap().connection_callback_disconnected(id);
                 }
 
-                Message::DeviceFreshnessCheck => {
-                    bluetooth.lock().unwrap().trigger_freshness_check();
+                Message::DelayedAdapterActions(action) => {
+                    bluetooth.lock().unwrap().handle_delayed_actions(action);
                 }
 
                 // Any service needing an updated list of devices can have an
