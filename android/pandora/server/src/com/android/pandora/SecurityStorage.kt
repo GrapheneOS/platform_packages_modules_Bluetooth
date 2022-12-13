@@ -65,7 +65,7 @@ class SecurityStorage(private val context: Context) : SecurityStorageImplBase() 
 
   override fun isBonded(request: IsBondedRequest, responseObserver: StreamObserver<BoolValue>) {
     grpcUnary(globalScope, responseObserver) {
-      check(request.hasPublic())
+      check(request.getAddressCase() == IsBondedRequest.AddressCase.PUBLIC)
       val bluetoothDevice = request.public.toBluetoothDevice(bluetoothAdapter)
       Log.i(TAG, "isBonded: $bluetoothDevice")
       val isBonded = bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED
@@ -75,7 +75,7 @@ class SecurityStorage(private val context: Context) : SecurityStorageImplBase() 
 
   override fun deleteBond(request: DeleteBondRequest, responseObserver: StreamObserver<Empty>) {
     grpcUnary(globalScope, responseObserver) {
-      check(request.hasPublic())
+      check(request.getAddressCase() == DeleteBondRequest.AddressCase.PUBLIC)
       val bluetoothDevice = request.public.toBluetoothDevice(bluetoothAdapter)
       Log.i(TAG, "deleteBond: device=$bluetoothDevice")
 
