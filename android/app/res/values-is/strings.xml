@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Ekki er hægt að flytja skrár sem eru stærri en 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Tengjast við Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Kveikt á Bluetooth í flugstillingu"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Ef þú hefur kveikt á Bluetooth mun síminn muna að hafa kveikt á því næst þegar þú stillir á flugstillingu"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Áfram kveikt á Bluetooth"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Síminn man að hafa kveikt á Bluetooth í flugstillingu. Slökktu á Bluetooth ef þú vilt ekki hafa kveikt á því."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Áfram verður kveikt á Wi-Fi og Bluetooth"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Síminn man að hafa kveikt á Wi-Fi og Bluetooth í flugstillingu. Slökktu á Wi-Fi og Bluetooth ef þú vilt ekki hafa kveikt á þessu."</string>
 </resources>
