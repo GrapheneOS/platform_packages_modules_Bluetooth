@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.opp;
 
-import static androidx.lifecycle.Lifecycle.State.DESTROYED;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -60,8 +59,9 @@ import org.mockito.Spy;
 import java.util.ArrayList;
 import java.util.List;
 
+// Long class name cause problem with Junit4. It will raise java.lang.NoClassDefFoundError
 @RunWith(AndroidJUnit4.class)
-public class BluetoothOppIncomingFileConfirmActivityTest {
+public class IncomingFileConfirmActivityTest {
     @Mock
     Cursor mCursor;
     @Spy
