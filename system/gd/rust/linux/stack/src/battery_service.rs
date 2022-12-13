@@ -242,9 +242,13 @@ impl BatteryService {
         let level = u32::from_le_bytes(level.try_into().unwrap());
         debug!("Received battery level for {}: {}", remote_address.clone(), level);
         let battery_set = self.battery_sets.entry(remote_address.clone()).or_insert_with(|| {
-            BatterySet::new(remote_address.clone(), uuid::BAS.to_string(), "BAS".to_string())
+            BatterySet::new(
+                remote_address.clone(),
+                uuid::BAS.to_string(),
+                "BAS".to_string(),
+                vec![Battery { percentage: level, variant: "".to_string() }],
+            )
         });
-        battery_set.add_or_update_battery(Battery { percentage: level, variant: "".to_string() });
         self.battery_provider_manager
             .lock()
             .unwrap()
@@ -279,7 +283,12 @@ impl BatteryService {
         // Let BatteryProviderManager know that BAS no longer has a battery for this device.
         self.battery_provider_manager.lock().unwrap().set_battery_info(
             self.battery_provider_id,
-            BatterySet::new(remote_address.clone(), uuid::BAS.to_string(), "BAS".to_string()),
+            BatterySet::new(
+                remote_address.clone(),
+                uuid::BAS.to_string(),
+                "BAS".to_string(),
+                vec![],
+            ),
         );
         self.battery_sets.remove(&remote_address);
     }
