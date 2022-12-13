@@ -15,11 +15,20 @@ package {
 
 cc_defaults {
     name: "rootcanal_defaults",
+    tidy: true,
+    tidy_checks: [
+        "-*",
+        "readability-inconsistent-declaration-parameter-name",
+    ],
+    tidy_checks_as_errors: [
+        "readability-inconsistent-declaration-parameter-name",
+    ],
+    tidy_flags: [
+        "--header-filter=^((?!BluetoothGeneratedPackets_h|RootCanalGeneratedPackets_h|RootCanalBrEdrBBGeneratedPackets_h).)*$",
+    ],
     defaults: [
         "fluoride_common_options",
         "gd_defaults",
-        "gd_clang_tidy",
-        "gd_clang_tidy_ignore_android",
     ],
     cflags: [
         "-fvisibility=hidden",
