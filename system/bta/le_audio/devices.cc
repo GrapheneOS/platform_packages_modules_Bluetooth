@@ -2362,6 +2362,11 @@ uint8_t LeAudioDevice::GetLc3SupportedChannelCount(uint8_t direction) {
       auto supported_channel_count_ltv = pac.codec_spec_caps.Find(
           codec_spec_caps::kLeAudioCodecLC3TypeAudioChannelCounts);
 
+      if (supported_channel_count_ltv == std::nullopt ||
+          supported_channel_count_ltv->size() == 0L) {
+        return 1;
+      }
+
       return VEC_UINT8_TO_UINT8(supported_channel_count_ltv.value());
     };
   }
