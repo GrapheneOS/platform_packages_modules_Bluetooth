@@ -3,6 +3,7 @@
 use bt_topshim::btif;
 use bt_topshim::btif::{BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BtIoCap};
 
+use crate::utils::converters::{bluetooth_property_to_event_data, event_data_from_string};
 use bt_topshim_facade_protobuf::empty::Empty;
 use bt_topshim_facade_protobuf::facade::{
     EventType, FetchEventsRequest, FetchEventsResponse, SetDefaultEventMaskExceptRequest,
@@ -18,6 +19,7 @@ use std::sync::{Arc, Mutex};
 use tokio::runtime::Runtime;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex as TokioMutex;
+
 fn get_bt_dispatcher(
     btif: Arc<Mutex<BluetoothInterface>>,
     tx: mpsc::Sender<BaseCallbacks>,
@@ -97,49 +99,65 @@ impl AdapterService for AdapterServiceImpl {
                     BaseCallbacks::AdapterState(_state) => {
                         let mut rsp = FetchEventsResponse::new();
                         rsp.event_type = EventType::ADAPTER_STATE;
-                        rsp.data = "ON".to_string();
+                        rsp.params.insert(
+                            String::from("state"),
+                            event_data_from_string(String::from("ON")),
+                        );
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     BaseCallbacks::SspRequest(_, _, _, _, _) => {}
                     BaseCallbacks::LeRandCallback(random) => {
                         let mut rsp = FetchEventsResponse::new();
                         rsp.event_type = EventType::LE_RAND;
-                        rsp.data = random.to_string();
+                        rsp.params.insert(
+                            String::from("data"),
+                            event_data_from_string(random.to_string()),
+                        );
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     BaseCallbacks::GenerateLocalOobData(transport, data) => {
                         let mut rsp = FetchEventsResponse::new();
                         rsp.event_type = EventType::GENERATE_LOCAL_OOB_DATA;
-                        let delimiter = ';';
-                        // transport = 1
-                        // + delimiter = 1
-                        // + address+type = 7
-                        // + delimiter = 1
-                        // + confirmation = 32
-                        // + delimiter = 1
-                        // + randomizer = 32
-                        let cap = 75;
-                        let mut s = String::with_capacity(cap);
-                        if data.is_valid {
-                            s.push('1');
-                        } else {
-                            s.push('0');
-                        }
-                        s.push(delimiter);
-                        s.push_str(&format!("{}", transport));
-                        s.push(delimiter);
-                        s.push_str(&encode_hex(&data.address));
-                        s.push(delimiter);
-                        s.push_str(&encode_hex(&data.c));
-                        s.push(delimiter);
-                        s.push_str(&encode_hex(&data.r));
-                        rsp.data = s;
+                        rsp.params.insert(
+                            String::from("is_valid"),
+                            event_data_from_string(String::from(if data.is_valid {
+                                "1"
+                            } else {
+                                "0"
+                            })),
+                        );
+                        rsp.params.insert(
+                            String::from("transport"),
+                            event_data_from_string(format!("{}", transport)),
+                        );
+                        rsp.params.insert(
+                            String::from("address"),
+                            event_data_from_string(encode_hex(&data.address)),
+                        );
+                        rsp.params.insert(
+                            String::from("confirmation"),
+                            event_data_from_string(encode_hex(&data.c)),
+                        );
+                        rsp.params.insert(
+                            String::from("randomizer"),
+                            event_data_from_string(encode_hex(&data.r)),
+                        );
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     BaseCallbacks::AdapterProperties(status, _, properties) => {
                         let mut rsp = FetchEventsResponse::new();
                         rsp.event_type = EventType::ADAPTER_PROPERTY;
-                        rsp.data = format!("{:?} :: {:?}", status, properties);
+                        rsp.params.insert(
+                            String::from("status"),
+                            event_data_from_string(format!("{:?}", status)),
+                        );
+                        for property in properties.clone() {
+                            let (key, event_data) = bluetooth_property_to_event_data(property);
+                            if key == "skip" {
+                                continue;
+                            }
+                            rsp.params.insert(key, event_data);
+                        }
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     _ => (),

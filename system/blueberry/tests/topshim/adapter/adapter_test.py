@@ -30,10 +30,9 @@ class AdapterTest(TopshimBaseTest):
         self.dut().enable_page_scan()
 
     def test_set_local_io_caps(self):
-        status, properties = self.dut().set_local_io_caps(3)
+        status, caps = self.dut().set_local_io_caps(3)
         assertThat(status).isEqualTo("Success")
-        assertThat(len(properties)).isEqualTo(1)
-        assertThat(properties[0]).isEqualTo("LocalIoCaps(None_)")
+        assertThat(caps).isEqualTo("None_")
 
 
 if __name__ == "__main__":

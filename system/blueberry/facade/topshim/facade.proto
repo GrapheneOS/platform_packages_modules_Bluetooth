@@ -132,6 +132,12 @@ message FetchEventsRequest {}
 message FetchEventsResponse {
   EventType event_type = 1;
   string data = 2;
+  // Storing all event related data as a key-value pair.
+  map<string, EventData> params = 3;
+}
+
+message EventData {
+  repeated string data = 1;
 }
 
 message ToggleStackRequest {

@@ -174,9 +174,9 @@ class TopshimDevice(AsyncClosable):
         f = self.__post(self.__security.generate_local_oob_data(transport))
 
         async def waiter(f):
-            data = await f
-            data_list = data.split(";")
-            return OobData(data_list[0], data_list[1], data_list[2], data_list[3], data_list[4])
+            params = await f
+            return OobData(params["is_valid"].data[0], params["transport"].data[0], params["address"].data[0],
+                           params["confirmation"].data[0], params["randomizer"].data[0])
 
         return self.__post(waiter(f))
 
@@ -184,10 +184,8 @@ class TopshimDevice(AsyncClosable):
         f = self.__post(self.__adapter.set_local_io_caps(io_capability))
 
         async def waiter(f):
-            data = await f
-            data_list = data.split(" :: ")
-            status, properties = data_list[0].strip(), data_list[1].strip()
-            properties = list(properties[1:-1].strip().split(","))
-            return (status, properties)
+            params = await f
+            status, io_caps = params["status"].data[0], params["LocalIoCaps"].data[0]
+            return (status, io_caps)
 
         return self.__post(waiter(f))

@@ -54,7 +54,7 @@ class AdapterClient(AsyncClosable):
 
             # Match event by some condition.
             if e.event_type == event:
-                future.set_result(e.data)
+                future.set_result(e.params)
                 break
             else:
                 print("Got '%s'; expecting '%s'" % (e.event_type, event))
@@ -72,7 +72,8 @@ class AdapterClient(AsyncClosable):
 
     async def _verify_adapter_started(self):
         future = await self._listen_for_event(facade_pb2.EventType.ADAPTER_STATE)
-        return future.result() == "ON"
+        params = future.result()
+        return params["state"].data[0] == "ON"
 
     async def toggle_stack(self, is_start=True):
         """Enable/disable the stack"""
@@ -104,7 +105,8 @@ class AdapterClient(AsyncClosable):
     async def le_rand(self):
         await self.__adapter_stub.LeRand(empty_proto.Empty())
         future = await self._listen_for_event(facade_pb2.EventType.LE_RAND)
-        return future.result()
+        params = future.result()
+        return params["data"].data[0]
 
     async def restore_filter_accept_list(self):
         await self.__adapter_stub.RestoreFilterAcceptList(empty_proto.Empty())

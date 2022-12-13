@@ -24,6 +24,7 @@ mod hf_client_service;
 mod hfp_service;
 mod media_service;
 mod security_service;
+mod utils;
 
 // This is needed for linking, libbt_shim_bridge needs symbols defined by
 // bt_shim, however bt_shim depends on rust crates (future, tokio) that
