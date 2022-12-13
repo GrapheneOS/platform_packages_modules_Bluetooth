@@ -287,7 +287,7 @@ class ActiveDeviceManager {
                                     setA2dpActiveDevice(null);
                                 }
                             } else {
-                                mA2dpActiveDevice = null;
+                                setA2dpActiveDevice(null);
                             }
                         }
                     }
@@ -366,7 +366,7 @@ class ActiveDeviceManager {
                                     setHfpActiveDevice(null);
                                 }
                             } else {
-                                mHfpActiveDevice = null;
+                                setHfpActiveDevice(null);
                             }
                         }
                     }

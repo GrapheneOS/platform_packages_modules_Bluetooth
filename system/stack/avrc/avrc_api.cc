@@ -637,7 +637,6 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
 
   if (cr == AVCT_CMD && (p_pkt->layer_specific & AVCT_DATA_CTRL &&
                          p_pkt->len > AVRC_PACKET_LEN)) {
-    android_errorWriteLog(0x534e4554, "177611958");
     AVRC_TRACE_WARNING("%s: Command length %d too long: must be at most %d",
                        __func__, p_pkt->len, AVRC_PACKET_LEN);
     osi_free(p_pkt);
@@ -667,7 +666,6 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
     msg.browse.p_browse_pkt = p_pkt;
   } else {
     if (p_pkt->len < AVRC_AVC_HDR_SIZE) {
-      android_errorWriteLog(0x534e4554, "111803925");
       AVRC_TRACE_WARNING("%s: message length %d too short: must be at least %d",
                          __func__, p_pkt->len, AVRC_AVC_HDR_SIZE);
       osi_free(p_pkt);
@@ -710,7 +708,6 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
             AVRC_TRACE_WARNING(
                 "%s: message length %d too short: must be at least %d",
                 __func__, p_pkt->len, AVRC_OP_UNIT_INFO_RSP_LEN);
-            android_errorWriteLog(0x534e4554, "79883824");
             drop = true;
             p_drop_msg = "UNIT_INFO_RSP too short";
             break;
@@ -748,7 +745,6 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
             AVRC_TRACE_WARNING(
                 "%s: message length %d too short: must be at least %d",
                 __func__, p_pkt->len, AVRC_OP_SUB_UNIT_INFO_RSP_LEN);
-            android_errorWriteLog(0x534e4554, "79883824");
             drop = true;
             p_drop_msg = "SUB_UNIT_INFO_RSP too short";
             break;

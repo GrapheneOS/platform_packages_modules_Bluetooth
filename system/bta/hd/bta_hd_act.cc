@@ -509,7 +509,6 @@ extern void bta_hd_intr_data_act(tBTA_HD_DATA* p_data) {
 
   if (bta_hd_cb.use_report_id || bta_hd_cb.boot_mode) {
     if (len < 1) {
-      android_errorWriteLog(0x534e4554, "109757986");
       return;
     }
     ret.report_id = *p_buf;
@@ -548,7 +547,6 @@ extern void bta_hd_get_report_act(tBTA_HD_DATA* p_data) {
 
   uint16_t remaining_len = p_msg->len;
   if (remaining_len < 1) {
-    android_errorWriteLog(0x534e4554, "109757168");
     return;
   }
 
@@ -558,7 +556,6 @@ extern void bta_hd_get_report_act(tBTA_HD_DATA* p_data) {
 
   if (bta_hd_cb.use_report_id) {
     if (remaining_len < 1) {
-      android_errorWriteLog(0x534e4554, "109757168");
       return;
     }
     ret.report_id = *p_buf;
@@ -568,7 +565,6 @@ extern void bta_hd_get_report_act(tBTA_HD_DATA* p_data) {
 
   if (rep_size_follows) {
     if (remaining_len < 2) {
-      android_errorWriteLog(0x534e4554, "109757168");
       return;
     }
     ret.buffer_size = *p_buf | (*(p_buf + 1) << 8);
@@ -598,7 +594,6 @@ extern void bta_hd_set_report_act(tBTA_HD_DATA* p_data) {
   APPL_TRACE_API("%s", __func__);
 
   if (len < 1) {
-    android_errorWriteLog(0x534e4554, "110846194");
     return;
   }
   ret.report_type = *p_buf & HID_PAR_REP_TYPE_MASK;
@@ -607,7 +602,6 @@ extern void bta_hd_set_report_act(tBTA_HD_DATA* p_data) {
 
   if (bta_hd_cb.use_report_id || bta_hd_cb.boot_mode) {
     if (len < 1) {
-      android_errorWriteLog(0x534e4554, "109757435");
       return;
     }
     ret.report_id = *p_buf;

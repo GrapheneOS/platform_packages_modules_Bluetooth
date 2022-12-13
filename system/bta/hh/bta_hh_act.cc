@@ -710,7 +710,6 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
   APPL_TRACE_DEBUG("Ctrl DATA received w4: event[%s]",
                    bta_hh_get_w4_event(p_cb->w4_evt));
   if (pdata->len == 0) {
-    android_errorWriteLog(0x534e4554, "116108738");
     p_cb->w4_evt = 0;
     osi_free_and_reset((void**)&pdata);
     return;
