@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB ਤੋਂ ਜ਼ਿਆਦਾ ਵੱਡੀਆਂ ਫ਼ਾਈਲਾਂ ਨੂੰ ਟ੍ਰਾਂਸਫ਼ਰ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ਬਲੂਟੁੱਥ ਨਾਲ ਕਨੈਕਟ ਕਰੋ"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ਹਵਾਈ-ਜਹਾਜ਼ ਮੋਡ ਵਿੱਚ ਬਲੂਟੁੱਥ ਚਾਲੂ ਹੈ"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"ਜੇ ਤੁਸੀਂ ਬਲੂਟੁੱਥ ਨੂੰ ਚਾਲੂ ਰੱਖਦੇ ਹੋ, ਤਾਂ ਅਗਲੀ ਵਾਰ ਤੁਹਾਡਾ ਫ਼ੋਨ ਹਵਾਈ-ਜਹਾਜ਼ ਮੋਡ ਵਿੱਚ ਹੋਣ \'ਤੇ ਤੁਹਾਡਾ ਫ਼ੋਨ ਇਸਨੂੰ ਚਾਲੂ ਰੱਖਣਾ ਯਾਦ ਰੱਖੇਗਾ"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ਬਲੂਟੁੱਥ ਚਾਲੂ ਰਹਿੰਦਾ ਹੈ"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"ਤੁਹਾਡਾ ਫ਼ੋਨ ਹਵਾਈ-ਜਹਾਜ਼ ਮੋਡ ਵਿੱਚ ਬਲੂਟੁੱਥ ਨੂੰ ਚਾਲੂ ਰੱਖਣਾ ਯਾਦ ਰੱਖਦਾ ਹੈ। ਜੇ ਤੁਸੀਂ ਇਸਨੂੰ ਚਾਲੂ ਨਹੀਂ ਰੱਖਣਾ ਚਾਹੁੰਦੇ, ਤਾਂ ਬਲੂਟੁੱਥ ਨੂੰ ਬੰਦ ਕਰੋ।"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ਵਾਈ-ਫਾਈ ਅਤੇ ਬਲੂਟੁੱਥ ਚਾਲੂ ਰਹਿੰਦੇ ਹਨ"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"ਤੁਹਾਡਾ ਫ਼ੋਨ ਹਵਾਈ-ਜਹਾਜ਼ ਮੋਡ ਵਿੱਚ ਵਾਈ-ਫਾਈ ਅਤੇ ਬਲੂਟੁੱਥ ਨੂੰ ਚਾਲੂ ਰੱਖਣਾ ਯਾਦ ਰੱਖਦਾ ਹੈ। ਜੇ ਤੁਸੀਂ ਇਨ੍ਹਾਂ ਨੂੰ ਚਾਲੂ ਨਹੀਂ ਰੱਖਣਾ ਚਾਹੁੰਦੇ, ਤਾਂ ਵਾਈ-ਫਾਈ ਅਤੇ ਬਲੂਟੁੱਥ ਨੂੰ ਬੰਦ ਕਰੋ।"</string>
 </resources>

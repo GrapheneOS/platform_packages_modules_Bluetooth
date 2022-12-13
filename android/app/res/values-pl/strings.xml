@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Nie można przenieść plików przekraczających 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Nawiązywanie połączeń przez Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth włączony w trybie samolotowym"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Jeśli pozostawisz włączony Bluetooth, telefon zachowa się podobnie przy kolejnym przejściu w tryb samolotowy"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth pozostanie włączony"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Bluetooth na telefonie pozostaje włączony w trybie samolotowym. Wyłącz Bluetooth, jeśli nie chcesz, żeby pozostawał włączony."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi i Bluetooth pozostają włączone"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Wi-Fi i Bluetooth na telefonie pozostają włączone w trybie samolotowym. Wyłącz Wi-Fi i Bluetooth, jeśli nie chcesz, żeby funkcje te pozostawały włączone."</string>
 </resources>
