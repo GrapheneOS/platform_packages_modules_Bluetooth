@@ -53,7 +53,7 @@ class Server(context: Context) {
     mediaplayer = MediaPlayer(context)
     rfcomm = Rfcomm(context)
     security = Security(context)
-    androidInternal = AndroidInternal()
+    androidInternal = AndroidInternal(context)
 
     val grpcServerBuilder =
       NettyServerBuilder.forPort(GRPC_PORT)
