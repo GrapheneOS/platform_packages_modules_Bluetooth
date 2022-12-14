@@ -8,8 +8,8 @@ use btstack::bluetooth_adv::{
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
-    IScannerCallback, ScanFilter, ScanFilterCondition, ScanFilterPattern, ScanResult, ScanSettings,
-    ScanType,
+    IBluetoothGattServerCallback, IScannerCallback, ScanFilter, ScanFilterCondition,
+    ScanFilterPattern, ScanResult, ScanSettings, ScanType,
 };
 use btstack::{RPCProxy, SuspendMode};
 
@@ -132,6 +132,17 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
 
     #[dbus_method("OnServiceChanged")]
     fn on_service_changed(&self, addr: String) {
+        dbus_generated!()
+    }
+}
+
+#[allow(dead_code)]
+struct BluetoothGattServerCallbackDBus {}
+
+#[dbus_proxy_obj(BluetoothGattServerCallback, "org.chromium.bluetooth.BluetoothGattServerCallback")]
+impl IBluetoothGattServerCallback for BluetoothGattServerCallbackDBus {
+    #[dbus_method("OnServerRegistered")]
+    fn on_server_registered(&self, status: GattStatus, server_id: i32) {
         dbus_generated!()
     }
 }
@@ -745,6 +756,23 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("ClientReadPhy")]
     fn client_read_phy(&mut self, client_id: i32, addr: String) {
+        dbus_generated!()
+    }
+
+    // GATT Server
+
+    #[dbus_method("RegisterServer")]
+    fn register_server(
+        &mut self,
+        app_uuid: String,
+        callback: Box<dyn IBluetoothGattServerCallback + Send>,
+        eatt_support: bool,
+    ) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("UnregisterServer")]
+    fn unregister_server(&mut self, server_id: i32) {
         dbus_generated!()
     }
 }

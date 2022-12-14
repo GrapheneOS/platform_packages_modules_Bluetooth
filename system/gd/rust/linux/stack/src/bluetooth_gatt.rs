@@ -9,8 +9,8 @@ use bt_topshim::profiles::gatt::{
     BtGattReadParams, Gatt, GattAdvCallbacks, GattAdvCallbacksDispatcher,
     GattAdvInbandCallbacksDispatcher, GattClientCallbacks, GattClientCallbacksDispatcher,
     GattScannerCallbacks, GattScannerCallbacksDispatcher, GattScannerInbandCallbacks,
-    GattScannerInbandCallbacksDispatcher, GattServerCallbacksDispatcher, GattStatus, LePhy,
-    MsftAdvMonitor, MsftAdvMonitorPattern,
+    GattScannerInbandCallbacksDispatcher, GattServerCallbacks, GattServerCallbacksDispatcher,
+    GattStatus, LePhy, MsftAdvMonitor, MsftAdvMonitorPattern,
 };
 use bt_topshim::topstack;
 use bt_utils::adv_parser;
@@ -176,6 +176,79 @@ impl ContextMap {
         &mut self,
         callback_id: u32,
     ) -> Option<&mut GattClientCallback> {
+        self.callbacks.get_by_id(callback_id)
+    }
+}
+
+struct Server {
+    id: Option<i32>,
+    cbid: u32,
+    uuid: Uuid128Bit,
+}
+
+struct ServerContextMap {
+    // TODO(b/196635530): Consider using `multimap` for a more efficient implementation of get by
+    // multiple keys.
+    callbacks: Callbacks<dyn IBluetoothGattServerCallback + Send>,
+    servers: Vec<Server>,
+}
+
+type GattServerCallback = Box<dyn IBluetoothGattServerCallback + Send>;
+
+impl ServerContextMap {
+    fn new(tx: Sender<Message>) -> ServerContextMap {
+        ServerContextMap {
+            callbacks: Callbacks::new(tx, Message::GattServerCallbackDisconnected),
+            servers: vec![],
+        }
+    }
+
+    fn get_by_uuid(&self, uuid: &Uuid128Bit) -> Option<&Server> {
+        self.servers.iter().find(|server| server.uuid == *uuid)
+    }
+
+    fn get_by_server_id(&self, server_id: i32) -> Option<&Server> {
+        self.servers.iter().find(|server| server.id.map_or(false, |id| id == server_id))
+    }
+
+    fn get_by_callback_id(&self, callback_id: u32) -> Option<&Server> {
+        self.servers.iter().find(|server| server.cbid == callback_id)
+    }
+
+    fn add(&mut self, uuid: &Uuid128Bit, callback: GattServerCallback) {
+        if self.get_by_uuid(uuid).is_some() {
+            return;
+        }
+
+        let cbid = self.callbacks.add_callback(callback);
+
+        self.servers.push(Server { id: None, cbid, uuid: uuid.clone() });
+    }
+
+    fn remove(&mut self, id: i32) {
+        // Remove any callbacks
+        if let Some(cbid) = self.get_by_server_id(id).map(|server| server.cbid) {
+            self.remove_callback(cbid);
+        }
+
+        self.servers.retain(|server| !(server.id.is_some() && server.id.unwrap() == id));
+    }
+
+    fn remove_callback(&mut self, callback_id: u32) {
+        self.callbacks.remove_callback(callback_id);
+    }
+
+    fn set_server_id(&mut self, uuid: &Uuid128Bit, id: i32) {
+        let server = self.servers.iter_mut().find(|server| server.uuid == *uuid);
+        if let Some(s) = server {
+            s.id = Some(id);
+        }
+    }
+
+    fn get_callback_from_callback_id(
+        &mut self,
+        callback_id: u32,
+    ) -> Option<&mut GattServerCallback> {
         self.callbacks.get_by_id(callback_id)
     }
 }
@@ -425,6 +498,19 @@ pub trait IBluetoothGatt {
 
     /// Reads the PHY used by a peer.
     fn client_read_phy(&mut self, client_id: i32, addr: String);
+
+    // GATT Server
+
+    /// Registers a GATT Server.
+    fn register_server(
+        &mut self,
+        app_uuid: String,
+        callback: Box<dyn IBluetoothGattServerCallback + Send>,
+        eatt_support: bool,
+    );
+
+    /// Unregisters a GATT Server.
+    fn unregister_server(&mut self, server_id: i32);
 }
 
 #[derive(Debug, Default)]
@@ -578,6 +664,12 @@ pub trait IBluetoothGattCallback: RPCProxy {
 
     /// When there is an addition, removal, or change of a GATT service.
     fn on_service_changed(&self, _addr: String);
+}
+
+/// Callback for GATT Server API.
+pub trait IBluetoothGattServerCallback: RPCProxy {
+    /// When the `register_server` request is done.
+    fn on_server_registered(&self, _status: GattStatus, _server_id: i32);
 }
 
 /// Interface for scanner callbacks to clients, passed to
@@ -813,6 +905,7 @@ pub struct BluetoothGatt {
     adapter: Option<Arc<Mutex<Box<Bluetooth>>>>,
 
     context_map: ContextMap,
+    server_context_map: ServerContextMap,
     reliable_queue: HashSet<String>,
     scanner_callbacks: Callbacks<dyn IScannerCallback + Send>,
     scanners: Arc<Mutex<ScannersMap>>,
@@ -842,6 +935,7 @@ impl BluetoothGatt {
             gatt: None,
             adapter: None,
             context_map: ContextMap::new(tx.clone()),
+            server_context_map: ServerContextMap::new(tx.clone()),
             reliable_queue: HashSet::new(),
             scanner_callbacks: Callbacks::new(tx.clone(), Message::ScannerCallbackDisconnected),
             scanners: scanners.clone(),
@@ -874,10 +968,13 @@ impl BluetoothGatt {
             }),
         };
 
+        let tx_clone = tx.clone();
         let gatt_server_callbacks_dispatcher = GattServerCallbacksDispatcher {
             dispatch: Box::new(move |cb| {
-                // TODO(b/193685149): Implement the callbacks
-                debug!("received Gatt server callback: {:?}", cb);
+                let tx_clone = tx_clone.clone();
+                topstack::get_runtime().spawn(async move {
+                    let _ = tx_clone.send(Message::GattServer(cb)).await;
+                });
             }),
         };
 
@@ -1008,6 +1105,18 @@ impl BluetoothGatt {
         if let Some(client) = self.context_map.get_by_callback_id(callback_id) {
             if let Some(id) = client.id {
                 self.unregister_client(id);
+            }
+        }
+
+        // Always remove callback.
+        self.context_map.remove_callback(callback_id);
+    }
+
+    pub fn remove_server_callback(&mut self, callback_id: u32) {
+        // Unregister server if server id exists.
+        if let Some(server) = self.server_context_map.get_by_callback_id(callback_id) {
+            if let Some(id) = server.id {
+                self.unregister_server(id);
             }
         }
 
@@ -1501,6 +1610,8 @@ impl IBluetoothGatt for BluetoothGatt {
         }
     }
 
+    // GATT Client
+
     fn register_client(
         &mut self,
         app_uuid: String,
@@ -1828,6 +1939,36 @@ impl IBluetoothGatt for BluetoothGatt {
         };
 
         self.gatt.as_ref().unwrap().lock().unwrap().client.read_phy(client_id, &address);
+    }
+
+    // GATT Server
+
+    fn register_server(
+        &mut self,
+        app_uuid: String,
+        callback: Box<dyn IBluetoothGattServerCallback + Send>,
+        eatt_support: bool,
+    ) {
+        let uuid = match UuidHelper::parse_string(&app_uuid) {
+            Some(id) => id,
+            None => {
+                log::info!("Uuid is malformed: {}", app_uuid);
+                return;
+            }
+        };
+        self.server_context_map.add(&uuid.uu, callback);
+        self.gatt
+            .as_ref()
+            .expect("GATT has not been initialized")
+            .lock()
+            .unwrap()
+            .server
+            .register_server(&uuid, eatt_support);
+    }
+
+    fn unregister_server(&mut self, server_id: i32) {
+        self.server_context_map.remove(server_id);
+        self.gatt.as_ref().unwrap().lock().unwrap().server.unregister_server(server_id);
     }
 }
 
@@ -2427,6 +2568,30 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             }
             _ => (),
         };
+    }
+}
+
+#[btif_callbacks_dispatcher(dispatch_gatt_server_callbacks, GattServerCallbacks)]
+pub(crate) trait BtifGattServerCallbacks {
+    #[btif_callback(RegisterServer)]
+    fn register_server_cb(&mut self, status: GattStatus, server_id: i32, app_uuid: Uuid);
+}
+
+impl BtifGattServerCallbacks for BluetoothGatt {
+    fn register_server_cb(&mut self, status: GattStatus, server_id: i32, app_uuid: Uuid) {
+        self.server_context_map.set_server_id(&app_uuid.uu, server_id);
+
+        let cbid = self.server_context_map.get_by_uuid(&app_uuid.uu).map(|server| server.cbid);
+        match cbid {
+            Some(cbid) => {
+                if let Some(cb) = self.server_context_map.get_callback_from_callback_id(cbid) {
+                    cb.on_server_registered(status, server_id)
+                }
+            }
+            None => {
+                warn!("Warning: No callback found for UUID {}", app_uuid);
+            }
+        }
     }
 }
 
