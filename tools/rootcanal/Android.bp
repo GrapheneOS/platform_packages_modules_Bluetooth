@@ -29,14 +29,15 @@ cc_defaults {
         "include",
     ],
     include_dirs: [
-        "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
+    ],
+    header_libs: [
+        "libbase_headers",
     ],
     generated_headers: [
         "RootCanalGeneratedPackets_h",
         "RootCanalBrEdrBBGeneratedPackets_h",
         "BluetoothGeneratedPackets_h",
-        "libbt_init_flags_bridge_header",
     ],
 }
 
@@ -92,11 +93,11 @@ cc_library_static {
     export_generated_headers: [
         "BluetoothGeneratedPackets_h"
     ],
-    shared_libs: [
-        "liblog",
-    ],
     whole_static_libs: [
         "liblmp",
+    ],
+    shared_libs: [
+        "libbase",
     ],
     static_libs: [
         "libjsoncpp",
@@ -123,27 +124,37 @@ cc_test_host {
         "rootcanal_defaults",
     ],
     srcs: [
+        "test/controller/le/le_set_random_address_test.cc",
         "test/controller/le/le_clear_filter_accept_list_test.cc",
         "test/controller/le/le_add_device_to_filter_accept_list_test.cc",
         "test/controller/le/le_remove_device_from_filter_accept_list_test.cc",
         "test/controller/le/le_add_device_to_resolving_list_test.cc",
         "test/controller/le/le_clear_resolving_list_test.cc",
+        "test/controller/le/le_create_connection_test.cc",
+        "test/controller/le/le_create_connection_cancel_test.cc",
+        "test/controller/le/le_extended_create_connection_test.cc",
         "test/controller/le/le_remove_device_from_resolving_list_test.cc",
         "test/controller/le/le_set_address_resolution_enable_test.cc",
+        "test/controller/le/le_set_advertising_parameters_test.cc",
+        "test/controller/le/le_set_advertising_enable_test.cc",
+        "test/controller/le/le_set_scan_parameters_test.cc",
+        "test/controller/le/le_set_scan_enable_test.cc",
+        "test/controller/le/le_set_extended_scan_parameters_test.cc",
+        "test/controller/le/le_set_extended_scan_enable_test.cc",
+        "test/controller/le/le_set_extended_advertising_parameters_test.cc",
+        "test/controller/le/le_set_extended_advertising_data_test.cc",
+        "test/controller/le/le_set_extended_scan_response_data_test.cc",
+        "test/controller/le/le_set_extended_advertising_enable_test.cc",
+        "test/controller/le/le_scanning_filter_duplicates_test.cc",
     ],
     header_libs: [
         "libbluetooth_headers",
     ],
     local_include_dirs: [
-        "include",
         ".",
     ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
-    ],
     shared_libs: [
-        "liblog",
+        "libbase",
     ],
     static_libs: [
         "libbt-rootcanal",
@@ -174,11 +185,10 @@ cc_test_host {
         "include",
     ],
     include_dirs: [
-        "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
     ],
     shared_libs: [
-        "liblog",
+        "libbase",
     ],
     static_libs: [
         "libbt-rootcanal",
@@ -206,7 +216,7 @@ cc_binary_host {
         "libbluetooth_headers",
     ],
     shared_libs: [
-        "liblog",
+        "libbase",
         "libunwindstack",
     ],
     whole_static_libs: [
@@ -279,7 +289,9 @@ cc_library_static {
         "model/hci/h4_parser.cc",
         "model/hci/hci_protocol.cc",
     ],
-
+    header_libs: [
+        "libbase_headers",
+    ],
     local_include_dirs: [
         "include",
     ],
@@ -287,11 +299,7 @@ cc_library_static {
         "include",
         ".",
     ],
-    generated_headers: [
-        "libbt_init_flags_bridge_header",
-    ],
     include_dirs: [
-        "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
     ],
 }

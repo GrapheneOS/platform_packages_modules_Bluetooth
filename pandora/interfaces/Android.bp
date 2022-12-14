@@ -3,7 +3,7 @@ package {
 }
 
 java_library {
-    name: "pandora-grpc-java",
+    name: "pandora_experimental-grpc-java",
     visibility: ["//packages/modules/Bluetooth/android/pandora/server"],
     srcs: [
         "pandora_experimental/*.proto",
@@ -14,7 +14,7 @@ java_library {
         "javax_annotation-api_1.3.2",
         "libprotobuf-java-lite",
         "opencensus-java-api",
-        "pandora-proto-java",
+        "pandora_experimental-proto-java",
     ],
     proto: {
         include_dirs: [
@@ -29,7 +29,7 @@ java_library {
 }
 
 java_library {
-    name: "pandora-proto-java",
+    name: "pandora_experimental-proto-java",
     visibility: ["//packages/modules/Bluetooth/android/pandora/server"],
     srcs: [
         "pandora_experimental/*.proto",
@@ -39,6 +39,9 @@ java_library {
         "libprotobuf-java-lite",
     ],
     proto: {
+        // Disable canonical path as this breaks the identification of
+        // well known protobufs
+        canonical_path_from_root: false,
         type: "lite",
         include_dirs: [
             "external/protobuf/src",
@@ -70,6 +73,8 @@ genrule {
         "pandora_experimental/host.proto",
         "pandora_experimental/l2cap.proto",
         "pandora_experimental/mediaplayer.proto",
+        "pandora_experimental/pbap.proto",
+        "pandora_experimental/rfcomm.proto",
         "pandora_experimental/security.proto",
     ],
     out: [
@@ -91,6 +96,10 @@ genrule {
         "pandora_experimental/l2cap_pb2.py",
         "pandora_experimental/mediaplayer_grpc.py",
         "pandora_experimental/mediaplayer_pb2.py",
+        "pandora_experimental/pbap_grpc.py",
+        "pandora_experimental/pbap_pb2.py",
+        "pandora_experimental/rfcomm_grpc.py",
+        "pandora_experimental/rfcomm_pb2.py",
         "pandora_experimental/security_grpc.py",
         "pandora_experimental/security_pb2.py",
     ]

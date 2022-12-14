@@ -23,8 +23,7 @@
 #include <regex>
 
 #include "device_boutique.h"
-#include "os/log.h"
-#include "osi/include/osi.h"
+#include "log.h"
 #include "phy.h"
 
 using std::vector;

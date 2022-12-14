@@ -6,7 +6,8 @@ from mmi2grpc._helpers import match_description
 from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import Connection, ConnectabilityMode, AddressType
+from pandora_experimental.host_pb2 import Connection, OwnAddressType
+from pandora_experimental.security_grpc import Security
 from pandora_experimental.l2cap_grpc import L2CAP
 
 from typing import Optional
@@ -21,6 +22,10 @@ class L2CAPProxy(ProfileProxy):
         super().__init__(channel)
         self.l2cap = L2CAP(channel)
         self.host = Host(channel)
+        self.security = Security(channel)
+
+        self.connection = None
+        self.pairing_events = None
 
     @assert_description
     def MMI_IUT_SEND_LE_CREDIT_BASED_CONNECTION_REQUEST(self, test: str, pts_addr: bytes, **kwargs):
@@ -60,7 +65,7 @@ class L2CAPProxy(ProfileProxy):
         assert self.connection is None, f"the connection should be None for the first call"
 
         time.sleep(2)  # avoid timing issue
-        self.connection = self.host.GetLEConnection(address=pts_addr).connection
+        self.connection = self.host.GetLEConnection(public=pts_addr).connection
 
         psm = 0x25  # default TSPX_spsm value
         if test == 'L2CAP/LE/CFC/BV-04-C':
@@ -91,8 +96,8 @@ class L2CAPProxy(ProfileProxy):
         Place the IUT into LE connectable mode.
         """
         self.host.StartAdvertising(
-            connectability_mode=ConnectabilityMode.CONNECTABILITY_CONNECTABLE,
-            own_address_type=AddressType.PUBLIC,
+            connectable=True,
+            own_address_type=OwnAddressType.PUBLIC,
         )
         # not strictly necessary, but can save time on waiting connection
         tests_to_open_bluetooth_server_socket = [
@@ -346,16 +351,76 @@ class L2CAPProxy(ProfileProxy):
         """
         Initiate or create LE ACL connection to the PTS.
         """
-        self.connection = self.host.ConnectLE(address=pts_addr).connection
+        self.connection = self.host.ConnectLE(public=pts_addr).connection
         return "OK"
 
     @assert_description
-    def MMI_IUT_SEND_ACL_DISCONNECTION(self, **kwargs):
+    def MMI_IUT_SEND_ACL_DISCONNECTION(self, test: str, **kwargs):
         """
         Initiate an ACL disconnection from the IUT to the PTS.
         Description :
         The Implementation Under Test(IUT) should disconnect ACL channel by
         sending a disconnect request to PTS.
         """
-        self.host.DisconnectLE(connection=self.connection)
+        self.host.Disconnect(connection=self.connection)
+        return "OK"
+
+    def MMI_TESTER_ENABLE_CONNECTION(self, **kwargs):
+        """
+        Action: Place the IUT in connectable mode.
+
+        Description: PTS requires that the IUT be in connectable mode.
+        The PTS will attempt to establish an ACL connection.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_INITIATE_ACL_CONNECTION(self, pts_addr: bytes, **kwargs):
+        """
+        Using the Implementation Under Test(IUT), initiate ACL Create Connection
+        Request to the PTS.
+
+        Description : The Implementation Under Test(IUT)
+        should create ACL connection request to PTS.
+        """
+        self.pairing_events = self.security.OnPairing()
+        self.connection = self.host.Connect(address=pts_addr, manually_confirm=True).connection
+        return "OK"
+
+    @assert_description
+    def _mmi_2001(self, **kwargs):
+        """
+        Please verify the passKey is correct: 000000
+        """
+        passkey = "000000"
+        for event in self.pairing_events:
+            if event.numeric_comparison == int(passkey):
+                self.pairing_events.send(event=event, confirm=True)
+                return "OK"
+            assert False, "The passkey does not match"
+        assert False, "Unexpected pairing event"
+
+    @assert_description
+    def MMI_IUT_SEND_CONFIG_REQ(self, **kwargs):
+        """
+        Please send Configure Request.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_SEND_CONFIG_RSP(self, **kwargs):
+        """
+        Please send Configure Response.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_SEND_DISCONNECT_RSP(self, **kwargs):
+        """
+        Please send L2CAP Disconnection Response to PTS.
+        """
+
         return "OK"

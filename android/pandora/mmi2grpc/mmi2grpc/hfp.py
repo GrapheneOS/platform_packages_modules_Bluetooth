@@ -13,12 +13,14 @@
 # limitations under the License.
 """HFP proxy module."""
 
-from mmi2grpc._helpers import assert_description
+from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.hfp_grpc import HFP
 from pandora_experimental.host_grpc import Host
-from pandora_experimental.security_grpc import Security
+from pandora_experimental.host_pb2 import ConnectabilityMode
+from pandora_experimental.security_grpc import Security, SecurityStorage
+from pandora_experimental.hfp_pb2 import AudioPath
 
 import sys
 import threading
@@ -28,18 +30,26 @@ import time
 WAIT_DELAY_BEFORE_CONNECTION = 2
 
 # The tests needs the MMI to accept pairing confirmation request.
-NEEDS_WAIT_CONNECTION_BEFORE_TEST = {'HFP/AG/WBS/BV-01-I', 'HFP/AG/SLC/BV-05-I'}
+NEEDS_WAIT_CONNECTION_BEFORE_TEST = {"HFP/AG/WBS/BV-01-I", "HFP/AG/SLC/BV-05-I"}
+
+IXIT_PHONE_NUMBER = 42
+IXIT_SECOND_PHONE_NUMBER = 43
 
 
 class HFPProxy(ProfileProxy):
 
-    def __init__(self, channel):
+    def __init__(self, test, channel, rootcanal, modem):
         super().__init__(channel)
         self.hfp = HFP(channel)
         self.host = Host(channel)
         self.security = Security(channel)
+        self.security_storage = SecurityStorage(channel)
+        self.rootcanal = rootcanal
+        self.modem = modem
 
         self.connection = None
+
+        self._auto_confirm_requests()
 
     def asyncWaitConnection(self, pts_addr, delay=WAIT_DELAY_BEFORE_CONNECTION):
         """
@@ -49,7 +59,7 @@ class HFPProxy(ProfileProxy):
         def waitConnectionCallback(self, pts_addr):
             self.connection = self.host.WaitConnection(address=pts_addr).connection
 
-        print(f'HFP placeholder mmi: asyncWaitConnection', file=sys.stderr)
+        print(f"HFP placeholder mmi: asyncWaitConnection", file=sys.stderr)
         th = threading.Timer(interval=delay, function=waitConnectionCallback, args=(self, pts_addr))
         th.start()
 
@@ -66,19 +76,30 @@ class HFPProxy(ProfileProxy):
         (IUT), then click Ok.
         """
 
-        self.security.DeletePairing(address=pts_addr)
+        self.security_storage.DeleteBond(public=pts_addr)
         return "OK"
 
     @assert_description
-    def TSC_iut_enable_slc(self, pts_addr: bytes, **kwargs):
+    def TSC_iut_enable_slc(self, test: str, pts_addr: bytes, **kwargs):
         """
         Click Ok, then initiate a service level connection from the
         Implementation Under Test (IUT) to the PTS.
         """
 
-        if not self.connection:
-            self.connection = self.host.Connect(address=pts_addr).connection
-        self.hfp.EnableSlc(connection=self.connection)
+        def enable_slc():
+            time.sleep(2)
+
+            if test == "HFP/AG/SLC/BV-02-C":
+                self.host.SetConnectabilityMode(mode=ConnectabilityMode.CONNECTABLE)
+                self.connection = self.host.Connect(address=pts_addr).connection
+            else:
+                if not self.connection:
+                    self.connection = self.host.Connect(address=pts_addr).connection
+
+            self.hfp.EnableSlc(connection=self.connection)
+
+        threading.Thread(target=enable_slc).start()
+
         return "OK"
 
     @assert_description
@@ -97,7 +118,12 @@ class HFPProxy(ProfileProxy):
         Implementation Under Test (IUT).
         """
 
-        self.connection = self.host.Connect(address=pts_addr).connection
+        def connect():
+            time.sleep(2)
+            self.connection = self.host.Connect(address=pts_addr).connection
+
+        threading.Thread(target=connect).start()
+
         return "OK"
 
     @assert_description
@@ -106,8 +132,7 @@ class HFPProxy(ProfileProxy):
         Make the Implementation Under Test (IUT) connectable, then click Ok.
         """
 
-        if "HFP/AG/SLC/BV-03-C" in test:
-            self.connection = self.host.WaitConnection(pts_addr).connection
+        self.host.SetConnectabilityMode(mode=ConnectabilityMode.CONNECTABLE)
 
         return "OK"
 
@@ -118,11 +143,13 @@ class HFPProxy(ProfileProxy):
         Implementation Under Test (IUT).
         """
 
-        def go():
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
+        def disable_slc():
             time.sleep(2)
             self.hfp.DisableSlc(connection=self.connection)
 
-        threading.Thread(target=go).start()
+        threading.Thread(target=disable_slc).start()
 
         return "OK"
 
@@ -147,3 +174,459 @@ class HFPProxy(ProfileProxy):
         self.hfp.SetBatteryLevel(connection=self.connection, battery_percentage=42)
 
         return "OK"
+
+    @assert_description
+    def TSC_ag_iut_enable_call(self, **kwargs):
+        """
+        Click Ok, then place a call from an external line to the Implementation
+        Under Test (IUT). Do not answer the call unless prompted to do so.
+        """
+
+        def enable_call():
+            time.sleep(2)
+            self.modem.call(IXIT_PHONE_NUMBER)
+
+        threading.Thread(target=enable_call).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_audio(self, **kwargs):
+        """
+        Verify the presence of an audio connection, then click Ok.
+        """
+
+        # TODO
+        time.sleep(2)  # give it time for SCO to come up
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_disable_call_external(self, **kwargs):
+        """
+        Click Ok, then end the call using the external terminal.
+        """
+
+        def disable_call_external():
+            time.sleep(2)
+            self.hfp.DeclineCall()
+
+        threading.Thread(target=disable_call_external).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_iut_enable_audio_using_codec(self, **kwargs):
+        """
+        Click OK, then initiate an audio connection using the Codec Connection
+        Setup procedure.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_iut_disable_audio(self, **kwargs):
+        """
+        Click Ok, then close the audio connection (SCO) between the
+        Implementation Under Test (IUT) and the PTS.  Do not close the serivice
+        level connection (SLC) or power-off the IUT.
+        """
+
+        def disable_audio():
+            time.sleep(2)
+            self.hfp.SetAudioPath(audio_path=AudioPath.AUDIO_PATH_SPEAKERS)
+
+        threading.Thread(target=disable_audio).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_no_audio(self, **kwargs):
+        """
+        Verify the absence of an audio connection (SCO), then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_iut_enable_audio(self, **kwargs):
+        """
+        Click Ok, then initiate an audio connection (SCO) from the
+        Implementation Under Test (IUT) to the PTS.
+        """
+
+        def enable_audio():
+            time.sleep(2)
+            self.hfp.SetAudioPath(audio_path=AudioPath.AUDIO_PATH_HANDSFREE)
+
+        threading.Thread(target=enable_audio).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_iut_disable_audio_slc_down_ok(self, pts_addr: bytes, **kwargs):
+        """
+        Click OK, then close the audio connection (SCO) between the
+        Implementation Under Test (IUT) and the PTS.  If necessary, it is OK to
+        close the service level connection. Do not power-off the IUT.
+        """
+
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
+        def disable_slc():
+            time.sleep(2)
+            self.hfp.DisableSlc(connection=self.connection)
+
+        threading.Thread(target=disable_slc).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_call_no_slc(self, **kwargs):
+        """
+        Place a call from an external line to the Implementation Under Test
+        (IUT).  When the call is active, click Ok.
+        """
+
+        self.modem.call(IXIT_PHONE_NUMBER)
+        time.sleep(5)  # there's a delay before Android registers the call
+        self.hfp.AnswerCall()
+        time.sleep(2)
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_enable_second_call(self, **kwargs):
+        """
+        Click Ok, then place a second call from an external line to the
+        Implementation Under Test (IUT). Do not answer the call unless prompted
+        to do so.
+        """
+
+        def enable_second_call():
+            time.sleep(2)
+            self.modem.call(IXIT_SECOND_PHONE_NUMBER)
+
+        threading.Thread(target=enable_second_call).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_call_swap(self, **kwargs):
+        """
+        Click Ok, then place the current call on hold and make the incoming/held
+        call active using the Implementation Under Test (IUT).
+        """
+
+        self.hfp.SwapActiveCall()
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_audio_second_call(self, **kwargs):
+        """
+        Verify the audio is returned to the 2nd call and then click Ok.  Resume
+        action may be needed.  If the audio is not returned to the 2nd call,
+        click Cancel.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_disable_call_after_verdict(self, **kwargs):
+        """
+        After the test verdict  is given, end all active calls using the
+        external line or the Implementation Under Test (IUT).  Click OK to
+        continue.
+        """
+
+        self.hfp.DeclineCall()
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_no_ecnr(self, **kwargs):
+        """
+        Verify that EC and NR functionality is disabled, then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_disable_inband_ring(self, **kwargs):
+        """
+        Click Ok, then disable the in-band ringtone using the Implemenation
+        Under Test (IUT).
+        """
+
+        self.hfp.SetInBandRingtone(enabled=False)
+        self.host.Reset()
+
+        return "OK"
+
+    @assert_description
+    def TSC_wait_until_ringing(self, **kwargs):
+        """
+        When the Implementation Under Test (IUT) alerts the incoming call, click
+        Ok.
+        """
+
+        # we are triggering a call from modem_simulator, so the alert is immediate
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_incoming_call_ag(self, **kwargs):
+        """
+        Verify that there is an incoming call on the Implementation Under Test
+        (IUT).
+        """
+
+        # we are triggering a call from modem_simulator, so this is guaranteed
+
+        return "OK"
+
+    @assert_description
+    def TSC_disable_ag_cellular_network_expect_notification(self, pts_addr: bytes, **kwargs):
+        """
+        Click OK. Then, disable the control channel, such that the AG is de-
+        registered.
+        """
+
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
+        def disable_slc():
+            time.sleep(2)
+            self.hfp.DisableSlc(connection=self.connection)
+
+        threading.Thread(target=disable_slc).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_adjust_ag_battery_level_expect_no_notification(self, **kwargs):
+        """
+        Adjust the battery level on the AG to a level that should cause a
+        battery level indication to be sent to HF. Then, click OK.
+        """
+
+        self.hfp.SetBatteryLevel(connection=self.connection, battery_percentage=42)
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_subscriber_number(self, **kwargs):
+        """
+        Using the Implementation Under Test (IUT), verify that the following is
+        a valid Audio Gateway (AG) subscriber number, then click
+        Ok."+15551234567"nnNOTE: Subscriber service type is 145
+        """
+
+        return "OK"
+
+    def TSC_ag_prepare_at_bldn(self, **kwargs):
+        r"""
+        Place the Implemenation Under Test (IUT) in a state which will accept an
+        outgoing call set-up request from the PTS, then click OK.
+
+        Note:  The
+        PTS will send a request to establish an outgoing call from the IUT to
+        the last dialed number.  Answer the incoming call when alerted.
+        """
+
+        self.hfp.MakeCall(number=str(IXIT_PHONE_NUMBER))
+        self.log("Calling")
+        time.sleep(2)
+        self.hfp.DeclineCall()
+        self.log("Declining")
+        time.sleep(2)
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_prepare_for_atd(self, **kwargs):
+        """
+        Place the Implementation Under Test (IUT) in a mode that will allow an
+        outgoing call initiated by the PTS, and click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_terminal_answer_call(self, **kwargs):
+        """
+        Click Ok, then answer the incoming call on the external terminal.
+        """
+
+        def answer_call():
+            time.sleep(2)
+            self.log("Answering")
+            self.modem.answer_outgoing_call(IXIT_PHONE_NUMBER)
+
+        threading.Thread(target=answer_call).start()
+
+        return "OK"
+
+    @match_description
+    def TSC_signal_strength_verify(self, **kwargs):
+        """
+        Verify that the signal reported on the Implementaion Under Test \(IUT\) is
+        proportional to the value \(out of 5\), then click Ok.[0-9]
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_signal_strength_impair(self, **kwargs):
+        """
+        Impair the cellular signal by placing the Implementation Under Test
+        (IUT) under partial RF shielding, then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_network_operator(self, **kwargs):
+        """
+        Verify the following information matches the network operator reported
+        on the Implementation Under Test (IUT), then click Ok:"Android Virtual "
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_INFO_slc_with_30_seconds_wait(self, **kwargs):
+        """
+        After clicking the OK button, PTS will connect to the IUT and then be
+        idle for 30 seconds as part of the test procedure.
+
+        Click OK to proceed.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_disable_call(self, **kwargs):
+        """
+        Click Ok, then end the call using the Implemention Under Test IUT).
+        """
+
+        def disable_call():
+            time.sleep(2)
+            self.hfp.DeclineCall()
+
+        threading.Thread(target=disable_call).start()
+
+        return "OK"
+
+    @match_description
+    def TSC_dtmf_verify(self, **kwargs):
+        """
+        Verify the DTMF code, then click Ok. .
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_TWC_instructions(self, **kwargs):
+        """
+        NOTE: The following rules apply for this test case:
+
+        1.
+        TSPX_phone_number - the 1st call
+        2. TSPX_second_phone_number - the 2nd
+        call
+
+        Edits can be made within the IXIT settings for the above phone
+        numbers.
+        """
+
+        return "OK"
+
+    def TSC_call_swap_and_disable_held_tester(self, **kwargs):
+        """
+        Set the Implementation Under Test (IUT) in a state that will allow the
+        PTS to initiate a AT+CHLD=1 operation,  then click Ok.
+
+        Note: Upon
+        receiving the said command, the IUT will simultaneously drop the active
+        call and make the held call active.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_audio_first_call(self, **kwargs):
+        """
+        Verify the audio is returned to the 1st call and click Ok. Resume action
+        my be needed.  If the audio is not present in the 1st call, click
+        Cancel.
+        """
+
+        # TODO
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_dial_out_second(self, **kwargs):
+        """
+        Verify that the last number dialed on the Implementation Under Test
+        (IUT) matches the TSPX_Second_phone_number entered in the IXIT settings.
+        """
+
+        # TODO
+
+        return "OK"
+
+    @assert_description
+    def TSC_prepare_iut_for_vra(self, pts_addr: bytes, **kwargs):
+        """
+        Place the Implementation Under Test (IUT) in a state which will allow a
+        request from the PTS to activate voice recognition, then click Ok.
+        """
+
+        self.hfp.SetVoiceRecognition(
+            enabled=True,
+            connection=self.host.GetConnection(address=pts_addr).connection,
+        )
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_clear_call_history(self, **kwargs):
+        """
+        Clear the call history on  the Implementation Under Test (IUT) such that
+        there are zero records of any numbers dialed, then click Ok.
+        """
+
+        self.hfp.ClearCallHistory()
+
+        return "OK"
+
+    @assert_description
+    def TSC_reject_call(self, **kwargs):
+        """
+        Click Ok, then reject the incoming call using the Implemention Under
+        Test (IUT).
+        """
+
+        def reject_call():
+            time.sleep(2)
+            self.hfp.DeclineCall()
+
+        threading.Thread(target=reject_call).start()
+
+        return "OK"
+
+    def _auto_confirm_requests(self, times=None):
+
+        def task():
+            cnt = 0
+            pairing_events = self.security.OnPairing()
+            for event in pairing_events:
+                if event.WhichOneof("method") in {"just_works", "numeric_comparison"}:
+                    if times is None or cnt < times:
+                        cnt += 1
+                        pairing_events.send(event=event, confirm=True)
+
+        threading.Thread(target=task).start()

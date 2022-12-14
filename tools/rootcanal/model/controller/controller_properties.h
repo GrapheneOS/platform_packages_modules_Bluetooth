@@ -47,6 +47,9 @@ struct ControllerProperties {
   // file or all 1s.
   void SetSupportedCommands(std::array<uint8_t, 64> supported_commands);
 
+  // Check if the feature masks are valid according to the specification.
+  bool CheckSupportedFeatures() const;
+
   // Local Version Information (Vol 4, Part E § 7.4.1).
   HciVersion hci_version{HciVersion::V_5_3};
   LmpVersion lmp_version{LmpVersion::V_5_3};
@@ -79,6 +82,9 @@ struct ControllerProperties {
   // Number of Supported IAC (Vol 4, Part E § 7.3.43).
   uint8_t num_supported_iac{4};
 
+  // LE Advertising Physical Channel TX Power (Vol 4, Part E § 7.8.6).
+  uint8_t le_advertising_physical_channel_tx_power{static_cast<uint8_t>(-10)};
+
   // Supported Codecs (Vol 4, Part E § 7.4.8).
   // Implements the [v1] version only.
   std::vector<uint8_t> supported_standard_codecs{0};
@@ -93,9 +99,26 @@ struct ControllerProperties {
   // LE Supported States (Vol 4, Part E § 7.8.27).
   uint64_t le_supported_states{0x3ffffffffff};
 
+  // LE Maximum Advertising Data Length (Vol 4, Part E § 7.8.57).
+  // Note: valid range 0x001F to 0x0672.
+  uint16_t le_max_advertising_data_length{512};
+
+  // LE Number of Supported Advertising Sets (Vol 4, Part E § 7.8.58)
+  // Note: the controller can change the number of advertising sets
+  // at any time. This behaviour is not emulated here.
+  uint8_t le_num_supported_advertising_sets{8};
+
   // Vendor Information.
   // Provide parameters returned by vendor specific commands.
   std::vector<uint8_t> le_vendor_capabilities{};
+
+  bool SupportsLMPFeature(bluetooth::hci::LMPFeaturesPage0Bits bit) const {
+    return (lmp_features[0] & static_cast<uint64_t>(bit)) != 0;
+  }
+
+  bool SupportsLMPFeature(bluetooth::hci::LMPFeaturesPage2Bits bit) const {
+    return (lmp_features[2] & static_cast<uint64_t>(bit)) != 0;
+  }
 };
 
 }  // namespace rootcanal
