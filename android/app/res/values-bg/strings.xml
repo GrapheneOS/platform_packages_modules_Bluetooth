@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Файловете с размер над 4 ГБ не могат да бъдат прехвърлени"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Свързване с Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Функцията за Bluetooth е включена в самолетния режим"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Ако не изключите функцията за Bluetooth, телефонът ви ще я остави активна следващия път, когато използвате самолетния режим"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Функцията за Bluetooth няма да се изключи"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Функцията за Bluetooth ще бъде включена, докато телефонът ви е в самолетен режим. Ако не искате това, изключете я."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Функциите за Wi-Fi и Bluetooth няма да бъдат изключени"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Функциите за Wi‑Fi и Bluetooth ще бъдат включени, докато телефонът ви е в самолетен режим. Ако не искате това, изключете ги."</string>
 </resources>

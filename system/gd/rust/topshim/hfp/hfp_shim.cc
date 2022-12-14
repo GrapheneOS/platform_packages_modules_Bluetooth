@@ -41,6 +41,10 @@ static void audio_state_cb(bluetooth::headset::bthf_audio_state_t state, RawAddr
 static void volume_update_cb(uint8_t volume, RawAddress* addr) {
   rusty::hfp_volume_update_callback(volume, *addr);
 }
+
+static void battery_level_update_cb(uint8_t battery_level, RawAddress* addr) {
+  rusty::hfp_battery_level_update_callback(battery_level, *addr);
+}
 }  // namespace internal
 
 class DBusHeadsetCallbacks : public headset::Callbacks {
@@ -156,11 +160,23 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   }
 
   void AtBievCallback(headset::bthf_hf_ind_type_t ind_id, int ind_value, RawAddress* bd_addr) override {
-    LOG_WARN(
-        "AT+BIEV=%d,%d from addr %s: Bluetooth HF Indicators is not supported.",
-        ind_id,
-        ind_value,
-        bd_addr->ToString().c_str());
+    switch (ind_id) {
+      case headset::bthf_hf_ind_type_t::BTHF_HF_IND_ENHANCED_DRIVER_SAFETY:
+        // We don't do anything with this but we do know what it is, send OK.
+        headset_->AtResponse(headset::BTHF_AT_RESPONSE_OK, 0, bd_addr);
+        break;
+      case headset::bthf_hf_ind_type_t::BTHF_HF_IND_BATTERY_LEVEL_STATUS:
+        topshim::rust::internal::battery_level_update_cb(ind_value, bd_addr);
+        headset_->AtResponse(headset::BTHF_AT_RESPONSE_OK, 0, bd_addr);
+        break;
+      default:
+        LOG_WARN(
+            "AT+BIEV indicator %i with value %i from addr %s",
+            ind_id,
+            ind_value,
+            bd_addr->ToString().c_str());
+        return;
+    }
   }
 
   void AtBiaCallback(bool service, bool roam, bool signal, bool battery, RawAddress* bd_addr) override {

@@ -28,10 +28,12 @@ RawBuilder::RawBuilder(size_t max_bytes) : max_bytes_(max_bytes) {}
 RawBuilder::RawBuilder(std::vector<uint8_t> vec) : payload_(std::move(vec)) {}
 
 bool RawBuilder::AddOctets(size_t octets, const std::vector<uint8_t>& bytes) {
-  if (payload_.size() + octets > max_bytes_) return false;
-
-  if (octets != bytes.size()) return false;
-
+  if (payload_.size() + octets > max_bytes_) {
+    return false;
+  }
+  if (octets != bytes.size()) {
+    return false;
+  }
   payload_.insert(payload_.end(), bytes.begin(), bytes.end());
 
   return true;
@@ -46,15 +48,17 @@ bool RawBuilder::AddOctets(size_t octets, uint64_t value) {
 
   uint64_t v = value;
 
-  if (octets > sizeof(uint64_t)) return false;
-
+  if (octets > sizeof(uint64_t)) {
+    return false;
+  }
   for (size_t i = 0; i < octets; i++) {
     val_vector.push_back(v & 0xff);
     v = v >> 8;
   }
 
-  if (v != 0) return false;
-
+  if (v != 0) {
+    return false;
+  }
   return AddOctets(octets, val_vector);
 }
 

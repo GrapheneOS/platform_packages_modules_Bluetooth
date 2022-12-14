@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Soubory větší než 4 GB nelze přenést"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Připojit k Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Zapnutý Bluetooth v režimu Letadlo"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Pokud Bluetooth necháte zapnutý, telefon si zapamatuje, že ho má příště v režimu Letadlo ponechat zapnutý"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth zůstane zapnutý"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Telefon si pamatuje, že má v režimu Letadlo ponechat zapnutý Bluetooth. Pokud nechcete, aby Bluetooth zůstal zapnutý, vypněte ho."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi a Bluetooth zůstávají zapnuté"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Telefon si pamatuje, že má v režimu Letadlo ponechat zapnutou Wi-Fi a Bluetooth. Pokud nechcete, aby Wi-Fi a Bluetooth zůstaly zapnuté, vypněte je."</string>
 </resources>

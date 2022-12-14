@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Не можна перенести файли, більші за 4 ГБ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Підключитися до Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth увімкнено в режимі польоту"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Якщо ви не вимкнете Bluetooth на телефоні, ця функція залишатиметься ввімкненою під час наступного використання режиму польоту"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth не буде вимкнено"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"У режимі польоту функція Bluetooth на телефоні залишатиметься ввімкненою. За бажання її можна вимкнути."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi і Bluetooth залишаються ввімкненими"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"У режимі польоту функції Wi-Fi і Bluetooth на телефоні залишатимуться ввімкненими. За бажання їх можна вимкнути."</string>
 </resources>
