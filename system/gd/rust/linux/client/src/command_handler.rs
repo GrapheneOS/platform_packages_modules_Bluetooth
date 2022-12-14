@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::bt_adv::AdvSet;
 use crate::bt_gatt::AuthReq;
-use crate::callbacks::BtGattCallback;
+use crate::callbacks::{BtGattCallback, BtGattServerCallback};
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
@@ -21,6 +21,7 @@ const BAR1_CHAR: &str = "=";
 const BAR2_CHAR: &str = "-";
 const MAX_MENU_CHAR_WIDTH: usize = 72;
 const GATT_CLIENT_APP_UUID: &str = "12345678123456781234567812345678";
+const GATT_SERVER_APP_UUID: &str = "12345678123456781234567812345679";
 
 enum CommandError {
     // Command not handled due to invalid arguments.
@@ -169,6 +170,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
                     "gatt write-characteristic <address> <handle> <NoRsp|Write|Prepare> <value>",
                 ),
                 String::from("gatt read-characteristic <address> <handle>"),
+                String::from("gatt register-server"),
             ],
             description: String::from("GATT tools"),
             function_pointer: CommandHandler::cmd_gatt,
@@ -1075,6 +1077,23 @@ impl CommandHandler {
                     .as_ref()
                     .unwrap()
                     .read_characteristic(client_id, addr, handle, auth_req);
+            }
+            "register-server" => {
+                let dbus_connection = self.context.lock().unwrap().dbus_connection.clone();
+                let dbus_crossroads = self.context.lock().unwrap().dbus_crossroads.clone();
+
+                self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().register_server(
+                    String::from(GATT_SERVER_APP_UUID),
+                    Box::new(BtGattServerCallback::new(
+                        String::from(
+                            "/org/chromium/bluetooth/client/bluetooth_gatt_server_callback",
+                        ),
+                        self.context.clone(),
+                        dbus_connection,
+                        dbus_crossroads,
+                    )),
+                    false,
+                );
             }
             _ => return Err(CommandError::InvalidArgs),
         }
