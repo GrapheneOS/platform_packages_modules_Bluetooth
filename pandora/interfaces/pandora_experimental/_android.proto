@@ -36,3 +36,10 @@ message SetAccessPermissionRequest {
   // Set AccessType to Message, PhoneBook and SIM access permission
   AccessType access_type = 2;
 }
+
+// Internal representation of a Connection - not exposed to clients, included here
+// just for code-generation convenience. This is what we put in the Connection.cookie.
+message InternalConnectionRef {
+  bytes address = 1;
+  int32 transport = 2;
+}

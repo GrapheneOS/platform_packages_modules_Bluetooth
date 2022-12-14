@@ -6,7 +6,7 @@ from mmi2grpc._helpers import match_description
 from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import Connection, ConnectabilityMode, AddressType
+from pandora_experimental.host_pb2 import Connection, OwnAddressType
 from pandora_experimental.l2cap_grpc import L2CAP
 
 from typing import Optional
@@ -60,7 +60,7 @@ class L2CAPProxy(ProfileProxy):
         assert self.connection is None, f"the connection should be None for the first call"
 
         time.sleep(2)  # avoid timing issue
-        self.connection = self.host.GetLEConnection(address=pts_addr).connection
+        self.connection = self.host.GetLEConnection(public=pts_addr).connection
 
         psm = 0x25  # default TSPX_spsm value
         if test == 'L2CAP/LE/CFC/BV-04-C':
@@ -91,8 +91,8 @@ class L2CAPProxy(ProfileProxy):
         Place the IUT into LE connectable mode.
         """
         self.host.StartAdvertising(
-            connectability_mode=ConnectabilityMode.CONNECTABILITY_CONNECTABLE,
-            own_address_type=AddressType.PUBLIC,
+            connectable=True,
+            own_address_type=OwnAddressType.PUBLIC,
         )
         # not strictly necessary, but can save time on waiting connection
         tests_to_open_bluetooth_server_socket = [
@@ -346,7 +346,7 @@ class L2CAPProxy(ProfileProxy):
         """
         Initiate or create LE ACL connection to the PTS.
         """
-        self.connection = self.host.ConnectLE(address=pts_addr).connection
+        self.connection = self.host.ConnectLE(public=pts_addr).connection
         return "OK"
 
     @assert_description
@@ -357,5 +357,5 @@ class L2CAPProxy(ProfileProxy):
         The Implementation Under Test(IUT) should disconnect ACL channel by
         sending a disconnect request to PTS.
         """
-        self.host.DisconnectLE(connection=self.connection)
+        self.host.Disconnect(connection=self.connection)
         return "OK"

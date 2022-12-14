@@ -29,6 +29,7 @@ import android.net.MacAddress
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
+import com.google.protobuf.Any
 import com.google.protobuf.ByteString
 import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
@@ -53,9 +54,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import pandora.AndroidProto.InternalConnectionRef
 import pandora.HostProto.Connection
-import pandora.HostProto.InternalConnectionRef
-import pandora.HostProto.Transport
 
 private const val TAG = "PandoraUtils"
 
@@ -298,27 +298,27 @@ fun ByteString.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
   adapter.getRemoteDevice(this.decodeAsMacAddressToString())
 
 fun Connection.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
-  adapter.getRemoteDevice(address)
+  adapter.getRemoteDevice(this.address)
 
 val Connection.address: String
-  get() = InternalConnectionRef.parseFrom(this.cookie).address.decodeAsMacAddressToString()
+  get() = InternalConnectionRef.parseFrom(this.cookie.value).address.decodeAsMacAddressToString()
 
-val Connection.transport: Transport
-  get() = InternalConnectionRef.parseFrom(this.cookie).transport
-
-fun newConnection(device: BluetoothDevice, transport: Transport) =
-  Connection.newBuilder()
-    .setCookie(
-      InternalConnectionRef.newBuilder()
-        .setAddress(device.toByteString())
-        .setTransport(transport)
-        .build()
-        .toByteString()
-    )
-    .build()!!
+val Connection.transport: Int
+  get() = InternalConnectionRef.parseFrom(this.cookie.value).transport
 
 fun BluetoothDevice.toByteString() =
   ByteString.copyFrom(MacAddress.fromString(this.address).toByteArray())!!
+
+fun BluetoothDevice.toConnection(transport: Int): Connection {
+  val internal_connection_ref =
+    InternalConnectionRef.newBuilder()
+      .setAddress(ByteString.copyFrom(MacAddress.fromString(this.address).toByteArray()))
+      .setTransport(transport)
+      .build()
+  val cookie = Any.newBuilder().setValue(internal_connection_ref.toByteString()).build()
+
+  return Connection.newBuilder().setCookie(cookie).build()
+}
 
 /** Creates Audio track instance and returns the reference. */
 fun buildAudioTrack(): AudioTrack? {
