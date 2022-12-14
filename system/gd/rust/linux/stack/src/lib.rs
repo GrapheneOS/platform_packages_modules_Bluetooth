@@ -36,8 +36,8 @@ use crate::bluetooth::{
 };
 use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
 use crate::bluetooth_gatt::{
-    dispatch_gatt_client_callbacks, dispatch_le_adv_callbacks, dispatch_le_scanner_callbacks,
-    dispatch_le_scanner_inband_callbacks, BluetoothGatt,
+    dispatch_gatt_client_callbacks, dispatch_gatt_server_callbacks, dispatch_le_adv_callbacks,
+    dispatch_le_scanner_callbacks, dispatch_le_scanner_inband_callbacks, BluetoothGatt,
 };
 use crate::bluetooth_media::{BluetoothMedia, MediaActions};
 use crate::socket_manager::{BluetoothSocketManager, SocketActions};
@@ -111,6 +111,7 @@ pub enum Message {
     BatteryManagerCallbackDisconnected(u32),
 
     GattClientCallbackDisconnected(u32),
+    GattServerCallbackDisconnected(u32),
 
     // Admin policy related
     AdminCallbackDisconnected(u32),
@@ -181,8 +182,7 @@ impl Stack {
                 }
 
                 Message::GattServer(m) => {
-                    // TODO(b/193685149): dispatch GATT server callbacks.
-                    debug!("Unhandled Message::GattServer: {:?}", m);
+                    dispatch_gatt_server_callbacks(bluetooth_gatt.lock().unwrap().as_mut(), m);
                 }
 
                 Message::LeScanner(m) => {
@@ -314,6 +314,9 @@ impl Stack {
                 }
                 Message::GattClientCallbackDisconnected(id) => {
                     bluetooth_gatt.lock().unwrap().remove_client_callback(id);
+                }
+                Message::GattServerCallbackDisconnected(id) => {
+                    bluetooth_gatt.lock().unwrap().remove_server_callback(id);
                 }
                 Message::AdminCallbackDisconnected(id) => {
                     bluetooth_admin.lock().unwrap().unregister_admin_policy_callback(id);
