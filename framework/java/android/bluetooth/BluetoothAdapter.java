@@ -1560,7 +1560,6 @@ public final class BluetoothAdapter {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public boolean disable(boolean persist) {
-
         try {
             return mManagerService.disable(mAttributionSource, persist);
         } catch (RemoteException e) {

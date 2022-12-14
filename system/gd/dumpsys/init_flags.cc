@@ -15,6 +15,7 @@
  */
 
 #include "common/init_flags.h"
+
 #include "dumpsys/init_flags.h"
 #include "init_flags_generated.h"
 
@@ -32,6 +33,7 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_gd_hci_enabled(true);
   builder.add_gd_controller_enabled(true);
 
+  builder.add_asynchronously_start_l2cap_coc_is_enabled(initFlags::asynchronously_start_l2cap_coc_is_enabled());
   builder.add_btaa_hci_is_enabled(initFlags::btaa_hci_is_enabled());
   builder.add_btm_dm_flush_discovery_queue_on_search_cancel_is_enabled(
       initFlags::btm_dm_flush_discovery_queue_on_search_cancel_is_enabled());
@@ -39,6 +41,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_gatt_robust_caching_client_is_enabled(initFlags::gatt_robust_caching_client_is_enabled());
   builder.add_gatt_robust_caching_server_is_enabled(initFlags::gatt_robust_caching_server_is_enabled());
   builder.add_gd_core_is_enabled(initFlags::gd_core_is_enabled());
+  builder.add_gd_hal_snoop_logger_socket_is_enabled(
+      bluetooth::common::init_flags::gd_hal_snoop_logger_socket_is_enabled());
   builder.add_gd_l2cap_is_enabled(initFlags::gd_l2cap_is_enabled());
   builder.add_gd_link_policy_is_enabled(initFlags::gd_link_policy_is_enabled());
   builder.add_gd_remote_name_request_is_enabled(initFlags::gd_remote_name_request_is_enabled());

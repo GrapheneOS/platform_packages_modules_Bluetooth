@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.mapclient;
+package com.android.bluetooth;
 
 import com.android.obex.HeaderSet;
 

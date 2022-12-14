@@ -162,7 +162,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private static final int MESSAGE_RESTART_BLUETOOTH_SERVICE = 42;
     private static final int MESSAGE_BLUETOOTH_STATE_CHANGE = 60;
     private static final int MESSAGE_TIMEOUT_BIND = 100;
-    private static final int MESSAGE_TIMEOUT_UNBIND = 101;
     private static final int MESSAGE_GET_NAME_AND_ADDRESS = 200;
     private static final int MESSAGE_USER_SWITCHED = 300;
     private static final int MESSAGE_USER_UNLOCKED = 301;
@@ -2491,13 +2490,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                     Log.e(TAG, "MESSAGE_TIMEOUT_BIND");
                     mBluetoothLock.writeLock().lock();
                     mBinding = false;
-                    mBluetoothLock.writeLock().unlock();
-                    break;
-                }
-                case MESSAGE_TIMEOUT_UNBIND: {
-                    Log.e(TAG, "MESSAGE_TIMEOUT_UNBIND");
-                    mBluetoothLock.writeLock().lock();
-                    mUnbinding = false;
                     mBluetoothLock.writeLock().unlock();
                     break;
                 }

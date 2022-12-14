@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <configuration description="Avatar tests.">
-    <target_preparer class="com.android.tradefed.targetprep.TestAppInstallSetup">
+    <target_preparer class="com.android.tradefed.targetprep.suite.SuiteApkInstaller">
         <option name="test-file-name" value="PandoraServer.apk" />
         <option name="install-arg" value="-r" />
         <option name="install-arg" value="-g" />

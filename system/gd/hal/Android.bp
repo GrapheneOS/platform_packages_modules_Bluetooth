@@ -11,6 +11,9 @@ filegroup {
     name: "BluetoothHalSources",
     srcs: [
         "snoop_logger.cc",
+        "snoop_logger_socket.cc",
+        "snoop_logger_socket_thread.cc",
+        "syscall_wrapper_impl.cc",
     ],
 }
 
@@ -18,6 +21,8 @@ filegroup {
     name: "BluetoothHalTestSources",
     srcs: [
         "snoop_logger_test.cc",
+        "snoop_logger_socket_test.cc",
+        "snoop_logger_socket_thread_test.cc",
     ],
 }
 
