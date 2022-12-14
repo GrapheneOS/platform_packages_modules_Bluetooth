@@ -76,6 +76,8 @@ class TopshimDevice(AsyncClosable):
     __adapter = None
     __gatt = None
     __security = None
+    __hfp = None
+    __hf_client = None
 
     async def __le_rand_wrapper(self, async_fn):
         result = await async_fn
@@ -86,10 +88,12 @@ class TopshimDevice(AsyncClosable):
     def __post(self, async_fn):
         return asyncio.get_event_loop().run_until_complete(async_fn)
 
-    def __init__(self, adapter, gatt, security):
+    def __init__(self, adapter, gatt, security, hfp, hf_client):
         self.__adapter = adapter
         self.__gatt = gatt
         self.__security = security
+        self.__hfp = hfp
+        self.__hf_client = hf_client
 
     async def close(self):
         """
@@ -98,6 +102,8 @@ class TopshimDevice(AsyncClosable):
         await asyncSafeClose(self.__adapter)
         await asyncSafeClose(self.__gatt)
         await asyncSafeClose(self.__security)
+        await asyncSafeClose(self.__hfp)
+        await asyncSafeClose(self.__hf_client)
 
     def enable_page_scan(self):
         self.__post(self.__adapter.enable_page_scan())
