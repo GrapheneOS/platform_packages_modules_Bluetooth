@@ -214,7 +214,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
       case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING: {
         /* This case just updates the metadata for the stream, in case
-         * stream configuration is satisfied
+         * stream configuration is satisfied. We can do that already for
+         * all the devices in a group, without any state transitions.
          */
         if (!group->IsMetadataChanged(metadata_context_type, ccid_list))
           return true;
@@ -225,8 +226,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return false;
         }
 
-        PrepareAndSendUpdateMetadata(group, leAudioDevice,
-                                     metadata_context_type, ccid_list);
+        while (leAudioDevice) {
+          PrepareAndSendUpdateMetadata(group, leAudioDevice,
+                                       metadata_context_type, ccid_list);
+          leAudioDevice = group->GetNextActiveDevice(leAudioDevice);
+        }
         break;
       }
 
