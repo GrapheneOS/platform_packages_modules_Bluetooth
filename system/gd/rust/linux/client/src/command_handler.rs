@@ -1115,63 +1115,65 @@ impl CommandHandler {
 
         match &command[..] {
             "register-scanner" => {
-                let scanner_callback_id = self.context.lock().unwrap().scanner_callback_id;
-                if let Some(id) = scanner_callback_id {
-                    let uuid = self
-                        .context
-                        .lock()
-                        .unwrap()
-                        .gatt_dbus
-                        .as_mut()
-                        .unwrap()
-                        .register_scanner(id);
-                    print_info!("Scanner to be registered with UUID = {}", UuidWrapper(&uuid));
-                } else {
-                    print_error!("Cannot register scanner before registering scanner callback");
-                }
+                let scanner_callback_id = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .scanner_callback_id
+                    .ok_or("Cannot register scanner before registering scanner callback")?;
+
+                let uuid = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_mut()
+                    .unwrap()
+                    .register_scanner(scanner_callback_id);
+
+                print_info!("Scanner to be registered with UUID = {}", UuidWrapper(&uuid));
             }
             "unregister-scanner" => {
-                let scanner_id = String::from(get_arg(args, 1)?).parse::<u8>();
+                let scanner_id = String::from(get_arg(args, 1)?)
+                    .parse::<u8>()
+                    .or(Err("Failed parsing scanner id"))?;
 
-                if let Ok(id) = scanner_id {
-                    self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().unregister_scanner(id);
-                } else {
-                    return Err("Failed parsing scanner id".into());
-                }
+                self.context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_mut()
+                    .unwrap()
+                    .unregister_scanner(scanner_id);
             }
             "start-scan" => {
-                let scanner_id = String::from(get_arg(args, 1)?).parse::<u8>();
+                let scanner_id = String::from(get_arg(args, 1)?)
+                    .parse::<u8>()
+                    .or(Err("Failed parsing scanner id"))?;
 
-                if let Ok(id) = scanner_id {
-                    self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().start_scan(
-                        id,
-                        // TODO(b/254870159): Construct real settings and filters depending on
-                        // command line options.
-                        ScanSettings { interval: 0, window: 0, scan_type: ScanType::Active },
-                        Some(btstack::bluetooth_gatt::ScanFilter {
-                            rssi_high_threshold: 0,
-                            rssi_low_threshold: 0,
-                            rssi_low_timeout: 0,
-                            rssi_sampling_period: 0,
-                            condition: btstack::bluetooth_gatt::ScanFilterCondition::Patterns(
-                                vec![],
-                            ),
-                        }),
-                    );
-                    self.context.lock().unwrap().active_scanner_ids.insert(id);
-                } else {
-                    return Err("Failed parsing scanner id".into());
-                }
+                self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().start_scan(
+                    scanner_id,
+                    // TODO(b/254870159): Construct real settings and filters depending on
+                    // command line options.
+                    ScanSettings { interval: 0, window: 0, scan_type: ScanType::Active },
+                    Some(btstack::bluetooth_gatt::ScanFilter {
+                        rssi_high_threshold: 0,
+                        rssi_low_threshold: 0,
+                        rssi_low_timeout: 0,
+                        rssi_sampling_period: 0,
+                        condition: btstack::bluetooth_gatt::ScanFilterCondition::Patterns(vec![]),
+                    }),
+                );
+
+                self.context.lock().unwrap().active_scanner_ids.insert(scanner_id);
             }
             "stop-scan" => {
-                let scanner_id = String::from(get_arg(args, 1)?).parse::<u8>();
+                let scanner_id = String::from(get_arg(args, 1)?)
+                    .parse::<u8>()
+                    .or(Err("Failed parsing scanner id"))?;
 
-                if let Ok(id) = scanner_id {
-                    self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().stop_scan(id);
-                    self.context.lock().unwrap().active_scanner_ids.remove(&id);
-                } else {
-                    return Err("Failed parsing scanner id".into());
-                }
+                self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().stop_scan(scanner_id);
+                self.context.lock().unwrap().active_scanner_ids.remove(&scanner_id);
             }
             _ => return Err(CommandError::InvalidArgs),
         }
