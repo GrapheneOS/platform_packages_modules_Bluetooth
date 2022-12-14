@@ -90,14 +90,14 @@ class Security(private val context: Context) : SecurityImplBase() {
       var reached =
         when (transport) {
           TRANSPORT_LE -> {
-            check(request.hasLe())
+            check(request.getLevelCase() == SecureRequest.LevelCase.LE);
             val level = request.le
             if (level == LE_LEVEL1) true
             if (level == LE_LEVEL4) throw Status.UNKNOWN.asException()
             false
           }
           TRANSPORT_BREDR -> {
-            check(request.hasClassic())
+            check(request.getLevelCase() == SecureRequest.LevelCase.CLASSIC)
             val level = request.classic
             if (level == LEVEL0) true
             if (level >= LEVEL3) throw Status.UNKNOWN.asException()
