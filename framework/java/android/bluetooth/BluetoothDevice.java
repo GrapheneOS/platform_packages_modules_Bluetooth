@@ -770,6 +770,14 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static final String DEVICE_TYPE_UNTETHERED_HEADSET = "Untethered Headset";
 
     /**
+     * Device type which is used in METADATA_DEVICE_TYPE
+     * Indicates this Bluetooth device is a stylus.
+     * @hide
+     */
+    @SystemApi
+    public static final String DEVICE_TYPE_STYLUS = "Stylus";
+
+    /**
      * Broadcast Action: This intent is used to broadcast the {@link UUID}
      * wrapped as a {@link android.os.ParcelUuid} of the remote device after it
      * has been fetched. This intent is sent only when the UUIDs of the remote
