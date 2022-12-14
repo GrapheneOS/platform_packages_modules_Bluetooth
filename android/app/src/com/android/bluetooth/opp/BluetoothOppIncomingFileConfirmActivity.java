@@ -52,6 +52,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
 
 /**
@@ -154,7 +155,8 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
             mUpdateValues = new ContentValues();
             mUpdateValues.put(BluetoothShare.USER_CONFIRMATION,
                     BluetoothShare.USER_CONFIRMATION_CONFIRMED);
-            this.getContentResolver().update(mUri, mUpdateValues, null, null);
+            BluetoothMethodProxy.getInstance().contentResolverUpdate(this.getContentResolver(),
+                    mUri, mUpdateValues, null, null);
 
             Toast.makeText(this, getString(R.string.bt_toast_1), Toast.LENGTH_SHORT).show();
         }
@@ -165,7 +167,8 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
         mUpdateValues = new ContentValues();
         mUpdateValues.put(BluetoothShare.USER_CONFIRMATION,
                 BluetoothShare.USER_CONFIRMATION_DENIED);
-        this.getContentResolver().update(mUri, mUpdateValues, null, null);
+        BluetoothMethodProxy.getInstance().contentResolverUpdate(this.getContentResolver(),
+                mUri, mUpdateValues, null, null);
     }
 
     @Override
