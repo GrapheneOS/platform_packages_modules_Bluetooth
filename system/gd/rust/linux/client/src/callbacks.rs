@@ -1,3 +1,4 @@
+use crate::command_handler::SocketSchedule;
 use crate::dbus_iface::{
     export_admin_policy_callback_dbus_intf, export_advertising_set_callback_dbus_intf,
     export_bluetooth_callback_dbus_intf, export_bluetooth_connection_callback_dbus_intf,
@@ -29,7 +30,11 @@ use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use dbus_projection::DisconnectWatcher;
 use manager_service::iface_bluetooth_manager::IBluetoothManagerCallback;
+use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
+const SOCKET_TEST_WRITE: &[u8] = b"01234567890123456789";
 
 /// Callback context for manager interface callbacks.
 pub(crate) struct BtManagerCallback {
@@ -962,7 +967,6 @@ impl RPCProxy for BtGattServerCallback {
 pub(crate) struct BtSocketManagerCallback {
     objpath: String,
     context: Arc<Mutex<ClientContext>>,
-
     dbus_connection: Arc<SyncConnection>,
     dbus_crossroads: Arc<Mutex<Crossroads>>,
 }
@@ -975,6 +979,44 @@ impl BtSocketManagerCallback {
         dbus_crossroads: Arc<Mutex<Crossroads>>,
     ) -> Self {
         Self { objpath, context, dbus_connection, dbus_crossroads }
+    }
+
+    fn start_socket_schedule(&mut self, socket: BluetoothSocket) {
+        let SocketSchedule { num_frame, send_interval, disconnect_delay } =
+            match self.context.lock().unwrap().socket_test_schedule {
+                Some(s) => s,
+                None => return,
+            };
+
+        let mut fd = match socket.fd {
+            Some(fd) => fd,
+            None => {
+                print_error!("incoming connection fd is None. Unable to send data");
+                return;
+            }
+        };
+
+        tokio::spawn(async move {
+            for i in 0..num_frame {
+                fd.write_all(SOCKET_TEST_WRITE);
+                print_info!("data sent: {}", i + 1);
+                tokio::time::sleep(send_interval).await;
+            }
+
+            // dump any incoming data
+            let interval = 100;
+            for _d in (0..=disconnect_delay.as_millis()).step_by(interval) {
+                let mut buf = [0; 128];
+                let sz = fd.read(&mut buf).unwrap();
+                let data = buf[..sz].to_vec();
+                if sz > 0 {
+                    print_info!("received {} bytes: {:?}", sz, data);
+                }
+                tokio::time::sleep(Duration::from_millis(interval as u64)).await;
+            }
+
+            //|fd| is dropped automatically when the scope ends.
+        });
     }
 }
 
@@ -1005,18 +1047,16 @@ impl IBluetoothSocketManagerCallbacks for BtSocketManagerCallback {
         let callback_id = self.context.lock().unwrap().socket_manager_callback_id.clone().unwrap();
 
         self.context.lock().unwrap().run_callback(Box::new(move |context| {
-            let status = context
-                .lock()
-                .unwrap()
-                .socket_manager_dbus
-                .as_mut()
-                .unwrap()
-                .close(callback_id, socket.id);
+            let status = context.lock().unwrap().socket_manager_dbus.as_mut().unwrap().accept(
+                callback_id,
+                socket.id,
+                None,
+            );
             if status != BtStatus::Success {
-                print_error!("Failed to close socket {}, status = {:?}", socket.id, status);
+                print_error!("Failed to accept socket {}, status = {:?}", socket.id, status);
                 return;
             }
-            print_info!("Requested for closing socket {}", socket.id);
+            print_info!("Requested for accepting socket {}", socket.id);
         }));
     }
 
@@ -1026,10 +1066,11 @@ impl IBluetoothSocketManagerCallbacks for BtSocketManagerCallback {
 
     fn on_handle_incoming_connection(
         &mut self,
-        _listener_id: SocketId,
-        _connection: BluetoothSocket,
+        listener_id: SocketId,
+        connection: BluetoothSocket,
     ) {
-        todo!();
+        print_info!("Socket {} connected", listener_id);
+        self.start_socket_schedule(connection);
     }
 
     fn on_outgoing_connection_result(
@@ -1040,6 +1081,7 @@ impl IBluetoothSocketManagerCallbacks for BtSocketManagerCallback {
     ) {
         if let Some(s) = socket {
             print_info!("Connection success on {}: {:?} for {}", connecting_id, result, s);
+            self.start_socket_schedule(s);
         } else {
             print_info!("Connection failed on {}: {:?}", connecting_id, result);
         }
