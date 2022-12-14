@@ -109,8 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"כל הפריטים ינוקו מהרשימה."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"‏שיתוף Bluetooth: נשלחו קבצים"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"‏שיתוף Bluetooth: התקבלו קבצים"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# נכשל}two{# נכשלו}many{# נכשלו}other{# נכשלו}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‏# הצליח, %1$s}two{‏# הצליחו, %1$s}many{‏# הצליחו, %1$s}other{‏# הצליחו, %1$s}}"</string>
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# נכשל}one{# נכשלו}two{# נכשלו}other{# נכשלו}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‏# הצליח, %1$s}one{‏# הצליחו, %1$s}two{‏# הצליחו, %1$s}other{‏# הצליחו, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"ניקוי רשימה"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"פתיחה"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"ניקוי מהרשימה"</string>

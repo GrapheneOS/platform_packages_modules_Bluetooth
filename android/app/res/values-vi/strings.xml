@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Không thể chuyển những tệp lớn hơn 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Kết nối với Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth đang bật ở chế độ trên máy bay"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Nếu bạn không tắt Bluetooth, điện thoại sẽ luôn bật Bluetooth vào lần tiếp theo bạn dùng chế độ trên máy bay"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth luôn bật"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Điện thoại của bạn sẽ luôn bật Bluetooth ở chế độ trên máy bay. Nếu không muốn như vậy thì bạn có thể tắt Bluetooth."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi và Bluetooth vẫn đang bật"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Điện thoại của bạn sẽ luôn bật Wi-Fi và Bluetooth ở chế độ trên máy bay. Tắt Wi-Fi và Bluetooth nếu bạn không muốn tiếp tục bật."</string>
 </resources>

@@ -120,8 +120,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
     let bluetooth_gatt =
         Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone(), tx.clone()))));
-    let bluetooth_media =
-        Arc::new(Mutex::new(Box::new(BluetoothMedia::new(tx.clone(), intf.clone()))));
     let battery_provider_manager =
         Arc::new(Mutex::new(Box::new(BatteryProviderManager::new(tx.clone()))));
     let battery_service = Arc::new(Mutex::new(Box::new(BatteryService::new(
@@ -132,6 +130,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let battery_manager = Arc::new(Mutex::new(Box::new(BatteryManager::new(
         battery_provider_manager.clone(),
         tx.clone(),
+    ))));
+    let bluetooth_media = Arc::new(Mutex::new(Box::new(BluetoothMedia::new(
+        tx.clone(),
+        intf.clone(),
+        battery_provider_manager.clone(),
     ))));
     let bluetooth_admin = Arc::new(Mutex::new(Box::new(BluetoothAdmin::new(
         String::from(ADMIN_SETTINGS_FILE_PATH),
