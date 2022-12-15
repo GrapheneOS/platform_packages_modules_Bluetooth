@@ -2845,6 +2845,75 @@ TEST_F(UnicastTest, GroupingAddRemove) {
   ASSERT_NE(std::find(devs.begin(), devs.end(), test_address1), devs.end());
 }
 
+TEST_F(UnicastTest, RemoveNodeWhileStreaming) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  int group_id = bluetooth::groups::kGroupUnknown;
+
+  SetSampleDatabaseEarbudsValid(
+      1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnGroupNodeStatus(test_address0, _, GroupNodeStatus::ADDED))
+      .WillOnce(DoAll(SaveArg<1>(&group_id)));
+
+  ConnectLeAudio(test_address0);
+  ASSERT_NE(group_id, bluetooth::groups::kGroupUnknown);
+
+  // Start streaming
+  constexpr uint8_t cis_count_out = 1;
+  constexpr uint8_t cis_count_in = 0;
+
+  constexpr int gmcs_ccid = 1;
+  constexpr int gtbs_ccid = 2;
+
+  // Audio sessions are started only when device gets active
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->SetCcidInformation(gmcs_ccid, 4 /* Media */);
+  LeAudioClient::Get()->SetCcidInformation(gtbs_ccid, 2 /* Phone */);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  EXPECT_CALL(mock_state_machine_, StartStream(_, _, _, {{gmcs_ccid}}))
+      .Times(1);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+  SyncOnMainLoop();
+
+  // Verify Data transfer on one audio source cis
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+
+  EXPECT_CALL(mock_groups_module_, RemoveDevice(test_address0, group_id))
+      .Times(1);
+  EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
+  EXPECT_CALL(mock_state_machine_, ProcessHciNotifAclDisconnected(_, _))
+      .Times(0);
+  EXPECT_CALL(
+      mock_audio_hal_client_callbacks_,
+      OnGroupNodeStatus(test_address0, group_id, GroupNodeStatus::REMOVED));
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
+      .Times(0);
+
+  LeAudioClient::Get()->GroupRemoveNode(group_id, test_address0);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_groups_module_);
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+}
+
 TEST_F(UnicastTest, GroupingAddTwiceNoRemove) {
   // Earbud connects without known grouping
   uint8_t group_id0 = bluetooth::groups::kGroupUnknown;
