@@ -1811,8 +1811,12 @@ class LeAudioClientImpl : public LeAudioClient {
       leAudioDevices_.Remove(address);
       return;
     }
-    /* Attempt background re-connect if disconnect was not intended locally */
-    if (reason != GATT_CONN_TERMINATE_LOCAL_HOST) {
+    /* Attempt background re-connect if disconnect was not intended locally
+     * or if autoconnect is set and device got disconnected because of some
+     * issues
+     */
+    if (reason != GATT_CONN_TERMINATE_LOCAL_HOST ||
+        leAudioDevice->autoconnect_flag_) {
       leAudioDevice->SetConnectionState(
           DeviceConnectState::CONNECTING_AUTOCONNECT);
       BTA_GATTC_Open(gatt_if_, address, false, false);
