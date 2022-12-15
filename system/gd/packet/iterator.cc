@@ -72,14 +72,17 @@ Iterator<little_endian>& Iterator<little_endian>::operator-=(int offset) {
 
 template <bool little_endian>
 Iterator<little_endian>& Iterator<little_endian>::operator--() {
-  if (index_ != 0) index_--;
-
+  if (index_ != 0) {
+    index_--;
+  }
   return *this;
 }
 
 template <bool little_endian>
 Iterator<little_endian>& Iterator<little_endian>::operator=(const Iterator<little_endian>& itr) {
-  if (this == &itr) return *this;
+  if (this == &itr) {
+    return *this;
+  }
   this->data_ = itr.data_;
   this->begin_ = itr.begin_;
   this->end_ = itr.end_;
@@ -136,9 +139,8 @@ template <bool little_endian>
 size_t Iterator<little_endian>::NumBytesRemaining() const {
   if (end_ > index_ && !(begin_ > index_)) {
     return end_ - index_;
-  } else {
-    return 0;
   }
+  return 0;
 }
 
 template <bool little_endian>
