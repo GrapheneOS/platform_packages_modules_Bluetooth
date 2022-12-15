@@ -18,6 +18,7 @@ mod ffi {
         fn is_debug_logging_enabled_for_tag(tag: &str) -> bool;
         fn logging_debug_enabled_for_all_is_enabled() -> bool;
         fn pass_phy_update_callback_is_enabled() -> bool;
+        fn queue_l2cap_coc_while_encrypting_is_enabled() -> bool;
         fn sdp_serialization_is_enabled() -> bool;
         fn sdp_skip_rnr_if_known_is_enabled() -> bool;
     }
