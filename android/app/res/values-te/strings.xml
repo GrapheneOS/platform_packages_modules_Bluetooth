@@ -29,7 +29,7 @@
     <string name="bt_enable_line1" msgid="8429910585843481489">"బ్లూటూత్ సేవలను ఉపయోగించడానికి, మీరు తప్పనిసరిగా ముందుగా బ్లూటూత్‌ను ప్రారంభించాలి."</string>
     <string name="bt_enable_line2" msgid="1466367120348920892">"ఇప్పుడే బ్లూటూత్‌ను ప్రారంభించాలా?"</string>
     <string name="bt_enable_cancel" msgid="6770180540581977614">"రద్దు చేయి"</string>
-    <string name="bt_enable_ok" msgid="4224374055813566166">"ప్రారంభించు"</string>
+    <string name="bt_enable_ok" msgid="4224374055813566166">"ప్రారంభించండి"</string>
     <string name="incoming_file_confirm_title" msgid="938251186275547290">"ఫైల్ బదిలీ"</string>
     <string name="incoming_file_confirm_content" msgid="6573502088511901157">"ఇన్‌కమింగ్ ఫైల్‌ను ఆమోదించాలా?"</string>
     <string name="incoming_file_confirm_cancel" msgid="9205906062663982692">"తిరస్కరిస్తున్నాను"</string>
