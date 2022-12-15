@@ -22,9 +22,10 @@ java_library_static {
         "grpc-java-lite",
         "guava",
         "opencensus-java-api",
+        "kotlin-test",
         "kotlinx_coroutines",
-        "pandora-grpc-java",
-        "pandora-proto-java",
+        "pandora_experimental-grpc-java",
+        "pandora_experimental-proto-java",
         "opencensus-java-contrib-grpc-metrics",
     ],
 }

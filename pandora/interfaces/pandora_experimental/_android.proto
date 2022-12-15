@@ -14,6 +14,8 @@ import "google/protobuf/empty.proto";
 service Android {
   // Log text (for utility only)
   rpc Log(LogRequest) returns (LogResponse);
+  // Set Message, PhoneBook and SIM access permission
+  rpc SetAccessPermission(SetAccessPermissionRequest) returns (google.protobuf.Empty);
 }
 
 message LogRequest {
@@ -21,3 +23,23 @@ message LogRequest {
 }
 
 message LogResponse {}
+
+enum AccessType {
+  ACCESS_MESSAGE = 0;
+  ACCESS_PHONEBOOK = 1;
+  ACCESS_SIM = 2;
+}
+
+message SetAccessPermissionRequest {
+  // Peer Bluetooth Device Address as array of 6 bytes.
+  bytes address = 1;
+  // Set AccessType to Message, PhoneBook and SIM access permission
+  AccessType access_type = 2;
+}
+
+// Internal representation of a Connection - not exposed to clients, included here
+// just for code-generation convenience. This is what we put in the Connection.cookie.
+message InternalConnectionRef {
+  bytes address = 1;
+  int32 transport = 2;
+}

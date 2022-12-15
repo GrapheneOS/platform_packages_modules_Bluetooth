@@ -200,11 +200,12 @@ public class HeadsetClientStateMachine extends StateMachine {
     }
 
     public void dump(StringBuilder sb) {
-        if (mCurrentDevice == null) return;
-        ProfileService.println(sb,
-                "==== StateMachine for " + mCurrentDevice + " ====");
-        ProfileService.println(sb, "  mCurrentDevice: " + mCurrentDevice.getAddress() + "("
-                + Utils.getName(mCurrentDevice) + ") " + this.toString());
+        if (mCurrentDevice != null) {
+            ProfileService.println(sb,
+                    "==== StateMachine for " + mCurrentDevice + " ====");
+            ProfileService.println(sb, "  mCurrentDevice: " + mCurrentDevice.getAddress() + "("
+                    + Utils.getName(mCurrentDevice) + ") " + this.toString());
+        }
         ProfileService.println(sb, "  mAudioState: " + mAudioState);
         ProfileService.println(sb, "  mAudioWbs: " + mAudioWbs);
         ProfileService.println(sb, "  mIndicatorNetworkState: " + mIndicatorNetworkState);
@@ -984,8 +985,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                 broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTED,
                         BluetoothProfile.STATE_CONNECTED);
             } else if (mPrevState != null) { // null is the default state before Disconnected
-                Log.e(TAG, "Connected: Illegal state transition from " + mPrevState.getName()
-                        + " to Connecting, mCurrentDevice=" + mCurrentDevice);
+                Log.e(TAG, "Disconnected: Illegal state transition from " + mPrevState.getName()
+                        + " to Disconnected, mCurrentDevice=" + mCurrentDevice);
             }
             mCurrentDevice = null;
         }
@@ -1086,7 +1087,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                         BluetoothProfile.STATE_DISCONNECTED);
             } else {
                 String prevStateName = mPrevState == null ? "null" : mPrevState.getName();
-                Log.e(TAG, "Connected: Illegal state transition from " + prevStateName
+                Log.e(TAG, "Connecting: Illegal state transition from " + prevStateName
                         + " to Connecting, mCurrentDevice=" + mCurrentDevice);
             }
         }
@@ -1241,7 +1242,7 @@ public class HeadsetClientStateMachine extends StateMachine {
             } else if (mPrevState != mAudioOn) {
                 String prevStateName = mPrevState == null ? "null" : mPrevState.getName();
                 Log.e(TAG, "Connected: Illegal state transition from " + prevStateName
-                        + " to Connecting, mCurrentDevice=" + mCurrentDevice);
+                        + " to Connected, mCurrentDevice=" + mCurrentDevice);
             }
             mService.updateBatteryLevel();
         }
@@ -1666,8 +1667,10 @@ public class HeadsetClientStateMachine extends StateMachine {
                         Log.d(TAG, "mAudioRouteAllowed=" + mAudioRouteAllowed);
                     }
                     if (!mAudioRouteAllowed) {
+                        Log.i(TAG, "Audio is not allowed! Disconnect SCO.");
                         sendMessage(HeadsetClientStateMachine.DISCONNECT_AUDIO);
-                        break;
+                        // Don't continue connecting!
+                        return;
                     }
 
                     // Audio state is split in two parts, the audio focus is maintained by the

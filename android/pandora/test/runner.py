@@ -72,6 +72,7 @@ def run_test(args):
   test_cmd = ['python3', args.test, '-c', args.config]
   if args.verbose:
     test_cmd.append('--verbose')
+  test_cmd.extend(args.mobly_args)
   p = subprocess.Popen(test_cmd)
   p.wait(timeout=args.timeout)
   p.terminate()
@@ -108,6 +109,7 @@ if __name__ == '__main__':
                       "--verbose",
                       action="store_true",
                       help="Set console logger level to DEBUG")
+  parser.add_argument("mobly_args", nargs='*')
   args = parser.parse_args()
   console_level = logging.DEBUG if args.verbose else logging.INFO
   logging.basicConfig(level=console_level)

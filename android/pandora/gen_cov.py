@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+from datetime import datetime
 import os
 from pathlib import Path
 import shutil
@@ -8,8 +9,16 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
+JAVA_UNIT_TESTS = 'test/mts/tools/mts-tradefed/res/config/mts-bluetooth-tests-list-shard-01.xml'
+NATIVE_UNIT_TESTS = 'test/mts/tools/mts-tradefed/res/config/mts-bluetooth-tests-list-shard-02.xml'
+DO_NOT_RETRY_TESTS = {
+  'CtsBluetoothTestCases',
+  'GoogleBluetoothInstrumentationTests',
+}
+MAX_TRIES = 3
 
-def run_pts_bot():
+
+def run_pts_bot(logs_out):
   run_pts_bot_cmd = [
       # atest command with verbose mode.
       'atest',
@@ -24,63 +33,84 @@ def run_pts_bot():
       '--coverage-toolchain CLANG',
       '--coverage-flush',
   ]
-  subprocess.run(run_pts_bot_cmd).returncode
+  with open(f'{logs_out}/pts_bot.txt', 'w') as f:
+    subprocess.run(run_pts_bot_cmd, stdout=f, stderr=subprocess.STDOUT)
 
 
-def run_unit_tests():
-
-  # Output logs directory
-  logs_out = Path('logs_bt_tests')
-  logs_out.mkdir(exist_ok=True)
-
-  mts_tests = []
+def list_unit_tests():
   android_build_top = os.getenv('ANDROID_BUILD_TOP')
-  mts_xml = ET.parse(
-      f'{android_build_top}/test/mts/tools/mts-tradefed/res/config/mts-bluetooth-tests-list.xml'
-  )
 
-  for child in mts_xml.getroot():
+  unit_tests = []
+  java_unit_xml = ET.parse(f'{android_build_top}/{JAVA_UNIT_TESTS}')
+  for child in java_unit_xml.getroot():
     value = child.attrib['value']
     if 'enable:true' in value:
       test = value.replace(':enable:true', '')
-      mts_tests.append(test)
+      unit_tests.append(test)
 
-  for test in mts_tests:
-    print(f'Test started: {test}')
+  native_unit_xml = ET.parse(f'{android_build_top}/{NATIVE_UNIT_TESTS}')
+  for child in native_unit_xml.getroot():
+    value = child.attrib['value']
+    if 'enable:true' in value:
+      test = value.replace(':enable:true', '')
+      unit_tests.append(test)
 
-    # Env variables necessary for native unit tests.
-    env = os.environ.copy()
-    env['CLANG_COVERAGE_CONTINUOUS_MODE'] = 'true'
-    env['CLANG_COVERAGE'] = 'true'
-    env['NATIVE_COVERAGE_PATHS'] = 'packages/modules/Bluetooth'
-    run_test_cmd = [
-        # atest command with verbose mode.
-        'atest',
-        '-d',
-        '-v',
-        test,
-        # Coverage tool chains and specify that coverage should be flush to the
-        # disk between each tests.
-        '--',
-        '--coverage',
-        '--coverage-toolchain JACOCO',
-        '--coverage-toolchain CLANG',
-        '--coverage-flush',
-        # Allows tests to use hidden APIs.
-        '--test-arg ',
-        'com.android.compatibility.testtype.LibcoreTest:hidden-api-checks:false',
-        '--test-arg ',
-        'com.android.tradefed.testtype.AndroidJUnitTest:hidden-api-checks:false',
-        '--test-arg ',
-        'com.android.tradefed.testtype.InstrumentationTest:hidden-api-checks:false',
-        '--skip-system-status-check ',
-        'com.android.tradefed.suite.checker.ShellStatusChecker',
-    ]
-    with open(f'{logs_out}/{test}.txt', 'w') as f:
+  return unit_tests
+
+
+def run_unit_test(test, logs_out):
+  print(f'Test started: {test}')
+
+  # Env variables necessary for native unit tests.
+  env = os.environ.copy()
+  env['CLANG_COVERAGE_CONTINUOUS_MODE'] = 'true'
+  env['CLANG_COVERAGE'] = 'true'
+  env['NATIVE_COVERAGE_PATHS'] = 'packages/modules/Bluetooth'
+  run_test_cmd = [
+      # atest command with verbose mode.
+      'atest',
+      '-d',
+      '-v',
+      test,
+      # Coverage tool chains and specify that coverage should be flush to the
+      # disk between each tests.
+      '--',
+      '--coverage',
+      '--coverage-toolchain JACOCO',
+      '--coverage-toolchain CLANG',
+      '--coverage-flush',
+      # Allows tests to use hidden APIs.
+      '--test-arg ',
+      'com.android.compatibility.testtype.LibcoreTest:hidden-api-checks:false',
+      '--test-arg ',
+      'com.android.tradefed.testtype.AndroidJUnitTest:hidden-api-checks:false',
+      '--test-arg ',
+      'com.android.tradefed.testtype.InstrumentationTest:hidden-api-checks:false',
+      '--skip-system-status-check ',
+      'com.android.tradefed.suite.checker.ShellStatusChecker',
+  ]
+
+  try_count = 1
+  while (try_count == 1 or test not in DO_NOT_RETRY_TESTS) and try_count <= MAX_TRIES:
+    with open(f'{logs_out}/{test}_{try_count}.txt', 'w') as f:
+      if try_count > 1: print(f'Retrying {test}: count = {try_count}')
       returncode = subprocess.run(
           run_test_cmd, env=env, stdout=f, stderr=subprocess.STDOUT).returncode
-      print(
-          f'Test ended [{"Success" if returncode == 0 else "Failed"}]: {test}')
+      if returncode == 0: break
+      try_count += 1
+
+  print(
+      f'Test ended [{"Success" if returncode == 0 else "Failed"}]: {test}')
+
+
+def pull_and_rename_trace_for_test(test, trace):
+  date = datetime.now().strftime("%Y%m%d")
+  temp_trace = Path('temp_trace')
+  subprocess.run(['adb', 'pull', '/data/misc/trace', temp_trace])
+  for child in temp_trace.iterdir():
+    child = child.rename(f'{child.parent}/{date}_{test}_{child.name}')
+    shutil.copy(child, trace)
+  shutil.rmtree(temp_trace, ignore_errors=True)
 
 
 def generate_java_coverage(bt_apex_name, trace_path, coverage_out):
@@ -106,43 +136,50 @@ def generate_java_coverage(bt_apex_name, trace_path, coverage_out):
 
   # From google3/configs/wireless/android/testing/atp/prod/mainline-engprod/templates/modules/bluetooth.gcl.
   framework_exclude_classes = [
+      # Exclude statically linked & jarjar'ed classes.
       '**/com/android/bluetooth/x/**/*.class',
-      '**/*Test$*.class',
+      # Exclude AIDL generated interfaces.
       '**/android/bluetooth/I*$Default.class',
       '**/android/bluetooth/**/I*$Default.class',
       '**/android/bluetooth/I*$Stub.class',
       '**/android/bluetooth/**/I*$Stub.class',
       '**/android/bluetooth/I*$Stub$Proxy.class',
       '**/android/bluetooth/**/I*$Stub$Proxy.class',
-      '**/com/android/internal/util/**/*.class',
-      '**/android/net/**/*.class',
+      # Exclude annotations.
+      '**/android/bluetooth/annotation/**/*.class',
   ]
   service_exclude_classes = [
-      '**/com/android/bluetooth/x/**/*.class',
-      '**/androidx/**/*.class',
-      '**/android/net/**/*.class',
+      # Exclude statically linked & jarjar'ed classes.
       '**/android/support/**/*.class',
+      '**/androidx/**/*.class',
+      '**/com/android/bluetooth/x/**/*.class',
+      '**/com/android/internal/**/*.class',
+      '**/com/google/**/*.class',
       '**/kotlin/**/*.class',
-      '**/*Test$*.class',
-      '**/com/android/internal/annotations/**/*.class',
-      '**/android/annotation/**/*.class',
-      '**/android/net/**/*.class',
+      '**/kotlinx/**/*.class',
+      '**/org/**/*.class',
   ]
   app_exclude_classes = [
-      '**/*Test$*.class',
-      '**/com/android/bluetooth/x/**/*.class',
-      '**/com/android/internal/annotations/**/*.class',
-      '**/com/android/internal/util/**/*.class',
-      '**/android/annotation/**/*.class',
+      # Exclude statically linked & jarjar'ed classes.
+      '**/android/hardware/**/*.class',
+      '**/android/hidl/**/*.class',
       '**/android/net/**/*.class',
-      '**/android/support/v4/**/*.class',
+      '**/android/support/**/*.class',
       '**/androidx/**/*.class',
-      '**/kotlin/**/*.class',
+      '**/com/android/bluetooth/x/**/*.class',
+      '**/com/android/internal/**/*.class',
+      '**/com/android/obex/**/*.class',
+      '**/com/android/vcard/**/*.class',
       '**/com/google/**/*.class',
+      '**/kotlin/**/*.class',
+      '**/kotlinx/**/*.class',
       '**/javax/**/*.class',
-      '**/android/hardware/**/*.class',  # Added
-      '**/android/hidl/**/*.class',  # Added
-      '**/com/android/bluetooth/**/BluetoothMetrics*.class',  # Added
+      '**/org/**/*.class',
+      # Exclude SIM Access Profile (SAP) which is being deprecated.
+      '**/com/android/bluetooth/sap/*.class',
+      # Added for local runs.
+      '**/com/android/bluetooth/**/BluetoothMetrics*.class',
+      '**/com/android/bluetooth/**/R*.class',
   ]
 
   # Merged ec files.
@@ -216,20 +253,32 @@ def generate_native_coverage(bt_apex_name, trace_path, coverage_out):
 
   # From google3/configs/wireless/android/testing/atp/prod/mainline-engprod/templates/modules/bluetooth.gcl.
   exclude_files = {
+      'android/',
+      # Exclude AIDLs definition and generated interfaces.
       'system/.*_aidl.*',
+      'system/binder/',
+      # Exclude tests.
       'system/.*_test.*',
       'system/.*_mock.*',
       'system/.*_unittest.*',
-      'system/binder/',
       'system/blueberry/',
+      'system/test/',
+      # Exclude config and doc.
       'system/build/',
       'system/conf/',
       'system/doc/',
-      'system/test/',
+      # Exclude (currently) unused GD code.
+      'system/gd/att/',
       'system/gd/l2cap/',
-      'system/gd/security/',
       'system/gd/neighbor/',
-      # 'android/', # Should not be excluded
+      'system/gd/rust/',
+      'system/gd/security/',
+      # Exclude legacy AVRCP implementation (to be removed, current AVRCP
+      # implementation is in packages/modules/Bluetooth/system/profile/avrcp)
+      'system/stack/avrc/',
+      # Exclude audio HIDL since AIDL is used instead today (in
+      # packages/modules/Bluetooth/system/audio_hal_interface/aidl)
+      'system/audio_hal_interface/hidl/',
   }
 
   # Merge profdata files.
@@ -298,25 +347,50 @@ if __name__ == '__main__':
       generate_native_coverage(args.apex_name, trace_path, coverage_out)
 
   else:
-    # Compute Pandora coverage.
-    run_pts_bot()
+
+    # Output logs directory
+    logs_out = Path('logs_bt_tests')
+    logs_out.mkdir(exist_ok=True)
+
+    # Compute Pandora tests coverage
     coverage_out_pandora = Path(f'{coverage_out}/pandora')
     coverage_out_pandora.mkdir()
     trace_pandora = Path('trace_pandora')
     shutil.rmtree(trace_pandora, ignore_errors=True)
-    subprocess.run(['adb', 'pull', '/data/misc/trace', trace_pandora])
-    generate_java_coverage(args.apex_name, trace_pandora,
-                           coverage_out_pandora)
-    generate_native_coverage(args.apex_name, trace_pandora,
-                             coverage_out_pandora)
+    trace_pandora.mkdir()
+    subprocess.run(['adb', 'shell', 'rm', '/data/misc/trace/*'])
+    run_pts_bot(logs_out)
+    pull_and_rename_trace_for_test('pts_bot', trace_pandora)
 
-    # # Compute all coverage.
-    run_unit_tests()
+    generate_java_coverage(args.apex_name, trace_pandora, coverage_out_pandora)
+    generate_native_coverage(args.apex_name, trace_pandora, coverage_out_pandora)
+
+    # Compute unit tests coverage
+    coverage_out_unit = Path(f'{coverage_out}/unit')
+    coverage_out_unit.mkdir()
+    trace_unit = Path('trace_unit')
+    shutil.rmtree(trace_unit, ignore_errors=True)
+    trace_unit.mkdir()
+
+    unit_tests = list_unit_tests()
+    for test in unit_tests:
+      subprocess.run(['adb', 'shell', 'rm', '/data/misc/trace/*'])
+      run_unit_test(test, logs_out)
+      pull_and_rename_trace_for_test(test, trace_unit)
+
+    generate_java_coverage(args.apex_name, trace_unit, coverage_out_unit)
+    generate_native_coverage(args.apex_name, trace_unit, coverage_out_unit)
+
+    # Compute all tests coverage
     coverage_out_mainline = Path(f'{coverage_out}/mainline')
     coverage_out_mainline.mkdir()
-    trace_all = Path('trace_all')
-    shutil.rmtree(trace_all, ignore_errors=True)
-    subprocess.run(['adb', 'pull', '/data/misc/trace', trace_all])
-    generate_java_coverage(args.apex_name, trace_all, coverage_out_mainline)
-    generate_native_coverage(args.apex_name, trace_all,
-                             coverage_out_mainline)
+    trace_mainline = Path('trace_mainline')
+    shutil.rmtree(trace_mainline, ignore_errors=True)
+    trace_mainline.mkdir()
+    for child in trace_pandora.iterdir():
+      shutil.copy(child, trace_mainline)
+    for child in trace_unit.iterdir():
+      shutil.copy(child, trace_mainline)
+
+    generate_java_coverage(args.apex_name, trace_mainline, coverage_out_mainline)
+    generate_native_coverage(args.apex_name, trace_mainline, coverage_out_mainline)

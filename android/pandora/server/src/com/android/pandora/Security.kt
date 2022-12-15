@@ -20,11 +20,10 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.ACTION_PAIRING_REQUEST
 import android.bluetooth.BluetoothDevice.BOND_BONDED
+import android.bluetooth.BluetoothDevice.BOND_NONE
 import android.bluetooth.BluetoothDevice.DEVICE_TYPE_CLASSIC
-import android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL
 import android.bluetooth.BluetoothDevice.DEVICE_TYPE_LE
 import android.bluetooth.BluetoothDevice.EXTRA_PAIRING_VARIANT
-import android.bluetooth.BluetoothDevice.TRANSPORT_AUTO
 import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
@@ -34,10 +33,10 @@ import android.content.IntentFilter
 import android.util.Log
 import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
+import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -49,6 +48,14 @@ import kotlinx.coroutines.flow.shareIn
 import pandora.HostProto.*
 import pandora.SecurityGrpc.SecurityImplBase
 import pandora.SecurityProto.*
+import pandora.SecurityProto.LESecurityLevel.LE_LEVEL1
+import pandora.SecurityProto.LESecurityLevel.LE_LEVEL2
+import pandora.SecurityProto.LESecurityLevel.LE_LEVEL3
+import pandora.SecurityProto.LESecurityLevel.LE_LEVEL4
+import pandora.SecurityProto.SecurityLevel.LEVEL0
+import pandora.SecurityProto.SecurityLevel.LEVEL1
+import pandora.SecurityProto.SecurityLevel.LEVEL2
+import pandora.SecurityProto.SecurityLevel.LEVEL3
 
 private const val TAG = "PandoraSecurity"
 
@@ -60,6 +67,8 @@ class Security(private val context: Context) : SecurityImplBase() {
 
   private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
   private val bluetoothAdapter = bluetoothManager.adapter
+
+  var manuallyConfirm = false
 
   init {
     val intentFilter = IntentFilter()
@@ -73,52 +82,64 @@ class Security(private val context: Context) : SecurityImplBase() {
     globalScope.cancel()
   }
 
-  override fun pair(request: PairRequest, responseObserver: StreamObserver<Empty>) {
+  override fun secure(request: SecureRequest, responseObserver: StreamObserver<SecureResponse>) {
     grpcUnary(globalScope, responseObserver) {
       val bluetoothDevice = request.connection.toBluetoothDevice(bluetoothAdapter)
-      Log.i(
-        TAG,
-        "pair: ${bluetoothDevice.address} (current bond state: ${bluetoothDevice.bondState})"
-      )
-      bluetoothDevice.createBond(
-        when (request.connection.transport!!) {
-          Transport.TRANSPORT_LE -> TRANSPORT_LE
-          Transport.TRANSPORT_BREDR -> TRANSPORT_BREDR
-          Transport.UNRECOGNIZED -> TRANSPORT_AUTO
+      val transport = request.connection.transport
+      Log.i(TAG, "secure: $bluetoothDevice transport: $transport")
+      var reached =
+        when (transport) {
+          TRANSPORT_LE -> {
+            check(request.getLevelCase() == SecureRequest.LevelCase.LE);
+            val level = request.le
+            if (level == LE_LEVEL1) true
+            if (level == LE_LEVEL4) throw Status.UNKNOWN.asException()
+            false
+          }
+          TRANSPORT_BREDR -> {
+            check(request.getLevelCase() == SecureRequest.LevelCase.CLASSIC)
+            val level = request.classic
+            if (level == LEVEL0) true
+            if (level >= LEVEL3) throw Status.UNKNOWN.asException()
+            false
+          }
+          else -> throw Status.UNKNOWN.asException()
         }
-      )
-      Empty.getDefaultInstance()
-    }
-  }
-
-  override fun deletePairing(
-    request: DeletePairingRequest,
-    responseObserver: StreamObserver<DeletePairingResponse>
-  ) {
-    grpcUnary(globalScope, responseObserver) {
-      val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
-      Log.i(TAG, "DeletePairing: device=$bluetoothDevice")
-
-      val unbonded =
-        globalScope.async {
+      if (!reached) {
+        bluetoothDevice.createBond(transport)
+        val bondState =
           flow
             .filter { it.action == BluetoothDevice.ACTION_BOND_STATE_CHANGED }
             .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
-            .filter {
-              it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) ==
-                BluetoothDevice.BOND_NONE
-            }
+            .map { it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) }
+            .filter { it == BOND_BONDED || it == BOND_NONE }
             .first()
-        }
-
-      if (bluetoothDevice.removeBond()) {
-        Log.i(TAG, "DeletePairing: device=$bluetoothDevice - wait BOND_NONE intent")
-        unbonded.await()
-      } else {
-        Log.i(TAG, "DeletePairing: device=$bluetoothDevice - Already unpaired")
-        unbonded.cancel()
+        val isEncrypted = bluetoothDevice.isEncrypted()
+        reached =
+          when (transport) {
+            TRANSPORT_LE -> {
+              val level = request.le
+              when (level) {
+                LE_LEVEL2 -> isEncrypted
+                LE_LEVEL3 -> isEncrypted && bondState == BOND_BONDED
+                else -> throw Status.UNKNOWN.asException()
+              }
+            }
+            TRANSPORT_BREDR -> {
+              val level = request.classic
+              when (level) {
+                LEVEL1 -> !isEncrypted || bondState == BOND_BONDED
+                LEVEL2 -> isEncrypted && bondState == BOND_BONDED
+                else -> throw Status.UNKNOWN.asException()
+              }
+            }
+            else -> throw Status.UNKNOWN.asException()
+          }
       }
-      DeletePairingResponse.getDefaultInstance()
+      val secureResponseBuilder = SecureResponse.newBuilder()
+      if (reached) secureResponseBuilder.setSuccess(Empty.getDefaultInstance())
+      else secureResponseBuilder.setNotReached(Empty.getDefaultInstance())
+      secureResponseBuilder.build()
     }
   }
 
@@ -127,6 +148,7 @@ class Security(private val context: Context) : SecurityImplBase() {
   ): StreamObserver<PairingEventAnswer> =
     grpcBidirectionalStream(globalScope, responseObserver) {
       Log.i(TAG, "OnPairing: Starting stream")
+      manuallyConfirm = true
       it
         .map { answer ->
           Log.i(
@@ -150,8 +172,7 @@ class Security(private val context: Context) : SecurityImplBase() {
           val device = intent.getBluetoothDeviceExtra()
           val variant = intent.getIntExtra(EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR)
           Log.i(TAG, "OnPairing: Handling PairingEvent ${variant} for device ${device.address}")
-          val eventBuilder =
-            PairingEvent.newBuilder().setAddress(device.toByteString())
+          val eventBuilder = PairingEvent.newBuilder().setAddress(device.toByteString())
           when (variant) {
             // SSP / LE Just Works
             BluetoothDevice.PAIRING_VARIANT_CONSENT ->
@@ -177,7 +198,10 @@ class Security(private val context: Context) : SecurityImplBase() {
               when (device.type) {
                 DEVICE_TYPE_CLASSIC -> eventBuilder.pinCodeRequest = Empty.getDefaultInstance()
                 DEVICE_TYPE_LE -> eventBuilder.passkeyEntryRequest = Empty.getDefaultInstance()
-                else -> error("cannot determine pairing variant, since transport is unknown")
+                else ->
+                  error(
+                    "cannot determine pairing variant, since transport is unknown: ${device.type}"
+                  )
               }
             BluetoothDevice.PAIRING_VARIANT_PIN_16_DIGITS ->
               eventBuilder.pinCodeRequest = Empty.getDefaultInstance()

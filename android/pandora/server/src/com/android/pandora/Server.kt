@@ -38,20 +38,26 @@ class Server(context: Context) {
   private var hid: Hid
   private var l2cap: L2cap
   private var mediaplayer: MediaPlayer
+  private var pbap: Pbap
+  private var rfcomm: Rfcomm
   private var security: Security
+  private var securityStorage: SecurityStorage
   private var androidInternal: AndroidInternal
   private var grpcServer: GrpcServer
 
   init {
-    host = Host(context, this)
+    security = Security(context)
+    host = Host(context, security, this)
     avrcp = Avrcp(context)
     gatt = Gatt(context)
     hfp = Hfp(context)
     hid = Hid(context)
     l2cap = L2cap(context)
     mediaplayer = MediaPlayer(context)
-    security = Security(context)
-    androidInternal = AndroidInternal()
+    pbap = Pbap(context)
+    rfcomm = Rfcomm(context)
+    securityStorage = SecurityStorage(context)
+    androidInternal = AndroidInternal(context)
 
     val grpcServerBuilder =
       NettyServerBuilder.forPort(GRPC_PORT)
@@ -62,7 +68,10 @@ class Server(context: Context) {
         .addService(hid)
         .addService(l2cap)
         .addService(mediaplayer)
+        .addService(pbap)
+        .addService(rfcomm)
         .addService(security)
+        .addService(securityStorage)
         .addService(androidInternal)
 
     val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)!!.adapter
@@ -96,7 +105,10 @@ class Server(context: Context) {
     hid.deinit()
     l2cap.deinit()
     mediaplayer.deinit()
+    pbap.deinit()
+    rfcomm.deinit()
     security.deinit()
+    securityStorage.deinit()
     androidInternal.deinit()
   }
 }

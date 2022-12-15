@@ -61,6 +61,8 @@ class AVRCPProxy(ProfileProxy):
         the IUT connects to PTS to establish pairing.
 
         """
+        # Simulate CSR timeout: b/259102046
+        time.sleep(2)
         self.connection = self.host.WaitConnection(address=pts_addr).connection
         if ("TG" in test and "TG/VLH" not in test) or "CT/VLH" in test:
             try:
@@ -742,5 +744,52 @@ class AVRCPProxy(ProfileProxy):
         """
 
         self.mediaplayer.SetLargeMetadata()
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_user_confirm_now_playing_list_updated_with_local(self, **kwargs):
+        """
+        Is the newly added media item listed below?
+
+        Media Element: Title2
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_user_action_queue_now_playing(self, **kwargs):
+        """
+        Take action to populate the now playing list with multiple items.  Then
+        make sure a track is playing and press 'OK'.
+
+        Note: If the
+        NOW_PLAYING_CONTENT_CHANGED notification has been registered, this
+        message will disappear when the notification changed is received.
+        """
+        self.mediaplayer.Play()
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_accept_get_folder_items_now_playing(self, **kwargs):
+        """
+        Take action to send a valid response to the [Get Folder Items] with the
+        scope <Now Playing> command sent by the PTS.
+        """
+        self.mediaplayer.Forward()
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_initiate_register_notification_changed_now_playing_content_changed(self, **kwargs):
+        """
+        Take action to trigger a [Register Notification, Changed] response for
+        <Now Playing Content Changed> to the PTS from the IUT.  This can be
+        accomplished by adding tracks to the Now Playing List on the IUT.
+        Description: Verify that the Implementation Under Test (IUT) can update
+        database by sending a valid Now Playing Changed Notification to the PTS.
+        """
+        self.mediaplayer.Play()
 
         return "OK"
