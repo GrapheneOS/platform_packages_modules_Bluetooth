@@ -174,7 +174,7 @@ void gatt_enc_cmpl_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
   }
 
   tGATT_CLCB* p_clcb = p_tcb->pending_enc_clcb.front();
-  p_tcb->pending_enc_clcb.pop();
+  p_tcb->pending_enc_clcb.pop_front();
 
   bool status = false;
   if (result == BTM_SUCCESS) {
@@ -188,11 +188,11 @@ void gatt_enc_cmpl_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
   gatt_sec_check_complete(status, p_clcb, p_tcb->sec_act);
 
   /* start all other pending operation in queue */
-  std::queue<tGATT_CLCB*> new_pending_clcbs;
+  std::deque<tGATT_CLCB*> new_pending_clcbs;
   while (!p_tcb->pending_enc_clcb.empty()) {
     tGATT_CLCB* p_clcb = p_tcb->pending_enc_clcb.front();
-    p_tcb->pending_enc_clcb.pop();
-    if (gatt_security_check_start(p_clcb)) new_pending_clcbs.push(p_clcb);
+    p_tcb->pending_enc_clcb.pop_front();
+    if (gatt_security_check_start(p_clcb)) new_pending_clcbs.push_back(p_clcb);
   }
   p_tcb->pending_enc_clcb = new_pending_clcbs;
 }
@@ -225,11 +225,12 @@ void gatt_notify_enc_cmpl(const RawAddress& bd_addr) {
   if (gatt_get_sec_act(p_tcb) == GATT_SEC_ENC_PENDING) {
     gatt_set_sec_act(p_tcb, GATT_SEC_NONE);
 
-    std::queue<tGATT_CLCB*> new_pending_clcbs;
+    std::deque<tGATT_CLCB*> new_pending_clcbs;
     while (!p_tcb->pending_enc_clcb.empty()) {
       tGATT_CLCB* p_clcb = p_tcb->pending_enc_clcb.front();
-      p_tcb->pending_enc_clcb.pop();
-      if (gatt_security_check_start(p_clcb)) new_pending_clcbs.push(p_clcb);
+      p_tcb->pending_enc_clcb.pop_front();
+      if (gatt_security_check_start(p_clcb))
+        new_pending_clcbs.push_back(p_clcb);
     }
     p_tcb->pending_enc_clcb = new_pending_clcbs;
   }
