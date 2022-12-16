@@ -35,6 +35,7 @@ import android.app.ActivityManager;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.Message;
@@ -90,6 +91,7 @@ public class ScanManagerTest {
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
     @Mock private AdapterService mAdapterService;
     @Mock private BluetoothAdapterProxy mBluetoothAdapterProxy;
+    @Mock private LocationManager mLocationManager;
     @Mock private GattObjectsFactory mFactory;
     @Mock private GattNativeInterface mNativeInterface;
     @Mock private ScanNativeInterface mScanNativeInterface;
@@ -109,6 +111,11 @@ public class ScanManagerTest {
                 .thenReturn(DEFAULT_NUM_OFFLOAD_SCAN_FILTER);
         when(mAdapterService.getOffloadedScanResultStorage())
                 .thenReturn(DEFAULT_BYTES_OFFLOAD_SCAN_RESULT_STORAGE);
+        when(mAdapterService.getSystemService(Context.LOCATION_SERVICE))
+                .thenReturn(mLocationManager);
+        when(mAdapterService.getSystemServiceName(LocationManager.class))
+                .thenReturn(Context.LOCATION_SERVICE);
+        doReturn(true).when(mLocationManager).isLocationEnabled();
 
         BluetoothAdapterProxy.setInstanceForTesting(mBluetoothAdapterProxy);
         // Needed to mock Native call/callback when hw offload scan filter is enabled
