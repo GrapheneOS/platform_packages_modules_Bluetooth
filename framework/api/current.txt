@@ -514,6 +514,7 @@ package android.bluetooth {
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public android.bluetooth.BluetoothGatt connectGatt(android.content.Context, boolean, android.bluetooth.BluetoothGattCallback, int);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public android.bluetooth.BluetoothGatt connectGatt(android.content.Context, boolean, android.bluetooth.BluetoothGattCallback, int, int);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public android.bluetooth.BluetoothGatt connectGatt(android.content.Context, boolean, android.bluetooth.BluetoothGattCallback, int, int, android.os.Handler);
+    method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public android.bluetooth.BluetoothGatt connectGatt(@NonNull android.content.Context, boolean, int, int, int, @Nullable android.os.Handler, @NonNull android.bluetooth.BluetoothGattCallback);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean createBond();
     method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public android.bluetooth.BluetoothSocket createInsecureL2capChannel(int) throws java.io.IOException;
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public android.bluetooth.BluetoothSocket createInsecureRfcommSocketToServiceRecord(java.util.UUID) throws java.io.IOException;
@@ -609,6 +610,7 @@ package android.bluetooth {
     method @Deprecated @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean writeDescriptor(android.bluetooth.BluetoothGattDescriptor);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int writeDescriptor(@NonNull android.bluetooth.BluetoothGattDescriptor, @NonNull byte[]);
     field public static final int CONNECTION_PRIORITY_BALANCED = 0; // 0x0
+    field public static final int CONNECTION_PRIORITY_CCC = 3; // 0x3
     field public static final int CONNECTION_PRIORITY_HIGH = 1; // 0x1
     field public static final int CONNECTION_PRIORITY_LOW_POWER = 2; // 0x2
     field public static final int GATT_CONNECTION_CONGESTED = 143; // 0x8f
@@ -638,6 +640,7 @@ package android.bluetooth {
     method public void onMtuChanged(android.bluetooth.BluetoothGatt, int, int);
     method public void onPhyRead(android.bluetooth.BluetoothGatt, int, int, int);
     method public void onPhyUpdate(android.bluetooth.BluetoothGatt, int, int, int);
+    method public void onPriorityChanged(@NonNull android.bluetooth.BluetoothGatt, int);
     method public void onReadRemoteRssi(android.bluetooth.BluetoothGatt, int, int);
     method public void onReliableWriteCompleted(android.bluetooth.BluetoothGatt, int);
     method public void onServiceChanged(@NonNull android.bluetooth.BluetoothGatt);
@@ -751,6 +754,7 @@ package android.bluetooth {
     method public void onNotificationSent(android.bluetooth.BluetoothDevice, int);
     method public void onPhyRead(android.bluetooth.BluetoothDevice, int, int, int);
     method public void onPhyUpdate(android.bluetooth.BluetoothDevice, int, int, int);
+    method public void onPriorityChanged(@NonNull android.bluetooth.BluetoothDevice, int);
     method public void onServiceAdded(int, android.bluetooth.BluetoothGattService);
   }
 
