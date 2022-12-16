@@ -40,9 +40,6 @@ class TestHciLayer : public HciLayer {
       std::unique_ptr<CommandBuilder> command,
       common::ContextualOnceCallback<void(CommandCompleteView)> on_complete) override;
 
-  // Set command future for 'num_command' commands are expected
-  void SetCommandFuture(uint16_t num_command);
-
   CommandView GetCommand();
 
   void RegisterEventHandler(EventCode event_code, common::ContextualCallback<void(EventView)> event_handler) override;
@@ -62,23 +59,35 @@ class TestHciLayer : public HciLayer {
 
   void CommandStatusCallback(EventView event);
 
-  void InitEmptyCommand();
-
  protected:
   void ListDependencies(ModuleList* list) const override;
   void Start() override;
   void Stop() override;
 
  private:
-  std::map<EventCode, common::ContextualCallback<void(EventView)>> registered_events_;
-  std::map<SubeventCode, common::ContextualCallback<void(LeMetaEventView)>> registered_le_events_;
+  void InitEmptyCommand();
+
+  // Handler-only state. Mutexes are not needed when accessing these fields.
   std::list<common::ContextualOnceCallback<void(CommandCompleteView)>> command_complete_callbacks;
   std::list<common::ContextualOnceCallback<void(CommandStatusView)>> command_status_callbacks;
+  std::map<EventCode, common::ContextualCallback<void(EventView)>> registered_events_;
+  std::map<SubeventCode, common::ContextualCallback<void(LeMetaEventView)>> registered_le_events_;
+
+  // Most operations must acquire this mutex before manipulating shared state. The ONLY exception is blocking on a
+  // promise, IF your thread is the only one mutating it. Note that SETTING a promise REQUIRES a lock, since another
+  // thread may replace the promise while you are doing so.
+  mutable std::mutex mutex_{};
+
+  // Shared state between the test and stack threads
   std::queue<std::unique_ptr<CommandBuilder>> command_queue_;
-  std::unique_ptr<std::promise<void>> command_promise_;
-  std::unique_ptr<std::future<void>> command_future_;
-  mutable std::mutex mutex_;
-  uint16_t command_count_ = 0;
+
+  // We start with Consumed=Set, Command=Unset.
+  // When a command is enqueued, we set Command=set
+  // When a command is popped, we block until Command=Set, then (if the queue is now empty) we reset Command=Unset and
+  // set Consumed=Set. This way we emulate a blocking queue.
+  std::promise<void> command_promise_{};                              // Set when at least one command is in the queue
+  std::future<void> command_future_ = command_promise_.get_future();  // GetCommand() blocks until this is fulfilled
+
   CommandView empty_command_view_ =
       CommandView::Create(PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
 };
