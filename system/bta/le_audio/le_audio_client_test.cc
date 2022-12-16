@@ -3440,10 +3440,12 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchNoReconfigure) {
   LeAudioClient::Get()->GroupSetActive(group_id);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
-  // Start streaming with reconfiguration from default media stream setup
+  // Start streaming with new metadata, but use the existing configuration
   EXPECT_CALL(
       mock_state_machine_,
-      StartStream(_, le_audio::types::LeAudioContextType::NOTIFICATIONS, _, _))
+      StartStream(
+          _, types::LeAudioContextType::MEDIA,
+          types::AudioContexts(types::LeAudioContextType::NOTIFICATIONS), _))
       .Times(1);
 
   StartStreaming(AUDIO_USAGE_NOTIFICATION, AUDIO_CONTENT_TYPE_UNKNOWN,
@@ -3453,37 +3455,47 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchNoReconfigure) {
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
   SyncOnMainLoop();
 
-  // Do a content switch to ALERTS
+  // Do a metadata content switch to ALERTS but stay on MEDIA configuration
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Stop).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start).Times(0);
-  EXPECT_CALL(mock_state_machine_,
-              StartStream(_, le_audio::types::LeAudioContextType::ALERTS, _, _))
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(
+          _, le_audio::types::LeAudioContextType::MEDIA,
+          types::AudioContexts(le_audio::types::LeAudioContextType::ALERTS), _))
       .Times(1);
   UpdateMetadata(AUDIO_USAGE_ALARM, AUDIO_CONTENT_TYPE_UNKNOWN);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
-  // Do a content switch to EMERGENCY
+  // Do a metadata content switch to EMERGENCY but stay on MEDIA configuration
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Stop).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start).Times(0);
 
   EXPECT_CALL(
       mock_state_machine_,
-      StartStream(_, le_audio::types::LeAudioContextType::EMERGENCYALARM, _, _))
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA,
+                  types::AudioContexts(
+                      le_audio::types::LeAudioContextType::EMERGENCYALARM),
+                  _))
       .Times(1);
   UpdateMetadata(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
-  // Do a content switch to INSTRUCTIONAL
+  // Do a metadata content switch to INSTRUCTIONAL but stay on MEDIA
+  // configuration
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Stop).Times(0);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start).Times(0);
   EXPECT_CALL(
       mock_state_machine_,
-      StartStream(_, le_audio::types::LeAudioContextType::INSTRUCTIONAL, _, _))
+      StartStream(_, le_audio::types::LeAudioContextType::MEDIA,
+                  types::AudioContexts(
+                      le_audio::types::LeAudioContextType::INSTRUCTIONAL),
+                  _))
       .Times(1);
   UpdateMetadata(AUDIO_USAGE_ASSISTANCE_NAVIGATION_GUIDANCE,
                  AUDIO_CONTENT_TYPE_UNKNOWN);
