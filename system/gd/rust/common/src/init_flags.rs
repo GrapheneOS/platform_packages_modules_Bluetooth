@@ -220,6 +220,7 @@ init_flags!(
         irk_rotation,
         logging_debug_enabled_for_all,
         pass_phy_update_callback = true,
+        queue_l2cap_coc_while_encrypting = true,
         sdp_serialization = true,
         sdp_skip_rnr_if_known = true,
         trigger_advertising_callbacks_on_first_resume_after_pause = true,

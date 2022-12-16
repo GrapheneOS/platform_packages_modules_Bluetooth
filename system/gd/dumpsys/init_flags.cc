@@ -50,6 +50,7 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   // is_debug_logging_enabled_for_tag -- skipped in dumpsys
   builder.add_logging_debug_enabled_for_all_is_enabled(initFlags::logging_debug_enabled_for_all_is_enabled());
   builder.add_pass_phy_update_callback_is_enabled(initFlags::pass_phy_update_callback_is_enabled());
+  builder.add_queue_l2cap_coc_while_encrypting_is_enabled(initFlags::queue_l2cap_coc_while_encrypting_is_enabled());
   builder.add_sdp_serialization_is_enabled(initFlags::sdp_serialization_is_enabled());
   builder.add_sdp_skip_rnr_if_known_is_enabled(initFlags::sdp_skip_rnr_if_known_is_enabled());
   builder.add_trigger_advertising_callbacks_on_first_resume_after_pause_is_enabled(
