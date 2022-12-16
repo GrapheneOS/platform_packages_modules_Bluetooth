@@ -207,10 +207,10 @@ tGATT_IF GATT_Register(const Uuid& app_uuid128, std::string name,
                                                    eatt_support);
 }
 void GATT_SetIdleTimeout(const RawAddress& bd_addr, uint16_t idle_tout,
-                         tBT_TRANSPORT transport) {
+                         tBT_TRANSPORT transport, bool is_active) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_gatt_api::GATT_SetIdleTimeout(bd_addr, idle_tout,
-                                                  transport);
+  test::mock::stack_gatt_api::GATT_SetIdleTimeout(bd_addr, idle_tout, transport,
+                                                  is_active);
 }
 void GATT_StartIf(tGATT_IF gatt_if) {
   mock_function_count_map[__func__]++;

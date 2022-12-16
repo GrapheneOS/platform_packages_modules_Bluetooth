@@ -114,10 +114,11 @@ void gatt_init(void) {
   fixed_reg.pL2CA_FixedConn_Cb = gatt_le_connect_cback;
   fixed_reg.pL2CA_FixedData_Cb = gatt_le_data_ind;
   fixed_reg.pL2CA_FixedCong_Cb = gatt_le_cong_cback; /* congestion callback */
-  fixed_reg.default_idle_tout =
-      bluetooth::common::init_flags::finite_att_timeout_is_enabled()
-          ? 2 /* We allow 2s for GATT clients to connect once the link is up */
-          : L2CAP_NO_IDLE_TIMEOUT;
+
+  // the GATT timeout is updated after a connection
+  // is established, when we know whether any
+  // clients exist
+  fixed_reg.default_idle_tout = L2CAP_NO_IDLE_TIMEOUT;
 
   L2CA_RegisterFixedChannel(L2CAP_ATT_CID, &fixed_reg);
 
@@ -376,7 +377,7 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB* p_tcb,
                p_tcb->peer_bda.ToString().c_str());
       /* acl link is connected disable the idle timeout */
       GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_NO_IDLE_TIMEOUT,
-                          p_tcb->transport);
+                          p_tcb->transport, true /* is_active */);
     } else {
       LOG_INFO("invalid handle %d or dynamic CID %d", is_valid_handle,
                p_tcb->att_lcid);
@@ -395,7 +396,7 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB* p_tcb,
             "%d seconds",
             GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP);
         GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP,
-                            p_tcb->transport);
+                            p_tcb->transport, false /* is_active */);
       } else {
         // disconnect the dynamic channel
         LOG_INFO("disconnect GATT dynamic channel");
@@ -819,11 +820,18 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
   /* Remove the direct connection */
   connection_manager::on_connection_complete(p_tcb->peer_bda);
 
-  if (!p_tcb->app_hold_link.empty() && p_tcb->att_lcid == L2CAP_ATT_CID) {
-    /* disable idle timeout if one or more clients are holding the link disable
-     * the idle timer */
-    GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_NO_IDLE_TIMEOUT,
-                        p_tcb->transport);
+  if (p_tcb->att_lcid == L2CAP_ATT_CID) {
+    if (!p_tcb->app_hold_link.empty()) {
+      /* disable idle timeout if one or more clients are holding the link
+       * disable the idle timer */
+      GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_NO_IDLE_TIMEOUT,
+                          p_tcb->transport, true /* is_active */);
+    } else {
+      if (bluetooth::common::init_flags::finite_att_timeout_is_enabled()) {
+        GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP,
+                            p_tcb->transport, false /* is_active */);
+      }
+    }
   }
 }
 
