@@ -641,6 +641,7 @@ cc_test {
         "le_audio/metrics_collector_linux.cc",
         "le_audio/mock_iso_manager.cc",
         "test/common/mock_controller.cc",
+        "test/common/mock_csis_client.cc",
         "le_audio/state_machine.cc",
         "le_audio/state_machine_test.cc",
         "le_audio/storage_helper.cc",
