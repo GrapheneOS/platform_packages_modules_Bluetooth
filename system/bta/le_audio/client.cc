@@ -748,14 +748,15 @@ class LeAudioClientImpl : public LeAudioClient {
           /* Highest priority first */
           LeAudioContextType::CONVERSATIONAL,
           LeAudioContextType::RINGTONE,
-          LeAudioContextType::GAME,
           LeAudioContextType::LIVE,
           LeAudioContextType::VOICEASSISTANTS,
+          LeAudioContextType::GAME,
           LeAudioContextType::MEDIA,
           LeAudioContextType::EMERGENCYALARM,
           LeAudioContextType::ALERTS,
           LeAudioContextType::INSTRUCTIONAL,
           LeAudioContextType::NOTIFICATIONS,
+          LeAudioContextType::SOUNDEFFECTS,
       };
       for (auto ct : context_priority_list) {
         if (metadata_context_type.test(ct)) {
@@ -3519,14 +3520,15 @@ class LeAudioClientImpl : public LeAudioClient {
            * call volume slider while not in a call.
            * LeAudioContextType::RINGTONE,
            */
-          LeAudioContextType::GAME,
           LeAudioContextType::LIVE,
           LeAudioContextType::VOICEASSISTANTS,
+          LeAudioContextType::GAME,
           LeAudioContextType::MEDIA,
           LeAudioContextType::EMERGENCYALARM,
           LeAudioContextType::ALERTS,
           LeAudioContextType::INSTRUCTIONAL,
           LeAudioContextType::NOTIFICATIONS,
+          LeAudioContextType::SOUNDEFFECTS,
       };
       for (auto ct : context_priority_list) {
         if (available_remote_contexts.test(ct)) {
