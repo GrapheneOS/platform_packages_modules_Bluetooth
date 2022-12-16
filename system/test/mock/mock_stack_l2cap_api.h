@@ -421,6 +421,15 @@ struct L2CA_SetLeGattTimeout {
   };
 };
 extern struct L2CA_SetLeGattTimeout L2CA_SetLeGattTimeout;
+// Name: L2CA_MarkLeLinkAsActive
+// Params: const RawAddress& rem_bda
+// Returns: bool
+struct L2CA_MarkLeLinkAsActive {
+  std::function<bool(const RawAddress& rem_bda)> body{
+      [](const RawAddress& rem_bda) { return false; }};
+  bool operator()(const RawAddress& rem_bda) { return body(rem_bda); };
+};
+extern struct L2CA_MarkLeLinkAsActive L2CA_MarkLeLinkAsActive;
 // Name: L2CA_DataWrite
 // Params: uint16_t cid, BT_HDR* p_data
 // Returns: uint8_t
