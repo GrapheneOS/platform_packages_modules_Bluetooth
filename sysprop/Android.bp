@@ -6,6 +6,7 @@ sysprop_library {
     name: "com.android.sysprop.bluetooth",
     host_supported: true,
     srcs: [
+        "a2dp.sysprop",
         "avrcp.sysprop",
         "bta.sysprop",
         "hfp.sysprop",
