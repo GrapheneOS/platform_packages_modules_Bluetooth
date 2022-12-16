@@ -166,11 +166,11 @@ public class ScanManager {
         mSuspendedScanClients =
                 Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
         mService = service;
+        mAdapterService = adapterService;
         mScanNative = new ScanNative();
         mDm = mService.getSystemService(DisplayManager.class);
         mActivityManager = mService.getSystemService(ActivityManager.class);
-        mLocationManager = mService.getSystemService(LocationManager.class);
-        mAdapterService = adapterService;
+        mLocationManager = mAdapterService.getSystemService(LocationManager.class);
         mBluetoothAdapterProxy = bluetoothAdapterProxy;
         mIsConnecting = false;
 
