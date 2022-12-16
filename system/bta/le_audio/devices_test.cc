@@ -24,6 +24,8 @@
 #include "le_audio_set_configuration_provider.h"
 #include "le_audio_types.h"
 #include "mock_controller.h"
+#include "mock_csis_client.h"
+#include "os/log.h"
 #include "stack/btm/btm_int_types.h"
 
 tACL_CONN* btm_bda_to_acl(const RawAddress& bda, tBT_TRANSPORT transport) {
@@ -42,6 +44,9 @@ using ::le_audio::LeAudioDevices;
 using ::le_audio::types::AseState;
 using ::le_audio::types::AudioContexts;
 using ::le_audio::types::LeAudioContextType;
+using testing::_;
+using testing::Invoke;
+using testing::Return;
 using testing::Test;
 
 RawAddress GetTestAddress(int index) {
@@ -399,12 +404,23 @@ class LeAudioAseConfigurationTest : public Test {
     bluetooth::manager::SetMockBtmInterface(&btm_interface_);
     controller::SetMockControllerInterface(&controller_interface_);
     ::le_audio::AudioSetConfigurationProvider::Initialize();
+    MockCsisClient::SetMockInstanceForTesting(&mock_csis_client_module_);
+    ON_CALL(mock_csis_client_module_, Get())
+        .WillByDefault(Return(&mock_csis_client_module_));
+    ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+        .WillByDefault(Return(true));
+    ON_CALL(mock_csis_client_module_, GetDeviceList(_))
+        .WillByDefault(Invoke([this](int group_id) { return addresses_; }));
+    ON_CALL(mock_csis_client_module_, GetDesiredSize(_))
+        .WillByDefault(
+            Invoke([this](int group_id) { return (int)(addresses_.size()); }));
   }
 
   void TearDown() override {
     controller::SetMockControllerInterface(nullptr);
     bluetooth::manager::SetMockBtmInterface(nullptr);
     devices_.clear();
+    addresses_.clear();
     delete group_;
     ::le_audio::AudioSetConfigurationProvider::Cleanup();
   }
@@ -416,6 +432,10 @@ class LeAudioAseConfigurationTest : public Test {
     auto device = (std::make_shared<LeAudioDevice>(
         GetTestAddress(index), DeviceConnectState::DISCONNECTED));
     devices_.push_back(device);
+    LOG_INFO(" addresses %d", (int)(addresses_.size()));
+    addresses_.push_back(device->address_);
+    LOG_INFO(" Addresses %d", (int)(addresses_.size()));
+
     group_->AddNode(device);
 
     int ase_id = 1;
@@ -760,9 +780,11 @@ class LeAudioAseConfigurationTest : public Test {
 
   const int group_id_ = 6;
   std::vector<std::shared_ptr<LeAudioDevice>> devices_;
+  std::vector<RawAddress> addresses_;
   LeAudioDeviceGroup* group_ = nullptr;
   bluetooth::manager::MockBtmInterface btm_interface_;
   controller::MockControllerInterface controller_interface_;
+  MockCsisClient mock_csis_client_module_;
 };
 
 TEST_F(LeAudioAseConfigurationTest, test_mono_speaker_ringtone) {
