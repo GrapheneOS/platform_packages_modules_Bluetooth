@@ -129,12 +129,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"ከ4 ጊባ በላይ የሆኑ ፋይሎች ሊዛወሩ አይችሉም"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ከብሉቱዝ ጋር ተገናኝ"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ብሉቱዝ በአውሮፕላን ሁነታ ላይ በርቷል"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"ብሉቱዝን አብርተው ካቆዩ በቀጣይ ጊዜ በአውሮፕላን ሁነታ ውስጥ ሲሆኑ ስልክዎ እሱን አብርቶ ማቆየቱን ያስታውሳል"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ብሉቱዝ በርቶ ይቆያል"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"ስልክዎ ብሉቱዝን በአውሮፕላን ሁነታ ውስጥ አብርቶ ማቆየትን ያስታውሳል። በርቶ እንዲቆይ ካልፈለጉ ብሉቱዝን ያጥፉት።"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi እና ብሉቱዝ በርተው ይቆያሉ"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"ስልክዎ Wi-Fiን እና ብሉቱዝን በአውሮፕላን ሁነታ ውስጥ አብርቶ ማቆየትን ያስታውሳል። በርተው እንዲቆዩ ካልፈለጉ Wi-Fi እና ብሉቱዝን ያጥፏቸው።"</string>
 </resources>
