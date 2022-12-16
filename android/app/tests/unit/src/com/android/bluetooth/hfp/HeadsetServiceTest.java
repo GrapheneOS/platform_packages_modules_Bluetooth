@@ -984,6 +984,13 @@ public class HeadsetServiceTest {
                 .contains(deviceRegular));
     }
 
+    @Test
+    public void testDump_doesNotCrash() {
+        StringBuilder sb = new StringBuilder();
+
+        mHeadsetService.dump(sb);
+    }
+
     private void addConnectedDeviceHelper(BluetoothDevice device) {
         mCurrentDevice = device;
         when(mDatabaseManager.getProfileConnectionPolicy(any(BluetoothDevice.class),
