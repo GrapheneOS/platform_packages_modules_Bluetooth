@@ -1558,6 +1558,16 @@ bool L2CA_SetLeGattTimeout(const RawAddress& rem_bda, uint16_t idle_tout) {
   return true;
 }
 
+bool L2CA_MarkLeLinkAsActive(const RawAddress& rem_bda) {
+  tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, BT_TRANSPORT_LE);
+  if (p_lcb == NULL) {
+    return false;
+  }
+  LOG(INFO) << __func__ << "setting link to " << rem_bda << " as active";
+  p_lcb->with_active_local_clients = true;
+  return true;
+}
+
 /*******************************************************************************
  *
  * Function         L2CA_DataWrite
