@@ -23,6 +23,7 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.BasicShellCommandHandler;
 
 import java.io.PrintWriter;
@@ -33,12 +34,14 @@ class BluetoothShellCommand extends BasicShellCommandHandler {
     private final BluetoothManagerService mManagerService;
     private final Context mContext;
 
-    private final BluetoothCommand[] mBluetoothCommands = {
+    @VisibleForTesting
+    final BluetoothCommand[] mBluetoothCommands = {
         new Enable(),
         new Disable(),
     };
 
-    private abstract class BluetoothCommand {
+    @VisibleForTesting
+    abstract class BluetoothCommand {
         abstract String getName();
         // require root permission by default, can be override in command implementation
         boolean isPrivileged() {
@@ -47,7 +50,8 @@ class BluetoothShellCommand extends BasicShellCommandHandler {
         abstract int exec(PrintWriter pw) throws RemoteException;
     }
 
-    private class Enable extends BluetoothCommand {
+    @VisibleForTesting
+    class Enable extends BluetoothCommand {
         @Override
         String getName() {
             return "enable";
@@ -63,7 +67,8 @@ class BluetoothShellCommand extends BasicShellCommandHandler {
         }
     }
 
-    private class Disable extends BluetoothCommand {
+    @VisibleForTesting
+    class Disable extends BluetoothCommand {
         @Override
         String getName() {
             return "disable";
