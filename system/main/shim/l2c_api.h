@@ -428,6 +428,8 @@ bool L2CA_EnableUpdateBleConnParams(const RawAddress& rem_bda, bool enable);
  ******************************************************************************/
 bool L2CA_SetLeGattTimeout(const RawAddress& rem_bda, uint16_t idle_tout);
 
+bool L2CA_MarkLeLinkAsActive(const RawAddress& rem_bda);
+
 bool L2CA_UpdateBleConnParams(const RawAddress& rem_bda, uint16_t min_int,
                               uint16_t max_int, uint16_t latency,
                               uint16_t timeout, uint16_t min_ce_len,
