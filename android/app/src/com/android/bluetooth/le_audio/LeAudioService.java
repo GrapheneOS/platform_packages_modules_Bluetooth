@@ -414,7 +414,8 @@ public class LeAudioService extends ProfileService {
         sLeAudioService = instance;
     }
 
-    private int getAudioDeviceGroupVolume(int groupId) {
+    @VisibleForTesting
+    int getAudioDeviceGroupVolume(int groupId) {
         if (mVolumeControlService == null) {
             mVolumeControlService = mServiceFactory.getVolumeControlService();
             if (mVolumeControlService == null) {
@@ -1229,7 +1230,8 @@ public class LeAudioService extends ProfileService {
         }
     }
 
-    private void handleGroupIdleDuringCall() {
+    @VisibleForTesting
+    void handleGroupIdleDuringCall() {
         if (mHfpHandoverDevice == null) {
             if (DBG) {
                 Log.d(TAG, "There is no HFP handover");
@@ -1640,7 +1642,8 @@ public class LeAudioService extends ProfileService {
         }
     }
 
-    private List<BluetoothDevice> getConnectedPeerDevices(int groupId) {
+    @VisibleForTesting
+    List<BluetoothDevice> getConnectedPeerDevices(int groupId) {
         List<BluetoothDevice> result = new ArrayList<>();
         for (BluetoothDevice peerDevice : getConnectedDevices()) {
             if (getGroupId(peerDevice) == groupId) {
@@ -1739,7 +1742,8 @@ public class LeAudioService extends ProfileService {
         }
     }
 
-    private synchronized boolean isSilentModeEnabled() {
+    @VisibleForTesting
+    synchronized boolean isSilentModeEnabled() {
         return mStoredRingerMode != AudioManager.RINGER_MODE_NORMAL;
     }
 
