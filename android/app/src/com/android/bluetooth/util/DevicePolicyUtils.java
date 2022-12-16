@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.util;
 
+import android.annotation.SuppressLint;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.net.Uri;
@@ -42,8 +43,13 @@ public final class DevicePolicyUtils {
         return true;
     }
 
-    // Now we support getBluetoothContactSharingDisabled() for managed profile only
+    /**
+     * Returns a URI to query all phones on the device. If a managed profile exists
+     * and the policy allows, it will be a URI that supports the managed profile.
+     */
     // TODO: Make primary profile can also support getBluetoothContactSharingDisabled()
+    // TODO(b/193460475): Android Lint handles change from SystemApi to public incorrectly
+    @SuppressLint("NewApi")
     public static Uri getEnterprisePhoneUri(Context context) {
         return isBluetoothWorkContactSharingDisabled(context) ? Phone.CONTENT_URI
                 : Phone.ENTERPRISE_CONTENT_URI;

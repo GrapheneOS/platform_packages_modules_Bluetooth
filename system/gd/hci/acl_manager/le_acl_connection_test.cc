@@ -182,13 +182,8 @@ class LeAclConnectionTest : public ::testing::Test {
   }
 
   void sync_handler() {
-    ASSERT(handler_ != nullptr);
-
-    auto promise = std::promise<void>();
-    auto future = promise.get_future();
-    handler_->BindOnceOn(&promise, &std::promise<void>::set_value).Invoke();
-    auto status = future.wait_for(2s);
-    ASSERT_EQ(status, std::future_status::ready);
+    ASSERT(thread_ != nullptr);
+    ASSERT_TRUE(thread_->GetReactor()->WaitForIdle(2s));
   }
 
   AddressWithType address_1 =
