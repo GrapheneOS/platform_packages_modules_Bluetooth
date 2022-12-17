@@ -32,6 +32,7 @@
 #include "le_audio_set_configuration_provider.h"
 #include "mock_codec_manager.h"
 #include "mock_controller.h"
+#include "mock_csis_client.h"
 #include "mock_iso_manager.h"
 #include "types/bt_transport.h"
 
@@ -53,6 +54,10 @@ std::map<std::string, int> mock_function_count_map;
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 
 void osi_property_set_bool(const char* key, bool value);
+static const char* test_flags[] = {
+    "INIT_logging_debug_enabled_for_all=true",
+    nullptr,
+};
 
 constexpr uint8_t media_ccid = 0xC0;
 constexpr auto media_context =
@@ -77,6 +82,8 @@ constexpr LeAudioContextType kContextTypeConversational =
     static_cast<LeAudioContextType>(0x0002);
 constexpr LeAudioContextType kContextTypeMedia =
     static_cast<LeAudioContextType>(0x0004);
+constexpr LeAudioContextType kContextTypeSoundEffects =
+    static_cast<LeAudioContextType>(0x0080);
 constexpr LeAudioContextType kContextTypeRingtone =
     static_cast<LeAudioContextType>(0x0200);
 
@@ -146,11 +153,6 @@ static RawAddress GetTestAddress(uint8_t index) {
   return {{0xC0, 0xDE, 0xC0, 0xDE, 0x00, index}};
 }
 
-static uint8_t ase_id_last_assigned;
-static uint8_t additional_ases = 0;
-static uint8_t channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel;
-static uint16_t sample_freq_ = codec_specific::kCapSamplingFrequency16000Hz;
-
 class MockLeAudioGroupStateMachineCallbacks
     : public LeAudioGroupStateMachine::Callbacks {
  public:
@@ -169,19 +171,35 @@ class MockLeAudioGroupStateMachineCallbacks
 
 class StateMachineTest : public Test {
  protected:
+  uint8_t ase_id_last_assigned = types::ase::kAseIdInvalid;
+  uint8_t additional_snk_ases = 0;
+  uint8_t additional_src_ases = 0;
+  uint8_t channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel;
+  uint16_t sample_freq_ = codec_specific::kCapSamplingFrequency16000Hz;
+
   void SetUp() override {
+    bluetooth::common::InitFlags::Load(test_flags);
     mock_function_count_map.clear();
     controller::SetMockControllerInterface(&mock_controller_);
     bluetooth::manager::SetMockBtmInterface(&btm_interface);
     gatt::SetMockBtaGattInterface(&gatt_interface);
     gatt::SetMockBtaGattQueue(&gatt_queue);
 
-    ase_id_last_assigned = types::ase::kAseIdInvalid;
-    additional_ases = 0;
     ::le_audio::AudioSetConfigurationProvider::Initialize();
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
 
     ContentControlIdKeeper::GetInstance()->Start();
+
+    MockCsisClient::SetMockInstanceForTesting(&mock_csis_client_module_);
+    ON_CALL(mock_csis_client_module_, Get())
+        .WillByDefault(Return(&mock_csis_client_module_));
+    ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+        .WillByDefault(Return(true));
+    ON_CALL(mock_csis_client_module_, GetDeviceList(_))
+        .WillByDefault(Invoke([this](int group_id) { return addresses_; }));
+    ON_CALL(mock_csis_client_module_, GetDesiredSize(_))
+        .WillByDefault(
+            Invoke([this](int group_id) { return (int)(addresses_.size()); }));
 
     // Support 2M Phy
     ON_CALL(mock_controller_, SupportsBle2mPhy()).WillByDefault(Return(true));
@@ -445,6 +463,7 @@ class StateMachineTest : public Test {
       ase_ctp_handlers[i] = nullptr;
 
     le_audio_devices_.clear();
+    addresses_.clear();
     cached_codec_configuration_map_.clear();
     cached_ase_to_cis_id_map_.clear();
     LeAudioGroupStateMachine::Cleanup();
@@ -492,6 +511,7 @@ class StateMachineTest : public Test {
     }
 
     le_audio_devices_.push_back(leAudioDevice);
+    addresses_.push_back(leAudioDevice->address_);
 
     return std::move(leAudioDevice);
   }
@@ -511,10 +531,9 @@ class StateMachineTest : public Test {
     return &(*group);
   }
 
-  static void InjectAseStateNotification(types::ase* ase, LeAudioDevice* device,
-                                         LeAudioDeviceGroup* group,
-                                         uint8_t new_state,
-                                         void* new_state_params) {
+  void InjectAseStateNotification(types::ase* ase, LeAudioDevice* device,
+                                  LeAudioDeviceGroup* group, uint8_t new_state,
+                                  void* new_state_params) {
     // Prepare additional params
     switch (new_state) {
       case ascs::kAseStateCodecConfigured: {
@@ -661,7 +680,7 @@ class StateMachineTest : public Test {
     });
   }
 
-  static void InjectInitialIdleNotification(LeAudioDeviceGroup* group) {
+  void InjectInitialIdleNotification(LeAudioDeviceGroup* group) {
     for (auto* device = group->GetFirstDevice(); device != nullptr;
          device = group->GetNextDevice(device)) {
       for (auto& ase : device->ases_) {
@@ -686,18 +705,18 @@ class StateMachineTest : public Test {
     uint8_t num_ase_src;
     switch (context_type) {
       case kContextTypeRingtone:
-        num_ase_snk = 1 + additional_ases;
-        num_ase_src = 0;
+        num_ase_snk = 1 + additional_snk_ases;
+        num_ase_src = 0 + additional_src_ases;
         break;
 
       case kContextTypeMedia:
-        num_ase_snk = 2 + additional_ases;
-        num_ase_src = 0;
+        num_ase_snk = 2 + additional_snk_ases;
+        num_ase_src = 0 + additional_src_ases;
         break;
 
       case kContextTypeConversational:
-        num_ase_snk = 1 + additional_ases;
-        num_ase_src = 1;
+        num_ase_snk = 1 + additional_snk_ases;
+        num_ase_src = 1 + additional_src_ases;
         break;
 
       default:
@@ -941,7 +960,7 @@ class StateMachineTest : public Test {
   void PrepareEnableHandler(LeAudioDeviceGroup* group, int verify_ase_count = 0,
                             bool inject_enabling = true) {
     ase_ctp_handlers[ascs::kAseCtpOpcodeEnable] =
-        [group, verify_ase_count, inject_enabling](
+        [group, verify_ase_count, inject_enabling, this](
             LeAudioDevice* device, std::vector<uint8_t> value,
             GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
@@ -989,9 +1008,9 @@ class StateMachineTest : public Test {
   void PrepareDisableHandler(LeAudioDeviceGroup* group,
                              int verify_ase_count = 0) {
     ase_ctp_handlers[ascs::kAseCtpOpcodeDisable] =
-        [group, verify_ase_count](LeAudioDevice* device,
-                                  std::vector<uint8_t> value,
-                                  GATT_WRITE_OP_CB cb, void* cb_data) {
+        [group, verify_ase_count, this](LeAudioDevice* device,
+                                        std::vector<uint8_t> value,
+                                        GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -1035,9 +1054,9 @@ class StateMachineTest : public Test {
   void PrepareReceiverStartReady(LeAudioDeviceGroup* group,
                                  int verify_ase_count = 0) {
     ase_ctp_handlers[ascs::kAseCtpOpcodeReceiverStartReady] =
-        [group, verify_ase_count](LeAudioDevice* device,
-                                  std::vector<uint8_t> value,
-                                  GATT_WRITE_OP_CB cb, void* cb_data) {
+        [group, verify_ase_count, this](LeAudioDevice* device,
+                                        std::vector<uint8_t> value,
+                                        GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -1073,9 +1092,9 @@ class StateMachineTest : public Test {
   void PrepareReceiverStopReady(LeAudioDeviceGroup* group,
                                 int verify_ase_count = 0) {
     ase_ctp_handlers[ascs::kAseCtpOpcodeReceiverStopReady] =
-        [group, verify_ase_count](LeAudioDevice* device,
-                                  std::vector<uint8_t> value,
-                                  GATT_WRITE_OP_CB cb, void* cb_data) {
+        [group, verify_ase_count, this](LeAudioDevice* device,
+                                        std::vector<uint8_t> value,
+                                        GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -1143,6 +1162,7 @@ class StateMachineTest : public Test {
         };
   }
 
+  MockCsisClient mock_csis_client_module_;
   NiceMock<controller::MockControllerInterface> mock_controller_;
   NiceMock<bluetooth::manager::MockBtmInterface> btm_interface;
   gatt::MockBtaGattInterface gatt_interface;
@@ -1163,6 +1183,7 @@ class StateMachineTest : public Test {
 
   MockLeAudioGroupStateMachineCallbacks mock_callbacks_;
   std::vector<std::shared_ptr<LeAudioDevice>> le_audio_devices_;
+  std::vector<RawAddress> addresses_;
   std::map<uint8_t, std::unique_ptr<LeAudioDeviceGroup>>
       le_audio_device_groups_;
   bool group_create_command_disallowed_ = false;
@@ -1179,6 +1200,9 @@ TEST_F(StateMachineTest, testCleanup) {
 }
 
 TEST_F(StateMachineTest, testConfigureCodecSingle) {
+  /* Device is banded headphones with 1x snk + 0x src ase
+   * (1xunidirectional CIS) with channel count 2 (for stereo
+   */
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 2;
   channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
@@ -1259,6 +1283,11 @@ TEST_F(StateMachineTest, testConfigureCodecMulti) {
 }
 
 TEST_F(StateMachineTest, testConfigureQosSingle) {
+  /* Device is banded headphones with 2x snk + 1x src ase
+   * (1x bidirectional + 1xunidirectional CIS)
+   */
+  additional_snk_ases = 1;
+  additional_src_ases = 1;
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 3;
 
@@ -1269,8 +1298,8 @@ TEST_F(StateMachineTest, testConfigureQosSingle) {
    * should have been configured.
    */
   auto* leAudioDevice = group->GetFirstDevice();
-  PrepareConfigureCodecHandler(group, 1);
-  PrepareConfigureQosHandler(group, 1);
+  PrepareConfigureCodecHandler(group, 2);
+  PrepareConfigureQosHandler(group, 2);
 
   // Start the configuration and stream Media content
   EXPECT_CALL(gatt_queue,
@@ -1296,6 +1325,11 @@ TEST_F(StateMachineTest, testConfigureQosSingle) {
 }
 
 TEST_F(StateMachineTest, testConfigureQosSingleRecoverCig) {
+  /* Device is banded headphones with 2x snk + 1x src ase
+   * (1x bidirectional + 1xunidirectional CIS)
+   */
+  additional_snk_ases = 1;
+  additional_src_ases = 1;
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 3;
 
@@ -1309,8 +1343,8 @@ TEST_F(StateMachineTest, testConfigureQosSingleRecoverCig) {
    * should have been configured.
    */
   auto* leAudioDevice = group->GetFirstDevice();
-  PrepareConfigureCodecHandler(group, 1);
-  PrepareConfigureQosHandler(group, 1);
+  PrepareConfigureCodecHandler(group, 2);
+  PrepareConfigureQosHandler(group, 2);
 
   // Start the configuration and stream Media content
   EXPECT_CALL(gatt_queue,
@@ -1382,14 +1416,19 @@ TEST_F(StateMachineTest, testConfigureQosMultiple) {
 }
 
 TEST_F(StateMachineTest, testStreamSingle) {
+  /* Device is banded headphones with 1x snk + 0x src ase
+   * (1xunidirectional CIS) with channel count 2 (for stereo
+   */
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
+  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
+                   kLeAudioCodecLC3ChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
 
-  /* Since we prepared device with Ringtone context in mind, only one ASE
-   * should have been configured.
+  /* Ringtone with channel count 1 for single device and 1 ASE sink will
+   * end up with 1 Sink ASE being configured.
    */
   PrepareConfigureCodecHandler(group, 1);
   PrepareConfigureQosHandler(group, 1);
@@ -1427,18 +1466,21 @@ TEST_F(StateMachineTest, testStreamSingle) {
 }
 
 TEST_F(StateMachineTest, testStreamSkipEnablingSink) {
-  const auto context_type = kContextTypeRingtone;
+  /* Device is banded headphones with 2x snk + none src ase
+   * (2x unidirectional CIS)
+   */
+  const auto context_type = kContextTypeMedia;
   const int leaudio_group_id = 4;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
 
-  /* Since we prepared device with Ringtone context in mind, only one ASE
-   * should have been configured.
+  /* For Media context type with channel count 1 and two ASEs,
+   * there should have be 2 Ases configured configured.
    */
-  PrepareConfigureCodecHandler(group, 1);
-  PrepareConfigureQosHandler(group, 1);
-  PrepareEnableHandler(group, 1, false);
+  PrepareConfigureCodecHandler(group, 2);
+  PrepareConfigureQosHandler(group, 2);
+  PrepareEnableHandler(group, 2, false);
 
   auto* leAudioDevice = group->GetFirstDevice();
   EXPECT_CALL(gatt_queue,
@@ -1448,7 +1490,7 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSink) {
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
@@ -1472,18 +1514,23 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSink) {
 }
 
 TEST_F(StateMachineTest, testStreamSkipEnablingSinkSource) {
+  /* Device is banded headphones with 2x snk + 1x src ase
+   * (1x bidirectional CIS)
+   */
   const auto context_type = kContextTypeConversational;
   const int leaudio_group_id = 4;
+
+  additional_snk_ases = 1;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
 
-  /* Since we prepared device with Conversional context in mind, one Sink ASE
-   * and one Source ASE should have been configured.
+  /* Since we prepared device with Conversional context in mind,
+   * 2 Sink ASEs and 1 Source ASE should have been configured.
    */
-  PrepareConfigureCodecHandler(group, 2);
-  PrepareConfigureQosHandler(group, 2);
-  PrepareEnableHandler(group, 2, false);
+  PrepareConfigureCodecHandler(group, 3);
+  PrepareConfigureQosHandler(group, 3);
+  PrepareEnableHandler(group, 3, false);
   PrepareReceiverStartReady(group, 1);
 
   auto* leAudioDevice = group->GetFirstDevice();
@@ -1494,7 +1541,7 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSinkSource) {
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(3);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
@@ -1622,20 +1669,98 @@ TEST_F(StateMachineTest, testStreamMultiple) {
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 }
 
+TEST_F(StateMachineTest, testUpdateMetadataMultiple) {
+  const auto context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 4;
+  const auto num_devices = 2;
+
+  // Prepare multiple fake connected devices in a group
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(AtLeast(1));
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
+
+  InjectInitialIdleNotification(group);
+
+  auto* leAudioDevice = group->GetFirstDevice();
+  auto expected_devices_written = 0;
+  while (leAudioDevice) {
+    EXPECT_CALL(gatt_queue,
+                WriteCharacteristic(leAudioDevice->conn_id_,
+                                    leAudioDevice->ctp_hdls_.val_hdl, _,
+                                    GATT_WRITE_NO_RSP, _, _))
+        .Times(AtLeast(3));
+    expected_devices_written++;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<LeAudioContextType>(context_type),
+      types::AudioContexts(context_type)));
+
+  testing::Mock::VerifyAndClearExpectations(&gatt_queue);
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+
+  // Make sure all devices get the metadata update
+  leAudioDevice = group->GetFirstDevice();
+  expected_devices_written = 0;
+  while (leAudioDevice) {
+    EXPECT_CALL(gatt_queue,
+                WriteCharacteristic(leAudioDevice->conn_id_,
+                                    leAudioDevice->ctp_hdls_.val_hdl, _,
+                                    GATT_WRITE_NO_RSP, _, _))
+        .Times(1);
+    expected_devices_written++;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  const auto metadata_context_type =
+      kContextTypeMedia | kContextTypeSoundEffects;
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<LeAudioContextType>(context_type),
+      metadata_context_type));
+}
+
 TEST_F(StateMachineTest, testDisableSingle) {
+  /* Device is banded headphones with 2x snk + 0x src ase
+   * (2xunidirectional CIS)
+   */
+  additional_snk_ases = 1;
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
 
-  /* Since we prepared device with Ringtone context in mind, only one ASE
-   * should have been configured.
+  /* Ringtone context plus additional ASE with channel count 1
+   * gives us 2 ASE which should have been configured.
    */
-  PrepareConfigureCodecHandler(group, 1);
-  PrepareConfigureQosHandler(group, 1);
-  PrepareEnableHandler(group, 1);
-  PrepareDisableHandler(group, 1);
+  PrepareConfigureCodecHandler(group, 2);
+  PrepareConfigureQosHandler(group, 2);
+  PrepareEnableHandler(group, 2);
+  PrepareDisableHandler(group, 2);
 
   auto* leAudioDevice = group->GetFirstDevice();
   EXPECT_CALL(gatt_queue,
@@ -1645,13 +1770,13 @@ TEST_F(StateMachineTest, testDisableSingle) {
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(
       *mock_iso_manager_,
       RemoveIsoDataPath(
           _, bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput))
-      .Times(1);
-  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
+      .Times(2);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
@@ -1752,6 +1877,10 @@ TEST_F(StateMachineTest, testDisableMultiple) {
 }
 
 TEST_F(StateMachineTest, testDisableBidirectional) {
+  /* Device is banded headphones with 2x snk + 1x src ase
+   * (1x bidirectional + 1xunidirectional CIS)
+   */
+  additional_snk_ases = 1;
   const auto context_type = kContextTypeConversational;
   const int leaudio_group_id = 4;
 
@@ -1761,10 +1890,10 @@ TEST_F(StateMachineTest, testDisableBidirectional) {
   /* Since we prepared device with Conversional context in mind, Sink and Source
    * ASEs should have been configured.
    */
-  PrepareConfigureCodecHandler(group, 2);
-  PrepareConfigureQosHandler(group, 2);
-  PrepareEnableHandler(group, 2);
-  PrepareDisableHandler(group, 2);
+  PrepareConfigureCodecHandler(group, 3);
+  PrepareConfigureQosHandler(group, 3);
+  PrepareEnableHandler(group, 3);
+  PrepareDisableHandler(group, 3);
   PrepareReceiverStartReady(group, 1);
   PrepareReceiverStopReady(group, 1);
 
@@ -1776,15 +1905,48 @@ TEST_F(StateMachineTest, testDisableBidirectional) {
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
-  EXPECT_CALL(
-      *mock_iso_manager_,
-      RemoveIsoDataPath(
-          _,
-          bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput |
-              bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput))
-      .Times(1);
-  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(3);
+  bool removed_bidirectional = false;
+  bool removed_unidirectional = false;
+
+  /* Check data path removal */
+  ON_CALL(*mock_iso_manager_, RemoveIsoDataPath)
+      .WillByDefault(Invoke([&removed_bidirectional, &removed_unidirectional,
+                             this](uint16_t conn_handle,
+                                   uint8_t data_path_dir) {
+        /* Set flags for verification */
+        if (data_path_dir ==
+            (bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput |
+             bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput)) {
+          removed_bidirectional = true;
+        } else if (data_path_dir == bluetooth::hci::iso_manager::
+                                        kRemoveIsoDataPathDirectionInput) {
+          removed_unidirectional = true;
+        }
+
+        /* Copied from default handler of RemoveIsoDataPath*/
+        auto dev_it =
+            std::find_if(le_audio_devices_.begin(), le_audio_devices_.end(),
+                         [&conn_handle](auto& dev) {
+                           auto ases = dev->GetAsesByCisConnHdl(conn_handle);
+                           return (ases.sink || ases.source);
+                         });
+        if (dev_it == le_audio_devices_.end()) {
+          return;
+        }
+
+        for (auto& kv_pair : le_audio_device_groups_) {
+          auto& group = kv_pair.second;
+          if (group->IsDeviceInTheGroup(dev_it->get())) {
+            LeAudioGroupStateMachine::Get()->ProcessHciNotifRemoveIsoDataPath(
+                group.get(), dev_it->get(), 0, conn_handle);
+            return;
+          }
+        }
+        /* End of copy */
+      }));
+
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   // Start the configuration and stream Media content
@@ -1802,11 +1964,18 @@ TEST_F(StateMachineTest, testDisableBidirectional) {
   // Check if group has transitioned to a proper state
   ASSERT_EQ(group->GetState(),
             types::AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED);
+  ASSERT_EQ(removed_bidirectional, true);
+  ASSERT_EQ(removed_unidirectional, true);
 }
 
 TEST_F(StateMachineTest, testReleaseSingle) {
+  /* Device is banded headphones with 1x snk + 0x src ase
+   * (1xunidirectional CIS) with channel count 2 (for stereo)
+   */
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
+  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
+                   kLeAudioCodecLC3ChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -1861,8 +2030,13 @@ TEST_F(StateMachineTest, testReleaseSingle) {
 }
 
 TEST_F(StateMachineTest, testReleaseCachingSingle) {
+  /* Device is banded headphones with 1x snk + 0x src ase
+   * (1xunidirectional CIS)
+   */
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
+  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
+                   kLeAudioCodecLC3ChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -1931,7 +2105,7 @@ TEST_F(StateMachineTest,
   channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
                    kLeAudioCodecLC3ChannelCountTwoChannel;
 
-  additional_ases = 2;
+  additional_snk_ases = 2;
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
 
@@ -2017,7 +2191,7 @@ TEST_F(StateMachineTest,
   channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
                    kLeAudioCodecLC3ChannelCountTwoChannel;
 
-  additional_ases = 2;
+  additional_snk_ases = 2;
   /* Prepare fake connected device group with update of Media and Conversational
    * contexts
    */
@@ -2175,6 +2349,10 @@ TEST_F(StateMachineTest, testReleaseMultiple) {
 }
 
 TEST_F(StateMachineTest, testReleaseBidirectional) {
+  /* Device is banded headphones with 2x snk + 1x src ase
+   * (1x bidirectional + 1xunidirectional CIS)
+   */
+  additional_snk_ases = 1;
   const auto context_type = kContextTypeConversational;
   const auto leaudio_group_id = 6;
 
@@ -2184,12 +2362,12 @@ TEST_F(StateMachineTest, testReleaseBidirectional) {
   /* Since we prepared device with Conversional context in mind, Sink and Source
    * ASEs should have been configured.
    */
-  PrepareConfigureCodecHandler(group, 2);
-  PrepareConfigureQosHandler(group, 2);
-  PrepareEnableHandler(group, 2);
-  PrepareDisableHandler(group, 2);
+  PrepareConfigureCodecHandler(group, 3);
+  PrepareConfigureQosHandler(group, 3);
+  PrepareEnableHandler(group, 3);
+  PrepareDisableHandler(group, 3);
   PrepareReceiverStartReady(group, 1);
-  PrepareReleaseHandler(group, 2);
+  PrepareReleaseHandler(group, 3);
 
   auto* leAudioDevice = group->GetFirstDevice();
   EXPECT_CALL(gatt_queue,
@@ -2199,9 +2377,9 @@ TEST_F(StateMachineTest, testReleaseBidirectional) {
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(3);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
   InjectInitialIdleNotification(group);
@@ -2223,6 +2401,10 @@ TEST_F(StateMachineTest, testReleaseBidirectional) {
 }
 
 TEST_F(StateMachineTest, testDisableAndReleaseBidirectional) {
+  /* Device is banded headphones with 2x snk + 1x src ase
+   * (1x bidirectional + 1xunidirectional CIS)
+   */
+  additional_snk_ases = 1;
   const auto context_type = kContextTypeConversational;
   const int leaudio_group_id = 4;
 
@@ -2232,13 +2414,13 @@ TEST_F(StateMachineTest, testDisableAndReleaseBidirectional) {
   /* Since we prepared device with Conversional context in mind, Sink and Source
    * ASEs should have been configured.
    */
-  PrepareConfigureCodecHandler(group, 2);
-  PrepareConfigureQosHandler(group, 2);
-  PrepareEnableHandler(group, 2);
-  PrepareDisableHandler(group, 2);
+  PrepareConfigureCodecHandler(group, 3);
+  PrepareConfigureQosHandler(group, 3);
+  PrepareEnableHandler(group, 3);
+  PrepareDisableHandler(group, 3);
   PrepareReceiverStartReady(group, 1);
   PrepareReceiverStopReady(group, 1);
-  PrepareReleaseHandler(group, 2);
+  PrepareReleaseHandler(group, 3);
 
   auto* leAudioDevice = group->GetFirstDevice();
   EXPECT_CALL(gatt_queue,
@@ -2248,9 +2430,9 @@ TEST_F(StateMachineTest, testDisableAndReleaseBidirectional) {
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(3);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
   // Start the configuration and stream Media content
@@ -2333,6 +2515,10 @@ TEST_F(StateMachineTest, testAseIdAssignmentCodecConfigured) {
 }
 
 TEST_F(StateMachineTest, testAseAutonomousRelease) {
+  /* Device is banded headphones with 2x snk + 1x src ase
+   * (1x bidirectional + 1xunidirectional CIS)
+   */
+  additional_snk_ases = 1;
   const auto context_type = kContextTypeConversational;
   const int leaudio_group_id = 4;
 
@@ -2342,13 +2528,13 @@ TEST_F(StateMachineTest, testAseAutonomousRelease) {
   /* Since we prepared device with Conversional context in mind, Sink and Source
    * ASEs should have been configured.
    */
-  PrepareConfigureCodecHandler(group, 2);
-  PrepareConfigureQosHandler(group, 2);
-  PrepareEnableHandler(group, 2);
-  PrepareDisableHandler(group, 2);
+  PrepareConfigureCodecHandler(group, 3);
+  PrepareConfigureQosHandler(group, 3);
+  PrepareEnableHandler(group, 3);
+  PrepareDisableHandler(group, 3);
   PrepareReceiverStartReady(group, 1);
   PrepareReceiverStopReady(group, 1);
-  PrepareReleaseHandler(group, 2);
+  PrepareReleaseHandler(group, 3);
 
   InjectInitialIdleNotification(group);
 
@@ -2370,7 +2556,7 @@ TEST_F(StateMachineTest, testAseAutonomousRelease) {
       .Times(AtLeast(1));
 
   /* Single disconnect as it is bidirectional Cis*/
-  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
 
   for (auto* device = group->GetFirstDevice(); device != nullptr;
        device = group->GetNextDevice(device)) {
@@ -2457,6 +2643,8 @@ TEST_F(StateMachineTest, testAseAutonomousRelease2Devices) {
 TEST_F(StateMachineTest, testStateTransitionTimeoutOnIdleState) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
+  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
+                   kLeAudioCodecLC3ChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -2483,6 +2671,8 @@ TEST_F(StateMachineTest, testStateTransitionTimeoutOnIdleState) {
 TEST_F(StateMachineTest, testStateTransitionTimeout) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
+  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
+                   kLeAudioCodecLC3ChannelCountTwoChannel;
 
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
@@ -2517,6 +2707,8 @@ MATCHER_P(dataPathIsEq, expected, "") { return (arg.data_path_id == expected); }
 TEST_F(StateMachineTest, testConfigureDataPathForHost) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
+  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
+                   kLeAudioCodecLC3ChannelCountTwoChannel;
 
   /* Should be called 3 times because
    * 1 - calling GetConfigurations just after connection
@@ -2555,6 +2747,8 @@ TEST_F(StateMachineTest, testConfigureDataPathForHost) {
 TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
+  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel |
+                   kLeAudioCodecLC3ChannelCountTwoChannel;
 
   /* Should be called 3 times because
    * 1 - calling GetConfigurations just after connection
@@ -2959,7 +3153,8 @@ TEST_F(StateMachineTest, BoundedHeadphonesConversationalToMediaChannelCount_2) {
 
   sample_freq_ |= codec_specific::kCapSamplingFrequency48000Hz |
                   codec_specific::kCapSamplingFrequency32000Hz;
-  additional_ases = 3;
+  additional_snk_ases = 3;
+  additional_src_ases = 1;
 
   ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
   ContentControlIdKeeper::GetInstance()->SetCcid(call_context, call_ccid);
@@ -2970,6 +3165,98 @@ TEST_F(StateMachineTest, BoundedHeadphonesConversationalToMediaChannelCount_2) {
       kContextTypeConversational | kContextTypeMedia);
   ASSERT_EQ(group->Size(), num_devices);
 
+  PrepareConfigureCodecHandler(group, 0, true);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareDisableHandler(group);
+  PrepareReleaseHandler(group);
+  PrepareReceiverStartReady(group);
+
+  InjectInitialIdleNotification(group);
+
+  auto* leAudioDevice = group->GetFirstDevice();
+  auto expected_devices_written = 0;
+  while (leAudioDevice) {
+    /* 8 Writes:
+     * 1: Codec config (+1 after reconfig)
+     * 2: Codec QoS (+1 after reconfig)
+     * 3: Enabling (+1 after reconfig)
+     * 4: ReceiverStartReady (only for conversational)
+     * 5: Release
+     */
+    EXPECT_CALL(gatt_queue,
+                WriteCharacteristic(leAudioDevice->conn_id_,
+                                    leAudioDevice->ctp_hdls_.val_hdl, _,
+                                    GATT_WRITE_NO_RSP, _, _))
+        .Times(8);
+    expected_devices_written++;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, initial_context_type, types::AudioContexts(initial_context_type));
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::RELEASING));
+
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS));
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StopStream(group);
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  // Restart stream
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, new_context_type, types::AudioContexts(new_context_type));
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+}
+
+TEST_F(StateMachineTest, BoundedHeadphonesConversationalToMediaChannelCount_1) {
+  const auto initial_context_type = kContextTypeConversational;
+  const auto new_context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 6;
+  const auto num_devices = 1;
+  channel_count_ = kLeAudioCodecLC3ChannelCountSingleChannel;
+
+  sample_freq_ |= codec_specific::kCapSamplingFrequency48000Hz |
+                  codec_specific::kCapSamplingFrequency32000Hz;
+  additional_snk_ases = 3;
+  additional_src_ases = 1;
+
+  ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
+  ContentControlIdKeeper::GetInstance()->SetCcid(call_context, call_ccid);
+
+  // Prepare one fake connected devices in a group
+  auto* group = PrepareSingleTestDeviceGroup(
+      leaudio_group_id, initial_context_type, num_devices,
+      kContextTypeConversational | kContextTypeMedia);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  // Cannot verify here as we will change the number of ases on reconfigure
   PrepareConfigureCodecHandler(group, 0, true);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);

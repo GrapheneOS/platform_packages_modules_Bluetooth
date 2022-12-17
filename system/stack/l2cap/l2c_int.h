@@ -49,7 +49,6 @@
 
 constexpr uint16_t L2CAP_CREDIT_BASED_MIN_MTU = 64;
 constexpr uint16_t L2CAP_CREDIT_BASED_MIN_MPS = 64;
-#define L2CAP_NO_IDLE_TIMEOUT 0xFFFF
 
 /*
  * Timeout values (in milliseconds).
@@ -429,6 +428,13 @@ typedef struct t_l2c_linkcb {
   tL2C_LINK_STATE link_state;
 
   alarm_t* l2c_lcb_timer; /* Timer entry for timeout evt */
+
+  //  This tracks if the link has ever either (a)
+  //  been used for a dynamic channel (EATT or L2CAP CoC), or (b) has been a
+  //  GATT client. If false, the local device is just a GATT server, so for
+  //  backwards compatibility we never do a link timeout.
+  bool with_active_local_clients{false};
+
  private:
   uint16_t handle_; /* The handle used with LM */
   friend void l2cu_set_lcb_handle(struct t_l2c_linkcb& p_lcb, uint16_t handle);

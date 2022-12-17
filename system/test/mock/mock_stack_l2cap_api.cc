@@ -93,6 +93,7 @@ struct L2CA_ConnectFixedChnl L2CA_ConnectFixedChnl;
 struct L2CA_SendFixedChnlData L2CA_SendFixedChnlData;
 struct L2CA_RemoveFixedChnl L2CA_RemoveFixedChnl;
 struct L2CA_SetLeGattTimeout L2CA_SetLeGattTimeout;
+struct L2CA_MarkLeLinkAsActive L2CA_MarkLeLinkAsActive;
 struct L2CA_DataWrite L2CA_DataWrite;
 struct L2CA_LECocDataWrite L2CA_LECocDataWrite;
 struct L2CA_SetChnlFlushability L2CA_SetChnlFlushability;
@@ -258,6 +259,10 @@ bool L2CA_RemoveFixedChnl(uint16_t fixed_cid, const RawAddress& rem_bda) {
 bool L2CA_SetLeGattTimeout(const RawAddress& rem_bda, uint16_t idle_tout) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_l2cap_api::L2CA_SetLeGattTimeout(rem_bda, idle_tout);
+}
+bool L2CA_MarkLeLinkAsActive(const RawAddress& rem_bda) {
+  mock_function_count_map[__func__]++;
+  return test::mock::stack_l2cap_api::L2CA_MarkLeLinkAsActive(rem_bda);
 }
 uint8_t L2CA_DataWrite(uint16_t cid, BT_HDR* p_data) {
   mock_function_count_map[__func__]++;

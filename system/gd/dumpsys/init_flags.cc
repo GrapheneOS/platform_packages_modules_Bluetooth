@@ -15,6 +15,7 @@
  */
 
 #include "common/init_flags.h"
+
 #include "dumpsys/init_flags.h"
 #include "init_flags_generated.h"
 
@@ -31,9 +32,12 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_gd_acl_enabled(true);
   builder.add_gd_hci_enabled(true);
   builder.add_gd_controller_enabled(true);
+
+  builder.add_asynchronously_start_l2cap_coc_is_enabled(initFlags::asynchronously_start_l2cap_coc_is_enabled());
   builder.add_btaa_hci_is_enabled(initFlags::btaa_hci_is_enabled());
   builder.add_btm_dm_flush_discovery_queue_on_search_cancel_is_enabled(
       initFlags::btm_dm_flush_discovery_queue_on_search_cancel_is_enabled());
+  builder.add_finite_att_timeout_is_enabled(initFlags::finite_att_timeout_is_enabled());
   builder.add_gatt_robust_caching_client_is_enabled(initFlags::gatt_robust_caching_client_is_enabled());
   builder.add_gatt_robust_caching_server_is_enabled(initFlags::gatt_robust_caching_server_is_enabled());
   builder.add_gd_core_is_enabled(initFlags::gd_core_is_enabled());
@@ -46,8 +50,12 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   // is_debug_logging_enabled_for_tag -- skipped in dumpsys
   builder.add_logging_debug_enabled_for_all_is_enabled(initFlags::logging_debug_enabled_for_all_is_enabled());
   builder.add_pass_phy_update_callback_is_enabled(initFlags::pass_phy_update_callback_is_enabled());
+  builder.add_queue_l2cap_coc_while_encrypting_is_enabled(initFlags::queue_l2cap_coc_while_encrypting_is_enabled());
   builder.add_sdp_serialization_is_enabled(initFlags::sdp_serialization_is_enabled());
   builder.add_sdp_skip_rnr_if_known_is_enabled(initFlags::sdp_skip_rnr_if_known_is_enabled());
+  builder.add_trigger_advertising_callbacks_on_first_resume_after_pause_is_enabled(
+      initFlags::trigger_advertising_callbacks_on_first_resume_after_pause_is_enabled());
+
   return builder.Finish();
 }
 // LINT.ThenChange(/system/gd/rust/common/src/init_flags.rs)

@@ -205,8 +205,10 @@ fn parse_hci_adapter(flags: &mut InitFlags, values: Vec<&str>) {
 init_flags!(
     // LINT.IfChange
     flags: {
+        asynchronously_start_l2cap_coc = true,
         btaa_hci = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
+        finite_att_timeout = true,
         gatt_robust_caching_client = true,
         gatt_robust_caching_server,
         gd_core,
@@ -218,8 +220,10 @@ init_flags!(
         irk_rotation,
         logging_debug_enabled_for_all,
         pass_phy_update_callback = true,
+        queue_l2cap_coc_while_encrypting = true,
         sdp_serialization = true,
         sdp_skip_rnr_if_known = true,
+        trigger_advertising_callbacks_on_first_resume_after_pause = true,
     }
     // extra_fields are not a 1 to 1 match with "INIT_*" flags
     extra_fields: {

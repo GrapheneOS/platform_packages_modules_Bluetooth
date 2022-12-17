@@ -107,6 +107,8 @@ typedef uint8_t tL2CAP_CHNL_DATA_RATE;
 #define L2C_IS_VALID_PSM(psm) (((psm)&0x0101) == 0x0001)
 #define L2C_IS_VALID_LE_PSM(psm) (((psm) > 0x0000) && ((psm) < 0x0100))
 
+#define L2CAP_NO_IDLE_TIMEOUT 0xFFFF
+
 /*****************************************************************************
  *  Type Definitions
  ****************************************************************************/
@@ -839,6 +841,8 @@ extern bool L2CA_RemoveFixedChnl(uint16_t fixed_cid, const RawAddress& rem_bda);
  ******************************************************************************/
 extern bool L2CA_SetLeGattTimeout(const RawAddress& rem_bda,
                                   uint16_t idle_tout);
+
+extern bool L2CA_MarkLeLinkAsActive(const RawAddress& rem_bda);
 
 extern bool L2CA_UpdateBleConnParams(const RawAddress& rem_bda,
                                      uint16_t min_int, uint16_t max_int,
