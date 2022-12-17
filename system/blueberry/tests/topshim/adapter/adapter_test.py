@@ -26,14 +26,48 @@ class AdapterTest(TopshimBaseTest):
     def test_verify_adapter_started(self):
         print("Adapter is verified when test starts")
 
+    def test_enable_inquiry_scan(self):
+        status, discovery_mode = self.dut().enable_inquiry_scan()
+        assertThat(status).isEqualTo("Success")
+        assertThat(discovery_mode).isEqualTo("ConnectableDiscoverable")
+
     def test_enable_page_scan(self):
-        self.dut().enable_page_scan()
+        status, discovery_mode = self.dut().enable_page_scan()
+        assertThat(status).isEqualTo("Success")
+        assertThat(discovery_mode).isEqualTo("Connectable")
+
+    def test_disable_page_scan(self):
+        status, discovery_mode = self.dut().disable_page_scan()
+        assertThat(status).isEqualTo("Success")
+        assertThat(discovery_mode).isEqualTo("None_")
 
     def test_set_local_io_caps(self):
-        status, properties = self.dut().set_local_io_caps(3)
+        status, caps = self.dut().set_local_io_caps(3)
         assertThat(status).isEqualTo("Success")
-        assertThat(len(properties)).isEqualTo(1)
-        assertThat(properties[0]).isEqualTo("LocalIoCaps(None_)")
+        assertThat(caps).isEqualTo("None_")
+
+    def test_start_discovery(self):
+        state = self.dut().toggle_discovery(True)
+        assertThat(state).isEqualTo("Started")
+        # Reset device to not discovering.
+        self.dut().toggle_discovery(False)
+
+    def test_cancel_discovery(self):
+        self.dut().toggle_discovery(True)
+        state = self.dut().toggle_discovery(False)
+        assertThat(state).isEqualTo("Stopped")
+
+    def test_find_device_device_available(self):
+        self.dut().enable_inquiry_scan()
+        self.cert().enable_inquiry_scan()
+        self.dut().toggle_discovery(True)
+        device_addr = self.dut().find_device()
+        assertThat(device_addr).isNotNone()
+        # Reset DUT device discovering and scanning to None
+        self.dut().disable_page_scan()
+        self.dut().toggle_discovery(False)
+        # Reset CERT device to not discoverable
+        self.cert().disable_page_scan()
 
 
 if __name__ == "__main__":

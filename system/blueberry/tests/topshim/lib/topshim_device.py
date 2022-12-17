@@ -76,6 +76,8 @@ class TopshimDevice(AsyncClosable):
     __adapter = None
     __gatt = None
     __security = None
+    __hfp = None
+    __hf_client = None
 
     async def __le_rand_wrapper(self, async_fn):
         result = await async_fn
@@ -86,10 +88,12 @@ class TopshimDevice(AsyncClosable):
     def __post(self, async_fn):
         return asyncio.get_event_loop().run_until_complete(async_fn)
 
-    def __init__(self, adapter, gatt, security):
+    def __init__(self, adapter, gatt, security, hfp, hf_client):
         self.__adapter = adapter
         self.__gatt = gatt
         self.__security = security
+        self.__hfp = hfp
+        self.__hf_client = hf_client
 
     async def close(self):
         """
@@ -98,12 +102,25 @@ class TopshimDevice(AsyncClosable):
         await asyncSafeClose(self.__adapter)
         await asyncSafeClose(self.__gatt)
         await asyncSafeClose(self.__security)
+        await asyncSafeClose(self.__hfp)
+        await asyncSafeClose(self.__hf_client)
+
+    def enable_inquiry_scan(self):
+        f = self.__post(self.__adapter.enable_inquiry_scan())
+        return self.__post(self.__discovery_mode_waiter(f))
 
     def enable_page_scan(self):
-        self.__post(self.__adapter.enable_page_scan())
+        f = self.__post(self.__adapter.enable_page_scan())
+        return self.__post(self.__discovery_mode_waiter(f))
 
     def disable_page_scan(self):
-        self.__post(self.__adapter.disable_page_scan())
+        f = self.__post(self.__adapter.disable_page_scan())
+        return self.__post(self.__discovery_mode_waiter(f))
+
+    async def __discovery_mode_waiter(self, f):
+        params = await f
+        status, discovery_mode = params["status"].data[0], params["AdapterScanMode"].data[0]
+        return (status, discovery_mode)
 
     def start_advertising(self):
         """
@@ -151,11 +168,23 @@ class TopshimDevice(AsyncClosable):
     def le_rand(self):
         self.__post(self.__adapter.le_rand())
 
+    def create_bond(self, address, transport=1):
+        """
+        Create a bonding entry for a given address with a particular transport type.
+        """
+        f = self.__post(self.__security.create_bond(address, transport))
+        return self.__post(self.__bond_change_waiter(f))
+
     def remove_bonded_device(self, address):
         """
         Removes a bonding entry for a given address.
         """
         self.__post(self.__security.remove_bond(address))
+
+    async def __bond_change_waiter(self, f):
+        params = await f
+        state, address = params["bond_state"].data[0], params["address"].data[0]
+        return (state, address)
 
     def generate_local_oob_data(self, transport=TRANSPORT_LE):
         """
@@ -168,9 +197,9 @@ class TopshimDevice(AsyncClosable):
         f = self.__post(self.__security.generate_local_oob_data(transport))
 
         async def waiter(f):
-            data = await f
-            data_list = data.split(";")
-            return OobData(data_list[0], data_list[1], data_list[2], data_list[3], data_list[4])
+            params = await f
+            return OobData(params["is_valid"].data[0], params["transport"].data[0], params["address"].data[0],
+                           params["confirmation"].data[0], params["randomizer"].data[0])
 
         return self.__post(waiter(f))
 
@@ -178,10 +207,36 @@ class TopshimDevice(AsyncClosable):
         f = self.__post(self.__adapter.set_local_io_caps(io_capability))
 
         async def waiter(f):
-            data = await f
-            data_list = data.split(" :: ")
-            status, properties = data_list[0].strip(), data_list[1].strip()
-            properties = list(properties[1:-1].strip().split(","))
-            return (status, properties)
+            params = await f
+            status, io_caps = params["status"].data[0], params["LocalIoCaps"].data[0]
+            return (status, io_caps)
+
+        return self.__post(waiter(f))
+
+    def toggle_discovery(self, is_start):
+        f = self.__post(self.__adapter.toggle_discovery(is_start))
+
+        async def waiter(f):
+            params = await f
+            return params["discovery_state"].data[0]
+
+        return self.__post(waiter(f))
+
+    def find_device(self):
+        """
+        Attempts to find discoverable devices when discovery is toggled on.
+
+        @return a list of properties of found device.
+        """
+        f = self.__post(self.__adapter.find_device())
+
+        async def waiter(f):
+            try:
+                params = await f
+                return params["BdAddr"].data[0]
+            except:
+                # The future `f` has a timeout after 2s post which it is cancelled.
+                print("No device was found. Timed out.")
+            return None
 
         return self.__post(waiter(f))

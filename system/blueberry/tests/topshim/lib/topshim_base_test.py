@@ -34,6 +34,8 @@ from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.topshim.lib.adapter_client import AdapterClient
 from blueberry.tests.topshim.lib.async_closable import asyncSafeClose
 from blueberry.tests.topshim.lib.gatt_client import GattClient
+from blueberry.tests.topshim.lib.hf_client_client import HfClientClient
+from blueberry.tests.topshim.lib.hfp_client import HfpClient
 from blueberry.tests.topshim.lib.security_client import SecurityClient
 from blueberry.tests.topshim.lib.topshim_device import TopshimDevice
 
@@ -169,9 +171,13 @@ class TopshimBaseTest(base_test.BaseTestClass):
         started = started and await cert_adapter._verify_adapter_started()
         assertThat(started).isTrue()
         self.__dut = TopshimDevice(dut_adapter, GattClient(port=self.dut_port),
-                                   SecurityClient(dut_adapter, port=self.dut_port))
+                                   SecurityClient(dut_adapter, port=self.dut_port),
+                                   HfpClient(port=self.dut_port),
+                                   HfClientClient(port=self.dut_port))
         self.__cert = TopshimDevice(cert_adapter, GattClient(port=self.cert_port),
-                                    SecurityClient(cert_adapter, port=self.cert_port))
+                                    SecurityClient(cert_adapter, port=self.cert_port),
+                                    HfpClient(port=self.cert_port),
+                                    HfClientClient(port=self.cert_port))
         return started
 
     async def __teardown_adapter(self):
