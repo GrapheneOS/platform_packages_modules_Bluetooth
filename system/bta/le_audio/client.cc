@@ -280,6 +280,19 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    /* For sonification events we don't really need to reconfigure to HQ
+     * configuration, but if the previous configuration was for HQ Media,
+     * we might want to go back to that scenario.
+     */
+
+    if ((configuration_context_type_ != LeAudioContextType::MEDIA) &&
+        (configuration_context_type_ != LeAudioContextType::GAME)) {
+      LOG_INFO(
+          "Keeping the old configuration as no HQ Media playback is needed "
+          "right now.");
+      return;
+    }
+
     /* Test the existing metadata against the recent availability */
     metadata_context_types_.sink &= group->GetAvailableContexts();
     if (metadata_context_types_.sink.none()) {
@@ -361,6 +374,16 @@ class LeAudioClientImpl : public LeAudioClient {
     group_add_node(group_id, address);
   }
 
+  /* If device participates in streaming the group, it has to be stopped and
+   * group needs to be reconfigured if needed to new configuration without
+   * considering this removing device.
+   */
+  void SetDeviceAsRemovePendingAndStopGroup(LeAudioDevice* leAudioDevice) {
+    LOG_INFO("device %s", leAudioDevice->address_.ToString().c_str());
+    leAudioDevice->SetConnectionState(DeviceConnectState::PENDING_REMOVAL);
+    GroupStop(leAudioDevice->group_id_);
+  }
+
   void OnGroupMemberAddedCb(const RawAddress& address, int group_id) {
     LOG(INFO) << __func__ << " address: " << address
               << " group_id: " << group_id;
@@ -388,8 +411,9 @@ class LeAudioClientImpl : public LeAudioClient {
 
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
     if (!leAudioDevice) return;
-    if (leAudioDevice->group_id_ == bluetooth::groups::kGroupUnknown) {
-      LOG(INFO) << __func__ << " device already not assigned to the group.";
+    if (leAudioDevice->group_id_ != group_id) {
+      LOG_WARN("Device: %s not assigned to the group.",
+               leAudioDevice->address_.ToString().c_str());
       return;
     }
 
@@ -398,6 +422,11 @@ class LeAudioClientImpl : public LeAudioClient {
       LOG(INFO) << __func__
                 << " device not in the group: " << leAudioDevice->address_
                 << ", " << group_id;
+      return;
+    }
+
+    if (leAudioDevice->HaveActiveAse()) {
+      SetDeviceAsRemovePendingAndStopGroup(leAudioDevice);
       return;
     }
 
@@ -690,6 +719,11 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    if (leAudioDevice->HaveActiveAse()) {
+      SetDeviceAsRemovePendingAndStopGroup(leAudioDevice);
+      return;
+    }
+
     group_remove_node(group, address, true);
   }
 
@@ -714,14 +748,15 @@ class LeAudioClientImpl : public LeAudioClient {
           /* Highest priority first */
           LeAudioContextType::CONVERSATIONAL,
           LeAudioContextType::RINGTONE,
-          LeAudioContextType::GAME,
           LeAudioContextType::LIVE,
           LeAudioContextType::VOICEASSISTANTS,
+          LeAudioContextType::GAME,
           LeAudioContextType::MEDIA,
           LeAudioContextType::EMERGENCYALARM,
           LeAudioContextType::ALERTS,
           LeAudioContextType::INSTRUCTIONAL,
           LeAudioContextType::NOTIFICATIONS,
+          LeAudioContextType::SOUNDEFFECTS,
       };
       for (auto ct : context_priority_list) {
         if (metadata_context_type.test(ct)) {
@@ -3485,14 +3520,15 @@ class LeAudioClientImpl : public LeAudioClient {
            * call volume slider while not in a call.
            * LeAudioContextType::RINGTONE,
            */
-          LeAudioContextType::GAME,
           LeAudioContextType::LIVE,
           LeAudioContextType::VOICEASSISTANTS,
+          LeAudioContextType::GAME,
           LeAudioContextType::MEDIA,
           LeAudioContextType::EMERGENCYALARM,
           LeAudioContextType::ALERTS,
           LeAudioContextType::INSTRUCTIONAL,
           LeAudioContextType::NOTIFICATIONS,
+          LeAudioContextType::SOUNDEFFECTS,
       };
       for (auto ct : context_priority_list) {
         if (available_remote_contexts.test(ct)) {
@@ -3644,6 +3680,28 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Choose the right configuration context */
     auto new_configuration_context =
         ChooseConfigurationContextType(new_metadata_context_types_);
+
+    /* For the following contexts we don't actually need HQ audio:
+     * LeAudioContextType::NOTIFICATIONS
+     * LeAudioContextType::SOUNDEFFECTS
+     * LeAudioContextType::INSTRUCTIONAL
+     * LeAudioContextType::ALERTS
+     * LeAudioContextType::EMERGENCYALARM
+     * So do not reconfigure if the remote sink is already available at any
+     * quality and these are the only contributors to the current audio stream.
+     */
+    auto no_reconfigure_contexts =
+        LeAudioContextType::NOTIFICATIONS | LeAudioContextType::SOUNDEFFECTS |
+        LeAudioContextType::INSTRUCTIONAL | LeAudioContextType::ALERTS |
+        LeAudioContextType::EMERGENCYALARM;
+    if ((new_metadata_context_types_ & ~no_reconfigure_contexts).none() &&
+        IsDirectionAvailableForCurrentConfiguration(
+            group, le_audio::types::kLeAudioDirectionSink)) {
+      LOG_INFO(
+          "There is no need to reconfigure for the sonification events. Keep "
+          "the configuration unchanged.");
+      new_configuration_context = configuration_context_type_;
+    }
 
     LOG_DEBUG("new_configuration_context= %s",
               ToString(new_configuration_context).c_str());
@@ -4004,6 +4062,21 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  void HandlePendingDeviceRemove(LeAudioDeviceGroup* group) {
+    for (auto device = group->GetFirstDevice(); device != nullptr;
+         device = group->GetNextDevice(device)) {
+      if (device->GetConnectionState() == DeviceConnectState::PENDING_REMOVAL) {
+        if (device->closing_stream_for_disconnection_) {
+          device->closing_stream_for_disconnection_ = false;
+          LOG_INFO("Disconnecting group id: %d, address: %s", group->group_id_,
+                   device->address_.ToString().c_str());
+          DisconnectDevice(device);
+        }
+        group_remove_node(group, device->address_, true);
+      }
+    }
+  }
+
   void HandlePendingDeviceDisconnection(LeAudioDeviceGroup* group) {
     LOG_DEBUG();
     auto leAudioDevice = group->GetFirstDevice();
@@ -4183,6 +4256,7 @@ class LeAudioClientImpl : public LeAudioClient {
         if (group) {
           NotifyUpperLayerGroupTurnedIdleDuringCall(group->group_id_);
           HandlePendingAvailableContextsChange(group);
+          HandlePendingDeviceRemove(group);
           HandlePendingDeviceDisconnection(group);
         }
         break;
