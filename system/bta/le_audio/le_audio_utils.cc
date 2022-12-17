@@ -61,6 +61,8 @@ LeAudioContextType AudioContentToLeAudioContext(
       return LeAudioContextType::EMERGENCYALARM;
     case AUDIO_USAGE_ASSISTANCE_NAVIGATION_GUIDANCE:
       return LeAudioContextType::INSTRUCTIONAL;
+    case AUDIO_USAGE_ASSISTANCE_SONIFICATION:
+      return LeAudioContextType::SOUNDEFFECTS;
     default:
       break;
   }
