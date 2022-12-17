@@ -42,8 +42,9 @@ class AdapterClient(AsyncClosable):
 
     async def close(self):
         for task in self.__task_list:
+            if task.done() or task.cancelled():
+                continue
             task.cancel()
-            task = None
         self.__task_list.clear()
         await self.__channel.close()
 
@@ -54,7 +55,7 @@ class AdapterClient(AsyncClosable):
 
             # Match event by some condition.
             if e.event_type == event:
-                future.set_result(e.data)
+                future.set_result(e.params)
                 break
             else:
                 print("Got '%s'; expecting '%s'" % (e.event_type, event))
@@ -63,31 +64,39 @@ class AdapterClient(AsyncClosable):
     async def _listen_for_event(self, event):
         """Start fetching events"""
         future = asyncio.get_running_loop().create_future()
-        self.__task_list.append(asyncio.get_running_loop().create_task(self.__get_next_event(event, future)))
+        task = asyncio.get_running_loop().create_task(self.__get_next_event(event, future))
+        self.__task_list.append(task)
         try:
             await asyncio.wait_for(future, AdapterClient.DEFAULT_TIMEOUT)
         except:
+            task.cancel()
             print("Failed to get event", event)
         return future
 
     async def _verify_adapter_started(self):
         future = await self._listen_for_event(facade_pb2.EventType.ADAPTER_STATE)
-        return future.result() == "ON"
+        params = future.result()
+        return params["state"].data[0] == "ON"
 
     async def toggle_stack(self, is_start=True):
         """Enable/disable the stack"""
         await self.__adapter_stub.ToggleStack(facade_pb2.ToggleStackRequest(start_stack=is_start))
         return await self._verify_adapter_started()
 
+    async def enable_inquiry_scan(self):
+        """Enable inquiry scan (Required to make device connectable and discoverable by other devices)"""
+        await self.__adapter_stub.SetDiscoveryMode(facade_pb2.SetDiscoveryModeRequest(enable_inquiry_scan=True))
+        return await self._listen_for_event(facade_pb2.EventType.ADAPTER_PROPERTY)
+
     async def enable_page_scan(self):
         """Enable page scan (might be used for A2dp sink to be discoverable)"""
         await self.__adapter_stub.SetDiscoveryMode(facade_pb2.SetDiscoveryModeRequest(enable_page_scan=True))
-        return await self.le_rand()
+        return await self._listen_for_event(facade_pb2.EventType.ADAPTER_PROPERTY)
 
     async def disable_page_scan(self):
         """Enable page scan (might be used for A2dp sink to be discoverable)"""
         await self.__adapter_stub.SetDiscoveryMode(facade_pb2.SetDiscoveryModeRequest(enable_page_scan=False))
-        return await self.le_rand()
+        return await self._listen_for_event(facade_pb2.EventType.ADAPTER_PROPERTY)
 
     async def clear_event_filter(self):
         await self.__adapter_stub.ClearEventFilter(empty_proto.Empty())
@@ -104,7 +113,8 @@ class AdapterClient(AsyncClosable):
     async def le_rand(self):
         await self.__adapter_stub.LeRand(empty_proto.Empty())
         future = await self._listen_for_event(facade_pb2.EventType.LE_RAND)
-        return future.result()
+        params = future.result()
+        return params["data"].data[0]
 
     async def restore_filter_accept_list(self):
         await self.__adapter_stub.RestoreFilterAcceptList(empty_proto.Empty())
@@ -124,8 +134,15 @@ class AdapterClient(AsyncClosable):
 
     async def set_local_io_caps(self, io_capability):
         await self.__adapter_stub.SetLocalIoCaps(facade_pb2.SetLocalIoCapsRequest(io_capability=io_capability))
-        future = await self._listen_for_event(facade_pb2.EventType.ADAPTER_PROPERTY)
+        return await self._listen_for_event(facade_pb2.EventType.ADAPTER_PROPERTY)
+
+    async def toggle_discovery(self, is_start):
+        await self.__adapter_stub.ToggleDiscovery(facade_pb2.ToggleDiscoveryRequest(is_start=is_start))
+        future = await self._listen_for_event(facade_pb2.EventType.DISCOVERY_STATE)
         return future
+
+    async def find_device(self):
+        return await self._listen_for_event(facade_pb2.EventType.DEVICE_FOUND)
 
 
 class A2dpAutomationHelper():
