@@ -1494,9 +1494,12 @@ public class BassClientService extends ProfileService {
     @VisibleForTesting
     static class BluetoothLeBroadcastAssistantBinder extends IBluetoothLeBroadcastAssistant.Stub
             implements IProfileServiceBinder {
-        private BassClientService mService;
+        BassClientService mService;
 
         private BassClientService getService() {
+            if (Utils.isInstrumentationTestMode()) {
+                return mService;
+            }
             if (!Utils.checkServiceAvailable(mService, TAG)
                     || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)) {
                 return null;
