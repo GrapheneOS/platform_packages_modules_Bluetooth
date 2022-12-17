@@ -49,6 +49,16 @@ class SecurityClient(AsyncClosable):
         self.__task_list.clear()
         await self.__channel.close()
 
+    async def create_bond(self, address, transport):
+        """
+        Create a bonding entry for a given address with a particular transport type
+        """
+        await self.__security.CreateBond(facade_pb2.CreateBondRequest(address=address, transport=transport))
+        # State change to Bonding
+        await self.__adapter._listen_for_event(facade_pb2.EventType.BOND_STATE)
+        # State change to Bonded or None (based on success and failure)
+        return await self.__adapter._listen_for_event(facade_pb2.EventType.BOND_STATE)
+
     async def remove_bond(self, address):
         """
         Removes a bonding entry for a given address
