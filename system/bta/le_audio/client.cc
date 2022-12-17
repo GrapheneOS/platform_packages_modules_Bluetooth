@@ -280,6 +280,19 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    /* For sonification events we don't really need to reconfigure to HQ
+     * configuration, but if the previous configuration was for HQ Media,
+     * we might want to go back to that scenario.
+     */
+
+    if ((configuration_context_type_ != LeAudioContextType::MEDIA) &&
+        (configuration_context_type_ != LeAudioContextType::GAME)) {
+      LOG_INFO(
+          "Keeping the old configuration as no HQ Media playback is needed "
+          "right now.");
+      return;
+    }
+
     /* Test the existing metadata against the recent availability */
     metadata_context_types_.sink &= group->GetAvailableContexts();
     if (metadata_context_types_.sink.none()) {
@@ -735,14 +748,15 @@ class LeAudioClientImpl : public LeAudioClient {
           /* Highest priority first */
           LeAudioContextType::CONVERSATIONAL,
           LeAudioContextType::RINGTONE,
-          LeAudioContextType::GAME,
           LeAudioContextType::LIVE,
           LeAudioContextType::VOICEASSISTANTS,
+          LeAudioContextType::GAME,
           LeAudioContextType::MEDIA,
           LeAudioContextType::EMERGENCYALARM,
           LeAudioContextType::ALERTS,
           LeAudioContextType::INSTRUCTIONAL,
           LeAudioContextType::NOTIFICATIONS,
+          LeAudioContextType::SOUNDEFFECTS,
       };
       for (auto ct : context_priority_list) {
         if (metadata_context_type.test(ct)) {
@@ -3495,14 +3509,15 @@ class LeAudioClientImpl : public LeAudioClient {
            * call volume slider while not in a call.
            * LeAudioContextType::RINGTONE,
            */
-          LeAudioContextType::GAME,
           LeAudioContextType::LIVE,
           LeAudioContextType::VOICEASSISTANTS,
+          LeAudioContextType::GAME,
           LeAudioContextType::MEDIA,
           LeAudioContextType::EMERGENCYALARM,
           LeAudioContextType::ALERTS,
           LeAudioContextType::INSTRUCTIONAL,
           LeAudioContextType::NOTIFICATIONS,
+          LeAudioContextType::SOUNDEFFECTS,
       };
       for (auto ct : context_priority_list) {
         if (available_remote_contexts.test(ct)) {
@@ -3654,6 +3669,28 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Choose the right configuration context */
     auto new_configuration_context =
         ChooseConfigurationContextType(new_metadata_context_types_);
+
+    /* For the following contexts we don't actually need HQ audio:
+     * LeAudioContextType::NOTIFICATIONS
+     * LeAudioContextType::SOUNDEFFECTS
+     * LeAudioContextType::INSTRUCTIONAL
+     * LeAudioContextType::ALERTS
+     * LeAudioContextType::EMERGENCYALARM
+     * So do not reconfigure if the remote sink is already available at any
+     * quality and these are the only contributors to the current audio stream.
+     */
+    auto no_reconfigure_contexts =
+        LeAudioContextType::NOTIFICATIONS | LeAudioContextType::SOUNDEFFECTS |
+        LeAudioContextType::INSTRUCTIONAL | LeAudioContextType::ALERTS |
+        LeAudioContextType::EMERGENCYALARM;
+    if ((new_metadata_context_types_ & ~no_reconfigure_contexts).none() &&
+        IsDirectionAvailableForCurrentConfiguration(
+            group, le_audio::types::kLeAudioDirectionSink)) {
+      LOG_INFO(
+          "There is no need to reconfigure for the sonification events. Keep "
+          "the configuration unchanged.");
+      new_configuration_context = configuration_context_type_;
+    }
 
     LOG_DEBUG("new_configuration_context= %s",
               ToString(new_configuration_context).c_str());
