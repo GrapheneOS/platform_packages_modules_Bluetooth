@@ -62,6 +62,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.hfp.HeadsetService;
+import com.android.bluetooth.mcp.McpService;
 import com.android.bluetooth.vc.VolumeControlService;
 
 import org.junit.After;
@@ -109,11 +110,12 @@ public class LeAudioServiceTest {
     private BroadcastReceiver mLeAudioIntentReceiver;
 
     @Mock private AdapterService mAdapterService;
+    @Mock private AudioManager mAudioManager;
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private LeAudioNativeInterface mNativeInterface;
-    @Mock private AudioManager mAudioManager;
-    @Mock private VolumeControlService mVolumeControlService;
     @Mock private LeAudioTmapGattServer mTmapGattServer;
+    @Mock private McpService mMcpService;
+    @Mock private VolumeControlService mVolumeControlService;
     @Spy private LeAudioObjectsFactory mObjectsFactory = LeAudioObjectsFactory.getInstance();
     @Spy private ServiceFactory mServiceFactory = new ServiceFactory();
 
@@ -179,6 +181,7 @@ public class LeAudioServiceTest {
         LeAudioNativeInterface.setInstance(mNativeInterface);
         startService();
         mService.mAudioManager = mAudioManager;
+        mService.mMcpService = mMcpService;
         mService.mServiceFactory = mServiceFactory;
         when(mServiceFactory.getVolumeControlService()).thenReturn(mVolumeControlService);
 
@@ -858,6 +861,24 @@ public class LeAudioServiceTest {
         mService.messageFromNative(stackEvent);
         // Verify the connection state broadcast
         verifyNoConnectionStateIntent(TIMEOUT_MS, device);
+    }
+
+    private void generateGroupNodeAdded(BluetoothDevice device, int groupId) {
+        LeAudioStackEvent nodeGroupAdded =
+        new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_NODE_STATUS_CHANGED);
+        nodeGroupAdded.device = device;
+        nodeGroupAdded.valueInt1 = groupId;
+        nodeGroupAdded.valueInt2 = LeAudioStackEvent.GROUP_NODE_ADDED;
+        mService.messageFromNative(nodeGroupAdded);
+    }
+
+    private void generateGroupNodeRemoved(BluetoothDevice device, int groupId) {
+        LeAudioStackEvent nodeGroupRemoved =
+        new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_NODE_STATUS_CHANGED);
+        nodeGroupRemoved.device = device;
+        nodeGroupRemoved.valueInt1 = groupId;
+        nodeGroupRemoved.valueInt2 = LeAudioStackEvent.GROUP_NODE_REMOVED;
+        mService.messageFromNative(nodeGroupRemoved);
     }
 
     private void verifyNoConnectionStateIntent(int timeoutMs, BluetoothDevice device) {
@@ -1561,5 +1582,45 @@ public class LeAudioServiceTest {
 
         StringBuilder sb = new StringBuilder();
         mService.dump(sb);
+    }
+
+    /**
+     * Test setting authorization for LeAudio device in the McpService
+     */
+    @Test
+    public void testAuthorizeMcpServiceWhenDeviceConnecting() {
+        int groupId = 1;
+
+        mService.handleBluetoothEnabled();
+        doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
+        connectTestDevice(mLeftDevice, groupId);
+        connectTestDevice(mRightDevice, groupId);
+        verify(mMcpService, times(1)).setDeviceAuthorized(mLeftDevice, true);
+        verify(mMcpService, times(1)).setDeviceAuthorized(mRightDevice, true);
+    }
+
+    /**
+     * Test setting authorization for LeAudio device in the McpService
+     */
+    @Test
+    public void testAuthorizeMcpServiceOnBluetoothEnableAndNodeRemoval() {
+        int groupId = 1;
+
+        generateGroupNodeAdded(mLeftDevice, groupId);
+        generateGroupNodeAdded(mRightDevice, groupId);
+
+        verify(mMcpService, times(0)).setDeviceAuthorized(mLeftDevice, true);
+        verify(mMcpService, times(0)).setDeviceAuthorized(mRightDevice, true);
+
+        mService.handleBluetoothEnabled();
+
+        verify(mMcpService, times(1)).setDeviceAuthorized(mLeftDevice, true);
+        verify(mMcpService, times(1)).setDeviceAuthorized(mRightDevice, true);
+
+        generateGroupNodeRemoved(mLeftDevice, groupId);
+        verify(mMcpService, times(1)).setDeviceAuthorized(mLeftDevice, false);
+
+        generateGroupNodeRemoved(mRightDevice, groupId);
+        verify(mMcpService, times(1)).setDeviceAuthorized(mRightDevice, false);
     }
 }
