@@ -62,10 +62,10 @@ uint8_t bta_dm_search_get_state() { return bta_dm_search_cb.state; }
  ******************************************************************************/
 bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
   APPL_TRACE_EVENT("bta_dm_search_sm_execute state:%d, event:0x%x",
-                   bta_dm_search_cb.state, p_msg->event);
+                   bta_dm_search_get_state(), p_msg->event);
 
   tBTA_DM_MSG* message = (tBTA_DM_MSG*)p_msg;
-  switch (bta_dm_search_cb.state) {
+  switch (bta_dm_search_get_state()) {
     case BTA_DM_SEARCH_IDLE:
       switch (p_msg->event) {
         case BTA_DM_API_SEARCH_EVT:
