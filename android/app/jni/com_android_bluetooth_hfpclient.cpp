@@ -540,7 +540,8 @@ static jboolean connectNative(JNIEnv* env, jobject object, jbyteArray address) {
     return JNI_FALSE;
   }
 
-  bt_status_t status = sBluetoothHfpClientInterface->connect((RawAddress*)addr);
+  bt_status_t status =
+      sBluetoothHfpClientInterface->connect((const RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed AG connection, status: %d", status);
   }

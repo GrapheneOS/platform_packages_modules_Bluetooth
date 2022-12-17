@@ -24,6 +24,8 @@ import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_READ;
 import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE;
 import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE;
 
+import static java.util.Map.entry;
+
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.bluetooth.BluetoothDevice;
@@ -41,7 +43,9 @@ import android.os.Looper;
 import android.util.Log;
 import android.util.Pair;
 
+import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -889,6 +893,12 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         }
 
         if (req.getOpcode() == Request.Opcodes.PLAY) {
+            if (mAdapterService.getActiveDevices(BluetoothProfile.A2DP).size() > 0) {
+                A2dpService.getA2dpService().setActiveDevice(null);
+            }
+            if (mAdapterService.getActiveDevices(BluetoothProfile.HEARING_AID).size() > 0) {
+                HearingAidService.getHearingAidService().setActiveDevice(null);
+            }
             if (mLeAudioService == null) {
                 mLeAudioService = LeAudioService.getLeAudioService();
             }
