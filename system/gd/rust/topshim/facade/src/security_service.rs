@@ -1,9 +1,11 @@
 //! Security service facade
 
-use bt_topshim::btif::{BluetoothInterface, RawAddress};
+use bt_topshim::btif::{BluetoothInterface, BtTransport, RawAddress};
 
 use bt_topshim_facade_protobuf::empty::Empty;
-use bt_topshim_facade_protobuf::facade::{GenerateOobDataRequest, RemoveBondRequest};
+use bt_topshim_facade_protobuf::facade::{
+    CreateBondRequest, CreateBondResponse, GenerateOobDataRequest, RemoveBondRequest,
+};
 use bt_topshim_facade_protobuf::facade_grpc::{create_security_service, SecurityService};
 use grpcio::*;
 
@@ -46,5 +48,31 @@ impl SecurityService for SecurityServiceImpl {
         ctx.spawn(async move {
             sink.success(Empty::default()).await.unwrap();
         })
+    }
+
+    fn create_bond(
+        &mut self,
+        ctx: RpcContext<'_>,
+        req: CreateBondRequest,
+        sink: UnarySink<CreateBondResponse>,
+    ) {
+        let btif = self.btif_intf.clone();
+        ctx.spawn(async move {
+            let bt_addr = &req.address;
+            if let Some(addr) = RawAddress::from_string(bt_addr) {
+                let status =
+                    btif.lock().unwrap().create_bond(&addr, BtTransport::from(req.transport));
+                let mut resp = CreateBondResponse::new();
+                resp.status = status;
+                sink.success(resp).await.unwrap();
+            } else {
+                sink.fail(RpcStatus::with_message(
+                    RpcStatusCode::INVALID_ARGUMENT,
+                    format!("Invalid Request Address: {}", bt_addr),
+                ))
+                .await
+                .unwrap();
+            }
+        });
     }
 }
