@@ -7,6 +7,7 @@
 // Profiles
 
 #include "hardware/bt_gatt.h"
+#include "hardware/bt_hf_client.h"
 #include "hardware/bt_hh.h"
 #include "hardware/bt_sdp.h"
 #include "hardware/bt_sock.h"

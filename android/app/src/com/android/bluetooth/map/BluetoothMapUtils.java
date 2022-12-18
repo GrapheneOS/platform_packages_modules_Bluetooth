@@ -677,6 +677,21 @@ public class BluetoothMapUtils {
         return format.format(cal.getTime());
     }
 
+    static boolean isDateTimeOlderThanOneYear(long timestamp) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(timestamp);
+        Calendar oneYearAgo = Calendar.getInstance();
+        oneYearAgo.add(Calendar.YEAR, -1);
+        if (cal.compareTo(oneYearAgo) > 0) {
+            if (V) {
+                Log.v(TAG, "isDateTimeOlderThanOneYear timestamp : " + timestamp
+                        + " oneYearAgo: " + oneYearAgo);
+            }
+            return true;
+        }
+        return false;
+    }
+
     static void savePeerSupportUtcTimeStamp(int remoteFeatureMask) {
         if ((remoteFeatureMask & MAP_FEATURE_DEFINED_TIMESTAMP_FORMAT_BIT)
                 == MAP_FEATURE_DEFINED_TIMESTAMP_FORMAT_BIT) {
