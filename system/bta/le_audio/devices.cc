@@ -1661,6 +1661,12 @@ LeAudioDeviceGroup::GetActiveConfiguration(void) {
 std::optional<LeAudioCodecConfiguration>
 LeAudioDeviceGroup::GetCodecConfigurationByDirection(
     types::LeAudioContextType group_context_type, uint8_t direction) const {
+  if (available_context_to_configuration_map.count(group_context_type) == 0) {
+    LOG_DEBUG("Context type %s, not supported",
+              bluetooth::common::ToString(group_context_type).c_str());
+    return std::nullopt;
+  }
+
   const set_configurations::AudioSetConfiguration* audio_set_conf =
       available_context_to_configuration_map.at(group_context_type);
   LeAudioCodecConfiguration group_config = {0, 0, 0, 0};
