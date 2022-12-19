@@ -28,7 +28,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,8 +46,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.AudioDeviceCallback;
-import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.BluetoothProfileConnectionInfo;
 import android.os.Parcel;
@@ -115,10 +112,10 @@ public class LeAudioServiceTest {
     @Mock private AdapterService mAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private LeAudioNativeInterface mNativeInterface;
+    @Mock private AudioManager mAudioManager;
     @Mock private VolumeControlService mVolumeControlService;
     @Mock private LeAudioTmapGattServer mTmapGattServer;
     @Spy private LeAudioObjectsFactory mObjectsFactory = LeAudioObjectsFactory.getInstance();
-    @Spy private AudioManager mAudioManager;
     @Spy private ServiceFactory mServiceFactory = new ServiceFactory();
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
@@ -182,7 +179,6 @@ public class LeAudioServiceTest {
 
         LeAudioNativeInterface.setInstance(mNativeInterface);
         startService();
-        mAudioManager = spy(mService.mAudioManager);
         mService.mAudioManager = mAudioManager;
         mService.mServiceFactory = mServiceFactory;
         when(mServiceFactory.getVolumeControlService()).thenReturn(mVolumeControlService);
@@ -1112,14 +1108,6 @@ public class LeAudioServiceTest {
 
         String action = BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED;
 
-        ArgumentCaptor<AudioDeviceCallback> audioDeviceCallback =
-                ArgumentCaptor.forClass(AudioDeviceCallback.class);
-        verify(mAudioManager, times(1)).registerAudioDeviceCallback(audioDeviceCallback.capture(),
-                any());
-        AudioDeviceInfo audioDeviceInfo[] =
-                mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-        audioDeviceCallback.getValue().onAudioDevicesAdded(audioDeviceInfo);
-
         Intent intent = TestUtils.waitForIntent(TIMEOUT_MS, mDeviceQueueMap.get(mSingleDevice));
         assertThat(intent).isNotNull();
         assertThat(action).isEqualTo(intent.getAction());
@@ -1333,14 +1321,6 @@ public class LeAudioServiceTest {
                         any(BluetoothProfileConnectionInfo.class));
 
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService).getBondState(leadDevice);
-
-        ArgumentCaptor<AudioDeviceCallback> audioDeviceCallback =
-                ArgumentCaptor.forClass(AudioDeviceCallback.class);
-        verify(mAudioManager, times(1)).registerAudioDeviceCallback(audioDeviceCallback.capture(),
-                any());
-        AudioDeviceInfo audioDeviceInfo[] =
-                mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-        audioDeviceCallback.getValue().onAudioDevicesAdded(audioDeviceInfo);
         verifyActiveDeviceStateIntent(AUDIO_MANAGER_DEVICE_ADD_TIMEOUT_MS, leadDevice);
         injectNoVerifyDeviceDisconnected(leadDevice);
 
@@ -1407,13 +1387,6 @@ public class LeAudioServiceTest {
         verify(mAudioManager, times(1)).handleBluetoothActiveDeviceChanged(eq(leadDevice), any(),
                         any(BluetoothProfileConnectionInfo.class));
 
-        ArgumentCaptor<AudioDeviceCallback> audioDeviceCallback =
-                ArgumentCaptor.forClass(AudioDeviceCallback.class);
-        verify(mAudioManager, times(1)).registerAudioDeviceCallback(audioDeviceCallback.capture(),
-                any());
-        AudioDeviceInfo audioDeviceInfo[] =
-                mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-        audioDeviceCallback.getValue().onAudioDevicesAdded(audioDeviceInfo);
         verifyActiveDeviceStateIntent(AUDIO_MANAGER_DEVICE_ADD_TIMEOUT_MS, leadDevice);
         /* We don't want to distribute DISCONNECTION event, instead will try to reconnect
          * (in native)
