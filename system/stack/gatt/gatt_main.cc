@@ -160,7 +160,7 @@ void gatt_free(void) {
   fixed_queue_free(gatt_cb.srv_chg_clt_q, NULL);
   gatt_cb.srv_chg_clt_q = NULL;
   for (i = 0; i < GATT_MAX_PHY_CHANNEL; i++) {
-    gatt_cb.tcb[i].pending_enc_clcb = std::queue<tGATT_CLCB*>();
+    gatt_cb.tcb[i].pending_enc_clcb = std::deque<tGATT_CLCB*>();
 
     fixed_queue_free(gatt_cb.tcb[i].pending_ind_q, NULL);
     gatt_cb.tcb[i].pending_ind_q = NULL;
