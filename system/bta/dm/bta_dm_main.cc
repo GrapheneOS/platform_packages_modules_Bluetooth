@@ -47,9 +47,6 @@ tBTA_DM_DI_CB bta_dm_di_cb;
  ******************************************************************************/
 void bta_dm_search_sm_disable() { bta_sys_deregister(BTA_ID_DM_SEARCH); }
 
-void bta_dm_search_set_state(uint8_t state) { bta_dm_search_cb.state = state; }
-uint8_t bta_dm_search_get_state() { return bta_dm_search_cb.state; }
-
 /*******************************************************************************
  *
  * Function         bta_dm_search_sm_execute
@@ -62,10 +59,10 @@ uint8_t bta_dm_search_get_state() { return bta_dm_search_cb.state; }
  ******************************************************************************/
 bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
   APPL_TRACE_EVENT("bta_dm_search_sm_execute state:%d, event:0x%x",
-                   bta_dm_search_cb.state, p_msg->event);
+                   bta_dm_search_get_state(), p_msg->event);
 
   tBTA_DM_MSG* message = (tBTA_DM_MSG*)p_msg;
-  switch (bta_dm_search_cb.state) {
+  switch (bta_dm_search_get_state()) {
     case BTA_DM_SEARCH_IDLE:
       switch (p_msg->event) {
         case BTA_DM_API_SEARCH_EVT:
