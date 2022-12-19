@@ -245,6 +245,9 @@ typedef struct {
   /* opportunistic observer */
   tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb;
 
+  /* target announcement observer */
+  tBTM_INQ_RESULTS_CB* p_target_announcement_obs_results_cb;
+
   /* background connection procedure cb value */
   uint16_t scan_int;
   uint16_t scan_win;

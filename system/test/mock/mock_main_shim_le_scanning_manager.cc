@@ -51,3 +51,7 @@ void bluetooth::shim::set_ad_type_rsi_filter(bool enable) {
 void bluetooth::shim::set_empty_filter(bool enable) {
   mock_function_count_map[__func__]++;
 }
+
+void bluetooth::shim::set_target_announcements_filter(bool enable) {
+  mock_function_count_map[__func__]++;
+}

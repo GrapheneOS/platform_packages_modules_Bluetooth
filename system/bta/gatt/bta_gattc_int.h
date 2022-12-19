@@ -89,13 +89,21 @@ typedef struct {
   BT_HDR_RIGID hdr;
   RawAddress remote_bda;
   tGATT_IF client_if;
-  bool is_direct;
+  tBTM_BLE_CONN_TYPE connection_type;
   tBT_TRANSPORT transport;
   uint8_t initiating_phys;
   bool opportunistic;
 } tBTA_GATTC_API_OPEN;
 
-typedef tBTA_GATTC_API_OPEN tBTA_GATTC_API_CANCEL_OPEN;
+typedef struct {
+  BT_HDR_RIGID hdr;
+  RawAddress remote_bda;
+  tGATT_IF client_if;
+  bool is_direct;
+  tBT_TRANSPORT transport;
+  uint8_t initiating_phys;
+  bool opportunistic;
+} tBTA_GATTC_API_CANCEL_OPEN;
 
 typedef struct {
   BT_HDR_RIGID hdr;

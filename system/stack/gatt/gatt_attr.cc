@@ -729,7 +729,8 @@ void GATT_ConfigServiceChangeCCC(const RawAddress& remote_bda, bool enable,
     p_clcb->connected = true;
   }
   /* hold the link here */
-  GATT_Connect(gatt_cb.gatt_if, remote_bda, true, transport, true);
+  GATT_Connect(gatt_cb.gatt_if, remote_bda, BTM_BLE_DIRECT_CONNECTION,
+               transport, true);
   p_clcb->ccc_stage = GATT_SVC_CHANGED_CONNECTING;
 
   if (!p_clcb->connected) {
