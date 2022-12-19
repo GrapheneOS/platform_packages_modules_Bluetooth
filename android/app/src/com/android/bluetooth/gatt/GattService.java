@@ -2970,7 +2970,7 @@ public class GattService extends ProfileService {
 
         final long identity = Binder.clearCallingIdentity();
         try {
-            for (AssociationInfo info : mCompanionManager.getAllAssociations()) {
+            for (AssociationInfo info : Utils.getCdmAssociations(mCompanionManager)) {
                 if (info.getPackageName().equals(callingPackage) && !info.isSelfManaged()
                     && info.getDeviceMacAddress() != null) {
                     macAddresses.add(info.getDeviceMacAddress().toString());
