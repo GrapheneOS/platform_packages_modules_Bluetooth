@@ -311,7 +311,11 @@ void BTA_GATTS_Open(tGATT_IF server_if, const RawAddress& remote_bda,
 
   p_buf->hdr.event = BTA_GATTS_API_OPEN_EVT;
   p_buf->server_if = server_if;
-  p_buf->is_direct = is_direct;
+  if (is_direct) {
+    p_buf->connection_type = BTM_BLE_DIRECT_CONNECTION;
+  } else {
+    p_buf->connection_type = BTM_BLE_BKG_CONNECT_ALLOW_LIST;
+  }
   p_buf->transport = transport;
   p_buf->remote_bda = remote_bda;
 
