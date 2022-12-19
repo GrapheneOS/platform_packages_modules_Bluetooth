@@ -895,7 +895,13 @@ public class LeAudioService extends ProfileService {
         return false;
     }
 
-    private void notifyActiveDeviceChanged() {
+    /**
+     * Send broadcast intent about LeAudio active device.
+     * This is called when AudioManager confirms, LeAudio device
+     * is added or removed.
+     */
+    @VisibleForTesting
+    void notifyActiveDeviceChanged() {
         Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE,
                 mActiveAudioOutDevice != null ? mActiveAudioOutDevice : mActiveAudioInDevice);

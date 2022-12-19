@@ -67,7 +67,6 @@ import com.android.bluetooth.vc.VolumeControlService;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1098,7 +1097,6 @@ public class LeAudioServiceTest {
      * Test native interface audio configuration changed message handling
      */
     @Test
-    @Ignore("b/258573934")
     public void testMessageFromNativeAudioConfChangedActiveGroup() {
         doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
         connectTestDevice(mSingleDevice, testGroupId);
@@ -1106,8 +1104,16 @@ public class LeAudioServiceTest {
                          BluetoothLeAudio.CONTEXT_TYPE_CONVERSATIONAL, 3);
         injectGroupStatusChange(testGroupId, BluetoothLeAudio.GROUP_STATUS_ACTIVE);
 
-        String action = BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED;
+        /* Expect 2 calles to Audio Manager - one for output and second for input as this is
+         * Conversational use case */
+        verify(mAudioManager, times(2)).handleBluetoothActiveDeviceChanged(any(), any(),
+                        any(BluetoothProfileConnectionInfo.class));
+        /* Since LeAudioService called AudioManager - assume Audio manager calles properly callback
+        * mAudioManager.onAudioDeviceAdded
+        */
+        mService.notifyActiveDeviceChanged();
 
+        String action = BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED;
         Intent intent = TestUtils.waitForIntent(TIMEOUT_MS, mDeviceQueueMap.get(mSingleDevice));
         assertThat(intent).isNotNull();
         assertThat(action).isEqualTo(intent.getAction());
@@ -1276,7 +1282,6 @@ public class LeAudioServiceTest {
      * Test native interface group status message handling
      */
     @Test
-    @Ignore("b/258573934")
     public void testLeadGroupDeviceDisconnects() {
         int groupId = 1;
         /* AUDIO_DIRECTION_OUTPUT_BIT = 0x01 */
@@ -1319,7 +1324,10 @@ public class LeAudioServiceTest {
         assertThat(mService.getActiveDevices().contains(leadDevice)).isTrue();
         verify(mAudioManager, times(1)).handleBluetoothActiveDeviceChanged(eq(leadDevice), any(),
                         any(BluetoothProfileConnectionInfo.class));
-
+        /* Since LeAudioService called AudioManager - assume Audio manager calles properly callback
+         * mAudioManager.onAudioDeviceAdded
+         */
+        mService.notifyActiveDeviceChanged();
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService).getBondState(leadDevice);
         verifyActiveDeviceStateIntent(AUDIO_MANAGER_DEVICE_ADD_TIMEOUT_MS, leadDevice);
         injectNoVerifyDeviceDisconnected(leadDevice);
@@ -1343,7 +1351,6 @@ public class LeAudioServiceTest {
      * Test native interface group status message handling
      */
     @Test
-    @Ignore("b/258573934")
     public void testLeadGroupDeviceReconnects() {
         int groupId = 1;
         /* AUDIO_DIRECTION_OUTPUT_BIT = 0x01 */
@@ -1386,6 +1393,10 @@ public class LeAudioServiceTest {
         assertThat(mService.getActiveDevices().contains(leadDevice)).isTrue();
         verify(mAudioManager, times(1)).handleBluetoothActiveDeviceChanged(eq(leadDevice), any(),
                         any(BluetoothProfileConnectionInfo.class));
+        /* Since LeAudioService called AudioManager - assume Audio manager calles properly callback
+         * mAudioManager.onAudioDeviceAdded
+         */
+        mService.notifyActiveDeviceChanged();
 
         verifyActiveDeviceStateIntent(AUDIO_MANAGER_DEVICE_ADD_TIMEOUT_MS, leadDevice);
         /* We don't want to distribute DISCONNECTION event, instead will try to reconnect
