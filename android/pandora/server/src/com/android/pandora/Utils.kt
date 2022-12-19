@@ -58,6 +58,7 @@ import pandora.AndroidProto.InternalConnectionRef
 import pandora.HostProto.Connection
 
 private const val TAG = "PandoraUtils"
+private val alphanumeric = ('A'..'Z') + ('a'..'z') + ('0'..'9')
 
 fun shell(cmd: String): String {
   val fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd)
@@ -339,4 +340,14 @@ fun buildAudioTrack(): AudioTrack? {
     .setTransferMode(AudioTrack.MODE_STREAM)
     .setBufferSizeInBytes(44100 * 2 * 2)
     .build()
+}
+
+/**
+ * Generates Alpha-numeric string of given length.
+ *
+ * @param length required string size.
+ * @return a generated string
+ */
+fun generateAlphanumericString(length: Int): String {
+  return buildString { repeat(length) { append(alphanumeric.random()) } }
 }

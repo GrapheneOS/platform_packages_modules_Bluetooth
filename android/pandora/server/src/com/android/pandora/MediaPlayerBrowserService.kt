@@ -31,7 +31,6 @@ class MediaPlayerBrowserService : MediaBrowserService() {
 
   private lateinit var mediaSession: MediaSession
   private lateinit var playbackStateBuilder: PlaybackState.Builder
-  private val alphanumeric = ('A'..'Z') + ('a'..'z') + ('0'..'9')
   private val mediaIdToChildren = mutableMapOf<String, MutableList<MediaItem>>()
   private var metadataItems = mutableMapOf<String, MediaMetadata>()
   private var queue = mutableListOf<MediaSession.QueueItem>()
@@ -130,10 +129,6 @@ class MediaPlayerBrowserService : MediaBrowserService() {
         .putString(MediaMetadata.METADATA_KEY_ARTIST, generateAlphanumericString(512))
         .build()
     )
-  }
-
-  private fun generateAlphanumericString(length: Int): String {
-    return buildString { repeat(length) { append(alphanumeric.random()) } }
   }
 
   private val mSessionCallback: MediaSession.Callback =
