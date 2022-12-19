@@ -64,6 +64,60 @@ namespace mock {
 namespace stack_gatt_api {
 
 // Shared state between mocked functions and tests
+// Name: GATTC_GetAndRemoveListOfConnIdsWaitingForMtuRequest
+// Params: RawAddress& remote_bda
+// Return: std::list<uint16_t>
+struct GATTC_GetAndRemoveListOfConnIdsWaitingForMtuRequest {
+  static std::list<uint16_t> return_value;
+  std::function<std::list<uint16_t>(const RawAddress& remote_bda)> body{
+      [](const RawAddress& remote_bda) { return return_value; }};
+  std::list<uint16_t> operator()(const RawAddress& remote_bda) {
+    return body(remote_bda);
+  };
+};
+extern struct GATTC_GetAndRemoveListOfConnIdsWaitingForMtuRequest
+    GATTC_GetAndRemoveListOfConnIdsWaitingForMtuRequest;
+
+// Shared state between mocked functions and tests
+// Name: GATTC_ConfigureMTU
+// Params: RawAddress& remote_bda, tBT_TRANSPORT transport, uint16_t conn_id,
+//         uint16_t *current_mtu
+// Return: tGATTC_TryMtuRequestResult
+struct GATTC_TryMtuRequest {
+  static tGATTC_TryMtuRequestResult return_value;
+  std::function<tGATTC_TryMtuRequestResult(
+      const RawAddress& remote_bda, tBT_TRANSPORT transport, uint16_t conn_id,
+      uint16_t* current_mtu)>
+      body{[](const RawAddress& remote_bda, tBT_TRANSPORT transport,
+              uint16_t conn_id,
+              uint16_t* current_mtu) { return return_value; }};
+  tGATTC_TryMtuRequestResult operator()(const RawAddress& remote_bda,
+                                        tBT_TRANSPORT transport,
+                                        uint16_t conn_id,
+                                        uint16_t* current_mtu) {
+    return body(remote_bda, transport, conn_id, current_mtu);
+  };
+};
+extern struct GATTC_TryMtuRequest GATTC_TryMtuRequest;
+
+// Shared state between mocked functions and tests
+// Name: GATTC_ConfigureMTU
+// Params: RawAddress& remote_bda, tBT_TRANSPORT transport,
+//         uint16_t user_mtu
+// Return: void
+struct GATTC_UpdateUserAttMtuIfNeeded {
+  std::function<void(const RawAddress& remote_bda, tBT_TRANSPORT transport,
+                     uint16_t user_mtu)>
+      body{[](const RawAddress& remote_bda, tBT_TRANSPORT transport,
+              uint16_t user_mtu) {}};
+  void operator()(const RawAddress& remote_bda, tBT_TRANSPORT transport,
+                  uint16_t user_mtu) {
+    body(remote_bda, transport, user_mtu);
+  };
+};
+extern struct GATTC_UpdateUserAttMtuIfNeeded GATTC_UpdateUserAttMtuIfNeeded;
+
+// Shared state between mocked functions and tests
 // Name: GATTC_ConfigureMTU
 // Params: uint16_t conn_id, uint16_t mtu
 // Return: tGATT_STATUS
