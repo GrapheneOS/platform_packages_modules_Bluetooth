@@ -19,7 +19,6 @@
 #include "connection_manager.h"
 
 #include <base/bind.h>
-#include <base/bind_helpers.h>
 #include <base/callback.h>
 #include <base/location.h>
 #include <base/logging.h>
@@ -28,6 +27,7 @@
 #include <memory>
 #include <set>
 
+#include "bind_helpers.h"
 #include "internal_include/bt_trace.h"
 #include "main/shim/le_scanning_manager.h"
 #include "main/shim/shim.h"
