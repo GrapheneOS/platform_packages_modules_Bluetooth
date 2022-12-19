@@ -18,7 +18,7 @@ java_defaults {
     ],
 
     static_libs: [
-        "androidx.legacy_legacy-support-v4",
+        "androidx.media_media",
         "androidx.test.ext.truth",
         "androidx.test.rules",
         "androidx.test.espresso.intents",
