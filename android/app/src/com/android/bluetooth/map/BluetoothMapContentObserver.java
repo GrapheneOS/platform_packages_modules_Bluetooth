@@ -1436,7 +1436,6 @@ public class BluetoothMapContentObserver {
                         int type = c.getInt(c.getColumnIndex(Sms.TYPE));
                         int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
                         int read = c.getInt(c.getColumnIndex(Sms.READ));
-                        long timestamp = c.getLong(c.getColumnIndex(Sms.DATE));
 
                         Msg msg = getMsgListSms().remove(id);
 
@@ -1444,10 +1443,6 @@ public class BluetoothMapContentObserver {
                          * a message deleted and/or MessageShift for messages deleted by the MCE. */
 
                         if (msg == null) {
-                            if (BluetoothMapUtils.isDateTimeOlderThanOneYear(timestamp)) {
-                                // Skip sending new message events older than one year
-                                continue;
-                            }
                             /* New message */
                             msg = new Msg(id, type, threadId, read);
                             msgListSms.put(id, msg);
@@ -1456,7 +1451,8 @@ public class BluetoothMapContentObserver {
                             if (mTransmitEvents && // extract contact details only if needed
                                     mMapEventReportVersion
                                             > BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
-                                String date = BluetoothMapUtils.getDateTimeString(timestamp);
+                                String date = BluetoothMapUtils.getDateTimeString(
+                                        c.getLong(c.getColumnIndex(Sms.DATE)));
                                 String subject = c.getString(c.getColumnIndex(Sms.BODY));
                                 if (subject == null) {
                                     subject = "";
@@ -1603,7 +1599,6 @@ public class BluetoothMapContentObserver {
                         // TODO: Go through code to see if we have an issue with mismatch in types
                         //       for threadId. Seems to be a long in DB??
                         int read = c.getInt(c.getColumnIndex(Mms.READ));
-                        long timestamp = c.getLong(c.getColumnIndex(Mms.DATE));
 
                         Msg msg = getMsgListMms().remove(id);
 
@@ -1612,10 +1607,6 @@ public class BluetoothMapContentObserver {
                          * MCE.*/
 
                         if (msg == null) {
-                            if (BluetoothMapUtils.isDateTimeOlderThanOneYear(timestamp)) {
-                                // Skip sending new message events older than one year
-                                continue;
-                            }
                             /* New message - only notify on retrieve conf */
                             listChanged = true;
                             if (getMmsFolderName(type).equalsIgnoreCase(
@@ -1629,7 +1620,8 @@ public class BluetoothMapContentObserver {
                             if (mTransmitEvents && // extract contact details only if needed
                                     mMapEventReportVersion
                                             != BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
-                                String date = BluetoothMapUtils.getDateTimeString(timestamp);
+                                String date = BluetoothMapUtils.getDateTimeString(
+                                        c.getLong(c.getColumnIndex(Mms.DATE)));
                                 String subject = c.getString(c.getColumnIndex(Mms.SUBJECT));
                                 if (subject == null || subject.length() == 0) {
                                     /* Get subject from mms text body parts - if any exists */
