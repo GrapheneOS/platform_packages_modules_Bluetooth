@@ -304,7 +304,7 @@ typedef struct {
 } tGATT_SRV_LIST_ELEM;
 
 typedef struct {
-  std::queue<tGATT_CLCB*> pending_enc_clcb; /* pending encryption channel q */
+  std::deque<tGATT_CLCB*> pending_enc_clcb; /* pending encryption channel q */
   tGATT_SEC_ACTION sec_act;
   RawAddress peer_bda;
   tBT_TRANSPORT transport;
