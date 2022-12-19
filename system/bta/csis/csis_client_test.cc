@@ -758,13 +758,7 @@ TEST_F(CsisClientTest, test_add_device_to_group) {
   ASSERT_FALSE(g_1->IsEmpty());
 }
 
-TEST_F(CsisClientTest, test_set_desired_size) {
-  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
-  g_1->SetDesiredSize(10);
-  ASSERT_EQ((int)sizeof(g_1), 16);
-}
-
-TEST_F(CsisClientTest, test_get_desired_size) {
+TEST_F(CsisClientTest, test_get_set_desired_size) {
   auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetDesiredSize(10);
   ASSERT_EQ(g_1->GetDesiredSize(), 10);
