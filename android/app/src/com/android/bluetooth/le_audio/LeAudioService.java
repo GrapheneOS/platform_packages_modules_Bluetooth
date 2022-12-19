@@ -907,6 +907,11 @@ public class LeAudioService extends ProfileService {
     private class AudioManagerRemoveAudioDeviceCallback extends AudioDeviceCallback {
         @Override
         public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+            if (mAudioManager == null) {
+                Log.e(TAG, "Callback called when LeAudioService is stopped");
+                return;
+            }
+
             for (AudioDeviceInfo deviceInfo : removedDevices) {
                 if (deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_HEADSET
                         || deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_SPEAKER) {
@@ -924,6 +929,11 @@ public class LeAudioService extends ProfileService {
     private class AudioManagerAddAudioDeviceCallback extends AudioDeviceCallback {
         @Override
         public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+            if (mAudioManager == null) {
+                Log.e(TAG, "Callback called when LeAudioService is stopped");
+                return;
+            }
+
             for (AudioDeviceInfo deviceInfo : addedDevices) {
                 if (deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_HEADSET
                         || deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_SPEAKER) {
