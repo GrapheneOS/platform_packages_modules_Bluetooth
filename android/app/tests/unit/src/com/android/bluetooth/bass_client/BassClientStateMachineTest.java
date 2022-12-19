@@ -19,7 +19,10 @@ package com.android.bluetooth.bass_client;
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
 
 import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECT;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECTION_STATE_CHANGED;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECT_TIMEOUT;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.DISCONNECT;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.PSYNC_ACTIVE_TIMEOUT;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -30,6 +33,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,6 +56,7 @@ import androidx.test.filters.MediumTest;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.internal.util.State;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
@@ -265,12 +270,12 @@ public class BassClientStateMachineTest {
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.CONNECTION_STATE_CHANGED,
+                        CONNECTION_STATE_CHANGED,
                         Integer.valueOf(BluetoothProfile.STATE_CONNECTED)),
                 BassClientStateMachine.Connected.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.CONNECTION_STATE_CHANGED,
+                        CONNECTION_STATE_CHANGED,
                         Integer.valueOf(BluetoothProfile.STATE_DISCONNECTED)),
                 BassClientStateMachine.Disconnected.class);
 
@@ -280,7 +285,7 @@ public class BassClientStateMachineTest {
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.CONNECTION_STATE_CHANGED,
+                        CONNECTION_STATE_CHANGED,
                         Integer.valueOf(BluetoothProfile.STATE_DISCONNECTED)),
                 BassClientStateMachine.Disconnected.class);
 
@@ -290,7 +295,7 @@ public class BassClientStateMachineTest {
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.CONNECTION_STATE_CHANGED,
+                        CONNECTION_STATE_CHANGED,
                         Integer.valueOf(BluetoothProfile.STATE_CONNECTED)),
                 BassClientStateMachine.Connected.class);
 
@@ -449,6 +454,76 @@ public class BassClientStateMachineTest {
         assertThat(data.getServiceData(BassConstants.BASIC_AUDIO_UUID)).isNotNull();
         mBassClientStateMachine.parseScanRecord(0, data);
         verify(mBassClientService).updateBase(anyInt(), any());
+    }
+
+    @Test
+    public void sendConnectMessage_inDisconnectedState() {
+        initToDisconnectedState();
+
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt = Mockito.mock(
+                BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(CONNECT),
+                BassClientStateMachine.Connecting.class);
+        verify(btGatt).disconnect();
+        verify(btGatt).close();
+    }
+
+    @Test
+    public void sendDisconnectMessage_inDisconnectedState() {
+        initToDisconnectedState();
+
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt = Mockito.mock(
+                BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+
+        mBassClientStateMachine.sendMessage(DISCONNECT);
+        verify(btGatt, timeout(TIMEOUT_MS)).disconnect();
+        verify(btGatt).close();
+    }
+
+    @Test
+    public void sendStateChangedMessage_inDisconnectedState() {
+        initToDisconnectedState();
+
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt = Mockito.mock(
+                BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+
+        Message msgToConnectingState =
+                mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
+        msgToConnectingState.obj = BluetoothProfile.STATE_CONNECTING;
+
+        mBassClientStateMachine.sendMessage(msgToConnectingState);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+
+        Message msgToConnectedState =
+                mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
+        msgToConnectedState.obj = BluetoothProfile.STATE_CONNECTED;
+        sendMessageAndVerifyTransition(msgToConnectedState, BassClientStateMachine.Connected.class);
+    }
+
+    @Test
+    public void sendOtherMessages_inDisconnectedState_doesNotChangeState() {
+        initToDisconnectedState();
+
+        mBassClientStateMachine.sendMessage(PSYNC_ACTIVE_TIMEOUT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+
+        mBassClientStateMachine.sendMessage(-1);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+    }
+
+    private void initToDisconnectedState() {
+        allowConnection(true);
+        allowConnectGatt(true);
+        assertThat(mBassClientStateMachine.getCurrentState())
+                .isInstanceOf(BassClientStateMachine.Disconnected.class);
     }
 
     private <T> void sendMessageAndVerifyTransition(Message msg, Class<T> type) {
