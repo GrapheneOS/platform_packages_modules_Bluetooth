@@ -952,7 +952,6 @@ void btm_read_remote_ext_features_complete_raw(uint8_t* p, uint8_t evt_len) {
   uint16_t handle;
 
   if (evt_len < HCI_EXT_FEATURES_SUCCESS_EVT_LEN) {
-    android_errorWriteLog(0x534e4554, "141552859");
     LOG_WARN("Remote extended feature length too short. length=%d", evt_len);
     return;
   }
@@ -968,7 +967,6 @@ void btm_read_remote_ext_features_complete_raw(uint8_t* p, uint8_t evt_len) {
   }
 
   if (page_num > HCI_EXT_FEATURES_PAGE_MAX) {
-    android_errorWriteLog(0x534e4554, "141552859");
     LOG_WARN("Too many received pages num_page=%d invalid", page_num);
     return;
   }

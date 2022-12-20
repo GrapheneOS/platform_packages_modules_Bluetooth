@@ -216,7 +216,6 @@ static int free_sdp_slot(int id) {
   int handle = -1;
   bluetooth_sdp_record* record = NULL;
   if (id < 0 || id >= MAX_SDP_SLOTS) {
-    android_errorWriteLog(0x534e4554, "37502513");
     APPL_TRACE_ERROR("%s() failed - id %d is invalid", __func__, id);
     return handle;
   }
