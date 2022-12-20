@@ -1138,6 +1138,7 @@ cc_test {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/stack/btm",
     ],
     srcs: crypto_toolbox_srcs + [
         ":TestMockStackL2cap",
@@ -1191,6 +1192,7 @@ cc_test {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/stack/btm",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
@@ -1253,6 +1255,7 @@ cc_test {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/stack/btm",
         "packages/modules/Bluetooth/system/utils/include",
     ],
     generated_headers: [
@@ -1329,6 +1332,7 @@ cc_test {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/stack/btm",
         "packages/modules/Bluetooth/system/utils/include",
     ],
     generated_headers: [
@@ -1401,6 +1405,7 @@ cc_test {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/stack/btm",
         "packages/modules/Bluetooth/system/utils/include",
     ],
     generated_headers: [
