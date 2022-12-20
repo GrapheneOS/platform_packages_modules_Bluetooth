@@ -37,7 +37,6 @@ import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import android.telecom.Log;
 
 import androidx.test.filters.MediumTest;
 
@@ -99,7 +98,6 @@ public class BassClientStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        Log.d("hieu-debug", "blo blo");
         mBassClientStateMachine.doQuit();
         mHandlerThread.quit();
         TestUtils.clearAdapterService(mAdapterService);
