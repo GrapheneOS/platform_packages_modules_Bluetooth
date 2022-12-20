@@ -53,6 +53,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.util.Xml;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
@@ -135,7 +136,8 @@ public class BluetoothMapContentObserver {
 
     private Context mContext;
     private ContentResolver mResolver;
-    private ContentProviderClient mProviderClient = null;
+    @VisibleForTesting
+    ContentProviderClient mProviderClient = null;
     private BluetoothMnsObexClient mMnsClient;
     private BluetoothMapMasInstance mMasInstance = null;
     private int mMasId;
@@ -847,7 +849,7 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    /*package*/ class Msg {
+    /*package*/ static class Msg {
         public long id;
         public int type;               // Used as folder for SMS/MMS
         public int threadId;           // Used for SMS/MMS at delete
@@ -2254,13 +2256,16 @@ public class BluetoothMapContentObserver {
     private void updateThreadId(Uri uri, String valueString, long threadId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(valueString, threadId);
-        mResolver.update(uri, contentValues, null, null);
+        BluetoothMethodProxy.getInstance().contentResolverUpdate(mResolver, uri, contentValues,
+                null, null);
     }
 
-    private boolean deleteMessageMms(long handle) {
+    @VisibleForTesting
+    boolean deleteMessageMms(long handle) {
         boolean res = false;
         Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI, handle);
-        Cursor c = mResolver.query(uri, null, null, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri, null,
+                null, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 /* Move to deleted folder, or delete if already in deleted folder */
@@ -2280,7 +2285,8 @@ public class BluetoothMapContentObserver {
                         getMsgListMms().remove(handle);
                     }
                     /* Delete message */
-                    mResolver.delete(uri, null, null);
+                    BluetoothMethodProxy.getInstance().contentResolverDelete(mResolver, uri, null,
+                            null);
                 }
                 res = true;
             }
@@ -2293,10 +2299,12 @@ public class BluetoothMapContentObserver {
         return res;
     }
 
-    private boolean unDeleteMessageMms(long handle) {
+    @VisibleForTesting
+    boolean unDeleteMessageMms(long handle) {
         boolean res = false;
         Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI, handle);
-        Cursor c = mResolver.query(uri, null, null, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri, null,
+                null, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
@@ -2315,7 +2323,9 @@ public class BluetoothMapContentObserver {
                     }
                     Set<String> recipients = new HashSet<String>();
                     recipients.addAll(Arrays.asList(address));
-                    Long oldThreadId = Telephony.Threads.getOrCreateThreadId(mContext, recipients);
+                    Long oldThreadId =
+                            BluetoothMethodProxy.getInstance().telephonyGetOrCreateThreadId(
+                                    mContext, recipients);
                     synchronized (getMsgListMms()) {
                         Msg msg = getMsgListMms().get(handle);
                         if (msg != null) { // This will always be the case
@@ -2344,10 +2354,12 @@ public class BluetoothMapContentObserver {
         return res;
     }
 
-    private boolean deleteMessageSms(long handle) {
+    @VisibleForTesting
+    boolean deleteMessageSms(long handle) {
         boolean res = false;
         Uri uri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
-        Cursor c = mResolver.query(uri, null, null, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri, null,
+                null, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 /* Move to deleted folder, or delete if already in deleted folder */
@@ -2367,7 +2379,8 @@ public class BluetoothMapContentObserver {
                         getMsgListSms().remove(handle);
                     }
                     /* Delete message */
-                    mResolver.delete(uri, null, null);
+                    BluetoothMethodProxy.getInstance().contentResolverDelete(mResolver, uri, null,
+                            null);
                 }
                 res = true;
             }
@@ -2379,10 +2392,12 @@ public class BluetoothMapContentObserver {
         return res;
     }
 
-    private boolean unDeleteMessageSms(long handle) {
+    @VisibleForTesting
+    boolean unDeleteMessageSms(long handle) {
         boolean res = false;
         Uri uri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
-        Cursor c = mResolver.query(uri, null, null, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri, null,
+                null, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
@@ -2390,7 +2405,9 @@ public class BluetoothMapContentObserver {
                     String address = c.getString(c.getColumnIndex(Sms.ADDRESS));
                     Set<String> recipients = new HashSet<String>();
                     recipients.addAll(Arrays.asList(address));
-                    Long oldThreadId = Telephony.Threads.getOrCreateThreadId(mContext, recipients);
+                    Long oldThreadId =
+                            BluetoothMethodProxy.getInstance().telephonyGetOrCreateThreadId(
+                                    mContext, recipients);
                     synchronized (getMsgListSms()) {
                         Msg msg = getMsgListSms().get(handle);
                         if (msg != null) {
@@ -2501,7 +2518,8 @@ public class BluetoothMapContentObserver {
                     msg.flagRead = statusValue;
                 }
             }
-            count = mResolver.update(uri, contentValues, null, null);
+            count = BluetoothMethodProxy.getInstance().contentResolverUpdate(mResolver, uri,
+                    contentValues, null, null);
             if (D) {
                 Log.d(TAG, " -> " + count + " rows updated!");
             }
@@ -2519,7 +2537,8 @@ public class BluetoothMapContentObserver {
                     msg.flagRead = statusValue;
                 }
             }
-            count = mResolver.update(uri, contentValues, null, null);
+            count = BluetoothMethodProxy.getInstance().contentResolverUpdate(mResolver, uri,
+                    contentValues, null, null);
             if (D) {
                 Log.d(TAG, " -> " + count + " rows updated!");
             }
@@ -2540,7 +2559,8 @@ public class BluetoothMapContentObserver {
         return (count > 0);
     }
 
-    private class PushMsgInfo {
+    @VisibleForTesting
+    static class PushMsgInfo {
         public long id;
         public int transparent;
         public int retry;
