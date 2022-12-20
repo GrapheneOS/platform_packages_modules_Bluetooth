@@ -91,6 +91,7 @@ public class BluetoothOppHandoverReceiverTest {
         // InsertShareInfoThread insert into content resolver
         verify(mCallProxy, timeout(3_000).times(1)).contentResolverInsert(any(),
                 eq(BluetoothShare.CONTENT_URI), nullable(ContentValues.class));
+        BluetoothOppManager.setInstance(null);
     }
 
     @Test
@@ -117,6 +118,7 @@ public class BluetoothOppHandoverReceiverTest {
         // InsertShareInfoThread insert into content resolver
         verify(mCallProxy, timeout(3_000).times(3)).contentResolverInsert(any(),
                 eq(BluetoothShare.CONTENT_URI), nullable(ContentValues.class));
+        BluetoothOppManager.setInstance(null);
     }
 
     @Test
