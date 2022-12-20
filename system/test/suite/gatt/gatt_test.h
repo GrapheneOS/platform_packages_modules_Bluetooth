@@ -85,17 +85,17 @@ class GattTest : public BluetoothTest,
 
   // Semaphores used to wait for specific callback execution. Each callback
   // has its own semaphore associated with it
-  semaphore_t* register_client_callback_sem_;
-  semaphore_t* scan_result_callback_sem_;
-  semaphore_t* listen_callback_sem_;
+  btsemaphore register_client_callback_sem_;
+  btsemaphore scan_result_callback_sem_;
+  btsemaphore listen_callback_sem_;
 
-  semaphore_t* register_server_callback_sem_;
-  semaphore_t* service_added_callback_sem_;
-  semaphore_t* characteristic_added_callback_sem_;
-  semaphore_t* descriptor_added_callback_sem_;
-  semaphore_t* service_started_callback_sem_;
-  semaphore_t* service_stopped_callback_sem_;
-  semaphore_t* service_deleted_callback_sem_;
+  btsemaphore register_server_callback_sem_;
+  btsemaphore service_added_callback_sem_;
+  btsemaphore characteristic_added_callback_sem_;
+  btsemaphore descriptor_added_callback_sem_;
+  btsemaphore service_started_callback_sem_;
+  btsemaphore service_stopped_callback_sem_;
+  btsemaphore service_deleted_callback_sem_;
 
  private:
   // The btgatt_scanner_interface_t that all the tests use to interact with the
