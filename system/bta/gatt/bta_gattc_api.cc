@@ -119,7 +119,7 @@ void BTA_GATTC_AppDeregister(tGATT_IF client_if) {
  *
  * Parameters       client_if: server interface.
  *                  remote_bda: remote device BD address.
- *                  is_direct: direct connection or background auto connection
+ *                  connection_type: connection type used for the peer device
  *                  transport: Transport to be used for GATT connection
  *                             (BREDR/LE)
  *                  initiating_phys: LE PHY to use, optional
@@ -128,15 +128,15 @@ void BTA_GATTC_AppDeregister(tGATT_IF client_if) {
  *
  ******************************************************************************/
 void BTA_GATTC_Open(tGATT_IF client_if, const RawAddress& remote_bda,
-                    bool is_direct, bool opportunistic) {
+                    tBTM_BLE_CONN_TYPE connection_type, bool opportunistic) {
   uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
-  BTA_GATTC_Open(client_if, remote_bda, is_direct, BT_TRANSPORT_LE,
+  BTA_GATTC_Open(client_if, remote_bda, connection_type, BT_TRANSPORT_LE,
                  opportunistic, phy);
 }
 
 void BTA_GATTC_Open(tGATT_IF client_if, const RawAddress& remote_bda,
-                    bool is_direct, tBT_TRANSPORT transport, bool opportunistic,
-                    uint8_t initiating_phys) {
+                    tBTM_BLE_CONN_TYPE connection_type, tBT_TRANSPORT transport,
+                    bool opportunistic, uint8_t initiating_phys) {
   tBTA_GATTC_DATA data = {
       .api_conn =
           {
@@ -146,7 +146,7 @@ void BTA_GATTC_Open(tGATT_IF client_if, const RawAddress& remote_bda,
                   },
               .remote_bda = remote_bda,
               .client_if = client_if,
-              .is_direct = is_direct,
+              .connection_type = connection_type,
               .transport = transport,
               .initiating_phys = initiating_phys,
               .opportunistic = opportunistic,

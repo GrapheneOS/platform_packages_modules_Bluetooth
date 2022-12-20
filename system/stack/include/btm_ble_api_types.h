@@ -354,6 +354,12 @@ typedef void(tBTM_BLE_ADV_DATA_CMPL_CBACK)(tBTM_STATUS status);
 
 typedef uint8_t tGATT_IF;
 
+typedef enum : uint8_t {
+  BTM_BLE_DIRECT_CONNECTION = 0x00,
+  BTM_BLE_BKG_CONNECT_ALLOW_LIST = 0x01,
+  BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS = 0x02,
+} tBTM_BLE_CONN_TYPE;
+
 typedef void(tBTM_BLE_SCAN_THRESHOLD_CBACK)(tBTM_BLE_REF_VALUE ref_value);
 using tBTM_BLE_SCAN_REP_CBACK =
     base::Callback<void(tBTM_STATUS /* status */, uint8_t /* report_format */,

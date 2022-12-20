@@ -737,8 +737,8 @@ class HasClientTestBase : public ::testing::Test {
     ON_CALL(gatt_interface, Open(_, _, _, _))
         .WillByDefault(
             Invoke([&](tGATT_IF client_if, const RawAddress& remote_bda,
-                       bool is_direct, bool opportunistic) {
-              if (is_direct)
+                       tBTM_BLE_CONN_TYPE connection_type, bool opportunistic) {
+              if (connection_type == BTM_BLE_DIRECT_CONNECTION)
                 InjectConnectedEvent(remote_bda, GetTestConnId(remote_bda));
             }));
 
@@ -784,7 +784,8 @@ class HasClientTestBase : public ::testing::Test {
     ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
         .WillByDefault(DoAll(Return(encryption_result)));
 
-    EXPECT_CALL(gatt_interface, Open(gatt_if, address, true, _));
+    EXPECT_CALL(gatt_interface,
+                Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, _));
     HasClient::Get()->Connect(address);
 
     Mock::VerifyAndClearExpectations(&*callbacks);
@@ -807,7 +808,8 @@ class HasClientTestBase : public ::testing::Test {
   void TestAddFromStorage(const RawAddress& address, uint8_t features,
                           bool auto_connect) {
     if (auto_connect) {
-      EXPECT_CALL(gatt_interface, Open(gatt_if, address, false, _));
+      EXPECT_CALL(gatt_interface,
+                  Open(gatt_if, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _));
       HasClient::Get()->AddFromStorage(address, features, auto_connect);
 
       /* Inject connected event for autoconnect/background connection */
@@ -1233,7 +1235,8 @@ TEST_F(HasClientTest, test_disconnect_non_connected) {
   const RawAddress test_address = GetTestAddress(1);
 
   /* Override the default action to prevent us sendind the connected event */
-  EXPECT_CALL(gatt_interface, Open(gatt_if, test_address, true, _))
+  EXPECT_CALL(gatt_interface,
+              Open(gatt_if, test_address, BTM_BLE_DIRECT_CONNECTION, _))
       .WillOnce(Return());
   HasClient::Get()->Connect(test_address);
   TestDisconnect(test_address, GATT_INVALID_CONN_ID);
