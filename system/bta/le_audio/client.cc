@@ -1282,12 +1282,33 @@ class LeAudioClientImpl : public LeAudioClient {
     BTA_GATTC_CancelOpen(0, address, false);
 
     if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
-      /* User is disconnecting the device, we shall remove the autoconnect flag
+      /* User is disconnecting the device, we shall remove the autoconnect
+       * flag for this device and all others
        */
-      btif_storage_set_leaudio_autoconnect(address, false);
-      leAudioDevice->autoconnect_flag_ = false;
+      LOG_INFO("Removing autoconnect flag for group_id %d",
+               leAudioDevice->group_id_);
 
       auto group = aseGroups_.FindById(leAudioDevice->group_id_);
+
+      if (leAudioDevice->autoconnect_flag_) {
+        btif_storage_set_leaudio_autoconnect(address, false);
+        leAudioDevice->autoconnect_flag_ = false;
+      }
+
+      if (group) {
+        /* Remove devices from auto connect mode */
+        for (auto dev = group->GetFirstDevice(); dev;
+             dev = group->GetNextDevice(dev)) {
+          if (dev->GetConnectionState() ==
+              DeviceConnectState::CONNECTING_AUTOCONNECT) {
+            btif_storage_set_leaudio_autoconnect(address, false);
+            dev->autoconnect_flag_ = false;
+            BTA_GATTC_CancelOpen(gatt_if_, address, false);
+            dev->SetConnectionState(DeviceConnectState::DISCONNECTED);
+          }
+        }
+      }
+
       if (group &&
           group->GetState() ==
               le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
