@@ -303,19 +303,6 @@ struct HciLayer::impl {
     event_handlers_.erase(event);
   }
 
-  void register_le_meta_event(ContextualCallback<void(EventView)> handler) {
-    ASSERT_LOG(
-        event_handlers_.count(EventCode::LE_META_EVENT) == 0,
-        "Can not register a second handler for %02hhx (%s)",
-        EventCode::LE_META_EVENT,
-        EventCodeText(EventCode::LE_META_EVENT).c_str());
-    event_handlers_[EventCode::LE_META_EVENT] = handler;
-  }
-
-  void unregister_le_meta_event() {
-    unregister_event(EventCode::LE_META_EVENT);
-  }
-
   void register_le_event(SubeventCode event, ContextualCallback<void(LeMetaEventView)> handler) {
     ASSERT_LOG(
         subevent_handlers_.count(event) == 0,
@@ -400,11 +387,26 @@ struct HciLayer::impl {
         }
       }
     }
-    if (event_handlers_.find(event_code) == event_handlers_.end()) {
-      LOG_WARN("Unhandled event of type 0x%02hhx (%s)", event_code, EventCodeText(event_code).c_str());
-      return;
+    switch (event_code) {
+      case EventCode::COMMAND_COMPLETE:
+        on_command_complete(event);
+        break;
+      case EventCode::COMMAND_STATUS:
+        on_command_status(event);
+        break;
+      case EventCode::LE_META_EVENT:
+        on_le_meta_event(event);
+        break;
+      default:
+        if (event_handlers_.find(event_code) == event_handlers_.end()) {
+          LOG_WARN(
+              "Unhandled event of type 0x%02hhx (%s)",
+              event_code,
+              EventCodeText(event_code).c_str());
+        } else {
+          event_handlers_[event_code].Invoke(event);
+        }
     }
-    event_handlers_[event_code].Invoke(event);
   }
 
   void on_le_meta_event(EventView event) {
@@ -511,10 +513,6 @@ void HciLayer::EnqueueCommand(
 
 void HciLayer::RegisterEventHandler(EventCode event, ContextualCallback<void(EventView)> handler) {
   CallOn(impl_, &impl::register_event, event, handler);
-}
-
-void HciLayer::RegisterLeMetaEventHandler(ContextualCallback<void(EventView)> handler) {
-  CallOn(impl_, &impl::register_le_meta_event, handler);
 }
 
 void HciLayer::UnregisterEventHandler(EventCode event) {
@@ -673,10 +671,8 @@ void HciLayer::Start() {
   Handler* handler = GetHandler();
   impl_->acl_queue_.GetDownEnd()->RegisterDequeue(handler, BindOn(impl_, &impl::on_outbound_acl_ready));
   impl_->sco_queue_.GetDownEnd()->RegisterDequeue(handler, BindOn(impl_, &impl::on_outbound_sco_ready));
-  impl_->iso_queue_.GetDownEnd()->RegisterDequeue(handler, BindOn(impl_, &impl::on_outbound_iso_ready));
-  RegisterEventHandler(EventCode::COMMAND_COMPLETE, handler->BindOn(impl_, &impl::on_command_complete));
-  RegisterEventHandler(EventCode::COMMAND_STATUS, handler->BindOn(impl_, &impl::on_command_status));
-  RegisterLeMetaEventHandler(handler->BindOn(impl_, &impl::on_le_meta_event));
+  impl_->iso_queue_.GetDownEnd()->RegisterDequeue(
+      handler, BindOn(impl_, &impl::on_outbound_iso_ready));
   RegisterEventHandler(EventCode::DISCONNECTION_COMPLETE, handler->BindOn(this, &HciLayer::on_disconnection_complete));
   RegisterEventHandler(
       EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE,
