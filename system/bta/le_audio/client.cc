@@ -1217,12 +1217,12 @@ class LeAudioClientImpl : public LeAudioClient {
       LOG_WARN("Could not load ases");
     }
 
-    if (autoconnect) {
-      leAudioDevice->SetConnectionState(
-          DeviceConnectState::CONNECTING_AUTOCONNECT);
-      leAudioDevice->autoconnect_flag_ = true;
-      BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
-    }
+    leAudioDevice->autoconnect_flag_ = autoconnect;
+    /* When adding from storage, make sure that autoconnect is used
+     * by all the devices in the group.
+     */
+    leAudioDevices_.SetInitialGroupAutoconnectState(
+        group_id, gatt_if_, reconnection_mode_, autoconnect);
   }
 
   bool GetHandlesForStorage(const RawAddress& addr, std::vector<uint8_t>& out) {
