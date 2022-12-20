@@ -77,15 +77,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
 
     private boolean mTimeout = false;
 
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION.equals(intent.getAction())) {
-                return;
-            }
-            onTimeout();
-        }
-    };
+    private BroadcastReceiver mReceiver = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,6 +119,15 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
             Log.v(TAG, "BluetoothIncomingFileConfirmActivity: Got uri:" + mUri);
         }
 
+        mReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (!BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION.equals(intent.getAction())) {
+                    return;
+                }
+                onTimeout();
+            }
+        };
         registerReceiver(mReceiver,
                 new IntentFilter(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION));
     }
@@ -186,7 +187,9 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mReceiver);
+        if (mReceiver != null) {
+            unregisterReceiver(mReceiver);
+        }
     }
 
     @Override
