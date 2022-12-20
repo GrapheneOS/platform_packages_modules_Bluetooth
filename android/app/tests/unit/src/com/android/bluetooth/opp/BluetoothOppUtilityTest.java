@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.android.bluetooth.R;
+
 public class BluetoothOppUtilityTest {
 
     private static final Uri CORRECT_FORMAT_BUT_INVALID_FILE_URI = Uri.parse(
@@ -243,8 +245,8 @@ public class BluetoothOppUtilityTest {
         int statusValue = BluetoothShare.STATUS_PENDING;
         Long timestampValue = 123456789L;
         String destinationValue = "AA:BB:CC:00:11:22";
-        String fileNameValue = "Unknown file";
-        String deviceNameValue = "Unknown device"; // bt device name
+        String fileNameValue = mContext.getString(R.string.unknown_file);
+        String deviceNameValue = mContext.getString(R.string.unknown_device); // bt device name
         String fileTypeValue = "text/plain";
 
         List<CursorMockData> cursorMockDataList = List.of(
@@ -302,8 +304,9 @@ public class BluetoothOppUtilityTest {
 
     @Test
     public void formatResultText() {
-        assertThat(BluetoothOppUtility.formatResultText(1, 2, mContext)).isEqualTo(
-                "1 successful, 2 unsuccessful.");
+        String text = BluetoothOppUtility.formatResultText(1, 2, mContext);
+
+        assertThat(text.contains("1") && text.contains("2")).isTrue();
     }
 
     @Test
@@ -311,44 +314,45 @@ public class BluetoothOppUtilityTest {
         String deviceName = "randomName";
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_PENDING, deviceName)).isEqualTo(
-                "File transfer not started yet.");
+                mContext.getString(R.string.status_pending));
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_RUNNING, deviceName)).isEqualTo(
-                "File transfer is ongoing.");
+                mContext.getString(R.string.status_running));
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_SUCCESS, deviceName)).isEqualTo(
-                "File transfer completed successfully.");
+                mContext.getString(R.string.status_success));
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_NOT_ACCEPTABLE, deviceName)).isEqualTo(
-                "Content isn\'t supported.");
+                mContext.getString(R.string.status_not_accept));
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_FORBIDDEN, deviceName)).isEqualTo(
-                "Transfer forbidden by target device.");
+                mContext.getString(R.string.status_forbidden));
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_CANCELED, deviceName)).isEqualTo(
-                "Transfer canceled by user.");
+                mContext.getString(R.string.status_canceled));
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
-                BluetoothShare.STATUS_FILE_ERROR, deviceName)).isEqualTo("Storage issue.");
+                BluetoothShare.STATUS_FILE_ERROR, deviceName)).isEqualTo(
+                mContext.getString(R.string.status_file_error));
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_CONNECTION_ERROR, deviceName)).isEqualTo(
-                "Connection unsuccessful.");
+                mContext.getString(R.string.status_connection_error));
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_ERROR_NO_SDCARD, deviceName)).isEqualTo(
-                BluetoothOppUtility.deviceHasNoSdCard() ?
-                        "No USB storage." :
-                        "No SD card. Insert an SD card to save transferred files."
+                mContext.getString(BluetoothOppUtility.deviceHasNoSdCard()
+                        ? R.string.status_no_sd_card_nosdcard
+                        : R.string.status_no_sd_card_default)
         );
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_ERROR_SDCARD_FULL, deviceName)).isEqualTo(
-                BluetoothOppUtility.deviceHasNoSdCard() ?
-                        "There isn\'t enough space in USB storage to save the file." :
-                        "There isn\'t enough space on the SD card to save the file."
+                mContext.getString(
+                        BluetoothOppUtility.deviceHasNoSdCard() ? R.string.bt_sm_2_1_nosdcard
+                                : R.string.bt_sm_2_1_default)
         );
         assertThat(BluetoothOppUtility.getStatusDescription(mContext,
                 BluetoothShare.STATUS_BAD_REQUEST, deviceName)).isEqualTo(
-                "Request can\'t be handled correctly.");
+                mContext.getString(R.string.status_protocol_error));
         assertThat(BluetoothOppUtility.getStatusDescription(mContext, 12345465,
-                deviceName)).isEqualTo("Unknown error.");
+                deviceName)).isEqualTo(mContext.getString(R.string.status_unknown_error));
     }
 
     @Test
@@ -374,7 +378,7 @@ public class BluetoothOppUtilityTest {
                     BluetoothOppSendFileInfo.SEND_FILE_INFO_ERROR);
             BluetoothOppUtility.closeSendFileInfo(CORRECT_FORMAT_BUT_INVALID_FILE_URI);
         } catch (Exception e) {
-            assertWithMessage("Exception should not happen.").fail();
+            assertWithMessage("Exception should not happen. " + e).fail();
         }
     }
 
