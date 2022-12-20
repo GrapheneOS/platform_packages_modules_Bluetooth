@@ -3593,7 +3593,6 @@ static void handle_app_cur_val_response(tBTA_AV_META_MSG* pmeta_msg,
   app_settings.num_attr = p_rsp->num_val;
 
   if (app_settings.num_attr > BTRC_MAX_APP_SETTINGS) {
-    android_errorWriteLog(0x534e4554, "73824150");
     app_settings.num_attr = BTRC_MAX_APP_SETTINGS;
   }
 

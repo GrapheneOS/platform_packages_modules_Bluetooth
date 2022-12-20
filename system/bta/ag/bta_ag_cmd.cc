@@ -379,7 +379,6 @@ static bool bta_ag_parse_cmer(char* p_s, char* p_end, bool* p_enabled) {
 
     /* get integer value */
     if (p > p_end) {
-      android_errorWriteLog(0x534e4554, "112860487");
       return false;
     }
     *p = 0;
@@ -453,7 +452,6 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB* p_scb, char* p_s,
 
     /* get integer value */
     if (p > p_end) {
-      android_errorWriteLog(0x534e4554, "112860487");
       break;
     }
     bool cont = false;  // Continue processing
@@ -595,7 +593,6 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB* p_scb, uint16_t command_id,
   if ((p_end - p_arg + 1) >= (long)sizeof(val.str)) {
     APPL_TRACE_ERROR("%s: p_arg is too long, send error and return", __func__);
     bta_ag_send_error(p_scb, BTA_AG_ERR_TEXT_TOO_LONG);
-    android_errorWriteLog(0x534e4554, "112860487");
     return;
   }
   strlcpy(val.str, p_arg, sizeof(val.str));
@@ -872,7 +869,6 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
   if ((p_end - p_arg + 1) >= (long)sizeof(val.str)) {
     LOG_ERROR("p_arg is too long for cmd 0x%x, send error and return", cmd);
     bta_ag_send_error(p_scb, BTA_AG_ERR_TEXT_TOO_LONG);
-    android_errorWriteLog(0x534e4554, "112860487");
     return;
   }
   strlcpy(val.str, p_arg, sizeof(val.str));

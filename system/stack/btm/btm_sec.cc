@@ -3843,7 +3843,6 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
    * disconnection.
    */
   if (is_sample_ltk(p_dev_rec->ble.keys.pltk)) {
-    android_errorWriteLog(0x534e4554, "128437297");
     LOG(INFO) << __func__ << " removing bond to device that used sample LTK: "
               << p_dev_rec->bd_addr;
 
@@ -4176,7 +4175,6 @@ void btm_sec_pin_code_request(const uint8_t* p_event) {
 
   RawAddress local_bd_addr = *controller_get_interface()->get_address();
   if (p_bda == local_bd_addr) {
-    android_errorWriteLog(0x534e4554, "174626251");
     btsnd_hcic_pin_code_neg_reply(p_bda);
     return;
   }
