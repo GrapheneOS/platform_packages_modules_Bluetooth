@@ -19,7 +19,11 @@ package com.android.bluetooth.bass_client;
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
 
 import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECT;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECTION_STATE_CHANGED;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECT_TIMEOUT;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.DISCONNECT;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.PSYNC_ACTIVE_TIMEOUT;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.READ_BASS_CHARACTERISTICS;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -29,7 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.after;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,7 +44,6 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.le.PeriodicAdvertisingManager;
 import android.bluetooth.le.ScanRecord;
 import android.content.Intent;
 import android.os.Bundle;
@@ -265,12 +268,12 @@ public class BassClientStateMachineTest {
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.CONNECTION_STATE_CHANGED,
+                        CONNECTION_STATE_CHANGED,
                         Integer.valueOf(BluetoothProfile.STATE_CONNECTED)),
                 BassClientStateMachine.Connected.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.CONNECTION_STATE_CHANGED,
+                        CONNECTION_STATE_CHANGED,
                         Integer.valueOf(BluetoothProfile.STATE_DISCONNECTED)),
                 BassClientStateMachine.Disconnected.class);
 
@@ -280,7 +283,7 @@ public class BassClientStateMachineTest {
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.CONNECTION_STATE_CHANGED,
+                        CONNECTION_STATE_CHANGED,
                         Integer.valueOf(BluetoothProfile.STATE_DISCONNECTED)),
                 BassClientStateMachine.Disconnected.class);
 
@@ -290,7 +293,7 @@ public class BassClientStateMachineTest {
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.CONNECTION_STATE_CHANGED,
+                        CONNECTION_STATE_CHANGED,
                         Integer.valueOf(BluetoothProfile.STATE_CONNECTED)),
                 BassClientStateMachine.Connected.class);
 
@@ -308,7 +311,7 @@ public class BassClientStateMachineTest {
 
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.READ_BASS_CHARACTERISTICS,
+                        READ_BASS_CHARACTERISTICS,
                         new BluetoothGattCharacteristic(UUID.randomUUID(),
                                 BluetoothGattCharacteristic.PROPERTY_READ,
                                 BluetoothGattCharacteristic.PERMISSION_READ)),
@@ -321,7 +324,7 @@ public class BassClientStateMachineTest {
         // connected
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
-                        BassClientStateMachine.READ_BASS_CHARACTERISTICS,
+                        READ_BASS_CHARACTERISTICS,
                         new BluetoothGattCharacteristic(UUID.randomUUID(),
                                 BluetoothGattCharacteristic.PROPERTY_READ,
                                 BluetoothGattCharacteristic.PERMISSION_READ)),
@@ -451,6 +454,162 @@ public class BassClientStateMachineTest {
         verify(mBassClientService).updateBase(anyInt(), any());
     }
 
+    @Test
+    public void sendConnectMessage_inDisconnectedState() {
+        initToDisconnectedState();
+
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt = Mockito.mock(
+                BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(CONNECT),
+                BassClientStateMachine.Connecting.class);
+        verify(btGatt).disconnect();
+        verify(btGatt).close();
+    }
+
+    @Test
+    public void sendDisconnectMessage_inDisconnectedState() {
+        initToDisconnectedState();
+
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt = Mockito.mock(
+                BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+
+        mBassClientStateMachine.sendMessage(DISCONNECT);
+        verify(btGatt, timeout(TIMEOUT_MS)).disconnect();
+        verify(btGatt).close();
+    }
+
+    @Test
+    public void sendStateChangedMessage_inDisconnectedState() {
+        initToDisconnectedState();
+
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt = Mockito.mock(
+                BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+
+        Message msgToConnectingState =
+                mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
+        msgToConnectingState.obj = BluetoothProfile.STATE_CONNECTING;
+
+        mBassClientStateMachine.sendMessage(msgToConnectingState);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+
+        Message msgToConnectedState =
+                mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
+        msgToConnectedState.obj = BluetoothProfile.STATE_CONNECTED;
+        sendMessageAndVerifyTransition(msgToConnectedState, BassClientStateMachine.Connected.class);
+    }
+
+    @Test
+    public void sendOtherMessages_inDisconnectedState_doesNotChangeState() {
+        initToDisconnectedState();
+
+        mBassClientStateMachine.sendMessage(PSYNC_ACTIVE_TIMEOUT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+
+        mBassClientStateMachine.sendMessage(-1);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+    }
+
+    @Test
+    public void sendConnectMessages_inConnectingState_doesNotChangeState() {
+        initToConnectingState();
+
+        mBassClientStateMachine.sendMessage(CONNECT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+    }
+
+    @Test
+    public void sendDisconnectMessages_inConnectingState_defersMessage() {
+        initToConnectingState();
+
+        mBassClientStateMachine.sendMessage(DISCONNECT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(DISCONNECT)).isTrue();
+    }
+
+    @Test
+    public void sendReadBassCharacteristicsMessage_inConnectingState_defersMessage() {
+        initToConnectingState();
+
+        mBassClientStateMachine.sendMessage(READ_BASS_CHARACTERISTICS);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(READ_BASS_CHARACTERISTICS))
+                .isTrue();
+    }
+
+    @Test
+    public void sendPsyncActiveTimeoutMessage_inConnectingState_defersMessage() {
+        initToConnectingState();
+
+        mBassClientStateMachine.sendMessage(PSYNC_ACTIVE_TIMEOUT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(PSYNC_ACTIVE_TIMEOUT)).isTrue();
+    }
+
+    @Test
+    public void sendStateChangedToNonConnectedMessage_inConnectingState_movesToDisconnected() {
+        initToConnectingState();
+
+        Message msg = mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
+        msg.obj = BluetoothProfile.STATE_CONNECTING;
+        sendMessageAndVerifyTransition(msg, BassClientStateMachine.Disconnected.class);
+    }
+
+    @Test
+    public void sendStateChangedToConnectedMessage_inConnectingState_movesToConnected() {
+        initToConnectingState();
+
+        Message msg = mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
+        msg.obj = BluetoothProfile.STATE_CONNECTED;
+        sendMessageAndVerifyTransition(msg, BassClientStateMachine.Connected.class);
+    }
+
+    @Test
+    public void sendConnectTimeMessage_inConnectingState() {
+        initToConnectingState();
+
+        Message timeoutWithDifferentDevice = mBassClientStateMachine.obtainMessage(CONNECT_TIMEOUT,
+                mAdapter.getRemoteDevice("00:00:00:00:00:00"));
+        mBassClientStateMachine.sendMessage(timeoutWithDifferentDevice);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+
+        Message msg = mBassClientStateMachine.obtainMessage(CONNECT_TIMEOUT, mTestDevice);
+        sendMessageAndVerifyTransition(msg, BassClientStateMachine.Disconnected.class);
+    }
+
+    @Test
+    public void sendInvalidMessage_inConnectingState_doesNotChangeState() {
+        initToConnectingState();
+        mBassClientStateMachine.sendMessage(-1);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+    }
+
+    private void initToDisconnectedState() {
+        allowConnection(true);
+        allowConnectGatt(true);
+        assertThat(mBassClientStateMachine.getCurrentState())
+                .isInstanceOf(BassClientStateMachine.Disconnected.class);
+    }
+
+    private void initToConnectingState() {
+        allowConnection(true);
+        allowConnectGatt(true);
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(CONNECT),
+                BassClientStateMachine.Connecting.class);
+        Mockito.clearInvocations(mBassClientService);
+    }
+
     private <T> void sendMessageAndVerifyTransition(Message msg, Class<T> type) {
         Mockito.clearInvocations(mBassClientService);
         mBassClientStateMachine.sendMessage(msg);
@@ -484,6 +643,10 @@ public class BassClientStateMachineTest {
                 }
                 mGattCallback.onConnectionStateChange(gatt, status, newState);
             }
+        }
+
+        public boolean hasDeferredMessagesSuper(int what) {
+            return super.hasDeferredMessages(what);
         }
     }
 }
