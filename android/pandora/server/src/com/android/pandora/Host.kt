@@ -127,13 +127,17 @@ class Host(
   }
 
   override fun factoryReset(request: Empty, responseObserver: StreamObserver<Empty>) {
-    grpcUnary<Empty>(scope, responseObserver, 10) {
+    grpcUnary<Empty>(scope, responseObserver, 30) {
       Log.i(TAG, "factoryReset")
+
+      val stateFlow =
+      flow
+        .filter { it.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED }
+        .map { it.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) }
 
       bluetoothAdapter.clearBluetooth()
 
-      rebootBluetooth()
-
+      stateFlow.filter { it == BluetoothAdapter.STATE_ON }.first()
       Log.i(TAG, "Shutdown the gRPC Server")
       server.shutdown()
 
