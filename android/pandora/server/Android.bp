@@ -18,6 +18,7 @@ java_library_static {
     static_libs: [
         "androidx.test.runner",
         "androidx.test.core",
+        "androidx.test.uiautomator_uiautomator",
         "grpc-java-netty-shaded-test",
         "grpc-java-lite",
         "guava",
