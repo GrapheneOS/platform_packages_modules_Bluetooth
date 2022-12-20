@@ -43,7 +43,7 @@ use crate::bluetooth_media::{BluetoothMedia, MediaActions};
 use crate::socket_manager::{BluetoothSocketManager, SocketActions};
 use crate::suspend::Suspend;
 use bt_topshim::{
-    btif::{BaseCallbacks, BtDeviceType},
+    btif::{BaseCallbacks, BtTransport},
     profiles::{
         a2dp::A2dpCallbacks, avrcp::AvrcpCallbacks, gatt::GattAdvCallbacks,
         gatt::GattAdvInbandCallbacks, gatt::GattClientCallbacks, gatt::GattScannerCallbacks,
@@ -84,7 +84,7 @@ pub enum Message {
 
     // Follows IBluetooth's on_device_(dis)connected callback but doesn't require depending on
     // Bluetooth.
-    OnAclConnected(BluetoothDevice),
+    OnAclConnected(BluetoothDevice, BtTransport),
     OnAclDisconnected(BluetoothDevice),
 
     // Suspend related
@@ -239,26 +239,20 @@ impl Stack {
                 // Any service needing an updated list of devices can have an
                 // update method triggered from here rather than needing a
                 // reference to Bluetooth.
-                Message::OnAclConnected(device) => {
-                    let dev_type = bluetooth.lock().unwrap().get_remote_type(device.clone());
-                    if dev_type == BtDeviceType::Ble {
-                        battery_service
-                            .lock()
-                            .unwrap()
-                            .handle_action(BatteryServiceActions::Connect(device));
-                    }
+                Message::OnAclConnected(device, transport) => {
+                    battery_service
+                        .lock()
+                        .unwrap()
+                        .handle_action(BatteryServiceActions::Connect(device, transport));
                 }
 
                 // For battery service, use this to clean up internal handles. GATT connection is
                 // already dropped if ACL disconnect has occurred.
                 Message::OnAclDisconnected(device) => {
-                    let dev_type = bluetooth.lock().unwrap().get_remote_type(device.clone());
-                    if dev_type == BtDeviceType::Ble {
-                        battery_service
-                            .lock()
-                            .unwrap()
-                            .handle_action(BatteryServiceActions::Disconnect(device));
-                    }
+                    battery_service
+                        .lock()
+                        .unwrap()
+                        .handle_action(BatteryServiceActions::Disconnect(device));
                 }
 
                 Message::SuspendCallbackRegistered(id) => {
