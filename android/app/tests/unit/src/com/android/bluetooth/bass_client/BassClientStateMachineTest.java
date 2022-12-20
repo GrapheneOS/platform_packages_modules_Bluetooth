@@ -18,11 +18,18 @@ package com.android.bluetooth.bass_client;
 
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
 
+import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECT;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECT_TIMEOUT;
+
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,7 +38,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.PeriodicAdvertisingManager;
+import android.bluetooth.le.ScanRecord;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.HandlerThread;
@@ -42,8 +52,6 @@ import androidx.test.filters.MediumTest;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
-
-import static com.google.common.truth.Truth.assertThat;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
@@ -59,6 +67,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @MediumTest
@@ -134,7 +144,7 @@ public class BassClientStateMachineTest {
         allowConnectGatt(true);
 
         // Inject an event for when incoming connection is requested
-        mBassClientStateMachine.sendMessage(BassClientStateMachine.CONNECT);
+        mBassClientStateMachine.sendMessage(CONNECT);
 
         // Verify that no connection state broadcast is executed
         verify(mBassClientService, after(WAIT_MS).never()).sendBroadcast(any(Intent.class),
@@ -151,7 +161,7 @@ public class BassClientStateMachineTest {
         allowConnectGatt(false);
 
         // Inject an event for when incoming connection is requested
-        mBassClientStateMachine.sendMessage(BassClientStateMachine.CONNECT);
+        mBassClientStateMachine.sendMessage(CONNECT);
 
         // Verify that no connection state broadcast is executed
         verify(mBassClientService, after(WAIT_MS).never()).sendBroadcast(any(Intent.class),
@@ -169,7 +179,7 @@ public class BassClientStateMachineTest {
         allowConnectGatt(true);
 
         // Inject an event for when incoming connection is requested
-        mBassClientStateMachine.sendMessage(BassClientStateMachine.CONNECT);
+        mBassClientStateMachine.sendMessage(CONNECT);
 
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
@@ -201,7 +211,7 @@ public class BassClientStateMachineTest {
         allowConnectGatt(true);
 
         // Inject an event for when incoming connection is requested
-        mBassClientStateMachine.sendMessage(BassClientStateMachine.CONNECT);
+        mBassClientStateMachine.sendMessage(CONNECT);
 
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
@@ -234,7 +244,7 @@ public class BassClientStateMachineTest {
 
         // disconnected -> connecting ---timeout---> disconnected
         sendMessageAndVerifyTransition(
-                mBassClientStateMachine.obtainMessage(BassClientStateMachine.CONNECT),
+                mBassClientStateMachine.obtainMessage(CONNECT),
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(BassClientStateMachine.CONNECT_TIMEOUT),
@@ -242,7 +252,7 @@ public class BassClientStateMachineTest {
 
         // disconnected -> connecting ---DISCONNECT---> disconnected
         sendMessageAndVerifyTransition(
-                mBassClientStateMachine.obtainMessage(BassClientStateMachine.CONNECT),
+                mBassClientStateMachine.obtainMessage(CONNECT),
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(BassClientStateMachine.DISCONNECT),
@@ -251,7 +261,7 @@ public class BassClientStateMachineTest {
         // disconnected -> connecting ---CONNECTION_STATE_CHANGED(connected)---> connected -->
         // disconnected
         sendMessageAndVerifyTransition(
-                mBassClientStateMachine.obtainMessage(BassClientStateMachine.CONNECT),
+                mBassClientStateMachine.obtainMessage(CONNECT),
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
@@ -266,7 +276,7 @@ public class BassClientStateMachineTest {
 
         // disconnected -> connecting ---CONNECTION_STATE_CHANGED(non-connected) --> disconnected
         sendMessageAndVerifyTransition(
-                mBassClientStateMachine.obtainMessage(BassClientStateMachine.CONNECT),
+                mBassClientStateMachine.obtainMessage(CONNECT),
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
@@ -276,7 +286,7 @@ public class BassClientStateMachineTest {
 
         // change default state to connected for the next tests
         sendMessageAndVerifyTransition(
-                mBassClientStateMachine.obtainMessage(BassClientStateMachine.CONNECT),
+                mBassClientStateMachine.obtainMessage(CONNECT),
                 BassClientStateMachine.Connecting.class);
         sendMessageAndVerifyTransition(
                 mBassClientStateMachine.obtainMessage(
@@ -338,6 +348,109 @@ public class BassClientStateMachineTest {
                 BassClientStateMachine.Connected.class);
     }
 
+    @Test
+    public void acquireAllBassChars() {
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt = Mockito.mock(
+                BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+        // Do nothing when mBluetoothGatt.getService returns null
+        mBassClientStateMachine.acquireAllBassChars();
+
+        BluetoothGattService gattService = Mockito.mock(BluetoothGattService.class);
+        when(btGatt.getService(BassConstants.BASS_UUID)).thenReturn(gattService);
+
+        List<BluetoothGattCharacteristic> characteristics = new ArrayList<>();
+        BluetoothGattCharacteristic scanControlPoint = new BluetoothGattCharacteristic(
+                BassConstants.BASS_BCAST_AUDIO_SCAN_CTRL_POINT,
+                BluetoothGattCharacteristic.PROPERTY_READ,
+                BluetoothGattCharacteristic.PERMISSION_READ);
+        characteristics.add(scanControlPoint);
+
+        BluetoothGattCharacteristic bassCharacteristic = new BluetoothGattCharacteristic(
+                UUID.randomUUID(),
+                BluetoothGattCharacteristic.PROPERTY_READ,
+                BluetoothGattCharacteristic.PERMISSION_READ);
+        characteristics.add(bassCharacteristic);
+
+        when(gattService.getCharacteristics()).thenReturn(characteristics);
+        mBassClientStateMachine.acquireAllBassChars();
+        assertThat(mBassClientStateMachine.mBroadcastScanControlPoint).isEqualTo(scanControlPoint);
+        assertThat(mBassClientStateMachine.mBroadcastCharacteristics).contains(bassCharacteristic);
+    }
+
+    @Test
+    public void simpleMethods() {
+        // dump() shouldn't crash
+        StringBuilder sb = new StringBuilder();
+        mBassClientStateMachine.dump(sb);
+
+        // log() shouldn't crash
+        String msg = "test-log-message";
+        mBassClientStateMachine.log(msg);
+
+        // messageWhatToString() shouldn't crash
+        for (int i = CONNECT; i <= CONNECT_TIMEOUT + 1; ++i) {
+            mBassClientStateMachine.messageWhatToString(i);
+        }
+
+        final int invalidSourceId = -100;
+        assertThat(mBassClientStateMachine.getCurrentBroadcastMetadata(invalidSourceId)).isNull();
+        assertThat(mBassClientStateMachine.getDevice()).isEqualTo(mTestDevice);
+        assertThat(mBassClientStateMachine.hasPendingSourceOperation()).isFalse();
+        assertThat(mBassClientStateMachine.isEmpty(new byte[] { 0 })).isTrue();
+        assertThat(mBassClientStateMachine.isEmpty(new byte[] { 1 })).isFalse();
+        assertThat(mBassClientStateMachine.isPendingRemove(invalidSourceId)).isFalse();
+    }
+
+    @Test
+    public void parseScanRecord_withoutBaseData_makesNoStopScanOffloadFalse() {
+        byte[] scanRecord = new byte[]{
+                0x02, 0x01, 0x1a, // advertising flags
+                0x05, 0x02, 0x0b, 0x11, 0x0a, 0x11, // 16 bit service uuids
+                0x04, 0x09, 0x50, 0x65, 0x64, // name
+                0x02, 0x0A, (byte) 0xec, // tx power level
+                0x05, 0x16, 0x0b, 0x11, 0x50, 0x64, // service data
+                0x05, (byte) 0xff, (byte) 0xe0, 0x00, 0x02, 0x15, // manufacturer specific data
+                0x03, 0x50, 0x01, 0x02, // an unknown data type won't cause trouble
+        };
+        ScanRecord data = ScanRecord.parseFromBytes(scanRecord);
+        mBassClientStateMachine.mNoStopScanOffload = true;
+        mBassClientStateMachine.parseScanRecord(0, data);
+        assertThat(mBassClientStateMachine.mNoStopScanOffload).isFalse();
+    }
+
+    @Test
+    public void parseScanRecord_withBaseData_callsUpdateBase() {
+        byte[] scanRecordWithBaseData = new byte[] {
+                0x02, 0x01, 0x1a, // advertising flags
+                0x05, 0x02, 0x51, 0x18, 0x0a, 0x11, // 16 bit service uuids
+                0x04, 0x09, 0x50, 0x65, 0x64, // name
+                0x02, 0x0A, (byte) 0xec, // tx power level
+                0x15, 0x16, 0x51, 0x18, // service data (base data with 18 bytes)
+                    // LEVEL 1
+                    (byte) 0x01, (byte) 0x02, (byte) 0x03, // presentationDelay
+                    (byte) 0x01,  // numSubGroups
+                    // LEVEL 2
+                    (byte) 0x01,  // numSubGroups
+                    (byte) 0xFE,  // UNKNOWN_CODEC
+                    (byte) 0x02,  // codecConfigLength
+                    (byte) 0x01, (byte) 'A', // codecConfigInfo
+                    (byte) 0x03,  // metaDataLength
+                    (byte) 0x06, (byte) 0x07, (byte) 0x08,  // metaData
+                    // LEVEL 3
+                    (byte) 0x04,  // index
+                    (byte) 0x03,  // codecConfigLength
+                    (byte) 0x02, (byte) 'B', (byte) 'C', // codecConfigInfo
+                0x05, (byte) 0xff, (byte) 0xe0, 0x00, 0x02, 0x15, // manufacturer specific data
+                0x03, 0x50, 0x01, 0x02, // an unknown data type won't cause trouble
+        };
+        ScanRecord data = ScanRecord.parseFromBytes(scanRecordWithBaseData);
+        assertThat(data.getServiceUuids()).contains(BassConstants.BASIC_AUDIO_UUID);
+        assertThat(data.getServiceData(BassConstants.BASIC_AUDIO_UUID)).isNotNull();
+        mBassClientStateMachine.parseScanRecord(0, data);
+        verify(mBassClientService).updateBase(anyInt(), any());
+    }
+
     private <T> void sendMessageAndVerifyTransition(Message msg, Class<T> type) {
         Mockito.clearInvocations(mBassClientService);
         mBassClientStateMachine.sendMessage(msg);
@@ -347,7 +460,6 @@ public class BassClientStateMachineTest {
                 .sendBroadcast(any(Intent.class), anyString(), any());
         Assert.assertThat(mBassClientStateMachine.getCurrentState(), IsInstanceOf.instanceOf(type));
     }
-
 
     // It simulates GATT connection for testing.
     public static class StubBassClientStateMachine extends BassClientStateMachine {
