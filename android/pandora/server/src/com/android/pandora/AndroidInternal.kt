@@ -28,6 +28,10 @@ import android.net.Uri
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import androidx.test.InstrumentationRegistry
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.Until
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -40,10 +44,15 @@ private const val TAG = "PandoraAndroidInternal"
 class AndroidInternal(val context: Context) : AndroidImplBase() {
 
   private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+  private val INCOMING_FILE_ACCEPT_BTN = "ACCEPT"
+  private val INCOMING_FILE_TITLE = "Incoming file"
+  private val INCOMING_FILE_WAIT_TIMEOUT = 2000L
+
   private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
   private val bluetoothAdapter = bluetoothManager.adapter
   private var telephonyManager = context.getSystemService(TelephonyManager::class.java)
   private val DEFAULT_MESSAGE_LEN = 130
+  private var device: UiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
 
   fun deinit() {
     scope.cancel()
@@ -77,6 +86,14 @@ class AndroidInternal(val context: Context) : AndroidImplBase() {
       val avdPhoneNumber = telephonyManager.getLine1Number()
 
       smsManager.sendTextMessage(avdPhoneNumber, avdPhoneNumber, generateAlphanumericString(DEFAULT_MESSAGE_LEN), null, null)
+      Empty.getDefaultInstance()
+    }
+  }
+
+  override fun acceptIncomingFile(request: Empty, responseObserver: StreamObserver<Empty>) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      device.wait(Until.findObject(By.text(INCOMING_FILE_TITLE)), INCOMING_FILE_WAIT_TIMEOUT).click()
+      device.wait(Until.findObject(By.text(INCOMING_FILE_ACCEPT_BTN)), INCOMING_FILE_WAIT_TIMEOUT).click()
       Empty.getDefaultInstance()
     }
   }
