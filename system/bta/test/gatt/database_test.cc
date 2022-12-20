@@ -202,7 +202,9 @@ TEST(GattCacheTest, stored_attribute_to_binary_descriptor_test) {
   /* make sure padding at end of union is cleared */
   memset(&attr, 0, sizeof(attr));
 
-  attr = {.handle = 0x0003, .type = Uuid::FromString("2902"), .value = {}};
+  attr = {.handle = 0x0003,
+          .type = Uuid::FromString("2902"),
+          .value = {.characteristic_extended_properties = 0x00}};
 
   constexpr size_t len = sizeof(StoredAttribute);
   // clang-format off
