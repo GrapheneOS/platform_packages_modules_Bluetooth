@@ -128,10 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth Audio"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Files bigger than 4GB cannot be transferred"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Connect to Bluetooth"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth on in airplane mode"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"If you keep Bluetooth on, your phone will remember to keep it on the next time you\'re in airplane mode"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth on in Airplane mode"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"If you keep Bluetooth on, your phone will remember to keep it on the next time you\'re in Airplane mode"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth stays on"</string>
-    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Your phone remembers to keep Bluetooth on in airplane mode. Turn off Bluetooth if you don\'t want it to stay on."</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Your phone remembers to keep Bluetooth on in Airplane mode. Turn off Bluetooth if you don\'t want it to stay on."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi and Bluetooth stay on"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Your phone remembers to keep Wi-Fi and Bluetooth on in airplane mode. Turn off Wi-Fi and Bluetooth if you don\'t want them to stay on."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Your phone remembers to keep Wi-Fi and Bluetooth on in Airplane mode. Turn off Wi-Fi and Bluetooth if you don\'t want them to stay on."</string>
 </resources>
