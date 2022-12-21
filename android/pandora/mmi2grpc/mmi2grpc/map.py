@@ -39,6 +39,7 @@ class MAPProxy(ProfileProxy):
         self._android = Android(channel)
 
         self.connection = None
+        self._init_send_sms()
 
     @assert_description
     def TSC_MMI_iut_connectable(self, **kwargs):
@@ -60,10 +61,15 @@ class MAPProxy(ProfileProxy):
         return "OK"
 
     @assert_description
-    def TSC_OBEX_MMI_iut_accept_connect(self, pts_addr: bytes, **kwargs):
+    def TSC_OBEX_MMI_iut_accept_connect(self, test: str, pts_addr: bytes, **kwargs):
         """
         Please accept the OBEX CONNECT REQ.
         """
+
+        if test in {"MAP/MSE/GOEP/BC/BV-01-I", "MAP/MSE/GOEP/BC/BV-03-I", "MAP/MSE/MMN/BV-02-I"}:
+            if self.connection is None:
+                self._android.SetAccessPermission(address=pts_addr, access_type=AccessType.ACCESS_MESSAGE)
+                self.connection = self.host.WaitConnection(address=pts_addr).connection
 
         return "OK"
 
@@ -106,7 +112,7 @@ class MAPProxy(ProfileProxy):
     @assert_description
     def TSC_OBEX_MMI_iut_accept_set_path(self, **kwargs):
         """
-         Please accept the SET_PATH command.
+        Please accept the SET_PATH command.
         """
 
         return "OK"
@@ -114,7 +120,7 @@ class MAPProxy(ProfileProxy):
     @assert_description
     def TSC_OBEX_MMI_iut_accept_get_srm(self, **kwargs):
         """
-         Please accept the GET REQUEST with an SRM ENABLED header.
+        Please accept the GET REQUEST with an SRM ENABLED header.
         """
 
         return "OK"
@@ -122,7 +128,7 @@ class MAPProxy(ProfileProxy):
     @assert_description
     def TSC_OBEX_MMI_iut_accept_browse_folders(self, **kwargs):
         """
-         Please accept the browse folders (GET) command.
+        Please accept the browse folders (GET) command.
         """
 
         return "OK"
@@ -155,6 +161,9 @@ class MAPProxy(ProfileProxy):
         """
         Send Set Event Report with New GSM Message.
         """
+
+        self._android.SendSMS()
+
         return "OK"
 
     @assert_description
@@ -171,3 +180,9 @@ class MAPProxy(ProfileProxy):
         """
 
         return "OK"
+
+    def _init_send_sms(self):
+
+        min_sms_count = 2  # Few test cases requires minimum 2 sms to pass
+        for index in range(min_sms_count):
+            self._android.SendSMS()

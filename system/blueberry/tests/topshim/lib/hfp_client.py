@@ -13,7 +13,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 import asyncio
 import grpc
 
@@ -55,12 +54,14 @@ class HfpClient(AsyncClosable):
         """
         await self.__hfp_stub.StartSlc(
             facade_pb2.StartSlcRequest(connection=facade_pb2.Connection(cookie=address.encode())))
+        return await self._listen_for_event(facade_pb2.EventType.HFP_CONNECTION_STATE)
 
     async def stop_slc(self, address):
         """
         """
         await self.__hfp_stub.StopSlc(
             facade_pb2.StopSlcRequest(connection=facade_pb2.Connection(cookie=address.encode())))
+        return await self._listen_for_event(facade_pb2.EventType.HFP_CONNECTION_STATE)
 
     async def connect_audio(self, address, is_sco_offload_enabled=False, force_cvsd=False):
         """
@@ -81,6 +82,9 @@ class HfpClient(AsyncClosable):
         """
         await self.__hfp_stub.DisconnectAudio(
             facade_pb2.DisconnectAudioRequest(connection=facade_pb2.Connection(cookie=address.encode()), volume=volume))
+
+    async def wait_for_hfp_connection_state_change(self):
+        return await self._listen_for_event(facade_pb2.EventType.HFP_CONNECTION_STATE)
 
     async def __get_next_event(self, event, future):
         """Get the future of next event from the stream"""
