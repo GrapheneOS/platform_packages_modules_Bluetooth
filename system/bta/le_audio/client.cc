@@ -2360,6 +2360,11 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    if (!stream_conf->conf) {
+      LOG_INFO("Configuration not yet set. Nothing to do now");
+      return;
+    }
+
     auto num_of_devices =
         get_num_of_devices_in_configuration(stream_conf->conf);
 
