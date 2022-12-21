@@ -31,6 +31,7 @@ import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.provider.Telephony.Threads;
 import android.telephony.TelephonyManager;
+import android.text.util.Rfc822Tokenizer;
 
 import androidx.test.runner.AndroidJUnit4;
 
@@ -49,6 +50,9 @@ import org.mockito.Spy;
 @RunWith(AndroidJUnit4.class)
 public class BluetoothMapContentTest {
     private static final String TEST_TEXT = "text";
+    private static final String TEST_TO_ADDRESS = "toName (toAddress) <to@google.com>";
+    private static final String TEST_CC_ADDRESS = "ccName (ccAddress) <cc@google.com>";
+    private static final String TEST_BCC_ADDRESS = "bccName (bccAddress) <bcc@google.com>";
 
     @Mock
     private BluetoothMapAccountItem mAccountItem;
@@ -395,5 +399,47 @@ public class BluetoothMapContentTest {
         when(mParams.getFilterMessageType()).thenReturn(BluetoothMapAppParams.FILTER_NO_MMS);
 
         assertThat(mContent.mmsSelected(mParams)).isFalse();
+    }
+
+    @Test
+    public void getRecipientNameEmail() {
+        mInfo.mMessageColToAddress = 0;
+        mInfo.mMessageColCcAddress = 1;
+        mInfo.mMessageColBccAddress = 2;
+
+        MatrixCursor cursor = new MatrixCursor(
+                new String[]{"MessageColToAddress", "MessageColCcAddress", "MessageColBccAddress"});
+        cursor.addRow(new Object[]{TEST_TO_ADDRESS, TEST_CC_ADDRESS, TEST_BCC_ADDRESS});
+        cursor.moveToFirst();
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(Rfc822Tokenizer.tokenize(TEST_TO_ADDRESS)[0].getName());
+        expected.append("; ");
+        expected.append(Rfc822Tokenizer.tokenize(TEST_CC_ADDRESS)[0].getName());
+        expected.append("; ");
+        expected.append(Rfc822Tokenizer.tokenize(TEST_BCC_ADDRESS)[0].getName());
+        assertThat(mContent.getRecipientNameEmail(cursor, mInfo)).isEqualTo(
+                expected.toString());
+    }
+
+    @Test
+    public void getRecipientAddressingEmail() {
+        mInfo.mMessageColToAddress = 0;
+        mInfo.mMessageColCcAddress = 1;
+        mInfo.mMessageColBccAddress = 2;
+
+        MatrixCursor cursor = new MatrixCursor(
+                new String[]{"MessageColToAddress", "MessageColCcAddress", "MessageColBccAddress"});
+        cursor.addRow(new Object[]{TEST_TO_ADDRESS, TEST_CC_ADDRESS, TEST_BCC_ADDRESS});
+        cursor.moveToFirst();
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(Rfc822Tokenizer.tokenize(TEST_TO_ADDRESS)[0].getAddress());
+        expected.append("; ");
+        expected.append(Rfc822Tokenizer.tokenize(TEST_CC_ADDRESS)[0].getAddress());
+        expected.append("; ");
+        expected.append(Rfc822Tokenizer.tokenize(TEST_BCC_ADDRESS)[0].getAddress());
+        assertThat(mContent.getRecipientAddressingEmail(cursor, mInfo)).isEqualTo(
+                expected.toString());
     }
 }
