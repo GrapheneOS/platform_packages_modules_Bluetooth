@@ -36,7 +36,7 @@ android_test {
         "truth-prebuilt",
 
         // Statically link service-bluetooth-pre-jarjar since we want to test the working copy of
-        // service-uwb, not the on-device copy.
+        // service-bluetooth, not the on-device copy.
         // Use pre-jarjar version so that we can reference symbols before they are renamed.
         // Then, the jarjar_rules here will perform the rename for the entire APK
         // i.e. service-bluetooth + test code
