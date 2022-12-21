@@ -34,7 +34,6 @@
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "osi/include/semaphore.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/btu.h"
@@ -135,7 +134,7 @@ static bool stack_is_initialized;
 // If running, the stack is fully up and able to bluetooth.
 static bool stack_is_running;
 
-static void event_init_stack(semaphore_t* semaphore,
+static void event_init_stack(std::promise<void> promise,
                              bluetooth::core::CoreInterface* interface);
 static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
                                  ProfileStartCallback startProfiles,
@@ -165,12 +164,12 @@ static void init_stack(bluetooth::core::CoreInterface* interface) {
   // state modification only happens there. Using the thread to perform
   // all stack operations ensures that the operations are done serially
   // and do not overlap.
-  semaphore_t* semaphore = semaphore_new(0);
+  std::promise<void> promise;
+  auto future = promise.get_future();
   management_thread.DoInThread(
-      FROM_HERE,
-      base::Bind(event_init_stack, semaphore, base::Unretained(interface)));
-  semaphore_wait(semaphore);
-  semaphore_free(semaphore);
+      FROM_HERE, base::BindOnce(event_init_stack, std::move(promise),
+                                base::Unretained(interface)));
+  future.wait();
 }
 
 static void start_up_stack_async(bluetooth::core::CoreInterface* interface,
@@ -249,45 +248,48 @@ inline const module_t* get_local_module(const char* name) {
   return nullptr;
 }
 
+static void init_stack_internal(bluetooth::core::CoreInterface* interface) {
+  // all callbacks out of libbluetooth-core happen via this interface
+  interfaceToProfiles = interface;
+
+  module_management_start();
+
+  module_init(get_local_module(OSI_MODULE));
+  module_init(get_local_module(BT_UTILS_MODULE));
+  module_start_up(get_local_module(GD_IDLE_MODULE));
+  module_init(get_local_module(BTIF_CONFIG_MODULE));
+  btif_init_bluetooth();
+
+  module_init(get_local_module(INTEROP_MODULE));
+  bte_main_init();
+  module_init(get_local_module(STACK_CONFIG_MODULE));
+
+  // stack init is synchronous, so no waiting necessary here
+  stack_is_initialized = true;
+}
+
 // Synchronous function to initialize the stack
-static void event_init_stack(semaphore_t* semaphore,
+static void event_init_stack(std::promise<void> promise,
                              bluetooth::core::CoreInterface* interface) {
   LOG_INFO("is initializing the stack");
 
   if (stack_is_initialized) {
     LOG_INFO("found the stack already in initialized state");
   } else {
-    // all callbacks out of libbluetooth-core happen via this interface
-    interfaceToProfiles = interface;
-
-    module_management_start();
-
-    module_init(get_local_module(OSI_MODULE));
-    module_init(get_local_module(BT_UTILS_MODULE));
-    module_start_up(get_local_module(GD_IDLE_MODULE));
-    module_init(get_local_module(BTIF_CONFIG_MODULE));
-    btif_init_bluetooth();
-
-    module_init(get_local_module(INTEROP_MODULE));
-    bte_main_init();
-    module_init(get_local_module(STACK_CONFIG_MODULE));
-
-    // stack init is synchronous, so no waiting necessary here
-    stack_is_initialized = true;
+    init_stack_internal(interface);
   }
 
   LOG_INFO("finished");
 
-  if (semaphore) semaphore_post(semaphore);
+  promise.set_value();
 }
 
 static void ensure_stack_is_initialized(
     bluetooth::core::CoreInterface* interface) {
   if (!stack_is_initialized) {
-    LOG_WARN("%s found the stack was uninitialized. Initializing now.",
-             __func__);
-    // No semaphore needed since we are calling it directly
-    event_init_stack(nullptr, interface);
+    LOG_WARN("found the stack was uninitialized. Initializing now.");
+    // No future needed since we are calling it directly
+    init_stack_internal(interface);
   }
 }
 
