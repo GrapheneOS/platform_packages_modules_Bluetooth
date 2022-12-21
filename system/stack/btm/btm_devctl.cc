@@ -559,18 +559,20 @@ void btm_vendor_specific_evt(const uint8_t* p, uint8_t evt_len) {
   const uint8_t* bqr_ptr = p;
   uint8_t event_code;
   uint8_t len;
-  STREAM_TO_UINT8(event_code, bqr_ptr);
-  STREAM_TO_UINT8(len, bqr_ptr);
-  // Check if there's at least a subevent code
-  if (len > 1 && evt_len > 1 && event_code == HCI_VENDOR_SPECIFIC_EVT) {
-    uint8_t sub_event_code;
-    STREAM_TO_UINT8(sub_event_code, bqr_ptr);
-    if (sub_event_code == HCI_VSE_SUBCODE_BQR_SUB_EVT) {
-      // Excluding the HCI Event packet header and 1 octet sub-event code
-      int16_t bqr_parameter_length = evt_len - HCIE_PREAMBLE_SIZE - 1;
-      const uint8_t* p_bqr_event = bqr_ptr;
-      // The stream currently points to the BQR sub-event parameters
-      switch (sub_event_code) {
+
+  if (evt_len >= 2) {
+    STREAM_TO_UINT8(event_code, bqr_ptr);
+    STREAM_TO_UINT8(len, bqr_ptr);
+    // Check if there's at least a subevent code
+    if (len > 1 && evt_len >= 2 + 1 && event_code == HCI_VENDOR_SPECIFIC_EVT) {
+      uint8_t sub_event_code;
+      STREAM_TO_UINT8(sub_event_code, bqr_ptr);
+      if (sub_event_code == HCI_VSE_SUBCODE_BQR_SUB_EVT) {
+        // Excluding the HCI Event packet header and 1 octet sub-event code
+        int16_t bqr_parameter_length = evt_len - HCIE_PREAMBLE_SIZE - 1;
+        const uint8_t* p_bqr_event = bqr_ptr;
+        // The stream currently points to the BQR sub-event parameters
+        switch (sub_event_code) {
         case bluetooth::bqr::QUALITY_REPORT_ID_LMP_LL_MESSAGE_TRACE:
           if (bqr_parameter_length >= bluetooth::bqr::kLogDumpParamTotalLen) {
             bluetooth::bqr::DumpLmpLlMessage(bqr_parameter_length, p_bqr_event);
@@ -591,6 +593,7 @@ void btm_vendor_specific_evt(const uint8_t* p, uint8_t evt_len) {
 
         default:
           LOG_INFO("Unhandled BQR subevent 0x%02hxx", sub_event_code);
+        }
       }
     }
   }
