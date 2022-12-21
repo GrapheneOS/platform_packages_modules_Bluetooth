@@ -88,6 +88,7 @@ import android.os.ParcelUuid;
 import android.provider.DeviceConfig;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
@@ -113,8 +114,10 @@ import java.util.stream.IntStream;
 @VisibleForTesting
 public class BassClientStateMachine extends StateMachine {
     private static final String TAG = "BassClientStateMachine";
-    private static final byte[] REMOTE_SCAN_STOP = {00};
-    private static final byte[] REMOTE_SCAN_START = {01};
+    @VisibleForTesting
+    static final byte[] REMOTE_SCAN_STOP = {00};
+    @VisibleForTesting
+    static final byte[] REMOTE_SCAN_START = {01};
     private static final byte OPCODE_ADD_SOURCE = 0x02;
     private static final byte OPCODE_UPDATE_SOURCE = 0x03;
     private static final byte OPCODE_SET_BCAST_PIN = 0x04;
@@ -386,8 +389,9 @@ public class BassClientStateMachine extends StateMachine {
         mNoStopScanOffload = true;
         cancelActiveSync(null);
         try {
-            mPeriodicAdvManager.registerSync(scanRes, 0,
-                    BassConstants.PSYNC_TIMEOUT, mPeriodicAdvCallback);
+            BluetoothMethodProxy.getInstance().periodicAdvertisingManagerRegisterSync(
+                    mPeriodicAdvManager, scanRes, 0, BassConstants.PSYNC_TIMEOUT,
+                    mPeriodicAdvCallback, null);
         } catch (IllegalArgumentException ex) {
             Log.w(TAG, "registerSync:IllegalArgumentException");
             Message message = obtainMessage(STOP_SCAN_OFFLOAD);
