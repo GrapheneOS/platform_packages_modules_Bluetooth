@@ -16,18 +16,26 @@
 
 package com.android.bluetooth.bass_client;
 
+import static android.bluetooth.BluetoothGatt.GATT_FAILURE;
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
 
+import static com.android.bluetooth.bass_client.BassClientStateMachine.ADD_BCAST_SOURCE;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECT;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECTION_STATE_CHANGED;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.CONNECT_TIMEOUT;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.DISCONNECT;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.GATT_TXN_PROCESSED;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.GATT_TXN_TIMEOUT;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.PSYNC_ACTIVE_TIMEOUT;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.READ_BASS_CHARACTERISTICS;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.REMOTE_SCAN_START;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.REMOTE_SCAN_STOP;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.REMOVE_BCAST_SOURCE;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.SELECT_BCAST_SOURCE;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.SET_BCAST_CODE;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.START_SCAN_OFFLOAD;
 import static com.android.bluetooth.bass_client.BassClientStateMachine.STOP_SCAN_OFFLOAD;
+import static com.android.bluetooth.bass_client.BassClientStateMachine.UPDATE_BCAST_SOURCE;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -312,7 +320,6 @@ public class BassClientStateMachineTest {
         // connected ----READ_BASS_CHARACTERISTICS---> connectedProcessing --GATT_TXN_PROCESSED
         // --> connected
 
-
         // Make bluetoothGatt non-null so state will transit
         mBassClientStateMachine.mBluetoothGatt = Mockito.mock(
                 BassClientStateMachine.BluetoothGattTestableWrapper.class);
@@ -329,7 +336,7 @@ public class BassClientStateMachineTest {
                                 BluetoothGattCharacteristic.PERMISSION_READ)),
                 BassClientStateMachine.ConnectedProcessing.class);
         sendMessageAndVerifyTransition(
-                mBassClientStateMachine.obtainMessage(BassClientStateMachine.GATT_TXN_PROCESSED),
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED),
                 BassClientStateMachine.Connected.class);
 
         // connected ----READ_BASS_CHARACTERISTICS---> connectedProcessing --GATT_TXN_TIMEOUT -->
@@ -342,7 +349,7 @@ public class BassClientStateMachineTest {
                                 BluetoothGattCharacteristic.PERMISSION_READ)),
                 BassClientStateMachine.ConnectedProcessing.class);
         sendMessageAndVerifyTransition(
-                mBassClientStateMachine.obtainMessage(BassClientStateMachine.GATT_TXN_TIMEOUT),
+                mBassClientStateMachine.obtainMessage(GATT_TXN_TIMEOUT),
                 BassClientStateMachine.Connected.class);
 
         // connected ----START_SCAN_OFFLOAD---> connectedProcessing --GATT_TXN_PROCESSED-->
@@ -351,7 +358,7 @@ public class BassClientStateMachineTest {
                 mBassClientStateMachine.obtainMessage(BassClientStateMachine.START_SCAN_OFFLOAD),
                 BassClientStateMachine.ConnectedProcessing.class);
         sendMessageAndVerifyTransition(
-                mBassClientStateMachine.obtainMessage(BassClientStateMachine.GATT_TXN_PROCESSED),
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED),
                 BassClientStateMachine.Connected.class);
 
         // connected ----STOP_SCAN_OFFLOAD---> connectedProcessing --GATT_TXN_PROCESSED--> connected
@@ -359,7 +366,7 @@ public class BassClientStateMachineTest {
                 mBassClientStateMachine.obtainMessage(STOP_SCAN_OFFLOAD),
                 BassClientStateMachine.ConnectedProcessing.class);
         sendMessageAndVerifyTransition(
-                mBassClientStateMachine.obtainMessage(BassClientStateMachine.GATT_TXN_PROCESSED),
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED),
                 BassClientStateMachine.Connected.class);
     }
 
@@ -490,7 +497,8 @@ public class BassClientStateMachineTest {
         mBassClientStateMachine.mBluetoothGatt = btGatt;
 
         mBassClientStateMachine.sendMessage(DISCONNECT);
-        verify(btGatt, timeout(TIMEOUT_MS)).disconnect();
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(btGatt).disconnect();
         verify(btGatt).close();
     }
 
@@ -732,6 +740,198 @@ public class BassClientStateMachineTest {
 
     // TODO: add sendMessage tests for BCAST related messages
 
+    @Test
+    public void sendConnectMessage_inConnectedProcessingState_doesNotChangeState() {
+        initToConnectedProcessingState();
+
+        mBassClientStateMachine.sendMessage(CONNECT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+    }
+
+    @Test
+    public void sendDisconnectMessage_inConnectedProcessingState_doesNotChangeState() {
+        initToConnectedProcessingState();
+
+        // Mock instance of btGatt was created in initToConnectedProcessingState().
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt =
+                mBassClientStateMachine.mBluetoothGatt;
+        mBassClientStateMachine.mBluetoothGatt = null;
+        mBassClientStateMachine.sendMessage(DISCONNECT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(DISCONNECT),
+                BassClientStateMachine.Disconnected.class);
+        verify(btGatt).disconnect();
+        verify(btGatt).close();
+    }
+
+    @Test
+    public void sendStateChangedMessage_inConnectedProcessingState() {
+        initToConnectedProcessingState();
+
+        Message msgToConnectedState =
+                mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
+        msgToConnectedState.obj = BluetoothProfile.STATE_CONNECTED;
+
+        mBassClientStateMachine.sendMessage(msgToConnectedState);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+
+        Message msgToNoneConnectedState =
+                mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
+        msgToNoneConnectedState.obj = BluetoothProfile.STATE_DISCONNECTING;
+        sendMessageAndVerifyTransition(
+                msgToNoneConnectedState, BassClientStateMachine.Disconnected.class);
+    }
+
+    /**
+     * This also tests BassClientStateMachine#sendPendingCallbacks
+     */
+    @Test
+    public void sendGattTxnProcessedMessage_inConnectedProcessingState() {
+        initToConnectedProcessingState();
+        BassClientService.Callbacks callbacks = Mockito.mock(BassClientService.Callbacks.class);
+        when(mBassClientService.getCallbacks()).thenReturn(callbacks);
+
+        // Test sendPendingCallbacks(START_SCAN_OFFLOAD, ERROR_UNKNOWN)
+        mBassClientStateMachine.mPendingOperation = START_SCAN_OFFLOAD;
+        mBassClientStateMachine.mNoStopScanOffload = true;
+        mBassClientStateMachine.mAutoTriggered = false;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED, GATT_FAILURE),
+                BassClientStateMachine.Connected.class);
+        assertThat(mBassClientStateMachine.mNoStopScanOffload).isFalse();
+
+        // Test sendPendingCallbacks(START_SCAN_OFFLOAD, ERROR_UNKNOWN)
+        moveConnectedStateToConnectedProcessingState();
+        mBassClientStateMachine.mPendingOperation = START_SCAN_OFFLOAD;
+        mBassClientStateMachine.mAutoTriggered = true;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED, GATT_FAILURE),
+                BassClientStateMachine.Connected.class);
+        assertThat(mBassClientStateMachine.mAutoTriggered).isFalse();
+
+        // Test sendPendingCallbacks(ADD_BCAST_SOURCE, ERROR_UNKNOWN)
+        moveConnectedStateToConnectedProcessingState();
+        mBassClientStateMachine.mPendingOperation = ADD_BCAST_SOURCE;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED, GATT_FAILURE),
+                BassClientStateMachine.Connected.class);
+        verify(callbacks).notifySourceAddFailed(any(), any(), anyInt());
+
+        // Test sendPendingCallbacks(UPDATE_BCAST_SOURCE, REASON_LOCAL_APP_REQUEST)
+        moveConnectedStateToConnectedProcessingState();
+        mBassClientStateMachine.mPendingOperation = UPDATE_BCAST_SOURCE;
+        mBassClientStateMachine.mAutoTriggered = true;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED, GATT_SUCCESS),
+                BassClientStateMachine.Connected.class);
+        assertThat(mBassClientStateMachine.mAutoTriggered).isFalse();
+
+        // Test sendPendingCallbacks(UPDATE_BCAST_SOURCE, ERROR_UNKNOWN)
+        moveConnectedStateToConnectedProcessingState();
+        mBassClientStateMachine.mPendingOperation = UPDATE_BCAST_SOURCE;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED, GATT_FAILURE),
+                BassClientStateMachine.Connected.class);
+        verify(callbacks).notifySourceModifyFailed(any(), anyInt(), anyInt());
+
+        // Test sendPendingCallbacks(REMOVE_BCAST_SOURCE, ERROR_UNKNOWN)
+        moveConnectedStateToConnectedProcessingState();
+        mBassClientStateMachine.mPendingOperation = REMOVE_BCAST_SOURCE;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED, GATT_FAILURE),
+                BassClientStateMachine.Connected.class);
+        verify(callbacks).notifySourceRemoveFailed(any(), anyInt(), anyInt());
+
+        // Test sendPendingCallbacks(SET_BCAST_CODE, REASON_LOCAL_APP_REQUEST)
+        moveConnectedStateToConnectedProcessingState();
+        mBassClientStateMachine.mPendingOperation = REMOVE_BCAST_SOURCE;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED, GATT_FAILURE),
+                BassClientStateMachine.Connected.class);
+        // Nothing to verify more
+
+        // Test sendPendingCallbacks(SET_BCAST_CODE, REASON_LOCAL_APP_REQUEST)
+        moveConnectedStateToConnectedProcessingState();
+        mBassClientStateMachine.mPendingOperation = -1;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(GATT_TXN_PROCESSED, GATT_FAILURE),
+                BassClientStateMachine.Connected.class);
+        // Nothing to verify more
+    }
+
+    @Test
+    public void sendGattTxnTimeoutMessage_inConnectedProcessingState_doesNotChangeState() {
+        initToConnectedProcessingState();
+
+        mBassClientStateMachine.mPendingOperation = SET_BCAST_CODE;
+        mBassClientStateMachine.mPendingSourceId = 0;
+        sendMessageAndVerifyTransition(
+                mBassClientStateMachine.obtainMessage(GATT_TXN_TIMEOUT, GATT_FAILURE),
+                BassClientStateMachine.Connected.class);
+        assertThat(mBassClientStateMachine.mPendingOperation).isEqualTo(-1);
+        assertThat(mBassClientStateMachine.mPendingSourceId).isEqualTo(-1);
+    }
+
+    @Test
+    public void sendMessageForDeferring_inConnectedProcessingState_defersMessage() {
+        initToConnectedProcessingState();
+
+        mBassClientStateMachine.sendMessage(READ_BASS_CHARACTERISTICS);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(READ_BASS_CHARACTERISTICS))
+                .isTrue();
+
+        mBassClientStateMachine.sendMessage(START_SCAN_OFFLOAD);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(START_SCAN_OFFLOAD))
+                .isTrue();
+
+        mBassClientStateMachine.sendMessage(STOP_SCAN_OFFLOAD);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(STOP_SCAN_OFFLOAD))
+                .isTrue();
+
+        mBassClientStateMachine.sendMessage(SELECT_BCAST_SOURCE);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(SELECT_BCAST_SOURCE))
+                .isTrue();
+
+        mBassClientStateMachine.sendMessage(ADD_BCAST_SOURCE);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(ADD_BCAST_SOURCE))
+                .isTrue();
+
+        mBassClientStateMachine.sendMessage(SET_BCAST_CODE);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(SET_BCAST_CODE))
+                .isTrue();
+
+        mBassClientStateMachine.sendMessage(REMOVE_BCAST_SOURCE);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(REMOVE_BCAST_SOURCE))
+                .isTrue();
+
+        mBassClientStateMachine.sendMessage(PSYNC_ACTIVE_TIMEOUT);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        assertThat(mBassClientStateMachine.hasDeferredMessagesSuper(PSYNC_ACTIVE_TIMEOUT))
+                .isTrue();
+    }
+
+    @Test
+    public void sendInvalidMessage_inConnectedProcessingState_doesNotChangeState() {
+        initToConnectedProcessingState();
+
+        mBassClientStateMachine.sendMessage(-1);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+        verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
+    }
+
     private void initToDisconnectedState() {
         allowConnection(true);
         allowConnectGatt(true);
@@ -754,6 +954,23 @@ public class BassClientStateMachineTest {
         Message msg = mBassClientStateMachine.obtainMessage(CONNECTION_STATE_CHANGED);
         msg.obj = BluetoothProfile.STATE_CONNECTED;
         sendMessageAndVerifyTransition(msg, BassClientStateMachine.Connected.class);
+        Mockito.clearInvocations(mBassClientService);
+    }
+
+    private void initToConnectedProcessingState() {
+        initToConnectedState();
+        moveConnectedStateToConnectedProcessingState();
+    }
+
+    private void moveConnectedStateToConnectedProcessingState() {
+        BluetoothGattCharacteristic gattCharacteristic = Mockito.mock(
+                BluetoothGattCharacteristic.class);
+        BassClientStateMachine.BluetoothGattTestableWrapper btGatt = Mockito.mock(
+                BassClientStateMachine.BluetoothGattTestableWrapper.class);
+        mBassClientStateMachine.mBluetoothGatt = btGatt;
+        sendMessageAndVerifyTransition(mBassClientStateMachine.obtainMessage(
+                        READ_BASS_CHARACTERISTICS, gattCharacteristic),
+                BassClientStateMachine.ConnectedProcessing.class);
         Mockito.clearInvocations(mBassClientService);
     }
 
