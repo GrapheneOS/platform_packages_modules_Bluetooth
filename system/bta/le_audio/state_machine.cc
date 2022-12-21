@@ -614,6 +614,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                                       LeAudioDevice* leAudioDevice) {
     FreeLinkQualityReports(leAudioDevice);
     leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
+    /* mark ASEs as not used. */
+    leAudioDevice->DeactivateAllAses();
 
     if (!group) {
       LOG(ERROR) << __func__
@@ -621,9 +623,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                  << " group_id: " << leAudioDevice->group_id_;
       return;
     }
-
-    /* mark ASEs as not used. */
-    leAudioDevice->DeactivateAllAses();
 
     /* If group is in Idle and not transitioning, just update the current group
      * audio context availability which could change due to disconnected group
