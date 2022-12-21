@@ -48,6 +48,10 @@ uint16_t AVRC_CloseBrowse(uint8_t handle) {
   mock_function_count_map[__func__]++;
   return 0;
 }
+uint16_t AVRC_GetControlProfileVersion() {
+  mock_function_count_map[__func__]++;
+  return 0;
+}
 uint16_t AVRC_GetProfileVersion() {
   mock_function_count_map[__func__]++;
   return 0;
