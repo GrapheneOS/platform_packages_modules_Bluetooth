@@ -313,6 +313,24 @@ struct l2cble_use_preferred_conn_params {
   void operator()(const RawAddress& bda) { body(bda); };
 };
 extern struct l2cble_use_preferred_conn_params l2cble_use_preferred_conn_params;
+// Name: L2CA_SubrateRequest
+// Params:
+// Returns: bool
+struct L2CA_SubrateRequest {
+  std::function<bool(const RawAddress& rem_bda, uint16_t subrate_min,
+                     uint16_t subrate_max, uint16_t max_latency,
+                     uint16_t cont_num, uint16_t timeout)>
+      body{[](const RawAddress& rem_bda, uint16_t subrate_min,
+              uint16_t subrate_max, uint16_t max_latency, uint16_t cont_num,
+              uint16_t timeout) { return false; }};
+  bool operator()(const RawAddress& rem_bda, uint16_t subrate_min,
+                  uint16_t subrate_max, uint16_t max_latency, uint16_t cont_num,
+                  uint16_t timeout) {
+    return body(rem_bda, subrate_min, subrate_max, max_latency, cont_num,
+                timeout);
+  };
+};
+extern struct L2CA_SubrateRequest L2CA_SubrateRequest;
 
 }  // namespace stack_l2cap_ble
 }  // namespace mock

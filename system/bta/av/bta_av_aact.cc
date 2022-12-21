@@ -1636,30 +1636,31 @@ void bta_av_open_failed(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
      don't send disconnect req, just report the open event with
      BTA_AV_FAIL_GET_CAP status */
   if (is_av_opened) {
-    tBTA_AV_OPEN open;
-    open.bd_addr = p_scb->PeerAddress();
-    open.chnl = p_scb->chnl;
-    open.hndl = p_scb->hndl;
-    open.status = BTA_AV_FAIL_GET_CAP;
-    open.starting = bta_av_chk_start(p_scb);
-    open.edr = 0;
+    tBTA_AV bta_av_data = {.open = {
+                               .chnl = p_scb->chnl,
+                               .hndl = p_scb->hndl,
+                               .bd_addr = p_scb->PeerAddress(),
+                               .status = BTA_AV_FAIL_GET_CAP,
+                               .starting = bta_av_chk_start(p_scb),
+                               .edr = 0,
+                               .sep = AVDT_TSEP_INVALID,
+                           }};
     /* set the state back to initial state */
     bta_av_set_scb_sst_init(p_scb);
 
     if (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC) {
-      open.sep = AVDT_TSEP_SNK;
+      bta_av_data.open.sep = AVDT_TSEP_SNK;
     } else if (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK) {
-      open.sep = AVDT_TSEP_SRC;
+      bta_av_data.open.sep = AVDT_TSEP_SRC;
     }
 
     APPL_TRACE_ERROR(
         "%s: there is already an active connection: peer_addr=%s chnl=%d "
         "hndl=0x%x status=%d starting=%d edr=%d",
-        __func__, ADDRESS_TO_LOGGABLE_CSTR(open.bd_addr), open.chnl, open.hndl,
-        open.status, open.starting, open.edr);
+        __func__, ADDRESS_TO_LOGGABLE_CSTR(bta_av_data.open.bd_addr),
+        bta_av_data.open.chnl, bta_av_data.open.hndl, bta_av_data.open.status,
+        bta_av_data.open.starting, bta_av_data.open.edr);
 
-    tBTA_AV bta_av_data;
-    bta_av_data.open = open;
     (*bta_av_cb.p_cback)(BTA_AV_OPEN_EVT, &bta_av_data);
   } else {
     AVDT_DisconnectReq(p_scb->PeerAddress(), &bta_av_proc_stream_evt);
@@ -1915,7 +1916,6 @@ void bta_av_do_start(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
-  tBTA_AV_SUSPEND suspend_rsp;
   uint8_t start = p_scb->started;
   bool sus_evt = true;
   BT_HDR* p_buf;
@@ -1957,6 +1957,7 @@ void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
       L2CA_FlushChannel(p_scb->l2c_cid, L2CAP_FLUSH_CHANS_ALL);
   }
 
+  tBTA_AV_SUSPEND suspend_rsp = {};
   suspend_rsp.chnl = p_scb->chnl;
   suspend_rsp.hndl = p_scb->hndl;
 

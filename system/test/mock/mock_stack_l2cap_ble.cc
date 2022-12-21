@@ -73,6 +73,7 @@ struct l2cble_sec_comp l2cble_sec_comp;
 struct l2ble_sec_access_req l2ble_sec_access_req;
 struct L2CA_AdjustConnectionIntervals L2CA_AdjustConnectionIntervals;
 struct l2cble_use_preferred_conn_params l2cble_use_preferred_conn_params;
+struct L2CA_SubrateRequest L2CA_SubrateRequest;
 
 }  // namespace stack_l2cap_ble
 }  // namespace mock
@@ -197,6 +198,13 @@ void L2CA_AdjustConnectionIntervals(uint16_t* min_interval,
 void l2cble_use_preferred_conn_params(const RawAddress& bda) {
   mock_function_count_map[__func__]++;
   test::mock::stack_l2cap_ble::l2cble_use_preferred_conn_params(bda);
+}
+bool L2CA_SubrateRequest(const RawAddress& rem_bda, uint16_t subrate_min,
+                         uint16_t subrate_max, uint16_t max_latency,
+                         uint16_t cont_num, uint16_t timeout) {
+  mock_function_count_map[__func__]++;
+  return test::mock::stack_l2cap_ble::L2CA_SubrateRequest(
+      rem_bda, subrate_min, subrate_max, max_latency, cont_num, timeout);
 }
 
 // END mockcify generation
