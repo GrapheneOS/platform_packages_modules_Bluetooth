@@ -35,7 +35,7 @@ class PacketView {
  public:
   explicit PacketView(std::forward_list<View> fragments);
   PacketView(const PacketView& PacketView) = default;
-  explicit PacketView(std::shared_ptr<std::vector<uint8_t>> packet);
+  explicit PacketView(std::shared_ptr<const std::vector<uint8_t>> packet);
   PacketView<little_endian>() = delete;
   virtual ~PacketView() = default;
 
