@@ -94,7 +94,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 /**
@@ -1871,7 +1870,9 @@ public class GattService extends ProfileService {
                 continue;
             }
 
-            if ((settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_ALL_MATCHES) == 0) {
+            int callbackType = settings.getCallbackType();
+            if (!(callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES
+                    || callbackType == ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH)) {
                 if (VDBG) {
                     Log.d(TAG, "Skipping client: CALLBACK_TYPE_ALL_MATCHES");
                 }
@@ -2523,7 +2524,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "onBatchScanReports() - scannerId=" + scannerId + ", status=" + status
                     + ", reportType=" + reportType + ", numRecords=" + numRecords);
         }
-        mScanManager.callbackDone(scannerId, status);
+
         Set<ScanResult> results = parseBatchScanResults(numRecords, reportType, recordData);
         if (reportType == ScanManager.SCAN_RESULT_TYPE_TRUNCATED) {
             // We only support single client for truncated mode.
@@ -2575,13 +2576,27 @@ public class GattService extends ProfileService {
                 deliverBatchScan(client, results);
             }
         }
+        mScanManager.callbackDone(scannerId, status);
     }
 
     private void sendBatchScanResults(ScannerMap.App app, ScanClient client,
             ArrayList<ScanResult> results) {
         try {
             if (app.callback != null) {
-                app.callback.onBatchScanResults(results);
+                if (mScanManager.isAutoBatchScanClientEnabled(client)) {
+                    if (DBG) {
+                        Log.d(TAG, "sendBatchScanResults() to onScanResult()" + client);
+                    }
+                    for (ScanResult result : results) {
+                        app.appScanStats.addResult(client.scannerId);
+                        app.callback.onScanResult(result);
+                    }
+                } else {
+                    if (DBG) {
+                        Log.d(TAG, "sendBatchScanResults() to onBatchScanResults()" + client);
+                    }
+                    app.callback.onBatchScanResults(results);
+                }
             } else {
                 sendResultsByPendingIntent(app.info, results,
                         ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
