@@ -830,8 +830,8 @@ public class BluetoothMapContent {
         }
     }
 
-    private String getRecipientNameEmail(BluetoothMapMessageListingElement e, Cursor c,
-            FilterInfo fi) {
+    @VisibleForTesting
+    String getRecipientNameEmail(Cursor c, FilterInfo fi) {
 
         String toAddress, ccAddress, bccAddress;
         toAddress = c.getString(fi.mMessageColToAddress);
@@ -915,8 +915,8 @@ public class BluetoothMapContent {
         return sb.toString();
     }
 
-    private String getRecipientAddressingEmail(BluetoothMapMessageListingElement e, Cursor c,
-            FilterInfo fi) {
+    @VisibleForTesting
+    String getRecipientAddressingEmail(Cursor c, FilterInfo fi) {
         String toAddress, ccAddress, bccAddress;
         toAddress = c.getString(fi.mMessageColToAddress);
         ccAddress = c.getString(fi.mMessageColCcAddress);
@@ -1028,7 +1028,7 @@ public class BluetoothMapContent {
                 address = getAddressMms(mResolver, id, MMS_TO);
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL) {
                 /* Might be another way to handle addresses */
-                address = getRecipientAddressingEmail(e, c, fi);
+                address = getRecipientAddressingEmail(c, fi);
             }
             if (V) {
                 Log.v(TAG, "setRecipientAddressing: " + address);
@@ -1067,7 +1067,7 @@ public class BluetoothMapContent {
                 }
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL) {
                 /* Might be another way to handle address and names */
-                name = getRecipientNameEmail(e, c, fi);
+                name = getRecipientNameEmail(c, fi);
             }
             if (V) {
                 Log.v(TAG, "setRecipientName: " + name);
