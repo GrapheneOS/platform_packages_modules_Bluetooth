@@ -15,11 +15,11 @@ use bt_topshim::profiles::hfp::{
     BthfAudioState, BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher,
     HfpCodecCapability,
 };
+use bt_topshim::profiles::ProfileConnectionState;
 use bt_topshim::{metrics, topstack};
 use bt_utils::uinput::UInput;
 
 use log::{debug, info, warn};
-use num_traits::cast::ToPrimitive;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 use std::sync::Arc;
@@ -806,18 +806,71 @@ impl BluetoothMedia {
         }
     }
 
-    pub fn get_hfp_connection_state(&self) -> u32 {
-        for state in self.hfp_states.values() {
-            return BthfConnectionState::to_u32(state).unwrap_or(0);
+    pub fn get_hfp_connection_state(&self) -> ProfileConnectionState {
+        if self.hfp_audio_state.values().any(|state| *state == BthfAudioState::Connected) {
+            ProfileConnectionState::Active
+        } else {
+            let mut winning_state = ProfileConnectionState::Disconnected;
+            for state in self.hfp_states.values() {
+                // Grab any state higher than the current state.
+                match state {
+                    // Any SLC completed state means the profile is connected.
+                    BthfConnectionState::SlcConnected => {
+                        winning_state = ProfileConnectionState::Connected;
+                    }
+
+                    // Connecting or Connected are both counted as connecting for profile state
+                    // since it's not a complete connection.
+                    BthfConnectionState::Connecting | BthfConnectionState::Connected
+                        if winning_state != ProfileConnectionState::Connected =>
+                    {
+                        winning_state = ProfileConnectionState::Connecting;
+                    }
+
+                    BthfConnectionState::Disconnecting
+                        if winning_state == ProfileConnectionState::Disconnected =>
+                    {
+                        winning_state = ProfileConnectionState::Disconnecting;
+                    }
+
+                    _ => (),
+                }
+            }
+
+            winning_state
         }
-        0
     }
 
-    pub fn get_a2dp_connection_state(&self) -> u32 {
-        for state in self.a2dp_states.values() {
-            return BtavConnectionState::to_u32(state).unwrap_or(0);
+    pub fn get_a2dp_connection_state(&self) -> ProfileConnectionState {
+        if self.a2dp_audio_state.values().any(|state| *state == BtavAudioState::Started) {
+            ProfileConnectionState::Active
+        } else {
+            let mut winning_state = ProfileConnectionState::Disconnected;
+            for state in self.a2dp_states.values() {
+                // Grab any state higher than the current state.
+                match state {
+                    BtavConnectionState::Connected => {
+                        winning_state = ProfileConnectionState::Connected;
+                    }
+
+                    BtavConnectionState::Connecting
+                        if winning_state != ProfileConnectionState::Connected =>
+                    {
+                        winning_state = ProfileConnectionState::Connecting;
+                    }
+
+                    BtavConnectionState::Disconnecting
+                        if winning_state == ProfileConnectionState::Disconnected =>
+                    {
+                        winning_state = ProfileConnectionState::Disconnecting;
+                    }
+
+                    _ => (),
+                }
+            }
+
+            winning_state
         }
-        0
     }
 }
 
