@@ -30,6 +30,7 @@ class IPCHandlerDBus : public IPCHandler {
  public:
   IPCHandlerDBus(bluetooth::Adapter* adapter, IPCManager::Delegate* delegate);
 
+  IPCHandlerDBus() = delete;
   IPCHandlerDBus(const IPCHandlerDBus&) = delete;
   IPCHandlerDBus& operator=(const IPCHandlerDBus&) = delete;
 
@@ -43,8 +44,6 @@ class IPCHandlerDBus : public IPCHandler {
 
  private:
   base::Thread* dbus_thread_;
-
-  IPCHandlerDBus() = default;
 };
 
 }  // namespace ipc
