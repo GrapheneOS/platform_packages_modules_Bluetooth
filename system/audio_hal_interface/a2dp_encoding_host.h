@@ -38,6 +38,7 @@ struct AudioConfig {
 bool SetAudioConfig(AudioConfig);
 
 // Invoked by audio server when it has audio data to stream.
+// Returns whether the start request has been made successfully.
 bool StartRequest();
 
 // Invoked by audio server when audio streaming is done.
