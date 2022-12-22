@@ -26,6 +26,7 @@ class IPCHandlerBinder : public IPCHandler {
  public:
   IPCHandlerBinder(bluetooth::Adapter* adapter, IPCManager::Delegate* delegate);
 
+  IPCHandlerBinder() = delete;
   IPCHandlerBinder(const IPCHandlerBinder&) = delete;
   IPCHandlerBinder& operator=(const IPCHandlerBinder&) = delete;
 
