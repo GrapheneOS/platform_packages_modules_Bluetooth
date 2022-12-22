@@ -4817,6 +4817,8 @@ public class AdapterService extends Service {
                 return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_BAD_PARAMETERS;
             case /*HCI_ERR_PEER_USER*/ 0x13:
                 return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_REMOTE_REQUEST;
+            case /*HCI_ERR_REMOTE_POWER_OFF*/ 0x15:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_REMOTE_REQUEST;
             case /*HCI_ERR_CONN_CAUSE_LOCAL_HOST*/ 0x16:
                 return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_LOCAL_REQUEST;
             case /*HCI_ERR_UNSUPPORTED_REM_FEATURE*/ 0x1A:
