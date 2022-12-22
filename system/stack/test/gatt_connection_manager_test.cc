@@ -1,4 +1,5 @@
 #include <base/bind.h>
+#include <base/bind_helpers.h>
 #include <base/callback.h>
 #include <base/location.h>
 #include <gmock/gmock.h>
@@ -10,6 +11,7 @@
 #include "osi/include/alarm.h"
 #include "osi/test/alarm_mock.h"
 #include "stack/gatt/connection_manager.h"
+#include "stack/test/common/mock_btm_api_layer.h"
 
 using testing::_;
 using testing::DoAll;
@@ -35,6 +37,10 @@ class AcceptlistMock {
   MOCK_METHOD0(SetLeConnectionModeToFast, bool());
   MOCK_METHOD0(SetLeConnectionModeToSlow, void());
   MOCK_METHOD2(OnConnectionTimedOut, void(uint8_t, const RawAddress&));
+
+  /* Not really accept list related, btui still BTM - just for testing put it
+   * here. */
+  MOCK_METHOD2(EnableTargetedAnnouncements, void(bool, tBTM_INQ_RESULTS_CB*));
 };
 
 std::unique_ptr<AcceptlistMock> localAcceptlistMock;
@@ -67,15 +73,24 @@ void BTM_SetLeConnectionModeToSlow() {
   localAcceptlistMock->SetLeConnectionModeToSlow();
 }
 
+void BTM_BleTargetAnnouncementObserve(bool enable,
+                                      tBTM_INQ_RESULTS_CB* p_results_cb) {
+  localAcceptlistMock->EnableTargetedAnnouncements(enable, p_results_cb);
+}
+
 namespace bluetooth {
 namespace shim {
 bool is_gd_l2cap_enabled() { return false; }
+void set_target_announcements_filter(bool enable) {}
 }  // namespace shim
 }  // namespace bluetooth
 
 bool L2CA_ConnectFixedChnl(uint16_t fixed_cid, const RawAddress& bd_addr) {
   return false;
 }
+uint16_t BTM_GetHCIConnHandle(RawAddress const&, unsigned char) {
+  return 0xFFFF;
+};
 
 namespace connection_manager {
 class BleConnectionManager : public testing::Test {

@@ -27,11 +27,16 @@
 #include <memory>
 #include <set>
 
+#include "bind_helpers.h"
 #include "internal_include/bt_trace.h"
+#include "main/shim/le_scanning_manager.h"
 #include "main/shim/shim.h"
 #include "osi/include/alarm.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_ble_bgconn.h"
+#include "stack/include/advertise_data_parser.h"
+#include "stack/include/btm_ble_api.h"
+#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/l2c_api.h"
 #include "types/raw_address.h"
 
@@ -112,8 +117,86 @@ std::set<tAPP_ID> get_apps_connecting_to(const RawAddress& address) {
                                   : std::set<tAPP_ID>();
 }
 
+bool IsTargetedAnnouncement(const uint8_t* p_eir, uint16_t eir_len) {
+  const uint8_t* p_service_data = p_eir;
+  uint16_t remaining_data_len = eir_len;
+  uint8_t service_data_len = 0;
+
+  while ((p_service_data = AdvertiseDataParser::GetFieldByType(
+              p_service_data + service_data_len,
+              (remaining_data_len -= service_data_len),
+              BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE, &service_data_len))) {
+    uint16_t uuid;
+    uint8_t announcement_type;
+    const uint8_t* p_tmp = p_service_data;
+
+    if (service_data_len < 1) {
+      continue;
+    }
+
+    STREAM_TO_UINT16(uuid, p_tmp);
+    LOG_DEBUG("Found UUID 0x%04x", uuid);
+
+    if (uuid != 0x184E && uuid != 0x1853) {
+      continue;
+    }
+
+    STREAM_TO_UINT8(announcement_type, p_tmp);
+    LOG_DEBUG("Found announcement_type 0x%02x", announcement_type);
+    if (announcement_type == 0x01) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static void schedule_direct_connect_add(uint8_t app_id,
+                                        const RawAddress& address);
+
+static void target_announcement_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
+                                                   const uint8_t* p_eir,
+                                                   uint16_t eir_len) {
+  auto addr = p_inq->remote_bd_addr;
+  auto it = bgconn_dev.find(addr);
+  if (it == bgconn_dev.end() ||
+      it->second.doing_targeted_announcements_conn.empty()) {
+    return;
+  }
+
+  if (!IsTargetedAnnouncement(p_eir, eir_len)) {
+    LOG_DEBUG("Not a targeted announcement for device %s",
+              addr.ToString().c_str());
+    return;
+  }
+
+  LOG_INFO("Found targeted announcement for device %s",
+           addr.ToString().c_str());
+
+  if (it->second.is_in_accept_list) {
+    LOG_INFO("Device %s is already connecting", addr.ToString().c_str());
+    return;
+  }
+
+  if (BTM_GetHCIConnHandle(addr, BT_TRANSPORT_LE) != 0xFFFF) {
+    LOG_DEBUG("Device %s already connected", addr.ToString().c_str());
+    return;
+  }
+
+  /* Take fist app_id and use it for direct_connect */
+  auto app_id = *(it->second.doing_targeted_announcements_conn.begin());
+
+  /* If scan is ongoing lets stop it */
+  do_in_main_thread(FROM_HERE,
+                    base::BindOnce(schedule_direct_connect_add, app_id, addr));
+}
+
 void target_announcements_filtering_set(bool enable) {
-  // TODO Implement
+  LOG_DEBUG("enable %d", enable);
+  /* Safe to call as if there is no support for filtering, this call will be
+   * ignored. */
+  bluetooth::shim::set_target_announcements_filter(enable);
+  BTM_BleTargetAnnouncementObserve(enable,
+                                   target_announcement_observe_results_cb);
 }
 
 /** Add a device to the background connection list for targeted announcements.
@@ -405,7 +488,13 @@ bool direct_connect_add(uint8_t app_id, const RawAddress& address) {
 
   bgconn_dev[address].doing_direct_conn.emplace(
       app_id, unique_alarm_ptr(timeout, &alarm_free));
+
   return true;
+}
+
+static void schedule_direct_connect_add(uint8_t app_id,
+                                        const RawAddress& address) {
+  direct_connect_add(app_id, address);
 }
 
 static bool any_direct_connect_left() {
