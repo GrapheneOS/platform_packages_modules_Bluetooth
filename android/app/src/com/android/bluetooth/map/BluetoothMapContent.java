@@ -71,7 +71,8 @@ public class BluetoothMapContent {
 
     // Parameter Mask for selection of parameters to return in listings
     private static final int MASK_SUBJECT = 0x00000001;
-    private static final int MASK_DATETIME = 0x00000002;
+    @VisibleForTesting
+    static final int MASK_DATETIME = 0x00000002;
     private static final int MASK_SENDER_NAME = 0x00000004;
     private static final int MASK_SENDER_ADDRESSING = 0x00000008;
     private static final int MASK_RECIPIENT_NAME = 0x00000010;
@@ -80,7 +81,8 @@ public class BluetoothMapContent {
     private static final int MASK_SIZE = 0x00000080;
     private static final int MASK_RECEPTION_STATUS = 0x00000100;
     private static final int MASK_TEXT = 0x00000200;
-    private static final int MASK_ATTACHMENT_SIZE = 0x00000400;
+    @VisibleForTesting
+    static final int MASK_ATTACHMENT_SIZE = 0x00000400;
     private static final int MASK_PRIORITY = 0x00000800;
     private static final int MASK_READ = 0x00001000;
     private static final int MASK_SENT = 0x00002000;
@@ -88,7 +90,8 @@ public class BluetoothMapContent {
     private static final int MASK_REPLYTO_ADDRESSING = 0x00008000;
     // TODO: Duplicate in proposed spec
     // private static final int MASK_RECEPTION_STATE       = 0x00010000;
-    private static final int MASK_DELIVERY_STATUS = 0x00010000;
+    @VisibleForTesting
+    static final int MASK_DELIVERY_STATUS = 0x00010000;
     private static final int MASK_CONVERSATION_ID = 0x00020000;
     private static final int MASK_CONVERSATION_NAME = 0x00040000;
     private static final int MASK_FOLDER_TYPE = 0x00100000;
@@ -154,7 +157,8 @@ public class BluetoothMapContent {
     private String mMessageVersion = BluetoothMapUtils.MAP_V10_STR;
 
     private int mRemoteFeatureMask = BluetoothMapUtils.MAP_FEATURE_DEFAULT_BITMASK;
-    private int mMsgListingVersion = BluetoothMapUtils.MAP_MESSAGE_LISTING_FORMAT_V10;
+    @VisibleForTesting
+    int mMsgListingVersion = BluetoothMapUtils.MAP_MESSAGE_LISTING_FORMAT_V10;
 
     static final String[] SMS_PROJECTION = new String[]{
             BaseColumns._ID,
@@ -592,7 +596,8 @@ public class BluetoothMapContent {
      * the total message size. To provide a more accurate attachment size, one could
      * extract the length (in bytes) of the text parts.
      */
-    private void setAttachment(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setAttachment(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_ATTACHMENT_SIZE) != 0) {
             int size = 0;
@@ -687,7 +692,8 @@ public class BluetoothMapContent {
         }
     }
 
-    private void setDeliveryStatus(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setDeliveryStatus(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_DELIVERY_STATUS) != 0) {
             String deliveryStatus = "delivered";
@@ -1247,8 +1253,8 @@ public class BluetoothMapContent {
         }
     }
 
-
-    private void setDateTime(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setDateTime(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_DATETIME) != 0) {
             long date = 0;
@@ -2036,8 +2042,9 @@ public class BluetoothMapContent {
 
 
     /* Used only for SMS/MMS */
-    private void setConvoWhereFilterSmsMms(StringBuilder selection, ArrayList<String> selectionArgs,
-            FilterInfo fi, BluetoothMapAppParams ap) {
+    @VisibleForTesting
+    void setConvoWhereFilterSmsMms(StringBuilder selection, FilterInfo fi,
+            BluetoothMapAppParams ap) {
 
         if (smsSelected(fi, ap) || mmsSelected(ap)) {
 
@@ -2088,7 +2095,8 @@ public class BluetoothMapContent {
      * @param ap
      * @return boolean true if sms is selected, false if not
      */
-    private boolean smsSelected(FilterInfo fi, BluetoothMapAppParams ap) {
+    @VisibleForTesting
+    boolean smsSelected(FilterInfo fi, BluetoothMapAppParams ap) {
         int msgType = ap.getFilterMessageType();
         int phoneType = fi.mPhoneType;
 
@@ -2125,7 +2133,8 @@ public class BluetoothMapContent {
      * @param ap
      * @return boolean true if mms is selected, false if not
      */
-    private boolean mmsSelected(BluetoothMapAppParams ap) {
+    @VisibleForTesting
+    boolean mmsSelected(BluetoothMapAppParams ap) {
         int msgType = ap.getFilterMessageType();
 
         if (D) {
@@ -2193,7 +2202,8 @@ public class BluetoothMapContent {
         return false;
     }
 
-    private void setFilterInfo(FilterInfo fi) {
+    @VisibleForTesting
+    void setFilterInfo(FilterInfo fi) {
         TelephonyManager tm = mContext.getSystemService(TelephonyManager.class);
         if (tm != null) {
             fi.mPhoneType = tm.getPhoneType();
@@ -2762,7 +2772,7 @@ public class BluetoothMapContent {
                 StringBuilder selection = new StringBuilder(120); // This covers most cases
                 ArrayList<String> selectionArgs = new ArrayList<String>(12); // Covers all cases
                 selection.append("1=1 "); // just to simplify building the where-clause
-                setConvoWhereFilterSmsMms(selection, selectionArgs, fi, ap);
+                setConvoWhereFilterSmsMms(selection, fi, ap);
                 String[] args = null;
                 if (selectionArgs.size() > 0) {
                     args = new String[selectionArgs.size()];
