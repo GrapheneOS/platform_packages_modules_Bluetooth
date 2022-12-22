@@ -363,7 +363,9 @@ void btif_gattc_open_impl(int client_if, RawAddress address, bool is_direct,
   // Connect!
   LOG_INFO("Transport=%d, device type=%d, address type =%d, phy=%d", transport,
            device_type, addr_type, initiating_phys);
-  BTA_GATTC_Open(client_if, address, is_direct, transport, opportunistic,
+  tBTM_BLE_CONN_TYPE type =
+      is_direct ? BTM_BLE_DIRECT_CONNECTION : BTM_BLE_BKG_CONNECT_ALLOW_LIST;
+  BTA_GATTC_Open(client_if, address, type, transport, opportunistic,
                  initiating_phys);
 }
 
