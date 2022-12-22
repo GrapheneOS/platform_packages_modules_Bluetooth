@@ -77,6 +77,7 @@ static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
     "persist.bluetooth.leaudio.notify.idle.during.call";
 const char* test_flags[] = {
     "INIT_logging_debug_enabled_for_all=true",
+    "INIT_leaudio_targeted_announcement_reconnection_mode=true",
     nullptr,
 };
 
@@ -2446,7 +2447,8 @@ TEST_F(UnicastTest, ConnectRemoteDisconnectOneEarbud) {
       .Times(1);
   /* For remote disconnection, expect stack to try background re-connect */
   EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
       .Times(1);
 
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
@@ -2612,7 +2614,8 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
       .WillByDefault(DoAll(Return(true)));
   EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
       .Times(1);
 
   // Expect stored device1 to connect automatically
@@ -2622,7 +2625,8 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
       .WillByDefault(DoAll(Return(true)));
   EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address1, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+              Open(gatt_if, test_address1,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
       .Times(1);
 
   ON_CALL(mock_groups_module_, GetGroupId(_, _))
@@ -2743,7 +2747,8 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
       .WillByDefault(DoAll(Return(true)));
   EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
       .Times(1);
 
   // Expect stored device1 to NOT connect automatically
@@ -2753,7 +2758,8 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
       .WillByDefault(DoAll(Return(true)));
   EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address1, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+              Open(gatt_if, test_address1,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
       .Times(0);
 
   // Initialize
@@ -3729,7 +3735,8 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
   }
 
   EXPECT_CALL(mock_gatt_interface_,
-              Open(_, device->address_, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false))
+              Open(_, device->address_,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, false))
       .Times(1);
 
   auto conn_id = device->conn_id_;

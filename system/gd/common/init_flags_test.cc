@@ -28,6 +28,12 @@ TEST(InitFlagsTest, test_enable_btm_flush_discovery_queue_on_search_cancel) {
   ASSERT_TRUE(InitFlags::IsBtmDmFlushDiscoveryQueueOnSearchCancel());
 }
 
+TEST(InitFlagsTest, test_leaudio_targeted_announcement_reconnection_mode) {
+  const char* input[] = {"INIT_leaudio_targeted_announcement_reconnection_mode=true", nullptr};
+  InitFlags::Load(input);
+  ASSERT_TRUE(InitFlags::IsTargetedAnnouncementReconnectionMode());
+}
+
 TEST(InitFlagsTest, test_enable_debug_logging_for_all) {
   const char* input[] = {"INIT_logging_debug_enabled_for_all=true", nullptr};
   InitFlags::Load(input);
