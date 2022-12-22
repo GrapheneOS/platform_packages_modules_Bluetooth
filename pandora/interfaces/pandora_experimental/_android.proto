@@ -20,6 +20,8 @@ service Android {
   rpc SendSMS(google.protobuf.Empty) returns (google.protobuf.Empty);
   // Accept incoming file
   rpc AcceptIncomingFile(google.protobuf.Empty) returns (google.protobuf.Empty);
+  // Send file
+  rpc SendFile(google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 
 message LogRequest {
