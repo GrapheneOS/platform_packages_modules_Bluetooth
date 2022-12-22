@@ -34,7 +34,6 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -53,8 +52,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.HashMap;
 
 @SmallTest
 @RunWith(AndroidJUnit4.class)

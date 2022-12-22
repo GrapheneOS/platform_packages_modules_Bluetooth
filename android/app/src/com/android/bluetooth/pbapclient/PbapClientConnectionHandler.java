@@ -247,7 +247,7 @@ class PbapClientConnectionHandler extends Handler {
                 break;
 
             case MSG_DOWNLOAD:
-                mAccountCreated = addAccount(mAccount);
+                mAccountCreated = addAccount();
                 if (!mAccountCreated) {
                     Log.e(TAG, "Account creation failed.");
                     return;
@@ -456,8 +456,8 @@ class PbapClientConnectionHandler extends Handler {
     }
 
     @VisibleForTesting
-    boolean addAccount(Account account) {
-        if (mAccountManager.addAccountExplicitly(account, null, null)) {
+    boolean addAccount() {
+        if (mAccountManager.addAccountExplicitly(mAccount, null, null)) {
             if (DBG) {
                 Log.d(TAG, "Added account " + mAccount);
             }
