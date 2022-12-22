@@ -3750,7 +3750,7 @@ tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason,
 void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
                           std::string comment) {
   if ((reason != HCI_ERR_CONN_CAUSE_LOCAL_HOST) &&
-      (reason != HCI_ERR_PEER_USER)) {
+      (reason != HCI_ERR_PEER_USER) && (reason != HCI_ERR_REMOTE_POWER_OFF)) {
     LOG_WARN("Got uncommon disconnection reason:%s handle:0x%04x comment:%s",
              hci_error_code_text(reason).c_str(), handle, comment.c_str());
   }
