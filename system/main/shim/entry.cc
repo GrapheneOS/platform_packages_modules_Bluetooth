@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "main/shim/entry.h"
+
 #include "gd/btaa/activity_attribution.h"
 #include "gd/hci/controller.h"
 #include "gd/hci/hci_layer.h"
@@ -24,16 +26,12 @@
 #include "gd/neighbor/connectability.h"
 #include "gd/neighbor/discoverability.h"
 #include "gd/neighbor/inquiry.h"
-#include "gd/neighbor/name.h"
 #include "gd/neighbor/page.h"
 #include "gd/os/handler.h"
 #include "gd/security/security_module.h"
 #include "gd/shim/dumpsys.h"
 #include "gd/storage/storage_module.h"
-
 #include "hci/acl_manager.h"
-
-#include "main/shim/entry.h"
 #include "main/shim/stack.h"
 
 namespace bluetooth {
@@ -89,12 +87,6 @@ bluetooth::l2cap::le::L2capLeModule* GetL2capLeModule() {
   return Stack::GetInstance()
       ->GetStackManager()
       ->GetInstance<bluetooth::l2cap::le::L2capLeModule>();
-}
-
-neighbor::NameModule* GetName() {
-  return Stack::GetInstance()
-      ->GetStackManager()
-      ->GetInstance<neighbor::NameModule>();
 }
 
 neighbor::PageModule* GetPage() {

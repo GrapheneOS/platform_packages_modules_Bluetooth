@@ -18,7 +18,6 @@
 #include "security/pairing/classic_pairing_handler.h"
 
 #include "common/bind.h"
-#include "neighbor/name.h"
 
 namespace bluetooth {
 namespace security {
