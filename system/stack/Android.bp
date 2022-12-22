@@ -482,6 +482,7 @@ cc_test {
 cc_test {
     name: "net_test_gatt_conn_multiplexing",
     defaults: ["fluoride_defaults"],
+    host_supported: true,
     local_include_dirs: [
         "include",
         "btm",
