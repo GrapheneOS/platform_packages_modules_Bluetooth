@@ -115,16 +115,20 @@ public class LeAudioService extends ProfileService {
     private volatile BluetoothDevice mActiveAudioOutDevice;
     private volatile BluetoothDevice mActiveAudioInDevice;
     private LeAudioCodecConfig mLeAudioCodecConfig;
-    private Object mGroupLock = new Object();
+    private final Object mGroupLock = new Object();
     ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
     boolean mLeAudioNativeIsInitialized = false;
+    boolean mBluetoothEnabled = false;
     BluetoothDevice mHfpHandoverDevice = null;
     LeAudioBroadcasterNativeInterface mLeAudioBroadcasterNativeInterface = null;
     @VisibleForTesting
     AudioManager mAudioManager;
     LeAudioTmapGattServer mTmapGattServer;
+
+    @VisibleForTesting
+    McpService mMcpService;
 
     @VisibleForTesting
     VolumeControlService mVolumeControlService;
@@ -330,6 +334,7 @@ public class LeAudioService extends ProfileService {
         mLeAudioNativeInterface.cleanup();
         mLeAudioNativeInterface = null;
         mLeAudioNativeIsInitialized = false;
+        mBluetoothEnabled = false;
         mHfpHandoverDevice = null;
 
         mActiveAudioOutDevice = null;
@@ -391,6 +396,7 @@ public class LeAudioService extends ProfileService {
 
         mAdapterService = null;
         mAudioManager = null;
+        mMcpService = null;
         mVolumeControlService = null;
 
         return true;
@@ -895,7 +901,13 @@ public class LeAudioService extends ProfileService {
         return false;
     }
 
-    private void notifyActiveDeviceChanged() {
+    /**
+     * Send broadcast intent about LeAudio active device.
+     * This is called when AudioManager confirms, LeAudio device
+     * is added or removed.
+     */
+    @VisibleForTesting
+    void notifyActiveDeviceChanged() {
         Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE,
                 mActiveAudioOutDevice != null ? mActiveAudioOutDevice : mActiveAudioInDevice);
@@ -1683,11 +1695,6 @@ public class LeAudioService extends ProfileService {
             } else {
                 Log.e(TAG, "no descriptors for group: " + myGroupId);
             }
-
-            McpService mcpService = mServiceFactory.getMcpService();
-            if (mcpService != null) {
-                mcpService.setDeviceAuthorized(device, true);
-            }
         }
         // Check if the device is disconnected - if unbond, remove the state machine
         if (toState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -1697,11 +1704,6 @@ public class LeAudioService extends ProfileService {
                     Log.d(TAG, device + " is unbond. Remove state machine");
                 }
                 removeStateMachine(device);
-            }
-
-            McpService mcpService = mServiceFactory.getMcpService();
-            if (mcpService != null) {
-                mcpService.setDeviceAuthorized(device, false);
             }
 
             int myGroupId = getGroupId(device);
@@ -1971,6 +1973,50 @@ public class LeAudioService extends ProfileService {
         }
     }
 
+    McpService getMcpService() {
+        if (mMcpService != null) {
+            return mMcpService;
+        }
+
+        mMcpService = mServiceFactory.getMcpService();
+        return mMcpService;
+    }
+
+    /**
+     * This function is called when the framework registers
+     * a callback with the service for this first time.
+     * This is used as an indication that Bluetooth has been enabled.
+     * 
+     * It is used to authorize all known LeAudio devices in the services
+     * which requires that e.g. GMCS
+     */
+    @VisibleForTesting
+    void handleBluetoothEnabled() {
+        if (DBG) {
+            Log.d(TAG, "handleBluetoothEnabled ");
+        }
+
+        mBluetoothEnabled = true;
+
+        synchronized (mGroupLock) {
+            if (mDeviceGroupIdMap.isEmpty()) {
+                return;
+            }
+        }
+
+        McpService mcpService = getMcpService();
+        if (mcpService == null) {
+            Log.e(TAG, "mcpService not available ");
+            return;
+        }
+
+        synchronized (mGroupLock) {
+            for (Map.Entry<BluetoothDevice, Integer> entry : mDeviceGroupIdMap.entrySet()) {
+                mcpService.setDeviceAuthorized(entry.getKey(), true);
+            }
+        }
+    }
+
     private LeAudioGroupDescriptor getGroupDescriptor(int groupId) {
         synchronized (mGroupLock) {
             return mGroupDescriptors.get(groupId);
@@ -1989,6 +2035,13 @@ public class LeAudioService extends ProfileService {
                 mGroupDescriptors.put(groupId, new LeAudioGroupDescriptor());
             }
             notifyGroupNodeAdded(device, groupId);
+        }
+
+        if (mBluetoothEnabled) {
+            McpService mcpService = getMcpService();
+            if (mcpService != null) {
+                mcpService.setDeviceAuthorized(device, true);
+            }
         }
     }
 
@@ -2032,6 +2085,11 @@ public class LeAudioService extends ProfileService {
                 mGroupDescriptors.remove(groupId);
             }
             notifyGroupNodeRemoved(device, groupId);
+        }
+
+        McpService mcpService = getMcpService();
+        if (mcpService != null) {
+            mcpService.setDeviceAuthorized(device, false);
         }
     }
 
@@ -2668,6 +2726,9 @@ public class LeAudioService extends ProfileService {
 
                 enforceBluetoothPrivilegedPermission(service);
                 service.mLeAudioCallbacks.register(callback);
+                if (!service.mBluetoothEnabled) {
+                    service.handleBluetoothEnabled();
+                }
                 receiver.send(null);
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
