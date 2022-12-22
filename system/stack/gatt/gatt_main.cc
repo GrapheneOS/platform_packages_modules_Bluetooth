@@ -34,6 +34,7 @@
 #include "l2c_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
@@ -122,8 +123,11 @@ void gatt_init(void) {
 
   L2CA_RegisterFixedChannel(L2CAP_ATT_CID, &fixed_reg);
 
+  bool gatt_over_br_is_disabled =
+      osi_property_get_bool("bluetooth.gatt_over_bredr.disabled", false);
   /* Now, register with L2CAP for ATT PSM over BR/EDR */
-  if (!L2CA_Register2(BT_PSM_ATT, dyn_info, false /* enable_snoop */, nullptr,
+  if (!gatt_over_br_is_disabled &&
+      !L2CA_Register2(BT_PSM_ATT, dyn_info, false /* enable_snoop */, nullptr,
                       GATT_MAX_MTU_SIZE, 0, BTM_SEC_NONE)) {
     LOG(ERROR) << "ATT Dynamic Registration failed";
   }
