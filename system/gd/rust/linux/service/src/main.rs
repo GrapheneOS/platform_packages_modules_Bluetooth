@@ -41,6 +41,9 @@ mod iface_bluetooth_media;
 
 const DBUS_SERVICE_NAME: &str = "org.chromium.bluetooth";
 const ADMIN_SETTINGS_FILE_PATH: &str = "/var/lib/bluetooth/admin_policy.json";
+// The maximum ACL disconnect timeout is 3.5s defined by BTA_DM_DISABLE_TIMER_MS
+// and BTA_DM_DISABLE_TIMER_RETRIAL_MS
+const STACK_TURN_OFF_TIMEOUT_MS: Duration = Duration::from_millis(4000);
 
 fn make_object_name(idx: i32, name: &str) -> String {
     String::from(format!("/org/chromium/bluetooth/hci{}/{}", idx, name))
@@ -372,8 +375,8 @@ extern "C" fn handle_sigterm(_signum: i32) {
 
         let guard = notifier.0.lock().unwrap();
         if *guard {
-            log::debug!("Waiting for stack to turn off for 2s");
-            let _ = notifier.1.wait_timeout(guard, std::time::Duration::from_millis(2000));
+            log::debug!("Waiting for stack to turn off for {:?}", STACK_TURN_OFF_TIMEOUT_MS);
+            let _ = notifier.1.wait_timeout(guard, STACK_TURN_OFF_TIMEOUT_MS);
         }
     }
 
