@@ -1115,8 +1115,16 @@ public class LeAudioServiceTest {
                          BluetoothLeAudio.CONTEXT_TYPE_CONVERSATIONAL, 3);
         injectGroupStatusChange(testGroupId, BluetoothLeAudio.GROUP_STATUS_ACTIVE);
 
-        String action = BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED;
+        /* Expect 2 calles to Audio Manager - one for output and second for input as this is
+         * Conversational use case */
+        verify(mAudioManager, times(2)).handleBluetoothActiveDeviceChanged(any(), any(),
+                        any(BluetoothProfileConnectionInfo.class));
+        /* Since LeAudioService called AudioManager - assume Audio manager calles properly callback
+        * mAudioManager.onAudioDeviceAdded
+        */
+        mService.notifyActiveDeviceChanged();
 
+        String action = BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED;
         Intent intent = TestUtils.waitForIntent(TIMEOUT_MS, mDeviceQueueMap.get(mSingleDevice));
         assertThat(intent).isNotNull();
         assertThat(action).isEqualTo(intent.getAction());
@@ -1328,7 +1336,10 @@ public class LeAudioServiceTest {
         assertThat(mService.getActiveDevices().contains(leadDevice)).isTrue();
         verify(mAudioManager, times(1)).handleBluetoothActiveDeviceChanged(eq(leadDevice), any(),
                         any(BluetoothProfileConnectionInfo.class));
-
+        /* Since LeAudioService called AudioManager - assume Audio manager calles properly callback
+         * mAudioManager.onAudioDeviceAdded
+         */
+        mService.notifyActiveDeviceChanged();
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService).getBondState(leadDevice);
         verifyActiveDeviceStateIntent(AUDIO_MANAGER_DEVICE_ADD_TIMEOUT_MS, leadDevice);
         injectNoVerifyDeviceDisconnected(leadDevice);
@@ -1395,6 +1406,10 @@ public class LeAudioServiceTest {
         assertThat(mService.getActiveDevices().contains(leadDevice)).isTrue();
         verify(mAudioManager, times(1)).handleBluetoothActiveDeviceChanged(eq(leadDevice), any(),
                         any(BluetoothProfileConnectionInfo.class));
+        /* Since LeAudioService called AudioManager - assume Audio manager calles properly callback
+         * mAudioManager.onAudioDeviceAdded
+         */
+        mService.notifyActiveDeviceChanged();
 
         verifyActiveDeviceStateIntent(AUDIO_MANAGER_DEVICE_ADD_TIMEOUT_MS, leadDevice);
         /* We don't want to distribute DISCONNECTION event, instead will try to reconnect
