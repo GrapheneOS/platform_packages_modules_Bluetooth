@@ -35,6 +35,13 @@ cc_defaults {
     include_dirs: [
         "packages/modules/Bluetooth/system/gd",
     ],
+    target: {
+        host: {
+            cflags: [
+                "-DOS_GENERIC",
+            ],
+        },
+    },
 }
 
 fluoride_defaults {
