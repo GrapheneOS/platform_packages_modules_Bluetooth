@@ -44,7 +44,6 @@
 #include "gd/neighbor/connectability.h"
 #include "gd/neighbor/discoverability.h"
 #include "gd/neighbor/inquiry.h"
-#include "gd/neighbor/name.h"
 #include "gd/neighbor/name_db.h"
 #include "gd/neighbor/page.h"
 #include "gd/neighbor/scan.h"
@@ -169,7 +168,6 @@ void Stack::StartEverything() {
     modules.add<neighbor::ConnectabilityModule>();
     modules.add<neighbor::DiscoverabilityModule>();
     modules.add<neighbor::InquiryModule>();
-    modules.add<neighbor::NameModule>();
     modules.add<neighbor::NameDbModule>();
     modules.add<neighbor::PageModule>();
     modules.add<neighbor::ScanModule>();

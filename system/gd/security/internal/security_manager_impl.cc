@@ -318,9 +318,6 @@ void SecurityManagerImpl::OnHciEventReceived(hci::EventView packet) {
     case hci::EventCode::USER_PASSKEY_REQUEST:
       HandleEvent(hci::UserPasskeyRequestView::Create(event));
       break;
-    case hci::EventCode::REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION:
-      LOG_INFO("Unhandled event: %s", hci::EventCodeText(code).c_str());
-      break;
 
     case hci::EventCode::ENCRYPTION_CHANGE: {
       EncryptionChangeView encryption_change_view = EncryptionChangeView::Create(event);

@@ -33,7 +33,6 @@
 #include "gd/neighbor/connectability.h"
 #include "gd/neighbor/discoverability.h"
 #include "gd/neighbor/inquiry.h"
-#include "gd/neighbor/name.h"
 #include "gd/neighbor/page.h"
 #include "gd/security/security_module.h"
 #include "main/shim/controller.h"
@@ -48,8 +47,6 @@
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
-
-static constexpr size_t kRemoteDeviceNameLength = 248;
 
 static constexpr bool kActiveScanning = true;
 static constexpr bool kPassiveScanning = false;
@@ -484,45 +481,8 @@ bool Btm::UseLeLink(const RawAddress& raw_address) const {
 
 BtmStatus Btm::ReadClassicRemoteDeviceName(const RawAddress& raw_address,
                                            tBTM_CMPL_CB* callback) {
-  if (!CheckClassicAclLink(raw_address)) {
-    return BTM_UNKNOWN_ADDR;
-  }
-
-  if (!classic_read_remote_name_.Start(raw_address)) {
-    LOG_INFO("%s Read remote name is currently busy address:%s", __func__,
-             ADDRESS_TO_LOGGABLE_CSTR(raw_address));
-    return BTM_BUSY;
-  }
-
-  LOG_INFO("%s Start read name from address:%s", __func__,
-           ADDRESS_TO_LOGGABLE_CSTR(raw_address));
-  GetName()->ReadRemoteNameRequest(
-      ToGdAddress(raw_address), hci::PageScanRepetitionMode::R1,
-      0 /* clock_offset */, hci::ClockOffsetValid::INVALID,
-
-      base::Bind(
-          [](tBTM_CMPL_CB* callback, ReadRemoteName* classic_read_remote_name,
-             hci::ErrorCode status, hci::Address address,
-             std::array<uint8_t, kRemoteDeviceNameLength> remote_name) {
-            RawAddress raw_address = ToRawAddress(address);
-
-            BtmRemoteDeviceName name{
-                .status = (static_cast<uint8_t>(status) == 0)
-                              ? (BTM_SUCCESS)
-                              : (BTM_BAD_VALUE_RET),
-                .bd_addr = raw_address,
-                .length = kRemoteDeviceNameLength,
-            };
-            std::copy(remote_name.begin(), remote_name.end(),
-                      name.remote_bd_name);
-            LOG_INFO("%s Finish read name from address:%s name:%s", __func__,
-                     ADDRESS_TO_LOGGABLE_CSTR(address), name.remote_bd_name);
-            callback(&name);
-            classic_read_remote_name->Stop();
-          },
-          callback, &classic_read_remote_name_),
-      GetGdShimHandler());
-  return BTM_CMD_STARTED;
+  LOG_ALWAYS_FATAL("unreachable");
+  return BTM_UNDEFINED;
 }
 
 BtmStatus Btm::ReadLeRemoteDeviceName(const RawAddress& raw_address,
@@ -540,30 +500,8 @@ BtmStatus Btm::ReadLeRemoteDeviceName(const RawAddress& raw_address,
 }
 
 BtmStatus Btm::CancelAllReadRemoteDeviceName() {
-  if (classic_read_remote_name_.IsInProgress() ||
-      le_read_remote_name_.IsInProgress()) {
-    if (classic_read_remote_name_.IsInProgress()) {
-      hci::Address address;
-      hci::Address::FromString(classic_read_remote_name_.AddressString(),
-                               address);
-
-      GetName()->CancelRemoteNameRequest(
-          address,
-          common::BindOnce(
-              [](ReadRemoteName* classic_read_remote_name,
-                 hci::ErrorCode status,
-                 hci::Address address) { classic_read_remote_name->Stop(); },
-              &classic_read_remote_name_),
-          GetGdShimHandler());
-    }
-    if (le_read_remote_name_.IsInProgress()) {
-      LOG_INFO("UNIMPLEMENTED %s need access to GATT module", __func__);
-    }
-    return BTM_UNKNOWN_ADDR;
-  }
-  LOG_WARN("%s Cancelling classic remote device name without one in progress",
-           __func__);
-  return BTM_WRONG_MODE;
+  LOG_ALWAYS_FATAL("unreachable");
+  return BTM_UNDEFINED;
 }
 
 void Btm::StartAdvertising() {
