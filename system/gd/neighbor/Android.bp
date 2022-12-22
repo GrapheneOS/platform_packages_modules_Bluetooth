@@ -13,7 +13,6 @@ filegroup {
             "connectability.cc",
             "discoverability.cc",
             "inquiry.cc",
-            "name.cc",
             "name_db.cc",
             "page.cc",
             "scan.cc",
