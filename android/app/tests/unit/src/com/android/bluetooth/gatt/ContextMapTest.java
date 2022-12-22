@@ -80,7 +80,7 @@ public class ContextMapTest {
     }
 
     @Test
-    public void getBy() {
+    public void getByMethods() {
         ContextMap contextMap = new ContextMap<>();
 
         int id = 12345;
