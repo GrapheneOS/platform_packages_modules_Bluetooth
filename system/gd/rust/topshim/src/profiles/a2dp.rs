@@ -354,9 +354,9 @@ impl A2dp {
         self.internal.set_audio_config(config);
     }
 
-    #[profile_enabled_or]
-    pub fn start_audio_request(&self) {
-        self.internal.start_audio_request();
+    #[profile_enabled_or(false)]
+    pub fn start_audio_request(&self) -> bool {
+        self.internal.start_audio_request()
     }
 
     #[profile_enabled_or]
