@@ -104,7 +104,7 @@ class VolumeControlImpl : public VolumeControl {
       device->connecting_actively = true;
     }
 
-    BTA_GATTC_Open(gatt_if_, address, true, false);
+    BTA_GATTC_Open(gatt_if_, address, BTM_BLE_DIRECT_CONNECTION, false);
   }
 
   void AddFromStorage(const RawAddress& address, bool auto_connect) {
@@ -115,7 +115,7 @@ class VolumeControlImpl : public VolumeControl {
       volume_control_devices_.Add(address, false);
 
       /* Add device into BG connection to accept remote initiated connection */
-      BTA_GATTC_Open(gatt_if_, address, false, false);
+      BTA_GATTC_Open(gatt_if_, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
     }
   }
 
@@ -606,7 +606,8 @@ class VolumeControlImpl : public VolumeControl {
       volume_control_devices_.Add(remote_bda, true);
 
       /* Add device into BG connection to accept remote initiated connection */
-      BTA_GATTC_Open(gatt_if_, remote_bda, false, false);
+      BTA_GATTC_Open(gatt_if_, remote_bda, BTM_BLE_BKG_CONNECT_ALLOW_LIST,
+                     false);
     }
   }
 

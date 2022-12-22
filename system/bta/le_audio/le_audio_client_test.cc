@@ -533,7 +533,7 @@ class UnicastTestNoInit : public Test {
         }));
 
     global_conn_id = 1;
-    ON_CALL(mock_gatt_interface_, Open(_, _, true, _))
+    ON_CALL(mock_gatt_interface_, Open(_, _, BTM_BLE_DIRECT_CONNECTION, _))
         .WillByDefault(
             Invoke([&](tGATT_IF client_if, const RawAddress& remote_bda,
                        bool is_direct, bool opportunistic) {
@@ -1453,7 +1453,9 @@ class UnicastTestNoInit : public Test {
     ON_CALL(mock_btm_interface_, BTM_IsEncrypted(address, _))
         .WillByDefault(DoAll(Return(isEncrypted)));
 
-    EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, address, true, _)).Times(1);
+    EXPECT_CALL(mock_gatt_interface_,
+                Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, _))
+        .Times(1);
 
     do_in_main_thread(
         FROM_HERE, base::Bind(&LeAudioClient::Connect,
@@ -2443,7 +2445,8 @@ TEST_F(UnicastTest, ConnectRemoteDisconnectOneEarbud) {
               OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
       .Times(1);
   /* For remote disconnection, expect stack to try background re-connect */
-  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, false, _))
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
       .Times(1);
 
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
@@ -2608,7 +2611,8 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
       .Times(1);
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
       .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, false, _))
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
       .Times(1);
 
   // Expect stored device1 to connect automatically
@@ -2617,7 +2621,8 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
       .Times(1);
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
       .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address1, false, _))
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address1, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
       .Times(1);
 
   ON_CALL(mock_groups_module_, GetGroupId(_, _))
@@ -2737,7 +2742,8 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
       .Times(1);
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
       .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, false, _))
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
       .Times(1);
 
   // Expect stored device1 to NOT connect automatically
@@ -2746,7 +2752,8 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
       .Times(0);
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
       .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address1, false, _))
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address1, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
       .Times(0);
 
   // Initialize
@@ -3721,7 +3728,8 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
     InjectCisDisconnected(group_id, ase.cis_conn_hdl);
   }
 
-  EXPECT_CALL(mock_gatt_interface_, Open(_, device->address_, false, false))
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(_, device->address_, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false))
       .Times(1);
 
   auto conn_id = device->conn_id_;

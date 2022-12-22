@@ -66,6 +66,8 @@ namespace connection_manager {
 struct tAPPS_CONNECTING {
   // ids of clients doing background connection to given device
   std::set<tAPP_ID> doing_bg_conn;
+  std::set<tAPP_ID> doing_targeted_announcements_conn;
+  bool is_in_accept_list;
 
   // Apps trying to do direct connection.
   std::map<tAPP_ID, unique_alarm_ptr> doing_direct_conn;
@@ -75,10 +77,28 @@ namespace {
 // Maps address to apps trying to connect to it
 std::map<RawAddress, tAPPS_CONNECTING> bgconn_dev;
 
-bool anyone_connecting(
+int num_of_targeted_announcements_users(void) {
+  return std::count_if(
+      bgconn_dev.begin(), bgconn_dev.end(), [](const auto& pair) {
+        return (!pair.second.is_in_accept_list &&
+                !pair.second.doing_targeted_announcements_conn.empty());
+      });
+}
+
+bool is_anyone_interested_to_use_accept_list(
     const std::map<RawAddress, tAPPS_CONNECTING>::iterator it) {
+  if (!it->second.doing_targeted_announcements_conn.empty()) {
+    return (!it->second.doing_direct_conn.empty());
+  }
   return (!it->second.doing_bg_conn.empty() ||
           !it->second.doing_direct_conn.empty());
+}
+
+bool is_anyone_connecting(
+    const std::map<RawAddress, tAPPS_CONNECTING>::iterator it) {
+  return (!it->second.doing_bg_conn.empty() ||
+          !it->second.doing_direct_conn.empty() ||
+          !it->second.doing_targeted_announcements_conn.empty());
 }
 
 }  // namespace
@@ -92,6 +112,65 @@ std::set<tAPP_ID> get_apps_connecting_to(const RawAddress& address) {
                                   : std::set<tAPP_ID>();
 }
 
+void target_announcements_filtering_set(bool enable) {
+  // TODO Implement
+}
+
+/** Add a device to the background connection list for targeted announcements.
+ * Returns
+ *   true if device added to the list, or already in list,
+ *   false otherwise
+ */
+bool background_connect_targeted_announcement_add(tAPP_ID app_id,
+                                                  const RawAddress& address) {
+  LOG_INFO("app_id=%d, address=%s", static_cast<int>(app_id),
+           address.ToString().c_str());
+
+  bool disable_accept_list = false;
+
+  auto it = bgconn_dev.find(address);
+  if (it != bgconn_dev.end()) {
+    // check if filtering already enabled
+    if (it->second.doing_targeted_announcements_conn.count(app_id)) {
+      LOG_INFO(
+          "app_id=%d, already doing targeted announcement filtering to "
+          "address=%s",
+          static_cast<int>(app_id), address.ToString().c_str());
+      return true;
+    }
+
+    bool targeted_filtering_enabled =
+        !it->second.doing_targeted_announcements_conn.empty();
+
+    // Check if connecting
+    if (!it->second.doing_direct_conn.empty()) {
+      LOG_INFO("app_id=%d, address=%s, already in direct connection",
+               static_cast<int>(app_id), address.ToString().c_str());
+
+    } else if (!targeted_filtering_enabled &&
+               !it->second.doing_bg_conn.empty()) {
+      // device is already in the acceptlist so we would have to remove it
+      LOG_INFO(
+          "already doing background connection to address=%s. Need to disable "
+          "it.",
+          address.ToString().c_str());
+      disable_accept_list = true;
+    }
+  }
+
+  if (disable_accept_list) {
+    BTM_AcceptlistRemove(address);
+    bgconn_dev[address].is_in_accept_list = false;
+  }
+
+  bgconn_dev[address].doing_targeted_announcements_conn.insert(app_id);
+  if (num_of_targeted_announcements_users() == 1) {
+    target_announcements_filtering_set(true);
+  }
+
+  return true;
+}
+
 /** Add a device from the background connection list.  Returns true if device
  * added to the list, or already in list, false otherwise */
 bool background_connect_add(uint8_t app_id, const RawAddress& address) {
@@ -103,6 +182,7 @@ bool background_connect_add(uint8_t app_id, const RawAddress& address) {
 
   auto it = bgconn_dev.find(address);
   bool in_acceptlist = false;
+  bool is_targeted_announcement_enabled = false;
   if (it != bgconn_dev.end()) {
     // device already in the acceptlist, just add interested app to the list
     if (it->second.doing_bg_conn.count(app_id)) {
@@ -112,19 +192,27 @@ bool background_connect_add(uint8_t app_id, const RawAddress& address) {
     }
 
     // Already in acceptlist ?
-    if (anyone_connecting(it)) {
+    if (it->second.is_in_accept_list) {
       LOG_DEBUG("app_id=%d, address=%s, already in accept list",
                 static_cast<int>(app_id), address.ToString().c_str());
       in_acceptlist = true;
+    } else {
+      is_targeted_announcement_enabled =
+          !it->second.doing_targeted_announcements_conn.empty();
     }
   }
 
   if (!in_acceptlist) {
     // the device is not in the acceptlist
-    if (!BTM_AcceptlistAdd(address)) {
-      LOG_WARN("Failed to add device %s to accept list for app %d",
-               address.ToString().c_str(), static_cast<int>(app_id));
-      return false;
+    if (is_targeted_announcement_enabled) {
+      LOG_DEBUG("Targeted announcement enabled, do not add to AcceptList");
+    } else {
+      if (!BTM_AcceptlistAdd(address)) {
+        LOG_WARN("Failed to add device %s to accept list for app %d",
+                 address.ToString().c_str(), static_cast<int>(app_id));
+        return false;
+      }
+      bgconn_dev[address].is_in_accept_list = true;
     }
   }
 
@@ -161,21 +249,50 @@ bool background_connect_remove(uint8_t app_id, const RawAddress& address) {
     return false;
   }
 
-  if (!it->second.doing_bg_conn.erase(app_id)) {
+  bool accept_list_enabled = it->second.is_in_accept_list;
+  auto num_of_targeted_announcements_before_remove =
+      it->second.doing_targeted_announcements_conn.size();
+
+  if (!it->second.doing_bg_conn.erase(app_id) &&
+      !it->second.doing_targeted_announcements_conn.erase(app_id)) {
     LOG_WARN("Failed to remove background connection app %d for address %s",
              static_cast<int>(app_id), address.ToString().c_str());
     return false;
   }
 
-  if (anyone_connecting(it)) {
+  if (is_anyone_connecting(it)) {
     LOG_DEBUG("some device is still connecting, app_id=%d, address=%s",
               static_cast<int>(app_id), address.ToString().c_str());
+    /* Check which method should be used now.*/
+    if (!accept_list_enabled) {
+      /* Accept list was not used */
+      if (!it->second.doing_targeted_announcements_conn.empty()) {
+        /* Keep using filtering */
+        LOG_DEBUG(" Keep using target announcement filtering");
+      } else if (!it->second.doing_bg_conn.empty()) {
+        if (!BTM_AcceptlistAdd(address)) {
+          LOG_WARN("Could not re add device to accept list");
+        } else {
+          bgconn_dev[address].is_in_accept_list = true;
+        }
+      }
+    }
     return true;
   }
 
-  // no more apps interested - remove from accept list and delete record
-  BTM_AcceptlistRemove(address);
   bgconn_dev.erase(it);
+
+  // no more apps interested - remove from accept list and delete record
+  if (accept_list_enabled) {
+    BTM_AcceptlistRemove(address);
+    return true;
+  }
+
+  if ((num_of_targeted_announcements_before_remove > 0) &&
+      num_of_targeted_announcements_users() == 0) {
+    target_announcements_filtering_set(true);
+  }
+
   return true;
 }
 
@@ -190,7 +307,7 @@ void on_app_deregistered(uint8_t app_id) {
 
     it->second.doing_direct_conn.erase(app_id);
 
-    if (anyone_connecting(it)) {
+    if (is_anyone_connecting(it)) {
       it++;
       continue;
     }
@@ -221,11 +338,14 @@ void on_connection_timed_out_from_shim(const RawAddress& address) {
   on_connection_timed_out(0x00, address);
 }
 
-/** Reset bg device list. If called after controller reset, set |after_reset| to
- * true, as there is no need to wipe controller acceptlist in this case. */
+/** Reset bg device list. If called after controller reset, set |after_reset|
+ * to true, as there is no need to wipe controller acceptlist in this case. */
 void reset(bool after_reset) {
   bgconn_dev.clear();
-  if (!after_reset) BTM_AcceptlistClear();
+  if (!after_reset) {
+    target_announcements_filtering_set(false);
+    BTM_AcceptlistClear();
+  }
 }
 
 void wl_direct_connect_timeout_cb(uint8_t app_id, const RawAddress& address) {
@@ -258,7 +378,7 @@ bool direct_connect_add(uint8_t app_id, const RawAddress& address) {
     }
 
     // are we already in the acceptlist ?
-    if (anyone_connecting(it)) {
+    if (it->second.is_in_accept_list) {
       LOG_WARN("Background connection attempt already in progress app_id=%x",
                app_id);
       in_acceptlist = true;
@@ -274,6 +394,7 @@ bool direct_connect_add(uint8_t app_id, const RawAddress& address) {
       if (params_changed) BTM_SetLeConnectionModeToSlow();
       return false;
     }
+    bgconn_dev[address].is_in_accept_list = true;
   }
 
   // Setup a timer
@@ -309,6 +430,10 @@ bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
     return false;
   }
 
+  /* Let see if the device was connected due to Target Announcements.*/
+  bool is_targeted_announcement_enabled =
+      !it->second.doing_targeted_announcements_conn.empty();
+
   // this will free the alarm
   it->second.doing_direct_conn.erase(app_it);
 
@@ -318,13 +443,19 @@ bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
     BTM_SetLeConnectionModeToSlow();
   }
 
-  if (anyone_connecting(it)) {
+  if (is_anyone_interested_to_use_accept_list(it)) {
     return true;
   }
 
   // no more apps interested - remove from acceptlist
   BTM_AcceptlistRemove(address);
-  bgconn_dev.erase(it);
+
+  if (!is_targeted_announcement_enabled) {
+    bgconn_dev.erase(it);
+  } else {
+    it->second.is_in_accept_list = false;
+  }
+
   return true;
 }
 
@@ -352,6 +483,14 @@ void dump(int fd) {
         dprintf(fd, "%d, ", id);
       }
     }
+    if (!entry.second.doing_targeted_announcements_conn.empty()) {
+      dprintf(fd, "\n\t\tapps doing cap announcement connect: ");
+      for (const auto& id : entry.second.doing_targeted_announcements_conn) {
+        dprintf(fd, "%d, ", id);
+      }
+    }
+    dprintf(fd, "\n\t\t is in the allow list: %s",
+            entry.second.is_in_accept_list ? "true" : "false");
   }
   dprintf(fd, "\n");
 }
