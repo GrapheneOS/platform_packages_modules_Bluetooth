@@ -42,7 +42,6 @@ namespace neighbor {
 class ConnectabilityModule;
 class DiscoverabilityModule;
 class InquiryModule;
-class NameModule;
 class PageModule;
 }
 namespace hci {
@@ -89,7 +88,6 @@ neighbor::InquiryModule* GetInquiry();
 hci::HciLayer* GetHciLayer();
 l2cap::classic::L2capClassicModule* GetL2capClassicModule();
 l2cap::le::L2capLeModule* GetL2capLeModule();
-neighbor::NameModule* GetName();
 neighbor::PageModule* GetPage();
 hci::LeScanningManager* GetScanning();
 bluetooth::security::SecurityModule* GetSecurityModule();

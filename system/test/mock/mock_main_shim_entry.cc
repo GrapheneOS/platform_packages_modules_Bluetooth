@@ -23,7 +23,6 @@
 #include "gd/neighbor/discoverability.h"
 #include "gd/neighbor/inquiry.h"
 #include "gd/neighbor/inquiry_mock.h"
-#include "gd/neighbor/name.h"
 #include "gd/neighbor/page.h"
 #include "gd/os/handler.h"
 #include "gd/security/security_module.h"
@@ -69,7 +68,6 @@ l2cap::le::L2capLeModule* GetL2capLeModule() { return nullptr; }
 neighbor::ConnectabilityModule* GetConnectability() { return nullptr; }
 neighbor::DiscoverabilityModule* GetDiscoverability() { return nullptr; }
 neighbor::InquiryModule* GetInquiry() { return nullptr; }
-neighbor::NameModule* GetName() { return nullptr; }
 neighbor::PageModule* GetPage() { return nullptr; }
 os::Handler* GetGdShimHandler() { return hci::testing::mock_gd_shim_handler_; }
 security::SecurityModule* GetSecurityModule() { return nullptr; }
