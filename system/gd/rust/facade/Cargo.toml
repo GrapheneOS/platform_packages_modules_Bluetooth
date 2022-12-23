@@ -29,7 +29,7 @@ cxx = "*"
 futures = "*"
 grpcio = "*"
 log = "*"
-protobuf = "*"
+protobuf = "2.0"
 tokio = "*"
 
 # Binary-only deps
