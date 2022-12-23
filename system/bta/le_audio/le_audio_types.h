@@ -627,6 +627,13 @@ struct ase {
         data_path_state(AudioStreamDataPathState::IDLE),
         configured_for_context_type(LeAudioContextType::UNINITIALIZED),
         preferred_phy(0),
+        max_sdu_size(0),
+        retrans_nb(0),
+        max_transport_latency(0),
+        pres_delay_min(0),
+        pres_delay_max(0),
+        preferred_pres_delay_min(0),
+        preferred_pres_delay_max(0),
         state(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {}
 
   struct hdl_pair hdls;
