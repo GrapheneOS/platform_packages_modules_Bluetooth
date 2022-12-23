@@ -461,8 +461,8 @@ bool DIS_ReadDISInfo(const RawAddress& peer_bda, tDIS_READ_CBACK* p_cback,
   srvc_eng_request_channel(peer_bda, SRVC_ID_DIS);
 
   if (conn_id == GATT_INVALID_CONN_ID) {
-    return GATT_Connect(srvc_eng_cb.gatt_if, peer_bda, true, BT_TRANSPORT_LE,
-                        false);
+    return GATT_Connect(srvc_eng_cb.gatt_if, peer_bda,
+                        BTM_BLE_DIRECT_CONNECTION, BT_TRANSPORT_LE, false);
   }
 
   return dis_gatt_c_read_dis_req(conn_id);

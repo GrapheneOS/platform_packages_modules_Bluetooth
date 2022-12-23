@@ -53,6 +53,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.util.Xml;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
@@ -88,18 +89,30 @@ public class BluetoothMapContentObserver {
     private static final boolean D = BluetoothMapService.DEBUG;
     private static final boolean V = BluetoothMapService.VERBOSE;
 
-    private static final String EVENT_TYPE_NEW = "NewMessage";
-    private static final String EVENT_TYPE_DELETE = "MessageDeleted";
-    private static final String EVENT_TYPE_REMOVED = "MessageRemoved";
-    private static final String EVENT_TYPE_SHIFT = "MessageShift";
-    private static final String EVENT_TYPE_DELEVERY_SUCCESS = "DeliverySuccess";
-    private static final String EVENT_TYPE_SENDING_SUCCESS = "SendingSuccess";
-    private static final String EVENT_TYPE_SENDING_FAILURE = "SendingFailure";
-    private static final String EVENT_TYPE_DELIVERY_FAILURE = "DeliveryFailure";
-    private static final String EVENT_TYPE_READ_STATUS = "ReadStatusChanged";
-    private static final String EVENT_TYPE_CONVERSATION = "ConversationChanged";
-    private static final String EVENT_TYPE_PRESENCE = "ParticipantPresenceChanged";
-    private static final String EVENT_TYPE_CHAT_STATE = "ParticipantChatStateChanged";
+    @VisibleForTesting
+    static final String EVENT_TYPE_NEW = "NewMessage";
+    @VisibleForTesting
+    static final String EVENT_TYPE_DELETE = "MessageDeleted";
+    @VisibleForTesting
+    static final String EVENT_TYPE_REMOVED = "MessageRemoved";
+    @VisibleForTesting
+    static final String EVENT_TYPE_SHIFT = "MessageShift";
+    @VisibleForTesting
+    static final String EVENT_TYPE_DELEVERY_SUCCESS = "DeliverySuccess";
+    @VisibleForTesting
+    static final String EVENT_TYPE_SENDING_SUCCESS = "SendingSuccess";
+    @VisibleForTesting
+    static final String EVENT_TYPE_SENDING_FAILURE = "SendingFailure";
+    @VisibleForTesting
+    static final String EVENT_TYPE_DELIVERY_FAILURE = "DeliveryFailure";
+    @VisibleForTesting
+    static final String EVENT_TYPE_READ_STATUS = "ReadStatusChanged";
+    @VisibleForTesting
+    static final String EVENT_TYPE_CONVERSATION = "ConversationChanged";
+    @VisibleForTesting
+    static final String EVENT_TYPE_PRESENCE = "ParticipantPresenceChanged";
+    @VisibleForTesting
+    static final String EVENT_TYPE_CHAT_STATE = "ParticipantChatStateChanged";
 
     private static final long EVENT_FILTER_NEW_MESSAGE = 1L;
     private static final long EVENT_FILTER_MESSAGE_DELETED = 1L << 1;
@@ -123,7 +136,8 @@ public class BluetoothMapContentObserver {
 
     private Context mContext;
     private ContentResolver mResolver;
-    private ContentProviderClient mProviderClient = null;
+    @VisibleForTesting
+    ContentProviderClient mProviderClient = null;
     private BluetoothMnsObexClient mMnsClient;
     private BluetoothMapMasInstance mMasInstance = null;
     private int mMasId;
@@ -337,11 +351,13 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    private Map<Long, Msg> getMsgListSms() {
+    @VisibleForTesting
+    Map<Long, Msg> getMsgListSms() {
         return mMsgListSms;
     }
 
-    private void setMsgListSms(Map<Long, Msg> msgListSms, boolean changesDetected) {
+    @VisibleForTesting
+    void setMsgListSms(Map<Long, Msg> msgListSms, boolean changesDetected) {
         mMsgListSms = msgListSms;
         if (changesDetected) {
             mMasInstance.updateFolderVersionCounter();
@@ -349,13 +365,13 @@ public class BluetoothMapContentObserver {
         mMasInstance.setMsgListSms(msgListSms);
     }
 
-
-    private Map<Long, Msg> getMsgListMms() {
+    @VisibleForTesting
+    Map<Long, Msg> getMsgListMms() {
         return mMsgListMms;
     }
 
-
-    private void setMsgListMms(Map<Long, Msg> msgListMms, boolean changesDetected) {
+    @VisibleForTesting
+    void setMsgListMms(Map<Long, Msg> msgListMms, boolean changesDetected) {
         mMsgListMms = msgListMms;
         if (changesDetected) {
             mMasInstance.updateFolderVersionCounter();
@@ -363,13 +379,13 @@ public class BluetoothMapContentObserver {
         mMasInstance.setMsgListMms(msgListMms);
     }
 
-
-    private Map<Long, Msg> getMsgListMsg() {
+    @VisibleForTesting
+    Map<Long, Msg> getMsgListMsg() {
         return mMsgListMsg;
     }
 
-
-    private void setMsgListMsg(Map<Long, Msg> msgListMsg, boolean changesDetected) {
+    @VisibleForTesting
+    void setMsgListMsg(Map<Long, Msg> msgListMsg, boolean changesDetected) {
         mMsgListMsg = msgListMsg;
         if (changesDetected) {
             mMasInstance.updateFolderVersionCounter();
@@ -377,7 +393,8 @@ public class BluetoothMapContentObserver {
         mMasInstance.setMsgListMsg(msgListMsg);
     }
 
-    private Map<String, BluetoothMapConvoContactElement> getContactList() {
+    @VisibleForTesting
+    Map<String, BluetoothMapConvoContactElement> getContactList() {
         return mContactList;
     }
 
@@ -387,7 +404,8 @@ public class BluetoothMapContentObserver {
      * @param contactList
      * @param changesDetected that is not chat state changed nor presence state changed.
      */
-    private void setContactList(Map<String, BluetoothMapConvoContactElement> contactList,
+    @VisibleForTesting
+    void setContactList(Map<String, BluetoothMapConvoContactElement> contactList,
             boolean changesDetected) {
         mContactList = contactList;
         if (changesDetected) {
@@ -831,7 +849,7 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    /*package*/ class Msg {
+    /*package*/ static class Msg {
         public long id;
         public int type;               // Used as folder for SMS/MMS
         public int threadId;           // Used for SMS/MMS at delete
@@ -1117,7 +1135,8 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    private void sendEvent(Event evt) {
+    @VisibleForTesting
+    void sendEvent(Event evt) {
 
         if (!mTransmitEvents) {
             if (V) {
@@ -2237,13 +2256,16 @@ public class BluetoothMapContentObserver {
     private void updateThreadId(Uri uri, String valueString, long threadId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(valueString, threadId);
-        mResolver.update(uri, contentValues, null, null);
+        BluetoothMethodProxy.getInstance().contentResolverUpdate(mResolver, uri, contentValues,
+                null, null);
     }
 
-    private boolean deleteMessageMms(long handle) {
+    @VisibleForTesting
+    boolean deleteMessageMms(long handle) {
         boolean res = false;
         Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI, handle);
-        Cursor c = mResolver.query(uri, null, null, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri, null,
+                null, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 /* Move to deleted folder, or delete if already in deleted folder */
@@ -2263,7 +2285,8 @@ public class BluetoothMapContentObserver {
                         getMsgListMms().remove(handle);
                     }
                     /* Delete message */
-                    mResolver.delete(uri, null, null);
+                    BluetoothMethodProxy.getInstance().contentResolverDelete(mResolver, uri, null,
+                            null);
                 }
                 res = true;
             }
@@ -2276,10 +2299,12 @@ public class BluetoothMapContentObserver {
         return res;
     }
 
-    private boolean unDeleteMessageMms(long handle) {
+    @VisibleForTesting
+    boolean unDeleteMessageMms(long handle) {
         boolean res = false;
         Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI, handle);
-        Cursor c = mResolver.query(uri, null, null, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri, null,
+                null, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
@@ -2298,7 +2323,9 @@ public class BluetoothMapContentObserver {
                     }
                     Set<String> recipients = new HashSet<String>();
                     recipients.addAll(Arrays.asList(address));
-                    Long oldThreadId = Telephony.Threads.getOrCreateThreadId(mContext, recipients);
+                    Long oldThreadId =
+                            BluetoothMethodProxy.getInstance().telephonyGetOrCreateThreadId(
+                                    mContext, recipients);
                     synchronized (getMsgListMms()) {
                         Msg msg = getMsgListMms().get(handle);
                         if (msg != null) { // This will always be the case
@@ -2327,10 +2354,12 @@ public class BluetoothMapContentObserver {
         return res;
     }
 
-    private boolean deleteMessageSms(long handle) {
+    @VisibleForTesting
+    boolean deleteMessageSms(long handle) {
         boolean res = false;
         Uri uri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
-        Cursor c = mResolver.query(uri, null, null, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri, null,
+                null, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 /* Move to deleted folder, or delete if already in deleted folder */
@@ -2350,7 +2379,8 @@ public class BluetoothMapContentObserver {
                         getMsgListSms().remove(handle);
                     }
                     /* Delete message */
-                    mResolver.delete(uri, null, null);
+                    BluetoothMethodProxy.getInstance().contentResolverDelete(mResolver, uri, null,
+                            null);
                 }
                 res = true;
             }
@@ -2362,10 +2392,12 @@ public class BluetoothMapContentObserver {
         return res;
     }
 
-    private boolean unDeleteMessageSms(long handle) {
+    @VisibleForTesting
+    boolean unDeleteMessageSms(long handle) {
         boolean res = false;
         Uri uri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
-        Cursor c = mResolver.query(uri, null, null, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri, null,
+                null, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
@@ -2373,7 +2405,9 @@ public class BluetoothMapContentObserver {
                     String address = c.getString(c.getColumnIndex(Sms.ADDRESS));
                     Set<String> recipients = new HashSet<String>();
                     recipients.addAll(Arrays.asList(address));
-                    Long oldThreadId = Telephony.Threads.getOrCreateThreadId(mContext, recipients);
+                    Long oldThreadId =
+                            BluetoothMethodProxy.getInstance().telephonyGetOrCreateThreadId(
+                                    mContext, recipients);
                     synchronized (getMsgListSms()) {
                         Msg msg = getMsgListSms().get(handle);
                         if (msg != null) {
@@ -2484,7 +2518,8 @@ public class BluetoothMapContentObserver {
                     msg.flagRead = statusValue;
                 }
             }
-            count = mResolver.update(uri, contentValues, null, null);
+            count = BluetoothMethodProxy.getInstance().contentResolverUpdate(mResolver, uri,
+                    contentValues, null, null);
             if (D) {
                 Log.d(TAG, " -> " + count + " rows updated!");
             }
@@ -2502,7 +2537,8 @@ public class BluetoothMapContentObserver {
                     msg.flagRead = statusValue;
                 }
             }
-            count = mResolver.update(uri, contentValues, null, null);
+            count = BluetoothMethodProxy.getInstance().contentResolverUpdate(mResolver, uri,
+                    contentValues, null, null);
             if (D) {
                 Log.d(TAG, " -> " + count + " rows updated!");
             }
@@ -2523,7 +2559,8 @@ public class BluetoothMapContentObserver {
         return (count > 0);
     }
 
-    private class PushMsgInfo {
+    @VisibleForTesting
+    static class PushMsgInfo {
         public long id;
         public int transparent;
         public int retry;

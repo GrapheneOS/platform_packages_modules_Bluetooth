@@ -152,7 +152,8 @@ public class BassClientStateMachine extends StateMachine {
     private final Connecting mConnecting = new Connecting();
     private final Disconnecting mDisconnecting = new Disconnecting();
     private final ConnectedProcessing mConnectedProcessing = new ConnectedProcessing();
-    private final List<BluetoothGattCharacteristic> mBroadcastCharacteristics =
+    @VisibleForTesting
+    final List<BluetoothGattCharacteristic> mBroadcastCharacteristics =
             new ArrayList<BluetoothGattCharacteristic>();
     @VisibleForTesting
     BluetoothDevice mDevice;
@@ -182,7 +183,8 @@ public class BassClientStateMachine extends StateMachine {
     private PeriodicAdvertisingManager mPeriodicAdvManager;
     private boolean mAutoAssist = false;
     private boolean mAutoTriggered = false;
-    private boolean mNoStopScanOffload = false;
+    @VisibleForTesting
+    boolean mNoStopScanOffload = false;
     private boolean mDefNoPAS = false;
     private boolean mForceSB = false;
     private int mBroadcastSourceIdLength = 3;
@@ -560,7 +562,8 @@ public class BassClientStateMachine extends StateMachine {
         mService.getCallbacks().notifyReceiveStateChanged(mDevice, sourceId, state);
     }
 
-    private static boolean isEmpty(final byte[] data) {
+    @VisibleForTesting
+    static boolean isEmpty(final byte[] data) {
         return IntStream.range(0, data.length).parallel().allMatch(i -> data[i] == 0);
     }
 
@@ -1236,18 +1239,6 @@ public class BassClientStateMachine extends StateMachine {
         }
     }
 
-    private byte[] bluetoothAddressToBytes(String s) {
-        log("BluetoothAddressToBytes: input string:" + s);
-        String[] splits = s.split(":");
-        byte[] addressBytes = new byte[6];
-        for (int i = 0; i < 6; i++) {
-            int hexValue = Integer.parseInt(splits[i], 16);
-            log("hexValue:" + hexValue);
-            addressBytes[i] = (byte) hexValue;
-        }
-        return addressBytes;
-    }
-
     private static int getBisSyncFromChannelPreference(
                 List<BluetoothLeBroadcastChannel> channels) {
         int bisSync = 0;
@@ -1395,15 +1386,6 @@ public class BassClientStateMachine extends StateMachine {
         log("UPDATE_BCAST_SOURCE in Bytes");
         BassUtils.printByteArray(res);
         return res;
-    }
-
-    private byte[] convertAsciitoValues(byte[] val) {
-        byte[] ret = new byte[val.length];
-        for (int i = 0; i < val.length; i++) {
-            ret[i] = (byte) (val[i] - (byte) '0');
-        }
-        log("convertAsciitoValues: returns:" + Arrays.toString(val));
-        return ret;
     }
 
     private byte[] convertRecvStateToSetBroadcastCodeByteArray(
@@ -1993,22 +1975,6 @@ public class BassClientStateMachine extends StateMachine {
                 break;
         }
         return Integer.toString(what);
-    }
-
-    private static String profileStateToString(int state) {
-        switch (state) {
-            case BluetoothProfile.STATE_DISCONNECTED:
-                return "DISCONNECTED";
-            case BluetoothProfile.STATE_CONNECTING:
-                return "CONNECTING";
-            case BluetoothProfile.STATE_CONNECTED:
-                return "CONNECTED";
-            case BluetoothProfile.STATE_DISCONNECTING:
-                return "DISCONNECTING";
-            default:
-                break;
-        }
-        return Integer.toString(state);
     }
 
     /**

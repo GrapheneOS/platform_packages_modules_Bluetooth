@@ -201,8 +201,8 @@ bt_status_t btif_gattc_test_command_impl(int command,
         BTM_SecAddBleDevice(*params->bda1, BT_DEVICE_TYPE_BLE,
                             static_cast<tBLE_ADDR_TYPE>(params->u2));
 
-      if (!GATT_Connect(test_cb.gatt_if, *params->bda1, true, BT_TRANSPORT_LE,
-                        false)) {
+      if (!GATT_Connect(test_cb.gatt_if, *params->bda1,
+                        BTM_BLE_DIRECT_CONNECTION, BT_TRANSPORT_LE, false)) {
         LOG_ERROR("%s: GATT_Connect failed!", __func__);
       }
       break;

@@ -1251,29 +1251,32 @@ void GATT_StartIf(tGATT_IF gatt_if) {
  *
  * Parameters       gatt_if: applicaiton interface
  *                  bd_addr: peer device address.
- *                  is_direct: is a direct conenection or a background auto
- *                             connection
+ *                  connection_type: is a direct conenection or a background
+ *                  auto connection or targeted announcements
  *
  * Returns          true if connection started; false if connection start
  *                  failure.
  *
  ******************************************************************************/
-bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
-                  tBT_TRANSPORT transport, bool opportunistic) {
+bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                  tBTM_BLE_CONN_TYPE connection_type, tBT_TRANSPORT transport,
+                  bool opportunistic) {
   uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
-  return GATT_Connect(gatt_if, bd_addr, is_direct, transport, opportunistic,
-                      phy);
+  return GATT_Connect(gatt_if, bd_addr, connection_type, transport,
+                      opportunistic, phy);
 }
 
-bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
-                  tBT_TRANSPORT transport, bool opportunistic,
-                  uint8_t initiating_phys) {
+bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                  tBTM_BLE_CONN_TYPE connection_type, tBT_TRANSPORT transport,
+                  bool opportunistic, uint8_t initiating_phys) {
   /* Make sure app is registered */
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
   if (!p_reg) {
     LOG_ERROR("Unable to find registered app gatt_if=%d", +gatt_if);
     return false;
   }
+
+  bool is_direct = (connection_type == BTM_BLE_DIRECT_CONNECTION);
 
   if (!is_direct && transport != BT_TRANSPORT_LE) {
     LOG_WARN("Unsupported transport for background connection gatt_if=%d",
@@ -1302,8 +1305,14 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
                bd_addr.ToString().c_str(), +gatt_if);
       ret = false;
     } else {
-      LOG_DEBUG("Adding to accept list device:%s", PRIVATE_ADDRESS(bd_addr));
-      ret = connection_manager::background_connect_add(gatt_if, bd_addr);
+      LOG_DEBUG("Adding to background connect to device:%s",
+                PRIVATE_ADDRESS(bd_addr));
+      if (connection_type == BTM_BLE_BKG_CONNECT_ALLOW_LIST) {
+        ret = connection_manager::background_connect_add(gatt_if, bd_addr);
+      } else {
+        ret = connection_manager::background_connect_targeted_announcement_add(
+            gatt_if, bd_addr);
+      }
     }
   }
 

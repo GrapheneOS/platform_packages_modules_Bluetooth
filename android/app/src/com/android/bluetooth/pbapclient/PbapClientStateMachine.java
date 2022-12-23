@@ -70,7 +70,7 @@ import com.android.internal.util.StateMachine;
 import java.util.ArrayList;
 import java.util.List;
 
-final class PbapClientStateMachine extends StateMachine {
+class PbapClientStateMachine extends StateMachine {
     private static final boolean DBG = false; //Utils.DBG;
     private static final String TAG = "PbapClientStateMachine";
 

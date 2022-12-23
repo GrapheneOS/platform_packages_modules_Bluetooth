@@ -26,6 +26,7 @@
 #include "bta_gatt_queue.h"
 #include "bta_groups.h"
 #include "bta_le_audio_api.h"
+#include "btif_storage.h"
 #include "btm_iso_api.h"
 #include "btm_iso_api_types.h"
 #include "device/include/controller.h"
@@ -2724,6 +2725,42 @@ LeAudioDevice* LeAudioDevices::FindByCisConnHdl(uint8_t cig_id,
   if (iter == leAudioDevices_.end()) return nullptr;
 
   return iter->get();
+}
+
+void LeAudioDevices::SetInitialGroupAutoconnectState(
+    int group_id, int gatt_if, tBTM_BLE_CONN_TYPE reconnection_mode,
+    bool current_dev_autoconnect_flag) {
+  if (!current_dev_autoconnect_flag) {
+    /* If current device autoconnect flag is false, check if there is other
+     * device in the group which is in autoconnect mode.
+     * If yes, assume whole group is in autoconnect.
+     */
+    auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
+                             [&group_id](auto& d) {
+                               LeAudioDevice* dev;
+                               dev = d.get();
+                               if (dev->group_id_ != group_id) {
+                                 return false;
+                               }
+                               return dev->autoconnect_flag_;
+                             });
+
+    current_dev_autoconnect_flag = !(iter == leAudioDevices_.end());
+  }
+
+  if (!current_dev_autoconnect_flag) {
+    return;
+  }
+
+  for (auto dev : leAudioDevices_) {
+    if ((dev->group_id_ == group_id) &&
+        (dev->GetConnectionState() == DeviceConnectState::DISCONNECTED)) {
+      dev->SetConnectionState(DeviceConnectState::CONNECTING_AUTOCONNECT);
+      dev->autoconnect_flag_ = true;
+      btif_storage_set_leaudio_autoconnect(dev->address_, true);
+      BTA_GATTC_Open(gatt_if, dev->address_, reconnection_mode, false);
+    }
+  }
 }
 
 size_t LeAudioDevices::Size() { return (leAudioDevices_.size()); }

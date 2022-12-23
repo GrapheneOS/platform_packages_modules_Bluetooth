@@ -274,7 +274,7 @@ void bta_gattc_process_api_open(const tBTA_GATTC_DATA* p_msg) {
     return;
   }
 
-  if (!p_msg->api_conn.is_direct) {
+  if (p_msg->api_conn.connection_type != BTM_BLE_DIRECT_CONNECTION) {
     bta_gattc_init_bk_conn(&p_msg->api_conn, p_clreg);
     return;
   }
@@ -377,8 +377,9 @@ void bta_gattc_open(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
   tBTA_GATTC_DATA gattc_data;
 
   /* open/hold a connection */
-  if (!GATT_Connect(p_clcb->p_rcb->client_if, p_data->api_conn.remote_bda, true,
-                    p_data->api_conn.transport, p_data->api_conn.opportunistic,
+  if (!GATT_Connect(p_clcb->p_rcb->client_if, p_data->api_conn.remote_bda,
+                    BTM_BLE_DIRECT_CONNECTION, p_data->api_conn.transport,
+                    p_data->api_conn.opportunistic,
                     p_data->api_conn.initiating_phys)) {
     LOG(ERROR) << "Connection open failure";
     bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_OPEN_FAIL_EVT, p_data);
@@ -417,8 +418,8 @@ static void bta_gattc_init_bk_conn(const tBTA_GATTC_API_OPEN* p_data,
   }
 
   /* always call open to hold a connection */
-  if (!GATT_Connect(p_data->client_if, p_data->remote_bda, false,
-                    p_data->transport, false)) {
+  if (!GATT_Connect(p_data->client_if, p_data->remote_bda,
+                    p_data->connection_type, p_data->transport, false)) {
     LOG_ERROR("Unable to connect to remote bd_addr=%s",
               p_data->remote_bda.ToString().c_str());
     bta_gattc_send_open_cback(p_clreg, GATT_ERROR, p_data->remote_bda,
