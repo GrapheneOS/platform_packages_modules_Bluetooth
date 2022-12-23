@@ -142,8 +142,6 @@ public class BluetoothOppLauncherActivityTest {
 
         scenario.onActivity(BluetoothOppLauncherActivity::launchDevicePicker);
 
-        onView(withText(mTargetContext.getText(R.string.bt_enable_cancel).toString())).inRoot(
-                isDialog()).check(matches(isDisplayed())).perform(click());
         intended(hasComponent(BluetoothOppBtEnableActivity.class.getName()));
     }
 
