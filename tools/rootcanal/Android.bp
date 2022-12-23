@@ -18,18 +18,13 @@ cc_defaults {
     tidy: true,
     tidy_checks: [
         "-*",
-        "readability-*",
-	"-readability-function-size",
-        "-readability-identifier-length",
-        "-readability-implicit-bool-conversion",
-        "-readability-magic-numbers",
-        "-readability-use-anyofallof",
+        "readability-inconsistent-declaration-parameter-name",
     ],
     tidy_checks_as_errors: [
-        "readability-*",
+        "readability-inconsistent-declaration-parameter-name",
     ],
     tidy_flags: [
-        "--header-filter=^.*tools\\/rootcanal\\/(model|include|net|desktop)\\/(.(?!\\.pb\\.h))*$",
+        "--header-filter=^((?!BluetoothGeneratedPackets_h|RootCanalGeneratedPackets_h|RootCanalBrEdrBBGeneratedPackets_h).)*$",
     ],
     defaults: [
         "fluoride_common_options",
