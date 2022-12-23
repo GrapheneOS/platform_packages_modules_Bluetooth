@@ -227,7 +227,7 @@ cc_test {
         "libprotobuf-cpp-lite",
     ],
 
-    host_supported: true,
+    // host_supported: true, // TODO (b/263324289)
     test_options: {
         unit_test: true,
     },

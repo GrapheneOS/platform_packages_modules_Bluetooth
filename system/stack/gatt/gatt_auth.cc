@@ -176,23 +176,26 @@ void gatt_enc_cmpl_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
   tGATT_CLCB* p_clcb = p_tcb->pending_enc_clcb.front();
   p_tcb->pending_enc_clcb.pop_front();
 
-  bool status = false;
-  if (result == BTM_SUCCESS) {
-    if (gatt_get_sec_act(p_tcb) == GATT_SEC_ENCRYPT_MITM) {
-      status = BTM_IsLinkKeyAuthed(*bd_addr, transport);
-    } else {
-      status = true;
+  if (p_clcb != NULL) {
+    bool status = false;
+    if (result == BTM_SUCCESS) {
+      if (gatt_get_sec_act(p_tcb) == GATT_SEC_ENCRYPT_MITM) {
+        status = BTM_IsLinkKeyAuthed(*bd_addr, transport);
+      } else {
+        status = true;
+      }
     }
-  }
 
-  gatt_sec_check_complete(status, p_clcb, p_tcb->sec_act);
+    gatt_sec_check_complete(status, p_clcb, p_tcb->sec_act);
+  }
 
   /* start all other pending operation in queue */
   std::deque<tGATT_CLCB*> new_pending_clcbs;
   while (!p_tcb->pending_enc_clcb.empty()) {
     tGATT_CLCB* p_clcb = p_tcb->pending_enc_clcb.front();
     p_tcb->pending_enc_clcb.pop_front();
-    if (gatt_security_check_start(p_clcb)) new_pending_clcbs.push_back(p_clcb);
+    if (p_clcb != NULL && gatt_security_check_start(p_clcb))
+      new_pending_clcbs.push_back(p_clcb);
   }
   p_tcb->pending_enc_clcb = new_pending_clcbs;
 }
@@ -229,7 +232,7 @@ void gatt_notify_enc_cmpl(const RawAddress& bd_addr) {
     while (!p_tcb->pending_enc_clcb.empty()) {
       tGATT_CLCB* p_clcb = p_tcb->pending_enc_clcb.front();
       p_tcb->pending_enc_clcb.pop_front();
-      if (gatt_security_check_start(p_clcb))
+      if (p_clcb != NULL && gatt_security_check_start(p_clcb))
         new_pending_clcbs.push_back(p_clcb);
     }
     p_tcb->pending_enc_clcb = new_pending_clcbs;

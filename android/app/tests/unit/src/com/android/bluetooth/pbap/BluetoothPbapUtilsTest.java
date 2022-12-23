@@ -48,6 +48,7 @@ import com.android.vcard.VCardConfig;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -309,6 +310,7 @@ public class BluetoothPbapUtilsTest {
         }
     }
 
+    @Ignore("b/262486295")
     @Test
     public void updateSecondaryVersionCounter_whenContactsAreUpdated() {
         MatrixCursor contactCursor = new MatrixCursor(

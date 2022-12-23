@@ -201,12 +201,12 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("StartAudioRequest")]
-    fn start_audio_request(&mut self) {
+    fn start_audio_request(&mut self) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("GetA2dpAudioStarted")]
-    fn get_a2dp_audio_started(&mut self, address: String) -> u8 {
+    fn get_a2dp_audio_started(&mut self, address: String) -> bool {
         dbus_generated!()
     }
 
@@ -216,12 +216,12 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("StartScoCall")]
-    fn start_sco_call(&mut self, address: String, sco_offload: bool, force_cvsd: bool) {
+    fn start_sco_call(&mut self, address: String, sco_offload: bool, force_cvsd: bool) -> bool {
         dbus_generated!()
     }
 
-    #[dbus_method("GetHfpAudioStarted")]
-    fn get_hfp_audio_started(&mut self, address: String) -> u8 {
+    #[dbus_method("GetHfpAudioFinalCodecs")]
+    fn get_hfp_audio_final_codecs(&mut self, address: String) -> u8 {
         dbus_generated!()
     }
 

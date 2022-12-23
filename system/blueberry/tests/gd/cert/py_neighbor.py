@@ -61,21 +61,10 @@ class PyNeighbor(object):
         """
         return InquirySession(self.device, inquiry_msg)
 
-    def _register_remote_host_supported_features_notification(self):
-        """
-        REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION event will be sent when a device sends remote name request
-        """
-        if self.remote_host_supported_features_notification_registered:
-            return
-        msg = hci_facade.EventRequest(code=int(hci.EventCode.REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION))
-        self.device.hci.RequestEvent(msg)
-        self.remote_host_supported_features_notification_registered = True
-
     def get_remote_name(self, remote_address: str):
         """
         Get the remote name and return a session which can be used for event queue assertion
         """
-        self._register_remote_host_supported_features_notification()
         self.device.neighbor.ReadRemoteName(
             neighbor_facade.RemoteNameRequestMsg(address=remote_address.encode('utf8'),
                                                  page_scan_repetition_mode=1,
