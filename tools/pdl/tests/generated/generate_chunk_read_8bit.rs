@@ -1,10 +1,10 @@
 fn main() {
-    if bytes.remaining() < 1 {
+    if bytes.len() < 11 {
         return Err(Error::InvalidLengthError {
             obj: "Foo".to_string(),
-            wanted: 1,
-            got: bytes.remaining(),
+            wanted: 11,
+            got: bytes.len(),
         });
     }
-    let a = bytes.get_u8();
+    let a = u8::from_be_bytes([bytes[10]]);
 }

@@ -1,10 +1,10 @@
 fn main() {
-    if bytes.remaining() < 3 {
+    if bytes.len() < 13 {
         return Err(Error::InvalidLengthError {
             obj: "Foo".to_string(),
-            wanted: 3,
-            got: bytes.remaining(),
+            wanted: 13,
+            got: bytes.len(),
         });
     }
-    let a = bytes.get_uint_le(3) as u32;
+    let a = u32::from_le_bytes([bytes[10], bytes[11], bytes[12], 0]);
 }

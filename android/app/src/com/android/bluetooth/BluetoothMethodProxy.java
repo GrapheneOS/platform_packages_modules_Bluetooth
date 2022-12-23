@@ -28,7 +28,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
-import android.provider.Telephony;
 import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
@@ -37,7 +36,6 @@ import com.android.obex.HeaderSet;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Set;
 
 /**
  * Proxy class for method calls to help with unit testing
@@ -172,12 +170,5 @@ public class BluetoothMethodProxy {
      */
     public <T> T getSystemService(Context context, Class<T> serviceClass) {
         return context.getSystemService(serviceClass);
-    }
-
-    /**
-     * Proxies {@link Telephony.Threads#getOrCreateThreadId(Context, Set <String>)}.
-     */
-    public long telephonyGetOrCreateThreadId(Context context, Set<String> recipients) {
-        return Telephony.Threads.getOrCreateThreadId(context, recipients);
     }
 }

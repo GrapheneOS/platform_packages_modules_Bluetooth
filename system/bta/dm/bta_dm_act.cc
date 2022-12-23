@@ -333,7 +333,7 @@ void BTA_dm_on_hw_off() {
   /* hw is ready, go on with BTA DM initialization */
   alarm_free(bta_dm_search_cb.search_timer);
   alarm_free(bta_dm_search_cb.gatt_close_timer);
-  osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
+  osi_free(bta_dm_search_cb.p_pending_search);
   fixed_queue_free(bta_dm_search_cb.pending_discovery_queue, osi_free);
   memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
 }
@@ -354,7 +354,7 @@ void BTA_dm_on_hw_on() {
   /* hw is ready, go on with BTA DM initialization */
   alarm_free(bta_dm_search_cb.search_timer);
   alarm_free(bta_dm_search_cb.gatt_close_timer);
-  osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
+  osi_free(bta_dm_search_cb.p_pending_search);
   fixed_queue_free(bta_dm_search_cb.pending_discovery_queue, osi_free);
   memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
   /*

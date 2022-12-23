@@ -132,6 +132,8 @@ public class Message {
         mProtected = yesnoToBoolean(attrs.get("protected"));
     }
 
+    ;
+
     private boolean yesnoToBoolean(String yesno) {
         return "yes".equals(yesno);
     }

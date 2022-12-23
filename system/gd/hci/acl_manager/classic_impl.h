@@ -384,28 +384,6 @@ struct classic_impl : public security::ISecurityManagerListener {
     ASSERT(connection_complete.IsValid());
     auto status = connection_complete.GetStatus();
     auto address = connection_complete.GetBdAddr();
-
-    // TODO(b/261610529) - Some controllers incorrectly return connection
-    // failures via HCI Connect Complete instead of SCO connect complete.
-    // Temporarily just drop these packets until we have finer grained control
-    // over these ASSERTs.
-#if TARGET_FLOSS
-    auto handle = connection_complete.GetConnectionHandle();
-    auto link_type = connection_complete.GetLinkType();
-
-    // HACK: Some failed SCO connections are reporting failures via
-    //       ConnectComplete instead of ScoConnectionComplete.
-    //       Drop such packets.
-    if (handle == 0xffff && link_type == LinkType::SCO) {
-      LOG_ERROR(
-          "ConnectionComplete with invalid handle(%u), link type(%u) and status(%d). Dropping packet.",
-          handle,
-          link_type,
-          status);
-      return;
-    }
-#endif
-
     acl_scheduler_->ReportAclConnectionCompletion(
         address,
         handler_->BindOnceOn(
