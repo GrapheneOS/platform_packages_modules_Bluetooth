@@ -1496,6 +1496,12 @@ bool LeAudioDevice::ConfigureAses(
     return false;
   }
 
+  /* The number_of_already_active_group_ase keeps all the active ases
+   * in other devices in the group.
+   * This function counts active ases only for this device, and we count here
+   * new active ases and already active ases which we want to reuse in the
+   * scenario
+   */
   uint8_t active_ases = *number_of_already_active_group_ase;
   uint8_t max_required_ase_per_dev =
       ent.ase_cnt / ent.device_cnt + (ent.ase_cnt % ent.device_cnt);
@@ -1523,40 +1529,48 @@ bool LeAudioDevice::ConfigureAses(
     ase->configured_for_context_type = context_type;
     active_ases++;
 
-    if (ase->state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED)
-      ase->reconfigure = true;
+    /* In case of late connect, we could be here for STREAMING ase.
+     * in such case, it is needed to mark ase as known active ase which
+     * is important to validate scenario and is done already few lines above.
+     * Nothing more to do is needed here.
+     */
+    if (ase->state != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+      if (ase->state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED)
+        ase->reconfigure = true;
 
-    ase->target_latency = ent.target_latency;
-    ase->codec_id = ent.codec.id;
-    /* TODO: find better way to not use LC3 explicitly */
-    ase->codec_config = std::get<LeAudioLc3Config>(ent.codec.config);
+      ase->target_latency = ent.target_latency;
+      ase->codec_id = ent.codec.id;
+      /* TODO: find better way to not use LC3 explicitly */
+      ase->codec_config = std::get<LeAudioLc3Config>(ent.codec.config);
 
-    /*Let's choose audio channel allocation if not set */
-    ase->codec_config.audio_channel_allocation =
-        PickAudioLocation(strategy, audio_locations, group_audio_locations);
+      /*Let's choose audio channel allocation if not set */
+      ase->codec_config.audio_channel_allocation =
+          PickAudioLocation(strategy, audio_locations, group_audio_locations);
 
-    /* Get default value if no requirement for specific frame blocks per sdu */
-    if (!ase->codec_config.codec_frames_blocks_per_sdu) {
-      ase->codec_config.codec_frames_blocks_per_sdu =
-          GetMaxCodecFramesPerSduFromPac(pac);
-    }
-    ase->max_sdu_size = codec_spec_caps::GetAudioChannelCounts(
-                            *ase->codec_config.audio_channel_allocation) *
-                        *ase->codec_config.octets_per_codec_frame *
-                        *ase->codec_config.codec_frames_blocks_per_sdu;
+      /* Get default value if no requirement for specific frame blocks per sdu
+       */
+      if (!ase->codec_config.codec_frames_blocks_per_sdu) {
+        ase->codec_config.codec_frames_blocks_per_sdu =
+            GetMaxCodecFramesPerSduFromPac(pac);
+      }
+      ase->max_sdu_size = codec_spec_caps::GetAudioChannelCounts(
+                              *ase->codec_config.audio_channel_allocation) *
+                          *ase->codec_config.octets_per_codec_frame *
+                          *ase->codec_config.codec_frames_blocks_per_sdu;
 
-    ase->retrans_nb = ent.qos.retransmission_number;
-    ase->max_transport_latency = ent.qos.max_transport_latency;
+      ase->retrans_nb = ent.qos.retransmission_number;
+      ase->max_transport_latency = ent.qos.max_transport_latency;
 
-    /* Filter multidirectional audio context for each ase direction */
-    auto directional_audio_context =
-        metadata_context_type & GetAvailableContexts(ase->direction);
-    if (directional_audio_context.any()) {
-      ase->metadata = GetMetadata(directional_audio_context, ccid_list);
-    } else {
-      ase->metadata =
-          GetMetadata(AudioContexts(LeAudioContextType::UNSPECIFIED),
-                      std::vector<uint8_t>());
+      /* Filter multidirectional audio context for each ase direction */
+      auto directional_audio_context =
+          metadata_context_type & GetAvailableContexts(ase->direction);
+      if (directional_audio_context.any()) {
+        ase->metadata = GetMetadata(directional_audio_context, ccid_list);
+      } else {
+        ase->metadata =
+            GetMetadata(AudioContexts(LeAudioContextType::UNSPECIFIED),
+                        std::vector<uint8_t>());
+      }
     }
 
     LOG_DEBUG(
@@ -1961,6 +1975,61 @@ bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type,
 }
 
 LeAudioDeviceGroup::~LeAudioDeviceGroup(void) { this->Cleanup(); }
+
+void LeAudioDeviceGroup::PrintDebugState(void) {
+  auto* active_conf = GetActiveConfiguration();
+  std::stringstream debug_str;
+
+  debug_str << "\n Groupd id: " << group_id_
+            << ", state: " << bluetooth::common::ToString(GetState())
+            << ", target state: "
+            << bluetooth::common::ToString(GetTargetState())
+            << ", cig state: " << bluetooth::common::ToString(cig_state_)
+            << ", \n group available contexts: "
+            << bluetooth::common::ToString(GetAvailableContexts())
+            << ", \n configuration context type: "
+            << bluetooth::common::ToString(GetConfigurationContextType())
+            << ", \n active configuration name: "
+            << (active_conf ? active_conf->name : " not set");
+
+  if (cises_.size() > 0) {
+    LOG_INFO("\n Allocated CISes: %d", static_cast<int>(cises_.size()));
+    for (auto cis : cises_) {
+      LOG_INFO("\n cis id: %d, type: %d, conn_handle %d, addr: %s", cis.id,
+               cis.type, cis.conn_handle, cis.addr.ToString().c_str());
+    }
+  }
+
+  if (GetFirstActiveDevice() != nullptr) {
+    uint32_t sink_delay = 0;
+    uint32_t source_delay = 0;
+    GetPresentationDelay(&sink_delay, le_audio::types::kLeAudioDirectionSink);
+    GetPresentationDelay(&source_delay,
+                         le_audio::types::kLeAudioDirectionSource);
+    auto phy_mtos = GetPhyBitmask(le_audio::types::kLeAudioDirectionSink);
+    auto phy_stom = GetPhyBitmask(le_audio::types::kLeAudioDirectionSource);
+    auto max_transport_latency_mtos = GetMaxTransportLatencyMtos();
+    auto max_transport_latency_stom = GetMaxTransportLatencyStom();
+    auto sdu_mts = GetSduInterval(le_audio::types::kLeAudioDirectionSink);
+    auto sdu_stom = GetSduInterval(le_audio::types::kLeAudioDirectionSource);
+
+    debug_str << "\n resentation_delay for sink (speaker): " << +sink_delay
+              << " us, presentation_delay for source (microphone): "
+              << +source_delay << "us, \n MtoS transport latency:  "
+              << +max_transport_latency_mtos
+              << ", StoM transport latency: " << +max_transport_latency_stom
+              << ", \n MtoS Phy: " << loghex(phy_mtos)
+              << ", MtoS sdu: " << loghex(phy_stom)
+              << " \n MtoS sdu: " << +sdu_mts << ", StoM sdu: " << +sdu_stom;
+  }
+
+  LOG_INFO("%s", debug_str.str().c_str());
+
+  for (const auto& device_iter : leAudioDevices_) {
+    device_iter.lock()->PrintDebugState();
+  }
+}
+
 void LeAudioDeviceGroup::Dump(int fd, int active_group_id) {
   bool is_active = (group_id_ == active_group_id);
   std::stringstream stream;
@@ -2453,6 +2522,34 @@ void LeAudioDevice::SetSupportedContexts(AudioContexts snk_contexts,
                                          AudioContexts src_contexts) {
   supp_contexts_.sink = snk_contexts;
   supp_contexts_.source = src_contexts;
+}
+
+void LeAudioDevice::PrintDebugState(void) {
+  std::stringstream debug_str;
+
+  debug_str << " address: " << address_ << ", "
+            << bluetooth::common::ToString(connection_state_)
+            << ", conn_id: " << +conn_id_ << ", mtu: " << +mtu_
+            << ", num_of_ase: " << static_cast<int>(ases_.size());
+
+  if (ases_.size() > 0) {
+    debug_str << "\n  == ASEs == ";
+    for (auto& ase : ases_) {
+      debug_str << "\n  id: " << +ase.id << ", active: " << ase.active
+                << ", dir: "
+                << (ase.direction == types::kLeAudioDirectionSink ? "sink"
+                                                                  : "source")
+                << ", cis_id: " << +ase.cis_id
+                << ", cis_handle: " << +ase.cis_conn_hdl << ", state: "
+                << bluetooth::common::ToString(ase.data_path_state)
+                << "\n ase max_latency: " << +ase.max_transport_latency
+                << ", rtn: " << +ase.retrans_nb
+                << ", max_sdu: " << +ase.max_sdu_size
+                << ", target latency: " << +ase.target_latency;
+    }
+  }
+
+  LOG_INFO("%s", debug_str.str().c_str());
 }
 
 void LeAudioDevice::Dump(int fd) {
