@@ -461,7 +461,8 @@ public class MapClientService extends ProfileService {
      * This class implements the IClient interface - or actually it validates the
      * preconditions for calling the actual functionality in the MapClientService, and calls it.
      */
-    private static class Binder extends IBluetoothMapClient.Stub implements IProfileServiceBinder {
+    @VisibleForTesting
+    static class Binder extends IBluetoothMapClient.Stub implements IProfileServiceBinder {
         private MapClientService mService;
 
         Binder(MapClientService service) {
@@ -473,6 +474,9 @@ public class MapClientService extends ProfileService {
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private MapClientService getService(AttributionSource source) {
+            if (Utils.isInstrumentationTestMode()) {
+                return mService;
+            }
             if (!Utils.checkServiceAvailable(mService, TAG)
                     || !(MapUtils.isSystemUser()
                     || Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG))
