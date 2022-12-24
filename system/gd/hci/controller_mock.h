@@ -83,6 +83,7 @@ class MockController : public Controller {
   MOCK_METHOD(bool, SupportsBleConnectedIsochronousStreamPeripheral, (), (const));
   MOCK_METHOD(bool, SupportsBleIsochronousBroadcaster, (), (const));
   MOCK_METHOD(bool, SupportsBleSynchronizedReceiver, (), (const));
+  MOCK_METHOD(bool, SupportsBlePeriodicAdvertisingAdi, (), (const));
   MOCK_METHOD(uint16_t, GetAclPacketLength, (), (const));
   MOCK_METHOD(uint16_t, GetNumAclPacketBuffers, (), (const));
   MOCK_METHOD(uint8_t, GetScoPacketLength, (), (const));
