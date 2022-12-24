@@ -18,6 +18,9 @@ package com.android.bluetooth;
 
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.PeriodicAdvertisingCallback;
+import android.bluetooth.le.PeriodicAdvertisingManager;
+import android.bluetooth.le.ScanResult;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -27,7 +30,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
+import android.provider.Telephony;
 import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
@@ -36,6 +41,7 @@ import com.android.obex.HeaderSet;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 
 /**
  * Proxy class for method calls to help with unit testing
@@ -170,5 +176,22 @@ public class BluetoothMethodProxy {
      */
     public <T> T getSystemService(Context context, Class<T> serviceClass) {
         return context.getSystemService(serviceClass);
+    }
+
+    /**
+     * Proxies {@link Telephony.Threads#getOrCreateThreadId(Context, Set <String>)}.
+     */
+    public long telephonyGetOrCreateThreadId(Context context, Set<String> recipients) {
+        return Telephony.Threads.getOrCreateThreadId(context, recipients);
+    }
+
+    /**
+     * Proxies {@link PeriodicAdvertisingManager#registerSync(ScanResult, int, int,
+     * PeriodicAdvertisingCallback, Handler)}.
+     */
+    public void periodicAdvertisingManagerRegisterSync(PeriodicAdvertisingManager manager,
+            ScanResult scanResult, int skip, int timeout,
+            PeriodicAdvertisingCallback callback, Handler handler) {
+        manager.registerSync(scanResult, skip, timeout, callback, handler);
     }
 }

@@ -1217,12 +1217,12 @@ class LeAudioClientImpl : public LeAudioClient {
       LOG_WARN("Could not load ases");
     }
 
-    if (autoconnect) {
-      leAudioDevice->SetConnectionState(
-          DeviceConnectState::CONNECTING_AUTOCONNECT);
-      leAudioDevice->autoconnect_flag_ = true;
-      BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
-    }
+    leAudioDevice->autoconnect_flag_ = autoconnect;
+    /* When adding from storage, make sure that autoconnect is used
+     * by all the devices in the group.
+     */
+    leAudioDevices_.SetInitialGroupAutoconnectState(
+        group_id, gatt_if_, reconnection_mode_, autoconnect);
   }
 
   bool GetHandlesForStorage(const RawAddress& addr, std::vector<uint8_t>& out) {
@@ -1291,12 +1291,33 @@ class LeAudioClientImpl : public LeAudioClient {
     BTA_GATTC_CancelOpen(0, address, false);
 
     if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
-      /* User is disconnecting the device, we shall remove the autoconnect flag
+      /* User is disconnecting the device, we shall remove the autoconnect
+       * flag for this device and all others
        */
-      btif_storage_set_leaudio_autoconnect(address, false);
-      leAudioDevice->autoconnect_flag_ = false;
+      LOG_INFO("Removing autoconnect flag for group_id %d",
+               leAudioDevice->group_id_);
 
       auto group = aseGroups_.FindById(leAudioDevice->group_id_);
+
+      if (leAudioDevice->autoconnect_flag_) {
+        btif_storage_set_leaudio_autoconnect(address, false);
+        leAudioDevice->autoconnect_flag_ = false;
+      }
+
+      if (group) {
+        /* Remove devices from auto connect mode */
+        for (auto dev = group->GetFirstDevice(); dev;
+             dev = group->GetNextDevice(dev)) {
+          if (dev->GetConnectionState() ==
+              DeviceConnectState::CONNECTING_AUTOCONNECT) {
+            btif_storage_set_leaudio_autoconnect(address, false);
+            dev->autoconnect_flag_ = false;
+            BTA_GATTC_CancelOpen(gatt_if_, address, false);
+            dev->SetConnectionState(DeviceConnectState::DISCONNECTED);
+          }
+        }
+      }
+
       if (group &&
           group->GetState() ==
               le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
@@ -2357,6 +2378,11 @@ class LeAudioClientImpl : public LeAudioClient {
         audio_receiver_state_ == AudioState::IDLE) {
       DLOG(INFO) << __func__
                  << " Device not streaming but active - nothing to do";
+      return;
+    }
+
+    if (!stream_conf->conf) {
+      LOG_INFO("Configuration not yet set. Nothing to do now");
       return;
     }
 

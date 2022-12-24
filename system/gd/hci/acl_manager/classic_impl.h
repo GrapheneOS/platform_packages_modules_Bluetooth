@@ -27,6 +27,7 @@
 #include "hci/acl_manager/event_checkers.h"
 #include "hci/acl_manager/round_robin_scheduler.h"
 #include "hci/controller.h"
+#include "hci/remote_name_request.h"
 #include "os/metrics.h"
 #include "security/security_manager_listener.h"
 #include "security/security_module.h"
@@ -54,11 +55,13 @@ struct classic_impl : public security::ISecurityManagerListener {
       os::Handler* handler,
       RoundRobinScheduler* round_robin_scheduler,
       bool crash_on_unknown_handle,
-      AclScheduler* acl_scheduler)
+      AclScheduler* acl_scheduler,
+      RemoteNameRequestModule* remote_name_request_module)
       : hci_layer_(hci_layer),
         controller_(controller),
         round_robin_scheduler_(round_robin_scheduler),
-        acl_scheduler_(acl_scheduler) {
+        acl_scheduler_(acl_scheduler),
+        remote_name_request_module_(remote_name_request_module) {
     hci_layer_ = hci_layer;
     controller_ = controller;
     handler_ = handler;
@@ -384,6 +387,28 @@ struct classic_impl : public security::ISecurityManagerListener {
     ASSERT(connection_complete.IsValid());
     auto status = connection_complete.GetStatus();
     auto address = connection_complete.GetBdAddr();
+
+    // TODO(b/261610529) - Some controllers incorrectly return connection
+    // failures via HCI Connect Complete instead of SCO connect complete.
+    // Temporarily just drop these packets until we have finer grained control
+    // over these ASSERTs.
+#if TARGET_FLOSS
+    auto handle = connection_complete.GetConnectionHandle();
+    auto link_type = connection_complete.GetLinkType();
+
+    // HACK: Some failed SCO connections are reporting failures via
+    //       ConnectComplete instead of ScoConnectionComplete.
+    //       Drop such packets.
+    if (handle == 0xffff && link_type == LinkType::SCO) {
+      LOG_ERROR(
+          "ConnectionComplete with invalid handle(%u), link type(%u) and status(%d). Dropping packet.",
+          handle,
+          link_type,
+          status);
+      return;
+    }
+#endif
+
     acl_scheduler_->ReportAclConnectionCompletion(
         address,
         handler_->BindOnceOn(
@@ -399,16 +424,25 @@ struct classic_impl : public security::ISecurityManagerListener {
             Role::PERIPHERAL,
             Initiator::REMOTE_INITIATED),
         handler_->BindOnce(
-            [=](AclScheduler* scheduler, Address address, ErrorCode status, std::string valid_incoming_addresses) {
+            [=](RemoteNameRequestModule* remote_name_request_module,
+                Address address,
+                ErrorCode status,
+                std::string valid_incoming_addresses) {
               ASSERT_LOG(
                   status == ErrorCode::UNKNOWN_CONNECTION,
                   "No prior connection request for %s expecting:%s",
                   address.ToString().c_str(),
                   valid_incoming_addresses.c_str());
               LOG_WARN("No matching connection to %s (%s)", address.ToString().c_str(), ErrorCodeText(status).c_str());
-              LOG_WARN("Firmware error after RemoteNameRequestCancel?");
+              LOG_WARN("Firmware error after RemoteNameRequestCancel?");  // see b/184239841
+              if (bluetooth::common::init_flags::gd_remote_name_request_is_enabled()) {
+                ASSERT_LOG(
+                    remote_name_request_module != nullptr,
+                    "RNR module enabled but module not provided");
+                remote_name_request_module->ReportRemoteNameRequestCancellation(address);
+              }
             },
-            common::Unretained(acl_scheduler_),
+            common::Unretained(remote_name_request_module_),
             address,
             status));
   }
@@ -773,6 +807,7 @@ struct classic_impl : public security::ISecurityManagerListener {
   Controller* controller_ = nullptr;
   RoundRobinScheduler* round_robin_scheduler_ = nullptr;
   AclScheduler* acl_scheduler_ = nullptr;
+  RemoteNameRequestModule* remote_name_request_module_ = nullptr;
   AclConnectionInterface* acl_connection_interface_ = nullptr;
   os::Handler* handler_ = nullptr;
   ConnectionCallbacks* client_callbacks_ = nullptr;

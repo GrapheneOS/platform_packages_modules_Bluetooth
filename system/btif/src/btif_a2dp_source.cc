@@ -710,8 +710,6 @@ void btif_a2dp_source_on_idle(void) {
 void btif_a2dp_source_on_stopped(tBTA_AV_SUSPEND* p_av_suspend) {
   LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
 
-  if (btif_a2dp_source_cb.State() == BtifA2dpSource::kStateOff) return;
-
   // allow using this API for other (acknowledgement and stopping media task)
   // than suspend
   if (p_av_suspend != nullptr && p_av_suspend->status != BTA_AV_SUCCESS) {
@@ -725,10 +723,12 @@ void btif_a2dp_source_on_stopped(tBTA_AV_SUSPEND* p_av_suspend) {
         btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
       }
     }
-  } else if (btif_av_is_a2dp_offload_running()) {
+  } else {
     bluetooth::audio::a2dp::ack_stream_suspended(A2DP_CTRL_ACK_SUCCESS);
     return;
   }
+
+  if (btif_a2dp_source_cb.State() == BtifA2dpSource::kStateOff) return;
 
   // ensure tx frames are immediately suspended
   btif_a2dp_source_cb.tx_flush = true;
