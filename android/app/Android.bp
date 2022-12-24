@@ -62,6 +62,7 @@ cc_library_shared {
         "libbluetooth_headers",
     ],
     include_dirs: [
+        "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/types",
         "packages/modules/Bluetooth/system/gd",
     ],
