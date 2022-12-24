@@ -127,6 +127,7 @@ class Controller : public Module {
   virtual bool SupportsBlePowerControlRequest() const;
   virtual bool SupportsBlePowerChangeIndication() const;
   virtual bool SupportsBlePathLossMonitoring() const;
+  virtual bool SupportsBlePeriodicAdvertisingAdi() const;
 
   virtual uint16_t GetAclPacketLength() const;
 
