@@ -4416,8 +4416,7 @@ class LeAudioClientImpl : public LeAudioClient {
 void le_audio_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
   if (!p_data || !instance) return;
 
-  LOG_DEBUG("%s event = %d", p_data->remote_bda.ToString().c_str(),
-            static_cast<int>(event));
+  DLOG(INFO) << __func__ << " event = " << +event;
 
   switch (event) {
     case BTA_GATTC_DEREG_EVT:
