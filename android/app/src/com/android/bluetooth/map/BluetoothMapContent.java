@@ -759,7 +759,8 @@ public class BluetoothMapContent {
         return type;
     }
 
-    private String getRecipientNameEmail(Cursor c, FilterInfo fi) {
+    @VisibleForTesting
+    String getRecipientNameEmail(Cursor c, FilterInfo fi) {
 
         String toAddress, ccAddress, bccAddress;
         toAddress = c.getString(fi.mMessageColToAddress);
@@ -843,7 +844,8 @@ public class BluetoothMapContent {
         return sb.toString();
     }
 
-    private String getRecipientAddressingEmail(Cursor c, FilterInfo fi) {
+    @VisibleForTesting
+    String getRecipientAddressingEmail(Cursor c, FilterInfo fi) {
         String toAddress, ccAddress, bccAddress;
         toAddress = c.getString(fi.mMessageColToAddress);
         ccAddress = c.getString(fi.mMessageColCcAddress);
