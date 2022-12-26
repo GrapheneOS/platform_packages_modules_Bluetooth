@@ -77,6 +77,82 @@ public class BluetoothMapAppParamsTest {
     public static final int TEST_TRANSPARENT = 1;
 
     @Test
+    public void encodeToBuffer_thenDecode() throws Exception {
+        ByteBuffer ret = ByteBuffer.allocate(16);
+        ret.putLong(TEST_COUNT_HIGH);
+        ret.putLong(TEST_COUNT_LOW);
+
+        BluetoothMapAppParams appParams = new BluetoothMapAppParams();
+        appParams.setMaxListCount(TEST_MAX_LIST_COUNT);
+        appParams.setStartOffset(TEST_START_OFFSET);
+        appParams.setFilterMessageType(TEST_FILTER_MESSAGE_TYPE);
+        appParams.setFilterPeriodBegin(TEST_FILTER_PERIOD_BEGIN);
+        appParams.setFilterPeriodEnd(TEST_FILTER_PERIOD_END);
+        appParams.setFilterReadStatus(TEST_FILTER_READ_STATUS);
+        appParams.setFilterRecipient(TEST_FILTER_RECIPIENT);
+        appParams.setFilterOriginator(TEST_FILTER_ORIGINATOR);
+        appParams.setFilterPriority(TEST_FILTER_PRIORITY);
+        appParams.setAttachment(TEST_ATTACHMENT);
+        appParams.setTransparent(TEST_TRANSPARENT);
+        appParams.setRetry(TEST_RETRY);
+        appParams.setNewMessage(TEST_NEW_MESSAGE);
+        appParams.setNotificationFilter(TEST_NOTIFICATION_FILTER);
+        appParams.setMasInstanceId(TEST_MAS_INSTANCE_ID);
+        appParams.setParameterMask(TEST_PARAMETER_MASK);
+        appParams.setFolderListingSize(TEST_FOLDER_LISTING_SIZE);
+        appParams.setMessageListingSize(TEST_MESSAGE_LISTING_SIZE);
+        appParams.setSubjectLength(TEST_SUBJECT_LENGTH);
+        appParams.setCharset(TEST_CHARSET);
+        appParams.setFractionRequest(TEST_FRACTION_REQUEST);
+        appParams.setFractionDeliver(TEST_FRACTION_DELIVER);
+        appParams.setStatusIndicator(TEST_STATUS_INDICATOR);
+        appParams.setStatusValue(TEST_STATUS_VALUE);
+        appParams.setMseTime(TEST_MSE_TIME);
+        appParams.setDatabaseIdentifier(TEST_ID_HIGH, TEST_ID_LOW);
+        appParams.setConvoListingVerCounter(TEST_COUNT_LOW, TEST_COUNT_HIGH);
+        appParams.setPresenceStatus(TEST_PRESENCE_STATUS);
+        appParams.setLastActivity(TEST_LAST_ACTIVITY);
+        appParams.setConvoListingSize(TEST_CONVO_LISTING_SIZE);
+        appParams.setChatStateConvoId(TEST_ID_HIGH, TEST_ID_LOW);
+        appParams.setFolderVerCounter(TEST_COUNT_LOW, TEST_COUNT_HIGH);
+
+        byte[] encodedParams = appParams.encodeParams();
+        BluetoothMapAppParams appParamsDecoded = new BluetoothMapAppParams(encodedParams);
+
+        assertThat(appParamsDecoded.getMaxListCount()).isEqualTo(TEST_MAX_LIST_COUNT);
+        assertThat(appParamsDecoded.getStartOffset()).isEqualTo(TEST_START_OFFSET);
+        assertThat(appParamsDecoded.getFilterMessageType()).isEqualTo(TEST_FILTER_MESSAGE_TYPE);
+        assertThat(appParamsDecoded.getFilterPeriodBegin()).isEqualTo(TEST_FILTER_PERIOD_BEGIN);
+        assertThat(appParamsDecoded.getFilterPeriodEnd()).isEqualTo(TEST_FILTER_PERIOD_END);
+        assertThat(appParamsDecoded.getFilterReadStatus()).isEqualTo(TEST_FILTER_READ_STATUS);
+        assertThat(appParamsDecoded.getFilterRecipient()).isEqualTo(TEST_FILTER_RECIPIENT);
+        assertThat(appParamsDecoded.getFilterOriginator()).isEqualTo(TEST_FILTER_ORIGINATOR);
+        assertThat(appParamsDecoded.getFilterPriority()).isEqualTo(TEST_FILTER_PRIORITY);
+        assertThat(appParamsDecoded.getAttachment()).isEqualTo(TEST_ATTACHMENT);
+        assertThat(appParamsDecoded.getTransparent()).isEqualTo(TEST_TRANSPARENT);
+        assertThat(appParamsDecoded.getRetry()).isEqualTo(TEST_RETRY);
+        assertThat(appParamsDecoded.getNewMessage()).isEqualTo(TEST_NEW_MESSAGE);
+        assertThat(appParamsDecoded.getNotificationFilter()).isEqualTo(TEST_NOTIFICATION_FILTER);
+        assertThat(appParamsDecoded.getMasInstanceId()).isEqualTo(TEST_MAS_INSTANCE_ID);
+        assertThat(appParamsDecoded.getParameterMask()).isEqualTo(TEST_PARAMETER_MASK);
+        assertThat(appParamsDecoded.getFolderListingSize()).isEqualTo(TEST_FOLDER_LISTING_SIZE);
+        assertThat(appParamsDecoded.getMessageListingSize()).isEqualTo(TEST_MESSAGE_LISTING_SIZE);
+        assertThat(appParamsDecoded.getSubjectLength()).isEqualTo(TEST_SUBJECT_LENGTH);
+        assertThat(appParamsDecoded.getCharset()).isEqualTo(TEST_CHARSET);
+        assertThat(appParamsDecoded.getFractionRequest()).isEqualTo(TEST_FRACTION_REQUEST);
+        assertThat(appParamsDecoded.getFractionDeliver()).isEqualTo(TEST_FRACTION_DELIVER);
+        assertThat(appParamsDecoded.getStatusIndicator()).isEqualTo(TEST_STATUS_INDICATOR);
+        assertThat(appParamsDecoded.getStatusValue()).isEqualTo(TEST_STATUS_VALUE);
+        assertThat(appParamsDecoded.getMseTime()).isEqualTo(TEST_MSE_TIME);
+        assertThat(appParamsDecoded.getDatabaseIdentifier()).isEqualTo(ret.array());
+        assertThat(appParamsDecoded.getConvoListingVerCounter()).isEqualTo(ret.array());
+        assertThat(appParamsDecoded.getPresenceStatus()).isEqualTo(TEST_PRESENCE_STATUS);
+        assertThat(appParamsDecoded.getLastActivity()).isEqualTo(TEST_LAST_ACTIVITY);
+        assertThat(appParamsDecoded.getConvoListingSize()).isEqualTo(TEST_CONVO_LISTING_SIZE);
+        assertThat(appParamsDecoded.getChatStateConvoId()).isEqualTo(new SignedLongLong(
+                TEST_ID_HIGH, TEST_ID_LOW));
+    }
+    @Test
     public void settersAndGetters() throws Exception {
         ByteBuffer ret = ByteBuffer.allocate(16);
         ret.putLong(TEST_COUNT_HIGH);
@@ -133,8 +209,7 @@ public class BluetoothMapAppParamsTest {
         assertThat(appParams.getChatStateConvoIdByteArray()).isEqualTo(ret.array());
         assertThat(appParams.getChatStateConvoIdString()).isEqualTo(new String(ret.array()));
         assertThat(appParams.getConvoListingSize()).isEqualTo(TEST_CONVO_LISTING_SIZE);
-        assertThat(appParams.getConvoListingVerCounter()).isEqualTo(
-                ret.array());
+        assertThat(appParams.getConvoListingVerCounter()).isEqualTo(ret.array());
         assertThat(appParams.getConvoParameterMask()).isEqualTo(TEST_CONVO_PARAMETER_MASK);
         assertThat(appParams.getDatabaseIdentifier()).isEqualTo(ret.array());
         assertThat(appParams.getFilterConvoId()).isEqualTo(
@@ -181,7 +256,7 @@ public class BluetoothMapAppParamsTest {
 
         assertThat(appParams.getFilterLastActivityBegin()).isEqualTo(
                 TEST_FILTER_LAST_ACTIVITY_BEGIN);
-        assertThat(appParams.getFilterLastActivityBegin()).isEqualTo(TEST_FILTER_LAST_ACTIVITY_END);
+        assertThat(appParams.getFilterLastActivityEnd()).isEqualTo(TEST_FILTER_LAST_ACTIVITY_END);
     }
 
     @Test
