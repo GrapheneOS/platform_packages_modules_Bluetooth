@@ -93,7 +93,7 @@ class LeAclConnectionTracker : public LeConnectionManagementCallbacks {
   os::Handler* client_handler_ = nullptr;
   LeConnectionManagementCallbacks* client_callbacks_ = nullptr;
   std::list<common::OnceClosure> queued_callbacks_;
-  uint16_t connection_handle_;
+  const uint16_t connection_handle_;
 };
 
 struct LeAclConnection::impl {
