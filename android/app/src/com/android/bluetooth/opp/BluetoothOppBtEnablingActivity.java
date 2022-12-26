@@ -139,7 +139,8 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
         }
     };
 
-    private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
+    @VisibleForTesting
+    final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
