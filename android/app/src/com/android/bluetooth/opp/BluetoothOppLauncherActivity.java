@@ -413,7 +413,8 @@ public class BluetoothOppLauncherActivity extends Activity {
         return text;
     }
 
-    private void sendFileInfo(String mimeType, String uriString, boolean isHandover,
+    @VisibleForTesting
+    void sendFileInfo(String mimeType, String uriString, boolean isHandover,
             boolean fromExternal) {
         BluetoothOppManager manager = BluetoothOppManager.getInstance(getApplicationContext());
         try {
