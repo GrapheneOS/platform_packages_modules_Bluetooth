@@ -29,7 +29,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.os.UserManager;
-import android.provider.Telephony;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Sms;
 import android.telephony.TelephonyManager;
@@ -40,8 +39,9 @@ import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.BluetoothMethodProxy;
-import com.android.bluetooth.R;
+import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
+import com.android.bluetooth.mapapi.BluetoothMapContract;
 import com.android.obex.ResponseCodes;
 
 import org.junit.After;
@@ -56,6 +56,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -73,6 +74,9 @@ public class BluetoothMapContentObserverTest {
     static final long TEST_OLD_THREAD_ID = 2;
     static final int TEST_PLACEHOLDER_INT = 1;
     static final String TEST_ADDRESS = "test_address";
+    static final long TEST_DELETE_FOLDER_ID = BluetoothMapContract.FOLDER_ID_DELETED;
+    static final long TEST_INBOX_FOLDER_ID = BluetoothMapContract.FOLDER_ID_INBOX;
+    static final long TEST_OLD_FOLDER_ID = 6;
 
     @Mock
     private BluetoothMnsObexClient mClient;
@@ -92,6 +96,8 @@ public class BluetoothMapContentObserverTest {
     private ExceptionTestProvider mProvider;
     private MockContentResolver mMockContentResolver;
     private BluetoothMapContentObserver mObserver;
+    private BluetoothMapFolderElement mFolders;
+    private BluetoothMapFolderElement mCurrentFolder;
 
     static class ExceptionTestProvider extends MockContentProvider {
         HashSet<String> mContents = new HashSet<String>();
@@ -133,6 +139,8 @@ public class BluetoothMapContentObserverTest {
         mMockContentResolver = new MockContentResolver();
         mProvider = new ExceptionTestProvider(mContext);
         mMockContentResolver.addProvider("sms", mProvider);
+        mFolders = new BluetoothMapFolderElement("placeholder", null);
+        mCurrentFolder = new BluetoothMapFolderElement("current", null);
 
         // Functions that get called when BluetoothMapContentObserver is created
         when(mUserService.isUserUnlocked()).thenReturn(true);
@@ -344,9 +352,8 @@ public class BluetoothMapContentObserverTest {
         BluetoothMapContentObserver.Msg msg = createSimpleMsg();
         map.put(TEST_HANDLE, msg);
         mObserver.setMsgListSms(map, true);
-        int count = 1;
-        doReturn(count).when(mMapMethodProxy).contentResolverUpdate(any(), any(), any(), any(),
-                any());
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
 
         Assert.assertTrue(mObserver.setMessageStatusRead(TEST_HANDLE, type, TEST_URI_STR,
                 TEST_STATUS_VALUE));
@@ -361,9 +368,8 @@ public class BluetoothMapContentObserverTest {
         BluetoothMapContentObserver.Msg msg = createSimpleMsg();
         map.put(TEST_HANDLE, msg);
         mObserver.setMsgListMms(map, true);
-        int count = 1;
-        doReturn(count).when(mMapMethodProxy).contentResolverUpdate(any(), any(), any(), any(),
-                any());
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
 
         Assert.assertTrue(mObserver.setMessageStatusRead(TEST_HANDLE, type, TEST_URI_STR,
                 TEST_STATUS_VALUE));
@@ -378,9 +384,8 @@ public class BluetoothMapContentObserverTest {
         BluetoothMapContentObserver.Msg msg = createSimpleMsg();
         map.put(TEST_HANDLE, msg);
         mObserver.setMsgListMsg(map, true);
-        int count = 1;
         mObserver.mProviderClient = mProviderClient;
-        when(mProviderClient.update(any(), any(), any(), any())).thenReturn(count);
+        when(mProviderClient.update(any(), any(), any(), any())).thenReturn(TEST_PLACEHOLDER_INT);
 
         Assert.assertTrue(mObserver.setMessageStatusRead(TEST_HANDLE, type, TEST_URI_STR,
                 TEST_STATUS_VALUE));
@@ -620,11 +625,229 @@ public class BluetoothMapContentObserverTest {
         Assert.assertEquals(msgInfo.uri, uri);
     }
 
+    @Test
+    public void setEmailMessageStatusDelete_withStatusValueYes() {
+        setFolderStructureWithTelecomAndMsg(mFolders, BluetoothMapContract.FOLDER_NAME_DELETED,
+                TEST_DELETE_FOLDER_ID);
+        mObserver.setFolderStructure(mFolders);
+
+        Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        map.put(TEST_HANDLE, msg);
+        mObserver.setMsgListMsg(map, true);
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        Assert.assertTrue(mObserver.setEmailMessageStatusDelete(mCurrentFolder, TEST_URI_STR,
+                TEST_HANDLE, BluetoothMapAppParams.STATUS_VALUE_YES));
+        Assert.assertEquals(msg.folderId, TEST_DELETE_FOLDER_ID);
+    }
+
+    @Test
+    public void setEmailMessageStatusDelete_withStatusValueYes_andUpdateCountZero() {
+        setFolderStructureWithTelecomAndMsg(mFolders, BluetoothMapContract.FOLDER_NAME_DELETED,
+                TEST_DELETE_FOLDER_ID);
+        mObserver.setFolderStructure(mFolders);
+
+        Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        map.put(TEST_HANDLE, msg);
+        mObserver.setMsgListMsg(map, true);
+        doReturn(0).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        Assert.assertFalse(mObserver.setEmailMessageStatusDelete(mCurrentFolder, TEST_URI_STR,
+                TEST_HANDLE, BluetoothMapAppParams.STATUS_VALUE_YES));
+    }
+
+    @Test
+    public void setEmailMessageStatusDelete_withStatusValueNo() {
+        setFolderStructureWithTelecomAndMsg(mCurrentFolder, BluetoothMapContract.FOLDER_NAME_INBOX,
+                TEST_INBOX_FOLDER_ID);
+        setFolderStructureWithTelecomAndMsg(mFolders, BluetoothMapContract.FOLDER_NAME_DELETED,
+                TEST_DELETE_FOLDER_ID);
+        mObserver.setFolderStructure(mFolders);
+
+        Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        msg.oldFolderId = TEST_OLD_FOLDER_ID;
+        msg.folderId = TEST_DELETE_FOLDER_ID;
+        map.put(TEST_HANDLE, msg);
+        mObserver.setMsgListMsg(map, true);
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        Assert.assertTrue(mObserver.setEmailMessageStatusDelete(mCurrentFolder, TEST_URI_STR,
+                TEST_HANDLE, BluetoothMapAppParams.STATUS_VALUE_NO));
+        Assert.assertEquals(msg.folderId, TEST_INBOX_FOLDER_ID);
+    }
+
+    @Test
+    public void setEmailMessageStatusDelete_withStatusValueNo_andOldFolderIdMinusOne() {
+        int oldFolderId = -1;
+        setFolderStructureWithTelecomAndMsg(mCurrentFolder, BluetoothMapContract.FOLDER_NAME_INBOX,
+                TEST_INBOX_FOLDER_ID);
+        setFolderStructureWithTelecomAndMsg(mFolders, BluetoothMapContract.FOLDER_NAME_DELETED,
+                TEST_DELETE_FOLDER_ID);
+        mObserver.setFolderStructure(mFolders);
+
+        Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        msg.oldFolderId = oldFolderId;
+        msg.folderId = TEST_DELETE_FOLDER_ID;
+        map.put(TEST_HANDLE, msg);
+        mObserver.setMsgListMsg(map, true);
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        Assert.assertTrue(mObserver.setEmailMessageStatusDelete(mCurrentFolder, TEST_URI_STR,
+                TEST_HANDLE, BluetoothMapAppParams.STATUS_VALUE_NO));
+        Assert.assertEquals(msg.folderId, TEST_INBOX_FOLDER_ID);
+    }
+
+    @Test
+    public void setEmailMessageStatusDelete_withStatusValueNo_andInboxFolderNull() {
+        // This sets mCurrentFolder to have a sent folder, but not an inbox folder
+        setFolderStructureWithTelecomAndMsg(mCurrentFolder, BluetoothMapContract.FOLDER_NAME_SENT,
+                BluetoothMapContract.FOLDER_ID_SENT);
+        setFolderStructureWithTelecomAndMsg(mFolders, BluetoothMapContract.FOLDER_NAME_DELETED,
+                TEST_DELETE_FOLDER_ID);
+        mObserver.setFolderStructure(mFolders);
+
+        Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        msg.oldFolderId = TEST_OLD_FOLDER_ID;
+        msg.folderId = TEST_DELETE_FOLDER_ID;
+        map.put(TEST_HANDLE, msg);
+        mObserver.setMsgListMsg(map, true);
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        Assert.assertTrue(mObserver.setEmailMessageStatusDelete(mCurrentFolder, TEST_URI_STR,
+                TEST_HANDLE, BluetoothMapAppParams.STATUS_VALUE_NO));
+        Assert.assertEquals(msg.folderId, TEST_OLD_FOLDER_ID);
+    }
+
+    @Test
+    public void setMessageStatusDeleted_withTypeEmail() {
+        setFolderStructureWithTelecomAndMsg(mFolders, BluetoothMapContract.FOLDER_NAME_DELETED,
+                TEST_DELETE_FOLDER_ID);
+        mObserver.setFolderStructure(mFolders);
+
+        Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        map.put(TEST_HANDLE, msg);
+        mObserver.setMsgListMsg(map, true);
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        Assert.assertTrue(mObserver.setMessageStatusDeleted(TEST_HANDLE, TYPE.EMAIL, mCurrentFolder,
+                TEST_URI_STR, BluetoothMapAppParams.STATUS_VALUE_YES));
+    }
+
+    @Test
+    public void setMessageStatusDeleted_withTypeIm() {
+        Assert.assertFalse(mObserver.setMessageStatusDeleted(TEST_HANDLE, TYPE.IM, mCurrentFolder,
+                TEST_URI_STR, BluetoothMapAppParams.STATUS_VALUE_YES));
+    }
+
+    @Test
+    public void setMessageStatusDeleted_withTypeGsmOrMms_andStatusValueNo() {
+        doReturn(null).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+        doReturn(TEST_OLD_THREAD_ID).when(mMapMethodProxy).telephonyGetOrCreateThreadId(any(),
+                any());
+
+        // setMessageStatusDeleted with type Gsm or Mms calls either deleteMessage() or
+        // unDeleteMessage(), which returns false when no cursor is set with BluetoothMethodProxy.
+        Assert.assertFalse(mObserver.setMessageStatusDeleted(TEST_HANDLE, TYPE.MMS, mCurrentFolder,
+                TEST_URI_STR, BluetoothMapAppParams.STATUS_VALUE_NO));
+        Assert.assertFalse(mObserver.setMessageStatusDeleted(TEST_HANDLE, TYPE.SMS_GSM,
+                mCurrentFolder, TEST_URI_STR, BluetoothMapAppParams.STATUS_VALUE_NO));
+    }
+
+    @Test
+    public void setMessageStatusDeleted_withTypeGsmOrMms_andStatusValueYes() {
+        doReturn(null).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        // setMessageStatusDeleted with type Gsm or Mms calls either deleteMessage() or
+        // unDeleteMessage(), which returns false when no cursor is set with BluetoothMethodProxy.
+        Assert.assertFalse(mObserver.setMessageStatusDeleted(TEST_HANDLE, TYPE.MMS, mCurrentFolder,
+                TEST_URI_STR, BluetoothMapAppParams.STATUS_VALUE_YES));
+        Assert.assertFalse(mObserver.setMessageStatusDeleted(TEST_HANDLE, TYPE.SMS_GSM,
+                mCurrentFolder, TEST_URI_STR, BluetoothMapAppParams.STATUS_VALUE_YES));
+    }
+
+    @Test
+    public void initContactsList() throws Exception {
+        long convoId = 1;
+        String name = "col_name";
+        String displayName = "col_nickname";
+        String btUid = "1111";
+        int chatState = 1;
+        String uci = "col_uci";
+        long lastActivity = 1;
+        int presenceState = 1;
+        String statusText = "col_status_text";
+        int priority = 1;
+        int lastOnline = 1;
+
+        MatrixCursor cursor = new MatrixCursor(
+                new String[]{BluetoothMapContract.ConvoContactColumns.CONVO_ID,
+                        BluetoothMapContract.ConvoContactColumns.NAME,
+                        BluetoothMapContract.ConvoContactColumns.NICKNAME,
+                        BluetoothMapContract.ConvoContactColumns.X_BT_UID,
+                        BluetoothMapContract.ConvoContactColumns.CHAT_STATE,
+                        BluetoothMapContract.ConvoContactColumns.UCI,
+                        BluetoothMapContract.ConvoContactColumns.LAST_ACTIVE,
+                        BluetoothMapContract.ConvoContactColumns.PRESENCE_STATE,
+                        BluetoothMapContract.ConvoContactColumns.STATUS_TEXT,
+                        BluetoothMapContract.ConvoContactColumns.PRIORITY,
+                        BluetoothMapContract.ConvoContactColumns.LAST_ONLINE});
+        cursor.addRow(new Object[] {convoId, name, displayName, btUid, chatState, uci, lastActivity,
+        presenceState, statusText, priority, lastOnline});
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mObserver.mContactUri = mock(Uri.class);
+        mObserver.mProviderClient = mProviderClient;
+        when(mProviderClient.query(any(), any(), any(), any(), any())).thenReturn(cursor);
+
+        Map<String, BluetoothMapConvoContactElement> map = new HashMap<>();
+        mObserver.setContactList(map, true);
+        mObserver.initContactsList();
+        BluetoothMapConvoContactElement contactElement = mObserver.getContactList().get(uci);
+
+        final SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
+        Assert.assertEquals(contactElement.getContactId(), uci);
+        Assert.assertEquals(contactElement.getName(), name);
+        Assert.assertEquals(contactElement.getDisplayName(), displayName);
+        Assert.assertEquals(contactElement.getBtUid(), btUid);
+        Assert.assertEquals(contactElement.getChatState(), chatState);
+        Assert.assertEquals(contactElement.getPresenceStatus(), statusText);
+        Assert.assertEquals(contactElement.getPresenceAvailability(), presenceState);
+        Assert.assertEquals(contactElement.getLastActivityString(), format.format(lastActivity));
+        Assert.assertEquals(contactElement.getPriority(), priority);
+    }
+
+
     private BluetoothMapContentObserver.Msg createSimpleMsg() {
         return new BluetoothMapContentObserver.Msg(1, 1L, 1);
     }
 
     private BluetoothMapContentObserver.Msg createMsgWithTypeAndThreadId(int type, int threadId) {
         return new BluetoothMapContentObserver.Msg(1, type, threadId, 1);
+    }
+
+    private void setFolderStructureWithTelecomAndMsg(BluetoothMapFolderElement folderElement,
+            String folderName, long folderId) {
+        folderElement.addFolder("telecom");
+        folderElement.getSubFolder("telecom").addFolder("msg");
+        BluetoothMapFolderElement subFolder = folderElement.getSubFolder("telecom").getSubFolder(
+                "msg").addFolder(folderName);
+        subFolder.setFolderId(folderId);
     }
 }
