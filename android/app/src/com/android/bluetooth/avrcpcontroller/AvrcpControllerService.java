@@ -359,12 +359,16 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     //Binder object: Must be static class or memory leak may occur
-    private static class AvrcpControllerServiceBinder extends IBluetoothAvrcpController.Stub
+    @VisibleForTesting
+    static class AvrcpControllerServiceBinder extends IBluetoothAvrcpController.Stub
             implements IProfileServiceBinder {
         private AvrcpControllerService mService;
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private AvrcpControllerService getService(AttributionSource source) {
+            if (Utils.isInstrumentationTestMode()) {
+                return mService;
+            }
             if (!Utils.checkServiceAvailable(mService, TAG)
                     || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
