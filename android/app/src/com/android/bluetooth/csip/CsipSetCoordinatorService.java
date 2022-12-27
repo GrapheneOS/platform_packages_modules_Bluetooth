@@ -974,6 +974,9 @@ public class CsipSetCoordinatorService extends ProfileService {
         private CsipSetCoordinatorService mService;
 
         private CsipSetCoordinatorService getService(AttributionSource source) {
+            if (Utils.isInstrumentationTestMode()) {
+                return mService;
+            }
             if (!Utils.checkServiceAvailable(mService, TAG)
                     || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)) {
                 return null;
