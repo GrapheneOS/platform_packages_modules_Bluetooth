@@ -528,6 +528,9 @@ public class BatteryService extends ProfileService {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private BatteryService getService(AttributionSource source) {
             BatteryService service = mServiceRef.get();
+            if (Utils.isInstrumentationTestMode()) {
+                return service;
+            }
 
             if (!Utils.checkServiceAvailable(service, TAG)
                     || !Utils.checkCallerIsSystemOrActiveOrManagedUser(service, TAG)
