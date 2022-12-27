@@ -252,7 +252,8 @@ public class HearingAidService extends ProfileService {
         return sHearingAidService;
     }
 
-    private static synchronized void setHearingAidService(HearingAidService instance) {
+    @VisibleForTesting
+    static synchronized void setHearingAidService(HearingAidService instance) {
         if (DBG) {
             Log.d(TAG, "setHearingAidService(): set to: " + instance);
         }
