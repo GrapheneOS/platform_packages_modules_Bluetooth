@@ -86,3 +86,15 @@ void bluetooth::shim::ACL_RemoveFromAddressResolution(
 void bluetooth::shim::ACL_ClearAddressResolution() {
   mock_function_count_map[__func__]++;
 }
+void bluetooth::shim::ACL_LeSetDefaultSubrate(uint16_t subrate_min,
+                                              uint16_t subrate_max,
+                                              uint16_t max_latency,
+                                              uint16_t cont_num,
+                                              uint16_t sup_tout) {
+  mock_function_count_map[__func__]++;
+}
+void bluetooth::shim::ACL_LeSubrateRequest(
+    uint16_t hci_handle, uint16_t subrate_min, uint16_t subrate_max,
+    uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout) {
+  mock_function_count_map[__func__]++;
+}
