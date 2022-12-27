@@ -51,6 +51,9 @@ public class StackEvent {
     public static final int EVENT_TYPE_RING_INDICATION = 21;
     public static final int EVENT_TYPE_UNKNOWN_EVENT = 22;
 
+    public static final int CMD_RESULT_TYPE_OK = 0;
+    public static final int CMD_RESULT_TYPE_CME_ERROR = 7;
+
     public int type = EVENT_TYPE_NONE;
     public int valueInt = 0;
     public int valueInt2 = 0;
