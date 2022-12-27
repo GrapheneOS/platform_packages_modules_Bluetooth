@@ -302,6 +302,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     // Save a ProfileServiceConnections object for each of the bound
     // bluetooth profile services
     private final Map<Integer, ProfileServiceConnections> mProfileServices = new HashMap<>();
+    @GuardedBy("mProfileServices")
+    private boolean mUnbindingAll = false;
 
     private final IBluetoothCallback mBluetoothCallback = new IBluetoothCallback.Stub() {
         @Override
@@ -1595,13 +1597,16 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 } catch (IllegalArgumentException e) {
                     Log.e(TAG, "Unable to unbind service with intent: " + psc.mIntent, e);
                 }
-                mProfileServices.remove(profile);
+                if (!mUnbindingAll) {
+                    mProfileServices.remove(profile);
+                }
             }
         }
     }
 
     private void unbindAllBluetoothProfileServices() {
         synchronized (mProfileServices) {
+            mUnbindingAll = true;
             for (Integer i : mProfileServices.keySet()) {
                 ProfileServiceConnections psc = mProfileServices.get(i);
                 try {
@@ -1611,6 +1616,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 }
                 psc.removeAllProxies();
             }
+            mUnbindingAll = false;
             mProfileServices.clear();
         }
     }
