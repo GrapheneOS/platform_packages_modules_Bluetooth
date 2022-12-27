@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.hfpclient;
 
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -25,6 +26,8 @@ import static org.mockito.Mockito.verify;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
@@ -135,5 +138,18 @@ public class HeadsetClientServiceTest {
                     eq(HeadsetClientStateMachine.SEND_BIEV),
                     eq(2),
                     anyInt());
+    }
+
+    @Test
+    public void testSetCallAudioPolicy() {
+        // Put mock state machine
+        BluetoothDevice device =
+                BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:01:02:03:04:05");
+        mService.getStateMachineMap().put(device, mStateMachine);
+
+        mService.setAudioPolicy(device, new BluetoothAudioPolicy.Builder().build());
+
+        verify(mStateMachine, timeout(STANDARD_WAIT_MILLIS).times(1))
+                .setAudioPolicy(any(BluetoothAudioPolicy.class));
     }
 }
