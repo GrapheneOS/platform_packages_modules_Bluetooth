@@ -674,11 +674,15 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         sendUpdateRequest();
     }
 
-    private static class PbapBinder extends IBluetoothPbap.Stub implements IProfileServiceBinder {
+    @VisibleForTesting
+    static class PbapBinder extends IBluetoothPbap.Stub implements IProfileServiceBinder {
         private BluetoothPbapService mService;
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private BluetoothPbapService getService(AttributionSource source) {
+            if (Utils.isInstrumentationTestMode()) {
+                return mService;
+            }
             if (!Utils.checkServiceAvailable(mService, TAG)
                     || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
