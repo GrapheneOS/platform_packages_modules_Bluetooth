@@ -118,6 +118,39 @@ struct ACL_ClearFilterAcceptList {
 };
 extern struct ACL_ClearFilterAcceptList ACL_ClearFilterAcceptList;
 
+// Name: ACL_LeSetDefaultSubrate
+// Params:
+// Return: void
+struct ACL_LeSetDefaultSubrate {
+  std::function<void(uint16_t subrate_min, uint16_t subrate_max,
+                     uint16_t max_latency, uint16_t cont_num,
+                     uint16_t sup_tout)>
+      body{[](uint16_t subrate_min, uint16_t subrate_max, uint16_t max_latency,
+              uint16_t cont_num, uint16_t sup_tout) {}};
+  void operator()(uint16_t subrate_min, uint16_t subrate_max,
+                  uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout) {
+    body(subrate_min, subrate_max, max_latency, cont_num, sup_tout);
+  };
+};
+extern struct ACL_LeSetDefaultSubrate ACL_LeSetDefaultSubrate;
+
+// Name: ACL_LeSubrateRequest
+// Params:
+// Return: void
+struct ACL_LeSubrateRequest {
+  std::function<void(uint16_t hci_handle, uint16_t subrate_min,
+                     uint16_t subrate_max, uint16_t max_latency,
+                     uint16_t cont_num, uint16_t sup_tout)>
+      body{[](uint16_t hci_handle, uint16_t subrate_min, uint16_t subrate_max,
+              uint16_t max_latency, uint16_t cont_num, uint16_t sup_tout) {}};
+  void operator()(uint16_t hci_handle, uint16_t subrate_min,
+                  uint16_t subrate_max, uint16_t max_latency, uint16_t cont_num,
+                  uint16_t sup_tout) {
+    body(hci_handle, subrate_min, subrate_max, max_latency, cont_num, sup_tout);
+  };
+};
+extern struct ACL_LeSubrateRequest ACL_LeSubrateRequest;
+
 // Name: ACL_ConfigureLePrivacy
 // Params: bool is_le_privacy_enabled
 // Return: void
