@@ -25,6 +25,8 @@
     </target_preparer>
     <target_preparer class="com.android.tradefed.targetprep.RunCommandTargetPreparer">
         <option name="throw-if-cmd-fail" value="true" />
+        <option name="run-command" value="input keyevent KEYCODE_WAKEUP" />
+        <option name="run-command" value="wm dismiss-keyguard" />
         <option name="run-command" value="settings put global ble_scan_always_enabled 0" />
         <option name="run-command" value="cmd bluetooth_manager disable" />
         <option name="run-command" value="cmd bluetooth_manager wait-for-state:STATE_OFF" />
