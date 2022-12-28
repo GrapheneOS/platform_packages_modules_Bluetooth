@@ -18,6 +18,7 @@ package com.android.bluetooth;
 
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.PeriodicAdvertisingCallback;
 import android.bluetooth.le.PeriodicAdvertisingManager;
 import android.bluetooth.le.ScanResult;
@@ -193,5 +194,22 @@ public class BluetoothMethodProxy {
             ScanResult scanResult, int skip, int timeout,
             PeriodicAdvertisingCallback callback, Handler handler) {
         manager.registerSync(scanResult, skip, timeout, callback, handler);
+    }
+
+    /**
+     * Proxies {@link PeriodicAdvertisingManager#transferSync}.
+     */
+    public void periodicAdvertisingManagerTransferSync(PeriodicAdvertisingManager manager,
+            BluetoothDevice bda, int serviceData, int syncHandle) {
+        manager.transferSync(bda, serviceData, syncHandle);
+    }
+
+    /**
+     * Proxies {@link PeriodicAdvertisingManager#transferSetInfo}.
+     */
+    public void periodicAdvertisingManagerTransferSetInfo(
+            PeriodicAdvertisingManager manager, BluetoothDevice bda, int serviceData,
+            int advHandle, PeriodicAdvertisingCallback callback) {
+        manager.transferSetInfo(bda, serviceData, advHandle, callback);
     }
 }
