@@ -98,6 +98,11 @@ void gatt_notify_phy_updated(tGATT_STATUS status, uint16_t handle,
                              uint8_t tx_phy, uint8_t rx_phy) {
   mock_function_count_map[__func__]++;
 }
+void gatt_notify_subrate_change(uint16_t handle, uint16_t subrate_factor,
+                                uint16_t latency, uint16_t cont_num,
+                                uint16_t timeout, uint8_t status) {
+  mock_function_count_map[__func__]++;
+}
 void gatt_proc_srv_chg(void) { mock_function_count_map[__func__]++; }
 void gatt_send_srv_chg_ind(const RawAddress& peer_bda) {
   mock_function_count_map[__func__]++;

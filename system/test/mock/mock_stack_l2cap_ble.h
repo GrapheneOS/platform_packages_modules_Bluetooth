@@ -331,6 +331,24 @@ struct L2CA_SubrateRequest {
   };
 };
 extern struct L2CA_SubrateRequest L2CA_SubrateRequest;
+// Name: l2cble_process_subrate_change_evt
+// Params: const RawAddress& bda
+// Returns: void
+struct l2cble_process_subrate_change_evt {
+  std::function<void(uint16_t handle, uint8_t status, uint16_t subrate_factor,
+                     uint16_t peripheral_latency, uint16_t cont_num,
+                     uint16_t timeout)>
+      body{[](uint16_t handle, uint8_t status, uint16_t subrate_factor,
+              uint16_t peripheral_latency, uint16_t cont_num,
+              uint16_t timeout) {}};
+  void operator()(uint16_t handle, uint8_t status, uint16_t subrate_factor,
+                  uint16_t peripheral_latency, uint16_t cont_num,
+                  uint16_t timeout) {
+    body(handle, status, subrate_factor, peripheral_latency, cont_num, timeout);
+  };
+};
+extern struct l2cble_process_subrate_change_evt
+    l2cble_process_subrate_change_evt;
 
 }  // namespace stack_l2cap_ble
 }  // namespace mock
