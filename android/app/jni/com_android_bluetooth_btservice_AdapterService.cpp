@@ -685,11 +685,6 @@ static void dut_mode_recv_callback(uint16_t opcode, uint8_t* buf, uint8_t len) {
 
 }
 
-static void le_test_mode_recv_callback(bt_status_t status,
-                                       uint16_t packet_count) {
-  ALOGV("%s: status:%d packet_count:%d ", __func__, status, packet_count);
-}
-
 static void energy_info_recv_callback(bt_activity_energy_info* p_energy_info,
                                       bt_uid_traffic_t* uid_data) {
   CallbackEnv sCallbackEnv(__func__);
@@ -734,7 +729,6 @@ static bt_callbacks_t sBluetoothCallbacks = {sizeof(sBluetoothCallbacks),
                                              acl_state_changed_callback,
                                              callback_thread_event,
                                              dut_mode_recv_callback,
-                                             le_test_mode_recv_callback,
                                              energy_info_recv_callback,
                                              link_quality_report_callback,
                                              generate_local_oob_data_callback,
