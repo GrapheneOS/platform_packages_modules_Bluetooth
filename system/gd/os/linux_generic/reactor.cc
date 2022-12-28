@@ -142,6 +142,7 @@ void Reactor::Run() {
     if (waiting_for_idle && count == 0) {
       timeout_ms = -1;
       waiting_for_idle = false;
+      std::scoped_lock<std::mutex> lock(mutex_);
       idle_promise_->set_value();
       idle_promise_ = nullptr;
     }
