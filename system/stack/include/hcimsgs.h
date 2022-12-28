@@ -34,28 +34,6 @@ void bte_main_hci_send(BT_HDR* p_msg, uint16_t event);
 
 /* Message by message.... */
 
-/* Inquiry */
-/* Inquiry Cancel */
-
-/* Periodic Inquiry Mode */
-extern void btsnd_hcic_per_inq_mode(uint16_t max_period, uint16_t min_period,
-                                    const LAP inq_lap, uint8_t duration,
-                                    uint8_t response_cnt);
-
-/* Periodic Inquiry Mode */
-
-/* Exit Periodic Inquiry Mode */
-extern void btsnd_hcic_exit_per_inq(void);
-
-/* Create Connection */
-extern void btsnd_hcic_create_conn(const RawAddress& dest,
-                                   uint16_t packet_types,
-                                   uint8_t page_scan_rep_mode,
-                                   uint8_t page_scan_mode,
-                                   uint16_t clock_offset, uint8_t allow_switch);
-
-/* Create Connection */
-
 /* Disconnect */
 namespace bluetooth {
 namespace legacy {
@@ -143,9 +121,6 @@ extern void btsnd_hcic_rmt_name_req(const RawAddress& bd_addr,
 extern void btsnd_hcic_rmt_name_req_cancel(const RawAddress& bd_addr);
 /* Remote Name Request Cancel */
 
-extern void btsnd_hcic_rmt_features_req(
-    uint16_t handle); /* Remote Features Request */
-
 /* Remote Extended Features */
 extern void btsnd_hcic_rmt_ext_features(uint16_t handle, uint8_t page_num);
 /* Remote Extended Features */
@@ -154,7 +129,6 @@ extern void btsnd_hcic_rmt_ver_req(
     uint16_t handle); /* Remote Version Info Request */
 extern void btsnd_hcic_read_rmt_clk_offset(
     uint16_t handle); /* Remote Clock Offset */
-extern void btsnd_hcic_read_lmp_handle(uint16_t handle); /* Remote LMP Handle */
 extern void btsnd_hcic_setup_esco_conn(uint16_t handle,
                                        uint32_t transmit_bandwidth,
                                        uint32_t receive_bandwidth,
@@ -189,15 +163,6 @@ extern void btsnd_hcic_park_mode(uint16_t handle, uint16_t beacon_max_interval,
 /* Park Mode */
 
 extern void btsnd_hcic_exit_park_mode(uint16_t handle); /* Exit Park Mode */
-
-/* QoS Setup */
-extern void btsnd_hcic_qos_setup(uint16_t handle, uint8_t flags,
-                                 uint8_t service_type, uint32_t token_rate,
-                                 uint32_t peak, uint32_t latency,
-                                 uint32_t delay_var);
-/* QoS Setup */
-
-/* Switch Role Request */
 
 /* Write Policy Settings */
 extern void btsnd_hcic_write_policy_set(uint16_t handle, uint16_t settings);
@@ -243,16 +208,11 @@ extern void btsnd_hcic_rem_oob_reply(const RawAddress& bd_addr,
 /* Remote OOB Data Request Negative Reply */
 extern void btsnd_hcic_rem_oob_neg_reply(const RawAddress& bd_addr);
 
-/* Read Tx Power Level */
-extern void btsnd_hcic_read_inq_tx_power(void);
-
 /* Read Default Erroneous Data Reporting */
 extern void btsnd_hcic_read_default_erroneous_data_rpt(void);
 
 extern void btsnd_hcic_enhanced_flush(uint16_t handle, uint8_t packet_type);
 
-extern void btsnd_hcic_send_keypress_notif(const RawAddress& bd_addr,
-                                           uint8_t notif);
 /**** end of Simple Pairing Commands ****/
 
 /* Delete Stored Key */
@@ -296,11 +256,6 @@ extern void btsnd_hcic_write_auto_flush_tout(
 extern void btsnd_hcic_read_tx_power(uint16_t handle,
                                      uint8_t type); /* Read Tx Power */
 
-/* Read transmit power level parameter */
-extern void btsnd_hcic_host_num_xmitted_pkts(
-    uint8_t num_handles, uint16_t* handle,
-    uint16_t* num_pkts); /* Set Host Buffer Size */
-
 /* Write Link Supervision Timeout */
 extern void btsnd_hcic_write_link_super_tout(uint16_t handle, uint16_t timeout);
 /* Write Link Supervision Timeout */
@@ -309,12 +264,10 @@ extern void btsnd_hcic_write_cur_iac_lap(
     uint8_t num_cur_iac, LAP* const iac_lap); /* Write Current IAC LAP */
 /* Write Current IAC LAP */
 
-extern void btsnd_hcic_get_link_quality(uint16_t handle); /* Get Link Quality */
 extern void btsnd_hcic_read_rssi(uint16_t handle);        /* Read RSSI */
 using ReadEncKeySizeCb = base::OnceCallback<void(uint8_t, uint16_t, uint8_t)>;
 extern void btsnd_hcic_read_encryption_key_size(uint16_t handle, ReadEncKeySizeCb cb);
 extern void btsnd_hcic_read_failed_contact_counter(uint16_t handle);
-extern void btsnd_hcic_read_automatic_flush_timeout(uint16_t handle);
 extern void btsnd_hcic_write_pagescan_type(
     uint8_t type); /* Write Page Scan Type */
 extern void btsnd_hcic_write_inqscan_type(
