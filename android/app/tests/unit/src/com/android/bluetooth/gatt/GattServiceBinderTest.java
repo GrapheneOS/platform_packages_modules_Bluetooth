@@ -23,11 +23,18 @@ import static org.mockito.Mockito.when;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothGattCallback;
 import android.bluetooth.IBluetoothGattServerCallback;
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertisingSetParameters;
+import android.bluetooth.le.IAdvertisingSetCallback;
+import android.bluetooth.le.IPeriodicAdvertisingCallback;
 import android.bluetooth.le.IScannerCallback;
+import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.AttributionSource;
 import android.content.Context;
@@ -61,6 +68,7 @@ public class GattServiceBinderTest {
     private GattService mService;
 
     private Context mContext;
+    private BluetoothDevice mDevice;
     private PendingIntent mPendingIntent;
     private AttributionSource mAttributionSource;
 
@@ -76,6 +84,7 @@ public class GattServiceBinderTest {
         when(mService.isAvailable()).thenReturn(true);
         mBinder = new GattService.BluetoothGattBinder(mService);
         mAttributionSource = new AttributionSource.Builder(1).build();
+        mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(REMOTE_DEVICE_ADDRESS);
     }
 
     @Test
@@ -454,6 +463,308 @@ public class GattServiceBinderTest {
         mBinder.unregisterServer(serverIf, mAttributionSource, SynchronousResultReceiver.get());
 
         verify(mService).unregisterServer(serverIf, mAttributionSource);
+    }
+
+    @Test
+    public void serverConnect() {
+        int serverIf = 1;
+        String address = REMOTE_DEVICE_ADDRESS;
+        boolean isDirect = true;
+        int transport = 2;
+
+        mBinder.serverConnect(serverIf, address, isDirect, transport, mAttributionSource,
+                SynchronousResultReceiver.get());
+
+        verify(mService).serverConnect(serverIf, address, isDirect, transport, mAttributionSource);
+    }
+
+    @Test
+    public void serverDisconnect() {
+        int serverIf = 1;
+        String address = REMOTE_DEVICE_ADDRESS;
+
+        mBinder.serverDisconnect(serverIf, address, mAttributionSource,
+                SynchronousResultReceiver.get());
+
+        verify(mService).serverDisconnect(serverIf, address, mAttributionSource);
+    }
+
+    @Test
+    public void serverSetPreferredPhy() throws Exception {
+        int serverIf = 1;
+        String address = REMOTE_DEVICE_ADDRESS;
+        int txPhy = 2;
+        int rxPhy = 1;
+        int phyOptions = 3;
+
+        mBinder.serverSetPreferredPhy(serverIf, address, txPhy, rxPhy, phyOptions,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).serverSetPreferredPhy(serverIf, address, txPhy, rxPhy, phyOptions,
+                mAttributionSource);
+    }
+
+    @Test
+    public void serverReadPhy() throws Exception {
+        int serverIf = 1;
+        String address = REMOTE_DEVICE_ADDRESS;
+
+        mBinder.serverReadPhy(serverIf, address, mAttributionSource,
+                SynchronousResultReceiver.get());
+
+        verify(mService).serverReadPhy(serverIf, address, mAttributionSource);
+    }
+
+    @Test
+    public void addService() {
+        int serverIf = 1;
+        BluetoothGattService svc = mock(BluetoothGattService.class);
+
+        mBinder.addService(serverIf, svc, mAttributionSource,
+                SynchronousResultReceiver.get());
+
+        verify(mService).addService(serverIf, svc, mAttributionSource);
+    }
+
+    @Test
+    public void removeService() {
+        int serverIf = 1;
+        int handle = 2;
+
+        mBinder.removeService(serverIf, handle, mAttributionSource,
+                SynchronousResultReceiver.get());
+
+        verify(mService).removeService(serverIf, handle, mAttributionSource);
+    }
+
+    @Test
+    public void clearServices() {
+        int serverIf = 1;
+
+        mBinder.clearServices(serverIf, mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).clearServices(serverIf, mAttributionSource);
+    }
+
+    @Test
+    public void sendResponse() throws Exception {
+        int serverIf = 1;
+        String address = REMOTE_DEVICE_ADDRESS;
+        int requestId = 2;
+        int status = 3;
+        int offset = 4;
+        byte[] value = new byte[] {5, 6};
+
+        mBinder.sendResponse(serverIf, address, requestId, status, offset, value,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).sendResponse(serverIf, address, requestId, status, offset, value,
+                mAttributionSource);
+    }
+
+    @Test
+    public void sendNotification() throws Exception {
+        int serverIf = 1;
+        String address = REMOTE_DEVICE_ADDRESS;
+        int handle = 2;
+        boolean confirm = true;
+        byte[] value = new byte[] {5, 6};
+
+        mBinder.sendNotification(serverIf, address, handle, confirm, value,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).sendNotification(serverIf, address, handle, confirm, value,
+                mAttributionSource);
+    }
+
+    @Test
+    public void startAdvertisingSet() throws Exception {
+        AdvertisingSetParameters parameters = new AdvertisingSetParameters.Builder().build();
+        AdvertiseData advertiseData = new AdvertiseData.Builder().build();
+        AdvertiseData scanResponse = new AdvertiseData.Builder().build();
+        PeriodicAdvertisingParameters periodicParameters =
+                new PeriodicAdvertisingParameters.Builder().build();
+        AdvertiseData periodicData = new AdvertiseData.Builder().build();
+        int duration = 1;
+        int maxExtAdvEvents = 2;
+        IAdvertisingSetCallback callback = mock(IAdvertisingSetCallback.class);
+
+        mBinder.startAdvertisingSet(parameters, advertiseData, scanResponse, periodicParameters,
+                periodicData, duration, maxExtAdvEvents, callback,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).startAdvertisingSet(parameters, advertiseData, scanResponse,
+                periodicParameters, periodicData, duration, maxExtAdvEvents, callback,
+                mAttributionSource);
+    }
+
+    @Test
+    public void stopAdvertisingSet() throws Exception {
+        IAdvertisingSetCallback callback = mock(IAdvertisingSetCallback.class);
+
+        mBinder.stopAdvertisingSet(callback, mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).stopAdvertisingSet(callback, mAttributionSource);
+    }
+
+    @Test
+    public void getOwnAddress() throws Exception {
+        int advertiserId = 1;
+
+        mBinder.getOwnAddress(advertiserId, mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).getOwnAddress(advertiserId, mAttributionSource);
+    }
+
+    @Test
+    public void enableAdvertisingSet() throws Exception {
+        int advertiserId = 1;
+        boolean enable = true;
+        int duration = 3;
+        int maxExtAdvEvents = 4;
+
+        mBinder.enableAdvertisingSet(advertiserId, enable, duration, maxExtAdvEvents,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).enableAdvertisingSet(advertiserId, enable, duration, maxExtAdvEvents,
+                mAttributionSource);
+    }
+
+    @Test
+    public void setAdvertisingData() throws Exception {
+        int advertiserId = 1;
+        AdvertiseData data = new AdvertiseData.Builder().build();
+
+        mBinder.setAdvertisingData(advertiserId, data,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).setAdvertisingData(advertiserId, data, mAttributionSource);
+    }
+
+    @Test
+    public void setScanResponseData() throws Exception {
+        int advertiserId = 1;
+        AdvertiseData data = new AdvertiseData.Builder().build();
+
+        mBinder.setScanResponseData(advertiserId, data,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).setScanResponseData(advertiserId, data, mAttributionSource);
+    }
+
+    @Test
+    public void setAdvertisingParameters() throws Exception {
+        int advertiserId = 1;
+        AdvertisingSetParameters parameters = new AdvertisingSetParameters.Builder().build();
+
+        mBinder.setAdvertisingParameters(advertiserId, parameters,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).setAdvertisingParameters(advertiserId, parameters, mAttributionSource);
+    }
+
+    @Test
+    public void setPeriodicAdvertisingParameters() throws Exception {
+        int advertiserId = 1;
+        PeriodicAdvertisingParameters parameters =
+                new PeriodicAdvertisingParameters.Builder().build();
+
+        mBinder.setPeriodicAdvertisingParameters(advertiserId, parameters,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).setPeriodicAdvertisingParameters(advertiserId, parameters,
+                mAttributionSource);
+    }
+
+    @Test
+    public void setPeriodicAdvertisingData() throws Exception {
+        int advertiserId = 1;
+        AdvertiseData data = new AdvertiseData.Builder().build();
+
+        mBinder.setPeriodicAdvertisingData(advertiserId, data,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).setPeriodicAdvertisingData(advertiserId, data, mAttributionSource);
+    }
+
+    @Test
+    public void setPeriodicAdvertisingEnable() throws Exception {
+        int advertiserId = 1;
+        boolean enable = true;
+
+        mBinder.setPeriodicAdvertisingEnable(advertiserId, enable,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).setPeriodicAdvertisingEnable(advertiserId, enable, mAttributionSource);
+    }
+
+    @Test
+    public void registerSync() throws Exception {
+        ScanResult scanResult = new ScanResult(mDevice, 1, 2, 3, 4, 5, 6, 7, null, 8);
+        int skip = 1;
+        int timeout = 2;
+        IPeriodicAdvertisingCallback callback = mock(IPeriodicAdvertisingCallback.class);
+
+        mBinder.registerSync(scanResult, skip, timeout, callback,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).registerSync(scanResult, skip, timeout, callback, mAttributionSource);
+    }
+
+    @Test
+    public void transferSync() throws Exception {
+        int serviceData = 1;
+        int syncHandle = 2;
+
+        mBinder.transferSync(mDevice, serviceData, syncHandle,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).transferSync(mDevice, serviceData, syncHandle, mAttributionSource);
+    }
+
+    @Test
+    public void transferSetInfo() throws Exception {
+        int serviceData = 1;
+        int advHandle = 2;
+        IPeriodicAdvertisingCallback callback = mock(IPeriodicAdvertisingCallback.class);
+
+        mBinder.transferSetInfo(mDevice, serviceData, advHandle, callback,
+                mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).transferSetInfo(mDevice, serviceData, advHandle, callback,
+                mAttributionSource);
+    }
+
+    @Test
+    public void unregisterSync() throws Exception {
+        IPeriodicAdvertisingCallback callback = mock(IPeriodicAdvertisingCallback.class);
+
+        mBinder.unregisterSync(callback, mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).unregisterSync(callback, mAttributionSource);
+    }
+
+    @Test
+    public void disconnectAll() throws Exception {
+        IPeriodicAdvertisingCallback callback = mock(IPeriodicAdvertisingCallback.class);
+
+        mBinder.disconnectAll(mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).disconnectAll(mAttributionSource);
+    }
+
+    @Test
+    public void unregAll() throws Exception {
+        mBinder.unregAll(mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).unregAll(mAttributionSource);
+    }
+
+    @Test
+    public void numHwTrackFiltersAvailable() throws Exception {
+        mBinder.numHwTrackFiltersAvailable(mAttributionSource, SynchronousResultReceiver.get());
+
+        verify(mService).numHwTrackFiltersAvailable(mAttributionSource);
     }
 
     @Test
