@@ -35,6 +35,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
@@ -67,7 +68,8 @@ public class AvrcpControllerService extends ProfileService {
     private static final byte JNI_PLAY_STATUS_PLAYING = 0x01;
     private static final byte JNI_PLAY_STATUS_PAUSED = 0x02;
     private static final byte JNI_PLAY_STATUS_FWD_SEEK = 0x03;
-    private static final byte JNI_PLAY_STATUS_REV_SEEK = 0x04;
+    @VisibleForTesting
+    static final byte JNI_PLAY_STATUS_REV_SEEK = 0x04;
     private static final byte JNI_PLAY_STATUS_ERROR = -1;
 
     /* Folder/Media Item scopes.
@@ -173,6 +175,7 @@ public class AvrcpControllerService extends ProfileService {
         for (AvrcpControllerStateMachine stateMachine : mDeviceStateMap.values()) {
             stateMachine.quitNow();
         }
+        mDeviceStateMap.clear();
 
         sService = null;
         sBrowseTree = null;
@@ -201,7 +204,8 @@ public class AvrcpControllerService extends ProfileService {
     /**
      * Set the current active device, notify devices of activity status
      */
-    private boolean setActiveDevice(BluetoothDevice device) {
+    @VisibleForTesting
+    boolean setActiveDevice(BluetoothDevice device) {
         A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
         if (a2dpSinkService == null) {
             return false;
@@ -277,7 +281,8 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
-    private void refreshContents(BrowseTree.BrowseNode node) {
+    @VisibleForTesting
+    void refreshContents(BrowseTree.BrowseNode node) {
         BluetoothDevice device = node.getDevice();
         if (device == null) {
             return;
@@ -359,12 +364,16 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     //Binder object: Must be static class or memory leak may occur
-    private static class AvrcpControllerServiceBinder extends IBluetoothAvrcpController.Stub
+    @VisibleForTesting
+    static class AvrcpControllerServiceBinder extends IBluetoothAvrcpController.Stub
             implements IProfileServiceBinder {
         private AvrcpControllerService mService;
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private AvrcpControllerService getService(AttributionSource source) {
+            if (Utils.isInstrumentationTestMode()) {
+                return mService;
+            }
             if (!Utils.checkServiceAvailable(mService, TAG)
                     || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
@@ -467,14 +476,16 @@ public class AvrcpControllerService extends ProfileService {
 
     /* JNI API*/
     // Called by JNI when a passthrough key was received.
-    private void handlePassthroughRsp(int id, int keyState, byte[] address) {
+    @VisibleForTesting
+    void handlePassthroughRsp(int id, int keyState, byte[] address) {
         if (DBG) {
             Log.d(TAG, "passthrough response received as: key: " + id
                     + " state: " + keyState + "address:" + Arrays.toString(address));
         }
     }
 
-    private void handleGroupNavigationRsp(int id, int keyState) {
+    @VisibleForTesting
+    void handleGroupNavigationRsp(int id, int keyState) {
         if (DBG) {
             Log.d(TAG, "group navigation response received as: key: " + id + " state: "
                     + keyState);
@@ -482,16 +493,13 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI when a device has connected or disconnected.
-    private synchronized void onConnectionStateChanged(boolean remoteControlConnected,
+    @VisibleForTesting
+    synchronized void onConnectionStateChanged(boolean remoteControlConnected,
             boolean browsingConnected, byte[] address) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         if (DBG) {
             Log.d(TAG, "onConnectionStateChanged " + remoteControlConnected + " "
                     + browsingConnected + device);
-        }
-        if (device == null) {
-            Log.e(TAG, "onConnectionStateChanged Device is null");
-            return;
         }
 
         StackEvent event =
@@ -514,12 +522,14 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI to notify Avrcp of features supported by the Remote device.
-    private void getRcFeatures(byte[] address, int features) {
+    @VisibleForTesting
+    void getRcFeatures(byte[] address, int features) {
         /* Do Nothing. */
     }
 
     // Called by JNI to notify Avrcp of a remote device's Cover Art PSM
-    private void getRcPsm(byte[] address, int psm) {
+    @VisibleForTesting
+    void getRcPsm(byte[] address, int psm) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         if (DBG) Log.d(TAG, "getRcPsm(device=" + device + ", psm=" + psm + ")");
         AvrcpControllerStateMachine stateMachine = getOrCreateStateMachine(device);
@@ -530,12 +540,14 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI
-    private void setPlayerAppSettingRsp(byte[] address, byte accepted) {
+    @VisibleForTesting
+    void setPlayerAppSettingRsp(byte[] address, byte accepted) {
         /* Do Nothing. */
     }
 
     // Called by JNI when remote wants to receive absolute volume notifications.
-    private synchronized void handleRegisterNotificationAbsVol(byte[] address, byte label) {
+    @VisibleForTesting
+    synchronized void handleRegisterNotificationAbsVol(byte[] address, byte label) {
         if (DBG) {
             Log.d(TAG, "handleRegisterNotificationAbsVol");
         }
@@ -548,7 +560,8 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI when remote wants to set absolute volume.
-    private synchronized void handleSetAbsVolume(byte[] address, byte absVol, byte label) {
+    @VisibleForTesting
+    synchronized void handleSetAbsVolume(byte[] address, byte absVol, byte label) {
         if (DBG) {
             Log.d(TAG, "handleSetAbsVolume ");
         }
@@ -588,7 +601,8 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI when a track changes and local AvrcpController is registered for updates.
-    private synchronized void onTrackChanged(byte[] address, byte numAttributes, int[] attributes,
+    @VisibleForTesting
+    synchronized void onTrackChanged(byte[] address, byte numAttributes, int[] attributes,
             String[] attribVals) {
         if (DBG) {
             Log.d(TAG, "onTrackChanged");
@@ -615,7 +629,8 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI periodically based upon timer to update play position
-    private synchronized void onPlayPositionChanged(byte[] address, int songLen,
+    @VisibleForTesting
+    synchronized void onPlayPositionChanged(byte[] address, int songLen,
             int currSongPosition) {
         if (DBG) {
             Log.d(TAG, "onPlayPositionChanged pos " + currSongPosition);
@@ -630,7 +645,8 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI on changes of play status
-    private synchronized void onPlayStatusChanged(byte[] address, byte playStatus) {
+    @VisibleForTesting
+    synchronized void onPlayStatusChanged(byte[] address, byte playStatus) {
         if (DBG) {
             Log.d(TAG, "onPlayStatusChanged " + playStatus);
         }
@@ -644,7 +660,8 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI to report remote Player's capabilities
-    private synchronized void handlePlayerAppSetting(byte[] address, byte[] playerAttribRsp,
+    @VisibleForTesting
+    synchronized void handlePlayerAppSetting(byte[] address, byte[] playerAttribRsp,
             int rspLen) {
         if (DBG) {
             Log.d(TAG, "handlePlayerAppSetting rspLen = " + rspLen);
@@ -660,7 +677,8 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
-    private synchronized void onPlayerAppSettingChanged(byte[] address, byte[] playerAttribRsp,
+    @VisibleForTesting
+    synchronized void onPlayerAppSettingChanged(byte[] address, byte[] playerAttribRsp,
             int rspLen) {
         if (DBG) {
             Log.d(TAG, "onPlayerAppSettingChanged ");
@@ -677,7 +695,8 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
-    private void onAvailablePlayerChanged(byte[] address) {
+    @VisibleForTesting
+    void onAvailablePlayerChanged(byte[] address) {
         if (DBG) {
             Log.d(TAG," onAvailablePlayerChanged");
         }
@@ -795,7 +814,8 @@ public class AvrcpControllerService extends ProfileService {
         return apb.build();
     }
 
-    private void handleChangeFolderRsp(byte[] address, int count) {
+    @VisibleForTesting
+    void handleChangeFolderRsp(byte[] address, int count) {
         if (DBG) {
             Log.d(TAG, "handleChangeFolderRsp count: " + count);
         }
@@ -807,7 +827,8 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
-    private void handleSetBrowsedPlayerRsp(byte[] address, int items, int depth) {
+    @VisibleForTesting
+    void handleSetBrowsedPlayerRsp(byte[] address, int items, int depth) {
         if (DBG) {
             Log.d(TAG, "handleSetBrowsedPlayerRsp depth: " + depth);
         }
@@ -820,7 +841,8 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
-    private void handleSetAddressedPlayerRsp(byte[] address, int status) {
+    @VisibleForTesting
+    void handleSetAddressedPlayerRsp(byte[] address, int status) {
         if (DBG) {
             Log.d(TAG, "handleSetAddressedPlayerRsp status: " + status);
         }
@@ -833,7 +855,8 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
-    private void handleAddressedPlayerChanged(byte[] address, int id) {
+    @VisibleForTesting
+    void handleAddressedPlayerChanged(byte[] address, int id) {
         if (DBG) {
             Log.d(TAG, "handleAddressedPlayerChanged id: " + id);
         }
@@ -846,7 +869,8 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
-    private void handleNowPlayingContentChanged(byte[] address) {
+    @VisibleForTesting
+    void handleNowPlayingContentChanged(byte[] address) {
         if (DBG) {
             Log.d(TAG, "handleNowPlayingContentChanged");
         }

@@ -99,6 +99,8 @@ static constexpr uint16_t kLogDumpEventPerFile = 0x00FF;
 // Total length of all parameters of the link Quality related event except
 // Vendor Specific Parameters.
 static constexpr uint8_t kLinkQualityParamTotalLen = 48;
+// 7.8.116 LE Read ISO Link Quality command
+static constexpr uint8_t kISOLinkQualityParamTotalLen = 24;
 // Total length of all parameters of the ROOT_INFLAMMATION event except Vendor
 // Specific Parameters.
 static constexpr uint8_t kRootInflammationParamTotalLen = 3;

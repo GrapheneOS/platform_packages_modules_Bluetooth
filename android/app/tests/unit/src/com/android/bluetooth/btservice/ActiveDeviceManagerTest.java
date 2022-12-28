@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHapClient;
 import android.bluetooth.BluetoothHeadset;
@@ -123,6 +124,8 @@ public class ActiveDeviceManagerTest {
         mMostRecentDevice = null;
 
         when(mA2dpService.setActiveDevice(any())).thenReturn(true);
+        when(mHeadsetService.getHfpCallAudioPolicy(any())).thenReturn(
+                new BluetoothAudioPolicy.Builder().build());
         when(mHeadsetService.setActiveDevice(any())).thenReturn(true);
         when(mHearingAidService.setActiveDevice(any())).thenReturn(true);
         when(mLeAudioService.setActiveDevice(any())).thenReturn(true);
@@ -307,6 +310,23 @@ public class ActiveDeviceManagerTest {
         Mockito.clearInvocations(mHeadsetService);
         headsetDisconnected(mSecondaryAudioDevice);
         verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
+    }
+
+    /**
+     * A headset device with connecting audio policy set to NOT ALLOWED.
+     */
+    @Test
+    public void notAllowedConnectingPolicyHeadsetConnected_noSetActiveDevice() {
+        // setting connecting policy to NOT ALLOWED
+        when(mHeadsetService.getHfpCallAudioPolicy(mHeadsetDevice))
+                .thenReturn(new BluetoothAudioPolicy.Builder()
+                        .setCallEstablishPolicy(BluetoothAudioPolicy.POLICY_ALLOWED)
+                        .setConnectingTimePolicy(BluetoothAudioPolicy.POLICY_NOT_ALLOWED)
+                        .setInBandRingtonePolicy(BluetoothAudioPolicy.POLICY_ALLOWED)
+                        .build());
+
+        headsetConnected(mHeadsetDevice);
+        verify(mHeadsetService, never()).setActiveDevice(mHeadsetDevice);
     }
 
     /**
