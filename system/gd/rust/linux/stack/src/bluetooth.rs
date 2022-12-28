@@ -1098,9 +1098,11 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
                     let sent_info = info.clone();
                     tokio::spawn(async move {
-                        let _ = txl.send(Message::DelayedAdapterActions(
-                            DelayedActions::ConnectAllProfiles(sent_info),
-                        ));
+                        let _ = txl
+                            .send(Message::DelayedAdapterActions(
+                                DelayedActions::ConnectAllProfiles(sent_info),
+                            ))
+                            .await;
                     });
                 }
 
