@@ -183,7 +183,7 @@ class LeAclConnectionTest : public ::testing::Test {
 
   void sync_handler() {
     ASSERT(thread_ != nullptr);
-    ASSERT_TRUE(thread_->GetReactor()->WaitForIdle(2s));
+    ASSERT(thread_->GetReactor()->WaitForIdle(2s));
   }
 
   AddressWithType address_1 =
