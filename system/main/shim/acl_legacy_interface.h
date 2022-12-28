@@ -150,7 +150,7 @@ typedef struct {
   acl_link_interface_t link;
 } acl_interface_t;
 
-const acl_interface_t GetAclInterface();
+const acl_interface_t& GetAclInterface();
 
 }  // namespace legacy
 }  // namespace shim
