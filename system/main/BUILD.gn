@@ -23,8 +23,6 @@ static_library("bluetooth-static") {
   complete_static_lib = true
 
   sources = [
-    "//bt/system/service/hal/bluetooth_interface.cc",
-    "//bt/system/service/logging_helpers.cc",
   ]
 
   configs += [

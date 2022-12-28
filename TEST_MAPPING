@@ -113,9 +113,6 @@
       "name": "bluetooth_vc_test"
     },
     {
-      "name": "bluetoothtbd_test"
-    },
-    {
       "name": "bt_host_test_bta"
     },
     {
