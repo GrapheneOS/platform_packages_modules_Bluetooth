@@ -1575,7 +1575,6 @@ public class BassClientStateMachine extends StateMachine {
                 case SET_BCAST_CODE:
                     BluetoothLeBroadcastReceiveState recvState =
                             (BluetoothLeBroadcastReceiveState) message.obj;
-                    sourceId = message.arg2;
                     log("SET_BCAST_CODE metaData: " + recvState);
                     if (!isItRightTimeToUpdateBroadcastPin((byte) recvState.getSourceId())) {
                         mSetBroadcastCodePending = true;
