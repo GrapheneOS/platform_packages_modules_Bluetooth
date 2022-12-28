@@ -212,7 +212,7 @@ public class EventReport {
         MESSAGE_EXTENDED_DATA_CHANGED("MessageExtendedDataChanged"),
         PARTICIPANT_PRESENCE_CHANGED("ParticipantPresenceChanged"),
         PARTICIPANT_CHAT_STATE_CHANGED("ParticipantChatStateChanged"),
-        CONCERSATION_CHANGED("ConversationChanged");
+        CONVERSATION_CHANGED("ConversationChanged");
         private final String mSpecName;
 
         Type(String specName) {
