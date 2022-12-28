@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+#include <base/logging.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -24,6 +25,7 @@
 
 #include "bta/include/bta_jv_api.h"
 #include "btif/include/btif_metrics_logging.h"
+#include "btif/include/btif_sock.h"
 #include "btif/include/btif_sock_thread.h"
 #include "btif/include/btif_sock_util.h"
 #include "btif/include/btif_uid.h"
@@ -36,8 +38,6 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 struct packet {
   struct packet *next, *prev;
@@ -205,6 +205,10 @@ static void btsock_l2cap_free_l(l2cap_socket* sock) {
 
   if (!t) /* prever double-frees */
     return;
+
+  btif_sock_connection_logger(
+      SOCKET_CONNECTION_STATE_DISCONNECTED,
+      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr);
 
   // Whenever a socket is freed, the connection must be dropped
   log_socket_connection_state(
@@ -389,6 +393,10 @@ static void on_srv_l2cap_listen_started(tBTA_JV_L2CAP_START* p_start,
 
   sock->handle = p_start->handle;
 
+  btif_sock_connection_logger(
+      SOCKET_CONNECTION_STATE_LISTENING,
+      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr);
+
   log_socket_connection_state(
       sock->addr, sock->id, sock->is_le_coc ? BTSOCK_L2CAP_LE : BTSOCK_L2CAP,
       android::bluetooth::SocketConnectionstateEnum::
@@ -452,6 +460,11 @@ static void on_srv_l2cap_psm_connect_l(tBTA_JV_L2CAP_OPEN* p_open,
   accept_rs->id = sock->id;
   sock->id = new_listen_id;
 
+  btif_sock_connection_logger(
+      SOCKET_CONNECTION_STATE_CONNECTED,
+      accept_rs->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION,
+      accept_rs->addr);
+
   log_socket_connection_state(
       accept_rs->addr, accept_rs->id,
       accept_rs->is_le_coc ? BTSOCK_L2CAP_LE : BTSOCK_L2CAP,
@@ -491,6 +504,10 @@ static void on_cl_l2cap_psm_connect_l(tBTA_JV_L2CAP_OPEN* p_open,
               sock->id);
     return;
   }
+
+  btif_sock_connection_logger(
+      SOCKET_CONNECTION_STATE_CONNECTED,
+      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr);
 
   log_socket_connection_state(
       sock->addr, sock->id, sock->is_le_coc ? BTSOCK_L2CAP_LE : BTSOCK_L2CAP,
@@ -543,6 +560,10 @@ static void on_l2cap_close(tBTA_JV_L2CAP_CLOSE* p_close, uint32_t id) {
         id);
     return;
   }
+
+  btif_sock_connection_logger(
+      SOCKET_CONNECTION_STATE_DISCONNECTING,
+      sock->server ? SOCKET_ROLE_LISTEN : SOCKET_ROLE_CONNECTION, sock->addr);
 
   log_socket_connection_state(
       sock->addr, sock->id, sock->is_le_coc ? BTSOCK_L2CAP_LE : BTSOCK_L2CAP,
