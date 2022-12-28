@@ -426,9 +426,6 @@ public final class Utils {
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public static void enforceBluetoothPrivilegedPermission(Context context) {
-        if (isInstrumentationTestMode()) {
-            return;
-        }
         context.enforceCallingOrSelfPermission(
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH PRIVILEGED permission");
@@ -436,9 +433,6 @@ public final class Utils {
 
     @RequiresPermission(android.Manifest.permission.LOCAL_MAC_ADDRESS)
     public static void enforceLocalMacAddressPermission(Context context) {
-        if (isInstrumentationTestMode()) {
-            return;
-        }
         context.enforceCallingOrSelfPermission(
                 android.Manifest.permission.LOCAL_MAC_ADDRESS,
                 "Need LOCAL_MAC_ADDRESS permission");
@@ -446,14 +440,13 @@ public final class Utils {
 
     @RequiresPermission(android.Manifest.permission.DUMP)
     public static void enforceDumpPermission(Context context) {
-        if (isInstrumentationTestMode()) {
-            return;
-        }
         context.enforceCallingOrSelfPermission(
                 android.Manifest.permission.DUMP,
                 "Need DUMP permission");
     }
 
+    /**
+     */
     public static AttributionSource getCallingAttributionSource(Context context) {
         int callingUid = Binder.getCallingUid();
         if (callingUid == android.os.Process.ROOT_UID) {
@@ -488,9 +481,6 @@ public final class Utils {
     @SuppressLint("AndroidFrameworkRequiresPermission")
     private static boolean checkPermissionForDataDelivery(Context context, String permission,
             AttributionSource attributionSource, String message) {
-        if (isInstrumentationTestMode()) {
-            return true;
-        }
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
         AttributionSource currentAttribution = new AttributionSource
@@ -697,9 +687,6 @@ public final class Utils {
     }
 
     public static boolean checkCallerIsSystemOrActiveOrManagedUser(Context context, String tag) {
-        if (isInstrumentationTestMode()) {
-            return true;
-        }
         final boolean res = checkCallerIsSystemOrActiveOrManagedUser(context);
         if (!res) {
             Log.w(TAG, tag + " - Not allowed for"
