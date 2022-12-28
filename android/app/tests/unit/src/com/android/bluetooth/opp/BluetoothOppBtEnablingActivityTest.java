@@ -22,20 +22,15 @@ import static android.content.pm.PackageManager.DONT_KILL_APP;
 
 import static androidx.lifecycle.Lifecycle.State.DESTROYED;
 
-import static com.android.bluetooth.opp.BluetoothOppBtEnablingActivity.sBtEnablingTimeoutMs;
-
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Looper;
 import android.view.KeyEvent;
 
 import androidx.lifecycle.Lifecycle;
@@ -44,7 +39,6 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.BluetoothMethodProxy;
-import com.android.bluetooth.TestUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -126,6 +120,19 @@ public class BluetoothOppBtEnablingActivityTest {
         doReturn(true).when(mBluetoothMethodProxy).bluetoothAdapterIsEnabled(any());
         ActivityScenario<BluetoothOppBtEnablingActivity> activityScenario = ActivityScenario.launch(
                 mIntent);
+        assertActivityState(activityScenario, DESTROYED);
+    }
+
+    @Test
+    public void broadcastReceiver_onReceive_finishImmediately() throws Exception {
+        doReturn(false).when(mBluetoothMethodProxy).bluetoothAdapterIsEnabled(any());
+        ActivityScenario<BluetoothOppBtEnablingActivity> activityScenario = ActivityScenario.launch(
+                mIntent);
+        activityScenario.onActivity(activity -> {
+            Intent intent = new Intent(BluetoothAdapter.ACTION_STATE_CHANGED);
+            intent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
+            activity.mBluetoothReceiver.onReceive(mTargetContext, intent);
+        });
         assertActivityState(activityScenario, DESTROYED);
     }
 
