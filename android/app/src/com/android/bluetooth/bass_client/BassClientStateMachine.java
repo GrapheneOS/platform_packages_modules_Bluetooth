@@ -14,46 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * Bluetooth Bassclient StateMachine. There is one instance per remote device.
- *  - "Disconnected" and "Connected" are steady states.
- *  - "Connecting" and "Disconnecting" are transient states until the
- *     connection / disconnection is completed.
- *  - "ConnectedProcessing" is an intermediate state to ensure, there is only
- *    one Gatt transaction from the profile at any point of time
- *
- *
- *                        (Disconnected)
- *                           |       ^
- *                   CONNECT |       | DISCONNECTED
- *                           V       |
- *                 (Connecting)<--->(Disconnecting)
- *                           |       ^
- *                 CONNECTED |       | DISCONNECT
- *                           V       |
- *                          (Connected)
- *                           |       ^
- *                 GATT_TXN  |       | GATT_TXN_DONE/GATT_TXN_TIMEOUT
- *                           V       |
- *                          (ConnectedProcessing)
- * NOTES:
- *  - If state machine is in "Connecting" state and the remote device sends
- *    DISCONNECT request, the state machine transitions to "Disconnecting" state.
- *  - Similarly, if the state machine is in "Disconnecting" state and the remote device
- *    sends CONNECT request, the state machine transitions to "Connecting" state.
- *  - Whenever there is any Gatt Write/read, State machine will moved "ConnectedProcessing" and
- *    all other requests (add, update, remove source) operations will be deferred in
- *    "ConnectedProcessing" state
- *  - Once the gatt transaction is done (or after a specified timeout of no response),
- *    State machine will move back to "Connected" and try to process the deferred requests
- *    as needed
- *
- *                    DISCONNECT
- *    (Connecting) ---------------> (Disconnecting)
- *                 <---------------
- *                      CONNECT
- *
- */
 package com.android.bluetooth.bass_client;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
@@ -153,7 +113,6 @@ public class BassClientStateMachine extends StateMachine {
     private final Disconnected mDisconnected = new Disconnected();
     private final Connected mConnected = new Connected();
     private final Connecting mConnecting = new Connecting();
-    private final Disconnecting mDisconnecting = new Disconnecting();
     private final ConnectedProcessing mConnectedProcessing = new ConnectedProcessing();
     @VisibleForTesting
     final List<BluetoothGattCharacteristic> mBroadcastCharacteristics =
@@ -176,8 +135,10 @@ public class BassClientStateMachine extends StateMachine {
     private BluetoothAdapter mBluetoothAdapter =
             BluetoothAdapter.getDefaultAdapter();
     private ServiceFactory mFactory = new ServiceFactory();
-    private int mPendingOperation = -1;
-    private byte mPendingSourceId = -1;
+    @VisibleForTesting
+    int mPendingOperation = -1;
+    @VisibleForTesting
+    byte mPendingSourceId = -1;
     private BluetoothLeBroadcastMetadata mPendingMetadata = null;
     private BluetoothLeBroadcastReceiveState mSetBroadcastPINRcvState = null;
     private boolean mSetBroadcastCodePending = false;
@@ -185,7 +146,8 @@ public class BassClientStateMachine extends StateMachine {
     // Psync and PAST interfaces
     private PeriodicAdvertisingManager mPeriodicAdvManager;
     private boolean mAutoAssist = false;
-    private boolean mAutoTriggered = false;
+    @VisibleForTesting
+    boolean mAutoTriggered = false;
     @VisibleForTesting
     boolean mNoStopScanOffload = false;
     private boolean mDefNoPAS = false;
@@ -204,7 +166,6 @@ public class BassClientStateMachine extends StateMachine {
         mService = svc;
         mConnectTimeoutMs = connectTimeoutMs;
         addState(mDisconnected);
-        addState(mDisconnecting);
         addState(mConnected);
         addState(mConnecting);
         addState(mConnectedProcessing);
@@ -1804,7 +1765,7 @@ public class BassClientStateMachine extends StateMachine {
                     transitionTo(mConnected);
                     break;
                 case GATT_TXN_TIMEOUT:
-                    log("GATT transaction timedout for" + mDevice);
+                    log("GATT transaction timeout for" + mDevice);
                     sendPendingCallbacks(
                             mPendingOperation,
                             BluetoothStatusCodes.ERROR_UNKNOWN);
@@ -1824,67 +1785,6 @@ public class BassClientStateMachine extends StateMachine {
                     break;
                 default:
                     log("CONNECTEDPROCESSING: not handled message:" + message.what);
-                    return NOT_HANDLED;
-            }
-            return HANDLED;
-        }
-    }
-
-    @VisibleForTesting
-    class Disconnecting extends State {
-        @Override
-        public void enter() {
-            log("Enter Disconnecting(" + mDevice + "): "
-                    + messageWhatToString(getCurrentMessage().what));
-            sendMessageDelayed(CONNECT_TIMEOUT, mDevice, mConnectTimeoutMs);
-            broadcastConnectionState(
-                    mDevice, mLastConnectionState, BluetoothProfile.STATE_DISCONNECTING);
-        }
-
-        @Override
-        public void exit() {
-            log("Exit Disconnecting(" + mDevice + "): "
-                    + messageWhatToString(getCurrentMessage().what));
-            removeMessages(CONNECT_TIMEOUT);
-            mLastConnectionState = BluetoothProfile.STATE_DISCONNECTING;
-        }
-
-        @Override
-        public boolean processMessage(Message message) {
-            log("Disconnecting process message(" + mDevice + "): "
-                    + messageWhatToString(message.what));
-            switch (message.what) {
-                case CONNECT:
-                    log("Disconnecting to " + mDevice);
-                    log("deferring this connection request " + mDevice);
-                    deferMessage(message);
-                    break;
-                case DISCONNECT:
-                    Log.w(TAG, "Already disconnecting: DISCONNECT ignored: " + mDevice);
-                    break;
-                case CONNECTION_STATE_CHANGED:
-                    int state = (int) message.obj;
-                    Log.w(TAG, "Disconnecting: connection state changed:" + state);
-                    if (state == BluetoothProfile.STATE_CONNECTED) {
-                        Log.e(TAG, "should never happen from this state");
-                        transitionTo(mConnected);
-                    } else {
-                        Log.w(TAG, "disconnection successful to " + mDevice);
-                        cancelActiveSync(null);
-                        transitionTo(mDisconnected);
-                    }
-                    break;
-                case CONNECT_TIMEOUT:
-                    Log.w(TAG, "CONNECT_TIMEOUT");
-                    BluetoothDevice device = (BluetoothDevice) message.obj;
-                    if (!mDevice.equals(device)) {
-                        Log.e(TAG, "Unknown device timeout " + device);
-                        break;
-                    }
-                    transitionTo(mDisconnected);
-                    break;
-                default:
-                    log("Disconnecting: not handled message:" + message.what);
                     return NOT_HANDLED;
             }
             return HANDLED;
@@ -1917,9 +1817,6 @@ public class BassClientStateMachine extends StateMachine {
             case "Disconnected":
                 log("Disconnected");
                 return BluetoothProfile.STATE_DISCONNECTED;
-            case "Disconnecting":
-                log("Disconnecting");
-                return BluetoothProfile.STATE_DISCONNECTING;
             case "Connecting":
                 log("Connecting");
                 return BluetoothProfile.STATE_CONNECTING;
