@@ -154,7 +154,8 @@ public class BluetoothMapContentObserver {
     private BluetoothMapFolderElement mFolders = new BluetoothMapFolderElement("DUMMY", null);
     // Will be set by the MAS when generated.
     private Uri mMessageUri = null;
-    private Uri mContactUri = null;
+    @VisibleForTesting
+    Uri mContactUri = null;
 
     private boolean mTransmitEvents = true;
 
@@ -1358,7 +1359,8 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    private void initContactsList() throws RemoteException {
+    @VisibleForTesting
+    void initContactsList() throws RemoteException {
         if (V) {
             Log.d(TAG, "initContactsList");
         }
@@ -2154,7 +2156,8 @@ public class BluetoothMapContentObserver {
         // TODO: conversation contact updates if IM and SMS(MMS in one instance
     }
 
-    private boolean setEmailMessageStatusDelete(BluetoothMapFolderElement mCurrentFolder,
+    @VisibleForTesting
+    boolean setEmailMessageStatusDelete(BluetoothMapFolderElement mCurrentFolder,
             String uriStr, long handle, int status) {
         boolean res = false;
         Uri uri = Uri.parse(uriStr + BluetoothMapContract.TABLE_MESSAGE);
@@ -2173,7 +2176,8 @@ public class BluetoothMapContentObserver {
                     folderId = deleteFolder.getFolderId();
                 }
                 contentValues.put(BluetoothMapContract.MessageColumns.FOLDER_ID, folderId);
-                updateCount = mResolver.update(uri, contentValues, null, null);
+                updateCount = BluetoothMethodProxy.getInstance().contentResolverUpdate(
+                        mResolver, uri, contentValues, null, null);
                 /* The race between updating the value in our cached values and the database
                  * is handled by the synchronized statement. */
                 if (updateCount > 0) {
@@ -2212,7 +2216,8 @@ public class BluetoothMapContentObserver {
                         }
                     }
                     contentValues.put(BluetoothMapContract.MessageColumns.FOLDER_ID, folderId);
-                    updateCount = mResolver.update(uri, contentValues, null, null);
+                    updateCount = BluetoothMethodProxy.getInstance().contentResolverUpdate(
+                            mResolver, uri, contentValues, null, null);
                     if (updateCount > 0) {
                         res = true;
                         /* Update the folder ID to avoid triggering an event for MCE
