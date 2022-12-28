@@ -268,6 +268,26 @@ struct acl_peer_supports_sniff_subrating {
 };
 extern struct acl_peer_supports_sniff_subrating
     acl_peer_supports_sniff_subrating;
+// Name: acl_peer_supports_ble_connection_subrating
+// Params: const RawAddress& remote_bda
+// Returns: bool
+struct acl_peer_supports_ble_connection_subrating {
+  std::function<bool(const RawAddress& remote_bda)> body{
+      [](const RawAddress& remote_bda) { return false; }};
+  bool operator()(const RawAddress& remote_bda) { return body(remote_bda); };
+};
+extern struct acl_peer_supports_ble_connection_subrating
+    acl_peer_supports_ble_connection_subrating;
+// Name: acl_peer_supports_ble_connection_subrating_host
+// Params: const RawAddress& remote_bda
+// Returns: bool
+struct acl_peer_supports_ble_connection_subrating_host {
+  std::function<bool(const RawAddress& remote_bda)> body{
+      [](const RawAddress& remote_bda) { return false; }};
+  bool operator()(const RawAddress& remote_bda) { return body(remote_bda); };
+};
+extern struct acl_peer_supports_ble_connection_subrating_host
+    acl_peer_supports_ble_connection_subrating_host;
 // Name: acl_refresh_remote_address
 // Params: const RawAddress& identity_address, tBLE_ADDR_TYPE
 // identity_address_type, const RawAddress& bda, tBLE_ADDR_TYPE rra_type,
