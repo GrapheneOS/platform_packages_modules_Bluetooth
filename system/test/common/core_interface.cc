@@ -71,3 +71,7 @@ void InitializeCoreInterface() {
   static auto mockCoreInterface = MockCoreInterface{};
   stack_manager_get_interface()->init_stack(&mockCoreInterface);
 }
+
+void CleanCoreInterface() {
+  stack_manager_get_interface()->clean_up_stack([] {});
+}
