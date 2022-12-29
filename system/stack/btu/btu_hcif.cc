@@ -326,7 +326,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
           btm_ble_process_adv_pkt(ble_evt_len, p);
           break;
         case HCI_BLE_LL_CONN_PARAM_UPD_EVT:
-          btu_ble_ll_conn_param_upd_evt(p, hci_evt_len);
+          btu_ble_ll_conn_param_upd_evt(p, ble_evt_len);
           break;
         case HCI_BLE_READ_REMOTE_FEAT_CMPL_EVT:
           btm_ble_read_remote_features_complete(p, ble_evt_len);
@@ -1207,7 +1207,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_BLE_WRITE_ADV_ENABLE:
-      btm_ble_write_adv_enable_complete(p);
+      btm_ble_write_adv_enable_complete(p, evt_len);
       break;
 
     case HCI_BLE_CREATE_LL_CONN:
@@ -1619,6 +1619,11 @@ static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len) {
   uint16_t interval;
   uint16_t latency;
   uint16_t timeout;
+
+  if (evt_len < 9) {
+     LOG_ERROR("Malformated event packet, too short");
+     return;
+  }
 
   STREAM_TO_UINT8(status, p);
   STREAM_TO_UINT16(handle, p);

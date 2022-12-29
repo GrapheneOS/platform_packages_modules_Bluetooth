@@ -1153,7 +1153,7 @@ bt_status_t HeadsetInterface::PhoneStateChange(
 
   const RawAddress raw_address(*bd_addr);
   int idx = btif_hf_idx_by_bdaddr(bd_addr);
-  if (idx < 0 || idx > BTA_AG_MAX_NUM_CLIENTS) {
+  if (idx < 0 || idx >= BTA_AG_MAX_NUM_CLIENTS) {
     LOG_WARN("Invalid index %d for %s", idx, PRIVATE_ADDRESS(raw_address));
     return BT_STATUS_FAIL;
   }
