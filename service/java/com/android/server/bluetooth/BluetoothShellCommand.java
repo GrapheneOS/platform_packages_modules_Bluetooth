@@ -168,7 +168,7 @@ class BluetoothShellCommand extends BasicShellCommandHandler {
                 }
             }
             try {
-                getOutPrintWriter().println(TAG + ": Exec" + cmd);
+                getOutPrintWriter().println(TAG + ": Exec " + cmd);
                 Log.d(TAG, "Exec " + cmd);
                 int ret = bt_cmd.exec(cmd);
                 if (ret == 0) {
