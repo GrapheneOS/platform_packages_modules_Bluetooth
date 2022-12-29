@@ -556,7 +556,7 @@ public class BluetoothMapService extends ProfileService {
         }
     }
 
-    private List<BluetoothDevice> getConnectedDevices() {
+    List<BluetoothDevice> getConnectedDevices() {
         List<BluetoothDevice> devices = new ArrayList<>();
         synchronized (this) {
             if (mState == BluetoothMap.STATE_CONNECTED && sRemoteDevice != null) {
@@ -1209,12 +1209,16 @@ public class BluetoothMapService extends ProfileService {
      * This class implements the IBluetoothMap interface - or actually it validates the
      * preconditions for calling the actual functionality in the MapService, and calls it.
      */
-    private static class BluetoothMapBinder extends IBluetoothMap.Stub
+    @VisibleForTesting
+    static class BluetoothMapBinder extends IBluetoothMap.Stub
             implements IProfileServiceBinder {
         private BluetoothMapService mService;
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private BluetoothMapService getService(AttributionSource source) {
+            if (Utils.isInstrumentationTestMode()) {
+                return mService;
+            }
             if (!Utils.checkServiceAvailable(mService, TAG)
                     || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {

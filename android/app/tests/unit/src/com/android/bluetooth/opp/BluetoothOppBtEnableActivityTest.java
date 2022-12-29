@@ -77,18 +77,4 @@ public class BluetoothOppBtEnableActivityTest {
                 isDialog()).check(matches(isDisplayed())).perform(click());
         intended(hasComponent(BluetoothOppBtEnablingActivity.class.getName()));
     }
-
-
-    private void enableActivity(boolean enable) {
-        int enabledState = enable ? COMPONENT_ENABLED_STATE_ENABLED
-                : COMPONENT_ENABLED_STATE_DEFAULT;
-
-        mTargetContext.getPackageManager().setApplicationEnabledSetting(
-                mTargetContext.getPackageName(), enabledState, DONT_KILL_APP);
-
-        ComponentName activityName = new ComponentName(mTargetContext,
-                BluetoothOppBtEnableActivity.class);
-        mTargetContext.getPackageManager().setComponentEnabledSetting(
-                activityName, enabledState, DONT_KILL_APP);
-    }
 }
