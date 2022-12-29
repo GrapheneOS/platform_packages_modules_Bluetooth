@@ -181,9 +181,8 @@ class BtifHhWithHalCallbacksTest : public BtifHhWithMockTest {
       g_thread_evt_promise.set_value(evt);
     };
     set_hal_cbacks(&bt_callbacks);
-    InitializeCoreInterface();
     // Start the jni callback thread
-    ASSERT_EQ(BT_STATUS_SUCCESS, btif_init_bluetooth());
+    InitializeCoreInterface();
     ASSERT_EQ(std::future_status::ready, future.wait_for(2s));
     ASSERT_EQ(ASSOCIATE_JVM, future.get());
 
@@ -196,8 +195,7 @@ class BtifHhWithHalCallbacksTest : public BtifHhWithMockTest {
     bt_callbacks.thread_evt_cb = [](bt_cb_thread_evt evt) {
       g_thread_evt_promise.set_value(evt);
     };
-    // Shutdown the jni callback thread
-    ASSERT_EQ(BT_STATUS_SUCCESS, btif_cleanup_bluetooth());
+    CleanCoreInterface();
     ASSERT_EQ(std::future_status::ready, future.wait_for(2s));
     ASSERT_EQ(DISASSOCIATE_JVM, future.get());
 

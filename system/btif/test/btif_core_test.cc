@@ -124,13 +124,12 @@ class BtifCoreTest : public ::testing::Test {
   void SetUp() override {
     callback_map_.clear();
     set_hal_cbacks(&callbacks);
-    InitializeCoreInterface();
     auto promise = std::promise<void>();
     auto future = promise.get_future();
     callback_map_["callback_thread_event"] = [&promise]() {
       promise.set_value();
     };
-    btif_init_bluetooth();
+    InitializeCoreInterface();
     ASSERT_EQ(std::future_status::ready, future.wait_for(timeout_time));
     callback_map_.erase("callback_thread_event");
   }
@@ -141,7 +140,7 @@ class BtifCoreTest : public ::testing::Test {
     callback_map_["callback_thread_event"] = [&promise]() {
       promise.set_value();
     };
-    btif_cleanup_bluetooth();
+    CleanCoreInterface();
     ASSERT_EQ(std::future_status::ready, future.wait_for(timeout_time));
     callback_map_.erase("callback_thread_event");
   }
