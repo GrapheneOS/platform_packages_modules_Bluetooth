@@ -465,4 +465,9 @@ public class MediaControlProfileTest {
         testGetSupportedPlayingOrder(false, true);
         testGetSupportedPlayingOrder(false, false);
     }
+
+    @Test
+    public void testDumpDoesNotCrash() {
+        mMediaControlProfile.dump(new StringBuilder());
+    }
 }

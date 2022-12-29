@@ -428,4 +428,10 @@ public class AvrcpControllerServiceTest {
                 eq(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS),
                 eq(new ArrayList<>(Arrays.asList(items))));
     }
+
+    @Test
+    public void dump_doesNotCrash() {
+        mService.getRcPsm(REMOTE_DEVICE_ADDRESS_AS_ARRAY, 1);
+        mService.dump(new StringBuilder());
+    }
 }

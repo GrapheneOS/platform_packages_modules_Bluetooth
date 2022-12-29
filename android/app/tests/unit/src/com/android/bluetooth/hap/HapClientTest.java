@@ -1052,6 +1052,24 @@ public class HapClientTest {
 
     }
 
+    @Test
+    public void testDumpDoesNotCrash() {
+        // Update the device policy so okToConnect() returns true
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(mDevice, BluetoothProfile.HAP_CLIENT))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        doReturn(true).when(mNativeInterface).connectHapClient(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectHapClient(any(BluetoothDevice.class));
+
+        doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
+                .getRemoteUuids(any(BluetoothDevice.class));
+
+        // Add state machine for testing dump()
+        mService.connect(mDevice);
+
+        mService.dump(new StringBuilder());
+    }
+
     /**
      * Helper function to test device connecting
      */
