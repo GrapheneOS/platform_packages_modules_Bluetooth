@@ -788,11 +788,12 @@ public final class BluetoothGatt implements BluetoothProfile {
     /**
      * Close this Bluetooth GATT client.
      *
-     * Application should call this method as early as possible after it is done with
-     * this GATT client.
+     * <p>Application should call this method as early as possible after it is done with this GATT
+     * client.
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @Override
     public void close() {
         if (DBG) Log.d(TAG, "close()");
 
