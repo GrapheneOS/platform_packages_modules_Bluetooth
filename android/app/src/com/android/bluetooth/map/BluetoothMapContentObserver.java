@@ -143,17 +143,20 @@ public class BluetoothMapContentObserver {
     private int mMasId;
     private boolean mEnableSmsMms = false;
     private boolean mObserverRegistered = false;
-    private BluetoothMapAccountItem mAccount;
+    @VisibleForTesting
+    BluetoothMapAccountItem mAccount;
     private String mAuthority = null;
 
     // Default supported feature bit mask is 0x1f
     private int mMapSupportedFeatures = BluetoothMapUtils.MAP_FEATURE_DEFAULT_BITMASK;
     // Default event report version is 1.0
-    private int mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V10;
+    @VisibleForTesting
+    int mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V10;
 
     private BluetoothMapFolderElement mFolders = new BluetoothMapFolderElement("DUMMY", null);
     // Will be set by the MAS when generated.
-    private Uri mMessageUri = null;
+    @VisibleForTesting
+    Uri mMessageUri = null;
     @VisibleForTesting
     Uri mContactUri = null;
 
@@ -1574,7 +1577,8 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    private void handleMsgListChangesMms() {
+    @VisibleForTesting
+    void handleMsgListChangesMms() {
         if (V) {
             Log.d(TAG, "handleMsgListChangesMms");
         }
@@ -1584,9 +1588,11 @@ public class BluetoothMapContentObserver {
         Cursor c;
         synchronized (getMsgListMms()) {
             if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
-                c = mResolver.query(Mms.CONTENT_URI, MMS_PROJECTION_SHORT, null, null, null);
+                c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        Mms.CONTENT_URI, MMS_PROJECTION_SHORT, null, null, null);
             } else {
-                c = mResolver.query(Mms.CONTENT_URI, MMS_PROJECTION_SHORT_EXT, null, null, null);
+                c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        Mms.CONTENT_URI, MMS_PROJECTION_SHORT_EXT, null, null, null);
             }
 
             try {
@@ -1742,7 +1748,8 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    private void handleMsgListChangesMsg(Uri uri) throws RemoteException {
+    @VisibleForTesting
+    void handleMsgListChangesMsg(Uri uri) throws RemoteException {
         if (V) {
             Log.v(TAG, "handleMsgListChangesMsg uri: " + uri.toString());
         }
@@ -1855,7 +1862,8 @@ public class BluetoothMapContentObserver {
                                         && sentFolder.getFolderId() == folderId
                                         && msg.localInitiatedSend) {
                                     if (msg.transparent) {
-                                        mResolver.delete(
+                                        BluetoothMethodProxy.getInstance().contentResolverDelete(
+                                                mResolver,
                                                 ContentUris.withAppendedId(mMessageUri, id), null,
                                                 null);
                                     } else {
