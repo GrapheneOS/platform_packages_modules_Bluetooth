@@ -830,7 +830,8 @@ public class HidDeviceService extends ProfileService {
         return sHidDeviceService;
     }
 
-    private static synchronized void setHidDeviceService(HidDeviceService instance) {
+    @VisibleForTesting
+    static synchronized void setHidDeviceService(HidDeviceService instance) {
         if (DBG) {
             Log.d(TAG, "setHidDeviceService(): set to: " + instance);
         }
