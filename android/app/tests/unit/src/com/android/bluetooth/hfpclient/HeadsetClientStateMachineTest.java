@@ -13,6 +13,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
+import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
@@ -97,6 +98,7 @@ public class HeadsetClientStateMachineTest {
 
         TestUtils.setAdapterService(mAdapterService);
         mNativeInterface = spy(NativeInterface.getInstance());
+        doReturn(true).when(mNativeInterface).sendAndroidAt(anyObject(), anyString());
 
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -201,6 +203,9 @@ public class HeadsetClientStateMachineTest {
         slcEvent.valueInt2 = HeadsetClientHalConstants.PEER_FEAT_ECS;
         slcEvent.device = mTestDevice;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, slcEvent);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+
+        setUpAndroidAt(false);
 
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
@@ -293,6 +298,9 @@ public class HeadsetClientStateMachineTest {
         slcEvent.valueInt2 = HeadsetClientHalConstants.PEER_FEAT_ECS;
         slcEvent.device = mTestDevice;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, slcEvent);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+
+        setUpAndroidAt(false);
 
         verify(mHeadsetClientService,
                 timeout(STANDARD_WAIT_MILLIS).times(expectedBroadcastMultiplePermissionsIndex++))
@@ -396,6 +404,10 @@ public class HeadsetClientStateMachineTest {
 
     /* Utility function to simulate SLC connection. */
     private int setUpServiceLevelConnection(int startBroadcastIndex) {
+        return setUpServiceLevelConnection(startBroadcastIndex, false);
+    }
+
+    private int setUpServiceLevelConnection(int startBroadcastIndex, boolean androidAtSupported) {
         // Trigger SLC connection
         StackEvent slcEvent = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
         slcEvent.valueInt = HeadsetClientHalConstants.CONNECTION_STATE_SLC_CONNECTED;
@@ -403,14 +415,44 @@ public class HeadsetClientStateMachineTest {
         slcEvent.valueInt2 |= HeadsetClientHalConstants.PEER_FEAT_HF_IND;
         slcEvent.device = mTestDevice;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, slcEvent);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+
+        setUpAndroidAt(androidAtSupported);
+
         ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(startBroadcastIndex))
                 .sendBroadcastMultiplePermissions(intentArgument.capture(),
                                                   any(String[].class), any(BroadcastOptions.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
                 intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+        Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HeadsetClientStateMachine.Connected.class));
+
         startBroadcastIndex++;
         return startBroadcastIndex;
+    }
+
+    /**
+     * Set up and verify AT Android related commands and events.
+     * Make sure this method is invoked after SLC is setup.
+     */
+    private void setUpAndroidAt(boolean androidAtSupported) {
+        verify(mNativeInterface).sendAndroidAt(mTestDevice, "+ANDROID=?");
+        if (androidAtSupported) {
+            StackEvent unknownEvt = new StackEvent(StackEvent.EVENT_TYPE_UNKNOWN_EVENT);
+            unknownEvt.valueString = "+ANDROID: 1";
+            unknownEvt.device = mTestDevice;
+            mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, unknownEvt);
+            TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+            verify(mHeadsetClientService).setAudioPolicyRemoteSupported(mTestDevice, true);
+            mHeadsetClientStateMachine.setAudioPolicyRemoteSupported(true);
+        } else {
+            // receive CMD_RESULT CME_ERROR due to remote not supporting Android AT
+            StackEvent cmdResEvt = new StackEvent(StackEvent.EVENT_TYPE_CMD_RESULT);
+            cmdResEvt.valueInt = StackEvent.CMD_RESULT_TYPE_CME_ERROR;
+            cmdResEvt.device = mTestDevice;
+            mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, cmdResEvt);
+        }
     }
 
     /* Utility function: supported AT command should lead to native call */
@@ -990,5 +1032,45 @@ public class HeadsetClientStateMachineTest {
         int unknownMessageInt = 54;
         Assert.assertEquals(HeadsetClientStateMachine.getMessageName(unknownMessageInt),
                 "UNKNOWN(" + unknownMessageInt + ")");
+    }
+    /**
+     * Tests and verify behavior of the case where remote device doesn't support
+     * At Android but tries to send audio policy.
+     */
+    @Test
+    public void testAndroidAtRemoteNotSupported_StateTransition_setAudioPolicy() {
+        // Setup connection state machine to be in connected state
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        int expectedBroadcastIndex = 1;
+
+        expectedBroadcastIndex = setUpHfpClientConnection(expectedBroadcastIndex);
+        expectedBroadcastIndex = setUpServiceLevelConnection(expectedBroadcastIndex);
+
+        BluetoothAudioPolicy dummyAudioPolicy = new BluetoothAudioPolicy.Builder().build();
+        mHeadsetClientStateMachine.setAudioPolicy(dummyAudioPolicy);
+        verify(mNativeInterface, never()).sendAndroidAt(mTestDevice, "+ANDROID:1,0,0,0");
+    }
+
+    @SmallTest
+    @Test
+    public void testSetGetCallAudioPolicy() {
+        // Return true for priority.
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+
+        int expectedBroadcastIndex = 1;
+
+        expectedBroadcastIndex = setUpHfpClientConnection(expectedBroadcastIndex);
+        expectedBroadcastIndex = setUpServiceLevelConnection(expectedBroadcastIndex, true);
+
+        BluetoothAudioPolicy dummyAudioPolicy = new BluetoothAudioPolicy.Builder()
+                .setCallEstablishPolicy(BluetoothAudioPolicy.POLICY_ALLOWED)
+                .setConnectingTimePolicy(BluetoothAudioPolicy.POLICY_NOT_ALLOWED)
+                .setInBandRingtonePolicy(BluetoothAudioPolicy.POLICY_ALLOWED)
+                .build();
+
+        mHeadsetClientStateMachine.setAudioPolicy(dummyAudioPolicy);
+        verify(mNativeInterface).sendAndroidAt(mTestDevice, "+ANDROID=1,1,2,1");
     }
 }

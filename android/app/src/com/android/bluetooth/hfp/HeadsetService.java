@@ -23,6 +23,7 @@ import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
+import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
@@ -465,7 +466,8 @@ public class HeadsetService extends ProfileService {
     /**
      * Handlers for incoming service calls
      */
-    private static class BluetoothHeadsetBinder extends IBluetoothHeadset.Stub
+    @VisibleForTesting
+    static class BluetoothHeadsetBinder extends IBluetoothHeadset.Stub
             implements IProfileServiceBinder {
         private volatile HeadsetService mService;
 
@@ -480,6 +482,9 @@ public class HeadsetService extends ProfileService {
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private HeadsetService getService(AttributionSource source) {
+            if (Utils.isInstrumentationTestMode()) {
+                return mService;
+            }
             if (!Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)
                     || !Utils.checkServiceAvailable(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
@@ -1310,6 +1315,24 @@ public class HeadsetService extends ProfileService {
     }
 
     /**
+     * Get the Bluetooth Audio Policy stored in the state machine
+     *
+     * @param device the device to change silence mode
+     * @return a {@link BluetoothAudioPolicy} object
+     */
+    public BluetoothAudioPolicy getHfpCallAudioPolicy(BluetoothDevice device) {
+        synchronized (mStateMachines) {
+            final HeadsetStateMachine stateMachine = mStateMachines.get(device);
+            if (stateMachine == null) {
+                Log.e(TAG, "getHfpCallAudioPolicy(), " + device
+                        + " does not have a state machine");
+                return null;
+            }
+            return stateMachine.getHfpCallAudioPolicy();
+        }
+    }
+
+    /**
      * Remove the active device
      */
     private void removeActiveDevice() {
@@ -1837,7 +1860,24 @@ public class HeadsetService extends ProfileService {
                 mSystemInterface.getAudioManager().setA2dpSuspended(false);
             }
         });
-
+        if (callState == HeadsetHalConstants.CALL_STATE_IDLE) {
+            final HeadsetStateMachine stateMachine = mStateMachines.get(mActiveDevice);
+            if (stateMachine == null) {
+                Log.d(TAG, "phoneStateChanged: CALL_STATE_IDLE, mActiveDevice is Null");
+            } else {
+                BluetoothAudioPolicy currentPolicy = stateMachine.getHfpCallAudioPolicy();
+                if (currentPolicy != null && currentPolicy.getConnectingTimePolicy()
+                        == BluetoothAudioPolicy.POLICY_NOT_ALLOWED) {
+                    /**
+                     * If the active device was set because of the pick up audio policy
+                     * and the connecting policy is NOT_ALLOWED, then after the call is
+                     * terminated, we must de-activate this device.
+                     * If there is a fallback mechanism, we should follow it.
+                     */
+                    removeActiveDevice();
+                }
+            }
+        }
     }
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
@@ -1886,8 +1926,23 @@ public class HeadsetService extends ProfileService {
     public boolean isInbandRingingEnabled() {
         boolean isInbandRingingSupported = getResources().getBoolean(
                 com.android.bluetooth.R.bool.config_bluetooth_hfp_inband_ringing_support);
+
+        boolean inbandRingtoneAllowedByPolicy = true;
+        List<BluetoothDevice> audioConnectableDevices = getConnectedDevices();
+        if (audioConnectableDevices.size() == 1) {
+            BluetoothDevice connectedDevice = audioConnectableDevices.get(0);
+            BluetoothAudioPolicy callAudioPolicy =
+                    getHfpCallAudioPolicy(connectedDevice);
+            if (callAudioPolicy != null && callAudioPolicy.getInBandRingtonePolicy()
+                    == BluetoothAudioPolicy.POLICY_NOT_ALLOWED) {
+                inbandRingtoneAllowedByPolicy = false;
+            }
+        }
+
         return isInbandRingingSupported && !SystemProperties.getBoolean(
-                DISABLE_INBAND_RINGING_PROPERTY, false) && !mInbandRingingRuntimeDisable;
+                DISABLE_INBAND_RINGING_PROPERTY, false)
+                && !mInbandRingingRuntimeDisable
+                && inbandRingtoneAllowedByPolicy;
     }
 
     /**

@@ -322,10 +322,10 @@ void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
   mock_function_count_map[__func__]++;
   test::mock::stack_btm_ble::btm_ble_ltk_request_reply(bda, use_stk, stk);
 }
-void btm_ble_rand_enc_complete(uint8_t* p, uint16_t op_code,
+void btm_ble_rand_enc_complete(uint8_t* p,uint16_t evt_len, uint16_t op_code,
                                tBTM_RAND_ENC_CB* p_enc_cplt_cback) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble::btm_ble_rand_enc_complete(p, op_code,
+  test::mock::stack_btm_ble::btm_ble_rand_enc_complete(p, evt_len, op_code,
                                                        p_enc_cplt_cback);
 }
 uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr) {

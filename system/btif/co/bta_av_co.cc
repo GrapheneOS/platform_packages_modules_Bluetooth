@@ -1381,15 +1381,18 @@ BT_HDR* BtaAvCo::GetNextSourceDataPacket(const uint8_t* p_codec_info,
    * p_buf->layer_specific : number of audio frames in the packet
    * p_buf->word[0] : timestamp
    */
-  if (!A2DP_GetPacketTimestamp(p_codec_info, (const uint8_t*)(p_buf + 1),
+  if (p_buf->len < 4 ||
+      !A2DP_GetPacketTimestamp(p_codec_info, (const uint8_t*)(p_buf + 1),
                                p_timestamp) ||
       !A2DP_BuildCodecHeader(p_codec_info, p_buf, p_buf->layer_specific)) {
     APPL_TRACE_ERROR("%s: unsupported codec type (%d)", __func__,
                      A2DP_GetCodecType(p_codec_info));
   }
 
+  // if offset is 0, the decremental operation may result in
+  // underflow and OOB access
   if (ContentProtectEnabled() && (active_peer_ != nullptr) &&
-      active_peer_->ContentProtectActive()) {
+      active_peer_->ContentProtectActive() && p_buf->offset > 0) {
     p_buf->len++;
     p_buf->offset--;
     uint8_t* p = (uint8_t*)(p_buf + 1) + p_buf->offset;

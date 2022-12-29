@@ -68,6 +68,10 @@ struct acl_peer_supports_ble_connection_parameters_request
 struct acl_peer_supports_ble_packet_extension
     acl_peer_supports_ble_packet_extension;
 struct acl_peer_supports_sniff_subrating acl_peer_supports_sniff_subrating;
+struct acl_peer_supports_ble_connection_subrating
+    acl_peer_supports_ble_connection_subrating;
+struct acl_peer_supports_ble_connection_subrating_host
+    acl_peer_supports_ble_connection_subrating_host;
 struct acl_refresh_remote_address acl_refresh_remote_address;
 struct acl_set_peer_le_features_from_handle
     acl_set_peer_le_features_from_handle;
@@ -268,6 +272,17 @@ bool acl_peer_supports_ble_packet_extension(uint16_t hci_handle) {
 bool acl_peer_supports_sniff_subrating(const RawAddress& remote_bda) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_acl::acl_peer_supports_sniff_subrating(remote_bda);
+}
+bool acl_peer_supports_ble_connection_subrating(const RawAddress& remote_bda) {
+  mock_function_count_map[__func__]++;
+  return test::mock::stack_acl::acl_peer_supports_ble_connection_subrating(
+      remote_bda);
+}
+bool acl_peer_supports_ble_connection_subrating_host(
+    const RawAddress& remote_bda) {
+  mock_function_count_map[__func__]++;
+  return test::mock::stack_acl::acl_peer_supports_ble_connection_subrating_host(
+      remote_bda);
 }
 bool acl_refresh_remote_address(const RawAddress& identity_address,
                                 tBLE_ADDR_TYPE identity_address_type,
@@ -667,17 +682,17 @@ void btm_read_remote_version_complete(tHCI_STATUS status, uint16_t handle,
   test::mock::stack_acl::btm_read_remote_version_complete(
       status, handle, lmp_version, manufacturer, lmp_subversion);
 }
-void btm_read_rssi_complete(uint8_t* p) {
+void btm_read_rssi_complete(uint8_t* p, uint16_t evt_len) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_acl::btm_read_rssi_complete(p);
+  test::mock::stack_acl::btm_read_rssi_complete(p, evt_len);
 }
 void btm_read_rssi_timeout(UNUSED_ATTR void* data) {
   mock_function_count_map[__func__]++;
   test::mock::stack_acl::btm_read_rssi_timeout(data);
 }
-void btm_read_tx_power_complete(uint8_t* p, bool is_ble) {
+void btm_read_tx_power_complete(uint8_t* p, uint16_t evt_len, bool is_ble) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_acl::btm_read_tx_power_complete(p, is_ble);
+  test::mock::stack_acl::btm_read_tx_power_complete(p, evt_len, is_ble);
 }
 void btm_read_tx_power_timeout(UNUSED_ATTR void* data) {
   mock_function_count_map[__func__]++;
