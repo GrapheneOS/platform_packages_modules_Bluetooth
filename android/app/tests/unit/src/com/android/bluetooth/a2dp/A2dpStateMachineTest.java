@@ -417,4 +417,22 @@ public class A2dpStateMachineTest {
         // Check if low latency audio been update.
         verify(mA2dpService, times(6)).updateLowLatencyAudioSupport(mTestDevice);
     }
+
+    @Test
+    public void dump_doesNotCrash() {
+        BluetoothCodecConfig[] codecsSelectableSbc;
+        codecsSelectableSbc = new BluetoothCodecConfig[1];
+        codecsSelectableSbc[0] = mCodecConfigSbc;
+
+        BluetoothCodecConfig[] codecsSelectableSbcAac;
+        codecsSelectableSbcAac = new BluetoothCodecConfig[2];
+        codecsSelectableSbcAac[0] = mCodecConfigSbc;
+        codecsSelectableSbcAac[1] = mCodecConfigAac;
+
+        BluetoothCodecStatus codecStatusSbcAndSbc = new BluetoothCodecStatus(mCodecConfigSbc,
+                Arrays.asList(codecsSelectableSbcAac), Arrays.asList(codecsSelectableSbc));
+        mA2dpStateMachine.processCodecConfigEvent(codecStatusSbcAndSbc);
+
+        mA2dpStateMachine.dump(new StringBuilder());
+    }
 }

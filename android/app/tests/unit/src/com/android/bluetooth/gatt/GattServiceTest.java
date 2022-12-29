@@ -197,4 +197,9 @@ public class GattServiceTest {
         verify(mNativeInterface, times(3)).gattConnectionParameterUpdate(eq(clientIf),
                 eq(address), anyInt(), anyInt(), anyInt(), anyInt(), eq(0), eq(0));
     }
+
+    @Test
+    public void testDumpDoesNotCrash() {
+        mService.dump(new StringBuilder());
+    }
 }
