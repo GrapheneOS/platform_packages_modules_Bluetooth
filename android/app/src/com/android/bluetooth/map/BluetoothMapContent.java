@@ -71,10 +71,13 @@ public class BluetoothMapContent {
     private static final int MASK_SUBJECT = 0x00000001;
     @VisibleForTesting
     static final int MASK_DATETIME = 0x00000002;
-    private static final int MASK_SENDER_NAME = 0x00000004;
-    private static final int MASK_SENDER_ADDRESSING = 0x00000008;
+    @VisibleForTesting
+    static final int MASK_SENDER_NAME = 0x00000004;
+    @VisibleForTesting
+    static final int MASK_SENDER_ADDRESSING = 0x00000008;
     private static final int MASK_RECIPIENT_NAME = 0x00000010;
-    private static final int MASK_RECIPIENT_ADDRESSING = 0x00000020;
+    @VisibleForTesting
+    static final int MASK_RECIPIENT_ADDRESSING = 0x00000020;
     private static final int MASK_TYPE = 0x00000040;
     private static final int MASK_SIZE = 0x00000080;
     private static final int MASK_RECEPTION_STATUS = 0x00000100;
@@ -928,7 +931,8 @@ public class BluetoothMapContent {
         return sb.toString();
     }
 
-    private void setRecipientAddressing(BluetoothMapMessageListingElement e, Cursor c,
+    @VisibleForTesting
+    void setRecipientAddressing(BluetoothMapMessageListingElement e, Cursor c,
             FilterInfo fi, BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_RECIPIENT_ADDRESSING) != 0) {
             String address = null;
@@ -1008,7 +1012,8 @@ public class BluetoothMapContent {
         }
     }
 
-    private void setSenderAddressing(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setSenderAddressing(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_SENDER_ADDRESSING) != 0) {
             String address = "";
@@ -1074,10 +1079,10 @@ public class BluetoothMapContent {
                 // TODO: This is a BAD hack, that we map the contact ID to a conversation ID!!!
                 //       We need to reach a conclusion on what to do
                 Uri contactsUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_CONVOCONTACT);
-                Cursor contacts =
-                        mResolver.query(contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
-                                BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = "
-                                        + contactId, null, null);
+                Cursor contacts = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
+                        BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = " + contactId, null,
+                        null);
                 try {
                     // TODO this will not work for group-chats
                     if (contacts != null && contacts.moveToFirst()) {
@@ -1101,7 +1106,8 @@ public class BluetoothMapContent {
         }
     }
 
-    private void setSenderName(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setSenderName(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_SENDER_NAME) != 0) {
             String name = "";
@@ -1155,10 +1161,10 @@ public class BluetoothMapContent {
                 // For IM we add the contact ID in the addressing
                 long contactId = c.getLong(fi.mMessageColFromAddress);
                 Uri contactsUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_CONVOCONTACT);
-                Cursor contacts =
-                        mResolver.query(contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
-                                BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = "
-                                        + contactId, null, null);
+                Cursor contacts = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
+                        BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = " + contactId, null,
+                        null);
                 try {
                     // TODO this will not work for group-chats
                     if (contacts != null && contacts.moveToFirst()) {
@@ -1206,8 +1212,8 @@ public class BluetoothMapContent {
         }
     }
 
-
-    private void setLastActivity(BluetoothMapConvoListingElement e, Cursor c, FilterInfo fi) {
+    @VisibleForTesting
+    void setLastActivity(BluetoothMapConvoListingElement e, Cursor c, FilterInfo fi) {
         long date = 0;
         if (fi.mMsgType == FilterInfo.TYPE_SMS || fi.mMsgType == FilterInfo.TYPE_MMS) {
             date = c.getLong(MMS_SMS_THREAD_COL_DATE);
