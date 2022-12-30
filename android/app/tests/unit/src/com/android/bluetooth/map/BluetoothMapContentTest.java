@@ -21,15 +21,18 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.provider.Telephony.Threads;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.util.Rfc822Tokenizer;
 
@@ -38,6 +41,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapContent.FilterInfo;
+import com.android.bluetooth.mapapi.BluetoothMapContract;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,12 +51,21 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.util.HashMap;
+
 @RunWith(AndroidJUnit4.class)
 public class BluetoothMapContentTest {
     private static final String TEST_TEXT = "text";
     private static final String TEST_TO_ADDRESS = "toName (toAddress) <to@google.com>";
     private static final String TEST_CC_ADDRESS = "ccName (ccAddress) <cc@google.com>";
     private static final String TEST_BCC_ADDRESS = "bccName (bccAddress) <bcc@google.com>";
+    private static final String TEST_FROM_ADDRESS = "fromName (fromAddress) <from@google.com>";
+    private static final String TEST_ADDRESS = "111-1111-1111";
+    private static final long TEST_DATE_SMS = 1;
+    private static final long TEST_DATE_EMAIL = 2;
+    private static final String TEST_NAME = "test_name";
+    private static final String TEST_PHONE = "test_phone";
+    private static final String TEST_PHONE_NAME = "test_phone_name";
 
     @Mock
     private BluetoothMapAccountItem mAccountItem;
@@ -71,7 +84,8 @@ public class BluetoothMapContentTest {
 
     private BluetoothMapContent mContent;
     private FilterInfo mInfo;
-    private BluetoothMapMessageListingElement mElement;
+    private BluetoothMapMessageListingElement mMessageListingElement;
+    private BluetoothMapConvoListingElement mConvoListingElement;
 
     @Before
     public void setUp() {
@@ -80,7 +94,8 @@ public class BluetoothMapContentTest {
 
         mContent = new BluetoothMapContent(mContext, mAccountItem, mMasInstance);
         mInfo = new FilterInfo();
-        mElement = new BluetoothMapMessageListingElement();
+        mMessageListingElement = new BluetoothMapMessageListingElement();
+        mConvoListingElement = new BluetoothMapConvoListingElement();
     }
 
     @After
@@ -176,9 +191,9 @@ public class BluetoothMapContentTest {
         cursor.addRow(new Object[]{0, -1});
         cursor.moveToFirst();
 
-        mContent.setAttachment(mElement, cursor, mInfo, mParams);
+        mContent.setAttachment(mMessageListingElement, cursor, mInfo, mParams);
 
-        assertThat(mElement.getAttachmentSize()).isEqualTo(1);
+        assertThat(mMessageListingElement.getAttachmentSize()).isEqualTo(1);
     }
 
     @Test
@@ -193,9 +208,9 @@ public class BluetoothMapContentTest {
         cursor.addRow(new Object[]{1, 0});
         cursor.moveToFirst();
 
-        mContent.setAttachment(mElement, cursor, mInfo, mParams);
+        mContent.setAttachment(mMessageListingElement, cursor, mInfo, mParams);
 
-        assertThat(mElement.getAttachmentSize()).isEqualTo(1);
+        assertThat(mMessageListingElement.getAttachmentSize()).isEqualTo(1);
     }
 
     @Test
@@ -214,10 +229,10 @@ public class BluetoothMapContentTest {
         cursor.moveToFirst();
 
         mContent.setRemoteFeatureMask(featureMask);
-        mContent.setAttachment(mElement, cursor, mInfo, mParams);
+        mContent.setAttachment(mMessageListingElement, cursor, mInfo, mParams);
 
-        assertThat(mElement.getAttachmentSize()).isEqualTo(1);
-        assertThat(mElement.getAttachmentMimeTypes()).isEqualTo("test_mime_type");
+        assertThat(mMessageListingElement.getAttachmentSize()).isEqualTo(1);
+        assertThat(mMessageListingElement.getAttachmentMimeTypes()).isEqualTo("test_mime_type");
     }
 
     @Test
@@ -271,9 +286,9 @@ public class BluetoothMapContentTest {
         cursor.addRow(new Object[]{2L});
         cursor.moveToFirst();
 
-        mContent.setDateTime(mElement, cursor, mInfo, mParams);
+        mContent.setDateTime(mMessageListingElement, cursor, mInfo, mParams);
 
-        assertThat(mElement.getDateTime()).isEqualTo(2L);
+        assertThat(mMessageListingElement.getDateTime()).isEqualTo(2L);
     }
 
     @Test
@@ -285,9 +300,9 @@ public class BluetoothMapContentTest {
         cursor.addRow(new Object[]{2L});
         cursor.moveToFirst();
 
-        mContent.setDateTime(mElement, cursor, mInfo, mParams);
+        mContent.setDateTime(mMessageListingElement, cursor, mInfo, mParams);
 
-        assertThat(mElement.getDateTime()).isEqualTo(2L * 1000L);
+        assertThat(mMessageListingElement.getDateTime()).isEqualTo(2L * 1000L);
     }
 
     @Test
@@ -299,9 +314,9 @@ public class BluetoothMapContentTest {
         cursor.addRow(new Object[]{2L});
         cursor.moveToFirst();
 
-        mContent.setDateTime(mElement, cursor, mInfo, mParams);
+        mContent.setDateTime(mMessageListingElement, cursor, mInfo, mParams);
 
-        assertThat(mElement.getDateTime()).isEqualTo(2L);
+        assertThat(mMessageListingElement.getDateTime()).isEqualTo(2L);
     }
 
     @Test
@@ -314,9 +329,9 @@ public class BluetoothMapContentTest {
         cursor.addRow(new Object[]{"test_delivery_status"});
         cursor.moveToFirst();
 
-        mContent.setDeliveryStatus(mElement, cursor, mInfo, mParams);
+        mContent.setDeliveryStatus(mMessageListingElement, cursor, mInfo, mParams);
 
-        assertThat(mElement.getDeliveryStatus()).isEqualTo("test_delivery_status");
+        assertThat(mMessageListingElement.getDeliveryStatus()).isEqualTo("test_delivery_status");
     }
 
     @Test
@@ -441,5 +456,313 @@ public class BluetoothMapContentTest {
         expected.append(Rfc822Tokenizer.tokenize(TEST_BCC_ADDRESS)[0].getAddress());
         assertThat(mContent.getRecipientAddressingEmail(cursor, mInfo)).isEqualTo(
                 expected.toString());
+    }
+
+    @Test
+    public void setRecipientAddressing_withFilterMsgTypeSms_andSmsMsgTypeInbox() {
+        when(mParams.getParameterMask()).thenReturn(
+                (long) BluetoothMapContent.MASK_RECIPIENT_ADDRESSING);
+        mInfo.mMsgType = FilterInfo.TYPE_SMS;
+        mInfo.mPhoneNum = TEST_ADDRESS;
+        mInfo.mSmsColType = 0;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"SmsColType"});
+        cursor.addRow(new Object[] {Telephony.Sms.MESSAGE_TYPE_INBOX});
+        cursor.moveToFirst();
+
+        mContent.setRecipientAddressing(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getRecipientAddressing()).isEqualTo(TEST_ADDRESS);
+    }
+
+    @Test
+    public void setRecipientAddressing_withFilterMsgTypeSms_andSmsMsgTypeDraft() {
+        when(mParams.getParameterMask()).thenReturn(
+                (long) BluetoothMapContent.MASK_RECIPIENT_ADDRESSING);
+        mInfo.mMsgType = FilterInfo.TYPE_SMS;
+        mInfo.mSmsColType = 2;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"RecipientIds",
+                Telephony.CanonicalAddressesColumns.ADDRESS, "SmsColType",
+                Telephony.Sms.ADDRESS, Telephony.Sms.THREAD_ID});
+        cursor.addRow(new Object[] {"recipientIdOne recipientIdTwo", "recipientAddress",
+                Telephony.Sms.MESSAGE_TYPE_DRAFT, null, "0"});
+        cursor.moveToFirst();
+
+        mContent.setRecipientAddressing(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getRecipientAddressing()).isEqualTo("recipientAddress");
+    }
+
+    @Test
+    public void setRecipientAddressing_withFilterMsgTypeMms() {
+        when(mParams.getParameterMask()).thenReturn(
+                (long) BluetoothMapContent.MASK_RECIPIENT_ADDRESSING);
+        mInfo.mMsgType = FilterInfo.TYPE_MMS;
+        MatrixCursor cursor = new MatrixCursor(
+                new String[]{BaseColumns._ID, Telephony.Mms.Addr.ADDRESS});
+        cursor.addRow(new Object[] {Telephony.Sms.MESSAGE_TYPE_INBOX, null});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mContent.setRecipientAddressing(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getRecipientAddressing()).isEqualTo("");
+    }
+
+    @Test
+    public void setRecipientAddressing_withFilterMsgTypeEmail() {
+        when(mParams.getParameterMask()).thenReturn(
+                (long) BluetoothMapContent.MASK_RECIPIENT_ADDRESSING);
+        mInfo.mMsgType = FilterInfo.TYPE_EMAIL;
+        mInfo.mMessageColToAddress = 0;
+        mInfo.mMessageColCcAddress = 1;
+        mInfo.mMessageColBccAddress = 2;
+        MatrixCursor cursor = new MatrixCursor(
+                new String[]{"MessageColToAddress", "MessageColCcAddress", "MessageColBccAddress"});
+        cursor.addRow(new Object[]{TEST_TO_ADDRESS, TEST_CC_ADDRESS, TEST_BCC_ADDRESS});
+        cursor.moveToFirst();
+
+        mContent.setRecipientAddressing(mMessageListingElement, cursor, mInfo, mParams);
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(Rfc822Tokenizer.tokenize(TEST_TO_ADDRESS)[0].getAddress());
+        expected.append("; ");
+        expected.append(Rfc822Tokenizer.tokenize(TEST_CC_ADDRESS)[0].getAddress());
+        expected.append("; ");
+        expected.append(Rfc822Tokenizer.tokenize(TEST_BCC_ADDRESS)[0].getAddress());
+        assertThat(mMessageListingElement.getRecipientAddressing()).isEqualTo(expected.toString());
+    }
+
+    @Test
+    public void setSenderAddressing_withFilterMsgTypeSms_andSmsMsgTypeInbox() {
+        when(mParams.getParameterMask()).thenReturn(
+                (long) BluetoothMapContent.MASK_SENDER_ADDRESSING);
+        mInfo.mMsgType = FilterInfo.TYPE_SMS;
+        mInfo.mSmsColType = 0;
+        mInfo.mSmsColAddress = 1;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"SmsColType", "SmsColAddress"});
+        cursor.addRow(new Object[] {Telephony.Sms.MESSAGE_TYPE_INBOX, TEST_ADDRESS});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mContent.setSenderAddressing(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getSenderAddressing()).isEqualTo(
+                PhoneNumberUtils.extractNetworkPortion(TEST_ADDRESS));
+    }
+
+    @Test
+    public void setSenderAddressing_withFilterMSgTypeSms_andSmsMsgTypeDraft() {
+        when(mParams.getParameterMask()).thenReturn(
+                (long) BluetoothMapContent.MASK_SENDER_ADDRESSING);
+        mInfo.mMsgType = FilterInfo.TYPE_SMS;
+        mInfo.mPhoneNum = null;
+        mInfo.mSmsColType = 0;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"SmsColType"});
+        cursor.addRow(new Object[] {Telephony.Sms.MESSAGE_TYPE_DRAFT});
+        cursor.moveToFirst();
+
+        mContent.setSenderAddressing(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getSenderAddressing()).isEqualTo("");
+    }
+
+    @Test
+    public void setSenderAddressing_withFilterMsgTypeMms() {
+        when(mParams.getParameterMask()).thenReturn(
+                (long) BluetoothMapContent.MASK_SENDER_ADDRESSING);
+        mInfo.mMsgType = FilterInfo.TYPE_MMS;
+        mInfo.mMmsColId = 0;
+        MatrixCursor cursor = new MatrixCursor(
+                new String[]{"MmsColId", Telephony.Mms.Addr.ADDRESS});
+        cursor.addRow(new Object[] {0, ""});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mContent.setSenderAddressing(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getSenderAddressing()).isEqualTo("");
+    }
+
+    @Test
+    public void setSenderAddressing_withFilterTypeEmail() {
+        when(mParams.getParameterMask()).thenReturn(
+                (long) BluetoothMapContent.MASK_SENDER_ADDRESSING);
+        mInfo.mMsgType = FilterInfo.TYPE_EMAIL;
+        mInfo.mMessageColFromAddress = 0;
+        MatrixCursor cursor = new MatrixCursor(
+                new String[]{"MessageColFromAddress"});
+        cursor.addRow(new Object[]{TEST_FROM_ADDRESS});
+        cursor.moveToFirst();
+
+        mContent.setSenderAddressing(mMessageListingElement, cursor, mInfo, mParams);
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(Rfc822Tokenizer.tokenize(TEST_FROM_ADDRESS)[0].getAddress());
+        assertThat(mMessageListingElement.getSenderAddressing()).isEqualTo(expected.toString());
+    }
+
+    @Test
+    public void setSenderAddressing_withFilterTypeIm() {
+        when(mParams.getParameterMask()).thenReturn(
+                (long) BluetoothMapContent.MASK_SENDER_ADDRESSING);
+        mInfo.mMsgType = FilterInfo.TYPE_IM;
+        mInfo.mMessageColFromAddress = 0;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"MessageColFromAddress",
+                BluetoothMapContract.ConvoContactColumns.UCI});
+        cursor.addRow(new Object[] {(long) 1, TEST_ADDRESS});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mContent.setSenderAddressing(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getSenderAddressing()).isEqualTo(TEST_ADDRESS);
+    }
+
+    @Test
+    public void setSenderName_withFilterTypeSms_andSmsMsgTypeInbox() {
+        when(mParams.getParameterMask()).thenReturn((long) BluetoothMapContent.MASK_SENDER_NAME);
+        mInfo.mMsgType = FilterInfo.TYPE_SMS;
+        mInfo.mSmsColAddress = 1;
+        MatrixCursor cursor = new MatrixCursor(new String[] {Telephony.Sms.TYPE, "SmsColAddress",
+                ContactsContract.Contacts.DISPLAY_NAME});
+        cursor.addRow(new Object[] {Telephony.Sms.MESSAGE_TYPE_INBOX, TEST_PHONE, TEST_PHONE_NAME});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mContent.setSenderName(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getSenderName()).isEqualTo(TEST_PHONE_NAME);
+    }
+
+    @Test
+    public void setSenderName_withFilterTypeSms_andSmsMsgTypeDraft() {
+        when(mParams.getParameterMask()).thenReturn((long) BluetoothMapContent.MASK_SENDER_NAME);
+        mInfo.mMsgType = FilterInfo.TYPE_SMS;
+        mInfo.mPhoneAlphaTag = TEST_NAME;
+        MatrixCursor cursor = new MatrixCursor(new String[] {Telephony.Sms.TYPE});
+        cursor.addRow(new Object[] {Telephony.Sms.MESSAGE_TYPE_DRAFT});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mContent.setSenderName(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getSenderName()).isEqualTo(TEST_NAME);
+    }
+
+    @Test
+    public void setSenderName_withFilterTypeMms_withNonNullSenderAddressing() {
+        when(mParams.getParameterMask()).thenReturn((long) BluetoothMapContent.MASK_SENDER_NAME);
+        mInfo.mMsgType = FilterInfo.TYPE_MMS;
+        mInfo.mMmsColId = 0;
+        mMessageListingElement.setSenderAddressing(TEST_ADDRESS);
+        MatrixCursor cursor = new MatrixCursor(new String[] {"MmsColId", Telephony.Mms.Addr.ADDRESS,
+                ContactsContract.Contacts.DISPLAY_NAME});
+        cursor.addRow(new Object[] {0, TEST_PHONE, TEST_PHONE_NAME});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mContent.setSenderName(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getSenderName()).isEqualTo(TEST_PHONE_NAME);
+    }
+
+    @Test
+    public void setSenderName_withFilterTypeMms_withNullSenderAddressing() {
+        when(mParams.getParameterMask()).thenReturn((long) BluetoothMapContent.MASK_SENDER_NAME);
+        mInfo.mMsgType = FilterInfo.TYPE_MMS;
+        mInfo.mMmsColId = 0;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"MmsColId"});
+        cursor.addRow(new Object[] {0});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mContent.setSenderName(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getSenderName()).isEqualTo("");
+    }
+
+    @Test
+    public void setSenderName_withFilterTypeEmail() {
+        when(mParams.getParameterMask()).thenReturn((long) BluetoothMapContent.MASK_SENDER_NAME);
+        mInfo.mMsgType = FilterInfo.TYPE_EMAIL;
+        mInfo.mMessageColFromAddress = 0;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"MessageColFromAddress"});
+        cursor.addRow(new Object[] {TEST_FROM_ADDRESS});
+        cursor.moveToFirst();
+
+        mContent.setSenderName(mMessageListingElement, cursor, mInfo, mParams);
+
+        StringBuilder expected = new StringBuilder();
+        expected.append(Rfc822Tokenizer.tokenize(TEST_FROM_ADDRESS)[0].getName());
+        assertThat(mMessageListingElement.getSenderName()).isEqualTo(expected.toString());
+    }
+
+    @Test
+    public void setSenderName_withFilterTypeIm() {
+        when(mParams.getParameterMask()).thenReturn((long) BluetoothMapContent.MASK_SENDER_NAME);
+        mInfo.mMsgType = FilterInfo.TYPE_IM;
+        mInfo.mMessageColFromAddress = 0;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"MessageColFromAddress",
+                BluetoothMapContract.ConvoContactColumns.NAME});
+        cursor.addRow(new Object[] {(long) 1, TEST_NAME});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mContent.setSenderName(mMessageListingElement, cursor, mInfo, mParams);
+
+        assertThat(mMessageListingElement.getSenderName()).isEqualTo(TEST_NAME);
+    }
+
+    @Test
+    public void setters_withConvoList() {
+        BluetoothMapMasInstance instance = spy(BluetoothMapMasInstance.class);
+        BluetoothMapContent content = new BluetoothMapContent(mContext, mAccountItem, instance);
+        HashMap<Long, BluetoothMapConvoListingElement> emailMap =
+                new HashMap<Long, BluetoothMapConvoListingElement>();
+        HashMap<Long, BluetoothMapConvoListingElement> smsMap =
+                new HashMap<Long, BluetoothMapConvoListingElement>();
+
+        content.setImEmailConvoList(emailMap);
+        content.setSmsMmsConvoList(smsMap);
+
+        assertThat(content.getImEmailConvoList()).isEqualTo(emailMap);
+        assertThat(content.getSmsMmsConvoList()).isEqualTo(smsMap);
+    }
+
+    @Test
+    public void setLastActivity_withFilterTypeSms() {
+        mInfo.mMsgType = FilterInfo.TYPE_SMS;
+        mInfo.mConvoColLastActivity = 0;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"ConvoColLastActivity",
+                "MmsSmsThreadColDate"});
+        cursor.addRow(new Object[] {TEST_DATE_EMAIL, TEST_DATE_SMS});
+        cursor.moveToFirst();
+
+        mContent.setLastActivity(mConvoListingElement, cursor, mInfo);
+
+        assertThat(mConvoListingElement.getLastActivity()).isEqualTo(TEST_DATE_SMS);
+    }
+
+    @Test
+    public void setLastActivity_withFilterTypeEmail() {
+        mInfo.mMsgType = FilterInfo.TYPE_EMAIL;
+        mInfo.mConvoColLastActivity = 0;
+        MatrixCursor cursor = new MatrixCursor(new String[] {"ConvoColLastActivity",
+                "MmsSmsThreadColDate"});
+        cursor.addRow(new Object[] {TEST_DATE_EMAIL, TEST_DATE_SMS});
+        cursor.moveToFirst();
+
+        mContent.setLastActivity(mConvoListingElement, cursor, mInfo);
+
+        assertThat(mConvoListingElement.getLastActivity()).isEqualTo(TEST_DATE_EMAIL);
     }
 }
