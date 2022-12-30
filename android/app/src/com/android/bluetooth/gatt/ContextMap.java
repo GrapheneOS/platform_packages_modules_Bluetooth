@@ -27,6 +27,9 @@ import android.os.UserHandle;
 import android.os.WorkSource;
 import android.util.Log;
 
+import androidx.annotation.VisibleForTesting;
+
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.internal.annotations.GuardedBy;
 
 import com.google.common.collect.EvictingQueue;
@@ -46,7 +49,8 @@ import java.util.UUID;
  * This class manages application callbacks and keeps track of GATT connections.
  * @hide
  */
-/*package*/ class ContextMap<C, T> {
+@VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+public class ContextMap<C, T> {
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "ContextMap";
 
     /**
@@ -241,8 +245,8 @@ import java.util.UUID;
         synchronized (mAppsLock) {
             synchronized (this) {
                 if (!mAppAdvertiseStats.containsKey(id)) {
-                    AppAdvertiseStats appAdvertiseStats =
-                            new AppAdvertiseStats(appUid, id, appName, this, service);
+                    AppAdvertiseStats appAdvertiseStats = BluetoothMethodProxy.getInstance()
+                            .createAppAdvertiseStats(appUid, id, appName, this, service);
                     mAppAdvertiseStats.put(id, appAdvertiseStats);
                 }
             }

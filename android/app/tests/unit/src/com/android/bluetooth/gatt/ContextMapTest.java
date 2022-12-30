@@ -20,13 +20,18 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertisingSetParameters;
+import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.os.Binder;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
@@ -37,6 +42,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.util.UUID;
 
@@ -55,9 +61,16 @@ public class ContextMapTest {
     @Mock
     private AdapterService mAdapterService;
 
+    @Mock
+    private AppAdvertiseStats appAdvertiseStats;
+
+    @Spy
+    private BluetoothMethodProxy mMapMethodProxy = BluetoothMethodProxy.getInstance();
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        BluetoothMethodProxy.setInstanceForTesting(mMapMethodProxy);
 
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true).when(mAdapterService).isStartedProfile(anyString());
@@ -71,6 +84,8 @@ public class ContextMapTest {
         if (!GattService.isEnabled()) {
             return;
         }
+
+        BluetoothMethodProxy.setInstanceForTesting(null);
 
         doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, GattService.class);
@@ -99,6 +114,64 @@ public class ContextMapTest {
     }
 
     @Test
+    public void advertisingSetAndData() {
+        ContextMap contextMap = new ContextMap<>();
+
+        int appUid = Binder.getCallingUid();
+        int id = 12345;
+        String appName = mService.getPackageManager().getNameForUid(appUid);
+        doReturn(appAdvertiseStats).when(mMapMethodProxy)
+                .createAppAdvertiseStats(appUid, id, appName, contextMap, mService);
+
+        contextMap.add(id, null, mService);
+
+        int duration = 60;
+        int maxExtAdvEvents = 100;
+        contextMap.enableAdvertisingSet(id, true, duration, maxExtAdvEvents);
+        verify(appAdvertiseStats).enableAdvertisingSet(true, duration, maxExtAdvEvents);
+
+        AdvertiseData advertiseData = new AdvertiseData.Builder().build();
+        contextMap.setAdvertisingData(id, advertiseData);
+        verify(appAdvertiseStats).setAdvertisingData(advertiseData);
+
+        AdvertiseData scanResponse = new AdvertiseData.Builder().build();
+        contextMap.setScanResponseData(id, scanResponse);
+        verify(appAdvertiseStats).setScanResponseData(scanResponse);
+
+        AdvertisingSetParameters parameters = new AdvertisingSetParameters.Builder().build();
+        contextMap.setAdvertisingParameters(id, parameters);
+        verify(appAdvertiseStats).setAdvertisingParameters(parameters);
+
+        PeriodicAdvertisingParameters periodicParameters =
+                new PeriodicAdvertisingParameters.Builder().build();
+        contextMap.setPeriodicAdvertisingParameters(id, periodicParameters);
+        verify(appAdvertiseStats).setPeriodicAdvertisingParameters(periodicParameters);
+
+        AdvertiseData periodicData = new AdvertiseData.Builder().build();
+        contextMap.setPeriodicAdvertisingData(id, periodicData);
+        verify(appAdvertiseStats).setPeriodicAdvertisingData(periodicData);
+
+        contextMap.onPeriodicAdvertiseEnabled(id, true);
+        verify(appAdvertiseStats).onPeriodicAdvertiseEnabled(true);
+
+        AppAdvertiseStats toBeRemoved = contextMap.getAppAdvertiseStatsById(id);
+        assertThat(toBeRemoved).isNotNull();
+
+        contextMap.removeAppAdvertiseStats(id);
+
+        AppAdvertiseStats isRemoved = contextMap.getAppAdvertiseStatsById(id);
+        assertThat(isRemoved).isNull();
+    }
+
+    @Test
+    public void emptyStop_doesNotCrash() throws Exception {
+        ContextMap contextMap = new ContextMap<>();
+
+        int id = 12345;
+        contextMap.recordAdvertiseStop(id);
+    }
+
+    @Test
     public void testDump_doesNotCrash() throws Exception {
         StringBuilder sb = new StringBuilder();
 
@@ -108,6 +181,11 @@ public class ContextMapTest {
         contextMap.add(id, null, mService);
 
         contextMap.add(UUID.randomUUID(), null, null, null, mService);
+
+        contextMap.recordAdvertiseStop(id);
+
+        int idSecond = 54321;
+        contextMap.add(idSecond, null, mService);
 
         contextMap.dump(sb);
 
