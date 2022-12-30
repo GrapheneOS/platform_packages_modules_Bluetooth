@@ -247,13 +247,7 @@ public class AdapterService extends Service {
         return sAdapterService;
     }
 
-    /**
-     * Sets AdapterService for testing.
-     *
-     * @hide
-     */
-    @VisibleForTesting
-    public static synchronized void setAdapterService(AdapterService instance) {
+    private static synchronized void setAdapterService(AdapterService instance) {
         Log.d(TAG, "setAdapterService() - trying to set service to " + instance);
         if (instance == null) {
             return;

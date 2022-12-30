@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import android.bluetooth.BluetoothHidDevice;
 
+import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.junit.After;
@@ -47,14 +48,14 @@ public class HidDeviceNativeInterfaceTest {
         MockitoAnnotations.initMocks(this);
         when(mService.isAvailable()).thenReturn(true);
         HidDeviceService.setHidDeviceService(mService);
-        AdapterService.setAdapterService(mAdapterService);
+        TestUtils.setAdapterService(mAdapterService);
         mNativeInterface = HidDeviceNativeInterface.getInstance();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         HidDeviceService.setHidDeviceService(null);
-        AdapterService.setAdapterService(null);
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     @Test
