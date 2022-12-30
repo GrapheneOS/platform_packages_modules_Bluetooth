@@ -25,10 +25,10 @@
 namespace bluetooth {
 namespace hci {
 
-using packet::kLittleEndian;
-using packet::PacketView;
+packet::PacketView<packet::kLittleEndian> GetPacketView(
+    std::unique_ptr<packet::BasePacketBuilder> packet);
 
-PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilder> packet);
+std::unique_ptr<BasePacketBuilder> NextPayload(uint16_t handle);
 
 class TestHciLayer : public HciLayer {
  public:
@@ -59,6 +59,16 @@ class TestHciLayer : public HciLayer {
 
   void CommandStatusCallback(EventView event);
 
+  void IncomingAclData(uint16_t handle);
+
+  void AssertNoOutgoingAclData();
+
+  packet::PacketView<packet::kLittleEndian> OutgoingAclData();
+
+  common::BidiQueueEnd<AclBuilder, AclView>* GetAclQueueEnd() override;
+
+  void Disconnect(uint16_t handle, ErrorCode reason) override;
+
  protected:
   void ListDependencies(ModuleList* list) const override;
   void Start() override;
@@ -66,6 +76,7 @@ class TestHciLayer : public HciLayer {
 
  private:
   void InitEmptyCommand();
+  void do_disconnect(uint16_t handle, ErrorCode reason);
 
   // Handler-only state. Mutexes are not needed when accessing these fields.
   std::list<common::ContextualOnceCallback<void(CommandCompleteView)>> command_complete_callbacks;
@@ -73,9 +84,12 @@ class TestHciLayer : public HciLayer {
   std::map<EventCode, common::ContextualCallback<void(EventView)>> registered_events_;
   std::map<SubeventCode, common::ContextualCallback<void(LeMetaEventView)>> registered_le_events_;
 
-  // Most operations must acquire this mutex before manipulating shared state. The ONLY exception is blocking on a
-  // promise, IF your thread is the only one mutating it. Note that SETTING a promise REQUIRES a lock, since another
-  // thread may replace the promise while you are doing so.
+  // thread-safe
+  common::BidiQueue<AclView, AclBuilder> acl_queue_{3 /* TODO: Set queue depth */};
+
+  // Most operations must acquire this mutex before manipulating shared state. The ONLY exception
+  // is blocking on a promise, IF your thread is the only one mutating it. Note that SETTING a
+  // promise REQUIRES a lock, since another thread may replace the promise while you are doing so.
   mutable std::mutex mutex_{};
 
   // Shared state between the test and stack threads
@@ -83,13 +97,14 @@ class TestHciLayer : public HciLayer {
 
   // We start with Consumed=Set, Command=Unset.
   // When a command is enqueued, we set Command=set
-  // When a command is popped, we block until Command=Set, then (if the queue is now empty) we reset Command=Unset and
-  // set Consumed=Set. This way we emulate a blocking queue.
-  std::promise<void> command_promise_{};                              // Set when at least one command is in the queue
-  std::future<void> command_future_ = command_promise_.get_future();  // GetCommand() blocks until this is fulfilled
+  // When a command is popped, we block until Command=Set, then (if the queue is now empty) we
+  // reset Command=Unset and set Consumed=Set. This way we emulate a blocking queue.
+  std::promise<void> command_promise_{};  // Set when at least one command is in the queue
+  std::future<void> command_future_ =
+      command_promise_.get_future();  // GetCommand() blocks until this is fulfilled
 
-  CommandView empty_command_view_ =
-      CommandView::Create(PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
+  CommandView empty_command_view_ = CommandView::Create(
+      PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
 };
 
 }  // namespace hci
