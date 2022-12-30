@@ -22,6 +22,8 @@ import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.os.ParcelUuid;
 import android.util.SparseArray;
 
+import androidx.annotation.VisibleForTesting;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -35,7 +37,8 @@ import java.util.Map;
  * on a per application basis.
  * @hide
  */
-/*package*/ class AppAdvertiseStats {
+@VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+public class AppAdvertiseStats {
     private static final String TAG = AppAdvertiseStats.class.getSimpleName();
 
     private static DateTimeFormatter sDateFormat = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss")
@@ -98,7 +101,8 @@ import java.util.Map;
     public ArrayList<AppAdvertiserRecord> mAdvertiserRecords =
             new ArrayList<AppAdvertiserRecord>();
 
-    AppAdvertiseStats(int appUid, int id, String name, ContextMap map, GattService service) {
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public AppAdvertiseStats(int appUid, int id, String name, ContextMap map, GattService service) {
         this.mAppUid = appUid;
         this.mId = id;
         this.mAppName = name;
