@@ -90,7 +90,7 @@
     <string name="status_pending" msgid="4781040740237733479">"Файлды аудару әлі басталған жоқ."</string>
     <string name="status_running" msgid="7419075903776657351">"Файлды аудару орындалуда."</string>
     <string name="status_success" msgid="7963589000098719541">"Файлды аудару сәтті орындалды."</string>
-    <string name="status_not_accept" msgid="1165798802740579658">"Мазмұн қолдауы жоқ."</string>
+    <string name="status_not_accept" msgid="1165798802740579658">"Контент қолдауы жоқ."</string>
     <string name="status_forbidden" msgid="4017060451358837245">"Аударуға қабылдайтын құрылғы тыйым салды."</string>
     <string name="status_canceled" msgid="8441679418717978515">"Тасымалды пайдаланушы тоқтатты."</string>
     <string name="status_file_error" msgid="5379018888714679311">"Жад ақаулығы."</string>
