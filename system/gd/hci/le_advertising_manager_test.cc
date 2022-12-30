@@ -36,7 +36,12 @@ namespace bluetooth {
 namespace hci {
 namespace {
 
+using namespace std::literals;
+
 using packet::RawBuilder;
+
+using testing::_;
+using testing::InSequence;
 
 class TestController : public Controller {
  public:
@@ -228,11 +233,7 @@ class LeAdvertisingManagerTest : public ::testing::Test {
   void on_set_terminated(ErrorCode error_code, uint8_t, uint8_t) {}
 
   void sync_client_handler() {
-    std::promise<void> promise;
-    auto future = promise.get_future();
-    client_handler_->Post(common::BindOnce(&std::promise<void>::set_value, common::Unretained(&promise)));
-    auto future_status = future.wait_for(std::chrono::seconds(1));
-    ASSERT_EQ(future_status, std::future_status::ready);
+    ASSERT(thread_.GetReactor()->WaitForIdle(2s));
   }
 
   class MockAdvertisingCallback : public AdvertisingCallback {
@@ -1003,6 +1004,47 @@ TEST_F(LeExtendedAdvertisingAPITest, disable_enable_advertiser_test) {
   test_hci_layer_->IncomingEvent(LeSetExtendedAdvertisingEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
 }
 
+TEST_F(LeExtendedAdvertisingAPITest, disable_after_enable) {
+  // we expect Started -> Enable(false) -> Enable(true) -> Enable(false)
+
+  // setup already arranges everything and starts the advertiser
+
+  // expect
+  InSequence s;
+  EXPECT_CALL(mock_advertising_callback_, OnAdvertisingEnabled(_, false, _));
+  EXPECT_CALL(mock_advertising_callback_, OnAdvertisingEnabled(_, true, _));
+  EXPECT_CALL(mock_advertising_callback_, OnAdvertisingEnabled(_, false, _));
+  EXPECT_CALL(mock_advertising_callback_, OnAdvertisingEnabled(_, true, _));
+
+  // act
+
+  // disable
+  le_advertising_manager_->EnableAdvertiser(advertiser_id_, false, 0x00, 0x00);
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(
+      LeSetExtendedAdvertisingEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+
+  // enable
+  le_advertising_manager_->EnableAdvertiser(advertiser_id_, true, 0x00, 0x00);
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(
+      LeSetExtendedAdvertisingEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+
+  // disable
+  le_advertising_manager_->EnableAdvertiser(advertiser_id_, false, 0x00, 0x00);
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(
+      LeSetExtendedAdvertisingEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+
+  // enable
+  le_advertising_manager_->EnableAdvertiser(advertiser_id_, true, 0x00, 0x00);
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(
+      LeSetExtendedAdvertisingEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+
+  sync_client_handler();
+}
+
 TEST_F(LeExtendedAdvertisingAPITest, set_periodic_parameter) {
   PeriodicAdvertisingParameters advertising_config{};
   advertising_config.max_interval = 0x1000;
@@ -1132,7 +1174,6 @@ TEST_F(LeExtendedAdvertisingAPITest, trigger_advertiser_callbacks_if_started_whi
       [](std::promise<uint8_t> promise, uint8_t id, uint8_t _status) { promise.set_value(id); },
       std::move(id_promise)));
   sync_client_handler();
-  LOG_INFO("start");
   auto set_id = id_future.get();
 
   auto status_promise = std::promise<ErrorCode>{};
@@ -1175,6 +1216,46 @@ TEST_F(LeExtendedAdvertisingAPITest, trigger_advertiser_callbacks_if_started_whi
 
   // assert
   EXPECT_EQ(status_future.get(), ErrorCode::SUCCESS);
+
+  sync_client_handler();
+}
+
+TEST_F(LeExtendedAdvertisingAPITest, no_callbacks_on_pause) {
+  // arrange
+  auto test_le_address_manager = (TestLeAddressManager*)test_acl_manager_->GetLeAddressManager();
+
+  // expect
+  EXPECT_CALL(mock_advertising_callback_, OnAdvertisingEnabled(_, _, _)).Times(0);
+
+  // act
+  LOG_INFO("pause");
+  test_le_address_manager->client_->OnPause();
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(
+      LeSetExtendedAdvertisingEnableCompleteBuilder::Create(1, ErrorCode::SUCCESS));
+
+  sync_client_handler();
+}
+
+TEST_F(LeExtendedAdvertisingAPITest, no_callbacks_on_resume) {
+  // arrange
+  auto test_le_address_manager = (TestLeAddressManager*)test_acl_manager_->GetLeAddressManager();
+  test_le_address_manager->client_->OnPause();
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(
+      LeSetExtendedAdvertisingEnableCompleteBuilder::Create(1, ErrorCode::SUCCESS));
+  sync_client_handler();
+
+  // expect
+  EXPECT_CALL(mock_advertising_callback_, OnAdvertisingEnabled(_, _, _)).Times(0);
+
+  // act
+  test_le_address_manager->client_->OnResume();
+  test_hci_layer_->GetCommand();
+  test_hci_layer_->IncomingEvent(
+      LeSetExtendedAdvertisingEnableCompleteBuilder::Create(1, ErrorCode::SUCCESS));
+
+  sync_client_handler();
 }
 
 }  // namespace

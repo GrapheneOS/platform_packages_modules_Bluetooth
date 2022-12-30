@@ -166,7 +166,8 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     private PbapHandler mSessionStatusHandler;
     private HandlerThread mHandlerThread;
-    private final HashMap<BluetoothDevice, PbapStateMachine> mPbapStateMachineMap = new HashMap<>();
+    @VisibleForTesting
+    final HashMap<BluetoothDevice, PbapStateMachine> mPbapStateMachineMap = new HashMap<>();
     private volatile int mNextNotificationId = PBAP_NOTIFICATION_ID_START;
 
     // package and class name to which we send intent to check phone book access permission
@@ -276,7 +277,8 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
-    private BroadcastReceiver mPbapReceiver = new BroadcastReceiver() {
+    @VisibleForTesting
+    BroadcastReceiver mPbapReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             parseIntent(intent);
@@ -446,10 +448,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     public int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(
                 BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
-        if (mPbapStateMachineMap == null) {
-            return BluetoothProfile.STATE_DISCONNECTED;
-        }
-
         synchronized (mPbapStateMachineMap) {
             PbapStateMachine sm = mPbapStateMachineMap.get(device);
             if (sm == null) {
@@ -460,9 +458,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     }
 
     List<BluetoothDevice> getConnectedDevices() {
-        if (mPbapStateMachineMap == null) {
-            return new ArrayList<>();
-        }
         synchronized (mPbapStateMachineMap) {
             return new ArrayList<>(mPbapStateMachineMap.keySet());
         }
@@ -470,7 +465,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         List<BluetoothDevice> devices = new ArrayList<>();
-        if (mPbapStateMachineMap == null || states == null) {
+        if (states == null) {
             return devices;
         }
         synchronized (mPbapStateMachineMap) {
@@ -631,6 +626,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         getContentResolver().unregisterContentObserver(mContactChangeObserver);
         mContactChangeObserver = null;
         setComponentAvailable(PBAP_ACTIVITY, false);
+        mPbapStateMachineMap.clear();
         return true;
     }
 

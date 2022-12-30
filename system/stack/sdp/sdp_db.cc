@@ -355,16 +355,24 @@ bool SDP_AddAttribute(uint32_t handle, uint16_t attr_id, uint8_t attr_type,
   uint16_t xx, yy, zz;
   tSDP_RECORD* p_rec = &sdp_cb.server_db.record[0];
 
+  if (p_val == nullptr) {
+    SDP_TRACE_WARNING("Trying to add attribute with p_val == nullptr, skipped");
+    return (false);
+  }
+
   if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) {
     if ((attr_type == UINT_DESC_TYPE) ||
         (attr_type == TWO_COMP_INT_DESC_TYPE) ||
         (attr_type == UUID_DESC_TYPE) ||
         (attr_type == DATA_ELE_SEQ_DESC_TYPE) ||
         (attr_type == DATA_ELE_ALT_DESC_TYPE)) {
-      uint8_t num_array[400];
-      uint32_t len = (attr_len > 200) ? 200 : attr_len;
 
-      num_array[0] = '\0';
+      #define MAX_ARR_LEN 200
+      // one extra byte for storing terminating zero byte
+      uint8_t num_array[2 * MAX_ARR_LEN + 1] = {0};
+      uint32_t len = (attr_len > MAX_ARR_LEN) ? MAX_ARR_LEN : attr_len;
+      #undef MAX_ARR_LEN
+
       for (uint32_t i = 0; i < len; i++) {
         snprintf((char*)&num_array[i * 2], sizeof(num_array) - i * 2, "%02X",
                  (uint8_t)(p_val[i]));
@@ -401,6 +409,13 @@ bool SDP_AddAttribute(uint32_t handle, uint16_t attr_id, uint8_t attr_type,
   for (zz = 0; zz < sdp_cb.server_db.num_records; zz++, p_rec++) {
     if (p_rec->record_handle == handle) {
       tSDP_ATTRIBUTE* p_attr = &p_rec->attribute[0];
+
+      // error out early, no need to look up
+      if (p_rec->free_pad_ptr >= SDP_MAX_PAD_LEN) {
+        SDP_TRACE_ERROR("the free pad for SDP record with handle %d is "
+                        "full, skip adding the attribute", handle);
+        return (false);
+      }
 
       /* Found the record. Now, see if the attribute already exists */
       for (xx = 0; xx < p_rec->num_attributes; xx++, p_attr++) {
@@ -440,15 +455,13 @@ bool SDP_AddAttribute(uint32_t handle, uint16_t attr_id, uint8_t attr_type,
           attr_len = 0;
       }
 
-      if ((attr_len > 0) && (p_val != 0)) {
+      if (attr_len > 0) {
         p_attr->len = attr_len;
         memcpy(&p_rec->attr_pad[p_rec->free_pad_ptr], p_val, (size_t)attr_len);
         p_attr->value_ptr = &p_rec->attr_pad[p_rec->free_pad_ptr];
         p_rec->free_pad_ptr += attr_len;
-      } else if ((attr_len == 0 &&
-                  p_attr->len !=
-                      0) || /* if truncate to 0 length, simply don't add */
-                 p_val == 0) {
+      } else if (attr_len == 0 && p_attr->len != 0) {
+        /* if truncate to 0 length, simply don't add */
         SDP_TRACE_ERROR(
             "SDP_AddAttribute fail, length exceed maximum: ID %d: attr_len:%d ",
             attr_id, attr_len);

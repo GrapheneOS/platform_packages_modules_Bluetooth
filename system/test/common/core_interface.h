@@ -15,3 +15,4 @@
  */
 
 void InitializeCoreInterface();
+void CleanCoreInterface();

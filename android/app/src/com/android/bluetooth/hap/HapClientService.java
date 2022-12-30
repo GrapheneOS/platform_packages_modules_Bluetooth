@@ -100,7 +100,8 @@ public class HapClientService extends ProfileService {
         return BluetoothProperties.isProfileHapClientEnabled().orElse(false);
     }
 
-    private static synchronized void setHapClient(HapClientService instance) {
+    @VisibleForTesting
+    static synchronized void setHapClient(HapClientService instance) {
         if (DBG) {
             Log.d(TAG, "setHapClient(): set to: " + instance);
         }
