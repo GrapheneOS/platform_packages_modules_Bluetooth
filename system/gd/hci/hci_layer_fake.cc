@@ -25,6 +25,8 @@
 namespace bluetooth {
 namespace hci {
 
+using common::BidiQueue;
+using common::BidiQueueEnd;
 using packet::kLittleEndian;
 using packet::PacketView;
 using packet::RawBuilder;
@@ -35,6 +37,22 @@ PacketView<packet::kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePack
   bytes->reserve(packet->size());
   packet->Serialize(i);
   return packet::PacketView<packet::kLittleEndian>(bytes);
+}
+
+std::unique_ptr<BasePacketBuilder> NextPayload(uint16_t handle) {
+  static uint32_t packet_number = 1;
+  auto payload = std::make_unique<RawBuilder>();
+  payload->AddOctets2(6);  // L2CAP PDU size
+  payload->AddOctets2(2);  // L2CAP CID
+  payload->AddOctets2(handle);
+  payload->AddOctets4(packet_number++);
+  return std::move(payload);
+}
+
+static std::unique_ptr<AclBuilder> NextAclPacket(uint16_t handle) {
+  PacketBoundaryFlag packet_boundary_flag = PacketBoundaryFlag::FIRST_AUTOMATICALLY_FLUSHABLE;
+  BroadcastFlag broadcast_flag = BroadcastFlag::POINT_TO_POINT;
+  return AclBuilder::Create(handle, packet_boundary_flag, broadcast_flag, NextPayload(handle));
 }
 
 void TestHciLayer::EnqueueCommand(
@@ -150,10 +168,59 @@ void TestHciLayer::InitEmptyCommand() {
   ASSERT_TRUE(empty_command_view_.IsValid());
 }
 
+void TestHciLayer::IncomingAclData(uint16_t handle) {
+  os::Handler* hci_handler = GetHandler();
+  auto* queue_end = acl_queue_.GetDownEnd();
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  queue_end->RegisterEnqueue(
+      hci_handler,
+      common::Bind(
+          [](decltype(queue_end) queue_end, uint16_t handle, std::promise<void> promise) {
+            auto packet = GetPacketView(NextAclPacket(handle));
+            AclView acl2 = AclView::Create(packet);
+            queue_end->UnregisterEnqueue();
+            promise.set_value();
+            return std::make_unique<AclView>(acl2);
+          },
+          queue_end,
+          handle,
+          common::Passed(std::move(promise))));
+  auto status = future.wait_for(std::chrono::milliseconds(1000));
+  ASSERT_EQ(status, std::future_status::ready);
+}
+
+void TestHciLayer::AssertNoOutgoingAclData() {
+  auto queue_end = acl_queue_.GetDownEnd();
+  EXPECT_EQ(queue_end->TryDequeue(), nullptr);
+}
+
+PacketView<kLittleEndian> TestHciLayer::OutgoingAclData() {
+  auto queue_end = acl_queue_.GetDownEnd();
+  std::unique_ptr<AclBuilder> received;
+  do {
+    received = queue_end->TryDequeue();
+  } while (received == nullptr);
+
+  return GetPacketView(std::move(received));
+}
+
+BidiQueueEnd<AclBuilder, AclView>* TestHciLayer::GetAclQueueEnd() {
+  return acl_queue_.GetUpEnd();
+}
+
+void TestHciLayer::Disconnect(uint16_t handle, ErrorCode reason) {
+  GetHandler()->Post(
+      common::BindOnce(&TestHciLayer::do_disconnect, common::Unretained(this), handle, reason));
+}
+
+void TestHciLayer::do_disconnect(uint16_t handle, ErrorCode reason) {
+  HciLayer::Disconnect(handle, reason);
+}
+
 void TestHciLayer::ListDependencies(ModuleList* list) const {}
 void TestHciLayer::Start() {
   std::lock_guard<std::mutex> lock(mutex_);
-
   InitEmptyCommand();
 }
 void TestHciLayer::Stop() {}
