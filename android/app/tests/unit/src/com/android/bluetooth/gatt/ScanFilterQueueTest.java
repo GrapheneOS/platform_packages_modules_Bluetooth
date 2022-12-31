@@ -50,12 +50,23 @@ public class ScanFilterQueueTest {
         UUID uuid = UUID.randomUUID();
         queue.addUuid(uuid);
 
+        UUID uuidMask = UUID.randomUUID();
+        queue.addUuid(uuid, uuidMask);
+
+        UUID solicitUuid = UUID.randomUUID();
+        UUID solicitUuidMask = UUID.randomUUID();
+        queue.addSolicitUuid(solicitUuid, solicitUuidMask);
+
         String name = "name";
         queue.addName(name);
 
         int company = 2;
         byte[] data = new byte[]{0x04};
         queue.addManufacturerData(company, data);
+
+        int companyMask = 2;
+        byte[] dataMask = new byte[]{0x05};
+        queue.addManufacturerData(company, companyMask, data, dataMask);
 
         byte[] serviceData = new byte[]{0x06};
         byte[] serviceDataMask = new byte[]{0x08};
@@ -67,7 +78,7 @@ public class ScanFilterQueueTest {
         queue.addAdvertisingDataType(adType, adData, adDataMask);
 
         ScanFilterQueue.Entry[] entries = queue.toArray();
-        int entriesLength = 7;
+        int entriesLength = 10;
         assertThat(entries.length).isEqualTo(entriesLength);
 
         for (ScanFilterQueue.Entry entry : entries) {
@@ -82,6 +93,10 @@ public class ScanFilterQueueTest {
                     break;
                 case ScanFilterQueue.TYPE_SERVICE_UUID:
                     assertThat(entry.uuid).isEqualTo(uuid);
+                    break;
+                case ScanFilterQueue.TYPE_SOLICIT_UUID:
+                    assertThat(entry.uuid).isEqualTo(solicitUuid);
+                    assertThat(entry.uuid_mask).isEqualTo(solicitUuidMask);
                     break;
                 case ScanFilterQueue.TYPE_LOCAL_NAME:
                     assertThat(entry.name).isEqualTo(name);
@@ -101,6 +116,14 @@ public class ScanFilterQueueTest {
                     break;
             }
         }
+    }
+
+    @Test
+    public void popEmpty() {
+        ScanFilterQueue queue = new ScanFilterQueue();
+
+        ScanFilterQueue.Entry entry = queue.pop();
+        assertThat(entry).isNull();
     }
 
     @Test
