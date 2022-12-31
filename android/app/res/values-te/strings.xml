@@ -116,7 +116,7 @@
     <string name="transfer_menu_clear" msgid="7213491281898188730">"లిస్ట్‌ నుండి క్లియర్ చేయండి"</string>
     <string name="transfer_clear_dlg_title" msgid="128904516163257225">"క్లియర్ చేయండి"</string>
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"ప్రస్తుతం ప్లే అవుతున్నవి"</string>
-    <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"సేవ్ చేయి"</string>
+    <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"సేవ్ చేయండి"</string>
     <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"రద్దు చేయండి"</string>
     <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"మీరు బ్లూటూత్ ద్వారా షేర్ చేయాలనుకునే ఖాతాలను ఎంచుకోండి. మీరు ఇప్పటికీ కనెక్ట్ చేస్తున్నప్పుడు ఖాతాలకు అందించే ఏ యాక్సెస్‌నైనా ఆమోదించాల్సి ఉంటుంది."</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"మిగిలిన స్లాట్‌లు:"</string>
