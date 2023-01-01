@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.junit.After;
@@ -45,14 +46,14 @@ public class HfpNativeInterfaceTest {
         MockitoAnnotations.initMocks(this);
         when(mService.isAvailable()).thenReturn(true);
         HeadsetClientService.setHeadsetClientService(mService);
-        AdapterService.setAdapterService(mAdapterService);
+        TestUtils.setAdapterService(mAdapterService);
         mNativeInterface = NativeInterface.getInstance();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         HeadsetClientService.setHeadsetClientService(null);
-        AdapterService.setAdapterService(null);
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     @Test
