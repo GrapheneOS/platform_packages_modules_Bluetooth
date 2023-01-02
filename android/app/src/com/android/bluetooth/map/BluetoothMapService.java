@@ -104,10 +104,12 @@ public class BluetoothMapService extends ProfileService {
     static final int MSG_OBSERVER_REGISTRATION = 5008;
 
     private static final int START_LISTENER = 1;
-    private static final int USER_TIMEOUT = 2;
+    @VisibleForTesting
+    static final int USER_TIMEOUT = 2;
     private static final int DISCONNECT_MAP = 3;
     private static final int SHUTDOWN = 4;
-    private static final int UPDATE_MAS_INSTANCES = 5;
+    @VisibleForTesting
+    static final int UPDATE_MAS_INSTANCES = 5;
 
     private static final int RELEASE_WAKE_LOCK_DELAY = 10000;
     private PowerManager.WakeLock mWakeLock = null;
@@ -148,7 +150,8 @@ public class BluetoothMapService extends ProfileService {
     private boolean mAccountChanged = false;
     private boolean mSdpSearchInitiated = false;
     private SdpMnsRecord mMnsRecord = null;
-    private MapServiceMessageHandler mSessionStatusHandler;
+    @VisibleForTesting
+    Handler mSessionStatusHandler;
     private boolean mServiceStarted = false;
 
     private static BluetoothMapService sBluetoothMapService;
@@ -834,7 +837,8 @@ public class BluetoothMapService extends ProfileService {
      * If the key 255 is in use, the first free masId will be returned.
      * @return a free MasId
      */
-    private int getNextMasId() {
+    @VisibleForTesting
+    int getNextMasId() {
         // Find the largest masId in use
         int largestMasId = 0;
         for (int i = 0, c = mMasInstances.size(); i < c; i++) {
@@ -1026,7 +1030,8 @@ public class BluetoothMapService extends ProfileService {
         } // Can only be null during shutdown
     }
 
-    private void sendConnectTimeoutMessage() {
+    @VisibleForTesting
+    void sendConnectTimeoutMessage() {
         if (DEBUG) {
             Log.d(TAG, "sendConnectTimeoutMessage()");
         }
@@ -1036,7 +1041,8 @@ public class BluetoothMapService extends ProfileService {
         } // Can only be null during shutdown
     }
 
-    private void sendConnectCancelMessage() {
+    @VisibleForTesting
+    void sendConnectCancelMessage() {
         if (mSessionStatusHandler != null) {
             Message msg = mSessionStatusHandler.obtainMessage(MSG_MAS_CONNECT_CANCEL);
             msg.sendToTarget();
