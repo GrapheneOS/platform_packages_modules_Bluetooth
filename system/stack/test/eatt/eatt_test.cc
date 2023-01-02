@@ -120,6 +120,82 @@ class EattTest : public testing::Test {
     ASSERT_TRUE(test_tcb.eatt == num_of_accepted_connections);
   }
 
+  void ConnectDeviceBothSides(int num_of_accepted_connections,
+                              std::vector<uint16_t>& incoming_cids) {
+    base::OnceCallback<void(const RawAddress&, uint8_t)> eatt_supp_feat_cb;
+
+    ON_CALL(gatt_interface_, ClientReadSupportedFeatures)
+        .WillByDefault(
+            [&eatt_supp_feat_cb](
+                const RawAddress& addr,
+                base::OnceCallback<void(const RawAddress&, uint8_t)> cb) {
+              eatt_supp_feat_cb = std::move(cb);
+              return true;
+            });
+
+    // Return false to trigger supported features request
+    ON_CALL(gatt_interface_, GetEattSupport)
+        .WillByDefault([](const RawAddress& addr) { return false; });
+
+    std::vector<uint16_t> test_local_cids{61, 62, 63, 64, 65};
+    EXPECT_CALL(l2cap_interface_,
+                ConnectCreditBasedReq(BT_PSM_EATT, test_address, _))
+        .WillOnce(Return(test_local_cids));
+
+    eatt_instance_->Connect(test_address);
+
+    // Let the remote connect while we are trying to connect
+    EXPECT_CALL(
+        l2cap_interface_,
+        ConnectCreditBasedRsp(test_address, 1, incoming_cids, L2CAP_CONN_OK, _))
+        .WillOnce(Return(true));
+    l2cap_app_info_.pL2CA_CreditBasedConnectInd_Cb(
+        test_address, incoming_cids, BT_PSM_EATT, EATT_MIN_MTU_MPS, 1);
+
+    // Respond to feature request scheduled by the connect request
+    ASSERT_TRUE(eatt_supp_feat_cb);
+    if (eatt_supp_feat_cb) {
+      std::move(eatt_supp_feat_cb)
+          .Run(test_address, BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK);
+    }
+
+    int i = 0;
+    for (uint16_t cid : test_local_cids) {
+      EattChannel* channel =
+          eatt_instance_->FindEattChannelByCid(test_address, cid);
+      ASSERT_TRUE(channel != nullptr);
+      ASSERT_TRUE(channel->state_ == EattChannelState::EATT_CHANNEL_PENDING);
+
+      if (i < num_of_accepted_connections) {
+        l2cap_app_info_.pL2CA_CreditBasedConnectCfm_Cb(
+            test_address, cid, EATT_MIN_MTU_MPS, L2CAP_CONN_OK);
+        connected_cids_.push_back(cid);
+
+        ASSERT_TRUE(channel->state_ == EattChannelState::EATT_CHANNEL_OPENED);
+        ASSERT_TRUE(channel->tx_mtu_ == EATT_MIN_MTU_MPS);
+      } else {
+        l2cap_app_info_.pL2CA_Error_Cb(cid, L2CAP_CONN_NO_RESOURCES);
+
+        EattChannel* channel =
+            eatt_instance_->FindEattChannelByCid(test_address, cid);
+        ASSERT_TRUE(channel == nullptr);
+      }
+      i++;
+    }
+
+    // Check the incoming CIDs as well
+    for (auto cid : incoming_cids) {
+      EattChannel* channel =
+          eatt_instance_->FindEattChannelByCid(test_address, cid);
+      ASSERT_NE(nullptr, channel);
+      ASSERT_EQ(channel->state_, EattChannelState::EATT_CHANNEL_OPENED);
+      ASSERT_TRUE(channel->tx_mtu_ == EATT_MIN_MTU_MPS);
+    }
+
+    ASSERT_EQ(test_tcb.eatt,
+              num_of_accepted_connections + incoming_cids.size());
+  }
+
   void DisconnectEattByPeer(void) {
     for (uint16_t cid : connected_cids_)
       l2cap_app_info_.pL2CA_DisconnectInd_Cb(cid, true);
@@ -139,6 +215,9 @@ class EattTest : public testing::Test {
     bluetooth::manager::SetMockBtifStorageInterface(&btif_storage_interface_);
     bluetooth::gatt::SetMockGattInterface(&gatt_interface_);
     controller::SetMockControllerInterface(&controller_interface);
+
+    // Clear the static memory for each test case
+    memset(&test_tcb, 0, sizeof(test_tcb));
 
     EXPECT_CALL(l2cap_interface_, RegisterLECoc(BT_PSM_EATT, _, _))
         .WillOnce(DoAll(SaveArg<1>(&l2cap_app_info_), Return(BT_PSM_EATT)));
@@ -315,6 +394,22 @@ TEST_F(EattTest, ReconnectInitiatedByRemoteSucceed) {
       test_address, incoming_cids, BT_PSM_EATT, EATT_MIN_MTU_MPS, 1);
 
   DisconnectEattDevice(incoming_cids);
+}
+
+TEST_F(EattTest, ConnectInitiatedWhenRemoteConnects) {
+  ON_CALL(btm_api_interface_, IsEncrypted)
+      .WillByDefault(
+          [](const RawAddress& addr, tBT_TRANSPORT transport) { return true; });
+
+  std::vector<uint16_t> incoming_cids{71, 72, 73, 74};
+  ConnectDeviceBothSides(1, incoming_cids);
+
+  std::vector<uint16_t> disconnecting_cids;
+  disconnecting_cids.insert(disconnecting_cids.end(), incoming_cids.begin(),
+                            incoming_cids.end());
+  disconnecting_cids.insert(disconnecting_cids.end(), connected_cids_.begin(),
+                            connected_cids_.end());
+  DisconnectEattDevice(disconnecting_cids);
 }
 
 TEST_F(EattTest, ConnectSucceedMultipleChannels) {

@@ -874,7 +874,12 @@ struct eatt_impl {
               << " is_eatt_supported = " << int(is_eatt_supported);
     if (!is_eatt_supported) return;
 
-    eatt_device* eatt_dev = add_eatt_device(bd_addr);
+    eatt_device* eatt_dev = this->find_device_by_address(bd_addr);
+    if (!eatt_dev) {
+      LOG(INFO) << __func__ << " Adding device: " << bd_addr
+                << " on supported features callback.";
+      eatt_dev = add_eatt_device(bd_addr);
+    }
 
     if (role != HCI_ROLE_CENTRAL) {
       /* TODO For now do nothing, we could run a timer here and start EATT if
