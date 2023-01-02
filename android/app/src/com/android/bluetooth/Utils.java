@@ -1008,7 +1008,8 @@ public final class Utils {
         }
         values.put(Telephony.Sms.ERROR_CODE, 0);
 
-        return 1 == context.getContentResolver().update(uri, values, null, null);
+        return 1 == BluetoothMethodProxy.getInstance().contentResolverUpdate(
+                context.getContentResolver(), uri, values, null, null);
     }
 
     /**
