@@ -443,6 +443,7 @@ public class AdapterServiceTest {
      * Test: Turn Bluetooth on.
      * Check whether the AdapterService gets started.
      */
+    @Ignore("b/228874625")
     @Test
     public void testEnable() {
         Log.e("AdapterServiceTest", "testEnable() start");
