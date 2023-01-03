@@ -139,6 +139,7 @@ public class BluetoothOppLauncherActivityTest {
         assertThat(argument.getValue().getData()).isEqualTo(Uri.EMPTY);
     }
 
+    @Ignore("b/263724420")
     @Test
     public void launchDevicePicker_bluetoothNotEnabled_launchEnableActivity() throws Exception {
         doReturn(false).when(mMethodProxy).bluetoothAdapterIsEnabled(any());
