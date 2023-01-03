@@ -90,6 +90,9 @@ pub mod ffi {
         fn controller_supports_enhanced_accept_synchronous_connection(c: &Controller) -> bool;
         fn controller_supports_ble_set_privacy_mode(c: &Controller) -> bool;
 
+        fn controller_supports_ble_connection_subrating(c: &Controller) -> bool;
+        fn controller_supports_ble_connection_subrating_host(c: &Controller) -> bool;
+
         fn controller_get_acl_buffer_length(c: &Controller) -> u16;
         fn controller_get_le_buffer_length(c: &Controller) -> u16;
         fn controller_get_iso_buffer_length(c: &Controller) -> u16;

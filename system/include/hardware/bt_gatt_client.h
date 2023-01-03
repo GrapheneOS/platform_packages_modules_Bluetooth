@@ -186,6 +186,12 @@ typedef void (*conn_updated_callback)(int conn_id, uint16_t interval,
 /** Callback when services are changed */
 typedef void (*service_changed_callback)(int conn_id);
 
+/** Callback invoked when the subrate change event for a given connection
+ * is received */
+typedef void (*subrate_change_callback)(int conn_id, uint16_t subrate_factor,
+                                        uint16_t latency, uint16_t cont_num,
+                                        uint16_t timeout, uint8_t status);
+
 typedef struct {
   register_client_callback register_client_cb;
   connect_callback open_cb;
@@ -207,6 +213,7 @@ typedef struct {
   phy_updated_callback phy_updated_cb;
   conn_updated_callback conn_updated_cb;
   service_changed_callback service_changed_cb;
+  subrate_change_callback subrate_chg_cb;
 } btgatt_client_callbacks_t;
 
 /** Represents the standard BT-GATT client interface. */
@@ -311,6 +318,11 @@ typedef struct {
 
   /** Get gatt db content */
   bt_status_t (*get_gatt_db)(int conn_id);
+
+  /** Request a BLE subrate request procedure */
+  bt_status_t (*subrate_request)(const RawAddress& bd_addr, int subrate_min,
+                                 int subrate_max, int max_latency, int cont_num,
+                                 int timeout);
 
 } btgatt_client_interface_t;
 

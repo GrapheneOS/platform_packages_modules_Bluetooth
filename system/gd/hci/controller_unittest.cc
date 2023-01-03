@@ -30,14 +30,18 @@ class ControllerUnitTest : public ::testing::Test {
 
 TEST_F(ControllerUnitTest, testLeEventMask) {
   LocalVersionInformation version;
-  version.hci_version_ = HciVersion::V_5_2;
+  version.hci_version_ = HciVersion::V_5_3;
 
   // Update the function and this test when adding new bits.
-  ASSERT_TRUE(Controller::kLeEventMask52 > Controller::kDefaultLeEventMask);
+  ASSERT_TRUE(Controller::kLeEventMask53 > Controller::kDefaultLeEventMask);
 
   ASSERT_EQ(
       Controller::MaskLeEventMask(version.hci_version_, Controller::kDefaultLeEventMask),
       Controller::kDefaultLeEventMask);
+  ASSERT_LE(
+      Controller::MaskLeEventMask(version.hci_version_, Controller::kDefaultLeEventMask),
+      Controller::kLeEventMask53);
+  version.hci_version_ = HciVersion::V_5_2;
   ASSERT_LE(
       Controller::MaskLeEventMask(version.hci_version_, Controller::kDefaultLeEventMask), Controller::kLeEventMask52);
   version.hci_version_ = HciVersion::V_5_1;

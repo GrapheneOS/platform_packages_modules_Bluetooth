@@ -885,4 +885,34 @@ extern void L2CA_AdjustConnectionIntervals(uint16_t* min_interval,
 extern bool L2CA_IsLinkEstablished(const RawAddress& bd_addr,
                                    tBT_TRANSPORT transport);
 
+/*******************************************************************************
+ *
+ *  Function        L2CA_SetDefaultSubrate
+ *
+ *  Description     BLE Set Default Subrate.
+ *
+ *  Parameters:     Subrate parameters
+ *
+ *  Return value:   void
+ *
+ ******************************************************************************/
+extern void L2CA_SetDefaultSubrate(uint16_t subrate_min, uint16_t subrate_max,
+                                   uint16_t max_latency, uint16_t cont_num,
+                                   uint16_t timeout);
+
+/*******************************************************************************
+ *
+ *  Function        L2CA_SubrateRequest
+ *
+ *  Description     BLE Subrate request.
+ *
+ *  Parameters:     Subrate parameters
+ *
+ *  Return value:   true if update started
+ *
+ ******************************************************************************/
+extern bool L2CA_SubrateRequest(const RawAddress& rem_bda, uint16_t subrate_min,
+                                uint16_t subrate_max, uint16_t max_latency,
+                                uint16_t cont_num, uint16_t timeout);
+
 #endif /* L2C_API_H */
