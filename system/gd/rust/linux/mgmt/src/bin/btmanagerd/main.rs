@@ -3,8 +3,6 @@
 // apply certain linker flags (which is applied to the library but not the binary).
 // Please keep main.rs logic light and write the heavy logic in the manager_service library instead.
 
-extern crate clap;
-
 use clap::{App, Arg};
 use dbus::channel::MatchingReceiver;
 use dbus::message::MatchRule;

@@ -5,6 +5,7 @@
 use crate::bindings::root as bindings;
 use crate::topstack::get_dispatchers;
 use crate::utils::{LTCheckedPtr, LTCheckedPtrMut};
+use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 use std::cmp;
 use std::convert::TryFrom;
