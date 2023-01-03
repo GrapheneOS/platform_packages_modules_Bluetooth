@@ -392,6 +392,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
           // Events are now captured by gd/hci/le_acl_connection_interface.h
         case HCI_BLE_CONN_COMPLETE_EVT:  // SubeventCode::CONNECTION_COMPLETE
         case HCI_BLE_ENHANCED_CONN_COMPLETE_EVT:  // SubeventCode::ENHANCED_CONNECTION_COMPLETE
+        case HCI_LE_SUBRATE_CHANGE_EVT:  // SubeventCode::LE_SUBRATE_CHANGE
         default:
           LOG_ERROR(
               "Unexpectedly received LE sub_event_code:0x%02x that should not "

@@ -410,6 +410,7 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr,
     nullptr,
     nullptr,  // service_changed_cb
+    nullptr,  // subrate_chg_cb
 };
 
 const btgatt_server_callbacks_t gatt_server_callbacks = {
@@ -427,6 +428,7 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
     IndicationSentCallback,
     nullptr,  // congestion_cb
     MtuChangedCallback,
+    nullptr,
     nullptr,
     nullptr,
 };

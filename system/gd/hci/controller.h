@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "common/init_flags.h"
 #include "hci/address.h"
 #include "hci/hci_packets.h"
 #include "hci/le_rand_callback.h"
@@ -128,6 +129,8 @@ class Controller : public Module {
   virtual bool SupportsBlePowerChangeIndication() const;
   virtual bool SupportsBlePathLossMonitoring() const;
   virtual bool SupportsBlePeriodicAdvertisingAdi() const;
+  virtual bool SupportsBleConnectionSubrating() const;
+  virtual bool SupportsBleConnectionSubratingHost() const;
 
   virtual uint16_t GetAclPacketLength() const;
 
@@ -202,7 +205,7 @@ class Controller : public Module {
   static const ModuleFactory Factory;
 
   static constexpr uint64_t kDefaultEventMask = 0x3dbfffffffffffff;
-  static constexpr uint64_t kDefaultLeEventMask = 0x000000004d02fe7f;
+  static constexpr uint64_t kDefaultLeEventMask = 0x000000044d02fe7f;
 
   static constexpr uint64_t kLeEventMask53 = 0x00000007ffffffff;
   static constexpr uint64_t kLeEventMask52 = 0x00000003ffffffff;
@@ -211,6 +214,9 @@ class Controller : public Module {
   static constexpr uint64_t kLeEventMask41 = 0x000000000000003f;
 
   static uint64_t MaskLeEventMask(HciVersion version, uint64_t mask) {
+    if (!common::init_flags::subrating_is_enabled()) {
+      mask = mask & ~(static_cast<uint64_t>(LLFeaturesBits::CONNECTION_SUBRATING_HOST_SUPPORT));
+    }
     if (version >= HciVersion::V_5_3) {
       return mask;
     } else if (version >= HciVersion::V_5_2) {
