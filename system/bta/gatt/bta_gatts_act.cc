@@ -56,6 +56,10 @@ static void bta_gatts_phy_update_cback(tGATT_IF gatt_if, uint16_t conn_id,
 static void bta_gatts_conn_update_cback(tGATT_IF gatt_if, uint16_t conn_id,
                                         uint16_t interval, uint16_t latency,
                                         uint16_t timeout, tGATT_STATUS status);
+static void bta_gatts_subrate_chg_cback(tGATT_IF gatt_if, uint16_t conn_id,
+                                        uint16_t subrate_factor,
+                                        uint16_t latency, uint16_t cont_num,
+                                        uint16_t timeout, tGATT_STATUS status);
 
 static tGATT_CBACK bta_gatts_cback = {
     .p_conn_cb = bta_gatts_conn_cback,
@@ -67,6 +71,7 @@ static tGATT_CBACK bta_gatts_cback = {
     .p_congestion_cb = bta_gatts_cong_cback,
     .p_phy_update_cb = bta_gatts_phy_update_cback,
     .p_conn_update_cb = bta_gatts_conn_update_cback,
+    .p_subrate_chg_cb = bta_gatts_subrate_chg_cback,
 };
 
 tGATT_APPL_INFO bta_gatts_nv_cback = {bta_gatts_nv_save_cback,
@@ -641,6 +646,27 @@ static void bta_gatts_conn_update_cback(tGATT_IF gatt_if, uint16_t conn_id,
   cb_data.conn_update.timeout = timeout;
   cb_data.conn_update.status = status;
   (*p_reg->p_cback)(BTA_GATTS_CONN_UPDATE_EVT, &cb_data);
+}
+
+static void bta_gatts_subrate_chg_cback(tGATT_IF gatt_if, uint16_t conn_id,
+                                        uint16_t subrate_factor,
+                                        uint16_t latency, uint16_t cont_num,
+                                        uint16_t timeout, tGATT_STATUS status) {
+  tBTA_GATTS_RCB* p_reg = bta_gatts_find_app_rcb_by_app_if(gatt_if);
+  if (!p_reg || !p_reg->p_cback) {
+    LOG(ERROR) << __func__ << ": server_if=" << +gatt_if << " not found";
+    return;
+  }
+
+  tBTA_GATTS cb_data;
+  cb_data.subrate_chg.conn_id = conn_id;
+  cb_data.subrate_chg.server_if = gatt_if;
+  cb_data.subrate_chg.subrate_factor = subrate_factor;
+  cb_data.subrate_chg.latency = latency;
+  cb_data.subrate_chg.cont_num = cont_num;
+  cb_data.subrate_chg.timeout = timeout;
+  cb_data.subrate_chg.status = status;
+  (*p_reg->p_cback)(BTA_GATTS_SUBRATE_CHG_EVT, &cb_data);
 }
 
 /*******************************************************************************

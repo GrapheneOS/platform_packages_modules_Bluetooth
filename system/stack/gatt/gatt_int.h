@@ -577,6 +577,9 @@ extern uint32_t gatt_sr_enqueue_cmd(tGATT_TCB& tcb, uint16_t cid,
 extern bool gatt_cancel_open(tGATT_IF gatt_if, const RawAddress& bda);
 extern void gatt_notify_phy_updated(tGATT_STATUS status, uint16_t handle,
                                     uint8_t tx_phy, uint8_t rx_phy);
+extern void gatt_notify_subrate_change(uint16_t handle, uint16_t subrate_factor,
+                                       uint16_t latency, uint16_t cont_num,
+                                       uint16_t timeout, uint8_t status);
 /*   */
 
 extern bool gatt_tcb_is_cid_busy(tGATT_TCB& tcb, uint16_t cid);
