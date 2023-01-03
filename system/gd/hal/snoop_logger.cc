@@ -189,6 +189,7 @@ const std::string SnoopLogger::kBtSnoopMaxPacketsPerFileProperty = "persist.blue
 const std::string SnoopLogger::kIsDebuggableProperty = "ro.debuggable";
 const std::string SnoopLogger::kBtSnoopLogModeProperty = "persist.bluetooth.btsnooplogmode";
 const std::string SnoopLogger::kBtSnoopDefaultLogModeProperty = "persist.bluetooth.btsnoopdefaultmode";
+const std::string SnoopLogger::kBtSnoopLogPersists = "persist.bluetooth.btsnooplogpersists";
 const std::string SnoopLogger::kSoCManufacturerProperty = "ro.soc.manufacturer";
 
 SnoopLogger::SnoopLogger(
@@ -199,14 +200,16 @@ SnoopLogger::SnoopLogger(
     const std::string& btsnoop_mode,
     bool qualcomm_debug_log_enabled,
     const std::chrono::milliseconds snooz_log_life_time,
-    const std::chrono::milliseconds snooz_log_delete_alarm_interval)
+    const std::chrono::milliseconds snooz_log_delete_alarm_interval,
+    bool snoop_log_persists)
     : snoop_log_path_(std::move(snoop_log_path)),
       snooz_log_path_(std::move(snooz_log_path)),
       max_packets_per_file_(max_packets_per_file),
       btsnooz_buffer_(max_packets_per_buffer),
       qualcomm_debug_log_enabled_(qualcomm_debug_log_enabled),
       snooz_log_life_time_(snooz_log_life_time),
-      snooz_log_delete_alarm_interval_(snooz_log_delete_alarm_interval) {
+      snooz_log_delete_alarm_interval_(snooz_log_delete_alarm_interval),
+      snoop_log_persists(snoop_log_persists) {
   if (false && btsnoop_mode == kBtSnoopLogModeFiltered) {
     // TODO(b/163733538): implement filtered snoop log in GD, currently filtered == disabled
     LOG_INFO("Filtered Snoop Logs enabled");
@@ -220,10 +223,12 @@ SnoopLogger::SnoopLogger(
     LOG_INFO("Snoop Logs fully enabled");
     is_enabled_ = true;
     is_filtered_ = false;
-    // delete filtered logs
-    delete_btsnoop_files(get_btsnoop_log_path(snoop_log_path_, true));
-    // delete snooz logs
-    delete_btsnoop_files(snooz_log_path_);
+    if (!snoop_log_persists) {
+      // delete filtered logs
+      delete_btsnoop_files(get_btsnoop_log_path(snoop_log_path_, true));
+      // delete snooz logs
+      delete_btsnoop_files(snooz_log_path_);
+    }
   } else {
     LOG_INFO("Snoop Logs disabled");
     is_enabled_ = false;
@@ -441,7 +446,9 @@ void SnoopLogger::Stop() {
   alarm_->Cancel();
   alarm_.reset();
   // delete any existing snooz logs
-  delete_btsnoop_files(snooz_log_path_);
+  if (!snoop_log_persists) {
+    delete_btsnoop_files(snooz_log_path_);
+  }
 }
 
 DumpsysDataFinisher SnoopLogger::GetDumpsysData(flatbuffers::FlatBufferBuilder* builder) const {
@@ -505,6 +512,11 @@ void SnoopLogger::RegisterSocket(SnoopLoggerSocketInterface* socket) {
   socket_ = socket;
 }
 
+bool SnoopLogger::IsBtSnoopLogPersisted() {
+  auto is_debuggable = os::GetSystemPropertyBool(kIsDebuggableProperty, false);
+  return is_debuggable && os::GetSystemPropertyBool(kBtSnoopLogPersists, false);
+}
+
 bool SnoopLogger::IsQualcommDebugLogEnabled() {
   // Check system prop if the soc manufacturer is Qualcomm
   bool qualcomm_debug_log_enabled = false;
@@ -525,7 +537,8 @@ const ModuleFactory SnoopLogger::Factory = ModuleFactory([]() {
       GetBtSnoopMode(),
       IsQualcommDebugLogEnabled(),
       kBtSnoozLogLifeTime,
-      kBtSnoozLogDeleteRepeatingAlarmInterval);
+      kBtSnoozLogDeleteRepeatingAlarmInterval,
+      IsBtSnoopLogPersisted());
 });
 
 }  // namespace hal
