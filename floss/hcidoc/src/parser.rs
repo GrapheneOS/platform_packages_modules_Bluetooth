@@ -1,8 +1,11 @@
 //! Parsing of various Bluetooth packets.
+use chrono::NaiveDateTime;
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 use std::convert::TryFrom;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Read, Seek};
+
+use bt_packets::hci::{CommandPacket, EventPacket};
 
 /// Linux snoop file header format. This format is used by `btmon` on Linux systems that have bluez
 /// installed.
@@ -99,7 +102,7 @@ pub struct LinuxSnoopPacket {
     pub included_length: u32,
     pub flags: u32,
     pub drops: u32,
-    pub timestamp_ms: u64,
+    pub timestamp_magic_us: u64,
     pub data: Vec<u8>,
 }
 
@@ -118,6 +121,21 @@ const LINUX_SNOOP_PACKET_PREAMBLE_SIZE: usize = 24;
 
 /// Maximum packet size for snoop is the max ACL size + 4 bytes.
 const LINUX_SNOOP_MAX_PACKET_SIZE: usize = 1486 + 4;
+
+/// Number of seconds from the year 1970 to the year 2000.
+const LINUX_SNOOP_Y2K_OFFSET_IN_SECS: i64 = 946684800i64;
+
+/// Snoop timestamps start at year 0 instead of 1970 like unix timestamps. This
+/// offset is used to represent Jan 1, 2000 AD and can be used to convert back
+/// to unixtime.
+const LINUX_SNOOP_Y2K_EPOCH_USECS: i64 = 0x00E03AB44A676000i64;
+
+/// Microseconds to seconds.
+const USECS_TO_SECS: i64 = 1_000_000i64;
+
+/// Offset from the snoop timestamp to unixtimestamp in seconds. This is a negative number.
+const LINUX_SNOOP_OFFSET_TO_UNIXTIME_SECS: i64 =
+    LINUX_SNOOP_Y2K_OFFSET_IN_SECS - (LINUX_SNOOP_Y2K_EPOCH_USECS / USECS_TO_SECS);
 
 // Expect specifically the pre-amble to be read here (and no data).
 impl TryFrom<&[u8]> for LinuxSnoopPacket {
@@ -141,7 +159,7 @@ impl TryFrom<&[u8]> for LinuxSnoopPacket {
             included_length: u32::from_be_bytes(included_len_bytes.try_into().unwrap()),
             flags: u32::from_be_bytes(flags_bytes.try_into().unwrap()),
             drops: u32::from_be_bytes(drops_bytes.try_into().unwrap()),
-            timestamp_ms: u64::from_be_bytes(ts_bytes.try_into().unwrap()),
+            timestamp_magic_us: u64::from_be_bytes(ts_bytes.try_into().unwrap()),
             data: vec![],
         };
 
@@ -260,5 +278,68 @@ impl<'a> LogParser {
         }
 
         Some(LinuxSnoopReader::new(&mut self.fd))
+    }
+}
+
+/// Data owned by a packet.
+#[derive(Debug)]
+pub enum PacketChild {
+    HciCommand(CommandPacket),
+    HciEvent(EventPacket),
+}
+
+impl<'a> TryFrom<&'a LinuxSnoopPacket> for PacketChild {
+    type Error = String;
+
+    fn try_from(item: &'a LinuxSnoopPacket) -> Result<Self, Self::Error> {
+        match item.opcode() {
+            LinuxSnoopOpcodes::CommandPacket => match CommandPacket::parse(item.data.as_slice()) {
+                Ok(command) => Ok(PacketChild::HciCommand(command)),
+                Err(e) => Err(format!("Couldn't parse command: {:?}", e)),
+            },
+
+            LinuxSnoopOpcodes::EventPacket => match EventPacket::parse(item.data.as_slice()) {
+                Ok(event) => Ok(PacketChild::HciEvent(event)),
+                Err(e) => Err(format!("Couldn't parse event: {:?}", e)),
+            },
+
+            // TODO(b/262928525) - Add packet handlers for more packet types.
+            _ => Err(format!("Unhandled packet opcode: {:?}", item.opcode())),
+        }
+    }
+}
+
+/// A single processable packet of data.
+#[derive(Debug)]
+pub struct Packet {
+    /// Timestamp of this packet
+    ts: NaiveDateTime,
+
+    /// Which adapter this packet is for. Unassociated packets should use 0xFFFE.
+    adapter_index: u16,
+
+    /// Inner data for this packet.
+    inner: PacketChild,
+}
+
+impl<'a> TryFrom<&'a LinuxSnoopPacket> for Packet {
+    type Error = String;
+
+    fn try_from(item: &'a LinuxSnoopPacket) -> Result<Self, Self::Error> {
+        match PacketChild::try_from(item) {
+            Ok(inner) => {
+                let base_ts = i64::try_from(item.timestamp_magic_us)
+                    .map_err(|e| format!("u64 conversion error: {}", e))?;
+
+                let ts_secs = (base_ts / USECS_TO_SECS) + LINUX_SNOOP_OFFSET_TO_UNIXTIME_SECS;
+                let ts_nsecs = u32::try_from((base_ts % USECS_TO_SECS) * 1000).unwrap_or(0);
+                let ts = NaiveDateTime::from_timestamp(ts_secs, ts_nsecs);
+                let adapter_index = item.index();
+
+                Ok(Packet { ts, adapter_index, inner })
+            }
+
+            Err(e) => Err(e),
+        }
     }
 }

@@ -3,7 +3,7 @@ extern crate num_derive;
 
 mod parser;
 
-use crate::parser::{LogParser, LogType};
+use crate::parser::{LinuxSnoopOpcodes, LogParser, LogType, Packet};
 use bt_packets;
 use clap::{Arg, Command};
 
@@ -39,12 +39,26 @@ fn main() {
         }
     };
 
+    let mut printed = 0usize;
     if let LogType::LinuxSnoop(header) = log_type {
         println!("Reading snoop file: {:?}", header);
         for (pos, v) in parser.get_snoop_iterator().expect("Not a linux snoop file").enumerate() {
-            println!("#{} - Packet= {:?}, Index={}, Opcode={:?}", pos, v, v.index(), v.opcode());
-            if pos > 100 {
-                return;
+            if printed > 50 {
+                break;
+            }
+
+            match Packet::try_from(&v) {
+                Ok(p) => {
+                    println!("#{}: {:?}", pos, p);
+                    printed = printed + 1;
+                }
+                Err(e) => match v.opcode() {
+                    LinuxSnoopOpcodes::CommandPacket | LinuxSnoopOpcodes::EventPacket => {
+                        println!("#{}: {}", pos, e);
+                        printed = printed + 1;
+                    }
+                    _ => (),
+                },
             }
         }
     }
