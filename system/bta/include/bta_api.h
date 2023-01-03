@@ -1372,4 +1372,25 @@ extern void BTA_DmSetEventFilterInquiryResultAllDevices();
  ******************************************************************************/
 extern void BTA_DmBleResetId(void);
 
+/*******************************************************************************
+ *
+ * Function         BTA_DmBleSubrateRequest
+ *
+ * Description      subrate request, can only be used when connection is up.
+ *
+ * Parameters:      bd_addr       - BD address of the peer
+ *                  subrate_min   - subrate min
+ *                  subrate_max   - subrate max
+ *                  max_latency   - max latency
+ *                  cont_num      - continuation number
+ *                  timeout       - supervision timeout
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTA_DmBleSubrateRequest(const RawAddress& bd_addr,
+                                    uint16_t subrate_min, uint16_t subrate_max,
+                                    uint16_t max_latency, uint16_t cont_num,
+                                    uint16_t timeout);
+
 #endif /* BTA_API_H */

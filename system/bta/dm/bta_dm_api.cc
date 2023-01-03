@@ -777,3 +777,28 @@ void BTA_DmBleResetId(void) {
   APPL_TRACE_API("BTA_DmBleResetId");
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_ble_reset_id));
 }
+
+/*******************************************************************************
+ *
+ * Function         BTA_DmBleSubrateRequest
+ *
+ * Description      subrate request, can only be used when connection is up.
+ *
+ * Parameters:      bd_addr       - BD address of the peer
+ *                  subrate_min   - subrate factor minimum, [0x0001 - 0x01F4]
+ *                  subrate_max   - subrate factor maximum, [0x0001 - 0x01F4]
+ *                  max_latency   - max peripheral latency [0x0000 - 01F3]
+ *                  cont_num      - continuation number [0x0000 - 01F3]
+ *                  timeout       - supervision timeout [0x000a - 0xc80]
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void BTA_DmBleSubrateRequest(const RawAddress& bd_addr, uint16_t subrate_min,
+                             uint16_t subrate_max, uint16_t max_latency,
+                             uint16_t cont_num, uint16_t timeout) {
+  APPL_TRACE_API("%s", __func__);
+  do_in_main_thread(FROM_HERE,
+                    base::Bind(bta_dm_ble_subrate_request, bd_addr, subrate_min,
+                               subrate_max, max_latency, cont_num, timeout));
+}

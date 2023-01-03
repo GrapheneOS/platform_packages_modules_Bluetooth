@@ -207,6 +207,13 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param) {
                 p_data->service_changed.conn_id);
       break;
 
+    case BTA_GATTC_SUBRATE_CHG_EVT:
+      HAL_CBACK(bt_gatt_callbacks, client->subrate_chg_cb,
+                p_data->subrate_chg.conn_id, p_data->subrate_chg.subrate_factor,
+                p_data->subrate_chg.latency, p_data->subrate_chg.cont_num,
+                p_data->subrate_chg.timeout, p_data->subrate_chg.status);
+      break;
+
     default:
       LOG_ERROR("Unhandled event (%d)!", event);
       break;
@@ -649,6 +656,25 @@ static bt_status_t btif_gattc_test_command(int command,
   return btif_gattc_test_command_impl(command, &params);
 }
 
+static void btif_gattc_subrate_request_impl(RawAddress addr, int subrate_min,
+                                            int subrate_max, int max_latency,
+                                            int cont_num, int sup_timeout) {
+  if (BTA_DmGetConnectionState(addr)) {
+    BTA_DmBleSubrateRequest(addr, subrate_min, subrate_max, max_latency,
+                            cont_num, sup_timeout);
+  }
+}
+
+static bt_status_t btif_gattc_subrate_request(const RawAddress& bd_addr,
+                                              int subrate_min, int subrate_max,
+                                              int max_latency, int cont_num,
+                                              int sup_timeout) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(
+      Bind(base::IgnoreResult(&btif_gattc_subrate_request_impl), bd_addr,
+           subrate_min, subrate_max, max_latency, cont_num, sup_timeout));
+}
+
 }  // namespace
 
 const btgatt_client_interface_t btgattClientInterface = {
@@ -675,4 +701,5 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_read_phy,
     btif_gattc_test_command,
     btif_gattc_get_gatt_db,
+    btif_gattc_subrate_request,
 };
