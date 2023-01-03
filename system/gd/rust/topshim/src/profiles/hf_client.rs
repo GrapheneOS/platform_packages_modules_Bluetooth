@@ -5,6 +5,7 @@ use crate::profiles::hf_client::bindings::bthf_client_interface_t;
 use crate::topstack::get_dispatchers;
 use crate::utils::{LTCheckedPtr, LTCheckedPtrMut};
 
+use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::FromPrimitive;
 use std::sync::{Arc, Mutex};
 use topshim_macros::{cb_variant, profile_enabled_or};
