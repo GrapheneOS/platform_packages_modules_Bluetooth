@@ -47,6 +47,7 @@ class SnoopLogger : public ::bluetooth::Module {
   static const std::string kBtSnoopMaxPacketsPerFileProperty;
   static const std::string kIsDebuggableProperty;
   static const std::string kBtSnoopLogModeProperty;
+  static const std::string kBtSnoopLogPersists;
   static const std::string kBtSnoopDefaultLogModeProperty;
   static const std::string kSoCManufacturerProperty;
 
@@ -73,6 +74,9 @@ class SnoopLogger : public ::bluetooth::Module {
   // Returns whether the soc manufacturer is Qualcomm
   // Changes to this value is only effective after restarting Bluetooth
   static bool IsQualcommDebugLogEnabled();
+
+  // Returns whether snoop log persists even after restarting Bluetooth
+  static bool IsBtSnoopLogPersisted();
 
   // Has to be defined from 1 to 4 per btsnoop format
   enum PacketType {
@@ -110,7 +114,8 @@ class SnoopLogger : public ::bluetooth::Module {
       const std::string& btsnoop_mode,
       bool qualcomm_debug_log_enabled,
       const std::chrono::milliseconds snooz_log_life_time,
-      const std::chrono::milliseconds snooz_log_delete_alarm_interval);
+      const std::chrono::milliseconds snooz_log_delete_alarm_interval,
+      bool snoop_log_persists);
   void CloseCurrentSnoopLogFile();
   void OpenNextSnoopLogFile();
   void DumpSnoozLogToFile(const std::vector<std::string>& data) const;
@@ -133,6 +138,7 @@ class SnoopLogger : public ::bluetooth::Module {
   std::chrono::milliseconds snooz_log_delete_alarm_interval_;
   SnoopLoggerSocketInterface* socket_;
   SyscallWrapperImpl syscall_if;
+  bool snoop_log_persists = false;
 };
 
 }  // namespace hal
