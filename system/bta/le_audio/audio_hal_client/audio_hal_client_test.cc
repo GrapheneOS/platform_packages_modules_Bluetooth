@@ -34,6 +34,7 @@ using ::testing::_;
 using ::testing::Assign;
 using ::testing::AtLeast;
 using ::testing::DoAll;
+using ::testing::DoDefault;
 using ::testing::Invoke;
 using ::testing::Mock;
 using ::testing::Return;
@@ -476,6 +477,13 @@ TEST_F(LeAudioClientAudioTest, testAudioHalClientResumeStartSourceTask) {
         // Return exactly as much data as requested
         promise.set_value();
         return len;
+      }))
+      .WillRepeatedly(Invoke([](uint8_t* p_buf, uint32_t len) -> uint32_t {
+        // fake some data from audio framework
+        for (uint32_t i = 0u; i < len; ++i) {
+          p_buf[i] = i;
+        }
+        return len;
       }));
 
   std::promise<void> data_promise;
@@ -484,10 +492,12 @@ TEST_F(LeAudioClientAudioTest, testAudioHalClientResumeStartSourceTask) {
   /* Expect this callback to be called to Client by the HAL glue layer */
   std::vector<uint8_t> media_data_to_send;
   EXPECT_CALL(mock_hal_sink_event_receiver_, OnAudioDataReady(_))
+      .Times(AtLeast(1))
       .WillOnce(Invoke([&](const std::vector<uint8_t>& data) -> void {
         media_data_to_send = std::move(data);
         data_promise.set_value();
-      }));
+      }))
+      .WillRepeatedly(DoDefault());
 
   /* Expect LeAudio registered event listener to get called when HAL calls the
    * audio_hal_client's internal resume callback.
