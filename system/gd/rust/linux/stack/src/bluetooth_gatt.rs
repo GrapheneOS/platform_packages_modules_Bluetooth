@@ -25,6 +25,7 @@ use crate::callbacks::Callbacks;
 use crate::uuid::UuidHelper;
 use crate::{Message, RPCProxy, SuspendMode};
 use log::{debug, warn};
+use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 use num_traits::clamp;
 use rand::rngs::SmallRng;

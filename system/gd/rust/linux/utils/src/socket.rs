@@ -6,6 +6,7 @@ use std::os::unix::io::{AsRawFd, RawFd};
 
 use libc;
 use log::debug;
+use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
 /// Socket protocol constant for HCI.
