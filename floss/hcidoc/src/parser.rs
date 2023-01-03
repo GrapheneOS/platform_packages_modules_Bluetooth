@@ -1,6 +1,6 @@
 //! Parsing of various Bluetooth packets.
 use chrono::NaiveDateTime;
-use num_traits::cast::{FromPrimitive, ToPrimitive};
+use num_traits::cast::FromPrimitive;
 use std::convert::TryFrom;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Read, Seek};
@@ -189,7 +189,7 @@ impl<'a> Iterator for LinuxSnoopReader<'a> {
                 // |UnexpectedEof| could be seen since we're trying to read more
                 // data than is available (i.e. end of file).
                 if e.kind() != ErrorKind::UnexpectedEof {
-                    println!("Error reading snoop file: {:?}", e);
+                    eprintln!("Error reading snoop file: {:?}", e);
                 }
                 return None;
             }
@@ -203,7 +203,7 @@ impl<'a> Iterator for LinuxSnoopReader<'a> {
                     match self.fd.read(&mut rem_data[0..size]) {
                         Ok(b) => {
                             if b != size {
-                                println!(
+                                eprintln!(
                                     "Size({}) doesn't match bytes read({}). Aborting...",
                                     size, b
                                 );
@@ -214,7 +214,7 @@ impl<'a> Iterator for LinuxSnoopReader<'a> {
                             Some(p)
                         }
                         Err(e) => {
-                            println!("Couldn't read any packet data: {}", e);
+                            eprintln!("Couldn't read any packet data: {}", e);
                             None
                         }
                     }
@@ -222,10 +222,7 @@ impl<'a> Iterator for LinuxSnoopReader<'a> {
                     Some(p)
                 }
             }
-            Err(e) => {
-                println!("Failed to parse data: {:?}", e);
-                None
-            }
+            Err(_) => None,
         }
     }
 }
@@ -282,7 +279,7 @@ impl<'a> LogParser {
 }
 
 /// Data owned by a packet.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PacketChild {
     HciCommand(CommandPacket),
     HciEvent(EventPacket),
@@ -310,16 +307,16 @@ impl<'a> TryFrom<&'a LinuxSnoopPacket> for PacketChild {
 }
 
 /// A single processable packet of data.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Packet {
     /// Timestamp of this packet
-    ts: NaiveDateTime,
+    pub ts: NaiveDateTime,
 
     /// Which adapter this packet is for. Unassociated packets should use 0xFFFE.
-    adapter_index: u16,
+    pub adapter_index: u16,
 
     /// Inner data for this packet.
-    inner: PacketChild,
+    pub inner: PacketChild,
 }
 
 impl<'a> TryFrom<&'a LinuxSnoopPacket> for Packet {

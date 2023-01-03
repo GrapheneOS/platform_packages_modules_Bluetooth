@@ -1,11 +1,16 @@
 #[macro_use]
 extern crate num_derive;
 
+use clap::{Arg, Command};
+use std::io::Write;
+
+mod engine;
+mod groups;
 mod parser;
 
+use crate::engine::RuleEngine;
+use crate::groups::connections;
 use crate::parser::{LinuxSnoopOpcodes, LogParser, LogType, Packet};
-use bt_packets;
-use clap::{Arg, Command};
 
 fn main() {
     let matches = Command::new("hcidoc")
@@ -39,27 +44,26 @@ fn main() {
         }
     };
 
-    let mut printed = 0usize;
-    if let LogType::LinuxSnoop(header) = log_type {
-        println!("Reading snoop file: {:?}", header);
-        for (pos, v) in parser.get_snoop_iterator().expect("Not a linux snoop file").enumerate() {
-            if printed > 50 {
-                break;
-            }
+    // Create engine with default rule groups.
+    let mut engine = RuleEngine::new();
+    engine.add_rule_group("Connections".into(), connections::get_connections_group());
 
+    // Decide where to write output.
+    let mut writer: Box<dyn Write> = Box::new(std::io::stdout());
+
+    if let LogType::LinuxSnoop(_header) = log_type {
+        for (pos, v) in parser.get_snoop_iterator().expect("Not a linux snoop file").enumerate() {
             match Packet::try_from(&v) {
-                Ok(p) => {
-                    println!("#{}: {:?}", pos, p);
-                    printed = printed + 1;
-                }
+                Ok(p) => engine.process(p),
                 Err(e) => match v.opcode() {
                     LinuxSnoopOpcodes::CommandPacket | LinuxSnoopOpcodes::EventPacket => {
-                        println!("#{}: {}", pos, e);
-                        printed = printed + 1;
+                        eprintln!("#{}: {}", pos, e);
                     }
                     _ => (),
                 },
             }
         }
+
+        engine.report(&mut writer);
     }
 }
