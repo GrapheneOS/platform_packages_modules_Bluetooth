@@ -84,6 +84,7 @@ void btif_storage_set_leaudio_has_features(const RawAddress& address,
                                            uint8_t features);
 void btif_storage_set_leaudio_has_active_preset(const RawAddress& address,
                                                 uint8_t active_preset);
+void btif_storage_remove_leaudio_has(const RawAddress& address);
 
 extern bool gatt_profile_get_eatt_support(const RawAddress& remote_bda);
 
@@ -309,6 +310,11 @@ class HasClientImpl : public HasClient {
     auto op = op_opt.value();
     callbacks_->OnActivePresetSelectError(op.addr_or_group,
                                           GattStatus2SvcErrorCode(status));
+
+    if (status == GATT_DATABASE_OUT_OF_SYNC) {
+      LOG_INFO("Database out of sync for %s", device->addr.ToString().c_str());
+      ClearDeviceInformationAndStartSearch(device);
+    }
   }
 
   void OnHasPresetNameSetStatus(uint16_t conn_id, tGATT_STATUS status,
@@ -339,6 +345,10 @@ class HasClientImpl : public HasClient {
     auto op = op_opt.value();
     callbacks_->OnSetPresetNameError(device->addr, op.index,
                                      GattStatus2SvcErrorCode(status));
+    if (status == GATT_DATABASE_OUT_OF_SYNC) {
+      LOG_INFO("Database out of sync for %s", device->addr.ToString().c_str());
+      ClearDeviceInformationAndStartSearch(device);
+    }
   }
 
   void OnHasPresetNameGetStatus(uint16_t conn_id, tGATT_STATUS status,
@@ -367,9 +377,14 @@ class HasClientImpl : public HasClient {
     callbacks_->OnPresetInfoError(device->addr, op.index,
                                   GattStatus2SvcErrorCode(status));
 
-    LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
-              device->addr.ToString().c_str());
-    BTA_GATTC_Close(conn_id);
+    if (status == GATT_DATABASE_OUT_OF_SYNC) {
+      LOG_INFO("Database out of sync for %s", device->addr.ToString().c_str());
+      ClearDeviceInformationAndStartSearch(device);
+    } else {
+      LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
+                device->addr.ToString().c_str());
+      BTA_GATTC_Close(device->conn_id);
+    }
   }
 
   void OnHasPresetIndexOperation(uint16_t conn_id, tGATT_STATUS status,
@@ -409,9 +424,15 @@ class HasClientImpl : public HasClient {
       callbacks_->OnActivePresetSelectError(op.addr_or_group,
                                             GattStatus2SvcErrorCode(status));
     }
-    LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
-              device->addr.ToString().c_str());
-    BTA_GATTC_Close(conn_id);
+
+    if (status == GATT_DATABASE_OUT_OF_SYNC) {
+      LOG_INFO("Database out of sync for %s", device->addr.ToString().c_str());
+      ClearDeviceInformationAndStartSearch(device);
+    } else {
+      LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
+                device->addr.ToString().c_str());
+      BTA_GATTC_Close(device->conn_id);
+    }
   }
 
   void CpReadAllPresetsOperation(HasCtpOp operation) {
@@ -988,6 +1009,12 @@ class HasClientImpl : public HasClient {
       return;
     }
 
+    if (status == GATT_DATABASE_OUT_OF_SYNC) {
+      LOG_INFO("Database out of sync for %s", device->addr.ToString().c_str());
+      ClearDeviceInformationAndStartSearch(device);
+      return;
+    }
+
     HasGattOpContext context(user_data);
     bool enabling_ntf = context.context_flags &
                         HasGattOpContext::kContextFlagsEnableNotification;
@@ -1058,9 +1085,14 @@ class HasClientImpl : public HasClient {
     }
 
     if (status != GATT_SUCCESS) {
-      LOG(ERROR) << __func__ << ": Could not read characteristic at handle="
-                 << loghex(handle);
-      BTA_GATTC_Close(device->conn_id);
+      if (status == GATT_DATABASE_OUT_OF_SYNC) {
+        LOG_INFO("Database out of sync for %s",
+                 device->addr.ToString().c_str());
+        ClearDeviceInformationAndStartSearch(device);
+      } else {
+        LOG_ERROR("Could not read characteristic at handle=0x%04x", handle);
+        BTA_GATTC_Close(device->conn_id);
+      }
       return;
     }
 
@@ -1434,10 +1466,14 @@ class HasClientImpl : public HasClient {
     }
 
     if (status != GATT_SUCCESS) {
-      LOG(ERROR) << __func__ << ": Could not read characteristic at handle="
-                 << loghex(handle);
-      BTA_GATTC_Close(device->conn_id);
-      return;
+      if (status == GATT_DATABASE_OUT_OF_SYNC) {
+        LOG_INFO("Database out of sync for %s",
+                 device->addr.ToString().c_str());
+        ClearDeviceInformationAndStartSearch(device);
+      } else {
+        LOG_ERROR("Could not read characteristic at handle=0x%04x", handle);
+        BTA_GATTC_Close(device->conn_id);
+      }
     }
 
     if (len != 1) {
@@ -1507,11 +1543,7 @@ class HasClientImpl : public HasClient {
     }
   }
 
-  /* Cleans up after the device disconnection */
-  void DoDisconnectCleanUp(HasDevice& device,
-                           bool invalidate_gatt_service = true) {
-    DLOG(INFO) << __func__ << ": device=" << device.addr;
-
+  void DeregisterNotifications(HasDevice& device) {
     /* Deregister from optional features notifications */
     if (device.features_ccc_handle != GAP_INVALID_HANDLE) {
       BTA_GATTC_DeregisterForNotifications(gatt_if_, device.addr,
@@ -1529,6 +1561,14 @@ class HasClientImpl : public HasClient {
       BTA_GATTC_DeregisterForNotifications(gatt_if_, device.addr,
                                            device.cp_handle);
     }
+  }
+
+  /* Cleans up after the device disconnection */
+  void DoDisconnectCleanUp(HasDevice& device,
+                           bool invalidate_gatt_service = true) {
+    LOG_DEBUG(": device=%s", device.addr.ToString().c_str());
+
+    DeregisterNotifications(device);
 
     if (device.conn_id != GATT_INVALID_CONN_ID) {
       BtaGattQueue::Clean(device.conn_id);
@@ -1940,6 +1980,27 @@ class HasClientImpl : public HasClient {
     }
   }
 
+  void ClearDeviceInformationAndStartSearch(HasDevice* device) {
+    if (!device) {
+      LOG_ERROR("Device is null");
+      return;
+    }
+
+    LOG_INFO("%s", device->addr.ToString().c_str());
+
+    if (!device->isGattServiceValid()) {
+      LOG_INFO("Service already invalidated");
+      return;
+    }
+
+    /* Invalidate service discovery results */
+    DeregisterNotifications(*device);
+    BtaGattQueue::Clean(device->conn_id);
+    device->ClearSvcData();
+    btif_storage_remove_leaudio_has(device->addr);
+    BTA_GATTC_ServiceSearchRequest(device->conn_id, &kUuidHearingAccessService);
+  }
+
   void OnGattServiceChangeEvent(const RawAddress& address) {
     auto device = std::find_if(devices_.begin(), devices_.end(),
                                HasDevice::MatchAddress(address));
@@ -1947,12 +2008,8 @@ class HasClientImpl : public HasClient {
       LOG(WARNING) << "Skipping unknown device" << address;
       return;
     }
-
-    DLOG(INFO) << __func__ << ": address=" << address;
-
-    /* Invalidate service discovery results */
-    BtaGattQueue::Clean(device->conn_id);
-    device->ClearSvcData();
+    LOG_INFO("%s", address.ToString().c_str());
+    ClearDeviceInformationAndStartSearch(&(*device));
   }
 
   void OnGattServiceDiscoveryDoneEvent(const RawAddress& address) {
