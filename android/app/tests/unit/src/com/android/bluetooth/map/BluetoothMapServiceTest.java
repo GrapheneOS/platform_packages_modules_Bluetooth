@@ -85,4 +85,9 @@ public class BluetoothMapServiceTest {
     public void testInitialize() {
         Assert.assertNotNull(BluetoothMapService.getBluetoothMapService());
     }
+
+    @Test
+    public void testDumpDoesNotCrash() {
+        mService.dump(new StringBuilder());
+    }
 }

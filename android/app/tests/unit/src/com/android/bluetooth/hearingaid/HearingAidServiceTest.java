@@ -1113,6 +1113,20 @@ public class HearingAidServiceTest {
         verify(mNativeInterface).setVolume(0);
     }
 
+    @Test
+    public void dump_doesNotCrash() {
+        // Update the device priority so okToConnect() returns true
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(mSingleDevice, BluetoothProfile.HEARING_AID))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        doReturn(true).when(mNativeInterface).connectHearingAid(any(BluetoothDevice.class));
+
+        // Send a connect request
+        mService.connect(mSingleDevice);
+
+        mService.dump(new StringBuilder());
+    }
+
     private void connectDevice(BluetoothDevice device) {
         HearingAidStackEvent connCompletedEvent;
 

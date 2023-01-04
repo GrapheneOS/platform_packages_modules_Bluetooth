@@ -532,6 +532,25 @@ public class CsipSetCoordinatorServiceTest {
                 group_id, intent.getIntExtra(BluetoothCsipSetCoordinator.EXTRA_CSIS_GROUP_ID, -1));
     }
 
+    @Test
+    public void testDump_doesNotCrash() {
+        // Update the device policy so okToConnect() returns true
+        when(mDatabaseManager.getProfileConnectionPolicy(
+                mTestDevice, BluetoothProfile.CSIP_SET_COORDINATOR))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        doReturn(true).when(mCsipSetCoordinatorNativeInterface).connect(any(BluetoothDevice.class));
+        doReturn(true)
+                .when(mCsipSetCoordinatorNativeInterface)
+                .disconnect(any(BluetoothDevice.class));
+        doReturn(new ParcelUuid[] {BluetoothUuid.COORDINATED_SET})
+                .when(mAdapterService)
+                .getRemoteUuids(any(BluetoothDevice.class));
+        // add state machines for testing dump()
+        mService.connect(mTestDevice);
+
+        mService.dump(new StringBuilder());
+    }
+
     /**
      * Helper function to test ConnectionStateIntent() method
      */
