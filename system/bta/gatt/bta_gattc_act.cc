@@ -630,6 +630,18 @@ void bta_gattc_close(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
     }
   }
 
+  if (p_data->hdr.event == BTA_GATTC_INT_DISCONN_EVT) {
+    /* Since link has been disconnected by and it is possible that here are
+     * already some new p_clcb created for the background connect, the number of
+     * p_srcb->num_clcb is NOT 0. This will prevent p_srcb to be cleared inside
+     * the bta_gattc_clcb_dealloc.
+     *
+     * In this point of time, we know that link does not exist, so let's make
+     * sure the connection state, mtu and database is cleared.
+     */
+    bta_gattc_server_disconnected(p_clcb->p_srcb);
+  }
+
   bta_gattc_clcb_dealloc(p_clcb);
 
   if (p_data->hdr.event == BTA_GATTC_API_CLOSE_EVT) {
