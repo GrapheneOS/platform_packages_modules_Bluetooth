@@ -802,3 +802,14 @@ void BTA_DmBleSubrateRequest(const RawAddress& bd_addr, uint16_t subrate_min,
                     base::Bind(bta_dm_ble_subrate_request, bd_addr, subrate_min,
                                subrate_max, max_latency, cont_num, timeout));
 }
+
+bool BTA_DmCheckLeAudioCapable(const RawAddress& address) {
+  for (tBTM_INQ_INFO* inq_ent = BTM_InqDbFirst(); inq_ent != nullptr;
+       inq_ent = BTM_InqDbNext(inq_ent)) {
+    if (inq_ent->results.remote_bd_addr != address) continue;
+
+    LOG_INFO("Device is LE Audio capable based on AD content");
+    return inq_ent->results.ble_ad_is_le_audio_capable;
+  }
+  return false;
+}
