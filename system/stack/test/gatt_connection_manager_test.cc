@@ -78,6 +78,9 @@ void BTM_BleTargetAnnouncementObserve(bool enable,
   localAcceptlistMock->EnableTargetedAnnouncements(enable, p_results_cb);
 }
 
+void BTM_LogHistory(const std::string& tag, const RawAddress& bd_addr,
+                    const std::string& msg){};
+
 namespace bluetooth {
 namespace shim {
 bool is_gd_l2cap_enabled() { return false; }
