@@ -163,4 +163,9 @@ public class BluetoothMapServiceTest {
 
         public void messageArrived(int what, int arg1, int arg2, Object obj) {}
     }
+
+    @Test
+    public void testDumpDoesNotCrash() {
+        mService.dump(new StringBuilder());
+    }
 }

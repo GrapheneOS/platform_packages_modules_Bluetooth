@@ -154,4 +154,14 @@ public class HeadsetClientServiceTest {
         verify(mStateMachine, timeout(STANDARD_WAIT_MILLIS).times(1))
                 .setAudioPolicy(any(BluetoothAudioPolicy.class));
     }
+
+    @Test
+    public void testDumpDoesNotCrash() {
+        // Put mock state machine
+        BluetoothDevice device =
+                BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:01:02:03:04:05");
+        mService.getStateMachineMap().put(device, mStateMachine);
+
+        mService.dump(new StringBuilder());
+    }
 }
