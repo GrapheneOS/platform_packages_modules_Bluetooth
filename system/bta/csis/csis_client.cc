@@ -984,7 +984,11 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
-    csis_group->SetDesiredSize(value[0]);
+    auto new_size = value[0];
+    csis_group->SetDesiredSize(new_size);
+    if (new_size > csis_group->GetCurrentSize()) {
+      CsisActiveDiscovery(csis_group);
+    }
   }
 
   void OnCsisLockReadRsp(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
