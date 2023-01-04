@@ -133,6 +133,11 @@ public class HidHostServiceTest {
                 badBondState, badPriorityValue, false);
     }
 
+    @Test
+    public void testDumpDoesNotCrash() {
+        mService.dump(new StringBuilder());
+    }
+
     /**
      * Helper function to test okToConnect() method.
      *
@@ -155,5 +160,4 @@ public class HidHostServiceTest {
         doReturn(true).when(mAdapterService).isQuietModeEnabled();
         Assert.assertEquals(false, mService.okToConnect(device));
     }
-
 }

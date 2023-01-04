@@ -847,4 +847,10 @@ public class BluetoothPbapObexServerTest {
         assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
         assertThat(appParamValue.vCardSelectorOperator).isEqualTo("1");
     }
+
+    @Test
+    public void appParamValueDump_doesNotCrash() {
+        AppParamValue appParamValue = new AppParamValue();
+        appParamValue.dump();
+    }
 }
