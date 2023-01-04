@@ -4,6 +4,7 @@ use crate::controller::Controller;
 use crate::hci::Hci;
 use bluetooth_rs::hci::ControllerExports;
 use bt_common::init_flags;
+use lazy_static::lazy_static;
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use tokio::runtime::{Builder, Runtime};
