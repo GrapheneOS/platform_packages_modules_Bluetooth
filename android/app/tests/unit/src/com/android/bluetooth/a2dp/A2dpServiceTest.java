@@ -91,6 +91,7 @@ public class A2dpServiceTest {
         }
 
         TestUtils.setAdapterService(mAdapterService);
+        doReturn(true).when(mAdapterService).isA2dpOffloadEnabled();
         doReturn(MAX_CONNECTED_AUDIO_DEVICES).when(mAdapterService).getMaxConnectedAudioDevices();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         doReturn(false).when(mAdapterService).isQuietModeEnabled();
@@ -863,6 +864,11 @@ public class A2dpServiceTest {
                 BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED, false,
                 BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
                 verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+    }
+
+    @Test
+    public void testDumpDoesNotCrash() {
+        mA2dpService.dump(new StringBuilder());
     }
 
     private void connectDevice(BluetoothDevice device) {
