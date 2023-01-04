@@ -20,16 +20,16 @@ rust_library_host_rlib {
         "libbluetooth_rs",
         "libbt_common",
         "libbt_facade_helpers",
-        "libclap",
+        "libbt_packets",
         "libcxx",
+        "libfutures",
         "libgrpcio",
+        "liblazy_static",
+        "liblog_rust",
+        "libnix",
+        "libnum_traits",
         "libtokio",
         "libtokio_stream",
-        "libbt_packets",
-        "libfutures",
-        "libnum_traits",
-        "libnix",
-        "liblog_rust",
     ],
     proc_macros: [
         "libnum_derive",
@@ -39,7 +39,6 @@ rust_library_host_rlib {
     lints: "none",
     clippy_lints: "none",
 }
-
 
 cc_library_static {
     name: "libbt_topshim_cxx",

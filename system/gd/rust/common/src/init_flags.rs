@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use log::{error, info};
 use paste::paste;
 use std::collections::HashMap;
@@ -229,6 +230,7 @@ init_flags!(
         sdp_serialization = true,
         sdp_skip_rnr_if_known = true,
         set_min_encryption = true,
+        subrating = true,
         trigger_advertising_callbacks_on_first_resume_after_pause = true,
     }
     // extra_fields are not a 1 to 1 match with "INIT_*" flags

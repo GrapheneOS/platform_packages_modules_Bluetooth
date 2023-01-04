@@ -1,6 +1,4 @@
 //! The main entry point for the legacy C++ code
-#[macro_use]
-extern crate lazy_static;
 
 mod bridge;
 mod controller;

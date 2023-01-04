@@ -1,3 +1,4 @@
+use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 use std::os::raw::c_char;
 use std::sync::{Arc, Mutex};

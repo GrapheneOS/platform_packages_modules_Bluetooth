@@ -134,6 +134,7 @@ btgatt_client_interface_t fake_btgattc_iface = {
     nullptr,  // read_phy
     nullptr,  // test_command
     nullptr,  // get_gatt_db
+    nullptr,  // subrate_request
 };
 
 btgatt_server_interface_t fake_btgatts_iface = {

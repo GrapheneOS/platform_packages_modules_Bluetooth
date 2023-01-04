@@ -104,6 +104,12 @@ public class GattNativeInterface {
         getGattService().onServiceChanged(connId);
     }
 
+    void onClientSubrateChange(int connId, int subrateFactor, int latency, int contNum, int timeout,
+            int status) throws RemoteException {
+        getGattService().onClientSubrateChange(connId, subrateFactor, latency, contNum, timeout,
+                status);
+    }
+
     void onServerPhyUpdate(int connId, int txPhy, int rxPhy, int status) throws RemoteException {
         getGattService().onServerPhyUpdate(connId, txPhy, rxPhy, status);
     }
@@ -116,6 +122,13 @@ public class GattNativeInterface {
     void onServerConnUpdate(int connId, int interval, int latency, int timeout, int status)
             throws RemoteException {
         getGattService().onServerConnUpdate(connId, interval, latency, timeout, status);
+    }
+
+    void onServerSubrateChange(int connId, int subrateFactor, int latency, int contNum, int timeout,
+            int status)
+            throws RemoteException {
+        getGattService().onServerSubrateChange(connId, subrateFactor, latency, contNum, timeout,
+                status);
     }
 
     void onSearchCompleted(int connId, int status) throws RemoteException {
@@ -345,6 +358,8 @@ public class GattNativeInterface {
             byte[] val);
     private native void gattServerSendResponseNative(int serverIf, int connId, int transId,
             int status, int handle, int offset, byte[] val, int authReq);
+    private native void gattSubrateRequestNative(int clientIf, String address, int subrateMin,
+            int subrateMax, int maxLatency, int contNumber, int supervisionTimeout);
     private native void gattTestNative(int command, long uuid1Lsb, long uuid1Msb, String bda1,
             int p1, int p2, int p3, int p4, int p5);
 
@@ -532,6 +547,15 @@ public class GattNativeInterface {
             int maxConnectionEventLen) {
         gattConnectionParameterUpdateNative(clientIf, address, minInterval, maxInterval, latency,
                 timeout, minConnectionEventLen, maxConnectionEventLen);
+    }
+
+    /**
+     * Update connection parameter.
+     */
+    public void gattSubrateRequest(int clientIf, String address, int subrateMin, int subrateMax,
+            int maxLatency, int contNumber, int supervisionTimeout) {
+        gattSubrateRequestNative(clientIf, address, subrateMin, subrateMax, maxLatency, contNumber,
+                supervisionTimeout);
     }
 
     /**

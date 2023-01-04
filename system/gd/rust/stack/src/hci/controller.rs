@@ -329,6 +329,8 @@ supported_le_features! {
     iso_broadcaster => 30,
     synchronized_receiver => 31,
     ble_periodic_advertising_adi => 36,
+    ble_connection_subrating => 37,
+    ble_connection_subrating_host => 38,
 }
 
 /// Convert a null terminated C string into a Rust String

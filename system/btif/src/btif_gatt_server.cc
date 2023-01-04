@@ -250,6 +250,13 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param) {
                 p_data->conn_update.status);
       break;
 
+    case BTA_GATTS_SUBRATE_CHG_EVT:
+      HAL_CBACK(bt_gatt_callbacks, server->subrate_chg_cb,
+                p_data->subrate_chg.conn_id, p_data->subrate_chg.subrate_factor,
+                p_data->subrate_chg.latency, p_data->subrate_chg.cont_num,
+                p_data->subrate_chg.timeout, p_data->subrate_chg.status);
+      break;
+
     default:
       LOG_ERROR("%s: Unhandled event (%d)!", __func__, event);
       break;

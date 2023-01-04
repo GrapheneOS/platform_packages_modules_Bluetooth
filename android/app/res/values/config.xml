@@ -40,6 +40,29 @@
     <integer name="gatt_balanced_priority_latency">0</integer>
     <integer name="gatt_low_power_latency">2</integer>
 
+    <!-- Specifies the min/max subrate factor parameters for high priority,
+         balanced and low power subrate request configurations. -->
+    <integer name="subrate_mode_high_priority_min_subrate">2</integer>
+    <integer name="subrate_mode_high_priority_max_subrate">4</integer>
+    <integer name="subrate_mode_balanced_min_subrate">4</integer>
+    <integer name="subrate_mode_balanced_max_subrate">7</integer>
+    <integer name="subrate_mode_low_power_min_subrate">4</integer>
+    <integer name="subrate_mode_low_power_max_subrate">10</integer>
+
+    <!-- Specifies max latency parameters for high priority, balanced
+         and low power subrate request configurations. These values
+         represents the number of subrate events a peripheral device
+         is allowed to skip. -->
+    <integer name="subrate_mode_high_priority_latency">0</integer>
+    <integer name="subrate_mode_balanced_latency">1</integer>
+    <integer name="subrate_mode_low_power_latency">1</integer>
+
+    <!-- Specifies continuation number parameters for high priority,
+         balanced and low power subrate request configurations. -->
+    <integer name="subrate_mode_high_priority_cont_number">2</integer>
+    <integer name="subrate_mode_balanced_cont_number">2</integer>
+    <integer name="subrate_mode_low_power_cont_number">2</integer>
+
     <bool name="headset_client_initial_audio_route_allowed">true</bool>
 
     <!-- @deprecated: use a2dp_absolute_volume_initial_threshold_percent
