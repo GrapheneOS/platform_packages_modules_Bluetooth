@@ -42,6 +42,8 @@
 
 #define DIRECT_CONNECT_TIMEOUT (30 * 1000) /* 30 seconds */
 
+constexpr char kBtmLogTag[] = "TA";
+
 struct closure_data {
   base::OnceClosure user_task;
   base::Location posted_from;
@@ -172,6 +174,8 @@ static void target_announcement_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
   LOG_INFO("Found targeted announcement for device %s",
            addr.ToString().c_str());
 
+  BTM_LogHistory(kBtmLogTag, addr, "Found TA from");
+
   if (it->second.is_in_accept_list) {
     LOG_INFO("Device %s is already connecting", addr.ToString().c_str());
     return;
@@ -192,6 +196,9 @@ static void target_announcement_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
 
 void target_announcements_filtering_set(bool enable) {
   LOG_DEBUG("enable %d", enable);
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty,
+                 (enable ? "Start filtering" : "Stop filtering"));
+
   /* Safe to call as if there is no support for filtering, this call will be
    * ignored. */
   bluetooth::shim::set_target_announcements_filter(enable);
@@ -247,6 +254,10 @@ bool background_connect_targeted_announcement_add(tAPP_ID app_id,
   }
 
   bgconn_dev[address].doing_targeted_announcements_conn.insert(app_id);
+  if (bgconn_dev[address].doing_targeted_announcements_conn.size() == 1) {
+    BTM_LogHistory(kBtmLogTag, address, "Allow connection from");
+  }
+
   if (num_of_targeted_announcements_users() == 1) {
     target_announcements_filtering_set(true);
   }
@@ -336,11 +347,18 @@ bool background_connect_remove(uint8_t app_id, const RawAddress& address) {
   auto num_of_targeted_announcements_before_remove =
       it->second.doing_targeted_announcements_conn.size();
 
-  if (!it->second.doing_bg_conn.erase(app_id) &&
-      !it->second.doing_targeted_announcements_conn.erase(app_id)) {
+  bool removed_from_bg_conn = (it->second.doing_bg_conn.erase(app_id) > 0);
+  bool removed_from_ta =
+      (it->second.doing_targeted_announcements_conn.erase(app_id) > 0);
+  if (!removed_from_bg_conn && !removed_from_ta) {
     LOG_WARN("Failed to remove background connection app %d for address %s",
              static_cast<int>(app_id), address.ToString().c_str());
     return false;
+  }
+
+  if (removed_from_ta &&
+      it->second.doing_targeted_announcements_conn.size() == 0) {
+    BTM_LogHistory(kBtmLogTag, address, "Ignore connection from");
   }
 
   if (is_anyone_connecting(it)) {
