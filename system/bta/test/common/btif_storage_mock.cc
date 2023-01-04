@@ -111,3 +111,8 @@ void btif_storage_set_leaudio_has_active_preset(const RawAddress& address,
   LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
   btif_storage_interface->SetLeaudioHasActivePreset(address, active_preset);
 }
+
+void btif_storage_remove_leaudio_has(const RawAddress& address) {
+  LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
+  btif_storage_interface->RemoveLeaudioHas(address);
+}
