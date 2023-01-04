@@ -1108,13 +1108,12 @@ class LeAudioClientImpl : public LeAudioClient {
     if (!leAudioDevice) {
       leAudioDevices_.Add(address, DeviceConnectState::CONNECTING_BY_USER);
     } else {
-      if (leAudioDevice->GetConnectionState() !=
-          DeviceConnectState::DISCONNECTED) {
-        LOG_ERROR(
-            "Device %s is in invalid state: %s",
-            leAudioDevice->address_.ToString().c_str(),
-            bluetooth::common::ToString(leAudioDevice->GetConnectionState())
-                .c_str());
+      auto current_connect_state = leAudioDevice->GetConnectionState();
+      if ((current_connect_state == DeviceConnectState::CONNECTED) ||
+          (current_connect_state == DeviceConnectState::CONNECTING_BY_USER)) {
+        LOG_ERROR("Device %s is in invalid state: %s",
+                  leAudioDevice->address_.ToString().c_str(),
+                  bluetooth::common::ToString(current_connect_state).c_str());
 
         return;
       }
