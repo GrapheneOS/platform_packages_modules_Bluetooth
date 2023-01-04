@@ -213,6 +213,8 @@ typedef enum : uint16_t {
 
   GATT_CONN_FAILED_ESTABLISHMENT = HCI_ERR_CONN_FAILED_ESTABLISHMENT,
 
+  GATT_CONN_TERMINATED_POWER_OFF = HCI_ERR_REMOTE_POWER_OFF,
+
   BTA_GATT_CONN_NONE = 0x0101, /* 0x0101 no connection to cancel  */
 
 } tGATT_DISCONN_REASON;
@@ -232,6 +234,7 @@ inline std::string gatt_disconnection_reason_text(
     CASE_RETURN_TEXT(GATT_CONN_LMP_TIMEOUT);
     CASE_RETURN_TEXT(GATT_CONN_FAILED_ESTABLISHMENT);
     CASE_RETURN_TEXT(BTA_GATT_CONN_NONE);
+    CASE_RETURN_TEXT(GATT_CONN_TERMINATED_POWER_OFF);
     default:
       return base::StringPrintf("UNKNOWN[%hu]", reason);
   }
