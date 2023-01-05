@@ -119,6 +119,8 @@ static const interop_addr_entry_t interop_addr_database[] = {
 
     // Kenwood KMM-BT518HD - no audio when A2DP codec sample rate is changed
     {{{0x00, 0x1d, 0x86, 0, 0, 0}}, 3, INTEROP_DISABLE_AVDTP_RECONFIGURE},
+    // http://b/255387998
+    {{{0x00, 0x1d, 0x86, 0, 0, 0}}, 3, INTEROP_DISABLE_ROLE_SWITCH},
 
     // NAC FORD-2013 - Lincoln
     {{{0x00, 0x26, 0xb4, 0, 0, 0}}, 3, INTEROP_DISABLE_ROLE_SWITCH},
