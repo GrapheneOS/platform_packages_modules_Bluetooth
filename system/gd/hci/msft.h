@@ -18,6 +18,8 @@
 #include "hci/hci_packets.h"
 #include "module.h"
 
+struct MsftAdvMonitor;
+
 namespace bluetooth {
 namespace hci {
 
@@ -27,6 +29,16 @@ class MsftExtensionManager : public bluetooth::Module {
 
   MsftExtensionManager(const MsftExtensionManager&) = delete;
   MsftExtensionManager& operator=(const MsftExtensionManager&) = delete;
+
+  using MsftAdvMonitorAddCallback =
+      base::Callback<void(uint8_t /* monitor_handle */, ErrorCode /* status */)>;
+  using MsftAdvMonitorRemoveCallback = base::Callback<void(ErrorCode /* status */)>;
+  using MsftAdvMonitorEnableCallback = base::Callback<void(ErrorCode /* status */)>;
+
+  virtual bool SupportsMsftExtensions();
+  void MsftAdvMonitorAdd(const MsftAdvMonitor& monitor, MsftAdvMonitorAddCallback cb);
+  void MsftAdvMonitorRemove(uint8_t monitor_handle, MsftAdvMonitorRemoveCallback cb);
+  void MsftAdvMonitorEnable(bool enable, MsftAdvMonitorEnableCallback cb);
 
   static const ModuleFactory Factory;
 
