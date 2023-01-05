@@ -228,7 +228,6 @@ class HearingAid {
                          base::Closure initCb);
   static void CleanUp();
   static bool IsHearingAidRunning();
-  static HearingAid* Get();
   static void DebugDump(int fd);
 
   static void AddFromStorage(const HearingDevice& dev_info,
@@ -236,10 +235,10 @@ class HearingAid {
 
   static int GetDeviceCount();
 
-  virtual void Connect(const RawAddress& address) = 0;
-  virtual void Disconnect(const RawAddress& address) = 0;
-  virtual void AddToAcceptlist(const RawAddress& address) = 0;
-  virtual void SetVolume(int8_t volume) = 0;
+  static void Connect(const RawAddress& address);
+  static void Disconnect(const RawAddress& address);
+  static void AddToAcceptlist(const RawAddress& address);
+  static void SetVolume(int8_t volume);
 };
 
 /* Represents configuration of audio codec, as exchanged between hearing aid and

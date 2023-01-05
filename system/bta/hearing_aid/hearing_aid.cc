@@ -321,13 +321,13 @@ class HearingAidImpl : public HearingAid {
     return connection_interval;
   }
 
-  void Connect(const RawAddress& address) override {
+  void Connect(const RawAddress& address) {
     LOG_DEBUG("%s", address.ToStringForLogging().c_str());
     hearingDevices.Add(HearingDevice(address, true));
     BTA_GATTC_Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, false);
   }
 
-  void AddToAcceptlist(const RawAddress& address) override {
+  void AddToAcceptlist(const RawAddress& address) {
     LOG_DEBUG("%s", address.ToStringForLogging().c_str());
     hearingDevices.Add(HearingDevice(address, true));
     BTA_GATTC_Open(gatt_if, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
@@ -1593,7 +1593,7 @@ class HearingAidImpl : public HearingAid {
     dprintf(fd, "%s", stream.str().c_str());
   }
 
-  void Disconnect(const RawAddress& address) override {
+  void Disconnect(const RawAddress& address) {
     HearingDevice* hearingDevice = hearingDevices.FindByAddress(address);
     if (!hearingDevice) {
       LOG_INFO("Device not connected to profile %s",
@@ -1716,7 +1716,7 @@ class HearingAidImpl : public HearingAid {
     current_volume = VOLUME_UNKNOWN;
   }
 
-  void SetVolume(int8_t volume) override {
+  void SetVolume(int8_t volume) {
     LOG_DEBUG("%d", volume);
     current_volume = volume;
     for (HearingDevice& device : hearingDevices.devices) {
@@ -1950,6 +1950,7 @@ void HearingAid::Initialize(
     bluetooth::hearing_aid::HearingAidCallbacks* callbacks, Closure initCb) {
   if (instance) {
     LOG_ERROR("Already initialized!");
+    return;
   }
 
   audioReceiver = &audioReceiverImpl;
@@ -1959,10 +1960,37 @@ void HearingAid::Initialize(
 
 bool HearingAid::IsHearingAidRunning() { return instance; }
 
-HearingAid* HearingAid::Get() {
-  CHECK(instance);
-  return instance;
-};
+void HearingAid::Connect(const RawAddress& address) {
+  if (!instance) {
+    LOG_ERROR("Hearing Aid instance is not available");
+    return;
+  }
+  instance->Connect(address);
+}
+
+void HearingAid::Disconnect(const RawAddress& address) {
+  if (!instance) {
+    LOG_ERROR("Hearing Aid instance is not available");
+    return;
+  }
+  instance->Disconnect(address);
+}
+
+void HearingAid::AddToAcceptlist(const RawAddress& address) {
+  if (!instance) {
+    LOG_ERROR("Hearing Aid instance is not available");
+    return;
+  }
+  instance->AddToAcceptlist(address);
+}
+
+void HearingAid::SetVolume(int8_t volume) {
+  if (!instance) {
+    LOG_ERROR("Hearing Aid instance is not available");
+    return;
+  }
+  instance->SetVolume(volume);
+}
 
 void HearingAid::AddFromStorage(const HearingDevice& dev_info,
                                 uint16_t is_acceptlisted) {
