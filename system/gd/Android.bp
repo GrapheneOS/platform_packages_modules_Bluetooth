@@ -170,6 +170,9 @@ cc_defaults {
                 "libutils",
                 "libstatslog_bt",
             ],
+            whole_static_libs: [
+                "android.hardware.bluetooth-V1-ndk",
+            ],
         },
     },
     srcs: [
