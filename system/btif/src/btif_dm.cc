@@ -680,9 +680,13 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
  * up LE profile connection, and limits all possible service discovery
  * ordering issues (first Classic, GATT over SDP, etc) */
 static bool is_device_le_audio_capable(const RawAddress bd_addr) {
-  if (!LeAudioClient::IsLeAudioClientRunning() ||
-      !check_cod_le_audio(bd_addr)) {
+  if (!LeAudioClient::IsLeAudioClientRunning()) {
     /* If LE Audio profile is not enabled, do nothing. */
+    return false;
+  }
+
+  if (!check_cod_le_audio(bd_addr) && !BTA_DmCheckLeAudioCapable(bd_addr)) {
+    /* LE Audio not present in CoD or in LE Advertisement, do nothing.*/
     return false;
   }
 
@@ -1517,12 +1521,12 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
        * before before passing services to upper layers. */
       if ((bd_addr == pairing_cb.bd_addr ||
            bd_addr == pairing_cb.static_bdaddr) &&
-          a2dp_sink_capable &&
-          LeAudioClient::IsLeAudioClientRunning() &&
+          a2dp_sink_capable && LeAudioClient::IsLeAudioClientRunning() &&
           pairing_cb.gatt_over_le !=
               btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED &&
           (check_cod_le_audio(bd_addr) ||
-           metadata_cb.le_audio_cache.contains(bd_addr))) {
+           metadata_cb.le_audio_cache.contains(bd_addr) ||
+           BTA_DmCheckLeAudioCapable(bd_addr))) {
         skip_reporting_wait_for_le = true;
       }
 
