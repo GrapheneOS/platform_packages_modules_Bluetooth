@@ -60,7 +60,7 @@ import java.util.UUID;
  * @hide
  */
 public class HeadsetClientService extends ProfileService {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String TAG = "HeadsetClientService";
 
     // This is also used as a lock for shared data in {@link HeadsetClientService}
