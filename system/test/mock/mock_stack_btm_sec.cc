@@ -184,10 +184,6 @@ tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason,
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
-tBTM_STATUS btm_sec_execute_procedure(tBTM_SEC_DEV_REC* p_dev_rec) {
-  mock_function_count_map[__func__]++;
-  return BTM_SUCCESS;
-}
 tBTM_STATUS btm_sec_l2cap_access_req(const RawAddress& bd_addr, uint16_t psm,
                                      bool is_originator,
                                      tBTM_SEC_CALLBACK* p_callback,
