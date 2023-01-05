@@ -315,8 +315,8 @@ class HciHalHidl : public HciHal {
     if (aidl_callbacks_) {
       aidl_callbacks_->SetCallback(callback);
     }
-    if (callbacks_) {
-      callbacks_->SetCallback(callback);
+    if (hidl_callbacks_) {
+      hidl_callbacks_->SetCallback(callback);
     }
   }
 
@@ -324,8 +324,8 @@ class HciHalHidl : public HciHal {
     if (aidl_callbacks_) {
       aidl_callbacks_->ResetCallback();
     }
-    if (callbacks_) {
-      callbacks_->ResetCallback();
+    if (hidl_callbacks_) {
+      hidl_callbacks_->ResetCallback();
     }
   }
 
@@ -405,18 +405,22 @@ class HciHalHidl : public HciHal {
       aidl_callbacks_->GetInitPromise()->get_future().wait();
     } else {
       start_hidl();
-      callbacks_->GetInitPromise()->get_future().wait();
+      hidl_callbacks_->GetInitPromise()->get_future().wait();
     }
   }
 
   void start_aidl() {
     common::StopWatch stop_watch(__func__);
-    ::ndk::SpAIBinder binder(AServiceManager_getService(kBluetoothAidlHalServiceName));
+    ::ndk::SpAIBinder binder(AServiceManager_waitForService(kBluetoothAidlHalServiceName));
     aidl_hci_ = IBluetoothHci::fromBinder(binder);
     if (aidl_hci_ != nullptr) {
       LOG_INFO("Using the AIDL interface");
-      aidl_death_recipient_ = ::ndk::ScopedAIBinder_DeathRecipient(
-          AIBinder_DeathRecipient_new(HciHalHidl::hci_binder_died_static));
+      aidl_death_recipient_ =
+          ::ndk::ScopedAIBinder_DeathRecipient(AIBinder_DeathRecipient_new([](void* cookie) {
+            LOG_ERROR("Bluetooth HAL service died!");
+            common::StopWatch::DumpStopWatchLog();
+            abort();
+          }));
 
       auto death_link =
           AIBinder_linkToDeath(aidl_hci_->asBinder().get(), aidl_death_recipient_.get(), this);
@@ -426,7 +430,6 @@ class HciHalHidl : public HciHal {
 
       aidl_callbacks_ = ::ndk::SharedRefBase::make<AidlHciCallbacks>(btaa_logger_, btsnoop_logger_);
       aidl_hci_->initialize(aidl_callbacks_);
-      return;
     }
   }
 
@@ -465,12 +468,12 @@ class HciHalHidl : public HciHal {
     ASSERT(bt_hci_ != nullptr);
     auto death_link = bt_hci_->linkToDeath(hci_death_recipient_, 0);
     ASSERT_LOG(death_link.isOk(), "Unable to set the death recipient for the Bluetooth HAL");
-    callbacks_ = new InternalHciCallbacks(btaa_logger_, btsnoop_logger_);
+    hidl_callbacks_ = new InternalHciCallbacks(btaa_logger_, btsnoop_logger_);
 
     if (bt_hci_1_1_ != nullptr) {
-      bt_hci_1_1_->initialize_1_1(callbacks_);
+      bt_hci_1_1_->initialize_1_1(hidl_callbacks_);
     } else {
-      bt_hci_->initialize(callbacks_);
+      bt_hci_->initialize(hidl_callbacks_);
     }
   }
 
@@ -488,17 +491,6 @@ class HciHalHidl : public HciHal {
   }
 
  private:
-  static void hci_binder_died_static(void* cookie) {
-    auto hal_ptr = static_cast<HciHalHidl*>(cookie);
-    hal_ptr->hci_binder_died();
-  }
-
-  void hci_binder_died() {
-    LOG_ERROR("Bluetooth HAL service died!");
-    common::StopWatch::DumpStopWatchLog();
-    abort();
-  }
-
   void stop_hidl() {
     ASSERT(bt_hci_ != nullptr);
     auto death_unlink = bt_hci_->unlinkToDeath(hci_death_recipient_);
@@ -511,7 +503,7 @@ class HciHalHidl : public HciHal {
     }
     bt_hci_ = nullptr;
     bt_hci_1_1_ = nullptr;
-    callbacks_->ResetCallback();
+    hidl_callbacks_->ResetCallback();
   }
 
   void stop_aidl() {
@@ -528,7 +520,7 @@ class HciHalHidl : public HciHal {
     aidl_hci_ = nullptr;
     aidl_callbacks_->ResetCallback();
   }
-  android::sp<InternalHciCallbacks> callbacks_;
+  android::sp<InternalHciCallbacks> hidl_callbacks_;
   android::sp<IBluetoothHci_1_0> bt_hci_;
   android::sp<IBluetoothHci_1_1> bt_hci_1_1_;
   std::shared_ptr<IBluetoothHci> aidl_hci_;
