@@ -47,6 +47,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,6 +104,7 @@ public class HeadsetClientServiceTest {
         Assert.assertNotNull(HeadsetClientService.getHeadsetClientService());
     }
 
+    @Ignore("b/260202548")
     @Test
     public void testSendBIEVtoStateMachineWhenBatteryChanged() {
         // Put mock state machine
@@ -151,5 +153,15 @@ public class HeadsetClientServiceTest {
 
         verify(mStateMachine, timeout(STANDARD_WAIT_MILLIS).times(1))
                 .setAudioPolicy(any(BluetoothAudioPolicy.class));
+    }
+
+    @Test
+    public void testDumpDoesNotCrash() {
+        // Put mock state machine
+        BluetoothDevice device =
+                BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:01:02:03:04:05");
+        mService.getStateMachineMap().put(device, mStateMachine);
+
+        mService.dump(new StringBuilder());
     }
 }

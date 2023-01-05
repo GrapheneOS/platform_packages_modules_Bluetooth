@@ -1489,6 +1489,11 @@ public class BassClientStateMachineTest {
         verify(mBassClientService, never()).sendBroadcast(any(Intent.class), anyString(), any());
     }
 
+    @Test
+    public void dump_doesNotCrash() {
+        mBassClientStateMachine.dump(new StringBuilder());
+    }
+
     private void initToDisconnectedState() {
         allowConnection(true);
         allowConnectGatt(true);

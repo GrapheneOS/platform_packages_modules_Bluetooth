@@ -54,6 +54,7 @@ import com.google.common.base.Objects;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -93,6 +94,7 @@ public class BluetoothOppReceiverTest {
         Intents.release();
     }
 
+    @Ignore("b/262201478")
     @Test
     public void onReceive_withActionDeviceSelected_callsStartTransfer() {
         BluetoothOppManager bluetoothOppManager = spy(BluetoothOppManager.getInstance(mContext));

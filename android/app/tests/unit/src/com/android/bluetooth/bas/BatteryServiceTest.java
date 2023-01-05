@@ -211,7 +211,7 @@ public class BatteryServiceTest {
      * Test that an outgoing connection to device
      */
     @Test
-    public void testConnect() {
+    public void testConnectAndDump() {
         // Update the device policy so okToConnect() returns true
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         when(mDatabaseManager
@@ -222,6 +222,9 @@ public class BatteryServiceTest {
                 .getRemoteUuids(any(BluetoothDevice.class));
         // Send a connect request
         Assert.assertTrue("Connect expected to succeed", mService.connect(mDevice));
+
+        // Test dump() is not crashed.
+        mService.dump(new StringBuilder());
     }
 
     /**
