@@ -18,9 +18,11 @@ package com.android.bluetooth.map;
 
 import static org.mockito.Mockito.*;
 
+import android.app.Activity;
 import android.content.ContentProviderClient;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteException;
@@ -72,7 +74,7 @@ public class BluetoothMapContentObserverTest {
     static final int TEST_ID = 1;
     static final long TEST_HANDLE_ONE = 1;
     static final long TEST_HANDLE_TWO = 2;
-    static final String TEST_URI_STR = "test_uri_str";
+    static final String TEST_URI_STR = "http://www.google.com";
     static final int TEST_STATUS_VALUE = 1;
     static final int TEST_THREAD_ID = 1;
     static final long TEST_OLD_THREAD_ID = 2;
@@ -106,6 +108,8 @@ public class BluetoothMapContentObserverTest {
     private ContentProviderClient mProviderClient;
     @Mock
     private BluetoothMapAccountItem mItem;
+    @Mock
+    private Intent mIntent;
     @Spy
     private BluetoothMethodProxy mMapMethodProxy = BluetoothMethodProxy.getInstance();
 
@@ -1290,6 +1294,198 @@ public class BluetoothMapContentObserverTest {
                 undeletedThreadId);
         Assert.assertEquals(mObserver.getMsgListMms().get(TEST_HANDLE_ONE).flagRead,
                 TEST_READ_FLAG_ONE);
+    }
+
+    @Test
+    public void handleMmsSendIntent_withMnsClientNotConnected() {
+        when(mClient.isConnected()).thenReturn(false);
+
+        Assert.assertFalse(mObserver.handleMmsSendIntent(mContext, mIntent));
+    }
+
+    @Test
+    public void handleMmsSendIntent_withInvalidHandle() {
+        when(mClient.isConnected()).thenReturn(true);
+        doReturn((long) -1).when(mIntent).getLongExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_HANDLE, -1);
+
+        Assert.assertTrue(mObserver.handleMmsSendIntent(mContext, mIntent));
+    }
+
+    @Test
+    public void handleMmsSendIntent_withActivityResultOk() {
+        when(mClient.isConnected()).thenReturn(true);
+        doReturn(TEST_HANDLE_ONE).when(mIntent).getLongExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_HANDLE, -1);
+        doReturn(Activity.RESULT_OK).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_RESULT, Activity.RESULT_CANCELED);
+        doReturn(0).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        mObserver.mObserverRegistered = true;
+
+        Assert.assertTrue(mObserver.handleMmsSendIntent(mContext, mIntent));
+    }
+
+    @Test
+    public void handleMmsSendIntent_withActivityResultFirstUser() {
+        when(mClient.isConnected()).thenReturn(true);
+        doReturn(TEST_HANDLE_ONE).when(mIntent).getLongExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_HANDLE, -1);
+        doReturn(Activity.RESULT_FIRST_USER).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_RESULT, Activity.RESULT_CANCELED);
+        mObserver.mObserverRegistered = true;
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverDelete(any(), any(),
+                any(), any());
+
+        Assert.assertTrue(mObserver.handleMmsSendIntent(mContext, mIntent));
+    }
+
+    @Test
+    public void actionMmsSent_withInvalidHandle() {
+        Map<Long, BluetoothMapContentObserver.Msg> mmsMsgList = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        mmsMsgList.put(TEST_HANDLE_ONE, msg);
+        doReturn(1).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        doReturn((long) -1).when(mIntent).getLongExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_HANDLE, -1);
+
+        mObserver.actionMmsSent(mContext, mIntent, 1, mmsMsgList);
+
+        Assert.assertTrue(mmsMsgList.containsKey(TEST_HANDLE_ONE));
+    }
+
+    @Test
+    public void actionMmsSent_withTransparency() {
+        Map<Long, BluetoothMapContentObserver.Msg> mmsMsgList = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        mmsMsgList.put(TEST_HANDLE_ONE, msg);
+        // This mock turns on the transparent flag
+        doReturn(1).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        doReturn(TEST_HANDLE_ONE).when(mIntent).getLongExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_HANDLE, -1);
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverDelete(any(), any(),
+                any(), any());
+
+        mObserver.actionMmsSent(mContext, mIntent, 1, mmsMsgList);
+
+        Assert.assertFalse(mmsMsgList.containsKey(TEST_HANDLE_ONE));
+    }
+
+    @Test
+    public void actionMmsSent_withActivityResultOk() {
+        Map<Long, BluetoothMapContentObserver.Msg> mmsMsgList = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        mmsMsgList.put(TEST_HANDLE_ONE, msg);
+        // This mock turns off the transparent flag
+        doReturn(0).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        doReturn(TEST_HANDLE_ONE).when(mIntent).getLongExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_HANDLE, -1);
+
+        MatrixCursor cursor = new MatrixCursor(new String[] {});
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        mObserver.actionMmsSent(mContext, mIntent, Activity.RESULT_OK, mmsMsgList);
+
+        Assert.assertTrue(mmsMsgList.containsKey(TEST_HANDLE_ONE));
+    }
+
+    @Test
+    public void actionMmsSent_withActivityResultFirstUser() {
+        Map<Long, BluetoothMapContentObserver.Msg> mmsMsgList = new HashMap<>();
+        BluetoothMapContentObserver.Msg msg = createSimpleMsg();
+        mmsMsgList.put(TEST_HANDLE_ONE, msg);
+        // This mock turns off the transparent flag
+        doReturn(0).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        doReturn(TEST_HANDLE_ONE).when(mIntent).getLongExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_HANDLE, -1);
+
+        mObserver.actionMmsSent(mContext, mIntent, Activity.RESULT_FIRST_USER, mmsMsgList);
+
+        Assert.assertEquals(msg.type, Mms.MESSAGE_BOX_OUTBOX);
+    }
+
+    @Test
+    public void actionSmsSentDisconnected_withNullUriString() {
+        // This sets to null uriString
+        doReturn(null).when(mIntent).getStringExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_URI);
+        doReturn(1).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+
+        clearInvocations(mContext);
+        mObserver.actionSmsSentDisconnected(mContext, mIntent, Activity.RESULT_FIRST_USER);
+
+        verify(mContext, never()).getContentResolver();
+    }
+
+    @Test
+    public void actionSmsSentDisconnected_withActivityResultOk_andTransparentOff() {
+        doReturn(TEST_URI_STR).when(mIntent).getStringExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_URI);
+        // This mock turns off the transparent flag
+        doReturn(0).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        clearInvocations(mContext);
+        mObserver.actionSmsSentDisconnected(mContext, mIntent, Activity.RESULT_OK);
+
+        verify(mContext).getContentResolver();
+    }
+
+    @Test
+    public void actionSmsSentDisconnected_withActivityResultOk_andTransparentOn() {
+        doReturn(TEST_URI_STR).when(mIntent).getStringExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_URI);
+        // This mock turns on the transparent flag
+        doReturn(1).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverDelete(any(), any(),
+                any(), any());
+
+        clearInvocations(mContext);
+        mObserver.actionSmsSentDisconnected(mContext, mIntent, Activity.RESULT_OK);
+
+        verify(mContext).getContentResolver();
+    }
+
+    @Test
+    public void actionSmsSentDisconnected_withActivityResultFirstUser_andTransparentOff() {
+        doReturn(TEST_URI_STR).when(mIntent).getStringExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_URI);
+        // This mock turns off the transparent flag
+        doReturn(0).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        doReturn(TEST_PLACEHOLDER_INT).when(mMapMethodProxy).contentResolverUpdate(any(), any(),
+                any(), any(), any());
+
+        clearInvocations(mContext);
+        mObserver.actionSmsSentDisconnected(mContext, mIntent, Activity.RESULT_OK);
+
+        verify(mContext).getContentResolver();
+    }
+
+    @Test
+    public void actionSmsSentDisconnected_withActivityResultFirstUser_andTransparentOn() {
+        doReturn(TEST_URI_STR).when(mIntent).getStringExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_URI);
+        // This mock turns on the transparent flag
+        doReturn(1).when(mIntent).getIntExtra(
+                BluetoothMapContentObserver.EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        doReturn(null).when(mContext).getContentResolver();
+
+        clearInvocations(mContext);
+        mObserver.actionSmsSentDisconnected(mContext, mIntent, Activity.RESULT_OK);
+
+        verify(mContext).getContentResolver();
     }
 
     private BluetoothMapContentObserver.Msg createSimpleMsg() {
