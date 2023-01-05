@@ -136,4 +136,9 @@ public class McpServiceTest {
             }
         });
     }
+
+    @Test
+    public void testDumpDoesNotCrash() {
+        mMcpService.dump(new StringBuilder());
+    }
 }
