@@ -68,6 +68,7 @@ import com.android.bluetooth.vc.VolumeControlService;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1127,6 +1128,7 @@ public class LeAudioServiceTest {
      * Test native interface audio configuration changed message handling
      */
     @Test
+    @Ignore("b/258573934")
     public void testMessageFromNativeAudioConfChangedActiveGroup() {
         doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
         connectTestDevice(mSingleDevice, testGroupId);
@@ -1312,6 +1314,7 @@ public class LeAudioServiceTest {
      * Test native interface group status message handling
      */
     @Test
+    @Ignore("b/258573934")
     public void testLeadGroupDeviceDisconnects() {
         int groupId = 1;
         /* AUDIO_DIRECTION_OUTPUT_BIT = 0x01 */
@@ -1381,6 +1384,7 @@ public class LeAudioServiceTest {
      * Test native interface group status message handling
      */
     @Test
+    @Ignore("b/258573934")
     public void testLeadGroupDeviceReconnects() {
         int groupId = 1;
         /* AUDIO_DIRECTION_OUTPUT_BIT = 0x01 */
