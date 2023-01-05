@@ -1224,4 +1224,14 @@ extern void BTA_DmClearEventFilter(void);
  ******************************************************************************/
 extern void BTA_DmBleResetId(void);
 
+/*******************************************************************************
+ *
+ * Function         BTA_DmCheckLeAudioCapable
+ *
+ * Description      Checks if device should be considered as LE Audio capable
+ *
+ * Returns          True if Le Audio capable device, false otherwise
+ *
+ ******************************************************************************/
+extern bool BTA_DmCheckLeAudioCapable(const RawAddress& address);
 #endif /* BTA_API_H */
