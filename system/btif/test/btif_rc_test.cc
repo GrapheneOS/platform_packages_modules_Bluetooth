@@ -100,7 +100,6 @@ bool interop_match_addr(const interop_feature_t feature,
                         const RawAddress* addr) {
   return false;
 }
-void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 
 /**
  * Test class to test selected functionality in hci/src/hci_layer.cc
