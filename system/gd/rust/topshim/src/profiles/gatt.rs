@@ -163,6 +163,7 @@ pub mod ffi {
         );
         fn ScanFilterClear(self: Pin<&mut BleScannerIntf>, filter_index: u8);
         fn ScanFilterEnable(self: Pin<&mut BleScannerIntf>, enable: bool);
+        fn IsMsftSupported(self: Pin<&mut BleScannerIntf>) -> bool;
         fn MsftAdvMonitorAdd(
             self: Pin<&mut BleScannerIntf>,
             call_id: u32,
@@ -1472,6 +1473,10 @@ impl BleScanner {
 
     pub fn scan_filter_disable(&mut self) {
         mutcxxcall!(self, ScanFilterEnable, false);
+    }
+
+    pub fn is_msft_supported(&mut self) -> bool {
+        mutcxxcall!(self, IsMsftSupported)
     }
 
     pub fn msft_adv_monitor_add(&mut self, call_id: u32, monitor: &MsftAdvMonitor) {

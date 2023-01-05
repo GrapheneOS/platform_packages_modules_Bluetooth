@@ -94,6 +94,8 @@ class MockScannerHandler : public BleScannerInterface {
                              std::move(cb));
   }
 
+  bool IsMsftSupported() { return false; }
+
   void MsftAdvMonitorAdd(MsftAdvMonitor monitor,
                          MsftAdvMonitorAddCallback cb) override{};
 
