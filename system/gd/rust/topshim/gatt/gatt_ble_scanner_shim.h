@@ -102,6 +102,9 @@ class BleScannerIntf : public ScanningCallbacks {
   // Enable/disable scan filter. Gets responses via |OnEnableCallback|.
   void ScanFilterEnable(bool enable);
 
+  // Is MSFT Extension supported?
+  bool IsMsftSupported();
+
   // Adds an MSFT filter. Gets responses via |OnMsftAdvMonitorAddCallback|.
   void MsftAdvMonitorAdd(uint32_t call_id, const RustMsftAdvMonitor& monitor);
 
