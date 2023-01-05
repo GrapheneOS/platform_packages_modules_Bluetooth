@@ -12,6 +12,10 @@ use std::time::Duration;
 use syslog::{BasicLogger, Facility, Formatter3164};
 use tokio::time;
 
+// Necessary to link right entries.
+#[allow(unused_imports)]
+use bt_shim;
+
 use bt_topshim::{btif::get_btinterface, topstack};
 use btstack::{
     battery_manager::BatteryManager,
