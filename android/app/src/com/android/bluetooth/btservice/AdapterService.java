@@ -3720,6 +3720,30 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public void isDistanceMeasurementSupported(AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                receiver.send(isDistanceMeasurementSupported(source));
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+        public int isDistanceMeasurementSupported(AttributionSource source) {
+            AdapterService service = getService();
+            if (service == null) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+            } else if (!callerIsSystemOrActiveOrManagedUser(service, TAG,
+                    "isDistanceMeasurementSupported")) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
+            } else if (!Utils.checkConnectPermissionForDataDelivery(
+                    service, source, TAG)) {
+                return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
+            }
+            enforceBluetoothPrivilegedPermission(service);
+            return BluetoothStatusCodes.FEATURE_SUPPORTED;
+        }
+
+        @Override
         public void getLeMaximumAdvertisingDataLength(SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getLeMaximumAdvertisingDataLength());
