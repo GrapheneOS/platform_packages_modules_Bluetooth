@@ -247,13 +247,7 @@ public class AdapterService extends Service {
         return sAdapterService;
     }
 
-    /**
-     * Sets AdapterService for testing.
-     *
-     * @hide
-     */
-    @VisibleForTesting
-    public static synchronized void setAdapterService(AdapterService instance) {
+    private static synchronized void setAdapterService(AdapterService instance) {
         Log.d(TAG, "setAdapterService() - trying to set service to " + instance);
         if (instance == null) {
             return;
@@ -268,8 +262,7 @@ public class AdapterService extends Service {
     }
 
     private BluetoothAdapter mAdapter;
-    @VisibleForTesting
-    AdapterProperties mAdapterProperties;
+    private AdapterProperties mAdapterProperties;
     private AdapterState mAdapterStateMachine;
     private BondStateMachine mBondStateMachine;
     private JniCallbacks mJniCallbacks;
@@ -1368,8 +1361,7 @@ public class AdapterService extends Service {
     }
 
     @BluetoothAdapter.RfcommListenerResult
-    @VisibleForTesting
-    int stopRfcommListener(ParcelUuid uuid, AttributionSource attributionSource) {
+    private int stopRfcommListener(ParcelUuid uuid, AttributionSource attributionSource) {
         RfcommListenerData listenerData = mBluetoothServerSockets.get(uuid.getUuid());
 
         if (listenerData == null) {
@@ -1388,8 +1380,7 @@ public class AdapterService extends Service {
         return listenerData.closeServerAndPendingSockets(mHandler);
     }
 
-    @VisibleForTesting
-    IncomingRfcommSocketInfo retrievePendingSocketForServiceRecord(
+    private IncomingRfcommSocketInfo retrievePendingSocketForServiceRecord(
             ParcelUuid uuid, AttributionSource attributionSource) {
         IncomingRfcommSocketInfo socketInfo = new IncomingRfcommSocketInfo();
 
@@ -1557,8 +1548,7 @@ public class AdapterService extends Service {
         }
     }
 
-    @VisibleForTesting
-    boolean isAvailable() {
+    private boolean isAvailable() {
         return !mCleaningUp;
     }
 
@@ -3874,8 +3864,7 @@ public class AdapterService extends Service {
         return mAdapterProperties.getName().length();
     }
 
-    @VisibleForTesting
-    static boolean isValidIoCapability(int capability) {
+    private static boolean isValidIoCapability(int capability) {
         if (capability < 0 || capability >= BluetoothAdapter.IO_CAPABILITY_MAX) {
             Log.e(TAG, "Invalid IO capability value - " + capability);
             return false;
@@ -4804,8 +4793,7 @@ public class AdapterService extends Service {
         return mAdapterProperties.isA2dpOffloadEnabled();
     }
 
-    @VisibleForTesting
-    BluetoothActivityEnergyInfo reportActivityInfo() {
+    private BluetoothActivityEnergyInfo reportActivityInfo() {
         if (mAdapterProperties.getState() != BluetoothAdapter.STATE_ON
                 || !mAdapterProperties.isActivityAndEnergyReportingSupported()) {
             return null;

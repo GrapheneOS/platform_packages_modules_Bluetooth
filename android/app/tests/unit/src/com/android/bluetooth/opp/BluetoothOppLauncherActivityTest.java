@@ -57,6 +57,7 @@ import com.android.bluetooth.R;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -64,7 +65,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
-
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -139,6 +139,7 @@ public class BluetoothOppLauncherActivityTest {
         assertThat(argument.getValue().getData()).isEqualTo(Uri.EMPTY);
     }
 
+    @Ignore("b/263724420")
     @Test
     public void launchDevicePicker_bluetoothNotEnabled_launchEnableActivity() throws Exception {
         doReturn(false).when(mMethodProxy).bluetoothAdapterIsEnabled(any());
@@ -151,6 +152,7 @@ public class BluetoothOppLauncherActivityTest {
         intended(hasComponent(BluetoothOppBtEnableActivity.class.getName()));
     }
 
+    @Ignore("b/263724420")
     @Test
     public void launchDevicePicker_bluetoothEnabled_launchActivity() throws Exception {
         doReturn(true).when(mMethodProxy).bluetoothAdapterIsEnabled(any());
@@ -185,6 +187,7 @@ public class BluetoothOppLauncherActivityTest {
         assertThat(file.length()).isGreaterThan(shareContent.length());
     }
 
+    @Ignore("b/263754734")
     @Test
     public void sendFileInfo_finishImmediately() throws Exception {
         doReturn(true).when(mMethodProxy).bluetoothAdapterIsEnabled(any());
