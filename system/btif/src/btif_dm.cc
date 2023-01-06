@@ -2913,7 +2913,8 @@ static void id_status_callback(tBT_TRANSPORT transport, bool is_valid,
 
   auto advertiser = get_ble_advertiser_instance();
   AdvertiseParameters parameters{};
-  parameters.advertising_event_properties = 0x0041 /* connectable, tx power */;
+  parameters.advertising_event_properties =
+      0x0045 /* connectable, discoverable, tx power */;
   parameters.min_interval = 0xa0;   // 100 ms
   parameters.max_interval = 0x500;  // 800 ms
   parameters.channel_map = 0x7;     // Use all the channels
