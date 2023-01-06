@@ -199,7 +199,9 @@ public final class BluetoothHearingAid implements BluetoothProfile {
         mProfileConnector.connect(context, listener);
     }
 
-    /*package*/ void close() {
+    /** @hide */
+    @Override
+    public void close() {
         mProfileConnector.disconnect();
     }
 
