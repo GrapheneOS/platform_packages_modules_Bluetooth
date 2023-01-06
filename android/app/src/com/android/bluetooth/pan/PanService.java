@@ -70,10 +70,12 @@ public class PanService extends ProfileService {
     private static final int BLUETOOTH_MAX_PAN_CONNECTIONS = 5;
     private static final int BLUETOOTH_PREFIX_LENGTH = 24;
 
-    private HashMap<BluetoothDevice, BluetoothPanDevice> mPanDevices;
+    @VisibleForTesting
+    HashMap<BluetoothDevice, BluetoothPanDevice> mPanDevices;
     private int mMaxPanDevices;
     private String mPanIfName;
-    private boolean mIsTethering = false;
+    @VisibleForTesting
+    boolean mIsTethering = false;
     private boolean mNativeAvailable;
     private HashMap<String, IBluetoothPanCallback> mBluetoothTetheringCallbacks;
 
@@ -602,9 +604,8 @@ public class PanService extends ProfileService {
         public int remote_role;
     }
 
-    ;
-
-    private void onConnectStateChanged(byte[] address, int state, int error, int localRole,
+    @VisibleForTesting
+    void onConnectStateChanged(byte[] address, int state, int error, int localRole,
             int remoteRole) {
         if (DBG) {
             Log.d(TAG, "onConnectStateChanged: " + state + ", local role:" + localRole
@@ -615,7 +616,8 @@ public class PanService extends ProfileService {
         mHandler.sendMessage(msg);
     }
 
-    private void onControlStateChanged(int localRole, int state, int error, String ifname) {
+    @VisibleForTesting
+    void onControlStateChanged(int localRole, int state, int error, String ifname) {
         if (DBG) {
             Log.d(TAG, "onControlStateChanged: " + state + ", error: " + error + ", ifname: "
                     + ifname);
@@ -625,7 +627,8 @@ public class PanService extends ProfileService {
         }
     }
 
-    private static int convertHalState(int halState) {
+    @VisibleForTesting
+    static int convertHalState(int halState) {
         switch (halState) {
             case CONN_STATE_CONNECTED:
                 return BluetoothProfile.STATE_CONNECTED;
@@ -748,25 +751,6 @@ public class PanService extends ProfileService {
         sendBroadcast(intent, BLUETOOTH_CONNECT);
     }
 
-    private List<BluetoothDevice> getConnectedPanDevices() {
-        List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
-
-        for (BluetoothDevice device : mPanDevices.keySet()) {
-            if (getPanDeviceConnectionState(device) == BluetoothProfile.STATE_CONNECTED) {
-                devices.add(device);
-            }
-        }
-        return devices;
-    }
-
-    private int getPanDeviceConnectionState(BluetoothDevice device) {
-        BluetoothPanDevice panDevice = mPanDevices.get(device);
-        if (panDevice == null) {
-            return BluetoothProfile.STATE_DISCONNECTED;
-        }
-        return panDevice.mState;
-    }
-
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
@@ -779,7 +763,8 @@ public class PanService extends ProfileService {
         }
     }
 
-    private class BluetoothPanDevice {
+    @VisibleForTesting
+    static class BluetoothPanDevice {
         private int mState;
         private String mIface;
         private int mLocalRole; // Which local role is this PAN device bound to
@@ -795,10 +780,14 @@ public class PanService extends ProfileService {
 
     // Constants matching Hal header file bt_hh.h
     // bthh_connection_state_t
-    private static final int CONN_STATE_CONNECTED = 0;
-    private static final int CONN_STATE_CONNECTING = 1;
-    private static final int CONN_STATE_DISCONNECTED = 2;
-    private static final int CONN_STATE_DISCONNECTING = 3;
+    @VisibleForTesting
+    static final int CONN_STATE_CONNECTED = 0;
+    @VisibleForTesting
+    static final int CONN_STATE_CONNECTING = 1;
+    @VisibleForTesting
+    static final int CONN_STATE_DISCONNECTED = 2;
+    @VisibleForTesting
+    static final int CONN_STATE_DISCONNECTING = 3;
 
     private static native void classInitNative();
 
