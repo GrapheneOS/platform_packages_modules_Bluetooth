@@ -118,14 +118,14 @@ public final class BluetoothMap implements BluetoothProfile, AutoCloseable {
     }
 
     /**
-     * Close the connection to the backing service.
-     * Other public functions of BluetoothMap will return default error
-     * results once close() has been called. Multiple invocations of close()
+     * Close the connection to the backing service. Other public functions of BluetoothMap will
+     * return default error results once close() has been called. Multiple invocations of close()
      * are ok.
      *
      * @hide
      */
     @SystemApi
+    @Override
     public void close() {
         if (VDBG) log("close()");
         mProfileConnector.disconnect();
