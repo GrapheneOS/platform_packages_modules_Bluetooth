@@ -49,7 +49,8 @@ public class SmsMmsContacts {
     private static final Uri ADDRESS_URI =
             MmsSms.CONTENT_URI.buildUpon().appendPath("canonical-addresses").build();
 
-    private static final String[] ADDRESS_PROJECTION = {
+    @VisibleForTesting
+    static final String[] ADDRESS_PROJECTION = {
             CanonicalAddressesColumns._ID, CanonicalAddressesColumns.ADDRESS
     };
     private static final int COL_ADDR_ID =
@@ -57,7 +58,8 @@ public class SmsMmsContacts {
     private static final int COL_ADDR_ADDR =
             Arrays.asList(ADDRESS_PROJECTION).indexOf(CanonicalAddressesColumns.ADDRESS);
 
-    private static final String[] CONTACT_PROJECTION = {Contacts._ID, Contacts.DISPLAY_NAME};
+    @VisibleForTesting
+    static final String[] CONTACT_PROJECTION = {Contacts._ID, Contacts.DISPLAY_NAME};
     private static final String CONTACT_SEL_VISIBLE = Contacts.IN_VISIBLE_GROUP + "=1";
     private static final int COL_CONTACT_ID =
             Arrays.asList(CONTACT_PROJECTION).indexOf(Contacts._ID);
