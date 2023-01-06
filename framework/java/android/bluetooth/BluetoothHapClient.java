@@ -47,6 +47,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
+
 /**
  * This class provides a public APIs to control the Bluetooth Hearing Access Profile client service.
  *
@@ -531,8 +532,9 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
         close();
     }
 
-    /** @hide */
-    @Override
+    /**
+     * @hide
+     */
     public void close() {
         if (VDBG) log("close()");
 
