@@ -154,6 +154,7 @@ android_app {
     ],
     static_libs: [
         "android.hardware.radio-V1.0-java",
+        "android.hardware.radio.sap-V1-java",
         "androidx.core_core",
         "androidx.media_media",
         "androidx.lifecycle_lifecycle-livedata",
