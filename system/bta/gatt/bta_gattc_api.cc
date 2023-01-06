@@ -727,7 +727,7 @@ tGATT_STATUS BTA_GATTC_DeregisterForNotifications(tGATT_IF client_if,
   tBTA_GATTC_RCB* p_clreg = bta_gattc_cl_get_regcb(client_if);
   if (p_clreg == NULL) {
     LOG(ERROR) << __func__ << " client_if=" << +client_if
-               << " not registered bd_addr=" << bda;
+               << " not registered bd_addr=" << ADDRESS_TO_LOGGABLE_STR(bda);
     return GATT_ILLEGAL_PARAMETER;
   }
 
@@ -735,13 +735,15 @@ tGATT_STATUS BTA_GATTC_DeregisterForNotifications(tGATT_IF client_if,
     if (p_clreg->notif_reg[i].in_use &&
         p_clreg->notif_reg[i].remote_bda == bda &&
         p_clreg->notif_reg[i].handle == handle) {
-      VLOG(1) << __func__ << " deregistered bd_addr=" << bda;
+      VLOG(1) << __func__ << " deregistered bd_addr="
+              << ADDRESS_TO_LOGGABLE_STR(bda);
       memset(&p_clreg->notif_reg[i], 0, sizeof(tBTA_GATTC_NOTIF_REG));
       return GATT_SUCCESS;
     }
   }
 
-  LOG(ERROR) << __func__ << " registration not found bd_addr=" << bda;
+  LOG(ERROR) << __func__ << " registration not found bd_addr="
+             << ADDRESS_TO_LOGGABLE_STR(bda);
   return GATT_ERROR;
 }
 

@@ -1025,7 +1025,7 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
   struct ase* ase = leAudioDevice->GetFirstActiveAse();
   if (!ase) {
     LOG_ERROR(" Device %s shouldn't be called without an active ASE",
-              leAudioDevice->address_.ToString().c_str());
+              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     return false;
   }
 
@@ -1558,7 +1558,7 @@ bool LeAudioDevice::ConfigureAses(
     LOG_DEBUG(
         "device=%s, activated ASE id=%d, direction=%s, max_sdu_size=%d, "
         "cis_id=%d, target_latency=%d",
-        address_.ToString().c_str(), ase->id,
+        ADDRESS_TO_LOGGABLE_CSTR(address_), ase->id,
         (ent.direction == 1 ? "snk" : "src"), ase->max_sdu_size, ase->cis_id,
         ent.target_latency);
 
@@ -1624,7 +1624,8 @@ bool LeAudioDeviceGroup::ConfigureAses(
        */
       if (device->GetConnectionState() != DeviceConnectState::CONNECTED) {
         LOG_WARN(
-            "Device %s, in the state %s", device->address_.ToString().c_str(),
+            "Device %s, in the state %s",
+            ADDRESS_TO_LOGGABLE_CSTR(device->address_),
             bluetooth::common::ToString(device->GetConnectionState()).c_str());
         continue;
       }
@@ -1992,7 +1993,7 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) {
       stream << "\n\t cis id: " << static_cast<int>(cis.id)
              << ",\ttype: " << static_cast<int>(cis.type)
              << ",\tconn_handle: " << static_cast<int>(cis.conn_handle)
-             << ",\taddr: " << cis.addr;
+             << ",\taddr: " << ADDRESS_TO_LOGGABLE_STR(cis.addr);
     }
     stream << "\n\t ====";
   }
@@ -2455,7 +2456,8 @@ void LeAudioDevice::Dump(int fd) {
 
   std::stringstream stream;
   stream << std::boolalpha;
-  stream << "\n\taddress: " << address_ << ": " << connection_state_ << ": "
+  stream << "\n\taddress: " << ADDRESS_TO_LOGGABLE_STR(address_)
+         << ": " << connection_state_ << ": "
          << (conn_id_ == GATT_INVALID_CONN_ID ? "" : std::to_string(conn_id_))
          << ", acl_handle: " << std::to_string(acl_handle) << ",\t"
          << (encrypted_ ? "Encrypted" : "Unecrypted")
@@ -2553,7 +2555,8 @@ void LeAudioDevice::DeactivateAllAses(void) {
       LOG_WARN(
           " %s, ase_id: %d, ase.cis_id: %d, cis_handle: 0x%02x, "
           "ase.data_path=%s",
-          address_.ToString().c_str(), ase.id, ase.cis_id, ase.cis_conn_hdl,
+          ADDRESS_TO_LOGGABLE_CSTR(address_), ase.id, ase.cis_id,
+          ase.cis_conn_hdl,
           bluetooth::common::ToString(ase.data_path_state).c_str());
     }
     ase.state = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
@@ -2660,7 +2663,7 @@ void LeAudioDevices::Add(const RawAddress& address, DeviceConnectState state,
                          int group_id) {
   auto device = FindByAddress(address);
   if (device != nullptr) {
-    LOG(ERROR) << __func__ << ", address: " << address
+    LOG(ERROR) << __func__ << ", address: " << ADDRESS_TO_LOGGABLE_STR(address)
                << " is already assigned to group: " << device->group_id_;
     return;
   }
@@ -2676,7 +2679,8 @@ void LeAudioDevices::Remove(const RawAddress& address) {
                            });
 
   if (iter == leAudioDevices_.end()) {
-    LOG(ERROR) << __func__ << ", no such address: " << address;
+    LOG(ERROR) << __func__ << ", no such address: "
+               << ADDRESS_TO_LOGGABLE_STR(address);
     return;
   }
 

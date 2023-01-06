@@ -405,7 +405,7 @@ BtaEnqueuedResult_t bta_gattc_enqueue(tBTA_GATTC_CLCB* p_clcb,
   LOG_INFO(
       "Already has a pending command to executer. Queuing for later %s conn "
       "id=0x%04x",
-      p_clcb->bda.ToString().c_str(), p_clcb->bta_conn_id);
+      ADDRESS_TO_LOGGABLE_CSTR(p_clcb->bda), p_clcb->bta_conn_id);
   p_clcb->p_q_cmd_queue.push_back(p_data);
 
   return ENQUEUED_FOR_LATER;
@@ -519,7 +519,7 @@ bool bta_gattc_mark_bg_conn(tGATT_IF client_if,
   if (!add) {
     LOG(ERROR) << __func__
                << " unable to find the bg connection mask for bd_addr="
-               << remote_bda_ptr;
+               << ADDRESS_TO_LOGGABLE_STR(remote_bda_ptr);
     return false;
   } else /* adding a new device mask */
   {
