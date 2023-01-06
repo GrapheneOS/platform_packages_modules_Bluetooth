@@ -28,10 +28,9 @@ cxx = "*"
 futures = "*"
 grpcio = "*"
 log = "*"
-protobuf = "*"
+protobuf = "2.0"
 tokio = "*"
 
 [lib]
 path = "lib.rs"
 crate-type = ["rlib"]
-
