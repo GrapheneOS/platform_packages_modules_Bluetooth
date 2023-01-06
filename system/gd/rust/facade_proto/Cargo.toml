@@ -22,12 +22,12 @@ build = "build.rs"
 [dependencies]
 futures = "*"
 grpcio = "*"
-protobuf = "*"
+protobuf = "2.0"
 
 [build-dependencies]
 protoc-rust = "*"
 protoc-grpcio = "*"
-protobuf-codegen = "*"
+protobuf-codegen = "2.0"
 
 [lib]
 crate-types = ["rlib"]
