@@ -28,7 +28,7 @@
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
     <string name="bt_enable_line1" msgid="8429910585843481489">"బ్లూటూత్ సేవలను ఉపయోగించడానికి, మీరు తప్పనిసరిగా ముందుగా బ్లూటూత్‌ను ప్రారంభించాలి."</string>
     <string name="bt_enable_line2" msgid="1466367120348920892">"ఇప్పుడే బ్లూటూత్‌ను ప్రారంభించాలా?"</string>
-    <string name="bt_enable_cancel" msgid="6770180540581977614">"రద్దు చేయి"</string>
+    <string name="bt_enable_cancel" msgid="6770180540581977614">"రద్దు చేయండి"</string>
     <string name="bt_enable_ok" msgid="4224374055813566166">"ప్రారంభించండి"</string>
     <string name="incoming_file_confirm_title" msgid="938251186275547290">"ఫైల్ బదిలీ"</string>
     <string name="incoming_file_confirm_content" msgid="6573502088511901157">"ఇన్‌కమింగ్ ఫైల్‌ను ఆమోదించాలా?"</string>
@@ -116,8 +116,8 @@
     <string name="transfer_menu_clear" msgid="7213491281898188730">"లిస్ట్‌ నుండి క్లియర్ చేయండి"</string>
     <string name="transfer_clear_dlg_title" msgid="128904516163257225">"క్లియర్ చేయండి"</string>
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"ప్రస్తుతం ప్లే అవుతున్నవి"</string>
-    <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"సేవ్ చేయి"</string>
-    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"రద్దు చేయి"</string>
+    <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"సేవ్ చేయండి"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"రద్దు చేయండి"</string>
     <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"మీరు బ్లూటూత్ ద్వారా షేర్ చేయాలనుకునే ఖాతాలను ఎంచుకోండి. మీరు ఇప్పటికీ కనెక్ట్ చేస్తున్నప్పుడు ఖాతాలకు అందించే ఏ యాక్సెస్‌నైనా ఆమోదించాల్సి ఉంటుంది."</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"మిగిలిన స్లాట్‌లు:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"యాప్‌ చిహ్నం"</string>
