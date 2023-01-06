@@ -2393,9 +2393,7 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
       has_advertising_flags = true;
       p_cur->flag = *p_flag;
     }
-  }
 
-  if (!data.empty()) {
     /* Check to see the BLE device has the Appearance UUID in the advertising
      * data.  If it does
      * then try to convert the appearance value to a class of device value
@@ -2425,13 +2423,31 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
         }
       }
     }
-  }
 
-  if (!data.empty()) {
     const uint8_t* p_rsi =
         AdvertiseDataParser::GetFieldByType(data, BTM_BLE_AD_TYPE_RSI, &len);
     if (p_rsi != nullptr && len == 6) {
       STREAM_TO_BDADDR(p_cur->ble_ad_rsi, p_rsi);
+    }
+
+    const uint8_t* p_service_data = data.data();
+    uint16_t remaining_data_len = data.size();
+    uint8_t service_data_len = 0;
+
+    while ((p_service_data = AdvertiseDataParser::GetFieldByType(
+                p_service_data + service_data_len,
+                (remaining_data_len -= service_data_len),
+                BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE, &service_data_len))) {
+      uint16_t uuid;
+      STREAM_TO_UINT16(uuid, p_service_data);
+
+      if (uuid == 0x184E /* Audio Stream Control service */ ||
+          uuid == 0x184F /* Broadcast Audio Scan service */ ||
+          uuid == 0x1850 /* Published Audio Capabilities service */ ||
+          uuid == 0x1853 /* Common Audio service */) {
+        p_cur->ble_ad_is_le_audio_capable = true;
+        break;
+      }
     }
   }
 
