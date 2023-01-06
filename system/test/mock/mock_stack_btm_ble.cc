@@ -64,8 +64,6 @@ struct BTM_SetBleDataLength BTM_SetBleDataLength;
 struct BTM_UseLeLink BTM_UseLeLink;
 struct btm_ble_br_keys_req btm_ble_br_keys_req;
 struct btm_ble_connected btm_ble_connected;
-struct btm_ble_connected_from_address_with_type
-    btm_ble_connected_from_address_with_type;
 struct btm_ble_determine_security_act btm_ble_determine_security_act;
 struct btm_ble_get_acl_remote_addr btm_ble_get_acl_remote_addr;
 struct btm_ble_get_enc_key_type btm_ble_get_enc_key_type;
@@ -262,17 +260,12 @@ uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
 }
 void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
                        uint8_t role, tBLE_ADDR_TYPE addr_type,
-                       bool addr_matched) {
+                       bool addr_matched,
+                       bool can_read_discoverable_characteristics) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble::btm_ble_connected(bda, handle, enc_mode, role,
-                                               addr_type, addr_matched);
-}
-void btm_ble_connected_from_address_with_type(
-    const tBLE_BD_ADDR& address_with_type, uint16_t handle, uint8_t enc_mode,
-    uint8_t role, bool addr_matched) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble::btm_ble_connected_from_address_with_type(
-      address_with_type, handle, enc_mode, role, addr_matched);
+  test::mock::stack_btm_ble::btm_ble_connected(
+      bda, handle, enc_mode, role, addr_type, addr_matched,
+      can_read_discoverable_characteristics);
 }
 tBTM_SEC_ACTION btm_ble_determine_security_act(bool is_originator,
                                                const RawAddress& bdaddr,

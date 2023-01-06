@@ -309,14 +309,19 @@ void AclManager::WriteDefaultLinkPolicySettings(uint16_t default_link_policy_set
 }
 
 void AclManager::OnAdvertisingSetTerminated(
-    ErrorCode status, uint16_t conn_handle, uint8_t adv_set_id, hci::AddressWithType adv_address) {
+    ErrorCode status,
+    uint16_t conn_handle,
+    uint8_t adv_set_id,
+    hci::AddressWithType adv_address,
+    bool is_discoverable) {
   if (status == ErrorCode::SUCCESS) {
     CallOn(
         pimpl_->le_impl_,
         &le_impl::OnAdvertisingSetTerminated,
         conn_handle,
         adv_set_id,
-        adv_address);
+        adv_address,
+        is_discoverable);
   }
 }
 
