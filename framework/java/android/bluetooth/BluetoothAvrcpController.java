@@ -112,9 +112,7 @@ public final class BluetoothAvrcpController implements BluetoothProfile {
         mProfileConnector.connect(context, listener);
     }
 
-    /** @hide */
-    @Override
-    public void close() {
+    /*package*/ void close() {
         mProfileConnector.disconnect();
     }
 
