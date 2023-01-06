@@ -3754,19 +3754,118 @@ public final class BluetoothAdapter {
     /**
      * Close the connection of the profile proxy to the Service.
      *
-     * <p>Clients should call this when they are no longer using the proxy obtained from {@link
-     * #getProfileProxy}. Profile can be one of {@link BluetoothProfile#HEADSET} or {@link
-     * BluetoothProfile#A2DP}
+     * <p> Clients should call this when they are no longer using
+     * the proxy obtained from {@link #getProfileProxy}.
+     * Profile can be one of  {@link BluetoothProfile#HEADSET} or {@link BluetoothProfile#A2DP}
      *
-     * @param unusedProfile
+     * @param profile
      * @param proxy Profile proxy object
      */
-    @SuppressLint({"AndroidFrameworkRequiresPermission", "AndroidFrameworkBluetoothPermission"})
-    public void closeProfileProxy(int unusedProfile, BluetoothProfile proxy) {
+    @SuppressLint({
+            "AndroidFrameworkRequiresPermission",
+            "AndroidFrameworkBluetoothPermission"
+    })
+    public void closeProfileProxy(int profile, BluetoothProfile proxy) {
         if (proxy == null) {
             return;
         }
-        proxy.close();
+
+        switch (profile) {
+            case BluetoothProfile.HEADSET:
+                BluetoothHeadset headset = (BluetoothHeadset) proxy;
+                headset.close();
+                break;
+            case BluetoothProfile.A2DP:
+                BluetoothA2dp a2dp = (BluetoothA2dp) proxy;
+                a2dp.close();
+                break;
+            case BluetoothProfile.A2DP_SINK:
+                BluetoothA2dpSink a2dpSink = (BluetoothA2dpSink) proxy;
+                a2dpSink.close();
+                break;
+            case BluetoothProfile.AVRCP_CONTROLLER:
+                BluetoothAvrcpController avrcp = (BluetoothAvrcpController) proxy;
+                avrcp.close();
+                break;
+            case BluetoothProfile.HID_HOST:
+                BluetoothHidHost iDev = (BluetoothHidHost) proxy;
+                iDev.close();
+                break;
+            case BluetoothProfile.PAN:
+                BluetoothPan pan = (BluetoothPan) proxy;
+                pan.close();
+                break;
+            case BluetoothProfile.PBAP:
+                BluetoothPbap pbap = (BluetoothPbap) proxy;
+                pbap.close();
+                break;
+            case BluetoothProfile.GATT:
+                BluetoothGatt gatt = (BluetoothGatt) proxy;
+                gatt.close();
+                break;
+            case BluetoothProfile.GATT_SERVER:
+                BluetoothGattServer gattServer = (BluetoothGattServer) proxy;
+                gattServer.close();
+                break;
+            case BluetoothProfile.MAP:
+                BluetoothMap map = (BluetoothMap) proxy;
+                map.close();
+                break;
+            case BluetoothProfile.HEADSET_CLIENT:
+                BluetoothHeadsetClient headsetClient = (BluetoothHeadsetClient) proxy;
+                headsetClient.close();
+                break;
+            case BluetoothProfile.SAP:
+                BluetoothSap sap = (BluetoothSap) proxy;
+                sap.close();
+                break;
+            case BluetoothProfile.PBAP_CLIENT:
+                BluetoothPbapClient pbapClient = (BluetoothPbapClient) proxy;
+                pbapClient.close();
+                break;
+            case BluetoothProfile.MAP_CLIENT:
+                BluetoothMapClient mapClient = (BluetoothMapClient) proxy;
+                mapClient.close();
+                break;
+            case BluetoothProfile.HID_DEVICE:
+                BluetoothHidDevice hidDevice = (BluetoothHidDevice) proxy;
+                hidDevice.close();
+                break;
+            case BluetoothProfile.HAP_CLIENT:
+                BluetoothHapClient HapClient = (BluetoothHapClient) proxy;
+                HapClient.close();
+                break;
+            case BluetoothProfile.HEARING_AID:
+                BluetoothHearingAid hearingAid = (BluetoothHearingAid) proxy;
+                hearingAid.close();
+                break;
+            case BluetoothProfile.LE_AUDIO:
+                BluetoothLeAudio leAudio = (BluetoothLeAudio) proxy;
+                leAudio.close();
+                break;
+            case BluetoothProfile.LE_AUDIO_BROADCAST:
+                BluetoothLeBroadcast leAudioBroadcast = (BluetoothLeBroadcast) proxy;
+                leAudioBroadcast.close();
+                break;
+            case BluetoothProfile.VOLUME_CONTROL:
+                BluetoothVolumeControl vcs = (BluetoothVolumeControl) proxy;
+                vcs.close();
+                break;
+            case BluetoothProfile.CSIP_SET_COORDINATOR:
+                BluetoothCsipSetCoordinator csipSetCoordinator =
+                        (BluetoothCsipSetCoordinator) proxy;
+                csipSetCoordinator.close();
+                break;
+            case BluetoothProfile.LE_CALL_CONTROL:
+                BluetoothLeCallControl tbs = (BluetoothLeCallControl) proxy;
+                tbs.close();
+                break;
+            case BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT:
+                BluetoothLeBroadcastAssistant leAudioBroadcastAssistant =
+                        (BluetoothLeBroadcastAssistant) proxy;
+                leAudioBroadcastAssistant.close();
+                break;
+        }
     }
 
     private static final IBluetoothManagerCallback sManagerCallback =
