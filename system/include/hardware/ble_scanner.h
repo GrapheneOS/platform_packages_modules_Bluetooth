@@ -164,6 +164,9 @@ class BleScannerInterface {
   /** Enable / disable scan filter feature*/
   virtual void ScanFilterEnable(bool enable, EnableCallback cb) = 0;
 
+  /** Is MSFT Extension supported? */
+  virtual bool IsMsftSupported() = 0;
+
   /** Configures MSFT scan filter (advertisement monitor) */
   virtual void MsftAdvMonitorAdd(MsftAdvMonitor monitor,
                                  MsftAdvMonitorAddCallback cb) = 0;

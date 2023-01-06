@@ -657,9 +657,13 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
  * ordering issues (first Classic, GATT over SDP, etc) */
 static bool is_device_le_audio_capable(const RawAddress bd_addr) {
   if (!GetInterfaceToProfiles()
-           ->profileSpecific_HACK->IsLeAudioClientRunning() ||
-      !check_cod_le_audio(bd_addr)) {
+           ->profileSpecific_HACK->IsLeAudioClientRunning()) {
     /* If LE Audio profile is not enabled, do nothing. */
+    return false;
+  }
+
+  if (!check_cod_le_audio(bd_addr) && !BTA_DmCheckLeAudioCapable(bd_addr)) {
+    /* LE Audio not present in CoD or in LE Advertisement, do nothing.*/
     return false;
   }
 
@@ -1205,10 +1209,8 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
     }
     // Report bond state change to java only if we are bonding to a device or
     // a device is removed from the pairing list.
-    if (pairing_cb.state == BT_BOND_STATE_BONDING) {
-      bond_state_changed(status, bd_addr, BT_BOND_STATE_BONDING);
-    } else if (is_bonded_device_removed) {
-      bond_state_changed(status, bd_addr, BT_BOND_STATE_NONE);
+    if (pairing_cb.state == BT_BOND_STATE_BONDING || is_bonded_device_removed) {
+      bond_state_changed(status, bd_addr, state);
     }
   }
 }
@@ -1548,7 +1550,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
           pairing_cb.gatt_over_le !=
               btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED &&
           (check_cod_le_audio(bd_addr) ||
-           metadata_cb.le_audio_cache.contains(bd_addr))) {
+           metadata_cb.le_audio_cache.contains(bd_addr) ||
+           BTA_DmCheckLeAudioCapable(bd_addr))) {
         skip_reporting_wait_for_le = true;
       }
 

@@ -85,30 +85,26 @@ class HearingAidInterfaceImpl
 
   void Connect(const RawAddress& address) override {
     DVLOG(2) << __func__ << " address: " << address;
-    do_in_main_thread(FROM_HERE, Bind(&HearingAid::Connect,
-                                      Unretained(HearingAid::Get()), address));
+    do_in_main_thread(FROM_HERE, Bind(&HearingAid::Connect, address));
   }
 
   void Disconnect(const RawAddress& address) override {
     DVLOG(2) << __func__ << " address: " << address;
-    do_in_main_thread(FROM_HERE, Bind(&HearingAid::Disconnect,
-                                      Unretained(HearingAid::Get()), address));
+    do_in_main_thread(FROM_HERE, Bind(&HearingAid::Disconnect, address));
     do_in_jni_thread(FROM_HERE, Bind(&btif_storage_set_hearing_aid_acceptlist,
                                      address, false));
   }
 
   void AddToAcceptlist(const RawAddress& address) override {
     VLOG(2) << __func__ << " address: " << address;
-    do_in_main_thread(FROM_HERE, Bind(&HearingAid::AddToAcceptlist,
-                                      Unretained(HearingAid::Get()), address));
+    do_in_main_thread(FROM_HERE, Bind(&HearingAid::AddToAcceptlist, address));
     do_in_jni_thread(FROM_HERE, Bind(&btif_storage_set_hearing_aid_acceptlist,
                                      address, true));
   }
 
   void SetVolume(int8_t volume) override {
     DVLOG(2) << __func__ << " volume: " << +volume;
-    do_in_main_thread(FROM_HERE, Bind(&HearingAid::SetVolume,
-                                      Unretained(HearingAid::Get()), volume));
+    do_in_main_thread(FROM_HERE, Bind(&HearingAid::SetVolume, volume));
   }
 
   void RemoveDevice(const RawAddress& address) override {
@@ -116,9 +112,7 @@ class HearingAidInterfaceImpl
 
     // RemoveDevice can be called on devices that don't have HA enabled
     if (HearingAid::IsHearingAidRunning()) {
-      do_in_main_thread(FROM_HERE,
-                        Bind(&HearingAid::Disconnect,
-                             Unretained(HearingAid::Get()), address));
+      do_in_main_thread(FROM_HERE, Bind(&HearingAid::Disconnect, address));
     }
 
     do_in_jni_thread(FROM_HERE,

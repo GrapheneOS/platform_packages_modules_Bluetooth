@@ -6375,6 +6375,14 @@ test MsftLeMonitorAdvConditionUuid16 {
   "\x70\xfd\x17\x03\x10\x11\x12\x13\x02\x03\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f",
 }
 
+packet MsftLeCancelMonitorAdv: MsftCommand (subcommand_opcode = MSFT_LE_CANCEL_MONITOR_ADV) {
+  monitor_handle: 8,
+}
+
+test MsftLeCancelMonitorAdv {
+  "\x1e\xfc\x02\x04\x01", // cancel handle 0x01
+}
+
 packet MsftLeSetAdvFilterEnable : MsftCommand (subcommand_opcode = MSFT_LE_SET_ADV_FILTER_ENABLE) {
   enable: 8,
 }
@@ -6409,6 +6417,8 @@ test MsftLeMonitorAdvCommandComplete {
   "\x0e\x06\x01\x1e\xfc\x00\x03\x05", // succeeded
   "\x0e\x06\x01\x70\xfd\x01\x03\x06", // failed
 }
+
+packet MsftLeCancelMonitorAdvCommandComplete : MsftCommandComplete (subcommand_opcode = MSFT_LE_CANCEL_MONITOR_ADV) {}
 
 packet MsftLeSetAdvFilterEnableCommandComplete : MsftCommandComplete (subcommand_opcode = MSFT_LE_SET_ADV_FILTER_ENABLE) {}
 

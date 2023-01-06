@@ -18,8 +18,10 @@ package com.android.bluetooth.map;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -28,6 +30,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
@@ -41,6 +44,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapContent.FilterInfo;
+import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
 
 import org.junit.After;
@@ -51,6 +55,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashMap;
 
 @RunWith(AndroidJUnit4.class)
@@ -64,8 +72,18 @@ public class BluetoothMapContentTest {
     private static final long TEST_DATE_SMS = 1;
     private static final long TEST_DATE_EMAIL = 2;
     private static final String TEST_NAME = "test_name";
+    private static final String TEST_FORMATTED_NAME = "test_formatted_name";
     private static final String TEST_PHONE = "test_phone";
     private static final String TEST_PHONE_NAME = "test_phone_name";
+    private static final long TEST_ID = 1;
+    private static final long TEST_INBOX_FOLDER_ID = BluetoothMapContract.FOLDER_ID_INBOX;
+    private static final long TEST_SENT_FOLDER_ID = BluetoothMapContract.FOLDER_ID_SENT;
+    private static final String TEST_SUBJECT = "subject";
+    private static final long TEST_DATE = 1;
+    private static final String TEST_MESSAGE_ID = "test_message_id";
+    private static final String TEST_FIRST_BT_UID = "1111";
+    private static final String TEST_FIRST_BT_UCI_RECIPIENT = "test_first_bt_uci_recipient";
+    private static final String TEST_FIRST_BT_UCI_ORIGINATOR = "test_first_bt_uci_originator";
 
     @Mock
     private BluetoothMapAccountItem mAccountItem;
@@ -86,6 +104,7 @@ public class BluetoothMapContentTest {
     private FilterInfo mInfo;
     private BluetoothMapMessageListingElement mMessageListingElement;
     private BluetoothMapConvoListingElement mConvoListingElement;
+    private BluetoothMapFolderElement mCurrentFolder;
 
     @Before
     public void setUp() {
@@ -96,6 +115,7 @@ public class BluetoothMapContentTest {
         mInfo = new FilterInfo();
         mMessageListingElement = new BluetoothMapMessageListingElement();
         mConvoListingElement = new BluetoothMapConvoListingElement();
+        mCurrentFolder = new BluetoothMapFolderElement("current", null);
     }
 
     @After
@@ -764,5 +784,264 @@ public class BluetoothMapContentTest {
         mContent.setLastActivity(mConvoListingElement, cursor, mInfo);
 
         assertThat(mConvoListingElement.getLastActivity()).isEqualTo(TEST_DATE_EMAIL);
+    }
+
+    @Test
+    public void getEmailMessage_withCharsetNative() {
+        when(mParams.getCharset()).thenReturn(BluetoothMapContent.MAP_MESSAGE_CHARSET_NATIVE);
+
+        assertThrows(IllegalArgumentException.class, () -> mContent.getEmailMessage(TEST_ID,
+                mParams, mCurrentFolder));
+    }
+
+    @Test
+    public void getEmailMessage_withEmptyCursor() {
+        when(mParams.getCharset()).thenReturn(BluetoothMapContent.MAP_MESSAGE_CHARSET_UTF8);
+        MatrixCursor cursor = new MatrixCursor(new String[] {});
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        assertThrows(IllegalArgumentException.class, () -> mContent.getEmailMessage(TEST_ID,
+                mParams, mCurrentFolder));
+    }
+
+    @Test
+    public void getEmailMessage_withFileNotFoundExceptionForEmailBodyAccess() throws Exception {
+        when(mParams.getCharset()).thenReturn(BluetoothMapContent.MAP_MESSAGE_CHARSET_UTF8);
+        when(mParams.getFractionRequest()).thenReturn(BluetoothMapAppParams.FRACTION_REQUEST_FIRST);
+        when(mParams.getAttachment()).thenReturn(0);
+
+        MatrixCursor cursor = new MatrixCursor(new String[] {
+                BluetoothMapContract.MessageColumns.RECEPTION_STATE,
+                BluetoothMapContract.MessageColumns.FLAG_READ,
+                BluetoothMapContract.MessageColumns.FOLDER_ID,
+                BluetoothMapContract.MessageColumns.TO_LIST,
+                BluetoothMapContract.MessageColumns.FROM_LIST
+        });
+        cursor.addRow(new Object[] {BluetoothMapContract.RECEPTION_STATE_FRACTIONED, "1",
+        TEST_INBOX_FOLDER_ID, TEST_TO_ADDRESS, TEST_FROM_ADDRESS});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mCurrentFolder.setFolderId(TEST_INBOX_FOLDER_ID);
+        // This mock sets up FileNotFoundException during email body access
+        doThrow(FileNotFoundException.class).when(
+                mMapMethodProxy).contentResolverOpenFileDescriptor(any(), any(), any());
+
+        byte[] encodedMessageEmail = mContent.getEmailMessage(TEST_ID, mParams, mCurrentFolder);
+        InputStream inputStream = new ByteArrayInputStream(encodedMessageEmail);
+        BluetoothMapbMessage messageParsed = BluetoothMapbMessage.parse(inputStream,
+                BluetoothMapAppParams.CHARSET_UTF8);
+
+        assertThat(messageParsed.getType()).isEqualTo(TYPE.EMAIL);
+        assertThat(messageParsed.getVersionString()).isEqualTo("VERSION:" +
+                mContent.mMessageVersion);
+        assertThat(messageParsed.getFolder()).isEqualTo(mCurrentFolder.getFullPath());
+        assertThat(messageParsed.getRecipients().get(0).getName()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_TO_ADDRESS)[0].getName());
+        assertThat(messageParsed.getRecipients().get(0).getFirstEmail()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_TO_ADDRESS)[0].getAddress());
+        assertThat(messageParsed.getOriginators().get(0).getName()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_FROM_ADDRESS)[0].getName());
+        assertThat(messageParsed.getOriginators().get(0).getFirstEmail()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_FROM_ADDRESS)[0].getAddress());
+    }
+
+    @Test
+    public void getEmailMessage_withNullPointerExceptionForEmailBodyAccess() throws Exception {
+        when(mParams.getCharset()).thenReturn(BluetoothMapContent.MAP_MESSAGE_CHARSET_UTF8);
+        when(mParams.getFractionRequest()).thenReturn(BluetoothMapAppParams.FRACTION_REQUEST_FIRST);
+        when(mParams.getAttachment()).thenReturn(0);
+
+        MatrixCursor cursor = new MatrixCursor(new String[] {
+                BluetoothMapContract.MessageColumns.RECEPTION_STATE,
+                BluetoothMapContract.MessageColumns.FLAG_READ,
+                BluetoothMapContract.MessageColumns.FOLDER_ID,
+                BluetoothMapContract.MessageColumns.TO_LIST,
+                BluetoothMapContract.MessageColumns.FROM_LIST
+        });
+        cursor.addRow(new Object[] {BluetoothMapContract.RECEPTION_STATE_FRACTIONED, null,
+                TEST_INBOX_FOLDER_ID, TEST_TO_ADDRESS, TEST_FROM_ADDRESS});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mCurrentFolder.setFolderId(TEST_INBOX_FOLDER_ID);
+        // This mock sets up NullPointerException during email body access
+        doThrow(NullPointerException.class).when(
+                mMapMethodProxy).contentResolverOpenFileDescriptor(any(), any(), any());
+
+        byte[] encodedMessageEmail = mContent.getEmailMessage(TEST_ID, mParams, mCurrentFolder);
+        InputStream inputStream = new ByteArrayInputStream(encodedMessageEmail);
+        BluetoothMapbMessage messageParsed = BluetoothMapbMessage.parse(inputStream,
+                BluetoothMapAppParams.CHARSET_UTF8);
+
+        assertThat(messageParsed.getType()).isEqualTo(TYPE.EMAIL);
+        assertThat(messageParsed.getVersionString()).isEqualTo("VERSION:" +
+                mContent.mMessageVersion);
+        assertThat(messageParsed.getFolder()).isEqualTo(mCurrentFolder.getFullPath());
+        assertThat(messageParsed.getRecipients().get(0).getName()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_TO_ADDRESS)[0].getName());
+        assertThat(messageParsed.getRecipients().get(0).getFirstEmail()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_TO_ADDRESS)[0].getAddress());
+        assertThat(messageParsed.getOriginators().get(0).getName()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_FROM_ADDRESS)[0].getName());
+        assertThat(messageParsed.getOriginators().get(0).getFirstEmail()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_FROM_ADDRESS)[0].getAddress());
+    }
+
+    @Test
+    public void getEmailMessage() throws Exception {
+        when(mParams.getCharset()).thenReturn(BluetoothMapContent.MAP_MESSAGE_CHARSET_UTF8);
+        when(mParams.getFractionRequest()).thenReturn(BluetoothMapAppParams.FRACTION_REQUEST_FIRST);
+        when(mParams.getAttachment()).thenReturn(0);
+
+        MatrixCursor cursor = new MatrixCursor(new String[] {
+                BluetoothMapContract.MessageColumns.RECEPTION_STATE,
+                BluetoothMapContract.MessageColumns.FLAG_READ,
+                BluetoothMapContract.MessageColumns.FOLDER_ID,
+                BluetoothMapContract.MessageColumns.TO_LIST,
+                BluetoothMapContract.MessageColumns.FROM_LIST
+        });
+        cursor.addRow(new Object[] {BluetoothMapContract.RECEPTION_STATE_FRACTIONED, "1",
+                TEST_INBOX_FOLDER_ID, TEST_TO_ADDRESS, TEST_FROM_ADDRESS});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mCurrentFolder.setFolderId(TEST_INBOX_FOLDER_ID);
+        FileDescriptor fd = new FileDescriptor();
+        ParcelFileDescriptor pfd = mock(ParcelFileDescriptor.class);
+        doReturn(fd).when(pfd).getFileDescriptor();
+        doReturn(pfd).when(mMapMethodProxy).contentResolverOpenFileDescriptor(any(), any(), any());
+
+        byte[] encodedMessageEmail = mContent.getEmailMessage(TEST_ID, mParams, mCurrentFolder);
+        InputStream inputStream = new ByteArrayInputStream(encodedMessageEmail);
+        BluetoothMapbMessage messageParsed = BluetoothMapbMessage.parse(inputStream,
+                BluetoothMapAppParams.CHARSET_UTF8);
+
+        assertThat(messageParsed.getType()).isEqualTo(TYPE.EMAIL);
+        assertThat(messageParsed.getVersionString()).isEqualTo("VERSION:" +
+                mContent.mMessageVersion);
+        assertThat(messageParsed.getFolder()).isEqualTo(mCurrentFolder.getFullPath());
+        assertThat(messageParsed.getRecipients().get(0).getName()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_TO_ADDRESS)[0].getName());
+        assertThat(messageParsed.getRecipients().get(0).getFirstEmail()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_TO_ADDRESS)[0].getAddress());
+        assertThat(messageParsed.getOriginators().get(0).getName()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_FROM_ADDRESS)[0].getName());
+        assertThat(messageParsed.getOriginators().get(0).getFirstEmail()).isEqualTo(
+                Rfc822Tokenizer.tokenize(TEST_FROM_ADDRESS)[0].getAddress());
+    }
+
+    @Test
+    public void getIMMessage_withCharsetNative() {
+        when(mParams.getCharset()).thenReturn(BluetoothMapContent.MAP_MESSAGE_CHARSET_NATIVE);
+
+        assertThrows(IllegalArgumentException.class, () -> mContent.getIMMessage(TEST_ID,
+                mParams, mCurrentFolder));
+    }
+
+    @Test
+    public void getIMMessage_withEmptyCursor() {
+        when(mParams.getCharset()).thenReturn(BluetoothMapContent.MAP_MESSAGE_CHARSET_UTF8);
+        MatrixCursor cursor = new MatrixCursor(new String[] {});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        assertThrows(IllegalArgumentException.class, () -> mContent.getIMMessage(TEST_ID,
+                mParams, mCurrentFolder));
+    }
+
+    @Test
+    public void getIMMessage_withSentFolderId() throws Exception {
+        when(mParams.getCharset()).thenReturn(BluetoothMapContent.MAP_MESSAGE_CHARSET_UTF8);
+        when(mParams.getAttachment()).thenReturn(1);
+
+        MatrixCursor cursor = new MatrixCursor(new String[] {
+                BluetoothMapContract.MessageColumns.FLAG_READ,
+                BluetoothMapContract.MessageColumns.THREAD_ID,
+                BluetoothMapContract.MessageColumns.FOLDER_ID,
+                BluetoothMapContract.MessageColumns.SUBJECT,
+                BluetoothMapContract.MessageColumns._ID,
+                BluetoothMapContract.MessageColumns.DATE,
+                BluetoothMapContract.MessageColumns.ATTACHMENT_SIZE,
+                BluetoothMapContract.MessageColumns.BODY,
+                BluetoothMapContract.ConvoContactColumns.NAME,
+                BluetoothMapContract.ConvoContactColumns.X_BT_UID,
+                BluetoothMapContract.ConvoContactColumns.NICKNAME,
+                BluetoothMapContract.ConvoContactColumns.UCI,
+        });
+        cursor.addRow(new Object[] {1, 1, TEST_SENT_FOLDER_ID, TEST_SUBJECT, TEST_MESSAGE_ID,
+                TEST_DATE, 0, "body", TEST_NAME, TEST_FIRST_BT_UID, TEST_FORMATTED_NAME,
+                TEST_FIRST_BT_UCI_RECIPIENT});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mCurrentFolder.setFolderId(TEST_SENT_FOLDER_ID);
+        when(mAccountItem.getUciFull()).thenReturn(TEST_FIRST_BT_UCI_ORIGINATOR);
+
+        byte[] encodedMessageMime = mContent.getIMMessage(TEST_ID, mParams, mCurrentFolder);
+        InputStream inputStream = new ByteArrayInputStream(encodedMessageMime);
+        BluetoothMapbMessage messageMimeParsed = BluetoothMapbMessage.parse(inputStream, 1);
+
+        assertThat(messageMimeParsed.mAppParamCharset).isEqualTo(1);
+        assertThat(messageMimeParsed.getType()).isEqualTo(TYPE.IM);
+        assertThat(messageMimeParsed.getVersionString()).isEqualTo("VERSION:" +
+                mContent.mMessageVersion);
+        assertThat(messageMimeParsed.getFolder()).isEqualTo(mCurrentFolder.getFullPath());
+        assertThat(messageMimeParsed.getRecipients().size()).isEqualTo(1);
+        assertThat(messageMimeParsed.getOriginators().size()).isEqualTo(1);
+        assertThat(messageMimeParsed.getOriginators().get(0).getName()).isEmpty();
+        assertThat(messageMimeParsed.getRecipients().get(0).getName()).isEqualTo(
+                TEST_FORMATTED_NAME);
+    }
+
+    @Test
+    public void getIMMessage_withInboxFolderId() throws Exception {
+        when(mParams.getCharset()).thenReturn(BluetoothMapContent.MAP_MESSAGE_CHARSET_UTF8);
+        when(mParams.getAttachment()).thenReturn(1);
+
+        MatrixCursor cursor = new MatrixCursor(new String[] {
+                BluetoothMapContract.MessageColumns.FLAG_READ,
+                BluetoothMapContract.MessageColumns.THREAD_ID,
+                BluetoothMapContract.MessageColumns.FOLDER_ID,
+                BluetoothMapContract.MessageColumns.SUBJECT,
+                BluetoothMapContract.MessageColumns._ID,
+                BluetoothMapContract.MessageColumns.DATE,
+                BluetoothMapContract.MessageColumns.ATTACHMENT_SIZE,
+                BluetoothMapContract.MessageColumns.BODY,
+                BluetoothMapContract.ConvoContactColumns.NAME,
+                BluetoothMapContract.ConvoContactColumns.X_BT_UID,
+                BluetoothMapContract.ConvoContactColumns.NICKNAME,
+                BluetoothMapContract.ConvoContactColumns.UCI,
+        });
+        cursor.addRow(new Object[] {0, 1, TEST_INBOX_FOLDER_ID, TEST_SUBJECT, TEST_MESSAGE_ID,
+                TEST_DATE, 0, "body", TEST_NAME, TEST_FIRST_BT_UID, TEST_FORMATTED_NAME,
+                TEST_FIRST_BT_UCI_ORIGINATOR});
+        cursor.moveToFirst();
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+                any(), any());
+
+        mCurrentFolder.setFolderId(TEST_INBOX_FOLDER_ID);
+        when(mAccountItem.getUciFull()).thenReturn(TEST_FIRST_BT_UCI_RECIPIENT);
+
+        byte[] encodedMessageMime = mContent.getIMMessage(TEST_ID, mParams, mCurrentFolder);
+        InputStream inputStream = new ByteArrayInputStream(encodedMessageMime);
+        BluetoothMapbMessage messageMimeParsed = BluetoothMapbMessage.parse(inputStream, 1);
+
+        assertThat(messageMimeParsed.mAppParamCharset).isEqualTo(1);
+        assertThat(messageMimeParsed.getType()).isEqualTo(TYPE.IM);
+        assertThat(messageMimeParsed.getVersionString()).isEqualTo("VERSION:" +
+                mContent.mMessageVersion);
+        assertThat(messageMimeParsed.getFolder()).isEqualTo(mCurrentFolder.getFullPath());
+        assertThat(messageMimeParsed.getRecipients().size()).isEqualTo(1);
+        assertThat(messageMimeParsed.getOriginators().size()).isEqualTo(1);
+        assertThat(messageMimeParsed.getOriginators().get(0).getName()).isEqualTo(
+                TEST_FORMATTED_NAME);
+        assertThat(messageMimeParsed.getRecipients().get(0).getName()).isEmpty();
     }
 }
