@@ -239,8 +239,9 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         close();
     }
 
-    /** @hide */
-    @Override
+    /**
+     * @hide
+     */
     public void close() {
         mProfileConnector.disconnect();
     }

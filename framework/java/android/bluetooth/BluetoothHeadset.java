@@ -360,14 +360,13 @@ public final class BluetoothHeadset implements BluetoothProfile {
     }
 
     /**
-     * Close the connection to the backing service. Other public functions of BluetoothHeadset will
-     * return default error results once close() has been called. Multiple invocations of close()
+     * Close the connection to the backing service.
+     * Other public functions of BluetoothHeadset will return default error
+     * results once close() has been called. Multiple invocations of close()
      * are ok.
-     *
-     * @hide
      */
     @UnsupportedAppUsage
-    public void close() {
+    /*package*/ void close() {
         mProfileConnector.disconnect();
     }
 
