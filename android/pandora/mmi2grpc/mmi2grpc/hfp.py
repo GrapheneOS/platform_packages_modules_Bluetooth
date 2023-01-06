@@ -18,7 +18,7 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.hfp_grpc import HFP
 from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import ConnectabilityMode
+from pandora_experimental.host_pb2 import ConnectabilityMode, DiscoverabilityMode
 from pandora_experimental.security_grpc import Security, SecurityStorage
 from pandora_experimental.hfp_pb2 import AudioPath
 
@@ -96,7 +96,10 @@ class HFPProxy(ProfileProxy):
                 if not self.connection:
                     self.connection = self.host.Connect(address=pts_addr).connection
 
-            self.hfp.EnableSlc(connection=self.connection)
+            if "HFP/HF" in test:
+                self.hfp.EnableSlcAsHandsfree(connection=self.connection)
+            else:
+                self.hfp.EnableSlc(connection=self.connection)
 
         threading.Thread(target=enable_slc).start()
 
@@ -137,7 +140,7 @@ class HFPProxy(ProfileProxy):
         return "OK"
 
     @assert_description
-    def TSC_iut_disable_slc(self, pts_addr: bytes, **kwargs):
+    def TSC_iut_disable_slc(self, test: str, pts_addr: bytes, **kwargs):
         """
         Click Ok, then disable the service level connection using the
         Implementation Under Test (IUT).
@@ -147,7 +150,10 @@ class HFPProxy(ProfileProxy):
 
         def disable_slc():
             time.sleep(2)
-            self.hfp.DisableSlc(connection=self.connection)
+            if "HFP/HF" in test:
+                self.hfp.DisableSlcAsHandsfree(connection=self.connection)
+            else:
+                self.hfp.DisableSlc(connection=self.connection)
 
         threading.Thread(target=disable_slc).start()
 
@@ -225,16 +231,21 @@ class HFPProxy(ProfileProxy):
         return "OK"
 
     @assert_description
-    def TSC_iut_disable_audio(self, **kwargs):
+    def TSC_iut_disable_audio(self, test: str, pts_addr: bytes, **kwargs):
         """
         Click Ok, then close the audio connection (SCO) between the
         Implementation Under Test (IUT) and the PTS.  Do not close the serivice
         level connection (SLC) or power-off the IUT.
         """
 
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
         def disable_audio():
             time.sleep(2)
-            self.hfp.SetAudioPath(audio_path=AudioPath.AUDIO_PATH_SPEAKERS)
+            if "HFP/HF" in test:
+                self.hfp.DisconnectToAudioAsHandsfree(connection=self.connection)
+            else:
+                self.hfp.SetAudioPath(audio_path=AudioPath.AUDIO_PATH_SPEAKERS)
 
         threading.Thread(target=disable_audio).start()
 
@@ -249,15 +260,20 @@ class HFPProxy(ProfileProxy):
         return "OK"
 
     @assert_description
-    def TSC_iut_enable_audio(self, **kwargs):
+    def TSC_iut_enable_audio(self, test: str, pts_addr: bytes, **kwargs):
         """
         Click Ok, then initiate an audio connection (SCO) from the
         Implementation Under Test (IUT) to the PTS.
         """
 
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
         def enable_audio():
             time.sleep(2)
-            self.hfp.SetAudioPath(audio_path=AudioPath.AUDIO_PATH_HANDSFREE)
+            if "HFP/HF" in test:
+                self.hfp.ConnectToAudioAsHandsfree(connection=self.connection)
+            else:
+                self.hfp.SetAudioPath(audio_path=AudioPath.AUDIO_PATH_HANDSFREE)
 
         threading.Thread(target=enable_audio).start()
 
@@ -579,16 +595,26 @@ class HFPProxy(ProfileProxy):
         return "OK"
 
     @assert_description
-    def TSC_prepare_iut_for_vra(self, pts_addr: bytes, **kwargs):
+    def TSC_prepare_iut_for_vra(self, pts_addr: bytes, test: str, **kwargs):
         """
         Place the Implementation Under Test (IUT) in a state which will allow a
         request from the PTS to activate voice recognition, then click Ok.
         """
 
-        self.hfp.SetVoiceRecognition(
-            enabled=True,
-            connection=self.host.GetConnection(address=pts_addr).connection,
-        )
+        if "HFP/HF" not in test:
+            self.hfp.SetVoiceRecognition(
+                enabled=True,
+                connection=self.host.GetConnection(address=pts_addr).connection,
+            )
+
+        return "OK"
+
+    @assert_description
+    def TSC_prepare_iut_for_vrd(self, **kwargs):
+        """
+        Place the Implementation Under Test (IUT) in a state which will allow a
+        voice recognition deactivation from PTS, then click Ok.
+        """
 
         return "OK"
 
@@ -604,17 +630,282 @@ class HFPProxy(ProfileProxy):
         return "OK"
 
     @assert_description
-    def TSC_reject_call(self, **kwargs):
+    def TSC_reject_call(self, test: str, pts_addr: bytes, **kwargs):
         """
         Click Ok, then reject the incoming call using the Implemention Under
         Test (IUT).
         """
 
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
         def reject_call():
             time.sleep(2)
-            self.hfp.DeclineCall()
+            if "HFP/HF" in test:
+                self.hfp.DeclineCallAsHandsfree(connection=self.connection)
+            else:
+                self.hfp.DeclineCall()
 
         threading.Thread(target=reject_call).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_hf_iut_answer_call(self, pts_addr: bytes, **kwargs):
+        """
+        Click Ok, then answer the incoming call using the Implementation Under
+        Test (IUT).
+        """
+
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
+        def answer_call():
+            time.sleep(2)
+            self.hfp.AnswerCallAsHandsfree(connection=self.connection)
+
+        threading.Thread(target=answer_call).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_iut_disable_audio_poweroff_ok(self, **kwargs):
+        """
+        Click Ok, then close the audio connection (SCO) by one of the following
+        ways:
+
+        1. Close the service level connection (SLC)
+        2. Powering off the
+        Implementation Under Test (IUT)
+        """
+
+        self.host.Reset()
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_inband_ring(self, **kwargs):
+        """
+        Verify that the in-band ringtone is audible, then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_inband_ring_muting(self, **kwargs):
+        """
+        Verify that the in-band ringtone is not audible , then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_hf_iut_disable_call(self, pts_addr: bytes, **kwargs):
+        """
+        Click Ok, then end the call process from the Implementation Under Test
+        (IUT).
+        """
+
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
+        def disable_call():
+            time.sleep(2)
+            self.hfp.EndCallAsHandsfree(connection=self.connection)
+
+        threading.Thread(target=disable_call).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_mute_inband_ring_iut(self, **kwargs):
+        """
+        Mute the in-band ringtone on the Implementation Under Test (IUT) and
+        then click OK.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_iut_alerting(self, **kwargs):
+        """
+        Verify that the Implementation Under Test (IUT) is generating a local
+        alert, then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_iut_not_alerting(self, **kwargs):
+        """
+        Verify that the Implementation Under Test (IUT) is not generating a
+        local alert.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_hf_iut_enable_call_number(self, pts_addr: bytes, **kwargs):
+        """
+        Click Ok, then place an outgoing call from the Implementation Under Test
+        (IUT) using an enterted phone number.
+        """
+
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
+        def disable_call():
+            time.sleep(2)
+            self.hfp.MakeCallAsHandsfree(connection=self.connection, number="42")
+
+        threading.Thread(target=disable_call).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_hf_iut_enable_call_memory(self, **kwargs):
+        """
+        Click Ok, then place an outgoing call from the Implementation Under Test
+        (IUT) by entering the memory index.  For further clarification please
+        see the HFP 1.5 Specification.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_hf_iut_call_swap_then_disable_held_alternative(self, pts_addr: bytes, **kwargs):
+        """
+        Using the Implementation Under Test (IUT), perform one of the following
+        two actions:
+
+        1. Click OK, make the held/waiting call active, disabling
+        the active call.
+        2. Click OK, make the held/waiting call active, placing
+        the active call on hold.
+        """
+
+        self.connection = self.host.GetConnection(address=pts_addr).connection
+
+        def call_swap_then_disable_held_alternative():
+            time.sleep(2)
+            self.hfp.CallTransferAsHandsfree(connection=self.connection)
+
+        threading.Thread(target=call_swap_then_disable_held_alternative).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_iut_make_discoverable(self, **kwargs):
+        """
+        Place the Implementation Under Test (IUT) in discoverable mode, then
+        click Ok.
+        """
+
+        self.host.SetDiscoverabilityMode(mode=DiscoverabilityMode.DISCOVERABLE_GENERAL)
+
+        return "OK"
+
+    @assert_description
+    def TSC_iut_accept_connection(self, **kwargs):
+        """
+        Click Ok, then accept the pairing and connection requests on the
+        Implementation Under Test (IUT), if prompted.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_voice_recognition_enable_iut(self, pts_addr: bytes, **kwargs):
+        """
+        Using the Implementation Under Test (IUT), activate voice recognition.
+        """
+
+        self.hfp.SetVoiceRecognitionAsHandsfree(
+            enabled=True,
+            connection=self.host.GetConnection(address=pts_addr).connection,
+        )
+
+        return "OK"
+
+    @assert_description
+    def TSC_voice_recognition_disable_iut(self, pts_addr: bytes, **kwargs):
+        """
+        Using the Implementation Under Test (IUT), deactivate voice recognition.
+        """
+
+        self.hfp.SetVoiceRecognitionAsHandsfree(
+            enabled=False,
+            connection=self.host.GetConnection(address=pts_addr).connection,
+        )
+
+        return "OK"
+
+    @match_description
+    def TSC_dtmf_send(self, pts_addr: bytes, dtmf: str, **kwargs):
+        r"""
+        Send the DTMF code, then click Ok. (?P<dtmf>.*)
+        """
+
+        self.hfp.SendDtmfFromHandsfree(
+            connection=self.host.GetConnection(address=pts_addr).connection,
+            code=dtmf[0].encode("ascii")[0],
+        )
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_hf_iut_reports_held_and_active_call(self, **kwargs):
+        """
+        Verify that the Implementation Under Test (IUT) interprets both held and
+        active call signals, then click Ok.  If applicable, verify that the
+        information is correctly displayed on the IUT, then click Ok.
+        """
+
+        return "OK"
+
+    def TSC_rf_shield_iut_or_pts(self, **kwargs):
+        """
+        Click Ok, then move the PTS and the Implementation Under Test (IUT) out
+        of range of each other by performing one of the following IUT specific
+        actions:
+
+        1. Hands Free (HF) IUT - Place the IUT in the RF shield box or
+        physically take out of range from the PTS.
+
+        2. Audio Gateway (AG) IUT-
+        Physically take the IUT out range.  Do not place in the RF shield box as
+        it will interfere with the cellular network.
+
+        Note: The PTS can also be
+        placed in the RF shield box if necessary.
+        """
+
+        def shield_iut_or_pts():
+            time.sleep(2)
+            self.rootcanal.disconnect_phy()
+
+        threading.Thread(target=shield_iut_or_pts).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_rf_shield_open(self, **kwargs):
+        """
+        Click Ok, then remove the Implementation Under Test (IUT) and/or the PTS
+        from the RF shield.  If the out of range method was used, bring the IUT
+        and PTS back within range.
+        """
+
+        def shield_open():
+            time.sleep(2)
+            self.rootcanal.reconnect_phy_if_needed()
+
+        threading.Thread(target=shield_open).start()
+
+        return "OK"
+
+    @match_description
+    def TSC_verify_speaker_volume(self, volume: str, **kwargs):
+        r"""
+        Verify that the Hands Free \(HF\) speaker volume is displayed correctly on
+        the Implementation Under Test \(IUT\).(?P<volume>[0-9]*)
+        """
 
         return "OK"
 
