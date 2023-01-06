@@ -19,14 +19,18 @@ cc_defaults {
     tidy_checks: [
         "-*",
         "readability-*",
-	"-readability-function-size",
+        "-readability-function-size",
         "-readability-identifier-length",
         "-readability-implicit-bool-conversion",
         "-readability-magic-numbers",
         "-readability-use-anyofallof",
+        "bugprone-*",
+        "cert-*",
     ],
     tidy_checks_as_errors: [
         "readability-*",
+        "bugprone-*",
+        "cert-*",
     ],
     tidy_flags: [
         "--header-filter=^.*tools\\/rootcanal\\/(model|include|net|desktop)\\/(.(?!\\.pb\\.h))*$",
