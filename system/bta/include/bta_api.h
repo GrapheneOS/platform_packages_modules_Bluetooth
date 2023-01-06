@@ -1393,4 +1393,14 @@ extern void BTA_DmBleSubrateRequest(const RawAddress& bd_addr,
                                     uint16_t max_latency, uint16_t cont_num,
                                     uint16_t timeout);
 
+/*******************************************************************************
+ *
+ * Function         BTA_DmCheckLeAudioCapable
+ *
+ * Description      Checks if device should be considered as LE Audio capable
+ *
+ * Returns          True if Le Audio capable device, false otherwise
+ *
+ ******************************************************************************/
+extern bool BTA_DmCheckLeAudioCapable(const RawAddress& address);
 #endif /* BTA_API_H */

@@ -245,6 +245,10 @@ void BleScannerIntf::ScanFilterEnable(bool enable) {
   scanner_intf_->ScanFilterEnable(enable, base::Bind(&BleScannerIntf::OnEnableCallback, base::Unretained(this)));
 }
 
+bool BleScannerIntf::IsMsftSupported() {
+  return scanner_intf_->IsMsftSupported();
+}
+
 void BleScannerIntf::MsftAdvMonitorAdd(uint32_t call_id, const RustMsftAdvMonitor& monitor) {
   scanner_intf_->MsftAdvMonitorAdd(
       internal::ConvertAdvMonitor(monitor),
