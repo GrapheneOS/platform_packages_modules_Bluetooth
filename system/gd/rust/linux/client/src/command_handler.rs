@@ -9,7 +9,7 @@ use crate::callbacks::{BtGattCallback, BtGattServerCallback};
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
-use bt_topshim::profiles::gatt::LePhy;
+use bt_topshim::profiles::{gatt::LePhy, ProfileConnectionState};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
 use btstack::bluetooth_gatt::{GattWriteType, IBluetoothGatt, ScanSettings, ScanType};
 use btstack::socket_manager::{IBluetoothSocketManager, SocketResult};
@@ -401,10 +401,16 @@ impl CommandHandler {
                 let le_ext_adv_supported = adapter_dbus.is_le_extended_advertising_supported();
                 let wbs_supported = adapter_dbus.is_wbs_supported();
                 let supported_profiles = UuidHelper::get_supported_profiles();
-                let connected_profiles: Vec<Profile> = supported_profiles
+                let connected_profiles: Vec<(Profile, ProfileConnectionState)> = supported_profiles
                     .iter()
-                    .filter(|&&prof| adapter_dbus.get_profile_connection_state(prof) > 0)
-                    .cloned()
+                    .map(|&prof| {
+                        if let Some(uuid) = UuidHelper::get_profile_uuid(&prof) {
+                            (prof, adapter_dbus.get_profile_connection_state(uuid.clone()))
+                        } else {
+                            (prof, ProfileConnectionState::Disconnected)
+                        }
+                    })
+                    .filter(|(_prof, state)| state != &ProfileConnectionState::Disconnected)
                     .collect();
                 print_info!("Address: {}", address);
                 print_info!("Name: {}", name);
