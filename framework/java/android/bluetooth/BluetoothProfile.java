@@ -384,6 +384,13 @@ public interface BluetoothProfile {
     @BtProfileState int getConnectionState(BluetoothDevice device);
 
     /**
+     * Releases any held resources.
+     *
+     * @hide
+     */
+    void close();
+
+    /**
      * An interface for notifying BluetoothProfile IPC clients when they have
      * been connected or disconnected to the service.
      */

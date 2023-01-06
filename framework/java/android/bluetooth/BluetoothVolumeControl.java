@@ -208,10 +208,11 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     /**
      * Close this VolumeControl server instance.
      *
-     * Application should call this method as early as possible after it is done with
-     * this VolumeControl server.
+     * <p>Application should call this method as early as possible after it is done with this
+     * VolumeControl server.
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @Override
     public void close() {
         if (VDBG) log("close()");
 
