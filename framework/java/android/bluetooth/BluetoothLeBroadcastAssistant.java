@@ -339,8 +339,9 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
         close();
     }
 
-    /** @hide */
-    @Override
+    /**
+     * @hide
+     */
     public void close() {
         mProfileConnector.disconnect();
     }

@@ -399,9 +399,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         mProfileConnector.connect(context, listener);
     }
 
-    /** @hide */
-    @Override
-    public void close() {
+    /* package */ void close() {
         if (VDBG) log("close()");
 
         unregisterBearer();
