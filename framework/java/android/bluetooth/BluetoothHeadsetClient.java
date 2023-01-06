@@ -752,13 +752,13 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     }
 
     /**
-     * Close the connection to the backing service.
-     * Other public functions of BluetoothHeadsetClient will return default error
-     * results once close() has been called. Multiple invocations of close()
-     * are ok.
+     * Close the connection to the backing service. Other public functions of BluetoothHeadsetClient
+     * will return default error results once close() has been called. Multiple invocations of
+     * close() are ok.
      *
      * @hide
      */
+    @Override
     public void close() {
         if (VDBG) log("close()");
         mProfileConnector.disconnect();

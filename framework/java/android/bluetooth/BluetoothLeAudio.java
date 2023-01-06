@@ -688,9 +688,8 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         mCloseGuard.open("close");
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
+    @Override
     public void close() {
         IBluetoothManager mgr = mAdapter.getBluetoothManager();
         if (mgr != null) {
