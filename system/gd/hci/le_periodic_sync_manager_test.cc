@@ -24,6 +24,8 @@
 #include "hci/le_scanning_manager_mock.h"
 #include "os/handler.h"
 
+using namespace std::chrono_literals;
+
 namespace bluetooth {
 namespace hci {
 namespace {
@@ -146,11 +148,8 @@ class PeriodicSyncManagerTest : public ::testing::Test {
   }
 
   void sync_handler() {
-    std::promise<void> promise;
-    auto future = promise.get_future();
-    handler_->Call(common::BindOnce(&std::promise<void>::set_value, common::Unretained(&promise)));
-    auto future_status = future.wait_for(std::chrono::seconds(1));
-    ASSERT_EQ(future_status, std::future_status::ready);
+    ASSERT(thread_ != nullptr);
+    ASSERT(thread_->GetReactor()->WaitForIdle(2s));
   }
 
   class MockCallbacks : public bluetooth::hci::ScanningCallback {
