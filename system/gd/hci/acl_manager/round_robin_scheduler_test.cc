@@ -32,6 +32,8 @@ using ::bluetooth::common::Callback;
 using ::bluetooth::os::Handler;
 using ::bluetooth::os::Thread;
 
+using namespace std::chrono_literals;
+
 namespace bluetooth {
 namespace hci {
 namespace acl_manager {
@@ -96,11 +98,8 @@ class RoundRobinSchedulerTest : public ::testing::Test {
   }
 
   void sync_handler() {
-    std::promise<void> promise;
-    auto future = promise.get_future();
-    handler_->BindOnceOn(&promise, &std::promise<void>::set_value).Invoke();
-    auto status = future.wait_for(std::chrono::milliseconds(3));
-    EXPECT_EQ(status, std::future_status::ready);
+    ASSERT(thread_ != nullptr);
+    ASSERT(thread_->GetReactor()->WaitForIdle(2s));
   }
 
   void EnqueueAclUpEnd(AclConnection::QueueUpEnd* queue_up_end, std::vector<uint8_t> packet) {

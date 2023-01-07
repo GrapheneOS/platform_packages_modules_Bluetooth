@@ -501,11 +501,8 @@ class LeImplTest : public ::testing::Test {
   }
 
   void sync_handler() {
-    std::promise<void> promise;
-    auto future = promise.get_future();
-    handler_->BindOnceOn(&promise, &std::promise<void>::set_value).Invoke();
-    auto status = future.wait_for(2s);
-    ASSERT_EQ(status, std::future_status::ready);
+    ASSERT(thread_ != nullptr);
+    ASSERT(thread_->GetReactor()->WaitForIdle(2s));
   }
 
   void HciDownEndDequeue() {
