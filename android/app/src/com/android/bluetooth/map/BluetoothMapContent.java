@@ -157,7 +157,8 @@ public class BluetoothMapContent {
     private final BluetoothMapAccountItem mAccount;
     /* The MasInstance reference is used to update persistent (over a connection) version counters*/
     private final BluetoothMapMasInstance mMasInstance;
-    private String mMessageVersion = BluetoothMapUtils.MAP_V10_STR;
+    @VisibleForTesting
+    String mMessageVersion = BluetoothMapUtils.MAP_V10_STR;
 
     private int mRemoteFeatureMask = BluetoothMapUtils.MAP_FEATURE_DEFAULT_BITMASK;
     @VisibleForTesting
@@ -4092,8 +4093,8 @@ public class BluetoothMapContent {
 
         BluetoothMapbMessageEmail message = new BluetoothMapbMessageEmail();
         Uri contentUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_MESSAGE);
-        Cursor c = mResolver.query(contentUri, BluetoothMapContract.BT_MESSAGE_PROJECTION,
-                "_ID = " + id, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, contentUri,
+                BluetoothMapContract.BT_MESSAGE_PROJECTION, "_ID = " + id, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 BluetoothMapFolderElement folderElement;
@@ -4190,7 +4191,8 @@ public class BluetoothMapContent {
                 // Get email message body content
                 int count = 0;
                 try {
-                    fd = mResolver.openFileDescriptor(uri, "r");
+                    fd = BluetoothMethodProxy.getInstance().contentResolverOpenFileDescriptor(
+                            mResolver, uri, "r");
                     is = new FileInputStream(fd.getFileDescriptor());
                     StringBuilder email = new StringBuilder("");
                     byte[] buffer = new byte[1024];
@@ -4261,8 +4263,8 @@ public class BluetoothMapContent {
 
         BluetoothMapbMessageMime message = new BluetoothMapbMessageMime();
         Uri contentUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_MESSAGE);
-        Cursor c = mResolver.query(contentUri, BluetoothMapContract.BT_MESSAGE_PROJECTION,
-                "_ID = " + id, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, contentUri,
+                BluetoothMapContract.BT_MESSAGE_PROJECTION, "_ID = " + id, null, null);
         Cursor contacts = null;
         try {
             if (c != null && c.moveToFirst()) {
@@ -4315,7 +4317,8 @@ public class BluetoothMapContent {
                 // FIXME end temp code
 
                 Uri contactsUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_CONVOCONTACT);
-                contacts = mResolver.query(contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
+                contacts = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
                         BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = " + threadId, null,
                         null);
                 // TODO this will not work for group-chats

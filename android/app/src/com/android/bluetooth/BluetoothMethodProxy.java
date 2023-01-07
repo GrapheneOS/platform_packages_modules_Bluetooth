@@ -16,12 +16,14 @@
 
 package com.android.bluetooth;
 
+import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.PeriodicAdvertisingCallback;
 import android.bluetooth.le.PeriodicAdvertisingManager;
 import android.bluetooth.le.ScanResult;
+import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -159,6 +161,14 @@ public class BluetoothMethodProxy {
     public InputStream contentResolverOpenInputStream(ContentResolver contentResolver,
             final Uri uri) throws FileNotFoundException {
         return contentResolver.openInputStream(uri);
+    }
+
+    /**
+     * Proxies {@link ContentResolver#acquireUnstableContentProviderClient(String)}.
+     */
+    public ContentProviderClient contentResolverAcquireUnstableContentProviderClient(
+            ContentResolver contentResolver, @NonNull String name) {
+        return contentResolver.acquireUnstableContentProviderClient(name);
     }
 
     /**
