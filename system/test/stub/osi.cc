@@ -381,7 +381,7 @@ void* fixed_queue_try_remove_from_queue(fixed_queue_t* queue, void* data) {
 
 alarm_t* alarm_new(const char* name) {
   mock_function_count_map[__func__]++;
-  return nullptr;
+  return (alarm_t*)new uint8_t[30];
 }
 alarm_t* alarm_new_periodic(const char* name) {
   mock_function_count_map[__func__]++;
@@ -404,7 +404,11 @@ void alarm_cancel(alarm_t* alarm) {
 }
 void alarm_cleanup(void) { mock_function_count_map[__func__]++; }
 void alarm_debug_dump(int fd) { mock_function_count_map[__func__]++; }
-void alarm_free(alarm_t* alarm) { mock_function_count_map[__func__]++; }
+void alarm_free(alarm_t* alarm) {
+  uint8_t* ptr = (uint8_t*)alarm;
+  delete[] ptr;
+  mock_function_count_map[__func__]++;
+}
 void alarm_set(alarm_t* alarm, uint64_t interval_ms, alarm_callback_t cb,
                void* data) {
   mock_function_count_map[__func__]++;
