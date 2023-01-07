@@ -566,7 +566,7 @@ bool A2DP_VendorBuildCodecHeaderOpus(UNUSED_ATTR const uint8_t* p_codec_info,
                                      uint16_t frames_per_packet) {
   uint8_t* p;
 
-  if (p_buf->offset < A2DP_OPUS_MPL_HDR_LEN) {
+  if (p_buf->offset < 4 + A2DP_OPUS_MPL_HDR_LEN) {
     return false;
   }
 

@@ -193,10 +193,9 @@
     {
       "name": "net_test_stack_l2cap"
     },
-    // b/255042467
-    //{
-    //  "name": "net_test_stack_rfcomm"
-    //},
+    {
+      "name": "net_test_stack_rfcomm"
+    },
     {
       "name": "net_test_stack_sdp"
     },

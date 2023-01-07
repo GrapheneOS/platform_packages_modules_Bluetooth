@@ -59,7 +59,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
-import android.hardware.radio.V1_0.ISap;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -160,11 +159,9 @@ public class SapServerTest {
 
     @Test
     public void onConnectRequest_whenStateIsConnecting_callsSendRilMessage() {
-        SapRilReceiver mockReceiver = mock(SapRilReceiver.class);
-        ISap mockSapProxy = mock(ISap.class);
+        ISapRilReceiver mockReceiver = mock(ISapRilReceiver.class);
         Object lock = new Object();
         when(mockReceiver.getSapProxyLock()).thenReturn(lock);
-        when(mockReceiver.getSapProxy()).thenReturn(mockSapProxy);
         mSapServer.mRilBtReceiver = mockReceiver;
         mSapServer.mSapHandler = mHandler;
 
@@ -218,26 +215,25 @@ public class SapServerTest {
 
     @Test
     public void sendRilMessage_success() throws Exception {
-        SapRilReceiver mockReceiver = mock(SapRilReceiver.class);
-        ISap mockSapProxy = mock(ISap.class);
+        ISapRilReceiver mockReceiver = mock(ISapRilReceiver.class);
         Object lock = new Object();
         when(mockReceiver.getSapProxyLock()).thenReturn(lock);
-        when(mockReceiver.getSapProxy()).thenReturn(mockSapProxy);
+        when(mockReceiver.isProxyValid()).thenReturn(true);
         mSapServer.mRilBtReceiver = mockReceiver;
         mSapServer.mSapHandler = mHandler;
 
         SapMessage msg = mock(SapMessage.class);
         mSapServer.sendRilMessage(msg);
 
-        verify(msg).send(mockSapProxy);
+        verify(msg).send(mockReceiver);
     }
 
     @Test
     public void sendRilMessage_whenSapProxyIsNull_sendsErrorClientMessage() throws Exception {
-        SapRilReceiver mockReceiver = mock(SapRilReceiver.class);
+        ISapRilReceiver mockReceiver = mock(ISapRilReceiver.class);
         Object lock = new Object();
         when(mockReceiver.getSapProxyLock()).thenReturn(lock);
-        when(mockReceiver.getSapProxy()).thenReturn(null);
+        when(mockReceiver.isProxyValid()).thenReturn(false);
         mSapServer.mRilBtReceiver = mockReceiver;
         mSapServer.mSapHandler = mHandler;
 
@@ -250,11 +246,9 @@ public class SapServerTest {
 
     @Test
     public void sendRilMessage_whenIAEIsThrown_sendsErrorClientMessage() throws Exception {
-        SapRilReceiver mockReceiver = mock(SapRilReceiver.class);
+        ISapRilReceiver mockReceiver = mock(ISapRilReceiver.class);
         Object lock = new Object();
-        ISap mockSapProxy = mock(ISap.class);
         when(mockReceiver.getSapProxyLock()).thenReturn(lock);
-        when(mockReceiver.getSapProxy()).thenReturn(mockSapProxy);
         mSapServer.mRilBtReceiver = mockReceiver;
         mSapServer.mSapHandler = mHandler;
 
@@ -269,11 +263,10 @@ public class SapServerTest {
     @Test
     public void sendRilMessage_whenRemoteExceptionIsThrown_sendsErrorClientMessage()
             throws Exception {
-        SapRilReceiver mockReceiver = mock(SapRilReceiver.class);
+        ISapRilReceiver mockReceiver = mock(ISapRilReceiver.class);
         Object lock = new Object();
-        ISap mockSapProxy = mock(ISap.class);
         when(mockReceiver.getSapProxyLock()).thenReturn(lock);
-        when(mockReceiver.getSapProxy()).thenReturn(mockSapProxy);
+        when(mockReceiver.isProxyValid()).thenReturn(true);
         mSapServer.mRilBtReceiver = mockReceiver;
         mSapServer.mSapHandler = mHandler;
 
@@ -544,7 +537,7 @@ public class SapServerTest {
 
     @Test
     public void handleMessage_forRilConnectMsg_callsSendRilMessage() throws Exception {
-        SapRilReceiver mockReceiver = mock(SapRilReceiver.class);
+        ISapRilReceiver mockReceiver = mock(ISapRilReceiver.class);
         Object lock = new Object();
         when(mockReceiver.getSapProxyLock()).thenReturn(lock);
         mSapServer.mRilBtReceiver = mockReceiver;
@@ -566,11 +559,9 @@ public class SapServerTest {
 
     @Test
     public void handleMessage_forRilReqMsg_callsSendRilMessage() throws Exception {
-        SapRilReceiver mockReceiver = mock(SapRilReceiver.class);
-        ISap mockSapProxy = mock(ISap.class);
+        ISapRilReceiver mockReceiver = mock(ISapRilReceiver.class);
         Object lock = new Object();
         when(mockReceiver.getSapProxyLock()).thenReturn(lock);
-        when(mockReceiver.getSapProxy()).thenReturn(mockSapProxy);
         mSapServer.mRilBtReceiver = mockReceiver;
         mSapServer.mSapHandler = mHandler;
 
@@ -630,9 +621,8 @@ public class SapServerTest {
 
     @Test
     public void handleMessage_forProxyDeadMsg_notifiesShutDown() throws Exception {
-        SapRilReceiver mockReceiver = mock(SapRilReceiver.class);
+        ISapRilReceiver mockReceiver = mock(ISapRilReceiver.class);
         AtomicLong cookie = new AtomicLong(23);
-        when(mockReceiver.getSapProxyCookie()).thenReturn(cookie);
         mSapServer.mRilBtReceiver = mockReceiver;
 
         Message message = Message.obtain();
@@ -643,7 +633,6 @@ public class SapServerTest {
             mSapServer.handleMessage(message);
 
             verify(mockReceiver).notifyShutdown();
-            verify(mockReceiver).resetSapProxy();
         } finally {
             message.recycle();
         }
@@ -709,7 +698,8 @@ public class SapServerTest {
             return true;
         }
 
-        public void receiveMessage(int what, Object obj) {}
+        public void receiveMessage(int what, Object obj) {
+        }
     }
 }
 

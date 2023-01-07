@@ -176,6 +176,7 @@ package android.bluetooth {
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getMessageAccessPermission();
     method @Nullable @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public byte[] getMetadata(int);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getPhonebookAccessPermission();
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public android.os.Bundle getPreferredAudioProfiles();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getSimAccessPermission();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean isBondingInitiatedLocally();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean isConnected();
@@ -189,6 +190,7 @@ package android.bluetooth {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setMetadata(int, @NonNull byte[]);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setPhonebookAccessPermission(int);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean setPin(@NonNull String);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int setPreferredAudioProfiles(@NonNull android.os.Bundle);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setSilenceMode(boolean);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setSimAccessPermission(int);
     field public static final int ACCESS_ALLOWED = 1; // 0x1
@@ -201,6 +203,8 @@ package android.bluetooth {
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_PAIRING_CANCEL = "android.bluetooth.device.action.PAIRING_CANCEL";
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_SILENCE_MODE_CHANGED = "android.bluetooth.device.action.SILENCE_MODE_CHANGED";
     field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_SWITCH_BUFFER_SIZE = "android.bluetooth.device.action.SWITCH_BUFFER_SIZE";
+    field public static final String AUDIO_MODE_DUPLEX = "audio_mode_duplex";
+    field public static final String AUDIO_MODE_OUTPUT_ONLY = "audio_mode_output_only";
     field public static final int BATTERY_LEVEL_BLUETOOTH_OFF = -100; // 0xffffff9c
     field public static final int BATTERY_LEVEL_UNKNOWN = -1; // 0xffffffff
     field public static final int CONNECTION_ACCESS_NO = 2; // 0x2
