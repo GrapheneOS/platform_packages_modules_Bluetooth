@@ -19,6 +19,7 @@ package com.android.bluetooth.map;
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -84,6 +85,8 @@ public class BluetoothMapContentTest {
     private static final String TEST_FIRST_BT_UID = "1111";
     private static final String TEST_FIRST_BT_UCI_RECIPIENT = "test_first_bt_uci_recipient";
     private static final String TEST_FIRST_BT_UCI_ORIGINATOR = "test_first_bt_uci_originator";
+    private static final int TEST_NO_FILTER = 0;
+    private static final String TEST_CONTACT_NAME_FILTER = "test_contact_name_filter";
 
     @Mock
     private BluetoothMapAccountItem mAccountItem;
@@ -376,8 +379,7 @@ public class BluetoothMapContentTest {
 
     @Test
     public void smsSelected_withNoFilter() {
-        int noFilter = 0;
-        when(mParams.getFilterMessageType()).thenReturn(noFilter);
+        when(mParams.getFilterMessageType()).thenReturn(TEST_NO_FILTER);
 
         assertThat(mContent.smsSelected(mInfo, mParams)).isTrue();
     }
@@ -423,8 +425,7 @@ public class BluetoothMapContentTest {
 
     @Test
     public void mmsSelected_withNoFilter() {
-        int noFilter = 0;
-        when(mParams.getFilterMessageType()).thenReturn(noFilter);
+        when(mParams.getFilterMessageType()).thenReturn(TEST_NO_FILTER);
 
         assertThat(mContent.mmsSelected(mParams)).isTrue();
     }
@@ -1043,5 +1044,127 @@ public class BluetoothMapContentTest {
         assertThat(messageMimeParsed.getOriginators().get(0).getName()).isEqualTo(
                 TEST_FORMATTED_NAME);
         assertThat(messageMimeParsed.getRecipients().get(0).getName()).isEmpty();
+    }
+
+    @Test
+    public void convoListing_withNullFilterRecipient() {
+        when(mParams.getConvoParameterMask()).thenReturn(
+                (long) BluetoothMapAppParams.INVALID_VALUE_PARAMETER);
+        when(mParams.getFilterMessageType()).thenReturn(TEST_NO_FILTER);
+        when(mParams.getMaxListCount()).thenReturn(2);
+        when(mParams.getStartOffset()).thenReturn(0);
+        // This mock sets filter recipient to null
+        when(mParams.getFilterRecipient()).thenReturn(null);
+
+        MatrixCursor smsMmsCursor = new MatrixCursor(new String[] {"MmsSmsThreadColId",
+                "MmsSmsThreadColDate", "MmsSmsThreadColSnippet", "MmsSmsThreadSnippetCharset",
+                "MmsSmsThreadColRead", "MmsSmsThreadColRecipientIds"});
+        smsMmsCursor.addRow(new Object[] {TEST_ID, TEST_DATE_SMS, "test_col_snippet",
+                "test_col_snippet_cs", 1, "test_recipient_ids"});
+        smsMmsCursor.moveToFirst();
+        doReturn(smsMmsCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(),
+                eq(BluetoothMapContent.MMS_SMS_THREAD_PROJECTION), any(), any(), any());
+
+        MatrixCursor imEmailCursor = new MatrixCursor(
+                new String[] {BluetoothMapContract.ConversationColumns.THREAD_ID,
+                        BluetoothMapContract.ConversationColumns.LAST_THREAD_ACTIVITY,
+                        BluetoothMapContract.ConversationColumns.THREAD_NAME,
+                        BluetoothMapContract.ConversationColumns.READ_STATUS,
+                        BluetoothMapContract.ConversationColumns.VERSION_COUNTER,
+                        BluetoothMapContract.ConversationColumns.SUMMARY,
+                        BluetoothMapContract.ConvoContactColumns.X_BT_UID,
+                        BluetoothMapContract.ConvoContactColumns.CHAT_STATE,
+                        BluetoothMapContract.ConvoContactColumns.UCI,
+                        BluetoothMapContract.ConvoContactColumns.NICKNAME,
+                        BluetoothMapContract.ConvoContactColumns.LAST_ACTIVE,
+                        BluetoothMapContract.ConvoContactColumns.NAME,
+                        BluetoothMapContract.ConvoContactColumns.PRESENCE_STATE,
+                        BluetoothMapContract.ConvoContactColumns.STATUS_TEXT,
+                        BluetoothMapContract.ConvoContactColumns.PRIORITY});
+        imEmailCursor.addRow(new Object[] {TEST_ID, TEST_DATE_EMAIL, TEST_NAME, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0});
+        doReturn(imEmailCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(),
+                eq(BluetoothMapContract.BT_CONVERSATION_PROJECTION), any(), any(), any());
+
+        BluetoothMapConvoListing listing = mContent.convoListing(mParams, false);
+
+        assertThat(listing.getCount()).isEqualTo(2);
+        BluetoothMapConvoListingElement emailElement = listing.getList().get(0);
+        assertThat(emailElement.getType()).isEqualTo(TYPE.EMAIL);
+        assertThat(emailElement.getLastActivity()).isEqualTo(TEST_DATE_EMAIL);
+        assertThat(emailElement.getName()).isEqualTo(TEST_NAME);
+        assertThat(emailElement.getReadBool()).isFalse();
+        BluetoothMapConvoListingElement smsElement = listing.getList().get(1);
+        assertThat(smsElement.getType()).isEqualTo(TYPE.SMS_GSM);
+        assertThat(smsElement.getLastActivity()).isEqualTo(TEST_DATE_SMS);
+        assertThat(smsElement.getName()).isEqualTo("");
+        assertThat(smsElement.getReadBool()).isTrue();
+    }
+
+    @Test
+    public void convoListing_withNonNullFilterRecipient() {
+        when(mParams.getConvoParameterMask()).thenReturn(
+                (long) BluetoothMapAppParams.INVALID_VALUE_PARAMETER);
+        when(mParams.getFilterMessageType()).thenReturn(BluetoothMapAppParams.FILTER_NO_EMAIL);
+        when(mParams.getMaxListCount()).thenReturn(2);
+        when(mParams.getStartOffset()).thenReturn(0);
+        // This mock sets filter recipient to non null
+        when(mParams.getFilterRecipient()).thenReturn(TEST_CONTACT_NAME_FILTER);
+
+        MatrixCursor smsMmsCursor = new MatrixCursor(new String[] {"MmsSmsThreadColId",
+                "MmsSmsThreadColDate", "MmsSmsThreadColSnippet", "MmsSmsThreadSnippetCharset",
+                "MmsSmsThreadColRead", "MmsSmsThreadColRecipientIds"});
+        smsMmsCursor.addRow(new Object[] {TEST_ID, TEST_DATE_SMS, "test_col_snippet",
+                "test_col_snippet_cs", 1, String.valueOf(TEST_ID)});
+        smsMmsCursor.moveToFirst();
+        doReturn(smsMmsCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(),
+                eq(BluetoothMapContent.MMS_SMS_THREAD_PROJECTION), any(), any(), any());
+
+        MatrixCursor addressCursor = new MatrixCursor(new String[] {"COL_ADDR_ID",
+                "COL_ADDR_ADDR"});
+        addressCursor.addRow(new Object[]{TEST_ID, TEST_ADDRESS});
+        doReturn(addressCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(),
+                eq(SmsMmsContacts.ADDRESS_PROJECTION), any(), any(), any());
+
+        MatrixCursor contactCursor = new MatrixCursor(new String[] {"COL_CONTACT_ID",
+                "COL_CONTACT_NAME"});
+        contactCursor.addRow(new Object[]{TEST_ID, TEST_NAME});
+        doReturn(contactCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(),
+                eq(SmsMmsContacts.CONTACT_PROJECTION), any(), any(), any());
+
+        MatrixCursor imEmailCursor = new MatrixCursor(
+                new String[] {BluetoothMapContract.ConversationColumns.THREAD_ID,
+                        BluetoothMapContract.ConversationColumns.LAST_THREAD_ACTIVITY,
+                        BluetoothMapContract.ConversationColumns.THREAD_NAME,
+                        BluetoothMapContract.ConversationColumns.READ_STATUS,
+                        BluetoothMapContract.ConversationColumns.VERSION_COUNTER,
+                        BluetoothMapContract.ConversationColumns.SUMMARY,
+                        BluetoothMapContract.ConvoContactColumns.X_BT_UID,
+                        BluetoothMapContract.ConvoContactColumns.CHAT_STATE,
+                        BluetoothMapContract.ConvoContactColumns.UCI,
+                        BluetoothMapContract.ConvoContactColumns.NICKNAME,
+                        BluetoothMapContract.ConvoContactColumns.LAST_ACTIVE,
+                        BluetoothMapContract.ConvoContactColumns.NAME,
+                        BluetoothMapContract.ConvoContactColumns.PRESENCE_STATE,
+                        BluetoothMapContract.ConvoContactColumns.STATUS_TEXT,
+                        BluetoothMapContract.ConvoContactColumns.PRIORITY});
+        imEmailCursor.addRow(new Object[] {TEST_ID, TEST_DATE_EMAIL, TEST_NAME, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0});
+        doReturn(imEmailCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(),
+                eq(BluetoothMapContract.BT_CONVERSATION_PROJECTION), any(), any(), any());
+
+        BluetoothMapConvoListing listing = mContent.convoListing(mParams, false);
+
+        assertThat(listing.getCount()).isEqualTo(2);
+        BluetoothMapConvoListingElement imElement = listing.getList().get(0);
+        assertThat(imElement.getType()).isEqualTo(TYPE.IM);
+        assertThat(imElement.getLastActivity()).isEqualTo(TEST_DATE_EMAIL);
+        assertThat(imElement.getName()).isEqualTo(TEST_NAME);
+        assertThat(imElement.getReadBool()).isFalse();
+        BluetoothMapConvoListingElement smsElement = listing.getList().get(1);
+        assertThat(smsElement.getType()).isEqualTo(TYPE.SMS_GSM);
+        assertThat(smsElement.getLastActivity()).isEqualTo(TEST_DATE_SMS);
+        assertThat(smsElement.getName()).isEqualTo("");
+        assertThat(smsElement.getReadBool()).isTrue();
     }
 }

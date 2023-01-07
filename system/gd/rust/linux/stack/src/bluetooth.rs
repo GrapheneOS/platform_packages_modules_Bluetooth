@@ -14,6 +14,7 @@ use bt_topshim::{
         HHCallbacksDispatcher, HidHost,
     },
     profiles::sdp::{BtSdpRecord, Sdp, SdpCallbacks, SdpCallbacksDispatcher},
+    profiles::ProfileConnectionState,
     topstack,
 };
 
@@ -174,7 +175,7 @@ pub trait IBluetooth {
     fn get_connection_state(&self, device: BluetoothDevice) -> BtConnectionState;
 
     /// Gets the connection state of a specific profile.
-    fn get_profile_connection_state(&self, profile: Profile) -> u32;
+    fn get_profile_connection_state(&self, profile: Uuid128Bit) -> ProfileConnectionState;
 
     /// Returns the cached UUIDs of a remote device.
     fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit>;
@@ -1098,9 +1099,11 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
                     let sent_info = info.clone();
                     tokio::spawn(async move {
-                        let _ = txl.send(Message::DelayedAdapterActions(
-                            DelayedActions::ConnectAllProfiles(sent_info),
-                        ));
+                        let _ = txl
+                            .send(Message::DelayedAdapterActions(
+                                DelayedActions::ConnectAllProfiles(sent_info),
+                            ))
+                            .await;
                     });
                 }
 
@@ -1693,16 +1696,20 @@ impl IBluetooth for Bluetooth {
         self.intf.lock().unwrap().get_connection_state(&addr.unwrap())
     }
 
-    fn get_profile_connection_state(&self, profile: Profile) -> u32 {
-        match profile {
-            Profile::A2dpSink | Profile::A2dpSource => {
-                self.bluetooth_media.lock().unwrap().get_a2dp_connection_state()
+    fn get_profile_connection_state(&self, profile: Uuid128Bit) -> ProfileConnectionState {
+        if let Some(known) = UuidHelper::is_known_profile(&profile) {
+            match known {
+                Profile::A2dpSink | Profile::A2dpSource => {
+                    self.bluetooth_media.lock().unwrap().get_a2dp_connection_state()
+                }
+                Profile::Hfp | Profile::HfpAg => {
+                    self.bluetooth_media.lock().unwrap().get_hfp_connection_state()
+                }
+                // TODO: (b/223431229) Profile::Hid and Profile::Hogp
+                _ => ProfileConnectionState::Disconnected,
             }
-            Profile::Hfp | Profile::HfpAg => {
-                self.bluetooth_media.lock().unwrap().get_hfp_connection_state()
-            }
-            // TODO: (b/223431229) Profile::Hid and Profile::Hogp
-            _ => 0,
+        } else {
+            ProfileConnectionState::Disconnected
         }
     }
 

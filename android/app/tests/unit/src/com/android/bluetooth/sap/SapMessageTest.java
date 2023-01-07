@@ -42,8 +42,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import android.hardware.radio.V1_0.ISap;
-import android.hardware.radio.V1_0.SapTransferProtocol;
+import android.hardware.radio.sap.SapTransferProtocol;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
@@ -77,10 +76,10 @@ public class SapMessageTest {
         int cardReaderStatus = STATUS_CARD_INSERTED;
         int statusChange = 1;
         int transportProtocol = TRANS_PROTO_T0;
-        byte[] apdu = new byte[] {0x01, 0x02};
-        byte[] apdu7816 = new byte[] {0x03, 0x04};
-        byte[] apduResp = new byte[] {0x05, 0x06};
-        byte[] atr = new byte[] {0x07, 0x08};
+        byte[] apdu = new byte[]{0x01, 0x02};
+        byte[] apdu7816 = new byte[]{0x03, 0x04};
+        byte[] apduResp = new byte[]{0x05, 0x06};
+        byte[] atr = new byte[]{0x07, 0x08};
         boolean sendToRil = true;
         boolean clearRilQueue = true;
         int testMode = TEST_MODE_ENABLE;
@@ -148,10 +147,10 @@ public class SapMessageTest {
         int cardReaderStatus = STATUS_CARD_INSERTED;
         int statusChange = 1;
         int transportProtocol = TRANS_PROTO_T0;
-        byte[] apdu = new byte[] {0x01, 0x02};
-        byte[] apdu7816 = new byte[] {0x03, 0x04};
-        byte[] apduResp = new byte[] {0x05, 0x06};
-        byte[] atr = new byte[] {0x07, 0x08};
+        byte[] apdu = new byte[]{0x01, 0x02};
+        byte[] apdu7816 = new byte[]{0x03, 0x04};
+        byte[] apduResp = new byte[]{0x05, 0x06};
+        byte[] atr = new byte[]{0x07, 0x08};
 
         mMessage.setMsgType(msgType);
         mMessage.setMaxMsgSize(maxMsgSize);
@@ -196,10 +195,10 @@ public class SapMessageTest {
     @Test
     public void send() throws Exception {
         int maxMsgSize = 512;
-        byte[] apdu = new byte[] {0x01, 0x02};
-        byte[] apdu7816 = new byte[] {0x03, 0x04};
+        byte[] apdu = new byte[]{0x01, 0x02};
+        byte[] apdu7816 = new byte[]{0x03, 0x04};
 
-        ISap sapProxy = mock(ISap.class);
+        ISapRilReceiver sapProxy = mock(ISapRilReceiver.class);
         mMessage.setClearRilQueue(true);
 
         mMessage.setMsgType(ID_CONNECT_REQ);

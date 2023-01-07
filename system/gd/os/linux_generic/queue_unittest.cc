@@ -96,11 +96,12 @@ class TestEnqueueEnd {
       queue_->UnregisterEnqueue();
     }
 
-    auto pair = promise_map_->find(buffer_.size());
-    if (pair != promise_map_->end()) {
-      pair->second.set_value(pair->first);
-      promise_map_->erase(pair->first);
+    auto key = buffer_.size();
+    auto node = promise_map_->extract(key);
+    if (node) {
+      node.mapped().set_value(key);
     }
+
     return data;
   }
 
@@ -161,10 +162,10 @@ class TestDequeueEnd {
       queue_->UnregisterDequeue();
     }
 
-    auto pair = promise_map_->find(buffer_.size());
-    if (pair != promise_map_->end()) {
-      pair->second.set_value(pair->first);
-      promise_map_->erase(pair->first);
+    auto key = buffer_.size();
+    auto node = promise_map_->extract(key);
+    if (node) {
+      node.mapped().set_value(key);
     }
   }
 
