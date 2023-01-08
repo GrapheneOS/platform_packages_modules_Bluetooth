@@ -23,13 +23,13 @@ edition = "2018"
 bt_facade_proto = { path = "../../facade_proto" }
 
 # External deps
-bytes = "*"
-cxx = "*"
-futures = "*"
-grpcio = "*"
-log = "*"
+bytes = "1.0"
+cxx = "1.0"
+futures = "0.3"
+grpcio = "0.9"
+log = "0.4"
 protobuf = "2.0"
-tokio = "*"
+tokio = "1.0"
 
 [lib]
 path = "lib.rs"
