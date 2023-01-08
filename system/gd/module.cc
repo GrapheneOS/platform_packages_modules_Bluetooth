@@ -84,7 +84,6 @@ Module* ModuleRegistry::Start(const ModuleFactory* module, Thread* thread) {
 
   LOG_INFO("Constructing next module");
   Module* instance = module->ctor_();
-  last_instance_ = "starting " + instance->ToString();
   set_registry_and_handler(instance, thread);
 
   LOG_INFO("Starting dependencies of %s", instance->ToString().c_str());
@@ -93,6 +92,7 @@ Module* ModuleRegistry::Start(const ModuleFactory* module, Thread* thread) {
 
   LOG_INFO("Finished starting dependencies and calling Start() of %s", instance->ToString().c_str());
 
+  last_instance_ = "starting " + instance->ToString();
   instance->Start();
   start_order_.push_back(module);
   started_modules_[module] = instance;
