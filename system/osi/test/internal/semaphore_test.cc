@@ -9,7 +9,7 @@
 #include "common/message_loop_thread.h"
 #include "osi/include/osi.h"
 #include "osi/include/reactor.h"
-#include "osi/include/semaphore.h"
+#include "osi/semaphore.h"
 
 using bluetooth::common::MessageLoopThread;
 
