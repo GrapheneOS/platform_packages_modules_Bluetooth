@@ -18,6 +18,10 @@
 
 #pragma once
 
+#ifndef LIB_OSI_INTERNAL
+#error "Please do not include this outside of osi."
+#endif
+
 #include <stdbool.h>
 
 struct semaphore_t;
