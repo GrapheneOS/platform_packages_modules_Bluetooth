@@ -125,13 +125,3 @@ cc_test {
         "gatt/gatt_unittest.cc",
     ],
 }
-
-// Bluetooth test suite for target
-cc_test {
-    name: "net_test_rfcomm_suite",
-    defaults: ["net_test_defaults"],
-    srcs: [
-        "rfcomm/rfcomm_test.cc",
-        "rfcomm/rfcomm_unittest.cc",
-    ],
-}
