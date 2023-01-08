@@ -34,6 +34,16 @@ std::mutex callback_lock;
 
 }  // namespace
 
+void semaphore_wait(btsemaphore &s) {
+  s.wait();
+}
+void semaphore_post(btsemaphore &s) {
+  s.post();
+}
+void semaphore_try_wait(btsemaphore &s) {
+  s.try_wait();
+}
+
 namespace bttest {
 
 void BluetoothTest::SetUp() {
@@ -53,10 +63,6 @@ void BluetoothTest::SetUp() {
 
   bluetooth::hal::BluetoothInterface::Initialize();
   ASSERT_TRUE(bluetooth::hal::BluetoothInterface::IsInitialized());
-  adapter_properties_callback_sem_ = semaphore_new(0);
-  remote_device_properties_callback_sem_ = semaphore_new(0);
-  adapter_state_changed_callback_sem_ = semaphore_new(0);
-  discovery_state_changed_callback_sem_ = semaphore_new(0);
 
   auto bt_hal_interface = bluetooth::hal::BluetoothInterface::Get();
   bt_hal_interface->AddObserver(this);
@@ -65,10 +71,6 @@ void BluetoothTest::SetUp() {
 }
 
 void BluetoothTest::TearDown() {
-  semaphore_free(adapter_properties_callback_sem_);
-  semaphore_free(remote_device_properties_callback_sem_);
-  semaphore_free(adapter_state_changed_callback_sem_);
-  semaphore_free(discovery_state_changed_callback_sem_);
 
   auto bt_hal_interface = bluetooth::hal::BluetoothInterface::Get();
   bt_hal_interface->RemoveObserver(this);
@@ -76,8 +78,8 @@ void BluetoothTest::TearDown() {
   ASSERT_FALSE(bt_hal_interface->IsInitialized());
 }
 
-void BluetoothTest::ClearSemaphore(semaphore_t* sem) {
-  while (semaphore_try_wait(sem))
+void BluetoothTest::ClearSemaphore(btsemaphore& sem) {
+  while (sem.try_wait())
     ;
 }
 

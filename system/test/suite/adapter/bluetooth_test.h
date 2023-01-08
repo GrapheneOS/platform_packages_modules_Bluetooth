@@ -29,9 +29,45 @@
 #include <map>
 #include <string>
 
-#include "osi/include/semaphore.h"
 #include "service/hal/bluetooth_interface.h"
 #include "types/raw_address.h"
+
+#include <mutex>
+#include <condition_variable>
+
+class btsemaphore {
+ public:
+  void post() {
+    std::lock_guard<std::mutex> lock(mMutex);
+    ++mCount;
+    mCondition.notify_one();
+  }
+
+  void wait() {
+    std::unique_lock<std::mutex> lock(mMutex);
+    while (!mCount) {
+      mCondition.wait(lock);
+    }
+    --mCount;
+  }
+
+  bool try_wait() {
+    std::lock_guard<std::mutex> lock(mMutex);
+    if (mCount) {
+      --mCount;
+      return true;
+    }
+    return false;
+  }
+
+ private:
+  std::mutex mMutex;
+  std::condition_variable mCondition;
+  unsigned long mCount = 0;
+};
+void semaphore_wait(btsemaphore &s);
+void semaphore_post(btsemaphore &s);
+void semaphore_try_wait(btsemaphore &s);
 
 namespace bttest {
 
@@ -73,7 +109,7 @@ class BluetoothTest : public ::testing::Test,
   bt_bond_state_t GetBondState();
 
   // Reset a semaphores count to 0
-  void ClearSemaphore(semaphore_t* sem);
+  void ClearSemaphore(btsemaphore& sem);
 
   // SetUp initializes the Bluetooth interface and registers the callbacks
   // before running every test
@@ -100,10 +136,10 @@ class BluetoothTest : public ::testing::Test,
 
   // Semaphores used to wait for specific callback execution. Each callback
   // has its own semaphore associated with it.
-  semaphore_t* adapter_properties_callback_sem_;
-  semaphore_t* remote_device_properties_callback_sem_;
-  semaphore_t* adapter_state_changed_callback_sem_;
-  semaphore_t* discovery_state_changed_callback_sem_;
+  btsemaphore adapter_properties_callback_sem_;
+  btsemaphore remote_device_properties_callback_sem_;
+  btsemaphore adapter_state_changed_callback_sem_;
+  btsemaphore discovery_state_changed_callback_sem_;
 
  private:
   // The bluetooth interface that all the tests use to interact with the HAL

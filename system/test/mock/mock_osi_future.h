@@ -41,7 +41,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/future.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "osi/include/semaphore.h"
 
 // Mocked compile conditionals, if any
 

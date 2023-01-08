@@ -56,7 +56,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/list.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "osi/include/semaphore.h"
 #include "osi/include/thread.h"
 #include "osi/include/wakelock.h"
 
