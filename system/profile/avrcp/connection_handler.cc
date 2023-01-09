@@ -131,7 +131,7 @@ bool ConnectionHandler::ConnectDevice(const RawAddress& bdaddr) {
       instance_->connection_cb_.Run(std::shared_ptr<Device>());
     }
 
-    instance_->feature_map_.emplace(bdaddr, features);
+    instance_->feature_map_[bdaddr] = features;
     instance_->AvrcpConnect(true, bdaddr);
     return;
   };
@@ -347,7 +347,7 @@ void ConnectionHandler::AcceptorControlCb(uint8_t handle, uint8_t event,
         }
 
         auto device = instance_->device_map_[handle];
-        instance_->feature_map_.emplace(device->GetAddress(), features);
+        instance_->feature_map_[device->GetAddress()] = features;
 
         // TODO (apanicke): Report to the VolumeInterface that a new Device is
         // connected that doesn't support absolute volume.
