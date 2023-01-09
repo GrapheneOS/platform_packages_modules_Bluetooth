@@ -35,8 +35,6 @@
 
 tBTM_CB btm_cb;
 
-void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
-
 namespace {
 const char* test_flags[] = {
     "INIT_logging_debug_enabled_for_all=true",

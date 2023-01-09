@@ -34,8 +34,6 @@
 // Global trace level referred in the code under test
 uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
 
-void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) { }
-
 // All mock requires this symbol to count calling times
 std::map<std::string, int> mock_function_count_map;
 
