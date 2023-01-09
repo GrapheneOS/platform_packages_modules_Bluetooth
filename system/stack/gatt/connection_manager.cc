@@ -174,8 +174,6 @@ static void target_announcement_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
   LOG_INFO("Found targeted announcement for device %s",
            addr.ToString().c_str());
 
-  BTM_LogHistory(kBtmLogTag, addr, "Found TA from");
-
   if (it->second.is_in_accept_list) {
     LOG_INFO("Device %s is already connecting", addr.ToString().c_str());
     return;
@@ -185,6 +183,8 @@ static void target_announcement_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
     LOG_DEBUG("Device %s already connected", addr.ToString().c_str());
     return;
   }
+
+  BTM_LogHistory(kBtmLogTag, addr, "Found TA from");
 
   /* Take fist app_id and use it for direct_connect */
   auto app_id = *(it->second.doing_targeted_announcements_conn.begin());
