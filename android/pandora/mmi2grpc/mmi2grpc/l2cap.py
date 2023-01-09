@@ -16,6 +16,7 @@ from typing import Optional
 class L2CAPProxy(ProfileProxy):
     test_status_map = {}  # record test status and pass them between MMI
     LE_DATA_PACKET_LARGE = "data: LE_DATA_PACKET_LARGE"
+    LE_DATA_PACKET1 = "data: LE_PACKET1"
     connection: Optional[Connection] = None
 
     def __init__(self, channel):
@@ -101,6 +102,10 @@ class L2CAPProxy(ProfileProxy):
         )
         # not strictly necessary, but can save time on waiting connection
         tests_to_open_bluetooth_server_socket = [
+            "L2CAP/COS/CFC/BV-01-C",
+            "L2CAP/COS/CFC/BV-02-C",
+            "L2CAP/COS/CFC/BV-03-C",
+            "L2CAP/COS/CFC/BV-04-C",
             "L2CAP/LE/CFC/BV-03-C",
             "L2CAP/LE/CFC/BV-05-C",
             "L2CAP/LE/CFC/BV-06-C",
@@ -138,7 +143,7 @@ class L2CAPProxy(ProfileProxy):
         return "OK"
 
     @match_description
-    def MMI_UPPER_TESTER_CONFIRM_LE_DATA(self, sent_data: str, **kwargs):
+    def MMI_UPPER_TESTER_CONFIRM_LE_DATA(self, sent_data: str, test: str, **kwargs):
         """
         Did the Upper Tester send the data (?P<sent_data>[0-9A-F]*) to to the
         PTS\? Click Yes if it matched, otherwise click No.
@@ -146,10 +151,13 @@ class L2CAPProxy(ProfileProxy):
         Description: The Implementation Under Test
         \(IUT\) send data is receive correctly in the PTS.
         """
-        hex_LE_DATA_PACKET_LARGE = self.LE_DATA_PACKET_LARGE.encode("utf-8").hex().upper()
-        if sent_data != hex_LE_DATA_PACKET_LARGE:
-            print(f"data not match, sent_data:{sent_data} and {hex_LE_DATA_PACKET_LARGE}", file=sys.stderr)
-            raise Exception(f"data not match, sent_data:{sent_data} and {hex_LE_DATA_PACKET_LARGE}")
+        if test == 'L2CAP/COS/CFC/BV-02-C':
+            hex_LE_DATA_PACKET = self.LE_DATA_PACKET1.encode("utf-8").hex().upper()
+        else:
+            hex_LE_DATA_PACKET = self.LE_DATA_PACKET_LARGE.encode("utf-8").hex().upper()
+        if sent_data != hex_LE_DATA_PACKET:
+            print(f"data not match, sent_data:{sent_data} and {hex_LE_DATA_PACKET}", file=sys.stderr)
+            raise Exception(f"data not match, sent_data:{sent_data} and {hex_LE_DATA_PACKET}")
         return "OK"
 
     @assert_description
@@ -421,6 +429,26 @@ class L2CAPProxy(ProfileProxy):
     def MMI_IUT_SEND_DISCONNECT_RSP(self, **kwargs):
         """
         Please send L2CAP Disconnection Response to PTS.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_UPPER_TESTER_SEND_LE_DATA_PACKET1(self, **kwargs):
+        """
+        Upper Tester command IUT to send a non-segmented LE data packet to the
+        PTS with any values.
+         Description : The Implementation Under Test(IUT)
+        should send none segmantation LE frame of LE data to the PTS.
+        """
+        self.l2cap.SendData(connection=self.connection, data=bytes(self.LE_DATA_PACKET1, "utf-8"))
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_SEND_L2CAP_DATA(self, **kwargs):
+        """
+        Using the Implementation Under Test(IUT), send L2CAP_Data over the
+        assigned channel with correct DCID to the PTS.
         """
 
         return "OK"
