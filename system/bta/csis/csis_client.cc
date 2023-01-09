@@ -1131,14 +1131,14 @@ class CsisClientImpl : public CsisClient {
   std::vector<RawAddress> GetAllRsiFromAdvertising(
       const tBTA_DM_INQ_RES* result) {
     const uint8_t* p_service_data = result->p_eir;
-    uint16_t remaining_data_len = result->eir_len;
     std::vector<RawAddress> devices;
     uint8_t service_data_len = 0;
 
     while ((p_service_data = AdvertiseDataParser::GetFieldByType(
                 p_service_data + service_data_len,
-                (remaining_data_len -= service_data_len), BTM_BLE_AD_TYPE_RSI,
-                &service_data_len))) {
+                result->eir_len - (p_service_data - result->p_eir) -
+                    service_data_len,
+                BTM_BLE_AD_TYPE_RSI, &service_data_len))) {
       RawAddress bda;
       STREAM_TO_BDADDR(bda, p_service_data);
       devices.push_back(std::move(bda));

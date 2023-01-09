@@ -121,12 +121,11 @@ std::set<tAPP_ID> get_apps_connecting_to(const RawAddress& address) {
 
 bool IsTargetedAnnouncement(const uint8_t* p_eir, uint16_t eir_len) {
   const uint8_t* p_service_data = p_eir;
-  uint16_t remaining_data_len = eir_len;
   uint8_t service_data_len = 0;
 
   while ((p_service_data = AdvertiseDataParser::GetFieldByType(
               p_service_data + service_data_len,
-              (remaining_data_len -= service_data_len),
+              eir_len - (p_service_data - p_eir) - service_data_len,
               BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE, &service_data_len))) {
     uint16_t uuid;
     uint8_t announcement_type;
