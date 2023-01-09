@@ -26,7 +26,6 @@
 #include "test/mock/mock_osi_allocator.h"
 
 uint8_t appl_trace_level = 0;
-void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 uint8_t btif_trace_level = BT_TRACE_LEVEL_DEBUG;
 
 namespace {

@@ -189,6 +189,7 @@ cc_test {
     test_suites: ["device-tests"],
     srcs: [
         ":TestMockStackBtm",
+        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         "test/bta_hf_client_test.cc",
         "test/bta_dm_cust_uuid_test.cc",
@@ -361,6 +362,7 @@ cc_test {
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
+        ":TestCommonLogMsg",
         "test/bta_hf_client_add_record_test.cc",
     ],
     header_libs: ["libbluetooth_headers"],
@@ -967,6 +969,7 @@ cc_test {
     ],
     srcs : [
         ":TestMockMainShim",
+        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestMockBtaGatt",

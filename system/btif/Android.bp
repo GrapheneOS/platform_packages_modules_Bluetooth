@@ -362,6 +362,7 @@ cc_test {
     },
     include_dirs: btifCommonIncludes,
     srcs: [
+        ":TestCommonLogMsg",
         "test/btif_rc_test.cc",
     ],
     header_libs: ["libbluetooth_headers"],
@@ -436,6 +437,7 @@ cc_test {
     test_suites: ["device-tests"],
     include_dirs: btifCommonIncludes,
     srcs: [
+        ":TestCommonLogMsg",
         "test/btif_hf_client_service_test.cc",
     ],
     header_libs: ["libbluetooth_headers"],
