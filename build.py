@@ -43,6 +43,7 @@ COMMON_MK_USES = [
     'asan',
     'coverage',
     'cros_host',
+    'cros_debug',
     'fuzzer',
     'fuzzer',
     'msan',
@@ -51,6 +52,9 @@ COMMON_MK_USES = [
     'test',
     'ubsan',
 ]
+
+# Use a specific commit version for common-mk to avoid build surprises.
+COMMON_MK_COMMIT = "136c3e114b65f2c6c5f026376c2e75c73c2478a3"
 
 # Default use flags.
 USE_DEFAULTS = {
@@ -82,10 +86,12 @@ HOST_TESTS = [
     # 'net_test_btpackets',
 ]
 
+# Map of git repos to bootstrap and what commit to check them out at. None
+# values will just checkout to HEAD.
 BOOTSTRAP_GIT_REPOS = {
-    'platform2': 'https://chromium.googlesource.com/chromiumos/platform2',
-    'rust_crates': 'https://chromium.googlesource.com/chromiumos/third_party/rust_crates',
-    'proto_logging': 'https://android.googlesource.com/platform/frameworks/proto_logging'
+    'platform2': ('https://chromium.googlesource.com/chromiumos/platform2', COMMON_MK_COMMIT),
+    'rust_crates': ('https://chromium.googlesource.com/chromiumos/third_party/rust_crates', None),
+    'proto_logging': ('https://android.googlesource.com/platform/frameworks/proto_logging', None),
 }
 
 # List of packages required for linux build
@@ -625,9 +631,18 @@ class Bootstrap():
 
     def _update_platform2(self):
         """Updates repositories used for build."""
-        for repo in BOOTSTRAP_GIT_REPOS.keys():
-            cwd = os.path.join(self.git_dir, repo)
-            subprocess.check_call(['git', 'pull'], cwd=cwd)
+        for project in BOOTSTRAP_GIT_REPOS.keys():
+            cwd = os.path.join(self.git_dir, project)
+            (repo, commit) = BOOTSTRAP_GIT_REPOS[project]
+
+            # Update to required commit when necessary or pull the latest code.
+            if commit:
+                head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd).strip()
+                if head != commit:
+                    subprocess.check_call(['git', 'fetch'], cwd=cwd)
+                    subprocess.check_call(['git', 'checkout', commit], cwd=cwd)
+            else:
+                subprocess.check_call(['git', 'pull'], cwd=cwd)
 
     def _setup_platform2(self):
         """ Set up platform2.
@@ -645,8 +660,12 @@ class Bootstrap():
             self._update_platform2()
         else:
             # Check out all repos in git directory
-            for repo in BOOTSTRAP_GIT_REPOS.values():
-                subprocess.check_call(['git', 'clone', repo], cwd=self.git_dir)
+            for project in BOOTSTRAP_GIT_REPOS.keys():
+                (repo, commit) = BOOTSTRAP_GIT_REPOS[project]
+                subprocess.check_call(['git', 'clone', repo, project], cwd=self.git_dir)
+                # Pin to commit.
+                if commit:
+                    subprocess.check_call(['git', 'checkout', commit], cwd=os.path.join(self.git_dir, project))
 
         # Symlink things
         symlinks = [
