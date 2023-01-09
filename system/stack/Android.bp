@@ -368,6 +368,7 @@ cc_test {
     ],
     srcs: [
         ":TestCommonMockFunctions",
+        ":TestCommonLogMsg",
         ":TestMockHci",
         ":TestMockStackMetrics",
         "rfcomm/port_api.cc",
@@ -427,6 +428,7 @@ cc_test {
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: crypto_toolbox_srcs + [
+        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestMockBtif",
         ":TestMockCommon",
@@ -655,6 +657,7 @@ cc_test {
         "avdt/avdt_scb_act.cc",
         "test/common/mock_btu_layer.cc",
         "test/common/mock_stack_avdt_msg.cc",
+        ":TestCommonLogMsg",
         ":TestMockStackL2cap",
         ":TestMockStackAcl",
         ":TestMockStackA2dp",
@@ -1094,6 +1097,7 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     srcs: [
+        ":TestCommonLogMsg",
         ":TestMockBta",
         ":TestMockBtif",
         ":TestMockHci",
@@ -1236,6 +1240,7 @@ cc_test {
     ],
     srcs: [
         ":OsiCompatSources",
+        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
@@ -1309,6 +1314,7 @@ cc_test {
     ],
     srcs: [
         ":OsiCompatSources",
+        ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestCommonStackConfig",
@@ -1377,6 +1383,7 @@ cc_test {
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
+        ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
         ":TestMockBtif",
         ":TestMockOsi",

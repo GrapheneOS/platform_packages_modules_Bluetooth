@@ -31,8 +31,6 @@ void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
                                  const uint8_t* p_cmd,
                                  void* p_vsc_status_cback);
 
-void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
-
 class StackBtuTest : public ::testing::Test {
  protected:
   void SetUp() override { mock_function_count_map.clear(); }

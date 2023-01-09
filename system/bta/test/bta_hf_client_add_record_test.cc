@@ -30,7 +30,6 @@ static uint16_t gVersion;
 // coverage is enabled because the compiler is unable to eliminate the `if`
 // checks against appl_trace_level in APPL_TRACE_* macros.
 uint8_t appl_trace_level = 0;
-void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 bool SDP_AddProtocolList(uint32_t handle, uint16_t num_elem,
                          tSDP_PROTOCOL_ELEM* p_elem_list) {
   return false;
