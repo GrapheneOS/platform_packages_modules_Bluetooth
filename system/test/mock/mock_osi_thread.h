@@ -52,7 +52,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
 #include "osi/include/reactor.h"
-#include "osi/include/semaphore.h"
 #include "osi/include/thread.h"
 
 // Mocked compile conditionals, if any
