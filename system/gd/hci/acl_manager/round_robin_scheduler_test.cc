@@ -136,8 +136,9 @@ class RoundRobinSchedulerTest : public ::testing::Test {
 
     packet_count_--;
     if (packet_count_ == 0) {
-      packet_promise_->set_value();
-      packet_promise_ = nullptr;
+      std::promise<void>* prom = packet_promise_.release();
+      prom->set_value();
+      delete prom;
     }
   }
 
