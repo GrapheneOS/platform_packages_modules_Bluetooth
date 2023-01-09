@@ -141,12 +141,7 @@ void MessageLoopThread::ShutDown() {
     CHECK_NE(thread_id_, base::PlatformThread::CurrentId())
         << __func__ << " should not be called on the thread itself. "
         << "Otherwise, deadlock may happen.";
-    if (!message_loop_->task_runner()->PostTask(
-            FROM_HERE, run_loop_->QuitWhenIdleClosure())) {
-      LOG(FATAL) << __func__
-                 << ": failed to post task to message loop for thread "
-                 << *this;
-    }
+    run_loop_->QuitWhenIdle();
   }
   thread_->join();
   {
