@@ -969,7 +969,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     }
 
     public int getState() {
-        if ((Binder.getCallingUid() != Process.SYSTEM_UID) && (!checkIfCallerIsForegroundUser())) {
+        if (!isCallerSystem(getCallingAppId()) && !checkIfCallerIsForegroundUser()) {
             Log.w(TAG, "getState(): report OFF for non-active and non system user");
             return BluetoothAdapter.STATE_OFF;
         }
@@ -1146,11 +1146,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             }
             return false;
         }
-        // Check if packageName belongs to callingUid
-        final int callingUid = Binder.getCallingUid();
-        final boolean isCallerSystem = UserHandle.getAppId(callingUid) == Process.SYSTEM_UID;
-        if (!isCallerSystem && callingUid != Process.SHELL_UID) {
-            checkPackage(callingUid, attributionSource.getPackageName());
+        int callingAppId = getCallingAppId();
+        if (!isCallerSystem(callingAppId)
+                && !isCallerShell(callingAppId)
+                && !isCallerRoot(callingAppId)) {
+            checkPackage(attributionSource.getPackageName());
 
             if (requireForeground && !checkIfCallerIsForegroundUser()) {
                 Log.w(TAG, "Not allowed for non-active and non system user");
@@ -1456,24 +1456,27 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     }
 
     /**
-     * Check if AppOpsManager is available and the packageName belongs to uid
+     * Check if AppOpsManager is available and the packageName belongs to calling uid
      *
      * A null package belongs to any uid
      */
-    private void checkPackage(int uid, String packageName) {
+    private void checkPackage(String packageName) {
+        int callingUid = Binder.getCallingUid();
+
         if (mAppOps == null) {
             Log.w(TAG, "checkPackage(): called before system boot up, uid "
-                    + uid + ", packageName " + packageName);
+                    + callingUid + ", packageName " + packageName);
             throw new IllegalStateException("System has not boot yet");
         }
         if (packageName == null) {
-            Log.w(TAG, "checkPackage(): called with null packageName from " + uid);
+            Log.w(TAG, "checkPackage(): called with null packageName from " + callingUid);
             return;
         }
+
         try {
-            mAppOps.checkPackage(uid, packageName);
+            mAppOps.checkPackage(callingUid, packageName);
         } catch (SecurityException e) {
-            Log.w(TAG, "checkPackage(): " + packageName + " does not belong to uid " + uid);
+            Log.w(TAG, "checkPackage(): " + packageName + " does not belong to uid " + callingUid);
             throw new SecurityException(e.getMessage());
         }
     }
@@ -1909,7 +1912,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             return null;
         }
 
-        if ((Binder.getCallingUid() != Process.SYSTEM_UID) && (!checkIfCallerIsForegroundUser())) {
+        if (!isCallerSystem(getCallingAppId()) && !checkIfCallerIsForegroundUser()) {
             Log.w(TAG, "getAddress(): not allowed for non-active and non system user");
             return null;
         }
@@ -1943,7 +1946,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             return null;
         }
 
-        if ((Binder.getCallingUid() != Process.SYSTEM_UID) && (!checkIfCallerIsForegroundUser())) {
+        if (!isCallerSystem(getCallingAppId()) && !checkIfCallerIsForegroundUser()) {
             Log.w(TAG, "getName(): not allowed for non-active and non system user");
             return null;
         }
@@ -2713,6 +2716,19 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         } finally {
             mBluetoothLock.readLock().unlock();
         }
+    }
+
+    private static int getCallingAppId() {
+        return UserHandle.getAppId(Binder.getCallingUid());
+    }
+    private static boolean isCallerSystem(int callingAppId) {
+        return callingAppId == Process.SYSTEM_UID;
+    }
+    private static boolean isCallerShell(int callingAppId) {
+        return callingAppId == Process.SHELL_UID;
+    }
+    private static boolean isCallerRoot(int callingAppId) {
+        return callingAppId == Process.ROOT_UID;
     }
 
     private boolean checkIfCallerIsForegroundUser() {
