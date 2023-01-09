@@ -40,14 +40,6 @@ void GattTest::SetUp() {
   semaphore_wait(adapter_state_changed_callback_sem_);
   EXPECT_TRUE(GetState() == BT_STATE_ON);
 
-  register_client_callback_sem_ = semaphore_new(0);
-  scan_result_callback_sem_ = semaphore_new(0);
-
-  register_server_callback_sem_ = semaphore_new(0);
-  service_added_callback_sem_ = semaphore_new(0);
-  service_stopped_callback_sem_ = semaphore_new(0);
-  service_deleted_callback_sem_ = semaphore_new(0);
-
   bluetooth::hal::BluetoothGattInterface::Initialize();
   ASSERT_TRUE(bluetooth::hal::BluetoothGattInterface::IsInitialized());
   auto gatt_interface = bluetooth::hal::BluetoothGattInterface::Get();
@@ -64,14 +56,6 @@ void GattTest::SetUp() {
 void GattTest::TearDown() {
   gatt_client_interface_ = nullptr;
   gatt_server_interface_ = nullptr;
-
-  semaphore_free(register_client_callback_sem_);
-  semaphore_free(scan_result_callback_sem_);
-
-  semaphore_free(register_server_callback_sem_);
-  semaphore_free(service_added_callback_sem_);
-  semaphore_free(service_stopped_callback_sem_);
-  semaphore_free(service_deleted_callback_sem_);
 
   bluetooth::hal::BluetoothGattInterface::CleanUp();
 

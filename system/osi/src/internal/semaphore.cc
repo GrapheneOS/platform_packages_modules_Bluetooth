@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_osi_semaphore"
 
-#include "osi/include/semaphore.h"
+#include "osi/semaphore.h"
 
 #include <base/logging.h>
 #include <errno.h>
