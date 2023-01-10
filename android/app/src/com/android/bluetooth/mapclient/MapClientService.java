@@ -166,6 +166,9 @@ public class MapClientService extends ProfileService {
     }
 
     private synchronized void addDeviceToMapAndConnect(BluetoothDevice device) {
+        if (Utils.isInstrumentationTestMode()) {
+            Log.d(TAG, "addDeviceToMapAndConnect: device=" + device, new Exception());
+        }
         // When creating a new statemachine, its state is set to CONNECTING - which will trigger
         // connect.
         MceStateMachine mapStateMachine = new MceStateMachine(this, device);
@@ -365,6 +368,9 @@ public class MapClientService extends ProfileService {
         }
         removeUncleanAccounts();
         mMapInstanceMap.clear();
+        if (Utils.isInstrumentationTestMode()) {
+            Log.d(TAG, "cleanup() called.", new Exception());
+        }
         // TODO(b/72948646): should be moved to stop()
         setMapClientService(null);
     }
