@@ -190,7 +190,7 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, const uint8_t* data) {
 void btm_ble_process_phy_update_pkt(uint8_t len, uint8_t* data) {
   mock_function_count_map[__func__]++;
 }
-void btm_ble_read_remote_features_complete(uint8_t* p) {
+void btm_ble_read_remote_features_complete(uint8_t* p, uint8_t length) {
   mock_function_count_map[__func__]++;
 }
 void btm_ble_read_remote_name_cmpl(bool status, const RawAddress& bda,
