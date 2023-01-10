@@ -146,8 +146,9 @@ class TestHciLayer : public HciLayer {
     command_status_callbacks.push_back(std::move(on_status));
     command_count_--;
     if (command_promise_ != nullptr && command_count_ == 0) {
-      command_promise_->set_value();
-      command_promise_.reset();
+      std::promise<void>* prom = command_promise_.release();
+      prom->set_value();
+      delete prom;
     }
   }
 
@@ -159,8 +160,9 @@ class TestHciLayer : public HciLayer {
     command_complete_callbacks.push_back(std::move(on_complete));
     command_count_--;
     if (command_promise_ != nullptr && command_count_ == 0) {
-      command_promise_->set_value();
-      command_promise_.reset();
+      std::promise<void>* prom = command_promise_.release();
+      prom->set_value();
+      delete prom;
     }
   }
 
