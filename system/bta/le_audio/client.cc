@@ -483,6 +483,12 @@ class LeAudioClientImpl : public LeAudioClient {
 
   void UpdateContextAndLocations(LeAudioDeviceGroup* group,
                                  LeAudioDevice* leAudioDevice) {
+    if (leAudioDevice->GetConnectionState() != DeviceConnectState::CONNECTED) {
+      LOG_DEBUG("%s not yet connected ",
+                leAudioDevice->address_.ToString().c_str());
+      return;
+    }
+
     /* Make sure location and direction are updated for the group. */
     auto location_update = group->ReloadAudioLocations();
     group->ReloadAudioDirections();
