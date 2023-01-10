@@ -451,7 +451,7 @@ typedef struct {
 typedef struct {
   uint8_t allow_mask; /* mask of sniff/hold/park modes to allow */
   uint8_t ssr; /* set SSR on conn open/unpark */
-  tBTA_DM_PM_ACTN actn_tbl[BTA_DM_PM_NUM_EVTS][2];
+  tBTA_DM_PM_ACTN actn_tbl[BTA_DM_PM_NUM_EVTS];
 
 } tBTA_DM_PM_SPEC;
 
@@ -470,8 +470,16 @@ typedef struct {
 
 extern const uint16_t bta_service_id_to_uuid_lkup_tbl[];
 
+/* For Insight, PM cfg lookup tables are runtime configurable (to allow tweaking
+ * of params for power consumption measurements) */
+#ifndef BTE_SIM_APP
+#define tBTA_DM_PM_TYPE_QUALIFIER const
+#else
+#define tBTA_DM_PM_TYPE_QUALIFIER
+#endif
+
 extern const tBTA_DM_PM_CFG* p_bta_dm_pm_cfg;
-extern const tBTA_DM_PM_SPEC* p_bta_dm_pm_spec;
+tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_SPEC* get_bta_dm_pm_spec();
 extern const tBTM_PM_PWR_MD* p_bta_dm_pm_md;
 extern tBTA_DM_SSR_SPEC* p_bta_dm_ssr_spec;
 
