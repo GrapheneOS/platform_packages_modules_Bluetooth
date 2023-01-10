@@ -35,7 +35,7 @@ tokio = "1.0"
 # Binary-only deps
 clap = "3.0"
 lazy_static = "1.0"
-nix = "0.19"
+nix = "0.23"
 bt_common = { path = "../common" }
 
 
