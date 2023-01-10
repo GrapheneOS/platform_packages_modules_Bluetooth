@@ -179,6 +179,13 @@ public class BluetoothMethodProxy {
     }
 
     /**
+     * Proxies {@link Handler#sendEmptyMessage(int)}}.
+     */
+    public boolean handlerSendEmptyMessage(Handler handler, final int what) {
+        return handler.sendEmptyMessage(what);
+    }
+
+    /**
      * Proxies {@link HeaderSet#getHeader}.
      */
     public Object getHeader(HeaderSet headerSet, int headerId) throws IOException {
