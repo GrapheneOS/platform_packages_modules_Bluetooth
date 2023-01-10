@@ -53,8 +53,9 @@ class PromiseFutureContext {
   static void FulfilPromise(std::unique_ptr<std::promise<void>>& promise) {
     std::lock_guard<std::recursive_mutex> lock_guard(mutex);
     if (promise != nullptr) {
-      promise->set_value();
-      promise = nullptr;
+      std::promise<void>* prom = promise.release();
+      prom->set_value();
+      delete prom;
     }
   }
 
