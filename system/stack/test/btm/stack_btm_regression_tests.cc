@@ -40,4 +40,12 @@ TEST_F(StackBTMRegressionTests,
   osi_free(pevent);
 }
 
+// regression test for b/255304475
+TEST_F(StackBTMRegressionTests,
+       OOB_in_btm_ble_clear_resolving_list_complete) {
+  BT_HDR* pevent = (BT_HDR*)osi_calloc(sizeof(BT_HDR));
+  btm_ble_clear_resolving_list_complete(pevent->data, 0);
+  osi_free(pevent);
+}
+
 }  // namespace
