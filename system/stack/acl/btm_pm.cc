@@ -178,7 +178,7 @@ tBTM_STATUS BTM_SetPowerMode(uint8_t pm_id, const RawAddress& remote_bda,
 
   if (!p_mode) {
     LOG_ERROR("pm_id: %u, p_mode is null for %s", unsigned(pm_id),
-              PRIVATE_ADDRESS(remote_bda));
+              ADDRESS_TO_LOGGABLE_CSTR(remote_bda));
     return BTM_ILLEGAL_VALUE;
   }
 
@@ -186,7 +186,7 @@ tBTM_STATUS BTM_SetPowerMode(uint8_t pm_id, const RawAddress& remote_bda,
   auto* p_cb = btm_pm_get_power_manager_from_address(remote_bda);
   if (p_cb == nullptr) {
     LOG_WARN("Unable to find power manager for peer: %s",
-             PRIVATE_ADDRESS(remote_bda));
+             ADDRESS_TO_LOGGABLE_CSTR(remote_bda));
     return BTM_UNKNOWN_ADDR;
   }
   uint16_t handle = p_cb->handle_;
@@ -210,7 +210,7 @@ tBTM_STATUS BTM_SetPowerMode(uint8_t pm_id, const RawAddress& remote_bda,
         (mode == BTM_PM_MD_PARK && !controller->supports_park_mode()) ||
         interop_match_addr(INTEROP_DISABLE_SNIFF, &remote_bda)) {
       LOG_ERROR("pm_id %u mode %u is not supported for %s", pm_id, mode,
-                PRIVATE_ADDRESS(remote_bda));
+                ADDRESS_TO_LOGGABLE_CSTR(remote_bda));
       return BTM_MODE_UNSUPPORTED;
     }
   }
@@ -251,14 +251,14 @@ tBTM_STATUS BTM_SetPowerMode(uint8_t pm_id, const RawAddress& remote_bda,
     if (handle != pm_pend_link) {
       p_cb->state |= BTM_PM_STORED_MASK;
       LOG_INFO("Setting stored bitmask for peer:%s",
-               PRIVATE_ADDRESS(remote_bda));
+               ADDRESS_TO_LOGGABLE_CSTR(remote_bda));
     }
     return BTM_CMD_STORED;
   }
 
   LOG_INFO(
       "Setting power mode for peer:%s current_mode:%s[%hhu] new_mode:%s[%hhu]",
-      PRIVATE_ADDRESS(remote_bda), power_mode_state_text(p_cb->state).c_str(),
+      ADDRESS_TO_LOGGABLE_CSTR(remote_bda), power_mode_state_text(p_cb->state).c_str(),
       p_cb->state, power_mode_text(p_mode->mode).c_str(), p_mode->mode);
 
   return btm_pm_snd_md_req(p_cb->handle_, pm_id, p_cb->handle_, p_mode);
@@ -285,7 +285,7 @@ bool BTM_ReadPowerMode(const RawAddress& remote_bda, tBTM_PM_MODE* p_mode) {
   }
   tBTM_PM_MCB* p_mcb = btm_pm_get_power_manager_from_address(remote_bda);
   if (p_mcb == nullptr) {
-    LOG_WARN("Unknown device:%s", PRIVATE_ADDRESS(remote_bda));
+    LOG_WARN("Unknown device:%s", ADDRESS_TO_LOGGABLE_CSTR(remote_bda));
     return false;
   }
   *p_mode = static_cast<tBTM_PM_MODE>(p_mcb->state);
@@ -315,7 +315,7 @@ tBTM_STATUS BTM_SetSsrParams(const RawAddress& remote_bda, uint16_t max_lat,
   tBTM_PM_MCB* p_cb = btm_pm_get_power_manager_from_address(remote_bda);
   if (p_cb == nullptr) {
     LOG_WARN("Unable to find power manager for peer:%s",
-             PRIVATE_ADDRESS(remote_bda));
+             ADDRESS_TO_LOGGABLE_CSTR(remote_bda));
     return BTM_UNKNOWN_ADDR;
   }
 
@@ -618,7 +618,7 @@ static void btm_pm_continue_pending_mode_changes() {
     if (entry.second.state & BTM_PM_STORED_MASK) {
       entry.second.state &= ~BTM_PM_STORED_MASK;
       LOG_INFO("Found another link requiring power mode change:%s",
-               PRIVATE_ADDRESS(entry.second.bda_));
+               ADDRESS_TO_LOGGABLE_CSTR(entry.second.bda_));
       btm_pm_snd_md_req(entry.second.handle_, BTM_PM_SET_ONLY_ID,
                         entry.second.handle_, NULL);
       return;
@@ -669,7 +669,7 @@ void btm_pm_proc_cmd_status(tHCI_STATUS status) {
   if ((pm_pend_id != BTM_PM_SET_ONLY_ID) && (pm_reg_db.mask & BTM_PM_REG_SET)) {
     const RawAddress bd_addr = pm_mode_db[pm_pend_link].bda_;
     LOG_DEBUG("Notifying callback that link power mode is complete peer:%s",
-              PRIVATE_ADDRESS(bd_addr));
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     (*pm_reg_db.cback)(bd_addr, pm_status, 0, status);
   }
 
@@ -783,7 +783,7 @@ void process_ssr_event(tHCI_STATUS status, uint16_t handle,
   LOG_DEBUG(
       "Notified sniff subrating registered clients cnt:%d peer:%s use_ssr:%s "
       "status:%s",
-      cnt, PRIVATE_ADDRESS(bd_addr), logbool(use_ssr).c_str(),
+      cnt, ADDRESS_TO_LOGGABLE_CSTR(bd_addr), logbool(use_ssr).c_str(),
       hci_error_code_text(status).c_str());
 }
 

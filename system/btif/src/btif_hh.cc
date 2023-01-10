@@ -590,7 +590,7 @@ bt_status_t btif_hh_connect(const RawAddress* bd_addr) {
 
   if (dev && dev->dev_status == BTHH_CONN_STATE_CONNECTED) {
     LOG_DEBUG("HidHost profile already connected for %s",
-              PRIVATE_ADDRESS((*bd_addr)));
+              ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
     return BT_STATUS_SUCCESS;
   }
 
@@ -626,11 +626,11 @@ void btif_hh_disconnect(RawAddress* bd_addr) {
   const btif_hh_device_t* p_dev = btif_hh_find_connected_dev_by_bda(*bd_addr);
   if (p_dev == nullptr) {
     LOG_DEBUG("Unable to disconnect unknown HID device:%s",
-              PRIVATE_ADDRESS((*bd_addr)));
+              ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
     return;
   }
   LOG_DEBUG("Disconnect and close request for HID device:%s",
-            PRIVATE_ADDRESS((*bd_addr)));
+            ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
   BTA_HhClose(p_dev->dev_handle);
 }
 
@@ -1234,7 +1234,7 @@ static void btif_hh_handle_evt(uint16_t event, char* p_param) {
   switch (event) {
     case BTIF_HH_CONNECT_REQ_EVT: {
       LOG_DEBUG("Connect request received remote:%s",
-                PRIVATE_ADDRESS((*bd_addr)));
+                ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
       if (btif_hh_connect(bd_addr) == BT_STATUS_SUCCESS) {
         HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr,
                   BTHH_CONN_STATE_CONNECTING);
@@ -1245,7 +1245,7 @@ static void btif_hh_handle_evt(uint16_t event, char* p_param) {
 
     case BTIF_HH_DISCONNECT_REQ_EVT: {
       LOG_DEBUG("Disconnect request received remote:%s",
-                PRIVATE_ADDRESS((*bd_addr)));
+                ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
       btif_hh_disconnect(bd_addr);
       HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr,
                 BTHH_CONN_STATE_DISCONNECTING);
@@ -1253,16 +1253,16 @@ static void btif_hh_handle_evt(uint16_t event, char* p_param) {
 
     case BTIF_HH_VUP_REQ_EVT: {
       LOG_DEBUG("Virtual unplug request received remote:%s",
-                PRIVATE_ADDRESS((*bd_addr)));
+                ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
       if (btif_hh_virtual_unplug(bd_addr) != BT_STATUS_SUCCESS) {
         LOG_WARN("Unable to virtual unplug device remote:%s",
-                 PRIVATE_ADDRESS((*bd_addr)));
+                 ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
       }
     } break;
 
     default: {
       LOG_WARN("Unknown event received:%d remote:%s", event,
-               PRIVATE_ADDRESS((*bd_addr)));
+               ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
     } break;
   }
 }
@@ -1884,7 +1884,7 @@ void DumpsysHid(int fd) {
     const btif_hh_device_t* p_dev = &btif_hh_cb.devices[i];
     if (p_dev->bd_addr != RawAddress::kEmpty) {
       LOG_DUMPSYS(fd, "  %u: addr:%s fd:%d state:%s ready:%s thread_id:%d", i,
-                  PRIVATE_ADDRESS(p_dev->bd_addr), p_dev->fd,
+                  ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr), p_dev->fd,
                   bthh_connection_state_text(p_dev->dev_status).c_str(),
                   (p_dev->ready_for_data) ? ("T") : ("F"),
                   static_cast<int>(p_dev->hh_poll_thread_id));
@@ -1893,7 +1893,7 @@ void DumpsysHid(int fd) {
   for (unsigned i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
     const btif_hh_added_device_t* p_dev = &btif_hh_cb.added_devices[i];
     if (p_dev->bd_addr != RawAddress::kEmpty) {
-      LOG_DUMPSYS(fd, "  %u: addr:%s", i, PRIVATE_ADDRESS(p_dev->bd_addr));
+      LOG_DUMPSYS(fd, "  %u: addr:%s", i, ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr));
     }
   }
 }

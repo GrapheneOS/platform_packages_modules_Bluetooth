@@ -390,7 +390,7 @@ bool smp_send_cmd(uint8_t cmd_code, tSMP_CB* p_cb) {
 
   LOG_DEBUG("Sending SMP command:%s[0x%x] pairing_bda=%s",
             smp_opcode_text(static_cast<tSMP_OPCODE>(cmd_code)).c_str(),
-            cmd_code, PRIVATE_ADDRESS(p_cb->pairing_bda));
+            cmd_code, ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda));
 
   if (cmd_code <= (SMP_OPCODE_MAX + 1 /* for SMP_OPCODE_PAIR_COMMITM */) &&
       smp_cmd_build_act[cmd_code] != NULL) {
@@ -969,12 +969,12 @@ void smp_proc_pairing_cmpl(tSMP_CB* p_cb) {
   if (p_cb->status == SMP_SUCCESS) {
     LOG_DEBUG(
         "Pairing process has completed successfully remote:%s sec_level:0x%0x",
-        PRIVATE_ADDRESS(p_cb->pairing_bda), evt_data.cmplt.sec_level);
+        ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda), evt_data.cmplt.sec_level);
     BTM_LogHistory(kBtmLogTag, pairing_bda, "Pairing success");
   } else {
     LOG_WARN(
         "Pairing process has failed to remote:%s smp_reason:%s sec_level:0x%0x",
-        PRIVATE_ADDRESS(p_cb->pairing_bda),
+        ADDRESS_TO_LOGGABLE_CSTR(p_cb->pairing_bda),
         smp_status_text(evt_data.cmplt.reason).c_str(),
         evt_data.cmplt.sec_level);
     BTM_LogHistory(

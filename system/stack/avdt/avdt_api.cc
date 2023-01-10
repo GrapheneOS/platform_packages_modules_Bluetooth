@@ -959,11 +959,11 @@ uint16_t AVDT_DisconnectReq(const RawAddress& bd_addr,
   p_ccb = avdt_ccb_by_bd(bd_addr);
   if (p_ccb == NULL) {
     LOG_ERROR("Unable to find AVDT stream endpoint peer:%s",
-              PRIVATE_ADDRESS(bd_addr));
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     result = AVDT_BAD_PARAMS;
   } else {
     LOG_DEBUG("Sending disconnect request to ccb peer:%s",
-              PRIVATE_ADDRESS(bd_addr));
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     evt.disconnect.p_cback = p_cback;
     avdt_ccb_event(p_ccb, AVDT_CCB_API_DISCONNECT_REQ_EVT, &evt);
   }
