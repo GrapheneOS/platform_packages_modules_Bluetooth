@@ -450,7 +450,7 @@ bool DIS_ReadDISInfo(const RawAddress& peer_bda, tDIS_READ_CBACK* p_cback,
 
   dis_cb.request_mask = mask;
 
-  VLOG(1) << __func__ << " BDA: " << peer_bda
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(peer_bda)
           << StringPrintf(" cl_read_uuid: 0x%04x",
                           dis_attr_uuid[dis_cb.dis_read_uuid_idx]);
 

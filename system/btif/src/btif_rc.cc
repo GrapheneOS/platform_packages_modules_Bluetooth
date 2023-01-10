@@ -453,7 +453,7 @@ static btif_rc_device_cb_t* get_connected_device(int index) {
 }
 
 btif_rc_device_cb_t* btif_rc_get_device_by_bda(const RawAddress& bd_addr) {
-  VLOG(1) << __func__ << ": bd_addr: " << bd_addr;
+  VLOG(1) << __func__ << ": bd_addr: " << ADDRESS_TO_LOGGABLE_STR(bd_addr);
 
   for (int idx = 0; idx < BTIF_RC_NUM_CONN; idx++) {
     if ((btif_rc_cb.rc_multi_cb[idx].rc_state !=

@@ -933,7 +933,8 @@ class StateMachineTest : public Test {
             ase_p += 3;
 
             if (caching) {
-              LOG(INFO) << __func__ << " Device: " << device->address_;
+              LOG(INFO) << __func__ << " Device: "
+                        << ADDRESS_TO_LOGGABLE_STR(device->address_);
               if (cached_ase_to_cis_id_map_.count(device->address_) > 0) {
                 auto ase_list = cached_ase_to_cis_id_map_.at(device->address_);
                 if (ase_list.count(ase_id) > 0) {

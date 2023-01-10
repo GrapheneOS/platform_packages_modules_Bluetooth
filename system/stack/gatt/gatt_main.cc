@@ -471,7 +471,8 @@ static void gatt_le_connect_cback(uint16_t chan, const RawAddress& bd_addr,
     return;
   }
 
-  VLOG(1) << "GATT   ATT protocol channel with BDA: " << bd_addr << " is "
+  VLOG(1) << "GATT   ATT protocol channel with BDA: "
+          << ADDRESS_TO_LOGGABLE_STR(bd_addr) << " is "
           << ((connected) ? "connected" : "disconnected");
 
   p_srv_chg_clt = gatt_is_bda_in_the_srv_chg_clt_list(bd_addr);
@@ -939,7 +940,8 @@ void gatt_send_srv_chg_ind(const RawAddress& peer_bda) {
 
   uint16_t conn_id = gatt_profile_find_conn_id_by_bd_addr(peer_bda);
   if (conn_id == GATT_INVALID_CONN_ID) {
-    LOG(ERROR) << "Unable to find conn_id for " << peer_bda;
+    LOG(ERROR) << "Unable to find conn_id for "
+               << ADDRESS_TO_LOGGABLE_STR(peer_bda);
     return;
   }
 
