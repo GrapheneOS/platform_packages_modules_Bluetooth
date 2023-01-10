@@ -145,7 +145,8 @@ public class GattService extends ProfileService {
     /**
      * The default floor value for LE batch scan report delays greater than 0
      */
-    private static final long DEFAULT_REPORT_DELAY_FLOOR = 5000;
+    @VisibleForTesting
+    static final long DEFAULT_REPORT_DELAY_FLOOR = 5000;
 
     // onFoundLost related constants
     private static final int ADVT_STATE_ONFOUND = 0;
@@ -274,9 +275,12 @@ public class GattService extends ProfileService {
 
     private AdapterService mAdapterService;
     private BluetoothAdapterProxy mBluetoothAdapterProxy;
-    private AdvertiseManager mAdvertiseManager;
-    private PeriodicScanManager mPeriodicScanManager;
-    private ScanManager mScanManager;
+    @VisibleForTesting
+    AdvertiseManager mAdvertiseManager;
+    @VisibleForTesting
+    PeriodicScanManager mPeriodicScanManager;
+    @VisibleForTesting
+    ScanManager mScanManager;
     private AppOpsManager mAppOps;
     private CompanionDeviceManager mCompanionManager;
     private String mExposureNotificationPackage;
@@ -309,7 +313,8 @@ public class GattService extends ProfileService {
     /**
      * Reliable write queue
      */
-    private Set<String> mReliableQueue = new HashSet<String>();
+    @VisibleForTesting
+    Set<String> mReliableQueue = new HashSet<String>();
 
     static {
         classInitNative();
@@ -4581,7 +4586,8 @@ public class GattService extends ProfileService {
      *         a new ScanSettings object with the report delay being the floor value if the original
      *         report delay was between 0 and the floor value (exclusive of both)
      */
-    private ScanSettings enforceReportDelayFloor(ScanSettings settings) {
+    @VisibleForTesting
+    ScanSettings enforceReportDelayFloor(ScanSettings settings) {
         if (settings.getReportDelayMillis() == 0) {
             return settings;
         }
