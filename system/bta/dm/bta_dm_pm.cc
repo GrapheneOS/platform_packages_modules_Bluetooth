@@ -344,7 +344,8 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
       break;
   }
 
-  /* if no entries are there for the app_id and subsystem in p_bta_dm_pm_spec*/
+  /* if no entries are there for the app_id and subsystem in
+   * get_bta_dm_pm_spec()*/
   if (i > p_bta_dm_pm_cfg[0].app_id) {
     LOG_DEBUG("Ignoring power management callback as no service entries exist");
     return;
@@ -365,18 +366,18 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
   int index = BTA_DM_PM_SSR0;
   if ((BTA_SYS_CONN_OPEN == status) && p_dev &&
       (p_dev->Info() & BTA_DM_DI_USE_SSR)) {
-    index = p_bta_dm_pm_spec[p_bta_dm_pm_cfg[i].spec_idx].ssr;
+    index = get_bta_dm_pm_spec()[p_bta_dm_pm_cfg[i].spec_idx].ssr;
   } else if (BTA_ID_AV == id) {
     if (BTA_SYS_CONN_BUSY == status) {
       /* set SSR4 for A2DP on SYS CONN BUSY */
       index = BTA_DM_PM_SSR4;
     } else if (BTA_SYS_CONN_IDLE == status) {
-      index = p_bta_dm_pm_spec[p_bta_dm_pm_cfg[i].spec_idx].ssr;
+      index = get_bta_dm_pm_spec()[p_bta_dm_pm_cfg[i].spec_idx].ssr;
     }
   }
 
   /* if no action for the event */
-  if (p_bta_dm_pm_spec[p_bta_dm_pm_cfg[i].spec_idx]
+  if (get_bta_dm_pm_spec()[p_bta_dm_pm_cfg[i].spec_idx]
           .actn_tbl[status][0]
           .power_mode == BTA_DM_PM_NO_ACTION) {
     if (BTA_DM_PM_SSR0 == index) /* and do not need to set SSR, return. */
@@ -395,7 +396,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
 
   /* if subsystem has no more preference on the power mode remove
  the cb */
-  if (p_bta_dm_pm_spec[p_bta_dm_pm_cfg[i].spec_idx]
+  if (get_bta_dm_pm_spec()[p_bta_dm_pm_cfg[i].spec_idx]
           .actn_tbl[status][0]
           .power_mode == BTA_DM_PM_NO_PREF) {
     if (j != bta_dm_conn_srvcs.count) {
@@ -532,7 +533,7 @@ static void bta_dm_pm_set_mode(const RawAddress& peer_addr,
       }
 
       p_pm_cfg = &p_bta_dm_pm_cfg[j];
-      p_pm_spec = &p_bta_dm_pm_spec[p_pm_cfg->spec_idx];
+      p_pm_spec = &get_bta_dm_pm_spec()[p_pm_cfg->spec_idx];
       p_act0 = &p_pm_spec->actn_tbl[p_srvcs->state][0];
       p_act1 = &p_pm_spec->actn_tbl[p_srvcs->state][1];
 
@@ -781,7 +782,7 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr) {
     for (int j = 1; j <= p_bta_dm_pm_cfg[0].app_id; j++) {
       /* find the associated p_bta_dm_pm_cfg */
       const tBTA_DM_PM_CFG& config = p_bta_dm_pm_cfg[j];
-      current_ssr_index = p_bta_dm_pm_spec[config.spec_idx].ssr;
+      current_ssr_index = get_bta_dm_pm_spec()[config.spec_idx].ssr;
       if ((config.id == service.id) && ((config.app_id == BTA_ALL_APP_ID) ||
                                         (config.app_id == service.app_id))) {
         LOG_INFO("Found connected service:%s app_id:%d peer:%s spec_name:%s",
