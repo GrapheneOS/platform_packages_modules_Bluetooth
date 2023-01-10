@@ -1226,7 +1226,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
     /* BLE Commands sComplete*/
     case HCI_BLE_RAND:
     case HCI_BLE_ENCRYPT:
-      btm_ble_rand_enc_complete(p, opcode, (tBTM_RAND_ENC_CB*)p_cplt_cback);
+      btm_ble_rand_enc_complete(p, evt_len, opcode, (tBTM_RAND_ENC_CB*)p_cplt_cback);
       break;
 
     case HCI_BLE_READ_ADV_CHNL_TX_POWER:
