@@ -1197,9 +1197,11 @@ extern struct btm_read_rssi_timeout btm_read_rssi_timeout;
 // Params: uint8_t* p, bool is_ble
 // Returns: void
 struct btm_read_tx_power_complete {
-  std::function<void(uint8_t* p, bool is_ble)> body{
-      [](uint8_t* p, bool is_ble) { ; }};
-  void operator()(uint8_t* p, bool is_ble) { body(p, is_ble); };
+  std::function<void(uint8_t* p, uint16_t evt_len, bool is_ble)> body{
+      [](uint8_t* p, uint16_t evt_len, bool is_ble) { ; }};
+  void operator()(uint8_t* p, uint16_t evt_len, bool is_ble) {
+    body(p, evt_len, is_ble);
+  };
 };
 extern struct btm_read_tx_power_complete btm_read_tx_power_complete;
 // Name: btm_read_tx_power_timeout

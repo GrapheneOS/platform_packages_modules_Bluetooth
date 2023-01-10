@@ -668,9 +668,9 @@ void btm_read_rssi_timeout(UNUSED_ATTR void* data) {
   mock_function_count_map[__func__]++;
   test::mock::stack_acl::btm_read_rssi_timeout(data);
 }
-void btm_read_tx_power_complete(uint8_t* p, bool is_ble) {
+void btm_read_tx_power_complete(uint8_t* p, uint16_t evt_len, bool is_ble) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_acl::btm_read_tx_power_complete(p, is_ble);
+  test::mock::stack_acl::btm_read_tx_power_complete(p, evt_len, is_ble);
 }
 void btm_read_tx_power_timeout(UNUSED_ATTR void* data) {
   mock_function_count_map[__func__]++;
