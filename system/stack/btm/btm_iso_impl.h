@@ -422,6 +422,13 @@ struct iso_impl {
     uint32_t rxUnreceivedPackets;
     uint32_t duplicatePackets;
 
+    // 1 + 2 + 4 * 7
+#define ISO_LINK_QUALITY_SIZE 31
+    if (len < ISO_LINK_QUALITY_SIZE) {
+      LOG(ERROR) << "Malformated link quality format, len=" << len;
+      return;
+    }
+
     STREAM_TO_UINT8(status, stream);
     if (status != HCI_SUCCESS) {
       LOG(ERROR) << "Failed to Read ISO Link Quality, status: "
