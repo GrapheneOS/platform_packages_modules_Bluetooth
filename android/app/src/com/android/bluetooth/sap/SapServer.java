@@ -25,6 +25,8 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.android.bluetooth.R;
+import com.android.bluetooth.Utils;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -51,26 +53,31 @@ public class SapServer extends Thread implements Callback {
     public static final boolean DEBUG = SapService.DEBUG;
     public static final boolean VERBOSE = SapService.VERBOSE;
 
-    private enum SAP_STATE {
+    @VisibleForTesting
+    enum SAP_STATE {
         DISCONNECTED, CONNECTING, CONNECTING_CALL_ONGOING, CONNECTED, CONNECTED_BUSY, DISCONNECTING;
     }
 
-    private SAP_STATE mState = SAP_STATE.DISCONNECTED;
+    @VisibleForTesting
+    SAP_STATE mState = SAP_STATE.DISCONNECTED;
 
     private Context mContext = null;
     /* RFCOMM socket I/O streams */
     private BufferedOutputStream mRfcommOut = null;
     private BufferedInputStream mRfcommIn = null;
     /* References to the SapRilReceiver object */
-    private SapRilReceiver mRilBtReceiver = null;
+    @VisibleForTesting
+    SapRilReceiver mRilBtReceiver = null;
     /* The message handler members */
-    private Handler mSapHandler = null;
+    @VisibleForTesting
+    Handler mSapHandler = null;
     private HandlerThread mHandlerThread = null;
     /* Reference to the SAP service - which created this instance of the SAP server */
     private Handler mSapServiceHandler = null;
 
     /* flag for when user forces disconnect of rfcomm */
-    private boolean mIsLocalInitDisconnect = false;
+    @VisibleForTesting
+    boolean mIsLocalInitDisconnect = false;
     private CountDownLatch mDeinitSignal = new CountDownLatch(1);
 
     /* Message ID's handled by the message handler */
@@ -86,7 +93,8 @@ public class SapServer extends Thread implements Callback {
     public static final String SAP_DISCONNECT_TYPE_EXTRA =
             "com.android.bluetooth.sap.extra.DISCONNECT_TYPE";
     public static final int NOTIFICATION_ID = android.R.drawable.stat_sys_data_bluetooth;
-    private static final String SAP_NOTIFICATION_CHANNEL = "sap_notification_channel";
+    @VisibleForTesting
+    static final String SAP_NOTIFICATION_CHANNEL = "sap_notification_channel";
     public static final int ISAP_GET_SERVICE_DELAY_MILLIS = 3 * 1000;
     private static final int DISCONNECT_TIMEOUT_IMMEDIATE = 5000; /* ms */
     private static final int DISCONNECT_TIMEOUT_RFCOMM = 2000; /* ms */
@@ -99,7 +107,8 @@ public class SapServer extends Thread implements Callback {
     /* We store the mMaxMessageSize, as we need a copy of it when the init. sequence completes */
     private int mMaxMsgSize = 0;
     /* keep track of the current RIL test mode */
-    private int mTestMode = SapMessage.INVALID_VALUE; // used to set the RIL in test mode
+    @VisibleForTesting
+    int mTestMode = SapMessage.INVALID_VALUE; // used to set the RIL in test mode
 
     /**
      * SapServer constructor
@@ -127,9 +136,11 @@ public class SapServer extends Thread implements Callback {
     /**
      * This handles the response from RIL.
      */
-    private BroadcastReceiver mIntentReceiver;
+    @VisibleForTesting
+    BroadcastReceiver mIntentReceiver;
 
-    private class SapServerBroadcastReceiver extends BroadcastReceiver {
+    @VisibleForTesting
+    class SapServerBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
@@ -177,12 +188,13 @@ public class SapServer extends Thread implements Callback {
      * @param testMode Use SapMessage.TEST_MODE_XXX
      */
     public void setTestMode(int testMode) {
-        if (SapMessage.TEST) {
+        if (SapMessage.TEST || Utils.isInstrumentationTestMode()) {
             mTestMode = testMode;
         }
     }
 
-    private void sendDisconnectInd(int discType) {
+    @VisibleForTesting
+    void sendDisconnectInd(int discType) {
         if (VERBOSE) {
             Log.v(TAG, "in sendDisconnectInd()");
         }
@@ -556,7 +568,8 @@ public class SapServer extends Thread implements Callback {
      *
      * @param msg the incoming SapMessage
      */
-    private void onConnectRequest(SapMessage msg) {
+    @VisibleForTesting
+    void onConnectRequest(SapMessage msg) {
         SapMessage reply = new SapMessage(SapMessage.ID_CONNECT_RESP);
 
         if (mState == SAP_STATE.CONNECTING) {
@@ -601,7 +614,8 @@ public class SapServer extends Thread implements Callback {
         }
     }
 
-    private void clearPendingRilResponses(SapMessage msg) {
+    @VisibleForTesting
+    void clearPendingRilResponses(SapMessage msg) {
         if (mState == SAP_STATE.CONNECTED_BUSY) {
             msg.setClearRilQueue(true);
         }
@@ -611,7 +625,8 @@ public class SapServer extends Thread implements Callback {
      * Send RFCOMM message to the Sap Server Handler Thread
      * @param sapMsg The message to send
      */
-    private void sendClientMessage(SapMessage sapMsg) {
+    @VisibleForTesting
+    void sendClientMessage(SapMessage sapMsg) {
         Message newMsg = mSapHandler.obtainMessage(SAP_MSG_RFC_REPLY, sapMsg);
         mSapHandler.sendMessage(newMsg);
     }
@@ -620,7 +635,8 @@ public class SapServer extends Thread implements Callback {
      * Send a RIL message to the SapServer message handler thread
      * @param sapMsg
      */
-    private void sendRilThreadMessage(SapMessage sapMsg) {
+    @VisibleForTesting
+    void sendRilThreadMessage(SapMessage sapMsg) {
         Message newMsg = mSapHandler.obtainMessage(SAP_MSG_RIL_REQ, sapMsg);
         mSapHandler.sendMessage(newMsg);
     }
@@ -629,7 +645,8 @@ public class SapServer extends Thread implements Callback {
      * Examine if a call is ongoing, by asking the telephony manager
      * @return false if the phone is IDLE (can be used for SAP), true otherwise.
      */
-    private boolean isCallOngoing() {
+    @VisibleForTesting
+    boolean isCallOngoing() {
         TelephonyManager tManager = mContext.getSystemService(TelephonyManager.class);
         if (tManager.getCallState() == TelephonyManager.CALL_STATE_IDLE) {
             return false;
@@ -642,7 +659,8 @@ public class SapServer extends Thread implements Callback {
      * We add thread protection, as we access the state from two threads.
      * @param newState
      */
-    private void changeState(SAP_STATE newState) {
+    @VisibleForTesting
+    void changeState(SAP_STATE newState) {
         if (DEBUG) {
             Log.i(TAG_HANDLER, "Changing state from " + mState.name() + " to " + newState.name());
         }
@@ -706,7 +724,7 @@ public class SapServer extends Thread implements Callback {
                 startDisconnectTimer(SapMessage.DISC_RFCOMM, DISCONNECT_TIMEOUT_RFCOMM);
                 break;
             case SAP_PROXY_DEAD:
-                if ((long) msg.obj == mRilBtReceiver.mSapProxyCookie.get()) {
+                if ((long) msg.obj == mRilBtReceiver.getSapProxyCookie().get()) {
                     mRilBtReceiver.notifyShutdown(); /* Only needed in case of a connection error */
                     mRilBtReceiver.resetSapProxy();
 
@@ -726,7 +744,8 @@ public class SapServer extends Thread implements Callback {
      * Close the in/out rfcomm streams, to trigger a shutdown of the SapServer main thread.
      * Use this after completing the deinit sequence.
      */
-    private void shutdown() {
+    @VisibleForTesting
+    void shutdown() {
 
         if (DEBUG) {
             Log.i(TAG_HANDLER, "in Shutdown()");
@@ -749,7 +768,8 @@ public class SapServer extends Thread implements Callback {
         clearNotification();
     }
 
-    private void startDisconnectTimer(int discType, int timeMs) {
+    @VisibleForTesting
+    void startDisconnectTimer(int discType, int timeMs) {
 
         stopDisconnectTimer();
         synchronized (this) {
@@ -769,7 +789,8 @@ public class SapServer extends Thread implements Callback {
         }
     }
 
-    private void stopDisconnectTimer() {
+    @VisibleForTesting
+    void stopDisconnectTimer() {
         synchronized (this) {
             if (mPendingDiscIntent != null) {
                 AlarmManager alarmManager = mContext.getSystemService(AlarmManager.class);
@@ -789,7 +810,8 @@ public class SapServer extends Thread implements Callback {
      * here before they go to the client
      * @param sapMsg the message to send to the SAP client
      */
-    private void handleRfcommReply(SapMessage sapMsg) {
+    @VisibleForTesting
+    void handleRfcommReply(SapMessage sapMsg) {
         if (sapMsg != null) {
 
             if (DEBUG) {
@@ -908,7 +930,8 @@ public class SapServer extends Thread implements Callback {
         }
     }
 
-    private void handleRilInd(SapMessage sapMsg) {
+    @VisibleForTesting
+    void handleRilInd(SapMessage sapMsg) {
         if (sapMsg == null) {
             return;
         }
@@ -939,7 +962,8 @@ public class SapServer extends Thread implements Callback {
      * This is only to be called from the handlerThread, else use sendRilThreadMessage();
      * @param sapMsg
      */
-    private void sendRilMessage(SapMessage sapMsg) {
+    @VisibleForTesting
+    void sendRilMessage(SapMessage sapMsg) {
         if (VERBOSE) {
             Log.i(TAG_HANDLER,
                     "sendRilMessage() - " + SapMessage.getMsgTypeName(sapMsg.getMsgType()));
@@ -975,7 +999,8 @@ public class SapServer extends Thread implements Callback {
     /**
      * Only call this from the sapHandler thread.
      */
-    private void sendReply(SapMessage msg) {
+    @VisibleForTesting
+    void sendReply(SapMessage msg) {
         if (VERBOSE) {
             Log.i(TAG_HANDLER,
                     "sendReply() RFCOMM - " + SapMessage.getMsgTypeName(msg.getMsgType()));
@@ -992,7 +1017,8 @@ public class SapServer extends Thread implements Callback {
         }
     }
 
-    private static String getMessageName(int messageId) {
+    @VisibleForTesting
+    static String getMessageName(int messageId) {
         switch (messageId) {
             case SAP_MSG_RFC_REPLY:
                 return "SAP_MSG_REPLY";

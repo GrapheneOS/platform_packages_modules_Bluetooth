@@ -69,12 +69,6 @@ cc_library_shared {
         "libbluetooth",
         "libc++fs",
     ],
-    cflags: [
-        "-Wall",
-        "-Werror",
-        "-Wextra",
-        "-Wno-unused-parameter",
-    ],
     sanitize: {
         scs: true,
     },
@@ -114,7 +108,7 @@ android_app {
     static_libs: [
         "android.hardware.radio-V1.0-java",
         "androidx.core_core",
-        "androidx.legacy_legacy-support-v4",
+        "androidx.media_media",
         "androidx.lifecycle_lifecycle-livedata",
         "androidx.room_room-runtime",
         "androidx.annotation_annotation",

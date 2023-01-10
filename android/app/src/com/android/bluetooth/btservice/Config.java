@@ -60,10 +60,11 @@ public class Config {
 
     private static final String FEATURE_HEARING_AID = "settings_bluetooth_hearing_aid";
     private static final String FEATURE_BATTERY = "settings_bluetooth_battery";
-    private static long sSupportedMask = 0;
 
     private static final String LE_AUDIO_DYNAMIC_SWITCH_PROPERTY =
             "ro.bluetooth.leaudio_switcher.supported";
+    private static final String LE_AUDIO_BROADCAST_DYNAMIC_SWITCH_PROPERTY =
+            "ro.bluetooth.leaudio_broadcast_switcher.supported";
     private static final String LE_AUDIO_DYNAMIC_ENABLED_PROPERTY =
             "persist.bluetooth.leaudio_switcher.enabled";
 
@@ -165,6 +166,11 @@ public class Config {
     private static boolean sIsGdEnabledUptoScanningLayer = false;
 
     static void init(Context ctx) {
+        if (LeAudioService.isBroadcastEnabled()) {
+            updateSupportedProfileMask(
+                    true, LeAudioService.class, BluetoothProfile.LE_AUDIO_BROADCAST);
+        }
+
         final boolean leAudioDynamicSwitchSupported =
                 SystemProperties.getBoolean(LE_AUDIO_DYNAMIC_SWITCH_PROPERTY, false);
 
@@ -205,6 +211,15 @@ public class Config {
         setProfileEnabled(TbsService.class, enable);
         setProfileEnabled(McpService.class, enable);
         setProfileEnabled(VolumeControlService.class, enable);
+
+        final boolean broadcastDynamicSwitchSupported =
+                SystemProperties.getBoolean(LE_AUDIO_BROADCAST_DYNAMIC_SWITCH_PROPERTY, false);
+
+        if (broadcastDynamicSwitchSupported) {
+            setProfileEnabled(BassClientService.class, enable);
+            updateSupportedProfileMask(
+                    enable, LeAudioService.class, BluetoothProfile.LE_AUDIO_BROADCAST);
+        }
     }
 
     /**
@@ -226,8 +241,17 @@ public class Config {
         sSupportedProfiles = profilesList.toArray(new Class[profilesList.size()]);
     }
 
-    static void addSupportedProfile(int supportedProfile) {
-        sSupportedMask |= (1 << supportedProfile);
+    static void updateSupportedProfileMask(Boolean enable, Class profile, int supportedProfile) {
+        for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
+            if (config.mClass == profile) {
+                if (enable) {
+                    config.mMask |= 1 << supportedProfile;
+                } else {
+                    config.mMask &= ~(1 << supportedProfile);
+                }
+                return;
+            }
+        }
     }
 
     static HashSet<Class> geLeAudioUnicastProfiles() {
@@ -253,7 +277,7 @@ public class Config {
     }
 
     static long getSupportedProfilesBitMask() {
-        long mask = sSupportedMask;
+        long mask = 0;
         for (final Class profileClass : getSupportedProfiles()) {
             mask |= getProfileMask(profileClass);
         }

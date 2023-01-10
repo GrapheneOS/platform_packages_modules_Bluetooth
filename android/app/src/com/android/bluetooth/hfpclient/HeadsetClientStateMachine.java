@@ -110,10 +110,14 @@ public class HeadsetClientStateMachine extends StateMachine {
     public static final int SEND_BIEV = 22;
 
     // internal actions
-    private static final int QUERY_CURRENT_CALLS = 50;
-    private static final int QUERY_OPERATOR_NAME = 51;
-    private static final int SUBSCRIBER_INFO = 52;
-    private static final int CONNECTING_TIMEOUT = 53;
+    @VisibleForTesting
+    static final int QUERY_CURRENT_CALLS = 50;
+    @VisibleForTesting
+    static final int QUERY_OPERATOR_NAME = 51;
+    @VisibleForTesting
+    static final int SUBSCRIBER_INFO = 52;
+    @VisibleForTesting
+    static final int CONNECTING_TIMEOUT = 53;
 
     // special action to handle terminating specific call from multiparty call
     static final int TERMINATE_SPECIFIC_CALL = 53;
@@ -144,7 +148,8 @@ public class HeadsetClientStateMachine extends StateMachine {
 
     // Set of calls that represent the accurate state of calls that exists on AG and the calls that
     // are currently in process of being notified to the AG from HF.
-    private final Hashtable<Integer, HfpClientCall> mCalls = new Hashtable<>();
+    @VisibleForTesting
+    final Hashtable<Integer, HfpClientCall> mCalls = new Hashtable<>();
     // Set of calls received from AG via the AT+CLCC command. We use this map to update the mCalls
     // which is eventually used to inform the telephony stack of any changes to call on HF.
     private final Hashtable<Integer, HfpClientCall> mCallsUpdate = new Hashtable<>();
@@ -156,19 +161,22 @@ public class HeadsetClientStateMachine extends StateMachine {
     private boolean mInBandRing;
 
     private String mOperatorName;
-    private String mSubscriberInfo;
+    @VisibleForTesting
+    String mSubscriberInfo;
 
     private static int sMaxAmVcVol;
     private static int sMinAmVcVol;
 
     // queue of send actions (pair action, action_data)
-    private Queue<Pair<Integer, Object>> mQueuedActions;
+    @VisibleForTesting
+    Queue<Pair<Integer, Object>> mQueuedActions;
 
     // last executed command, before action is complete e.g. waiting for some
     // indicator
     private Pair<Integer, Object> mPendingAction;
 
-    private int mAudioState;
+    @VisibleForTesting
+    int mAudioState;
     // Indicates whether audio can be routed to the device
     private boolean mAudioRouteAllowed;
     private boolean mAudioWbs;
@@ -176,11 +184,14 @@ public class HeadsetClientStateMachine extends StateMachine {
     private final BluetoothAdapter mAdapter;
 
     // currently connected device
-    private BluetoothDevice mCurrentDevice = null;
+    @VisibleForTesting
+    BluetoothDevice mCurrentDevice = null;
 
     // general peer features and call handling features
-    private int mPeerFeatures;
-    private int mChldFeatures;
+    @VisibleForTesting
+    int mPeerFeatures;
+    @VisibleForTesting
+    int mChldFeatures;
 
     // This is returned when requesting focus from AudioManager
     private AudioFocusRequest mAudioFocusRequest;
@@ -200,11 +211,12 @@ public class HeadsetClientStateMachine extends StateMachine {
     }
 
     public void dump(StringBuilder sb) {
-        if (mCurrentDevice == null) return;
-        ProfileService.println(sb,
-                "==== StateMachine for " + mCurrentDevice + " ====");
-        ProfileService.println(sb, "  mCurrentDevice: " + mCurrentDevice.getAddress() + "("
-                + Utils.getName(mCurrentDevice) + ") " + this.toString());
+        if (mCurrentDevice != null) {
+            ProfileService.println(sb,
+                    "==== StateMachine for " + mCurrentDevice + " ====");
+            ProfileService.println(sb, "  mCurrentDevice: " + mCurrentDevice.getAddress() + "("
+                    + Utils.getName(mCurrentDevice) + ") " + this.toString());
+        }
         ProfileService.println(sb, "  mAudioState: " + mAudioState);
         ProfileService.println(sb, "  mAudioWbs: " + mAudioWbs);
         ProfileService.println(sb, "  mIndicatorNetworkState: " + mIndicatorNetworkState);
@@ -257,7 +269,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         return builder.toString();
     }
 
-    private static String getMessageName(int what) {
+    @VisibleForTesting
+    static String getMessageName(int what) {
         switch (what) {
             case StackEvent.STACK_EVENT:
                 return "STACK_EVENT";
@@ -328,7 +341,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         mQueuedActions.add(new Pair<Integer, Object>(action, data));
     }
 
-    private HfpClientCall getCall(int... states) {
+    @VisibleForTesting
+    HfpClientCall getCall(int... states) {
         logD("getFromCallsWithStates states:" + Arrays.toString(states));
         for (HfpClientCall c : mCalls.values()) {
             for (int s : states) {
@@ -340,7 +354,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         return null;
     }
 
-    private int callsInState(int state) {
+    @VisibleForTesting
+    int callsInState(int state) {
         int i = 0;
         for (HfpClientCall c : mCalls.values()) {
             if (c.getState() == state) {
@@ -708,7 +723,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
     }
 
-    private void enterPrivateMode(int idx) {
+    @VisibleForTesting
+    void enterPrivateMode(int idx) {
         logD("enterPrivateMode: " + idx);
 
         HfpClientCall c = mCalls.get(idx);
@@ -726,7 +742,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
     }
 
-    private void explicitCallTransfer() {
+    @VisibleForTesting
+    void explicitCallTransfer() {
         logD("explicitCallTransfer");
 
         // can't transfer call if there is not enough call parties
@@ -984,8 +1001,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                 broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTED,
                         BluetoothProfile.STATE_CONNECTED);
             } else if (mPrevState != null) { // null is the default state before Disconnected
-                Log.e(TAG, "Connected: Illegal state transition from " + mPrevState.getName()
-                        + " to Connecting, mCurrentDevice=" + mCurrentDevice);
+                Log.e(TAG, "Disconnected: Illegal state transition from " + mPrevState.getName()
+                        + " to Disconnected, mCurrentDevice=" + mCurrentDevice);
             }
             mCurrentDevice = null;
         }
@@ -1086,7 +1103,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                         BluetoothProfile.STATE_DISCONNECTED);
             } else {
                 String prevStateName = mPrevState == null ? "null" : mPrevState.getName();
-                Log.e(TAG, "Connected: Illegal state transition from " + prevStateName
+                Log.e(TAG, "Connecting: Illegal state transition from " + prevStateName
                         + " to Connecting, mCurrentDevice=" + mCurrentDevice);
             }
         }
@@ -1241,7 +1258,7 @@ public class HeadsetClientStateMachine extends StateMachine {
             } else if (mPrevState != mAudioOn) {
                 String prevStateName = mPrevState == null ? "null" : mPrevState.getName();
                 Log.e(TAG, "Connected: Illegal state transition from " + prevStateName
-                        + " to Connecting, mCurrentDevice=" + mCurrentDevice);
+                        + " to Connected, mCurrentDevice=" + mCurrentDevice);
             }
             mService.updateBatteryLevel();
         }
@@ -1666,8 +1683,10 @@ public class HeadsetClientStateMachine extends StateMachine {
                         Log.d(TAG, "mAudioRouteAllowed=" + mAudioRouteAllowed);
                     }
                     if (!mAudioRouteAllowed) {
+                        Log.i(TAG, "Audio is not allowed! Disconnect SCO.");
                         sendMessage(HeadsetClientStateMachine.DISCONNECT_AUDIO);
-                        break;
+                        // Don't continue connecting!
+                        return;
                     }
 
                     // Audio state is split in two parts, the audio focus is maintained by the
@@ -1879,7 +1898,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         return BluetoothProfile.STATE_DISCONNECTED;
     }
 
-    private void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
+    @VisibleForTesting
+    void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
                 AdapterService.getAdapterService().obfuscateAddress(device),
                 getConnectionStateFromAudioState(newState), mAudioWbs
@@ -2028,7 +2048,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         return devices;
     }
 
-    private byte[] getByteAddress(BluetoothDevice device) {
+    @VisibleForTesting
+    byte[] getByteAddress(BluetoothDevice device) {
         return Utils.getBytesFromAddress(device.getAddress());
     }
 
@@ -2047,7 +2068,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         return b;
     }
 
-    private static int getConnectionStateFromAudioState(int audioState) {
+    @VisibleForTesting
+    static int getConnectionStateFromAudioState(int audioState) {
         switch (audioState) {
             case BluetoothHeadsetClient.STATE_AUDIO_CONNECTED:
                 return BluetoothAdapter.STATE_CONNECTED;

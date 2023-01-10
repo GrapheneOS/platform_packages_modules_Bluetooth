@@ -6,6 +6,8 @@ import android.hardware.radio.V1_0.SapTransferProtocol;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.internal.annotations.VisibleForTesting;
+
 import com.google.protobuf.micro.CodedOutputStreamMicro;
 import com.google.protobuf.micro.InvalidProtocolBufferMicroException;
 
@@ -198,7 +200,8 @@ public class SapMessage {
         this.mMsgType = msgType;
     }
 
-    private static void resetPendingRilMessages() {
+    @VisibleForTesting
+    static void resetPendingRilMessages() {
         int numMessages = sOngoingRequests.size();
         if (numMessages != 0) {
             Log.w(TAG, "Clearing message queue with size: " + numMessages);
@@ -330,7 +333,8 @@ public class SapMessage {
         this.mTestMode = testMode;
     }
 
-    private int getParamCount() {
+    @VisibleForTesting
+    int getParamCount() {
         int paramCount = 0;
         if (mMaxMsgSize != INVALID_VALUE) {
             paramCount++;
@@ -724,20 +728,6 @@ public class SapMessage {
     /***************************************************************************
      * RILD Interface message conversion functions.
      ***************************************************************************/
-
-    /**
-     * We use this function to
-     * @param length
-     * @param rawOut
-     * @throws IOException
-     */
-    private void writeLength(int length, CodedOutputStreamMicro out) throws IOException {
-        byte[] dataLength = new byte[4];
-        dataLength[0] = dataLength[1] = 0;
-        dataLength[2] = (byte) ((length >> 8) & 0xff);
-        dataLength[3] = (byte) ((length) & 0xff);
-        out.writeRawBytes(dataLength);
-    }
 
     private ArrayList<Byte> primitiveArrayToContainerArrayList(byte[] arr) {
         ArrayList<Byte> arrayList = new ArrayList<>(arr.length);

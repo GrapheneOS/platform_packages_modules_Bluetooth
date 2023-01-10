@@ -426,7 +426,8 @@ class CsisClientTest : public ::testing::Test {
         .WillByDefault(
             DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(true)));
 
-    EXPECT_CALL(gatt_interface, Open(gatt_if, address, true, _));
+    EXPECT_CALL(gatt_interface,
+                Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, _));
     CsisClient::Get()->Connect(address);
     Mock::VerifyAndClearExpectations(&gatt_interface);
     Mock::VerifyAndClearExpectations(&btm_interface);
@@ -449,7 +450,8 @@ class CsisClientTest : public ::testing::Test {
                 OnConnectionState(address, ConnectionState::CONNECTED))
         .Times(1);
     EXPECT_CALL(*callbacks, OnDeviceAvailable(address, _, _, _, _)).Times(1);
-    EXPECT_CALL(gatt_interface, Open(gatt_if, address, false, _))
+    EXPECT_CALL(gatt_interface,
+                Open(gatt_if, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
         .WillOnce(Invoke([this, conn_id](tGATT_IF client_if,
                                          const RawAddress& remote_bda,
                                          bool is_direct, bool opportunistic) {
@@ -758,13 +760,7 @@ TEST_F(CsisClientTest, test_add_device_to_group) {
   ASSERT_FALSE(g_1->IsEmpty());
 }
 
-TEST_F(CsisClientTest, test_set_desired_size) {
-  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
-  g_1->SetDesiredSize(10);
-  ASSERT_EQ((int)sizeof(g_1), 16);
-}
-
-TEST_F(CsisClientTest, test_get_desired_size) {
+TEST_F(CsisClientTest, test_get_set_desired_size) {
   auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetDesiredSize(10);
   ASSERT_EQ(g_1->GetDesiredSize(), 10);

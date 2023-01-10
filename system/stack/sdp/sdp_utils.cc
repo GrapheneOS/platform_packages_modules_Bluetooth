@@ -43,6 +43,7 @@
 #include "stack/include/avrc_api.h"
 #include "stack/include/avrc_defs.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btm_api_types.h"
 #include "stack/include/sdp_api.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/include/stack_metrics_logging.h"
@@ -135,7 +136,6 @@ static uint16_t sdpu_find_most_specific_service_uuid(tSDP_DISC_REC* p_rec) {
         SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == DATA_ELE_SEQ_DESC_TYPE) {
       tSDP_DISC_ATTR* p_first_attr = p_attr->attr_value.v.p_sub_attr;
       if (p_first_attr == nullptr) {
-        android_errorWriteLog(0x534e4554, "227203684");
         return 0;
       }
       if (SDP_DISC_ATTR_TYPE(p_first_attr->attr_len_type) == UUID_DESC_TYPE &&
@@ -320,8 +320,11 @@ tCONN_CB* sdpu_find_ccb_by_cid(uint16_t cid) {
 
   /* Look through each connection control block */
   for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
-    if ((p_ccb->con_state != SDP_STATE_IDLE) && (p_ccb->connection_id == cid))
+    if ((p_ccb->con_state != SDP_STATE_IDLE) &&
+        (p_ccb->con_state != SDP_STATE_CONN_PEND) &&
+        (p_ccb->connection_id == cid)) {
       return (p_ccb);
+    }
   }
 
   /* If here, not found */
@@ -382,6 +385,23 @@ tCONN_CB* sdpu_allocate_ccb(void) {
 
 /*******************************************************************************
  *
+ * Function         sdpu_callback
+ *
+ * Description      Tell the user if they have a callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void sdpu_callback(tCONN_CB& ccb, tSDP_REASON reason) {
+  if (ccb.p_cb) {
+    (ccb.p_cb)(reason);
+  } else if (ccb.p_cb2) {
+    (ccb.p_cb2)(reason, ccb.user_data);
+  }
+}
+
+/*******************************************************************************
+ *
  * Function         sdpu_release_ccb
  *
  * Description      This function releases a CCB.
@@ -389,17 +409,149 @@ tCONN_CB* sdpu_allocate_ccb(void) {
  * Returns          void
  *
  ******************************************************************************/
-void sdpu_release_ccb(tCONN_CB* p_ccb) {
+void sdpu_release_ccb(tCONN_CB& ccb) {
   /* Ensure timer is stopped */
-  alarm_cancel(p_ccb->sdp_conn_timer);
+  alarm_cancel(ccb.sdp_conn_timer);
 
   /* Drop any response pointer we may be holding */
-  p_ccb->con_state = SDP_STATE_IDLE;
-  p_ccb->is_attr_search = false;
+  ccb.con_state = SDP_STATE_IDLE;
+  ccb.is_attr_search = false;
 
   /* Free the response buffer */
-  if (p_ccb->rsp_list) SDP_TRACE_DEBUG("releasing SDP rsp_list");
-  osi_free_and_reset((void**)&p_ccb->rsp_list);
+  if (ccb.rsp_list) SDP_TRACE_DEBUG("releasing SDP rsp_list");
+  osi_free_and_reset((void**)&ccb.rsp_list);
+}
+
+/*******************************************************************************
+ *
+ * Function         sdpu_get_active_ccb_cid
+ *
+ * Description      This function checks if any sdp connecting is there for
+ *                  same remote and returns cid if its available
+ *
+ *                  RawAddress : Remote address
+ *
+ * Returns          returns cid if any active sdp connection, else 0.
+ *
+ ******************************************************************************/
+uint16_t sdpu_get_active_ccb_cid(const RawAddress& remote_bd_addr) {
+  uint16_t xx;
+  tCONN_CB* p_ccb;
+
+  // Look through each connection control block for active sdp on given remote
+  for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
+    if ((p_ccb->con_state == SDP_STATE_CONN_SETUP) ||
+        (p_ccb->con_state == SDP_STATE_CFG_SETUP) ||
+        (p_ccb->con_state == SDP_STATE_CONNECTED)) {
+      if (p_ccb->con_flags & SDP_FLAGS_IS_ORIG &&
+          p_ccb->device_address == remote_bd_addr) {
+        return p_ccb->connection_id;
+      }
+    }
+  }
+
+  // No active sdp channel for this remote
+  return 0;
+}
+
+/*******************************************************************************
+ *
+ * Function         sdpu_process_pend_ccb
+ *
+ * Description      This function process if any sdp ccb pending for connection
+ *                  and reuse the same connection id
+ *
+ *                  tCONN_CB&: connection control block that trigget the process
+ *
+ * Returns          returns true if any pending ccb, else false.
+ *
+ ******************************************************************************/
+bool sdpu_process_pend_ccb_same_cid(tCONN_CB& ccb) {
+  uint16_t xx;
+  tCONN_CB* p_ccb;
+
+  // Look through each connection control block for active sdp on given remote
+  for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
+    if ((p_ccb->con_state == SDP_STATE_CONN_PEND) &&
+        (p_ccb->connection_id == ccb.connection_id) &&
+        (p_ccb->con_flags & SDP_FLAGS_IS_ORIG)) {
+      p_ccb->con_state = SDP_STATE_CONNECTED;
+      sdp_disc_connected(p_ccb);
+      return true;
+    }
+  }
+  // No pending SDP channel for this remote
+  return false;
+}
+
+/*******************************************************************************
+ *
+ * Function         sdpu_process_pend_ccb_new_cid
+ *
+ * Description      This function process if any sdp ccb pending for connection
+ *                  and update their connection id with a new L2CA connection
+ *
+ *                  tCONN_CB&: connection control block that trigget the process
+ *
+ * Returns          returns true if any pending ccb, else false.
+ *
+ ******************************************************************************/
+bool sdpu_process_pend_ccb_new_cid(tCONN_CB& ccb) {
+  uint16_t xx;
+  tCONN_CB* p_ccb;
+  uint16_t new_cid = 0;
+  bool new_conn = false;
+
+  // Look through each ccb to replace the obsolete cid with a new one.
+  for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
+    if ((p_ccb->con_state == SDP_STATE_CONN_PEND) &&
+        (p_ccb->connection_id == ccb.connection_id) &&
+        (p_ccb->con_flags & SDP_FLAGS_IS_ORIG)) {
+      if (!new_conn) {
+        // Only change state of the first ccb
+        p_ccb->con_state = SDP_STATE_CONN_SETUP;
+        new_cid =
+            L2CA_ConnectReq2(BT_PSM_SDP, p_ccb->device_address, BTM_SEC_NONE);
+        new_conn = true;
+      }
+      // Check if L2CAP started the connection process
+      if (new_cid != 0) {
+        // update alls cid to the new one for future reference
+        p_ccb->connection_id = new_cid;
+      } else {
+        sdpu_callback(*p_ccb, SDP_CONN_FAILED);
+        sdpu_release_ccb(*p_ccb);
+      }
+    }
+  }
+  return new_conn && new_cid != 0;
+}
+
+/*******************************************************************************
+ *
+ * Function         sdpu_clear_pend_ccb
+ *
+ * Description      This function releases if any sdp ccb pending for connection
+ *
+ *                  uint16_t : Remote CID
+ *
+ * Returns          returns none.
+ *
+ ******************************************************************************/
+void sdpu_clear_pend_ccb(tCONN_CB& ccb) {
+  uint16_t xx;
+  tCONN_CB* p_ccb;
+
+  // Look through each connection control block for active sdp on given remote
+  for (xx = 0, p_ccb = sdp_cb.ccb; xx < SDP_MAX_CONNECTIONS; xx++, p_ccb++) {
+    if ((p_ccb->con_state == SDP_STATE_CONN_PEND) &&
+        (p_ccb->connection_id == ccb.connection_id) &&
+        (p_ccb->con_flags & SDP_FLAGS_IS_ORIG)) {
+      sdpu_callback(*p_ccb, SDP_CONN_FAILED);
+      sdpu_release_ccb(*p_ccb);
+    }
+  }
+  return;
 }
 
 /*******************************************************************************
@@ -1277,17 +1429,25 @@ void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
     return;
   }
 
-  // Some remote devices will have interoperation issue when receive AVRCP
-  // version 1.5. If those devices are in IOP database and our version high than
-  // 1.4, we reply version 1.4 to them.
+  // Some remote devices will have interoperation issue when receive higher
+  // AVRCP version. If those devices are in IOP database and our version higher
+  // than device, we reply a lower version to them.
+  uint16_t iop_version = 0;
   if (avrcp_version > AVRC_REV_1_4 &&
       interop_match_addr(INTEROP_AVRCP_1_4_ONLY, bdaddr)) {
+    iop_version = AVRC_REV_1_4;
+  } else if (avrcp_version > AVRC_REV_1_3 &&
+             interop_match_addr(INTEROP_AVRCP_1_3_ONLY, bdaddr)) {
+    iop_version = AVRC_REV_1_3;
+  }
+
+  if (iop_version != 0) {
     LOG_INFO(
         "device=%s is in IOP database. "
-        "Reply AVRC Target version 1.4 instead of %x.",
-        bdaddr->ToString().c_str(), avrcp_version);
+        "Reply AVRC Target version %x instead of %x.",
+        bdaddr->ToString().c_str(), iop_version, avrcp_version);
     uint8_t* p_version = p_attr->value_ptr + 6;
-    UINT16_TO_BE_FIELD(p_version, AVRC_REV_1_4);
+    UINT16_TO_BE_FIELD(p_version, iop_version);
     return;
   }
 

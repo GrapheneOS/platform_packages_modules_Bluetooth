@@ -1824,6 +1824,9 @@ void bta_av_do_start(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
     if (p_scb->role & BTA_AV_ROLE_SUSPEND) {
       notify_start_failed(p_scb);
     } else {
+      if (p_data) {
+        bta_av_set_use_latency_mode(p_scb, p_data->do_start.use_latency_mode);
+      }
       bta_av_start_ok(p_scb, NULL);
     }
     return;
@@ -1858,6 +1861,8 @@ void bta_av_do_start(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
     LOG_ERROR("%s: AVDT_StartReq failed for peer %s result:%d", __func__,
               p_scb->PeerAddress().ToString().c_str(), result);
     bta_av_start_failed(p_scb, p_data);
+  } else if (p_data) {
+    bta_av_set_use_latency_mode(p_scb, p_data->do_start.use_latency_mode);
   }
   LOG_INFO(
       "%s: peer %s start requested: sco_occupied:%s role:0x%x "
@@ -3207,6 +3212,9 @@ static void bta_av_offload_codec_builder(tBTA_AV_SCB* p_scb,
       break;
     case BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC:
       codec_type = BTA_AV_CODEC_TYPE_LDAC;
+      break;
+    case BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS:
+      codec_type = BTA_AV_CODEC_TYPE_OPUS;
       break;
     default:
       APPL_TRACE_ERROR("%s: Unknown Codec type ", __func__);

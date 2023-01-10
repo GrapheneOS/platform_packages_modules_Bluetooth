@@ -310,8 +310,7 @@ constexpr uint32_t kPresDelayNoPreference = 0x00000000;
 constexpr uint16_t kMaxTransportLatencyMin = 0x0005;
 constexpr uint16_t kMaxTransportLatencyMax = 0x0FA0;
 
-/* Enums */
-enum class CigState : uint8_t { NONE, CREATING, CREATED, REMOVING };
+enum class CigState : uint8_t { NONE, CREATING, CREATED, REMOVING, RECOVERING };
 
 /* ASE states according to BAP defined state machine states */
 enum class AseState : uint8_t {
@@ -331,6 +330,19 @@ enum class AudioStreamDataPathState {
   CIS_PENDING,
   CIS_ESTABLISHED,
   DATA_PATH_ESTABLISHED,
+};
+
+enum class CisType {
+  CIS_TYPE_BIDIRECTIONAL,
+  CIS_TYPE_UNIDIRECTIONAL_SINK,
+  CIS_TYPE_UNIDIRECTIONAL_SOURCE,
+};
+
+struct cis {
+  uint8_t id;
+  CisType type;
+  uint16_t conn_handle;
+  RawAddress addr;
 };
 
 enum class CodecLocation {
@@ -357,6 +369,95 @@ enum class LeAudioContextType : uint16_t {
   RFU = 0x1000,
 };
 
+class AudioContexts {
+  using T = std::underlying_type<LeAudioContextType>::type;
+  T mValue;
+
+ public:
+  explicit constexpr AudioContexts()
+      : mValue(static_cast<T>(LeAudioContextType::UNINITIALIZED)) {}
+  explicit constexpr AudioContexts(const T& v) : mValue(v) {}
+  explicit constexpr AudioContexts(const LeAudioContextType& v)
+      : mValue(static_cast<T>(v)) {}
+  constexpr AudioContexts(const AudioContexts& other)
+      : mValue(static_cast<T>(other.value())) {}
+
+  constexpr T value() const { return mValue; }
+  T& value_ref() { return mValue; }
+  bool none() const {
+    return mValue == static_cast<T>(LeAudioContextType::UNINITIALIZED);
+  }
+  bool any() const { return !none(); }
+
+  void set(LeAudioContextType const& v) { mValue |= static_cast<T>(v); }
+  void unset(const LeAudioContextType& v) { mValue &= ~static_cast<T>(v); }
+
+  bool test(const LeAudioContextType& v) const {
+    return (mValue & static_cast<T>(v)) != 0;
+  }
+  bool test_all(const AudioContexts& v) const {
+    return (mValue & v.value()) == v.value();
+  }
+  bool test_any(const AudioContexts& v) const {
+    return (mValue & v.value()) != 0;
+  }
+  void clear() { mValue = static_cast<T>(LeAudioContextType::UNINITIALIZED); }
+
+  std::string to_string() const;
+
+  AudioContexts& operator=(AudioContexts&& other) = default;
+  AudioContexts& operator=(const AudioContexts&) = default;
+  bool operator==(const AudioContexts& other) const {
+    return value() == other.value();
+  };
+  constexpr AudioContexts operator~() const { return AudioContexts(~value()); }
+};
+
+AudioContexts operator|(std::underlying_type<LeAudioContextType>::type lhs,
+                        const LeAudioContextType rhs);
+AudioContexts& operator|=(AudioContexts& lhs, AudioContexts const& rhs);
+AudioContexts& operator&=(AudioContexts& lhs, AudioContexts const& rhs);
+
+constexpr AudioContexts operator^(const AudioContexts& lhs,
+                                  const AudioContexts& rhs) {
+  return AudioContexts(lhs.value() ^ rhs.value());
+}
+constexpr AudioContexts operator|(const AudioContexts& lhs,
+                                  const AudioContexts& rhs) {
+  return AudioContexts(lhs.value() | rhs.value());
+}
+constexpr AudioContexts operator&(const AudioContexts& lhs,
+                                  const AudioContexts& rhs) {
+  return AudioContexts(lhs.value() & rhs.value());
+}
+constexpr AudioContexts operator|(const LeAudioContextType& lhs,
+                                  const LeAudioContextType& rhs) {
+  using T = std::underlying_type<LeAudioContextType>::type;
+  return AudioContexts(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+constexpr AudioContexts operator|(const LeAudioContextType& lhs,
+                                  const AudioContexts& rhs) {
+  return AudioContexts(lhs) | rhs;
+}
+constexpr AudioContexts operator|(const AudioContexts& lhs,
+                                  const LeAudioContextType& rhs) {
+  return lhs | AudioContexts(rhs);
+}
+
+std::string ToHexString(const types::LeAudioContextType& value);
+
+template <typename T>
+struct BidirectionalPair {
+  T sink;
+  T source;
+};
+
+template <typename T>
+T get_bidirectional(BidirectionalPair<T> p);
+
+template <>
+AudioContexts get_bidirectional(BidirectionalPair<AudioContexts> p);
+
 /* Configuration strategy */
 enum class LeAudioConfigurationStrategy : uint8_t {
   MONO_ONE_CIS_PER_DEVICE = 0x00, /* Common true wireless speakers */
@@ -365,13 +466,6 @@ enum class LeAudioConfigurationStrategy : uint8_t {
   STEREO_ONE_CIS_PER_DEVICE = 0x02, /* Requires channel count 2*/
   RFU = 0x03,
 };
-
-constexpr LeAudioContextType operator|(LeAudioContextType lhs,
-                                       LeAudioContextType rhs) {
-  return static_cast<LeAudioContextType>(
-      static_cast<std::underlying_type<LeAudioContextType>::type>(lhs) |
-      static_cast<std::underlying_type<LeAudioContextType>::type>(rhs));
-}
 
 constexpr LeAudioContextType kLeAudioContextAllTypesArray[] = {
     LeAudioContextType::UNSPECIFIED,   LeAudioContextType::CONVERSATIONAL,
@@ -382,7 +476,7 @@ constexpr LeAudioContextType kLeAudioContextAllTypesArray[] = {
     LeAudioContextType::ALERTS,        LeAudioContextType::EMERGENCYALARM,
 };
 
-constexpr LeAudioContextType kLeAudioContextAllTypes =
+constexpr AudioContexts kLeAudioContextAllTypes =
     LeAudioContextType::UNSPECIFIED | LeAudioContextType::CONVERSATIONAL |
     LeAudioContextType::MEDIA | LeAudioContextType::GAME |
     LeAudioContextType::INSTRUCTIONAL | LeAudioContextType::VOICEASSISTANTS |
@@ -401,6 +495,7 @@ class LeAudioLtvMap {
   void Add(uint8_t type, std::vector<uint8_t> value) {
     values.insert_or_assign(type, std::move(value));
   }
+  void Remove(uint8_t type) { values.erase(type); }
   bool IsEmpty() const { return values.empty(); }
   void Clear() { values.clear(); }
   size_t Size() const { return values.size(); }
@@ -520,9 +615,10 @@ struct hdl_pair {
 struct ase {
   static constexpr uint8_t kAseIdInvalid = 0x00;
 
-  ase(uint16_t val_hdl, uint16_t ccc_hdl, uint8_t direction)
+  ase(uint16_t val_hdl, uint16_t ccc_hdl, uint8_t direction,
+      uint8_t initial_id = kAseIdInvalid)
       : hdls(val_hdl, ccc_hdl),
-        id(kAseIdInvalid),
+        id(initial_id),
         cis_id(kInvalidCisId),
         direction(direction),
         target_latency(types::kTargetLatencyBalancedLatencyReliability),
@@ -579,12 +675,14 @@ struct acs_ac_record {
 using PublishedAudioCapabilities =
     std::vector<std::tuple<hdl_pair, std::vector<acs_ac_record>>>;
 using AudioLocations = std::bitset<32>;
-using AudioContexts = std::bitset<16>;
 
 std::ostream& operator<<(std::ostream& os, const AseState& state);
 std::ostream& operator<<(std::ostream& os, const CigState& state);
 std::ostream& operator<<(std::ostream& os, const LeAudioLc3Config& config);
 std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context);
+std::ostream& operator<<(std::ostream& os,
+                         const AudioStreamDataPathState& state);
+std::ostream& operator<<(std::ostream& os, const AudioContexts& contexts);
 }  // namespace types
 
 namespace set_configurations {
@@ -653,6 +751,12 @@ static constexpr uint32_t kChannelAllocationStereo =
     codec_spec_conf::kLeAudioLocationFrontRight;
 
 /* Declarations */
+void get_cis_count(const AudioSetConfigurations& audio_set_configurations,
+                   int expected_device_cnt,
+                   types::LeAudioConfigurationStrategy strategy,
+                   int group_ase_snk_cnt, int group_ase_src_count,
+                   uint8_t& cis_count_bidir, uint8_t& cis_count_unidir_sink,
+                   uint8_t& cis_count_unidir_source);
 bool check_if_may_cover_scenario(
     const AudioSetConfigurations* audio_set_configurations, uint8_t group_size);
 bool check_if_may_cover_scenario(
@@ -684,6 +788,14 @@ struct stream_configuration {
   int sink_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> sink_streams;
+  /* cis_handle, target allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      sink_offloader_streams_target_allocation;
+  /* cis_handle, current allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      sink_offloader_streams_current_allocation;
+  bool sink_offloader_changed;
+  bool sink_is_initial;
 
   /* Source configuration */
   /* For now we have always same frequency for all the channels */
@@ -697,11 +809,20 @@ struct stream_configuration {
   int source_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> source_streams;
+  /* cis_handle, target allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      source_offloader_streams_target_allocation;
+  /* cis_handle, current allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      source_offloader_streams_current_allocation;
+  bool source_offloader_changed;
+  bool source_is_initial;
 };
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
-                                       int ccid);
+                                       const std::vector<uint8_t>& ccid_list);
 void AppendMetadataLtvEntryForStreamingContext(
-    std::vector<uint8_t>& metadata, types::LeAudioContextType context_type);
+    std::vector<uint8_t>& metadata, types::AudioContexts context_type);
 uint8_t GetMaxCodecFramesPerSduFromPac(const types::acs_ac_record* pac_record);
+uint32_t AdjustAllocationForOffloader(uint32_t allocation);
 }  // namespace le_audio

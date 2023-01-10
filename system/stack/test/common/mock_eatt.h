@@ -52,7 +52,7 @@ class MockEattExtension : public EattExtension {
               (const RawAddress& bd_addr));
   MOCK_METHOD((void), FreeGattResources, (const RawAddress& bd_addr));
   MOCK_METHOD((bool), IsOutstandingMsgInSendQueue, (const RawAddress& bd_addr));
-  MOCK_METHOD((EattChannel*), GetChannelWithQueuedData,
+  MOCK_METHOD((EattChannel*), GetChannelWithQueuedDataToSend,
               (const RawAddress& bd_addr));
   MOCK_METHOD((EattChannel*), GetChannelAvailableForClientRequest,
               (const RawAddress& bd_addr));

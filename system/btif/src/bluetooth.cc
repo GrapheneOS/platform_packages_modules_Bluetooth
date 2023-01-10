@@ -172,24 +172,16 @@ static bool is_profile(const char* p1, const char* p2) {
  *
  ****************************************************************************/
 
-const std::vector<std::string> get_allowed_bt_package_name(void);
-void handle_migration(const std::string& dst,
-                      const std::vector<std::string>& allowed_bt_package_name);
-
 static int init(bt_callbacks_t* callbacks, bool start_restricted,
                 bool is_common_criteria_mode, int config_compare_result,
                 const char** init_flags, bool is_atv,
                 const char* user_data_directory) {
+  (void)user_data_directory;
   LOG_INFO(
       "%s: start restricted = %d ; common criteria mode = %d, config compare "
       "result = %d",
       __func__, start_restricted, is_common_criteria_mode,
       config_compare_result);
-
-  if (user_data_directory != nullptr) {
-    handle_migration(std::string(user_data_directory),
-                     get_allowed_bt_package_name());
-  }
 
   bluetooth::common::InitFlags::Load(init_flags);
 
@@ -398,11 +390,14 @@ static int get_connection_state(const RawAddress* bd_addr) {
 
 static int pin_reply(const RawAddress* bd_addr, uint8_t accept, uint8_t pin_len,
                      bt_pin_code_t* pin_code) {
+  bt_pin_code_t tmp_pin_code;
   if (!interface_ready()) return BT_STATUS_NOT_READY;
   if (pin_code == nullptr || pin_len > PIN_CODE_LEN) return BT_STATUS_FAIL;
 
+  memcpy(&tmp_pin_code, pin_code, pin_len);
+
   do_in_main_thread(FROM_HERE, base::BindOnce(btif_dm_pin_reply, *bd_addr,
-                                              accept, pin_len, *pin_code));
+                                              accept, pin_len, tmp_pin_code));
   return BT_STATUS_SUCCESS;
 }
 
@@ -645,6 +640,18 @@ static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
   return true;
 }
 
+static void metadata_changed(const RawAddress& remote_bd_addr, int key,
+                             std::vector<uint8_t> value) {
+  if (!interface_ready()) {
+    LOG_ERROR("Interface not ready!");
+    return;
+  }
+
+  do_in_main_thread(
+      FROM_HERE, base::BindOnce(btif_dm_metadata_changed, remote_bd_addr, key,
+                                std::move(value)));
+}
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -685,7 +692,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     set_dynamic_audio_buffer_size,
     generate_local_oob_data,
     allow_low_latency_audio,
-    clear_event_filter};
+    clear_event_filter,
+    metadata_changed};
 
 // callback reporting helpers
 

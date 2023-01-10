@@ -29,6 +29,7 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.Arrays;
 
@@ -67,6 +68,16 @@ public class LeAudioNativeInterface {
         }
     }
 
+    /**
+     * Set singleton instance.
+     */
+    @VisibleForTesting
+    static void setInstance(LeAudioNativeInterface instance) {
+        synchronized (INSTANCE_LOCK) {
+            sInstance = instance;
+        }
+    }
+
     private byte[] getByteAddress(BluetoothDevice device) {
         if (device == null) {
             return Utils.getBytesFromAddress("00:00:00:00:00:00");
@@ -100,7 +111,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onConnectionStateChanged(int state, byte[] address) {
+    @VisibleForTesting
+    void onConnectionStateChanged(int state, byte[] address) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
         event.device = getDevice(address);
@@ -112,7 +124,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onGroupStatus(int groupId, int groupStatus) {
+    @VisibleForTesting
+    void onGroupStatus(int groupId, int groupStatus) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED);
         event.valueInt1 = groupId;
@@ -124,7 +137,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onGroupNodeStatus(byte[] address, int groupId, int nodeStatus) {
+    @VisibleForTesting
+    void onGroupNodeStatus(byte[] address, int groupId, int nodeStatus) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_NODE_STATUS_CHANGED);
         event.valueInt1 = groupId;
@@ -137,7 +151,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onAudioConf(int direction, int groupId, int sinkAudioLocation,
+    @VisibleForTesting
+    void onAudioConf(int direction, int groupId, int sinkAudioLocation,
                              int sourceAudioLocation, int availableContexts) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_AUDIO_CONF_CHANGED);
@@ -153,7 +168,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onSinkAudioLocationAvailable(byte[] address, int sinkAudioLocation) {
+    @VisibleForTesting
+    void onSinkAudioLocationAvailable(byte[] address, int sinkAudioLocation) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE);
         event.device = getDevice(address);
@@ -165,7 +181,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onAudioLocalCodecCapabilities(
+    @VisibleForTesting
+    void onAudioLocalCodecCapabilities(
                             BluetoothLeAudioCodecConfig[] localInputCodecCapabilities,
                             BluetoothLeAudioCodecConfig[] localOutputCodecCapabilities) {
         LeAudioStackEvent event =
@@ -181,7 +198,8 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onAudioGroupCodecConf(int groupId, BluetoothLeAudioCodecConfig inputCodecConfig,
+    @VisibleForTesting
+    void onAudioGroupCodecConf(int groupId, BluetoothLeAudioCodecConfig inputCodecConfig,
                             BluetoothLeAudioCodecConfig outputCodecConfig,
                             BluetoothLeAudioCodecConfig [] inputSelectableCodecConfig,
                             BluetoothLeAudioCodecConfig [] outputSelectableCodecConfig) {
@@ -287,6 +305,17 @@ public class LeAudioNativeInterface {
         setCcidInformationNative(ccid, contextType);
     }
 
+    /**
+     * Set in call call flag.
+     * @param inCall true when device in call (any state), false otherwise
+     */
+    public void setInCall(boolean inCall) {
+        if (DBG) {
+            Log.d(TAG, "setInCall inCall: " + inCall);
+        }
+        setInCallNative(inCall);
+    }
+
     // Native methods that call into the JNI interface
     private static native void classInitNative();
     private native void initNative(BluetoothLeAudioCodecConfig[] codecConfigOffloading);
@@ -300,4 +329,5 @@ public class LeAudioNativeInterface {
             BluetoothLeAudioCodecConfig inputCodecConfig,
             BluetoothLeAudioCodecConfig outputCodecConfig);
     private native void setCcidInformationNative(int ccid, int contextType);
+    private native void setInCallNative(boolean inCall);
 }

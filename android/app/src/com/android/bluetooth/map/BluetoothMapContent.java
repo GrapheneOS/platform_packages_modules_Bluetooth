@@ -37,12 +37,14 @@ import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.DeviceWorkArounds;
 import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
 import com.android.bluetooth.mapapi.BluetoothMapContract.ConversationColumns;
+import com.android.internal.annotations.VisibleForTesting;
 
 import com.google.android.mms.pdu.CharacterSets;
 import com.google.android.mms.pdu.PduHeaders;
@@ -69,16 +71,21 @@ public class BluetoothMapContent {
 
     // Parameter Mask for selection of parameters to return in listings
     private static final int MASK_SUBJECT = 0x00000001;
-    private static final int MASK_DATETIME = 0x00000002;
-    private static final int MASK_SENDER_NAME = 0x00000004;
-    private static final int MASK_SENDER_ADDRESSING = 0x00000008;
+    @VisibleForTesting
+    static final int MASK_DATETIME = 0x00000002;
+    @VisibleForTesting
+    static final int MASK_SENDER_NAME = 0x00000004;
+    @VisibleForTesting
+    static final int MASK_SENDER_ADDRESSING = 0x00000008;
     private static final int MASK_RECIPIENT_NAME = 0x00000010;
-    private static final int MASK_RECIPIENT_ADDRESSING = 0x00000020;
+    @VisibleForTesting
+    static final int MASK_RECIPIENT_ADDRESSING = 0x00000020;
     private static final int MASK_TYPE = 0x00000040;
     private static final int MASK_SIZE = 0x00000080;
     private static final int MASK_RECEPTION_STATUS = 0x00000100;
     private static final int MASK_TEXT = 0x00000200;
-    private static final int MASK_ATTACHMENT_SIZE = 0x00000400;
+    @VisibleForTesting
+    static final int MASK_ATTACHMENT_SIZE = 0x00000400;
     private static final int MASK_PRIORITY = 0x00000800;
     private static final int MASK_READ = 0x00001000;
     private static final int MASK_SENT = 0x00002000;
@@ -86,7 +93,8 @@ public class BluetoothMapContent {
     private static final int MASK_REPLYTO_ADDRESSING = 0x00008000;
     // TODO: Duplicate in proposed spec
     // private static final int MASK_RECEPTION_STATE       = 0x00010000;
-    private static final int MASK_DELIVERY_STATUS = 0x00010000;
+    @VisibleForTesting
+    static final int MASK_DELIVERY_STATUS = 0x00010000;
     private static final int MASK_CONVERSATION_ID = 0x00020000;
     private static final int MASK_CONVERSATION_NAME = 0x00040000;
     private static final int MASK_FOLDER_TYPE = 0x00100000;
@@ -144,14 +152,17 @@ public class BluetoothMapContent {
 
     private final Context mContext;
     private final ContentResolver mResolver;
-    private final String mBaseUri;
+    @VisibleForTesting
+    final String mBaseUri;
     private final BluetoothMapAccountItem mAccount;
     /* The MasInstance reference is used to update persistent (over a connection) version counters*/
     private final BluetoothMapMasInstance mMasInstance;
-    private String mMessageVersion = BluetoothMapUtils.MAP_V10_STR;
+    @VisibleForTesting
+    String mMessageVersion = BluetoothMapUtils.MAP_V10_STR;
 
     private int mRemoteFeatureMask = BluetoothMapUtils.MAP_FEATURE_DEFAULT_BITMASK;
-    private int mMsgListingVersion = BluetoothMapUtils.MAP_MESSAGE_LISTING_FORMAT_V10;
+    @VisibleForTesting
+    int mMsgListingVersion = BluetoothMapUtils.MAP_MESSAGE_LISTING_FORMAT_V10;
 
     static final String[] SMS_PROJECTION = new String[]{
             BaseColumns._ID,
@@ -251,7 +262,8 @@ public class BluetoothMapContent {
         MMS_SMS_THREAD_COL_RECIPIENT_IDS = projection.indexOf(Threads.RECIPIENT_IDS);
     }
 
-    private class FilterInfo {
+    @VisibleForTesting
+    static class FilterInfo {
         public static final int TYPE_SMS = 0;
         public static final int TYPE_MMS = 1;
         public static final int TYPE_EMAIL = 2;
@@ -588,7 +600,8 @@ public class BluetoothMapContent {
      * the total message size. To provide a more accurate attachment size, one could
      * extract the length (in bytes) of the text parts.
      */
-    private void setAttachment(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setAttachment(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_ATTACHMENT_SIZE) != 0) {
             int size = 0;
@@ -683,7 +696,8 @@ public class BluetoothMapContent {
         }
     }
 
-    private void setDeliveryStatus(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setDeliveryStatus(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_DELIVERY_STATUS) != 0) {
             String deliveryStatus = "delivered";
@@ -820,8 +834,8 @@ public class BluetoothMapContent {
         }
     }
 
-    private String getRecipientNameEmail(BluetoothMapMessageListingElement e, Cursor c,
-            FilterInfo fi) {
+    @VisibleForTesting
+    String getRecipientNameEmail(Cursor c, FilterInfo fi) {
 
         String toAddress, ccAddress, bccAddress;
         toAddress = c.getString(fi.mMessageColToAddress);
@@ -905,8 +919,8 @@ public class BluetoothMapContent {
         return sb.toString();
     }
 
-    private String getRecipientAddressingEmail(BluetoothMapMessageListingElement e, Cursor c,
-            FilterInfo fi) {
+    @VisibleForTesting
+    String getRecipientAddressingEmail(Cursor c, FilterInfo fi) {
         String toAddress, ccAddress, bccAddress;
         toAddress = c.getString(fi.mMessageColToAddress);
         ccAddress = c.getString(fi.mMessageColCcAddress);
@@ -989,7 +1003,8 @@ public class BluetoothMapContent {
         return sb.toString();
     }
 
-    private void setRecipientAddressing(BluetoothMapMessageListingElement e, Cursor c,
+    @VisibleForTesting
+    void setRecipientAddressing(BluetoothMapMessageListingElement e, Cursor c,
             FilterInfo fi, BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_RECIPIENT_ADDRESSING) != 0) {
             String address = null;
@@ -1018,7 +1033,7 @@ public class BluetoothMapContent {
                 address = getAddressMms(mResolver, id, MMS_TO);
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL) {
                 /* Might be another way to handle addresses */
-                address = getRecipientAddressingEmail(e, c, fi);
+                address = getRecipientAddressingEmail(c, fi);
             }
             if (V) {
                 Log.v(TAG, "setRecipientAddressing: " + address);
@@ -1057,7 +1072,7 @@ public class BluetoothMapContent {
                 }
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL) {
                 /* Might be another way to handle address and names */
-                name = getRecipientNameEmail(e, c, fi);
+                name = getRecipientNameEmail(c, fi);
             }
             if (V) {
                 Log.v(TAG, "setRecipientName: " + name);
@@ -1069,7 +1084,8 @@ public class BluetoothMapContent {
         }
     }
 
-    private void setSenderAddressing(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setSenderAddressing(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_SENDER_ADDRESSING) != 0) {
             String address = "";
@@ -1136,10 +1152,10 @@ public class BluetoothMapContent {
                 // TODO: This is a BAD hack, that we map the contact ID to a conversation ID!!!
                 //       We need to reach a conclusion on what to do
                 Uri contactsUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_CONVOCONTACT);
-                Cursor contacts =
-                        mResolver.query(contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
-                                BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = "
-                                        + contactId, null, null);
+                Cursor contacts = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
+                        BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = " + contactId, null,
+                        null);
                 try {
                     // TODO this will not work for group-chats
                     if (contacts != null && contacts.moveToFirst()) {
@@ -1163,7 +1179,8 @@ public class BluetoothMapContent {
         }
     }
 
-    private void setSenderName(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setSenderName(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_SENDER_NAME) != 0) {
             String name = "";
@@ -1217,10 +1234,10 @@ public class BluetoothMapContent {
                 // For IM we add the contact ID in the addressing
                 long contactId = c.getLong(fi.mMessageColFromAddress);
                 Uri contactsUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_CONVOCONTACT);
-                Cursor contacts =
-                        mResolver.query(contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
-                                BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = "
-                                        + contactId, null, null);
+                Cursor contacts = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
+                        BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = " + contactId, null,
+                        null);
                 try {
                     // TODO this will not work for group-chats
                     if (contacts != null && contacts.moveToFirst()) {
@@ -1243,8 +1260,8 @@ public class BluetoothMapContent {
         }
     }
 
-
-    private void setDateTime(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
+    @VisibleForTesting
+    void setDateTime(BluetoothMapMessageListingElement e, Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_DATETIME) != 0) {
             long date = 0;
@@ -1268,9 +1285,8 @@ public class BluetoothMapContent {
         }
     }
 
-
-    private void setLastActivity(BluetoothMapConvoListingElement e, Cursor c, FilterInfo fi,
-            BluetoothMapAppParams ap) {
+    @VisibleForTesting
+    void setLastActivity(BluetoothMapConvoListingElement e, Cursor c, FilterInfo fi) {
         long date = 0;
         if (fi.mMsgType == FilterInfo.TYPE_SMS || fi.mMsgType == FilterInfo.TYPE_MMS) {
             date = c.getLong(MMS_SMS_THREAD_COL_DATE);
@@ -1290,7 +1306,8 @@ public class BluetoothMapContent {
         String uriStr = new String(Mms.CONTENT_URI + "/" + id + "/part");
         Uri uriAddress = Uri.parse(uriStr);
         // TODO: maybe use a projection with only "ct" and "text"
-        Cursor c = r.query(uriAddress, null, selection, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(r, uriAddress, null,
+                selection, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 do {
@@ -1381,7 +1398,7 @@ public class BluetoothMapContent {
     private BluetoothMapConvoListingElement createConvoElement(Cursor c, FilterInfo fi,
             BluetoothMapAppParams ap) {
         BluetoothMapConvoListingElement e = new BluetoothMapConvoListingElement();
-        setLastActivity(e, c, fi, ap);
+        setLastActivity(e, c, fi);
         e.setType(getType(c, fi));
 //        setConvoRead(e, c, fi, ap);
         e.setCursorIndex(c.getPosition());
@@ -1405,7 +1422,8 @@ public class BluetoothMapContent {
         String orderBy = Contacts.DISPLAY_NAME + " ASC";
         Cursor c = null;
         try {
-            c = resolver.query(uri, projection, selection, null, orderBy);
+            c = BluetoothMethodProxy.getInstance().contentResolverQuery(resolver, uri, projection,
+                    selection, null, orderBy);
             if (c != null) {
                 int colIndex = c.getColumnIndex(Contacts.DISPLAY_NAME);
                 if (c.getCount() >= 1) {
@@ -1447,7 +1465,8 @@ public class BluetoothMapContent {
             Log.v(TAG, "whereClause is " + whereClause);
         }
         try {
-            cr = r.query(sAllThreadsUri, RECIPIENT_ID_PROJECTION, whereClause, null, null);
+            cr = BluetoothMethodProxy.getInstance().contentResolverQuery(r, sAllThreadsUri,
+                    RECIPIENT_ID_PROJECTION, whereClause, null, null);
             if (cr != null && cr.moveToFirst()) {
                 recipientIds = cr.getString(0);
                 if (V) {
@@ -1479,7 +1498,8 @@ public class BluetoothMapContent {
                 Log.v(TAG, "whereClause is " + whereClause);
             }
             try {
-                cr = r.query(sAllCanonical, null, whereClause, null, null);
+                cr = BluetoothMethodProxy.getInstance().contentResolverQuery(r, sAllCanonical, null,
+                        whereClause, null, null);
                 if (cr != null && cr.moveToFirst()) {
                     do {
                         //TODO: Multiple Recipeints are appended with ";" for now.
@@ -1511,7 +1531,8 @@ public class BluetoothMapContent {
         String[] projection = {Mms.Addr.ADDRESS};
         Cursor c = null;
         try {
-            c = r.query(uriAddress, projection, selection, null, null); // TODO: Add projection
+            c = BluetoothMethodProxy.getInstance().contentResolverQuery(r, uriAddress, projection,
+                    selection, null, null); // TODO: Add projection
             int colIndex = c.getColumnIndex(Mms.Addr.ADDRESS);
             if (c != null) {
                 if (c.moveToFirst()) {
@@ -2027,8 +2048,9 @@ public class BluetoothMapContent {
 
 
     /* Used only for SMS/MMS */
-    private void setConvoWhereFilterSmsMms(StringBuilder selection, ArrayList<String> selectionArgs,
-            FilterInfo fi, BluetoothMapAppParams ap) {
+    @VisibleForTesting
+    void setConvoWhereFilterSmsMms(StringBuilder selection, FilterInfo fi,
+            BluetoothMapAppParams ap) {
 
         if (smsSelected(fi, ap) || mmsSelected(ap)) {
 
@@ -2079,7 +2101,8 @@ public class BluetoothMapContent {
      * @param ap
      * @return boolean true if sms is selected, false if not
      */
-    private boolean smsSelected(FilterInfo fi, BluetoothMapAppParams ap) {
+    @VisibleForTesting
+    boolean smsSelected(FilterInfo fi, BluetoothMapAppParams ap) {
         int msgType = ap.getFilterMessageType();
         int phoneType = fi.mPhoneType;
 
@@ -2116,7 +2139,8 @@ public class BluetoothMapContent {
      * @param ap
      * @return boolean true if mms is selected, false if not
      */
-    private boolean mmsSelected(BluetoothMapAppParams ap) {
+    @VisibleForTesting
+    boolean mmsSelected(BluetoothMapAppParams ap) {
         int msgType = ap.getFilterMessageType();
 
         if (D) {
@@ -2184,7 +2208,8 @@ public class BluetoothMapContent {
         return false;
     }
 
-    private void setFilterInfo(FilterInfo fi) {
+    @VisibleForTesting
+    void setFilterInfo(FilterInfo fi) {
         TelephonyManager tm = mContext.getSystemService(TelephonyManager.class);
         if (tm != null) {
             fi.mPhoneType = tm.getPhoneType();
@@ -2753,7 +2778,7 @@ public class BluetoothMapContent {
                 StringBuilder selection = new StringBuilder(120); // This covers most cases
                 ArrayList<String> selectionArgs = new ArrayList<String>(12); // Covers all cases
                 selection.append("1=1 "); // just to simplify building the where-clause
-                setConvoWhereFilterSmsMms(selection, selectionArgs, fi, ap);
+                setConvoWhereFilterSmsMms(selection, fi, ap);
                 String[] args = null;
                 if (selectionArgs.size() > 0) {
                     args = new String[selectionArgs.size()];
@@ -4068,8 +4093,8 @@ public class BluetoothMapContent {
 
         BluetoothMapbMessageEmail message = new BluetoothMapbMessageEmail();
         Uri contentUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_MESSAGE);
-        Cursor c = mResolver.query(contentUri, BluetoothMapContract.BT_MESSAGE_PROJECTION,
-                "_ID = " + id, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, contentUri,
+                BluetoothMapContract.BT_MESSAGE_PROJECTION, "_ID = " + id, null, null);
         try {
             if (c != null && c.moveToFirst()) {
                 BluetoothMapFolderElement folderElement;
@@ -4166,7 +4191,8 @@ public class BluetoothMapContent {
                 // Get email message body content
                 int count = 0;
                 try {
-                    fd = mResolver.openFileDescriptor(uri, "r");
+                    fd = BluetoothMethodProxy.getInstance().contentResolverOpenFileDescriptor(
+                            mResolver, uri, "r");
                     is = new FileInputStream(fd.getFileDescriptor());
                     StringBuilder email = new StringBuilder("");
                     byte[] buffer = new byte[1024];
@@ -4237,8 +4263,8 @@ public class BluetoothMapContent {
 
         BluetoothMapbMessageMime message = new BluetoothMapbMessageMime();
         Uri contentUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_MESSAGE);
-        Cursor c = mResolver.query(contentUri, BluetoothMapContract.BT_MESSAGE_PROJECTION,
-                "_ID = " + id, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, contentUri,
+                BluetoothMapContract.BT_MESSAGE_PROJECTION, "_ID = " + id, null, null);
         Cursor contacts = null;
         try {
             if (c != null && c.moveToFirst()) {
@@ -4291,7 +4317,8 @@ public class BluetoothMapContent {
                 // FIXME end temp code
 
                 Uri contactsUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_CONVOCONTACT);
-                contacts = mResolver.query(contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
+                contacts = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        contactsUri, BluetoothMapContract.BT_CONTACT_PROJECTION,
                         BluetoothMapContract.ConvoContactColumns.CONVO_ID + " = " + threadId, null,
                         null);
                 // TODO this will not work for group-chats

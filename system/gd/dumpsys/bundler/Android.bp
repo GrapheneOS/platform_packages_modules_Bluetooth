@@ -46,13 +46,8 @@ genrule {
 
 cc_defaults {
     name: "bluetooth_flatbuffer_bundler_defaults",
+    defaults: ["fluoride_common_options"],
     cpp_std: "c++17",
-    cflags: [
-        "-Wall",
-        "-Werror",
-        "-Wno-unused-parameter",
-        "-Wno-unused-variable",
-    ],
     generated_headers: [
         "BluetoothGeneratedBundlerSchema_h_bfbs",
     ],

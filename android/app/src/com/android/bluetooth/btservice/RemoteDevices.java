@@ -19,6 +19,7 @@ package com.android.bluetooth.btservice;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 
+import android.app.admin.SecurityLog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothClass;
@@ -850,6 +851,8 @@ final class RemoteDevices {
             if (batteryService != null) {
                 batteryService.connect(device);
             }
+            SecurityLog.writeEvent(SecurityLog.TAG_BLUETOOTH_CONNECTION,
+                    Utils.getLoggableAddress(device), /* success */ 1, /* reason */ "");
             debugLog(
                     "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
                             + " Connected: " + device);
@@ -883,6 +886,10 @@ final class RemoteDevices {
                     deviceProp.setBondingInitiatedLocally(false);
                 }
             }
+            SecurityLog.writeEvent(SecurityLog.TAG_BLUETOOTH_DISCONNECTION,
+                    Utils.getLoggableAddress(device),
+                    BluetoothAdapter.BluetoothConnectionCallback.disconnectReasonToString(
+                            AdapterService.hciToAndroidDisconnectReason(hciReason)));
             debugLog(
                     "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
                             + " Disconnected: " + device

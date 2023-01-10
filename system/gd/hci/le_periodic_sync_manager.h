@@ -272,13 +272,19 @@ class PeriodicSyncManager {
     }
 
     auto address_with_type = AddressWithType(event_view.GetAdvertiserAddress(), event_view.GetAdvertiserAddressType());
-
-    auto temp_address_type = address_with_type.GetAddressType();
-    // If the create sync command uses 0x01, Random or Random ID, the result can be 0x01, 0x02, or 0x03,
-    // because a Random Address, if it is an RPA, can be resolved to either Public Identity or Random Identity.
-    if (temp_address_type != AddressType::PUBLIC_DEVICE_ADDRESS) {
-      temp_address_type = AddressType::RANDOM_DEVICE_ADDRESS;
+    auto peer_address_type = address_with_type.GetAddressType();
+    AddressType temp_address_type;
+    switch (peer_address_type) {
+      case AddressType::PUBLIC_DEVICE_ADDRESS:
+      case AddressType::PUBLIC_IDENTITY_ADDRESS:
+        temp_address_type = AddressType::PUBLIC_DEVICE_ADDRESS;
+        break;
+      case AddressType::RANDOM_DEVICE_ADDRESS:
+      case AddressType::RANDOM_IDENTITY_ADDRESS:
+        temp_address_type = AddressType::RANDOM_DEVICE_ADDRESS;
+        break;
     }
+
     auto periodic_sync = GetSyncFromAddressWithTypeAndSid(
         AddressWithType(event_view.GetAdvertiserAddress(), temp_address_type), event_view.GetAdvertisingSid());
     if (periodic_sync == periodic_syncs_.end()) {

@@ -16,26 +16,51 @@
 
 package com.android.bluetooth.pbap;
 
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.FORMAT_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.LISTSTARTOFFSET_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.ORDER_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.PRIMARYVERSIONCOUNTER_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.PROPERTY_SELECTOR_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.SEARCH_ATTRIBUTE_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.SECONDARYVERSIONCOUNTER_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.SUPPORTEDFEATURE_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.VCARDSELECTOROPERATOR_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_LENGTH.VCARDSELECTOR_LENGTH;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.FORMAT_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.LISTSTARTOFFSET_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.MAXLISTCOUNT_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.ORDER_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.PRIMARYVERSIONCOUNTER_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.PROPERTY_SELECTOR_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.SEARCH_ATTRIBUTE_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.SEARCH_VALUE_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.SECONDARYVERSIONCOUNTER_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.SUPPORTEDFEATURE_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.VCARDSELECTOROPERATOR_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_TAGID.VCARDSELECTOR_TAGID;
+import static com.android.obex.ApplicationParameter.TRIPLET_VALUE.ORDER.ORDER_BY_ALPHANUMERIC;
+
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.UserManager;
-import android.util.Log;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
+import com.android.bluetooth.pbap.BluetoothPbapObexServer.AppParamValue;
+import com.android.obex.ApplicationParameter;
 import com.android.obex.HeaderSet;
 import com.android.obex.Operation;
 import com.android.obex.ResponseCodes;
@@ -47,8 +72,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-
-import com.android.bluetooth.pbap.BluetoothPbapObexServer.AppParamValue;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -63,7 +86,7 @@ public class BluetoothPbapObexServerTest {
     @Mock PbapStateMachine mMockStateMachine;
 
     @Spy
-    BluetoothPbapMethodProxy mPbapMethodProxy = BluetoothPbapMethodProxy.getInstance();
+    BluetoothMethodProxy mPbapMethodProxy = BluetoothMethodProxy.getInstance();
 
     BluetoothPbapObexServer mServer;
 
@@ -85,14 +108,14 @@ public class BluetoothPbapObexServerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        BluetoothPbapMethodProxy.setInstanceForTesting(mPbapMethodProxy);
+        BluetoothMethodProxy.setInstanceForTesting(mPbapMethodProxy);
         mServer = new BluetoothPbapObexServer(
                 mMockHandler, InstrumentationRegistry.getTargetContext(), mMockStateMachine);
     }
 
     @After
     public void tearDown() throws Exception {
-        BluetoothPbapMethodProxy.setInstanceForTesting(null);
+        BluetoothMethodProxy.setInstanceForTesting(null);
     }
 
     @Test
@@ -591,4 +614,243 @@ public class BluetoothPbapObexServerTest {
         assertThat(mServer.onGet(operation)).isEqualTo(ResponseCodes.OBEX_HTTP_OK);
     }
 
+    @Test
+    public void writeVCardEntry() {
+        int vcfIndex = 1;
+        String nameWithSpecialChars = "Name<>\"\'&";
+        StringBuilder stringBuilder = new StringBuilder();
+
+        BluetoothPbapObexServer.writeVCardEntry(vcfIndex, nameWithSpecialChars, stringBuilder);
+        String result = stringBuilder.toString();
+
+        String expectedResult = "<card handle=\"" + vcfIndex + ".vcf\" name=\"" +
+                "Name&lt;&gt;&quot;&#039;&amp;" + "\"/>";
+        assertThat(result).isEqualTo(expectedResult);
+    }
+
+    @Test
+    public void getDatabaseIdentifier() {
+        long databaseIdentifierLow = 1;
+        BluetoothPbapUtils.sDbIdentifier.set(databaseIdentifierLow);
+        byte[] expected = new byte[] {0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 1}; // Big-endian
+
+        assertThat(mServer.getDatabaseIdentifier()).isEqualTo(expected);
+    }
+
+    @Test
+    public void getPBPrimaryFolderVersion() {
+        long primaryVersion = 5;
+        BluetoothPbapUtils.sPrimaryVersionCounter = primaryVersion;
+        byte[] expected = new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 5}; // Big-endian
+
+        assertThat(BluetoothPbapObexServer.getPBPrimaryFolderVersion()).isEqualTo(expected);
+    }
+
+    @Test
+    public void getPBSecondaryFolderVersion() {
+        long secondaryVersion = 5;
+        BluetoothPbapUtils.sSecondaryVersionCounter = secondaryVersion;
+        byte[] expected = new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 5}; // Big-endian
+
+        assertThat(BluetoothPbapObexServer.getPBSecondaryFolderVersion()).isEqualTo(expected);
+    }
+
+    @Test
+    public void setDbCounters() {
+        ApplicationParameter param = new ApplicationParameter();
+
+        mServer.setDbCounters(param);
+
+        byte[] result = param.getHeader();
+        assertThat(result).isNotNull();
+        int expectedLength = 2 + ApplicationParameter.TRIPLET_LENGTH.DATABASEIDENTIFIER_LENGTH;
+        assertThat(result.length).isEqualTo(expectedLength);
+    }
+
+    @Test
+    public void setFolderVersionCounters() {
+        ApplicationParameter param = new ApplicationParameter();
+
+        BluetoothPbapObexServer.setFolderVersionCounters(param);
+
+        byte[] result = param.getHeader();
+        assertThat(result).isNotNull();
+        int expectedLength = 2 + ApplicationParameter.TRIPLET_LENGTH.PRIMARYVERSIONCOUNTER_LENGTH
+                + 2 + ApplicationParameter.TRIPLET_LENGTH.SECONDARYVERSIONCOUNTER_LENGTH;
+        assertThat(result.length).isEqualTo(expectedLength);
+    }
+
+    @Test
+    public void setCallversionCounters() {
+        ApplicationParameter param = new ApplicationParameter();
+        AppParamValue value = new AppParamValue();
+        value.callHistoryVersionCounter = new byte[]
+                {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+
+        BluetoothPbapObexServer.setCallversionCounters(param, value);
+
+        byte[] expectedResult = new byte[] {
+                PRIMARYVERSIONCOUNTER_TAGID, PRIMARYVERSIONCOUNTER_LENGTH,
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                SECONDARYVERSIONCOUNTER_TAGID, SECONDARYVERSIONCOUNTER_LENGTH,
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+        };
+        assertThat(param.getHeader()).isEqualTo(expectedResult);
+    }
+
+    @Test
+    public void pushHeader_returnsObexHttpOk() throws Exception {
+        Operation op = mock(Operation.class);
+        OutputStream os = mock(OutputStream.class);
+        when(op.openOutputStream()).thenReturn(os);
+        HeaderSet reply = new HeaderSet();
+
+        assertThat(BluetoothPbapObexServer.pushHeader(op, reply))
+                .isEqualTo(ResponseCodes.OBEX_HTTP_OK);
+    }
+
+    @Test
+    public void pushHeader_withExceptionWhenOpeningOutputStream_returnsObexHttpInternalError()
+            throws Exception {
+        HeaderSet reply = new HeaderSet();
+        Operation op = mock(Operation.class);
+        when(op.openOutputStream()).thenThrow(new IOException());
+
+        assertThat(BluetoothPbapObexServer.pushHeader(op, reply))
+                .isEqualTo(ResponseCodes.OBEX_HTTP_INTERNAL_ERROR);
+    }
+
+    @Test
+    public void pushHeader_withExceptionWhenClosingOutputStream_returnsObexHttpInternalError()
+            throws Exception {
+        HeaderSet reply = new HeaderSet();
+        Operation op = mock(Operation.class);
+        OutputStream os = mock(OutputStream.class);
+        when(op.openOutputStream()).thenReturn(os);
+        doThrow(new IOException()).when(os).close();
+
+        assertThat(BluetoothPbapObexServer.pushHeader(op, reply))
+                .isEqualTo(ResponseCodes.OBEX_HTTP_INTERNAL_ERROR);
+    }
+
+    @Test
+    public void parseApplicationParameter_withInvalidTripletTagid_returnsFalse() {
+        byte invalidTripletTagId = 0x00;
+        byte[] rawBytes = new byte[] {invalidTripletTagId};
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isFalse();
+    }
+
+    @Test
+    public void parseApplicationParameter_withPropertySelectorTagid() {
+        byte[] rawBytes = new byte[] {PROPERTY_SELECTOR_TAGID, PROPERTY_SELECTOR_LENGTH,
+                0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08}; // non-zero value uses filter
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        assertThat(appParamValue.ignorefilter).isFalse();
+    }
+
+    @Test
+    public void parseApplicationParameter_withSupportedFeatureTagid() {
+        byte[] rawBytes = new byte[] {SUPPORTEDFEATURE_TAGID, SUPPORTEDFEATURE_LENGTH,
+                0x01, 0x02, 0x03, 0x04};
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        byte[] expectedSupportedFeature = new byte[] {0x01, 0x02, 0x03, 0x04};
+        assertThat(appParamValue.supportedFeature).isEqualTo(expectedSupportedFeature);
+    }
+
+    @Test
+    public void parseApplicationParameter_withOrderTagid() {
+        byte[] rawBytes = new byte[] {ORDER_TAGID, ORDER_LENGTH,
+                ORDER_BY_ALPHANUMERIC};
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        assertThat(appParamValue.order).isEqualTo("1");
+    }
+
+    @Test
+    public void parseApplicationParameter_withSearchValueTagid() {
+        int searchLength = 4;
+        byte[] rawBytes = new byte[] {SEARCH_VALUE_TAGID, (byte) searchLength,
+                'a', 'b', 'c', 'd' };
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        assertThat(appParamValue.searchValue).isEqualTo("abcd");
+    }
+
+    @Test
+    public void parseApplicationParameter_withSearchAttributeTagid() {
+        byte[] rawBytes = new byte[] {SEARCH_ATTRIBUTE_TAGID, SEARCH_ATTRIBUTE_LENGTH,
+                0x05};
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        assertThat(appParamValue.searchAttr).isEqualTo("5");
+    }
+
+    @Test
+    public void parseApplicationParameter_withMaxListCountTagid() {
+        byte[] rawBytes = new byte[] {MAXLISTCOUNT_TAGID, SEARCH_ATTRIBUTE_LENGTH,
+                0x01, 0x02};
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        assertThat(appParamValue.maxListCount).isEqualTo(256 * 1 + 2);
+    }
+
+    @Test
+    public void parseApplicationParameter_withListStartOffsetTagid() {
+        byte[] rawBytes = new byte[] {LISTSTARTOFFSET_TAGID, LISTSTARTOFFSET_LENGTH,
+                0x01, 0x02};
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        assertThat(appParamValue.listStartOffset).isEqualTo(256 * 1 + 2);
+    }
+
+    @Test
+    public void parseApplicationParameter_withFormatTagid() {
+        byte[] rawBytes = new byte[] {FORMAT_TAGID, FORMAT_LENGTH,
+                0x01};
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        assertThat(appParamValue.vcard21).isFalse();
+    }
+
+    @Test
+    public void parseApplicationParameter_withVCardSelectorTagid() {
+        byte[] rawBytes = new byte[] {VCARDSELECTOR_TAGID, VCARDSELECTOR_LENGTH,
+                0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        byte[] expectedVcardSelector = new byte[] {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+        assertThat(appParamValue.vCardSelector).isEqualTo(expectedVcardSelector);
+    }
+
+    @Test
+    public void parseApplicationParameter_withVCardSelectorOperatorTagid() {
+        byte[] rawBytes = new byte[] {VCARDSELECTOROPERATOR_TAGID, VCARDSELECTOROPERATOR_LENGTH,
+                0x01};
+        AppParamValue appParamValue = new AppParamValue();
+
+        assertThat(mServer.parseApplicationParameter(rawBytes, appParamValue)).isTrue();
+        assertThat(appParamValue.vCardSelectorOperator).isEqualTo("1");
+    }
+
+    @Test
+    public void appParamValueDump_doesNotCrash() {
+        AppParamValue appParamValue = new AppParamValue();
+        appParamValue.dump();
+    }
 }

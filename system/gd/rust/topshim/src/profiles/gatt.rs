@@ -77,6 +77,7 @@ pub mod ffi {
         name: Vec<u8>,
         company: u16,
         company_mask: u16,
+        ad_type: u8,
         data: Vec<u8>,
         data_mask: Vec<u8>,
         irk: [u8; 16],

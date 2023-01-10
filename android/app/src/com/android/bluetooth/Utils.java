@@ -373,9 +373,12 @@ public final class Utils {
      */
     public static boolean isPackageNameAccurate(Context context, String callingPackage,
             int callingUid) {
+        UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
+
         // Verifies the integrity of the calling package name
         try {
-            int packageUid = context.getPackageManager().getPackageUid(callingPackage, 0);
+            int packageUid = context.createContextAsUser(callingUser, 0)
+                    .getPackageManager().getPackageUid(callingPackage, 0);
             if (packageUid != callingUid) {
                 Log.e(TAG, "isPackageNameAccurate: App with package name " + callingPackage
                         + " is UID " + packageUid + " but caller is " + callingUid);
@@ -424,8 +427,6 @@ public final class Utils {
                 "Need DUMP permission");
     }
 
-    /**
-     */
     public static AttributionSource getCallingAttributionSource(Context context) {
         int callingUid = Binder.getCallingUid();
         if (callingUid == android.os.Process.ROOT_UID) {
@@ -460,6 +461,9 @@ public final class Utils {
     @SuppressLint("AndroidFrameworkRequiresPermission")
     private static boolean checkPermissionForDataDelivery(Context context, String permission,
             AttributionSource attributionSource, String message) {
+        if (isInstrumentationTestMode()) {
+            return true;
+        }
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
         AttributionSource currentAttribution = new AttributionSource
@@ -617,7 +621,7 @@ public final class Utils {
         return false;
     }
 
-    public static boolean checkCallerIsSystemOrActiveUser() {
+    private static boolean checkCallerIsSystemOrActiveUser() {
         int callingUid = Binder.getCallingUid();
         UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
 
@@ -638,7 +642,7 @@ public final class Utils {
         return checkCallerIsSystemOrActiveUser(tag + "." + method + "()");
     }
 
-    public static boolean checkCallerIsSystemOrActiveOrManagedUser(Context context) {
+    private static boolean checkCallerIsSystemOrActiveOrManagedUser(Context context) {
         if (context == null) {
             return checkCallerIsSystemOrActiveUser();
         }
@@ -666,6 +670,9 @@ public final class Utils {
     }
 
     public static boolean checkCallerIsSystemOrActiveOrManagedUser(Context context, String tag) {
+        if (isInstrumentationTestMode()) {
+            return true;
+        }
         final boolean res = checkCallerIsSystemOrActiveOrManagedUser(context);
         if (!res) {
             Log.w(TAG, tag + " - Not allowed for"
@@ -1001,7 +1008,8 @@ public final class Utils {
         }
         values.put(Telephony.Sms.ERROR_CODE, 0);
 
-        return 1 == context.getContentResolver().update(uri, values, null, null);
+        return 1 == BluetoothMethodProxy.getInstance().contentResolverUpdate(
+                context.getContentResolver(), uri, values, null, null);
     }
 
     /**

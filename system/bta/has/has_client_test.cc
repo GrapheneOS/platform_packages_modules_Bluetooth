@@ -737,8 +737,8 @@ class HasClientTestBase : public ::testing::Test {
     ON_CALL(gatt_interface, Open(_, _, _, _))
         .WillByDefault(
             Invoke([&](tGATT_IF client_if, const RawAddress& remote_bda,
-                       bool is_direct, bool opportunistic) {
-              if (is_direct)
+                       tBTM_BLE_CONN_TYPE connection_type, bool opportunistic) {
+              if (connection_type == BTM_BLE_DIRECT_CONNECTION)
                 InjectConnectedEvent(remote_bda, GetTestConnId(remote_bda));
             }));
 
@@ -784,7 +784,8 @@ class HasClientTestBase : public ::testing::Test {
     ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
         .WillByDefault(DoAll(Return(encryption_result)));
 
-    EXPECT_CALL(gatt_interface, Open(gatt_if, address, true, _));
+    EXPECT_CALL(gatt_interface,
+                Open(gatt_if, address, BTM_BLE_DIRECT_CONNECTION, _));
     HasClient::Get()->Connect(address);
 
     Mock::VerifyAndClearExpectations(&*callbacks);
@@ -807,7 +808,8 @@ class HasClientTestBase : public ::testing::Test {
   void TestAddFromStorage(const RawAddress& address, uint8_t features,
                           bool auto_connect) {
     if (auto_connect) {
-      EXPECT_CALL(gatt_interface, Open(gatt_if, address, false, _));
+      EXPECT_CALL(gatt_interface,
+                  Open(gatt_if, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _));
       HasClient::Get()->AddFromStorage(address, features, auto_connect);
 
       /* Inject connected event for autoconnect/background connection */
@@ -1233,7 +1235,8 @@ TEST_F(HasClientTest, test_disconnect_non_connected) {
   const RawAddress test_address = GetTestAddress(1);
 
   /* Override the default action to prevent us sendind the connected event */
-  EXPECT_CALL(gatt_interface, Open(gatt_if, test_address, true, _))
+  EXPECT_CALL(gatt_interface,
+              Open(gatt_if, test_address, BTM_BLE_DIRECT_CONNECTION, _))
       .WillOnce(Return());
   HasClient::Get()->Connect(test_address);
   TestDisconnect(test_address, GATT_INVALID_CONN_ID);
@@ -1341,7 +1344,7 @@ TEST_F(HasClientTest, test_reconnect_after_encryption_failed_from_storage) {
   InjectConnectedEvent(test_address, GetTestConnId(test_address));
 }
 
-TEST_F(HasClientTest, test_load_from_storage) {
+TEST_F(HasClientTest, test_load_from_storage_and_connect) {
   const RawAddress test_address = GetTestAddress(1);
   SetSampleDatabaseHasPresetsNtf(test_address, kFeatureBitDynamicPresets, {{}});
   SetEncryptionResult(test_address, true);
@@ -1392,7 +1395,7 @@ TEST_F(HasClientTest, test_load_from_storage) {
 
   /* Expect no read or write operations when loading from storage */
   EXPECT_CALL(gatt_queue, ReadCharacteristic(1, _, _, _)).Times(0);
-  EXPECT_CALL(gatt_queue, WriteDescriptor(1, _, _, _, _, _)).Times(0);
+  EXPECT_CALL(gatt_queue, WriteDescriptor(1, _, _, _, _, _)).Times(3);
 
   TestAddFromStorage(test_address,
                      kFeatureBitWritablePresets |
@@ -1409,6 +1412,58 @@ TEST_F(HasClientTest, test_load_from_storage) {
       ASSERT_TRUE(info.writable);
     ASSERT_EQ(preset->GetName(), info.preset_name);
   }
+}
+
+TEST_F(HasClientTest, test_load_from_storage) {
+  const RawAddress test_address = GetTestAddress(1);
+  SetSampleDatabaseHasPresetsNtf(test_address, kFeatureBitDynamicPresets, {{}});
+  SetEncryptionResult(test_address, true);
+
+  std::set<HasPreset, HasPreset::ComparatorDesc> has_presets = {{
+      HasPreset(5, HasPreset::kPropertyAvailable | HasPreset::kPropertyWritable,
+                "YourWritablePreset5"),
+      HasPreset(55, HasPreset::kPropertyAvailable, "YourPreset55"),
+  }};
+
+  /* Load persistent storage data */
+  ON_CALL(btif_storage_interface_, GetLeaudioHasPresets(test_address, _, _))
+      .WillByDefault([&has_presets](const RawAddress& address,
+                                    std::vector<uint8_t>& presets_bin,
+                                    uint8_t& active_preset) {
+        /* Generate presets binary to be used instead the attribute values */
+        HasDevice device(address, 0);
+        device.has_presets = has_presets;
+        active_preset = 55;
+
+        if (device.SerializePresets(presets_bin)) return true;
+
+        return false;
+      });
+
+  EXPECT_CALL(gatt_interface, RegisterForNotifications(gatt_if, _, _))
+      .Times(0);  // features
+
+  EXPECT_CALL(*callbacks,
+              OnDeviceAvailable(test_address,
+                                (kFeatureBitWritablePresets |
+                                 kFeatureBitPresetSynchronizationSupported |
+                                 kFeatureBitHearingAidTypeBanded)));
+
+  std::vector<PresetInfo> loaded_preset_details;
+  EXPECT_CALL(*callbacks,
+              OnPresetInfo(std::variant<RawAddress, int>(test_address),
+                           PresetInfoReason::ALL_PRESET_INFO, _))
+      .Times(0);
+
+  /* Expect no read or write operations when loading from storage */
+  EXPECT_CALL(gatt_queue, ReadCharacteristic(1, _, _, _)).Times(0);
+  EXPECT_CALL(gatt_queue, WriteDescriptor(1, _, _, _, _, _)).Times(0);
+
+  TestAddFromStorage(test_address,
+                     kFeatureBitWritablePresets |
+                         kFeatureBitPresetSynchronizationSupported |
+                         kFeatureBitHearingAidTypeBanded,
+                     false);
 }
 
 TEST_F(HasClientTest, test_write_to_storage) {

@@ -24,6 +24,8 @@ class OobData:
     confirmation = None
     randomizer = None
 
+    ADDRESS_WITH_TYPE_LENGTH = 14
+
     def __init__(self, address, confirmation, randomizer):
         self.address = address
         self.confirmation = confirmation
@@ -43,3 +45,8 @@ class OobData:
         address_str_octets = address_str_octets[:6]
         address_str_octets.reverse()
         return ":".join(address_str_octets)
+
+    def to_sl4a_address_type(self):
+        if len(self.address) != self.ADDRESS_WITH_TYPE_LENGTH:
+            return -1
+        return self.address.upper()[-2]

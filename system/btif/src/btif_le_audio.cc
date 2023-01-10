@@ -199,6 +199,13 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                         Unretained(LeAudioClient::Get()), ccid, context_type));
   }
 
+  void SetInCall(bool in_call) {
+    DVLOG(2) << __func__ << " in_call: " << in_call;
+    do_in_main_thread(FROM_HERE,
+                      Bind(&LeAudioClient::SetInCall,
+                           Unretained(LeAudioClient::Get()), in_call));
+  }
+
  private:
   LeAudioClientCallbacks* callbacks;
 };

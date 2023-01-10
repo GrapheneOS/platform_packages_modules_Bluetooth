@@ -52,6 +52,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
 
 /**
@@ -76,15 +77,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
 
     private boolean mTimeout = false;
 
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION.equals(intent.getAction())) {
-                return;
-            }
-            onTimeout();
-        }
-    };
+    private BroadcastReceiver mReceiver = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +119,15 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
             Log.v(TAG, "BluetoothIncomingFileConfirmActivity: Got uri:" + mUri);
         }
 
+        mReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (!BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION.equals(intent.getAction())) {
+                    return;
+                }
+                onTimeout();
+            }
+        };
         registerReceiver(mReceiver,
                 new IntentFilter(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION));
     }
@@ -154,7 +156,8 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
             mUpdateValues = new ContentValues();
             mUpdateValues.put(BluetoothShare.USER_CONFIRMATION,
                     BluetoothShare.USER_CONFIRMATION_CONFIRMED);
-            this.getContentResolver().update(mUri, mUpdateValues, null, null);
+            BluetoothMethodProxy.getInstance().contentResolverUpdate(this.getContentResolver(),
+                    mUri, mUpdateValues, null, null);
 
             Toast.makeText(this, getString(R.string.bt_toast_1), Toast.LENGTH_SHORT).show();
         }
@@ -165,7 +168,8 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
         mUpdateValues = new ContentValues();
         mUpdateValues.put(BluetoothShare.USER_CONFIRMATION,
                 BluetoothShare.USER_CONFIRMATION_DENIED);
-        this.getContentResolver().update(mUri, mUpdateValues, null, null);
+        BluetoothMethodProxy.getInstance().contentResolverUpdate(this.getContentResolver(),
+                mUri, mUpdateValues, null, null);
     }
 
     @Override
@@ -183,7 +187,9 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mReceiver);
+        if (mReceiver != null) {
+            unregisterReceiver(mReceiver);
+        }
     }
 
     @Override

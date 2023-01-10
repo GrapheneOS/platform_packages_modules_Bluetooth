@@ -39,6 +39,7 @@
 #include "gap_api.h"
 #include "gatt_api.h"
 #include "has_types.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 
@@ -165,11 +166,12 @@ class HasClientImpl : public HasClient {
                                  HasDevice::MatchAddress(addr));
       if (device == devices_.end()) {
         devices_.emplace_back(addr, true);
-        BTA_GATTC_Open(gatt_if_, addr, true, false);
+        BTA_GATTC_Open(gatt_if_, addr, BTM_BLE_DIRECT_CONNECTION, false);
 
       } else {
         device->is_connecting_actively = true;
-        if (!device->IsConnected()) BTA_GATTC_Open(gatt_if_, addr, true, false);
+        if (!device->IsConnected())
+          BTA_GATTC_Open(gatt_if_, addr, BTM_BLE_DIRECT_CONNECTION, false);
       }
     }
   }
@@ -189,7 +191,7 @@ class HasClientImpl : public HasClient {
         devices_.push_back(HasDevice(address, features));
 
       /* Connect in background */
-      BTA_GATTC_Open(gatt_if_, address, false, false);
+      BTA_GATTC_Open(gatt_if_, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
     }
   }
 
@@ -364,6 +366,10 @@ class HasClientImpl : public HasClient {
     auto op = op_opt.value();
     callbacks_->OnPresetInfoError(device->addr, op.index,
                                   GattStatus2SvcErrorCode(status));
+
+    LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
+              device->addr.ToString().c_str());
+    BTA_GATTC_Close(conn_id);
   }
 
   void OnHasPresetIndexOperation(uint16_t conn_id, tGATT_STATUS status,
@@ -403,6 +409,9 @@ class HasClientImpl : public HasClient {
       callbacks_->OnActivePresetSelectError(op.addr_or_group,
                                             GattStatus2SvcErrorCode(status));
     }
+    LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
+              device->addr.ToString().c_str());
+    BTA_GATTC_Close(conn_id);
   }
 
   void CpReadAllPresetsOperation(HasCtpOp operation) {
@@ -890,6 +899,36 @@ class HasClientImpl : public HasClient {
   }
 
  private:
+  void WriteAllNeededCcc(const HasDevice& device) {
+    if (device.conn_id == GATT_INVALID_CONN_ID) {
+      LOG_ERROR("Device %s is not connected", device.addr.ToString().c_str());
+      return;
+    }
+
+    /* Write CCC values even remote should have it */
+    LOG_INFO("Subscribing for notification/indications");
+    if (device.SupportsFeaturesNotification()) {
+      SubscribeForNotifications(device.conn_id, device.addr,
+                                device.features_handle,
+                                device.features_ccc_handle);
+    }
+
+    if (device.SupportsPresets()) {
+      SubscribeForNotifications(device.conn_id, device.addr, device.cp_handle,
+                                device.cp_ccc_handle, device.cp_ccc_val);
+      SubscribeForNotifications(device.conn_id, device.addr,
+                                device.active_preset_handle,
+                                device.active_preset_ccc_handle);
+    }
+
+    if (osi_property_get_bool("persist.bluetooth.has.always_use_preset_cache",
+                              true) == false) {
+      CpReadAllPresetsOperation(HasCtpOp(
+          device.addr, PresetCtpOpcode::READ_PRESETS,
+          le_audio::has::kStartPresetIndex, le_audio::has::kMaxNumOfPresets));
+    }
+  }
+
   void OnEncrypted(HasDevice& device) {
     DLOG(INFO) << __func__ << ": " << device.addr;
 
@@ -900,7 +939,7 @@ class HasClientImpl : public HasClient {
                                device.GetAllPresetInfo());
       callbacks_->OnActivePresetSelected(device.addr,
                                          device.currently_active_preset);
-
+      WriteAllNeededCcc(device);
     } else {
       BTA_GATTC_ServiceSearchRequest(device.conn_id,
                                      &kUuidHearingAccessService);
@@ -1538,9 +1577,22 @@ class HasClientImpl : public HasClient {
                      << ": no HAS Control Point CCC descriptor found!";
           return false;
         }
+        uint8_t ccc_val = 0;
+        if (charac.properties & GATT_CHAR_PROP_BIT_NOTIFY)
+          ccc_val |= GATT_CHAR_CLIENT_CONFIG_NOTIFICATION;
+
+        if (charac.properties & GATT_CHAR_PROP_BIT_INDICATE)
+          ccc_val |= GATT_CHAR_CLIENT_CONFIG_INDICTION;
+
+        if (ccc_val == 0) {
+          LOG_ERROR("Invalid properties for the control point 0x%02x",
+                    charac.properties);
+          return false;
+        }
 
         device->cp_ccc_handle = ccc_handle;
         device->cp_handle = charac.value_handle;
+        device->cp_ccc_val = ccc_val;
       } else if (charac.uuid == kUuidHearingAidFeatures) {
         /* Find the optional CCC descriptor */
         uint16_t ccc_handle =
@@ -1570,30 +1622,6 @@ class HasClientImpl : public HasClient {
 
     device->currently_active_preset = active_preset;
 
-    /* Register for optional features notifications */
-    if (device->features_ccc_handle != GAP_INVALID_HANDLE) {
-      tGATT_STATUS register_status = BTA_GATTC_RegisterForNotifications(
-          gatt_if_, device->addr, device->features_handle);
-      DLOG(INFO) << __func__ << " Registering for notifications, status="
-                 << loghex(+register_status);
-    }
-
-    /* Register for presets control point notifications */
-    if (device->cp_ccc_handle != GAP_INVALID_HANDLE) {
-      tGATT_STATUS register_status = BTA_GATTC_RegisterForNotifications(
-          gatt_if_, device->addr, device->cp_handle);
-      DLOG(INFO) << __func__ << " Registering for notifications, status="
-                 << loghex(+register_status);
-    }
-
-    /* Register for active presets notifications if presets exist */
-    if (device->active_preset_ccc_handle != GAP_INVALID_HANDLE) {
-      tGATT_STATUS register_status = BTA_GATTC_RegisterForNotifications(
-          gatt_if_, device->addr, device->active_preset_handle);
-      DLOG(INFO) << __func__ << " Registering for notifications, status="
-                 << loghex(+register_status);
-    }
-
     /* Update features and refresh opcode support map */
     uint8_t val;
     if (btif_storage_get_leaudio_has_features(device->addr, val))
@@ -1608,6 +1636,12 @@ class HasClientImpl : public HasClient {
                              device->GetAllPresetInfo());
     callbacks_->OnActivePresetSelected(device->addr,
                                        device->currently_active_preset);
+    if (device->conn_id == GATT_INVALID_CONN_ID) return true;
+
+    /* Be mistrustful here: write CCC values even remote should have it */
+    LOG_INFO("Subscribing for notification/indications");
+    WriteAllNeededCcc(*device);
+
     return true;
   }
 
@@ -1653,13 +1687,14 @@ class HasClientImpl : public HasClient {
      * mandatory active preset index notifications.
      */
     if (device->SupportsPresets()) {
-      uint16_t ccc_val = gatt_profile_get_eatt_support(device->addr)
-                             ? GATT_CHAR_CLIENT_CONFIG_INDICTION |
-                                   GATT_CHAR_CLIENT_CONFIG_NOTIFICATION
-                             : GATT_CHAR_CLIENT_CONFIG_INDICTION;
+      /* Subscribe for active preset notifications */
+      SubscribeForNotifications(device->conn_id, device->addr,
+                                device->active_preset_handle,
+                                device->active_preset_ccc_handle);
+
       SubscribeForNotifications(device->conn_id, device->addr,
                                 device->cp_handle, device->cp_ccc_handle,
-                                ccc_val);
+                                device->cp_ccc_val);
 
       /* Get all the presets */
       CpReadAllPresetsOperation(HasCtpOp(
@@ -1676,11 +1711,6 @@ class HasClientImpl : public HasClient {
                                                value, user_data);
           },
           nullptr);
-
-      /* Subscribe for active preset notifications */
-      SubscribeForNotifications(device->conn_id, device->addr,
-                                device->active_preset_handle,
-                                device->active_preset_ccc_handle);
     } else {
       LOG(WARNING) << __func__
                    << ": server can only report HAS features, other "
@@ -1730,7 +1760,8 @@ class HasClientImpl : public HasClient {
         break;
 
       case BTA_GATTC_ENC_CMPL_CB_EVT:
-        OnLeEncryptionComplete(p_data->enc_cmpl.remote_bda, BTM_SUCCESS);
+        OnLeEncryptionComplete(p_data->enc_cmpl.remote_bda,
+            BTM_IsEncrypted(p_data->enc_cmpl.remote_bda, BT_TRANSPORT_LE));
         break;
 
       case BTA_GATTC_SRVC_CHG_EVT:
@@ -1796,7 +1827,8 @@ class HasClientImpl : public HasClient {
         evt.remote_bda, BT_TRANSPORT_LE,
         [](const RawAddress* bd_addr, tBT_TRANSPORT transport, void* p_ref_data,
            tBTM_STATUS status) {
-          if (instance) instance->OnLeEncryptionComplete(*bd_addr, status);
+          if (instance)
+            instance->OnLeEncryptionComplete(*bd_addr, status == BTM_SUCCESS);
         },
         nullptr, BTM_BLE_SEC_ENCRYPT);
 
@@ -1824,7 +1856,9 @@ class HasClientImpl : public HasClient {
     DoDisconnectCleanUp(*device, peer_disconnected ? false : true);
 
     /* Connect in background - is this ok? */
-    if (peer_disconnected) BTA_GATTC_Open(gatt_if_, device->addr, false, false);
+    if (peer_disconnected)
+      BTA_GATTC_Open(gatt_if_, device->addr, BTM_BLE_BKG_CONNECT_ALLOW_LIST,
+                     false);
   }
 
   void OnGattServiceSearchComplete(const tBTA_GATTC_SEARCH_CMPL& evt) {
@@ -1876,12 +1910,12 @@ class HasClientImpl : public HasClient {
       LOG(ERROR) << __func__ << ": rejected BTA_GATTC_NOTIF_EVT. is_notify = "
                  << evt.is_notify << ", len=" << static_cast<int>(evt.len);
     }
-    if (!evt.is_notify) BTA_GATTC_SendIndConfirm(evt.conn_id, evt.handle);
+    if (!evt.is_notify) BTA_GATTC_SendIndConfirm(evt.conn_id, evt.cid);
 
     OnHasNotification(evt.conn_id, evt.handle, evt.len, evt.value);
   }
 
-  void OnLeEncryptionComplete(const RawAddress& address, uint8_t status) {
+  void OnLeEncryptionComplete(const RawAddress& address, bool success) {
     DLOG(INFO) << __func__ << ": " << address;
 
     auto device = std::find_if(devices_.begin(), devices_.end(),
@@ -1891,9 +1925,8 @@ class HasClientImpl : public HasClient {
       return;
     }
 
-    if (status != BTM_SUCCESS) {
-      LOG(ERROR) << "encryption failed"
-                 << " status: " << +status;
+    if (!success) {
+      LOG(ERROR) << "Encryption failed for device " << address;
 
       BTA_GATTC_Close(device->conn_id);
       return;

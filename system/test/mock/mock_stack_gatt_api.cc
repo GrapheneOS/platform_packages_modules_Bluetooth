@@ -173,12 +173,13 @@ bool GATT_CancelConnect(tGATT_IF gatt_if, const RawAddress& bd_addr,
   return test::mock::stack_gatt_api::GATT_CancelConnect(gatt_if, bd_addr,
                                                         is_direct);
 }
-bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
-                  tBT_TRANSPORT transport, bool opportunistic,
-                  uint8_t initiating_phys) {
+bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                  tBTM_BLE_CONN_TYPE connection_type, tBT_TRANSPORT transport,
+                  bool opportunistic, uint8_t initiating_phys) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_gatt_api::GATT_Connect(
-      gatt_if, bd_addr, is_direct, transport, opportunistic, initiating_phys);
+      gatt_if, bd_addr, connection_type, transport, opportunistic,
+      initiating_phys);
 }
 void GATT_Deregister(tGATT_IF gatt_if) {
   mock_function_count_map[__func__]++;
@@ -207,10 +208,10 @@ tGATT_IF GATT_Register(const Uuid& app_uuid128, std::string name,
                                                    eatt_support);
 }
 void GATT_SetIdleTimeout(const RawAddress& bd_addr, uint16_t idle_tout,
-                         tBT_TRANSPORT transport) {
+                         tBT_TRANSPORT transport, bool is_active) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_gatt_api::GATT_SetIdleTimeout(bd_addr, idle_tout,
-                                                  transport);
+  test::mock::stack_gatt_api::GATT_SetIdleTimeout(bd_addr, idle_tout, transport,
+                                                  is_active);
 }
 void GATT_StartIf(tGATT_IF gatt_if) {
   mock_function_count_map[__func__]++;
@@ -228,11 +229,12 @@ bool is_active_service(const Uuid& app_uuid128, Uuid* p_svc_uuid,
 }
 // Mocked functions complete
 //
-bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
-                  tBT_TRANSPORT transport, bool opportunistic) {
+bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                  tBTM_BLE_CONN_TYPE connection_type, tBT_TRANSPORT transport,
+                  bool opportunistic) {
   mock_function_count_map[__func__]++;
-  return test::mock::stack_gatt_api::GATT_Connect(gatt_if, bd_addr, is_direct,
-                                                  transport, opportunistic, 0);
+  return test::mock::stack_gatt_api::GATT_Connect(
+      gatt_if, bd_addr, connection_type, transport, opportunistic, 0);
 }
 
 // END mockcify generation

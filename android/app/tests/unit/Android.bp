@@ -2,11 +2,8 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-android_test {
-    name: "BluetoothInstrumentationTests",
-
-    // We only want this apk build for tests.
-    certificate: ":com.android.bluetooth.certificate",
+java_defaults {
+    name: "BluetoothInstrumentationTestsDefaults",
     defaults: ["framework-bluetooth-tests-defaults"],
 
     min_sdk_version: "current",
@@ -21,6 +18,7 @@ android_test {
     ],
 
     static_libs: [
+        "androidx.media_media",
         "androidx.test.ext.truth",
         "androidx.test.rules",
         "mockito-target",
@@ -50,4 +48,16 @@ android_test {
     ],
 
     instrumentation_for: "Bluetooth",
+}
+
+android_test {
+    name: "BluetoothInstrumentationTests",
+    defaults: ["BluetoothInstrumentationTestsDefaults"],
+}
+
+android_test {
+    name: "GoogleBluetoothInstrumentationTests",
+    defaults: ["BluetoothInstrumentationTestsDefaults"],
+    test_config: "GoogleAndroidTest.xml",
+    instrumentation_target_package: "com.google.android.bluetooth",
 }

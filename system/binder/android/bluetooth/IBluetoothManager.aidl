@@ -51,7 +51,7 @@ interface IBluetoothManager
     IBluetoothGatt getBluetoothGatt();
 
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
-    boolean bindBluetoothProfileService(int profile, IBluetoothProfileServiceConnection proxy);
+    boolean bindBluetoothProfileService(int profile, String serviceName, IBluetoothProfileServiceConnection proxy);
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     void unbindBluetoothProfileService(int profile, IBluetoothProfileServiceConnection proxy);
 

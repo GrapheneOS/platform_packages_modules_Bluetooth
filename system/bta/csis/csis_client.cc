@@ -236,7 +236,7 @@ class CsisClientImpl : public CsisClient {
       device->connecting_actively = true;
     }
 
-    BTA_GATTC_Open(gatt_if_, address, true, false);
+    BTA_GATTC_Open(gatt_if_, address, BTM_BLE_DIRECT_CONNECTION, false);
   }
 
   void Disconnect(const RawAddress& addr) override {
@@ -525,6 +525,16 @@ class CsisClientImpl : public CsisClient {
     }
   }
 
+  int GetDesiredSize(int group_id) override {
+    auto csis_group = FindCsisGroup(group_id);
+    if (!csis_group) {
+      LOG_INFO("Unknown group %d", group_id);
+      return -1;
+    }
+
+    return csis_group->GetDesiredSize();
+  }
+
   bool SerializeSets(const RawAddress& addr, std::vector<uint8_t>& out) const {
     auto device = FindDeviceByAddress(addr);
     if (device == nullptr) {
@@ -644,7 +654,7 @@ class CsisClientImpl : public CsisClient {
     }
 
     if (autoconnect) {
-      BTA_GATTC_Open(gatt_if_, addr, false, false);
+      BTA_GATTC_Open(gatt_if_, addr, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
     }
   }
 
@@ -974,7 +984,11 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
-    csis_group->SetDesiredSize(value[0]);
+    auto new_size = value[0];
+    csis_group->SetDesiredSize(new_size);
+    if (new_size > csis_group->GetCurrentSize()) {
+      CsisActiveDiscovery(csis_group);
+    }
   }
 
   void OnCsisLockReadRsp(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
@@ -1169,9 +1183,16 @@ class CsisClientImpl : public CsisClient {
   }
 
   void CsisActiveObserverSet(bool enable) {
-    LOG(INFO) << __func__ << " CSIS Discovery SET: " << enable;
+    bool is_ad_type_filter_supported =
+        bluetooth::shim::is_ad_type_filter_supported();
+    LOG_INFO("CSIS Discovery SET: %d, is_ad_type_filter_supported: %d", enable,
+             is_ad_type_filter_supported);
+    if (is_ad_type_filter_supported) {
+      bluetooth::shim::set_ad_type_rsi_filter(enable);
+    } else {
+      bluetooth::shim::set_empty_filter(enable);
+    }
 
-    bluetooth::shim::set_empty_filter(enable);
     BTA_DmBleCsisObserve(
         enable, [](tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
           /* If there's no instance we are most likely shutting
@@ -1203,7 +1224,31 @@ class CsisClientImpl : public CsisClient {
     }
   }
 
+  void CheckForGroupInInqDb(const std::shared_ptr<CsisGroup>& csis_group) {
+    // Check if last inquiry already found devices with RSI matching this group
+    for (tBTM_INQ_INFO* inq_ent = BTM_InqDbFirst(); inq_ent != nullptr;
+         inq_ent = BTM_InqDbNext(inq_ent)) {
+      RawAddress rsi = inq_ent->results.ble_ad_rsi;
+      if (!csis_group->IsRsiMatching(rsi)) continue;
+
+      RawAddress address = inq_ent->results.remote_bd_addr;
+      auto device = FindDeviceByAddress(address);
+      if (device && csis_group->IsDeviceInTheGroup(device)) {
+        // InqDb will also contain existing devices, already in group - skip
+        // them
+        continue;
+      }
+
+      LOG_INFO("Device %s from inquiry cache match to group id %d",
+               address.ToString().c_str(), csis_group->GetGroupId());
+      callbacks_->OnSetMemberAvailable(address, csis_group->GetGroupId());
+      break;
+    }
+  }
+
   void CsisActiveDiscovery(std::shared_ptr<CsisGroup> csis_group) {
+    CheckForGroupInInqDb(csis_group);
+
     if ((csis_group->GetDiscoveryState() !=
          CsisDiscoveryState::CSIS_DISCOVERY_IDLE)) {
       LOG(ERROR) << __func__
@@ -1224,7 +1269,7 @@ class CsisClientImpl : public CsisClient {
 
     auto csis_device = FindDeviceByAddress(result->bd_addr);
     if (csis_device) {
-      DLOG(INFO) << __func__ << " Drop same device .." << result->bd_addr;
+      LOG_DEBUG("Drop known device %s", result->bd_addr.ToString().c_str());
       return;
     }
 
@@ -1235,8 +1280,15 @@ class CsisClientImpl : public CsisClient {
     for (auto& group : csis_groups_) {
       for (auto& rsi : all_rsi) {
         if (group->IsRsiMatching(rsi)) {
-          DLOG(INFO) << " Found set member in background scan "
-                     << result->bd_addr;
+          LOG_INFO("Device %s match to group id %d",
+                   result->bd_addr.ToString().c_str(), group->GetGroupId());
+          if (group->GetDesiredSize() > 0 &&
+              (group->GetCurrentSize() == group->GetDesiredSize())) {
+            LOG_WARN(
+                "Group is already completed. Some other device use same SIRK");
+            break;
+          }
+
           callbacks_->OnSetMemberAvailable(result->bd_addr,
                                            group->GetGroupId());
           break;

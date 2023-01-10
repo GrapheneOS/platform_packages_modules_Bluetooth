@@ -72,6 +72,24 @@ typedef enum : uint8_t {
   BTM_BLE_SEC_REQ_ACT_DISCARD = 3,
 } tBTM_BLE_SEC_REQ_ACT;
 
+#ifndef CASE_RETURN_TEXT
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+#endif
+
+inline std::string btm_ble_sec_req_act_text(
+    const tBTM_BLE_SEC_REQ_ACT& action) {
+  switch (action) {
+    CASE_RETURN_TEXT(BTM_BLE_SEC_REQ_ACT_NONE);
+    CASE_RETURN_TEXT(BTM_BLE_SEC_REQ_ACT_ENCRYPT);
+    CASE_RETURN_TEXT(BTM_BLE_SEC_REQ_ACT_PAIR);
+    CASE_RETURN_TEXT(BTM_BLE_SEC_REQ_ACT_DISCARD);
+  }
+}
+
+#undef CASE_RETURN_TEXT
+
 #define BTM_VSC_CHIP_CAPABILITY_L_VERSION 55
 #define BTM_VSC_CHIP_CAPABILITY_M_VERSION 95
 #define BTM_VSC_CHIP_CAPABILITY_S_VERSION 98
@@ -226,6 +244,9 @@ typedef struct {
 
   /* opportunistic observer */
   tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb;
+
+  /* target announcement observer */
+  tBTM_INQ_RESULTS_CB* p_target_announcement_obs_results_cb;
 
   /* background connection procedure cb value */
   uint16_t scan_int;

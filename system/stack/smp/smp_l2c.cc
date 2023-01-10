@@ -24,6 +24,7 @@
 
 #define LOG_TAG "bluetooth"
 
+#include <base/logging.h>
 #include <string.h>
 
 #include "bt_target.h"
@@ -35,10 +36,9 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "smp_int.h"
+#include "stack/btm/btm_dev.h"
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 static void smp_connect_callback(uint16_t channel, const RawAddress& bd_addr,
                                  bool connected, uint16_t reason,
@@ -157,7 +157,6 @@ static void smp_data_received(uint16_t channel, const RawAddress& bd_addr,
   uint8_t cmd;
 
   if (p_buf->len < 1) {
-    android_errorWriteLog(0x534e4554, "111215315");
     SMP_TRACE_WARNING("%s: smp packet length %d too short: must be at least 1",
                       __func__, p_buf->len);
     osi_free(p_buf);
@@ -249,6 +248,24 @@ static void smp_br_connect_callback(uint16_t channel, const RawAddress& bd_addr,
 
   if (bd_addr != p_cb->pairing_bda) return;
 
+  /* Check if we already finished SMP pairing over LE, and are waiting to
+   * check if other side returns some errors. Connection/disconnection on
+   * Classic transport shouldn't impact that.
+   */
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(p_cb->pairing_bda);
+  if (smp_get_state() == SMP_STATE_BOND_PENDING &&
+      (p_dev_rec && p_dev_rec->is_link_key_known()) &&
+      alarm_is_scheduled(p_cb->delayed_auth_timer_ent)) {
+    /* If we were to not return here, we would reset SMP control block, and
+     * delayed_auth_timer_ent would never be executed. Even though we stored all
+     * keys, stack would consider device as not bonded. It would reappear after
+     * stack restart, when we re-read record from storage. Service discovery
+     * would stay broken.
+     */
+    LOG_INFO("Classic event after CTKD on LE transport");
+    return;
+  }
+
   if (connected) {
     if (!p_cb->connect_initialized) {
       p_cb->connect_initialized = true;
@@ -282,7 +299,6 @@ static void smp_br_data_received(uint16_t channel, const RawAddress& bd_addr,
   SMP_TRACE_EVENT("SMDBG l2c %s", __func__);
 
   if (p_buf->len < 1) {
-    android_errorWriteLog(0x534e4554, "111215315");
     SMP_TRACE_WARNING("%s: smp packet length %d too short: must be at least 1",
                       __func__, p_buf->len);
     osi_free(p_buf);

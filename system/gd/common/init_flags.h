@@ -27,32 +27,38 @@ namespace common {
 
 class InitFlags final {
  public:
-  static void Load(const char** flags);
+  inline static void Load(const char** flags) {
+    rust::Vec<rust::String> rusted_flags = rust::Vec<rust::String>();
+    while (flags != nullptr && *flags != nullptr) {
+      rusted_flags.push_back(rust::String(*flags));
+      flags++;
+    }
+    init_flags::load(std::move(rusted_flags));
+  }
 
   inline static bool IsDebugLoggingEnabledForTag(const std::string& tag) {
-    auto tag_setting = logging_debug_explicit_tag_settings.find(tag);
-    if (tag_setting != logging_debug_explicit_tag_settings.end()) {
-      return tag_setting->second;
-    }
-    return logging_debug_enabled_for_all;
+    return init_flags::is_debug_logging_enabled_for_tag(tag);
   }
 
   inline static bool IsDebugLoggingEnabledForAll() {
-    return logging_debug_enabled_for_all;
+    return init_flags::logging_debug_enabled_for_all_is_enabled();
+  }
+
+  inline static bool IsBtmDmFlushDiscoveryQueueOnSearchCancel() {
+    return init_flags::btm_dm_flush_discovery_queue_on_search_cancel_is_enabled();
+  }
+
+  inline static bool IsTargetedAnnouncementReconnectionMode() {
+    return init_flags::leaudio_targeted_announcement_reconnection_mode_is_enabled();
   }
 
   inline static int GetAdapterIndex() {
-    return hci_adapter;
+    return init_flags::get_hci_adapter();
   }
 
-  static void SetAllForTesting();
-
- private:
-  static void SetAll(bool value);
-  static bool logging_debug_enabled_for_all;
-  static int hci_adapter;
-  // save both log allow list and block list in the map to save hashing time
-  static std::unordered_map<std::string, bool> logging_debug_explicit_tag_settings;
+  inline static void SetAllForTesting() {
+    init_flags::set_all_for_testing();
+  }
 };
 
 }  // namespace common

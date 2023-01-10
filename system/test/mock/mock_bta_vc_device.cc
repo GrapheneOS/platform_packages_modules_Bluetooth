@@ -28,7 +28,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <vector>
 
 #include "bta/vc/devices.h"
-#include "stack/btm/btm_sec.h"
 
 using namespace bluetooth::vc::internal;
 
@@ -36,9 +35,8 @@ using namespace bluetooth::vc::internal;
 #define UNUSED_ATTR
 #endif
 
-bool VolumeControlDevice::EnableEncryption(tBTM_SEC_CALLBACK* callback) {
+void VolumeControlDevice::EnableEncryption() {
   mock_function_count_map[__func__]++;
-  return false;
 }
 bool VolumeControlDevice::EnqueueInitialRequests(
     tGATT_IF gatt_if, GATT_READ_OP_CB chrc_read_cb,

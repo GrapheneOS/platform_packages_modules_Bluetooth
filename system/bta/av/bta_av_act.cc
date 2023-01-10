@@ -791,7 +791,6 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE* p_rc_rsp,
         /* process GetCapabilities command without reporting the event to app */
         evt = 0;
         if (p_vendor->vendor_len != 5) {
-          android_errorWriteLog(0x534e4554, "111893951");
           p_rc_rsp->get_caps.status = AVRC_STS_INTERNAL_ERR;
           break;
         }
@@ -1337,6 +1336,38 @@ void bta_av_api_disconnect(tBTA_AV_DATA* p_data) {
       bta_av_hndl_to_scb(p_data->api_discnt.hdr.layer_specific);
   AVDT_DisconnectReq(p_scb->PeerAddress(), bta_av_conn_cback);
   alarm_cancel(p_scb->link_signalling_timer);
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_av_set_use_latency_mode
+ *
+ * Description      Sets stream use latency mode.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_av_set_use_latency_mode(tBTA_AV_SCB* p_scb, bool use_latency_mode) {
+  L2CA_UseLatencyMode(p_scb->PeerAddress(), use_latency_mode);
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_av_api_set_latency
+ *
+ * Description      set stream latency.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_av_api_set_latency(tBTA_AV_DATA* p_data) {
+  tBTA_AV_SCB* p_scb =
+      bta_av_hndl_to_scb(p_data->api_set_latency.hdr.layer_specific);
+
+  tL2CAP_LATENCY latency = p_data->api_set_latency.is_low_latency
+                               ? L2CAP_LATENCY_LOW
+                               : L2CAP_LATENCY_NORMAL;
+  L2CA_SetAclLatency(p_scb->PeerAddress(), latency);
 }
 
 /**
@@ -1972,8 +2003,23 @@ void bta_av_rc_disc_done(UNUSED_ATTR tBTA_AV_DATA* p_data) {
         if (p_lcb) {
           rc_handle = bta_av_rc_create(p_cb, AVCT_INT,
                                        (uint8_t)(p_scb->hdi + 1), p_lcb->lidx);
-          p_cb->rcb[rc_handle].peer_features = peer_features;
-          p_cb->rcb[rc_handle].cover_art_psm = cover_art_psm;
+          if (rc_handle < BTA_AV_NUM_RCB) {
+            p_cb->rcb[rc_handle].peer_features = peer_features;
+            p_cb->rcb[rc_handle].cover_art_psm = cover_art_psm;
+          } else {
+            /* cannot create valid rc_handle for current device. report failure
+             */
+            APPL_TRACE_ERROR("%s: no link resources available", __func__);
+            p_scb->use_rc = false;
+            tBTA_AV_RC_OPEN rc_open;
+            rc_open.peer_addr = p_scb->PeerAddress();
+            rc_open.peer_features = 0;
+            rc_open.cover_art_psm = 0;
+            rc_open.status = BTA_AV_FAIL_RESOURCES;
+            tBTA_AV bta_av_data;
+            bta_av_data.rc_open = rc_open;
+            (*p_cb->p_cback)(BTA_AV_RC_OPEN_EVT, &bta_av_data);
+          }
         } else {
           APPL_TRACE_ERROR("%s: can not find LCB!!", __func__);
         }

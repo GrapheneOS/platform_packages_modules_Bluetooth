@@ -34,6 +34,7 @@
 #include "utils.h"
 
 using ::android::base::StringPrintf;
+using ::android::bluetooth::audio::utils::FrameCount;
 using ::android::bluetooth::audio::utils::GetAudioParamString;
 using ::android::bluetooth::audio::utils::ParseAudioParams;
 
@@ -691,10 +692,6 @@ static void out_update_source_metadata(
   out->bluetooth_output_->UpdateSourceMetadata(source_metadata);
 }
 
-static size_t frame_count(size_t microseconds, uint32_t sample_rate) {
-  return (microseconds * sample_rate) / 1000000;
-}
-
 int adev_open_output_stream(struct audio_hw_device* dev,
                             audio_io_handle_t handle, audio_devices_t devices,
                             audio_output_flags_t flags,
@@ -782,7 +779,7 @@ int adev_open_output_stream(struct audio_hw_device* dev,
   }
 
   out->frames_count_ =
-      frame_count(out->preferred_data_interval_us, out->sample_rate_);
+      FrameCount(out->preferred_data_interval_us, out->sample_rate_);
 
   out->frames_rendered_ = 0;
   out->frames_presented_ = 0;
@@ -1277,7 +1274,7 @@ int adev_open_input_stream(struct audio_hw_device* dev,
   }
 
   in->frames_count_ =
-      frame_count(in->preferred_data_interval_us, in->sample_rate_);
+      FrameCount(in->preferred_data_interval_us, in->sample_rate_);
   in->frames_presented_ = 0;
 
   BluetoothStreamIn* in_ptr = in.release();

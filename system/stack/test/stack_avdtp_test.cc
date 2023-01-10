@@ -16,6 +16,10 @@
 
 //#include <dlfcn.h>
 #include <gtest/gtest.h>
+#include <sys/types.h>
+
+#include <cstdint>
+#include <cstring>
 
 #include "osi/include/allocator.h"
 #include "stack/avdt/avdt_int.h"
@@ -314,4 +318,141 @@ TEST_F(StackAvdtpTest, test_SDES_reporting_handler) {
   *(data.p_pkt->data + 9) = 0x00;
   avdt_scb_hdl_pkt(pscb, &data);
   ASSERT_EQ(mock_function_count_map["AvdtReportCallback"], 1);
+}
+
+void avdt_scb_hdl_pkt_no_frag(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data);
+// regression tests for b/258057241 (CVE-2022-40503)
+// The regression tests are divided into 2 tests:
+// avdt_scb_hdl_pkt_no_frag_regression_test1 verifies that
+// OOB access resulted from integer overflow
+// from the ex_len field in the packet is properly handled
+
+TEST_F(StackAvdtpTest, avdt_scb_hdl_pkt_no_frag_regression_test0) {
+  const uint16_t extra_size = 0;
+  BT_HDR* p_pkt = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + extra_size);
+  ASSERT_NE(p_pkt, nullptr);
+  tAVDT_SCB_EVT evt_data = {
+      .p_pkt = p_pkt,
+  };
+  p_pkt->len = 0;
+
+  // get the stream control block
+  AvdtpScb* pscb = avdt_scb_by_hdl(scb_handle_);
+  ASSERT_NE(pscb, nullptr);
+
+  // any memory issue would be caught be the address sanitizer
+  avdt_scb_hdl_pkt_no_frag(pscb, &evt_data);
+
+  // here we would also assume that p_pkt would have been freed
+  // by avdt_scb_hdl_pkt_no_frag by calling osi_free_and_reset
+  // thus vt_data.p_pkt will be set to nullptr
+  ASSERT_EQ(evt_data.p_pkt, nullptr);
+}
+
+TEST_F(StackAvdtpTest, avdt_scb_hdl_pkt_no_frag_regression_test1) {
+  const uint16_t extra_size = 100;
+  BT_HDR* p_pkt = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + extra_size);
+  ASSERT_NE(p_pkt, nullptr);
+  tAVDT_SCB_EVT evt_data = {
+      .p_pkt = p_pkt,
+  };
+
+  // setup p_pkt
+  // no overflow here
+  p_pkt->len = extra_size;
+  p_pkt->offset = 0;
+
+  uint8_t* p = (uint8_t*)(p_pkt + 1);
+  // fill the p_pkt with 0xff to
+  // make ex_len * 4 overflow
+  memset(p, 0xff, extra_size);
+
+  // get the stream control block
+  AvdtpScb* pscb = avdt_scb_by_hdl(scb_handle_);
+  ASSERT_NE(pscb, nullptr);
+
+  // any memory issue would be caught be the address sanitizer
+  avdt_scb_hdl_pkt_no_frag(pscb, &evt_data);
+
+  // here we would also assume that p_pkt would have been freed
+  // by avdt_scb_hdl_pkt_no_frag by calling osi_free_and_reset
+  // thus vt_data.p_pkt will be set to nullptr
+  ASSERT_EQ(evt_data.p_pkt, nullptr);
+}
+
+// avdt_scb_hdl_pkt_no_frag_regression_test2 verifies that
+// OOB access resulted from integer overflow
+// from the pad_len field in the packet is properly handled
+TEST_F(StackAvdtpTest, avdt_scb_hdl_pkt_no_frag_regression_test2) {
+  const uint16_t extra_size = 100;
+  BT_HDR* p_pkt = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + extra_size);
+  ASSERT_NE(p_pkt, nullptr);
+  tAVDT_SCB_EVT evt_data = {
+      .p_pkt = p_pkt,
+  };
+
+  // setup p_pkt
+  // no overflow here
+  p_pkt->len = extra_size;
+  p_pkt->offset = 0;
+
+  uint8_t* p = (uint8_t*)(p_pkt + 1);
+  // zero out all bytes first
+  memset(p, 0, extra_size);
+  // setup o_v, o_p, o_x, o_cc
+  *p = 0xff;
+  // set the pad_len to be 0xff
+  p[extra_size - 1] = 0xff;
+
+  // get the stream control block
+  AvdtpScb* pscb = avdt_scb_by_hdl(scb_handle_);
+  ASSERT_NE(pscb, nullptr);
+
+  // any memory issue would be caught be the address sanitizer
+  avdt_scb_hdl_pkt_no_frag(pscb, &evt_data);
+
+  // here we would also assume that p_pkt would have been freed
+  // by avdt_scb_hdl_pkt_no_frag by calling osi_free_and_reset
+  // thus vt_data.p_pkt will be set to nullptr
+  ASSERT_EQ(evt_data.p_pkt, nullptr);
+}
+
+// avdt_scb_hdl_pkt_no_frag_regression_test3 verifies that
+// zero length packets are filtered out
+TEST_F(StackAvdtpTest, avdt_scb_hdl_pkt_no_frag_regression_test3) {
+  // 12 btyes of minimal + 15 * oc (4 bytes each) + 4 btye to ex_len
+  const uint16_t extra_size = 12 + 15 * 4 + 4;
+  BT_HDR* p_pkt = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + extra_size);
+  ASSERT_NE(p_pkt, nullptr);
+  tAVDT_SCB_EVT evt_data = {
+      .p_pkt = p_pkt,
+  };
+
+  // setup p_pkt
+  // no overflow here
+  p_pkt->len = extra_size;
+  p_pkt->offset = 0;
+
+  uint8_t* p = (uint8_t*)(p_pkt + 1);
+  // fill the p_pkt with 0 to
+  // make ex_len * 4 overflow
+  memset(p, 0, extra_size);
+  // setup
+  // o_v = 0b10
+  // o_p = 0b01 // with padding
+  // o_x = 0b10
+  // o_cc = 0b1111
+  *p = 0xff;
+
+  // get the stream control block
+  AvdtpScb* pscb = avdt_scb_by_hdl(scb_handle_);
+  ASSERT_NE(pscb, nullptr);
+
+  // any memory issue would be caught be the address sanitizer
+  avdt_scb_hdl_pkt_no_frag(pscb, &evt_data);
+
+  // here we would also assume that p_pkt would have been freed
+  // by avdt_scb_hdl_pkt_no_frag by calling osi_free_and_reset
+  // thus vt_data.p_pkt will be set to nullptr
+  ASSERT_EQ(evt_data.p_pkt, nullptr);
 }

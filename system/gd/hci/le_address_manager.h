@@ -18,6 +18,7 @@
 #include <map>
 #include <mutex>
 #include <set>
+#include <variant>
 
 #include "common/callback.h"
 #include "hci/address_with_type.h"
@@ -34,6 +35,7 @@ class LeAddressManagerCallback {
   virtual ~LeAddressManagerCallback() = default;
   virtual void OnPause() = 0;
   virtual void OnResume() = 0;
+  virtual void NotifyOnIRKChange(){};
 };
 
 class LeAddressManager {
@@ -69,9 +71,9 @@ class LeAddressManager {
       crypto_toolbox::Octet16 rotation_irk,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time);
-  AddressPolicy GetAddressPolicy();
-  void AckPause(LeAddressManagerCallback* callback);
-  void AckResume(LeAddressManagerCallback* callback);
+  virtual AddressPolicy GetAddressPolicy();
+  virtual void AckPause(LeAddressManagerCallback* callback);
+  virtual void AckResume(LeAddressManagerCallback* callback);
   virtual AddressPolicy Register(LeAddressManagerCallback* callback);
   virtual void Unregister(LeAddressManagerCallback* callback);
   virtual bool UnregisterSync(
@@ -94,6 +96,11 @@ class LeAddressManager {
   void OnCommandComplete(CommandCompleteView view);
   std::chrono::milliseconds GetNextPrivateAddressIntervalMs();
 
+  // Unsynchronized check for testing purposes
+  size_t NumberCachedCommands() const {
+    return cached_commands_.size();
+  }
+
  private:
   enum ClientState {
     WAITING_FOR_PAUSE,
@@ -111,12 +118,25 @@ class LeAddressManager {
     REMOVE_DEVICE_FROM_RESOLVING_LIST,
     CLEAR_RESOLVING_LIST,
     SET_ADDRESS_RESOLUTION_ENABLE,
-    LE_SET_PRIVACY_MODE
+    LE_SET_PRIVACY_MODE,
+    UPDATE_IRK,
+  };
+
+  struct RotateRandomAddressCommand {};
+
+  struct UpdateIRKCommand {
+    crypto_toolbox::Octet16 rotation_irk;
+    std::chrono::milliseconds minimum_rotation_time;
+    std::chrono::milliseconds maximum_rotation_time;
+  };
+
+  struct HCICommand {
+    std::unique_ptr<CommandBuilder> command;
   };
 
   struct Command {
-    CommandType command_type;
-    std::unique_ptr<CommandBuilder> command_packet;
+    CommandType command_type;  // Note that this field is only intended for logging, not control flow
+    std::variant<RotateRandomAddressCommand, UpdateIRKCommand, HCICommand> contents;
   };
 
   void pause_registered_clients();
@@ -130,6 +150,8 @@ class LeAddressManager {
   void rotate_random_address();
   void schedule_rotate_random_address();
   void set_random_address();
+  void prepare_to_update_irk(UpdateIRKCommand command);
+  void update_irk(UpdateIRKCommand command);
   hci::Address generate_rpa();
   hci::Address generate_nrpa();
   void handle_next_command();

@@ -49,11 +49,13 @@ class LeAudioGroupStateMachine {
                               LeAudioDevice* leAudioDevice) = 0;
   virtual bool StartStream(LeAudioDeviceGroup* group,
                            types::LeAudioContextType context_type,
-                           int ccid = -1) = 0;
+                           types::AudioContexts metadata_context_type,
+                           std::vector<uint8_t> ccid_list = {}) = 0;
   virtual void SuspendStream(LeAudioDeviceGroup* group) = 0;
   virtual bool ConfigureStream(LeAudioDeviceGroup* group,
-                               le_audio::types::LeAudioContextType context_type,
-                               int ccid = -1) = 0;
+                               types::LeAudioContextType context_type,
+                               types::AudioContexts metadata_context_type,
+                               std::vector<uint8_t> ccid_list = {}) = 0;
   virtual void StopStream(LeAudioDeviceGroup* group) = 0;
   virtual void ProcessGattNotifEvent(uint8_t* value, uint16_t len,
                                      struct types::ase* ase,

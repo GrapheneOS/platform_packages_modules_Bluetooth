@@ -536,7 +536,6 @@ void gatt_process_error_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
   VLOG(1) << __func__;
 
   if (len < 4) {
-    android_errorWriteLog(0x534e4554, "79591688");
     LOG(ERROR) << "Error response too short";
     // Specification does not clearly define what should happen if error
     // response is too short. General rule in BT Spec 5.0 Vol 3, Part F 3.4.1.1
@@ -861,7 +860,6 @@ void gatt_process_read_by_type_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
     else if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY &&
              p_clcb->op_subtype == GATT_DISC_INC_SRVC) {
       if (value_len < 4) {
-        android_errorWriteLog(0x534e4554, "158833854");
         LOG(ERROR) << __func__ << " Illegal Response length, must be at least 4.";
         gatt_end_operation(p_clcb, GATT_INVALID_PDU, NULL);
         return;
@@ -920,7 +918,6 @@ void gatt_process_read_by_type_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
     } else /* discover characterisitic */
     {
       if (value_len < 3) {
-        android_errorWriteLog(0x534e4554, "158778659");
         LOG(ERROR) << __func__ << " Illegal Response length, must be at least 3.";
         gatt_end_operation(p_clcb, GATT_INVALID_PDU, NULL);
         return;
@@ -1130,15 +1127,17 @@ uint8_t gatt_cmd_to_rsp_code(uint8_t cmd_code) {
 
 /** Find next command in queue and sent to server */
 bool gatt_cl_send_next_cmd_inq(tGATT_TCB& tcb) {
-  std::queue<tGATT_CMD_Q>* cl_cmd_q;
+  std::deque<tGATT_CMD_Q>* cl_cmd_q = nullptr;
 
-  while (!tcb.cl_cmd_q.empty() ||
-         EattExtension::GetInstance()->IsOutstandingMsgInSendQueue(tcb.peer_bda)) {
-    if (!tcb.cl_cmd_q.empty()) {
+  while (
+      gatt_is_outstanding_msg_in_att_send_queue(tcb) ||
+      EattExtension::GetInstance()->IsOutstandingMsgInSendQueue(tcb.peer_bda)) {
+    if (gatt_is_outstanding_msg_in_att_send_queue(tcb)) {
       cl_cmd_q = &tcb.cl_cmd_q;
     } else {
       EattChannel* channel =
-          EattExtension::GetInstance()->GetChannelWithQueuedData(tcb.peer_bda);
+          EattExtension::GetInstance()->GetChannelWithQueuedDataToSend(
+              tcb.peer_bda);
       cl_cmd_q = &channel->cl_cmd_q_;
     }
 
@@ -1152,7 +1151,7 @@ bool gatt_cl_send_next_cmd_inq(tGATT_TCB& tcb) {
 
     if (att_ret != GATT_SUCCESS && att_ret != GATT_CONGESTED) {
       LOG(ERROR) << __func__ << ": L2CAP sent error";
-      cl_cmd_q->pop();
+      cl_cmd_q->pop_front();
       continue;
     }
 
@@ -1184,7 +1183,7 @@ bool gatt_cl_send_next_cmd_inq(tGATT_TCB& tcb) {
 void gatt_client_handle_server_rsp(tGATT_TCB& tcb, uint16_t cid,
                                    uint8_t op_code, uint16_t len,
                                    uint8_t* p_data) {
-  VLOG(1) << __func__ << " opcode: " << loghex(op_code);
+  VLOG(1) << __func__ << " opcode: " << loghex(op_code) << " cid" << +cid;
 
   uint16_t payload_size = gatt_tcb_get_payload_size_rx(tcb, cid);
 
@@ -1203,17 +1202,23 @@ void gatt_client_handle_server_rsp(tGATT_TCB& tcb, uint16_t cid,
 
   uint8_t cmd_code = 0;
   tGATT_CLCB* p_clcb = gatt_cmd_dequeue(tcb, cid, &cmd_code);
-  uint8_t rsp_code = gatt_cmd_to_rsp_code(cmd_code);
-  if (!p_clcb || (rsp_code != op_code && op_code != GATT_RSP_ERROR)) {
-    LOG(WARNING) << StringPrintf(
-        "ATT - Ignore wrong response. Receives (%02x) Request(%02x) Ignored",
-        op_code, rsp_code);
+  if (!p_clcb) {
+    LOG_WARN("ATT - clcb already not in use, ignoring response");
+    gatt_cl_send_next_cmd_inq(tcb);
     return;
   }
 
-  if (!p_clcb->in_use) {
-    LOG(WARNING) << "ATT - clcb already not in use, ignoring response";
+  uint8_t rsp_code = gatt_cmd_to_rsp_code(cmd_code);
+  if (!p_clcb) {
+    LOG_WARN("ATT - clcb already not in use, ignoring response");
     gatt_cl_send_next_cmd_inq(tcb);
+    return;
+  }
+
+  if (rsp_code != op_code && op_code != GATT_RSP_ERROR) {
+    LOG(WARNING) << StringPrintf(
+        "ATT - Ignore wrong response. Receives (%02x) Request(%02x) Ignored",
+        op_code, rsp_code);
     return;
   }
 

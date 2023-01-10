@@ -38,6 +38,7 @@
 #include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
+#include "gd/common/init_flags.h"
 #include "main/shim/acl_api.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/dumpsys.h"
@@ -47,6 +48,7 @@
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
@@ -87,7 +89,8 @@ static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
 static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
                                          DEV_CLASS dev_class,
                                          tBTM_BD_NAME bd_name,
-                                         const LinkKey& key, uint8_t key_type);
+                                         const LinkKey& key, uint8_t key_type,
+                                         bool is_ctkd);
 static void bta_dm_authentication_complete_cback(const RawAddress& bd_addr,
                                                  DEV_CLASS dev_class,
                                                  tBTM_BD_NAME bd_name,
@@ -626,6 +629,15 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
   if (other_address == bd_addr) other_address = other_address2;
 
   if (other_address_connected) {
+    // Get real transport
+    if (other_transport == BT_TRANSPORT_AUTO) {
+      bool connected_with_br_edr =
+          BTM_IsAclConnectionUp(other_address, BT_TRANSPORT_BR_EDR);
+      other_transport =
+          connected_with_br_edr ? BT_TRANSPORT_BR_EDR : BT_TRANSPORT_LE;
+    }
+    LOG_INFO("other_address %s with transport %d connected",
+             PRIVATE_ADDRESS(other_address), other_transport);
     /* Take the link down first, and mark the device for removal when
      * disconnected */
     for (int i = 0; i < bta_dm_cb.device_list.count; i++) {
@@ -633,6 +645,7 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
       if (peer_device.peer_bdaddr == other_address &&
           peer_device.transport == other_transport) {
         peer_device.conn_state = BTA_DM_UNPAIRING;
+        LOG_INFO("Remove ACL of address %s", PRIVATE_ADDRESS(other_address));
 
         /* Make sure device is not in acceptlist before we disconnect */
         GATT_CancelConnect(0, bd_addr, false);
@@ -651,13 +664,6 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
   /* Delete the other paired device too */
   if (!other_address_connected && !other_address.IsEmpty()) {
     bta_dm_process_remove_device(other_address);
-  }
-
-  /* Check the length of the paired devices, and if 0 then reset IRK */
-  auto paired_devices = btif_config_get_paired_devices();
-  if (paired_devices.empty()) {
-    LOG_INFO("Last paired device removed, resetting IRK");
-    btm_ble_reset_id();
   }
 }
 
@@ -912,6 +918,10 @@ void bta_dm_discover(tBTA_DM_MSG* p_data) {
   bta_dm_search_cb.transport = p_data->discover.transport;
 
   bta_dm_search_cb.name_discover_done = false;
+
+  LOG_INFO("bta_dm_discovery: starting service discovery to %s , transport: %s",
+           PRIVATE_ADDRESS(p_data->discover.bd_addr),
+           bt_transport_text(p_data->discover.transport).c_str());
   bta_dm_discover_device(p_data->discover.bd_addr);
 }
 
@@ -1133,7 +1143,8 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
                   BD_NAME_LEN + 1);
 
           result.disc_ble_res.services = &gatt_uuids;
-          bta_dm_search_cb.p_search_cback(BTA_DM_DISC_BLE_RES_EVT, &result);
+          bta_dm_search_cb.p_search_cback(BTA_DM_GATT_OVER_SDP_RES_EVT,
+                                          &result);
         }
       } else {
         /* SDP_DB_FULL means some records with the
@@ -1326,7 +1337,7 @@ void bta_dm_search_cmpl() {
 
   LOG_INFO("GATT services discovered using LE Transport");
   // send all result back to app
-  bta_dm_search_cb.p_search_cback(BTA_DM_DISC_BLE_RES_EVT, &result);
+  bta_dm_search_cb.p_search_cback(BTA_DM_GATT_OVER_LE_RES_EVT, &result);
 
   bta_dm_search_cb.p_search_cback(BTA_DM_DISC_CMPL_EVT, nullptr);
 
@@ -1346,10 +1357,15 @@ void bta_dm_search_cmpl() {
 void bta_dm_disc_result(tBTA_DM_MSG* p_data) {
   APPL_TRACE_EVENT("%s", __func__);
 
+  /* disc_res.device_type is set only when GATT discovery is finished in
+   * bta_dm_gatt_disc_complete */
+  bool is_gatt_over_ble = ((p_data->disc_result.result.disc_res.device_type &
+                            BT_DEVICE_TYPE_BLE) != 0);
+
   /* if any BR/EDR service discovery has been done, report the event */
-  if ((bta_dm_search_cb.services &
-       ((BTA_ALL_SERVICE_MASK | BTA_USER_SERVICE_MASK) &
-        ~BTA_BLE_SERVICE_MASK)))
+  if (!is_gatt_over_ble && (bta_dm_search_cb.services &
+                            ((BTA_ALL_SERVICE_MASK | BTA_USER_SERVICE_MASK) &
+                             ~BTA_BLE_SERVICE_MASK)))
     bta_dm_search_cb.p_search_cback(BTA_DM_DISC_RES_EVT,
                                     &p_data->disc_result.result);
 
@@ -1452,6 +1468,9 @@ void bta_dm_queue_disc(tBTA_DM_MSG* p_data) {
   tBTA_DM_MSG* p_pending_discovery =
       (tBTA_DM_MSG*)osi_malloc(sizeof(tBTA_DM_API_DISCOVER));
   memcpy(p_pending_discovery, p_data, sizeof(tBTA_DM_API_DISCOVER));
+
+  LOG_INFO("bta_dm_discovery: queuing service discovery to %s",
+           p_pending_discovery->discover.bd_addr.ToString().c_str());
   fixed_queue_enqueue(bta_dm_search_cb.pending_discovery_queue,
                       p_pending_discovery);
 }
@@ -1504,7 +1523,10 @@ bool bta_dm_is_search_request_queued() {
  ******************************************************************************/
 void bta_dm_search_clear_queue() {
   osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
-  fixed_queue_flush(bta_dm_search_cb.pending_discovery_queue, osi_free);
+  if (bluetooth::common::InitFlags::
+          IsBtmDmFlushDiscoveryQueueOnSearchCancel()) {
+    fixed_queue_flush(bta_dm_search_cb.pending_discovery_queue, osi_free);
+  }
 }
 
 /*******************************************************************************
@@ -1693,6 +1715,14 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
     /* Do not perform RNR for LE devices at inquiry complete*/
     bta_dm_search_cb.name_discover_done = true;
   }
+  // If we already have the name we can skip getting the name
+  if (BTM_IsRemoteNameKnown(remote_bd_addr, transport) &&
+      bluetooth::common::init_flags::sdp_skip_rnr_if_known_is_enabled()) {
+    LOG_DEBUG("Security record already known skipping read remote name peer:%s",
+              PRIVATE_ADDRESS(remote_bd_addr));
+    bta_dm_search_cb.name_discover_done = true;
+  }
+
   /* if name discovery is not done and application needs remote name */
   if ((!bta_dm_search_cb.name_discover_done) &&
       ((bta_dm_search_cb.p_btm_inq_info == NULL) ||
@@ -1744,6 +1774,8 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
 
       if (transport == BT_TRANSPORT_LE) {
         if (bta_dm_search_cb.services_to_search & BTA_BLE_SERVICE_MASK) {
+          LOG_INFO("bta_dm_discovery: starting GATT discovery on %s",
+                   PRIVATE_ADDRESS(bta_dm_search_cb.peer_bdaddr));
           // set the raw data buffer here
           memset(g_disc_raw_data_buf, 0, sizeof(g_disc_raw_data_buf));
           /* start GATT for service discovery */
@@ -1751,6 +1783,8 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
           return;
         }
       } else {
+        LOG_INFO("bta_dm_discovery: starting SDP discovery on %s",
+                 PRIVATE_ADDRESS(bta_dm_search_cb.peer_bdaddr));
         bta_dm_search_cb.sdp_results = false;
         bta_dm_find_services(bta_dm_search_cb.peer_bdaddr);
         return;
@@ -1872,7 +1906,7 @@ static void bta_dm_inq_cmpl_cb(void* p_result) {
 static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
                                                 UNUSED_ATTR DEV_CLASS dc,
                                                 tBTM_BD_NAME bd_name) {
-  tBTM_REMOTE_DEV_NAME rem_name;
+  tBTM_REMOTE_DEV_NAME rem_name = {};
   tBTM_STATUS btm_status;
 
   APPL_TRACE_DEBUG("%s name=<%s>", __func__, bd_name);
@@ -1886,7 +1920,7 @@ static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
       rem_name.length = BD_NAME_LEN;
     }
     rem_name.status = BTM_SUCCESS;
-
+    rem_name.hci_status = HCI_SUCCESS;
     bta_dm_remname_cback(&rem_name);
   } else {
     /* get name of device */
@@ -1907,6 +1941,7 @@ static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
       rem_name.length = 0;
       rem_name.remote_bd_name[0] = 0;
       rem_name.status = btm_status;
+      rem_name.hci_status = HCI_SUCCESS;
       bta_dm_remname_cback(&rem_name);
     }
   }
@@ -1934,11 +1969,28 @@ static void bta_dm_remname_cback(void* p) {
       BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
     }
   } else {
-    // if we got a different response, ignore it
+    // if we got a different response, maybe ignore it
     // we will have made a request directly from BTM_ReadRemoteDeviceName so we
     // expect a dedicated response for us
-    LOG_INFO("ignoring remote name response in DM callback since it's for the wrong bd_addr");
-    return;
+    if (p_remote_name->hci_status == HCI_ERR_CONNECTION_EXISTS) {
+      if (bluetooth::shim::is_gd_security_enabled()) {
+        bluetooth::shim::BTM_SecDeleteRmtNameNotifyCallback(
+            &bta_dm_service_search_remname_cback);
+      } else {
+        BTM_SecDeleteRmtNameNotifyCallback(
+            &bta_dm_service_search_remname_cback);
+      }
+      LOG_INFO(
+          "Assume command failed due to disconnection hci_status:%s peer:%s",
+          hci_error_code_text(p_remote_name->hci_status).c_str(),
+          PRIVATE_ADDRESS(p_remote_name->bd_addr));
+    } else {
+      LOG_INFO(
+          "Ignored remote name response for the wrong address exp:%s act:%s",
+          PRIVATE_ADDRESS(bta_dm_search_cb.peer_bdaddr),
+          PRIVATE_ADDRESS(p_remote_name->bd_addr));
+      return;
+    }
   }
 
   /* remote name discovery is done but it could be failed */
@@ -2072,7 +2124,8 @@ static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
 static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
                                          UNUSED_ATTR DEV_CLASS dev_class,
                                          tBTM_BD_NAME bd_name,
-                                         const LinkKey& key, uint8_t key_type) {
+                                         const LinkKey& key, uint8_t key_type,
+                                         bool is_ctkd) {
   tBTA_DM_SEC sec_event;
   tBTA_DM_AUTH_CMPL* p_auth_cmpl;
   tBTA_DM_SEC_EVT event = BTA_DM_AUTH_CMPL_EVT;
@@ -2089,6 +2142,8 @@ static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
   p_auth_cmpl->key_type = key_type;
   p_auth_cmpl->success = true;
   p_auth_cmpl->key = key;
+  p_auth_cmpl->is_ctkd = is_ctkd;
+
   sec_event.auth_cmpl.fail_reason = HCI_SUCCESS;
 
   // Report the BR link key based on the BR/EDR address and type
@@ -2490,6 +2545,9 @@ static void bta_dm_acl_down(const RawAddress& bd_addr,
       memset(&bta_dm_cb.device_list.peer_device[clear_index], 0,
              sizeof(bta_dm_cb.device_list.peer_device[clear_index]));
     }
+
+    device->conn_state = BTA_DM_NOT_CONNECTED;
+
     break;
   }
   if (bta_dm_cb.device_list.count) bta_dm_cb.device_list.count--;
@@ -3620,7 +3678,8 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
                 (static_cast<uint8_t>(p_data->complt.reason))));
 
         if (btm_sec_is_a_bonded_dev(bda) &&
-            p_data->complt.reason == SMP_CONN_TOUT) {
+            p_data->complt.reason == SMP_CONN_TOUT &&
+            !p_data->complt.smp_over_br) {
           // Bonded device failed to encrypt - to test this remove battery from
           // HID device right after connection, but before encryption is
           // established
@@ -3990,9 +4049,11 @@ void btm_dm_start_gatt_discovery(const RawAddress& bd_addr) {
     BTA_GATTC_ServiceSearchRequest(bta_dm_search_cb.conn_id, nullptr);
   } else {
     if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE)) {
-      BTA_GATTC_Open(bta_dm_search_cb.client_if, bd_addr, true, true);
+      BTA_GATTC_Open(bta_dm_search_cb.client_if, bd_addr,
+                     BTM_BLE_DIRECT_CONNECTION, true);
     } else {
-      BTA_GATTC_Open(bta_dm_search_cb.client_if, bd_addr, true, false);
+      BTA_GATTC_Open(bta_dm_search_cb.client_if, bd_addr,
+                     BTM_BLE_DIRECT_CONNECTION, false);
     }
   }
 }
@@ -4035,6 +4096,20 @@ void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
 void bta_dm_clear_event_filter(void) {
   VLOG(1) << "bta_dm_clear_event_filter in bta_dm_act";
   bluetooth::shim::BTM_ClearEventFilter();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_ble_reset_id
+ *
+ * Description      Reset the local adapter BLE keys.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
+void bta_dm_ble_reset_id(void) {
+  VLOG(1) << "bta_dm_ble_reset_id in bta_dm_act";
+  bluetooth::shim::BTM_BleResetId();
 }
 
 /*******************************************************************************
@@ -4119,6 +4194,8 @@ tBTA_DM_PEER_DEVICE* allocate_device_for(const RawAddress& bd_addr,
                                          tBT_TRANSPORT transport) {
   return ::allocate_device_for(bd_addr, transport);
 }
+
+void bta_dm_remname_cback(void* p) { ::bta_dm_remname_cback(p); }
 
 }  // namespace testing
 }  // namespace legacy

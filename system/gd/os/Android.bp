@@ -93,8 +93,8 @@ name: "BluetoothOsBenchmarkSources",
 }
 
 filegroup {
-    name: "BluetoothOsSources_fuzz",
+    name: "BluetoothOsSources_fake_timer",
     srcs: [
-        "fuzz/fake_timerfd.cc",
+        "fake_timer/fake_timerfd.cc",
     ],
 }

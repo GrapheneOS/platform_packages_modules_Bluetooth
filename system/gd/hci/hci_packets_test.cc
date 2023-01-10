@@ -247,16 +247,16 @@ std::vector<uint8_t> le_set_extended_advertising_random_address = {
     0x35, 0x20, 0x07, 0x00, 0x77, 0x58, 0xeb, 0xd3, 0x1c, 0x6e,
 };
 
-TEST(HciPacketsTest, testLeSetExtendedAdvertisingRandomAddress) {
+TEST(HciPacketsTest, testLeSetAdvertisingSetRandomAddress) {
   std::shared_ptr<std::vector<uint8_t>> packet_bytes =
       std::make_shared<std::vector<uint8_t>>(le_set_extended_advertising_random_address);
   PacketView<kLittleEndian> packet_bytes_view(packet_bytes);
-  auto view = LeSetExtendedAdvertisingRandomAddressView::Create(
+  auto view = LeSetAdvertisingSetRandomAddressView::Create(
       LeAdvertisingCommandView::Create(CommandView::Create(packet_bytes_view)));
   ASSERT_TRUE(view.IsValid());
   uint8_t random_address_bytes[] = {0x77, 0x58, 0xeb, 0xd3, 0x1c, 0x6e};
   ASSERT_EQ(0, view.GetAdvertisingHandle());
-  ASSERT_EQ(Address(random_address_bytes), view.GetAdvertisingRandomAddress());
+  ASSERT_EQ(Address(random_address_bytes), view.GetRandomAddress());
 }
 
 std::vector<uint8_t> le_set_extended_advertising_data{
@@ -287,7 +287,7 @@ TEST(HciPacketsTest, testLeSetExtendedAdvertisingParametersLegacySet0) {
   std::shared_ptr<std::vector<uint8_t>> packet_bytes =
       std::make_shared<std::vector<uint8_t>>(le_set_extended_advertising_parameters_set_0);
   PacketView<kLittleEndian> packet_bytes_view(packet_bytes);
-  auto view = LeSetExtendedAdvertisingLegacyParametersView::Create(
+  auto view = LeSetExtendedAdvertisingParametersLegacyView::Create(
       LeAdvertisingCommandView::Create(CommandView::Create(packet_bytes_view)));
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(0, view.GetAdvertisingHandle());
@@ -310,7 +310,7 @@ TEST(HciPacketsTest, testLeSetExtendedAdvertisingParametersSet1) {
   std::shared_ptr<std::vector<uint8_t>> packet_bytes =
       std::make_shared<std::vector<uint8_t>>(le_set_extended_advertising_parameters_set_1);
   PacketView<kLittleEndian> packet_bytes_view(packet_bytes);
-  auto view = LeSetExtendedAdvertisingLegacyParametersView::Create(
+  auto view = LeSetExtendedAdvertisingParametersLegacyView::Create(
       LeAdvertisingCommandView::Create(CommandView::Create(packet_bytes_view)));
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(1, view.GetAdvertisingHandle());

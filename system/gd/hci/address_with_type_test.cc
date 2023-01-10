@@ -16,12 +16,14 @@
  *
  ******************************************************************************/
 
-#include <unordered_map>
+#include "hci/address_with_type.h"
 
 #include <gtest/gtest.h>
 
+#include <map>
+#include <unordered_map>
+
 #include "hci/address.h"
-#include "hci/address_with_type.h"
 #include "hci/hci_packets.h"
 
 namespace bluetooth {
@@ -95,6 +97,139 @@ TEST(AddressWithTypeTest, IsRpaThatMatchesIrk) {
 
   EXPECT_TRUE(address_1.IsRpaThatMatchesIrk(irk_1));
   EXPECT_FALSE(address_2.IsRpaThatMatchesIrk(irk_1));
+}
+
+TEST(AddressWithTypeTest, OperatorLessThan) {
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x50, 0x02, 0x03, 0xC9, 0x12, 0xDE}}, AddressType::RANDOM_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x50, 0x02, 0x03, 0xC9, 0x12, 0xDD}}, AddressType::RANDOM_DEVICE_ADDRESS);
+
+    ASSERT_TRUE(address_2 < address_1);
+  }
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x50, 0x02, 0x03, 0xC9, 0x12, 0xDE}}, AddressType::RANDOM_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x70, 0x02, 0x03, 0xC9, 0x12, 0xDE}}, AddressType::RANDOM_DEVICE_ADDRESS);
+
+    ASSERT_TRUE(address_1 < address_2);
+  }
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x50, 0x02, 0x03, 0xC9, 0x12, 0xDE}}, AddressType::RANDOM_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x70, 0x02, 0x03, 0xC9, 0x12, 0xDD}}, AddressType::RANDOM_DEVICE_ADDRESS);
+
+    ASSERT_TRUE(address_1 < address_2);
+  }
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::PUBLIC_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::RANDOM_DEVICE_ADDRESS);
+
+    ASSERT_TRUE(address_1 < address_2);
+  }
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::PUBLIC_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::PUBLIC_DEVICE_ADDRESS);
+
+    ASSERT_FALSE(address_1 < address_2);
+  }
+}
+
+TEST(AddressWithTypeTest, OrderedMap) {
+  std::map<AddressWithType, int> map;
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x50, 0x02, 0x03, 0xC9, 0x12, 0xDE}}, AddressType::RANDOM_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x70, 0x02, 0x03, 0xC9, 0x12, 0xDD}}, AddressType::RANDOM_DEVICE_ADDRESS);
+
+    map[address_1] = 1;
+    map[address_2] = 2;
+
+    ASSERT_EQ(2UL, map.size());
+    map.clear();
+  }
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::RANDOM_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::PUBLIC_DEVICE_ADDRESS);
+
+    map[address_1] = 1;
+    map[address_2] = 2;
+
+    ASSERT_EQ(2UL, map.size());
+    map.clear();
+  }
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::PUBLIC_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::PUBLIC_DEVICE_ADDRESS);
+
+    map[address_1] = 1;
+    map[address_2] = 2;
+
+    ASSERT_EQ(1UL, map.size());
+    map.clear();
+  }
+}
+
+TEST(AddressWithTypeTest, HashMap) {
+  std::unordered_map<AddressWithType, int> map;
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x50, 0x02, 0x03, 0xC9, 0x12, 0xDE}}, AddressType::RANDOM_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x70, 0x02, 0x03, 0xC9, 0x12, 0xDD}}, AddressType::RANDOM_DEVICE_ADDRESS);
+
+    map[address_1] = 1;
+    map[address_2] = 2;
+
+    ASSERT_EQ(2UL, map.size());
+    map.clear();
+  }
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::RANDOM_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::PUBLIC_DEVICE_ADDRESS);
+
+    map[address_1] = 1;
+    map[address_2] = 2;
+
+    ASSERT_EQ(2UL, map.size());
+    map.clear();
+  }
+
+  {
+    AddressWithType address_1 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::PUBLIC_DEVICE_ADDRESS);
+    AddressWithType address_2 =
+        AddressWithType(Address{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}}, AddressType::PUBLIC_DEVICE_ADDRESS);
+
+    map[address_1] = 1;
+    map[address_2] = 2;
+
+    ASSERT_EQ(1UL, map.size());
+    map.clear();
+  }
 }
 
 }  // namespace hci

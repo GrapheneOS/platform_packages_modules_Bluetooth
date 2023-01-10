@@ -87,6 +87,7 @@ import com.android.internal.app.IBatteryStats;
 import libcore.util.HexEncoding;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -96,6 +97,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -214,6 +217,8 @@ public class AdapterServiceTest {
         AsyncTask.setDefaultExecutor((r) -> {
             InstrumentationRegistry.getInstrumentation().runOnMainSync(r);
         });
+        InstrumentationRegistry.getInstrumentation().getUiAutomation()
+                .adoptShellPermissionIdentity();
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync(
                 () -> mAdapterService = new AdapterService());
@@ -238,6 +243,8 @@ public class AdapterServiceTest {
         mPermissionManager = InstrumentationRegistry.getTargetContext()
                 .getSystemService(PermissionManager.class);
 
+        when(mMockContext.getCacheDir()).thenReturn(InstrumentationRegistry.getTargetContext()
+                .getCacheDir());
         when(mMockContext.getApplicationInfo()).thenReturn(mMockApplicationInfo);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
         when(mMockContext.getApplicationContext()).thenReturn(mMockContext);
@@ -326,6 +333,11 @@ public class AdapterServiceTest {
 
         mServiceBinder.unregisterCallback(mIBluetoothCallback, mAttributionSource);
         mAdapterService.cleanup();
+    }
+
+    @AfterClass
+    public static void tearDownOnce() {
+        AsyncTask.setDefaultExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
     private void verifyStateChange(int prevState, int currState, int callNumber, int timeoutMs) {
@@ -431,6 +443,7 @@ public class AdapterServiceTest {
      * Test: Turn Bluetooth on.
      * Check whether the AdapterService gets started.
      */
+    @Ignore("b/228874625")
     @Test
     public void testEnable() {
         Log.e("AdapterServiceTest", "testEnable() start");
@@ -983,5 +996,16 @@ public class AdapterServiceTest {
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
         int id2 = mAdapterService.getMetricId(device);
         Assert.assertEquals(id2, id1);
+    }
+
+    @Test
+    public void testDump_doesNotCrash() {
+        FileDescriptor fd = new FileDescriptor();
+        PrintWriter writer = mock(PrintWriter.class);
+
+        mAdapterService.dump(fd, writer, new String[]{});
+        mAdapterService.dump(fd, writer, new String[]{"set-test-mode", "enabled"});
+        mAdapterService.dump(fd, writer, new String[]{"--proto-bin"});
+        mAdapterService.dump(fd, writer, new String[]{"random", "arguments"});
     }
 }

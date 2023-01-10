@@ -28,6 +28,14 @@ namespace bluetooth {
 namespace audio {
 namespace le_audio {
 
+enum class StartRequestState {
+  IDLE = 0x00,
+  PENDING_BEFORE_RESUME,
+  PENDING_AFTER_RESUME,
+  CONFIRMED,
+  CANCELED,
+};
+
 constexpr uint8_t kChannelNumberMono = 1;
 constexpr uint8_t kChannelNumberStereo = 2;
 
@@ -75,6 +83,7 @@ class LeAudioClientInterface {
     virtual void UpdateAudioConfigToHal(
         const ::le_audio::offload_config& config) = 0;
     virtual void SuspendedForReconfiguration() = 0;
+    virtual void ReconfigurationComplete() = 0;
   };
 
  public:
@@ -95,6 +104,7 @@ class LeAudioClientInterface {
     void UpdateBroadcastAudioConfigToHal(
         const ::le_audio::broadcast_offload_config& config);
     void SuspendedForReconfiguration() override;
+    void ReconfigurationComplete() override;
     // Read the stream of bytes sinked to us by the upper layers
     size_t Read(uint8_t* p_buf, uint32_t len);
     bool IsBroadcaster() { return is_broadcaster_; }
@@ -116,6 +126,7 @@ class LeAudioClientInterface {
     void UpdateAudioConfigToHal(
         const ::le_audio::offload_config& config) override;
     void SuspendedForReconfiguration() override;
+    void ReconfigurationComplete() override;
     // Source the given stream of bytes to be sinked into the upper layers
     size_t Write(const uint8_t* p_buf, uint32_t len);
   };

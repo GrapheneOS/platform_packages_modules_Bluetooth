@@ -14,10 +14,12 @@
  *  limitations under the License.
  */
 
+#include <fcntl.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <cstdio>
 #include <future>
 #include <map>
 
@@ -87,7 +89,25 @@ struct bluetooth::hci::LeScanningManager::impl
 
 namespace {
 std::map<std::string, std::promise<uint16_t>> mock_function_handle_promise_map;
-}
+
+// Utility to provide a file descriptor for /dev/null when possible, but
+// defaulting to STDERR when not possible.
+class DevNullOrStdErr {
+ public:
+  DevNullOrStdErr() { fd_ = open("/dev/null", O_CLOEXEC | O_WRONLY); }
+  ~DevNullOrStdErr() {
+    if (fd_ != -1) {
+      close(fd_);
+    }
+    fd_ = -1;
+  }
+  int Fd() const { return (fd_ == -1) ? STDERR_FILENO : fd_; }
+
+ private:
+  int fd_{-1};
+};
+
+}  // namespace
 
 uint8_t mock_get_ble_acceptlist_size() { return 123; }
 
@@ -727,4 +747,8 @@ TEST_F(MainShimTestWithClassicConnection, read_extended_feature) {
   }
 
   raw_connection_->read_remote_extended_features_function_ = {};
+}
+
+TEST_F(MainShimTest, acl_dumpsys) {
+  MakeAcl()->Dump(std::make_unique<DevNullOrStdErr>()->Fd());
 }

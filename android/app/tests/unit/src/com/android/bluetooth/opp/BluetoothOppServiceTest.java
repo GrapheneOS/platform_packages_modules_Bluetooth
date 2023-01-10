@@ -45,9 +45,11 @@ public class BluetoothOppServiceTest {
     private BluetoothOppService mService = null;
     private BluetoothAdapter mAdapter = null;
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
+    @Rule
+    public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
-    @Mock private AdapterService mAdapterService;
+    @Mock
+    private AdapterService mAdapterService;
 
     @Before
     public void setUp() throws Exception {

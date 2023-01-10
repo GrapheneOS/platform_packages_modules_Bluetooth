@@ -19,7 +19,7 @@
 
 #include <variant>
 
-#include "bta/le_audio/client_audio.h"
+#include "bta/le_audio/audio_hal_client/audio_hal_client.h"
 #include "bta/le_audio/le_audio_types.h"
 #include "bta_le_audio_api.h"
 #include "bta_le_audio_broadcaster_api.h"
@@ -153,7 +153,7 @@ std::ostream& operator<<(
     std::ostream& os, const le_audio::broadcaster::BroadcastQosConfig& config);
 
 std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
-getStreamConfigForContext(uint16_t context);
+getStreamConfigForContext(types::AudioContexts context);
 
 }  // namespace broadcaster
 }  // namespace le_audio

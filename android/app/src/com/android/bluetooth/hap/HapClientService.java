@@ -100,7 +100,8 @@ public class HapClientService extends ProfileService {
         return BluetoothProperties.isProfileHapClientEnabled().orElse(false);
     }
 
-    private static synchronized void setHapClient(HapClientService instance) {
+    @VisibleForTesting
+    static synchronized void setHapClient(HapClientService instance) {
         if (DBG) {
             Log.d(TAG, "setHapClient(): set to: " + instance);
         }
@@ -267,6 +268,8 @@ public class HapClientService extends ProfileService {
                 return;
             }
             if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i(TAG, "Disconnecting device because it was unbonded.");
+                disconnect(device);
                 return;
             }
             removeStateMachine(device);
@@ -696,6 +699,12 @@ public class HapClientService extends ProfileService {
         BluetoothHapPresetInfo defaultValue = null;
         if (presetIndex == BluetoothHapClient.PRESET_INDEX_UNAVAILABLE) return defaultValue;
 
+        if (Utils.isPtsTestMode()) {
+            /* We want native to be called for PTS testing even we have all
+             * the data in the cache here
+             */
+            mHapClientNativeInterface.getPresetInfo(device, presetIndex);
+        }
         List<BluetoothHapPresetInfo> current_presets = mPresetsMap.get(device);
         if (current_presets != null) {
             for (BluetoothHapPresetInfo preset : current_presets) {
@@ -1203,6 +1212,8 @@ public class HapClientService extends ProfileService {
     @VisibleForTesting
     static class BluetoothHapClientBinder extends IBluetoothHapClient.Stub
             implements IProfileServiceBinder {
+        @VisibleForTesting
+        boolean mIsTesting = false;
         private HapClientService mService;
 
         BluetoothHapClientBinder(HapClientService svc) {
@@ -1210,8 +1221,11 @@ public class HapClientService extends ProfileService {
         }
 
         private HapClientService getService(AttributionSource source) {
-            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
-                    || !Utils.checkServiceAvailable(mService, TAG)
+            if (mIsTesting) {
+                return mService;
+            }
+            if (!Utils.checkServiceAvailable(mService, TAG)
+                    || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
                 Log.w(TAG, "Hearing Access call not allowed for non-active user");
                 return null;

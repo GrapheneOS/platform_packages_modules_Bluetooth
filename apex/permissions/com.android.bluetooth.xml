@@ -37,5 +37,6 @@
         <permission name="android.permission.UPDATE_DEVICE_STATS" />
         <permission name="android.permission.PACKAGE_USAGE_STATS" />
         <permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" />
+        <permission name="android.permission.WRITE_SECURITY_LOG" />
     </privapp-permissions>
 </permissions>

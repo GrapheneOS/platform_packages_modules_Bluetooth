@@ -415,10 +415,8 @@ bool VolumeControlDevice::IsEncryptionEnabled() {
   return BTM_IsEncrypted(address, BT_TRANSPORT_LE);
 }
 
-bool VolumeControlDevice::EnableEncryption(tBTM_SEC_CALLBACK* callback) {
-  int result = BTM_SetEncryption(address, BT_TRANSPORT_LE, callback, nullptr,
+void VolumeControlDevice::EnableEncryption() {
+  int result = BTM_SetEncryption(address, BT_TRANSPORT_LE, nullptr, nullptr,
                                  BTM_BLE_SEC_ENCRYPT);
   LOG(INFO) << __func__ << ": result=" << +result;
-  // TODO: should we care about the result??
-  return true;
 }

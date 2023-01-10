@@ -576,6 +576,7 @@ class PhonePolicy {
                     + " attempting auto connection");
             autoConnectHeadset(mostRecentlyActiveA2dpDevice);
             autoConnectA2dp(mostRecentlyActiveA2dpDevice);
+            autoConnectHidHost(mostRecentlyActiveA2dpDevice);
         } else {
             debugLog("autoConnect() - BT is in quiet mode. Not initiating auto connections");
         }
@@ -611,6 +612,23 @@ class PhonePolicy {
         } else {
             debugLog("autoConnectHeadset: skipped auto-connect HFP with device " + device
                     + " connectionPolicy " + headsetConnectionPolicy);
+        }
+    }
+
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
+    private void autoConnectHidHost(BluetoothDevice device) {
+        final HidHostService hidHostService = mFactory.getHidHostService();
+        if (hidHostService == null) {
+            warnLog("autoConnectHidHost: service is null, failed to connect to " + device);
+            return;
+        }
+        int hidHostConnectionPolicy = hidHostService.getConnectionPolicy(device);
+        if (hidHostConnectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+            debugLog("autoConnectHidHost: Connecting HID with " + device);
+            hidHostService.connect(device);
+        } else {
+            debugLog("autoConnectHidHost: skipped auto-connect HID with device " + device
+                    + " connectionPolicy " + hidHostConnectionPolicy);
         }
     }
 
@@ -657,6 +675,7 @@ class PhonePolicy {
         VolumeControlService volumeControlService =
             mFactory.getVolumeControlService();
         BatteryService batteryService = mFactory.getBatteryService();
+        HidHostService hidHostService = mFactory.getHidHostService();
 
         if (hsService != null) {
             if (!mHeadsetRetrySet.contains(device) && (hsService.getConnectionPolicy(device)
@@ -728,6 +747,15 @@ class PhonePolicy {
                     == BluetoothProfile.STATE_DISCONNECTED)) {
                 debugLog("Retrying connection to BAS with device " + device);
                 batteryService.connect(device);
+            }
+        }
+        if (hidHostService != null) {
+            if ((hidHostService.getConnectionPolicy(device)
+                    == BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+                    && (hidHostService.getConnectionState(device)
+                    == BluetoothProfile.STATE_DISCONNECTED)) {
+                debugLog("Retrying connection to HID with device " + device);
+                hidHostService.connect(device);
             }
         }
     }

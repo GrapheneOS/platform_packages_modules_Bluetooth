@@ -770,6 +770,14 @@ TEST_F(IsoManagerDeathTest, RemoveCigWithNoSuchCig) {
               ::testing::KilledBySignal(SIGABRT), "No such cig");
 }
 
+TEST_F(IsoManagerDeathTest, RemoveCigForceNoSuchCig) {
+  EXPECT_CALL(hcic_interface_,
+              RemoveCig(volatile_test_cig_create_cmpl_evt_.cig_id, _))
+      .Times(1);
+  IsoManager::GetInstance()->RemoveCig(
+      volatile_test_cig_create_cmpl_evt_.cig_id, true);
+}
+
 TEST_F(IsoManagerDeathTest, RemoveSameCigTwice) {
   IsoManager::GetInstance()->CreateCig(
       volatile_test_cig_create_cmpl_evt_.cig_id, kDefaultCigParams);

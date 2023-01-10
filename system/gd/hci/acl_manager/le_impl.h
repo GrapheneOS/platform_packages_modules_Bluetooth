@@ -289,42 +289,69 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     auto status = connection_complete.GetStatus();
     auto address = connection_complete.GetPeerAddress();
     auto peer_address_type = connection_complete.GetPeerAddressType();
-    connectability_state_ = ConnectabilityState::DISARMED;
-    if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
-      on_le_connection_canceled_on_pause();
-      return;
-    }
+    auto role = connection_complete.GetRole();
     AddressWithType remote_address(address, peer_address_type);
     AddressWithType local_address = le_address_manager_->GetCurrentAddress();
-    on_common_le_connection_complete(remote_address);
-    if (status == ErrorCode::UNKNOWN_CONNECTION) {
-      if (remote_address.GetAddress() != Address::kEmpty) {
-        LOG_INFO("Controller send non-empty address field:%s", remote_address.GetAddress().ToString().c_str());
-      }
-      // direct connect canceled due to connection timeout, start background connect
-      create_le_connection(remote_address, false, false);
-      return;
-    }
-
-    arm_on_resume_ = false;
-    ready_to_unregister = true;
     const bool in_filter_accept_list = is_device_in_connect_list(remote_address);
-    remove_device_from_connect_list(remote_address);
 
-    if (!connect_list.empty()) {
-      AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
-      handler_->Post(common::BindOnce(&le_impl::create_le_connection, common::Unretained(this), empty, false, false));
-    }
+    if (role == hci::Role::CENTRAL) {
+      connectability_state_ = ConnectabilityState::DISARMED;
+      if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
+        on_le_connection_canceled_on_pause();
+        return;
+      }
+      on_common_le_connection_complete(remote_address);
+      if (status == ErrorCode::UNKNOWN_CONNECTION) {
+        if (remote_address.GetAddress() != Address::kEmpty) {
+          LOG_INFO("Controller send non-empty address field:%s", remote_address.GetAddress().ToString().c_str());
+        }
+        // direct connect canceled due to connection timeout, start background connect
+        create_le_connection(remote_address, false, false);
+        return;
+      }
 
-    if (le_client_handler_ == nullptr) {
-      LOG_ERROR("No callbacks to call");
-      return;
-    }
+      arm_on_resume_ = false;
+      ready_to_unregister = true;
+      remove_device_from_connect_list(remote_address);
 
-    if (status != ErrorCode::SUCCESS) {
-      le_client_handler_->Post(common::BindOnce(&LeConnectionCallbacks::OnLeConnectFail,
-                                                common::Unretained(le_client_callbacks_), remote_address, status));
-      return;
+      if (!connect_list.empty()) {
+        AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
+        handler_->Post(common::BindOnce(&le_impl::create_le_connection, common::Unretained(this), empty, false, false));
+      }
+
+      if (le_client_handler_ == nullptr) {
+        LOG_ERROR("No callbacks to call");
+        return;
+      }
+
+      if (status != ErrorCode::SUCCESS) {
+        le_client_handler_->Post(common::BindOnce(
+            &LeConnectionCallbacks::OnLeConnectFail, common::Unretained(le_client_callbacks_), remote_address, status));
+        return;
+      }
+    } else {
+      LOG_INFO("Received connection complete with Peripheral role");
+      if (le_client_handler_ == nullptr) {
+        LOG_ERROR("No callbacks to call");
+        return;
+      }
+
+      if (status != ErrorCode::SUCCESS) {
+        std::string error_code = ErrorCodeText(status);
+        LOG_WARN("Received on_le_connection_complete with error code %s", error_code.c_str());
+        return;
+      }
+
+      if (in_filter_accept_list) {
+        LOG_INFO(
+            "Received incoming connection of device in filter accept_list, %s",
+            PRIVATE_ADDRESS_WITH_TYPE(remote_address));
+        remove_device_from_connect_list(remote_address);
+        if (create_connection_timeout_alarms_.find(remote_address) != create_connection_timeout_alarms_.end()) {
+          create_connection_timeout_alarms_.at(remote_address).Cancel();
+          create_connection_timeout_alarms_.erase(remote_address);
+        }
+      }
     }
 
     uint16_t conn_interval = connection_complete.GetConnInterval();
@@ -335,7 +362,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       return;
     }
 
-    auto role = connection_complete.GetRole();
     uint16_t handle = connection_complete.GetConnectionHandle();
     auto queue = std::make_shared<AclConnection::Queue>(10);
     auto queue_down_end = queue->GetDownEnd();
@@ -363,14 +389,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     auto address = connection_complete.GetPeerAddress();
     auto peer_address_type = connection_complete.GetPeerAddressType();
     auto peer_resolvable_address = connection_complete.GetPeerResolvablePrivateAddress();
-    connectability_state_ = ConnectabilityState::DISARMED;
-    if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
-      on_le_connection_canceled_on_pause();
-      return;
-    }
+    auto role = connection_complete.GetRole();
 
     AddressType remote_address_type;
-
     switch (peer_address_type) {
       case AddressType::PUBLIC_DEVICE_ADDRESS:
       case AddressType::PUBLIC_IDENTITY_ADDRESS:
@@ -382,39 +403,71 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         break;
     }
     AddressWithType remote_address(address, remote_address_type);
-
-    on_common_le_connection_complete(remote_address);
-    if (status == ErrorCode::UNKNOWN_CONNECTION) {
-      if (remote_address.GetAddress() != Address::kEmpty) {
-        LOG_INFO("Controller send non-empty address field:%s", remote_address.GetAddress().ToString().c_str());
-      }
-      // direct connect canceled due to connection timeout, start background connect
-      create_le_connection(remote_address, false, false);
-      return;
-    }
-
-    arm_on_resume_ = false;
-    ready_to_unregister = true;
     const bool in_filter_accept_list = is_device_in_connect_list(remote_address);
-    remove_device_from_connect_list(remote_address);
 
-    if (!connect_list.empty()) {
-      AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
-      handler_->Post(common::BindOnce(&le_impl::create_le_connection, common::Unretained(this), empty, false, false));
+    if (role == hci::Role::CENTRAL) {
+      connectability_state_ = ConnectabilityState::DISARMED;
+
+      if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
+        on_le_connection_canceled_on_pause();
+        return;
+      }
+
+      on_common_le_connection_complete(remote_address);
+      if (status == ErrorCode::UNKNOWN_CONNECTION) {
+        if (remote_address.GetAddress() != Address::kEmpty) {
+          LOG_INFO("Controller send non-empty address field:%s", remote_address.GetAddress().ToString().c_str());
+        }
+        // direct connect canceled due to connection timeout, start background connect
+        create_le_connection(remote_address, false, false);
+        return;
+      }
+
+      arm_on_resume_ = false;
+      ready_to_unregister = true;
+      remove_device_from_connect_list(remote_address);
+
+      if (!connect_list.empty()) {
+        AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
+        handler_->Post(common::BindOnce(&le_impl::create_le_connection, common::Unretained(this), empty, false, false));
+      }
+
+      if (le_client_handler_ == nullptr) {
+        LOG_ERROR("No callbacks to call");
+        return;
+      }
+
+      if (status != ErrorCode::SUCCESS) {
+        le_client_handler_->Post(common::BindOnce(
+            &LeConnectionCallbacks::OnLeConnectFail, common::Unretained(le_client_callbacks_), remote_address, status));
+        return;
+      }
+
+    } else {
+      LOG_INFO("Received connection complete with Peripheral role");
+      if (le_client_handler_ == nullptr) {
+        LOG_ERROR("No callbacks to call");
+        return;
+      }
+
+      if (status != ErrorCode::SUCCESS) {
+        std::string error_code = ErrorCodeText(status);
+        LOG_WARN("Received on_le_enhanced_connection_complete with error code %s", error_code.c_str());
+        return;
+      }
+
+      if (in_filter_accept_list) {
+        LOG_INFO(
+            "Received incoming connection of device in filter accept_list, %s",
+            PRIVATE_ADDRESS_WITH_TYPE(remote_address));
+        remove_device_from_connect_list(remote_address);
+        if (create_connection_timeout_alarms_.find(remote_address) != create_connection_timeout_alarms_.end()) {
+          create_connection_timeout_alarms_.at(remote_address).Cancel();
+          create_connection_timeout_alarms_.erase(remote_address);
+        }
+      }
     }
 
-    if (le_client_handler_ == nullptr) {
-      LOG_ERROR("No callbacks to call");
-      return;
-    }
-
-    if (status != ErrorCode::SUCCESS) {
-      le_client_handler_->Post(common::BindOnce(&LeConnectionCallbacks::OnLeConnectFail,
-                                                common::Unretained(le_client_callbacks_), remote_address, status));
-      return;
-    }
-
-    auto role = connection_complete.GetRole();
     AddressWithType local_address;
     if (role == hci::Role::CENTRAL) {
       local_address = le_address_manager_->GetCurrentAddress();
@@ -615,28 +668,43 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         address_with_type.ToPeerAddressType(), address_with_type.GetAddress());
   }
 
+  void update_connectability_state_after_armed(const ErrorCode& status) {
+    switch (connectability_state_) {
+      case ConnectabilityState::DISARMED:
+      case ConnectabilityState::ARMED:
+      case ConnectabilityState::DISARMING:
+        LOG_ERROR(
+            "Received connectability arm notification for unexpected state:%s status:%s",
+            connectability_state_machine_text(connectability_state_).c_str(),
+            ErrorCodeText(status).c_str());
+        break;
+      case ConnectabilityState::ARMING:
+        if (status != ErrorCode::SUCCESS) {
+          LOG_ERROR("Le connection state machine armed failed status:%s", ErrorCodeText(status).c_str());
+        }
+        connectability_state_ =
+            (status == ErrorCode::SUCCESS) ? ConnectabilityState::ARMED : ConnectabilityState::DISARMED;
+        LOG_INFO(
+            "Le connection state machine armed state:%s status:%s",
+            connectability_state_machine_text(connectability_state_).c_str(),
+            ErrorCodeText(status).c_str());
+        if (disarmed_while_arming_) {
+          disarmed_while_arming_ = false;
+          disarm_connectability();
+        }
+    }
+  }
+
   void on_extended_create_connection(CommandStatusView status) {
     ASSERT(status.IsValid());
     ASSERT(status.GetCommandOpCode() == OpCode::LE_EXTENDED_CREATE_CONNECTION);
-    if (connectability_state_ != ConnectabilityState::ARMING) {
-      LOG_ERROR(
-          "Received connectability arm notification for unexpected state:%s",
-          connectability_state_machine_text(connectability_state_).c_str());
-    }
-    connectability_state_ =
-        (status.GetStatus() == ErrorCode::SUCCESS) ? ConnectabilityState::ARMED : ConnectabilityState::DISARMED;
+    update_connectability_state_after_armed(status.GetStatus());
   }
 
   void on_create_connection(CommandStatusView status) {
     ASSERT(status.IsValid());
     ASSERT(status.GetCommandOpCode() == OpCode::LE_CREATE_CONNECTION);
-    if (connectability_state_ != ConnectabilityState::ARMING) {
-      LOG_ERROR(
-          "Received connectability arm notification for unexpected state:%s",
-          connectability_state_machine_text(connectability_state_).c_str());
-    }
-    connectability_state_ =
-        (status.GetStatus() == ErrorCode::SUCCESS) ? ConnectabilityState::ARMED : ConnectabilityState::DISARMED;
+    update_connectability_state_after_armed(status.GetStatus());
   }
 
   void arm_connectability() {
@@ -749,16 +817,26 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void disarm_connectability() {
-    if (connectability_state_ != ConnectabilityState::ARMED && connectability_state_ != ConnectabilityState::ARMING) {
-      LOG_ERROR(
-          "Attempting to disarm le connection state machine in unexpected state:%s",
-          connectability_state_machine_text(connectability_state_).c_str());
-      return;
+    switch (connectability_state_) {
+      case ConnectabilityState::ARMED:
+        LOG_INFO("Disarming LE connection state machine with create connection cancel");
+        connectability_state_ = ConnectabilityState::DISARMING;
+        le_acl_connection_interface_->EnqueueCommand(
+            LeCreateConnectionCancelBuilder::Create(),
+            handler_->BindOnce(&le_impl::on_create_connection_cancel_complete, common::Unretained(this)));
+        break;
+
+      case ConnectabilityState::ARMING:
+        LOG_INFO("Queueing cancel connect until after connection state machine is armed");
+        disarmed_while_arming_ = true;
+        break;
+      case ConnectabilityState::DISARMING:
+      case ConnectabilityState::DISARMED:
+        LOG_ERROR(
+            "Attempting to disarm le connection state machine in unexpected state:%s",
+            connectability_state_machine_text(connectability_state_).c_str());
+        break;
     }
-    connectability_state_ = ConnectabilityState::DISARMING;
-    le_acl_connection_interface_->EnqueueCommand(
-        LeCreateConnectionCancelBuilder::Create(),
-        handler_->BindOnce(&le_impl::on_create_connection_cancel_complete, common::Unretained(this)));
   }
 
   void create_le_connection(AddressWithType address_with_type, bool add_to_connect_list, bool is_direct) {
@@ -946,6 +1024,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void OnPause() override {  // bluetooth::hci::LeAddressManagerCallback
+    if (!address_manager_registered) {
+      LOG_WARN("Unregistered!");
+      return;
+    }
     pause_connection = true;
     if (connectability_state_ == ConnectabilityState::DISARMED) {
       le_address_manager_->AckPause(this);
@@ -956,6 +1038,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void OnResume() override {  // bluetooth::hci::LeAddressManagerCallback
+    if (!address_manager_registered) {
+      LOG_WARN("Unregistered!");
+      return;
+    }
     pause_connection = false;
     if (arm_on_resume_) {
       arm_connectability();
@@ -1022,6 +1108,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   bool address_manager_registered = false;
   bool ready_to_unregister = false;
   bool pause_connection = false;
+  bool disarmed_while_arming_ = false;
   ConnectabilityState connectability_state_{ConnectabilityState::DISARMED};
   std::map<AddressWithType, os::Alarm> create_connection_timeout_alarms_;
 };

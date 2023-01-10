@@ -51,9 +51,6 @@ cc_binary {
     ],
     cflags: [
         "-fvisibility=hidden",
-        "-Wall",
-        "-Wextra",
-        "-Werror",
         "-DHAS_NO_BDROID_BUILDCFG",
     ],
     generated_headers: [
@@ -76,7 +73,6 @@ cc_binary {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     init_rc: ["android.hardware.bluetooth@1.1-service.sim.rc"],
-    required: ["bt_controller_properties"],
 }
 
 cc_library_shared {
@@ -106,9 +102,6 @@ cc_library_shared {
         "libprotobuf-cpp-lite",
     ],
     cflags: [
-        "-Wall",
-        "-Wextra",
-        "-Werror",
         "-DHAS_NO_BDROID_BUILDCFG",
     ],
     generated_headers: [

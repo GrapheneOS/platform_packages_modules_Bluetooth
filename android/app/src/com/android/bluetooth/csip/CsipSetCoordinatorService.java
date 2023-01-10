@@ -278,6 +278,7 @@ public class CsipSetCoordinatorService extends ProfileService {
             CsipSetCoordinatorStateMachine smConnect = getOrCreateStateMachine(device);
             if (smConnect == null) {
                 Log.e(TAG, "Cannot connect to " + device + " : no state machine");
+                return false;
             }
             smConnect.sendMessage(CsipSetCoordinatorStateMachine.CONNECT);
         }
@@ -598,6 +599,24 @@ public class CsipSetCoordinatorService extends ProfileService {
     }
 
     /**
+     * Get group ID for a given device and UUID
+     * @param device potential group member
+     * @param uuid profile context UUID
+     * @return group ID
+     */
+    public Integer getGroupId(BluetoothDevice device, ParcelUuid uuid) {
+        Map<Integer, Integer> device_groups =
+                mDeviceGroupIdRankMap.getOrDefault(device, new HashMap<>());
+        return mGroupIdToUuidMap.entrySet()
+                .stream()
+                .filter(e -> (device_groups.containsKey(e.getKey())
+                        && e.getValue().equals(uuid)))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(IBluetoothCsipSetCoordinator.CSIS_GROUP_ID_INVALID);
+    }
+
+    /**
      * Get device's groups/
      * @param device group member device
      * @return map of group id and related uuids.
@@ -888,6 +907,8 @@ public class CsipSetCoordinatorService extends ProfileService {
                 return;
             }
             if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i(TAG, "Disconnecting device because it was unbonded.");
+                disconnect(device);
                 return;
             }
             removeStateMachine(device);
@@ -953,8 +974,11 @@ public class CsipSetCoordinatorService extends ProfileService {
         private CsipSetCoordinatorService mService;
 
         private CsipSetCoordinatorService getService(AttributionSource source) {
-            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
-                    || !Utils.checkServiceAvailable(mService, TAG)) {
+            if (Utils.isInstrumentationTestMode()) {
+                return mService;
+            }
+            if (!Utils.checkServiceAvailable(mService, TAG)
+                    || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)) {
                 return null;
             }
 

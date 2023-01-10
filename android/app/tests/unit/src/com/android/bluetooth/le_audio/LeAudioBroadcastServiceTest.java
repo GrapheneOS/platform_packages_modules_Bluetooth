@@ -172,6 +172,8 @@ public class LeAudioBroadcastServiceTest {
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         doReturn(true).when(mAdapterService).isLeAudioBroadcastSourceSupported();
+        doReturn((long)(1 << BluetoothProfile.LE_AUDIO_BROADCAST) | (1 << BluetoothProfile.LE_AUDIO))
+                .when(mAdapterService).getSupportedProfilesBitMask();
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -299,7 +301,7 @@ public class LeAudioBroadcastServiceTest {
     @Test
     public void testCreateBroadcastNative() {
         int broadcastId = 243;
-        byte[] code = {0x00, 0x01, 0x00};
+        byte[] code = {0x00, 0x01, 0x00, 0x02};
 
         mService.mBroadcastCallbacks.register(mCallbacks);
 
@@ -314,7 +316,7 @@ public class LeAudioBroadcastServiceTest {
     @Test
     public void testCreateBroadcastNativeFailed() {
         int broadcastId = 243;
-        byte[] code = {0x00, 0x01, 0x00};
+        byte[] code = {0x00, 0x01, 0x00, 0x02};
 
         mService.mBroadcastCallbacks.register(mCallbacks);
 
@@ -340,7 +342,7 @@ public class LeAudioBroadcastServiceTest {
     @Test
     public void testStartStopBroadcastNative() {
         int broadcastId = 243;
-        byte[] code = {0x00, 0x01, 0x00};
+        byte[] code = {0x00, 0x01, 0x00, 0x02};
 
         mService.mBroadcastCallbacks.register(mCallbacks);
 

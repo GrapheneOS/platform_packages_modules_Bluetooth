@@ -23,6 +23,7 @@
 #include <base/strings/stringprintf.h>
 #include <string.h>
 
+#include <deque>
 #include <list>
 #include <queue>
 #include <unordered_set>
@@ -303,7 +304,7 @@ typedef struct {
 } tGATT_SRV_LIST_ELEM;
 
 typedef struct {
-  std::queue<tGATT_CLCB*> pending_enc_clcb; /* pending encryption channel q */
+  std::deque<tGATT_CLCB*> pending_enc_clcb; /* pending encryption channel q */
   tGATT_SEC_ACTION sec_act;
   RawAddress peer_bda;
   tBT_TRANSPORT transport;
@@ -330,7 +331,7 @@ typedef struct {
   uint8_t prep_cnt[GATT_MAX_APPS];
   uint8_t ind_count;
 
-  std::queue<tGATT_CMD_Q> cl_cmd_q;
+  std::deque<tGATT_CMD_Q> cl_cmd_q;
   alarm_t* ind_ack_timer; /* local app confirm to indication timer */
 
   // TODO(hylo): support byte array data
@@ -369,7 +370,6 @@ struct tGATT_CLCB {
   tGATT_STATUS status;     /* operation status */
   bool first_read_blob_after_read;
   tGATT_READ_INC_UUID128 read_uuid128;
-  bool in_use;
   alarm_t* gatt_rsp_timer_ent; /* peer response timer */
   uint8_t retry_count;
   uint16_t read_req_current_mtu; /* This is the MTU value that the read was
@@ -416,7 +416,14 @@ typedef struct {
 
   fixed_queue_t* srv_chg_clt_q; /* service change clients queue */
   tGATT_REG cl_rcb[GATT_MAX_APPS];
-  tGATT_CLCB clcb[GATT_CL_MAX_LCB]; /* connection link control block*/
+
+  /* list of connection link control blocks.
+   * Since clcbs are also keep in the channels (ATT and EATT) queues while
+   * processing, we want to make sure that references to elements are not
+   * invalidated when elements are added or removed from the list. This is why
+   * std::list is used.
+   */
+  std::list<tGATT_CLCB> clcb_queue;
 
 #if (GATT_CONFORMANCE_TESTING == TRUE)
   bool enable_err_rsp;
@@ -586,6 +593,7 @@ extern bool gatt_tcb_find_indicate_handle(tGATT_TCB& tcb, uint16_t cid,
 extern uint16_t gatt_tcb_get_att_cid(tGATT_TCB& tcb, bool eatt_support);
 extern uint16_t gatt_tcb_get_payload_size_tx(tGATT_TCB& tcb, uint16_t cid);
 extern uint16_t gatt_tcb_get_payload_size_rx(tGATT_TCB& tcb, uint16_t cid);
+extern void gatt_clcb_invalidate(tGATT_TCB* p_tcb, const tGATT_CLCB* p_clcb);
 extern void gatt_clcb_dealloc(tGATT_CLCB* p_clcb);
 
 extern void gatt_sr_copy_prep_cnt_to_cback_cnt(tGATT_TCB& p_tcb);
@@ -637,6 +645,7 @@ extern void gatt_client_handle_server_rsp(tGATT_TCB& tcb, uint16_t cid,
                                           uint8_t* p_data);
 extern void gatt_send_queue_write_cancel(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
                                          tGATT_EXEC_FLAG flag);
+extern bool gatt_is_outstanding_msg_in_att_send_queue(const tGATT_TCB& tcb);
 
 /* gatt_auth.cc */
 extern bool gatt_security_check_start(tGATT_CLCB* p_clcb);

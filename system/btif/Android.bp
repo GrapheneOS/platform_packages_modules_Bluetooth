@@ -35,14 +35,11 @@ btifCommonIncludes = [
 
 cc_library {
     name: "libstatslog_bt",
+    defaults: ["fluoride_common_options"],
     host_supported: true,
     generated_sources: ["statslog_bt.cpp"],
     generated_headers: ["statslog_bt.h"],
     export_generated_headers: ["statslog_bt.h"],
-    cflags: [
-        "-Wall",
-        "-Werror",
-    ],
     shared_libs: [
         "libcutils",
     ],
@@ -105,7 +102,6 @@ cc_defaults {
         "co/bta_gatts_co.cc",
         // HAL layer
         "src/bluetooth.cc",
-        "src/bluetooth_data_migration.cc",
         // BTIF implementation
         "src/btif_a2dp.cc",
         "src/btif_a2dp_control.cc",
@@ -238,6 +234,7 @@ cc_test {
         "libFraunhoferAAC",
         "libg722codec",
         "liblc3",
+        "libopus",
         "libosi",
         "libudrv-uipc",
    ],

@@ -30,11 +30,11 @@ from bluetooth_packets_python3.hci_packets import BroadcastFlag
 from bluetooth_packets_python3.hci_packets import PacketBoundaryFlag
 from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.matchers import HciMatchers
-from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingLegacyParametersBuilder
-from bluetooth_packets_python3.hci_packets import LegacyAdvertisingProperties
+from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingParametersLegacyBuilder
+from bluetooth_packets_python3.hci_packets import LegacyAdvertisingEventProperties
 from bluetooth_packets_python3.hci_packets import PeerAddressType
 from bluetooth_packets_python3.hci_packets import AdvertisingFilterPolicy
-from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingRandomAddressBuilder
+from bluetooth_packets_python3.hci_packets import LeSetAdvertisingSetRandomAddressBuilder
 from bluetooth_packets_python3.hci_packets import GapData
 from bluetooth_packets_python3.hci_packets import GapDataType
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingDataBuilder
@@ -42,7 +42,7 @@ from bluetooth_packets_python3.hci_packets import Operation
 from bluetooth_packets_python3.hci_packets import OwnAddressType
 from bluetooth_packets_python3.hci_packets import Enable
 from bluetooth_packets_python3.hci_packets import FragmentPreference
-from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingScanResponseBuilder
+from bluetooth_packets_python3.hci_packets import LeSetExtendedScanResponseDataBuilder
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingEnableBuilder
 from bluetooth_packets_python3.hci_packets import EnabledSet
 from bluetooth_packets_python3.hci_packets import OpCode
@@ -87,9 +87,9 @@ class PyHalAdvertisement(object):
         data.data_type = GapDataType.SHORTENED_LOCAL_NAME
         data.data = list(bytes(shortened_name))
         self.py_hal.send_hci_command(
-            LeSetExtendedAdvertisingScanResponseBuilder(self.handle, Operation.COMPLETE_ADVERTISEMENT,
-                                                        FragmentPreference.CONTROLLER_SHOULD_NOT, [data]))
-        self.py_hal.wait_for_complete(OpCode.LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE)
+            LeSetExtendedScanResponseDataBuilder(self.handle, Operation.COMPLETE_ADVERTISEMENT,
+                                                 FragmentPreference.CONTROLLER_SHOULD_NOT, [data]))
+        self.py_hal.wait_for_complete(OpCode.LE_SET_EXTENDED_SCAN_RESPONSE_DATA)
 
     def start(self):
         enabled_set = EnabledSet()
@@ -117,6 +117,7 @@ class PyHal(Closable):
         self.acl_stream = EventStream(self.device.hal.StreamAcl(empty_proto.Empty()))
 
         self.event_mask = 0x1FFF_FFFF_FFFF  # Default Event Mask (Core Vol 4 [E] 7.3.1)
+        self.le_event_mask = 0x0000_0000_001F  # Default LE Event Mask (Core Vol 4 [E] 7.8.1)
 
         # We don't deal with SCO for now
 
@@ -172,6 +173,11 @@ class PyHal(Closable):
         for event_code in event_codes:
             self.event_mask |= 1 << (int(event_code) - 1)
         self.send_hci_command(hci_packets.SetEventMaskBuilder(self.event_mask))
+
+    def unmask_le_event(self, *subevent_codes):
+        for subevent_code in subevent_codes:
+            self.le_event_mask |= 1 << (int(subevent_code) - 1)
+        self.send_hci_command(hci_packets.LeSetEventMaskBuilder(self.le_event_mask))
 
     def start_scanning(self):
         self.send_hci_command(
@@ -265,7 +271,7 @@ class PyHal(Closable):
     def create_advertisement(self,
                              handle,
                              own_address,
-                             properties=LegacyAdvertisingProperties.ADV_IND,
+                             properties=LegacyAdvertisingEventProperties.ADV_IND,
                              min_interval=400,
                              max_interval=450,
                              channel_map=7,
@@ -278,12 +284,12 @@ class PyHal(Closable):
                              scan_request_notification=Enable.DISABLED):
 
         self.send_hci_command(
-            LeSetExtendedAdvertisingLegacyParametersBuilder(handle, properties, min_interval, max_interval, channel_map,
+            LeSetExtendedAdvertisingParametersLegacyBuilder(handle, properties, min_interval, max_interval, channel_map,
                                                             own_address_type, peer_address_type, peer_address,
                                                             filter_policy, tx_power, sid, scan_request_notification))
         self.wait_for_complete(OpCode.LE_SET_EXTENDED_ADVERTISING_PARAMETERS)
 
-        self.send_hci_command(LeSetExtendedAdvertisingRandomAddressBuilder(handle, own_address))
-        self.wait_for_complete(OpCode.LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS)
+        self.send_hci_command(LeSetAdvertisingSetRandomAddressBuilder(handle, own_address))
+        self.wait_for_complete(OpCode.LE_SET_ADVERTISING_SET_RANDOM_ADDRESS)
 
         return PyHalAdvertisement(handle, self)

@@ -22,8 +22,10 @@
 
 #include <statslog_bt.h>
 
+#include "common/audit_log.h"
 #include "common/metric_id_manager.h"
 #include "common/strings.h"
+#include "hci/hci_packets.h"
 #include "os/log.h"
 
 namespace bluetooth {
@@ -32,6 +34,8 @@ namespace os {
 
 using bluetooth::common::MetricIdManager;
 using bluetooth::hci::Address;
+using bluetooth::hci::ErrorCode;
+using bluetooth::hci::EventCode;
 
 /**
  * nullptr and size 0 represent missing value for obfuscated_id
@@ -285,6 +289,10 @@ void LogMetricClassicPairingEvent(
         std::to_string(event_value).c_str(),
         ret);
   }
+
+  if (static_cast<EventCode>(hci_event) == EventCode::SIMPLE_PAIRING_COMPLETE) {
+    common::LogConnectionAdminAuditEvent("Pairing", address, static_cast<ErrorCode>(cmd_status));
+  }
 }
 
 void LogMetricSdpAttribute(
@@ -412,6 +420,76 @@ void LogMetricBluetoothHalCrashReason(
         address.ToString().c_str(),
         common::ToHexString(error_code).c_str(),
         common::ToHexString(vendor_error_code).c_str(),
+        ret);
+  }
+}
+
+void LogMetricBluetoothLocalSupportedFeatures(uint32_t page_num, uint64_t features) {
+  int ret = stats_write(BLUETOOTH_LOCAL_SUPPORTED_FEATURES_REPORTED, page_num, features);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed for LogMetricBluetoothLocalSupportedFeatures, "
+        "page_num %d, features %s, error %d",
+        page_num,
+        std::to_string(features).c_str(),
+        ret);
+  }
+}
+
+void LogMetricBluetoothLocalVersions(
+    uint32_t lmp_manufacturer_name,
+    uint8_t lmp_version,
+    uint32_t lmp_subversion,
+    uint8_t hci_version,
+    uint32_t hci_revision) {
+  int ret = stats_write(
+      BLUETOOTH_LOCAL_VERSIONS_REPORTED, lmp_manufacturer_name, lmp_version, lmp_subversion, hci_version, hci_revision);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed for LogMetricBluetoothLocalVersions, "
+        "lmp_manufacturer_name %d, lmp_version %hhu, lmp_subversion %d, hci_version %hhu, hci_revision %d, error %d",
+        lmp_manufacturer_name,
+        lmp_version,
+        lmp_subversion,
+        hci_version,
+        hci_revision,
+        ret);
+  }
+}
+  
+void LogMetricBluetoothDisconnectionReasonReported(
+    uint32_t reason, const Address& address, uint32_t connection_handle) {
+  int metric_id = 0;
+  if (!address.IsEmpty()) {
+    metric_id = MetricIdManager::GetInstance().AllocateId(address);
+  }
+  int ret = stats_write(BLUETOOTH_DISCONNECTION_REASON_REPORTED, reason, metric_id, connection_handle);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed for LogMetricBluetoothDisconnectionReasonReported, "
+        "reason %d, metric_id %d, connection_handle %d, error %d",
+        reason,
+        metric_id,
+        connection_handle,
+        ret);
+  }
+}
+
+void LogMetricBluetoothRemoteSupportedFeatures(
+    const Address& address, uint32_t page, uint64_t features, uint32_t connection_handle) {
+  int metric_id = 0;
+  if (!address.IsEmpty()) {
+    metric_id = MetricIdManager::GetInstance().AllocateId(address);
+  }
+  int ret = stats_write(BLUETOOTH_REMOTE_SUPPORTED_FEATURES_REPORTED, metric_id, page, features, connection_handle);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed for LogMetricBluetoothRemoteSupportedFeatures, "
+        "metric_id %d, page %d, features %s, connection_handle %d, error %d",
+        metric_id,
+        page,
+        std::to_string(features).c_str(),
+        connection_handle,
         ret);
   }
 }

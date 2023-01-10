@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <vector>
 
 #include "btif/include/btif_hh.h"
@@ -62,6 +63,8 @@ const hci_t* hci_layer_get_interface() { return nullptr; }
 void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 
 const std::string kSmpOptions("mock smp options");
+const std::string kBroadcastAudioConfigOptions(
+    "mock broadcast audio config options");
 
 bool get_trace_config_enabled(void) { return false; }
 bool get_pts_avrcp_test(void) { return false; }
@@ -75,6 +78,18 @@ bool get_pts_connect_eatt_unconditionally(void) { return false; }
 bool get_pts_connect_eatt_before_encryption(void) { return false; }
 bool get_pts_unencrypt_broadcast(void) { return false; }
 bool get_pts_eatt_peripheral_collision_support(void) { return false; }
+bool get_pts_use_eatt_for_all_services(void) { return false; }
+bool get_pts_force_le_audio_multiple_contexts_metadata(void) { return false; }
+bool get_pts_l2cap_ecoc_upper_tester(void) { return false; }
+int get_pts_l2cap_ecoc_min_key_size(void) { return -1; }
+int get_pts_l2cap_ecoc_initial_chan_cnt(void) { return -1; }
+bool get_pts_l2cap_ecoc_connect_remaining(void) { return false; }
+int get_pts_l2cap_ecoc_send_num_of_sdu(void) { return -1; }
+bool get_pts_l2cap_ecoc_reconfigure(void) { return false; }
+const std::string* get_pts_broadcast_audio_config_options(void) {
+  return &kBroadcastAudioConfigOptions;
+}
+bool get_pts_le_audio_disable_ases_before_stopping(void) { return false; }
 config_t* get_all(void) { return nullptr; }
 const packet_fragmenter_t* packet_fragmenter_get_interface() { return nullptr; }
 
@@ -95,6 +110,19 @@ stack_config_t mock_stack_config{
     .get_pts_unencrypt_broadcast = get_pts_unencrypt_broadcast,
     .get_pts_eatt_peripheral_collision_support =
         get_pts_eatt_peripheral_collision_support,
+    .get_pts_l2cap_ecoc_upper_tester = get_pts_l2cap_ecoc_upper_tester,
+    .get_pts_l2cap_ecoc_min_key_size = get_pts_l2cap_ecoc_min_key_size,
+    .get_pts_force_le_audio_multiple_contexts_metadata =
+        get_pts_force_le_audio_multiple_contexts_metadata,
+    .get_pts_l2cap_ecoc_initial_chan_cnt = get_pts_l2cap_ecoc_initial_chan_cnt,
+    .get_pts_l2cap_ecoc_connect_remaining =
+        get_pts_l2cap_ecoc_connect_remaining,
+    .get_pts_l2cap_ecoc_send_num_of_sdu = get_pts_l2cap_ecoc_send_num_of_sdu,
+    .get_pts_l2cap_ecoc_reconfigure = get_pts_l2cap_ecoc_reconfigure,
+    .get_pts_broadcast_audio_config_options =
+        get_pts_broadcast_audio_config_options,
+    .get_pts_le_audio_disable_ases_before_stopping =
+        get_pts_le_audio_disable_ases_before_stopping,
     .get_all = get_all,
 };
 const stack_config_t* stack_config_get_interface(void) {
@@ -369,4 +397,38 @@ TEST_F(StackBtmWithInitFreeTest, BTM_SetEncryption) {
                                               nullptr, sec_act));
 
   wipe_secrets_and_remove(device_record);
+}
+
+TEST_F(StackBtmTest, sco_state_text) {
+  std::vector<std::pair<tSCO_STATE, std::string>> states = {
+      std::make_pair(SCO_ST_UNUSED, "SCO_ST_UNUSED"),
+      std::make_pair(SCO_ST_LISTENING, "SCO_ST_LISTENING"),
+      std::make_pair(SCO_ST_W4_CONN_RSP, "SCO_ST_W4_CONN_RSP"),
+      std::make_pair(SCO_ST_CONNECTING, "SCO_ST_CONNECTING"),
+      std::make_pair(SCO_ST_CONNECTED, "SCO_ST_CONNECTED"),
+      std::make_pair(SCO_ST_DISCONNECTING, "SCO_ST_DISCONNECTING"),
+      std::make_pair(SCO_ST_PEND_UNPARK, "SCO_ST_PEND_UNPARK"),
+      std::make_pair(SCO_ST_PEND_ROLECHANGE, "SCO_ST_PEND_ROLECHANGE"),
+      std::make_pair(SCO_ST_PEND_MODECHANGE, "SCO_ST_PEND_MODECHANGE"),
+  };
+  for (const auto& state : states) {
+    ASSERT_STREQ(state.second.c_str(), sco_state_text(state.first).c_str());
+  }
+  std::ostringstream oss;
+  oss << "unknown_sco_state: " << std::numeric_limits<std::uint16_t>::max();
+  ASSERT_STREQ(oss.str().c_str(),
+               sco_state_text(static_cast<tSCO_STATE>(
+                                  std::numeric_limits<std::uint16_t>::max()))
+                   .c_str());
+}
+
+TEST_F(StackBtmTest, btm_ble_sec_req_act_text) {
+  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_NONE",
+            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_NONE));
+  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_ENCRYPT",
+            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_ENCRYPT));
+  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_PAIR",
+            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_PAIR));
+  ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_DISCARD",
+            btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_DISCARD));
 }

@@ -22,15 +22,19 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "btif/include/btif_storage.h"
 #include "connection_manager.h"
 #include "device/include/interop.h"
+#include "gd/common/init_flags.h"
 #include "internal_include/stack_config.h"
 #include "l2c_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
@@ -39,8 +43,6 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/l2cap_acl_interface.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using base::StringPrintf;
 using bluetooth::eatt::EattExtension;
@@ -113,12 +115,19 @@ void gatt_init(void) {
   fixed_reg.pL2CA_FixedConn_Cb = gatt_le_connect_cback;
   fixed_reg.pL2CA_FixedData_Cb = gatt_le_data_ind;
   fixed_reg.pL2CA_FixedCong_Cb = gatt_le_cong_cback; /* congestion callback */
-  fixed_reg.default_idle_tout = 0xffff; /* 0xffff default idle timeout */
+
+  // the GATT timeout is updated after a connection
+  // is established, when we know whether any
+  // clients exist
+  fixed_reg.default_idle_tout = L2CAP_NO_IDLE_TIMEOUT;
 
   L2CA_RegisterFixedChannel(L2CAP_ATT_CID, &fixed_reg);
 
+  bool gatt_over_br_is_disabled =
+      osi_property_get_bool("bluetooth.gatt_over_bredr.disabled", false);
   /* Now, register with L2CAP for ATT PSM over BR/EDR */
-  if (!L2CA_Register2(BT_PSM_ATT, dyn_info, false /* enable_snoop */, nullptr,
+  if (!gatt_over_br_is_disabled &&
+      !L2CA_Register2(BT_PSM_ATT, dyn_info, false /* enable_snoop */, nullptr,
                       GATT_MAX_MTU_SIZE, 0, BTM_SEC_NONE)) {
     LOG(ERROR) << "ATT Dynamic Registration failed";
   }
@@ -155,7 +164,7 @@ void gatt_free(void) {
   fixed_queue_free(gatt_cb.srv_chg_clt_q, NULL);
   gatt_cb.srv_chg_clt_q = NULL;
   for (i = 0; i < GATT_MAX_PHY_CHANNEL; i++) {
-    gatt_cb.tcb[i].pending_enc_clcb = std::queue<tGATT_CLCB*>();
+    gatt_cb.tcb[i].pending_enc_clcb = std::deque<tGATT_CLCB*>();
 
     fixed_queue_free(gatt_cb.tcb[i].pending_ind_q, NULL);
     gatt_cb.tcb[i].pending_ind_q = NULL;
@@ -372,7 +381,7 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB* p_tcb,
                p_tcb->peer_bda.ToString().c_str());
       /* acl link is connected disable the idle timeout */
       GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_NO_IDLE_TIMEOUT,
-                          p_tcb->transport);
+                          p_tcb->transport, true /* is_active */);
     } else {
       LOG_INFO("invalid handle %d or dynamic CID %d", is_valid_handle,
                p_tcb->att_lcid);
@@ -391,7 +400,7 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB* p_tcb,
             "%d seconds",
             GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP);
         GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP,
-                            p_tcb->transport);
+                            p_tcb->transport, false /* is_active */);
       } else {
         // disconnect the dynamic channel
         LOG_INFO("disconnect GATT dynamic channel");
@@ -815,11 +824,18 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
   /* Remove the direct connection */
   connection_manager::on_connection_complete(p_tcb->peer_bda);
 
-  if (!p_tcb->app_hold_link.empty() && p_tcb->att_lcid == L2CAP_ATT_CID) {
-    /* disable idle timeout if one or more clients are holding the link disable
-     * the idle timer */
-    GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_NO_IDLE_TIMEOUT,
-                        p_tcb->transport);
+  if (p_tcb->att_lcid == L2CAP_ATT_CID) {
+    if (!p_tcb->app_hold_link.empty()) {
+      /* disable idle timeout if one or more clients are holding the link
+       * disable the idle timer */
+      GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_NO_IDLE_TIMEOUT,
+                          p_tcb->transport, true /* is_active */);
+    } else {
+      if (bluetooth::common::init_flags::finite_att_timeout_is_enabled()) {
+        GATT_SetIdleTimeout(p_tcb->peer_bda, GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP,
+                            p_tcb->transport, false /* is_active */);
+      }
+    }
   }
 }
 

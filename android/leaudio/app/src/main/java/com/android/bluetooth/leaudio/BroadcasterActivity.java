@@ -40,6 +40,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.android.bluetooth.leaudio.R;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class BroadcasterActivity extends AppCompatActivity {
     private BroadcasterViewModel mViewModel;
@@ -148,7 +149,8 @@ public class BroadcasterActivity extends AppCompatActivity {
                 byte[] code = metadata.getBroadcastCode();
                 addr_text = metaLayout.findViewById(R.id.broadcast_code_text);
                 if (code != null) {
-                    addr_text.setText("Broadcast Code: " + metadata.getBroadcastCode().toString());
+                    addr_text.setText("Broadcast Code: "
+                            + new String(code, StandardCharsets.UTF_8));
                 } else {
                     addr_text.setVisibility(View.INVISIBLE);
                 }

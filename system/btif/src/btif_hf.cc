@@ -1090,7 +1090,6 @@ bt_status_t HeadsetInterface::ClccResponse(
       }
       for (size_t i = 0; number[i] != 0; i++) {
         if (newidx >= (sizeof(dialnum) - res_strlen - 1)) {
-          android_errorWriteLog(0x534e4554, "79266386");
           break;
         }
         if (utl_isdialchar(number[i])) {
@@ -1263,7 +1262,6 @@ bt_status_t HeadsetInterface::PhoneStateChange(
               13 + static_cast<int>(number_str.length() + name_str.length()) -
               static_cast<int>(sizeof(ag_res.str));
           if (overflow_size > 0) {
-            android_errorWriteLog(0x534e4554, "79431031");
             int extra_overflow_size =
                 overflow_size - static_cast<int>(name_str.length());
             if (extra_overflow_size > 0) {

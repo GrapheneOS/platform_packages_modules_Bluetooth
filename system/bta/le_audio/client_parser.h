@@ -221,18 +221,20 @@ constexpr uint16_t kAudioLocationsRspMinLen = 4;
 
 constexpr uint16_t kAseAudioAvailRspMinLen = 4;
 struct acs_available_audio_contexts {
-  std::bitset<16> snk_avail_cont;
-  std::bitset<16> src_avail_cont;
+  types::AudioContexts snk_avail_cont;
+  types::AudioContexts src_avail_cont;
 };
 
 constexpr uint16_t kAseAudioSuppContRspMinLen = 4;
 struct acs_supported_audio_contexts {
-  std::bitset<16> snk_supp_cont;
-  std::bitset<16> src_supp_cont;
+  types::AudioContexts snk_supp_cont;
+  types::AudioContexts src_supp_cont;
 };
 
-bool ParsePac(std::vector<struct types::acs_ac_record>& pac_recs, uint16_t len,
-              const uint8_t* value);
+int ParseSinglePac(std::vector<struct types::acs_ac_record>& pac_recs,
+                   uint16_t len, const uint8_t* value);
+bool ParsePacs(std::vector<struct types::acs_ac_record>& pac_recs, uint16_t len,
+               const uint8_t* value);
 bool ParseAudioLocations(types::AudioLocations& audio_locations, uint16_t len,
                          const uint8_t* value);
 bool ParseAvailableAudioContexts(struct acs_available_audio_contexts& rsp,

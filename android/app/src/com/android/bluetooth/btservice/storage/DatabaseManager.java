@@ -638,6 +638,38 @@ public class DatabaseManager {
     }
 
     /**
+     * Gets the most recently connected bluetooth device in a given list.
+     *
+     * @param devicesList the list of {@link BluetoothDevice} to search in
+     * @return the most recently connected {@link BluetoothDevice} in the given
+     *         {@code devicesList}, or null if an error occurred
+     *
+     * @hide
+     */
+    public BluetoothDevice getMostRecentlyConnectedDevicesInList(
+            List<BluetoothDevice> devicesList) {
+        if (devicesList == null) {
+            return null;
+        }
+
+        BluetoothDevice mostRecentDevice = null;
+        long mostRecentLastActiveTime = -1;
+        synchronized (mMetadataCache) {
+            for (BluetoothDevice device : devicesList) {
+                String address = device.getAddress();
+                Metadata metadata = mMetadataCache.get(address);
+                if (metadata != null && (mostRecentLastActiveTime == -1
+                            || mostRecentLastActiveTime < metadata.last_active_time)) {
+                    mostRecentLastActiveTime = metadata.last_active_time;
+                    mostRecentDevice = device;
+                }
+
+            }
+        }
+        return mostRecentDevice;
+    }
+
+    /**
      * Gets the last active a2dp device
      *
      * @return the most recently active a2dp device or null if the last a2dp device was null

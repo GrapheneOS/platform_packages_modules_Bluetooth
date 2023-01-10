@@ -40,6 +40,7 @@ import android.util.Log;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -615,7 +616,10 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     })
     public boolean sendMessage(BluetoothDevice device, Uri[] contacts, String message,
             PendingIntent sentIntent, PendingIntent deliveredIntent) {
-        if (DBG) Log.d(TAG, "sendMessage(" + device + ", " + contacts + ", " + message);
+        if (DBG) {
+            Log.d(TAG, "sendMessage(" + device + ", " + Arrays.toString(contacts)
+                    + ", " + message);
+        }
         final IBluetoothMapClient service = getService();
         final boolean defaultValue = false;
         if (service == null) {

@@ -176,9 +176,9 @@ std::optional<std::string> ConfigCache::GetProperty(const std::string& section, 
 
 void ConfigCache::SetProperty(std::string section, std::string property, std::string value) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
-  if (TrimAfterNewLine(section) || TrimAfterNewLine(property) || TrimAfterNewLine(value)) {
-    android_errorWriteLog(0x534e4554, "70808273");
-  }
+  TrimAfterNewLine(section);
+  TrimAfterNewLine(property);
+  TrimAfterNewLine(value);
   ASSERT_LOG(!section.empty(), "Empty section name not allowed");
   ASSERT_LOG(!property.empty(), "Empty property name not allowed");
   if (!IsDeviceSection(section)) {
@@ -420,6 +420,16 @@ bool FixDeviceTypeInconsistencyInSection(
   if (!hci::Address::IsValidAddress(section_name)) {
     return false;
   }
+  auto device_type_iter = device_section_entries.find("DevType");
+  if (device_type_iter != device_section_entries.end() &&
+      device_type_iter->second == std::to_string(hci::DeviceType::DUAL)) {
+    // We might only have one of classic/LE keys for a dual device, but it is still a dual device,
+    // so we should not change the DevType.
+    return false;
+  }
+
+  // we will ignore the existing DevType, since it is not known to be a DUAL device so
+  // the keys we have should be sufficient to infer the correct DevType
   bool is_le = false;
   bool is_classic = false;
   // default
@@ -441,11 +451,10 @@ bool FixDeviceTypeInconsistencyInSection(
   }
   bool inconsistent = true;
   std::string device_type_str = std::to_string(device_type);
-  auto it = device_section_entries.find("DevType");
-  if (it != device_section_entries.end()) {
-    inconsistent = device_type_str != it->second;
+  if (device_type_iter != device_section_entries.end()) {
+    inconsistent = device_type_str != device_type_iter->second;
     if (inconsistent) {
-      it->second = std::move(device_type_str);
+      device_type_iter->second = std::move(device_type_str);
     }
   } else {
     device_section_entries.insert_or_assign("DevType", std::move(device_type_str));

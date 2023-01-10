@@ -116,6 +116,8 @@ typedef struct {
   uint8_t ble_advertising_sid;
   int8_t ble_tx_power;
   uint16_t ble_periodic_adv_int;
+  RawAddress ble_ad_rsi; /* Resolvable Set Identifier from advertising */
+  bool ble_ad_is_le_audio_capable;
   uint8_t flag;
   bool include_rsi;
   RawAddress original_bda;
@@ -241,10 +243,11 @@ typedef struct {
 
 /* Structure returned with remote name  request */
 typedef struct {
-  uint16_t status;
+  tBTM_STATUS status;
   RawAddress bd_addr;
   uint16_t length;
   BD_NAME remote_bd_name;
+  tHCI_STATUS hci_status;
 } tBTM_REMOTE_DEV_NAME;
 
 typedef union /* contains the inquiry filter condition */

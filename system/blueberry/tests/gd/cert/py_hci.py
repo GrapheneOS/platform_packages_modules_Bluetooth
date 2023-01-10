@@ -27,11 +27,11 @@ from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.facade.hci import hci_facade_pb2 as hci_facade
 from blueberry.facade import common_pb2 as common
 from blueberry.tests.gd.cert.matchers import HciMatchers
-from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingLegacyParametersBuilder
-from bluetooth_packets_python3.hci_packets import LegacyAdvertisingProperties
+from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingParametersLegacyBuilder
+from bluetooth_packets_python3.hci_packets import LegacyAdvertisingEventProperties
 from bluetooth_packets_python3.hci_packets import PeerAddressType
 from bluetooth_packets_python3.hci_packets import AdvertisingFilterPolicy
-from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingRandomAddressBuilder
+from bluetooth_packets_python3.hci_packets import LeSetAdvertisingSetRandomAddressBuilder
 from bluetooth_packets_python3.hci_packets import GapData
 from bluetooth_packets_python3.hci_packets import GapDataType
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingDataBuilder
@@ -39,7 +39,7 @@ from bluetooth_packets_python3.hci_packets import Operation
 from bluetooth_packets_python3.hci_packets import OwnAddressType
 from bluetooth_packets_python3.hci_packets import Enable
 from bluetooth_packets_python3.hci_packets import FragmentPreference
-from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingScanResponseBuilder
+from bluetooth_packets_python3.hci_packets import LeSetExtendedScanResponseDataBuilder
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingEnableBuilder
 from bluetooth_packets_python3.hci_packets import EnabledSet
 from bluetooth_packets_python3.hci_packets import OpCode
@@ -127,8 +127,8 @@ class PyHciAdvertisement(object):
         data.data_type = GapDataType.SHORTENED_LOCAL_NAME
         data.data = list(shortened_name)
         self.py_hci.send_command(
-            LeSetExtendedAdvertisingScanResponseBuilder(self.handle, Operation.COMPLETE_ADVERTISEMENT,
-                                                        FragmentPreference.CONTROLLER_SHOULD_NOT, [data]))
+            LeSetExtendedScanResponseDataBuilder(self.handle, Operation.COMPLETE_ADVERTISEMENT,
+                                                 FragmentPreference.CONTROLLER_SHOULD_NOT, [data]))
 
     def start(self):
         enabled_set = EnabledSet()
@@ -271,7 +271,7 @@ class PyHci(Closable):
     def create_advertisement(self,
                              handle,
                              own_address,
-                             properties=LegacyAdvertisingProperties.ADV_IND,
+                             properties=LegacyAdvertisingEventProperties.ADV_IND,
                              min_interval=400,
                              max_interval=450,
                              channel_map=7,
@@ -284,9 +284,9 @@ class PyHci(Closable):
                              scan_request_notification=Enable.DISABLED):
 
         self.send_command(
-            LeSetExtendedAdvertisingLegacyParametersBuilder(handle, properties, min_interval, max_interval, channel_map,
+            LeSetExtendedAdvertisingParametersLegacyBuilder(handle, properties, min_interval, max_interval, channel_map,
                                                             own_address_type, peer_address_type, peer_address,
                                                             filter_policy, tx_power, sid, scan_request_notification))
 
-        self.send_command(LeSetExtendedAdvertisingRandomAddressBuilder(handle, own_address))
+        self.send_command(LeSetAdvertisingSetRandomAddressBuilder(handle, own_address))
         return PyHciAdvertisement(handle, self)

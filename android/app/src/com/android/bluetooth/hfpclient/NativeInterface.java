@@ -316,7 +316,8 @@ public class NativeInterface {
 
     // Callbacks from the native back into the java framework. All callbacks are routed via the
     // Service which will disambiguate which state machine the message should be routed through.
-    private void onConnectionStateChanged(int state, int peerFeat, int chldFeat, byte[] address) {
+    @VisibleForTesting
+    void onConnectionStateChanged(int state, int peerFeat, int chldFeat, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
         event.valueInt = state;
         event.valueInt2 = peerFeat;
@@ -335,12 +336,13 @@ public class NativeInterface {
         }
     }
 
-    private void onAudioStateChanged(int state, byte[] address) {
+    @VisibleForTesting
+    void onAudioStateChanged(int state, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED);
         event.valueInt = state;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onAudioStateChanged: address " + address + " event " + event);
+            Log.d(TAG, "onAudioStateChanged: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -351,12 +353,13 @@ public class NativeInterface {
         }
     }
 
-    private void onVrStateChanged(int state, byte[] address) {
+    @VisibleForTesting
+    void onVrStateChanged(int state, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_VR_STATE_CHANGED);
         event.valueInt = state;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onVrStateChanged: address " + address + " event " + event);
+            Log.d(TAG, "onVrStateChanged: event " + event);
         }
 
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
@@ -368,12 +371,13 @@ public class NativeInterface {
         }
     }
 
-    private void onNetworkState(int state, byte[] address) {
+    @VisibleForTesting
+    void onNetworkState(int state, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_NETWORK_STATE);
         event.valueInt = state;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onNetworkStateChanged: address " + address + " event " + event);
+            Log.d(TAG, "onNetworkStateChanged: event " + event);
         }
 
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
@@ -386,7 +390,8 @@ public class NativeInterface {
         }
     }
 
-    private void onNetworkRoaming(int state, byte[] address) {
+    @VisibleForTesting
+    void onNetworkRoaming(int state, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_ROAMING_STATE);
         event.valueInt = state;
         event.device = getDevice(address);
@@ -402,12 +407,13 @@ public class NativeInterface {
         }
     }
 
-    private void onNetworkSignal(int signal, byte[] address) {
+    @VisibleForTesting
+    void onNetworkSignal(int signal, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_NETWORK_SIGNAL);
         event.valueInt = signal;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onNetworkSignal: address " + address + " event " + event);
+            Log.d(TAG, "onNetworkSignal: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -417,12 +423,13 @@ public class NativeInterface {
         }
     }
 
-    private void onBatteryLevel(int level, byte[] address) {
+    @VisibleForTesting
+    void onBatteryLevel(int level, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_BATTERY_LEVEL);
         event.valueInt = level;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onBatteryLevel: address " + address + " event " + event);
+            Log.d(TAG, "onBatteryLevel: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -432,12 +439,13 @@ public class NativeInterface {
         }
     }
 
-    private void onCurrentOperator(String name, byte[] address) {
+    @VisibleForTesting
+    void onCurrentOperator(String name, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_OPERATOR_NAME);
         event.valueString = name;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCurrentOperator: address " + address + " event " + event);
+            Log.d(TAG, "onCurrentOperator: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -448,12 +456,13 @@ public class NativeInterface {
         }
     }
 
-    private void onCall(int call, byte[] address) {
+    @VisibleForTesting
+    void onCall(int call, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CALL);
         event.valueInt = call;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCall: address " + address + " event " + event);
+            Log.d(TAG, "onCall: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -472,13 +481,14 @@ public class NativeInterface {
      * 2 - Outgoing call process ongoing
      * 3 - Remote party being alerted for outgoing call
      */
-    private void onCallSetup(int callsetup, byte[] address) {
+    @VisibleForTesting
+    void onCallSetup(int callsetup, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CALLSETUP);
         event.valueInt = callsetup;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCallSetup: addr " + address + " device" + event.device);
-            Log.d(TAG, "onCallSetup: address " + address + " event " + event);
+            Log.d(TAG, "onCallSetup: device" + event.device);
+            Log.d(TAG, "onCallSetup: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -497,12 +507,13 @@ public class NativeInterface {
      * call)
      * 2 - Call on hold, no active call
      */
-    private void onCallHeld(int callheld, byte[] address) {
+    @VisibleForTesting
+    void onCallHeld(int callheld, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CALLHELD);
         event.valueInt = callheld;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCallHeld: address " + address + " event " + event);
+            Log.d(TAG, "onCallHeld: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -512,12 +523,13 @@ public class NativeInterface {
         }
     }
 
-    private void onRespAndHold(int respAndHold, byte[] address) {
+    @VisibleForTesting
+    void onRespAndHold(int respAndHold, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_RESP_AND_HOLD);
         event.valueInt = respAndHold;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onRespAndHold: address " + address + " event " + event);
+            Log.d(TAG, "onRespAndHold: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -527,12 +539,13 @@ public class NativeInterface {
         }
     }
 
-    private void onClip(String number, byte[] address) {
+    @VisibleForTesting
+    void onClip(String number, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CLIP);
         event.valueString = number;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onClip: address " + address + " event " + event);
+            Log.d(TAG, "onClip: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -542,12 +555,13 @@ public class NativeInterface {
         }
     }
 
-    private void onCallWaiting(String number, byte[] address) {
+    @VisibleForTesting
+    void onCallWaiting(String number, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CALL_WAITING);
         event.valueString = number;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCallWaiting: address " + address + " event " + event);
+            Log.d(TAG, "onCallWaiting: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -557,7 +571,8 @@ public class NativeInterface {
         }
     }
 
-    private void onCurrentCalls(int index, int dir, int state, int mparty, String number,
+    @VisibleForTesting
+    void onCurrentCalls(int index, int dir, int state, int mparty, String number,
             byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CURRENT_CALLS);
         event.valueInt = index;
@@ -567,7 +582,7 @@ public class NativeInterface {
         event.valueString = number;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCurrentCalls: address " + address + " event " + event);
+            Log.d(TAG, "onCurrentCalls: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -577,13 +592,14 @@ public class NativeInterface {
         }
     }
 
-    private void onVolumeChange(int type, int volume, byte[] address) {
+    @VisibleForTesting
+    void onVolumeChange(int type, int volume, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_VOLUME_CHANGED);
         event.valueInt = type;
         event.valueInt2 = volume;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onVolumeChange: address " + address + " event " + event);
+            Log.d(TAG, "onVolumeChange: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -593,13 +609,14 @@ public class NativeInterface {
         }
     }
 
-    private void onCmdResult(int type, int cme, byte[] address) {
+    @VisibleForTesting
+    void onCmdResult(int type, int cme, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CMD_RESULT);
         event.valueInt = type;
         event.valueInt2 = cme;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCmdResult: address " + address + " event " + event);
+            Log.d(TAG, "onCmdResult: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -609,13 +626,14 @@ public class NativeInterface {
         }
     }
 
-    private void onSubscriberInfo(String number, int type, byte[] address) {
+    @VisibleForTesting
+    void onSubscriberInfo(String number, int type, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_SUBSCRIBER_INFO);
         event.valueInt = type;
         event.valueString = number;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onSubscriberInfo: address " + address + " event " + event);
+            Log.d(TAG, "onSubscriberInfo: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -626,12 +644,13 @@ public class NativeInterface {
         }
     }
 
-    private void onInBandRing(int inBand, byte[] address) {
+    @VisibleForTesting
+    void onInBandRing(int inBand, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_IN_BAND_RINGTONE);
         event.valueInt = inBand;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onInBandRing: address " + address + " event " + event);
+            Log.d(TAG, "onInBandRing: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -642,15 +661,17 @@ public class NativeInterface {
         }
     }
 
-    private void onLastVoiceTagNumber(String number, byte[] address) {
+    @VisibleForTesting
+    void onLastVoiceTagNumber(String number, byte[] address) {
         Log.w(TAG, "onLastVoiceTagNumber not supported");
     }
 
-    private void onRingIndication(byte[] address) {
+    @VisibleForTesting
+    void onRingIndication(byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_RING_INDICATION);
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onRingIndication: address " + address + " event " + event);
+            Log.d(TAG, "onRingIndication: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -661,12 +682,13 @@ public class NativeInterface {
         }
     }
 
-    private void onUnknownEvent(String eventString, byte[] address) {
+    @VisibleForTesting
+    void onUnknownEvent(String eventString, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_UNKNOWN_EVENT);
         event.device = getDevice(address);
         event.valueString = eventString;
         if (DBG) {
-            Log.d(TAG, "onUnknownEvent: address " + address + " event " + event);
+            Log.d(TAG, "onUnknownEvent: event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {

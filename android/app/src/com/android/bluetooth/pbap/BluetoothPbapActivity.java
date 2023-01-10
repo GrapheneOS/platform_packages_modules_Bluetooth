@@ -54,6 +54,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.android.bluetooth.R;
+import com.android.internal.annotations.VisibleForTesting;
 
 /**
  * PbapActivity shows two dialogues: One for accepting incoming pbap request and
@@ -68,7 +69,8 @@ public class BluetoothPbapActivity extends AlertActivity
 
     private static final int BLUETOOTH_OBEX_AUTHKEY_MAX_LENGTH = 16;
 
-    private static final int DIALOG_YES_NO_AUTH = 1;
+    @VisibleForTesting
+    static final int DIALOG_YES_NO_AUTH = 1;
 
     private static final String KEY_USER_TIMEOUT = "user_timeout";
 
@@ -80,7 +82,8 @@ public class BluetoothPbapActivity extends AlertActivity
 
     private String mSessionKey = "";
 
-    private int mCurrentDialog;
+    @VisibleForTesting
+    int mCurrentDialog;
 
     private boolean mTimeout = false;
 
@@ -90,7 +93,8 @@ public class BluetoothPbapActivity extends AlertActivity
 
     private BluetoothDevice mDevice;
 
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    @VisibleForTesting
+    BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (!BluetoothPbapService.USER_CONFIRM_TIMEOUT_ACTION.equals(intent.getAction())) {
@@ -164,7 +168,8 @@ public class BluetoothPbapActivity extends AlertActivity
         }
     }
 
-    private void onPositive() {
+    @VisibleForTesting
+    void onPositive() {
         if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
             mSessionKey = mKeyView.getText().toString();
         }
@@ -180,7 +185,8 @@ public class BluetoothPbapActivity extends AlertActivity
         finish();
     }
 
-    private void onNegative() {
+    @VisibleForTesting
+    void onNegative() {
         if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
             sendIntentToReceiver(BluetoothPbapService.AUTH_CANCELLED_ACTION, null, null);
             mKeyView.removeTextChangedListener(this);
@@ -199,6 +205,7 @@ public class BluetoothPbapActivity extends AlertActivity
         sendBroadcast(intent);
     }
 
+    @VisibleForTesting
     private void onTimeout() {
         mTimeout = true;
         if (mCurrentDialog == DIALOG_YES_NO_AUTH) {

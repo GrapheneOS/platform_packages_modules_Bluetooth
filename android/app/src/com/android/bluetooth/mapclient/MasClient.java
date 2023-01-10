@@ -26,6 +26,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.ObexAppParameters;
 import com.android.internal.util.StateMachine;
 import com.android.obex.ClientSession;
 import com.android.obex.HeaderSet;

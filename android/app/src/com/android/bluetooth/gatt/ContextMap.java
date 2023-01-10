@@ -15,6 +15,9 @@
  */
 package com.android.bluetooth.gatt;
 
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertisingSetParameters;
+import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.IInterface;
@@ -23,6 +26,13 @@ import android.os.SystemClock;
 import android.os.UserHandle;
 import android.os.WorkSource;
 import android.util.Log;
+
+import androidx.annotation.VisibleForTesting;
+
+import com.android.bluetooth.BluetoothMethodProxy;
+import com.android.internal.annotations.GuardedBy;
+
+import com.google.common.collect.EvictingQueue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +49,8 @@ import java.util.UUID;
  * This class manages application callbacks and keeps track of GATT connections.
  * @hide
  */
-/*package*/ class ContextMap<C, T> {
+@VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+public class ContextMap<C, T> {
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "ContextMap";
 
     /**
@@ -126,6 +137,15 @@ import java.util.UUID;
         }
 
         /**
+         * Creates a new app context for advertiser.
+         */
+        App(int id, C callback, String name) {
+            this.id = id;
+            this.callback = callback;
+            this.name = name;
+        }
+
+        /**
          * Link death recipient
          */
         void linkToDeath(IBinder.DeathRecipient deathRecipient) {
@@ -169,10 +189,21 @@ import java.util.UUID;
     }
 
     /** Our internal application list */
+    private final Object mAppsLock = new Object();
+    @GuardedBy("mAppsLock")
     private List<App> mApps = new ArrayList<App>();
 
     /** Internal map to keep track of logging information by app name */
     private HashMap<Integer, AppScanStats> mAppScanStats = new HashMap<Integer, AppScanStats>();
+
+    /** Internal map to keep track of logging information by advertise id */
+    private final Map<Integer, AppAdvertiseStats> mAppAdvertiseStats =
+            new HashMap<Integer, AppAdvertiseStats>();
+
+    private static final int ADVERTISE_STATE_MAX_SIZE = 5;
+
+    private final EvictingQueue<AppAdvertiseStats> mLastAdvertises =
+            EvictingQueue.create(ADVERTISE_STATE_MAX_SIZE);
 
     /** Internal list of connected devices **/
     private Set<Connection> mConnections = new HashSet<Connection>();
@@ -196,6 +227,34 @@ import java.util.UUID;
             App app = new App(uuid, callback, info, appName, appScanStats);
             mApps.add(app);
             appScanStats.isRegistered = true;
+            return app;
+        }
+    }
+
+    /**
+     * Add an entry to the application context list for advertiser.
+     */
+    App add(int id, C callback, GattService service) {
+        int appUid = Binder.getCallingUid();
+        String appName = service.getPackageManager().getNameForUid(appUid);
+        if (appName == null) {
+            // Assign an app name if one isn't found
+            appName = "Unknown App (UID: " + appUid + ")";
+        }
+
+        synchronized (mAppsLock) {
+            synchronized (this) {
+                if (!mAppAdvertiseStats.containsKey(id)) {
+                    AppAdvertiseStats appAdvertiseStats = BluetoothMethodProxy.getInstance()
+                            .createAppAdvertiseStats(appUid, id, appName, this, service);
+                    mAppAdvertiseStats.put(id, appAdvertiseStats);
+                }
+            }
+            App app = getById(appUid);
+            if (app == null) {
+                app = new App(appUid, callback, appName);
+                mApps.add(app);
+            }
             return app;
         }
     }
@@ -383,6 +442,135 @@ import java.util.UUID;
     }
 
     /**
+     * Remove the context for a given application ID.
+     */
+    void removeAppAdvertiseStats(int id) {
+        synchronized (this) {
+            mAppAdvertiseStats.remove(id);
+        }
+    }
+
+    /**
+     * Get Logging info by ID
+     */
+    AppAdvertiseStats getAppAdvertiseStatsById(int id) {
+        synchronized (this) {
+            return mAppAdvertiseStats.get(id);
+        }
+    }
+
+    /**
+     * update the advertiser ID by the regiseter ID
+     */
+    void setAdvertiserIdByRegId(int regId, int advertiserId) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(regId);
+            if (stats == null) {
+                return;
+            }
+            stats.setId(advertiserId);
+            mAppAdvertiseStats.remove(regId);
+            mAppAdvertiseStats.put(advertiserId, stats);
+        }
+    }
+
+    void recordAdvertiseStart(int id, AdvertisingSetParameters parameters,
+            AdvertiseData advertiseData, AdvertiseData scanResponse,
+            PeriodicAdvertisingParameters periodicParameters, AdvertiseData periodicData,
+            int duration, int maxExtAdvEvents) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
+            stats.recordAdvertiseStart(parameters, advertiseData, scanResponse,
+                    periodicParameters, periodicData, duration, maxExtAdvEvents);
+        }
+    }
+
+    void recordAdvertiseStop(int id) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
+            stats.recordAdvertiseStop();
+            mAppAdvertiseStats.remove(id);
+            mLastAdvertises.add(stats);
+        }
+    }
+
+    void enableAdvertisingSet(int id, boolean enable, int duration, int maxExtAdvEvents) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
+            stats.enableAdvertisingSet(enable, duration, maxExtAdvEvents);
+        }
+    }
+
+    void setAdvertisingData(int id, AdvertiseData data) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
+            stats.setAdvertisingData(data);
+        }
+    }
+
+    void setScanResponseData(int id, AdvertiseData data) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
+            stats.setScanResponseData(data);
+        }
+    }
+
+    void setAdvertisingParameters(int id, AdvertisingSetParameters parameters) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
+            stats.setAdvertisingParameters(parameters);
+        }
+    }
+
+    void setPeriodicAdvertisingParameters(int id, PeriodicAdvertisingParameters parameters) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
+            stats.setPeriodicAdvertisingParameters(parameters);
+        }
+    }
+
+    void setPeriodicAdvertisingData(int id, AdvertiseData data) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
+            stats.setPeriodicAdvertisingData(data);
+        }
+    }
+
+    void onPeriodicAdvertiseEnabled(int id, boolean enable) {
+        synchronized (this) {
+            AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
+            stats.onPeriodicAdvertiseEnabled(enable);
+        }
+    }
+
+    /**
      * Get the device addresses for all connected devices
      */
     Set<String> getConnectedDevices() {
@@ -477,13 +665,20 @@ import java.util.UUID;
             while (i.hasNext()) {
                 App entry = i.next();
                 entry.unlinkToDeath();
-                entry.appScanStats.isRegistered = false;
+                if (entry.appScanStats != null) {
+                    entry.appScanStats.isRegistered = false;
+                }
                 i.remove();
             }
         }
 
         synchronized (mConnections) {
             mConnections.clear();
+        }
+
+        synchronized (this) {
+            mAppAdvertiseStats.clear();
+            mLastAdvertises.clear();
         }
     }
 
@@ -513,5 +708,32 @@ import java.util.UUID;
             AppScanStats appScanStats = entry.getValue();
             appScanStats.dumpToString(sb);
         }
+    }
+
+    /**
+     * Logs advertiser debug information.
+     */
+    void dumpAdvertiser(StringBuilder sb) {
+        synchronized (this) {
+            if (!mLastAdvertises.isEmpty()) {
+                sb.append("\n  last " + mLastAdvertises.size() + " advertising:");
+                for (AppAdvertiseStats stats : mLastAdvertises) {
+                    AppAdvertiseStats.dumpToString(sb, stats);
+                }
+                sb.append("\n");
+            }
+
+            if (!mAppAdvertiseStats.isEmpty()) {
+                sb.append("  Total number of ongoing advertising                   : "
+                        + mAppAdvertiseStats.size());
+                sb.append("\n  Ongoing advertising:");
+                for (Integer key : mAppAdvertiseStats.keySet()) {
+                    AppAdvertiseStats stats = mAppAdvertiseStats.get(key);
+                    AppAdvertiseStats.dumpToString(sb, stats);
+                }
+            }
+            sb.append("\n");
+        }
+        Log.d(TAG, sb.toString());
     }
 }

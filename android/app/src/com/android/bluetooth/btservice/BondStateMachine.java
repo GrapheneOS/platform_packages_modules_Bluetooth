@@ -28,6 +28,7 @@ import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.OobData;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Message;
 import android.os.UserHandle;
 import android.util.Log;
@@ -48,6 +49,7 @@ import com.android.internal.util.StateMachine;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -86,6 +88,7 @@ final class BondStateMachine extends StateMachine {
 
     public static final String OOBDATAP192 = "oobdatap192";
     public static final String OOBDATAP256 = "oobdatap256";
+    public static final String DISPLAY_PASSKEY = "display_passkey";
 
     @VisibleForTesting Set<BluetoothDevice> mPendingBondedDevices = new HashSet<>();
 
@@ -249,7 +252,14 @@ final class BondStateMachine extends StateMachine {
                 case SSP_REQUEST:
                     int passkey = msg.arg1;
                     int variant = msg.arg2;
-                    sendDisplayPinIntent(devProp.getAddress(), passkey, variant);
+                    boolean displayPasskey =
+                            (msg.getData() != null)
+                                    ? msg.getData().getByte(DISPLAY_PASSKEY) == 1 /* 1 == true */
+                                    : false;
+                    sendDisplayPinIntent(
+                            devProp.getAddress(),
+                            displayPasskey ? Optional.of(passkey) : Optional.empty(),
+                            variant);
                     break;
                 case PIN_REQUEST:
                     BluetoothClass btClass = dev.getBluetoothClass();
@@ -264,18 +274,24 @@ final class BondStateMachine extends StateMachine {
                         // Generate a variable 6-digit PIN in range of 100000-999999
                         // This is not truly random but good enough.
                         int pin = 100000 + (int) Math.floor((Math.random() * (999999 - 100000)));
-                        sendDisplayPinIntent(devProp.getAddress(), pin,
+                        sendDisplayPinIntent(
+                                devProp.getAddress(),
+                                Optional.of(pin),
                                 BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN);
                         break;
                     }
 
                     if (msg.arg2 == 1) { // Minimum 16 digit pin required here
-                        sendDisplayPinIntent(devProp.getAddress(), 0,
+                        sendDisplayPinIntent(
+                                devProp.getAddress(),
+                                Optional.empty(),
                                 BluetoothDevice.PAIRING_VARIANT_PIN_16_DIGITS);
                     } else {
                         // In PIN_REQUEST, there is no passkey to display.So do not send the
-                        // EXTRA_PAIRING_KEY type in the intent( 0 in SendDisplayPinIntent() )
-                        sendDisplayPinIntent(devProp.getAddress(), 0,
+                        // EXTRA_PAIRING_KEY type in the intent
+                        sendDisplayPinIntent(
+                                devProp.getAddress(),
+                                Optional.empty(),
                                 BluetoothDevice.PAIRING_VARIANT_PIN);
                     }
                     break;
@@ -326,9 +342,19 @@ final class BondStateMachine extends StateMachine {
             boolean result;
             // If we have some data
             if (remoteP192Data != null || remoteP256Data != null) {
+                BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                      mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
+                      BluetoothDevice.BOND_BONDING,
+                      BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_START_PAIRING_OOB,
+                      BluetoothProtoEnums.UNBOND_REASON_UNKNOWN, mAdapterService.getMetricId(dev));
                 result = mAdapterService.createBondOutOfBandNative(addr, transport,
                     remoteP192Data, remoteP256Data);
             } else {
+                BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                      mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
+                      BluetoothDevice.BOND_BONDING,
+                      BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_START_PAIRING,
+                      BluetoothProtoEnums.UNBOND_REASON_UNKNOWN, mAdapterService.getMetricId(dev));
                 result = mAdapterService.createBondNative(addr, transport);
             }
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
@@ -358,12 +384,10 @@ final class BondStateMachine extends StateMachine {
         return false;
     }
 
-    private void sendDisplayPinIntent(byte[] address, int pin, int variant) {
+    private void sendDisplayPinIntent(byte[] address, Optional<Integer> maybePin, int variant) {
         Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevices.getDevice(address));
-        if (pin != 0) {
-            intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, pin);
-        }
+        maybePin.ifPresent(pin -> intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, pin));
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
         intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         // Workaround for Android Auto until pre-accepting pairing requests is added.
@@ -531,6 +555,9 @@ final class BondStateMachine extends StateMachine {
         msg.obj = device;
         if (displayPasskey) {
             msg.arg1 = passkey;
+            Bundle bundle = new Bundle();
+            bundle.putByte(BondStateMachine.DISPLAY_PASSKEY, (byte) 1 /* true */);
+            msg.setData(bundle);
         }
         msg.arg2 = variant;
         sendMessage(msg);

@@ -29,9 +29,11 @@ import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.HeaderSet;
 import com.android.obex.Operation;
 import com.android.obex.ResponseCodes;
@@ -168,8 +170,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
      *
      */
     private ContentProviderClient acquireUnstableContentProviderOrThrow() throws RemoteException {
-        ContentProviderClient providerClient =
-                mResolver.acquireUnstableContentProviderClient(mAuthority);
+        ContentProviderClient providerClient = BluetoothMethodProxy.getInstance()
+                .contentResolverAcquireUnstableContentProviderClient(mResolver, mAuthority);
         if (providerClient == null) {
             throw new RemoteException("Failed to acquire provider for " + mAuthority);
         }
@@ -276,7 +278,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
      *        folder.getFolderId() will be used to query sub-folders.
      *        Use a parentFolder with id -1 to get all folders from root.
      */
-    private void addEmailFolders(BluetoothMapFolderElement parentFolder) throws RemoteException {
+    @VisibleForTesting
+    void addEmailFolders(BluetoothMapFolderElement parentFolder) throws RemoteException {
         // Select all parent folders
         BluetoothMapFolderElement newFolder;
 
@@ -529,7 +532,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                             + appParams.getChatState() + ", ChatStatusConvoId: "
                             + appParams.getChatStateConvoIdString());
                 }
-                return setOwnerStatus(name, appParams);
+                return setOwnerStatus(appParams);
             }
 
         } catch (RemoteException e) {
@@ -841,7 +844,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
-    private int setOwnerStatus(String msgHandle, BluetoothMapAppParams appParams)
+    @VisibleForTesting
+    int setOwnerStatus(BluetoothMapAppParams appParams)
             throws RemoteException {
         // This does only work for IM
         if (mAccount != null && mAccount.getType() == BluetoothMapUtils.TYPE.IM) {
@@ -1163,7 +1167,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             // If messageHandle or convoId filtering ignore folder
             Log.v(TAG, "sendMessageListingRsp: ignore folder ");
             folderToList = mCurrentFolder.getRoot();
-            folderToList.setIngore(true);
+            folderToList.setIgnore(true);
         } else {
             folderToList = getFolderElementFromName(folderName);
             if (folderToList == null) {
@@ -1207,7 +1211,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 outAppParams.setMessageListingSize(listSize);
                 op.noBodyHeader();
             }
-            folderToList.setIngore(false);
+            folderToList.setIgnore(false);
             // Build the application parameter header
             // let the peer know if there are unread messages in the list
             if (hasUnread) {
@@ -1845,7 +1849,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                             + appParams.getChatState() + ", ChatStatusConvoId: "
                             + appParams.getChatStateConvoIdString());
                 }
-                return setOwnerStatus(name, appParams);
+                return setOwnerStatus(appParams);
             }
 
         } catch (RemoteException e) {

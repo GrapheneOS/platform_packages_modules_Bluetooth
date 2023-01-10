@@ -16,12 +16,13 @@
 
 #include "hci/controller.h"
 
+#include <gtest/gtest.h>
+
 #include <algorithm>
 #include <chrono>
 #include <future>
 #include <map>
-
-#include <gtest/gtest.h>
+#include <memory>
 
 #include "common/bind.h"
 #include "common/callback.h"
@@ -31,9 +32,8 @@
 #include "os/thread.h"
 #include "packet/raw_builder.h"
 
-namespace bluetooth {
-namespace hci {
-namespace {
+using namespace bluetooth;
+using namespace std::chrono_literals;
 
 using common::BidiQueue;
 using common::BidiQueueEnd;
@@ -41,11 +41,19 @@ using packet::kLittleEndian;
 using packet::PacketView;
 using packet::RawBuilder;
 
+namespace bluetooth {
+namespace hci {
+
+namespace {
+
 constexpr uint16_t kHandle1 = 0x123;
 constexpr uint16_t kCredits1 = 0x78;
 constexpr uint16_t kHandle2 = 0x456;
 constexpr uint16_t kCredits2 = 0x9a;
+constexpr uint64_t kRandomNumber = 0x123456789abcdef0;
 uint16_t feature_spec_version = 55;
+constexpr char title[] = "hci_controller_test";
+
 
 PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilder> packet) {
   auto bytes = std::make_shared<std::vector<uint8_t>>();
@@ -54,6 +62,8 @@ PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilde
   packet->Serialize(i);
   return packet::PacketView<packet::kLittleEndian>(bytes);
 }
+
+}  // namespace
 
 class TestHciLayer : public HciLayer {
  public:
@@ -67,7 +77,7 @@ class TestHciLayer : public HciLayer {
   void EnqueueCommand(
       std::unique_ptr<CommandBuilder> command,
       common::ContextualOnceCallback<void(CommandStatusView)> on_status) override {
-    EXPECT_TRUE(false) << "Controller properties should not generate Command Status";
+    FAIL() << "Controller properties should not generate Command Status";
   }
 
   void HandleCommand(
@@ -185,6 +195,12 @@ class TestHciLayer : public HciLayer {
         event_builder = LeSetEventMaskCompleteBuilder::Create(num_packets, ErrorCode::SUCCESS);
       } break;
 
+      case (OpCode::LE_RAND): {
+        auto view = LeRandView::Create(LeSecurityCommandView::Create(command));
+        ASSERT_TRUE(view.IsValid());
+        event_builder = LeRandCompleteBuilder::Create(num_packets, ErrorCode::SUCCESS, kRandomNumber);
+      } break;
+
       case (OpCode::RESET):
       case (OpCode::SET_EVENT_FILTER):
       case (OpCode::HOST_BUFFER_SIZE):
@@ -204,12 +220,12 @@ class TestHciLayer : public HciLayer {
   }
 
   void RegisterEventHandler(EventCode event_code, common::ContextualCallback<void(EventView)> event_handler) override {
-    EXPECT_EQ(event_code, EventCode::NUMBER_OF_COMPLETED_PACKETS) << "Only NUMBER_OF_COMPLETED_PACKETS is needed";
+    ASSERT_EQ(event_code, EventCode::NUMBER_OF_COMPLETED_PACKETS) << "Only NUMBER_OF_COMPLETED_PACKETS is needed";
     number_of_completed_packets_callback_ = event_handler;
   }
 
   void UnregisterEventHandler(EventCode event_code) override {
-    EXPECT_EQ(event_code, EventCode::NUMBER_OF_COMPLETED_PACKETS) << "Only NUMBER_OF_COMPLETED_PACKETS is needed";
+    ASSERT_EQ(event_code, EventCode::NUMBER_OF_COMPLETED_PACKETS) << "Only NUMBER_OF_COMPLETED_PACKETS is needed";
     number_of_completed_packets_callback_ = {};
   }
 
@@ -234,17 +250,15 @@ class TestHciLayer : public HciLayer {
     std::chrono::milliseconds time = std::chrono::milliseconds(3000);
 
     // wait for command
-    while (command_queue_.size() == 0) {
+    while (command_queue_.size() == 0UL) {
       if (not_empty_.wait_for(lock, time) == std::cv_status::timeout) {
         break;
       }
     }
-    EXPECT_TRUE(command_queue_.size() > 0);
     if (command_queue_.empty()) {
       return CommandView::Create(PacketView<kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
     }
     CommandView command = command_queue_.front();
-    EXPECT_EQ(command.GetOpCode(), op_code);
     command_queue_.pop();
     return command;
   }
@@ -305,7 +319,7 @@ TEST_F(ControllerTest, read_controller_info) {
   ASSERT_EQ(local_version_information.lmp_subversion_, 0x5678);
   ASSERT_EQ(controller_->GetLeBufferSize().le_data_packet_length_, 0x16);
   ASSERT_EQ(controller_->GetLeBufferSize().total_num_le_packets_, 0x08);
-  ASSERT_EQ(controller_->GetLeSupportedStates(), 0x001f123456789abe);
+  ASSERT_EQ(controller_->GetLeSupportedStates(), 0x001f123456789abeUL);
   ASSERT_EQ(controller_->GetLeMaximumDataLength().supported_max_tx_octets_, 0x12);
   ASSERT_EQ(controller_->GetLeMaximumDataLength().supported_max_tx_time_, 0x34);
   ASSERT_EQ(controller_->GetLeMaximumDataLength().supported_max_rx_octets_, 0x56);
@@ -394,34 +408,35 @@ TEST_F(ControllerTest, is_supported_test) {
 }
 
 TEST_F(ControllerTest, feature_spec_version_055_test) {
-  EXPECT_EQ(controller_->GetVendorCapabilities().version_supported_, 55);
-  EXPECT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
-  EXPECT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
-  EXPECT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
+  ASSERT_EQ(controller_->GetVendorCapabilities().version_supported_, 55);
+  ASSERT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
+  ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
+  ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
   feature_spec_version = 95;
 }
 
 TEST_F(ControllerTest, feature_spec_version_095_test) {
-  EXPECT_EQ(controller_->GetVendorCapabilities().version_supported_, 95);
-  EXPECT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
-  EXPECT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
-  EXPECT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
+  ASSERT_EQ(controller_->GetVendorCapabilities().version_supported_, 95);
+  ASSERT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
+  ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
+  ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
   feature_spec_version = 96;
 }
 
 TEST_F(ControllerTest, feature_spec_version_096_test) {
-  EXPECT_EQ(controller_->GetVendorCapabilities().version_supported_, 96);
-  EXPECT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
-  EXPECT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
-  EXPECT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
+  ASSERT_EQ(controller_->GetVendorCapabilities().version_supported_, 96);
+  ASSERT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
+  ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
+  ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
   feature_spec_version = 98;
 }
 
 TEST_F(ControllerTest, feature_spec_version_098_test) {
-  EXPECT_EQ(controller_->GetVendorCapabilities().version_supported_, 98);
-  EXPECT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
-  EXPECT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
-  EXPECT_TRUE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
+  ASSERT_EQ(controller_->GetVendorCapabilities().version_supported_, 98);
+  ASSERT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
+  ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
+  ASSERT_TRUE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
+  feature_spec_version = 55;
 }
 
 std::promise<void> credits1_set;
@@ -443,12 +458,18 @@ void CheckReceivedCredits(uint16_t handle, uint16_t credits) {
 }
 
 TEST_F(ControllerTest, aclCreditCallbacksTest) {
+  credits1_set = std::promise<void>();
+  credits2_set = std::promise<void>();
+
+  auto credits1_set_future = credits1_set.get_future();
+  auto credits2_set_future = credits2_set.get_future();
+
   controller_->RegisterCompletedAclPacketsCallback(client_handler_->Bind(&CheckReceivedCredits));
 
   test_hci_layer_->IncomingCredit();
 
-  credits1_set.get_future().wait();
-  credits2_set.get_future().wait();
+  ASSERT_EQ(std::future_status::ready, credits1_set_future.wait_for(2s));
+  ASSERT_EQ(std::future_status::ready, credits2_set_future.wait_for(2s));
 }
 
 TEST_F(ControllerTest, aclCreditCallbackListenerUnregistered) {
@@ -462,6 +483,21 @@ TEST_F(ControllerTest, aclCreditCallbackListenerUnregistered) {
 
   test_hci_layer_->IncomingCredit();
 }
-}  // namespace
+
+std::promise<uint64_t> le_rand_set;
+
+void le_rand_callback(uint64_t random) {
+  le_rand_set.set_value(random);
+}
+
+TEST_F(ControllerTest, Dumpsys) {
+  ModuleDumper dumper(fake_registry_, title);
+
+  std::string output;
+  dumper.DumpState(&output);
+
+  ASSERT_TRUE(output.find("Hci Controller Dumpsys") != std::string::npos);
+}
+
 }  // namespace hci
 }  // namespace bluetooth

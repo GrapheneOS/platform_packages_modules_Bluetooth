@@ -17,19 +17,10 @@
 
 package com.android.bluetooth.tbs;
 
-import android.Manifest;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattServerCallback;
-import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothLeCallControl;
 import android.bluetooth.BluetoothLeCall;
 import android.bluetooth.IBluetoothLeCallControl;
 import android.bluetooth.IBluetoothLeCallControlCallback;
 import android.content.AttributionSource;
-import android.content.Context;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.sysprop.BluetoothProperties;
@@ -37,13 +28,11 @@ import android.util.Log;
 
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
-import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class TbsService extends ProfileService {
@@ -149,9 +138,9 @@ public class TbsService extends ProfileService {
         private TbsService mService;
 
         private TbsService getService(AttributionSource source) {
-            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
-                || !Utils.checkServiceAvailable(mService, TAG)
-                || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
+            if (!Utils.checkServiceAvailable(mService, TAG)
+                    || !Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)
+                    || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
                 Log.w(TAG, "TbsService call not allowed for non-active user");
                 return null;
             }

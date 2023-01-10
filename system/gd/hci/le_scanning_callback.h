@@ -99,6 +99,7 @@ class AdvertisingPacketContentFilterCommand {
   std::vector<uint8_t> name;
   uint16_t company;
   uint16_t company_mask;
+  uint8_t ad_type;
   std::vector<uint8_t> data;
   std::vector<uint8_t> data_mask;
   std::array<uint8_t, 16> irk;

@@ -16,11 +16,7 @@
 package com.android.bluetooth.btservice;
 
 import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -39,11 +35,6 @@ public class MetricsLogger {
 
     public static final boolean DEBUG = false;
 
-    /**
-     * Intent indicating Bluetooth counter metrics should send logs to BluetoothStatsLog
-     */
-    public static final String BLUETOOTH_COUNTER_METRICS_ACTION =
-            "com.android.bluetooth.btservice.BLUETOOTH_COUNTER_METRICS_ACTION";
     // 6 hours timeout for counter metrics
     private static final long BLUETOOTH_COUNTER_METRICS_ACTION_DURATION_MILLIS = 6L * 3600L * 1000L;
 
@@ -56,16 +47,11 @@ public class MetricsLogger {
     private boolean mInitialized = false;
     static final private Object mLock = new Object();
 
-    private BroadcastReceiver mDrainReceiver = new BroadcastReceiver() {
+    private AlarmManager.OnAlarmListener mOnAlarmListener = new AlarmManager.OnAlarmListener () {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (DEBUG) {
-                Log.d(TAG, "onReceive: " + action);
-            }
-            if (action.equals(BLUETOOTH_COUNTER_METRICS_ACTION)) {
-                drainBufferedCounters();
-            }
+        public void onAlarm() {
+            drainBufferedCounters();
+            scheduleDrains();
         }
     };
 
@@ -90,14 +76,11 @@ public class MetricsLogger {
         }
         mInitialized = true;
         mContext = context;
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BLUETOOTH_COUNTER_METRICS_ACTION);
-        mContext.registerReceiver(mDrainReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
         scheduleDrains();
         return true;
     }
 
-    public boolean count(int key, long count) {
+    public boolean cacheCount(int key, long count) {
         if (!mInitialized) {
             Log.w(TAG, "MetricsLogger isn't initialized");
             return false;
@@ -154,22 +137,30 @@ public class MetricsLogger {
     }
 
     protected void scheduleDrains() {
-        if (DEBUG) {
-            Log.d(TAG, "setCounterMetricsAlarm()");
-        }
+        Log.i(TAG, "setCounterMetricsAlarm()");
         if (mAlarmManager == null) {
             mAlarmManager = mContext.getSystemService(AlarmManager.class);
         }
-        mAlarmManager.setRepeating(
+        mAlarmManager.set(
                 AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                SystemClock.elapsedRealtime(),
-                BLUETOOTH_COUNTER_METRICS_ACTION_DURATION_MILLIS,
-                getDrainIntent());
+                SystemClock.elapsedRealtime() + BLUETOOTH_COUNTER_METRICS_ACTION_DURATION_MILLIS,
+                TAG,
+                mOnAlarmListener,
+                null);
     }
 
-    protected void writeCounter(int key, long count) {
+    public boolean count(int key, long count) {
+        if (!mInitialized) {
+            Log.w(TAG, "MetricsLogger isn't initialized");
+            return false;
+        }
+        if (count <= 0) {
+            Log.w(TAG, "count is not larger than 0. count: " + count + " key: " + key);
+            return false;
+        }
         BluetoothStatsLog.write(
                 BluetoothStatsLog.BLUETOOTH_CODE_PATH_COUNTER, key, count);
+        return true;
     }
 
     protected void drainBufferedCounters() {
@@ -177,7 +168,7 @@ public class MetricsLogger {
         synchronized (mLock) {
             // send mCounters to statsd
             for (int key : mCounters.keySet()) {
-                writeCounter(key, mCounters.get(key));
+                count(key, mCounters.get(key));
             }
             mCounters.clear();
         }
@@ -198,15 +189,6 @@ public class MetricsLogger {
         return true;
     }
     protected void cancelPendingDrain() {
-        PendingIntent pIntent = getDrainIntent();
-        pIntent.cancel();
-        mAlarmManager.cancel(pIntent);
-    }
-
-    private PendingIntent getDrainIntent() {
-        Intent counterMetricsIntent = new Intent(BLUETOOTH_COUNTER_METRICS_ACTION);
-        counterMetricsIntent.setPackage(mContext.getPackageName());
-        return PendingIntent.getBroadcast(
-                mContext, 0, counterMetricsIntent, PendingIntent.FLAG_IMMUTABLE);
+        mAlarmManager.cancel(mOnAlarmListener);
     }
 }

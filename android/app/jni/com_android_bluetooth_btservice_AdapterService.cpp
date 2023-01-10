@@ -1810,6 +1810,35 @@ static jboolean allowLowLatencyAudioNative(JNIEnv* env, jobject obj,
   return true;
 }
 
+static void metadataChangedNative(JNIEnv* env, jobject obj, jbyteArray address,
+                                  jint key, jbyteArray value) {
+  ALOGV("%s", __func__);
+  if (!sBluetoothInterface) return;
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
+  if (addr == nullptr) {
+    jniThrowIOException(env, EINVAL);
+    return;
+  }
+  RawAddress addr_obj = {};
+  addr_obj.FromOctets((uint8_t*)addr);
+
+  if (value == NULL) {
+    ALOGE("metadataChangedNative() ignoring NULL array");
+    return;
+  }
+
+  uint16_t len = (uint16_t)env->GetArrayLength(value);
+  jbyte* p_value = env->GetByteArrayElements(value, NULL);
+  if (p_value == NULL) return;
+
+  std::vector<uint8_t> val_vec(reinterpret_cast<uint8_t*>(p_value),
+                               reinterpret_cast<uint8_t*>(p_value + len));
+  env->ReleaseByteArrayElements(value, p_value, 0);
+
+  sBluetoothInterface->metadata_changed(addr_obj, key, std::move(val_vec));
+  return;
+}
+
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void*)classInitNative},
@@ -1852,6 +1881,7 @@ static JNINativeMethod sMethods[] = {
     {"requestMaximumTxDataLengthNative", "([B)V",
      (void*)requestMaximumTxDataLengthNative},
     {"allowLowLatencyAudioNative", "(Z[B)Z", (void*)allowLowLatencyAudioNative},
+    {"metadataChangedNative", "([BI[B)V", (void*)metadataChangedNative},
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env) {

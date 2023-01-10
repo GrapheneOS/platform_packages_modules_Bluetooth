@@ -38,6 +38,8 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +63,7 @@ public class BluetoothPbapCallLogComposerTest {
     private BluetoothPbapCallLogComposer mComposer;
 
     @Spy
-    BluetoothPbapMethodProxy mPbapCallProxy = BluetoothPbapMethodProxy.getInstance();
+    BluetoothMethodProxy mPbapCallProxy = BluetoothMethodProxy.getInstance();
 
     @Mock
     Cursor mMockCursor;
@@ -69,7 +71,7 @@ public class BluetoothPbapCallLogComposerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        BluetoothPbapMethodProxy.setInstanceForTesting(mPbapCallProxy);
+        BluetoothMethodProxy.setInstanceForTesting(mPbapCallProxy);
 
         doReturn(mMockCursor).when(mPbapCallProxy)
                 .contentResolverQuery(any(), any(), any(), any(), any(), any());
@@ -82,7 +84,7 @@ public class BluetoothPbapCallLogComposerTest {
 
     @After
     public void tearDown() throws Exception {
-        BluetoothPbapMethodProxy.setInstanceForTesting(null);
+        BluetoothMethodProxy.setInstanceForTesting(null);
     }
 
     @Test

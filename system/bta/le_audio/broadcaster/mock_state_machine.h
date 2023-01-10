@@ -131,6 +131,7 @@ class MockBroadcastStateMachine
   std::optional<le_audio::broadcaster::BigConfig> big_config_ = std::nullopt;
   le_audio::broadcaster::BroadcastStateMachineConfig cfg;
   le_audio::broadcaster::IBroadcastStateMachineCallbacks* cb;
+  void SetExpectedState(BroadcastStateMachine::State state) { SetState(state); }
   void SetExpectedResult(bool result) { result_ = result; }
   void SetExpectedBigConfig(
       std::optional<le_audio::broadcaster::BigConfig> big_cfg) {

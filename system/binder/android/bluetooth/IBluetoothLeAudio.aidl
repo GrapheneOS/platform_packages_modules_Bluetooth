@@ -65,12 +65,17 @@ oneway interface IBluetoothLeAudio {
     void unregisterCallback(in IBluetoothLeAudioCallback callback, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
     void setCcidInformation(in ParcelUuid userUuid, in int ccid, in int contextType, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
+    void setInCall(in boolean inCall, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
+    void setInactiveForHfpHandover(in BluetoothDevice device, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
 
     /* Same value as bluetooth::groups::kGroupUnknown */
     const int LE_AUDIO_GROUP_ID_INVALID = -1;
 
     const int GROUP_STATUS_INACTIVE = 0;
     const int GROUP_STATUS_ACTIVE = 1;
+    const int GROUP_STATUS_TURNED_IDLE_DURING_CALL = 2;
 
     const int GROUP_NODE_ADDED = 1;
     const int GROUP_NODE_REMOVED = 2;

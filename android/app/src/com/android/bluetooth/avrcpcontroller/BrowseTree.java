@@ -23,6 +23,8 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,7 +59,8 @@ public class BrowseTree {
     public static final String PLAYER_PREFIX = "PLAYER";
 
     // Static instance of Folder ID <-> Folder Instance (for navigation purposes)
-    private final HashMap<String, BrowseNode> mBrowseMap = new HashMap<String, BrowseNode>();
+    @VisibleForTesting
+    final HashMap<String, BrowseNode> mBrowseMap = new HashMap<String, BrowseNode>();
     private BrowseNode mCurrentBrowseNode;
     private BrowseNode mCurrentBrowsedPlayer;
     private BrowseNode mCurrentAddressedPlayer;

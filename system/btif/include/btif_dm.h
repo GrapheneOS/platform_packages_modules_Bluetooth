@@ -74,6 +74,9 @@ void btif_dm_generate_local_oob_data(tBT_TRANSPORT transport);
 
 void btif_dm_clear_event_filter();
 
+void btif_dm_metadata_changed(const RawAddress& remote_bd_addr, int key,
+                              std::vector<uint8_t> value);
+
 /*callout for reading SMP properties from Text file*/
 bool btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg);
 

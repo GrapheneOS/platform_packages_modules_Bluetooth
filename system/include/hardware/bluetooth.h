@@ -788,6 +788,17 @@ typedef struct {
    * Set the event filter for the controller
    */
   int (*clear_event_filter)();
+
+  /**
+   * Data passed from BluetoothDevice.metadata_changed
+   *
+   * @param remote_bd_addr remote address
+   * @param key Metadata key
+   * @param value Metadata value
+   */
+  void (*metadata_changed)(const RawAddress& remote_bd_addr, int key,
+                           std::vector<uint8_t> value);
+
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"

@@ -28,8 +28,8 @@
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
     <string name="bt_enable_line1" msgid="8429910585843481489">"బ్లూటూత్ సేవలను ఉపయోగించడానికి, మీరు తప్పనిసరిగా ముందుగా బ్లూటూత్‌ను ప్రారంభించాలి."</string>
     <string name="bt_enable_line2" msgid="1466367120348920892">"ఇప్పుడే బ్లూటూత్‌ను ప్రారంభించాలా?"</string>
-    <string name="bt_enable_cancel" msgid="6770180540581977614">"రద్దు చేయి"</string>
-    <string name="bt_enable_ok" msgid="4224374055813566166">"ప్రారంభించు"</string>
+    <string name="bt_enable_cancel" msgid="6770180540581977614">"రద్దు చేయండి"</string>
+    <string name="bt_enable_ok" msgid="4224374055813566166">"ప్రారంభించండి"</string>
     <string name="incoming_file_confirm_title" msgid="938251186275547290">"ఫైల్ బదిలీ"</string>
     <string name="incoming_file_confirm_content" msgid="6573502088511901157">"ఇన్‌కమింగ్ ఫైల్‌ను ఆమోదించాలా?"</string>
     <string name="incoming_file_confirm_cancel" msgid="9205906062663982692">"తిరస్కరిస్తున్నాను"</string>
@@ -48,14 +48,14 @@
     <string name="download_title" msgid="6449408649671518102">"ఫైల్ బదిలీ"</string>
     <string name="download_line1" msgid="6449220145685308846">"వీరి నుండి: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="7634316500490825390">"ఫైల్: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="download_line3" msgid="6722284930665532816">"ఫైల్ పరిమాణం: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
+    <string name="download_line3" msgid="6722284930665532816">"ఫైల్ సైజ్‌: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="5234701398884321314"></string>
     <string name="download_line5" msgid="4124272066218470715">"ఫైల్‌ను స్వీకరిస్తోంది…"</string>
     <string name="download_cancel" msgid="1705762428762702342">"ఆపివేయి"</string>
     <string name="download_ok" msgid="2404442707314575833">"దాచు"</string>
     <string name="incoming_line1" msgid="6342300988329482408">"దీని నుండి"</string>
     <string name="incoming_line2" msgid="2199520895444457585">"ఫైల్ పేరు"</string>
-    <string name="incoming_line3" msgid="8630078246326525633">"పరిమాణం"</string>
+    <string name="incoming_line3" msgid="8630078246326525633">"సైజ్‌"</string>
     <string name="download_fail_line1" msgid="3149552664349685007">"ఫైల్ స్వీకరించబడలేదు"</string>
     <string name="download_fail_line2" msgid="4289018531070750414">"ఫైల్: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="2214989413171231684">"కారణం: <xliff:g id="REASON">%1$s</xliff:g>"</string>
@@ -72,7 +72,7 @@
     <string name="upload_fail_cancel" msgid="1632528037932779727">"మూసివేయి"</string>
     <string name="bt_error_btn_ok" msgid="2802751202009957372">"సరే"</string>
     <string name="unknown_file" msgid="3719981572107052685">"తెలియని ఫైల్"</string>
-    <string name="unknown_file_desc" msgid="9185609398960437760">"ఈ రకమైన ఫైల్‌ను నిర్వహించడానికి యాప్ ఏదీ లేదు. \n"</string>
+    <string name="unknown_file_desc" msgid="9185609398960437760">"ఈ రకమైన ఫైల్‌ను మేనేజ్ చేయడానికి యాప్ ఏదీ లేదు. \n"</string>
     <string name="not_exist_file" msgid="5097565588949092486">"ఫైల్ లేదు"</string>
     <string name="not_exist_file_desc" msgid="250802392160941265">"ఫైల్ ఉనికిలో లేదు. \n"</string>
     <string name="enabling_progress_title" msgid="5262637688863903594">"దయచేసి వేచి ఉండండి..."</string>
@@ -116,8 +116,8 @@
     <string name="transfer_menu_clear" msgid="7213491281898188730">"లిస్ట్‌ నుండి క్లియర్ చేయండి"</string>
     <string name="transfer_clear_dlg_title" msgid="128904516163257225">"క్లియర్ చేయండి"</string>
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"ప్రస్తుతం ప్లే అవుతున్నవి"</string>
-    <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"సేవ్ చేయి"</string>
-    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"రద్దు చేయి"</string>
+    <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"సేవ్ చేయండి"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"రద్దు చేయండి"</string>
     <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"మీరు బ్లూటూత్ ద్వారా షేర్ చేయాలనుకునే ఖాతాలను ఎంచుకోండి. మీరు ఇప్పటికీ కనెక్ట్ చేస్తున్నప్పుడు ఖాతాలకు అందించే ఏ యాక్సెస్‌నైనా ఆమోదించాల్సి ఉంటుంది."</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"మిగిలిన స్లాట్‌లు:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"యాప్‌ చిహ్నం"</string>
@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"బ్లూటూత్ ఆడియో"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB కన్నా పెద్ద ఫైళ్లు బదిలీ చేయబడవు"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"బ్లూటూత్‌కు కనెక్ట్ చేయి"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్ చేయబడింది"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"మీరు బ్లూటూత్‌ను ఆన్‌లో ఉంచినట్లయితే, మీరు తదుపరిసారి విమానం మోడ్‌లో ఉన్నప్పుడు దాన్ని ఆన్‌లో ఉంచాలని మీ ఫోన్ గుర్తుంచుకుంటుంది"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"బ్లూటూత్ ఆన్‌లో ఉంటుంది"</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్‌లో ఉంచాలని మీ ఫోన్ గుర్తుంచుకుంటుంది. బ్లూటూత్ ఆన్‌లో ఉండకూడదనుకుంటే దాన్ని ఆఫ్ చేయండి."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi, బ్లూటూత్ ఆన్‌లో ఉంటాయి"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"మీ ఫోన్ విమానం మోడ్‌లో Wi‑Fiని, బ్లూటూత్‌ని ఆన్‌లో ఉంచాలని గుర్తుంచుకుంటుంది. Wi-Fi, బ్లూటూత్ ఆన్‌లో ఉండకూడదనుకుంటే వాటిని ఆఫ్ చేయండి."</string>
 </resources>

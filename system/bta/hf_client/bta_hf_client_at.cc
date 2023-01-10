@@ -1721,6 +1721,12 @@ void bta_hf_client_at_parse(tBTA_HF_CLIENT_CB* client_cb, char* buf,
     client_cb->at_cb.offset += tmp;
   }
 
+  /* prevent buffer overflow in cases where LEN exceeds available buffer space
+   */
+  if (len > BTA_HF_CLIENT_AT_PARSER_MAX_LEN - client_cb->at_cb.offset) {
+    return;
+  }
+
   memcpy(client_cb->at_cb.buf + client_cb->at_cb.offset, buf, len);
   client_cb->at_cb.offset += len;
 

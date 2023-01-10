@@ -16,13 +16,13 @@
 
 #include "codec_manager.h"
 
-#include "client_audio.h"
+#include "audio_hal_client/audio_hal_client.h"
 #include "device/include/controller.h"
+#include "le_audio_set_configuration_provider.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "stack/acl/acl.h"
 #include "stack/include/acl_api.h"
-#include "le_audio_set_configuration_provider.h"
 
 namespace {
 
@@ -89,7 +89,13 @@ struct codec_manager_impl {
           update_receiver) {
     if (stream_conf.sink_streams.empty()) return;
 
-    sink_config.stream_map = std::move(stream_conf.sink_streams);
+    if (stream_conf.sink_is_initial) {
+      sink_config.stream_map =
+          stream_conf.sink_offloader_streams_target_allocation;
+    } else {
+      sink_config.stream_map =
+          stream_conf.sink_offloader_streams_current_allocation;
+    }
     // TODO: set the default value 16 for now, would change it if we support
     // mode bits_per_sample
     sink_config.bits_per_sample = 16;
@@ -107,7 +113,13 @@ struct codec_manager_impl {
           update_receiver) {
     if (stream_conf.source_streams.empty()) return;
 
-    source_config.stream_map = std::move(stream_conf.source_streams);
+    if (stream_conf.source_is_initial) {
+      source_config.stream_map =
+          stream_conf.source_offloader_streams_target_allocation;
+    } else {
+      source_config.stream_map =
+          stream_conf.source_offloader_streams_current_allocation;
+    }
     // TODO: set the default value 16 for now, would change it if we support
     // mode bits_per_sample
     source_config.bits_per_sample = 16;

@@ -141,4 +141,13 @@ class BassUtils {
             log("array[" + i + "] :" + Byte.toUnsignedInt(array[i]));
         }
     }
+
+    static void reverse(byte[] address) {
+        int len = address.length;
+        for (int i = 0; i < len / 2; ++i) {
+            byte b = address[i];
+            address[i] = address[len - 1 - i];
+            address[len - 1 - i] = b;
+        }
+    }
 }

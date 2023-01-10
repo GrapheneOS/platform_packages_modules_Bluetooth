@@ -29,6 +29,7 @@ import android.provider.ContactsContract;
 import android.util.Log;
 import android.util.Pair;
 
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.vcard.VCardEntry;
 import com.android.vcard.VCardEntry.PhoneData;
 
@@ -42,7 +43,8 @@ public class CallLogPullRequest extends PullRequest {
     private static final boolean DBG = Utils.DBG;
     private static final boolean VDBG = Utils.VDBG;
     private static final String TAG = "PbapCallLogPullRequest";
-    private static final String TIMESTAMP_PROPERTY = "X-IRMC-CALL-DATETIME";
+    @VisibleForTesting
+    static final String TIMESTAMP_PROPERTY = "X-IRMC-CALL-DATETIME";
     private static final String TIMESTAMP_FORMAT = "yyyyMMdd'T'HHmmss";
 
     private final Account mAccount;

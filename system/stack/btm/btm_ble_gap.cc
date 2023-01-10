@@ -464,6 +464,21 @@ void BTM_BleOpportunisticObserve(bool enable,
   }
 }
 
+void BTM_BleTargetAnnouncementObserve(bool enable,
+                                      tBTM_INQ_RESULTS_CB* p_results_cb) {
+  if (bluetooth::shim::is_gd_shim_enabled()) {
+    bluetooth::shim::BTM_BleTargetAnnouncementObserve(enable, p_results_cb);
+    // NOTE: passthrough, no return here. GD would send the results back to BTM,
+    // and it needs the callbacks set properly.
+  }
+
+  if (enable) {
+    btm_cb.ble_ctr_cb.p_target_announcement_obs_results_cb = p_results_cb;
+  } else {
+    btm_cb.ble_ctr_cb.p_target_announcement_obs_results_cb = NULL;
+  }
+}
+
 /*******************************************************************************
  *
  * Function         BTM_BleObserve
@@ -691,7 +706,7 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback(
   if (btm_cb.cmn_ble_vsc_cb.max_filter > 0) btm_ble_adv_filter_init();
 
   /* VS capability included and non-4.2 device */
-  if (controller_get_interface()->supports_ble() && 
+  if (controller_get_interface()->supports_ble() &&
       controller_get_interface()->supports_ble_privacy() &&
       btm_cb.cmn_ble_vsc_cb.max_irk_list_sz > 0 &&
       controller_get_interface()->get_ble_resolving_list_max_size() == 0)
@@ -805,7 +820,7 @@ bool BTM_BleConfigPrivacy(bool privacy_mode) {
 
   GAP_BleAttrDBUpdate(GATT_UUID_GAP_CENTRAL_ADDR_RESOL, &gap_ble_attr_value);
 
-    bluetooth::shim::ACL_ConfigureLePrivacy(privacy_mode);
+  bluetooth::shim::ACL_ConfigureLePrivacy(privacy_mode);
   return true;
 }
 
@@ -2267,8 +2282,13 @@ static void btm_ble_appearance_to_cod(uint16_t appearance, uint8_t* dev_class) {
       dev_class[1] = BTM_COD_MAJOR_AUDIO;
       dev_class[2] = BTM_COD_MINOR_UNCLASSIFIED;
       break;
+    case BTM_BLE_APPEARANCE_GENERIC_WEARABLE_AUDIO_DEVICE:
     case BTM_BLE_APPEARANCE_WEARABLE_AUDIO_DEVICE_EARBUD:
-      dev_class[1] = BTM_COD_MAJOR_AUDIO;
+    case BTM_BLE_APPEARANCE_WEARABLE_AUDIO_DEVICE_HEADSET:
+    case BTM_BLE_APPEARANCE_WEARABLE_AUDIO_DEVICE_HEADPHONES:
+    case BTM_BLE_APPEARANCE_WEARABLE_AUDIO_DEVICE_NECK_BAND:
+      dev_class[0] = (BTM_COD_SERVICE_AUDIO | BTM_COD_SERVICE_RENDERING) >> 8;
+      dev_class[1] = (BTM_COD_MAJOR_AUDIO | BTM_COD_SERVICE_LE_AUDIO);
       dev_class[2] = BTM_COD_MINOR_WEARABLE_HEADSET;
       break;
     case BTM_BLE_APPEARANCE_GENERIC_BARCODE_SCANNER:
@@ -2373,9 +2393,7 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
       has_advertising_flags = true;
       p_cur->flag = *p_flag;
     }
-  }
 
-  if (!data.empty()) {
     /* Check to see the BLE device has the Appearance UUID in the advertising
      * data.  If it does
      * then try to convert the appearance value to a class of device value
@@ -2403,6 +2421,32 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
             break;
           }
         }
+      }
+    }
+
+    const uint8_t* p_rsi =
+        AdvertiseDataParser::GetFieldByType(data, BTM_BLE_AD_TYPE_RSI, &len);
+    if (p_rsi != nullptr && len == 6) {
+      STREAM_TO_BDADDR(p_cur->ble_ad_rsi, p_rsi);
+    }
+
+    const uint8_t* p_service_data = data.data();
+    uint16_t remaining_data_len = data.size();
+    uint8_t service_data_len = 0;
+
+    while ((p_service_data = AdvertiseDataParser::GetFieldByType(
+                p_service_data + service_data_len,
+                (remaining_data_len -= service_data_len),
+                BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE, &service_data_len))) {
+      uint16_t uuid;
+      STREAM_TO_UINT16(uuid, p_service_data);
+
+      if (uuid == 0x184E /* Audio Stream Control service */ ||
+          uuid == 0x184F /* Broadcast Audio Scan service */ ||
+          uuid == 0x1850 /* Published Audio Capabilities service */ ||
+          uuid == 0x1853 /* Common Audio service */) {
+        p_cur->ble_ad_is_le_audio_capable = true;
+        break;
       }
     }
   }
@@ -2746,6 +2790,14 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
                                      adv_data.size());
   }
 
+  tBTM_INQ_RESULTS_CB* p_target_announcement_obs_results_cb =
+      btm_cb.ble_ctr_cb.p_target_announcement_obs_results_cb;
+  if (p_target_announcement_obs_results_cb) {
+    (p_target_announcement_obs_results_cb)(
+        (tBTM_INQ_RESULTS*)&p_i->inq_info.results,
+        const_cast<uint8_t*>(adv_data.data()), adv_data.size());
+  }
+
   uint8_t result = btm_ble_is_discoverable(bda, adv_data);
   if (result == 0) {
     // Device no longer discoverable so discard outstanding advertising packet
@@ -2839,6 +2891,14 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
       btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
   if (p_opportunistic_obs_results_cb) {
     (p_opportunistic_obs_results_cb)(
+        (tBTM_INQ_RESULTS*)&p_i->inq_info.results,
+        const_cast<uint8_t*>(advertising_data.data()), advertising_data.size());
+  }
+
+  tBTM_INQ_RESULTS_CB* p_target_announcement_obs_results_cb =
+      btm_cb.ble_ctr_cb.p_target_announcement_obs_results_cb;
+  if (p_target_announcement_obs_results_cb) {
+    (p_target_announcement_obs_results_cb)(
         (tBTM_INQ_RESULTS*)&p_i->inq_info.results,
         const_cast<uint8_t*>(advertising_data.data()), advertising_data.size());
   }

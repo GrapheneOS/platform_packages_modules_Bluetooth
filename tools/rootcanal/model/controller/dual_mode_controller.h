@@ -24,12 +24,16 @@
 #include <unordered_map>
 #include <vector>
 
+#include "controller_properties.h"
 #include "hci/address.h"
 #include "hci/hci_packets.h"
 #include "link_layer_controller.h"
+#include "model/controller/vendor/csr.h"
 #include "model/devices/device.h"
 #include "model/setup/async_manager.h"
+#ifndef ROOTCANAL_LMP
 #include "security_manager.h"
+#endif /* !ROOTCANAL_LMP */
 
 namespace rootcanal {
 
@@ -48,15 +52,11 @@ using ::bluetooth::hci::CommandView;
 // corresponding Bluetooth command in the Core Specification with the prefix
 // "Hci" to distinguish it as a controller command.
 class DualModeController : public Device {
-  // The location of the config file loaded to populate controller attributes.
-  static constexpr char kControllerPropertiesFile[] =
-      "/vendor/etc/bluetooth/controller_properties.json";
   static constexpr uint16_t kSecurityManagerNumKeys = 15;
 
  public:
   // Sets all of the methods to be used as callbacks in the HciHandler.
-  DualModeController(const std::string& properties_filename =
-                         std::string(kControllerPropertiesFile),
+  DualModeController(const std::string& properties_filename = "",
                      uint16_t num_keys = kSecurityManagerNumKeys);
 
   ~DualModeController() = default;
@@ -68,7 +68,6 @@ class DualModeController : public Device {
       model::packets::LinkLayerPacketView incoming) override;
 
   virtual void TimerTick() override;
-
   virtual void Close() override;
 
   // Route commands and data from the stack.
@@ -105,9 +104,6 @@ class DualModeController : public Device {
   void RegisterIsoChannel(
       const std::function<void(std::shared_ptr<std::vector<uint8_t>>)>&
           send_iso);
-
-  // Set the device's address.
-  void SetAddress(Address address) override;
 
   // Controller commands. For error codes, see the Bluetooth Core Specification,
   // Version 4.2, Volume 2, Part D (page 370).
@@ -217,6 +213,12 @@ class DualModeController : public Device {
   // 7.1.36
   void IoCapabilityRequestNegativeReply(CommandView args);
 
+  // 7.1.45
+  void EnhancedSetupSynchronousConnection(CommandView args);
+
+  // 7.1.46
+  void EnhancedAcceptSynchronousConnection(CommandView args);
+
   // 7.1.53
   void RemoteOobExtendedDataRequestReply(CommandView args);
 
@@ -237,6 +239,9 @@ class DualModeController : public Device {
 
   // 7.2.7
   void RoleDiscovery(CommandView args);
+
+  // 7.2.9
+  void ReadLinkPolicySettings(CommandView args);
 
   // 7.2.10
   void WriteLinkPolicySettings(CommandView args);
@@ -367,6 +372,9 @@ class DualModeController : public Device {
   // 7.3.63
   void SendKeypressNotification(CommandView args);
 
+  // 7.3.66
+  void EnhancedFlush(CommandView args);
+
   // 7.3.69
   void SetEventMaskPage2(CommandView args);
 
@@ -457,11 +465,8 @@ class DualModeController : public Device {
   // 7.8.12
   void LeCreateConnection(CommandView args);
 
-  // 7.8.18
-  void LeConnectionUpdate(CommandView args);
-
   // 7.8.13
-  void LeConnectionCancel(CommandView args);
+  void LeCreateConnectionCancel(CommandView args);
 
   // 7.8.14
   void LeReadFilterAcceptListSize(CommandView args);
@@ -474,6 +479,9 @@ class DualModeController : public Device {
 
   // 7.8.17
   void LeRemoveDeviceFromFilterAcceptList(CommandView args);
+
+  // 7.8.18
+  void LeConnectionUpdate(CommandView args);
 
   // 7.8.21
   void LeReadRemoteFeatures(CommandView args);
@@ -524,13 +532,13 @@ class DualModeController : public Device {
   void LeSetAddressResolutionEnable(CommandView args);
 
   // 7.8.45
-  void LeSetResovalablePrivateAddressTimeout(CommandView args);
+  void LeSetResolvablePrivateAddressTimeout(CommandView args);
 
   // 7.8.46
   void LeReadMaximumDataLength(CommandView args);
 
   // 7.8.52
-  void LeSetExtendedAdvertisingRandomAddress(CommandView args);
+  void LeSetAdvertisingSetRandomAddress(CommandView args);
 
   // 7.8.53
   void LeSetExtendedAdvertisingParameters(CommandView args);
@@ -539,7 +547,7 @@ class DualModeController : public Device {
   void LeSetExtendedAdvertisingData(CommandView args);
 
   // 7.8.55
-  void LeSetExtendedAdvertisingScanResponse(CommandView args);
+  void LeSetExtendedScanResponseData(CommandView args);
 
   // 7.8.56
   void LeSetExtendedAdvertisingEnable(CommandView args);
@@ -600,6 +608,15 @@ class DualModeController : public Device {
   void LeAdvertisingFilter(CommandView args);
   void LeExtendedScanParams(CommandView args);
 
+  // CSR vendor command.
+  // Implement the command specific to the CSR controller
+  // used specifically by the PTS tool to pass certification tests.
+  void CsrVendorCommand(CommandView args);
+  void CsrReadVarid(CsrVarid varid, std::vector<uint8_t>& value);
+  void CsrWriteVarid(CsrVarid varid, std::vector<uint8_t> const& value);
+  void CsrReadPskey(CsrPskey pskey, std::vector<uint8_t>& value);
+  void CsrWritePskey(CsrPskey pskey, std::vector<uint8_t> const& value);
+
   // Required commands for handshaking with hci driver
   void ReadClassOfDevice(CommandView args);
   void ReadVoiceSetting(CommandView args);
@@ -611,20 +628,16 @@ class DualModeController : public Device {
   void StopTimer();
 
  protected:
-  LinkLayerController link_layer_controller_{properties_};
+  // Controller configuration.
+  ControllerProperties properties_;
+
+  // Link Layer state.
+  LinkLayerController link_layer_controller_{address_, properties_};
 
  private:
-  // Set a timer for a future action
-  void AddControllerEvent(std::chrono::milliseconds,
-                          const TaskCallback& callback);
-
-  void AddConnectionAction(const TaskCallback& callback, uint16_t handle);
-
-  void SendCommandCompleteUnknownOpCodeEvent(uint16_t command_opcode) const;
-
-  // Unused state to maintain consistency for the Host
-  uint16_t le_suggested_default_data_bytes_{0x20};
-  uint16_t le_suggested_default_data_time_{0x148};
+  // Send a HCI_Command_Complete event for the specified op_code with
+  // the error code UNKNOWN_OPCODE.
+  void SendCommandCompleteUnknownOpCodeEvent(uint16_t op_code) const;
 
   // Callbacks to send packets back to the HCI.
   std::function<void(std::shared_ptr<bluetooth::hci::AclBuilder>)> send_acl_;
@@ -633,19 +646,24 @@ class DualModeController : public Device {
   std::function<void(std::shared_ptr<bluetooth::hci::ScoBuilder>)> send_sco_;
   std::function<void(std::shared_ptr<bluetooth::hci::IsoBuilder>)> send_iso_;
 
-  // Maintains the commands to be registered and used in the HciHandler object.
-  // Keys are command opcodes and values are the callbacks to handle each
-  // command.
+  // Map supported opcodes to the function implementing the handler
+  // for the associated command. The map should be a subset of the
+  // supported_command field in the properties_ object.
   std::unordered_map<bluetooth::hci::OpCode,
                      std::function<void(bluetooth::hci::CommandView)>>
       active_hci_commands_;
 
+  // Loopback mode (Vol 4, Part E § 7.6.1).
+  // The local loopback mode is used to pass the android Vendor Test Suite
+  // with RootCanal.
   bluetooth::hci::LoopbackMode loopback_mode_;
 
+#ifndef ROOTCANAL_LMP
   SecurityManager security_manager_;
+#endif /* ROOTCANAL_LMP */
 
-  DualModeController(const DualModeController& cmdPckt) = delete;
-  DualModeController& operator=(const DualModeController& cmdPckt) = delete;
+  DualModeController(const DualModeController& other) = delete;
+  DualModeController& operator=(const DualModeController& other) = delete;
 };
 
 }  // namespace rootcanal

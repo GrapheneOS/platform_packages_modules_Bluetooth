@@ -59,6 +59,7 @@ ApcfCommand ConvertApcfFromRust(const RustApcfCommand& command) {
       .name = name,
       .company = command.company,
       .company_mask = command.company_mask,
+      .ad_type = command.ad_type,
       .data = data,
       .data_mask = data_mask,
       .irk = irk,
