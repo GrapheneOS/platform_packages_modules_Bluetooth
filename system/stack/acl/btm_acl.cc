@@ -630,21 +630,6 @@ void btm_acl_encrypt_change(uint16_t handle, uint8_t status,
     return;
   }
 
-  /* if we are trying to drop encryption on an encrypted connection, drop the
-   * connection */
-  if (p->is_encrypted && !encr_enable) {
-    android_errorWriteLog(0x534e4554, "251436534");
-    LOG(ERROR) << __func__
-               << " attempting to decrypt encrypted connection, disconnecting. "
-                  "handle: "
-               << loghex(handle);
-
-    acl_disconnect_from_handle(handle, HCI_ERR_HOST_REJECT_SECURITY,
-                               "stack::btu::btu_hcif::read_drop_encryption "
-                               "Connection Already Encrypted");
-    return;
-  }
-
   p->is_encrypted = encr_enable;
 
   /* Process Role Switch if active */
