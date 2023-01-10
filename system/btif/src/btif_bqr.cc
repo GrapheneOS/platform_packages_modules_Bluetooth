@@ -77,13 +77,27 @@ void BqrVseSubEvt::ParseBqrLinkQualityEvt(uint8_t length,
   STREAM_TO_UINT32(bqr_link_quality_event_.buffer_underflow_bytes, p_param_buf);
 
   if (vendor_cap_supported_version >= kBqrIsoVersion) {
-    STREAM_TO_UINT32(bqr_link_quality_event_.tx_total_packets, p_param_buf);
-    STREAM_TO_UINT32(bqr_link_quality_event_.tx_unacked_packets, p_param_buf);
-    STREAM_TO_UINT32(bqr_link_quality_event_.tx_flushed_packets, p_param_buf);
-    STREAM_TO_UINT32(bqr_link_quality_event_.tx_last_subevent_packets,
-                     p_param_buf);
-    STREAM_TO_UINT32(bqr_link_quality_event_.crc_error_packets, p_param_buf);
-    STREAM_TO_UINT32(bqr_link_quality_event_.rx_duplicate_packets, p_param_buf);
+    if (length < kLinkQualityParamTotalLen + kISOLinkQualityParamTotalLen) {
+      LOG(WARNING) << __func__
+                   << ": Parameter total length: " << std::to_string(length)
+                   << " is abnormal. "
+                   << "vendor_cap_supported_version: "
+                   << vendor_cap_supported_version << " "
+                   << " (>= "
+                   << "kBqrIsoVersion=" << kBqrIsoVersion << "), "
+                   << "It should not be shorter than: "
+                   << std::to_string(kLinkQualityParamTotalLen +
+                                     kISOLinkQualityParamTotalLen);
+    } else {
+      STREAM_TO_UINT32(bqr_link_quality_event_.tx_total_packets, p_param_buf);
+      STREAM_TO_UINT32(bqr_link_quality_event_.tx_unacked_packets, p_param_buf);
+      STREAM_TO_UINT32(bqr_link_quality_event_.tx_flushed_packets, p_param_buf);
+      STREAM_TO_UINT32(bqr_link_quality_event_.tx_last_subevent_packets,
+                       p_param_buf);
+      STREAM_TO_UINT32(bqr_link_quality_event_.crc_error_packets, p_param_buf);
+      STREAM_TO_UINT32(bqr_link_quality_event_.rx_duplicate_packets,
+                       p_param_buf);
+    }
   }
 
   const auto now = system_clock::to_time_t(system_clock::now());
