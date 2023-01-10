@@ -33,6 +33,7 @@
 #include "btif/include/btif_av.h"
 #include "include/hardware/bt_av.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "osi/include/allocator.h"
 #include "stack/include/a2dp_codec_api.h"
 #include "stack/include/a2dp_error_codes.h"
 #include "stack/include/avdt_api.h"
@@ -1372,6 +1373,12 @@ BT_HDR* BtaAvCo::GetNextSourceDataPacket(const uint8_t* p_codec_info,
   p_buf = btif_a2dp_source_audio_readbuf();
   if (p_buf == nullptr) return nullptr;
 
+  if (p_buf->offset < 4) {
+    osi_free(p_buf);
+    APPL_TRACE_ERROR("No space for timestamp in packet, dropped");
+    return nullptr;
+  }
+
   /*
    * Retrieve the timestamp information from the media packet,
    * and set up the packet header.
@@ -1385,6 +1392,8 @@ BT_HDR* BtaAvCo::GetNextSourceDataPacket(const uint8_t* p_codec_info,
       !A2DP_BuildCodecHeader(p_codec_info, p_buf, p_buf->layer_specific)) {
     APPL_TRACE_ERROR("%s: unsupported codec type (%d)", __func__,
                      A2DP_GetCodecType(p_codec_info));
+    osi_free(p_buf);
+    return nullptr;
   }
 
   if (ContentProtectEnabled() && (active_peer_ != nullptr) &&
