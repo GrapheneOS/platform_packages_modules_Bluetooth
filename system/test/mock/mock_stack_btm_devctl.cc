@@ -105,7 +105,8 @@ void BTM_WriteVoiceSettings(uint16_t settings) {
 }
 void BTM_db_reset(void) { mock_function_count_map[__func__]++; }
 void BTM_reset_complete() { mock_function_count_map[__func__]++; }
-void btm_delete_stored_link_key_complete(uint8_t* p) {
+void btm_delete_stored_link_key_complete(uint8_t* p,
+                                         UNUSED_ATTR uint16_t evt_len) {
   mock_function_count_map[__func__]++;
 }
 void btm_dev_free() { mock_function_count_map[__func__]++; }
