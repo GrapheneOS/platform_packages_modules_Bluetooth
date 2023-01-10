@@ -77,12 +77,12 @@ void adapter_state_changed(bt_state_t state) {
 }
 void adapter_properties([[maybe_unused]] bt_status_t status,
                         [[maybe_unused]] int num_properties,
-                        [[maybe_unused]] bt_property_t* properties) {
+                        [[maybe_unused]] ::bt_property_t* properties) {
   LOG_INFO("%s", __func__);
 }
 
 void remote_device_properties(bt_status_t status, RawAddress* bd_addr,
-                              int num_properties, bt_property_t* properties) {
+                              int num_properties, ::bt_property_t* properties) {
   CHECK(bd_addr != nullptr);
   const size_t num_callbacks = interface_api_callback_map_.size();
   auto callback_list = interface_api_callback_map_.find(__func__);
@@ -103,7 +103,7 @@ void remote_device_properties(bt_status_t status, RawAddress* bd_addr,
 }
 
 void device_found([[maybe_unused]] int num_properties,
-                  [[maybe_unused]] bt_property_t* properties) {
+                  [[maybe_unused]] ::bt_property_t* properties) {
   LOG_INFO("%s", __func__);
 }
 
