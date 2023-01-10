@@ -3137,9 +3137,14 @@ static void btm_ble_observer_timer_timeout(UNUSED_ATTR void* data) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_ble_read_remote_features_complete(uint8_t* p) {
+void btm_ble_read_remote_features_complete(uint8_t* p, uint8_t length) {
   uint16_t handle;
   uint8_t status;
+
+  if (length < 3) {
+    goto err_out;
+  }
+
   STREAM_TO_UINT8(status, p);
   STREAM_TO_UINT16(handle, p);
   handle = handle & 0x0FFF;  // only 12 bits meaningful
@@ -3154,6 +3159,12 @@ void btm_ble_read_remote_features_complete(uint8_t* p) {
   }
 
   if (status == HCI_SUCCESS) {
+    // BD_FEATURES_LEN additional bytes are read
+    // in acl_set_peer_le_features_from_handle
+    if (length < 3 + BD_FEATURES_LEN) {
+      goto err_out;
+    }
+
     if (!acl_set_peer_le_features_from_handle(handle, p)) {
       LOG_ERROR(
           "Unable to find existing connection after read remote features");
@@ -3162,6 +3173,10 @@ void btm_ble_read_remote_features_complete(uint8_t* p) {
   }
 
   btsnd_hcic_rmt_ver_req(handle);
+  return;
+
+err_out:
+  LOG_ERROR("bogus event packet, too short");
 }
 
 /*******************************************************************************
