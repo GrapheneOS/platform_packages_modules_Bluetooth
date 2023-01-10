@@ -20,6 +20,7 @@
 #include <chrono>
 #include <memory>
 
+#include "common/interfaces/ILoggable.h"
 #include "hci/acl_manager/le_acl_connection.h"
 #include "l2cap/internal/data_pipeline_manager.h"
 #include "l2cap/internal/dynamic_channel_allocator.h"
@@ -42,7 +43,9 @@ namespace internal {
 
 class LinkManager;
 
-class Link : public l2cap::internal::ILink, public hci::acl_manager::LeConnectionManagementCallbacks {
+class Link : public l2cap::internal::ILink,
+             public hci::acl_manager::LeConnectionManagementCallbacks,
+             public bluetooth::common::IRedactableLoggable {
  public:
   Link(os::Handler* l2cap_handler, std::unique_ptr<hci::acl_manager::LeAclConnection> acl_connection,
        l2cap::internal::ParameterProvider* parameter_provider,
@@ -148,6 +151,14 @@ class Link : public l2cap::internal::ILink, public hci::acl_manager::LeConnectio
 
   virtual std::string ToString() {
     return GetDevice().ToString();
+  }
+
+  std::string ToStringForLogging() const override {
+    return GetDevice().ToStringForLogging();
+  }
+
+  std::string ToRedactedStringForLogging() const override {
+    return GetDevice().ToRedactedStringForLogging();
   }
 
   virtual uint16_t GetMps() const;
