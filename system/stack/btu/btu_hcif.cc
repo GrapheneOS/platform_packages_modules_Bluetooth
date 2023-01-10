@@ -1234,7 +1234,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_BLE_WRITE_ADV_ENABLE:
-      btm_ble_write_adv_enable_complete(p);
+      btm_ble_write_adv_enable_complete(p, evt_len);
       break;
 
     case HCI_BLE_CREATE_LL_CONN:
