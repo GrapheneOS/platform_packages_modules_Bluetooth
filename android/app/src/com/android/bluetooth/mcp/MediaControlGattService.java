@@ -1315,7 +1315,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             @Nullable BluetoothDevice originDevice) {
         for (BluetoothDevice device : mBluetoothGattServer.getConnectedDevices()) {
             // Skip the origin device who changed the characteristic
-            if (device == originDevice) {
+            if (device.equals(originDevice)) {
                 continue;
             }
 
