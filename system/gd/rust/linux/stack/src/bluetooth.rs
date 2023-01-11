@@ -10,8 +10,8 @@ use bt_topshim::btif::{
 use bt_topshim::{
     metrics,
     profiles::hid_host::{
-        BthhConnectionState, BthhHidInfo, BthhProtocolMode, BthhStatus, HHCallbacks,
-        HHCallbacksDispatcher, HidHost,
+        BthhConnectionState, BthhHidInfo, BthhProtocolMode, BthhReportType, BthhStatus,
+        HHCallbacks, HHCallbacksDispatcher, HidHost,
     },
     profiles::sdp::{BtSdpRecord, Sdp, SdpCallbacks, SdpCallbacksDispatcher},
     profiles::ProfileConnectionState,
@@ -206,6 +206,25 @@ pub trait IBluetoothQA {
 
     /// Sets connectability. Returns true on success, false otherwise.
     fn set_connectable(&mut self, mode: bool) -> bool;
+
+    /// Gets HID report on the peer.
+    fn get_hid_report(
+        &mut self,
+        addr: String,
+        report_type: BthhReportType,
+        report_id: u8,
+    ) -> BtStatus;
+
+    /// Sets HID report to the peer.
+    fn set_hid_report(
+        &mut self,
+        addr: String,
+        report_type: BthhReportType,
+        report: String,
+    ) -> BtStatus;
+
+    /// Snd HID data report to the peer.
+    fn send_hid_data(&mut self, addr: String, data: String) -> BtStatus;
 }
 
 /// Delayed actions from adapter events.
@@ -2049,5 +2068,41 @@ impl IBluetoothQA for Bluetooth {
         self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::AdapterScanMode(
             if mode { BtScanMode::Connectable } else { BtScanMode::None_ },
         )) == 0
+    }
+
+    fn get_hid_report(
+        &mut self,
+        addr: String,
+        report_type: BthhReportType,
+        report_id: u8,
+    ) -> BtStatus {
+        if let Some(mut addr) = RawAddress::from_string(addr) {
+            self.hh.as_mut().unwrap().get_report(&mut addr, report_type, report_id, 128)
+        } else {
+            BtStatus::InvalidParam
+        }
+    }
+
+    fn set_hid_report(
+        &mut self,
+        addr: String,
+        report_type: BthhReportType,
+        report: String,
+    ) -> BtStatus {
+        if let Some(mut addr) = RawAddress::from_string(addr) {
+            let mut rb = report.clone().into_bytes();
+            self.hh.as_mut().unwrap().set_report(&mut addr, report_type, rb.as_mut_slice())
+        } else {
+            BtStatus::InvalidParam
+        }
+    }
+
+    fn send_hid_data(&mut self, addr: String, data: String) -> BtStatus {
+        if let Some(mut addr) = RawAddress::from_string(addr) {
+            let mut rb = data.clone().into_bytes();
+            self.hh.as_mut().unwrap().send_data(&mut addr, rb.as_mut_slice())
+        } else {
+            BtStatus::InvalidParam
+        }
     }
 }
