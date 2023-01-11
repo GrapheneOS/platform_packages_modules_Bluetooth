@@ -484,7 +484,7 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
       }
     } else {
       LOG_ERROR("Received SCO connect from unknown peer:%s",
-                PRIVATE_ADDRESS(bd_addr));
+                ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     }
 
     p_setup->packet_types = temp_packet_types;
@@ -1046,7 +1046,7 @@ tBTM_STATUS BTM_RemoveSco(uint16_t sco_inx) {
   GetLegacyHciInterface().Disconnect(p->Handle(), HCI_ERR_PEER_USER);
 
   LOG_DEBUG("Disconnecting link sco_handle:0x%04x peer:%s", p->Handle(),
-            PRIVATE_ADDRESS(p->esco.data.bd_addr));
+            ADDRESS_TO_LOGGABLE_CSTR(p->esco.data.bd_addr));
   BTM_LogHistory(
       kBtmLogTag, p->esco.data.bd_addr, "Disconnecting",
       base::StringPrintf("local initiated handle:0x%04x previous_state:%s",
@@ -1106,13 +1106,13 @@ bool btm_sco_removed(uint16_t hci_handle, tHCI_REASON reason) {
 void btm_sco_on_esco_connect_request(
     const RawAddress& bda, const bluetooth::types::ClassOfDevice& cod) {
   LOG_DEBUG("Remote ESCO connect request remote:%s cod:%s",
-            PRIVATE_ADDRESS(bda), cod.ToString().c_str());
+            ADDRESS_TO_LOGGABLE_CSTR(bda), cod.ToString().c_str());
   btm_sco_conn_req(bda, cod.cod, BTM_LINK_TYPE_ESCO);
 }
 
 void btm_sco_on_sco_connect_request(
     const RawAddress& bda, const bluetooth::types::ClassOfDevice& cod) {
-  LOG_DEBUG("Remote SCO connect request remote:%s cod:%s", PRIVATE_ADDRESS(bda),
+  LOG_DEBUG("Remote SCO connect request remote:%s cod:%s", ADDRESS_TO_LOGGABLE_CSTR(bda),
             cod.ToString().c_str());
   btm_sco_conn_req(bda, cod.cod, BTM_LINK_TYPE_SCO);
 }
