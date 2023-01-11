@@ -16,7 +16,6 @@
 
 #include "a2dp_encoding_host.h"
 
-#include <base/logging.h>
 #include <errno.h>
 #include <grp.h>
 #include <sys/stat.h>
@@ -88,7 +87,7 @@ static void a2dp_data_path_open() {
   if (grp) {
     int res = chown(A2DP_HOST_DATA_PATH, -1, grp->gr_gid);
     if (res == -1) {
-      LOG(ERROR) << __func__ << " failed: " << strerror(errno);
+      LOG_ERROR("%s failed: %s", __func__, strerror(errno));
     }
   }
 }
@@ -123,16 +122,16 @@ bool StartRequest() {
 
   // Check if a previous request is not finished
   if (a2dp_pending_cmd_ == A2DP_CTRL_CMD_START) {
-    LOG(INFO) << __func__ << ": A2DP_CTRL_CMD_START in progress";
+    LOG_INFO("%s: A2DP_CTRL_CMD_START in progress", __func__);
     return false;
   } else if (a2dp_pending_cmd_ != A2DP_CTRL_CMD_NONE) {
-    LOG(WARNING) << __func__ << ": busy in pending_cmd=" << a2dp_pending_cmd_;
+    LOG_WARN("%s: busy in pending_cmd=%u", __func__, a2dp_pending_cmd_);
     return false;
   }
 
   // Don't send START request to stack while we are in a call
   if (!bluetooth::headset::IsCallIdle()) {
-    LOG(ERROR) << __func__ << ": call state is busy";
+    LOG_ERROR("%s: call state is busy", __func__);
     return false;
   }
 
@@ -157,7 +156,7 @@ bool StartRequest() {
     a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
     return true;
   }
-  LOG(ERROR) << __func__ << ": AV stream is not ready to start";
+  LOG_ERROR("%s: AV stream is not ready to start", __func__);
   return false;
 }
 
@@ -168,7 +167,7 @@ bool StopRequest() {
     btif_av_clear_remote_suspend_flag();
     return true;
   }
-  LOG(INFO) << __func__ << ": handling";
+  LOG_INFO("%s: handling", __func__);
   a2dp_pending_cmd_ = A2DP_CTRL_CMD_STOP;
   btif_av_stream_stop(RawAddress::kEmpty);
   return true;
