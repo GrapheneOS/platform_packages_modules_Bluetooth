@@ -1412,7 +1412,7 @@ void l2cble_process_data_length_change_event(uint16_t handle,
 
   if (is_legal_tx_data_len(tx_data_len)) {
     LOG_DEBUG("Received data length change event for device:%s tx_data_len:%hu",
-              PRIVATE_ADDRESS(p_lcb->remote_bd_addr), tx_data_len);
+              ADDRESS_TO_LOGGABLE_CSTR(p_lcb->remote_bd_addr), tx_data_len);
     p_lcb->tx_data_len = tx_data_len;
     BTM_LogHistory(kBtmLogTag, p_lcb->remote_bd_addr, "LE Data length change",
                    base::StringPrintf("tx_octets:%hu", tx_data_len));
@@ -1420,7 +1420,7 @@ void l2cble_process_data_length_change_event(uint16_t handle,
     LOG_WARN(
         "Received illegal data length change event for device:%s "
         "tx_data_len:%hu",
-        PRIVATE_ADDRESS(p_lcb->remote_bd_addr), tx_data_len);
+        ADDRESS_TO_LOGGABLE_CSTR(p_lcb->remote_bd_addr), tx_data_len);
   }
   /* ignore rx_data len for now */
 }

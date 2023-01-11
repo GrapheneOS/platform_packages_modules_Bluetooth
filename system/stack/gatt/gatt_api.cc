@@ -1305,7 +1305,7 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
       ret = false;
     } else {
       LOG_DEBUG("Adding to background connect to device:%s",
-                PRIVATE_ADDRESS(bd_addr));
+                ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       if (connection_type == BTM_BLE_BKG_CONNECT_ALLOW_LIST) {
         ret = connection_manager::background_connect_add(gatt_if, bd_addr);
       } else {

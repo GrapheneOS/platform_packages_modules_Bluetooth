@@ -367,7 +367,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
   }
 
   LOG_DEBUG("Stopped all timers for service to device:%s id:%hhu",
-            PRIVATE_ADDRESS(peer_addr), id);
+            ADDRESS_TO_LOGGABLE_CSTR(peer_addr), id);
   bta_dm_pm_stop_timer_by_srvc_id(peer_addr, id);
 
   p_dev = bta_dm_find_peer_device(peer_addr);
@@ -645,23 +645,23 @@ static void bta_dm_pm_set_mode(const RawAddress& peer_addr,
     p_peer_device->pm_mode_attempted = BTA_DM_PM_PARK;
     bta_dm_pm_park(peer_addr);
     LOG_WARN("DEPRECATED Setting link to park mode peer:%s",
-             PRIVATE_ADDRESS(peer_addr));
+             ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
   } else if (pm_action & BTA_DM_PM_SNIFF) {
     /* dont initiate SNIFF, if link_policy has it disabled */
     if (BTM_is_sniff_allowed_for(peer_addr)) {
       LOG_DEBUG(
           "Link policy allows sniff mode so setting mode "
           "peer:%s",
-          PRIVATE_ADDRESS(peer_addr));
+          ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
       p_peer_device->pm_mode_attempted = BTA_DM_PM_SNIFF;
       bta_dm_pm_sniff(p_peer_device, (uint8_t)(pm_action & 0x0F));
     } else {
       LOG_DEBUG("Link policy disallows sniff mode, ignore request peer:%s",
-                PRIVATE_ADDRESS(peer_addr));
+                ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
     }
   } else if (pm_action == BTA_DM_PM_ACTIVE) {
     LOG_DEBUG("Setting link to active mode peer:%s",
-              PRIVATE_ADDRESS(peer_addr));
+              ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
     bta_dm_pm_active(peer_addr);
   }
 }
@@ -681,7 +681,7 @@ static bool bta_dm_pm_park(const RawAddress& peer_addr) {
   /* if not in park mode, switch to park */
   if (!BTM_ReadPowerMode(peer_addr, &mode)) {
     LOG_WARN("Unable to read power mode for peer:%s",
-             PRIVATE_ADDRESS(peer_addr));
+             ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
   }
 
   if (mode != BTM_PM_MD_PARK) {
@@ -765,7 +765,7 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
 
   if (!BTM_ReadPowerMode(p_peer_dev->peer_bdaddr, &mode)) {
     LOG_WARN("Unable to read power mode for peer:%s",
-             PRIVATE_ADDRESS(p_peer_dev->peer_bdaddr));
+             ADDRESS_TO_LOGGABLE_CSTR(p_peer_dev->peer_bdaddr));
   }
   tBTM_PM_STATUS mode_status = static_cast<tBTM_PM_STATUS>(mode);
   LOG_DEBUG("Current power mode:%s[0x%x] peer_info:%s[0x%02x]",
@@ -786,7 +786,7 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
     if ((mode == BTM_PM_MD_SNIFF) &&
         (p_peer_dev->Info() & BTA_DM_DI_ACP_SNIFF)) {
       LOG_DEBUG("Link already in sniff mode peer:%s",
-                PRIVATE_ADDRESS(p_peer_dev->peer_bdaddr));
+                ADDRESS_TO_LOGGABLE_CSTR(p_peer_dev->peer_bdaddr));
       return;
     }
   }
@@ -808,7 +808,7 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
         ~(BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF | BTA_DM_DI_SET_SNIFF);
   } else {
     LOG_ERROR("Unable to set power mode peer:%s status:%s",
-              PRIVATE_ADDRESS(p_peer_dev->peer_bdaddr),
+              ADDRESS_TO_LOGGABLE_CSTR(p_peer_dev->peer_bdaddr),
               btm_status_text(status).c_str());
     p_peer_dev->info &=
         ~(BTA_DM_DI_INT_SNIFF | BTA_DM_DI_ACP_SNIFF | BTA_DM_DI_SET_SNIFF);
@@ -828,7 +828,7 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr) {
   tBTA_DM_SSR_SPEC* p_spec = &p_bta_dm_ssr_spec[ssr];
 
   LOG_DEBUG("Request to put link to device:%s into power_mode:%s",
-            PRIVATE_ADDRESS(peer_addr), p_spec->name);
+            ADDRESS_TO_LOGGABLE_CSTR(peer_addr), p_spec->name);
   /* go through the connected services */
   for (int i = 0; i < bta_dm_conn_srvcs.count; i++) {
     const tBTA_DM_SRVCS& service = bta_dm_conn_srvcs.conn_srvc[i];
@@ -845,7 +845,7 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr) {
                                         (config.app_id == service.app_id))) {
         LOG_INFO("Found connected service:%s app_id:%d peer:%s spec_name:%s",
                  BtaIdSysText(service.id).c_str(), service.app_id,
-                 PRIVATE_ADDRESS(peer_addr),
+                 ADDRESS_TO_LOGGABLE_CSTR(peer_addr),
                  p_bta_dm_ssr_spec[current_ssr_index].name);
         break;
       }
@@ -866,7 +866,7 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr) {
       LOG_DEBUG(
           "Changing sniff subrating specification for %s from %s[%d] ==> "
           "%s[%d]",
-          PRIVATE_ADDRESS(peer_addr), p_spec->name, ssr_index, p_spec_cur->name,
+          ADDRESS_TO_LOGGABLE_CSTR(peer_addr), p_spec->name, ssr_index, p_spec_cur->name,
           current_ssr_index);
       ssr_index = current_ssr_index;
       p_spec = &p_bta_dm_ssr_spec[ssr_index];
@@ -886,7 +886,7 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr) {
     LOG_DEBUG(
         "Setting sniff subrating for device:%s spec_name:%s max_latency(s):%.2f"
         " min_local_timeout(s):%.2f min_remote_timeout(s):%.2f",
-        PRIVATE_ADDRESS(peer_addr), p_spec->name,
+        ADDRESS_TO_LOGGABLE_CSTR(peer_addr), p_spec->name,
         ticks_to_seconds(p_spec->max_lat), ticks_to_seconds(p_spec->min_loc_to),
         ticks_to_seconds(p_spec->min_rmt_to));
     /* set the SSR parameters. */
@@ -914,19 +914,19 @@ void bta_dm_pm_active(const RawAddress& peer_addr) {
   switch (status) {
     case BTM_CMD_STORED:
       LOG_DEBUG("Active power mode stored for execution later for remote:%s",
-                PRIVATE_ADDRESS(peer_addr));
+                ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
       break;
     case BTM_CMD_STARTED:
       LOG_DEBUG("Active power mode started for remote:%s",
-                PRIVATE_ADDRESS(peer_addr));
+                ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
       break;
     case BTM_SUCCESS:
       LOG_DEBUG("Active power mode already set for device:%s",
-                PRIVATE_ADDRESS(peer_addr));
+                ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
       break;
     default:
       LOG_WARN("Unable to set active power mode for device:%s status:%s",
-               PRIVATE_ADDRESS(peer_addr), btm_status_text(status).c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(peer_addr), btm_status_text(status).c_str());
       break;
   }
 }
@@ -987,13 +987,13 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
   LOG_DEBUG(
       "Power mode notification event status:%s peer:%s interval:%hu "
       "hci_status:%s",
-      power_mode_status_text(status).c_str(), PRIVATE_ADDRESS(bd_addr),
+      power_mode_status_text(status).c_str(), ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
       interval, hci_error_code_text(hci_status).c_str());
 
   tBTA_DM_PEER_DEVICE* p_dev = bta_dm_find_peer_device(bd_addr);
   if (p_dev == nullptr) {
     LOG_INFO("Unable to process power event for peer:%s",
-             PRIVATE_ADDRESS(bd_addr));
+             ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     return;
   }
 
@@ -1042,11 +1042,11 @@ void bta_dm_pm_btm_status(const RawAddress& bd_addr, tBTM_PM_STATUS status,
       if (interval) {
         p_dev->info |= BTA_DM_DI_USE_SSR;
         LOG_DEBUG("Enabling sniff subrating mode for peer:%s",
-                  PRIVATE_ADDRESS(bd_addr));
+                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       } else {
         p_dev->info &= ~BTA_DM_DI_USE_SSR;
         LOG_DEBUG("Disabling sniff subrating mode for peer:%s",
-                  PRIVATE_ADDRESS(bd_addr));
+                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       }
       break;
     case BTM_PM_STS_SNIFF:

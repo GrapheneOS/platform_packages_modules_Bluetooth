@@ -555,7 +555,7 @@ static void btif_update_remote_version_property(RawAddress* p_bd) {
       BTM_ReadRemoteVersion(*p_bd, &lmp_ver, &mfct_set, &lmp_subver);
 
   LOG_INFO("Remote version info valid:%s [%s]: %x, %x, %x",
-           logbool(version_info_valid).c_str(), PRIVATE_ADDRESS((*p_bd)),
+           logbool(version_info_valid).c_str(), ADDRESS_TO_LOGGABLE_CSTR((*p_bd)),
            lmp_ver, mfct_set, lmp_subver);
 
   if (version_info_valid) {
@@ -1607,7 +1607,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
           LOG_INFO(
               "Bonding LE Audio sink - must wait for le services discovery "
               "to pass all services to java %s",
-              PRIVATE_ADDRESS(bd_addr));
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
           /* For LE Audio capable devices, we care more about passing GATT LE
            * services than about just finishing pairing. Service discovery
            * should be scheduled when LE pairing finishes, by call to
@@ -1954,7 +1954,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       LOG_DEBUG(
           "Sent BT_ACL_STATE_DISCONNECTED upward as ACL link down event "
           "device:%s reason:%s",
-          PRIVATE_ADDRESS(bd_addr),
+          ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
           hci_reason_code_text(
               static_cast<tHCI_REASON>(btm_get_acl_disc_reason_code()))
               .c_str());
@@ -3652,8 +3652,7 @@ bool btif_get_device_type(const RawAddress& bda, int* p_device_type) {
 
   if (!btif_config_get_int(bd_addr_str, "DevType", p_device_type)) return false;
   tBT_DEVICE_TYPE device_type = static_cast<tBT_DEVICE_TYPE>(*p_device_type);
-  // TODO: fix it to replace PRIVATE_ADDRESS in an upcoming patch
-  LOG_DEBUG(" bd_addr:%s device_type:%s", PRIVATE_ADDRESS(bda),
+  LOG_DEBUG(" bd_addr:%s device_type:%s", ADDRESS_TO_LOGGABLE_CSTR(bda),
             DeviceTypeText(device_type).c_str());
 
   return true;
@@ -3668,8 +3667,7 @@ bool btif_get_address_type(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type) {
   int val = 0;
   if (!btif_config_get_int(bd_addr_str, "AddrType", &val)) return false;
   *p_addr_type = static_cast<tBLE_ADDR_TYPE>(val);
-  // TODO: fix PRIVATE_ADDRESS
-  LOG_DEBUG(" bd_addr:%s[%s]", PRIVATE_ADDRESS(bda),
+  LOG_DEBUG(" bd_addr:%s[%s]", ADDRESS_TO_LOGGABLE_CSTR(bda),
             AddressTypeText(*p_addr_type).c_str());
   return true;
 }
@@ -3729,7 +3727,7 @@ void btif_dm_metadata_changed(const RawAddress& remote_bd_addr, int key,
   static const int METADATA_LE_AUDIO = 26;
   /* If METADATA_LE_AUDIO is present, device is LE Audio capable */
   if (key == METADATA_LE_AUDIO) {
-    LOG_INFO("Device is LE Audio Capable %s", PRIVATE_ADDRESS(remote_bd_addr));
+    LOG_INFO("Device is LE Audio Capable %s", ADDRESS_TO_LOGGABLE_CSTR(remote_bd_addr));
     metadata_cb.le_audio_cache.insert_or_assign(remote_bd_addr, value);
   }
 }

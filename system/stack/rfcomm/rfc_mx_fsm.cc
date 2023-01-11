@@ -75,7 +75,7 @@ void rfc_mx_sm_execute(tRFC_MCB* p_mcb, tRFC_MX_EVENT event, void* p_data) {
   CHECK(p_mcb != nullptr) << __func__ << ": NULL mcb for event " << event;
 
   LOG_INFO(
-      "RFCOMM peer:%s event:%d state:%s", PRIVATE_ADDRESS(p_mcb->bd_addr),
+      "RFCOMM peer:%s event:%d state:%s", ADDRESS_TO_LOGGABLE_CSTR(p_mcb->bd_addr),
       event,
       rfcomm_mx_state_text(static_cast<tRFC_MX_STATE>(p_mcb->state)).c_str());
 
