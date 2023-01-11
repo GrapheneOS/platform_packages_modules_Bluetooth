@@ -262,6 +262,7 @@ init_flags!(
         gatt_robust_caching_server,
         gd_core,
         gd_hal_snoop_logger_socket,
+        gd_hal_snoop_logger_filtering,
         gd_l2cap,
         gd_link_policy,
         gd_remote_name_request,
