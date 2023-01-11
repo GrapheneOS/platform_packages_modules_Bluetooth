@@ -146,7 +146,8 @@ public class BluetoothMapContentObserver {
     boolean mObserverRegistered = false;
     @VisibleForTesting
     BluetoothMapAccountItem mAccount;
-    private String mAuthority = null;
+    @VisibleForTesting
+    String mAuthority = null;
 
     // Default supported feature bit mask is 0x1f
     private int mMapSupportedFeatures = BluetoothMapUtils.MAP_FEATURE_DEFAULT_BITMASK;
@@ -1976,7 +1977,8 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    private void handleContactListChanges(Uri uri) {
+    @VisibleForTesting
+    void handleContactListChanges(Uri uri) {
         if (uri.getAuthority().equals(mAuthority)) {
             try {
                 if (V) {
