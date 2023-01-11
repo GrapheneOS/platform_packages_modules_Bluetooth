@@ -1180,8 +1180,9 @@ extern struct btm_read_remote_version_complete btm_read_remote_version_complete;
 // Params: uint8_t* p
 // Returns: void
 struct btm_read_rssi_complete {
-  std::function<void(uint8_t* p)> body{[](uint8_t* p) { ; }};
-  void operator()(uint8_t* p) { body(p); };
+  std::function<void(uint8_t* p, uint16_t evt_len)> body{
+      [](uint8_t* pm, uint16_t evt_len) { ; }};
+  void operator()(uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
 };
 extern struct btm_read_rssi_complete btm_read_rssi_complete;
 // Name: btm_read_rssi_timeout

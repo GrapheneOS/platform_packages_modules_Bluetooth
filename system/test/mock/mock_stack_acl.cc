@@ -660,9 +660,9 @@ void btm_read_remote_version_complete(tHCI_STATUS status, uint16_t handle,
   test::mock::stack_acl::btm_read_remote_version_complete(
       status, handle, lmp_version, manufacturer, lmp_subversion);
 }
-void btm_read_rssi_complete(uint8_t* p) {
+void btm_read_rssi_complete(uint8_t* p, uint16_t evt_len) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_acl::btm_read_rssi_complete(p);
+  test::mock::stack_acl::btm_read_rssi_complete(p, evt_len);
 }
 void btm_read_rssi_timeout(UNUSED_ATTR void* data) {
   mock_function_count_map[__func__]++;

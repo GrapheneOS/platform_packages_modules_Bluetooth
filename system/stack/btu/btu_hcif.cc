@@ -1197,7 +1197,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_READ_RSSI:
-      btm_read_rssi_complete(p);
+      btm_read_rssi_complete(p, evt_len);
       break;
 
     case HCI_READ_FAILED_CONTACT_COUNTER:
