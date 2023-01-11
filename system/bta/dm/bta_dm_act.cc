@@ -702,7 +702,8 @@ void bta_dm_add_device(std::unique_ptr<tBTA_DM_API_ADD_DEVICE> msg) {
         BTM_SecAddDevice(msg->bd_addr, p_dc, msg->bd_name, nullptr, p_lc,
                          msg->key_type, msg->pin_length);
     if (!add_result) {
-      LOG(ERROR) << "BTA_DM: Error adding device " << msg->bd_addr;
+      LOG(ERROR) << "BTA_DM: Error adding device "
+                 << ADDRESS_TO_LOGGABLE_STR(msg->bd_addr);
     }
   }
 }
@@ -1522,7 +1523,7 @@ void bta_dm_queue_disc(tBTA_DM_MSG* p_data) {
   memcpy(p_pending_discovery, p_data, sizeof(tBTA_DM_API_DISCOVER));
 
   LOG_INFO("bta_dm_discovery: queuing service discovery to %s",
-           p_pending_discovery->discover.bd_addr.ToString().c_str());
+           ADDRESS_TO_LOGGABLE_CSTR(p_pending_discovery->discover.bd_addr));
   fixed_queue_enqueue(bta_dm_search_cb.pending_discovery_queue,
                       p_pending_discovery);
 }
@@ -1744,7 +1745,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
     transport = bta_dm_search_cb.transport;
   }
 
-  VLOG(1) << __func__ << " BDA: " << remote_bd_addr;
+  VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(remote_bd_addr);
 
   bta_dm_search_cb.peer_bdaddr = remote_bd_addr;
 

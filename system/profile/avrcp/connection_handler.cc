@@ -110,11 +110,13 @@ void ConnectionHandler::InitForTesting(ConnectionHandler* handler) {
 }
 
 bool ConnectionHandler::ConnectDevice(const RawAddress& bdaddr) {
-  LOG(INFO) << "Attempting to connect to device " << bdaddr;
+  LOG(INFO) << "Attempting to connect to device "
+            << ADDRESS_TO_LOGGABLE_STR(bdaddr);
 
   for (const auto& pair : device_map_) {
     if (bdaddr == pair.second->GetAddress()) {
-      LOG(WARNING) << "Already connected to device with address " << bdaddr;
+      LOG(WARNING) << "Already connected to device with address "
+                   << ADDRESS_TO_LOGGABLE_STR(bdaddr);
       return false;
     }
   }

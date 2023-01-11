@@ -145,7 +145,7 @@ class HasClientImpl : public HasClient {
   ~HasClientImpl() override = default;
 
   void Connect(const RawAddress& address) override {
-    DLOG(INFO) << __func__ << ": " << address;
+    DLOG(INFO) << __func__ << ": " <<  ADDRESS_TO_LOGGABLE_STR(address);
 
     std::vector<RawAddress> addresses = {address};
     auto csis_api = CsisClient::Get();
@@ -157,7 +157,8 @@ class HasClientImpl : public HasClient {
     }
 
     if (addresses.empty()) {
-      LOG(WARNING) << __func__ << ": " << address << " is not part of any set";
+      LOG(WARNING) << __func__ << ": " << ADDRESS_TO_LOGGABLE_STR(address)
+                   << " is not part of any set";
       addresses = {address};
     }
 
@@ -178,7 +179,7 @@ class HasClientImpl : public HasClient {
 
   void AddFromStorage(const RawAddress& address, uint8_t features,
                       uint16_t is_acceptlisted) {
-    DLOG(INFO) << __func__ << ": " << address
+    DLOG(INFO) << __func__ << ": " << ADDRESS_TO_LOGGABLE_STR(address)
                << ", features=" << loghex(features)
                << ", isAcceptlisted=" << is_acceptlisted;
 
@@ -196,7 +197,7 @@ class HasClientImpl : public HasClient {
   }
 
   void Disconnect(const RawAddress& address) override {
-    DLOG(INFO) << __func__ << ": " << address;
+    DLOG(INFO) << __func__ << ": " << ADDRESS_TO_LOGGABLE_STR(address);
 
     std::vector<RawAddress> addresses = {address};
     auto csis_api = CsisClient::Get();
@@ -208,7 +209,8 @@ class HasClientImpl : public HasClient {
     }
 
     if (addresses.empty()) {
-      LOG(WARNING) << __func__ << ": " << address << " is not part of any set";
+      LOG(WARNING) << __func__ << ": " << ADDRESS_TO_LOGGABLE_STR(address)
+                   << " is not part of any set";
       addresses = {address};
     }
 
@@ -216,7 +218,8 @@ class HasClientImpl : public HasClient {
       auto device = std::find_if(devices_.begin(), devices_.end(),
                                  HasDevice::MatchAddress(addr));
       if (device == devices_.end()) {
-        LOG(WARNING) << "Device not connected to profile" << addr;
+        LOG(WARNING) << "Device not connected to profile"
+                     << ADDRESS_TO_LOGGABLE_STR(addr);
         return;
       }
 
@@ -430,7 +433,7 @@ class HasClientImpl : public HasClient {
         HasDevice::MatchAddress(std::get<RawAddress>(operation.addr_or_group)));
     if (device == devices_.end()) {
       LOG(WARNING) << __func__ << " Device not connected to profile addr: "
-                   << std::get<RawAddress>(operation.addr_or_group);
+                   << ADDRESS_TO_LOGGABLE_STR(std::get<RawAddress>(operation.addr_or_group));
       callbacks_->OnPresetInfoError(device->addr, operation.index,
                                     ErrorCode::OPERATION_NOT_POSSIBLE);
       return;
@@ -619,7 +622,7 @@ class HasClientImpl : public HasClient {
 
   ErrorCode CpPresetsCycleOperationWriteReq(HasDevice& device,
                                             HasCtpOp& operation) {
-    DLOG(INFO) << __func__ << " addr: " << device.addr
+    DLOG(INFO) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(device.addr)
                << " operation: " << operation;
 
     if (!device.IsConnected()) return ErrorCode::OPERATION_NOT_POSSIBLE;
@@ -666,7 +669,7 @@ class HasClientImpl : public HasClient {
 
   ErrorCode CpWritePresetNameOperationWriteReq(HasDevice& device,
                                                HasCtpOp operation) {
-    DLOG(INFO) << __func__ << " addr: " << device.addr
+    DLOG(INFO) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(device.addr)
                << " operation: " << operation;
 
     if (!device.IsConnected()) return ErrorCode::OPERATION_NOT_POSSIBLE;
@@ -834,7 +837,8 @@ class HasClientImpl : public HasClient {
                               true)) {
       auto* preset = device->GetPreset(preset_index);
       if (preset == nullptr) {
-        LOG(ERROR) << __func__ << "Invalid preset request" << address;
+        LOG(ERROR) << __func__ << "Invalid preset request"
+                   << ADDRESS_TO_LOGGABLE_STR(address);
         callbacks_->OnPresetInfoError(address, preset_index,
                                       ErrorCode::INVALID_PRESET_INDEX);
         return;
@@ -932,7 +936,7 @@ class HasClientImpl : public HasClient {
   }
 
   void OnEncrypted(HasDevice& device) {
-    DLOG(INFO) << __func__ << ": " << device.addr;
+    DLOG(INFO) << __func__ << ": " << ADDRESS_TO_LOGGABLE_STR(device.addr);
 
     if (device.isGattServiceValid()) {
       device.is_connecting_actively = false;
@@ -949,7 +953,7 @@ class HasClientImpl : public HasClient {
   }
 
   void NotifyHasDeviceValid(const HasDevice& device) {
-    DLOG(INFO) << __func__ << " addr:" << device.addr;
+    DLOG(INFO) << __func__ << " addr:" << ADDRESS_TO_LOGGABLE_STR(device.addr);
 
     std::vector<uint8_t> preset_indices;
     preset_indices.reserve(device.has_presets.size());
@@ -1512,7 +1516,8 @@ class HasClientImpl : public HasClient {
   /* Cleans up after the device disconnection */
   void DoDisconnectCleanUp(HasDevice& device,
                            bool invalidate_gatt_service = true) {
-    DLOG(INFO) << __func__ << ": device=" << device.addr;
+    DLOG(INFO) << __func__ << ": device="
+               << ADDRESS_TO_LOGGABLE_STR(device.addr);
 
     /* Deregister from optional features notifications */
     if (device.features_ccc_handle != GAP_INVALID_HANDLE) {
@@ -1555,7 +1560,8 @@ class HasClientImpl : public HasClient {
 
   /* These below are all GATT service discovery, validation, cache & storage */
   bool CacheAttributeHandles(const gatt::Service& service, HasDevice* device) {
-    DLOG(INFO) << __func__ << ": device=" << device->addr;
+    DLOG(INFO) << __func__ << ": device="
+               << ADDRESS_TO_LOGGABLE_STR(device->addr);
 
     for (const gatt::Characteristic& charac : service.characteristics) {
       if (charac.uuid == kUuidActivePresetIndex) {
@@ -1607,7 +1613,8 @@ class HasClientImpl : public HasClient {
   }
 
   bool LoadHasDetailsFromStorage(HasDevice* device) {
-    DLOG(INFO) << __func__ << ": device=" << device->addr;
+    DLOG(INFO) << __func__ << ": device="
+               << ADDRESS_TO_LOGGABLE_STR(device->addr);
 
     std::vector<uint8_t> presets_bin;
     uint8_t active_preset;
@@ -1780,13 +1787,15 @@ class HasClientImpl : public HasClient {
   }
 
   void OnGattConnected(const tBTA_GATTC_OPEN& evt) {
-    DLOG(INFO) << __func__ << ": address=" << evt.remote_bda
+    DLOG(INFO) << __func__ << ": address="
+               << ADDRESS_TO_LOGGABLE_STR(evt.remote_bda)
                << ", conn_id=" << evt.conn_id;
 
     auto device = std::find_if(devices_.begin(), devices_.end(),
                                HasDevice::MatchAddress(evt.remote_bda));
     if (device == devices_.end()) {
-      LOG(WARNING) << "Skipping unknown device, address=" << evt.remote_bda;
+      LOG(WARNING) << "Skipping unknown device, address="
+                   << ADDRESS_TO_LOGGABLE_STR(evt.remote_bda);
       BTA_GATTC_Close(evt.conn_id);
       return;
     }
@@ -1845,7 +1854,8 @@ class HasClientImpl : public HasClient {
                    << loghex(evt.conn_id);
       return;
     }
-    DLOG(INFO) << __func__ << ": device=" << device->addr
+    DLOG(INFO) << __func__ << ": device="
+               << ADDRESS_TO_LOGGABLE_STR(device->addr)
                << ": reason=" << loghex(static_cast<int>(evt.reason));
 
     /* Don't notify disconnect state for background connection that failed */
@@ -1918,17 +1928,19 @@ class HasClientImpl : public HasClient {
   }
 
   void OnLeEncryptionComplete(const RawAddress& address, bool success) {
-    DLOG(INFO) << __func__ << ": " << address;
+    DLOG(INFO) << __func__ << ": " << ADDRESS_TO_LOGGABLE_STR(address);
 
     auto device = std::find_if(devices_.begin(), devices_.end(),
                                HasDevice::MatchAddress(address));
     if (device == devices_.end()) {
-      LOG(WARNING) << "Skipping unknown device" << address;
+      LOG(WARNING) << "Skipping unknown device"
+                   << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
     if (!success) {
-      LOG(ERROR) << "Encryption failed for device " << address;
+      LOG(ERROR) << "Encryption failed for device "
+                 << ADDRESS_TO_LOGGABLE_STR(address);
 
       BTA_GATTC_Close(device->conn_id);
       return;
@@ -1946,11 +1958,12 @@ class HasClientImpl : public HasClient {
     auto device = std::find_if(devices_.begin(), devices_.end(),
                                HasDevice::MatchAddress(address));
     if (device == devices_.end()) {
-      LOG(WARNING) << "Skipping unknown device" << address;
+      LOG(WARNING) << "Skipping unknown device"
+                   << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
-    DLOG(INFO) << __func__ << ": address=" << address;
+    DLOG(INFO) << __func__ << ": address=" << ADDRESS_TO_LOGGABLE_STR(address);
 
     /* Invalidate service discovery results */
     BtaGattQueue::Clean(device->conn_id);
@@ -1961,11 +1974,13 @@ class HasClientImpl : public HasClient {
     auto device = std::find_if(devices_.begin(), devices_.end(),
                                HasDevice::MatchAddress(address));
     if (device == devices_.end()) {
-      LOG(WARNING) << "Skipping unknown device" << address;
+      LOG(WARNING) << "Skipping unknown device"
+                   << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
-    DLOG(INFO) << __func__ << ": address=" << address;
+    DLOG(INFO) << __func__ << ": address="
+               << ADDRESS_TO_LOGGABLE_STR(address);
 
     if (!device->isGattServiceValid())
       BTA_GATTC_ServiceSearchRequest(device->conn_id,

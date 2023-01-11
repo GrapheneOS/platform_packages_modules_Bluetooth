@@ -2424,6 +2424,8 @@ void btif_dm_pin_reply(const RawAddress bd_addr, uint8_t accept,
     for (i = 0; i < 6; i++) {
       passkey += (multi[i] * (pin_code.pin[i] - '0'));
     }
+    // TODO:
+    // FIXME: should we hide part of passkey here?
     BTIF_TRACE_DEBUG("btif_dm_pin_reply: passkey: %d", passkey);
     BTA_DmBlePasskeyReply(bd_addr, accept, passkey);
 
@@ -3141,7 +3143,8 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
 
       case BTA_DM_AUTH_SMP_CONN_TOUT: {
         if (btm_sec_is_a_bonded_dev(bd_addr)) {
-          LOG(INFO) << __func__ << " Bonded device addr=" << bd_addr
+          LOG(INFO) << __func__ << " Bonded device addr="
+                    << ADDRESS_TO_LOGGABLE_STR(bd_addr)
                     << " timed out - will not remove the keys";
           // Don't send state change to upper layers - otherwise Java think we
           // unbonded, and will disconnect HID profile.

@@ -116,7 +116,7 @@ class DeviceGroupsImpl : public DeviceGroups {
     LOG_ASSERT(group);
 
     if (group->Contains(addr)) {
-      LOG(ERROR) << __func__ << " device " << addr
+      LOG(ERROR) << __func__ << " device " << ADDRESS_TO_LOGGABLE_STR(addr)
                  << " already in the group: " << group_id;
       return group->GetGroupId();
     }
@@ -371,7 +371,7 @@ std::ostream& operator<<(std::ostream& out,
       << "      Uuid: " << group.group_uuid_ << std::endl;
   out << "      Devices:\n";
   for (auto const& addr : group.devices_) {
-    out << "        " << addr << std::endl;
+    out << "        " << ADDRESS_TO_LOGGABLE_STR(addr) << std::endl;
   }
   return out;
 }
