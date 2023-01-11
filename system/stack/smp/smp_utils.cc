@@ -41,6 +41,8 @@
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
 
+void btm_dev_consolidate_existing_connections(const RawAddress& bd_addr);
+
 #define SMP_PAIRING_REQ_SIZE 7
 #define SMP_CONFIRM_CMD_SIZE (OCTET16_LEN + 1)
 #define SMP_RAND_CMD_SIZE (OCTET16_LEN + 1)
@@ -998,6 +1000,10 @@ void smp_proc_pairing_cmpl(tSMP_CB* p_cb) {
     }
     log_smp_pairing_event(p_cb->pairing_bda, metric_cmd, direction,
                           metric_status);
+  }
+
+  if (p_cb->status == SMP_SUCCESS && p_cb->smp_over_br) {
+    btm_dev_consolidate_existing_connections(pairing_bda);
   }
 
   smp_reset_control_value(p_cb);
