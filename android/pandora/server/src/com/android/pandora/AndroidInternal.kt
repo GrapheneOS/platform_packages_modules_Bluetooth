@@ -20,11 +20,21 @@ import android.util.Log
 import android.content.Context
 import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
+import android.graphics.Bitmap
+import android.os.Environment
 import android.provider.Telephony.*
 import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
+import android.content.Intent
+import android.content.ComponentName
+import android.content.ContentUris
+import java.io.File
+import java.io.FileOutputStream
+import android.provider.MediaStore.Images.Media
+import android.provider.MediaStore.MediaColumns
 import android.net.Uri
+import kotlinx.coroutines.async
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -48,14 +58,29 @@ class AndroidInternal(val context: Context) : AndroidImplBase() {
   private val INCOMING_FILE_TITLE = "Incoming file"
   private val INCOMING_FILE_WAIT_TIMEOUT = 2000L
 
+  private val BT_PKG_NAME = "com.android.bluetooth"
+  private val BT_OPP_LAUNCHER_ACTIVITY = "com.android.bluetooth.opp.BluetoothOppLauncherActivity"
+  private val BT_DEVICE_SELECT_WAIT_TIMEOUT = 3000L
+  private val IMAGE_FILE_NAME = "OPP_TEST_IMAGE.bmp"
+
   private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
   private val bluetoothAdapter = bluetoothManager.adapter
   private var telephonyManager = context.getSystemService(TelephonyManager::class.java)
   private val DEFAULT_MESSAGE_LEN = 130
   private var device: UiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
 
+  init {
+    createImageFile()
+  }
+
   fun deinit() {
     scope.cancel()
+
+    val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), IMAGE_FILE_NAME)
+
+    if (file.exists()) {
+      file.delete()
+    }
   }
 
   override fun log(request: LogRequest, responseObserver: StreamObserver<LogResponse>) {
@@ -95,6 +120,75 @@ class AndroidInternal(val context: Context) : AndroidImplBase() {
       device.wait(Until.findObject(By.text(INCOMING_FILE_TITLE)), INCOMING_FILE_WAIT_TIMEOUT).click()
       device.wait(Until.findObject(By.text(INCOMING_FILE_ACCEPT_BTN)), INCOMING_FILE_WAIT_TIMEOUT).click()
       Empty.getDefaultInstance()
+    }
+  }
+
+  override fun sendFile(request: Empty, responseObserver: StreamObserver<Empty>) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      initiateSendFile(getImageId(IMAGE_FILE_NAME), "image/bmp")
+      waitAndSelectBluetoothDevice()
+      Empty.getDefaultInstance()
+    }
+  }
+
+  suspend private fun waitAndSelectBluetoothDevice() {
+    var selectJob = scope.async {
+      device.wait(Until.findObject(By.textContains("Cuttlefish")), BT_DEVICE_SELECT_WAIT_TIMEOUT).click()
+    }
+    selectJob.await()
+  }
+
+  private fun initiateSendFile(imageId: Long, type: String) {
+    val contentUri = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, imageId)
+
+    try {
+      var sendingIntent = Intent(Intent.ACTION_SEND)
+      sendingIntent.setType(type)
+      sendingIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+      sendingIntent.setComponent(ComponentName(BT_PKG_NAME, BT_OPP_LAUNCHER_ACTIVITY))
+      sendingIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+      context.startActivity(sendingIntent)
+    } catch(e: Exception) {
+    }
+  }
+
+  private fun getImageId(fileName: String): Long {
+    val selection = MediaColumns.DISPLAY_NAME + "=?"
+    val selectionArgs = arrayOf(fileName)
+    val cursor = context.getContentResolver().query(Media.EXTERNAL_CONTENT_URI, null, selection, selectionArgs, null)
+
+    cursor?.use {
+      it.let {
+        it.moveToFirst()
+        return it.getLong(it.getColumnIndexOrThrow(Media._ID))
+      }
+    }
+    return 0L
+  }
+
+  private fun createImageFile() {
+    val bitmapImage = Bitmap.createBitmap(30, 20, Bitmap.Config.ARGB_8888)
+    val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), IMAGE_FILE_NAME)
+    var fileOutputStream: FileOutputStream? = null
+
+    if (file.exists()) {
+      file.delete()
+    }
+    file.createNewFile()
+    try {
+      fileOutputStream = FileOutputStream(file)
+      bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+      fileOutputStream.flush()
+    } catch (e: Exception) {
+      e.printStackTrace()
+    } finally {
+      try {
+        if (fileOutputStream != null) {
+          fileOutputStream.close()
+        }
+      } catch (e: Exception) {
+         e.printStackTrace()
+      }
     }
   }
 }
