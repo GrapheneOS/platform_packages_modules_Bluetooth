@@ -565,6 +565,11 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("SetRawAdvertisingData")]
+    fn set_raw_adv_data(&mut self, advertiser_id: i32, data: Vec<u8>) {
+        dbus_generated!()
+    }
+
     #[dbus_method("SetScanResponseData")]
     fn set_scan_response_data(&mut self, advertiser_id: i32, data: AdvertiseData) {
         dbus_generated!()
