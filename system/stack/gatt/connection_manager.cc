@@ -121,12 +121,11 @@ std::set<tAPP_ID> get_apps_connecting_to(const RawAddress& address) {
 
 bool IsTargetedAnnouncement(const uint8_t* p_eir, uint16_t eir_len) {
   const uint8_t* p_service_data = p_eir;
-  uint16_t remaining_data_len = eir_len;
   uint8_t service_data_len = 0;
 
   while ((p_service_data = AdvertiseDataParser::GetFieldByType(
               p_service_data + service_data_len,
-              (remaining_data_len -= service_data_len),
+              eir_len - (p_service_data - p_eir) - service_data_len,
               BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE, &service_data_len))) {
     uint16_t uuid;
     uint8_t announcement_type;
@@ -174,8 +173,6 @@ static void target_announcement_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
   LOG_INFO("Found targeted announcement for device %s",
            addr.ToString().c_str());
 
-  BTM_LogHistory(kBtmLogTag, addr, "Found TA from");
-
   if (it->second.is_in_accept_list) {
     LOG_INFO("Device %s is already connecting", addr.ToString().c_str());
     return;
@@ -185,6 +182,8 @@ static void target_announcement_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
     LOG_DEBUG("Device %s already connected", addr.ToString().c_str());
     return;
   }
+
+  BTM_LogHistory(kBtmLogTag, addr, "Found TA from");
 
   /* Take fist app_id and use it for direct_connect */
   auto app_id = *(it->second.doing_targeted_announcements_conn.begin());

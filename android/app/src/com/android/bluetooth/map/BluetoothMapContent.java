@@ -223,7 +223,8 @@ public class BluetoothMapContent {
     };
 
     /* CONVO LISTING projections and column indexes */
-    private static final String[] MMS_SMS_THREAD_PROJECTION = {
+    @VisibleForTesting
+    static final String[] MMS_SMS_THREAD_PROJECTION = {
             Threads._ID,
             Threads.DATE,
             Threads.SNIPPET,
@@ -2794,7 +2795,8 @@ public class BluetoothMapContent {
                 }
                 // TODO: Optimize: Reduce projection based on convo parameter mask
                 smsMmsCursor =
-                        mResolver.query(uri, MMS_SMS_THREAD_PROJECTION, selection.toString(), args,
+                        BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri,
+                                MMS_SMS_THREAD_PROJECTION, selection.toString(), null,
                                 sortOrder.toString());
                 if (smsMmsCursor != null) {
                     // store column index so we don't have to look them up anymore (optimization)
@@ -2855,13 +2857,12 @@ public class BluetoothMapContent {
                     Log.v(TAG, "URI with parameters: " + contentUri.toString());
                 }
                 // TODO: Optimize: Reduce projection based on convo parameter mask
-                imEmailCursor =
-                        mResolver.query(contentUri, BluetoothMapContract.BT_CONVERSATION_PROJECTION,
-                                null, null,
-                                BluetoothMapContract.ConversationColumns.LAST_THREAD_ACTIVITY
-                                        + " DESC, "
-                                        + BluetoothMapContract.ConversationColumns.THREAD_ID
-                                        + " ASC");
+                imEmailCursor = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        contentUri, BluetoothMapContract.BT_CONVERSATION_PROJECTION, null, null,
+                        BluetoothMapContract.ConversationColumns.LAST_THREAD_ACTIVITY
+                                + " DESC, "
+                                + BluetoothMapContract.ConversationColumns.THREAD_ID
+                                + " ASC");
                 if (imEmailCursor != null) {
                     BluetoothMapConvoListingElement e = null;
                     // store column index so we don't have to look them up anymore (optimization)

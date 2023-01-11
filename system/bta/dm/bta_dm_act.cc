@@ -2545,9 +2545,6 @@ static void bta_dm_acl_down(const RawAddress& bd_addr,
       memset(&bta_dm_cb.device_list.peer_device[clear_index], 0,
              sizeof(bta_dm_cb.device_list.peer_device[clear_index]));
     }
-
-    device->conn_state = BTA_DM_NOT_CONNECTED;
-
     break;
   }
   if (bta_dm_cb.device_list.count) bta_dm_cb.device_list.count--;

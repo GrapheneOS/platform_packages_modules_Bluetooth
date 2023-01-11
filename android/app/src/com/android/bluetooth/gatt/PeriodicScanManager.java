@@ -28,6 +28,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @hide
  */
-class PeriodicScanManager {
+@VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
+public class PeriodicScanManager {
     private static final boolean DBG = GattServiceConfig.DBG;
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "SyncManager";
 
