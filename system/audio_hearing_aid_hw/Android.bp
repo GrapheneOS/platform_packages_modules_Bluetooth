@@ -54,4 +54,5 @@ cc_test {
         "audio.hearing_aid.default",
         "libosi",
     ],
+    min_sdk_version: "29",
 }

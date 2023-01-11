@@ -192,4 +192,5 @@ cc_test {
     generated_headers: [
         "BluetoothFlatbufferTestData_h",
     ],
+    min_sdk_version: "30",
 }
