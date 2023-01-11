@@ -295,7 +295,7 @@ void btif_storage_add_hearing_aid(const HearingDevice& dev_info) {
           [](const HearingDevice& dev_info) {
             std::string bdstr = dev_info.address.ToString();
             VLOG(2) << "saving hearing aid device: "
-                    << ADDRESS_TO_LOGGABLE_CSTR(dev_info.address);
+                    << ADDRESS_TO_LOGGABLE_STR(dev_info.address);
             btif_config_set_int(bdstr, HEARING_AID_SERVICE_CHANGED_CCC_HANDLE,
                                 dev_info.service_changed_ccc_handle);
             btif_config_set_int(bdstr, HEARING_AID_READ_PSM_HANDLE,

@@ -274,7 +274,7 @@ static bool IsSlcConnected(RawAddress* bd_addr) {
   int idx = btif_hf_idx_by_bdaddr(bd_addr);
   if (idx < 0 || idx > BTA_AG_MAX_NUM_CLIENTS) {
     LOG(WARNING) << __func__ << ": invalid index " << idx << " for "
-                 << *bd_addr;
+                 << ADDRESS_TO_LOGGABLE_STR(*bd_addr);
     return false;
   }
   return btif_hf_cb[idx].state == BTHF_CONNECTION_STATE_SLC_CONNECTED;
@@ -337,7 +337,7 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
                          << "] is not expected, possible connection collision, "
                             "ignoring AG open "
                             "failure event for the same device "
-                         << p_data->open.bd_addr;
+                         << ADDRESS_TO_LOGGABLE_STR(p_data->open.bd_addr);
           } else {
             LOG(WARNING) << __func__ << ": btif_hf_cb state["
                          << p_data->open.status
@@ -345,7 +345,8 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
                             "ignoring AG open failure "
                             "event for the different devices btif_hf_cb bda: "
                          << btif_hf_cb[idx].connected_bda
-                         << ", p_data bda: " << p_data->open.bd_addr
+                         << ", p_data bda: "
+                         << ADDRESS_TO_LOGGABLE_STR(p_data->open.bd_addr)
                          << ", report disconnect state for p_data bda.";
             bt_hf_callbacks->ConnectionStateCallback(
                 BTHF_CONNECTION_STATE_DISCONNECTED, &(p_data->open.bd_addr));
@@ -370,8 +371,9 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
                        << ": possible connection collision, ignore the "
                           "outgoing connection for the "
                           "different devices btif_hf_cb bda: "
-                       << btif_hf_cb[idx].connected_bda
-                       << ", p_data bda: " << p_data->open.bd_addr
+                       << ADDRESS_TO_LOGGABLE_STR(btif_hf_cb[idx].connected_bda)
+                       << ", p_data bda: "
+                       << ADDRESS_TO_LOGGABLE_STR(p_data->open.bd_addr)
                        << ", report disconnect state for btif_hf_cb bda.";
           bt_hf_callbacks->ConnectionStateCallback(
               BTHF_CONNECTION_STATE_DISCONNECTED,
@@ -400,11 +402,13 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
           // Ignore remote initiated open failures
           LOG(WARNING) << __func__ << ": Unexpected AG open failure "
                        << std::to_string(p_data->open.status) << " for "
-                       << p_data->open.bd_addr << " is ignored";
+                       << ADDRESS_TO_LOGGABLE_STR(p_data->open.bd_addr)
+                       << " is ignored";
           break;
         }
         LOG(ERROR) << __func__ << ": self initiated AG open failed for "
-                   << btif_hf_cb[idx].connected_bda << ", status "
+                   << ADDRESS_TO_LOGGABLE_STR(btif_hf_cb[idx].connected_bda)
+                   << ", status "
                    << std::to_string(p_data->open.status);
         RawAddress connected_bda = btif_hf_cb[idx].connected_bda;
         reset_control_block(&btif_hf_cb[idx]);
@@ -686,7 +690,8 @@ static bt_status_t connect_int(RawAddress* bd_addr, uint16_t uuid) {
     // control block should be in connecting state
     // Crash here to prevent future code changes from breaking this mechanism
     if (btif_hf_cb[i].state == BTHF_CONNECTION_STATE_CONNECTING) {
-      LOG(FATAL) << __func__ << ": " << btif_hf_cb[i].connected_bda
+      LOG(FATAL) << __func__ << ": "
+                 << ADDRESS_TO_LOGGABLE_STR(btif_hf_cb[i].connected_bda)
                  << ", handle " << btif_hf_cb[i].handle
                  << ", is still in connecting state " << btif_hf_cb[i].state;
     }
@@ -845,7 +850,8 @@ bt_status_t HeadsetInterface::ConnectAudio(RawAddress* bd_addr,
   }
   /* Check if SLC is connected */
   if (!IsSlcConnected(bd_addr)) {
-    LOG(ERROR) << ": SLC not connected for " << *bd_addr;
+    LOG(ERROR) << ": SLC not connected for "
+    << ADDRESS_TO_LOGGABLE_STR(*bd_addr);
     return BT_STATUS_NOT_READY;
   }
   do_in_jni_thread(base::Bind(&Callbacks::AudioStateCallback,
@@ -1159,7 +1165,8 @@ bt_status_t HeadsetInterface::PhoneStateChange(
   }
   const btif_hf_cb_t& control_block = btif_hf_cb[idx];
   if (!IsSlcConnected(bd_addr)) {
-    LOG(WARNING) << ": SLC not connected for " << *bd_addr;
+    LOG(WARNING) << ": SLC not connected for "
+                 << ADDRESS_TO_LOGGABLE_STR(*bd_addr);
     return BT_STATUS_NOT_READY;
   }
   if (call_setup_state == BTHF_CALL_STATE_DISCONNECTED) {
@@ -1167,7 +1174,9 @@ bt_status_t HeadsetInterface::PhoneStateChange(
     // Since DISCONNECTED state must lead to IDLE state, ignoring it here.s
     LOG(INFO) << __func__
               << ": Ignore call state change to DISCONNECTED, idx=" << idx
-              << ", addr=" << *bd_addr << ", num_active=" << num_active
+              << ", addr="
+              << ADDRESS_TO_LOGGABLE_STR(*bd_addr)
+              << ", num_active=" << num_active
               << ", num_held=" << num_held;
     return BT_STATUS_SUCCESS;
   }

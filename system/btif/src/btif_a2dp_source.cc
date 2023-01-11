@@ -381,7 +381,8 @@ static void btif_a2dp_source_startup_delayed() {
 
 bool btif_a2dp_source_start_session(const RawAddress& peer_address,
                                     std::promise<void> peer_ready_promise) {
-  LOG(INFO) << __func__ << ": peer_address=" << peer_address
+  LOG(INFO) << __func__ << ": peer_address="
+            << ADDRESS_TO_LOGGABLE_STR(peer_address)
             << " state=" << btif_a2dp_source_cb.StateStr();
   btif_a2dp_source_setup_codec(peer_address);
   if (btif_a2dp_source_thread.DoInThread(
@@ -391,7 +392,8 @@ bool btif_a2dp_source_start_session(const RawAddress& peer_address,
     return true;
   } else {
     // cannot set promise but triggers crash
-    LOG(FATAL) << __func__ << ": peer_address=" << peer_address
+    LOG(FATAL) << __func__ << ": peer_address="
+               << ADDRESS_TO_LOGGABLE_STR(peer_address)
                << " state=" << btif_a2dp_source_cb.StateStr()
                << " fails to context switch";
     return false;
@@ -400,7 +402,8 @@ bool btif_a2dp_source_start_session(const RawAddress& peer_address,
 
 static void btif_a2dp_source_start_session_delayed(
     const RawAddress& peer_address, std::promise<void> peer_ready_promise) {
-  LOG(INFO) << __func__ << ": peer_address=" << peer_address
+  LOG(INFO) << __func__ << ": peer_address="
+            << ADDRESS_TO_LOGGABLE_STR(peer_address)
             << " state=" << btif_a2dp_source_cb.StateStr();
   if (btif_a2dp_source_cb.State() != BtifA2dpSource::kStateRunning) {
     LOG(ERROR) << __func__ << ": A2DP Source media task is not running";
@@ -422,8 +425,9 @@ static void btif_a2dp_source_start_session_delayed(
 bool btif_a2dp_source_restart_session(const RawAddress& old_peer_address,
                                       const RawAddress& new_peer_address,
                                       std::promise<void> peer_ready_promise) {
-  LOG(INFO) << __func__ << ": old_peer_address=" << old_peer_address
-            << " new_peer_address=" << new_peer_address
+  LOG(INFO) << __func__ << ": old_peer_address="
+            << ADDRESS_TO_LOGGABLE_STR(old_peer_address)
+            << " new_peer_address=" << ADDRESS_TO_LOGGABLE_STR(new_peer_address)
             << " state=" << btif_a2dp_source_cb.StateStr();
 
   CHECK(!new_peer_address.IsEmpty());
@@ -631,7 +635,8 @@ void btif_a2dp_source_encoder_user_config_update_req(
     const RawAddress& peer_address,
     const std::vector<btav_a2dp_codec_config_t>& codec_user_preferences,
     std::promise<void> peer_ready_promise) {
-  LOG(INFO) << __func__ << ": peer_address=" << peer_address
+  LOG(INFO) << __func__ << ": peer_address="
+            << ADDRESS_TO_LOGGABLE_STR(peer_address)
             << " state=" << btif_a2dp_source_cb.StateStr() << " "
             << codec_user_preferences.size() << " codec_preference(s)";
   if (!btif_a2dp_source_thread.DoInThread(
@@ -640,7 +645,8 @@ void btif_a2dp_source_encoder_user_config_update_req(
                          peer_address, codec_user_preferences,
                          std::move(peer_ready_promise)))) {
     // cannot set promise but triggers crash
-    LOG(FATAL) << __func__ << ": peer_address=" << peer_address
+    LOG(FATAL) << __func__ << ": peer_address="
+               << ADDRESS_TO_LOGGABLE_STR(peer_address)
                << " state=" << btif_a2dp_source_cb.StateStr()
                << " fails to context switch";
   }
@@ -656,7 +662,8 @@ static void btif_a2dp_source_encoder_user_config_update_event(
     success = bta_av_co_set_codec_user_config(peer_address, codec_user_config,
                                               &restart_output);
     if (success) {
-      LOG(INFO) << __func__ << ": peer_address=" << peer_address
+      LOG(INFO) << __func__ << ": peer_address="
+                << ADDRESS_TO_LOGGABLE_STR(peer_address)
                 << " state=" << btif_a2dp_source_cb.StateStr()
                 << " codec_preference={" << codec_user_config.ToString()
                 << "} restart_output=" << (restart_output ? "true" : "false");

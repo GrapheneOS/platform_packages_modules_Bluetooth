@@ -95,7 +95,7 @@ class VolumeControlImpl : public VolumeControl {
   }
 
   void Connect(const RawAddress& address) override {
-    LOG(INFO) << __func__ << " " << address;
+    LOG(INFO) << __func__ << " " << ADDRESS_TO_LOGGABLE_STR(address);
 
     auto device = volume_control_devices_.FindByAddress(address);
     if (!device) {
@@ -108,7 +108,7 @@ class VolumeControlImpl : public VolumeControl {
   }
 
   void AddFromStorage(const RawAddress& address, bool auto_connect) {
-    LOG(INFO) << __func__ << " " << address
+    LOG(INFO) << __func__ << " " << ADDRESS_TO_LOGGABLE_STR(address)
               << ", auto_connect=" << auto_connect;
 
     if (auto_connect) {
@@ -122,13 +122,14 @@ class VolumeControlImpl : public VolumeControl {
   void OnGattConnected(tGATT_STATUS status, uint16_t connection_id,
                        tGATT_IF /*client_if*/, RawAddress address,
                        tBT_TRANSPORT /*transport*/, uint16_t /*mtu*/) {
-    LOG(INFO) << __func__ << ": address=" << address
+    LOG(INFO) << __func__ << ": address=" << ADDRESS_TO_LOGGABLE_STR(address)
               << ", connection_id=" << connection_id;
 
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(ERROR) << __func__ << "Skipping unknown device, address=" << address;
+      LOG(ERROR) << __func__ << "Skipping unknown device, address="
+                 << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
@@ -152,7 +153,8 @@ class VolumeControlImpl : public VolumeControl {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(ERROR) << __func__ << "Skipping unknown device " << address;
+      LOG(ERROR) << __func__ << "Skipping unknown device "
+                 << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
@@ -169,7 +171,8 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    LOG(INFO) << __func__ << " " << address << " status: " << +success;
+    LOG(INFO) << __func__ << " " << ADDRESS_TO_LOGGABLE_STR(address)
+              << " status: " << +success;
 
     if (device->HasHandles()) {
       device->EnqueueInitialRequests(gatt_if_, chrc_read_callback_static,
@@ -186,10 +189,12 @@ class VolumeControlImpl : public VolumeControl {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(ERROR) << __func__ << "Skipping unknown device " << address;
+      LOG(ERROR) << __func__ << "Skipping unknown device "
+                 << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
-    LOG(INFO) << __func__ << ": address=" << address;
+    LOG(INFO) << __func__ << ": address="
+              << ADDRESS_TO_LOGGABLE_STR(address);
     device->first_connection = true;
     device->service_changed_rcvd = true;
     BtaGattQueue::Clean(device->connection_id);
@@ -199,7 +204,8 @@ class VolumeControlImpl : public VolumeControl {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(ERROR) << __func__ << "Skipping unknown device " << address;
+      LOG(ERROR) << __func__ << "Skipping unknown device "
+                 << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
@@ -302,7 +308,7 @@ class VolumeControlImpl : public VolumeControl {
 
   void HandleAutonomusVolumeChange(VolumeControlDevice* device,
                                    bool is_volume_change, bool is_mute_change) {
-    DLOG(INFO) << __func__ << device->address
+    DLOG(INFO) << __func__ << ADDRESS_TO_LOGGABLE_STR(device->address)
                << " is volume change: " << is_volume_change
                << " is mute change: " << is_mute_change;
 
@@ -323,7 +329,8 @@ class VolumeControlImpl : public VolumeControl {
     auto group_id =
         csis_api->GetGroupId(device->address, le_audio::uuid::kCapServiceUuid);
     if (group_id == bluetooth::groups::kGroupUnknown) {
-      DLOG(INFO) << __func__ << " No group for device " << device->address;
+      DLOG(INFO) << __func__ << " No group for device "
+                 << ADDRESS_TO_LOGGABLE_STR(device->address);
       callbacks_->OnVolumeStateChanged(device->address, device->volume,
                                        device->mute, true);
       return;
@@ -409,7 +416,8 @@ class VolumeControlImpl : public VolumeControl {
                       });
     if (op == ongoing_operations_.end()) {
       DLOG(INFO) << __func__ << " Could not find operation id for device: "
-                 << device->address << ". Autonomus change";
+                 << ADDRESS_TO_LOGGABLE_STR(device->address)
+                 << ". Autonomus change";
       HandleAutonomusVolumeChange(device, is_volume_change, is_mute_change);
       return;
     }
@@ -577,11 +585,13 @@ class VolumeControlImpl : public VolumeControl {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(INFO) << "Device not connected to profile " << address;
+      LOG(INFO) << "Device not connected to profile "
+                << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
-    LOG(INFO) << __func__ << " GAP_EVT_CONN_CLOSED: " << device->address;
+    LOG(INFO) << __func__ << " GAP_EVT_CONN_CLOSED: "
+              << ADDRESS_TO_LOGGABLE_STR(device->address);
     device_cleanup_helper(device, true);
   }
 

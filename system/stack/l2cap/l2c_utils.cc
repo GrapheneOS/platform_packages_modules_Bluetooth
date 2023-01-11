@@ -128,7 +128,7 @@ void l2cu_update_lcb_4_bonding(const RawAddress& p_bd_addr, bool is_bonding) {
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(p_bd_addr, BT_TRANSPORT_BR_EDR);
 
   if (p_lcb) {
-    VLOG(1) << __func__ << " BDA: " << p_bd_addr
+    VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(p_bd_addr)
             << " is_bonding: " << is_bonding;
     if (is_bonding) {
       p_lcb->SetBonding();

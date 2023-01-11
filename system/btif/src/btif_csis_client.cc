@@ -56,19 +56,19 @@ class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
   }
 
   void Connect(const RawAddress& addr) override {
-    DVLOG(2) << __func__ << " addr: " << addr;
+    DVLOG(2) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(addr);
     do_in_main_thread(FROM_HERE, Bind(&CsisClient::Connect,
                                       Unretained(CsisClient::Get()), addr));
   }
 
   void Disconnect(const RawAddress& addr) override {
-    DVLOG(2) << __func__ << " addr: " << addr;
+    DVLOG(2) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(addr);
     do_in_main_thread(FROM_HERE, Bind(&CsisClient::Disconnect,
                                       Unretained(CsisClient::Get()), addr));
   }
 
   void RemoveDevice(const RawAddress& addr) override {
-    DVLOG(2) << __func__ << " addr: " << addr;
+    DVLOG(2) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(addr);
     do_in_main_thread(FROM_HERE, Bind(&CsisClient::RemoveDevice,
                                       Unretained(CsisClient::Get()), addr));
   }
@@ -88,14 +88,15 @@ class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
 
   void OnConnectionState(const RawAddress& addr,
                          ConnectionState state) override {
-    DVLOG(2) << __func__ << " addr: " << addr;
+    DVLOG(2) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(addr);
     do_in_jni_thread(FROM_HERE, Bind(&CsisClientCallbacks::OnConnectionState,
                                      Unretained(callbacks_), addr, state));
   }
 
   void OnDeviceAvailable(const RawAddress& addr, int group_id, int group_size,
                          int rank, const bluetooth::Uuid& uuid) override {
-    DVLOG(2) << __func__ << " addr: " << addr << " group_id: " << group_id;
+    DVLOG(2) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(addr)
+             << " group_id: " << group_id;
 
     do_in_jni_thread(FROM_HERE, Bind(&CsisClientCallbacks::OnDeviceAvailable,
                                      Unretained(callbacks_), addr, group_id,
@@ -103,7 +104,8 @@ class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
   }
 
   void OnSetMemberAvailable(const RawAddress& addr, int group_id) override {
-    DVLOG(2) << __func__ << " addr: " << addr << " group id: " << group_id;
+    DVLOG(2) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(addr)
+             << " group id: " << group_id;
 
     do_in_jni_thread(FROM_HERE, Bind(&CsisClientCallbacks::OnSetMemberAvailable,
                                      Unretained(callbacks_), addr, group_id));
