@@ -27,7 +27,7 @@
 void btm_ble_process_adv_pkt(uint8_t len, const uint8_t* p);
 void btm_ble_process_ext_adv_pkt(uint8_t len, const uint8_t* p);
 void btm_ble_process_phy_update_pkt(uint8_t len, uint8_t* p);
-void btm_ble_read_remote_features_complete(uint8_t* p);
+void btm_ble_read_remote_features_complete(uint8_t* p, uint8_t length);
 void btm_le_on_advertising_set_terminated(uint8_t* p, uint16_t length);
 extern void btm_ble_write_adv_enable_complete(uint8_t* p, uint16_t evt_len);
 extern void btm_ble_create_ll_conn_complete(tHCI_STATUS status);
