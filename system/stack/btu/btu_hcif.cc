@@ -1213,7 +1213,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_CREATE_CONNECTION_CANCEL:
-      btm_create_conn_cancel_complete(p);
+      btm_create_conn_cancel_complete(p, evt_len);
       break;
 
     case HCI_READ_LOCAL_OOB_DATA:
