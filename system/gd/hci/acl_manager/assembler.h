@@ -125,7 +125,8 @@ struct assembler {
       }
     }
     if (incoming_queue_.size() > kMaxQueuedPacketsPerConnection) {
-      LOG_ERROR("Dropping packet from %s due to congestion", address_with_type_.ToString().c_str());
+      LOG_ERROR("Dropping packet from %s due to congestion",
+                 ADDRESS_TO_LOGGABLE_CSTR(address_with_type_));
       return;
     }
 

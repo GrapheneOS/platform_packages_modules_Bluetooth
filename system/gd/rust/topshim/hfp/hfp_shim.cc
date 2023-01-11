@@ -60,12 +60,12 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
 
   // headset::Callbacks
   void ConnectionStateCallback(headset::bthf_connection_state_t state, RawAddress* bd_addr) override {
-    LOG_INFO("ConnectionStateCallback from %s", bd_addr->ToString().c_str());
+    LOG_INFO("ConnectionStateCallback from %s", ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     topshim::rust::internal::connection_state_cb(state, bd_addr);
   }
 
   void AudioStateCallback(headset::bthf_audio_state_t state, RawAddress* bd_addr) override {
-    LOG_INFO("AudioStateCallback %u from %s", state, bd_addr->ToString().c_str());
+    LOG_INFO("AudioStateCallback %u from %s", state, ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     topshim::rust::internal::audio_state_cb(state, bd_addr);
 
     switch (state) {
@@ -90,7 +90,7 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   void VolumeControlCallback(headset::bthf_volume_type_t type, int volume, RawAddress* bd_addr) override {
     if (type != headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_SPK || volume < 0) return;
     if (volume > 15) volume = 15;
-    LOG_INFO("VolumeControlCallback %d from %s", volume, bd_addr->ToString().c_str());
+    LOG_INFO("VolumeControlCallback %d from %s", volume, ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     topshim::rust::internal::volume_update_cb(volume, bd_addr);
   }
 
@@ -102,7 +102,7 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
       [[maybe_unused]] headset::bthf_nrec_t nrec, [[maybe_unused]] RawAddress* bd_addr) override {}
 
   void WbsCallback(headset::bthf_wbs_config_t wbs, RawAddress* addr) override {
-    LOG_INFO("WbsCallback %d from %s", wbs, addr->ToString().c_str());
+    LOG_INFO("WbsCallback %d from %s", wbs, ADDRESS_TO_LOGGABLE_CSTR(*addr));
     rusty::hfp_caps_update_callback(wbs == headset::BTHF_WBS_YES, *addr);
   }
 
@@ -113,7 +113,8 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   void AtCindCallback(RawAddress* bd_addr) override {
     // This is required to setup the SLC, the format of the response should be
     // +CIND: <call>,<callsetup>,<service>,<signal>,<roam>,<battery>,<callheld>
-    LOG_WARN("Respond +CIND: 0,0,1,5,0,5,0 to AT+CIND? from %s", bd_addr->ToString().c_str());
+    LOG_WARN("Respond +CIND: 0,0,1,5,0,5,0 to AT+CIND? from %s",
+             ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
 
     // headset::Interface::CindResponse's parameters are similar but different
     // from the actual CIND response. It will construct the final response for
@@ -125,7 +126,8 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   }
 
   void AtCopsCallback(RawAddress* bd_addr) override {
-    LOG_WARN("Respond +COPS: 0 to AT+COPS? from %s", bd_addr->ToString().c_str());
+    LOG_WARN("Respond +COPS: 0 to AT+COPS? from %s",
+             ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     headset_->CopsResponse("", bd_addr);
   }
 
@@ -156,7 +158,9 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
 
   void AtBindCallback(char* at_string, RawAddress* bd_addr) override {
     LOG_WARN(
-        "AT+BIND %s from addr %s: Bluetooth HF Indicators is not supported.", at_string, bd_addr->ToString().c_str());
+        "AT+BIND %s from addr %s: Bluetooth HF Indicators is not supported.",
+        at_string,
+        ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
   }
 
   void AtBievCallback(headset::bthf_hf_ind_type_t ind_id, int ind_value, RawAddress* bd_addr) override {
@@ -174,13 +178,14 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
             "AT+BIEV indicator %i with value %i from addr %s",
             ind_id,
             ind_value,
-            bd_addr->ToString().c_str());
+            ADDRESS_TO_LOGGABLE_CSTR(*bd_addr) );
         return;
     }
   }
 
   void AtBiaCallback(bool service, bool roam, bool signal, bool battery, RawAddress* bd_addr) override {
-    LOG_WARN("AT+BIA=,,%d,%d,%d,%d,from addr %s", service, signal, roam, battery, bd_addr->ToString().c_str());
+    LOG_WARN("AT+BIA=,,%d,%d,%d,%d,from addr %s", service, signal, roam,
+             battery, ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
   }
 
  private:
