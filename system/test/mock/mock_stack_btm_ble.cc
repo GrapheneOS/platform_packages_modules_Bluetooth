@@ -226,7 +226,7 @@ void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
                                const Octet16& stk) {
   mock_function_count_map[__func__]++;
 }
-void btm_ble_rand_enc_complete(uint8_t* p, uint16_t op_code,
+void btm_ble_rand_enc_complete(uint8_t* p, uint16_t evt_len, uint16_t op_code,
                                tBTM_RAND_ENC_CB* p_enc_cplt_cback) {
   mock_function_count_map[__func__]++;
 }
