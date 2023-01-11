@@ -762,6 +762,15 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
     fn on_server_registered(&self, status: GattStatus, server_id: i32) {
         print_info!("GATT Server registered status = {}, server_id = {}", status, server_id);
     }
+
+    fn on_server_connection_state(&self, _server_id: i32, _connected: bool, _addr: String) {
+        print_info!(
+            "GATT server connection with server_id = {}, connected = {}, addr = {}",
+            _server_id,
+            _connected,
+            _addr
+        );
+    }
 }
 
 impl RPCProxy for BtGattServerCallback {
