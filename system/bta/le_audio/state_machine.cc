@@ -133,7 +133,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   bool AttachToStream(LeAudioDeviceGroup* group,
                       LeAudioDevice* leAudioDevice) override {
     LOG(INFO) << __func__ << " group id: " << group->group_id_
-              << " device: " << leAudioDevice->address_;
+              << " device: " << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_);
 
     /* This function is used to attach the device to the stream.
      * Limitation here is that device should be previously in the streaming
@@ -619,7 +619,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     if (!group) {
       LOG(ERROR) << __func__
-                 << " group is null for device: " << leAudioDevice->address_
+                 << " group is null for device: "
+                 << ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_)
                  << " group_id: " << leAudioDevice->group_id_;
       return;
     }
@@ -1507,7 +1508,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ASSERT_LOG(ase, "shouldn't be called without an active ASE");
     for (; ase != nullptr; ase = leAudioDevice->GetNextActiveAse(ase)) {
       LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
-                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id,
                 ase->cis_id, ToString(ase->state).c_str());
       conf.ase_id = ase->id;
       conf.target_latency = ase->target_latency;
@@ -1914,7 +1915,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     LOG_ASSERT(ase) << __func__ << " shouldn't be called without an active ASE";
     do {
       LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
-                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id,
                 ase->cis_id, ToString(ase->state).c_str());
       conf.ase_id = ase->id;
       conf.metadata = ase->metadata;
@@ -1935,7 +1936,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     std::vector<uint8_t> ids;
     do {
       LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
-                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id,
                 ase->cis_id, ToString(ase->state).c_str());
       ids.push_back(ase->id);
     } while ((ase = leAudioDevice->GetNextActiveAse(ase)));
@@ -1955,7 +1956,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     std::vector<uint8_t> ids;
     do {
       LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
-                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id,
                 ase->cis_id, ToString(ase->state).c_str());
       ids.push_back(ase->id);
     } while ((ase = leAudioDevice->GetNextActiveAse(ase)));
@@ -1975,7 +1976,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
          ase = leAudioDevice->GetNextActiveAse(ase)) {
       LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
-                leAudioDevice->address_.ToString().c_str(), ase->id,
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id,
                 ase->cis_id, ToString(ase->state).c_str());
 
       /* TODO: Configure first ASE qos according to context type */
@@ -2034,7 +2035,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
            ase = leAudioDevice->GetNextActiveAse(ase)) {
         LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
-                  leAudioDevice->address_.ToString().c_str(), ase->id,
+                  ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id,
                   ase->cis_id, ToString(ase->state).c_str());
 
         /* Filter multidirectional audio context for each ase direction */

@@ -379,7 +379,7 @@ bool accept_client_operation(const RawAddress& peer_bda, uint16_t uuid,
     p_clcb = clcb_alloc(peer_bda);
   }
 
-  DVLOG(1) << __func__ << ": BDA: " << peer_bda
+  DVLOG(1) << __func__ << ": BDA: " << ADDRESS_TO_LOGGABLE_STR(peer_bda)
            << StringPrintf(" cl_op_uuid: 0x%04x", uuid);
 
   if (GATT_GetConnIdIfConnected(gatt_if, peer_bda, &p_clcb->conn_id,
@@ -564,7 +564,7 @@ bool GAP_BleReadPeerDevName(const RawAddress& peer_bda,
 bool GAP_BleCancelReadPeerDevName(const RawAddress& peer_bda) {
   tGAP_CLCB* p_clcb = find_clcb_by_bd_addr(peer_bda);
 
-  DVLOG(1) << __func__ << ": BDA: " << peer_bda
+  DVLOG(1) << __func__ << ": BDA: " << ADDRESS_TO_LOGGABLE_STR(peer_bda)
            << StringPrintf(" cl_op_uuid: 0x%04x",
                            (p_clcb == NULL) ? 0 : p_clcb->cl_op_uuid);
 

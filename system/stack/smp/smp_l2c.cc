@@ -243,8 +243,9 @@ static void smp_br_connect_callback(uint16_t channel, const RawAddress& bd_addr,
     return;
   }
 
-  VLOG(1) << __func__ << " for pairing BDA: " << bd_addr
-          << ", pairing_bda:" << p_cb->pairing_bda
+  VLOG(1) << __func__ << " for pairing BDA: "
+          << ADDRESS_TO_LOGGABLE_STR(bd_addr)
+          << ", pairing_bda:" << ADDRESS_TO_LOGGABLE_STR(p_cb->pairing_bda)
           << " Event: " << ((connected) ? "connected" : "disconnected");
 
   if (bd_addr != p_cb->pairing_bda) return;

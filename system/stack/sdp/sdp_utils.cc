@@ -178,7 +178,8 @@ void sdpu_log_attribute_metrics(const RawAddress& bda,
        p_rec = p_rec->p_next_rec) {
     uint16_t service_uuid = sdpu_find_most_specific_service_uuid(p_rec);
     if (service_uuid == 0) {
-      LOG(INFO) << __func__ << ": skipping record without service uuid " << bda;
+      LOG(INFO) << __func__ << ": skipping record without service uuid "
+                << ADDRESS_TO_LOGGABLE_STR(bda);
       continue;
     }
     // Log the existence of a profile role

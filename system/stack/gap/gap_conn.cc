@@ -519,7 +519,8 @@ const RawAddress* GAP_ConnGetRemoteAddr(uint16_t gap_handle) {
   DVLOG(1) << __func__ << " gap_handle = " << gap_handle;
 
   if ((p_ccb) && (p_ccb->con_state > GAP_CCB_STATE_LISTENING)) {
-    DVLOG(1) << __func__ << " BDA: " << p_ccb->rem_dev_address;
+    DVLOG(1) << __func__ << " BDA: "
+             << ADDRESS_TO_LOGGABLE_STR(p_ccb->rem_dev_address);
     return &p_ccb->rem_dev_address;
   } else {
     DVLOG(1) << __func__ << " return Error ";
