@@ -57,8 +57,9 @@ class TestHciLayer : public HciLayer {
     command_queue_.push(std::move(command));
     command_complete_callbacks.push_back(std::move(on_complete));
     if (command_promise_ != nullptr) {
-      command_promise_->set_value();
-      command_promise_.reset();
+      std::promise<void>* prom = command_promise_.release();
+      prom->set_value();
+      delete prom;
     }
   }
 
@@ -136,8 +137,9 @@ class RotatorClient : public LeAddressManagerCallback {
     paused = false;
     le_address_manager_->AckResume(this);
     if (resume_promise_ != nullptr) {
-      resume_promise_->set_value();
-      resume_promise_.reset();
+      std::promise<void>* prom = resume_promise_.release();
+      prom->set_value();
+      delete prom;
     }
   }
 
