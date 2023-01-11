@@ -307,7 +307,7 @@ struct classic_impl : public security::ISecurityManagerListener {
 
   void actually_create_connection(Address address, std::unique_ptr<CreateConnectionBuilder> packet) {
     if (is_classic_link_already_connected(address)) {
-      LOG_WARN("already connected: %s", address.ToString().c_str());
+      LOG_WARN("already connected: %s", ADDRESS_TO_LOGGABLE_CSTR(address));
       acl_scheduler_->ReportOutgoingAclConnectionFailure();
     }
     acl_connection_interface_->EnqueueCommand(
@@ -373,7 +373,8 @@ struct classic_impl : public security::ISecurityManagerListener {
       if (delayed_role_change_ == nullptr) {
         callbacks->OnRoleChange(hci::ErrorCode::SUCCESS, current_role);
       } else if (delayed_role_change_->GetBdAddr() == address) {
-        LOG_INFO("Sending delayed role change for %s", delayed_role_change_->GetBdAddr().ToString().c_str());
+        LOG_INFO("Sending delayed role change for %s",
+                 ADDRESS_TO_LOGGABLE_CSTR(delayed_role_change_->GetBdAddr()));
         callbacks->OnRoleChange(delayed_role_change_->GetStatus(), delayed_role_change_->GetNewRole());
         delayed_role_change_.reset();
       }
@@ -431,9 +432,12 @@ struct classic_impl : public security::ISecurityManagerListener {
               ASSERT_LOG(
                   status == ErrorCode::UNKNOWN_CONNECTION,
                   "No prior connection request for %s expecting:%s",
-                  address.ToString().c_str(),
+                  ADDRESS_TO_LOGGABLE_CSTR(address),
                   valid_incoming_addresses.c_str());
-              LOG_WARN("No matching connection to %s (%s)", address.ToString().c_str(), ErrorCodeText(status).c_str());
+              LOG_WARN(
+                  "No matching connection to %s (%s)",
+                  ADDRESS_TO_LOGGABLE_CSTR(address),
+                  ErrorCodeText(status).c_str());
               LOG_WARN("Firmware error after RemoteNameRequestCancel?");  // see b/184239841
               if (bluetooth::common::init_flags::gd_remote_name_request_is_enabled()) {
                 ASSERT_LOG(
@@ -717,11 +721,13 @@ struct classic_impl : public security::ISecurityManagerListener {
     });
     if (!sent) {
       if (delayed_role_change_ != nullptr) {
-        LOG_WARN("Second delayed role change (@%s dropped)", delayed_role_change_->GetBdAddr().ToString().c_str());
+        LOG_WARN(
+            "Second delayed role change (@%s dropped)",
+            ADDRESS_TO_LOGGABLE_CSTR(delayed_role_change_->GetBdAddr()));
       }
       LOG_INFO(
           "Role change for %s with no matching connection (new role: %s)",
-          role_change_view.GetBdAddr().ToString().c_str(),
+          ADDRESS_TO_LOGGABLE_CSTR(role_change_view.GetBdAddr()),
           RoleText(role_change_view.GetNewRole()).c_str());
       delayed_role_change_ = std::make_unique<RoleChangeView>(role_change_view);
     }
