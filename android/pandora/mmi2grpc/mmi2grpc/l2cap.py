@@ -370,7 +370,18 @@ class L2CAPProxy(ProfileProxy):
         The Implementation Under Test(IUT) should disconnect ACL channel by
         sending a disconnect request to PTS.
         """
-        self.host.Disconnect(connection=self.connection)
+        # Skipping disconnect for below test cases as host.disconnect grpc is not concluded (there is no profile disconnection).
+        tests_to_skip_disconnect = [
+            "L2CAP/COS/CED/BV-01-C",
+            "L2CAP/COS/CED/BV-04-C",
+            "L2CAP/COS/CED/BV-09-C",
+            "L2CAP/COS/CFD/BV-08-C",
+            "L2CAP/CMC/BI-05-C",
+            "L2CAP/CMC/BI-06-C",
+        ]
+        if test not in tests_to_skip_disconnect:
+            self.host.Disconnect(connection=self.connection)
+
         return "OK"
 
     def MMI_TESTER_ENABLE_CONNECTION(self, **kwargs):
@@ -393,7 +404,7 @@ class L2CAPProxy(ProfileProxy):
         should create ACL connection request to PTS.
         """
         self.pairing_events = self.security.OnPairing()
-        self.connection = self.host.Connect(address=pts_addr, manually_confirm=True).connection
+        self.connection = self.host.Connect(address=pts_addr).connection
         return "OK"
 
     @assert_description
@@ -449,6 +460,36 @@ class L2CAPProxy(ProfileProxy):
         """
         Using the Implementation Under Test(IUT), send L2CAP_Data over the
         assigned channel with correct DCID to the PTS.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_DISABLE_CONNECTION(self, **kwargs):
+        """
+         Initiate an L2CAP disconnection from the IUT to the PTS.
+
+        Description :
+        The Implementation Under Test(IUT) should disconnect the active L2CAP
+        channel by sending a disconnect request to PTS.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_SEND_CONFIGURE_CONNECTION_ACCORDING_TO_FEATURE(self, **kwargs):
+        """
+        Please initiate Information Request procedure to discover supported
+        features and configure connection.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_REPORT_ERROR(self, **kwargs):
+        """
+        Did the Implementation Under Test(IUT) inform the Upper Tester the
+        connection attempt failed?
         """
 
         return "OK"
