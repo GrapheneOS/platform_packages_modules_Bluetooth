@@ -793,3 +793,169 @@ class AVRCPProxy(ProfileProxy):
         self.mediaplayer.Play()
 
         return "OK"
+
+    @assert_description
+    def _mmi_1016(self, test: str, pts_addr: bytes, **kwargs):
+        """
+        Create an AVDTP signaling channel.
+
+        Action: Create an audio or video
+        connection with PTS.
+        """
+        self.connection = self.host.Connect(address=pts_addr).connection
+        if "TG" in test:
+            try:
+                self.source = self.a2dp.OpenSource(connection=self.connection).source
+            except RpcError:
+                pass
+        else:
+            try:
+                self.sink = self.a2dp.WaitSink(connection=self.connection).sink
+            except RpcError:
+                pass
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVCTP_mmi_send_AVCT_ConnectReq(self, pts_addr: bytes, **kwargs):
+        """
+        Using the Upper Tester, send an AVCT_ConnectReq command to the IUT with
+        the following input parameter values:
+           * BD_ADDR = BD_ADDRLower_Tester
+        * PID = PIDTest_System
+
+        The IUT should then initiate an
+        L2CAP_ConnectReq.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVCTP_mmi_verify_ConnectCfm_CB(self, pts_addr: bytes, **kwargs):
+        """
+        Press 'OK' if the following conditions were met :
+
+        1. The IUT returns
+        the following AVCT_ConnectReq output parameters to the Upper Tester:
+        * Result = 0x0000 (Event successfully registered)
+
+        2. The IUT calls the
+        ConnectCfm_CBTest_System function in the Upper Tester with the following
+        parameters:
+           * BD_ADDR = BD_ADDRLower_Tester
+           * Connect Result =
+        0x0000 (L2CAP Connect Request successful)
+           * Config Result = 0x0000
+        (L2CAP Configure successful)
+           * Status = L2CAP Connect Request Status
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVCTP_mmi_register_DisconnectCfm_CB(self, pts_addr: bytes, **kwargs):
+        """
+        Using the Upper Tester register the function DisconnectCfm_CBTest_System
+        for callback on the AVCT_Disconnect_Cfm event by sending an
+        AVCT_EventRegistration command to the IUT with the following parameter
+        values:
+           * Event = AVCT_Disconnect_Cfm
+           * Callback =
+        DisconnectCfm_CBTest_System
+           * PID = PIDTest_System
+
+        Press 'OK' to
+        continue once the IUT has responded.
+        """
+
+        return "OK"
+
+    def TSC_AVCTP_mmi_send_AVCT_Disconnect_Req(self, test: str, pts_addr: bytes, **kwargs):
+        """
+        Using the Upper Tester send an AVCT_DisconnectReq command to the IUT
+        with the following parameter values:
+           * BD_ADDR = BD_ADDRLower_Tester
+        * PID = PIDTest_System
+
+        The IUT should then initiate an
+        L2CAP_DisconnectReq.   
+        """
+        # Currently disconnect is required in TG role
+        if "TG" in test:
+            if self.connection is None:
+                self.connection = self.host.GetConnection(address=pts_addr).connection
+            time.sleep(3)
+            self.host.Disconnect(connection=self.connection)
+            self.connection = None
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVCTP_mmi_verify_DisconnectCfm_CB(self, **kwargs):
+        """
+        Press 'OK' if the following conditions were met :
+
+        1. The IUT returns
+        the following AVCT_EventRegistration output parameters to the Upper
+        Tester:
+           * Result = 0x0000 (Event successfully registered)
+
+        2. The IUT
+        calls the DisconnectCfm_CBTest_System function in the Upper Tester with
+        the following parameter values:
+           * BD_ADDR = BD_ADDRLower_Tester
+           *
+        Disconnect Result = 0x0000 (L2CAP disconnect success)
+
+        3. The IUT
+        returns the following AVCT_DisconnectReq output parameter values to the
+        Upper Tester:
+           * RSP = 0x0000 (Request accepted)
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVCTP_mmi_send_AVCT_SendMessage_TG(self, **kwargs):
+        """
+        Upon a call to the call back function MessageInd_CBTest_System, use the
+        Upper Tester to send an AVCT_SendMessage command to the IUT with the
+        following parameter values:
+           * BD_ADDR = BD_ADDRTest_System
+           *
+        Transaction = TRANSTest_System
+           * Type = CRTest_System = 1 (Response
+        Message)
+           * PID = PIDTest_System
+           * Data = ADDRESSdata_buffer
+        (Buffer containing DATA[]Upper_Tester)
+           * Length =
+        LengthOf(DATA[]Upper_Tester) <= MTU – 3bytes
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVCTP_mmi_verify_MessageInd_CB_TG(self, **kwargs):
+        """
+        Press 'OK' if the following conditions were met :
+
+        1. The
+        MessageInd_CBTest_System function in the Upper Tester is called with the
+        following parameters:
+           * BD_ADDR = BD_ADDRLower_Tester
+           *
+        Transaction = TRANSTest_System
+           * Type = 0x00 (Command message)
+           *
+        Data = ADDRESSdata_buffer (Buffer containing DATA[]Lower_Tester)
+           *
+        Length = LengthOf(DATA[]Lower_Tester)
+
+        2. the IUT returns the following
+        AVCT_SendMessage output parameters to the Upper Tester:
+           * Result =
+        0x0000 (Request accepted)
+        """
+
+        return "OK"
