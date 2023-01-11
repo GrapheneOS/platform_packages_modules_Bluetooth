@@ -352,6 +352,9 @@ pub trait IBluetoothGatt {
     /// Updates advertisement data of the advertising set.
     fn set_advertising_data(&mut self, advertiser_id: i32, data: AdvertiseData);
 
+    /// Set the advertisement data of the advertising set.
+    fn set_raw_adv_data(&mut self, advertiser_id: i32, data: Vec<u8>);
+
     /// Updates scan response of the advertising set.
     fn set_scan_response_data(&mut self, advertiser_id: i32, data: AdvertiseData);
 
@@ -1500,6 +1503,20 @@ impl IBluetoothGatt for BluetoothGatt {
                 s.adv_id(),
                 false,
                 bytes,
+            );
+        }
+    }
+
+    fn set_raw_adv_data(&mut self, advertiser_id: i32, data: Vec<u8>) {
+        if self.advertisers.suspend_mode() != SuspendMode::Normal {
+            return;
+        }
+
+        if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            self.gatt.as_ref().unwrap().lock().unwrap().advertiser.set_data(
+                s.adv_id(),
+                false,
+                data,
             );
         }
     }
