@@ -2014,7 +2014,7 @@ void smp_link_encrypted(const RawAddress& bda, uint8_t encr_enable) {
 
   if (smp_cb.pairing_bda == bda) {
     LOG_DEBUG("SMP encryption enable:%hhu device:%s", encr_enable,
-              PRIVATE_ADDRESS(bda));
+              ADDRESS_TO_LOGGABLE_CSTR(bda));
 
     /* encryption completed with STK, remember the key size now, could be
      * overwritten when key exchange happens                                 */
@@ -2032,7 +2032,7 @@ void smp_link_encrypted(const RawAddress& bda, uint8_t encr_enable) {
   } else {
     LOG_WARN(
         "SMP state machine busy so skipping encryption enable:%hhu device:%s",
-        encr_enable, PRIVATE_ADDRESS(bda));
+        encr_enable, ADDRESS_TO_LOGGABLE_CSTR(bda));
   }
 }
 

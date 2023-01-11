@@ -162,7 +162,7 @@ class ShadowAcceptlist {
     if (!acceptlist_set_.insert(ConnectAddressWithType(address_with_type))
              .second) {
       LOG_WARN("Attempted to add duplicate le address to acceptlist:%s",
-               PRIVATE_ADDRESS(address_with_type));
+               ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
     }
     return true;
   }
@@ -171,7 +171,7 @@ class ShadowAcceptlist {
     auto iter = acceptlist_set_.find(ConnectAddressWithType(address_with_type));
     if (iter == acceptlist_set_.end()) {
       LOG_WARN("Unknown device being removed from acceptlist:%s",
-               PRIVATE_ADDRESS(address_with_type));
+               ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
       return false;
     }
     acceptlist_set_.erase(ConnectAddressWithType(*iter));
@@ -206,7 +206,7 @@ class ShadowAddressResolutionList {
     }
     if (!address_resolution_set_.insert(address_with_type).second) {
       LOG_WARN("Attempted to add duplicate le address to address_resolution:%s",
-               PRIVATE_ADDRESS(address_with_type));
+               ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
     }
     return true;
   }
@@ -215,7 +215,7 @@ class ShadowAddressResolutionList {
     auto iter = address_resolution_set_.find(address_with_type);
     if (iter == address_resolution_set_.end()) {
       LOG_WARN("Unknown device being removed from address_resolution:%s",
-               PRIVATE_ADDRESS(address_with_type));
+               ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
       return false;
     }
     address_resolution_set_.erase(iter);
@@ -283,7 +283,7 @@ struct ClassicConnectionDescriptor : public ConnectionDescriptor {
                              is_locally_initiated, disconnect_reason),
         remote_address_(remote_address) {}
   virtual std::string GetPrivateRemoteAddress() const {
-    return PRIVATE_ADDRESS(remote_address_);
+    return ADDRESS_TO_LOGGABLE_CSTR(remote_address_);
   }
 };
 
@@ -297,7 +297,7 @@ struct LeConnectionDescriptor : public ConnectionDescriptor {
                              is_locally_initiated, disconnect_reason),
         remote_address_with_type_(remote_address_with_type) {}
   std::string GetPrivateRemoteAddress() const {
-    return PRIVATE_ADDRESS(remote_address_with_type_);
+    return ADDRESS_TO_LOGGABLE_CSTR(remote_address_with_type_);
   }
 };
 
@@ -1015,7 +1015,7 @@ struct shim::legacy::Acl::impl {
       connection->second->InitiateDisconnect(
           ToDisconnectReasonFromLegacy(reason));
       LOG_DEBUG("Disconnection initiated classic remote:%s handle:%hu",
-                PRIVATE_ADDRESS(remote_address), handle);
+                ADDRESS_TO_LOGGABLE_CSTR(remote_address), handle);
       BTM_LogHistory(kBtmLogTag, ToRawAddress(remote_address),
                      "Disconnection initiated",
                      base::StringPrintf("classic reason:%s comment:%s",
@@ -1037,7 +1037,7 @@ struct shim::legacy::Acl::impl {
       connection->second->InitiateDisconnect(
           ToDisconnectReasonFromLegacy(reason));
       LOG_DEBUG("Disconnection initiated le remote:%s handle:%hu",
-                PRIVATE_ADDRESS(remote_address_with_type), handle);
+                ADDRESS_TO_LOGGABLE_CSTR(remote_address_with_type), handle);
       BTM_LogHistory(kBtmLogTag,
                      ToLegacyAddressWithType(remote_address_with_type),
                      "Disconnection initiated",
@@ -1062,7 +1062,7 @@ struct shim::legacy::Acl::impl {
     promise.set_value(true);
     GetAclManager()->CreateLeConnection(address_with_type, is_direct);
     LOG_DEBUG("Allow Le connection from remote:%s",
-              PRIVATE_ADDRESS(address_with_type));
+              ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
     BTM_LogHistory(kBtmLogTag, ToLegacyAddressWithType(address_with_type),
                    "Allow connection from", "Le");
   }
@@ -1073,7 +1073,7 @@ struct shim::legacy::Acl::impl {
     GetAclManager()->CancelLeConnectAndRemoveFromBackgroundList(
         address_with_type);
     LOG_DEBUG("Ignore Le connection from remote:%s",
-              PRIVATE_ADDRESS(address_with_type));
+              ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
     BTM_LogHistory(kBtmLogTag, ToLegacyAddressWithType(address_with_type),
                    "Ignore connection from", "Le");
   }
@@ -1109,7 +1109,7 @@ struct shim::legacy::Acl::impl {
     // TODO This should really be removed upon successful removal
     if (!shadow_address_resolution_list_.Remove(address_with_type)) {
       LOG_WARN("Unable to remove from Le Address Resolution list device:%s",
-               PRIVATE_ADDRESS(address_with_type));
+               ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
     }
     GetAclManager()->RemoveDeviceFromResolvingList(address_with_type);
   }
@@ -1358,7 +1358,7 @@ bool shim::legacy::Acl::CheckForOrphanedAclConnections() const {
     for (const auto& connection : pimpl_->handle_to_classic_connection_map_) {
       LOG_ERROR("  Orphaned classic ACL handle:0x%04x bd_addr:%s created:%s",
                 connection.second->Handle(),
-                PRIVATE_ADDRESS(connection.second->GetRemoteAddress()),
+                ADDRESS_TO_LOGGABLE_CSTR(connection.second->GetRemoteAddress()),
                 common::StringFormatTimeWithMilliseconds(
                     kConnectionDescriptorTimeFormat,
                     connection.second->GetCreationTime())
@@ -1372,7 +1372,7 @@ bool shim::legacy::Acl::CheckForOrphanedAclConnections() const {
     for (const auto& connection : pimpl_->handle_to_le_connection_map_) {
       LOG_ERROR("  Orphaned le ACL handle:0x%04x bd_addr:%s created:%s",
                 connection.second->Handle(),
-                PRIVATE_ADDRESS(connection.second->GetRemoteAddressWithType()),
+                ADDRESS_TO_LOGGABLE_CSTR(connection.second->GetRemoteAddressWithType()),
                 common::StringFormatTimeWithMilliseconds(
                     kConnectionDescriptorTimeFormat,
                     connection.second->GetCreationTime())
@@ -1409,7 +1409,7 @@ void shim::legacy::Acl::WriteData(HciHandle handle,
 void shim::legacy::Acl::CreateClassicConnection(const hci::Address& address) {
   GetAclManager()->CreateConnection(address);
   LOG_DEBUG("Connection initiated for classic to remote:%s",
-            PRIVATE_ADDRESS(address));
+            ADDRESS_TO_LOGGABLE_CSTR(address));
   BTM_LogHistory(kBtmLogTag, ToRawAddress(address), "Initiated connection",
                  "classic");
 }
@@ -1417,7 +1417,7 @@ void shim::legacy::Acl::CreateClassicConnection(const hci::Address& address) {
 void shim::legacy::Acl::CancelClassicConnection(const hci::Address& address) {
   GetAclManager()->CancelConnect(address);
   LOG_DEBUG("Connection cancelled for classic to remote:%s",
-            PRIVATE_ADDRESS(address));
+            ADDRESS_TO_LOGGABLE_CSTR(address));
   BTM_LogHistory(kBtmLogTag, ToRawAddress(address), "Cancelled connection",
                  "classic");
 }
@@ -1426,7 +1426,7 @@ void shim::legacy::Acl::AcceptLeConnectionFrom(
     const hci::AddressWithType& address_with_type, bool is_direct,
     std::promise<bool> promise) {
   LOG_DEBUG("AcceptLeConnectionFrom %s",
-            PRIVATE_ADDRESS(address_with_type.GetAddress()));
+            ADDRESS_TO_LOGGABLE_CSTR(address_with_type.GetAddress()));
   handler_->CallOn(pimpl_.get(), &Acl::impl::accept_le_connection_from,
                    address_with_type, is_direct, std::move(promise));
 }
@@ -1434,7 +1434,7 @@ void shim::legacy::Acl::AcceptLeConnectionFrom(
 void shim::legacy::Acl::IgnoreLeConnectionFrom(
     const hci::AddressWithType& address_with_type) {
   LOG_DEBUG("IgnoreLeConnectionFrom %s",
-            PRIVATE_ADDRESS(address_with_type.GetAddress()));
+            ADDRESS_TO_LOGGABLE_CSTR(address_with_type.GetAddress()));
   handler_->CallOn(pimpl_.get(), &Acl::impl::ignore_le_connection_from,
                    address_with_type);
 }
@@ -1455,7 +1455,7 @@ void shim::legacy::Acl::OnClassicLinkDisconnected(HciHandle handle,
                       ToLegacyHciErrorCode(hci::ErrorCode::SUCCESS), handle,
                       ToLegacyHciErrorCode(reason));
   LOG_DEBUG("Disconnected classic link remote:%s handle:%hu reason:%s",
-            PRIVATE_ADDRESS(remote_address), handle,
+            ADDRESS_TO_LOGGABLE_CSTR(remote_address), handle,
             ErrorCodeText(reason).c_str());
   BTM_LogHistory(
       kBtmLogTag, ToRawAddress(remote_address), "Disconnected",
@@ -1495,7 +1495,7 @@ void shim::legacy::Acl::OnLeLinkDisconnected(HciHandle handle,
                       ToLegacyHciErrorCode(hci::ErrorCode::SUCCESS), handle,
                       ToLegacyHciErrorCode(reason));
   LOG_DEBUG("Disconnected le link remote:%s handle:%hu reason:%s",
-            PRIVATE_ADDRESS(remote_address_with_type), handle,
+            ADDRESS_TO_LOGGABLE_CSTR(remote_address_with_type), handle,
             ErrorCodeText(reason).c_str());
   BTM_LogHistory(
       kBtmLogTag, ToLegacyAddressWithType(remote_address_with_type),
@@ -1529,7 +1529,7 @@ void shim::legacy::Acl::OnConnectSuccess(
   TRY_POSTING_ON_MAIN(acl_interface_.connection.classic.on_connected, bd_addr,
                       handle, false, locally_initiated);
   LOG_DEBUG("Connection successful classic remote:%s handle:%hu initiator:%s",
-            PRIVATE_ADDRESS(remote_address), handle,
+            ADDRESS_TO_LOGGABLE_CSTR(remote_address), handle,
             (locally_initiated) ? "local" : "remote");
   BTM_LogHistory(kBtmLogTag, ToRawAddress(remote_address),
                  "Connection successful",
@@ -1544,7 +1544,7 @@ void shim::legacy::Acl::OnConnectFail(hci::Address address,
   TRY_POSTING_ON_MAIN(acl_interface_.connection.classic.on_failed, bd_addr,
                       ToLegacyHciErrorCode(reason), locally_initiated);
   LOG_WARN("Connection failed classic remote:%s reason:%s",
-           PRIVATE_ADDRESS(address), hci::ErrorCodeText(reason).c_str());
+           ADDRESS_TO_LOGGABLE_CSTR(address), hci::ErrorCodeText(reason).c_str());
   BTM_LogHistory(kBtmLogTag, ToRawAddress(address), "Connection failed",
                  base::StringPrintf("classic reason:%s",
                                     hci::ErrorCodeText(reason).c_str()));
@@ -1559,7 +1559,7 @@ void shim::legacy::Acl::HACK_OnEscoConnectRequest(hci::Address address,
   TRY_POSTING_ON_MAIN(acl_interface_.connection.sco.on_esco_connect_request,
                       bd_addr, legacy_cod);
   LOG_DEBUG("Received ESCO connect request remote:%s",
-            PRIVATE_ADDRESS(address));
+            ADDRESS_TO_LOGGABLE_CSTR(address));
   BTM_LogHistory(kBtmLogTag, ToRawAddress(address), "ESCO Connection request");
 }
 
@@ -1571,7 +1571,7 @@ void shim::legacy::Acl::HACK_OnScoConnectRequest(hci::Address address,
 
   TRY_POSTING_ON_MAIN(acl_interface_.connection.sco.on_sco_connect_request,
                       bd_addr, legacy_cod);
-  LOG_DEBUG("Received SCO connect request remote:%s", PRIVATE_ADDRESS(address));
+  LOG_DEBUG("Received SCO connect request remote:%s", ADDRESS_TO_LOGGABLE_CSTR(address));
   BTM_LogHistory(kBtmLogTag, ToRawAddress(address), "SCO Connection request");
 }
 
@@ -1613,12 +1613,12 @@ void shim::legacy::Acl::OnLeConnectSuccess(
 
   if (IsRpa(address_with_type)) {
     LOG_DEBUG("Connection address is rpa:%s identity_addr:%s",
-              PRIVATE_ADDRESS(address_with_type),
-              PRIVATE_ADDRESS(peer_address_with_type));
+              ADDRESS_TO_LOGGABLE_CSTR(address_with_type),
+              ADDRESS_TO_LOGGABLE_CSTR(peer_address_with_type));
     pimpl_->shadow_acceptlist_.Remove(peer_address_with_type);
   } else {
     LOG_DEBUG("Connection address is not rpa addr:%s",
-              PRIVATE_ADDRESS(address_with_type));
+              ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
     pimpl_->shadow_acceptlist_.Remove(address_with_type);
   }
 
@@ -1644,7 +1644,7 @@ void shim::legacy::Acl::OnLeConnectSuccess(
       conn_timeout, local_rpa, peer_rpa, peer_addr_type);
 
   LOG_DEBUG("Connection successful le remote:%s handle:%hu initiator:%s",
-            PRIVATE_ADDRESS(address_with_type), handle,
+            ADDRESS_TO_LOGGABLE_CSTR(address_with_type), handle,
             (locally_initiated) ? "local" : "remote");
   BTM_LogHistory(kBtmLogTag, ToLegacyAddressWithType(address_with_type),
                  "Connection successful", "Le");
@@ -1669,7 +1669,7 @@ void shim::legacy::Acl::OnLeConnectFail(hci::AddressWithType address_with_type,
 
   pimpl_->shadow_acceptlist_.Remove(address_with_type);
   LOG_WARN("Connection failed le remote:%s",
-           PRIVATE_ADDRESS(address_with_type));
+           ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
   BTM_LogHistory(
       kBtmLogTag, ToLegacyAddressWithType(address_with_type),
       "Connection failed",

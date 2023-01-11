@@ -728,7 +728,7 @@ void bta_ag_sm_execute(tBTA_AG_SCB* p_scb, uint16_t event,
   LOG_DEBUG(
       "Execute AG event handle:0x%04x bd_addr:%s state:%s[0x%02x]"
       " event:%s[0x%04x] result:%s[0x%02x]",
-      bta_ag_scb_to_idx(p_scb), PRIVATE_ADDRESS(p_scb->peer_addr),
+      bta_ag_scb_to_idx(p_scb), ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr),
       bta_ag_state_str(p_scb->state), p_scb->state, bta_ag_evt_str(event),
       event, bta_ag_res_str(data.api_result.result), data.api_result.result);
 
@@ -739,7 +739,7 @@ void bta_ag_sm_execute(tBTA_AG_SCB* p_scb, uint16_t event,
         "State changed handle:0x%04x bd_addr:%s "
         "state_change:%s[0x%02x]->%s[0x%02x]"
         " event:%s[0x%04x] result:%s[0x%02x]",
-        bta_ag_scb_to_idx(p_scb), PRIVATE_ADDRESS(p_scb->peer_addr),
+        bta_ag_scb_to_idx(p_scb), ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr),
         bta_ag_state_str(previous_state), previous_state,
         bta_ag_state_str(p_scb->state), p_scb->state,
         bta_ag_evt_str(previous_event), previous_event,
