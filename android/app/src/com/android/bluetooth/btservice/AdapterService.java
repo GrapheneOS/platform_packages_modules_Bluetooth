@@ -6278,8 +6278,8 @@ public class AdapterService extends Service {
     /*package*/
     native boolean getDevicePropertyNative(byte[] address, int type);
 
-    /*package*/
-    public native boolean createBondNative(byte[] address, int transport);
+    /** package */
+    public native boolean createBondNative(byte[] address, int addressType, int transport);
 
     /*package*/
     native boolean createBondOutOfBandNative(byte[] address, int transport,
