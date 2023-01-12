@@ -400,13 +400,13 @@ bool btif_hh_add_added_dev(const RawAddress& bda, tBTA_HH_ATTR_MASK attr_mask) {
   int i;
   for (i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
     if (btif_hh_cb.added_devices[i].bd_addr == bda) {
-      LOG(WARNING) << " Device " << bda << " already added";
+      LOG(WARNING) << " Device " << ADDRESS_TO_LOGGABLE_STR(bda) << " already added";
       return false;
     }
   }
   for (i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
     if (btif_hh_cb.added_devices[i].bd_addr.IsEmpty()) {
-      LOG(WARNING) << " Added device " << bda;
+      LOG(WARNING) << " Added device " << ADDRESS_TO_LOGGABLE_STR(bda);
       btif_hh_cb.added_devices[i].bd_addr = bda;
       btif_hh_cb.added_devices[i].dev_handle = BTA_HH_INVALID_HANDLE;
       btif_hh_cb.added_devices[i].attr_mask = attr_mask;
@@ -431,7 +431,7 @@ void btif_hh_remove_device(RawAddress bd_addr) {
   btif_hh_device_t* p_dev;
   btif_hh_added_device_t* p_added_dev;
 
-  LOG(INFO) << __func__ << ": bda = " << bd_addr;
+  LOG(INFO) << __func__ << ": bda = " << ADDRESS_TO_LOGGABLE_STR(bd_addr);
 
   for (i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
     p_added_dev = &btif_hh_cb.added_devices[i];
@@ -446,7 +446,7 @@ void btif_hh_remove_device(RawAddress bd_addr) {
 
   p_dev = btif_hh_find_dev_by_bda(bd_addr);
   if (p_dev == NULL) {
-    LOG(WARNING) << " Oops, can't find device " << bd_addr;
+    LOG(WARNING) << " Oops, can't find device " << ADDRESS_TO_LOGGABLE_STR(bd_addr);
     return;
   }
 
@@ -570,7 +570,7 @@ bt_status_t btif_hh_connect(const RawAddress* bd_addr) {
   for (int i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
     if (btif_hh_cb.added_devices[i].bd_addr == *bd_addr) {
       added_dev = &btif_hh_cb.added_devices[i];
-      LOG(WARNING) << __func__ << ": Device " << *bd_addr
+      LOG(WARNING) << __func__ << ": Device " << ADDRESS_TO_LOGGABLE_STR(*bd_addr)
                    << " already added, attr_mask = 0x" << std::hex
                    << added_dev->attr_mask;
     }
@@ -579,7 +579,8 @@ bt_status_t btif_hh_connect(const RawAddress* bd_addr) {
   if (added_dev != NULL) {
     if (added_dev->dev_handle == BTA_HH_INVALID_HANDLE) {
       // No space for more HID device now.
-      LOG(ERROR) << __func__ << ": Error, device " << *bd_addr
+      LOG(ERROR) << __func__ << ": Error, device "
+                 << ADDRESS_TO_LOGGABLE_STR(*bd_addr)
                  << " added but addition failed";
       added_dev->bd_addr = RawAddress::kEmpty;
       added_dev->dev_handle = BTA_HH_INVALID_HANDLE;
@@ -589,7 +590,7 @@ bt_status_t btif_hh_connect(const RawAddress* bd_addr) {
 
   if (dev && dev->dev_status == BTHH_CONN_STATE_CONNECTED) {
     LOG_DEBUG("HidHost profile already connected for %s",
-              PRIVATE_ADDRESS((*bd_addr)));
+              ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
     return BT_STATUS_SUCCESS;
   }
 
@@ -625,11 +626,11 @@ void btif_hh_disconnect(RawAddress* bd_addr) {
   const btif_hh_device_t* p_dev = btif_hh_find_connected_dev_by_bda(*bd_addr);
   if (p_dev == nullptr) {
     LOG_DEBUG("Unable to disconnect unknown HID device:%s",
-              PRIVATE_ADDRESS((*bd_addr)));
+              ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
     return;
   }
   LOG_DEBUG("Disconnect and close request for HID device:%s",
-            PRIVATE_ADDRESS((*bd_addr)));
+            ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
   BTA_HhClose(p_dev->dev_handle);
 }
 
@@ -1027,7 +1028,8 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
           tBTA_HH_DEV_DSCP_INFO dscp_info;
           bt_status_t ret;
           btif_hh_copy_hid_info(&dscp_info, &p_data->dscp_info);
-          VLOG(1) << "BTA_HH_GET_DSCP_EVT:bda = " << p_dev->bd_addr;
+          VLOG(1) << "BTA_HH_GET_DSCP_EVT:bda = "
+                  << ADDRESS_TO_LOGGABLE_STR(p_dev->bd_addr);
           BTA_HhAddDev(p_dev->bd_addr, p_dev->attr_mask, p_dev->sub_class,
                        p_dev->app_id, dscp_info);
           // write hid info to nvram
@@ -1232,7 +1234,7 @@ static void btif_hh_handle_evt(uint16_t event, char* p_param) {
   switch (event) {
     case BTIF_HH_CONNECT_REQ_EVT: {
       LOG_DEBUG("Connect request received remote:%s",
-                PRIVATE_ADDRESS((*bd_addr)));
+                ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
       if (btif_hh_connect(bd_addr) == BT_STATUS_SUCCESS) {
         HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr,
                   BTHH_CONN_STATE_CONNECTING);
@@ -1243,7 +1245,7 @@ static void btif_hh_handle_evt(uint16_t event, char* p_param) {
 
     case BTIF_HH_DISCONNECT_REQ_EVT: {
       LOG_DEBUG("Disconnect request received remote:%s",
-                PRIVATE_ADDRESS((*bd_addr)));
+                ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
       btif_hh_disconnect(bd_addr);
       HAL_CBACK(bt_hh_callbacks, connection_state_cb, bd_addr,
                 BTHH_CONN_STATE_DISCONNECTING);
@@ -1251,16 +1253,16 @@ static void btif_hh_handle_evt(uint16_t event, char* p_param) {
 
     case BTIF_HH_VUP_REQ_EVT: {
       LOG_DEBUG("Virtual unplug request received remote:%s",
-                PRIVATE_ADDRESS((*bd_addr)));
+                ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
       if (btif_hh_virtual_unplug(bd_addr) != BT_STATUS_SUCCESS) {
         LOG_WARN("Unable to virtual unplug device remote:%s",
-                 PRIVATE_ADDRESS((*bd_addr)));
+                 ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
       }
     } break;
 
     default: {
       LOG_WARN("Unknown event received:%d remote:%s", event,
-               PRIVATE_ADDRESS((*bd_addr)));
+               ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)));
     } break;
   }
 }
@@ -1544,7 +1546,7 @@ static bt_status_t get_protocol(RawAddress* bd_addr,
                                 UNUSED_ATTR bthh_protocol_mode_t protocolMode) {
   CHECK_BTHH_INIT();
 
-  VLOG(1) << __func__ << " BTHH: addr = " << *bd_addr;
+  VLOG(1) << __func__ << " BTHH: addr = " << ADDRESS_TO_LOGGABLE_STR(*bd_addr);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
@@ -1583,7 +1585,7 @@ static bt_status_t set_protocol(RawAddress* bd_addr,
 
   p_dev = btif_hh_find_connected_dev_by_bda(*bd_addr);
   if (p_dev == NULL) {
-    LOG(WARNING) << " Error, device" << *bd_addr << " not opened";
+    LOG(WARNING) << " Error, device" << ADDRESS_TO_LOGGABLE_STR(*bd_addr) << " not opened";
     return BT_STATUS_FAIL;
   } else if (protocolMode != BTA_HH_PROTO_RPT_MODE &&
              protocolMode != BTA_HH_PROTO_BOOT_MODE) {
@@ -1614,7 +1616,7 @@ static bt_status_t get_report(RawAddress* bd_addr,
 
   VLOG(1) << __func__ << " BTHH: r_type = " << reportType
           << ", rpt_id = " << reportId << ", buf_size = " << bufferSize
-          << " addr = " << *bd_addr;
+          << " addr = " << ADDRESS_TO_LOGGABLE_STR(*bd_addr);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
@@ -1623,7 +1625,7 @@ static bt_status_t get_report(RawAddress* bd_addr,
 
   p_dev = btif_hh_find_connected_dev_by_bda(*bd_addr);
   if (p_dev == NULL) {
-    LOG(ERROR) << " Error, device" << *bd_addr << " not opened";
+    LOG(ERROR) << " Error, device" << ADDRESS_TO_LOGGABLE_STR(*bd_addr) << " not opened";
     return BT_STATUS_FAIL;
   } else if (((int)reportType) <= BTA_HH_RPTT_RESRV ||
              ((int)reportType) > BTA_HH_RPTT_FEATURE) {
@@ -1650,7 +1652,7 @@ static bt_status_t get_report_reply(RawAddress* bd_addr, bthh_status_t status,
   CHECK_BTHH_INIT();
   btif_hh_device_t* p_dev;
 
-  VLOG(1) << __func__ << " BTHH: addr=" << *bd_addr;
+  VLOG(1) << __func__ << " BTHH: addr=" << ADDRESS_TO_LOGGABLE_STR(*bd_addr);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
@@ -1659,7 +1661,7 @@ static bt_status_t get_report_reply(RawAddress* bd_addr, bthh_status_t status,
 
   p_dev = btif_hh_find_connected_dev_by_bda(*bd_addr);
   if (p_dev == NULL) {
-    LOG(ERROR) << " Error, device" << *bd_addr << " not opened";
+    LOG(ERROR) << " Error, device" << ADDRESS_TO_LOGGABLE_STR(*bd_addr) << " not opened";
     return BT_STATUS_FAIL;
   }
 
@@ -1683,7 +1685,7 @@ static bt_status_t set_report(RawAddress* bd_addr,
   btif_hh_device_t* p_dev;
 
   VLOG(1) << __func__ << " BTHH: reportType=" << reportType
-          << " addr=" << *bd_addr;
+          << " addr=" << ADDRESS_TO_LOGGABLE_STR(*bd_addr);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
@@ -1692,7 +1694,7 @@ static bt_status_t set_report(RawAddress* bd_addr,
 
   p_dev = btif_hh_find_connected_dev_by_bda(*bd_addr);
   if (p_dev == NULL) {
-    LOG(ERROR) << " Error, device" << *bd_addr << " not opened";
+    LOG(ERROR) << " Error, device" << ADDRESS_TO_LOGGABLE_STR(*bd_addr) << " not opened";
     return BT_STATUS_FAIL;
   } else if (((int)reportType) <= BTA_HH_RPTT_RESRV ||
              ((int)reportType) > BTA_HH_RPTT_FEATURE) {
@@ -1737,7 +1739,7 @@ static bt_status_t send_data(RawAddress* bd_addr, char* data) {
   CHECK_BTHH_INIT();
   btif_hh_device_t* p_dev;
 
-  VLOG(1) << __func__ << " addr=" << *bd_addr;
+  VLOG(1) << __func__ << " addr=" << ADDRESS_TO_LOGGABLE_STR(*bd_addr);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
@@ -1746,7 +1748,8 @@ static bt_status_t send_data(RawAddress* bd_addr, char* data) {
 
   p_dev = btif_hh_find_connected_dev_by_bda(*bd_addr);
   if (p_dev == NULL) {
-    LOG(ERROR) << " Error, device" << *bd_addr << " not opened";
+    LOG(ERROR) << " Error, device"
+               << ADDRESS_TO_LOGGABLE_STR(*bd_addr) << " not opened";
     return BT_STATUS_FAIL;
   }
 
@@ -1881,7 +1884,7 @@ void DumpsysHid(int fd) {
     const btif_hh_device_t* p_dev = &btif_hh_cb.devices[i];
     if (p_dev->bd_addr != RawAddress::kEmpty) {
       LOG_DUMPSYS(fd, "  %u: addr:%s fd:%d state:%s ready:%s thread_id:%d", i,
-                  PRIVATE_ADDRESS(p_dev->bd_addr), p_dev->fd,
+                  ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr), p_dev->fd,
                   bthh_connection_state_text(p_dev->dev_status).c_str(),
                   (p_dev->ready_for_data) ? ("T") : ("F"),
                   static_cast<int>(p_dev->hh_poll_thread_id));
@@ -1890,7 +1893,7 @@ void DumpsysHid(int fd) {
   for (unsigned i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
     const btif_hh_added_device_t* p_dev = &btif_hh_cb.added_devices[i];
     if (p_dev->bd_addr != RawAddress::kEmpty) {
-      LOG_DUMPSYS(fd, "  %u: addr:%s", i, PRIVATE_ADDRESS(p_dev->bd_addr));
+      LOG_DUMPSYS(fd, "  %u: addr:%s", i, ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr));
     }
   }
 }

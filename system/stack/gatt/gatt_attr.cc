@@ -1039,7 +1039,7 @@ static tGATT_STATUS gatt_sr_write_cl_supp_feat(uint16_t conn_id,
   // If input length is zero, return value_not_allowed
   if (tmp.empty()) {
     LOG(INFO) << __func__ << ": zero length, conn_id=" << loghex(conn_id)
-              << ", bda=" << tcb.peer_bda;
+              << ", bda=" << ADDRESS_TO_LOGGABLE_STR(tcb.peer_bda);
     return GATT_VALUE_NOT_ALLOWED;
   }
   // if original length is longer than new one, it must be the bit reset case.

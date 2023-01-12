@@ -64,7 +64,7 @@ class OPPProxy(ProfileProxy):
     @assert_description
     def TSC_OBEX_MMI_iut_accept_put(self, **kwargs):
         """
-         Please accept the PUT REQUEST.
+        Please accept the PUT REQUEST.
         """
         self._android.AcceptIncomingFile()
 
@@ -96,7 +96,7 @@ class OPPProxy(ProfileProxy):
     @assert_description
     def TSC_OBEX_MMI_iut_reject_action(self, **kwargs):
         """
-         Take action to reject the ACTION command sent by PTS.
+        Take action to reject the ACTION command sent by PTS.
         """
 
         return "OK"
@@ -104,7 +104,7 @@ class OPPProxy(ProfileProxy):
     @assert_description
     def TSC_OBEX_MMI_iut_accept_disconnect(self, **kwargs):
         """
-         Please accept the OBEX DISCONNECT REQ command.
+        Please accept the OBEX DISCONNECT REQ command.
         """
 
         return "OK"
@@ -112,7 +112,83 @@ class OPPProxy(ProfileProxy):
     @assert_description
     def TSC_OBEX_MMI_iut_accept_slc_disconnect(self, **kwargs):
         """
-         Please accept the disconnection of the transport channel.
+        Please accept the disconnection of the transport channel.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_OBEX_MMI_iut_initiate_slc_connect_rfcomm(self, pts_addr: bytes, **kwargs):
+        """
+        Take action to create an rfcomm channel for an OBEX connection.
+        """
+
+        self._android.SendFile()
+
+        return "OK"
+
+    @assert_description
+    def TSC_OBEX_MMI_iut_initiate_slc_connect_l2cap(self, pts_addr: bytes, **kwargs):
+        """
+        Take action to create an l2cap channel for an OBEX connection.
+        """
+
+        self._android.SendFile()
+
+        return "OK"
+
+    @assert_description
+    def TSC_OPP_mmi_user_verify_opp_format_indication(self, **kwargs):
+        """
+        Does the IUT display that the tester (OPP server) supports the
+        following Object Push Formats: vCards, vCal, vNote, vMsg and Other
+        content
+
+        Note: If the IUT does not support format indication, please
+        press 'Yes' now.
+        Note: Do not connect to the tester until requested.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_OBEX_MMI_iut_initiate_connect_OPP(self, **kwargs):
+        """
+        Take action to initiate an OBEX CONNECT REQ for OPP.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_OBEX_MMI_iut_initiate_put(self, **kwargs):
+        """
+        Take action to send a PUT request.  Then allow the operation to
+        complete as normal.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_OPP_mmi_user_verify_client_pushed_file(self, **kwargs):
+        """
+        Does the file named 'x-ms-bmp' in the recently opened window represent
+        the file just pushed by the IUT?
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_OBEX_MMI_iut_initiate_slc_disconnect(self, **kwargs):
+        """
+        Take action to disconnect the transport channel.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_OBEX_MMI_iut_initiate_disconnect(self, **kwargs):
+        """
+        Take action to initiate an OBEX DISCONNECT REQ.
         """
 
         return "OK"

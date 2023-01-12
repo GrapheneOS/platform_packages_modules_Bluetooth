@@ -81,7 +81,7 @@ void btif_gatt_check_encrypted_link(RawAddress bd_addr,
            sizeof(tBTM_LE_PENC_KEYS)) == BT_STATUS_SUCCESS) &&
       !btif_gatt_is_link_encrypted(bd_addr)) {
     LOG_DEBUG("Checking gatt link peer:%s transport:%s",
-              PRIVATE_ADDRESS(bd_addr),
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
               bt_transport_text(transport_link).c_str());
     BTA_DmSetEncryption(bd_addr, transport_link, &btif_gatt_set_encryption_cb,
                         BTM_BLE_SEC_ENCRYPT);

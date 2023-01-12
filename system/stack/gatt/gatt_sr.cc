@@ -1327,7 +1327,8 @@ static bool gatts_process_db_out_of_sync(tGATT_TCB& tcb, uint16_t cid,
       gatt_send_error_rsp(tcb, cid, GATT_DATABASE_OUT_OF_SYNC, op_code, 0x0000,
                           false);
     }
-    LOG(INFO) << __func__ << ": database out of sync, device=" << tcb.peer_bda
+    LOG(INFO) << __func__ << ": database out of sync, device="
+              << ADDRESS_TO_LOGGABLE_STR(tcb.peer_bda)
               << ", op_code=" << loghex((uint16_t)op_code)
               << ", should_rsp=" << should_rsp;
     gatt_sr_update_cl_status(tcb, /* chg_aware= */ should_rsp);

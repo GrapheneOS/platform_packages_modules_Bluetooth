@@ -1708,6 +1708,16 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public boolean isLogRedactionEnabled() {
+            AdapterService service = getService();
+            if (service == null) {
+                // by default return true
+                return true;
+            }
+            return service.isLogRedactionEnabled();
+        }
+
+        @Override
         public void getUuids(AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 receiver.send(getUuids(source));
@@ -4175,6 +4185,8 @@ public class AdapterService extends Service {
     public String getName() {
         return mAdapterProperties.getName();
     }
+
+    private native boolean isLogRedactionEnabled();
 
     public int getNameLengthForAdvertise() {
         return mAdapterProperties.getName().length();

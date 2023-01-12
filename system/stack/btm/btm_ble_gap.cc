@@ -1528,7 +1528,7 @@ static uint8_t btm_set_conn_mode_adv_init_addr(
         .bda = p_peer_addr_ptr,
         .type = *p_peer_addr_type,
     };
-    LOG_DEBUG("Received BLE connect event %s", PRIVATE_ADDRESS(ble_bd_addr));
+    LOG_DEBUG("Received BLE connect event %s", ADDRESS_TO_LOGGABLE_CSTR(ble_bd_addr));
 
     evt_type = p_cb->directed_conn;
 

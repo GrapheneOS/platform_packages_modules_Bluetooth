@@ -30,12 +30,6 @@
     dprintf(fd, " ----- %s -----\n", title); \
   } while (false)
 
-constexpr char kPrivateAddressPrefix[] = "xx:xx:xx:xx";
-#define PRIVATE_ADDRESS(addr)                                            \
-  (addr.ToString()                                                       \
-       .replace(0, strlen(kPrivateAddressPrefix), kPrivateAddressPrefix) \
-       .c_str())
-
 #define PRIVATE_CELL(number)                                      \
   (number                                                         \
        .replace(0, (number.size() > 2) ? number.size() - 2 : 0,   \
