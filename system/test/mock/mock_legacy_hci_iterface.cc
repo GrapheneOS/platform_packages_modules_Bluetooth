@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/functional/callback.h>
 #include <stddef.h>
+
+#include <map>
+#include <string>
 
 #include "bt_target.h"
 #include "btu.h"
 #include "hcimsgs.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/bt_octets.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 namespace test {
