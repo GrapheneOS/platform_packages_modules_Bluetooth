@@ -18,6 +18,7 @@ package com.android.bluetooth.map;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -39,6 +40,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
 import com.android.obex.ResponseCodes;
+import com.android.obex.Operation;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -183,6 +185,53 @@ public class BluetoothMapObexServerTest {
         mObexServer.addEmailFolders(parentFolder);
 
         assertThat(parentFolder.getFolderById(childId)).isNotNull();
+    }
+
+    @Test
+    public void setMsgTypeFilterParams_withAccountNull_andOverwriteTrue() throws Exception {
+        BluetoothMapObexServer obexServer = new BluetoothMapObexServer(null, mContext, mObserver,
+                mMasInstance, null, false);
+
+        obexServer.setMsgTypeFilterParams(mParams, true);
+
+        int expectedMask = 0;
+        expectedMask |= BluetoothMapAppParams.FILTER_NO_SMS_CDMA;
+        expectedMask |= BluetoothMapAppParams.FILTER_NO_SMS_GSM;
+        expectedMask |= BluetoothMapAppParams.FILTER_NO_MMS;
+        expectedMask |= BluetoothMapAppParams.FILTER_NO_EMAIL;
+        expectedMask |= BluetoothMapAppParams.FILTER_NO_IM;
+        assertThat(mParams.getFilterMessageType()).isEqualTo(expectedMask);
+    }
+
+    @Test
+    public void setMsgTypeFilterParams_withInvalidFilterMessageType() throws Exception {
+        BluetoothMapAccountItem accountItemWithTypeEmail = BluetoothMapAccountItem.create(TEST_ID,
+                TEST_NAME, TEST_PACKAGE_NAME, TEST_PROVIDER_AUTHORITY, TEST_DRAWABLE,
+                BluetoothMapUtils.TYPE.EMAIL, TEST_UCI, TEST_UCI_PREFIX);
+        BluetoothMapObexServer obexServer = new BluetoothMapObexServer(null, mContext, mObserver,
+                mMasInstance, accountItemWithTypeEmail, TEST_ENABLE_SMS_MMS);
+
+        // Passing mParams without any previous settings pass invalid filter message type
+        assertThrows(IllegalArgumentException.class,
+                () -> obexServer.setMsgTypeFilterParams(mParams, false));
+    }
+
+    @Test
+    public void setMsgTypeFilterParams_withValidFilterMessageType() throws Exception {
+        BluetoothMapAccountItem accountItemWithTypeIm = BluetoothMapAccountItem.create(TEST_ID,
+                TEST_NAME, TEST_PACKAGE_NAME, TEST_PROVIDER_AUTHORITY, TEST_DRAWABLE,
+                BluetoothMapUtils.TYPE.IM, TEST_UCI, TEST_UCI_PREFIX);
+        BluetoothMapObexServer obexServer = new BluetoothMapObexServer(null, mContext, mObserver,
+                mMasInstance, accountItemWithTypeIm, TEST_ENABLE_SMS_MMS);
+        int expectedMask = 1;
+        mParams.setFilterMessageType(expectedMask);
+
+        obexServer.setMsgTypeFilterParams(mParams, false);
+
+        int masFilterMask = 0;
+        masFilterMask |= BluetoothMapAppParams.FILTER_NO_EMAIL;
+        expectedMask |= masFilterMask;
+        assertThat(mParams.getFilterMessageType()).isEqualTo(expectedMask);
     }
 
     private void setUpBluetoothMapAppParams(BluetoothMapAppParams params) {
