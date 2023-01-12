@@ -65,4 +65,30 @@ if (use.test) {
       "dl",
     ]
   }
+  executable("net_test_device_iot_config") {
+    sources = [
+      "//bt/system/osi/test/AllocationTestHarness.cc",
+    ]
+
+    include_dirs = [
+      "//bt/system",
+      "//bt/system/stack/include",
+      "//bt/system/device/src",
+    ]
+
+    deps = [
+      "//bt/system/device",
+      "//bt/system/btcore",
+    ]
+
+    configs += [
+      "//bt/system:target_defaults",
+    ]
+
+    libs = [
+      "pthread",
+      "rt",
+      "dl",
+    ]
+  }
 }
