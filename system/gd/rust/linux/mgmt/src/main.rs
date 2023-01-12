@@ -113,6 +113,19 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let disconnect_watcher = Arc::new(Mutex::new(DisconnectWatcher::new()));
     disconnect_watcher.lock().unwrap().setup_watch(conn.clone()).await;
 
+    // We add the Crossroads instance to the connection so that incoming method calls will be
+    // handled.
+    // This must be done before exporting interfaces so that clients that rely on InterfacesAdded
+    // signal can rely on us being ready to handle methods on those exported interfaces.
+    let cr_clone = cr.clone();
+    conn.start_receive(
+        MatchRule::new_method_call(),
+        Box::new(move |msg, conn| {
+            cr_clone.lock().unwrap().handle_message(msg, conn).unwrap();
+            true
+        }),
+    );
+
     // Let's add the "/org/chromium/bluetooth/Manager" path, which implements
     // the org.chromium.bluetooth.Manager interface, to the crossroads instance.
     let iface = bluetooth_manager_dbus::export_bluetooth_manager_dbus_intf(
@@ -136,16 +149,6 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     cr.lock().unwrap().insert("/org/chromium/bluetooth/Manager", &[iface, iface_exp], mixin);
-
-    // We add the Crossroads instance to the connection so that incoming method calls will be handled.
-    let cr_clone = cr.clone();
-    conn.start_receive(
-        MatchRule::new_method_call(),
-        Box::new(move |msg, conn| {
-            cr_clone.lock().unwrap().handle_message(msg, conn).unwrap();
-            true
-        }),
-    );
 
     let mut powerd_suspend_manager = PowerdSuspendManager::new(conn.clone(), cr);
 
