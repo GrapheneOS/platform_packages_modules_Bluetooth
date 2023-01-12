@@ -52,7 +52,7 @@ void btm_pm_proc_mode_change(tHCI_STATUS hci_status, uint16_t hci_handle,
 void btm_pm_proc_ssr_evt(uint8_t* p, uint16_t evt_len);
 void btm_read_automatic_flush_timeout_complete(uint8_t* p);
 void btm_read_failed_contact_counter_complete(uint8_t* p);
-void btm_read_link_quality_complete(uint8_t* p);
+void btm_read_link_quality_complete(uint8_t* p, uint16_t evt_len);
 void btm_read_remote_ext_features_complete_raw(uint8_t* p, uint8_t evt_len);
 void btm_read_remote_ext_features_complete(uint16_t handle, uint8_t page_num,
                                            uint8_t max_page, uint8_t* features);
@@ -62,8 +62,8 @@ void btm_read_remote_version_complete(tHCI_STATUS status, uint16_t handle,
                                       uint8_t lmp_version,
                                       uint16_t manufacturer,
                                       uint16_t lmp_subversion);
-void btm_read_rssi_complete(uint8_t* p);
-void btm_read_tx_power_complete(uint8_t* p, bool is_ble);
+void btm_read_rssi_complete(uint8_t* p, uint16_t evt_len);
+void btm_read_tx_power_complete(uint8_t* p, uint16_t evt_len, bool is_ble);
 
 void acl_rcv_acl_data(BT_HDR* p_msg);
 void acl_link_segments_xmitted(BT_HDR* p_msg);

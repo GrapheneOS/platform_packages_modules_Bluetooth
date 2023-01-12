@@ -96,7 +96,7 @@ static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len);
 static void btu_ble_proc_ltk_req(uint8_t* p);
 static void btu_hcif_encryption_key_refresh_cmpl_evt(uint8_t* p);
 static void btu_ble_data_length_change_evt(uint8_t* p, uint16_t evt_len);
-static void btu_ble_rc_param_req_evt(uint8_t* p);
+static void btu_ble_rc_param_req_evt(uint8_t* p, uint8_t len);
 
 /**
  * Log HCI event metrics that are not handled in special functions
@@ -340,16 +340,16 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
           btm_ble_process_adv_pkt(ble_evt_len, p);
           break;
         case HCI_BLE_LL_CONN_PARAM_UPD_EVT:
-          btu_ble_ll_conn_param_upd_evt(p, hci_evt_len);
+          btu_ble_ll_conn_param_upd_evt(p, ble_evt_len);
           break;
         case HCI_BLE_READ_REMOTE_FEAT_CMPL_EVT:
-          btm_ble_read_remote_features_complete(p);
+          btm_ble_read_remote_features_complete(p, ble_evt_len);
           break;
         case HCI_BLE_LTK_REQ_EVT: /* received only at peripheral device */
           btu_ble_proc_ltk_req(p);
           break;
         case HCI_BLE_RC_PARAM_REQ_EVT:
-          btu_ble_rc_param_req_evt(p);
+          btu_ble_rc_param_req_evt(p, ble_evt_len);
           break;
         case HCI_BLE_DATA_LENGTH_CHANGE_EVT:
           btu_ble_data_length_change_evt(p, hci_evt_len);
@@ -1185,7 +1185,7 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_DELETE_STORED_LINK_KEY:
-      btm_delete_stored_link_key_complete(p);
+      btm_delete_stored_link_key_complete(p, evt_len);
       break;
 
     case HCI_READ_LOCAL_NAME:
@@ -1193,11 +1193,11 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_GET_LINK_QUALITY:
-      btm_read_link_quality_complete(p);
+      btm_read_link_quality_complete(p, evt_len);
       break;
 
     case HCI_READ_RSSI:
-      btm_read_rssi_complete(p);
+      btm_read_rssi_complete(p, evt_len);
       break;
 
     case HCI_READ_FAILED_CONTACT_COUNTER:
@@ -1209,15 +1209,15 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_READ_TRANSMIT_POWER_LEVEL:
-      btm_read_tx_power_complete(p, false);
+      btm_read_tx_power_complete(p, evt_len, false);
       break;
 
     case HCI_CREATE_CONNECTION_CANCEL:
-      btm_create_conn_cancel_complete(p);
+      btm_create_conn_cancel_complete(p, evt_len);
       break;
 
     case HCI_READ_LOCAL_OOB_DATA:
-      btm_read_local_oob_complete(p);
+      btm_read_local_oob_complete(p, evt_len);
       break;
 
     case HCI_READ_INQ_TX_POWER_LEVEL:
@@ -1226,15 +1226,15 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
     /* BLE Commands sComplete*/
     case HCI_BLE_RAND:
     case HCI_BLE_ENCRYPT:
-      btm_ble_rand_enc_complete(p, opcode, (tBTM_RAND_ENC_CB*)p_cplt_cback);
+      btm_ble_rand_enc_complete(p, evt_len, opcode, (tBTM_RAND_ENC_CB*)p_cplt_cback);
       break;
 
     case HCI_BLE_READ_ADV_CHNL_TX_POWER:
-      btm_read_tx_power_complete(p, true);
+      btm_read_tx_power_complete(p, evt_len, true);
       break;
 
     case HCI_BLE_WRITE_ADV_ENABLE:
-      btm_ble_write_adv_enable_complete(p);
+      btm_ble_write_adv_enable_complete(p, evt_len);
       break;
 
     case HCI_BLE_CREATE_LL_CONN:
@@ -1645,6 +1645,11 @@ static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len) {
   uint16_t latency;
   uint16_t timeout;
 
+  if (evt_len < 9) {
+     LOG_ERROR("Bogus event packet, too short");
+     return;
+  }
+
   STREAM_TO_UINT8(status, p);
   STREAM_TO_UINT16(handle, p);
   STREAM_TO_UINT16(interval, p);
@@ -1687,9 +1692,14 @@ static void btu_ble_data_length_change_evt(uint8_t* p, uint16_t evt_len) {
 /**********************************************
  * End of BLE Events Handler
  **********************************************/
-static void btu_ble_rc_param_req_evt(uint8_t* p) {
+static void btu_ble_rc_param_req_evt(uint8_t* p, uint8_t len) {
   uint16_t handle;
   uint16_t int_min, int_max, latency, timeout;
+
+  if (len < 10) {
+    LOG(ERROR) << __func__ << "bogus event packet, too short";
+    return;
+  }
 
   STREAM_TO_UINT16(handle, p);
   STREAM_TO_UINT16(int_min, p);

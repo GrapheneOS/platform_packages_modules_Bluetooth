@@ -34,7 +34,8 @@ class Server(context: Context) {
   private var a2dpSink: A2dpSink? = null
   private var avrcp: Avrcp
   private var gatt: Gatt
-  private var hfp: Hfp
+  private var hfp: Hfp? = null
+  private var hfpHandsfree: HfpHandsfree? = null
   private var hid: Hid
   private var l2cap: L2cap
   private var mediaplayer: MediaPlayer
@@ -50,7 +51,6 @@ class Server(context: Context) {
     host = Host(context, security, this)
     avrcp = Avrcp(context)
     gatt = Gatt(context)
-    hfp = Hfp(context)
     hid = Hid(context)
     l2cap = L2cap(context)
     mediaplayer = MediaPlayer(context)
@@ -64,7 +64,6 @@ class Server(context: Context) {
         .addService(host)
         .addService(avrcp)
         .addService(gatt)
-        .addService(hfp)
         .addService(hid)
         .addService(l2cap)
         .addService(mediaplayer)
@@ -84,6 +83,15 @@ class Server(context: Context) {
       grpcServerBuilder.addService(a2dpSink!!)
     }
 
+    val is_hfp_hf = bluetoothAdapter.getSupportedProfiles().contains(BluetoothProfile.HEADSET_CLIENT)
+    if (is_hfp_hf) {
+      hfpHandsfree = HfpHandsfree(context)
+      grpcServerBuilder.addService(hfpHandsfree!!)
+    } else {
+      hfp = Hfp(context)
+      grpcServerBuilder.addService(hfp!!)
+    }
+
     grpcServer = grpcServerBuilder.build()
 
     Log.d(TAG, "Starting Pandora Server")
@@ -101,7 +109,8 @@ class Server(context: Context) {
     a2dpSink?.deinit()
     avrcp.deinit()
     gatt.deinit()
-    hfp.deinit()
+    hfp?.deinit()
+    hfpHandsfree?.deinit()
     hid.deinit()
     l2cap.deinit()
     mediaplayer.deinit()

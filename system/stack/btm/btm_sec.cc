@@ -2046,8 +2046,14 @@ static void btm_sec_bond_cancel_complete(void) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_create_conn_cancel_complete(const uint8_t* p) {
+void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
   uint8_t status;
+
+  if (evt_len < 1 + BD_ADDR_LEN) {
+     BTM_TRACE_ERROR("%s malformatted event packet, too short", __func__);
+     return;
+  }
+
   STREAM_TO_UINT8(status, p);
   RawAddress bd_addr;
   STREAM_TO_BDADDR(bd_addr, p);
@@ -2986,13 +2992,23 @@ void btm_rem_oob_req(const uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_read_local_oob_complete(uint8_t* p) {
+void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len) {
   tBTM_SP_LOC_OOB evt_data;
-  uint8_t status = *p++;
+  uint8_t status;
+  if (evt_len < 1) {
+    goto err_out;
+  }
+
+  STREAM_TO_UINT8(status, p);
 
   BTM_TRACE_EVENT("btm_read_local_oob_complete:%d", status);
   if (status == HCI_SUCCESS) {
     evt_data.status = BTM_SUCCESS;
+
+    if (evt_len < 1 + 32) {
+      goto err_out;
+    }
+
     STREAM_TO_ARRAY16(evt_data.c.data(), p);
     STREAM_TO_ARRAY16(evt_data.r.data(), p);
   } else
@@ -3003,6 +3019,11 @@ void btm_read_local_oob_complete(uint8_t* p) {
     btm_sp_evt_data.loc_oob = evt_data;
     (*btm_cb.api.p_sp_callback)(BTM_SP_LOC_OOB_EVT, &btm_sp_evt_data);
   }
+
+  return;
+
+err_out:
+  BTM_TRACE_ERROR("%s malformatted event packet, too short", __func__);
 }
 
 /*******************************************************************************
