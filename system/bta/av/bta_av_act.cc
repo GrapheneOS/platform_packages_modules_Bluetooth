@@ -1040,6 +1040,8 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
       av.remote_rsp.key_state = p_data->rc_msg.msg.pass.state;
       av.remote_rsp.rsp_code = p_data->rc_msg.msg.hdr.ctype;
       av.remote_rsp.label = p_data->rc_msg.label;
+      av.remote_rsp.len = p_data->rc_msg.msg.pass.pass_len;
+      av.remote_rsp.p_data = NULL;
 
       /* If this response is for vendor unique command  */
       if ((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VENDOR) &&

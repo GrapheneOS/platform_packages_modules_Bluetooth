@@ -1070,7 +1070,7 @@ void handle_rc_vendorunique_rsp(tBTA_AV_REMOTE_RSP* p_remote_rsp) {
       key_state = 0;
     }
 
-    if (p_remote_rsp->len > 0) {
+    if (p_remote_rsp->len > 0 && p_remote_rsp->p_data != NULL) {
       if (p_remote_rsp->len >= AVRC_PASS_THRU_GROUP_LEN)
         vendor_id = p_remote_rsp->p_data[AVRC_PASS_THRU_GROUP_LEN - 1];
       osi_free_and_reset((void**)&p_remote_rsp->p_data);
