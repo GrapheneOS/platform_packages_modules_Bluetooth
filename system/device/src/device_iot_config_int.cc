@@ -52,7 +52,8 @@ extern char device_iot_config_time_created[TIME_STRING_LENGTH];
 extern std::mutex config_lock;  // protects operations on |config|.
 extern std::unique_ptr<config_t> config;
 extern alarm_t* config_timer;
-extern bool iot_logging_enabled;
+
+using bluetooth::common::InitFlags;
 
 static void cleanup() {
   alarm_free(config_timer);
@@ -67,11 +68,6 @@ future_t* device_iot_config_module_init(void) {
   LOG_INFO("");
 
   std::unique_lock<std::mutex> lock(config_lock);
-  iot_logging_enabled = osi_property_get_bool(PROPERTY_ENABLE_LOGGING, false);
-  if (!iot_logging_enabled) {
-    device_iot_config_delete_files();
-    return future_new_immediate(FUTURE_SUCCESS);
-  }
 
   if (device_iot_config_is_factory_reset()) {
     device_iot_config_delete_files();
@@ -198,7 +194,7 @@ EXPORT_SYMBOL module_t device_iot_config_module = {
     .clean_up = device_iot_config_module_clean_up};
 
 void device_iot_config_write(uint16_t event, UNUSED_ATTR char* p_param) {
-  CHECK_LOGGING_ENABLED((void)0);
+  if (!InitFlags::IsDeviceIotConfigLoggingEnabled()) return;
 
   CHECK(config != NULL);
   CHECK(config_timer != NULL);
@@ -237,6 +233,8 @@ bool device_iot_config_has_key_value(const std::string& section,
 }
 
 void device_iot_config_save_async(void) {
+  if (!InitFlags::IsDeviceIotConfigLoggingEnabled()) return;
+
   CHECK(config != NULL);
   CHECK(config_timer != NULL);
 
@@ -246,7 +244,7 @@ void device_iot_config_save_async(void) {
 }
 
 int device_iot_config_get_device_num(const config_t& conf) {
-  CHECK_LOGGING_ENABLED(0);
+  if (!InitFlags::IsDeviceIotConfigLoggingEnabled()) return 0;
 
   int devices = 0;
 

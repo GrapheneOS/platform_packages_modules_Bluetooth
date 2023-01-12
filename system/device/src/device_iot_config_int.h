@@ -64,9 +64,10 @@ static const uint64_t CONFIG_SETTLE_PERIOD_MS = 12000;
 
 enum ConfigSource { NOT_LOADED, ORIGINAL, BACKUP, NEW_FILE, RESET };
 
-#define CHECK_LOGGING_ENABLED(return_value)          \
-  do {                                               \
-    if (!iot_logging_enabled) return (return_value); \
+#define CHECK_LOGGING_ENABLED(return_value)                               \
+  do {                                                                    \
+    if (!bluetooth::common::InitFlags::IsDeviceIotConfigLoggingEnabled()) \
+      return (return_value);                                              \
   } while (0)
 
 struct config_t;

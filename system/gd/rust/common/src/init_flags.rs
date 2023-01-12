@@ -209,6 +209,7 @@ init_flags!(
         asynchronously_start_l2cap_coc = true,
         btaa_hci = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
+        device_iot_config_logging,
         finite_att_timeout = true,
         gatt_robust_caching_client = true,
         gatt_robust_caching_server,
