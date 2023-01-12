@@ -317,7 +317,7 @@ static void srvc_eng_connect_cback(UNUSED_ATTR tGATT_IF gatt_if,
                                    const RawAddress& bda, uint16_t conn_id,
                                    bool connected, tGATT_DISCONN_REASON reason,
                                    UNUSED_ATTR tBT_TRANSPORT transport) {
-  VLOG(1) << __func__ << ": from " << bda
+  VLOG(1) << __func__ << ": from " << ADDRESS_TO_LOGGABLE_STR(bda)
           << StringPrintf(" connected:%d conn_id=%d", connected, conn_id);
 
   if (connected) {

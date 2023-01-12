@@ -476,7 +476,7 @@ void bta_hh_api_disc_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
 
   if (p_cb->is_le_device) {
     LOG_DEBUG("Host initiating close to le device:%s",
-              PRIVATE_ADDRESS(p_cb->addr));
+              ADDRESS_TO_LOGGABLE_CSTR(p_cb->addr));
 
     bta_hh_le_api_disc_act(p_cb);
 
@@ -487,10 +487,10 @@ void bta_hh_api_disc_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
     tHID_STATUS status = HID_HostCloseDev(hid_handle);
     if (status != HID_SUCCESS) {
       LOG_WARN("Failed closing classic device:%s status:%s",
-               PRIVATE_ADDRESS(p_cb->addr), hid_status_text(status).c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(p_cb->addr), hid_status_text(status).c_str());
     } else {
       LOG_DEBUG("Host initiated close to classic device:%s",
-                PRIVATE_ADDRESS(p_cb->addr));
+                ADDRESS_TO_LOGGABLE_CSTR(p_cb->addr));
     }
     tBTA_HH bta_hh = {
         .dev_status = {.status =

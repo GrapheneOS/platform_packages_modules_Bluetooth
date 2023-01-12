@@ -22,7 +22,7 @@ bt_topshim = { path = "../../topshim" }
 
 libc = "0.2"
 log = "0.4.14"
-nix = "0.19"
+nix = "0.23"
 num-derive = "0.3"
 num-traits = "0.2"
 

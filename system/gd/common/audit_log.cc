@@ -23,10 +23,6 @@
 namespace {
 #if defined(OS_ANDROID)
 
-constexpr char kPrivateAddressPrefix[] = "xx:xx:xx:xx";
-#define PRIVATE_ADDRESS(addr) \
-  ((addr).ToString().replace(0, strlen(kPrivateAddressPrefix), kPrivateAddressPrefix).c_str())
-
 // Tags for security logging, should be in sync with
 // frameworks/base/core/java/android/app/admin/SecurityLogTags.logtags
 constexpr int SEC_TAG_BLUETOOTH_CONNECTION = 210039;
@@ -41,7 +37,7 @@ void LogConnectionAdminAuditEvent(const char* action, const hci::Address& addres
 #if defined(OS_ANDROID)
 
   android_log_event_list(SEC_TAG_BLUETOOTH_CONNECTION)
-      << PRIVATE_ADDRESS(address) << /* success */ int32_t(status == hci::ErrorCode::SUCCESS)
+      << ADDRESS_TO_LOGGABLE_CSTR(address) << /* success */ int32_t(status == hci::ErrorCode::SUCCESS)
       << common::StringFormat("%s: %s", action, ErrorCodeText(status).c_str()).c_str() << LOG_ID_SECURITY;
 
 #endif /* defined(OS_ANDROID) */

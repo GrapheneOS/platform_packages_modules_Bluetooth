@@ -88,7 +88,7 @@ void BTM_SecAddBleDevice(const RawAddress& bd_addr, tBT_DEVICE_TYPE dev_type,
     p_dev_rec->conn_params.peripheral_latency = BTM_BLE_CONN_PARAM_UNDEF;
 
     LOG_DEBUG("Device added, handle=0x%x, p_dev_rec=%p, bd_addr=%s",
-              p_dev_rec->ble_hci_handle, p_dev_rec, PRIVATE_ADDRESS(bd_addr));
+              p_dev_rec->ble_hci_handle, p_dev_rec, ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
   }
 
   memset(p_dev_rec->sec_bd_name, 0, sizeof(tBTM_BD_NAME));
@@ -143,7 +143,7 @@ void BTM_SecAddBleKey(const RawAddress& bd_addr, tBTM_LE_KEY_VALUE* p_le_key,
     return;
   }
 
-  LOG_DEBUG("Adding BLE key device:%s key_type:%hhu", PRIVATE_ADDRESS(bd_addr),
+  LOG_DEBUG("Adding BLE key device:%s key_type:%hhu", ADDRESS_TO_LOGGABLE_CSTR(bd_addr),
             key_type);
 
   btm_sec_save_le_key(bd_addr, key_type, p_le_key, false);

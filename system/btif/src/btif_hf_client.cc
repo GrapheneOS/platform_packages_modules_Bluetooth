@@ -226,7 +226,7 @@ btif_hf_client_cb_t* btif_hf_client_get_cb_by_handle(uint16_t handle) {
  *
  ******************************************************************************/
 btif_hf_client_cb_t* btif_hf_client_get_cb_by_bda(const RawAddress& bd_addr) {
-  VLOG(1) << __func__ << " incoming addr " << bd_addr;
+  VLOG(1) << __func__ << " incoming addr " << ADDRESS_TO_LOGGABLE_CSTR(bd_addr);
 
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
     // Block is valid only if it is allocated i.e. state is not DISCONNECTED

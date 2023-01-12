@@ -604,7 +604,8 @@ void LeAddressManager::OnCommandComplete(bluetooth::hci::CommandCompleteView vie
               "Received LE_SET_RANDOM_ADDRESS complete with status %s",
               ErrorCodeText(complete_view.GetStatus()).c_str());
         } else {
-          LOG_INFO("update random address : %s", cached_address_.GetAddress().ToString().c_str());
+          LOG_INFO("update random address : %s",
+                   ADDRESS_TO_LOGGABLE_CSTR(cached_address_.GetAddress()));
           le_address_ = cached_address_;
         }
       }

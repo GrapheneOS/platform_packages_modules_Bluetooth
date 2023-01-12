@@ -366,7 +366,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
   void OnGroupAddedCb(const RawAddress& address, const bluetooth::Uuid& uuid,
                       int group_id) {
-    LOG(INFO) << __func__ << " address: " << address << " group uuid " << uuid
+    LOG(INFO) << __func__ << " address: " << ADDRESS_TO_LOGGABLE_STR(address)
+              << " group uuid " << uuid
               << " group_id: " << group_id;
 
     /* We are interested in the groups which are in the context of CAP */
@@ -388,13 +389,13 @@ class LeAudioClientImpl : public LeAudioClient {
    * considering this removing device.
    */
   void SetDeviceAsRemovePendingAndStopGroup(LeAudioDevice* leAudioDevice) {
-    LOG_INFO("device %s", leAudioDevice->address_.ToString().c_str());
+    LOG_INFO("device %s", ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     leAudioDevice->SetConnectionState(DeviceConnectState::PENDING_REMOVAL);
     GroupStop(leAudioDevice->group_id_);
   }
 
   void OnGroupMemberAddedCb(const RawAddress& address, int group_id) {
-    LOG(INFO) << __func__ << " address: " << address
+    LOG(INFO) << __func__ << " address: " << ADDRESS_TO_LOGGABLE_STR(address)
               << " group_id: " << group_id;
 
     auto group = aseGroups_.FindById(group_id);
@@ -415,21 +416,22 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnGroupMemberRemovedCb(const RawAddress& address, int group_id) {
-    LOG(INFO) << __func__ << " address: " << address
+    LOG(INFO) << __func__ << " address: " << ADDRESS_TO_LOGGABLE_STR(address)
               << " group_id: " << group_id;
 
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
     if (!leAudioDevice) return;
     if (leAudioDevice->group_id_ != group_id) {
       LOG_WARN("Device: %s not assigned to the group.",
-               leAudioDevice->address_.ToString().c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       return;
     }
 
     LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
     if (group == NULL) {
       LOG(INFO) << __func__
-                << " device not in the group: " << leAudioDevice->address_
+                << " device not in the group: "
+                << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_)
                 << ", " << group_id;
       return;
     }
@@ -561,7 +563,8 @@ class LeAudioClientImpl : public LeAudioClient {
       /* TODO This part possible to remove as this is to handle adding device to
        * the group which is unknown and not connected.
        */
-      LOG(INFO) << __func__ << ", leAudioDevice unknown , address: " << address
+      LOG(INFO) << __func__ << ", leAudioDevice unknown , address: "
+                << ADDRESS_TO_LOGGABLE_STR(address)
                 << " group: " << loghex(group_id);
 
       if (group_id == bluetooth::groups::kGroupUnknown) return;
@@ -709,11 +712,12 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
 
     LOG(INFO) << __func__ << " group_id: " << group_id
-              << " address: " << address;
+              << " address: " << ADDRESS_TO_LOGGABLE_STR(address);
 
     if (!leAudioDevice) {
       LOG(ERROR) << __func__
-                 << ", Skipping unknown leAudioDevice, address: " << address;
+                 << ", Skipping unknown leAudioDevice, address: "
+                 << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
@@ -1112,7 +1116,7 @@ class LeAudioClientImpl : public LeAudioClient {
       if ((current_connect_state == DeviceConnectState::CONNECTED) ||
           (current_connect_state == DeviceConnectState::CONNECTING_BY_USER)) {
         LOG_ERROR("Device %s is in invalid state: %s",
-                  leAudioDevice->address_.ToString().c_str(),
+                  ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
                   bluetooth::common::ToString(current_connect_state).c_str());
 
         return;
@@ -1248,7 +1252,7 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void BackgroundConnectIfGroupConnected(LeAudioDevice* leAudioDevice) {
-    DLOG(INFO) << __func__ << leAudioDevice->address_;
+    DLOG(INFO) << __func__ << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_);
     auto group = aseGroups_.FindById(leAudioDevice->group_id_);
     if (!group) {
       DLOG(INFO) << __func__ << " Device is not yet part of the group. ";
@@ -1261,7 +1265,8 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    DLOG(INFO) << __func__ << " Add " << leAudioDevice->address_
+    DLOG(INFO) << __func__ << " Add "
+               << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_)
                << " to background connect to connected group: "
                << leAudioDevice->group_id_;
 
@@ -1275,8 +1280,8 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
 
     if (!leAudioDevice) {
-      LOG(ERROR) << __func__ << ", leAudioDevice not connected (" << address
-                 << ")";
+      LOG(ERROR) << __func__ << ", leAudioDevice not connected ("
+                 << ADDRESS_TO_LOGGABLE_STR(address) << ")";
       return;
     }
 
@@ -1666,7 +1671,8 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (controller_get_interface()->supports_ble_2m_phy()) {
-      LOG(INFO) << address << " set preferred PHY to 2M";
+      LOG(INFO) << ADDRESS_TO_LOGGABLE_STR(address)
+                << " set preferred PHY to 2M";
       BTM_BleSetPhy(address, PHY_LE_2M, PHY_LE_2M, 0);
     }
 
@@ -1713,7 +1719,8 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void RegisterKnownNotifications(LeAudioDevice* leAudioDevice) {
-    LOG(INFO) << __func__ << " device: " << leAudioDevice->address_;
+    LOG(INFO) << __func__ << " device: "
+              << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_);
 
     if (leAudioDevice->ctp_hdls_.val_hdl == 0) {
       LOG_ERROR(
@@ -1770,11 +1777,13 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnEncryptionComplete(const RawAddress& address, uint8_t status) {
-    LOG(INFO) << __func__ << " " << address << "status: " << int{status};
+    LOG(INFO) << __func__ << " "
+              << ADDRESS_TO_LOGGABLE_STR(address) << "status: " << int{status};
 
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
     if (leAudioDevice == NULL) {
-      LOG(WARNING) << "Skipping unknown device" << address;
+      LOG(WARNING) << "Skipping unknown device"
+                   << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
@@ -1826,7 +1835,8 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
 
     if (!leAudioDevice) {
-      LOG(ERROR) << ", skipping unknown leAudioDevice, address: " << address;
+      LOG(ERROR) << ", skipping unknown leAudioDevice, address: "
+                 << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
@@ -1914,11 +1924,12 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
     if (!leAudioDevice) {
       DLOG(ERROR) << __func__
-                  << ", skipping unknown leAudioDevice, address: " << address;
+                  << ", skipping unknown leAudioDevice, address: "
+                  << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
-    LOG(INFO) << __func__ << ": address=" << address;
+    LOG(INFO) << __func__ << ": address=" << ADDRESS_TO_LOGGABLE_STR(address);
     leAudioDevice->known_service_handles_ = false;
     leAudioDevice->csis_member_ = false;
     BtaGattQueue::Clean(leAudioDevice->conn_id_);
@@ -1939,7 +1950,8 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
     if (!leAudioDevice) {
       DLOG(ERROR) << __func__
-                  << ", skipping unknown leAudioDevice, address: " << address;
+                  << ", skipping unknown leAudioDevice, address: "
+                  << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
 
@@ -2306,7 +2318,7 @@ class LeAudioClientImpl : public LeAudioClient {
     /* CSIS will trigger adding to group */
     if (leAudioDevice->csis_member_) {
       LOG(INFO) << __func__ << " waiting for CSIS to create group for device "
-                << leAudioDevice->address_;
+                << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_);
       return;
     }
 
@@ -2436,7 +2448,7 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void connectionReady(LeAudioDevice* leAudioDevice) {
-    LOG_DEBUG("%s,  %s", leAudioDevice->address_.ToString().c_str(),
+    LOG_DEBUG("%s,  %s", ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
               bluetooth::common::ToString(leAudioDevice->GetConnectionState())
                   .c_str());
     callbacks_->OnConnectionState(ConnectionState::CONNECTED,
@@ -4112,7 +4124,7 @@ class LeAudioClientImpl : public LeAudioClient {
         if (device->closing_stream_for_disconnection_) {
           device->closing_stream_for_disconnection_ = false;
           LOG_INFO("Disconnecting group id: %d, address: %s", group->group_id_,
-                   device->address_.ToString().c_str());
+                   ADDRESS_TO_LOGGABLE_CSTR(device->address_));
           DisconnectDevice(device);
         }
         group_remove_node(group, device->address_, true);

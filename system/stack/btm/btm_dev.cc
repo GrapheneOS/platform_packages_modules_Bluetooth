@@ -71,7 +71,7 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
     LOG_DEBUG(
         "Caching new record from config file device:%s link_key_type:%x "
         "name:%s",
-        PRIVATE_ADDRESS(bd_addr), key_type, bd_name);
+        ADDRESS_TO_LOGGABLE_CSTR(bd_addr), key_type, bd_name);
 
     p_dev_rec->bd_addr = bd_addr;
     p_dev_rec->hci_handle = BTM_GetHCIConnHandle(bd_addr, BT_TRANSPORT_BR_EDR);
@@ -82,7 +82,7 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
   } else {
     LOG_DEBUG(
         "Caching existing record from config file device:%s link_key_type:%x",
-        PRIVATE_ADDRESS(bd_addr), key_type);
+        ADDRESS_TO_LOGGABLE_CSTR(bd_addr), key_type);
 
     /* "Bump" timestamp for existing record */
     p_dev_rec->timestamp = btm_cb.dev_rec_count++;
@@ -102,14 +102,14 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
 
   if (bd_name && bd_name[0]) {
     LOG_DEBUG("  Remote name known for device:%s name:%s",
-              PRIVATE_ADDRESS(bd_addr), bd_name);
+              ADDRESS_TO_LOGGABLE_CSTR(bd_addr), bd_name);
     p_dev_rec->sec_flags |= BTM_SEC_NAME_KNOWN;
     strlcpy((char*)p_dev_rec->sec_bd_name, (char*)bd_name,
             BTM_MAX_REM_BD_NAME_LEN + 1);
   }
 
   if (p_link_key) {
-    LOG_DEBUG("  Link key known for device:%s", PRIVATE_ADDRESS(bd_addr));
+    LOG_DEBUG("  Link key known for device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_KNOWN;
     p_dev_rec->link_key = *p_link_key;
     p_dev_rec->link_key_type = key_type;
@@ -157,7 +157,7 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
   if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE) ||
       BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_BR_EDR)) {
     LOG_WARN("%s FAILED: Cannot Delete when connection to %s is active",
-             __func__, PRIVATE_ADDRESS(bd_addr));
+             __func__, ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     return false;
   }
 
@@ -167,7 +167,7 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
 
     if (p_dev_rec->ble.in_controller_list & BTM_ACCEPTLIST_BIT) {
       LOG_INFO("Remove device %s from filter accept list before delete record",
-               PRIVATE_ADDRESS(bd_addr));
+               ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       BTM_AcceptlistRemove(p_dev_rec->bd_addr);
     }
 
@@ -176,10 +176,10 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
     wipe_secrets_and_remove(p_dev_rec);
     /* Tell controller to get rid of the link key, if it has one stored */
     BTM_DeleteStoredLinkKey(&bda, NULL);
-    LOG_INFO("%s %s complete", __func__, PRIVATE_ADDRESS(bd_addr));
+    LOG_INFO("%s %s complete", __func__, ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
   } else {
     LOG_WARN("%s Unable to delete link key for unknown device %s", __func__,
-             PRIVATE_ADDRESS(bd_addr));
+             ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
   }
 
   return true;
@@ -237,7 +237,7 @@ tBTM_SEC_DEV_REC* btm_sec_alloc_dev(const RawAddress& bd_addr) {
 
   tBTM_SEC_DEV_REC* p_dev_rec = btm_sec_allocate_dev_rec();
 
-  LOG_DEBUG("Allocated device record bd_addr:%s", PRIVATE_ADDRESS(bd_addr));
+  LOG_DEBUG("Allocated device record bd_addr:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
   /* Check with the BT manager if details about remote device are known */
   /* outgoing connection */

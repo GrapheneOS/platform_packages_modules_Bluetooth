@@ -65,12 +65,6 @@ using bluetooth::groups::DeviceGroups;
  *  Constants & Macros
  ******************************************************************************/
 
-constexpr char kPrivateAddressPrefix[] = "xx:xx:xx:xx";
-#define PRIVATE_ADDRESS(addr)                                            \
-  (addr.ToString()                                                       \
-       .replace(0, strlen(kPrivateAddressPrefix), kPrivateAddressPrefix) \
-       .c_str())
-
 #define BTIF_STORAGE_CSIS_AUTOCONNECT "CsisAutoconnect"
 #define BTIF_STORAGE_CSIS_SET_INFO_BIN "CsisSetInfoBin"
 #define BTIF_STORAGE_LEAUDIO_AUTOCONNECT "LeAudioAutoconnect"
@@ -266,7 +260,7 @@ btif_storage_get_hid_device_addresses(void) {
     btif_get_address_type(bd_addr, &type);
 
     hid_addresses.push_back({bd_addr, type});
-    LOG_DEBUG("Remote device: %s", PRIVATE_ADDRESS(bd_addr));
+    LOG_DEBUG("Remote device: %s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
   }
   return hid_addresses;
 }
@@ -295,7 +289,7 @@ void btif_storage_add_hearing_aid(const HearingDevice& dev_info) {
           [](const HearingDevice& dev_info) {
             std::string bdstr = dev_info.address.ToString();
             VLOG(2) << "saving hearing aid device: "
-                    << ADDRESS_TO_LOGGABLE_CSTR(dev_info.address);
+                    << ADDRESS_TO_LOGGABLE_STR(dev_info.address);
             btif_config_set_int(bdstr, HEARING_AID_SERVICE_CHANGED_CCC_HANDLE,
                                 dev_info.service_changed_ccc_handle);
             btif_config_set_int(bdstr, HEARING_AID_READ_PSM_HANDLE,

@@ -1160,7 +1160,7 @@ static void bta_hh_le_close(const tBTA_GATTC_CLOSE& gattc_data) {
   tBTA_HH_DEV_CB* p_cb = bta_hh_le_find_dev_cb_by_bda(gattc_data.remote_bda);
   if (p_cb == nullptr) {
     LOG_WARN("Received close event with unknown device:%s",
-             PRIVATE_ADDRESS(gattc_data.remote_bda));
+             ADDRESS_TO_LOGGABLE_CSTR(gattc_data.remote_bda));
     return;
   }
   p_cb->conn_id = GATT_INVALID_CONN_ID;
@@ -1608,7 +1608,7 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
                  base::StringPrintf(
                      "%s reason %s", (p_cb->is_le_device) ? "le" : "classic",
                      gatt_disconnection_reason_text(le_close->reason).c_str()));
-  LOG_WARN("Open failed for device:%s", PRIVATE_ADDRESS(p_cb->addr));
+  LOG_WARN("Open failed for device:%s", ADDRESS_TO_LOGGABLE_CSTR(p_cb->addr));
 
   /* open failure in the middle of service discovery, clear all services */
   if (p_cb->disc_active & BTA_HH_LE_DISC_HIDS) {
@@ -1682,7 +1682,7 @@ void bta_hh_gatt_close(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
       case GATT_CONN_TIMEOUT:
         LOG_DEBUG(
             "gd_acl: add into acceptlist for reconnection device:%s reason:%s",
-            PRIVATE_ADDRESS(p_cb->addr),
+            ADDRESS_TO_LOGGABLE_CSTR(p_cb->addr),
             gatt_disconnection_reason_text(le_close->reason).c_str());
         // gd removes from bg list after successful connection
         // Correct the cached state to allow re-add to acceptlist.
@@ -1699,7 +1699,7 @@ void bta_hh_gatt_close(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
         LOG_DEBUG(
             "gd_acl: SKIP add into acceptlist for reconnection device:%s "
             "reason:%s",
-            PRIVATE_ADDRESS(p_cb->addr),
+            ADDRESS_TO_LOGGABLE_CSTR(p_cb->addr),
             gatt_disconnection_reason_text(le_close->reason).c_str());
         break;
     }
@@ -2072,7 +2072,7 @@ uint8_t bta_hh_le_add_device(tBTA_HH_DEV_CB* p_cb,
 void bta_hh_le_remove_dev_bg_conn(tBTA_HH_DEV_CB* p_dev_cb) {
   if (p_dev_cb->in_bg_conn) {
     LOG_DEBUG("Removing from background connection device:%s",
-              PRIVATE_ADDRESS(p_dev_cb->addr));
+              ADDRESS_TO_LOGGABLE_CSTR(p_dev_cb->addr));
     p_dev_cb->in_bg_conn = false;
 
     BTA_GATTC_CancelOpen(bta_hh_cb.gatt_if, p_dev_cb->addr, false);
