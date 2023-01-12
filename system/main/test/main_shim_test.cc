@@ -656,7 +656,7 @@ TEST_F(MainShimTest, DISABLED_BleScannerInterfaceImpl_OnScanResult) {
   }
 
   ASSERT_EQ(2 * 2048UL, do_in_jni_thread_task_queue.size());
-  ASSERT_EQ(0, mock_function_count_map["btm_ble_process_adv_addr"]);
+  ASSERT_EQ(0, get_func_call_count("btm_ble_process_adv_addr"));
 
   run_all_jni_thread_task();
 }
