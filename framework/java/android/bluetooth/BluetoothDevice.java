@@ -1359,6 +1359,19 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         this(address, ADDRESS_TYPE_PUBLIC);
     }
 
+    /**
+     * Create a new BluetoothDevice.
+     *
+     * @param in valid parcel
+     * @throws RuntimeException Bluetooth is not available on this platform
+     * @throws IllegalArgumentException address is invalid
+     * @hide
+     */
+    @UnsupportedAppUsage
+    /*package*/ BluetoothDevice(Parcel in) {
+        this(in.readString(), in.readInt());
+    }
+
     /** {@hide} */
     public void setAttributionSource(@NonNull AttributionSource attributionSource) {
         mAttributionSource = attributionSource;
@@ -1452,7 +1465,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     public static final @NonNull Creator<BluetoothDevice> CREATOR = new Creator<>() {
         public BluetoothDevice createFromParcel(Parcel in) {
-            return new BluetoothDevice(in.readString());
+            return new BluetoothDevice(in);
         }
 
         public BluetoothDevice[] newArray(int size) {
@@ -1463,6 +1476,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @Override
     public void writeToParcel(Parcel out, int flags) {
         out.writeString(mAddress);
+        out.writeInt(mAddressType);
     }
 
     /**
