@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include <algorithm>
+#include <future>
 
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 #include "audio_hal_interface/a2dp_encoding.h"
@@ -242,7 +243,7 @@ static void btif_a2dp_source_start_session_delayed(
     const RawAddress& peer_address, std::promise<void> start_session_promise);
 static void btif_a2dp_source_end_session_delayed(
     const RawAddress& peer_address);
-static void btif_a2dp_source_shutdown_delayed(void);
+static void btif_a2dp_source_shutdown_delayed(std::promise<void>);
 static void btif_a2dp_source_cleanup_delayed(void);
 static void btif_a2dp_source_audio_tx_start_event(void);
 static void btif_a2dp_source_audio_tx_stop_event(void);
@@ -483,7 +484,7 @@ static void btif_a2dp_source_end_session_delayed(
   }
 }
 
-void btif_a2dp_source_shutdown(void) {
+void btif_a2dp_source_shutdown(std::promise<void> shutdown_complete_promise) {
   LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
 
   if ((btif_a2dp_source_cb.State() == BtifA2dpSource::kStateOff) ||
@@ -495,10 +496,12 @@ void btif_a2dp_source_shutdown(void) {
   btif_a2dp_source_cb.SetState(BtifA2dpSource::kStateShuttingDown);
 
   btif_a2dp_source_thread.DoInThread(
-      FROM_HERE, base::Bind(&btif_a2dp_source_shutdown_delayed));
+      FROM_HERE, base::BindOnce(&btif_a2dp_source_shutdown_delayed,
+                                std::move(shutdown_complete_promise)));
 }
 
-static void btif_a2dp_source_shutdown_delayed(void) {
+static void btif_a2dp_source_shutdown_delayed(
+    std::promise<void> shutdown_complete_promise) {
   LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
 
   // Stop the timer
@@ -514,13 +517,16 @@ static void btif_a2dp_source_shutdown_delayed(void) {
   btif_a2dp_source_cb.tx_audio_queue = nullptr;
 
   btif_a2dp_source_cb.SetState(BtifA2dpSource::kStateOff);
+
+  shutdown_complete_promise.set_value();
 }
 
 void btif_a2dp_source_cleanup(void) {
   LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
 
   // Make sure the source is shutdown
-  btif_a2dp_source_shutdown();
+  std::promise<void> shutdown_complete_promise;
+  btif_a2dp_source_shutdown(std::move(shutdown_complete_promise));
 
   btif_a2dp_source_thread.DoInThread(
       FROM_HERE, base::Bind(&btif_a2dp_source_cleanup_delayed));
