@@ -1384,7 +1384,6 @@ static uint32_t GetFirstLeft(const types::AudioLocations& audio_locations) {
   if (audio_location_ulong & codec_spec_conf::kLeAudioLocationLeftSurround)
     return codec_spec_conf::kLeAudioLocationLeftSurround;
 
-  LOG_WARN("Can't find device able to render left audio channel");
   return 0;
 }
 
@@ -1422,15 +1421,15 @@ static uint32_t GetFirstRight(const types::AudioLocations& audio_locations) {
   if (audio_location_ulong & codec_spec_conf::kLeAudioLocationRightSurround)
     return codec_spec_conf::kLeAudioLocationRightSurround;
 
-  LOG_WARN("Can't find device able to render right audio channel");
   return 0;
 }
 
 uint32_t PickAudioLocation(types::LeAudioConfigurationStrategy strategy,
                            types::AudioLocations device_locations,
                            types::AudioLocations* group_locations) {
-  LOG_DEBUG("strategy: %d, locations: %lx, group locations: %lx", (int)strategy,
-            device_locations.to_ulong(), group_locations->to_ulong());
+  LOG_DEBUG("strategy: %d, locations: 0x%lx, group locations: 0x%lx",
+            (int)strategy, device_locations.to_ulong(),
+            group_locations->to_ulong());
 
   auto is_left_not_yet_assigned =
       !(group_locations->to_ulong() & codec_spec_conf::kLeAudioLocationAnyLeft);
@@ -1438,6 +1437,10 @@ uint32_t PickAudioLocation(types::LeAudioConfigurationStrategy strategy,
                                      codec_spec_conf::kLeAudioLocationAnyRight);
   uint32_t left_device_loc = GetFirstLeft(device_locations);
   uint32_t right_device_loc = GetFirstRight(device_locations);
+
+  if (left_device_loc == 0 && right_device_loc == 0) {
+    LOG_WARN("Can't find device able to render left  and right audio channel");
+  }
 
   switch (strategy) {
     case types::LeAudioConfigurationStrategy::MONO_ONE_CIS_PER_DEVICE:
