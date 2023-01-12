@@ -708,7 +708,7 @@ public class BluetoothInCallService extends InCallService {
             // We do, however want to send conferences that have no children to the bluetooth
             // device (e.g. IMS Conference).
             boolean isConferenceWithNoChildren = isConferenceWithNoChildren(call);
-            Log.i(TAG, "sendListOfCalls isConferenceWithNoChildren " + isConferenceWithNoChildren 
+            Log.i(TAG, "sendListOfCalls isConferenceWithNoChildren " + isConferenceWithNoChildren
                 + ", call.getChildrenIds() size " + call.getChildrenIds().size());
             if (!call.isConference() || isConferenceWithNoChildren) {
                 sendClccForCall(call, shouldLog);
@@ -1479,7 +1479,9 @@ public class BluetoothInCallService extends InCallService {
         mBluetoothLeCallControl.currentCallsList(tbsCalls);
     }
 
-    private final BluetoothLeCallControl.Callback mBluetoothLeCallControlCallback = new BluetoothLeCallControl.Callback() {
+    @VisibleForTesting
+    final BluetoothLeCallControl.Callback mBluetoothLeCallControlCallback =
+            new BluetoothLeCallControl.Callback() {
 
         @Override
         public void onAcceptCall(int requestId, UUID callId) {
