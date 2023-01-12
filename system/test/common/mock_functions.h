@@ -17,7 +17,14 @@
 #pragma once
 
 #include <map>
+#include <string>
 
+// TODO(265217208) Remove
+// Usage is deprecated, use get_func_call_count / inc_func_call_count instead
 extern std::map<std::string, int> mock_function_count_map;
+
+int get_func_call_count(const char* fn);
+void inc_func_call_count(const char* fn);
+
 void dump_mock_function_count_map();
 void reset_mock_function_count_map();
