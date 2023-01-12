@@ -309,6 +309,7 @@ struct classic_impl : public security::ISecurityManagerListener {
     if (is_classic_link_already_connected(address)) {
       LOG_WARN("already connected: %s", ADDRESS_TO_LOGGABLE_CSTR(address));
       acl_scheduler_->ReportOutgoingAclConnectionFailure();
+      return;
     }
     acl_connection_interface_->EnqueueCommand(
         std::move(packet), handler_->BindOnceOn(this, &classic_impl::on_create_connection_status, address));
