@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.gatt;
 
+import static android.bluetooth.le.ScanSettings.CALLBACK_TYPE_ALL_MATCHES;
+import static android.bluetooth.le.ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH;
 import static android.bluetooth.le.ScanSettings.SCAN_MODE_OPPORTUNISTIC;
 import static android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_POWER;
 import static android.bluetooth.le.ScanSettings.SCAN_MODE_BALANCED;
@@ -87,6 +89,7 @@ public class ScanManagerTest {
     private ScanManager mScanManager;
     private Handler mHandler;
     private CountDownLatch mLatch;
+    private long mScanReportDelay;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
     @Mock private AdapterService mAdapterService;
@@ -139,6 +142,8 @@ public class ScanManagerTest {
 
         mLatch = new CountDownLatch(1);
         assertThat(mLatch).isNotNull();
+
+        mScanReportDelay = DEFAULT_SCAN_REPORT_DELAY_MS;
     }
 
     @After
@@ -174,9 +179,9 @@ public class ScanManagerTest {
     }
 
     private ScanClient createScanClient(int id, boolean isFiltered, int scanMode,
-            boolean isBatch) {
+            boolean isBatch, boolean isAutoBatch) {
         List<ScanFilter> scanFilterList = createScanFilterList(isFiltered);
-        ScanSettings scanSettings = createScanSettings(scanMode, isBatch);
+        ScanSettings scanSettings = createScanSettings(scanMode, isBatch, isAutoBatch);
 
         ScanClient client = new ScanClient(id, scanSettings, scanFilterList);
         client.stats = new AppScanStats("Test", null, null, mService);
@@ -185,7 +190,7 @@ public class ScanManagerTest {
     }
 
     private ScanClient createScanClient(int id, boolean isFiltered, int scanMode) {
-        return createScanClient(id, isFiltered, scanMode, false);
+        return createScanClient(id, isFiltered, scanMode, false, false);
     }
 
     private List<ScanFilter> createScanFilterList(boolean isFiltered) {
@@ -197,12 +202,17 @@ public class ScanManagerTest {
         return scanFilterList;
     }
 
-    private ScanSettings createScanSettings(int scanMode, boolean isBatch) {
+    private ScanSettings createScanSettings(int scanMode, boolean isBatch, boolean isAutoBatch) {
 
         ScanSettings scanSettings = null;
-        if (isBatch) {
+        if (isBatch && isAutoBatch) {
+            int autoCallbackType = CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH;
             scanSettings = new ScanSettings.Builder().setScanMode(scanMode)
-                    .setReportDelay(DEFAULT_SCAN_REPORT_DELAY_MS).build();
+                    .setReportDelay(mScanReportDelay).setCallbackType(autoCallbackType)
+                    .build();
+        } else if (isBatch) {
+            scanSettings = new ScanSettings.Builder().setScanMode(scanMode)
+                    .setReportDelay(mScanReportDelay).build();
         } else {
             scanSettings = new ScanSettings.Builder().setScanMode(scanMode).build();
         }
@@ -806,6 +816,7 @@ public class ScanManagerTest {
         // Set filtered and batch scan flag
         final boolean isFiltered = false;
         final boolean isBatch = true;
+        final boolean isAutoBatch = false;
         // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
         SparseIntArray scanModeMap = new SparseIntArray();
         scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_LOW_POWER);
@@ -822,7 +833,7 @@ public class ScanManagerTest {
             // Turn off screen
             sendMessageWaitForProcessed(createScreenOnOffMessage(false));
             // Create scan client
-            ScanClient client = createScanClient(i, isFiltered, ScanMode, isBatch);
+            ScanClient client = createScanClient(i, isFiltered, ScanMode, isBatch, isAutoBatch);
             // Start scan
             sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
             assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
@@ -842,6 +853,7 @@ public class ScanManagerTest {
         // Set filtered and batch scan flag
         final boolean isFiltered = true;
         final boolean isBatch = true;
+        final boolean isAutoBatch = false;
         // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
         SparseIntArray scanModeMap = new SparseIntArray();
         scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_LOW_POWER);
@@ -858,7 +870,7 @@ public class ScanManagerTest {
             // Turn off screen
             sendMessageWaitForProcessed(createScreenOnOffMessage(false));
             // Create scan client
-            ScanClient client = createScanClient(i, isFiltered, ScanMode, isBatch);
+            ScanClient client = createScanClient(i, isFiltered, ScanMode, isBatch, isAutoBatch);
             // Start scan
             sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
             assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
@@ -867,6 +879,100 @@ public class ScanManagerTest {
             assertThat(mScanManager.getBatchScanParams().scanMode).isEqualTo(expectedScanMode);
             // Turn on screen
             sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getBatchScanParams().scanMode).isEqualTo(expectedScanMode);
+        }
+    }
+
+    @Test
+    public void testUnfilteredAutoBatchScan() {
+        // Set filtered and batch scan flag
+        final boolean isFiltered = false;
+        final boolean isBatch = true;
+        final boolean isAutoBatch = true;
+        // Set report delay for auto batch scan callback type
+        mScanReportDelay = ScanSettings.AUTO_BATCH_MIN_REPORT_DELAY_MILLIS;
+        // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
+        SparseIntArray scanModeMap = new SparseIntArray();
+        scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_SCREEN_OFF);
+        scanModeMap.put(SCAN_MODE_BALANCED, SCAN_MODE_SCREEN_OFF);
+        scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_SCREEN_OFF);
+        scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_SCREEN_OFF);
+
+        for (int i = 0; i < scanModeMap.size(); i++) {
+            int ScanMode = scanModeMap.keyAt(i);
+            int expectedScanMode = scanModeMap.get(ScanMode);
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode)
+                    + " expectedScanMode: " + String.valueOf(expectedScanMode));
+
+            // Turn off screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(false));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode, isBatch, isAutoBatch);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanParams()).isNull();
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(client.settings.getScanMode()).isEqualTo(ScanMode);
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanParams()).isNull();
+            // Turn off screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(false));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanParams()).isNull();
+        }
+    }
+
+    @Test
+    public void testFilteredAutoBatchScan() {
+        // Set filtered and batch scan flag
+        final boolean isFiltered = true;
+        final boolean isBatch = true;
+        final boolean isAutoBatch = true;
+        // Set report delay for auto batch scan callback type
+        mScanReportDelay = ScanSettings.AUTO_BATCH_MIN_REPORT_DELAY_MILLIS;
+        // Set scan mode map {original scan mode (ScanMode) : expected scan mode (expectedScanMode)}
+        SparseIntArray scanModeMap = new SparseIntArray();
+        scanModeMap.put(SCAN_MODE_LOW_POWER, SCAN_MODE_SCREEN_OFF);
+        scanModeMap.put(SCAN_MODE_BALANCED, SCAN_MODE_SCREEN_OFF);
+        scanModeMap.put(SCAN_MODE_LOW_LATENCY, SCAN_MODE_SCREEN_OFF);
+        scanModeMap.put(SCAN_MODE_AMBIENT_DISCOVERY, SCAN_MODE_SCREEN_OFF);
+
+        for (int i = 0; i < scanModeMap.size(); i++) {
+            int ScanMode = scanModeMap.keyAt(i);
+            int expectedScanMode = scanModeMap.get(ScanMode);
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode)
+                    + " expectedScanMode: " + String.valueOf(expectedScanMode));
+
+            // Turn off screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(false));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode, isBatch, isAutoBatch);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getBatchScanParams().scanMode).isEqualTo(expectedScanMode);
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(client.settings.getScanMode()).isEqualTo(ScanMode);
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getBatchScanParams()).isNull();
+            // Turn off screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(false));
             assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
             assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
             assertThat(mScanManager.getBatchScanQueue().contains(client)).isTrue();

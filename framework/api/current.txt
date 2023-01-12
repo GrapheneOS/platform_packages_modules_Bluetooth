@@ -1397,7 +1397,9 @@ package android.bluetooth.le {
     method public int getScanMode();
     method public int getScanResultType();
     method public void writeToParcel(android.os.Parcel, int);
+    field public static final long AUTO_BATCH_MIN_REPORT_DELAY_MILLIS = 600000L; // 0x927c0L
     field public static final int CALLBACK_TYPE_ALL_MATCHES = 1; // 0x1
+    field public static final int CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH = 8; // 0x8
     field public static final int CALLBACK_TYPE_FIRST_MATCH = 2; // 0x2
     field public static final int CALLBACK_TYPE_MATCH_LOST = 4; // 0x4
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.le.ScanSettings> CREATOR;
