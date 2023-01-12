@@ -462,6 +462,18 @@ extern void BTM_ReadDevInfo(const RawAddress& remote_bda,
 
 /*******************************************************************************
  *
+ * Function         BTM_GetRemoteDeviceName
+ *
+ * Description      This function is called to get the dev name of remote device
+ *                  from NV
+ *
+ * Returns          true if success; otherwise failed.
+ *
+ *******************************************************************************/
+extern bool BTM_GetRemoteDeviceName(const RawAddress& bda, BD_NAME bd_name);
+
+/*******************************************************************************
+ *
  * Function         BTM_ReadConnectedTransportAddress
  *
  * Description      This function is called to read the paired device/address

@@ -25,6 +25,8 @@ cc_library_static {
         "src/controller.cc",
         "src/esco_parameters.cc",
         "src/interop.cc",
+        "src/device_iot_config.cc",
+        "src/device_iot_config_int.cc",
     ],
     min_sdk_version: "Tiramisu"
 }

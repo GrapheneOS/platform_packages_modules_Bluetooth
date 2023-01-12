@@ -19,6 +19,8 @@ static_library("device") {
     "src/controller.cc",
     "src/esco_parameters.cc",
     "src/interop.cc",
+    "src/device_iot_config.cc",
+    "src/device_iot_config_int.cc",
   ]
 
   include_dirs = [

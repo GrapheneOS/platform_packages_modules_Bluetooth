@@ -50,6 +50,7 @@
 #include "btif/include/stack_manager.h"
 #include "common/message_loop_thread.h"
 #include "device/include/controller.h"
+#include "device/include/device_iot_config.h"
 #include "osi/include/allocator.h"
 #include "osi/include/future.h"
 #include "osi/include/log.h"
@@ -270,6 +271,10 @@ void btif_enable_bluetooth_evt() {
   RawAddress local_bd_addr = *controller_get_interface()->get_address();
 
   std::string bdstr = local_bd_addr.ToString();
+
+  // save bd addr to iot conf file
+  device_iot_config_set_str(IOT_CONF_KEY_SECTION_ADAPTER, IOT_CONF_KEY_ADDRESS,
+                            bdstr);
 
   char val[PROPERTY_VALUE_MAX] = "";
   int val_size = PROPERTY_VALUE_MAX;

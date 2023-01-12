@@ -57,6 +57,7 @@ struct BTM_GetDeviceEncRoot BTM_GetDeviceEncRoot;
 struct BTM_GetDeviceIDRoot BTM_GetDeviceIDRoot;
 struct BTM_ReadConnectedTransportAddress BTM_ReadConnectedTransportAddress;
 struct BTM_ReadDevInfo BTM_ReadDevInfo;
+struct BTM_GetRemoteDeviceName BTM_GetRemoteDeviceName;
 struct BTM_SecAddBleDevice BTM_SecAddBleDevice;
 struct BTM_SecAddBleKey BTM_SecAddBleKey;
 struct BTM_SecurityGrant BTM_SecurityGrant;
@@ -103,6 +104,7 @@ namespace test {
 namespace mock {
 namespace stack_btm_ble {
 
+bool BTM_GetRemoteDeviceName::return_value = false;
 bool BTM_BleDataSignature::return_value = false;
 bool BTM_BleVerifySignature::return_value = false;
 const Octet16 BTM_GetDeviceDHK::return_value{0xd5, 0xcb, 0x84, 0x54, 0xd1, 0x77,
@@ -230,6 +232,10 @@ void BTM_ReadDevInfo(const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
   mock_function_count_map[__func__]++;
   test::mock::stack_btm_ble::BTM_ReadDevInfo(remote_bda, p_dev_type,
                                              p_addr_type);
+}
+bool BTM_GetRemoteDeviceName(const RawAddress& bd_addr, BD_NAME bd_name) {
+  mock_function_count_map[__func__]++;
+  return test::mock::stack_btm_ble::BTM_GetRemoteDeviceName(bd_addr, bd_name);
 }
 void BTM_SecAddBleDevice(const RawAddress& bd_addr, tBT_DEVICE_TYPE dev_type,
                          tBLE_ADDR_TYPE addr_type) {

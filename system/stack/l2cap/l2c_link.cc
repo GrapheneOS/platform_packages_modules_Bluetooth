@@ -27,6 +27,7 @@
 
 #include <cstdint>
 
+#include "device/include/device_iot_config.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
@@ -326,6 +327,36 @@ void l2c_link_sec_comp2(const RawAddress& p_bda,
 }
 
 /*******************************************************************************
+**
+** Function         l2c_link_iot_store_disc_reason
+**
+** Description      iot store disconnection reason to local conf file
+**
+** Returns          void
+**
+*******************************************************************************/
+static void l2c_link_iot_store_disc_reason(RawAddress& bda, uint8_t reason) {
+  const char* disc_keys[] = {
+      IOT_CONF_KEY_GAP_DISC_CONNTIMEOUT_COUNT,
+  };
+  const uint8_t disc_reasons[] = {
+      HCI_ERR_CONNECTION_TOUT,
+  };
+  int i = 0;
+  int num = sizeof(disc_keys) / sizeof(disc_keys[0]);
+
+  if (reason == (uint8_t)-1) return;
+
+  DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(bda, IOT_CONF_KEY_GAP_DISC_COUNT);
+  for (i = 0; i < num; i++) {
+    if (disc_reasons[i] == reason) {
+      DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(bda, disc_keys[i]);
+      break;
+    }
+  }
+}
+
+/*******************************************************************************
  *
  * Function         l2c_link_hci_disc_comp
  *
@@ -349,6 +380,8 @@ bool l2c_link_hci_disc_comp(uint16_t handle, tHCI_REASON reason) {
   if (!p_lcb) {
     status = false;
   } else {
+    l2c_link_iot_store_disc_reason(p_lcb->remote_bd_addr, reason);
+
     p_lcb->SetDisconnectReason(reason);
 
     /* Just in case app decides to try again in the callback context */
