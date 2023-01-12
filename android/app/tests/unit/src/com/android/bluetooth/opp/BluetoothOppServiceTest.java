@@ -15,17 +15,19 @@
  */
 package com.android.bluetooth.opp;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
+import android.net.Uri;
 
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
@@ -39,17 +41,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-@MediumTest
 @RunWith(AndroidJUnit4.class)
 public class BluetoothOppServiceTest {
+    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
+
     private BluetoothOppService mService = null;
     private BluetoothAdapter mAdapter = null;
 
-    @Rule
-    public final ServiceTestRule mServiceRule = new ServiceTestRule();
-
-    @Mock
-    private AdapterService mAdapterService;
+    @Mock private AdapterService mAdapterService;
 
     @Before
     public void setUp() throws Exception {
@@ -78,5 +77,46 @@ public class BluetoothOppServiceTest {
     @Test
     public void testInitialize() {
         Assert.assertNotNull(BluetoothOppService.getBluetoothOppService());
+    }
+
+    @Test
+    public void deleteShare_deleteShareAndCorrespondingBatch() {
+        int infoTimestamp = 123456789;
+        int infoTimestamp2 = 123489;
+
+        BluetoothOppShareInfo shareInfo = mock(BluetoothOppShareInfo.class);
+        shareInfo.mTimestamp = infoTimestamp;
+        shareInfo.mDestination = "AA:BB:CC:DD:EE:FF";
+        BluetoothOppShareInfo shareInfo2 = mock(BluetoothOppShareInfo.class);
+        shareInfo2.mTimestamp = infoTimestamp2;
+        shareInfo2.mDestination = "00:11:22:33:44:55";
+
+        mService.mShares.clear();
+        mService.mShares.add(shareInfo);
+        mService.mShares.add(shareInfo2);
+
+        // batch1 will be removed
+        BluetoothOppBatch batch1 = new BluetoothOppBatch(mService, shareInfo);
+        BluetoothOppBatch batch2 = new BluetoothOppBatch(mService, shareInfo2);
+        batch2.mStatus = Constants.BATCH_STATUS_FINISHED;
+        mService.mBatches.clear();
+        mService.mBatches.add(batch1);
+        mService.mBatches.add(batch2);
+
+        mService.deleteShare(0);
+        assertThat(mService.mShares.size()).isEqualTo(1);
+        assertThat(mService.mBatches.size()).isEqualTo(1);
+        assertThat(mService.mShares.get(0)).isEqualTo(shareInfo2);
+        assertThat(mService.mBatches.get(0)).isEqualTo(batch2);
+    }
+
+    @Test
+    public void dump_shouldNotThrow() {
+        BluetoothOppShareInfo info = mock(BluetoothOppShareInfo.class);
+
+        mService.mShares.add(info);
+
+        // should not throw
+        mService.dump(new StringBuilder());
     }
 }
