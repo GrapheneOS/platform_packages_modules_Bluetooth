@@ -58,6 +58,9 @@ namespace android {
 #define TRANSPORT_BREDR 1
 #define TRANSPORT_LE 2
 
+#define BLE_ADDR_PUBLIC 0x00
+#define BLE_ADDR_RANDOM 0x01
+
 const jint INVALID_FD = -1;
 
 static jmethodID method_oobDataReceivedCallback;
@@ -1131,7 +1134,13 @@ static jboolean createBondNative(JNIEnv* env, jobject obj, jbyteArray address,
     return JNI_FALSE;
   }
 
-  int ret = sBluetoothInterface->create_bond((RawAddress*)addr, transport);
+  uint8_t addr_type = (uint8_t)addrType;
+  int ret = BT_STATUS_SUCCESS;
+  if (addr_type == BLE_ADDR_RANDOM) {
+    ret = sBluetoothInterface->create_bond_le((RawAddress*)addr, addr_type);
+  } else {
+    ret = sBluetoothInterface->create_bond((RawAddress*)addr, transport);
+  }
   env->ReleaseByteArrayElements(address, addr, 0);
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
