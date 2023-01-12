@@ -102,7 +102,7 @@ void bta_gattc_event_complete_callback(tBTA_GATTC_EVT event,
 class BtaGattTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     param::bta_gatt_read_complete_callback = {};
     param::bta_gatt_write_complete_callback = {};
     param::bta_gatt_configure_mtu_complete_callback = {};

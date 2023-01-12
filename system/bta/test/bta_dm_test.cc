@@ -71,7 +71,7 @@ struct alarm_t {
 class BtaDmTest : public testing::Test {
  protected:
   void SetUp() override {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     bluetooth::common::InitFlags::Load(test_flags);
     test::mock::osi_alarm::alarm_new.body = [](const char* name) -> alarm_t* {
       return new alarm_t(name);

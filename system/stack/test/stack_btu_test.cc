@@ -32,7 +32,7 @@ void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
 
 class StackBtuTest : public ::testing::Test {
  protected:
-  void SetUp() override { mock_function_count_map.clear(); }
+  void SetUp() override { reset_mock_function_count_map(); }
 };
 
 TEST_F(StackBtuTest, post_on_main) {}
