@@ -149,7 +149,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     // Delay for retrying enable and disable in msec
     private static final int ENABLE_DISABLE_DELAY_MS = 300;
     private static final int DELAY_BEFORE_RESTART_DUE_TO_INIT_FLAGS_CHANGED_MS = 300;
-    private static final int DELAY_FOR_RETRY_INIT_FLAG_CHECK_MS = 86400;
+    private static final int DELAY_FOR_RETRY_INIT_FLAG_CHECK_MS = 86400000;
 
     private static final int MESSAGE_ENABLE = 1;
     private static final int MESSAGE_DISABLE = 2;
