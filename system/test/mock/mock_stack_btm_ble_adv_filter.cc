@@ -19,15 +19,14 @@
  *   Functions generated:6
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/functional/bind.h>
 #include <string.h>
+
 #include <algorithm>
+#include <map>
+#include <string>
 #include <vector>
+
 #include "bind_helpers.h"
 #include "bt_target.h"
 #include "btm_ble_api.h"
@@ -35,6 +34,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "device/include/controller.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
+#include "test/common/mock_functions.h"
 #include "utils/include/bt_utils.h"
 
 #ifndef UNUSED_ATTR

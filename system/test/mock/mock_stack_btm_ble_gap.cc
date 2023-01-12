@@ -19,17 +19,14 @@
  *   Functions generated:47
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/functional/bind.h>
 #include <base/strings/string_number_conversions.h>
 
 #include <cstdint>
 #include <list>
+#include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "common/time_util.h"
@@ -49,6 +46,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/gap_api.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/inq_hci_link_interface.h"
+#include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 

@@ -23,14 +23,13 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 #define LOG_TAG "bt_btu_hcif"
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
 #include <base/location.h>
 
 #include "stack/include/bt_hdr.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

@@ -25,8 +25,6 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 #ifndef __clang_analyzer__
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_stack_btm_hfp_msbc_encoder.h"

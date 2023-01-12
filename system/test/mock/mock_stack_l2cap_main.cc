@@ -19,12 +19,10 @@
  *   Functions generated:9
  */
 
+#include <string.h>
+
 #include <map>
 #include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
-#include <string.h>
 
 #include "bt_target.h"
 #include "l2c_api.h"
@@ -34,6 +32,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
