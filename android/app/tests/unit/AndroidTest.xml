@@ -64,9 +64,10 @@
         <option name="hidden-api-checks" value="false"/>
     </test>
 
-    <!-- Only run Cts Tests in MTS if the Bluetooth Mainline module is installed. -->
+    <!-- Only run if the Bluetooth Mainline module is installed. -->
     <object type="module_controller"
             class="com.android.tradefed.testtype.suite.module.MainlineTestModuleController">
+        <option name="enable" value="true" />
         <option name="mainline-module-package-name" value="com.android.btservices" />
     </object>
 </configuration>
