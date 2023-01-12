@@ -34,6 +34,7 @@
 #include "mock_controller.h"
 #include "mock_csis_client.h"
 #include "mock_iso_manager.h"
+#include "test/common/mock_functions.h"
 #include "types/bt_transport.h"
 
 using ::le_audio::DeviceConnectState;
@@ -50,7 +51,6 @@ using ::testing::Return;
 using ::testing::SaveArg;
 using ::testing::Test;
 
-std::map<std::string, int> mock_function_count_map;
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 
 void osi_property_set_bool(const char* key, bool value);
