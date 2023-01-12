@@ -31,8 +31,10 @@ public class ScanSettingsTest extends TestCase {
         builder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
         builder.setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH);
         builder.setCallbackType(ScanSettings.CALLBACK_TYPE_MATCH_LOST);
+        builder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH);
         builder.setCallbackType(
                 ScanSettings.CALLBACK_TYPE_FIRST_MATCH | ScanSettings.CALLBACK_TYPE_MATCH_LOST);
+
         try {
             builder.setCallbackType(
                     ScanSettings.CALLBACK_TYPE_ALL_MATCHES | ScanSettings.CALLBACK_TYPE_MATCH_LOST);
@@ -44,7 +46,16 @@ public class ScanSettingsTest extends TestCase {
         try {
             builder.setCallbackType(
                     ScanSettings.CALLBACK_TYPE_ALL_MATCHES
-                    | ScanSettings.CALLBACK_TYPE_FIRST_MATCH);
+                            | ScanSettings.CALLBACK_TYPE_FIRST_MATCH);
+            fail("should have thrown IllegalArgumentException!");
+        } catch (IllegalArgumentException e) {
+            // nothing to do
+        }
+
+        try {
+            builder.setCallbackType(
+                    ScanSettings.CALLBACK_TYPE_ALL_MATCHES
+                            | ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH);
             fail("should have thrown IllegalArgumentException!");
         } catch (IllegalArgumentException e) {
             // nothing to do
@@ -60,5 +71,52 @@ public class ScanSettingsTest extends TestCase {
             // nothing to do
         }
 
+        try {
+            builder.setCallbackType(
+                    ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH
+                            | ScanSettings.CALLBACK_TYPE_MATCH_LOST);
+            fail("should have thrown IllegalArgumentException!");
+        } catch (IllegalArgumentException e) {
+            // nothing to do
+        }
+
+        try {
+            builder.setCallbackType(
+                    ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH
+                            | ScanSettings.CALLBACK_TYPE_FIRST_MATCH);
+            fail("should have thrown IllegalArgumentException!");
+        } catch (IllegalArgumentException e) {
+            // nothing to do
+        }
+
+        try {
+            builder.setCallbackType(
+                    ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH
+                            | ScanSettings.CALLBACK_TYPE_FIRST_MATCH
+                            | ScanSettings.CALLBACK_TYPE_MATCH_LOST);
+            fail("should have thrown IllegalArgumentException!");
+        } catch (IllegalArgumentException e) {
+            // nothing to do
+        }
+
+        try {
+            builder.setCallbackType(
+                    ScanSettings.CALLBACK_TYPE_ALL_MATCHES
+                            | ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH
+                            | ScanSettings.CALLBACK_TYPE_FIRST_MATCH
+                            | ScanSettings.CALLBACK_TYPE_MATCH_LOST);
+            fail("should have thrown IllegalArgumentException!");
+        } catch (IllegalArgumentException e) {
+            // nothing to do
+        }
+
+        try {
+            builder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES_AUTO_BATCH)
+                    .setReportDelay(0)
+                    .build();
+            fail("should have thrown IllegalArgumentException!");
+        } catch (IllegalArgumentException e) {
+            // nothing to do
+        }
     }
 }
