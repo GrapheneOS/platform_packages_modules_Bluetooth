@@ -2557,30 +2557,46 @@ void LeAudioDevice::PrintDebugState(void) {
 
 void LeAudioDevice::Dump(int fd) {
   uint16_t acl_handle = BTM_GetHCIConnHandle(address_, BT_TRANSPORT_LE);
+  std::string location = "unknown location";
+
+  if (snk_audio_locations_.to_ulong() &
+      codec_spec_conf::kLeAudioLocationAnyLeft) {
+    std::string location_left = "left";
+    location.swap(location_left);
+  } else if (snk_audio_locations_.to_ulong() &
+             codec_spec_conf::kLeAudioLocationAnyRight) {
+    std::string location_right = "right";
+    location.swap(location_right);
+  }
 
   std::stringstream stream;
-  stream << std::boolalpha;
-  stream << "\n\taddress: " << ADDRESS_TO_LOGGABLE_STR(address_)
-         << ": " << connection_state_ << ": "
+  stream << "\n\taddress: " << ADDRESS_TO_LOGGABLE_STR(address_) << ": "
+         << connection_state_ << ": "
          << (conn_id_ == GATT_INVALID_CONN_ID ? "" : std::to_string(conn_id_))
-         << ", acl_handle: " << std::to_string(acl_handle) << ",\t"
-         << (encrypted_ ? "Encrypted" : "Unecrypted")
+         << ", acl_handle: " << std::to_string(acl_handle) << ", " << location
+         << ",\t" << (encrypted_ ? "Encrypted" : "Unecrypted")
          << ",mtu: " << std::to_string(mtu_)
          << "\n\tnumber of ases_: " << static_cast<int>(ases_.size());
 
   if (ases_.size() > 0) {
-    stream << "\n\t  == ASEs == ";
+    stream << "\n\t== ASEs == \n\t";
+    stream
+        << "id  active dir     cis_id  cis_handle  sdu  latency rtn  state";
     for (auto& ase : ases_) {
-      stream << "\n\t  id: " << static_cast<int>(ase.id)
-             << ",\tactive: " << ase.active << ", dir: "
+      stream << std::setfill('\xA0') << "\n\t" << std::left << std::setw(4)
+             << static_cast<int>(ase.id) << std::left << std::setw(7)
+             << (ase.active ? "true" : "false") << std::left << std::setw(8)
              << (ase.direction == types::kLeAudioDirectionSink ? "sink"
                                                                : "source")
-             << ",\tcis_id: " << static_cast<int>(ase.cis_id)
-             << ",\tcis_handle: " << ase.cis_conn_hdl << ",\tstate: "
+             << std::left << std::setw(8) << static_cast<int>(ase.cis_id)
+             << std::left << std::setw(12) << ase.cis_conn_hdl << std::left
+             << std::setw(5) << ase.max_sdu_size << std::left << std::setw(8)
+             << ase.max_transport_latency << std::left << std::setw(5)
+             << static_cast<int>(ase.retrans_nb) << std::left << std::setw(12)
              << bluetooth::common::ToString(ase.data_path_state);
     }
   }
-  stream << "\n\t  ====";
+  stream << "\n\t====";
 
   dprintf(fd, "%s", stream.str().c_str());
 }
