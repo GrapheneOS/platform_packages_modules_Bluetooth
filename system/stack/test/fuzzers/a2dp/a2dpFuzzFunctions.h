@@ -64,7 +64,8 @@ std::vector<std::function<void(FuzzedDataProvider*)>> a2dp_operations = {
 
     // A2DP_FindService
     [](FuzzedDataProvider* fdp) -> void {
-      tA2DP_SDP_DB_PARAMS p_db = generateDBParams(fdp);
+      std::vector<uint16_t> attr_list;
+      tA2DP_SDP_DB_PARAMS p_db = generateDBParams(fdp, attr_list);
       const RawAddress bd_addr = generateRawAddress(fdp);
       uint16_t service_uuid = fdp->ConsumeBool() ? UUID_SERVCLASS_AUDIO_SOURCE
                                                  : UUID_SERVCLASS_AUDIO_SINK;
