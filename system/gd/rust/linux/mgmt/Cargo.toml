@@ -39,4 +39,5 @@ protoc-rust = "2.0"
 
 [[bin]]
 name = "btmanagerd"
+path = "src/main.rs"
 build = "build.rs"

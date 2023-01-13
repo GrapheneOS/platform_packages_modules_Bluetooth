@@ -434,6 +434,7 @@ cc_test {
     sanitize: {
         address: true,
     },
+    min_sdk_version: "30",
 }
 
 cc_test {
@@ -488,6 +489,7 @@ cc_test {
             ],
         },
     },
+    min_sdk_version: "30",
 }
 
 cc_defaults {

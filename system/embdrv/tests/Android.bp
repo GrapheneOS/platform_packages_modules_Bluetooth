@@ -23,6 +23,7 @@ cc_test {
         address: true,
         cfi: true,
     },
+    min_sdk_version: "33",
 }
 
 cc_test {
@@ -41,4 +42,5 @@ cc_test {
         address: true,
         cfi: true,
     },
+    min_sdk_version: "33",
 }
