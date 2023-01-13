@@ -1354,6 +1354,66 @@ public class BluetoothInCallServiceTest {
         Assert.assertFalse(mBluetoothInCallService.mOnCreateCalled);
     }
 
+    @Test
+    public void testLeCallControlCallback_onAcceptCall_withUnknownCallId() {
+        BluetoothLeCallControlProxy callControlProxy = mock(BluetoothLeCallControlProxy.class);
+        mBluetoothInCallService.mBluetoothLeCallControl = callControlProxy;
+        BluetoothLeCallControl.Callback callback =
+                mBluetoothInCallService.mBluetoothLeCallControlCallback;
+
+        int requestId = 1;
+        UUID unknownCallId = UUID.randomUUID();
+        callback.onAcceptCall(requestId, unknownCallId);
+
+        verify(callControlProxy).requestResult(
+                requestId, BluetoothLeCallControl.RESULT_ERROR_UNKNOWN_CALL_ID);
+    }
+
+    @Test
+    public void testLeCallControlCallback_onTerminateCall_withUnknownCallId() {
+        BluetoothLeCallControlProxy callControlProxy = mock(BluetoothLeCallControlProxy.class);
+        mBluetoothInCallService.mBluetoothLeCallControl = callControlProxy;
+        BluetoothLeCallControl.Callback callback =
+                mBluetoothInCallService.mBluetoothLeCallControlCallback;
+
+        int requestId = 1;
+        UUID unknownCallId = UUID.randomUUID();
+        callback.onTerminateCall(requestId, unknownCallId);
+
+        verify(callControlProxy).requestResult(
+                requestId, BluetoothLeCallControl.RESULT_ERROR_UNKNOWN_CALL_ID);
+    }
+
+    @Test
+    public void testLeCallControlCallback_onHoldCall_withUnknownCallId() {
+        BluetoothLeCallControlProxy callControlProxy = mock(BluetoothLeCallControlProxy.class);
+        mBluetoothInCallService.mBluetoothLeCallControl = callControlProxy;
+        BluetoothLeCallControl.Callback callback =
+                mBluetoothInCallService.mBluetoothLeCallControlCallback;
+
+        int requestId = 1;
+        UUID unknownCallId = UUID.randomUUID();
+        callback.onHoldCall(requestId, unknownCallId);
+
+        verify(callControlProxy).requestResult(
+                requestId, BluetoothLeCallControl.RESULT_ERROR_UNKNOWN_CALL_ID);
+    }
+
+    @Test
+    public void testLeCallControlCallback_onUnholdCall_withUnknownCallId() {
+        BluetoothLeCallControlProxy callControlProxy = mock(BluetoothLeCallControlProxy.class);
+        mBluetoothInCallService.mBluetoothLeCallControl = callControlProxy;
+        BluetoothLeCallControl.Callback callback =
+                mBluetoothInCallService.mBluetoothLeCallControlCallback;
+
+        int requestId = 1;
+        UUID unknownCallId = UUID.randomUUID();
+        callback.onUnholdCall(requestId, unknownCallId);
+
+        verify(callControlProxy).requestResult(
+                requestId, BluetoothLeCallControl.RESULT_ERROR_UNKNOWN_CALL_ID);
+    }
+
     private void addCallCapability(BluetoothCall call, int capability) {
         when(call.can(capability)).thenReturn(true);
     }
