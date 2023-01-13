@@ -99,6 +99,8 @@ void SyspropsModule::parse_config(std::string file_path) {
       "bluetooth.core.le.inquiry_scan_window",
       // SCO
       "bluetooth.sco.disable_enhanced_connection",
+      // Profile
+      "persist.bluetooth.avrcpcontrolversion",
   };
 
   auto config = storage::LegacyConfigFile::FromPath(file_path).Read(kDefaultCapacity);
