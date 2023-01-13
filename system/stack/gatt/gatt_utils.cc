@@ -1163,13 +1163,13 @@ void gatt_clcb_invalidate(tGATT_TCB* p_tcb, const tGATT_CLCB* p_clcb) {
   uint16_t cid = p_clcb->cid;
 
   if (!p_tcb->pending_enc_clcb.empty()) {
-    auto iter = std::find_if(p_tcb->pending_enc_clcb.begin(),
-                             p_tcb->pending_enc_clcb.end(),
-                             [p_clcb](auto& el) { return el == p_clcb; });
-    if (iter != p_tcb->pending_enc_clcb.end()) {
-      p_tcb->pending_enc_clcb.erase(iter);
-      LOG_WARN("Removing clcb (%p) for conn id=0x%04x from pending_enc_clcb",
-               p_clcb, p_clcb->conn_id);
+    for (size_t i = 0; i < p_tcb->pending_enc_clcb.size(); i++) {
+      if (p_tcb->pending_enc_clcb.at(i) == p_clcb) {
+        LOG_WARN("Removing clcb (%p) for conn id=0x%04x from pending_enc_clcb",
+                 p_clcb, p_clcb->conn_id);
+        p_tcb->pending_enc_clcb.at(i) = NULL;
+        break;
+      }
     }
   }
 
