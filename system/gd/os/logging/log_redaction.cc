@@ -19,7 +19,6 @@
 #include "os/logging/log_redaction.h"
 
 #include "common/init_flags.h"
-#include "os/system_properties.h"
 
 namespace bluetooth {
 namespace os {
@@ -27,7 +26,7 @@ namespace os {
 using bluetooth::common::init_flags::redact_log_is_enabled;
 
 bool should_log_be_redacted() {
-  return !GetSystemPropertyBool(DEBUGGABLE_SYS_PROP_NAME, false) && redact_log_is_enabled();
+  return redact_log_is_enabled();
 }
 
 }  // namespace os

@@ -41,6 +41,7 @@
         <option name="profile" value="HFP/HF" />
         <option name="profile" value="HID/HOS" />
         <option name="profile" value="HOGP" />
+        <option name="profile" value="L2CAP/CMC" />
         <option name="profile" value="L2CAP/COS" />
         <option name="profile" value="L2CAP/EXF" />
         <option name="profile" value="L2CAP/LE" />

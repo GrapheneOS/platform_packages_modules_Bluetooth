@@ -136,9 +136,11 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
     private boolean mUpdateThreadRunning;
 
-    private ArrayList<BluetoothOppShareInfo> mShares;
+    @VisibleForTesting
+    ArrayList<BluetoothOppShareInfo> mShares;
 
-    private ArrayList<BluetoothOppBatch> mBatches;
+    @VisibleForTesting
+    ArrayList<BluetoothOppBatch> mBatches;
 
     private BluetoothOppTransfer mTransfer;
 
@@ -990,9 +992,9 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     /**
      * Removes the local copy of the info about a share.
      */
-    private void deleteShare(int arrayPos) {
+    @VisibleForTesting
+    void deleteShare(int arrayPos) {
         BluetoothOppShareInfo info = mShares.get(arrayPos);
-
         /*
          * Delete arrayPos from a batch. The logic is
          * 1) Search existing batch for the info
@@ -1115,6 +1117,11 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
     // Run in a background thread at boot.
     private static void trimDatabase(ContentResolver contentResolver) {
+        if (contentResolver.acquireContentProviderClient(BluetoothShare.CONTENT_URI) == null) {
+            Log.w(TAG, "ContentProvider doesn't exist");
+            return;
+        }
+
         // remove the invisible/unconfirmed inbound shares
         int delNum = contentResolver.delete(BluetoothShare.CONTENT_URI, WHERE_INVISIBLE_UNCONFIRMED,
                 null);
