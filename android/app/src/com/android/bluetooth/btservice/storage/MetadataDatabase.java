@@ -68,6 +68,7 @@ public abstract class MetadataDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_112_113)
                 .addMigrations(MIGRATION_113_114)
                 .addMigrations(MIGRATION_114_115)
+                .addMigrations(MIGRATION_115_116)
                 .allowMainThreadQueries()
                 .build();
     }
