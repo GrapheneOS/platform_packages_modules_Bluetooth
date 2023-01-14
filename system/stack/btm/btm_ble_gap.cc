@@ -87,6 +87,11 @@ static const char kPropertyInquiryScanInterval[] =
 static const char kPropertyInquiryScanWindow[] =
     "bluetooth.core.le.inquiry_scan_window";
 
+static void btm_ble_start_scan();
+static void btm_ble_stop_scan();
+static tBTM_STATUS btm_ble_stop_adv(void);
+static tBTM_STATUS btm_ble_start_adv(void);
+
 namespace {
 
 class AdvertisingCache {
@@ -2952,7 +2957,7 @@ void btm_ble_process_phy_update_pkt(uint8_t len, uint8_t* data) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_ble_start_scan() {
+static void btm_ble_start_scan() {
   tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
   /* start scan, disable duplicate filtering */
   btm_send_hci_scan_enable(BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE);
@@ -2972,7 +2977,7 @@ void btm_ble_start_scan() {
  * Returns          void
  *
  ******************************************************************************/
-void btm_ble_stop_scan(void) {
+static void btm_ble_stop_scan(void) {
   BTM_TRACE_EVENT("btm_ble_stop_scan ");
 
   if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI)
@@ -3106,7 +3111,7 @@ static bool btm_ble_adv_states_operation(BTM_TOPOLOGY_FUNC_PTR* p_handler,
  * Returns          void
  *
  ******************************************************************************/
-tBTM_STATUS btm_ble_start_adv(void) {
+static tBTM_STATUS btm_ble_start_adv(void) {
   tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
   if (!btm_ble_adv_states_operation(btm_ble_topology_check, p_cb->evt_type))
@@ -3127,7 +3132,7 @@ tBTM_STATUS btm_ble_start_adv(void) {
  * Returns          void
  *
  ******************************************************************************/
-tBTM_STATUS btm_ble_stop_adv(void) {
+static tBTM_STATUS btm_ble_stop_adv(void) {
   tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
   if (p_cb->adv_mode == BTM_BLE_ADV_ENABLE) {
