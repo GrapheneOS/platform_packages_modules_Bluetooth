@@ -401,6 +401,7 @@ void sdp_disconnect(tCONN_CB* p_ccb, tSDP_REASON reason) {
   /* Call user callback immediately */
   if (ccb.con_state == SDP_STATE_CONN_SETUP) {
     sdpu_callback(ccb, reason);
+    sdpu_clear_pend_ccb(ccb);
     sdpu_release_ccb(ccb);
   }
 }
