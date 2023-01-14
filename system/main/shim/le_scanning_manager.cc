@@ -134,6 +134,10 @@ using bluetooth::shim::BleScannerInterfaceImpl;
 void BleScannerInterfaceImpl::Init() {
   LOG_INFO("init BleScannerInterfaceImpl");
   bluetooth::shim::GetScanning()->RegisterScanningCallback(this);
+
+  if (bluetooth::shim::GetMsftExtensionManager()) {
+    bluetooth::shim::GetMsftExtensionManager()->SetScanningCallback(this);
+  }
 }
 
 /** Registers a scanner with the stack */
