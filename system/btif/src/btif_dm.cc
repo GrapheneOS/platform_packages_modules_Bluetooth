@@ -1381,6 +1381,17 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
         status = btif_storage_set_remote_addr_type(&bdaddr, addr_type);
         ASSERTC(status == BT_STATUS_SUCCESS,
                 "failed to save remote addr type (inquiry)", status);
+
+        bool restrict_report = osi_property_get_bool(
+            "bluetooth.restrict_discovered_device.enabled", false);
+        if (restrict_report &&
+            p_search_data->inq_res.device_type == BT_DEVICE_TYPE_BLE &&
+            !(p_search_data->inq_res.ble_evt_type & BTM_BLE_CONNECTABLE_MASK)) {
+          LOG_INFO("%s: Ble device is not connectable",
+                   bdaddr.ToString().c_str());
+          break;
+        }
+
         /* Callback to notify upper layer of device */
         invoke_device_found_cb(num_properties, properties);
       }
