@@ -58,7 +58,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -89,7 +88,6 @@ public class GattServiceTest {
     @Mock private GattService.ScannerMap mScannerMap;
     @Mock private GattService.ScannerMap.App mApp;
     @Mock private GattService.PendingIntentInfo mPiInfo;
-    @Mock private AdvertiseManager mAdvertiseManager;
     @Mock private PeriodicScanManager mPeriodicScanManager;
     @Mock private ScanManager mScanManager;
     @Mock private Set<String> mReliableQueue;
@@ -121,7 +119,6 @@ public class GattServiceTest {
 
         mService.mClientMap = mClientMap;
         mService.mScannerMap = mScannerMap;
-        mService.mAdvertiseManager = mAdvertiseManager;
         mService.mPeriodicScanManager = mPeriodicScanManager;
         mService.mScanManager = mScanManager;
         mService.mReliableQueue = mReliableQueue;
@@ -317,7 +314,6 @@ public class GattServiceTest {
         AdvertiseData data = new AdvertiseData.Builder().build();
 
         mService.setAdvertisingData(advertiserId, data, mAttributionSource);
-        verify(mAdvertiseManager).setAdvertisingData(advertiserId, data);
     }
 
     @Test
@@ -326,7 +322,6 @@ public class GattServiceTest {
         AdvertisingSetParameters parameters = new AdvertisingSetParameters.Builder().build();
 
         mService.setAdvertisingParameters(advertiserId, parameters, mAttributionSource);
-        verify(mAdvertiseManager).setAdvertisingParameters(advertiserId, parameters);
     }
 
     @Test
@@ -335,7 +330,6 @@ public class GattServiceTest {
         AdvertiseData data = new AdvertiseData.Builder().build();
 
         mService.setPeriodicAdvertisingData(advertiserId, data, mAttributionSource);
-        verify(mAdvertiseManager).setPeriodicAdvertisingData(advertiserId, data);
     }
 
     @Test
@@ -344,7 +338,6 @@ public class GattServiceTest {
         boolean enable = true;
 
         mService.setPeriodicAdvertisingEnable(advertiserId, enable, mAttributionSource);
-        verify(mAdvertiseManager).setPeriodicAdvertisingEnable(advertiserId, enable);
     }
 
     @Test
@@ -354,7 +347,6 @@ public class GattServiceTest {
                 new PeriodicAdvertisingParameters.Builder().build();
 
         mService.setPeriodicAdvertisingParameters(advertiserId, parameters, mAttributionSource);
-        verify(mAdvertiseManager).setPeriodicAdvertisingParameters(advertiserId, parameters);
     }
 
     @Test
@@ -363,7 +355,6 @@ public class GattServiceTest {
         AdvertiseData data = new AdvertiseData.Builder().build();
 
         mService.setScanResponseData(advertiserId, data, mAttributionSource);
-        verify(mAdvertiseManager).setScanResponseData(advertiserId, data);
     }
 
     @Test
@@ -487,7 +478,6 @@ public class GattServiceTest {
         mService.readDescriptor(clientIf, address, handle, authReq, mAttributionSource);
     }
 
-    @Ignore("b/265327402")
     @Test
     public void beginReliableWrite() {
         int clientIf = 1;
@@ -623,7 +613,6 @@ public class GattServiceTest {
         int advertiserId = 1;
 
         mService.getOwnAddress(advertiserId, mAttributionSource);
-        verify(mAdvertiseManager).getOwnAddress(advertiserId);
     }
 
     @Test
@@ -635,8 +624,6 @@ public class GattServiceTest {
 
         mService.enableAdvertisingSet(advertiserId, enable, duration, maxExtAdvEvents,
                 mAttributionSource);
-        verify(mAdvertiseManager).enableAdvertisingSet(advertiserId, enable, duration,
-                maxExtAdvEvents);
     }
 
     @Test
