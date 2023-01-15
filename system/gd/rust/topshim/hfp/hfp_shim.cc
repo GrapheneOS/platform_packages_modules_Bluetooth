@@ -45,6 +45,10 @@ static void volume_update_cb(uint8_t volume, RawAddress* addr) {
 static void battery_level_update_cb(uint8_t battery_level, RawAddress* addr) {
   rusty::hfp_battery_level_update_callback(battery_level, *addr);
 }
+
+static void indicator_query_cb(RawAddress* addr) {
+  rusty::hfp_indicator_query_callback(*addr);
+}
 }  // namespace internal
 
 class DBusHeadsetCallbacks : public headset::Callbacks {
@@ -115,18 +119,7 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   }
 
   void AtCindCallback(RawAddress* bd_addr) override {
-    // This is required to setup the SLC, the format of the response should be
-    // +CIND: <call>,<callsetup>,<service>,<signal>,<roam>,<battery>,<callheld>
-    LOG_WARN("Respond +CIND: 0,0,1,5,0,5,0 to AT+CIND? from %s",
-             ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
-
-    // headset::Interface::CindResponse's parameters are similar but different
-    // from the actual CIND response. It will construct the final response for
-    // you based on the arguments you provide.
-    // CindResponse(network_service_availability, active_call_num,
-    //              held_call_num, callsetup_state, signal_strength,
-    //              roam_state, battery_level, bd_addr);
-    headset_->CindResponse(1, 0, 0, headset::BTHF_CALL_STATE_IDLE, 5, 0, 5, bd_addr);
+    topshim::rust::internal::indicator_query_cb(bd_addr);
   }
 
   void AtCopsCallback(RawAddress* bd_addr) override {
@@ -253,6 +246,28 @@ uint32_t HfpIntf::disconnect(RawAddress addr) {
 
 int HfpIntf::disconnect_audio(RawAddress addr) {
   return intf_->DisconnectAudio(&addr);
+}
+
+uint32_t HfpIntf::device_status_notification(TelephonyDeviceStatus status, RawAddress addr) {
+  return intf_->DeviceStatusNotification(
+      status.network_available ? headset::BTHF_NETWORK_STATE_AVAILABLE
+                               : headset::BTHF_NETWORK_STATE_NOT_AVAILABLE,
+      status.roaming ? headset::BTHF_SERVICE_TYPE_ROAMING : headset::BTHF_SERVICE_TYPE_HOME,
+      status.signal_strength,
+      status.battery_level,
+      &addr);
+}
+
+uint32_t HfpIntf::indicator_query_response(TelephonyDeviceStatus device_status, RawAddress addr) {
+  return intf_->CindResponse(
+      device_status.network_available ? 1 : 0,
+      /*num_active=*/0,
+      /*num_held=*/0,
+      headset::BTHF_CALL_STATE_IDLE,
+      device_status.signal_strength,
+      device_status.roaming ? 1 : 0,
+      device_status.battery_level,
+      &addr);
 }
 
 void HfpIntf::cleanup() {}

@@ -71,6 +71,14 @@ pub mod ffi {
         type RawAddress = crate::btif::RawAddress;
     }
 
+    #[derive(Debug, Copy, Clone)]
+    pub struct TelephonyDeviceStatus {
+        network_available: bool,
+        roaming: bool,
+        signal_strength: i32,
+        battery_level: i32,
+    }
+
     unsafe extern "C++" {
         include!("hfp/hfp_shim.h");
 
@@ -90,6 +98,16 @@ pub mod ffi {
         fn set_volume(self: Pin<&mut HfpIntf>, volume: i8, bt_addr: RawAddress) -> i32;
         fn disconnect(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> u32;
         fn disconnect_audio(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> i32;
+        fn device_status_notification(
+            self: Pin<&mut HfpIntf>,
+            status: TelephonyDeviceStatus,
+            addr: RawAddress,
+        ) -> u32;
+        fn indicator_query_response(
+            self: Pin<&mut HfpIntf>,
+            device_status: TelephonyDeviceStatus,
+            addr: RawAddress,
+        ) -> u32;
         fn cleanup(self: Pin<&mut HfpIntf>);
 
     }
@@ -99,6 +117,20 @@ pub mod ffi {
         fn hfp_volume_update_callback(volume: u8, addr: RawAddress);
         fn hfp_battery_level_update_callback(battery_level: u8, addr: RawAddress);
         fn hfp_caps_update_callback(wbs_supported: bool, addr: RawAddress);
+        fn hfp_indicator_query_callback(addr: RawAddress);
+    }
+}
+
+pub type TelephonyDeviceStatus = ffi::TelephonyDeviceStatus;
+
+impl TelephonyDeviceStatus {
+    pub fn new() -> Self {
+        TelephonyDeviceStatus {
+            network_available: true,
+            roaming: false,
+            signal_strength: 5,
+            battery_level: 5,
+        }
     }
 }
 
@@ -109,6 +141,7 @@ pub enum HfpCallbacks {
     VolumeUpdate(u8, RawAddress),
     BatteryLevelUpdate(u8, RawAddress),
     CapsUpdate(bool, RawAddress),
+    IndicatorQuery(RawAddress),
 }
 
 pub struct HfpCallbacksDispatcher {
@@ -141,6 +174,11 @@ cb_variant!(
     HfpCb,
     hfp_caps_update_callback -> HfpCallbacks::CapsUpdate,
     bool, RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_indicator_query_callback -> HfpCallbacks::IndicatorQuery,
+    RawAddress);
 
 pub struct Hfp {
     internal: cxx::UniquePtr<ffi::HfpIntf>,
@@ -220,6 +258,24 @@ impl Hfp {
     #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn disconnect_audio(&mut self, addr: RawAddress) -> i32 {
         self.internal.pin_mut().disconnect_audio(addr)
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn device_status_notification(
+        &mut self,
+        status: TelephonyDeviceStatus,
+        addr: RawAddress,
+    ) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().device_status_notification(status, addr))
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn indicator_query_response(
+        &mut self,
+        device_status: TelephonyDeviceStatus,
+        addr: RawAddress,
+    ) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().indicator_query_response(device_status, addr))
     }
 
     #[profile_enabled_or(false)]

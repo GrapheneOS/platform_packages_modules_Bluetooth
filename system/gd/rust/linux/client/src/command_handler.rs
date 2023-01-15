@@ -14,6 +14,7 @@ use bt_topshim::profiles::hid_host::BthhReportType;
 use bt_topshim::profiles::{gatt::LePhy, ProfileConnectionState};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
 use btstack::bluetooth_gatt::{GattWriteType, IBluetoothGatt, ScanSettings, ScanType};
+use btstack::bluetooth_media::IBluetoothTelephony;
 use btstack::socket_manager::{IBluetoothSocketManager, SocketResult};
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
@@ -269,6 +270,19 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 "List bonded or found remote devices. Use: list <bonded|found>",
             ),
             function_pointer: CommandHandler::cmd_list_devices,
+        },
+    );
+    command_options.insert(
+        String::from("telephony"),
+        CommandOption {
+            rules: vec![
+                String::from("telephony set-network <on|off>"),
+                String::from("telephony set-roaming <on|off>"),
+                String::from("telephony set-signal <strength>"),
+                String::from("telephony set-battery <level>"),
+            ],
+            description: String::from("Set device telephony status."),
+            function_pointer: CommandHandler::cmd_telephony,
         },
     );
     command_options.insert(
@@ -1498,6 +1512,77 @@ impl CommandHandler {
             }
         }
 
+        Ok(())
+    }
+
+    fn cmd_telephony(&mut self, args: &Vec<String>) -> CommandResult {
+        if !self.context.lock().unwrap().adapter_ready {
+            return Err(self.adapter_not_ready());
+        }
+
+        match &get_arg(args, 0)?[..] {
+            "set-network" => {
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_network_available(match &get_arg(args, 1)?[..] {
+                        "on" => true,
+                        "off" => false,
+                        other => {
+                            return Err(format!("Invalid argument '{}'", other).into());
+                        }
+                    });
+            }
+            "set-roaming" => {
+                self.context.lock().unwrap().telephony_dbus.as_mut().unwrap().set_roaming(
+                    match &get_arg(args, 1)?[..] {
+                        "on" => true,
+                        "off" => false,
+                        other => {
+                            return Err(format!("Invalid argument '{}'", other).into());
+                        }
+                    },
+                );
+            }
+            "set-signal" => {
+                let strength = String::from(get_arg(args, 1)?)
+                    .parse::<i32>()
+                    .or(Err("Failed parsing signal strength"))?;
+                if strength < 0 || strength > 5 {
+                    return Err(
+                        format!("Invalid signal strength, got {}, want 0 to 5", strength).into()
+                    );
+                }
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_signal_strength(strength);
+            }
+            "set-battery" => {
+                let level = String::from(get_arg(args, 1)?)
+                    .parse::<i32>()
+                    .or(Err("Failed parsing battery level"))?;
+                if level < 0 || level > 5 {
+                    return Err(format!("Invalid battery level, got {}, want 0 to 5", level).into());
+                }
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_battery_level(level);
+            }
+            other => {
+                return Err(format!("Invalid argument '{}'", other).into());
+            }
+        }
         Ok(())
     }
 }

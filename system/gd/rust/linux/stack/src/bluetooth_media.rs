@@ -13,7 +13,7 @@ use bt_topshim::profiles::avrcp::{
 };
 use bt_topshim::profiles::hfp::{
     BthfAudioState, BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher,
-    HfpCodecCapability,
+    HfpCodecCapability, TelephonyDeviceStatus,
 };
 use bt_topshim::profiles::ProfileConnectionState;
 use bt_topshim::{metrics, topstack};
@@ -145,6 +145,17 @@ pub trait IBluetoothMediaCallback: RPCProxy {
     fn on_hfp_audio_disconnected(&self, addr: String);
 }
 
+pub trait IBluetoothTelephony {
+    /// Sets whether the device is connected to the cellular network.
+    fn set_network_available(&mut self, network_available: bool);
+    /// Sets whether the device is roaming.
+    fn set_roaming(&mut self, roaming: bool);
+    /// Sets the device signal strength, 0 to 5.
+    fn set_signal_strength(&mut self, signal_strength: i32) -> bool;
+    /// Sets the device battery level, 0 to 5.
+    fn set_battery_level(&mut self, battery_level: i32) -> bool;
+}
+
 /// Serializable device used in.
 #[derive(Debug, Default, Clone)]
 pub struct BluetoothAudioDevice {
@@ -204,6 +215,7 @@ pub struct BluetoothMedia {
     delay_enable_profiles: HashSet<uuid::Profile>,
     connected_profiles: HashMap<RawAddress, HashSet<uuid::Profile>>,
     device_states: Arc<Mutex<HashMap<RawAddress, DeviceConnectionStates>>>,
+    telephony_device_status: TelephonyDeviceStatus,
 }
 
 impl BluetoothMedia {
@@ -243,6 +255,7 @@ impl BluetoothMedia {
             delay_enable_profiles: HashSet::new(),
             connected_profiles: HashMap::new(),
             device_states: Arc::new(Mutex::new(HashMap::new())),
+            telephony_device_status: TelephonyDeviceStatus::new(),
         }
     }
 
@@ -627,6 +640,27 @@ impl BluetoothMedia {
 
                 self.hfp_cap.insert(addr, hfp_cap);
             }
+            HfpCallbacks::IndicatorQuery(addr) => {
+                match self.hfp.as_mut() {
+                    Some(hfp) => {
+                        debug!(
+                            "[{}]: Responding CIND query with {:?}",
+                            addr.to_string(),
+                            self.telephony_device_status
+                        );
+                        let status =
+                            hfp.indicator_query_response(self.telephony_device_status, addr);
+                        if status != BtStatus::Success {
+                            warn!(
+                                "[{}]: CIND response failed, status={:?}",
+                                addr.to_string(),
+                                status
+                            );
+                        }
+                    }
+                    None => warn!("Uninitialized HFP to notify telephony status"),
+                };
+            }
         }
     }
 
@@ -940,6 +974,33 @@ impl BluetoothMedia {
             })
             .cloned()
             .collect()
+    }
+
+    fn device_status_notification(&mut self) {
+        match self.hfp.as_mut() {
+            Some(hfp) => {
+                for (addr, state) in self.hfp_states.iter() {
+                    if *state != BthfConnectionState::SlcConnected {
+                        continue;
+                    }
+                    debug!(
+                        "[{}]: Device status notification {:?}",
+                        addr.to_string(),
+                        self.telephony_device_status
+                    );
+                    let status =
+                        hfp.device_status_notification(self.telephony_device_status, addr.clone());
+                    if status != BtStatus::Success {
+                        warn!(
+                            "[{}]: Device status notification failed, status={:?}",
+                            addr.to_string(),
+                            status
+                        );
+                    }
+                }
+            }
+            None => warn!("Uninitialized HFP to notify telephony status"),
+        }
     }
 }
 
@@ -1530,6 +1591,54 @@ impl IBluetoothMedia for BluetoothMedia {
             Some(avrcp) => avrcp.set_metadata(&metadata),
             None => warn!("Uninitialized AVRCP to set player playback status"),
         };
+    }
+}
+
+impl IBluetoothTelephony for BluetoothMedia {
+    fn set_network_available(&mut self, network_available: bool) {
+        if self.telephony_device_status.network_available == network_available {
+            return;
+        }
+        self.telephony_device_status.network_available = network_available;
+        self.device_status_notification();
+    }
+
+    fn set_roaming(&mut self, roaming: bool) {
+        if self.telephony_device_status.roaming == roaming {
+            return;
+        }
+        self.telephony_device_status.roaming = roaming;
+        self.device_status_notification();
+    }
+
+    fn set_signal_strength(&mut self, signal_strength: i32) -> bool {
+        if signal_strength < 0 || signal_strength > 5 {
+            warn!("Invalid signal strength, got {}, want 0 to 5", signal_strength);
+            return false;
+        }
+        if self.telephony_device_status.signal_strength == signal_strength {
+            return true;
+        }
+
+        self.telephony_device_status.signal_strength = signal_strength;
+        self.device_status_notification();
+
+        true
+    }
+
+    fn set_battery_level(&mut self, battery_level: i32) -> bool {
+        if battery_level < 0 || battery_level > 5 {
+            warn!("Invalid battery level, got {}, want 0 to 5", battery_level);
+            return false;
+        }
+        if self.telephony_device_status.battery_level == battery_level {
+            return true;
+        }
+
+        self.telephony_device_status.battery_level = battery_level;
+        self.device_status_notification();
+
+        true
     }
 }
 

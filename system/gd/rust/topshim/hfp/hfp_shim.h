@@ -26,6 +26,8 @@ namespace bluetooth {
 namespace topshim {
 namespace rust {
 
+struct TelephonyDeviceStatus;
+
 class HfpIntf {
  public:
   HfpIntf(headset::Interface* intf) : intf_(intf){};
@@ -37,6 +39,8 @@ class HfpIntf {
   int set_volume(int8_t volume, RawAddress addr);
   uint32_t disconnect(RawAddress addr);
   int disconnect_audio(RawAddress addr);
+  uint32_t device_status_notification(TelephonyDeviceStatus status, RawAddress addr);
+  uint32_t indicator_query_response(TelephonyDeviceStatus device_status, RawAddress addr);
   void cleanup();
 
  private:

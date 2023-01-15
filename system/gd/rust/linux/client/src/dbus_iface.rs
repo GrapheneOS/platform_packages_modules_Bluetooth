@@ -23,6 +23,7 @@ use btstack::bluetooth_gatt::{
     IBluetoothGattServerCallback, IScannerCallback, ScanFilter, ScanFilterCondition,
     ScanFilterPattern, ScanResult, ScanSettings, ScanType,
 };
+use btstack::bluetooth_media::IBluetoothTelephony;
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, CallbackId, IBluetoothSocketManager,
     IBluetoothSocketManagerCallbacks, SocketId, SocketResult,
@@ -1816,4 +1817,41 @@ impl ISuspendCallback for ISuspendCallbackDBus {
     fn on_suspend_ready(&self, suspend_id: i32) {}
     #[dbus_method("OnResumed")]
     fn on_resumed(&self, suspend_id: i32) {}
+}
+
+pub(crate) struct BluetoothTelephonyDBus {
+    client_proxy: ClientDBusProxy,
+}
+
+impl BluetoothTelephonyDBus {
+    pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> BluetoothTelephonyDBus {
+        BluetoothTelephonyDBus {
+            client_proxy: ClientDBusProxy::new(
+                conn.clone(),
+                String::from("org.chromium.bluetooth"),
+                make_object_path(index, "telephony"),
+                String::from("org.chromium.bluetooth.BluetoothTelephony"),
+            ),
+        }
+    }
+}
+
+#[generate_dbus_interface_client]
+impl IBluetoothTelephony for BluetoothTelephonyDBus {
+    #[dbus_method("SetNetworkAvailable")]
+    fn set_network_available(&mut self, network_available: bool) {
+        dbus_generated!()
+    }
+    #[dbus_method("SetRoaming")]
+    fn set_roaming(&mut self, roaming: bool) {
+        dbus_generated!()
+    }
+    #[dbus_method("SetSignalStrength")]
+    fn set_signal_strength(&mut self, signal_strength: i32) -> bool {
+        dbus_generated!()
+    }
+    #[dbus_method("SetBatteryLevel")]
+    fn set_battery_level(&mut self, battery_level: i32) -> bool {
+        dbus_generated!()
+    }
 }
