@@ -242,6 +242,31 @@ public class BatteryServiceTest {
         Assert.assertFalse("Connect expected to fail", mService.connect(mDevice));
     }
 
+    @Test
+    public void getConnectionState_whenNoDevicesAreConnected_returnsDisconnectedState() {
+        Assert.assertEquals(mService.getConnectionState(mDevice),
+                BluetoothProfile.STATE_DISCONNECTED);
+    }
+
+    @Test
+    public void getDevices_whenNoDevicesAreConnected_returnsEmptyList() {
+        Assert.assertTrue(mService.getDevices().isEmpty());
+    }
+
+    @Test
+    public void getDevicesMatchingConnectionStates() {
+        when(mAdapterService.getBondedDevices()).thenReturn(new BluetoothDevice[] {mDevice});
+        int states[] = new int[] {BluetoothProfile.STATE_DISCONNECTED};
+
+        Assert.assertTrue(mService.getDevicesMatchingConnectionStates(states).contains(mDevice));
+    }
+
+    @Test
+    public void setConnectionPolicy() {
+        Assert.assertTrue(mService.setConnectionPolicy(
+                mDevice, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN));
+    }
+
     /**
      *  Helper function to test okToConnect() method
      *

@@ -2010,7 +2010,7 @@ void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
  ******************************************************************************/
 void bta_av_reconfig(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   AvdtpSepConfig* p_cfg;
-  tBTA_AV_API_STOP stop;
+  tBTA_AV_API_STOP stop = {};
   tBTA_AV_API_RCFG* p_rcfg = &p_data->api_reconfig;
 
   APPL_TRACE_DEBUG("%s: r:%d, s:%d idx: %d (o:%d)", __func__, p_scb->recfg_sup,
