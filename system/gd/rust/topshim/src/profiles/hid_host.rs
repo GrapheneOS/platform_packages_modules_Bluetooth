@@ -337,6 +337,18 @@ impl HidHost {
         ))
     }
 
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn send_data(&mut self, addr: &mut RawAddress, data: &mut [u8]) -> BtStatus {
+        let addr_ptr = LTCheckedPtrMut::from_ref(addr);
+        let data_ptr = LTCheckedPtrMut::from(data);
+        BtStatus::from(ccall!(
+            self,
+            send_data,
+            addr_ptr.into(),
+            data_ptr.cast_into::<std::os::raw::c_char>()
+        ))
+    }
+
     #[profile_enabled_or]
     pub fn cleanup(&mut self) {
         ccall!(self, cleanup)
