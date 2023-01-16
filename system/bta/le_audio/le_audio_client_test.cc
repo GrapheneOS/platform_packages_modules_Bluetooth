@@ -1463,6 +1463,7 @@ class UnicastTestNoInit : public Test {
                               base::Unretained(LeAudioClient::Get()), address));
 
     SyncOnMainLoop();
+    Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
   }
 
   void DisconnectLeAudio(const RawAddress& address, uint16_t conn_id) {
@@ -4083,6 +4084,63 @@ TEST_F(UnicastTest, NotifyAboutGroupTunrnedIdleDisabled) {
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
   LeAudioClient::Get()->SetInCall(false);
+}
+
+TEST_F(UnicastTest, HandleDatabaseOutOfSync) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  int group_id = bluetooth::groups::kGroupUnknown;
+
+  SetSampleDatabaseEarbudsValid(
+      1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004, false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnGroupNodeStatus(test_address0, _, GroupNodeStatus::ADDED))
+      .WillOnce(DoAll(SaveArg<1>(&group_id)));
+
+  ConnectLeAudio(test_address0);
+  ASSERT_NE(group_id, bluetooth::groups::kGroupUnknown);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
+      .Times(1);
+  InjectDisconnectedEvent(1, GATT_CONN_TERMINATE_PEER_USER);
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  // default action for WriteDescriptor function call
+  ON_CALL(mock_gatt_queue_, WriteDescriptor(_, _, _, _, _, _))
+      .WillByDefault(Invoke([](uint16_t conn_id, uint16_t handle,
+                               std::vector<uint8_t> value,
+                               tGATT_WRITE_TYPE write_type, GATT_WRITE_OP_CB cb,
+                               void* cb_data) -> void {
+        if (cb)
+          do_in_main_thread(
+              FROM_HERE,
+              base::BindOnce(
+                  [](GATT_WRITE_OP_CB cb, uint16_t conn_id, uint16_t handle,
+                     uint16_t len, uint8_t* value, void* cb_data) {
+                    cb(conn_id, GATT_DATABASE_OUT_OF_SYNC, handle, len, value,
+                       cb_data);
+                  },
+                  cb, conn_id, handle, value.size(), value.data(), cb_data));
+      }));
+
+  ON_CALL(mock_gatt_interface_, ServiceSearchRequest(_, _))
+      .WillByDefault(Return());
+  EXPECT_CALL(mock_gatt_interface_, ServiceSearchRequest(_, _));
+
+  InjectConnectedEvent(test_address0, 1);
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 }
 
 }  // namespace le_audio

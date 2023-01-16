@@ -2926,6 +2926,49 @@ TEST_F(HasClientTest, test_dumpsys) {
   ASSERT_TRUE(SimpleJsonValidator(sv[1], &dumpsys_byte_cnt));
 }
 
+TEST_F(HasClientTest, test_connect_database_out_of_sync) {
+  osi_property_set_bool("persist.bluetooth.has.always_use_preset_cache", false);
+
+  const RawAddress test_address = GetTestAddress(1);
+  std::set<HasPreset, HasPreset::ComparatorDesc> has_presets = {{
+      HasPreset(1, HasPreset::kPropertyAvailable, "Universal"),
+      HasPreset(2, HasPreset::kPropertyAvailable | HasPreset::kPropertyWritable,
+                "Preset2"),
+  }};
+  SetSampleDatabaseHasPresetsNtf(
+      test_address,
+      bluetooth::has::kFeatureBitHearingAidTypeBanded |
+          bluetooth::has::kFeatureBitWritablePresets |
+          bluetooth::has::kFeatureBitDynamicPresets,
+      has_presets);
+
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(
+                              test_address,
+                              bluetooth::has::kFeatureBitHearingAidTypeBanded |
+                                  bluetooth::has::kFeatureBitWritablePresets |
+                                  bluetooth::has::kFeatureBitDynamicPresets));
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address));
+  TestConnect(test_address);
+
+  ON_CALL(gatt_queue, WriteCharacteristic(_, _, _, _, _, _))
+      .WillByDefault(
+          Invoke([this](uint16_t conn_id, uint16_t handle,
+                        std::vector<uint8_t> value, tGATT_WRITE_TYPE write_type,
+                        GATT_WRITE_OP_CB cb, void* cb_data) {
+            auto* svc = gatt::FindService(services_map[conn_id], handle);
+            if (svc == nullptr) return;
+
+            tGATT_STATUS status = GATT_DATABASE_OUT_OF_SYNC;
+            if (cb)
+              cb(conn_id, status, handle, value.size(), value.data(), cb_data);
+          }));
+
+  ON_CALL(gatt_interface, ServiceSearchRequest(_, _)).WillByDefault(Return());
+  EXPECT_CALL(gatt_interface, ServiceSearchRequest(_, _));
+  HasClient::Get()->GetPresetInfo(test_address, 1);
+}
+
 class HasTypesTest : public ::testing::Test {
  protected:
   void SetUp(void) override { mock_function_count_map.clear(); }
