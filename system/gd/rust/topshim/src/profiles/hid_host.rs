@@ -160,6 +160,9 @@ pub struct HidHost {
     internal: RawHHWrapper,
     is_init: bool,
     _is_enabled: bool,
+    pub is_hogp_activated: bool,
+    pub is_hidp_activated: bool,
+    pub is_profile_updated: bool,
     // Keep callback object in memory (underlying code doesn't make copy)
     callbacks: Option<Box<bindings::bthh_callbacks_t>>,
 }
@@ -193,6 +196,9 @@ impl HidHost {
             internal: RawHHWrapper { raw: r as *const bthh_interface_t },
             is_init: false,
             _is_enabled: false,
+            is_hogp_activated: false,
+            is_hidp_activated: false,
+            is_profile_updated: false,
             callbacks: None,
         }
     }
@@ -349,6 +355,35 @@ impl HidHost {
         ))
     }
 
+    /// return true if we need to restart hh
+    #[profile_enabled_or(true)]
+    pub fn configure_enabled_profiles(&mut self) -> bool {
+        let needs_restart = self.is_profile_updated;
+        if self.is_profile_updated {
+            ccall!(
+                self,
+                configure_enabled_profiles,
+                self.is_hidp_activated,
+                self.is_hogp_activated
+            );
+            self.is_profile_updated = false;
+        }
+        needs_restart
+    }
+
+    pub fn activate_hogp(&mut self, active: bool) {
+        if self.is_hogp_activated != active {
+            self.is_hogp_activated = active;
+            self.is_profile_updated = true;
+        }
+    }
+
+    pub fn activate_hidp(&mut self, active: bool) {
+        if self.is_hidp_activated != active {
+            self.is_hidp_activated = active;
+            self.is_profile_updated = true;
+        }
+    }
     #[profile_enabled_or]
     pub fn cleanup(&mut self) {
         ccall!(self, cleanup)

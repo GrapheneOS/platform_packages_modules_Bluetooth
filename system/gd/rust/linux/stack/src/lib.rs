@@ -113,6 +113,7 @@ pub enum Message {
 
     // Admin policy related
     AdminCallbackDisconnected(u32),
+    HidHostEnable,
 }
 
 /// Represents suspend mode of a module.
@@ -316,6 +317,9 @@ impl Stack {
                 }
                 Message::AdminCallbackDisconnected(id) => {
                     bluetooth_admin.lock().unwrap().unregister_admin_policy_callback(id);
+                }
+                Message::HidHostEnable => {
+                    bluetooth.lock().unwrap().enable_hidhost();
                 }
             }
         }
