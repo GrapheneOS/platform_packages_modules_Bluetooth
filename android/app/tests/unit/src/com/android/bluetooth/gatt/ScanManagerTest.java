@@ -233,6 +233,13 @@ public class ScanManagerTest {
         return message;
     }
 
+    private Message createLocationOnOffMessage(boolean isLocationOn) {
+        Message message = new Message();
+        message.what = isLocationOn ? ScanManager.MSG_RESUME_SCANS : ScanManager.MSG_SUSPEND_SCANS;
+        message.obj = null;
+        return message;
+    }
+
     private Message createImportanceMessage(boolean isForeground) {
         final int importance = isForeground ? ActivityManager.RunningAppProcessInfo
                 .IMPORTANCE_FOREGROUND_SERVICE : ActivityManager.RunningAppProcessInfo
@@ -977,6 +984,48 @@ public class ScanManagerTest {
             assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
             assertThat(mScanManager.getBatchScanQueue().contains(client)).isTrue();
             assertThat(mScanManager.getBatchScanParams().scanMode).isEqualTo(expectedScanMode);
+        }
+    }
+
+    @Test
+    public void testLocationAndScreenOnOffResumeUnfilteredScan() {
+        // Set filtered scan flag
+        final boolean isFiltered = false;
+        // Set scan mode array
+        int[] scanModeArr = {SCAN_MODE_LOW_POWER,
+                SCAN_MODE_BALANCED,
+                SCAN_MODE_LOW_LATENCY,
+                SCAN_MODE_AMBIENT_DISCOVERY};
+
+        for (int i = 0; i < scanModeArr.length; i++) {
+            int ScanMode = scanModeArr[i];
+            Log.d(TAG, "ScanMode: " + String.valueOf(ScanMode));
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            // Create scan client
+            ScanClient client = createScanClient(i, isFiltered, ScanMode);
+            // Start scan
+            sendMessageWaitForProcessed(createStartStopScanMessage(true, client));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
+            // Turn off location
+            doReturn(false).when(mLocationManager).isLocationEnabled();
+            sendMessageWaitForProcessed(createLocationOnOffMessage(false));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isTrue();
+            // Turn off screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(false));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isTrue();
+            // Turn on screen
+            sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isFalse();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isTrue();
+            // Turn on location
+            doReturn(true).when(mLocationManager).isLocationEnabled();
+            sendMessageWaitForProcessed(createLocationOnOffMessage(true));
+            assertThat(mScanManager.getRegularScanQueue().contains(client)).isTrue();
+            assertThat(mScanManager.getSuspendedScanQueue().contains(client)).isFalse();
         }
     }
 }
