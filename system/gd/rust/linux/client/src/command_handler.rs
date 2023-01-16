@@ -9,6 +9,7 @@ use crate::callbacks::{BtGattCallback, BtGattServerCallback};
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
+use bt_topshim::profiles::hid_host::BthhReportType;
 use bt_topshim::profiles::{gatt::LePhy, ProfileConnectionState};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
 use btstack::bluetooth_gatt::{GattWriteType, IBluetoothGatt, ScanSettings, ScanType};
@@ -211,6 +212,18 @@ fn build_commands() -> HashMap<String, CommandOption> {
             ],
             description: String::from("Socket manager utilities."),
             function_pointer: CommandHandler::cmd_socket,
+        },
+    );
+    command_options.insert(
+        String::from("hid"),
+        CommandOption {
+            rules: vec![
+                String::from("hid get-report <address> <Input|Output|Feature> <report_id>"),
+                String::from("hid set-report <address> <Input|Output|Feature> <report_value>"),
+                String::from("hid send-data <address> <data>"),
+            ],
+            description: String::from("Socket manager utilities."),
+            function_pointer: CommandHandler::cmd_hid,
         },
     );
     command_options.insert(
@@ -1384,6 +1397,64 @@ impl CommandHandler {
                 }
             }
 
+            _ => return Err(CommandError::InvalidArgs),
+        };
+
+        Ok(())
+    }
+
+    fn cmd_hid(&mut self, args: &Vec<String>) -> CommandResult {
+        if !self.context.lock().unwrap().adapter_ready {
+            return Err(self.adapter_not_ready());
+        }
+
+        let command = get_arg(args, 0)?;
+
+        match &command[..] {
+            "get-report" => {
+                let addr = String::from(get_arg(args, 1)?);
+                let report_type = match &get_arg(args, 2)?[..] {
+                    "Input" => BthhReportType::InputReport,
+                    "Output" => BthhReportType::OutputReport,
+                    "Feature" => BthhReportType::FeatureReport,
+                    _ => {
+                        return Err("Failed to parse report type".into());
+                    }
+                };
+                let report_id = String::from(get_arg(args, 3)?)
+                    .parse::<u8>()
+                    .or(Err("Failed parsing report_id"))?;
+
+                self.context.lock().unwrap().qa_dbus.as_mut().unwrap().get_hid_report(
+                    addr,
+                    report_type,
+                    report_id,
+                );
+            }
+            "set-report" => {
+                let addr = String::from(get_arg(args, 1)?);
+                let report_type = match &get_arg(args, 2)?[..] {
+                    "Input" => BthhReportType::InputReport,
+                    "Output" => BthhReportType::OutputReport,
+                    "Feature" => BthhReportType::FeatureReport,
+                    _ => {
+                        return Err("Failed to parse report type".into());
+                    }
+                };
+                let report_value = String::from(get_arg(args, 3)?);
+
+                self.context.lock().unwrap().qa_dbus.as_mut().unwrap().set_hid_report(
+                    addr,
+                    report_type,
+                    report_value,
+                );
+            }
+            "send-data" => {
+                let addr = String::from(get_arg(args, 1)?);
+                let data = String::from(get_arg(args, 2)?);
+
+                self.context.lock().unwrap().qa_dbus.as_mut().unwrap().send_hid_data(addr, data);
+            }
             _ => return Err(CommandError::InvalidArgs),
         };
 
