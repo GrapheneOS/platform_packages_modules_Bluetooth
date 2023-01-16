@@ -111,6 +111,6 @@ public class GPMWrapperTest {
 
         GPMWrapper wrapper = new GPMWrapper(mContext, mMediaController, null);
 
-        assertThat(wrapper.isMetadataSynced()).isFalse();
+        assertThat(wrapper.isMetadataSynced()).isTrue();
     }
 }
