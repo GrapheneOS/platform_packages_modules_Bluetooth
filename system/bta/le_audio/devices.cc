@@ -826,7 +826,9 @@ bool LeAudioDeviceGroup::ReloadAudioLocations(void) {
       codec_spec_conf::kLeAudioLocationNotAllowed;
 
   for (const auto& device : leAudioDevices_) {
-    if (device.expired()) continue;
+    if (device.expired() || (device.lock().get()->GetConnectionState() !=
+                             DeviceConnectState::CONNECTED))
+      continue;
     updated_snk_audio_locations_ |= device.lock().get()->snk_audio_locations_;
     updated_src_audio_locations_ |= device.lock().get()->src_audio_locations_;
   }
@@ -846,7 +848,9 @@ bool LeAudioDeviceGroup::ReloadAudioDirections(void) {
   uint8_t updated_audio_directions = 0x00;
 
   for (const auto& device : leAudioDevices_) {
-    if (device.expired()) continue;
+    if (device.expired() || (device.lock().get()->GetConnectionState() !=
+                             DeviceConnectState::CONNECTED))
+      continue;
     updated_audio_directions |= device.lock().get()->audio_directions_;
   }
 
