@@ -237,6 +237,7 @@ cc_test {
 	":TestMockDevice",
 	":TestMockStack",
 	":TestMockBtif",
+        ":TestCommonLogMsg",
         "test/bta_hf_client_security_test.cc",
     ],
     shared_libs: [
