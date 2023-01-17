@@ -87,7 +87,6 @@ using le_audio::types::BidirectionalPair;
 using le_audio::types::hdl_pair;
 using le_audio::types::kDefaultScanDurationS;
 using le_audio::types::LeAudioContextType;
-using le_audio::utils::GetAllCcids;
 using le_audio::utils::GetAllowedAudioContextsFromSinkMetadata;
 using le_audio::utils::GetAllowedAudioContextsFromSourceMetadata;
 using le_audio::utils::IsContextForAudioSource;
@@ -852,7 +851,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     bool result = groupStateMachine_->StartStream(
         group, final_context_type, adjusted_metadata_context_type,
-        GetAllCcids(adjusted_metadata_context_type));
+        ContentControlIdKeeper::GetInstance()->GetAllCcids(
+            adjusted_metadata_context_type));
 
     return result;
   }
@@ -941,7 +941,9 @@ class LeAudioClientImpl : public LeAudioClient {
 
   void SetCcidInformation(int ccid, int context_type) override {
     LOG_DEBUG("Ccid: %d, context type %d", ccid, context_type);
-    ContentControlIdKeeper::GetInstance()->SetCcid(context_type, ccid);
+
+    ContentControlIdKeeper::GetInstance()->SetCcid(AudioContexts(context_type),
+                                                   ccid);
   }
 
   void SetInCall(bool in_call) override {
@@ -4341,7 +4343,8 @@ class LeAudioClientImpl : public LeAudioClient {
           if (groupStateMachine_->ConfigureStream(
                   group, configuration_context_type_,
                   adjusted_metedata_context_type,
-                  GetAllCcids(adjusted_metedata_context_type))) {
+                  ContentControlIdKeeper::GetInstance()->GetAllCcids(
+                      adjusted_metedata_context_type))) {
             /* If configuration succeed wait for new status. */
             return;
           }
