@@ -185,6 +185,29 @@ class VolumeControlImpl : public VolumeControl {
     }
   }
 
+  void ClearDeviceInformationAndStartSearch(VolumeControlDevice* device) {
+    if (!device) {
+      LOG_ERROR("Device is null");
+      return;
+    }
+
+    LOG_INFO(": address=%s", ADDRESS_TO_LOGGABLE_CSTR(device->address));
+    if (device->service_changed_rcvd) {
+      LOG_INFO("Device already is waiting for new services");
+      return;
+    }
+
+    std::vector<RawAddress> devices = {device->address};
+    device->DeregisterNotifications(gatt_if_);
+
+    RemovePendingVolumeControlOperations(devices,
+                                         bluetooth::groups::kGroupUnknown);
+    device->first_connection = true;
+    device->service_changed_rcvd = true;
+    BtaGattQueue::Clean(device->connection_id);
+    BTA_GATTC_ServiceSearchRequest(device->connection_id, &kVolumeControlUuid);
+  }
+
   void OnServiceChangeEvent(const RawAddress& address) {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
@@ -193,11 +216,8 @@ class VolumeControlImpl : public VolumeControl {
                  << ADDRESS_TO_LOGGABLE_STR(address);
       return;
     }
-    LOG(INFO) << __func__ << ": address="
-              << ADDRESS_TO_LOGGABLE_STR(address);
-    device->first_connection = true;
-    device->service_changed_rcvd = true;
-    BtaGattQueue::Clean(device->connection_id);
+
+    ClearDeviceInformationAndStartSearch(device);
   }
 
   void OnServiceDiscDoneEvent(const RawAddress& address) {
@@ -255,7 +275,12 @@ class VolumeControlImpl : public VolumeControl {
     }
 
     if (status != GATT_SUCCESS) {
-      LOG(INFO) << __func__ << ": status=" << static_cast<int>(status);
+      LOG_INFO(": status=0x%02x", static_cast<int>(status));
+      if (status == GATT_DATABASE_OUT_OF_SYNC) {
+        LOG_INFO("Database out of sync for %s",
+                 ADDRESS_TO_LOGGABLE_CSTR(device->address));
+        ClearDeviceInformationAndStartSearch(device);
+      }
       return;
     }
 
@@ -555,10 +580,15 @@ class VolumeControlImpl : public VolumeControl {
     }
 
     if (status != GATT_SUCCESS) {
-      LOG(ERROR) << __func__
-                 << "Failed to register for notification: " << loghex(handle)
-                 << " status: " << status;
-      device_cleanup_helper(device, true);
+      if (status == GATT_DATABASE_OUT_OF_SYNC) {
+        LOG_INFO("Database out of sync for %s, conn_id: 0x%04x",
+                 ADDRESS_TO_LOGGABLE_CSTR(device->address), connection_id);
+        ClearDeviceInformationAndStartSearch(device);
+      } else {
+        LOG_ERROR("Failed to register for notification: 0x%04x, status 0x%02x",
+                  handle, status);
+        device_cleanup_helper(device, true);
+      }
       return;
     }
 
@@ -693,6 +723,12 @@ class VolumeControlImpl : public VolumeControl {
 
     /* In case of error, remove device from the tracking operation list */
     RemoveDeviceFromOperationList(device->address, PTR_TO_INT(data));
+
+    if (status == GATT_DATABASE_OUT_OF_SYNC) {
+      LOG_INFO("Database out of sync for %s",
+               ADDRESS_TO_LOGGABLE_CSTR(device->address));
+      ClearDeviceInformationAndStartSearch(device);
+    }
   }
 
   static void operation_callback(void* data) {
