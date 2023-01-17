@@ -5,6 +5,8 @@ use bt_topshim::btif::{
 use bt_topshim::profiles::socket::SocketType;
 use bt_topshim::profiles::ProfileConnectionState;
 
+use bt_topshim::profiles::hid_host::BthhReportType;
+
 use btstack::bluetooth::{
     Bluetooth, BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
     IBluetoothQA,
@@ -591,6 +593,8 @@ impl ISuspendCallback for SuspendCallbackDBus {
     }
 }
 
+impl_dbus_arg_enum!(BthhReportType);
+
 #[allow(dead_code)]
 struct IBluetoothQADBus {}
 
@@ -608,6 +612,31 @@ impl IBluetoothQA for IBluetoothQADBus {
 
     #[dbus_method("SetConnectable")]
     fn set_connectable(&mut self, mode: bool) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetHIDReport")]
+    fn get_hid_report(
+        &mut self,
+        addr: String,
+        report_type: BthhReportType,
+        report_id: u8,
+    ) -> BtStatus {
+        dbus_generated!()
+    }
+
+    #[dbus_method("SetHIDReport")]
+    fn set_hid_report(
+        &mut self,
+        addr: String,
+        report_type: BthhReportType,
+        report: String,
+    ) -> BtStatus {
+        dbus_generated!()
+    }
+
+    #[dbus_method("SendHIDData")]
+    fn send_hid_data(&mut self, addr: String, data: String) -> BtStatus {
         dbus_generated!()
     }
 }
