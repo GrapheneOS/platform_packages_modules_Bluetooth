@@ -66,7 +66,7 @@ public class DataMigrationTest {
 
     private static final String AUTHORITY = "bluetooth_legacy.provider";
 
-    private static final String TEST_PREF = "TestPref";
+    private static final String TEST_PREF = "DatabaseTestPref";
 
     private MockContentResolver mMockContentResolver;
 
@@ -82,6 +82,7 @@ public class DataMigrationTest {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         mTargetContext.deleteSharedPreferences(TEST_PREF);
         mPrefs = mTargetContext.getSharedPreferences(TEST_PREF, Context.MODE_PRIVATE);
+        mPrefs.edit().clear().apply();
 
         mMockContentResolver = new MockContentResolver(mTargetContext);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
@@ -93,7 +94,8 @@ public class DataMigrationTest {
 
     @After
     public void tearDown() throws Exception {
-        mTargetContext.deleteSharedPreferences("TestPref");
+        mPrefs.edit().clear().apply();
+        mTargetContext.deleteSharedPreferences(TEST_PREF);
         mTargetContext.deleteDatabase("TestBluetoothDb");
         mTargetContext.deleteDatabase("TestOppDb");
     }
