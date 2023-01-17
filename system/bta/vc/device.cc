@@ -29,26 +29,27 @@
 
 using namespace bluetooth::vc::internal;
 
+void VolumeControlDevice::DeregisterNotifications(tGATT_IF gatt_if) {
+  if (volume_state_handle != 0)
+    BTA_GATTC_DeregisterForNotifications(gatt_if, address, volume_state_handle);
+
+  if (volume_flags_handle != 0)
+    BTA_GATTC_DeregisterForNotifications(gatt_if, address, volume_flags_handle);
+
+  for (const VolumeOffset& of : audio_offsets.volume_offsets) {
+    BTA_GATTC_DeregisterForNotifications(gatt_if, address,
+                                         of.audio_descr_handle);
+    BTA_GATTC_DeregisterForNotifications(gatt_if, address,
+                                         of.audio_location_handle);
+    BTA_GATTC_DeregisterForNotifications(gatt_if, address, of.state_handle);
+  }
+}
+
 void VolumeControlDevice::Disconnect(tGATT_IF gatt_if) {
   LOG(INFO) << __func__ << ": " << this->ToString();
 
   if (IsConnected()) {
-    if (volume_state_handle != 0)
-      BTA_GATTC_DeregisterForNotifications(gatt_if, address,
-                                           volume_state_handle);
-
-    if (volume_flags_handle != 0)
-      BTA_GATTC_DeregisterForNotifications(gatt_if, address,
-                                           volume_flags_handle);
-
-    for (const VolumeOffset& of : audio_offsets.volume_offsets) {
-      BTA_GATTC_DeregisterForNotifications(gatt_if, address,
-                                           of.audio_descr_handle);
-      BTA_GATTC_DeregisterForNotifications(gatt_if, address,
-                                           of.audio_location_handle);
-      BTA_GATTC_DeregisterForNotifications(gatt_if, address, of.state_handle);
-    }
-
+    DeregisterNotifications(gatt_if);
     BtaGattQueue::Clean(connection_id);
     BTA_GATTC_Close(connection_id);
     connection_id = GATT_INVALID_CONN_ID;
