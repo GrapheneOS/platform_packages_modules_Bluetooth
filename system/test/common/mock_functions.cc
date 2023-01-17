@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+#include "test/common/mock_functions.h"
+
 #include <map>
 
 #include "osi/include/log.h"
-#include "test/common/mock_functions.h"
 
 std::map<std::string, int> mock_function_count_map;
 

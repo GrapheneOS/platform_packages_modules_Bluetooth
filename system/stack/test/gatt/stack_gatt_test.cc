@@ -26,10 +26,9 @@
 #include "common/strings.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/gatt_api.h"
+#include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-std::map<std::string, int> mock_function_count_map;
 
 class StackGattTest : public ::testing::Test {};
 

@@ -23,8 +23,7 @@
 #include "stack/include/btu.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hcidefs.h"
-
-std::map<std::string, int> mock_function_count_map;
+#include "test/common/mock_functions.h"
 
 /* Function for test provided by btu_hcif.cc */
 void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,

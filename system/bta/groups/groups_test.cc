@@ -20,10 +20,9 @@
 #include <gtest/gtest.h>
 
 #include "bta_groups.h"
+#include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-std::map<std::string, int> mock_function_count_map;
 
 namespace bluetooth {
 namespace groups {

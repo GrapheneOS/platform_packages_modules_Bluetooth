@@ -27,6 +27,7 @@
 #include "mock_iso_manager.h"
 #include "stack/include/ble_advertiser.h"
 #include "state_machine.h"
+#include "test/common/mock_functions.h"
 
 using namespace bluetooth::hci::iso_manager;
 
@@ -36,8 +37,6 @@ using testing::_;
 using testing::Mock;
 using testing::SaveArg;
 using testing::Test;
-
-std::map<std::string, int> mock_function_count_map;
 
 // Disables most likely false-positives from base::SplitString()
 extern "C" const char* __asan_default_options() {

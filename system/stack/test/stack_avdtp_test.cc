@@ -25,6 +25,7 @@
 #include "stack/avdt/avdt_int.h"
 #include "stack/include/avdt_api.h"
 #include "stack/test/common/mock_stack_avdt_msg.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
@@ -33,9 +34,6 @@
 
 // Global trace level referred in the code under test
 uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
-
-// All mock requires this symbol to count calling times
-std::map<std::string, int> mock_function_count_map;
 
 class StackAvdtpTest : public ::testing::Test {
  protected:
