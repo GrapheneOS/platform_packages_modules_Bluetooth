@@ -217,7 +217,8 @@ class BroadcasterTest : public Test {
                                    base::Bind([]() -> bool { return true; }));
 
     ContentControlIdKeeper::GetInstance()->Start();
-    ContentControlIdKeeper::GetInstance()->SetCcid(0x0004, media_ccid);
+    ContentControlIdKeeper::GetInstance()->SetCcid(LeAudioContextType::MEDIA,
+                                                   media_ccid);
 
     /* Simulate random generator */
     uint8_t random[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
@@ -433,7 +434,8 @@ TEST_F(BroadcasterTest, UpdateMetadata) {
             }
           });
 
-  ContentControlIdKeeper::GetInstance()->SetCcid(0x0400, default_ccid);
+  ContentControlIdKeeper::GetInstance()->SetCcid(LeAudioContextType::ALERTS,
+                                                 default_ccid);
   LeAudioBroadcaster::Get()->UpdateMetadata(
       broadcast_id,
       std::vector<uint8_t>({0x02, 0x01, 0x02, 0x03, 0x02, 0x04, 0x04}));
@@ -475,7 +477,8 @@ static BasicAudioAnnouncementData prepareAnnouncement(
 }
 
 TEST_F(BroadcasterTest, UpdateMetadataFromAudioTrackMetadata) {
-  ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
+  ContentControlIdKeeper::GetInstance()->SetCcid(LeAudioContextType::MEDIA,
+                                                 media_ccid);
   auto broadcast_id = InstantiateBroadcast();
 
   LeAudioSourceAudioHalClient::Callbacks* audio_receiver;
@@ -614,7 +617,8 @@ TEST_F(BroadcasterTest, StreamParamsAlerts) {
 
 TEST_F(BroadcasterTest, StreamParamsMedia) {
   uint8_t expected_channels = 2u;
-  ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
+  ContentControlIdKeeper::GetInstance()->SetCcid(LeAudioContextType::MEDIA,
+                                                 media_ccid);
   InstantiateBroadcast(media_metadata);
   auto config = MockBroadcastStateMachine::GetLastInstance()->cfg;
 

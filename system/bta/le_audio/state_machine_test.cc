@@ -60,14 +60,10 @@ static const char* test_flags[] = {
 };
 
 constexpr uint8_t media_ccid = 0xC0;
-constexpr auto media_context =
-    static_cast<std::underlying_type<LeAudioContextType>::type>(
-        LeAudioContextType::MEDIA);
+constexpr auto media_context = LeAudioContextType::MEDIA;
 
 constexpr uint8_t call_ccid = 0xD0;
-constexpr auto call_context =
-    static_cast<std::underlying_type<LeAudioContextType>::type>(
-        LeAudioContextType::CONVERSATIONAL);
+constexpr auto call_context = LeAudioContextType::CONVERSATIONAL;
 
 namespace le_audio {
 namespace internal {
