@@ -20,6 +20,7 @@
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/state_machine.h"
+#include "bta/le_audio/content_control_id_keeper.h"
 #include "bta/le_audio/le_audio_types.h"
 #include "bta/le_audio/le_audio_utils.h"
 #include "bta/le_audio/metrics_collector.h"
@@ -40,6 +41,7 @@ using bluetooth::hci::iso_manager::BigCallbacks;
 using bluetooth::le_audio::BasicAudioAnnouncementData;
 using bluetooth::le_audio::BroadcastId;
 using le_audio::CodecManager;
+using le_audio::ContentControlIdKeeper;
 using le_audio::LeAudioCodecConfiguration;
 using le_audio::LeAudioSourceAudioHalClient;
 using le_audio::broadcaster::BigConfig;
@@ -53,7 +55,6 @@ using le_audio::types::CodecLocation;
 using le_audio::types::kLeAudioCodingFormatLC3;
 using le_audio::types::LeAudioContextType;
 using le_audio::types::LeAudioLtvMap;
-using le_audio::utils::GetAllCcids;
 using le_audio::utils::GetAllowedAudioContextsFromSourceMetadata;
 
 namespace {
@@ -172,7 +173,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
   void UpdateStreamingContextTypeOnAllSubgroups(const AudioContexts& contexts) {
     LOG_DEBUG("%s context_type_map=%s", __func__, contexts.to_string().c_str());
 
-    auto ccids = GetAllCcids(contexts);
+    auto ccids = ContentControlIdKeeper::GetInstance()->GetAllCcids(contexts);
     if (ccids.empty()) {
       LOG_WARN("%s No content providers available for context_type_map=%s.",
                __func__, contexts.to_string().c_str());
@@ -290,7 +291,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     }
 
     // Append the CCID list
-    auto ccid_vec = GetAllCcids(context_type);
+    auto ccid_vec =
+        ContentControlIdKeeper::GetInstance()->GetAllCcids(context_type);
     if (!ccid_vec.empty()) {
       ltv.Add(le_audio::types::kLeAudioMetadataTypeCcidList, ccid_vec);
     }
@@ -345,7 +347,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     }
 
     // Append the CCID list
-    auto ccid_vec = GetAllCcids(context_type);
+    auto ccid_vec =
+        ContentControlIdKeeper::GetInstance()->GetAllCcids(context_type);
     if (!ccid_vec.empty()) {
       ltv.Add(le_audio::types::kLeAudioMetadataTypeCcidList, ccid_vec);
     }

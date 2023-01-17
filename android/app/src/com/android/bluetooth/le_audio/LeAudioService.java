@@ -1551,7 +1551,7 @@ public class LeAudioService extends ProfileService {
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_NATIVE_INITIALIZED) {
             mLeAudioNativeIsInitialized = true;
             for (Map.Entry<ParcelUuid, Pair<Integer, Integer>> entry :
-                    ContentControlIdKeeper.getUserCcidMap().entrySet()) {
+                    ContentControlIdKeeper.getUuidToCcidContextPairMap().entrySet()) {
                 ParcelUuid userUuid = entry.getKey();
                 Pair<Integer, Integer> ccidInformation = entry.getValue();
                 setCcidInformation(userUuid, ccidInformation.first, ccidInformation.second);

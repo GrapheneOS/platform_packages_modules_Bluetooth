@@ -33,7 +33,6 @@ types::AudioContexts GetAllowedAudioContextsFromSourceMetadata(
 types::AudioContexts GetAllowedAudioContextsFromSinkMetadata(
     const std::vector<struct record_track_metadata>& source_metadata,
     types::AudioContexts allowed_contexts);
-std::vector<uint8_t> GetAllCcids(const types::AudioContexts& contexts);
 
 static inline bool IsContextForAudioSource(types::LeAudioContextType c) {
   if (c == types::LeAudioContextType::CONVERSATIONAL ||
