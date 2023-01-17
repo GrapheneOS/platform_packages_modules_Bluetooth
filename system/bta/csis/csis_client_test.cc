@@ -29,8 +29,7 @@
 #include "csis_types.h"
 #include "gatt/database_builder.h"
 #include "hardware/bt_gatt_types.h"
-
-std::map<std::string, int> mock_function_count_map;
+#include "test/common/mock_functions.h"
 
 namespace bluetooth {
 namespace csis {

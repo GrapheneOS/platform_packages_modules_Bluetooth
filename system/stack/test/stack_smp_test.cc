@@ -30,12 +30,12 @@
 #include "stack/include/smp_api.h"
 #include "stack/smp/p_256_ecc_pp.h"
 #include "stack/smp/smp_int.h"
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_stack_acl.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 
 tBTM_CB btm_cb;
-std::map<std::string, int> mock_function_count_map;
 
 const std::string kSmpOptions("mock smp options");
 const std::string kBroadcastAudioConfigOptions(
