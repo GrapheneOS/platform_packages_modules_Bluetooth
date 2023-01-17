@@ -16,15 +16,15 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <cstring>
 #include <map>
 
 #include "osi/include/log.h"
 #include "stack/include/hcidefs.h"
 #include "stack/include/l2cdefs.h"
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_hcic_hcicmds.h"
-
-std::map<std::string, int> mock_function_count_map;
 
 namespace mock = test::mock::hcic_hcicmds;
 

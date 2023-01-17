@@ -42,6 +42,7 @@
 #include "mock_iso_manager.h"
 #include "mock_state_machine.h"
 #include "osi/include/log.h"
+#include "test/common/mock_functions.h"
 
 using testing::_;
 using testing::AnyNumber;
@@ -70,7 +71,6 @@ using le_audio::LeAudioSourceAudioHalClient;
 
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 
-std::map<std::string, int> mock_function_count_map;
 constexpr int max_num_of_ases = 5;
 
 static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
