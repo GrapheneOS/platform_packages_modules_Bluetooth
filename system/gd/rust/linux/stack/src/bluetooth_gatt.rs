@@ -48,7 +48,10 @@ struct Client {
 struct Connection {
     conn_id: i32,
     address: String,
+
+    // Connections are made to either a client or server
     client_id: i32,
+    server_id: i32,
 }
 
 struct ContextMap {
@@ -155,7 +158,12 @@ impl ContextMap {
             return;
         }
 
-        self.connections.push(Connection { conn_id, address: address.clone(), client_id });
+        self.connections.push(Connection {
+            conn_id,
+            address: address.clone(),
+            client_id,
+            server_id: 0,
+        });
     }
 
     fn remove_connection(&mut self, _client_id: i32, conn_id: i32) {
@@ -192,6 +200,7 @@ struct ServerContextMap {
     // multiple keys.
     callbacks: Callbacks<dyn IBluetoothGattServerCallback + Send>,
     servers: Vec<Server>,
+    connections: Vec<Connection>,
 }
 
 type GattServerCallback = Box<dyn IBluetoothGattServerCallback + Send>;
@@ -201,6 +210,7 @@ impl ServerContextMap {
         ServerContextMap {
             callbacks: Callbacks::new(tx, Message::GattServerCallbackDisconnected),
             servers: vec![],
+            connections: vec![],
         }
     }
 
@@ -251,6 +261,31 @@ impl ServerContextMap {
         callback_id: u32,
     ) -> Option<&mut GattServerCallback> {
         self.callbacks.get_by_id(callback_id)
+    }
+
+    fn add_connection(&mut self, server_id: i32, conn_id: i32, address: &String) {
+        if self.get_conn_id_from_address(server_id, address).is_some() {
+            return;
+        }
+
+        self.connections.push(Connection {
+            conn_id,
+            address: address.clone(),
+            client_id: 0,
+            server_id,
+        });
+    }
+
+    fn remove_connection(&mut self, conn_id: i32) {
+        self.connections.retain(|conn| conn.conn_id != conn_id);
+    }
+
+    fn get_conn_id_from_address(&self, server_id: i32, address: &String) -> Option<i32> {
+        return self
+            .connections
+            .iter()
+            .find(|conn| conn.server_id == server_id && conn.address == *address)
+            .map(|conn| conn.conn_id);
     }
 }
 
@@ -515,6 +550,18 @@ pub trait IBluetoothGatt {
 
     /// Unregisters a GATT Server.
     fn unregister_server(&mut self, server_id: i32);
+
+    /// Initiates a GATT connection to the server.
+    fn server_connect(
+        &self,
+        server_id: i32,
+        addr: String,
+        is_direct: bool,
+        transport: BtTransport,
+    ) -> bool;
+
+    /// Disconnects the server GATT connection.
+    fn server_disconnect(&self, server_id: i32, addr: String) -> bool;
 }
 
 #[derive(Debug, Default)]
@@ -674,6 +721,9 @@ pub trait IBluetoothGattCallback: RPCProxy {
 pub trait IBluetoothGattServerCallback: RPCProxy {
     /// When the `register_server` request is done.
     fn on_server_registered(&self, _status: GattStatus, _server_id: i32);
+
+    /// When there is a change in the state of a GATT server connection.
+    fn on_server_connection_state(&self, _server_id: i32, _connected: bool, _addr: String);
 }
 
 /// Interface for scanner callbacks to clients, passed to
@@ -1996,6 +2046,44 @@ impl IBluetoothGatt for BluetoothGatt {
         self.server_context_map.remove(server_id);
         self.gatt.as_ref().unwrap().lock().unwrap().server.unregister_server(server_id);
     }
+
+    fn server_connect(
+        &self,
+        server_id: i32,
+        addr: String,
+        is_direct: bool,
+        transport: BtTransport,
+    ) -> bool {
+        let address = match RawAddress::from_string(addr.clone()) {
+            None => return false,
+            Some(addr) => addr,
+        };
+
+        self.gatt.as_ref().unwrap().lock().unwrap().server.connect(
+            server_id,
+            &address,
+            is_direct,
+            transport.into(),
+        );
+
+        true
+    }
+
+    fn server_disconnect(&self, server_id: i32, addr: String) -> bool {
+        let address = match RawAddress::from_string(addr.clone()) {
+            None => return false,
+            Some(addr) => addr,
+        };
+
+        let conn_id = match self.server_context_map.get_conn_id_from_address(server_id, &addr) {
+            None => return false,
+            Some(id) => id,
+        };
+
+        self.gatt.as_ref().unwrap().lock().unwrap().server.disconnect(server_id, &address, conn_id);
+
+        true
+    }
 }
 
 #[btif_callbacks_dispatcher(dispatch_gatt_client_callbacks, GattClientCallbacks)]
@@ -2601,6 +2689,9 @@ impl BtifGattClientCallbacks for BluetoothGatt {
 pub(crate) trait BtifGattServerCallbacks {
     #[btif_callback(RegisterServer)]
     fn register_server_cb(&mut self, status: GattStatus, server_id: i32, app_uuid: Uuid);
+
+    #[btif_callback(Connection)]
+    fn connection_cb(&mut self, conn_id: i32, server_id: i32, connected: i32, addr: RawAddress);
 }
 
 impl BtifGattServerCallbacks for BluetoothGatt {
@@ -2616,6 +2707,27 @@ impl BtifGattServerCallbacks for BluetoothGatt {
             }
             None => {
                 warn!("Warning: No callback found for UUID {}", app_uuid);
+            }
+        }
+    }
+
+    fn connection_cb(&mut self, conn_id: i32, server_id: i32, connected: i32, addr: RawAddress) {
+        let is_connected = connected != 0;
+        if is_connected {
+            self.server_context_map.add_connection(server_id, conn_id, &addr.to_string());
+        } else {
+            self.server_context_map.remove_connection(conn_id);
+        }
+
+        let cbid = self.server_context_map.get_by_server_id(server_id).map(|server| server.cbid);
+        match cbid {
+            Some(cbid) => {
+                if let Some(cb) = self.server_context_map.get_callback_from_callback_id(cbid) {
+                    cb.on_server_connection_state(server_id, is_connected, addr.to_string());
+                }
+            }
+            None => {
+                warn!("Warning: No callback found for server ID {}", server_id);
             }
         }
     }
