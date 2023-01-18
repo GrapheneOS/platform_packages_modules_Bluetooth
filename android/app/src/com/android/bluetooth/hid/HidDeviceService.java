@@ -620,6 +620,7 @@ public class HidDeviceService extends ProfileService {
 
         if (mUserUid != 0 && (uid == mUserUid || uid < Process.FIRST_APPLICATION_UID)) {
             mUserUid = 0;
+            mCallback = null;
             return mHidDeviceNativeInterface.unregisterApp();
         }
         if (DBG) {
