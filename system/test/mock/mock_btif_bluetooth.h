@@ -177,17 +177,6 @@ struct get_remote_services {
   int operator()(RawAddress* remote_addr) { return body(remote_addr); };
 };
 extern struct get_remote_services get_remote_services;
-// Name: le_test_mode
-// Params: uint16_t opcode, uint8_t* buf, uint8_t len
-// Returns: int
-struct le_test_mode {
-  std::function<int(uint16_t opcode, uint8_t* buf, uint8_t len)> body{
-      [](uint16_t opcode, uint8_t* buf, uint8_t len) { return 0; }};
-  int operator()(uint16_t opcode, uint8_t* buf, uint8_t len) {
-    return body(opcode, buf, len);
-  };
-};
-extern struct le_test_mode le_test_mode;
 // Name: set_remote_device_property
 // Params: RawAddress* remote_addr, const bt_property_t* property
 // Returns: int
