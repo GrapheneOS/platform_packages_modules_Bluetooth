@@ -55,8 +55,6 @@ import android.os.Message;
 import android.util.Log;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
-import android.annotation.RequiresPermission;
-
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
