@@ -222,8 +222,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         }
 
         while (leAudioDevice) {
-          PrepareAndSendUpdateMetadata(group, leAudioDevice,
-                                       metadata_context_type, ccid_list);
+          PrepareAndSendUpdateMetadata(leAudioDevice, metadata_context_type,
+                                       ccid_list);
           leAudioDevice = group->GetNextActiveDevice(leAudioDevice);
         }
         break;
@@ -2118,52 +2118,58 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                                       GATT_WRITE_NO_RSP, NULL, NULL);
   }
 
-  void PrepareAndSendUpdateMetadata(LeAudioDeviceGroup* group,
-                                    LeAudioDevice* leAudioDevice,
+  void PrepareAndSendUpdateMetadata(LeAudioDevice* leAudioDevice,
                                     le_audio::types::AudioContexts context_type,
                                     const std::vector<uint8_t>& ccid_list) {
     std::vector<struct le_audio::client_parser::ascs::ctp_update_metadata>
         confs;
 
-    for (; leAudioDevice;
-         leAudioDevice = group->GetNextActiveDevice(leAudioDevice)) {
-      if (!leAudioDevice->IsMetadataChanged(context_type, ccid_list)) continue;
+    if (!leAudioDevice->IsMetadataChanged(context_type, ccid_list)) return;
 
-      /* Request server to update ASEs with new metadata */
-      for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
-           ase = leAudioDevice->GetNextActiveAse(ase)) {
-        LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
-                  ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id,
-                  ase->cis_id, ToString(ase->state).c_str());
+    /* Request server to update ASEs with new metadata */
+    for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
+         ase = leAudioDevice->GetNextActiveAse(ase)) {
+      LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id,
+                ase->cis_id, ToString(ase->state).c_str());
 
-        /* Filter multidirectional audio context for each ase direction */
-        auto directional_audio_context =
-            context_type & leAudioDevice->GetAvailableContexts(ase->direction);
-        if (directional_audio_context.any()) {
-          ase->metadata =
-              leAudioDevice->GetMetadata(directional_audio_context, ccid_list);
-        } else {
-          ase->metadata = leAudioDevice->GetMetadata(
-              AudioContexts(LeAudioContextType::UNSPECIFIED),
-              std::vector<uint8_t>());
-        }
-
-        struct le_audio::client_parser::ascs::ctp_update_metadata conf;
-
-        conf.ase_id = ase->id;
-        conf.metadata = ase->metadata;
-
-        confs.push_back(conf);
+      if (ase->state != AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING &&
+          ase->state != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+        /* This might happen when update metadata happens on late connect */
+        LOG_DEBUG(
+            "Metadata for ase_id %d cannot be updated due to invalid ase state "
+            "- see log above",
+            ase->id);
+        continue;
       }
 
+      /* Filter multidirectional audio context for each ase direction */
+      auto directional_audio_context =
+          context_type & leAudioDevice->GetAvailableContexts(ase->direction);
+      if (directional_audio_context.any()) {
+        ase->metadata =
+            leAudioDevice->GetMetadata(directional_audio_context, ccid_list);
+      } else {
+        ase->metadata = leAudioDevice->GetMetadata(
+            AudioContexts(LeAudioContextType::UNSPECIFIED),
+            std::vector<uint8_t>());
+      }
+
+      struct le_audio::client_parser::ascs::ctp_update_metadata conf;
+
+      conf.ase_id = ase->id;
+      conf.metadata = ase->metadata;
+
+      confs.push_back(conf);
+    }
+
+    if (confs.size() != 0) {
       std::vector<uint8_t> value;
       le_audio::client_parser::ascs::PrepareAseCtpUpdateMetadata(confs, value);
 
       BtaGattQueue::WriteCharacteristic(leAudioDevice->conn_id_,
                                         leAudioDevice->ctp_hdls_.val_hdl, value,
                                         GATT_WRITE_NO_RSP, NULL, NULL);
-
-      return;
     }
   }
 
