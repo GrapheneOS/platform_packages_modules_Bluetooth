@@ -313,9 +313,7 @@ static bt_status_t connect_int(RawAddress* bd_addr, uint16_t uuid) {
    * The handle is valid until we have called BTA_HfClientClose or the LL
    * has notified us of channel close due to remote closing, error etc.
    */
-  BTA_HfClientOpen(cb->peer_bda, &cb->handle);
-
-  return BT_STATUS_SUCCESS;
+  return BTA_HfClientOpen(cb->peer_bda, &cb->handle);
 }
 
 static bt_status_t connect(RawAddress* bd_addr) {
