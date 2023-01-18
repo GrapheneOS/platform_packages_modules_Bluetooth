@@ -30,14 +30,13 @@
 #include "osi/include/compat.h"
 #include "stack/include/btm_status.h"
 #include "test/common/main_handler.h"
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_osi_alarm.h"
 #include "test/mock/mock_osi_allocator.h"
 #include "test/mock/mock_stack_acl.h"
 #include "test/mock/mock_stack_btm_sec.h"
 
 using namespace std::chrono_literals;
-
-std::map<std::string, int> mock_function_count_map;
 
 extern struct btm_client_interface_t btm_client_interface;
 
