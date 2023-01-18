@@ -242,7 +242,8 @@ struct tBTA_DM_PEER_DEVICE {
   bool in_use;
 
  private:
-  friend void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport);
+  friend void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport,
+                            uint16_t acl_handle);
   friend void bta_dm_pm_btm_status(const RawAddress& bd_addr,
                                    tBTM_PM_STATUS status, uint16_t value,
                                    tHCI_STATUS hci_status);

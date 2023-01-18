@@ -76,9 +76,9 @@ final class JniCallbacks {
     }
 
     void aclStateChangeCallback(int status, byte[] address, int newState,
-            int transportLinkType, int hciReason) {
+            int transportLinkType, int hciReason, int handle) {
         mRemoteDevices.aclStateChangeCallback(status, address, newState,
-                transportLinkType, hciReason);
+                transportLinkType, hciReason, handle);
     }
 
     void stateChangeCallback(int status) {
