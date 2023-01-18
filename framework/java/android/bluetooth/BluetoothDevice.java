@@ -2207,6 +2207,42 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     }
 
     /**
+     * Returns the ACL connection handle associated with an open connection to
+     * this device on the given transport.
+     *
+     * @return the ACL handle, or {@link BluetoothDevice#ERROR} if no connection currently exists on
+     *         the given transport.
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public int getConnectionHandle(@Transport int transport) {
+        if (DBG) {
+            log("getConnectionHandle()");
+        }
+        final IBluetooth service = getService();
+        if (service == null || !isBluetoothEnabled()) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) {
+                log(Log.getStackTraceString(new Throwable()));
+            }
+        } else {
+            try {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                service.getConnectionHandle(this, transport, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(-1);
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
+        // BT is not enabled, we cannot be connected.
+        return BluetoothDevice.ERROR;
+    }
+
+    /**
      * Returns whether there is an open connection to this device
      * that has been encrypted.
      *

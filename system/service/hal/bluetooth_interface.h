@@ -77,7 +77,8 @@ class BluetoothInterface {
                                          bt_acl_state_t state,
                                          int transport_link_type,
                                          bt_hci_error_code_t hci_reason,
-                                         bt_conn_direction_t direction);
+                                         bt_conn_direction_t direction,
+                                         uint16_t acl_handle);
     virtual void LinkQualityReportCallback(
         uint64_t timestamp, int report_id, int rssi, int snr,
         int retransmission_count, int packets_not_receive_count,

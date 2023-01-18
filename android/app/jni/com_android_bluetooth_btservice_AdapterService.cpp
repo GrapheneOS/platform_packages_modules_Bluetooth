@@ -367,7 +367,8 @@ static void acl_state_changed_callback(bt_status_t status, RawAddress* bd_addr,
                                        bt_acl_state_t state,
                                        int transport_link_type,
                                        bt_hci_error_code_t hci_reason,
-                                       bt_conn_direction_t direction) {
+                                       bt_conn_direction_t direction,
+                                       uint16_t acl_handle) {
   if (!bd_addr) {
     ALOGE("Address is null in %s", __func__);
     return;
@@ -387,7 +388,8 @@ static void acl_state_changed_callback(bt_status_t status, RawAddress* bd_addr,
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_aclStateChangeCallback,
                                (jint)status, addr.get(), (jint)state,
-                               (jint)transport_link_type, (jint)hci_reason);
+                               (jint)transport_link_type, (jint)hci_reason,
+                               (jint)acl_handle);
 }
 
 static void discovery_state_changed_callback(bt_discovery_state_t state) {
@@ -959,8 +961,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_leAddressAssociateCallback = env->GetMethodID(
       jniCallbackClass, "leAddressAssociateCallback", "([B[B)V");
 
-  method_aclStateChangeCallback =
-      env->GetMethodID(jniCallbackClass, "aclStateChangeCallback", "(I[BIII)V");
+  method_aclStateChangeCallback = env->GetMethodID(
+      jniCallbackClass, "aclStateChangeCallback", "(I[BIIII)V");
 
   method_linkQualityReportCallback = env->GetMethodID(
       jniCallbackClass, "linkQualityReportCallback", "(JIIIIII)V");
