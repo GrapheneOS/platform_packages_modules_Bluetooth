@@ -1512,19 +1512,22 @@ public class LeAudioService extends ProfileService {
             int src_audio_location = stackEvent.valueInt4;
             int available_contexts = stackEvent.valueInt5;
 
-            LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
-            if (descriptor != null) {
-                if (descriptor.mIsActive) {
-                    descriptor.mIsActive =
-                            updateActiveDevices(groupId, descriptor.mDirection, direction,
-                            descriptor.mIsActive);
-                    if (!descriptor.mIsActive) {
-                        notifyGroupStatusChanged(groupId, BluetoothLeAudio.GROUP_STATUS_INACTIVE);
+            synchronized (mGroupLock) {
+                LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
+                if (descriptor != null) {
+                    if (descriptor.mIsActive) {
+                        descriptor.mIsActive =
+                                updateActiveDevices(groupId, descriptor.mDirection, direction,
+                                descriptor.mIsActive);
+                        if (!descriptor.mIsActive) {
+                            notifyGroupStatusChanged(groupId,
+                                    BluetoothLeAudio.GROUP_STATUS_INACTIVE);
+                        }
                     }
+                    descriptor.mDirection = direction;
+                } else {
+                    Log.e(TAG, "no descriptors for group: " + groupId);
                 }
-                descriptor.mDirection = direction;
-            } else {
-                Log.e(TAG, "no descriptors for group: " + groupId);
             }
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE) {
             Objects.requireNonNull(stackEvent.device,
@@ -2226,15 +2229,15 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "Removing device " + device + " grom group " + groupId);
         }
 
-        LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
-        if (DBG) {
-            Log.d(TAG, "Lost lead device is " + groupDescriptor.mLostLeadDeviceWhileStreaming);
-        }
-        if (Objects.equals(device, groupDescriptor.mLostLeadDeviceWhileStreaming)) {
-            clearLostDevicesWhileStreaming(groupDescriptor);
-        }
-
         synchronized (mGroupLock) {
+            LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
+            if (DBG) {
+                Log.d(TAG, "Lost lead device is " + groupDescriptor.mLostLeadDeviceWhileStreaming);
+            }
+            if (Objects.equals(device, groupDescriptor.mLostLeadDeviceWhileStreaming)) {
+                clearLostDevicesWhileStreaming(groupDescriptor);
+            }
+
             LeAudioDeviceDescriptor deviceDescriptor = getDeviceDescriptor(device);
             if (deviceDescriptor == null) {
                 Log.e(TAG, "handleGroupNodeRemoved: No valid descriptor for device: " + device);
