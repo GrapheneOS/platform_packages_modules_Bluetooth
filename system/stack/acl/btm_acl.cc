@@ -162,7 +162,7 @@ void NotifyAclLinkUp(tACL_CONN& p_acl) {
     return;
   }
   p_acl.link_up_issued = true;
-  BTA_dm_acl_up(p_acl.remote_addr, p_acl.transport);
+  BTA_dm_acl_up(p_acl.remote_addr, p_acl.transport, p_acl.hci_handle);
 }
 
 void NotifyAclLinkDown(tACL_CONN& p_acl) {

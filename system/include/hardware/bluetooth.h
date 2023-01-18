@@ -183,6 +183,8 @@ typedef enum {
   BT_CONN_DIRECTION_INCOMING
 } bt_conn_direction_t;
 
+constexpr uint16_t INVALID_ACL_HANDLE = 0xFFFF;
+
 /** Bluetooth SDP service record */
 typedef struct {
   bluetooth::Uuid uuid;
@@ -495,12 +497,10 @@ typedef void (*le_address_associate_callback)(RawAddress* main_bd_addr,
                                               RawAddress* secondary_bd_addr);
 
 /** Bluetooth ACL connection state changed callback */
-typedef void (*acl_state_changed_callback)(bt_status_t status,
-                                           RawAddress* remote_bd_addr,
-                                           bt_acl_state_t state,
-                                           int transport_link_type,
-                                           bt_hci_error_code_t hci_reason,
-                                           bt_conn_direction_t direction);
+typedef void (*acl_state_changed_callback)(
+    bt_status_t status, RawAddress* remote_bd_addr, bt_acl_state_t state,
+    int transport_link_type, bt_hci_error_code_t hci_reason,
+    bt_conn_direction_t direction, uint16_t acl_handle);
 
 /** Bluetooth link quality report callback */
 typedef void (*link_quality_report_callback)(
