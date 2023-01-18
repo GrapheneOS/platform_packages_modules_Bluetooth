@@ -127,13 +127,13 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
     }
 
     /**
-     * Close the connection to the backing service.
-     * Other public functions of BluetoothPbapClient will return default error
-     * results once close() has been called. Multiple invocations of close()
-     * are ok.
+     * Close the connection to the backing service. Other public functions of BluetoothPbapClient
+     * will return default error results once close() has been called. Multiple invocations of
+     * close() are ok.
      *
      * @hide
      */
+    @Override
     public synchronized void close() {
         mProfileConnector.disconnect();
         if (mCloseGuard != null) {
