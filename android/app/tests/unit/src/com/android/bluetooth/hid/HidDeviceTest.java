@@ -528,6 +528,10 @@ public class HidDeviceTest {
         verify(mHidDeviceNativeInterface).unregisterApp();
 
         mHidDeviceService.onApplicationStateChangedFromNative(mTestDevice, false);
-        verifyCallback(TIMEOUT_MS, CALLBACK_APP_UNREGISTERED, mCallbackQueue);
+        Assert.assertThrows(
+                AssertionError.class,
+                () -> verifyCallback(TIMEOUT_MS, CALLBACK_APP_UNREGISTERED, mCallbackQueue)
+        );
+
     }
 }
