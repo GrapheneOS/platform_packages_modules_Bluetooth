@@ -30,6 +30,8 @@ import android.bluetooth.BluetoothLeAudioCodecConfig;
 import android.bluetooth.BluetoothLeAudioCodecStatus;
 import android.bluetooth.BluetoothLeAudioContentMetadata;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
+import android.bluetooth.BluetoothLeBroadcastSettings;
+import android.bluetooth.BluetoothLeBroadcastSubgroupSettings;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
@@ -726,14 +728,17 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
-     * Creates LeAudio Broadcast instance.
-     * @param metadata metadata buffer with TLVs
+     * Creates LeAudio Broadcast instance with BluetoothLeBroadcastSettings.
+     *
+     * @param broadcastSettings broadcast settings for this broadcast source
      */
-    public void createBroadcast(BluetoothLeAudioContentMetadata metadata, byte[] broadcastCode) {
+    public void createBroadcast(BluetoothLeBroadcastSettings broadcastSettings) {
         if (mLeAudioBroadcasterNativeInterface == null) {
             Log.w(TAG, "Native interface not available.");
             return;
         }
+
+        byte[] broadcastCode = broadcastSettings.getBroadcastCode();
         boolean isEncrypted = (broadcastCode != null) && (broadcastCode.length != 0);
         if (isEncrypted) {
             if ((broadcastCode.length > 16) || (broadcastCode.length < 4)) {
@@ -741,10 +746,24 @@ public class LeAudioService extends ProfileService {
                 return;
             }
         }
-
         Log.i(TAG, "createBroadcast: isEncrypted=" + (isEncrypted ? "true" : "false"));
-        mLeAudioBroadcasterNativeInterface.createBroadcast(metadata.getRawMetadata(),
-                broadcastCode);
+
+        List<BluetoothLeBroadcastSubgroupSettings> settings =
+                broadcastSettings.getSubgroupSettings();
+        if (settings == null || settings.size() < 1) {
+            Log.d(TAG, "subgroup settings is not valid value");
+            return;
+        }
+        // only one subgroup is supported now
+        // TODO(b/267783231): Extend LE broadcast support for multi subgroup
+        BluetoothLeAudioContentMetadata contentMetadata = settings.get(0).getContentMetadata();
+        if (contentMetadata == null) {
+            Log.d(TAG, "contentMetadata cannot be null");
+            return;
+        }
+
+        mLeAudioBroadcasterNativeInterface.createBroadcast(
+                contentMetadata.getRawMetadata(), broadcastCode);
     }
 
     /**
@@ -761,23 +780,39 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
-     * Updates LeAudio Broadcast instance metadata.
+     * Updates LeAudio broadcast instance metadata.
+     *
      * @param broadcastId broadcast instance identifier
-     * @param metadata metadata for the default Broadcast subgroup
+     * @param broadcastSettings broadcast settings for this broadcast source
      */
-    public void updateBroadcast(int broadcastId, BluetoothLeAudioContentMetadata metadata) {
+    public void updateBroadcast(int broadcastId, BluetoothLeBroadcastSettings broadcastSettings) {
         if (mLeAudioBroadcasterNativeInterface == null) {
             Log.w(TAG, "Native interface not available.");
             return;
         }
         if (!mBroadcastStateMap.containsKey(broadcastId)) {
-            notifyBroadcastUpdateFailed(broadcastId,
-                    BluetoothStatusCodes.ERROR_LE_BROADCAST_INVALID_BROADCAST_ID);
+            notifyBroadcastUpdateFailed(
+                    broadcastId, BluetoothStatusCodes.ERROR_LE_BROADCAST_INVALID_BROADCAST_ID);
+            return;
+        }
+
+        List<BluetoothLeBroadcastSubgroupSettings> settings =
+                broadcastSettings.getSubgroupSettings();
+        if (settings == null || settings.size() < 1) {
+            Log.d(TAG, "subgroup settings is not valid value");
+            return;
+        }
+        // only one subgroup is supported now
+        // TODO(b/267783231): Extend LE broadcast support for multi subgroup
+        BluetoothLeAudioContentMetadata contentMetadata = settings.get(0).getContentMetadata();
+        if (contentMetadata == null) {
+            Log.d(TAG, "contentMetadata cannot be null");
             return;
         }
 
         if (DBG) Log.d(TAG, "updateBroadcast");
-        mLeAudioBroadcasterNativeInterface.updateMetadata(broadcastId, metadata.getRawMetadata());
+        mLeAudioBroadcasterNativeInterface.updateMetadata(
+                broadcastId, contentMetadata.getRawMetadata());
     }
 
     /**
@@ -840,6 +875,26 @@ public class LeAudioService extends ProfileService {
      * @return number of supported simultaneous broadcasts
      */
     public int getMaximumNumberOfBroadcasts() {
+        /* TODO: This is currently fixed to 1 */
+        return 1;
+    }
+
+    /**
+     * Get the maximum number of supported streams per broadcast.
+     *
+     * @return number of supported streams per broadcast
+     */
+    public int getMaximumStreamsPerBroadcast() {
+        /* TODO: This is currently fixed to 1 */
+        return 1;
+    }
+
+    /**
+     * Get the maximum number of supported subgroups per broadcast.
+     *
+     * @return number of supported subgroups per broadcast
+     */
+    public int getMaximumSubgroupsPerBroadcast() {
         /* TODO: This is currently fixed to 1 */
         return 1;
     }
@@ -2136,12 +2191,11 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
-     * This function is called when the framework registers
-     * a callback with the service for this first time.
-     * This is used as an indication that Bluetooth has been enabled.
-     * 
-     * It is used to authorize all known LeAudio devices in the services
-     * which requires that e.g. GMCS
+     * This function is called when the framework registers a callback with the service for this
+     * first time. This is used as an indication that Bluetooth has been enabled.
+     *
+     * <p>It is used to authorize all known LeAudio devices in the services which requires that e.g.
+     * GMCS
      */
     @VisibleForTesting
     void handleBluetoothEnabled() {
@@ -3053,12 +3107,12 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public void startBroadcast(BluetoothLeAudioContentMetadata contentMetadata,
-                byte[] broadcastCode, AttributionSource source) {
+        public void startBroadcast(
+                BluetoothLeBroadcastSettings broadcastSettings, AttributionSource source) {
             LeAudioService service = getService(source);
             if (service != null) {
                 enforceBluetoothPrivilegedPermission(service);
-                service.createBroadcast(contentMetadata, broadcastCode);
+                service.createBroadcast(broadcastSettings);
             }
         }
 
@@ -3072,12 +3126,14 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public void updateBroadcast(int broadcastId,
-                BluetoothLeAudioContentMetadata contentMetadata, AttributionSource source) {
+        public void updateBroadcast(
+                int broadcastId,
+                BluetoothLeBroadcastSettings broadcastSettings,
+                AttributionSource source) {
             LeAudioService service = getService(source);
             if (service != null) {
                 enforceBluetoothPrivilegedPermission(service);
-                service.updateBroadcast(broadcastId, contentMetadata);
+                service.updateBroadcast(broadcastId, broadcastSettings);
             }
         }
 
@@ -3122,6 +3178,38 @@ public class LeAudioService extends ProfileService {
                 if (service != null) {
                     enforceBluetoothPrivilegedPermission(service);
                     result = service.getMaximumNumberOfBroadcasts();
+                }
+                receiver.send(result);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void getMaximumStreamsPerBroadcast(
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                int result = 0;
+                LeAudioService service = getService(source);
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    result = service.getMaximumStreamsPerBroadcast();
+                }
+                receiver.send(result);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void getMaximumSubgroupsPerBroadcast(
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                int result = 0;
+                LeAudioService service = getService(source);
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    result = service.getMaximumSubgroupsPerBroadcast();
                 }
                 receiver.send(result);
             } catch (RuntimeException e) {

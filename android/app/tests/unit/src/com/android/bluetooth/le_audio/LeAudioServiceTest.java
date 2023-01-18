@@ -48,7 +48,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.BluetoothProfileConnectionInfo;
-import android.os.Parcel;
 import android.os.ParcelUuid;
 
 import androidx.test.InstrumentationRegistry;
@@ -56,7 +55,6 @@ import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ServiceFactory;
@@ -66,7 +64,6 @@ import com.android.bluetooth.mcp.McpService;
 import com.android.bluetooth.vc.VolumeControlService;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -1558,6 +1555,8 @@ public class LeAudioServiceTest {
     @Test
     public void testDefaultValuesOfSeveralGetters() {
         assertThat(mService.getMaximumNumberOfBroadcasts()).isEqualTo(1);
+        assertThat(mService.getMaximumStreamsPerBroadcast()).isEqualTo(1);
+        assertThat(mService.getMaximumSubgroupsPerBroadcast()).isEqualTo(1);
         assertThat(mService.isPlaying(100)).isFalse();
         assertThat(mService.isValidDeviceGroup(LE_AUDIO_GROUP_ID_INVALID)).isFalse();
     }
