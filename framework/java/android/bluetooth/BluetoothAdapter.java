@@ -1990,6 +1990,14 @@ public final class BluetoothAdapter {
                 && mode != SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             throw new IllegalArgumentException("Invalid scan mode param value");
         }
+
+        if (GmsCompat.isEnabled()) {
+            if (mode != SCAN_MODE_NONE) {
+                GmsModuleHooks.makeBluetoothAdapterDiscoverable();
+            }
+            return BluetoothStatusCodes.ERROR_UNKNOWN;
+        }
+
         try {
             mServiceLock.readLock().lock();
             if (mService != null) {
