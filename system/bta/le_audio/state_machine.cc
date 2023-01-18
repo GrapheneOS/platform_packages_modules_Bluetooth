@@ -2175,16 +2175,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
-    if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-      /* We are here because of the reconnection of the single device. */
-      ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING;
-      CisCreateForDevice(leAudioDevice);
-      return;
-    }
-
     switch (ase->state) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED:
         ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING;
+
+        if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+          /* We are here because of the reconnection of the single device. */
+          CisCreateForDevice(leAudioDevice);
+          return;
+        }
 
         if (leAudioDevice->IsReadyToCreateStream())
           ProcessGroupEnable(group, leAudioDevice);
