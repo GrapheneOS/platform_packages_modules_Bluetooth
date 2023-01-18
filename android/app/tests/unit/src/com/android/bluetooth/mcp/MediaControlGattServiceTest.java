@@ -122,7 +122,7 @@ public class MediaControlGattServiceTest {
         List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
         devices.add(mCurrentDevice);
         doReturn(devices).when(mMockGattServer).getConnectedDevices();
-        mMcpService.setCcc(mCurrentDevice, characteristic.getUuid(), 0, value);
+        mMcpService.setCcc(mCurrentDevice, characteristic.getUuid(), 0, value, true);
     }
 
     @Test
