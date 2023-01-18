@@ -224,6 +224,12 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             "android.bluetooth.action.LE_AUDIO_ACTIVE_DEVICE_CHANGED";
 
     /**
+     * Indicates invalid/unset audio context.
+     * @hide
+     */
+    public static final int CONTEXT_TYPE_INVALID = 0x0000;
+
+    /**
      * Indicates unspecified audio content.
      * @hide
      */
