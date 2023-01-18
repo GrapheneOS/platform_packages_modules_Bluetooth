@@ -1202,17 +1202,20 @@ void invoke_le_address_associate_cb(RawAddress main_bd_addr,
 void invoke_acl_state_changed_cb(bt_status_t status, RawAddress bd_addr,
                                  bt_acl_state_t state, int transport_link_type,
                                  bt_hci_error_code_t hci_reason,
-                                 bt_conn_direction_t direction) {
+                                 bt_conn_direction_t direction,
+                                 uint16_t acl_handle) {
   do_in_jni_thread(
       FROM_HERE,
       base::BindOnce(
           [](bt_status_t status, RawAddress bd_addr, bt_acl_state_t state,
              int transport_link_type, bt_hci_error_code_t hci_reason,
-             bt_conn_direction_t direction) {
+             bt_conn_direction_t direction, uint16_t acl_handle) {
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, status, &bd_addr,
-                      state, transport_link_type, hci_reason, direction);
+                      state, transport_link_type, hci_reason, direction,
+                      acl_handle);
           },
-          status, bd_addr, state, transport_link_type, hci_reason, direction));
+          status, bd_addr, state, transport_link_type, hci_reason, direction,
+          acl_handle));
 }
 
 void invoke_thread_evt_cb(bt_cb_thread_evt event) {

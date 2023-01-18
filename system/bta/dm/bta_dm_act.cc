@@ -2525,7 +2525,8 @@ static tBTA_DM_PEER_DEVICE* allocate_device_for(const RawAddress& bd_addr,
   return nullptr;
 }
 
-void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport,
+                   uint16_t acl_handle) {
   auto device = allocate_device_for(bd_addr, transport);
   if (device == nullptr) {
     LOG_WARN("Unable to allocate device resources for new connection");
@@ -2552,6 +2553,7 @@ void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
     memset(&conn, 0, sizeof(tBTA_DM_SEC));
     conn.link_up.bd_addr = bd_addr;
     conn.link_up.transport_link_type = transport;
+    conn.link_up.acl_handle = acl_handle;
 
     bta_dm_cb.p_sec_cback(BTA_DM_LINK_UP_EVT, &conn);
     LOG_DEBUG("Executed security callback for new connection available");
@@ -2559,8 +2561,10 @@ void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   bta_dm_adjust_roles(true);
 }
 
-void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport) {
-  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_acl_up, bd_addr, transport));
+void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport,
+                   uint16_t acl_handle) {
+  do_in_main_thread(FROM_HERE,
+                    base::Bind(bta_dm_acl_up, bd_addr, transport, acl_handle));
 }
 
 static void bta_dm_acl_up_failed(const RawAddress bd_addr,

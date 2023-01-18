@@ -839,7 +839,15 @@ pub enum BaseCallbacks {
     BondState(BtStatus, RawAddress, BtBondState, i32),
     AddressConsolidate(RawAddress, RawAddress),
     LeAddressAssociate(RawAddress, RawAddress),
-    AclState(BtStatus, RawAddress, BtAclState, BtTransport, BtHciErrorCode, BtConnectionDirection),
+    AclState(
+        BtStatus,
+        RawAddress,
+        BtAclState,
+        BtTransport,
+        BtHciErrorCode,
+        BtConnectionDirection,
+        u16,
+    ),
     // Unimplemented so far:
     // thread_evt_cb
     // dut_mode_recv_cb
@@ -901,7 +909,7 @@ cb_variant!(BaseCb, le_address_associate_cb -> BaseCallbacks::LeAddressAssociate
 });
 
 cb_variant!(BaseCb, acl_state_cb -> BaseCallbacks::AclState,
-u32 -> BtStatus, *mut RawAddress, bindings::bt_acl_state_t -> BtAclState, i32 -> BtTransport, bindings::bt_hci_error_code_t -> BtHciErrorCode, bindings::bt_conn_direction_t -> BtConnectionDirection, {
+u32 -> BtStatus, *mut RawAddress, bindings::bt_acl_state_t -> BtAclState, i32 -> BtTransport, bindings::bt_hci_error_code_t -> BtHciErrorCode, bindings::bt_conn_direction_t -> BtConnectionDirection, u16 -> u16, {
     let _1 = unsafe { *(_1 as *const RawAddress) };
 });
 
