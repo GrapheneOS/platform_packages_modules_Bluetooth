@@ -1010,25 +1010,6 @@ bool bluetooth::shim::BTM_ReadConnectedTransportAddress(
   return false;
 }
 
-void bluetooth::shim::BTM_BleReceiverTest(uint8_t rx_freq,
-                                          tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-  CHECK(p_cmd_cmpl_cback != nullptr);
-}
-
-void bluetooth::shim::BTM_BleTransmitterTest(uint8_t tx_freq,
-                                             uint8_t test_data_len,
-                                             uint8_t packet_payload,
-                                             tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-  CHECK(p_cmd_cmpl_cback != nullptr);
-}
-
-void bluetooth::shim::BTM_BleTestEnd(tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-  CHECK(p_cmd_cmpl_cback != nullptr);
-}
-
 bool bluetooth::shim::BTM_UseLeLink(const RawAddress& raw_address) {
   return Stack::GetInstance()->GetBtm()->UseLeLink(raw_address);
 }

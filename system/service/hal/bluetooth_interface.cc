@@ -261,7 +261,6 @@ bt_callbacks_t bt_callbacks = {
     AclStateChangedCallback,
     ThreadEventCallback,
     nullptr, /* dut_mode_recv_cb */
-    nullptr, /* le_test_mode_cb */
     nullptr, /* energy_info_cb */
     LinkQualityReportCallback,
     nullptr /* generate_local_oob_data_cb */,
