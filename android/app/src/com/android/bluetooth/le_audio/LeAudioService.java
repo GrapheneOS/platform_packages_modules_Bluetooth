@@ -838,7 +838,7 @@ public class LeAudioService extends ProfileService {
         }
         synchronized (mGroupLock) {
             for (LeAudioDeviceDescriptor descriptor : mDeviceDescriptors.values()) {
-                if (descriptor.mGroupId.equals(groupId)) {
+                if (!descriptor.mGroupId.equals(groupId)) {
                     continue;
                 }
 
