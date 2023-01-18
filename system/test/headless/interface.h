@@ -39,14 +39,15 @@ struct acl_state_changed_params_t : public callback_params_t {
   acl_state_changed_params_t(bt_status_t status, RawAddress remote_bd_addr,
                              bt_acl_state_t state, int transport_link_type,
                              bt_hci_error_code_t hci_reason,
-                             bt_conn_direction_t direction)
+                             bt_conn_direction_t direction, uint16_t acl_handle)
       : callback_params_t("acl_state_changed"),
         status(status),
         remote_bd_addr(remote_bd_addr),
         state(state),
         transport_link_type(transport_link_type),
         hci_reason(hci_reason),
-        direction(direction) {}
+        direction(direction),
+        acl_handle(acl_handle) {}
   acl_state_changed_params_t(const acl_state_changed_params_t& params) =
       default;
   virtual ~acl_state_changed_params_t() {}
@@ -57,17 +58,18 @@ struct acl_state_changed_params_t : public callback_params_t {
   int transport_link_type;
   bt_hci_error_code_t hci_reason;
   bt_conn_direction_t direction;
+  uint16_t acl_handle;
 
   std::string ToString() const override {
     return base::StringPrintf(
         "status:%s remote_bd_addr:%s state:%s transport:%s reason:%s "
-        "direction:%d",
+        "direction:%d handle:%d",
         bt_status_text(status).c_str(), remote_bd_addr.ToString().c_str(),
         (state == BT_ACL_STATE_CONNECTED) ? "CONNECTED" : "DISCONNECTED",
         bt_transport_text(static_cast<const tBT_TRANSPORT>(transport_link_type))
             .c_str(),
         bt_status_text(static_cast<const bt_status_t>(hci_reason)).c_str(),
-        direction);
+        direction, acl_handle);
   }
 };
 

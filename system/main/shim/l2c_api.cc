@@ -482,7 +482,7 @@ class SecurityListenerShim
     address_to_handle_[bda] = handle;
     btm_sec_connected(bda, handle, HCI_SUCCESS, 0);
     BTM_PM_OnConnected(handle, bda);
-    BTA_dm_acl_up(bda, BT_TRANSPORT_BR_EDR);
+    BTA_dm_acl_up(bda, BT_TRANSPORT_BR_EDR, handle);
     address_to_interface_[bda] = std::move(interface);
   }
 
