@@ -17,6 +17,7 @@
 
 package com.android.bluetooth.mcp;
 
+import static android.bluetooth.BluetoothDevice.METADATA_GMCS_CCCD;
 import static android.bluetooth.BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED;
 import static android.bluetooth.BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED;
 import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY;
@@ -28,6 +29,7 @@ import static java.util.Map.entry;
 
 import android.annotation.NonNull;
 import android.annotation.Nullable;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -37,12 +39,17 @@ import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.IBluetoothManager;
+import android.bluetooth.IBluetoothStateChangeCallback;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelUuid;
+import android.os.RemoteException;
 import android.util.Log;
 import android.util.Pair;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.hearingaid.HearingAidService;
@@ -441,7 +448,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
                 } else {
                     status = BluetoothGatt.GATT_SUCCESS;
                     setCcc(device, op.mDescriptor.getCharacteristic().getUuid(), op.mOffset,
-                            op.mValue);
+                            op.mValue, true);
                 }
 
                 if (op.mResponseNeeded) {
@@ -522,6 +529,34 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         }
     }
 
+    private void restoreCccValuesForStoredDevices() {
+        for (BluetoothDevice device : mAdapterService.getBondedDevices()) {
+            byte[] gmcs_cccd = device.getMetadata(METADATA_GMCS_CCCD);
+
+            if ((gmcs_cccd == null) || (gmcs_cccd.length == 0)) {
+                return;
+            }
+
+            List<ParcelUuid> uuidList = Arrays.asList(Utils.byteArrayToUuid(gmcs_cccd));
+
+            /* Restore CCCD values for device */
+            for (ParcelUuid uuid : uuidList) {
+                setCcc(device, uuid.getUuid(), 0,
+                        BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE, false);
+            }
+        }
+    }
+
+    private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
+            new IBluetoothStateChangeCallback.Stub() {
+                public void onBluetoothStateChange(boolean up) {
+                    if (DBG) Log.d(TAG, "onBluetoothStateChange: up=" + up);
+                    if (up) {
+                        restoreCccValuesForStoredDevices();
+                    }
+                }
+            };
+
     @VisibleForTesting
     final BluetoothGattServerCallback mServerCallback = new BluetoothGattServerCallback() {
         @Override
@@ -551,6 +586,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
             mCharacteristics.get(CharId.CONTENT_CONTROL_ID)
                     .setValue(mCcid, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+            restoreCccValuesForStoredDevices();
             setInitialCharacteristicValuesAndNotify();
             initialStateRequest();
         }
@@ -796,6 +832,15 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         mMcpService = mcpService;
         mAdapterService =  Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService shouldn't be null when creating MediaControlCattService");
+
+        IBluetoothManager mgr = BluetoothAdapter.getDefaultAdapter().getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.registerStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
     }
 
     protected boolean init(UUID scvUuid) {
@@ -987,16 +1032,77 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         return mBluetoothGattServer.addService(mGattService);
     }
 
+    private void removeUuidFromMetadata(ParcelUuid charUuid, BluetoothDevice device) {
+        List<ParcelUuid> uuidList;
+        byte[] gmcs_cccd = device.getMetadata(METADATA_GMCS_CCCD);
+
+        if ((gmcs_cccd == null) || (gmcs_cccd.length == 0)) {
+            uuidList = new ArrayList<ParcelUuid>();
+        } else {
+            uuidList = new ArrayList<>(Arrays.asList(Utils.byteArrayToUuid(gmcs_cccd)));
+
+            if (!uuidList.contains(charUuid)) {
+                Log.d(TAG, "Characteristic CCCD can't be removed (not cached): "
+                        + charUuid.toString());
+                return;
+            }
+        }
+
+        uuidList.remove(charUuid);
+
+        if (!device.setMetadata(METADATA_GMCS_CCCD,
+                Utils.uuidsToByteArray(uuidList.toArray(new ParcelUuid[0])))) {
+            Log.e(TAG, "Can't set CCCD for GMCS characteristic UUID: " + charUuid.toString()
+                    + ", (remove)");
+        }
+    }
+
+    private void addUuidToMetadata(ParcelUuid charUuid, BluetoothDevice device) {
+        List<ParcelUuid> uuidList;
+        byte[] gmcs_cccd = device.getMetadata(METADATA_GMCS_CCCD);
+
+        if ((gmcs_cccd == null) || (gmcs_cccd.length == 0)) {
+            uuidList = new ArrayList<ParcelUuid>();
+        } else {
+            uuidList = new ArrayList<>(Arrays.asList(Utils.byteArrayToUuid(gmcs_cccd)));
+
+            if (uuidList.contains(charUuid)) {
+                Log.d(TAG, "Characteristic CCCD already added: " + charUuid.toString());
+                return;
+            }
+        }
+
+        uuidList.add(charUuid);
+
+        if (!device.setMetadata(METADATA_GMCS_CCCD,
+                Utils.uuidsToByteArray(uuidList.toArray(new ParcelUuid[0])))) {
+            Log.e(TAG, "Can't set CCCD for GMCS characteristic UUID: " + charUuid.toString()
+                    + ", (add)");
+        }
+    }
+
     @VisibleForTesting
-    void setCcc(BluetoothDevice device, UUID charUuid, int offset, byte[] value) {
+    void setCcc(BluetoothDevice device, UUID charUuid, int offset, byte[] value, boolean store) {
         HashMap<UUID, Short> characteristicCcc = mCccDescriptorValues.get(device.getAddress());
         if (characteristicCcc == null) {
             characteristicCcc = new HashMap<>();
             mCccDescriptorValues.put(device.getAddress(), characteristicCcc);
         }
 
-        characteristicCcc.put(
-                charUuid, ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getShort());
+        characteristicCcc.put(charUuid,
+                ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getShort());
+
+        if (!store) {
+            return;
+        }
+
+        if (Arrays.equals(value, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
+            addUuidToMetadata(new ParcelUuid(charUuid), device);
+        } else if (Arrays.equals(value, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)) {
+            removeUuidFromMetadata(new ParcelUuid(charUuid), device);
+        } else {
+            Log.e(TAG, "Not handled CCC value: " + Arrays.toString(value));
+        }
     }
 
     private byte[] getCccBytes(BluetoothDevice device, UUID charUuid) {
