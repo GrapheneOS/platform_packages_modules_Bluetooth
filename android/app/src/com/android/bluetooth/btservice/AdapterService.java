@@ -729,7 +729,7 @@ public class AdapterService extends Service {
     void stopProfileServices() {
         // Make sure to stop classic background tasks now
         cancelDiscoveryNative();
-        mAdapterProperties.setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
+        mAdapterProperties.setScanMode(BluetoothAdapter.SCAN_MODE_NONE);
 
         Class[] supportedProfileServices = Config.getSupportedProfiles();
         // TODO(b/228875190): GATT is assumed supported. If we support no profiles then just move on
@@ -2025,7 +2025,7 @@ public class AdapterService extends Service {
             }
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.mAdapterProperties.setScanMode(convertScanModeToHal(mode))
+            return service.mAdapterProperties.setScanMode(mode)
                     ? BluetoothStatusCodes.SUCCESS : BluetoothStatusCodes.ERROR_UNKNOWN;
         }
 
@@ -5186,7 +5186,7 @@ public class AdapterService extends Service {
                 source.getUid(), source.getPackageName(), deviceAddress);
     }
 
-    private static int convertScanModeToHal(int mode) {
+    static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
                 return AbstractionLayer.BT_SCAN_MODE_NONE;

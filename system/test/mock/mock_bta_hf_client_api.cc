@@ -51,8 +51,9 @@ void BTA_HfClientAudioOpen(uint16_t handle) {
 void BTA_HfClientClose(uint16_t handle) { mock_function_count_map[__func__]++; }
 void BTA_HfClientDisable(void) { mock_function_count_map[__func__]++; }
 void BTA_HfClientDumpStatistics(int fd) { mock_function_count_map[__func__]++; }
-void BTA_HfClientOpen(const RawAddress& bd_addr, uint16_t* p_handle) {
+bt_status_t BTA_HfClientOpen(const RawAddress& bd_addr, uint16_t* p_handle) {
   mock_function_count_map[__func__]++;
+  return BT_STATUS_SUCCESS;
 }
 void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at,
                         uint32_t val1, uint32_t val2, const char* str) {

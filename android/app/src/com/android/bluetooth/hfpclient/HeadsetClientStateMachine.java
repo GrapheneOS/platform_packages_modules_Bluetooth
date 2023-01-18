@@ -539,7 +539,12 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
 
         if (mCalls.size() > 0) {
-            if (mService.getResources().getBoolean(R.bool.hfp_clcc_poll_during_call)) {
+            // Continue polling even if not enabled until the new outgoing call is associated with
+            // a valid call on the phone. The polling would at most continue until
+            // OUTGOING_TIMEOUT_MILLI. This handles the potential scenario where the phone creates
+            // and terminates a call before the first QUERY_CURRENT_CALLS completes.
+            if (mService.getResources().getBoolean(R.bool.hfp_clcc_poll_during_call)
+                    || (mCalls.containsKey(HF_ORIGINATED_CALL_ID))) {
                 sendMessageDelayed(QUERY_CURRENT_CALLS,
                         mService.getResources().getInteger(
                         R.integer.hfp_clcc_poll_interval_during_call));
