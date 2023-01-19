@@ -9,9 +9,6 @@ package {
 
 cc_fuzz {
     name: "g722_fuzzer",
-    defaults: [
-        "fluoride_common_fuzz_defaults",
-    ],
     srcs: [
         "g722_fuzzer.cc",
     ],
@@ -19,4 +16,8 @@ cc_fuzz {
     static_libs: [
         "libg722codec",
     ],
+    fuzz_config: {
+        cc: ["android-bluetooth-security@google.com"],
+        componentid: 27441,
+    },
 }

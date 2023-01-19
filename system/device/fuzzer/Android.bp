@@ -25,10 +25,7 @@ package {
 
 cc_fuzz {
     name: "btdevice_esco_fuzzer",
-    defaults: [
-        "fluoride_defaults",
-        "fluoride_common_fuzz_defaults",
-    ],
+    defaults: ["fluoride_defaults"],
     srcs: [
         "btdevice_esco_fuzzer.cpp",
     ],
@@ -49,4 +46,8 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    fuzz_config: {
+       cc: ["android-bluetooth-security@google.com"],
+       componentid: 27441,
+    },
 }
