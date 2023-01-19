@@ -25,7 +25,6 @@ import android.annotation.SystemApi;
  * occupies the max integer value.
  */
 public final class BluetoothStatusCodes {
-
     private BluetoothStatusCodes() {}
 
     /**
@@ -222,6 +221,14 @@ public final class BluetoothStatusCodes {
      */
     @SystemApi
     public static final int ERROR_CALLBACK_NOT_REGISTERED = 28;
+
+    /**
+     * Indicates that there is another active request and therefore, this operation is not allowed.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_ANOTHER_ACTIVE_REQUEST = 29;
 
     /**
      * A GATT writeCharacteristic request is not permitted on the remote device.
