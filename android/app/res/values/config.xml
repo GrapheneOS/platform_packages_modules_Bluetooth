@@ -33,6 +33,34 @@
     <integer name="gatt_low_power_min_interval">80</integer>
     <integer name="gatt_low_power_max_interval">100</integer>
 
+    <!-- min/max connection intervals/latencies for companion devices -->
+    <!-- Primary companion -->
+    <integer name="gatt_high_priority_min_interval_primary">6</integer>
+    <integer name="gatt_high_priority_max_interval_primary">8</integer>
+    <integer name="gatt_high_priority_latency_primary">45</integer>
+
+    <integer name="gatt_balanced_priority_min_interval_primary">6</integer>
+    <integer name="gatt_balanced_priority_max_interval_primary">10</integer>
+    <integer name="gatt_balanced_priority_latency_primary">120</integer>
+
+    <integer name="gatt_low_power_min_interval_primary">8</integer>
+    <integer name="gatt_low_power_max_interval_primary">10</integer>
+    <integer name="gatt_low_power_latency_primary">150</integer>
+
+    <!-- Secondary companion -->
+    <integer name="gatt_high_priority_min_interval_secondary">6</integer>
+    <integer name="gatt_high_priority_max_interval_secondary">6</integer>
+    <integer name="gatt_high_priority_latency_secondary">0</integer>
+
+    <integer name="gatt_balanced_priority_min_interval_secondary">12</integer>
+    <integer name="gatt_balanced_priority_max_interval_secondary">12</integer>
+    <integer name="gatt_balanced_priority_latency_secondary">30</integer>
+
+    <integer name="gatt_low_power_min_interval_secondary">80</integer>
+    <integer name="gatt_low_power_max_interval_secondary">100</integer>
+    <integer name="gatt_low_power_latency_secondary">15</integer>
+    <!-- ============================================================ -->
+
     <!-- Specifies latency parameters for high priority, balanced and low power
          GATT configurations. These values represents the number of packets a
          peripheral device is allowed to skip. -->

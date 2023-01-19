@@ -162,10 +162,6 @@ typedef struct tBTM_DEVCB {
 
   DEV_CLASS dev_class; /* Local device class                   */
 
-  tBTM_CMPL_CB*
-      p_le_test_cmd_cmpl_cb; /* Callback function to be called when
-                             LE test mode command has been sent successfully */
-
   RawAddress read_tx_pwr_addr; /* read TX power target address     */
 
   tBTM_BLE_LOCAL_ID_KEYS id_keys;   /* local BLE ID keys */

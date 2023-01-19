@@ -156,7 +156,7 @@ void le_address_associate([[maybe_unused]] RawAddress* main_bd_addr,
 void acl_state_changed(bt_status_t status, RawAddress* remote_bd_addr,
                        bt_acl_state_t state, int transport_link_type,
                        bt_hci_error_code_t hci_reason,
-                       bt_conn_direction_t direction) {
+                       bt_conn_direction_t direction, uint16_t acl_handle) {
   CHECK(remote_bd_addr != nullptr);
   const size_t num_callbacks = interface_api_callback_map_.size();
   auto callback_list = interface_api_callback_map_.find(__func__);
@@ -165,7 +165,7 @@ void acl_state_changed(bt_status_t status, RawAddress* remote_bd_addr,
     for (auto callback : callback_list->second) {
       acl_state_changed_params_t params(status, raw_address, state,
                                         transport_link_type, hci_reason,
-                                        direction);
+                                        direction, acl_handle);
       (callback)(&params);
     }
   }
@@ -205,11 +205,6 @@ void dut_mode_recv([[maybe_unused]] uint16_t opcode,
   LOG_INFO("%s", __func__);
 }
 
-void le_test_mode([[maybe_unused]] bt_status_t status,
-                  [[maybe_unused]] uint16_t num_packets) {
-  LOG_INFO("%s", __func__);
-}
-
 void energy_info([[maybe_unused]] bt_activity_energy_info* energy_info,
                  [[maybe_unused]] bt_uid_traffic_t* uid_data) {
   LOG_INFO("%s", __func__);
@@ -231,7 +226,6 @@ bt_callbacks_t bt_callbacks{
     .acl_state_changed_cb = acl_state_changed,
     .thread_evt_cb = thread_event,
     .dut_mode_recv_cb = dut_mode_recv,
-    .le_test_mode_cb = le_test_mode,
     .energy_info_cb = energy_info,
     .link_quality_report_cb = link_quality_report,
     .switch_buffer_size_cb = switch_buffer_size,

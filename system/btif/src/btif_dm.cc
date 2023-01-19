@@ -1923,7 +1923,8 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
           (int)p_data->link_up.transport_link_type, HCI_SUCCESS,
           btm_is_acl_locally_initiated()
               ? bt_conn_direction_t::BT_CONN_DIRECTION_OUTGOING
-              : bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING);
+              : bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING,
+          p_data->link_up.acl_handle);
       break;
 
     case BTA_DM_LINK_UP_FAILED_EVT:
@@ -1933,7 +1934,8 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
           p_data->link_up_failed.status,
           btm_is_acl_locally_initiated()
               ? bt_conn_direction_t::BT_CONN_DIRECTION_OUTGOING
-              : bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING);
+              : bt_conn_direction_t::BT_CONN_DIRECTION_INCOMING,
+          INVALID_ACL_HANDLE);
       break;
 
     case BTA_DM_LINK_DOWN_EVT: {
@@ -1961,7 +1963,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
           BT_STATUS_SUCCESS, bd_addr, BT_ACL_STATE_DISCONNECTED,
           (int)p_data->link_down.transport_link_type,
           static_cast<bt_hci_error_code_t>(btm_get_acl_disc_reason_code()),
-          direction);
+          direction, INVALID_ACL_HANDLE);
       LOG_DEBUG(
           "Sent BT_ACL_STATE_DISCONNECTED upward as ACL link down event "
           "device:%s reason:%s",
@@ -3477,44 +3479,6 @@ void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
                                           tBT_DEVICE_TYPE dev_type) {
   btif_update_remote_properties(bd_addr, bd_name, NULL, dev_type);
 }
-
-static void btif_dm_ble_tx_test_cback(void* p) {
-  char* p_param = (char*)p;
-  uint8_t status;
-  STREAM_TO_UINT8(status, p_param);
-  GetInterfaceToProfiles()->events->invoke_le_test_mode_cb(
-      (status == 0) ? BT_STATUS_SUCCESS : BT_STATUS_FAIL, 0);
-}
-
-static void btif_dm_ble_rx_test_cback(void* p) {
-  char* p_param = (char*)p;
-  uint8_t status;
-  STREAM_TO_UINT8(status, p_param);
-  GetInterfaceToProfiles()->events->invoke_le_test_mode_cb(
-      (status == 0) ? BT_STATUS_SUCCESS : BT_STATUS_FAIL, 0);
-}
-
-static void btif_dm_ble_test_end_cback(void* p) {
-  char* p_param = (char*)p;
-  uint8_t status;
-  uint16_t count = 0;
-  STREAM_TO_UINT8(status, p_param);
-  if (status == 0) STREAM_TO_UINT16(count, p_param);
-  GetInterfaceToProfiles()->events->invoke_le_test_mode_cb(
-      (status == 0) ? BT_STATUS_SUCCESS : BT_STATUS_FAIL, count);
-}
-
-void btif_ble_transmitter_test(uint8_t tx_freq, uint8_t test_data_len,
-                               uint8_t packet_payload) {
-  BTM_BleTransmitterTest(tx_freq, test_data_len, packet_payload,
-                         btif_dm_ble_tx_test_cback);
-}
-
-void btif_ble_receiver_test(uint8_t rx_freq) {
-  BTM_BleReceiverTest(rx_freq, btif_dm_ble_rx_test_cback);
-}
-
-void btif_ble_test_end() { BTM_BleTestEnd(btif_dm_ble_test_end_cback); }
 
 void btif_dm_on_disable() {
   /* cancel any pending pairing requests */

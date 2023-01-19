@@ -445,7 +445,9 @@ public final class BluetoothHidDevice implements BluetoothProfile {
         mProfileConnector.connect(context, listener);
     }
 
-    void close() {
+    /** @hide */
+    @Override
+    public void close() {
         mProfileConnector.disconnect();
     }
 

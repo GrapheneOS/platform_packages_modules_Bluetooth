@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-
 /**
  * This class provides the public APIs to control the Bluetooth A2DP
  * profile.
@@ -290,8 +289,12 @@ public final class BluetoothA2dp implements BluetoothProfile {
         mProfileConnector.connect(context, listener);
     }
 
+    /**
+     * @hide
+     */
     @UnsupportedAppUsage
-    /*package*/ void close() {
+    @Override
+    public void close() {
         mProfileConnector.disconnect();
     }
 

@@ -54,7 +54,6 @@ struct get_common_criteria_config_compare_result
 struct get_remote_device_properties get_remote_device_properties;
 struct get_remote_device_property get_remote_device_property;
 struct get_remote_services get_remote_services;
-struct le_test_mode le_test_mode;
 struct set_remote_device_property set_remote_device_property;
 struct set_hal_cbacks set_hal_cbacks;
 
@@ -101,10 +100,6 @@ int get_remote_device_property(RawAddress* remote_addr,
 int get_remote_services(RawAddress* remote_addr) {
   mock_function_count_map[__func__]++;
   return test::mock::btif_bluetooth::get_remote_services(remote_addr);
-}
-int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len) {
-  mock_function_count_map[__func__]++;
-  return test::mock::btif_bluetooth::le_test_mode(opcode, buf, len);
 }
 int set_remote_device_property(RawAddress* remote_addr,
                                const bt_property_t* property) {

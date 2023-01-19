@@ -37,7 +37,6 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IpcDataCache;
 import android.os.Parcel;
@@ -55,7 +54,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -512,7 +510,9 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             METADATA_UNTETHERED_CASE_LOW_BATTERY_THRESHOLD,
             METADATA_SPATIAL_AUDIO,
             METADATA_FAST_PAIR_CUSTOMIZED_FIELDS,
-            METADATA_LE_AUDIO})
+            METADATA_LE_AUDIO,
+            METADATA_GMCS_CCCD,
+            METADATA_GTBS_CCCD})
     @Retention(RetentionPolicy.SOURCE)
     public @interface MetadataKey{}
 
@@ -665,6 +665,21 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static final int METADATA_ENHANCED_SETTINGS_UI_URI = 16;
 
     /**
+     * @hide
+     */
+    public static final String COMPANION_TYPE_PRIMARY = "COMPANION_PRIMARY";
+
+    /**
+     * @hide
+     */
+    public static final String COMPANION_TYPE_SECONDARY = "COMPANION_SECONDARY";
+
+    /**
+     * @hide
+     */
+    public static final String COMPANION_TYPE_NONE = "COMPANION_NONE";
+
+    /**
      * Type of the Bluetooth device, must be within the list of
      * BluetoothDevice.DEVICE_TYPE_*
      * Data type should be {@String} as {@link Byte} array.
@@ -745,6 +760,21 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SystemApi
     public static final int METADATA_LE_AUDIO = 26;
 
+    /**
+     * The UUIDs (16-bit) of registered to CCC characteristics from Media Control services.
+     * Data type should be {@link Byte} array.
+     * @hide
+     */
+    public static final int METADATA_GMCS_CCCD = 27;
+
+    /**
+     * The UUIDs (16-bit) of registered to CCC characteristics from Telephony Bearer service.
+     * Data type should be {@link Byte} array.
+     * @hide
+     */
+    public static final int METADATA_GTBS_CCCD = 28;
+
+    private static final int METADATA_MAX_KEY = METADATA_GTBS_CCCD;
 
     /**
      * Device type which is used in METADATA_DEVICE_TYPE
@@ -778,20 +808,6 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      */
     @SystemApi
     public static final String DEVICE_TYPE_STYLUS = "Stylus";
-
-    /**
-     * Audio mode representing output only.
-     * @hide
-     */
-    @SystemApi
-    public static final String AUDIO_MODE_OUTPUT_ONLY = "audio_mode_output_only";
-
-    /**
-     * Audio mode representing both output and microphone input.
-     * @hide
-     */
-    @SystemApi
-    public static final String AUDIO_MODE_DUPLEX = "audio_mode_duplex";
 
     /**
      * Broadcast Action: This intent is used to broadcast the {@link UUID}
@@ -2207,6 +2223,42 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     }
 
     /**
+     * Returns the ACL connection handle associated with an open connection to
+     * this device on the given transport.
+     *
+     * @return the ACL handle, or {@link BluetoothDevice#ERROR} if no connection currently exists on
+     *         the given transport.
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public int getConnectionHandle(@Transport int transport) {
+        if (DBG) {
+            log("getConnectionHandle()");
+        }
+        final IBluetooth service = getService();
+        if (service == null || !isBluetoothEnabled()) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) {
+                log(Log.getStackTraceString(new Throwable()));
+            }
+        } else {
+            try {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                service.getConnectionHandle(this, transport, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(-1);
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
+        // BT is not enabled, we cannot be connected.
+        return BluetoothDevice.ERROR;
+    }
+
+    /**
      * Returns whether there is an open connection to this device
      * that has been encrypted.
      *
@@ -2751,148 +2803,6 @@ public final class BluetoothDevice implements Parcelable, Attributable {
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            }
-        }
-        return defaultValue;
-    }
-
-    /** @hide */
-    @Retention(RetentionPolicy.SOURCE)
-    @IntDef(value = {
-            BluetoothStatusCodes.SUCCESS,
-            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
-            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED,
-            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
-            BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED
-    })
-    public @interface SetPreferredAudioRouteReturnValues{}
-
-    /**
-     * Sets the preferred profile for each audio mode for system routed audio. The audio framework
-     * and Telecomm will read this preference when routing system managed audio. Note: apps are not
-     * subject to the preference noted here.
-     * <p>
-     * The bundle is expected to contain the following mappings:
-     * 1. For key {@link #AUDIO_MODE_OUTPUT_ONLY}, it expects an integer value of either
-     * {@link BluetoothProfile#A2DP} or {@link BluetoothProfile#LE_AUDIO}.
-     * 2. For key {@link #AUDIO_MODE_DUPLEX}, it expects an integer value of either
-     * {@link BluetoothProfile#HEADSET} or {@link BluetoothProfile#LE_AUDIO}.
-     * <p>
-     *
-     * @param modeToProfileBundle a mapping to indicate the preferred profile for each audio mode
-     * @return whether the preferred audio profiles were set properly
-     * @throws NullPointerException if modeToProfileBundle is null
-     * @throws IllegalArgumentException if this BluetoothDevice object has an invalid address or the
-     * bundle doesn't conform to its requirements
-     *
-     * @hide
-     */
-    @SystemApi
-    @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @SetPreferredAudioRouteReturnValues
-    public int setPreferredAudioProfiles(@NonNull Bundle modeToProfileBundle) {
-        if (DBG) log("setPreferredAudioProfiles( " + modeToProfileBundle + ")");
-        Objects.requireNonNull(modeToProfileBundle, "modeToProfileBundle must not be null");
-        if (!BluetoothAdapter.checkBluetoothAddress(getAddress())) {
-            throw new IllegalArgumentException("device cannot have an invalid address");
-        }
-        if (!modeToProfileBundle.containsKey(AUDIO_MODE_OUTPUT_ONLY)
-                && !modeToProfileBundle.containsKey(AUDIO_MODE_DUPLEX)) {
-            throw new IllegalArgumentException("Bundle does not contain a key "
-                    + "AUDIO_MODE_OUTPUT_ONLY or AUDIO_MODE_DUPLEX");
-        }
-        if (modeToProfileBundle.containsKey(AUDIO_MODE_OUTPUT_ONLY)
-                && modeToProfileBundle.getInt(AUDIO_MODE_OUTPUT_ONLY) != BluetoothProfile.A2DP
-                && modeToProfileBundle.getInt(
-                        AUDIO_MODE_OUTPUT_ONLY) != BluetoothProfile.LE_AUDIO) {
-            throw new IllegalArgumentException("Key AUDIO_MODE_OUTPUT_ONLY has an invalid value: "
-                    + modeToProfileBundle.getInt(AUDIO_MODE_OUTPUT_ONLY));
-        }
-        if (modeToProfileBundle.containsKey(AUDIO_MODE_DUPLEX)
-                && modeToProfileBundle.getInt(AUDIO_MODE_DUPLEX) != BluetoothProfile.HEADSET
-                && modeToProfileBundle.getInt(AUDIO_MODE_DUPLEX) != BluetoothProfile.LE_AUDIO) {
-            throw new IllegalArgumentException("Key AUDIO_MODE_DUPLEX has an invalid value: "
-                    + modeToProfileBundle.getInt(AUDIO_MODE_DUPLEX));
-        }
-
-        final IBluetooth service = getService();
-        final int defaultValue = BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
-        if (service == null || !isBluetoothEnabled()) {
-            Log.e(TAG, "BT not enabled. Cannot set the preferred audio profiles for the remote"
-                    + " device.");
-            if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else {
-            try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
-                service.setPreferredAudioProfiles(this, modeToProfileBundle, mAttributionSource,
-                        recv);
-                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-                throw e.rethrowFromSystemServer();
-            }
-        }
-        return defaultValue;
-    }
-
-    /**
-     * Gets the preferred profile for each audio mode for system routed audio. This API
-     * returns a Bundle with mappings between each audio mode and its preferred audio profile.
-     * If one audio mode does not have a preferred profile set via
-     * {@link #setPreferredAudioProfiles(Bundle)}, its key will be omitted from the returned bundle.
-     * If both audio modes do not have a preferred profile set via
-     * {@link #setPreferredAudioProfiles(Bundle)}, this returns an empty Bundle.
-     *
-     * <p>
-     * The bundle can contain the following mappings:
-     * <ul>
-     * <li>For key {@link #AUDIO_MODE_OUTPUT_ONLY}, if an audio profile preference was set, this
-     *     will have an int value of either {@link BluetoothProfile#A2DP} or
-     *     {@link BluetoothProfile#LE_AUDIO}.
-     * <li>For key {@link #AUDIO_MODE_DUPLEX}, if an audio profile preference was set, this will
-     *     have an int value of either {@link BluetoothProfile#HEADSET} or
-     *     {@link BluetoothProfile#LE_AUDIO}.
-     * </ul>
-     *
-     * @return a Bundle mapping each set audio mode and preferred audio profile pair
-     *
-     * @hide
-     */
-    @SystemApi
-    @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @NonNull
-    public Bundle getPreferredAudioProfiles() {
-        if (DBG) log("getPreferredAudioProfiles()");
-        if (!BluetoothAdapter.checkBluetoothAddress(getAddress())) {
-            throw new IllegalArgumentException("device cannot have an invalid address");
-        }
-
-        final IBluetooth service = getService();
-        final Bundle defaultValue = Bundle.EMPTY;
-        if (service == null || !isBluetoothEnabled()) {
-            Log.e(TAG, "BT not enabled. Cannot get the preferred audio profiles for the remote"
-                    + " device.");
-            if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else {
-            try {
-                final SynchronousResultReceiver<Bundle> recv = SynchronousResultReceiver.get();
-                service.getPreferredAudioProfiles(this, mAttributionSource, recv);
-                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-                throw e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -3451,7 +3361,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * @hide
      */
     public static @MetadataKey int getMaxMetadataKey() {
-        return METADATA_LE_AUDIO;
+        return METADATA_MAX_KEY;
     }
 
     /** @hide */

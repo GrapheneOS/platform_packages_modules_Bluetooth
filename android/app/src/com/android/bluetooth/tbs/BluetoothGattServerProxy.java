@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A proxy class that facilitates testing of the TbsService class.
@@ -61,6 +62,21 @@ public class BluetoothGattServerProxy {
 
     public boolean addService(BluetoothGattService service) {
         return mBluetoothGattServer.addService(service);
+    }
+
+    /**
+     * A proxy that Returns a {@link BluetoothGattService} from the list of services offered
+     * by this device.
+     *
+     * <p>If multiple instances of the same service (as identified by UUID)
+     * exist, the first instance of the service is returned.
+     *
+     * @param uuid UUID of the requested service
+     * @return BluetoothGattService if supported, or null if the requested service is not offered by
+     * this device.
+     */
+    public BluetoothGattService getService(UUID uuid) {
+        return mBluetoothGattServer.getService(uuid);
     }
 
     public boolean sendResponse(BluetoothDevice device, int requestId, int status, int offset,

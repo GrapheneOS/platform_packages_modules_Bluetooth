@@ -405,7 +405,7 @@ async fn start_interactive_shell(
         }
     });
 
-    loop {
+    'readline: loop {
         let m = rx.recv().await;
 
         if m.is_none() {
@@ -566,19 +566,43 @@ async fn start_interactive_shell(
                 print_info!("Adapter {} is ready", adapter_address);
             }
             ForegroundActions::Readline(result) => match result {
+                Err(rustyline::error::ReadlineError::Interrupted) => {
+                    // Ctrl-C cancels the currently typed line, do nothing and ready to do next
+                    // readline again.
+                    semaphore_fg.add_permits(1);
+                }
                 Err(_err) => {
                     break;
                 }
                 Ok(line) => {
-                    let mut args = line.split_whitespace();
-                    let cmd = args.next().unwrap_or("");
-                    if cmd.eq("quit") {
+                    // Currently Chrome OS uses Rust 1.60 so use the 1-time loop block to
+                    // workaround this.
+                    // With Rust 1.65 onwards we can convert this loop hack into a named block:
+                    // https://blog.rust-lang.org/2022/11/03/Rust-1.65.0.html#break-from-labeled-blocks
+                    // TODO: Use named block when Android and Chrome OS Rust upgrade Rust to 1.65.
+                    loop {
+                        let args = match shell_words::split(line.as_str()) {
+                            Ok(words) => words,
+                            Err(e) => {
+                                print_error!("Error parsing arguments: {}", e);
+                                break;
+                            }
+                        };
+
+                        let (cmd, rest) = match args.split_first() {
+                            Some(pair) => pair,
+                            None => break,
+                        };
+
+                        if cmd.eq("quit") {
+                            break 'readline;
+                        }
+
+                        handler.process_cmd_line(&String::from(cmd), &rest.to_vec());
+
                         break;
                     }
-                    handler.process_cmd_line(
-                        &String::from(cmd),
-                        &args.map(String::from).collect::<Vec<String>>(),
-                    );
+
                     // Ready to do readline again.
                     semaphore_fg.add_permits(1);
                 }

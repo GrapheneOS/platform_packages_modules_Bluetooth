@@ -116,9 +116,10 @@ void BTA_dm_acl_down(const RawAddress bd_addr, tBT_TRANSPORT transport) {
   mock_function_count_map[__func__]++;
   test::mock::bta_dm_act::BTA_dm_acl_down(bd_addr, transport);
 }
-void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport) {
+void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport,
+                   uint16_t acl_handle) {
   mock_function_count_map[__func__]++;
-  test::mock::bta_dm_act::BTA_dm_acl_up(bd_addr, transport);
+  test::mock::bta_dm_act::BTA_dm_acl_up(bd_addr, transport, acl_handle);
 }
 void BTA_dm_acl_up_failed(const RawAddress bd_addr, tBT_TRANSPORT transport,
                           tHCI_STATUS hci_status) {
@@ -143,9 +144,10 @@ void BTA_dm_report_role_change(const RawAddress bd_addr, tHCI_ROLE new_role,
   test::mock::bta_dm_act::BTA_dm_report_role_change(bd_addr, new_role,
                                                     hci_status);
 }
-void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport,
+                   uint16_t acl_handle) {
   mock_function_count_map[__func__]++;
-  test::mock::bta_dm_act::bta_dm_acl_up(bd_addr, transport);
+  test::mock::bta_dm_act::bta_dm_acl_up(bd_addr, transport, acl_handle);
 }
 void bta_dm_add_ble_device(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                            tBT_DEVICE_TYPE dev_type) {
