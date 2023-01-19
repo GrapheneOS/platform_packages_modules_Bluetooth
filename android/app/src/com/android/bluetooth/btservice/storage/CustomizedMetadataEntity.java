@@ -47,8 +47,6 @@ class CustomizedMetadataEntity {
     public byte[] spatial_audio;
     public byte[] fastpair_customized;
     public byte[] le_audio;
-    public byte[] gmcs_cccd;
-    public byte[] gtbs_cccd;
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -105,11 +103,7 @@ class CustomizedMetadataEntity {
                 .append("|fastpair_customized=")
                 .append(metadataToString(fastpair_customized))
                 .append("|le_audio=")
-                .append(metadataToString(le_audio))
-                .append("|gmcs_cccd=")
-                .append(metadataToString(gmcs_cccd))
-                .append("|gtbs_cccd=")
-                .append(metadataToString(gtbs_cccd));
+                .append(metadataToString(le_audio));
 
 
         return builder.toString();
