@@ -297,6 +297,19 @@ struct BTM_SecAddBleDevice {
 };
 extern struct BTM_SecAddBleDevice BTM_SecAddBleDevice;
 
+// Name: BTM_GetRemoteDeviceName
+// Params: const RawAddress& bd_addr, BD_NAME bd_name
+// Return: bool
+struct BTM_GetRemoteDeviceName {
+  static bool return_value;
+  std::function<bool(const RawAddress& bd_addr, BD_NAME bd_name)> body{
+      [](const RawAddress& bd_addr, BD_NAME bd_name) { return return_value; }};
+  bool operator()(const RawAddress& bd_addr, BD_NAME bd_name) {
+    return body(bd_addr, bd_name);
+  };
+};
+extern struct BTM_GetRemoteDeviceName BTM_GetRemoteDeviceName;
+
 // Name: BTM_SecAddBleKey
 // Params: const RawAddress& bd_addr, tBTM_LE_KEY_VALUE* p_le_key,
 // tBTM_LE_KEY_TYPE key_type Return: void

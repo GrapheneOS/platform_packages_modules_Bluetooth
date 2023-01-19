@@ -36,6 +36,7 @@
 #include "common/metrics.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
+#include "device/include/device_iot_config.h"
 #include "l2c_api.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/dumpsys.h"
@@ -3800,7 +3801,11 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
       status = HCI_ERR_REPEATED_ATTEMPTS;
     } else if (old_pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD) {
       status = HCI_ERR_HOST_REJECT_SECURITY;
+    } else {
+      DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(p_dev_rec->bd_addr,
+                                         IOT_CONF_KEY_GAP_DISC_AUTHFAIL_COUNT);
     }
+
     NotifyBondingChange(*p_dev_rec, status);
 
     p_dev_rec = btm_find_dev_by_handle(handle);
