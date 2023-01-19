@@ -639,6 +639,11 @@ public final class Utils {
         return false;
     }
 
+    private static boolean checkCallerIsSystem() {
+        int callingUid = Binder.getCallingUid();
+        return UserHandle.getAppId(Process.SYSTEM_UID) == UserHandle.getAppId(callingUid);
+    }
+
     private static boolean checkCallerIsSystemOrActiveUser() {
         int callingUid = Binder.getCallingUid();
         UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
@@ -658,6 +663,24 @@ public final class Utils {
 
     public static boolean callerIsSystemOrActiveUser(String tag, String method) {
         return checkCallerIsSystemOrActiveUser(tag + "." + method + "()");
+    }
+
+    /**
+     * Checks if the caller to the method is system server.
+     *
+     * @param tag the log tag to use in case the caller is not system server
+     * @param method the API method name
+     * @return {@code true} if the caller is system server, {@code false} otherwise
+     */
+    public static boolean callerIsSystem(String tag, String method) {
+        if (isInstrumentationTestMode()) {
+            return true;
+        }
+        final boolean res = checkCallerIsSystem();
+        if (!res) {
+            Log.w(TAG, tag + "." + method + "()" + " - Not allowed outside system server");
+        }
+        return res;
     }
 
     private static boolean checkCallerIsSystemOrActiveOrManagedUser(Context context) {
