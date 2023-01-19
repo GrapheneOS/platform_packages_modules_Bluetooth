@@ -124,7 +124,8 @@ std::shared_ptr<tSDP_DISC_ATTR> generateArbitrarySdpDiscAttr(
   sdp_disc_attr_vect.push_back(new_attr);
 
   new_attr->p_next_attr = generateArbitrarySdpDiscAttr(fdp, true).get();
-  new_attr->attr_id = fdp->ConsumeIntegral<uint16_t>();
+  new_attr->attr_id = fdp->ConsumeBool() ? ATTR_ID_BT_PROFILE_DESC_LIST
+                                         : fdp->ConsumeIntegral<uint16_t>();
   new_attr->attr_len_type =
       fdp->ConsumeBool() ? 16 : fdp->ConsumeIntegral<uint16_t>();
   new_attr->attr_value = generateArbitrarySdpDiscAttrVal(fdp);
