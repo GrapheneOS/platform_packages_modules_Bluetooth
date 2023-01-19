@@ -107,6 +107,17 @@ fluoride_defaults {
     },
 }
 
+// common options for all fuzzers
+// e.g., sanitizers, cflags
+// TODO: factorout the satnizer flags 
+cc_defaults {
+    name: "fluoride_common_fuzz_defaults",
+    fuzz_config: {
+        cc: ["android-bluetooth-security@google.com"],
+        componentid: 27441,
+    },
+}
+
 fluoride_defaults {
     name: "fluoride_types_defaults",
     defaults: [
