@@ -566,6 +566,11 @@ async fn start_interactive_shell(
                 print_info!("Adapter {} is ready", adapter_address);
             }
             ForegroundActions::Readline(result) => match result {
+                Err(rustyline::error::ReadlineError::Interrupted) => {
+                    // Ctrl-C cancels the currently typed line, do nothing and ready to do next
+                    // readline again.
+                    semaphore_fg.add_permits(1);
+                }
                 Err(_err) => {
                     break;
                 }
