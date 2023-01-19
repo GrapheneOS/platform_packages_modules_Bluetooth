@@ -118,10 +118,6 @@ void Link::OnLeSubrateChange(
       supervision_timeout);
 }
 
-void Link::OnLocalAddressUpdate(hci::AddressWithType address_with_type) {
-  acl_connection_->UpdateLocalAddress(address_with_type);
-}
-
 void Link::Disconnect() {
   acl_connection_->Disconnect(hci::DisconnectReason::REMOTE_USER_TERMINATED_CONNECTION);
 }

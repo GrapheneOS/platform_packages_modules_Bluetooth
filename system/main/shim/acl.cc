@@ -793,10 +793,6 @@ class LeShimAclConnection
     }
   }
 
-  void OnLocalAddressUpdate(hci::AddressWithType address_with_type) override {
-    connection_->UpdateLocalAddress(address_with_type);
-  }
-
   void OnDisconnection(hci::ErrorCode reason) {
     Disconnect();
     on_disconnect_(handle_, reason);

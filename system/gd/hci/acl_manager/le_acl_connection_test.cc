@@ -76,7 +76,6 @@ class TestLeConnectionManagementCallbacks : public hci::acl_manager::LeConnectio
       hci::ErrorCode hci_status, uint8_t lmp_version, uint16_t manufacturer_name, uint16_t sub_version) override {}
   virtual void OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status, uint64_t features) override {}
   virtual void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) override {}
-  virtual void OnLocalAddressUpdate(hci::AddressWithType address_with_type) override {}
   MOCK_METHOD(
       void,
       OnLeSubrateChange,
@@ -172,7 +171,11 @@ class LeAclConnectionTest : public ::testing::Test {
     queue_ = std::make_shared<LeAclConnection::Queue>(kQueueSize);
     sync_handler();
     connection_ = new LeAclConnection(
-        queue_, &le_acl_connection_interface_, kConnectionHandle, address_1, address_2, Role::CENTRAL);
+        queue_,
+        &le_acl_connection_interface_,
+        kConnectionHandle,
+        DataAsCentral{address_1},
+        address_2);
     connection_->RegisterCallbacks(&callbacks_, handler_);
   }
 
