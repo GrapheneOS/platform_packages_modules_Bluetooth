@@ -1663,7 +1663,8 @@ uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
  ******************************************************************************/
 void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
                        uint8_t role, tBLE_ADDR_TYPE addr_type,
-                       bool addr_matched) {
+                       bool addr_matched,
+                       bool can_read_discoverable_characteristics) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
   if (!p_dev_rec) {
     LOG_INFO("Creating new device record for new ble connection");
@@ -1688,6 +1689,7 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
   p_dev_rec->ble_hci_handle = handle;
   p_dev_rec->device_type |= BT_DEVICE_TYPE_BLE;
   p_dev_rec->role_central = (role == HCI_ROLE_CENTRAL) ? true : false;
+  p_dev_rec->can_read_discoverable = can_read_discoverable_characteristics;
 
   if (!addr_matched) {
     p_dev_rec->ble.active_addr_type = tBTM_SEC_BLE::BTM_BLE_ADDR_PSEUDO;
@@ -1696,13 +1698,6 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
     }
   }
   btm_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
-}
-
-void btm_ble_connected_from_address_with_type(
-    const tBLE_BD_ADDR& address_with_type, uint16_t handle, uint8_t enc_mode,
-    uint8_t role, bool addr_matched) {
-  btm_ble_connected(address_with_type.bda, handle, enc_mode, role,
-                    address_with_type.type, addr_matched);
 }
 
 /*****************************************************************************
