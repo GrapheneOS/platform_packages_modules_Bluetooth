@@ -1124,6 +1124,42 @@ TEST_F(CsisClientTest, test_storage_content) {
   TestAppUnregister();
 }
 
+TEST_F(CsisClientTest, test_database_out_of_sync) {
+  auto test_address = GetTestAddress(0);
+  auto conn_id = 1;
+
+  TestAppRegister();
+  SetSampleDatabaseCsis(conn_id, 1);
+  TestConnect(test_address);
+  InjectConnectedEvent(test_address, conn_id);
+  GetSearchCompleteEvent(conn_id);
+  ASSERT_EQ(1, CsisClient::Get()->GetGroupId(
+                   test_address, bluetooth::Uuid::From16Bit(0x0000)));
+
+  // Simulated database changed on the remote side.
+  ON_CALL(gatt_queue, WriteCharacteristic(_, _, _, _, _, _))
+      .WillByDefault(
+          Invoke([this](uint16_t conn_id, uint16_t handle,
+                        std::vector<uint8_t> value, tGATT_WRITE_TYPE write_type,
+                        GATT_WRITE_OP_CB cb, void* cb_data) {
+            auto* svc = gatt::FindService(services_map[conn_id], handle);
+            if (svc == nullptr) return;
+
+            tGATT_STATUS status = GATT_DATABASE_OUT_OF_SYNC;
+            if (cb)
+              cb(conn_id, status, handle, value.size(), value.data(), cb_data);
+          }));
+
+  ON_CALL(gatt_interface, ServiceSearchRequest(_, _)).WillByDefault(Return());
+  EXPECT_CALL(gatt_interface, ServiceSearchRequest(_, _));
+  CsisClient::Get()->LockGroup(
+      1, true,
+      base::BindOnce([](int group_id, bool locked, CsisGroupLockStatus status) {
+        csis_lock_callback_mock->CsisGroupLockCb(group_id, locked, status);
+      }));
+  TestAppUnregister();
+}
+
 }  // namespace
 }  // namespace internal
 }  // namespace csis

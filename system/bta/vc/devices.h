@@ -109,6 +109,8 @@ class VolumeControlDevice {
 
   void Disconnect(tGATT_IF gatt_if);
 
+  void DeregisterNotifications(tGATT_IF gatt_if);
+
   bool UpdateHandles(void);
 
   void ResetHandles(void);
