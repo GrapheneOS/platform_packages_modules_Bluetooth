@@ -63,6 +63,7 @@ struct Advertiser {
   uint8_t max_extended_advertising_events;
   bool started = false;
   bool connectable = false;
+  bool discoverable = false;
   bool directed = false;
   bool in_use = false;
   std::unique_ptr<os::Alarm> address_rotation_alarm;
@@ -287,7 +288,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       const common::Callback<void(ErrorCode, uint8_t, uint8_t)>& set_terminated_callback,
       os::Handler* handler) {
     // check advertising data is valid before start advertising
-    if (!check_advertising_data(config.advertisement, config.connectable) ||
+    if (!check_advertising_data(config.advertisement, config.connectable && config.discoverable) ||
         !check_advertising_data(config.scan_response, false)) {
       advertising_callbacks_->OnAdvertisingSetStarted(
           reg_id, id, le_physical_channel_tx_power_, AdvertisingCallback::AdvertisingStatus::DATA_TOO_LARGE);
@@ -389,7 +390,8 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     }
 
     // check extended advertising data is valid before start advertising
-    if (!check_extended_advertising_data(config.advertisement, config.connectable) ||
+    if (!check_extended_advertising_data(
+            config.advertisement, config.connectable && config.discoverable) ||
         !check_extended_advertising_data(config.scan_response, false)) {
       advertising_callbacks_->OnAdvertisingSetStarted(
           reg_id, id, le_physical_channel_tx_power_, AdvertisingCallback::AdvertisingStatus::DATA_TOO_LARGE);
@@ -573,6 +575,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
   void set_parameters(AdvertiserId advertiser_id, AdvertisingConfig config) {
     advertising_sets_[advertiser_id].connectable = config.connectable;
+    advertising_sets_[advertiser_id].discoverable = config.discoverable;
     advertising_sets_[advertiser_id].tx_power = config.tx_power;
     advertising_sets_[advertiser_id].directed = config.directed;
 
@@ -702,8 +705,9 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       data_len += data[i].size();
     }
 
-    // The Flags data type shall be included when any of the Flag bits are non-zero and the advertising packet
-    // is connectable. It will be added by set_data() function, we should count it here.
+    // The Flags data type shall be included when any of the Flag bits are non-zero and the
+    // advertising packet is connectable and discoverable. It will be added by set_data() function,
+    // we should count it here.
     if (include_flag && !data_has_flags(data)) {
       data_len += kLenOfFlags;
     }
@@ -729,8 +733,9 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       data_len += data[i].size();
     }
 
-    // The Flags data type shall be included when any of the Flag bits are non-zero and the advertising packet
-    // is connectable. It will be added by set_data() function, we should count it here.
+    // The Flags data type shall be included when any of the Flag bits are non-zero and the
+    // advertising packet is connectable and discoverable. It will be added by set_data() function,
+    // we should count it here.
     if (include_flag && !data_has_flags(data)) {
       data_len += kLenOfFlags;
     }
@@ -746,9 +751,10 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   };
 
   void set_data(AdvertiserId advertiser_id, bool set_scan_rsp, std::vector<GapData> data) {
-    // The Flags data type shall be included when any of the Flag bits are non-zero and the advertising packet
-    // is connectable.
-    if (!set_scan_rsp && advertising_sets_[advertiser_id].connectable && !data_has_flags(data)) {
+    // The Flags data type shall be included when any of the Flag bits are non-zero and the
+    // advertising packet is connectable and discoverable.
+    if (!set_scan_rsp && advertising_sets_[advertiser_id].connectable &&
+        advertising_sets_[advertiser_id].discoverable && !data_has_flags(data)) {
       GapData gap_data;
       gap_data.data_type_ = GapDataType::FLAGS;
       if (advertising_sets_[advertiser_id].duration == 0) {
