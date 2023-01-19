@@ -25,6 +25,9 @@ package {
 
 cc_defaults {
     name: "libbt_audio_hal_interface_fuzz_defaults",
+    defaults: [
+        "fluoride_common_fuzz_defaults",
+    ],
     header_libs: [
         "avrcp_headers",
         "libbluetooth_headers",
@@ -103,10 +106,6 @@ cc_defaults {
     cflags: [
         "-DHAS_NO_BDROID_BUILDCFG",
     ],
-    fuzz_config: {
-        cc: ["android-bluetooth-security@google.com"],
-        componentid: 27441,
-    },
 }
 
 cc_fuzz {

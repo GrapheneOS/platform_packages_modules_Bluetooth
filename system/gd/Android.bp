@@ -493,7 +493,10 @@ cc_test {
 
 cc_defaults {
     name: "gd_fuzz_defaults",
-    defaults: ["gd_defaults"],
+    defaults: [
+        "gd_defaults",
+        "fluoride_common_fuzz_defaults",
+    ],
     srcs: [
         ":BluetoothFuzzHelperSources",
         ":BluetoothHciFuzzHelperSources",
@@ -548,10 +551,6 @@ cc_fuzz {
         ":BluetoothHciFuzzTestSources",
         ":BluetoothL2capFuzzTestSources",
     ],
-    fuzz_config: {
-       cc: ["android-bluetooth-security@google.com"],
-       componentid: 27441,
-    },
 }
 
 cc_fuzz {
@@ -569,10 +568,6 @@ cc_fuzz {
     srcs: [
         "hci/fuzz/acl_manager_fuzz_test.cc",
     ],
-    fuzz_config: {
-       cc: ["android-bluetooth-security@google.com"],
-       componentid: 27441,
-    },
 }
 
 cc_benchmark {
