@@ -193,6 +193,7 @@ struct Server {
     id: Option<i32>,
     cbid: u32,
     uuid: Uuid128Bit,
+    services: Vec<BluetoothGattService>,
 }
 
 struct ServerContextMap {
@@ -222,6 +223,10 @@ impl ServerContextMap {
         self.servers.iter().find(|server| server.id.map_or(false, |id| id == server_id))
     }
 
+    fn get_mut_by_server_id(&mut self, server_id: i32) -> Option<&mut Server> {
+        self.servers.iter_mut().find(|server| server.id.map_or(false, |id| id == server_id))
+    }
+
     fn get_by_callback_id(&self, callback_id: u32) -> Option<&Server> {
         self.servers.iter().find(|server| server.cbid == callback_id)
     }
@@ -233,7 +238,7 @@ impl ServerContextMap {
 
         let cbid = self.callbacks.add_callback(callback);
 
-        self.servers.push(Server { id: None, cbid, uuid: uuid.clone() });
+        self.servers.push(Server { id: None, cbid, uuid: uuid.clone(), services: vec![] });
     }
 
     fn remove(&mut self, id: i32) {
@@ -286,6 +291,17 @@ impl ServerContextMap {
             .iter()
             .find(|conn| conn.server_id == server_id && conn.address == *address)
             .map(|conn| conn.conn_id);
+    }
+
+    fn add_service(&mut self, server_id: i32, service: BluetoothGattService) {
+        if let Some(s) = self.get_mut_by_server_id(server_id) {
+            s.services.push(service)
+        }
+    }
+
+    fn delete_service(&mut self, server_id: i32, handle: i32) {
+        self.get_mut_by_server_id(server_id)
+            .map(|s: &mut Server| s.services.retain(|service| service.instance_id != handle));
     }
 }
 
@@ -562,9 +578,18 @@ pub trait IBluetoothGatt {
 
     /// Disconnects the server GATT connection.
     fn server_disconnect(&self, server_id: i32, addr: String) -> bool;
+
+    /// Adds a service to the GATT server.
+    fn add_service(&self, server_id: i32, service: BluetoothGattService);
+
+    /// Removes a service from the GATT server.
+    fn remove_service(&self, server_id: i32, handle: i32);
+
+    /// Clears all services from the GATT server.
+    fn clear_services(&self, server_id: i32);
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 /// Represents a GATT Descriptor.
 pub struct BluetoothGattDescriptor {
     pub uuid: Uuid128Bit,
@@ -578,7 +603,7 @@ impl BluetoothGattDescriptor {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 /// Represents a GATT Characteristic.
 pub struct BluetoothGattCharacteristic {
     pub uuid: Uuid128Bit,
@@ -623,7 +648,7 @@ impl BluetoothGattCharacteristic {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 /// Represents a GATT Service.
 pub struct BluetoothGattService {
     pub uuid: Uuid128Bit,
@@ -642,6 +667,138 @@ impl BluetoothGattService {
             characteristics: vec![],
             included_services: vec![],
         }
+    }
+
+    fn from_db(elements: Vec<BtGattDbElement>) -> Vec<BluetoothGattService> {
+        let mut db_out: Vec<BluetoothGattService> = vec![];
+
+        for elem in elements {
+            match GattDbElementType::from_u32(elem.type_).unwrap() {
+                GattDbElementType::PrimaryService | GattDbElementType::SecondaryService => {
+                    db_out.push(BluetoothGattService::new(
+                        elem.uuid.uu,
+                        elem.id as i32,
+                        elem.type_ as i32,
+                    ));
+                    // TODO(b/200065274): Mark restricted services.
+                }
+
+                GattDbElementType::Characteristic => {
+                    match db_out.last_mut() {
+                        Some(s) => s.characteristics.push(BluetoothGattCharacteristic::new(
+                            elem.uuid.uu,
+                            elem.id as i32,
+                            elem.properties as i32,
+                            0,
+                        )),
+                        None => {
+                            // TODO(b/193685325): Log error.
+                        }
+                    }
+                    // TODO(b/200065274): Mark restricted characteristics.
+                }
+
+                GattDbElementType::Descriptor => {
+                    match db_out.last_mut() {
+                        Some(s) => match s.characteristics.last_mut() {
+                            Some(c) => c.descriptors.push(BluetoothGattDescriptor::new(
+                                elem.uuid.uu,
+                                elem.id as i32,
+                                0,
+                            )),
+                            None => {
+                                // TODO(b/193685325): Log error.
+                            }
+                        },
+                        None => {
+                            // TODO(b/193685325): Log error.
+                        }
+                    }
+                    // TODO(b/200065274): Mark restricted descriptors.
+                }
+
+                GattDbElementType::IncludedService => {
+                    match db_out.last_mut() {
+                        Some(s) => {
+                            s.included_services.push(BluetoothGattService::new(
+                                elem.uuid.uu,
+                                elem.id as i32,
+                                elem.type_ as i32,
+                            ));
+                        }
+                        None => {
+                            // TODO(b/193685325): Log error.
+                        }
+                    }
+                }
+            }
+        }
+
+        db_out
+    }
+
+    fn into_db(service: BluetoothGattService) -> Vec<BtGattDbElement> {
+        let mut db_out: Vec<BtGattDbElement> = vec![];
+        db_out.push(BtGattDbElement {
+            id: service.instance_id as u16,
+            uuid: Uuid::from(service.uuid),
+            type_: service.service_type as u32,
+            attribute_handle: service.instance_id as u16,
+            start_handle: service.instance_id as u16,
+            end_handle: 0,
+            properties: 0,
+            extended_properties: 0,
+            permissions: 0,
+        });
+
+        for char in service.characteristics {
+            db_out.push(BtGattDbElement {
+                id: char.instance_id as u16,
+                uuid: Uuid::from(char.uuid),
+                type_: GattDbElementType::Characteristic as u32,
+                attribute_handle: char.instance_id as u16,
+                start_handle: 0,
+                end_handle: 0,
+                properties: char.properties as u8,
+                extended_properties: 0,
+                permissions: char.permissions as u16,
+            });
+
+            for desc in char.descriptors {
+                db_out.push(BtGattDbElement {
+                    id: desc.instance_id as u16,
+                    uuid: Uuid::from(desc.uuid),
+                    type_: GattDbElementType::Descriptor as u32,
+                    attribute_handle: desc.instance_id as u16,
+                    start_handle: 0,
+                    end_handle: 0,
+                    properties: 0,
+                    extended_properties: 0,
+                    permissions: desc.permissions as u16,
+                });
+            }
+        }
+
+        for included_service in service.included_services {
+            db_out.push(BtGattDbElement {
+                id: included_service.instance_id as u16,
+                uuid: Uuid::from(included_service.uuid),
+                type_: included_service.service_type as u32,
+                attribute_handle: included_service.instance_id as u16,
+                start_handle: 0,
+                end_handle: 0,
+                properties: 0,
+                extended_properties: 0,
+                permissions: 0,
+            });
+        }
+
+        // Set end handle of primary/secondary attribute to last element's handle
+        if let Some(elem) = db_out.last() {
+            db_out[0].end_handle = elem.attribute_handle;
+        }
+
+        db_out
     }
 }
 
@@ -724,6 +881,9 @@ pub trait IBluetoothGattServerCallback: RPCProxy {
 
     /// When there is a change in the state of a GATT server connection.
     fn on_server_connection_state(&self, _server_id: i32, _connected: bool, _addr: String);
+
+    /// When there is a service added to the GATT server.
+    fn on_service_added(&self, _status: GattStatus, _service: BluetoothGattService);
 }
 
 /// Interface for scanner callbacks to clients, passed to
@@ -2084,6 +2244,34 @@ impl IBluetoothGatt for BluetoothGatt {
 
         true
     }
+
+    fn add_service(&self, server_id: i32, service: BluetoothGattService) {
+        self.gatt
+            .as_ref()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .server
+            .add_service(server_id, &BluetoothGattService::into_db(service));
+    }
+
+    fn remove_service(&self, server_id: i32, handle: i32) {
+        self.gatt.as_ref().unwrap().lock().unwrap().server.delete_service(server_id, handle);
+    }
+
+    fn clear_services(&self, server_id: i32) {
+        if let Some(s) = self.server_context_map.get_by_server_id(server_id) {
+            for service in &s.services {
+                self.gatt
+                    .as_ref()
+                    .unwrap()
+                    .lock()
+                    .unwrap()
+                    .server
+                    .delete_service(server_id, service.instance_id);
+            }
+        }
+    }
 }
 
 #[btif_callbacks_dispatcher(dispatch_gatt_client_callbacks, GattClientCallbacks)]
@@ -2485,76 +2673,16 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             return;
         }
 
-        let mut db_out: Vec<BluetoothGattService> = vec![];
-
-        for elem in elements {
-            match GattDbElementType::from_u32(elem.type_).unwrap() {
-                GattDbElementType::PrimaryService | GattDbElementType::SecondaryService => {
-                    db_out.push(BluetoothGattService::new(
-                        elem.uuid.uu,
-                        elem.id as i32,
-                        elem.type_ as i32,
-                    ));
-                    // TODO(b/200065274): Mark restricted services.
-                }
-
-                GattDbElementType::Characteristic => {
-                    match db_out.last_mut() {
-                        Some(s) => s.characteristics.push(BluetoothGattCharacteristic::new(
-                            elem.uuid.uu,
-                            elem.id as i32,
-                            elem.properties as i32,
-                            0,
-                        )),
-                        None => {
-                            // TODO(b/193685325): Log error.
-                        }
-                    }
-                    // TODO(b/200065274): Mark restricted characteristics.
-                }
-
-                GattDbElementType::Descriptor => {
-                    match db_out.last_mut() {
-                        Some(s) => match s.characteristics.last_mut() {
-                            Some(c) => c.descriptors.push(BluetoothGattDescriptor::new(
-                                elem.uuid.uu,
-                                elem.id as i32,
-                                0,
-                            )),
-                            None => {
-                                // TODO(b/193685325): Log error.
-                            }
-                        },
-                        None => {
-                            // TODO(b/193685325): Log error.
-                        }
-                    }
-                    // TODO(b/200065274): Mark restricted descriptors.
-                }
-
-                GattDbElementType::IncludedService => {
-                    match db_out.last_mut() {
-                        Some(s) => {
-                            s.included_services.push(BluetoothGattService::new(
-                                elem.uuid.uu,
-                                elem.id as i32,
-                                elem.type_ as i32,
-                            ));
-                        }
-                        None => {
-                            // TODO(b/193685325): Log error.
-                        }
-                    }
-                }
-            }
-        }
-
         match (client, address) {
             (Some(c), Some(addr)) => {
                 let cbid = c.cbid;
                 self.context_map.get_callback_from_callback_id(cbid).and_then(
                     |cb: &mut GattClientCallback| {
-                        cb.on_search_complete(addr.to_string(), db_out, GattStatus::Success);
+                        cb.on_search_complete(
+                            addr.to_string(),
+                            BluetoothGattService::from_db(elements),
+                            GattStatus::Success,
+                        );
                         Some(())
                     },
                 );
@@ -2692,6 +2820,18 @@ pub(crate) trait BtifGattServerCallbacks {
 
     #[btif_callback(Connection)]
     fn connection_cb(&mut self, conn_id: i32, server_id: i32, connected: i32, addr: RawAddress);
+
+    #[btif_callback(ServiceAdded)]
+    fn service_added_cb(
+        &mut self,
+        status: GattStatus,
+        server_id: i32,
+        elements: Vec<BtGattDbElement>,
+        _count: usize,
+    );
+
+    #[btif_callback(ServiceDeleted)]
+    fn service_deleted_cb(&mut self, status: GattStatus, server_id: i32, handle: i32);
 }
 
 impl BtifGattServerCallbacks for BluetoothGatt {
@@ -2729,6 +2869,39 @@ impl BtifGattServerCallbacks for BluetoothGatt {
             None => {
                 warn!("Warning: No callback found for server ID {}", server_id);
             }
+        }
+    }
+
+    fn service_added_cb(
+        &mut self,
+        status: GattStatus,
+        server_id: i32,
+        elements: Vec<BtGattDbElement>,
+        _count: usize,
+    ) {
+        for service in BluetoothGattService::from_db(elements) {
+            if status == GattStatus::Success {
+                self.server_context_map.add_service(server_id, service.clone());
+            }
+
+            let cbid =
+                self.server_context_map.get_by_server_id(server_id).map(|server| server.cbid);
+            match cbid {
+                Some(cbid) => {
+                    if let Some(cb) = self.server_context_map.get_callback_from_callback_id(cbid) {
+                        cb.on_service_added(status, service);
+                    }
+                }
+                None => {
+                    warn!("Warning: No callback found for server ID {}", server_id);
+                }
+            }
+        }
+    }
+
+    fn service_deleted_cb(&mut self, status: GattStatus, server_id: i32, handle: i32) {
+        if status == GattStatus::Success {
+            self.server_context_map.delete_service(server_id, handle);
         }
     }
 }

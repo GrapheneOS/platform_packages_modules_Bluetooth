@@ -150,6 +150,11 @@ impl IBluetoothGattServerCallback for BluetoothGattServerCallbackDBus {
     fn on_server_connection_state(&self, server_id: i32, connected: bool, addr: String) {
         dbus_generated!()
     }
+
+    #[dbus_method("OnServiceAdded")]
+    fn on_service_added(&self, status: GattStatus, service: BluetoothGattService) {
+        dbus_generated!()
+    }
 }
 
 // Represents Uuid128Bit as an array in D-Bus.
@@ -799,6 +804,21 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("ServerDisconnect")]
     fn server_disconnect(&self, server_id: i32, addr: String) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("AddService")]
+    fn add_service(&self, server_id: i32, service: BluetoothGattService) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("RemoveService")]
+    fn remove_service(&self, server_id: i32, handle: i32) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ClearServices")]
+    fn clear_services(&self, server_id: i32) {
         dbus_generated!()
     }
 }

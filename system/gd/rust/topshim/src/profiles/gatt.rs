@@ -584,9 +584,9 @@ pub enum GattClientCallbacks {
 pub enum GattServerCallbacks {
     RegisterServer(GattStatus, i32, Uuid),
     Connection(i32, i32, i32, RawAddress),
-    ServiceAdded(i32, i32, Vec<BtGattDbElement>, usize),
-    ServiceStopped(i32, i32, i32),
-    ServiceDeleted(i32, i32, i32),
+    ServiceAdded(GattStatus, i32, Vec<BtGattDbElement>, usize),
+    ServiceStopped(GattStatus, i32, i32),
+    ServiceDeleted(GattStatus, i32, i32),
     RequestReadCharacteristic(i32, i32, RawAddress, i32, i32, bool),
     RequestReadDescriptor(i32, i32, RawAddress, i32, i32, bool),
     RequestWriteCharacteristic(i32, i32, RawAddress, i32, i32, bool, bool, Vec<u8>, usize),
@@ -759,7 +759,7 @@ cb_variant!(
 cb_variant!(
     GattServerCb,
     gs_service_added_cb -> GattServerCallbacks::ServiceAdded,
-    i32, i32, *const BtGattDbElement, usize, {
+    i32 -> GattStatus, i32, *const BtGattDbElement, usize, {
         let _2 = ptr_to_vec(_2, _3);
     }
 );
@@ -767,13 +767,13 @@ cb_variant!(
 cb_variant!(
     GattServerCb,
     gs_service_stopped_cb -> GattServerCallbacks::ServiceStopped,
-    i32, i32, i32, {}
+    i32 -> GattStatus, i32, i32, {}
 );
 
 cb_variant!(
     GattServerCb,
     gs_service_deleted_cb -> GattServerCallbacks::ServiceDeleted,
-    i32, i32, i32, {}
+    i32 -> GattStatus, i32, i32, {}
 );
 
 cb_variant!(

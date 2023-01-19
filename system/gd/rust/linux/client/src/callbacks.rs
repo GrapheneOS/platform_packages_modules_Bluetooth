@@ -763,13 +763,17 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
         print_info!("GATT Server registered status = {}, server_id = {}", status, server_id);
     }
 
-    fn on_server_connection_state(&self, _server_id: i32, _connected: bool, _addr: String) {
+    fn on_server_connection_state(&self, server_id: i32, connected: bool, addr: String) {
         print_info!(
             "GATT server connection with server_id = {}, connected = {}, addr = {}",
-            _server_id,
-            _connected,
-            _addr
+            server_id,
+            connected,
+            addr
         );
+    }
+
+    fn on_service_added(&self, status: GattStatus, service: BluetoothGattService) {
+        print_info!("GATT service added with status = {}, service = {:?}", status, service)
     }
 }
 
