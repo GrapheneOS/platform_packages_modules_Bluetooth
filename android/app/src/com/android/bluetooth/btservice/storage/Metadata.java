@@ -297,12 +297,6 @@ class Metadata {
             case BluetoothDevice.METADATA_LE_AUDIO:
                 publicMetadata.le_audio = value;
                 break;
-            case BluetoothDevice.METADATA_GMCS_CCCD:
-                publicMetadata.gmcs_cccd = value;
-                break;
-            case BluetoothDevice.METADATA_GTBS_CCCD:
-                publicMetadata.gtbs_cccd = value;
-                break;
         }
     }
 
@@ -389,12 +383,6 @@ class Metadata {
                 break;
             case BluetoothDevice.METADATA_LE_AUDIO:
                 value = publicMetadata.le_audio;
-                break;
-            case BluetoothDevice.METADATA_GMCS_CCCD:
-                value = publicMetadata.gmcs_cccd;
-                break;
-            case BluetoothDevice.METADATA_GTBS_CCCD:
-                value = publicMetadata.gtbs_cccd;
                 break;
         }
         return value;
