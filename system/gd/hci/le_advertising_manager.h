@@ -49,6 +49,7 @@ class AdvertisingConfig {
   AdvertisingFilterPolicy filter_policy;
   uint8_t tx_power;  // -127 to +20 (0x7f is no preference)
   bool connectable = false;
+  bool discoverable = false;
   bool scannable = false;
   bool directed = false;
   bool high_duty_directed_connectable = false;

@@ -1122,6 +1122,7 @@ package android.bluetooth.le {
     method public int getTimeout();
     method public int getTxPowerLevel();
     method public boolean isConnectable();
+    method public boolean isDiscoverable();
     method public void writeToParcel(android.os.Parcel, int);
     field public static final int ADVERTISE_MODE_BALANCED = 1; // 0x1
     field public static final int ADVERTISE_MODE_LOW_LATENCY = 2; // 0x2
@@ -1138,6 +1139,7 @@ package android.bluetooth.le {
     method public android.bluetooth.le.AdvertiseSettings build();
     method public android.bluetooth.le.AdvertiseSettings.Builder setAdvertiseMode(int);
     method public android.bluetooth.le.AdvertiseSettings.Builder setConnectable(boolean);
+    method @NonNull public android.bluetooth.le.AdvertiseSettings.Builder setDiscoverable(boolean);
     method public android.bluetooth.le.AdvertiseSettings.Builder setTimeout(int);
     method public android.bluetooth.le.AdvertiseSettings.Builder setTxPowerLevel(int);
   }
@@ -1180,6 +1182,7 @@ package android.bluetooth.le {
     method public boolean includeTxPower();
     method public boolean isAnonymous();
     method public boolean isConnectable();
+    method public boolean isDiscoverable();
     method public boolean isLegacy();
     method public boolean isScannable();
     method public void writeToParcel(android.os.Parcel, int);
@@ -1202,6 +1205,7 @@ package android.bluetooth.le {
     method public android.bluetooth.le.AdvertisingSetParameters build();
     method public android.bluetooth.le.AdvertisingSetParameters.Builder setAnonymous(boolean);
     method public android.bluetooth.le.AdvertisingSetParameters.Builder setConnectable(boolean);
+    method @NonNull public android.bluetooth.le.AdvertisingSetParameters.Builder setDiscoverable(boolean);
     method public android.bluetooth.le.AdvertisingSetParameters.Builder setIncludeTxPower(boolean);
     method public android.bluetooth.le.AdvertisingSetParameters.Builder setInterval(int);
     method public android.bluetooth.le.AdvertisingSetParameters.Builder setLegacyMode(boolean);
