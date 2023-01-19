@@ -15,6 +15,7 @@
  */
 
 #include "hci/acl_manager/le_acl_connection.h"
+
 #include "hci/acl_manager/le_connection_management_callbacks.h"
 #include "os/metrics.h"
 
@@ -73,9 +74,6 @@ class LeAclConnectionTracker : public LeConnectionManagementCallbacks {
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) override {
     SAVE_OR_CALL(OnPhyUpdate, hci_status, tx_phy, rx_phy);
   }
-  void OnLocalAddressUpdate(AddressWithType address_with_type) override {
-    SAVE_OR_CALL(OnLocalAddressUpdate, address_with_type);
-  }
   void OnLeSubrateChange(
       hci::ErrorCode hci_status,
       uint16_t subrate_factor,
@@ -115,26 +113,62 @@ struct LeAclConnection::impl {
 };
 
 LeAclConnection::LeAclConnection()
-    : AclConnection(), local_address_(Address::kEmpty, AddressType::PUBLIC_DEVICE_ADDRESS),
-      remote_address_(Address::kEmpty, AddressType::PUBLIC_DEVICE_ADDRESS) {}
+    : AclConnection(),
+      remote_address_(Address::kEmpty, AddressType::PUBLIC_DEVICE_ADDRESS),
+      role_specific_data_(DataAsUninitializedPeripheral{}) {}
 
 LeAclConnection::LeAclConnection(
     std::shared_ptr<Queue> queue,
     LeAclConnectionInterface* le_acl_connection_interface,
     uint16_t handle,
-    AddressWithType local_address,
-    AddressWithType remote_address,
-    Role role)
+    RoleSpecificData role_specific_data,
+    AddressWithType remote_address)
     : AclConnection(queue->GetUpEnd(), handle),
-      local_address_(local_address),
       remote_address_(remote_address),
-      role_(role) {
+      role_specific_data_(role_specific_data) {
   pimpl_ = new LeAclConnection::impl(le_acl_connection_interface, std::move(queue), handle);
 }
 
 LeAclConnection::~LeAclConnection() {
   if (pimpl_) pimpl_->PutEventCallbacks();
   delete pimpl_;
+}
+
+AddressWithType LeAclConnection::GetLocalAddress() const {
+  return std::visit(
+      [](auto&& data) {
+        using T = std::decay_t<decltype(data)>;
+        if constexpr (std::is_same_v<T, DataAsUninitializedPeripheral>) {
+          // This case should never happen outside of acl_manager.cc, since once the connection is
+          // passed into the OnConnectSuccess callback, it should be fully initialized.
+          LOG_ALWAYS_FATAL("Attempted to read the local address of an uninitialized connection");
+          return AddressWithType{};
+        } else {
+          return data.local_address;
+        }
+      },
+      role_specific_data_);
+}
+
+Role LeAclConnection::GetRole() const {
+  return std::visit(
+      [](auto&& data) {
+        using T = std::decay_t<decltype(data)>;
+        if constexpr (std::is_same_v<T, DataAsCentral>) {
+          return Role::CENTRAL;
+        } else if constexpr (
+            std::is_same_v<T, DataAsPeripheral> ||
+            std::is_same_v<T, DataAsUninitializedPeripheral>) {
+          return Role::PERIPHERAL;
+        } else {
+          static_assert(!sizeof(T*), "missing case");
+        }
+      },
+      role_specific_data_);
+}
+
+const RoleSpecificData& LeAclConnection::GetRoleSpecificData() const {
+  return role_specific_data_;
 }
 
 void LeAclConnection::RegisterCallbacks(LeConnectionManagementCallbacks* callbacks, os::Handler* handler) {
@@ -178,15 +212,26 @@ LeConnectionManagementCallbacks* LeAclConnection::GetEventCallbacks(
   return pimpl_->GetEventCallbacks(std::move(invalidate_callbacks));
 }
 
-bool LeAclConnection::LeConnectionUpdate(uint16_t conn_interval_min, uint16_t conn_interval_max, uint16_t conn_latency,
-                                         uint16_t supervision_timeout, uint16_t min_ce_length, uint16_t max_ce_length) {
+bool LeAclConnection::LeConnectionUpdate(
+    uint16_t conn_interval_min,
+    uint16_t conn_interval_max,
+    uint16_t conn_latency,
+    uint16_t supervision_timeout,
+    uint16_t min_ce_length,
+    uint16_t max_ce_length) {
   if (!check_connection_parameters(conn_interval_min, conn_interval_max, conn_latency, supervision_timeout)) {
     LOG_ERROR("Invalid parameter");
     return false;
   }
   pimpl_->tracker.le_acl_connection_interface_->EnqueueCommand(
-      LeConnectionUpdateBuilder::Create(handle_, conn_interval_min, conn_interval_max, conn_latency,
-                                        supervision_timeout, min_ce_length, max_ce_length),
+      LeConnectionUpdateBuilder::Create(
+          handle_,
+          conn_interval_min,
+          conn_interval_max,
+          conn_latency,
+          supervision_timeout,
+          min_ce_length,
+          max_ce_length),
       pimpl_->tracker.client_handler_->BindOnce([](CommandStatusView status) {
         ASSERT(status.IsValid());
         ASSERT(status.GetCommandOpCode() == OpCode::LE_CONNECTION_UPDATE);
