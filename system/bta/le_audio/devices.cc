@@ -882,16 +882,12 @@ bool LeAudioDeviceGroup::IsGroupStreamReady(void) {
   return iter == leAudioDevices_.end();
 }
 
-bool LeAudioDeviceGroup::HaveAllActiveDevicesCisDisc(void) {
-  auto iter =
-      std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(), [](auto& d) {
-        if (d.expired())
-          return false;
-        else
-          return !(((d.lock()).get())->HaveAllAsesCisDisc());
-      });
-
-  return iter == leAudioDevices_.end();
+bool LeAudioDeviceGroup::HaveAllCisesDisconnected(void) {
+  for (auto const dev : leAudioDevices_) {
+    if (dev.expired()) continue;
+    if (dev.lock().get()->HaveAnyCisConnected()) return false;
+  }
+  return true;
 }
 
 uint8_t LeAudioDeviceGroup::GetFirstFreeCisId(void) {
@@ -2400,13 +2396,15 @@ bool LeAudioDevice::HaveAllActiveAsesCisEst(void) {
   return iter == ases_.end();
 }
 
-bool LeAudioDevice::HaveAllAsesCisDisc(void) {
-  auto iter = std::find_if(ases_.begin(), ases_.end(), [](const auto& ase) {
-    return ase.active &&
-           (ase.data_path_state != AudioStreamDataPathState::CIS_ASSIGNED);
-  });
-
-  return iter == ases_.end();
+bool LeAudioDevice::HaveAnyCisConnected(void) {
+  /* Pending and Disconnecting is considered as connected in this function */
+  for (auto const ase : ases_) {
+    if (ase.data_path_state != AudioStreamDataPathState::CIS_ASSIGNED &&
+        ase.data_path_state != AudioStreamDataPathState::IDLE) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool LeAudioDevice::HasCisId(uint8_t id) {
