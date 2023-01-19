@@ -623,7 +623,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     } else {
       // the exception is if we only support legacy advertising - here, our current address is also
       // our advertised address
-      return DataAsPeripheral{le_address_manager_->GetCurrentAddress(), {}};
+      return DataAsPeripheral{
+          le_address_manager_->GetCurrentAddress(),
+          {},
+          true /* For now, ignore non-discoverable legacy advertising TODO(b/254314964) */};
     }
   }
 
@@ -745,9 +748,12 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void OnAdvertisingSetTerminated(
-      uint16_t conn_handle, uint8_t adv_set_id, hci::AddressWithType adv_set_address) {
+      uint16_t conn_handle,
+      uint8_t adv_set_id,
+      hci::AddressWithType adv_set_address,
+      bool is_discoverable) {
     auto connection = connections.record_peripheral_data_and_extract_pending_connection(
-        conn_handle, DataAsPeripheral{adv_set_address, adv_set_id});
+        conn_handle, DataAsPeripheral{adv_set_address, adv_set_id, is_discoverable});
 
     if (connection != nullptr) {
       le_client_handler_->Post(common::BindOnce(

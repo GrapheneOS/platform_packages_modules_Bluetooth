@@ -1596,7 +1596,7 @@ TEST_P(
 
   check.Call("terminating_advertising_set");
   le_impl_->OnAdvertisingSetTerminated(
-      kHciHandle, advertising_set_id, advertiser_address_with_type);
+      kHciHandle, advertising_set_id, advertiser_address_with_type, false /* is_discoverable */);
   sync_handler();
 
   // assert
@@ -1614,6 +1614,58 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(
         ConnectionCompleteType::CONNECTION_COMPLETE,
         ConnectionCompleteType::ENHANCED_CONNECTION_COMPLETE));
+
+class LeImplTestParameterizedByDiscoverability : public LeImplTest,
+                                                 public ::testing::WithParamInterface<bool> {};
+
+TEST_P(LeImplTestParameterizedByDiscoverability, ConnectionCompleteAsDiscoverable) {
+  // arrange
+  controller_->AddSupported(hci::OpCode::LE_MULTI_ADVT);
+  set_random_device_address_policy();
+  auto is_discoverable = GetParam();
+
+  // expect
+  std::unique_ptr<LeAclConnection> connection{};
+  EXPECT_CALL(
+      mock_le_connection_callbacks_, OnLeConnectSuccess(remote_public_address_with_type_, _))
+      .WillOnce(WithArg<1>(::testing::Invoke(
+          [&](std::unique_ptr<LeAclConnection> conn) { connection = std::move(conn); })));
+
+  // act
+  hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
+      ErrorCode::SUCCESS,
+      kHciHandle,
+      Role::PERIPHERAL,
+      AddressType::PUBLIC_DEVICE_ADDRESS,
+      remote_address_,
+      0x0024,
+      0x0000,
+      0x0011,
+      ClockAccuracy::PPM_30));
+  // the sync is needed since otherwise the OnAdvertisingSetTerminated() event arrives first, due to
+  // handler indirection (2 hops vs 1 hop) this isn't a bug in production since there we'd have:
+  // 1. Connection Complete: HCI -> LE_IMPL (2 hops)
+  // 2. Advertising Set Terminated: HCI -> ADV -> LE_IMPL (3 hops)
+  // so this sync is only needed in test
+  sync_handler();
+  le_impl_->OnAdvertisingSetTerminated(
+      kHciHandle, 1 /* advertiser_set_id */, fixed_address_, is_discoverable);
+  sync_handler();
+
+  // assert
+  ASSERT_NE(connection, nullptr);
+  EXPECT_THAT(
+      connection->GetRoleSpecificData(),
+      VariantWith<DataAsPeripheral>(Field(
+          "connected_to_discoverable",
+          &DataAsPeripheral::connected_to_discoverable,
+          Eq(is_discoverable))));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    LeImplTestParameterizedByDiscoverability,
+    LeImplTestParameterizedByDiscoverability,
+    ::testing::Values(false, true));
 
 }  // namespace acl_manager
 }  // namespace hci

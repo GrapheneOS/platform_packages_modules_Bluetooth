@@ -41,6 +41,9 @@ struct DataAsPeripheral {
   // the advertising set ID that the peer connected to - in LE, our role is peripheral iff the peer
   // initiated a connection to our advertisement
   std::optional<uint8_t> advertising_set_id;
+  // whether the peripheral connected to a discoverable advertisement (this affects the readability
+  // of GAP characteristics)
+  bool connected_to_discoverable;
 };
 
 // when we know it's a peripheral, but we don't yet have all the data about the set it connected to
