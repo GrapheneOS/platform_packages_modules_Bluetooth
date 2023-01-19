@@ -116,6 +116,7 @@ source_set("stack") {
     "btm/btm_dev.cc",
     "btm/btm_devctl.cc",
     "btm/btm_inq.cc",
+    "btm/btm_iot_config.cc",
     "btm/btm_iso.cc",
     "btm/btm_main.cc",
     "btm/btm_scn.cc",

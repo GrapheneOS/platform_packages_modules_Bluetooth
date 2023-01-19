@@ -82,6 +82,7 @@
 #include "common/metric_id_allocator.h"
 #include "common/metrics.h"
 #include "common/os_utils.h"
+#include "device/include/device_iot_config.h"
 #include "device/include/interop.h"
 #include "gd/common/init_flags.h"
 #include "gd/os/parameter_provider.h"
@@ -759,6 +760,7 @@ static void dump(int fd, const char** arguments) {
   stack_debug_avdtp_api_dump(fd);
   bluetooth::avrcp::AvrcpService::DebugDump(fd);
   btif_debug_config_dump(fd);
+  device_debug_iot_config_dump(fd);
   BTA_HfClientDumpStatistics(fd);
   wakelock_debug_dump(fd);
   osi_allocator_debug_dump(fd);
@@ -916,7 +918,18 @@ static int set_os_callouts(bt_os_callouts_t* callouts) {
 
 static int config_clear(void) {
   LOG_INFO("%s", __func__);
-  return btif_config_clear() ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
+  int ret = BT_STATUS_SUCCESS;
+  if (!btif_config_clear()) {
+    LOG_ERROR("Failed to clear btif config");
+    ret = BT_STATUS_FAIL;
+  }
+
+  if (!device_iot_config_clear()) {
+    LOG_ERROR("Failed to clear device iot config");
+    ret = BT_STATUS_FAIL;
+  }
+
+  return ret;
 }
 
 static bluetooth::avrcp::ServiceInterface* get_avrcp_service(void) {
