@@ -64,6 +64,7 @@ if (defined(use.android) && use.android) {
   group("android_bluetooth_tests") {
     deps = [
       "//bt/system/device:net_test_device",
+      "//bt/system/device:net_test_device_iot_config",
       "//bt/system/hci:net_test_hci",
       "//bt/system/osi:net_test_osi",
       "//bt/system/test/suite:net_test_bluetooth",

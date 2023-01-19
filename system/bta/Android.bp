@@ -332,6 +332,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libbtdevice",
         "libbt-common",
         "libbt-protos-lite",
         "libbtcore",

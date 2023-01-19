@@ -587,6 +587,10 @@ bool A2DP_IsPeerSinkCodecValid(const uint8_t* p_codec_info);
 // Returns true if the A2DP Sink codec is supported, otherwise false.
 bool A2DP_IsSinkCodecSupported(const uint8_t* p_codec_info);
 
+// Gets peer sink endpoint codec type.
+// |p_codec_info| contains information about the codec capabilities.
+int A2DP_IotGetPeerSinkCodecType(const uint8_t* p_codec_info);
+
 // Checks whether an A2DP Source codec for a peer Source device is supported.
 // |p_codec_info| contains information about the codec capabilities of the
 // peer device.
