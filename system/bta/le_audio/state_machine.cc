@@ -1275,6 +1275,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       }
     }
 
+    if ((sdu_interval_mtos == 0 && sdu_interval_stom == 0) ||
+        (max_trans_lat_mtos == le_audio::types::kMaxTransportLatencyMin &&
+         max_trans_lat_stom == le_audio::types::kMaxTransportLatencyMin) ||
+        (max_sdu_size_mtos == 0 && max_sdu_size_stom == 0)) {
+      LOG_ERROR(" Trying to create invalid group");
+      group->PrintDebugState();
+      return false;
+    }
+
     bluetooth::hci::iso_manager::cig_create_params param = {
         .sdu_itv_mtos = sdu_interval_mtos,
         .sdu_itv_stom = sdu_interval_stom,
@@ -1972,6 +1981,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                                LeAudioDevice* leAudioDevice) {
     std::vector<struct le_audio::client_parser::ascs::ctp_qos_conf> confs;
 
+    bool validate_transport_latency = false;
+    bool validate_max_sdu_size = false;
+
     for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
          ase = leAudioDevice->GetNextActiveAse(ase)) {
       LOG_DEBUG("device: %s, ase_id: %d, cis_id: %d, ase state: %s",
@@ -1988,14 +2000,16 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       conf.max_sdu = ase->max_sdu_size;
       conf.retrans_nb = ase->retrans_nb;
       if (!group->GetPresentationDelay(&conf.pres_delay, ase->direction)) {
-        LOG(ERROR) << __func__ << ", inconsistent presentation delay for group";
+        LOG_ERROR("inconsistent presentation delay for group");
+        group->PrintDebugState();
         StopStream(group);
         return;
       }
 
       conf.sdu_interval = group->GetSduInterval(ase->direction);
       if (!conf.sdu_interval) {
-        LOG(ERROR) << __func__ << ", unsupported SDU interval for group";
+        LOG_ERROR("unsupported SDU interval for group");
+        group->PrintDebugState();
         StopStream(group);
         return;
       }
@@ -2005,15 +2019,28 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       } else {
         conf.max_transport_latency = group->GetMaxTransportLatencyStom();
       }
+
+      if (conf.max_transport_latency >
+          le_audio::types::kMaxTransportLatencyMin) {
+        validate_transport_latency = true;
+      }
+
+      if (conf.max_sdu > 0) {
+        validate_max_sdu_size = true;
+      }
       confs.push_back(conf);
     }
 
-    LOG_ASSERT(confs.size() > 0)
-        << __func__ << " shouldn't be called without an active ASE";
+    if (confs.size() == 0 || !validate_transport_latency ||
+        !validate_max_sdu_size) {
+      LOG_ERROR("Invalid configuration or latency or sdu size");
+      group->PrintDebugState();
+      StopStream(group);
+      return;
+    }
 
     std::vector<uint8_t> value;
     le_audio::client_parser::ascs::PrepareAseCtpConfigQos(confs, value);
-
     BtaGattQueue::WriteCharacteristic(leAudioDevice->conn_id_,
                                       leAudioDevice->ctp_hdls_.val_hdl, value,
                                       GATT_WRITE_NO_RSP, NULL, NULL);
