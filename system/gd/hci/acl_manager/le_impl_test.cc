@@ -49,7 +49,13 @@ using ::bluetooth::testing::LogCapture;
 
 using ::testing::_;
 using ::testing::DoAll;
+using ::testing::Eq;
+using ::testing::Field;
+using ::testing::Mock;
+using ::testing::MockFunction;
 using ::testing::SaveArg;
+using ::testing::VariantWith;
+using ::testing::WithArg;
 
 namespace {
 constexpr bool kCrashOnUnknownHandle = true;
@@ -421,8 +427,8 @@ class MockLeConnectionManagementCallbacks : public LeConnectionManagementCallbac
       (hci::ErrorCode hci_status, uint8_t lmp_version, uint16_t manufacturer_name, uint16_t sub_version),
       (override));
   MOCK_METHOD(void, OnLeReadRemoteFeaturesComplete, (hci::ErrorCode hci_status, uint64_t features), (override));
-  MOCK_METHOD(void, OnPhyUpdate, (hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy), (override));
-  MOCK_METHOD(void, OnLocalAddressUpdate, (AddressWithType address_with_type), (override));
+  MOCK_METHOD(
+      void, OnPhyUpdate, (hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy), (override));
   MOCK_METHOD(
       void,
       OnLeSubrateChange,
@@ -1523,6 +1529,91 @@ TEST_F(LeImplTest, LeSetDefaultSubrate) {
   ASSERT_EQ(kContinuationNumber, view.GetContinuationNumber());
   ASSERT_EQ(kTimeout, view.GetSupervisionTimeout());
 }
+
+enum class ConnectionCompleteType { CONNECTION_COMPLETE, ENHANCED_CONNECTION_COMPLETE };
+
+class LeImplTestParameterizedByConnectionCompleteEventType
+    : public LeImplTest,
+      public ::testing::WithParamInterface<ConnectionCompleteType> {};
+
+TEST_P(
+    LeImplTestParameterizedByConnectionCompleteEventType,
+    ConnectionCompleteAsPeripheralWithAdvertisingSet) {
+  // arrange
+  controller_->AddSupported(hci::OpCode::LE_MULTI_ADVT);
+  set_random_device_address_policy();
+
+  auto advertising_set_id = 13;
+
+  hci::Address advertiser_address;
+  Address::FromString("A0:A1:A2:A3:A4:A5", advertiser_address);
+  hci::AddressWithType advertiser_address_with_type(
+      advertiser_address, hci::AddressType::PUBLIC_DEVICE_ADDRESS);
+
+  // expect
+  ::testing::InSequence s;
+  MockFunction<void(std::string check_point_name)> check;
+  std::unique_ptr<LeAclConnection> connection{};
+  EXPECT_CALL(check, Call("terminating_advertising_set"));
+  EXPECT_CALL(
+      mock_le_connection_callbacks_, OnLeConnectSuccess(remote_public_address_with_type_, _))
+      .WillOnce(WithArg<1>(::testing::Invoke(
+          [&](std::unique_ptr<LeAclConnection> conn) { connection = std::move(conn); })));
+
+  // act
+  switch (GetParam()) {
+    case ConnectionCompleteType::CONNECTION_COMPLETE: {
+      hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
+          ErrorCode::SUCCESS,
+          kHciHandle,
+          Role::PERIPHERAL,
+          AddressType::PUBLIC_DEVICE_ADDRESS,
+          remote_address_,
+          0x0024,
+          0x0000,
+          0x0011,
+          ClockAccuracy::PPM_30));
+    } break;
+    case ConnectionCompleteType::ENHANCED_CONNECTION_COMPLETE: {
+      hci_layer_->IncomingLeMetaEvent(LeEnhancedConnectionCompleteBuilder::Create(
+          ErrorCode::SUCCESS,
+          kHciHandle,
+          Role::PERIPHERAL,
+          AddressType::PUBLIC_DEVICE_ADDRESS,
+          remote_address_,
+          local_rpa_,
+          remote_rpa_,
+          0x0024,
+          0x0000,
+          0x0011,
+          ClockAccuracy::PPM_30));
+    } break;
+    default: {
+      LOG_ALWAYS_FATAL("unexpected case");
+    }
+  }
+  sync_handler();
+
+  check.Call("terminating_advertising_set");
+  le_impl_->OnAdvertisingSetTerminated(
+      kHciHandle, advertising_set_id, advertiser_address_with_type);
+  sync_handler();
+
+  // assert
+  Mock::VerifyAndClearExpectations(&mock_le_connection_callbacks_);
+  ASSERT_NE(connection, nullptr);
+  EXPECT_THAT(
+      connection->GetRoleSpecificData(),
+      VariantWith<DataAsPeripheral>(Field(
+          "local_address", &DataAsPeripheral::local_address, Eq(advertiser_address_with_type))));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ConnectionCompleteAsPeripheralWithAdvertisingSet,
+    LeImplTestParameterizedByConnectionCompleteEventType,
+    ::testing::Values(
+        ConnectionCompleteType::CONNECTION_COMPLETE,
+        ConnectionCompleteType::ENHANCED_CONNECTION_COMPLETE));
 
 }  // namespace acl_manager
 }  // namespace hci
