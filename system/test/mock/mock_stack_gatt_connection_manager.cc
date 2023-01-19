@@ -92,3 +92,8 @@ void connection_manager::on_connection_timed_out_from_shim(
 void connection_manager::reset(bool after_reset) {
   mock_function_count_map[__func__]++;
 }
+
+bool connection_manager::is_background_connection(const RawAddress& address) {
+  mock_function_count_map[__func__]++;
+  return false;
+}

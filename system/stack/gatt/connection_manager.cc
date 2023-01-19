@@ -29,6 +29,7 @@
 
 #include "bind_helpers.h"
 #include "internal_include/bt_trace.h"
+#include "main/shim/dumpsys.h"
 #include "main/shim/le_scanning_manager.h"
 #include "main/shim/shim.h"
 #include "osi/include/alarm.h"
@@ -396,6 +397,10 @@ bool background_connect_remove(uint8_t app_id, const RawAddress& address) {
   return true;
 }
 
+bool is_background_connection(const RawAddress& address) {
+  return bgconn_dev.find(address) != bgconn_dev.end();
+}
+
 /** deregister all related background connetion device. */
 void on_app_deregistered(uint8_t app_id) {
   LOG_DEBUG("app_id=%d", static_cast<int>(app_id));
@@ -526,13 +531,15 @@ bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
             address.ToString().c_str());
   auto it = bgconn_dev.find(address);
   if (it == bgconn_dev.end()) {
-    LOG_WARN("Unable to find background connection to remove");
+    LOG_WARN("Unable to find background connection to remove peer:%s",
+             PRIVATE_ADDRESS(address));
     return false;
   }
 
   auto app_it = it->second.doing_direct_conn.find(app_id);
   if (app_it == it->second.doing_direct_conn.end()) {
-    LOG_WARN("Unable to find direct connection to remove");
+    LOG_WARN("Unable to find direct connection to remove peer:%s",
+             PRIVATE_ADDRESS(address));
     return false;
   }
 
