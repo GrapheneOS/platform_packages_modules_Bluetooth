@@ -2467,6 +2467,10 @@ public class LeAudioService extends ProfileService {
 
         synchronized (mGroupLock) {
             LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
+            if (groupDescriptor == null) {
+                Log.e(TAG, "handleGroupNodeRemoved: No valid descriptor for group: " + groupId);
+                return;
+            }
             if (DBG) {
                 Log.d(TAG, "Lost lead device is " + groupDescriptor.mLostLeadDeviceWhileStreaming);
             }
