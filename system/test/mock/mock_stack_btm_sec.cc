@@ -67,6 +67,10 @@ bool BTM_IsAuthenticated(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   mock_function_count_map[__func__]++;
   return false;
 }
+bool BTM_CanReadDiscoverableCharacteristics(const RawAddress& bd_addr) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
 bool BTM_IsEncrypted(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   mock_function_count_map[__func__]++;
   return false;
