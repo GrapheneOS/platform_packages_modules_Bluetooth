@@ -73,7 +73,7 @@ public class CompanionManager {
     private final BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
     private final Set<BluetoothDevice> mMetadataListeningDevices = new HashSet<>();
 
-    CompanionManager(AdapterService service, ServiceFactory factory) {
+    public CompanionManager(AdapterService service, ServiceFactory factory) {
         mAdapterService = service;
         mGattConnHighDefault = new int[] {
                 service.getResources().getInteger(R.integer.gatt_high_priority_min_interval),
