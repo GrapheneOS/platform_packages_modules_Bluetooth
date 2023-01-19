@@ -24,6 +24,7 @@ import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHidHost;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothHidHost;
 import android.content.AttributionSource;
 import android.content.Intent;
@@ -140,12 +141,15 @@ public class HidHostService extends ProfileService {
         setHidHostService(null);
     }
 
-    private BluetoothDevice getDevice(byte[] address) {
-        return mAdapterService.getDeviceFromByte(address);
-    }
-
     private byte[] getByteAddress(BluetoothDevice device) {
-        return mAdapterService.getByteIdentityAddress(device);
+        if (Utils.arrayContains(device.getUuids(), BluetoothUuid.HOGP)) {
+            // if HOGP is available, use the address on initial bonding
+            // (so if we bonded over LE, use the RPA)
+            return Utils.getByteAddress(device);
+        } else {
+            // if only classic HID is available, force usage of BREDR address
+            return mAdapterService.getByteIdentityAddress(device);
+        }
     }
 
     public static synchronized HidHostService getHidHostService() {
