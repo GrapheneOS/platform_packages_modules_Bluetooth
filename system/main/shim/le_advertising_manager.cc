@@ -382,6 +382,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
                        AdvertiseParameters params) {
     config.connectable = params.advertising_event_properties & 0x01;
     config.scannable = params.advertising_event_properties & 0x02;
+    config.discoverable = params.advertising_event_properties & 0x04;
     config.legacy_pdus = params.advertising_event_properties & 0x10;
     config.anonymous = params.advertising_event_properties & 0x20;
     config.include_tx_power = params.advertising_event_properties & 0x40;
