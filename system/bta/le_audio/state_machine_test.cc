@@ -865,7 +865,7 @@ class StateMachineTest : public Test {
             codec_configured_state_params.framing =
                 ascs::kAseParamFramingUnframedSupported;
             codec_configured_state_params.preferred_retrans_nb = 0x04;
-            codec_configured_state_params.max_transport_latency = 0x0005;
+            codec_configured_state_params.max_transport_latency = 0x0010;
             codec_configured_state_params.pres_delay_min = 0xABABAB;
             codec_configured_state_params.pres_delay_max = 0xCDCDCD;
             codec_configured_state_params.preferred_pres_delay_min =
@@ -2917,6 +2917,7 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
 
   auto* leAudioDevice = group->GetFirstDevice();
   LeAudioDevice* lastDevice;
+  LeAudioDevice* fistDevice = leAudioDevice;
 
   auto expected_devices_written = 0;
   while (leAudioDevice) {
@@ -2996,6 +2997,11 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   auto ccids = ltv.Find(le_audio::types::kLeAudioMetadataTypeCcidList);
   ASSERT_TRUE(ccids.has_value());
   ASSERT_NE(std::find(ccids->begin(), ccids->end(), media_ccid), ccids->end());
+
+  /* Verify that ASE of first device are still good*/
+  auto ase = fistDevice->GetFirstActiveAse();
+  ASSERT_NE(ase->max_transport_latency, 0);
+  ASSERT_NE(ase->retrans_nb, 0);
 }
 
 TEST_F(StateMachineTest, StartStreamAfterConfigure) {
