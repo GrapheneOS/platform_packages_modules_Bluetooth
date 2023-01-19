@@ -308,9 +308,20 @@ void AclManager::WriteDefaultLinkPolicySettings(uint16_t default_link_policy_set
   CallOn(pimpl_->classic_impl_, &classic_impl::write_default_link_policy_settings, default_link_policy_settings);
 }
 
-void AclManager::OnAdvertisingSetTerminated(ErrorCode status, uint16_t conn_handle, hci::AddressWithType adv_address) {
+void AclManager::OnAdvertisingSetTerminated(
+    ErrorCode status,
+    uint16_t conn_handle,
+    uint8_t adv_set_id,
+    hci::AddressWithType adv_address,
+    bool is_discoverable) {
   if (status == ErrorCode::SUCCESS) {
-    CallOn(pimpl_->le_impl_, &le_impl::UpdateLocalAddress, conn_handle, adv_address);
+    CallOn(
+        pimpl_->le_impl_,
+        &le_impl::OnAdvertisingSetTerminated,
+        conn_handle,
+        adv_set_id,
+        adv_address,
+        is_discoverable);
   }
 }
 

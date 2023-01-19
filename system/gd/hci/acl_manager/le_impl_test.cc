@@ -49,7 +49,13 @@ using ::bluetooth::testing::LogCapture;
 
 using ::testing::_;
 using ::testing::DoAll;
+using ::testing::Eq;
+using ::testing::Field;
+using ::testing::Mock;
+using ::testing::MockFunction;
 using ::testing::SaveArg;
+using ::testing::VariantWith;
+using ::testing::WithArg;
 
 namespace {
 constexpr bool kCrashOnUnknownHandle = true;
@@ -421,8 +427,8 @@ class MockLeConnectionManagementCallbacks : public LeConnectionManagementCallbac
       (hci::ErrorCode hci_status, uint8_t lmp_version, uint16_t manufacturer_name, uint16_t sub_version),
       (override));
   MOCK_METHOD(void, OnLeReadRemoteFeaturesComplete, (hci::ErrorCode hci_status, uint64_t features), (override));
-  MOCK_METHOD(void, OnPhyUpdate, (hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy), (override));
-  MOCK_METHOD(void, OnLocalAddressUpdate, (AddressWithType address_with_type), (override));
+  MOCK_METHOD(
+      void, OnPhyUpdate, (hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy), (override));
   MOCK_METHOD(
       void,
       OnLeSubrateChange,
@@ -581,6 +587,7 @@ class LeImplWithConnectionTest : public LeImplTest {
  protected:
   void SetUp() override {
     LeImplTest::SetUp();
+    set_random_device_address_policy();
 
     EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(_, _))
         .WillOnce([&](AddressWithType addr, std::unique_ptr<LeAclConnection> conn) {
@@ -1294,6 +1301,7 @@ TEST_F(LeImplTest, on_le_event__ENHANCED_CONNECTION_COMPLETE_CENTRAL) {
 
 TEST_F(LeImplTest, on_le_event__ENHANCED_CONNECTION_COMPLETE_PERIPHERAL) {
   EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(_, _)).Times(1);
+  set_random_device_address_policy();
   auto command = LeEnhancedConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       kHciHandle,
@@ -1510,7 +1518,8 @@ TEST_F(LeImplTest, set_le_suggested_default_data_parameters) {
 }
 
 TEST_F(LeImplTest, LeSetDefaultSubrate) {
-  le_impl_->LeSetDefaultSubrate(kIntervalMin, kIntervalMax, kLatency, kContinuationNumber, kTimeout);
+  le_impl_->LeSetDefaultSubrate(
+      kIntervalMin, kIntervalMax, kLatency, kContinuationNumber, kTimeout);
   sync_handler();
   auto view = CreateAclCommandView<LeSetDefaultSubrateView>(hci_layer_->DequeueCommandBytes());
   ASSERT_TRUE(view.IsValid());
@@ -1520,6 +1529,143 @@ TEST_F(LeImplTest, LeSetDefaultSubrate) {
   ASSERT_EQ(kContinuationNumber, view.GetContinuationNumber());
   ASSERT_EQ(kTimeout, view.GetSupervisionTimeout());
 }
+
+enum class ConnectionCompleteType { CONNECTION_COMPLETE, ENHANCED_CONNECTION_COMPLETE };
+
+class LeImplTestParameterizedByConnectionCompleteEventType
+    : public LeImplTest,
+      public ::testing::WithParamInterface<ConnectionCompleteType> {};
+
+TEST_P(
+    LeImplTestParameterizedByConnectionCompleteEventType,
+    ConnectionCompleteAsPeripheralWithAdvertisingSet) {
+  // arrange
+  controller_->AddSupported(hci::OpCode::LE_MULTI_ADVT);
+  set_random_device_address_policy();
+
+  auto advertising_set_id = 13;
+
+  hci::Address advertiser_address;
+  Address::FromString("A0:A1:A2:A3:A4:A5", advertiser_address);
+  hci::AddressWithType advertiser_address_with_type(
+      advertiser_address, hci::AddressType::PUBLIC_DEVICE_ADDRESS);
+
+  // expect
+  ::testing::InSequence s;
+  MockFunction<void(std::string check_point_name)> check;
+  std::unique_ptr<LeAclConnection> connection{};
+  EXPECT_CALL(check, Call("terminating_advertising_set"));
+  EXPECT_CALL(
+      mock_le_connection_callbacks_, OnLeConnectSuccess(remote_public_address_with_type_, _))
+      .WillOnce(WithArg<1>(::testing::Invoke(
+          [&](std::unique_ptr<LeAclConnection> conn) { connection = std::move(conn); })));
+
+  // act
+  switch (GetParam()) {
+    case ConnectionCompleteType::CONNECTION_COMPLETE: {
+      hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
+          ErrorCode::SUCCESS,
+          kHciHandle,
+          Role::PERIPHERAL,
+          AddressType::PUBLIC_DEVICE_ADDRESS,
+          remote_address_,
+          0x0024,
+          0x0000,
+          0x0011,
+          ClockAccuracy::PPM_30));
+    } break;
+    case ConnectionCompleteType::ENHANCED_CONNECTION_COMPLETE: {
+      hci_layer_->IncomingLeMetaEvent(LeEnhancedConnectionCompleteBuilder::Create(
+          ErrorCode::SUCCESS,
+          kHciHandle,
+          Role::PERIPHERAL,
+          AddressType::PUBLIC_DEVICE_ADDRESS,
+          remote_address_,
+          local_rpa_,
+          remote_rpa_,
+          0x0024,
+          0x0000,
+          0x0011,
+          ClockAccuracy::PPM_30));
+    } break;
+    default: {
+      LOG_ALWAYS_FATAL("unexpected case");
+    }
+  }
+  sync_handler();
+
+  check.Call("terminating_advertising_set");
+  le_impl_->OnAdvertisingSetTerminated(
+      kHciHandle, advertising_set_id, advertiser_address_with_type, false /* is_discoverable */);
+  sync_handler();
+
+  // assert
+  Mock::VerifyAndClearExpectations(&mock_le_connection_callbacks_);
+  ASSERT_NE(connection, nullptr);
+  EXPECT_THAT(
+      connection->GetRoleSpecificData(),
+      VariantWith<DataAsPeripheral>(Field(
+          "local_address", &DataAsPeripheral::local_address, Eq(advertiser_address_with_type))));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ConnectionCompleteAsPeripheralWithAdvertisingSet,
+    LeImplTestParameterizedByConnectionCompleteEventType,
+    ::testing::Values(
+        ConnectionCompleteType::CONNECTION_COMPLETE,
+        ConnectionCompleteType::ENHANCED_CONNECTION_COMPLETE));
+
+class LeImplTestParameterizedByDiscoverability : public LeImplTest,
+                                                 public ::testing::WithParamInterface<bool> {};
+
+TEST_P(LeImplTestParameterizedByDiscoverability, ConnectionCompleteAsDiscoverable) {
+  // arrange
+  controller_->AddSupported(hci::OpCode::LE_MULTI_ADVT);
+  set_random_device_address_policy();
+  auto is_discoverable = GetParam();
+
+  // expect
+  std::unique_ptr<LeAclConnection> connection{};
+  EXPECT_CALL(
+      mock_le_connection_callbacks_, OnLeConnectSuccess(remote_public_address_with_type_, _))
+      .WillOnce(WithArg<1>(::testing::Invoke(
+          [&](std::unique_ptr<LeAclConnection> conn) { connection = std::move(conn); })));
+
+  // act
+  hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
+      ErrorCode::SUCCESS,
+      kHciHandle,
+      Role::PERIPHERAL,
+      AddressType::PUBLIC_DEVICE_ADDRESS,
+      remote_address_,
+      0x0024,
+      0x0000,
+      0x0011,
+      ClockAccuracy::PPM_30));
+  // the sync is needed since otherwise the OnAdvertisingSetTerminated() event arrives first, due to
+  // handler indirection (2 hops vs 1 hop) this isn't a bug in production since there we'd have:
+  // 1. Connection Complete: HCI -> LE_IMPL (2 hops)
+  // 2. Advertising Set Terminated: HCI -> ADV -> LE_IMPL (3 hops)
+  // so this sync is only needed in test
+  sync_handler();
+  le_impl_->OnAdvertisingSetTerminated(
+      kHciHandle, 1 /* advertiser_set_id */, fixed_address_, is_discoverable);
+  sync_handler();
+
+  // assert
+  ASSERT_NE(connection, nullptr);
+  EXPECT_THAT(
+      connection->GetRoleSpecificData(),
+      VariantWith<DataAsPeripheral>(Field(
+          "connected_to_discoverable",
+          &DataAsPeripheral::connected_to_discoverable,
+          Eq(is_discoverable))));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    LeImplTestParameterizedByDiscoverability,
+    LeImplTestParameterizedByDiscoverability,
+    ::testing::Values(false, true));
 
 }  // namespace acl_manager
 }  // namespace hci

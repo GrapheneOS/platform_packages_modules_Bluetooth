@@ -97,6 +97,7 @@ bool BTM_IsEncrypted(const RawAddress& bd_addr, tBT_TRANSPORT transport);
 bool BTM_IsLinkKeyAuthed(const RawAddress& bd_addr, tBT_TRANSPORT transport);
 bool BTM_IsLinkKeyKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport);
 bool BTM_IsAuthenticated(const RawAddress& bd_addr, tBT_TRANSPORT transport);
+bool BTM_CanReadDiscoverableCharacteristics(const RawAddress& bd_addr);
 
 /*******************************************************************************
  *

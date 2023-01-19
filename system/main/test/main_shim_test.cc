@@ -22,6 +22,7 @@
 #include <cstdio>
 #include <future>
 #include <map>
+#include <optional>
 
 #include "btaa/activity_attribution.h"
 #include "btif/include/btif_hh.h"
@@ -145,7 +146,8 @@ void mock_connection_le_on_connected(
     const tBLE_BD_ADDR& address_with_type, uint16_t handle, tHCI_ROLE role,
     uint16_t conn_interval, uint16_t conn_latency, uint16_t conn_timeout,
     const RawAddress& local_rpa, const RawAddress& peer_rpa,
-    tBLE_ADDR_TYPE peer_addr_type) {}
+    tBLE_ADDR_TYPE peer_addr_type, bool can_read_discoverable_characteristics) {
+}
 void mock_connection_le_on_failed(const tBLE_BD_ADDR& address_with_type,
                                   uint16_t handle, bool enhanced,
                                   tHCI_STATUS status, bool locally_initiated) {}
@@ -292,12 +294,12 @@ class MockClassicAclConnection
 class MockLeAclConnection
     : public bluetooth::hci::acl_manager::LeAclConnection {
  public:
-  MockLeAclConnection(uint16_t handle, hci::AddressWithType local_address,
-                      hci::AddressWithType remote_address, hci::Role role) {
+  MockLeAclConnection(uint16_t handle,
+                      hci::acl_manager::RoleSpecificData role_specific_data,
+                      hci::AddressWithType remote_address) {
     handle_ = handle;
-    local_address_ = local_address;
+    role_specific_data_ = role_specific_data;
     remote_address_ = remote_address;
-    role_ = role;
   }
 
   void RegisterCallbacks(
@@ -684,9 +686,10 @@ TEST_F(MainShimTest, DISABLED_LeShimAclConnection_local_disconnect) {
 
   // Simulate LE connection successful
   uint16_t handle = 0x1234;
-  hci::Role role;
-  auto connection = std::make_unique<MockLeAclConnection>(handle, local_address,
-                                                          remote_address, role);
+  auto connection = std::make_unique<MockLeAclConnection>(
+      handle,
+      hci::acl_manager::DataAsPeripheral{local_address, std::nullopt, true},
+      remote_address);
   auto raw_connection = connection.get();
   acl->OnLeConnectSuccess(remote_address, std::move(connection));
   ASSERT_EQ(nullptr, connection);

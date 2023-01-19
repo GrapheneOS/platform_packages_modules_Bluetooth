@@ -358,7 +358,6 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
     }
 
     void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) override {}
-    void OnLocalAddressUpdate(AddressWithType address_with_type) override {}
     void OnDisconnection(ErrorCode reason) override {
       LOG_INFO("reason: %s", ErrorCodeText(reason).c_str());
       std::unique_ptr<BasePacketBuilder> builder =
