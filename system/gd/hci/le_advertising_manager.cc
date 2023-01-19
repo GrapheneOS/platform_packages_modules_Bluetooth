@@ -68,32 +68,6 @@ struct Advertiser {
   std::unique_ptr<os::Alarm> address_rotation_alarm;
 };
 
-ExtendedAdvertisingConfig::ExtendedAdvertisingConfig(const AdvertisingConfig& config) : AdvertisingConfig(config) {
-  switch (config.advertising_type) {
-    case AdvertisingType::ADV_IND:
-      connectable = true;
-      scannable = true;
-      break;
-    case AdvertisingType::ADV_DIRECT_IND_HIGH:
-      connectable = true;
-      directed = true;
-      high_duty_directed_connectable = true;
-      break;
-    case AdvertisingType::ADV_SCAN_IND:
-      scannable = true;
-      break;
-    case AdvertisingType::ADV_NONCONN_IND:
-      break;
-    case AdvertisingType::ADV_DIRECT_IND_LOW:
-      connectable = true;
-      directed = true;
-      break;
-    default:
-      LOG_WARN("Unknown event type");
-      break;
-  }
-}
-
 struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallback {
   impl(Module* module) : module_(module), le_advertising_interface_(nullptr), num_instances_(0) {}
 
@@ -313,8 +287,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       const common::Callback<void(ErrorCode, uint8_t, uint8_t)>& set_terminated_callback,
       os::Handler* handler) {
     // check advertising data is valid before start advertising
-    ExtendedAdvertisingConfig extended_config = static_cast<ExtendedAdvertisingConfig>(config);
-    if (!check_advertising_data(config.advertisement, extended_config.connectable) ||
+    if (!check_advertising_data(config.advertisement, config.connectable) ||
         !check_advertising_data(config.scan_response, false)) {
       advertising_callbacks_->OnAdvertisingSetStarted(
           reg_id, id, le_physical_channel_tx_power_, AdvertisingCallback::AdvertisingStatus::DATA_TOO_LARGE);
@@ -386,7 +359,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
   void start_advertising(
       AdvertiserId id,
-      const ExtendedAdvertisingConfig config,
+      const AdvertisingConfig config,
       uint16_t duration,
       base::OnceCallback<void(uint8_t /* status */)> status_callback,
       base::OnceCallback<void(uint8_t /* status */)> timeout_callback,
@@ -402,7 +375,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   void create_extended_advertiser(
       int reg_id,
       AdvertiserId id,
-      const ExtendedAdvertisingConfig config,
+      const AdvertisingConfig config,
       const common::Callback<void(Address, AddressType)>& scan_callback,
       const common::Callback<void(ErrorCode, uint8_t, uint8_t)>& set_terminated_callback,
       uint16_t duration,
@@ -598,7 +571,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
         advertiser_id, static_cast<uint8_t>(current_address.GetAddressType()), current_address.GetAddress());
   }
 
-  void set_parameters(AdvertiserId advertiser_id, ExtendedAdvertisingConfig config) {
+  void set_parameters(AdvertiserId advertiser_id, AdvertisingConfig config) {
     advertising_sets_[advertiser_id].connectable = config.connectable;
     advertising_sets_[advertiser_id].tx_power = config.tx_power;
     advertising_sets_[advertiser_id].directed = config.directed;
@@ -1545,7 +1518,7 @@ AdvertiserId LeAdvertisingManager::create_advertiser(
 
 AdvertiserId LeAdvertisingManager::ExtendedCreateAdvertiser(
     int reg_id,
-    const ExtendedAdvertisingConfig config,
+    const AdvertisingConfig config,
     const common::Callback<void(Address, AddressType)>& scan_callback,
     const common::Callback<void(ErrorCode, uint8_t, uint8_t)>& set_terminated_callback,
     uint16_t duration,
@@ -1614,7 +1587,7 @@ AdvertiserId LeAdvertisingManager::ExtendedCreateAdvertiser(
 
 void LeAdvertisingManager::StartAdvertising(
     AdvertiserId advertiser_id,
-    const ExtendedAdvertisingConfig config,
+    const AdvertisingConfig config,
     uint16_t duration,
     base::OnceCallback<void(uint8_t /* status */)> status_callback,
     base::OnceCallback<void(uint8_t /* status */)> timeout_callback,
@@ -1648,7 +1621,7 @@ void LeAdvertisingManager::GetOwnAddress(uint8_t advertiser_id) {
   CallOn(pimpl_.get(), &impl::get_own_address, advertiser_id);
 }
 
-void LeAdvertisingManager::SetParameters(AdvertiserId advertiser_id, ExtendedAdvertisingConfig config) {
+void LeAdvertisingManager::SetParameters(AdvertiserId advertiser_id, AdvertisingConfig config) {
   CallOn(pimpl_.get(), &impl::set_parameters, advertiser_id, config);
 }
 
