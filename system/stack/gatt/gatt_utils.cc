@@ -772,6 +772,8 @@ void gatt_sr_get_sec_info(const RawAddress& rem_bda, tBT_TRANSPORT transport,
   flags.is_link_key_known = BTM_IsLinkKeyKnown(rem_bda, transport);
   flags.is_link_key_authed = BTM_IsLinkKeyAuthed(rem_bda, transport);
   flags.is_encrypted = BTM_IsEncrypted(rem_bda, transport);
+  flags.can_read_discoverable_characteristics =
+      BTM_CanReadDiscoverableCharacteristics(rem_bda);
 
   *p_key_size = btm_ble_read_sec_key_size(rem_bda);
   *p_sec_flag = flags;
