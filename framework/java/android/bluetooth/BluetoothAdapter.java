@@ -5079,7 +5079,9 @@ public final class BluetoothAdapter {
      * Gets the preferred profile for each audio mode for system routed audio. This API
      * returns a Bundle with mappings between each audio mode and its preferred audio profile. If no
      * values are set via {@link #setPreferredAudioProfiles(BluetoothDevice, Bundle)}, this API
-     * returns the default system preferences set via a sysprop.
+     * returns the default system preferences set via the sysprops
+     * {@link BluetoothProperties#getDefaultOutputOnlyAudioProfile()} and
+     * {@link BluetoothProperties#getDefaultDuplexAudioProfile()}.
      * <p>
      * An audio capable device must support at least one audio mode with a preferred audio profile.
      * If a device does not support an audio mode, the audio mode will be omitted from the keys of
