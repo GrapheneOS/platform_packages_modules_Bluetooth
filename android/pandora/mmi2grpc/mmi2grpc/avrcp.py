@@ -673,6 +673,8 @@ class AVRCPProxy(ProfileProxy):
         the PTS.
         """
 
+        self.mediaplayer.Forward()
+
         return "OK"
 
     @assert_description
@@ -752,7 +754,35 @@ class AVRCPProxy(ProfileProxy):
         """
         Is the newly added media item listed below?
 
+        Media Element: Title1
+        Media
+        Element: Title2
+        Media Element: Title3
+        Media Element: Title4
+        Media
+        Element: Title5
+        Media Element: Title6
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_user_confirm_now_playing_list(self, **kwargs):
+        """
+        Do the following items match the current now playing list?
+
+        Media
+        Element: Title1
         Media Element: Title2
+        Media Element: Title3
+        Media
+        Element: Title4
+        Media Element: Title5
+        Media Element: Title6
+
+
+        Note: Some
+        now playing items may not be listed above.
         """
 
         return "OK"
@@ -790,6 +820,7 @@ class AVRCPProxy(ProfileProxy):
         Description: Verify that the Implementation Under Test (IUT) can update
         database by sending a valid Now Playing Changed Notification to the PTS.
         """
+        self.mediaplayer.UpdateQueue()
         self.mediaplayer.Play()
 
         return "OK"
