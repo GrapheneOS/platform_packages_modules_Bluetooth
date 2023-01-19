@@ -41,6 +41,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.AttributionSource;
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Binder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
@@ -54,6 +55,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.CompanionManager;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -102,10 +104,12 @@ public class GattServiceTest {
     private BluetoothAdapter mAdapter;
     private AttributionSource mAttributionSource;
 
+    @Mock private Resources mResources;
     @Mock private AdapterService mAdapterService;
     @Mock private GattObjectsFactory mFactory;
     @Mock private GattNativeInterface mNativeInterface;
     private BluetoothDevice mCurrentDevice;
+    private CompanionManager mBtCompanionManager;
 
     @Before
     public void setUp() throws Exception {
@@ -121,6 +125,15 @@ public class GattServiceTest {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAttributionSource = mAdapter.getAttributionSource();
         mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(REMOTE_DEVICE_ADDRESS);
+
+        when(mAdapterService.getResources()).thenReturn(mResources);
+        when(mResources.getInteger(anyInt())).thenReturn(0);
+        when(mAdapterService.getSharedPreferences(anyString(), anyInt()))
+                .thenReturn(InstrumentationRegistry.getTargetContext()
+                        .getSharedPreferences("GattServiceTestPrefs", Context.MODE_PRIVATE));
+
+        mBtCompanionManager = new CompanionManager(mAdapterService, null);
+        doReturn(mBtCompanionManager).when(mAdapterService).getCompanionManager();
 
         TestUtils.startService(mServiceRule, GattService.class);
         mService = GattService.getGattService();
