@@ -49,6 +49,7 @@
 #include "btif_metrics_logging.h"
 #include "common/metrics.h"
 #include "common/state_machine.h"
+#include "device/include/device_iot_config.h"
 #include "hardware/bt_av.h"
 #include "include/hardware/bt_rc.h"
 #include "main/shim/dumpsys.h"
@@ -1516,6 +1517,18 @@ bool BtifAvStateMachine::StateIdle::ProcessEvent(uint32_t event, void* p_data) {
       BTA_AvOpen(peer_.PeerAddress(), peer_.BtaHandle(), true,
                  peer_.LocalUuidServiceClass());
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateOpening);
+      if (event == BTIF_AV_CONNECT_REQ_EVT) {
+        DEVICE_IOT_CONFIG_ADDR_SET_INT(
+            peer_.PeerAddress(), IOT_CONF_KEY_A2DP_ROLE,
+            (peer_.LocalUuidServiceClass() == UUID_SERVCLASS_AUDIO_SOURCE)
+                ? IOT_CONF_VAL_A2DP_ROLE_SINK
+                : IOT_CONF_VAL_A2DP_ROLE_SOURCE);
+        DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(peer_.PeerAddress(),
+                                           IOT_CONF_KEY_A2DP_CONN_COUNT);
+      } else if (event == BTA_AV_PENDING_EVT) {
+        DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(peer_.PeerAddress(),
+                                           IOT_CONF_KEY_A2DP_CONN_COUNT);
+      }
     } break;
     case BTIF_AV_AVRCP_OPEN_EVT:
     case BTA_AV_RC_OPEN_EVT: {
@@ -1640,6 +1653,8 @@ bool BtifAvStateMachine::StateIdle::ProcessEvent(uint32_t event, void* p_data) {
                                      BTAV_CONNECTION_STATE_DISCONNECTED,
                                      bt_status_t::BT_STATUS_FAIL, status);
         peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
+        DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(peer_.PeerAddress(),
+                                           IOT_CONF_KEY_A2DP_CONN_FAIL_COUNT);
       }
       btif_queue_advance();
     } break;
@@ -1785,6 +1800,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
           if (peer_handle != BTRC_HANDLE_NONE) {
             BTA_AvCloseRc(peer_handle);
           }
+          DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(peer_.PeerAddress(),
+                                             IOT_CONF_KEY_A2DP_CONN_FAIL_COUNT);
         }
         av_state = BtifAvStateMachine::kStateIdle;
         // Report the connection state to the application
@@ -1869,6 +1886,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       log_counter_metrics_btif(
           android::bluetooth::CodePathCounterKeyEnum::A2DP_CONNECTION_CLOSE, 1);
+      DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(peer_.PeerAddress(),
+                                         IOT_CONF_KEY_A2DP_CONN_FAIL_COUNT);
       if (peer_.SelfInitiatedConnection()) {
         btif_queue_advance();
       }
@@ -1880,6 +1899,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
                                    BTAV_CONNECTION_STATE_DISCONNECTED,
                                    bt_status_t::BT_STATUS_FAIL, BTA_AV_FAIL);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
+      DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(peer_.PeerAddress(),
+                                         IOT_CONF_KEY_A2DP_CONN_FAIL_COUNT);
       log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum::
                                    A2DP_CONNECTION_DISCONNECTED,
                                1);

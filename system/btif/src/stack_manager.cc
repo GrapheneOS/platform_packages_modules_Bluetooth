@@ -43,6 +43,7 @@
 #include "bta/sys/bta_sys.h"
 #include "btif_config.h"
 #include "btif_profile_queue.h"
+#include "device/include/device_iot_config.h"
 #include "internal_include/bt_target.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/l2c_api.h"
@@ -209,13 +210,13 @@ static bool get_stack_is_running() { return stack_is_running; }
 extern const module_t bt_utils_module;
 extern const module_t bte_logmsg_module;
 extern const module_t btif_config_module;
-extern const module_t bt_utils_module;
 extern const module_t gd_controller_module;
 extern const module_t gd_idle_module;
 extern const module_t gd_shim_module;
 extern const module_t interop_module;
 extern const module_t osi_module;
 extern const module_t stack_config_module;
+extern const module_t device_iot_config_module;
 
 struct module_lookup {
   const char* name;
@@ -232,6 +233,7 @@ const struct module_lookup module_table[] = {
     {INTEROP_MODULE, &interop_module},
     {OSI_MODULE, &osi_module},
     {STACK_CONFIG_MODULE, &stack_config_module},
+    {DEVICE_IOT_CONFIG_MODULE, &device_iot_config_module},
     {NULL, NULL},
 };
 
@@ -254,6 +256,7 @@ static void init_stack_internal(bluetooth::core::CoreInterface* interface) {
 
   module_management_start();
 
+  module_init(get_local_module(DEVICE_IOT_CONFIG_MODULE));
   module_init(get_local_module(OSI_MODULE));
   module_init(get_local_module(BT_UTILS_MODULE));
   module_start_up(get_local_module(GD_IDLE_MODULE));
@@ -384,6 +387,7 @@ static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
   BTA_dm_on_hw_off();
 
   module_shut_down(get_local_module(BTIF_CONFIG_MODULE));
+  module_shut_down(get_local_module(DEVICE_IOT_CONFIG_MODULE));
 
   future_await(local_hack_future);
 
@@ -434,6 +438,8 @@ static void event_clean_up_stack(std::promise<void> promise,
   module_clean_up(get_local_module(INTEROP_MODULE));
 
   module_clean_up(get_local_module(BTIF_CONFIG_MODULE));
+  module_clean_up(get_local_module(DEVICE_IOT_CONFIG_MODULE));
+
   module_clean_up(get_local_module(BT_UTILS_MODULE));
   module_clean_up(get_local_module(OSI_MODULE));
   module_shut_down(get_local_module(GD_IDLE_MODULE));

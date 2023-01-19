@@ -40,6 +40,7 @@
 #include "audio_hal_interface/a2dp_encoding.h"
 #endif
 #include "bta/av/bta_av_int.h"
+#include "device/include/device_iot_config.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "stack/include/bt_hdr.h"
@@ -523,6 +524,44 @@ void A2dpCodecConfig::debug_codec_dump(int fd) {
 
   result = codecConfig2Str(getCodecLocalCapability());
   dprintf(fd, "  Local capability: %s\n", result.c_str());
+}
+
+int A2DP_IotGetPeerSinkCodecType(const uint8_t* p_codec_info) {
+  int peer_codec_type = 0;
+  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
+  LOG_VERBOSE("%s: codec_type = 0x%x", __func__, codec_type);
+  switch (codec_type) {
+    case A2DP_MEDIA_CT_SBC:
+      peer_codec_type = IOT_CONF_VAL_A2DP_CODECTYPE_SBC;
+      break;
+#if !defined(EXCLUDE_NONSTANDARD_CODECS)
+    case A2DP_MEDIA_CT_NON_A2DP: {
+      uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
+      uint32_t vendor_id = A2DP_VendorCodecGetVendorId(p_codec_info);
+
+      LOG_VERBOSE("%s codec_id = %d", __func__, codec_id);
+      LOG_VERBOSE("%s vendor_id = %x", __func__, vendor_id);
+
+      if (codec_id == A2DP_APTX_CODEC_ID_BLUETOOTH &&
+          vendor_id == A2DP_APTX_VENDOR_ID) {
+        peer_codec_type = IOT_CONF_VAL_A2DP_CODECTYPE_APTX;
+      } else if (codec_id == A2DP_APTX_HD_CODEC_ID_BLUETOOTH &&
+                 vendor_id == A2DP_APTX_HD_VENDOR_ID) {
+        peer_codec_type = IOT_CONF_VAL_A2DP_CODECTYPE_APTXHD;
+      } else if (codec_id == A2DP_LDAC_CODEC_ID &&
+                 vendor_id == A2DP_LDAC_VENDOR_ID) {
+        peer_codec_type = IOT_CONF_VAL_A2DP_CODECTYPE_LDAC;
+      }
+      break;
+    }
+    case A2DP_MEDIA_CT_AAC:
+      peer_codec_type = IOT_CONF_VAL_A2DP_CODECTYPE_AAC;
+      break;
+#endif
+    default:
+      break;
+  }
+  return peer_codec_type;
 }
 
 //
