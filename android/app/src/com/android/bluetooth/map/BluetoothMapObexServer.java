@@ -1308,7 +1308,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
      * @param overwrite True: The msgType will be overwritten to match the message types supported
      * by this MAS instance. False: any unsupported message types will be masked out.
      */
-    private void setMsgTypeFilterParams(BluetoothMapAppParams appParams, boolean overwrite) {
+    @VisibleForTesting
+    void setMsgTypeFilterParams(BluetoothMapAppParams appParams, boolean overwrite) {
         int masFilterMask = 0;
         if (!mEnableSmsMms) {
             masFilterMask |= BluetoothMapAppParams.FILTER_NO_SMS_CDMA;
