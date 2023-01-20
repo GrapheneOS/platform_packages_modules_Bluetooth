@@ -111,14 +111,40 @@ tBTM_SEC_DEV_REC* btm_find_dev(const RawAddress& bd_addr);
 
 /*******************************************************************************
  *
+ * Function         btm_find_dev_with_lenc
+ *
+ * Description      Look for the record in the device database with LTK and
+ *                  specified BD address
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
+tBTM_SEC_DEV_REC* btm_find_dev_with_lenc(const RawAddress& bd_addr);
+
+/*******************************************************************************
+ *
  * Function         btm_consolidate_dev
-5**
+ *
  * Description      combine security records if identified as same peer
  *
  * Returns          none
  *
  ******************************************************************************/
 void btm_consolidate_dev(tBTM_SEC_DEV_REC* p_target_rec);
+
+/*******************************************************************************
+ *
+ * Function         btm_consolidate_dev
+ *
+ * Description      When pairing is finished (i.e. on BR/EDR), this function
+ *                  checks if there are existing LE connections to same device
+ *                  that can now be encrypted and used for profiles requiring
+ *                  encryption.
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
+void btm_dev_consolidate_existing_connections(const RawAddress& bd_addr);
 
 /*******************************************************************************
  *

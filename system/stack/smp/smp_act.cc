@@ -1042,7 +1042,7 @@ void smp_proc_id_addr(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   tBTM_LE_KEY_VALUE pid_key = {
       .pid_key = {},
   };
-  ;
+
   STREAM_TO_UINT8(pid_key.pid_key.identity_addr_type, p);
   STREAM_TO_BDADDR(pid_key.pid_key.identity_addr, p);
   pid_key.pid_key.irk = p_cb->tk;
