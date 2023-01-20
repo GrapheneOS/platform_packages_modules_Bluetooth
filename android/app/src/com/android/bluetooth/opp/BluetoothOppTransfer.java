@@ -92,23 +92,27 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     private BluetoothAdapter mAdapter;
 
-    private BluetoothDevice mDevice;
+    @VisibleForTesting
+    BluetoothDevice mDevice;
 
     private BluetoothOppBatch mBatch;
 
     private BluetoothOppObexSession mSession;
 
-    private BluetoothOppShareInfo mCurrentShare;
+    @VisibleForTesting
+    BluetoothOppShareInfo mCurrentShare;
 
     private ObexTransport mTransport;
 
     private HandlerThread mHandlerThread;
 
-    private EventHandler mSessionHandler;
+    @VisibleForTesting
+    EventHandler mSessionHandler;
 
     private long mTimestamp;
 
-    private class OppConnectionReceiver extends BroadcastReceiver {
+    @VisibleForTesting
+    class OppConnectionReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -139,8 +143,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                         // Remove the timeout message triggered earlier during Obex Put
                         mSessionHandler.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
                         // Now reuse the same message to clean up the session.
-                        mSessionHandler.sendMessage(mSessionHandler.obtainMessage(
-                                BluetoothOppObexSession.MSG_CONNECT_TIMEOUT));
+                        BluetoothMethodProxy.getInstance().handlerSendEmptyMessage(mSessionHandler,
+                                BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -160,7 +164,11 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                         Log.w(TAG, "OPP SDP search, target device is null, ignoring result");
                         return;
                     }
-                    if (!device.getIdentityAddress().equalsIgnoreCase(mDevice.getIdentityAddress())) {
+                    String deviceIdentityAddress = device.getIdentityAddress();
+                    String transferDeviceIdentityAddress = mDevice.getIdentityAddress();
+                    if (deviceIdentityAddress == null || transferDeviceIdentityAddress == null
+                            || !deviceIdentityAddress.equalsIgnoreCase(
+                                    transferDeviceIdentityAddress)) {
                         Log.w(TAG, " OPP SDP search for wrong device, ignoring!!");
                         return;
                     }
@@ -676,10 +684,12 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
     @VisibleForTesting
     SocketConnectThread mConnectThread;
 
-    private class SocketConnectThread extends Thread {
+    @VisibleForTesting
+    class SocketConnectThread extends Thread {
         private final String mHost;
 
-        private final BluetoothDevice mDevice;
+        @VisibleForTesting
+        final BluetoothDevice mDevice;
 
         private final int mChannel;
 
@@ -695,7 +705,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
         private boolean mSdpInitiated = false;
 
-        private boolean mIsInterrupted = false;
+        @VisibleForTesting
+        boolean mIsInterrupted = false;
 
         /* create a Rfcomm/L2CAP Socket */
         SocketConnectThread(BluetoothDevice device, boolean retry) {
@@ -863,7 +874,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 Log.e(TAG, "Error when close socket");
             }
         }
-        mSessionHandler.obtainMessage(TRANSPORT_ERROR).sendToTarget();
+        BluetoothMethodProxy.getInstance().handlerSendEmptyMessage(mSessionHandler,
+                TRANSPORT_ERROR);
         return;
     }
 
