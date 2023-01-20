@@ -280,6 +280,10 @@ public class AdapterServiceTest {
                 .thenReturn(mBatteryStatsManager);
         when(mMockContext.getSystemServiceName(BatteryStatsManager.class))
                 .thenReturn(Context.BATTERY_STATS_SERVICE);
+        when(mMockContext.getSharedPreferences(anyString(), anyInt()))
+                .thenReturn(InstrumentationRegistry.getTargetContext()
+                        .getSharedPreferences("AdapterServiceTestPrefs", Context.MODE_PRIVATE));
+
         when(mMockContext.getAttributionSource()).thenReturn(mAttributionSource);
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
