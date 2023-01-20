@@ -45,12 +45,9 @@ struct BTM_BleLoadLocalKeys BTM_BleLoadLocalKeys;
 struct BTM_BleOobDataReply BTM_BleOobDataReply;
 struct BTM_BlePasskeyReply BTM_BlePasskeyReply;
 struct BTM_BleReadPhy BTM_BleReadPhy;
-struct BTM_BleReceiverTest BTM_BleReceiverTest;
 struct BTM_BleSecureConnectionOobDataReply BTM_BleSecureConnectionOobDataReply;
 struct BTM_BleSetPhy BTM_BleSetPhy;
 struct BTM_BleSetPrefConnParams BTM_BleSetPrefConnParams;
-struct BTM_BleTestEnd BTM_BleTestEnd;
-struct BTM_BleTransmitterTest BTM_BleTransmitterTest;
 struct BTM_BleVerifySignature BTM_BleVerifySignature;
 struct BTM_GetDeviceDHK BTM_GetDeviceDHK;
 struct BTM_GetDeviceEncRoot BTM_GetDeviceEncRoot;
@@ -64,8 +61,6 @@ struct BTM_SetBleDataLength BTM_SetBleDataLength;
 struct BTM_UseLeLink BTM_UseLeLink;
 struct btm_ble_br_keys_req btm_ble_br_keys_req;
 struct btm_ble_connected btm_ble_connected;
-struct btm_ble_connected_from_address_with_type
-    btm_ble_connected_from_address_with_type;
 struct btm_ble_determine_security_act btm_ble_determine_security_act;
 struct btm_ble_get_acl_remote_addr btm_ble_get_acl_remote_addr;
 struct btm_ble_get_enc_key_type btm_ble_get_enc_key_type;
@@ -165,10 +160,6 @@ void BTM_BleReadPhy(
   mock_function_count_map[__func__]++;
   test::mock::stack_btm_ble::BTM_BleReadPhy(bd_addr, cb);
 }
-void BTM_BleReceiverTest(uint8_t rx_freq, tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble::BTM_BleReceiverTest(rx_freq, p_cmd_cmpl_cback);
-}
 void BTM_BleSecureConnectionOobDataReply(const RawAddress& bd_addr,
                                          uint8_t* p_c, uint8_t* p_r) {
   mock_function_count_map[__func__]++;
@@ -189,17 +180,6 @@ void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
   test::mock::stack_btm_ble::BTM_BleSetPrefConnParams(
       bd_addr, min_conn_int, max_conn_int, peripheral_latency,
       supervision_tout);
-}
-void BTM_BleTestEnd(tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble::BTM_BleTestEnd(p_cmd_cmpl_cback);
-}
-void BTM_BleTransmitterTest(uint8_t tx_freq, uint8_t test_data_len,
-                            uint8_t packet_payload,
-                            tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble::BTM_BleTransmitterTest(
-      tx_freq, test_data_len, packet_payload, p_cmd_cmpl_cback);
 }
 bool BTM_BleVerifySignature(const RawAddress& bd_addr, uint8_t* p_orig,
                             uint16_t len, uint32_t counter, uint8_t* p_comp) {
@@ -262,17 +242,12 @@ uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
 }
 void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
                        uint8_t role, tBLE_ADDR_TYPE addr_type,
-                       bool addr_matched) {
+                       bool addr_matched,
+                       bool can_read_discoverable_characteristics) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble::btm_ble_connected(bda, handle, enc_mode, role,
-                                               addr_type, addr_matched);
-}
-void btm_ble_connected_from_address_with_type(
-    const tBLE_BD_ADDR& address_with_type, uint16_t handle, uint8_t enc_mode,
-    uint8_t role, bool addr_matched) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble::btm_ble_connected_from_address_with_type(
-      address_with_type, handle, enc_mode, role, addr_matched);
+  test::mock::stack_btm_ble::btm_ble_connected(
+      bda, handle, enc_mode, role, addr_type, addr_matched,
+      can_read_discoverable_characteristics);
 }
 tBTM_SEC_ACTION btm_ble_determine_security_act(bool is_originator,
                                                const RawAddress& bdaddr,

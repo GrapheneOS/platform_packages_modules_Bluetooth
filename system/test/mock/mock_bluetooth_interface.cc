@@ -123,10 +123,6 @@ int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len) {
   return BT_STATUS_SUCCESS;
 }
 
-int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len) {
-  return BT_STATUS_SUCCESS;
-}
-
 static int set_os_callouts(bt_os_callouts_t* callouts) {
   return BT_STATUS_SUCCESS;
 }
@@ -200,7 +196,6 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     get_profile_interface,
     dut_mode_configure,
     dut_mode_send,
-    le_test_mode,
     set_os_callouts,
     read_energy_info,
     dump,
@@ -269,11 +264,10 @@ void invoke_le_address_associate_cb(RawAddress main_bd_addr,
 void invoke_acl_state_changed_cb(bt_status_t status, RawAddress bd_addr,
                                  bt_acl_state_t state, int transport_link_type,
                                  bt_hci_error_code_t hci_reason,
-                                 bt_conn_direction_t direction) {}
+                                 bt_conn_direction_t direction,
+                                 uint16_t acl_handle) {}
 
 void invoke_thread_evt_cb(bt_cb_thread_evt event) {}
-
-void invoke_le_test_mode_cb(bt_status_t status, uint16_t count) {}
 
 // takes ownership of |uid_data|
 void invoke_energy_info_cb(bt_activity_energy_info energy_info,

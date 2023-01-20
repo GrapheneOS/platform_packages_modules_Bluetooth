@@ -80,7 +80,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
   void SetParameters(uint8_t advertiser_id, AdvertiseParameters params,
                      ParametersCallback cb) override {
     LOG(INFO) << __func__ << " in shim layer";
-    bluetooth::hci::ExtendedAdvertisingConfig config{};
+    bluetooth::hci::AdvertisingConfig config{};
     parse_parameter(config, params);
     bluetooth::shim::GetAdvertising()->SetParameters(advertiser_id, config);
   }
@@ -125,7 +125,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
                         MultiAdvCb timeout_cb) override {
     LOG(INFO) << __func__ << " in shim layer";
 
-    bluetooth::hci::ExtendedAdvertisingConfig config{};
+    bluetooth::hci::AdvertisingConfig config{};
     parse_parameter(config, params);
 
     size_t offset = 0;
@@ -171,7 +171,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
                            IdStatusCallback timeout_cb) {
     LOG(INFO) << __func__ << " in shim layer";
 
-    bluetooth::hci::ExtendedAdvertisingConfig config{};
+    bluetooth::hci::AdvertisingConfig config{};
     parse_parameter(config, params);
     parse_periodic_advertising_parameter(config.periodic_advertising_parameters,
                                          periodic_params);
@@ -378,10 +378,11 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
   AdvertisingCallbacks* advertising_callbacks_;
 
  private:
-  void parse_parameter(bluetooth::hci::ExtendedAdvertisingConfig& config,
+  void parse_parameter(bluetooth::hci::AdvertisingConfig& config,
                        AdvertiseParameters params) {
     config.connectable = params.advertising_event_properties & 0x01;
     config.scannable = params.advertising_event_properties & 0x02;
+    config.discoverable = params.advertising_event_properties & 0x04;
     config.legacy_pdus = params.advertising_event_properties & 0x10;
     config.anonymous = params.advertising_event_properties & 0x20;
     config.include_tx_power = params.advertising_event_properties & 0x40;

@@ -216,6 +216,14 @@ public final class BluetoothStatusCodes {
     public static final int ERROR_REMOTE_OPERATION_NOT_SUPPORTED = 27;
 
     /**
+     * Indicates that the callback is not registered and therefore, this operation is not allowed.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_CALLBACK_NOT_REGISTERED = 28;
+
+    /**
      * A GATT writeCharacteristic request is not permitted on the remote device.
      */
     public static final int ERROR_GATT_WRITE_NOT_ALLOWED = 200;

@@ -73,7 +73,7 @@ fn generate_unit_tests(input: &str, packet_names: &[&str], module_name: &str) {
                 &test_vector.packed
             );
             let packed = hexadecimal_to_vec(&test_vector.packed);
-            let packet_name = format_ident!("{}Packet", test_packet);
+            let packet_name = format_ident!("{}", test_packet);
             let builder_name = format_ident!("{}Builder", test_packet);
 
             let object = test_vector.unpacked.as_object().unwrap_or_else(|| {
@@ -84,7 +84,8 @@ fn generate_unit_tests(input: &str, packet_names: &[&str], module_name: &str) {
                 let expected = format_ident!("expected_{key}");
                 let json = to_json(&value);
                 quote! {
-                    let #expected: serde_json::Value = serde_json::from_str(#json).unwrap();
+                    let #expected: serde_json::Value = serde_json::from_str(#json)
+                        .expect("Could not create expected value from canonical JSON data");
                     assert_eq!(json!(actual.#getter()), #expected);
                 }
             });
@@ -100,7 +101,8 @@ fn generate_unit_tests(input: &str, packet_names: &[&str], module_name: &str) {
 
                 #[test]
                 fn #serialize_test_name() {
-                    let builder: #module::#builder_name = serde_json::from_str(#json).unwrap();
+                    let builder: #module::#builder_name = serde_json::from_str(#json)
+                        .expect("Could not create builder from canonical JSON data");
                     let packet = builder.build();
                     let packed = #packed;
                     assert_eq!(packet.to_vec(), packed);

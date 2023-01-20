@@ -40,7 +40,8 @@ pub fn mask_bits(n: usize) -> syn::LitInt {
     syn::parse_str::<syn::LitInt>(&format!("{:#x}{suffix}", (1u64 << n) - 1)).unwrap()
 }
 
-/// Generate code for an `ast::Decl::Packet` enum value.
+/// Generate code for `ast::Decl::Packet` and `ast::Decl::Struct`
+/// values.
 fn generate_packet_decl(
     scope: &lint::Scope<'_>,
     //  File:
@@ -66,14 +67,14 @@ fn generate_packet_decl(
     field_parser.done();
 
     let id_lower = format_ident!("{}", id.to_lowercase());
+    let id_packet = format_ident!("{id}");
     let id_data = format_ident!("{id}Data");
-    let id_packet = format_ident!("{id}Packet");
     let id_builder = format_ident!("{id}Builder");
 
+    let fields_with_ids = fields.iter().filter(|f| f.id().is_some()).collect::<Vec<_>>();
     let field_names =
-        fields.iter().map(|f| format_ident!("{}", f.id().unwrap())).collect::<Vec<_>>();
-    let field_types = fields.iter().map(types::rust_type).collect::<Vec<_>>();
-
+        fields_with_ids.iter().map(|f| format_ident!("{}", f.id().unwrap())).collect::<Vec<_>>();
+    let field_types = fields_with_ids.iter().map(|f| types::rust_type(f)).collect::<Vec<_>>();
     let getter_names = field_names.iter().map(|id| format_ident!("get_{id}"));
 
     let packet_size =
@@ -238,7 +239,8 @@ fn generate_enum_decl(id: &str, tags: &[ast::Tag]) -> proc_macro2::TokenStream {
 
 fn generate_decl(scope: &lint::Scope<'_>, file: &ast::File, decl: &ast::Decl) -> String {
     match decl {
-        ast::Decl::Packet { id, constraints, fields, parent_id, .. } => generate_packet_decl(
+        ast::Decl::Packet { id, constraints, fields, parent_id, .. }
+        | ast::Decl::Struct { id, constraints, fields, parent_id, .. } => generate_packet_decl(
             scope,
             file.endianness.value,
             id,
@@ -369,6 +371,20 @@ mod tests {
         "#,
     );
 
+    test_pdl!(
+        struct_decl_complex_scalars,
+        r#"
+          struct Foo {
+            a: 3,
+            b: 8,
+            c: 5,
+            d: 24,
+            e: 12,
+            f: 4,
+          }
+        "#,
+    );
+
     test_pdl!(packet_decl_8bit_enum, " enum Foo :  8 { A = 1, B = 2 } packet Bar { x: Foo }");
     test_pdl!(packet_decl_24bit_enum, "enum Foo : 24 { A = 1, B = 2 } packet Bar { x: Foo }");
     test_pdl!(packet_decl_64bit_enum, "enum Foo : 64 { A = 1, B = 2 } packet Bar { x: Foo }");
@@ -391,6 +407,15 @@ mod tests {
             y: 5,
             z: Enum9,
             w: 3,
+          }
+        "
+    );
+
+    test_pdl!(
+        packet_decl_reserved_field,
+        "
+          packet Foo {
+            _reserved_: 40,
           }
         "
     );

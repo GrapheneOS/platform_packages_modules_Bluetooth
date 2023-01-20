@@ -183,6 +183,8 @@ typedef enum {
   BT_CONN_DIRECTION_INCOMING
 } bt_conn_direction_t;
 
+constexpr uint16_t INVALID_ACL_HANDLE = 0xFFFF;
+
 /** Bluetooth SDP service record */
 typedef struct {
   bluetooth::Uuid uuid;
@@ -495,12 +497,10 @@ typedef void (*le_address_associate_callback)(RawAddress* main_bd_addr,
                                               RawAddress* secondary_bd_addr);
 
 /** Bluetooth ACL connection state changed callback */
-typedef void (*acl_state_changed_callback)(bt_status_t status,
-                                           RawAddress* remote_bd_addr,
-                                           bt_acl_state_t state,
-                                           int transport_link_type,
-                                           bt_hci_error_code_t hci_reason,
-                                           bt_conn_direction_t direction);
+typedef void (*acl_state_changed_callback)(
+    bt_status_t status, RawAddress* remote_bd_addr, bt_acl_state_t state,
+    int transport_link_type, bt_hci_error_code_t hci_reason,
+    bt_conn_direction_t direction, uint16_t acl_handle);
 
 /** Bluetooth link quality report callback */
 typedef void (*link_quality_report_callback)(
@@ -528,12 +528,6 @@ typedef void (*callback_thread_event)(bt_cb_thread_evt evt);
  * to be received */
 typedef void (*dut_mode_recv_callback)(uint16_t opcode, uint8_t* buf,
                                        uint8_t len);
-
-/* LE Test mode callbacks
- * This callback shall be invoked whenever the le_tx_test, le_rx_test or
- * le_test_end is invoked The num_packets is valid only for le_test_end command
- */
-typedef void (*le_test_mode_callback)(bt_status_t status, uint16_t num_packets);
 
 /** Callback invoked when energy details are obtained */
 /* Ctrl_state-Current controller state-Active-1,scan-2,or idle-3 state as
@@ -570,7 +564,6 @@ typedef struct {
   acl_state_changed_callback acl_state_changed_cb;
   callback_thread_event thread_evt_cb;
   dut_mode_recv_callback dut_mode_recv_cb;
-  le_test_mode_callback le_test_mode_cb;
   energy_info_callback energy_info_cb;
   link_quality_report_callback link_quality_report_cb;
   generate_local_oob_data_callback generate_local_oob_data_cb;
@@ -727,10 +720,6 @@ typedef struct {
   /* Send any test HCI (vendor-specific) command to the controller. Must be in
    * DUT Mode */
   int (*dut_mode_send)(uint16_t opcode, uint8_t* buf, uint8_t len);
-  /** BLE Test Mode APIs */
-  /* opcode MUST be one of: LE_Receiver_Test, LE_Transmitter_Test, LE_Test_End
-   */
-  int (*le_test_mode)(uint16_t opcode, uint8_t* buf, uint8_t len);
 
   /** Sets the OS call-out functions that bluedroid needs for alarms and wake
    * locks. This should be called immediately after a successful |init|.

@@ -482,7 +482,7 @@ class SecurityListenerShim
     address_to_handle_[bda] = handle;
     btm_sec_connected(bda, handle, HCI_SUCCESS, 0);
     BTM_PM_OnConnected(handle, bda);
-    BTA_dm_acl_up(bda, BT_TRANSPORT_BR_EDR);
+    BTA_dm_acl_up(bda, BT_TRANSPORT_BR_EDR, handle);
     address_to_interface_[bda] = std::move(interface);
   }
 
@@ -566,10 +566,11 @@ struct LeLinkPropertyListenerShim
   void OnLinkConnected(AddressWithType remote, uint16_t handle,
                        hci::Role role) override {
     info_[remote.GetAddress()] = {handle, role, remote};
+    LOG_ALWAYS_FATAL("discoverable bit needs to be determined properly");
     btm_ble_connected(ToRawAddress(remote.GetAddress()), handle,
                       HCI_ENCRYPT_MODE_DISABLED, static_cast<uint8_t>(role),
                       static_cast<tBLE_ADDR_TYPE>(remote.GetAddressType()),
-                      false);
+                      false, true);
   }
 
   void OnLinkDisconnected(hci::AddressWithType remote) override {

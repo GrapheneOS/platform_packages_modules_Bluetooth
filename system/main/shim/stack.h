@@ -16,17 +16,17 @@
 
 #pragma once
 
+#include <functional>
 #include <mutex>
-
-#include "main/shim/acl.h"
-#include "main/shim/btm.h"
-#include "main/shim/link_policy_interface.h"
 
 #include "gd/module.h"
 #include "gd/os/handler.h"
 #include "gd/os/thread.h"
 #include "gd/os/utils.h"
 #include "gd/stack_manager.h"
+#include "main/shim/acl.h"
+#include "main/shim/btm.h"
+#include "main/shim/link_policy_interface.h"
 #include "src/bridge.rs.h"
 
 // The shim layer implementation on the Gd stack side.
@@ -66,6 +66,8 @@ class Stack {
   ::rust::Box<rust::Controller>* GetRustController() {
     return rust_controller_;
   }
+
+  void LockForDumpsys(std::function<void()> dumpsys_callback);
 
  private:
   mutable std::recursive_mutex mutex_;

@@ -285,13 +285,15 @@ inline std::string gatt_disconnection_reason_text(
 #define GATT_PERM_WRITE_ENC_MITM (1 << 6)    /* bit 6 */
 #define GATT_PERM_WRITE_SIGNED (1 << 7)      /* bit 7 */
 #define GATT_PERM_WRITE_SIGNED_MITM (1 << 8) /* bit 8 */
+#define GATT_PERM_READ_IF_ENCRYPTED_OR_DISCOVERABLE (1 << 9) /* bit 9 */
 typedef uint16_t tGATT_PERM;
 
 /* the MS nibble of tGATT_PERM; key size 7=0; size 16=9 */
 #define GATT_ENCRYPT_KEY_SIZE_MASK (0xF000)
 
-#define GATT_READ_ALLOWED \
-  (GATT_PERM_READ | GATT_PERM_READ_ENCRYPTED | GATT_PERM_READ_ENC_MITM)
+#define GATT_READ_ALLOWED                                                \
+  (GATT_PERM_READ | GATT_PERM_READ_ENCRYPTED | GATT_PERM_READ_ENC_MITM | \
+   GATT_PERM_READ_IF_ENCRYPTED_OR_DISCOVERABLE)
 #define GATT_READ_AUTH_REQUIRED (GATT_PERM_READ_ENCRYPTED)
 #define GATT_READ_MITM_REQUIRED (GATT_PERM_READ_ENC_MITM)
 #define GATT_READ_ENCRYPTED_REQUIRED \

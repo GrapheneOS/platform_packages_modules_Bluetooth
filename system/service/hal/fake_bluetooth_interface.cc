@@ -67,7 +67,6 @@ bt_interface_t fake_bt_iface = {
     nullptr, /* get_profile_interface */
     nullptr, /* dut_mode_configure */
     nullptr, /* dut_more_send */
-    nullptr, /* le_test_mode */
     nullptr, /* set_os_callouts */
     nullptr, /* read_energy_info */
     nullptr, /* dump */
@@ -159,11 +158,11 @@ void FakeBluetoothInterface::NotifyAdapterLocalLeFeaturesPropertyChanged(
 void FakeBluetoothInterface::NotifyAclStateChangedCallback(
     bt_status_t status, const RawAddress& remote_bdaddr, bt_acl_state_t state,
     int transport_link_type, bt_hci_error_code_t hci_reason,
-    bt_conn_direction_t direction) {
+    bt_conn_direction_t direction, uint16_t acl_handle) {
   for (auto& observer : observers_) {
     observer.AclStateChangedCallback(status, remote_bdaddr, state,
-                                     transport_link_type, hci_reason,
-                                     direction);
+                                     transport_link_type, hci_reason, direction,
+                                     acl_handle);
   }
 }
 

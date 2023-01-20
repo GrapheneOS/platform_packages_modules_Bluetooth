@@ -570,81 +570,6 @@ bool BTM_ReadConnectedTransportAddress(RawAddress* remote_bda,
 
 /*******************************************************************************
  *
- * Function         BTM_BleReceiverTest
- *
- * Description      This function is called to start the LE Receiver test
- *
- * Parameter       rx_freq - Frequency Range
- *               p_cmd_cmpl_cback - Command Complete callback
- *
- ******************************************************************************/
-void BTM_BleReceiverTest(uint8_t rx_freq, tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    return bluetooth::shim::BTM_BleReceiverTest(rx_freq, p_cmd_cmpl_cback);
-  }
-  btm_cb.devcb.p_le_test_cmd_cmpl_cb = p_cmd_cmpl_cback;
-
-  btsnd_hcic_ble_receiver_test(rx_freq);
-}
-
-/*******************************************************************************
- *
- * Function         BTM_BleTransmitterTest
- *
- * Description      This function is called to start the LE Transmitter test
- *
- * Parameter       tx_freq - Frequency Range
- *                       test_data_len - Length in bytes of payload data in each
- *                                       packet
- *                       packet_payload - Pattern to use in the payload
- *                       p_cmd_cmpl_cback - Command Complete callback
- *
- ******************************************************************************/
-void BTM_BleTransmitterTest(uint8_t tx_freq, uint8_t test_data_len,
-                            uint8_t packet_payload,
-                            tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    return bluetooth::shim::BTM_BleTransmitterTest(
-        tx_freq, test_data_len, packet_payload, p_cmd_cmpl_cback);
-  }
-  btm_cb.devcb.p_le_test_cmd_cmpl_cb = p_cmd_cmpl_cback;
-  btsnd_hcic_ble_transmitter_test(tx_freq, test_data_len, packet_payload);
-}
-
-/*******************************************************************************
- *
- * Function         BTM_BleTestEnd
- *
- * Description      This function is called to stop the in-progress TX or RX
- *                  test
- *
- * Parameter       p_cmd_cmpl_cback - Command complete callback
- *
- ******************************************************************************/
-void BTM_BleTestEnd(tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    return bluetooth::shim::BTM_BleTestEnd(p_cmd_cmpl_cback);
-  }
-  btm_cb.devcb.p_le_test_cmd_cmpl_cb = p_cmd_cmpl_cback;
-
-  btsnd_hcic_ble_test_end();
-}
-
-/*******************************************************************************
- * Internal Functions
- ******************************************************************************/
-void btm_ble_test_command_complete(uint8_t* p) {
-  tBTM_CMPL_CB* p_cb = btm_cb.devcb.p_le_test_cmd_cmpl_cb;
-
-  btm_cb.devcb.p_le_test_cmd_cmpl_cb = NULL;
-
-  if (p_cb) {
-    (*p_cb)(p);
-  }
-}
-
-/*******************************************************************************
- *
  * Function         BTM_UseLeLink
  *
  * Description      This function is to select the underlying physical link to
@@ -1608,13 +1533,30 @@ void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
   BTM_TRACE_ERROR("key size = %d", p_rec->ble.keys.key_size);
   if (use_stk) {
     btsnd_hcic_ble_ltk_req_reply(btm_cb.enc_handle, stk);
-  } else /* calculate LTK using peer device  */
-  {
-    if (p_rec->ble.key_type & BTM_LE_KEY_LENC)
-      btsnd_hcic_ble_ltk_req_reply(btm_cb.enc_handle, p_rec->ble.keys.lltk);
-    else
-      btsnd_hcic_ble_ltk_req_neg_reply(btm_cb.enc_handle);
+    return;
   }
+  /* calculate LTK using peer device  */
+  if (p_rec->ble.key_type & BTM_LE_KEY_LENC) {
+    btsnd_hcic_ble_ltk_req_reply(btm_cb.enc_handle, p_rec->ble.keys.lltk);
+    return;
+  }
+
+  p_rec = btm_find_dev_with_lenc(bda);
+  if (!p_rec) {
+    btsnd_hcic_ble_ltk_req_neg_reply(btm_cb.enc_handle);
+    return;
+  }
+
+  LOG_INFO("Found second sec_dev_rec for device that have LTK");
+  /* This can happen when remote established LE connection using RPA to this
+   * device, but then pair with us using Classing transport while still keeping
+   * LE connection. If remote attempts to encrypt the LE connection, we might
+   * end up here. We will eventually consolidate both entries, this is to avoid
+   * race conditions. */
+
+  LOG_ASSERT(p_rec->ble.key_type & BTM_LE_KEY_LENC);
+  p_cb->key_size = p_rec->ble.keys.key_size;
+  btsnd_hcic_ble_ltk_req_reply(btm_cb.enc_handle, p_rec->ble.keys.lltk);
 }
 
 /*******************************************************************************
@@ -1736,7 +1678,8 @@ uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
  ******************************************************************************/
 void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
                        uint8_t role, tBLE_ADDR_TYPE addr_type,
-                       bool addr_matched) {
+                       bool addr_matched,
+                       bool can_read_discoverable_characteristics) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
   if (!p_dev_rec) {
     LOG_INFO("Creating new device record for new ble connection");
@@ -1761,6 +1704,7 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
   p_dev_rec->ble_hci_handle = handle;
   p_dev_rec->device_type |= BT_DEVICE_TYPE_BLE;
   p_dev_rec->role_central = (role == HCI_ROLE_CENTRAL) ? true : false;
+  p_dev_rec->can_read_discoverable = can_read_discoverable_characteristics;
 
   if (!addr_matched) {
     p_dev_rec->ble.active_addr_type = tBTM_SEC_BLE::BTM_BLE_ADDR_PSEUDO;
@@ -1769,13 +1713,6 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
     }
   }
   btm_cb.ble_ctr_cb.inq_var.directed_conn = BTM_BLE_ADV_IND_EVT;
-}
-
-void btm_ble_connected_from_address_with_type(
-    const tBLE_BD_ADDR& address_with_type, uint16_t handle, uint8_t enc_mode,
-    uint8_t role, bool addr_matched) {
-  btm_ble_connected(address_with_type.bda, handle, enc_mode, role,
-                    address_with_type.type, addr_matched);
 }
 
 /*****************************************************************************

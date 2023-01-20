@@ -55,9 +55,9 @@ struct EventCallbacks {
                                       bt_acl_state_t state,
                                       int transport_link_type,
                                       bt_hci_error_code_t hci_reason,
-                                      bt_conn_direction_t direction);
+                                      bt_conn_direction_t direction,
+                                      uint16_t acl_handle);
   void (*invoke_thread_evt_cb)(bt_cb_thread_evt event);
-  void (*invoke_le_test_mode_cb)(bt_status_t status, uint16_t count);
   void (*invoke_energy_info_cb)(bt_activity_energy_info energy_info,
                                 bt_uid_traffic_t* uid_data);
   void (*invoke_link_quality_report_cb)(uint64_t timestamp, int report_id,

@@ -367,7 +367,8 @@ static void acl_state_changed_callback(bt_status_t status, RawAddress* bd_addr,
                                        bt_acl_state_t state,
                                        int transport_link_type,
                                        bt_hci_error_code_t hci_reason,
-                                       bt_conn_direction_t direction) {
+                                       bt_conn_direction_t direction,
+                                       uint16_t acl_handle) {
   if (!bd_addr) {
     ALOGE("Address is null in %s", __func__);
     return;
@@ -387,7 +388,8 @@ static void acl_state_changed_callback(bt_status_t status, RawAddress* bd_addr,
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_aclStateChangeCallback,
                                (jint)status, addr.get(), (jint)state,
-                               (jint)transport_link_type, (jint)hci_reason);
+                               (jint)transport_link_type, (jint)hci_reason,
+                               (jint)acl_handle);
 }
 
 static void discovery_state_changed_callback(bt_discovery_state_t state) {
@@ -683,11 +685,6 @@ static void dut_mode_recv_callback(uint16_t opcode, uint8_t* buf, uint8_t len) {
 
 }
 
-static void le_test_mode_recv_callback(bt_status_t status,
-                                       uint16_t packet_count) {
-  ALOGV("%s: status:%d packet_count:%d ", __func__, status, packet_count);
-}
-
 static void energy_info_recv_callback(bt_activity_energy_info* p_energy_info,
                                       bt_uid_traffic_t* uid_data) {
   CallbackEnv sCallbackEnv(__func__);
@@ -732,7 +729,6 @@ static bt_callbacks_t sBluetoothCallbacks = {sizeof(sBluetoothCallbacks),
                                              acl_state_changed_callback,
                                              callback_thread_event,
                                              dut_mode_recv_callback,
-                                             le_test_mode_recv_callback,
                                              energy_info_recv_callback,
                                              link_quality_report_callback,
                                              generate_local_oob_data_callback,
@@ -959,8 +955,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_leAddressAssociateCallback = env->GetMethodID(
       jniCallbackClass, "leAddressAssociateCallback", "([B[B)V");
 
-  method_aclStateChangeCallback =
-      env->GetMethodID(jniCallbackClass, "aclStateChangeCallback", "(I[BIII)V");
+  method_aclStateChangeCallback = env->GetMethodID(
+      jniCallbackClass, "aclStateChangeCallback", "(I[BIIII)V");
 
   method_linkQualityReportCallback = env->GetMethodID(
       jniCallbackClass, "linkQualityReportCallback", "(JIIIIII)V");

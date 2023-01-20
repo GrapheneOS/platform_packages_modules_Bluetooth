@@ -429,28 +429,28 @@ void gap_attr_db_init(void) {
   Uuid addr_res_uuid = Uuid::From16Bit(GATT_UUID_GAP_CENTRAL_ADDR_RESOL);
 
   btgatt_db_element_t service[] = {
-    {
-        .uuid = svc_uuid,
-        .type = BTGATT_DB_PRIMARY_SERVICE,
-    },
-    {.uuid = name_uuid,
-     .type = BTGATT_DB_CHARACTERISTIC,
-     .properties = GATT_CHAR_PROP_BIT_READ,
-     .permissions = GATT_PERM_READ},
-    {.uuid = icon_uuid,
-     .type = BTGATT_DB_CHARACTERISTIC,
-     .properties = GATT_CHAR_PROP_BIT_READ,
-     .permissions = GATT_PERM_READ},
-    {.uuid = addr_res_uuid,
-     .type = BTGATT_DB_CHARACTERISTIC,
-     .properties = GATT_CHAR_PROP_BIT_READ,
-     .permissions = GATT_PERM_READ}
+      {
+          .uuid = svc_uuid,
+          .type = BTGATT_DB_PRIMARY_SERVICE,
+      },
+      {.uuid = name_uuid,
+       .type = BTGATT_DB_CHARACTERISTIC,
+       .properties = GATT_CHAR_PROP_BIT_READ,
+       .permissions = GATT_PERM_READ_IF_ENCRYPTED_OR_DISCOVERABLE},
+      {.uuid = icon_uuid,
+       .type = BTGATT_DB_CHARACTERISTIC,
+       .properties = GATT_CHAR_PROP_BIT_READ,
+       .permissions = GATT_PERM_READ},
+      {.uuid = addr_res_uuid,
+       .type = BTGATT_DB_CHARACTERISTIC,
+       .properties = GATT_CHAR_PROP_BIT_READ,
+       .permissions = GATT_PERM_READ}
 #if (BTM_PERIPHERAL_ENABLED == TRUE) /* Only needed for peripheral testing */
-    ,
-    {.uuid = Uuid::From16Bit(GATT_UUID_GAP_PREF_CONN_PARAM),
-     .type = BTGATT_DB_CHARACTERISTIC,
-     .properties = GATT_CHAR_PROP_BIT_READ,
-     .permissions = GATT_PERM_READ}
+      ,
+      {.uuid = Uuid::From16Bit(GATT_UUID_GAP_PREF_CONN_PARAM),
+       .type = BTGATT_DB_CHARACTERISTIC,
+       .properties = GATT_CHAR_PROP_BIT_READ,
+       .permissions = GATT_PERM_READ}
 #endif
   };
 

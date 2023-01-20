@@ -157,18 +157,6 @@ struct BTM_BleReadPhy {
 };
 extern struct BTM_BleReadPhy BTM_BleReadPhy;
 
-// Name: BTM_BleReceiverTest
-// Params: uint8_t rx_freq, tBTM_CMPL_CB* p_cmd_cmpl_cback
-// Return: void
-struct BTM_BleReceiverTest {
-  std::function<void(uint8_t rx_freq, tBTM_CMPL_CB* p_cmd_cmpl_cback)> body{
-      [](uint8_t rx_freq, tBTM_CMPL_CB* p_cmd_cmpl_cback) {}};
-  void operator()(uint8_t rx_freq, tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-    body(rx_freq, p_cmd_cmpl_cback);
-  };
-};
-extern struct BTM_BleReceiverTest BTM_BleReceiverTest;
-
 // Name: BTM_BleSecureConnectionOobDataReply
 // Params: const RawAddress& bd_addr, uint8_t* p_c, uint8_t* p_r
 // Return: void
@@ -216,31 +204,6 @@ struct BTM_BleSetPrefConnParams {
   };
 };
 extern struct BTM_BleSetPrefConnParams BTM_BleSetPrefConnParams;
-
-// Name: BTM_BleTestEnd
-// Params: tBTM_CMPL_CB* p_cmd_cmpl_cback
-// Return: void
-struct BTM_BleTestEnd {
-  std::function<void(tBTM_CMPL_CB* p_cmd_cmpl_cback)> body{
-      [](tBTM_CMPL_CB* p_cmd_cmpl_cback) {}};
-  void operator()(tBTM_CMPL_CB* p_cmd_cmpl_cback) { body(p_cmd_cmpl_cback); };
-};
-extern struct BTM_BleTestEnd BTM_BleTestEnd;
-
-// Name: BTM_BleTransmitterTest
-// Params: uint8_t tx_freq, uint8_t test_data_len, uint8_t packet_payload,
-// tBTM_CMPL_CB* p_cmd_cmpl_cback Return: void
-struct BTM_BleTransmitterTest {
-  std::function<void(uint8_t tx_freq, uint8_t test_data_len,
-                     uint8_t packet_payload, tBTM_CMPL_CB* p_cmd_cmpl_cback)>
-      body{[](uint8_t tx_freq, uint8_t test_data_len, uint8_t packet_payload,
-              tBTM_CMPL_CB* p_cmd_cmpl_cback) {}};
-  void operator()(uint8_t tx_freq, uint8_t test_data_len,
-                  uint8_t packet_payload, tBTM_CMPL_CB* p_cmd_cmpl_cback) {
-    body(tx_freq, test_data_len, packet_payload, p_cmd_cmpl_cback);
-  };
-};
-extern struct BTM_BleTransmitterTest BTM_BleTransmitterTest;
 
 // Name: BTM_BleVerifySignature
 // Params: const RawAddress& bd_addr, uint8_t* p_orig, uint16_t len, uint32_t
@@ -407,31 +370,19 @@ extern struct btm_ble_br_keys_req btm_ble_br_keys_req;
 // role, tBLE_ADDR_TYPE addr_type, bool addr_matched Return: void
 struct btm_ble_connected {
   std::function<void(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
-                     uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched)>
+                     uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched,
+                     bool can_read_discoverable_characteristics)>
       body{[](const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
-              uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched) {}};
+              uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched,
+              bool can_read_discoverable_characteristics) {}};
   void operator()(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
-                  uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched) {
-    body(bda, handle, enc_mode, role, addr_type, addr_matched);
+                  uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched,
+                  bool can_read_discoverable_characteristics) {
+    body(bda, handle, enc_mode, role, addr_type, addr_matched,
+         can_read_discoverable_characteristics);
   };
 };
 extern struct btm_ble_connected btm_ble_connected;
-
-// Name: btm_ble_connected_from_address_with_type
-// Params: const tBLE_BD_ADDR& address_with_type, uint16_t handle, uint8_t
-// enc_mode, uint8_t role, bool addr_matched Return: void
-struct btm_ble_connected_from_address_with_type {
-  std::function<void(const tBLE_BD_ADDR& address_with_type, uint16_t handle,
-                     uint8_t enc_mode, uint8_t role, bool addr_matched)>
-      body{[](const tBLE_BD_ADDR& address_with_type, uint16_t handle,
-              uint8_t enc_mode, uint8_t role, bool addr_matched) {}};
-  void operator()(const tBLE_BD_ADDR& address_with_type, uint16_t handle,
-                  uint8_t enc_mode, uint8_t role, bool addr_matched) {
-    body(address_with_type, handle, enc_mode, role, addr_matched);
-  };
-};
-extern struct btm_ble_connected_from_address_with_type
-    btm_ble_connected_from_address_with_type;
 
 // Name: btm_ble_determine_security_act
 // Params: bool is_originator, const RawAddress& bdaddr, uint16_t

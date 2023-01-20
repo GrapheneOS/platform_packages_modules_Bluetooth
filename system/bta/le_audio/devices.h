@@ -155,7 +155,7 @@ class LeAudioDevice {
   bool IsReadyToCreateStream(void);
   bool IsReadyToSuspendStream(void);
   bool HaveAllActiveAsesCisEst(void);
-  bool HaveAllAsesCisDisc(void);
+  bool HaveAnyCisConnected(void);
   bool HasCisId(uint8_t id);
   uint8_t GetMatchingBidirectionCisId(const struct types::ase* base_ase);
   const struct types::acs_ac_record* GetCodecConfigurationSupportedPac(
@@ -179,7 +179,10 @@ class LeAudioDevice {
                                             types::AudioContexts src_cont_val);
   void DeactivateAllAses(void);
   bool ActivateConfiguredAses(types::LeAudioContextType context_type);
+
+  void PrintDebugState(void);
   void Dump(int fd);
+
   void DisconnectAcl(void);
   std::vector<uint8_t> GetMetadata(types::AudioContexts context_type,
                                    const std::vector<uint8_t>& ccid_list);
@@ -283,7 +286,7 @@ class LeAudioDeviceGroup {
   bool IsDeviceInTheGroup(LeAudioDevice* leAudioDevice);
   bool HaveAllActiveDevicesAsesTheSameState(types::AseState state);
   bool IsGroupStreamReady(void);
-  bool HaveAllActiveDevicesCisDisc(void);
+  bool HaveAllCisesDisconnected(void);
   uint8_t GetFirstFreeCisId(void);
   uint8_t GetFirstFreeCisId(types::CisType cis_type);
   void CigGenerateCisIds(types::LeAudioContextType context_type);
@@ -370,6 +373,8 @@ class LeAudioDeviceGroup {
 
   bool IsInTransition(void);
   bool IsReleasingOrIdle(void);
+
+  void PrintDebugState(void);
   void Dump(int fd, int active_group_id);
 
  private:

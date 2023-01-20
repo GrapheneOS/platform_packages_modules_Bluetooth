@@ -511,7 +511,7 @@ void Btm::StartAdvertising() {
     return;
   }
 
-  hci::ExtendedAdvertisingConfig config = {};
+  hci::AdvertisingConfig config = {};
   advertiser_id_ = GetAdvertising()->ExtendedCreateAdvertiser(
       0x00, config,
       common::Bind([](hci::Address, hci::AddressType) { /*OnScan*/ }),

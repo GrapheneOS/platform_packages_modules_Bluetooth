@@ -55,6 +55,7 @@ import android.content.Context;
 import android.os.Binder;
 import android.os.BluetoothServiceManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.IpcDataCache;
 import android.os.ParcelUuid;
@@ -808,6 +809,20 @@ public final class BluetoothAdapter {
     })
     public @interface ConnectionState {}
 
+    /**
+     * Audio mode representing output only.
+     * @hide
+     */
+    @SystemApi
+    public static final String AUDIO_MODE_OUTPUT_ONLY = "audio_mode_output_only";
+
+    /**
+     * Audio mode representing both output and microphone input.
+     * @hide
+     */
+    @SystemApi
+    public static final String AUDIO_MODE_DUPLEX = "audio_mode_duplex";
+
     /** @hide */
     public static final String BLUETOOTH_MANAGER_SERVICE = "bluetooth_manager";
     private final IBinder mToken;
@@ -863,6 +878,8 @@ public final class BluetoothAdapter {
                 mMetadataListeners = new HashMap<>();
     private final Map<BluetoothConnectionCallback, Executor>
             mBluetoothConnectionCallbackExecutorMap = new HashMap<>();
+    private final Map<PreferredAudioProfilesChangedCallback, Executor>
+            mAudioProfilesChangedCallbackExecutorMap = new HashMap<>();
 
     /**
      * Bluetooth metadata listener. Overrides the default BluetoothMetadataListener
@@ -3754,118 +3771,19 @@ public final class BluetoothAdapter {
     /**
      * Close the connection of the profile proxy to the Service.
      *
-     * <p> Clients should call this when they are no longer using
-     * the proxy obtained from {@link #getProfileProxy}.
-     * Profile can be one of  {@link BluetoothProfile#HEADSET} or {@link BluetoothProfile#A2DP}
+     * <p>Clients should call this when they are no longer using the proxy obtained from {@link
+     * #getProfileProxy}. Profile can be one of {@link BluetoothProfile#HEADSET} or {@link
+     * BluetoothProfile#A2DP}
      *
-     * @param profile
+     * @param unusedProfile
      * @param proxy Profile proxy object
      */
-    @SuppressLint({
-            "AndroidFrameworkRequiresPermission",
-            "AndroidFrameworkBluetoothPermission"
-    })
-    public void closeProfileProxy(int profile, BluetoothProfile proxy) {
+    @SuppressLint({"AndroidFrameworkRequiresPermission", "AndroidFrameworkBluetoothPermission"})
+    public void closeProfileProxy(int unusedProfile, BluetoothProfile proxy) {
         if (proxy == null) {
             return;
         }
-
-        switch (profile) {
-            case BluetoothProfile.HEADSET:
-                BluetoothHeadset headset = (BluetoothHeadset) proxy;
-                headset.close();
-                break;
-            case BluetoothProfile.A2DP:
-                BluetoothA2dp a2dp = (BluetoothA2dp) proxy;
-                a2dp.close();
-                break;
-            case BluetoothProfile.A2DP_SINK:
-                BluetoothA2dpSink a2dpSink = (BluetoothA2dpSink) proxy;
-                a2dpSink.close();
-                break;
-            case BluetoothProfile.AVRCP_CONTROLLER:
-                BluetoothAvrcpController avrcp = (BluetoothAvrcpController) proxy;
-                avrcp.close();
-                break;
-            case BluetoothProfile.HID_HOST:
-                BluetoothHidHost iDev = (BluetoothHidHost) proxy;
-                iDev.close();
-                break;
-            case BluetoothProfile.PAN:
-                BluetoothPan pan = (BluetoothPan) proxy;
-                pan.close();
-                break;
-            case BluetoothProfile.PBAP:
-                BluetoothPbap pbap = (BluetoothPbap) proxy;
-                pbap.close();
-                break;
-            case BluetoothProfile.GATT:
-                BluetoothGatt gatt = (BluetoothGatt) proxy;
-                gatt.close();
-                break;
-            case BluetoothProfile.GATT_SERVER:
-                BluetoothGattServer gattServer = (BluetoothGattServer) proxy;
-                gattServer.close();
-                break;
-            case BluetoothProfile.MAP:
-                BluetoothMap map = (BluetoothMap) proxy;
-                map.close();
-                break;
-            case BluetoothProfile.HEADSET_CLIENT:
-                BluetoothHeadsetClient headsetClient = (BluetoothHeadsetClient) proxy;
-                headsetClient.close();
-                break;
-            case BluetoothProfile.SAP:
-                BluetoothSap sap = (BluetoothSap) proxy;
-                sap.close();
-                break;
-            case BluetoothProfile.PBAP_CLIENT:
-                BluetoothPbapClient pbapClient = (BluetoothPbapClient) proxy;
-                pbapClient.close();
-                break;
-            case BluetoothProfile.MAP_CLIENT:
-                BluetoothMapClient mapClient = (BluetoothMapClient) proxy;
-                mapClient.close();
-                break;
-            case BluetoothProfile.HID_DEVICE:
-                BluetoothHidDevice hidDevice = (BluetoothHidDevice) proxy;
-                hidDevice.close();
-                break;
-            case BluetoothProfile.HAP_CLIENT:
-                BluetoothHapClient HapClient = (BluetoothHapClient) proxy;
-                HapClient.close();
-                break;
-            case BluetoothProfile.HEARING_AID:
-                BluetoothHearingAid hearingAid = (BluetoothHearingAid) proxy;
-                hearingAid.close();
-                break;
-            case BluetoothProfile.LE_AUDIO:
-                BluetoothLeAudio leAudio = (BluetoothLeAudio) proxy;
-                leAudio.close();
-                break;
-            case BluetoothProfile.LE_AUDIO_BROADCAST:
-                BluetoothLeBroadcast leAudioBroadcast = (BluetoothLeBroadcast) proxy;
-                leAudioBroadcast.close();
-                break;
-            case BluetoothProfile.VOLUME_CONTROL:
-                BluetoothVolumeControl vcs = (BluetoothVolumeControl) proxy;
-                vcs.close();
-                break;
-            case BluetoothProfile.CSIP_SET_COORDINATOR:
-                BluetoothCsipSetCoordinator csipSetCoordinator =
-                        (BluetoothCsipSetCoordinator) proxy;
-                csipSetCoordinator.close();
-                break;
-            case BluetoothProfile.LE_CALL_CONTROL:
-                BluetoothLeCallControl tbs = (BluetoothLeCallControl) proxy;
-                tbs.close();
-                break;
-            case BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT:
-                BluetoothLeBroadcastAssistant leAudioBroadcastAssistant =
-                        (BluetoothLeBroadcastAssistant) proxy;
-                leAudioBroadcastAssistant.close();
-                break;
-        }
+        proxy.close();
     }
 
     private static final IBluetoothManagerCallback sManagerCallback =
@@ -3958,14 +3876,16 @@ public final class BluetoothAdapter {
                             }
                         });
                     }
-                    synchronized (mBluetoothConnectionCallbackExecutorMap) {
-                        if (!mBluetoothConnectionCallbackExecutorMap.isEmpty()) {
+                    synchronized (mAudioProfilesChangedCallbackExecutorMap) {
+                        if (!mAudioProfilesChangedCallbackExecutorMap.isEmpty()) {
                             try {
                                 final SynchronousResultReceiver recv =
                                         SynchronousResultReceiver.get();
-                                mService.registerBluetoothConnectionCallback(mConnectionCallback,
-                                        mAttributionSource, recv);
-                                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                                mService.registerPreferredAudioProfilesChangedCallback(
+                                        mPreferredAudioProfilesChangedCallback, mAttributionSource,
+                                        recv);
+                                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(
+                                        BluetoothStatusCodes.ERROR_UNKNOWN);
                             } catch (RemoteException | TimeoutException e) {
                                 Log.e(TAG, "onBluetoothServiceUp: Failed to register bluetooth"
                                         + "connection callback", e);
@@ -5057,6 +4977,367 @@ public final class BluetoothAdapter {
                     return "Unrecognized disconnect reason: " + reason;
             }
         }
+    }
+
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
+            BluetoothStatusCodes.SUCCESS,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED,
+            BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED,
+            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
+            BluetoothStatusCodes.ERROR_UNKNOWN
+    })
+    public @interface SetPreferredAudioProfilesReturnValues {}
+
+    /**
+     * Sets the preferred profiles for each audio mode for system routed audio. The audio framework
+     * and Telecomm will read this preference when routing system managed audio. Not supplying an
+     * audio mode in the Bundle will reset that audio mode to the default profile preference for
+     * that mode (e.g. an empty Bundle resets all audio modes to their default profiles).
+     * <p>
+     * Note: apps that invoke profile-specific audio APIs are not subject to the preference noted
+     * here. These preferences will also be ignored if the remote device is not simultaneously
+     * connected to a classic audio profile (A2DP and/or HFP) and LE Audio at the same time.
+     * <p>
+     * The Bundle is expected to contain the following mappings:
+     * 1. For key {@link #AUDIO_MODE_OUTPUT_ONLY}, it expects an integer value of either
+     * {@link BluetoothProfile#A2DP} or {@link BluetoothProfile#LE_AUDIO}.
+     * 2. For key {@link #AUDIO_MODE_DUPLEX}, it expects an integer value of either
+     * {@link BluetoothProfile#HEADSET} or {@link BluetoothProfile#LE_AUDIO}.
+     * <p>
+     * Apps should register for a callback with
+     * {@link #registerPreferredAudioProfilesChangedCallback(Executor,
+     * PreferredAudioProfilesChangedCallback)} to know if the preferences were successfully applied
+     * to the audio framework. If there is an active preference change for this device that has not
+     * taken effect with the audio framework, no additional calls to this API will be allowed until
+     * that completes.
+     *
+     * @param modeToProfileBundle a mapping to indicate the preferred profile for each audio mode
+     * @return whether the preferred audio profiles were requested to be set
+     * @throws NullPointerException if modeToProfileBundle or device is null
+     * @throws IllegalArgumentException if this BluetoothDevice object has an invalid address or the
+     * Bundle doesn't conform to its requirements
+     *
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @SetPreferredAudioProfilesReturnValues
+    public int setPreferredAudioProfiles(@NonNull BluetoothDevice device,
+            @NonNull Bundle modeToProfileBundle) {
+        if (DBG) {
+            Log.d(TAG, "setPreferredAudioProfiles( " + modeToProfileBundle + ", " + device + ")");
+        }
+        Objects.requireNonNull(modeToProfileBundle, "modeToProfileBundle must not be null");
+        Objects.requireNonNull(device, "device must not be null");
+        if (!BluetoothAdapter.checkBluetoothAddress(getAddress())) {
+            throw new IllegalArgumentException("device cannot have an invalid address");
+        }
+        if (!modeToProfileBundle.containsKey(AUDIO_MODE_OUTPUT_ONLY)
+                && !modeToProfileBundle.containsKey(AUDIO_MODE_DUPLEX)) {
+            throw new IllegalArgumentException("Bundle does not contain a key "
+                    + "AUDIO_MODE_OUTPUT_ONLY or AUDIO_MODE_DUPLEX");
+        }
+        if (modeToProfileBundle.containsKey(AUDIO_MODE_OUTPUT_ONLY)
+                && modeToProfileBundle.getInt(AUDIO_MODE_OUTPUT_ONLY) != BluetoothProfile.A2DP
+                && modeToProfileBundle.getInt(
+                AUDIO_MODE_OUTPUT_ONLY) != BluetoothProfile.LE_AUDIO) {
+            throw new IllegalArgumentException("Key AUDIO_MODE_OUTPUT_ONLY has an invalid value: "
+                    + modeToProfileBundle.getInt(AUDIO_MODE_OUTPUT_ONLY));
+        }
+        if (modeToProfileBundle.containsKey(AUDIO_MODE_DUPLEX)
+                && modeToProfileBundle.getInt(AUDIO_MODE_DUPLEX) != BluetoothProfile.HEADSET
+                && modeToProfileBundle.getInt(AUDIO_MODE_DUPLEX) != BluetoothProfile.LE_AUDIO) {
+            throw new IllegalArgumentException("Key AUDIO_MODE_DUPLEX has an invalid value: "
+                    + modeToProfileBundle.getInt(AUDIO_MODE_DUPLEX));
+        }
+
+        final int defaultValue = BluetoothStatusCodes.ERROR_UNKNOWN;
+        mServiceLock.readLock().lock();
+        try {
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                mService.setPreferredAudioProfiles(device, modeToProfileBundle,
+                        mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } else {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+            }
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            throw e.rethrowFromSystemServer();
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Gets the preferred profile for each audio mode for system routed audio. This API
+     * returns a Bundle with mappings between each audio mode and its preferred audio profile. If no
+     * values are set via {@link #setPreferredAudioProfiles(BluetoothDevice, Bundle)}, this API
+     * returns the default system preferences set via the sysprops
+     * {@link BluetoothProperties#getDefaultOutputOnlyAudioProfile()} and
+     * {@link BluetoothProperties#getDefaultDuplexAudioProfile()}.
+     * <p>
+     * An audio capable device must support at least one audio mode with a preferred audio profile.
+     * If a device does not support an audio mode, the audio mode will be omitted from the keys of
+     * the Bundle. If the device is not recognized as an audio capable device (e.g. because it is
+     * not bonded or does not support any audio profiles), this API returns an empty Bundle.
+     * <p>
+     * The Bundle can contain the following mappings:
+     * <ul>
+     * <li>For key {@link #AUDIO_MODE_OUTPUT_ONLY}, if an audio profile preference was set, this
+     *     will have an int value of either {@link BluetoothProfile#A2DP} or
+     *     {@link BluetoothProfile#LE_AUDIO}.
+     * <li>For key {@link #AUDIO_MODE_DUPLEX}, if an audio profile preference was set, this will
+     *     have an int value of either {@link BluetoothProfile#HEADSET} or
+     *     {@link BluetoothProfile#LE_AUDIO}.
+     * </ul>
+     *
+     * @return a Bundle mapping each set audio mode and preferred audio profile pair
+     * @throws NullPointerException if modeToProfileBundle or device is null
+     * @throws IllegalArgumentException if this BluetoothDevice object has an invalid address or the
+     * Bundle doesn't conform to its requirements
+     *
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @NonNull
+    public Bundle getPreferredAudioProfiles(@NonNull BluetoothDevice device) {
+        if (DBG) Log.d(TAG, "getPreferredAudioProfiles(" + device + ")");
+        Objects.requireNonNull(device, "device cannot be null");
+        if (!BluetoothAdapter.checkBluetoothAddress(device.getAddress())) {
+            throw new IllegalArgumentException("device cannot have an invalid address");
+        }
+
+        final Bundle defaultValue = Bundle.EMPTY;
+        mServiceLock.readLock().lock();
+        try {
+            if (mService != null) {
+                final SynchronousResultReceiver<Bundle> recv = SynchronousResultReceiver.get();
+                mService.getPreferredAudioProfiles(device, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            }
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            throw e.rethrowFromSystemServer();
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+
+        return defaultValue;
+    }
+
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothPreferredAudioProfilesCallback mPreferredAudioProfilesChangedCallback =
+            new IBluetoothPreferredAudioProfilesCallback.Stub() {
+                @Override
+                public void onPreferredAudioProfilesChanged(BluetoothDevice device,
+                        Bundle preferredAudioProfiles, int status) {
+                    for (Map.Entry<PreferredAudioProfilesChangedCallback, Executor>
+                            callbackExecutorEntry:
+                            mAudioProfilesChangedCallbackExecutorMap.entrySet()) {
+                        PreferredAudioProfilesChangedCallback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onPreferredAudioProfilesChanged(device,
+                                preferredAudioProfiles, status));
+                    }
+                }
+            };
+
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
+            BluetoothStatusCodes.SUCCESS,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED,
+            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
+            BluetoothStatusCodes.ERROR_UNKNOWN
+    })
+    public @interface RegisterPreferredAudioProfilesCallbackReturnValues {}
+
+    /**
+     * Registers a callback to be notified when the preferred audio profile changes have taken
+     * effect. To unregister this callback, call
+     * {@link #unregisterPreferredAudiProfilesChangedCallback(
+     * PreferredAudioProfilesChangedCallback)}.
+     *
+     * @param executor an {@link Executor} to execute the callbacks
+     * @param callback user implementation of the {@link PreferredAudioProfilesChangedCallback}
+     * @return whether the callback was registered successfully
+     * @throws NullPointerException if executor or callback is null
+     * @throws IllegalArgumentException if the callback is already registered
+     *
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @RegisterPreferredAudioProfilesCallbackReturnValues
+    public int registerPreferredAudioProfilesChangedCallback(
+            @NonNull @CallbackExecutor Executor executor,
+            @NonNull PreferredAudioProfilesChangedCallback callback) {
+        if (DBG) Log.d(TAG, "registerPreferredAudioProfilesChangedCallback()");
+        Objects.requireNonNull(executor, "executor cannot be null");
+        Objects.requireNonNull(callback, "callback cannot be null");
+
+        final int defaultValue = BluetoothStatusCodes.ERROR_UNKNOWN;
+        int serviceCallStatus = defaultValue;
+        synchronized (mAudioProfilesChangedCallbackExecutorMap) {
+            // If the callback map is empty, we register the service-to-app callback
+            if (mAudioProfilesChangedCallbackExecutorMap.isEmpty()) {
+                mServiceLock.readLock().lock();
+                try {
+                    if (mService != null) {
+                        final SynchronousResultReceiver<Integer> recv =
+                                SynchronousResultReceiver.get();
+                        mService.registerPreferredAudioProfilesChangedCallback(
+                                mPreferredAudioProfilesChangedCallback, mAttributionSource, recv);
+                        serviceCallStatus = recv.awaitResultNoInterrupt(getSyncTimeout())
+                                .getValue(defaultValue);
+                    }
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                } catch (TimeoutException e) {
+                    Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                } finally {
+                    mServiceLock.readLock().unlock();
+                }
+                if (serviceCallStatus != BluetoothStatusCodes.SUCCESS) {
+                    return serviceCallStatus;
+                }
+            }
+
+            // Adds the passed in callback to our local mapping
+            if (mAudioProfilesChangedCallbackExecutorMap.containsKey(callback)) {
+                throw new IllegalArgumentException("This callback has already been registered");
+            } else {
+                mAudioProfilesChangedCallbackExecutorMap.put(callback, executor);
+            }
+        }
+
+        return BluetoothStatusCodes.SUCCESS;
+    }
+
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
+            BluetoothStatusCodes.SUCCESS,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED,
+            BluetoothStatusCodes.ERROR_CALLBACK_NOT_REGISTERED,
+            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
+            BluetoothStatusCodes.ERROR_UNKNOWN
+    })
+    public @interface UnRegisterPreferredAudioProfilesCallbackReturnValues {}
+
+    /**
+     * Unregisters a callback that was previously registered with
+     * {@link #registerPreferredAudioProfilesChangedCallback(Executor,
+     * PreferredAudioProfilesChangedCallback)}.
+     *
+     * @param callback user implementation of the {@link PreferredAudioProfilesChangedCallback}
+     * @return whether the callback was successfully unregistered
+     * @throws NullPointerException if the callback is null
+     * @throws IllegalArgumentException if the callback has not been registered
+     *
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @UnRegisterPreferredAudioProfilesCallbackReturnValues
+    public int unregisterPreferredAudiProfilesChangedCallback(
+            @NonNull PreferredAudioProfilesChangedCallback callback) {
+        if (DBG) Log.d(TAG, "unregisterPreferredAudiProfilesChangedCallback()");
+        Objects.requireNonNull(callback, "callback cannot be null");
+
+        synchronized (mAudioProfilesChangedCallbackExecutorMap) {
+            if (mAudioProfilesChangedCallbackExecutorMap.remove(callback) == null) {
+                throw new IllegalArgumentException("This callback has not been registered");
+            }
+        }
+
+        if (!mBluetoothConnectionCallbackExecutorMap.isEmpty()) {
+            return BluetoothStatusCodes.SUCCESS;
+        }
+
+        final int defaultValue = BluetoothStatusCodes.ERROR_UNKNOWN;
+        // If the callback map is empty, we unregister the service-to-app callback
+        mServiceLock.readLock().lock();
+        try {
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                mService.unregisterPreferredAudioProfilesChangedCallback(
+                        mPreferredAudioProfilesChangedCallback, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            }
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+
+        return defaultValue;
+    }
+
+    /**
+     * A callback for preferred audio profile changes that arise from calls to
+     * {@link #setPreferredAudioProfiles(BluetoothDevice, Bundle)}.
+     *
+     * @hide
+     */
+    @SystemApi
+    public interface PreferredAudioProfilesChangedCallback {
+        /**
+         * Called when the preferred audio profile change from a call to
+         * {@link #setPreferredAudioProfiles(BluetoothDevice, Bundle)} has taken effect in the audio
+         * framework or timed out. This callback includes a Bundle that indicates the current
+         * preferred audio profile for each audio mode, if one was set. If an audio mode does not
+         * have a profile preference, its key will be omitted from the Bundle. If both audio modes
+         * do not have a preferred profile set, the Bundle will be empty.
+         *
+         * <p>
+         * The Bundle can contain the following mappings:
+         * <ul>
+         * <li>For key {@link #AUDIO_MODE_OUTPUT_ONLY}, if an audio profile preference was set, this
+         *     will have an int value of either {@link BluetoothProfile#A2DP} or
+         *     {@link BluetoothProfile#LE_AUDIO}.
+         * <li>For key {@link #AUDIO_MODE_DUPLEX}, if an audio profile preference was set, this will
+         *     have an int value of either {@link BluetoothProfile#HEADSET} or
+         *     {@link BluetoothProfile#LE_AUDIO}.
+         * </ul>
+         *
+         * @param device is the device which had its preferred audio profiles changed
+         * @param preferredAudioProfiles a Bundle mapping audio mode to its preferred audio profile
+         * @param status whether the operation succeeded or timed out
+         *
+         * @hide
+         */
+        @SystemApi
+        void onPreferredAudioProfilesChanged(@NonNull BluetoothDevice device, @NonNull
+                Bundle preferredAudioProfiles, int status);
     }
 
     /**
