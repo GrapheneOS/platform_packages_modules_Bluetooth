@@ -1147,7 +1147,7 @@ public class LeAudioServiceTest {
         /* Since LeAudioService called AudioManager - assume Audio manager calles properly callback
         * mAudioManager.onAudioDeviceAdded
         */
-        mService.notifyActiveDeviceChanged();
+        mService.notifyActiveDeviceChanged(mSingleDevice);
 
         String action = BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED;
         Intent intent = TestUtils.waitForIntent(TIMEOUT_MS, mDeviceQueueMap.get(mSingleDevice));
@@ -1363,7 +1363,7 @@ public class LeAudioServiceTest {
         /* Since LeAudioService called AudioManager - assume Audio manager calles properly callback
          * mAudioManager.onAudioDeviceAdded
          */
-        mService.notifyActiveDeviceChanged();
+        mService.notifyActiveDeviceChanged(leadDevice);
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService).getBondState(leadDevice);
         verifyActiveDeviceStateIntent(AUDIO_MANAGER_DEVICE_ADD_TIMEOUT_MS, leadDevice);
         injectNoVerifyDeviceDisconnected(leadDevice);
@@ -1432,7 +1432,7 @@ public class LeAudioServiceTest {
         /* Since LeAudioService called AudioManager - assume Audio manager calles properly callback
          * mAudioManager.onAudioDeviceAdded
          */
-        mService.notifyActiveDeviceChanged();
+        mService.notifyActiveDeviceChanged(leadDevice);
 
         verifyActiveDeviceStateIntent(AUDIO_MANAGER_DEVICE_ADD_TIMEOUT_MS, leadDevice);
         /* We don't want to distribute DISCONNECTION event, instead will try to reconnect
