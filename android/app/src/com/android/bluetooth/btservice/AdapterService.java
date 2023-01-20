@@ -4340,9 +4340,22 @@ public class AdapterService extends Service {
         // If there are no preferences stored, return the defaults
         Bundle storedBundle = mDatabaseManager.getPreferredAudioProfiles(groupLead);
         if (storedBundle.isEmpty()) {
-            //TODO(b/265077414): replace with default audio policy sysprop
-            int outputOnlyDefault = BluetoothProfile.LE_AUDIO;
-            int duplexDefault = BluetoothProfile.LE_AUDIO;
+            // Gets the default output only audio profile or defaults to LE_AUDIO if not present
+            int outputOnlyDefault = BluetoothProperties.getDefaultOutputOnlyAudioProfile().orElse(
+                    BluetoothProfile.LE_AUDIO);
+            if (outputOnlyDefault != BluetoothProfile.A2DP
+                    && outputOnlyDefault != BluetoothProfile.LE_AUDIO) {
+                outputOnlyDefault = BluetoothProfile.LE_AUDIO;
+            }
+
+            // Gets the default duplex audio profile or defaults to LE_AUDIO if not present
+            int duplexDefault = BluetoothProperties.getDefaultDuplexAudioProfile().orElse(
+                    BluetoothProfile.LE_AUDIO);
+            if (duplexDefault != BluetoothProfile.HEADSET
+                    && duplexDefault != BluetoothProfile.LE_AUDIO) {
+                duplexDefault = BluetoothProfile.LE_AUDIO;
+            }
+
             if (isOutputOnlyAudioSupported(groupLead)) {
                 storedBundle.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY, outputOnlyDefault);
             }

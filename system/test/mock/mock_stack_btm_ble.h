@@ -370,31 +370,19 @@ extern struct btm_ble_br_keys_req btm_ble_br_keys_req;
 // role, tBLE_ADDR_TYPE addr_type, bool addr_matched Return: void
 struct btm_ble_connected {
   std::function<void(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
-                     uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched)>
+                     uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched,
+                     bool can_read_discoverable_characteristics)>
       body{[](const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
-              uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched) {}};
+              uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched,
+              bool can_read_discoverable_characteristics) {}};
   void operator()(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
-                  uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched) {
-    body(bda, handle, enc_mode, role, addr_type, addr_matched);
+                  uint8_t role, tBLE_ADDR_TYPE addr_type, bool addr_matched,
+                  bool can_read_discoverable_characteristics) {
+    body(bda, handle, enc_mode, role, addr_type, addr_matched,
+         can_read_discoverable_characteristics);
   };
 };
 extern struct btm_ble_connected btm_ble_connected;
-
-// Name: btm_ble_connected_from_address_with_type
-// Params: const tBLE_BD_ADDR& address_with_type, uint16_t handle, uint8_t
-// enc_mode, uint8_t role, bool addr_matched Return: void
-struct btm_ble_connected_from_address_with_type {
-  std::function<void(const tBLE_BD_ADDR& address_with_type, uint16_t handle,
-                     uint8_t enc_mode, uint8_t role, bool addr_matched)>
-      body{[](const tBLE_BD_ADDR& address_with_type, uint16_t handle,
-              uint8_t enc_mode, uint8_t role, bool addr_matched) {}};
-  void operator()(const tBLE_BD_ADDR& address_with_type, uint16_t handle,
-                  uint8_t enc_mode, uint8_t role, bool addr_matched) {
-    body(address_with_type, handle, enc_mode, role, addr_matched);
-  };
-};
-extern struct btm_ble_connected_from_address_with_type
-    btm_ble_connected_from_address_with_type;
 
 // Name: btm_ble_determine_security_act
 // Params: bool is_originator, const RawAddress& bdaddr, uint16_t

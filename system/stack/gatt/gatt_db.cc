@@ -123,6 +123,19 @@ static tGATT_STATUS gatts_check_attr_readability(const tGATT_ATTR& attr,
     return GATT_INSUF_KEY_SIZE;
   }
 
+  if (perm & GATT_PERM_READ_IF_ENCRYPTED_OR_DISCOVERABLE) {
+    if (sec_flag.can_read_discoverable_characteristics) {
+      // no checks here
+    } else {
+      if (!sec_flag.is_link_key_known || !sec_flag.is_encrypted) {
+        return GATT_INSUF_AUTHENTICATION;
+      }
+      if (key_size < min_key_size) {
+        return GATT_INSUF_KEY_SIZE;
+      }
+    }
+  }
+
   if (read_long && attr.uuid.Is16Bit()) {
     switch (attr.uuid.As16Bit()) {
       case GATT_UUID_PRI_SERVICE:

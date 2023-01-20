@@ -97,8 +97,6 @@ class Link : public l2cap::internal::ILink,
 
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) override;
 
-  void OnLocalAddressUpdate(hci::AddressWithType address_with_type) override;
-
   void OnLeSubrateChange(
       hci::ErrorCode hci_status,
       uint16_t subrate_factor,

@@ -93,6 +93,10 @@ typedef struct {
   bool is_link_key_known;
   bool is_link_key_authed;
   bool is_encrypted;
+  // whether we connected to the peer, or if it
+  // connected to a discoverable advertisement (affects
+  // GAP permissions)
+  bool can_read_discoverable_characteristics;
 } tGATT_SEC_FLAG;
 
 /* Find Information Response Type
