@@ -1466,14 +1466,8 @@ public class BluetoothMapContentObserver {
                             if (mTransmitEvents && // extract contact details only if needed
                                     mMapEventReportVersion
                                             > BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
-                                long timestamp = c.getLong(c.getColumnIndex(Sms.DATE));
-                                String date = BluetoothMapUtils.getDateTimeString(timestamp);
-                                if (BluetoothMapUtils.isDateTimeOlderThanOneYear(timestamp)) {
-                                    // Skip sending new message events older than one year
-                                    listChanged = false;
-                                    msgListSms.remove(id);
-                                    continue;
-                                }
+                                String date = BluetoothMapUtils.getDateTimeString(
+                                        c.getLong(c.getColumnIndex(Sms.DATE)));
                                 String subject = c.getString(c.getColumnIndex(Sms.BODY));
                                 if (subject == null) {
                                     subject = "";
@@ -1644,14 +1638,8 @@ public class BluetoothMapContentObserver {
                             if (mTransmitEvents && // extract contact details only if needed
                                     mMapEventReportVersion
                                             != BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
-                                long timestamp = c.getLong(c.getColumnIndex(Mms.DATE));
-                                String date = BluetoothMapUtils.getDateTimeString(timestamp);
-                                if (BluetoothMapUtils.isDateTimeOlderThanOneYear(timestamp)) {
-                                    // Skip sending new message events older than one year
-                                    listChanged = false;
-                                    msgListMms.remove(id);
-                                    continue;
-                                }
+                                String date = BluetoothMapUtils.getDateTimeString(
+                                        c.getLong(c.getColumnIndex(Mms.DATE)));
                                 String subject = c.getString(c.getColumnIndex(Mms.SUBJECT));
                                 if (subject == null || subject.length() == 0) {
                                     /* Get subject from mms text body parts - if any exists */
