@@ -19,8 +19,8 @@ fn main() {
     rt.block_on(async_main(Arc::clone(&rt), sigint));
 }
 
-async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
-    let matches = Command::new("bluetooth_with_facades")
+fn clap_command() -> Command {
+    Command::new("bluetooth_with_facades")
         .about("The bluetooth stack, with testing facades enabled and exposed via gRPC.")
         .arg(
             Arg::new("root-server-port")
@@ -44,7 +44,10 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
         .arg(Arg::new("btsnoop").long("btsnoop"))
         .arg(Arg::new("btsnooz").long("btsnooz"))
         .arg(Arg::new("btconfig").long("btconfig"))
-        .get_matches();
+}
+
+async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
+    let matches = clap_command().get_matches();
 
     let root_server_port = *matches.get_one::<u16>("root-server-port").unwrap();
     let grpc_port = *matches.get_one::<u16>("grpc-port").unwrap();
@@ -94,4 +97,14 @@ extern "C" fn handle_sigint(_: i32) {
         tx.unbounded_send(()).unwrap();
     }
     *sigint_tx = None;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn verify_comand() {
+        clap_command().debug_assert();
+    }
 }
