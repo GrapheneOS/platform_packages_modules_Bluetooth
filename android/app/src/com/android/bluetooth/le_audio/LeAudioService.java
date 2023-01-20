@@ -3151,7 +3151,6 @@ public class LeAudioService extends ProfileService {
                 : mDeviceDescriptors.entrySet()) {
             LeAudioDeviceDescriptor descriptor = entry.getValue();
 
-            ProfileService.println(sb, "  Device: " + entry.getKey());
             descriptor.mStateMachine.dump(sb);
             ProfileService.println(sb, "    mGroupId: " + descriptor.mGroupId);
             ProfileService.println(sb, "    mSinkAudioLocation: " + descriptor.mSinkAudioLocation);
