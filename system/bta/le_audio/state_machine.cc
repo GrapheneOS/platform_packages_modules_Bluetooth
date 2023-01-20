@@ -1165,6 +1165,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                  ? "sink"
                  : "source");
     auto* stream_conf = &group->stream_conf;
+    stream_conf->id = ase->codec_id;
+
     if (ase->direction == le_audio::types::kLeAudioDirectionSink) {
       auto iter = std::find_if(
           stream_conf->sink_streams.begin(), stream_conf->sink_streams.end(),
