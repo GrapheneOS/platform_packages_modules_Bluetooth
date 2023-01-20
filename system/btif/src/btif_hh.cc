@@ -918,7 +918,7 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
         HAL_CBACK(bt_hh_callbacks, handshake_cb, (RawAddress*)&(p_dev->bd_addr),
                   (bthh_status_t)p_data->hs_data.status);
 
-#ifdef OS_ANDROID  // Host kernel does not support UHID_SET_REPORT
+#if ENABLE_UHID_SET_REPORT
         if (p_dev->le_hid && p_dev->set_rpt_id_queue) {
           /* There is no handshake response for HOGP. Conclude the
            * UHID_SET_REPORT procedure here. */
@@ -928,7 +928,7 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
             bta_hh_co_set_rpt_rsp(p_dev->dev_handle, p_data->dev_status.status);
           }
         }
-#endif
+#endif  // ENABLE_UHID_SET_REPORT
       }
       break;
 
