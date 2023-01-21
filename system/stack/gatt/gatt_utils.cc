@@ -1468,11 +1468,18 @@ bool gatt_cancel_open(tGATT_IF gatt_if, const RawAddress& bda) {
   }
 
   if (!connection_manager::direct_connect_remove(gatt_if, bda)) {
-    BTM_AcceptlistRemove(bda);
-    LOG_INFO(
-        "GATT connection manager has no record but removed filter acceptlist "
-        "gatt_if:%hhu peer:%s",
-        gatt_if, ADDRESS_TO_LOGGABLE_CSTR(bda));
+    if (!connection_manager::is_background_connection(bda)) {
+      BTM_AcceptlistRemove(bda);
+      LOG_INFO(
+          "Gatt connection manager has no background record but "
+          " removed filter acceptlist gatt_if:%hhu peer:%s",
+          gatt_if, ADDRESS_TO_LOGGABLE_CSTR(bda));
+    } else {
+      LOG_INFO(
+          "Gatt connection manager maintains a background record"
+          " preserving filter acceptlist gatt_if:%hhu peer:%s",
+          gatt_if, ADDRESS_TO_LOGGABLE_CSTR(bda));
+    }
   }
   return true;
 }

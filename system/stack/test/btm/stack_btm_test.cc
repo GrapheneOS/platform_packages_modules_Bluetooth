@@ -44,6 +44,7 @@
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
 #include "test/mock/mock_osi_list.h"
+#include "test/mock/mock_device_iot_config.h"
 #include "test/mock/mock_stack_hcic_hcicmds.h"
 #include "types/raw_address.h"
 
@@ -54,6 +55,7 @@ namespace mock = test::mock::stack_hcic_hcicmds;
 
 extern tBTM_CB btm_cb;
 
+uint8_t btif_trace_level = BT_TRACE_LEVEL_DEBUG;
 uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
 btif_hh_cb_t btif_hh_cb;
 tL2C_CB l2cb;

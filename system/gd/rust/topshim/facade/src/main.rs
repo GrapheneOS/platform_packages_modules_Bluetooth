@@ -40,8 +40,8 @@ fn main() {
     rt.block_on(async_main(Arc::clone(&rt), sigint));
 }
 
-async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
-    let matches = Command::new("bluetooth_topshim_facade")
+fn clap_command() -> Command {
+    Command::new("bluetooth_topshim_facade")
         .about("The bluetooth topshim stack, with testing facades enabled and exposed via gRPC.")
         .arg(
             Arg::new("grpc-port")
@@ -71,7 +71,10 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
                 .value_parser(value_parser!(bool))
                 .default_value("true"),
         )
-        .get_matches();
+}
+
+async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
+    let matches = clap_command().get_matches();
 
     let grpc_port = *matches.get_one::<u16>("grpc-port").unwrap();
     let _rootcanal_port = matches.get_one::<u16>("rootcanal-port").cloned();
@@ -145,4 +148,14 @@ extern "C" fn handle_sigint(_: i32) {
         tx.unbounded_send(()).unwrap();
     }
     *sigint_tx = None;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn verify_comand() {
+        clap_command().debug_assert();
+    }
 }

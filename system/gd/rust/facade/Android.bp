@@ -43,6 +43,25 @@ rust_binary {
     ],
 }
 
+rust_test {
+    name: "bluetooth_with_facades.test",
+    defaults: ["gd_rust_defaults"],
+    srcs: ["src/main.rs"],
+    edition: "2018",
+    rustlibs: [
+      "libclap",
+      "libbluetooth_with_facades",
+      "libfutures",
+      "libgrpcio",
+      "liblazy_static",
+      "libtokio",
+      "libnix",
+      "libbt_common",
+      "liblog_rust",
+    ],
+    test_suites: ["general-tests"],
+}
+
 rust_library {
     name: "libbt_facade_helpers",
     defaults: ["gd_rust_defaults"],

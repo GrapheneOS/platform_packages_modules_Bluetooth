@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include <mutex>
 #include <vector>
 
@@ -31,6 +33,7 @@
 #include "bta/include/bta_av_ci.h"
 #include "btif/include/btif_a2dp_source.h"
 #include "btif/include/btif_av.h"
+#include "device/include/device_iot_config.h"
 #include "include/hardware/bt_av.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/allocator.h"  // UNUSED_ATTR
@@ -40,8 +43,6 @@
 #include "stack/include/bt_hdr.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 // Macro to retrieve the number of elements in a statically allocated array
 #define BTA_AV_CO_NUM_ELEMENTS(__a) (sizeof(__a) / sizeof((__a)[0]))
@@ -911,6 +912,8 @@ void BtaAvCo::ProcessDiscoveryResult(tBTA_AV_HNDL bta_av_handle,
   }
 }
 
+static void bta_av_co_store_peer_codectype(const BtaAvCoPeer* p_peer);
+
 tA2DP_STATUS BtaAvCo::ProcessSourceGetConfig(
     tBTA_AV_HNDL bta_av_handle, const RawAddress& peer_address,
     uint8_t* p_codec_info, uint8_t* p_sep_info_idx, uint8_t seid,
@@ -968,6 +971,8 @@ tA2DP_STATUS BtaAvCo::ProcessSourceGetConfig(
   APPL_TRACE_DEBUG("%s: last Sink codec reached for peer %s (local %s)",
                    __func__, ADDRESS_TO_LOGGABLE_CSTR(p_peer->addr),
                    p_peer->acceptor ? "acceptor" : "initiator");
+
+  bta_av_co_store_peer_codectype(p_peer);
 
   // Select the Source codec
   const BtaAvCoSep* p_sink = nullptr;
@@ -2138,6 +2143,19 @@ void bta_av_co_audio_disc_res(tBTA_AV_HNDL bta_av_handle,
                               uint16_t uuid_local) {
   bta_av_co_cb.ProcessDiscoveryResult(bta_av_handle, peer_address, num_seps,
                                       num_sinks, num_sources, uuid_local);
+}
+
+static void bta_av_co_store_peer_codectype(const BtaAvCoPeer* p_peer) {
+  int index, peer_codec_type = 0;
+  const BtaAvCoSep* p_sink;
+  APPL_TRACE_DEBUG("%s", __func__);
+  for (index = 0; index < p_peer->num_sup_sinks; index++) {
+    p_sink = &p_peer->sinks[index];
+    peer_codec_type |= A2DP_IotGetPeerSinkCodecType(p_sink->codec_caps);
+  }
+
+  DEVICE_IOT_CONFIG_ADDR_SET_HEX(p_peer->addr, IOT_CONF_KEY_A2DP_CODECTYPE,
+                                 peer_codec_type, IOT_CONF_BYTE_NUM_1);
 }
 
 tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL bta_av_handle,

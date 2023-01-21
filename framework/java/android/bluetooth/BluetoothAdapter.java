@@ -4983,6 +4983,7 @@ public final class BluetoothAdapter {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(value = {
             BluetoothStatusCodes.SUCCESS,
+            BluetoothStatusCodes.ERROR_ANOTHER_ACTIVE_REQUEST,
             BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
             BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED,
             BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED,
@@ -5128,6 +5129,56 @@ public final class BluetoothAdapter {
             if (mService != null) {
                 final SynchronousResultReceiver<Bundle> recv = SynchronousResultReceiver.get();
                 mService.getPreferredAudioProfiles(device, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            }
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            throw e.rethrowFromSystemServer();
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+
+        return defaultValue;
+    }
+
+    /**
+     * Called by audio framework to inform the Bluetooth stack that a request from
+     * {@link #setPreferredAudioProfiles(BluetoothDevice, Bundle)} has taken effect in the audio
+     * framework. After this is called, the Bluetooth stack will invoke
+     * {@link PreferredAudioProfilesChangedCallback#onPreferredAudioProfilesChanged(
+     * BluetoothDevice, Bundle, int)}.
+     * <p>
+     * This method will return
+     * {@link BluetoothStatusCodes#ERROR_BLUETOOTH_NOT_ALLOWED} if called outside system server.
+     *
+     * @param device is the BluetoothDevice that had its preferred audio profile changed
+     * @return whether the Bluetooth stack acknowledged the change successfully
+     * @throws NullPointerException if device is null
+     * @throws IllegalArgumentException if the device's address is invalid
+     *
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public int notifyPreferredAudioProfileChangeApplied(@NonNull BluetoothDevice device) {
+        if (DBG) Log.d(TAG, "notifyPreferredProfileChangeApplied(" + device + ")");
+        Objects.requireNonNull(device, "device cannot be null");
+        if (!BluetoothAdapter.checkBluetoothAddress(device.getAddress())) {
+            throw new IllegalArgumentException("device cannot have an invalid address");
+        }
+
+        final int defaultValue = BluetoothStatusCodes.ERROR_UNKNOWN;
+        mServiceLock.readLock().lock();
+        try {
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                mService.notifyPreferredAudioProfileChangeApplied(device,
+                        mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             }
         } catch (RemoteException e) {

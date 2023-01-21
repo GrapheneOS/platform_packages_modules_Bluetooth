@@ -61,4 +61,6 @@ extern void dump(int fd);
 extern void on_connection_timed_out(uint8_t app_id, const RawAddress& address);
 extern void on_connection_timed_out_from_shim(const RawAddress& address);
 
+extern bool is_background_connection(const RawAddress& address);
+
 }  // namespace connection_manager
