@@ -63,6 +63,8 @@ bool background_connect_remove(uint8_t app_id, const RawAddress& address) {
 bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
   return false;
 }
+bool is_background_connection(const RawAddress& address) { return false; }
+
 }  // namespace connection_manager
 
 BT_HDR* attp_build_sr_msg(tGATT_TCB& tcb, uint8_t op_code, tGATT_SR_MSG* p_msg,

@@ -29,6 +29,7 @@ bool background_connect_remove(uint8_t app_id, const RawAddress& address) {
 bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
   return false;
 }
+bool is_background_connection(const RawAddress& address) { return false; }
 }  // namespace connection_manager
 
 /** stack/gatt/att_protocol.cc */

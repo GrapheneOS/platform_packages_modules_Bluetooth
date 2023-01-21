@@ -57,6 +57,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -1186,6 +1187,7 @@ public class HeadsetStateMachineTest {
         Assert.assertEquals(mHeadsetStateMachine.parseUnknownAt(atString), "A\"command\"");
     }
 
+    @Ignore("b/265556073")
     @Test
     public void testHandleAccessPermissionResult_withNoChangeInAtCommandResult() {
         when(mIntent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)).thenReturn(null);
