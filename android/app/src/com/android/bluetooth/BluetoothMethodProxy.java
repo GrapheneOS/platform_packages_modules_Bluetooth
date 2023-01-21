@@ -41,6 +41,7 @@ import android.util.Log;
 import com.android.bluetooth.gatt.AppAdvertiseStats;
 import com.android.bluetooth.gatt.ContextMap;
 import com.android.bluetooth.gatt.GattService;
+import com.android.bluetooth.opp.BluetoothOppNotification;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.HeaderSet;
 
@@ -239,5 +240,14 @@ public class BluetoothMethodProxy {
     public AppAdvertiseStats createAppAdvertiseStats(int appUid, int id, String name,
             ContextMap map, GattService service) {
         return new AppAdvertiseStats(appUid, id, name, map, service);
+    }
+
+
+    /**
+     * Proxies {@link com.android.bluetooth.opp.BluetoothOppNotification#BluetoothOppNotification(
+     * Context)}.
+     */
+    public BluetoothOppNotification newBluetoothOppNotification(final Context context) {
+        return new BluetoothOppNotification(context);
     }
 }
