@@ -44,6 +44,7 @@
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
 #include "test/mock/mock_osi_list.h"
+#include "test/mock/mock_device_iot_config.h"
 #include "test/mock/mock_stack_hcic_hcicmds.h"
 #include "types/raw_address.h"
 
