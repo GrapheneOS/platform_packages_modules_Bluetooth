@@ -7,8 +7,8 @@ package {
     default_applicable_licenses: ["system_bt_license"],
 }
 
-rust_binary_host {
-    name: "bt_topshim_facade",
+rust_defaults {
+    name: "bt_topshim_facade.defaults",
     defaults: [
         "gd_rust_defaults",
         "libchrome_support_defaults"
@@ -83,4 +83,15 @@ rust_binary_host {
     proc_macros: [
         "libpaste",
     ],
+}
+
+rust_binary_host {
+    name: "bt_topshim_facade",
+    defaults: ["bt_topshim_facade.defaults"],
+}
+
+rust_test_host {
+    name: "bt_topshim_facade.test",
+    defaults: ["bt_topshim_facade.defaults"],
+    test_suites: ["general-tests"],
 }
