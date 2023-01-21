@@ -78,6 +78,10 @@ void btif_dm_cleanup(void) { mock_function_count_map[__func__]++; }
 void btif_dm_create_bond(const RawAddress bd_addr, int transport) {
   mock_function_count_map[__func__]++;
 }
+void btif_dm_create_bond_le(const RawAddress bd_addr,
+                            tBLE_ADDR_TYPE addr_type) {
+  mock_function_count_map[__func__]++;
+}
 void btif_dm_create_bond_out_of_band(const RawAddress bd_addr, int transport,
                                      const bt_oob_data_t p192_data,
                                      const bt_oob_data_t p256_data) {
