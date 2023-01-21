@@ -28,17 +28,6 @@ future_t* stack_manager_get_hack_future() { return hack_future; }
 
 namespace {
 
-struct MockCoreInterface : bluetooth::core::CoreInterface {
-  void onBluetoothEnabled() override{};
-  bt_status_t toggleProfile(tBTA_SERVICE_ID service_id, bool enable) override {
-    return BT_STATUS_SUCCESS;
-  };
-  void removeDeviceFromProfiles(const RawAddress& bd_addr) override{};
-  void onLinkDown(const RawAddress& bd_addr) override{};
-  MockCoreInterface()
-      : bluetooth::core::CoreInterface{nullptr, nullptr, nullptr, nullptr} {};
-};
-
 auto interfaceToProfiles = MockCoreInterface{};
 
 }  // namespace
