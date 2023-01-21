@@ -294,6 +294,8 @@ filegroup {
   name: "TestMockBtif",
   srcs: [
       ":TestCommonJniThread",
+      ":TestCommonCoreInterface",
+      ":TestMockBluetoothInterface",
       "mock/mock_btif*.cc",
   ],
 }

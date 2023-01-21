@@ -49,6 +49,7 @@ struct bta_hh_read_ssr_param bta_hh_read_ssr_param;
 struct bta_hh_tod_spt bta_hh_tod_spt;
 struct bta_hh_trace_dev_db bta_hh_trace_dev_db;
 struct bta_hh_update_di_info bta_hh_update_di_info;
+struct bta_hh_le_is_hh_gatt_if bta_hh_le_is_hh_gatt_if;
 
 }  // namespace bta_hh_utils
 }  // namespace mock
@@ -106,6 +107,11 @@ void bta_hh_update_di_info(tBTA_HH_DEV_CB* p_cb, uint16_t vendor_id,
   mock_function_count_map[__func__]++;
   test::mock::bta_hh_utils::bta_hh_update_di_info(p_cb, vendor_id, product_id,
                                                   version, flag, ctry_code);
+}
+bool bta_hh_le_is_hh_gatt_if(tGATT_IF client_if) {
+  mock_function_count_map[__func__]++;
+  test::mock::bta_hh_utils::bta_hh_le_is_hh_gatt_if(client_if);
+  return false;
 }
 // Mocked functions complete
 // END mockcify generation
