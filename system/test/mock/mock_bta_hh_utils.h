@@ -182,6 +182,17 @@ struct bta_hh_update_di_info {
 };
 extern struct bta_hh_update_di_info bta_hh_update_di_info;
 
+// Name: bta_hh_le_is_hh_gatt_if
+// Params: tGATT_IF client_if
+// Return: bool
+struct bta_hh_le_is_hh_gatt_if {
+  bool return_value{false};
+  std::function<bool(tGATT_IF client_if)> body{
+      [this](tGATT_IF client_if) { return return_value; }};
+  bool operator()(tGATT_IF client_if) { return body(client_if); };
+};
+extern struct bta_hh_le_is_hh_gatt_if bta_hh_le_is_hh_gatt_if;
+
 }  // namespace bta_hh_utils
 }  // namespace mock
 }  // namespace test
