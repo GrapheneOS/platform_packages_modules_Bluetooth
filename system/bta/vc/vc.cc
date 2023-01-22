@@ -102,6 +102,21 @@ class VolumeControlImpl : public VolumeControl {
       volume_control_devices_.Add(address, true);
     } else {
       device->connecting_actively = true;
+
+      if (device->IsConnected()) {
+        LOG(WARNING) << __func__ << ": address=" << address
+                     << ", connection_id=" << device->connection_id
+                     << " already connected.";
+
+        if (device->IsReady()) {
+          callbacks_->OnConnectionState(ConnectionState::CONNECTED,
+                                        device->address);
+        } else {
+          OnGattConnected(GATT_SUCCESS, device->connection_id, gatt_if_,
+                          device->address, BT_TRANSPORT_LE, GATT_MAX_MTU_SIZE);
+        }
+        return;
+      }
     }
 
     BTA_GATTC_Open(gatt_if_, address, BTM_BLE_DIRECT_CONNECTION, false);
@@ -628,13 +643,22 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
+    if (!device->IsConnected()) {
+      LOG(ERROR) << __func__
+                 << " Skipping disconnect of the already disconnected device, "
+                    "connection_id="
+                 << loghex(connection_id);
+      return;
+    }
+
     // If we get here, it means, device has not been exlicitly disconnected.
     bool device_ready = device->IsReady();
 
     device_cleanup_helper(device, device->connecting_actively);
 
     if (device_ready) {
-      volume_control_devices_.Add(remote_bda, true);
+      device->first_connection = true;
+      device->connecting_actively = true;
 
       /* Add device into BG connection to accept remote initiated connection */
       BTA_GATTC_Open(gatt_if_, remote_bda, BTM_BLE_BKG_CONNECT_ALLOW_LIST,
@@ -1068,7 +1092,6 @@ class VolumeControlImpl : public VolumeControl {
     if (notify)
       callbacks_->OnConnectionState(ConnectionState::DISCONNECTED,
                                     device->address);
-    volume_control_devices_.Remove(device->address);
   }
 
   void devices_control_point_helper(std::vector<RawAddress>& devices,
