@@ -19,6 +19,7 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import static org.mockito.Mockito.*;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
@@ -34,6 +35,7 @@ import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.Utils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -113,7 +115,8 @@ public class BondStateMachineTest {
         deviceProperties2.mBondState = BOND_BONDED;
 
         doReturn(true).when(mAdapterService).removeBondNative(any(byte[].class));
-        doReturn(true).when(mAdapterService).createBondNative(any(byte[].class), anyInt());
+        doReturn(true).when(mAdapterService).createBondNative(any(byte[].class),
+                eq(BluetoothDevice.ADDRESS_TYPE_PUBLIC), anyInt());
 
         // The removeBond() request for a bonded device should invoke the removeBondNative() call.
         Message removeBondMsg1 = mBondStateMachine.obtainMessage(BondStateMachine.REMOVE_BOND);
@@ -144,8 +147,37 @@ public class BondStateMachineTest {
         mBondStateMachine.sendMessage(createBondMsg2);
         TestUtils.waitForLooperToFinishScheduledTask(mBondStateMachine.getHandler().getLooper());
 
-        verify(mAdapterService, times(1)).createBondNative(eq(TEST_BT_ADDR_BYTES), anyInt());
-        verify(mAdapterService, times(1)).createBondNative(eq(TEST_BT_ADDR_BYTES_2), anyInt());
+        verify(mAdapterService, times(1)).createBondNative(eq(TEST_BT_ADDR_BYTES),
+                eq(BluetoothDevice.ADDRESS_TYPE_PUBLIC), anyInt());
+        verify(mAdapterService, times(1)).createBondNative(eq(TEST_BT_ADDR_BYTES_2),
+                eq(BluetoothDevice.ADDRESS_TYPE_PUBLIC), anyInt());
+    }
+
+    @Test
+    public void testCreateBondWithLeDevice() {
+        mRemoteDevices.reset();
+        mBondStateMachine.mPendingBondedDevices.clear();
+
+        BluetoothDevice device1 = BluetoothAdapter.getDefaultAdapter().getRemoteLeDevice(
+                        Utils.getAddressStringFromByte(TEST_BT_ADDR_BYTES),
+                        BluetoothDevice.ADDRESS_TYPE_PUBLIC);
+        BluetoothDevice device2 = BluetoothAdapter.getDefaultAdapter().getRemoteLeDevice(
+                        Utils.getAddressStringFromByte(TEST_BT_ADDR_BYTES_2),
+                        BluetoothDevice.ADDRESS_TYPE_RANDOM);
+
+        // The createBond() request for two devices with different address types.
+        Message createBondMsg1 = mBondStateMachine.obtainMessage(BondStateMachine.CREATE_BOND);
+        createBondMsg1.obj = device1;
+        mBondStateMachine.sendMessage(createBondMsg1);
+        Message createBondMsg2 = mBondStateMachine.obtainMessage(BondStateMachine.CREATE_BOND);
+        createBondMsg2.obj = device2;
+        mBondStateMachine.sendMessage(createBondMsg2);
+        TestUtils.waitForLooperToFinishScheduledTask(mBondStateMachine.getHandler().getLooper());
+
+        verify(mAdapterService, times(1)).createBondNative(eq(TEST_BT_ADDR_BYTES),
+                eq(BluetoothDevice.ADDRESS_TYPE_PUBLIC), anyInt());
+        verify(mAdapterService, times(1)).createBondNative(eq(TEST_BT_ADDR_BYTES_2),
+                eq(BluetoothDevice.ADDRESS_TYPE_RANDOM), anyInt());
     }
 
     @Test
