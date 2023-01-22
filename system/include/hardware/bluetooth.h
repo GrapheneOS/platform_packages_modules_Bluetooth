@@ -679,6 +679,9 @@ typedef struct {
   /** Create Bluetooth Bonding */
   int (*create_bond)(const RawAddress* bd_addr, int transport);
 
+  /** Create Bluetooth Bonding over le transport */
+  int (*create_bond_le)(const RawAddress* bd_addr, uint8_t addr_type);
+
   /** Create Bluetooth Bond using out of band data */
   int (*create_bond_out_of_band)(const RawAddress* bd_addr, int transport,
                                  const bt_oob_data_t* p192_data,

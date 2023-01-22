@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "core_interface.h"
+
 #include "btif/include/btif_common.h"
 #include "btif/include/core_callbacks.h"
 #include "btif/include/stack_manager.h"
@@ -37,34 +39,49 @@ static bluetooth::core::EventCallbacks eventCallbacks = {
     .invoke_energy_info_cb = invoke_energy_info_cb,
     .invoke_link_quality_report_cb = invoke_link_quality_report_cb};
 
-struct MockCoreInterface : bluetooth::core::CoreInterface {
-  void onBluetoothEnabled() override{};
-  bt_status_t toggleProfile(tBTA_SERVICE_ID service_id, bool enable) override {
-    return BT_STATUS_SUCCESS;
+// This interface lets us query for configuration properties of the stack that
+// could change at runtime
+struct MockConfigInterface : public bluetooth::core::ConfigInterface {
+  virtual bool isA2DPOffloadEnabled() { return false; }
+  virtual bool isAndroidTVDevice() { return false; }
+  virtual bool isRestrictedMode() { return false; }
+};
+
+static auto mockConfigInterface = MockConfigInterface{};
+
+// This interface lets us communicate with encoders used in profiles
+struct MockCodecInterface : public bluetooth::core::CodecInterface {
+  virtual void initialize(){};
+  virtual void cleanup() {}
+
+  virtual uint32_t encodePacket(int16_t* input, uint8_t* output) { return 0; };
+  virtual bool decodePacket(const uint8_t* i_buf, int16_t* o_buf,
+                            size_t out_len) {
+    return false;
   };
-  void removeDeviceFromProfiles(const RawAddress& bd_addr) override{};
-  void onLinkDown(const RawAddress& bd_addr) override{};
-  MockCoreInterface()
-      : bluetooth::core::CoreInterface{&eventCallbacks, nullptr, nullptr,
-                                       nullptr} {};
+};
+
+static auto mockCodecInterface = MockCodecInterface{};
+
+struct bluetooth::core::HACK_ProfileInterface HACK_profileInterface = {
+    // HID
+    .btif_hh_connect = nullptr,
+    .btif_hh_virtual_unplug = nullptr,
+    .bta_hh_read_ssr_param = nullptr,
+    .bta_hh_le_is_hh_gatt_if = nullptr,
+    .bta_hh_cleanup_disable = nullptr,
+
+    // AVDTP
+    .btif_av_set_dynamic_audio_buffer_size = nullptr,
+
+    // ASHA
+    .GetHearingAidDeviceCount = nullptr,
+
+    // LE Audio
+    .IsLeAudioClientRunning = nullptr,
 };
 
 }  // namespace
-
-// HORRIBLE HACKY "MOCK" - the BTIF test target includes bluetooth.cc, so even
-// btif-"core" tests need this symbol to be available (since the linker doesn't
-// strip it for some reason)
-//
-// TODO(rahularya): remove this once build files are changed in aosp/2258765
-bool bta_hh_le_is_hh_gatt_if(tGATT_IF client_if) {
-  // If your test is not testing HID, then this is false and we are all fine.
-  //
-  // If your test *is* testing HID, you should get a linker error since this
-  // symbol had better be available. In which case you will need to figure out
-  // how to fix this properly, or have some macro to conditionally supply this
-  // symbol. Sorry.
-  return false;
-}
 
 void InitializeCoreInterface() {
   static auto mockCoreInterface = MockCoreInterface{};
@@ -74,3 +91,19 @@ void InitializeCoreInterface() {
 void CleanCoreInterface() {
   stack_manager_get_interface()->clean_up_stack([] {});
 }
+
+MockCoreInterface::MockCoreInterface()
+    : bluetooth::core::CoreInterface{&eventCallbacks, &mockConfigInterface,
+                                     &mockCodecInterface,
+                                     &HACK_profileInterface} {};
+
+void MockCoreInterface::onBluetoothEnabled(){};
+
+bt_status_t MockCoreInterface::toggleProfile(tBTA_SERVICE_ID service_id,
+                                             bool enable) {
+  return BT_STATUS_SUCCESS;
+};
+
+void MockCoreInterface::removeDeviceFromProfiles(const RawAddress& bd_addr){};
+
+void MockCoreInterface::onLinkDown(const RawAddress& bd_addr){};
