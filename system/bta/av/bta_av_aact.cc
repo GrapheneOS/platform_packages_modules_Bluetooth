@@ -2537,7 +2537,7 @@ void bta_av_clr_cong(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_av_suspend_cfm(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
-  tBTA_AV_SUSPEND suspend_rsp;
+  tBTA_AV_SUSPEND suspend_rsp = {};
   uint8_t err_code = p_data->str_msg.msg.hdr.err_code;
 
   APPL_TRACE_DEBUG("%s: peer %s bta_handle:0x%x audio_open_cnt:%d err_code:%d",
