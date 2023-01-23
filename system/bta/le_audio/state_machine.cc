@@ -1873,6 +1873,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             return;
           }
 
+          if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
+
           state_machine_callbacks_->StatusReportCb(
               group->group_id_, GroupStreamStatus::CONFIGURED_AUTONOMOUS);
         }
