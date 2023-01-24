@@ -2638,12 +2638,14 @@ void bta_av_rcfg_str_ok(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
 
   {
     /* reconfigure success  */
-    tBTA_AV_RECONFIG reconfig;
-    reconfig.status = BTA_AV_SUCCESS;
-    reconfig.chnl = p_scb->chnl;
-    reconfig.hndl = p_scb->hndl;
-    tBTA_AV bta_av_data;
-    bta_av_data.reconfig = reconfig;
+    tBTA_AV bta_av_data = {
+        .reconfig =
+            {
+                .chnl = p_scb->chnl,
+                .hndl = p_scb->hndl,
+                .status = BTA_AV_SUCCESS,
+            },
+    };
     (*bta_av_cb.p_cback)(BTA_AV_RECONFIG_EVT, &bta_av_data);
   }
 }
