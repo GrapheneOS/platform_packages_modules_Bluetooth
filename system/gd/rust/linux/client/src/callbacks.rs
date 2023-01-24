@@ -775,6 +775,101 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
     fn on_service_added(&self, status: GattStatus, service: BluetoothGattService) {
         print_info!("GATT service added with status = {}, service = {:?}", status, service)
     }
+
+    fn on_characteristic_read_request(
+        &self,
+        addr: String,
+        trans_id: i32,
+        offset: i32,
+        is_long: bool,
+        handle: i32,
+    ) {
+        print_info!(
+            "GATT characteristic read request for addr = {}, trans_id = {}, offset = {}, is_long = {}, handle = {}",
+            addr,
+            trans_id,
+            offset,
+            is_long,
+            handle
+        );
+    }
+
+    fn on_descriptor_read_request(
+        &self,
+        addr: String,
+        trans_id: i32,
+        offset: i32,
+        is_long: bool,
+        handle: i32,
+    ) {
+        print_info!(
+            "GATT descriptor read request for addr = {}, trans_id = {}, offset = {}, is_long = {}, handle = {}",
+            addr,
+            trans_id,
+            offset,
+            is_long,
+            handle
+        );
+    }
+
+    fn on_characteristic_write_request(
+        &self,
+        addr: String,
+        trans_id: i32,
+        offset: i32,
+        len: i32,
+        is_prep: bool,
+        need_rsp: bool,
+        handle: i32,
+        value: Vec<u8>,
+    ) {
+        print_info!(
+            "GATT characteristic write request for \
+                addr = {}, trans_id = {}, offset = {}, len = {}, is_prep = {}, need_rsp = {}, handle = {}, value = {:?}",
+            addr,
+            trans_id,
+            offset,
+            len,
+            is_prep,
+            need_rsp,
+            handle,
+            value
+        );
+    }
+
+    fn on_descriptor_write_request(
+        &self,
+        addr: String,
+        trans_id: i32,
+        offset: i32,
+        len: i32,
+        is_prep: bool,
+        need_rsp: bool,
+        handle: i32,
+        value: Vec<u8>,
+    ) {
+        print_info!(
+            "GATT descriptor write request for \
+                addr = {}, trans_id = {}, offset = {}, len = {}, is_prep = {}, need_rsp = {}, handle = {}, value = {:?}",
+            addr,
+            trans_id,
+            offset,
+            len,
+            is_prep,
+            need_rsp,
+            handle,
+            value
+        );
+    }
+
+    fn on_execute_write(&self, addr: String, trans_id: i32, exec_write: bool) {
+        print_info!(
+            "GATT executed write for addr = {}, trans_id = {}, exec_write = {}",
+            addr,
+            trans_id,
+            exec_write
+        );
+    }
 }
 
 impl RPCProxy for BtGattServerCallback {
