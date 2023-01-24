@@ -79,6 +79,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AbstractionLayer;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.BluetoothAdapterProxy;
+import com.android.bluetooth.btservice.CompanionManager;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.util.NumberUtils;
 import com.android.internal.annotations.VisibleForTesting;
@@ -3865,33 +3866,21 @@ public class GattService extends ProfileService {
         // Link supervision timeout is measured in N * 10ms
         int timeout = 500; // 5s
 
-        switch (connectionPriority) {
-            case BluetoothGatt.CONNECTION_PRIORITY_HIGH:
-                minInterval = getResources().getInteger(R.integer.gatt_high_priority_min_interval);
-                maxInterval = getResources().getInteger(R.integer.gatt_high_priority_max_interval);
-                latency = getResources().getInteger(R.integer.gatt_high_priority_latency);
-                break;
 
-            case BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER:
-                minInterval = getResources().getInteger(R.integer.gatt_low_power_min_interval);
-                maxInterval = getResources().getInteger(R.integer.gatt_low_power_max_interval);
-                latency = getResources().getInteger(R.integer.gatt_low_power_latency);
-                break;
+        CompanionManager manager =
+                AdapterService.getAdapterService().getCompanionManager();
 
-            default:
-                // Using the values for CONNECTION_PRIORITY_BALANCED.
-                minInterval =
-                        getResources().getInteger(R.integer.gatt_balanced_priority_min_interval);
-                maxInterval =
-                        getResources().getInteger(R.integer.gatt_balanced_priority_max_interval);
-                latency = getResources().getInteger(R.integer.gatt_balanced_priority_latency);
-                break;
-        }
+        minInterval = manager.getGattConnParameters(
+                address, CompanionManager.GATT_CONN_INTERVAL_MIN, connectionPriority);
+        maxInterval = manager.getGattConnParameters(
+                address, CompanionManager.GATT_CONN_INTERVAL_MAX, connectionPriority);
+        latency = manager.getGattConnParameters(
+                address, CompanionManager.GATT_CONN_LATENCY, connectionPriority);
 
-        if (DBG) {
-            Log.d(TAG, "connectionParameterUpdate() - address=" + address + "params="
-                    + connectionPriority + " interval=" + minInterval + "/" + maxInterval);
-        }
+        Log.d(TAG, "connectionParameterUpdate() - address=" + address + " params="
+                + connectionPriority + " interval=" + minInterval + "/" + maxInterval
+                + " timeout=" + timeout);
+
         gattConnectionParameterUpdateNative(clientIf, address, minInterval, maxInterval, latency,
                 timeout, 0, 0);
     }
@@ -3906,14 +3895,11 @@ public class GattService extends ProfileService {
             return;
         }
 
-        if (DBG) {
-            Log.d(TAG, "leConnectionUpdate() - address=" + address + ", intervals="
-                        + minInterval + "/" + maxInterval + ", latency=" + peripheralLatency
-                        + ", timeout=" + supervisionTimeout + "msec" + ", min_ce="
-                        + minConnectionEventLen + ", max_ce=" + maxConnectionEventLen);
+        Log.d(TAG, "leConnectionUpdate() - address=" + address + ", intervals="
+                    + minInterval + "/" + maxInterval + ", latency=" + peripheralLatency
+                    + ", timeout=" + supervisionTimeout + "msec" + ", min_ce="
+                    + minConnectionEventLen + ", max_ce=" + maxConnectionEventLen);
 
-
-        }
         gattConnectionParameterUpdateNative(clientIf, address, minInterval, maxInterval,
                                             peripheralLatency, supervisionTimeout,
                                             minConnectionEventLen, maxConnectionEventLen);
