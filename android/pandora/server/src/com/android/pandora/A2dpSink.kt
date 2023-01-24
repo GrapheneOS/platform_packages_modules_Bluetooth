@@ -18,7 +18,6 @@ package com.android.pandora
 
 import android.bluetooth.BluetoothA2dpSink
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.Context
@@ -73,11 +72,6 @@ class A2dpSink(val context: Context) : A2DPImplBase() {
       val device = request.connection.toBluetoothDevice(bluetoothAdapter)
       Log.i(TAG, "waitSink: device=$device")
 
-      if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-        Log.e(TAG, "Device is not bonded, cannot wait for stream")
-        throw Status.UNKNOWN.asException()
-      }
-
       if (bluetoothA2dpSink.getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
         val state =
           flow
@@ -102,13 +96,7 @@ class A2dpSink(val context: Context) : A2DPImplBase() {
 
   override fun close(request: CloseRequest, responseObserver: StreamObserver<CloseResponse>) {
     grpcUnary<CloseResponse>(scope, responseObserver) {
-      val device =
-        if (request.hasSink()) {
-          request.sink.connection.toBluetoothDevice(bluetoothAdapter)
-        } else {
-          Log.e(TAG, "Sink device required")
-          throw Status.UNKNOWN.asException()
-        }
+      val device = request.sink.connection.toBluetoothDevice(bluetoothAdapter)
       Log.i(TAG, "close: device=$device")
       if (bluetoothA2dpSink.getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
         Log.e(TAG, "Device is not connected, cannot close")
@@ -120,8 +108,10 @@ class A2dpSink(val context: Context) : A2DPImplBase() {
           .filter { it.getAction() == BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED }
           .filter { it.getBluetoothDeviceExtra() == device }
           .map { it.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothAdapter.ERROR) }
+
       bluetoothA2dpSink.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)
       a2dpConnectionStateChangedFlow.filter { it == BluetoothProfile.STATE_DISCONNECTED }.first()
+
       CloseResponse.getDefaultInstance()
     }
   }
