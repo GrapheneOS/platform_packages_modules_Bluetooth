@@ -121,7 +121,7 @@
     <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"Bluetooth аркылуу бөлүшө турган аккаунттарды тандаңыз. Туташкан сайын аккаунттарга кирүүгө уруксат берип турушуңуз керек."</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"Калган көзөнөктөр:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"Колдонмонун сүрөтчөсү"</string>
-    <string name="bluetooth_map_settings_title" msgid="4226030082708590023">"Bluetooth билдирүү бөлүшүү жөндөөлөрү"</string>
+    <string name="bluetooth_map_settings_title" msgid="4226030082708590023">"Bluetooth билдирүү бөлүшүү параметрлери"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="755024228476065757">"Аккаунт тандалбай жатат: 0 орун калды"</string>
     <string name="bluetooth_connected" msgid="5687474377090799447">"Bluetooth аудио туташты"</string>
     <string name="bluetooth_disconnected" msgid="6841396291728343534">"Bluetooth аудио ажыратылды"</string>
