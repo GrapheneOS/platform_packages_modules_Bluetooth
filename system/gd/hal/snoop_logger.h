@@ -146,9 +146,11 @@ class SnoopLogger : public ::bluetooth::Module {
   static const std::string kBtSnoopLogModeProperty;
   static const std::string kBtSnoopLogPersists;
   static const std::string kBtSnoopDefaultLogModeProperty;
-  static const std::string kBtSnoopLogFilterTypesProperty;
-  static const std::string kBtSnoopLogFilterProfilesPbapModeProperty;
-  static const std::string kBtSnoopLogFilterProfilesMapModeProperty;
+  static const std::string kBtSnoopLogFilterHeadersProperty;
+  static const std::string kBtSnoopLogFilterProfileA2dpProperty;
+  static const std::string kBtSnoopLogFilterProfileMapModeProperty;
+  static const std::string kBtSnoopLogFilterProfilePbapModeProperty;
+  static const std::string kBtSnoopLogFilterProfileRfcommProperty;
   static const std::string kSoCManufacturerProperty;
 
   static const std::string kBtSnoopLogModeDisabled;
@@ -157,33 +159,19 @@ class SnoopLogger : public ::bluetooth::Module {
 
   static const std::string kSoCManufacturerQualcomm;
 
-  static const std::string kBtSnoopLogFilterTypeRfcommChannelFiltered;
-  static const std::string kBtSnoopLogFilterTypeHeadersFiltered;
-  static const std::string kBtSnoopLogFilterTypeA2dpPktsFiltered;
-  static const std::string kBtSnoopLogFilterTypeProfilesFiltered;
-
-  static const std::string kBtSnoopLogFilterProfilePbap;
-  static const std::string kBtSnoopLogFilterProfileMap;
-
   static const std::string kBtSnoopLogFilterProfileModeFullfillter;
   static const std::string kBtSnoopLogFilterProfileModeHeader;
   static const std::string kBtSnoopLogFilterProfileModeMagic;
   static const std::string kBtSnoopLogFilterProfileModeDisabled;
 
-  struct SnoopFilterType {
-    const std::string name;
-    bool enabled;
-  };
+  std::unordered_map<std::string, bool> kBtSnoopLogFilterState = {
+      {kBtSnoopLogFilterHeadersProperty, false},
+      {kBtSnoopLogFilterProfileA2dpProperty, false},
+      {kBtSnoopLogFilterProfileRfcommProperty, false}};
 
-  std::vector<SnoopFilterType> kBtSnoopLogFilterTypes = {
-      {kBtSnoopLogFilterTypeRfcommChannelFiltered, false},
-      {kBtSnoopLogFilterTypeHeadersFiltered, false},
-      {kBtSnoopLogFilterTypeA2dpPktsFiltered, false},
-      {kBtSnoopLogFilterTypeProfilesFiltered, false}};
-
-  std::unordered_map<std::string, std::string> kBtSnoopLogFilterProfiles = {
-      {kBtSnoopLogFilterProfilePbap, kBtSnoopLogFilterProfileModeDisabled},
-      {kBtSnoopLogFilterProfileMap, kBtSnoopLogFilterProfileModeDisabled}};
+  std::unordered_map<std::string, std::string> kBtSnoopLogFilterMode = {
+      {kBtSnoopLogFilterProfilePbapModeProperty, kBtSnoopLogFilterProfileModeDisabled},
+      {kBtSnoopLogFilterProfileMapModeProperty, kBtSnoopLogFilterProfileModeDisabled}};
 
   // Put in header for test
   struct PacketHeaderType {
@@ -310,10 +298,6 @@ class SnoopLogger : public ::bluetooth::Module {
   void DisableFilters();
   // Check if the filter is enabled. Pass filter name as a string.
   bool IsFilterEnabled(std::string filter_name);
-  // Enable filters for each profile according to their sysprops
-  void EnableProfilesFilters();
-  // Disable filters for each profile
-  void DisableProfilesFilters();
   // Check if packet should be filtered (rfcommchannelfiltered mode)
   bool ShouldFilterLog(bool is_received, uint8_t* packet);
   // Calculate packet length (snoopheadersfiltered mode)
