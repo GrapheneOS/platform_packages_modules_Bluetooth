@@ -100,6 +100,7 @@ class MceStateMachine extends StateMachine {
     static final int MSG_GET_MESSAGE_LISTING = 2005;
     // Set message status to read or deleted
     static final int MSG_SET_MESSAGE_STATUS = 2006;
+    static final int MSG_SEARCH_OWN_NUMBER_TIMEOUT = 2007;
 
     private static final String TAG = "MceStateMachine";
     private static final Boolean DBG = MapClientService.DBG;
@@ -118,10 +119,9 @@ class MceStateMachine extends StateMachine {
     private static final String FOLDER_TELECOM = "telecom";
     private static final String FOLDER_MSG = "msg";
     private static final String FOLDER_OUTBOX = "outbox";
-    private static final String FOLDER_INBOX = "inbox";
-    private static final String FOLDER_SENT = "sent";
+    static final String FOLDER_INBOX = "inbox";
+    static final String FOLDER_SENT = "sent";
     private static final String INBOX_PATH = "telecom/msg/inbox";
-
 
     // Connectivity States
     private int mPreviousState = BluetoothProfile.STATE_DISCONNECTED;
@@ -139,6 +139,13 @@ class MceStateMachine extends StateMachine {
     private HashMap<Bmessage, PendingIntent> mDeliveryReceiptRequested =
             new HashMap<>(MAX_MESSAGES);
     private Bmessage.Type mDefaultMessageType = Bmessage.Type.SMS_CDMA;
+
+    // The amount of time for MCE to search for remote device's own phone number before:
+    // (1) MCE registering itself for being notified of the arrival of new messages; and
+    // (2) MCE start downloading existing messages off of MSE.
+    // NOTE: the value is not "final" so that it can be modified in the unit tests
+    @VisibleForTesting
+    static int sOwnNumberSearchTimeoutMs = 3_000;
 
     /**
      * An object to hold the necessary meta-data for each message so we can broadcast it alongside
@@ -199,7 +206,6 @@ class MceStateMachine extends StateMachine {
         mConnecting = new Connecting();
         mDisconnecting = new Disconnecting();
         mConnected = new Connected();
-
 
         addState(mDisconnected);
         addState(mConnecting);
@@ -537,9 +543,19 @@ class MceStateMachine extends StateMachine {
             mMasClient.makeRequest(new RequestSetPath(FOLDER_INBOX));
             mMasClient.makeRequest(new RequestGetFolderListing(0, 0));
             mMasClient.makeRequest(new RequestSetPath(false));
-            mMasClient.makeRequest(new RequestSetNotificationRegistration(true));
-            sendMessage(MSG_GET_MESSAGE_LISTING, FOLDER_SENT);
-            sendMessage(MSG_GET_MESSAGE_LISTING, FOLDER_INBOX);
+            // Start searching for remote device's own phone number. Only until either:
+            //   (a) the search completes (with or without finding the number), or
+            //   (b) the timeout expires,
+            // does the MCE:
+            //   (a) register itself for being notified of the arrival of new messages, and
+            //   (b) start downloading existing messages off of MSE.
+            // In other words, the MCE shouldn't handle any messages (new or existing) until after
+            // it has tried obtaining the remote's own phone number.
+            RequestGetMessagesListingForOwnNumber requestForOwnNumber =
+                    new RequestGetMessagesListingForOwnNumber();
+            mMasClient.makeRequest(requestForOwnNumber);
+            sendMessageDelayed(MSG_SEARCH_OWN_NUMBER_TIMEOUT, requestForOwnNumber,
+                    sOwnNumberSearchTimeoutMs);
         }
 
         @Override
@@ -620,6 +636,9 @@ class MceStateMachine extends StateMachine {
                         processMessageListing((RequestGetMessagesListing) message.obj);
                     } else if (message.obj instanceof RequestSetMessageStatus) {
                         processSetMessageStatus((RequestSetMessageStatus) message.obj);
+                    } else if (message.obj instanceof RequestGetMessagesListingForOwnNumber) {
+                        processMessageListingForOwnNumber(
+                                (RequestGetMessagesListingForOwnNumber) message.obj);
                     }
                     break;
 
@@ -628,6 +647,26 @@ class MceStateMachine extends StateMachine {
                         deferMessage(message);
                         transitionTo(mDisconnecting);
                     }
+                    break;
+
+                case MSG_SEARCH_OWN_NUMBER_TIMEOUT:
+                    Log.w(TAG, "Timeout while searching for own phone number.");
+                    // Abort any outstanding Request so it doesn't execute on MasClient
+                    RequestGetMessagesListingForOwnNumber request =
+                            (RequestGetMessagesListingForOwnNumber) message.obj;
+                    mMasClient.abortRequest(request);
+                    // Remove any executed/completed Request that MasClient has passed back to
+                    // state machine. Note: {@link StateMachine} doesn't provide a {@code
+                    // removeMessages(int what, Object obj)}, nor direct access to {@link
+                    // mSmHandler}, so this will remove *all* {@code MSG_MAS_REQUEST_COMPLETED}
+                    // messages. However, {@link RequestGetMessagesListingForOwnNumber} should be
+                    // the only MAS Request enqueued at this point, since none of the other MAS
+                    // Requests should trigger/start until after getOwnNumber has completed.
+                    removeMessages(MSG_MAS_REQUEST_COMPLETED);
+                    // If failed to complete search for remote device's own phone number,
+                    // proceed without it (i.e., register MCE for MNS and start download
+                    // of existing messages from MSE).
+                    notificationRegistrationAndStartDownloadMessages();
                     break;
 
                 default:
@@ -738,6 +777,59 @@ class MceStateMachine extends StateMachine {
                     getMessage(msg.getHandle());
                 }
             }
+        }
+
+        /**
+         * Process the result of a MessageListing request that was made specifically to obtain
+         * the remote device's own phone number.
+         *
+         * @param request - A request object that has been resolved and returned with:
+         *   - a phone number (possibly null if a number wasn't found)
+         *   - a flag indicating whether there are still messages that can be searched/requested.
+         *   - the request will automatically update itself if a number wasn't found and there are
+         *     still messages that can be searched.
+         */
+        private void processMessageListingForOwnNumber(
+                RequestGetMessagesListingForOwnNumber request) {
+
+            if (request.isSearchCompleted()) {
+                if (DBG) {
+                    Log.d(TAG, "processMessageListingForOwnNumber: search completed");
+                }
+                if (request.getOwnNumber() != null) {
+                    // A phone number was found (should be the remote device's).
+                    if (DBG) {
+                        Log.d(TAG, "processMessageListingForOwnNumber: number found = "
+                                + request.getOwnNumber());
+                    }
+                    mDatabase.setRemoteDeviceOwnNumber(request.getOwnNumber());
+                }
+                // Remove any outstanding timeouts from state machine queue
+                removeDeferredMessages(MSG_SEARCH_OWN_NUMBER_TIMEOUT);
+                removeMessages(MSG_SEARCH_OWN_NUMBER_TIMEOUT);
+                // Move on to next stage of connection process
+                notificationRegistrationAndStartDownloadMessages();
+            } else {
+                // A phone number wasn't found, but there are still additional messages that can
+                // be requested and searched.
+                if (DBG) {
+                    Log.d(TAG, "processMessageListingForOwnNumber: continuing search");
+                }
+                mMasClient.makeRequest(request);
+            }
+        }
+
+        /**
+         * (1) MCE registering itself for being notified of the arrival of new messages; and
+         * (2) MCE downloading existing messages of off MSE.
+         */
+        private void notificationRegistrationAndStartDownloadMessages() {
+            if (DBG) {
+                Log.d(TAG, "registering for notifications and starting downloads");
+            }
+            mMasClient.makeRequest(new RequestSetNotificationRegistration(true));
+            sendMessage(MSG_GET_MESSAGE_LISTING, FOLDER_SENT);
+            sendMessage(MSG_GET_MESSAGE_LISTING, FOLDER_INBOX);
         }
 
         private void processSetMessageStatus(RequestSetMessageStatus request) {
