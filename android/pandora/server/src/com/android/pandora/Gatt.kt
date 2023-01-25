@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.take
 import pandora.GATTGrpc.GATTImplBase
 import pandora.GattProto.*
 
@@ -150,9 +151,12 @@ class Gatt(private val context: Context) : GATTImplBase() {
       Log.i(TAG, "discoverServicesSdp")
       val bluetoothDevice = request.address.toBluetoothDevice(mBluetoothAdapter)
       check(bluetoothDevice.fetchUuidsWithSdp())
+      // Several ACTION_UUID could be sent and some of them are empty (null)
       flow
         .filter { it.getAction() == BluetoothDevice.ACTION_UUID }
         .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
+        .take(2)
+        .filter { bluetoothDevice.getUuids() != null }
         .first()
       val uuidsList = arrayListOf<String>()
       for (parcelUuid in bluetoothDevice.getUuids()) {

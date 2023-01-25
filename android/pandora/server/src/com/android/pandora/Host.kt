@@ -131,9 +131,9 @@ class Host(
       Log.i(TAG, "factoryReset")
 
       val stateFlow =
-      flow
-        .filter { it.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED }
-        .map { it.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) }
+        flow
+          .filter { it.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED }
+          .map { it.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) }
 
       bluetoothAdapter.clearBluetooth()
 
@@ -213,6 +213,22 @@ class Host(
       .first()
   }
 
+  suspend fun waitAclIntent(bluetoothDevice: BluetoothDevice?): Intent {
+    for (intent in intentQueue) {
+      if (
+        intent.getAction() == BluetoothDevice.ACTION_ACL_CONNECTED &&
+          (bluetoothDevice == null || intent.getBluetoothDeviceExtra() == bluetoothDevice)
+      ) {
+        intentQueue.remove(intent)
+        return intent
+      }
+    }
+    return flow
+      .filter { it.action == BluetoothDevice.ACTION_ACL_CONNECTED }
+      .filter { bluetoothDevice == null || it.getBluetoothDeviceExtra() == bluetoothDevice }
+      .first()
+  }
+
   private suspend fun acceptPairingAndAwaitBonded(bluetoothDevice: BluetoothDevice) {
     val acceptPairingJob = scope.launch { waitPairingRequestIntent(bluetoothDevice) }
     waitBondIntent(bluetoothDevice)
@@ -226,7 +242,12 @@ class Host(
     responseObserver: StreamObserver<WaitConnectionResponse>
   ) {
     grpcUnary(scope, responseObserver) {
-      val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
+      val bluetoothDevice =
+        if (!request.address.isEmpty()) {
+          request.address.toBluetoothDevice(bluetoothAdapter)
+        } else {
+          null
+        }
 
       Log.i(TAG, "waitConnection: device=$bluetoothDevice")
 
@@ -235,14 +256,42 @@ class Host(
         throw Status.UNKNOWN.asException()
       }
 
-      if (security.manuallyConfirm) {
-        waitBondIntent(bluetoothDevice)
-      } else {
-        acceptPairingAndAwaitBonded(bluetoothDevice)
-      }
+      val intent = waitAclIntent(bluetoothDevice)
 
       WaitConnectionResponse.newBuilder()
-        .setConnection(bluetoothDevice.toConnection(TRANSPORT_BREDR))
+        .setConnection(intent.getBluetoothDeviceExtra().toConnection(TRANSPORT_BREDR))
+        .build()
+    }
+  }
+
+  override fun waitLEConnection(
+    request: WaitLEConnectionRequest,
+    responseObserver: StreamObserver<WaitLEConnectionResponse>
+  ) {
+    grpcUnary(scope, responseObserver) {
+      if (request.getAddressCase() != WaitLEConnectionRequest.AddressCase.PUBLIC) {
+        Log.e(TAG, "waitLEConnection: public address not provided")
+        throw Status.UNKNOWN.asException()
+      }
+
+      val bluetoothDevice =
+        if (!request.public.isEmpty()) {
+          request.public.toBluetoothDevice(bluetoothAdapter)
+        } else {
+          null
+        }
+
+      Log.i(TAG, "waitLEConnection: device=$bluetoothDevice")
+
+      if (!bluetoothAdapter.isEnabled) {
+        Log.e(TAG, "Bluetooth is not enabled, cannot waitConnection")
+        throw Status.UNKNOWN.asException()
+      }
+
+      val intent = waitAclIntent(bluetoothDevice)
+
+      WaitLEConnectionResponse.newBuilder()
+        .setConnection(intent.getBluetoothDeviceExtra().toConnection(TRANSPORT_LE))
         .build()
     }
   }
@@ -304,16 +353,11 @@ class Host(
       when (request.connection.transport) {
         TRANSPORT_BREDR -> {
           Log.i(TAG, "disconnect BR_EDR")
-          val connectionStateChangedFlow =
-            flow
-              .filter { it.getAction() == BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED }
-              .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
-              .map {
-                it.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE, BluetoothAdapter.ERROR)
-              }
-
           bluetoothDevice.disconnect()
-          connectionStateChangedFlow.filter { it == BluetoothAdapter.STATE_DISCONNECTED }.first()
+          flow
+            .filter { it.action == BluetoothDevice.ACTION_ACL_DISCONNECTED }
+            .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
+            .first()
         }
         TRANSPORT_LE -> {
           Log.i(TAG, "disconnect LE")
@@ -448,21 +492,21 @@ class Host(
           val dataTypesRequest = request.data
 
           if (
-            !dataTypesRequest.getIncompleteServiceClassUuids16List().isEmpty() or
-              !dataTypesRequest.getIncompleteServiceClassUuids32List().isEmpty() or
-              !dataTypesRequest.getIncompleteServiceClassUuids128List().isEmpty()
+            !dataTypesRequest.getCompleteServiceClassUuids16List().isEmpty() or
+              !dataTypesRequest.getCompleteServiceClassUuids32List().isEmpty() or
+              !dataTypesRequest.getCompleteServiceClassUuids128List().isEmpty()
           ) {
-            Log.e(TAG, "Incomplete Service Class Uuids not supported")
+            Log.e(TAG, "Complete Service Class Uuids not supported")
             throw Status.UNKNOWN.asException()
           }
 
-          for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids16List()) {
+          for (service_uuid in dataTypesRequest.getIncompleteServiceClassUuids16List()) {
             advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
           }
-          for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids32List()) {
+          for (service_uuid in dataTypesRequest.getIncompleteServiceClassUuids32List()) {
             advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
           }
-          for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids128List()) {
+          for (service_uuid in dataTypesRequest.getIncompleteServiceClassUuids128List()) {
             advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
           }
 
