@@ -16,6 +16,9 @@
 
 package android.bluetooth;
 
+import android.annotation.NonNull;
+import android.bluetooth.BluetoothGatt.ConnectionPriority;
+
 /**
  * This abstract class is used to implement {@link BluetoothGattServer} callbacks.
  */
@@ -179,6 +182,16 @@ public abstract class BluetoothGattServerCallback {
      * operation succeeds.
      */
     public void onPhyRead(BluetoothDevice device, int txPhy, int rxPhy, int status) {
+    }
+
+    /**
+     * Callback indicating the connection priority was updated.
+     *
+     * @param device The remote device that requested the priority change
+     * @param priority the priority used by this connection
+     */
+    public void onPriorityChanged(@NonNull BluetoothDevice device,
+            @ConnectionPriority int priority) {
     }
 
     /**
