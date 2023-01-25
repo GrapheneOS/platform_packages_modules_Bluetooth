@@ -214,6 +214,11 @@ impl IBluetoothGattServerCallback for BluetoothGattServerCallbackDBus {
     fn on_execute_write(&self, addr: String, trans_id: i32, exec_write: bool) {
         dbus_generated!()
     }
+
+    #[dbus_method("OnNotificationSent")]
+    fn on_notification_sent(&self, addr: String, status: GattStatus) {
+        dbus_generated!()
+    }
 }
 
 // Represents Uuid128Bit as an array in D-Bus.
@@ -889,6 +894,18 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         request_id: i32,
         status: GattStatus,
         offset: i32,
+        value: Vec<u8>,
+    ) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("SendNotification")]
+    fn send_notification(
+        &self,
+        server_id: i32,
+        addr: String,
+        handle: i32,
+        confirm: bool,
         value: Vec<u8>,
     ) -> bool {
         dbus_generated!()

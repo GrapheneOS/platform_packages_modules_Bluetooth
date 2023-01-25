@@ -870,6 +870,14 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
             exec_write
         );
     }
+
+    fn on_notification_sent(&self, addr: String, status: GattStatus) {
+        print_info!(
+            "GATT notification/indication sent for addr = {} with status = {}",
+            addr,
+            status
+        );
+    }
 }
 
 impl RPCProxy for BtGattServerCallback {

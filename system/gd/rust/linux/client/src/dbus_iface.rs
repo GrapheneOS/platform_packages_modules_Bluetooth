@@ -1355,6 +1355,18 @@ impl IBluetoothGatt for BluetoothGattDBus {
     ) -> bool {
         dbus_generated!()
     }
+
+    #[dbus_method("SendNotification")]
+    fn send_notification(
+        &self,
+        server_id: i32,
+        addr: String,
+        handle: i32,
+        confirm: bool,
+        value: Vec<u8>,
+    ) -> bool {
+        dbus_generated!()
+    }
 }
 
 struct IBluetoothGattCallbackDBus {}
@@ -1506,6 +1518,9 @@ impl IBluetoothGattServerCallback for IBluetoothGattCallbackDBus {
 
     #[dbus_method("OnExecuteWrite")]
     fn on_execute_write(&self, addr: String, trans_id: i32, exec_write: bool) {}
+
+    #[dbus_method("OnNotificationSent")]
+    fn on_notification_sent(&self, addr: String, status: GattStatus) {}
 }
 
 #[dbus_propmap(BluetoothServerSocket)]
