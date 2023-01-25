@@ -1978,21 +1978,13 @@ static void btm_ble_scan_filt_param_cfg_evt(uint8_t avbl_space,
  *                  If the duration is zero, the periodic inquiry mode is
  *                  cancelled.
  *
- * Parameters:      mode - GENERAL or LIMITED inquiry
- *                  p_inq_params - pointer to the BLE inquiry parameter.
- *                  p_results_cb - callback returning pointer to results
- *                                 (tBTM_INQ_RESULTS)
- *                  p_cmpl_cb - callback indicating the end of an inquiry
- *
- *
+ * Parameters:      duration - Duration of inquiry in seconds
  *
  * Returns          BTM_CMD_STARTED if successfully started
- *                  BTM_NO_RESOURCES if could not allocate a message buffer
  *                  BTM_BUSY - if an inquiry is already active
  *
  ******************************************************************************/
 tBTM_STATUS btm_ble_start_inquiry(uint8_t duration) {
-  tBTM_STATUS status = BTM_CMD_STARTED;
   tBTM_BLE_CB* p_ble_cb = &btm_cb.ble_ctr_cb;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
@@ -2045,22 +2037,20 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t duration) {
     btm_send_hci_scan_enable(BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE);
   }
 
-  if (status == BTM_CMD_STARTED) {
-    p_inq->inq_active |= BTM_BLE_GENERAL_INQUIRY;
-    p_ble_cb->set_ble_inquiry_active();
+  p_inq->inq_active |= BTM_BLE_GENERAL_INQUIRY;
+  p_ble_cb->set_ble_inquiry_active();
 
-    BTM_TRACE_DEBUG("btm_ble_start_inquiry inq_active = 0x%02x",
-                    p_inq->inq_active);
+  BTM_TRACE_DEBUG("btm_ble_start_inquiry inq_active = 0x%02x",
+                  p_inq->inq_active);
 
-    if (duration != 0) {
-      /* start inquiry timer */
-      uint64_t duration_ms = duration * 1000;
-      alarm_set_on_mloop(p_ble_cb->inq_var.inquiry_timer, duration_ms,
-                         btm_ble_inquiry_timer_timeout, NULL);
-    }
+  if (duration != 0) {
+    /* start inquiry timer */
+    uint64_t duration_ms = duration * 1000;
+    alarm_set_on_mloop(p_ble_cb->inq_var.inquiry_timer, duration_ms,
+                       btm_ble_inquiry_timer_timeout, NULL);
   }
 
-  return status;
+  return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
