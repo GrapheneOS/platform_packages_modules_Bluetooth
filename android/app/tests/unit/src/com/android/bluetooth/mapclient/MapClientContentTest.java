@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.mapclient;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doThrow;
@@ -305,17 +307,24 @@ public class MapClientContentTest {
     }
 
     /**
-     * Test parse own phone number Attempt to parse your phone number from a received SMS message
-     * and fail Receive an MMS message and successfully parse your phone number
+     * Preconditions:
+     * - Create new {@link MapClientContent}, own phone number not initialized yet.
+     *
+     * Actions:
+     * - Invoke {@link MapClientContent#setRemoteDeviceOwnNumber} with a non-null number.
+     *
+     * Outcome:
+     * - {@link MapClientContent#mPhoneNumber} should now store the number.
      */
     @Test
-    public void testParseNumber() {
+    public void testSetRemoteDeviceOwnNumber() {
+        String testNumber = "5551212";
+
         mMapClientContent = new MapClientContent(mMockContext, mCallbacks, mTestDevice);
-        Assert.assertNull(mMapClientContent.mPhoneNumber);
-        mMapClientContent.storeMessage(mTestMessage1, mTestMessage1Handle, mTestMessage1Timestamp);
-        Assert.assertNull(mMapClientContent.mPhoneNumber);
-        mMapClientContent.storeMessage(mTestMessage2, mTestMessage1Handle, mTestMessage1Timestamp);
-        Assert.assertEquals("5551212", mMapClientContent.mPhoneNumber);
+        assertThat(mMapClientContent.mPhoneNumber).isNull();
+
+        mMapClientContent.setRemoteDeviceOwnNumber(testNumber);
+        assertThat(mMapClientContent.mPhoneNumber).isEqualTo(testNumber);
     }
 
     /**
