@@ -93,6 +93,11 @@ bt_interface_t fake_bt_iface = {
     nullptr, /* set_event_filter_inquiry_result_all_devices */
     nullptr, /* get_wbs_supported */
     nullptr, /* metadata_changed */
+    nullptr, /* interop_match_addr */
+    nullptr, /* interop_match_name */
+    nullptr, /* interop_match_addr_or_name */
+    nullptr, /* interop_database_add_remove_addr */
+    nullptr, /* interop_database_add_remove_name */
 };
 
 }  // namespace
