@@ -79,6 +79,9 @@ struct bluetooth::core::HACK_ProfileInterface HACK_profileInterface = {
 
     // LE Audio
     .IsLeAudioClientRunning = nullptr,
+
+    // AVRCP
+    .AVRC_GetProfileVersion = nullptr,
 };
 
 }  // namespace
