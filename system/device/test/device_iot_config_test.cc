@@ -79,6 +79,9 @@ class DeviceIotConfigModuleTest : public testing::Test {
       return &placeholder_alarm;
     };
 
+    test::mock::osi_properties::osi_property_get_bool.body =
+        [&](const char* key, bool default_value) -> int { return false; };
+
     test::mock::osi_alarm::alarm_set.body =
         [&](alarm_t* alarm, uint64_t interval_ms, alarm_callback_t cb,
             void* data) { return; };
@@ -205,26 +208,16 @@ TEST_F(DeviceIotConfigModuleTest,
 
 TEST_F(DeviceIotConfigModuleTest,
        test_device_iot_config_module_init_no_config) {
-  std::string enable_logging_property_get_value;
-  std::string factory_reset_property_get_value;
-  config_t* config_new_return_value = NULL;
-  config_t* config_new_empty_return_value = NULL;
-
   test::mock::osi_config::config_new.body = [&](const char* filename) {
-    return std::unique_ptr<config_t>(config_new_return_value);
+    return std::unique_ptr<config_t>(nullptr);
   };
 
   test::mock::osi_config::config_new_empty.body = [&](void) {
-    return std::unique_ptr<config_t>(config_new_empty_return_value);
+    return std::unique_ptr<config_t>(nullptr);
   };
 
   {
     mock_function_count_map.clear();
-
-    enable_logging_property_get_value = "true";
-    factory_reset_property_get_value = "false";
-    config_new_return_value = NULL;
-    config_new_empty_return_value = NULL;
 
     device_iot_config_module_init();
 
@@ -827,6 +820,9 @@ class DeviceIotConfigTest : public testing::Test {
     test::mock::osi_alarm::alarm_new.body = [&](const char* name) -> alarm_t* {
       return &placeholder_alarm;
     };
+
+    test::mock::osi_properties::osi_property_get_bool.body =
+        [&](const char* key, bool default_value) -> int { return false; };
 
     test::mock::osi_alarm::alarm_set.body =
         [&](alarm_t* alarm, uint64_t interval_ms, alarm_callback_t cb,
