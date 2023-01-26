@@ -19,7 +19,7 @@
 #include <cstdio>
 #include <memory>
 
-#include "base/callback.h"
+#include "base/functional/callback.h"
 #include "include/hardware/avrcp/avrcp.h"
 #include "include/hardware/bluetooth.h"
 #include "rust/cxx.h"

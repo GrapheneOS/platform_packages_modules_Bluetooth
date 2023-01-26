@@ -20,7 +20,7 @@
 
 extern std::map<std::string, int> mock_function_count_map;
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <hardware/bt_csis.h>
 
 #include "bta/include/bta_csis_api.h"

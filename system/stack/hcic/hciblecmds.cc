@@ -23,7 +23,7 @@
  *
  ******************************************************************************/
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <stddef.h>
 #include <string.h>
 

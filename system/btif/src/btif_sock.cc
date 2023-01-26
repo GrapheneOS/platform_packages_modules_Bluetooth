@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_btif_sock"
 
-#include <base/callback.h>
+#include <base/functional/callback.h>
 #include <base/logging.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <hardware/bluetooth.h>

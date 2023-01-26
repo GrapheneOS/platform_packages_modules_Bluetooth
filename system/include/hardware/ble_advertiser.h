@@ -17,7 +17,7 @@
 #ifndef ANDROID_INCLUDE_BLE_ADVERTISER_H
 #define ANDROID_INCLUDE_BLE_ADVERTISER_H
 
-#include <base/callback_forward.h>
+#include <base/functional/callback_forward.h>
 #include <raw_address.h>
 #include <stdint.h>
 
