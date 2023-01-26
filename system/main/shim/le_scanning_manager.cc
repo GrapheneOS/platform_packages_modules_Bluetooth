@@ -283,7 +283,7 @@ void BleScannerInterfaceImpl::MsftAdvMonitorEnable(
   msft_callbacks_.Enable = cb;
   bluetooth::shim::GetMsftExtensionManager()->MsftAdvMonitorEnable(
       enable, base::Bind(&BleScannerInterfaceImpl::OnMsftAdvMonitorEnable,
-                         base::Unretained(this)));
+                         base::Unretained(this), enable));
 }
 
 /** Callback of adding MSFT filter */
@@ -302,8 +302,15 @@ void BleScannerInterfaceImpl::OnMsftAdvMonitorRemove(
 
 /** Callback of enabling / disabling MSFT scan filter */
 void BleScannerInterfaceImpl::OnMsftAdvMonitorEnable(
-    bluetooth::hci::ErrorCode status) {
+    bool enable, bluetooth::hci::ErrorCode status) {
   LOG_INFO("in shim layer");
+
+  if (status == bluetooth::hci::ErrorCode::SUCCESS) {
+    bluetooth::shim::GetScanning()->SetScanFilterPolicy(
+        enable ? bluetooth::hci::LeScanningFilterPolicy::FILTER_ACCEPT_LIST_ONLY
+               : bluetooth::hci::LeScanningFilterPolicy::ACCEPT_ALL);
+  }
+
   msft_callbacks_.Enable.Run((uint8_t)status);
 }
 
