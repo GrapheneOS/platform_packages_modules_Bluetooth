@@ -541,6 +541,11 @@ bool UpdateOffloadingCapabilities(
       case BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC:
         codec_type_set.insert(CodecType::LDAC);
         break;
+      case BTAV_A2DP_CODEC_INDEX_SOURCE_LC3:
+        LOG(WARNING) << __func__
+                     << ": Ignore source codec_type=" << preference.codec_type
+                     << ", not implemented";
+        break;
       case BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS:
         codec_type_set.insert(CodecType::OPUS);
         break;
@@ -549,6 +554,8 @@ bool UpdateOffloadingCapabilities(
       case BTAV_A2DP_CODEC_INDEX_SINK_AAC:
         [[fallthrough]];
       case BTAV_A2DP_CODEC_INDEX_SINK_LDAC:
+        [[fallthrough]];
+      case BTAV_A2DP_CODEC_INDEX_SINK_OPUS:
         LOG(WARNING) << __func__
                      << ": Ignore sink codec_type=" << preference.codec_type;
         break;
