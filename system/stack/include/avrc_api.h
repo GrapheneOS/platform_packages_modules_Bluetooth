@@ -154,6 +154,10 @@
 #define AVRCP_CONTROLLER_VERSION_CONFIG_KEY "AvrcpControllerVersion"
 #endif
 
+#ifndef AV_REM_CTRL_FEATURES_CONFIG_KEY
+#define AV_REM_CTRL_FEATURES_CONFIG_KEY "AvrcpPeerFeatures"
+#endif
+
 /* Supported categories */
 #define AVRC_SUPF_CT_CAT1 0x0001         /* Category 1 */
 #define AVRC_SUPF_CT_CAT2 0x0002         /* Category 2 */
@@ -184,6 +188,14 @@
 #define AVRC_META_FAIL AVRC_FAIL
 #define AVRC_METADATA_CMD 0x0000
 #define AVRC_METADATA_RESP 0x0001
+
+#define AVRCP_SUPPORTED_FEATURES_POSITION 1
+#define AVRCP_BROWSE_SUPPORT_BITMASK 0x40
+#define AVRCP_MULTI_PLAYER_SUPPORT_BITMASK 0x80
+#define AVRCP_CA_SUPPORT_BITMASK 0x01
+
+#define AVRCP_FEAT_CA_BIT 0x0180
+#define AVRCP_FEAT_BRW_BIT 0x0040
 
 /*****************************************************************************
  *  data type definitions
