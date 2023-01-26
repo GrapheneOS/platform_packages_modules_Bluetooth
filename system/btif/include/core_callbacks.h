@@ -124,6 +124,9 @@ struct HACK_ProfileInterface {
   // LE Audio hacks
   bool (*IsLeAudioClientRunning)();
 
+  // AVRCP hacks
+  uint16_t (*AVRC_GetProfileVersion)();
+
   HACK_ProfileInterface(const HACK_ProfileInterface&) = delete;
   HACK_ProfileInterface& operator=(const HACK_ProfileInterface&) = delete;
 };
