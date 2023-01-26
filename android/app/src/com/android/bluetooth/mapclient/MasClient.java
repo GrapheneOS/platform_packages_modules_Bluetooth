@@ -196,6 +196,20 @@ public class MasClient {
         return true;
     }
 
+    /**
+     * Invokes {@link Request#abort} and removes it from the Handler's message queue.
+     *
+     * @param request The {@link Request} to abort.
+     */
+    public void abortRequest(Request request) {
+        if (DBG) {
+            Log.d(TAG, "abortRequest called with: " + request);
+        }
+
+        request.abort();
+        mHandler.removeMessages(REQUEST, request);
+    }
+
     public void shutdown() {
         mHandler.obtainMessage(DISCONNECT).sendToTarget();
         mThread.quitSafely();

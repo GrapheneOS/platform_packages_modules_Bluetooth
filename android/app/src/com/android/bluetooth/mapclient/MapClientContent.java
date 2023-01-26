@@ -45,7 +45,6 @@ import com.android.vcard.VCardProperty;
 
 import com.google.android.mms.pdu.PduHeaders;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -167,26 +166,12 @@ class MapClientContent {
     }
 
     /**
-     * parseLocalNumber
-     *
-     * Determine the connected phone's number by extracting it from an inbound or outbound mms
-     * message.  This number is necessary such that group messages can be displayed correctly.
+     * This number is necessary for thread_id to work properly. thread_id is needed for
+     * (group) MMS messages to be displayed/stitched correctly.
      */
-    void parseLocalNumber(Bmessage message) {
-        if (mPhoneNumber != null) {
-            return;
-        }
-        if (INBOX_PATH.equals(message.getFolder())) {
-            ArrayList<VCardEntry> recipients = message.getRecipients();
-            if (recipients != null && !recipients.isEmpty()) {
-                mPhoneNumber = PhoneNumberUtils.extractNetworkPortion(
-                        getFirstRecipientNumber(message));
-            }
-        } else {
-            mPhoneNumber = PhoneNumberUtils.extractNetworkPortion(getOriginatorNumber(message));
-        }
-
-        logV("Found phone number: " + mPhoneNumber);
+    void setRemoteDeviceOwnNumber(String phoneNumber) {
+        mPhoneNumber = phoneNumber;
+        logV("Remote device " + mDevice.getAddress() + " phone number set to: " + mPhoneNumber);
     }
 
     /**
@@ -310,7 +295,6 @@ class MapClientContent {
         logD("storeMms");
         logV(message.toString());
         try {
-            parseLocalNumber(message);
             ContentValues values = new ContentValues();
             long threadId = getThreadId(message);
             BluetoothMapbMessageMime mmsBmessage = new BluetoothMapbMessageMime();
@@ -464,6 +448,9 @@ class MapClientContent {
         if (messageContacts.isEmpty()) {
             return Telephony.Threads.COMMON_THREAD;
         } else if (messageContacts.size() > 1) {
+            if (mPhoneNumber == null) {
+                Log.w(TAG, "getThreadId called, mPhoneNumber never found.");
+            }
             messageContacts.removeIf(number -> (PhoneNumberUtils.areSamePhoneNumber(number,
                     mPhoneNumber, mTelephonyManager.getNetworkCountryIso())));
         }

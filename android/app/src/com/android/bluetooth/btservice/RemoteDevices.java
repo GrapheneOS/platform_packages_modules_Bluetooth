@@ -55,6 +55,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -988,9 +989,10 @@ final class RemoteDevices {
         BluetoothDevice device = getDevice(address);
 
         if (device == null) {
-            errorLog("aclStateChangeCallback: device is NULL, address="
+            warnLog("aclStateChangeCallback: device is NULL, address="
                     + Utils.getAddressStringFromByte(address) + ", newState=" + newState);
-            return;
+            addDeviceProperties(address);
+            device = Objects.requireNonNull(getDevice(address));
         }
 
         DeviceProperties deviceProperties = getDeviceProperties(device);
@@ -1025,6 +1027,9 @@ final class RemoteDevices {
                 intent.setPackage(mAdapterService.getString(R.string.pairing_ui_package));
                 mAdapterService.sendBroadcast(intent, BLUETOOTH_CONNECT,
                         Utils.getTempAllowlistBroadcastOptions());
+            } else if (device.getBondState() == BluetoothDevice.BOND_NONE) {
+                String key = Utils.getAddressStringFromByte(address);
+                mDevices.remove(key);
             }
             if (state == BluetoothAdapter.STATE_ON || state == BluetoothAdapter.STATE_TURNING_OFF) {
                 intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);

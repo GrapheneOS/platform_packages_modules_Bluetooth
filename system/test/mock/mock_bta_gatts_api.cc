@@ -85,3 +85,4 @@ void bta_gatts_add_service_impl(tGATT_IF server_if,
                                 BTA_GATTS_AddServiceCb cb) {
   mock_function_count_map[__func__]++;
 }
+void BTA_GATTS_InitBonded(void) { mock_function_count_map[__func__]++; }
