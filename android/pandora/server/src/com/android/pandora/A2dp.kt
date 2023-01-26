@@ -18,7 +18,6 @@ package com.android.pandora
 
 import android.bluetooth.BluetoothA2dp
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.Context
@@ -78,11 +77,6 @@ class A2dp(val context: Context) : A2DPImplBase() {
       val device = request.connection.toBluetoothDevice(bluetoothAdapter)
       Log.i(TAG, "openSource: device=$device")
 
-      if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-        Log.e(TAG, "Device is not bonded, cannot openSource")
-        throw Status.UNKNOWN.asException()
-      }
-
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
         bluetoothA2dp.connect(device)
         val state =
@@ -116,11 +110,6 @@ class A2dp(val context: Context) : A2DPImplBase() {
     grpcUnary<WaitSourceResponse>(scope, responseObserver) {
       val device = request.connection.toBluetoothDevice(bluetoothAdapter)
       Log.i(TAG, "waitSource: device=$device")
-
-      if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-        Log.e(TAG, "Device is not bonded, cannot openSource")
-        throw Status.UNKNOWN.asException()
-      }
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
         val state =

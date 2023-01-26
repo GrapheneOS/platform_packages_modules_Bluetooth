@@ -112,3 +112,9 @@ void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
 void btm_dev_consolidate_existing_connections(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
 }
+void BTM_SecDump(const std::string& label) {
+  mock_function_count_map[__func__]++;
+}
+void BTM_SecDumpDev(const RawAddress& bd_addr) {
+  mock_function_count_map[__func__]++;
+}

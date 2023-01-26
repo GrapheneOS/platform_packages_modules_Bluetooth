@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothGattCallback;
@@ -199,10 +200,11 @@ public class GattServiceBinderTest {
         int phy = 3;
 
         mBinder.clientConnect(clientIf, address, isDirect, transport, opportunistic, phy,
-                mAttributionSource, SynchronousResultReceiver.get());
+                BluetoothGatt.CONNECTION_PRIORITY_DEFAULT, mAttributionSource,
+                SynchronousResultReceiver.get());
 
         verify(mService).clientConnect(clientIf, address, isDirect, transport, opportunistic, phy,
-                mAttributionSource);
+                BluetoothGatt.CONNECTION_PRIORITY_DEFAULT, mAttributionSource);
     }
 
     @Test
