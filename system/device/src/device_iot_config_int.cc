@@ -57,8 +57,8 @@ using bluetooth::common::InitFlags;
 
 static void cleanup() {
   alarm_free(config_timer);
-  config.reset();
   config_timer = NULL;
+  config.reset();
   config = NULL;
   device_iot_config_source = NOT_LOADED;
 }
@@ -68,6 +68,9 @@ future_t* device_iot_config_module_init(void) {
   LOG_INFO("");
 
   std::unique_lock<std::mutex> lock(config_lock);
+
+  config_timer = NULL;
+  config = NULL;
 
   if (device_iot_config_is_factory_reset()) {
     device_iot_config_delete_files();
