@@ -64,6 +64,8 @@ PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilde
 
 }  // namespace
 
+namespace {
+
 class TestHciLayer : public HciLayer {
  public:
   void EnqueueCommand(
@@ -280,6 +282,7 @@ class TestHciLayer : public HciLayer {
   std::condition_variable not_empty_;
 };
 
+}  // namespace
 class ControllerTest : public ::testing::Test {
  protected:
   void SetUp() override {
