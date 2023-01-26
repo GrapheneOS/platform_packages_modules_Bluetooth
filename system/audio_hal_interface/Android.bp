@@ -34,7 +34,7 @@ cc_library_static {
             shared_libs: [
                 "libfmq",
                 "libbinder_ndk",
-                "android.hardware.bluetooth.audio-V2-ndk",
+                "android.hardware.bluetooth.audio-V3-ndk",
             ],
             srcs: [
                 "aidl/a2dp_encoding_aidl.cc",
@@ -88,7 +88,7 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
-        "android.hardware.bluetooth.audio-V2-ndk",
+        "android.hardware.bluetooth.audio-V3-ndk",
         "libbinder_ndk",
         "libcutils",
         "libfmq",
