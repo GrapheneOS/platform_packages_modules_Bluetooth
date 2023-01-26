@@ -32,6 +32,11 @@ void ReadPhyCallback(int client_if, RawAddress addr, uint8_t tx_phy, uint8_t rx_
   bluetooth::topshim::rust::read_phy_callback(client_if, addr, tx_phy, rx_phy, status);
 }
 
+void ServerReadPhyCallback(
+    int server_if, RawAddress addr, uint8_t tx_phy, uint8_t rx_phy, uint8_t status) {
+  bluetooth::topshim::rust::server_read_phy_callback(server_if, addr, tx_phy, rx_phy, status);
+}
+
 }  // namespace internal
 
 int GattClientIntf::read_phy(int client_if, RawAddress addr) {
@@ -40,6 +45,16 @@ int GattClientIntf::read_phy(int client_if, RawAddress addr) {
 
 std::unique_ptr<GattClientIntf> GetGattClientProfile(const unsigned char* gatt_intf) {
   return std::make_unique<GattClientIntf>(reinterpret_cast<const btgatt_interface_t*>(gatt_intf)->client);
+}
+
+int GattServerIntf::server_read_phy(int server_if, RawAddress addr) {
+  return server_intf_->read_phy(
+      addr, base::Bind(&internal::ServerReadPhyCallback, server_if, addr));
+}
+
+std::unique_ptr<GattServerIntf> GetGattServerProfile(const unsigned char* gatt_intf) {
+  return std::make_unique<GattServerIntf>(
+      reinterpret_cast<const btgatt_interface_t*>(gatt_intf)->server);
 }
 
 }  // namespace rust
