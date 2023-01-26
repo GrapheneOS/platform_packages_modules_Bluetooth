@@ -743,6 +743,27 @@ static bt_status_t send_at_cmd(const RawAddress* bd_addr, int cmd, int val1,
   return BT_STATUS_SUCCESS;
 }
 
+/*******************************************************************************
+ *
+ * Function         send_hfp_audio_policy
+ *
+ * Description      Send requested audio policies to remote device.
+ *
+ * Returns          bt_status_t
+ *
+ ******************************************************************************/
+static bt_status_t send_android_at(const RawAddress* bd_addr, const char* arg) {
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(*bd_addr);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
+
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
+
+  BTIF_TRACE_EVENT("%s: val1 %s", __func__, arg);
+  BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_ANDROID, 0, 0, arg);
+
+  return BT_STATUS_SUCCESS;
+}
+
 static const bthf_client_interface_t bthfClientInterface = {
     .size = sizeof(bthf_client_interface_t),
     .init = init,
@@ -763,6 +784,7 @@ static const bthf_client_interface_t bthfClientInterface = {
     .request_last_voice_tag_number = request_last_voice_tag_number,
     .cleanup = cleanup,
     .send_at_cmd = send_at_cmd,
+    .send_android_at = send_android_at,
 };
 
 static void process_ind_evt(tBTA_HF_CLIENT_IND* ind) {

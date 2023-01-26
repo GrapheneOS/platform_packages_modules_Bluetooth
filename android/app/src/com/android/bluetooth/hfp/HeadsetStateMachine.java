@@ -21,6 +21,7 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
+import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
@@ -43,6 +44,7 @@ import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -134,6 +136,7 @@ public class HeadsetStateMachine extends StateMachine {
     private final AdapterService mAdapterService;
     private final HeadsetNativeInterface mNativeInterface;
     private final HeadsetSystemInterface mSystemInterface;
+    private DatabaseManager mDatabaseManager;
 
     // Runtime states
     @VisibleForTesting
@@ -154,6 +157,10 @@ public class HeadsetStateMachine extends StateMachine {
     private boolean mNeedDialingOutReply;
     // Audio disconnect timeout retry count
     private int mAudioDisconnectRetry = 0;
+
+    static final int HFP_SET_AUDIO_POLICY = 1;
+
+    private BluetoothAudioPolicy mHsClientAudioPolicy;
 
     // Keys are AT commands, and values are the company IDs.
     private static final Map<String, Integer> VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID;
@@ -187,7 +194,21 @@ public class HeadsetStateMachine extends StateMachine {
         mSystemInterface =
                 Objects.requireNonNull(systemInterface, "systemInterface cannot be null");
         mAdapterService = Objects.requireNonNull(adapterService, "AdapterService cannot be null");
+        mDatabaseManager = Objects.requireNonNull(
+            AdapterService.getAdapterService().getDatabase(),
+            "DatabaseManager cannot be null when HeadsetClientStateMachine is created");
         mDeviceSilenced = false;
+
+        BluetoothAudioPolicy storedAudioPolicy = mDatabaseManager.getAudioPolicyMetadata(device);
+        if (storedAudioPolicy == null) {
+            Log.w(TAG, "Audio Policy not created in database! Creating...");
+            mHsClientAudioPolicy = new BluetoothAudioPolicy.Builder().build();
+            mDatabaseManager.setAudioPolicyMetadata(device, mHsClientAudioPolicy);
+        } else {
+            Log.i(TAG, "Audio Policy found in database!");
+            mHsClientAudioPolicy = storedAudioPolicy;
+        }
+
         // Create phonebook helper
         mPhonebook = new AtPhonebook(mHeadsetService, mNativeInterface);
         // Initialize state machine
@@ -241,6 +262,8 @@ public class HeadsetStateMachine extends StateMachine {
         ProfileService.println(sb, "  mMicVolume: " + mMicVolume);
         ProfileService.println(sb,
                 "  mConnectingTimestampMs(uptimeMillis): " + mConnectingTimestampMs);
+        ProfileService.println(sb, "  mHsClientAudioPolicy: " + mHsClientAudioPolicy.toString());
+
         ProfileService.println(sb, "  StateMachine: " + this);
         // Dump the state machine logs
         StringWriter stringWriter = new StringWriter();
@@ -1909,6 +1932,119 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     /**
+     * Process Android specific AT commands.
+     *
+     * @param atString AT command after the "AT+" prefix. Starts with "ANDROID"
+     * @param device Remote device that has sent this command
+     */
+    private void processAndroidAt(String atString, BluetoothDevice device) {
+        log("processAndroidSpecificAt - atString = " + atString);
+
+        if (atString.equals("+ANDROID=?")) {
+            // feature request type command
+            processAndroidAtFeatureRequest(device);
+        } else if (atString.startsWith("+ANDROID=")) {
+            // set type command
+            int equalIndex = atString.indexOf("=");
+            String arg = atString.substring(equalIndex + 1);
+
+            if (arg.isEmpty()) {
+                Log.e(TAG, "Command Invalid!");
+                mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+                return;
+            }
+
+            Object[] args = generateArgs(arg);
+
+            if (!(args[0] instanceof Integer)) {
+                Log.e(TAG, "Type ID is invalid");
+                mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+                return;
+            }
+
+            int type = (Integer) args[0];
+
+            if (type == HFP_SET_AUDIO_POLICY) {
+                processAndroidAtSetAudioPolicy(args, device);
+            } else {
+                Log.w(TAG, "Undefined AT+ANDROID command");
+                mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+                return;
+            }
+        } else {
+            Log.e(TAG, "Undefined AT+ANDROID command");
+            mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+            return;
+        }
+        mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_OK, 0);
+    }
+
+    private void processAndroidAtFeatureRequest(BluetoothDevice device) {
+        /*
+            replying with +ANDROID=1
+            here, 1 is the feature id for audio policy
+
+            currently we only support one type of feature
+        */
+        mNativeInterface.atResponseString(device,
+                BluetoothHeadset.VENDOR_RESULT_CODE_COMMAND_ANDROID
+                + ": " + HFP_SET_AUDIO_POLICY);
+    }
+
+    /**
+     * Process AT+ANDROID AT command
+     *
+     * @param args command arguments after the equal sign
+     * @param device Remote device that has sent this command
+     */
+    private void processAndroidAtSetAudioPolicy(Object[] args, BluetoothDevice device) {
+        if (args.length != 4) {
+            Log.e(TAG, "processAndroidAtSetAudioPolicy() args length must be 4: "
+                    + String.valueOf(args.length));
+            return;
+        }
+        if (!(args[1] instanceof Integer) || !(args[2] instanceof Integer)
+                || !(args[3] instanceof Integer)) {
+            Log.e(TAG, "processAndroidAtSetAudioPolicy() argument types not matched");
+            return;
+        }
+
+        if (device != mDevice) {
+            Log.e(TAG, "processAndroidAtSetAudioPolicy(): argument device " + device
+                    + " doesn't match mDevice " + mDevice);
+            return;
+        }
+
+        int callEstablishPolicy = (Integer) args[1];
+        int connectingTimePolicy = (Integer) args[2];
+        int inbandPolicy = (Integer) args[3];
+
+        setHfpCallAudioPolicy(new BluetoothAudioPolicy.Builder()
+                .setCallEstablishPolicy(callEstablishPolicy)
+                .setConnectingTimePolicy(connectingTimePolicy)
+                .setInBandRingtonePolicy(inbandPolicy)
+                .build());
+    }
+
+    /**
+     * sets the audio policy of the client device and stores in the database
+     *
+     * @param policies policies to be set and stored
+     */
+    public void setHfpCallAudioPolicy(BluetoothAudioPolicy policies) {
+        mHsClientAudioPolicy = policies;
+        mDatabaseManager.setAudioPolicyMetadata(mDevice, policies);
+    }
+
+    /**
+     * get the audio policy of the client device
+     *
+     */
+    public BluetoothAudioPolicy getHfpCallAudioPolicy() {
+        return mHsClientAudioPolicy;
+    }
+
+    /**
      * Process AT+XAPL AT command
      *
      * @param args command arguments after the equal sign
@@ -1959,6 +2095,8 @@ public class HeadsetStateMachine extends StateMachine {
             processAtCpbs(atCommand.substring(5), commandType, device);
         } else if (atCommand.startsWith("+CPBR")) {
             processAtCpbr(atCommand.substring(5), commandType, device);
+        } else if (atCommand.startsWith("+ANDROID")) {
+            processAndroidAt(atCommand, device);
         } else {
             processVendorSpecificAt(atCommand, device);
         }

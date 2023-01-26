@@ -22,6 +22,7 @@ import static android.Manifest.permission.BLUETOOTH_SCAN;
 import android.app.admin.SecurityLog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
+import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
@@ -312,6 +313,7 @@ final class RemoteDevices {
         @VisibleForTesting int mBondState;
         @VisibleForTesting int mDeviceType;
         @VisibleForTesting ParcelUuid[] mUuids;
+        private BluetoothAudioPolicy mAudioPolicy;
 
         DeviceProperties() {
             mBondState = BluetoothDevice.BOND_NONE;
@@ -498,6 +500,14 @@ final class RemoteDevices {
             synchronized (mObject) {
                 return mIsCoordinatedSetMember;
             }
+        }
+
+        public void setHfAudioPolicyForRemoteAg(BluetoothAudioPolicy policies) {
+            mAudioPolicy = policies;
+        }
+
+        public BluetoothAudioPolicy getHfAudioPolicyForRemoteAg() {
+            return mAudioPolicy;
         }
     }
 
