@@ -21,6 +21,7 @@ import static android.bluetooth.BluetoothDevice.TRANSPORT_AUTO;
 import static android.text.format.DateUtils.MINUTE_IN_MILLIS;
 import static android.text.format.DateUtils.SECOND_IN_MILLIS;
 
+import static com.android.bluetooth.ChangeIds.ENFORCE_CONNECT;
 import static com.android.bluetooth.Utils.callerIsSystem;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
@@ -39,6 +40,7 @@ import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.admin.DevicePolicyManager;
+import android.app.compat.CompatChanges;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.bluetooth.BluetoothAdapter;
@@ -2320,11 +2322,20 @@ public class AdapterService extends Service {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private int getProfileConnectionState(int profile, AttributionSource source) {
             AdapterService service = getService();
+            boolean checkConnect = false;
+            final int callingUid = Binder.getCallingUid();
+            final long token = Binder.clearCallingIdentity();
+            try {
+                checkConnect =
+                        CompatChanges.isChangeEnabled(ENFORCE_CONNECT, callingUid);
+            } finally {
+                Binder.restoreCallingIdentity(token);
+            }
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(
                             service, TAG, "getProfileConnectionState")
-                    || !Utils.checkConnectPermissionForDataDelivery(
-                            service, source, "AdapterService getProfileConnectionState")) {
+                    || (checkConnect && !Utils.checkConnectPermissionForDataDelivery(
+                            service, source, "AdapterService getProfileConnectionState"))) {
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
 
