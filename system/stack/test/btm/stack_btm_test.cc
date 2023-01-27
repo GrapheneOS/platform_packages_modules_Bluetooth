@@ -79,6 +79,10 @@ using testing::StrEq;
 using testing::StrictMock;
 using testing::Test;
 
+// NOTE: The production code allows N+1 device records.
+constexpr size_t kBtmSecMaxDeviceRecords =
+    static_cast<size_t>(BTM_SEC_MAX_DEVICE_RECORDS + 1);
+
 std::string Hex16(int n) {
   std::ostringstream oss;
   oss << "0x" << std::hex << std::setw(4) << std::setfill('0') << n;
@@ -372,4 +376,27 @@ TEST_F(StackBtmTest, btm_ble_sec_req_act_text) {
             btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_PAIR));
   ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_DISCARD",
             btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_DISCARD));
+}
+
+TEST_F(StackBtmWithInitFreeTest, btm_sec_allocate_dev_rec__all) {
+  tBTM_SEC_DEV_REC* records[kBtmSecMaxDeviceRecords];
+
+  // Fill up the records
+  for (size_t i = 0; i < kBtmSecMaxDeviceRecords; i++) {
+    ASSERT_EQ(i, list_length(btm_cb.sec_dev_rec));
+    records[i] = btm_sec_allocate_dev_rec();
+    ASSERT_NE(nullptr, records[i]);
+  }
+
+  // Second pass up the records
+  for (size_t i = 0; i < kBtmSecMaxDeviceRecords; i++) {
+    ASSERT_EQ(kBtmSecMaxDeviceRecords, list_length(btm_cb.sec_dev_rec));
+    records[i] = btm_sec_allocate_dev_rec();
+    ASSERT_NE(nullptr, records[i]);
+  }
+
+  // NOTE: The memory allocated for each record is automatically
+  // allocated by the btm module and freed when the device record
+  // list is freed.
+  // Further, the memory for each record is reused when necessary.
 }
