@@ -6454,7 +6454,7 @@ test MsftRssiEventPayload {
 
 packet MsftLeMonitorDeviceEventPayload : MsftEventPayload (msft_event_code = MSFT_LE_MONITOR_DEVICE_EVENT) {
   address_type: 8,
-  bd_addr: 48,
+  bd_addr: Address,
   monitor_handle: 8,
   monitor_state: 8,
 }
