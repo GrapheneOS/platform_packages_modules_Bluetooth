@@ -126,7 +126,7 @@ class WakelockNativeTest : public Test {
 
     WakelockNative::Get().Initialize();
 
-    auto binder_raw = AServiceManager_getService("suspend_control");
+    auto binder_raw = AServiceManager_waitForService("suspend_control");
     ASSERT_NE(binder_raw, nullptr);
     binder.set(binder_raw);
     control_service_ = ISuspendControlService::fromBinder(binder);
