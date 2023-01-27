@@ -48,7 +48,6 @@ import com.android.vcard.VCardConfig;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -78,13 +77,13 @@ public class BluetoothPbapUtilsTest {
         BluetoothMethodProxy.setInstanceForTesting(mProxy);
 
         when(mContext.getResources()).thenReturn(mResources);
-        initStaticFields();
+        clearStaticFields();
     }
 
     @After
     public void tearDown() {
         BluetoothMethodProxy.setInstanceForTesting(null);
-        initStaticFields();
+        clearStaticFields();
     }
 
     @Test
@@ -310,15 +309,11 @@ public class BluetoothPbapUtilsTest {
         }
     }
 
-    @Ignore("b/262486295")
     @Test
     public void updateSecondaryVersionCounter_whenContactsAreUpdated() {
         MatrixCursor contactCursor = new MatrixCursor(
                 new String[] {Contacts._ID, Contacts.CONTACT_LAST_UPDATED_TIMESTAMP});
         contactCursor.addRow(new Object[] {"id1", Calendar.getInstance().getTimeInMillis()});
-        contactCursor.addRow(new Object[] {"id2", Calendar.getInstance().getTimeInMillis()});
-        contactCursor.addRow(new Object[] {"id3", Calendar.getInstance().getTimeInMillis()});
-        contactCursor.addRow(new Object[] {"id4", Calendar.getInstance().getTimeInMillis()});
         doReturn(contactCursor).when(mProxy).contentResolverQuery(
                 any(), eq(Contacts.CONTENT_URI), any(), any(), any(), any());
 
@@ -326,31 +321,28 @@ public class BluetoothPbapUtilsTest {
         dataCursor.addRow(new Object[] {"id1", Phone.CONTENT_ITEM_TYPE, "01234567"});
         dataCursor.addRow(new Object[] {"id1", Email.CONTENT_ITEM_TYPE, "android@android.com"});
         dataCursor.addRow(new Object[] {"id1", StructuredPostal.CONTENT_ITEM_TYPE, "01234"});
-        dataCursor.addRow(new Object[] {"id2", StructuredName.CONTENT_ITEM_TYPE, "And Roid"});
+        dataCursor.addRow(new Object[] {"id1", StructuredName.CONTENT_ITEM_TYPE, "And Roid"});
         doReturn(dataCursor).when(mProxy).contentResolverQuery(
                 any(), eq(Data.CONTENT_URI), any(), any(), any(), any());
+        assertThat(BluetoothPbapUtils.sSecondaryVersionCounter).isEqualTo(0);
 
-        HandlerThread handlerThread = new HandlerThread("BluetoothPbapUtilsTest");
-        handlerThread.start();
-        Handler handler = new Handler(handlerThread.getLooper());
+        BluetoothPbapUtils.sTotalContacts = 1;
+        BluetoothPbapUtils.setContactFields(BluetoothPbapUtils.TYPE_NAME, "id1",
+                "test_previous_name_before_update");
 
-        try {
-            BluetoothPbapUtils.sTotalContacts = 4;
+        BluetoothPbapUtils.updateSecondaryVersionCounter(mContext, null);
 
-            BluetoothPbapUtils.updateSecondaryVersionCounter(mContext, handler);
-
-            assertThat(BluetoothPbapUtils.sContactDataset).isNotEmpty();
-        } finally {
-            handlerThread.quit();
-        }
+        assertThat(BluetoothPbapUtils.sSecondaryVersionCounter).isEqualTo(1);
     }
 
-    private static void initStaticFields() {
+    private static void clearStaticFields() {
         BluetoothPbapUtils.sPrimaryVersionCounter = 0;
         BluetoothPbapUtils.sSecondaryVersionCounter = 0;
         BluetoothPbapUtils.sContactSet.clear();
+        BluetoothPbapUtils.sContactDataset.clear();
         BluetoothPbapUtils.sTotalContacts = 0;
         BluetoothPbapUtils.sTotalFields = 0;
         BluetoothPbapUtils.sTotalSvcFields = 0;
+        BluetoothPbapUtils.sContactsLastUpdated = 0;
     }
 }
