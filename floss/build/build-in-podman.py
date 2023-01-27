@@ -16,7 +16,7 @@ class FlossPodmanRunner:
     # Commands to run for build
     BUILD_COMMANDS = [
         # First run bootstrap to get latest code + create symlinks
-        [f'{SRC_MOUNT}/build.py', '--run-bootstrap'],
+        [f'{SRC_MOUNT}/build.py', '--run-bootstrap', '--partial-staging'],
 
         # Clean up any previous artifacts inside the volume
         [f'{SRC_MOUNT}/build.py', '--target', 'clean'],
