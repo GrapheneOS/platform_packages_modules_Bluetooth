@@ -59,7 +59,7 @@ import java.util.UUID;
  * @hide
  */
 public class HeadsetClientService extends ProfileService {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String TAG = "HeadsetClientService";
 
     // This is also used as a lock for shared data in {@link HeadsetClientService}
@@ -612,8 +612,10 @@ public class HeadsetClientService extends ProfileService {
                 List<BluetoothHeadsetClientCall> defaultValue = new ArrayList<>();
                 if (service != null) {
                     List<HfpClientCall> calls = service.getCurrentCalls(device);
-                    for (HfpClientCall call : calls) {
-                        defaultValue.add(toLegacyCall(call));
+                    if (calls != null) {
+                        for (HfpClientCall call : calls) {
+                            defaultValue.add(toLegacyCall(call));
+                        }
                     }
                 }
                 receiver.send(defaultValue);
