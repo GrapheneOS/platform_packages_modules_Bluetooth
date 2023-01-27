@@ -20,11 +20,11 @@
 #define LOG_TAG "bt_hf_client"
 
 #include "bt_trace.h"  // Legacy trace logging
-
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 #include "stack/include/port_api.h"
 
 /* Uncomment to enable AT traffic dumping */
@@ -2139,19 +2139,19 @@ void bta_hf_client_send_at_bia(tBTA_HF_CLIENT_CB* client_cb) {
 
   at_len = snprintf(buf, sizeof(buf), "AT+BIA=");
 
+  const int32_t position = osi_property_get_int32(
+      "bluetooth.headsetclient.disable_indicator.position", -1);
+
   for (i = 0; i < BTA_HF_CLIENT_AT_INDICATOR_COUNT; i++) {
     int sup = client_cb->at_cb.indicator_lookup[i] == -1 ? 0 : 1;
 
-/* If this value matches the position of SIGNAL in the indicators array,
- * then hardcode disable signal strength indicators.
- * indicator_lookup[i] points to the position in the bta_hf_client_indicators
- * array defined at the top of this file */
-#ifdef BTA_HF_CLIENT_INDICATOR_SIGNAL_POS
-    if (client_cb->at_cb.indicator_lookup[i] ==
-        BTA_HF_CLIENT_INDICATOR_SIGNAL_POS) {
+    /* If this value matches the position of SIGNAL in the indicators array,
+     * then hardcode disable signal strength indicators.
+     * indicator_lookup[i] points to the position in the
+     * bta_hf_client_indicators array defined at the top of this file */
+    if (client_cb->at_cb.indicator_lookup[i] == position) {
       sup = 0;
     }
-#endif
 
     at_len += snprintf(buf + at_len, sizeof(buf) - at_len, "%u,", sup);
   }
