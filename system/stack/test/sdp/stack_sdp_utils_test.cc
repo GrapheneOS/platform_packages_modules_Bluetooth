@@ -53,8 +53,24 @@ namespace {
 // convenience mock
 class IopMock {
  public:
-  MOCK_METHOD2(InteropMatchAddr,
-               bool(const interop_feature_t, const RawAddress*));
+  MOCK_METHOD(bool, InteropMatchAddr,
+              (const interop_feature_t, const RawAddress*));
+  MOCK_METHOD(bool, InteropMatchName, (const interop_feature_t, const char*));
+  MOCK_METHOD(void, InteropDatabaseAdd, (uint16_t, const RawAddress*, size_t));
+  MOCK_METHOD(void, InteropDatabaseClear, ());
+  MOCK_METHOD(bool, InteropMatchAddrOrName,
+              (const interop_feature_t, const RawAddress*,
+               bt_status_t (*)(const RawAddress*, bt_property_t*)));
+  MOCK_METHOD(bool, InteropMatchManufacturer,
+              (const interop_feature_t, uint16_t));
+  MOCK_METHOD(bool, InteropMatchVendorProductIds,
+              (const interop_feature_t, uint16_t, uint16_t));
+  MOCK_METHOD(bool, InteropDatabaseMatchVersion,
+              (const interop_feature_t, uint16_t));
+  MOCK_METHOD(bool, InteropMatchAddrGetMaxLat,
+              (const interop_feature_t, const RawAddress*, uint16_t*));
+  MOCK_METHOD(bool, InteropGetAllowlistedMediaPlayersList, (list_t**));
+  MOCK_METHOD(int, InteropFeatureNameToFeatureId, (const char*));
 };
 
 class AvrcpVersionMock {
@@ -69,6 +85,50 @@ std::unique_ptr<AvrcpVersionMock> localAvrcpVersionMock;
 bool interop_match_addr(const interop_feature_t feature,
                         const RawAddress* addr) {
   return localIopMock->InteropMatchAddr(feature, addr);
+}
+bool interop_match_name(const interop_feature_t feature, const char* name) {
+  return localIopMock->InteropMatchName(feature, name);
+}
+void interop_database_add(uint16_t feature, const RawAddress* addr,
+                          size_t length) {
+  return localIopMock->InteropDatabaseAdd(feature, addr, length);
+}
+void interop_database_clear() { localIopMock->InteropDatabaseClear(); }
+
+bool interop_match_addr_or_name(const interop_feature_t feature,
+                                const RawAddress* addr,
+                                bt_status_t (*get_remote_device_property)(
+                                    const RawAddress*, bt_property_t*)) {
+  return localIopMock->InteropMatchAddrOrName(feature, addr,
+                                              get_remote_device_property);
+}
+
+bool interop_match_manufacturer(const interop_feature_t feature,
+                                uint16_t manufacturer) {
+  return localIopMock->InteropMatchManufacturer(feature, manufacturer);
+}
+
+bool interop_match_vendor_product_ids(const interop_feature_t feature,
+                                      uint16_t vendor_id, uint16_t product_id) {
+  return localIopMock->InteropMatchVendorProductIds(feature, vendor_id,
+                                                    product_id);
+}
+
+bool interop_database_match_version(const interop_feature_t feature,
+                                    uint16_t version) {
+  return localIopMock->InteropDatabaseMatchVersion(feature, version);
+}
+bool interop_match_addr_get_max_lat(const interop_feature_t feature,
+                                    const RawAddress* addr, uint16_t* max_lat) {
+  return localIopMock->InteropMatchAddrGetMaxLat(feature, addr, max_lat);
+}
+
+bool interop_get_allowlisted_media_players_list(list_t** p_bl_devices) {
+  return localIopMock->InteropGetAllowlistedMediaPlayersList(p_bl_devices);
+}
+
+int interop_feature_name_to_feature_id(const char* feature_name) {
+  return localIopMock->InteropFeatureNameToFeatureId(feature_name);
 }
 
 uint16_t AVRC_GetProfileVersion() {
