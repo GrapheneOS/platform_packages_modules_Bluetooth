@@ -658,6 +658,19 @@ pub trait IBluetoothGatt {
         confirm: bool,
         value: Vec<u8>,
     ) -> bool;
+
+    /// Sets preferred PHY.
+    fn server_set_preferred_phy(
+        &self,
+        server_id: i32,
+        addr: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    );
+
+    /// Reads the PHY used by a peer.
+    fn server_read_phy(&self, server_id: i32, addr: String);
 }
 
 #[derive(Debug, Default, Clone)]
@@ -1007,6 +1020,12 @@ pub trait IBluetoothGattServerCallback: RPCProxy {
 
     /// When a notification or indication has been sent to a remote device.
     fn on_notification_sent(&self, _addr: String, _status: GattStatus);
+
+    /// When there is a change of PHY.
+    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
+
+    /// The completion of IBluetoothGatt::server_read_phy.
+    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
 }
 
 /// Interface for scanner callbacks to clients, passed to
@@ -2454,6 +2473,34 @@ impl IBluetoothGatt for BluetoothGatt {
 
         true
     }
+
+    fn server_set_preferred_phy(
+        &self,
+        server_id: i32,
+        addr: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    ) {
+        (|| {
+            let address = RawAddress::from_string(addr)?;
+
+            self.gatt.as_ref().unwrap().lock().unwrap().server.set_preferred_phy(
+                &address,
+                tx_phy.to_u8().unwrap_or_default(),
+                rx_phy.to_u8().unwrap_or_default(),
+                phy_options as u16,
+            );
+
+            Some(())
+        })();
+    }
+
+    fn server_read_phy(&self, server_id: i32, addr: String) {
+        if let Some(address) = RawAddress::from_string(addr.clone()) {
+            self.gatt.as_ref().unwrap().lock().unwrap().server.read_phy(server_id, &address);
+        }
+    }
 }
 
 #[btif_callbacks_dispatcher(dispatch_gatt_client_callbacks, GattClientCallbacks)]
@@ -3079,6 +3126,19 @@ pub(crate) trait BtifGattServerCallbacks {
 
     #[btif_callback(Congestion)]
     fn congestion_cb(&mut self, conn_id: i32, congested: bool);
+
+    #[btif_callback(PhyUpdated)]
+    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: GattStatus);
+
+    #[btif_callback(ReadPhy)]
+    fn read_phy_cb(
+        &mut self,
+        server_id: i32,
+        addr: RawAddress,
+        tx_phy: u8,
+        rx_phy: u8,
+        status: GattStatus,
+    );
 }
 
 impl BtifGattServerCallbacks for BluetoothGatt {
@@ -3313,6 +3373,46 @@ impl BtifGattServerCallbacks for BluetoothGatt {
                         cb.on_notification_sent(callback.0.clone(), callback.1);
                     }
                 }
+            }
+        }
+    }
+
+    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: GattStatus) {
+        (|| {
+            let address = self.server_context_map.get_address_from_conn_id(conn_id)?;
+            let server_cbid = self.server_context_map.get_by_conn_id(conn_id)?.cbid;
+
+            if let Some(cb) = self.server_context_map.get_callback_from_callback_id(server_cbid) {
+                cb.on_phy_update(
+                    address,
+                    LePhy::from_u8(tx_phy).unwrap_or_default(),
+                    LePhy::from_u8(rx_phy).unwrap_or_default(),
+                    status,
+                );
+            }
+
+            Some(())
+        })();
+    }
+
+    fn read_phy_cb(
+        &mut self,
+        server_id: i32,
+        addr: RawAddress,
+        tx_phy: u8,
+        rx_phy: u8,
+        status: GattStatus,
+    ) {
+        if let Some(cbid) =
+            self.server_context_map.get_by_server_id(server_id).map(|server| server.cbid)
+        {
+            if let Some(cb) = self.server_context_map.get_callback_from_callback_id(cbid) {
+                cb.on_phy_read(
+                    addr.to_string(),
+                    LePhy::from_u8(tx_phy).unwrap_or_default(),
+                    LePhy::from_u8(rx_phy).unwrap_or_default(),
+                    status,
+                );
             }
         }
     }

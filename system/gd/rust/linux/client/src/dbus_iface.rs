@@ -1367,6 +1367,23 @@ impl IBluetoothGatt for BluetoothGattDBus {
     ) -> bool {
         dbus_generated!()
     }
+
+    #[dbus_method("ServerSetPreferredPhy")]
+    fn server_set_preferred_phy(
+        &self,
+        server_id: i32,
+        addr: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    ) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ServerReadPhy")]
+    fn server_read_phy(&self, server_id: i32, addr: String) {
+        dbus_generated!()
+    }
 }
 
 struct IBluetoothGattCallbackDBus {}
@@ -1521,6 +1538,12 @@ impl IBluetoothGattServerCallback for IBluetoothGattCallbackDBus {
 
     #[dbus_method("OnNotificationSent")]
     fn on_notification_sent(&self, addr: String, status: GattStatus) {}
+
+    #[dbus_method("OnPhyUpdate")]
+    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
+
+    #[dbus_method("OnPhyRead")]
+    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
 }
 
 #[dbus_propmap(BluetoothServerSocket)]

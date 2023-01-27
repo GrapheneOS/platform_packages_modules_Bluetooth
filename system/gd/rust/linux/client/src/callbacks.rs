@@ -878,6 +878,26 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
             status
         );
     }
+
+    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+        print_info!(
+            "GATT server phy updated for addr = {}: tx_phy = {:?}, rx_phy = {:?}, status = {}",
+            addr,
+            tx_phy,
+            rx_phy,
+            status
+        );
+    }
+
+    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+        print_info!(
+            "GATT server phy read for addr = {}: tx_phy = {:?}, rx_phy = {:?}, status = {}",
+            addr,
+            tx_phy,
+            rx_phy,
+            status
+        );
+    }
 }
 
 impl RPCProxy for BtGattServerCallback {

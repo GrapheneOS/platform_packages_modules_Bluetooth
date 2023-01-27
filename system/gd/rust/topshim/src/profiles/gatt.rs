@@ -615,7 +615,7 @@ pub enum GattServerCallbacks {
     IndicationSent(i32, GattStatus),
     Congestion(i32, bool),
     MtuChanged(i32, i32),
-    PhyUpdated(i32, u8, u8, u8),
+    PhyUpdated(i32, u8, u8, GattStatus),
     ConnUpdated(i32, u16, u16, u16, u8),
     ReadPhy(i32, RawAddress, u8, u8, GattStatus),
 }
@@ -865,7 +865,7 @@ cb_variant!(
 cb_variant!(
     GattServerCb,
     gs_phy_updated_cb -> GattServerCallbacks::PhyUpdated,
-    i32, u8, u8, u8, {}
+    i32, u8, u8, u8 -> GattStatus, {}
 );
 
 cb_variant!(
