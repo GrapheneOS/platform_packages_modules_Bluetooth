@@ -118,7 +118,14 @@ typedef enum {
   INTEROP_SLC_SKIP_BIND_COMMAND,
 
   // Respond AVRCP profile version only 1.3 for some device.
-  INTEROP_AVRCP_1_3_ONLY
+  INTEROP_AVRCP_1_3_ONLY,
+
+  // Some remote devices have LMP version in[5.0, 5.2] but do not support
+  // robust
+  // caching or correctly response with an error. We disable the
+  // database hash
+  // lookup for such devices.
+  INTEROP_DISABLE_ROBUST_CACHING,
 } interop_feature_t;
 
 // Check if a given |addr| matches a known interoperability workaround as
