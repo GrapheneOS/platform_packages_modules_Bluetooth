@@ -3504,7 +3504,8 @@ public class BluetoothMapContent {
         String orderBy = Contacts._ID + " ASC";
 
         // Get the contact _ID and name
-        p = mResolver.query(uri, projection, selection, null, orderBy);
+        p = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uri, projection,
+                selection, null, orderBy);
         try {
             if (p != null && p.moveToFirst()) {
                 contactId = p.getString(p.getColumnIndex(Contacts._ID));
@@ -3518,7 +3519,8 @@ public class BluetoothMapContent {
             Cursor q = null;
             // Fetch the contact e-mail addresses
             try {
-                q = mResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
+                q = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver,
+                        ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
                         ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
                         new String[]{contactId}, null);
                 if (q != null && q.moveToFirst()) {
@@ -3627,14 +3629,16 @@ public class BluetoothMapContent {
         return message.encode();
     }
 
-    private void extractMmsAddresses(long id, BluetoothMapbMessageMime message) {
+    @VisibleForTesting
+    void extractMmsAddresses(long id, BluetoothMapbMessageMime message) {
         final String[] projection = null;
         String selection = new String(Mms.Addr.MSG_ID + "=" + id);
         String uriStr = new String(Mms.CONTENT_URI + "/" + id + "/addr");
         Uri uriAddress = Uri.parse(uriStr);
         String contactName = null;
 
-        Cursor c = mResolver.query(uriAddress, projection, selection, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uriAddress,
+                projection, selection, null, null);
         try {
             if (c.moveToFirst()) {
                 do {
@@ -3709,13 +3713,15 @@ public class BluetoothMapContent {
      * @param id the content provider ID of the message
      * @param message the bMessage object to add the information to
      */
-    private void extractMmsParts(long id, BluetoothMapbMessageMime message) {
+    @VisibleForTesting
+    void extractMmsParts(long id, BluetoothMapbMessageMime message) {
         final String[] projection = null;
         String selection = new String(Mms.Part.MSG_ID + "=" + id);
         String uriStr = new String(Mms.CONTENT_URI + "/" + id + "/part");
         Uri uriAddress = Uri.parse(uriStr);
         BluetoothMapbMessageMime.MimePart part;
-        Cursor c = mResolver.query(uriAddress, projection, selection, null, null);
+        Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(mResolver, uriAddress,
+                projection, selection, null, null);
         try {
             if (c.moveToFirst()) {
                 do {
