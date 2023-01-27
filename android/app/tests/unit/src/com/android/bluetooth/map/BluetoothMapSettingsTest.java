@@ -37,6 +37,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,11 +53,11 @@ public class BluetoothMapSettingsTest {
 
     @Before
     public void setUp() {
+        Assume.assumeTrue("Ignore test when BluetoothMapService is not enabled",
+                BluetoothMapService.isEnabled());
         enableActivity(true);
-
         mIntent = new Intent();
         mIntent.setClass(mTargetContext, BluetoothMapSettings.class);
-
         mActivityScenario = ActivityScenario.launch(mIntent);
     }
 
@@ -67,7 +68,6 @@ public class BluetoothMapSettingsTest {
             Thread.sleep(1_000);
             mActivityScenario.close();
         }
-
         enableActivity(false);
     }
 
