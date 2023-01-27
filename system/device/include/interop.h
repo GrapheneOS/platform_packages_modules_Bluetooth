@@ -321,6 +321,11 @@ typedef enum {
   // during connection.
   INTEROP_DISABLE_ROLE_SWITCH_DURING_CONNECTION,
 
+  // Some remote devices have LMP version in[5.0, 5.2] but do not support robust
+  // caching or correctly response with an error. We disable the database hash
+  // lookup for such devices.
+  INTEROP_DISABLE_ROBUST_CACHING,
+
   INTEROP_HFP_1_7_ALLOWLIST,
   END_OF_INTEROP_LIST
 } interop_feature_t;
