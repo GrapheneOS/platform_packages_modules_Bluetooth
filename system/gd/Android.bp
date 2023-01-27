@@ -617,6 +617,7 @@ genrule {
         "l2cap/l2cap_packets.h",
         "security/smp_packets.h",
     ],
+    visibility: ["//visibility:public"],
 }
 
 genrule {
