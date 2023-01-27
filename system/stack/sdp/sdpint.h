@@ -264,6 +264,9 @@ extern bool sdpu_is_service_id_avrc_target(const tSDP_ATTRIBUTE* p_attr);
 extern bool spdu_is_avrcp_version_valid(const uint16_t version);
 extern void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
                                          const RawAddress* bdaddr);
+extern void sdpu_set_avrc_target_features(const tSDP_ATTRIBUTE* p_attr,
+                                          const RawAddress* bdaddr,
+                                          uint16_t profile_version);
 extern uint16_t sdpu_get_active_ccb_cid(const RawAddress& remote_bd_addr);
 extern bool sdpu_process_pend_ccb_same_cid(tCONN_CB& ccb);
 extern bool sdpu_process_pend_ccb_new_cid(tCONN_CB& ccb);
