@@ -31,6 +31,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
@@ -38,6 +39,7 @@ import android.provider.Telephony;
 import android.provider.Telephony.Threads;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
 
 import androidx.test.runner.AndroidJUnit4;
@@ -81,6 +83,7 @@ public class BluetoothMapContentTest {
     private static final String TEST_PHONE = "test_phone";
     private static final String TEST_PHONE_NAME = "test_phone_name";
     private static final long TEST_ID = 1;
+    private static final String TEST_ID_STRING = "1";
     private static final long TEST_INBOX_FOLDER_ID = BluetoothMapContract.FOLDER_ID_INBOX;
     private static final long TEST_SENT_FOLDER_ID = BluetoothMapContract.FOLDER_ID_SENT;
     private static final String TEST_SUBJECT = "subject";
@@ -106,6 +109,7 @@ public class BluetoothMapContentTest {
     private static final String TEST_YES = "yes";
     private static final String TEST_NO = "no";
     private static final String TEST_RECEPTION_STATUS = "complete";
+    private static final String TEST_EMAIL = "test@google.com";
 
     @Mock
     private BluetoothMapAccountItem mAccountItem;
@@ -1480,5 +1484,149 @@ public class BluetoothMapContentTest {
                 eq(BluetoothMapContract.BT_INSTANT_MESSAGE_PROJECTION), any(), any(), any());
 
         assertThat(mContent.msgListingHasUnread(mCurrentFolder, mParams)).isTrue();
+    }
+
+    @Test
+    public void extractMmsAddresses_withTypeMmsFrom() {
+        MatrixCursor addressCursor = new MatrixCursor(new String[] {Telephony.Mms.Addr.ADDRESS,
+                Telephony.Mms.Addr.TYPE});
+        addressCursor.addRow(new Object[] {TEST_ADDRESS, BluetoothMapContent.MMS_FROM});
+        doReturn(addressCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(Telephony.Mms.Addr.MSG_ID + "=" + TEST_ID), any(), any());
+
+        MatrixCursor contactCursor = new MatrixCursor(new String[] {ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME});
+        contactCursor.addRow(new Object[] {TEST_ID_STRING, TEST_NAME});
+        doReturn(contactCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(ContactsContract.Contacts.IN_VISIBLE_GROUP + "=1"), any(), any());
+
+        MatrixCursor emailCursor = new MatrixCursor(
+                new String[]{ContactsContract.CommonDataKinds.Email.ADDRESS});
+        emailCursor.addRow(new Object[] {TEST_EMAIL});
+        doReturn(emailCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?"), any(), any());
+
+        BluetoothMapbMessageMime mime = new BluetoothMapbMessageMime();
+        mContent.extractMmsAddresses(TEST_ID, mime);
+
+        Rfc822Token fromToken = mime.getFrom().get(0);
+        assertThat(fromToken.getName()).isEqualTo(TEST_NAME);
+        assertThat(fromToken.getAddress()).isEqualTo(TEST_ADDRESS);
+    }
+
+    @Test
+    public void extractMmsAddresses_withTypeMmsTo() {
+        MatrixCursor addressCursor = new MatrixCursor(new String[] {Telephony.Mms.Addr.ADDRESS,
+                Telephony.Mms.Addr.TYPE});
+        addressCursor.addRow(new Object[] {TEST_ADDRESS, BluetoothMapContent.MMS_TO});
+        doReturn(addressCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(Telephony.Mms.Addr.MSG_ID + "=" + TEST_ID), any(), any());
+
+        MatrixCursor contactCursor = new MatrixCursor(new String[] {ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME});
+        contactCursor.addRow(new Object[] {TEST_ID_STRING, TEST_NAME});
+        doReturn(contactCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(ContactsContract.Contacts.IN_VISIBLE_GROUP + "=1"), any(), any());
+
+        MatrixCursor emailCursor = new MatrixCursor(
+                new String[]{ContactsContract.CommonDataKinds.Email.ADDRESS});
+        emailCursor.addRow(new Object[] {TEST_EMAIL});
+        doReturn(emailCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?"), any(), any());
+
+        BluetoothMapbMessageMime mime = new BluetoothMapbMessageMime();
+        mContent.extractMmsAddresses(TEST_ID, mime);
+
+        Rfc822Token toToken = mime.getTo().get(0);
+        assertThat(toToken.getName()).isEqualTo(TEST_NAME);
+        assertThat(toToken.getAddress()).isEqualTo(TEST_ADDRESS);
+    }
+
+    @Test
+    public void extractMmsAddresses_withTypeMmsCc() {
+        MatrixCursor addressCursor = new MatrixCursor(new String[] {Telephony.Mms.Addr.ADDRESS,
+                Telephony.Mms.Addr.TYPE});
+        addressCursor.addRow(new Object[] {TEST_ADDRESS, BluetoothMapContent.MMS_CC});
+        doReturn(addressCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(Telephony.Mms.Addr.MSG_ID + "=" + TEST_ID), any(), any());
+
+        MatrixCursor contactCursor = new MatrixCursor(new String[] {ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME});
+        contactCursor.addRow(new Object[] {TEST_ID_STRING, TEST_NAME});
+        doReturn(contactCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(ContactsContract.Contacts.IN_VISIBLE_GROUP + "=1"), any(), any());
+
+        MatrixCursor emailCursor = new MatrixCursor(
+                new String[]{ContactsContract.CommonDataKinds.Email.ADDRESS});
+        emailCursor.addRow(new Object[] {TEST_EMAIL});
+        doReturn(emailCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?"), any(), any());
+
+        BluetoothMapbMessageMime mime = new BluetoothMapbMessageMime();
+        mContent.extractMmsAddresses(TEST_ID, mime);
+
+        Rfc822Token ccToken = mime.getCc().get(0);
+        assertThat(ccToken.getName()).isEqualTo(TEST_NAME);
+        assertThat(ccToken.getAddress()).isEqualTo(TEST_ADDRESS);
+    }
+
+    @Test
+    public void extractMmsAddresses_withTypeMmsBcc() {
+        MatrixCursor addressCursor = new MatrixCursor(new String[] {Telephony.Mms.Addr.ADDRESS,
+                Telephony.Mms.Addr.TYPE});
+        addressCursor.addRow(new Object[] {TEST_ADDRESS, BluetoothMapContent.MMS_BCC});
+        doReturn(addressCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(Telephony.Mms.Addr.MSG_ID + "=" + TEST_ID), any(), any());
+
+        MatrixCursor contactCursor = new MatrixCursor(new String[] {ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME});
+        contactCursor.addRow(new Object[] {TEST_ID_STRING, TEST_NAME});
+        doReturn(contactCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(ContactsContract.Contacts.IN_VISIBLE_GROUP + "=1"), any(), any());
+
+        MatrixCursor emailCursor = new MatrixCursor(
+                new String[]{ContactsContract.CommonDataKinds.Email.ADDRESS});
+        emailCursor.addRow(new Object[] {TEST_EMAIL});
+        doReturn(emailCursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(),
+                eq(ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?"), any(), any());
+
+        BluetoothMapbMessageMime mime = new BluetoothMapbMessageMime();
+        mContent.extractMmsAddresses(TEST_ID, mime);
+
+        Rfc822Token bccToken = mime.getBcc().get(0);
+        assertThat(bccToken.getName()).isEqualTo(TEST_NAME);
+        assertThat(bccToken.getAddress()).isEqualTo(TEST_ADDRESS);
+    }
+
+    @Test
+    public void extractMmsParts() {
+        MatrixCursor cursor = new MatrixCursor(
+                new String[] {BaseColumns._ID, Telephony.Mms.Part.CONTENT_TYPE,
+                        Telephony.Mms.Part.NAME, Telephony.Mms.Part.CHARSET,
+                        Telephony.Mms.Part.FILENAME, Telephony.Mms.Part.TEXT,
+                        Telephony.Mms.Part._DATA, Telephony.Mms.Part.CONTENT_ID,
+                        Telephony.Mms.Part.CONTENT_LOCATION,
+                        Telephony.Mms.Part.CONTENT_DISPOSITION});
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(),
+                eq(Uri.parse(Telephony.Mms.CONTENT_URI + "/" + TEST_ID + "/part")), any(),
+                eq(Telephony.Mms.Part.MSG_ID + "=" + TEST_ID), any(), any());
+        String filename = "test_filename";
+        String location = "test_content_location";
+        String disposition = "test_content_disposition";
+        cursor.addRow(new Object[] {TEST_ID, TEST_ATTACHMENT_MIME_TYPE, TEST_NAME, "test_charset",
+                filename, TEST_TEXT, 1, TEST_ID_STRING, location, disposition});
+
+        BluetoothMapbMessageMime mime = new BluetoothMapbMessageMime();
+        mime.setIncludeAttachments(false);
+        mContent.extractMmsParts(TEST_ID, mime);
+
+        BluetoothMapbMessageMime.MimePart part = mime.getMimeParts().get(0);
+        assertThat(part.mContentType).isEqualTo("text");
+        assertThat(part.mPartName).isEqualTo(TEST_NAME);
+        assertThat(part.mContentId).isEqualTo(TEST_ID_STRING);
+        assertThat(part.mContentLocation).isEqualTo(location);
+        assertThat(part.mContentDisposition).isEqualTo(disposition);
+        assertThat(part.mCharsetName).isEqualTo("utf-8");
+        assertThat(part.mFileName).isEqualTo(filename);
     }
 }

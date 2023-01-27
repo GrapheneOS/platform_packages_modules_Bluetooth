@@ -4,12 +4,10 @@ use dbus_crossroads::Crossroads;
 use dbus_tokio::connection;
 use futures::future;
 use lazy_static::lazy_static;
-use log::LevelFilter;
 use nix::sys::signal;
 use std::error::Error;
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
-use syslog::{BasicLogger, Facility, Formatter3164};
 use tokio::time;
 
 // Necessary to link right entries.
@@ -24,6 +22,7 @@ use btstack::{
     bluetooth::{get_bt_dispatcher, Bluetooth, IBluetooth},
     bluetooth_admin::BluetoothAdmin,
     bluetooth_gatt::BluetoothGatt,
+    bluetooth_logging::BluetoothLogging,
     bluetooth_media::BluetoothMedia,
     socket_manager::BluetoothSocketManager,
     suspend::Suspend,
@@ -39,6 +38,7 @@ mod iface_bluetooth;
 mod iface_bluetooth_admin;
 mod iface_bluetooth_gatt;
 mod iface_bluetooth_media;
+mod iface_logging;
 
 const DBUS_SERVICE_NAME: &str = "org.chromium.bluetooth";
 const ADMIN_SETTINGS_FILE_PATH: &str = "/var/lib/bluetooth/admin_policy.json";
@@ -101,23 +101,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Forward --hci to Fluoride.
     init_flags.push(format!("--hci={}", hci_index));
 
-    let level_filter = if is_debug { LevelFilter::Debug } else { LevelFilter::Info };
-
-    if log_output == "stderr" {
-        env_logger::Builder::new().filter(None, level_filter).init();
-    } else {
-        let formatter = Formatter3164 {
-            facility: Facility::LOG_USER,
-            hostname: None,
-            process: "btadapterd".into(),
-            pid: 0,
-        };
-
-        let logger = syslog::unix(formatter).expect("could not connect to syslog");
-        let _ = log::set_boxed_logger(Box::new(BasicLogger::new(logger)))
-            .map(|()| log::set_max_level(level_filter));
-    }
-
     let (tx, rx) = Stack::create_channel();
     let sig_notifier = Arc::new((Mutex::new(false), Condvar::new()));
 
@@ -157,7 +140,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth_gatt.clone(),
         tx.clone(),
     ))));
-
+    let logging = Arc::new(Mutex::new(Box::new(BluetoothLogging::new(is_debug, log_output))));
     let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(tx.clone()))));
 
     topstack::get_runtime().block_on(async {
@@ -240,6 +223,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             &mut cr.lock().unwrap(),
             disconnect_watcher.clone(),
         );
+        let logging_iface = iface_logging::export_bluetooth_logging_dbus_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
 
         // Register D-Bus method handlers of IBluetoothGatt.
         let gatt_iface = iface_bluetooth_gatt::export_bluetooth_gatt_dbus_intf(
@@ -313,6 +301,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             make_object_name(adapter_index, "admin"),
             &[admin_iface],
             bluetooth_admin.clone(),
+        );
+
+        cr.lock().unwrap().insert(
+            make_object_name(adapter_index, "logging"),
+            &[logging_iface],
+            logging.clone(),
         );
 
         // Hold locks and initialize all interfaces. This must be done AFTER DBus is
