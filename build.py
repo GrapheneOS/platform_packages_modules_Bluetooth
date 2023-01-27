@@ -606,15 +606,17 @@ class HostBuild():
 
 class Bootstrap():
 
-    def __init__(self, base_dir, bt_dir):
+    def __init__(self, base_dir, bt_dir, partial_staging):
         """ Construct bootstrapper.
 
         Args:
             base_dir: Where to stage everything.
             bt_dir: Where bluetooth source is kept (will be symlinked)
+            partial_staging: Whether to do a partial clone for staging.
         """
         self.base_dir = os.path.abspath(base_dir)
         self.bt_dir = os.path.abspath(bt_dir)
+        self.partial_staging = partial_staging
 
         # Create base directory if it doesn't already exist
         os.makedirs(self.base_dir, exist_ok=True)
@@ -659,10 +661,17 @@ class Bootstrap():
             print('{} already set-up. Updating instead.'.format(self.base_dir))
             self._update_platform2()
         else:
+            clone_options = []
+            # When doing a partial staging, we use a treeless clone which allows
+            # us to access all commits but downloads things on demand. This
+            # helps speed up the initial git clone during builds but isn't good
+            # for long-term development.
+            if self.partial_staging:
+                clone_options = ['--filter=tree:0']
             # Check out all repos in git directory
             for project in BOOTSTRAP_GIT_REPOS.keys():
                 (repo, commit) = BOOTSTRAP_GIT_REPOS[project]
-                subprocess.check_call(['git', 'clone', repo, project], cwd=self.git_dir)
+                subprocess.check_call(['git', 'clone', repo, project] + clone_options, cwd=self.git_dir)
                 # Pin to commit.
                 if commit:
                     subprocess.check_call(['git', 'checkout', commit], cwd=os.path.join(self.git_dir, project))
@@ -860,6 +869,11 @@ if __name__ == '__main__':
         '--no-vendored-rust', help='Do not use vendored rust crates', default=False, action='store_true')
     parser.add_argument('--verbose', help='Verbose logs for build.')
     parser.add_argument('--rust-debug', help='Build Rust code as debug.', default=False, action='store_true')
+    parser.add_argument(
+        '--partial-staging',
+        help='Bootstrap git repositories with partial clones. Use to speed up initial git clone for automated builds.',
+        default=False,
+        action='store_true')
     args = parser.parse_args()
 
     # Make sure we get absolute path + expanded path for bootstrap directory
@@ -871,7 +885,7 @@ if __name__ == '__main__':
         raise Exception("Only x86_64 machines are currently supported by this build script.")
 
     if args.run_bootstrap:
-        bootstrap = Bootstrap(args.bootstrap_dir, os.path.dirname(__file__))
+        bootstrap = Bootstrap(args.bootstrap_dir, os.path.dirname(__file__), args.partial_staging)
         bootstrap.bootstrap()
     elif args.print_env:
         build = HostBuild(args)
