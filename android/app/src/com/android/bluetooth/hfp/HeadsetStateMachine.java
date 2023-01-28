@@ -2009,7 +2009,7 @@ public class HeadsetStateMachine extends StateMachine {
             return;
         }
 
-        if (device != mDevice) {
+        if (!mDevice.equals(device)) {
             Log.e(TAG, "processAndroidAtSetAudioPolicy(): argument device " + device
                     + " doesn't match mDevice " + mDevice);
             return;
