@@ -173,18 +173,6 @@ struct btsnd_hcic_ble_add_device_resolving_list {
 extern struct btsnd_hcic_ble_add_device_resolving_list
     btsnd_hcic_ble_add_device_resolving_list;
 
-// Name: btsnd_hcic_ble_clear_acceptlist
-// Params: base::OnceCallback<void(uint8_t*, uint16_t
-// Return: void
-struct btsnd_hcic_ble_clear_acceptlist {
-  std::function<void(base::OnceCallback<void(uint8_t*, uint16_t)>)> body{
-      [](base::OnceCallback<void(uint8_t*, uint16_t)> cb) {}};
-  void operator()(base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
-    body(std::move(cb));
-  };
-};
-extern struct btsnd_hcic_ble_clear_acceptlist btsnd_hcic_ble_clear_acceptlist;
-
 // Name: btsnd_hcic_ble_clear_resolving_list
 // Params: void
 // Return: void
