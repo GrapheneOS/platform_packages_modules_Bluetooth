@@ -1539,11 +1539,37 @@ impl IBluetoothGattServerCallback for IBluetoothGattCallbackDBus {
     #[dbus_method("OnNotificationSent")]
     fn on_notification_sent(&self, addr: String, status: GattStatus) {}
 
+    #[dbus_method("OnMtuChanged")]
+    fn on_mtu_changed(&self, addr: String, mtu: i32) {}
+
     #[dbus_method("OnPhyUpdate")]
     fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
 
     #[dbus_method("OnPhyRead")]
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
+
+    #[dbus_method("OnConnectionUpdated")]
+    fn on_connection_updated(
+        &self,
+        addr: String,
+        interval: i32,
+        latency: i32,
+        timeout: i32,
+        status: GattStatus,
+    ) {
+    }
+
+    #[dbus_method("OnSubrateChange")]
+    fn on_subrate_change(
+        &self,
+        addr: String,
+        subrate_factor: i32,
+        latency: i32,
+        cont_num: i32,
+        timeout: i32,
+        status: GattStatus,
+    ) {
+    }
 }
 
 #[dbus_propmap(BluetoothServerSocket)]

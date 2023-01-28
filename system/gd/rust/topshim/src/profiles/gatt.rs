@@ -616,8 +616,9 @@ pub enum GattServerCallbacks {
     Congestion(i32, bool),
     MtuChanged(i32, i32),
     PhyUpdated(i32, u8, u8, GattStatus),
-    ConnUpdated(i32, u16, u16, u16, u8),
+    ConnUpdated(i32, u16, u16, u16, GattStatus),
     ReadPhy(i32, RawAddress, u8, u8, GattStatus),
+    SubrateChanged(i32, u16, u16, u16, u16, GattStatus),
 }
 
 pub struct GattClientCallbacksDispatcher {
@@ -871,13 +872,19 @@ cb_variant!(
 cb_variant!(
     GattServerCb,
     gs_conn_updated_cb -> GattServerCallbacks::ConnUpdated,
-    i32, u16, u16, u16, u8, {}
+    i32, u16, u16, u16, u8 -> GattStatus, {}
 );
 
 cb_variant!(
     GattServerCb,
     server_read_phy_callback -> GattServerCallbacks::ReadPhy,
     i32, RawAddress, u8, u8, u8 -> GattStatus);
+
+cb_variant!(
+    GattServerCb,
+    gs_subrate_chg_cb -> GattServerCallbacks::SubrateChanged,
+    i32, u16, u16, u16, u16, u8 -> GattStatus, {}
+);
 
 /// Scanning callbacks used by the GD implementation of BleScannerInterface.
 /// These callbacks should be registered using |RegisterCallbacks| on
@@ -1851,7 +1858,7 @@ impl Gatt {
             mtu_changed_cb: Some(gs_mtu_changed_cb),
             phy_updated_cb: Some(gs_phy_updated_cb),
             conn_updated_cb: Some(gs_conn_updated_cb),
-            subrate_chg_cb: None,
+            subrate_chg_cb: Some(gs_subrate_chg_cb),
         });
 
         let gatt_scanner_callbacks = Box::new(btgatt_scanner_callbacks_t {

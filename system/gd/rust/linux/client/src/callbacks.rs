@@ -879,6 +879,10 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
         );
     }
 
+    fn on_mtu_changed(&self, addr: String, mtu: i32) {
+        print_info!("GATT server MTU changed for addr = {}, mtu = {}", addr, mtu);
+    }
+
     fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
         print_info!(
             "GATT server phy updated for addr = {}: tx_phy = {:?}, rx_phy = {:?}, status = {}",
@@ -895,6 +899,44 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
             addr,
             tx_phy,
             rx_phy,
+            status
+        );
+    }
+
+    fn on_connection_updated(
+        &self,
+        addr: String,
+        interval: i32,
+        latency: i32,
+        timeout: i32,
+        status: GattStatus,
+    ) {
+        print_info!(
+            "GATT server connection updated for addr = {}, interval = {}, latency = {}, timeout = {}, status = {}",
+            addr,
+            interval,
+            latency,
+            timeout,
+            status
+        );
+    }
+
+    fn on_subrate_change(
+        &self,
+        addr: String,
+        subrate_factor: i32,
+        latency: i32,
+        cont_num: i32,
+        timeout: i32,
+        status: GattStatus,
+    ) {
+        print_info!(
+            "GATT server subrate changed for addr = {}, subrate_factor = {}, latency = {}, cont_num = {}, timeout = {}, status = {}",
+            addr,
+            subrate_factor,
+            latency,
+            cont_num,
+            timeout,
             status
         );
     }
