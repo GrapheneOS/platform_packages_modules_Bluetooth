@@ -661,6 +661,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
      */
     group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+
+    /* Clear group pending status */
+    group->ClearPendingAvailableContextsChange();
+    group->ClearPendingConfiguration();
+
     if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
     ReleaseCisIds(group);
     state_machine_callbacks_->StatusReportCb(group->group_id_,

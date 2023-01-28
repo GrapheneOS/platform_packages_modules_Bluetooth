@@ -79,7 +79,7 @@ def run_test(args):
 
 
 def run(args):
-  if not PANDORA_CF_APK.exists() or args.build:
+  if not args.skip_build:
     build_pandora_server()
   install_pandora_server(args.serial)
   instrument_process = instrument_pandora_server()
@@ -91,10 +91,9 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument("test", type=str, help="Test script path")
   parser.add_argument("config", type=str, help="Test config file path")
-  parser.add_argument("-b",
-                      "--build",
+  parser.add_argument("--skip-build",
                       action="store_true",
-                      help="Build the PandoraServer.apk")
+                      help="Skip the build of the PandoraServer.apk")
   parser.add_argument("-s",
                       "--serial",
                       type=str,
@@ -113,4 +112,5 @@ if __name__ == '__main__':
   args = parser.parse_args()
   console_level = logging.DEBUG if args.verbose else logging.INFO
   logging.basicConfig(level=console_level)
+  logging.info("/!\\ Remember to rebuild the avatar_runner each time you modify avatar (m avatar_runner). /!\\")
   run(args)
