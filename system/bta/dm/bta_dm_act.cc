@@ -353,8 +353,10 @@ void BTA_dm_on_hw_on() {
    * graceful shutdown.
    */
   bta_dm_search_cb.search_timer = alarm_new("bta_dm_search.search_timer");
+  bool delay_close_gatt =
+      osi_property_get_bool("bluetooth.gatt.delay_close.enabled", true);
   bta_dm_search_cb.gatt_close_timer =
-      alarm_new("bta_dm_search.gatt_close_timer");
+      delay_close_gatt ? alarm_new("bta_dm_search.gatt_close_timer") : nullptr;
   bta_dm_search_cb.pending_discovery_queue = fixed_queue_new(SIZE_MAX);
 
   memset(&bta_dm_conn_srvcs, 0, sizeof(bta_dm_conn_srvcs));
@@ -4001,11 +4003,20 @@ static void bta_dm_gatt_disc_complete(uint16_t conn_id, tGATT_STATUS status) {
   bta_sys_sendmsg(p_msg);
 
   if (conn_id != GATT_INVALID_CONN_ID) {
-    /* start a GATT channel close delay timer */
-    bta_sys_start_timer(bta_dm_search_cb.gatt_close_timer,
-                        BTA_DM_GATT_CLOSE_DELAY_TOUT,
-                        BTA_DM_DISC_CLOSE_TOUT_EVT, 0);
     bta_dm_search_cb.pending_close_bda = bta_dm_search_cb.peer_bdaddr;
+    // Gatt will be close immediately if bluetooth.gatt.delay_close.enabled is
+    // set to false. If property is true / unset there will be a delay
+    if (bta_dm_search_cb.gatt_close_timer != nullptr) {
+      /* start a GATT channel close delay timer */
+      bta_sys_start_timer(bta_dm_search_cb.gatt_close_timer,
+                          BTA_DM_GATT_CLOSE_DELAY_TOUT,
+                          BTA_DM_DISC_CLOSE_TOUT_EVT, 0);
+    } else {
+      p_msg = (tBTA_DM_MSG*)osi_malloc(sizeof(tBTA_DM_MSG));
+      p_msg->hdr.event = BTA_DM_DISC_CLOSE_TOUT_EVT;
+      p_msg->hdr.layer_specific = 0;
+      bta_sys_sendmsg(p_msg);
+    }
   }
   bta_dm_search_cb.gatt_disc_active = false;
 }
