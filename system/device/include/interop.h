@@ -21,6 +21,7 @@
 #include <hardware/bluetooth.h>
 #include <stdbool.h>
 
+#include "include/hardware/bluetooth.h"
 #include "osi/include/list.h"
 #include "raw_address.h"
 
@@ -320,6 +321,7 @@ typedef enum {
   // during connection.
   INTEROP_DISABLE_ROLE_SWITCH_DURING_CONNECTION,
 
+  INTEROP_HFP_1_7_ALLOWLIST,
   END_OF_INTEROP_LIST
 } interop_feature_t;
 
