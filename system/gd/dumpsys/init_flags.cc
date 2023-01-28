@@ -53,6 +53,7 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_gd_rust_is_enabled(initFlags::gd_rust_is_enabled());
   builder.add_gd_security_is_enabled(initFlags::gd_security_is_enabled());
   builder.add_get_hci_adapter(initFlags::get_hci_adapter());
+  builder.add_hfp_dynamic_version_is_enabled(initFlags::hfp_dynamic_version_is_enabled());
   builder.add_irk_rotation_is_enabled(initFlags::irk_rotation_is_enabled());
   // is_debug_logging_enabled_for_tag -- skipped in dumpsys
   builder.add_leaudio_targeted_announcement_reconnection_mode_is_enabled(

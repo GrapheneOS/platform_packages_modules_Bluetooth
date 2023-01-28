@@ -47,3 +47,44 @@ void interop_database_add(uint16_t feature, const RawAddress* addr,
   mock_function_count_map[__func__]++;
 }
 void interop_database_clear() { mock_function_count_map[__func__]++; }
+
+bool interop_match_addr_or_name(const interop_feature_t feature,
+                                const RawAddress* addr,
+                                bt_status_t (*get_remote_device_property)(
+                                    const RawAddress*, bt_property_t*)) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
+
+bool interop_match_manufacturer(const interop_feature_t feature,
+                                uint16_t manufacturer) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
+
+bool interop_match_vendor_product_ids(const interop_feature_t feature,
+                                      uint16_t vendor_id, uint16_t product_id) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
+
+bool interop_database_match_version(const interop_feature_t feature,
+                                    uint16_t version) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
+bool interop_match_addr_get_max_lat(const interop_feature_t feature,
+                                    const RawAddress* addr, uint16_t* max_lat) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
+
+bool interop_get_allowlisted_media_players_list(list_t** p_bl_devices) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
+
+int interop_feature_name_to_feature_id(const char* feature_name) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
