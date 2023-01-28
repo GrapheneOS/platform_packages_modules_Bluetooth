@@ -2696,7 +2696,7 @@ TEST_F(StateMachineTest, testStateTransitionTimeout) {
 
   // simulate timeout seconds passed, alarm executing
   fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
-  ASSERT_EQ(1, mock_function_count_map["alarm_set_on_mloop"]);
+  ASSERT_EQ(1, get_func_call_count("alarm_set_on_mloop"));
 }
 
 MATCHER_P(dataPathIsEq, expected, "") { return (arg.data_path_id == expected); }
