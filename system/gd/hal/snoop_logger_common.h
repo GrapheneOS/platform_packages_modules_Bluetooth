@@ -23,7 +23,7 @@ constexpr uint32_t kBytesToTest = 0x12345678;
 constexpr uint8_t kFirstByte = (const uint8_t&)kBytesToTest;
 constexpr bool isLittleEndian = kFirstByte == 0x78;
 constexpr bool isBigEndian = kFirstByte == 0x12;
-static_assert(isLittleEndian || isBigEndian && isLittleEndian != isBigEndian);
+static_assert((isLittleEndian || isBigEndian) && (isLittleEndian != isBigEndian));
 
 constexpr uint32_t BTSNOOP_VERSION_NUMBER = isLittleEndian ? 0x01000000 : 1;
 constexpr uint32_t BTSNOOP_DATALINK_TYPE =
