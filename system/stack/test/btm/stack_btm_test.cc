@@ -43,6 +43,7 @@
 #include "stack/include/hcidefs.h"
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_osi_list.h"
 #include "test/mock/mock_device_iot_config.h"
 #include "test/mock/mock_stack_hcic_hcicmds.h"
@@ -78,6 +79,10 @@ using testing::SaveArgPointee;
 using testing::StrEq;
 using testing::StrictMock;
 using testing::Test;
+
+// NOTE: The production code allows N+1 device records.
+constexpr size_t kBtmSecMaxDeviceRecords =
+    static_cast<size_t>(BTM_SEC_MAX_DEVICE_RECORDS + 1);
 
 std::string Hex16(int n) {
   std::ostringstream oss;
@@ -183,12 +188,12 @@ TEST_F(StackBtmTest, change_packet_type) {
     packet_types = p;
   };
   btm_set_packet_types_from_address(bda, 0x55aa);
-  ASSERT_EQ(++cnt, mock_function_count_map["btsnd_hcic_change_conn_type"]);
+  ASSERT_EQ(++cnt, get_func_call_count("btsnd_hcic_change_conn_type"));
   ASSERT_EQ(0x123, handle);
   ASSERT_EQ(Hex16(0x4400 | HCI_PKT_TYPES_MASK_DM1), Hex16(packet_types));
 
   btm_set_packet_types_from_address(bda, 0xffff);
-  ASSERT_EQ(++cnt, mock_function_count_map["btsnd_hcic_change_conn_type"]);
+  ASSERT_EQ(++cnt, get_func_call_count("btsnd_hcic_change_conn_type"));
   ASSERT_EQ(0x123, handle);
   ASSERT_EQ(Hex16(0xcc00 | HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1),
             Hex16(packet_types));
@@ -372,4 +377,27 @@ TEST_F(StackBtmTest, btm_ble_sec_req_act_text) {
             btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_PAIR));
   ASSERT_EQ("BTM_BLE_SEC_REQ_ACT_DISCARD",
             btm_ble_sec_req_act_text(BTM_BLE_SEC_REQ_ACT_DISCARD));
+}
+
+TEST_F(StackBtmWithInitFreeTest, btm_sec_allocate_dev_rec__all) {
+  tBTM_SEC_DEV_REC* records[kBtmSecMaxDeviceRecords];
+
+  // Fill up the records
+  for (size_t i = 0; i < kBtmSecMaxDeviceRecords; i++) {
+    ASSERT_EQ(i, list_length(btm_cb.sec_dev_rec));
+    records[i] = btm_sec_allocate_dev_rec();
+    ASSERT_NE(nullptr, records[i]);
+  }
+
+  // Second pass up the records
+  for (size_t i = 0; i < kBtmSecMaxDeviceRecords; i++) {
+    ASSERT_EQ(kBtmSecMaxDeviceRecords, list_length(btm_cb.sec_dev_rec));
+    records[i] = btm_sec_allocate_dev_rec();
+    ASSERT_NE(nullptr, records[i]);
+  }
+
+  // NOTE: The memory allocated for each record is automatically
+  // allocated by the btm module and freed when the device record
+  // list is freed.
+  // Further, the memory for each record is reused when necessary.
 }
