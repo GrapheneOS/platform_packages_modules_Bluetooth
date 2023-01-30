@@ -44,7 +44,7 @@ using testing::Test;
 class StackHciTest : public Test {
  public:
  protected:
-  void SetUp() override { mock_function_count_map.clear(); }
+  void SetUp() override { reset_mock_function_count_map(); }
   void TearDown() override {}
 };
 

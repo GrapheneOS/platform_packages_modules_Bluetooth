@@ -326,7 +326,7 @@ class CsisClientTest : public ::testing::Test {
 
  protected:
   void SetUp(void) override {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     bluetooth::manager::SetMockBtmInterface(&btm_interface);
     dm::SetMockBtaDmInterface(&dm_interface);
     gatt::SetMockBtaGattInterface(&gatt_interface);

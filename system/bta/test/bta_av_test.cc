@@ -30,6 +30,7 @@
 #include "common/message_loop_thread.h"
 #include "osi/include/log.h"
 #include "stack/include/btm_status.h"
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_osi_alarm.h"
 #include "test/mock/mock_stack_acl.h"
 #include "test/mock/mock_stack_btm_sec.h"
@@ -53,7 +54,7 @@ extern uint8_t appl_trace_level;
 class BtaAvTest : public testing::Test {
  protected:
   void SetUp() override {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     bluetooth::common::InitFlags::SetAllForTesting();
     appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
   }
