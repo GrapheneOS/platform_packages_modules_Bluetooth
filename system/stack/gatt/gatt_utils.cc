@@ -1137,7 +1137,7 @@ uint16_t gatt_tcb_get_payload_size_rx(tGATT_TCB& tcb, uint16_t cid) {
  * Returns         None
  *
  ******************************************************************************/
-void gatt_clcb_dealloc(tGATT_CLCB* p_clcb) {
+static void gatt_clcb_dealloc(tGATT_CLCB* p_clcb) {
   if (p_clcb) {
     alarm_free(p_clcb->gatt_rsp_timer_ent);
     gatt_clcb_invalidate(p_clcb->p_tcb, p_clcb);
