@@ -76,7 +76,7 @@ class MockGroupsCallbacks : public DeviceGroupsCallbacks {
 class GroupsTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     callbacks.reset(new MockGroupsCallbacks());
   }
 

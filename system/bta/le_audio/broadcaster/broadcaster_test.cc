@@ -195,7 +195,7 @@ class BroadcasterTest : public Test {
   void SetUp() override {
     init_message_loop_thread();
 
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     ON_CALL(controller_interface_, SupportsBleIsochronousBroadcaster)
         .WillByDefault(Return(true));
 

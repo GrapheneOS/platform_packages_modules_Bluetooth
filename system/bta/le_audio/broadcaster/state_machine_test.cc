@@ -78,7 +78,7 @@ class MockBroadcastStatMachineCallbacks
 class StateMachineTest : public Test {
  protected:
   void SetUp() override {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     BleAdvertisingManager::Initialize(nullptr);
 
     ble_advertising_manager_ = BleAdvertisingManager::Get();

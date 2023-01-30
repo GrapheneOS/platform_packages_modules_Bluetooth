@@ -89,7 +89,7 @@ class StackAvdtpTest : public ::testing::Test {
 
   void SetUp() override {
     callback_event_ = AVDT_MAX_EVT + 1;
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
   }
 
   void TearDown() override {
