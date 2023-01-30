@@ -48,7 +48,6 @@ struct btsnd_hci_ble_remove_device_from_periodic_advertiser_list
 struct btsnd_hcic_accept_cis_req btsnd_hcic_accept_cis_req;
 struct btsnd_hcic_big_term_sync btsnd_hcic_big_term_sync;
 struct btsnd_hcic_ble_add_acceptlist btsnd_hcic_ble_add_acceptlist;
-struct btsnd_hcic_ble_clear_acceptlist btsnd_hcic_ble_clear_acceptlist;
 struct btsnd_hcic_ble_create_conn_cancel btsnd_hcic_ble_create_conn_cancel;
 struct btsnd_hcic_ble_create_ll_conn btsnd_hcic_ble_create_ll_conn;
 struct btsnd_hcic_ble_enh_rx_test btsnd_hcic_ble_enh_rx_test;
@@ -176,12 +175,6 @@ void btsnd_hcic_ble_add_acceptlist(
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_add_acceptlist(
       addr_type, bda, std::move(cb));
-}
-void btsnd_hcic_ble_clear_acceptlist(
-    base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_clear_acceptlist(
-      std::move(cb));
 }
 void btsnd_hcic_ble_create_conn_cancel(void) {
   mock_function_count_map[__func__]++;
