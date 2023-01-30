@@ -6,7 +6,7 @@ java_defaults {
     name: "BluetoothInstrumentationTestsDefaults",
     defaults: ["framework-bluetooth-tests-defaults"],
 
-    min_sdk_version: "current",
+    min_sdk_version: "Tiramisu",
     target_sdk_version: "current",
     libs: [
         "javax.obex",
