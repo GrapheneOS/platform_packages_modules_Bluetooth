@@ -47,6 +47,9 @@
     <!-- string for "unknown" phone number" -->
     <string name="unknownNumber">Unknown</string>
 
+    <!-- string for "Not Provided" metadata" -->
+    <string name="not_provided">Not Provided</string>
+
     <!-- string for "the title of airplane mode error" -->
     <string name="airplane_error_title">Airplane mode</string>
     <!-- string for "error message in airplane mode" -->
