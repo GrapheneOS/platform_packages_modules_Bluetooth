@@ -5221,7 +5221,7 @@ public final class BluetoothAdapter {
     /**
      * Registers a callback to be notified when the preferred audio profile changes have taken
      * effect. To unregister this callback, call
-     * {@link #unregisterPreferredAudiProfilesChangedCallback(
+     * {@link #unregisterPreferredAudioProfilesChangedCallback(
      * PreferredAudioProfilesChangedCallback)}.
      *
      * @param executor an {@link Executor} to execute the callbacks
@@ -5313,9 +5313,9 @@ public final class BluetoothAdapter {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     @UnRegisterPreferredAudioProfilesCallbackReturnValues
-    public int unregisterPreferredAudiProfilesChangedCallback(
+    public int unregisterPreferredAudioProfilesChangedCallback(
             @NonNull PreferredAudioProfilesChangedCallback callback) {
-        if (DBG) Log.d(TAG, "unregisterPreferredAudiProfilesChangedCallback()");
+        if (DBG) Log.d(TAG, "unregisterPreferredAudioProfilesChangedCallback()");
         Objects.requireNonNull(callback, "callback cannot be null");
 
         synchronized (mAudioProfilesChangedCallbackExecutorMap) {
