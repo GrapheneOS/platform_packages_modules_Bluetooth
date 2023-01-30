@@ -1389,6 +1389,11 @@ impl IBluetooth for Bluetooth {
     }
 
     fn start_discovery(&self) -> bool {
+        // Short-circuit to avoid sending multiple start discovery calls.
+        if self.is_discovering {
+            return true;
+        }
+
         self.intf.lock().unwrap().start_discovery() == 0
     }
 
@@ -1806,6 +1811,9 @@ impl IBluetooth for Bluetooth {
         if !is_connected {
             metrics::acl_connect_attempt(addr, BtAclState::Connected);
         }
+
+        // Cancel discovery before attempting to connect (or we'll get connection failures).
+        self.cancel_discovery();
 
         // Check all remote uuids to see if they match enabled profiles and connect them.
         let mut has_enabled_uuids = false;
