@@ -97,6 +97,7 @@ void SyspropsModule::parse_config(std::string file_path) {
       "bluetooth.core.le.connection_scan_window_slow",
       "bluetooth.core.le.inquiry_scan_interval",
       "bluetooth.core.le.inquiry_scan_window",
+      "bluetooth.core.le.vendor_capabilities.enabled",
       // SCO
       "bluetooth.sco.disable_enhanced_connection",
       // Profile
