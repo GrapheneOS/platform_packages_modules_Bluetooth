@@ -41,6 +41,7 @@ class Server(context: Context) {
   private var mediaplayer: MediaPlayer
   private var pbap: Pbap
   private var rfcomm: Rfcomm
+  private var pan: Pan
   private var security: Security
   private var securityStorage: SecurityStorage
   private var androidInternal: AndroidInternal
@@ -56,6 +57,7 @@ class Server(context: Context) {
     mediaplayer = MediaPlayer(context)
     pbap = Pbap(context)
     rfcomm = Rfcomm(context)
+    pan = Pan(context)
     securityStorage = SecurityStorage(context)
     androidInternal = AndroidInternal(context)
 
@@ -69,6 +71,7 @@ class Server(context: Context) {
         .addService(mediaplayer)
         .addService(pbap)
         .addService(rfcomm)
+        .addService(pan)
         .addService(security)
         .addService(securityStorage)
         .addService(androidInternal)
@@ -116,6 +119,7 @@ class Server(context: Context) {
     mediaplayer.deinit()
     pbap.deinit()
     rfcomm.deinit()
+    pan.deinit()
     security.deinit()
     securityStorage.deinit()
     androidInternal.deinit()
