@@ -106,7 +106,8 @@ public class BluetoothOppManager {
 
     private static final String ARRAYLIST_ITEM_SEPERATOR = ";";
 
-    private static final int ALLOWED_INSERT_SHARE_THREAD_NUMBER = 3;
+    @VisibleForTesting
+    static final int ALLOWED_INSERT_SHARE_THREAD_NUMBER = 3;
 
     // used to judge if need continue sending process after received a
     // ENABLED_ACTION
