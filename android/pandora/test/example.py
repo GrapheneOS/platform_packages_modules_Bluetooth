@@ -68,6 +68,7 @@ class ExampleTest(base_test.BaseTestClass):
     # Here we check that no matter the address type we use for both sides
     # the connection still complete.
     @avatar.parameterized([
+        (OwnAddressType.RANDOM, OwnAddressType.RANDOM),
         (OwnAddressType.RANDOM, OwnAddressType.PUBLIC),
     ])
     def test_le_connect(self, dut_address_type: OwnAddressType, ref_address_type: OwnAddressType):
