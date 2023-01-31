@@ -129,7 +129,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     private BluetoothShareContentObserver mObserver;
 
     /** Class to handle Notification Manager updates */
-    private BluetoothOppNotification mNotifier;
+    @VisibleForTesting
+    BluetoothOppNotification mNotifier;
 
     private boolean mPendingUpdate;
 
@@ -265,7 +266,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         mAdapterService = AdapterService.getAdapterService();
         mObserver = new BluetoothShareContentObserver();
         getContentResolver().registerContentObserver(BluetoothShare.CONTENT_URI, true, mObserver);
-        mNotifier = new BluetoothOppNotification(this);
+        mNotifier = BluetoothMethodProxy.getInstance().newBluetoothOppNotification(this);
         mNotifier.mNotificationMgr.cancelAll();
         mNotifier.updateNotification();
         updateFromProvider();
@@ -1128,6 +1129,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         // remove the invisible/unconfirmed inbound shares
         int delNum = BluetoothMethodProxy.getInstance().contentResolverDelete(
                 contentResolver, BluetoothShare.CONTENT_URI, WHERE_INVISIBLE_UNCONFIRMED, null);
+
         if (V) {
             Log.v(TAG, "Deleted shares, number = " + delNum);
         }
