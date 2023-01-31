@@ -559,37 +559,6 @@ static void btu_hcif_log_command_metrics(uint16_t opcode, const uint8_t* p_cmd,
             android::bluetooth::hci::STATUS_UNKNOWN);
       }
       break;
-    case HCI_BLE_CLEAR_ACCEPTLIST:
-      log_link_layer_connection_event(
-          nullptr, bluetooth::common::kUnknownConnectionHandle,
-          android::bluetooth::DIRECTION_INCOMING,
-          android::bluetooth::LINK_TYPE_ACL, opcode, hci_event, kUnknownBleEvt,
-          cmd_status, android::bluetooth::hci::STATUS_UNKNOWN);
-      break;
-    case HCI_BLE_ADD_ACCEPTLIST:
-    case HCI_BLE_REMOVE_ACCEPTLIST: {
-      uint8_t peer_addr_type;
-      STREAM_TO_UINT8(peer_addr_type, p_cmd);
-      STREAM_TO_BDADDR(bd_addr, p_cmd);
-      const RawAddress* bd_addr_p = nullptr;
-      // When peer_addr_type is 0xFF, bd_addr should be ignored per BT spec
-      if (peer_addr_type != BLE_ADDR_ANONYMOUS) {
-        bd_addr_p = &bd_addr;
-        bool addr_is_rpa = peer_addr_type == BLE_ADDR_RANDOM &&
-                           BTM_BLE_IS_RESOLVE_BDA(bd_addr);
-        // Only try to match identity address for pseudo if address is not RPA
-        if (!addr_is_rpa) {
-          // if identity address is not matched, this should be a static address
-          btm_identity_addr_to_random_pseudo(&bd_addr, &peer_addr_type, false);
-        }
-      }
-      log_link_layer_connection_event(
-          bd_addr_p, bluetooth::common::kUnknownConnectionHandle,
-          android::bluetooth::DIRECTION_INCOMING,
-          android::bluetooth::LINK_TYPE_ACL, opcode, hci_event, kUnknownBleEvt,
-          cmd_status, android::bluetooth::hci::STATUS_UNKNOWN);
-      break;
-    }
     case HCI_READ_LOCAL_OOB_DATA:
       log_classic_pairing_event(RawAddress::kEmpty,
                                 bluetooth::common::kUnknownConnectionHandle,
@@ -730,20 +699,8 @@ static void btu_hcif_log_command_complete_metrics(
   uint16_t status = android::bluetooth::hci::STATUS_UNKNOWN;
   uint16_t reason = android::bluetooth::hci::STATUS_UNKNOWN;
   uint16_t hci_event = android::bluetooth::hci::EVT_COMMAND_COMPLETE;
-  uint16_t hci_ble_event = android::bluetooth::hci::BLE_EVT_UNKNOWN;
   RawAddress bd_addr = RawAddress::kEmpty;
   switch (opcode) {
-    case HCI_BLE_CLEAR_ACCEPTLIST:
-    case HCI_BLE_ADD_ACCEPTLIST:
-    case HCI_BLE_REMOVE_ACCEPTLIST: {
-      STREAM_TO_UINT8(status, p_return_params);
-      log_link_layer_connection_event(
-          nullptr, bluetooth::common::kUnknownConnectionHandle,
-          android::bluetooth::DIRECTION_INCOMING,
-          android::bluetooth::LINK_TYPE_ACL, opcode, hci_event, hci_ble_event,
-          status, reason);
-      break;
-    }
     case HCI_DELETE_STORED_LINK_KEY:
     case HCI_READ_LOCAL_OOB_DATA:
     case HCI_WRITE_SIMPLE_PAIRING_MODE:
