@@ -7,6 +7,7 @@ from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.host_grpc import Host
+from pandora_experimental.host_pb2 import OwnAddressType
 from pandora_experimental.security_grpc import Security
 from pandora_experimental.security_pb2 import LESecurityLevel
 from pandora_experimental.gatt_grpc import GATT
@@ -39,7 +40,7 @@ class HOGPProxy(ProfileProxy):
         to the PTS.
         """
 
-        self.connection = self.host.ConnectLE(public=pts_addr).connection
+        self.connection = self.host.ConnectLE(own_address_type=OwnAddressType.RANDOM, public=pts_addr).connection
         self.pairing_stream = self.security.OnPairing()
         def secure():
             self.security.Secure(connection=self.connection, le=LESecurityLevel.LE_LEVEL3)
