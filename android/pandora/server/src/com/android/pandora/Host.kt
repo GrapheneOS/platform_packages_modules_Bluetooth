@@ -25,6 +25,7 @@ import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
@@ -572,6 +573,8 @@ class Host(
               val bluetoothDevice = result.device
               val scanRecord = result.scanRecord
               val scanData = scanRecord.getAdvertisingDataMap()
+              val serviceData = scanRecord?.serviceData!!
+
               var dataTypesBuilder =
                 DataTypes.newBuilder().setTxPowerLevel(scanRecord.getTxPowerLevel())
               scanData[ScanRecord.DATA_TYPE_LOCAL_NAME_SHORT]?.let {
@@ -582,6 +585,29 @@ class Host(
                 dataTypesBuilder.setCompleteLocalName(it.decodeToString())
               }
                 ?: run { dataTypesBuilder.setIncludeCompleteLocalName(false) }
+
+              for (serviceDataEntry in serviceData) {
+                val parcelUuid = serviceDataEntry.key
+                Log.d(TAG, parcelUuid.uuid.toString())
+
+                // use upper case uuid as the key
+                if (BluetoothUuid.is16BitUuid(parcelUuid)) {
+                  val uuid16 = parcelUuid.uuid.toString().substring(4, 8).uppercase()
+                  dataTypesBuilder.addIncompleteServiceClassUuids16(uuid16)
+                  dataTypesBuilder.putServiceDataUuid16(uuid16,
+                                                        ByteString.copyFrom(serviceDataEntry.value))
+                } else if (BluetoothUuid.is32BitUuid(parcelUuid)) {
+                  val uuid32 = parcelUuid.uuid.toString().substring(0, 8).uppercase()
+                  dataTypesBuilder.addIncompleteServiceClassUuids32(uuid32)
+                  dataTypesBuilder.putServiceDataUuid32(uuid32,
+                                                        ByteString.copyFrom(serviceDataEntry.value))
+                } else {
+                  val uuid128 = parcelUuid.uuid.toString().uppercase()
+                  dataTypesBuilder.addIncompleteServiceClassUuids128(uuid128)
+                  dataTypesBuilder.putServiceDataUuid128(uuid128,
+                                                         ByteString.copyFrom(serviceDataEntry.value))
+                }
+              }
               // Flags DataTypes CSSv10 1.3 Flags
               val mode: DiscoverabilityMode =
                 when (result.scanRecord.advertiseFlags and 0b11) {
