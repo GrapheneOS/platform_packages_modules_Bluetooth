@@ -573,7 +573,7 @@ void smp_proc_pair_cmd(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
       p_cb->local_i_key = p_cb->peer_i_key;
       p_cb->local_r_key = p_cb->peer_r_key;
 
-      p_cb->cb_evt = SMP_SEC_REQUEST_EVT;
+      p_cb->cb_evt =  SMP_IO_CAP_REQ_EVT;
     } else /* update local i/r key according to pairing request */
     {
       /* pairing started with this side (peripheral) sending Security Request */
