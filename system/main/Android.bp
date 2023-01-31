@@ -90,6 +90,9 @@ cc_library {
         "system/security/keystore/include",
         "hardware/interfaces/keymaster/4.0/support/include",
     ],
+    whole_static_libs: [
+        "libbluetooth_core_rs",
+    ],
     logtags: ["../../EventLogTags.logtags"],
     // Shared library link options.
     // References to global symbols and functions should bind to the library
