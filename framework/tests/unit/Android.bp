@@ -7,7 +7,7 @@ android_test {
 
     defaults: ["framework-bluetooth-tests-defaults"],
 
-    min_sdk_version: "current",
+    min_sdk_version: "Tiramisu",
     target_sdk_version: "current",
 
     // Include all test java files.
