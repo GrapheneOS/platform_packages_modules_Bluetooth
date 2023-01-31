@@ -594,12 +594,11 @@ async fn start_interactive_shell(
                             None => break,
                         };
 
-                        if cmd.eq("quit") {
+                        if cmd == "quit" {
                             break 'readline;
                         }
 
-                        handler.process_cmd_line(&String::from(cmd), &rest.to_vec());
-
+                        handler.process_cmd_line(cmd, &rest.to_vec());
                         break;
                     }
 
