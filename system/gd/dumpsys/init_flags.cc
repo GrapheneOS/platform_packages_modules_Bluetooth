@@ -35,6 +35,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
 
   builder.add_asynchronously_start_l2cap_coc_is_enabled(initFlags::asynchronously_start_l2cap_coc_is_enabled());
   builder.add_btaa_hci_is_enabled(initFlags::btaa_hci_is_enabled());
+  builder.add_bta_dm_clear_conn_id_on_client_close_is_enabled(
+      initFlags::bta_dm_clear_conn_id_on_client_close_is_enabled());
   builder.add_btm_dm_flush_discovery_queue_on_search_cancel_is_enabled(
       initFlags::btm_dm_flush_discovery_queue_on_search_cancel_is_enabled());
   builder.add_finite_att_timeout_is_enabled(initFlags::finite_att_timeout_is_enabled());

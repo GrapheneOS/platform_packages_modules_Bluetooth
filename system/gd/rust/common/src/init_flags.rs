@@ -207,6 +207,7 @@ init_flags!(
     flags: {
         asynchronously_start_l2cap_coc = true,
         btaa_hci = true,
+        bta_dm_clear_conn_id_on_client_close = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
         finite_att_timeout = true,
         gatt_robust_caching_client = true,
