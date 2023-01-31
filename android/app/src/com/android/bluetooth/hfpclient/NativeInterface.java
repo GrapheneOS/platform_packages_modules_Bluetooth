@@ -266,6 +266,17 @@ public class NativeInterface {
         return sendATCmdNative(getByteAddress(device), atCmd, val1, val2, arg);
     }
 
+    /**
+     * Set call audio policy to the specified paired device
+     *
+     * @param cmd Android specific command string
+     * @return True on success, False on failure
+     */
+    @VisibleForTesting
+    public boolean sendAndroidAt(BluetoothDevice device, String cmd) {
+        return sendAndroidAtNative(getByteAddress(device), cmd);
+    }
+
     // Native methods that call into the JNI interface
     private static native void classInitNative();
 
@@ -305,6 +316,8 @@ public class NativeInterface {
 
     private static native boolean sendATCmdNative(byte[] address, int atCmd, int val1, int val2,
             String arg);
+
+    private static native boolean sendAndroidAtNative(byte[] address, String cmd);
 
     private BluetoothDevice getDevice(byte[] address) {
         return mAdapterService.getDeviceFromByte(address);

@@ -392,6 +392,9 @@ typedef struct {
   /** Send AT Command. */
   bt_status_t (*send_at_cmd)(const RawAddress* bd_addr, int cmd, int val1,
                              int val2, const char* arg);
+
+  /** Send hfp audio policy to remote */
+  bt_status_t (*send_android_at)(const RawAddress* bd_addr, const char* arg);
 } bthf_client_interface_t;
 
 __END_DECLS

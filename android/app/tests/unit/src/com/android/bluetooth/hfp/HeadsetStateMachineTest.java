@@ -51,6 +51,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
@@ -86,6 +87,7 @@ public class HeadsetStateMachineTest {
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
 
     @Mock private AdapterService mAdapterService;
+    @Mock private DatabaseManager mDatabaseManager;
     @Mock private HeadsetService mHeadsetService;
     @Mock private HeadsetSystemInterface mSystemInterface;
     @Mock private AudioManager mAudioManager;
@@ -109,6 +111,9 @@ public class HeadsetStateMachineTest {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // Get a device for testing
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
+        // Get a database
+        doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
+        doReturn(true).when(mDatabaseManager).setAudioPolicyMetadata(anyObject(), anyObject());
         // Spy on native interface
         mNativeInterface = spy(HeadsetNativeInterface.getInstance());
         doNothing().when(mNativeInterface).init(anyInt(), anyBoolean());
@@ -1437,6 +1442,22 @@ public class HeadsetStateMachineTest {
     }
 
     /**
+     * A test to validate received Android AT commands and processing
+     */
+    @Test
+    public void testProcessAndroidAt() {
+        setUpConnectedState();
+        // setup Audio Policy Feature
+        setUpAudioPolicy();
+        // receive and set android policy
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_UNKNOWN_AT,
+                        "+ANDROID=1,1,1,1", mTestDevice));
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
+                .setAudioPolicyMetadata(anyObject(), anyObject());
+    }
+
+    /**
      * Setup Connecting State
      * @return number of times mHeadsetService.sendBroadcastAsUser() has been invoked
      */
@@ -1549,5 +1570,13 @@ public class HeadsetStateMachineTest {
         Assert.assertThat(mHeadsetStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetStateMachine.Disconnecting.class));
         return numBroadcastsSent;
+    }
+
+    private void setUpAudioPolicy() {
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_UNKNOWN_AT,
+                        "+ANDROID=?", mTestDevice));
+        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).atResponseString(
+                anyObject(), anyString());
     }
 }
