@@ -1163,10 +1163,8 @@ static void CreateBroadcastNative(JNIEnv* env, jobject object,
       return;
     }
 
-    // Padding with zeros on LSB positions if code is shorter than 16 octets
-    env->GetByteArrayRegion(
-        broadcast_code, 0, size,
-        (jbyte*)code_array.data() + code_array.size() - size);
+    // Padding with zeros on MSB positions if code is shorter than 16 octets
+    env->GetByteArrayRegion(broadcast_code, 0, size, (jbyte*)code_array.data());
   }
 
   jbyte* meta = env->GetByteArrayElements(metadata, nullptr);
