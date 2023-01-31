@@ -31,6 +31,7 @@ import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -146,9 +147,44 @@ public class MediaPlayerList {
                 mContext.getMainExecutor(), mMediaKeyEventSessionChangedListener);
     }
 
+    private void constructCurrentPlayers() {
+        // Construct the list of current players
+        d("Initializing list of current media players");
+        List<android.media.session.MediaController> controllers =
+                mMediaSessionManager.getActiveSessions(null);
+
+        for (android.media.session.MediaController controller : controllers) {
+            addMediaPlayer(controller);
+        }
+
+        // If there were any active players and we don't already have one due to the Media
+        // Framework Callbacks then set the highest priority one to active
+        if (mActivePlayerId == 0 && mMediaPlayers.size() > 0) {
+            String packageName = mMediaSessionManager.getMediaKeyEventSessionPackageName();
+            if (!TextUtils.isEmpty(packageName) && haveMediaPlayer(packageName)) {
+                Log.i(TAG, "Set active player to MediaKeyEvent session = " + packageName);
+                setActivePlayer(mMediaPlayerIds.get(packageName));
+            } else {
+                Log.i(TAG, "Set active player to first default");
+                setActivePlayer(1);
+            }
+        }
+    }
+
     public void init(MediaUpdateCallback callback) {
         Log.v(TAG, "Initializing MediaPlayerList");
         mCallback = callback;
+
+        if (!SystemProperties.getBoolean("bluetooth.avrcp.browsable_media_player.enabled", true)) {
+            // Allow to disable BrowsablePlayerConnector with systemproperties.
+            // This is useful when for watches because:
+            //   1. It is not a regular use case
+            //   2. Registering to all players is a very loading task
+
+            Log.i(TAG, "init: without Browsable Player");
+            constructCurrentPlayers();
+            return;
+        }
 
         // Build the list of browsable players and afterwards, build the list of media players
         Intent intent = new Intent(android.service.media.MediaBrowserService.SERVICE_INTERFACE);
@@ -185,27 +221,7 @@ public class MediaPlayerList {
                             });
                 }
 
-                // Construct the list of current players
-                d("Initializing list of current media players");
-                List<android.media.session.MediaController> controllers =
-                        mMediaSessionManager.getActiveSessions(null);
-
-                for (android.media.session.MediaController controller : controllers) {
-                    addMediaPlayer(controller);
-                }
-
-                // If there were any active players and we don't already have one due to the Media
-                // Framework Callbacks then set the highest priority one to active
-                if (mActivePlayerId == 0 && mMediaPlayers.size() > 0) {
-                    String packageName = mMediaSessionManager.getMediaKeyEventSessionPackageName();
-                    if (!TextUtils.isEmpty(packageName) && haveMediaPlayer(packageName)) {
-                        Log.i(TAG, "Set active player to MediaKeyEvent session = " + packageName);
-                        setActivePlayer(mMediaPlayerIds.get(packageName));
-                    } else {
-                        Log.i(TAG, "Set active player to first default");
-                        setActivePlayer(1);
-                    }
-                }
+                constructCurrentPlayers();
             });
     }
 
