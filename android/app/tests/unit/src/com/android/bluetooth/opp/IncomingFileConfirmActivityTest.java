@@ -36,6 +36,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.view.KeyEvent;
 
 import androidx.lifecycle.Lifecycle;
 import androidx.test.core.app.ActivityScenario;
@@ -58,6 +59,7 @@ import org.mockito.Spy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // Long class name cause problem with Junit4. It will raise java.lang.NoClassDefFoundError
 @RunWith(AndroidJUnit4.class)
@@ -137,7 +139,8 @@ public class IncomingFileConfirmActivityTest {
 
         ActivityScenario<BluetoothOppIncomingFileConfirmActivity> activityScenario
                 = ActivityScenario.launch(mIntent);
-        activityScenario.onActivity(activity -> {});
+        activityScenario.onActivity(activity -> {
+        });
 
         // To work around (possibly) ActivityScenario's bug.
         // The dialog button is clicked (no error throw) but onClick() is not triggered.
@@ -188,6 +191,29 @@ public class IncomingFileConfirmActivityTest {
         // The dialog button is clicked (no error throw) but onClick() is not triggered.
         // It works normally if sleep for a few seconds
         Thread.sleep(3_000);
+        assertThat(scenario.getState()).isEqualTo(Lifecycle.State.DESTROYED);
+    }
+
+    @Test
+    public void onKeyDown() throws Exception {
+        BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
+        ActivityScenario<BluetoothOppIncomingFileConfirmActivity> scenario =
+                ActivityScenario.launch(mIntent);
+        AtomicBoolean atomicBoolean = new AtomicBoolean();
+        scenario.onActivity(activity -> {
+            atomicBoolean.set(activity.onKeyDown(KeyEvent.KEYCODE_A,
+                    new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_A)));
+        });
+
+        assertThat(atomicBoolean.get()).isFalse();
+        assertThat(scenario.getState()).isNotEqualTo(Lifecycle.State.DESTROYED);
+
+        scenario.onActivity(activity -> {
+            atomicBoolean.set(activity.onKeyDown(KeyEvent.KEYCODE_BACK,
+                    new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK)));
+        });
+
+        assertThat(atomicBoolean.get()).isTrue();
         assertThat(scenario.getState()).isEqualTo(Lifecycle.State.DESTROYED);
     }
 }
