@@ -367,7 +367,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
             }
             _ => {
-                start_interactive_shell(handler, tx, rx, context).await;
+                start_interactive_shell(handler, tx, rx, context).await?;
             }
         };
         return Result::Ok(());
@@ -379,7 +379,7 @@ async fn start_interactive_shell(
     tx: mpsc::Sender<ForegroundActions>,
     mut rx: mpsc::Receiver<ForegroundActions>,
     context: Arc<Mutex<ClientContext>>,
-) {
+) -> Result<(), Box<dyn std::error::Error>> {
     let command_rule_list = handler.get_command_rule_list().clone();
     let context_for_closure = context.clone();
 
@@ -387,9 +387,9 @@ async fn start_interactive_shell(
 
     // Async task to keep reading new lines from user
     let semaphore = semaphore_fg.clone();
+    let editor = AsyncEditor::new(command_rule_list, context_for_closure)
+        .map_err(|x| format!("creating async editor failed: {x}"))?;
     tokio::spawn(async move {
-        let editor = AsyncEditor::new(command_rule_list, context_for_closure);
-
         loop {
             // Wait until ForegroundAction::Readline finishes its task.
             let permit = semaphore.acquire().await;
@@ -613,4 +613,5 @@ async fn start_interactive_shell(
     semaphore_fg.close();
 
     print_info!("Client exiting");
+    Ok(())
 }
