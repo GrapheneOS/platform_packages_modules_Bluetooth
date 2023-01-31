@@ -1744,7 +1744,7 @@ public class ScanManager {
             // controller based onfound onlost resources are scarce commodity; the
             // assignment of filters to num of beacons to track is configurable based
             // on hw capabilities. Apps give an intent and allocation of onfound
-            // resources or failure there of is done based on availibility - FCFS model
+            // resources or failure there of is done based on availability - FCFS model
             switch (settings.getNumOfMatches()) {
                 case ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT:
                     val = 1;
