@@ -8,8 +8,18 @@ package {
 }
 
 filegroup {
+    name: "BluetoothHciPacketSources",
+    srcs: [
+        "address.cc",
+        "class_of_device.cc",
+    ],
+    visibility: ["//visibility:public"],
+}
+
+filegroup {
     name: "BluetoothHciSources",
     srcs: [
+        ":BluetoothHciPacketSources",
         "acl_manager/acl_connection.cc",
         "acl_manager/acl_scheduler.cc",
         "acl_manager/classic_acl_connection.cc",
@@ -17,8 +27,6 @@ filegroup {
         "acl_manager/round_robin_scheduler.cc",
         "acl_manager/acl_fragmenter.cc",
         "acl_manager.cc",
-        "address.cc",
-        "class_of_device.cc",
         "controller.cc",
         "hci_layer.cc",
         "hci_metrics_logging.cc",
