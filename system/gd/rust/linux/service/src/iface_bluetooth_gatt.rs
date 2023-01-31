@@ -219,6 +219,46 @@ impl IBluetoothGattServerCallback for BluetoothGattServerCallbackDBus {
     fn on_notification_sent(&self, addr: String, status: GattStatus) {
         dbus_generated!()
     }
+
+    #[dbus_method("OnMtuChanged")]
+    fn on_mtu_changed(&self, addr: String, mtu: i32) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("OnPhyUpdate")]
+    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("OnPhyRead")]
+    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("OnConnectionUpdated")]
+    fn on_connection_updated(
+        &self,
+        addr: String,
+        interval: i32,
+        latency: i32,
+        timeout: i32,
+        status: GattStatus,
+    ) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("OnSubrateChange")]
+    fn on_subrate_change(
+        &self,
+        addr: String,
+        subrate_factor: i32,
+        latency: i32,
+        cont_num: i32,
+        timeout: i32,
+        status: GattStatus,
+    ) {
+        dbus_generated!()
+    }
 }
 
 // Represents Uuid128Bit as an array in D-Bus.
@@ -908,6 +948,23 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         confirm: bool,
         value: Vec<u8>,
     ) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ServerSetPreferredPhy")]
+    fn server_set_preferred_phy(
+        &self,
+        server_id: i32,
+        addr: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    ) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ServerReadPhy")]
+    fn server_read_phy(&self, server_id: i32, addr: String) {
         dbus_generated!()
     }
 }
