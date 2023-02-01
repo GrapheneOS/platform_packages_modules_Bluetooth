@@ -16,6 +16,7 @@
 #pragma once
 
 #include "hci/hci_packets.h"
+#include "hci/le_scanning_callback.h"
 #include "module.h"
 
 struct MsftAdvMonitor;
@@ -39,6 +40,7 @@ class MsftExtensionManager : public bluetooth::Module {
   void MsftAdvMonitorAdd(const MsftAdvMonitor& monitor, MsftAdvMonitorAddCallback cb);
   void MsftAdvMonitorRemove(uint8_t monitor_handle, MsftAdvMonitorRemoveCallback cb);
   void MsftAdvMonitorEnable(bool enable, MsftAdvMonitorEnableCallback cb);
+  void SetScanningCallback(ScanningCallback* callbacks);
 
   static const ModuleFactory Factory;
 
