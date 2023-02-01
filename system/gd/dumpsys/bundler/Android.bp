@@ -31,6 +31,7 @@ genrule {
     visibility: [
         "//packages/modules/Bluetooth/system/gd",
         "//packages/modules/Bluetooth/system/main",
+        "//packages/modules/Bluetooth/system/rust",
     ],
     tools: [
         "flatc",
