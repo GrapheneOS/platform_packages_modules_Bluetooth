@@ -30,7 +30,9 @@
 
 #include "bt_target.h"
 #include "common/time_util.h"
+#include "gd/hal/snoop_logger.h"
 #include "main/shim/metrics_api.h"
+#include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
@@ -1085,6 +1087,14 @@ static void l2c_csm_config(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
         }
       }
 
+      if (p_ccb->config_done & RECONFIG_FLAG) {
+        // Notify only once
+        bluetooth::shim::GetSnoopLogger()->SetL2capChannelOpen(
+            p_ccb->p_lcb->Handle(), p_ccb->local_cid, p_ccb->remote_cid,
+            p_ccb->p_rcb->psm,
+            p_ccb->peer_cfg.fcr.mode != L2CAP_FCR_BASIC_MODE);
+      }
+
       LOG_DEBUG("Calling Config_Rsp_Cb(), CID: 0x%04x", p_ccb->local_cid);
       p_ccb->remote_config_rsp_result = p_cfg->result;
       if (p_ccb->config_done & IB_CFG_DONE) {
@@ -1160,6 +1170,14 @@ static void l2c_csm_config(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
 
       /* If using eRTM and waiting for an ACK, restart the ACK timer */
       if (p_ccb->fcrb.wait_ack) l2c_fcr_start_timer(p_ccb);
+
+      if (p_ccb->config_done & RECONFIG_FLAG) {
+        // Notify only once
+        bluetooth::shim::GetSnoopLogger()->SetL2capChannelOpen(
+            p_ccb->p_lcb->Handle(), p_ccb->local_cid, p_ccb->remote_cid,
+            p_ccb->p_rcb->psm,
+            p_ccb->peer_cfg.fcr.mode != L2CAP_FCR_BASIC_MODE);
+      }
 
       /* See if we can forward anything on the hold queue */
       if ((p_ccb->chnl_state == CST_OPEN) &&

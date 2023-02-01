@@ -47,6 +47,8 @@
 
 #define L2CAP_MIN_MTU 48 /* Minimum acceptable MTU is 48 bytes */
 
+#define MAX_ACTIVE_AVDT_CONN 2
+
 constexpr uint16_t L2CAP_CREDIT_BASED_MIN_MTU = 64;
 constexpr uint16_t L2CAP_CREDIT_BASED_MIN_MPS = 64;
 
@@ -673,6 +675,12 @@ typedef struct {
   std::vector<uint16_t> lcids; /* Used when credit based is used*/
   uint16_t peer_mtu;     /* Peer MTU */
 } tL2C_CONN_INFO;
+
+typedef struct {
+  bool is_active;     /* is channel active */
+  uint16_t local_cid; /* Remote CID */
+  tL2C_CCB* p_ccb;    /* CCB */
+} tL2C_AVDT_CHANNEL_INFO;
 
 typedef void(tL2C_FCR_MGMT_EVT_HDLR)(uint8_t, tL2C_CCB*);
 

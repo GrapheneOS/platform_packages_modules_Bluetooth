@@ -71,6 +71,7 @@ neighbor::InquiryModule* GetInquiry() { return nullptr; }
 neighbor::PageModule* GetPage() { return nullptr; }
 os::Handler* GetGdShimHandler() { return hci::testing::mock_gd_shim_handler_; }
 security::SecurityModule* GetSecurityModule() { return nullptr; }
+hal::SnoopLogger* GetSnoopLogger() { return nullptr; }
 storage::StorageModule* GetStorage() { return nullptr; }
 metrics::CounterMetrics* GetCounterMetrics() { return nullptr; }
 hci::MsftExtensionManager* GetMsftExtensionManager() { return nullptr; }
