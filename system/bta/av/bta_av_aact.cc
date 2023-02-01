@@ -1244,6 +1244,11 @@ void bta_av_str_opened(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
         .edr = 0,
         .sep = AVDT_TSEP_INVALID,
     };
+
+    if (p_scb) {
+      L2CA_SetMediaStreamChannel(p_scb->l2c_cid, true);
+    }
+
     p = BTM_ReadRemoteFeatures(p_scb->PeerAddress());
     if (p != NULL) {
       if (HCI_EDR_ACL_2MPS_SUPPORTED(p)) open.edr |= BTA_AV_EDR_2MBPS;
@@ -2472,6 +2477,10 @@ void bta_av_str_closed(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   BTM_unblock_role_switch_and_sniff_mode_for(p_scb->PeerAddress());
   if (bta_av_cb.audio_open_cnt <= 1) {
     BTM_default_unblock_role_switch();
+  }
+
+  if (p_scb) {
+    L2CA_SetMediaStreamChannel(p_scb->l2c_cid, false);
   }
 
   if (p_scb->open_status != BTA_AV_SUCCESS) {
