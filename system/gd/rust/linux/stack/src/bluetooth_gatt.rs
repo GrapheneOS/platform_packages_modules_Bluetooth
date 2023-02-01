@@ -1268,6 +1268,11 @@ impl GattAsyncIntf {
     /// May be converted into real async in the future if btif supports it.
     async fn update_scan(&mut self) {
         if self.scanners.lock().unwrap().values().find(|scanner| scanner.is_active).is_some() {
+            // Toggle the scan off and on so that we reset the scan parameters based on whether
+            // we have active scanners using hardware filtering.
+            // TODO(b/266752123): We can do more bookkeeping to optimize when we really need to
+            // toggle. Also improve toggling API into 1 operation that guarantees correct ordering.
+            self.gatt.as_ref().unwrap().lock().unwrap().scanner.stop_scan();
             self.gatt.as_ref().unwrap().lock().unwrap().scanner.start_scan();
         } else {
             self.gatt.as_ref().unwrap().lock().unwrap().scanner.stop_scan();
@@ -1669,9 +1674,17 @@ impl IBluetoothGatt for BluetoothGatt {
             }
         }
 
+        let has_active_unfiltered_scanner = self
+            .scanners
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|(_uuid, scanner)| scanner.is_active && scanner.filter.is_none());
+
         let gatt_async = self.gatt_async.clone();
         let scanners = self.scanners.clone();
         let is_msft_supported = self.is_msft_supported();
+
         tokio::spawn(async move {
             // The three operations below (monitor add, monitor enable, update scan) happen one
             // after another, and cannot be interleaved with other GATT async operations.
@@ -1699,14 +1712,18 @@ impl IBluetoothGatt for BluetoothGatt {
                 }
 
                 log::debug!("Added adv monitor handle = {}", monitor_handle);
+            }
 
-                if !gatt_async
-                    .msft_adv_monitor_enable(true)
-                    .await
-                    .map_or(false, |status| status == 0)
-                {
-                    log::error!("Error enabling Advertisement Monitor");
-                }
+            if !gatt_async
+                .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
+                .await
+                .map_or(false, |status| status == 0)
+            {
+                // TODO(b/266752123):
+                // Intel controller throws "Command Disallowed" error if we tried to enable/disable
+                // filter but it's already at the same state. This is harmless but we can improve
+                // the state machine to avoid calling enable/disable if it's already at that state
+                log::error!("Error updating Advertisement Monitor enable");
             }
 
             gatt_async.update_scan().await;
@@ -1729,6 +1746,13 @@ impl IBluetoothGatt for BluetoothGatt {
             }
         };
 
+        let has_active_unfiltered_scanner = self
+            .scanners
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|(_uuid, scanner)| scanner.is_active && scanner.filter.is_none());
+
         let gatt_async = self.gatt_async.clone();
         tokio::spawn(async move {
             // The two operations below (monitor remove, update scan) happen one after another, and
@@ -1739,6 +1763,14 @@ impl IBluetoothGatt for BluetoothGatt {
 
             if let Some(handle) = monitor_handle {
                 let _res = gatt_async.msft_adv_monitor_remove(handle).await;
+            }
+
+            if !gatt_async
+                .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
+                .await
+                .map_or(false, |status| status == 0)
+            {
+                log::error!("Error updating Advertisement Monitor enable");
             }
 
             gatt_async.update_scan().await;
