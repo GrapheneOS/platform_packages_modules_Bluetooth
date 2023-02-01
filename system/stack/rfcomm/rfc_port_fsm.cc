@@ -23,21 +23,24 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include <cstdint>
 #include <cstring>
 #include <set>
 
 #include "bt_target.h"
+#include "gd/hal/snoop_logger.h"
+#include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/sdpdefs.h"
+#include "stack/l2cap/l2c_int.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"
-
-#include <base/logging.h>
 
 static const std::set<uint16_t> uuid_logging_acceptlist = {
     UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY,
@@ -224,6 +227,30 @@ void rfc_port_sm_sabme_wait_ua(tPORT* p_port, tRFC_PORT_EVENT event,
       rfc_port_timer_stop(p_port);
       p_port->rfc.state = RFC_STATE_OPENED;
 
+      if (uuid_logging_acceptlist.find(p_port->uuid) !=
+          uuid_logging_acceptlist.end()) {
+        // Find Channel Control Block by Channel ID
+        tL2C_CCB* p_ccb =
+            l2cu_find_ccb_by_cid(nullptr, p_port->rfc.p_mcb->lcid);
+        if (p_ccb) {
+          bluetooth::shim::GetSnoopLogger()->AcceptlistRfcommDlci(
+              p_ccb->p_lcb->Handle(), p_port->rfc.p_mcb->lcid, p_port->dlci);
+        }
+      }
+      if (p_port->rfc.p_mcb) {
+        uint16_t lcid;
+        tL2C_CCB* ccb;
+
+        lcid = p_port->rfc.p_mcb->lcid;
+        ccb = l2cu_find_ccb_by_cid(nullptr, lcid);
+
+        if (ccb) {
+          bluetooth::shim::GetSnoopLogger()->SetRfcommPortOpen(
+              ccb->p_lcb->Handle(), lcid, p_port->dlci, p_port->uuid,
+              p_port->rfc.p_mcb->flow == PORT_FC_CREDIT);
+        }
+      }
+
       PORT_DlcEstablishCnf(p_port->rfc.p_mcb, p_port->dlci,
                            p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_SUCCESS);
       return;
@@ -338,6 +365,30 @@ void rfc_port_sm_term_wait_sec_check(tPORT* p_port, tRFC_PORT_EVENT event,
       } else {
         rfc_send_ua(p_port->rfc.p_mcb, p_port->dlci);
         p_port->rfc.state = RFC_STATE_OPENED;
+
+        if (uuid_logging_acceptlist.find(p_port->uuid) !=
+            uuid_logging_acceptlist.end()) {
+          // Find Channel Control Block by Channel ID
+          tL2C_CCB* p_ccb =
+              l2cu_find_ccb_by_cid(nullptr, p_port->rfc.p_mcb->lcid);
+          if (p_ccb) {
+            bluetooth::shim::GetSnoopLogger()->AcceptlistRfcommDlci(
+                p_ccb->p_lcb->Handle(), p_port->rfc.p_mcb->lcid, p_port->dlci);
+          }
+        }
+        if (p_port->rfc.p_mcb) {
+          uint16_t lcid;
+          tL2C_CCB* ccb;
+
+          lcid = p_port->rfc.p_mcb->lcid;
+          ccb = l2cu_find_ccb_by_cid(nullptr, lcid);
+
+          if (ccb) {
+            bluetooth::shim::GetSnoopLogger()->SetRfcommPortOpen(
+                ccb->p_lcb->Handle(), lcid, p_port->dlci, p_port->uuid,
+                p_port->rfc.p_mcb->flow == PORT_FC_CREDIT);
+          }
+        }
       }
       return;
     default:

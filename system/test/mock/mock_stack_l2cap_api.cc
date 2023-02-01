@@ -99,6 +99,8 @@ struct L2CA_LECocDataWrite L2CA_LECocDataWrite;
 struct L2CA_SetChnlFlushability L2CA_SetChnlFlushability;
 struct L2CA_FlushChannel L2CA_FlushChannel;
 struct L2CA_IsLinkEstablished L2CA_IsLinkEstablished;
+struct L2CA_SetMediaStreamChannel L2CA_SetMediaStreamChannel;
+struct L2CA_isMediaChannel L2CA_isMediaChannel;
 
 }  // namespace stack_l2cap_api
 }  // namespace mock
@@ -286,6 +288,17 @@ bool L2CA_IsLinkEstablished(const RawAddress& bd_addr,
   mock_function_count_map[__func__]++;
   return test::mock::stack_l2cap_api::L2CA_IsLinkEstablished(bd_addr,
                                                              transport);
+}
+void L2CA_SetMediaStreamChannel(uint16_t local_media_cid, bool status) {
+  mock_function_count_map[__func__]++;
+  return test::mock::stack_l2cap_api::L2CA_SetMediaStreamChannel(
+      local_media_cid, status);
+}
+bool L2CA_isMediaChannel(uint16_t handle, uint16_t channel_id,
+                         bool is_local_cid) {
+  mock_function_count_map[__func__]++;
+  return test::mock::stack_l2cap_api::L2CA_isMediaChannel(handle, channel_id,
+                                                          is_local_cid);
 }
 
 // END mockcify generation

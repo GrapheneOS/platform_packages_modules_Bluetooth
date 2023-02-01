@@ -21,6 +21,10 @@ cc_library_static {
         "src/hci_packet_parser.cc",
         "src/packet_fragmenter.cc",
     ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
     target: {
         android: {
             srcs: ["src/hci_layer_android.cc"],
