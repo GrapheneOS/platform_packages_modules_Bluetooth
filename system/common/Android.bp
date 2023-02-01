@@ -78,10 +78,10 @@ cc_test {
         },
     },
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     static_libs: [
+        "libprotobuf-cpp-lite",
         "libgmock",
         "libbt-common",
         "libbt-protos-lite",

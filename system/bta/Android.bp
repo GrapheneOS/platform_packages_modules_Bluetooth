@@ -203,7 +203,6 @@ cc_test {
         "android.hardware.bluetooth.audio@2.1",
         "libcrypto",
         "liblog",
-        "libprotobuf-cpp-lite",
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
@@ -293,7 +292,6 @@ cc_test {
         "libbase",
         "libcrypto",
         "liblog",
-        "libprotobuf-cpp-lite",
     ],
     static_libs: [
         "libbluetooth-types",
@@ -378,7 +376,6 @@ cc_test {
         "test/common/btm_api_mock.cc",
     ],
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     static_libs : [
@@ -421,7 +418,6 @@ cc_test {
         "groups/groups.cc",
     ],
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     static_libs : [
@@ -475,7 +471,6 @@ cc_test {
         "vc/vc_test.cc",
     ],
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     static_libs : [
@@ -634,7 +629,6 @@ cc_test {
         "LeAudioSetConfigSchemas_h",
     ],
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
         "liblog",  // __android_log_print
         "android.hardware.bluetooth.audio@2.0",
@@ -702,7 +696,6 @@ cc_test {
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "libhidlbase",
-        "libprotobuf-cpp-lite",
         "libcrypto",
         "liblog",
         "libfmq",
@@ -778,7 +771,6 @@ cc_test {
         ":TestCommonStackConfig",
     ],
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     static_libs : [
@@ -835,7 +827,6 @@ cc_test {
         ":TestCommonStackConfig",
     ],
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
         "libfmq",
         "libbinder_ndk",
@@ -906,7 +897,6 @@ cc_test {
         ":TestStubOsi",
     ],
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     static_libs : [
@@ -970,7 +960,6 @@ cc_test {
         "test/bta_hh_test.cc",
     ],
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     static_libs : [
