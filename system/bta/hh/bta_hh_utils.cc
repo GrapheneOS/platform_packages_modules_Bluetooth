@@ -28,7 +28,10 @@
 #include "osi/include/osi.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_client_interface.h"
+#include "stack/include/sdp_api.h"
 #include "types/raw_address.h"
+
+using namespace bluetooth::legacy::stack::sdp;
 
 /* if SSR max latency is not defined by remote device, set the default value
    as half of the link supervision timeout */
@@ -308,7 +311,8 @@ void bta_hh_cleanup_disable(tBTA_HH_STATUS status) {
 
   if (bta_hh_cb.p_disc_db) {
     /* Cancel SDP if it had been started. */
-    (void)SDP_CancelServiceSearch (bta_hh_cb.p_disc_db);
+    (void)get_legacy_stack_sdp_api()->service.SDP_CancelServiceSearch(
+        bta_hh_cb.p_disc_db);
     osi_free_and_reset((void**)&bta_hh_cb.p_disc_db);
   }
 

@@ -29,6 +29,7 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+using namespace bluetooth::legacy::stack::sdp;
 using namespace bluetooth::test::headless;
 
 static void bta_jv_start_discovery_callback(tSDP_STATUS result,
@@ -85,10 +86,10 @@ int sdp_query_uuid([[maybe_unused]] unsigned int num_loops,
                    const RawAddress& raw_address, const bluetooth::Uuid& uuid) {
   SdpDb sdp_discovery_db(kMaxDiscoveryRecords);
 
-  if (!SDP_InitDiscoveryDb(sdp_discovery_db.RawPointer(),
-                           sdp_discovery_db.Length(),
-                           1,  // num_uuid,
-                           &uuid, 0, nullptr)) {
+  if (!get_legacy_stack_sdp_api()->service.SDP_InitDiscoveryDb(
+          sdp_discovery_db.RawPointer(), sdp_discovery_db.Length(),
+          1,  // num_uuid,
+          &uuid, 0, nullptr)) {
     fprintf(stdout, "%s Unable to initialize sdp discovery\n", __func__);
     return -1;
   }
@@ -98,7 +99,7 @@ int sdp_query_uuid([[maybe_unused]] unsigned int num_loops,
 
   sdp_discovery_db.Print(stdout);
 
-  if (!SDP_ServiceSearchAttributeRequest2(
+  if (!get_legacy_stack_sdp_api()->service.SDP_ServiceSearchAttributeRequest2(
           raw_address, sdp_discovery_db.RawPointer(),
           bta_jv_start_discovery_callback, (void*)&promise)) {
     fprintf(stdout, "%s Failed to start search attribute request\n", __func__);
@@ -112,8 +113,8 @@ int sdp_query_uuid([[maybe_unused]] unsigned int num_loops,
     return result;
   }
 
-  tSDP_DISC_REC* rec = SDP_FindServiceInDb(sdp_discovery_db.RawPointer(),
-                                           uuid.As16Bit(), nullptr);
+  tSDP_DISC_REC* rec = get_legacy_stack_sdp_api()->db.SDP_FindServiceInDb(
+      sdp_discovery_db.RawPointer(), uuid.As16Bit(), nullptr);
   if (rec == nullptr) {
     fprintf(stdout, "discovery record is null from:%s uuid:%s\n",
             raw_address.ToString().c_str(), uuid.ToString().c_str());

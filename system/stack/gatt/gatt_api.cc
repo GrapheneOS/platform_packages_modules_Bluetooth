@@ -48,6 +48,8 @@
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
+using namespace bluetooth::legacy::stack::sdp;
+
 using bluetooth::Uuid;
 
 bool BTM_BackgroundConnectAddressKnown(const RawAddress& address);
@@ -418,7 +420,7 @@ void GATTS_StopService(uint16_t service_handle) {
   }
 
   if (it->sdp_handle) {
-    SDP_DeleteRecord(it->sdp_handle);
+    get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(it->sdp_handle);
   }
 
   gatt_cb.srv_list_info->erase(it);
