@@ -15,6 +15,7 @@
 import avatar
 import asyncio
 import grpc
+import sys
 import logging
 
 from concurrent import futures
@@ -330,5 +331,9 @@ class ExampleTest(base_test.BaseTestClass):
 
 
 if __name__ == '__main__':
+    # MoblyBinaryHostTest pass test_runner arguments after a "--"
+    # to make it work with rewrite argv to skip the "--"
+    index = sys.argv.index('--')
+    sys.argv = sys.argv[:1] + sys.argv[index + 1:]
     logging.basicConfig(level=logging.DEBUG)
     test_runner.main()
