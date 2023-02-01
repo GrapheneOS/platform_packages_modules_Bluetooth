@@ -275,7 +275,6 @@ cc_test {
         "libcrypto",
         "libfmq",
         "libhidlbase",
-        "libprotobuf-cpp-lite",
         "libprocessgroup",
     ],
     static_libs: [
@@ -302,6 +301,7 @@ cc_test {
         "liblc3",
         "libopus",
         "libosi",
+        "libprotobuf-cpp-lite",
         "libudrv-uipc",
    ],
     whole_static_libs: [
@@ -374,7 +374,6 @@ cc_test {
         "libcrypto",
         "libcutils",
         "liblog",
-        "libprotobuf-cpp-lite",
     ],
     static_libs: [
         "libbluetooth-types",
