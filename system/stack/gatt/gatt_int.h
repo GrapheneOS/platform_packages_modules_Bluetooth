@@ -601,7 +601,6 @@ extern uint16_t gatt_tcb_get_att_cid(tGATT_TCB& tcb, bool eatt_support);
 extern uint16_t gatt_tcb_get_payload_size_tx(tGATT_TCB& tcb, uint16_t cid);
 extern uint16_t gatt_tcb_get_payload_size_rx(tGATT_TCB& tcb, uint16_t cid);
 extern void gatt_clcb_invalidate(tGATT_TCB* p_tcb, const tGATT_CLCB* p_clcb);
-extern void gatt_clcb_dealloc(tGATT_CLCB* p_clcb);
 
 extern void gatt_sr_copy_prep_cnt_to_cback_cnt(tGATT_TCB& p_tcb);
 extern bool gatt_sr_is_cback_cnt_zero(tGATT_TCB& p_tcb);

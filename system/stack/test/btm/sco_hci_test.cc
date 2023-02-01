@@ -76,7 +76,7 @@ class ScoHciTest : public Test {
  public:
  protected:
   void SetUp() override {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     mock_uipc_init_ret = nullptr;
     mock_uipc_read_ret = 0;
     mock_uipc_send_ret = true;

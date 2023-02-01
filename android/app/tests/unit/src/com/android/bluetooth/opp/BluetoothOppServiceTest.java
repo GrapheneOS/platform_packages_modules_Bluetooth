@@ -26,9 +26,11 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ContentResolver;
 import android.database.MatrixCursor;
+import android.os.Handler;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ServiceTestRule;
@@ -56,6 +58,7 @@ public class BluetoothOppServiceTest {
     BluetoothMethodProxy mMethodProxy;
     private BluetoothOppService mService = null;
     private BluetoothAdapter mAdapter = null;
+
     @Mock
     private AdapterService mAdapterService;
 
@@ -64,9 +67,18 @@ public class BluetoothOppServiceTest {
         Assume.assumeTrue("Ignore test when BluetoothOppService is not enabled",
                 BluetoothOppService.isEnabled());
         MockitoAnnotations.initMocks(this);
+
         BluetoothMethodProxy.setInstanceForTesting(mMethodProxy);
+
+        // To void mockito multi-thread inter-tests problem
+        // If the thread still run in the next test, it will raise un-related mockito error
+        BluetoothOppNotification bluetoothOppNotification = mock(BluetoothOppNotification.class);
+        bluetoothOppNotification.mNotificationMgr = mock(NotificationManager.class);
+        doReturn(bluetoothOppNotification).when(mMethodProxy).newBluetoothOppNotification(any());
+
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
+
         TestUtils.startService(mServiceRule, BluetoothOppService.class);
         mService = BluetoothOppService.getBluetoothOppService();
         Assert.assertNotNull(mService);
@@ -139,7 +151,7 @@ public class BluetoothOppServiceTest {
                 contentResolver.acquireContentProviderClient(BluetoothShare.CONTENT_URI) != null);
 
         doReturn(1 /* any int is Ok */).when(mMethodProxy).contentResolverDelete(
-		eq(contentResolver), eq(BluetoothShare.CONTENT_URI), anyString(), any());
+                eq(contentResolver), eq(BluetoothShare.CONTENT_URI), anyString(), any());
 
         MatrixCursor cursor = new MatrixCursor(new String[]{BluetoothShare._ID}, 500);
         for (long i = 0; i < Constants.MAX_RECORDS_IN_DATABASE + 20; i++) {
