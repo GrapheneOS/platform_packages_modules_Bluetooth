@@ -50,6 +50,10 @@ rust_defaults {
     static_libs: [
         "libbt_callbacks_cxx",
     ],
+    apex_available: [
+        "com.android.btservices",
+    ],
+    min_sdk_version: "30",
 }
 
 rust_library_rlib {
@@ -60,10 +64,6 @@ rust_library_rlib {
 rust_ffi_static {
     name: "libbt_shim_ffi",
     defaults: ["libbt_shim_defaults"],
-    apex_available: [
-        "com.android.btservices",
-    ],
-    min_sdk_version: "30",
 }
 
 cc_library_static {
