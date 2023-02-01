@@ -286,9 +286,9 @@ impl CommandHandler {
     }
 
     /// Entry point for command and arguments
-    pub fn process_cmd_line(&mut self, command: &String, args: &Vec<String>) {
+    pub fn process_cmd_line(&mut self, command: &str, args: &Vec<String>) {
         // Ignore empty line
-        match &command[..] {
+        match command {
             "" => {}
             _ => match self.command_options.get(command) {
                 Some(cmd) => {

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-rustyline = "8.0"
+rustyline = "10"
 rustyline-derive = "0.4.0"
 bt_topshim = { path = "../../topshim" }
 btstack = { path = "../stack" }
