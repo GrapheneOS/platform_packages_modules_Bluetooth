@@ -61,8 +61,8 @@ uint8_t bta_dm_search_get_state() { return bta_dm_search_cb.state; }
  *
  ******************************************************************************/
 bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
-  APPL_TRACE_EVENT("bta_dm_search_sm_execute state:%d, event:0x%x",
-                   bta_dm_search_cb.state, p_msg->event);
+  LOG_INFO("bta_dm_search_sm_execute state:%d, event:0x%x",
+           bta_dm_search_get_state(), p_msg->event);
 
   tBTA_DM_MSG* message = (tBTA_DM_MSG*)p_msg;
   switch (bta_dm_search_cb.state) {
@@ -123,6 +123,16 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           bta_dm_search_cancel_notify();
           bta_dm_execute_queued_request();
           break;
+        case BTA_DM_DISC_CLOSE_TOUT_EVT:
+          if (bluetooth::common::init_flags::
+                  bta_dm_clear_conn_id_on_client_close_is_enabled()) {
+            bta_dm_close_gatt_conn(message);
+            break;
+          }
+          [[fallthrough]];
+        default:
+          LOG_INFO("Received unexpected event 0x%x in state %d", p_msg->event,
+                   bta_dm_search_cb.state);
       }
       break;
     case BTA_DM_DISCOVER_ACTIVE:
@@ -145,6 +155,16 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
         case BTA_DM_API_DISCOVER_EVT:
           bta_dm_queue_disc(message);
           break;
+        case BTA_DM_DISC_CLOSE_TOUT_EVT:
+          if (bluetooth::common::init_flags::
+                  bta_dm_clear_conn_id_on_client_close_is_enabled()) {
+            bta_dm_close_gatt_conn(message);
+            break;
+          }
+          [[fallthrough]];
+        default:
+          LOG_INFO("Received unexpected event 0x%x in state %d", p_msg->event,
+                   bta_dm_search_cb.state);
       }
       break;
   }

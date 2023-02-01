@@ -665,6 +665,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
      */
     group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+
+    /* Clear group pending status */
+    group->ClearPendingAvailableContextsChange();
+    group->ClearPendingConfiguration();
+
     if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
     ReleaseCisIds(group);
     state_machine_callbacks_->StatusReportCb(group->group_id_,
@@ -892,6 +897,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
          * In such an event, there is need to notify upper layer about state
          * from here.
          */
+        if (alarm_is_scheduled(watchdog_)) {
+          alarm_cancel(watchdog_);
+        }
+
         if (current_group_state == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
           LOG_INFO(
               "Cises disconnected for group %d, we are good in Idle state.",
@@ -906,12 +915,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
               "Cises disconnected for group: %d, we are good in Configured "
               "state, reconfig=%d.",
               group->group_id_, reconfig);
+
           if (reconfig) {
             group->ClearPendingConfiguration();
             state_machine_callbacks_->StatusReportCb(
                 group->group_id_, GroupStreamStatus::CONFIGURED_BY_USER);
-            /* No more transition for group */
-            alarm_cancel(watchdog_);
           } else {
             /* This is Autonomous change if both, target and current state
              * is CODEC_CONFIGURED
