@@ -178,16 +178,16 @@ impl AsyncEditor {
     pub(crate) fn new(
         command_rules: Vec<String>,
         client_context: Arc<Mutex<ClientContext>>,
-    ) -> AsyncEditor {
+    ) -> rustyline::Result<AsyncEditor> {
         let builder = Config::builder()
             .auto_add_history(true)
             .history_ignore_dups(true)
             .completion_type(CompletionType::List);
         let config = builder.build();
-        let mut rl = rustyline::Editor::with_config(config);
+        let mut rl = rustyline::Editor::with_config(config)?;
         let helper = BtHelper { command_rules, client_context };
         rl.set_helper(Some(helper));
-        AsyncEditor { rl: Arc::new(Mutex::new(rl)) }
+        Ok(AsyncEditor { rl: Arc::new(Mutex::new(rl)) })
     }
 
     /// Does async readline().
