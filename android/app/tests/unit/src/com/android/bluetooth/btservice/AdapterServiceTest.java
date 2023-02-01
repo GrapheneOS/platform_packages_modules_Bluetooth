@@ -103,7 +103,6 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.crypto.Mac;
@@ -782,103 +781,6 @@ public class AdapterServiceTest {
                 obfuscatedAddress1);
     }
 
-    /**
-     * Test: Check if obfuscated Bluetooth address stays the same after re-initializing
-     *       {@link AdapterService}
-     */
-    @Test
-    public void testObfuscateBluetoothAddress_PersistentBetweenAdapterServiceInitialization() throws
-            PackageManager.NameNotFoundException {
-        byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
-        Assert.assertNotNull(metricsSalt);
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress1.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
-        Assert.assertArrayEquals(obfuscateInJava(metricsSalt, device),
-                obfuscatedAddress1);
-        tearDown();
-        setUp();
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress2.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2));
-        Assert.assertArrayEquals(obfuscatedAddress2,
-                obfuscatedAddress1);
-    }
-
-    /**
-     * Test: Verify that obfuscated Bluetooth address changes after factory reset
-     *
-     * There are 4 types of factory reset that we are talking about:
-     * 1. Factory reset all user data from Settings -> Will restart phone
-     * 2. Factory reset WiFi and Bluetooth from Settings -> Will only restart WiFi and BT
-     * 3. Call BluetoothAdapter.factoryReset() -> Will disable Bluetooth and reset config in
-     * memory and disk
-     * 4. Call AdapterService.factoryReset() -> Will only reset config in memory
-     *
-     * We can only use No. 4 here
-     */
-    @Ignore("AdapterService.factoryReset() does not reload config into memory and hence old salt"
-            + " is still used until next time Bluetooth library is initialized. However Bluetooth"
-            + " cannot be used until Bluetooth process restart any way. Thus it is almost"
-            + " guaranteed that user has to re-enable Bluetooth and hence re-generate new salt"
-            + " after factory reset")
-    @Test
-    public void testObfuscateBluetoothAddress_FactoryReset() {
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress1.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
-        mServiceBinder.factoryReset(mAttributionSource);
-        byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress2.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2));
-        Assert.assertFalse(Arrays.equals(obfuscatedAddress2,
-                obfuscatedAddress1));
-        doEnable(0, false);
-        byte[] obfuscatedAddress3 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress3.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress3));
-        Assert.assertArrayEquals(obfuscatedAddress3,
-                obfuscatedAddress2);
-        mServiceBinder.factoryReset(mAttributionSource);
-        byte[] obfuscatedAddress4 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress4.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress4));
-        Assert.assertFalse(Arrays.equals(obfuscatedAddress4,
-                obfuscatedAddress3));
-    }
-
-    /**
-     * Test: Verify that obfuscated Bluetooth address changes after factory reset and reloading
-     *       native layer
-     */
-    @Test
-    public void testObfuscateBluetoothAddress_FactoryResetAndReloadNativeLayer() throws
-            PackageManager.NameNotFoundException {
-        byte[] metricsSalt1 = getMetricsSalt(mAdapterConfig);
-        Assert.assertNotNull(metricsSalt1);
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress1.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
-        Assert.assertArrayEquals(obfuscateInJava(metricsSalt1, device),
-                obfuscatedAddress1);
-        mServiceBinder.factoryReset(mAttributionSource);
-        tearDown();
-        setUp();
-        // Cannot verify metrics salt since it is not written to disk until native cleanup
-        byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress2.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2));
-        Assert.assertFalse(Arrays.equals(obfuscatedAddress2,
-                obfuscatedAddress1));
-    }
-
     @Test
     public void testAddressConsolidation() {
         // Create device properties
@@ -896,7 +798,7 @@ public class AdapterServiceTest {
         Assert.assertEquals(identityAddress, TEST_BT_ADDR_2);
     }
 
-    private static byte[] getMetricsSalt(HashMap<String, HashMap<String, String>> adapterConfig) {
+    public static byte[] getMetricsSalt(HashMap<String, HashMap<String, String>> adapterConfig) {
         HashMap<String, String> metricsSection = adapterConfig.get("Metrics");
         if (metricsSection == null) {
             Log.e(TAG, "Metrics section is null: " + adapterConfig.toString());
@@ -915,7 +817,7 @@ public class AdapterServiceTest {
         return metricsSalt;
     }
 
-    private static byte[] obfuscateInJava(byte[] key, BluetoothDevice device) {
+    public static byte[] obfuscateInJava(byte[] key, BluetoothDevice device) {
         String algorithm = "HmacSHA256";
         try {
             Mac hmac256 = Mac.getInstance(algorithm);
@@ -927,7 +829,7 @@ public class AdapterServiceTest {
         }
     }
 
-    private static boolean isByteArrayAllZero(byte[] byteArray) {
+    public static boolean isByteArrayAllZero(byte[] byteArray) {
         for (byte i : byteArray) {
             if (i != 0) {
                 return false;
@@ -993,24 +895,6 @@ public class AdapterServiceTest {
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
         int id3 = mAdapterService.getMetricId(device);
         Assert.assertEquals(id3, id1);
-    }
-
-    /**
-     * Test: Check if id gotten stays the same after re-initializing
-     *       {@link AdapterService}
-     */
-    @Test
-    public void testgetMetricId_PersistentBetweenAdapterServiceInitialization() throws
-            PackageManager.NameNotFoundException {
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        int id1 = mAdapterService.getMetricId(device);
-        Assert.assertTrue(id1 > 0);
-        tearDown();
-        setUp();
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        int id2 = mAdapterService.getMetricId(device);
-        Assert.assertEquals(id2, id1);
     }
 
     @Test
