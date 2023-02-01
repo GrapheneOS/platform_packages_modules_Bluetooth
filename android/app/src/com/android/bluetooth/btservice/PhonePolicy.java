@@ -355,10 +355,12 @@ class PhonePolicy {
                     BluetoothProfile.PAN, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         }
 
+        boolean isLeAudioProfileAllowed = false;
         if ((leAudioService != null) && Utils.arrayContains(uuids,
                 BluetoothUuid.LE_AUDIO) && (leAudioService.getConnectionPolicy(device)
                 == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
             debugLog("setting le audio profile priority for device " + device);
+            isLeAudioProfileAllowed = true;
             mAdapterService.getDatabase().setProfileConnectionPolicy(device,
                     BluetoothProfile.LE_AUDIO, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             if (mPreferLeAudioOnlyMode) {
@@ -384,9 +386,13 @@ class PhonePolicy {
         if ((hearingAidService != null) && Utils.arrayContains(uuids,
                 BluetoothUuid.HEARING_AID) && (hearingAidService.getConnectionPolicy(device)
                 == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
-            debugLog("setting hearing aid profile priority for device " + device);
-            mAdapterService.getDatabase().setProfileConnectionPolicy(device,
-                    BluetoothProfile.HEARING_AID, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            if (isLeAudioProfileAllowed) {
+                debugLog("LE Audio preferred over ASHA for device " + device);
+            } else {
+                debugLog("setting hearing aid profile priority for device " + device);
+                mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                        BluetoothProfile.HEARING_AID, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            }
         }
 
         if ((volumeControlService != null) && Utils.arrayContains(uuids,
