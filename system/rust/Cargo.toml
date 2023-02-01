@@ -1,5 +1,5 @@
 #
-#  Copyright 2021 Google, Inc.
+#  Copyright 2022 Google, Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,29 +14,25 @@
 #  limitations under the License.
 
 [package]
-name = "bt_common"
+name = "bluetooth_core"
 version = "0.0.1"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-cxx = "1.0"
-env_logger = "0.8"
-futures = "0.3.13"
-grpcio = "0.9"
-lazy_static = "1.4"
-log = "0.4"
-nix = "0.23"
-tokio = { version = "1.0", features = ['bytes', 'macros', 'net', 'rt-multi-thread', 'time'] }
+bt_common = { path = "../gd/rust/common", default-features = false }
 
-# Proc Macro dependency
-paste = "1.0"
-
-[dev-dependencies]
-tokio = { version = "1.0", features = ['bytes', 'macros', 'net', 'rt-multi-thread', 'time', 'sync'] }
+# External dependencies
+# Note: source-of-truth is Android.bp, these are mirrored solely for IDE convenient
+log = "*"
+cxx = "*"
+android_logger = "*"
+jni = "*"
+paste = "*"
+async-trait = "*"
+tokio-test = "0.4.2"
+tokio = { version = "1.23.0", features = ["macros"] }
 
 [lib]
 crate-type = ["rlib"]
 
-[features]
-default = ["keystore"]
-keystore = []
+[workspace]
