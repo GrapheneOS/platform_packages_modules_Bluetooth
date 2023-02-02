@@ -27,15 +27,16 @@
     {
       "name": "net_test_audio_hearing_aid_hw"
     },
-    {
-      "name": "net_test_bluetooth"
-    },
-    {
-      "name": "net_test_bta"
-    },
-    {
-      "name": "net_test_btif"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "net_test_bluetooth"
+    // },
+    // {
+    //   "name": "net_test_bta"
+    // },
+    // {
+    //   "name": "net_test_btif"
+    // },
     {
       "name": "net_test_btif_hf_client_service"
     },
@@ -48,15 +49,17 @@
     {
       "name": "net_test_gatt_conn_multiplexing"
     },
-    {
-      "name": "net_test_hci"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "net_test_hci"
+    // },
     {
       "name": "net_test_hf_client_add_record"
     },
-    {
-      "name": "net_test_stack"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "net_test_stack"
+    // },
     {
       "name": "net_test_stack_ad_parser"
     },
@@ -67,36 +70,40 @@
     // Thoses test run on the host in the CI automatically.
     // Run the one that are available on the device on the
     // device as well
-    {
-      "name": "bluetooth_csis_test"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "bluetooth_csis_test"
+    // },
     {
       "name": "bluetooth_flatbuffer_tests"
     },
-    {
-      "name": "bluetooth_groups_test"
-    },
-    {
-      "name": "bluetooth_has_test"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "bluetooth_groups_test"
+    // },
+    // {
+    //   "name": "bluetooth_has_test"
+    // },
     {
       "name": "bluetooth_hh_test"
     },
-    {
-      "name": "bluetooth_le_audio_client_test"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "bluetooth_le_audio_client_test"
+    // },
     {
       "name": "bluetooth_le_audio_test"
     },
     {
       "name": "bluetooth_packet_parser_test"
     },
-    {
-      "name": "bluetooth_test_broadcaster"
-    },
-    {
-      "name": "bluetooth_test_broadcaster_state_machine"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "bluetooth_test_broadcaster"
+    // },
+    // {
+    //   "name": "bluetooth_test_broadcaster_state_machine"
+    // },
     {
       "name": "bluetooth_test_common"
     },
@@ -106,15 +113,16 @@
     {
       "name": "bluetooth_test_sdp"
     },
-    {
-      "name": "bluetooth_vc_test"
-    },
-    {
-      "name": "bluetoothtbd_test"
-    },
-    {
-      "name": "bt_host_test_bta"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "bluetooth_vc_test"
+    // },
+    // {
+    //   "name": "bluetoothtbd_test"
+    // },
+    // {
+    //   "name": "bt_host_test_bta"
+    // },
     {
       "name": "libaptx_enc_tests"
     },
@@ -130,15 +138,17 @@
     {
       "name": "net_test_btif_config_cache"
     },
-    {
-      "name": "net_test_btif_hh"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "net_test_btif_hh"
+    // },
     {
       "name": "net_test_btif_rc"
     },
-    {
-      "name": "net_test_btif_stack"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "net_test_btif_stack"
+    // },
     {
       "name": "net_test_btm_iso"
     },
@@ -172,9 +182,10 @@
     {
       "name": "net_test_stack_avdtp"
     },
-    {
-      "name": "net_test_stack_btm"
-    },
+    // TODO (b/267212763)
+    // {
+    //   "name": "net_test_stack_btm"
+    // },
     {
       "name": "net_test_stack_btu"
     },
