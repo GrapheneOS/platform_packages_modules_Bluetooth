@@ -32,14 +32,3 @@ python_test_host {
     },
     data: ["config.yml"],
 }
-
-python_binary_host {
-    name: "avatar_runner",
-    main: "runner.py",
-    srcs: [
-        "runner.py",
-    ],
-    libs: [
-        "libavatar"
-    ],
-}
