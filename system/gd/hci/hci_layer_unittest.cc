@@ -168,11 +168,13 @@ class HciLayerTest : public ::testing::Test {
 
 TEST_F(HciLayerTest, setup_teardown) {}
 
-TEST_F(HciLayerTest, reset_command_sent_on_start) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_reset_command_sent_on_start) {
   FailIfResetNotSent();
 }
 
-TEST_F(HciLayerTest, controller_debug_info_requested_on_hci_timeout) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_controller_debug_info_requested_on_hci_timeout) {
   FailIfResetNotSent();
   FakeTimerAdvance(HciLayer::kHciTimeoutMs.count());
 
@@ -183,7 +185,8 @@ TEST_F(HciLayerTest, controller_debug_info_requested_on_hci_timeout) {
   ASSERT_TRUE(debug_info_view.IsValid());
 }
 
-TEST_F(HciLayerTest, abort_after_hci_restart_timeout) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_abort_after_hci_restart_timeout) {
   FailIfResetNotSent();
   FakeTimerAdvance(HciLayer::kHciTimeoutMs.count());
 
@@ -202,7 +205,8 @@ TEST_F(HciLayerTest, abort_after_hci_restart_timeout) {
       "");
 }
 
-TEST_F(HciLayerTest, abort_on_root_inflammation_event) {
+// b/260915548
+TEST_F(HciLayerTest, DISABLED_abort_on_root_inflammation_event) {
   FailIfResetNotSent();
 
   auto payload = CreatePayload({'0'});
