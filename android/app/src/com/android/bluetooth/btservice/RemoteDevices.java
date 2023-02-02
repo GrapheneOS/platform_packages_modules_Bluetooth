@@ -316,7 +316,6 @@ final class RemoteDevices {
         private boolean mIsBondingInitiatedLocally;
         private int mBatteryLevel = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         private boolean mIsCoordinatedSetMember;
-        private boolean mIsASHAFollower;
         @VisibleForTesting int mBondState;
         @VisibleForTesting int mDeviceType;
         @VisibleForTesting ParcelUuid[] mUuids;
@@ -635,21 +634,6 @@ final class RemoteDevices {
             }
         }
 
-        /**
-         * @return the mIsASHAFollower
-        */
-        boolean isASHAFollower() {
-            synchronized (mObject) {
-                return mIsASHAFollower;
-            }
-        }
-
-        void setIsASHAFollower(boolean isASHAFollower) {
-            synchronized (mObject) {
-                this.mIsASHAFollower = isASHAFollower;
-            }
-        }
-
         public void setHfAudioPolicyForRemoteAg(BluetoothAudioPolicy policies) {
             mAudioPolicy = policies;
         }
@@ -896,9 +880,6 @@ final class RemoteDevices {
                         case AbstractionLayer.BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER:
                             deviceProperties.setIsCoordinatedSetMember(val[0] != 0);
                             break;
-                        case AbstractionLayer.BT_PROPERTY_REMOTE_IS_ASHA_FOLLOWER:
-                            deviceProperties.setIsASHAFollower(val[0] != 0);
-                            break;
                     }
                 }
             }
@@ -930,8 +911,6 @@ final class RemoteDevices {
         intent.putExtra(BluetoothDevice.EXTRA_NAME, deviceProp.getName());
         intent.putExtra(BluetoothDevice.EXTRA_IS_COORDINATED_SET_MEMBER,
                 deviceProp.isCoordinatedSetMember());
-        intent.putExtra(BluetoothDevice.EXTRA_IS_ASHA_FOLLOWER,
-                deviceProp.isASHAFollower());
 
         final ArrayList<DiscoveringPackage> packages = mAdapterService.getDiscoveringPackages();
         synchronized (packages) {
