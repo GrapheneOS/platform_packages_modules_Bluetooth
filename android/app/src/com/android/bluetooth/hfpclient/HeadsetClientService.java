@@ -33,6 +33,7 @@ import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.os.SystemProperties;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
@@ -1125,6 +1126,14 @@ public class HeadsetClientService extends ProfileService {
         int connectionState = sm.getConnectionState(device);
         if (connectionState != BluetoothProfile.STATE_CONNECTED
                 && connectionState != BluetoothProfile.STATE_CONNECTING) {
+            return null;
+        }
+
+        // Some platform does not support three way calling (ex: watch)
+        final boolean support_three_way_calling = SystemProperties
+                .getBoolean("bluetooth.headset_client.three_way_calling.enabled", true);
+        if (!support_three_way_calling && !getCurrentCalls(device).isEmpty()) {
+            Log.e(TAG, String.format("dial(%s): Line is busy, reject dialing", device));
             return null;
         }
 
