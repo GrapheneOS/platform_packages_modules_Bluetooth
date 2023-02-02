@@ -54,7 +54,6 @@ constexpr uint64_t kRandomNumber = 0x123456789abcdef0;
 uint16_t feature_spec_version = 55;
 constexpr char title[] = "hci_controller_test";
 
-
 PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilder> packet) {
   auto bytes = std::make_shared<std::vector<uint8_t>>();
   BitInserter i(*bytes);
