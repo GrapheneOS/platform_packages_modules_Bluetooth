@@ -354,7 +354,7 @@ public class BluetoothOppNotification {
                 intent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_ID, item.id);
                 intent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_PROGRESS, progress);
                 intent.putExtra(Constants.EXTRA_BT_OPP_ADDRESS, item.destination);
-                mContext.sendBroadcast(intent, Constants.HANDOVER_STATUS_PERMISSION,
+                Utils.sendBroadcast(mContext, intent, Constants.HANDOVER_STATUS_PERMISSION,
                         Utils.getTempAllowlistBroadcastOptions());
                 continue;
             }

@@ -402,7 +402,7 @@ public class SapService extends ProfileService {
 
                         mIsWaitingAuthorization = true;
                         setUserTimeoutAlarm();
-                        sendBroadcast(intent, BLUETOOTH_CONNECT,
+                        Utils.sendBroadcast(SapService.this, intent, BLUETOOTH_CONNECT,
                                 Utils.getTempAllowlistBroadcastOptions());
 
                         if (VERBOSE) {
@@ -532,7 +532,8 @@ public class SapService extends ProfileService {
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-            sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
+            Utils.sendBroadcast(this, intent, BLUETOOTH_CONNECT,
+                    Utils.getTempAllowlistBroadcastOptions());
         }
     }
 

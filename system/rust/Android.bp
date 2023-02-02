@@ -1,0 +1,84 @@
+rust_defaults {
+    name: "libbluetooth_core_rs_defaults",
+    min_sdk_version: "Tiramisu",
+    dylib: {
+        enabled: false,
+    },
+    srcs: ["src/lib.rs", ":bluetooth_core_rust_packets"],
+    shared_libs: [
+      "libbase",
+    ],
+    static_libs: [
+        "libbluetooth-core",
+        "libbt_shim_bridge",
+        "libbt_shim_ffi",
+
+        "libchrome",
+        "libmodpb64",
+        "libevent",
+    ],
+    proc_macros: [
+        "libasync_trait",
+        "libpaste",
+    ],
+    rustlibs: [
+        "liblog_rust",
+        "libcxx",
+        "libtokio",
+        "libbt_common",
+
+        // needed to work around duplicate symbols
+        // caused by bug in Soong
+        "libbt_shim",
+    ],
+    features: [
+        // used to hide libbt_shim in Cargo builds, but
+        // expose it to Soong to work around linker bug
+        "via_android_bp",
+    ],
+    target: {
+        android: {
+            shared_libs: [
+                "android.hardware.bluetooth@1.0",
+                "android.hardware.bluetooth@1.1",
+                "android.system.suspend.control-V1-ndk",
+                "android.system.suspend-V1-ndk",
+                "libbinder_ndk",
+                "libcutils",
+                "libhidlbase",
+                "libutils",
+                "libstatslog_bt",
+            ],
+        },
+    },
+    apex_available: ["com.android.btservices"],
+}
+
+rust_ffi_static {
+    name: "libbluetooth_core_rs",
+    crate_name: "bluetooth_core",
+    defaults: ["libbluetooth_core_rs_defaults"],
+    target: {
+        android: {
+            rustlibs: [
+                "libandroid_logger",
+            ],
+        },
+    },
+    host_supported: true,
+}
+
+rust_test_host {
+    name: "libbluetooth_core_rs_test",
+    defaults: ["libbluetooth_core_rs_defaults"],
+    rustlibs: [
+        "libtokio_test",
+    ],
+}
+
+genrule {
+    name: "bluetooth_core_rust_packets",
+    defaults: ["pdl_rust_noalloc_generator_defaults"],
+    srcs: ["src/packets.pdl"],
+    out: ["_packets.rs"],
+}

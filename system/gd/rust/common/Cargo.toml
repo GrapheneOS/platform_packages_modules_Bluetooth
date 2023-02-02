@@ -36,3 +36,7 @@ tokio = { version = "1.0", features = ['bytes', 'macros', 'net', 'rt-multi-threa
 
 [lib]
 crate-type = ["rlib"]
+
+[features]
+default = ["keystore"]
+keystore = []

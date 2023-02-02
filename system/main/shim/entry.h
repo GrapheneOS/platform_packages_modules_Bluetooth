@@ -44,6 +44,10 @@ class DiscoverabilityModule;
 class InquiryModule;
 class PageModule;
 }
+namespace hal {
+class SnoopLogger;
+}
+
 namespace hci {
 class Controller;
 class HciLayer;
@@ -92,6 +96,7 @@ l2cap::le::L2capLeModule* GetL2capLeModule();
 neighbor::PageModule* GetPage();
 hci::LeScanningManager* GetScanning();
 bluetooth::security::SecurityModule* GetSecurityModule();
+hal::SnoopLogger* GetSnoopLogger();
 storage::StorageModule* GetStorage();
 hci::AclManager* GetAclManager();
 hci::VendorSpecificEventManager* GetVendorSpecificEventManager();

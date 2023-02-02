@@ -3295,6 +3295,8 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
   /* for random timeout because only peripheral should receive the result */
   if ((status == HCI_ERR_LMP_ERR_TRANS_COLLISION) ||
       (status == HCI_ERR_DIFF_TRANSACTION_COLLISION)) {
+    LOG_ERROR("Encryption collision failed status:%s",
+              hci_error_code_text(status).c_str());
     btm_sec_auth_collision(handle);
     return;
   }
@@ -3346,6 +3348,7 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
             handle, hci_status_code_text(status).c_str(), encr_enable);
       }
     } else {
+      LOG_INFO("Encryption was not enabled locally resetting encryption state");
       /* It is possible that we decrypted the link to perform role switch */
       /* mark link not to be encrypted, so that when we execute security next
        * time it will kick in again */
@@ -3361,6 +3364,18 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
       }
     }
   }
+
+  const bool is_encrypted =
+      p_dev_rec->is_le_device_encrypted() || p_dev_rec->is_device_encrypted();
+  BTM_LogHistory(
+      kBtmLogTag,
+      (transport == BT_TRANSPORT_LE) ? p_dev_rec->ble.pseudo_addr
+                                     : p_dev_rec->bd_addr,
+      (status == HCI_SUCCESS) ? "Encryption success" : "Encryption failed",
+      base::StringPrintf("status:%s transport:%s is_encrypted:%c",
+                         hci_status_code_text(status).c_str(),
+                         bt_transport_text(transport).c_str(),
+                         is_encrypted ? 'T' : 'F'));
 
   LOG_DEBUG("after update p_dev_rec->sec_flags=0x%x", p_dev_rec->sec_flags);
 
