@@ -323,21 +323,6 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             "android.bluetooth.extra.IS_COORDINATED_SET_MEMBER";
 
     /**
-     * Used as a boolean extra field in {@link #ACTION_FOUND} intents.
-     * Indicates that an ASHA device should be hidden from users because of backward compatibility.
-     * ASHA requires each hearing aid to advertise as discoverable,
-     * but CSIP requires follower devices of a set to advertise as non-discoverable.
-     * This field helps devices supporting ASHA and CSIP to show up properly
-     * in settings while pairing.
-     * See Bluetooth CSIP specification for more details.
-     *
-     * @hide
-     */
-    @SuppressLint("ActionValue")
-    @SystemApi
-    public static final String EXTRA_IS_ASHA_FOLLOWER =
-            "android.bluetooth.device.extra.IS_ASHA_FOLLOWER";
-    /**
      * Used as a Parcelable {@link BluetoothClass} extra field in {@link
      * #ACTION_FOUND} and {@link #ACTION_CLASS_CHANGED} intents.
      */
