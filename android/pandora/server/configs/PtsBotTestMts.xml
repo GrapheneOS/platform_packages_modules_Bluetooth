@@ -23,8 +23,8 @@
         <!-- Creates a randomized temp dir for pts-bot binaries and avoid
              conflicts when running multiple pts-bot on the same machine -->
         <option name="create-bin-temp-dir" value="true"/>
-        <!-- mmi2grpc is contained inside testcases folder -->
-        <option name="mmi2grpc" value="testcases" />
+        <!-- mmi2grpc is contained inside pts-bot-mts folder -->
+        <option name="mmi2grpc" value="pts-bot-mts" />
         <option name="tests-config-file" value="pts_bot_tests_config.json" />
         <option name="max-flaky-tests" value="3" />
         <option name="max-retries-per-test" value="3" />
