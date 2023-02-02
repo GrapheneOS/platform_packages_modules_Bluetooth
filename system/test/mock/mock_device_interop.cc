@@ -79,7 +79,7 @@ bool interop_match_addr_get_max_lat(const interop_feature_t feature,
   return false;
 }
 
-bool interop_get_allowlisted_media_players_list(list_t** p_bl_devices) {
+bool interop_get_allowlisted_media_players_list(list_t* p_bl_devices) {
   mock_function_count_map[__func__]++;
   return false;
 }

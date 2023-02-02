@@ -392,7 +392,7 @@ bool interop_match_addr_get_max_lat(const interop_feature_t feature,
 // This API is used for name based lookups for allowlisted media players.
 // If allowlisted media players list found it will assign the media players list
 // pointer to the argument passed and  return true else return false.
-bool interop_get_allowlisted_media_players_list(list_t** p_bl_devices);
+bool interop_get_allowlisted_media_players_list(list_t* p_bl_devices);
 
 // Return feature's enum value according to feature'name.
 int interop_feature_name_to_feature_id(const char* feature_name);
