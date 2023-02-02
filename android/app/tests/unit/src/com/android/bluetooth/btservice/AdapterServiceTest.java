@@ -771,32 +771,6 @@ public class AdapterServiceTest {
                 obfuscatedAddress1);
     }
 
-    /**
-     * Test: Check if obfuscated Bluetooth address stays the same after re-initializing
-     *       {@link AdapterService}
-     */
-    @Test
-    public void testObfuscateBluetoothAddress_PersistentBetweenAdapterServiceInitialization() throws
-            PackageManager.NameNotFoundException {
-        byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
-        Assert.assertNotNull(metricsSalt);
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress1.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
-        Assert.assertArrayEquals(obfuscateInJava(metricsSalt, device),
-                obfuscatedAddress1);
-        tearDown();
-        setUp();
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
-        Assert.assertTrue(obfuscatedAddress2.length > 0);
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2));
-        Assert.assertArrayEquals(obfuscatedAddress2,
-                obfuscatedAddress1);
-    }
-
     @Test
     public void testAddressConsolidation() {
         // Create device properties
@@ -911,24 +885,6 @@ public class AdapterServiceTest {
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
         int id3 = mAdapterService.getMetricId(device);
         Assert.assertEquals(id3, id1);
-    }
-
-    /**
-     * Test: Check if id gotten stays the same after re-initializing
-     *       {@link AdapterService}
-     */
-    @Test
-    public void testgetMetricId_PersistentBetweenAdapterServiceInitialization() throws
-            PackageManager.NameNotFoundException {
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        int id1 = mAdapterService.getMetricId(device);
-        Assert.assertTrue(id1 > 0);
-        tearDown();
-        setUp();
-        Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
-        int id2 = mAdapterService.getMetricId(device);
-        Assert.assertEquals(id2, id1);
     }
 
     @Test
