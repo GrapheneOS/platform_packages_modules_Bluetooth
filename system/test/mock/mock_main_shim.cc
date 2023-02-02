@@ -25,6 +25,7 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #define LOG_TAG "bt_shim"
+
 #include "gd/common/init_flags.h"
 #include "main/shim/entry.h"
 #include "main/shim/shim.h"
@@ -45,9 +46,14 @@ bool bluetooth::shim::is_gd_shim_enabled() {
   mock_function_count_map[__func__]++;
   return false;
 }
+namespace test {
+namespace mock {
+bool bluetooth_shim_is_gd_stack_started_up = false;
+}
+}  // namespace test
 bool bluetooth::shim::is_gd_stack_started_up() {
   mock_function_count_map[__func__]++;
-  return false;
+  return test::mock::bluetooth_shim_is_gd_stack_started_up;
 }
 bool bluetooth::shim::is_gd_link_policy_enabled() {
   mock_function_count_map[__func__]++;
