@@ -102,6 +102,8 @@ cc_defaults {
     ],
     cflags: [
         "-DHAS_NO_BDROID_BUILDCFG",
+        // http://b/264549607
+        "-Wno-deprecated-builtins",
     ],
     fuzz_config: {
         cc: ["android-bluetooth-security@google.com"],
