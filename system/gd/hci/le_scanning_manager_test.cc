@@ -314,9 +314,13 @@ class LeScanningManagerAndroidHciTest : public LeScanningManagerTest {
     start_le_scanning_manager();
     ASSERT_TRUE(fake_registry_.IsStarted(&HciLayer::Factory));
 
-
     ASSERT_EQ(OpCode::LE_ADV_FILTER, test_hci_layer_->GetCommand().GetOpCode());
     test_hci_layer_->IncomingEvent(LeAdvFilterReadExtendedFeaturesCompleteBuilder::Create(1, ErrorCode::SUCCESS, 0x01));
+
+    // Get the command a second time as the configure_scan is called twice in le_scanning_manager.cc
+    // Fixed on aosp/2242078 but not present on older branches
+    EXPECT_EQ(OpCode::LE_EXTENDED_SCAN_PARAMS, test_hci_layer_->GetCommand().GetOpCode());
+    test_hci_layer_->IncomingEvent(LeExtendedScanParamsCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
   }
 
   void TearDown() override {
@@ -332,6 +336,10 @@ class LeScanningManagerExtendedTest : public LeScanningManagerTest {
     test_controller_->AddSupported(OpCode::LE_SET_EXTENDED_SCAN_ENABLE);
     test_controller_->SetBleExtendedAdvertisingSupport(true);
     start_le_scanning_manager();
+    // Get the command a second time as the configure_scan is called twice in le_scanning_manager.cc
+    // Fixed on aosp/2242078 but not present on older branches
+    EXPECT_EQ(OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
+    test_hci_layer_->IncomingEvent(LeSetExtendedScanParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
   }
 };
 
@@ -340,11 +348,17 @@ TEST_F(LeScanningManagerTest, startup_teardown) {}
 TEST_F(LeScanningManagerTest, start_scan_test) {
   start_le_scanning_manager();
 
+  // Get the command a second time as the configure_scan is called twice in le_scanning_manager.cc
+  // Fixed on aosp/2242078 but not present on older branches
+  EXPECT_EQ(OpCode::LE_SET_SCAN_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
+  test_hci_layer_->IncomingEvent(LeSetScanParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+
   // Enable scan
   le_scanning_manager->Scan(true);
-  ASSERT_EQ(OpCode::LE_SET_SCAN_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
+  EXPECT_EQ(OpCode::LE_SET_SCAN_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
   test_hci_layer_->IncomingEvent(LeSetScanParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
-  ASSERT_EQ(OpCode::LE_SET_SCAN_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
+
+  EXPECT_EQ(OpCode::LE_SET_SCAN_ENABLE, test_hci_layer_->GetCommand().GetOpCode());
   test_hci_layer_->IncomingEvent(LeSetScanEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
 
   LeAdvertisingResponse report = make_advertising_report();
