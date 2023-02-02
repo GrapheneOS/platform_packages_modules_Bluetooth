@@ -597,6 +597,7 @@ static uint8_t avrc_proc_far_msg(uint8_t handle, uint8_t label, uint8_t cr,
       return drop_code;
     }
     avrc_cmd.status = AVRC_STS_NO_ERROR;
+    avrc_cmd.opcode = AVRC_OP_INVALID;
     avrc_cmd.target_pdu = p_rcb->rasm_pdu;
 
     tAVRC_COMMAND avrc_command;
