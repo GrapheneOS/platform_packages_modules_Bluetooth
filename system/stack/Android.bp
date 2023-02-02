@@ -481,8 +481,12 @@ cc_test {
 // Bluetooth stack connection multiplexing
 cc_test {
     name: "net_test_gatt_conn_multiplexing",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     host_supported: true,
+    test_suites: ["general-tests"],
     local_include_dirs: [
         "include",
         "btm",
