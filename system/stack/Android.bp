@@ -314,7 +314,6 @@ cc_test {
         "libhidlbase",
         "liblog",
         "libprocessgroup",
-        "libprotobuf-cpp-lite",
         "libutils",
         "libtinyxml2",
         "libz",
@@ -344,6 +343,7 @@ cc_test {
         "liblc3",
         "libopus",
         "libosi",
+        "libprotobuf-cpp-lite",
         "libudrv-uipc",
         "libbt-protos-lite",
     ],
@@ -405,7 +405,6 @@ cc_test {
     ],
     shared_libs: [
         "libcutils",
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     static_libs: [
@@ -413,6 +412,7 @@ cc_test {
         "liblog",
         "libgmock",
         "libosi",
+        "libprotobuf-cpp-lite",
         "libbt-common",
         "libbt-protos-lite",
     ],
@@ -628,7 +628,6 @@ cc_test {
     ],
     shared_libs: [
         "libcutils",
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     static_libs: [
@@ -686,13 +685,13 @@ cc_test {
     shared_libs: [
         "libcrypto",
         "libcutils",
-        "libprotobuf-cpp-lite",
     ],
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
         "liblog",
         "libosi",
+        "libprotobuf-cpp-lite",
         "libosi-AllocationTestHarness",
     ],
     sanitize: {
@@ -834,7 +833,6 @@ cc_test {
     shared_libs: [
         "libcrypto",
         "libcutils",
-        "libprotobuf-cpp-lite",
     ],
     static_libs: [
         "libbt-common",
@@ -883,7 +881,6 @@ cc_test {
     shared_libs: [
         "libcutils",
         "libcrypto",
-        "libprotobuf-cpp-lite",
     ],
     static_libs: [
         "libbt-common",
@@ -982,7 +979,6 @@ cc_test {
     shared_libs: [
         "libcutils",
         "libcrypto",
-        "libprotobuf-cpp-lite",
     ],
     static_libs: [
         "libbt-common",
@@ -990,6 +986,7 @@ cc_test {
         "liblog",
         "libgmock",
         "libosi",
+        "libprotobuf-cpp-lite",
     ],
     sanitize: {
         cfi: false,
@@ -1092,11 +1089,11 @@ cc_test {
         "libgmock",
         "liblog",
         "libosi",
+        "libprotobuf-cpp-lite",
         "libudrv-uipc",
     ],
     shared_libs: [
         "libcrypto",
-        "libprotobuf-cpp-lite",
     ],
     sanitize: {
         address: true,
@@ -1142,7 +1139,6 @@ cc_test {
         "libbtdevice",
     ],
     shared_libs: [
-        "libprotobuf-cpp-lite",
         "libcrypto",
     ],
     sanitize: {
@@ -1195,10 +1191,10 @@ cc_test {
         "libgmock",
         "liblog",
         "libosi",
+        "libprotobuf-cpp-lite",
     ],
     shared_libs: [
         "libcrypto",
-        "libprotobuf-cpp-lite",
     ],
     sanitize: {
         address: true,
@@ -1263,7 +1259,6 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libprotobuf-cpp-lite",
     ],
     sanitize: {
         address: true,
@@ -1337,11 +1332,11 @@ cc_test {
         "libgmock",
         "liblog",
         "libosi",
+        "libprotobuf-cpp-lite",
     ],
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libprotobuf-cpp-lite",
     ],
     sanitize: {
         address: true,
@@ -1411,11 +1406,11 @@ cc_test {
         "libgmock",
         "liblog",
         "libosi",
+        "libprotobuf-cpp-lite",
     ],
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libprotobuf-cpp-lite",
     ],
     target: {
         android: {
@@ -1496,7 +1491,6 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libprotobuf-cpp-lite",
     ],
     sanitize: {
         address: true,

@@ -152,7 +152,6 @@ cc_test {
         "android.hardware.bluetooth@1.1",
         "libbase",
         "liblog",
-        "libprotobuf-cpp-lite",
         "libcutils",
         "libcrypto",
     ],
@@ -165,6 +164,7 @@ cc_test {
         "libbt-protos-lite",
         "libgmock",
         "libosi",
+        "libprotobuf-cpp-lite",
         "libc++fs",
     ],
     target: {
