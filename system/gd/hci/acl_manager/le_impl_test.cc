@@ -573,6 +573,7 @@ class LeImplWithConnectionTest : public LeImplTest {
  protected:
   void SetUp() override {
     LeImplTest::SetUp();
+    set_random_device_address_policy();
 
     EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(_, _))
         .WillOnce([&](AddressWithType addr, std::unique_ptr<LeAclConnection> conn) {
@@ -1286,6 +1287,7 @@ TEST_F(LeImplTest, on_le_event__ENHANCED_CONNECTION_COMPLETE_CENTRAL) {
 
 TEST_F(LeImplTest, on_le_event__ENHANCED_CONNECTION_COMPLETE_PERIPHERAL) {
   EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(_, _)).Times(1);
+  set_random_device_address_policy();
   auto command = LeEnhancedConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       kHciHandle,
