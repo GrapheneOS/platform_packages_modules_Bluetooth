@@ -870,27 +870,27 @@ struct Controller::impl {
 
   CompletedAclPacketsCallback acl_credits_callback_{};
   CompletedAclPacketsCallback acl_monitor_credits_callback_{};
-  LocalVersionInformation local_version_information_;
-  std::array<uint8_t, 64> local_supported_commands_;
-  std::vector<uint64_t> extended_lmp_features_array_;
-  uint16_t acl_buffer_length_ = 0;
-  uint16_t acl_buffers_ = 0;
-  uint8_t sco_buffer_length_ = 0;
-  uint16_t sco_buffers_ = 0;
-  Address mac_address_;
-  std::string local_name_;
-  LeBufferSize le_buffer_size_;
-  LeBufferSize iso_buffer_size_;
-  uint64_t le_local_supported_features_;
-  uint64_t le_supported_states_;
-  uint8_t le_connect_list_size_;
-  uint8_t le_resolving_list_size_;
-  LeMaximumDataLength le_maximum_data_length_;
-  uint16_t le_maximum_advertising_data_length_;
-  uint16_t le_suggested_default_data_length_;
-  uint8_t le_number_supported_advertising_sets_;
-  uint8_t le_periodic_advertiser_list_size_;
-  VendorCapabilities vendor_capabilities_;
+  LocalVersionInformation local_version_information_{};
+  std::array<uint8_t, 64> local_supported_commands_{};
+  std::vector<uint64_t> extended_lmp_features_array_{};
+  uint16_t acl_buffer_length_{};
+  uint16_t acl_buffers_{};
+  uint8_t sco_buffer_length_{};
+  uint16_t sco_buffers_{};
+  Address mac_address_{};
+  std::string local_name_{};
+  LeBufferSize le_buffer_size_{};
+  LeBufferSize iso_buffer_size_{};
+  uint64_t le_local_supported_features_{};
+  uint64_t le_supported_states_{};
+  uint8_t le_connect_list_size_{};
+  uint8_t le_resolving_list_size_{};
+  LeMaximumDataLength le_maximum_data_length_{};
+  uint16_t le_maximum_advertising_data_length_{};
+  uint16_t le_suggested_default_data_length_{};
+  uint8_t le_number_supported_advertising_sets_{};
+  uint8_t le_periodic_advertiser_list_size_{};
+  VendorCapabilities vendor_capabilities_{};
 };  // namespace hci
 
 Controller::Controller() : impl_(std::make_unique<impl>(*this)) {}

@@ -54,7 +54,6 @@ constexpr uint64_t kRandomNumber = 0x123456789abcdef0;
 uint16_t feature_spec_version = 55;
 constexpr char title[] = "hci_controller_test";
 
-
 PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilder> packet) {
   auto bytes = std::make_shared<std::vector<uint8_t>>();
   BitInserter i(*bytes);
@@ -64,6 +63,8 @@ PacketView<kLittleEndian> GetPacketView(std::unique_ptr<packet::BasePacketBuilde
 }
 
 }  // namespace
+
+namespace {
 
 class TestHciLayer : public HciLayer {
  public:
@@ -281,9 +282,11 @@ class TestHciLayer : public HciLayer {
   std::condition_variable not_empty_;
 };
 
+}  // namespace
 class ControllerTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    feature_spec_version = feature_spec_version_;
     bluetooth::common::InitFlags::SetAllForTesting();
     test_hci_layer_ = new TestHciLayer;
     fake_registry_.InjectTestModule(&HciLayer::Factory, test_hci_layer_);
@@ -301,6 +304,31 @@ class ControllerTest : public ::testing::Test {
   os::Thread& thread_ = fake_registry_.GetTestThread();
   Controller* controller_ = nullptr;
   os::Handler* client_handler_ = nullptr;
+  uint16_t feature_spec_version_ = 98;
+};
+
+class Controller055Test : public ControllerTest {
+ protected:
+  void SetUp() override {
+    feature_spec_version_ = 55;
+    ControllerTest::SetUp();
+  }
+};
+
+class Controller095Test : public ControllerTest {
+ protected:
+  void SetUp() override {
+    feature_spec_version_ = 95;
+    ControllerTest::SetUp();
+  }
+};
+
+class Controller096Test : public ControllerTest {
+ protected:
+  void SetUp() override {
+    feature_spec_version_ = 96;
+    ControllerTest::SetUp();
+  }
 };
 
 TEST_F(ControllerTest, startup_teardown) {}
@@ -407,28 +435,25 @@ TEST_F(ControllerTest, is_supported_test) {
   ASSERT_FALSE(controller_->IsSupported(OpCode::LE_SET_PERIODIC_ADVERTISING_PARAM));
 }
 
-TEST_F(ControllerTest, feature_spec_version_055_test) {
+TEST_F(Controller055Test, feature_spec_version_055_test) {
   ASSERT_EQ(controller_->GetVendorCapabilities().version_supported_, 55);
   ASSERT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
   ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
   ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
-  feature_spec_version = 95;
 }
 
-TEST_F(ControllerTest, feature_spec_version_095_test) {
+TEST_F(Controller095Test, feature_spec_version_095_test) {
   ASSERT_EQ(controller_->GetVendorCapabilities().version_supported_, 95);
   ASSERT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
   ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
   ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
-  feature_spec_version = 96;
 }
 
-TEST_F(ControllerTest, feature_spec_version_096_test) {
+TEST_F(Controller096Test, feature_spec_version_096_test) {
   ASSERT_EQ(controller_->GetVendorCapabilities().version_supported_, 96);
   ASSERT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
   ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
   ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
-  feature_spec_version = 98;
 }
 
 TEST_F(ControllerTest, feature_spec_version_098_test) {
@@ -436,7 +461,6 @@ TEST_F(ControllerTest, feature_spec_version_098_test) {
   ASSERT_TRUE(controller_->IsSupported(OpCode::LE_MULTI_ADVT));
   ASSERT_FALSE(controller_->IsSupported(OpCode::CONTROLLER_DEBUG_INFO));
   ASSERT_TRUE(controller_->IsSupported(OpCode::CONTROLLER_A2DP_OPCODE));
-  feature_spec_version = 55;
 }
 
 std::promise<void> credits1_set;
