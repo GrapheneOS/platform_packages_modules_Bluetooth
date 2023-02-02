@@ -16,13 +16,19 @@
 
 package com.android.bluetooth.opp;
 
+import static androidx.test.espresso.intent.Intents.intended;
+import static androidx.test.espresso.intent.Intents.intending;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.anyIntent;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+
+import static com.android.bluetooth.opp.BluetoothOppManager.ALLOWED_INSERT_SHARE_THREAD_NUMBER;
 import static com.android.bluetooth.opp.BluetoothOppManager.OPP_PREFERENCE_FILE;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.nullable;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
@@ -34,7 +40,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.Uri;
+import android.util.Log;
 
+import androidx.test.espresso.intent.Intents;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -48,6 +56,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RunWith(AndroidJUnit4.class)
 public class BluetoothOppManagerTest {
@@ -66,6 +75,8 @@ public class BluetoothOppManagerTest {
 
         doReturn(null).when(mCallProxy).contentResolverInsert(
                 any(), eq(BluetoothShare.CONTENT_URI), any());
+
+        Intents.init();
     }
 
     @After
@@ -74,6 +85,8 @@ public class BluetoothOppManagerTest {
         BluetoothOppUtility.sSendFileMap.clear();
         mContext.getSharedPreferences(OPP_PREFERENCE_FILE, 0).edit().clear().apply();
         BluetoothOppManager.sInstance = null;
+
+        Intents.release();
     }
 
     @Test
@@ -177,9 +190,49 @@ public class BluetoothOppManagerTest {
         BluetoothDevice device = (mContext.getSystemService(BluetoothManager.class))
                 .getAdapter().getRemoteDevice(address);
         bluetoothOppManager.startTransfer(device);
-        // add 2 files
         verify(mCallProxy, timeout(5_000).times(1)).contentResolverInsert(any(),
                 nullable(Uri.class), nullable(ContentValues.class));
+    }
+
+    @Test
+    public void startTransferMoreThanAllowedInsertShareThreadNumberTimes_blockExceedingTransfer()
+            throws InterruptedException {
+        BluetoothOppManager bluetoothOppManager = BluetoothOppManager.getInstance(mContext);
+        String address = "AA:BB:CC:DD:EE:FF";
+        bluetoothOppManager.saveSendingFileInfo("text/plain", "content:///abc/xyz.txt",
+                false, true);
+        BluetoothDevice device = (mContext.getSystemService(BluetoothManager.class))
+                .getAdapter().getRemoteDevice(address);
+
+        AtomicBoolean intended = new AtomicBoolean(false);
+        intending(anyIntent()).respondWithFunction(
+                intent -> {
+                    // verify that at least one exceeding thread is blocked
+                    intended.set(true);
+                    return null;
+                });
+
+        // try flushing the transferring queue,
+        for (int i = 0; i < ALLOWED_INSERT_SHARE_THREAD_NUMBER + 15; i++) {
+            bluetoothOppManager.startTransfer(device);
+        }
+
+        // success at least ALLOWED_INSERT_SHARE_THREAD_NUMBER times
+        verify(mCallProxy,
+                timeout(5_000).atLeast(ALLOWED_INSERT_SHARE_THREAD_NUMBER)).contentResolverInsert(
+                any(), nullable(Uri.class), nullable(ContentValues.class));
+
+        // there is at least a failed attempt
+        assertThat(intended.get()).isTrue();
+    }
+
+    @Test
+    public void isEnabled() {
+        BluetoothOppManager bluetoothOppManager = BluetoothOppManager.getInstance(mContext);
+        doReturn(true).when(mCallProxy).bluetoothAdapterIsEnabled(any());
+        assertThat(bluetoothOppManager.isEnabled()).isTrue();
+        doReturn(false).when(mCallProxy).bluetoothAdapterIsEnabled(any());
+        assertThat(bluetoothOppManager.isEnabled()).isFalse();
     }
 
     @Test

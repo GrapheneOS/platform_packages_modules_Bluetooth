@@ -34,6 +34,8 @@
 
 #include "device/include/controller.h"  // TODO Remove
 #include "gd/common/init_flags.h"
+#include "gd/hal/snoop_logger.h"
+#include "hci/include/btsnoop.h"
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -48,6 +50,9 @@ void btsnd_hcic_enhanced_flush(uint16_t handle,
                                uint8_t packet_type);  // TODO Remove
 
 using base::StringPrintf;
+
+extern fixed_queue_t* btu_general_alarm_queue;
+tL2C_AVDT_CHANNEL_INFO av_media_channels[MAX_ACTIVE_AVDT_CONN];
 
 tBT_TRANSPORT l2c_get_transport_from_fixed_cid(uint16_t fixed_cid) {
   if (fixed_cid >= L2CAP_ATT_CID && fixed_cid <= L2CAP_SMP_CID)
@@ -1743,4 +1748,137 @@ bool L2CA_IsLinkEstablished(const RawAddress& bd_addr,
   }
 
   return l2cu_find_lcb_by_bd_addr(bd_addr, transport) != nullptr;
+}
+
+/*******************************************************************************
+**
+** Function         L2CA_SetMediaStreamChannel
+**
+** Description      This function is called to set/reset the ccb of active media
+**                      streaming channel
+**
+**  Parameters:     local_media_cid: The local cid provided to A2DP to be used
+**                      for streaming
+**                  status: The status of media streaming on this channel
+**
+** Returns          void
+**
+*******************************************************************************/
+void L2CA_SetMediaStreamChannel(uint16_t local_media_cid, bool status) {
+  uint16_t i;
+  int set_channel = -1;
+  bluetooth::hal::SnoopLogger* snoop_logger = bluetooth::shim::GetSnoopLogger();
+
+  if (snoop_logger == nullptr) {
+    LOG_ERROR("bluetooth::shim::GetSnoopLogger() is nullptr");
+    return;
+  }
+
+  if (snoop_logger->GetBtSnoopMode() != snoop_logger->kBtSnoopLogModeFiltered) {
+    return;
+  }
+
+  LOG_DEBUG("local_media_cid=%d, status=%s", local_media_cid,
+            (status ? "add" : "remove"));
+
+  if (status) {
+    for (i = 0; i < MAX_ACTIVE_AVDT_CONN; i++) {
+      if (!(av_media_channels[i].is_active)) {
+        set_channel = i;
+        break;
+      }
+    }
+
+    if (set_channel < 0) {
+      L2CAP_TRACE_ERROR("%s: No empty slot found to set media channel",
+                        __func__);
+      return;
+    }
+
+    av_media_channels[set_channel].p_ccb =
+        l2cu_find_ccb_by_cid(NULL, local_media_cid);
+
+    if (!av_media_channels[set_channel].p_ccb ||
+        !av_media_channels[set_channel].p_ccb->p_lcb) {
+      return;
+    }
+    av_media_channels[set_channel].local_cid = local_media_cid;
+
+    snoop_logger->AddA2dpMediaChannel(
+        av_media_channels[set_channel].p_ccb->p_lcb->Handle(),
+        av_media_channels[set_channel].local_cid,
+        av_media_channels[set_channel].p_ccb->remote_cid);
+
+    L2CAP_TRACE_EVENT(
+        "%s: Set A2DP media snoop filtering for local_cid: %d, remote_cid: %d",
+        __func__, local_media_cid,
+        av_media_channels[set_channel].p_ccb->remote_cid);
+  } else {
+    for (i = 0; i < MAX_ACTIVE_AVDT_CONN; i++) {
+      if (av_media_channels[i].is_active &&
+          av_media_channels[i].local_cid == local_media_cid) {
+        set_channel = i;
+        break;
+      }
+    }
+
+    if (set_channel < 0) {
+      L2CAP_TRACE_ERROR("%s: The channel %d not found in active media channels",
+                        __func__, local_media_cid);
+      return;
+    }
+
+    if (!av_media_channels[set_channel].p_ccb ||
+        !av_media_channels[set_channel].p_ccb->p_lcb) {
+      return;
+    }
+
+    snoop_logger->RemoveA2dpMediaChannel(
+        av_media_channels[set_channel].p_ccb->p_lcb->Handle(),
+        av_media_channels[set_channel].local_cid);
+
+    L2CAP_TRACE_EVENT("%s: Reset A2DP media snoop filtering for local_cid: %d",
+                      __func__, local_media_cid);
+  }
+
+  av_media_channels[set_channel].is_active = status;
+}
+
+/*******************************************************************************
+**
+** Function         L2CA_isMediaChannel
+**
+** Description      This function returns if the channel id passed as parameter
+**                      is an A2DP streaming channel
+**
+**  Parameters:     handle: Connection handle with the remote device
+**                  channel_id: Channel ID
+**                  is_local_cid: Signifies if the channel id passed is local
+**                      cid or remote cid (true if local, remote otherwise)
+**
+** Returns          bool
+**
+*******************************************************************************/
+bool L2CA_isMediaChannel(uint16_t handle, uint16_t channel_id,
+                         bool is_local_cid) {
+  int i;
+  bool ret = false;
+
+  for (i = 0; i < MAX_ACTIVE_AVDT_CONN; i++) {
+    if (av_media_channels[i].is_active) {
+      if (!av_media_channels[i].p_ccb || !av_media_channels[i].p_ccb->p_lcb) {
+        continue;
+      }
+      if (((!is_local_cid &&
+            channel_id == av_media_channels[i].p_ccb->remote_cid) ||
+           (is_local_cid &&
+            channel_id == av_media_channels[i].p_ccb->local_cid)) &&
+          handle == av_media_channels[i].p_ccb->p_lcb->Handle()) {
+        ret = true;
+        break;
+      }
+    }
+  }
+
+  return ret;
 }

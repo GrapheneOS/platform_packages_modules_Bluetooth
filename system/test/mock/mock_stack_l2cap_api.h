@@ -485,6 +485,30 @@ struct L2CA_IsLinkEstablished {
   };
 };
 extern struct L2CA_IsLinkEstablished L2CA_IsLinkEstablished;
+// Name: L2CA_SetMediaStreamChannel
+// Params: uint16_t handle, uint16_t channel_id, bool is_local_cid
+// Returns: void
+struct L2CA_SetMediaStreamChannel {
+  std::function<void(uint16_t local_media_cid, bool status)> body{
+      [](uint16_t local_media_cid, bool status) {}};
+  void operator()(uint16_t local_media_cid, bool status) {
+    body(local_media_cid, status);
+  };
+};
+extern struct L2CA_SetMediaStreamChannel L2CA_SetMediaStreamChannel;
+// Name: L2CA_isMediaChannel
+// Params: uint16_t handle, uint16_t channel_id, bool is_local_cid
+// Returns: bool
+struct L2CA_isMediaChannel {
+  std::function<bool(uint16_t handle, uint16_t channel_id, bool is_local_cid)>
+      body{[](uint16_t handle, uint16_t channel_id, bool is_local_cid) {
+        return false;
+      }};
+  bool operator()(uint16_t handle, uint16_t channel_id, bool is_local_cid) {
+    return body(handle, channel_id, is_local_cid);
+  };
+};
+extern struct L2CA_isMediaChannel L2CA_isMediaChannel;
 
 }  // namespace stack_l2cap_api
 }  // namespace mock

@@ -30,7 +30,7 @@ num-traits = "0.2"
 protobuf = "2.0"
 regex = "1.5"
 serde_json = "1.0"
-syslog = "4.0"
+syslog = "6"
 tokio = { version = "1.0", features = ["fs", "macros", "rt-multi-thread", "sync"] }
 
 [build-dependencies]

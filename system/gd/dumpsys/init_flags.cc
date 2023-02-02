@@ -43,6 +43,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
       initFlags::device_iot_config_logging_is_enabled());
   builder.add_dynamic_avrcp_version_enhancement_is_enabled(
       initFlags::dynamic_avrcp_version_enhancement_is_enabled());
+  builder.add_gd_hal_snoop_logger_filtering_is_enabled(
+      bluetooth::common::init_flags::gd_hal_snoop_logger_filtering_is_enabled());
   builder.add_finite_att_timeout_is_enabled(initFlags::finite_att_timeout_is_enabled());
   builder.add_gatt_robust_caching_client_is_enabled(initFlags::gatt_robust_caching_client_is_enabled());
   builder.add_gatt_robust_caching_server_is_enabled(initFlags::gatt_robust_caching_server_is_enabled());

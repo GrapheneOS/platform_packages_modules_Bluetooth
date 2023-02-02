@@ -135,7 +135,7 @@ class GAPProxy(ProfileProxy):
             if self.counter == 0:
                 self.counter += 1
                 self.security_storage.DeleteBond(public=pts_addr)
-                self.connection = self.host.ConnectLE(public=pts_addr).connection
+                self.connection = self.host.ConnectLE(own_address_type=OwnAddressType.RANDOM, public=pts_addr).connection
                 self.security.Secure(connection=self.connection, le=LESecurityLevel.LE_LEVEL3)
                 return "OK"
 
@@ -158,7 +158,7 @@ class GAPProxy(ProfileProxy):
                     scans.cancel()
                     break
 
-        self.connection = self.host.ConnectLE(public=address).connection
+        self.connection = self.host.ConnectLE(own_address_type=OwnAddressType.RANDOM, public=address).connection
         if test in {"GAP/BOND/BON/BV-04-C"}:
             self.security.Secure(connection=self.connection, le=LESecurityLevel.LE_LEVEL3)
 

@@ -4154,11 +4154,6 @@ static void bta_dm_gatt_disc_complete(uint16_t conn_id, tGATT_STATUS status) {
 
   if (conn_id != GATT_INVALID_CONN_ID) {
     bta_dm_search_cb.pending_close_bda = bta_dm_search_cb.peer_bdaddr;
-  } else {
-    if (bluetooth::common::init_flags::
-            bta_dm_clear_conn_id_on_client_close_is_enabled()) {
-      bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
-    }
     // Gatt will be close immediately if bluetooth.gatt.delay_close.enabled is
     // set to false. If property is true / unset there will be a delay
     if (bta_dm_search_cb.gatt_close_timer != nullptr) {
@@ -4171,6 +4166,11 @@ static void bta_dm_gatt_disc_complete(uint16_t conn_id, tGATT_STATUS status) {
       p_msg->hdr.event = BTA_DM_DISC_CLOSE_TOUT_EVT;
       p_msg->hdr.layer_specific = 0;
       bta_sys_sendmsg(p_msg);
+    }
+  } else {
+    if (bluetooth::common::init_flags::
+            bta_dm_clear_conn_id_on_client_close_is_enabled()) {
+      bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
     }
   }
   bta_dm_search_cb.gatt_disc_active = false;

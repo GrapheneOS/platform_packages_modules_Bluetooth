@@ -175,7 +175,7 @@ class StateMachineTest : public Test {
 
   void SetUp() override {
     bluetooth::common::InitFlags::Load(test_flags);
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     controller::SetMockControllerInterface(&mock_controller_);
     bluetooth::manager::SetMockBtmInterface(&btm_interface);
     gatt::SetMockBtaGattInterface(&gatt_interface);

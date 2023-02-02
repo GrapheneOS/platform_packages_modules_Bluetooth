@@ -166,6 +166,14 @@ public class BluetoothOppPreference {
         mChannels.remove(key);
     }
 
+    public void removeName(BluetoothDevice remoteDevice) {
+        Editor ed = mNamePreference.edit();
+        String key = remoteDevice.getIdentityAddress();
+        ed.remove(key);
+        ed.apply();
+        mNames.remove(key);
+    }
+
     public void dump() {
         Log.d(TAG, "Dumping Names:  ");
         Log.d(TAG, mNames.toString());
