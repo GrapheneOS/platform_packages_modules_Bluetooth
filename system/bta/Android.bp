@@ -191,11 +191,12 @@ cc_test {
         ":TestMockStackBtm",
         ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
-        "test/bta_hf_client_test.cc",
-        "test/bta_dm_cust_uuid_test.cc",
         "test/bta_dip_test.cc",
-        "test/gatt/database_builder_test.cc",
+        "test/bta_dm_cust_uuid_test.cc",
+        "test/bta_hf_client_add_record_test.cc",
+        "test/bta_hf_client_test.cc",
         "test/gatt/database_builder_sample_device_test.cc",
+        "test/gatt/database_builder_test.cc",
         "test/gatt/database_test.cc",
     ],
     shared_libs: [
@@ -307,40 +308,6 @@ cc_test {
         cfi: true,
         misc_undefined: ["bounds"],
     },
-}
-
-// bta hf client add record tests for target
-cc_test {
-    name: "net_test_hf_client_add_record",
-    defaults: [
-        "fluoride_defaults",
-        "mts_defaults",
-    ],
-    test_suites: ["device-tests"],
-    include_dirs: [
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/bta/include",
-        "packages/modules/Bluetooth/system/bta/sys",
-        "packages/modules/Bluetooth/system/btif/include",
-        "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/stack/include",
-        "packages/modules/Bluetooth/system/utils/include",
-    ],
-    srcs: [
-        ":TestCommonLogMsg",
-        "test/bta_hf_client_add_record_test.cc",
-    ],
-    header_libs: ["libbluetooth_headers"],
-    shared_libs: [
-        "libcutils",
-        "liblog",
-    ],
-    static_libs: [
-        "libbluetooth-types",
-        "libosi",
-    ],
-    cflags: ["-DBUILDCFG"],
 }
 
 // csis unit tests for host
