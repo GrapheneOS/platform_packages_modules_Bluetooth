@@ -49,6 +49,27 @@ static void battery_level_update_cb(uint8_t battery_level, RawAddress* addr) {
 static void indicator_query_cb(RawAddress* addr) {
   rusty::hfp_indicator_query_callback(*addr);
 }
+
+static void current_calls_query_cb(RawAddress* addr) {
+  rusty::hfp_current_calls_query_callback(*addr);
+}
+
+static headset::bthf_call_state_t from_rust_call_state(rusty::CallState state) {
+  switch (state) {
+    case rusty::CallState::Idle:
+      return headset::BTHF_CALL_STATE_IDLE;
+    case rusty::CallState::Incoming:
+      return headset::BTHF_CALL_STATE_INCOMING;
+    case rusty::CallState::Dialing:
+      return headset::BTHF_CALL_STATE_DIALING;
+    case rusty::CallState::Active:
+      return headset::BTHF_CALL_STATE_ACTIVE;
+    case rusty::CallState::Held:
+      return headset::BTHF_CALL_STATE_HELD;
+    default:
+      ASSERT_LOG(false, "Unhandled enum value from Rust");
+  }
+}
 }  // namespace internal
 
 class DBusHeadsetCallbacks : public headset::Callbacks {
@@ -58,9 +79,7 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
     return instance;
   }
 
-  DBusHeadsetCallbacks(headset::Interface* headset) : headset_(headset) {
-    call_status = 0;
-  };
+  DBusHeadsetCallbacks(headset::Interface* headset) : headset_(headset){};
 
   // headset::Callbacks
   void ConnectionStateCallback(headset::bthf_connection_state_t state, RawAddress* bd_addr) override {
@@ -71,17 +90,6 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   void AudioStateCallback(headset::bthf_audio_state_t state, RawAddress* bd_addr) override {
     LOG_INFO("AudioStateCallback %u from %s", state, ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
     topshim::rust::internal::audio_state_cb(state, bd_addr);
-
-    switch (state) {
-      case headset::bthf_audio_state_t::BTHF_AUDIO_STATE_CONNECTED:
-        SetCallStatus(1, bd_addr);
-        return;
-      case headset::bthf_audio_state_t::BTHF_AUDIO_STATE_DISCONNECTED:
-        SetCallStatus(0, bd_addr);
-        return;
-      default:
-        return;
-    }
   }
 
   void VoiceRecognitionCallback(
@@ -129,21 +137,7 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   }
 
   void AtClccCallback(RawAddress* bd_addr) override {
-    // Reply +CLCC:<idx>,<dir>,<status>,<mode>,<mprty>[,<number>,<type>] if
-    // there is an active audio connection. Simply rely OK otherwise.
-    // This is required for some headsets to start to send actual data to AG.
-    if (call_status)
-      headset_->ClccResponse(
-          /*index=*/1,
-          /*dir=*/headset::BTHF_CALL_DIRECTION_OUTGOING,
-          /*state=*/headset::BTHF_CALL_STATE_ACTIVE,
-          /*mode=*/headset::BTHF_CALL_TYPE_VOICE,
-          /*multi_party=*/headset::BTHF_CALL_MPTY_TYPE_SINGLE,
-          /*number=*/"",
-          /*type=*/headset::BTHF_CALL_ADDRTYPE_UNKNOWN,
-          bd_addr);
-
-    headset_->AtResponse(headset::BTHF_AT_RESPONSE_OK, 0, bd_addr);
+    topshim::rust::internal::current_calls_query_cb(bd_addr);
   }
 
   void UnknownAtCallback(char* at_string, RawAddress* bd_addr) override {
@@ -187,36 +181,6 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
 
  private:
   headset::Interface* headset_;
-  int call_status;
-
-  void SetCallStatus(int call, RawAddress* bd_addr) {
-    if (call == call_status) return;
-
-    if (call) {
-      // This triggers a +CIEV command to set the call status for HFP
-      // devices. It is required along with the SCO establishment for some
-      // devices to provide sound.
-      headset_->PhoneStateChange(
-          /*num_active=*/1,
-          /*num_held=*/0,
-          /*call_setup_state=*/headset::bthf_call_state_t::BTHF_CALL_STATE_IDLE,
-          /*number=*/"",
-          /*type=*/(headset::bthf_call_addrtype_t)0,
-          /*name=*/"",
-          /*bd_addr=*/bd_addr);
-    } else {
-      headset_->PhoneStateChange(
-          /*num_active=*/0,
-          /*num_held=*/0,
-          /*call_setup_state=*/headset::bthf_call_state_t::BTHF_CALL_STATE_IDLE,
-          /*number=*/"",
-          /*type=*/(headset::bthf_call_addrtype_t)0,
-          /*name=*/"",
-          /*bd_addr=*/bd_addr);
-    }
-
-    call_status = call;
-  }
 };
 
 int HfpIntf::init() {
@@ -258,15 +222,57 @@ uint32_t HfpIntf::device_status_notification(TelephonyDeviceStatus status, RawAd
       &addr);
 }
 
-uint32_t HfpIntf::indicator_query_response(TelephonyDeviceStatus device_status, RawAddress addr) {
+uint32_t HfpIntf::indicator_query_response(
+    TelephonyDeviceStatus device_status, PhoneState phone_state, RawAddress addr) {
   return intf_->CindResponse(
       device_status.network_available ? 1 : 0,
-      /*num_active=*/0,
-      /*num_held=*/0,
-      headset::BTHF_CALL_STATE_IDLE,
+      phone_state.num_active,
+      phone_state.num_held,
+      topshim::rust::internal::from_rust_call_state(phone_state.state),
       device_status.signal_strength,
       device_status.roaming ? 1 : 0,
       device_status.battery_level,
+      &addr);
+}
+
+uint32_t HfpIntf::current_calls_query_response(
+    const ::rust::Vec<CallInfo>& call_list, RawAddress addr) {
+  for (const auto& c : call_list) {
+    std::string number{c.number};
+    intf_->ClccResponse(
+        c.index,
+        c.dir_incoming ? headset::BTHF_CALL_DIRECTION_INCOMING
+                       : headset::BTHF_CALL_DIRECTION_OUTGOING,
+        topshim::rust::internal::from_rust_call_state(c.state),
+        /*mode=*/headset::BTHF_CALL_TYPE_VOICE,
+        /*multi_party=*/headset::BTHF_CALL_MPTY_TYPE_SINGLE,
+        number.c_str(),
+        /*type=*/headset::BTHF_CALL_ADDRTYPE_UNKNOWN,
+        &addr);
+  }
+
+  // NULL termination (Completes response)
+  return intf_->ClccResponse(
+      /*index=*/0,
+      /*dir=*/(headset::bthf_call_direction_t)0,
+      /*state=*/(headset::bthf_call_state_t)0,
+      /*mode=*/(headset::bthf_call_mode_t)0,
+      /*multi_party=*/(headset::bthf_call_mpty_type_t)0,
+      /*number=*/"",
+      /*type=*/(headset::bthf_call_addrtype_t)0,
+      &addr);
+}
+
+uint32_t HfpIntf::phone_state_change(
+    PhoneState phone_state, const ::rust::String& number_rs, RawAddress addr) {
+  std::string number{number_rs};
+  return intf_->PhoneStateChange(
+      phone_state.num_active,
+      phone_state.num_held,
+      topshim::rust::internal::from_rust_call_state(phone_state.state),
+      number.c_str(),
+      /*type=*/(headset::bthf_call_addrtype_t)0,
+      /*name=*/"",
       &addr);
 }
 

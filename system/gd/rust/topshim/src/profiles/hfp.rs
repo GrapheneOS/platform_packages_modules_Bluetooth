@@ -79,6 +79,30 @@ pub mod ffi {
         battery_level: i32,
     }
 
+    #[derive(Debug, Copy, Clone)]
+    pub enum CallState {
+        Idle,
+        Incoming,
+        Dialing,
+        Active, // Only used by CLCC response
+        Held,   // Only used by CLCC response
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct CallInfo {
+        index: i32,
+        dir_incoming: bool,
+        state: CallState,
+        number: String,
+    }
+
+    #[derive(Debug, Copy, Clone)]
+    pub struct PhoneState {
+        num_active: i32,
+        num_held: i32,
+        state: CallState,
+    }
+
     unsafe extern "C++" {
         include!("hfp/hfp_shim.h");
 
@@ -106,6 +130,18 @@ pub mod ffi {
         fn indicator_query_response(
             self: Pin<&mut HfpIntf>,
             device_status: TelephonyDeviceStatus,
+            phone_state: PhoneState,
+            addr: RawAddress,
+        ) -> u32;
+        fn current_calls_query_response(
+            self: Pin<&mut HfpIntf>,
+            call_list: &Vec<CallInfo>,
+            addr: RawAddress,
+        ) -> u32;
+        fn phone_state_change(
+            self: Pin<&mut HfpIntf>,
+            phone_state: PhoneState,
+            number: &String,
             addr: RawAddress,
         ) -> u32;
         fn cleanup(self: Pin<&mut HfpIntf>);
@@ -118,6 +154,7 @@ pub mod ffi {
         fn hfp_battery_level_update_callback(battery_level: u8, addr: RawAddress);
         fn hfp_caps_update_callback(wbs_supported: bool, addr: RawAddress);
         fn hfp_indicator_query_callback(addr: RawAddress);
+        fn hfp_current_calls_query_callback(addr: RawAddress);
     }
 }
 
@@ -134,6 +171,10 @@ impl TelephonyDeviceStatus {
     }
 }
 
+pub type CallState = ffi::CallState;
+pub type CallInfo = ffi::CallInfo;
+pub type PhoneState = ffi::PhoneState;
+
 #[derive(Clone, Debug)]
 pub enum HfpCallbacks {
     ConnectionState(BthfConnectionState, RawAddress),
@@ -142,6 +183,7 @@ pub enum HfpCallbacks {
     BatteryLevelUpdate(u8, RawAddress),
     CapsUpdate(bool, RawAddress),
     IndicatorQuery(RawAddress),
+    CurrentCallsQuery(RawAddress),
 }
 
 pub struct HfpCallbacksDispatcher {
@@ -178,6 +220,11 @@ cb_variant!(
 cb_variant!(
     HfpCb,
     hfp_indicator_query_callback -> HfpCallbacks::IndicatorQuery,
+    RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_current_calls_query_callback -> HfpCallbacks::CurrentCallsQuery,
     RawAddress);
 
 pub struct Hfp {
@@ -273,9 +320,33 @@ impl Hfp {
     pub fn indicator_query_response(
         &mut self,
         device_status: TelephonyDeviceStatus,
+        phone_state: PhoneState,
         addr: RawAddress,
     ) -> BtStatus {
-        BtStatus::from(self.internal.pin_mut().indicator_query_response(device_status, addr))
+        BtStatus::from(self.internal.pin_mut().indicator_query_response(
+            device_status,
+            phone_state,
+            addr,
+        ))
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn current_calls_query_response(
+        &mut self,
+        call_list: &Vec<CallInfo>,
+        addr: RawAddress,
+    ) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().current_calls_query_response(call_list, addr))
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn phone_state_change(
+        &mut self,
+        phone_state: PhoneState,
+        number: &String,
+        addr: RawAddress,
+    ) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().phone_state_change(phone_state, number, addr))
     }
 
     #[profile_enabled_or(false)]

@@ -12,8 +12,8 @@ use bt_topshim::profiles::avrcp::{
     Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher, PlayerMetadata,
 };
 use bt_topshim::profiles::hfp::{
-    BthfAudioState, BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher,
-    HfpCodecCapability, TelephonyDeviceStatus,
+    BthfAudioState, BthfConnectionState, CallInfo, CallState, Hfp, HfpCallbacks,
+    HfpCallbacksDispatcher, HfpCodecCapability, PhoneState, TelephonyDeviceStatus,
 };
 use bt_topshim::profiles::ProfileConnectionState;
 use bt_topshim::{metrics, topstack};
@@ -216,6 +216,8 @@ pub struct BluetoothMedia {
     connected_profiles: HashMap<RawAddress, HashSet<uuid::Profile>>,
     device_states: Arc<Mutex<HashMap<RawAddress, DeviceConnectionStates>>>,
     telephony_device_status: TelephonyDeviceStatus,
+    phone_state: PhoneState,
+    call_list: Vec<CallInfo>,
 }
 
 impl BluetoothMedia {
@@ -256,6 +258,8 @@ impl BluetoothMedia {
             connected_profiles: HashMap::new(),
             device_states: Arc::new(Mutex::new(HashMap::new())),
             telephony_device_status: TelephonyDeviceStatus::new(),
+            phone_state: PhoneState { num_active: 0, num_held: 0, state: CallState::Idle },
+            call_list: vec![],
         }
     }
 
@@ -594,6 +598,19 @@ impl BluetoothMedia {
                         info!("[{}]: hfp audio connected.", addr.to_string());
 
                         self.hfp_audio_state.insert(addr, state);
+
+                        if self.phone_state.num_active != 1 {
+                            // This triggers a +CIEV command to set the call status for HFP devices.
+                            // It is required for some devices to provide sound.
+                            self.phone_state.num_active = 1;
+                            self.call_list = vec![CallInfo {
+                                index: 1,
+                                dir_incoming: false,
+                                state: CallState::Active,
+                                number: "".into(),
+                            }];
+                            self.phone_state_change("".into());
+                        }
                     }
                     BthfAudioState::Disconnected => {
                         info!("[{}]: hfp audio disconnected.", addr.to_string());
@@ -605,6 +622,12 @@ impl BluetoothMedia {
                             self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
                                 callback.on_hfp_audio_disconnected(addr.to_string());
                             });
+                        }
+
+                        if self.phone_state.num_active != 0 {
+                            self.phone_state.num_active = 0;
+                            self.call_list = vec![];
+                            self.phone_state_change("".into());
                         }
                     }
                     BthfAudioState::Connecting => {
@@ -644,15 +667,39 @@ impl BluetoothMedia {
                 match self.hfp.as_mut() {
                     Some(hfp) => {
                         debug!(
-                            "[{}]: Responding CIND query with {:?}",
+                            "[{}]: Responding CIND query with device={:?} phone={:?}",
                             addr.to_string(),
-                            self.telephony_device_status
+                            self.telephony_device_status,
+                            self.phone_state,
                         );
-                        let status =
-                            hfp.indicator_query_response(self.telephony_device_status, addr);
+                        let status = hfp.indicator_query_response(
+                            self.telephony_device_status,
+                            self.phone_state,
+                            addr,
+                        );
                         if status != BtStatus::Success {
                             warn!(
                                 "[{}]: CIND response failed, status={:?}",
+                                addr.to_string(),
+                                status
+                            );
+                        }
+                    }
+                    None => warn!("Uninitialized HFP to notify telephony status"),
+                };
+            }
+            HfpCallbacks::CurrentCallsQuery(addr) => {
+                match self.hfp.as_mut() {
+                    Some(hfp) => {
+                        debug!(
+                            "[{}]: Responding CLCC query with call_list={:?}",
+                            addr.to_string(),
+                            self.call_list,
+                        );
+                        let status = hfp.current_calls_query_response(&self.call_list, addr);
+                        if status != BtStatus::Success {
+                            warn!(
+                                "[{}]: CLCC response failed, status={:?}",
                                 addr.to_string(),
                                 status
                             );
@@ -990,6 +1037,33 @@ impl BluetoothMedia {
                     );
                     let status =
                         hfp.device_status_notification(self.telephony_device_status, addr.clone());
+                    if status != BtStatus::Success {
+                        warn!(
+                            "[{}]: Device status notification failed, status={:?}",
+                            addr.to_string(),
+                            status
+                        );
+                    }
+                }
+            }
+            None => warn!("Uninitialized HFP to notify telephony status"),
+        }
+    }
+
+    fn phone_state_change(&mut self, number: String) {
+        match self.hfp.as_mut() {
+            Some(hfp) => {
+                for (addr, state) in self.hfp_states.iter() {
+                    if *state != BthfConnectionState::SlcConnected {
+                        continue;
+                    }
+                    debug!(
+                        "[{}]: Phone state change state={:?} number={}",
+                        addr.to_string(),
+                        self.phone_state,
+                        number
+                    );
+                    let status = hfp.phone_state_change(self.phone_state, &number, addr.clone());
                     if status != BtStatus::Success {
                         warn!(
                             "[{}]: Device status notification failed, status={:?}",

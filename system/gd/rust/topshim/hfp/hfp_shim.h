@@ -20,6 +20,7 @@
 
 #include "btif/include/btif_hf.h"
 #include "include/hardware/bluetooth_headset_callbacks.h"
+#include "rust/cxx.h"
 #include "types/raw_address.h"
 
 namespace bluetooth {
@@ -27,6 +28,8 @@ namespace topshim {
 namespace rust {
 
 struct TelephonyDeviceStatus;
+struct CallInfo;
+struct PhoneState;
 
 class HfpIntf {
  public:
@@ -40,7 +43,11 @@ class HfpIntf {
   uint32_t disconnect(RawAddress addr);
   int disconnect_audio(RawAddress addr);
   uint32_t device_status_notification(TelephonyDeviceStatus status, RawAddress addr);
-  uint32_t indicator_query_response(TelephonyDeviceStatus device_status, RawAddress addr);
+  uint32_t indicator_query_response(
+      TelephonyDeviceStatus device_status, PhoneState phone_state, RawAddress addr);
+  uint32_t current_calls_query_response(const ::rust::Vec<CallInfo>& call_list, RawAddress addr);
+  uint32_t phone_state_change(
+      PhoneState phone_state, const ::rust::String& number, RawAddress addr);
   void cleanup();
 
  private:
