@@ -398,7 +398,17 @@ void bta_sys_busy(uint8_t id, uint8_t app_id, const RawAddress& peer_addr) {
  *
  ******************************************************************************/
 void bta_sys_eir_register(tBTA_SYS_EIR_CBACK* p_cback) {
+  if (bta_sys_cb.eir_cb != nullptr) {
+    LOG_WARN("Already registered extended inquiry result callback");
+  }
   bta_sys_cb.eir_cb = p_cback;
+}
+
+void bta_sys_eir_unregister() {
+  if (bta_sys_cb.eir_cb == nullptr) {
+    LOG_WARN("Already unregistered extended inquiry result callback");
+  }
+  bta_sys_cb.eir_cb = nullptr;
 }
 
 /*******************************************************************************
