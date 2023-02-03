@@ -4697,24 +4697,6 @@ test LeGetVendorCapabilities {
   "\x53\xfd\x00",
 }
 
-struct VendorCapabilities {
-  is_supported : 8,
-  max_advt_instances: 8,
-  offloaded_resolution_of_private_address : 8,
-  total_scan_results_storage: 16,
-  max_irk_list_sz: 8,
-  filtering_support: 8,
-  max_filter: 8,
-  activity_energy_info_support: 8,
-  version_supported: 16,
-  total_num_of_advt_tracked: 16,
-  extended_scan_support: 8,
-  debug_logging_supported: 8,
-  le_address_generation_offloading_support: 8,
-  a2dp_source_offload_capability_mask: 32,
-  bluetooth_quality_report_support: 8
-}
-
 struct BaseVendorCapabilities {
   max_advt_instances: 8,
   offloaded_resolution_of_private_address : 8,
