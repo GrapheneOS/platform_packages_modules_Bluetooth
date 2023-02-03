@@ -134,7 +134,7 @@ class BleScannerInterfaceImpl : public ::BleScannerInterface,
   void OnMsftAdvMonitorAdd(uint8_t monitor_handle,
                            bluetooth::hci::ErrorCode status);
   void OnMsftAdvMonitorRemove(bluetooth::hci::ErrorCode status);
-  void OnMsftAdvMonitorEnable(bluetooth::hci::ErrorCode status);
+  void OnMsftAdvMonitorEnable(bool enable, bluetooth::hci::ErrorCode status);
   MsftCallbacks msft_callbacks_;
 
  private:
