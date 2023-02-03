@@ -504,7 +504,10 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
       return;
     }
 
-    if (is_scannable && !is_scan_response) {
+    // Don't wait for scan response if it's a filtered scan since the filter might miss the scan
+    // response.
+    if (is_scannable && !is_scan_response &&
+        filter_policy_ != LeScanningFilterPolicy::FILTER_ACCEPT_LIST_ONLY) {
       // Waiting for scan response
       return;
     }
@@ -708,6 +711,10 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
     interval_ms_ = scan_interval;
     window_ms_ = scan_window;
     scanning_callbacks_->OnSetScannerParameterComplete(scanner_id, ScanningCallback::SUCCESS);
+  }
+
+  void set_scan_filter_policy(LeScanningFilterPolicy filter_policy) {
+    filter_policy_ = filter_policy;
   }
 
   void scan_filter_enable(bool enable) {
@@ -1684,6 +1691,10 @@ void LeScanningManager::Scan(bool start) {
 void LeScanningManager::SetScanParameters(
     ScannerId scanner_id, LeScanType scan_type, uint16_t scan_interval, uint16_t scan_window) {
   CallOn(pimpl_.get(), &impl::set_scan_parameters, scanner_id, scan_type, scan_interval, scan_window);
+}
+
+void LeScanningManager::SetScanFilterPolicy(LeScanningFilterPolicy filter_policy) {
+  CallOn(pimpl_.get(), &impl::set_scan_filter_policy, filter_policy);
 }
 
 void LeScanningManager::ScanFilterEnable(bool enable) {

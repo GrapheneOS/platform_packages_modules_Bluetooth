@@ -165,7 +165,6 @@ fluoride_defaults {
     shared_libs: [
         "libcrypto",
         "liblog",
-        "libprotobuf-cpp-lite",
     ],
     static_libs: [
         "libbt-common",
