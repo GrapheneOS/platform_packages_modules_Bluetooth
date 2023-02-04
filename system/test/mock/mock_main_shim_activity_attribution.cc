@@ -22,11 +22,10 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 #include "btif/include/btif_common.h"
 #include "main/shim/activity_attribution.h"
 #include "main/shim/entry.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
