@@ -439,7 +439,7 @@ void initialize_device(btif_rc_device_cb_t* p_dev) {
 
 static btif_rc_device_cb_t* get_connected_device(int index) {
   BTIF_TRACE_DEBUG("%s: index: %d", __func__, index);
-  if (index > BTIF_RC_NUM_CONN) {
+  if (index >= BTIF_RC_NUM_CONN) {
     BTIF_TRACE_ERROR("%s: can't support more than %d connections", __func__,
                      BTIF_RC_NUM_CONN);
     return NULL;

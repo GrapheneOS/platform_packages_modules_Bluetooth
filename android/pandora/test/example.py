@@ -15,6 +15,7 @@
 import avatar
 import asyncio
 import grpc
+import sys
 import logging
 
 from concurrent import futures
@@ -26,7 +27,8 @@ from mobly.asserts import *
 from bumble.smp import PairingDelegate
 
 from avatar.utils import Address, AsyncQueue
-from avatar.controllers import pandora_device
+from avatar.pandora_client import PandoraClient
+from avatar.pandora_device_util import PandoraDeviceUtil
 from pandora.host_pb2 import (
     DiscoverabilityMode, DataTypes, OwnAddressType
 )
@@ -37,13 +39,15 @@ from pandora.security_pb2 import (
 
 class ExampleTest(base_test.BaseTestClass):
     def setup_class(self):
-        self.pandora_devices = self.register_controller(pandora_device)
-        self.dut: pandora_device.PandoraDevice = self.pandora_devices[0]
-        self.ref: pandora_device.BumblePandoraDevice = self.pandora_devices[1]
+        self.pandora_util = PandoraDeviceUtil(self)
+        self.dut, self.ref = self.pandora_util.get_pandora_devices()
+
+    def teardown_class(self):
+        self.pandora_util.cleanup()
 
     @avatar.asynchronous
     async def setup_test(self):
-        async def reset(device: pandora_device.PandoraDevice):
+        async def reset(device: PandoraClient):
             await device.host.FactoryReset()
             device.address = (await device.host.ReadLocalAddress(wait_for_ready=True)).address
 
@@ -330,5 +334,9 @@ class ExampleTest(base_test.BaseTestClass):
 
 
 if __name__ == '__main__':
+    # MoblyBinaryHostTest pass test_runner arguments after a "--"
+    # to make it work with rewrite argv to skip the "--"
+    index = sys.argv.index('--')
+    sys.argv = sys.argv[:1] + sys.argv[index + 1:]
     logging.basicConfig(level=logging.DEBUG)
     test_runner.main()

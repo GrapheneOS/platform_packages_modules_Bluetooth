@@ -239,7 +239,7 @@ extern void bta_hf_client_dump_statistics(int fd);
 extern void bta_hf_client_cb_arr_init(void);
 
 /* SDP functions */
-extern bool bta_hf_client_add_record(char* p_service_name, uint8_t scn,
+extern bool bta_hf_client_add_record(const char* p_service_name, uint8_t scn,
                                      tBTA_HF_CLIENT_FEAT features,
                                      uint32_t sdp_handle);
 extern void bta_hf_client_create_record(tBTA_HF_CLIENT_CB_ARR* client_cb,

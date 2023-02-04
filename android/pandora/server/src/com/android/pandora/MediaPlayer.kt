@@ -36,7 +36,9 @@ class MediaPlayer(val context: Context) : MediaPlayerImplBase() {
   init {
     // Init the CoroutineScope
     scope = CoroutineScope(Dispatchers.Default)
-    context.startService(Intent(context, MediaPlayerBrowserService::class.java))
+    if (!MediaPlayerBrowserService.isInitialized()) {
+      context.startService(Intent(context, MediaPlayerBrowserService::class.java))
+    }
   }
 
   override fun play(request: Empty, responseObserver: StreamObserver<Empty>) {
@@ -95,10 +97,15 @@ class MediaPlayer(val context: Context) : MediaPlayerImplBase() {
     }
   }
 
+  override fun updateQueue(request: Empty, responseObserver: StreamObserver<Empty>) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      MediaPlayerBrowserService.instance.updateQueue()
+      Empty.getDefaultInstance()
+    }
+  }
+
   fun deinit() {
     // Deinit the CoroutineScope
     scope.cancel()
-    // Stop service
-    context.stopService(Intent(context, MediaPlayerBrowserService::class.java))
   }
 }
