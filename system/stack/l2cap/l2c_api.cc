@@ -39,6 +39,7 @@
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"  // do_in_main_thread
@@ -69,6 +70,29 @@ uint16_t L2CA_Register2(uint16_t psm, const tL2CAP_APPL_INFO& p_cb_info,
   BTM_SetSecurityLevel(false, "", 0, sec_level, psm, 0, 0);
   return ret;
 }
+
+uint16_t L2CA_LeCreditDefault() {
+  static const uint16_t sL2CAP_LE_CREDIT_DEFAULT =
+      (uint16_t)osi_property_get_int32(
+          "bluetooth.l2cap.le.credit_default.value", 0xffff);
+  return sL2CAP_LE_CREDIT_DEFAULT;
+}
+
+uint16_t L2CA_LeCreditThreshold() {
+  static const uint16_t sL2CAP_LE_CREDIT_THRESHOLD =
+      (uint16_t)osi_property_get_int32(
+          "bluetooth.l2cap.le.credit_threshold.value", 0x0040);
+  return sL2CAP_LE_CREDIT_THRESHOLD;
+}
+
+static bool check_l2cap_credit() {
+  CHECK(L2CA_LeCreditThreshold() < L2CA_LeCreditDefault())
+      << "Threshold must be smaller than default credits";
+  return true;
+}
+
+// Replace static assert with startup assert depending of the config
+static const bool enforce_assert = check_l2cap_credit();
 
 /*******************************************************************************
  *
