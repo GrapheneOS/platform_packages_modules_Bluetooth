@@ -21,16 +21,14 @@
 
 #include <map>
 #include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
+#include <vector>
 
 #include "btif/include/btif_common.h"
 #include "gd/common/init_flags.h"
 #include "include/hardware/ble_advertiser.h"
 #include "main/shim/le_advertising_manager.h"
 #include "stack/include/ble_advertiser.h"
-
-#include <vector>
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
