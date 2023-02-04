@@ -22,11 +22,10 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 #include "main/shim/dumpsys.h"
 #include "main/shim/entry.h"
 #include "main/shim/shim.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
