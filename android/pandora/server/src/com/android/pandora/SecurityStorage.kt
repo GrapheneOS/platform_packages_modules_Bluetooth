@@ -27,6 +27,7 @@ import android.content.IntentFilter
 import android.util.Log
 import com.google.protobuf.BoolValue
 import com.google.protobuf.Empty
+import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -75,8 +76,16 @@ class SecurityStorage(private val context: Context) : SecurityStorageImplBase() 
 
   override fun deleteBond(request: DeleteBondRequest, responseObserver: StreamObserver<Empty>) {
     grpcUnary(globalScope, responseObserver) {
-      check(request.getAddressCase() == DeleteBondRequest.AddressCase.PUBLIC)
-      val bluetoothDevice = request.public.toBluetoothDevice(bluetoothAdapter)
+      val (address, type) =
+        when (request.getAddressCase()!!) {
+          DeleteBondRequest.AddressCase.PUBLIC ->
+            Pair(request.public, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
+          DeleteBondRequest.AddressCase.RANDOM ->
+            Pair(request.random, BluetoothDevice.ADDRESS_TYPE_RANDOM)
+          DeleteBondRequest.AddressCase.ADDRESS_NOT_SET -> throw Status.UNKNOWN.asException()
+        }
+      val bluetoothDevice =
+        bluetoothAdapter.getRemoteLeDevice(address.decodeAsMacAddressToString(), type)
       Log.i(TAG, "deleteBond: device=$bluetoothDevice")
 
       val unbonded =
