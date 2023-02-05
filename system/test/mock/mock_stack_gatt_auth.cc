@@ -57,10 +57,6 @@ void gatt_enc_cmpl_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
 void gatt_notify_enc_cmpl(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
 }
-void gatt_sec_check_complete(bool sec_check_ok, tGATT_CLCB* p_clcb,
-                             uint8_t sec_act) {
-  mock_function_count_map[__func__]++;
-}
 void gatt_set_sec_act(tGATT_TCB* p_tcb, tGATT_SEC_ACTION sec_act) {
   mock_function_count_map[__func__]++;
 }

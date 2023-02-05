@@ -28,8 +28,6 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 // Mock include file to share data between tests and mock
 
 // Mocked compile conditionals, if any

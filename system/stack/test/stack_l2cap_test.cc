@@ -94,7 +94,7 @@ class StackL2capChannelTest : public StackL2capTest {
               .result = 0,
               .mtu = 100,
               .mps = 100,
-              .credits = L2CAP_LE_CREDIT_DEFAULT,
+              .credits = L2CA_LeCreditDefault(),
               .number_of_channels = L2CAP_CREDIT_BASED_MAX_CIDS,
           },
       .peer_conn_cfg =
@@ -103,7 +103,7 @@ class StackL2capChannelTest : public StackL2capTest {
               .result = 0,
               .mtu = 100,
               .mps = 100,
-              .credits = L2CAP_LE_CREDIT_DEFAULT,
+              .credits = L2CA_LeCreditDefault(),
               .number_of_channels = L2CAP_CREDIT_BASED_MAX_CIDS,
           },
       .is_first_seg = false,
