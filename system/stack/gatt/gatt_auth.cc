@@ -155,8 +155,10 @@ static void gatt_sec_check_complete(bool sec_check_ok, tGATT_CLCB* p_clcb,
  * Returns
  *
  ******************************************************************************/
-void gatt_enc_cmpl_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
-                         UNUSED_ATTR void* p_ref_data, tBTM_STATUS result) {
+static void gatt_enc_cmpl_cback(const RawAddress* bd_addr,
+                                tBT_TRANSPORT transport,
+                                UNUSED_ATTR void* p_ref_data,
+                                tBTM_STATUS result) {
   VLOG(1) << StringPrintf("gatt_enc_cmpl_cback");
   tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(*bd_addr, transport);
   if (!p_tcb) {
