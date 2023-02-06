@@ -624,6 +624,7 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
  */
 
 void btgatts_register_app_cb(int status, int server_if, const Uuid& uuid) {
+  bluetooth::gatt::open_server(server_if);
   std::shared_lock<std::shared_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid() || !mCallbacksObj) return;
@@ -646,6 +647,19 @@ void btgatts_connection_cb(int conn_id, int server_if, int connected,
 void btgatts_service_added_cb(int status, int server_if,
                               const btgatt_db_element_t* service,
                               size_t service_count) {
+  // mirror the database in rust, now that it's created.
+  if (status == 0x00 /* SUCCESS */) {
+    auto service_records = rust::Vec<bluetooth::gatt::GattRecord>();
+    for (size_t i = 0; i != service_count; ++i) {
+      auto& curr_service = service[i];
+      service_records.push_back(bluetooth::gatt::GattRecord{
+          curr_service.uuid, (bluetooth::gatt::GattRecordType)curr_service.type,
+          curr_service.attribute_handle, curr_service.properties,
+          curr_service.extended_properties, curr_service.permissions});
+    }
+    bluetooth::gatt::add_service(server_if, std::move(service_records));
+  }
+
   std::shared_lock<std::shared_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid() || !mCallbacksObj) return;
@@ -664,6 +678,8 @@ void btgatts_service_added_cb(int status, int server_if,
 }
 
 void btgatts_service_stopped_cb(int status, int server_if, int srvc_handle) {
+  bluetooth::gatt::remove_service(server_if, srvc_handle);
+
   std::shared_lock<std::shared_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid() || !mCallbacksObj) return;
@@ -672,6 +688,8 @@ void btgatts_service_stopped_cb(int status, int server_if, int srvc_handle) {
 }
 
 void btgatts_service_deleted_cb(int status, int server_if, int srvc_handle) {
+  bluetooth::gatt::remove_service(server_if, srvc_handle);
+
   std::shared_lock<std::shared_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid() || !mCallbacksObj) return;
@@ -1899,6 +1917,7 @@ static void gattServerRegisterAppNative(JNIEnv* env, jobject object,
 static void gattServerUnregisterAppNative(JNIEnv* env, jobject object,
                                           jint serverIf) {
   if (!sGattIf) return;
+  bluetooth::gatt::close_server(serverIf);
   sGattIf->server->unregister_server(serverIf);
 }
 

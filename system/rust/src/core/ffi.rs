@@ -14,11 +14,23 @@
 
 use crate::core::init;
 
+use cxx::{type_id, ExternType};
 pub use inner::*;
+
+unsafe impl ExternType for Uuid {
+    type Id = type_id!("bluetooth::Uuid");
+    type Kind = cxx::kind::Trivial;
+}
 
 #[allow(dead_code, missing_docs)]
 #[cxx::bridge]
 mod inner {
+    #[namespace = "bluetooth"]
+    extern "C++" {
+        include!("bluetooth/uuid.h");
+        type Uuid = crate::core::uuid::Uuid;
+    }
+
     #[namespace = "bluetooth::rust_shim"]
     extern "Rust" {
         fn init();
