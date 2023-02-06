@@ -23,6 +23,7 @@ rust_defaults {
     ],
     rustlibs: [
         "liblog_rust",
+        "libanyhow",
         "libcxx",
         "libtokio",
         "libbt_common",

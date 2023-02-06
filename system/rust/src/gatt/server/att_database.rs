@@ -6,6 +6,10 @@ use crate::{
     packets::{AttAttributeDataChild, AttErrorCode, AttHandleBuilder, AttHandleView},
 };
 
+// UUIDs from Bluetooth Assigned Numbers Sec 3.6
+pub const PRIMARY_SERVICE_DECLARATION_UUID: Uuid = Uuid::new(0x2800);
+pub const CHARACTERISTIC_UUID: Uuid = Uuid::new(0x2803);
+
 impl From<AttHandleView<'_>> for AttHandle {
     fn from(value: AttHandleView) -> Self {
         AttHandle(value.get_handle())
@@ -18,7 +22,7 @@ impl From<AttHandle> for AttHandleBuilder {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AttAttribute {
     pub handle: AttHandle,
     pub type_: Uuid,
@@ -27,7 +31,7 @@ pub struct AttAttribute {
 
 /// The attribute properties supported by the current GATT server implementation
 /// Unimplemented properties will default to false.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AttPermissions {
     /// Whether an attribute is readable
     pub readable: bool,
