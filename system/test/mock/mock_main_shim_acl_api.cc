@@ -19,17 +19,15 @@
  *   Functions generated:5
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <cstddef>
 #include <cstdint>
+#include <map>
+#include <string>
 
 #include "main/shim/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 

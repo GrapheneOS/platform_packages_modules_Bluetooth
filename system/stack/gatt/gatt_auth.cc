@@ -132,8 +132,8 @@ void gatt_verify_signature(tGATT_TCB& tcb, uint16_t cid, BT_HDR* p_buf) {
  * Returns          void.
  *
  ******************************************************************************/
-void gatt_sec_check_complete(bool sec_check_ok, tGATT_CLCB* p_clcb,
-                             uint8_t sec_act) {
+static void gatt_sec_check_complete(bool sec_check_ok, tGATT_CLCB* p_clcb,
+                                    uint8_t sec_act) {
   if (p_clcb && p_clcb->p_tcb && p_clcb->p_tcb->pending_enc_clcb.empty()) {
     gatt_set_sec_act(p_clcb->p_tcb, GATT_SEC_NONE);
   }
