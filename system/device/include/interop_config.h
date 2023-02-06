@@ -83,6 +83,4 @@ bool interop_database_match_addr_get_lmp_ver(const interop_feature_t feature,
                                              const RawAddress* addr,
                                              uint8_t* lmp_ver,
                                              uint16_t* lmp_sub_ver);
-bool interop_get_allowlisted_media_players_list(list_t** p_bl_devices);
-bool interop_database_get_allowlisted_media_players_list(
-    const interop_feature_t feature, list_t** p_bl_devices);
+bool interop_get_allowlisted_media_players_list(list_t* p_bl_devices);

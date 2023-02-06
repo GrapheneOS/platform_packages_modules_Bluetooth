@@ -78,6 +78,7 @@ static const char* INTEROP_STATIC_FILE_PATH =
     return #const;
 
 static list_t* interop_list = NULL;
+static list_t* media_player_list = NULL;
 
 bool interop_is_initialized = false;
 // protects operations on |interop_list|
@@ -85,7 +86,7 @@ pthread_mutex_t interop_list_lock;
 
 // protects operations on |config|
 static pthread_mutex_t file_lock;
-static std::unique_ptr<config_t> config_static;
+static std::unique_ptr<const config_t> config_static;
 static std::unique_ptr<config_t> config_dynamic;
 static const char* UNKNOWN_INTEROP_FEATURE = "UNKNOWN";
 // map from feature name to feature id
@@ -184,6 +185,8 @@ static void interop_config_cleanup(void);
 // This function is used to initialize the interop list and load the entries
 // from file
 static void load_config();
+static void interop_database_save_allowlisted_media_players_list(
+    const config_t* config);
 static void interop_database_add_(interop_db_entry_t* db_entry, bool persist);
 static bool interop_database_remove_(interop_db_entry_t* entry);
 static bool interop_database_match(interop_db_entry_t* entry,
@@ -204,13 +207,6 @@ bool interop_match_addr(const interop_feature_t feature,
 bool interop_match_name(const interop_feature_t feature, const char* name) {
   CHECK(name);
   return (interop_database_match_name(feature, name));
-}
-
-bool interop_get_allowlisted_media_players_list(list_t** p_bl_devices) {
-  interop_feature_t feature = INTEROP_BROWSE_PLAYER_ALLOW_LIST;
-
-  return (interop_database_get_allowlisted_media_players_list(feature,
-                                                              p_bl_devices));
 }
 
 bool interop_match_addr_or_name(const interop_feature_t feature,
@@ -300,6 +296,8 @@ static future_t* interop_clean_up(void) {
   pthread_mutex_lock(&interop_list_lock);
   list_free(interop_list);
   interop_list = NULL;
+  list_free(media_player_list);
+  media_player_list = NULL;
   interop_is_initialized = false;
   pthread_mutex_unlock(&interop_list_lock);
   pthread_mutex_destroy(&interop_list_lock);
@@ -1152,6 +1150,9 @@ static void load_config() {
       }
     }
   }
+  interop_database_save_allowlisted_media_players_list(config_static.get());
+  // We no longer need the static config file
+  config_static.reset();
 
   for (const section_t& sec : config_dynamic.get()->sections) {
     int feature = -1;
@@ -1661,16 +1662,37 @@ bool interop_database_remove_addr_lmp_version(const interop_feature_t feature,
   return false;
 }
 
-bool interop_database_get_allowlisted_media_players_list(
-    const interop_feature_t feature, list_t** p_bl_devices) {
-  for (const section_t& sec : config_static.get()->sections) {
-    if (feature == interop_feature_name_to_feature_id(sec.name.c_str())) {
+static void delete_media_player_node(void* data) {
+  std::string* key = static_cast<std::string*>(data);
+  delete key;
+}
+
+static void interop_database_save_allowlisted_media_players_list(
+    const config_t* config) {
+  media_player_list = list_new(delete_media_player_node);
+  for (const section_t& sec : config->sections) {
+    if (INTEROP_BROWSE_PLAYER_ALLOW_LIST ==
+        interop_feature_name_to_feature_id(sec.name.c_str())) {
+      LOG_WARN("found feature - %s", sec.name.c_str());
       for (const entry_t& entry : sec.entries) {
-        LOG_WARN("found feature - %s", interop_feature_string_(feature));
-        list_append(*p_bl_devices, (void*)entry.key.c_str());
+        list_append(media_player_list, (void*)(new std::string(entry.key)));
       }
-      return true;
+      break;
     }
   }
-  return false;
+}
+
+bool interop_get_allowlisted_media_players_list(list_t* p_bl_devices) {
+  if (media_player_list == nullptr) return false;
+
+  const list_node_t* node = list_begin(media_player_list);
+  bool found = false;
+
+  while (node != list_end(media_player_list)) {
+    found = true;
+    std::string* key = (std::string*)list_node(node);
+    list_append(p_bl_devices, (void*)key->c_str());
+    node = list_next(node);
+  }
+  return found;
 }
