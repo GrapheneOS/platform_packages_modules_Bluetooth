@@ -15,8 +15,6 @@
 //! The core event loop for Rust modules. Here Rust modules are started in
 //! dependency order.
 
-#![feature(mixed_integer_ops)]
-
 #[cfg(feature = "via_android_bp")]
 mod do_not_use {
     // DO NOT USE
