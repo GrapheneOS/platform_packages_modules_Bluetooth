@@ -701,23 +701,6 @@ void btm_sec_update_clock_offset(uint16_t handle, uint16_t clock_offset);
 
 /*******************************************************************************
  *
- * Function         btm_sec_execute_procedure
- *
- * Description      This function is called to start required security
- *                  procedure.  There is a case when multiplexing protocol
- *                  calls this function on the originating side, connection to
- *                  the peer will not be established.  This function in this
- *                  case performs only authorization.
- *
- * Returns          BTM_SUCCESS     - permission is granted
- *                  BTM_CMD_STARTED - in process
- *                  BTM_NO_RESOURCES  - permission declined
- *
- ******************************************************************************/
-tBTM_STATUS btm_sec_execute_procedure(tBTM_SEC_DEV_REC* p_dev_rec);
-
-/*******************************************************************************
- *
  * Function         btm_sec_find_first_serv
  *
  * Description      Look for the first record in the service database
