@@ -1813,7 +1813,6 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
 }
 
 static void btif_dm_update_allowlisted_media_players() {
-  uint8_t num_wlplayers = 0;
   uint8_t i = 0, buf_len = 0;
   bt_property_t wlplayers_prop;
   list_t* wl_players = list_new(nullptr);
@@ -1824,19 +1823,12 @@ static void btif_dm_update_allowlisted_media_players() {
   LOG_DEBUG("btif_dm_update_allowlisted_media_players");
 
   wlplayers_prop.len = 0;
-  if (!interop_get_allowlisted_media_players_list(&wl_players)) {
+  if (!interop_get_allowlisted_media_players_list(wl_players)) {
     LOG_DEBUG("Allowlisted media players not found");
     list_free(wl_players);
     return;
   }
-  num_wlplayers = list_length(wl_players);
-  LOG_DEBUG("%d - WL media players found", num_wlplayers);
 
-  /* Now send the callback */
-  if (num_wlplayers <= 0) {
-    list_free(wl_players);
-    return;
-  }
   /*find the total number of bytes and allocate memory */
   for (list_node_t* node = list_begin(wl_players); node != list_end(wl_players);
        node = list_next(node)) {
