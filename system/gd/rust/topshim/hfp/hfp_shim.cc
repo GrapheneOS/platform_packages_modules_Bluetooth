@@ -54,6 +54,14 @@ static void current_calls_query_cb(RawAddress* addr) {
   rusty::hfp_current_calls_query_callback(*addr);
 }
 
+static void answer_call_cb(RawAddress* addr) {
+  rusty::hfp_answer_call_callback(*addr);
+}
+
+static void hangup_call_cb(RawAddress* addr) {
+  rusty::hfp_hangup_call_callback(*addr);
+}
+
 static headset::bthf_call_state_t from_rust_call_state(rusty::CallState state) {
   switch (state) {
     case rusty::CallState::Idle:
@@ -95,9 +103,13 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   void VoiceRecognitionCallback(
       [[maybe_unused]] headset::bthf_vr_state_t state, [[maybe_unused]] RawAddress* bd_addr) override {}
 
-  void AnswerCallCallback([[maybe_unused]] RawAddress* bd_addr) override {}
+  void AnswerCallCallback(RawAddress* bd_addr) override {
+    topshim::rust::internal::answer_call_cb(bd_addr);
+  }
 
-  void HangupCallCallback([[maybe_unused]] RawAddress* bd_addr) override {}
+  void HangupCallCallback(RawAddress* bd_addr) override {
+    topshim::rust::internal::hangup_call_cb(bd_addr);
+  }
 
   void VolumeControlCallback(headset::bthf_volume_type_t type, int volume, RawAddress* bd_addr) override {
     if (type != headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_SPK || volume < 0) return;

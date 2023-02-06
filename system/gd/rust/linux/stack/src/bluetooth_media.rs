@@ -154,6 +154,17 @@ pub trait IBluetoothTelephony {
     fn set_signal_strength(&mut self, signal_strength: i32) -> bool;
     /// Sets the device battery level, 0 to 5.
     fn set_battery_level(&mut self, battery_level: i32) -> bool;
+    /// Enables/disables phone operations.
+    /// The call state is fully reset whenever this is called.
+    fn set_phone_ops_enabled(&mut self, enable: bool);
+    /// Acts like the AG received an incoming call.
+    fn incoming_call(&mut self, number: String) -> bool;
+    /// Acts like dialing a call from the AG.
+    fn dialing_call(&mut self, number: String) -> bool;
+    /// Acts like answering an incoming/dialing call from the AG.
+    fn answer_call(&mut self) -> bool;
+    /// Acts like hanging up an active/incoming/dialing call from the AG.
+    fn hangup_call(&mut self) -> bool;
 }
 
 /// Serializable device used in.
@@ -218,6 +229,7 @@ pub struct BluetoothMedia {
     telephony_device_status: TelephonyDeviceStatus,
     phone_state: PhoneState,
     call_list: Vec<CallInfo>,
+    phone_ops_enabled: bool,
 }
 
 impl BluetoothMedia {
@@ -260,6 +272,7 @@ impl BluetoothMedia {
             telephony_device_status: TelephonyDeviceStatus::new(),
             phone_state: PhoneState { num_active: 0, num_held: 0, state: CallState::Idle },
             call_list: vec![],
+            phone_ops_enabled: false,
         }
     }
 
@@ -599,7 +612,9 @@ impl BluetoothMedia {
 
                         self.hfp_audio_state.insert(addr, state);
 
-                        if self.phone_state.num_active != 1 {
+                        // Change the phone state only when it's currently managed by media stack
+                        // (I.e., phone operations are not enabled).
+                        if !self.phone_ops_enabled && self.phone_state.num_active != 1 {
                             // This triggers a +CIEV command to set the call status for HFP devices.
                             // It is required for some devices to provide sound.
                             self.phone_state.num_active = 1;
@@ -624,7 +639,9 @@ impl BluetoothMedia {
                             });
                         }
 
-                        if self.phone_state.num_active != 0 {
+                        // Change the phone state only when it's currently managed by media stack
+                        // (I.e., phone operations are not enabled).
+                        if !self.phone_ops_enabled && self.phone_state.num_active != 0 {
                             self.phone_state.num_active = 0;
                             self.call_list = vec![];
                             self.phone_state_change("".into());
@@ -707,6 +724,20 @@ impl BluetoothMedia {
                     }
                     None => warn!("Uninitialized HFP to notify telephony status"),
                 };
+            }
+            HfpCallbacks::AnswerCall(addr) => {
+                if !self.answer_call_impl() {
+                    warn!("[{}]: answer_call triggered by ATA failed", addr.to_string());
+                    return;
+                }
+                self.phone_state_change("".into());
+            }
+            HfpCallbacks::HangupCall(addr) => {
+                if !self.hangup_call_impl() {
+                    warn!("[{}]: hangup_call triggered by AT+CHUP failed", addr.to_string());
+                    return;
+                }
+                self.phone_state_change("".into());
             }
         }
     }
@@ -1075,6 +1106,52 @@ impl BluetoothMedia {
             }
             None => warn!("Uninitialized HFP to notify telephony status"),
         }
+    }
+
+    // Returns the minimum unoccupied index starting from 1.
+    fn new_call_index(&self) -> i32 {
+        (1..)
+            .find(|&index| self.call_list.iter().all(|x| x.index != index))
+            .expect("There must be an unoccupied index")
+    }
+
+    fn answer_call_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled || self.phone_state.state == CallState::Idle {
+            return false;
+        }
+        // There must be exactly one incoming/dialing call in the list.
+        for c in self.call_list.iter_mut() {
+            if c.state == CallState::Incoming || c.state == CallState::Dialing {
+                c.state = CallState::Active;
+                break;
+            }
+        }
+        self.phone_state.state = CallState::Idle;
+        self.phone_state.num_active += 1;
+        true
+    }
+
+    fn hangup_call_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled {
+            return false;
+        }
+        match self.phone_state.state {
+            CallState::Idle if self.phone_state.num_active > 0 => {
+                self.phone_state.num_active -= 1;
+            }
+            CallState::Incoming | CallState::Dialing => {
+                self.phone_state.state = CallState::Idle;
+            }
+            _ => {
+                return false;
+            }
+        }
+        // At this point, there must be exactly one incoming/dialing/active call to be removed.
+        self.call_list.retain(|x| match x.state {
+            CallState::Active | CallState::Incoming | CallState::Dialing => false,
+            _ => true,
+        });
+        true
     }
 }
 
@@ -1712,6 +1789,84 @@ impl IBluetoothTelephony for BluetoothMedia {
         self.telephony_device_status.battery_level = battery_level;
         self.device_status_notification();
 
+        true
+    }
+
+    fn set_phone_ops_enabled(&mut self, enable: bool) {
+        if self.phone_ops_enabled == enable {
+            return;
+        }
+
+        self.call_list = vec![];
+        self.phone_state.num_active = 0;
+        self.phone_state.num_held = 0;
+        self.phone_state.state = CallState::Idle;
+
+        if !enable {
+            if self.hfp_states.values().any(|x| x == &BthfConnectionState::SlcConnected) {
+                self.call_list.push(CallInfo {
+                    index: 1,
+                    dir_incoming: false,
+                    state: CallState::Active,
+                    number: "".into(),
+                });
+                self.phone_state.num_active = 1;
+            }
+        }
+
+        self.phone_ops_enabled = enable;
+        self.phone_state_change("".into());
+    }
+
+    fn incoming_call(&mut self, number: String) -> bool {
+        if !self.phone_ops_enabled
+            || self.phone_state.state != CallState::Idle
+            || self.phone_state.num_active > 0
+        {
+            return false;
+        }
+        self.call_list.push(CallInfo {
+            index: self.new_call_index(),
+            dir_incoming: true,
+            state: CallState::Incoming,
+            number: number.clone(),
+        });
+        self.phone_state.state = CallState::Incoming;
+        self.phone_state_change(number);
+        true
+    }
+
+    fn dialing_call(&mut self, number: String) -> bool {
+        if !self.phone_ops_enabled
+            || self.phone_state.state != CallState::Idle
+            || self.phone_state.num_active > 0
+        {
+            return false;
+        }
+        self.call_list.push(CallInfo {
+            index: self.new_call_index(),
+            dir_incoming: false,
+            state: CallState::Dialing,
+            number: number.clone(),
+        });
+        self.phone_state.state = CallState::Dialing;
+        self.phone_state_change("".into());
+        true
+    }
+
+    fn answer_call(&mut self) -> bool {
+        if !self.answer_call_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
+        true
+    }
+
+    fn hangup_call(&mut self) -> bool {
+        if !self.hangup_call_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
         true
     }
 }

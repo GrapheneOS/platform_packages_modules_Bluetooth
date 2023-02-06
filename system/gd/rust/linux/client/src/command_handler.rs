@@ -280,6 +280,9 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from("telephony set-roaming <on|off>"),
                 String::from("telephony set-signal <strength>"),
                 String::from("telephony set-battery <level>"),
+                String::from("telephony <enable|disable>"),
+                String::from("telephony <incoming-call|dialing-call> <number>"),
+                String::from("telephony <answer-call|hangup-call>"),
             ],
             description: String::from("Set device telephony status."),
             function_pointer: CommandHandler::cmd_telephony,
@@ -1578,6 +1581,55 @@ impl CommandHandler {
                     .as_mut()
                     .unwrap()
                     .set_battery_level(level);
+            }
+            "enable" | "disable" => {
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_phone_ops_enabled(get_arg(args, 0)? == "enable");
+            }
+            "incoming-call" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .incoming_call(String::from(get_arg(args, 1)?));
+                if !success {
+                    return Err("IncomingCall failed".into());
+                }
+            }
+            "dialing-call" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .dialing_call(String::from(get_arg(args, 1)?));
+                if !success {
+                    return Err("DialingCall failed".into());
+                }
+            }
+            "answer-call" => {
+                let success =
+                    self.context.lock().unwrap().telephony_dbus.as_mut().unwrap().answer_call();
+                if !success {
+                    return Err("AnswerCall failed".into());
+                }
+            }
+            "hangup-call" => {
+                let success =
+                    self.context.lock().unwrap().telephony_dbus.as_mut().unwrap().hangup_call();
+                if !success {
+                    return Err("HangupCall failed".into());
+                }
             }
             other => {
                 return Err(format!("Invalid argument '{}'", other).into());

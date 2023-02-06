@@ -155,6 +155,8 @@ pub mod ffi {
         fn hfp_caps_update_callback(wbs_supported: bool, addr: RawAddress);
         fn hfp_indicator_query_callback(addr: RawAddress);
         fn hfp_current_calls_query_callback(addr: RawAddress);
+        fn hfp_answer_call_callback(addr: RawAddress);
+        fn hfp_hangup_call_callback(addr: RawAddress);
     }
 }
 
@@ -184,6 +186,8 @@ pub enum HfpCallbacks {
     CapsUpdate(bool, RawAddress),
     IndicatorQuery(RawAddress),
     CurrentCallsQuery(RawAddress),
+    AnswerCall(RawAddress),
+    HangupCall(RawAddress),
 }
 
 pub struct HfpCallbacksDispatcher {
@@ -225,6 +229,16 @@ cb_variant!(
 cb_variant!(
     HfpCb,
     hfp_current_calls_query_callback -> HfpCallbacks::CurrentCallsQuery,
+    RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_answer_call_callback -> HfpCallbacks::AnswerCall,
+    RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_hangup_call_callback -> HfpCallbacks::HangupCall,
     RawAddress);
 
 pub struct Hfp {

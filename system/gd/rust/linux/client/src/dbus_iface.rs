@@ -1854,4 +1854,24 @@ impl IBluetoothTelephony for BluetoothTelephonyDBus {
     fn set_battery_level(&mut self, battery_level: i32) -> bool {
         dbus_generated!()
     }
+    #[dbus_method("SetPhoneOpsEnabled")]
+    fn set_phone_ops_enabled(&mut self, enable: bool) {
+        dbus_generated!()
+    }
+    #[dbus_method("IncomingCall")]
+    fn incoming_call(&mut self, number: String) -> bool {
+        dbus_generated!()
+    }
+    #[dbus_method("DialingCall")]
+    fn dialing_call(&mut self, number: String) -> bool {
+        dbus_generated!()
+    }
+    #[dbus_method("AnswerCall")]
+    fn answer_call(&mut self) -> bool {
+        dbus_generated!()
+    }
+    #[dbus_method("HangupCall")]
+    fn hangup_call(&mut self) -> bool {
+        dbus_generated!()
+    }
 }
