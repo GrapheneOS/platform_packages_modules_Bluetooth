@@ -44,6 +44,7 @@
 #include "osi/include/compat.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/eatt/eatt.h"
@@ -4498,12 +4499,16 @@ static bool btm_sec_start_get_name(tBTM_SEC_DEV_REC* p_dev_rec) {
 static void btm_sec_wait_and_start_authentication(tBTM_SEC_DEV_REC* p_dev_rec) {
   p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
   auto addr = new RawAddress(p_dev_rec->bd_addr);
+
+  static const int32_t delay_auth =
+      osi_property_get_int32("bluetooth.btm.sec.delay_auth_ms.value", 0);
+
   bt_status_t status = do_in_main_thread_delayed(
       FROM_HERE, base::Bind(&btm_sec_auth_timer_timeout, addr),
 #if BASE_VER < 931007
-      base::TimeDelta::FromMilliseconds(BTM_DELAY_AUTH_MS));
+      base::TimeDelta::FromMilliseconds(delay_auth));
 #else
-      base::Milliseconds(BTM_DELAY_AUTH_MS));
+      base::Milliseconds(delay_auth));
 #endif
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << __func__
