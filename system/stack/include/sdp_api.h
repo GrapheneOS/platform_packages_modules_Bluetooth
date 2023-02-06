@@ -91,6 +91,8 @@ inline std::string sdp_status_text(const tSDP_STATUS& status) {
       return base::StringPrintf("UNKNOWN[%hu]", status);
   }
 }
+const auto sdp_result_text = sdp_status_text;
+
 #undef CASE_RETURN_TEXT
 
 /* Masks for attr_value field of tSDP_DISC_ATTR */
