@@ -18,8 +18,9 @@ package {
 
 python_test_host {
     name: "avatar",
-    main: "example.py",
+    main: "main.py",
     srcs: [
+        "main.py",
         "example.py",
     ],
     libs: [
