@@ -183,6 +183,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     srcs: crypto_toolbox_srcs + [
+        "arbiter/acl_arbiter.cc",
         "btm/ble_advertiser_hci_interface.cc",
         "acl/acl.cc",
         "acl/btm_acl.cc",

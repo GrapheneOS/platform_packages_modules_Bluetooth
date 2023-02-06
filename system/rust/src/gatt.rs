@@ -2,6 +2,7 @@
 //! existing C++ GATT client. See go/private-gatt-in-platform for the design.
 
 pub mod channel;
+pub mod ffi;
 pub mod ids;
 pub mod mocks;
 pub mod server;

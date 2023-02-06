@@ -32,6 +32,9 @@ rust_defaults {
         // caused by bug in Soong
         "libbt_shim",
     ],
+    whole_static_libs: [
+        "libbluetooth_core_rs_bridge",
+    ],
     features: [
         // used to hide libbt_shim in Cargo builds, but
         // expose it to Soong to work around linker bug
@@ -75,6 +78,85 @@ rust_test_host {
     rustlibs: [
         "libtokio_test",
     ],
+}
+
+cc_library_static {
+    name: "libbluetooth_core_rs_bridge",
+    defaults: [
+        "libchrome_support_defaults",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/internal_include",
+        "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/types",
+    ],
+    export_include_dirs: ["."],
+    static_libs: [
+        "libbluetooth-core",
+        "libbt_shim_ffi",
+        "libbt_shim_bridge",
+    ],
+    generated_headers: [
+        "cxx-bridge-header",
+        "libbluetooth_core_rs_bridge_codegen_header",
+
+        "BluetoothGeneratedBundlerSchema_h_bfbs",
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
+    export_generated_headers: [
+        "libbluetooth_core_rs_bridge_codegen_header",
+    ],
+    host_supported: true,
+    generated_sources: ["libbluetooth_core_rs_bridge_codegen"],
+    apex_available: ["com.android.btservices"],
+    min_sdk_version: "Tiramisu",
+}
+
+/// FFI codegen
+///
+/// The static library libbluetooth_core_rs_bridge is included by
+/// libbluetooth_core_rs and depends on libbluetooth_core. libbluetooth
+/// depends on libbluetooth_core_rs.
+/// i.e.
+/// libbluetooth -> {libbluetooth_core_rs, libbluetooth_core_rs_bridge} -> libbluetooth_core
+///
+/// Thus, FFI can be either:
+///  * Rust to GD
+///  * Legacy C++ to Rust
+///     * Core to Rust only via injected callbacks (libbluetooth_core does not
+///       depend on libbluetooth_core_rs)
+///     * Legacy C++ to Rust can be made directly (as libbluetooth *does* depend
+///       on libbluetooth_core_rs).
+///
+/// To add FFI for a new module, create an ffi.rs file, and add it to the filegroup below.
+
+filegroup {
+    name: "libbluetooth_core_rs_ffi",
+    srcs: [
+        "src/core/ffi.rs",
+        "src/gatt/ffi.rs",
+    ],
+}
+
+gensrcs {
+    name: "libbluetooth_core_rs_bridge_codegen_header",
+    tools: ["cxxbridge"],
+    cmd: "$(location cxxbridge) $(in) --header > $(out)",
+    srcs: [":libbluetooth_core_rs_ffi"],
+    output_extension: "rs.h",
+    export_include_dirs: ["."],
+}
+
+gensrcs {
+    name: "libbluetooth_core_rs_bridge_codegen",
+    tools: ["cxxbridge"],
+    cmd: "$(location cxxbridge) $(in) > $(out)",
+    srcs: [":libbluetooth_core_rs_ffi"],
+    output_extension: "cc",
 }
 
 genrule {

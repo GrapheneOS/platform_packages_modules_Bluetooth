@@ -276,6 +276,7 @@ init_flags!(
         periodic_advertising_adi = true,
         queue_l2cap_coc_while_encrypting = true,
         redact_log = true,
+        rust_event_loop,
         sdp_serialization = true,
         sdp_skip_rnr_if_known = true,
         set_min_encryption = true,

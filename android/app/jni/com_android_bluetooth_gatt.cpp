@@ -28,6 +28,9 @@
 #include "com_android_bluetooth.h"
 #include "gd/common/init_flags.h"
 #include "hardware/bt_gatt.h"
+#include "rust/cxx.h"
+#include "src/core/ffi.rs.h"
+#include "src/gatt/ffi.rs.h"
 #include "utils/Log.h"
 #define info(fmt, ...) ALOGI("%s(L%d): " fmt, __func__, __LINE__, ##__VA_ARGS__)
 #define debug(fmt, ...) \
@@ -1290,6 +1293,8 @@ static void initializeNative(JNIEnv* env, jobject object) {
   sGattIf->scanner->RegisterCallbacks(JniScanningCallbacks::GetInstance());
 
   mCallbacksObj = env->NewGlobalRef(object);
+
+  bluetooth::rust_shim::init();
 }
 
 static void cleanupNative(JNIEnv* env, jobject object) {

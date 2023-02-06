@@ -18,6 +18,16 @@
 #![allow(stable_features)]
 #![feature(mixed_integer_ops)]
 
+use bt_common::init_flags::rust_event_loop_is_enabled;
+use gatt::channel::AttTransport;
+use log::{info, warn};
+use tokio::task::LocalSet;
+
+use std::{rc::Rc, sync::Mutex};
+use tokio::runtime::Builder;
+
+use tokio::sync::mpsc;
+
 #[cfg(feature = "via_android_bp")]
 mod do_not_use {
     // DO NOT USE
@@ -29,3 +39,95 @@ pub mod core;
 pub mod gatt;
 pub mod packets;
 pub mod utils;
+
+/// The owner of the main Rust thread on which all Rust modules run
+pub struct GlobalModuleRegistry {
+    task_tx: MainThreadTx,
+}
+
+/// The ModuleViews lets us access all publicly accessible Rust modules from
+/// Java / C++ while the stack is running. If a module should not be exposed
+/// outside of Rust GD, there is no need to include it here.
+pub struct ModuleViews<'a> {
+    /// Proxies calls into GATT server
+    pub gatt_module: &'a mut gatt::server::GattModule,
+}
+
+static GLOBAL_MODULE_REGISTRY: Mutex<Option<GlobalModuleRegistry>> = Mutex::new(None);
+
+impl GlobalModuleRegistry {
+    /// Handles bringup of all Rust modules. This occurs after GD C++ modules
+    /// have started, but before the legacy stack has initialized.
+    /// Must be invoked from the Rust thread after JNI initializes it and passes
+    /// in JNI modules.
+    pub fn start(att_transport: Rc<dyn AttTransport>) {
+        info!("starting Rust modules");
+        let rt = Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("failed to start tokio runtime");
+        let local = LocalSet::new();
+
+        let (tx, mut rx) = mpsc::unbounded_channel::<BoxedMainThreadCallback>();
+        let prev_registry = GLOBAL_MODULE_REGISTRY.lock().unwrap().replace(Self { task_tx: tx });
+
+        // initialization should only happen once
+        assert!(prev_registry.is_none());
+
+        // We now enter the runtime
+        local.block_on(&rt, async {
+            // Then we have the pure-Rust modules
+            let gatt_module = &mut gatt::server::GattModule::new(att_transport.clone());
+
+            // All modules that are visible from incoming JNI / top-level interfaces should
+            // be exposed here
+            let mut modules = ModuleViews { gatt_module };
+
+            // This is the core event loop that serializes incoming requests into the Rust
+            // thread do_in_rust_thread lets us post into here from foreign
+            // threads
+            info!("starting Tokio event loop");
+            while let Some(f) = rx.recv().await {
+                f(&mut modules)
+            }
+        });
+        warn!("Rust thread queue has stopped, shutting down executor thread");
+    }
+}
+
+type BoxedMainThreadCallback = Box<dyn for<'a> FnOnce(&'a mut ModuleViews) + Send + 'static>;
+type MainThreadTx = mpsc::UnboundedSender<BoxedMainThreadCallback>;
+
+thread_local! {
+    /// The TX end of a channel into the Rust thread, so external callers can
+    /// access Rust modules. JNI / direct FFI should use do_in_rust_thread for
+    /// convenience, but objects passed into C++ as callbacks should
+    /// clone this channel to fail loudly if it's not yet initialized.
+    ///
+    /// This will be lazily initialized on first use from each client thread
+    pub static MAIN_THREAD_TX: MainThreadTx =
+        GLOBAL_MODULE_REGISTRY.lock().unwrap().as_ref().expect("stack not initialized").task_tx.clone();
+}
+
+/// Posts a callback to the Rust thread and gives it access to public Rust
+/// modules, used from JNI.
+///
+/// Do not call this from Rust modules / the Rust thread! Instead, Rust modules
+/// should receive references to their dependent modules at startup. If passing
+/// callbacks into C++, don't use this method either - instead, acquire a clone
+/// of MAIN_THREAD_TX when the callback is created. This ensures that there
+/// never are "invalid" callbacks that may still work depending on when the
+/// GLOBAL_MODULE_REGISTRY is initialized.
+pub fn do_in_rust_thread<F>(f: F)
+where
+    F: for<'a> FnOnce(&'a mut ModuleViews) + Send + 'static,
+{
+    if !rust_event_loop_is_enabled() {
+        warn!("ignoring do_in_rust_thread() invocation since Rust loop is inactive");
+        return;
+    }
+    let ret = MAIN_THREAD_TX.with(|tx| tx.send(Box::new(f)));
+    if ret.is_err() {
+        panic!("Rust call failed");
+    }
+}
