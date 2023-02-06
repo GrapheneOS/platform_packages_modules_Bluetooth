@@ -69,7 +69,7 @@ class IopMock {
               (const interop_feature_t, uint16_t));
   MOCK_METHOD(bool, InteropMatchAddrGetMaxLat,
               (const interop_feature_t, const RawAddress*, uint16_t*));
-  MOCK_METHOD(bool, InteropGetAllowlistedMediaPlayersList, (list_t**));
+  MOCK_METHOD(bool, InteropGetAllowlistedMediaPlayersList, (list_t*));
   MOCK_METHOD(int, InteropFeatureNameToFeatureId, (const char*));
 };
 
@@ -123,7 +123,7 @@ bool interop_match_addr_get_max_lat(const interop_feature_t feature,
   return localIopMock->InteropMatchAddrGetMaxLat(feature, addr, max_lat);
 }
 
-bool interop_get_allowlisted_media_players_list(list_t** p_bl_devices) {
+bool interop_get_allowlisted_media_players_list(list_t* p_bl_devices) {
   return localIopMock->InteropGetAllowlistedMediaPlayersList(p_bl_devices);
 }
 
