@@ -38,6 +38,7 @@ import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.hfp.HeadsetService;
+import com.android.bluetooth.le_audio.LeAudioService;
 
 import org.junit.After;
 import org.junit.Before;
@@ -67,6 +68,8 @@ public class PhonePolicyTest {
     @Mock private ServiceFactory mServiceFactory;
     @Mock private HeadsetService mHeadsetService;
     @Mock private A2dpService mA2dpService;
+    @Mock private LeAudioService mLeAudioService;
+
     @Mock private DatabaseManager mDatabaseManager;
 
     @Before
@@ -83,6 +86,7 @@ public class PhonePolicyTest {
         // Setup the mocked factory to return mocked services
         doReturn(mHeadsetService).when(mServiceFactory).getHeadsetService();
         doReturn(mA2dpService).when(mServiceFactory).getA2dpService();
+        doReturn(mLeAudioService).when(mServiceFactory).getLeAudioService();
         // Start handler thread for this test
         mHandlerThread = new HandlerThread("PhonePolicyTestHandlerThread");
         mHandlerThread.start();
@@ -111,6 +115,8 @@ public class PhonePolicyTest {
      */
     @Test
     public void testProcessInitProfilePriorities() {
+        mPhonePolicy.mAutoConnectProfilesSupported = false;
+
         BluetoothDevice device = getTestDevice(mAdapter, 0);
         // Mock the HeadsetService to return unknown connection policy
         when(mHeadsetService.getConnectionPolicy(device))
@@ -138,6 +144,115 @@ public class PhonePolicyTest {
         verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
                 .setProfileConnectionPolicy(device, BluetoothProfile.A2DP,
                         BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+    }
+
+
+    @Test
+    public void testProcessInitProfilePriorities_WithAutoConnect() {
+        mPhonePolicy.mAutoConnectProfilesSupported = true;
+
+        BluetoothDevice device = getTestDevice(mAdapter, 0);
+        // Mock the HeadsetService to return unknown connection policy
+        when(mHeadsetService.getConnectionPolicy(device))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+
+        // Mock the A2DP service to return undefined unknown connection policy
+        when(mA2dpService.getConnectionPolicy(device))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+
+        // Inject an event for UUIDs updated for a remote device with only HFP enabled
+        Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        ParcelUuid[] uuids = new ParcelUuid[2];
+        uuids[0] = BluetoothUuid.HFP;
+        uuids[1] = BluetoothUuid.A2DP_SINK;
+        intent.putExtra(BluetoothDevice.EXTRA_UUID, uuids);
+        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+
+        // Check auto connect
+        verify(mA2dpService, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
+                .setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
+                .setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+    }
+
+    @Test
+    public void testProcessInitProfilePriorities_LeAudio() {
+        BluetoothDevice device = getTestDevice(mAdapter, 0);
+        when(mAdapterService.isLeAudioAllowed(device)).thenReturn(true);
+
+        // Auto connect to LE audio but disallow HFP and A2DP
+        processInitProfilePriorities_LeAudioHelper(true, true);
+        verify(mLeAudioService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setProfileConnectionPolicy(device, BluetoothProfile.HEADSET,
+                        BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setProfileConnectionPolicy(device, BluetoothProfile.A2DP,
+                        BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+
+        // Does not auto connect and disallow HFP and A2DP to be connected
+        processInitProfilePriorities_LeAudioHelper(true, false);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setProfileConnectionPolicy(device, BluetoothProfile.LE_AUDIO,
+                        BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2))
+                .setProfileConnectionPolicy(device, BluetoothProfile.HEADSET,
+                        BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2))
+                .setProfileConnectionPolicy(device, BluetoothProfile.A2DP,
+                        BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+
+        // Auto connect to LE audio, HFP, A2DP
+        processInitProfilePriorities_LeAudioHelper(false, true);
+        verify(mLeAudioService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2))
+                .setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mA2dpService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+
+        // Does not auto connect and allow HFP and A2DP to be connected
+        processInitProfilePriorities_LeAudioHelper(false, false);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2))
+                .setProfileConnectionPolicy(device, BluetoothProfile.LE_AUDIO,
+                        BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setProfileConnectionPolicy(device, BluetoothProfile.A2DP,
+                        BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setProfileConnectionPolicy(device, BluetoothProfile.HEADSET,
+                        BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+    }
+
+    private void processInitProfilePriorities_LeAudioHelper(
+            boolean preferLeOnly, boolean autoConnect) {
+        mPhonePolicy.mPreferLeAudioOnlyMode = preferLeOnly;
+        mPhonePolicy.mAutoConnectProfilesSupported = autoConnect;
+
+        BluetoothDevice device = getTestDevice(mAdapter, 0);
+        // Mock the HFP, A2DP and LE audio services to return unknown connection policy
+        when(mHeadsetService.getConnectionPolicy(device))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        when(mA2dpService.getConnectionPolicy(device))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        when(mLeAudioService.getConnectionPolicy(device))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+
+        // Inject an event for UUIDs updated for a remote device with only HFP enabled
+        Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        ParcelUuid[] uuids = new ParcelUuid[3];
+        uuids[0] = BluetoothUuid.HFP;
+        uuids[1] = BluetoothUuid.A2DP_SINK;
+        uuids[2] = BluetoothUuid.LE_AUDIO;
+        intent.putExtra(BluetoothDevice.EXTRA_UUID, uuids);
+        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
     }
 
     /**
