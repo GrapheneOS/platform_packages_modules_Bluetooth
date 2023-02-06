@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"블루투스"</string>
     <string name="unknown_device" msgid="2317679521750821654">"알 수 없는 장치"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"알 수 없음"</string>
+    <string name="not_provided" msgid="6938740494380012614">"제공되지 않음"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"비행기 모드"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"비행기 모드에서는 블루투스를 사용할 수 없습니다."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
