@@ -2,7 +2,9 @@
 //! core::init can instantiate and pass them into the main loop.
 
 use anyhow::{bail, Result};
-use bt_common::init_flags::rust_event_loop_is_enabled;
+use bt_common::init_flags::{
+    always_use_private_gatt_for_debugging_is_enabled, rust_event_loop_is_enabled,
+};
 pub use inner::*;
 use log::{error, info, warn};
 
@@ -12,8 +14,9 @@ use crate::{
 };
 
 use super::{
+    arbiter::with_arbiter,
     channel::AttTransport,
-    ids::{AttHandle, ServerId, TransportIndex},
+    ids::{AdvertiserId, AttHandle, ConnectionId, ServerId, TransportIndex},
     server::gatt_database::{AttPermissions, GattCharacteristicWithHandle, GattServiceWithHandle},
 };
 
@@ -24,8 +27,20 @@ use super::{
 mod inner {
     #[namespace = "bluetooth"]
     extern "C++" {
+        include!("bluetooth/uuid.h");
         /// A C++ UUID.
         type Uuid = crate::core::uuid::Uuid;
+    }
+
+    /// What action the arbiter should take in response to an incoming packet
+    #[namespace = "bluetooth::shim::arbiter"]
+    enum InterceptAction {
+        /// Forward the packet to the legacy stack
+        #[cxx_name = "FORWARD"]
+        Forward = 0u32,
+        /// Discard the packet (typically because it has been intercepted)
+        #[cxx_name = "DROP"]
+        Drop = 1u32,
     }
 
     /// The type of GATT record supplied over FFI
@@ -56,6 +71,15 @@ mod inner {
     #[namespace = "bluetooth::shim::arbiter"]
     unsafe extern "C++" {
         include!("stack/arbiter/acl_arbiter.h");
+        type InterceptAction;
+
+        /// Register callbacks from C++ into Rust within the Arbiter
+        fn StoreCallbacksFromRust(
+            on_le_connect: fn(tcb_idx: u8, advertiser: u8),
+            on_le_disconnect: fn(tcb_idx: u8),
+            intercept_packet: fn(tcb_idx: u8, packet: Vec<u8>) -> InterceptAction,
+        );
+
         /// Send an outgoing packet on the specified tcb_idx
         fn SendPacketToPeer(tcb_idx: u8, packet: Vec<u8>);
     }
@@ -67,6 +91,9 @@ mod inner {
         fn close_server(server_id: u8);
         fn add_service(server_id: u8, service_records: Vec<GattRecord>);
         fn remove_service(server_id: u8, service_handle: u16);
+
+        // connection
+        fn is_connection_isolated(conn_id: u16) -> bool;
     }
 }
 
@@ -91,6 +118,12 @@ fn open_server(server_id: u8) {
 
     let server_id = ServerId(server_id);
 
+    if always_use_private_gatt_for_debugging_is_enabled() {
+        with_arbiter(|arbiter| {
+            arbiter.associate_server_with_advertiser(server_id, AdvertiserId(0))
+        });
+    }
+
     do_in_rust_thread(move |modules| {
         if let Err(err) = modules.gatt_module.open_gatt_server(server_id) {
             error!("{err:?}")
@@ -104,6 +137,10 @@ fn close_server(server_id: u8) {
     }
 
     let server_id = ServerId(server_id);
+
+    if !always_use_private_gatt_for_debugging_is_enabled() {
+        with_arbiter(move |arbiter| arbiter.clear_server(server_id));
+    }
 
     do_in_rust_thread(move |modules| {
         if let Err(err) = modules.gatt_module.close_gatt_server(server_id) {
@@ -192,6 +229,14 @@ fn remove_service(server_id: u8, service_handle: u16) {
             ),
         }
     })
+}
+
+fn is_connection_isolated(conn_id: u16) -> bool {
+    if !rust_event_loop_is_enabled() {
+        return false;
+    }
+
+    with_arbiter(|arbiter| arbiter.is_connection_isolated(ConnectionId(conn_id)))
 }
 
 #[cfg(test)]

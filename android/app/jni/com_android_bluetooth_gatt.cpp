@@ -2103,7 +2103,11 @@ static void gattServerSendResponseNative(JNIEnv* env, jobject object,
     env->ReleaseByteArrayElements(val, array, JNI_ABORT);
   }
 
-  sGattIf->server->send_response(conn_id, trans_id, status, response);
+  if (bluetooth::gatt::is_connection_isolated(conn_id)) {
+    // no-op
+  } else {
+    sGattIf->server->send_response(conn_id, trans_id, status, response);
+  }
 }
 
 static void advertiseClassInitNative(JNIEnv* env, jclass clazz) {

@@ -18,6 +18,10 @@
 
 #include <base/bind.h>
 
+#include <iterator>
+#include <unordered_map>
+
+#include "common/init_flags.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "stack/gatt/gatt_int.h"
@@ -28,8 +32,62 @@ namespace bluetooth {
 namespace shim {
 namespace arbiter {
 
-class RustGattAclArbiter {
+class PassthroughAclArbiter : public AclArbiter {
  public:
+  virtual void OnLeConnect(uint8_t tcb_idx, uint16_t advertiser_id) override {
+    // no-op
+  }
+
+  virtual void OnLeDisconnect(uint8_t tcb_idx) override {
+    // no-op
+  }
+
+  virtual InterceptAction InterceptAttPacket(uint8_t tcb_idx,
+                                             const BT_HDR* packet) override {
+    return InterceptAction::FORWARD;
+  }
+
+  static PassthroughAclArbiter& Get() {
+    static auto singleton = PassthroughAclArbiter();
+    return singleton;
+  }
+};
+
+namespace {
+struct RustArbiterCallbacks {
+  ::rust::Fn<void(uint8_t tcb_idx, uint8_t advertiser)> on_le_connect;
+  ::rust::Fn<void(uint8_t tcb_idx)> on_le_disconnect;
+  ::rust::Fn<InterceptAction(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer)>
+      intercept_packet;
+};
+
+RustArbiterCallbacks callbacks_{};
+}  // namespace
+
+class RustGattAclArbiter : public AclArbiter {
+ public:
+  virtual void OnLeConnect(uint8_t tcb_idx, uint16_t advertiser_id) override {
+    LOG_INFO("Notifying Rust of LE connection");
+    callbacks_.on_le_connect(tcb_idx, advertiser_id);
+  }
+
+  virtual void OnLeDisconnect(uint8_t tcb_idx) override {
+    LOG_INFO("Notifying Rust of LE disconnection");
+    callbacks_.on_le_disconnect(tcb_idx);
+  }
+
+  virtual InterceptAction InterceptAttPacket(uint8_t tcb_idx,
+                                             const BT_HDR* packet) override {
+    LOG_DEBUG("Intercepting ATT packet and forwarding to Rust");
+
+    uint8_t* packet_start = (uint8_t*)(packet + 1) + packet->offset;
+    uint8_t* packet_end = packet_start + packet->len;
+
+    auto vec = ::rust::Vec<uint8_t>();
+    std::copy(packet_start, packet_end, std::back_inserter(vec));
+    return callbacks_.intercept_packet(tcb_idx, std::move(vec));
+  }
+
   void SendPacketToPeer(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer) {
     tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);
     if (p_tcb != nullptr) {
@@ -54,11 +112,26 @@ class RustGattAclArbiter {
   }
 };
 
+void StoreCallbacksFromRust(
+    ::rust::Fn<void(uint8_t tcb_idx, uint8_t advertiser)> on_le_connect,
+    ::rust::Fn<void(uint8_t tcb_idx)> on_le_disconnect,
+    ::rust::Fn<InterceptAction(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer)>
+        intercept_packet) {
+  LOG_INFO("Received callbacks from Rust, registering in Arbiter");
+  callbacks_ = {on_le_connect, on_le_disconnect, intercept_packet};
+}
+
 void SendPacketToPeer(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer) {
   do_in_main_thread(FROM_HERE,
                     base::Bind(&RustGattAclArbiter::SendPacketToPeer,
                                base::Unretained(&RustGattAclArbiter::Get()),
                                tcb_idx, std::move(buffer)));
+}
+
+AclArbiter& GetArbiter() {
+  return common::init_flags::private_gatt_is_enabled()
+             ? static_cast<AclArbiter&>(RustGattAclArbiter::Get())
+             : static_cast<AclArbiter&>(PassthroughAclArbiter::Get());
 }
 
 }  // namespace arbiter

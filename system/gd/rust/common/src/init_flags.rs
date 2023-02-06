@@ -251,6 +251,7 @@ fn parse_hci_adapter(flags: &mut InitFlags, values: Vec<&str>) {
 init_flags!(
     // LINT.IfChange
     flags: {
+        always_use_private_gatt_for_debugging,
         asynchronously_start_l2cap_coc = true,
         btaa_hci = true,
         bta_dm_clear_conn_id_on_client_close = true,
@@ -274,6 +275,7 @@ init_flags!(
         leaudio_targeted_announcement_reconnection_mode,
         pass_phy_update_callback = true,
         periodic_advertising_adi = true,
+        private_gatt,
         queue_l2cap_coc_while_encrypting = true,
         redact_log = true,
         rust_event_loop,

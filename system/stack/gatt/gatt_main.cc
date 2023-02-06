@@ -32,9 +32,11 @@
 #include "gd/common/init_flags.h"
 #include "internal_include/stack_config.h"
 #include "l2c_api.h"
+#include "main/shim/acl_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
+#include "stack/arbiter/acl_arbiter.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
@@ -484,6 +486,9 @@ static void gatt_le_connect_cback(uint16_t chan, const RawAddress& bd_addr,
   }
 
   if (!connected) {
+    if (p_tcb != nullptr) {
+      bluetooth::shim::arbiter::GetArbiter().OnLeDisconnect(p_tcb->tcb_idx);
+    }
     gatt_cleanup_upon_disc(bd_addr, static_cast<tGATT_DISCONN_REASON>(reason),
                            transport);
     return;
@@ -520,6 +525,14 @@ static void gatt_le_connect_cback(uint16_t chan, const RawAddress& bd_addr,
     if (check_srv_chg) {
       gatt_chk_srv_chg(p_srv_chg_clt);
     }
+  }
+
+  auto advertising_set =
+      bluetooth::shim::ACL_GetAdvertisingSetConnectedTo(bd_addr);
+
+  if (advertising_set.has_value()) {
+    bluetooth::shim::arbiter::GetArbiter().OnLeConnect(p_tcb->tcb_idx,
+                                                       advertising_set.value());
   }
 
   if (stack_config_get_interface()->get_pts_connect_eatt_before_encryption()) {
@@ -645,7 +658,12 @@ static void gatt_le_data_ind(uint16_t chan, const RawAddress& bd_addr,
   /* Find CCB based on bd addr */
   tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
   if (p_tcb) {
-    if (gatt_get_ch_state(p_tcb) < GATT_CH_OPEN) {
+    auto decision = bluetooth::shim::arbiter::GetArbiter().InterceptAttPacket(
+        p_tcb->tcb_idx, p_buf);
+
+    if (decision == bluetooth::shim::arbiter::InterceptAction::DROP) {
+      // do nothing, just free it at the end
+    } else if (gatt_get_ch_state(p_tcb) < GATT_CH_OPEN) {
       LOG(WARNING) << "ATT - Ignored L2CAP data while in state: "
                    << +gatt_get_ch_state(p_tcb);
     } else

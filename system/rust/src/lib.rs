@@ -74,7 +74,10 @@ impl GlobalModuleRegistry {
         // initialization should only happen once
         assert!(prev_registry.is_none());
 
-        // We now enter the runtime
+        // First, setup FFI and C++ modules
+        gatt::arbiter::initialize_arbiter();
+
+        // Now enter the runtime
         local.block_on(&rt, async {
             // Then we have the pure-Rust modules
             let gatt_module = &mut gatt::server::GattModule::new(att_transport.clone());

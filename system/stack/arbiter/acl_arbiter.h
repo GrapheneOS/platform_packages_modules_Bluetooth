@@ -24,12 +24,41 @@
 
 #include "rust/cxx.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace shim {
 namespace arbiter {
 
+enum class InterceptAction {
+  /// The packet should be forwarded to the legacy stack
+  FORWARD,
+  /// The packet should be dropped and not sent to legacy
+  DROP
+};
+
+class AclArbiter {
+ public:
+  virtual void OnLeConnect(uint8_t tcb_idx, uint16_t advertiser_id) = 0;
+  virtual void OnLeDisconnect(uint8_t tcb_idx) = 0;
+  virtual InterceptAction InterceptAttPacket(uint8_t tcb_idx,
+                                             const BT_HDR* packet) = 0;
+
+  AclArbiter() = default;
+  AclArbiter(AclArbiter&& other) = default;
+  AclArbiter& operator=(AclArbiter&& other) = default;
+  virtual ~AclArbiter() = default;
+};
+
+void StoreCallbacksFromRust(
+    ::rust::Fn<void(uint8_t tcb_idx, uint8_t advertiser)> on_le_connect,
+    ::rust::Fn<void(uint8_t tcb_idx)> on_le_disconnect,
+    ::rust::Fn<InterceptAction(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer)>
+        intercept_packet);
+
 void SendPacketToPeer(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer);
+
+AclArbiter& GetArbiter();
 
 }  // namespace arbiter
 }  // namespace shim
