@@ -40,6 +40,8 @@ using bluetooth::csis::CsisClient;
 
 namespace {
 std::unique_ptr<CsisClientInterface> csis_client_instance;
+std::atomic_bool initialized = false;
+
 class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
                                                public CsisClientCallbacks {
   ~CsipSetCoordinatorServiceInterfaceImpl() override = default;
@@ -53,36 +55,80 @@ class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
         Bind(&CsisClient::Initialize, this,
              jni_thread_wrapper(FROM_HERE,
                                 Bind(&btif_storage_load_bonded_csis_devices))));
+    /* It might be not yet initialized, but setting this flag here is safe,
+     * because other calls will check this and the native instance
+     */
+    initialized = true;
   }
 
   void Connect(const RawAddress& addr) override {
+    if (!initialized || CsisClient::Get() == nullptr) {
+      DVLOG(2) << __func__
+               << " call ignored, due to already started cleanup procedure or "
+                  "service being not read";
+      return;
+    }
+
     DVLOG(2) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(addr);
     do_in_main_thread(FROM_HERE, Bind(&CsisClient::Connect,
                                       Unretained(CsisClient::Get()), addr));
   }
 
   void Disconnect(const RawAddress& addr) override {
+    if (!initialized || CsisClient::Get() == nullptr) {
+      DVLOG(2) << __func__
+               << " call ignored, due to already started cleanup procedure or "
+                  "service being not read";
+      return;
+    }
+
     DVLOG(2) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(addr);
     do_in_main_thread(FROM_HERE, Bind(&CsisClient::Disconnect,
                                       Unretained(CsisClient::Get()), addr));
   }
 
   void RemoveDevice(const RawAddress& addr) override {
+    if (!initialized || CsisClient::Get() == nullptr) {
+      DVLOG(2) << __func__
+               << " call ignored, due to already started cleanup procedure or "
+                  "service being not ready";
+
+      /* Clear storage */
+      do_in_jni_thread(FROM_HERE, Bind(&btif_storage_remove_csis_device, addr));
+      return;
+    }
+
     DVLOG(2) << __func__ << " addr: " << ADDRESS_TO_LOGGABLE_STR(addr);
     do_in_main_thread(FROM_HERE, Bind(&CsisClient::RemoveDevice,
                                       Unretained(CsisClient::Get()), addr));
+    /* Clear storage */
+    do_in_jni_thread(FROM_HERE, Bind(&btif_storage_remove_csis_device, addr));
   }
 
   void LockGroup(int group_id, bool lock) override {
-    DVLOG(2) << __func__ << " group id: " << group_id << " lock: " << lock;
+    if (!initialized || CsisClient::Get() == nullptr) {
+      DVLOG(2) << __func__
+               << " call ignored, due to already started cleanup procedure or "
+                  "service being not read";
+      return;
+    }
 
+    DVLOG(2) << __func__ << " group id: " << group_id << " lock: " << lock;
     do_in_main_thread(
         FROM_HERE, Bind(&CsisClient::LockGroup, Unretained(CsisClient::Get()),
                         group_id, lock, base::DoNothing()));
   }
 
   void Cleanup(void) override {
+    if (!initialized || CsisClient::Get() == nullptr) {
+      DVLOG(2) << __func__
+               << " call ignored, due to already started cleanup procedure or "
+                  "service being not read";
+      return;
+    }
+
     DVLOG(2) << __func__;
+    initialized = false;
     do_in_main_thread(FROM_HERE, Bind(&CsisClient::CleanUp));
   }
 
