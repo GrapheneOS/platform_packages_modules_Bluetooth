@@ -288,6 +288,8 @@ public class GattService extends ProfileService {
     @VisibleForTesting
     PeriodicScanManager mPeriodicScanManager;
     @VisibleForTesting
+    DistanceMeasurementManager mDistanceMeasurementManager;
+    @VisibleForTesting
     ScanManager mScanManager;
     private AppOpsManager mAppOps;
     private CompanionDeviceManager mCompanionManager;
@@ -355,6 +357,9 @@ public class GattService extends ProfileService {
         mPeriodicScanManager = new PeriodicScanManager(mAdapterService);
         mPeriodicScanManager.start();
 
+        mDistanceMeasurementManager = new DistanceMeasurementManager(mAdapterService);
+        mDistanceMeasurementManager.start();
+
         setGattService(this);
         return true;
     }
@@ -393,6 +398,9 @@ public class GattService extends ProfileService {
         }
         if (mPeriodicScanManager != null) {
             mPeriodicScanManager.cleanup();
+        }
+        if (mDistanceMeasurementManager != null) {
+            mDistanceMeasurementManager.cleanup();
         }
     }
 
@@ -1789,7 +1797,8 @@ public class GattService extends ProfileService {
             if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG,
                     "GattService getSupportedDistanceMeasurementMethods")
                     || !Utils.checkConnectPermissionForDataDelivery(
-                    service, attributionSource, "GattService startDistanceMeasurement")) {
+                    service, attributionSource,
+                    "GattService getSupportedDistanceMeasurementMethods")) {
                 return new ArrayList<>();
             }
             enforceBluetoothPrivilegedPermission(service);
@@ -1820,7 +1829,7 @@ public class GattService extends ProfileService {
                 return;
             }
             enforceBluetoothPrivilegedPermission(service);
-            service.startDistanceMeasurement(uuid, distanceMeasurementParams, callback);
+            service.startDistanceMeasurement(uuid.getUuid(), distanceMeasurementParams, callback);
         }
 
         @Override
@@ -1846,7 +1855,7 @@ public class GattService extends ProfileService {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
             }
             enforceBluetoothPrivilegedPermission(service);
-            return service.stopDistanceMeasurement(uuid, device, method);
+            return service.stopDistanceMeasurement(uuid.getUuid(), device, method);
         }
     };
 
@@ -3571,24 +3580,19 @@ public class GattService extends ProfileService {
      *************************************************************************/
 
     DistanceMeasurementMethod[] getSupportedDistanceMeasurementMethods() {
-        // TODO(b/256055210): Implement DistanceMeasurementManager in Bluetooth APP
-        // return mDistanceMeasurementManager.getSupportedMethods();
-        return new DistanceMeasurementMethod[0];
+        return mDistanceMeasurementManager.getSupportedDistanceMeasurementMethods();
     }
 
 
-    void startDistanceMeasurement(ParcelUuid uuid,
+    void startDistanceMeasurement(UUID uuid,
             DistanceMeasurementParams distanceMeasurementParams,
             IDistanceMeasurementCallback callback) {
-        // TODO(b/256055210): Implement DistanceMeasurementManager in Bluetooth APP
-        // mDistanceMeasurementManager.startDistanceMeasurement(uuid, distanceMeasurementParams,
-        // callback);
+        mDistanceMeasurementManager.startDistanceMeasurement(uuid, distanceMeasurementParams,
+                callback);
     }
 
-    int stopDistanceMeasurement(ParcelUuid uuid, BluetoothDevice device, int method) {
-        // TODO(b/256055210): Implement DistanceMeasurementManager in Bluetooth APP
-        // mDistanceMeasurementManager.stopDistanceMeasurement(uuid, device, method, false);
-        return BluetoothStatusCodes.SUCCESS;
+    int stopDistanceMeasurement(UUID uuid, BluetoothDevice device, int method) {
+        return mDistanceMeasurementManager.stopDistanceMeasurement(uuid, device, method, false);
     }
 
     /**************************************************************************
