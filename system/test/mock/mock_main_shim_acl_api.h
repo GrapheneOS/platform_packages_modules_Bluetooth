@@ -222,6 +222,19 @@ struct ACL_ReadConnectionAddress {
 };
 extern struct ACL_ReadConnectionAddress ACL_ReadConnectionAddress;
 
+// Name: ACL_GetAdvertisingSetConnectedTo
+// Params: const RawAddress& addr
+// Return: std::optional<uint8_t>
+struct ACL_GetAdvertisingSetConnectedTo {
+  static std::optional<uint8_t> return_value;
+  std::function<std::optional<uint8_t>(const RawAddress& addr)> body{
+      [](const RawAddress& addr) { return return_value; }};
+  std::optional<uint8_t> operator()(const RawAddress& addr) {
+    return body(addr);
+  };
+};
+extern struct ACL_GetAdvertisingSetConnectedTo ACL_GetAdvertisingSetConnectedTo;
+
 // Name: ACL_RemoveFromAddressResolution
 // Params: const tBLE_BD_ADDR& legacy_address_with_type
 // Return: void

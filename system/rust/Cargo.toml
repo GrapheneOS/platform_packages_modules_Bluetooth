@@ -22,7 +22,8 @@ edition = "2021"
 bt_common = { path = "../gd/rust/common", default-features = false }
 
 # External dependencies
-# Note: source-of-truth is Android.bp, these are mirrored solely for IDE convenient
+# Note: source-of-truth is Android.bp, these are mirrored solely for IDE convenience
+anyhow = "1.0"
 log = "*"
 cxx = "*"
 android_logger = "*"

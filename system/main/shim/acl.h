@@ -71,6 +71,8 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
   void OnLeLinkDisconnected(uint16_t handle, hci::ErrorCode reason);
   bluetooth::hci::AddressWithType GetConnectionLocalAddress(
       const RawAddress& remote_bda);
+  std::optional<uint8_t> GetAdvertisingSetConnectedTo(
+      const RawAddress& remote_bda);
 
   // LinkConnectionInterface
   void CreateClassicConnection(const hci::Address& address) override;
