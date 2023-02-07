@@ -899,6 +899,10 @@ package android.bluetooth.le {
     method @NonNull public android.bluetooth.le.AdvertiseSettings.Builder setOwnAddressType(int);
   }
 
+  public final class AdvertisingSet {
+    method public int getAdvertiserId();
+  }
+
   public final class AdvertisingSetParameters implements android.os.Parcelable {
     method public int getOwnAddressType();
     field public static final int ADDRESS_TYPE_DEFAULT = -1; // 0xffffffff
