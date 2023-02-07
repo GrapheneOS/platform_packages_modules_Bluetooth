@@ -448,6 +448,27 @@ public class LeAudioService extends ProfileService {
         return mVolumeControlService.getAudioDeviceGroupVolume(groupId);
     }
 
+    LeAudioDeviceDescriptor createDeviceDescriptor(BluetoothDevice device) {
+        LeAudioDeviceDescriptor descriptor = mDeviceDescriptors.get(device);
+        if (descriptor == null) {
+
+            // Limit the maximum number of devices to avoid DoS attack
+            if (mDeviceDescriptors.size() >= MAX_LE_AUDIO_DEVICES) {
+                Log.e(TAG, "Maximum number of LeAudio state machines reached: "
+                        + MAX_LE_AUDIO_DEVICES);
+                return null;
+            }
+
+            mDeviceDescriptors.put(device, new LeAudioDeviceDescriptor());
+            descriptor = mDeviceDescriptors.get(device);
+            Log.d(TAG, "Created descriptor for device: " + device);
+        } else {
+            Log.w(TAG, "Device: " + device + ", already exists");
+        }
+
+        return descriptor;
+    }
+
     public boolean connect(BluetoothDevice device) {
         if (DBG) {
             Log.d(TAG, "connect(): " + device);
@@ -464,17 +485,8 @@ public class LeAudioService extends ProfileService {
         }
 
         synchronized (mGroupLock) {
-            LeAudioDeviceDescriptor descriptor = mDeviceDescriptors.get(device);
-            if (descriptor == null) {
-
-                // Limit the maximum number of devices to avoid DoS attack
-                if (mDeviceDescriptors.size() >= MAX_LE_AUDIO_DEVICES) {
-                    Log.e(TAG, "Maximum number of LeAudio state machines reached: "
-                            + MAX_LE_AUDIO_DEVICES);
-                    return false;
-                }
-
-                mDeviceDescriptors.put(device, new LeAudioDeviceDescriptor());
+            if (createDeviceDescriptor(device) == null) {
+                return false;
             }
 
             LeAudioStateMachine sm = getOrCreateStateMachine(device);
@@ -838,7 +850,7 @@ public class LeAudioService extends ProfileService {
         }
         synchronized (mGroupLock) {
             for (LeAudioDeviceDescriptor descriptor : mDeviceDescriptors.values()) {
-                if (descriptor.mGroupId.equals(groupId)) {
+                if (!descriptor.mGroupId.equals(groupId)) {
                     continue;
                 }
 
@@ -1512,19 +1524,22 @@ public class LeAudioService extends ProfileService {
             int src_audio_location = stackEvent.valueInt4;
             int available_contexts = stackEvent.valueInt5;
 
-            LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
-            if (descriptor != null) {
-                if (descriptor.mIsActive) {
-                    descriptor.mIsActive =
-                            updateActiveDevices(groupId, descriptor.mDirection, direction,
-                            descriptor.mIsActive);
-                    if (!descriptor.mIsActive) {
-                        notifyGroupStatusChanged(groupId, BluetoothLeAudio.GROUP_STATUS_INACTIVE);
+            synchronized (mGroupLock) {
+                LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
+                if (descriptor != null) {
+                    if (descriptor.mIsActive) {
+                        descriptor.mIsActive =
+                                updateActiveDevices(groupId, descriptor.mDirection, direction,
+                                descriptor.mIsActive);
+                        if (!descriptor.mIsActive) {
+                            notifyGroupStatusChanged(groupId,
+                                    BluetoothLeAudio.GROUP_STATUS_INACTIVE);
+                        }
                     }
+                    descriptor.mDirection = direction;
+                } else {
+                    Log.e(TAG, "no descriptors for group: " + groupId);
                 }
-                descriptor.mDirection = direction;
-            } else {
-                Log.e(TAG, "no descriptors for group: " + groupId);
             }
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE) {
             Objects.requireNonNull(stackEvent.device,
@@ -2180,8 +2195,18 @@ public class LeAudioService extends ProfileService {
 
             LeAudioDeviceDescriptor deviceDescriptor = getDeviceDescriptor(device);
             if (deviceDescriptor == null) {
-                Log.e(TAG, "handleGroupNodeAdded: No valid descriptor for device: " + device);
-                return;
+                deviceDescriptor = createDeviceDescriptor(device);
+                if (deviceDescriptor == null) {
+                    Log.e(TAG, "handleGroupNodeAdded: Can't create descriptor for added from"
+                            + " storage device: " + device);
+                    return;
+                }
+
+                LeAudioStateMachine sm = getOrCreateStateMachine(device);
+                if (getOrCreateStateMachine(device) == null) {
+                    Log.e(TAG, "Can't get state machine for device: " + device);
+                    return;
+                }
             }
             deviceDescriptor.mGroupId = groupId;
 
@@ -2226,15 +2251,15 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "Removing device " + device + " grom group " + groupId);
         }
 
-        LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
-        if (DBG) {
-            Log.d(TAG, "Lost lead device is " + groupDescriptor.mLostLeadDeviceWhileStreaming);
-        }
-        if (Objects.equals(device, groupDescriptor.mLostLeadDeviceWhileStreaming)) {
-            clearLostDevicesWhileStreaming(groupDescriptor);
-        }
-
         synchronized (mGroupLock) {
+            LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
+            if (DBG) {
+                Log.d(TAG, "Lost lead device is " + groupDescriptor.mLostLeadDeviceWhileStreaming);
+            }
+            if (Objects.equals(device, groupDescriptor.mLostLeadDeviceWhileStreaming)) {
+                clearLostDevicesWhileStreaming(groupDescriptor);
+            }
+
             LeAudioDeviceDescriptor deviceDescriptor = getDeviceDescriptor(device);
             if (deviceDescriptor == null) {
                 Log.e(TAG, "handleGroupNodeRemoved: No valid descriptor for device: " + device);
@@ -3098,7 +3123,6 @@ public class LeAudioService extends ProfileService {
                 : mDeviceDescriptors.entrySet()) {
             LeAudioDeviceDescriptor descriptor = entry.getValue();
 
-            ProfileService.println(sb, "  Device: " + entry.getKey());
             descriptor.mStateMachine.dump(sb);
             ProfileService.println(sb, "    mGroupId: " + descriptor.mGroupId);
             ProfileService.println(sb, "    mSinkAudioLocation: " + descriptor.mSinkAudioLocation);
