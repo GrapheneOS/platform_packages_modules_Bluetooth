@@ -233,7 +233,10 @@ class HasClientImpl : public HasClient {
         callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, addr);
       } else {
         /* Removes active connection. */
-        if (is_connecting_actively) BTA_GATTC_CancelOpen(gatt_if_, addr, true);
+        if (is_connecting_actively) {
+          BTA_GATTC_CancelOpen(gatt_if_, addr, true);
+          callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, addr);
+        }
       }
 
       /* Removes all registrations for connection. */

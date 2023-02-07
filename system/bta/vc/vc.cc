@@ -630,8 +630,9 @@ class VolumeControlImpl : public VolumeControl {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(INFO) << "Device not connected to profile "
-                << ADDRESS_TO_LOGGABLE_STR(address);
+      LOG_WARN("Device not connected to profile %s",
+               ADDRESS_TO_LOGGABLE_CSTR(address));
+      callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, address);
       return;
     }
 

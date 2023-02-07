@@ -1290,8 +1290,9 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
 
     if (!leAudioDevice) {
-      LOG(ERROR) << __func__ << ", leAudioDevice not connected ("
-                 << ADDRESS_TO_LOGGABLE_STR(address) << ")";
+      LOG_WARN("leAudioDevice not connected ( %s )",
+               ADDRESS_TO_LOGGABLE_CSTR(address));
+      callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, address);
       return;
     }
 
