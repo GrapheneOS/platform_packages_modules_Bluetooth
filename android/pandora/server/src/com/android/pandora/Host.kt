@@ -25,7 +25,7 @@ import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
-import android.bluetooth.BluetoothUuid;
+import android.bluetooth.BluetoothUuid
 import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
@@ -550,21 +550,23 @@ class Host(
           val dataTypesRequest = request.data
 
           if (
-            !dataTypesRequest.getCompleteServiceClassUuids16List().isEmpty() or
-              !dataTypesRequest.getCompleteServiceClassUuids32List().isEmpty() or
-              !dataTypesRequest.getCompleteServiceClassUuids128List().isEmpty()
+            !dataTypesRequest.getIncompleteServiceClassUuids16List().isEmpty() or
+              !dataTypesRequest.getIncompleteServiceClassUuids32List().isEmpty() or
+              !dataTypesRequest.getIncompleteServiceClassUuids128List().isEmpty()
           ) {
-            Log.e(TAG, "Complete Service Class Uuids not supported")
+            Log.e(TAG, "Incomplete Service Class Uuids not supported")
             throw Status.UNKNOWN.asException()
           }
 
-          for (service_uuid in dataTypesRequest.getIncompleteServiceClassUuids16List()) {
+          for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids16List()) {
+            val uuid16 = "0000${service_uuid}-0000-1000-8000-00805F9B34FB"
+            advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(uuid16))
+          }
+          for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids32List()) {
+            val uuid32 = "${service_uuid}-0000-1000-8000-00805F9B34FB"
             advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
           }
-          for (service_uuid in dataTypesRequest.getIncompleteServiceClassUuids32List()) {
-            advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
-          }
-          for (service_uuid in dataTypesRequest.getIncompleteServiceClassUuids128List()) {
+          for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids128List()) {
             advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
           }
 
@@ -651,18 +653,24 @@ class Host(
                 if (BluetoothUuid.is16BitUuid(parcelUuid)) {
                   val uuid16 = parcelUuid.uuid.toString().substring(4, 8).uppercase()
                   dataTypesBuilder.addIncompleteServiceClassUuids16(uuid16)
-                  dataTypesBuilder.putServiceDataUuid16(uuid16,
-                                                        ByteString.copyFrom(serviceDataEntry.value))
+                  dataTypesBuilder.putServiceDataUuid16(
+                    uuid16,
+                    ByteString.copyFrom(serviceDataEntry.value)
+                  )
                 } else if (BluetoothUuid.is32BitUuid(parcelUuid)) {
                   val uuid32 = parcelUuid.uuid.toString().substring(0, 8).uppercase()
                   dataTypesBuilder.addIncompleteServiceClassUuids32(uuid32)
-                  dataTypesBuilder.putServiceDataUuid32(uuid32,
-                                                        ByteString.copyFrom(serviceDataEntry.value))
+                  dataTypesBuilder.putServiceDataUuid32(
+                    uuid32,
+                    ByteString.copyFrom(serviceDataEntry.value)
+                  )
                 } else {
                   val uuid128 = parcelUuid.uuid.toString().uppercase()
                   dataTypesBuilder.addIncompleteServiceClassUuids128(uuid128)
-                  dataTypesBuilder.putServiceDataUuid128(uuid128,
-                                                         ByteString.copyFrom(serviceDataEntry.value))
+                  dataTypesBuilder.putServiceDataUuid128(
+                    uuid128,
+                    ByteString.copyFrom(serviceDataEntry.value)
+                  )
                 }
               }
               // Flags DataTypes CSSv10 1.3 Flags
