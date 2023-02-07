@@ -4,6 +4,7 @@ mod ffi {
         fn load(flags: Vec<String>);
         fn set_all_for_testing();
 
+        fn always_use_private_gatt_for_debugging_is_enabled() -> bool;
         fn asynchronously_start_l2cap_coc_is_enabled() -> bool;
         fn btaa_hci_is_enabled() -> bool;
         fn bta_dm_clear_conn_id_on_client_close_is_enabled() -> bool;
@@ -29,8 +30,10 @@ mod ffi {
         fn logging_debug_enabled_for_all_is_enabled() -> bool;
         fn pass_phy_update_callback_is_enabled() -> bool;
         fn periodic_advertising_adi_is_enabled() -> bool;
+        fn private_gatt_is_enabled() -> bool;
         fn queue_l2cap_coc_while_encrypting_is_enabled() -> bool;
         fn redact_log_is_enabled() -> bool;
+        fn rust_event_loop_is_enabled() -> bool;
         fn sdp_serialization_is_enabled() -> bool;
         fn sdp_skip_rnr_if_known_is_enabled() -> bool;
         fn set_min_encryption_is_enabled() -> bool;

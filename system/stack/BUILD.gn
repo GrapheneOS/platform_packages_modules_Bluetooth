@@ -74,6 +74,7 @@ source_set("stack") {
     "acl/btm_acl.cc",
     "acl/btm_ble_connection_establishment.cc",
     "acl/btm_pm.cc",
+    "arbiter/acl_arbiter.cc",
     "avct/avct_api.cc",
     "avct/avct_bcb_act.cc",
     "avct/avct_ccb.cc",
