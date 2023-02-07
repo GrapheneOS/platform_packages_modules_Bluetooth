@@ -62,6 +62,10 @@ static void hangup_call_cb(RawAddress* addr) {
   rusty::hfp_hangup_call_callback(*addr);
 }
 
+static void dial_call_cb(char* number, RawAddress* addr) {
+  rusty::hfp_dial_call_callback(::rust::String{number}, *addr);
+}
+
 static headset::bthf_call_state_t from_rust_call_state(rusty::CallState state) {
   switch (state) {
     case rusty::CallState::Idle:
@@ -118,7 +122,9 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
     topshim::rust::internal::volume_update_cb(volume, bd_addr);
   }
 
-  void DialCallCallback([[maybe_unused]] char* number, [[maybe_unused]] RawAddress* bd_addr) override {}
+  void DialCallCallback(char* number, RawAddress* bd_addr) override {
+    topshim::rust::internal::dial_call_cb(number, bd_addr);
+  }
 
   void DtmfCmdCallback([[maybe_unused]] char tone, [[maybe_unused]] RawAddress* bd_addr) override {}
 
@@ -286,6 +292,11 @@ uint32_t HfpIntf::phone_state_change(
       /*type=*/(headset::bthf_call_addrtype_t)0,
       /*name=*/"",
       &addr);
+}
+
+uint32_t HfpIntf::simple_at_response(bool ok, RawAddress addr) {
+  return intf_->AtResponse(
+      (ok ? headset::BTHF_AT_RESPONSE_OK : headset::BTHF_AT_RESPONSE_ERROR), 0, &addr);
 }
 
 void HfpIntf::cleanup() {}

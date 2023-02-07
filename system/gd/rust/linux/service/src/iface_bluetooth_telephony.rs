@@ -50,4 +50,12 @@ impl IBluetoothTelephony for IBluetoothTelephonyDBus {
     fn hangup_call(&mut self) -> bool {
         dbus_generated!()
     }
+    #[dbus_method("SetMemoryCall")]
+    fn set_memory_call(&mut self, number: Option<String>) -> bool {
+        dbus_generated!()
+    }
+    #[dbus_method("SetLastCall")]
+    fn set_last_call(&mut self, number: Option<String>) -> bool {
+        dbus_generated!()
+    }
 }

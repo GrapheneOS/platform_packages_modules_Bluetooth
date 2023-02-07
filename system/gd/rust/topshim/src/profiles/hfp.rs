@@ -144,6 +144,7 @@ pub mod ffi {
             number: &String,
             addr: RawAddress,
         ) -> u32;
+        fn simple_at_response(self: Pin<&mut HfpIntf>, ok: bool, addr: RawAddress) -> u32;
         fn cleanup(self: Pin<&mut HfpIntf>);
 
     }
@@ -157,6 +158,7 @@ pub mod ffi {
         fn hfp_current_calls_query_callback(addr: RawAddress);
         fn hfp_answer_call_callback(addr: RawAddress);
         fn hfp_hangup_call_callback(addr: RawAddress);
+        fn hfp_dial_call_callback(number: String, addr: RawAddress);
     }
 }
 
@@ -188,6 +190,7 @@ pub enum HfpCallbacks {
     CurrentCallsQuery(RawAddress),
     AnswerCall(RawAddress),
     HangupCall(RawAddress),
+    DialCall(String, RawAddress),
 }
 
 pub struct HfpCallbacksDispatcher {
@@ -240,6 +243,11 @@ cb_variant!(
     HfpCb,
     hfp_hangup_call_callback -> HfpCallbacks::HangupCall,
     RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_dial_call_callback -> HfpCallbacks::DialCall,
+    String, RawAddress);
 
 pub struct Hfp {
     internal: cxx::UniquePtr<ffi::HfpIntf>,
@@ -361,6 +369,11 @@ impl Hfp {
         addr: RawAddress,
     ) -> BtStatus {
         BtStatus::from(self.internal.pin_mut().phone_state_change(phone_state, number, addr))
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn simple_at_response(&mut self, ok: bool, addr: RawAddress) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().simple_at_response(ok, addr))
     }
 
     #[profile_enabled_or(false)]

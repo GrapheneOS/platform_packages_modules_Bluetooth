@@ -48,6 +48,7 @@ class HfpIntf {
   uint32_t current_calls_query_response(const ::rust::Vec<CallInfo>& call_list, RawAddress addr);
   uint32_t phone_state_change(
       PhoneState phone_state, const ::rust::String& number, RawAddress addr);
+  uint32_t simple_at_response(bool ok, RawAddress addr);
   void cleanup();
 
  private:

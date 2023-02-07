@@ -283,6 +283,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from("telephony <enable|disable>"),
                 String::from("telephony <incoming-call|dialing-call> <number>"),
                 String::from("telephony <answer-call|hangup-call>"),
+                String::from("telephony <set-memory-call|set-last-call> [<number>]"),
             ],
             description: String::from("Set device telephony status."),
             function_pointer: CommandHandler::cmd_telephony,
@@ -1629,6 +1630,32 @@ impl CommandHandler {
                     self.context.lock().unwrap().telephony_dbus.as_mut().unwrap().hangup_call();
                 if !success {
                     return Err("HangupCall failed".into());
+                }
+            }
+            "set-memory-call" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_memory_call(get_arg(args, 1).ok().map(String::from));
+                if !success {
+                    return Err("SetMemoryCall failed".into());
+                }
+            }
+            "set-last-call" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_last_call(get_arg(args, 1).ok().map(String::from));
+                if !success {
+                    return Err("SetLastCall failed".into());
                 }
             }
             other => {
