@@ -273,7 +273,6 @@ class CsisClientImpl : public CsisClient {
     Disconnect(addr);
 
     dev_groups_->RemoveDevice(addr);
-    btif_storage_remove_csis_device(addr);
   }
 
   int GetGroupId(const RawAddress& addr, Uuid uuid) override {
