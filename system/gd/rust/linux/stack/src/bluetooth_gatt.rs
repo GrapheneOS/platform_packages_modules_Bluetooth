@@ -761,7 +761,7 @@ impl BluetoothGattService {
                 GattDbElementType::PrimaryService | GattDbElementType::SecondaryService => {
                     db_out.push(BluetoothGattService::new(
                         elem.uuid.uu,
-                        elem.id as i32,
+                        elem.attribute_handle as i32,
                         elem.type_ as i32,
                     ));
                     // TODO(b/200065274): Mark restricted services.
@@ -771,7 +771,7 @@ impl BluetoothGattService {
                     match db_out.last_mut() {
                         Some(s) => s.characteristics.push(BluetoothGattCharacteristic::new(
                             elem.uuid.uu,
-                            elem.id as i32,
+                            elem.attribute_handle as i32,
                             elem.properties as i32,
                             0,
                         )),
@@ -787,7 +787,7 @@ impl BluetoothGattService {
                         Some(s) => match s.characteristics.last_mut() {
                             Some(c) => c.descriptors.push(BluetoothGattDescriptor::new(
                                 elem.uuid.uu,
-                                elem.id as i32,
+                                elem.attribute_handle as i32,
                                 0,
                             )),
                             None => {
@@ -806,7 +806,7 @@ impl BluetoothGattService {
                         Some(s) => {
                             s.included_services.push(BluetoothGattService::new(
                                 elem.uuid.uu,
-                                elem.id as i32,
+                                elem.attribute_handle as i32,
                                 elem.type_ as i32,
                             ));
                         }
