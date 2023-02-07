@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"蓝牙"</string>
     <string name="unknown_device" msgid="2317679521750821654">"未知设备"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"未知号码"</string>
+    <string name="not_provided" msgid="6938740494380012614">"未提供"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"飞行模式"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"飞行模式中不能使用蓝牙。"</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"无法传输 4GB 以上的文件"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"连接到蓝牙"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"在飞行模式下蓝牙保持开启状态"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"如果您不关闭蓝牙，那么您下次进入飞行模式时手机将记住保持开启蓝牙"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"蓝牙保持开启状态"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"在飞行模式下手机将记住保持开启蓝牙。如果您不想保持开启和蓝牙，请关闭蓝牙。"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"WLAN 和蓝牙保持开启状态"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"在飞行模式下手机将记住保持开启 WLAN 和蓝牙。如果您不想保持开启 WLAN 和蓝牙，请关闭 WLAN 和蓝牙。"</string>
 </resources>

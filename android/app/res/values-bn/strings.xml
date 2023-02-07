@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"ব্লুটুথ"</string>
     <string name="unknown_device" msgid="2317679521750821654">"অজানা ডিভাইস"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"অজানা"</string>
+    <string name="not_provided" msgid="6938740494380012614">"প্রদান করা হয়নি"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"বিমান মোড"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"আপনি বিমান মোডে ব্লুটুথ ব্যবহার করতে পারবেন না।"</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"৪GB থেকে বড় ফটো ট্রান্সফার করা যাবে না"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ব্লুটুথের সাথে কানেক্ট করুন"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"\'বিমান মোড\'-এ থাকাকালীন ব্লুটুথ চালু থাকে"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"আপনি ওয়াই-ফাই চালু রাখলে, আপনি এরপর \'বিমান মোডে\' থাকলে আপনার ফোন এটি চালু রাখবে"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ব্লুটুথ চালু থাকে"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"\'বিমান মোড\'-এ থাকাকালীন আপনার ফোন ব্লুটুথ চালু রাখে। আপনি ব্লুটুথ চালু না রাখতে চাইলে এটি বন্ধ করুন।"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ওয়াই-ফাই ও ব্লুটুথ চালু থাকে"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"\'বিমান মোড\'-এ থাকাকালীন আপনার ফোন ওয়াই-ফাই ও ব্লুটুথ চালু রাখে। আপনি যদি ওয়াই-ফাই এবং ব্লুটুথ চালু রাখতে না চান, সেগুলি বন্ধ করে দিন।"</string>
 </resources>

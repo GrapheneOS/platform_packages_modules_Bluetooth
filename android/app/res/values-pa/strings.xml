@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"ਬਲੂਟੁੱਥ"</string>
     <string name="unknown_device" msgid="2317679521750821654">"ਅਗਿਆਤ ਡੀਵਾਈਸ"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"ਅਗਿਆਤ"</string>
+    <string name="not_provided" msgid="6938740494380012614">"ਮੁਹੱਈਆ ਨਹੀਂ ਕਰਵਾਇਆ ਗਿਆ"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"ਏਅਰਪਲੇਨ ਮੋਡ"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"ਤੁਸੀਂ ਏਅਰਪਲੇਨ ਮੋਡ ਵਿੱਚ Bluetooth ਨਹੀਂ ਵਰਤ ਸਕਦੇ।"</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB ਤੋਂ ਜ਼ਿਆਦਾ ਵੱਡੀਆਂ ਫ਼ਾਈਲਾਂ ਨੂੰ ਟ੍ਰਾਂਸਫ਼ਰ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ਬਲੂਟੁੱਥ ਨਾਲ ਕਨੈਕਟ ਕਰੋ"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ਹਵਾਈ-ਜਹਾਜ਼ ਮੋਡ ਵਿੱਚ ਬਲੂਟੁੱਥ ਚਾਲੂ ਹੈ"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"ਜੇ ਤੁਸੀਂ ਬਲੂਟੁੱਥ ਨੂੰ ਚਾਲੂ ਰੱਖਦੇ ਹੋ, ਤਾਂ ਅਗਲੀ ਵਾਰ ਤੁਹਾਡਾ ਫ਼ੋਨ ਹਵਾਈ-ਜਹਾਜ਼ ਮੋਡ ਵਿੱਚ ਹੋਣ \'ਤੇ ਤੁਹਾਡਾ ਫ਼ੋਨ ਇਸਨੂੰ ਚਾਲੂ ਰੱਖਣਾ ਯਾਦ ਰੱਖੇਗਾ"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ਬਲੂਟੁੱਥ ਚਾਲੂ ਰਹਿੰਦਾ ਹੈ"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"ਤੁਹਾਡਾ ਫ਼ੋਨ ਹਵਾਈ-ਜਹਾਜ਼ ਮੋਡ ਵਿੱਚ ਬਲੂਟੁੱਥ ਨੂੰ ਚਾਲੂ ਰੱਖਣਾ ਯਾਦ ਰੱਖਦਾ ਹੈ। ਜੇ ਤੁਸੀਂ ਇਸਨੂੰ ਚਾਲੂ ਨਹੀਂ ਰੱਖਣਾ ਚਾਹੁੰਦੇ, ਤਾਂ ਬਲੂਟੁੱਥ ਨੂੰ ਬੰਦ ਕਰੋ।"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ਵਾਈ-ਫਾਈ ਅਤੇ ਬਲੂਟੁੱਥ ਚਾਲੂ ਰਹਿੰਦੇ ਹਨ"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"ਤੁਹਾਡਾ ਫ਼ੋਨ ਹਵਾਈ-ਜਹਾਜ਼ ਮੋਡ ਵਿੱਚ ਵਾਈ-ਫਾਈ ਅਤੇ ਬਲੂਟੁੱਥ ਨੂੰ ਚਾਲੂ ਰੱਖਣਾ ਯਾਦ ਰੱਖਦਾ ਹੈ। ਜੇ ਤੁਸੀਂ ਇਨ੍ਹਾਂ ਨੂੰ ਚਾਲੂ ਨਹੀਂ ਰੱਖਣਾ ਚਾਹੁੰਦੇ, ਤਾਂ ਵਾਈ-ਫਾਈ ਅਤੇ ਬਲੂਟੁੱਥ ਨੂੰ ਬੰਦ ਕਰੋ।"</string>
 </resources>
