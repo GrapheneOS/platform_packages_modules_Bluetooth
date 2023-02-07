@@ -70,6 +70,7 @@ cc_library_shared {
         "libbluetooth-types",
         "libbluetooth",
         "libc++fs",
+        "libbluetooth_core_rs_bridge",
     ],
     sanitize: {
         scs: true,

@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hci_error_code.h"
@@ -41,6 +43,8 @@ void ACL_IgnoreAllLeConnections();
 void ACL_ReadConnectionAddress(const RawAddress& pseudo_addr,
                                RawAddress& conn_addr,
                                tBLE_ADDR_TYPE* p_addr_type);
+
+std::optional<uint8_t> ACL_GetAdvertisingSetConnectedTo(const RawAddress& addr);
 
 void ACL_AddToAddressResolution(const tBLE_BD_ADDR& legacy_address_with_type,
                                 const Octet16& peer_irk,
