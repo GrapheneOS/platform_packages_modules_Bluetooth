@@ -349,9 +349,9 @@ void on_create_record_event(int id) {
   BTIF_TRACE_DEBUG("Sdp Server %s", __func__);
   const sdp_slot_t* sdp_slot = start_create_sdp(id);
   tBTA_SERVICE_ID service_id = -1;
+  bluetooth_sdp_record* record;
   /* In the case we are shutting down, sdp_slot is NULL */
-  if (sdp_slot != NULL) {
-    bluetooth_sdp_record* record = sdp_slot->record_data;
+  if (sdp_slot != nullptr && (record = sdp_slot->record_data) != nullptr) {
     int handle = -1;
     switch (record->hdr.type) {
       case SDP_TYPE_MAP_MAS:
