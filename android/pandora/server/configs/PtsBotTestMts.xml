@@ -14,6 +14,7 @@
     </target_preparer>
 
     <target_preparer class="com.android.tradefed.targetprep.PythonVirtualenvPreparer">
+        <!-- TODO(b/267785204): Import python dependencies -->
         <option name="dep-module" value="grpcio" />
         <option name="dep-module" value="protobuf==3.20.1" />
         <option name="dep-module" value="scipy" />
