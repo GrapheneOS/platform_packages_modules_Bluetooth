@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"ବ୍ଲୁଟୁଥ"</string>
     <string name="unknown_device" msgid="2317679521750821654">"ଅଜଣା ଡିଭାଇସ୍"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"ଅଜଣା"</string>
+    <string name="not_provided" msgid="6938740494380012614">"ପ୍ରଦାନ କରାଯାଇନାହିଁ"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"ଏରୋପ୍ଲେନ୍‍ ମୋଡ୍"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"ଆପଣ, ଏୟାରପ୍ଲେନ୍‌ ମୋଡ୍‌ରେ ବ୍ଲୁଟୂଥ୍‍‌ ବ୍ୟବହାର କରିପାରିବେ ନାହିଁ।"</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GBରୁ ବଡ଼ ଫାଇଲ୍‌ଗୁଡ଼ିକୁ ଟ୍ରାନ୍ସଫର୍‌ କରାଯାଇପାରିବ ନାହିଁ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ବ୍ଲୁଟୁଥ୍ ସହ ସଂଯୋଗ କରନ୍ତୁ"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ଏୟାରପ୍ଲେନ ମୋଡରେ ବ୍ଲୁଟୁଥ ଚାଲୁ ଅଛି"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"ଯଦି ଆପଣ ବ୍ଲୁଟୁଥକୁ ଚାଲୁ ରଖନ୍ତି, ତେବେ ଆପଣ ପରବର୍ତ୍ତୀ ଥର ଏୟାରପ୍ଲେନ ମୋଡରେ ଥିବା ସମୟରେ ଆପଣଙ୍କ ଫୋନ ଏହାକୁ ଚାଲୁ ରଖିବା ପାଇଁ ମନେ ରଖିବ"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ବ୍ଲୁଟୁଥ ଚାଲୁ ରହେ"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"ଆପଣଙ୍କ ଫୋନ ଏୟାରପ୍ଲେନ ମୋଡରେ ବ୍ଲୁଟୁଥକୁ ଚାଲୁ ରଖିବା ପାଇଁ ମନେ ରଖେ। ଯଦି ଆପଣ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖିବାକୁ ଚାହାଁନ୍ତି ନାହିଁ ତେବେ ଏହାକୁ ବନ୍ଦ କରନ୍ତୁ।"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ୱାଇ-ଫାଇ ଏବଂ ବ୍ଲୁଟୁଥ ଚାଲୁ ରହେ"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"ଆପଣଙ୍କ ଫୋନ ଏୟାରପ୍ଲେନ ମୋଡରେ ୱାଇ-ଫାଇ ଏବଂ ବ୍ଲୁଟୁଥକୁ ଚାଲୁ ରଖିବା ପାଇଁ ମନେ ରଖେ। ଯଦି ଆପଣ ୱାଇ-ଫାଇ ଏବଂ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖିବାକୁ ଚାହାଁନ୍ତି ନାହିଁ ତେବେ ସେଗୁଡ଼ିକୁ ବନ୍ଦ କରନ୍ତୁ।"</string>
 </resources>
