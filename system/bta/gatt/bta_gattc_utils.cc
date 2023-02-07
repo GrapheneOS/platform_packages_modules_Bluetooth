@@ -531,7 +531,7 @@ bool bta_gattc_mark_bg_conn(tGATT_IF client_if,
 
         p_cif_mask = &p_bg_tck->cif_mask;
 
-        *p_cif_mask = (1 << (client_if - 1));
+        *p_cif_mask = ((tBTA_GATTC_CIF_MASK)1 << (client_if - 1));
         return true;
       }
     }
