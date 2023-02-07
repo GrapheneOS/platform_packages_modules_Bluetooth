@@ -70,7 +70,11 @@ void bluetooth::shim::ACL_ReadConnectionAddress(const RawAddress& pseudo_addr,
                                                 tBLE_ADDR_TYPE* p_addr_type) {
   mock_function_count_map[__func__]++;
 }
-
+std::optional<uint8_t> bluetooth::shim::ACL_GetAdvertisingSetConnectedTo(
+    const RawAddress& addr) {
+  mock_function_count_map[__func__]++;
+  return std::nullopt;
+}
 void bluetooth::shim::ACL_AddToAddressResolution(
     const tBLE_BD_ADDR& legacy_address_with_type, const Octet16& peer_irk,
     const Octet16& local_irk) {

@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <future>
+#include <optional>
 
 #include "gd/hci/acl_manager.h"
 #include "main/shim/dumpsys.h"
@@ -107,6 +108,11 @@ void bluetooth::shim::ACL_ReadConnectionAddress(const RawAddress& pseudo_addr,
       Stack::GetInstance()->GetAcl()->GetConnectionLocalAddress(pseudo_addr);
   conn_addr = ToRawAddress(local_address.GetAddress());
   *p_addr_type = static_cast<tBLE_ADDR_TYPE>(local_address.GetAddressType());
+}
+
+std::optional<uint8_t> bluetooth::shim::ACL_GetAdvertisingSetConnectedTo(
+    const RawAddress& addr) {
+  return Stack::GetInstance()->GetAcl()->GetAdvertisingSetConnectedTo(addr);
 }
 
 void bluetooth::shim::ACL_AddToAddressResolution(

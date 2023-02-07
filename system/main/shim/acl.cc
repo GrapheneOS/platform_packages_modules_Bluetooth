@@ -26,6 +26,7 @@
 #include <future>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_set>
 
@@ -742,6 +743,19 @@ class LeShimAclConnection
 
   bluetooth::hci::AddressWithType GetLocalAddressWithType() {
     return connection_->GetLocalAddress();
+  }
+
+  std::optional<uint8_t> GetAdvertisingSetConnectedTo() {
+    return std::visit(
+        [](auto&& data) {
+          using T = std::decay_t<decltype(data)>;
+          if constexpr (std::is_same_v<T, hci::acl_manager::DataAsPeripheral>) {
+            return data.advertising_set_id;
+          } else {
+            return std::optional<uint8_t>{};
+          }
+        },
+        connection_->GetRoleSpecificData());
   }
 
   void OnConnectionUpdate(hci::ErrorCode hci_status,
@@ -1473,6 +1487,18 @@ bluetooth::hci::AddressWithType shim::legacy::Acl::GetConnectionLocalAddress(
   }
   LOG_WARN("address not found!");
   return address_with_type;
+}
+
+std::optional<uint8_t> shim::legacy::Acl::GetAdvertisingSetConnectedTo(
+    const RawAddress& remote_bda) {
+  auto remote_address = ToGdAddress(remote_bda);
+  for (auto& [handle, connection] : pimpl_->handle_to_le_connection_map_) {
+    if (connection->GetRemoteAddressWithType().GetAddress() == remote_address) {
+      return connection->GetAdvertisingSetConnectedTo();
+    }
+  }
+  LOG_WARN("address not found!");
+  return {};
 }
 
 void shim::legacy::Acl::OnLeLinkDisconnected(HciHandle handle,
