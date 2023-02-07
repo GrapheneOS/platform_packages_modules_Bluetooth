@@ -365,14 +365,6 @@ std::ostream& operator<<(
   return os;
 }
 
-static const BroadcastQosConfig qos_config_2_10 = BroadcastQosConfig(2, 10);
-
-static const BroadcastQosConfig qos_config_4_50 = BroadcastQosConfig(4, 50);
-
-static const BroadcastQosConfig qos_config_4_60 = BroadcastQosConfig(4, 60);
-
-static const BroadcastQosConfig qos_config_4_65 = BroadcastQosConfig(4, 65);
-
 std::ostream& operator<<(
     std::ostream& os, const le_audio::broadcaster::BroadcastQosConfig& config) {
   os << " BroadcastQosConfig=[";
