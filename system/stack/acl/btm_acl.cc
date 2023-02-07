@@ -340,6 +340,11 @@ void btm_acl_process_sca_cmpl_pkt(uint8_t len, uint8_t* data) {
   uint8_t sca;
   uint8_t status;
 
+  if (len < 4) {
+    LOG_WARN("Malformatted packet, not containing enough data");
+    return;
+  }
+
   STREAM_TO_UINT8(status, data);
 
   if (status != HCI_SUCCESS) {
