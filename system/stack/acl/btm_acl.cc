@@ -40,7 +40,6 @@
 #include "bta/include/bta_dm_acl.h"
 #include "bta/sys/bta_sys.h"
 #include "btif/include/btif_acl.h"
-#include "btif/include/btif_api.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "device/include/device_iot_config.h"
@@ -52,6 +51,7 @@
 #include "main/shim/dumpsys.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
+#include "os/parameter_provider.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
@@ -653,7 +653,7 @@ void btm_acl_encrypt_change(uint16_t handle, uint8_t status,
 
   /* Common Criteria mode only: if we are trying to drop encryption on an
    * encrypted connection, drop the connection */
-  if (is_common_criteria_mode()) {
+  if (bluetooth::os::ParameterProvider::IsCommonCriteriaMode()) {
     if (p->is_encrypted && !encr_enable) {
       LOG(ERROR)
           << __func__
