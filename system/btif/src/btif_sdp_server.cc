@@ -287,6 +287,10 @@ bt_status_t create_sdp_record(bluetooth_sdp_record* record,
 bt_status_t remove_sdp_record(int record_id) {
   int handle;
 
+  if (record_id >= MAX_SDP_SLOTS) {
+    return BT_STATUS_PARM_INVALID;
+  }
+
   bluetooth_sdp_record* record;
   bluetooth_sdp_types sdp_type = SDP_TYPE_RAW;
   {
