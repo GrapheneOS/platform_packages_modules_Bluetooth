@@ -16,6 +16,7 @@
 
 #include <errno.h>
 #include <grp.h>
+#include <math.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
