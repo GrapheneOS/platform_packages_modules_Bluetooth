@@ -361,10 +361,9 @@ public class BatteryStateMachine extends StateMachine {
                     log(TAG, "Connection canceled to " + mDevice);
                     if (mBluetoothGatt != null) {
                         mBluetoothGatt.disconnect();
-                        transitionTo(mDisconnecting);
-                    } else {
-                        transitionTo(mDisconnected);
                     }
+                    // As we're not yet connected we don't need to wait for callbacks.
+                    transitionTo(mDisconnected);
                     break;
                 case CONNECTION_STATE_CHANGED:
                     processConnectionEvent(message.arg1);
