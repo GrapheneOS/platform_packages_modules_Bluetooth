@@ -2088,6 +2088,39 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         return defaultValue;
     }
 
+    /**
+     * Gets the package name of the application that initiate bonding with this device
+     *
+     * @return package name of the application, or null of no application initiate bonding with
+     * this device
+     *
+     * @hide
+     */
+    @SystemApi
+    @Nullable
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public String getCreateBondCaller() {
+        if (DBG) log("getCreateBondCaller()");
+        final IBluetooth service = getService();
+        final String defaultValue = null;
+        if (service == null || !isBluetoothEnabled()) {
+            Log.w(TAG, "BT not enabled, getCreateBondCaller failed");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else {
+            try {
+                final SynchronousResultReceiver<String> recv = SynchronousResultReceiver.get();
+                service.getCreateBondCaller(this, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
+        return defaultValue;
+    }
+
     /** @hide */
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(value = {
