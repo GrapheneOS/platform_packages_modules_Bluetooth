@@ -448,6 +448,27 @@ public class LeAudioService extends ProfileService {
         return mVolumeControlService.getAudioDeviceGroupVolume(groupId);
     }
 
+    LeAudioDeviceDescriptor createDeviceDescriptor(BluetoothDevice device) {
+        LeAudioDeviceDescriptor descriptor = mDeviceDescriptors.get(device);
+        if (descriptor == null) {
+
+            // Limit the maximum number of devices to avoid DoS attack
+            if (mDeviceDescriptors.size() >= MAX_LE_AUDIO_DEVICES) {
+                Log.e(TAG, "Maximum number of LeAudio state machines reached: "
+                        + MAX_LE_AUDIO_DEVICES);
+                return null;
+            }
+
+            mDeviceDescriptors.put(device, new LeAudioDeviceDescriptor());
+            descriptor = mDeviceDescriptors.get(device);
+            Log.d(TAG, "Created descriptor for device: " + device);
+        } else {
+            Log.w(TAG, "Device: " + device + ", already exists");
+        }
+
+        return descriptor;
+    }
+
     public boolean connect(BluetoothDevice device) {
         if (DBG) {
             Log.d(TAG, "connect(): " + device);
@@ -464,17 +485,8 @@ public class LeAudioService extends ProfileService {
         }
 
         synchronized (mGroupLock) {
-            LeAudioDeviceDescriptor descriptor = mDeviceDescriptors.get(device);
-            if (descriptor == null) {
-
-                // Limit the maximum number of devices to avoid DoS attack
-                if (mDeviceDescriptors.size() >= MAX_LE_AUDIO_DEVICES) {
-                    Log.e(TAG, "Maximum number of LeAudio state machines reached: "
-                            + MAX_LE_AUDIO_DEVICES);
-                    return false;
-                }
-
-                mDeviceDescriptors.put(device, new LeAudioDeviceDescriptor());
+            if (createDeviceDescriptor(device) == null) {
+                return false;
             }
 
             LeAudioStateMachine sm = getOrCreateStateMachine(device);
@@ -2183,8 +2195,18 @@ public class LeAudioService extends ProfileService {
 
             LeAudioDeviceDescriptor deviceDescriptor = getDeviceDescriptor(device);
             if (deviceDescriptor == null) {
-                Log.e(TAG, "handleGroupNodeAdded: No valid descriptor for device: " + device);
-                return;
+                deviceDescriptor = createDeviceDescriptor(device);
+                if (deviceDescriptor == null) {
+                    Log.e(TAG, "handleGroupNodeAdded: Can't create descriptor for added from"
+                            + " storage device: " + device);
+                    return;
+                }
+
+                LeAudioStateMachine sm = getOrCreateStateMachine(device);
+                if (getOrCreateStateMachine(device) == null) {
+                    Log.e(TAG, "Can't get state machine for device: " + device);
+                    return;
+                }
             }
             deviceDescriptor.mGroupId = groupId;
 
