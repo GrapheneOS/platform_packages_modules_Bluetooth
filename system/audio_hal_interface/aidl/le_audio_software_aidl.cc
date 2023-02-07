@@ -473,7 +473,7 @@ bool hal_ucast_capability_to_stack_format(
   auto& hal_lc3_capability =
       hal_capability.leAudioCodecCapabilities
           .get<UnicastCapability::LeAudioCodecCapabilities::lc3Capabilities>();
-  auto supportedChannel = hal_capability.supportedChannel;
+  auto supported_channel = hal_capability.supportedChannel;
   auto sample_rate_hz = hal_lc3_capability.samplingFrequencyHz[0];
   auto frame_duration_us = hal_lc3_capability.frameDurationUs[0];
   auto octets_per_frame = hal_lc3_capability.octetsPerFrame[0];
@@ -483,12 +483,12 @@ bool hal_ucast_capability_to_stack_format(
       frame_duration_map.find(frame_duration_us) == frame_duration_map.end() ||
       octets_per_frame_map.find(octets_per_frame) ==
           octets_per_frame_map.end() ||
-      audio_location_map.find(supportedChannel) == audio_location_map.end()) {
+      audio_location_map.find(supported_channel) == audio_location_map.end()) {
     LOG(ERROR) << __func__ << ": Failed to convert HAL format to stack format"
                << "\nsample rate = " << sample_rate_hz
                << "\nframe duration = " << frame_duration_us
                << "\noctets per frame= " << octets_per_frame
-               << "\naudio location = " << toString(supportedChannel);
+               << "\naudio location = " << toString(supported_channel);
 
     return false;
   }
@@ -498,8 +498,62 @@ bool hal_ucast_capability_to_stack_format(
       .config = LeAudioLc3Config(
           {.sampling_frequency = sampling_freq_map[sample_rate_hz],
            .frame_duration = frame_duration_map[frame_duration_us],
+           .audio_channel_allocation = audio_location_map[supported_channel],
            .octets_per_codec_frame = octets_per_frame_map[octets_per_frame],
-           .audio_channel_allocation = audio_location_map[supportedChannel],
+           .channel_count = static_cast<uint8_t>(channel_count)})};
+  return true;
+}
+
+bool hal_bcast_capability_to_stack_format(
+    const BroadcastCapability& hal_bcast_capability,
+    CodecCapabilitySetting& stack_capability) {
+  if (hal_bcast_capability.codecType != CodecType::LC3) {
+    LOG(WARNING) << "Unsupported codecType: "
+                 << toString(hal_bcast_capability.codecType);
+    return false;
+  }
+  if (hal_bcast_capability.leAudioCodecCapabilities.getTag() !=
+      BroadcastCapability::LeAudioCodecCapabilities::lc3Capabilities) {
+    LOG(WARNING) << "Unknown LE Audio capabilities(vendor proprietary?)";
+    return false;
+  }
+
+  auto& hal_lc3_capabilities =
+      hal_bcast_capability.leAudioCodecCapabilities.get<
+          BroadcastCapability::LeAudioCodecCapabilities::lc3Capabilities>();
+
+  if (hal_lc3_capabilities->size() != 1) {
+    LOG(WARNING) << __func__ << ": The number of config is not supported yet.";
+  }
+
+  auto supported_channel = hal_bcast_capability.supportedChannel;
+  auto sample_rate_hz = (*hal_lc3_capabilities)[0]->samplingFrequencyHz[0];
+  auto frame_duration_us = (*hal_lc3_capabilities)[0]->frameDurationUs[0];
+  auto octets_per_frame = (*hal_lc3_capabilities)[0]->octetsPerFrame[0];
+  auto channel_count = hal_bcast_capability.channelCountPerStream;
+
+  if (sampling_freq_map.find(sample_rate_hz) == sampling_freq_map.end() ||
+      frame_duration_map.find(frame_duration_us) == frame_duration_map.end() ||
+      octets_per_frame_map.find(octets_per_frame) ==
+          octets_per_frame_map.end() ||
+      audio_location_map.find(supported_channel) == audio_location_map.end()) {
+    LOG(WARNING) << __func__
+                 << " : Failed to convert HAL format to stack format"
+                 << "\nsample rate = " << sample_rate_hz
+                 << "\nframe duration = " << frame_duration_us
+                 << "\noctets per frame= " << octets_per_frame
+                 << "\naudio location = " << toString(supported_channel);
+
+    return false;
+  }
+
+  stack_capability = {
+      .id = ::le_audio::set_configurations::LeAudioCodecIdLc3,
+      .config = LeAudioLc3Config(
+          {.sampling_frequency = sampling_freq_map[sample_rate_hz],
+           .frame_duration = frame_duration_map[frame_duration_us],
+           .audio_channel_allocation = audio_location_map[supported_channel],
+           .octets_per_codec_frame = octets_per_frame_map[octets_per_frame],
            .channel_count = static_cast<uint8_t>(channel_count)})};
   return true;
 }
@@ -513,14 +567,16 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
   std::string str_capability_log;
 
   for (auto hal_cap : le_audio_hal_capabilities) {
-    CodecCapabilitySetting encode_cap;
-    CodecCapabilitySetting decode_cap;
+    CodecCapabilitySetting encode_cap, decode_cap, bcast_cap;
     UnicastCapability hal_encode_cap =
         hal_cap.get<AudioCapabilities::leAudioCapabilities>()
             .unicastEncodeCapability;
     UnicastCapability hal_decode_cap =
         hal_cap.get<AudioCapabilities::leAudioCapabilities>()
             .unicastDecodeCapability;
+    BroadcastCapability hal_bcast_cap =
+        hal_cap.get<AudioCapabilities::leAudioCapabilities>()
+            .broadcastCapability;
     AudioSetConfiguration audio_set_config = {.name = "offload capability"};
     str_capability_log.clear();
 
@@ -541,6 +597,15 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
           ::le_audio::types::kTargetLatencyBalancedLatencyReliability,
           decode_cap));
       str_capability_log += " Decode Capability: " + hal_decode_cap.toString();
+    }
+
+    if (hal_bcast_capability_to_stack_format(hal_bcast_cap, bcast_cap)) {
+      // Set device_cnt, ase_cnt, target_latency to zero to ignore these fields
+      // for broadcast
+      audio_set_config.confs.push_back(SetConfiguration(
+          ::le_audio::types::kLeAudioDirectionSink, 0, 0, 0, bcast_cap));
+      str_capability_log +=
+          " Broadcast Capability: " + hal_bcast_cap.toString();
     }
 
     if (!audio_set_config.confs.empty()) {
