@@ -207,7 +207,7 @@ class GAPProxy(ProfileProxy):
 
         self.host.StartAdvertising(
             own_address_type=OwnAddressType.PUBLIC,
-            data=DataTypes(incomplete_service_class_uuids128=["955798ce-3022-455c-b759-ee8edcd73d1a"],))
+            data=DataTypes(complete_service_class_uuids128=["955798ce-3022-455c-b759-ee8edcd73d1a"],))
         return "OK"
 
     @assert_description

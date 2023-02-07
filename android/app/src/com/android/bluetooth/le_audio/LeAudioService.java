@@ -182,10 +182,8 @@ public class LeAudioService extends ProfileService {
     private BroadcastReceiver mMuteStateChangedReceiver;
     private int mStoredRingerMode = -1;
     private Handler mHandler = new Handler(Looper.getMainLooper());
-    private final AudioManagerAddAudioDeviceCallback mAudioManagerAddAudioDeviceCallback =
-            new AudioManagerAddAudioDeviceCallback();
-    private final AudioManagerRemoveAudioDeviceCallback mAudioManagerRemoveAudioDeviceCallback =
-            new AudioManagerRemoveAudioDeviceCallback();
+    private final AudioManagerAudioDeviceCallback mAudioManagerAudioDeviceCallback =
+            new AudioManagerAudioDeviceCallback();
 
     private final Map<Integer, Integer> mBroadcastStateMap = new HashMap<>();
     private final Map<Integer, Boolean> mBroadcastsPlaybackMap = new HashMap<>();
@@ -280,6 +278,9 @@ public class LeAudioService extends ProfileService {
         }
         mTmapGattServer = LeAudioObjectsFactory.getInstance().getTmapGattServer(this);
         mTmapGattServer.start(tmapRoleMask);
+
+        mAudioManager.registerAudioDeviceCallback(mAudioManagerAudioDeviceCallback,
+                       mHandler);
 
         // Mark service as started
         setLeAudioService(this);
@@ -399,8 +400,7 @@ public class LeAudioService extends ProfileService {
             }
         }
 
-        mAudioManager.unregisterAudioDeviceCallback(mAudioManagerAddAudioDeviceCallback);
-        mAudioManager.unregisterAudioDeviceCallback(mAudioManagerRemoveAudioDeviceCallback);
+        mAudioManager.unregisterAudioDeviceCallback(mAudioManagerAudioDeviceCallback);
 
         mAdapterService = null;
         mAudioManager = null;
@@ -995,54 +995,85 @@ public class LeAudioService extends ProfileService {
      * is added or removed.
      */
     @VisibleForTesting
-    void notifyActiveDeviceChanged() {
+    void notifyActiveDeviceChanged(BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "Notify Active device changed." + device
+                    + ". Currently active device is " + mActiveAudioOutDevice);
+        }
+
         Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE,
-                mActiveAudioOutDevice != null ? mActiveAudioOutDevice : mActiveAudioInDevice);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                 | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         sendBroadcast(intent, BLUETOOTH_CONNECT);
     }
 
-    /* Notifications of audio device disconnection events. */
-    private class AudioManagerRemoveAudioDeviceCallback extends AudioDeviceCallback {
-        @Override
-        public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
-            if (mAudioManager == null) {
-                Log.e(TAG, "Callback called when LeAudioService is stopped");
-                return;
-            }
-
-            for (AudioDeviceInfo deviceInfo : removedDevices) {
-                if (deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_HEADSET
-                        || deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_SPEAKER) {
-                    notifyActiveDeviceChanged();
-                    if (DBG) {
-                        Log.d(TAG, " onAudioDevicesRemoved: device type: " + deviceInfo.getType());
-                    }
-                    mAudioManager.unregisterAudioDeviceCallback(this);
-                }
-            }
-        }
-    }
-
-    /* Notifications of audio device connection events. */
-    private class AudioManagerAddAudioDeviceCallback extends AudioDeviceCallback {
+    /* Notifications of audio device connection/disconn events. */
+    private class AudioManagerAudioDeviceCallback extends AudioDeviceCallback {
         @Override
         public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
-            if (mAudioManager == null) {
+            if (mAudioManager == null || mAdapterService == null)  {
                 Log.e(TAG, "Callback called when LeAudioService is stopped");
                 return;
             }
 
             for (AudioDeviceInfo deviceInfo : addedDevices) {
-                if (deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_HEADSET
-                        || deviceInfo.getType() == AudioDeviceInfo.TYPE_BLE_SPEAKER) {
-                    notifyActiveDeviceChanged();
-                    if (DBG) {
-                        Log.d(TAG, " onAudioDevicesAdded: device type: " + deviceInfo.getType());
-                    }
-                    mAudioManager.unregisterAudioDeviceCallback(this);
+                if ((deviceInfo.getType() != AudioDeviceInfo.TYPE_BLE_HEADSET)
+                        && (deviceInfo.getType() != AudioDeviceInfo.TYPE_BLE_SPEAKER)) {
+                    continue;
+                }
+
+                String address = deviceInfo.getAddress();
+                if (address.equals("00:00:00:00:00:00")) {
+                    continue;
+                }
+
+                byte[] addressBytes = Utils.getBytesFromAddress(address);
+                BluetoothDevice device = mAdapterService.getDeviceFromByte(addressBytes);
+
+                if (DBG) {
+                    Log.d(TAG, " onAudioDevicesAdded: " + device + ", device type: "
+                            + deviceInfo.getType() + ", isSink: " + deviceInfo.isSink()
+                            + " isSource: " + deviceInfo.isSource());
+                }
+
+                if ((deviceInfo.isSink() && !device.equals(mActiveAudioOutDevice))
+                        || (deviceInfo.isSource() && !device.equals(mActiveAudioInDevice))) {
+                    Log.e(TAG, "Added device does not match to the one activated here. ("
+                            + device + " != " + mActiveAudioOutDevice
+                            + " / " + mActiveAudioInDevice + ")");
+                    continue;
+                }
+
+                notifyActiveDeviceChanged(device);
+                return;
+            }
+        }
+
+        @Override
+        public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+            if (mAudioManager == null || mAdapterService == null) {
+                Log.e(TAG, "Callback called when LeAudioService is stopped");
+                return;
+            }
+
+            for (AudioDeviceInfo deviceInfo : removedDevices) {
+                if ((deviceInfo.getType() != AudioDeviceInfo.TYPE_BLE_HEADSET)
+                        && (deviceInfo.getType() != AudioDeviceInfo.TYPE_BLE_SPEAKER)) {
+                    continue;
+                }
+
+                String address = deviceInfo.getAddress();
+                if (address.equals("00:00:00:00:00:00")) {
+                    continue;
+                }
+
+                if (DBG) {
+                    Log.d(TAG, " onAudioDevicesRemoved: " + address + ", device type: "
+                            + deviceInfo.getType() + ", isSink: " + deviceInfo.isSink()
+                            + " isSource: " + deviceInfo.isSource()
+                            + ", mActiveAudioInDevice: " + mActiveAudioInDevice
+                            + ", mActiveAudioOutDevice: " +  mActiveAudioOutDevice);
                 }
             }
         }
@@ -1077,20 +1108,6 @@ public class LeAudioService extends ProfileService {
                     + ", " + mActiveAudioInDevice);
         }
 
-        /* Active device changed, there is need to inform about new active LE Audio device */
-        if (isNewActiveOutDevice || isNewActiveInDevice) {
-            /* Register for new device connection/disconnection in Audio Manager */
-            if (mActiveAudioOutDevice != null || mActiveAudioInDevice != null) {
-                /* Register for any device connection in case if any of devices become connected */
-                mAudioManager.registerAudioDeviceCallback(mAudioManagerAddAudioDeviceCallback,
-                        mHandler);
-            } else {
-                /* Register for disconnection if active devices become non-active */
-                mAudioManager.registerAudioDeviceCallback(mAudioManagerRemoveAudioDeviceCallback,
-                        mHandler);
-            }
-        }
-
         if (isNewActiveOutDevice) {
             int volume = IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME;
 
@@ -1110,6 +1127,14 @@ public class LeAudioService extends ProfileService {
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioInDevice,
                     previousActiveInDevice, BluetoothProfileConnectionInfo.createLeAudioInfo(false,
                             false));
+        }
+
+        if ((mActiveAudioOutDevice == null) && (mActiveAudioInDevice == null)) {
+            /* Notify about inactive device as soon as possible.
+             * When adding new device, wait with notification until AudioManager is ready
+             * with adding the device.
+             */
+            notifyActiveDeviceChanged(null);
         }
 
         return mActiveAudioOutDevice != null;
