@@ -24,6 +24,11 @@ cc_library_headers {
     ],
     // As part of updatable mainline modules(media, swcodec), it should support at least 29(Q)
     min_sdk_version: "29",
+    target: {
+        windows: {
+            enabled: true,
+        },
+    },
 }
 
 cc_library_static {

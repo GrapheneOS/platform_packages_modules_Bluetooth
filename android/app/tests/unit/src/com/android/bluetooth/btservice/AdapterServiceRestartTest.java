@@ -330,6 +330,12 @@ public class AdapterServiceRestartTest {
     @Test
     public void testObfuscateBluetoothAddress_PersistentBetweenAdapterServiceInitialization() throws
             PackageManager.NameNotFoundException {
+        // Sleep needed to ensure the metrics are valid in both native and java (b/267528843)
+        try {
+            Thread.sleep(1_000);
+        } catch (InterruptedException e) {
+            Log.e("AdapterServiceTest", "Sleep interrupted: " + e);
+        }
         byte[] metricsSalt = AdapterServiceTest.getMetricsSalt(mAdapterConfig);
         Assert.assertNotNull(metricsSalt);
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);

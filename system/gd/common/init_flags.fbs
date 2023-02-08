@@ -12,6 +12,7 @@ table InitFlagsData {
     gd_hci_enabled:bool (privacy:"Any");
     gd_controller_enabled:bool (privacy:"Any");
 
+    always_use_private_gatt_for_debugging_is_enabled:bool (private:"Any");
     asynchronously_start_l2cap_coc_is_enabled:bool (privacy:"Any");
     btaa_hci_is_enabled:bool (privacy:"Any");
     bta_dm_clear_conn_id_on_client_close_is_enabled:bool (privacy:"Any");
@@ -37,8 +38,10 @@ table InitFlagsData {
     logging_debug_enabled_for_all_is_enabled:bool (privacy:"Any");
     pass_phy_update_callback_is_enabled:bool (privacy:"Any");
     periodic_advertising_adi_is_enabled:bool (privacy:"Any");
+    private_gatt_is_enabled:bool (privacy:"Any");
     queue_l2cap_coc_while_encrypting_is_enabled:bool (privacy:"Any");
     redact_log_is_enabled:bool (privacy:"Any");
+    rust_event_loop_is_enabled:bool (privacy:"Any");
     sdp_serialization_is_enabled:bool (privacy:"Any");
     sdp_skip_rnr_if_known_is_enabled:bool (privacy:"Any");
     set_min_encryption_is_enabled:bool (privacy:"Any");

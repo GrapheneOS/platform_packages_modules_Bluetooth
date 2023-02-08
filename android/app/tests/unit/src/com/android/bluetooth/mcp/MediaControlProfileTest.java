@@ -368,6 +368,20 @@ public class MediaControlProfileTest {
                 Request.Opcodes.MOVE_RELATIVE, 100);
         mMcpServiceCallbacks.onMediaControlRequest(request);
         verify(mMockMediaPlayerWrapper, timeout(100)).seekTo(duration);
+
+        // Verify toggle-style play/pause control support
+        clearInvocations(mMockMediaPlayerWrapper);
+        actions = PlaybackState.ACTION_PLAY_PAUSE;
+        bob = new PlaybackState.Builder(mMockMediaData.state);
+        bob.setActions(actions);
+        mMockMediaData.state = bob.build();
+
+        request = new Request(Request.Opcodes.PLAY, 0);
+        mMcpServiceCallbacks.onMediaControlRequest(request);
+        verify(mMockMediaPlayerWrapper, timeout(100)).playCurrent();
+        request = new Request(Request.Opcodes.PAUSE, 0);
+        mMcpServiceCallbacks.onMediaControlRequest(request);
+        verify(mMockMediaPlayerWrapper, timeout(100)).pauseCurrent();
     }
 
     @Test
@@ -384,6 +398,14 @@ public class MediaControlProfileTest {
                 | Request.SupportedOpcodes.NEXT_TRACK
                 | Request.SupportedOpcodes.FAST_FORWARD
                 | Request.SupportedOpcodes.MOVE_RELATIVE;
+
+        Assert.assertEquals(
+                mMediaControlProfile.playerActions2McsSupportedOpcodes(actions), opcodes_supported);
+
+        // Verify toggle-style play/pause control support
+        actions = PlaybackState.ACTION_PLAY_PAUSE;
+        opcodes_supported = Request.SupportedOpcodes.PAUSE
+                | Request.SupportedOpcodes.PLAY;
 
         Assert.assertEquals(
                 mMediaControlProfile.playerActions2McsSupportedOpcodes(actions), opcodes_supported);

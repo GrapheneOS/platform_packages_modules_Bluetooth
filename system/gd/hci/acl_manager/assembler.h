@@ -85,7 +85,7 @@ struct assembler {
 
   void on_incoming_packet(AclView packet) {
     PacketView<packet::kLittleEndian> payload = packet.GetPayload();
-    auto payload_size = payload.size();
+    size_t payload_size = payload.size();
     auto broadcast_flag = packet.GetBroadcastFlag();
     if (broadcast_flag == BroadcastFlag::ACTIVE_PERIPHERAL_BROADCAST) {
       LOG_WARN("Dropping broadcast from remote");
@@ -117,8 +117,18 @@ struct assembler {
       if (recombination_stage_.size() > 0) {
         LOG_ERROR("Controller sent a starting packet without finishing previous packet. Drop previous one.");
       }
-      auto l2cap_pdu_size = GetL2capPduSize(packet);
+      size_t l2cap_pdu_size = GetL2capPduSize(packet);
       remaining_sdu_continuation_packet_size_ = l2cap_pdu_size - (payload_size - kL2capBasicFrameHeaderSize);
+      if ((payload_size - kL2capBasicFrameHeaderSize) > l2cap_pdu_size) {
+        LOG_WARN(
+            "Remote presented mismatched packet sizes payload_size:%zu l2cap_pdu_size:%zu",
+            payload_size - kL2capBasicFrameHeaderSize,
+            l2cap_pdu_size);
+        remaining_sdu_continuation_packet_size_ = 0;
+      } else {
+        remaining_sdu_continuation_packet_size_ =
+            l2cap_pdu_size - (payload_size - kL2capBasicFrameHeaderSize);
+      }
       if (remaining_sdu_continuation_packet_size_ > 0) {
         recombination_stage_ = payload;
         return;

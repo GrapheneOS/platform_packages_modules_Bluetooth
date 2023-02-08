@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"ਬਲੂਟੁੱਥ"</string>
     <string name="unknown_device" msgid="2317679521750821654">"ਅਗਿਆਤ ਡੀਵਾਈਸ"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"ਅਗਿਆਤ"</string>
+    <string name="not_provided" msgid="6938740494380012614">"ਮੁਹੱਈਆ ਨਹੀਂ ਕਰਵਾਇਆ ਗਿਆ"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"ਏਅਰਪਲੇਨ ਮੋਡ"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"ਤੁਸੀਂ ਏਅਰਪਲੇਨ ਮੋਡ ਵਿੱਚ Bluetooth ਨਹੀਂ ਵਰਤ ਸਕਦੇ।"</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>

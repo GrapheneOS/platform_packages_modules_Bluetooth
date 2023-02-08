@@ -33,6 +33,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_gd_hci_enabled(true);
   builder.add_gd_controller_enabled(true);
 
+  builder.add_always_use_private_gatt_for_debugging_is_enabled(
+      initFlags::always_use_private_gatt_for_debugging_is_enabled());
   builder.add_asynchronously_start_l2cap_coc_is_enabled(initFlags::asynchronously_start_l2cap_coc_is_enabled());
   builder.add_btaa_hci_is_enabled(initFlags::btaa_hci_is_enabled());
   builder.add_bta_dm_clear_conn_id_on_client_close_is_enabled(
@@ -65,8 +67,11 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_logging_debug_enabled_for_all_is_enabled(initFlags::logging_debug_enabled_for_all_is_enabled());
   builder.add_pass_phy_update_callback_is_enabled(initFlags::pass_phy_update_callback_is_enabled());
   builder.add_periodic_advertising_adi_is_enabled(bluetooth::common::init_flags::periodic_advertising_adi_is_enabled());
-  builder.add_queue_l2cap_coc_while_encrypting_is_enabled(initFlags::queue_l2cap_coc_while_encrypting_is_enabled());
+  builder.add_queue_l2cap_coc_while_encrypting_is_enabled(
+      initFlags::queue_l2cap_coc_while_encrypting_is_enabled());
+  builder.add_private_gatt_is_enabled(initFlags::private_gatt_is_enabled());
   builder.add_redact_log_is_enabled(initFlags::redact_log_is_enabled());
+  builder.add_rust_event_loop_is_enabled(initFlags::rust_event_loop_is_enabled());
   builder.add_sdp_serialization_is_enabled(initFlags::sdp_serialization_is_enabled());
   builder.add_sdp_skip_rnr_if_known_is_enabled(initFlags::sdp_skip_rnr_if_known_is_enabled());
   builder.add_set_min_encryption_is_enabled(bluetooth::common::init_flags::set_min_encryption_is_enabled());
