@@ -367,6 +367,10 @@ struct iso_impl {
     uint8_t status;
     uint16_t conn_handle;
 
+    if (len < 3) {
+      LOG(WARNING) << __func__ << "Malformatted packet received";
+      return;
+    }
     STREAM_TO_UINT8(status, stream);
     STREAM_TO_UINT16(conn_handle, stream);
 

@@ -909,6 +909,13 @@ void gatt_add_a_bonded_dev_for_srv_chg(const RawAddress& bda) {
 /** This function is called to send a service chnaged indication to the
  * specified bd address */
 void gatt_send_srv_chg_ind(const RawAddress& peer_bda) {
+  static const uint16_t sGATT_DEFAULT_START_HANDLE =
+      (uint16_t)osi_property_get_int32(
+          "bluetooth.gatt.default_start_handle_for_srvc_change.value",
+          GATT_GATT_START_HANDLE);
+  static const uint16_t sGATT_LAST_HANDLE = (uint16_t)osi_property_get_int32(
+      "bluetooth.gatt.last_handle_for_srvc_change.value", 0xFFFF);
+
   VLOG(1) << __func__;
 
   if (!gatt_cb.handle_of_h_r) return;
@@ -921,8 +928,8 @@ void gatt_send_srv_chg_ind(const RawAddress& peer_bda) {
 
   uint8_t handle_range[GATT_SIZE_OF_SRV_CHG_HNDL_RANGE];
   uint8_t* p = handle_range;
-  UINT16_TO_STREAM(p, GATT_DEFAULT_START_HANDLE);
-  UINT16_TO_STREAM(p, GATT_LAST_HANDLE);
+  UINT16_TO_STREAM(p, sGATT_DEFAULT_START_HANDLE);
+  UINT16_TO_STREAM(p, sGATT_LAST_HANDLE);
   GATTS_HandleValueIndication(conn_id, gatt_cb.handle_of_h_r,
                               GATT_SIZE_OF_SRV_CHG_HNDL_RANGE, handle_range);
 }

@@ -1436,7 +1436,7 @@ void btm_ble_biginfo_adv_report_rcvd(uint8_t* p, uint16_t param_len) {
  ******************************************************************************/
 void btm_ble_periodic_adv_sync_tx_rcvd(uint8_t* p, uint16_t param_len) {
   LOG_DEBUG("[PAST]: PAST received, param_len=%u", param_len);
-  if (param_len == 0) {
+  if (param_len < 19) {
     LOG_ERROR("%s", "Insufficient data");
     return;
   }

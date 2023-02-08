@@ -259,20 +259,14 @@ inline std::string gatt_channel_state_text(const tGATT_CH_STATE& state) {
 }
 #undef CASE_RETURN_TEXT
 
+// If you change these values make sure to look at b/262219144 before.
+// Some platform rely on this to never changes
 #define GATT_GATT_START_HANDLE 1
 #define GATT_GAP_START_HANDLE 20
 #define GATT_GMCS_START_HANDLE 40
 #define GATT_GTBS_START_HANDLE 90
 #define GATT_TMAS_START_HANDLE 130
 #define GATT_APP_START_HANDLE 134
-
-#ifndef GATT_DEFAULT_START_HANDLE
-#define GATT_DEFAULT_START_HANDLE GATT_GATT_START_HANDLE
-#endif
-
-#ifndef GATT_LAST_HANDLE
-#define GATT_LAST_HANDLE 0xFFFF
-#endif
 
 typedef struct hdl_cfg {
   uint16_t gatt_start_hdl;
