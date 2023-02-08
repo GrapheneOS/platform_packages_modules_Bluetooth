@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::slice::SliceIndex;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use crate::bt_adv::AdvSet;
 use crate::bt_gatt::AuthReq;
@@ -63,6 +64,21 @@ pub struct CommandOption {
 pub(crate) struct CommandHandler {
     context: Arc<Mutex<ClientContext>>,
     command_options: HashMap<String, CommandOption>,
+}
+
+/// Define what to do when a socket connects. Mainly for qualification purposes.
+/// Specifically, after a socket is connected/accepted, we will do
+/// (1) send a chunk of data every |send_interval| time until |num_frame| chunks has been sent.
+/// (2) wait another |disconnect_delay| time. any incoming data will be dumpted during this time.
+/// (3) disconnect the socket.
+#[derive(Copy, Clone)]
+pub struct SocketSchedule {
+    /// Number of times to send data
+    pub num_frame: u32,
+    /// Time interval between each sending
+    pub send_interval: Duration,
+    /// Extra time after the last sending. Any incoming data will be printed during this time.
+    pub disconnect_delay: Duration,
 }
 
 struct DisplayList<T>(Vec<T>);
@@ -208,8 +224,10 @@ fn build_commands() -> HashMap<String, CommandOption> {
         String::from("socket"),
         CommandOption {
             rules: vec![
-                String::from("socket test"),
-                String::from("socket connect <addr> <l2cap|rfcomm> <psm|uuid>"),
+                String::from("socket listen <auth-required>"),
+                String::from("socket connect <address> <l2cap|rfcomm> <psm|uuid> <auth-required>"),
+                String::from("socket disconnect <socket_id>"),
+                String::from("socket set-on-connect-schedule <send|resend|dump>"),
             ],
             description: String::from("Socket manager utilities."),
             function_pointer: CommandHandler::cmd_socket,
@@ -1252,13 +1270,44 @@ impl CommandHandler {
         let command = get_arg(args, 0)?;
 
         match &command[..] {
-            "test" => {
-                let SocketResult { status, id } = self
-                    .lock_context()
-                    .socket_manager_dbus
-                    .as_mut()
-                    .unwrap()
-                    .listen_using_l2cap_channel(callback_id);
+            "set-on-connect-schedule" => {
+                let schedule = match &get_arg(args, 1)?[..] {
+                    "send" => SocketSchedule {
+                        num_frame: 1,
+                        send_interval: Duration::from_millis(0),
+                        disconnect_delay: Duration::from_secs(30),
+                    },
+                    "resend" => SocketSchedule {
+                        num_frame: 3,
+                        send_interval: Duration::from_millis(100),
+                        disconnect_delay: Duration::from_secs(30),
+                    },
+                    "dump" => SocketSchedule {
+                        num_frame: 0,
+                        send_interval: Duration::from_millis(0),
+                        disconnect_delay: Duration::from_secs(30),
+                    },
+                    _ => {
+                        return Err("Failed to parse schedule".into());
+                    }
+                };
+
+                self.context.lock().unwrap().socket_test_schedule = Some(schedule);
+            }
+            "listen" => {
+                let auth_required = String::from(get_arg(args, 1)?)
+                    .parse::<bool>()
+                    .or(Err("Failed to parse auth-required"))?;
+
+                let SocketResult { status, id } = {
+                    let mut context_proxy = self.context.lock().unwrap();
+                    let proxy = context_proxy.socket_manager_dbus.as_mut().unwrap();
+                    if auth_required {
+                        proxy.listen_using_l2cap_channel(callback_id)
+                    } else {
+                        proxy.listen_using_insecure_l2cap_channel(callback_id)
+                    }
+                };
 
                 if status != BtStatus::Success {
                     return Err(format!(
@@ -1277,49 +1326,62 @@ impl CommandHandler {
                     name: String::from("Socket Connect Device"),
                 };
 
-                let SocketResult { status, id } = match &sock_type[0..] {
-                    "l2cap" => {
-                        let psm = match psm_or_uuid.clone().parse::<i32>() {
-                            Ok(v) => v,
-                            Err(e) => {
-                                return Err(CommandError::Failed(format!(
-                                    "Bad PSM given. Error={}",
-                                    e
-                                )));
-                            }
-                        };
+                let auth_required = String::from(get_arg(args, 4)?)
+                    .parse::<bool>()
+                    .or(Err("Failed to parse auth-required"))?;
 
-                        self.lock_context()
-                            .socket_manager_dbus
-                            .as_mut()
-                            .unwrap()
-                            .create_insecure_l2cap_channel(callback_id, device, psm)
-                    }
-                    "rfcomm" => {
-                        let uuid = match UuidHelper::parse_string(psm_or_uuid.clone()) {
-                            Some(uu) => uu,
-                            None => {
-                                return Err(CommandError::Failed(format!(
-                                    "Could not parse given uuid."
-                                )));
-                            }
-                        };
+                let SocketResult { status, id } = {
+                    let mut context_proxy = self.context.lock().unwrap();
+                    let proxy = context_proxy.socket_manager_dbus.as_mut().unwrap();
 
-                        self.lock_context()
-                            .socket_manager_dbus
-                            .as_mut()
-                            .unwrap()
-                            .create_insecure_rfcomm_socket_to_service_record(
-                                callback_id,
-                                device,
-                                uuid,
-                            )
-                    }
-                    _ => {
-                        return Err(CommandError::Failed(format!(
-                            "Unknown socket type: {}",
-                            sock_type
-                        )));
+                    match &sock_type[0..] {
+                        "l2cap" => {
+                            let psm = match psm_or_uuid.clone().parse::<i32>() {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    return Err(CommandError::Failed(format!(
+                                        "Bad PSM given. Error={}",
+                                        e
+                                    )));
+                                }
+                            };
+
+                            if auth_required {
+                                proxy.create_l2cap_channel(callback_id, device, psm)
+                            } else {
+                                proxy.create_insecure_l2cap_channel(callback_id, device, psm)
+                            }
+                        }
+                        "rfcomm" => {
+                            let uuid = match UuidHelper::parse_string(psm_or_uuid.clone()) {
+                                Some(uu) => uu,
+                                None => {
+                                    return Err(CommandError::Failed(format!(
+                                        "Could not parse given uuid."
+                                    )));
+                                }
+                            };
+
+                            if auth_required {
+                                proxy.create_rfcomm_socket_to_service_record(
+                                    callback_id,
+                                    device,
+                                    uuid,
+                                )
+                            } else {
+                                proxy.create_insecure_rfcomm_socket_to_service_record(
+                                    callback_id,
+                                    device,
+                                    uuid,
+                                )
+                            }
+                        }
+                        _ => {
+                            return Err(CommandError::Failed(format!(
+                                "Unknown socket type: {}",
+                                sock_type
+                            )));
+                        }
                     }
                 };
 
