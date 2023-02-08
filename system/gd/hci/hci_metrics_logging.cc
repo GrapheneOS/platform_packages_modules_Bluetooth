@@ -794,14 +794,6 @@ void log_classic_pairing_command_status(std::unique_ptr<CommandView>& command_vi
       value = static_cast<int64_t>(set_connection_encryption_view.GetEncryptionEnable());
       break;
     }
-    case OpCode::DELETE_STORED_LINK_KEY: {
-      DeleteStoredLinkKeyView delete_stored_link_key_view
-      = DeleteStoredLinkKeyView::Create(std::move(security_command_view));
-      ASSERT(delete_stored_link_key_view.IsValid());
-      address = delete_stored_link_key_view.GetBdAddr();
-      value = static_cast<int64_t>(delete_stored_link_key_view.GetDeleteAllFlag());
-      break;
-    }
     case OpCode::REMOTE_NAME_REQUEST: {
       RemoteNameRequestView remote_name_request_view = RemoteNameRequestView::Create(std::move(discovery_command_view));
       ASSERT(remote_name_request_view.IsValid());
@@ -930,12 +922,6 @@ void log_classic_pairing_command_complete(EventView event_view, std::unique_ptr<
   ASSERT(security_command_view.IsValid());
 
   switch (op_code) {
-    case OpCode::DELETE_STORED_LINK_KEY: {
-      auto delete_stored_link_key_complete_view = DeleteStoredLinkKeyCompleteView::Create(std::move(command_complete_view));
-      ASSERT(delete_stored_link_key_complete_view.IsValid());
-      status = delete_stored_link_key_complete_view.GetStatus();
-      break;
-    }
     case OpCode::READ_LOCAL_OOB_DATA: {
       auto read_local_oob_data_complete_view = ReadLocalOobDataCompleteView::Create(std::move(command_complete_view));
       ASSERT(read_local_oob_data_complete_view.IsValid());
