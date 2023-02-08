@@ -98,7 +98,7 @@ void send_audio_data() {
                            bytes_per_tick);
   }
 
-  VLOG(2) << "bytes_read: " << bytes_read;
+  VLOG(2) << __func__ << "bytes_read: " << bytes_read;
   if (bytes_read < bytes_per_tick) {
     stats.media_read_total_underflow_bytes += bytes_per_tick - bytes_read;
     stats.media_read_total_underflow_count++;
@@ -115,7 +115,7 @@ void send_audio_data() {
 
 void hearing_aid_send_ack(tHEARING_AID_CTRL_ACK status) {
   uint8_t ack = status;
-  DVLOG(2) << "Hearing Aid audio ctrl ack: " << status;
+  DVLOG(2) << __func__ << "Hearing Aid audio ctrl ack: " << status;
   UIPC_Send(*uipc_hearing_aid, UIPC_CH_ID_AV_CTRL, 0, &ack, sizeof(ack));
 }
 
@@ -143,7 +143,7 @@ void stop_audio_ticks() {
 }
 
 void hearing_aid_data_cb(tUIPC_CH_ID, tUIPC_EVENT event) {
-  DVLOG(2) << "Hearing Aid audio data event: " << event;
+  DVLOG(2) << __func__ << "Hearing Aid audio data event: " << event;
   switch (event) {
     case UIPC_OPEN_EVT:
       LOG(INFO) << __func__ << ": UIPC_OPEN_EVT";
@@ -316,7 +316,7 @@ void hearing_aid_recv_ctrl_data() {
 }
 
 void hearing_aid_ctrl_cb(tUIPC_CH_ID, tUIPC_EVENT event) {
-  VLOG(2) << "Hearing Aid audio ctrl event: " << event;
+  VLOG(2) << __func__ << "Hearing Aid audio ctrl event: " << event;
   switch (event) {
     case UIPC_OPEN_EVT:
       break;
