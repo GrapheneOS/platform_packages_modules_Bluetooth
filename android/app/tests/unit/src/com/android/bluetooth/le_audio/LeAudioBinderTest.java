@@ -24,6 +24,8 @@ import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothLeAudioCodecConfig;
 import android.bluetooth.BluetoothLeAudioCodecStatus;
 import android.bluetooth.BluetoothLeAudioContentMetadata;
+import android.bluetooth.BluetoothLeBroadcastSettings;
+import android.bluetooth.BluetoothLeBroadcastSubgroupSettings;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothLeAudioCallback;
@@ -55,6 +57,10 @@ public class LeAudioBinderTest {
 
     private LeAudioService.BluetoothLeAudioBinder mBinder;
     private BluetoothAdapter mAdapter;
+
+    private static final String TEST_BROADCAST_NAME = "TEST";
+    private static final int TEST_QUALITY =
+            BluetoothLeBroadcastSubgroupSettings.QUALITY_STANDARD;
 
     @Before
     public void setUp() throws Exception {
@@ -298,13 +304,11 @@ public class LeAudioBinderTest {
 
     @Test
     public void startBroadcast() {
-        BluetoothLeAudioContentMetadata metadata =
-                new BluetoothLeAudioContentMetadata.Builder().build();
-        byte[] code = new byte[] { 0x00 };
+        BluetoothLeBroadcastSettings broadcastSettings = buildBroadcastSettingsFromMetadata();
         AttributionSource source = new AttributionSource.Builder(0).build();
 
-        mBinder.startBroadcast(metadata, code, source);
-        verify(mMockService).createBroadcast(metadata, code);
+        mBinder.startBroadcast(broadcastSettings, source);
+        verify(mMockService).createBroadcast(broadcastSettings);
     }
 
     @Test
@@ -319,12 +323,11 @@ public class LeAudioBinderTest {
     @Test
     public void updateBroadcast() {
         int id = 1;
-        BluetoothLeAudioContentMetadata metadata =
-                new BluetoothLeAudioContentMetadata.Builder().build();
+        BluetoothLeBroadcastSettings broadcastSettings = buildBroadcastSettingsFromMetadata();
         AttributionSource source = new AttributionSource.Builder(0).build();
 
-        mBinder.updateBroadcast(id, metadata, source);
-        verify(mMockService).updateBroadcast(id, metadata);
+        mBinder.updateBroadcast(id, broadcastSettings, source);
+        verify(mMockService).updateBroadcast(id, broadcastSettings);
     }
 
     @Test
@@ -359,6 +362,24 @@ public class LeAudioBinderTest {
     }
 
     @Test
+    public void getMaximumStreamsPerBroadcast() {
+        AttributionSource source = new AttributionSource.Builder(0).build();
+        final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+
+        mBinder.getMaximumStreamsPerBroadcast(source, recv);
+        verify(mMockService).getMaximumStreamsPerBroadcast();
+    }
+
+    @Test
+    public void getMaximumSubgroupsPerBroadcast() {
+        AttributionSource source = new AttributionSource.Builder(0).build();
+        final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+
+        mBinder.getMaximumSubgroupsPerBroadcast(source, recv);
+        verify(mMockService).getMaximumSubgroupsPerBroadcast();
+    }
+
+    @Test
     public void getCodecStatus() {
         int groupId = 1;
         AttributionSource source = new AttributionSource.Builder(0).build();
@@ -380,5 +401,23 @@ public class LeAudioBinderTest {
 
         mBinder.setCodecConfigPreference(groupId, inputConfig, outputConfig, source);
         verify(mMockService).setCodecConfigPreference(groupId, inputConfig, outputConfig);
+    }
+
+    private BluetoothLeBroadcastSettings buildBroadcastSettingsFromMetadata() {
+        BluetoothLeAudioContentMetadata metadata =
+                new BluetoothLeAudioContentMetadata.Builder().build();
+
+        BluetoothLeBroadcastSubgroupSettings.Builder subgroupBuilder =
+                new BluetoothLeBroadcastSubgroupSettings.Builder()
+                .setPreferredQuality(TEST_QUALITY)
+                .setContentMetadata(metadata);
+
+        BluetoothLeBroadcastSettings.Builder builder = new BluetoothLeBroadcastSettings.Builder()
+                        .setPublicBroadcast(false)
+                        .setBroadcastName(TEST_BROADCAST_NAME)
+                        .setBroadcastCode(null);
+        // builder expect at least one subgroup setting
+        builder.addSubgroupSettings(subgroupBuilder.build());
+        return builder.build();
     }
 }
