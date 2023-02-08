@@ -220,10 +220,15 @@ AddressWithType LeAddressManager::GetCurrentAddress() {
 }
 
 AddressWithType LeAddressManager::GetAnotherAddress() {
-  ASSERT(
-      address_policy_ == AddressPolicy::USE_NON_RESOLVABLE_ADDRESS ||
-      address_policy_ == AddressPolicy::USE_RESOLVABLE_ADDRESS);
+  ASSERT(RotatingAddress());
   hci::Address address = generate_rpa();
+  auto random_address = AddressWithType(address, AddressType::RANDOM_DEVICE_ADDRESS);
+  return random_address;
+}
+
+AddressWithType LeAddressManager::NewNonResolvableAddress() {
+  ASSERT(RotatingAddress());
+  hci::Address address = generate_nrpa();
   auto random_address = AddressWithType(address, AddressType::RANDOM_DEVICE_ADDRESS);
   return random_address;
 }

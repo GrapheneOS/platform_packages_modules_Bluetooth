@@ -414,6 +414,10 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
         config.requested_advertiser_address_type =
             AdvertiserAddressType::RESOLVABLE_RANDOM;
         break;
+      case 2:
+        config.requested_advertiser_address_type =
+            AdvertiserAddressType::NONRESOLVABLE_RANDOM;
+        break;
       default:
         LOG_ERROR("Received unexpected address type: %d",
                   params.own_address_type);
