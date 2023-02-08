@@ -103,6 +103,16 @@ pub mod ffi {
         state: CallState,
     }
 
+    #[derive(Debug, Copy, Clone)]
+    pub enum CallHoldCommand {
+        ReleaseHeld,
+        ReleaseActiveAcceptHeld,
+        HoldActiveAcceptHeld,
+        // We don't support it in our telephony stack because it's not necessary for qualification.
+        // But still inform the stack about this event.
+        AddHeldToConf,
+    }
+
     unsafe extern "C++" {
         include!("hfp/hfp_shim.h");
 
@@ -159,6 +169,7 @@ pub mod ffi {
         fn hfp_answer_call_callback(addr: RawAddress);
         fn hfp_hangup_call_callback(addr: RawAddress);
         fn hfp_dial_call_callback(number: String, addr: RawAddress);
+        fn hfp_call_hold_callback(chld: CallHoldCommand, addr: RawAddress);
     }
 }
 
@@ -178,6 +189,7 @@ impl TelephonyDeviceStatus {
 pub type CallState = ffi::CallState;
 pub type CallInfo = ffi::CallInfo;
 pub type PhoneState = ffi::PhoneState;
+pub type CallHoldCommand = ffi::CallHoldCommand;
 
 #[derive(Clone, Debug)]
 pub enum HfpCallbacks {
@@ -191,6 +203,7 @@ pub enum HfpCallbacks {
     AnswerCall(RawAddress),
     HangupCall(RawAddress),
     DialCall(String, RawAddress),
+    CallHold(CallHoldCommand, RawAddress),
 }
 
 pub struct HfpCallbacksDispatcher {
@@ -248,6 +261,11 @@ cb_variant!(
     HfpCb,
     hfp_dial_call_callback -> HfpCallbacks::DialCall,
     String, RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_call_hold_callback -> HfpCallbacks::CallHold,
+    CallHoldCommand, RawAddress);
 
 pub struct Hfp {
     internal: cxx::UniquePtr<ffi::HfpIntf>,

@@ -66,6 +66,27 @@ static void dial_call_cb(char* number, RawAddress* addr) {
   rusty::hfp_dial_call_callback(::rust::String{number}, *addr);
 }
 
+static void call_hold_cb(bluetooth::headset::bthf_chld_type_t chld, RawAddress* addr) {
+  rusty::CallHoldCommand chld_rs;
+  switch (chld) {
+    case bluetooth::headset::BTHF_CHLD_TYPE_RELEASEHELD:
+      chld_rs = rusty::CallHoldCommand::ReleaseHeld;
+      break;
+    case bluetooth::headset::BTHF_CHLD_TYPE_RELEASEACTIVE_ACCEPTHELD:
+      chld_rs = rusty::CallHoldCommand::ReleaseActiveAcceptHeld;
+      break;
+    case bluetooth::headset::BTHF_CHLD_TYPE_HOLDACTIVE_ACCEPTHELD:
+      chld_rs = rusty::CallHoldCommand::HoldActiveAcceptHeld;
+      break;
+    case bluetooth::headset::BTHF_CHLD_TYPE_ADDHELDTOCONF:
+      chld_rs = rusty::CallHoldCommand::AddHeldToConf;
+      break;
+    default:
+      ASSERT_LOG(false, "Unhandled enum value from C++");
+  }
+  rusty::hfp_call_hold_callback(chld_rs, *addr);
+}
+
 static headset::bthf_call_state_t from_rust_call_state(rusty::CallState state) {
   switch (state) {
     case rusty::CallState::Idle:
@@ -136,7 +157,9 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
     rusty::hfp_caps_update_callback(wbs == headset::BTHF_WBS_YES, *addr);
   }
 
-  void AtChldCallback([[maybe_unused]] headset::bthf_chld_type_t chld, [[maybe_unused]] RawAddress* bd_addr) override {}
+  void AtChldCallback(headset::bthf_chld_type_t chld, RawAddress* bd_addr) override {
+    topshim::rust::internal::call_hold_cb(chld, bd_addr);
+  }
 
   void AtCnumCallback(RawAddress* bd_addr) override {
     // Send an OK response to HF to indicate that we have no subscriber info.

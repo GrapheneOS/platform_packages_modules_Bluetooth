@@ -12,7 +12,7 @@ use bt_topshim::profiles::avrcp::{
     Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher, PlayerMetadata,
 };
 use bt_topshim::profiles::hfp::{
-    BthfAudioState, BthfConnectionState, CallInfo, CallState, Hfp, HfpCallbacks,
+    BthfAudioState, BthfConnectionState, CallHoldCommand, CallInfo, CallState, Hfp, HfpCallbacks,
     HfpCallbacksDispatcher, HfpCodecCapability, PhoneState, TelephonyDeviceStatus,
 };
 use bt_topshim::profiles::ProfileConnectionState;
@@ -170,6 +170,12 @@ pub trait IBluetoothTelephony {
     fn set_memory_call(&mut self, number: Option<String>) -> bool;
     /// Sets/unsets the last call.
     fn set_last_call(&mut self, number: Option<String>) -> bool;
+    /// Releases all of the held calls.
+    fn release_held(&mut self) -> bool;
+    /// Releases the active call and accepts a held call.
+    fn release_active_accept_held(&mut self) -> bool;
+    /// Holds the active call and accepts a held call.
+    fn hold_active_accept_held(&mut self) -> bool;
 }
 
 /// Serializable device used in.
@@ -769,6 +775,29 @@ impl BluetoothMedia {
                     warn!("[{}]: Unexpected dialing command from HF", addr.to_string());
                 }
             }
+            HfpCallbacks::CallHold(command, addr) => {
+                let success = match command {
+                    CallHoldCommand::ReleaseHeld => self.release_held_impl(),
+                    CallHoldCommand::ReleaseActiveAcceptHeld => {
+                        self.release_active_accept_held_impl()
+                    }
+                    CallHoldCommand::HoldActiveAcceptHeld => self.hold_active_accept_held_impl(),
+                    _ => false, // We only support the 3 operations above.
+                };
+                // Respond OK/ERROR to the HF which sent the command.
+                // This should be called before calling phone_state_change.
+                self.simple_at_response(success, addr.clone());
+                if success {
+                    // Success means the call state has changed. Inform the LibBluetooth stack.
+                    self.phone_state_change("".into());
+                } else {
+                    warn!(
+                        "[{}]: Unexpected or unsupported CHLD command {:?} from HF",
+                        addr.to_string(),
+                        command
+                    );
+                }
+            }
         }
     }
 
@@ -1210,6 +1239,58 @@ impl BluetoothMedia {
             number: number.clone(),
         });
         self.phone_state.state = CallState::Dialing;
+        true
+    }
+
+    fn release_held_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled || self.phone_state.state != CallState::Idle {
+            return false;
+        }
+        self.call_list.retain(|x| x.state != CallState::Held);
+        self.phone_state.num_held = 0;
+        true
+    }
+
+    fn release_active_accept_held_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled || self.phone_state.state != CallState::Idle {
+            return false;
+        }
+        self.call_list.retain(|x| x.state != CallState::Active);
+        self.phone_state.num_active = 0;
+        // Activate the first held call
+        for c in self.call_list.iter_mut() {
+            if c.state == CallState::Held {
+                c.state = CallState::Active;
+                self.phone_state.num_held -= 1;
+                self.phone_state.num_active += 1;
+                break;
+            }
+        }
+        true
+    }
+
+    fn hold_active_accept_held_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled || self.phone_state.state != CallState::Idle {
+            return false;
+        }
+
+        self.phone_state.num_held += self.phone_state.num_active;
+        self.phone_state.num_active = 0;
+
+        for c in self.call_list.iter_mut() {
+            match c.state {
+                // Activate at most one held call
+                CallState::Held if self.phone_state.num_active == 0 => {
+                    c.state = CallState::Active;
+                    self.phone_state.num_held -= 1;
+                    self.phone_state.num_active = 1;
+                }
+                CallState::Active => {
+                    c.state = CallState::Held;
+                }
+                _ => {}
+            }
+        }
         true
     }
 }
@@ -1934,6 +2015,30 @@ impl IBluetoothTelephony for BluetoothMedia {
             return false;
         }
         self.last_dialing_number = number;
+        true
+    }
+
+    fn release_held(&mut self) -> bool {
+        if !self.release_held_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
+        true
+    }
+
+    fn release_active_accept_held(&mut self) -> bool {
+        if !self.release_active_accept_held_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
+        true
+    }
+
+    fn hold_active_accept_held(&mut self) -> bool {
+        if !self.hold_active_accept_held_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
         true
     }
 }

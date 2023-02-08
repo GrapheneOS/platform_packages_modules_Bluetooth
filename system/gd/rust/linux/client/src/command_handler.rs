@@ -284,6 +284,9 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from("telephony <incoming-call|dialing-call> <number>"),
                 String::from("telephony <answer-call|hangup-call>"),
                 String::from("telephony <set-memory-call|set-last-call> [<number>]"),
+                String::from(
+                    "telephony <release-held|release-active-accept-held|hold-active-accept-held>",
+                ),
             ],
             description: String::from("Set device telephony status."),
             function_pointer: CommandHandler::cmd_telephony,
@@ -1656,6 +1659,39 @@ impl CommandHandler {
                     .set_last_call(get_arg(args, 1).ok().map(String::from));
                 if !success {
                     return Err("SetLastCall failed".into());
+                }
+            }
+            "release-held" => {
+                let success =
+                    self.context.lock().unwrap().telephony_dbus.as_mut().unwrap().release_held();
+                if !success {
+                    return Err("ReleaseHeld failed".into());
+                }
+            }
+            "release-active-accept-held" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .release_active_accept_held();
+                if !success {
+                    return Err("ReleaseActiveAcceptHeld failed".into());
+                }
+            }
+            "hold-active-accept-held" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .hold_active_accept_held();
+                if !success {
+                    return Err("HoldActiveAcceptHeld failed".into());
                 }
             }
             other => {

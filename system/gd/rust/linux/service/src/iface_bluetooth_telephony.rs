@@ -58,4 +58,16 @@ impl IBluetoothTelephony for IBluetoothTelephonyDBus {
     fn set_last_call(&mut self, number: Option<String>) -> bool {
         dbus_generated!()
     }
+    #[dbus_method("ReleaseHeld")]
+    fn release_held(&mut self) -> bool {
+        dbus_generated!()
+    }
+    #[dbus_method("ReleaseActiveAcceptHeld")]
+    fn release_active_accept_held(&mut self) -> bool {
+        dbus_generated!()
+    }
+    #[dbus_method("HoldActiveAcceptHeld")]
+    fn hold_active_accept_held(&mut self) -> bool {
+        dbus_generated!()
+    }
 }
