@@ -28,7 +28,7 @@
 #define LOG_TAG "bt_btif_pan"
 
 #include <arpa/inet.h>
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/location.h>
 #include <fcntl.h>
 #include <linux/if_ether.h>

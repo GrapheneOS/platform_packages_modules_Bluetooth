@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <string.h>
 
 #include "btm_ble_int.h"

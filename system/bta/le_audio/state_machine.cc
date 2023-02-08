@@ -17,8 +17,8 @@
 
 #include "state_machine.h"
 
-#include <base/bind.h>
-#include <base/callback.h>
+#include <base/functional/bind.h>
+#include <base/functional/callback.h>
 
 #include <map>
 

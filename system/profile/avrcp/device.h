@@ -20,8 +20,8 @@
 #include <memory>
 #include <stack>
 
-#include <base/bind.h>
 #include <base/cancelable_callback.h>
+#include <base/functional/bind.h>
 
 #include "avrcp_internal.h"
 #include "hardware/avrcp/avrcp.h"

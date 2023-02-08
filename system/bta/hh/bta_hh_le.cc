@@ -18,8 +18,8 @@
 
 #define LOG_TAG "bt_bta_hh"
 
-#include <base/bind.h>
-#include <base/callback.h>
+#include <base/functional/bind.h>
+#include <base/functional/callback.h>
 
 #include <cstdint>
 #include <vector>
