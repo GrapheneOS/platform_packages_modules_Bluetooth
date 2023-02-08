@@ -12,8 +12,8 @@ use bluetooth_core::{
         },
     },
     packets::{
-        AttBuilder, AttOpcode, AttReadRequestBuilder, AttReadResponseBuilder,
-        GattServiceDeclarationValueBuilder,
+        AttBuilder, AttErrorCode, AttErrorResponseBuilder, AttOpcode, AttReadRequestBuilder,
+        AttReadResponseBuilder, GattServiceDeclarationValueBuilder,
     },
     utils::packet::{build_att_data, build_att_view_or_crash},
 };
@@ -87,6 +87,40 @@ fn test_service_read() {
                 }
                 .into()
             }
+        );
+    })
+}
+
+#[test]
+fn test_server_closed_while_connected() {
+    start_test(async move {
+        // arrange: set up a connection to a closed server
+        let (mut gatt, mut transport_rx) = start_gatt_module();
+
+        // open a server and connect
+        create_server_and_open_connection(&mut gatt);
+        // close the server but keep the connection up
+        gatt.close_gatt_server(SERVER_ID).unwrap();
+
+        // act: read from the closed server
+        gatt.handle_packet(
+            CONN_ID,
+            build_att_view_or_crash(AttReadRequestBuilder { attribute_handle: HANDLE_1.into() })
+                .view(),
+        )
+        .unwrap();
+        let (_, resp) = transport_rx.recv().await.unwrap();
+
+        // assert that the read failed, but that a response was provided
+        assert_eq!(resp.opcode, AttOpcode::ERROR_RESPONSE);
+        assert_eq!(
+            resp._child_,
+            AttErrorResponseBuilder {
+                opcode_in_error: AttOpcode::READ_REQUEST,
+                handle_in_error: HANDLE_1.into(),
+                error_code: AttErrorCode::INVALID_HANDLE
+            }
+            .into()
         );
     })
 }
