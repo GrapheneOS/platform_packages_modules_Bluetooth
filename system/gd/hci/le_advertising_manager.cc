@@ -298,10 +298,10 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
           AdvertiserAddressType::NONRESOLVABLE_RANDOM) {
         return le_address_manager_->NewNonResolvableAddress();
       } else {
-        return le_address_manager_->GetAnotherAddress();
+        return le_address_manager_->NewResolvableAddress();
       }
     } else {
-      return le_address_manager_->GetCurrentAddress();
+      return le_address_manager_->GetInitiatorAddress();
     }
   }
 
@@ -446,7 +446,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
               common::BindOnce(&impl::set_advertising_set_random_address_on_timer, common::Unretained(this), id),
               le_address_manager_->GetNextPrivateAddressIntervalMs());
         } else {
-          advertising_sets_[id].current_address = le_address_manager_->GetCurrentAddress();
+          advertising_sets_[id].current_address = le_address_manager_->GetInitiatorAddress();
           le_advertising_interface_->EnqueueCommand(
               hci::LeSetAdvertisingSetRandomAddressBuilder::Create(
                   id, advertising_sets_[id].current_address.GetAddress()),

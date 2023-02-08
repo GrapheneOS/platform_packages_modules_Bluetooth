@@ -214,12 +214,12 @@ void LeAddressManager::AckResume(LeAddressManagerCallback* callback) {
   handler_->BindOnceOn(this, &LeAddressManager::ack_resume, callback).Invoke();
 }
 
-AddressWithType LeAddressManager::GetCurrentAddress() {
+AddressWithType LeAddressManager::GetInitiatorAddress() {
   ASSERT(address_policy_ != AddressPolicy::POLICY_NOT_SET);
   return le_address_;
 }
 
-AddressWithType LeAddressManager::GetAnotherAddress() {
+AddressWithType LeAddressManager::NewResolvableAddress() {
   ASSERT(RotatingAddress());
   hci::Address address = generate_rpa();
   auto random_address = AddressWithType(address, AddressType::RANDOM_DEVICE_ADDRESS);

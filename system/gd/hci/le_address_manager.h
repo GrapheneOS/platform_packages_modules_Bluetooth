@@ -80,9 +80,9 @@ class LeAddressManager {
   virtual bool UnregisterSync(
       LeAddressManagerCallback* callback,
       std::chrono::milliseconds timeout = kUnregisterSyncTimeoutInMs);
-  AddressWithType GetCurrentAddress();        // What was set in SetRandomAddress()
-  AddressWithType GetAnotherAddress();        // A new random address without rotating.
-  AddressWithType NewNonResolvableAddress();  // A new non-resolvable address
+  virtual AddressWithType GetInitiatorAddress();      // What was set in SetRandomAddress()
+  virtual AddressWithType NewResolvableAddress();     // A new random address without rotating.
+  virtual AddressWithType NewNonResolvableAddress();  // A new non-resolvable address
 
   uint8_t GetFilterAcceptListSize();
   uint8_t GetResolvingListSize();
