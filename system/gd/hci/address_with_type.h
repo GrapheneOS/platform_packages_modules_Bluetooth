@@ -22,6 +22,7 @@
 #include <string>
 #include <utility>
 
+#include "common/interfaces/ILoggable.h"
 #include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/address.h"
 #include "hci/hci_packets.h"
@@ -29,7 +30,7 @@
 namespace bluetooth {
 namespace hci {
 
-class AddressWithType final {
+class AddressWithType final : public bluetooth::common::IRedactableLoggable {
  public:
   AddressWithType(Address address, AddressType address_type)
       : address_(std::move(address)), address_type_(address_type) {}
@@ -117,6 +118,14 @@ class AddressWithType final {
     std::stringstream ss;
     ss << address_ << "[" << AddressTypeText(address_type_) << "]";
     return ss.str();
+  }
+
+  std::string ToStringForLogging() const override {
+    return address_.ToStringForLogging() + "[" + AddressTypeText(address_type_) + "]";
+  }
+
+  std::string ToRedactedStringForLogging() const override {
+    return address_.ToStringForLogging() + "[" + AddressTypeText(address_type_) + "]";
   }
 
  private:
