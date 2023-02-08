@@ -1267,6 +1267,43 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     }
 
     /**
+     * Check if inband ringtone is enabled by the LE Audio group.
+     * Group id for the device can be found with  {@link BluetoothLeAudio#getGroupId}.
+     *
+     * @param groupId LE Audio group id
+     * @return {@code true} if inband ringtone is enabled, {@code false} otherwise
+     * @hide
+     */
+    @RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH_CONNECT,
+                                android.Manifest.permission.BLUETOOTH_PRIVILEGED})
+    @SystemApi
+    public boolean isInbandRingtoneEnabled(int groupId) {
+        if (VDBG) {
+            log("isInbandRingtoneEnabled(), groupId: " + groupId);
+        }
+        final IBluetoothLeAudio service = getService();
+        final boolean defaultValue = false;
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) {
+                log(Log.getStackTraceString(new Throwable()));
+            }
+        } else if (mAdapter.isEnabled()) {
+            try {
+                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                service.isInbandRingtoneEnabled(mAttributionSource, recv, groupId);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                e.rethrowFromSystemServer();
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
      * Set connection policy of the profile
      *
      * <p> The device should already be paired.

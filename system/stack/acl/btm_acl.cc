@@ -40,6 +40,7 @@
 #include "bta/include/bta_dm_acl.h"
 #include "bta/sys/bta_sys.h"
 #include "btif/include/btif_acl.h"
+#include "btif/include/btif_api.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "device/include/device_iot_config.h"
@@ -648,6 +649,23 @@ void btm_acl_encrypt_change(uint16_t handle, uint8_t status,
   if (p == nullptr) {
     LOG_WARN("Unable to find active acl");
     return;
+  }
+
+  /* Common Criteria mode only: if we are trying to drop encryption on an
+   * encrypted connection, drop the connection */
+  if (is_common_criteria_mode()) {
+    if (p->is_encrypted && !encr_enable) {
+      LOG(ERROR)
+          << __func__
+          << " attempting to decrypt encrypted connection, disconnecting. "
+             "handle: "
+          << loghex(handle);
+
+      acl_disconnect_from_handle(handle, HCI_ERR_HOST_REJECT_SECURITY,
+                                 "stack::btu::btu_hcif::read_drop_encryption "
+                                 "Connection Already Encrypted");
+      return;
+    }
   }
 
   p->is_encrypted = encr_enable;

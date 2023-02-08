@@ -357,6 +357,10 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         CodecLocation::ADSP) {
       auto offload_config =
           CodecManager::GetInstance()->GetBroadcastOffloadConfig();
+      if (offload_config == nullptr) {
+        LOG_ERROR("No valid broadcast offload config");
+        return;
+      }
       BroadcastCodecWrapper codec_config(
           {.coding_format = le_audio::types::kLeAudioCodingFormatLC3,
            .vendor_company_id =

@@ -19,12 +19,15 @@
 #include <sys/eventfd.h>
 
 #include <atomic>
+#include <chrono>
 #include <future>
 #include <unordered_map>
 
 #include "common/bind.h"
 #include "gtest/gtest.h"
 #include "os/reactor.h"
+
+using namespace std::chrono_literals;
 
 namespace bluetooth {
 namespace os {
@@ -60,6 +63,11 @@ class QueueTest : public ::testing::Test {
   Handler* enqueue_handler_;
   Thread* dequeue_thread_;
   Handler* dequeue_handler_;
+
+  void sync_enqueue_handler() {
+    ASSERT(enqueue_thread_ != nullptr);
+    ASSERT(enqueue_thread_->GetReactor()->WaitForIdle(2s));
+  }
 };
 
 class TestEnqueueEnd {
@@ -338,6 +346,7 @@ TEST_F(QueueTest, register_enqueue_with_half_empty_queue) {
   test_enqueue_end.RegisterEnqueue(&enqueue_promise_map);
   enqueue_future.wait();
   EXPECT_EQ(enqueue_future.get(), 0);
+  sync_enqueue_handler();
 }
 
 // Enqueue end level : 1
