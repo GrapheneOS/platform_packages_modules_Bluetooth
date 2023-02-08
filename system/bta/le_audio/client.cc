@@ -4350,6 +4350,9 @@ class LeAudioClientImpl : public LeAudioClient {
             /* If configuration succeed wait for new status. */
             return;
           }
+          LOG_INFO("Clear pending configuration flag for group %d",
+                   group->group_id_);
+          group->ClearPendingConfiguration();
         }
         stream_setup_end_timestamp_ = 0;
         stream_setup_start_timestamp_ = 0;
