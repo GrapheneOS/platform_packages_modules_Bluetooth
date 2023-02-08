@@ -42,6 +42,7 @@ using ::grpc::Status;
 
 using ::blueberry::facade::BluetoothAddress;
 using ::blueberry::facade::BluetoothAddressTypeEnum;
+using ::blueberry::facade::BluetoothOwnAddressTypeEnum;
 using ::blueberry::facade::hci::AdvertisingConfig;
 using ::blueberry::facade::hci::ExtendedAdvertisingConfig;
 using ::blueberry::facade::hci::GapDataMsg;
@@ -80,7 +81,10 @@ bool AdvertisingConfigFromProto(
 
   config->advertising_type = static_cast<hci::AdvertisingType>(config_proto.advertising_type());
 
-  config->own_address_type = static_cast<::bluetooth::hci::OwnAddressType>(config_proto.own_address_type());
+  config->requested_advertiser_address_type =
+      config_proto.own_address_type() == BluetoothOwnAddressTypeEnum::USE_PUBLIC_DEVICE_ADDRESS
+          ? AdvertiserAddressType::PUBLIC
+          : AdvertiserAddressType::RESOLVABLE_RANDOM;
 
   config->peer_address_type = static_cast<::bluetooth::hci::PeerAddressType>(config_proto.peer_address_type());
 

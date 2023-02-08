@@ -71,15 +71,15 @@ class LeAddressManager {
       crypto_toolbox::Octet16 rotation_irk,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time);
-  virtual AddressPolicy GetAddressPolicy();
+  AddressPolicy GetAddressPolicy();
   virtual void AckPause(LeAddressManagerCallback* callback);
   virtual void AckResume(LeAddressManagerCallback* callback);
   virtual AddressPolicy Register(LeAddressManagerCallback* callback);
   virtual void Unregister(LeAddressManagerCallback* callback);
   virtual bool UnregisterSync(
       LeAddressManagerCallback* callback, std::chrono::milliseconds timeout = kUnregisterSyncTimeoutInMs);
-  virtual AddressWithType GetCurrentAddress();  // What was set in SetRandomAddress()
-  virtual AddressWithType GetAnotherAddress();  // A new random address without rotating.
+  AddressWithType GetCurrentAddress();  // What was set in SetRandomAddress()
+  AddressWithType GetAnotherAddress();  // A new random address without rotating.
 
   uint8_t GetFilterAcceptListSize();
   uint8_t GetResolvingListSize();
@@ -100,6 +100,11 @@ class LeAddressManager {
   size_t NumberCachedCommands() const {
     return cached_commands_.size();
   }
+
+ protected:
+  AddressPolicy address_policy_ = AddressPolicy::POLICY_NOT_SET;
+  std::chrono::milliseconds minimum_rotation_time_;
+  std::chrono::milliseconds maximum_rotation_time_;
 
  private:
   enum ClientState {
@@ -163,14 +168,11 @@ class LeAddressManager {
   os::Handler* handler_;
   std::map<LeAddressManagerCallback*, ClientState> registered_clients_;
 
-  AddressPolicy address_policy_ = AddressPolicy::POLICY_NOT_SET;
   AddressWithType le_address_;
   AddressWithType cached_address_;
   Address public_address_;
   std::unique_ptr<os::Alarm> address_rotation_alarm_;
   crypto_toolbox::Octet16 rotation_irk_;
-  std::chrono::milliseconds minimum_rotation_time_;
-  std::chrono::milliseconds maximum_rotation_time_;
   uint8_t connect_list_size_;
   uint8_t resolving_list_size_;
   std::queue<Command> cached_commands_;
