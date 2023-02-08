@@ -293,7 +293,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     auto peer_address_type = connection_complete.GetPeerAddressType();
     auto role = connection_complete.GetRole();
     AddressWithType remote_address(address, peer_address_type);
-    AddressWithType local_address = le_address_manager_->GetCurrentAddress();
+    AddressWithType local_address = le_address_manager_->GetInitiatorAddress();
     const bool in_filter_accept_list = is_device_in_connect_list(remote_address);
     auto argument_list = std::vector<std::pair<bluetooth::os::ArgumentType, int>>();
     argument_list.push_back(
@@ -492,7 +492,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
     AddressWithType local_address;
     if (role == hci::Role::CENTRAL) {
-      local_address = le_address_manager_->GetCurrentAddress();
+      local_address = le_address_manager_->GetInitiatorAddress();
     } else {
       // when accepting connection, we must obtain the address from the advertiser.
       // When we receive "set terminated event", we associate connection handle with advertiser address
@@ -757,7 +757,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
     InitiatorFilterPolicy initiator_filter_policy = InitiatorFilterPolicy::USE_FILTER_ACCEPT_LIST;
     OwnAddressType own_address_type =
-        static_cast<OwnAddressType>(le_address_manager_->GetCurrentAddress().GetAddressType());
+        static_cast<OwnAddressType>(le_address_manager_->GetInitiatorAddress().GetAddressType());
     uint16_t conn_interval_min = 0x0018;
     uint16_t conn_interval_max = 0x0028;
     uint16_t conn_latency = 0x0000;
