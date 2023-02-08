@@ -285,7 +285,8 @@ public final class AdvertiseSettings implements Parcelable {
         @SystemApi
         public @NonNull Builder setOwnAddressType(@AddressTypeStatus int ownAddressType) {
             if (ownAddressType < AdvertisingSetParameters.ADDRESS_TYPE_DEFAULT
-                    ||  ownAddressType > AdvertisingSetParameters.ADDRESS_TYPE_RANDOM) {
+                    || ownAddressType
+                            > AdvertisingSetParameters.ADDRESS_TYPE_RANDOM_NON_RESOLVABLE) {
                 throw new IllegalArgumentException("unknown address type " + ownAddressType);
             }
             mOwnAddressType = ownAddressType;

@@ -957,6 +957,7 @@ package android.bluetooth.le {
     field public static final int ADDRESS_TYPE_DEFAULT = -1; // 0xffffffff
     field public static final int ADDRESS_TYPE_PUBLIC = 0; // 0x0
     field public static final int ADDRESS_TYPE_RANDOM = 1; // 0x1
+    field public static final int ADDRESS_TYPE_RANDOM_NON_RESOLVABLE = 2; // 0x2
   }
 
   public static final class AdvertisingSetParameters.Builder {

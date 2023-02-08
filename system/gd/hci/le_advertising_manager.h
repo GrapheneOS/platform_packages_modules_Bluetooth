@@ -38,6 +38,7 @@ class PeriodicAdvertisingParameters {
 enum class AdvertiserAddressType {
   PUBLIC,
   RESOLVABLE_RANDOM,
+  NONRESOLVABLE_RANDOM,
 };
 
 class AdvertisingConfig {

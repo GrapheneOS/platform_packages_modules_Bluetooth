@@ -54,6 +54,7 @@ enum class AdvertisingFlag : uint8_t {
 struct Advertiser {
   os::Handler* handler;
   AddressWithType current_address;
+  AdvertiserAddressType requested_address_type;
   base::OnceCallback<void(uint8_t /* status */)> status_callback;
   base::OnceCallback<void(uint8_t /* status */)> timeout_callback;
   common::Callback<void(Address, AddressType)> scan_callback;
@@ -286,6 +287,24 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     }
   }
 
+  /// Generates a random address for the advertiser, if supported by the address manager
+  ///
+  /// Note: Ignores whether the requested_address_type is PUBLIC/RANDOM (to match existing behavior
+  /// in non-extended advertising where we don't check this) so if this matters (e.g. for extended
+  /// advertising), make sure to check it separately
+  AddressWithType request_random_advertiser_address(AdvertiserId id) {
+    if (le_address_manager_->RotatingAddress()) {
+      if (advertising_sets_[id].requested_address_type ==
+          AdvertiserAddressType::NONRESOLVABLE_RANDOM) {
+        return le_address_manager_->NewNonResolvableAddress();
+      } else {
+        return le_address_manager_->GetAnotherAddress();
+      }
+    } else {
+      return le_address_manager_->GetCurrentAddress();
+    }
+  }
+
   void create_advertiser(
       int reg_id,
       AdvertiserId id,
@@ -305,6 +324,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     advertising_sets_[id].scan_callback = scan_callback;
     advertising_sets_[id].set_terminated_callback = set_terminated_callback;
     advertising_sets_[id].handler = handler;
+    advertising_sets_[id].requested_address_type = config.requested_advertiser_address_type;
     advertising_sets_[id].current_address = AddressWithType{};
 
     if (!address_manager_registered) {
@@ -314,11 +334,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
     switch (advertising_api_type_) {
       case (AdvertisingApiType::LEGACY): {
-        if (le_address_manager_->RotatingAddress()) {
-          advertising_sets_[id].current_address = le_address_manager_->GetAnotherAddress();
-        } else {
-          advertising_sets_[id].current_address = le_address_manager_->GetCurrentAddress();
-        }
+        advertising_sets_[id].current_address = request_random_advertiser_address(id);
         set_parameters(id, config);
         if (config.advertising_type == AdvertisingType::ADV_IND ||
             config.advertising_type == AdvertisingType::ADV_NONCONN_IND) {
@@ -332,11 +348,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
         }
       } break;
       case (AdvertisingApiType::ANDROID_HCI): {
-        if (le_address_manager_->RotatingAddress()) {
-          advertising_sets_[id].current_address = le_address_manager_->GetAnotherAddress();
-        } else {
-          advertising_sets_[id].current_address = le_address_manager_->GetCurrentAddress();
-        }
+        advertising_sets_[id].current_address = request_random_advertiser_address(id);
         set_parameters(id, config);
         if (config.advertising_type == AdvertisingType::ADV_IND ||
             config.advertising_type == AdvertisingType::ADV_NONCONN_IND) {
@@ -410,11 +422,13 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     advertising_sets_[id].duration = duration;
     advertising_sets_[id].max_extended_advertising_events = max_ext_adv_events;
     advertising_sets_[id].handler = handler;
+    advertising_sets_[id].requested_address_type = config.requested_advertiser_address_type;
 
     switch (config.requested_advertiser_address_type) {
       case AdvertiserAddressType::RESOLVABLE_RANDOM:
+      case AdvertiserAddressType::NONRESOLVABLE_RANDOM:
         if (le_address_manager_->RotatingAddress()) {
-          advertising_sets_[id].current_address = le_address_manager_->GetAnotherAddress();
+          advertising_sets_[id].current_address = request_random_advertiser_address(id);
           set_parameters(id, config);
           le_advertising_interface_->EnqueueCommand(
               hci::LeSetAdvertisingSetRandomAddressBuilder::Create(
@@ -514,7 +528,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
   void rotate_advertiser_address(AdvertiserId advertiser_id) {
     if (advertising_api_type_ == AdvertisingApiType::EXTENDED) {
-      AddressWithType address_with_type = le_address_manager_->GetAnotherAddress();
+      AddressWithType address_with_type = request_random_advertiser_address(advertiser_id);
       le_advertising_interface_->EnqueueCommand(
           hci::LeSetAdvertisingSetRandomAddressBuilder::Create(advertiser_id, address_with_type.GetAddress()),
           module_handler_->BindOnceOn(
