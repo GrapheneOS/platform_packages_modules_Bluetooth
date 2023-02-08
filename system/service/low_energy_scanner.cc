@@ -16,8 +16,8 @@
 
 #include "service/low_energy_scanner.h"
 
-#include <base/bind.h>
-#include <base/callback.h>
+#include <base/functional/bind.h>
+#include <base/functional/callback.h>
 #include <base/logging.h>
 
 #include "service/adapter.h"

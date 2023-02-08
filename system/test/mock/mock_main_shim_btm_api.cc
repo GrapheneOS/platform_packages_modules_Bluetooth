@@ -19,12 +19,12 @@
  *   Functions generated:85
  */
 
-#include <base/bind.h>
-#include <base/callback.h>
-
 #include <cstdint>
 #include <map>
 #include <string>
+
+#include <base/functional/bind.h>
+#include <base/functional/callback.h>
 
 #include "main/shim/btm_api.h"
 #include "stack/include/bt_hdr.h"

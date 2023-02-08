@@ -21,8 +21,8 @@
 #include <memory>
 #include <set>
 
-#include "base/bind.h"
-#include "base/callback.h"
+#include "base/functional/bind.h"
+#include "base/functional/callback.h"
 #include "base/logging.h"
 #include "bind_helpers.h"
 #include "btm_dev.h"

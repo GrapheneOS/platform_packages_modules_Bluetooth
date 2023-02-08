@@ -27,7 +27,7 @@
 #define LOG_TAG "bt_btif_gattc"
 
 #include <base/at_exit.h>
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/logging.h>
 #include <base/threading/thread.h>
 #include <errno.h>

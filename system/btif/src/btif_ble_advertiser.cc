@@ -21,7 +21,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/logging.h>
 #include <vector>
 

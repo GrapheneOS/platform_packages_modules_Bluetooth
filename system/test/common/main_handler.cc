@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <base/bind.h>
-#include <base/callback_forward.h>
+#include <base/functional/bind.h>
+#include <base/functional/callback_forward.h>
 #include <base/location.h>
 #include <base/time/time.h>
 #include <sys/types.h>

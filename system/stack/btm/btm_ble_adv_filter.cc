@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_btm_ble"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/logging.h>
 #include <string.h>
 

@@ -21,7 +21,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "base/callback.h"
+#include "base/functional/callback.h"
 #include "btcore/include/version.h"
 #include "types/raw_address.h"
 

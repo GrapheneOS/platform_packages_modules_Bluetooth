@@ -16,7 +16,7 @@
 
 #include "service/ipc/dbus/ipc_handler_dbus.h"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/threading/thread_task_runner_handle.h>
 #include <dbus/bus.h>
 #include "service/daemon.h"
