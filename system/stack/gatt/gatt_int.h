@@ -19,7 +19,7 @@
 #ifndef GATT_INT_H
 #define GATT_INT_H
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/strings/stringprintf.h>
 #include <string.h>
 

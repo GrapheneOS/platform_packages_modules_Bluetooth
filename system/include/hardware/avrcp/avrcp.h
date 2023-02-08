@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include <base/callback_forward.h>
+#include <base/functional/callback_forward.h>
 
 #include "avrcp_common.h"
 #include "raw_address.h"

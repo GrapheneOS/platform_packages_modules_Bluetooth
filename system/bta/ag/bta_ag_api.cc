@@ -26,7 +26,7 @@
 
 #include "bta/include/bta_ag_api.h"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/location.h>
 
 #include <cstdint>

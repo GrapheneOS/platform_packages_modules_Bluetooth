@@ -20,7 +20,7 @@
 #ifndef BTIF_COMMON_H
 #define BTIF_COMMON_H
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/location.h>
 #include <hardware/bluetooth.h>
 #include <stdlib.h>

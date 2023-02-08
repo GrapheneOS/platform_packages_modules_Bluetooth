@@ -19,8 +19,8 @@
 
 extern std::map<std::string, int> mock_function_count_map;
 
-#include <base/bind.h>
 #include <base/bind_helpers.h>
+#include <base/functional/bind.h>
 
 #include "bta/include/bta_has_api.h"
 #include "types/raw_address.h"
