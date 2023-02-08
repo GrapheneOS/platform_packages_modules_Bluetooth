@@ -16,7 +16,7 @@
 
 #include "service/ipc/binder/ipc_handler_binder.h"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/logging.h>
 #include <binder/IPCThreadState.h>
 #include <binder/IServiceManager.h>

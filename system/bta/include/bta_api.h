@@ -26,7 +26,7 @@
 #define BTA_API_H
 
 #include <base/strings/stringprintf.h>
-#include <base/callback.h>
+#include <base/functional/callback.h>
 
 #include <cstdint>
 #include <vector>

@@ -29,7 +29,7 @@
 #define LOG_TAG "bt_btif_core"
 
 #include <base/at_exit.h>
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/logging.h>
 #include <base/threading/platform_thread.h>
 #include <signal.h>

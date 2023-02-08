@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/run_loop.h>
 #include <base/threading/thread.h>
 #include <benchmark/benchmark.h>

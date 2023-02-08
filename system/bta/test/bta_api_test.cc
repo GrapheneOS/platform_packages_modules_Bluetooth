@@ -16,7 +16,7 @@
 
 #include "bta/include/bta_api.h"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/location.h>
 #include <gtest/gtest.h>
 
