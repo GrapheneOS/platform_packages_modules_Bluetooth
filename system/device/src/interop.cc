@@ -1127,7 +1127,7 @@ bool load_to_database(int feature, const char* key, const char* value,
     interop_database_add_(entry, false);
   }
 
-  LOG_WARN("feature:: %d, key :: %s, value :: %s", feature, key, value);
+  LOG_VERBOSE("feature:: %d, key :: %s, value :: %s", feature, key, value);
   return true;
 }
 
