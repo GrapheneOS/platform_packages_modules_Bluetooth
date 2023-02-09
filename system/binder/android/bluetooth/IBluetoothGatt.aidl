@@ -69,7 +69,7 @@ oneway interface IBluetoothGatt {
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)")
     void startAdvertisingSet(in AdvertisingSetParameters parameters, in AdvertiseData advertiseData,
                                 in AdvertiseData scanResponse, in PeriodicAdvertisingParameters periodicParameters,
-                                in AdvertiseData periodicData, in int duration, in int maxExtAdvEvents,
+                                in AdvertiseData periodicData, in int duration, in int maxExtAdvEvents, in int gattServerIf,
                                 in IAdvertisingSetCallback callback, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)")
     void stopAdvertisingSet(in IAdvertisingSetCallback callback, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
