@@ -1058,6 +1058,19 @@ public class AdapterService extends Service {
     }
 
     /**
+     * Checks whether the remote device is a dual mode audio sink device (supports both classic and
+     * LE Audio sink roles.
+     *
+     * @param device the remote device
+     * @return {@code true} if it's a dual mode audio device, {@code false} otherwise
+     */
+    private boolean isDualModeAudioSinkDevice(BluetoothDevice device) {
+        return isProfileSupported(device, BluetoothProfile.LE_AUDIO)
+                && mLeAudioService != null && (isProfileSupported(device, BluetoothProfile.HEADSET)
+                || isProfileSupported(device, BluetoothProfile.A2DP));
+    }
+
+    /**
      * Checks whether the local and remote device support a connection for duplex audio (input and
      * output) over HFP or LE Audio.
      *
@@ -4285,16 +4298,16 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void notifyPreferredAudioProfileChangeApplied(BluetoothDevice device,
+        public void notifyActiveDeviceChangeApplied(BluetoothDevice device,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
-                receiver.send(notifyPreferredAudioProfileChangeApplied(device, source));
+                receiver.send(notifyActiveDeviceChangeApplied(device, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
 
-        private int notifyPreferredAudioProfileChangeApplied(BluetoothDevice device,
+        private int notifyActiveDeviceChangeApplied(BluetoothDevice device,
                 AttributionSource source) {
             AdapterService service = getService();
             if (service == null) {
@@ -4315,7 +4328,7 @@ public class AdapterService extends Service {
             }
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.notifyPreferredAudioProfileChangeApplied(device);
+            return service.notifyActiveDeviceChangeApplied(device);
         }
 
         @Override
@@ -4401,7 +4414,7 @@ public class AdapterService extends Service {
      * @return a Bundle containing the preferred audio profiles for the device
      */
     private Bundle getPreferredAudioProfiles(BluetoothDevice device) {
-        if (mLeAudioService == null) {
+        if (mLeAudioService == null || !isDualModeAudioSinkDevice(device)) {
             return Bundle.EMPTY;
         }
         // Gets the lead device in the CSIP group to set the preference
@@ -4451,6 +4464,9 @@ public class AdapterService extends Service {
         if (mLeAudioService == null) {
             return BluetoothStatusCodes.ERROR_PROFILE_NOT_CONNECTED;
         }
+        if (!isDualModeAudioSinkDevice(device)) {
+            return BluetoothStatusCodes.ERROR_NOT_DUAL_MODE_AUDIO_DEVICE;
+        }
         // Gets the lead device in the CSIP group to set the preference
         BluetoothDevice groupLead = mLeAudioService.getLeadDevice(device);
         if (groupLead == null) {
@@ -4482,14 +4498,14 @@ public class AdapterService extends Service {
     }
 
     /**
-     * Notification from the audio framework that a preferred audio profile change has taken effect.
-     * See {@link BluetoothAdapter#notifyPreferredAudioProfileChangeApplied(BluetoothDevice)} for
+     * Notification from the audio framework that an active device change has taken effect.
+     * See {@link BluetoothAdapter#notifyActiveDeviceChangeApplied(BluetoothDevice)} for
      * more details.
      *
      * @param device the remote device whose preferred audio profiles have been changed
      * @return whether the Bluetooth stack acknowledged the change successfully
      */
-    private int notifyPreferredAudioProfileChangeApplied(BluetoothDevice device) {
+    private int notifyActiveDeviceChangeApplied(BluetoothDevice device) {
         // Gets the lead device in the CSIP group to set the preference
         BluetoothDevice groupLead = mLeAudioService.getLeadDevice(device);
         if (groupLead == null) {
@@ -4498,14 +4514,14 @@ public class AdapterService extends Service {
 
         synchronized (mDevicesPendingAudioProfileChanges) {
             if (!mDevicesPendingAudioProfileChanges.contains(groupLead)) {
-                Log.e(TAG, "notifyPreferredAudioProfileChangeApplied, but no pending request for "
+                Log.e(TAG, "notifyActiveDeviceChangeApplied, but no pending request for "
                         + "device: " + groupLead);
                 return BluetoothStatusCodes.ERROR_UNKNOWN;
             }
 
             if (mPreferredAudioProfilesCallbacks != null) {
                 int n = mPreferredAudioProfilesCallbacks.beginBroadcast();
-                debugLog("notifyPreferredAudioProfileChangeApplied() - Broadcasting audio profile "
+                debugLog("notifyActiveDeviceChangeApplied() - Broadcasting audio profile "
                         + "change applied to device: " + groupLead + " to " + n + " receivers.");
                 for (int i = 0; i < n; i++) {
                     try {
@@ -4514,7 +4530,7 @@ public class AdapterService extends Service {
                                         getPreferredAudioProfiles(device),
                                         BluetoothStatusCodes.SUCCESS);
                     } catch (RemoteException e) {
-                        debugLog("notifyPreferredAudioProfileChangeApplied() - Callback #" + i
+                        debugLog("notifyActiveDeviceChangeApplied() - Callback #" + i
                                 + " failed (" + e + ")");
                     }
                 }
