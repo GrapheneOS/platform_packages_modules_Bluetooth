@@ -68,7 +68,7 @@ class GattServerManager(
             ByteArray(negociatedMtu)
           )
         } else {
-          server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, ByteArray(0))
+          server.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, ByteArray(512 - offset))
         }
       }
 
