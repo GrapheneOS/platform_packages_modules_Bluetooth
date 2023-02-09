@@ -21,7 +21,7 @@ message EnableTetheringResponse {
 
 // Request for the `ConnectPan` rpc.
 message ConnectPanRequest {
-	bytes addr = 1;
+	bytes address = 1;
 }
 
 // Response for the `ConnectPan` rpc.

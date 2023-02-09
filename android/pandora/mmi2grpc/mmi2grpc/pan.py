@@ -18,16 +18,17 @@ import sys
 from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
 
-from pandora_experimental.pan_grpc import PAN
 from pandora_experimental.host_grpc import Host
+from pandora_experimental.pan_grpc import PAN
 
 
 class PANProxy(ProfileProxy):
 
     def __init__(self, channel):
         super().__init__(channel)
-        self.pan = PAN(channel)
         self.host = Host(channel)
+        self.pan = PAN(channel)
+
         self.connection = None
 
     def TSC_BNEP_mmi_iut_accept_transport(self, pts_addr: bytes, **kwargs):
@@ -41,7 +42,7 @@ class PANProxy(ProfileProxy):
         # Only accepting pairing here.
         self.pan.EnableTethering()
         self.host.WaitConnection(address=pts_addr)
-        #self.connection = self.pan.ConnectPan(addr=pts_addr).connection
+
         return "OK"
 
     @assert_description
@@ -52,19 +53,21 @@ class PANProxy(ProfileProxy):
 
         return "OK"
 
-    def TSC_BNEP_mmi_iut_initiate_transport(self, pts_addr: bytes, **kwargs):
+    def TSC_BNEP_mmi_iut_initiate_transport(self, test: str, pts_addr: bytes, **kwargs):
         """
         Take action to initiate an PAN transport .
 
         Note: The IUT must require
         Basic L2cap configuration for this test case.
         """
+
         self.host.Connect(address=pts_addr)
-        #self.pan.ConnectPan(connection=self.connection)
-        #self.connection = self.host.WaitConnection(address=pts_addr).connection
+        if test in "BNEP/CTRL/BV-02-C":
+            self.pan.ConnectPan(address=pts_addr)
 
         return "OK"
 
+    @assert_description
     def TSC_BNEP_mmi_iut_initiate_setup(self, **kwargs):
         """
         Take action to initiate setup connection
@@ -116,9 +119,6 @@ class PANProxy(ProfileProxy):
 
         return "OK"
 
-    def TS_MTC_BNEPEX_iut_accept_general_ethernet(self, **kwargs):
-        return "OK"
-
     @assert_description
     def TSC_BNEP_mmi_iut_accept_general_ethernet(self, **kwargs):
         """
@@ -139,6 +139,92 @@ class PANProxy(ProfileProxy):
     def TSC_PAN_mmi_iut_icmp_echo_reply(self, **kwargs):
         """
         Take action to respond with ICMP echo reply
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_BNEP_mmi_iut_initiate_general_ethernet(self, **kwargs):
+        """
+        Take action to initiate general ethernet
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_BNEP_mmi_iut_initiate_compressed_ethernet_dest(self, **kwargs):
+        """
+        Take action to initiate compressed ethernet destination
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_BNEP_mmi_iut_confirm_compressed_ethernet_dest(self, **kwargs):
+        """
+        Please confirm IUT received compressed ethernet destination request.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_PAN_mmi_iut_dhcp_request_request(self, **kwargs):
+        """
+        Take action to send dhcp request
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_PAN_mmi_confirm_ip_address_configured_from_DHCP(self, **kwargs):
+        """
+        Click OK if the IUT has configured a new IP address assigned by the DHCP
+        server.
+
+        Note: If IUT is able to handle multiple IP addresses, any
+        active IP connections may be maintained. If IUT is able to handle one
+        single IP address at the time any active applications SHALL be
+        terminated.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_BNEP_mmi_iut_initiate_compressed_ethernet_source(self, **kwargs):
+        """
+        Take action to initiate compressed ethernet source
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_BNEP_mmi_iut_confirm_compressed_ethernet_source(self, **kwargs):
+        """
+        Please confirm IUT received compressed ethernet source request.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_BNEP_mmi_iut_initiate_compressed_ethernet(self, **kwargs):
+        """
+        Take action to initiate compressed ethernet
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_BNEP_mmi_iut_confirm_compressed_ethernet(self, **kwargs):
+        """
+        Please confirm IUT received compressed ethernet request.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_PAN_mmi_confirm_linklocal_ip_address_selected(self, **kwargs):
+        """
+        Click OK if the IUT has selected a LINKLOCAL IP address:
         """
 
         return "OK"
