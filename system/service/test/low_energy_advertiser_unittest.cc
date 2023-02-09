@@ -60,13 +60,13 @@ class MockAdvertiserHandler : public BleAdvertiserInterface {
                     AdvertiseParameters, std::vector<uint8_t>,
                     std::vector<uint8_t>, int, StatusCallback));
   MOCK_METHOD10(StartAdvertisingSet,
-                void(int reg_id, IdTxPowerStatusCallback cb,
-                     AdvertiseParameters params,
-                     std::vector<uint8_t> advertise_data,
-                     std::vector<uint8_t> scan_response_data,
-                     PeriodicAdvertisingParameters periodic_params,
-                     std::vector<uint8_t> periodic_data, uint16_t duration,
-                     uint8_t maxExtAdvEvents, IdStatusCallback timeout_cb));
+                uint8_t(int reg_id, IdTxPowerStatusCallback cb,
+                        AdvertiseParameters params,
+                        std::vector<uint8_t> advertise_data,
+                        std::vector<uint8_t> scan_response_data,
+                        PeriodicAdvertisingParameters periodic_params,
+                        std::vector<uint8_t> periodic_data, uint16_t duration,
+                        uint8_t maxExtAdvEvents, IdStatusCallback timeout_cb));
   MOCK_METHOD3(SetPeriodicAdvertisingParameters,
                void(int, PeriodicAdvertisingParameters, StatusCallback));
   MOCK_METHOD3(SetPeriodicAdvertisingData,

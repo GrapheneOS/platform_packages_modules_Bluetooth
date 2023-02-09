@@ -25,7 +25,6 @@ import android.annotation.SuppressLint;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -58,8 +57,9 @@ import android.companion.AssociationInfo;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.Intent;
-import android.content.pm.PackageManager.PackageInfoFlags;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.PackageManager.PackageInfoFlags;
+import android.content.res.Resources;
 import android.net.MacAddress;
 import android.os.Binder;
 import android.os.Build;
@@ -105,8 +105,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-
-import android.content.res.Resources;
 
 /**
  * Provides Bluetooth Gatt profile, as a service in
@@ -1453,11 +1451,12 @@ public class GattService extends ProfileService {
         public void startAdvertisingSet(AdvertisingSetParameters parameters,
                 AdvertiseData advertiseData, AdvertiseData scanResponse,
                 PeriodicAdvertisingParameters periodicParameters, AdvertiseData periodicData,
-                int duration, int maxExtAdvEvents, IAdvertisingSetCallback callback,
+                int duration, int maxExtAdvEvents, int serverIf, IAdvertisingSetCallback callback,
                 AttributionSource attributionSource, SynchronousResultReceiver receiver) {
             try {
                 startAdvertisingSet(parameters, advertiseData, scanResponse, periodicParameters,
-                        periodicData, duration, maxExtAdvEvents, callback, attributionSource);
+                        periodicData, duration, maxExtAdvEvents, serverIf, callback,
+                        attributionSource);
                 receiver.send(null);
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
@@ -1466,14 +1465,14 @@ public class GattService extends ProfileService {
         private void startAdvertisingSet(AdvertisingSetParameters parameters,
                 AdvertiseData advertiseData, AdvertiseData scanResponse,
                 PeriodicAdvertisingParameters periodicParameters, AdvertiseData periodicData,
-                int duration, int maxExtAdvEvents, IAdvertisingSetCallback callback,
+                int duration, int maxExtAdvEvents, int serverIf, IAdvertisingSetCallback callback,
                 AttributionSource attributionSource) {
             GattService service = getService();
             if (service == null) {
                 return;
             }
             service.startAdvertisingSet(parameters, advertiseData, scanResponse, periodicParameters,
-                    periodicData, duration, maxExtAdvEvents, callback, attributionSource);
+                    periodicData, duration, maxExtAdvEvents, serverIf, callback, attributionSource);
         }
 
         @Override
@@ -3470,17 +3469,18 @@ public class GattService extends ProfileService {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     void startAdvertisingSet(AdvertisingSetParameters parameters, AdvertiseData advertiseData,
             AdvertiseData scanResponse, PeriodicAdvertisingParameters periodicParameters,
-            AdvertiseData periodicData, int duration, int maxExtAdvEvents,
+            AdvertiseData periodicData, int duration, int maxExtAdvEvents, int serverIf,
             IAdvertisingSetCallback callback, AttributionSource attributionSource) {
         if (!Utils.checkAdvertisePermissionForDataDelivery(
                 this, attributionSource, "GattService startAdvertisingSet")) {
             return;
         }
-        if (parameters.getOwnAddressType() != AdvertisingSetParameters.ADDRESS_TYPE_DEFAULT) {
+        if (parameters.getOwnAddressType() != AdvertisingSetParameters.ADDRESS_TYPE_DEFAULT
+                || serverIf != 0) {
             Utils.enforceBluetoothPrivilegedPermission(this);
         }
         mAdvertiseManager.startAdvertisingSet(parameters, advertiseData, scanResponse,
-                periodicParameters, periodicData, duration, maxExtAdvEvents, callback);
+                periodicParameters, periodicData, duration, maxExtAdvEvents, serverIf, callback);
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)

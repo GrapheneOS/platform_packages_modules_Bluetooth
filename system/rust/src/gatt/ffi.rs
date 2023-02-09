@@ -14,7 +14,7 @@ use crate::{
 };
 
 use super::{
-    arbiter::with_arbiter,
+    arbiter::{self, with_arbiter},
     channel::AttTransport,
     ids::{AdvertiserId, AttHandle, ConnectionId, ServerId, TransportIndex},
     server::gatt_database::{AttPermissions, GattCharacteristicWithHandle, GattServiceWithHandle},
@@ -94,6 +94,10 @@ mod inner {
 
         // connection
         fn is_connection_isolated(conn_id: u16) -> bool;
+
+        // arbitration
+        fn associate_server_with_advertiser(server_id: u8, advertiser_id: u8);
+        fn clear_advertiser(advertiser_id: u8);
     }
 }
 
@@ -237,6 +241,24 @@ fn is_connection_isolated(conn_id: u16) -> bool {
     }
 
     with_arbiter(|arbiter| arbiter.is_connection_isolated(ConnectionId(conn_id)))
+}
+
+fn associate_server_with_advertiser(server_id: u8, advertiser_id: u8) {
+    if !rust_event_loop_is_enabled() {
+        return;
+    }
+
+    arbiter::with_arbiter(move |arbiter| {
+        arbiter.associate_server_with_advertiser(ServerId(server_id), AdvertiserId(advertiser_id))
+    })
+}
+
+fn clear_advertiser(advertiser_id: u8) {
+    if !rust_event_loop_is_enabled() {
+        return;
+    }
+
+    arbiter::with_arbiter(move |arbiter| arbiter.clear_advertiser(AdvertiserId(advertiser_id)))
 }
 
 #[cfg(test)]
