@@ -576,6 +576,15 @@ public final class BluetoothStatusCodes {
     public static final int RFCOMM_LISTENER_NO_SOCKET_AVAILABLE = 2005;
 
     /**
+     * Error code indicating that this operation is not allowed because the remote device does not
+     * support both BR/EDR audio and BLE Audio.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_NOT_DUAL_MODE_AUDIO_DEVICE = 3000;
+
+    /**
      * Indicates that an unknown error has occurred.
      */
     public static final int ERROR_UNKNOWN = Integer.MAX_VALUE;
