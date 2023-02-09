@@ -410,6 +410,9 @@ class AudioContexts {
   bool operator==(const AudioContexts& other) const {
     return value() == other.value();
   };
+  bool operator!=(const AudioContexts& other) const {
+    return value() != other.value();
+  };
   constexpr AudioContexts operator~() const { return AudioContexts(~value()); }
 };
 
@@ -450,13 +453,31 @@ template <typename T>
 struct BidirectionalPair {
   T sink;
   T source;
+
+  T get(uint8_t direction) const {
+    if (direction ==
+        (types::kLeAudioDirectionSink | types::kLeAudioDirectionSource)) {
+      return get_bidirectional(*this);
+    } else if (direction == types::kLeAudioDirectionSink) {
+      return sink;
+    }
+    return source;
+  }
+  T& get_ref(uint8_t direction) {
+    return (direction == types::kLeAudioDirectionSink) ? sink : source;
+  }
+
+  BidirectionalPair<T>& operator=(const BidirectionalPair<T>&) = default;
+  bool operator==(const BidirectionalPair<T>& other) const {
+    return (sink == other.sink) && (source == other.source);
+  };
+  bool operator!=(const BidirectionalPair<T>& other) const {
+    return (sink != other.sink) || (source != other.source);
+  };
 };
 
 template <typename T>
 T get_bidirectional(BidirectionalPair<T> p);
-
-template <>
-AudioContexts get_bidirectional(BidirectionalPair<AudioContexts> p);
 
 /* Configuration strategy */
 enum class LeAudioConfigurationStrategy : uint8_t {
