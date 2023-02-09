@@ -398,7 +398,7 @@ final class BondStateMachine extends StateMachine {
         intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         // Workaround for Android Auto until pre-accepting pairing requests is added.
         intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        mAdapterService.sendOrderedBroadcast(intent, BLUETOOTH_CONNECT,
+        Utils.sendOrderedBroadcast(mAdapterService, intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions(), null/* resultReceiver */,
                 null/* scheduler */, Activity.RESULT_OK/* initialCode */, null/* initialData */,
                 null/* initialExtras */);

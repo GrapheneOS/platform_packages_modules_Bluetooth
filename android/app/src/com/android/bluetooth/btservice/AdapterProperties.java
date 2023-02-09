@@ -990,7 +990,7 @@ class AdapterProperties {
                         intent = new Intent(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
                         intent.putExtra(BluetoothAdapter.EXTRA_SCAN_MODE, mScanMode);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                        mService.sendBroadcast(intent, BLUETOOTH_SCAN,
+                        Utils.sendBroadcast(mService, intent, BLUETOOTH_SCAN,
                                 Utils.getTempAllowlistBroadcastOptions());
                         debugLog("Scan Mode:" + mScanMode);
                         break;
@@ -1168,13 +1168,13 @@ class AdapterProperties {
                 mService.clearDiscoveringPackages();
                 mDiscoveryEndMs = System.currentTimeMillis();
                 intent = new Intent(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-                mService.sendBroadcast(intent, BLUETOOTH_SCAN,
+                Utils.sendBroadcast(mService, intent, BLUETOOTH_SCAN,
                         Utils.getTempAllowlistBroadcastOptions());
             } else if (state == AbstractionLayer.BT_DISCOVERY_STARTED) {
                 mDiscovering = true;
                 mDiscoveryEndMs = System.currentTimeMillis() + DEFAULT_DISCOVERY_TIMEOUT_MS;
                 intent = new Intent(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-                mService.sendBroadcast(intent, BLUETOOTH_SCAN,
+                Utils.sendBroadcast(mService, intent, BLUETOOTH_SCAN,
                         Utils.getTempAllowlistBroadcastOptions());
             }
         }
