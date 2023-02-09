@@ -1717,10 +1717,12 @@ uint8_t* gatt_dbg_op_name(uint8_t op_code) {
     pseduo_op_code_idx = 0x15; /* just an index to op_code_name */
   }
 
-  if (pseduo_op_code_idx <= GATT_OP_CODE_MAX)
+  #define ARR_SIZE(a) (sizeof(a)/sizeof(a[0]))
+  if (pseduo_op_code_idx < ARR_SIZE(op_code_name))
     return (uint8_t*)op_code_name[pseduo_op_code_idx];
   else
     return (uint8_t*)"Op Code Exceed Max";
+  #undef ARR_SIZE
 }
 
 /** Remove the application interface for the specified background device */
