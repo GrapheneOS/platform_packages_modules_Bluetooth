@@ -24,6 +24,7 @@ source_set("LibBluetoothShimSources") {
     "btm_api.cc",
     "config.cc",
     "controller.cc",
+    "distance_measurement_manager.cc",
     "dumpsys.cc",
     "entry.cc",
     "hci_layer.cc",
