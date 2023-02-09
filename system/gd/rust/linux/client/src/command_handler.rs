@@ -287,6 +287,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from(
                     "telephony <release-held|release-active-accept-held|hold-active-accept-held>",
                 ),
+                String::from("telephony <audio-connect|audio-disconnect> <address>"),
             ],
             description: String::from("Set device telephony status."),
             function_pointer: CommandHandler::cmd_telephony,
@@ -1693,6 +1694,28 @@ impl CommandHandler {
                 if !success {
                     return Err("HoldActiveAcceptHeld failed".into());
                 }
+            }
+            "audio-connect" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .audio_connect(String::from(get_arg(args, 1)?));
+                if !success {
+                    return Err("ConnectAudio failed".into());
+                }
+            }
+            "audio-disconnect" => {
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .audio_disconnect(String::from(get_arg(args, 1)?));
             }
             other => {
                 return Err(format!("Invalid argument '{}'", other).into());

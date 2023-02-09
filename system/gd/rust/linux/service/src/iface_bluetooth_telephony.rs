@@ -70,4 +70,12 @@ impl IBluetoothTelephony for IBluetoothTelephonyDBus {
     fn hold_active_accept_held(&mut self) -> bool {
         dbus_generated!()
     }
+    #[dbus_method("AudioConnect")]
+    fn audio_connect(&mut self, address: String) -> bool {
+        dbus_generated!()
+    }
+    #[dbus_method("AudioDisconnect")]
+    fn audio_disconnect(&mut self, address: String) {
+        dbus_generated!()
+    }
 }
