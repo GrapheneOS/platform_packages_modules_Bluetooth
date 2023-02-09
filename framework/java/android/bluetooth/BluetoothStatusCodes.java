@@ -506,6 +506,25 @@ public final class BluetoothStatusCodes {
     public static final int ERROR_HAP_INVALID_PRESET_INDEX = 1211;
 
     /**
+     * Indicates that LE connection is required but not exist or disconnected.
+     * <p>
+     * Example solution: create LE connection then retry again.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_NO_LE_CONNECTION = 1300;
+
+    /**
+     * Indicates internal error of distance measurement, such as read RSSI data fail.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int DISTANCE_MEASUREMENT_ERROR_INTERNAL = 1301;
+
+
+    /**
      * Indicates that the RFCOMM listener could not be started due to the requested UUID already
      * being in use.
      *
