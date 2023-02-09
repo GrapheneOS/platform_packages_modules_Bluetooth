@@ -203,6 +203,8 @@ interface IBluetooth
     oneway void isLeAudioBroadcastSourceSupported(in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     oneway void isLeAudioBroadcastAssistantSupported(in SynchronousResultReceiver receiver);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
+    oneway void isDistanceMeasurementSupported(in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     oneway void getLeMaximumAdvertisingDataLength(in SynchronousResultReceiver receiver);
 
