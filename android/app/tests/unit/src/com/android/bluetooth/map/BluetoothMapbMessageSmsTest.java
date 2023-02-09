@@ -19,6 +19,7 @@ package com.android.bluetooth.map;
 import static com.google.common.truth.Truth.assertThat;
 
 import android.content.Context;
+import android.telephony.SmsManager;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.InstrumentationRegistry;
@@ -26,6 +27,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.map.BluetoothMapSmsPdu.SmsPdu;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,11 +43,14 @@ public class BluetoothMapbMessageSmsTest {
     private static final String TEST_MESSAGE = "test";
     private static final String TEST_ADDRESS = "12";
 
+    private SmsManager mSmsManager = SmsManager.getDefault();
     private Context mTargetContext;
     private ArrayList<SmsPdu> TEST_SMS_BODY_PDUS;
 
     @Before
     public void setUp() throws Exception {
+        // Do not run test if sms is not supported
+        Assume.assumeTrue(mSmsManager.isImsSmsSupported());
         mTargetContext = InstrumentationRegistry.getTargetContext();
         TEST_SMS_BODY_PDUS = BluetoothMapSmsPdu.getSubmitPdus(mTargetContext, TEST_MESSAGE,
                 TEST_ADDRESS);
