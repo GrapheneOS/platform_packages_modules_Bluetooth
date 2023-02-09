@@ -589,15 +589,16 @@ public class GattServiceBinderTest {
         AdvertiseData periodicData = new AdvertiseData.Builder().build();
         int duration = 1;
         int maxExtAdvEvents = 2;
+        int serverIf = 3;
         IAdvertisingSetCallback callback = mock(IAdvertisingSetCallback.class);
 
         mBinder.startAdvertisingSet(parameters, advertiseData, scanResponse, periodicParameters,
-                periodicData, duration, maxExtAdvEvents, callback,
+                periodicData, duration, maxExtAdvEvents, serverIf, callback,
                 mAttributionSource, SynchronousResultReceiver.get());
 
         verify(mService).startAdvertisingSet(parameters, advertiseData, scanResponse,
-                periodicParameters, periodicData, duration, maxExtAdvEvents, callback,
-                mAttributionSource);
+                periodicParameters, periodicData, duration, maxExtAdvEvents,
+                serverIf, callback, mAttributionSource);
     }
 
     @Test
