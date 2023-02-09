@@ -8,13 +8,15 @@ import sys
 _TEST_CLASSES_LIST = [example.ExampleTest]
 
 
-def _valid_argument(arg: str) -> bool:
-  return arg.startswith(("--config", "-c", "--tests", "--test_case"))
-
-
 if __name__ == "__main__":
   logging.basicConfig(level=logging.DEBUG)
+  # This is a hack because of `b/166468397`
+  argv = sys.argv[idx+1:] if (idx := sys.argv.index('--')) else sys.argv[1:]
+
+  # Mobly tradefed is using these arguments for specific java tests
+  argv = [arg for arg in argv if not arg.startswith(('--device_serial', '--log_path'))]
+
   suite_runner.run_suite(
-      argv=[arg for arg in sys.argv if _valid_argument(arg)],
+      argv=argv,
       test_classes=_TEST_CLASSES_LIST,
   )

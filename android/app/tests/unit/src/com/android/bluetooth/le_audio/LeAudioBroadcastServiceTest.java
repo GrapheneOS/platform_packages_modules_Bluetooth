@@ -19,6 +19,7 @@ package com.android.bluetooth.le_audio;
 
 import static org.mockito.Mockito.*;
 
+import android.annotation.Nullable;
 import android.bluetooth.*;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -243,7 +244,7 @@ public class LeAudioBroadcastServiceTest {
 
     void verifyBroadcastStarted(int broadcastId, byte[] code,
             BluetoothLeAudioContentMetadata meta) {
-        mService.createBroadcast(meta, code);
+        mService.createBroadcast(buildBroadcastSettingsFromMetadata(meta, code));
 
         verify(mNativeInterface, times(1)).createBroadcast(eq(meta.getRawMetadata()),
                 eq(code));
@@ -325,7 +326,7 @@ public class LeAudioBroadcastServiceTest {
         meta_builder.setLanguage("deu");
         meta_builder.setProgramInfo("Public broadcast info");
         BluetoothLeAudioContentMetadata meta = meta_builder.build();
-        mService.createBroadcast(meta, code);
+        mService.createBroadcast(buildBroadcastSettingsFromMetadata(meta, code));
 
         verify(mNativeInterface, times(1)).createBroadcast(eq(meta.getRawMetadata()), eq(code));
 
@@ -371,7 +372,8 @@ public class LeAudioBroadcastServiceTest {
         new BluetoothLeAudioContentMetadata.Builder();
         meta_builder.setLanguage("eng");
         meta_builder.setProgramInfo("Public broadcast info");
-        mService.updateBroadcast(broadcastId, meta_builder.build());
+        mService.updateBroadcast(broadcastId,
+                buildBroadcastSettingsFromMetadata(meta_builder.build(), null));
         Assert.assertFalse(mOnBroadcastUpdatedCalled);
         Assert.assertTrue(mOnBroadcastUpdateFailedCalled);
     }
@@ -430,7 +432,7 @@ public class LeAudioBroadcastServiceTest {
         meta_builder.setLanguage("ENG");
         meta_builder.setProgramInfo("Public broadcast info");
         BluetoothLeAudioContentMetadata meta = meta_builder.build();
-        mService.createBroadcast(meta, code);
+        mService.createBroadcast(buildBroadcastSettingsFromMetadata(meta, code));
 
         // Inject metadata stack event and verify if getter API works as expected
         LeAudioStackEvent state_event =
@@ -456,4 +458,18 @@ public class LeAudioBroadcastServiceTest {
         }
     }
 
+    private BluetoothLeBroadcastSettings buildBroadcastSettingsFromMetadata(
+            BluetoothLeAudioContentMetadata contentMetadata,
+            @Nullable byte[] broadcastCode) {
+        BluetoothLeBroadcastSubgroupSettings.Builder subgroupBuilder =
+                new BluetoothLeBroadcastSubgroupSettings.Builder()
+                .setContentMetadata(contentMetadata);
+
+        BluetoothLeBroadcastSettings.Builder builder = new BluetoothLeBroadcastSettings.Builder()
+                        .setPublicBroadcast(false)
+                        .setBroadcastCode(broadcastCode);
+        // builder expect at least one subgroup setting
+        builder.addSubgroupSettings(subgroupBuilder.build());
+        return builder.build();
+    }
 }
