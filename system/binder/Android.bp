@@ -64,6 +64,7 @@ filegroup {
         "android/bluetooth/IBluetoothLeCallControlCallback.aidl",
         "android/bluetooth/IncomingRfcommSocketInfo.aidl",
         "android/bluetooth/le/IAdvertisingSetCallback.aidl",
+        "android/bluetooth/le/IDistanceMeasurementCallback.aidl",
         "android/bluetooth/le/IPeriodicAdvertisingCallback.aidl",
         "android/bluetooth/le/IScannerCallback.aidl",
         "android/bluetooth/IBluetoothConnectionCallback.aidl",
