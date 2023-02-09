@@ -193,6 +193,8 @@ public class ScanManager {
             mDm.registerDisplayListener(mDisplayListener, null);
         }
         mScreenOn = isScreenOn();
+        AppScanStats.initScanRadioState();
+        AppScanStats.setScreenState(mScreenOn);
         if (mActivityManager != null) {
             mActivityManager.addOnUidImportanceListener(mUidImportanceListener,
                     FOREGROUND_IMPORTANCE_CUTOFF);
@@ -562,6 +564,7 @@ public class ScanManager {
         }
 
         void handleScreenOff() {
+            AppScanStats.setScreenState(false);
             if (!mScreenOn) {
                 return;
             }
@@ -854,6 +857,7 @@ public class ScanManager {
         }
 
         void handleScreenOn() {
+            AppScanStats.setScreenState(true);
             if (mScreenOn) {
                 return;
             }
@@ -1042,6 +1046,9 @@ public class ScanManager {
                     int scanWindow = Utils.millsToUnit(scanWindowMs);
                     int scanInterval = Utils.millsToUnit(scanIntervalMs);
                     mNativeInterface.gattClientScan(false);
+                    if (!AppScanStats.recordScanRadioStop()) {
+                        Log.w(TAG, "There is no scan radio to stop");
+                    }
                     if (DBG) {
                         Log.d(TAG, "Start gattClientScanNative with"
                                 + " old scanMode " + mLastConfiguredScanSetting
@@ -1053,6 +1060,9 @@ public class ScanManager {
                     mNativeInterface.gattSetScanParameters(client.scannerId, scanInterval,
                             scanWindow);
                     mNativeInterface.gattClientScan(true);
+                    if (!AppScanStats.recordScanRadioStart(curScanSetting)) {
+                        Log.w(TAG, "Scan radio already started");
+                    }
                     mLastConfiguredScanSetting = curScanSetting;
                 }
             } else {
@@ -1092,6 +1102,9 @@ public class ScanManager {
                     Log.d(TAG, "start gattClientScanNative from startRegularScan()");
                 }
                 mNativeInterface.gattClientScan(true);
+                if (!AppScanStats.recordScanRadioStart(client.settings.getScanMode())) {
+                    Log.w(TAG, "Scan radio already started");
+                }
             }
         }
 
@@ -1315,6 +1328,9 @@ public class ScanManager {
                     Log.d(TAG, "stop gattClientScanNative");
                 }
                 mNativeInterface.gattClientScan(false);
+                if (!AppScanStats.recordScanRadioStop()) {
+                    Log.w(TAG, "There is no scan radio to stop");
+                }
             }
             removeScanFilters(client.scannerId);
         }
@@ -1347,6 +1363,9 @@ public class ScanManager {
                     Log.d(TAG, "stop gattClientScanNative");
                 }
                 mNativeInterface.gattClientScan(false);
+                if (!AppScanStats.recordScanRadioStop()) {
+                    Log.w(TAG, "There is no scan radio to stop");
+                }
             }
         }
 
