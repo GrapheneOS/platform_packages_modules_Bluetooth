@@ -195,6 +195,39 @@ static const interop_addr_entry_t interop_addr_database[] = {
 
     // BMW Carkit
     {{{0x00, 0x0a, 0x08, 0, 0, 0}}, 3, INTEROP_AVRCP_1_3_ONLY},
+
+    // Eero Wi-Fi Router
+    {{{0x08, 0x9b, 0xf1, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x20, 0xbe, 0xcd, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x30, 0x34, 0x22, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x3c, 0x5c, 0xf1, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x40, 0x47, 0x5e, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x50, 0x27, 0xa9, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x64, 0x97, 0x14, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x64, 0xc2, 0x69, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x68, 0x4a, 0x76, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x6c, 0xae, 0xf6, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x78, 0x76, 0x89, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x78, 0xd6, 0xd6, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x84, 0x70, 0xd7, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x98, 0xed, 0x7e, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x9c, 0x0b, 0x05, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x9c, 0x57, 0xbc, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0x9c, 0xa5, 0x70, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xa0, 0x8e, 0x24, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xac, 0xec, 0x85, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xb4, 0x20, 0x46, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xb4, 0xb9, 0xe6, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xc0, 0x36, 0x53, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xc4, 0xf1, 0x74, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xc8, 0xb8, 0x2f, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xc8, 0xe3, 0x06, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xd4, 0x05, 0xde, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xd4, 0x3f, 0x32, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xec, 0x74, 0x27, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xf0, 0x21, 0xe0, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xf0, 0xb6, 0x61, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
+    {{{0xfc, 0x3f, 0xa6, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
 };
 
 typedef struct {
