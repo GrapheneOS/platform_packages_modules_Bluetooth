@@ -35,6 +35,7 @@
         <option name="profile" value="AVDTP/SNK" />
         <option name="profile" value="AVDTP/SRC" />
         <option name="profile" value="AVRCP" />
+        <option name="profile" value="BNEP" />
         <option name="profile" value="GAP" />
         <option name="profile" value="GATT" />
         <option name="profile" value="HFP/AG" />
@@ -47,11 +48,10 @@
         <option name="profile" value="L2CAP/LE" />
         <option name="profile" value="MAP" />
         <option name="profile" value="OPP" />
+        <option name="profile" value="PAN" />
         <option name="profile" value="PBAP/PSE" />
         <option name="profile" value="RFCOMM" />
         <option name="profile" value="SDP" />
         <option name="profile" value="SM" />
-        <option name="profile" value="PAN" />
-        <option name="profile" value="BNEP" />
     </test>
 </configuration>
