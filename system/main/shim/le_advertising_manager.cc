@@ -161,14 +161,14 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
         set_terminated_callback, bluetooth::shim::GetGdShimHandler());
   }
 
-  void StartAdvertisingSet(int reg_id, IdTxPowerStatusCallback register_cb,
-                           AdvertiseParameters params,
-                           std::vector<uint8_t> advertise_data,
-                           std::vector<uint8_t> scan_response_data,
-                           PeriodicAdvertisingParameters periodic_params,
-                           std::vector<uint8_t> periodic_data,
-                           uint16_t duration, uint8_t maxExtAdvEvents,
-                           IdStatusCallback timeout_cb) {
+  uint8_t StartAdvertisingSet(int reg_id, IdTxPowerStatusCallback register_cb,
+                              AdvertiseParameters params,
+                              std::vector<uint8_t> advertise_data,
+                              std::vector<uint8_t> scan_response_data,
+                              PeriodicAdvertisingParameters periodic_params,
+                              std::vector<uint8_t> periodic_data,
+                              uint16_t duration, uint8_t maxExtAdvEvents,
+                              IdStatusCallback timeout_cb) {
     LOG(INFO) << __func__ << " in shim layer";
 
     bluetooth::hci::AdvertisingConfig config{};
@@ -228,6 +228,8 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
 
     BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le advert started",
                    base::StringPrintf("advert_id:%d", reg_id));
+
+    return id;
   }
 
   void SetPeriodicAdvertisingParameters(
