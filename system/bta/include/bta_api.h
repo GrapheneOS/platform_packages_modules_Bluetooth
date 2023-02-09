@@ -26,11 +26,11 @@
 #define BTA_API_H
 
 #include <base/strings/stringprintf.h>
+#include <base/callback.h>
 
 #include <cstdint>
 #include <vector>
 
-#include "base/callback.h"
 #include "bt_target.h"  // Must be first to define build configuration
 #include "osi/include/log.h"
 #include "stack/include/bt_octets.h"

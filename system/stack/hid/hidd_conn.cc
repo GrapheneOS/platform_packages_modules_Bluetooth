@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include <base/callback.h>
 #include <base/logging.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 

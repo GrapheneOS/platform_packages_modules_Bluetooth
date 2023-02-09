@@ -15,7 +15,7 @@ use crate::callbacks::{
     AdminCallback, AdvertisingSetCallback, BtCallback, BtConnectionCallback, BtManagerCallback,
     BtSocketManagerCallback, ScannerCallback, SuspendCallback,
 };
-use crate::command_handler::CommandHandler;
+use crate::command_handler::{CommandHandler, SocketSchedule};
 use crate::dbus_iface::{
     BluetoothAdminDBus, BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus, BluetoothQADBus,
     BluetoothSocketManagerDBus, SuspendDBus,
@@ -121,6 +121,9 @@ pub(crate) struct ClientContext {
 
     /// Data of GATT client preference.
     gatt_client_context: GattClientContext,
+
+    /// The schedule when a socket is connected.
+    socket_test_schedule: Option<SocketSchedule>,
 }
 
 impl ClientContext {
@@ -162,6 +165,7 @@ impl ClientContext {
             socket_manager_callback_id: None,
             is_restricted,
             gatt_client_context: GattClientContext::new(),
+            socket_test_schedule: None,
         }
     }
 
