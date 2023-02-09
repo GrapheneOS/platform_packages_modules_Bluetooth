@@ -43,6 +43,7 @@ import android.bluetooth.annotations.RequiresLegacyBluetoothAdminPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.DistanceMeasurementManager;
 import android.bluetooth.le.PeriodicAdvertisingManager;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -853,6 +854,7 @@ public final class BluetoothAdapter {
     private BluetoothLeScanner mBluetoothLeScanner;
     private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
     private PeriodicAdvertisingManager mPeriodicAdvertisingManager;
+    private DistanceMeasurementManager mDistanceMeasurementManager;
 
     private final IBluetoothManager mManagerService;
     private final AttributionSource mAttributionSource;
@@ -1195,6 +1197,40 @@ public final class BluetoothAdapter {
                 mBluetoothLeScanner = new BluetoothLeScanner(this);
             }
             return mBluetoothLeScanner;
+        }
+    }
+
+     /**
+     * Get a {@link DistanceMeasurementManager} object for distance measurement operations.
+     * <p>
+     * Use {@link #isDistanceMeasurementSupported()} to check whether distance
+     * measurement is supported on this device before calling this method.
+     *
+     * @return a new instance of {@link DistanceMeasurementManager}, or {@code null} if Bluetooth is
+     * turned off
+     * @throws UnsupportedOperationException if distance measurement is not supported on this device
+     *
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @Nullable DistanceMeasurementManager getDistanceMeasurementManager() {
+        if (!getLeAccess()) {
+            return null;
+        }
+
+        if (isDistanceMeasurementSupported() != BluetoothStatusCodes.FEATURE_SUPPORTED) {
+            throw new UnsupportedOperationException("Distance measurement is unsupported");
+        }
+
+        synchronized (mLock) {
+            if (mDistanceMeasurementManager == null) {
+                mDistanceMeasurementManager = new DistanceMeasurementManager(this);
+            }
+            return mDistanceMeasurementManager;
         }
     }
 
@@ -2773,6 +2809,44 @@ public final class BluetoothAdapter {
             if (mService != null) {
                 final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
                 mService.isLeAudioBroadcastAssistantSupported(recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout())
+                    .getValue(BluetoothStatusCodes.ERROR_UNKNOWN);
+            } else {
+                throw new IllegalStateException(
+                        "LE state is on, but there is no bluetooth service.");
+            }
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } catch (RemoteException e) {
+            e.rethrowFromSystemServer();
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+        return BluetoothStatusCodes.ERROR_UNKNOWN;
+    }
+
+    /**
+     * Returns whether the distance measurement feature is supported.
+     *
+     * @return whether the Bluetooth distance measurement is supported
+     * @throws IllegalStateException if the bluetooth service is null
+     *
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @LeFeatureReturnValues int isDistanceMeasurementSupported() {
+        if (!getLeAccess()) {
+            return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+        }
+        mServiceLock.readLock().lock();
+        try {
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                mService.isDistanceMeasurementSupported(mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout())
                     .getValue(BluetoothStatusCodes.ERROR_UNKNOWN);
             } else {
