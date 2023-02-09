@@ -958,6 +958,10 @@ package android.bluetooth.le {
     method @NonNull public android.bluetooth.le.AdvertisingSetParameters.Builder setOwnAddressType(int);
   }
 
+  public final class BluetoothLeAdvertiser {
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_PRIVILEGED, android.Manifest.permission.BLUETOOTH_ADVERTISE, android.Manifest.permission.BLUETOOTH_CONNECT}) public void startAdvertisingSet(@NonNull android.bluetooth.le.AdvertisingSetParameters, @Nullable android.bluetooth.le.AdvertiseData, @Nullable android.bluetooth.le.AdvertiseData, @Nullable android.bluetooth.le.PeriodicAdvertisingParameters, @Nullable android.bluetooth.le.AdvertiseData, int, int, @Nullable android.bluetooth.BluetoothGattServer, @Nullable android.bluetooth.le.AdvertisingSetCallback, @NonNull android.os.Handler);
+  }
+
   public final class BluetoothLeScanner {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_SCAN, android.Manifest.permission.UPDATE_DEVICE_STATS}) public void startScanFromSource(android.os.WorkSource, android.bluetooth.le.ScanCallback);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_SCAN, android.Manifest.permission.UPDATE_DEVICE_STATS}) public void startScanFromSource(java.util.List<android.bluetooth.le.ScanFilter>, android.bluetooth.le.ScanSettings, android.os.WorkSource, android.bluetooth.le.ScanCallback);
