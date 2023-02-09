@@ -153,7 +153,8 @@ struct eatt_impl {
     tL2CAP_LE_CFG_INFO local_coc_cfg = {
         .mtu = eatt_dev->rx_mtu_,
         .mps = eatt_dev->rx_mps_ < max_mps ? eatt_dev->rx_mps_ : max_mps,
-        .credits = L2CAP_LE_CREDIT_DEFAULT};
+        .credits = L2CA_LeCreditDefault(),
+    };
 
     if (!L2CA_ConnectCreditBasedRsp(bda, identifier, lcids, L2CAP_CONN_OK,
                                     &local_coc_cfg))
@@ -584,7 +585,7 @@ struct eatt_impl {
     tL2CAP_LE_CFG_INFO local_coc_cfg = {
         .mtu = eatt_dev->rx_mtu_,
         .mps = eatt_dev->rx_mps_,
-        .credits = L2CAP_LE_CREDIT_DEFAULT,
+        .credits = L2CA_LeCreditDefault(),
         .number_of_channels = num_of_channels,
     };
 
