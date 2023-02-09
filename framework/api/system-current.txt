@@ -70,7 +70,7 @@ package android.bluetooth {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int isDistanceMeasurementSupported();
     method public boolean isLeEnabled();
     method @NonNull public static String nameForState(int);
-    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int notifyPreferredAudioProfileChangeApplied(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int notifyActiveDeviceChangeApplied(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean registerBluetoothConnectionCallback(@NonNull java.util.concurrent.Executor, @NonNull android.bluetooth.BluetoothAdapter.BluetoothConnectionCallback);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int registerPreferredAudioProfilesChangedCallback(@NonNull java.util.concurrent.Executor, @NonNull android.bluetooth.BluetoothAdapter.PreferredAudioProfilesChangedCallback);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED, android.Manifest.permission.MODIFY_PHONE_STATE}) public boolean removeActiveDevice(int);
@@ -781,6 +781,7 @@ package android.bluetooth {
     field public static final int ERROR_LE_CONTENT_METADATA_INVALID_PROGRAM_INFO = 1204; // 0x4b4
     field public static final int ERROR_LOCAL_NOT_ENOUGH_RESOURCES = 22; // 0x16
     field public static final int ERROR_NOT_ACTIVE_DEVICE = 12; // 0xc
+    field public static final int ERROR_NOT_DUAL_MODE_AUDIO_DEVICE = 3000; // 0xbb8
     field public static final int ERROR_NO_ACTIVE_DEVICES = 13; // 0xd
     field public static final int ERROR_NO_LE_CONNECTION = 1300; // 0x514
     field public static final int ERROR_PROFILE_NOT_CONNECTED = 14; // 0xe
