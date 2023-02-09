@@ -62,6 +62,7 @@ cc_binary {
         "log.cc",
         "main.cc",
         "messenger.cc",
+        "property.cc",
         "util.cc",
     ],
     include_dirs: [
