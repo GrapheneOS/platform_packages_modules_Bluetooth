@@ -381,7 +381,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, stateMachine.getRemoteDevice());
                     intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                             BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
-                    sendBroadcast(intent, BLUETOOTH_CONNECT,
+                    Utils.sendBroadcast(BluetoothPbapService.this, intent, BLUETOOTH_CONNECT,
                             Utils.getTempAllowlistBroadcastOptions());
                     stateMachine.sendMessage(PbapStateMachine.REJECTED);
                     break;
@@ -811,7 +811,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
             intent.putExtra(BluetoothDevice.EXTRA_PACKAGE_NAME, this.getPackageName());
-            this.sendOrderedBroadcast(intent, BLUETOOTH_CONNECT,
+            Utils.sendOrderedBroadcast(this, intent, BLUETOOTH_CONNECT,
                     Utils.getTempAllowlistBroadcastOptions(), null/* resultReceiver */,
                     null/* scheduler */, Activity.RESULT_OK/* initialCode */, null/* initialData */,
                     null/* initialExtras */);
