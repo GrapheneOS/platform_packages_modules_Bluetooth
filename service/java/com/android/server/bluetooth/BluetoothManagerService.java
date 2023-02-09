@@ -3299,6 +3299,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 out.getFileDescriptor(), err.getFileDescriptor(), args);
     }
 
+    // TODO(b/193460475): Remove when tooling supports SystemApi to public API.
+    @SuppressLint("NewApi")
     static @NonNull Bundle getTempAllowlistBroadcastOptions() {
         final long duration = 10_000;
         final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
