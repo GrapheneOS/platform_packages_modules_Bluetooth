@@ -55,9 +55,6 @@
       "name": "net_test_hci"
     },
     {
-      "name": "net_test_hf_client_add_record"
-    },
-    {
       "name": "net_test_stack"
     },
     {
