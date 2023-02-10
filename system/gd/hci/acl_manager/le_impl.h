@@ -338,7 +338,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     auto peer_address_type = connection_complete.GetPeerAddressType();
     auto role = connection_complete.GetRole();
     AddressWithType remote_address(address, peer_address_type);
-    AddressWithType local_address = le_address_manager_->GetCurrentAddress();
+    AddressWithType local_address = le_address_manager_->GetInitiatorAddress();
     const bool in_filter_accept_list = is_device_in_connect_list(remote_address);
 
     if (role == hci::Role::CENTRAL) {
@@ -612,7 +612,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
   RoleSpecificData initialize_role_specific_data(Role role) {
     if (role == hci::Role::CENTRAL) {
-      return DataAsCentral{le_address_manager_->GetCurrentAddress()};
+      return DataAsCentral{le_address_manager_->GetInitiatorAddress()};
     } else if (
         controller_->SupportsBleExtendedAdvertising() ||
         controller_->IsSupported(hci::OpCode::LE_MULTI_ADVT)) {
@@ -624,7 +624,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       // the exception is if we only support legacy advertising - here, our current address is also
       // our advertised address
       return DataAsPeripheral{
-          le_address_manager_->GetCurrentAddress(),
+          le_address_manager_->GetInitiatorAddress(),
           {},
           true /* For now, ignore non-discoverable legacy advertising TODO(b/254314964) */};
     }
@@ -889,7 +889,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
     InitiatorFilterPolicy initiator_filter_policy = InitiatorFilterPolicy::USE_FILTER_ACCEPT_LIST;
     OwnAddressType own_address_type =
-        static_cast<OwnAddressType>(le_address_manager_->GetCurrentAddress().GetAddressType());
+        static_cast<OwnAddressType>(le_address_manager_->GetInitiatorAddress().GetAddressType());
     uint16_t conn_interval_min = os::GetSystemPropertyUint32(kPropertyMinConnInterval, kConnIntervalMin);
     uint16_t conn_interval_max = os::GetSystemPropertyUint32(kPropertyMaxConnInterval, kConnIntervalMax);
     uint16_t conn_latency = os::GetSystemPropertyUint32(kPropertyConnLatency, kConnLatency);
