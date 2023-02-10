@@ -485,6 +485,22 @@ struct L2CA_IsLinkEstablished {
   };
 };
 extern struct L2CA_IsLinkEstablished L2CA_IsLinkEstablished;
+// Name: L2CA_LeCreditDefault
+// Params:
+// Returns: uint16_t
+struct L2CA_LeCreditDefault {
+  std::function<uint16_t()> body{[]() { return 0; }};
+  uint16_t operator()() { return body(); };
+};
+extern struct L2CA_LeCreditDefault L2CA_LeCreditDefault;
+// Name: L2CA_LeCreditThreshold
+// Params:
+// Returns: uint16_t
+struct L2CA_LeCreditThreshold {
+  std::function<uint16_t()> body{[]() { return 0; }};
+  uint16_t operator()() { return body(); };
+};
+extern struct L2CA_LeCreditThreshold L2CA_LeCreditThreshold;
 
 }  // namespace stack_l2cap_api
 }  // namespace mock
