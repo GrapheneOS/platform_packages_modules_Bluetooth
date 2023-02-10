@@ -144,7 +144,10 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device if the device is currently
      * connected, otherwise it is not included.</li>
      * </ul>
+     *
+     * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -767,15 +770,20 @@ public final class BluetoothA2dp implements BluetoothProfile {
     }
 
     /**
-     * Retrieves the current codec configuration and the capabilities of the remote {@code device}.
+     * Gets the current codec status (configuration and capability).
      *
-     * @param device the remote Bluetooth device
-     * @return       the current codec status of the remote Bluetooth device
+     * @param device the remote Bluetooth device.
+     * @return the current codec status
+     * @hide
      */
+    @SystemApi
     @Nullable
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public BluetoothCodecStatus getCodecStatus(@NonNull BluetoothDevice device) {
         if (DBG) Log.d(TAG, "getCodecStatus(" + device + ")");
         verifyDeviceNotNull(device, "getCodecStatus");
@@ -798,24 +806,19 @@ public final class BluetoothA2dp implements BluetoothProfile {
     }
 
     /**
-     * Sets the preferred codec configuration of remote {@code device}.
+     * Sets the codec configuration preference.
      *
-     * The configuration must contain only selectable parameters in order to be used.
-     * See {@link #getCodecStatus} and {@link BluetoothCodecStatus#isCodecConfigSelectable}.
-     *
-     * <p>This method requires the calling app to be associated with Companion Device Manager (see
-     * {@link android.companion.CompanionDeviceManager#associate(AssociationRequest,
-     * android.companion.CompanionDeviceManager.Callback, Handler)}) and have the
-     * {@link android.Manifest.permission#BLUETOOTH_CONNECT} permission. Alternatively, if the
-     * caller has the {@link android.Manifest.permission#BLUETOOTH_PRIVILEGED} permission, they can
-     * bypass the Companion Device Manager association requirement.
-     *
-     * @param device      the remote Bluetooth device
-     * @param codecConfig the preferred codec configuration preference
+     * @param device the remote Bluetooth device.
+     * @param codecConfig the codec configuration preference
+     * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public void setCodecConfigPreference(@NonNull BluetoothDevice device,
                                          @NonNull BluetoothCodecConfig codecConfig) {
         if (DBG) Log.d(TAG, "setCodecConfigPreference(" + device + ")");
