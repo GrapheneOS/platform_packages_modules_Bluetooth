@@ -324,7 +324,6 @@ class LeAndroidHciAdvertisingAPITest : public LeAndroidHciAdvertisingManagerTest
         SubOcf::SET_PARAM,
         SubOcf::SET_SCAN_RESP,
         SubOcf::SET_DATA,
-        SubOcf::SET_RANDOM_ADDR,
         SubOcf::SET_ENABLE,
     };
     EXPECT_CALL(
@@ -522,7 +521,6 @@ TEST_F(LeAndroidHciAdvertisingManagerTest, create_advertiser_test) {
       SubOcf::SET_PARAM,
       SubOcf::SET_SCAN_RESP,
       SubOcf::SET_DATA,
-      SubOcf::SET_RANDOM_ADDR,
       SubOcf::SET_ENABLE,
   };
   EXPECT_CALL(
@@ -1337,6 +1335,34 @@ TEST_F(LeExtendedAdvertisingManagerTest, use_non_resolvable_address) {
   // checking that it is an NRPA (first two bits = 0b00)
   Address address = set_address_command.GetRandomAddress();
   EXPECT_EQ(address.data()[5] >> 6, 0b00);
+}
+
+TEST_F(LeExtendedAdvertisingManagerTest, use_public_address_type_if_public_address_policy) {
+  // arrange: use PUBLIC address policy
+  test_acl_manager_->SetAddressPolicy(LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
+
+  // act: start advertising set with RPA
+  le_advertising_manager_->ExtendedCreateAdvertiser(
+      0x00,
+      AdvertisingConfig{
+          .requested_advertiser_address_type = AdvertiserAddressType::RESOLVABLE_RANDOM,
+          .channel_map = 1,
+      },
+      scan_callback,
+      set_terminated_callback,
+      0,
+      0,
+      client_handler_);
+  auto command = LeAdvertisingCommandView::Create(test_hci_layer_->GetCommand());
+
+  // assert
+  ASSERT_TRUE(command.IsValid());
+  EXPECT_EQ(command.GetOpCode(), OpCode::LE_SET_EXTENDED_ADVERTISING_PARAMETERS);
+
+  auto set_parameters_command =
+      LeSetExtendedAdvertisingParametersView::Create(LeAdvertisingCommandView::Create(command));
+  ASSERT_TRUE(set_parameters_command.IsValid());
+  EXPECT_EQ(set_parameters_command.GetOwnAddressType(), OwnAddressType::PUBLIC_DEVICE_ADDRESS);
 }
 
 }  // namespace
