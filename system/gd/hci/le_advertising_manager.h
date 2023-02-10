@@ -35,6 +35,12 @@ class PeriodicAdvertisingParameters {
   enum AdvertisingProperty { INCLUDE_TX_POWER = 0x06 };
 };
 
+enum class AdvertiserAddressType {
+  PUBLIC,
+  RESOLVABLE_RANDOM,
+  NONRESOLVABLE_RANDOM,
+};
+
 class AdvertisingConfig {
  public:
   std::vector<GapData> advertisement;
@@ -42,7 +48,7 @@ class AdvertisingConfig {
   uint16_t interval_min;
   uint16_t interval_max;
   AdvertisingType advertising_type;
-  OwnAddressType own_address_type;
+  AdvertiserAddressType requested_advertiser_address_type;
   PeerAddressType peer_address_type;
   Address peer_address;
   uint8_t channel_map;
