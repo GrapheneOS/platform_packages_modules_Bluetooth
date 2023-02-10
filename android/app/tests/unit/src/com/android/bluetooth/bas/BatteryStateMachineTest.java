@@ -193,6 +193,26 @@ public class BatteryStateMachineTest {
     }
 
     @Test
+    public void testDisconnectBeforeConnected() {
+        allowConnection(true);
+        allowConnectGatt(true);
+
+        mBatteryStateMachine.sendMessage(BatteryStateMachine.CONNECT);
+
+        verify(mBatteryService, timeout(TIMEOUT_MS))
+                .handleConnectionStateChanged(any(BatteryStateMachine.class),
+                        eq(BluetoothProfile.STATE_DISCONNECTED),
+                        eq(BluetoothProfile.STATE_CONNECTING));
+
+        mBatteryStateMachine.sendMessage(BatteryStateMachine.DISCONNECT);
+
+        verify(mBatteryService, timeout(TIMEOUT_MS))
+                .handleConnectionStateChanged(any(BatteryStateMachine.class),
+                        eq(BluetoothProfile.STATE_CONNECTING),
+                        eq(BluetoothProfile.STATE_DISCONNECTED));
+    }
+
+    @Test
     public void testConnectedStateChanges() {
         allowConnection(true);
         allowConnectGatt(true);
