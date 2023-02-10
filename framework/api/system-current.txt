@@ -459,17 +459,7 @@ package android.bluetooth {
     method public int getFrameDuration();
     method public int getOctetsPerFrame();
     method @NonNull public byte[] getRawMetadata();
-    method public int getSamplingFrequency();
-    field public static final int CONFIG_FRAME_DURATION_10000 = 1; // 0x1
-    field public static final int CONFIG_FRAME_DURATION_7500 = 0; // 0x0
-    field public static final int CONFIG_FRAME_DURATION_UNKNOWN = -1; // 0xffffffff
-    field public static final int CONFIG_SAMPLING_FREQUENCY_16000 = 3; // 0x3
-    field public static final int CONFIG_SAMPLING_FREQUENCY_24000 = 5; // 0x5
-    field public static final int CONFIG_SAMPLING_FREQUENCY_32000 = 6; // 0x6
-    field public static final int CONFIG_SAMPLING_FREQUENCY_44100 = 7; // 0x7
-    field public static final int CONFIG_SAMPLING_FREQUENCY_48000 = 8; // 0x8
-    field public static final int CONFIG_SAMPLING_FREQUENCY_8000 = 1; // 0x1
-    field public static final int CONFIG_SAMPLING_FREQUENCY_UNKNOWN = 0; // 0x0
+    method public int getSampleRate();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeAudioCodecConfigMetadata> CREATOR;
   }
 
@@ -480,7 +470,7 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setAudioLocation(long);
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setFrameDuration(int);
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setOctetsPerFrame(int);
-    method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setSamplingFrequency(int);
+    method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setSampleRate(int);
   }
 
   public final class BluetoothLeAudioContentMetadata implements android.os.Parcelable {
