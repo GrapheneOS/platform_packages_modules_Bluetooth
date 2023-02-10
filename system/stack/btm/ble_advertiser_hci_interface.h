@@ -19,7 +19,7 @@
 #ifndef BLE_ADVERTISER_HCI_INTERFACE_H
 #define BLE_ADVERTISER_HCI_INTERFACE_H
 
-#include <base/callback.h>
+#include <base/functional/callback.h>
 
 #include <vector>
 

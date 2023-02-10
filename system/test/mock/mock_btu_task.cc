@@ -24,7 +24,7 @@
 
 extern std::map<std::string, int> mock_function_count_map;
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/logging.h>
 #include <base/run_loop.h>
 #include <base/threading/thread.h>

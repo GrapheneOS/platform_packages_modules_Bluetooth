@@ -19,7 +19,7 @@
 
 extern std::map<std::string, int> mock_function_count_map;
 
-#include <base/callback.h>
+#include <base/functional/callback.h>
 #include <stddef.h>
 
 #include "bt_target.h"

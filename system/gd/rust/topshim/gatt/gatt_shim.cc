@@ -16,8 +16,8 @@
 
 #include "gd/rust/topshim/gatt/gatt_shim.h"
 
-#include "base/bind.h"
-#include "base/callback.h"
+#include "base/functional/bind.h"
+#include "base/functional/callback.h"
 #include "rust/cxx.h"
 #include "src/profiles/gatt.rs.h"
 #include "types/raw_address.h"

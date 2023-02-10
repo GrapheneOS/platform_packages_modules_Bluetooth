@@ -22,6 +22,8 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
+import android.bluetooth.le.DistanceMeasurementParams;
+import android.bluetooth.le.IDistanceMeasurementCallback;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
@@ -67,7 +69,7 @@ oneway interface IBluetoothGatt {
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)")
     void startAdvertisingSet(in AdvertisingSetParameters parameters, in AdvertiseData advertiseData,
                                 in AdvertiseData scanResponse, in PeriodicAdvertisingParameters periodicParameters,
-                                in AdvertiseData periodicData, in int duration, in int maxExtAdvEvents,
+                                in AdvertiseData periodicData, in int duration, in int maxExtAdvEvents, in int gattServerIf,
                                 in IAdvertisingSetCallback callback, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)")
     void stopAdvertisingSet(in IAdvertisingSetCallback callback, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
@@ -182,4 +184,12 @@ oneway interface IBluetoothGatt {
                           in int contNumber, in int supervisionTimeout, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void subrateModeRequest(in int clientIf, in String address, in int subrateMode, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
+    void getSupportedDistanceMeasurementMethods(in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
+    void startDistanceMeasurement(in ParcelUuid uuid, in DistanceMeasurementParams params, in IDistanceMeasurementCallback callback,
+                            in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
+    void stopDistanceMeasurement(in ParcelUuid uuid, in BluetoothDevice device, in int method, in AttributionSource attributionSource,
+                            in SynchronousResultReceiver receiver);
 }

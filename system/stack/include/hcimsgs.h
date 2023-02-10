@@ -19,7 +19,7 @@
 #ifndef HCIMSGS_H
 #define HCIMSGS_H
 
-#include <base/callback_forward.h>
+#include <base/functional/callback_forward.h>
 
 #include <cstdint>
 

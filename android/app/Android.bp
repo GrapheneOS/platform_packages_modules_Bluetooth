@@ -143,6 +143,7 @@ android_app {
 
     jni_uses_platform_apis: true,
     libs: [
+        "app-compat-annotations",
         "framework-bluetooth-pre-jarjar",
         "framework-statsd.stubs.module_lib",
         "framework-tethering.stubs.module_lib",
@@ -161,6 +162,7 @@ android_app {
         "androidx.lifecycle_lifecycle-livedata",
         "androidx.room_room-runtime",
         "androidx.annotation_annotation",
+        "bluetooth.change-ids",
         "bluetooth.mapsapi",
         "bluetooth-protos-lite",
         "com.android.vcard",
@@ -198,6 +200,7 @@ android_app {
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth.audio-V2-ndk",
+        "bluetoothapk-platform-compat-config",
     ],
     apex_available: [
         "com.android.btservices",
@@ -210,6 +213,26 @@ android_app {
     },
     min_sdk_version: "Tiramisu",
     sdk_version: "module_current",
+}
+
+java_library {
+    name: "bluetooth.change-ids",
+    srcs: [
+        "src/com/android/bluetooth/ChangeIds.java"
+    ],
+    libs: [
+        "app-compat-annotations",
+    ],
+    apex_available: [
+        "com.android.btservices",
+    ],
+    min_sdk_version: "Tiramisu",
+    sdk_version: "module_current",
+}
+
+platform_compat_config {
+    name: "bluetoothapk-platform-compat-config",
+    src: ":bluetooth.change-ids",
 }
 
 java_library {

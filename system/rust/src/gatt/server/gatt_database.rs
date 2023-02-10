@@ -209,6 +209,11 @@ impl GattDatabase {
         Ok(())
     }
 
+    /// Clear all services
+    pub fn clear_all_services(&self) {
+        *self.schema.borrow_mut() = Default::default();
+    }
+
     /// Generate an impl AttDatabase from a backing GattDatabase
     pub fn get_att_database(self: &Rc<Self>) -> AttDatabaseImpl {
         AttDatabaseImpl { gatt_db: self.clone() }
@@ -469,5 +474,27 @@ mod test {
         });
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_clear_all_services() {
+        // arrange: db with some services
+        let gatt_db = Rc::new(GattDatabase::new());
+        gatt_db
+            .add_service_with_handles(GattServiceWithHandle {
+                handle: SERVICE_HANDLE,
+                type_: SERVICE_TYPE,
+                characteristics: vec![],
+            })
+            .unwrap();
+
+        // act: clear services
+        gatt_db.clear_all_services();
+
+        // assert: no attributes left, nothing readable
+        assert!(gatt_db.get_att_database().list_attributes().is_empty());
+        let read_result =
+            tokio_test::block_on(gatt_db.get_att_database().read_attribute(SERVICE_HANDLE));
+        assert!(read_result.is_err());
     }
 }

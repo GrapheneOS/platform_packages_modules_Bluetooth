@@ -24,7 +24,7 @@
 #include <sys/types.h>
 
 #include "avrcp/avrcp.h"
-#include "base/callback.h"
+#include "base/functional/callback.h"
 #include "bluetooth/uuid.h"
 #include "bt_transport.h"
 #include "raw_address.h"

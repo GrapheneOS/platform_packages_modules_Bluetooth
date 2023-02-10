@@ -21,7 +21,7 @@
  *  mockcify.pl ver 0.2
  */
 
-#include <base/callback.h>  // RepeatingCallback
+#include <base/functional/callback.h>  // RepeatingCallback
 #include <cstdint>
 #include <functional>
 #include <map>

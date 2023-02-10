@@ -19,7 +19,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 
 #include "abstract_message_loop.h"
 #include "osi/include/socket_utils/sockets.h"

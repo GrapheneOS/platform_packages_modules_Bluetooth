@@ -16,32 +16,28 @@
 
 package com.android.pandora
 
-import pandora.PANGrpc.PANImplBase
-import android.content.Context
-
-import android.net.TetheringManager.TETHERING_BLUETOOTH
-import android.net.TetheringManager
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
-
 import android.bluetooth.BluetoothPan
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
-
-import java.util.concurrent.Executors
-
+import android.content.Context
+import android.net.TetheringManager.TETHERING_BLUETOOTH
+import android.net.TetheringManager
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import io.grpc.stub.StreamObserver
-import pandora.PanProto.*
-import pandora.HostProto.*
+import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import pandora.HostProto.*
+import pandora.PANGrpc.PANImplBase
+import pandora.PanProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Pan(private val context: Context) : PANImplBase() {
@@ -59,7 +55,7 @@ class Pan(private val context: Context) : PANImplBase() {
   private val mStartTetheringCallback =
     object : TetheringManager.StartTetheringCallback {
       override fun onTetheringStarted() {
-        Log.e(TAG, "onTetheringStarted")
+        Log.i(TAG, "onTetheringStarted")
         mTetheringEnabled.value = true
       }
 
@@ -83,7 +79,7 @@ class Pan(private val context: Context) : PANImplBase() {
     responseObserver: StreamObserver<EnableTetheringResponse>
   ) {
     grpcUnary<EnableTetheringResponse>(mScope, responseObserver) {
-      Log.e(TAG, "enableTethering")
+      Log.i(TAG, "enableTethering")
       if (mTetheringEnabled.value != true) {
         mTetheringManager.startTethering(
           TETHERING_BLUETOOTH,
@@ -100,8 +96,8 @@ class Pan(private val context: Context) : PANImplBase() {
     responseObserver: StreamObserver<ConnectPanResponse>
   ) {
     grpcUnary<ConnectPanResponse>(mScope, responseObserver) {
-      Log.e(TAG, "connectPan")
-      val device = request.addr.toBluetoothDevice(bluetoothAdapter)
+      Log.i(TAG, "connectPan")
+      val device = request.address.toBluetoothDevice(bluetoothAdapter)
       bluetoothPan.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED)
       bluetoothPan.connect(device)
       ConnectPanResponse.newBuilder().setConnection(device.toConnection(TRANSPORT_BREDR)).build()

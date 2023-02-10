@@ -17,8 +17,8 @@
  ******************************************************************************/
 #include "btif/include/btif_profile_queue.h"
 
-#include <base/bind.h>
-#include <base/callback.h>
+#include <base/functional/bind.h>
+#include <base/functional/callback.h>
 #include <base/location.h>
 #include <gtest/gtest.h>
 

@@ -21,7 +21,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/logging.h>
 #include <vector>
 
@@ -190,17 +190,17 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              timeout_s * 100, jni_thread_wrapper(FROM_HERE, timeout_cb)));
   }
 
-  void StartAdvertisingSet(int reg_id, IdTxPowerStatusCallback cb,
-                           AdvertiseParameters params,
-                           std::vector<uint8_t> advertise_data,
-                           std::vector<uint8_t> scan_response_data,
-                           PeriodicAdvertisingParameters periodic_params,
-                           std::vector<uint8_t> periodic_data,
-                           uint16_t duration, uint8_t maxExtAdvEvents,
-                           IdStatusCallback timeout_cb) override {
+  uint8_t StartAdvertisingSet(int reg_id, IdTxPowerStatusCallback cb,
+                              AdvertiseParameters params,
+                              std::vector<uint8_t> advertise_data,
+                              std::vector<uint8_t> scan_response_data,
+                              PeriodicAdvertisingParameters periodic_params,
+                              std::vector<uint8_t> periodic_data,
+                              uint16_t duration, uint8_t maxExtAdvEvents,
+                              IdStatusCallback timeout_cb) override {
     VLOG(1) << __func__;
 
-    if (!BleAdvertisingManager::IsInitialized()) return;
+    if (!BleAdvertisingManager::IsInitialized()) return {};
     tBTM_BLE_ADV_PARAMS* p_params = new tBTM_BLE_ADV_PARAMS;
     parseParams(p_params, params);
 
@@ -215,6 +215,8 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              std::move(scan_response_data), base::Owned(p_periodic_params),
              std::move(periodic_data), duration, maxExtAdvEvents,
              jni_thread_wrapper(FROM_HERE, timeout_cb)));
+
+    return {};
   }
 
   void SetPeriodicAdvertisingParameters(

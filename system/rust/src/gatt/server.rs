@@ -112,9 +112,12 @@ impl GattModule {
     /// Close a GATT server
     pub fn close_gatt_server(&mut self, server_id: ServerId) -> Result<()> {
         let old = self.databases.remove(&server_id);
-        if old.is_none() {
+        let Some(old) = old else {
             bail!("GATT server {server_id:?} did not exist")
-        }
+        };
+
+        old.clear_all_services();
+
         Ok(())
     }
 }
