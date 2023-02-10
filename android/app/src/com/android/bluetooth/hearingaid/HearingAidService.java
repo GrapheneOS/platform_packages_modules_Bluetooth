@@ -773,13 +773,6 @@ public class HearingAidService extends ProfileService {
                 BluetoothProfile.HEARING_AID, mAdapterService.obfuscateAddress(device),
                 mAdapterService.getMetricId(device));
 
-        Intent intent = new Intent(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
-                | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        Utils.sendBroadcast(this, intent, BLUETOOTH_CONNECT,
-                Utils.getTempAllowlistBroadcastOptions());
-
         boolean stopAudio = device == null
                 && (getConnectionState(mPreviousAudioDevice) != BluetoothProfile.STATE_CONNECTED);
         if (DBG) {
