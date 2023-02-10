@@ -1317,7 +1317,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
       }
 
       {
-        bt_property_t properties[8];
+        bt_property_t properties[10];  // increase when properties are added
         bt_device_type_t dev_type;
         uint32_t num_properties = 0;
         bt_status_t status;
@@ -1379,6 +1379,24 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
                                    BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER,
                                    sizeof(bool),
                                    &(p_search_data->inq_res.include_rsi));
+        num_properties++;
+
+        // a non-negative value contains ASHA capability information
+        // because ASHA's capability is 1 byte, so int16_t is large enough
+        int16_t asha_capability = -1;
+
+        // contains ASHA truncated HiSyncId if asha_capability is non-negative
+        uint32_t asha_truncated_hi_sync_id = 0;
+
+        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                                   BT_PROPERTY_REMOTE_ASHA_CAPABILITY,
+                                   sizeof(int16_t), &asha_capability);
+        num_properties++;
+
+        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                                   BT_PROPERTY_REMOTE_ASHA_TRUNCATED_HISYNCID,
+                                   sizeof(uint32_t),
+                                   &asha_truncated_hi_sync_id);
         num_properties++;
 
         // Floss expects that EIR uuids are immediately reported when the
