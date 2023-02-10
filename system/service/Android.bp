@@ -151,7 +151,7 @@ cc_binary {
     target: {
         android: {
             shared_libs: [
-                "android.hardware.bluetooth.audio-V2-ndk",
+                "android.hardware.bluetooth.audio-V3-ndk",
             ],
         },
     },
@@ -243,7 +243,7 @@ cc_test {
                 "libbluetooth-binder-common",
             ],
             shared_libs: [
-                "android.hardware.bluetooth.audio-V2-ndk",
+                "android.hardware.bluetooth.audio-V3-ndk",
                 "android.system.suspend-V1-ndk",
                 "libbinder",
                 "libvndksupport",
