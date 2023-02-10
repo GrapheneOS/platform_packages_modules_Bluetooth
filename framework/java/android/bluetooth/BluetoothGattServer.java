@@ -455,6 +455,15 @@ public final class BluetoothGattServer implements BluetoothProfile {
     }
 
     /**
+     * Get the identifier of the BluetoothGattServer, or 0 if it is closed
+     *
+     * @hide
+     */
+    public int getServerIf() {
+        return mServerIf;
+    }
+
+    /**
      * Returns a characteristic with given handle.
      *
      * @hide

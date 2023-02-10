@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_btif_scanner"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/threading/thread.h>
 #include <errno.h>
 #include <hardware/bluetooth.h>

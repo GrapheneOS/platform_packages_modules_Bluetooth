@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#include <base/bind.h>
 #include <base/bind_helpers.h>
+#include <base/functional/bind.h>
 #include <base/location.h>
 #include <base/logging.h>
 #include <hardware/bluetooth.h>

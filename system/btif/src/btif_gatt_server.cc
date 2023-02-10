@@ -26,7 +26,7 @@
 
 #define LOG_TAG "bt_btif_gatt"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <errno.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>

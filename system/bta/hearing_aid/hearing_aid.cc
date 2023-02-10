@@ -20,8 +20,8 @@
 
 #define LOG_TAG "bluetooth"
 
-#include <base/bind.h>
-#include <base/callback.h>
+#include <base/functional/bind.h>
+#include <base/functional/callback.h>
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>  // HexEncode
 

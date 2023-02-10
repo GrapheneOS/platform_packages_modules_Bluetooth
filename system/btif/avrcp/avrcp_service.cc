@@ -16,7 +16,7 @@
 
 #include "avrcp_service.h"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 #include <base/logging.h>
 #include <base/task/cancelable_task_tracker.h>
 #include <base/threading/thread.h>

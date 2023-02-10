@@ -25,7 +25,7 @@
 #ifndef BTA_GATT_API_H
 #define BTA_GATT_API_H
 
-#include <base/callback_forward.h>
+#include <base/functional/callback_forward.h>
 #include <base/strings/stringprintf.h>
 
 #include <list>

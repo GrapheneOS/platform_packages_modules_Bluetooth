@@ -88,7 +88,7 @@ public class AdvertiseManagerTest {
         doNothing().when(mBinder).linkToDeath(any(), eq(0));
 
         mAdvertiseManager.startAdvertisingSet(parameters, advertiseData, scanResponse,
-                periodicParameters, periodicData, duration, maxExtAdvEvents, mCallback);
+                periodicParameters, periodicData, duration, maxExtAdvEvents, 0, mCallback);
 
         mAdvertiserId = AdvertiseManager.sTempRegistrationId;
     }

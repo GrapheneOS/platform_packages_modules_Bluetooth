@@ -18,7 +18,7 @@
 
 #include "hci/hci_layer.h"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 
 #include <algorithm>
 #include <cstdint>

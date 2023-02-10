@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base/callback.h"
+#include "base/functional/callback.h"
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "rust/cxx.h"
 

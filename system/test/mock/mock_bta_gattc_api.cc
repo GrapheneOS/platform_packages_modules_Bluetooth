@@ -19,14 +19,14 @@
  *   Functions generated:30
  */
 
-#include <base/callback.h>
+#include <base/functional/callback.h>
 
 #include <map>
 #include <string>
 
 extern std::map<std::string, int> mock_function_count_map;
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 
 #include <ios>
 #include <list>

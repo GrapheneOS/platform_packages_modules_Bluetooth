@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#include <base/bind.h>
-#include <base/callback.h>
+#include <base/functional/bind.h>
+#include <base/functional/callback.h>
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
 #include <hardware/bt_csis.h>
@@ -250,8 +250,9 @@ class CsisClientImpl : public CsisClient {
 
     auto device = FindDeviceByAddress(addr);
     if (device == nullptr) {
-      LOG(WARNING) << "Device not connected to profile"
-                   << ADDRESS_TO_LOGGABLE_STR(addr);
+      LOG_WARN("Device not connected to profile %s",
+               ADDRESS_TO_LOGGABLE_CSTR(addr));
+      callbacks_->OnConnectionState(addr, ConnectionState::DISCONNECTED);
       return;
     }
 
@@ -261,6 +262,7 @@ class CsisClientImpl : public CsisClient {
     } else {
       BTA_GATTC_CancelOpen(gatt_if_, addr, false);
       DoDisconnectCleanUp(device);
+      callbacks_->OnConnectionState(addr, ConnectionState::DISCONNECTED);
     }
   }
 

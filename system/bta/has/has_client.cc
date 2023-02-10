@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#include <base/bind.h>
-#include <base/callback.h>
+#include <base/functional/bind.h>
+#include <base/functional/callback.h>
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
 #include <hardware/bt_gatt_types.h>
@@ -233,7 +233,10 @@ class HasClientImpl : public HasClient {
         callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, addr);
       } else {
         /* Removes active connection. */
-        if (is_connecting_actively) BTA_GATTC_CancelOpen(gatt_if_, addr, true);
+        if (is_connecting_actively) {
+          BTA_GATTC_CancelOpen(gatt_if_, addr, true);
+          callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, addr);
+        }
       }
 
       /* Removes all registrations for connection. */
