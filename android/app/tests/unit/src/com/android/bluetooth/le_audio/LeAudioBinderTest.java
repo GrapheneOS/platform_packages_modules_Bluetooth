@@ -407,6 +407,9 @@ public class LeAudioBinderTest {
         BluetoothLeAudioContentMetadata metadata =
                 new BluetoothLeAudioContentMetadata.Builder().build();
 
+        BluetoothLeAudioContentMetadata publicBroadcastMetadata =
+                new BluetoothLeAudioContentMetadata.Builder().build();
+
         BluetoothLeBroadcastSubgroupSettings.Builder subgroupBuilder =
                 new BluetoothLeBroadcastSubgroupSettings.Builder()
                 .setPreferredQuality(TEST_QUALITY)
@@ -415,7 +418,8 @@ public class LeAudioBinderTest {
         BluetoothLeBroadcastSettings.Builder builder = new BluetoothLeBroadcastSettings.Builder()
                         .setPublicBroadcast(false)
                         .setBroadcastName(TEST_BROADCAST_NAME)
-                        .setBroadcastCode(null);
+                        .setBroadcastCode(null)
+                        .setPublicBroadcastMetadata(publicBroadcastMetadata);
         // builder expect at least one subgroup setting
         builder.addSubgroupSettings(subgroupBuilder.build());
         return builder.build();
