@@ -98,31 +98,3 @@ bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
   }
   return is_in_security_db;
 }
-
-void btm_ble_create_conn_cancel_complete(uint8_t* p) {
-  uint8_t status;
-  STREAM_TO_UINT8(status, p);
-  if (status != HCI_SUCCESS) {
-    // Only log errors to prevent log spam due to acceptlist connections
-    log_link_layer_connection_event(
-        nullptr, bluetooth::common::kUnknownConnectionHandle,
-        android::bluetooth::DIRECTION_OUTGOING,
-        android::bluetooth::LINK_TYPE_ACL,
-        android::bluetooth::hci::CMD_BLE_CREATE_CONN_CANCEL,
-        android::bluetooth::hci::EVT_COMMAND_COMPLETE,
-        android::bluetooth::hci::BLE_EVT_UNKNOWN, status,
-        android::bluetooth::hci::STATUS_UNKNOWN);
-  }
-
-  if (status == HCI_ERR_COMMAND_DISALLOWED) {
-    /* This is a sign that logic around keeping connection state is broken */
-    LOG(ERROR)
-        << "Attempt to cancel LE connection, when no connection is pending.";
-    if (btm_cb.ble_ctr_cb.is_connection_state_cancelled()) {
-      btm_cb.ble_ctr_cb.set_connection_state_idle();
-      btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
-      btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, nullptr,
-                                    static_cast<tHCI_STATUS>(status));
-    }
-  }
-}
