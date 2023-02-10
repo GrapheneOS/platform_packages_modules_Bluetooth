@@ -106,7 +106,7 @@ oneway interface IBluetoothGatt {
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void unregisterClient(in int clientIf, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
-    void clientConnect(in int clientIf, in String address, in boolean isDirect, in int transport, in boolean opportunistic, in int phy, in int connectionPriority, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    void clientConnect(in int clientIf, in String address, in boolean isDirect, in int transport, in boolean opportunistic, in int phy, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void clientDisconnect(in int clientIf, in String address, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")

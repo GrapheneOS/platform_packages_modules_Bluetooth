@@ -17,7 +17,6 @@
 package android.bluetooth;
 
 import android.annotation.NonNull;
-import android.bluetooth.BluetoothGatt.ConnectionPriority;
 
 /**
  * This abstract class is used to implement {@link BluetoothGatt} callbacks.
@@ -237,15 +236,6 @@ public abstract class BluetoothGattCallback {
      * @param status {@link BluetoothGatt#GATT_SUCCESS} if the MTU has been changed successfully
      */
     public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
-    }
-
-    /**
-     * Callback indicating the connection priority was updated.
-     *
-     * @param gatt GATT client involved
-     * @param priority the priority used by this connection
-     */
-    public void onPriorityChanged(@NonNull BluetoothGatt gatt, @ConnectionPriority int priority) {
     }
 
     /**
