@@ -22,10 +22,6 @@ import static android.Manifest.permission.BLUETOOTH_ADVERTISE;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.Manifest.permission.RENOUNCE_PERMISSIONS;
-import static android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_BALANCED;
-import static android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_CCC;
-import static android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_HIGH;
-import static android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER;
 import static android.bluetooth.BluetoothUtils.USER_HANDLE_NULL;
 import static android.content.pm.PackageManager.GET_PERMISSIONS;
 import static android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES;
@@ -85,9 +81,7 @@ import java.nio.charset.CharsetDecoder;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -1126,142 +1120,5 @@ public final class Utils {
             if (Objects.equals(element, value)) return true;
         }
         return false;
-    }
-
-    /**
-     * Wrapper class for GATT connection interval and latency values.
-     *
-     * Prevents calling {@link Context#getResources()} each time a connection interval
-     * update is required.
-     * Raw values are in multiples of 1.25.
-     */
-    public static class GattPriority {
-        private static final String TAG = "GattPriority";
-        private int mMinInterval;
-        private int mMaxInterval;
-        private int mLatency;
-
-        private static final Map<Integer, GattPriority> sPriorities = new HashMap();
-
-        /**
-         * Constructs GattPriority with the config parameters.
-         */
-        private GattPriority(Context context, int priority) {
-            switch (priority) {
-                case CONNECTION_PRIORITY_HIGH:
-                    mMinInterval = context.getResources().getInteger(
-                            R.integer.gatt_high_priority_min_interval);
-                    mMaxInterval = context.getResources().getInteger(
-                            R.integer.gatt_high_priority_max_interval);
-                    mLatency = context.getResources().getInteger(
-                            R.integer.gatt_high_priority_latency);
-                    break;
-
-                case CONNECTION_PRIORITY_CCC:
-                    mMinInterval = context.getResources().getInteger(
-                            R.integer.gatt_ccc_priority_min_interval);
-                    mMaxInterval = context.getResources().getInteger(
-                            R.integer.gatt_ccc_priority_max_interval);
-                    mLatency = context.getResources().getInteger(
-                            R.integer.gatt_ccc_priority_latency);
-                    break;
-
-                case CONNECTION_PRIORITY_LOW_POWER:
-                    mMinInterval = context.getResources().getInteger(
-                            R.integer.gatt_low_power_min_interval);
-                    mMaxInterval = context.getResources().getInteger(
-                            R.integer.gatt_low_power_max_interval);
-                    mLatency = context.getResources().getInteger(
-                            R.integer.gatt_low_power_latency);
-                    break;
-
-                default:
-                    // Using the values for CONNECTION_PRIORITY_BALANCED.
-                    mMinInterval = context.getResources().getInteger(
-                            R.integer.gatt_balanced_priority_min_interval);
-                    mMaxInterval = context.getResources().getInteger(
-                            R.integer.gatt_balanced_priority_max_interval);
-                    mLatency = context.getResources().getInteger(
-                            R.integer.gatt_balanced_priority_latency);
-                    break;
-            }
-        }
-
-        /**
-         * Retrieves the GattPriority corresponding to the priority parameter.
-         */
-        public static GattPriority getStaticPriority(Context context, int priority) {
-            if (priority < CONNECTION_PRIORITY_BALANCED
-                    || priority > CONNECTION_PRIORITY_CCC) {
-                Log.e(TAG, "getStaticPriority: priority: " + priority + "does not exist");
-                return null;
-            }
-            if (sPriorities.get(priority) == null) {
-                sPriorities.put(priority, new GattPriority(context, priority));
-            }
-            return sPriorities.get(priority);
-        }
-
-        /**
-         * Retrieves the BluetoothGatt priority with raw values.
-         */
-        public static int toPriority(Context context, int interval,
-                int latency) {
-            return toPriority(context, interval, interval, latency);
-        }
-
-        /**
-         * Retrieves the BluetoothGatt priority with raw values.
-         */
-        public static int toPriority(Context context, int minInterval,
-                int maxInterval, int latency) {
-
-            GattPriority priorityCcc =
-                    getStaticPriority(context, CONNECTION_PRIORITY_CCC);
-            if (minInterval >= priorityCcc.getMinInterval()
-                    && maxInterval <= priorityCcc.getMaxInterval()) {
-                return CONNECTION_PRIORITY_CCC;
-            }
-
-            GattPriority priorityBalanced =
-                    getStaticPriority(context, CONNECTION_PRIORITY_BALANCED);
-            if (minInterval >= priorityBalanced.getMinInterval()
-                    && maxInterval <= priorityBalanced.getMaxInterval()) {
-                return CONNECTION_PRIORITY_BALANCED;
-            }
-
-            GattPriority priorityHigh =
-                    getStaticPriority(context, CONNECTION_PRIORITY_HIGH);
-            if (minInterval >= priorityHigh.getMinInterval()
-                    && maxInterval <= priorityHigh.getMaxInterval()) {
-                return CONNECTION_PRIORITY_HIGH;
-            }
-
-            GattPriority priorityLow =
-                    getStaticPriority(context, CONNECTION_PRIORITY_LOW_POWER);
-            if (minInterval >= priorityLow.getMinInterval()
-                    && maxInterval <= priorityLow.getMaxInterval()) {
-                return CONNECTION_PRIORITY_LOW_POWER;
-            }
-
-            Log.w(TAG, "toPriority: Did not find any matching priority");
-            return CONNECTION_PRIORITY_BALANCED;
-        }
-
-        public int getMinInterval() {
-            return mMinInterval;
-        }
-
-        public int getMaxInterval() {
-            return mMaxInterval;
-        }
-
-        public int getIntervalWindow() {
-            return mMaxInterval - mMinInterval;
-        }
-
-        public int getLatency() {
-            return mLatency;
-        }
     }
 }
