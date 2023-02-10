@@ -769,9 +769,6 @@ public final class BluetoothA2dp implements BluetoothProfile {
     /**
      * Retrieves the current codec configuration and the capabilities of the remote {@code device}.
      *
-     * <p>This method also requires {@link android.Manifest.permission#BLUETOOTH_PRIVILEGED}
-     * permission in API level {@link android.os.Build.VERSION_CODES#TIRAMISU} or older.
-     *
      * @param device the remote Bluetooth device
      * @return       the current codec status of the remote Bluetooth device
      */
@@ -812,9 +809,6 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * {@link android.Manifest.permission#BLUETOOTH_CONNECT} permission. Alternatively, if the
      * caller has the {@link android.Manifest.permission#BLUETOOTH_PRIVILEGED} permission, they can
      * bypass the Companion Device Manager association requirement.
-     *
-     * <p>This method also requires {@link android.Manifest.permission#BLUETOOTH_PRIVILEGED}
-     * permission in API level {@link android.os.Build.VERSION_CODES#TIRAMISU} or older.
      *
      * @param device      the remote Bluetooth device
      * @param codecConfig the preferred codec configuration preference
