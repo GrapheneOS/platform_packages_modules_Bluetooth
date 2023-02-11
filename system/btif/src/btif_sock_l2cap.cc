@@ -349,6 +349,18 @@ static inline bool send_app_psm_or_chan_l(l2cap_socket* sock) {
                        sizeof(sock->channel)) == sizeof(sock->channel);
 }
 
+static bool send_app_err_code(l2cap_socket* sock, tBTA_JV_L2CAP_REASON code) {
+  LOG_INFO("Sending l2cap failure reason socket_id:%u reason code:%d", sock->id,
+           code);
+  int err_channel = 0;
+  if (sock_send_all(sock->our_fd, (const uint8_t*)&err_channel,
+                    sizeof(err_channel)) != sizeof(err_channel)) {
+    return false;
+  }
+  return sock_send_all(sock->our_fd, (const uint8_t*)&code, sizeof(code)) ==
+         sizeof(code);
+}
+
 static bool send_app_connect_signal(int fd, const RawAddress* addr, int channel,
                                     int status, int send_fd, uint16_t rx_mtu,
                                     uint16_t tx_mtu) {
@@ -552,6 +564,10 @@ static void on_l2cap_close(tBTA_JV_L2CAP_CLOSE* p_close, uint32_t id) {
       sock->server ? android::bluetooth::SOCKET_ROLE_LISTEN
                    : android::bluetooth::SOCKET_ROLE_CONNECTION);
 
+  if (!send_app_err_code(sock, p_close->reason)) {
+    LOG_ERROR("Unable to send l2cap socket to application socket_id:%u",
+              sock->id);
+  }
   // TODO: This does not seem to be called...
   // I'm not sure if this will be called for non-server sockets?
   if (sock->server) {

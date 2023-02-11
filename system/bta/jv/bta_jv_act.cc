@@ -39,6 +39,7 @@
 #include "stack/include/avdt_api.h"  // AVDT_PSM
 #include "stack/include/bt_hdr.h"
 #include "stack/include/gap_api.h"
+#include "stack/include/l2cdefs.h"
 #include "stack/include/port_api.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
@@ -146,6 +147,53 @@ static void bta_jv_free_sec_id(uint8_t* p_sec_id) {
     bta_jv_cb.sec_id[sec_id - BTA_JV_FIRST_SERVICE_ID] = 0;
   }
 }
+
+/*******************************************************************************
+ *
+ * Function     bta_jv_from_gap_l2cap_err
+ *
+ * Description  Convert the L2CAP error result propagated from GAP to BTA JV
+ *              L2CAP close reason code.
+ *
+ * Params      l2cap_result: The L2CAP result propagated from GAP error.
+ *
+ * Returns     Appropriate l2cap error reason value
+ *             or BTA_JV_L2CAP_REASON_UNKNOWN if reason isn't defined yet.
+ *
+ ******************************************************************************/
+static tBTA_JV_L2CAP_REASON bta_jv_from_gap_l2cap_err(uint16_t l2cap_result) {
+  switch (l2cap_result) {
+    case L2CAP_CONN_ACL_CONNECTION_FAILED:
+      return BTA_JV_L2CAP_REASON_ACL_FAILURE;
+    case L2CAP_CONN_CLIENT_SECURITY_CLEARANCE_FAILED:
+      return BTA_JV_L2CAP_REASON_CL_SEC_FAILURE;
+    case L2CAP_CONN_INSUFFICIENT_AUTHENTICATION:
+      return BTA_JV_L2CAP_REASON_INSUFFICIENT_AUTHENTICATION;
+    case L2CAP_CONN_INSUFFICIENT_AUTHORIZATION:
+      return BTA_JV_L2CAP_REASON_INSUFFICIENT_AUTHORIZATION;
+    case L2CAP_CONN_INSUFFICIENT_ENCRYP_KEY_SIZE:
+      return BTA_JV_L2CAP_REASON_INSUFFICIENT_ENCRYP_KEY_SIZE;
+    case L2CAP_CONN_INSUFFICIENT_ENCRYP:
+      return BTA_JV_L2CAP_REASON_INSUFFICIENT_ENCRYP;
+    case L2CAP_CONN_INVALID_SOURCE_CID:
+      return BTA_JV_L2CAP_REASON_INVALID_SOURCE_CID;
+    case L2CAP_CONN_SOURCE_CID_ALREADY_ALLOCATED:
+      return BTA_JV_L2CAP_REASON_SOURCE_CID_ALREADY_ALLOCATED;
+    case L2CAP_CONN_UNACCEPTABLE_PARAMETERS:
+      return BTA_JV_L2CAP_REASON_UNACCEPTABLE_PARAMETERS;
+    case L2CAP_CONN_INVALID_PARAMETERS:
+      return BTA_JV_L2CAP_REASON_INVALID_PARAMETERS;
+    case L2CAP_CONN_NO_RESOURCES:
+      return BTA_JV_L2CAP_REASON_NO_RESOURCES;
+    case L2CAP_CONN_NO_PSM:
+      return BTA_JV_L2CAP_REASON_NO_PSM;
+    case L2CAP_CONN_TIMEOUT:
+      return BTA_JV_L2CAP_REASON_TIMEOUT;
+    default:
+      return BTA_JV_L2CAP_REASON_UNKNOWN;
+  }
+}
+/******************************************************************************/
 
 /*******************************************************************************
  *
@@ -884,6 +932,7 @@ static void bta_jv_l2cap_client_cback(uint16_t gap_handle, uint16_t event,
       p_cb->state = BTA_JV_ST_NONE;
       bta_jv_free_sec_id(&p_cb->sec_id);
       evt_data.l2c_close.async = true;
+      evt_data.l2c_close.reason = bta_jv_from_gap_l2cap_err(data->l2cap_result);
       p_cb->p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt_data, p_cb->l2cap_socket_id);
       p_cb->p_cback = NULL;
       break;
