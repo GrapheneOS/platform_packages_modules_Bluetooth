@@ -331,27 +331,6 @@ void btif_dm_get_remote_services(const RawAddress remote_addr, int transport);
 
 /*******************************************************************************
  *
- * Function         btif_dut_mode_configure
- *
- * Description      Configure Test Mode - 'enable' to 1 puts the device in test
- *                  mode and 0 exits test mode
- *
- ******************************************************************************/
-void btif_dut_mode_configure(uint8_t enable);
-
-bool btif_is_dut_mode();
-
-/*******************************************************************************
- *
- * Function         btif_dut_mode_send
- *
- * Description     Sends a HCI Vendor specific command to the controller
- *
- ******************************************************************************/
-void btif_dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len);
-
-/*******************************************************************************
- *
  * Function         btif_dm_read_energy_info
  *
  * Description     Reads the energy info from controller

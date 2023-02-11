@@ -64,10 +64,6 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(const RawAddress* bd_addr,
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
-tBTM_STATUS BTM_EnableTestMode(void) {
-  mock_function_count_map[__func__]++;
-  return BTM_SUCCESS;
-}
 tBTM_STATUS BTM_ReadLocalDeviceName(const char** p_name) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;

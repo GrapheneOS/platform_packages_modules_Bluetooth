@@ -94,14 +94,6 @@ static void bt_jni_msg_ready(void* context);
 
 static tBTA_SERVICE_MASK btif_enabled_services = 0;
 
-/*
- * This variable should be set to 1, if the Bluedroid+BTIF libraries are to
- * function in DUT mode.
- *
- * To set this, the btif_init_bluetooth needs to be called with argument as 1
- */
-static uint8_t btif_dut_mode = 0;
-
 static MessageLoopThread jni_thread("bt_jni_thread");
 static base::AtExitManager* exit_manager;
 static uid_set_t* uid_set;
@@ -192,18 +184,6 @@ void post_on_bt_jni(BtJniClosure closure) {
 
 /*******************************************************************************
  *
- * Function         btif_is_dut_mode
- *
- * Description      checks if BTIF is currently in DUT mode
- *
- * Returns          true if test mode, otherwise false
- *
- ******************************************************************************/
-
-bool btif_is_dut_mode() { return btif_dut_mode == 1; }
-
-/*******************************************************************************
- *
  * Function         btif_is_enabled
  *
  * Description      checks if main adapter is fully enabled
@@ -213,8 +193,7 @@ bool btif_is_dut_mode() { return btif_dut_mode == 1; }
  ******************************************************************************/
 
 int btif_is_enabled(void) {
-  return ((!btif_is_dut_mode()) &&
-          (stack_manager_get_interface()->get_stack_is_running()));
+  return (stack_manager_get_interface()->get_stack_is_running());
 }
 
 void btif_init_ok() {
@@ -335,55 +314,8 @@ bt_status_t btif_cleanup_bluetooth() {
   jni_thread.ShutDown();
   delete exit_manager;
   exit_manager = nullptr;
-  btif_dut_mode = 0;
   LOG_INFO("%s finished", __func__);
   return BT_STATUS_SUCCESS;
-}
-
-/*******************************************************************************
- *
- * Function         btif_dut_mode_cback
- *
- * Description     Callback invoked on completion of vendor specific test mode
- *                 command
- *
- * Returns          None
- *
- ******************************************************************************/
-static void btif_dut_mode_cback(UNUSED_ATTR tBTM_VSC_CMPL* p) {
-  /* For now nothing to be done. */
-}
-
-/*******************************************************************************
- *
- * Function         btif_dut_mode_configure
- *
- * Description      Configure Test Mode - 'enable' to 1 puts the device in test
- *                       mode and 0 exits test mode
- *
- ******************************************************************************/
-void btif_dut_mode_configure(uint8_t enable) {
-  BTIF_TRACE_DEBUG("%s", __func__);
-
-  btif_dut_mode = enable;
-  if (enable == 1) {
-    BTA_EnableTestMode();
-  } else {
-    // Can't do in process reset anyways - just quit
-    kill(getpid(), SIGKILL);
-  }
-}
-
-/*******************************************************************************
- *
- * Function         btif_dut_mode_send
- *
- * Description     Sends a HCI Vendor specific command to the controller
- *
- ******************************************************************************/
-void btif_dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len) {
-  BTIF_TRACE_DEBUG("%s", __func__);
-  BTM_VendorSpecificCommand(opcode, len, buf, btif_dut_mode_cback);
 }
 
 /*****************************************************************************
