@@ -21,13 +21,10 @@
 
 #include <map>
 #include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
-#include <map>
 #include <vector>
 
 #include "bta/vc/devices.h"
+#include "test/common/mock_functions.h"
 
 using namespace bluetooth::vc::internal;
 

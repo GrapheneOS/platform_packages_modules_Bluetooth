@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/functional/bind.h>
 #include <base/location.h>
 #include <base/logging.h>
@@ -27,7 +22,9 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <base/time/time.h>
 #include <string.h>
 
+#include <map>
 #include <queue>
+#include <string>
 #include <vector>
 
 #include "bind_helpers.h"
@@ -38,6 +35,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/btm/ble_scanner_hci_interface.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

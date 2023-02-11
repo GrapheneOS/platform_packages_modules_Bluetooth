@@ -19,18 +19,17 @@
  *   Functions generated:11
  */
 
+#include <string.h>
+
 #include <map>
 #include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
-#include <string.h>
 
 #include "bta/include/bta_api.h"
 #include "stack/bnep/bnep_int.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bnep_api.h"
 #include "stack/include/bt_hdr.h"
+#include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 

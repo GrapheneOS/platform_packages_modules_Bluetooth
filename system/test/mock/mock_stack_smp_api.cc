@@ -19,12 +19,10 @@
  *   Functions generated:11
  */
 
+#include <string.h>
+
 #include <map>
 #include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
-#include <string.h>
 
 #include "bt_target.h"
 #include "main/shim/shim.h"
@@ -34,6 +32,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/smp_api.h"
 #include "stack/smp/smp_int.h"
 #include "stack_config.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 #include "utils/include/bt_utils.h"
 

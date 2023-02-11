@@ -19,15 +19,14 @@
  *   Functions generated:7
  */
 
+#include <string.h>
+
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
-#include <string.h>
-
 #include "stack/avrc/avrc_int.h"
 #include "stack/include/avrc_api.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
