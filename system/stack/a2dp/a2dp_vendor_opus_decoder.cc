@@ -100,6 +100,11 @@ bool a2dp_vendor_opus_decoder_decode_packet(BT_HDR* p_buf) {
     return false;
   }
 
+  if (p_buf->len == 0) {
+    LOG_ERROR("Empty packet");
+    return false;
+  }
+
   auto* pBuffer =
       reinterpret_cast<unsigned char*>(p_buf->data + p_buf->offset + 1);
   int32_t bufferSize = p_buf->len - 1;
