@@ -54,12 +54,6 @@ void BTA_dm_init() {
   bta_sys_cust_eir_register(bta_dm_eir_update_cust_uuid);
 }
 
-/** Enables bluetooth device under test mode */
-void BTA_EnableTestMode(void) {
-  do_in_main_thread(FROM_HERE,
-                    base::Bind(base::IgnoreResult(BTM_EnableTestMode)));
-}
-
 /** This function sets the Bluetooth name of local device */
 void BTA_DmSetDeviceName(const char* p_name) {
   std::vector<uint8_t> name(BD_NAME_LEN + 1);
