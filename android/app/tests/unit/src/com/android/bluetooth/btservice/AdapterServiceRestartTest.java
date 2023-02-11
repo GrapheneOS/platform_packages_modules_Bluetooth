@@ -131,7 +131,7 @@ public class AdapterServiceRestartTest {
     private int mForegroundUserId;
 
     private void configureEnabledProfiles() {
-        Log.e("AdapterServiceTest", "configureEnabledProfiles");
+        Log.e(TAG, "configureEnabledProfiles");
         Config.setProfileEnabled(PanService.class, true);
         Config.setProfileEnabled(BluetoothPbapService.class, true);
         Config.setProfileEnabled(GattService.class, true);
@@ -162,7 +162,7 @@ public class AdapterServiceRestartTest {
 
     @BeforeClass
     public static void setupClass() {
-        Log.e("AdapterServiceTest", "setupClass");
+        Log.e(TAG, "setupClass");
         // Bring native layer up and down to make sure config files are properly loaded
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -180,7 +180,7 @@ public class AdapterServiceRestartTest {
 
     @Before
     public void setUp() throws PackageManager.NameNotFoundException {
-        Log.e("AdapterServiceTest", "setUp()");
+        Log.e(TAG, "setUp()");
         MockitoAnnotations.initMocks(this);
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -309,7 +309,7 @@ public class AdapterServiceRestartTest {
 
     @After
     public void tearDown() {
-        Log.e("AdapterServiceTest", "tearDown()");
+        Log.e(TAG, "tearDown()");
 
         // Restores the foregroundUserId to the ID prior to the test setup
         Utils.setForegroundUserId(mForegroundUserId);
@@ -341,6 +341,11 @@ public class AdapterServiceRestartTest {
                 obfuscatedAddress1);
         tearDown();
         setUp();
+
+        byte[] metricsSalt2 = AdapterServiceTest.getMetricsSalt(mAdapterConfig);
+        Assert.assertNotNull(metricsSalt2);
+        Assert.assertArrayEquals(metricsSalt, metricsSalt2);
+
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
         byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
         Assert.assertTrue(obfuscatedAddress2.length > 0);
