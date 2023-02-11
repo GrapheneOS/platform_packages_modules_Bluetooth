@@ -19,12 +19,10 @@
  *   Functions generated:26
  */
 
+#include <string.h>
+
 #include <map>
 #include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
-#include <string.h>
 
 #include "avdt_api.h"
 #include "avdtc_api.h"
@@ -38,6 +36,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/btm/btm_sec.h"
 #include "stack/include/a2dp_codec_api.h"
 #include "stack/include/bt_hdr.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR

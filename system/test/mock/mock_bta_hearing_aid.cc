@@ -19,16 +19,15 @@
  *   Functions generated:8
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
 #include <base/strings/string_number_conversions.h>
+
 #include <cstdint>
+#include <map>
+#include <string>
 #include <vector>
+
 #include "bta/include/bta_gatt_api.h"
 #include "bta/include/bta_gatt_queue.h"
 #include "bta/include/bta_hearing_aid_api.h"
@@ -40,6 +39,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/acl_api_types.h"
 #include "stack/include/gap_api.h"
 #include "stack/include/l2c_api.h"
+#include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"

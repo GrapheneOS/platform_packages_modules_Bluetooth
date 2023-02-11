@@ -25,9 +25,8 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 #include "stack/gatt/gatt_int.h"
+#include "test/common/mock_functions.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 

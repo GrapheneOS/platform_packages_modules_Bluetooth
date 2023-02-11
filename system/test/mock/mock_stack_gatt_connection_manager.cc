@@ -19,11 +19,6 @@
  *   Functions generated:16
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/functional/bind.h>
 #include <base/functional/callback.h>
 #include <base/location.h>
@@ -32,6 +27,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <map>
 #include <memory>
 #include <set>
+#include <string>
 
 #include "main/shim/shim.h"
 #include "osi/include/alarm.h"
@@ -39,6 +35,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/btm/btm_ble_bgconn.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/l2c_api.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 using namespace connection_manager;
