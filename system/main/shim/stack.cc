@@ -37,6 +37,7 @@
 #include "gd/hci/le_advertising_manager.h"
 #include "gd/hci/le_scanning_manager.h"
 #include "gd/hci/msft.h"
+#include "gd/hci/remote_name_request.h"
 #include "gd/hci/vendor_specific_event_manager.h"
 #include "gd/l2cap/classic/l2cap_classic_module.h"
 #include "gd/l2cap/le/l2cap_le_module.h"
@@ -149,6 +150,9 @@ void Stack::StartEverything() {
   modules.add<hci::Controller>();
   modules.add<hci::acl_manager::AclScheduler>();
   modules.add<hci::AclManager>();
+  if (common::init_flags::gd_remote_name_request_is_enabled()) {
+    modules.add<hci::RemoteNameRequestModule>();
+  }
   if (common::init_flags::gd_l2cap_is_enabled()) {
     modules.add<l2cap::classic::L2capClassicModule>();
     modules.add<l2cap::le::L2capLeModule>();

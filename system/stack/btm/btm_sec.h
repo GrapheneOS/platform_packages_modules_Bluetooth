@@ -508,7 +508,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_sec_rmt_host_support_feat_evt(uint8_t* p);
+void btm_sec_rmt_host_support_feat_evt(const uint8_t* p);
 
 /*******************************************************************************
  *
