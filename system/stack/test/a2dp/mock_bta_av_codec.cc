@@ -17,10 +17,10 @@
 #include <map>
 #include <string>
 
-#include "service/common/bluetooth/a2dp_codec_config.h"
+#include "a2dp_codec_api.h"
 
 std::map<std::string, int> mock_function_count_map;
 
-bluetooth::A2dpCodecConfig* bta_av_get_a2dp_current_codec(void) {
+A2dpCodecConfig* bta_av_get_a2dp_current_codec(void) {
   return nullptr;
 }
