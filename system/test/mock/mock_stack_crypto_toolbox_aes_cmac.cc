@@ -22,10 +22,9 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 #include "stack/crypto_toolbox/aes.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

@@ -22,14 +22,13 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 #include "bt_target.h"
 #include "bta/av/bta_av_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR

@@ -17,12 +17,11 @@
 
 #include <map>
 #include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <vector>
+
 #include "bta/include/bta_groups.h"
 #include "btif/include/btif_storage.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

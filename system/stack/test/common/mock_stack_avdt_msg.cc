@@ -20,8 +20,7 @@
 
 #include "stack/avdt/avdt_int.h"
 #include "stack/include/bt_hdr.h"
-
-extern std::map<std::string, int> mock_function_count_map;
+#include "test/common/mock_functions.h"
 
 /*
  * TODO: This way of mocking is primitive.
