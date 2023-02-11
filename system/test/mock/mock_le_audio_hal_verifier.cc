@@ -16,9 +16,8 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 #include "bta/include/bta_le_audio_api.h"
+#include "test/common/mock_functions.h"
 
 bool LeAudioHalVerifier::SupportsLeAudio() {
   mock_function_count_map[__func__]++;

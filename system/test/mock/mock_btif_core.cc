@@ -19,11 +19,6 @@
  *   Functions generated:27
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/at_exit.h>
 #include <base/functional/bind.h>
 #include <base/threading/platform_thread.h>
@@ -31,6 +26,8 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <sys/types.h>
 
 #include <cstdint>
+#include <map>
+#include <string>
 
 #include "bt_target.h"
 #include "btif/include/btif_av.h"
@@ -50,6 +47,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_api.h"
 #include "test/common/jni_thread.h"
+#include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
