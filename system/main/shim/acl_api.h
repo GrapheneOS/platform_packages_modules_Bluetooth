@@ -60,5 +60,10 @@ void ACL_LeSubrateRequest(uint16_t hci_handle, uint16_t subrate_min,
                           uint16_t subrate_max, uint16_t max_latency,
                           uint16_t cont_num, uint16_t sup_tout);
 
+void ACL_RemoteNameRequest(const RawAddress& bd_addr,
+                           uint8_t page_scan_rep_mode, uint8_t page_scan_mode,
+                           uint16_t clock_offset);
+void ACL_CancelRemoteNameRequest(const RawAddress& addr);
+
 }  // namespace shim
 }  // namespace bluetooth
