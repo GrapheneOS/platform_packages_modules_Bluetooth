@@ -145,6 +145,18 @@ cc_library_static {
     min_sdk_version: "Tiramisu"
 }
 
+filegroup {
+  name: "LegacyStackSdp",
+  srcs: [
+        "sdp/sdp_api.cc",
+        "sdp/sdp_db.cc",
+        "sdp/sdp_discovery.cc",
+        "sdp/sdp_main.cc",
+        "sdp/sdp_server.cc",
+        "sdp/sdp_utils.cc",
+  ],
+}
+
 cc_library_static {
     name: "libbt-stack-core",
     defaults: ["fluoride_basic_defaults"],
@@ -183,6 +195,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     srcs: crypto_toolbox_srcs + [
+        ":LegacyStackSdp",
         "arbiter/acl_arbiter.cc",
         "btm/ble_advertiser_hci_interface.cc",
         "acl/acl.cc",
@@ -248,12 +261,6 @@ cc_library_static {
         "rfcomm/rfc_port_if.cc",
         "rfcomm/rfc_ts_frames.cc",
         "rfcomm/rfc_utils.cc",
-        "sdp/sdp_api.cc",
-        "sdp/sdp_db.cc",
-        "sdp/sdp_discovery.cc",
-        "sdp/sdp_main.cc",
-        "sdp/sdp_server.cc",
-        "sdp/sdp_utils.cc",
         "smp/p_256_curvepara.cc",
         "smp/p_256_ecc_pp.cc",
         "smp/p_256_multprecision.cc",
@@ -1533,12 +1540,7 @@ cc_test {
         ":TestMockOsi",
         ":TestMockStackL2cap",
         ":TestMockStackMetrics",
-        "sdp/sdp_api.cc",
-        "sdp/sdp_discovery.cc",
-        "sdp/sdp_server.cc",
-        "sdp/sdp_db.cc",
-        "sdp/sdp_main.cc",
-        "sdp/sdp_utils.cc",
+        ":LegacyStackSdp",
         "test/sdp/stack_sdp_test.cc",
         "test/sdp/stack_sdp_utils_test.cc",
     ],
