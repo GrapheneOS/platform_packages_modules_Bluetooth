@@ -34,6 +34,9 @@
 #include "osi/include/allocator.h"
 #include "osi/test/AllocationTestHarness.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/a2dp_aac_decoder.h"
+#include "stack/include/a2dp_aac_encoder.h"
+#include "stack/include/avdt_api.h"
 #include "test_util.h"
 #include "wav_reader.h"
 
@@ -45,6 +48,7 @@ constexpr char kDecodedDataCallbackIsInvoked[] =
     "A2DP decoded data callback is invoked.";
 constexpr char kEnqueueCallbackIsInvoked[] =
     "A2DP source enqueue callback is invoked.";
+constexpr uint16_t kPeerMtu = 1000;
 constexpr char kWavFile[] = "test/a2dp/raw_data/pcm1644s.wav";
 constexpr uint8_t kCodecInfoAacCapability[AVDT_CODEC_SIZE] = {
     8,           // Length (A2DP_AAC_INFO_LEN)
@@ -94,9 +98,11 @@ class A2dpAacTest : public AllocationTestHarness {
     if (encoder_iface_ != nullptr) {
       encoder_iface_->encoder_cleanup();
     }
+    A2DP_UnloadEncoderAac();
     if (decoder_iface_ != nullptr) {
       decoder_iface_->decoder_cleanup();
     }
+    A2DP_UnloadDecoderAac();
     AllocationTestHarness::TearDown();
   }
 
@@ -109,24 +115,26 @@ class A2dpAacTest : public AllocationTestHarness {
 
     // Create the codec capability - AAC Sink
     memset(codec_info_result, 0, sizeof(codec_info_result));
+    ASSERT_TRUE(A2DP_IsSinkCodecSupportedAac(kCodecInfoAacCapability));
     peer_codec_index = A2DP_SinkCodecIndex(kCodecInfoAacCapability);
     ASSERT_NE(peer_codec_index, BTAV_A2DP_CODEC_INDEX_MAX);
-    codec_config_ = a2dp_codecs_->findSinkCodecConfig(kCodecInfoAacCapability);
-    ASSERT_NE(codec_config_, nullptr);
+    sink_codec_config_ = a2dp_codecs_->findSinkCodecConfig(kCodecInfoAacCapability);
+    ASSERT_NE(sink_codec_config_, nullptr);
     ASSERT_TRUE(a2dp_codecs_->setSinkCodecConfig(kCodecInfoAacCapability, true,
                                                  codec_info_result, true));
-    ASSERT_EQ(a2dp_codecs_->getCurrentCodecConfig(), codec_config_);
+    ASSERT_TRUE(a2dp_codecs_->setPeerSinkCodecCapabilities(kCodecInfoAacCapability));
     // Compare the result codec with the local test codec info
     for (size_t i = 0; i < kCodecInfoAacCapability[0] + 1; i++) {
       ASSERT_EQ(codec_info_result[i], kCodecInfoAacCapability[i]);
     }
-    ASSERT_EQ(codec_config_->getAudioBitsPerSample(), 16);
+    ASSERT_TRUE(a2dp_codecs_->setCodecConfig(kCodecInfoAacCapability, true, codec_info_result, true));
+    source_codec_config_ = a2dp_codecs_->getCurrentCodecConfig();
   }
 
-  void InitializeEncoder(a2dp_source_read_callback_t read_cb,
+  void InitializeEncoder(bool peer_supports_3mbps, a2dp_source_read_callback_t read_cb,
                          a2dp_source_enqueue_callback_t enqueue_cb) {
-    tA2DP_ENCODER_INIT_PEER_PARAMS peer_params = {true, true, 1000};
-    encoder_iface_->encoder_init(&peer_params, codec_config_, read_cb,
+    tA2DP_ENCODER_INIT_PEER_PARAMS peer_params = {true, peer_supports_3mbps, kPeerMtu};
+    encoder_iface_->encoder_init(&peer_params, sink_codec_config_, read_cb,
                                  enqueue_cb);
   }
 
@@ -146,7 +154,8 @@ class A2dpAacTest : public AllocationTestHarness {
     packet->len = packet_length;
     return packet;
   }
-  A2dpCodecConfig* codec_config_;
+  A2dpCodecConfig* sink_codec_config_;
+  A2dpCodecConfig* source_codec_config_;
   A2dpCodecs* a2dp_codecs_;
   tA2DP_ENCODER_INTERFACE* encoder_iface_;
   tA2DP_DECODER_INTERFACE* decoder_iface_;
@@ -162,7 +171,7 @@ TEST_F(A2dpAacTest, a2dp_source_read_underflow) {
   auto enqueue_cb = +[](BT_HDR* p_buf, size_t frames_n, uint32_t len) -> bool {
     return false;
   };
-  InitializeEncoder(read_cb, enqueue_cb);
+  InitializeEncoder(true, read_cb, enqueue_cb);
   uint64_t timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
   usleep(kA2dpTickUs);
@@ -184,7 +193,7 @@ TEST_F(A2dpAacTest, a2dp_enqueue_cb_is_invoked) {
     osi_free(p_buf);
     return false;
   };
-  InitializeEncoder(read_cb, enqueue_cb);
+  InitializeEncoder(true, read_cb, enqueue_cb);
   uint64_t timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
   usleep(kA2dpTickUs);
@@ -221,7 +230,7 @@ TEST_F(A2dpAacTest, decoded_data_cb_invoked) {
     LOG_DEBUG("%s", kEnqueueCallbackIsInvoked);
     return false;
   };
-  InitializeEncoder(read_cb, enqueue_cb);
+  InitializeEncoder(true, read_cb, enqueue_cb);
 
   uint64_t timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
@@ -234,6 +243,64 @@ TEST_F(A2dpAacTest, decoded_data_cb_invoked) {
   decoder_iface_->decode_packet(packet);
   osi_free(packet);
   ASSERT_TRUE(log_capture_->Find(kDecodedDataCallbackIsInvoked));
+}
+
+TEST_F(A2dpAacTest, set_source_codec_config_works) {
+  uint8_t codec_info_result[AVDT_CODEC_SIZE];
+  ASSERT_TRUE(a2dp_codecs_->setCodecConfig(kCodecInfoAacCapability, true, codec_info_result, true));
+  ASSERT_TRUE(A2DP_CodecTypeEqualsAac(codec_info_result, kCodecInfoAacCapability));
+  ASSERT_TRUE(A2DP_CodecEqualsAac(codec_info_result, kCodecInfoAacCapability));
+  auto* codec_config = a2dp_codecs_->findSourceCodecConfig(kCodecInfoAacCapability);
+  ASSERT_EQ(codec_config->name(), source_codec_config_->name());
+  ASSERT_EQ(codec_config->getAudioBitsPerSample(), source_codec_config_->getAudioBitsPerSample());
+}
+
+TEST_F(A2dpAacTest, sink_supports_aac) {
+  ASSERT_TRUE(A2DP_IsSinkCodecSupportedAac(kCodecInfoAacCapability));
+}
+
+TEST_F(A2dpAacTest, effective_mtu_when_peer_supports_3mbps) {
+  auto read_cb = +[](uint8_t* p_buf, uint32_t len) -> uint32_t {
+    ASSERT(kAacReadSize == len);
+    return len;
+  };
+  auto enqueue_cb = +[](BT_HDR* p_buf, size_t frames_n, uint32_t len) -> bool {
+    osi_free(p_buf);
+    return false;
+  };
+  InitializeEncoder(true, read_cb, enqueue_cb);
+  ASSERT_EQ(a2dp_aac_get_effective_frame_size(), kPeerMtu);
+}
+
+TEST_F(A2dpAacTest, effective_mtu_when_peer_does_not_support_3mbps) {
+  auto read_cb = +[](uint8_t* p_buf, uint32_t len) -> uint32_t {
+    ASSERT(kAacReadSize == len);
+    return len;
+  };
+  auto enqueue_cb = +[](BT_HDR* p_buf, size_t frames_n, uint32_t len) -> bool {
+    osi_free(p_buf);
+    return false;
+  };
+  InitializeEncoder(false, read_cb, enqueue_cb);
+  ASSERT_EQ(a2dp_aac_get_effective_frame_size(), 663 /* MAX_2MBPS_AVDTP_MTU */);
+}
+
+TEST_F(A2dpAacTest, debug_codec_dump) {
+  log_capture_ = std::make_unique<LogCapture>();
+  a2dp_codecs_->debug_codec_dump(2);
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise,
+                                     "Current Codec: AAC");
+}
+
+TEST_F(A2dpAacTest, codec_info_string) {
+  auto codec_info = A2DP_CodecInfoString(kCodecInfoAacCapability);
+  ASSERT_NE(codec_info.find("samp_freq: 44100"), std::string::npos);
+  ASSERT_NE(codec_info.find("ch_mode: Stereo"), std::string::npos);
+}
+
+TEST_F(A2dpAacTest, get_track_bits_per_sample) {
+  ASSERT_EQ(A2DP_GetTrackBitsPerSampleAac(kCodecInfoAacCapability), 16);
 }
 
 }  // namespace testing
