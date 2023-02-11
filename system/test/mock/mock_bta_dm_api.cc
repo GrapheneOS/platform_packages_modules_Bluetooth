@@ -28,8 +28,6 @@
 
 #include "stack/include/bt_octets.h"
 
-extern std::map<std::string, int> mock_function_count_map;
-
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_bta_dm_api.h"
 #include "types/raw_address.h"

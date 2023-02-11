@@ -19,17 +19,16 @@
  *   Functions generated:7
  */
 
-#include <map>
-#include <memory>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/bind_helpers.h>
 #include <base/functional/bind.h>
 #include <hardware/bt_le_audio.h>
 
+#include <map>
+#include <memory>
+#include <string>
+
 #include "bta/include/bta_le_audio_api.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR

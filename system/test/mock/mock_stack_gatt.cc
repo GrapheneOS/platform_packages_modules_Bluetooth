@@ -25,13 +25,13 @@
 
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/gatt_api.h"
+#include "test/common/mock_functions.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
 using namespace bluetooth;
 
-extern std::map<std::string, int> mock_function_count_map;
 tGATT_HDL_LIST_ELEM elem;  // gatt_add_an_item_to_list
 
 #ifndef UNUSED_ATTR

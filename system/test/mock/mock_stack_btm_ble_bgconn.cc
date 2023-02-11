@@ -26,8 +26,6 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_stack_btm_ble_bgconn.h"
 #include "types/raw_address.h"

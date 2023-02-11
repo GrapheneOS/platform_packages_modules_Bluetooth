@@ -19,12 +19,9 @@
  *   Functions generated:21
  */
 
+#include <cstdint>
 #include <map>
 #include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
-#include <cstdint>
 
 #include "bt_target.h"
 #include "bta/av/bta_av_int.h"
@@ -39,6 +36,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/properties.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
+#include "test/common/mock_functions.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 

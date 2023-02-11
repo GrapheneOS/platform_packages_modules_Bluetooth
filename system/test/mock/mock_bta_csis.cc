@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/functional/bind.h>
 #include <hardware/bt_csis.h>
 
+#include <map>
+#include <string>
+
 #include "bta/include/bta_csis_api.h"
 #include "btif/include/btif_storage.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

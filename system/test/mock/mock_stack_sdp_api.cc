@@ -26,8 +26,6 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_stack_sdp_api.h"
 #include "types/bluetooth/uuid.h"
