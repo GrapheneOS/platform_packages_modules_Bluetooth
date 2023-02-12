@@ -42,7 +42,6 @@ struct btsnd_hcic_add_SCO_conn btsnd_hcic_add_SCO_conn;
 struct btsnd_hcic_auth_request btsnd_hcic_auth_request;
 struct btsnd_hcic_change_conn_type btsnd_hcic_change_conn_type;
 struct btsnd_hcic_change_name btsnd_hcic_change_name;
-struct btsnd_hcic_create_conn btsnd_hcic_create_conn;
 struct btsnd_hcic_create_conn_cancel btsnd_hcic_create_conn_cancel;
 struct btsnd_hcic_delete_stored_key btsnd_hcic_delete_stored_key;
 struct btsnd_hcic_enhanced_accept_synchronous_connection
@@ -51,27 +50,18 @@ struct btsnd_hcic_enhanced_flush btsnd_hcic_enhanced_flush;
 struct btsnd_hcic_enhanced_set_up_synchronous_connection
     btsnd_hcic_enhanced_set_up_synchronous_connection;
 struct btsnd_hcic_exit_park_mode btsnd_hcic_exit_park_mode;
-struct btsnd_hcic_exit_per_inq btsnd_hcic_exit_per_inq;
 struct btsnd_hcic_exit_sniff_mode btsnd_hcic_exit_sniff_mode;
-struct btsnd_hcic_get_link_quality btsnd_hcic_get_link_quality;
 struct btsnd_hcic_hold_mode btsnd_hcic_hold_mode;
-struct btsnd_hcic_host_num_xmitted_pkts btsnd_hcic_host_num_xmitted_pkts;
 struct btsnd_hcic_io_cap_req_neg_reply btsnd_hcic_io_cap_req_neg_reply;
 struct btsnd_hcic_io_cap_req_reply btsnd_hcic_io_cap_req_reply;
 struct btsnd_hcic_link_key_neg_reply btsnd_hcic_link_key_neg_reply;
 struct btsnd_hcic_link_key_req_reply btsnd_hcic_link_key_req_reply;
 struct btsnd_hcic_park_mode btsnd_hcic_park_mode;
-struct btsnd_hcic_per_inq_mode btsnd_hcic_per_inq_mode;
 struct btsnd_hcic_pin_code_neg_reply btsnd_hcic_pin_code_neg_reply;
 struct btsnd_hcic_pin_code_req_reply btsnd_hcic_pin_code_req_reply;
-struct btsnd_hcic_qos_setup btsnd_hcic_qos_setup;
-struct btsnd_hcic_read_automatic_flush_timeout
-    btsnd_hcic_read_automatic_flush_timeout;
 struct btsnd_hcic_read_encryption_key_size btsnd_hcic_read_encryption_key_size;
 struct btsnd_hcic_read_failed_contact_counter
     btsnd_hcic_read_failed_contact_counter;
-struct btsnd_hcic_read_inq_tx_power btsnd_hcic_read_inq_tx_power;
-struct btsnd_hcic_read_lmp_handle btsnd_hcic_read_lmp_handle;
 struct btsnd_hcic_read_local_oob_data btsnd_hcic_read_local_oob_data;
 struct btsnd_hcic_read_name btsnd_hcic_read_name;
 struct btsnd_hcic_read_rmt_clk_offset btsnd_hcic_read_rmt_clk_offset;
@@ -82,11 +72,9 @@ struct btsnd_hcic_reject_esco_conn btsnd_hcic_reject_esco_conn;
 struct btsnd_hcic_rem_oob_neg_reply btsnd_hcic_rem_oob_neg_reply;
 struct btsnd_hcic_rem_oob_reply btsnd_hcic_rem_oob_reply;
 struct btsnd_hcic_rmt_ext_features btsnd_hcic_rmt_ext_features;
-struct btsnd_hcic_rmt_features_req btsnd_hcic_rmt_features_req;
 struct btsnd_hcic_rmt_name_req btsnd_hcic_rmt_name_req;
 struct btsnd_hcic_rmt_name_req_cancel btsnd_hcic_rmt_name_req_cancel;
 struct btsnd_hcic_rmt_ver_req btsnd_hcic_rmt_ver_req;
-struct btsnd_hcic_send_keypress_notif btsnd_hcic_send_keypress_notif;
 struct btsnd_hcic_set_conn_encrypt btsnd_hcic_set_conn_encrypt;
 struct btsnd_hcic_setup_esco_conn btsnd_hcic_setup_esco_conn;
 struct btsnd_hcic_sniff_mode btsnd_hcic_sniff_mode;
@@ -152,14 +140,6 @@ void btsnd_hcic_change_name(BD_NAME name) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_change_name(name);
 }
-void btsnd_hcic_create_conn(const RawAddress& dest, uint16_t packet_types,
-                            uint8_t page_scan_rep_mode, uint8_t page_scan_mode,
-                            uint16_t clock_offset, uint8_t allow_switch) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_create_conn(
-      dest, packet_types, page_scan_rep_mode, page_scan_mode, clock_offset,
-      allow_switch);
-}
 void btsnd_hcic_create_conn_cancel(const RawAddress& dest) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_create_conn_cancel(dest);
@@ -191,29 +171,15 @@ void btsnd_hcic_exit_park_mode(uint16_t handle) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_exit_park_mode(handle);
 }
-void btsnd_hcic_exit_per_inq(void) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_exit_per_inq();
-}
 void btsnd_hcic_exit_sniff_mode(uint16_t handle) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_exit_sniff_mode(handle);
-}
-void btsnd_hcic_get_link_quality(uint16_t handle) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_get_link_quality(handle);
 }
 void btsnd_hcic_hold_mode(uint16_t handle, uint16_t max_hold_period,
                           uint16_t min_hold_period) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_hold_mode(handle, max_hold_period,
                                                        min_hold_period);
-}
-void btsnd_hcic_host_num_xmitted_pkts(uint8_t num_handles, uint16_t* handle,
-                                      uint16_t* num_pkts) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_host_num_xmitted_pkts(
-      num_handles, handle, num_pkts);
 }
 void btsnd_hcic_io_cap_req_neg_reply(const RawAddress& bd_addr,
                                      uint8_t err_code) {
@@ -243,13 +209,6 @@ void btsnd_hcic_park_mode(uint16_t handle, uint16_t beacon_max_interval,
   test::mock::stack_hcic_hcicmds::btsnd_hcic_park_mode(
       handle, beacon_max_interval, beacon_min_interval);
 }
-void btsnd_hcic_per_inq_mode(uint16_t max_period, uint16_t min_period,
-                             const LAP inq_lap, uint8_t duration,
-                             uint8_t response_cnt) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_per_inq_mode(
-      max_period, min_period, inq_lap, duration, response_cnt);
-}
 void btsnd_hcic_pin_code_neg_reply(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_pin_code_neg_reply(bd_addr);
@@ -260,18 +219,6 @@ void btsnd_hcic_pin_code_req_reply(const RawAddress& bd_addr,
   test::mock::stack_hcic_hcicmds::btsnd_hcic_pin_code_req_reply(
       bd_addr, pin_code_len, pin_code);
 }
-void btsnd_hcic_qos_setup(uint16_t handle, uint8_t flags, uint8_t service_type,
-                          uint32_t token_rate, uint32_t peak, uint32_t latency,
-                          uint32_t delay_var) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_qos_setup(
-      handle, flags, service_type, token_rate, peak, latency, delay_var);
-}
-void btsnd_hcic_read_automatic_flush_timeout(uint16_t handle) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_read_automatic_flush_timeout(
-      handle);
-}
 void btsnd_hcic_read_encryption_key_size(uint16_t handle, ReadEncKeySizeCb cb) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_read_encryption_key_size(
@@ -281,14 +228,6 @@ void btsnd_hcic_read_failed_contact_counter(uint16_t handle) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_read_failed_contact_counter(
       handle);
-}
-void btsnd_hcic_read_inq_tx_power(void) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_read_inq_tx_power();
-}
-void btsnd_hcic_read_lmp_handle(uint16_t handle) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_read_lmp_handle(handle);
 }
 void btsnd_hcic_read_local_oob_data(void) {
   mock_function_count_map[__func__]++;
@@ -331,10 +270,6 @@ void btsnd_hcic_rmt_ext_features(uint16_t handle, uint8_t page_num) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_rmt_ext_features(handle, page_num);
 }
-void btsnd_hcic_rmt_features_req(uint16_t handle) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_rmt_features_req(handle);
-}
 void btsnd_hcic_rmt_name_req(const RawAddress& bd_addr,
                              uint8_t page_scan_rep_mode, uint8_t page_scan_mode,
                              uint16_t clock_offset) {
@@ -349,11 +284,6 @@ void btsnd_hcic_rmt_name_req_cancel(const RawAddress& bd_addr) {
 void btsnd_hcic_rmt_ver_req(uint16_t handle) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hcicmds::btsnd_hcic_rmt_ver_req(handle);
-}
-void btsnd_hcic_send_keypress_notif(const RawAddress& bd_addr, uint8_t notif) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hcicmds::btsnd_hcic_send_keypress_notif(bd_addr,
-                                                                 notif);
 }
 void btsnd_hcic_set_conn_encrypt(uint16_t handle, bool enable) {
   mock_function_count_map[__func__]++;
