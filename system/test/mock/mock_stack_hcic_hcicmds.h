@@ -131,26 +131,6 @@ struct btsnd_hcic_change_name {
 };
 extern struct btsnd_hcic_change_name btsnd_hcic_change_name;
 
-// Name: btsnd_hcic_create_conn
-// Params: const RawAddress& dest, uint16_t packet_types, uint8_t
-// page_scan_rep_mode, uint8_t page_scan_mode, uint16_t clock_offset, uint8_t
-// allow_switch Return: void
-struct btsnd_hcic_create_conn {
-  std::function<void(const RawAddress& dest, uint16_t packet_types,
-                     uint8_t page_scan_rep_mode, uint8_t page_scan_mode,
-                     uint16_t clock_offset, uint8_t allow_switch)>
-      body{[](const RawAddress& dest, uint16_t packet_types,
-              uint8_t page_scan_rep_mode, uint8_t page_scan_mode,
-              uint16_t clock_offset, uint8_t allow_switch) {}};
-  void operator()(const RawAddress& dest, uint16_t packet_types,
-                  uint8_t page_scan_rep_mode, uint8_t page_scan_mode,
-                  uint16_t clock_offset, uint8_t allow_switch) {
-    body(dest, packet_types, page_scan_rep_mode, page_scan_mode, clock_offset,
-         allow_switch);
-  };
-};
-extern struct btsnd_hcic_create_conn btsnd_hcic_create_conn;
-
 // Name: btsnd_hcic_create_conn_cancel
 // Params: const RawAddress& dest
 // Return: void
@@ -220,15 +200,6 @@ struct btsnd_hcic_exit_park_mode {
 };
 extern struct btsnd_hcic_exit_park_mode btsnd_hcic_exit_park_mode;
 
-// Name: btsnd_hcic_exit_per_inq
-// Params: void
-// Return: void
-struct btsnd_hcic_exit_per_inq {
-  std::function<void(void)> body{[](void) {}};
-  void operator()(void) { body(); };
-};
-extern struct btsnd_hcic_exit_per_inq btsnd_hcic_exit_per_inq;
-
 // Name: btsnd_hcic_exit_sniff_mode
 // Params: uint16_t handle
 // Return: void
@@ -237,15 +208,6 @@ struct btsnd_hcic_exit_sniff_mode {
   void operator()(uint16_t handle) { body(handle); };
 };
 extern struct btsnd_hcic_exit_sniff_mode btsnd_hcic_exit_sniff_mode;
-
-// Name: btsnd_hcic_get_link_quality
-// Params: uint16_t handle
-// Return: void
-struct btsnd_hcic_get_link_quality {
-  std::function<void(uint16_t handle)> body{[](uint16_t handle) {}};
-  void operator()(uint16_t handle) { body(handle); };
-};
-extern struct btsnd_hcic_get_link_quality btsnd_hcic_get_link_quality;
 
 // Name: btsnd_hcic_hold_mode
 // Params: uint16_t handle, uint16_t max_hold_period, uint16_t min_hold_period
@@ -261,18 +223,6 @@ struct btsnd_hcic_hold_mode {
   };
 };
 extern struct btsnd_hcic_hold_mode btsnd_hcic_hold_mode;
-
-// Name: btsnd_hcic_host_num_xmitted_pkts
-// Params: uint8_t num_handles, uint16_t* handle, uint16_t* num_pkts
-// Return: void
-struct btsnd_hcic_host_num_xmitted_pkts {
-  std::function<void(uint8_t num_handles, uint16_t* handle, uint16_t* num_pkts)>
-      body{[](uint8_t num_handles, uint16_t* handle, uint16_t* num_pkts) {}};
-  void operator()(uint8_t num_handles, uint16_t* handle, uint16_t* num_pkts) {
-    body(num_handles, handle, num_pkts);
-  };
-};
-extern struct btsnd_hcic_host_num_xmitted_pkts btsnd_hcic_host_num_xmitted_pkts;
 
 // Name: btsnd_hcic_io_cap_req_neg_reply
 // Params: const RawAddress& bd_addr, uint8_t err_code
@@ -338,21 +288,6 @@ struct btsnd_hcic_park_mode {
 };
 extern struct btsnd_hcic_park_mode btsnd_hcic_park_mode;
 
-// Name: btsnd_hcic_per_inq_mode
-// Params: uint16_t max_period, uint16_t min_period, const LAP inq_lap, uint8_t
-// duration, uint8_t response_cnt Return: void
-struct btsnd_hcic_per_inq_mode {
-  std::function<void(uint16_t max_period, uint16_t min_period,
-                     const LAP inq_lap, uint8_t duration, uint8_t response_cnt)>
-      body{[](uint16_t max_period, uint16_t min_period, const LAP inq_lap,
-              uint8_t duration, uint8_t response_cnt) {}};
-  void operator()(uint16_t max_period, uint16_t min_period, const LAP inq_lap,
-                  uint8_t duration, uint8_t response_cnt) {
-    body(max_period, min_period, inq_lap, duration, response_cnt);
-  };
-};
-extern struct btsnd_hcic_per_inq_mode btsnd_hcic_per_inq_mode;
-
 // Name: btsnd_hcic_pin_code_neg_reply
 // Params: const RawAddress& bd_addr
 // Return: void
@@ -378,34 +313,6 @@ struct btsnd_hcic_pin_code_req_reply {
 };
 extern struct btsnd_hcic_pin_code_req_reply btsnd_hcic_pin_code_req_reply;
 
-// Name: btsnd_hcic_qos_setup
-// Params: uint16_t handle, uint8_t flags, uint8_t service_type, uint32_t
-// token_rate, uint32_t peak, uint32_t latency, uint32_t delay_var Return: void
-struct btsnd_hcic_qos_setup {
-  std::function<void(uint16_t handle, uint8_t flags, uint8_t service_type,
-                     uint32_t token_rate, uint32_t peak, uint32_t latency,
-                     uint32_t delay_var)>
-      body{[](uint16_t handle, uint8_t flags, uint8_t service_type,
-              uint32_t token_rate, uint32_t peak, uint32_t latency,
-              uint32_t delay_var) {}};
-  void operator()(uint16_t handle, uint8_t flags, uint8_t service_type,
-                  uint32_t token_rate, uint32_t peak, uint32_t latency,
-                  uint32_t delay_var) {
-    body(handle, flags, service_type, token_rate, peak, latency, delay_var);
-  };
-};
-extern struct btsnd_hcic_qos_setup btsnd_hcic_qos_setup;
-
-// Name: btsnd_hcic_read_automatic_flush_timeout
-// Params: uint16_t handle
-// Return: void
-struct btsnd_hcic_read_automatic_flush_timeout {
-  std::function<void(uint16_t handle)> body{[](uint16_t handle) {}};
-  void operator()(uint16_t handle) { body(handle); };
-};
-extern struct btsnd_hcic_read_automatic_flush_timeout
-    btsnd_hcic_read_automatic_flush_timeout;
-
 // Name: btsnd_hcic_read_encryption_key_size
 // Params: uint16_t handle, ReadEncKeySizeCb cb
 // Return: void
@@ -428,24 +335,6 @@ struct btsnd_hcic_read_failed_contact_counter {
 };
 extern struct btsnd_hcic_read_failed_contact_counter
     btsnd_hcic_read_failed_contact_counter;
-
-// Name: btsnd_hcic_read_inq_tx_power
-// Params: void
-// Return: void
-struct btsnd_hcic_read_inq_tx_power {
-  std::function<void(void)> body{[](void) {}};
-  void operator()(void) { body(); };
-};
-extern struct btsnd_hcic_read_inq_tx_power btsnd_hcic_read_inq_tx_power;
-
-// Name: btsnd_hcic_read_lmp_handle
-// Params: uint16_t handle
-// Return: void
-struct btsnd_hcic_read_lmp_handle {
-  std::function<void(uint16_t handle)> body{[](uint16_t handle) {}};
-  void operator()(uint16_t handle) { body(handle); };
-};
-extern struct btsnd_hcic_read_lmp_handle btsnd_hcic_read_lmp_handle;
 
 // Name: btsnd_hcic_read_local_oob_data
 // Params: void
@@ -554,15 +443,6 @@ struct btsnd_hcic_rmt_ext_features {
 };
 extern struct btsnd_hcic_rmt_ext_features btsnd_hcic_rmt_ext_features;
 
-// Name: btsnd_hcic_rmt_features_req
-// Params: uint16_t handle
-// Return: void
-struct btsnd_hcic_rmt_features_req {
-  std::function<void(uint16_t handle)> body{[](uint16_t handle) {}};
-  void operator()(uint16_t handle) { body(handle); };
-};
-extern struct btsnd_hcic_rmt_features_req btsnd_hcic_rmt_features_req;
-
 // Name: btsnd_hcic_rmt_name_req
 // Params: const RawAddress& bd_addr, uint8_t page_scan_rep_mode, uint8_t
 // page_scan_mode, uint16_t clock_offset Return: void
@@ -596,18 +476,6 @@ struct btsnd_hcic_rmt_ver_req {
   void operator()(uint16_t handle) { body(handle); };
 };
 extern struct btsnd_hcic_rmt_ver_req btsnd_hcic_rmt_ver_req;
-
-// Name: btsnd_hcic_send_keypress_notif
-// Params: const RawAddress& bd_addr, uint8_t notif
-// Return: void
-struct btsnd_hcic_send_keypress_notif {
-  std::function<void(const RawAddress& bd_addr, uint8_t notif)> body{
-      [](const RawAddress& bd_addr, uint8_t notif) {}};
-  void operator()(const RawAddress& bd_addr, uint8_t notif) {
-    body(bd_addr, notif);
-  };
-};
-extern struct btsnd_hcic_send_keypress_notif btsnd_hcic_send_keypress_notif;
 
 // Name: btsnd_hcic_set_conn_encrypt
 // Params: uint16_t handle, bool enable
