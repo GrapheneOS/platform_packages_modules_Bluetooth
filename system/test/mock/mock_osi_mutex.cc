@@ -52,11 +52,11 @@ namespace osi_mutex {}  // namespace osi_mutex
 
 // Mocked functions, if any
 void mutex_global_lock(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::osi_mutex::mutex_global_lock();
 }
 void mutex_global_unlock(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::osi_mutex::mutex_global_unlock();
 }
 // Mocked functions complete
