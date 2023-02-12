@@ -23,11 +23,10 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 #include "bta/include/bta_api.h"
 #include "include/hardware/bluetooth.h"
 #include "internal_include/bte_appl.h"
+#include "test/common/mock_functions.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
