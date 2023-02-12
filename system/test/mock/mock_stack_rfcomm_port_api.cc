@@ -19,13 +19,11 @@
  *   Functions generated:20
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/logging.h>
 #include <string.h>
+
+#include <map>
+#include <string>
 
 #include "l2c_api.h"
 #include "osi/include/log.h"
@@ -36,6 +34,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/btm_api_types.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR

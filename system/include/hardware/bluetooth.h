@@ -525,12 +525,6 @@ typedef enum { ASSOCIATE_JVM, DISASSOCIATE_JVM } bt_cb_thread_evt;
  * attach/detach to/from the JVM */
 typedef void (*callback_thread_event)(bt_cb_thread_evt evt);
 
-/** Bluetooth Test Mode Callback */
-/* Receive any HCI event from controller. Must be in DUT Mode for this callback
- * to be received */
-typedef void (*dut_mode_recv_callback)(uint16_t opcode, uint8_t* buf,
-                                       uint8_t len);
-
 /** Callback invoked when energy details are obtained */
 /* Ctrl_state-Current controller state-Active-1,scan-2,or idle-3 state as
  * defined by HCI spec. If the ctrl_state value is 0, it means the API call
@@ -565,7 +559,6 @@ typedef struct {
   le_address_associate_callback le_address_associate_cb;
   acl_state_changed_callback acl_state_changed_cb;
   callback_thread_event thread_evt_cb;
-  dut_mode_recv_callback dut_mode_recv_cb;
   energy_info_callback energy_info_cb;
   link_quality_report_callback link_quality_report_cb;
   generate_local_oob_data_callback generate_local_oob_data_cb;
@@ -717,14 +710,6 @@ typedef struct {
 
   /** Get Bluetooth profile interface */
   const void* (*get_profile_interface)(const char* profile_id);
-
-  /** Bluetooth Test Mode APIs - Bluetooth must be enabled for these APIs */
-  /* Configure DUT Mode - Use this mode to enter/exit DUT mode */
-  int (*dut_mode_configure)(uint8_t enable);
-
-  /* Send any test HCI (vendor-specific) command to the controller. Must be in
-   * DUT Mode */
-  int (*dut_mode_send)(uint16_t opcode, uint8_t* buf, uint8_t len);
 
   /** Sets the OS call-out functions that bluedroid needs for alarms and wake
    * locks. This should be called immediately after a successful |init|.

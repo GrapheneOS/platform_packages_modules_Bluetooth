@@ -367,28 +367,6 @@ public final class BluetoothGattServer implements BluetoothProfile {
                 }
 
                 /**
-                 * The connection priority has changed.
-                 * @hide
-                 */
-                @Override
-                public void onPriorityChanged(String address, int priority) {
-                    if (DBG) {
-                        Log.d(TAG,
-                                "onPriorityChanged() - " + "device=" + address
-                                        + ",interval=" + priority);
-                    }
-
-                    BluetoothDevice device = mAdapter.getRemoteDevice(address);
-                    if (device == null) return;
-
-                    try {
-                        mCallback.onPriorityChanged(device, priority);
-                    } catch (Exception ex) {
-                        Log.w(TAG, "Unhandled exception: " + ex);
-                    }
-                }
-
-                /**
                  * Callback invoked when the given connection is updated
                  * @hide
                  */

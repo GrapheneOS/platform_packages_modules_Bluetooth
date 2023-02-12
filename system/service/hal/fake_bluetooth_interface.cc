@@ -66,8 +66,6 @@ bt_interface_t fake_bt_iface = {
     nullptr, /* pin_reply */
     nullptr, /* ssp_reply */
     nullptr, /* get_profile_interface */
-    nullptr, /* dut_mode_configure */
-    nullptr, /* dut_more_send */
     nullptr, /* set_os_callouts */
     nullptr, /* read_energy_info */
     nullptr, /* dump */

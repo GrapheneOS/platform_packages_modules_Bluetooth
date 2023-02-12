@@ -19,15 +19,14 @@
  *   Functions generated:7
  */
 
+#include <cstdint>
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
-#include <cstdint>
 #include "bt_target.h"
 #include "bta/include/utl.h"
 #include "stack/include/btm_api.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

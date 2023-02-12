@@ -206,6 +206,13 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockStackRfcomm",
+    srcs: [
+      "mock/mock_stack_rfcomm*.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockStack",
     srcs: [
       "mock/mock_stack_*.cc",

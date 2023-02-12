@@ -221,23 +221,6 @@ void BTM_WritePageTimeout(uint16_t timeout);
 void BTM_WriteVoiceSettings(uint16_t settings);
 
 /*******************************************************************************
- *
- * Function         BTM_EnableTestMode
- *
- * Description      Send HCI the enable device under test command.
- *
- *                  Note: Controller can only be taken out of this mode by
- *                      resetting the controller.
- *
- * Returns
- *      BTM_SUCCESS         Command sent.
- *      BTM_NO_RESOURCES    If out of resources to send the command.
- *
- *
- ******************************************************************************/
-tBTM_STATUS BTM_EnableTestMode(void);
-
-/*******************************************************************************
  * DEVICE DISCOVERY FUNCTIONS - Inquiry, Remote Name, Discovery, Class of Device
  ******************************************************************************/
 

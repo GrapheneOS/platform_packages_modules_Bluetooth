@@ -120,25 +120,6 @@ struct is_restricted_mode {
   bool operator()() { return body(); };
 };
 extern struct is_restricted_mode is_restricted_mode;
-// Name: dut_mode_configure
-// Params: uint8_t enable
-// Returns: int
-struct dut_mode_configure {
-  std::function<int(uint8_t enable)> body{[](uint8_t enable) { return 0; }};
-  int operator()(uint8_t enable) { return body(enable); };
-};
-extern struct dut_mode_configure dut_mode_configure;
-// Name: dut_mode_send
-// Params: uint16_t opcode, uint8_t* buf, uint8_t len
-// Returns: int
-struct dut_mode_send {
-  std::function<int(uint16_t opcode, uint8_t* buf, uint8_t len)> body{
-      [](uint16_t opcode, uint8_t* buf, uint8_t len) { return 0; }};
-  int operator()(uint16_t opcode, uint8_t* buf, uint8_t len) {
-    return body(opcode, buf, len);
-  };
-};
-extern struct dut_mode_send dut_mode_send;
 // Name: get_common_criteria_config_compare_result
 // Params:
 // Returns: int

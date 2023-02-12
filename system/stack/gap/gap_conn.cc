@@ -691,9 +691,13 @@ static void gap_on_l2cap_error(uint16_t l2cap_cid, uint16_t result) {
   tGAP_CCB* p_ccb = gap_find_ccb_by_cid(l2cap_cid);
   if (p_ccb == nullptr) return;
 
+  /* Propagate the l2cap result upward */
+  tGAP_CB_DATA cb_data;
+  cb_data.l2cap_result = result;
+
   /* Tell the user if there is a callback */
   if (p_ccb->p_callback)
-    (*p_ccb->p_callback)(p_ccb->gap_handle, GAP_EVT_CONN_CLOSED, nullptr);
+    (*p_ccb->p_callback)(p_ccb->gap_handle, GAP_EVT_CONN_CLOSED, &cb_data);
 
   gap_release_ccb(p_ccb);
 }

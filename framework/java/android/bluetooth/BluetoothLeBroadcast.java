@@ -574,7 +574,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     }
 
     /**
-     * Start broadcasting to nearby devices using {@link BluetoothLeBroadcastSettings}
+     * Start broadcasting to nearby devices using {@link BluetoothLeBroadcastSettings}.
      *
      * @param broadcastSettings broadcast settings for this broadcast group
      * @throws IllegalStateException if callback was not registered

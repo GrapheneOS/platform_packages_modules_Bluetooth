@@ -19,20 +19,18 @@
  *   Functions generated:14
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/functional/bind.h>
 #include <base/location.h>
 
 #include <cstdint>
 #include <cstring>
+#include <map>
+#include <string>
 #include <vector>
 
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_ag_api.h"
+#include "test/common/mock_functions.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR

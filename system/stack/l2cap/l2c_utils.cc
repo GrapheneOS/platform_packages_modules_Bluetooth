@@ -3449,3 +3449,36 @@ void l2cu_check_channel_congestion(tL2C_CCB* p_ccb) {
  *
  ******************************************************************************/
 bool l2cu_is_ccb_active(tL2C_CCB* p_ccb) { return (p_ccb && p_ccb->in_use); }
+
+/*******************************************************************************
+ *
+ * Function         le_result_to_l2c_conn
+ *
+ * Description      Connvert an LE result code to L2C connection code.
+ *
+ * Returns          The converted L2C connection code.
+ *
+ ******************************************************************************/
+uint16_t le_result_to_l2c_conn(uint16_t result) {
+  tL2CAP_LE_RESULT_CODE code = (tL2CAP_LE_RESULT_CODE)result;
+  switch (code) {
+    case L2CAP_LE_RESULT_CONN_OK:
+    case L2CAP_LE_RESULT_NO_PSM:
+    case L2CAP_LE_RESULT_NO_RESOURCES:
+      return code;
+    case L2CAP_LE_RESULT_INSUFFICIENT_AUTHENTICATION:
+    case L2CAP_LE_RESULT_INSUFFICIENT_AUTHORIZATION:
+    case L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP_KEY_SIZE:
+    case L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP:
+    case L2CAP_LE_RESULT_INVALID_SOURCE_CID:
+    case L2CAP_LE_RESULT_SOURCE_CID_ALREADY_ALLOCATED:
+    case L2CAP_LE_RESULT_UNACCEPTABLE_PARAMETERS:
+    case L2CAP_LE_RESULT_INVALID_PARAMETERS:
+      return L2CAP_CONN_LE_MASK | code;
+    default:
+      if (result < L2CAP_CONN_LE_MASK) {
+        return L2CAP_CONN_LE_MASK | code;
+      }
+      return L2CAP_CONN_OTHER_ERROR;
+  }
+}
