@@ -23,9 +23,14 @@ namespace bluetooth {
 namespace os {
 
 uint32_t GetSystemPropertyUint32(const std::string& property, uint32_t default_value) {
+  return GetSystemPropertyUint32Base(property, default_value, 10);
+}
+
+uint32_t GetSystemPropertyUint32Base(
+    const std::string& property, uint32_t default_value, int base) {
   std::optional<std::string> result = GetSystemProperty(property);
   if (result.has_value()) {
-    return static_cast<uint32_t>(std::stoul(*result));
+    return static_cast<uint32_t>(std::stoul(*result, nullptr, base));
   }
   return default_value;
 }
