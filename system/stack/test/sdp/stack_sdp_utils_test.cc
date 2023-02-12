@@ -19,6 +19,7 @@
 #include <cstddef>
 
 #include "bt_types.h"
+#include "btif/include/btif_storage.h"
 #include "btif/include/stack_manager.h"
 #include "common/init_flags.h"
 #include "device/include/interop.h"
@@ -31,6 +32,15 @@
 #include "test/mock/mock_btif_config.h"
 #include "test/mock/mock_osi_properties.h"
 
+#define INVALID_LENGTH 5
+#define INVALID_UUID 0X1F
+#define UUID_HF_LSB 0X1E
+
+#define PROFILE_VERSION_POSITION 7
+#define SDP_PROFILE_DESC_LENGTH 8
+#define HFP_PROFILE_MINOR_VERSION_6 0x06
+#define HFP_PROFILE_MINOR_VERSION_7 0x07
+
 using testing::_;
 using testing::DoAll;
 using testing::Return;
@@ -39,6 +49,10 @@ using testing::SetArrayArgument;
 // Global trace level referred in the code under test
 uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
 
+bool sdp_dynamic_change_hfp_version(const tSDP_ATTRIBUTE* p_attr,
+                                    const RawAddress& remote_address);
+void hfp_fallback(bool& is_hfp_fallback, const tSDP_ATTRIBUTE* p_attr);
+
 const char* test_flags_feature_disabled[] = {
     "INIT_dynamic_avrcp_version_enhancement=false",
     nullptr,
@@ -46,6 +60,15 @@ const char* test_flags_feature_disabled[] = {
 
 const char* test_flags_feature_enabled[] = {
     "INIT_dynamic_avrcp_version_enhancement=true",
+    nullptr,
+};
+const char* hfp_test_flags_feature_disabled[] = {
+    "INIT_hfp_dynamic_version=false",
+    nullptr,
+};
+
+const char* hfp_test_flags_feature_enabled[] = {
+    "INIT_hfp_dynamic_version=true",
     nullptr,
 };
 
@@ -163,6 +186,21 @@ tSDP_ATTRIBUTE avrcp_feat_attr = {
     .type = 0,
 };
 
+uint8_t hfp_value[8] = {0, 0, 0, 0x11, 0x1E, 0, 0, 0};
+
+tSDP_ATTRIBUTE hfp_attr = {
+    .len = 0,
+    .value_ptr = (uint8_t*)(hfp_value),
+    .id = 0,
+    .type = 0,
+};
+
+void set_hfp_attr(uint32_t len, uint16_t id, uint16_t uuid) {
+  hfp_attr.value_ptr[4] = uuid;
+  hfp_attr.len = len;
+  hfp_attr.id = id;
+}
+
 void set_avrcp_feat_attr(uint32_t len, uint16_t id, uint16_t feature) {
   UINT16_TO_BE_FIELD(avrc_feat_value, feature);
   avrcp_feat_attr.len = len;
@@ -194,6 +232,7 @@ uint16_t get_avrc_target_feature(tSDP_ATTRIBUTE* p_attr) {
 class StackSdpUtilsTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    bluetooth::common::InitFlags::Load(hfp_test_flags_feature_disabled);
     bluetooth::common::InitFlags::Load(test_flags_feature_disabled);
     GetInterfaceToProfiles()->profileSpecific_HACK->AVRC_GetProfileVersion =
         AVRC_GetProfileVersion;
@@ -214,6 +253,8 @@ class StackSdpUtilsTest : public ::testing::Test {
     set_avrcp_attr(8, ATTR_ID_BT_PROFILE_DESC_LIST,
                    UUID_SERVCLASS_AV_REMOTE_CONTROL, AVRC_REV_1_5);
     set_avrcp_feat_attr(2, ATTR_ID_SUPPORTED_FEATURES, AVRCP_SUPF_TG_1_5);
+    set_hfp_attr(SDP_PROFILE_DESC_LENGTH, ATTR_ID_BT_PROFILE_DESC_LIST,
+                 UUID_HF_LSB);
   }
 
   void TearDown() override {
@@ -513,4 +554,62 @@ TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_feature_device_versoin_1_6) {
                                 get_avrc_target_version(&avrcp_attr));
   ASSERT_EQ(get_avrc_target_feature(&avrcp_feat_attr),
             AVRCP_SUPF_TG_1_6 | AVRC_SUPF_TG_PLAYER_COVER_ART);
+}
+
+TEST_F(StackSdpUtilsTest, dynamic_hfp_version_with_invalid_length) {
+  bluetooth::common::InitFlags::Load(hfp_test_flags_feature_enabled);
+  RawAddress bdaddr(RawAddress::kEmpty);
+  set_hfp_attr(INVALID_LENGTH, ATTR_ID_BT_PROFILE_DESC_LIST, UUID_HF_LSB);
+  ASSERT_EQ(sdp_dynamic_change_hfp_version(&hfp_attr, bdaddr), false);
+}
+
+TEST_F(StackSdpUtilsTest, dynamic_hfp_version_with_invalid_UUID) {
+  bluetooth::common::InitFlags::Load(hfp_test_flags_feature_enabled);
+  RawAddress bdaddr(RawAddress::kEmpty);
+  set_hfp_attr(SDP_PROFILE_DESC_LENGTH, ATTR_ID_BT_PROFILE_DESC_LIST,
+               INVALID_UUID);
+  ASSERT_EQ(sdp_dynamic_change_hfp_version(&hfp_attr, bdaddr), false);
+}
+
+TEST_F(StackSdpUtilsTest, check_HFP_version_change_fail) {
+  bluetooth::common::InitFlags::Load(hfp_test_flags_feature_enabled);
+  RawAddress bdaddr(RawAddress::kEmpty);
+  set_hfp_attr(SDP_PROFILE_DESC_LENGTH, ATTR_ID_BT_PROFILE_DESC_LIST,
+               UUID_HF_LSB);
+  test::mock::osi_properties::osi_property_get_bool.body =
+      [](const char* key, bool default_value) { return false; };
+  EXPECT_CALL(*localIopMock,
+              InteropMatchAddrOrName(INTEROP_HFP_1_7_ALLOWLIST, &bdaddr,
+                                     &btif_storage_get_remote_device_property))
+      .WillOnce(Return(false));
+  ASSERT_EQ(sdp_dynamic_change_hfp_version(&hfp_attr, bdaddr), false);
+}
+
+TEST_F(StackSdpUtilsTest, check_HFP_version_change_success) {
+  bluetooth::common::InitFlags::Load(hfp_test_flags_feature_enabled);
+  RawAddress bdaddr(RawAddress::kEmpty);
+  set_hfp_attr(SDP_PROFILE_DESC_LENGTH, ATTR_ID_BT_PROFILE_DESC_LIST,
+               UUID_HF_LSB);
+  EXPECT_CALL(*localIopMock,
+              InteropMatchAddrOrName(INTEROP_HFP_1_7_ALLOWLIST, &bdaddr,
+                                     &btif_storage_get_remote_device_property))
+      .WillOnce(Return(true));
+  ASSERT_EQ(sdp_dynamic_change_hfp_version(&hfp_attr, bdaddr), true);
+}
+
+TEST_F(StackSdpUtilsTest, check_HFP_version_fallback_success) {
+  bluetooth::common::InitFlags::Load(hfp_test_flags_feature_enabled);
+  RawAddress bdaddr(RawAddress::kEmpty);
+  set_hfp_attr(SDP_PROFILE_DESC_LENGTH, ATTR_ID_BT_PROFILE_DESC_LIST,
+               UUID_HF_LSB);
+  EXPECT_CALL(*localIopMock,
+              InteropMatchAddrOrName(INTEROP_HFP_1_7_ALLOWLIST, &bdaddr,
+                                     &btif_storage_get_remote_device_property))
+      .WillOnce(Return(true));
+  bool is_hfp_fallback = sdp_dynamic_change_hfp_version(&hfp_attr, bdaddr);
+  ASSERT_EQ(hfp_attr.value_ptr[PROFILE_VERSION_POSITION],
+            HFP_PROFILE_MINOR_VERSION_7);
+  hfp_fallback(is_hfp_fallback, &hfp_attr);
+  ASSERT_EQ(hfp_attr.value_ptr[PROFILE_VERSION_POSITION],
+            HFP_PROFILE_MINOR_VERSION_6);
 }
