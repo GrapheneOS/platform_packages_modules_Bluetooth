@@ -32,4 +32,4 @@
 #define UNUSED_ATTR
 #endif
 
-void bluetooth::shim::ACL_Shutdown() { mock_function_count_map[__func__]++; }
+void bluetooth::shim::ACL_Shutdown() { inc_func_call_count(__func__); }
