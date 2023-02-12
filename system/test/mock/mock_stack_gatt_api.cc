@@ -100,128 +100,128 @@ bool is_active_service::return_value = false;
 
 // Mocked functions, if any
 tGATT_STATUS GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTC_ConfigureMTU(conn_id, mtu);
 }
 tGATT_STATUS GATTC_Discover(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
                             uint16_t start_handle, uint16_t end_handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTC_Discover(conn_id, disc_type,
                                                     start_handle, end_handle);
 }
 tGATT_STATUS GATTC_ExecuteWrite(uint16_t conn_id, bool is_execute) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTC_ExecuteWrite(conn_id, is_execute);
 }
 tGATT_STATUS GATTC_Read(uint16_t conn_id, tGATT_READ_TYPE type,
                         tGATT_READ_PARAM* p_read) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTC_Read(conn_id, type, p_read);
 }
 tGATT_STATUS GATTC_SendHandleValueConfirm(uint16_t conn_id, uint16_t cid) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTC_SendHandleValueConfirm(conn_id, cid);
 }
 tGATT_STATUS GATTC_Write(uint16_t conn_id, tGATT_WRITE_TYPE type,
                          tGATT_VALUE* p_write) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTC_Write(conn_id, type, p_write);
 }
 tGATT_STATUS GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
                               int count) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTS_AddService(gatt_if, service, count);
 }
 bool GATTS_DeleteService(tGATT_IF gatt_if, Uuid* p_svc_uuid,
                          uint16_t svc_inst) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTS_DeleteService(gatt_if, p_svc_uuid,
                                                          svc_inst);
 }
 tGATT_STATUS GATTS_HandleValueIndication(uint16_t conn_id, uint16_t attr_handle,
                                          uint16_t val_len, uint8_t* p_val) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTS_HandleValueIndication(
       conn_id, attr_handle, val_len, p_val);
 }
 tGATT_STATUS GATTS_HandleValueNotification(uint16_t conn_id,
                                            uint16_t attr_handle,
                                            uint16_t val_len, uint8_t* p_val) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTS_HandleValueNotification(
       conn_id, attr_handle, val_len, p_val);
 }
 bool GATTS_NVRegister(tGATT_APPL_INFO* p_cb_info) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTS_NVRegister(p_cb_info);
 }
 tGATT_STATUS GATTS_SendRsp(uint16_t conn_id, uint32_t trans_id,
                            tGATT_STATUS status, tGATTS_RSP* p_msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTS_SendRsp(conn_id, trans_id, status,
                                                    p_msg);
 }
 void GATTS_StopService(uint16_t service_handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_gatt_api::GATTS_StopService(service_handle);
 }
 bool GATT_CancelConnect(tGATT_IF gatt_if, const RawAddress& bd_addr,
                         bool is_direct) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATT_CancelConnect(gatt_if, bd_addr,
                                                         is_direct);
 }
 bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
                   tBTM_BLE_CONN_TYPE connection_type, tBT_TRANSPORT transport,
                   bool opportunistic, uint8_t initiating_phys) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATT_Connect(
       gatt_if, bd_addr, connection_type, transport, opportunistic,
       initiating_phys);
 }
 void GATT_Deregister(tGATT_IF gatt_if) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_gatt_api::GATT_Deregister(gatt_if);
 }
 tGATT_STATUS GATT_Disconnect(uint16_t conn_id) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATT_Disconnect(conn_id);
 }
 bool GATT_GetConnIdIfConnected(tGATT_IF gatt_if, const RawAddress& bd_addr,
                                uint16_t* p_conn_id, tBT_TRANSPORT transport) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATT_GetConnIdIfConnected(
       gatt_if, bd_addr, p_conn_id, transport);
 }
 bool GATT_GetConnectionInfor(uint16_t conn_id, tGATT_IF* p_gatt_if,
                              RawAddress& bd_addr, tBT_TRANSPORT* p_transport) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATT_GetConnectionInfor(
       conn_id, p_gatt_if, bd_addr, p_transport);
 }
 tGATT_IF GATT_Register(const Uuid& app_uuid128, const std::string& name,
                        tGATT_CBACK* p_cb_info, bool eatt_support) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATT_Register(app_uuid128, name, p_cb_info,
                                                    eatt_support);
 }
 void GATT_SetIdleTimeout(const RawAddress& bd_addr, uint16_t idle_tout,
                          tBT_TRANSPORT transport, bool is_active) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_gatt_api::GATT_SetIdleTimeout(bd_addr, idle_tout, transport,
                                                   is_active);
 }
 void GATT_StartIf(tGATT_IF gatt_if) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_gatt_api::GATT_StartIf(gatt_if);
 }
 // tGATT_HDL_LIST_ELEM& gatt_add_an_item_to_list(uint16_t s_handle) {
-//   mock_function_count_map[__func__]++;
+//   inc_func_call_count(__func__);
 //   return test::mock::stack_gatt_api::gatt_add_an_item_to_list(s_handle);
 // }
 bool is_active_service(const Uuid& app_uuid128, Uuid* p_svc_uuid,
                        uint16_t start_handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::is_active_service(app_uuid128, p_svc_uuid,
                                                        start_handle);
 }
@@ -230,7 +230,7 @@ bool is_active_service(const Uuid& app_uuid128, Uuid* p_svc_uuid,
 bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
                   tBTM_BLE_CONN_TYPE connection_type, tBT_TRANSPORT transport,
                   bool opportunistic) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATT_Connect(
       gatt_if, bd_addr, connection_type, transport, opportunistic, 0);
 }

@@ -44,22 +44,22 @@ struct cmd_with_cb_data {
 };
 
 void btu_hcif_log_event_metrics(uint8_t evt_code, uint8_t* p_event) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, const BT_HDR* p_buf) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btu_hcif_send_cmd_with_cb(const base::Location& posted_from,
                                uint16_t opcode, uint8_t* params,
                                uint8_t params_len, hci_cmd_cb cb) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void cmd_with_cb_data_cleanup(cmd_with_cb_data* cb_wrapper) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void cmd_with_cb_data_init(cmd_with_cb_data* cb_wrapper) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }

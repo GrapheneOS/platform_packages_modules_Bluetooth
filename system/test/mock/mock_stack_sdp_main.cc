@@ -39,12 +39,12 @@
 #endif
 
 tCONN_CB* sdp_conn_originate(const RawAddress& p_bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
-void sdp_conn_timer_timeout(void* data) { mock_function_count_map[__func__]++; }
+void sdp_conn_timer_timeout(void* data) { inc_func_call_count(__func__); }
 void sdp_disconnect(tCONN_CB* p_ccb, uint16_t reason) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void sdp_free(void) { mock_function_count_map[__func__]++; }
-void sdp_init(void) { mock_function_count_map[__func__]++; }
+void sdp_free(void) { inc_func_call_count(__func__); }
+void sdp_init(void) { inc_func_call_count(__func__); }
