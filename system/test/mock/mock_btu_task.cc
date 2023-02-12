@@ -19,11 +19,6 @@
  *   Functions generated:7
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/functional/bind.h>
 #include <base/logging.h>
 #include <base/run_loop.h>
@@ -32,6 +27,9 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <map>
+#include <string>
 
 #include "bta/sys/bta_sys.h"
 #include "btcore/include/module.h"
@@ -42,6 +40,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/osi.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
