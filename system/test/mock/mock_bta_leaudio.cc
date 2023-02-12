@@ -53,44 +53,44 @@ void LeAudioClient::AddFromStorage(
     int source_supported_context_types, const std::vector<uint8_t>& handles,
     const std::vector<uint8_t>& sink_pacs,
     const std::vector<uint8_t>& source_pacs, const std::vector<uint8_t>& ases) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 bool LeAudioClient::GetHandlesForStorage(const RawAddress& addr,
                                          std::vector<uint8_t>& out) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 
 bool LeAudioClient::GetSinkPacsForStorage(const RawAddress& addr,
                                           std::vector<uint8_t>& out) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 
 bool LeAudioClient::GetSourcePacsForStorage(const RawAddress& addr,
                                             std::vector<uint8_t>& out) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 
 bool LeAudioClient::GetAsesForStorage(const RawAddress& addr,
                                       std::vector<uint8_t>& out) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 
 void LeAudioClient::Cleanup(base::Callback<void()> cleanupCb) {
   std::move(cleanupCb).Run();
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 LeAudioClient* LeAudioClient::Get(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 bool LeAudioClient::IsLeAudioClientRunning(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 void LeAudioClient::Initialize(
@@ -98,12 +98,12 @@ void LeAudioClient::Initialize(
     base::Closure initCb, base::Callback<bool()> hal_2_1_verifier,
     const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
         offloading_preference) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void LeAudioClient::DebugDump(int fd) { mock_function_count_map[__func__]++; }
+void LeAudioClient::DebugDump(int fd) { inc_func_call_count(__func__); }
 void LeAudioClient::InitializeAudioSetConfigurationProvider() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void LeAudioClient::CleanupAudioSetConfigurationProvider() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }

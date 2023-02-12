@@ -33,30 +33,30 @@
 #endif
 
 bool utl_isdialchar(const char d) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool utl_isdialstr(const char* p_s) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool utl_isintstr(const char* p_s) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool utl_set_device_class(tBTA_UTL_COD* p_cod, uint8_t cmd) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 int utl_strucmp(const char* p_s, const char* p_t) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 int16_t utl_str2int(const char* p_s) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 uint8_t utl_itoa(uint16_t i, char* p_s) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }

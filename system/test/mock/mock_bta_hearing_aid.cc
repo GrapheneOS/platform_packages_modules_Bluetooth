@@ -49,42 +49,40 @@
 #endif
 
 int HearingAid::GetDeviceCount() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 
 void HearingAid::AddFromStorage(const HearingDevice& dev_info,
                                 uint16_t is_acceptlisted) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
-void HearingAid::DebugDump(int fd) { mock_function_count_map[__func__]++; }
+void HearingAid::DebugDump(int fd) { inc_func_call_count(__func__); }
 
 bool HearingAid::IsHearingAidRunning() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 
-void HearingAid::CleanUp() { mock_function_count_map[__func__]++; }
+void HearingAid::CleanUp() { inc_func_call_count(__func__); }
 
 void HearingAid::Initialize(
     bluetooth::hearing_aid::HearingAidCallbacks* callbacks,
     base::Closure initCb) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 void HearingAid::Connect(const RawAddress& address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 void HearingAid::Disconnect(const RawAddress& address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 void HearingAid::AddToAcceptlist(const RawAddress& address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
-void HearingAid::SetVolume(int8_t volume) {
-  mock_function_count_map[__func__]++;
-}
+void HearingAid::SetVolume(int8_t volume) { inc_func_call_count(__func__); }
