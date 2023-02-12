@@ -11,13 +11,13 @@ filegroup {
     name: "BluetoothOsSources",
     srcs: [
         "handler.cc",
+        "system_properties_common.cc",
     ],
 }
 
 filegroup {
     name: "BluetoothOsSources_android",
     srcs: [
-        "system_properties_common.cc",
         "android/metrics.cc",
         "android/parameter_provider.cc",
         "android/system_properties.cc",
@@ -28,7 +28,6 @@ filegroup {
 filegroup {
     name: "BluetoothOsTestSources_android",
     srcs: [
-        "android/system_properties_test.cc",
         "android/wakelock_native_test.cc",
     ],
 }
@@ -36,7 +35,6 @@ filegroup {
 filegroup {
     name: "BluetoothOsSources_host",
     srcs: [
-        "system_properties_common.cc",
         "host/metrics.cc",
         "host/parameter_provider.cc",
         "host/system_properties.cc",
@@ -48,13 +46,13 @@ filegroup {
     name: "BluetoothOsTestSources",
     srcs: [
         "handler_unittest.cc",
+        "system_properties_common_test.cc",
     ],
 }
 
 filegroup {
     name: "BluetoothOsTestSources_host",
     srcs: [
-        "host/system_properties_test.cc",
     ],
 }
 
