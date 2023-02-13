@@ -1026,8 +1026,4 @@
 
 #include "bt_trace.h"
 
-#ifndef BTM_DISABLE_CONCURRENT_PEER_AUTH
-#define BTM_DISABLE_CONCURRENT_PEER_AUTH FALSE
-#endif
-
 #endif /* BT_TARGET_H */
