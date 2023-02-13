@@ -145,7 +145,7 @@ public class AdapterServiceFactoryResetTest {
     private int mForegroundUserId;
 
     private void configureEnabledProfiles() {
-        Log.e("AdapterServiceTest", "configureEnabledProfiles");
+        Log.e(TAG, "configureEnabledProfiles");
         Config.setProfileEnabled(PanService.class, true);
         Config.setProfileEnabled(BluetoothPbapService.class, true);
         Config.setProfileEnabled(GattService.class, true);
@@ -176,7 +176,7 @@ public class AdapterServiceFactoryResetTest {
 
     @BeforeClass
     public static void setupClass() {
-        Log.e("AdapterServiceTest", "setupClass");
+        Log.e(TAG, "setupClass");
         // Bring native layer up and down to make sure config files are properly loaded
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -194,7 +194,7 @@ public class AdapterServiceFactoryResetTest {
 
     @Before
     public void setUp() throws PackageManager.NameNotFoundException {
-        Log.e("AdapterServiceTest", "setUp()");
+        Log.e(TAG, "setUp()");
         MockitoAnnotations.initMocks(this);
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -327,7 +327,10 @@ public class AdapterServiceFactoryResetTest {
 
     @After
     public void tearDown() {
-        Log.e("AdapterServiceTest", "tearDown()");
+        Log.e(TAG, "tearDown()");
+
+        // Enable the stack to re-create the config. Next tests rely on it.
+        doEnable(0, false);
 
         // Restores the foregroundUserId to the ID prior to the test setup
         Utils.setForegroundUserId(mForegroundUserId);
@@ -351,7 +354,7 @@ public class AdapterServiceFactoryResetTest {
     }
 
     private void doEnable(int invocationNumber, boolean onlyGatt) {
-        Log.e("AdapterServiceTest", "doEnable() start");
+        Log.e(TAG, "doEnable() start");
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
 
         int startServiceCalls;
@@ -398,7 +401,7 @@ public class AdapterServiceFactoryResetTest {
                 || scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
         Assert.assertTrue(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
 
-        Log.e("AdapterServiceTest", "doEnable() complete success");
+        Log.e(TAG, "doEnable() complete success");
     }
 
     /**
