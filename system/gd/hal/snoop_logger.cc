@@ -462,9 +462,8 @@ size_t SnoopLogger::GetMaxPacketsPerFile() {
 size_t SnoopLogger::GetMaxPacketsPerBuffer() {
   // We want to use at most 256 KB memory for btsnooz log for release builds
   // and 512 KB memory for userdebug/eng builds
-  auto is_debuggable = os::GetSystemProperty(kIsDebuggableProperty);
-  size_t btsnooz_max_memory_usage_bytes =
-      ((is_debuggable.has_value() && common::StringTrim(is_debuggable.value()) == "1") ? 1024 : 256) * 1024;
+  auto is_debuggable = os::GetSystemPropertyBool(kIsDebuggableProperty, false);
+  size_t btsnooz_max_memory_usage_bytes = (is_debuggable ? 1024 : 256) * 1024;
   // Calculate max number of packets based on max memory usage and max packet size
   return btsnooz_max_memory_usage_bytes / kDefaultBtSnoozMaxBytesPerPacket;
 }
@@ -474,8 +473,8 @@ std::string SnoopLogger::GetBtSnoopMode() {
   // In userdebug/eng build, it can also be overwritten by modifying the global setting
   std::string default_mode = kBtSnoopLogModeDisabled;
   {
-    auto is_debuggable = os::GetSystemProperty(kIsDebuggableProperty);
-    if (is_debuggable.has_value() && common::StringTrim(is_debuggable.value()) == "1") {
+    auto is_debuggable = os::GetSystemPropertyBool(kIsDebuggableProperty, false);
+    if (is_debuggable) {
       auto default_mode_property = os::GetSystemProperty(kBtSnoopDefaultLogModeProperty);
       if (default_mode_property) {
         default_mode = std::move(default_mode_property.value());
