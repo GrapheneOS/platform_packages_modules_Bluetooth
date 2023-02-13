@@ -15,9 +15,6 @@
 //! The core event loop for Rust modules. Here Rust modules are started in
 //! dependency order.
 
-#![allow(stable_features)]
-#![feature(mixed_integer_ops)]
-
 use bt_common::init_flags::rust_event_loop_is_enabled;
 use gatt::channel::AttTransport;
 use log::{info, warn};
