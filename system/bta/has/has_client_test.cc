@@ -37,11 +37,10 @@
 #include "has_types.h"
 #include "mock_controller.h"
 #include "mock_csis_client.h"
+#include "test/common/mock_functions.h"
 
 bool gatt_profile_get_eatt_support(const RawAddress& addr) { return true; }
 void osi_property_set_bool(const char* key, bool value);
-
-std::map<std::string, int> mock_function_count_map;
 
 namespace bluetooth {
 namespace has {
@@ -645,7 +644,7 @@ class HasClientTestBase : public ::testing::Test {
   }
 
   void SetUp(void) override {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     controller::SetMockControllerInterface(&controller_interface_);
     bluetooth::manager::SetMockBtmInterface(&btm_interface);
     bluetooth::storage::SetMockBtifStorageInterface(&btif_storage_interface_);
@@ -2971,7 +2970,7 @@ TEST_F(HasClientTest, test_connect_database_out_of_sync) {
 
 class HasTypesTest : public ::testing::Test {
  protected:
-  void SetUp(void) override { mock_function_count_map.clear(); }
+  void SetUp(void) override { reset_mock_function_count_map(); }
 
   void TearDown(void) override {}
 };  // namespace
@@ -3116,8 +3115,8 @@ TEST_F(HasTypesTest, test_group_op_coordinator_init) {
   HasCtpGroupOpCoordinator::Cleanup();
   ASSERT_EQ(0u, wrapper.ref_cnt);
 
-  ASSERT_EQ(1, mock_function_count_map["alarm_free"]);
-  ASSERT_EQ(1, mock_function_count_map["alarm_new"]);
+  ASSERT_EQ(1, get_func_call_count("alarm_free"));
+  ASSERT_EQ(1, get_func_call_count("alarm_new"));
 }
 
 TEST_F(HasTypesTest, test_group_op_coordinator_copy) {
@@ -3146,8 +3145,8 @@ TEST_F(HasTypesTest, test_group_op_coordinator_copy) {
   HasCtpGroupOpCoordinator::Cleanup();
   ASSERT_EQ(0u, wrapper.ref_cnt);
 
-  ASSERT_EQ(1, mock_function_count_map["alarm_free"]);
-  ASSERT_EQ(1, mock_function_count_map["alarm_new"]);
+  ASSERT_EQ(1, get_func_call_count("alarm_free"));
+  ASSERT_EQ(1, get_func_call_count("alarm_new"));
 }
 
 TEST_F(HasTypesTest, test_group_op_coordinator_completion) {
@@ -3176,24 +3175,24 @@ TEST_F(HasTypesTest, test_group_op_coordinator_completion) {
   wrapper.SetCompleted(address3);
   ASSERT_EQ(1u, wrapper.ref_cnt);
   ASSERT_FALSE(wrapper.IsFullyCompleted());
-  ASSERT_EQ(0, mock_function_count_map["alarm_free"]);
+  ASSERT_EQ(0, get_func_call_count("alarm_free"));
 
   /* Non existing address completion */
   wrapper.SetCompleted(address2);
-  ASSERT_EQ(0, mock_function_count_map["alarm_free"]);
+  ASSERT_EQ(0, get_func_call_count("alarm_free"));
   ASSERT_EQ(1u, wrapper.ref_cnt);
 
   /* Last device address completion */
   wrapper2.SetCompleted(address2);
   ASSERT_TRUE(wrapper.IsFullyCompleted());
   ASSERT_EQ(0u, wrapper.ref_cnt);
-  ASSERT_EQ(1, mock_function_count_map["alarm_free"]);
-  mock_function_count_map["alarm_free"] = 0;
+  const int alarm_free_count = get_func_call_count("alarm_free");
+  ASSERT_EQ(1, alarm_free_count);
 
   HasCtpGroupOpCoordinator::Cleanup();
 
-  ASSERT_EQ(0, mock_function_count_map["alarm_free"]);
-  ASSERT_EQ(1, mock_function_count_map["alarm_new"]);
+  ASSERT_EQ(alarm_free_count, get_func_call_count("alarm_free"));
+  ASSERT_EQ(1, get_func_call_count("alarm_new"));
 }
 
 }  // namespace
