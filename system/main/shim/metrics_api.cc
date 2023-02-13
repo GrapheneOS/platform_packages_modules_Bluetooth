@@ -89,9 +89,9 @@ void LogMetricReadTxPowerLevelResult(const RawAddress& raw_address,
                                                  transmit_power_level);
 }
 
-void LogMetricSmpPairingEvent(const RawAddress& raw_address, uint8_t smp_cmd,
+void LogMetricSmpPairingEvent(const RawAddress& raw_address, uint16_t smp_cmd,
                               android::bluetooth::DirectionEnum direction,
-                              uint8_t smp_fail_reason) {
+                              uint16_t smp_fail_reason) {
   Address address = bluetooth::ToGdAddress(raw_address);
   bluetooth::os::LogMetricSmpPairingEvent(address, smp_cmd, direction,
                                           smp_fail_reason);
