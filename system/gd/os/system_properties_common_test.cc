@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#include <string>
-
+#include <cutils/properties.h>
 #include <gtest/gtest.h>
 
-#include <cutils/properties.h>
+#include <string>
 
 #include "os/system_properties.h"
 
 namespace testing {
 
+using bluetooth::os::ClearSystemPropertiesForHost;
 using bluetooth::os::GetSystemProperty;
 using bluetooth::os::SetSystemProperty;
 
@@ -38,21 +38,26 @@ TEST(SystemPropertiesTest, set_and_get_test) {
   ASSERT_EQ(ret, "false");
   ret = GetSystemProperty("persist.bluetooth.factoryreset_do_not_exist");
   ASSERT_FALSE(ret);
+  if (ClearSystemPropertiesForHost()) {
+    ASSERT_FALSE(GetSystemProperty("persist.bluetooth.factoryreset"));
+  }
 }
 
-// From Android O and above, there is no limit on property key sizesss
-TEST(SystemPropertiesTest, max_length_test) {
-  std::string property(PROP_NAME_MAX, 'a');
-  std::string value(PROP_VALUE_MAX, '1');
-  ASSERT_TRUE(SetSystemProperty("persist.bluetooth.factoryreset", "false"));
-  ASSERT_TRUE(SetSystemProperty(property, "true"));
-  ASSERT_FALSE(SetSystemProperty("persist.bluetooth.factoryreset", value));
-  ASSERT_FALSE(SetSystemProperty(property, value));
-  ASSERT_TRUE(GetSystemProperty(property));
-  // make sure no actual operations on system property happened
-  auto ret = GetSystemProperty("persist.bluetooth.factoryreset");
-  ASSERT_TRUE(ret);
-  ASSERT_EQ(ret, "false");
+TEST(SystemPropertiesTest, getUint32) {
+  std::string property("SystemPropertiesTest_getUint32");
+  uint32_t value = 42;
+  ASSERT_TRUE(SetSystemProperty(property, std::to_string(value)));
+  ASSERT_EQ(bluetooth::os::GetSystemPropertyUint32(property, 0), value);
+}
+
+TEST(SystemPropertiesTest, getUint32BaseHex) {
+  std::string property("SystemPropertiesTest_getUint32BaseHex");
+  uint32_t value = 42;
+  std::stringstream stream;
+  stream << std::showbase << std::hex << value;
+  ASSERT_TRUE(SetSystemProperty(property, stream.str()));
+  ASSERT_EQ(bluetooth::os::GetSystemPropertyUint32Base(property, 0), value);
+  ASSERT_EQ(bluetooth::os::GetSystemPropertyUint32Base(property, 1, 10), 0u);  // if parsed as a dec
 }
 
 }  // namespace testing
