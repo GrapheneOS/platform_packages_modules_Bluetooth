@@ -896,6 +896,7 @@ cc_test {
         "test/common/btm_api_mock.cc",
         "test/common/mock_controller.cc",
         "test/common/mock_csis_client.cc",
+        ":TestCommonMockFunctions",
         ":TestStubOsi",
     ],
     shared_libs: [
