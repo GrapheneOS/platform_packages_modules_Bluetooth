@@ -57,10 +57,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 #endif
 
-bool btif_is_dut_mode() {
-  mock_function_count_map[__func__]++;
-  return false;
-}
 bool is_on_jni_thread() {
   mock_function_count_map[__func__]++;
   return false;
@@ -118,12 +114,6 @@ void btif_adapter_properties_evt(bt_status_t status, uint32_t num_props,
   mock_function_count_map[__func__]++;
 }
 void btif_disable_service(tBTA_SERVICE_ID service_id) {
-  mock_function_count_map[__func__]++;
-}
-void btif_dut_mode_configure(uint8_t enable) {
-  mock_function_count_map[__func__]++;
-}
-void btif_dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len) {
   mock_function_count_map[__func__]++;
 }
 void btif_enable_bluetooth_evt() { mock_function_count_map[__func__]++; }

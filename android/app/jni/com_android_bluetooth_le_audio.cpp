@@ -576,6 +576,8 @@ static std::shared_timed_mutex sBroadcasterCallbacksMutex;
   ((vec.data()[3] << 24) + (vec.data()[2] << 16) + (vec.data()[1] << 8) + \
    vec.data()[0])
 
+#define VEC_UINT8_TO_UINT16(vec) (((vec).data()[1] << 8) + ((vec).data()[0]))
+
 size_t RawPacketSize(const std::map<uint8_t, std::vector<uint8_t>>& values) {
   size_t bytes = 0;
   for (auto const& value : values) {
@@ -625,9 +627,48 @@ static jlong getAudioLocationOrDefault(
   return VEC_UINT8_TO_UINT32(vec);
 }
 
+static jint getSamplingFrequencyOrDefault(
+    const std::map<uint8_t, std::vector<uint8_t>>& metadata,
+    jint default_sampling_frequency) {
+  if (metadata.count(bluetooth::le_audio::kLeAudioCodecLC3TypeSamplingFreq) ==
+      0)
+    return default_sampling_frequency;
+
+  auto& vec =
+      metadata.at(bluetooth::le_audio::kLeAudioCodecLC3TypeSamplingFreq);
+  return (jint)(vec.data()[0]);
+}
+
+static jint getFrameDurationOrDefault(
+    const std::map<uint8_t, std::vector<uint8_t>>& metadata,
+    jint default_frame_duration) {
+  if (metadata.count(bluetooth::le_audio::kLeAudioCodecLC3TypeFrameDuration) ==
+      0)
+    return default_frame_duration;
+
+  auto& vec =
+      metadata.at(bluetooth::le_audio::kLeAudioCodecLC3TypeFrameDuration);
+  return (jint)(vec.data()[0]);
+}
+
+static jint getOctetsPerFrameOrDefault(
+    const std::map<uint8_t, std::vector<uint8_t>>& metadata,
+    jint default_octets_per_frame) {
+  if (metadata.count(bluetooth::le_audio::kLeAudioCodecLC3TypeOctetPerFrame) ==
+      0)
+    return default_octets_per_frame;
+
+  auto& vec =
+      metadata.at(bluetooth::le_audio::kLeAudioCodecLC3TypeOctetPerFrame);
+  return VEC_UINT8_TO_UINT16(vec);
+}
+
 jobject prepareLeAudioCodecConfigMetadataObject(
     JNIEnv* env, const std::map<uint8_t, std::vector<uint8_t>>& metadata) {
   jlong audio_location = getAudioLocationOrDefault(metadata, -1);
+  jint sampling_frequency = getSamplingFrequencyOrDefault(metadata, 0);
+  jint frame_duration = getFrameDurationOrDefault(metadata, -1);
+  jint octets_per_frame = getOctetsPerFrameOrDefault(metadata, 0);
   ScopedLocalRef<jbyteArray> raw_metadata(env,
                                           prepareRawLtvArray(env, metadata));
   if (!raw_metadata.get()) {
@@ -638,7 +679,8 @@ jobject prepareLeAudioCodecConfigMetadataObject(
   jobject obj = env->NewObject(
       android_bluetooth_BluetoothLeAudioCodecConfigMetadata.clazz,
       android_bluetooth_BluetoothLeAudioCodecConfigMetadata.constructor,
-      audio_location, raw_metadata.get());
+      audio_location, sampling_frequency, frame_duration, octets_per_frame,
+      raw_metadata.get());
 
   return obj;
 }
@@ -875,7 +917,7 @@ jobject prepareBluetoothLeBroadcastMetadataObject(
       false, nullptr,
       broadcast_metadata.broadcast_code ? code.get() : nullptr,
       (jint)broadcast_metadata.basic_audio_announcement.presentation_delay,
-      subgroup_list_obj.get());
+      (jint)0, nullptr, subgroup_list_obj.get());
 }
 
 class LeAudioBroadcasterCallbacksImpl : public LeAudioBroadcasterCallbacks {
@@ -962,7 +1004,7 @@ static void BroadcasterClassInitNative(JNIEnv* env, jclass clazz) {
       env->FindClass("android/bluetooth/BluetoothLeAudioCodecConfigMetadata");
   android_bluetooth_BluetoothLeAudioCodecConfigMetadata.constructor =
       env->GetMethodID(jniBluetoothLeAudioCodecConfigMetadataClass, "<init>",
-                       "(J[B)V");
+                       "(JIII[B)V");
 
   jclass jniBluetoothLeAudioContentMetadataClass =
       env->FindClass("android/bluetooth/BluetoothLeAudioContentMetadata");
@@ -991,10 +1033,11 @@ static void BroadcasterClassInitNative(JNIEnv* env, jclass clazz) {
 
   jclass jniBluetoothLeBroadcastMetadataClass =
       env->FindClass("android/bluetooth/BluetoothLeBroadcastMetadata");
-  android_bluetooth_BluetoothLeBroadcastMetadata.constructor =
-      env->GetMethodID(jniBluetoothLeBroadcastMetadataClass, "<init>",
-                       "(ILandroid/bluetooth/BluetoothDevice;IIIZZLjava/lang/"
-                       "String;[BILjava/util/List;)V");
+  android_bluetooth_BluetoothLeBroadcastMetadata.constructor = env->GetMethodID(
+      jniBluetoothLeBroadcastMetadataClass, "<init>",
+      "(ILandroid/bluetooth/BluetoothDevice;IIIZZLjava/lang/String;"
+      "[BIILandroid/bluetooth/BluetoothLeAudioContentMetadata;"
+      "Ljava/util/List;)V");
 }
 
 static void BroadcasterInitNative(JNIEnv* env, jobject object) {

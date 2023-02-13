@@ -110,7 +110,7 @@ int start_discovery([[maybe_unused]] unsigned int num_loops,
     LOG_CONSOLE("got remote services :%s", params.ToString().c_str());
 
     for (int i = 0; i < params.num_properties; i++) {
-      process_property(params.bd_addr, params.properties);
+      process_property(params.bd_addr, params.properties + i);
     }
   }
 
@@ -145,7 +145,7 @@ int start_discovery([[maybe_unused]] unsigned int num_loops,
     LOG_CONSOLE("got remote services :%s", params.ToString().c_str());
 
     for (int i = 0; i < params.num_properties; i++) {
-      process_property(params.bd_addr, params.properties);
+      process_property(params.bd_addr, params.properties + i);
     }
   }
 

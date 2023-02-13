@@ -1464,10 +1464,12 @@ void btm_process_remote_name(const RawAddress* bda, const BD_NAME bdn,
 
   if (bda) {
     rem_name.bd_addr = *bda;
-    VLOG(2) << "BDA " << *bda;
   } else {
     rem_name.bd_addr = RawAddress::kEmpty;
   }
+
+  LOG_INFO("btm_process_remote_name for %s",
+           ADDRESS_TO_LOGGABLE_CSTR(rem_name.bd_addr));
 
   VLOG(2) << "Inquire BDA " << p_inq->remname_bda;
 

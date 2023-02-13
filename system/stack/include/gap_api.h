@@ -23,6 +23,7 @@
 
 #include "btm_api.h"
 #include "l2c_api.h"
+#include "l2cdefs.h"
 #include "profiles_api.h"
 #include "stack/include/bt_hdr.h"
 #include "types/bt_transport.h"
@@ -74,6 +75,7 @@ struct tGAP_COC_CREDITS {
 
 union tGAP_CB_DATA {
   tGAP_COC_CREDITS coc_credits;
+  uint16_t l2cap_result;
 };
 
 /*****************************************************************************

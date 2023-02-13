@@ -25,8 +25,6 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 // Original included files, if any
 // NOTE: Since this is a mock file with mock definitions some number of
 //       include files may not be required.  The include-what-you-use
@@ -53,7 +51,6 @@ namespace stack_acl_btm_ble_connection_establishment {
 struct btm_ble_create_ll_conn_complete btm_ble_create_ll_conn_complete;
 struct maybe_resolve_address maybe_resolve_address;
 struct btm_ble_conn_complete btm_ble_conn_complete;
-struct btm_ble_create_conn_cancel_complete btm_ble_create_conn_cancel_complete;
 
 }  // namespace stack_acl_btm_ble_connection_establishment
 }  // namespace mock
@@ -73,11 +70,6 @@ void btm_ble_conn_complete(uint8_t* p, uint16_t evt_len, bool enhanced) {
   mock_function_count_map[__func__]++;
   test::mock::stack_acl_btm_ble_connection_establishment::btm_ble_conn_complete(
       p, evt_len, enhanced);
-}
-void btm_ble_create_conn_cancel_complete(uint8_t* p) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_acl_btm_ble_connection_establishment::
-      btm_ble_create_conn_cancel_complete(p);
 }
 
 // END mockcify generation

@@ -28,8 +28,6 @@
 
 #include "stack/include/bt_octets.h"
 
-extern std::map<std::string, int> mock_function_count_map;
-
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_bta_dm_api.h"
 #include "types/raw_address.h"
@@ -69,7 +67,6 @@ struct BTA_DmSetBlePrefConnParams BTA_DmSetBlePrefConnParams;
 struct BTA_DmSetDeviceName BTA_DmSetDeviceName;
 struct BTA_DmSetEncryption BTA_DmSetEncryption;
 struct BTA_DmSetLocalDiRecord BTA_DmSetLocalDiRecord;
-struct BTA_EnableTestMode BTA_EnableTestMode;
 struct BTA_GetEirService BTA_GetEirService;
 struct BTA_VendorInit BTA_VendorInit;
 struct BTA_dm_init BTA_dm_init;
@@ -217,10 +214,6 @@ tBTA_STATUS BTA_DmSetLocalDiRecord(tSDP_DI_RECORD* p_device_info,
   mock_function_count_map[__func__]++;
   return test::mock::bta_dm_api::BTA_DmSetLocalDiRecord(p_device_info,
                                                         p_handle);
-}
-void BTA_EnableTestMode(void) {
-  mock_function_count_map[__func__]++;
-  test::mock::bta_dm_api::BTA_EnableTestMode();
 }
 void BTA_GetEirService(const uint8_t* p_eir, size_t eir_len,
                        tBTA_SERVICE_MASK* p_services) {

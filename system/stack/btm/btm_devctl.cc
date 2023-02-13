@@ -635,50 +635,6 @@ void BTM_WriteVoiceSettings(uint16_t settings) {
 
 /*******************************************************************************
  *
- * Function         BTM_EnableTestMode
- *
- * Description      Send HCI the enable device under test command.
- *
- *                  Note: Controller can only be taken out of this mode by
- *                      resetting the controller.
- *
- * Returns
- *      BTM_SUCCESS         Command sent.
- *      BTM_NO_RESOURCES    If out of resources to send the command.
- *
- *
- ******************************************************************************/
-tBTM_STATUS BTM_EnableTestMode(void) {
-  uint8_t cond;
-
-  BTM_TRACE_EVENT("BTM: BTM_EnableTestMode");
-
-  /* set auto accept connection as this is needed during test mode */
-  /* Allocate a buffer to hold HCI command */
-  cond = HCI_DO_AUTO_ACCEPT_CONNECT;
-  btsnd_hcic_set_event_filter(HCI_FILTER_CONNECTION_SETUP,
-                              HCI_FILTER_COND_NEW_DEVICE, &cond, sizeof(cond));
-
-  /* put device to connectable mode */
-  if (BTM_SetConnectability(BTM_CONNECTABLE) != BTM_SUCCESS) {
-    return BTM_NO_RESOURCES;
-  }
-
-  /* put device to discoverable mode */
-  if (BTM_SetDiscoverability(BTM_GENERAL_DISCOVERABLE) != BTM_SUCCESS) {
-    return BTM_NO_RESOURCES;
-  }
-
-  /* mask off all of event from controller */
-  bluetooth::shim::BTM_ClearEventMask();
-
-  /* Send the HCI command */
-  btsnd_hcic_enable_test_mode();
-  return (BTM_SUCCESS);
-}
-
-/*******************************************************************************
- *
  * Function         BTM_DeleteStoredLinkKey
  *
  * Description      This function is called to delete link key for the specified

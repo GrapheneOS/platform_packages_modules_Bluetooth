@@ -456,7 +456,10 @@ package android.bluetooth {
   public final class BluetoothLeAudioCodecConfigMetadata implements android.os.Parcelable {
     method @NonNull public static android.bluetooth.BluetoothLeAudioCodecConfigMetadata fromRawBytes(@NonNull byte[]);
     method public long getAudioLocation();
+    method public int getFrameDuration();
+    method public int getOctetsPerFrame();
     method @NonNull public byte[] getRawMetadata();
+    method public int getSampleRate();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeAudioCodecConfigMetadata> CREATOR;
   }
 
@@ -465,6 +468,9 @@ package android.bluetooth {
     ctor public BluetoothLeAudioCodecConfigMetadata.Builder(@NonNull android.bluetooth.BluetoothLeAudioCodecConfigMetadata);
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata build();
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setAudioLocation(long);
+    method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setFrameDuration(int);
+    method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setOctetsPerFrame(int);
+    method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setSampleRate(int);
   }
 
   public final class BluetoothLeAudioContentMetadata implements android.os.Parcelable {
@@ -561,17 +567,22 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeBroadcastMetadata implements android.os.Parcelable {
+    method public int getAudioConfigQuality();
     method @Nullable public byte[] getBroadcastCode();
     method public int getBroadcastId();
     method @Nullable public String getBroadcastName();
     method public int getPaSyncInterval();
     method @IntRange(from=0, to=16777215) public int getPresentationDelayMicros();
+    method @Nullable public android.bluetooth.BluetoothLeAudioContentMetadata getPublicBroadcastMetadata();
     method public int getSourceAddressType();
     method public int getSourceAdvertisingSid();
     method @NonNull public android.bluetooth.BluetoothDevice getSourceDevice();
     method @NonNull public java.util.List<android.bluetooth.BluetoothLeBroadcastSubgroup> getSubgroups();
     method public boolean isEncrypted();
     method public boolean isPublicBroadcast();
+    field public static final int AUDIO_CONFIG_QUALITY_HIGH = 2; // 0x2
+    field public static final int AUDIO_CONFIG_QUALITY_NONE = 0; // 0x0
+    field public static final int AUDIO_CONFIG_QUALITY_STANDARD = 1; // 0x1
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastMetadata> CREATOR;
     field public static final int PA_SYNC_INTERVAL_UNKNOWN = 65535; // 0xffff
   }
@@ -582,6 +593,7 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder addSubgroup(@NonNull android.bluetooth.BluetoothLeBroadcastSubgroup);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata build();
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder clearSubgroup();
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setAudioConfigQuality(int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setBroadcastCode(@Nullable byte[]);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setBroadcastId(int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setBroadcastName(@Nullable String);
@@ -589,6 +601,7 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPaSyncInterval(int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPresentationDelayMicros(@IntRange(from=0, to=16777215) int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPublicBroadcast(boolean);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPublicBroadcastMetadata(@Nullable android.bluetooth.BluetoothLeAudioContentMetadata);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceAdvertisingSid(int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceDevice(@NonNull android.bluetooth.BluetoothDevice, int);
   }
@@ -620,6 +633,7 @@ package android.bluetooth {
   public final class BluetoothLeBroadcastSettings implements android.os.Parcelable {
     method @Nullable public byte[] getBroadcastCode();
     method @Nullable public String getBroadcastName();
+    method @Nullable public android.bluetooth.BluetoothLeAudioContentMetadata getPublicBroadcastMetadata();
     method @NonNull public java.util.List<android.bluetooth.BluetoothLeBroadcastSubgroupSettings> getSubgroupSettings();
     method public boolean isPublicBroadcast();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastSettings> CREATOR;
@@ -634,6 +648,7 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeBroadcastSettings.Builder setBroadcastCode(@Nullable byte[]);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastSettings.Builder setBroadcastName(@Nullable String);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastSettings.Builder setPublicBroadcast(boolean);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastSettings.Builder setPublicBroadcastMetadata(@Nullable android.bluetooth.BluetoothLeAudioContentMetadata);
   }
 
   public final class BluetoothLeBroadcastSubgroup implements android.os.Parcelable {
@@ -957,6 +972,7 @@ package android.bluetooth.le {
     field public static final int ADDRESS_TYPE_DEFAULT = -1; // 0xffffffff
     field public static final int ADDRESS_TYPE_PUBLIC = 0; // 0x0
     field public static final int ADDRESS_TYPE_RANDOM = 1; // 0x1
+    field public static final int ADDRESS_TYPE_RANDOM_NON_RESOLVABLE = 2; // 0x2
   }
 
   public static final class AdvertisingSetParameters.Builder {

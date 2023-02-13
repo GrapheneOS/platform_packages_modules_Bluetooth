@@ -255,12 +255,6 @@ extern void btsnd_hcic_send_keypress_notif(const RawAddress& bd_addr,
                                            uint8_t notif);
 /**** end of Simple Pairing Commands ****/
 
-extern void btsnd_hcic_set_event_filter(uint8_t filt_type,
-                                        uint8_t filt_cond_type,
-                                        uint8_t* filt_cond,
-                                        uint8_t filt_cond_len);
-/* Set Event Filter */
-
 /* Delete Stored Key */
 extern void btsnd_hcic_delete_stored_key(const RawAddress& bd_addr,
                                          bool delete_all_flag);
@@ -321,8 +315,6 @@ using ReadEncKeySizeCb = base::OnceCallback<void(uint8_t, uint16_t, uint8_t)>;
 extern void btsnd_hcic_read_encryption_key_size(uint16_t handle, ReadEncKeySizeCb cb);
 extern void btsnd_hcic_read_failed_contact_counter(uint16_t handle);
 extern void btsnd_hcic_read_automatic_flush_timeout(uint16_t handle);
-extern void btsnd_hcic_enable_test_mode(
-    void); /* Enable Device Under Test Mode */
 extern void btsnd_hcic_write_pagescan_type(
     uint8_t type); /* Write Page Scan Type */
 extern void btsnd_hcic_write_inqscan_type(

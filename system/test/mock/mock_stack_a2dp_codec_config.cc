@@ -19,13 +19,11 @@
  *   Functions generated:67
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/logging.h>
 #include <inttypes.h>
+
+#include <map>
+#include <string>
 
 #include "a2dp_aac.h"
 #include "a2dp_codec_api.h"
@@ -35,6 +33,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "stack/include/bt_hdr.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

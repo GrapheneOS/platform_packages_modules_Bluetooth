@@ -26,8 +26,6 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 // Original included files, if any
 // NOTE: Since this is a mock file with mock definitions some number of
 //       include files may not be required.  The include-what-you-use
@@ -36,6 +34,7 @@ extern std::map<std::string, int> mock_function_count_map;
 //       may need attention to prune the inclusion set.
 #include "stack/include/l2c_api.h"
 #include "stack/l2cap/l2c_int.h"
+#include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"

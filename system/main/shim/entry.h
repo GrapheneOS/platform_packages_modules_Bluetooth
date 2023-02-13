@@ -52,6 +52,7 @@ namespace hci {
 class Controller;
 class HciLayer;
 class AclManager;
+class RemoteNameRequestModule;
 class LeAdvertisingManager;
 class LeScanningManager;
 class VendorSpecificEventManager;
@@ -94,6 +95,7 @@ hci::HciLayer* GetHciLayer();
 l2cap::classic::L2capClassicModule* GetL2capClassicModule();
 l2cap::le::L2capLeModule* GetL2capLeModule();
 neighbor::PageModule* GetPage();
+hci::RemoteNameRequestModule* GetRemoteNameRequest();
 hci::LeScanningManager* GetScanning();
 bluetooth::security::SecurityModule* GetSecurityModule();
 hal::SnoopLogger* GetSnoopLogger();

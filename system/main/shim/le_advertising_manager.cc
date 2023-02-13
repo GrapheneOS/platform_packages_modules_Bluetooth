@@ -40,6 +40,7 @@
 
 using bluetooth::hci::Address;
 using bluetooth::hci::AddressType;
+using bluetooth::hci::AdvertiserAddressType;
 using bluetooth::hci::ErrorCode;
 using bluetooth::hci::GapData;
 using bluetooth::hci::OwnAddressType;
@@ -399,9 +400,29 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     config.enable_scan_request_notifications =
         static_cast<bluetooth::hci::Enable>(
             params.scan_request_notification_enable);
-    config.own_address_type = OwnAddressType::RANDOM_DEVICE_ADDRESS;
-    if (params.own_address_type == 0) {
-      config.own_address_type = OwnAddressType::PUBLIC_DEVICE_ADDRESS;
+    // Matching the ADDRESS_TYPE_* enums from Java
+    switch (params.own_address_type) {
+      case -1:
+        config.requested_advertiser_address_type =
+            AdvertiserAddressType::RESOLVABLE_RANDOM;
+        break;
+      case 0:
+        config.requested_advertiser_address_type =
+            AdvertiserAddressType::PUBLIC;
+        break;
+      case 1:
+        config.requested_advertiser_address_type =
+            AdvertiserAddressType::RESOLVABLE_RANDOM;
+        break;
+      case 2:
+        config.requested_advertiser_address_type =
+            AdvertiserAddressType::NONRESOLVABLE_RANDOM;
+        break;
+      default:
+        LOG_ERROR("Received unexpected address type: %d",
+                  params.own_address_type);
+        config.requested_advertiser_address_type =
+            AdvertiserAddressType::RESOLVABLE_RANDOM;
     }
   }
 
