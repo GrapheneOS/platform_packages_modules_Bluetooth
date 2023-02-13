@@ -138,6 +138,9 @@ class Host(
           .filter { it.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED }
           .map { it.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) }
 
+      initiatedConnection.clear()
+      waitedAclConnection.clear()
+
       bluetoothAdapter.clearBluetooth()
 
       stateFlow.filter { it == BluetoothAdapter.STATE_ON }.first()
@@ -154,7 +157,8 @@ class Host(
   override fun reset(request: Empty, responseObserver: StreamObserver<Empty>) {
     grpcUnary<Empty>(scope, responseObserver) {
       Log.i(TAG, "reset")
-
+      initiatedConnection.clear()
+      waitedAclConnection.clear()
       rebootBluetooth()
 
       Empty.getDefaultInstance()
@@ -218,19 +222,14 @@ class Host(
       .first()
   }
 
-  suspend fun waitAclIntent(bluetoothDevice: BluetoothDevice?): Intent {
-    for (intent in intentQueue) {
-      if (
-        intent.getAction() == BluetoothDevice.ACTION_ACL_CONNECTED &&
-          (bluetoothDevice == null || intent.getBluetoothDeviceExtra() == bluetoothDevice)
-      ) {
-        intentQueue.remove(intent)
-        return intent
-      }
-    }
+  suspend fun waitIncomingAclConnectedIntent(address: String, transport: Int): Intent {
     return flow
       .filter { it.action == BluetoothDevice.ACTION_ACL_CONNECTED }
-      .filter { bluetoothDevice == null || it.getBluetoothDeviceExtra() == bluetoothDevice }
+      .filter { address == null || it.getBluetoothDeviceExtra().address == address }
+      .filter { !initiatedConnection.contains(it.getBluetoothDeviceExtra()) }
+      .filter {
+        it.getIntExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.ERROR) == transport
+      }
       .first()
   }
 
@@ -247,12 +246,8 @@ class Host(
     responseObserver: StreamObserver<WaitConnectionResponse>
   ) {
     grpcUnary(scope, responseObserver) {
-      val bluetoothDevice =
-        if (!request.address.isEmpty()) {
-          request.address.toBluetoothDevice(bluetoothAdapter)
-        } else {
-          null
-        }
+      if (request.address.isEmpty()) throw Status.UNKNOWN.asException()
+      var bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
 
       Log.i(TAG, "waitConnection: device=$bluetoothDevice")
 
@@ -261,10 +256,16 @@ class Host(
         throw Status.UNKNOWN.asException()
       }
 
-      val intent = waitAclIntent(bluetoothDevice)
+      if (!bluetoothDevice.isConnected() || waitedAclConnection.contains(bluetoothDevice)) {
+        bluetoothDevice =
+          waitIncomingAclConnectedIntent(bluetoothDevice.address, TRANSPORT_BREDR)
+            .getBluetoothDeviceExtra()
+      }
+
+      waitedAclConnection.add(bluetoothDevice)
 
       WaitConnectionResponse.newBuilder()
-        .setConnection(intent.getBluetoothDeviceExtra().toConnection(TRANSPORT_BREDR))
+        .setConnection(bluetoothDevice.toConnection(TRANSPORT_BREDR))
         .build()
     }
   }
@@ -317,8 +318,7 @@ class Host(
         throw Status.UNKNOWN.asException()
       }
 
-      val intent = waitAclIntent(bluetoothDevice)
-
+      val intent = waitIncomingAclConnectedIntent(bluetoothDevice.address, TRANSPORT_LE)
       WaitLEConnectionResponse.newBuilder()
         .setConnection(intent.getBluetoothDeviceExtra().toConnection(TRANSPORT_LE))
         .build()
@@ -331,6 +331,7 @@ class Host(
 
       Log.i(TAG, "connect: address=$bluetoothDevice")
 
+      initiatedConnection.add(bluetoothDevice)
       bluetoothAdapter.cancelDiscovery()
 
       if (!bluetoothDevice.isConnected()) {
@@ -444,6 +445,7 @@ class Host(
         }
       Log.i(TAG, "connectLE: $address")
       val bluetoothDevice = scanLeDevice(address.decodeAsMacAddressToString(), type)!!
+      initiatedConnection.add(bluetoothDevice)
       GattInstance(bluetoothDevice, TRANSPORT_LE, context)
         .waitForState(BluetoothProfile.STATE_CONNECTED)
       ConnectLEResponse.newBuilder()
