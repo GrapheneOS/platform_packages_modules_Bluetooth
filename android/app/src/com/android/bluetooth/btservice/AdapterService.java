@@ -2582,7 +2582,7 @@ public class AdapterService extends Service {
                 BluetoothDevice device, int transport, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "setActiveDevice")
+                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getConnectionHandle")
                     || !Utils.checkConnectPermissionForDataDelivery(
                         service, attributionSource, TAG)) {
                 return BluetoothDevice.ERROR;
