@@ -19,14 +19,14 @@
  *   Functions generated:3
  */
 
+#include <sys/time.h>
+#include <time.h>
+
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
-#include <sys/time.h>
-#include <time.h>
 #include "common/time_util.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

@@ -19,17 +19,17 @@
  *   Functions generated:4
  */
 
-#include <map>
-#include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <base/logging.h>
+
 #include <iomanip>
+#include <map>
 #include <sstream>
+#include <string>
 #include <utility>
+
 #include "common/stop_watch_legacy.h"
 #include "osi/include/log.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
