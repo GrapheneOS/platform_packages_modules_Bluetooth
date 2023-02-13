@@ -32,6 +32,15 @@
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
+typedef enum : uint16_t {
+  SMP_METRIC_COMMAND_LE_FLAG = 0x0000,
+  SMP_METRIC_COMMAND_BR_FLAG = 0x0100,
+  SMP_METRIC_COMMAND_LE_PAIRING_CMPL = 0xFF00,
+  SMP_METRIC_COMMAND_BR_PAIRING_CMPL = 0xFF01,
+} tSMP_METRIC_COMMAND;
+
+constexpr uint16_t SMP_METRIC_STATUS_INTERNAL_FLAG = 0x0100;
+
 typedef enum : uint8_t {
   /* Legacy mode */
   SMP_MODEL_ENCRYPTION_ONLY = 0, /* Just Works model */
@@ -414,7 +423,8 @@ extern void smp_data_ind(const RawAddress& bd_addr, BT_HDR* p_buf);
 
 /* smp_util.cc */
 extern void smp_log_metrics(const RawAddress& bd_addr, bool is_outgoing,
-                            const uint8_t* p_buf, size_t buf_len);
+                            const uint8_t* p_buf, size_t buf_len,
+                            bool is_over_br);
 extern bool smp_send_cmd(uint8_t cmd_code, tSMP_CB* p_cb);
 extern void smp_cb_cleanup(tSMP_CB* p_cb);
 extern void smp_reset_control_value(tSMP_CB* p_cb);
