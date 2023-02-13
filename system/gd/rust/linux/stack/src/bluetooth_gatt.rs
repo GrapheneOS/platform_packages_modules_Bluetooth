@@ -3417,6 +3417,8 @@ impl BtifGattServerCallbacks for BluetoothGatt {
         addr: RawAddress,
         exec_write: i32,
     ) {
+        self.server_context_map.add_request(trans_id, 0);
+
         if let Some(cbid) =
             self.server_context_map.get_by_conn_id(conn_id).map(|server| server.cbid)
         {
