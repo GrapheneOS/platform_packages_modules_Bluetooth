@@ -272,7 +272,7 @@ init_flags!(
         hci_adapter: i32,
         hfp_dynamic_version = true,
         irk_rotation,
-        leaudio_targeted_announcement_reconnection_mode,
+        leaudio_targeted_announcement_reconnection_mode = true,
         pass_phy_update_callback = true,
         periodic_advertising_adi = true,
         private_gatt,
