@@ -54,12 +54,12 @@ genrule {
     name: "pandora_experimental-python-src",
     tools: [
         "aprotoc",
-        "protoc-gen-mmi2grpc-python"
+        "protoc-gen-pandora-python"
     ],
     cmd: "$(location aprotoc)" +
          "    -Ipackages/modules/Bluetooth/pandora/interfaces" +
          "    -Iexternal/protobuf/src" +
-         "    --plugin=protoc-gen-grpc=$(location protoc-gen-mmi2grpc-python)" +
+         "    --plugin=protoc-gen-grpc=$(location protoc-gen-pandora-python)" +
          "    --grpc_out=$(genDir)" +
          "    --python_out=$(genDir)" +
          "    $(in)",
@@ -80,30 +80,43 @@ genrule {
     ],
     out: [
         "pandora_experimental/_android_grpc.py",
+        "pandora_experimental/_android_grpc_aio.py",
         "pandora_experimental/_android_pb2.py",
         "pandora_experimental/a2dp_grpc.py",
+        "pandora_experimental/a2dp_grpc_aio.py",
         "pandora_experimental/a2dp_pb2.py",
         "pandora_experimental/avrcp_grpc.py",
+        "pandora_experimental/avrcp_grpc_aio.py",
         "pandora_experimental/avrcp_pb2.py",
         "pandora_experimental/gatt_grpc.py",
+        "pandora_experimental/gatt_grpc_aio.py",
         "pandora_experimental/gatt_pb2.py",
         "pandora_experimental/hfp_grpc.py",
+        "pandora_experimental/hfp_grpc_aio.py",
         "pandora_experimental/hfp_pb2.py",
         "pandora_experimental/hid_grpc.py",
+        "pandora_experimental/hid_grpc_aio.py",
         "pandora_experimental/hid_pb2.py",
         "pandora_experimental/host_grpc.py",
+        "pandora_experimental/host_grpc_aio.py",
         "pandora_experimental/host_pb2.py",
         "pandora_experimental/l2cap_grpc.py",
+        "pandora_experimental/l2cap_grpc_aio.py",
         "pandora_experimental/l2cap_pb2.py",
         "pandora_experimental/mediaplayer_grpc.py",
+        "pandora_experimental/mediaplayer_grpc_aio.py",
         "pandora_experimental/mediaplayer_pb2.py",
         "pandora_experimental/pan_grpc.py",
+        "pandora_experimental/pan_grpc_aio.py",
         "pandora_experimental/pan_pb2.py",
         "pandora_experimental/pbap_grpc.py",
+        "pandora_experimental/pbap_grpc_aio.py",
         "pandora_experimental/pbap_pb2.py",
         "pandora_experimental/rfcomm_grpc.py",
+        "pandora_experimental/rfcomm_grpc_aio.py",
         "pandora_experimental/rfcomm_pb2.py",
         "pandora_experimental/security_grpc.py",
+        "pandora_experimental/security_grpc_aio.py",
         "pandora_experimental/security_pb2.py",
     ]
 }

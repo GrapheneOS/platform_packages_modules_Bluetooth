@@ -8,7 +8,7 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.host_grpc import Host
 from pandora_experimental.host_pb2 import OwnAddressType
-from pandora_experimental.security_grpc import Security
+from pandora_experimental.security_grpc import Security, PairingEventAnswer
 from pandora_experimental.security_pb2 import LESecurityLevel
 from pandora_experimental.gatt_grpc import GATT
 
@@ -56,11 +56,10 @@ class HOGPProxy(ProfileProxy):
         received = []
         for event in self.pairing_stream:
             if event.address == pts_addr and event.numeric_comparison == int(passkey):
-                self.pairing_stream.send(
+                self.pairing_stream.send(PairingEventAnswer(
                     event=event,
                     confirm=True,
-                )
-                self.pairing_stream.close()
+                ))
                 return "OK"
             received.append(event.numeric_comparison)
 
