@@ -178,6 +178,7 @@ bool VolumeControlDevice::UpdateHandles(void) {
       vcs_found = set_volume_control_service_handles(service);
       if (!vcs_found) break;
 
+      known_service_handles_ = true;
       for (auto const& included : service.included_services) {
         const gatt::Service* service =
             BTA_GATTC_GetOwningService(connection_id, included.start_handle);
@@ -198,6 +199,7 @@ bool VolumeControlDevice::UpdateHandles(void) {
 }
 
 void VolumeControlDevice::ResetHandles(void) {
+  known_service_handles_ = false;
   device_ready = false;
 
   // the handles are not valid, so discard pending GATT operations
