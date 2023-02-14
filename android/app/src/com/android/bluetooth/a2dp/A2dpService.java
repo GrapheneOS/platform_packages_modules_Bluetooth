@@ -20,8 +20,6 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import static com.android.bluetooth.Utils.checkCallerTargetSdk;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
-import static com.android.bluetooth.Utils.enforceCdmAssociation;
-import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
 
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
@@ -34,7 +32,6 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.BufferConstraints;
 import android.bluetooth.IBluetoothA2dp;
-import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -42,7 +39,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.BluetoothProfileConnectionInfo;
-import android.os.Binder;
 import android.os.Build;
 import android.os.HandlerThread;
 import android.sysprop.BluetoothProperties;
@@ -90,7 +86,6 @@ public class A2dpService extends ProfileService {
     ServiceFactory mFactory = new ServiceFactory();
     private AudioManager mAudioManager;
     private A2dpCodecConfig mA2dpCodecConfig;
-    private CompanionDeviceManager mCompanionDeviceManager;
 
     @GuardedBy("mStateMachines")
     private BluetoothDevice mActiveDevice;
@@ -142,7 +137,6 @@ public class A2dpService extends ProfileService {
         mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
                 "DatabaseManager cannot be null when A2dpService starts");
         mAudioManager = getSystemService(AudioManager.class);
-        mCompanionDeviceManager = getSystemService(CompanionDeviceManager.class);
         Objects.requireNonNull(mAudioManager,
                                "AudioManager cannot be null when A2dpService starts");
 
@@ -1496,10 +1490,6 @@ public class A2dpService extends ProfileService {
             A2dpService service = getService(source);
             if (service == null) {
                 return;
-            }
-            if (!hasBluetoothPrivilegedPermission(service)) {
-                enforceCdmAssociation(service.mCompanionDeviceManager, service,
-                        source.getPackageName(), Binder.getCallingUid(), device);
             }
             service.setCodecConfigPreference(device, codecConfig);
         }
