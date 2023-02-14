@@ -47,15 +47,16 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         await asyncio.gather(self.dut.reset(), self.ref.reset())
 
     def test_print_dut_gatt_services(self) -> None:
-        self.ref.host.StartAdvertising(legacy=True, connectable=True)
+        advertise = self.ref.host.Advertise(legacy=True, connectable=True)
         dut_ref = self.dut.host.ConnectLE(public=self.ref.address, own_address_type=OwnAddressType.RANDOM).connection
+        advertise.cancel()
 
         gatt = GATT(self.dut.channel)
         services = gatt.DiscoverServices(dut_ref)
         self.dut.log.info(f'DUT services: {services}')
 
     def test_print_ref_gatt_services(self) -> None:
-        self.dut.host.StartAdvertising(
+        advertise = self.dut.host.Advertise(
             legacy=True,
             connectable=True,
             own_address_type=OwnAddressType.RANDOM,
@@ -67,6 +68,7 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         scan.cancel()
 
         ref_dut = self.ref.host.ConnectLE(own_address_type=OwnAddressType.RANDOM, **dut.address_asdict()).connection
+        advertise.cancel()
 
         gatt = GATT(self.ref.channel)
         services = gatt.DiscoverServices(ref_dut)

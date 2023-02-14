@@ -39,7 +39,6 @@ import android.content.IntentFilter
 import android.net.MacAddress
 import android.os.ParcelUuid
 import android.util.Log
-import com.google.protobuf.Any
 import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
 import io.grpc.Status
@@ -222,7 +221,7 @@ class Host(
       .first()
   }
 
-  suspend fun waitIncomingAclConnectedIntent(address: String, transport: Int): Intent {
+  suspend fun waitIncomingAclConnectedIntent(address: String?, transport: Int): Intent {
     return flow
       .filter { it.action == BluetoothDevice.ACTION_ACL_CONNECTED }
       .filter { address == null || it.getBluetoothDeviceExtra().address == address }
@@ -291,40 +290,6 @@ class Host(
     }
   }
 
-  override fun waitLEConnection(
-    request: WaitLEConnectionRequest,
-    responseObserver: StreamObserver<WaitLEConnectionResponse>
-  ) {
-    grpcUnary(scope, responseObserver) {
-      val (address, type) =
-        when (request.getAddressCase()!!) {
-          WaitLEConnectionRequest.AddressCase.PUBLIC ->
-            Pair(request.public, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
-          WaitLEConnectionRequest.AddressCase.RANDOM ->
-            Pair(request.random, BluetoothDevice.ADDRESS_TYPE_RANDOM)
-          WaitLEConnectionRequest.AddressCase.PUBLIC_IDENTITY ->
-            Pair(request.publicIdentity, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
-          WaitLEConnectionRequest.AddressCase.RANDOM_STATIC_IDENTITY ->
-            Pair(request.randomStaticIdentity, BluetoothDevice.ADDRESS_TYPE_RANDOM)
-          WaitLEConnectionRequest.AddressCase.ADDRESS_NOT_SET -> throw Status.UNKNOWN.asException()
-        }
-      val bluetoothDevice =
-        bluetoothAdapter.getRemoteLeDevice(address.decodeAsMacAddressToString(), type)
-
-      Log.i(TAG, "waitLEConnection: device=$bluetoothDevice")
-
-      if (!bluetoothAdapter.isEnabled) {
-        Log.e(TAG, "Bluetooth is not enabled, cannot waitConnection")
-        throw Status.UNKNOWN.asException()
-      }
-
-      val intent = waitIncomingAclConnectedIntent(bluetoothDevice.address, TRANSPORT_LE)
-      WaitLEConnectionResponse.newBuilder()
-        .setConnection(intent.getBluetoothDeviceExtra().toConnection(TRANSPORT_LE))
-        .build()
-    }
-  }
-
   override fun connect(request: ConnectRequest, responseObserver: StreamObserver<ConnectResponse>) {
     grpcUnary(scope, responseObserver) {
       val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
@@ -351,22 +316,6 @@ class Host(
       ConnectResponse.newBuilder()
         .setConnection(bluetoothDevice.toConnection(TRANSPORT_BREDR))
         .build()
-    }
-  }
-
-  override fun getConnection(
-    request: GetConnectionRequest,
-    responseObserver: StreamObserver<GetConnectionResponse>
-  ) {
-    grpcUnary(scope, responseObserver) {
-      val bluetoothDevice = bluetoothAdapter.getRemoteDevice(request.address.toByteArray())
-      if (bluetoothDevice.isConnected() && bluetoothDevice.type != BluetoothDevice.DEVICE_TYPE_LE) {
-        GetConnectionResponse.newBuilder()
-          .setConnection(bluetoothDevice.toConnection(TRANSPORT_BREDR))
-          .build()
-      } else {
-        GetConnectionResponse.newBuilder().setPeerNotFound(Empty.getDefaultInstance()).build()
-      }
     }
   }
 
@@ -454,37 +403,6 @@ class Host(
     }
   }
 
-  override fun getLEConnection(
-    request: GetLEConnectionRequest,
-    responseObserver: StreamObserver<GetLEConnectionResponse>,
-  ) {
-    grpcUnary<GetLEConnectionResponse>(scope, responseObserver) {
-      val (address, type) =
-        when (request.getAddressCase()!!) {
-          GetLEConnectionRequest.AddressCase.PUBLIC ->
-            Pair(request.public, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
-          GetLEConnectionRequest.AddressCase.RANDOM ->
-            Pair(request.random, BluetoothDevice.ADDRESS_TYPE_RANDOM)
-          GetLEConnectionRequest.AddressCase.PUBLIC_IDENTITY ->
-            Pair(request.publicIdentity, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
-          GetLEConnectionRequest.AddressCase.RANDOM_STATIC_IDENTITY ->
-            Pair(request.randomStaticIdentity, BluetoothDevice.ADDRESS_TYPE_RANDOM)
-          GetLEConnectionRequest.AddressCase.ADDRESS_NOT_SET -> throw Status.UNKNOWN.asException()
-        }
-      Log.i(TAG, "getLEConnection: $address")
-      val bluetoothDevice =
-        bluetoothAdapter.getRemoteLeDevice(address.decodeAsMacAddressToString(), type)
-      if (bluetoothDevice.isConnected()) {
-        GetLEConnectionResponse.newBuilder()
-          .setConnection(bluetoothDevice.toConnection(TRANSPORT_LE))
-          .build()
-      } else {
-        Log.e(TAG, "Device: $bluetoothDevice is not connected")
-        GetLEConnectionResponse.newBuilder().setPeerNotFound(Empty.getDefaultInstance()).build()
-      }
-    }
-  }
-
   private fun scanLeDevice(address: String, addressType: Int): BluetoothDevice? {
     Log.d(TAG, "scanLeDevice")
     var bluetoothDevice: BluetoothDevice? = null
@@ -516,111 +434,91 @@ class Host(
     return bluetoothDevice
   }
 
-  override fun startAdvertising(
-    request: StartAdvertisingRequest,
-    responseObserver: StreamObserver<StartAdvertisingResponse>
+  override fun advertise(
+    request: AdvertiseRequest,
+    responseObserver: StreamObserver<AdvertiseResponse>
   ) {
-    Log.d(TAG, "startAdvertising")
-    grpcUnary(scope, responseObserver) {
-      val handle = UUID.randomUUID()
-
+    Log.d(TAG, "advertise")
+    grpcServerStream(scope, responseObserver) {
       callbackFlow {
-          val callback =
-            object : AdvertiseCallback() {
-              override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-                trySendBlocking(
-                  StartAdvertisingResponse.newBuilder()
-                    .setSet(
-                      AdvertisingSet.newBuilder()
-                        .setCookie(
-                          Any.newBuilder()
-                            .setValue(ByteString.copyFromUtf8(handle.toString()))
-                            .build()
-                        )
-                        .build()
-                    )
-                    .build()
-                )
-              }
-              override fun onStartFailure(errorCode: Int) {
-                error("failed to start advertising: $errorCode")
-              }
+        val callback =
+          object : AdvertiseCallback() {
+            override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+              Log.d(TAG, "advertising started")
             }
-
-          advertisers[handle] = callback
-
-          val advertisingDataBuilder = AdvertiseData.Builder()
-          val dataTypesRequest = request.data
-
-          if (
-            !dataTypesRequest.getIncompleteServiceClassUuids16List().isEmpty() or
-              !dataTypesRequest.getIncompleteServiceClassUuids32List().isEmpty() or
-              !dataTypesRequest.getIncompleteServiceClassUuids128List().isEmpty()
-          ) {
-            Log.e(TAG, "Incomplete Service Class Uuids not supported")
-            throw Status.UNKNOWN.asException()
-          }
-
-          for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids16List()) {
-            val uuid16 = "0000${service_uuid}-0000-1000-8000-00805F9B34FB"
-            advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(uuid16))
-          }
-          for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids32List()) {
-            val uuid32 = "${service_uuid}-0000-1000-8000-00805F9B34FB"
-            advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
-          }
-          for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids128List()) {
-            advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
-          }
-
-          advertisingDataBuilder
-            .setIncludeDeviceName(
-              dataTypesRequest.includeCompleteLocalName ||
-                dataTypesRequest.includeShortenedLocalName
-            )
-            .setIncludeTxPowerLevel(dataTypesRequest.includeTxPowerLevel)
-            .addManufacturerData(
-              BluetoothAssignedNumbers.GOOGLE,
-              dataTypesRequest.manufacturerSpecificData.toByteArray()
-            )
-          val advertisingData = advertisingDataBuilder.build()
-
-          val ownAddressType =
-            when (request.ownAddressType) {
-              OwnAddressType.RESOLVABLE_OR_PUBLIC,
-              OwnAddressType.PUBLIC -> AdvertisingSetParameters.ADDRESS_TYPE_PUBLIC
-              OwnAddressType.RESOLVABLE_OR_RANDOM,
-              OwnAddressType.RANDOM -> AdvertisingSetParameters.ADDRESS_TYPE_RANDOM
-              else -> AdvertisingSetParameters.ADDRESS_TYPE_DEFAULT
+            override fun onStartFailure(errorCode: Int) {
+              error("failed to start advertising: $errorCode")
             }
-          val advertiseSettings =
-            AdvertiseSettings.Builder()
-              .setConnectable(request.connectable)
-              .setOwnAddressType(ownAddressType)
-              .build()
+          }
+        val advertisingDataBuilder = AdvertiseData.Builder()
+        val dataTypesRequest = request.data
 
-          bluetoothAdapter.bluetoothLeAdvertiser.startAdvertising(
-            advertiseSettings,
-            advertisingData,
-            callback,
-          )
-
-          awaitClose { /* no-op */}
+        if (
+          !dataTypesRequest.getIncompleteServiceClassUuids16List().isEmpty() or
+            !dataTypesRequest.getIncompleteServiceClassUuids32List().isEmpty() or
+            !dataTypesRequest.getIncompleteServiceClassUuids128List().isEmpty()
+        ) {
+          Log.e(TAG, "Incomplete Service Class Uuids not supported")
+          throw Status.UNKNOWN.asException()
         }
-        .first()
-    }
-  }
 
-  override fun stopAdvertising(
-    request: StopAdvertisingRequest,
-    responseObserver: StreamObserver<Empty>
-  ) {
-    grpcUnary(scope, responseObserver) {
-      Log.d(TAG, "stopAdvertising")
-      val handle = UUID.fromString(request.set.cookie.value.toString())
-      bluetoothAdapter.bluetoothLeAdvertiser.stopAdvertising(advertisers[handle])
-      advertisers.remove(handle)
-      Empty.getDefaultInstance()
+        for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids16List()) {
+          val uuid16 = "0000${service_uuid}-0000-1000-8000-00805F9B34FB"
+          advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(uuid16))
+        }
+        for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids32List()) {
+          val uuid32 = "${service_uuid}-0000-1000-8000-00805F9B34FB"
+          advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
+        }
+        for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids128List()) {
+          advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
+        }
+
+        advertisingDataBuilder
+          .setIncludeDeviceName(
+            dataTypesRequest.includeCompleteLocalName || dataTypesRequest.includeShortenedLocalName
+          )
+          .setIncludeTxPowerLevel(dataTypesRequest.includeTxPowerLevel)
+          .addManufacturerData(
+            BluetoothAssignedNumbers.GOOGLE,
+            dataTypesRequest.manufacturerSpecificData.toByteArray()
+          )
+        val advertisingData = advertisingDataBuilder.build()
+
+        val ownAddressType =
+          when (request.ownAddressType) {
+            OwnAddressType.RESOLVABLE_OR_PUBLIC,
+            OwnAddressType.PUBLIC -> AdvertisingSetParameters.ADDRESS_TYPE_PUBLIC
+            OwnAddressType.RESOLVABLE_OR_RANDOM,
+            OwnAddressType.RANDOM -> AdvertisingSetParameters.ADDRESS_TYPE_RANDOM
+            else -> AdvertisingSetParameters.ADDRESS_TYPE_DEFAULT
+          }
+        val advertiseSettings =
+          AdvertiseSettings.Builder()
+            .setConnectable(request.connectable)
+            .setOwnAddressType(ownAddressType)
+            .build()
+
+        bluetoothAdapter.bluetoothLeAdvertiser.startAdvertising(
+          advertiseSettings,
+          advertisingData,
+          callback,
+        )
+
+        if (request.connectable) {
+          while (true) {
+            Log.d(TAG, "Waiting for incoming connection")
+            val connection =
+              waitIncomingAclConnectedIntent(null, TRANSPORT_LE)
+                .getBluetoothDeviceExtra()
+                .toConnection(TRANSPORT_LE)
+            Log.d(TAG, "Receive connection")
+            trySendBlocking(AdvertiseResponse.newBuilder().setConnection(connection).build())
+          }
+        }
+
+        awaitClose { bluetoothAdapter.bluetoothLeAdvertiser.stopAdvertising(callback) }
+      }
     }
   }
 
@@ -820,26 +718,6 @@ class Host(
         bluetoothAdapter.setScanMode(scanMode)
       }
       Empty.getDefaultInstance()
-    }
-  }
-
-  override fun getRemoteName(
-    request: GetRemoteNameRequest,
-    responseObserver: StreamObserver<GetRemoteNameResponse>
-  ) {
-    grpcUnary(scope, responseObserver) {
-      val device =
-        if (request.hasConnection()) {
-          request.connection.toBluetoothDevice(bluetoothAdapter)
-        } else {
-          request.address.toBluetoothDevice(bluetoothAdapter)
-        }
-      val deviceName = device.name
-      if (deviceName == null) {
-        GetRemoteNameResponse.newBuilder().setRemoteNotFound(Empty.getDefaultInstance()).build()
-      } else {
-        GetRemoteNameResponse.newBuilder().setName(deviceName).build()
-      }
     }
   }
 }
