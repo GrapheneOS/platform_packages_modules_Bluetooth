@@ -5,7 +5,10 @@ use crate::{
         callbacks::GattDatastore,
         ids::{AttHandle, ConnectionId},
     },
-    packets::{AttAttributeDataChild, AttErrorCode, OwnedAttAttributeDataView},
+    packets::{
+        AttAttributeDataChild, AttAttributeDataView, AttErrorCode, OwnedAttAttributeDataView,
+        Packet,
+    },
 };
 use async_trait::async_trait;
 use log::info;
@@ -69,5 +72,23 @@ impl GattDatastore for MockDatastore {
         let resp = rx.await.unwrap();
         info!("sending {resp:?} down from upper tester");
         resp
+    }
+
+    async fn write_characteristic(
+        &self,
+        conn_id: ConnectionId,
+        handle: AttHandle,
+        data: AttAttributeDataView<'_>,
+    ) -> Result<(), AttErrorCode> {
+        let (tx, rx) = oneshot::channel();
+        self.0
+            .send(MockDatastoreEvents::WriteCharacteristic(
+                conn_id,
+                handle,
+                data.to_owned_packet(),
+                tx,
+            ))
+            .unwrap();
+        rx.await.unwrap()
     }
 }

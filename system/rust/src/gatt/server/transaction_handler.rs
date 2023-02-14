@@ -5,7 +5,8 @@ use crate::{
     packets::{
         AttChild, AttErrorCode, AttErrorResponseBuilder, AttFindByTypeValueRequestView,
         AttFindInformationRequestView, AttOpcode, AttReadByGroupTypeRequestView,
-        AttReadByTypeRequestView, AttReadRequestView, AttView, Packet, ParseError,
+        AttReadByTypeRequestView, AttReadRequestView, AttView, AttWriteRequestView, Packet,
+        ParseError,
     },
 };
 
@@ -16,6 +17,7 @@ use super::{
         find_information_request::handle_find_information_request,
         read_by_group_type_request::handle_read_by_group_type_request,
         read_by_type_request::handle_read_by_type_request, read_request::handle_read_request,
+        write_request::handle_write_request,
     },
 };
 
@@ -85,6 +87,9 @@ impl<Db: AttDatabase> AttTransactionHandler<Db> {
                 &snapshotted_db,
             )
             .await),
+            AttOpcode::WRITE_REQUEST => {
+                Ok(handle_write_request(AttWriteRequestView::try_parse(packet)?, &self.db).await)
+            }
             _ => {
                 warn!("Dropping unsupported opcode {:?}", packet.get_opcode());
                 Err(ParseError::InvalidEnumValue)

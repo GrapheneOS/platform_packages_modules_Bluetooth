@@ -8,7 +8,7 @@ pub use callback_transaction_manager::{CallbackResponseError, CallbackTransactio
 
 use async_trait::async_trait;
 
-use crate::packets::{AttAttributeDataChild, AttErrorCode};
+use crate::packets::{AttAttributeDataChild, AttAttributeDataView, AttErrorCode};
 
 use super::ids::{AttHandle, ConnectionId, TransactionId};
 
@@ -24,6 +24,20 @@ pub trait GattCallbacks {
         handle: AttHandle,
         offset: u32,
         is_long: bool,
+    );
+
+    /// Invoked when a client tries to write a characteristic. Expects a
+    /// response using bluetooth::gatt::send_response();
+    #[allow(clippy::too_many_arguments)] // needed to match the C++ interface
+    fn on_server_write_characteristic(
+        &self,
+        conn_id: ConnectionId,
+        trans_id: TransactionId,
+        handle: AttHandle,
+        offset: u32,
+        need_response: bool,
+        is_prepare: bool,
+        value: AttAttributeDataView,
     );
 }
 
@@ -44,4 +58,12 @@ pub trait GattDatastore {
         conn_id: ConnectionId,
         handle: AttHandle,
     ) -> Result<AttAttributeDataChild, AttErrorCode>;
+
+    /// Write data to a given characteristic on the specified connection.
+    async fn write_characteristic(
+        &self,
+        conn_id: ConnectionId,
+        handle: AttHandle,
+        data: AttAttributeDataView<'_>,
+    ) -> Result<(), AttErrorCode>;
 }

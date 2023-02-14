@@ -8,7 +8,8 @@ use bluetooth_core::{
         ids::{AttHandle, ConnectionId, ServerId, TransactionId, TransportIndex},
         mocks::mock_callbacks::{MockCallbackEvents, MockCallbacks},
     },
-    packets::AttAttributeDataChild,
+    packets::{AttAttributeDataChild, AttErrorCode, Packet},
+    utils::packet::{build_att_data, build_view_or_crash},
 };
 use tokio::{sync::mpsc::UnboundedReceiver, task::spawn_local};
 use utils::start_test;
@@ -32,9 +33,10 @@ fn initialize_manager_with_connection(
 }
 
 async fn pull_trans_id(events_rx: &mut UnboundedReceiver<MockCallbackEvents>) -> TransactionId {
-    let MockCallbackEvents::OnServerReadCharacteristic(_, trans_id, _, _, _) =
-        events_rx.recv().await.unwrap();
-    trans_id
+    match events_rx.recv().await.unwrap() {
+        MockCallbackEvents::OnServerReadCharacteristic(_, trans_id, _, _, _) => trans_id,
+        MockCallbackEvents::OnServerWriteCharacteristic(_, trans_id, _, _, _, _, _) => trans_id,
+    }
 }
 
 #[test]
@@ -194,5 +196,56 @@ fn test_invalid_trans_id() {
 
         // assert
         assert_eq!(err, CallbackResponseError::NonExistentTransaction(invalid_trans_id));
+    });
+}
+
+#[test]
+fn test_write_characteristic_callback() {
+    start_test(async {
+        // arrange
+        let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
+
+        // act: start write operation
+        let data =
+            build_view_or_crash(build_att_data(AttAttributeDataChild::RawData([1, 2].into())));
+        let cloned_data = data.view().to_owned_packet();
+        spawn_local(async move {
+            callback_manager.write_characteristic(CONN_ID, HANDLE_1, cloned_data.view()).await
+        });
+
+        // assert: verify the write callback is received
+        let MockCallbackEvents::OnServerWriteCharacteristic(
+            CONN_ID, _, HANDLE_1, 0, /* needs_response = */ true, false, recv_data
+        ) = callbacks_rx.recv().await.unwrap() else {
+          unreachable!()
+        };
+        assert_eq!(
+            recv_data.view().get_raw_payload().collect::<Vec<_>>(),
+            data.view().get_raw_payload().collect::<Vec<_>>()
+        );
+    });
+}
+
+#[test]
+fn test_write_characteristic_response() {
+    start_test(async {
+        // arrange
+        let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
+
+        // act: start write operation
+        let data =
+            build_view_or_crash(build_att_data(AttAttributeDataChild::RawData([1, 2].into())));
+        let cloned_manager = callback_manager.clone();
+        let pending_write = spawn_local(async move {
+            cloned_manager.write_characteristic(CONN_ID, HANDLE_1, data.view()).await
+        });
+        // provide a response with some error code
+        let trans_id = pull_trans_id(&mut callbacks_rx).await;
+        callback_manager
+            .send_response(CONN_ID, trans_id, Err(AttErrorCode::WRITE_NOT_PERMITTED))
+            .unwrap();
+
+        // assert: that the error code was received
+        assert_eq!(pending_write.await.unwrap(), Err(AttErrorCode::WRITE_NOT_PERMITTED));
     });
 }

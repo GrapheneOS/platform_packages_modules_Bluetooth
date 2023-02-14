@@ -11,7 +11,10 @@ use log::{error, info, warn};
 
 use crate::{
     do_in_rust_thread,
-    packets::{AttAttributeDataChild, AttBuilder, AttErrorCode, Serializable, SerializeError},
+    packets::{
+        AttAttributeDataChild, AttAttributeDataView, AttBuilder, AttErrorCode, Serializable,
+        SerializeError,
+    },
 };
 
 use super::{
@@ -53,6 +56,20 @@ mod inner {
             attr_handle: u16,
             offset: u32,
             is_long: bool,
+        );
+
+        /// This callback is invoked when writing a characteristic - the client
+        /// must reply using SendResponse
+        #[cxx_name = "OnServerWriteCharacteristic"]
+        fn on_server_write_characteristic(
+            self: &GattServerCallbacks,
+            conn_id: u16,
+            trans_id: u32,
+            attr_handle: u16,
+            offset: u32,
+            need_response: bool,
+            is_prepare: bool,
+            value: &[u8],
         );
     }
 
@@ -142,6 +159,27 @@ impl GattCallbacks for GattCallbacksImpl {
             .as_ref()
             .unwrap()
             .on_server_read_characteristic(conn_id.0, trans_id.0, handle.0, offset, is_long);
+    }
+
+    fn on_server_write_characteristic(
+        &self,
+        conn_id: ConnectionId,
+        trans_id: TransactionId,
+        handle: AttHandle,
+        offset: u32,
+        need_response: bool,
+        is_prepare: bool,
+        value: AttAttributeDataView,
+    ) {
+        self.0.as_ref().unwrap().on_server_write_characteristic(
+            conn_id.0,
+            trans_id.0,
+            handle.0,
+            offset,
+            need_response,
+            is_prepare,
+            &value.get_raw_payload().collect::<Vec<_>>(),
+        );
     }
 }
 

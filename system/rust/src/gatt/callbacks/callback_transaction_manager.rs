@@ -9,7 +9,7 @@ use crate::{
         ids::{AttHandle, ConnectionId, TransactionId},
         GattCallbacks,
     },
-    packets::{AttAttributeDataChild, AttErrorCode},
+    packets::{AttAttributeDataChild, AttAttributeDataView, AttErrorCode},
 };
 
 use super::GattDatastore;
@@ -133,6 +133,27 @@ impl GattDatastore for CallbackTransactionManager {
 
         if let Ok(value) = rx.await {
             value
+        } else {
+            warn!("sender side of {trans_id:?} dropped while handling request - most likely this response will not be sent over the air");
+            Err(AttErrorCode::UNLIKELY_ERROR)
+        }
+    }
+
+    async fn write_characteristic(
+        &self,
+        conn_id: ConnectionId,
+        handle: AttHandle,
+        data: AttAttributeDataView<'_>,
+    ) -> Result<(), AttErrorCode> {
+        let (trans_id, rx) =
+            self.pending_transactions.borrow_mut().start_new_transaction(conn_id)?;
+
+        self.callbacks
+            .on_server_write_characteristic(conn_id, trans_id, handle, 0, true, false, data);
+
+        if let Ok(value) = rx.await {
+            value.map(|_| ()) // the data passed back is irrelevant for write
+                              // requests
         } else {
             warn!("sender side of {trans_id:?} dropped while handling request - most likely this response will not be sent over the air");
             Err(AttErrorCode::UNLIKELY_ERROR)

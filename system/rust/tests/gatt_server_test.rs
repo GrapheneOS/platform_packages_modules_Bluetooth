@@ -16,7 +16,8 @@ use bluetooth_core::{
     },
     packets::{
         AttAttributeDataChild, AttBuilder, AttErrorCode, AttErrorResponseBuilder, AttOpcode,
-        AttReadRequestBuilder, AttReadResponseBuilder, GattServiceDeclarationValueBuilder,
+        AttReadRequestBuilder, AttReadResponseBuilder, AttWriteRequestBuilder,
+        AttWriteResponseBuilder, GattServiceDeclarationValueBuilder, Serializable,
     },
     utils::packet::{build_att_data, build_att_view_or_crash},
 };
@@ -56,7 +57,7 @@ fn create_server_and_open_connection(gatt: &mut GattModule) {
             characteristics: vec![GattCharacteristicWithHandle {
                 handle: HANDLE_2,
                 type_: UUID_2,
-                permissions: AttPermissions { readable: true, writable: false },
+                permissions: AttPermissions { readable: true, writable: true },
             }],
         },
     )
@@ -220,5 +221,53 @@ fn test_characteristic_read() {
                 _child_: AttReadResponseBuilder { value: build_att_data(data) }.into()
             }
         );
+    })
+}
+
+#[test]
+fn test_characteristic_write() {
+    start_test(async move {
+        // arrange
+        let (mut gatt, mut data_rx, mut transport_rx) = start_gatt_module();
+
+        let data = AttAttributeDataChild::RawData([5, 6, 7, 8].into());
+
+        create_server_and_open_connection(&mut gatt);
+        data_rx.recv().await.unwrap();
+
+        // act
+        gatt.handle_packet(
+            CONN_ID,
+            build_att_view_or_crash(AttWriteRequestBuilder {
+                handle: HANDLE_2.into(),
+                value: build_att_data(data.clone()),
+            })
+            .view(),
+        )
+        .unwrap();
+        let (tx, written_data) =
+            if let MockDatastoreEvents::WriteCharacteristic(CONN_ID, HANDLE_2, written_data, tx) =
+                data_rx.recv().await.unwrap()
+            {
+                (tx, written_data)
+            } else {
+                unreachable!()
+            };
+        tx.send(Ok(())).unwrap();
+        let (tcb_idx, resp) = transport_rx.recv().await.unwrap();
+
+        // assert
+        assert_eq!(tcb_idx, TCB_IDX);
+        assert_eq!(
+            resp,
+            AttBuilder {
+                opcode: AttOpcode::WRITE_RESPONSE,
+                _child_: AttWriteResponseBuilder {}.into()
+            }
+        );
+        assert_eq!(
+            data.to_vec().unwrap(),
+            written_data.view().get_raw_payload().collect::<Vec<_>>()
+        )
     })
 }

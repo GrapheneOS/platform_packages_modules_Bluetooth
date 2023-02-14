@@ -14,8 +14,9 @@ use crate::{
         ids::{AttHandle, ConnectionId},
     },
     packets::{
-        AttAttributeDataChild, AttCharacteristicPropertiesBuilder, AttErrorCode,
-        GattCharacteristicDeclarationValueBuilder, GattServiceDeclarationValueBuilder, UuidBuilder,
+        AttAttributeDataChild, AttAttributeDataView, AttCharacteristicPropertiesBuilder,
+        AttErrorCode, GattCharacteristicDeclarationValueBuilder,
+        GattServiceDeclarationValueBuilder, UuidBuilder,
     },
 };
 
@@ -258,6 +259,25 @@ where
         self.gatt_db.datastore.read_characteristic(self.conn_id, handle).await
     }
 
+    async fn write_attribute(
+        &self,
+        handle: AttHandle,
+        data: AttAttributeDataView<'_>,
+    ) -> Result<(), AttErrorCode> {
+        {
+            // block needed to drop the RefCell before the async point
+            let services = self.gatt_db.schema.borrow();
+            let Some(attr) = services.attributes.get(&handle) else {
+                return Err(AttErrorCode::INVALID_HANDLE);
+            };
+            if !attr.attribute.permissions.writable {
+                return Err(AttErrorCode::WRITE_NOT_PERMITTED);
+            }
+        }
+
+        self.gatt_db.datastore.write_characteristic(self.conn_id, handle, data).await
+    }
+
     fn list_attributes(&self) -> Vec<AttAttribute> {
         self.gatt_db.schema.borrow().attributes.values().map(|attr| attr.attribute).collect()
     }
@@ -265,9 +285,16 @@ where
 
 #[cfg(test)]
 mod test {
-    use tokio::join;
+    use tokio::{join, task::spawn_local};
 
-    use crate::gatt::mocks::mock_datastore::{MockDatastore, MockDatastoreEvents};
+    use crate::{
+        gatt::mocks::mock_datastore::{MockDatastore, MockDatastoreEvents},
+        packets::Packet,
+        utils::{
+            packet::{build_att_data, build_view_or_crash},
+            task::block_on_locally,
+        },
+    };
 
     use super::*;
 
@@ -577,5 +604,119 @@ mod test {
         assert!(att_db.list_attributes().is_empty());
         let read_result = tokio_test::block_on(att_db.read_attribute(SERVICE_HANDLE));
         assert!(read_result.is_err());
+    }
+
+    #[test]
+    fn test_write_single_characteristic_callback_invoked() {
+        // arrange: create a database with a single characteristic
+        let (gatt_datastore, mut data_evts) = MockDatastore::new();
+        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        gatt_db
+            .add_service_with_handles(GattServiceWithHandle {
+                handle: SERVICE_HANDLE,
+                type_: SERVICE_TYPE,
+                characteristics: vec![GattCharacteristicWithHandle {
+                    handle: CHARACTERISTIC_VALUE_HANDLE,
+                    type_: CHARACTERISTIC_TYPE,
+                    permissions: AttPermissions { readable: false, writable: true },
+                }],
+            })
+            .unwrap();
+        let att_db = gatt_db.get_att_database(CONN_ID);
+        let data =
+            build_view_or_crash(build_att_data(AttAttributeDataChild::RawData(Box::new([1, 2]))));
+
+        // act: write to the database
+        let recv_data = block_on_locally(async {
+            // start write task
+            let cloned_data = data.view().to_owned_packet();
+            spawn_local(async move {
+                att_db
+                    .write_attribute(CHARACTERISTIC_VALUE_HANDLE, cloned_data.view())
+                    .await
+                    .unwrap();
+            });
+
+            let MockDatastoreEvents::WriteCharacteristic(
+                CONN_ID,
+                CHARACTERISTIC_VALUE_HANDLE,
+                recv_data,
+                _,
+            ) = data_evts.recv().await.unwrap() else {
+                unreachable!();
+            };
+            recv_data
+        });
+
+        // assert: the received value matches what we supplied
+        assert_eq!(
+            recv_data.view().get_raw_payload().collect::<Vec<_>>(),
+            data.view().get_raw_payload().collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn test_write_single_characteristic_recv_response() {
+        // arrange: create a database with a single characteristic
+        let (gatt_datastore, mut data_evts) = MockDatastore::new();
+        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        gatt_db
+            .add_service_with_handles(GattServiceWithHandle {
+                handle: SERVICE_HANDLE,
+                type_: SERVICE_TYPE,
+                characteristics: vec![GattCharacteristicWithHandle {
+                    handle: CHARACTERISTIC_VALUE_HANDLE,
+                    type_: CHARACTERISTIC_TYPE,
+                    permissions: AttPermissions { readable: false, writable: true },
+                }],
+            })
+            .unwrap();
+        let att_db = gatt_db.get_att_database(CONN_ID);
+        let data =
+            build_view_or_crash(build_att_data(AttAttributeDataChild::RawData(Box::new([1, 2]))));
+
+        // act: write to the database
+        let res = tokio_test::block_on(async {
+            join!(
+                async {
+                    let MockDatastoreEvents::WriteCharacteristic(_,_,_,reply) = data_evts.recv().await.unwrap() else {
+                        unreachable!();
+                    };
+                    reply.send(Err(AttErrorCode::UNLIKELY_ERROR)).unwrap();
+                },
+                att_db.write_attribute(CHARACTERISTIC_VALUE_HANDLE, data.view())
+            )
+            .1
+        });
+
+        // assert: the supplied value matches what the att datastore returned
+        assert_eq!(res, Err(AttErrorCode::UNLIKELY_ERROR));
+    }
+
+    #[test]
+    fn test_unwriteable_characteristic() {
+        let (gatt_datastore, _) = MockDatastore::new();
+        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        gatt_db
+            .add_service_with_handles(GattServiceWithHandle {
+                handle: SERVICE_HANDLE,
+                type_: SERVICE_TYPE,
+                characteristics: vec![GattCharacteristicWithHandle {
+                    handle: CHARACTERISTIC_VALUE_HANDLE,
+                    type_: CHARACTERISTIC_TYPE,
+                    permissions: AttPermissions::READONLY,
+                }],
+            })
+            .unwrap();
+        let data =
+            build_view_or_crash(build_att_data(AttAttributeDataChild::RawData(Box::new([1, 2]))));
+
+        let characteristic_value = tokio_test::block_on(
+            gatt_db
+                .get_att_database(CONN_ID)
+                .write_attribute(CHARACTERISTIC_VALUE_HANDLE, data.view()),
+        );
+
+        assert_eq!(characteristic_value, Err(AttErrorCode::WRITE_NOT_PERMITTED));
     }
 }

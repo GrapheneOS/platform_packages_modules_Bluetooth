@@ -103,11 +103,7 @@ impl<T: AttDatabase + 'static> AttServerBearer<T> {
 
 #[cfg(test)]
 mod test {
-    use tokio::{
-        runtime::Runtime,
-        sync::mpsc::{error::TryRecvError, unbounded_channel, UnboundedReceiver},
-        task::LocalSet,
-    };
+    use tokio::sync::mpsc::{error::TryRecvError, unbounded_channel, UnboundedReceiver};
 
     use super::*;
 
@@ -128,7 +124,10 @@ mod test {
         packets::{
             AttAttributeDataChild, AttOpcode, AttReadRequestBuilder, AttReadResponseBuilder,
         },
-        utils::packet::{build_att_data, build_att_view_or_crash},
+        utils::{
+            packet::{build_att_data, build_att_view_or_crash},
+            task::block_on_locally,
+        },
     };
 
     const VALID_HANDLE: AttHandle = AttHandle(3);
@@ -156,7 +155,7 @@ mod test {
 
     #[test]
     fn test_single_transaction() {
-        LocalSet::new().block_on(&Runtime::new().unwrap(), async {
+        block_on_locally(async {
             let (conn, mut rx) = open_connection();
             conn.handle_packet(
                 build_att_view_or_crash(AttReadRequestBuilder {
@@ -171,7 +170,7 @@ mod test {
 
     #[test]
     fn test_sequential_transactions() {
-        LocalSet::new().block_on(&Runtime::new().unwrap(), async {
+        block_on_locally(async {
             let (conn, mut rx) = open_connection();
             conn.handle_packet(
                 build_att_view_or_crash(AttReadRequestBuilder {
@@ -229,7 +228,7 @@ mod test {
 
         // act: send two read requests before replying to either read
         // first request
-        LocalSet::new().block_on(&Runtime::new().unwrap(), async {
+        block_on_locally(async {
             let req1 = build_att_view_or_crash(AttReadRequestBuilder {
                 attribute_handle: VALID_HANDLE.into(),
             });

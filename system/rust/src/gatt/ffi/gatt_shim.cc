@@ -69,5 +69,27 @@ void GattServerCallbacks::OnServerReadCharacteristic(uint16_t conn_id,
                  addr.value(), attr_handle, offset, is_long));
 }
 
+void GattServerCallbacks::OnServerWriteCharacteristic(
+    uint16_t conn_id, uint32_t trans_id, uint16_t attr_handle, uint32_t offset,
+    bool need_response, bool is_prepare,
+    ::rust::Slice<const uint8_t> value) const {
+  auto addr = AddressOfConnection(conn_id);
+  if (!addr.has_value()) {
+    LOG_WARN(
+        "Dropping server write characteristic since connection %d not found",
+        conn_id);
+    return;
+  }
+
+  auto buf = new uint8_t[value.size()];
+  std::copy(value.begin(), value.end(), buf);
+
+  do_in_jni_thread(
+      FROM_HERE,
+      base::Bind(callbacks.request_write_characteristic_cb, conn_id, trans_id,
+                 addr.value(), attr_handle, offset, need_response, is_prepare,
+                 base::Owned(buf), value.size()));
+}
+
 }  // namespace gatt
 }  // namespace bluetooth

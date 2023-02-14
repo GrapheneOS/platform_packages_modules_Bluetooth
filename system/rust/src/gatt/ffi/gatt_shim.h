@@ -34,6 +34,11 @@ class GattServerCallbacks {
                                   uint16_t attr_handle, uint32_t offset,
                                   bool is_long) const;
 
+  void OnServerWriteCharacteristic(uint16_t conn_id, uint32_t trans_id,
+                                   uint16_t attr_handle, uint32_t offset,
+                                   bool need_response, bool is_prepare,
+                                   ::rust::Slice<const uint8_t> value) const;
+
  private:
   const btgatt_server_callbacks_t& callbacks;
 };
