@@ -20,10 +20,10 @@ import asyncio
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 
-from pandora_experimental.security_grpc import Security, PairingEventAnswer
-from pandora_experimental.security_pb2 import LESecurityLevel
-from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import ConnectabilityMode, OwnAddressType
+from pandora.security_grpc import Security, PairingEventAnswer
+from pandora.security_pb2 import LESecurityLevel
+from pandora.host_grpc import Host
+from pandora.host_pb2 import ConnectabilityMode, OwnAddressType
 
 
 def debug(*args, **kwargs):

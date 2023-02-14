@@ -5,10 +5,10 @@ from time import sleep
 
 from pandora_experimental.gatt_grpc import GATT
 from pandora_experimental.gatt_pb2 import GattServiceParams, GattCharacteristicParams
-from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import ConnectabilityMode, DataTypes, DiscoverabilityMode, OwnAddressType
-from pandora_experimental.security_grpc import Security, SecurityStorage, PairingEventAnswer
-from pandora_experimental.security_pb2 import LESecurityLevel
+from pandora.host_grpc import Host
+from pandora.host_pb2 import ConnectabilityMode, DataTypes, DiscoverabilityMode, OwnAddressType
+from pandora.security_grpc import Security, SecurityStorage, PairingEventAnswer
+from pandora.security_pb2 import LESecurityLevel
 
 
 class GAPProxy(ProfileProxy):

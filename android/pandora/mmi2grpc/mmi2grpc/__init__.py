@@ -41,7 +41,7 @@ from mmi2grpc._helpers import format_proxy
 from mmi2grpc._rootcanal import RootCanal
 from mmi2grpc._modem import Modem
 
-from pandora_experimental.host_grpc import Host
+from pandora.host_grpc import Host
 
 PANDORA_SERVER_PORT = 8999
 ROOTCANAL_CONTROL_PORT = 6212
