@@ -94,6 +94,8 @@ static tBTM_STATUS btm_ble_start_adv(void);
 
 namespace {
 
+constexpr char kBtmLogTag[] = "SCAN";
+
 class AdvertisingCache {
  public:
   /* Set the data to |data| for device |addr_type, addr| */
@@ -558,6 +560,12 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
       btm_ble_start_scan();
     }
 
+    btm_cb.neighbor.le_observe = {
+        .start_time_ms = timestamper_in_milliseconds.GetTimestamp(),
+        .results = 0,
+    };
+    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le observe started");
+
     if (status == BTM_CMD_STARTED) {
       btm_cb.ble_ctr_cb.set_ble_observe_active();
       if (duration != 0) {
@@ -568,6 +576,13 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
       }
     }
   } else if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
+    const unsigned long long duration_timestamp =
+        timestamper_in_milliseconds.GetTimestamp() -
+        btm_cb.neighbor.le_observe.start_time_ms;
+    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le observe stopped",
+                   base::StringPrintf("duration_s:%6.3f results:%-3lu",
+                                      (double)duration_timestamp / 1000.0,
+                                      btm_cb.neighbor.le_observe.results));
     status = BTM_CMD_STARTED;
     btm_ble_stop_observe();
   } else {
@@ -2050,6 +2065,12 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t duration) {
                        btm_ble_inquiry_timer_timeout, NULL);
   }
 
+  btm_cb.neighbor.le_inquiry = {
+      .start_time_ms = timestamper_in_milliseconds.GetTimestamp(),
+      .results = 0,
+  };
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le inquiry started");
+
   return BTM_CMD_STARTED;
 }
 
@@ -2860,6 +2881,7 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
                 (!p_i->inq_info.results.include_rsi && include_rsi))) {
       update = true;
     } else if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
+      btm_cb.neighbor.le_observe.results++;
       update = false;
     } else {
       /* if yes, skip it */
@@ -2874,8 +2896,12 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
     if (p_i != NULL) {
       p_inq->inq_cmpl_info.num_resp++;
       p_i->time_of_resp = bluetooth::common::time_get_os_boottime_ms();
-    } else
+      btm_cb.neighbor.le_inquiry.results++;
+      btm_cb.neighbor.le_legacy_scan.results++;
+    } else {
+      LOG_WARN("Unable to allocate entry for inquiry result");
       return;
+    }
   } else if (p_i->inq_count !=
              p_inq->inq_counter) /* first time seen in this inquiry */
   {
@@ -2949,11 +2975,17 @@ void btm_ble_process_phy_update_pkt(uint8_t len, uint8_t* data) {
  *
  ******************************************************************************/
 static void btm_ble_start_scan() {
-  tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
+  btm_cb.neighbor.le_legacy_scan = {
+      .start_time_ms = timestamper_in_milliseconds.GetTimestamp(),
+      .results = 0,
+  };
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le legacy scan started",
+                 "Duplicates:disable");
+
   /* start scan, disable duplicate filtering */
   btm_send_hci_scan_enable(BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE);
 
-  if (p_inq->scan_type == BTM_BLE_SCAN_MODE_ACTI)
+  if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI)
     btm_ble_set_topology_mask(BTM_BLE_STATE_ACTIVE_SCAN_BIT);
   else
     btm_ble_set_topology_mask(BTM_BLE_STATE_PASSIVE_SCAN_BIT);
@@ -2969,8 +3001,6 @@ static void btm_ble_start_scan() {
  *
  ******************************************************************************/
 static void btm_ble_stop_scan(void) {
-  BTM_TRACE_EVENT("btm_ble_stop_scan ");
-
   if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI)
     btm_ble_clear_topology_mask(BTM_BLE_STATE_ACTIVE_SCAN_BIT);
   else
@@ -2980,6 +3010,13 @@ static void btm_ble_stop_scan(void) {
   btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_NONE;
 
   /* stop discovery now */
+  const unsigned long long duration_timestamp =
+      timestamper_in_milliseconds.GetTimestamp() -
+      btm_cb.neighbor.le_legacy_scan.start_time_ms;
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le legacy scan stopped",
+                 base::StringPrintf("duration_s:%6.3f results:%-3lu",
+                                    (double)duration_timestamp / 1000.0,
+                                    btm_cb.neighbor.le_legacy_scan.results));
   btm_send_hci_scan_enable(BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
 
   btm_update_scanner_filter_policy(SP_ADV_ALL);
@@ -2999,6 +3036,13 @@ void btm_ble_stop_inquiry(void) {
 
   alarm_cancel(p_ble_cb->inq_var.inquiry_timer);
 
+  const unsigned long long duration_timestamp =
+      timestamper_in_milliseconds.GetTimestamp() -
+      btm_cb.neighbor.le_inquiry.start_time_ms;
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le inquiry stopped",
+                 base::StringPrintf("duration_s:%6.3f results:%-3lu",
+                                    (double)duration_timestamp / 1000.0,
+                                    btm_cb.neighbor.le_inquiry.results));
   p_ble_cb->reset_ble_inquiry();
 
   /* Cleanup anything remaining on index 0 */
