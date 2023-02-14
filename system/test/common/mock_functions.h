@@ -23,6 +23,8 @@
 // Usage is deprecated, use get_func_call_count / inc_func_call_count instead
 extern std::map<std::string, int> mock_function_count_map;
 
+int get_func_call_size();
+
 int get_func_call_count(const char* fn);
 void inc_func_call_count(const char* fn);
 
