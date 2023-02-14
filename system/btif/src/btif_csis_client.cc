@@ -62,7 +62,7 @@ class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
   }
 
   void Connect(const RawAddress& addr) override {
-    if (!initialized || CsisClient::Get() == nullptr) {
+    if (!initialized || !CsisClient::IsCsisClientRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -75,7 +75,7 @@ class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
   }
 
   void Disconnect(const RawAddress& addr) override {
-    if (!initialized || CsisClient::Get() == nullptr) {
+    if (!initialized || !CsisClient::IsCsisClientRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -88,7 +88,7 @@ class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
   }
 
   void RemoveDevice(const RawAddress& addr) override {
-    if (!initialized || CsisClient::Get() == nullptr) {
+    if (!initialized || !CsisClient::IsCsisClientRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not ready";
@@ -106,7 +106,7 @@ class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
   }
 
   void LockGroup(int group_id, bool lock) override {
-    if (!initialized || CsisClient::Get() == nullptr) {
+    if (!initialized || !CsisClient::IsCsisClientRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -120,7 +120,7 @@ class CsipSetCoordinatorServiceInterfaceImpl : public CsisClientInterface,
   }
 
   void Cleanup(void) override {
-    if (!initialized || CsisClient::Get() == nullptr) {
+    if (!initialized || !CsisClient::IsCsisClientRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
