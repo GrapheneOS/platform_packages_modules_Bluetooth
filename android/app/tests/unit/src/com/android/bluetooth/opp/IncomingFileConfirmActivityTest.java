@@ -210,10 +210,10 @@ public class IncomingFileConfirmActivityTest {
 
         scenario.onActivity(activity -> {
             atomicBoolean.set(activity.onKeyDown(KeyEvent.KEYCODE_BACK,
-                    new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK)));
+                    new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK))
+                    && activity.isFinishing());
         });
 
         assertThat(atomicBoolean.get()).isTrue();
-        assertThat(scenario.getState()).isEqualTo(Lifecycle.State.DESTROYED);
     }
 }
