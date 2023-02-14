@@ -77,6 +77,8 @@ public class ActiveDeviceManagerTest {
     private ArrayList<BluetoothDevice> mDeviceConnectionStack;
     private BluetoothDevice mMostRecentDevice;
     private ActiveDeviceManager mActiveDeviceManager;
+    private long mHearingAidHiSyncId = 1010;
+
     private static final int TIMEOUT_MS = 1000;
 
     @Mock private AdapterService mAdapterService;
@@ -129,6 +131,12 @@ public class ActiveDeviceManagerTest {
         when(mHeadsetService.setActiveDevice(any())).thenReturn(true);
         when(mHearingAidService.setActiveDevice(any())).thenReturn(true);
         when(mLeAudioService.setActiveDevice(any())).thenReturn(true);
+
+        List<BluetoothDevice> connectedHearingAidDevices = new ArrayList<>();
+        connectedHearingAidDevices.add(mHearingAidDevice);
+        when(mHearingAidService.getHiSyncId(mHearingAidDevice)).thenReturn(mHearingAidHiSyncId);
+        when(mHearingAidService.getConnectedPeerDevices(mHearingAidHiSyncId))
+                .thenReturn(connectedHearingAidDevices);
 
         when(mA2dpService.getFallbackDevice()).thenAnswer(invocation -> {
             if (!mDeviceConnectionStack.isEmpty() && Objects.equals(mA2dpDevice,
@@ -329,6 +337,25 @@ public class ActiveDeviceManagerTest {
         verify(mHeadsetService, never()).setActiveDevice(mHeadsetDevice);
     }
 
+    @Test
+    public void twoHearingAidDevicesConnected_WithTheSameHiSyncId() {
+        Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
+                HearingAidService.isEnabled());
+
+        List<BluetoothDevice> connectedHearingAidDevices = new ArrayList<>();
+        connectedHearingAidDevices.add(mHearingAidDevice);
+        connectedHearingAidDevices.add(mSecondaryAudioDevice);
+        when(mHearingAidService.getHiSyncId(mSecondaryAudioDevice))
+                .thenReturn(mHearingAidHiSyncId);
+        when(mHearingAidService.getConnectedPeerDevices(mHearingAidHiSyncId))
+                .thenReturn(connectedHearingAidDevices);
+
+        hearingAidConnected(mHearingAidDevice);
+        hearingAidConnected(mSecondaryAudioDevice);
+        verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mHearingAidDevice);
+        verify(mHearingAidService, never()).setActiveDevice(mSecondaryAudioDevice);
+    }
+
     /**
      * A combo (A2DP + Headset) device is connected. Then a Hearing Aid is connected.
      */
@@ -381,7 +408,7 @@ public class ActiveDeviceManagerTest {
         // Don't call mA2dpService.setActiveDevice()
         verify(mA2dpService, never()).setActiveDevice(mA2dpHeadsetDevice);
         Assert.assertEquals(mA2dpHeadsetDevice, mActiveDeviceManager.getA2dpActiveDevice());
-        Assert.assertEquals(null, mActiveDeviceManager.getHearingAidActiveDevice());
+        Assert.assertTrue(mActiveDeviceManager.getHearingAidActiveDevices().isEmpty());
     }
 
     /**
@@ -401,7 +428,7 @@ public class ActiveDeviceManagerTest {
         // Don't call mHeadsetService.setActiveDevice()
         verify(mHeadsetService, never()).setActiveDevice(mA2dpHeadsetDevice);
         Assert.assertEquals(mA2dpHeadsetDevice, mActiveDeviceManager.getHfpActiveDevice());
-        Assert.assertEquals(null, mActiveDeviceManager.getHearingAidActiveDevice());
+        Assert.assertTrue(mActiveDeviceManager.getHearingAidActiveDevices().isEmpty());
     }
 
     /**
@@ -593,6 +620,13 @@ public class ActiveDeviceManagerTest {
     public void hearingAidSecondDeviceDisconnected_fallbackDeviceActive() {
         hearingAidConnected(mHearingAidDevice);
         verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mHearingAidDevice);
+
+        List<BluetoothDevice> connectedHearingAidDevices = new ArrayList<>();
+        connectedHearingAidDevices.add(mSecondaryAudioDevice);
+        when(mHearingAidService.getHiSyncId(mSecondaryAudioDevice))
+                .thenReturn(mHearingAidHiSyncId + 1);
+        when(mHearingAidService.getConnectedPeerDevices(mHearingAidHiSyncId + 1))
+                .thenReturn(connectedHearingAidDevices);
 
         hearingAidConnected(mSecondaryAudioDevice);
         verify(mHearingAidService, timeout(TIMEOUT_MS)).setActiveDevice(mSecondaryAudioDevice);

@@ -567,7 +567,7 @@ public class HearingAidService extends ProfileService {
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    long getHiSyncId(BluetoothDevice device) {
+    public long getHiSyncId(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
         if (device == null) {
@@ -857,7 +857,7 @@ public class HearingAidService extends ProfileService {
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    private List<BluetoothDevice> getConnectedPeerDevices(long hiSyncId) {
+    public List<BluetoothDevice> getConnectedPeerDevices(long hiSyncId) {
         List<BluetoothDevice> result = new ArrayList<>();
         for (BluetoothDevice peerDevice : getConnectedDevices()) {
             if (getHiSyncId(peerDevice) == hiSyncId) {
