@@ -30,7 +30,6 @@
 #include "gd/common/strings.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
-#include "service/common/bluetooth/low_energy_constants.h"
 #include "stack/include/ble_advertiser.h"
 #include "stack/include/btm_iso_api.h"
 #include "stack/include/btu.h"
@@ -46,6 +45,14 @@ using le_audio::types::CodecLocation;
 using namespace le_audio::broadcaster;
 
 namespace {
+
+// Advertising channels. These should be kept the same as those defined in the
+// stack.
+const int kAdvertisingChannel37 = (1 << 0);
+const int kAdvertisingChannel38 = (1 << 1);
+const int kAdvertisingChannel39 = (1 << 2);
+const int kAdvertisingChannelAll =
+    (kAdvertisingChannel37 | kAdvertisingChannel38 | kAdvertisingChannel39);
 
 class BroadcastStateMachineImpl : public BroadcastStateMachine {
  public:
@@ -291,7 +298,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
       adv_params.adv_int_min = 0x00A0; /* 160 * 0,625 = 100ms */
       adv_params.adv_int_max = 0x0140; /* 320 * 0,625 = 200ms */
       adv_params.advertising_event_properties = 0;
-      adv_params.channel_map = bluetooth::kAdvertisingChannelAll;
+      adv_params.channel_map = kAdvertisingChannelAll;
       adv_params.adv_filter_policy = 0;
       adv_params.tx_power = 8;
       adv_params.primary_advertising_phy = PHY_LE_1M;
