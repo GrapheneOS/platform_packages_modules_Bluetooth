@@ -2150,7 +2150,7 @@ void bta_hf_client_send_at_bia(tBTA_HF_CLIENT_CB* client_cb) {
   at_len = snprintf(buf, sizeof(buf), "AT+BIA=");
 
   const int32_t position = osi_property_get_int32(
-      "bluetooth.headsetclient.disable_indicator.position", -1);
+      "bluetooth.headset_client.disable_indicator.position", -1);
 
   for (i = 0; i < BTA_HF_CLIENT_AT_INDICATOR_COUNT; i++) {
     int sup = client_cb->at_cb.indicator_lookup[i] == -1 ? 0 : 1;
