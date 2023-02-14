@@ -179,10 +179,7 @@ class VolumeControlImpl : public VolumeControl {
       // If the encryption failed, do not remove the device.
       // Disconnect only, since the Android will try to re-enable encryption
       // after disconnection
-      device->Disconnect(gatt_if_);
-      if (device->connecting_actively)
-        callbacks_->OnConnectionState(ConnectionState::DISCONNECTED,
-                                      device->address);
+      device_cleanup_helper(device, device->connecting_actively);
       return;
     }
 
@@ -194,7 +191,6 @@ class VolumeControlImpl : public VolumeControl {
                                      OnGattWriteCccStatic);
 
     } else {
-      device->first_connection = true;
       BTA_GATTC_ServiceSearchRequest(device->connection_id,
                                      &kVolumeControlUuid);
     }
@@ -207,7 +203,7 @@ class VolumeControlImpl : public VolumeControl {
     }
 
     LOG_INFO(": address=%s", ADDRESS_TO_LOGGABLE_CSTR(device->address));
-    if (device->service_changed_rcvd) {
+    if (device->known_service_handles_ == false) {
       LOG_INFO("Device already is waiting for new services");
       return;
     }
@@ -217,9 +213,7 @@ class VolumeControlImpl : public VolumeControl {
 
     RemovePendingVolumeControlOperations(devices,
                                          bluetooth::groups::kGroupUnknown);
-    device->first_connection = true;
-    device->service_changed_rcvd = true;
-    BtaGattQueue::Clean(device->connection_id);
+    device->ResetHandles();
     BTA_GATTC_ServiceSearchRequest(device->connection_id, &kVolumeControlUuid);
   }
 
@@ -244,9 +238,10 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    if (device->service_changed_rcvd)
+    if (device->known_service_handles_ == false) {
       BTA_GATTC_ServiceSearchRequest(device->connection_id,
                                      &kVolumeControlUuid);
+    }
   }
 
   void OnServiceSearchComplete(uint16_t connection_id, tGATT_STATUS status) {
@@ -259,19 +254,19 @@ class VolumeControlImpl : public VolumeControl {
     }
 
     /* Known device, nothing to do */
-    if (!device->first_connection) return;
+    if (device->IsReady()) return;
 
     if (status != GATT_SUCCESS) {
       /* close connection and report service discovery complete with error */
       LOG(ERROR) << "Service discovery failed";
-      device_cleanup_helper(device, device->first_connection);
+      device_cleanup_helper(device, device->connecting_actively);
       return;
     }
 
     bool success = device->UpdateHandles();
     if (!success) {
       LOG(ERROR) << "Incomplete service database";
-      device_cleanup_helper(device, true);
+      device_cleanup_helper(device, device->connecting_actively);
       return;
     }
 
@@ -638,12 +633,12 @@ class VolumeControlImpl : public VolumeControl {
 
     LOG(INFO) << __func__ << " GAP_EVT_CONN_CLOSED: "
               << ADDRESS_TO_LOGGABLE_STR(device->address);
+    device->connecting_actively = false;
     device_cleanup_helper(device, true);
   }
 
   void OnGattDisconnected(uint16_t connection_id, tGATT_IF /*client_if*/,
-                          RawAddress remote_bda,
-                          tGATT_DISCONN_REASON /*reason*/) {
+                          RawAddress remote_bda, tGATT_DISCONN_REASON reason) {
     VolumeControlDevice* device =
         volume_control_devices_.FindByConnId(connection_id);
     if (!device) {
@@ -661,15 +656,10 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    // If we get here, it means, device has not been exlicitly disconnected.
-    bool device_ready = device->IsReady();
-
     device_cleanup_helper(device, device->connecting_actively);
 
-    if (device_ready) {
-      device->first_connection = true;
-      device->connecting_actively = true;
-
+    if (reason != GATT_CONN_TERMINATE_LOCAL_HOST &&
+        device->connecting_actively) {
       /* Add device into BG connection to accept remote initiated connection */
       BTA_GATTC_Open(gatt_if_, remote_bda, BTM_BLE_BKG_CONNECT_ALLOW_LIST,
                      false);
@@ -1080,10 +1070,6 @@ class VolumeControlImpl : public VolumeControl {
                                     device->audio_offsets.Size());
       callbacks_->OnConnectionState(ConnectionState::CONNECTED,
                                     device->address);
-
-      device->connecting_actively = true;
-
-      device->first_connection = false;
 
       // once profile connected we can notify current states
       callbacks_->OnVolumeStateChanged(device->address, device->volume,
