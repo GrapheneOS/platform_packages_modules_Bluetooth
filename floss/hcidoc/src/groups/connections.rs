@@ -1,15 +1,16 @@
 ///! Rule group for tracking connection related issues.
 use chrono::NaiveDateTime;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::io::Write;
 
 use crate::engine::{Rule, RuleGroup};
 use crate::parser::{Packet, PacketChild};
 use bt_packets::custom_types::Address;
 use bt_packets::hci::{
-    AclCommandChild, CommandChild, CommandStatusPacket, ConnectionManagementCommandChild,
-    ErrorCode, EventChild, EventPacket, LeConnectionManagementCommandChild, LeMetaEventChild,
-    OpCode, ScoConnectionCommandChild, SubeventCode,
+    AclCommandChild, AclPacket, CommandChild, CommandStatusPacket,
+    ConnectionManagementCommandChild, ErrorCode, EventChild, EventPacket,
+    LeConnectionManagementCommandChild, LeMetaEventChild, NumberOfCompletedPacketsPacket, OpCode,
+    ScoConnectionCommandChild, SubeventCode,
 };
 
 /// Valid values are in the range 0x0000-0x0EFF.
@@ -21,6 +22,21 @@ pub const INVALID_CONN_HANDLE: u16 = 0xfffeu16;
 /// When we attempt to create a sco connection on an unknown handle, use this address as
 /// a placeholder.
 pub const UNKNOWN_SCO_ADDRESS: Address = Address { bytes: [0xde, 0xad, 0xbe, 0xef, 0x00, 0x00] };
+
+/// Any outstanding NOCP or disconnection that is more than 5s away from the sent ACL packet should
+/// result in an NOCP signal being generated.
+pub const NOCP_CORRELATION_TIME_MS: i64 = 5000;
+
+pub(crate) struct NocpData {
+    /// Number of in-flight packets without a corresponding NOCP.
+    pub inflight_acl_ts: VecDeque<NaiveDateTime>,
+}
+
+impl NocpData {
+    fn new() -> Self {
+        Self { inflight_acl_ts: VecDeque::new() }
+    }
+}
 
 /// Keeps track of connections and identifies odd disconnections.
 struct OddDisconnectionsRule {
@@ -40,6 +56,10 @@ struct OddDisconnectionsRule {
     sco_connection_attempt: HashMap<Address, Packet>,
     last_sco_connection_attempt: Option<Address>,
 
+    /// Keep track of some number of |Number of Completed Packets| and filter to
+    /// identify bursts.
+    nocp_by_handle: HashMap<ConnectionHandle, NocpData>,
+
     /// Interesting occurrences surfaced by this rule.
     reportable: Vec<(NaiveDateTime, String)>,
 }
@@ -55,6 +75,7 @@ impl OddDisconnectionsRule {
             last_le_connection_attempt: None,
             sco_connection_attempt: HashMap::new(),
             last_sco_connection_attempt: None,
+            nocp_by_handle: HashMap::new(),
             reportable: vec![],
         }
     }
@@ -257,16 +278,37 @@ impl OddDisconnectionsRule {
             }
 
             EventChild::DisconnectionComplete(dsc) => {
-                if self.active_handles.remove(&dsc.get_connection_handle()).is_none() {
-                    self.reportable.push((
-                        packet.ts,
-                        format!(
-                            "DisconnectionComplete for unknown handle {} with status={:?}",
-                            dsc.get_connection_handle(),
-                            dsc.get_status()
-                        ),
-                    ));
+                let handle = dsc.get_connection_handle();
+                match self.active_handles.remove(&handle) {
+                    Some(_) => {
+                        // Check if this is a NOCP type disconnection and flag it.
+                        match self.nocp_by_handle.get_mut(&handle) {
+                            Some(nocp_data) => {
+                                if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
+                                    self.reportable.push((
+                                                packet.ts,
+                                                format!("DisconnectionComplete for handle({}) showed incomplete in-flight ACL at {}",
+                                                handle, acl_front_ts)));
+                                }
+                            }
+                            None => (),
+                        }
+                    }
+
+                    None => {
+                        self.reportable.push((
+                            packet.ts,
+                            format!(
+                                "DisconnectionComplete for unknown handle {} with status={:?}",
+                                dsc.get_connection_handle(),
+                                dsc.get_status()
+                            ),
+                        ));
+                    }
                 }
+
+                // Remove nocp information for handles that were removed.
+                self.nocp_by_handle.remove(&handle);
             }
 
             EventChild::SynchronousConnectionComplete(scc) => {
@@ -343,6 +385,45 @@ impl OddDisconnectionsRule {
             _ => (),
         }
     }
+
+    pub fn process_acl_tx(&mut self, acl_tx: &AclPacket, packet: &Packet) {
+        let handle = acl_tx.get_handle();
+
+        // Insert empty Nocp data for handle if it doesn't exist.
+        if !self.nocp_by_handle.contains_key(&handle) {
+            self.nocp_by_handle.insert(handle, NocpData::new());
+        }
+
+        if let Some(nocp_data) = self.nocp_by_handle.get_mut(&handle) {
+            nocp_data.inflight_acl_ts.push_back(packet.ts.clone());
+        }
+    }
+
+    pub fn process_nocp(&mut self, nocp: &NumberOfCompletedPacketsPacket, packet: &Packet) {
+        let ts = &packet.ts;
+        for completed_packet in nocp.get_completed_packets() {
+            let handle = completed_packet.connection_handle;
+            if !self.nocp_by_handle.contains_key(&handle) {
+                self.nocp_by_handle.insert(handle, NocpData::new());
+            }
+
+            if let Some(nocp_data) = self.nocp_by_handle.get_mut(&handle) {
+                if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
+                    let duration_since_acl = ts.signed_duration_since(acl_front_ts);
+                    if duration_since_acl.num_milliseconds() > NOCP_CORRELATION_TIME_MS {
+                        self.reportable.push((
+                            packet.ts,
+                            format!(
+                                "Nocp sent {} ms after ACL on handle({}).",
+                                duration_since_acl.num_milliseconds(),
+                                handle
+                            ),
+                        ));
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl Rule for OddDisconnectionsRule {
@@ -396,8 +477,20 @@ impl Rule for OddDisconnectionsRule {
                     _ => (),
                 },
 
+                EventChild::NumberOfCompletedPackets(nocp) => {
+                    self.process_nocp(&nocp, packet);
+                }
+
                 _ => (),
             },
+
+            // Use tx packets for nocp tracking.
+            PacketChild::AclTx(tx) => {
+                self.process_acl_tx(&tx, packet);
+            }
+
+            // We don't do anything with RX packets yet.
+            PacketChild::AclRx(_) => (),
         }
     }
 
