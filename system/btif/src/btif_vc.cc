@@ -130,7 +130,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
   void Connect(const RawAddress& address) override {
     DVLOG(2) << __func__ << " address: " << address;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -145,7 +145,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
   void Disconnect(const RawAddress& address) override {
     DVLOG(2) << __func__ << " address: " << address;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -160,7 +160,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
                  uint8_t volume) override {
     DVLOG(2) << __func__ << " volume: " << volume;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -175,7 +175,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
   void Mute(std::variant<RawAddress, int> addr_or_group_id) override {
     DVLOG(2) << __func__;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -190,7 +190,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
   void Unmute(std::variant<RawAddress, int> addr_or_group_id) override {
     DVLOG(2) << __func__;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -205,7 +205,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
   void RemoveDevice(const RawAddress& address) override {
     DVLOG(2) << __func__ << " address: " << address;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -227,7 +227,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
     DVLOG(2) << __func__ << " address: " << address
              << "ext_output_id:" << ext_output_id;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -247,7 +247,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
              << "ext_output_id:" << ext_output_id
              << "ext_output_id:" << offset_val;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -265,7 +265,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
     DVLOG(2) << __func__ << " address: " << address
              << "ext_output_id:" << ext_output_id;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -283,7 +283,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
              << "ext_output_id:" << ext_output_id
              << "location:" << loghex(location);
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -300,7 +300,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
     DVLOG(2) << __func__ << " address: " << address
              << "ext_output_id:" << ext_output_id;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -318,7 +318,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
     DVLOG(2) << __func__ << " address: " << address
              << "ext_output_id:" << ext_output_id << "description:" << descr;
 
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
@@ -332,7 +332,7 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
 
   void Cleanup(void) override {
     DVLOG(2) << __func__;
-    if (!initialized || VolumeControl::Get() == nullptr) {
+    if (!initialized || !VolumeControl::IsVolumeControlRunning()) {
       DVLOG(2) << __func__
                << " call ignored, due to already started cleanup procedure or "
                   "service being not read";
