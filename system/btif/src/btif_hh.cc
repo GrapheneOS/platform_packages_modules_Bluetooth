@@ -539,6 +539,15 @@ bt_status_t btif_hh_virtual_unplug(const RawAddress* bd_addr) {
         (btif_hh_cb.status == BTIF_HH_DEV_CONNECTING)) {
       btif_hh_cb.status = (BTIF_HH_STATUS)BTIF_HH_DEV_DISCONNECTED;
       btif_hh_cb.pending_conn_address = RawAddress::kEmpty;
+
+      /* need to notify up-layer device is disconnected to avoid
+       * state out of sync with up-layer */
+      do_in_jni_thread(base::Bind(
+            [](RawAddress bd_addrcb) {
+              HAL_CBACK(bt_hh_callbacks, connection_state_cb, &bd_addrcb,
+                        BTHH_CONN_STATE_DISCONNECTED);
+            },
+           *bd_addr));
     }
     return BT_STATUS_FAIL;
   }
