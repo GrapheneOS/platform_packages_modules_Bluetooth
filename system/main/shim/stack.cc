@@ -33,6 +33,7 @@
 #include "gd/hci/acl_manager.h"
 #include "gd/hci/acl_manager/acl_scheduler.h"
 #include "gd/hci/controller.h"
+#include "gd/hci/distance_measurement_manager.h"
 #include "gd/hci/hci_layer.h"
 #include "gd/hci/le_advertising_manager.h"
 #include "gd/hci/le_scanning_manager.h"
@@ -55,6 +56,7 @@
 #include "gd/sysprops/sysprops_module.h"
 #include "main/shim/acl_legacy_interface.h"
 #include "main/shim/activity_attribution.h"
+#include "main/shim/distance_measurement_manager.h"
 #include "main/shim/hci_layer.h"
 #include "main/shim/helpers.h"
 #include "main/shim/l2c_api.h"
@@ -136,6 +138,7 @@ void Stack::StartEverything() {
   modules.add<hci::LeAdvertisingManager>();
   modules.add<hci::MsftExtensionManager>();
   modules.add<hci::LeScanningManager>();
+  modules.add<hci::DistanceMeasurementManager>();
   if (common::init_flags::btaa_hci_is_enabled()) {
     modules.add<activity_attribution::ActivityAttribution>();
   }
@@ -176,6 +179,7 @@ void Stack::StartEverything() {
 
   bluetooth::shim::init_advertising_manager();
   bluetooth::shim::init_scanning_manager();
+  bluetooth::shim::init_distance_measurement_manager();
 
   if (common::init_flags::gd_l2cap_is_enabled() &&
       !common::init_flags::gd_core_is_enabled()) {
