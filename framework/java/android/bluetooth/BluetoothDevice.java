@@ -2259,6 +2259,10 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * Returns the ACL connection handle associated with an open connection to
      * this device on the given transport.
      *
+     * This handle is a unique identifier for the connection while it remains
+     * active. Refer to the Bluetooth Core Specification Version 5.4 Vol 4 Part E
+     * Section 5.3.1 Controller Handles for details.
+     *
      * @return the ACL handle, or {@link BluetoothDevice#ERROR} if no connection currently exists on
      *         the given transport.
      * @hide
