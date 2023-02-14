@@ -52,6 +52,8 @@ const tBTA_AG_RES_DATA tBTA_AG_RES_DATA::kEmpty = {};
 
 extern void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data);
 extern const bthh_interface_t* btif_hh_get_interface();
+extern bt_status_t btif_hh_connect(const RawAddress* bd_addr);
+extern bt_status_t btif_hh_virtual_unplug(const RawAddress* bd_addr);
 
 namespace test {
 namespace mock {
@@ -93,6 +95,7 @@ std::array<uint8_t, 32> data32 = {
 };
 
 const RawAddress kDeviceAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
+const RawAddress kDeviceAddressConnecting({0x66, 0x55, 0x44, 0x33, 0x22, 0x11});
 const uint16_t kHhHandle = 123;
 
 // Callback parameters grouped into a structure
@@ -102,10 +105,16 @@ struct get_report_cb_t {
   std::vector<uint8_t> data;
 } get_report_cb_;
 
+struct connection_state_cb_t {
+  RawAddress raw_address;
+  bthh_connection_state_t state;
+};
+
 // Globals allow usage within function pointers
 std::promise<bt_cb_thread_evt> g_thread_evt_promise;
 std::promise<bt_status_t> g_status_promise;
 std::promise<get_report_cb_t> g_bthh_callbacks_get_report_promise;
+std::promise<connection_state_cb_t> g_bthh_connection_state_promise;
 
 }  // namespace
 
@@ -280,4 +289,52 @@ TEST_F(BtifHhWithDevice, BTA_HH_GET_RPT_EVT) {
   for (const auto& data : data32) {
     ASSERT_EQ(data, report.data[i++]);
   }
+}
+
+class BtifHHVirtualUnplugTest : public BtifHhAdapterReady {
+ protected:
+  void SetUp() override {
+    BtifHhAdapterReady::SetUp();
+    bthh_callbacks.connection_state_cb = [](RawAddress* bd_addr, bthh_connection_state_t state) {
+      connection_state_cb_t connection_state = {
+        .raw_address = *bd_addr,
+        .state = state,
+      };
+      g_bthh_connection_state_promise.set_value(connection_state);
+    };
+  }
+
+  void TearDown() override {
+    bthh_callbacks.connection_state_cb = [](RawAddress* bd_addr, bthh_connection_state_t state) {};
+    BtifHhAdapterReady::TearDown();
+  }
+};
+
+TEST_F(BtifHHVirtualUnplugTest, test_btif_hh_virtual_unplug_device_not_open) {
+  g_bthh_connection_state_promise = std::promise<connection_state_cb_t>();
+
+  auto future = g_bthh_connection_state_promise.get_future();
+
+  /* Make device in connecting state */
+  ASSERT_EQ(btif_hh_connect(&kDeviceAddressConnecting), BT_STATUS_SUCCESS);
+
+  ASSERT_EQ(std::future_status::ready, future.wait_for(2s));
+
+  auto res = future.get();
+  ASSERT_STREQ(kDeviceAddressConnecting.ToString().c_str(),
+               res.raw_address.ToString().c_str());
+  ASSERT_EQ(BTHH_CONN_STATE_CONNECTING, res.state);
+
+
+  g_bthh_connection_state_promise = std::promise<connection_state_cb_t>();
+  future = g_bthh_connection_state_promise.get_future();
+  btif_hh_virtual_unplug(&kDeviceAddressConnecting);
+
+  ASSERT_EQ(std::future_status::ready, future.wait_for(2s));
+
+  // Verify data was delivered
+  res = future.get();
+  ASSERT_STREQ(kDeviceAddressConnecting.ToString().c_str(),
+               res.raw_address.ToString().c_str());
+  ASSERT_EQ(BTHH_CONN_STATE_DISCONNECTED, res.state);
 }
