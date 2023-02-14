@@ -46,13 +46,12 @@ const char* test_flags_feature_disabled[] = {
     nullptr,
 };
 
-std::map<std::string, int> mock_function_count_map;
 extern module_t device_iot_config_module;
 
 bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,
                                   char* p_params, int param_len,
                                   tBTIF_COPY_CBACK* p_copy_cback) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return BT_STATUS_SUCCESS;
 }
 
@@ -123,7 +122,7 @@ class DeviceIotConfigModuleTest : public testing::Test {
 
     test::mock::osi_allocator::osi_free.body = [&](void* ptr) {};
 
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
   }
 
   void TearDown() override {
@@ -163,7 +162,7 @@ TEST_F(DeviceIotConfigModuleTest,
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     is_factory_reset = true;
     config_new_return_value = NULL;
@@ -196,10 +195,10 @@ TEST_F(DeviceIotConfigModuleTest,
     EXPECT_EQ(access(IOT_CONFIG_BACKUP_PATH, F_OK), -1);
     EXPECT_EQ(errno, ENOENT);
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 2);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 1);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 2);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 1);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -217,14 +216,14 @@ TEST_F(DeviceIotConfigModuleTest,
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     device_iot_config_module_init();
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 2);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 1);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 2);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 1);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -246,7 +245,7 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_init_original) {
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     enable_logging_property_get_value = "true";
     factory_reset_property_get_value = "false";
@@ -268,14 +267,14 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_init_original) {
 
     device_iot_config_module_init();
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 1);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 0);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 0);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_new"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 0);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 1);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 0);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_new"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 0);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -300,7 +299,7 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_init_backup) {
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     enable_logging_property_get_value = "true";
     factory_reset_property_get_value = "false";
@@ -322,14 +321,14 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_init_backup) {
 
     device_iot_config_module_init();
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 2);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 0);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 0);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_new"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 0);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 2);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 0);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_new"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 0);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -351,7 +350,7 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_init_new_file) {
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     enable_logging_property_get_value = "true";
     factory_reset_property_get_value = "false";
@@ -367,14 +366,14 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_init_new_file) {
 
     device_iot_config_module_init();
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 2);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_new"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 0);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 2);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_new"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 0);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -397,7 +396,7 @@ TEST_F(DeviceIotConfigModuleTest,
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     enable_logging_property_get_value = "true";
     factory_reset_property_get_value = "false";
@@ -419,14 +418,14 @@ TEST_F(DeviceIotConfigModuleTest,
 
     device_iot_config_module_init();
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 1);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 0);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_new"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 0);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 1);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 0);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_new"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 0);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -450,7 +449,7 @@ TEST_F(
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     enable_logging_property_get_value = "true";
     factory_reset_property_get_value = "true";
@@ -498,14 +497,14 @@ TEST_F(
     EXPECT_EQ(access(IOT_CONFIG_BACKUP_PATH, F_OK), -1);
     EXPECT_EQ(errno, ENOENT);
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 1);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_new"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 0);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 1);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_new"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 0);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -528,7 +527,7 @@ TEST_F(DeviceIotConfigModuleTest,
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     enable_logging_property_get_value = "true";
     factory_reset_property_get_value = "false";
@@ -576,14 +575,14 @@ TEST_F(DeviceIotConfigModuleTest,
     EXPECT_EQ(access(IOT_CONFIG_BACKUP_PATH, F_OK), -1);
     EXPECT_EQ(errno, ENOENT);
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 1);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 0);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 0);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_new"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 1);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 1);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 0);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_new"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 1);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -606,7 +605,7 @@ TEST_F(DeviceIotConfigModuleTest,
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     enable_logging_property_get_value = "true";
     factory_reset_property_get_value = "false";
@@ -626,14 +625,14 @@ TEST_F(DeviceIotConfigModuleTest,
 
     device_iot_config_module_init();
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 1);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 0);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 0);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_new"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 0);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 1);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 0);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_new"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 0);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -656,7 +655,7 @@ TEST_F(DeviceIotConfigModuleTest,
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     enable_logging_property_get_value = "true";
     factory_reset_property_get_value = "false";
@@ -682,14 +681,14 @@ TEST_F(DeviceIotConfigModuleTest,
 
     device_iot_config_module_init();
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 1);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 0);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 0);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_new"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 1);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 1);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 0);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_new"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 1);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -705,17 +704,17 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_start_up) {
   device_iot_config_module_init();
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     device_iot_config_module_start_up();
 
-    EXPECT_EQ(mock_function_count_map["config_new"], 0);
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 0);
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("config_new"), 0);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 0);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -734,31 +733,31 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_shutdown) {
   device_iot_config_module_init();
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = false;
 
     device_iot_config_module_shut_down();
 
-    EXPECT_EQ(mock_function_count_map["alarm_is_scheduled"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_cancel"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["config_save"], 1);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("alarm_is_scheduled"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_cancel"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("config_save"), 1);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = true;
 
     device_iot_config_module_shut_down();
 
-    EXPECT_EQ(mock_function_count_map["alarm_is_scheduled"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_cancel"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_save"], 1);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("alarm_is_scheduled"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_cancel"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_save"), 1);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -778,33 +777,33 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_clean_up) {
   device_iot_config_module_init();
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = false;
     device_iot_config_module_clean_up();
 
-    EXPECT_EQ(mock_function_count_map["alarm_is_scheduled"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_cancel"], 0);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["config_save"], 0);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("alarm_is_scheduled"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_cancel"), 0);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("config_save"), 0);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   device_iot_config_module_init();
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = true;
     device_iot_config_module_clean_up();
 
-    EXPECT_EQ(mock_function_count_map["alarm_is_scheduled"], 2);
-    EXPECT_EQ(mock_function_count_map["alarm_free"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_cancel"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_save"], 1);
-    EXPECT_EQ(mock_function_count_map["future_new_immediate"], 1);
+    EXPECT_EQ(get_func_call_count("alarm_is_scheduled"), 2);
+    EXPECT_EQ(get_func_call_count("alarm_free"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_cancel"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_save"), 1);
+    EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
   test::mock::osi_config::config_new.body = {};
@@ -868,7 +867,7 @@ class DeviceIotConfigTest : public testing::Test {
     device_iot_config_module_init();
     device_iot_config_module_start_up();
 
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
   }
 
   void TearDown() override {
@@ -957,22 +956,22 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_has_section) {
       };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_EQ(device_iot_config_has_section(expected_section), return_value);
     EXPECT_EQ(actual_section, expected_section);
 
-    EXPECT_EQ(mock_function_count_map["config_has_section"], 1);
+    EXPECT_EQ(get_func_call_count("config_has_section"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = true;
 
     EXPECT_EQ(device_iot_config_has_section(expected_section), return_value);
 
-    EXPECT_EQ(mock_function_count_map["config_has_section"], 1);
+    EXPECT_EQ(get_func_call_count("config_has_section"), 1);
   }
 
   test::mock::osi_config::config_has_section.body = {};
@@ -992,25 +991,25 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_exist) {
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_EQ(device_iot_config_exist(expected_section, expected_key),
               return_value);
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_has_key"], 1);
+    EXPECT_EQ(get_func_call_count("config_has_key"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = true;
 
     EXPECT_EQ(device_iot_config_exist(expected_section, expected_key),
               return_value);
 
-    EXPECT_EQ(mock_function_count_map["config_has_key"], 1);
+    EXPECT_EQ(get_func_call_count("config_has_key"), 1);
   }
 
   test::mock::osi_config::config_has_key.body = {};
@@ -1033,7 +1032,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_has_key_value) {
       };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_has_key_value(expected_section, expected_key,
                                                  expected_value_str));
@@ -1041,11 +1040,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_has_key_value) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     actual_value_str = "xyy";
     return_value = &actual_value_str;
@@ -1055,11 +1054,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_has_key_value) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     actual_value_str = "xy";
     return_value = &actual_value_str;
@@ -1069,11 +1068,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_has_key_value) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     actual_value_str = "xyyy";
     return_value = &actual_value_str;
@@ -1083,11 +1082,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_has_key_value) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     actual_value_str = "xyz";
     return_value = &actual_value_str;
@@ -1097,7 +1096,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_has_key_value) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -1122,7 +1121,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_int) {
           const std::string& key, int def_value) { return new_value; };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_EQ(
         device_iot_config_get_int(expected_section, expected_key, int_value),
@@ -1130,12 +1129,12 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_int) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_has_key"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 0);
+    EXPECT_EQ(get_func_call_count("config_has_key"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = true;
 
@@ -1146,8 +1145,8 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_int) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, new_value);
 
-    EXPECT_EQ(mock_function_count_map["config_has_key"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
+    EXPECT_EQ(get_func_call_count("config_has_key"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
   }
 
   test::mock::osi_config::config_has_key.body = {};
@@ -1174,7 +1173,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_int) {
           const std::string& key, int def_value) { return new_value; };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_EQ(
         DEVICE_IOT_CONFIG_ADDR_GET_INT(peer_addr, expected_key, int_value),
@@ -1182,12 +1181,12 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_int) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_has_key"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 0);
+    EXPECT_EQ(get_func_call_count("config_has_key"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = true;
 
@@ -1198,8 +1197,8 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_int) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, new_value);
 
-    EXPECT_EQ(mock_function_count_map["config_has_key"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
+    EXPECT_EQ(get_func_call_count("config_has_key"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
   }
 
   test::mock::osi_config::config_has_key.body = {};
@@ -1231,20 +1230,20 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_int) {
           void* data) {};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_TRUE(
         device_iot_config_set_int(expected_section, expected_key, int_value));
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "123";
 
@@ -1254,9 +1253,9 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_int) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(new_string_value, old_string_value);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -1290,20 +1289,20 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_int) {
           void* data) {};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_TRUE(
         DEVICE_IOT_CONFIG_ADDR_SET_INT(peer_addr, expected_key, int_value));
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "123";
 
@@ -1313,9 +1312,9 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_int) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(new_string_value, old_string_value);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -1346,7 +1345,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_int_add_one) {
           void* data) {};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = -1;
 
@@ -1356,13 +1355,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_int_add_one) {
     EXPECT_EQ(get_default_value, 0);
     EXPECT_EQ(set_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = 0;
 
@@ -1372,13 +1371,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_int_add_one) {
     EXPECT_EQ(get_default_value, 0);
     EXPECT_EQ(set_value, int_value + 1);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = 1;
 
@@ -1388,13 +1387,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_int_add_one) {
     EXPECT_EQ(get_default_value, 0);
     EXPECT_EQ(set_value, int_value + 1);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = INT_MAX;
 
@@ -1405,13 +1404,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_int_add_one) {
     EXPECT_EQ(set_value, int_value + 1);
     EXPECT_EQ(set_value, INT_MIN);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = INT_MIN;
 
@@ -1421,9 +1420,9 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_int_add_one) {
     EXPECT_EQ(get_default_value, 0);
     EXPECT_EQ(set_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   test::mock::osi_config::config_get_int.body = {};
@@ -1455,7 +1454,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_int_add_one) {
           void* data) {};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = -1;
 
@@ -1465,13 +1464,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_int_add_one) {
     EXPECT_EQ(get_default_value, 0);
     EXPECT_EQ(set_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = 0;
 
@@ -1481,13 +1480,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_int_add_one) {
     EXPECT_EQ(get_default_value, 0);
     EXPECT_EQ(set_value, int_value + 1);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = 1;
 
@@ -1497,13 +1496,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_int_add_one) {
     EXPECT_EQ(get_default_value, 0);
     EXPECT_EQ(set_value, int_value + 1);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = INT_MAX;
 
@@ -1514,13 +1513,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_int_add_one) {
     EXPECT_EQ(set_value, int_value + 1);
     EXPECT_EQ(set_value, INT_MIN);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int_value = INT_MIN;
 
@@ -1530,9 +1529,9 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_int_add_one) {
     EXPECT_EQ(get_default_value, 0);
     EXPECT_EQ(set_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_int"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_int"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
   test::mock::osi_config::config_get_int.body = {};
   test::mock::osi_config::config_set_int.body = {};
@@ -1555,7 +1554,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
       };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(
         device_iot_config_get_hex(expected_section, expected_key, int_value));
@@ -1563,11 +1562,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "g";
     get_string_return_value = &string_value;
@@ -1577,11 +1576,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "abcg";
     get_string_return_value = &string_value;
@@ -1591,11 +1590,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "f";
     get_string_return_value = &string_value;
@@ -1605,11 +1604,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 15);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "0";
     get_string_return_value = &string_value;
@@ -1619,11 +1618,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "1";
     get_string_return_value = &string_value;
@@ -1633,11 +1632,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 1);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "-e";
     get_string_return_value = &string_value;
@@ -1647,11 +1646,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, -14);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "-f";
     get_string_return_value = &string_value;
@@ -1661,11 +1660,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, -15);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "0x7fffffff";
     get_string_return_value = &string_value;
@@ -1675,11 +1674,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, INT_MAX);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "-0x80000000";
     get_string_return_value = &string_value;
@@ -1689,11 +1688,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, INT_MIN);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "0xffffffff";
     get_string_return_value = &string_value;
@@ -1703,7 +1702,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, -1);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -1726,7 +1725,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
       };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(
         DEVICE_IOT_CONFIG_ADDR_GET_HEX(peer_addr, expected_key, int_value));
@@ -1734,11 +1733,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "g";
     get_string_return_value = &string_value;
@@ -1749,11 +1748,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "f";
     get_string_return_value = &string_value;
@@ -1764,11 +1763,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 15);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "0";
     get_string_return_value = &string_value;
@@ -1779,11 +1778,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "1";
     get_string_return_value = &string_value;
@@ -1794,11 +1793,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, 1);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "-e";
     get_string_return_value = &string_value;
@@ -1809,11 +1808,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, -14);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "-f";
     get_string_return_value = &string_value;
@@ -1824,11 +1823,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, -15);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "0x7fffffff";
     get_string_return_value = &string_value;
@@ -1839,11 +1838,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, INT_MAX);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "-0x80000000";
     get_string_return_value = &string_value;
@@ -1854,11 +1853,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, INT_MIN);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_value = "0xffffffff";
     get_string_return_value = &string_value;
@@ -1869,7 +1868,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_get_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(int_value, -1);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -1900,7 +1899,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_hex) {
           void* data) {};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "01";
     int_value = 1;
@@ -1912,13 +1911,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "0001";
     int_value = 1;
@@ -1929,13 +1928,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "000001";
     int_value = 1;
@@ -1946,13 +1945,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "00000001";
     int_value = 1;
@@ -1964,13 +1963,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "";
     int_value = 1;
@@ -1982,13 +1981,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "";
     int_value = 1;
@@ -2000,13 +1999,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "ff";
     int_value = 1;
@@ -2020,9 +2019,9 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(new_string_value, expected_string_value);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -2058,7 +2057,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex) {
           void* data) {};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "01";
     int_value = 1;
@@ -2070,13 +2069,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "0001";
     int_value = 1;
@@ -2088,13 +2087,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "000001";
     int_value = 1;
@@ -2106,13 +2105,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "00000001";
     int_value = 1;
@@ -2124,13 +2123,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "";
     int_value = 1;
@@ -2142,13 +2141,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "";
     int_value = 1;
@@ -2160,13 +2159,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "ff";
     int_value = 1;
@@ -2180,9 +2179,9 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(new_string_value, expected_string_value);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -2218,7 +2217,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex_if_greater) {
           void* data) {};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "00";
     int_value = 1;
@@ -2230,13 +2229,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex_if_greater) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 2);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 2);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "01";
     int_value = 1;
@@ -2248,13 +2247,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex_if_greater) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "02";
     int_value = 1;
@@ -2266,9 +2265,9 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_hex_if_greater) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -2293,7 +2292,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_str) {
       };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int initial_size_bytes = 30;
     int size_bytes = initial_size_bytes;
@@ -2305,11 +2304,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_str) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(size_bytes, initial_size_bytes);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int initial_size_bytes = 30;
     int size_bytes = initial_size_bytes;
@@ -2326,7 +2325,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_str) {
     EXPECT_TRUE(strncmp(get_value_str, actual_value_str.c_str(), size_bytes) ==
                 0);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -2359,7 +2358,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_str) {
           void* data) {};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "01";
     get_string_return_value = &string_return_value;
@@ -2370,13 +2369,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_str) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "02";
     get_string_return_value = &string_return_value;
@@ -2388,9 +2387,9 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_str) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(new_string_value, input_value);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -2426,7 +2425,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_str) {
           void* data) {};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "01";
     get_string_return_value = &string_return_value;
@@ -2437,13 +2436,13 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_str) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     string_return_value = "02";
     get_string_return_value = &string_return_value;
@@ -2455,9 +2454,9 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_str) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(new_string_value, input_value);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -2482,7 +2481,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin) {
       };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     size_t initial_size_bytes = 3;
     size_t size_bytes = initial_size_bytes;
@@ -2495,11 +2494,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(size_bytes, initial_size_bytes);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     size_t initial_size_bytes = 3;
     size_t size_bytes = initial_size_bytes;
@@ -2514,11 +2513,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(size_bytes, initial_size_bytes);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     size_t initial_size_bytes = 3;
     size_t size_bytes = initial_size_bytes;
@@ -2533,11 +2532,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(size_bytes, initial_size_bytes);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     size_t initial_size_bytes = 3;
     size_t size_bytes = initial_size_bytes;
@@ -2552,11 +2551,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(size_bytes, initial_size_bytes);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     size_t initial_size_bytes = 3;
     size_t size_bytes = initial_size_bytes;
@@ -2571,7 +2570,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin) {
     EXPECT_EQ(actual_key, expected_key);
     EXPECT_EQ(size_bytes, actual_value_str.length() / 2);
 
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -2594,17 +2593,17 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin_length) {
       };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     EXPECT_EQ(device_iot_config_get_bin_length(expected_section, expected_key),
               0u);
     EXPECT_TRUE(actual_def_value == NULL);
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     actual_value_str = "abc";
     return_value = &actual_value_str;
 
@@ -2613,11 +2612,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin_length) {
     EXPECT_TRUE(actual_def_value == NULL);
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     actual_value_str = "aabbccdd";
     return_value = &actual_value_str;
 
@@ -2626,11 +2625,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin_length) {
     EXPECT_TRUE(actual_def_value == NULL);
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     /* does not check if characters are correct*/
     actual_value_str = "abcdefgh";
     return_value = &actual_value_str;
@@ -2640,11 +2639,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin_length) {
     EXPECT_TRUE(actual_def_value == NULL);
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     actual_value_str = "abcdef";
     return_value = &actual_value_str;
 
@@ -2653,7 +2652,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_get_bin_length) {
     EXPECT_TRUE(actual_def_value == NULL);
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
   }
 
   test::mock::osi_config::config_get_string.body = {};
@@ -2689,7 +2688,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_bin) {
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     string_return_value = "010203";
     get_string_return_value = &string_return_value;
 
@@ -2701,15 +2700,15 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_bin) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["osi_calloc"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
-    EXPECT_EQ(mock_function_count_map["osi_free"], 1);
+    EXPECT_EQ(get_func_call_count("osi_calloc"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
+    EXPECT_EQ(get_func_call_count("osi_free"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     string_return_value = "\0";
     get_string_return_value = &string_return_value;
 
@@ -2721,15 +2720,15 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_bin) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["osi_calloc"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
-    EXPECT_EQ(mock_function_count_map["osi_free"], 1);
+    EXPECT_EQ(get_func_call_count("osi_calloc"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
+    EXPECT_EQ(get_func_call_count("osi_free"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     string_return_value = "010101";
     get_string_return_value = &string_return_value;
 
@@ -2741,15 +2740,15 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_bin) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["osi_calloc"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
-    EXPECT_EQ(mock_function_count_map["osi_free"], 1);
+    EXPECT_EQ(get_func_call_count("osi_calloc"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
+    EXPECT_EQ(get_func_call_count("osi_free"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     test::mock::osi_allocator::osi_calloc.body = [&](size_t size) {
       return nullptr;
     };
@@ -2760,11 +2759,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_set_bin) {
     EXPECT_FALSE(device_iot_config_set_bin(expected_section, expected_key,
                                            input_value, length));
 
-    EXPECT_EQ(mock_function_count_map["osi_calloc"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 0);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
-    EXPECT_EQ(mock_function_count_map["osi_free"], 0);
+    EXPECT_EQ(get_func_call_count("osi_calloc"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 0);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
+    EXPECT_EQ(get_func_call_count("osi_free"), 0);
   }
 
   test::mock::osi_allocator::osi_calloc.body = {};
@@ -2805,7 +2804,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_bin) {
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     string_return_value = "010203";
     get_string_return_value = &string_return_value;
 
@@ -2817,15 +2816,15 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_bin) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["osi_calloc"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
-    EXPECT_EQ(mock_function_count_map["osi_free"], 1);
+    EXPECT_EQ(get_func_call_count("osi_calloc"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
+    EXPECT_EQ(get_func_call_count("osi_free"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     string_return_value = "\0";
     get_string_return_value = &string_return_value;
 
@@ -2837,15 +2836,15 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_bin) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["osi_calloc"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
-    EXPECT_EQ(mock_function_count_map["osi_free"], 1);
+    EXPECT_EQ(get_func_call_count("osi_calloc"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
+    EXPECT_EQ(get_func_call_count("osi_free"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     string_return_value = "010101";
     get_string_return_value = &string_return_value;
 
@@ -2857,15 +2856,15 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_bin) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["osi_calloc"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
-    EXPECT_EQ(mock_function_count_map["osi_free"], 1);
+    EXPECT_EQ(get_func_call_count("osi_calloc"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
+    EXPECT_EQ(get_func_call_count("osi_free"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
     test::mock::osi_allocator::osi_calloc.body = [&](size_t size) {
       return nullptr;
     };
@@ -2876,11 +2875,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_addr_set_bin) {
     EXPECT_FALSE(DEVICE_IOT_CONFIG_ADDR_SET_BIN(peer_addr, expected_key,
                                                 input_value, length));
 
-    EXPECT_EQ(mock_function_count_map["osi_calloc"], 1);
-    EXPECT_EQ(mock_function_count_map["config_get_string"], 0);
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 0);
-    EXPECT_EQ(mock_function_count_map["osi_free"], 0);
+    EXPECT_EQ(get_func_call_count("osi_calloc"), 1);
+    EXPECT_EQ(get_func_call_count("config_get_string"), 0);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 0);
+    EXPECT_EQ(get_func_call_count("osi_free"), 0);
   }
 
   test::mock::osi_allocator::osi_calloc.body = {};
@@ -2904,7 +2903,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_remove) {
       };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = false;
 
@@ -2913,11 +2912,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_remove) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_remove_key"], 1);
+    EXPECT_EQ(get_func_call_count("config_remove_key"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = true;
 
@@ -2926,7 +2925,7 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_remove) {
     EXPECT_EQ(actual_section, expected_section);
     EXPECT_EQ(actual_key, expected_key);
 
-    EXPECT_EQ(mock_function_count_map["config_remove_key"], 1);
+    EXPECT_EQ(get_func_call_count("config_remove_key"), 1);
   }
 
   test::mock::osi_config::config_remove_key.body = {};
@@ -2934,11 +2933,11 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_remove) {
 
 TEST_F(DeviceIotConfigTest, test_device_iot_config_save_async) {
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     device_iot_config_save_async();
 
-    EXPECT_EQ(mock_function_count_map["alarm_set"], 1);
+    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
   }
 }
 
@@ -2949,29 +2948,29 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_flush) {
       [&](const alarm_t* alarm) -> bool { return return_value; };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = false;
 
     device_iot_config_flush();
 
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["alarm_is_scheduled"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_cancel"], 1);
-    EXPECT_EQ(mock_function_count_map["config_save"], 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("alarm_is_scheduled"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_cancel"), 1);
+    EXPECT_EQ(get_func_call_count("config_save"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     return_value = true;
 
     device_iot_config_flush();
 
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_is_scheduled"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_cancel"], 1);
-    EXPECT_EQ(mock_function_count_map["config_save"], 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_is_scheduled"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_cancel"), 1);
+    EXPECT_EQ(get_func_call_count("config_save"), 1);
   }
 
   test::mock::osi_alarm::alarm_is_scheduled.body = {};
@@ -2993,41 +2992,41 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_clear) {
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     config_new_empty_return_value = new config_t();
     config_save_return_value = false;
 
     EXPECT_FALSE(device_iot_config_clear());
 
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_cancel"], 1);
-    EXPECT_EQ(mock_function_count_map["config_save"], 1);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_cancel"), 1);
+    EXPECT_EQ(get_func_call_count("config_save"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     config_new_empty_return_value = new config_t();
     config_save_return_value = true;
 
     EXPECT_TRUE(device_iot_config_clear());
 
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_cancel"], 1);
-    EXPECT_EQ(mock_function_count_map["config_save"], 1);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_cancel"), 1);
+    EXPECT_EQ(get_func_call_count("config_save"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     config_new_empty_return_value = NULL;
 
     EXPECT_FALSE(device_iot_config_clear());
 
-    EXPECT_EQ(mock_function_count_map["config_new_empty"], 1);
-    EXPECT_EQ(mock_function_count_map["alarm_cancel"], 1);
-    EXPECT_EQ(mock_function_count_map["config_save"], 0);
+    EXPECT_EQ(get_func_call_count("config_new_empty"), 1);
+    EXPECT_EQ(get_func_call_count("alarm_cancel"), 1);
+    EXPECT_EQ(get_func_call_count("config_save"), 0);
   }
 
   test::mock::osi_alarm::alarm_cancel.body = {};
@@ -3037,21 +3036,21 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_clear) {
 
 TEST_F(DeviceIotConfigTest, test_device_iot_config_timer_save_cb) {
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     device_iot_config_timer_save_cb(NULL);
 
-    EXPECT_EQ(mock_function_count_map["btif_transfer_context"], 1);
+    EXPECT_EQ(get_func_call_count("btif_transfer_context"), 1);
   }
 }
 
 TEST_F(DeviceIotConfigTest, test_device_iot_config_set_modified_time) {
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     device_iot_config_set_modified_time();
 
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
   }
 }
 
@@ -3197,23 +3196,23 @@ TEST_F(DeviceIotConfigTest, test_device_iot_config_write) {
   };
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int event = IOT_CONFIG_FLUSH_EVT;
     device_iot_config_write(event, NULL);
 
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 0);
-    EXPECT_EQ(mock_function_count_map["config_save"], 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 0);
+    EXPECT_EQ(get_func_call_count("config_save"), 1);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     int event = IOT_CONFIG_SAVE_TIMER_FIRED_EVT;
     device_iot_config_write(event, NULL);
 
-    EXPECT_EQ(mock_function_count_map["config_set_string"], 1);
-    EXPECT_EQ(mock_function_count_map["config_save"], 1);
+    EXPECT_EQ(get_func_call_count("config_set_string"), 1);
+    EXPECT_EQ(get_func_call_count("config_save"), 1);
   }
   test::mock::osi_config::config_save.body = {};
 }
@@ -3347,7 +3346,7 @@ class DeviceIotConfigDisabledTest : public testing::Test {
     device_iot_config_module_init();
     device_iot_config_module_start_up();
 
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
   }
 
   void TearDown() override {
@@ -3373,171 +3372,171 @@ TEST_F(DeviceIotConfigDisabledTest, test_device_iot_config_disabled) {
   int value_int{};
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_has_section(section));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_exist(section, key));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_get_int(section, key, value_int));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(DEVICE_IOT_CONFIG_ADDR_GET_INT(peer_addr, key, value_int));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_set_int(section, key, 0));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(DEVICE_IOT_CONFIG_ADDR_SET_INT(peer_addr, key, 0));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_int_add_one(section, key));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(DEVICE_IOT_CONFIG_ADDR_INT_ADD_ONE(peer_addr, key));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_get_hex(section, key, value_int));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(DEVICE_IOT_CONFIG_ADDR_GET_HEX(peer_addr, key, value_int));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_set_hex(section, key, 0, 0));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(DEVICE_IOT_CONFIG_ADDR_SET_HEX(peer_addr, key, 0, 0));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(
         DEVICE_IOT_CONFIG_ADDR_SET_HEX_IF_GREATER(peer_addr, key, 0, 0));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_get_str(section, key, NULL, NULL));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_set_str(section, key, value_str));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(DEVICE_IOT_CONFIG_ADDR_SET_STR(peer_addr, key, value_str));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_get_bin(section, key, NULL, NULL));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_set_bin(section, key, NULL, 0));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(DEVICE_IOT_CONFIG_ADDR_SET_BIN(peer_addr, key, NULL, 0));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_FALSE(device_iot_config_remove(section, key));
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_EQ(device_iot_config_get_bin_length(section, key), 0u);
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     device_iot_config_flush();
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     EXPECT_TRUE(device_iot_config_clear());
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 
   {
-    mock_function_count_map.clear();
+    reset_mock_function_count_map();
 
     device_debug_iot_config_dump(0);
-    EXPECT_TRUE(mock_function_count_map.empty());
+    EXPECT_EQ(get_func_call_size(), 0);
   }
 }
