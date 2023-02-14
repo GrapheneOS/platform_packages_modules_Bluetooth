@@ -41,7 +41,7 @@ struct mgmt_ev_cmd_complete {
   uint8_t data[];
 } __attribute__((packed));
 
-#define MGMT_OP_GET_VS_OPCODE 0x0059
+#define MGMT_OP_GET_VS_OPCODE 0x0102
 #define MGMT_VS_OPCODE_MSFT 0x0001
 struct mgmt_cp_get_vs_opcode {
   uint16_t hci_id;
