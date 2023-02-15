@@ -72,6 +72,7 @@ cc_test {
         "packages/modules/Bluetooth/system/device/src",
     ],
     srcs: [
+        ":TestCommonMockFunctions",
         ":TestMockOsi",
         "test/device_iot_config_test.cc",
     ],

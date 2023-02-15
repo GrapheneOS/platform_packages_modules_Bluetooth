@@ -1686,7 +1686,17 @@ int BtaAvCo::GetSourceEncoderEffectiveFrameSize() {
 }
 
 bool BtaAvCo::ReportSourceCodecState(BtaAvCoPeer* p_peer) {
-  btav_a2dp_codec_config_t codec_config;
+  btav_a2dp_codec_config_t codec_config = {
+    .codec_type = BTAV_A2DP_CODEC_INDEX_SINK_MAX,
+    .codec_priority = BTAV_A2DP_CODEC_PRIORITY_DISABLED,
+    .sample_rate =    BTAV_A2DP_CODEC_SAMPLE_RATE_NONE,
+    .bits_per_sample = BTAV_A2DP_CODEC_BITS_PER_SAMPLE_NONE,
+    .channel_mode = BTAV_A2DP_CODEC_CHANNEL_MODE_NONE,
+    .codec_specific_1 = 0,
+    .codec_specific_2 = 0,
+    .codec_specific_3 = 0,
+    .codec_specific_4 = 0,
+  };
   std::vector<btav_a2dp_codec_config_t> codecs_local_capabilities;
   std::vector<btav_a2dp_codec_config_t> codecs_selectable_capabilities;
 

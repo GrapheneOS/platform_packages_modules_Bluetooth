@@ -5221,6 +5221,18 @@ public final class BluetoothAdapter {
         return defaultValue;
     }
 
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
+            BluetoothStatusCodes.SUCCESS,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED,
+            BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED,
+            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
+            BluetoothStatusCodes.ERROR_UNKNOWN
+    })
+    public @interface NotifyActiveDeviceChangeAppliedReturnValues {}
+
     /**
      * Called by audio framework to inform the Bluetooth stack that an active device change has
      * taken effect. If this active device change is triggered by an app calling
@@ -5243,6 +5255,7 @@ public final class BluetoothAdapter {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
+    @NotifyActiveDeviceChangeAppliedReturnValues
     public int notifyActiveDeviceChangeApplied(@NonNull BluetoothDevice device) {
         if (DBG) Log.d(TAG, "notifyActiveDeviceChangeApplied(" + device + ")");
         Objects.requireNonNull(device, "device cannot be null");

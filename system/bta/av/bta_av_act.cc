@@ -2068,13 +2068,15 @@ void bta_av_rc_disc_done(UNUSED_ATTR tBTA_AV_DATA* p_data) {
       } else if (p_scb->use_rc) {
         /* can not find AVRC on peer device. report failure */
         p_scb->use_rc = false;
-        tBTA_AV_RC_OPEN rc_open;
-        rc_open.peer_addr = p_scb->PeerAddress();
-        rc_open.peer_features = 0;
-        rc_open.cover_art_psm = 0;
-        rc_open.status = BTA_AV_FAIL_SDP;
-        tBTA_AV bta_av_data;
-        bta_av_data.rc_open = rc_open;
+        tBTA_AV bta_av_data = {
+          .rc_open = {
+            .rc_handle = BTA_AV_RC_HANDLE_NONE,
+            .cover_art_psm = 0,
+            .peer_features = 0,
+            .peer_addr = p_scb->PeerAddress(),
+            .status = BTA_AV_FAIL_SDP,
+          },
+        };
         (*p_cb->p_cback)(BTA_AV_RC_OPEN_EVT, &bta_av_data);
       }
       if (peer_features != 0)

@@ -26,14 +26,12 @@
 #include <signal.h>
 #include <time.h>
 
+#include <condition_variable>
 #include <map>
+#include <mutex>
 #include <string>
 
-#include "service/hal/bluetooth_interface.h"
 #include "types/raw_address.h"
-
-#include <mutex>
-#include <condition_variable>
 
 class btsemaphore {
  public:
@@ -73,8 +71,7 @@ namespace bttest {
 
 // This class represents the Bluetooth testing framework and provides
 // helpers and callbacks for GUnit to use for testing.
-class BluetoothTest : public ::testing::Test,
-                      public bluetooth::hal::BluetoothInterface::Observer {
+class BluetoothTest : public ::testing::Test {
  protected:
   BluetoothTest() = default;
   BluetoothTest(const BluetoothTest&) = delete;
@@ -84,6 +81,9 @@ class BluetoothTest : public ::testing::Test,
 
   // Getter for the bt_interface
   const bt_interface_t* bt_interface();
+
+  // Getter for the bt_callbacks
+  bt_callbacks_t* bt_callbacks();
 
   // Gets the current state of the Bluetooth Interface
   bt_state_t GetState();
@@ -119,20 +119,20 @@ class BluetoothTest : public ::testing::Test,
   void TearDown() override;
 
   // A callback that is called when a property changes
-  void AdapterPropertiesCallback(bt_status_t status, int num_properties,
-                                 bt_property_t* properties) override;
+  friend void AdapterPropertiesCallback(bt_status_t status, int num_properties,
+                                        bt_property_t* properties);
 
   // A callback that is called when the remote device's property changes
-  void RemoteDevicePropertiesCallback(bt_status_t status,
-                                      RawAddress* remote_bd_addr,
-                                      int num_properties,
-                                      bt_property_t* properties) override;
+  friend void RemoteDevicePropertiesCallback(bt_status_t status,
+                                             RawAddress* remote_bd_addr,
+                                             int num_properties,
+                                             bt_property_t* properties);
 
   // A callback that is called when the adapter state changes
-  void AdapterStateChangedCallback(bt_state_t state) override;
+  friend void AdapterStateChangedCallback(bt_state_t state);
 
   // A callback that is called when the Discovery state changes
-  void DiscoveryStateChangedCallback(bt_discovery_state_t state) override;
+  friend void DiscoveryStateChangedCallback(bt_discovery_state_t state);
 
   // Semaphores used to wait for specific callback execution. Each callback
   // has its own semaphore associated with it.
@@ -142,9 +142,6 @@ class BluetoothTest : public ::testing::Test,
   btsemaphore discovery_state_changed_callback_sem_;
 
  private:
-  // The bluetooth interface that all the tests use to interact with the HAL
-  const bt_interface_t* bt_interface_;
-
   bt_state_t state_;
   int properties_changed_count_;
   bt_property_t* last_changed_properties_;

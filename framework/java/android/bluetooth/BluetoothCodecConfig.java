@@ -224,36 +224,6 @@ public final class BluetoothCodecConfig implements Parcelable {
      */
     public static final int CHANNEL_MODE_STEREO = 0x1 << 1;
 
-    /** @hide */
-    @IntDef(prefix = "CODEC_SPECIFIC_1_LDAC_", value = {
-            CODEC_SPECIFIC_1_LDAC_QUALITY_HIGH,
-            CODEC_SPECIFIC_1_LDAC_QUALITY_MID,
-            CODEC_SPECIFIC_1_LDAC_QUALITY_LOW,
-            CODEC_SPECIFIC_1_LDAC_QUALITY_ADAPTIVE
-    })
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface CodecSpecific1Ldac {}
-
-    /**
-     * Codec specific value for LDAC high quality bitrate.
-     */
-    public static final int CODEC_SPECIFIC_1_LDAC_QUALITY_HIGH = 1000;
-
-    /**
-     * Codec specific value for LDAC medium quality bitrate.
-     */
-    public static final int CODEC_SPECIFIC_1_LDAC_QUALITY_MID = 1001;
-
-    /**
-     * Codec specific value for LDAC low quality bitrate.
-     */
-    public static final int CODEC_SPECIFIC_1_LDAC_QUALITY_LOW = 1002;
-
-    /**
-     * Codec specific value for LDAC adaptive bitrate.
-     */
-    public static final int CODEC_SPECIFIC_1_LDAC_QUALITY_ADAPTIVE = 1003;
-
     private final @SourceCodecType int mCodecType;
     private @CodecPriority int mCodecPriority;
     private final @SampleRate int mSampleRate;
@@ -276,6 +246,7 @@ public final class BluetoothCodecConfig implements Parcelable {
      * @param codecSpecific2 the specific value 2
      * @param codecSpecific3 the specific value 3
      * @param codecSpecific4 the specific value 4
+     * values to 0.
      * @hide
      */
     @UnsupportedAppUsage

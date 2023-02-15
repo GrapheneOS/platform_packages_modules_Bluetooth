@@ -35,16 +35,11 @@ namespace internal {
 class VolumeControlDevice : public bluetooth::common::IRedactableLoggable {
  public:
   RawAddress address;
-  /* This is true only during first connection to profile, until we store the
-   * device
-   */
-  bool first_connection;
 
-  /* we are making active attempt to connect to this device, 'direct connect'.
-   * This is true only during initial phase of first connection. */
+  /* We are making active attempt to connect to this device */
   bool connecting_actively;
 
-  bool service_changed_rcvd;
+  bool known_service_handles_;
 
   uint8_t volume;
   uint8_t change_counter;
@@ -62,14 +57,14 @@ class VolumeControlDevice : public bluetooth::common::IRedactableLoggable {
 
   VolumeOffsets audio_offsets;
 
-  bool device_ready; /* Set when device read server status and registgered for
-                        notifications */
+  /* Set when device successfully reads server status and registers for
+   * notifications */
+  bool device_ready;
 
-  VolumeControlDevice(const RawAddress& address, bool first_connection)
+  VolumeControlDevice(const RawAddress& address, bool connecting_actively)
       : address(address),
-        first_connection(first_connection),
-        connecting_actively(first_connection),
-        service_changed_rcvd(false),
+        connecting_actively(connecting_actively),
+        known_service_handles_(false),
         volume(0),
         change_counter(0),
         mute(false),
@@ -109,7 +104,6 @@ class VolumeControlDevice : public bluetooth::common::IRedactableLoggable {
            << "    mute: " << +mute << "\n"
            << "    flags: " << +flags << "\n"
            << "    device read: " << device_ready << "\n"
-           << "    first_connection_: " << first_connection << "\n"
            << "    connecting_actively_: " << connecting_actively << "\n";
 
     dprintf(fd, "%s", stream.str().c_str());
@@ -170,10 +164,10 @@ class VolumeControlDevice : public bluetooth::common::IRedactableLoggable {
 
 class VolumeControlDevices {
  public:
-  void Add(const RawAddress& address, bool first_connection) {
+  void Add(const RawAddress& address, bool connecting_actively) {
     if (FindByAddress(address) != nullptr) return;
 
-    devices_.emplace_back(address, first_connection);
+    devices_.emplace_back(address, connecting_actively);
   }
 
   void Remove(const RawAddress& address) {

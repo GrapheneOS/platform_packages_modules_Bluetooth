@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,26 @@
 
 #pragma once
 
-#include <map>
-#include <string>
+#include "os/handler.h"
+#include "os/thread.h"
 
-// TODO(265217208) Remove
-// Usage is deprecated, use get_func_call_count / inc_func_call_count instead
-extern std::map<std::string, int> mock_function_count_map;
+namespace bluetooth {
+namespace test {
+namespace headless {
 
-int get_func_call_size();
+class Handler {
+ public:
+  Handler();
+  ~Handler();
+  Handler(const Handler& handler) = default;
 
-int get_func_call_count(const char* fn);
-void inc_func_call_count(const char* fn);
+  void Post(common::OnceClosure closure);
 
-void dump_mock_function_count_map();
-void reset_mock_function_count_map();
+ private:
+  os::Thread* thread_{nullptr};
+  os::Handler* handler_{nullptr};
+};
+
+}  // namespace headless
+}  // namespace test
+}  // namespace bluetooth

@@ -67,7 +67,7 @@ struct mgmt_ev_cmd_complete {
   uint8_t data[];
 } __attribute__((packed));
 
-#define MGMT_OP_GET_SCO_CODEC_CAPABILITIES 0x0057
+#define MGMT_OP_GET_SCO_CODEC_CAPABILITIES 0x0100
 #define MGMT_SCO_CODEC_CVSD 0x1
 #define MGMT_SCO_CODEC_MSBC_TRANSPARENT 0x2
 #define MGMT_SCO_CODEC_MSBC 0x3
@@ -226,7 +226,7 @@ int mgmt_get_codec_capabilities(int fd, uint16_t hci) {
   return ret;
 }
 
-#define MGMT_OP_NOTIFY_SCO_CONNECTION_CHANGE 0x0058
+#define MGMT_OP_NOTIFY_SCO_CONNECTION_CHANGE 0x0101
 struct mgmt_cp_notify_sco_connection_change {
   uint16_t hci_dev;
   uint8_t addr[6];

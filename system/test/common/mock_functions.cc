@@ -35,6 +35,8 @@ void inc_func_call_count(const char* fn) { _get_func_call_count_map()[fn]++; }
 
 void reset_mock_function_count_map() { _get_func_call_count_map().clear(); }
 
+int get_func_call_size() { return _get_func_call_count_map().size(); }
+
 void dump_mock_function_count_map() {
   LOG_INFO("Mock function count map size:%zu",
            _get_func_call_count_map().size());

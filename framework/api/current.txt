@@ -3,13 +3,10 @@ package android.bluetooth {
 
   public final class BluetoothA2dp implements android.bluetooth.BluetoothProfile {
     method public void finalize();
-    method @Nullable @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public android.bluetooth.BluetoothCodecStatus getCodecStatus(@NonNull android.bluetooth.BluetoothDevice);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(android.bluetooth.BluetoothDevice);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(int[]);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean isA2dpPlaying(android.bluetooth.BluetoothDevice);
-    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public void setCodecConfigPreference(@NonNull android.bluetooth.BluetoothDevice, @NonNull android.bluetooth.BluetoothCodecConfig);
-    field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_CODEC_CONFIG_CHANGED = "android.bluetooth.a2dp.profile.action.CODEC_CONFIG_CHANGED";
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_CONNECTION_STATE_CHANGED = "android.bluetooth.a2dp.profile.action.CONNECTION_STATE_CHANGED";
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_PLAYING_STATE_CHANGED = "android.bluetooth.a2dp.profile.action.PLAYING_STATE_CHANGED";
     field public static final int STATE_NOT_PLAYING = 11; // 0xb
@@ -446,10 +443,6 @@ package android.bluetooth {
     field public static final int CODEC_PRIORITY_DEFAULT = 0; // 0x0
     field public static final int CODEC_PRIORITY_DISABLED = -1; // 0xffffffff
     field public static final int CODEC_PRIORITY_HIGHEST = 1000000; // 0xf4240
-    field public static final int CODEC_SPECIFIC_1_LDAC_QUALITY_ADAPTIVE = 1003; // 0x3eb
-    field public static final int CODEC_SPECIFIC_1_LDAC_QUALITY_HIGH = 1000; // 0x3e8
-    field public static final int CODEC_SPECIFIC_1_LDAC_QUALITY_LOW = 1002; // 0x3ea
-    field public static final int CODEC_SPECIFIC_1_LDAC_QUALITY_MID = 1001; // 0x3e9
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothCodecConfig> CREATOR;
     field public static final int SAMPLE_RATE_176400 = 16; // 0x10
     field public static final int SAMPLE_RATE_192000 = 32; // 0x20
