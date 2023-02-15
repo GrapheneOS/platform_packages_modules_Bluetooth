@@ -249,7 +249,7 @@ void bta_gattc_deregister(tBTA_GATTC_RCB* p_clreg) {
   for (uint8_t i = 0; i < accept_list_size; i++) {
     if (!bta_gattc_cb.bg_track[i].in_use) continue;
 
-    if (bta_gattc_cb.bg_track[i].cif_mask & (1 << (p_clreg->client_if - 1))) {
+    if (bta_gattc_cb.bg_track[i].cif_mask & ((tBTA_GATTC_CIF_MASK)1 << (p_clreg->client_if - 1))) {
       bta_gattc_mark_bg_conn(p_clreg->client_if,
                              bta_gattc_cb.bg_track[i].remote_bda, false);
       GATT_CancelConnect(p_clreg->client_if,
