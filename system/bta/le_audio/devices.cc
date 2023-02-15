@@ -802,7 +802,8 @@ bool LeAudioDeviceGroup::UpdateAudioContextTypeAvailability(
     }
 
     LOG_INFO(
-        "updated context: %s, %s -> %s", ToHexString(ctx_type).c_str(),
+        "%s(%s), %s -> %s", types::contextTypeToStr(ctx_type).c_str(),
+        ToHexString(ctx_type).c_str(),
         (ctx_previously_not_supported
              ? "empty"
              : available_context_to_configuration_map[ctx_type]->name.c_str()),
@@ -908,8 +909,8 @@ uint8_t LeAudioDeviceGroup::GetFirstFreeCisId(void) {
 }
 
 uint8_t LeAudioDeviceGroup::GetFirstFreeCisId(CisType cis_type) {
-  LOG_DEBUG("Group: %p, group_id: %d cis_type: %d", this, group_id_,
-            static_cast<int>(cis_type));
+  LOG_INFO("Group: %p, group_id: %d cis_type: %d", this, group_id_,
+           static_cast<int>(cis_type));
   for (size_t id = 0; id < cises_.size(); id++) {
     if (cises_[id].addr.IsEmpty() && cises_[id].type == cis_type) {
       return id;
@@ -920,12 +921,12 @@ uint8_t LeAudioDeviceGroup::GetFirstFreeCisId(CisType cis_type) {
 
 types::LeAudioConfigurationStrategy LeAudioDeviceGroup::GetGroupStrategy(void) {
   /* Simple strategy picker */
-  LOG_INFO(" Group %d size %d", group_id_, Size());
+  LOG_DEBUG(" Group %d size %d", group_id_, Size());
   if (Size() > 1) {
     return types::LeAudioConfigurationStrategy::MONO_ONE_CIS_PER_DEVICE;
   }
 
-  LOG_INFO("audio location 0x%04lx", snk_audio_locations_.to_ulong());
+  LOG_DEBUG("audio location 0x%04lx", snk_audio_locations_.to_ulong());
   if (!(snk_audio_locations_.to_ulong() &
         codec_spec_conf::kLeAudioLocationAnyLeft) ||
       !(snk_audio_locations_.to_ulong() &
@@ -936,8 +937,8 @@ types::LeAudioConfigurationStrategy LeAudioDeviceGroup::GetGroupStrategy(void) {
   auto device = GetFirstDevice();
   auto channel_cnt =
       device->GetLc3SupportedChannelCount(types::kLeAudioDirectionSink);
-  LOG_INFO("Channel count for group %d is %d (device %s)", group_id_,
-           channel_cnt, ADDRESS_TO_LOGGABLE_CSTR(device->address_));
+  LOG_DEBUG("Channel count for group %d is %d (device %s)", group_id_,
+            channel_cnt, ADDRESS_TO_LOGGABLE_CSTR(device->address_));
   if (channel_cnt == 1) {
     return types::LeAudioConfigurationStrategy::STEREO_TWO_CISES_PER_DEVICE;
   }
@@ -1241,7 +1242,8 @@ bool CheckIfStrategySupported(types::LeAudioConfigurationStrategy strategy,
  */
 bool LeAudioDeviceGroup::IsConfigurationSupported(
     const set_configurations::AudioSetConfiguration* audio_set_conf,
-    types::LeAudioContextType context_type) {
+    types::LeAudioContextType context_type,
+    types::LeAudioConfigurationStrategy required_snk_strategy) {
   if (!set_configurations::check_if_may_cover_scenario(
           audio_set_conf, NumOfConnected(context_type))) {
     LOG_DEBUG(" cannot cover scenario  %s: size of for context type %d",
@@ -1249,8 +1251,6 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
               +NumOfConnected(context_type));
     return false;
   }
-
-  auto required_snk_strategy = GetGroupStrategy();
 
   /* TODO For now: set ase if matching with first pac.
    * 1) We assume as well that devices will match requirements in order
@@ -1278,9 +1278,9 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
 
     if (ent.direction == types::kLeAudioDirectionSink &&
         strategy != required_snk_strategy) {
-      LOG_INFO(" Sink strategy mismatch group!=cfg.entry (%d!=%d)",
-               static_cast<int>(required_snk_strategy),
-               static_cast<int>(strategy));
+      LOG_DEBUG(" Sink strategy mismatch group!=cfg.entry (%d!=%d)",
+                static_cast<int>(required_snk_strategy),
+                static_cast<int>(strategy));
       return false;
     }
 
@@ -1923,14 +1923,15 @@ LeAudioDeviceGroup::FindFirstSupportedConfiguration(
   /* Filter out device set for all scenarios */
   if (!set_configurations::check_if_may_cover_scenario(confs,
                                                        NumOfConnected())) {
-    LOG_ERROR(", group is unable to cover scenario");
+    LOG_DEBUG(", group is unable to cover scenario");
     return nullptr;
   }
 
   /* Filter out device set for each end every scenario */
 
+  auto required_snk_strategy = GetGroupStrategy();
   for (const auto& conf : *confs) {
-    if (IsConfigurationSupported(conf, context_type)) {
+    if (IsConfigurationSupported(conf, context_type, required_snk_strategy)) {
       LOG_DEBUG("found: %s", conf->name.c_str());
       return conf;
     }

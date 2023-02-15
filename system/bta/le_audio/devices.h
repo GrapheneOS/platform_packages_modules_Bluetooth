@@ -390,7 +390,8 @@ class LeAudioDeviceGroup {
       const std::vector<uint8_t>& ccid_list);
   bool IsConfigurationSupported(
       const set_configurations::AudioSetConfiguration* audio_set_configuration,
-      types::LeAudioContextType context_type);
+      types::LeAudioContextType context_type,
+      types::LeAudioConfigurationStrategy required_snk_strategy);
   uint32_t GetTransportLatencyUs(uint8_t direction);
 
   /* Current configuration and metadata context types */
