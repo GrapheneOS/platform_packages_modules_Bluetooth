@@ -932,7 +932,9 @@ static void bta_jv_l2cap_client_cback(uint16_t gap_handle, uint16_t event,
       p_cb->state = BTA_JV_ST_NONE;
       bta_jv_free_sec_id(&p_cb->sec_id);
       evt_data.l2c_close.async = true;
-      evt_data.l2c_close.reason = bta_jv_from_gap_l2cap_err(data->l2cap_result);
+      evt_data.l2c_close.reason =
+          data != nullptr ? bta_jv_from_gap_l2cap_err(data->l2cap_result)
+                          : BTA_JV_L2CAP_REASON_EMPTY;
       p_cb->p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt_data, p_cb->l2cap_socket_id);
       p_cb->p_cback = NULL;
       break;
