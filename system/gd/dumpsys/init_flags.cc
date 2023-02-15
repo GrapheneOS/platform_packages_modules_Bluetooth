@@ -43,6 +43,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
       initFlags::btm_dm_flush_discovery_queue_on_search_cancel_is_enabled());
   builder.add_device_iot_config_logging_is_enabled(
       initFlags::device_iot_config_logging_is_enabled());
+  builder.add_clear_hidd_interrupt_cid_on_disconnect_is_enabled(
+      initFlags::clear_hidd_interrupt_cid_on_disconnect_is_enabled());
   builder.add_dynamic_avrcp_version_enhancement_is_enabled(
       initFlags::dynamic_avrcp_version_enhancement_is_enabled());
   builder.add_gd_hal_snoop_logger_filtering_is_enabled(

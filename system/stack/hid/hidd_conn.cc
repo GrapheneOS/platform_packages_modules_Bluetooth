@@ -31,6 +31,7 @@
 
 #include "bta/include/bta_api.h"
 #include "btif/include/btif_hd.h"
+#include "gd/common/init_flags.h"
 #include "osi/include/allocator.h"
 #include "stack/hid/hidd_int.h"
 #include "stack/include/bt_hdr.h"
@@ -353,7 +354,6 @@ static void hidd_l2cif_disconnect_ind(uint16_t cid, bool ack_needed) {
 static void hidd_l2cif_disconnect(uint16_t cid) {
   L2CA_DisconnectReq(cid);
 
-
   HIDD_TRACE_EVENT("%s: cid=%04x", __func__, cid);
 
   tHID_CONN* p_hcon = &hd_cb.device.conn;
@@ -371,6 +371,10 @@ static void hidd_l2cif_disconnect(uint16_t cid) {
 
     // now disconnect CTRL
     L2CA_DisconnectReq(p_hcon->ctrl_cid);
+    if (bluetooth::common::init_flags::
+            clear_hidd_interrupt_cid_on_disconnect_is_enabled()) {
+      p_hcon->ctrl_cid = 0;
+    }
   }
 
   if ((p_hcon->ctrl_cid == 0) && (p_hcon->intr_cid == 0)) {
