@@ -619,6 +619,15 @@ impl Bluetooth {
         Ok(())
     }
 
+    /// Returns all bonded and connected devices.
+    pub(crate) fn get_bonded_and_connected_devices(&mut self) -> Vec<BluetoothDevice> {
+        self.bonded_devices
+            .values()
+            .filter(|v| v.acl_state == BtAclState::Connected && v.bond_state == BtBondState::Bonded)
+            .map(|v| v.info.clone())
+            .collect()
+    }
+
     /// Check whether found devices are still fresh. If they're outside the
     /// freshness window, send a notification to clear the device from clients.
     fn trigger_freshness_check(&mut self) {
