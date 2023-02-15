@@ -741,7 +741,6 @@ public class AdapterServiceTest {
     /**
      * Test: Check if obfuscated Bluetooth address stays the same after toggling Bluetooth
      */
-    @Ignore("b/265588558")
     @Test
     public void testObfuscateBluetoothAddress_PersistentBetweenToggle() {
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
