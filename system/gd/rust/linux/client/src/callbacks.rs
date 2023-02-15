@@ -10,6 +10,7 @@ use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtBondState, BtPropertyType, BtSspVariant, BtStatus, Uuid128Bit};
 use bt_topshim::profiles::gatt::{AdvertisingStatus, GattStatus, LePhy};
+use bt_topshim::profiles::sdp::BtSdpRecord;
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
@@ -231,6 +232,16 @@ impl IBluetoothCallback for BtCallback {
             self.context.lock().unwrap().bonded_devices.remove(&address);
         }
     }
+
+    fn on_sdp_search_complete(
+        &self,
+        _remote_device: BluetoothDevice,
+        _searched_uuid: Uuid128Bit,
+        _sdp_records: Vec<BtSdpRecord>,
+    ) {
+    }
+
+    fn on_sdp_record_created(&self, _record: BtSdpRecord, _handle: i32) {}
 }
 
 impl RPCProxy for BtCallback {
