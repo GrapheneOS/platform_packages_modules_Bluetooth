@@ -2018,8 +2018,7 @@ public class HeadsetService extends ProfileService {
     public void onConnectionStateChangedFromStateMachine(BluetoothDevice device, int fromState,
             int toState) {
         synchronized (mStateMachines) {
-            List<BluetoothDevice> audioConnectableDevices =
-                    getDevicesMatchingConnectionStates(CONNECTING_CONNECTED_STATES);
+            List<BluetoothDevice> audioConnectableDevices = getConnectedDevices();
             if (fromState != BluetoothProfile.STATE_CONNECTED
                     && toState == BluetoothProfile.STATE_CONNECTED) {
                 if (audioConnectableDevices.size() > 1) {
