@@ -73,7 +73,8 @@ public class MetricsLoggerTest {
         }
 
         @Override
-        protected void statslogBluetoothDeviceNames(String matchedString, byte[] sha256) {
+        protected void statslogBluetoothDeviceNames(
+                int metricId, String matchedString, byte[] sha256) {
             mTestableDeviceNames.merge(matchedString, 1, Integer::sum);
         }
     }
@@ -226,104 +227,104 @@ public class MetricsLoggerTest {
     public void testDeviceNameUploadingDeviceSet1() {
         initTestingBloomfitler();
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("a b c d e f g h pixel 7");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "a b c d e f g h pixel 7");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("AirpoDspro");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "AirpoDspro");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("airpodspro").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("AirpoDs-pro");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "AirpoDs-pro");
         Assert.assertEquals(2,
                 mTestableMetricsLogger.mTestableDeviceNames.get("airpodspro").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("Someone's AirpoDs");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "Someone's AirpoDs");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("airpods").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("Who's Pixel 7");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "Who's Pixel 7");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("pixel7").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("陈的pixel 7手机");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "陈的pixel 7手机");
         Assert.assertEquals(2,
                 mTestableMetricsLogger.mTestableDeviceNames.get("pixel7").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("pixel 7 pro");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(2, "pixel 7 pro");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("pixel7pro").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("My Pixel 7 PRO");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "My Pixel 7 PRO");
         Assert.assertEquals(2,
                 mTestableMetricsLogger.mTestableDeviceNames.get("pixel7pro").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("My Pixel   7   PRO");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "My Pixel   7   PRO");
         Assert.assertEquals(3,
                 mTestableMetricsLogger.mTestableDeviceNames.get("pixel7pro").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("My Pixel   7   - PRO");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "My Pixel   7   - PRO");
         Assert.assertEquals(4,
                 mTestableMetricsLogger.mTestableDeviceNames.get("pixel7pro").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("My BMW X5");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "My BMW X5");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("bmwx5").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("Jane Doe's Tesla Model--X");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "Jane Doe's Tesla Model--X");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("teslamodelx").intValue());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("TESLA of Jane DOE");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "TESLA of Jane DOE");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("tesla").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("SONY WH-1000XM noise cancelling headsets");
+                .logSanitizedBluetoothDeviceName(1, "SONY WH-1000XM noise cancelling headsets");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("sonywh1000xm").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("SONY WH-1000XM4 noise cancelling headsets");
+                .logSanitizedBluetoothDeviceName(1, "SONY WH-1000XM4 noise cancelling headsets");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("sonywh1000xm4").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("Amazon Echo Dot in Kitchen");
+                .logSanitizedBluetoothDeviceName(1, "Amazon Echo Dot in Kitchen");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("amazonechodot").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("斯巴鲁 Starlink");
+                .logSanitizedBluetoothDeviceName(1, "斯巴鲁 Starlink");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("starlink").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("大黄蜂MyLink");
+                .logSanitizedBluetoothDeviceName(1, "大黄蜂MyLink");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("mylink").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("Dad's Fitbit Charge 3");
+                .logSanitizedBluetoothDeviceName(1, "Dad's Fitbit Charge 3");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("fitbitcharge3").intValue());
 
         mTestableMetricsLogger.mTestableDeviceNames.clear();
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(" ");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, " ");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("SomeDevice1");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "SomeDevice1");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("Bluetooth headset");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "Bluetooth headset");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("Some Device-2");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(3, "Some Device-2");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("abcgfDG gdfg");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(5, "abcgfDG gdfg");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
     }
 
@@ -332,56 +333,56 @@ public class MetricsLoggerTest {
         initTestingBloomfitler();
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("Galaxy Buds pro");
+                .logSanitizedBluetoothDeviceName(1, "Galaxy Buds pro");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("galaxybudspro").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("Mike's new Galaxy Buds 2");
+                .logSanitizedBluetoothDeviceName(1, "Mike's new Galaxy Buds 2");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("galaxybuds2").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("My third Ford F-150");
+                .logSanitizedBluetoothDeviceName(877, "My third Ford F-150");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("fordf150").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("BOSE QC_35 Noise Cancelling Headsets");
+                .logSanitizedBluetoothDeviceName(1, "BOSE QC_35 Noise Cancelling Headsets");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("boseqc35").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("BOSE Quiet Comfort 35 Headsets");
+                .logSanitizedBluetoothDeviceName(1, "BOSE Quiet Comfort 35 Headsets");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("bosequietcomfort35").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("Fitbit versa 3 band");
+                .logSanitizedBluetoothDeviceName(1, "Fitbit versa 3 band");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("fitbitversa3").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("vw atlas");
+                .logSanitizedBluetoothDeviceName(1, "vw atlas");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("vwatlas").intValue());
 
         mTestableMetricsLogger
-                .logSanitizedBluetoothDeviceName("My volkswagen tiguan");
+                .logSanitizedBluetoothDeviceName(1, "My volkswagen tiguan");
         Assert.assertEquals(1,
                 mTestableMetricsLogger.mTestableDeviceNames.get("volkswagentiguan").intValue());
 
         mTestableMetricsLogger.mTestableDeviceNames.clear();
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(" ");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, " ");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName("weirddevice");
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, "weirddevice");
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
 
-        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(""
+        mTestableMetricsLogger.logSanitizedBluetoothDeviceName(1, ""
                 + "My BOSE Quiet Comfort 35 Noise Cancelling Headsets");
         // Too long, won't process
         Assert.assertTrue(mTestableMetricsLogger.mTestableDeviceNames.isEmpty());
