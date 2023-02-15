@@ -138,6 +138,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth.clone(),
         intf.clone(),
         bluetooth_gatt.clone(),
+        bluetooth_media.clone(),
         tx.clone(),
     ))));
     let logging = Arc::new(Mutex::new(Box::new(BluetoothLogging::new(is_debug, log_output))));
