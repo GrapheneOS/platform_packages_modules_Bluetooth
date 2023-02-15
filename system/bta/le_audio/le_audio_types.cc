@@ -649,51 +649,42 @@ std::ostream& operator<<(std::ostream& os,
      << ", AudioChanLoc=" << loghex(*config.audio_channel_allocation) << ")";
   return os;
 }
-std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context) {
+
+std::string contextTypeToStr(const LeAudioContextType& context) {
   switch (context) {
     case LeAudioContextType::UNINITIALIZED:
-      os << "UNINITIALIZED";
-      break;
+      return "UNINITIALIZED";
     case LeAudioContextType::UNSPECIFIED:
-      os << "UNSPECIFIED";
-      break;
+      return "UNSPECIFIED";
     case LeAudioContextType::CONVERSATIONAL:
-      os << "CONVERSATIONAL";
-      break;
+      return "CONVERSATIONAL";
     case LeAudioContextType::MEDIA:
-      os << "MEDIA";
-      break;
+      return "MEDIA";
     case LeAudioContextType::GAME:
-      os << "GAME";
-      break;
+      return "GAME";
     case LeAudioContextType::INSTRUCTIONAL:
-      os << "INSTRUCTIONAL";
-      break;
+      return "INSTRUCTIONAL";
     case LeAudioContextType::VOICEASSISTANTS:
-      os << "VOICEASSISTANTS";
-      break;
+      return "VOICEASSISTANTS";
     case LeAudioContextType::LIVE:
-      os << "LIVE";
-      break;
+      return "LIVE";
     case LeAudioContextType::SOUNDEFFECTS:
-      os << "SOUNDEFFECTS";
-      break;
+      return "SOUNDEFFECTS";
     case LeAudioContextType::NOTIFICATIONS:
-      os << "NOTIFICATIONS";
-      break;
+      return "NOTIFICATIONS";
     case LeAudioContextType::RINGTONE:
-      os << "RINGTONE";
-      break;
+      return "RINGTONE";
     case LeAudioContextType::ALERTS:
-      os << "ALERTS";
-      break;
+      return "ALERTS";
     case LeAudioContextType::EMERGENCYALARM:
-      os << "EMERGENCYALARM";
-      break;
+      return "EMERGENCYALARM";
     default:
-      os << "UNKNOWN";
-      break;
+      return "UNKNOWN";
   }
+}
+
+std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context) {
+  os << contextTypeToStr(context);
   return os;
 }
 
