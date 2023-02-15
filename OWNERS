@@ -13,4 +13,5 @@ per-file TEST_MAPPING,*.xml=licorne@google.com
 # ChromeOS team owns Linux build files
 # - build.py is used for Linux build
 # - *.gn is for GN build rules
-per-file build.py,*.gn=file:/OWNERS_chromeos
+# - Cargo.toml is for Rust build rules
+per-file build.py,*.gn,Cargo.toml=file:/OWNERS_chromeos
