@@ -231,6 +231,11 @@ public final class BluetoothStatusCodes {
     public static final int ERROR_ANOTHER_ACTIVE_REQUEST = 29;
 
     /**
+     * Indicates that the feature status is not configured yet.
+     */
+    public static final int FEATURE_NOT_CONFIGURED = 30;
+
+    /**
      * A GATT writeCharacteristic request is not permitted on the remote device.
      */
     public static final int ERROR_GATT_WRITE_NOT_ALLOWED = 200;
