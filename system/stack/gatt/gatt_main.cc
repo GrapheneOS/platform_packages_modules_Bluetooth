@@ -123,10 +123,10 @@ void gatt_init(void) {
 
   L2CA_RegisterFixedChannel(L2CAP_ATT_CID, &fixed_reg);
 
-  bool gatt_over_br_is_disabled =
-      osi_property_get_bool("bluetooth.gatt_over_bredr.disabled", false);
+  gatt_cb.over_br_enabled =
+      osi_property_get_bool("bluetooth.gatt.over_bredr.enabled", true);
   /* Now, register with L2CAP for ATT PSM over BR/EDR */
-  if (!gatt_over_br_is_disabled &&
+  if (gatt_cb.over_br_enabled &&
       !L2CA_Register2(BT_PSM_ATT, dyn_info, false /* enable_snoop */, nullptr,
                       GATT_MAX_MTU_SIZE, 0, BTM_SEC_NONE)) {
     LOG(ERROR) << "ATT Dynamic Registration failed";
