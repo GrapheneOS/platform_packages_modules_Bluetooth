@@ -70,7 +70,6 @@ cc_defaults {
         "libaudio-a2dp-hw-utils",
         "libbluetooth-dumpsys",
         "libbluetooth-types",
-        "libbluetoothtbd_hal",
         "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",

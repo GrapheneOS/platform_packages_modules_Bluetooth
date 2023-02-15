@@ -3420,23 +3420,27 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     public int setBtHciSnoopLogMode(int mode) {
         mContext.enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
+        final BluetoothProperties.snoop_log_mode_values snoopMode;
+
         switch (mode) {
             case BluetoothAdapter.BT_SNOOP_LOG_MODE_DISABLED:
-                BluetoothProperties.snoop_log_mode(
-                        BluetoothProperties.snoop_log_mode_values.DISABLED);
+                snoopMode = BluetoothProperties.snoop_log_mode_values.DISABLED;
                 break;
             case BluetoothAdapter.BT_SNOOP_LOG_MODE_FILTERED:
-                BluetoothProperties.snoop_log_mode(
-                        BluetoothProperties.snoop_log_mode_values.FILTERED);
+                snoopMode = BluetoothProperties.snoop_log_mode_values.FILTERED;
                 break;
             case BluetoothAdapter.BT_SNOOP_LOG_MODE_FULL:
-                BluetoothProperties.snoop_log_mode(
-                        BluetoothProperties.snoop_log_mode_values.FULL);
+                snoopMode = BluetoothProperties.snoop_log_mode_values.FULL;
                 break;
             default:
-                BluetoothProperties.snoop_log_mode(
-                        BluetoothProperties.snoop_log_mode_values.EMPTY);
-                return BluetoothStatusCodes.ERROR_UNKNOWN;
+                Log.e(TAG, "setBtHciSnoopLogMode: Not a valid mode:" + mode);
+                return BluetoothStatusCodes.ERROR_BAD_PARAMETERS;
+        }
+        try {
+            BluetoothProperties.snoop_log_mode(snoopMode);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "setBtHciSnoopLogMode: Failed to set mode to " + mode + ": " + e);
+            return BluetoothStatusCodes.ERROR_UNKNOWN;
         }
         return BluetoothStatusCodes.SUCCESS;
     }

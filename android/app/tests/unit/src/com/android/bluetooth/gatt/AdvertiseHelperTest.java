@@ -69,14 +69,14 @@ public class AdvertiseHelperTest {
                 .build();
         String deviceName = "TestDeviceName";
 
-        int expectedAdvDataBytesLength = 87;
+        int expectedAdvDataBytesLength = 86;
         byte[] advDataBytes = AdvertiseHelper.advertiseDataToBytes(advertiseData, deviceName);
 
         String deviceNameLong = "TestDeviceNameLongTestDeviceName";
 
         assertThat(advDataBytes.length).isEqualTo(expectedAdvDataBytesLength);
 
-        int expectedAdvDataBytesLongNameLength = 99;
+        int expectedAdvDataBytesLongNameLength = 98;
         byte[] advDataBytesLongName = AdvertiseHelper
                 .advertiseDataToBytes(advertiseData, deviceNameLong);
 

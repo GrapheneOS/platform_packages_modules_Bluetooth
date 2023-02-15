@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
 
 #pragma once
 
-#include <map>
+#include <cstdint>
+#include <functional>
 #include <string>
 
-// TODO(265217208) Remove
-// Usage is deprecated, use get_func_call_count / inc_func_call_count instead
-extern std::map<std::string, int> mock_function_count_map;
+namespace bluetooth {
+namespace testing {
+namespace common {
 
-int get_func_call_size();
+size_t get_common_log_msg_size();
+extern std::function<void(uint32_t, const char*)> log_msg;
 
-int get_func_call_count(const char* fn);
-void inc_func_call_count(const char* fn);
-
-void dump_mock_function_count_map();
-void reset_mock_function_count_map();
+}  // namespace common
+}  // namespace testing
+}  // namespace bluetooth

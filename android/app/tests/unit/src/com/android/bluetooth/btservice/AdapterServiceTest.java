@@ -42,7 +42,6 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Process;
 import android.os.RemoteException;
-import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.permission.PermissionCheckerManager;
@@ -666,8 +665,9 @@ public class AdapterServiceTest {
         Assert.assertTrue(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
 
         Assert.assertFalse(
-                SystemProperties.get(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY,
-                        "full").equals("full"));
+                (BluetoothProperties.snoop_log_mode()
+                                .orElse(BluetoothProperties.snoop_log_mode_values.EMPTY))
+                        .equals(BluetoothProperties.snoop_log_mode_values.FULL));
 
         BluetoothProperties.snoop_log_mode(BluetoothProperties.snoop_log_mode_values.FULL);
 
@@ -751,7 +751,6 @@ public class AdapterServiceTest {
     /**
      * Test: Check if obfuscated Bluetooth address stays the same after toggling Bluetooth
      */
-    @Ignore("b/265588558")
     @Test
     public void testObfuscateBluetoothAddress_PersistentBetweenToggle() {
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
