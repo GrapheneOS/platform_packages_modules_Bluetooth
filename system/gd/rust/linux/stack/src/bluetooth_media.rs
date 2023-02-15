@@ -49,6 +49,10 @@ const PROFILE_DISCOVERY_TIMEOUT_SEC: u64 = 10;
 // 6s is set to align with Android's default. See "btservice/PhonePolicy".
 const CONNECT_MISSING_PROFILES_TIMEOUT_SEC: u64 = 6;
 
+/// The list of profiles we consider as audio profiles for media.
+const MEDIA_AUDIO_PROFILES: &[uuid::Profile] =
+    &[uuid::Profile::A2dpSink, uuid::Profile::Hfp, uuid::Profile::AvrcpController];
+
 pub trait IBluetoothMedia {
     ///
     fn register_callback(&mut self, callback: Box<dyn IBluetoothMediaCallback + Send>) -> bool;
@@ -242,15 +246,20 @@ impl BluetoothMedia {
         }
     }
 
-    fn is_profile_connected(&self, addr: RawAddress, profile: uuid::Profile) -> bool {
-        if let Some(connected_profiles) = self.connected_profiles.get(&addr) {
-            return connected_profiles.contains(&profile);
+    fn is_profile_connected(&self, addr: &RawAddress, profile: &uuid::Profile) -> bool {
+        self.is_any_profile_connected(addr, &[profile.clone()])
+    }
+
+    fn is_any_profile_connected(&self, addr: &RawAddress, profiles: &[uuid::Profile]) -> bool {
+        if let Some(connected_profiles) = self.connected_profiles.get(addr) {
+            return profiles.iter().any(|p| connected_profiles.contains(&p));
         }
+
         return false;
     }
 
     fn add_connected_profile(&mut self, addr: RawAddress, profile: uuid::Profile) {
-        if self.is_profile_connected(addr, profile) {
+        if self.is_profile_connected(&addr, &profile) {
             warn!("[{}]: profile is already connected", addr.to_string());
             return;
         }
@@ -266,7 +275,7 @@ impl BluetoothMedia {
         profile: uuid::Profile,
         is_profile_critical: bool,
     ) {
-        if !self.is_profile_connected(addr, profile) {
+        if !self.is_profile_connected(&addr, &profile) {
             warn!("[{}]: profile is already disconnected", addr.to_string());
             return;
         }
@@ -833,9 +842,6 @@ impl BluetoothMedia {
     fn adapter_get_audio_profiles(&self, addr: RawAddress) -> HashSet<uuid::Profile> {
         let device = BluetoothDevice::new(addr.to_string(), "".to_string());
         if let Some(adapter) = &self.adapter {
-            let audio_profiles =
-                vec![uuid::Profile::A2dpSink, uuid::Profile::Hfp, uuid::Profile::AvrcpController];
-
             adapter
                 .lock()
                 .unwrap()
@@ -844,7 +850,7 @@ impl BluetoothMedia {
                 .map(|u| uuid::UuidHelper::is_known_profile(&u))
                 .filter(|u| u.is_some())
                 .map(|u| u.unwrap())
-                .filter(|u| audio_profiles.contains(&u))
+                .filter(|u| MEDIA_AUDIO_PROFILES.contains(&u))
                 .collect()
         } else {
             HashSet::new()
@@ -916,6 +922,24 @@ impl BluetoothMedia {
 
             winning_state
         }
+    }
+
+    pub fn filter_to_connected_audio_devices_from(
+        &self,
+        devices: &Vec<BluetoothDevice>,
+    ) -> Vec<BluetoothDevice> {
+        devices
+            .iter()
+            .filter(|d| {
+                let addr = match RawAddress::from_string(&d.address) {
+                    None => return false,
+                    Some(a) => a,
+                };
+
+                self.is_any_profile_connected(&addr, &MEDIA_AUDIO_PROFILES)
+            })
+            .cloned()
+            .collect()
     }
 }
 

@@ -1,6 +1,7 @@
 //! Suspend/Resume API.
 
-use crate::bluetooth::{Bluetooth, BtifBluetoothCallbacks};
+use crate::bluetooth::{Bluetooth, BluetoothDevice, BtifBluetoothCallbacks, DelayedActions};
+use crate::bluetooth_media::BluetoothMedia;
 use crate::callbacks::Callbacks;
 use crate::{BluetoothGatt, Message, RPCProxy};
 use bt_topshim::btif::BluetoothInterface;
@@ -56,6 +57,10 @@ pub trait ISuspendCallback: RPCProxy {
 /// Bit 19 = Mode Change.
 const MASKED_EVENTS_FOR_SUSPEND: u64 = (1u64 << 4) | (1u64 << 19);
 
+/// When we resume, we will want to reconnect audio devices that were previously connected.
+/// However, we will need to delay a few seconds to avoid co-ex issues with Wi-Fi reconnection.
+const RECONNECT_AUDIO_ON_RESUME_DELAY_MS: u64 = 3000;
+
 #[derive(FromPrimitive, ToPrimitive)]
 #[repr(u32)]
 pub enum SuspendType {
@@ -87,10 +92,17 @@ pub struct Suspend {
     bt: Arc<Mutex<Box<Bluetooth>>>,
     intf: Arc<Mutex<BluetoothInterface>>,
     gatt: Arc<Mutex<Box<BluetoothGatt>>>,
+    media: Arc<Mutex<Box<BluetoothMedia>>>,
     tx: Sender<Message>,
     callbacks: Callbacks<dyn ISuspendCallback + Send>,
-    is_wakeful_suspend: bool,
-    was_a2dp_connected: bool,
+
+    /// This list keeps track of audio devices that had an audio profile before
+    /// suspend so that we can attempt to connect after suspend.
+    audio_reconnect_list: Vec<BluetoothDevice>,
+
+    /// Active reconnection attempt after resume.
+    audio_reconnect_joinhandle: Option<tokio::task::JoinHandle<()>>,
+
     suspend_timeout_joinhandle: Option<tokio::task::JoinHandle<()>>,
     suspend_state: Arc<Mutex<SuspendState>>,
 }
@@ -100,16 +112,18 @@ impl Suspend {
         bt: Arc<Mutex<Box<Bluetooth>>>,
         intf: Arc<Mutex<BluetoothInterface>>,
         gatt: Arc<Mutex<Box<BluetoothGatt>>>,
+        media: Arc<Mutex<Box<BluetoothMedia>>>,
         tx: Sender<Message>,
     ) -> Suspend {
         Self {
             bt,
             intf,
             gatt,
+            media,
             tx: tx.clone(),
             callbacks: Callbacks::new(tx.clone(), Message::SuspendCallbackDisconnected),
-            is_wakeful_suspend: false,
-            was_a2dp_connected: false,
+            audio_reconnect_list: Vec::new(),
+            audio_reconnect_joinhandle: None,
             suspend_timeout_joinhandle: None,
             suspend_state: Arc::new(Mutex::new(SuspendState::new())),
         }
@@ -136,6 +150,18 @@ impl Suspend {
         self.callbacks.for_all_callbacks(|callback| {
             callback.on_resumed(suspend_id);
         });
+    }
+
+    /// On resume, we attempt to reconnect to any audio devices connected during suspend.
+    /// This marks this attempt as completed and we should clear the pending reconnects here.
+    pub(crate) fn audio_reconnect_complete(&mut self) {
+        self.audio_reconnect_list.clear();
+        self.audio_reconnect_joinhandle = None;
+    }
+
+    pub(crate) fn get_connected_audio_devices(&self) -> Vec<BluetoothDevice> {
+        let bonded_connected = self.bt.lock().unwrap().get_bonded_and_connected_devices();
+        self.media.lock().unwrap().filter_to_connected_audio_devices_from(&bonded_connected)
     }
 }
 
@@ -165,6 +191,19 @@ impl ISuspend for Suspend {
         self.gatt.lock().unwrap().advertising_enter_suspend();
         self.gatt.lock().unwrap().scan_enter_suspend();
 
+        // Track connected audio devices and queue them for reconnect on resume.
+        // If we still have the previous reconnect list left-over, do not try
+        // to collect a new list here.
+        if self.audio_reconnect_list.is_empty() {
+            self.audio_reconnect_list = self.get_connected_audio_devices();
+        }
+
+        // Cancel any active reconnect task.
+        if let Some(joinhandle) = &self.audio_reconnect_joinhandle {
+            joinhandle.abort();
+            self.audio_reconnect_joinhandle = None;
+        }
+
         self.intf.lock().unwrap().disconnect_all_acls();
 
         // Handle wakeful cases (Connected/Other)
@@ -172,8 +211,6 @@ impl ISuspend for Suspend {
         match suspend_type {
             SuspendType::AllowWakeFromHid | SuspendType::Other => {
                 self.intf.lock().unwrap().allow_wake_by_hid();
-                // self.was_a2dp_connected = TODO(230604670): check if A2DP is connected
-                // TODO(230604670): check if A2DP is connected
             }
             _ => {}
         }
@@ -211,11 +248,39 @@ impl ISuspend for Suspend {
         self.intf.lock().unwrap().allow_wake_by_hid();
         self.intf.lock().unwrap().clear_event_filter();
 
-        if self.is_wakeful_suspend {
-            if self.was_a2dp_connected {
-                // TODO(230604670): reconnect to a2dp device
+        if !self.audio_reconnect_list.is_empty() {
+            let reconnect_list = self.audio_reconnect_list.clone();
+            let txl = self.tx.clone();
+
+            // Cancel any existing reconnect attempt.
+            if let Some(joinhandle) = &self.audio_reconnect_joinhandle {
+                joinhandle.abort();
+                self.audio_reconnect_joinhandle = None;
             }
+
+            self.audio_reconnect_joinhandle = Some(tokio::spawn(async move {
+                // Wait a few seconds to avoid co-ex issues with wi-fi.
+                tokio::time::sleep(tokio::time::Duration::from_millis(
+                    RECONNECT_AUDIO_ON_RESUME_DELAY_MS,
+                ))
+                .await;
+
+                // Queue up connections.
+                for device in reconnect_list {
+                    let _unused: Option<()> = txl
+                        .send(Message::DelayedAdapterActions(DelayedActions::ConnectAllProfiles(
+                            device,
+                        )))
+                        .await
+                        .ok();
+                }
+
+                // Mark that we're done.
+                let _unused: Option<()> =
+                    txl.send(Message::AudioReconnectOnResumeComplete).await.ok();
+            }));
         }
+
         self.gatt.lock().unwrap().advertising_exit_suspend();
         self.gatt.lock().unwrap().scan_exit_suspend();
 
