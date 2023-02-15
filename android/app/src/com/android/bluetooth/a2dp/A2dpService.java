@@ -106,7 +106,6 @@ public class A2dpService extends ProfileService {
     boolean mA2dpOffloadEnabled = false;
 
     private BroadcastReceiver mBondStateChangedReceiver;
-    private BroadcastReceiver mConnectionStateChangedReceiver;
 
     public static boolean isEnabled() {
         return BluetoothProperties.isProfileA2dpSourceEnabled().orElse(false);
@@ -169,10 +168,6 @@ public class A2dpService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         mBondStateChangedReceiver = new BondStateChangedReceiver();
         registerReceiver(mBondStateChangedReceiver, filter);
-        filter = new IntentFilter();
-        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
-        mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
-        registerReceiver(mConnectionStateChangedReceiver, filter);
 
         // Step 8: Mark service as started
         setA2dpService(this);
@@ -208,8 +203,6 @@ public class A2dpService extends ProfileService {
         setA2dpService(null);
 
         // Step 7: Unregister broadcast receivers
-        unregisterReceiver(mConnectionStateChangedReceiver);
-        mConnectionStateChangedReceiver = null;
         unregisterReceiver(mBondStateChangedReceiver);
         mBondStateChangedReceiver = null;
 
@@ -1242,7 +1235,7 @@ public class A2dpService extends ProfileService {
         }
     }
 
-    private void connectionStateChanged(BluetoothDevice device, int fromState, int toState) {
+    void connectionStateChanged(BluetoothDevice device, int fromState, int toState) {
         if ((device == null) || (fromState == toState)) {
             return;
         }
@@ -1265,27 +1258,6 @@ public class A2dpService extends ProfileService {
                 }
                 removeStateMachine(device);
             }
-        }
-    }
-
-    /**
-     * Receiver for processing device connection state changes.
-     *
-     * <ul>
-     * <li> Update codec support per device when device is (re)connected
-     * <li> Delete the state machine instance if the device is disconnected and unbond
-     * </ul>
-     */
-    private class ConnectionStateChangedReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED.equals(intent.getAction())) {
-                return;
-            }
-            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            int toState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
-            int fromState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
-            connectionStateChanged(device, fromState, toState);
         }
     }
 
