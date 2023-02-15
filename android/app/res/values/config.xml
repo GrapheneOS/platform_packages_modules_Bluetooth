@@ -32,6 +32,8 @@
     <integer name="gatt_balanced_priority_max_interval">40</integer>
     <integer name="gatt_low_power_min_interval">80</integer>
     <integer name="gatt_low_power_max_interval">100</integer>
+    <integer name="gatt_dck_priority_min_interval">24</integer>
+    <integer name="gatt_dck_priority_max_interval">24</integer>
 
     <!-- min/max connection intervals/latencies for companion devices -->
     <!-- Primary companion -->
