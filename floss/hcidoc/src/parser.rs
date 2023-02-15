@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Read, Seek};
 
-use bt_packets::hci::{CommandPacket, EventPacket};
+use bt_packets::hci::{AclPacket, CommandPacket, EventPacket};
 
 /// Linux snoop file header format. This format is used by `btmon` on Linux systems that have bluez
 /// installed.
@@ -283,6 +283,8 @@ impl<'a> LogParser {
 pub enum PacketChild {
     HciCommand(CommandPacket),
     HciEvent(EventPacket),
+    AclTx(AclPacket),
+    AclRx(AclPacket),
 }
 
 impl<'a> TryFrom<&'a LinuxSnoopPacket> for PacketChild {
@@ -298,6 +300,16 @@ impl<'a> TryFrom<&'a LinuxSnoopPacket> for PacketChild {
             LinuxSnoopOpcodes::EventPacket => match EventPacket::parse(item.data.as_slice()) {
                 Ok(event) => Ok(PacketChild::HciEvent(event)),
                 Err(e) => Err(format!("Couldn't parse event: {:?}", e)),
+            },
+
+            LinuxSnoopOpcodes::AclTxPacket => match AclPacket::parse(item.data.as_slice()) {
+                Ok(data) => Ok(PacketChild::AclTx(data)),
+                Err(e) => Err(format!("Couldn't parse acl tx: {:?}", e)),
+            },
+
+            LinuxSnoopOpcodes::AclRxPacket => match AclPacket::parse(item.data.as_slice()) {
+                Ok(data) => Ok(PacketChild::AclRx(data)),
+                Err(e) => Err(format!("Couldn't parse acl rx: {:?}", e)),
             },
 
             // TODO(b/262928525) - Add packet handlers for more packet types.
