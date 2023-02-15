@@ -68,31 +68,6 @@ namespace shim {
 using ::bluetooth::common::InitFlags;
 using ::bluetooth::common::StringFormat;
 
-namespace {
-// PID file format
-constexpr char pid_file_format[] = "/var/run/bluetooth/bluetooth%d.pid";
-
-void CreatePidFile() {
-  std::string pid_file =
-      StringFormat(pid_file_format, InitFlags::GetAdapterIndex());
-  int pid_fd_ = open(pid_file.c_str(), O_WRONLY | O_CREAT, 0644);
-  if (!pid_fd_) return;
-
-  pid_t my_pid = getpid();
-  dprintf(pid_fd_, "%d\n", my_pid);
-  close(pid_fd_);
-
-  LOG_INFO("%s - Created pid file %s", __func__, pid_file.c_str());
-}
-
-void RemovePidFile() {
-  std::string pid_file =
-      StringFormat(pid_file_format, InitFlags::GetAdapterIndex());
-  unlink(pid_file.c_str());
-  LOG_INFO("%s - Deleted pid file %s", __func__, pid_file.c_str());
-}
-}  // namespace
-
 Stack* Stack::GetInstance() {
   static Stack instance;
   return &instance;
@@ -122,9 +97,6 @@ void Stack::StartEverything() {
     rust_controller_ =
         new ::rust::Box<rust::Controller>(rust::get_controller(**rust_stack_));
     bluetooth::shim::hci_on_reset_complete();
-
-    // Create pid since we're up and running
-    CreatePidFile();
 
     // Create the acl shim layer
     acl_ = new legacy::Acl(
@@ -212,9 +184,6 @@ void Stack::StartEverything() {
   if (common::init_flags::btaa_hci_is_enabled()) {
     bluetooth::shim::init_activity_attribution();
   }
-
-  // Create pid since we're up and running
-  CreatePidFile();
 }
 
 void Stack::Start(ModuleList* modules) {
@@ -231,9 +200,6 @@ void Stack::Start(ModuleList* modules) {
 }
 
 void Stack::Stop() {
-  // First remove pid file so clients no stack is going down
-  RemovePidFile();
-
   if (common::init_flags::gd_rust_is_enabled()) {
     if (rust_stack_ != nullptr) {
       rust::stack_stop(**rust_stack_);
