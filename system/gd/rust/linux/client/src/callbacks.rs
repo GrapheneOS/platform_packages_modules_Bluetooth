@@ -998,7 +998,7 @@ impl BtSocketManagerCallback {
 
         tokio::spawn(async move {
             for i in 0..num_frame {
-                fd.write_all(SOCKET_TEST_WRITE);
+                fd.write_all(SOCKET_TEST_WRITE).ok();
                 print_info!("data sent: {}", i + 1);
                 tokio::time::sleep(send_interval).await;
             }
