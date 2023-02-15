@@ -349,10 +349,6 @@ extern void btsnd_hcic_ble_create_conn_cancel(void);
 
 extern void btsnd_hcic_ble_read_acceptlist_size(void);
 
-extern void btsnd_hcic_ble_remove_from_acceptlist(
-    tBLE_ADDR_TYPE addr_type, const RawAddress& bda,
-    base::OnceCallback<void(uint8_t*, uint16_t)> cb);
-
 extern void btsnd_hcic_ble_upd_ll_conn_params(
     uint16_t handle, uint16_t conn_int_min, uint16_t conn_int_max,
     uint16_t conn_latency, uint16_t conn_timeout, uint16_t min_len,
