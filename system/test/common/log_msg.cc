@@ -16,6 +16,7 @@
 
 #include "test/common/log_msg.h"
 
+#include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <functional>
