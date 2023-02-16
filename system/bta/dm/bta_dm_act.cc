@@ -1579,10 +1579,14 @@ void bta_dm_free_sdp_db() {
  *
  ******************************************************************************/
 void bta_dm_queue_search(tBTA_DM_MSG* p_data) {
+  if (bta_dm_search_cb.p_pending_search) {
+    LOG_WARN("Overwrote previous device discovery inquiry scan request");
+  }
   osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
   bta_dm_search_cb.p_pending_search =
       (tBTA_DM_MSG*)osi_malloc(sizeof(tBTA_DM_API_SEARCH));
   memcpy(bta_dm_search_cb.p_pending_search, p_data, sizeof(tBTA_DM_API_SEARCH));
+  LOG_INFO("Queued device discovery inquiry scan request");
 }
 
 /*******************************************************************************
