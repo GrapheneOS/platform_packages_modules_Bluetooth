@@ -125,6 +125,8 @@ void bta_gatts_enable(tBTA_GATTS_CB* p_cb) {
 
     p_cb->enabled = true;
 
+    gatt_load_bonded();
+
     if (!GATTS_NVRegister(&bta_gatts_nv_cback)) {
       LOG(ERROR) << "BTA GATTS NV register failed.";
     }
