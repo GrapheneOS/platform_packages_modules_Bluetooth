@@ -1,9 +1,23 @@
 //! Handles stream processing of commands and events.
 
+use chrono::NaiveDateTime;
 use std::collections::HashMap;
 use std::io::Write;
 
 use crate::parser::Packet;
+
+/// Signals are pre-defined indicators that are seen in a packet stream.
+pub struct Signal {
+    /// Where in the packet stream we see this signal.
+    pub index: usize,
+
+    /// Timestamp where this signal is seen.
+    pub ts: NaiveDateTime,
+
+    /// Tag identifying the signal. Signals must be pre-defined so we're going
+    /// to enforce a static lifetime here.
+    pub tag: &'static str,
+}
 
 /// Trait that describes a single rule processor. A rule should be used to represent a certain type
 /// of analysis (for example: ACL Connections rule may keep track of all ACL connections and report
@@ -16,6 +30,12 @@ pub trait Rule {
     /// report on the instances of this rule that were discovered or any error conditions that are
     /// relevant to this rule.
     fn report(&self, writer: &mut dyn Write);
+
+    /// Report on any signals seen by this rule on the input stream so far. Signals are
+    /// structured indicators that specify a specific type of condition that are pre-defined and
+    /// used to bucket interesting behavior. Not all reportable events are signals but all signals
+    /// are reportable events.
+    fn report_signals(&self) -> &[Signal];
 }
 
 /// Grouping of rules. This is used to make it easier to enable/disable certain rules for
@@ -39,9 +59,17 @@ impl RuleGroup {
         }
     }
 
-    pub fn report(&mut self, writer: &mut dyn Write) {
+    pub fn report(&self, writer: &mut dyn Write) {
         for rule in &self.rules {
             rule.report(writer);
+        }
+    }
+
+    pub fn report_signals(&self, writer: &mut dyn Write) {
+        for rule in &self.rules {
+            for signal in rule.report_signals() {
+                let _ = writeln!(writer, "({}, {}, {})", signal.index, signal.ts, signal.tag);
+            }
         }
     }
 }
@@ -66,9 +94,15 @@ impl RuleEngine {
         }
     }
 
-    pub fn report(&mut self, writer: &mut dyn Write) {
-        for group in self.groups.values_mut() {
+    pub fn report(&self, writer: &mut dyn Write) {
+        for group in self.groups.values() {
             group.report(writer);
+        }
+    }
+
+    pub fn report_signals(&self, writer: &mut dyn Write) {
+        for group in self.groups.values() {
+            group.report_signals(writer);
         }
     }
 }
