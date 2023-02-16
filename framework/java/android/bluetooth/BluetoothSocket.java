@@ -163,6 +163,130 @@ public final class BluetoothSocket implements Closeable {
     /** prevents all native calls after destroyNative() */
     private volatile SocketState mSocketState;
 
+    private static final int L2CAP_ACL_FAILURE = 2;
+    private static final int L2CAP_CLIENT_SECURITY_FAILURE = 3;
+    private static final int L2CAP_INSUFFICIENT_AUTHENTICATION = 4;
+    private static final int L2CAP_INSUFFICIENT_AUTHORIZATION = 5;
+    private static final int L2CAP_INSUFFICIENT_ENCRYPT_KEY_SIZE = 6;
+    private static final int L2CAP_INSUFFICIENT_ENCRYPTION = 7;
+    private static final int L2CAP_INVALID_SOURCE_CID = 8;
+    private static final int L2CAP_SOURCE_CID_ALREADY_ALLOCATED = 9;
+    private static final int L2CAP_UNACCEPTABLE_PARAMETERS = 10;
+    private static final int L2CAP_INVALID_PARAMETERS = 11;
+    private static final int L2CAP_NO_RESOURCES = 12;
+    private static final int L2CAP_NO_PSM_AVAILABLE = 13;
+    private static final int L2CAP_TIMEOUT = 14;
+
+    /**
+     * IOException message for {@link #connect()} when there is an ACL connection failure.
+     */
+    public static final String L2CAP_ACL_FAILURE_MSG = "ACL connection failed";
+
+    /**
+     * IOException message for {@link #connect()} when security clearance fails on the client during
+     * L2CAP connection.
+     */
+    public static final String L2CAP_CLIENT_SECURITY_FAILURE_MSG =
+            "Client security clearance failed";
+
+    /**
+     * IOException message for {@link #connect()} when authentication fails on the peer device
+     * during L2CAP connection.
+     */
+    public static final String L2CAP_INSUFFICIENT_AUTHENTICATION_MSG =
+            "Insufficient authentication";
+
+    /**
+     * IOException message for {@link #connect()} when authorization fails on the peer device during
+     * L2CAP connection.
+     */
+    public static final String L2CAP_INSUFFICIENT_AUTHORIZATION_MSG = "Insufficient authorization";
+
+    /**
+     * IOException message for {@link #connect()} indicating insufficient encryption key size on the
+     * peer device during L2CAP connection.
+     */
+    public static final String L2CAP_INSUFFICIENT_ENCRYPT_KEY_SIZE_MSG =
+            "Insufficient encryption key size";
+
+    /**
+     * IOException message for {@link #connect()} for insufficient encryption from the peer device
+     * during L2CAP connection.
+     */
+    public static final String L2CAP_INSUFFICIENT_ENCRYPTION_MSG = "Insufficient encryption";
+
+    /**
+     * IOException message for {@link #connect()} for invalid Channel ID from the peer device during
+     * L2CAP connection.
+     */
+    public static final String L2CAP_INVALID_SOURCE_CID_MSG = "Invalid source CID";
+
+    /**
+     * IOException message for {@link #connect()} for already allocated Channel ID from the peer
+     * device during L2CAP connection.
+     */
+    public static final String L2CAP_SOURCE_CID_ALREADY_ALLOCATED_MSG =
+            "Source CID already allocated";
+
+    /**
+     * IOException message for {@link #connect()} for unacceptable Parameters from the peer device
+     * during L2CAP connection.
+     */
+    public static final String L2CAP_UNACCEPTABLE_PARAMETERS_MSG = "Unacceptable Parameters";
+
+    /**
+     * IOException message for {@link #connect()} for invalid parameters from the peer device during
+     * L2CAP connection.
+     */
+    public static final String L2CAP_INVALID_PARAMETERS_MSG = "Invalid Parameters";
+
+    /**
+     * IOException message for {@link #connect()} when no resources are available for L2CAP
+     * connection.
+     */
+    public static final String L2CAP_NO_RESOURCES_MSG = "No resources Available";
+
+    /**
+     * IOException message for {@link #connect()} when no PSM is available for L2CAP connection.
+     */
+    public static final String L2CAP_NO_PSM_AVAILABLE_MSG = "No PSM available";
+
+    /**
+     * IOException message for {@link #connect()} when L2CAP connection timeout.
+     */
+    public static final String L2CAP_TIMEOUT_MSG = "Connection Timeout";
+
+    /**
+     * IOException message for {@link #connect()} for unknown L2CAP error.
+     */
+    public static final String L2CAP_UNKNOWN_ERR_MSG = "Connection failed for unknown reason";
+
+    /**
+     * IOException message for {@link #connect()} when Bluetooth is off and socket connection is
+     * triggered.
+     */
+    public static final String BLUETOOTH_OFF_FAILURE_MSG = "Bluetooth is off";
+
+    /**
+     * IOException message for {@link #connect()} when socket manager is not available.
+     */
+    public static final String SOCKET_MANAGER_FAILURE_MSG = "bt get socket manager failed";
+
+    /**
+     * IOException message for {@link #connect()} when socket is closed.
+     */
+    public static final String SOCKET_CLOSED_MSG = "socket closed";
+
+    /**
+     * IOException message for {@link #connect()} for generic socket connection failures.
+     */
+    public static final String SOCKET_CONNECTION_FAILURE_MSG = "bt socket connect failed";
+
+    /**
+     * IOException message for {@link #connect()} when null device attempts to do socket connection.
+     */
+    public static final String NULL_DEVICE_ERR_MSG = "Connect is called on null device";
+
     /** protects mSocketState */
     //private final ReentrantReadWriteLock mLock;
 
@@ -414,26 +538,50 @@ public final class BluetoothSocket implements Closeable {
      * {@link BluetoothAdapter#cancelDiscovery()} even if it
      * did not directly request a discovery, just to be sure.
      * <p>{@link #close} can be used to abort this call from another thread.
+     * <p>
+     * For failures, an IOException is thrown with a message as follows -
+     * <li>{@link NULL_DEVICE_ERR_MSG}: If device is null.
+     * <li>{@link SOCKET_CLOSED_MSG} : If socket is already closed.
+     * <li>{@link BLUETOOTH_OFF_FAILURE_MSG}: If Bluetooth is turned off.
+     * <li>{@link SOCKET_MANAGER_FAILURE_MSG}: If couldn't get socket manager.
+     * <li>{@link L2CAP_ACL_FAILURE_MSG}: If ACL connection failure during L2CAP socket connection.
+     * <li>{@link L2CAP_CLIENT_SECURITY_FAILURE_MSG}: If L2CAP Client security clearance failure.
+     * <li>{@link L2CAP_INSUFFICIENT_AUTHENTICATION_MSG}: If Peer authentication failure during
+     * L2CAP connection.
+     * <li>{@link L2CAP_INSUFFICIENT_AUTHORIZATION_MSG}: If Peer authorization failure during
+     * L2CAP connection.
+     * <li>{@link L2CAP_INSUFFICIENT_ENCRYPT_KEY_SIZE_MSG}: If Insufficient encryption key size.
+     * <li>{@link L2CAP_INSUFFICIENT_ENCRYPTION_MSG}: If Insufficient encryption for L2CAP
+     * connection.
+     * <li>{@link L2CAP_INVALID_SOURCE_CID_MSG}: If Source CID is invalid.
+     * <li>{@link L2CAP_SOURCE_CID_ALREADY_ALLOCATED_MSG}: If Source CID is already allocated.
+     * <li>{@link L2CAP_UNACCEPTABLE_PARAMETERS_MSG}: If Unacceptable parameters for L2CAP socket.
+     * <li>{@link L2CAP_INVALID_PARAMETERS_MSG}: If Invalid parameters for L2CAP socket.
+     * <li>{@link L2CAP_NO_RESOURCES_MSG}: If No resources available for L2CAP connection.
+     * <li>{@link L2CAP_NO_PSM_AVAILABLE_MSG}: If No PSM available for L2CAP connection
+     * <li>{@link L2CAP_TIMEOUT_MSG}: If L2CAP connection timeout.
+     * <li>{@link SOCKET_CONNECTION_FAILURE_MSG}: If a generic socket connection excluding one above
+     * occurs.
      *
-     * @throws IOException on error, for example connection failure
+     * @throws IOException on error.
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void connect() throws IOException {
-        if (mDevice == null) throw new IOException("Connect is called on null device");
+        if (mDevice == null) throw new IOException(NULL_DEVICE_ERR_MSG);
 
         try {
-            if (mSocketState == SocketState.CLOSED) throw new IOException("socket closed");
+            if (mSocketState == SocketState.CLOSED) throw new IOException(SOCKET_CLOSED_MSG);
             IBluetooth bluetoothProxy =
                     BluetoothAdapter.getDefaultAdapter().getBluetoothService();
-            if (bluetoothProxy == null) throw new IOException("Bluetooth is off");
+            if (bluetoothProxy == null) throw new IOException(BLUETOOTH_OFF_FAILURE_MSG);
             IBluetoothSocketManager socketManager = bluetoothProxy.getSocketManager();
-            if (socketManager == null) throw new IOException("bt get socket manager failed");
+            if (socketManager == null) throw new IOException(SOCKET_MANAGER_FAILURE_MSG);
             mPfd = socketManager.connectSocket(mDevice, mType, mUuid, mPort, getSecurityFlags());
             synchronized (this) {
                 if (DBG) Log.d(TAG, "connect(), SocketState: " + mSocketState + ", mPfd: " + mPfd);
-                if (mSocketState == SocketState.CLOSED) throw new IOException("socket closed");
-                if (mPfd == null) throw new IOException("bt socket connect failed");
+                if (mSocketState == SocketState.CLOSED) throw new IOException(SOCKET_CLOSED_MSG);
+                if (mPfd == null) throw new IOException(SOCKET_CONNECTION_FAILURE_MSG);
                 FileDescriptor fd = mPfd.getFileDescriptor();
                 mSocket = new LocalSocket(fd);
                 mSocketIS = mSocket.getInputStream();
@@ -443,44 +591,44 @@ public final class BluetoothSocket implements Closeable {
             if (channel == 0) {
                 int errCode = (int) mSocketIS.read();
                 switch(errCode) {
-                    case /*BTA_JV_L2CAP_REASON_ACL_FAILURE*/ 2:
-                        throw new IOException("ACL connection failed");
-                    case /*BTA_JV_L2CAP_REASON_CL_SEC_FAILURE*/ 3:
-                        throw new IOException("Client security clearance failed");
-                    case /*BTA_JV_L2CAP_REASON_INSUFFICIENT_AUTHENTICATION*/ 4:
-                        throw new IOException("Insufficient authentication");
-                    case /*BTA_JV_L2CAP_REASON_INSUFFICIENT_AUTHORIZATION*/ 5:
-                        throw new IOException("Insufficient authorization");
-                    case /*BTA_JV_L2CAP_REASON_INSUFFICIENT_ENCRYP_KEY_SIZE*/ 6:
-                        throw new IOException("Insufficient encryption key size");
-                    case /*BTA_JV_L2CAP_REASON_INSUFFICIENT_ENCRYP*/ 7:
-                        throw new IOException("Insufficient encryption");
-                    case /*BTA_JV_L2CAP_REASON_INVALID_SOURCE_CID*/ 8:
-                        throw new IOException("Invalid source CID");
-                    case /*BTA_JV_L2CAP_REASON_SOURCE_CID_ALREADY_ALLOCATED*/ 9:
-                        throw new IOException("Source CID already allocated");
-                    case /*BTA_JV_L2CAP_REASON_UNACCEPTABLE_PARAMETERS*/ 10:
-                        throw new IOException("Unacceptable Parameters");
-                    case /*BTA_JV_L2CAP_REASON_INVALID_PARAMETERS*/ 11:
-                        throw new IOException("Invalid Parameters");
-                    case /*BTA_JV_L2CAP_REASON_NO_RESOURCES*/ 12:
-                        throw new IOException("No resources Available");
-                    case /*BTA_JV_L2CAP_REASON_NO_PSM*/ 13:
-                        throw new IOException("No PSM available");
-                    case /*BTA_JV_L2CAP_REASON_TIMEOUT*/ 14:
-                        throw new IOException("Connection Timeout");
+                    case L2CAP_ACL_FAILURE:
+                        throw new IOException(L2CAP_ACL_FAILURE_MSG);
+                    case L2CAP_CLIENT_SECURITY_FAILURE:
+                        throw new IOException(L2CAP_CLIENT_SECURITY_FAILURE_MSG);
+                    case L2CAP_INSUFFICIENT_AUTHENTICATION:
+                        throw new IOException(L2CAP_INSUFFICIENT_AUTHORIZATION_MSG);
+                    case L2CAP_INSUFFICIENT_AUTHORIZATION:
+                        throw new IOException(L2CAP_INSUFFICIENT_AUTHORIZATION_MSG);
+                    case L2CAP_INSUFFICIENT_ENCRYPT_KEY_SIZE:
+                        throw new IOException(L2CAP_INSUFFICIENT_ENCRYPT_KEY_SIZE_MSG);
+                    case L2CAP_INSUFFICIENT_ENCRYPTION:
+                        throw new IOException(L2CAP_INSUFFICIENT_ENCRYPTION_MSG);
+                    case L2CAP_INVALID_SOURCE_CID:
+                        throw new IOException(L2CAP_INVALID_SOURCE_CID_MSG);
+                    case L2CAP_SOURCE_CID_ALREADY_ALLOCATED:
+                        throw new IOException(L2CAP_SOURCE_CID_ALREADY_ALLOCATED_MSG);
+                    case L2CAP_UNACCEPTABLE_PARAMETERS:
+                        throw new IOException(L2CAP_UNACCEPTABLE_PARAMETERS_MSG);
+                    case L2CAP_INVALID_PARAMETERS:
+                        throw new IOException(L2CAP_INVALID_PARAMETERS_MSG);
+                    case L2CAP_NO_RESOURCES:
+                        throw new IOException(L2CAP_NO_RESOURCES_MSG);
+                    case L2CAP_NO_PSM_AVAILABLE:
+                        throw new IOException(L2CAP_NO_PSM_AVAILABLE_MSG);
+                    case L2CAP_TIMEOUT:
+                        throw new IOException(L2CAP_TIMEOUT_MSG);
                     default:
-                        throw new IOException("bt socket connect failed for unknown reason");
+                        throw new IOException(L2CAP_UNKNOWN_ERR_MSG);
                 }
             }
             if (channel < 0) {
-                throw new IOException("bt socket connect failed");
+                throw new IOException(SOCKET_CONNECTION_FAILURE_MSG);
             }
             mPort = channel;
             waitSocketSignal(mSocketIS);
             synchronized (this) {
                 if (mSocketState == SocketState.CLOSED) {
-                    throw new IOException("bt socket closed");
+                    throw new IOException(SOCKET_CLOSED_MSG);
                 }
                 mSocketState = SocketState.CONNECTED;
                 if (DBG) Log.d(TAG, "connect(), socket connected");
