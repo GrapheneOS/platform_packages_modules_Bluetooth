@@ -19,9 +19,9 @@ package com.android.bluetooth.hfp;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
-import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -163,10 +163,10 @@ public class HeadsetSystemInterface {
         }
         BluetoothInCallService bluetoothInCallService = getBluetoothInCallServiceInstance();
         if (bluetoothInCallService != null) {
-            BluetoothAudioPolicy callAudioPolicy =
+            BluetoothSinkAudioPolicy callAudioPolicy =
                     mHeadsetService.getHfpCallAudioPolicy(device);
             if (callAudioPolicy == null || callAudioPolicy.getCallEstablishPolicy()
-                    != BluetoothAudioPolicy.POLICY_NOT_ALLOWED) {
+                    != BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED) {
                 mHeadsetService.setActiveDevice(device);
             }
             bluetoothInCallService.answerCall();

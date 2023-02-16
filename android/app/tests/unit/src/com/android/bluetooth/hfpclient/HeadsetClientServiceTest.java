@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
-import android.bluetooth.BluetoothAudioPolicy;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
@@ -149,10 +149,10 @@ public class HeadsetClientServiceTest {
                 BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:01:02:03:04:05");
         mService.getStateMachineMap().put(device, mStateMachine);
 
-        mService.setAudioPolicy(device, new BluetoothAudioPolicy.Builder().build());
+        mService.setAudioPolicy(device, new BluetoothSinkAudioPolicy.Builder().build());
 
         verify(mStateMachine, timeout(STANDARD_WAIT_MILLIS).times(1))
-                .setAudioPolicy(any(BluetoothAudioPolicy.class));
+                .setAudioPolicy(any(BluetoothSinkAudioPolicy.class));
     }
 
     @Test

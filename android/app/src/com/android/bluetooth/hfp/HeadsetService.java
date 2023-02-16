@@ -23,11 +23,11 @@ import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
-import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothHeadset;
@@ -1319,9 +1319,9 @@ public class HeadsetService extends ProfileService {
      * Get the Bluetooth Audio Policy stored in the state machine
      *
      * @param device the device to change silence mode
-     * @return a {@link BluetoothAudioPolicy} object
+     * @return a {@link BluetoothSinkAudioPolicy} object
      */
-    public BluetoothAudioPolicy getHfpCallAudioPolicy(BluetoothDevice device) {
+    public BluetoothSinkAudioPolicy getHfpCallAudioPolicy(BluetoothDevice device) {
         synchronized (mStateMachines) {
             final HeadsetStateMachine stateMachine = mStateMachines.get(device);
             if (stateMachine == null) {
@@ -1866,9 +1866,9 @@ public class HeadsetService extends ProfileService {
             if (stateMachine == null) {
                 Log.d(TAG, "phoneStateChanged: CALL_STATE_IDLE, mActiveDevice is Null");
             } else {
-                BluetoothAudioPolicy currentPolicy = stateMachine.getHfpCallAudioPolicy();
-                if (currentPolicy != null && currentPolicy.getConnectingTimePolicy()
-                        == BluetoothAudioPolicy.POLICY_NOT_ALLOWED) {
+                BluetoothSinkAudioPolicy currentPolicy = stateMachine.getHfpCallAudioPolicy();
+                if (currentPolicy != null && currentPolicy.getActiveDevicePolicyAfterConnection()
+                        == BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED) {
                     /**
                      * If the active device was set because of the pick up audio policy
                      * and the connecting policy is NOT_ALLOWED, then after the call is
@@ -1932,10 +1932,10 @@ public class HeadsetService extends ProfileService {
         List<BluetoothDevice> audioConnectableDevices = getConnectedDevices();
         if (audioConnectableDevices.size() == 1) {
             BluetoothDevice connectedDevice = audioConnectableDevices.get(0);
-            BluetoothAudioPolicy callAudioPolicy =
+            BluetoothSinkAudioPolicy callAudioPolicy =
                     getHfpCallAudioPolicy(connectedDevice);
             if (callAudioPolicy != null && callAudioPolicy.getInBandRingtonePolicy()
-                    == BluetoothAudioPolicy.POLICY_NOT_ALLOWED) {
+                    == BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED) {
                 inbandRingtoneAllowedByPolicy = false;
             }
         }
