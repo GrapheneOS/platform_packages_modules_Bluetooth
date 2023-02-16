@@ -34,30 +34,30 @@ import java.util.Objects;
  * devices shall send objects of this class to send its preference to the AG/CG
  * devices.
  *
- * <p>HF/CT side applications on can use {@link BluetoothDevice#setAudioPolicy}
- * API to set and send a {@link BluetoothAudioPolicy} object containing the
+ * <p>HF/CT side applications on can use {@link BluetoothDevice#requestAudioPolicyAsSink}
+ * API to set and send a {@link BluetoothSinkAudioPolicy} object containing the
  * preference/policy values. This object will be stored in the memory of HF/CT
  * side, will be send to the AG/CG side using Android Specific AT Commands and will
  * be stored in the AG side memory and database.
  *
- * <p>HF/CT side API {@link BluetoothDevice#getAudioPolicy} can be used to retrieve
+ * <p>HF/CT side API {@link BluetoothDevice#getRequestedAudioPolicyAsSink} can be used to retrieve
  * the stored audio policies currently.
  *
  * <p>Note that the setter APIs of this class will only set the values of the
- * object. To actually set the policies, API {@link BluetoothDevice#setAudioPolicy}
- * must need to be invoked with the {@link BluetoothAudioPolicy} object.
+ * object. To actually set the policies, API {@link BluetoothDevice#requestAudioPolicyAsSink}
+ * must need to be invoked with the {@link BluetoothSinkAudioPolicy} object.
  *
  * <p>Note that any API related to this feature should be used after configuring
  * the support of the AG device and after checking whether the AG device supports
- * this feature or not by invoking {@link BluetoothDevice#getAudioPolicyRemoteSupported}.
- * Only after getting a {@link BluetoothAudioPolicy#FEATURE_SUPPORTED_BY_REMOTE} response
+ * this feature or not by invoking {@link BluetoothDevice#isRequestAudioPolicyAsSinkSupported}.
+ * Only after getting a {@link BluetoothStatusCodes#FEATURE_SUPPORTED} response
  * from the API should the APIs related to this feature be used.
  *
  *
  * @hide
  */
 @SystemApi
-public final class BluetoothAudioPolicy implements Parcelable {
+public final class BluetoothSinkAudioPolicy implements Parcelable {
 
     /**
      * @hide
@@ -107,31 +107,6 @@ public final class BluetoothAudioPolicy implements Parcelable {
     @SystemApi
     public static final int POLICY_NOT_ALLOWED = 2;
 
-    /**
-     * Remote support status of audio policy feature is unknown/unconfigured.
-     *
-     * @hide
-     */
-    @SystemApi
-    public static final int FEATURE_UNCONFIGURED_BY_REMOTE = 0;
-
-    /**
-     * Remote support status of audio policy feature is supported.
-     *
-     * @hide
-     */
-    @SystemApi
-    public static final int FEATURE_SUPPORTED_BY_REMOTE = 1;
-
-    /**
-     * Remote support status of audio policy feature is not supported.
-     *
-     * @hide
-     */
-    @SystemApi
-    public static final int FEATURE_NOT_SUPPORTED_BY_REMOTE = 2;
-
-
     @AudioPolicyValues private final int mCallEstablishPolicy;
     @AudioPolicyValues private final int mConnectingTimePolicy;
     @AudioPolicyValues private final int mInBandRingtonePolicy;
@@ -139,7 +114,7 @@ public final class BluetoothAudioPolicy implements Parcelable {
     /**
      * @hide
      */
-    public BluetoothAudioPolicy(int callEstablishPolicy,
+    public BluetoothSinkAudioPolicy(int callEstablishPolicy,
             int connectingTimePolicy, int inBandRingtonePolicy) {
         mCallEstablishPolicy = callEstablishPolicy;
         mConnectingTimePolicy = connectingTimePolicy;
@@ -147,38 +122,56 @@ public final class BluetoothAudioPolicy implements Parcelable {
     }
 
     /**
-     * Get Call pick up audio policy.
+     * Get Call establishment policy audio policy.
+     * <p>This policy is used to determine the audio preference when the
+     * HF device makes or answers a call. That is, if this device
+     * makes or answers a call, is the audio preferred by HF.
      *
      * @return the call pick up audio policy value
      *
+     * @hide
      */
+    @SystemApi
     public @AudioPolicyValues int getCallEstablishPolicy() {
         return mCallEstablishPolicy;
     }
 
     /**
      * Get during connection audio up policy.
+     * <p>This policy is used to determine the audio preference when the
+     * HF device connects with the AG device. That is, when the
+     * HF device gets connected, should the HF become active and get audio
+     * is decided by this policy. This also covers the case of during a call.
+     * If the HF connects with the AG during an ongoing call, should the call
+     * audio be routed to the HF will be decided by this policy.
      *
      * @return the during connection audio policy value
      *
+     * @hide
      */
-    public @AudioPolicyValues int getConnectingTimePolicy() {
+    @SystemApi
+    public @AudioPolicyValues int getActiveDevicePolicyAfterConnection() {
         return mConnectingTimePolicy;
     }
 
     /**
      * Get In band ringtone audio up policy.
+     * <p>This policy is used to determine the audio preference of the
+     * in band ringtone. That is, if there is an incoming call, should the
+     * inband ringtone audio be routed to the HF will be decided by this policy.
      *
      * @return the in band ringtone audio policy value
      *
+     * @hide
      */
+    @SystemApi
     public @AudioPolicyValues int getInBandRingtonePolicy() {
         return mInBandRingtonePolicy;
     }
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("BluetoothAudioPolicy{");
+        StringBuilder builder = new StringBuilder("BluetoothSinkAudioPolicy{");
         builder.append("mCallEstablishPolicy: ");
         builder.append(mCallEstablishPolicy);
         builder.append(", mConnectingTimePolicy: ");
@@ -192,17 +185,17 @@ public final class BluetoothAudioPolicy implements Parcelable {
     /**
      * {@link Parcelable.Creator} interface implementation.
      */
-    public static final @android.annotation.NonNull Parcelable.Creator<BluetoothAudioPolicy>
-            CREATOR = new Parcelable.Creator<BluetoothAudioPolicy>() {
+    public static final @android.annotation.NonNull Parcelable.Creator<BluetoothSinkAudioPolicy>
+            CREATOR = new Parcelable.Creator<BluetoothSinkAudioPolicy>() {
                 @Override
-                public BluetoothAudioPolicy createFromParcel(@NonNull Parcel in) {
-                    return new BluetoothAudioPolicy(
+                public BluetoothSinkAudioPolicy createFromParcel(@NonNull Parcel in) {
+                    return new BluetoothSinkAudioPolicy(
                             in.readInt(), in.readInt(), in.readInt());
                 }
 
                 @Override
-                public BluetoothAudioPolicy[] newArray(int size) {
-                    return new BluetoothAudioPolicy[size];
+                public BluetoothSinkAudioPolicy[] newArray(int size) {
+                    return new BluetoothSinkAudioPolicy[size];
                 }
             };
 
@@ -223,8 +216,8 @@ public final class BluetoothAudioPolicy implements Parcelable {
 
     @Override
     public boolean equals(@Nullable Object o) {
-        if (o instanceof BluetoothAudioPolicy) {
-            BluetoothAudioPolicy other = (BluetoothAudioPolicy) o;
+        if (o instanceof BluetoothSinkAudioPolicy) {
+            BluetoothSinkAudioPolicy other = (BluetoothSinkAudioPolicy) o;
             return (other.mCallEstablishPolicy == mCallEstablishPolicy
                     && other.mConnectingTimePolicy == mConnectingTimePolicy
                     && other.mInBandRingtonePolicy == mInBandRingtonePolicy);
@@ -244,9 +237,9 @@ public final class BluetoothAudioPolicy implements Parcelable {
     }
 
     /**
-     * Builder for {@link BluetoothAudioPolicy}.
+     * Builder for {@link BluetoothSinkAudioPolicy}.
      * <p> By default, the audio policy values will be set to
-     * {@link BluetoothAudioPolicy#POLICY_UNCONFIGURED}.
+     * {@link BluetoothSinkAudioPolicy#POLICY_UNCONFIGURED}.
      */
     public static final class Builder {
         private int mCallEstablishPolicy = POLICY_UNCONFIGURED;
@@ -257,7 +250,7 @@ public final class BluetoothAudioPolicy implements Parcelable {
 
         }
 
-        public Builder(@NonNull BluetoothAudioPolicy policies) {
+        public Builder(@NonNull BluetoothSinkAudioPolicy policies) {
             mCallEstablishPolicy = policies.mCallEstablishPolicy;
             mConnectingTimePolicy = policies.mConnectingTimePolicy;
             mInBandRingtonePolicy = policies.mInBandRingtonePolicy;
@@ -267,12 +260,17 @@ public final class BluetoothAudioPolicy implements Parcelable {
          * Set Call Establish (pick up and answer) policy.
          * <p>This policy is used to determine the audio preference when the
          * HF device makes or answers a call. That is, if this device
-         * makes or answers a call, is the audio preferred by HF should be decided
-         * by this policy.
+         * makes or answers a call, is the audio preferred by HF.
+         * <p>If set to {@link BluetoothSinkAudioPolicy#POLICY_ALLOWED}, answering or making
+         * a call from the HF device will route the call audio to it.
+         * If set to {@link BluetoothSinkAudioPolicy#POLICY_NOT_ALLOWED}, answering or making
+         * a call from the HF device will NOT route the call audio to it.
          *
          * @return reference to the current object
+         *
+         * @hide
          */
-        public @NonNull Builder setCallEstablishPolicy(
+        @SystemApi public @NonNull Builder setCallEstablishPolicy(
                 @AudioPolicyValues int callEstablishPolicy) {
             mCallEstablishPolicy = callEstablishPolicy;
             return this;
@@ -286,10 +284,16 @@ public final class BluetoothAudioPolicy implements Parcelable {
          * is decided by this policy. This also covers the case of during a call.
          * If the HF connects with the AG during an ongoing call, should the call
          * audio be routed to the HF will be decided by this policy.
+         * <p>If set to {@link BluetoothSinkAudioPolicy#POLICY_ALLOWED}, connecting HF
+         * during a call will route the call audio to it.
+         * If set to {@link BluetoothSinkAudioPolicy#POLICY_NOT_ALLOWED}, connecting HF
+         * during a call will NOT route the call audio to it.
          *
          * @return reference to the current object
+         *
+         * @hide
          */
-        public @NonNull Builder setConnectingTimePolicy(
+        @SystemApi public @NonNull Builder setActiveDevicePolicyAfterConnection(
                 @AudioPolicyValues int connectingTimePolicy) {
             mConnectingTimePolicy = connectingTimePolicy;
             return this;
@@ -300,22 +304,29 @@ public final class BluetoothAudioPolicy implements Parcelable {
          * <p>This policy is used to determine the audio preference of the
          * in band ringtone. That is, if there is an incoming call, should the
          * inband ringtone audio be routed to the HF will be decided by this policy.
+         * <p>If set to {@link BluetoothSinkAudioPolicy#POLICY_ALLOWED}, there will be
+         * in band ringtone in the HF device during an incoming call.
+         * If set to {@link BluetoothSinkAudioPolicy#POLICY_NOT_ALLOWED}, there will NOT
+         * be in band ringtone in the HF device during an incoming call.
          *
          * @return reference to the current object
          *
+         * @hide
          */
-        public @NonNull Builder setInBandRingtonePolicy(
+        @SystemApi public @NonNull Builder setInBandRingtonePolicy(
                 @AudioPolicyValues int inBandRingtonePolicy) {
             mInBandRingtonePolicy = inBandRingtonePolicy;
             return this;
         }
 
         /**
-         * Build {@link BluetoothAudioPolicy}.
-         * @return new BluetoothAudioPolicy object
+         * Build {@link BluetoothSinkAudioPolicy}.
+         * @return new BluetoothSinkAudioPolicy object
+         *
+         * @hide
          */
-        public @NonNull BluetoothAudioPolicy build() {
-            return new BluetoothAudioPolicy(
+        @SystemApi public @NonNull BluetoothSinkAudioPolicy build() {
+            return new BluetoothSinkAudioPolicy(
                     mCallEstablishPolicy, mConnectingTimePolicy, mInBandRingtonePolicy);
         }
     }

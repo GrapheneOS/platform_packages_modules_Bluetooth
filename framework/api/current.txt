@@ -1084,6 +1084,7 @@ package android.bluetooth {
     field public static final int ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION = 6; // 0x6
     field public static final int ERROR_PROFILE_SERVICE_NOT_BOUND = 9; // 0x9
     field public static final int ERROR_UNKNOWN = 2147483647; // 0x7fffffff
+    field public static final int FEATURE_NOT_CONFIGURED = 30; // 0x1e
     field public static final int FEATURE_NOT_SUPPORTED = 11; // 0xb
     field public static final int FEATURE_SUPPORTED = 10; // 0xa
     field public static final int SUCCESS = 0; // 0x0

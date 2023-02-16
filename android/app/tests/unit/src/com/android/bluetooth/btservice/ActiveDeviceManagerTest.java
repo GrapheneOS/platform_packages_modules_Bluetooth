@@ -26,13 +26,13 @@ import static org.mockito.Mockito.when;
 
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHapClient;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -127,7 +127,7 @@ public class ActiveDeviceManagerTest {
 
         when(mA2dpService.setActiveDevice(any())).thenReturn(true);
         when(mHeadsetService.getHfpCallAudioPolicy(any())).thenReturn(
-                new BluetoothAudioPolicy.Builder().build());
+                new BluetoothSinkAudioPolicy.Builder().build());
         when(mHeadsetService.setActiveDevice(any())).thenReturn(true);
         when(mHearingAidService.setActiveDevice(any())).thenReturn(true);
         when(mLeAudioService.setActiveDevice(any())).thenReturn(true);
@@ -327,10 +327,11 @@ public class ActiveDeviceManagerTest {
     public void notAllowedConnectingPolicyHeadsetConnected_noSetActiveDevice() {
         // setting connecting policy to NOT ALLOWED
         when(mHeadsetService.getHfpCallAudioPolicy(mHeadsetDevice))
-                .thenReturn(new BluetoothAudioPolicy.Builder()
-                        .setCallEstablishPolicy(BluetoothAudioPolicy.POLICY_ALLOWED)
-                        .setConnectingTimePolicy(BluetoothAudioPolicy.POLICY_NOT_ALLOWED)
-                        .setInBandRingtonePolicy(BluetoothAudioPolicy.POLICY_ALLOWED)
+                .thenReturn(new BluetoothSinkAudioPolicy.Builder()
+                        .setCallEstablishPolicy(BluetoothSinkAudioPolicy.POLICY_ALLOWED)
+                        .setActiveDevicePolicyAfterConnection(
+                                BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED)
+                        .setInBandRingtonePolicy(BluetoothSinkAudioPolicy.POLICY_ALLOWED)
                         .build());
 
         headsetConnected(mHeadsetDevice);

@@ -37,11 +37,12 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClient.NetworkServiceState;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSinkAudioPolicy;
+import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.hfp.BluetoothHfpProtoEnums;
 import android.content.Intent;
@@ -188,7 +189,7 @@ public class HeadsetClientStateMachine extends StateMachine {
     private static final int CALL_AUDIO_POLICY_FEATURE_ID = 1;
 
     public int mAudioPolicyRemoteSupported;
-    private BluetoothAudioPolicy mHsClientAudioPolicy;
+    private BluetoothSinkAudioPolicy mHsClientAudioPolicy;
 
     private boolean mAudioWbs;
     private int mVoiceRecognitionActive;
@@ -881,7 +882,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         mAudioRouteAllowed = context.getResources().getBoolean(
             R.bool.headset_client_initial_audio_route_allowed);
 
-        mHsClientAudioPolicy = new BluetoothAudioPolicy.Builder().build();
+        mHsClientAudioPolicy = new BluetoothSinkAudioPolicy.Builder().build();
 
         mIndicatorNetworkState = HeadsetClientHalConstants.NETWORK_STATE_NOT_AVAILABLE;
         mIndicatorNetworkType = HeadsetClientHalConstants.SERVICE_TYPE_HOME;
@@ -2163,13 +2164,13 @@ public class HeadsetClientStateMachine extends StateMachine {
         mAudioRouteAllowed = allowed;
 
         int establishPolicy = allowed
-                ? BluetoothAudioPolicy.POLICY_ALLOWED :
-                BluetoothAudioPolicy.POLICY_NOT_ALLOWED;
+                ? BluetoothSinkAudioPolicy.POLICY_ALLOWED :
+                BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED;
 
         /*
          * Backward compatibility for mAudioRouteAllowed
          */
-        setAudioPolicy(new BluetoothAudioPolicy.Builder(mHsClientAudioPolicy)
+        setAudioPolicy(new BluetoothSinkAudioPolicy.Builder(mHsClientAudioPolicy)
                 .setCallEstablishPolicy(establishPolicy).build());
     }
 
@@ -2177,26 +2178,26 @@ public class HeadsetClientStateMachine extends StateMachine {
         return mAudioRouteAllowed;
     }
 
-    private String createMaskString(BluetoothAudioPolicy policies) {
+    private String createMaskString(BluetoothSinkAudioPolicy policies) {
         StringBuilder mask = new StringBuilder();
         mask.append(Integer.toString(CALL_AUDIO_POLICY_FEATURE_ID));
         mask.append("," + policies.getCallEstablishPolicy());
-        mask.append("," + policies.getConnectingTimePolicy());
+        mask.append("," + policies.getActiveDevicePolicyAfterConnection());
         mask.append("," + policies.getInBandRingtonePolicy());
         return mask.toString();
     }
 
     /**
-     * sets the {@link BluetoothAudioPolicy} object device and send to the remote
+     * sets the {@link BluetoothSinkAudioPolicy} object device and send to the remote
      * device using Android specific AT commands.
      *
      * @param policies to be set policies
      */
-    public void setAudioPolicy(BluetoothAudioPolicy policies) {
+    public void setAudioPolicy(BluetoothSinkAudioPolicy policies) {
         logD("setAudioPolicy: " + policies);
         mHsClientAudioPolicy = policies;
 
-        if (mAudioPolicyRemoteSupported != BluetoothAudioPolicy.FEATURE_SUPPORTED_BY_REMOTE) {
+        if (mAudioPolicyRemoteSupported != BluetoothStatusCodes.FEATURE_SUPPORTED) {
             Log.e(TAG, "Audio Policy feature not supported!");
             return;
         }
@@ -2224,9 +2225,9 @@ public class HeadsetClientStateMachine extends StateMachine {
      */
     public void setAudioPolicyRemoteSupported(boolean supported) {
         if (supported) {
-            mAudioPolicyRemoteSupported = BluetoothAudioPolicy.FEATURE_SUPPORTED_BY_REMOTE;
+            mAudioPolicyRemoteSupported = BluetoothStatusCodes.FEATURE_SUPPORTED;
         } else {
-            mAudioPolicyRemoteSupported = BluetoothAudioPolicy.FEATURE_NOT_SUPPORTED_BY_REMOTE;
+            mAudioPolicyRemoteSupported = BluetoothStatusCodes.FEATURE_NOT_SUPPORTED;
         }
     }
 

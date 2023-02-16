@@ -16,4 +16,4 @@
 
 package android.bluetooth;
 
-parcelable BluetoothAudioPolicy;
+parcelable BluetoothSinkAudioPolicy;
