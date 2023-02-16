@@ -128,6 +128,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         tx.clone(),
     ))));
     let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(
+        adapter_index,
         tx.clone(),
         intf.clone(),
         bluetooth_media.clone(),
@@ -138,6 +139,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth.clone(),
         intf.clone(),
         bluetooth_gatt.clone(),
+        bluetooth_media.clone(),
         tx.clone(),
     ))));
     let logging = Arc::new(Mutex::new(Box::new(BluetoothLogging::new(is_debug, log_output))));

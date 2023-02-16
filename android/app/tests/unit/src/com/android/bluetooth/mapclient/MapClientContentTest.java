@@ -378,6 +378,17 @@ public class MapClientContentTest {
                 eq(SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM));
     }
 
+    /**
+     * Test to validate that cleaning content does not crash when no subscription are available.
+     */
+    @Test
+    public void testCleanUpWithNoSubscriptions() {
+        when(mMockSubscription.getSubscriptionType())
+                .thenReturn(null);
+
+        MapClientContent.clearAllContent(mMockContext);
+    }
+
     void createTestMessages() {
         mOriginator = new VCardEntry();
         VCardProperty property = new VCardProperty();

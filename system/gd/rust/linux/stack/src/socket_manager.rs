@@ -820,7 +820,7 @@ impl BluetoothSocketManager {
                                         }
 
                                         Err(e) => {
-                                            if e == nix::Error::Sys(nix::errno::Errno::EAGAIN) {
+                                            if e == nix::errno::Errno::EAGAIN {
                                                 Err(std::io::Error::new(
                                                     std::io::ErrorKind::WouldBlock,
                                                     "Recvfrom is readable but would block on read",

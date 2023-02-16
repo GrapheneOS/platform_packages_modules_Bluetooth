@@ -343,10 +343,10 @@ impl ServerContextMap {
     }
 
     fn add_request(&mut self, request_id: i32, handle: i32) {
-        self.requests.push(Request { id: request_id, handle: handle });
+        self.requests.push(Request { id: request_id, handle });
     }
 
-    fn delete_request(&mut self, request_id: i32) {
+    fn _delete_request(&mut self, request_id: i32) {
         self.requests.retain(|request| request.id != request_id);
     }
 
@@ -2503,7 +2503,7 @@ impl IBluetoothGatt for BluetoothGatt {
                         value: data,
                         handle: handle as u16,
                         offset: offset as u16,
-                        len: len,
+                        len,
                         auth_req: 0 as u8,
                     },
                 },
@@ -2540,7 +2540,7 @@ impl IBluetoothGatt for BluetoothGatt {
 
     fn server_set_preferred_phy(
         &self,
-        server_id: i32,
+        _server_id: i32,
         addr: String,
         tx_phy: LePhy,
         rx_phy: LePhy,
@@ -3417,6 +3417,8 @@ impl BtifGattServerCallbacks for BluetoothGatt {
         addr: RawAddress,
         exec_write: i32,
     ) {
+        self.server_context_map.add_request(trans_id, 0);
+
         if let Some(cbid) =
             self.server_context_map.get_by_conn_id(conn_id).map(|server| server.cbid)
         {

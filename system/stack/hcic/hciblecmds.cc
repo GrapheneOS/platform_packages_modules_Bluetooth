@@ -324,19 +324,6 @@ void btsnd_hcic_ble_create_conn_cancel(void) {
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
 
-void btsnd_hcic_ble_remove_from_acceptlist(
-    tBLE_ADDR_TYPE addr_type, const RawAddress& bda,
-    base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
-  uint8_t param[HCIC_PARAM_SIZE_REMOVE_ACCEPTLIST];
-  uint8_t* pp = param;
-
-  UINT8_TO_STREAM(pp, addr_type);
-  BDADDR_TO_STREAM(pp, bda);
-
-  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_REMOVE_ACCEPTLIST, param,
-                            HCIC_PARAM_SIZE_REMOVE_ACCEPTLIST, std::move(cb));
-}
-
 void btsnd_hcic_ble_upd_ll_conn_params(uint16_t handle, uint16_t conn_int_min,
                                        uint16_t conn_int_max,
                                        uint16_t conn_latency,

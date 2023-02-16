@@ -23,7 +23,10 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use log::{debug, warn};
 use num_traits::cast::ToPrimitive;
 use std::collections::HashMap;
+use std::fs::File;
 use std::hash::Hash;
+use std::io::Write;
+use std::process;
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
 use std::time::Instant;
@@ -49,6 +52,8 @@ const FOUND_DEVICE_FRESHNESS: Duration = Duration::from_secs(30);
 /// This is the value returned from Bluetooth Interface calls.
 // TODO(241930383): Add enum to topshim
 const BTM_SUCCESS: i32 = 0;
+
+const PID_DIR: &str = "/var/run/bluetooth";
 
 /// Defines the adapter API.
 pub trait IBluetooth {
@@ -395,6 +400,7 @@ pub trait IBluetoothConnectionCallback: RPCProxy {
 pub struct Bluetooth {
     intf: Arc<Mutex<BluetoothInterface>>,
 
+    adapter_index: i32,
     bonded_devices: HashMap<String, BluetoothDeviceContext>,
     bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
     bluetooth_admin: Arc<Mutex<Box<BluetoothAdmin>>>,
@@ -422,6 +428,7 @@ pub struct Bluetooth {
 impl Bluetooth {
     /// Constructs the IBluetooth implementation.
     pub fn new(
+        adapter_index: i32,
         tx: Sender<Message>,
         intf: Arc<Mutex<BluetoothInterface>>,
         bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
@@ -429,6 +436,7 @@ impl Bluetooth {
         bluetooth_admin: Arc<Mutex<Box<BluetoothAdmin>>>,
     ) -> Bluetooth {
         Bluetooth {
+            adapter_index,
             bonded_devices: HashMap::new(),
             callbacks: Callbacks::new(tx.clone(), Message::AdapterCallbackDisconnected),
             connection_callbacks: Callbacks::new(
@@ -619,6 +627,15 @@ impl Bluetooth {
         Ok(())
     }
 
+    /// Returns all bonded and connected devices.
+    pub(crate) fn get_bonded_and_connected_devices(&mut self) -> Vec<BluetoothDevice> {
+        self.bonded_devices
+            .values()
+            .filter(|v| v.acl_state == BtAclState::Connected && v.bond_state == BtBondState::Bonded)
+            .map(|v| v.info.clone())
+            .collect()
+    }
+
     /// Check whether found devices are still fresh. If they're outside the
     /// freshness window, send a notification to clear the device from clients.
     fn trigger_freshness_check(&mut self) {
@@ -718,6 +735,21 @@ impl Bluetooth {
                 self.connect_all_enabled_profiles(device);
             }
         }
+    }
+
+    /// Creates a file to notify btmanagerd the adapter is enabled.
+    fn create_pid_file(&self) -> std::io::Result<()> {
+        let file_name = format!("{}/bluetooth{}.pid", PID_DIR, self.adapter_index);
+        let mut f = File::create(&file_name)?;
+        f.write_all(process::id().to_string().as_bytes())?;
+        Ok(())
+    }
+
+    /// Removes the file to notify btmanagerd the adapter is disabled.
+    fn remove_pid_file(&self) -> std::io::Result<()> {
+        let file_name = format!("{}/bluetooth{}.pid", PID_DIR, self.adapter_index);
+        std::fs::remove_file(&file_name)?;
+        Ok(())
     }
 }
 
@@ -847,11 +879,19 @@ impl BtifBluetoothCallbacks for Bluetooth {
         }
 
         if self.state == BtState::On {
+            match self.create_pid_file() {
+                Err(err) => warn!("create_pid_file() error: {}", err),
+                _ => (),
+            }
             self.bluetooth_media.lock().unwrap().initialize();
         }
 
         if self.state == BtState::Off {
             self.properties.clear();
+            match self.remove_pid_file() {
+                Err(err) => warn!("remove_pid_file() error: {}", err),
+                _ => (),
+            }
 
             // Let the signal notifier know we are turned off.
             *self.sig_notifier.0.lock().unwrap() = false;
@@ -1144,7 +1184,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
         link_type: BtTransport,
         hci_reason: BtHciErrorCode,
         conn_direction: BtConnectionDirection,
-        acl_handle: u16,
+        _acl_handle: u16,
     ) {
         if status != BtStatus::Success {
             warn!(

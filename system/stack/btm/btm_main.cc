@@ -94,3 +94,5 @@ void BTM_LogHistory(const std::string& tag, const tBLE_BD_ADDR& ble_bd_addr,
                     const std::string& msg) {
   BTM_LogHistory(tag, ble_bd_addr, msg, std::string());
 }
+
+bluetooth::common::TimestamperInMilliseconds timestamper_in_milliseconds;

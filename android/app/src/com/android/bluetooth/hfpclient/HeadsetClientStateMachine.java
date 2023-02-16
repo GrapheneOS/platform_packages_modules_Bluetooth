@@ -64,6 +64,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.hfp.HeadsetService;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
@@ -148,6 +149,7 @@ public class HeadsetClientStateMachine extends StateMachine {
     private long mClccTimer = 0;
 
     private final HeadsetClientService mService;
+    private final HeadsetService mHeadsetService;
 
     // Set of calls that represent the accurate state of calls that exists on AG and the calls that
     // are currently in process of being notified to the AG from HF.
@@ -861,12 +863,13 @@ public class HeadsetClientStateMachine extends StateMachine {
         return (bitfield & mask) == mask;
     }
 
-    HeadsetClientStateMachine(HeadsetClientService context, Looper looper,
-                              NativeInterface nativeInterface) {
+    HeadsetClientStateMachine(HeadsetClientService context, HeadsetService headsetService,
+                              Looper looper, NativeInterface nativeInterface) {
         super(TAG, looper);
         mService = context;
         mNativeInterface = nativeInterface;
         mAudioManager = mService.getAudioManager();
+        mHeadsetService = headsetService;
 
         mVendorProcessor = new VendorCommandResponseProcessor(mService, mNativeInterface);
 
@@ -910,11 +913,12 @@ public class HeadsetClientStateMachine extends StateMachine {
         setInitialState(mDisconnected);
     }
 
-    static HeadsetClientStateMachine make(HeadsetClientService context, Looper looper,
-                                          NativeInterface nativeInterface) {
+    static HeadsetClientStateMachine make(HeadsetClientService context,
+                                          HeadsetService headsetService,
+                                          Looper looper, NativeInterface nativeInterface) {
         logD("make");
-        HeadsetClientStateMachine hfcsm = new HeadsetClientStateMachine(context, looper,
-                                                                        nativeInterface);
+        HeadsetClientStateMachine hfcsm = new HeadsetClientStateMachine(context, headsetService,
+                                                                        looper, nativeInterface);
         hfcsm.start();
         return hfcsm;
     }
@@ -1022,6 +1026,9 @@ public class HeadsetClientStateMachine extends StateMachine {
             } else if (mPrevState != null) { // null is the default state before Disconnected
                 Log.e(TAG, "Disconnected: Illegal state transition from " + mPrevState.getName()
                         + " to Disconnected, mCurrentDevice=" + mCurrentDevice);
+            }
+            if (mHeadsetService != null && mCurrentDevice != null) {
+                mHeadsetService.updateInbandRinging(mCurrentDevice, false);
             }
             mCurrentDevice = null;
         }
@@ -1310,6 +1317,9 @@ public class HeadsetClientStateMachine extends StateMachine {
             if (mPrevState == mConnecting) {
                 broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_CONNECTED,
                         BluetoothProfile.STATE_CONNECTING);
+                if (mHeadsetService != null) {
+                    mHeadsetService.updateInbandRinging(mCurrentDevice, true);
+                }
                 MetricsLogger.logProfileConnectionEvent(
                         BluetoothMetricsProto.ProfileId.HEADSET_CLIENT);
             } else if (mPrevState != mAudioOn) {

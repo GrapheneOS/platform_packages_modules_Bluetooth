@@ -115,6 +115,8 @@ class DevNullOrStdErr {
 
 }  // namespace
 
+bluetooth::common::TimestamperInMilliseconds timestamper_in_milliseconds;
+
 uint8_t mock_get_ble_acceptlist_size() { return 123; }
 
 struct controller_t mock_controller {

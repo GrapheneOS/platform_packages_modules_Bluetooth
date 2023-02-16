@@ -1009,10 +1009,9 @@ static bool btif_a2dp_source_enqueue_callback(BT_HDR* p_buf, size_t frames_n,
         osi_free(p_data);
       }
     }
-    log_a2dp_audio_overrun_event(btif_av_source_active_peer(), drop_n,
-                                 btif_a2dp_source_cb.encoder_interval_ms,
-                                 num_dropped_encoded_frames,
-                                 num_dropped_encoded_bytes);
+    log_a2dp_audio_overrun_event(
+        btif_av_source_active_peer(), btif_a2dp_source_cb.encoder_interval_ms,
+        drop_n, num_dropped_encoded_frames, num_dropped_encoded_bytes);
 
     // Intel controllers don't handle ReadRSSI, ReadFailedContactCounter, and
     // ReadTxPower very well, it sends back Hardware Error event which will

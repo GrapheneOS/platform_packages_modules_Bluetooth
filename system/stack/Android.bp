@@ -783,6 +783,7 @@ cc_test {
         "test/a2dp/test_util.cc",
         "test/a2dp/wav_reader.cc",
         "test/a2dp/wav_reader_unittest.cc",
+        ":TestCommonMockFunctions",
         ":TestMockBta",
         ":TestMockStackA2dpApi",
     ],
