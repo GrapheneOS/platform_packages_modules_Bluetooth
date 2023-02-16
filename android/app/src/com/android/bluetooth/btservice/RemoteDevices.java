@@ -316,6 +316,8 @@ final class RemoteDevices {
         private boolean mIsBondingInitiatedLocally;
         private int mBatteryLevel = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         private boolean mIsCoordinatedSetMember;
+        private int mAshaCapability;
+        private int mAshaTruncatedHiSyncId;
         @VisibleForTesting int mBondState;
         @VisibleForTesting int mDeviceType;
         @VisibleForTesting ParcelUuid[] mUuids;
@@ -634,6 +636,36 @@ final class RemoteDevices {
             }
         }
 
+        /**
+         * @return the mAshaCapability
+         */
+        int getAshaCapability() {
+            synchronized (mObject) {
+                return mAshaCapability;
+            }
+        }
+
+        void setAshaCapability(int ashaCapability) {
+            synchronized (mObject) {
+                this.mAshaCapability = ashaCapability;
+            }
+        }
+
+        /**
+         * @return the mAshaTruncatedHiSyncId
+         */
+        int getAshaTruncatedHiSyncId() {
+            synchronized (mObject) {
+                return mAshaTruncatedHiSyncId;
+            }
+        }
+
+        void setAshaTruncatedHiSyncId(int ashaTruncatedHiSyncId) {
+            synchronized (mObject) {
+                this.mAshaTruncatedHiSyncId = ashaTruncatedHiSyncId;
+            }
+        }
+
         public void setHfAudioPolicyForRemoteAg(BluetoothAudioPolicy policies) {
             mAudioPolicy = policies;
         }
@@ -879,6 +911,12 @@ final class RemoteDevices {
                             break;
                         case AbstractionLayer.BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER:
                             deviceProperties.setIsCoordinatedSetMember(val[0] != 0);
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_REMOTE_ASHA_CAPABILITY:
+                            deviceProperties.setAshaCapability(val[0]);
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_REMOTE_ASHA_TRUNCATED_HISYNCID:
+                            deviceProperties.setAshaTruncatedHiSyncId(val[0]);
                             break;
                     }
                 }
