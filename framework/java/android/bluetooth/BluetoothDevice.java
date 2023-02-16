@@ -316,7 +316,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static final String EXTRA_RSSI = "android.bluetooth.device.extra.RSSI";
 
     /**
-    * Used as an bool extra field in {@link #ACTION_FOUND} intents.
+    * Used as a boolean extra field in {@link #ACTION_FOUND} intents.
     * It contains the information if device is discovered as member of a coordinated set or not.
     * Pairing with device that belongs to a set would trigger pairing with the rest of set members.
     * See Bluetooth CSIP specification for more details.
