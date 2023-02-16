@@ -373,6 +373,20 @@ typedef enum {
   BT_PROPERTY_VENDOR_PRODUCT_INFO,
   BT_PROPERTY_WL_MEDIA_PLAYERS_LIST,
 
+  /**
+   * Description - ASHA capability.
+   * Access mode - GET.
+   * Data Type - int16_t.
+   */
+  BT_PROPERTY_REMOTE_ASHA_CAPABILITY,
+
+  /**
+   * Description - ASHA truncated HiSyncID.
+   * Access mode - GET.
+   * Data Type - uint32_t.
+   */
+  BT_PROPERTY_REMOTE_ASHA_TRUNCATED_HISYNCID,
+
   BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP = 0xFF,
 } bt_property_type_t;
 
