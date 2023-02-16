@@ -4933,6 +4933,34 @@ public class AdapterService extends Service {
     }
 
     /**
+     * Get ASHA Capability
+     *
+     * @param device discovered bluetooth device
+     * @return ASHA capability
+     */
+    public int getAshaCapability(BluetoothDevice device) {
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) {
+            return BluetoothDevice.ERROR;
+        }
+        return deviceProp.getAshaCapability();
+    }
+
+    /**
+     * Get ASHA truncated HiSyncId
+     *
+     * @param device discovered bluetooth device
+     * @return ASHA truncated HiSyncId
+     */
+    public int getAshaTruncatedHiSyncId(BluetoothDevice device) {
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) {
+            return BluetoothDevice.ERROR;
+        }
+        return deviceProp.getAshaTruncatedHiSyncId();
+    }
+
+    /**
      * Checks whether the device was recently associated with the comapnion app that called
      * {@link BluetoothDevice#createBond}. This allows these devices to skip the pairing dialog if
      * their pairing variant is {@link BluetoothDevice#PAIRING_VARIANT_CONSENT}.
