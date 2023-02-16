@@ -257,6 +257,7 @@ init_flags!(
         bta_dm_clear_conn_id_on_client_close = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
         clear_hidd_interrupt_cid_on_disconnect = true,
+        delay_hidh_cleanup_until_hidh_ready_start = true,
         device_iot_config_logging,
         dynamic_avrcp_version_enhancement = true,
         finite_att_timeout = true,
