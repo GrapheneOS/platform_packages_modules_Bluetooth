@@ -101,6 +101,9 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -242,8 +245,9 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private boolean mEnable;
     private boolean mShutdownInProgress = false;
 
-    private static CharSequence timeToLog(long timestamp) {
-        return android.text.format.DateFormat.format("MM-dd HH:mm:ss", timestamp);
+    private static String timeToLog(long timestamp) {
+        return DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault())
+            .format(Instant.ofEpochMilli(timestamp));
     }
 
     /**
