@@ -27,12 +27,15 @@ import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
+import android.app.compat.CompatChanges;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresBluetoothLocationPermission;
 import android.bluetooth.annotations.RequiresBluetoothScanPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothAdminPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.companion.AssociationRequest;
+import android.compat.annotation.ChangeId;
+import android.compat.annotation.EnabledSince;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
@@ -857,6 +860,15 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             "android.bluetooth.device.action.PAIRING_REQUEST";
 
     /**
+     * Starting from {@link android.os.Build.VERSION_CODES#UPSIDE_DOWN_CAKE},
+     * the return value of {@link BluetoothDevice#toString()} has changed
+     * to improve privacy.
+     */
+    @ChangeId
+    @EnabledSince(targetSdkVersion = android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private static final long CHANGE_TO_STRING_REDACTED = 265103382L;
+
+    /**
      * Broadcast Action: This intent is used to broadcast PAIRING CANCEL
      *
      * @hide
@@ -1422,16 +1434,25 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * Returns a string representation of this BluetoothDevice.
-     * <p>Currently this is the Bluetooth hardware address, for example
-     * "00:11:22:AA:BB:CC". However, you should always use {@link #getAddress}
-     * if you explicitly require the Bluetooth hardware address in case the
-     * {@link #toString} representation changes in the future.
+     * <p> For apps targeting {@link android.os.Build.VERSION_CODES#UPSIDE_DOWN_CAKE}
+     * (API level 34) or higher, this returns the MAC address of the device redacted
+     * by replacing the hexadecimal digits of leftmost 4 bytes (in big endian order)
+     * with "XX", e.g., "XX:XX:XX:XX:12:34". For apps targeting earlier versions,
+     * the MAC address is returned without redaction.
+     *
+     * Warning: The return value of {@link #toString()} may change in the future.
+     * It is intended to be used in logging statements. Thus apps should never rely
+     * on the return value of {@link #toString()} in their logic. Always use other
+     * appropriate APIs instead (e.g., use {@link #getAddress()} to get the MAC address).
      *
      * @return string representation of this BluetoothDevice
      */
     @Override
     public String toString() {
-        return mAddress;
+        if (!CompatChanges.isChangeEnabled(CHANGE_TO_STRING_REDACTED)) {
+            return mAddress;
+        }
+        return toStringForLogging();
     }
 
     private static boolean shouldLogBeRedacted() {

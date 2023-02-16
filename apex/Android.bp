@@ -20,7 +20,10 @@ apex {
     manifest: "apex_manifest.json",
     bootclasspath_fragments: ["com.android.btservices-bootclasspath-fragment"],
     systemserverclasspath_fragments: ["com.android.btservices-systemserverclasspath-fragment"],
-    compat_configs: ["bluetooth-compat-config"],
+    compat_configs: [
+        "bluetooth-compat-config",
+        "framework-bluetooth-compat-config",
+    ],
     apps: ["Bluetooth"],
 
     multilib: {
