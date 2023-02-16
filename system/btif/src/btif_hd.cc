@@ -33,9 +33,11 @@
 
 #include "bt_target.h"  // Must be first to define build configuration
 #include "bta/include/bta_hd_api.h"
+#include "bta/sys/bta_sys.h"
 #include "btif/include/btif_common.h"
 #include "btif/include/btif_profile_storage.h"
 #include "btif/include/btif_util.h"
+#include "gd/common/init_flags.h"
 #include "include/hardware/bt_hd.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
@@ -162,6 +164,7 @@ static void btif_hd_upstreams_evt(uint16_t event, char* p_param) {
       BTIF_TRACE_DEBUG("%s: status=%d", __func__, p_data->status);
       btif_hd_cb.status = BTIF_HD_DISABLED;
       if (btif_hd_cb.service_dereg_active) {
+        bta_sys_deregister(BTA_ID_HD);
         BTIF_TRACE_WARNING("registering hid host now");
         btif_hh_service_registration(TRUE);
         btif_hd_cb.service_dereg_active = FALSE;
@@ -181,6 +184,7 @@ static void btif_hd_upstreams_evt(uint16_t event, char* p_param) {
         addr = NULL;
       }
 
+      LOG_INFO("Registering HID device app");
       btif_hd_cb.app_registered = TRUE;
       HAL_CBACK(bt_hd_callbacks, application_state_cb, addr,
                 BTHD_APP_STATE_REGISTERED);
@@ -192,7 +196,10 @@ static void btif_hd_upstreams_evt(uint16_t event, char* p_param) {
                 BTHD_APP_STATE_NOT_REGISTERED);
       if (btif_hd_cb.service_dereg_active) {
         BTIF_TRACE_WARNING("disabling hid device service now");
-        btif_hd_free_buf();
+        if (!bluetooth::common::init_flags::
+                delay_hidh_cleanup_until_hidh_ready_start_is_enabled()) {
+          btif_hd_free_buf();
+        }
         BTA_HdDisable();
       }
       break;
