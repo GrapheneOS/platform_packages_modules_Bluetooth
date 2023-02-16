@@ -1967,29 +1967,53 @@ public class HeadsetService extends ProfileService {
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     public void onConnectionStateChangedFromStateMachine(BluetoothDevice device, int fromState,
             int toState) {
+        if (fromState != BluetoothProfile.STATE_CONNECTED
+                && toState == BluetoothProfile.STATE_CONNECTED) {
+            updateInbandRinging(device, true);
+            MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.HEADSET);
+        }
+        if (fromState != BluetoothProfile.STATE_DISCONNECTED
+                && toState == BluetoothProfile.STATE_DISCONNECTED) {
+            updateInbandRinging(device, false);
+            if (device.equals(mActiveDevice)) {
+                setActiveDevice(null);
+            }
+        }
+    }
+
+    /**
+     * Called from {@link HeadsetClientStateMachine} to update inband ringing status.
+     */
+    public void updateInbandRinging(BluetoothDevice device, boolean connected) {
         synchronized (mStateMachines) {
             List<BluetoothDevice> audioConnectableDevices = getConnectedDevices();
-            if (fromState != BluetoothProfile.STATE_CONNECTED
-                    && toState == BluetoothProfile.STATE_CONNECTED) {
-                if (audioConnectableDevices.size() > 1) {
-                    mInbandRingingRuntimeDisable = true;
-                    doForEachConnectedStateMachine(
-                            stateMachine -> stateMachine.sendMessage(HeadsetStateMachine.SEND_BSIR,
-                                    0));
-                }
-                MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.HEADSET);
+            final int enabled;
+            final boolean inbandRingingRuntimeDisable = mInbandRingingRuntimeDisable;
+
+            if (audioConnectableDevices.size() > 1 || isHeadsetClientConnected()) {
+                mInbandRingingRuntimeDisable = true;
+                enabled = 0;
+            } else {
+                mInbandRingingRuntimeDisable = false;
+                enabled = 1;
             }
-            if (fromState != BluetoothProfile.STATE_DISCONNECTED
-                    && toState == BluetoothProfile.STATE_DISCONNECTED) {
-                if (audioConnectableDevices.size() <= 1) {
-                    mInbandRingingRuntimeDisable = false;
-                    doForEachConnectedStateMachine(
-                            stateMachine -> stateMachine.sendMessage(HeadsetStateMachine.SEND_BSIR,
-                                    1));
-                }
-                if (device.equals(mActiveDevice)) {
-                    setActiveDevice(null);
-                }
+
+            final boolean updateAll = inbandRingingRuntimeDisable != mInbandRingingRuntimeDisable;
+
+            Log.i(TAG, "updateInbandRinging():"
+                    + " Device=" + device
+                    + " enabled=" + enabled
+                    + " connected=" + connected
+                    + " Update all=" + updateAll);
+
+            StateMachineTask sendBsirTask = stateMachine -> stateMachine
+                            .sendMessage(HeadsetStateMachine.SEND_BSIR, enabled);
+
+            if (updateAll) {
+                doForEachConnectedStateMachine(sendBsirTask);
+            } else if (connected) {
+                // Same Inband ringing status, send +BSIR only to the new connected device
+                doForStateMachine(device, sendBsirTask);
             }
         }
     }

@@ -19,8 +19,6 @@
 
 #include "a2dp_codec_api.h"
 
-std::map<std::string, int> mock_function_count_map;
-
 A2dpCodecConfig* bta_av_get_a2dp_current_codec(void) {
   return nullptr;
 }

@@ -50,6 +50,8 @@
 using bluetooth::ToGdAddress;
 using bluetooth::ToRawAddress;
 
+extern tBTM_CB btm_cb;
+
 namespace {
 constexpr char kBtmLogTag[] = "SCAN";
 constexpr uint16_t kAllowServiceDataFilter = 0x0040;
@@ -158,14 +160,25 @@ void BleScannerInterfaceImpl::Unregister(int scanner_id) {
 void BleScannerInterfaceImpl::Scan(bool start) {
   LOG(INFO) << __func__ << " in shim layer " <<  ((start) ? "started" : "stopped");
   bluetooth::shim::GetScanning()->Scan(start);
-  BTM_LogHistory(
-      kBtmLogTag, RawAddress::kEmpty,
-      base::StringPrintf("Le scan %s", (start) ? "started" : "stopped"));
   if (start) {
+    btm_cb.neighbor.le_scan = {
+        .start_time_ms = timestamper_in_milliseconds.GetTimestamp(),
+        .results = 0,
+    };
+    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le scan started");
     btm_cb.ble_ctr_cb.set_ble_observe_active();
-  } else {
+  } else {  // stopped
+    const unsigned long long duration_timestamp =
+        timestamper_in_milliseconds.GetTimestamp() -
+        btm_cb.neighbor.le_scan.start_time_ms;
+    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le scan stopped",
+                   base::StringPrintf("duration_s:%6.3f results:%-3lu",
+                                      (double)duration_timestamp / 1000.0,
+                                      btm_cb.neighbor.le_scan.results));
     btm_cb.ble_ctr_cb.reset_ble_observe();
+    btm_cb.neighbor.le_scan = {};
   }
+
   do_in_jni_thread(FROM_HERE,
                    base::Bind(&BleScannerInterfaceImpl::AddressCache::init,
                               base::Unretained(&address_cache_)));
@@ -485,6 +498,7 @@ void BleScannerInterfaceImpl::OnScanResult(
   RawAddress raw_address = ToRawAddress(address);
   tBLE_ADDR_TYPE ble_addr_type = to_ble_addr_type(address_type);
 
+  btm_cb.neighbor.le_scan.results++;
   if (ble_addr_type != BLE_ADDR_ANONYMOUS) {
     btm_ble_process_adv_addr(raw_address, &ble_addr_type);
   }
