@@ -20,13 +20,13 @@ import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHapClient;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -706,9 +706,9 @@ class ActiveDeviceManager {
         if (headsetService == null) {
             return;
         }
-        BluetoothAudioPolicy audioPolicy = headsetService.getHfpCallAudioPolicy(device);
-        if (audioPolicy == null || audioPolicy.getConnectingTimePolicy()
-                != BluetoothAudioPolicy.POLICY_NOT_ALLOWED) {
+        BluetoothSinkAudioPolicy audioPolicy = headsetService.getHfpCallAudioPolicy(device);
+        if (audioPolicy == null || audioPolicy.getActiveDevicePolicyAfterConnection()
+                != BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED) {
             if (!headsetService.setActiveDevice(device)) {
                 return;
             }
