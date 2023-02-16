@@ -1637,6 +1637,14 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
           }
           pairing_cb.gatt_over_le =
               btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED;
+
+          if (pairing_cb.sdp_over_classic !=
+              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED) {
+            // Both SDP and bonding are either done, or not scheduled,
+            // we are safe to clear the service discovery part of CB.
+            LOG_INFO("clearing pairing_cb");
+            pairing_cb = {};
+          }
         }
       } else {
         LOG_INFO("New GATT over SDP UUIDs for %s:", PRIVATE_ADDRESS(bd_addr));
@@ -1705,18 +1713,6 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       /* Send the event to the BTIF */
       invoke_remote_device_properties_cb(BT_STATUS_SUCCESS, bd_addr,
                                          num_properties, prop);
-
-      if ((bd_addr == pairing_cb.bd_addr ||
-           bd_addr == pairing_cb.static_bdaddr) &&
-          pairing_cb.sdp_over_classic !=
-              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED &&
-          pairing_cb.gatt_over_le !=
-              btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED) {
-        // Both SDP and bonding are either done, or not scheduled, we are safe
-        // to clear the service discovery part of CB.
-        LOG_INFO("clearing pairing_cb");
-        pairing_cb = {};
-      }
     } break;
 
     default: { ASSERTC(0, "unhandled search services event", event); } break;
