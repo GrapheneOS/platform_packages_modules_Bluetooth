@@ -32,6 +32,7 @@
 
 #include <base/functional/bind.h>
 #include <base/logging.h>
+#include <base/strings/stringprintf.h>
 #include <bluetooth/uuid.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_csis.h>
@@ -49,6 +50,7 @@
 #include <mutex>
 
 #include "advertise_data_parser.h"
+#include "bta/include/bta_api.h"
 #include "bta_csis_api.h"
 #include "bta_dm_int.h"
 #include "bta_gatt_api.h"
@@ -90,6 +92,11 @@
 bool btif_get_device_type(const RawAddress& bda, int* p_device_type);
 
 using bluetooth::Uuid;
+
+namespace {
+constexpr char kBtmLogTagSdp[] = "SDP";
+}
+
 /******************************************************************************
  *  Constants & Macros
  *****************************************************************************/
@@ -1516,7 +1523,6 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
     case BTA_DM_DISC_RES_EVT: {
       bt_property_t prop;
       uint32_t i = 0;
-      bt_status_t ret;
       std::vector<uint8_t> property_value;
       std::set<Uuid> uuids;
       bool a2dp_sink_capable = false;
@@ -1646,9 +1652,17 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         LOG_INFO("clearing btif pairing_cb");
       }
 
+      const tBTA_STATUS bta_status = p_data->disc_res.result;
+      BTM_LogHistory(
+          kBtmLogTagSdp, bd_addr, "Discovered services",
+          base::StringPrintf("bta_status:%s sdp_uuids:%zu eir_uuids:%zu",
+                             bta_status_text(bta_status).c_str(),
+                             p_data->disc_res.num_uuids, num_eir_uuids));
+
       if (p_data->disc_res.num_uuids != 0 || num_eir_uuids != 0) {
         /* Also write this to the NVRAM */
-        ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
+        const bt_status_t ret =
+            btif_storage_set_remote_device_property(&bd_addr, &prop);
         ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed",
                 ret);
 
