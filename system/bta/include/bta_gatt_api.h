@@ -1024,4 +1024,7 @@ extern void BTA_GATTS_CancelOpen(tGATT_IF server_if,
  ******************************************************************************/
 extern void BTA_GATTS_Close(uint16_t conn_id);
 
+// Adds bonded device for GATT server tracking service changes
+extern void BTA_GATTS_InitBonded(void);
+
 #endif /* BTA_GATT_API_H */
