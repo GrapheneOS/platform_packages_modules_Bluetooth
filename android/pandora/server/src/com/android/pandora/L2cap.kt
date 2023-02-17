@@ -2,11 +2,11 @@ package com.android.pandora
 
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothServerSocket
-import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.util.Log
 import com.google.protobuf.ByteString
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -28,7 +28,7 @@ import pandora.L2capProto.SendDataRequest
 import pandora.L2capProto.SendDataResponse
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class L2cap(val context: Context) : L2CAPImplBase() {
+class L2cap(val context: Context) : L2CAPImplBase(), Closeable {
   private val TAG = "PandoraL2cap"
   private val scope: CoroutineScope
   private val BLUETOOTH_SERVER_SOCKET_TIMEOUT: Int = 10000
@@ -46,7 +46,7 @@ class L2cap(val context: Context) : L2CAPImplBase() {
     scope = CoroutineScope(Dispatchers.Default)
   }
 
-  fun deinit() {
+  override fun close() {
     // Deinit the CoroutineScope
     scope.cancel()
   }
