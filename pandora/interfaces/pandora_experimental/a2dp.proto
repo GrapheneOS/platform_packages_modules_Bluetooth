@@ -19,7 +19,7 @@ option java_outer_classname = "A2dpProto";
 
 package pandora;
 
-import "pandora_experimental/host.proto";
+import "pandora/host.proto";
 
 // Service to trigger A2DP (Advanced Audio Distribution Profile) procedures.
 //
