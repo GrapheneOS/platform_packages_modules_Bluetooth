@@ -1193,9 +1193,29 @@ static void BroadcasterCleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
+std::vector<std::vector<uint8_t>> convertToDataVectors(JNIEnv* env,
+                                                       jobjectArray dataArray) {
+  jsize arraySize = env->GetArrayLength(dataArray);
+  std::vector<std::vector<uint8_t>> res(arraySize);
+
+  for (int i = 0; i < arraySize; ++i) {
+    jbyteArray rowData = (jbyteArray)env->GetObjectArrayElement(dataArray, i);
+    jsize dataSize = env->GetArrayLength(rowData);
+    std::vector<uint8_t>& rowVector = res[i];
+    rowVector.resize(dataSize);
+    env->GetByteArrayRegion(rowData, 0, dataSize,
+                            reinterpret_cast<jbyte*>(rowVector.data()));
+    env->DeleteLocalRef(rowData);
+  }
+  return res;
+}
+
 static void CreateBroadcastNative(JNIEnv* env, jobject object,
-                                  jbyteArray metadata,
-                                  jbyteArray broadcast_code) {
+                                  jboolean isPublic, jstring broadcastName,
+                                  jbyteArray broadcast_code,
+                                  jbyteArray publicMetadata,
+                                  jintArray qualityArray,
+                                  jobjectArray metadataArray) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
   if (!sLeAudioBroadcasterInterface) return;
@@ -1212,21 +1232,47 @@ static void CreateBroadcastNative(JNIEnv* env, jobject object,
     env->GetByteArrayRegion(broadcast_code, 0, size, (jbyte*)code_array.data());
   }
 
-  jbyte* meta = env->GetByteArrayElements(metadata, nullptr);
+  jbyte* public_meta = env->GetByteArrayElements(publicMetadata, nullptr);
+  jint* quality_array = env->GetIntArrayElements(qualityArray, nullptr);
+
+  const char* broadcast_name = nullptr;
+  if (broadcastName != nullptr) {
+    broadcast_name = env->GetStringUTFChars(broadcastName, nullptr);
+  }
+
   sLeAudioBroadcasterInterface->CreateBroadcast(
-      std::vector<uint8_t>(meta, meta + env->GetArrayLength(metadata)),
+      isPublic, std::string(broadcast_name),
       broadcast_code ? std::optional<std::array<uint8_t, 16>>(code_array)
-                     : std::nullopt);
-  env->ReleaseByteArrayElements(metadata, meta, 0);
+                     : std::nullopt,
+      std::vector<uint8_t>(public_meta,
+                           public_meta + env->GetArrayLength(publicMetadata)),
+      std::vector<uint8_t>(quality_array,
+                           quality_array + env->GetArrayLength(qualityArray)),
+      convertToDataVectors(env, metadataArray));
+
+  env->ReleaseStringUTFChars(broadcastName, broadcast_name);
+  env->ReleaseIntArrayElements(qualityArray, quality_array, 0);
+  env->ReleaseByteArrayElements(publicMetadata, public_meta, 0);
 }
 
 static void UpdateMetadataNative(JNIEnv* env, jobject object, jint broadcast_id,
-                                 jbyteArray metadata) {
-  jbyte* meta = env->GetByteArrayElements(metadata, nullptr);
+                                 jstring broadcastName,
+                                 jbyteArray publicMetadata,
+                                 jobjectArray metadataArray) {
+  const char* broadcast_name = nullptr;
+  if (broadcastName != nullptr) {
+    broadcast_name = env->GetStringUTFChars(broadcastName, nullptr);
+  }
+  jbyte* public_meta = env->GetByteArrayElements(publicMetadata, nullptr);
+
   sLeAudioBroadcasterInterface->UpdateMetadata(
-      broadcast_id,
-      std::vector<uint8_t>(meta, meta + env->GetArrayLength(metadata)));
-  env->ReleaseByteArrayElements(metadata, meta, 0);
+      broadcast_id, std::string(broadcast_name),
+      std::vector<uint8_t>(public_meta,
+                           public_meta + env->GetArrayLength(publicMetadata)),
+      convertToDataVectors(env, metadataArray));
+
+  env->ReleaseStringUTFChars(broadcastName, broadcast_name);
+  env->ReleaseByteArrayElements(publicMetadata, public_meta, 0);
 }
 
 static void StartBroadcastNative(JNIEnv* env, jobject object,
@@ -1274,8 +1320,10 @@ static JNINativeMethod sBroadcasterMethods[] = {
     {"initNative", "()V", (void*)BroadcasterInitNative},
     {"stopNative", "()V", (void*)BroadcasterStopNative},
     {"cleanupNative", "()V", (void*)BroadcasterCleanupNative},
-    {"createBroadcastNative", "([B[B)V", (void*)CreateBroadcastNative},
-    {"updateMetadataNative", "(I[B)V", (void*)UpdateMetadataNative},
+    {"createBroadcastNative", "(ZLjava/lang/String;[B[B[I[[B)V",
+     (void*)CreateBroadcastNative},
+    {"updateMetadataNative", "(ILjava/lang/String;[B[[B)V",
+     (void*)UpdateMetadataNative},
     {"startBroadcastNative", "(I)V", (void*)StartBroadcastNative},
     {"stopBroadcastNative", "(I)V", (void*)StopBroadcastNative},
     {"pauseBroadcastNative", "(I)V", (void*)PauseBroadcastNative},

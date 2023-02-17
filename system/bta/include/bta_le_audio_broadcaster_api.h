@@ -40,17 +40,21 @@ class LeAudioBroadcaster {
   static void DebugDump(int fd);
 
   virtual void CreateAudioBroadcast(
-      std::vector<uint8_t> metadata,
-      std::optional<bluetooth::le_audio::BroadcastCode> broadcast_code =
-          std::nullopt) = 0;
+      bool is_public, const std::string& broadcast_name,
+      const std::optional<bluetooth::le_audio::BroadcastCode>& broadcast_code,
+      const std::vector<uint8_t>& public_metadata,
+      const std::vector<uint8_t>& subgroup_quality,
+      const std::vector<std::vector<uint8_t>>& subgroup_metadata) = 0;
   virtual void SuspendAudioBroadcast(uint32_t broadcast_id) = 0;
   virtual void StartAudioBroadcast(uint32_t broadcast_id) = 0;
   virtual void StopAudioBroadcast(uint32_t broadcast_id) = 0;
   virtual void DestroyAudioBroadcast(uint32_t broadcast_id) = 0;
   virtual void GetBroadcastMetadata(uint32_t broadcast_id) = 0;
   virtual void GetAllBroadcastStates(void) = 0;
-  virtual void UpdateMetadata(uint32_t broadcast_id,
-                              std::vector<uint8_t> metadata) = 0;
+  virtual void UpdateMetadata(
+      uint32_t broadcast_id, const std::string& broadcast_name,
+      const std::vector<uint8_t>& public_metadata,
+      const std::vector<std::vector<uint8_t>>& subgroup_metadata) = 0;
   virtual void IsValidBroadcast(
       uint32_t broadcast_id, uint8_t addr_type, RawAddress addr,
       base::Callback<void(uint8_t /* broadcast_id */, uint8_t /* addr_type */,
