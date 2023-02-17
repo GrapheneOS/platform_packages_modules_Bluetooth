@@ -58,6 +58,7 @@
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/include/bta_vc_api.h"
 #include "btif/avrcp/avrcp_service.h"
+#include "btif/include/btif_sock.h"
 #include "btif/include/stack_manager.h"
 #include "btif_a2dp.h"
 #include "btif_activity_attribution.h"
@@ -434,6 +435,7 @@ static void dump(int fd, const char** arguments) {
   btif_debug_av_dump(fd);
   bta_debug_av_dump(fd);
   stack_debug_avdtp_api_dump(fd);
+  btif_sock_dump(fd);
   bluetooth::avrcp::AvrcpService::DebugDump(fd);
   btif_debug_config_dump(fd);
   BTA_HfClientDumpStatistics(fd);
