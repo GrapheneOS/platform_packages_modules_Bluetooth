@@ -16,22 +16,14 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-python_test_host {
-    name: "avatar",
-    main: "main.py",
+python_library_host {
+    name: "bumble_services_experimental-python",
     srcs: [
-        "main.py",
-        "*_test.py",
-        "example.py",
+        "bumble_experimental/*.py",
+        ":pandora_experimental-python-src",
     ],
     libs: [
-        "libavatar",
-        "bumble_services_experimental-python",
+        "libprotobuf-python",
+        "bumble",
     ],
-    required: ["PandoraServer"],
-    test_suites: ["general-tests"],
-    test_options: {
-        unit_test: false,
-    },
-    data: ["config.yml"],
 }
