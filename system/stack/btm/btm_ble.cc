@@ -49,6 +49,7 @@
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/include/l2cdefs.h"
 #include "stack/include/smp_api.h"
+#include "stack/include/smp_api_types.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
@@ -1289,7 +1290,7 @@ void btm_ble_link_sec_check(const RawAddress& bd_addr,
                             tBTM_LE_AUTH_REQ auth_req,
                             tBTM_BLE_SEC_REQ_ACT* p_sec_req_act) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-  uint8_t req_sec_level = BTM_LE_SEC_NONE, cur_sec_level = BTM_LE_SEC_NONE;
+  uint8_t req_sec_level = SMP_SEC_NONE, cur_sec_level = SMP_SEC_NONE;
 
   BTM_TRACE_DEBUG("btm_ble_link_sec_check auth_req =0x%x", auth_req);
 
@@ -1304,9 +1305,9 @@ void btm_ble_link_sec_check(const RawAddress& bd_addr,
      * the link */
     *p_sec_req_act = BTM_BLE_SEC_REQ_ACT_DISCARD;
   } else {
-    req_sec_level = BTM_LE_SEC_UNAUTHENTICATE;
+    req_sec_level = SMP_SEC_UNAUTHENTICATE;
     if (auth_req & BTM_LE_AUTH_REQ_MITM) {
-      req_sec_level = BTM_LE_SEC_AUTHENTICATED;
+      req_sec_level = SMP_SEC_AUTHENTICATED;
     }
 
     BTM_TRACE_DEBUG("dev_rec sec_flags=0x%x", p_dev_rec->sec_flags);
@@ -1314,16 +1315,16 @@ void btm_ble_link_sec_check(const RawAddress& bd_addr,
     /* currently encrpted  */
     if (p_dev_rec->sec_flags & BTM_SEC_LE_ENCRYPTED) {
       if (p_dev_rec->sec_flags & BTM_SEC_LE_AUTHENTICATED)
-        cur_sec_level = BTM_LE_SEC_AUTHENTICATED;
+        cur_sec_level = SMP_SEC_AUTHENTICATED;
       else
-        cur_sec_level = BTM_LE_SEC_UNAUTHENTICATE;
+        cur_sec_level = SMP_SEC_UNAUTHENTICATE;
     } else /* unencrypted link */
     {
       /* if bonded, get the key security level */
       if (p_dev_rec->ble.key_type & BTM_LE_KEY_PENC)
         cur_sec_level = p_dev_rec->ble.keys.sec_level;
       else
-        cur_sec_level = BTM_LE_SEC_NONE;
+        cur_sec_level = SMP_SEC_NONE;
     }
 
     if (cur_sec_level >= req_sec_level) {
