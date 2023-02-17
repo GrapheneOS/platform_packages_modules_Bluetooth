@@ -909,6 +909,12 @@ typedef struct {
                                            const char* feature_name,
                                            const char* name);
 
+  /** get remote Pbap PCE  version*/
+  int (*get_remote_pbap_pce_version)(const RawAddress* bd_addr);
+
+  /** check if pbap pse dynamic version upgrade is enable */
+  bool (*pbap_pse_dynamic_version_upgrade_is_enabled)();
+
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"

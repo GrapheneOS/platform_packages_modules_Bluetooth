@@ -143,6 +143,8 @@ struct tCONN_CB {
   uint16_t rem_mtu_size;
   uint16_t connection_id;
   uint16_t list_len; /* length of the response in the GKI buffer */
+  uint16_t pse_dynamic_attributes_len; /* length of the attributes need to be
+                             added in final sdp response len */
   uint8_t* rsp_list; /* pointer to GKI buffer holding response */
 
   tSDP_DISCOVERY_DB* p_db; /* Database to save info into   */
@@ -258,6 +260,13 @@ extern uint16_t sdpu_get_attrib_entry_len(const tSDP_ATTRIBUTE* p_attr);
 extern uint8_t* sdpu_build_partial_attrib_entry(uint8_t* p_out,
                                                 const tSDP_ATTRIBUTE* p_attr,
                                                 uint16_t len, uint16_t* offset);
+extern bool SDP_AddAttributeToRecord(tSDP_RECORD* p_rec, uint16_t attr_id,
+                                     uint8_t attr_type, uint32_t attr_len,
+                                     uint8_t* p_val);
+extern bool SDP_AddProfileDescriptorListToRecord(tSDP_RECORD* p_rec,
+                                                 uint16_t profile_uuid,
+                                                 uint16_t version);
+extern bool SDP_DeleteAttributeFromRecord(tSDP_RECORD* p_rec, uint16_t attr_id);
 extern uint16_t sdpu_is_avrcp_profile_description_list(
     const tSDP_ATTRIBUTE* p_attr);
 extern bool sdpu_is_service_id_avrc_target(const tSDP_ATTRIBUTE* p_attr);
@@ -290,5 +299,8 @@ extern void sdp_server_handle_client_req(tCONN_CB* p_ccb, BT_HDR* p_msg);
  */
 extern void sdp_disc_connected(tCONN_CB* p_ccb);
 extern void sdp_disc_server_rsp(tCONN_CB* p_ccb, BT_HDR* p_msg);
+
+extern void update_pce_entry_to_interop_database(RawAddress remote_addr);
+extern bool is_sdp_pbap_pce_disabled(RawAddress remote_addr);
 
 #endif

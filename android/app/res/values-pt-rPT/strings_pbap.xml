@@ -13,4 +13,6 @@
     <string name="localPhoneName" msgid="9119254982537191352">"O meu nome"</string>
     <string name="defaultnumber" msgid="5348816189286607406">"000000"</string>
     <string name="pbap_notification_group" msgid="4215789331721465381">"Partilha de contactos por Bluetooth"</string>
+    <string name="phonebook_advance_feature_support">Recurso Avançado da Lista Telefônica Suportado</string>
+    <string name="repair_for_adv_phonebook_feature">Re-par para Recurso Avançado Agenda</string>
 </resources>
