@@ -4,7 +4,7 @@ option java_outer_classname = "PanProto";
 
 package pandora;
 
-import "pandora_experimental/host.proto";
+import "pandora/host.proto";
 
 service PAN {
 	rpc EnableTethering(EnableTetheringRequest) returns (EnableTetheringResponse);

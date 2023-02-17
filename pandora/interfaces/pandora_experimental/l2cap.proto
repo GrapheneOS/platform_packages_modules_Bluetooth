@@ -5,7 +5,7 @@ package pandora;
 option java_outer_classname = "L2capProto";
 
 import "google/protobuf/empty.proto";
-import "pandora_experimental/host.proto";
+import "pandora/host.proto";
 
 service L2CAP {
   // Create a L2CAP connection to a peer.
