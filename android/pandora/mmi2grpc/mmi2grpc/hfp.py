@@ -17,9 +17,9 @@ from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.hfp_grpc import HFP
-from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import ConnectabilityMode, DiscoverabilityMode
-from pandora_experimental.security_grpc import Security, SecurityStorage
+from pandora.host_grpc import Host
+from pandora.host_pb2 import ConnectabilityMode, DiscoverabilityMode
+from pandora.security_grpc import Security, SecurityStorage, PairingEventAnswer
 from pandora_experimental.hfp_pb2 import AudioPath
 
 import sys
@@ -918,6 +918,6 @@ class HFPProxy(ProfileProxy):
                 if event.WhichOneof("method") in {"just_works", "numeric_comparison"}:
                     if times is None or cnt < times:
                         cnt += 1
-                        pairing_events.send(event=event, confirm=True)
+                        pairing_events.send(PairingEventAnswer(event=event, confirm=True))
 
         threading.Thread(target=task).start()
