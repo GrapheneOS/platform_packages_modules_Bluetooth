@@ -44,6 +44,7 @@ filegroup {
 filegroup {
     name: "BluetoothHciUnitTestSources",
     srcs: [
+        ":BluetoothHalFake",
         "acl_builder_test.cc",
         "acl_manager_test.cc",
         "acl_manager_unittest.cc",
