@@ -307,6 +307,7 @@ cc_test {
     srcs: [
         "test/stack_a2dp_test.cc",
         "test/stack_avrcp_test.cc",
+        "test/gatt/gatt_api_test.cc",
     ],
     shared_libs: [
         "android.hardware.bluetooth@1.0",
