@@ -55,6 +55,13 @@ filegroup {
 }
 
 filegroup {
+    name: "BluetoothHalFake",
+    srcs: [
+        "hci_hal_fake.cc",
+    ],
+}
+
+filegroup {
     name: "BluetoothFacade_hci_hal",
     srcs: [
         "facade.cc",
