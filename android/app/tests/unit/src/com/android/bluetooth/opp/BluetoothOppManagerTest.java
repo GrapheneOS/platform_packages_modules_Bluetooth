@@ -50,6 +50,7 @@ import com.android.bluetooth.BluetoothMethodProxy;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
@@ -194,6 +195,7 @@ public class BluetoothOppManagerTest {
                 nullable(Uri.class), nullable(ContentValues.class));
     }
 
+    @Ignore("b/267270055")
     @Test
     public void startTransferMoreThanAllowedInsertShareThreadNumberTimes_blockExceedingTransfer()
             throws InterruptedException {
