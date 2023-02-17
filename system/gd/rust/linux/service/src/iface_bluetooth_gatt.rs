@@ -156,6 +156,11 @@ impl IBluetoothGattServerCallback for BluetoothGattServerCallbackDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("OnServiceRemoved")]
+    fn on_service_removed(&self, status: GattStatus, handle: i32) {
+        dbus_generated!()
+    }
+
     #[dbus_method("OnCharacteristicReadRequest")]
     fn on_characteristic_read_request(
         &self,

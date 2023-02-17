@@ -966,6 +966,9 @@ pub trait IBluetoothGattServerCallback: RPCProxy {
     /// When there is a service added to the GATT server.
     fn on_service_added(&self, _status: GattStatus, _service: BluetoothGattService);
 
+    /// When a service has been removed from the GATT server.
+    fn on_service_removed(&self, status: GattStatus, handle: i32);
+
     /// When a remote device has requested to read a characteristic.
     fn on_characteristic_read_request(
         &self,
@@ -3294,6 +3297,14 @@ impl BtifGattServerCallbacks for BluetoothGatt {
     fn service_deleted_cb(&mut self, status: GattStatus, server_id: i32, handle: i32) {
         if status == GattStatus::Success {
             self.server_context_map.delete_service(server_id, handle);
+        }
+
+        if let Some(cb) = self
+            .server_context_map
+            .get_by_server_id(server_id)
+            .and_then(|server| self.server_context_map.get_callback_from_callback_id(server.cbid))
+        {
+            cb.on_service_removed(status, handle);
         }
     }
 
