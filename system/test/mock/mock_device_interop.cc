@@ -87,3 +87,8 @@ int interop_feature_name_to_feature_id(const char* feature_name) {
   mock_function_count_map[__func__]++;
   return false;
 }
+
+void interop_database_add_addr(const uint16_t feature, const RawAddress* addr,
+                               size_t length) {
+  mock_function_count_map[__func__]++;
+}

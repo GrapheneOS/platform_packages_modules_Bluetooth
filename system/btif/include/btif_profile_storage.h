@@ -184,3 +184,28 @@ bt_status_t btif_storage_set_hidd(const RawAddress& remote_bd_addr);
  ******************************************************************************/
 
 bt_status_t btif_storage_remove_hidd(RawAddress* remote_bd_addr);
+
+/*******************************************************************************
+ *
+ *Function : btif_storage_set_pce_profile_version
+ *
+ * Description :
+ *    This function store remote PCE profile version in config file
+ *
+ ******************************************************************************/
+
+void btif_storage_set_pce_profile_version(const RawAddress& remote_bd_addr,
+                                          uint16_t peer_pce_version);
+
+/*******************************************************************************
+ *
+ * Function        btif_storage_is_pce_version_102
+ *
+ * Description     checks if remote supports PBAP 1.2
+ *
+ * Returns         true/false depending on remote PBAP version support found in
+ *file.
+ *
+ ******************************************************************************/
+
+bool btif_storage_is_pce_version_102(const RawAddress& remote_bd_addr);

@@ -67,6 +67,7 @@
 #include "btif_hf.h"
 #include "btif_hh.h"
 #include "btif_metrics_logging.h"
+#include "btif_profile_storage.h"
 #include "btif_sdp.h"
 #include "btif_storage.h"
 #include "btif_util.h"
@@ -86,6 +87,7 @@
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_octets.h"
+#include "stack/sdp/sdpint.h"
 #include "stack_config.h"
 #include "types/raw_address.h"
 
@@ -573,6 +575,13 @@ static void bond_state_changed(bt_status_t status, const RawAddress& bd_addr,
 
   if (state == BT_BOND_STATE_NONE) {
     forget_device_from_metric_id_allocator(bd_addr);
+
+    if (bluetooth::common::init_flags::
+            pbap_pse_dynamic_version_upgrade_is_enabled()) {
+      if (btif_storage_is_pce_version_102(bd_addr)) {
+        update_pce_entry_to_interop_database(bd_addr);
+      }
+    }
   } else if (state == BT_BOND_STATE_BONDED) {
     allocate_metric_id_from_metric_id_allocator(bd_addr);
     if (!save_metric_id_from_metric_id_allocator(bd_addr)) {

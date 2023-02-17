@@ -42,6 +42,7 @@ static const std::string BT_CONFIG_KEY_SDP_DI_VENDOR_ID_SRC =
 static const std::string BT_CONFIG_KEY_REMOTE_VER_MFCT = "Manufacturer";
 static const std::string BT_CONFIG_KEY_REMOTE_VER_VER = "LmpVer";
 static const std::string BT_CONFIG_KEY_REMOTE_VER_SUBVER = "LmpSubVer";
+static const std::string BT_CONFIG_KEY_PBAP_PCE_VERSION = "PbapPceVersion";
 
 bool btif_config_exist(const std::string& section, const std::string& key);
 bool btif_config_get_int(const std::string& section, const std::string& key,
