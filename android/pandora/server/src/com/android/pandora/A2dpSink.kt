@@ -27,6 +27,7 @@ import android.media.*
 import android.util.Log
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -40,7 +41,7 @@ import pandora.A2DPGrpc.A2DPImplBase
 import pandora.A2dpProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class A2dpSink(val context: Context) : A2DPImplBase() {
+class A2dpSink(val context: Context) : A2DPImplBase(), Closeable {
   private val TAG = "PandoraA2dpSink"
 
   private val scope: CoroutineScope
@@ -59,7 +60,7 @@ class A2dpSink(val context: Context) : A2DPImplBase() {
     flow = intentFlow(context, intentFilter).shareIn(scope, SharingStarted.Eagerly)
   }
 
-  fun deinit() {
+  override fun close() {
     bluetoothAdapter.closeProfileProxy(BluetoothProfile.A2DP_SINK, bluetoothA2dpSink)
     scope.cancel()
   }

@@ -18,6 +18,7 @@ package com.android.pandora
 
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -25,7 +26,7 @@ import pandora.AVRCPGrpc.AVRCPImplBase
 import pandora.AvrcpProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class Avrcp(val context: Context) : AVRCPImplBase() {
+class Avrcp(val context: Context) : AVRCPImplBase(), Closeable {
   private val TAG = "PandoraAvrcp"
 
   private val scope: CoroutineScope
@@ -39,7 +40,7 @@ class Avrcp(val context: Context) : AVRCPImplBase() {
     scope = CoroutineScope(Dispatchers.Default)
   }
 
-  fun deinit() {
+  override fun close() {
     // Deinit the CoroutineScope
     scope.cancel()
   }

@@ -29,6 +29,7 @@ import com.google.protobuf.BoolValue
 import com.google.protobuf.Empty
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -45,7 +46,7 @@ import pandora.SecurityStorageGrpc.SecurityStorageImplBase
 private const val TAG = "PandoraSecurityStorage"
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class SecurityStorage(private val context: Context) : SecurityStorageImplBase() {
+class SecurityStorage(private val context: Context) : SecurityStorageImplBase(), Closeable {
 
   private val globalScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
   private val flow: Flow<Intent>
@@ -60,7 +61,7 @@ class SecurityStorage(private val context: Context) : SecurityStorageImplBase() 
     flow = intentFlow(context, intentFilter).shareIn(globalScope, SharingStarted.Eagerly)
   }
 
-  fun deinit() {
+  override fun close() {
     globalScope.cancel()
   }
 
