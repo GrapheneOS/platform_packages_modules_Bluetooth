@@ -221,7 +221,20 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       LOG_INFO("Dropping invalid advertising event");
       return;
     }
-    LOG_VERBOSE("Received LE Advertising Set Terminated with status %s", ErrorCodeText(event_view.GetStatus()).c_str());
+
+    auto status = event_view.GetStatus();
+    LOG_VERBOSE(
+        "Received LE Advertising Set Terminated with status %s", ErrorCodeText(status).c_str());
+
+    /* The Bluetooth Core 5.3 specification clearly states that this event
+     * shall not be sent when the Host disables the advertising set. So in
+     * case of HCI_ERROR_CANCELLED_BY_HOST, just ignore the event.
+     */
+    if (status == ErrorCode::OPERATION_CANCELLED_BY_HOST) {
+      LOG_WARN(
+          "Unexpected advertising set terminated event status: %s", ErrorCodeText(status).c_str());
+      return;
+    }
 
     uint8_t advertiser_id = event_view.GetAdvertisingHandle();
 
@@ -236,13 +249,13 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     AddressWithType advertiser_address = advertising_sets_[event_view.GetAdvertisingHandle()].current_address;
     bool is_discoverable = advertising_sets_[event_view.GetAdvertisingHandle()].discoverable;
 
-    auto status = event_view.GetStatus();
     acl_manager_->OnAdvertisingSetTerminated(
         status,
         event_view.GetConnectionHandle(),
         advertiser_id,
         advertiser_address,
         is_discoverable);
+
     if (status == ErrorCode::LIMIT_REACHED || status == ErrorCode::ADVERTISING_TIMEOUT) {
       if (id_map_[advertiser_id] == kIdLocal) {
         if (!advertising_sets_[advertiser_id].timeout_callback.is_null()) {

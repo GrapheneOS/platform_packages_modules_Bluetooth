@@ -32,6 +32,7 @@
 
 #include <base/functional/bind.h>
 #include <base/logging.h>
+#include <base/strings/stringprintf.h>
 #include <bluetooth/uuid.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_csis.h>
@@ -49,6 +50,7 @@
 #include <mutex>
 
 #include "advertise_data_parser.h"
+#include "bta/include/bta_api.h"
 #include "bta_csis_api.h"
 #include "bta_dm_int.h"
 #include "bta_gatt_api.h"
@@ -90,6 +92,11 @@
 bool btif_get_device_type(const RawAddress& bda, int* p_device_type);
 
 using bluetooth::Uuid;
+
+namespace {
+constexpr char kBtmLogTagSdp[] = "SDP";
+}
+
 /******************************************************************************
  *  Constants & Macros
  *****************************************************************************/
@@ -318,6 +325,56 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
   }
 
   return GetInterfaceToProfiles()->toggleProfile(service_id, b_enable);
+}
+
+/**
+ * Helper method to get asha advertising service data
+ * @param inq_res {@code tBTA_DM_INQ_RES} inquiry result
+ * @param asha_capability value will be updated as non-negative if found,
+ * otherwise return -1
+ * @param asha_truncated_hi_sync_id value will be updated if found, otherwise no
+ * change
+ */
+static void get_asha_service_data(const tBTA_DM_INQ_RES& inq_res,
+                                  int16_t& asha_capability,
+                                  uint32_t& asha_truncated_hi_sync_id) {
+  asha_capability = -1;
+  if (inq_res.p_eir) {
+    const RawAddress& bdaddr = inq_res.bd_addr;
+
+    // iterate through advertisement service data
+    const uint8_t* p_service_data = inq_res.p_eir;
+    uint8_t service_data_len = 0;
+    while ((p_service_data = AdvertiseDataParser::GetFieldByType(
+                p_service_data + service_data_len,
+                inq_res.eir_len - (p_service_data - inq_res.p_eir) -
+                    service_data_len,
+                BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE, &service_data_len))) {
+      if (service_data_len < 2) {
+        continue;
+      }
+      uint16_t uuid;
+      const uint8_t* p_uuid = p_service_data;
+      STREAM_TO_UINT16(uuid, p_uuid);
+
+      if (uuid == 0xfdf0 /* ASHA service*/) {
+        LOG_INFO("ASHA found in %s", ADDRESS_TO_LOGGABLE_CSTR(bdaddr));
+
+        // ASHA advertisement service data length should be at least 8
+        if (service_data_len < 8) {
+          LOG_WARN("ASHA device service_data_len too short");
+        } else {
+          // It is intended to save ASHA capability byte to int16_t
+          asha_capability = p_service_data[3];
+          LOG_INFO("asha_capability: %d", asha_capability);
+
+          const uint8_t* p_truncated_hisyncid = &(p_service_data[4]);
+          STREAM_TO_UINT32(asha_truncated_hi_sync_id, p_truncated_hisyncid);
+        }
+        break;
+      }
+    }
+  }
 }
 
 /*******************************************************************************
@@ -1317,7 +1374,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
       }
 
       {
-        bt_property_t properties[8];
+        bt_property_t properties[10];  // increase when properties are added
         bt_device_type_t dev_type;
         uint32_t num_properties = 0;
         bt_status_t status;
@@ -1379,6 +1436,28 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
                                    BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER,
                                    sizeof(bool),
                                    &(p_search_data->inq_res.include_rsi));
+        num_properties++;
+
+        // The default negative value means ASHA capability not found.
+        // A non-negative value represents ASHA capability information is valid.
+        // Because ASHA's capability is 1 byte, so int16_t is large enough.
+        int16_t asha_capability = -1;
+
+        // contains ASHA truncated HiSyncId if asha_capability is non-negative
+        uint32_t asha_truncated_hi_sync_id = 0;
+
+        get_asha_service_data(p_search_data->inq_res, asha_capability,
+                              asha_truncated_hi_sync_id);
+
+        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                                   BT_PROPERTY_REMOTE_ASHA_CAPABILITY,
+                                   sizeof(int16_t), &asha_capability);
+        num_properties++;
+
+        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                                   BT_PROPERTY_REMOTE_ASHA_TRUNCATED_HISYNCID,
+                                   sizeof(uint32_t),
+                                   &asha_truncated_hi_sync_id);
         num_properties++;
 
         // Floss expects that EIR uuids are immediately reported when the
@@ -1516,7 +1595,6 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
     case BTA_DM_DISC_RES_EVT: {
       bt_property_t prop;
       uint32_t i = 0;
-      bt_status_t ret;
       std::vector<uint8_t> property_value;
       std::set<Uuid> uuids;
       bool a2dp_sink_capable = false;
@@ -1646,9 +1724,17 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         LOG_INFO("clearing btif pairing_cb");
       }
 
+      const tBTA_STATUS bta_status = p_data->disc_res.result;
+      BTM_LogHistory(
+          kBtmLogTagSdp, bd_addr, "Discovered services",
+          base::StringPrintf("bta_status:%s sdp_uuids:%zu eir_uuids:%zu",
+                             bta_status_text(bta_status).c_str(),
+                             p_data->disc_res.num_uuids, num_eir_uuids));
+
       if (p_data->disc_res.num_uuids != 0 || num_eir_uuids != 0) {
         /* Also write this to the NVRAM */
-        ret = btif_storage_set_remote_device_property(&bd_addr, &prop);
+        const bt_status_t ret =
+            btif_storage_set_remote_device_property(&bd_addr, &prop);
         ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed",
                 ret);
 
