@@ -209,6 +209,8 @@ init_flags!(
         btaa_hci = true,
         bta_dm_clear_conn_id_on_client_close = true,
         btm_dm_flush_discovery_queue_on_search_cancel,
+        clear_hidd_interrupt_cid_on_disconnect = true,
+        delay_hidh_cleanup_until_hidh_ready_start = true,
         finite_att_timeout = true,
         gatt_robust_caching_client = true,
         gatt_robust_caching_server,
