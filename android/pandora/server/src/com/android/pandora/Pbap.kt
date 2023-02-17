@@ -18,15 +18,14 @@ package com.android.pandora
 
 import android.bluetooth.BluetoothManager
 import android.content.ContentProviderOperation
+import android.content.ContentValues
 import android.content.Context
+import android.provider.CallLog
+import android.provider.CallLog.Calls.*
 import android.provider.ContactsContract
 import android.provider.ContactsContract.*
 import android.provider.ContactsContract.CommonDataKinds.*
-import android.provider.CallLog
-import android.provider.CallLog.Calls.*
-import android.content.ContentValues
-import android.content.ContentUris
-import android.net.Uri
+import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -34,7 +33,7 @@ import pandora.PBAPGrpc.PBAPImplBase
 import pandora.PbapProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class Pbap(val context: Context) : PBAPImplBase() {
+class Pbap(val context: Context) : PBAPImplBase(), Closeable {
   private val TAG = "PandoraPbap"
 
   private val scope: CoroutineScope
@@ -69,20 +68,21 @@ class Pbap(val context: Context) : PBAPImplBase() {
 
   private fun prepareCallLog() {
     // Delete existing call log
-    context.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+    context.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null)
 
     addCallLogItem(MISSED_TYPE)
     addCallLogItem(OUTGOING_TYPE)
   }
 
   private fun addCallLogItem(callType: Int) {
-    var contentValues = ContentValues().apply {
-      put(CallLog.Calls.NUMBER, generatePhoneNumber(PHONE_NUM_LENGTH))
-      put(CallLog.Calls.DATE, System.currentTimeMillis())
-      put(CallLog.Calls.DURATION, if(callType == MISSED_TYPE) 0 else 30)
-      put(CallLog.Calls.TYPE, callType)
-      put(CallLog.Calls.NEW, 1)
-    }
+    var contentValues =
+      ContentValues().apply {
+        put(CallLog.Calls.NUMBER, generatePhoneNumber(PHONE_NUM_LENGTH))
+        put(CallLog.Calls.DATE, System.currentTimeMillis())
+        put(CallLog.Calls.DURATION, if (callType == MISSED_TYPE) 0 else 30)
+        put(CallLog.Calls.TYPE, callType)
+        put(CallLog.Calls.NEW, 1)
+      }
     context.getContentResolver().insert(CallLog.Calls.CONTENT_URI, contentValues)
   }
 
@@ -134,7 +134,7 @@ class Pbap(val context: Context) : PBAPImplBase() {
     return buildString { repeat(length) { append(allowedDigits.random()) } }
   }
 
-  fun deinit() {
+  override fun close() {
     // Deinit the CoroutineScope
     scope.cancel()
   }

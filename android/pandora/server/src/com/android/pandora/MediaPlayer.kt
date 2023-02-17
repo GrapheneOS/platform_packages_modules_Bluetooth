@@ -21,6 +21,7 @@ import android.content.Intent
 import android.media.*
 import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -28,7 +29,7 @@ import pandora.MediaPlayerGrpc.MediaPlayerImplBase
 import pandora.MediaPlayerProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class MediaPlayer(val context: Context) : MediaPlayerImplBase() {
+class MediaPlayer(val context: Context) : MediaPlayerImplBase(), Closeable {
   private val TAG = "PandoraMediaPlayer"
 
   private val scope: CoroutineScope
@@ -104,7 +105,7 @@ class MediaPlayer(val context: Context) : MediaPlayerImplBase() {
     }
   }
 
-  fun deinit() {
+  override fun close() {
     // Deinit the CoroutineScope
     scope.cancel()
   }
