@@ -4,7 +4,7 @@ from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.hid_grpc import HID
-from pandora_experimental.host_grpc import Host
+from pandora.host_grpc import Host
 from pandora_experimental.hid_pb2 import HID_REPORT_TYPE_OUTPUT
 from mmi2grpc._rootcanal import RootCanal
 

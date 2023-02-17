@@ -23,8 +23,8 @@ from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
 from pandora_experimental.a2dp_grpc import A2DP
 from pandora_experimental.a2dp_pb2 import Sink, Source, PlaybackAudioRequest
-from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import Connection
+from pandora.host_grpc import Host
+from pandora.host_pb2 import Connection
 
 AUDIO_SIGNAL_AMPLITUDE = 0.8
 AUDIO_SIGNAL_SAMPLING_RATE = 44100
