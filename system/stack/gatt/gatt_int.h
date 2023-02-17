@@ -495,7 +495,7 @@ extern bool gatt_sr_is_cl_multi_variable_len_notif_supported(tGATT_TCB& tcb);
 
 extern bool gatt_sr_is_cl_change_aware(tGATT_TCB& tcb);
 extern void gatt_sr_init_cl_status(tGATT_TCB& tcb);
-extern void gatt_sr_update_cl_status(tGATT_TCB& tcb, bool chg_unaware);
+extern void gatt_sr_update_cl_status(tGATT_TCB& tcb, bool chg_aware);
 
 /* Functions provided by att_protocol.cc */
 extern tGATT_STATUS attp_send_cl_confirmation_msg(tGATT_TCB& tcb, uint16_t cid);
