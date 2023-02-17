@@ -58,8 +58,6 @@ public class HidHostServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when HidHostService is not enabled",
-                HidHostService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
@@ -77,9 +75,6 @@ public class HidHostServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!HidHostService.isEnabled()) {
-            return;
-        }
         when(mAdapterService.isStartedProfile(anyString())).thenReturn(false);
         TestUtils.stopService(mServiceRule, HidHostService.class);
         mService = HidHostService.getHidHostService();
