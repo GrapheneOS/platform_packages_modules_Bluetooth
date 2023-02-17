@@ -16,19 +16,16 @@
 
 package com.android.pandora
 
-import android.bluetooth.BluetoothPan
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothPan
 import android.bluetooth.BluetoothProfile
 import android.content.Context
-import android.net.TetheringManager.TETHERING_BLUETOOTH
 import android.net.TetheringManager
-import android.os.Handler
-import android.os.Looper
+import android.net.TetheringManager.TETHERING_BLUETOOTH
 import android.util.Log
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +37,7 @@ import pandora.PANGrpc.PANImplBase
 import pandora.PanProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class Pan(private val context: Context) : PANImplBase() {
+class Pan(private val context: Context) : PANImplBase(), Closeable {
   private val TAG = "PandoraPan"
   private val mScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
@@ -49,7 +46,6 @@ class Pan(private val context: Context) : PANImplBase() {
   private val bluetoothPan = getProfileProxy<BluetoothPan>(context, BluetoothProfile.PAN)
 
   private var mTetheringEnabled = MutableStateFlow(false)
-
 
   private val mTetheringManager: TetheringManager
   private val mStartTetheringCallback =
@@ -69,7 +65,7 @@ class Pan(private val context: Context) : PANImplBase() {
     mTetheringManager = context.getSystemService(TetheringManager::class.java)
   }
 
-  fun deinit() {
+  override fun close() {
     bluetoothAdapter.closeProfileProxy(BluetoothProfile.PAN, bluetoothPan)
     mScope.cancel()
   }
@@ -84,7 +80,8 @@ class Pan(private val context: Context) : PANImplBase() {
         mTetheringManager.startTethering(
           TETHERING_BLUETOOTH,
           Executors.newSingleThreadExecutor(),
-          mStartTetheringCallback);
+          mStartTetheringCallback
+        )
         mTetheringEnabled.first { it == true }
       }
       EnableTetheringResponse.newBuilder().build()

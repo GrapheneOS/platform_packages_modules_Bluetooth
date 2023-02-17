@@ -24,6 +24,7 @@ import android.util.Log
 import com.google.protobuf.ByteString
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -35,9 +36,8 @@ import kotlinx.coroutines.withContext
 import pandora.RFCOMMGrpc.RFCOMMImplBase
 import pandora.RfcommProto.*
 
-
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class Rfcomm(val context: Context) : RFCOMMImplBase() {
+class Rfcomm(val context: Context) : RFCOMMImplBase(), Closeable {
 
   private val _bufferSize = 512
 
@@ -50,12 +50,16 @@ class Rfcomm(val context: Context) : RFCOMMImplBase() {
 
   private var currentCookie = 0x12FC0 // Non-zero cookie RFCo(mm)
 
-  data class Connection(val connection: BluetoothSocket, val inputStream: InputStream, val outputStream: OutputStream)
+  data class Connection(
+    val connection: BluetoothSocket,
+    val inputStream: InputStream,
+    val outputStream: OutputStream
+  )
 
-  private var serverMap: HashMap<Int,BluetoothServerSocket> = hashMapOf()
-  private var connectionMap: HashMap<Int,Connection> = hashMapOf()
+  private var serverMap: HashMap<Int, BluetoothServerSocket> = hashMapOf()
+  private var connectionMap: HashMap<Int, Connection> = hashMapOf()
 
-  fun deinit() {
+  override fun close() {
     scope.cancel()
   }
 
@@ -66,10 +70,11 @@ class Rfcomm(val context: Context) : RFCOMMImplBase() {
     grpcUnary(scope, responseObserver) {
       Log.i(TAG, "RFCOMM: connect: request=${request.address}")
       val device = request.address.toBluetoothDevice(bluetoothAdapter)
-      val clientSocket = device.createInsecureRfcommSocketToServiceRecord(UUID.fromString(request.uuid))
+      val clientSocket =
+        device.createInsecureRfcommSocketToServiceRecord(UUID.fromString(request.uuid))
       try {
         clientSocket.connect()
-      } catch(e: IOException) {
+      } catch (e: IOException) {
         Log.e(TAG, "connect threw ${e}.")
         throw Status.UNKNOWN.asException()
       }
@@ -113,12 +118,17 @@ class Rfcomm(val context: Context) : RFCOMMImplBase() {
   ) {
     grpcUnary(scope, responseObserver) {
       Log.i(TAG, "startServer")
-      val serverSocket = bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(request.name, UUID.fromString(request.uuid))
+      val serverSocket =
+        bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(
+          request.name,
+          UUID.fromString(request.uuid)
+        )
       val serverSocketCookie = currentCookie++
       serverMap[serverSocketCookie] = serverSocket
 
-      StartServerResponse.newBuilder().setServer(
-      ServerId.newBuilder().setId(serverSocketCookie).build()).build()
+      StartServerResponse.newBuilder()
+        .setServer(ServerId.newBuilder().setId(serverSocketCookie).build())
+        .build()
     }
   }
 
@@ -130,7 +140,7 @@ class Rfcomm(val context: Context) : RFCOMMImplBase() {
       Log.i(TAG, "accepting: serverSocket= $(request.id)")
       val acceptedSocketCookie = currentCookie++
       try {
-        val acceptedSocket : BluetoothSocket = serverMap[request.server.id]!!.accept(2000)
+        val acceptedSocket: BluetoothSocket = serverMap[request.server.id]!!.accept(2000)
         Log.i(TAG, "accepted: acceptedSocket= $acceptedSocket")
         val tmpIn = acceptedSocket.inputStream!!
         val tmpOut = acceptedSocket.outputStream!!
@@ -140,9 +150,9 @@ class Rfcomm(val context: Context) : RFCOMMImplBase() {
       }
 
       Log.i(TAG, "after accept")
-      AcceptConnectionResponse.newBuilder().setConnection(
-      RfcommConnection.newBuilder().setId(acceptedSocketCookie).build()
-      ).build()
+      AcceptConnectionResponse.newBuilder()
+        .setConnection(RfcommConnection.newBuilder().setId(acceptedSocketCookie).build())
+        .build()
     }
   }
 
