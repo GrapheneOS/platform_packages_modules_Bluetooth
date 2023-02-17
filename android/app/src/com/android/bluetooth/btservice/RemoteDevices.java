@@ -23,13 +23,13 @@ import android.annotation.RequiresPermission;
 import android.app.admin.SecurityLog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
-import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.bluetooth.IBluetoothConnectionCallback;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -316,10 +316,12 @@ final class RemoteDevices {
         private boolean mIsBondingInitiatedLocally;
         private int mBatteryLevel = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         private boolean mIsCoordinatedSetMember;
+        private int mAshaCapability;
+        private int mAshaTruncatedHiSyncId;
         @VisibleForTesting int mBondState;
         @VisibleForTesting int mDeviceType;
         @VisibleForTesting ParcelUuid[] mUuids;
-        private BluetoothAudioPolicy mAudioPolicy;
+        private BluetoothSinkAudioPolicy mAudioPolicy;
 
         DeviceProperties() {
             mBondState = BluetoothDevice.BOND_NONE;
@@ -634,11 +636,41 @@ final class RemoteDevices {
             }
         }
 
-        public void setHfAudioPolicyForRemoteAg(BluetoothAudioPolicy policies) {
+        /**
+         * @return the mAshaCapability
+         */
+        int getAshaCapability() {
+            synchronized (mObject) {
+                return mAshaCapability;
+            }
+        }
+
+        void setAshaCapability(int ashaCapability) {
+            synchronized (mObject) {
+                this.mAshaCapability = ashaCapability;
+            }
+        }
+
+        /**
+         * @return the mAshaTruncatedHiSyncId
+         */
+        int getAshaTruncatedHiSyncId() {
+            synchronized (mObject) {
+                return mAshaTruncatedHiSyncId;
+            }
+        }
+
+        void setAshaTruncatedHiSyncId(int ashaTruncatedHiSyncId) {
+            synchronized (mObject) {
+                this.mAshaTruncatedHiSyncId = ashaTruncatedHiSyncId;
+            }
+        }
+
+        public void setHfAudioPolicyForRemoteAg(BluetoothSinkAudioPolicy policies) {
             mAudioPolicy = policies;
         }
 
-        public BluetoothAudioPolicy getHfAudioPolicyForRemoteAg() {
+        public BluetoothSinkAudioPolicy getHfAudioPolicyForRemoteAg() {
             return mAudioPolicy;
         }
     }
@@ -879,6 +911,12 @@ final class RemoteDevices {
                             break;
                         case AbstractionLayer.BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER:
                             deviceProperties.setIsCoordinatedSetMember(val[0] != 0);
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_REMOTE_ASHA_CAPABILITY:
+                            deviceProperties.setAshaCapability(val[0]);
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_REMOTE_ASHA_TRUNCATED_HISYNCID:
+                            deviceProperties.setAshaTruncatedHiSyncId(val[0]);
                             break;
                     }
                 }

@@ -27,12 +27,15 @@ import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
+import android.app.compat.CompatChanges;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresBluetoothLocationPermission;
 import android.bluetooth.annotations.RequiresBluetoothScanPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothAdminPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.companion.AssociationRequest;
+import android.compat.annotation.ChangeId;
+import android.compat.annotation.EnabledSince;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
@@ -857,6 +860,15 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             "android.bluetooth.device.action.PAIRING_REQUEST";
 
     /**
+     * Starting from {@link android.os.Build.VERSION_CODES#UPSIDE_DOWN_CAKE},
+     * the return value of {@link BluetoothDevice#toString()} has changed
+     * to improve privacy.
+     */
+    @ChangeId
+    @EnabledSince(targetSdkVersion = android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private static final long CHANGE_TO_STRING_REDACTED = 265103382L;
+
+    /**
      * Broadcast Action: This intent is used to broadcast PAIRING CANCEL
      *
      * @hide
@@ -1422,16 +1434,25 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * Returns a string representation of this BluetoothDevice.
-     * <p>Currently this is the Bluetooth hardware address, for example
-     * "00:11:22:AA:BB:CC". However, you should always use {@link #getAddress}
-     * if you explicitly require the Bluetooth hardware address in case the
-     * {@link #toString} representation changes in the future.
+     * <p> For apps targeting {@link android.os.Build.VERSION_CODES#UPSIDE_DOWN_CAKE}
+     * (API level 34) or higher, this returns the MAC address of the device redacted
+     * by replacing the hexadecimal digits of leftmost 4 bytes (in big endian order)
+     * with "XX", e.g., "XX:XX:XX:XX:12:34". For apps targeting earlier versions,
+     * the MAC address is returned without redaction.
+     *
+     * Warning: The return value of {@link #toString()} may change in the future.
+     * It is intended to be used in logging statements. Thus apps should never rely
+     * on the return value of {@link #toString()} in their logic. Always use other
+     * appropriate APIs instead (e.g., use {@link #getAddress()} to get the MAC address).
      *
      * @return string representation of this BluetoothDevice
      */
     @Override
     public String toString() {
-        return mAddress;
+        if (!CompatChanges.isChangeEnabled(CHANGE_TO_STRING_REDACTED)) {
+            return mAddress;
+        }
+        return toStringForLogging();
     }
 
     private static boolean shouldLogBeRedacted() {
@@ -3404,14 +3425,14 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /** @hide */
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(
-        prefix = { "REMOTE_STATUS_" },
+        prefix = { "FEATURE_" },
         value = {
             /** Remote support status of audio policy feature is unknown/unconfigured **/
-            BluetoothAudioPolicy.FEATURE_UNCONFIGURED_BY_REMOTE,
+            BluetoothStatusCodes.FEATURE_NOT_CONFIGURED,
             /** Remote support status of audio policy feature is supported **/
-            BluetoothAudioPolicy.FEATURE_SUPPORTED_BY_REMOTE,
+            BluetoothStatusCodes.FEATURE_SUPPORTED,
             /** Remote support status of audio policy feature is not supported **/
-            BluetoothAudioPolicy.FEATURE_NOT_SUPPORTED_BY_REMOTE,
+            BluetoothStatusCodes.FEATURE_NOT_SUPPORTED,
         }
     )
 
@@ -3425,24 +3446,29 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED,
             BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED,
             BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
-            BluetoothStatusCodes.FEATURE_NOT_SUPPORTED,
             BluetoothStatusCodes.ERROR_PROFILE_NOT_CONNECTED,
     })
     public @interface AudioPolicyReturnValues{}
 
     /**
-     * Returns whether the audio policy feature is supported by the remote.
-     * This requires a vendor specific command, so the API returns
-     * {@link BluetoothAudioPolicy#FEATURE_UNCONFIGURED_BY_REMOTE} to indicate the remote
+     * Returns whether the audio policy feature is supported by
+     * both the local and the remote device.
+     * This is configured during initiating the connection between the devices through
+     * one of the transport protocols (e.g. HFP Vendor specific protocol). So if the API
+     * is invoked before this initial configuration is completed, it returns
+     * {@link BluetoothStatusCodes#FEATURE_NOT_CONFIGURED} to indicate the remote
      * device has not yet relayed this information. After the internal configuration,
      * the support status will be set to either
-     * {@link BluetoothAudioPolicy#FEATURE_NOT_SUPPORTED_BY_REMOTE} or
-     * {@link BluetoothAudioPolicy#FEATURE_SUPPORTED_BY_REMOTE}.
+     * {@link BluetoothStatusCodes#FEATURE_NOT_SUPPORTED} or
+     * {@link BluetoothStatusCodes#FEATURE_SUPPORTED}.
      * The rest of the APIs related to this feature in both {@link BluetoothDevice}
-     * and {@link BluetoothAudioPolicy} should be invoked  only after getting a
-     * {@link BluetoothAudioPolicy#FEATURE_SUPPORTED_BY_REMOTE} response from this API.
+     * and {@link BluetoothSinkAudioPolicy} should be invoked  only after getting a
+     * {@link BluetoothStatusCodes#FEATURE_SUPPORTED} response from this API.
+     * <p>Note that this API is intended to be used by a client device to send these requests
+     * to the server represented by this BluetoothDevice object.
      *
-     * @return if call audio policy feature is supported or not
+     * @return if call audio policy feature is supported by both local and remote
+     * device or not
      *
      * @hide
      */
@@ -3452,17 +3478,17 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @AudioPolicyRemoteSupport int getAudioPolicyRemoteSupported() {
-        if (DBG) log("getAudioPolicyRemoteSupported()");
+    public @AudioPolicyRemoteSupport int isRequestAudioPolicyAsSinkSupported() {
+        if (DBG) log("isRequestAudioPolicyAsSinkSupported()");
         final IBluetooth service = getService();
-        final int defaultValue = BluetoothAudioPolicy.FEATURE_UNCONFIGURED_BY_REMOTE;
+        final int defaultValue = BluetoothStatusCodes.FEATURE_NOT_CONFIGURED;
         if (service == null || !isBluetoothEnabled()) {
             Log.e(TAG, "BT not enabled. Cannot retrieve audio policy support status.");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
                 final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
-                service.getAudioPolicyRemoteSupported(this, mAttributionSource, recv);
+                service.isRequestAudioPolicyAsSinkSupported(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -3476,9 +3502,15 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * Sets call audio preferences and sends them to the remote device.
+     * <p>Note that the caller should check if the feature is supported by
+     * invoking {@link BluetoothDevice#isRequestAudioPolicyAsSinkSupported} first.
+     * <p>This API will throw an exception if the feature is not supported but still
+     * invoked.
+     * <p>Note that this API is intended to be used by a client device to send these requests
+     * to the server represented by this BluetoothDevice object.
      *
      * @param policies call audio policy preferences
-     * @return whether audio policy was set successfully or not
+     * @return whether audio policy was requested successfully or not
      *
      * @hide
      */
@@ -3488,8 +3520,9 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @AudioPolicyReturnValues int setAudioPolicy(@NonNull BluetoothAudioPolicy policies) {
-        if (DBG) log("setAudioPolicy");
+    public @AudioPolicyReturnValues int requestAudioPolicyAsSink(
+            @NonNull BluetoothSinkAudioPolicy policies) {
+        if (DBG) log("requestAudioPolicyAsSink");
         final IBluetooth service = getService();
         final int defaultValue = BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
         if (service == null || !isBluetoothEnabled()) {
@@ -3498,7 +3531,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         } else {
             try {
                 final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
-                service.setAudioPolicy(this, policies, mAttributionSource, recv);
+                service.requestAudioPolicyAsSink(this, policies, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -3510,14 +3543,18 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /**
      * Gets the call audio preferences for the remote device.
      * <p>Note that the caller should check if the feature is supported by
-     * invoking {@link BluetoothDevice#getAudioPolicyRemoteSupported} first.
+     * invoking {@link BluetoothDevice#isRequestAudioPolicyAsSinkSupported} first.
+     * <p>This API will throw an exception if the feature is not supported but still
+     * invoked.
      * <p>This API will return null if
      * 1. The bleutooth service is not started yet,
      * 2. It is invoked for a device which is not bonded, or
      * 3. The used transport, for example, HFP Client profile is not enabled or
      * connected yet.
+     * <p>Note that this API is intended to be used by a client device to send these requests
+     * to the server represented by this BluetoothDevice object.
      *
-     * @return call audio policy as {@link BluetoothAudioPolicy} object
+     * @return call audio policy as {@link BluetoothSinkAudioPolicy} object
      *
      * @hide
      */
@@ -3527,17 +3564,17 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @Nullable BluetoothAudioPolicy getAudioPolicy() {
-        if (DBG) log("getAudioPolicy");
+    public @Nullable BluetoothSinkAudioPolicy getRequestedAudioPolicyAsSink() {
+        if (DBG) log("getRequestedAudioPolicyAsSink");
         final IBluetooth service = getService();
         if (service == null || !isBluetoothEnabled()) {
             Log.e(TAG, "Bluetooth is not enabled. Cannot get Audio Policy.");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<BluetoothAudioPolicy>
+                final SynchronousResultReceiver<BluetoothSinkAudioPolicy>
                         recv = SynchronousResultReceiver.get();
-                service.getAudioPolicy(this, mAttributionSource, recv);
+                service.getRequestedAudioPolicyAsSink(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));

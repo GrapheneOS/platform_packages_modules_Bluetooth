@@ -60,6 +60,7 @@
 #include "stack/include/bt_octets.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_client_interface.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/include/btu.h"       // do_in_main_thread
 #include "stack/include/srvc_api.h"  // DIS_ReadDISInfo
 #include "types/bluetooth/uuid.h"
@@ -70,6 +71,10 @@
 #endif
 
 using bluetooth::Uuid;
+
+namespace {
+constexpr char kBtmLogTag[] = "SDP";
+}
 
 void BTIF_dm_disable();
 void BTIF_dm_enable();
@@ -1078,11 +1083,22 @@ void bta_dm_rmt_name(tBTA_DM_MSG* p_data) {
  *
  ******************************************************************************/
 void bta_dm_disc_rmt_name(tBTA_DM_MSG* p_data) {
-  tBTM_INQ_INFO* p_btm_inq_info;
+  CHECK(p_data != nullptr);
 
   APPL_TRACE_DEBUG("bta_dm_disc_rmt_name");
 
-  p_btm_inq_info = BTM_InqDbRead(p_data->rem_name.result.disc_res.bd_addr);
+  const tBTA_DM_DISC_RES* disc_res = &p_data->rem_name.result.disc_res;
+
+  BTM_LogHistory(
+      kBtmLogTag, disc_res->bd_addr, "Remote name completed",
+      base::StringPrintf(
+          "status:%s name:\"%s\" service:0x%x device_type:%s num_uuids:%zu",
+          bta_status_text(disc_res->result).c_str(), disc_res->bd_name,
+          disc_res->services, DeviceTypeText(disc_res->device_type).c_str(),
+          disc_res->num_uuids));
+
+  tBTM_INQ_INFO* p_btm_inq_info =
+      BTM_InqDbRead(p_data->rem_name.result.disc_res.bd_addr);
   if (p_btm_inq_info) {
     if (p_data->rem_name.result.disc_res.bd_name[0]) {
       p_btm_inq_info->appl_knows_rem_name = true;
@@ -1177,6 +1193,8 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
   tSDP_PROTOCOL_ELEM pe;
 
   std::vector<Uuid> uuid_list;
+
+  const tSDP_RESULT sdp_result = p_data->sdp_event.sdp_result;
 
   if ((p_data->sdp_event.sdp_result == SDP_SUCCESS) ||
       (p_data->sdp_event.sdp_result == SDP_NO_RECS_MATCH) ||
@@ -1312,6 +1330,13 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
             &bta_dm_service_search_remname_cback);
       }
 
+      BTM_LogHistory(
+          kBtmLogTag, bta_dm_search_cb.peer_bdaddr, "Discovery completed",
+          base::StringPrintf("Result:%s services_found:0x%x service_index:0x%d",
+                             sdp_result_text(sdp_result).c_str(),
+                             bta_dm_search_cb.services_found,
+                             bta_dm_search_cb.service_index));
+
       p_msg = (tBTA_DM_MSG*)osi_calloc(sizeof(tBTA_DM_MSG));
       p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
       p_msg->disc_result.result.disc_res.result = BTA_SUCCESS;
@@ -1362,7 +1387,10 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
       bta_sys_sendmsg(p_msg);
     }
   } else {
-    /* conn failed. No need for timer */
+    BTM_LogHistory(
+        kBtmLogTag, bta_dm_search_cb.peer_bdaddr, "Discovery failed",
+        base::StringPrintf("Result:%s", sdp_result_text(sdp_result).c_str()));
+    LOG_ERROR("SDP connection failed %s", sdp_status_text(sdp_result).c_str());
     if (p_data->sdp_event.sdp_result == SDP_CONN_FAILED)
       bta_dm_search_cb.wait_disc = false;
 
@@ -1579,10 +1607,14 @@ void bta_dm_free_sdp_db() {
  *
  ******************************************************************************/
 void bta_dm_queue_search(tBTA_DM_MSG* p_data) {
+  if (bta_dm_search_cb.p_pending_search) {
+    LOG_WARN("Overwrote previous device discovery inquiry scan request");
+  }
   osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
   bta_dm_search_cb.p_pending_search =
       (tBTA_DM_MSG*)osi_malloc(sizeof(tBTA_DM_API_SEARCH));
   memcpy(bta_dm_search_cb.p_pending_search, p_data, sizeof(tBTA_DM_API_SEARCH));
+  LOG_INFO("Queued device discovery inquiry scan request");
 }
 
 /*******************************************************************************
@@ -1861,10 +1893,16 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
     if (bta_dm_read_remote_device_name(bta_dm_search_cb.peer_bdaddr,
                                        transport)) {
       if (bta_dm_search_cb.state != BTA_DM_DISCOVER_ACTIVE) {
-        /* Reset transport state for next discovery */
+        LOG_DEBUG("Reset transport state for next discovery");
         bta_dm_search_cb.transport = BT_TRANSPORT_AUTO;
       }
+      BTM_LogHistory(kBtmLogTag, bta_dm_search_cb.peer_bdaddr,
+                     "Read remote name",
+                     base::StringPrintf("Transport:%s",
+                                        bt_transport_text(transport).c_str()));
       return;
+    } else {
+      LOG_ERROR("Unable to start read remote device name");
     }
 
     /* starting name discovery failed */
@@ -1876,6 +1914,10 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
 
   /* if application wants to discover service */
   if (bta_dm_search_cb.services) {
+    BTM_LogHistory(kBtmLogTag, remote_bd_addr, "Discovery started ",
+                   base::StringPrintf("Transport:%s",
+                                      bt_transport_text(transport).c_str()));
+
     /* initialize variables */
     bta_dm_search_cb.service_index = 0;
     bta_dm_search_cb.services_found = 0;

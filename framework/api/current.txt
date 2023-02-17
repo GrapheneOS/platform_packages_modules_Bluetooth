@@ -1051,6 +1051,25 @@ package android.bluetooth {
     method public java.io.OutputStream getOutputStream() throws java.io.IOException;
     method public android.bluetooth.BluetoothDevice getRemoteDevice();
     method public boolean isConnected();
+    field public static final String BLUETOOTH_OFF_FAILURE_MSG = "Bluetooth is off";
+    field public static final String L2CAP_ACL_FAILURE_MSG = "ACL connection failed";
+    field public static final String L2CAP_CLIENT_SECURITY_FAILURE_MSG = "Client security clearance failed";
+    field public static final String L2CAP_INSUFFICIENT_AUTHENTICATION_MSG = "Insufficient authentication";
+    field public static final String L2CAP_INSUFFICIENT_AUTHORIZATION_MSG = "Insufficient authorization";
+    field public static final String L2CAP_INSUFFICIENT_ENCRYPTION_MSG = "Insufficient encryption";
+    field public static final String L2CAP_INSUFFICIENT_ENCRYPT_KEY_SIZE_MSG = "Insufficient encryption key size";
+    field public static final String L2CAP_INVALID_PARAMETERS_MSG = "Invalid Parameters";
+    field public static final String L2CAP_INVALID_SOURCE_CID_MSG = "Invalid source CID";
+    field public static final String L2CAP_NO_PSM_AVAILABLE_MSG = "No PSM available";
+    field public static final String L2CAP_NO_RESOURCES_MSG = "No resources Available";
+    field public static final String L2CAP_SOURCE_CID_ALREADY_ALLOCATED_MSG = "Source CID already allocated";
+    field public static final String L2CAP_TIMEOUT_MSG = "Connection Timeout";
+    field public static final String L2CAP_UNACCEPTABLE_PARAMETERS_MSG = "Unacceptable Parameters";
+    field public static final String L2CAP_UNKNOWN_ERR_MSG = "Connection failed for unknown reason";
+    field public static final String NULL_DEVICE_ERR_MSG = "Connect is called on null device";
+    field public static final String SOCKET_CLOSED_MSG = "socket closed";
+    field public static final String SOCKET_CONNECTION_FAILURE_MSG = "bt socket connect failed";
+    field public static final String SOCKET_MANAGER_FAILURE_MSG = "bt get socket manager failed";
     field public static final int TYPE_L2CAP = 3; // 0x3
     field public static final int TYPE_RFCOMM = 1; // 0x1
     field public static final int TYPE_SCO = 2; // 0x2
@@ -1065,6 +1084,7 @@ package android.bluetooth {
     field public static final int ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION = 6; // 0x6
     field public static final int ERROR_PROFILE_SERVICE_NOT_BOUND = 9; // 0x9
     field public static final int ERROR_UNKNOWN = 2147483647; // 0x7fffffff
+    field public static final int FEATURE_NOT_CONFIGURED = 30; // 0x1e
     field public static final int FEATURE_NOT_SUPPORTED = 11; // 0xb
     field public static final int FEATURE_SUPPORTED = 10; // 0xa
     field public static final int SUCCESS = 0; // 0x0

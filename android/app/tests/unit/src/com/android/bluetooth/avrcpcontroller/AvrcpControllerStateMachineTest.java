@@ -680,7 +680,7 @@ public class AvrcpControllerStateMachineTest {
 
         //Get the root of the device
         BrowseTree.BrowseNode results = mAvrcpStateMachine.findNode(rootName);
-        Assert.assertEquals(rootName + mTestDevice.toString(), results.getID());
+        Assert.assertEquals(rootName + mTestDevice.getAddress(), results.getID());
 
         //Request fetch the list of players
         BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(results.getID());
@@ -872,7 +872,7 @@ public class AvrcpControllerStateMachineTest {
 
         //Get the root of the device
         BrowseTree.BrowseNode results = mAvrcpStateMachine.findNode(rootName);
-        Assert.assertEquals(rootName + mTestDevice.toString(), results.getID());
+        Assert.assertEquals(rootName + mTestDevice.getAddress(), results.getID());
 
         //Request fetch the list of players
         BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(results.getID());
@@ -938,7 +938,7 @@ public class AvrcpControllerStateMachineTest {
 
         //Get the root of the device
         BrowseTree.BrowseNode rootNode = mAvrcpStateMachine.findNode(rootName);
-        Assert.assertEquals(rootName + mTestDevice.toString(), rootNode.getID());
+        Assert.assertEquals(rootName + mTestDevice.getAddress(), rootNode.getID());
 
         //Request fetch the list of players
         BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(rootNode.getID());
@@ -997,7 +997,7 @@ public class AvrcpControllerStateMachineTest {
 
         //Get the root of the device
         BrowseTree.BrowseNode rootNode = mAvrcpStateMachine.findNode(rootName);
-        Assert.assertEquals(rootName + mTestDevice.toString(), rootNode.getID());
+        Assert.assertEquals(rootName + mTestDevice.getAddress(), rootNode.getID());
 
         //Request fetch the list of players
         BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(rootNode.getID());
@@ -1062,7 +1062,7 @@ public class AvrcpControllerStateMachineTest {
 
         //Get the root of the device
         BrowseTree.BrowseNode results = mAvrcpStateMachine.findNode(rootName);
-        Assert.assertEquals(rootName + mTestDevice.toString(), results.getID());
+        Assert.assertEquals(rootName + mTestDevice.getAddress(), results.getID());
 
         //Request fetch the list of players
         BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(results.getID());
