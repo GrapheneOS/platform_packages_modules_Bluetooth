@@ -35,6 +35,7 @@ import android.telecom.TelecomManager
 import android.telecom.VideoProfile
 import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -47,7 +48,7 @@ import pandora.HfpProto.*
 private const val TAG = "PandoraHfp"
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class Hfp(val context: Context) : HFPImplBase() {
+class Hfp(val context: Context) : HFPImplBase(), Closeable {
   private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
   private val flow: Flow<Intent>
 
@@ -72,7 +73,7 @@ class Hfp(val context: Context) : HFPImplBase() {
     shell("su root setprop persist.bluetooth.disableinbandringing false")
   }
 
-  fun deinit() {
+  override fun close() {
     // kill any existing call
     telecomManager.endCall()
 

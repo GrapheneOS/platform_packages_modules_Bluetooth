@@ -36,6 +36,7 @@ import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -61,7 +62,7 @@ import pandora.SecurityProto.SecurityLevel.LEVEL3
 private const val TAG = "PandoraSecurity"
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class Security(private val context: Context) : SecurityImplBase() {
+class Security(private val context: Context) : SecurityImplBase(), Closeable {
 
   private val globalScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
   private val flow: Flow<Intent>
@@ -102,7 +103,7 @@ class Security(private val context: Context) : SecurityImplBase() {
     flow = intentFlow(context, intentFilter).shareIn(globalScope, SharingStarted.Eagerly)
   }
 
-  fun deinit() {
+  override fun close() {
     globalScope.cancel()
     context.unregisterReceiver(pairingReceiver)
   }
