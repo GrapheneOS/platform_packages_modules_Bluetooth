@@ -348,11 +348,12 @@ extern struct GATT_GetConnectionInfor GATT_GetConnectionInfor;
 // bool eatt_support Return: tGATT_IF
 struct GATT_Register {
   static tGATT_IF return_value;
-  std::function<tGATT_IF(const Uuid& app_uuid128, std::string name,
+  std::function<tGATT_IF(const Uuid& app_uuid128, const std::string& name,
                          tGATT_CBACK* p_cb_info, bool eatt_support)>
-      body{[](const Uuid& app_uuid128, std::string name, tGATT_CBACK* p_cb_info,
+      body{[](const Uuid& app_uuid128, const std::string& name,
+              tGATT_CBACK* p_cb_info,
               bool eatt_support) { return return_value; }};
-  tGATT_IF operator()(const Uuid& app_uuid128, std::string name,
+  tGATT_IF operator()(const Uuid& app_uuid128, const std::string& name,
                       tGATT_CBACK* p_cb_info, bool eatt_support) {
     return body(app_uuid128, name, p_cb_info, eatt_support);
   };

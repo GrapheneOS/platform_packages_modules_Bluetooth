@@ -49,7 +49,7 @@ class TimestampedStringCircularBuffer
   explicit TimestampedStringCircularBuffer(size_t size)
       : bluetooth::common::TimestampedCircularBuffer<std::string>(size) {}
 
-  void Push(std::string s) {
+  void Push(const std::string& s) {
     bluetooth::common::TimestampedCircularBuffer<std::string>::Push(
         s.substr(0, kMaxLogSize));
   }

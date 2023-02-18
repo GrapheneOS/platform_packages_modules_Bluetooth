@@ -1040,7 +1040,7 @@ extern void GATT_SetIdleTimeout(const RawAddress& bd_addr, uint16_t idle_tout,
  *
  ******************************************************************************/
 extern tGATT_IF GATT_Register(const bluetooth::Uuid& p_app_uuid128,
-                              const std::string name, tGATT_CBACK* p_cb_info,
+                              const std::string& name, tGATT_CBACK* p_cb_info,
                               bool eatt_support);
 
 /*******************************************************************************
