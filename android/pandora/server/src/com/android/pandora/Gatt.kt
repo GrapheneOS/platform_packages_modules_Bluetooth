@@ -28,6 +28,7 @@ import android.content.IntentFilter
 import android.util.Log
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +46,7 @@ import pandora.GATTGrpc.GATTImplBase
 import pandora.GattProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class Gatt(private val context: Context) : GATTImplBase() {
+class Gatt(private val context: Context) : GATTImplBase(), Closeable {
   private val TAG = "PandoraGatt"
 
   private val mScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
@@ -63,7 +64,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
     flow = intentFlow(context, intentFilter).shareIn(mScope, SharingStarted.Eagerly)
   }
 
-  fun deinit() {
+  override fun close() {
     serverManager.server.close()
     mScope.cancel()
   }

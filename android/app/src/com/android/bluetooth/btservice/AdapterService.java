@@ -6415,6 +6415,27 @@ public class AdapterService extends Service {
     }
 
     /**
+     *  get remote PBAP PCE version.
+     *
+     *  @param address of remote device
+     *  @return int value other than 0  if remote PBAP PCE version is found
+     */
+
+    public int getRemotePbapPceVersion(String address) {
+        return getRemotePbapPceVersionNative(address);
+    }
+
+    /**
+     *  check, if PBAP PSE dynamic version upgrade is enabled.
+     *
+     *  @return true/false.
+     */
+
+    public boolean pbapPseDynamicVersionUpgradeIsEnabled() {
+        return pbapPseDynamicVersionUpgradeIsEnabledNative();
+    }
+
+    /**
      * Sets the battery level of the remote device
      */
     public void setBatteryLevel(BluetoothDevice device, int batteryLevel) {
@@ -6554,6 +6575,8 @@ public class AdapterService extends Service {
             String featureName, String address, int length);
     private native void interopDatabaseAddRemoveNameNative(boolean doAdd,
             String featureBame, String name);
+    private native int getRemotePbapPceVersionNative(String address);
+    private native boolean pbapPseDynamicVersionUpgradeIsEnabledNative();
 
     // Returns if this is a mock object. This is currently used in testing so that we may not call
     // System.exit() while finalizing the object. Otherwise GC of mock objects unfortunately ends up

@@ -45,6 +45,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
       initFlags::device_iot_config_logging_is_enabled());
   builder.add_clear_hidd_interrupt_cid_on_disconnect_is_enabled(
       initFlags::clear_hidd_interrupt_cid_on_disconnect_is_enabled());
+  builder.add_delay_hidh_cleanup_until_hidh_ready_start_is_enabled(
+      initFlags::delay_hidh_cleanup_until_hidh_ready_start_is_enabled());
   builder.add_dynamic_avrcp_version_enhancement_is_enabled(
       initFlags::dynamic_avrcp_version_enhancement_is_enabled());
   builder.add_gd_hal_snoop_logger_filtering_is_enabled(
@@ -68,6 +70,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
       initFlags::leaudio_targeted_announcement_reconnection_mode_is_enabled());
   builder.add_logging_debug_enabled_for_all_is_enabled(initFlags::logging_debug_enabled_for_all_is_enabled());
   builder.add_pass_phy_update_callback_is_enabled(initFlags::pass_phy_update_callback_is_enabled());
+  builder.add_pbap_pse_dynamic_version_upgrade_is_enabled(
+      initFlags::pbap_pse_dynamic_version_upgrade_is_enabled());
   builder.add_periodic_advertising_adi_is_enabled(bluetooth::common::init_flags::periodic_advertising_adi_is_enabled());
   builder.add_queue_l2cap_coc_while_encrypting_is_enabled(
       initFlags::queue_l2cap_coc_while_encrypting_is_enabled());

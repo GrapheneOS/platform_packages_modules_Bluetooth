@@ -19,12 +19,11 @@ import asyncio
 
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
-from mmi2grpc._streaming import StreamWrapper
 
-from pandora_experimental.security_grpc import Security
-from pandora_experimental.security_pb2 import LESecurityLevel
-from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import ConnectabilityMode, OwnAddressType
+from pandora.security_grpc import Security, PairingEventAnswer
+from pandora.security_pb2 import LESecurityLevel
+from pandora.host_grpc import Host
+from pandora.host_pb2 import ConnectabilityMode, OwnAddressType
 
 
 def debug(*args, **kwargs):
@@ -172,11 +171,11 @@ class SMProxy(ProfileProxy):
             pairing_events = self.security.OnPairing()
             for event in pairing_events:
                 if event.just_works or event.numeric_comparison:
-                    pairing_events.send(event=event, confirm=True)
+                    pairing_events.send(PairingEventAnswer(event=event, confirm=True))
                 if event.passkey_entry_request:
                     try:
                         passkey = self.passkey_queue.get(timeout=15)
-                        pairing_events.send(event=event, passkey=int(passkey))
+                        pairing_events.send(PairingEventAnswer(event=event, passkey=int(passkey)))
                     except Empty:
                         debug("No passkey provided within 15 seconds")
 

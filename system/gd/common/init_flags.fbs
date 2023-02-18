@@ -18,6 +18,7 @@ table InitFlagsData {
     bta_dm_clear_conn_id_on_client_close_is_enabled:bool (privacy:"Any");
     btm_dm_flush_discovery_queue_on_search_cancel_is_enabled:bool (privacy:"Any");
     clear_hidd_interrupt_cid_on_disconnect_is_enabled:bool (privacy:"Any");
+    delay_hidh_cleanup_until_hidh_ready_start_is_enabled:bool (privacy:"Any");
     device_iot_config_logging_is_enabled:bool (privacy:"Any");
     dynamic_avrcp_version_enhancement_is_enabled:bool (privacy:"Any");
     finite_att_timeout_is_enabled:bool (privacy:"Any");
@@ -38,6 +39,7 @@ table InitFlagsData {
     leaudio_targeted_announcement_reconnection_mode_is_enabled: bool (privacy:"Any");
     logging_debug_enabled_for_all_is_enabled:bool (privacy:"Any");
     pass_phy_update_callback_is_enabled:bool (privacy:"Any");
+    pbap_pse_dynamic_version_upgrade_is_enabled:bool (privacy:"Any");
     periodic_advertising_adi_is_enabled:bool (privacy:"Any");
     private_gatt_is_enabled:bool (privacy:"Any");
     queue_l2cap_coc_while_encrypting_is_enabled:bool (privacy:"Any");

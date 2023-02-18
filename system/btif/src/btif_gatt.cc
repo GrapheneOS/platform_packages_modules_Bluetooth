@@ -56,6 +56,7 @@ const btgatt_callbacks_t* bt_gatt_callbacks = NULL;
  ******************************************************************************/
 static bt_status_t btif_gatt_init(const btgatt_callbacks_t* callbacks) {
   bt_gatt_callbacks = callbacks;
+  BTA_GATTS_InitBonded();
   return BT_STATUS_SUCCESS;
 }
 
