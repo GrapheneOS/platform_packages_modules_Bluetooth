@@ -672,7 +672,6 @@ cc_test {
           "libbt-sbc-encoder",
           "libbtif",
           "libbtif-core",
-          "libbt-stack-core",
           "libbtdevice",
           "lib-bt-packets",
           "lib-bt-packets-avrcp",
