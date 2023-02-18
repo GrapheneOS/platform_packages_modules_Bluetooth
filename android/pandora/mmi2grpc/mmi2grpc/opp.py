@@ -18,8 +18,8 @@ from typing import Optional
 from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
 
-from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import Connection
+from pandora.host_grpc import Host
+from pandora.host_pb2 import Connection
 from pandora_experimental._android_grpc import Android
 from pandora_experimental._android_pb2 import AccessType
 

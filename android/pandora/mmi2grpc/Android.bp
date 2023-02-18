@@ -17,25 +17,11 @@ license {
     ],
 }
 
-genrule {
-    name: "protoc-gen-mmi2grpc-python-src",
-    srcs: ["_build/protoc-gen-custom_grpc"],
-    cmd: "cp $(in) $(out)",
-    out: ["protoc-gen-custom_grpc.py"],
-}
-
-python_binary_host {
-    name: "protoc-gen-mmi2grpc-python",
-    main: "protoc-gen-custom_grpc.py",
-    srcs: [":protoc-gen-mmi2grpc-python-src"],
-    libs: ["libprotobuf-python"],
-}
-
 filegroup {
     name: "mmi2grpc",
     srcs: [
         "mmi2grpc/*.py",
-        "pandora/*.py",
+        ":pandora-python-src",
         ":pandora_experimental-python-src",
     ],
 }

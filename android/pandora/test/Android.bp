@@ -21,10 +21,12 @@ python_test_host {
     main: "main.py",
     srcs: [
         "main.py",
+        "*_test.py",
         "example.py",
     ],
     libs: [
         "libavatar",
+        "bumble_services_experimental-python",
     ],
     required: ["PandoraServer"],
     test_suites: ["general-tests"],

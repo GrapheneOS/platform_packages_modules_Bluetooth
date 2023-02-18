@@ -188,6 +188,7 @@ cc_test {
     ],
     test_suites: ["device-tests"],
     srcs: [
+        ":TestMockBtif",
         ":TestMockStackBtm",
         ":TestCommonLogMsg",
         ":TestCommonMockFunctions",
@@ -280,6 +281,7 @@ cc_test {
         ":TestCommonLogMsg",
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
+        ":TestMockBtaSdp",
         ":TestMockBtif",
         ":TestMockDevice",
         ":TestMockMainShim",
@@ -944,6 +946,7 @@ cc_test {
         ":TestCommonMainHandler",
         ":TestCommonMockFunctions",
         ":TestMockBtaGatt",
+        ":TestMockBtaSdp",
         ":TestMockBtaSys",
         ":TestMockBtif",
         ":TestMockDevice",

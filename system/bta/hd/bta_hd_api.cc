@@ -79,7 +79,10 @@ void BTA_HdEnable(tBTA_HD_CBACK* p_cback) {
 void BTA_HdDisable(void) {
   APPL_TRACE_API("%s", __func__);
 
-  bta_sys_deregister(BTA_ID_HD);
+  if (!bluetooth::common::init_flags::
+          delay_hidh_cleanup_until_hidh_ready_start_is_enabled()) {
+    bta_sys_deregister(BTA_ID_HD);
+  }
 
   BT_HDR_RIGID* p_buf = (BT_HDR_RIGID*)osi_malloc(sizeof(BT_HDR_RIGID));
   p_buf->event = BTA_HD_API_DISABLE_EVT;

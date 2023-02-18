@@ -4,7 +4,7 @@ option java_outer_classname = "GattProto";
 
 package pandora;
 
-import "pandora_experimental/host.proto";
+import "pandora/host.proto";
 import "google/protobuf/empty.proto";
 
 service GATT {

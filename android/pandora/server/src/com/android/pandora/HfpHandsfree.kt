@@ -18,24 +18,17 @@ package com.android.pandora
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothHeadset
 import android.bluetooth.BluetoothHeadsetClient
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.Uri
-import android.os.Bundle
-import android.os.IBinder
-import android.provider.CallLog
-import android.telecom.Call
-import android.telecom.CallAudioState
 import android.telecom.InCallService
 import android.telecom.TelecomManager
-import android.telecom.VideoProfile
 import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
+import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -48,7 +41,7 @@ import pandora.HfpProto.*
 private const val TAG = "PandoraHfpHandsfree"
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
-class HfpHandsfree(val context: Context) : HFPImplBase() {
+class HfpHandsfree(val context: Context) : HFPImplBase(), Closeable {
   private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
   private val flow: Flow<Intent>
 
@@ -56,7 +49,8 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
   private val telecomManager = context.getSystemService(TelecomManager::class.java)!!
   private val bluetoothAdapter = bluetoothManager.adapter
 
-  private val bluetoothHfpClient = getProfileProxy<BluetoothHeadsetClient>(context, BluetoothProfile.HEADSET_CLIENT)
+  private val bluetoothHfpClient =
+    getProfileProxy<BluetoothHeadsetClient>(context, BluetoothProfile.HEADSET_CLIENT)
 
   companion object {
     @SuppressLint("StaticFieldLeak") private lateinit var inCallService: InCallService
@@ -67,7 +61,7 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
     flow = intentFlow(context, intentFilter).shareIn(scope, SharingStarted.Eagerly)
   }
 
-  fun deinit() {
+  override fun close() {
     bluetoothAdapter.closeProfileProxy(BluetoothProfile.HEADSET_CLIENT, bluetoothHfpClient)
     scope.cancel()
   }
@@ -77,7 +71,10 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
     responseObserver: StreamObserver<AnswerCallAsHandsfreeResponse>
   ) {
     grpcUnary(scope, responseObserver) {
-      bluetoothHfpClient.acceptCall(request.connection.toBluetoothDevice(bluetoothAdapter), BluetoothHeadsetClient.CALL_ACCEPT_NONE)
+      bluetoothHfpClient.acceptCall(
+        request.connection.toBluetoothDevice(bluetoothAdapter),
+        BluetoothHeadsetClient.CALL_ACCEPT_NONE
+      )
       AnswerCallAsHandsfreeResponse.getDefaultInstance()
     }
   }
@@ -87,8 +84,14 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
     responseObserver: StreamObserver<EndCallAsHandsfreeResponse>
   ) {
     grpcUnary(scope, responseObserver) {
-      for (call in bluetoothHfpClient.getCurrentCalls(request.connection.toBluetoothDevice(bluetoothAdapter))) {
-        bluetoothHfpClient.terminateCall(request.connection.toBluetoothDevice(bluetoothAdapter), call)
+      for (call in
+        bluetoothHfpClient.getCurrentCalls(
+          request.connection.toBluetoothDevice(bluetoothAdapter)
+        )) {
+        bluetoothHfpClient.terminateCall(
+          request.connection.toBluetoothDevice(bluetoothAdapter),
+          call
+        )
       }
       EndCallAsHandsfreeResponse.getDefaultInstance()
     }
@@ -129,7 +132,10 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
     responseObserver: StreamObserver<MakeCallAsHandsfreeResponse>
   ) {
     grpcUnary(scope, responseObserver) {
-      bluetoothHfpClient.dial(request.connection.toBluetoothDevice(bluetoothAdapter), request.number)
+      bluetoothHfpClient.dial(
+        request.connection.toBluetoothDevice(bluetoothAdapter),
+        request.number
+      )
       MakeCallAsHandsfreeResponse.getDefaultInstance()
     }
   }
@@ -139,7 +145,9 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
     responseObserver: StreamObserver<CallTransferAsHandsfreeResponse>
   ) {
     grpcUnary(scope, responseObserver) {
-      bluetoothHfpClient.explicitCallTransfer(request.connection.toBluetoothDevice(bluetoothAdapter))
+      bluetoothHfpClient.explicitCallTransfer(
+        request.connection.toBluetoothDevice(bluetoothAdapter)
+      )
       CallTransferAsHandsfreeResponse.getDefaultInstance()
     }
   }
@@ -149,7 +157,10 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
     responseObserver: StreamObserver<Empty>
   ) {
     grpcUnary(scope, responseObserver) {
-      bluetoothHfpClient.setConnectionPolicy(request.connection.toBluetoothDevice(bluetoothAdapter), BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+      bluetoothHfpClient.setConnectionPolicy(
+        request.connection.toBluetoothDevice(bluetoothAdapter),
+        BluetoothProfile.CONNECTION_POLICY_ALLOWED
+      )
       Empty.getDefaultInstance()
     }
   }
@@ -159,7 +170,10 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
     responseObserver: StreamObserver<Empty>
   ) {
     grpcUnary(scope, responseObserver) {
-      bluetoothHfpClient.setConnectionPolicy(request.connection.toBluetoothDevice(bluetoothAdapter), BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)
+      bluetoothHfpClient.setConnectionPolicy(
+        request.connection.toBluetoothDevice(bluetoothAdapter),
+        BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
+      )
       Empty.getDefaultInstance()
     }
   }
@@ -170,9 +184,13 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
   ) {
     grpcUnary(scope, responseObserver) {
       if (request.enabled) {
-        bluetoothHfpClient.startVoiceRecognition(request.connection.toBluetoothDevice(bluetoothAdapter))
+        bluetoothHfpClient.startVoiceRecognition(
+          request.connection.toBluetoothDevice(bluetoothAdapter)
+        )
       } else {
-        bluetoothHfpClient.stopVoiceRecognition(request.connection.toBluetoothDevice(bluetoothAdapter))
+        bluetoothHfpClient.stopVoiceRecognition(
+          request.connection.toBluetoothDevice(bluetoothAdapter)
+        )
       }
       SetVoiceRecognitionAsHandsfreeResponse.getDefaultInstance()
     }
@@ -183,7 +201,10 @@ class HfpHandsfree(val context: Context) : HFPImplBase() {
     responseObserver: StreamObserver<SendDtmfFromHandsfreeResponse>
   ) {
     grpcUnary(scope, responseObserver) {
-      bluetoothHfpClient.sendDTMF(request.connection.toBluetoothDevice(bluetoothAdapter), request.code.toByte())
+      bluetoothHfpClient.sendDTMF(
+        request.connection.toBluetoothDevice(bluetoothAdapter),
+        request.code.toByte()
+      )
       SendDtmfFromHandsfreeResponse.getDefaultInstance()
     }
   }

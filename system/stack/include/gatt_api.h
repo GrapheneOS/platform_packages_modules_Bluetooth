@@ -1040,7 +1040,7 @@ extern void GATT_SetIdleTimeout(const RawAddress& bd_addr, uint16_t idle_tout,
  *
  ******************************************************************************/
 extern tGATT_IF GATT_Register(const bluetooth::Uuid& p_app_uuid128,
-                              const std::string name, tGATT_CBACK* p_cb_info,
+                              const std::string& name, tGATT_CBACK* p_cb_info,
                               bool eatt_support);
 
 /*******************************************************************************
@@ -1198,5 +1198,8 @@ extern void gatt_notify_enc_cmpl(const RawAddress& bd_addr);
 /** Reset bg device list. If called after controller reset, set |after_reset| to
  * true, as there is no need to wipe controller acceptlist in this case. */
 extern void gatt_reset_bgdev_list(bool after_reset);
+
+// Initialize GATTS list of bonded device service change updates.
+extern void gatt_load_bonded(void);
 
 #endif /* GATT_API_H */
