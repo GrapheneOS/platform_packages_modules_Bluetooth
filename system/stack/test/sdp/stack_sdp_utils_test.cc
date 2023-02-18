@@ -94,6 +94,8 @@ class IopMock {
               (const interop_feature_t, const RawAddress*, uint16_t*));
   MOCK_METHOD(bool, InteropGetAllowlistedMediaPlayersList, (list_t*));
   MOCK_METHOD(int, InteropFeatureNameToFeatureId, (const char*));
+  MOCK_METHOD(void, InteropDatabaseAddAddr,
+              (uint16_t, const RawAddress*, size_t));
 };
 
 class AvrcpVersionMock {
@@ -152,6 +154,11 @@ bool interop_get_allowlisted_media_players_list(list_t* p_bl_devices) {
 
 int interop_feature_name_to_feature_id(const char* feature_name) {
   return localIopMock->InteropFeatureNameToFeatureId(feature_name);
+}
+
+void interop_database_add_addr(uint16_t feature, const RawAddress* addr,
+                               size_t length) {
+  return localIopMock->InteropDatabaseAddAddr(feature, addr, length);
 }
 
 uint16_t AVRC_GetProfileVersion() {
