@@ -304,6 +304,7 @@ typedef void(tBTM_RAND_ENC_CB)(tBTM_RAND_ENC* p1);
 #define BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE HCI_EIR_SERVICE_DATA_TYPE /* 0x16 */
 #define BTM_BLE_AD_TYPE_APPEARANCE 0x19
 #define BTM_BLE_AD_TYPE_RSI HCI_EIR_RSI_TYPE /* 0x2E */
+#define BTM_BLE_AD_TYPE_BROADCAST_NAME 0x30
 
 /*  Min/max Preferred  number of payload octets that the local Controller
     should include in a single Link Layer Data Channel PDU. */

@@ -92,6 +92,21 @@ static void EmitMetadata(
   }
 }
 
+static void EmitBroadcastName(const std::string& name,
+                              std::vector<uint8_t>& data) {
+  int name_len = name.length();
+  size_t old_size = data.size();
+  data.resize(old_size + name_len + 2);
+
+  // Set the cursor behind the old data
+  uint8_t* p_value = data.data() + old_size;
+  UINT8_TO_STREAM(p_value, name_len + 1);
+  UINT8_TO_STREAM(p_value, BTM_BLE_AD_TYPE_BROADCAST_NAME);
+
+  std::vector<uint8_t> vec(name.begin(), name.end());
+  ARRAY_TO_STREAM(p_value, vec.data(), name_len);
+}
+
 static void EmitBisConfigs(
     const std::vector<BasicAudioAnnouncementBisConfig>& bis_configs,
     std::vector<uint8_t>& data) {
@@ -156,15 +171,42 @@ bool ToRawPacket(BasicAudioAnnouncementData const& in,
   return true;
 }
 
-void PrepareAdvertisingData(bluetooth::le_audio::BroadcastId& broadcast_id,
-                            std::vector<uint8_t>& periodic_data) {
-  periodic_data.resize(7);
-  uint8_t* data_ptr = periodic_data.data();
+void PrepareAdvertisingData(
+    bool is_public, const std::string& broadcast_name,
+    bluetooth::le_audio::BroadcastId& broadcast_id,
+    const bluetooth::le_audio::PublicBroadcastAnnouncementData&
+        public_announcement,
+    std::vector<uint8_t>& adv_data) {
+  adv_data.resize(7);
+  uint8_t* data_ptr = adv_data.data();
   UINT8_TO_STREAM(data_ptr, 6);
   UINT8_TO_STREAM(data_ptr, BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE);
   UINT16_TO_STREAM(data_ptr, kBroadcastAudioAnnouncementServiceUuid);
-  UINT24_TO_STREAM(data_ptr, broadcast_id)
-};
+  UINT24_TO_STREAM(data_ptr, broadcast_id);
+
+  // Prepare public broadcast announcement data
+  if (is_public) {
+    size_t old_size = adv_data.size();
+    // 5: datalen(1) + adtype(1) + serviceuuid(2) + features(1)
+    adv_data.resize(old_size + 5);
+    // Skip the data length field until the full content is generated
+    data_ptr = adv_data.data() + old_size + 1;
+    UINT8_TO_STREAM(data_ptr, BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE);
+    UINT16_TO_STREAM(data_ptr, kPublicBroadcastAnnouncementServiceUuid);
+    UINT8_TO_STREAM(data_ptr, public_announcement.features);
+    // Set metadata length to 0 if no meta data present
+    EmitMetadata(public_announcement.metadata, adv_data);
+
+    // Update the length field accordingly
+    data_ptr = adv_data.data() + old_size;
+    UINT8_TO_STREAM(data_ptr, adv_data.size() - old_size - 1);
+
+    // Prepare broadcast name
+    if (!broadcast_name.empty()) {
+      EmitBroadcastName(broadcast_name, adv_data);
+    }
+  }
+}
 
 void PreparePeriodicData(const BasicAudioAnnouncementData& announcement,
                          std::vector<uint8_t>& periodic_data) {
@@ -499,6 +541,14 @@ bool operator==(const BasicAudioAnnouncementData& lhs,
         return false;
     }
   }
+
+  return true;
+}
+
+bool operator==(const PublicBroadcastAnnouncementData& lhs,
+                const PublicBroadcastAnnouncementData& rhs) {
+  if (lhs.features != rhs.features) return false;
+  if (!isMetadataSame(lhs.metadata, rhs.metadata)) return false;
 
   return true;
 }

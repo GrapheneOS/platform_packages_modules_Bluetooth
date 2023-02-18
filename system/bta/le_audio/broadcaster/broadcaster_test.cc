@@ -143,6 +143,8 @@ static const std::vector<uint8_t> default_metadata = {
     default_context & 0x00FF, (default_context & 0xFF00) >> 8};
 static const std::vector<uint8_t> default_public_metadata = {
     5, le_audio::types::kLeAudioMetadataTypeProgramInfo, 0x1, 0x2, 0x3, 0x4};
+// bit 0: encrypted, bit 1: standard quality present
+static const uint8_t test_public_broadcast_features = 0x3;
 
 static constexpr uint8_t default_num_of_groups = 1;
 static constexpr uint8_t media_ccid = 0xC0;
@@ -454,6 +456,9 @@ TEST_F(BroadcasterTest, GetBroadcastAllStates) {
 TEST_F(BroadcasterTest, UpdateMetadata) {
   auto broadcast_id = InstantiateBroadcast();
   std::vector<uint8_t> ccid_list;
+  std::vector<uint8_t> expected_public_meta;
+  std::string expected_broadcast_name;
+
   EXPECT_CALL(*MockBroadcastStateMachine::GetLastInstance(),
               UpdateBroadcastAnnouncement)
       .WillOnce(
@@ -468,6 +473,16 @@ TEST_F(BroadcasterTest, UpdateMetadata) {
             }
           });
 
+  EXPECT_CALL(*MockBroadcastStateMachine::GetLastInstance(),
+              UpdatePublicBroadcastAnnouncement)
+      .WillOnce([&](uint32_t broadcast_id, const std::string& broadcast_name,
+                    const bluetooth::le_audio::PublicBroadcastAnnouncementData&
+                        announcement) {
+        expected_broadcast_name = broadcast_name;
+        expected_public_meta =
+            types::LeAudioLtvMap(announcement.metadata).RawPacket();
+      });
+
   ContentControlIdKeeper::GetInstance()->SetCcid(LeAudioContextType::ALERTS,
                                                  default_ccid);
 
@@ -478,6 +493,8 @@ TEST_F(BroadcasterTest, UpdateMetadata) {
   ASSERT_EQ(2u, ccid_list.size());
   ASSERT_NE(0, std::count(ccid_list.begin(), ccid_list.end(), media_ccid));
   ASSERT_NE(0, std::count(ccid_list.begin(), ccid_list.end(), default_ccid));
+  ASSERT_EQ(expected_broadcast_name, test_broadcast_name);
+  ASSERT_EQ(expected_public_meta, default_public_metadata);
 }
 
 static BasicAudioAnnouncementData prepareAnnouncement(
@@ -603,10 +620,22 @@ TEST_F(BroadcasterTest, GetMetadata) {
       32000, 40);
   auto announcement = prepareAnnouncement(codec_config, meta);
 
-  ON_CALL(*sm, GetAdvertisingSid()).WillByDefault(Return(test_adv_sid));
+  bool is_public_metadata_valid;
+  types::LeAudioLtvMap public_ltv = types::LeAudioLtvMap::Parse(
+      default_public_metadata.data(), default_public_metadata.size(),
+      is_public_metadata_valid);
+  PublicBroadcastAnnouncementData pb_announcement = {
+      .features = test_public_broadcast_features,
+      .metadata = public_ltv.Values()};
+
+  ON_CALL(*sm, IsPublicBroadcast()).WillByDefault(Return(true));
+  ON_CALL(*sm, GetBroadcastName()).WillByDefault(Return(test_broadcast_name));
   ON_CALL(*sm, GetBroadcastCode()).WillByDefault(Return(test_broadcast_code));
+  ON_CALL(*sm, GetAdvertisingSid()).WillByDefault(Return(test_adv_sid));
   ON_CALL(*sm, GetBroadcastAnnouncement())
       .WillByDefault(ReturnRef(announcement));
+  ON_CALL(*sm, GetPublicBroadcastAnnouncement())
+      .WillByDefault(ReturnRef(pb_announcement));
 
   EXPECT_CALL(mock_broadcaster_callbacks_,
               OnBroadcastMetadataChanged(broadcast_id, _))
@@ -622,6 +651,9 @@ TEST_F(BroadcasterTest, GetMetadata) {
   ASSERT_EQ(sm->GetOwnAddress(), metadata.addr);
   ASSERT_EQ(sm->GetOwnAddressType(), metadata.addr_type);
   ASSERT_EQ(sm->GetAdvertisingSid(), metadata.adv_sid);
+  ASSERT_EQ(sm->IsPublicBroadcast(), metadata.is_public);
+  ASSERT_EQ(sm->GetBroadcastName(), metadata.broadcast_name);
+  ASSERT_EQ(sm->GetPublicBroadcastAnnouncement(), metadata.public_announcement);
 }
 
 TEST_F(BroadcasterTest, SetStreamingPhy) {

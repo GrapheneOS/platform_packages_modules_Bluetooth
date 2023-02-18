@@ -187,6 +187,10 @@ constexpr uint8_t kLeAudioCodecLC3TypeAudioChannelAllocation = 0x03;
 constexpr uint8_t kLeAudioCodecLC3TypeOctetPerFrame = 0x04;
 constexpr uint8_t kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu = 0x05;
 
+/* Audio quality configuration in public broadcast announcement */
+constexpr uint8_t kLeAudioQualityStandard = 0x1 << 1;
+constexpr uint8_t kLeAudioQualityHigh = 0x1 << 2;
+
 struct BasicAudioAnnouncementCodecConfig {
   /* 5 octets for the Codec ID */
   uint8_t codec_id;
@@ -219,15 +223,25 @@ struct BasicAudioAnnouncementData {
   std::vector<BasicAudioAnnouncementSubgroup> subgroup_configs;
 };
 
+struct PublicBroadcastAnnouncementData {
+  // Public Broadcast Announcement features bitmap
+  uint8_t features;
+  // Metadata
+  std::map<uint8_t, std::vector<uint8_t>> metadata;
+};
+
 struct BroadcastMetadata {
+  bool is_public;
   uint16_t pa_interval;
   RawAddress addr;
   uint8_t addr_type;
   uint8_t adv_sid;
 
   BroadcastId broadcast_id;
+  std::string broadcast_name;
   std::optional<BroadcastCode> broadcast_code;
 
+  PublicBroadcastAnnouncementData public_announcement;
   /* Presentation delay and subgroup configurations */
   BasicAudioAnnouncementData basic_audio_announcement;
 };

@@ -907,6 +907,33 @@ jobject prepareBluetoothLeBroadcastMetadataObject(
     CHECK(!env->ExceptionCheck());
   }
 
+  ScopedLocalRef<jstring> broadcast_name(
+      env, env->NewStringUTF(broadcast_metadata.broadcast_name.c_str()));
+  if (!broadcast_name.get()) {
+    LOG(ERROR) << "Failed to create new broadcast name String";
+    return nullptr;
+  }
+
+  jint audio_cfg_quality = 0;
+  if (broadcast_metadata.public_announcement.features &
+      bluetooth::le_audio::kLeAudioQualityStandard) {
+    // Set bit 0 for AUDIO_CONFIG_QUALITY_STANDARD
+    audio_cfg_quality |= 0x1 << bluetooth::le_audio::QUALITY_STANDARD;
+  }
+  if (broadcast_metadata.public_announcement.features &
+      bluetooth::le_audio::kLeAudioQualityHigh) {
+    // Set bit 1 for AUDIO_CONFIG_QUALITY_HIGH
+    audio_cfg_quality |= 0x1 << bluetooth::le_audio::QUALITY_HIGH;
+  }
+
+  ScopedLocalRef<jobject> public_meta_obj(
+      env, prepareLeAudioContentMetadataObject(
+               env, broadcast_metadata.public_announcement.metadata));
+  if (!public_meta_obj.get()) {
+    LOG(ERROR) << "Failed to create new public metadata obj";
+    return nullptr;
+  }
+
   return env->NewObject(
       android_bluetooth_BluetoothLeBroadcastMetadata.clazz,
       android_bluetooth_BluetoothLeBroadcastMetadata.constructor,
@@ -914,10 +941,10 @@ jobject prepareBluetoothLeBroadcastMetadataObject(
       (jint)broadcast_metadata.adv_sid, (jint)broadcast_metadata.broadcast_id,
       (jint)broadcast_metadata.pa_interval,
       broadcast_metadata.broadcast_code ? true : false,
-      false, nullptr,
+      broadcast_metadata.is_public, broadcast_name.get(),
       broadcast_metadata.broadcast_code ? code.get() : nullptr,
       (jint)broadcast_metadata.basic_audio_announcement.presentation_delay,
-      (jint)0, nullptr, subgroup_list_obj.get());
+      audio_cfg_quality, public_meta_obj.get(), subgroup_list_obj.get());
 }
 
 class LeAudioBroadcasterCallbacksImpl : public LeAudioBroadcasterCallbacks {
@@ -1232,27 +1259,36 @@ static void CreateBroadcastNative(JNIEnv* env, jobject object,
     env->GetByteArrayRegion(broadcast_code, 0, size, (jbyte*)code_array.data());
   }
 
-  jbyte* public_meta = env->GetByteArrayElements(publicMetadata, nullptr);
-  jint* quality_array = env->GetIntArrayElements(qualityArray, nullptr);
-
   const char* broadcast_name = nullptr;
-  if (broadcastName != nullptr) {
+  if (broadcastName) {
     broadcast_name = env->GetStringUTFChars(broadcastName, nullptr);
   }
 
+  jbyte* public_meta = nullptr;
+  if (publicMetadata) {
+    public_meta = env->GetByteArrayElements(publicMetadata, nullptr);
+  }
+
+  jint* quality_array = nullptr;
+  if (qualityArray) {
+    quality_array = env->GetIntArrayElements(qualityArray, nullptr);
+  }
+
   sLeAudioBroadcasterInterface->CreateBroadcast(
-      isPublic, std::string(broadcast_name),
+      isPublic, broadcast_name ? broadcast_name : "",
       broadcast_code ? std::optional<std::array<uint8_t, 16>>(code_array)
                      : std::nullopt,
-      std::vector<uint8_t>(public_meta,
-                           public_meta + env->GetArrayLength(publicMetadata)),
-      std::vector<uint8_t>(quality_array,
-                           quality_array + env->GetArrayLength(qualityArray)),
+      public_meta ? std::vector<uint8_t>(
+                        public_meta, public_meta + env->GetArrayLength(publicMetadata))
+                  : std::vector<uint8_t>(),
+      quality_array ? std::vector<uint8_t>(
+                        quality_array, quality_array + env->GetArrayLength(qualityArray))
+                  : std::vector<uint8_t>(),
       convertToDataVectors(env, metadataArray));
 
-  env->ReleaseStringUTFChars(broadcastName, broadcast_name);
-  env->ReleaseIntArrayElements(qualityArray, quality_array, 0);
-  env->ReleaseByteArrayElements(publicMetadata, public_meta, 0);
+  if (broadcast_name) env->ReleaseStringUTFChars(broadcastName, broadcast_name);
+  if (public_meta) env->ReleaseByteArrayElements(publicMetadata, public_meta, 0);
+  if (quality_array) env->ReleaseIntArrayElements(qualityArray, quality_array, 0);
 }
 
 static void UpdateMetadataNative(JNIEnv* env, jobject object, jint broadcast_id,
@@ -1260,19 +1296,25 @@ static void UpdateMetadataNative(JNIEnv* env, jobject object, jint broadcast_id,
                                  jbyteArray publicMetadata,
                                  jobjectArray metadataArray) {
   const char* broadcast_name = nullptr;
-  if (broadcastName != nullptr) {
+  if (broadcastName) {
     broadcast_name = env->GetStringUTFChars(broadcastName, nullptr);
   }
-  jbyte* public_meta = env->GetByteArrayElements(publicMetadata, nullptr);
+
+  jbyte* public_meta = nullptr;
+  if (publicMetadata) {
+    public_meta = env->GetByteArrayElements(publicMetadata, nullptr);
+  }
 
   sLeAudioBroadcasterInterface->UpdateMetadata(
-      broadcast_id, std::string(broadcast_name),
-      std::vector<uint8_t>(public_meta,
-                           public_meta + env->GetArrayLength(publicMetadata)),
+      broadcast_id, broadcast_name ? broadcast_name : "",
+      public_meta
+          ? std::vector<uint8_t>(
+                public_meta, public_meta + env->GetArrayLength(publicMetadata))
+          : std::vector<uint8_t>(),
       convertToDataVectors(env, metadataArray));
 
-  env->ReleaseStringUTFChars(broadcastName, broadcast_name);
-  env->ReleaseByteArrayElements(publicMetadata, public_meta, 0);
+  if (broadcast_name) env->ReleaseStringUTFChars(broadcastName, broadcast_name);
+  if (public_meta) env->ReleaseByteArrayElements(publicMetadata, public_meta, 0);
 }
 
 static void StartBroadcastNative(JNIEnv* env, jobject object,
