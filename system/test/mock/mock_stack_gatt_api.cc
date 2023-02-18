@@ -199,7 +199,7 @@ bool GATT_GetConnectionInfor(uint16_t conn_id, tGATT_IF* p_gatt_if,
   return test::mock::stack_gatt_api::GATT_GetConnectionInfor(
       conn_id, p_gatt_if, bd_addr, p_transport);
 }
-tGATT_IF GATT_Register(const Uuid& app_uuid128, std::string name,
+tGATT_IF GATT_Register(const Uuid& app_uuid128, const std::string& name,
                        tGATT_CBACK* p_cb_info, bool eatt_support) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_gatt_api::GATT_Register(app_uuid128, name, p_cb_info,
