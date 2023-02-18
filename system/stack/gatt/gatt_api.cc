@@ -1088,7 +1088,7 @@ void GATT_SetIdleTimeout(const RawAddress& bd_addr, uint16_t idle_tout,
  *                  with GATT
  *
  ******************************************************************************/
-tGATT_IF GATT_Register(const Uuid& app_uuid128, std::string name,
+tGATT_IF GATT_Register(const Uuid& app_uuid128, const std::string& name,
                        tGATT_CBACK* p_cb_info, bool eatt_support) {
   tGATT_REG* p_reg;
   uint8_t i_gatt_if = 0;
