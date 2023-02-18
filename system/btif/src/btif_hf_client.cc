@@ -872,6 +872,7 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
         cb->state = BTHF_CLIENT_CONNECTION_STATE_CONNECTED;
         cb->peer_feat = 0;
         cb->chld_feat = 0;
+        cb->handle = p_data->open.handle;
       } else if (cb->state == BTHF_CLIENT_CONNECTION_STATE_CONNECTING) {
         cb->state = BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED;
       } else {
@@ -917,6 +918,22 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
       cb->peer_bda = RawAddress::kAny;
       cb->peer_feat = 0;
       cb->chld_feat = 0;
+      cb->handle = 0;
+
+      /* Clean up any btif_hf_client_cb for the same disconnected bd_addr.
+       * when there is an Incoming hf_client connection is in progress and
+       * at the same time, outgoing hf_client connection is initiated then
+       * due to race condition two btif_hf_client_cb is created. This creates
+       * problem for successive connections
+       */
+      while ((cb = btif_hf_client_get_cb_by_bda(p_data->bd_addr)) != NULL) {
+        cb->state = BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED;
+        cb->peer_bda = RawAddress::kAny;
+        cb->peer_feat = 0;
+        cb->chld_feat = 0;
+        cb->handle = 0;
+      }
+
       btif_queue_advance();
       break;
 
