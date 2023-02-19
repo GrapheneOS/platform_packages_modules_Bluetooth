@@ -2122,17 +2122,17 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public String getCreateBondCaller() {
-        if (DBG) log("getCreateBondCaller()");
+    public String getPackageNameOfBondingApplication() {
+        if (DBG) log("getPackageNameOfBondingApplication()");
         final IBluetooth service = getService();
         final String defaultValue = null;
         if (service == null || !isBluetoothEnabled()) {
-            Log.w(TAG, "BT not enabled, getCreateBondCaller failed");
+            Log.w(TAG, "BT not enabled, getPackageNameOfBondingApplication failed");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
                 final SynchronousResultReceiver<String> recv = SynchronousResultReceiver.get();
-                service.getCreateBondCaller(this, recv);
+                service.getPackageNameOfBondingApplication(this, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
