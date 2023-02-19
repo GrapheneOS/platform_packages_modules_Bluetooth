@@ -58,8 +58,7 @@ static bool acl_ble_common_connection(
   if (!l2cble_conn_comp(handle, role, address_with_type.bda,
                         address_with_type.type, conn_interval, conn_latency,
                         conn_timeout)) {
-    btm_sec_disconnect(handle, HCI_ERR_NO_CONNECTION,
-                       "stack::acl::ble_acl fail");
+    btm_sec_disconnect(handle, HCI_ERR_PEER_USER, "stack::acl::ble_acl fail");
     LOG_WARN("Unable to complete l2cap connection");
     return false;
   }
