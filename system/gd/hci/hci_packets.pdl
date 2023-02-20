@@ -6110,11 +6110,17 @@ packet LePathLossThreshold : LeMetaEvent (subevent_code = PATH_LOSS_THRESHOLD) {
   zone_entered : PathLossZone,
 }
 
+enum ReportingReason : 8 {
+  LOCAL_TRANSMIT_POWER_CHANGED = 0x00,
+  REMOTE_TRANSMIT_POWER_CHANGED = 0x01,
+  READ_COMMAND_COMPLETE = 0x02,
+}
+
 packet LeTransmitPowerReporting : LeMetaEvent (subevent_code = TRANSMIT_POWER_REPORTING) {
   status : ErrorCode,
   connection_handle : 12,
   _reserved_ : 4,
-  reason : 8,
+  reason : ReportingReason,
   phy : 8,
   transmit_power_level : 8,
   transmit_power_level_flag : 8,
