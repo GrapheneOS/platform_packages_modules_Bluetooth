@@ -220,6 +220,7 @@ static bool subevent_already_registered_in_le_hci_layer(
     case bluetooth::hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_LOST:
     case bluetooth::hci::SubeventCode::
         PERIODIC_ADVERTISING_SYNC_TRANSFER_RECEIVED:
+    case bluetooth::hci::SubeventCode::TRANSMIT_POWER_REPORTING:
       return true;
     case bluetooth::hci::SubeventCode::READ_REMOTE_FEATURES_COMPLETE:
     case bluetooth::hci::SubeventCode::READ_LOCAL_P256_PUBLIC_KEY_COMPLETE:
@@ -236,7 +237,6 @@ static bool subevent_already_registered_in_le_hci_layer(
     case bluetooth::hci::SubeventCode::BIG_SYNC_LOST:
     case bluetooth::hci::SubeventCode::REQUEST_PEER_SCA_COMPLETE:
     case bluetooth::hci::SubeventCode::PATH_LOSS_THRESHOLD:
-    case bluetooth::hci::SubeventCode::TRANSMIT_POWER_REPORTING:
     case bluetooth::hci::SubeventCode::BIG_INFO_ADVERTISING_REPORT:
     case bluetooth::hci::SubeventCode::LONG_TERM_KEY_REQUEST:
     default:

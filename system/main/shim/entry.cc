@@ -19,6 +19,7 @@
 #include "gd/btaa/activity_attribution.h"
 #include "gd/hal/snoop_logger.h"
 #include "gd/hci/controller.h"
+#include "gd/hci/distance_measurement_manager.h"
 #include "gd/hci/hci_layer.h"
 #include "gd/hci/le_advertising_manager.h"
 #include "gd/hci/le_scanning_manager.h"
@@ -108,6 +109,12 @@ hci::LeScanningManager* GetScanning() {
   return Stack::GetInstance()
       ->GetStackManager()
       ->GetInstance<hci::LeScanningManager>();
+}
+
+hci::DistanceMeasurementManager* GetDistanceMeasurementManager() {
+  return Stack::GetInstance()
+      ->GetStackManager()
+      ->GetInstance<hci::DistanceMeasurementManager>();
 }
 
 security::SecurityModule* GetSecurityModule() {
