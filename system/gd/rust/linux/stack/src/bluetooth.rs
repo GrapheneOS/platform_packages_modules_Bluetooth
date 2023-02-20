@@ -18,11 +18,13 @@ use bt_topshim::{
     topstack,
 };
 
+use bt_utils::array_utils;
 use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 
 use log::{debug, warn};
 use num_traits::cast::ToPrimitive;
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::fs::File;
 use std::hash::Hash;
 use std::io::Write;
@@ -1597,8 +1599,7 @@ impl IBluetooth for Bluetooth {
             return false;
         }
 
-        let mut btpin: BtPinCode = BtPinCode { pin: [0; 16] };
-        btpin.pin.copy_from_slice(pin_code.as_slice());
+        let mut btpin = BtPinCode { pin: array_utils::to_sized_array(&pin_code) };
 
         self.intf.lock().unwrap().pin_reply(
             &addr.unwrap(),
