@@ -39,6 +39,7 @@
 #include "hci/address.h"
 #include "hci/address_with_type.h"
 #include "hci/controller_mock.h"
+#include "hci/distance_measurement_manager_mock.h"
 #include "hci/le_advertising_manager_mock.h"
 #include "hci/le_scanning_manager_mock.h"
 #include "include/hardware/ble_scanner.h"
@@ -384,6 +385,8 @@ class MainShimTest : public testing::Test {
         new bluetooth::hci::testing::MockLeScanningManager();
     /* extern */ test::mock_le_advertising_manager_ =
         new bluetooth::hci::testing::MockLeAdvertisingManager();
+    /* extern */ test::mock_distance_measurement_manager_ =
+        new bluetooth::hci::testing::MockDistanceMeasurementManager();
   }
   void TearDown() override {
     delete test::mock_controller_;
@@ -394,6 +397,8 @@ class MainShimTest : public testing::Test {
     test::mock_le_advertising_manager_ = nullptr;
     delete test::mock_le_scanning_manager_;
     test::mock_le_scanning_manager_ = nullptr;
+    delete test::mock_distance_measurement_manager_;
+    test::mock_distance_measurement_manager_ = nullptr;
 
     handler_->Clear();
     delete handler_;
