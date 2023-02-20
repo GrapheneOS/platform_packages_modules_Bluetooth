@@ -26,6 +26,7 @@
 #include "hci/acl_manager/le_connection_callbacks.h"
 #include "hci/address.h"
 #include "hci/address_with_type.h"
+#include "hci/distance_measurement_manager.h"
 #include "hci/hci_layer.h"
 #include "hci/hci_packets.h"
 #include "hci/le_address_manager.h"
@@ -56,6 +57,7 @@ class AclManager : public Module {
  friend void bluetooth::shim::L2CA_UseLegacySecurityModule();
  friend bool bluetooth::shim::L2CA_SetAclPriority(uint16_t, bool);
  friend class bluetooth::hci::LeScanningManager;
+ friend class bluetooth::hci::DistanceMeasurementManager;
 
 public:
  AclManager();

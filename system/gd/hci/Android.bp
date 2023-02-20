@@ -28,6 +28,7 @@ filegroup {
         "acl_manager/acl_fragmenter.cc",
         "acl_manager.cc",
         "controller.cc",
+        "distance_measurement_manager.cc",
         "hci_layer.cc",
         "hci_metrics_logging.cc",
         "le_address_manager.cc",

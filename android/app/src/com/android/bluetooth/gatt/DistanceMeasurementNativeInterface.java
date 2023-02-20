@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.gatt;
 
+import android.bluetooth.BluetoothStatusCodes;
+
 import com.android.internal.annotations.VisibleForTesting;
 
 /**
@@ -28,6 +30,20 @@ public class DistanceMeasurementNativeInterface {
     private static DistanceMeasurementNativeInterface sInterface;
     private static final Object INSTANCE_LOCK = new Object();
     private DistanceMeasurementManager mDistanceMeasurementManager;
+
+    /**
+     * Do not modify without updating distance_measurement_manager.h
+     * match up with DistanceMeasurementErrorCode enum of distance_measurement_manager.h
+     */
+    private static final int REASON_FEATURE_NOT_SUPPORTED_LOCAL = 0;
+    private static final int REASON_FEATURE_NOT_SUPPORTED_REMOTE = 1;
+    private static final int REASON_LOCAL_REQUEST = 2;
+    private static final int REASON_REMOTE_REQUEST = 3;
+    private static final int REASON_DURATION_TIMEOUT = 4;
+    private static final int REASON_NO_LE_CONNECTION = 5;
+    private static final int REASON_INVALID_PARAMETERS = 6;
+    private static final int REASON_INTERNAL_ERROR = 7;
+
 
     private DistanceMeasurementNativeInterface() {}
 
@@ -67,11 +83,13 @@ public class DistanceMeasurementNativeInterface {
     }
 
     void onDistanceMeasurementStartFail(String address, int reason, int method) {
-        mDistanceMeasurementManager.onDistanceMeasurementStartFail(address, reason, method);
+        mDistanceMeasurementManager.onDistanceMeasurementStartFail(address,
+                convertErrorCode(reason), method);
     }
 
     void onDistanceMeasurementStopped(String address, int reason, int method) {
-        mDistanceMeasurementManager.onDistanceMeasurementStopped(address, reason, method);
+        mDistanceMeasurementManager.onDistanceMeasurementStopped(address,
+                convertErrorCode(reason), method);
     }
 
     void onDistanceMeasurementResult(String address, int centimeter, int errorCentimeter,
@@ -80,6 +98,29 @@ public class DistanceMeasurementNativeInterface {
         mDistanceMeasurementManager.onDistanceMeasurementResult(address, centimeter,
                 errorCentimeter, azimuthAngle, errorAzimuthAngle, altitudeAngle, errorAltitudeAngle,
                 method);
+    }
+
+    private int convertErrorCode(int errorCode) {
+        switch (errorCode) {
+            case REASON_FEATURE_NOT_SUPPORTED_LOCAL:
+                return BluetoothStatusCodes.FEATURE_NOT_SUPPORTED;
+            case REASON_FEATURE_NOT_SUPPORTED_REMOTE:
+                return BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED;
+            case REASON_LOCAL_REQUEST:
+                return BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST;
+            case REASON_REMOTE_REQUEST:
+                return BluetoothStatusCodes.REASON_REMOTE_REQUEST;
+            case REASON_DURATION_TIMEOUT:
+                return BluetoothStatusCodes.ERROR_TIMEOUT;
+            case REASON_NO_LE_CONNECTION:
+                return BluetoothStatusCodes.ERROR_NO_LE_CONNECTION;
+            case REASON_INVALID_PARAMETERS:
+                return BluetoothStatusCodes.ERROR_BAD_PARAMETERS;
+            case REASON_INTERNAL_ERROR:
+                return BluetoothStatusCodes.DISTANCE_MEASUREMENT_ERROR_INTERNAL;
+            default:
+                return BluetoothStatusCodes.ERROR_UNKNOWN;
+        }
     }
 
     static {
