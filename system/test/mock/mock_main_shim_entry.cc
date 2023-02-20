@@ -16,6 +16,7 @@
 
 #include "gd/hci/acl_manager_mock.h"
 #include "gd/hci/controller_mock.h"
+#include "gd/hci/distance_measurement_manager_mock.h"
 #include "gd/hci/hci_layer.h"
 #include "gd/hci/le_advertising_manager_mock.h"
 #include "gd/hci/le_scanning_manager_mock.h"
@@ -39,6 +40,7 @@ MockController* mock_controller_{nullptr};
 os::Handler* mock_gd_shim_handler_{nullptr};
 MockLeAdvertisingManager* mock_le_advertising_manager_{nullptr};
 MockLeScanningManager* mock_le_scanning_manager_{nullptr};
+MockDistanceMeasurementManager* mock_distance_measurement_manager_{nullptr};
 
 }  // namespace testing
 }  // namespace hci
@@ -59,6 +61,9 @@ hci::LeAdvertisingManager* GetAdvertising() {
 }
 hci::LeScanningManager* GetScanning() {
   return hci::testing::mock_le_scanning_manager_;
+}
+hci::DistanceMeasurementManager* GetDistanceMeasurementManager() {
+  return hci::testing::mock_distance_measurement_manager_;
 }
 hci::VendorSpecificEventManager* GetVendorSpecificEventManager() {
   return nullptr;
