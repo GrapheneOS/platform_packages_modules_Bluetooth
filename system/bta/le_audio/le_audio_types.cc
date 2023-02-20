@@ -732,5 +732,22 @@ AudioContexts get_bidirectional(BidirectionalPair<AudioContexts> p) {
   return p.sink | p.source;
 }
 
+template <>
+std::vector<uint8_t> get_bidirectional(
+    BidirectionalPair<std::vector<uint8_t>> bidir) {
+  std::vector<uint8_t> res = bidir.sink;
+  res.insert(std::end(res), std::begin(bidir.source), std::end(bidir.source));
+  return res;
+}
+
+template <>
+AudioLocations get_bidirectional(BidirectionalPair<AudioLocations> bidir) {
+  return bidir.sink | bidir.source;
+}
+
+template struct BidirectionalPair<AudioContexts>;
+template struct BidirectionalPair<AudioLocations>;
+template struct BidirectionalPair<std::vector<uint8_t>>;
+
 }  // namespace types
 }  // namespace le_audio
