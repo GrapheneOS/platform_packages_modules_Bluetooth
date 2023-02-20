@@ -772,12 +772,10 @@ impl CommandHandler {
                     name: String::from(""),
                 };
                 let pin = get_arg(args, 2)?;
-                let (accept, pin) = match (&pin[..], String::from(pin).parse::<u32>()) {
-                    (_, Ok(p)) => (true, Vec::from(p.to_ne_bytes())),
+
+                let (accept, pin) = match (&pin[..], pin) {
                     ("reject", _) => (false, vec![]),
-                    _ => {
-                        return Err(format!("Failed to parse '{}'", pin).into());
-                    }
+                    (_, p) => (true, p.as_bytes().iter().cloned().collect::<Vec<u8>>()),
                 };
 
                 self.lock_context().adapter_dbus.as_mut().unwrap().set_pin(
