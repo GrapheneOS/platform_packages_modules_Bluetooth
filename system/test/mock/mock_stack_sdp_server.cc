@@ -29,3 +29,10 @@ bool is_sdp_pbap_pce_disabled(RawAddress remote_address) {
   inc_func_call_count(__func__);
   return false;
 }
+void sdp_save_local_pse_record_attributes(int32_t rfcomm_channel_number,
+                                          int32_t l2cap_psm,
+                                          int32_t profile_version,
+                                          uint32_t supported_features,
+                                          uint32_t supported_repositories) {
+  inc_func_call_count(__func__);
+}
