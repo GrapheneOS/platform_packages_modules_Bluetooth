@@ -25,6 +25,7 @@ source_set("BluetoothHciSources") {
     "address.cc",
     "class_of_device.cc",
     "controller.cc",
+    "distance_measurement_manager.cc",
     "hci_layer.cc",
     "hci_metrics_logging.cc",
     "le_address_manager.cc",
