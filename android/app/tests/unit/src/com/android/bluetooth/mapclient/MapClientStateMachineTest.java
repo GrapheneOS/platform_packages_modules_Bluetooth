@@ -124,8 +124,6 @@ public class MapClientStateMachineTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when MapClientService is not enabled",
-                MapClientService.isEnabled());
         MockitoAnnotations.initMocks(this);
         mMockContentProvider = new MockSmsContentProvider();
         mMockContentResolver = new MockContentResolver();
@@ -167,10 +165,6 @@ public class MapClientStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!MapClientService.isEnabled()) {
-            return;
-        }
-
         if (mMceStateMachine != null) {
             mMceStateMachine.doQuit();
         }

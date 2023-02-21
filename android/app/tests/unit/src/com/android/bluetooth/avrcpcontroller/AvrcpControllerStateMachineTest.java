@@ -91,8 +91,6 @@ public class AvrcpControllerStateMachineTest {
 
     @Before
     public void setUp() throws Exception {
-        Assume.assumeTrue("Ignore test when AVRCP Controller is not enabled",
-                AvrcpControllerService.isEnabled());
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
@@ -142,9 +140,6 @@ public class AvrcpControllerStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!AvrcpControllerService.isEnabled()) {
-            return;
-        }
         destroyStateMachine(mAvrcpStateMachine);
         TestUtils.clearAdapterService(mAvrcpAdapterService);
     }
