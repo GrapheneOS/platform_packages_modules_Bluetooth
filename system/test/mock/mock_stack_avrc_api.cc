@@ -40,51 +40,51 @@
 #endif
 
 uint16_t AVRC_Close(uint8_t handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 uint16_t AVRC_CloseBrowse(uint8_t handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 uint16_t AVRC_GetControlProfileVersion() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 uint16_t AVRC_GetProfileVersion() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
                      BT_HDR* p_pkt) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 uint16_t AVRC_Open(uint8_t* p_handle, tAVRC_CONN_CB* p_ccb,
                    const RawAddress& peer_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 uint16_t AVRC_OpenBrowse(uint8_t handle, uint8_t conn_role) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 void AVRC_SaveControllerVersion(const RawAddress& bdaddr, uint16_t version) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 uint16_t AVRC_PassCmd(uint8_t handle, uint8_t label, tAVRC_MSG_PASS* p_msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 uint16_t AVRC_PassRsp(uint8_t handle, uint8_t label, tAVRC_MSG_PASS* p_msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
-void avrc_flush_cmd_q(uint8_t handle) { mock_function_count_map[__func__]++; }
-void avrc_process_timeout(void* data) { mock_function_count_map[__func__]++; }
+void avrc_flush_cmd_q(uint8_t handle) { inc_func_call_count(__func__); }
+void avrc_process_timeout(void* data) { inc_func_call_count(__func__); }
 void avrc_send_next_vendor_cmd(uint8_t handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void avrc_start_cmd_timer(uint8_t handle, uint8_t label, uint8_t msg_mask) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }

@@ -59,13 +59,13 @@ struct btm_ble_advertiser_notify_terminated_legacy
 
 // Mocked functions, if any
 void btm_le_on_advertising_set_terminated(uint8_t* p, uint16_t length) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble_advertiser_hci_interface::
       btm_le_on_advertising_set_terminated(p, length);
 }
 void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
                                                  uint16_t connection_handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble_advertiser_hci_interface::
       btm_ble_advertiser_notify_terminated_legacy(status, connection_handle);
 }

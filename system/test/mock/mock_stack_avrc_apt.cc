@@ -62,21 +62,21 @@ uint16_t AVRC_VendorRsp::return_value = 0;
 
 // Mocked functions, if any
 uint16_t AVRC_SubCmd(uint8_t handle, uint8_t label, uint8_t page) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_apt::AVRC_SubCmd(handle, label, page);
 }
 uint16_t AVRC_UnitCmd(uint8_t handle, uint8_t label) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_apt::AVRC_UnitCmd(handle, label);
 }
 uint16_t AVRC_VendorCmd(uint8_t handle, uint8_t label,
                         tAVRC_MSG_VENDOR* p_msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_apt::AVRC_VendorCmd(handle, label, p_msg);
 }
 uint16_t AVRC_VendorRsp(uint8_t handle, uint8_t label,
                         tAVRC_MSG_VENDOR* p_msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_apt::AVRC_VendorRsp(handle, label, p_msg);
 }
 // Mocked functions complete

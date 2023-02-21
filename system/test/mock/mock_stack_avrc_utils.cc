@@ -66,29 +66,29 @@ tAVRC_STS avrc_pars_pass_thru::return_value = 0;
 
 // Mocked functions, if any
 bool AVRC_IsValidAvcType(uint8_t pdu_id, uint8_t avc_type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_utils::AVRC_IsValidAvcType(pdu_id, avc_type);
 }
 bool AVRC_IsValidPlayerAttr(uint8_t attr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_utils::AVRC_IsValidPlayerAttr(attr);
 }
 bool avrc_is_valid_opcode(uint8_t opcode) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_utils::avrc_is_valid_opcode(opcode);
 }
 bool avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_utils::avrc_is_valid_player_attrib_value(attrib,
                                                                          value);
 }
 uint8_t avrc_opcode_from_pdu(uint8_t pdu) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_utils::avrc_opcode_from_pdu(pdu);
 }
 tAVRC_STS avrc_pars_pass_thru(tAVRC_MSG_PASS* p_msg,
                               uint16_t* p_vendor_unique_id) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_avrc_utils::avrc_pars_pass_thru(p_msg,
                                                            p_vendor_unique_id);
 }
