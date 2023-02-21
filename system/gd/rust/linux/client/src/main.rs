@@ -18,7 +18,7 @@ use crate::callbacks::{
 use crate::command_handler::{CommandHandler, SocketSchedule};
 use crate::dbus_iface::{
     BluetoothAdminDBus, BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus, BluetoothQADBus,
-    BluetoothSocketManagerDBus, SuspendDBus,
+    BluetoothSocketManagerDBus, BluetoothTelephonyDBus, SuspendDBus,
 };
 use crate::editor::AsyncEditor;
 use bt_topshim::topstack;
@@ -89,6 +89,9 @@ pub(crate) struct ClientContext {
     /// Proxy for socket manager interface.
     pub(crate) socket_manager_dbus: Option<BluetoothSocketManagerDBus>,
 
+    /// Proxy for Telephony interface.
+    pub(crate) telephony_dbus: Option<BluetoothTelephonyDBus>,
+
     /// Channel to send actions to take in the foreground
     fg: mpsc::Sender<ForegroundActions>,
 
@@ -154,6 +157,7 @@ impl ClientContext {
             admin_dbus: None,
             suspend_dbus: None,
             socket_manager_dbus: None,
+            telephony_dbus: None,
             fg: tx,
             dbus_connection,
             dbus_crossroads,
@@ -208,6 +212,8 @@ impl ClientContext {
         self.socket_manager_dbus = Some(socket_manager_dbus);
 
         self.suspend_dbus = Some(SuspendDBus::new(conn.clone(), idx));
+
+        self.telephony_dbus = Some(BluetoothTelephonyDBus::new(conn.clone(), idx));
 
         // Trigger callback registration in the foreground
         let fg = self.fg.clone();
