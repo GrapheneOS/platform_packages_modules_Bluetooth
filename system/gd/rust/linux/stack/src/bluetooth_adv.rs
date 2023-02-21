@@ -579,7 +579,7 @@ impl Advertisers {
         &mut self,
         s: &AdvertisingSetInfo,
     ) -> Option<&mut Box<dyn IAdvertisingSetCallback + Send>> {
-        self.callbacks.get_by_id(s.callback_id())
+        self.callbacks.get_by_id_mut(s.callback_id())
     }
 
     /// Removes an advertiser callback and unregisters all advertising sets associated with that callback.

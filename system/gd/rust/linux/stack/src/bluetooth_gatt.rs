@@ -185,7 +185,7 @@ impl ContextMap {
         &mut self,
         callback_id: u32,
     ) -> Option<&mut GattClientCallback> {
-        self.callbacks.get_by_id(callback_id)
+        self.callbacks.get_by_id_mut(callback_id)
     }
 }
 
@@ -293,10 +293,7 @@ impl ServerContextMap {
         }
     }
 
-    fn get_callback_from_callback_id(
-        &mut self,
-        callback_id: u32,
-    ) -> Option<&mut GattServerCallback> {
+    fn get_callback_from_callback_id(&self, callback_id: u32) -> Option<&GattServerCallback> {
         self.callbacks.get_by_id(callback_id)
     }
 
