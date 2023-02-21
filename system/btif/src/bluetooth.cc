@@ -874,8 +874,12 @@ static const void* get_profile_interface(const char* profile_id) {
   if (is_profile(profile_id, BT_PROFILE_CSIS_CLIENT_ID))
     return btif_csis_client_get_interface();
 
-  if (is_profile(profile_id, BT_BQR_ID))
-    return bluetooth::bqr::getBluetoothQualityReportInterface();
+  bool isBqrEnabled =
+      bluetooth::common::InitFlags::IsBluetoothQualityReportCallbackEnabled();
+  if (isBqrEnabled) {
+    if (is_profile(profile_id, BT_BQR_ID))
+      return bluetooth::bqr::getBluetoothQualityReportInterface();
+  }
 
   return NULL;
 }

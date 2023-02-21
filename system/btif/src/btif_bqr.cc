@@ -419,7 +419,9 @@ void ConfigureBqrCmpl(uint32_t current_evt_mask) {
   tBTM_STATUS btm_status = BTM_BT_Quality_Report_VSE_Register(
       current_evt_mask > kQualityEventMaskAllOff, CategorizeBqrEvent);
 
-  if (current_evt_mask > kQualityEventMaskAllOff) {
+  bool isBqrEnabled =
+      bluetooth::common::InitFlags::IsBluetoothQualityReportCallbackEnabled();
+  if (isBqrEnabled && current_evt_mask > kQualityEventMaskAllOff) {
     ConfigBqrA2dpScoThreshold();
   }
 
@@ -530,22 +532,25 @@ void AddLinkQualityEventToQueue(uint8_t length,
 #else
   // TODO(abps) Metrics for non-Android build
 #endif
+  bool isBqrEnabled =
+      bluetooth::common::InitFlags::IsBluetoothQualityReportCallbackEnabled();
+  if (isBqrEnabled) {
+    BluetoothQualityReportInterface* bqrItf =
+        getBluetoothQualityReportInterface();
 
-  BluetoothQualityReportInterface* bqrItf =
-      getBluetoothQualityReportInterface();
+    if (bqrItf != NULL) {
+      bd_addr = p_bqr_event->bqr_link_quality_event_.bdaddr;
 
-  if (bqrItf != NULL) {
-    bd_addr = p_bqr_event->bqr_link_quality_event_.bdaddr;
-
-    if (!bd_addr.IsEmpty()) {
-      bqrItf->bqr_delivery_event(bd_addr, (uint8_t*)p_link_quality_event,
-                                 length);
+      if (!bd_addr.IsEmpty()) {
+        bqrItf->bqr_delivery_event(bd_addr, (uint8_t*)p_link_quality_event,
+                                   length);
+      } else {
+        LOG(WARNING) << __func__ << ": failed to deliver BQR, "
+                     << "bdaddr is empty, no address in packet";
+      }
     } else {
-      LOG(WARNING) << __func__ << ": failed to deliver BQR, "
-                   << "bdaddr is empty, no address in packet";
+      LOG(WARNING) << __func__ << ": failed to deliver BQR, bqrItf is NULL";
     }
-  } else {
-    LOG(WARNING) << __func__ << ": failed to deliver BQR, bqrItf is NULL";
   }
 
   kpBqrEventQueue->Enqueue(p_bqr_event.release());
