@@ -24,7 +24,10 @@ const ADAPTER_SUSPEND_INTERFACE: &str = "org.chromium.bluetooth.Suspend";
 const SUSPEND_IMMINENT_SIGNAL: &str = "SuspendImminent";
 const SUSPEND_DONE_SIGNAL: &str = "SuspendDone";
 const BTMANAGERD_NAME: &str = "Bluetooth Manager";
-const DBUS_TIMEOUT: Duration = Duration::from_secs(2);
+// powerd might take more than 2 seconds at initialization, and thus we use
+// D-Bus default timeout duration herer to cover this case, as other D-Bus
+// clients of powerd do.
+const POWERD_DBUS_TIMEOUT: Duration = Duration::from_secs(20);
 const BLUEZ_SERVICE: &str = "org.bluez";
 
 #[derive(Debug)]
@@ -370,7 +373,7 @@ impl PowerdSuspendManager {
 
         let conn = self.conn.clone();
         let powerd_proxy =
-            dbus::nonblock::Proxy::new(POWERD_SERVICE, POWERD_PATH, DBUS_TIMEOUT, conn);
+            dbus::nonblock::Proxy::new(POWERD_SERVICE, POWERD_PATH, POWERD_DBUS_TIMEOUT, conn);
 
         let mut request = RegisterSuspendDelayRequest::new();
         request.set_description(String::from(BTMANAGERD_NAME));
