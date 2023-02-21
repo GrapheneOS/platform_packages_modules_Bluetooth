@@ -71,8 +71,6 @@ public class BluetoothMapServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        Assume.assumeTrue("Ignore test when BluetoothMapService is not enabled",
-                BluetoothMapService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
@@ -88,9 +86,6 @@ public class BluetoothMapServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!BluetoothMapService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, BluetoothMapService.class);
         mService = BluetoothMapService.getBluetoothMapService();
         assertThat(mService).isNull();
