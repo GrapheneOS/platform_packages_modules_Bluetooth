@@ -1549,7 +1549,7 @@ bool LeAudioDevice::ConfigureAses(
       if (ase->state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED)
         ase->reconfigure = true;
 
-      ase->target_latency = ent.target_latency;
+      ase->target_latency = ent.qos.target_latency;
       ase->codec_id = ent.codec.id;
       /* TODO: find better way to not use LC3 explicitly */
       ase->codec_config = std::get<LeAudioLc3Config>(ent.codec.config);
@@ -1592,7 +1592,7 @@ bool LeAudioDevice::ConfigureAses(
         "cis_id=%d, target_latency=%d",
         ADDRESS_TO_LOGGABLE_CSTR(address_), ase->id,
         (ent.direction == 1 ? "snk" : "src"), ase->max_sdu_size, ase->cis_id,
-        ent.target_latency);
+        ent.qos.target_latency);
 
     /* Try to use the already active ASE */
     ase = GetNextActiveAseWithSameDirection(ase);

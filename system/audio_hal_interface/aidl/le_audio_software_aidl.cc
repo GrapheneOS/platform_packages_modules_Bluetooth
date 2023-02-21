@@ -584,7 +584,6 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
       audio_set_config.confs.push_back(SetConfiguration(
           ::le_audio::types::kLeAudioDirectionSink, hal_encode_cap.deviceCount,
           hal_encode_cap.deviceCount * hal_encode_cap.channelCountPerDevice,
-          ::le_audio::types::kTargetLatencyBalancedLatencyReliability,
           encode_cap));
       str_capability_log = " Encode Capability: " + hal_encode_cap.toString();
     }
@@ -594,16 +593,14 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
           ::le_audio::types::kLeAudioDirectionSource,
           hal_decode_cap.deviceCount,
           hal_decode_cap.deviceCount * hal_decode_cap.channelCountPerDevice,
-          ::le_audio::types::kTargetLatencyBalancedLatencyReliability,
           decode_cap));
       str_capability_log += " Decode Capability: " + hal_decode_cap.toString();
     }
 
     if (hal_bcast_capability_to_stack_format(hal_bcast_cap, bcast_cap)) {
-      // Set device_cnt, ase_cnt, target_latency to zero to ignore these fields
-      // for broadcast
+      // Set device_cnt, ase_cnt to zero to ignore these fields for broadcast
       audio_set_config.confs.push_back(SetConfiguration(
-          ::le_audio::types::kLeAudioDirectionSink, 0, 0, 0, bcast_cap));
+          ::le_audio::types::kLeAudioDirectionSink, 0, 0, bcast_cap));
       str_capability_log +=
           " Broadcast Capability: " + hal_bcast_cap.toString();
     }
