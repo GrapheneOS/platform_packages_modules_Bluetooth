@@ -53,8 +53,6 @@ public class BluetoothMapSettingsTest {
 
     @Before
     public void setUp() {
-        Assume.assumeTrue("Ignore test when BluetoothMapService is not enabled",
-                BluetoothMapService.isEnabled());
         enableActivity(true);
         mIntent = new Intent();
         mIntent.setClass(mTargetContext, BluetoothMapSettings.class);

@@ -170,8 +170,6 @@ public class BluetoothMapContentObserverTest {
 
     @Before
     public void setUp() throws Exception {
-        Assume.assumeTrue("Ignore test when BluetoothMapService is not enabled",
-                BluetoothMapService.isEnabled());
         MockitoAnnotations.initMocks(this);
         BluetoothMethodProxy.setInstanceForTesting(mMapMethodProxy);
         if (Looper.myLooper() == null) {
