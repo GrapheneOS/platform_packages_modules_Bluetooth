@@ -170,11 +170,11 @@ pub mod ffi {
         data_position_nsec: i32,
     }
 
-    #[derive(Debug, Default)]
-    pub struct A2dpError {
+    #[derive(Debug)]
+    pub struct A2dpError<'a> {
         status: u32,
         error_code: u8,
-        error_msg: String,
+        error_msg: &'a CxxString,
     }
 
     unsafe extern "C++" {
@@ -226,7 +226,7 @@ pub mod ffi {
 
 pub type A2dpCodecConfig = ffi::A2dpCodecConfig;
 pub type PresentationPosition = ffi::RustPresentationPosition;
-pub type FfiA2dpError = ffi::A2dpError;
+pub type FfiA2dpError<'a> = ffi::A2dpError<'a>;
 
 impl Default for A2dpCodecConfig {
     fn default() -> A2dpCodecConfig {
@@ -244,15 +244,20 @@ impl Default for A2dpCodecConfig {
     }
 }
 
-impl Into<A2dpError> for FfiA2dpError {
+impl<'a> Into<A2dpError> for FfiA2dpError<'a> {
     fn into(self) -> A2dpError {
         A2dpError {
             status: self.status.into(),
             error: self.error_code as i32,
-            error_message: if self.error_msg == "" { None } else { Some(self.error_msg) },
+            error_message: if self.error_msg == "" {
+                None
+            } else {
+                Some(self.error_msg.to_string())
+            },
         }
     }
 }
+
 #[derive(Debug)]
 pub enum A2dpCallbacks {
     ConnectionState(RawAddress, BtavConnectionState, A2dpError),

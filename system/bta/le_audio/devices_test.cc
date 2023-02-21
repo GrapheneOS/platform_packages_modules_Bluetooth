@@ -43,6 +43,8 @@ using ::le_audio::LeAudioDeviceGroup;
 using ::le_audio::LeAudioDevices;
 using ::le_audio::types::AseState;
 using ::le_audio::types::AudioContexts;
+using ::le_audio::types::AudioLocations;
+using ::le_audio::types::BidirectionalPair;
 using ::le_audio::types::LeAudioContextType;
 using testing::_;
 using testing::Invoke;
@@ -554,10 +556,14 @@ class LeAudioAseConfigurationTest : public Test {
       data[i].device->src_pacs_ = src_pac_builder.Get();
     }
 
+    BidirectionalPair<AudioContexts> group_audio_locations = {
+        .sink = AudioContexts(context_type),
+        .source = AudioContexts(context_type)};
+
     /* Stimulate update of available context map */
     group_->UpdateAudioContextTypeAvailability(AudioContexts(context_type));
     ASSERT_EQ(success_expected,
-              group_->Configure(context_type, AudioContexts(context_type)));
+              group_->Configure(context_type, group_audio_locations));
 
     bool result = true;
     for (int i = 0; i < data_size; i++) {
@@ -640,10 +646,15 @@ class LeAudioAseConfigurationTest : public Test {
           interesting_configuration = false;
         }
       }
+
+      BidirectionalPair<AudioContexts> group_audio_locations = {
+          .sink = AudioContexts(context_type),
+          .source = AudioContexts(context_type)};
+
       /* Stimulate update of available context map */
       group_->UpdateAudioContextTypeAvailability(AudioContexts(context_type));
       auto configuration_result =
-          group_->Configure(context_type, AudioContexts(context_type));
+          group_->Configure(context_type, group_audio_locations);
 
       /* In case of configuration #ase is same as the one we expected to be
        * activated verify, ASEs are actually active */
@@ -763,9 +774,11 @@ class LeAudioAseConfigurationTest : public Test {
             /* Stimulate update of available context map */
             group_->UpdateAudioContextTypeAvailability(
                 AudioContexts(context_type));
-            ASSERT_EQ(
-                success_expected,
-                group_->Configure(context_type, AudioContexts(context_type)));
+            BidirectionalPair<AudioContexts> group_audio_locations = {
+                .sink = AudioContexts(context_type),
+                .source = AudioContexts(context_type)};
+            ASSERT_EQ(success_expected,
+                      group_->Configure(context_type, group_audio_locations));
             if (success_expected) {
               TestAsesActive(LeAudioCodecIdLc3, sampling_frequency,
                              frame_duration, octets_per_frame);
@@ -1115,9 +1128,10 @@ TEST_F(LeAudioAseConfigurationTest, test_unsupported_codec) {
   device->snk_pacs_ = pac_builder.Get();
   device->src_pacs_ = pac_builder.Get();
 
-  ASSERT_FALSE(group_->Configure(
-      LeAudioContextType::RINGTONE,
-      AudioContexts(static_cast<uint16_t>(LeAudioContextType::RINGTONE))));
+  ASSERT_FALSE(
+      group_->Configure(LeAudioContextType::RINGTONE,
+                        {AudioContexts(LeAudioContextType::RINGTONE),
+                         AudioContexts(LeAudioContextType::RINGTONE)}));
   TestAsesInactive();
 }
 
@@ -1172,24 +1186,24 @@ TEST_F(LeAudioAseConfigurationTest, test_reconnection_media) {
   /* Prepare reconfiguration */
   uint8_t number_of_active_ases = 1;  // Right one
   auto* ase = right->GetFirstActiveAseByDirection(kLeAudioDirectionSink);
-  ::le_audio::types::AudioLocations group_snk_audio_location =
-      *ase->codec_config.audio_channel_allocation;
-  ::le_audio::types::AudioLocations group_src_audio_location =
-      *ase->codec_config.audio_channel_allocation;
+  BidirectionalPair<AudioLocations> group_audio_locations = {
+      .sink = *ase->codec_config.audio_channel_allocation,
+      .source = *ase->codec_config.audio_channel_allocation};
 
   /* Get entry for the sink direction and use it to set configuration */
-  std::vector<uint8_t> ccid_list;
+  BidirectionalPair<std::vector<uint8_t>> ccid_lists = {{}, {}};
+  BidirectionalPair<AudioContexts> audio_contexts = {AudioContexts(),
+                                                     AudioContexts()};
   for (auto& ent : configuration->confs) {
     if (ent.direction == ::le_audio::types::kLeAudioDirectionSink) {
       left->ConfigureAses(ent, group_->GetConfigurationContextType(),
-                          &number_of_active_ases, group_snk_audio_location,
-                          group_src_audio_location, false,
-                          ::le_audio::types::AudioContexts(), ccid_list);
+                          &number_of_active_ases, group_audio_locations,
+                          audio_contexts, ccid_lists, false);
     }
   }
 
   ASSERT_TRUE(number_of_active_ases == 2);
-  ASSERT_TRUE(group_snk_audio_location == kChannelAllocationStereo);
+  ASSERT_TRUE(group_audio_locations.sink == kChannelAllocationStereo);
 
   uint8_t directions_to_verify = ::le_audio::types::kLeAudioDirectionSink;
   for (int i = 0; i < 2; i++) {
