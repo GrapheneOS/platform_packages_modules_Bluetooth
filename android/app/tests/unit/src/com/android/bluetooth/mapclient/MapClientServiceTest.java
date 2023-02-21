@@ -66,8 +66,6 @@ public class MapClientServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        Assume.assumeTrue("Ignore test when MapClientService is not enabled",
-                MapClientService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
@@ -83,9 +81,6 @@ public class MapClientServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!MapClientService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, MapClientService.class);
         mService = MapClientService.getMapClientService();
         assertThat(mService).isNull();
