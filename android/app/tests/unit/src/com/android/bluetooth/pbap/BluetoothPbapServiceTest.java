@@ -64,8 +64,6 @@ public class BluetoothPbapServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        Assume.assumeTrue("Ignore test when BluetoothPbapService is not enabled",
-                BluetoothPbapService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
@@ -81,9 +79,6 @@ public class BluetoothPbapServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!BluetoothPbapService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, BluetoothPbapService.class);
         mService = BluetoothPbapService.getBluetoothPbapService();
         assertThat(mService).isNull();
