@@ -67,8 +67,6 @@ public class PanServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        Assume.assumeTrue("Ignore test when PanService is not enabled",
-                PanService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
@@ -85,9 +83,6 @@ public class PanServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!PanService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, PanService.class);
         mService = PanService.getPanService();
         assertThat(mService).isNull();

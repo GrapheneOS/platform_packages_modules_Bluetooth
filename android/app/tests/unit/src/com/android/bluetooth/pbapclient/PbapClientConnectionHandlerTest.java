@@ -86,8 +86,6 @@ public class PbapClientConnectionHandlerTest {
     public void setUp() throws Exception {
         mTargetContext = spy(new ContextWrapper(
                 InstrumentationRegistry.getInstrumentation().getTargetContext()));
-        Assume.assumeTrue("Ignore test when PbapClientService is not enabled",
-                PbapClientService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
@@ -115,9 +113,6 @@ public class PbapClientConnectionHandlerTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!PbapClientService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, PbapClientService.class);
         mService = PbapClientService.getPbapClientService();
         assertThat(mService).isNull();

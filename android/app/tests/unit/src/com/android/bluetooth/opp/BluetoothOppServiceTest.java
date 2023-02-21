@@ -64,8 +64,6 @@ public class BluetoothOppServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        Assume.assumeTrue("Ignore test when BluetoothOppService is not enabled",
-                BluetoothOppService.isEnabled());
         MockitoAnnotations.initMocks(this);
 
         BluetoothMethodProxy.setInstanceForTesting(mMethodProxy);
@@ -90,9 +88,6 @@ public class BluetoothOppServiceTest {
     @After
     public void tearDown() throws Exception {
         BluetoothMethodProxy.setInstanceForTesting(null);
-        if (!BluetoothOppService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, BluetoothOppService.class);
         TestUtils.clearAdapterService(mAdapterService);
     }
