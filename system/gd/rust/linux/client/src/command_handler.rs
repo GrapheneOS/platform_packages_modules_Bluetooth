@@ -14,6 +14,7 @@ use bt_topshim::profiles::hid_host::BthhReportType;
 use bt_topshim::profiles::{gatt::LePhy, ProfileConnectionState};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
 use btstack::bluetooth_gatt::{GattWriteType, IBluetoothGatt, ScanSettings, ScanType};
+use btstack::bluetooth_media::IBluetoothTelephony;
 use btstack::socket_manager::{IBluetoothSocketManager, SocketResult};
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
@@ -269,6 +270,27 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 "List bonded or found remote devices. Use: list <bonded|found>",
             ),
             function_pointer: CommandHandler::cmd_list_devices,
+        },
+    );
+    command_options.insert(
+        String::from("telephony"),
+        CommandOption {
+            rules: vec![
+                String::from("telephony set-network <on|off>"),
+                String::from("telephony set-roaming <on|off>"),
+                String::from("telephony set-signal <strength>"),
+                String::from("telephony set-battery <level>"),
+                String::from("telephony <enable|disable>"),
+                String::from("telephony <incoming-call|dialing-call> <number>"),
+                String::from("telephony <answer-call|hangup-call>"),
+                String::from("telephony <set-memory-call|set-last-call> [<number>]"),
+                String::from(
+                    "telephony <release-held|release-active-accept-held|hold-active-accept-held>",
+                ),
+                String::from("telephony <audio-connect|audio-disconnect> <address>"),
+            ],
+            description: String::from("Set device telephony status."),
+            function_pointer: CommandHandler::cmd_telephony,
         },
     );
     command_options.insert(
@@ -1496,6 +1518,207 @@ impl CommandHandler {
             }
         }
 
+        Ok(())
+    }
+
+    fn cmd_telephony(&mut self, args: &Vec<String>) -> CommandResult {
+        if !self.context.lock().unwrap().adapter_ready {
+            return Err(self.adapter_not_ready());
+        }
+
+        match &get_arg(args, 0)?[..] {
+            "set-network" => {
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_network_available(match &get_arg(args, 1)?[..] {
+                        "on" => true,
+                        "off" => false,
+                        other => {
+                            return Err(format!("Invalid argument '{}'", other).into());
+                        }
+                    });
+            }
+            "set-roaming" => {
+                self.context.lock().unwrap().telephony_dbus.as_mut().unwrap().set_roaming(
+                    match &get_arg(args, 1)?[..] {
+                        "on" => true,
+                        "off" => false,
+                        other => {
+                            return Err(format!("Invalid argument '{}'", other).into());
+                        }
+                    },
+                );
+            }
+            "set-signal" => {
+                let strength = String::from(get_arg(args, 1)?)
+                    .parse::<i32>()
+                    .or(Err("Failed parsing signal strength"))?;
+                if strength < 0 || strength > 5 {
+                    return Err(
+                        format!("Invalid signal strength, got {}, want 0 to 5", strength).into()
+                    );
+                }
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_signal_strength(strength);
+            }
+            "set-battery" => {
+                let level = String::from(get_arg(args, 1)?)
+                    .parse::<i32>()
+                    .or(Err("Failed parsing battery level"))?;
+                if level < 0 || level > 5 {
+                    return Err(format!("Invalid battery level, got {}, want 0 to 5", level).into());
+                }
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_battery_level(level);
+            }
+            "enable" | "disable" => {
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_phone_ops_enabled(get_arg(args, 0)? == "enable");
+            }
+            "incoming-call" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .incoming_call(String::from(get_arg(args, 1)?));
+                if !success {
+                    return Err("IncomingCall failed".into());
+                }
+            }
+            "dialing-call" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .dialing_call(String::from(get_arg(args, 1)?));
+                if !success {
+                    return Err("DialingCall failed".into());
+                }
+            }
+            "answer-call" => {
+                let success =
+                    self.context.lock().unwrap().telephony_dbus.as_mut().unwrap().answer_call();
+                if !success {
+                    return Err("AnswerCall failed".into());
+                }
+            }
+            "hangup-call" => {
+                let success =
+                    self.context.lock().unwrap().telephony_dbus.as_mut().unwrap().hangup_call();
+                if !success {
+                    return Err("HangupCall failed".into());
+                }
+            }
+            "set-memory-call" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_memory_call(get_arg(args, 1).ok().map(String::from));
+                if !success {
+                    return Err("SetMemoryCall failed".into());
+                }
+            }
+            "set-last-call" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .set_last_call(get_arg(args, 1).ok().map(String::from));
+                if !success {
+                    return Err("SetLastCall failed".into());
+                }
+            }
+            "release-held" => {
+                let success =
+                    self.context.lock().unwrap().telephony_dbus.as_mut().unwrap().release_held();
+                if !success {
+                    return Err("ReleaseHeld failed".into());
+                }
+            }
+            "release-active-accept-held" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .release_active_accept_held();
+                if !success {
+                    return Err("ReleaseActiveAcceptHeld failed".into());
+                }
+            }
+            "hold-active-accept-held" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .hold_active_accept_held();
+                if !success {
+                    return Err("HoldActiveAcceptHeld failed".into());
+                }
+            }
+            "audio-connect" => {
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .audio_connect(String::from(get_arg(args, 1)?));
+                if !success {
+                    return Err("ConnectAudio failed".into());
+                }
+            }
+            "audio-disconnect" => {
+                self.context
+                    .lock()
+                    .unwrap()
+                    .telephony_dbus
+                    .as_mut()
+                    .unwrap()
+                    .audio_disconnect(String::from(get_arg(args, 1)?));
+            }
+            other => {
+                return Err(format!("Invalid argument '{}'", other).into());
+            }
+        }
         Ok(())
     }
 }

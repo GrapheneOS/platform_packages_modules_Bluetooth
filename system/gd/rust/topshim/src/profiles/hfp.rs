@@ -71,6 +71,48 @@ pub mod ffi {
         type RawAddress = crate::btif::RawAddress;
     }
 
+    #[derive(Debug, Copy, Clone)]
+    pub struct TelephonyDeviceStatus {
+        network_available: bool,
+        roaming: bool,
+        signal_strength: i32,
+        battery_level: i32,
+    }
+
+    #[derive(Debug, Copy, Clone)]
+    pub enum CallState {
+        Idle,
+        Incoming,
+        Dialing,
+        Active, // Only used by CLCC response
+        Held,   // Only used by CLCC response
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct CallInfo {
+        index: i32,
+        dir_incoming: bool,
+        state: CallState,
+        number: String,
+    }
+
+    #[derive(Debug, Copy, Clone)]
+    pub struct PhoneState {
+        num_active: i32,
+        num_held: i32,
+        state: CallState,
+    }
+
+    #[derive(Debug, Copy, Clone)]
+    pub enum CallHoldCommand {
+        ReleaseHeld,
+        ReleaseActiveAcceptHeld,
+        HoldActiveAcceptHeld,
+        // We don't support it in our telephony stack because it's not necessary for qualification.
+        // But still inform the stack about this event.
+        AddHeldToConf,
+    }
+
     unsafe extern "C++" {
         include!("hfp/hfp_shim.h");
 
@@ -90,6 +132,29 @@ pub mod ffi {
         fn set_volume(self: Pin<&mut HfpIntf>, volume: i8, bt_addr: RawAddress) -> i32;
         fn disconnect(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> u32;
         fn disconnect_audio(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> i32;
+        fn device_status_notification(
+            self: Pin<&mut HfpIntf>,
+            status: TelephonyDeviceStatus,
+            addr: RawAddress,
+        ) -> u32;
+        fn indicator_query_response(
+            self: Pin<&mut HfpIntf>,
+            device_status: TelephonyDeviceStatus,
+            phone_state: PhoneState,
+            addr: RawAddress,
+        ) -> u32;
+        fn current_calls_query_response(
+            self: Pin<&mut HfpIntf>,
+            call_list: &Vec<CallInfo>,
+            addr: RawAddress,
+        ) -> u32;
+        fn phone_state_change(
+            self: Pin<&mut HfpIntf>,
+            phone_state: PhoneState,
+            number: &String,
+            addr: RawAddress,
+        ) -> u32;
+        fn simple_at_response(self: Pin<&mut HfpIntf>, ok: bool, addr: RawAddress) -> u32;
         fn cleanup(self: Pin<&mut HfpIntf>);
 
     }
@@ -99,8 +164,32 @@ pub mod ffi {
         fn hfp_volume_update_callback(volume: u8, addr: RawAddress);
         fn hfp_battery_level_update_callback(battery_level: u8, addr: RawAddress);
         fn hfp_caps_update_callback(wbs_supported: bool, addr: RawAddress);
+        fn hfp_indicator_query_callback(addr: RawAddress);
+        fn hfp_current_calls_query_callback(addr: RawAddress);
+        fn hfp_answer_call_callback(addr: RawAddress);
+        fn hfp_hangup_call_callback(addr: RawAddress);
+        fn hfp_dial_call_callback(number: String, addr: RawAddress);
+        fn hfp_call_hold_callback(chld: CallHoldCommand, addr: RawAddress);
     }
 }
+
+pub type TelephonyDeviceStatus = ffi::TelephonyDeviceStatus;
+
+impl TelephonyDeviceStatus {
+    pub fn new() -> Self {
+        TelephonyDeviceStatus {
+            network_available: true,
+            roaming: false,
+            signal_strength: 5,
+            battery_level: 5,
+        }
+    }
+}
+
+pub type CallState = ffi::CallState;
+pub type CallInfo = ffi::CallInfo;
+pub type PhoneState = ffi::PhoneState;
+pub type CallHoldCommand = ffi::CallHoldCommand;
 
 #[derive(Clone, Debug)]
 pub enum HfpCallbacks {
@@ -109,6 +198,12 @@ pub enum HfpCallbacks {
     VolumeUpdate(u8, RawAddress),
     BatteryLevelUpdate(u8, RawAddress),
     CapsUpdate(bool, RawAddress),
+    IndicatorQuery(RawAddress),
+    CurrentCallsQuery(RawAddress),
+    AnswerCall(RawAddress),
+    HangupCall(RawAddress),
+    DialCall(String, RawAddress),
+    CallHold(CallHoldCommand, RawAddress),
 }
 
 pub struct HfpCallbacksDispatcher {
@@ -141,6 +236,36 @@ cb_variant!(
     HfpCb,
     hfp_caps_update_callback -> HfpCallbacks::CapsUpdate,
     bool, RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_indicator_query_callback -> HfpCallbacks::IndicatorQuery,
+    RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_current_calls_query_callback -> HfpCallbacks::CurrentCallsQuery,
+    RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_answer_call_callback -> HfpCallbacks::AnswerCall,
+    RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_hangup_call_callback -> HfpCallbacks::HangupCall,
+    RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_dial_call_callback -> HfpCallbacks::DialCall,
+    String, RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_call_hold_callback -> HfpCallbacks::CallHold,
+    CallHoldCommand, RawAddress);
 
 pub struct Hfp {
     internal: cxx::UniquePtr<ffi::HfpIntf>,
@@ -220,6 +345,53 @@ impl Hfp {
     #[profile_enabled_or(BtStatus::NotReady.into())]
     pub fn disconnect_audio(&mut self, addr: RawAddress) -> i32 {
         self.internal.pin_mut().disconnect_audio(addr)
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn device_status_notification(
+        &mut self,
+        status: TelephonyDeviceStatus,
+        addr: RawAddress,
+    ) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().device_status_notification(status, addr))
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn indicator_query_response(
+        &mut self,
+        device_status: TelephonyDeviceStatus,
+        phone_state: PhoneState,
+        addr: RawAddress,
+    ) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().indicator_query_response(
+            device_status,
+            phone_state,
+            addr,
+        ))
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn current_calls_query_response(
+        &mut self,
+        call_list: &Vec<CallInfo>,
+        addr: RawAddress,
+    ) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().current_calls_query_response(call_list, addr))
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn phone_state_change(
+        &mut self,
+        phone_state: PhoneState,
+        number: &String,
+        addr: RawAddress,
+    ) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().phone_state_change(phone_state, number, addr))
+    }
+
+    #[profile_enabled_or(BtStatus::NotReady)]
+    pub fn simple_at_response(&mut self, ok: bool, addr: RawAddress) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().simple_at_response(ok, addr))
     }
 
     #[profile_enabled_or(false)]
