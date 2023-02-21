@@ -247,7 +247,6 @@ android_add_library(
       model/controller/acl_connection_handler.cc
       model/controller/controller_properties.cc
       model/controller/dual_mode_controller.cc
-      model/controller/isochronous_connection_handler.cc
       model/controller/le_advertiser.cc
       model/controller/link_layer_controller.cc
       model/controller/sco_connection.cc
