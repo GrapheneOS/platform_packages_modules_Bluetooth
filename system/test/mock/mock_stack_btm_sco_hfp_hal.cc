@@ -73,45 +73,45 @@ namespace hfp_hal_interface {
 
 // Mocked functions, if any
 bool enable_offload(bool enable) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_sco_hfp_hal::enable_offload(enable);
 }
 bt_codecs get_codec_capabilities(uint64_t codecs) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_sco_hfp_hal::get_codec_capabilities(codecs);
 }
 bool get_offload_enabled() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_sco_hfp_hal::get_offload_enabled();
 }
 bool get_offload_supported() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_sco_hfp_hal::get_offload_supported();
 }
 int get_packet_size(int codec) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_sco_hfp_hal::get_packet_size(codec);
 }
 bool get_wbs_supported() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_sco_hfp_hal::get_wbs_supported();
 }
 void init() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_sco_hfp_hal::init();
 }
 void notify_sco_connection_change(RawAddress device, bool is_connected,
                                   int codec) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_sco_hfp_hal::notify_sco_connection_change(
       device, is_connected, codec);
 }
 void set_codec_datapath(esco_coding_format_t coding_format) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_sco_hfp_hal::set_codec_datapath(coding_format);
 }
 void update_esco_parameters(enh_esco_params_t* p_parms) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_sco_hfp_hal::update_esco_parameters(p_parms);
 }
 
