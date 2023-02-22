@@ -20,4 +20,9 @@ impl IBluetoothExperimental for BluetoothExperimentalDBus {
     fn set_ll_privacy(&mut self, enabled: bool) {
         dbus_generated!()
     }
+
+    #[dbus_method("SetDevCoredump")]
+    fn set_devcoredump(&mut self, enabled: bool) -> bool {
+        dbus_generated!()
+    }
 }
