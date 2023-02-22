@@ -947,7 +947,7 @@ class GATTProxy(ProfileProxy):
         the Implementation Under Test (IUT) can accept GATT connect request from
         PTS.
         """
-        self.host.StartAdvertising(
+        self.advertise = self.host.Advertise(
             connectable=True,
             own_address_type=OwnAddressType.PUBLIC,
         )
