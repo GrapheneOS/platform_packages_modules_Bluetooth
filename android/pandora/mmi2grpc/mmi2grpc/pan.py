@@ -29,8 +29,6 @@ class PANProxy(ProfileProxy):
         self.host = Host(channel)
         self.pan = PAN(channel)
 
-        self.connection = None
-
     def TSC_BNEP_mmi_iut_accept_transport(self, pts_addr: bytes, **kwargs):
         """
         Take action to accept the PAN transport from the tester.

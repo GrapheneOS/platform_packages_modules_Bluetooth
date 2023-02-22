@@ -26,7 +26,7 @@
         <option name="dep-module" value="pyee" />
         <option name="dep-module" value="ansicolors" />
         <option name="dep-module" value="websockets" />
-        <option name="dep-module" value="bitstruct" />
+        <option name="dep-module" value="construct" />
         <option name="dep-module" value="cryptography" />
     </target_preparer>
     <test class="com.android.tradefed.testtype.mobly.MoblyBinaryHostTest">

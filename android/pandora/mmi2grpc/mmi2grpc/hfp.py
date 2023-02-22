@@ -29,9 +29,6 @@ import time
 # Standard time to wait before asking for waitConnection
 WAIT_DELAY_BEFORE_CONNECTION = 2
 
-# The tests needs the MMI to accept pairing confirmation request.
-NEEDS_WAIT_CONNECTION_BEFORE_TEST = {"HFP/AG/WBS/BV-01-I", "HFP/AG/SLC/BV-05-I"}
-
 IXIT_PHONE_NUMBER = 42
 IXIT_SECOND_PHONE_NUMBER = 43
 
@@ -46,7 +43,6 @@ class HFPProxy(ProfileProxy):
         self.security_storage = SecurityStorage(channel)
         self.rootcanal = rootcanal
         self.modem = modem
-
         self.connection = None
 
         self._auto_confirm_requests()
@@ -64,8 +60,7 @@ class HFPProxy(ProfileProxy):
         th.start()
 
     def test_started(self, test: str, pts_addr: bytes, **kwargs):
-        if test in NEEDS_WAIT_CONNECTION_BEFORE_TEST:
-            self.asyncWaitConnection(pts_addr)
+        self.asyncWaitConnection(pts_addr)
 
         return "OK"
 
@@ -145,8 +140,6 @@ class HFPProxy(ProfileProxy):
         Click Ok, then disable the service level connection using the
         Implementation Under Test (IUT).
         """
-
-        self.connection = self.host.GetConnection(address=pts_addr).connection
 
         def disable_slc():
             time.sleep(2)
@@ -238,8 +231,6 @@ class HFPProxy(ProfileProxy):
         level connection (SLC) or power-off the IUT.
         """
 
-        self.connection = self.host.GetConnection(address=pts_addr).connection
-
         def disable_audio():
             time.sleep(2)
             if "HFP/HF" in test:
@@ -266,8 +257,6 @@ class HFPProxy(ProfileProxy):
         Implementation Under Test (IUT) to the PTS.
         """
 
-        self.connection = self.host.GetConnection(address=pts_addr).connection
-
         def enable_audio():
             time.sleep(2)
             if "HFP/HF" in test:
@@ -286,8 +275,6 @@ class HFPProxy(ProfileProxy):
         Implementation Under Test (IUT) and the PTS.  If necessary, it is OK to
         close the service level connection. Do not power-off the IUT.
         """
-
-        self.connection = self.host.GetConnection(address=pts_addr).connection
 
         def disable_slc():
             time.sleep(2)
@@ -408,8 +395,6 @@ class HFPProxy(ProfileProxy):
         Click OK. Then, disable the control channel, such that the AG is de-
         registered.
         """
-
-        self.connection = self.host.GetConnection(address=pts_addr).connection
 
         def disable_slc():
             time.sleep(2)
@@ -604,7 +589,7 @@ class HFPProxy(ProfileProxy):
         if "HFP/HF" not in test:
             self.hfp.SetVoiceRecognition(
                 enabled=True,
-                connection=self.host.GetConnection(address=pts_addr).connection,
+                connection=self.connection,
             )
 
         return "OK"
@@ -636,8 +621,6 @@ class HFPProxy(ProfileProxy):
         Test (IUT).
         """
 
-        self.connection = self.host.GetConnection(address=pts_addr).connection
-
         def reject_call():
             time.sleep(2)
             if "HFP/HF" in test:
@@ -655,8 +638,6 @@ class HFPProxy(ProfileProxy):
         Click Ok, then answer the incoming call using the Implementation Under
         Test (IUT).
         """
-
-        self.connection = self.host.GetConnection(address=pts_addr).connection
 
         def answer_call():
             time.sleep(2)
@@ -704,8 +685,6 @@ class HFPProxy(ProfileProxy):
         (IUT).
         """
 
-        self.connection = self.host.GetConnection(address=pts_addr).connection
-
         def disable_call():
             time.sleep(2)
             self.hfp.EndCallAsHandsfree(connection=self.connection)
@@ -748,8 +727,6 @@ class HFPProxy(ProfileProxy):
         (IUT) using an enterted phone number.
         """
 
-        self.connection = self.host.GetConnection(address=pts_addr).connection
-
         def disable_call():
             time.sleep(2)
             self.hfp.MakeCallAsHandsfree(connection=self.connection, number="42")
@@ -779,8 +756,6 @@ class HFPProxy(ProfileProxy):
         2. Click OK, make the held/waiting call active, placing
         the active call on hold.
         """
-
-        self.connection = self.host.GetConnection(address=pts_addr).connection
 
         def call_swap_then_disable_held_alternative():
             time.sleep(2)
@@ -818,7 +793,7 @@ class HFPProxy(ProfileProxy):
 
         self.hfp.SetVoiceRecognitionAsHandsfree(
             enabled=True,
-            connection=self.host.GetConnection(address=pts_addr).connection,
+            connection=self.connection,
         )
 
         return "OK"
@@ -831,7 +806,7 @@ class HFPProxy(ProfileProxy):
 
         self.hfp.SetVoiceRecognitionAsHandsfree(
             enabled=False,
-            connection=self.host.GetConnection(address=pts_addr).connection,
+            connection=self.connection,
         )
 
         return "OK"
@@ -843,7 +818,7 @@ class HFPProxy(ProfileProxy):
         """
 
         self.hfp.SendDtmfFromHandsfree(
-            connection=self.host.GetConnection(address=pts_addr).connection,
+            connection=self.connection,
             code=dtmf[0].encode("ascii")[0],
         )
 
