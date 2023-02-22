@@ -99,8 +99,6 @@ public class HeadsetStateMachineTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when HeadsetService is not enabled",
-                HeadsetService.isEnabled());
         // Setup mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
@@ -151,9 +149,6 @@ public class HeadsetStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!HeadsetService.isEnabled()) {
-            return;
-        }
         HeadsetObjectsFactory.getInstance().destroyStateMachine(mHeadsetStateMachine);
         mHandlerThread.quit();
         TestUtils.clearAdapterService(mAdapterService);

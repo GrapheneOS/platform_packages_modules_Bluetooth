@@ -67,8 +67,6 @@ public class SapServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when SapService is not enabled",
-                SapService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
@@ -83,9 +81,6 @@ public class SapServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!SapService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, SapService.class);
         mService = SapService.getSapService();
         assertThat(mService).isNull();

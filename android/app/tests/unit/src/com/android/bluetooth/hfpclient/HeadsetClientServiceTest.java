@@ -73,8 +73,6 @@ public class HeadsetClientServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when HeadsetClientService is not enabled",
-                HeadsetClientService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
@@ -90,9 +88,6 @@ public class HeadsetClientServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!HeadsetClientService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, HeadsetClientService.class);
         mService = HeadsetClientService.getHeadsetClientService();
         Assert.assertNull(mService);
