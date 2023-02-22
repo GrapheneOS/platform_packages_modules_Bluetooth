@@ -12,8 +12,8 @@ use bt_topshim::profiles::avrcp::{
     Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher, PlayerMetadata,
 };
 use bt_topshim::profiles::hfp::{
-    BthfAudioState, BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher,
-    HfpCodecCapability,
+    BthfAudioState, BthfConnectionState, CallHoldCommand, CallInfo, CallState, Hfp, HfpCallbacks,
+    HfpCallbacksDispatcher, HfpCodecCapability, PhoneState, TelephonyDeviceStatus,
 };
 use bt_topshim::profiles::ProfileConnectionState;
 use bt_topshim::{metrics, topstack};
@@ -145,6 +145,43 @@ pub trait IBluetoothMediaCallback: RPCProxy {
     fn on_hfp_audio_disconnected(&self, addr: String);
 }
 
+pub trait IBluetoothTelephony {
+    /// Sets whether the device is connected to the cellular network.
+    fn set_network_available(&mut self, network_available: bool);
+    /// Sets whether the device is roaming.
+    fn set_roaming(&mut self, roaming: bool);
+    /// Sets the device signal strength, 0 to 5.
+    fn set_signal_strength(&mut self, signal_strength: i32) -> bool;
+    /// Sets the device battery level, 0 to 5.
+    fn set_battery_level(&mut self, battery_level: i32) -> bool;
+    /// Enables/disables phone operations.
+    /// The call state is fully reset whenever this is called.
+    fn set_phone_ops_enabled(&mut self, enable: bool);
+    /// Acts like the AG received an incoming call.
+    fn incoming_call(&mut self, number: String) -> bool;
+    /// Acts like dialing a call from the AG.
+    fn dialing_call(&mut self, number: String) -> bool;
+    /// Acts like answering an incoming/dialing call from the AG.
+    fn answer_call(&mut self) -> bool;
+    /// Acts like hanging up an active/incoming/dialing call from the AG.
+    fn hangup_call(&mut self) -> bool;
+    /// Sets/unsets the memory slot. Note that we store at most one memory
+    /// number and return it regardless of which slot is specified by HF.
+    fn set_memory_call(&mut self, number: Option<String>) -> bool;
+    /// Sets/unsets the last call.
+    fn set_last_call(&mut self, number: Option<String>) -> bool;
+    /// Releases all of the held calls.
+    fn release_held(&mut self) -> bool;
+    /// Releases the active call and accepts a held call.
+    fn release_active_accept_held(&mut self) -> bool;
+    /// Holds the active call and accepts a held call.
+    fn hold_active_accept_held(&mut self) -> bool;
+    /// Establishes an audio connection to <address>.
+    fn audio_connect(&mut self, address: String) -> bool;
+    /// Stops the audio connection to <address>.
+    fn audio_disconnect(&mut self, address: String);
+}
+
 /// Serializable device used in.
 #[derive(Debug, Default, Clone)]
 pub struct BluetoothAudioDevice {
@@ -204,6 +241,12 @@ pub struct BluetoothMedia {
     delay_enable_profiles: HashSet<uuid::Profile>,
     connected_profiles: HashMap<RawAddress, HashSet<uuid::Profile>>,
     device_states: Arc<Mutex<HashMap<RawAddress, DeviceConnectionStates>>>,
+    telephony_device_status: TelephonyDeviceStatus,
+    phone_state: PhoneState,
+    call_list: Vec<CallInfo>,
+    phone_ops_enabled: bool,
+    memory_dialing_number: Option<String>,
+    last_dialing_number: Option<String>,
 }
 
 impl BluetoothMedia {
@@ -243,6 +286,12 @@ impl BluetoothMedia {
             delay_enable_profiles: HashSet::new(),
             connected_profiles: HashMap::new(),
             device_states: Arc::new(Mutex::new(HashMap::new())),
+            telephony_device_status: TelephonyDeviceStatus::new(),
+            phone_state: PhoneState { num_active: 0, num_held: 0, state: CallState::Idle },
+            call_list: vec![],
+            phone_ops_enabled: false,
+            memory_dialing_number: None,
+            last_dialing_number: None,
         }
     }
 
@@ -549,6 +598,13 @@ impl BluetoothMedia {
                             self.hfp_cap.insert(addr, HfpCodecCapability::CVSD);
                         }
                         self.add_connected_profile(addr, uuid::Profile::Hfp);
+
+                        // Connect SCO if phone operations are enabled and an active call exists.
+                        // This is only used for Bluetooth HFP qualification.
+                        if self.phone_ops_enabled && self.phone_state.num_active > 0 {
+                            debug!("[{}]: Connect SCO due to active call.", addr.to_string());
+                            self.start_sco_call_impl(addr.to_string(), false, false);
+                        }
                     }
                     BthfConnectionState::Disconnected => {
                         info!("[{}]: hfp disconnected.", addr.to_string());
@@ -581,6 +637,21 @@ impl BluetoothMedia {
                         info!("[{}]: hfp audio connected.", addr.to_string());
 
                         self.hfp_audio_state.insert(addr, state);
+
+                        // Change the phone state only when it's currently managed by media stack
+                        // (I.e., phone operations are not enabled).
+                        if !self.phone_ops_enabled && self.phone_state.num_active != 1 {
+                            // This triggers a +CIEV command to set the call status for HFP devices.
+                            // It is required for some devices to provide sound.
+                            self.phone_state.num_active = 1;
+                            self.call_list = vec![CallInfo {
+                                index: 1,
+                                dir_incoming: false,
+                                state: CallState::Active,
+                                number: "".into(),
+                            }];
+                            self.phone_state_change("".into());
+                        }
                     }
                     BthfAudioState::Disconnected => {
                         info!("[{}]: hfp audio disconnected.", addr.to_string());
@@ -592,6 +663,14 @@ impl BluetoothMedia {
                             self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
                                 callback.on_hfp_audio_disconnected(addr.to_string());
                             });
+                        }
+
+                        // Change the phone state only when it's currently managed by media stack
+                        // (I.e., phone operations are not enabled).
+                        if !self.phone_ops_enabled && self.phone_state.num_active != 0 {
+                            self.phone_state.num_active = 0;
+                            self.call_list = vec![];
+                            self.phone_state_change("".into());
                         }
                     }
                     BthfAudioState::Connecting => {
@@ -626,6 +705,112 @@ impl BluetoothMedia {
                 };
 
                 self.hfp_cap.insert(addr, hfp_cap);
+            }
+            HfpCallbacks::IndicatorQuery(addr) => {
+                match self.hfp.as_mut() {
+                    Some(hfp) => {
+                        debug!(
+                            "[{}]: Responding CIND query with device={:?} phone={:?}",
+                            addr.to_string(),
+                            self.telephony_device_status,
+                            self.phone_state,
+                        );
+                        let status = hfp.indicator_query_response(
+                            self.telephony_device_status,
+                            self.phone_state,
+                            addr,
+                        );
+                        if status != BtStatus::Success {
+                            warn!(
+                                "[{}]: CIND response failed, status={:?}",
+                                addr.to_string(),
+                                status
+                            );
+                        }
+                    }
+                    None => warn!("Uninitialized HFP to notify telephony status"),
+                };
+            }
+            HfpCallbacks::CurrentCallsQuery(addr) => {
+                match self.hfp.as_mut() {
+                    Some(hfp) => {
+                        debug!(
+                            "[{}]: Responding CLCC query with call_list={:?}",
+                            addr.to_string(),
+                            self.call_list,
+                        );
+                        let status = hfp.current_calls_query_response(&self.call_list, addr);
+                        if status != BtStatus::Success {
+                            warn!(
+                                "[{}]: CLCC response failed, status={:?}",
+                                addr.to_string(),
+                                status
+                            );
+                        }
+                    }
+                    None => warn!("Uninitialized HFP to notify telephony status"),
+                };
+            }
+            HfpCallbacks::AnswerCall(addr) => {
+                if !self.answer_call_impl() {
+                    warn!("[{}]: answer_call triggered by ATA failed", addr.to_string());
+                    return;
+                }
+                self.phone_state_change("".into());
+
+                debug!("[{}]: Start SCO call due to ATA", addr.to_string());
+                self.start_sco_call_impl(addr.to_string(), false, false);
+            }
+            HfpCallbacks::HangupCall(addr) => {
+                if !self.hangup_call_impl() {
+                    warn!("[{}]: hangup_call triggered by AT+CHUP failed", addr.to_string());
+                    return;
+                }
+                self.phone_state_change("".into());
+            }
+            HfpCallbacks::DialCall(number, addr) => {
+                let number = if number == "" {
+                    self.last_dialing_number.clone()
+                } else if number.starts_with(">") {
+                    self.memory_dialing_number.clone()
+                } else {
+                    Some(number)
+                };
+
+                let success = number.map_or(false, |num| self.dialing_call_impl(num));
+
+                // Respond OK/ERROR to the HF which sent the command.
+                // This should be called before calling phone_state_change.
+                self.simple_at_response(success, addr.clone());
+                if success {
+                    // Success means the call state has changed. Inform the LibBluetooth stack.
+                    self.phone_state_change("".into());
+                } else {
+                    warn!("[{}]: Unexpected dialing command from HF", addr.to_string());
+                }
+            }
+            HfpCallbacks::CallHold(command, addr) => {
+                let success = match command {
+                    CallHoldCommand::ReleaseHeld => self.release_held_impl(),
+                    CallHoldCommand::ReleaseActiveAcceptHeld => {
+                        self.release_active_accept_held_impl()
+                    }
+                    CallHoldCommand::HoldActiveAcceptHeld => self.hold_active_accept_held_impl(),
+                    _ => false, // We only support the 3 operations above.
+                };
+                // Respond OK/ERROR to the HF which sent the command.
+                // This should be called before calling phone_state_change.
+                self.simple_at_response(success, addr.clone());
+                if success {
+                    // Success means the call state has changed. Inform the LibBluetooth stack.
+                    self.phone_state_change("".into());
+                } else {
+                    warn!(
+                        "[{}]: Unexpected or unsupported CHLD command {:?} from HF",
+                        addr.to_string(),
+                        command
+                    );
+                }
             }
         }
     }
@@ -940,6 +1125,227 @@ impl BluetoothMedia {
             })
             .cloned()
             .collect()
+    }
+
+    fn start_sco_call_impl(
+        &mut self,
+        address: String,
+        sco_offload: bool,
+        force_cvsd: bool,
+    ) -> bool {
+        match (|| -> Result<(), &str> {
+            let addr = RawAddress::from_string(address.clone())
+                .ok_or("Can't start sco call with bad address")?;
+            info!("Start sco call for {}", address);
+
+            let hfp = self.hfp.as_mut().ok_or("Uninitialized HFP to start the sco call")?;
+            if hfp.connect_audio(addr, sco_offload, force_cvsd) != 0 {
+                return Err("SCO connect_audio status failed");
+            }
+            info!("SCO connect_audio status success");
+            Ok(())
+        })() {
+            Ok(_) => true,
+            Err(msg) => {
+                warn!("{}", msg);
+                false
+            }
+        }
+    }
+
+    fn stop_sco_call_impl(&mut self, address: String) {
+        match (|| -> Result<(), &str> {
+            let addr = RawAddress::from_string(address.clone())
+                .ok_or("Can't stop sco call with bad address")?;
+            info!("Stop sco call for {}", address);
+            let hfp = self.hfp.as_mut().ok_or("Uninitialized HFP to stop the sco call")?;
+            hfp.disconnect_audio(addr);
+            Ok(())
+        })() {
+            Ok(_) => {}
+            Err(msg) => warn!("{}", msg),
+        }
+    }
+
+    fn device_status_notification(&mut self) {
+        match self.hfp.as_mut() {
+            Some(hfp) => {
+                for (addr, state) in self.hfp_states.iter() {
+                    if *state != BthfConnectionState::SlcConnected {
+                        continue;
+                    }
+                    debug!(
+                        "[{}]: Device status notification {:?}",
+                        addr.to_string(),
+                        self.telephony_device_status
+                    );
+                    let status =
+                        hfp.device_status_notification(self.telephony_device_status, addr.clone());
+                    if status != BtStatus::Success {
+                        warn!(
+                            "[{}]: Device status notification failed, status={:?}",
+                            addr.to_string(),
+                            status
+                        );
+                    }
+                }
+            }
+            None => warn!("Uninitialized HFP to notify telephony status"),
+        }
+    }
+
+    fn phone_state_change(&mut self, number: String) {
+        match self.hfp.as_mut() {
+            Some(hfp) => {
+                for (addr, state) in self.hfp_states.iter() {
+                    if *state != BthfConnectionState::SlcConnected {
+                        continue;
+                    }
+                    debug!(
+                        "[{}]: Phone state change state={:?} number={}",
+                        addr.to_string(),
+                        self.phone_state,
+                        number
+                    );
+                    let status = hfp.phone_state_change(self.phone_state, &number, addr.clone());
+                    if status != BtStatus::Success {
+                        warn!(
+                            "[{}]: Device status notification failed, status={:?}",
+                            addr.to_string(),
+                            status
+                        );
+                    }
+                }
+            }
+            None => warn!("Uninitialized HFP to notify telephony status"),
+        }
+    }
+
+    // Returns the minimum unoccupied index starting from 1.
+    fn new_call_index(&self) -> i32 {
+        (1..)
+            .find(|&index| self.call_list.iter().all(|x| x.index != index))
+            .expect("There must be an unoccupied index")
+    }
+
+    fn simple_at_response(&mut self, ok: bool, addr: RawAddress) {
+        match self.hfp.as_mut() {
+            Some(hfp) => {
+                let status = hfp.simple_at_response(ok, addr.clone());
+                if status != BtStatus::Success {
+                    warn!("[{}]: AT response failed, status={:?}", addr.to_string(), status);
+                }
+            }
+            None => warn!("Uninitialized HFP to send AT response"),
+        }
+    }
+
+    fn answer_call_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled || self.phone_state.state == CallState::Idle {
+            return false;
+        }
+        // There must be exactly one incoming/dialing call in the list.
+        for c in self.call_list.iter_mut() {
+            if c.state == CallState::Incoming || c.state == CallState::Dialing {
+                c.state = CallState::Active;
+                break;
+            }
+        }
+        self.phone_state.state = CallState::Idle;
+        self.phone_state.num_active += 1;
+        true
+    }
+
+    fn hangup_call_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled {
+            return false;
+        }
+        match self.phone_state.state {
+            CallState::Idle if self.phone_state.num_active > 0 => {
+                self.phone_state.num_active -= 1;
+            }
+            CallState::Incoming | CallState::Dialing => {
+                self.phone_state.state = CallState::Idle;
+            }
+            _ => {
+                return false;
+            }
+        }
+        // At this point, there must be exactly one incoming/dialing/active call to be removed.
+        self.call_list.retain(|x| match x.state {
+            CallState::Active | CallState::Incoming | CallState::Dialing => false,
+            _ => true,
+        });
+        true
+    }
+
+    fn dialing_call_impl(&mut self, number: String) -> bool {
+        if !self.phone_ops_enabled
+            || self.phone_state.state != CallState::Idle
+            || self.phone_state.num_active > 0
+        {
+            return false;
+        }
+        self.call_list.push(CallInfo {
+            index: self.new_call_index(),
+            dir_incoming: false,
+            state: CallState::Dialing,
+            number: number.clone(),
+        });
+        self.phone_state.state = CallState::Dialing;
+        true
+    }
+
+    fn release_held_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled || self.phone_state.state != CallState::Idle {
+            return false;
+        }
+        self.call_list.retain(|x| x.state != CallState::Held);
+        self.phone_state.num_held = 0;
+        true
+    }
+
+    fn release_active_accept_held_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled || self.phone_state.state != CallState::Idle {
+            return false;
+        }
+        self.call_list.retain(|x| x.state != CallState::Active);
+        self.phone_state.num_active = 0;
+        // Activate the first held call
+        for c in self.call_list.iter_mut() {
+            if c.state == CallState::Held {
+                c.state = CallState::Active;
+                self.phone_state.num_held -= 1;
+                self.phone_state.num_active += 1;
+                break;
+            }
+        }
+        true
+    }
+
+    fn hold_active_accept_held_impl(&mut self) -> bool {
+        if !self.phone_ops_enabled || self.phone_state.state != CallState::Idle {
+            return false;
+        }
+
+        self.phone_state.num_held += self.phone_state.num_active;
+        self.phone_state.num_active = 0;
+
+        for c in self.call_list.iter_mut() {
+            match c.state {
+                // Activate at most one held call
+                CallState::Held if self.phone_state.num_active == 0 => {
+                    c.state = CallState::Active;
+                    self.phone_state.num_held -= 1;
+                    self.phone_state.num_active = 1;
+                }
+                CallState::Active => {
+                    c.state = CallState::Held;
+                }
+                _ => {}
+            }
+        }
+        true
     }
 }
 
@@ -1409,52 +1815,11 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn start_sco_call(&mut self, address: String, sco_offload: bool, force_cvsd: bool) -> bool {
-        let addr = match RawAddress::from_string(address.clone()) {
-            None => {
-                warn!("Can't start sco call with: {}", address);
-                return false;
-            }
-            Some(addr) => addr,
-        };
-
-        info!("Start sco call for {}", address);
-        let hfp = match self.hfp.as_mut() {
-            None => {
-                warn!("Uninitialized HFP to start the sco call");
-                return false;
-            }
-            Some(hfp) => hfp,
-        };
-
-        match hfp.connect_audio(addr, sco_offload, force_cvsd) {
-            0 => {
-                info!("SCO connect_audio status success.");
-                true
-            }
-            x => {
-                warn!("SCO connect_audio status failed: {}", x);
-                false
-            }
-        }
+        self.start_sco_call_impl(address, sco_offload, force_cvsd)
     }
 
     fn stop_sco_call(&mut self, address: String) {
-        let addr = match RawAddress::from_string(address.clone()) {
-            None => {
-                warn!("Can't stop sco call with: {}", address);
-                return;
-            }
-            Some(addr) => addr,
-        };
-
-        info!("Stop sco call for {}", address);
-
-        match self.hfp.as_mut() {
-            Some(hfp) => {
-                hfp.disconnect_audio(addr);
-            }
-            None => warn!("Uninitialized HFP to stop the sco call"),
-        };
+        self.stop_sco_call_impl(address)
     }
 
     fn get_a2dp_audio_started(&mut self, address: String) -> bool {
@@ -1530,6 +1895,185 @@ impl IBluetoothMedia for BluetoothMedia {
             Some(avrcp) => avrcp.set_metadata(&metadata),
             None => warn!("Uninitialized AVRCP to set player playback status"),
         };
+    }
+}
+
+impl IBluetoothTelephony for BluetoothMedia {
+    fn set_network_available(&mut self, network_available: bool) {
+        if self.telephony_device_status.network_available == network_available {
+            return;
+        }
+        self.telephony_device_status.network_available = network_available;
+        self.device_status_notification();
+    }
+
+    fn set_roaming(&mut self, roaming: bool) {
+        if self.telephony_device_status.roaming == roaming {
+            return;
+        }
+        self.telephony_device_status.roaming = roaming;
+        self.device_status_notification();
+    }
+
+    fn set_signal_strength(&mut self, signal_strength: i32) -> bool {
+        if signal_strength < 0 || signal_strength > 5 {
+            warn!("Invalid signal strength, got {}, want 0 to 5", signal_strength);
+            return false;
+        }
+        if self.telephony_device_status.signal_strength == signal_strength {
+            return true;
+        }
+
+        self.telephony_device_status.signal_strength = signal_strength;
+        self.device_status_notification();
+
+        true
+    }
+
+    fn set_battery_level(&mut self, battery_level: i32) -> bool {
+        if battery_level < 0 || battery_level > 5 {
+            warn!("Invalid battery level, got {}, want 0 to 5", battery_level);
+            return false;
+        }
+        if self.telephony_device_status.battery_level == battery_level {
+            return true;
+        }
+
+        self.telephony_device_status.battery_level = battery_level;
+        self.device_status_notification();
+
+        true
+    }
+
+    fn set_phone_ops_enabled(&mut self, enable: bool) {
+        if self.phone_ops_enabled == enable {
+            return;
+        }
+
+        self.call_list = vec![];
+        self.phone_state.num_active = 0;
+        self.phone_state.num_held = 0;
+        self.phone_state.state = CallState::Idle;
+        self.memory_dialing_number = None;
+        self.last_dialing_number = None;
+
+        if !enable {
+            if self.hfp_states.values().any(|x| x == &BthfConnectionState::SlcConnected) {
+                self.call_list.push(CallInfo {
+                    index: 1,
+                    dir_incoming: false,
+                    state: CallState::Active,
+                    number: "".into(),
+                });
+                self.phone_state.num_active = 1;
+            }
+        }
+
+        self.phone_ops_enabled = enable;
+        self.phone_state_change("".into());
+    }
+
+    fn incoming_call(&mut self, number: String) -> bool {
+        if !self.phone_ops_enabled
+            || self.phone_state.state != CallState::Idle
+            || self.phone_state.num_active > 0
+        {
+            return false;
+        }
+        self.call_list.push(CallInfo {
+            index: self.new_call_index(),
+            dir_incoming: true,
+            state: CallState::Incoming,
+            number: number.clone(),
+        });
+        self.phone_state.state = CallState::Incoming;
+        self.phone_state_change(number);
+        true
+    }
+
+    fn dialing_call(&mut self, number: String) -> bool {
+        if !self.dialing_call_impl(number) {
+            return false;
+        }
+        self.phone_state_change("".into());
+        true
+    }
+
+    fn answer_call(&mut self) -> bool {
+        if !self.answer_call_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
+
+        // Find a connected HFP and try to establish an SCO.
+        if let Some(addr) = self.hfp_states.iter().find_map(|(addr, state)| {
+            if *state == BthfConnectionState::SlcConnected {
+                Some(addr.clone())
+            } else {
+                None
+            }
+        }) {
+            info!("Start SCO call due to call answered");
+            self.start_sco_call_impl(addr.to_string(), false, false);
+        }
+
+        true
+    }
+
+    fn hangup_call(&mut self) -> bool {
+        if !self.hangup_call_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
+        true
+    }
+
+    fn set_memory_call(&mut self, number: Option<String>) -> bool {
+        if !self.phone_ops_enabled {
+            return false;
+        }
+        self.memory_dialing_number = number;
+        true
+    }
+
+    fn set_last_call(&mut self, number: Option<String>) -> bool {
+        if !self.phone_ops_enabled {
+            return false;
+        }
+        self.last_dialing_number = number;
+        true
+    }
+
+    fn release_held(&mut self) -> bool {
+        if !self.release_held_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
+        true
+    }
+
+    fn release_active_accept_held(&mut self) -> bool {
+        if !self.release_active_accept_held_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
+        true
+    }
+
+    fn hold_active_accept_held(&mut self) -> bool {
+        if !self.hold_active_accept_held_impl() {
+            return false;
+        }
+        self.phone_state_change("".into());
+        true
+    }
+
+    fn audio_connect(&mut self, address: String) -> bool {
+        self.start_sco_call_impl(address, false, false)
+    }
+
+    fn audio_disconnect(&mut self, address: String) {
+        self.stop_sco_call_impl(address)
     }
 }
 

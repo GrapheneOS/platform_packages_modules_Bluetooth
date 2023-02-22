@@ -68,8 +68,6 @@ public class AvrcpControllerServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        Assume.assumeTrue("Ignore test when AvrcpControllerService is not enabled",
-                AvrcpControllerService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
@@ -85,9 +83,6 @@ public class AvrcpControllerServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!AvrcpControllerService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, AvrcpControllerService.class);
         mService = AvrcpControllerService.getAvrcpControllerService();
         assertThat(mService).isNull();

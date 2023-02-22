@@ -81,10 +81,6 @@ public class ContextMapTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!GattService.isEnabled()) {
-            return;
-        }
-
         BluetoothMethodProxy.setInstanceForTesting(null);
 
         doReturn(false).when(mAdapterService).isStartedProfile(anyString());
