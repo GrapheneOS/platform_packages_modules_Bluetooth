@@ -9,7 +9,6 @@ mod transactions;
 
 #[cfg(test)]
 mod test;
-mod utils;
 
 use std::{collections::HashMap, rc::Rc};
 
