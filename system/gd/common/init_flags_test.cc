@@ -92,3 +92,9 @@ TEST(InitFlagsTest, test_enable_snoop_logger_filtering) {
   InitFlags::Load(input);
   ASSERT_TRUE(InitFlags::IsSnoopLoggerFilteringEnabled());
 }
+
+TEST(InitFlagsTest, test_enable_bluetooth_quality_report_callback) {
+  const char* input[] = {"INIT_bluetooth_quality_report_callback=true", nullptr};
+  InitFlags::Load(input);
+  ASSERT_TRUE(InitFlags::IsBluetoothQualityReportCallbackEnabled());
+}
