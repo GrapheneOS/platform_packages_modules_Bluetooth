@@ -278,7 +278,7 @@ struct tBTM_MSBC_PLC {
   }
 
   void deinit() {
-    if (pl_window) osi_free(pl_window);
+    if (pl_window) osi_free_and_reset((void**)&pl_window);
   }
 
   void handle_bad_frames(const uint8_t** output) {
@@ -450,7 +450,7 @@ struct tBTM_MSBC_INFO {
     if (msbc_encode_buf) osi_free(msbc_encode_buf);
     if (plc) {
       plc->deinit();
-      osi_free(plc);
+      osi_free_and_reset((void**)&plc);
     }
   }
 
@@ -569,8 +569,7 @@ void cleanup() {
   if (msbc_info == nullptr) return;
 
   msbc_info->deinit();
-  osi_free(msbc_info);
-  msbc_info = nullptr;
+  osi_free_and_reset((void**)&msbc_info);
 }
 
 size_t enqueue_packet(const uint8_t* data, size_t pkt_size) {
