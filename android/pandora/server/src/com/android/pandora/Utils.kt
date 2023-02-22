@@ -60,7 +60,8 @@ import pandora.HostProto.Connection
 private const val TAG = "PandoraUtils"
 private val alphanumeric = ('A'..'Z') + ('a'..'z') + ('0'..'9')
 
-val intentQueue = ArrayList<Intent>()
+val initiatedConnection = HashSet<BluetoothDevice>()
+val waitedAclConnection = HashSet<BluetoothDevice>()
 
 fun shell(cmd: String): String {
   val fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd)
@@ -81,7 +82,10 @@ fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
   val broadcastReceiver: BroadcastReceiver =
     object : BroadcastReceiver() {
       override fun onReceive(context: Context, intent: Intent) {
-        intentQueue.add(intent)
+        if (intent.action == BluetoothDevice.ACTION_ACL_DISCONNECTED) {
+          initiatedConnection.remove(intent.getBluetoothDeviceExtra())
+          waitedAclConnection.remove(intent.getBluetoothDeviceExtra())
+        }
         trySendBlocking(intent)
       }
     }
