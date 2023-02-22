@@ -1987,7 +1987,7 @@ class UnicastTestNoInit : public Test {
                       0x10,
                       0x03, /* sample freq */
                       0x01,
-                      0x80,
+                      0x80, /* 48kHz */
                       0x00,
                       0x02, /* frame duration */
                       0x02,
@@ -2080,20 +2080,20 @@ class UnicastTestNoInit : public Test {
                 } else if (handle == pacs->avail_contexts_char + 1) {
                   value = {
                       // Sink Avail Contexts
-                      (uint8_t)(supported_snk_context_types_ >> 8),
                       (uint8_t)(supported_snk_context_types_),
+                      (uint8_t)(supported_snk_context_types_ >> 8),
                       // Source Avail Contexts
-                      (uint8_t)(supported_src_context_types_ >> 8),
                       (uint8_t)(supported_src_context_types_),
+                      (uint8_t)(supported_src_context_types_ >> 8),
                   };
                 } else if (handle == pacs->supp_contexts_char + 1) {
                   value = {
                       // Sink Avail Contexts
-                      (uint8_t)(supported_snk_context_types_ >> 8),
                       (uint8_t)(supported_snk_context_types_),
+                      (uint8_t)(supported_snk_context_types_ >> 8),
                       // Source Avail Contexts
-                      (uint8_t)(supported_src_context_types_ >> 8),
                       (uint8_t)(supported_src_context_types_),
+                      (uint8_t)(supported_src_context_types_ >> 8),
                   };
                 }
                 cb(conn_id, GATT_SUCCESS, handle, value.size(), value.data(),
@@ -3929,6 +3929,13 @@ TEST_F(UnicastTest, StartNotSupportedContextType) {
   const RawAddress test_address0 = GetTestAddress(0);
   int group_id = bluetooth::groups::kGroupUnknown;
 
+  supported_snk_context_types_ = (types::LeAudioContextType::RINGTONE |
+                                  types::LeAudioContextType::CONVERSATIONAL |
+                                  types::LeAudioContextType::UNSPECIFIED |
+                                  types::LeAudioContextType::MEDIA)
+                                     .value();
+  supported_src_context_types_ = supported_snk_context_types_;
+
   SetSampleDatabaseEarbudsValid(
       1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
       codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
@@ -3969,7 +3976,8 @@ TEST_F(UnicastTest, StartNotSupportedContextType) {
   LeAudioClient::Get()->SetInCall(false);
 
   /* Fallback scenario now supports 48Khz just like Media so we will reconfigure
-   * Note: Fallback is forced by the frequency on the remote device.
+   * Note: Fallback is forced by supported_snk_context_types_ not having GAME on
+   * the remote device.
    */
   EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
   UpdateMetadata(AUDIO_USAGE_GAME, AUDIO_CONTENT_TYPE_UNKNOWN, true);
