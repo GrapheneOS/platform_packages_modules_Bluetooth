@@ -69,7 +69,7 @@ void log_classic_pairing_event(const RawAddress& address, uint16_t handle,
                                uint32_t hci_cmd, uint16_t hci_event,
                                uint16_t cmd_status, uint16_t reason_code,
                                int64_t event_value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_metrics_logging::log_classic_pairing_event(
       address, handle, hci_cmd, hci_event, cmd_status, reason_code,
       event_value);
@@ -79,7 +79,7 @@ void log_link_layer_connection_event(
     android::bluetooth::DirectionEnum direction, uint16_t link_type,
     uint32_t hci_cmd, uint16_t hci_event, uint16_t hci_ble_event,
     uint16_t cmd_status, uint16_t reason_code) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_metrics_logging::log_link_layer_connection_event(
       address, connection_handle, direction, link_type, hci_cmd, hci_event,
       hci_ble_event, cmd_status, reason_code);
@@ -87,14 +87,14 @@ void log_link_layer_connection_event(
 void log_smp_pairing_event(const RawAddress& address, uint16_t smp_cmd,
                            android::bluetooth::DirectionEnum direction,
                            uint16_t smp_fail_reason) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_metrics_logging::log_smp_pairing_event(
       address, smp_cmd, direction, smp_fail_reason);
 }
 void log_sdp_attribute(const RawAddress& address, uint16_t protocol_uuid,
                        uint16_t attribute_id, size_t attribute_size,
                        const char* attribute_value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_metrics_logging::log_sdp_attribute(
       address, protocol_uuid, attribute_id, attribute_size, attribute_value);
 }
@@ -105,7 +105,7 @@ void log_manufacturer_info(const RawAddress& address,
                            const std::string& model,
                            const std::string& hardware_version,
                            const std::string& software_version) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_metrics_logging::log_manufacturer_info(
       address, source_type, source_name, manufacturer, model, hardware_version,
       software_version);
@@ -118,7 +118,7 @@ void log_manufacturer_info(const RawAddress& address,
                            const std::string& model,
                            const std::string& hardware_version,
                            const std::string& software_version) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_metrics_logging::log_manufacturer_info(
       address, address_type, source_type, source_name, manufacturer, model,
       hardware_version, software_version);
@@ -126,7 +126,7 @@ void log_manufacturer_info(const RawAddress& address,
 
 void log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum key,
                          int64_t value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_metrics_logging::log_counter_metrics(key, value);
 }
 

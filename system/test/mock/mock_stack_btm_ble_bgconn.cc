@@ -62,46 +62,46 @@ struct BTM_AcceptlistClear BTM_AcceptlistClear;
 // Mocked functions, if any
 const tBLE_BD_ADDR convert_to_address_with_type(
     const RawAddress& bd_addr, const tBTM_SEC_DEV_REC* p_dev_rec) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble_bgconn::convert_to_address_with_type(
       bd_addr, p_dev_rec);
 }
 void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble_bgconn::btm_update_scanner_filter_policy(
       scan_policy);
 }
 bool btm_ble_suspend_bg_conn(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble_bgconn::btm_ble_suspend_bg_conn();
 }
 bool btm_ble_resume_bg_conn(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble_bgconn::btm_ble_resume_bg_conn();
 }
 bool BTM_BackgroundConnectAddressKnown(const RawAddress& address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble_bgconn::BTM_BackgroundConnectAddressKnown(
       address);
 }
 bool BTM_SetLeConnectionModeToFast() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble_bgconn::BTM_SetLeConnectionModeToFast();
 }
 void BTM_SetLeConnectionModeToSlow() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble_bgconn::BTM_SetLeConnectionModeToSlow();
 }
 bool BTM_AcceptlistAdd(const RawAddress& address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble_bgconn::BTM_AcceptlistAdd(address);
 }
 void BTM_AcceptlistRemove(const RawAddress& address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble_bgconn::BTM_AcceptlistRemove(address);
 }
 void BTM_AcceptlistClear() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble_bgconn::BTM_AcceptlistClear();
 }
 

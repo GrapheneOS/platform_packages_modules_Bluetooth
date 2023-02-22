@@ -41,18 +41,18 @@
 #endif
 
 void BTM_BleDisableBatchScan(base::Callback<void(uint8_t)> cb) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
                             uint32_t scan_interval, uint32_t scan_window,
                             tBLE_ADDR_TYPE addr_type,
                             tBTM_BLE_DISCARD_RULE discard_rule,
                             base::Callback<void(uint8_t)> cb) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void BTM_BleReadScanReports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
                             tBTM_BLE_SCAN_REP_CBACK cb) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void BTM_BleSetStorageConfig(uint8_t batch_scan_full_max,
                              uint8_t batch_scan_trunc_max,
@@ -60,10 +60,10 @@ void BTM_BleSetStorageConfig(uint8_t batch_scan_full_max,
                              base::Callback<void(uint8_t)> cb,
                              tBTM_BLE_SCAN_THRESHOLD_CBACK* p_thres_cback,
                              tBTM_BLE_REF_VALUE ref_value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK* p_track_cback,
                             tBTM_BLE_REF_VALUE ref_value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void btm_ble_batchscan_init(void) { mock_function_count_map[__func__]++; }
+void btm_ble_batchscan_init(void) { inc_func_call_count(__func__); }
