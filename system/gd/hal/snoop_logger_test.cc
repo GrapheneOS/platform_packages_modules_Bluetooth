@@ -153,11 +153,11 @@ class TestSnoopLoggerModule : public SnoopLogger {
     return snoop_logger_socket_thread_.get();
   }
 
-  uint32_t GetL2capHeaderSize() {
+  static uint32_t GetL2capHeaderSize() {
     return L2CAP_HEADER_SIZE;
   }
 
-  size_t GetMaxFilteredSize() {
+  static size_t GetMaxFilteredSize() {
     return MAX_HCI_ACL_LEN - PACKET_TYPE_LENGTH;
   }
 };
@@ -763,10 +763,11 @@ TEST_F(SnoopLoggerModuleTest, headers_filtered_test) {
       (int)(sizeof(SnoopLoggerCommon::FileHeaderType) + sizeof(SnoopLogger::PacketHeaderType)));
 
   // Packet should be filtered
-  ASSERT_EQ(
-      std::filesystem::file_size(temp_snoop_log_filtered),
-      sizeof(SnoopLoggerCommon::FileHeaderType) + sizeof(SnoopLogger::PacketHeaderType) +
-          snoop_logger->GetMaxFilteredSize());
+  const size_t file_size = (size_t)std::filesystem::file_size(temp_snoop_log_filtered);
+  const size_t expected_file_size = sizeof(SnoopLoggerCommon::FileHeaderType) +
+                                    sizeof(SnoopLogger::PacketHeaderType) +
+                                    TestSnoopLoggerModule::GetMaxFilteredSize();
+  ASSERT_EQ(file_size, expected_file_size);
   ASSERT_TRUE(std::filesystem::remove(temp_snoop_log_filtered));
 }
 
@@ -932,7 +933,7 @@ TEST_F(SnoopLoggerModuleTest, rfcomm_channel_filtered_not_acceptlisted_dlci_test
   ASSERT_EQ(
       std::filesystem::file_size(temp_snoop_log_filtered),
       sizeof(SnoopLoggerCommon::FileHeaderType) + sizeof(SnoopLogger::PacketHeaderType) +
-          snoop_logger->GetL2capHeaderSize());
+          TestSnoopLoggerModule::GetL2capHeaderSize());
   ASSERT_TRUE(std::filesystem::remove(temp_snoop_log_filtered));
 }
 
@@ -983,7 +984,7 @@ TEST_F(SnoopLoggerModuleTest, rfcomm_channel_filtered_not_acceptlisted_l2cap_cha
   ASSERT_EQ(
       std::filesystem::file_size(temp_snoop_log_filtered),
       sizeof(SnoopLoggerCommon::FileHeaderType) + sizeof(SnoopLogger::PacketHeaderType) +
-          snoop_logger->GetL2capHeaderSize());
+          TestSnoopLoggerModule::GetL2capHeaderSize());
   ASSERT_TRUE(std::filesystem::remove(temp_snoop_log_filtered));
 }
 
