@@ -37,19 +37,19 @@
 
 void BTM_LogHistory(const std::string& tag, const RawAddress& bd_addr,
                     const std::string& msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void BTM_LogHistory(const std::string& tag, const RawAddress& bd_addr,
                     const std::string& msg, const std::string& extra) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void BTM_LogHistory(const std::string& tag, const tBLE_BD_ADDR& ble_bd_addr,
                     const std::string& msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void BTM_LogHistory(const std::string& tag, const tBLE_BD_ADDR& ble_bd_addr,
                     const std::string& msg, const std::string& extra) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void btm_free(void) { mock_function_count_map[__func__]++; }
-void btm_init(void) { mock_function_count_map[__func__]++; }
+void btm_free(void) { inc_func_call_count(__func__); }
+void btm_init(void) { inc_func_call_count(__func__); }

@@ -32,7 +32,7 @@
 
 namespace crypto_toolbox {
 Octet16 aes_cmac(const Octet16& key, const uint8_t* input, uint16_t length) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   Octet16 octet16;
   return octet16;
 }
