@@ -21,11 +21,11 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
-import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.hfp.BluetoothHfpProtoEnums;
 import android.content.Intent;
@@ -160,7 +160,7 @@ public class HeadsetStateMachine extends StateMachine {
 
     static final int HFP_SET_AUDIO_POLICY = 1;
 
-    private BluetoothAudioPolicy mHsClientAudioPolicy;
+    private BluetoothSinkAudioPolicy mHsClientAudioPolicy;
 
     // Keys are AT commands, and values are the company IDs.
     private static final Map<String, Integer> VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID;
@@ -199,10 +199,11 @@ public class HeadsetStateMachine extends StateMachine {
             "DatabaseManager cannot be null when HeadsetClientStateMachine is created");
         mDeviceSilenced = false;
 
-        BluetoothAudioPolicy storedAudioPolicy = mDatabaseManager.getAudioPolicyMetadata(device);
+        BluetoothSinkAudioPolicy storedAudioPolicy =
+                mDatabaseManager.getAudioPolicyMetadata(device);
         if (storedAudioPolicy == null) {
             Log.w(TAG, "Audio Policy not created in database! Creating...");
-            mHsClientAudioPolicy = new BluetoothAudioPolicy.Builder().build();
+            mHsClientAudioPolicy = new BluetoothSinkAudioPolicy.Builder().build();
             mDatabaseManager.setAudioPolicyMetadata(device, mHsClientAudioPolicy);
         } else {
             Log.i(TAG, "Audio Policy found in database!");
@@ -2019,9 +2020,9 @@ public class HeadsetStateMachine extends StateMachine {
         int connectingTimePolicy = (Integer) args[2];
         int inbandPolicy = (Integer) args[3];
 
-        setHfpCallAudioPolicy(new BluetoothAudioPolicy.Builder()
+        setHfpCallAudioPolicy(new BluetoothSinkAudioPolicy.Builder()
                 .setCallEstablishPolicy(callEstablishPolicy)
-                .setConnectingTimePolicy(connectingTimePolicy)
+                .setActiveDevicePolicyAfterConnection(connectingTimePolicy)
                 .setInBandRingtonePolicy(inbandPolicy)
                 .build());
     }
@@ -2031,7 +2032,7 @@ public class HeadsetStateMachine extends StateMachine {
      *
      * @param policies policies to be set and stored
      */
-    public void setHfpCallAudioPolicy(BluetoothAudioPolicy policies) {
+    public void setHfpCallAudioPolicy(BluetoothSinkAudioPolicy policies) {
         mHsClientAudioPolicy = policies;
         mDatabaseManager.setAudioPolicyMetadata(mDevice, policies);
     }
@@ -2040,7 +2041,7 @@ public class HeadsetStateMachine extends StateMachine {
      * get the audio policy of the client device
      *
      */
-    public BluetoothAudioPolicy getHfpCallAudioPolicy() {
+    public BluetoothSinkAudioPolicy getHfpCallAudioPolicy() {
         return mHsClientAudioPolicy;
     }
 

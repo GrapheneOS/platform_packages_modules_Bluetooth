@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothAudioPolicy;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
@@ -183,8 +183,8 @@ public class HeadsetServiceAndStateMachineTest {
                 .getBondState(any(BluetoothDevice.class));
         doAnswer(invocation -> mBondedDevices.toArray(new BluetoothDevice[]{})).when(
                 mAdapterService).getBondedDevices();
-        doReturn(new BluetoothAudioPolicy.Builder().build()).when(mAdapterService)
-                .getAudioPolicy(any(BluetoothDevice.class));
+        doReturn(new BluetoothSinkAudioPolicy.Builder().build()).when(mAdapterService)
+                .getRequestedAudioPolicyAsSink(any(BluetoothDevice.class));
         // Mock system interface
         doNothing().when(mSystemInterface).stop();
         when(mSystemInterface.getHeadsetPhoneState()).thenReturn(mPhoneState);
