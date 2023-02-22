@@ -38,10 +38,10 @@
 
 tAVRC_STS AVRC_BldResponse(uint8_t handle, tAVRC_RESPONSE* p_rsp,
                            BT_HDR** pp_pkt) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 tAVRC_STS avrc_bld_group_navigation_rsp(uint16_t navi_id, BT_HDR* p_pkt) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }

@@ -46,76 +46,74 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
                       const BD_NAME& bd_name, uint8_t* features,
                       LinkKey* p_link_key, uint8_t key_type,
                       uint8_t pin_length) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool btm_dev_support_role_switch(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool btm_set_bond_type_dev(const RawAddress& bd_addr,
                            tBTM_SEC_DEV_REC::tBTM_BOND_TYPE bond_type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool is_address_equal(void* data, void* context) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool is_handle_equal(void* data, void* context) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 char* BTM_SecReadDevName(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 tBTM_SEC_DEV_REC* btm_find_dev(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 tBTM_SEC_DEV_REC* btm_find_dev_by_handle(uint16_t handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 tBTM_SEC_DEV_REC* btm_find_or_alloc_dev(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 tBTM_SEC_DEV_REC* btm_sec_alloc_dev(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 tBTM_SEC_DEV_REC* btm_sec_allocate_dev_rec(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 tBTM_SEC_DEV_REC::tBTM_BOND_TYPE btm_get_bond_type_dev(
     const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN;
 }
 void BTM_SecClearSecurityFlags(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btm_consolidate_dev(tBTM_SEC_DEV_REC* p_target_rec) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btm_dev_consolidate_existing_connections(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void BTM_SecDump(const std::string& label) {
-  mock_function_count_map[__func__]++;
-}
+void BTM_SecDump(const std::string& label) { inc_func_call_count(__func__); }
 void BTM_SecDumpDev(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 std::vector<tBTM_SEC_DEV_REC*> btm_get_sec_dev_rec() {
   mock_function_count_map[__func__]++;
