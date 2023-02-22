@@ -2663,10 +2663,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getCreateBondCaller(BluetoothDevice device,
+        public void getPackageNameOfBondingApplication(BluetoothDevice device,
                 SynchronousResultReceiver receiver) {
             try {
-                receiver.send(getCreateBondCaller(device));
+                receiver.send(getPackageNameOfBondingApplication(device));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
@@ -2676,7 +2676,7 @@ public class AdapterService extends Service {
                 android.Manifest.permission.BLUETOOTH_CONNECT,
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED,
         })
-        private String getCreateBondCaller(BluetoothDevice device)  {
+        private String getPackageNameOfBondingApplication(BluetoothDevice device)  {
             AdapterService service = getService();
 
             if (service == null) {
@@ -2685,7 +2685,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.getCreateBondCaller(device);
+            return service.getPackageNameOfBondingApplication(device);
         }
 
         @Override
@@ -4986,7 +4986,7 @@ public class AdapterService extends Service {
      * {@link BluetoothDevice#createBond} on the given device.
      */
     @Nullable
-    public String getCreateBondCaller(BluetoothDevice device) {
+    public String getPackageNameOfBondingApplication(BluetoothDevice device) {
         CallerInfo info = mBondAttemptCallerInfo.get(device.getAddress());
         if (info == null) {
             return null;
