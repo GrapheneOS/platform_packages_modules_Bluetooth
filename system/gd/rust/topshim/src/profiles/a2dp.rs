@@ -217,8 +217,8 @@ pub mod ffi {
         fn audio_config_callback(
             addr: RawAddress,
             codec_config: A2dpCodecConfig,
-            codecs_local_capabilities: Vec<A2dpCodecConfig>,
-            codecs_selectable_capabilities: Vec<A2dpCodecConfig>,
+            codecs_local_capabilities: &Vec<A2dpCodecConfig>,
+            codecs_selectable_capabilities: &Vec<A2dpCodecConfig>,
         );
         fn mandatory_codec_preferred_callback(addr: RawAddress);
     }
@@ -282,7 +282,10 @@ cb_variant!(A2dpCb, audio_state_callback -> A2dpCallbacks::AudioState, RawAddres
 cb_variant!(A2dpCb, mandatory_codec_preferred_callback -> A2dpCallbacks::MandatoryCodecPreferred, RawAddress);
 
 cb_variant!(A2dpCb, audio_config_callback -> A2dpCallbacks::AudioConfig,
-RawAddress, A2dpCodecConfig, Vec<A2dpCodecConfig>, Vec<A2dpCodecConfig>);
+RawAddress, A2dpCodecConfig, &Vec<A2dpCodecConfig>, &Vec<A2dpCodecConfig>, {
+    let _2: Vec<A2dpCodecConfig> = _2.to_vec();
+    let _3: Vec<A2dpCodecConfig> = _3.to_vec();
+});
 
 pub struct A2dp {
     internal: cxx::UniquePtr<ffi::A2dpIntf>,
