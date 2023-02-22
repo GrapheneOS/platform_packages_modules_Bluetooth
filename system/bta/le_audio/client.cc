@@ -459,7 +459,7 @@ class LeAudioClientImpl : public LeAudioClient {
         group_id, ToString(group->GetState()).c_str(),
         ToString(group->GetTargetState()).c_str());
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-
+    group->CigClearCis();
     group->PrintDebugState();
 
     /* There is an issue with a setting up stream or any other operation which
