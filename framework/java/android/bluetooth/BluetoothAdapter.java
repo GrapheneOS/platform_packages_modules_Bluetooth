@@ -882,6 +882,8 @@ public final class BluetoothAdapter {
             mBluetoothConnectionCallbackExecutorMap = new HashMap<>();
     private final Map<PreferredAudioProfilesChangedCallback, Executor>
             mAudioProfilesChangedCallbackExecutorMap = new HashMap<>();
+    private final Map<BluetoothQualityReportReadyCallback, Executor>
+            mBluetoothQualityReportReadyCallbackExecutorMap = new HashMap<>();
 
     /**
      * Bluetooth metadata listener. Overrides the default BluetoothMetadataListener
@@ -3966,6 +3968,22 @@ public final class BluetoothAdapter {
                             }
                         }
                     }
+                    synchronized (mBluetoothQualityReportReadyCallbackExecutorMap) {
+                        if (!mBluetoothQualityReportReadyCallbackExecutorMap.isEmpty()) {
+                            try {
+                                final SynchronousResultReceiver recv =
+                                        SynchronousResultReceiver.get();
+                                mService.registerBluetoothQualityReportReadyCallback(
+                                        mBluetoothQualityReportReadyCallback, mAttributionSource,
+                                        recv);
+                                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(
+                                        BluetoothStatusCodes.ERROR_UNKNOWN);
+                            } catch (RemoteException | TimeoutException e) {
+                                Log.e(TAG, "onBluetoothServiceUp: Failed to register bluetooth"
+                                        + "quality report callback", e);
+                            }
+                        }
+                    }
                 }
 
                 public void onBluetoothServiceDown() {
@@ -5480,6 +5498,193 @@ public final class BluetoothAdapter {
         @SystemApi
         void onPreferredAudioProfilesChanged(@NonNull BluetoothDevice device, @NonNull
                 Bundle preferredAudioProfiles, int status);
+    }
+
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothQualityReportReadyCallback mBluetoothQualityReportReadyCallback =
+            new IBluetoothQualityReportReadyCallback.Stub() {
+                @Override
+                public void onBluetoothQualityReportReady(BluetoothDevice device,
+                        BluetoothQualityReport bluetoothQualityReport, int status) {
+                    for (Map.Entry<BluetoothQualityReportReadyCallback, Executor>
+                            callbackExecutorEntry:
+                            mBluetoothQualityReportReadyCallbackExecutorMap.entrySet()) {
+                        BluetoothQualityReportReadyCallback callback =
+                                callbackExecutorEntry.getKey();
+                        Executor executor = callbackExecutorEntry.getValue();
+                        executor.execute(() -> callback.onBluetoothQualityReportReady(device,
+                                bluetoothQualityReport, status));
+                    }
+                }
+            };
+
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
+            BluetoothStatusCodes.SUCCESS,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED,
+            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
+            BluetoothStatusCodes.ERROR_UNKNOWN
+    })
+    public @interface RegisterBluetoothQualityReportReadyCallbackReturnValues {}
+
+    /**
+     * Registers a callback to be notified when Bluetooth Quality Report is ready. To unregister
+     * this callback, call
+     * {@link #unregisterBluetoothQualityReportReadyCallback(
+     * BluetoothQualityReportReadyCallback)}.
+     *
+     * @param executor an {@link Executor} to execute the callbacks
+     * @param callback user implementation of the {@link BluetoothQualityReportReadyCallback}
+     * @return whether the callback was registered successfully
+     * @throws NullPointerException if executor or callback is null
+     * @throws IllegalArgumentException if the callback is already registered
+     *
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @RegisterBluetoothQualityReportReadyCallbackReturnValues
+    public int registerBluetoothQualityReportReadyCallback(
+            @NonNull @CallbackExecutor Executor executor,
+            @NonNull BluetoothQualityReportReadyCallback callback) {
+        if (DBG) Log.d(TAG, "registerBluetoothQualityReportReadyCallback()");
+        Objects.requireNonNull(executor, "executor cannot be null");
+        Objects.requireNonNull(callback, "callback cannot be null");
+
+        final int defaultValue = BluetoothStatusCodes.ERROR_UNKNOWN;
+        int serviceCallStatus = defaultValue;
+        synchronized (mBluetoothQualityReportReadyCallbackExecutorMap) {
+            // If the callback map is empty, we register the service-to-app callback
+            if (mBluetoothQualityReportReadyCallbackExecutorMap.isEmpty()) {
+                mServiceLock.readLock().lock();
+                try {
+                    if (mService != null) {
+                        final SynchronousResultReceiver<Integer> recv =
+                                SynchronousResultReceiver.get();
+                        mService.registerBluetoothQualityReportReadyCallback(
+                                mBluetoothQualityReportReadyCallback, mAttributionSource, recv);
+                        serviceCallStatus = recv.awaitResultNoInterrupt(getSyncTimeout())
+                                .getValue(defaultValue);
+                    }
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                } catch (TimeoutException e) {
+                    Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                } finally {
+                    mServiceLock.readLock().unlock();
+                }
+                if (serviceCallStatus != BluetoothStatusCodes.SUCCESS) {
+                    return serviceCallStatus;
+                }
+            }
+
+            // Adds the passed in callback to our local mapping
+            if (mBluetoothQualityReportReadyCallbackExecutorMap.containsKey(callback)) {
+                throw new IllegalArgumentException("This callback has already been registered");
+            } else {
+                mBluetoothQualityReportReadyCallbackExecutorMap.put(callback, executor);
+            }
+        }
+
+        return BluetoothStatusCodes.SUCCESS;
+    }
+
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
+            BluetoothStatusCodes.SUCCESS,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED,
+            BluetoothStatusCodes.ERROR_CALLBACK_NOT_REGISTERED,
+            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
+            BluetoothStatusCodes.ERROR_UNKNOWN
+    })
+    public @interface UnRegisterBluetoothQualityReportReadyCallbackReturnValues {}
+
+    /**
+     * Unregisters a callback that was previously registered with
+     * {@link #registerBluetoothQualityReportReadyCallback(Executor,
+     * BluetoothQualityReportReadyCallback)}.
+     *
+     * @param callback user implementation of the {@link BluetoothQualityReportReadyCallback}
+     * @return whether the callback was successfully unregistered
+     * @throws NullPointerException if the callback is null
+     * @throws IllegalArgumentException if the callback has not been registered
+     *
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @UnRegisterBluetoothQualityReportReadyCallbackReturnValues
+    public int unregisterBluetoothQualityReportReadyCallback(
+            @NonNull BluetoothQualityReportReadyCallback callback) {
+        if (DBG) Log.d(TAG, "unregisterBluetoothQualityReportReadyCallback()");
+        Objects.requireNonNull(callback, "callback cannot be null");
+
+        synchronized (mBluetoothQualityReportReadyCallbackExecutorMap) {
+            if (mBluetoothQualityReportReadyCallbackExecutorMap.remove(callback) == null) {
+                throw new IllegalArgumentException("This callback has not been registered");
+            }
+        }
+
+        if (!mBluetoothConnectionCallbackExecutorMap.isEmpty()) {
+            return BluetoothStatusCodes.SUCCESS;
+        }
+
+        final int defaultValue = BluetoothStatusCodes.ERROR_UNKNOWN;
+        // If the callback map is empty, we unregister the service-to-app callback
+        mServiceLock.readLock().lock();
+        try {
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                mService.unregisterBluetoothQualityReportReadyCallback(
+                        mBluetoothQualityReportReadyCallback, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            }
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+
+        return defaultValue;
+    }
+
+    /**
+     * A callback for Bluetooth Quality Report that arise from the controller.
+     *
+     * @hide
+     */
+    @SystemApi
+    public interface BluetoothQualityReportReadyCallback {
+        /**
+         * Called when the Bluetooth Quality Report coming from the controller is ready. This
+         * callback includes a Parcel that contains information about Bluetooth Quality.
+         * Currently the report supports five event types: Quality monitor event,
+         * Approaching LSTO event, A2DP choppy event, SCO choppy event and Connect fail event.
+         * To know which kind of event is wrapped in this {@link BluetoothQualityReport} object,
+         * you need to call {@link #getQualityReportId}.
+         *
+         *
+         * @param device is the BluetoothDevice which connection quality is being reported
+         * @param bluetoothQualityReport a Parcel that contains info about Bluetooth Quality
+         * @param status whether the operation succeeded or timed out
+         *
+         * @hide
+         */
+        @SystemApi
+        void onBluetoothQualityReportReady(@NonNull BluetoothDevice device, @NonNull
+                BluetoothQualityReport bluetoothQualityReport, int status);
     }
 
     /**

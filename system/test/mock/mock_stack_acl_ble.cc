@@ -42,7 +42,7 @@
 void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
                              uint16_t handle, bool enhanced, tHCI_STATUS status,
                              bool locally_initiated) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void acl_ble_enhanced_connection_complete(
     const tBLE_BD_ADDR& address_with_type, uint16_t handle, tHCI_ROLE role,
@@ -50,14 +50,14 @@ void acl_ble_enhanced_connection_complete(
     uint16_t conn_timeout, const RawAddress& local_rpa,
     const RawAddress& peer_rpa, uint8_t peer_addr_type,
     bool can_read_discoverable_characteristics) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void acl_ble_enhanced_connection_complete_from_shim(
     const tBLE_BD_ADDR& address_with_type, uint16_t handle, tHCI_ROLE role,
     uint16_t conn_interval, uint16_t conn_latency, uint16_t conn_timeout,
     const RawAddress& local_rpa, const RawAddress& peer_rpa,
     tBLE_ADDR_TYPE peer_addr_type, bool can_read_discoverable_characteristics) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
@@ -66,12 +66,12 @@ void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
 void acl_ble_update_event_received(tHCI_STATUS status, uint16_t handle,
                                    uint16_t interval, uint16_t latency,
                                    uint16_t timeout) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 void acl_ble_data_length_change_event(uint16_t handle, uint16_t max_tx_octets,
                                       uint16_t max_tx_time,
                                       uint16_t max_rx_octets,
                                       uint16_t max_rx_time) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
