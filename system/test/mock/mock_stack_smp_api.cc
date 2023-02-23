@@ -41,48 +41,48 @@
 #endif
 
 bool SMP_PairCancel(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool SMP_Register(tSMP_CALLBACK* p_cback) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 tSMP_STATUS SMP_BR_PairWith(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return SMP_SUCCESS;
 }
 tSMP_STATUS SMP_Pair(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return SMP_SUCCESS;
 }
 tSMP_STATUS SMP_Pair(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return SMP_SUCCESS;
 }
 uint8_t SMP_SetTraceLevel(uint8_t new_level) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 void SMP_ConfirmReply(const RawAddress& bd_addr, uint8_t res) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void SMP_Init(void) { mock_function_count_map[__func__]++; }
+void SMP_Init(void) { inc_func_call_count(__func__); }
 void SMP_OobDataReply(const RawAddress& bd_addr, tSMP_STATUS res, uint8_t len,
                       uint8_t* p_data) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void SMP_PasskeyReply(const RawAddress& bd_addr, uint8_t res,
                       uint32_t passkey) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void SMP_SecureConnectionOobDataReply(uint8_t* p_data) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void SMP_SecurityGrant(const RawAddress& bd_addr, tSMP_STATUS res) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
-void SMP_CrLocScOobData() { mock_function_count_map[__func__]++; }
+void SMP_CrLocScOobData() { inc_func_call_count(__func__); }
 
-void SMP_ClearLocScOobData() { mock_function_count_map[__func__]++; }
+void SMP_ClearLocScOobData() { inc_func_call_count(__func__); }

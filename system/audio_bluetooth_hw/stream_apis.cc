@@ -366,6 +366,31 @@ static int out_set_parameters(struct audio_stream* stream,
     }
   }
 
+  if (params.find("LeAudioSuspended") != params.end() &&
+      out->bluetooth_output_->IsLeAudio()) {
+    LOG(INFO) << __func__ << ": LeAudioSuspended found LEAudio="
+              << out->bluetooth_output_->IsLeAudio();
+    if (params["LeAudioSuspended"] == "true") {
+      LOG(INFO) << __func__ << ": LeAudioSuspended true, state="
+                << out->bluetooth_output_->GetState()
+                << " stream param standby";
+      if (out->bluetooth_output_->GetState() == BluetoothStreamState::STARTED) {
+        LOG(INFO) << __func__ << ": Stream is started, suspending LE Audio";
+      } else if (out->bluetooth_output_->GetState() !=
+                 BluetoothStreamState::DISABLED) {
+        LOG(INFO) << __func__ << ": Stream is disabled, suspending LE Audio";
+      }
+    } else {
+      LOG(INFO) << __func__ << ": LeAudioSuspended false, state="
+                << out->bluetooth_output_->GetState()
+                << " stream param standby";
+      if (out->bluetooth_output_->GetState() ==
+          BluetoothStreamState::DISABLED) {
+        LOG(INFO) << __func__ << ": Stream is disabled, unsuspending LE Audio";
+      }
+    }
+  }
+
   if (params.find("closing") != params.end()) {
     if (params["closing"] == "true") {
       LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()

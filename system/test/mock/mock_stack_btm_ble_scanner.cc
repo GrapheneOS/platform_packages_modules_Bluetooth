@@ -41,17 +41,17 @@
 #define UNUSED_ATTR
 #endif
 
-void BleScanningManager::CleanUp() { mock_function_count_map[__func__]++; }
-void btm_ble_scanner_init() { mock_function_count_map[__func__]++; }
+void BleScanningManager::CleanUp() { inc_func_call_count(__func__); }
+void btm_ble_scanner_init() { inc_func_call_count(__func__); }
 base::WeakPtr<BleScanningManager> BleScanningManager::Get() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 bool BleScanningManager::IsInitialized() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 void BleScanningManager::Initialize(BleScannerHciInterface* interface) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void btm_ble_scanner_cleanup(void) { mock_function_count_map[__func__]++; }
+void btm_ble_scanner_cleanup(void) { inc_func_call_count(__func__); }

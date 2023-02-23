@@ -46,21 +46,21 @@
 #define UNUSED_ATTR
 #endif
 
-void BleAdvertisingManager::CleanUp() { mock_function_count_map[__func__]++; }
-void btm_ble_adv_init() { mock_function_count_map[__func__]++; }
+void BleAdvertisingManager::CleanUp() { inc_func_call_count(__func__); }
+void btm_ble_adv_init() { inc_func_call_count(__func__); }
 base::WeakPtr<BleAdvertisingManager> BleAdvertisingManager::Get() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 bool BleAdvertisingManager::IsInitialized() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
-void test_timeout_cb(uint8_t status) { mock_function_count_map[__func__]++; }
+void test_timeout_cb(uint8_t status) { inc_func_call_count(__func__); }
 void BleAdvertisingManager::Initialize(BleAdvertiserHciInterface* interface) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void btm_ble_multi_adv_cleanup(void) { mock_function_count_map[__func__]++; }
-void testRecomputeTimeout1() { mock_function_count_map[__func__]++; }
-void testRecomputeTimeout2() { mock_function_count_map[__func__]++; }
-void testRecomputeTimeout3() { mock_function_count_map[__func__]++; }
+void btm_ble_multi_adv_cleanup(void) { inc_func_call_count(__func__); }
+void testRecomputeTimeout1() { inc_func_call_count(__func__); }
+void testRecomputeTimeout2() { inc_func_call_count(__func__); }
+void testRecomputeTimeout3() { inc_func_call_count(__func__); }

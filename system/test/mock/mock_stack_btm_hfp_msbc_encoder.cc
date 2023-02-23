@@ -59,16 +59,16 @@ uint32_t hfp_msbc_encode_frames::return_value = 0;
 
 // Mocked functions, if any
 uint32_t hfp_msbc_encode_frames(int16_t* input, uint8_t* output) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_hfp_msbc_encoder::hfp_msbc_encode_frames(input,
                                                                         output);
 }
 void hfp_msbc_encoder_cleanup(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_hfp_msbc_encoder::hfp_msbc_encoder_cleanup();
 }
 void hfp_msbc_encoder_init(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_hfp_msbc_encoder::hfp_msbc_encoder_init();
 }
 // Mocked functions complete
