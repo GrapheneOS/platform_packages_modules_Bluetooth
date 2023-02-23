@@ -841,6 +841,17 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
           update_service_data_filter(apcf_action, filter_index, filter.data, filter.data_mask);
           break;
         }
+        case ApcfFilterType::TRANSPORT_DISCOVERY_DATA: {
+          update_transport_discovery_data_filter(
+              apcf_action,
+              filter_index,
+              filter.org_id,
+              filter.tds_flags,
+              filter.tds_flags_mask,
+              filter.data,
+              filter.data_mask);
+          break;
+        }
         case ApcfFilterType::AD_TYPE: {
           update_ad_type_filter(apcf_action, filter_index, filter.ad_type, filter.data, filter.data_mask);
           break;
@@ -1032,6 +1043,60 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
 
     le_scanning_interface_->EnqueueCommand(
         LeAdvFilterServiceDataBuilder::Create(action, filter_index, combined_data),
+        module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+  }
+
+  void update_transport_discovery_data_filter(
+      ApcfAction action,
+      uint8_t filter_index,
+      uint8_t org_id,
+      uint8_t tds_flags,
+      uint8_t tds_flags_mask,
+      std::vector<uint8_t> transport_data,
+      std::vector<uint8_t> transport_data_mask) {
+    std::vector<uint8_t> combined_data = {};
+
+    LocalVersionInformation local_version_information = controller_->GetLocalVersionInformation();
+
+    // QTI controller, transport discovery data  filter are supported by default. Check is added
+    // to keep backward compatibility.
+    if (!is_transport_discovery_data_filter_supported_ &&
+        !(local_version_information.manufacturer_name_ == LMP_COMPID_QTI)) {
+      LOG_WARN("transport discovery data filter isn't supported");
+      return;
+    }
+
+    if (action != ApcfAction::CLEAR) {
+      combined_data.push_back((uint8_t)org_id);
+      combined_data.push_back((uint8_t)tds_flags);
+      combined_data.push_back((uint8_t)tds_flags_mask);
+      if (transport_data.size() != 0) {
+        // 0x02 Wi�Fi Alliance Neighbor Awareness Networking
+        if (org_id == 0x02) {
+          // Transport data contains WIFI NAN hash, reverse it before sending controller.
+          std::reverse(transport_data.begin(), transport_data.end());
+        }
+        combined_data.insert(combined_data.end(), transport_data.begin(), transport_data.end());
+        // For future version , controller may also filter using transport data
+        // & transport data mask for non WIFI NAN id.
+        if (is_transport_discovery_data_filter_supported_ && org_id != 0x02) {
+          combined_data.insert(
+              combined_data.end(), transport_data_mask.begin(), transport_data_mask.end());
+        }
+      }
+    }
+
+    LOG_INFO(
+        "org id: %d, tds_flags: %d, tds_flags_mask = %d,"
+        "transport_data size: %zu, transport_data_mask size: %zu",
+        org_id,
+        tds_flags,
+        tds_flags_mask,
+        transport_data.size(),
+        transport_data_mask.size());
+
+    le_scanning_interface_->EnqueueCommand(
+        LeAdvFilterTransportDiscoveryDataBuilder::Create(action, filter_index, combined_data),
         module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
   }
 
@@ -1422,6 +1487,15 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
             complete_view.GetApcfAction(),
             (uint8_t)complete_view.GetStatus());
       } break;
+      case ApcfOpcode::TRANSPORT_DISCOVERY_DATA: {
+        auto complete_view = LeAdvFilterTransportDiscoveryDataCompleteView::Create(status_view);
+        ASSERT(complete_view.IsValid());
+        scanning_callbacks_->OnFilterConfigCallback(
+            ApcfFilterType::TRANSPORT_DISCOVERY_DATA,
+            complete_view.GetApcfAvailableSpaces(),
+            complete_view.GetApcfAction(),
+            (uint8_t)complete_view.GetStatus());
+      } break;
       case ApcfOpcode::AD_TYPE: {
         auto complete_view = LeAdvFilterADTypeCompleteView::Create(status_view);
         ASSERT(complete_view.IsValid());
@@ -1452,8 +1526,14 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
     }
     auto complete_view = LeAdvFilterReadExtendedFeaturesCompleteView::Create(status_view);
     ASSERT(complete_view.IsValid());
+    is_transport_discovery_data_filter_supported_ =
+        complete_view.GetTransportDiscoveryDataFilter() == 1;
     is_ad_type_filter_supported_ = complete_view.GetAdTypeFilter() == 1;
-    LOG_INFO("set is_ad_type_filter_supported_ to %d", is_ad_type_filter_supported_);
+    LOG_INFO(
+        "set is_ad_type_filter_supported_ to %d & "
+        "is_transport_discovery_data_filter_supported_ to %d",
+        is_ad_type_filter_supported_,
+        is_transport_discovery_data_filter_supported_);
   }
 
   void on_batch_scan_complete(CommandCompleteView view) {
@@ -1610,6 +1690,7 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
   bool is_ad_type_filter_supported_ = false;
   bool is_batch_scan_supported_ = false;
   bool is_periodic_advertising_sync_transfer_sender_supported_ = false;
+  bool is_transport_discovery_data_filter_supported_ = false;
 
   LeScanType le_scan_type_ = LeScanType::ACTIVE;
   uint32_t interval_ms_{1000};

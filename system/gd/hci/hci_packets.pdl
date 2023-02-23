@@ -5004,7 +5004,7 @@ enum ApcfOpcode : 8 {
   LOCAL_NAME = 0x05,
   MANUFACTURER_DATA = 0x06,
   SERVICE_DATA = 0x07,
-  RESERVED = 0x08,
+  TRANSPORT_DISCOVERY_DATA = 0x08,
   AD_TYPE = 0x09,
   READ_EXTENDED_FEATURES = 0xFF,
 }
@@ -5050,7 +5050,7 @@ enum ApcfFilterType : 8 {
   LOCAL_NAME = 0x04,
   MANUFACTURER_DATA = 0x05,
   SERVICE_DATA = 0x06,
-  RESERVED = 0x07,
+  TRANSPORT_DISCOVERY_DATA = 0x07,
   AD_TYPE = 0x08,
 }
 
@@ -5164,6 +5164,17 @@ packet LeAdvFilterServiceDataComplete : LeAdvFilterComplete (apcf_opcode = SERVI
   apcf_available_spaces : 8,
 }
 
+packet LeAdvFilterTransportDiscoveryData : LeAdvFilter (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {
+  apcf_action : ApcfAction,
+  apcf_filter_index : 8,
+  apcf_transport_discovery_data : 8[],
+}
+
+packet LeAdvFilterTransportDiscoveryDataComplete : LeAdvFilterComplete (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {
+  apcf_action : ApcfAction,
+  apcf_available_spaces : 8,
+}
+
 packet LeAdvFilterADType : LeAdvFilter (apcf_opcode = AD_TYPE) {
   apcf_action : ApcfAction,
   apcf_filter_index : 8,
@@ -5183,13 +5194,13 @@ test LeAdvFilterReadExtendedFeatures {
 }
 
 packet LeAdvFilterReadExtendedFeaturesComplete : LeAdvFilterComplete (apcf_opcode = READ_EXTENDED_FEATURES) {
-  _reserved_ : 1,
+  transport_discovery_data_filter : 1,
   ad_type_filter : 1,
   _reserved_ : 14,
 }
 
 test LeAdvFilterReadExtendedFeaturesComplete {
-  "\x0e\x07\x01\x57\xfd\x00\xff\x02\x00",
+  "\x0e\x07\x01\x57\xfd\x00\xff\x03\x00",
 }
 
 packet LeEnergyInfo : VendorCommand (op_code = LE_ENERGY_INFO) {
