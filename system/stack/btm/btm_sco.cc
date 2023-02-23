@@ -251,7 +251,11 @@ void btm_route_sco_data(BT_HDR* p_msg) {
   const uint8_t* decoded = nullptr;
   size_t written = 0, rc = 0;
   if (active_sco->is_wbs()) {
-    rc = bluetooth::audio::sco::wbs::enqueue_packet(payload, data_len);
+    uint16_t status = HCID_GET_PKT_STATUS(handle_with_flags);
+
+    if (status > 0) LOG_DEBUG("Packet corrupted with status(0x%X)", status);
+    rc = bluetooth::audio::sco::wbs::enqueue_packet(payload, data_len,
+                                                    status > 0);
     if (rc != data_len) LOG_DEBUG("Failed to enqueue packet");
 
     while (rc) {
