@@ -819,8 +819,8 @@ impl RawAddress {
 }
 
 /// Address that is safe to display in logs.
-pub struct DisplayAddress(pub RawAddress);
-impl Display for DisplayAddress {
+pub struct DisplayAddress<'a>(pub &'a RawAddress);
+impl<'a> Display for DisplayAddress<'a> {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "xx:xx:xx:xx:{:2X}:{:2X}", &self.0.address[4], &self.0.address[5])
     }
