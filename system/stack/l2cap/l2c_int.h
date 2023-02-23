@@ -343,8 +343,8 @@ typedef struct t_l2c_ccb {
   uint16_t max_rx_mtu;
   uint8_t fcr_cfg_tries;          /* Max number of negotiation attempts */
   bool peer_cfg_already_rejected; /* If mode rejected once, set to true */
-  bool out_cfg_fcr_present; /* true if cfg response shoulkd include fcr options
-                               */
+  bool out_cfg_fcr_present; /* true if cfg response should include fcr options
+                             */
 
   bool is_flushable; /* true if channel is flushable */
 
