@@ -901,6 +901,13 @@ impl BluetoothMedia {
         if missing_profiles.is_empty()
             || missing_profiles == HashSet::from([Profile::AvrcpController])
         {
+            info!(
+                "[{}]: Fully connected, available profiles: {:?}, connected profiles: {:?}.",
+                DisplayAddress(&addr),
+                available_profiles,
+                connected_profiles
+            );
+
             states.insert(addr, DeviceConnectionStates::FullyConnected);
         }
 
