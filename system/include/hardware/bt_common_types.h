@@ -101,6 +101,9 @@ struct ApcfCommand {
   std::vector<uint8_t> name;
   uint16_t company;
   uint16_t company_mask;
+  uint8_t org_id;
+  uint8_t tds_flags;
+  uint8_t tds_flags_mask;
   uint8_t ad_type;
   std::vector<uint8_t> data;
   std::vector<uint8_t> data_mask;

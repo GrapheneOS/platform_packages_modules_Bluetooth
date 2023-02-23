@@ -909,6 +909,9 @@ typedef struct {
 // TODO: Remove this once Synaptics specific code is removed
 #define LMP_COMPID_SYNAPTICS 0x0A76
 
+// TODO Remove this once all QTI specific hacks are removed.
+#define LMP_COMPID_QTI 0x001D
+
 /* Parameter information for HCI_SYNA_SET_ACL_PRIORITY */
 #define HCI_SYNA_ACL_PRIORITY_PARAM_SIZE 3
 #define HCI_SYNA_ACL_PRIORITY_LOW 0x00
