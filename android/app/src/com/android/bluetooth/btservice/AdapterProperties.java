@@ -130,6 +130,7 @@ class AdapterProperties {
     private boolean mIsLeExtendedAdvertisingSupported;
     private boolean mIsLePeriodicAdvertisingSupported;
     private int mLeMaximumAdvertisingDataLength;
+    private boolean mIsOffloadedTransportDiscoveryDataScanSupported;
 
     private int mIsDynamicAudioBufferSizeSupported;
     private int mDynamicAudioBufferSizeSupportedCodecsGroup1;
@@ -577,6 +578,14 @@ class AdapterProperties {
      */
     int getTotalNumOfTrackableAdvertisements() {
         return mTotNumOfTrackableAdv;
+    }
+
+
+    /**
+     * @return the isOffloadedTransportDiscoveryDataScanSupported
+     */
+    public boolean isOffloadedTransportDiscoveryDataScanSupported() {
+        return mIsOffloadedTransportDiscoveryDataScanSupported;
     }
 
     /**
@@ -1081,6 +1090,7 @@ class AdapterProperties {
         mIsLeConnectedIsochronousStreamCentralSupported = ((0xFF & ((int) val[25])) != 0);
         mIsLeIsochronousBroadcasterSupported = ((0xFF & ((int) val[26])) != 0);
         mIsLePeriodicAdvertisingSyncTransferRecipientSupported = ((0xFF & ((int) val[27])) != 0);
+        mIsOffloadedTransportDiscoveryDataScanSupported = ((0x01 & ((int) val[28])) != 0);
 
         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                 + " mNumOfAdvertisementInstancesSupported = "
@@ -1108,7 +1118,9 @@ class AdapterProperties {
                 + " mIsLeIsochronousBroadcasterSupported = "
                 + mIsLeIsochronousBroadcasterSupported
                 + " mIsLePeriodicAdvertisingSyncTransferRecipientSupported = "
-                + mIsLePeriodicAdvertisingSyncTransferRecipientSupported);
+                + mIsLePeriodicAdvertisingSyncTransferRecipientSupported
+                + " mIsOffloadedTransportDiscoveryDataScanSupported = "
+                + mIsOffloadedTransportDiscoveryDataScanSupported);
         invalidateIsOffloadedFilteringSupportedCache();
     }
 
