@@ -2762,8 +2762,19 @@ void LeAudioDeviceGroups::Cleanup(void) {
 }
 
 void LeAudioDeviceGroups::Dump(int fd, int active_group_id) {
+  /* Dump first active group */
   for (auto& g : groups_) {
-    g->Dump(fd, active_group_id);
+    if (g->group_id_ == active_group_id) {
+      g->Dump(fd, active_group_id);
+      break;
+    }
+  }
+
+  /* Dump non active group */
+  for (auto& g : groups_) {
+    if (g->group_id_ != active_group_id) {
+      g->Dump(fd, active_group_id);
+    }
   }
 }
 
