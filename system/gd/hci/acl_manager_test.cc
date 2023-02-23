@@ -32,6 +32,7 @@
 #include "hci/controller.h"
 #include "hci/hci_layer.h"
 #include "hci/hci_layer_fake.h"
+#include "os/fake_timer/fake_timerfd.h"
 #include "os/thread.h"
 #include "packet/raw_builder.h"
 
@@ -44,6 +45,7 @@ namespace {
 
 using common::BidiQueue;
 using common::BidiQueueEnd;
+using os::fake_timer::fake_timerfd_advance;
 using packet::kLittleEndian;
 using packet::PacketView;
 using packet::RawBuilder;
@@ -405,6 +407,11 @@ class AclManagerWithLeConnectionTest : public AclManagerTest {
           }
         });
 
+    if (send_early_acl_) {
+      LOG_INFO("Sending a packet with handle 0x%02x (0x%d)", handle_, handle_);
+      test_hci_layer_->IncomingAclData(handle_);
+    }
+
     test_hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
         ErrorCode::SUCCESS,
         handle_,
@@ -438,9 +445,18 @@ class AclManagerWithLeConnectionTest : public AclManagerTest {
   }
 
   uint16_t handle_ = 0x123;
+  bool send_early_acl_ = false;
   std::shared_ptr<LeAclConnection> connection_;
   AddressWithType remote_with_type_;
   MockLeConnectionManagementCallbacks mock_le_connection_management_callbacks_;
+};
+
+class AclManagerWithLateLeConnectionTest : public AclManagerWithLeConnectionTest {
+ protected:
+  void SetUp() override {
+    send_early_acl_ = true;
+    AclManagerWithLeConnectionTest::SetUp();
+  }
 };
 
 // TODO: implement version of this test where controller supports Extended Advertising Feature in
@@ -703,6 +719,60 @@ TEST_F(AclManagerWithLeConnectionTest, invoke_registered_callback_le_queue_disco
   EXPECT_CALL(mock_le_connection_management_callbacks_, OnDisconnection(reason));
   connection_->RegisterCallbacks(&mock_le_connection_management_callbacks_, client_handler_);
   sync_client_handler();
+}
+
+TEST_F(AclManagerWithLateLeConnectionTest, and_receive_nothing) {}
+
+TEST_F(AclManagerWithLateLeConnectionTest, receive_acl) {
+  client_handler_->Post(common::BindOnce(fake_timerfd_advance, 1200));
+  auto queue_end = connection_->GetAclQueueEnd();
+  std::unique_ptr<PacketView<kLittleEndian>> received;
+  do {
+    received = queue_end->TryDequeue();
+  } while (received == nullptr);
+
+  {
+    ASSERT_EQ(received->size(), 10u);
+    auto itr = received->begin();
+    ASSERT_EQ(itr.extract<uint16_t>(), 6u);  // L2CAP PDU size
+    ASSERT_EQ(itr.extract<uint16_t>(), 2u);  // L2CAP CID
+    ASSERT_EQ(itr.extract<uint16_t>(), handle_);
+    ASSERT_GE(itr.extract<uint32_t>(), 0u);  // packet number
+  }
+}
+
+TEST_F(AclManagerWithLateLeConnectionTest, receive_acl_in_order) {
+  // Send packet #2 from HCI (the first was sent in the test)
+  test_hci_layer_->IncomingAclData(handle_);
+  auto queue_end = connection_->GetAclQueueEnd();
+
+  std::unique_ptr<PacketView<kLittleEndian>> received;
+  do {
+    received = queue_end->TryDequeue();
+  } while (received == nullptr);
+
+  uint32_t first_packet_number = 0;
+  {
+    ASSERT_EQ(received->size(), 10u);
+    auto itr = received->begin();
+    ASSERT_EQ(itr.extract<uint16_t>(), 6u);  // L2CAP PDU size
+    ASSERT_EQ(itr.extract<uint16_t>(), 2u);  // L2CAP CID
+    ASSERT_EQ(itr.extract<uint16_t>(), handle_);
+
+    first_packet_number = itr.extract<uint32_t>();
+  }
+
+  do {
+    received = queue_end->TryDequeue();
+  } while (received == nullptr);
+  {
+    ASSERT_EQ(received->size(), 10u);
+    auto itr = received->begin();
+    ASSERT_EQ(itr.extract<uint16_t>(), 6u);  // L2CAP PDU size
+    ASSERT_EQ(itr.extract<uint16_t>(), 2u);  // L2CAP CID
+    ASSERT_EQ(itr.extract<uint16_t>(), handle_);
+    ASSERT_GT(itr.extract<uint32_t>(), first_packet_number);
+  }
 }
 
 TEST_F(AclManagerWithConnectionTest, invoke_registered_callback_disconnection_complete) {
