@@ -374,3 +374,11 @@ void BTA_GATTS_Close(uint16_t conn_id) {
 
   bta_sys_sendmsg(p_buf);
 }
+
+void BTA_GATTS_InitBonded(void) {
+  LOG(INFO) << __func__;
+
+  BT_HDR_RIGID* p_buf = (BT_HDR_RIGID*)osi_malloc(sizeof(BT_HDR_RIGID));
+  p_buf->event = BTA_GATTS_API_INIT_BONDED_EVT;
+  bta_sys_sendmsg(p_buf);
+}

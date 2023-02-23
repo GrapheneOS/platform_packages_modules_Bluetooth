@@ -1190,4 +1190,7 @@ extern void gatt_notify_enc_cmpl(const RawAddress& bd_addr);
  * true, as there is no need to wipe controller acceptlist in this case. */
 extern void gatt_reset_bgdev_list(bool after_reset);
 
+// Initialize GATTS list of bonded device service change updates.
+extern void gatt_load_bonded(void);
+
 #endif /* GATT_API_H */
