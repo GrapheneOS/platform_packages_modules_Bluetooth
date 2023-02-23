@@ -1454,8 +1454,8 @@ impl CommandHandler {
                     return Err(CommandError::Failed(format!("Failed to create socket with status={:?} against {}, type {}, with psm/uuid {}",
                         status, addr, sock_type, psm_or_uuid)));
                 } else {
-                    return Err(CommandError::Failed(format!("Called create socket with result ({:?}, {}) against {}, type {}, with psm/uuid {}",
-                    status, id, addr, sock_type, psm_or_uuid)));
+                    print_info!("Called create socket with result ({:?}, {}) against {}, type {}, with psm/uuid {}",
+                    status, id, addr, sock_type, psm_or_uuid);
                 }
             }
 
