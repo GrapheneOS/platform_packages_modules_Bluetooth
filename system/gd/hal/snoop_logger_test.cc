@@ -1383,6 +1383,7 @@ TEST_F(SnoopLoggerModuleTest, socket_disabled_connect_fail_test) {
   ASSERT_TRUE(ret != 0);
 
   test_registry->StopAll();
+  close(socket_fd);
 }
 
 TEST_F(SnoopLoggerModuleTest, default_socket_enabled_capture_recv_test) {
@@ -1432,6 +1433,7 @@ TEST_F(SnoopLoggerModuleTest, default_socket_enabled_capture_recv_test) {
   ASSERT_TRUE(std::memcmp(recv_buf3, kHfpAtNrec0.data(), kHfpAtNrec0.size()) == 0);
 
   test_registry->StopAll();
+  close(socket_fd);
 }
 
 TEST_F(SnoopLoggerModuleTest, custom_socket_register_enabled_capture_recv_test) {
@@ -1491,6 +1493,7 @@ TEST_F(SnoopLoggerModuleTest, custom_socket_register_enabled_capture_recv_test) 
   ASSERT_TRUE(std::memcmp(recv_buf3, kHfpAtNrec0.data(), kHfpAtNrec0.size()) == 0);
 
   test_registry->StopAll();
+  close(socket_fd);
 }
 
 TEST_F(SnoopLoggerModuleTest, custom_socket_interface_register_logging_disabled_test) {
