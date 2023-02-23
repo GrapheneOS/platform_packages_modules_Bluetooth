@@ -1934,7 +1934,7 @@ impl IBluetooth for Bluetooth {
         // If SDP isn't completed yet, we wait for it to complete and retry the connection again.
         // Otherwise, this connection request is done, no retry is required.
         if !has_enabled_uuids {
-            warn!("[{}] SDP hasn't completed for device, wait to connect.", DisplayAddress(addr));
+            warn!("[{}] SDP hasn't completed for device, wait to connect.", DisplayAddress(&addr));
             if let Some(d) = self.get_remote_device_if_found_mut(&device.address) {
                 if uuids.len() == 0 || !d.services_resolved {
                     d.wait_to_connect = true;
