@@ -2267,5 +2267,13 @@ jint JNI_OnLoad(JavaVM* jvm, void* reserved) {
     return JNI_ERR;
   }
 
+  status =
+      android::register_com_android_bluetooth_btservice_BluetoothQualityReport(
+          e);
+  if (status < 0) {
+    ALOGE("jni bluetooth quality report registration failure: %d", status);
+    return JNI_ERR;
+  }
+
   return JNI_VERSION_1_6;
 }

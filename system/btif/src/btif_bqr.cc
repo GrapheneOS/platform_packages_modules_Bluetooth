@@ -26,12 +26,15 @@
 #include "btif/include/stack_manager.h"
 #include "btif_bqr.h"
 #include "btif_common.h"
+#include "btif_storage.h"
 #include "btm_api.h"
 #include "btm_ble_api.h"
 #include "common/leaky_bonded_queue.h"
 #include "common/time_util.h"
 #include "core_callbacks.h"
 #include "osi/include/properties.h"
+#include "raw_address.h"
+#include "stack/btm/btm_dev.h"
 
 namespace bluetooth {
 namespace bqr {
@@ -44,6 +47,9 @@ static std::unique_ptr<LeakyBondedQueue<BqrVseSubEvt>> kpBqrEventQueue(
     new LeakyBondedQueue<BqrVseSubEvt>(kBqrEventQueueSize));
 
 static uint16_t vendor_cap_supported_version;
+
+class BluetoothQualityReportInterfaceImpl;
+std::unique_ptr<BluetoothQualityReportInterface> bluetoothQualityReportInstance;
 
 void BqrVseSubEvt::ParseBqrLinkQualityEvt(uint8_t length,
                                           const uint8_t* p_param_buf) {
@@ -77,6 +83,8 @@ void BqrVseSubEvt::ParseBqrLinkQualityEvt(uint8_t length,
   STREAM_TO_UINT32(bqr_link_quality_event_.last_flow_on_timestamp, p_param_buf);
   STREAM_TO_UINT32(bqr_link_quality_event_.buffer_overflow_bytes, p_param_buf);
   STREAM_TO_UINT32(bqr_link_quality_event_.buffer_underflow_bytes, p_param_buf);
+  STREAM_TO_BDADDR(bqr_link_quality_event_.bdaddr, p_param_buf);
+  STREAM_TO_UINT8(bqr_link_quality_event_.cal_failed_item_count, p_param_buf);
 
   if (vendor_cap_supported_version >= kBqrIsoVersion) {
     if (length < kLinkQualityParamTotalLen + kISOLinkQualityParamTotalLen) {
@@ -172,7 +180,11 @@ std::string BqrVseSubEvt::ToString() const {
      << ", OverFlow: "
      << std::to_string(bqr_link_quality_event_.buffer_overflow_bytes)
      << ", UndFlow: "
-     << std::to_string(bqr_link_quality_event_.buffer_underflow_bytes);
+     << std::to_string(bqr_link_quality_event_.buffer_underflow_bytes)
+     << ", RemoteDevAddr: "
+     << bqr_link_quality_event_.bdaddr.ToColonSepHexString()
+     << ", CalFailedItems: "
+     << std::to_string(bqr_link_quality_event_.cal_failed_item_count);
 
   if (vendor_cap_supported_version >= kBqrIsoVersion) {
     ss << ", TxTotal: "
@@ -195,17 +207,19 @@ std::string BqrVseSubEvt::ToString() const {
 std::string QualityReportIdToString(uint8_t quality_report_id) {
   switch (quality_report_id) {
     case QUALITY_REPORT_ID_MONITOR_MODE:
-      return "Monitoring ";
+      return "Monitoring";
     case QUALITY_REPORT_ID_APPROACH_LSTO:
-      return "Appro LSTO ";
+      return "Approach LSTO";
     case QUALITY_REPORT_ID_A2DP_AUDIO_CHOPPY:
       return "A2DP Choppy";
     case QUALITY_REPORT_ID_SCO_VOICE_CHOPPY:
-      return "SCO Choppy ";
+      return "SCO Choppy";
     case QUALITY_REPORT_ID_LE_AUDIO_CHOPPY:
       return "LE Audio Choppy";
+    case QUALITY_REPORT_ID_CONNECT_FAIL:
+      return "Connect Fail";
     default:
-      return "Invalid    ";
+      return "Invalid";
   }
 }
 
@@ -375,11 +389,55 @@ void BqrVscCompleteCallback(tBTM_VSC_CMPL* p_vsc_cmpl_params) {
   ConfigureBqrCmpl(current_quality_event_mask);
 }
 
+void ConfigBqrA2dpScoThreshold() {
+  uint8_t param[20] = {0};
+  uint8_t sub_opcode = 0x16;
+  uint8_t* p_param = param;
+  uint16_t a2dp_choppy_threshold = 0;
+  uint16_t sco_choppy_threshold = 0;
+
+  char bqr_prop_threshold[PROPERTY_VALUE_MAX] = {0};
+  osi_property_get(kpPropertyChoppyThreshold, bqr_prop_threshold, "");
+
+  sscanf(bqr_prop_threshold, "%hu,%hu", &a2dp_choppy_threshold,
+         &sco_choppy_threshold);
+
+  LOG_WARN("a2dp_choppy_threshold: %d, sco_choppy_threshold: %d",
+           a2dp_choppy_threshold, sco_choppy_threshold);
+
+  UINT8_TO_STREAM(p_param, sub_opcode);
+
+  // A2dp glitch ID
+  UINT8_TO_STREAM(p_param, QUALITY_REPORT_ID_A2DP_AUDIO_CHOPPY);
+  // A2dp glitch config data length
+  UINT8_TO_STREAM(p_param, 2);
+  // A2dp glitch threshold
+  UINT16_TO_STREAM(p_param,
+                   a2dp_choppy_threshold == 0 ? 1 : a2dp_choppy_threshold);
+
+  // Sco glitch ID
+  UINT8_TO_STREAM(p_param, QUALITY_REPORT_ID_SCO_VOICE_CHOPPY);
+  // Sco glitch config data length
+  UINT8_TO_STREAM(p_param, 2);
+  // Sco glitch threshold
+  UINT16_TO_STREAM(p_param,
+                   sco_choppy_threshold == 0 ? 1 : sco_choppy_threshold);
+
+  BTM_VendorSpecificCommand(HCI_VS_HOST_LOG_OPCODE, p_param - param, param,
+                            NULL);
+}
+
 void ConfigureBqrCmpl(uint32_t current_evt_mask) {
   LOG(INFO) << __func__ << ": current_evt_mask: " << loghex(current_evt_mask);
   // (Un)Register for VSE of Bluetooth Quality Report sub event
   tBTM_STATUS btm_status = BTM_BT_Quality_Report_VSE_Register(
       current_evt_mask > kQualityEventMaskAllOff, CategorizeBqrEvent);
+
+  bool isBqrEnabled =
+      bluetooth::common::InitFlags::IsBluetoothQualityReportCallbackEnabled();
+  if (isBqrEnabled && current_evt_mask > kQualityEventMaskAllOff) {
+    ConfigBqrA2dpScoThreshold();
+  }
 
   if (btm_status != BTM_SUCCESS) {
     LOG(ERROR) << __func__ << ": Fail to (un)register VSE of BQR sub event."
@@ -414,6 +472,7 @@ void CategorizeBqrEvent(uint8_t length, const uint8_t* p_bqr_event) {
     case QUALITY_REPORT_ID_A2DP_AUDIO_CHOPPY:
     case QUALITY_REPORT_ID_SCO_VOICE_CHOPPY:
     case QUALITY_REPORT_ID_LE_AUDIO_CHOPPY:
+    case QUALITY_REPORT_ID_CONNECT_FAIL:
       if (length < kLinkQualityParamTotalLen) {
         LOG(FATAL) << __func__
                    << ": Parameter total length: " << std::to_string(length)
@@ -444,6 +503,8 @@ void CategorizeBqrEvent(uint8_t length, const uint8_t* p_bqr_event) {
 void AddLinkQualityEventToQueue(uint8_t length,
                                 const uint8_t* p_link_quality_event) {
   std::unique_ptr<BqrVseSubEvt> p_bqr_event = std::make_unique<BqrVseSubEvt>();
+  RawAddress bd_addr;
+
   p_bqr_event->ParseBqrLinkQualityEvt(length, p_link_quality_event);
 
   LOG(WARNING) << *p_bqr_event;
@@ -485,6 +546,27 @@ void AddLinkQualityEventToQueue(uint8_t length,
 #else
   // TODO(abps) Metrics for non-Android build
 #endif
+  bool isBqrEnabled =
+      bluetooth::common::InitFlags::IsBluetoothQualityReportCallbackEnabled();
+  if (isBqrEnabled) {
+    BluetoothQualityReportInterface* bqrItf =
+        getBluetoothQualityReportInterface();
+
+    if (bqrItf != NULL) {
+      bd_addr = p_bqr_event->bqr_link_quality_event_.bdaddr;
+
+      if (!bd_addr.IsEmpty()) {
+        bqrItf->bqr_delivery_event(bd_addr, (uint8_t*)p_link_quality_event,
+                                   length);
+      } else {
+        LOG(WARNING) << __func__ << ": failed to deliver BQR, "
+                     << "bdaddr is empty, no address in packet";
+      }
+    } else {
+      LOG(WARNING) << __func__ << ": failed to deliver BQR, bqrItf is NULL";
+    }
+  }
+
   kpBqrEventQueue->Enqueue(p_bqr_event.release());
 }
 
@@ -581,6 +663,96 @@ void DebugDump(int fd) {
   }
 
   dprintf(fd, "\n");
+}
+
+static void btif_get_remote_version(const RawAddress& bd_addr,
+                                    uint8_t& lmp_version,
+                                    uint16_t& manufacturer,
+                                    uint16_t& lmp_sub_version) {
+  bt_property_t prop;
+  bt_remote_version_t info;
+  uint8_t tmp_lmp_ver = 0;
+  uint16_t tmp_manufacturer = 0;
+  uint16_t tmp_lmp_subver = 0;
+  tBTM_STATUS status;
+
+  status = BTM_ReadRemoteVersion(bd_addr, &tmp_lmp_ver, &tmp_manufacturer,
+                                 &tmp_lmp_subver);
+  if (status == BTM_SUCCESS &&
+      (tmp_lmp_ver || tmp_manufacturer || tmp_lmp_subver)) {
+    lmp_version = tmp_lmp_ver;
+    manufacturer = tmp_manufacturer;
+    lmp_sub_version = tmp_lmp_subver;
+    return;
+  }
+
+  prop.type = BT_PROPERTY_REMOTE_VERSION_INFO;
+  prop.len = sizeof(bt_remote_version_t);
+  prop.val = (void*)&info;
+
+  if (btif_storage_get_remote_device_property(&bd_addr, &prop) ==
+      BT_STATUS_SUCCESS) {
+    lmp_version = (uint8_t)info.version;
+    manufacturer = (uint16_t)info.manufacturer;
+    lmp_sub_version = (uint16_t)info.sub_ver;
+  }
+}
+
+class BluetoothQualityReportInterfaceImpl
+    : public bluetooth::bqr::BluetoothQualityReportInterface {
+  ~BluetoothQualityReportInterfaceImpl() override = default;
+
+  void init(BluetoothQualityReportCallbacks* callbacks) override {
+    LOG_INFO("BluetoothQualityReportInterfaceImpl ");
+    this->callbacks = callbacks;
+  }
+
+  void bqr_delivery_event(const RawAddress& bd_addr,
+                          const uint8_t* bqr_raw_data,
+                          uint32_t bqr_raw_data_len) override {
+    if (bqr_raw_data == NULL) {
+      LOG_ERROR("bqr data is null");
+      return;
+    }
+
+    std::vector<uint8_t> raw_data;
+    raw_data.insert(raw_data.begin(), bqr_raw_data,
+                    bqr_raw_data + bqr_raw_data_len);
+
+    uint8_t lmp_ver = 0;
+    uint16_t lmp_subver = 0;
+    uint16_t manufacturer_id = 0;
+    btif_get_remote_version(bd_addr, lmp_ver, manufacturer_id, lmp_subver);
+
+    LOG_INFO(
+        "len: %d, addr: %s, lmp_ver: %d, manufacturer_id: %d, lmp_subver: %d",
+        bqr_raw_data_len, ADDRESS_TO_LOGGABLE_CSTR(bd_addr), lmp_ver,
+        manufacturer_id, lmp_subver);
+
+    if (callbacks == nullptr) {
+      LOG_ERROR("callbacks is nullptr");
+      return;
+    }
+
+    do_in_jni_thread(
+        FROM_HERE,
+        base::Bind(&bluetooth::bqr::BluetoothQualityReportCallbacks::
+                       bqr_delivery_callback,
+                   base::Unretained(callbacks), bd_addr, lmp_ver, lmp_subver,
+                   manufacturer_id, std::move(raw_data)));
+  }
+
+ private:
+  BluetoothQualityReportCallbacks* callbacks = nullptr;
+};
+
+BluetoothQualityReportInterface* getBluetoothQualityReportInterface() {
+  if (!bluetoothQualityReportInstance) {
+    bluetoothQualityReportInstance.reset(
+        new BluetoothQualityReportInterfaceImpl());
+  }
+
+  return bluetoothQualityReportInstance.get();
 }
 
 }  // namespace bqr
