@@ -1916,6 +1916,7 @@ public class GattService extends ProfileService {
         // When in testing mode, ignore all real-world events
         if (isTestModeEnabled()) return;
 
+        AppScanStats.recordScanRadioResultCount();
         onScanResultInternal(eventType, addressType, address, primaryPhy, secondaryPhy,
                 advertisingSid, txPower, rssi, periodicAdvInt, advData, originalAddress);
     }
