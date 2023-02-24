@@ -174,13 +174,16 @@ class SnoopLoggerModuleTest : public Test {
 
     LOG_DEBUG(
         "Setup for test %s in test suite %s.\n", test_info->name(), test_info->test_suite_name());
-    temp_dir_ = std::filesystem::temp_directory_path();
-    temp_snoop_log_ = temp_dir_ / "btsnoop_hci.log";
-    temp_snoop_log_last_ = temp_dir_ / "btsnoop_hci.log.last";
-    temp_snooz_log_ = temp_dir_ / "btsnooz_hci.log";
-    temp_snooz_log_last_ = temp_dir_ / "btsnooz_hci.log.last";
-    temp_snoop_log_filtered = temp_dir_ / "btsnoop_hci.log.filtered";
-    temp_snoop_log_filtered_last = temp_dir_ / "btsnoop_hci.log.filtered.last";
+    const std::filesystem::path temp_dir_ = std::filesystem::temp_directory_path();
+
+    temp_snoop_log_ = temp_dir_ / (std::string(test_info->name()) + "_btsnoop_hci.log");
+    temp_snoop_log_last_ = temp_dir_ / (std::string(test_info->name()) + "_btsnoop_hci.log.last");
+    temp_snooz_log_ = temp_dir_ / (std::string(test_info->name()) + "_btsnooz_hci.log");
+    temp_snooz_log_last_ = temp_dir_ / (std::string(test_info->name()) + "_btsnooz_hci.log.last");
+    temp_snoop_log_filtered =
+        temp_dir_ / (std::string(test_info->name()) + "_btsnoop_hci.log.filtered");
+    temp_snoop_log_filtered_last =
+        temp_dir_ / (std::string(test_info->name()) + "_btsnoop_hci.log.filtered.last");
     builder_ = new flatbuffers::FlatBufferBuilder();
 
     DeleteSnoopLogFiles();
@@ -211,6 +214,14 @@ class SnoopLoggerModuleTest : public Test {
         test_info->test_suite_name());
   }
 
+  std::filesystem::path temp_snoop_log_;
+  std::filesystem::path temp_snoop_log_last_;
+  std::filesystem::path temp_snooz_log_;
+  std::filesystem::path temp_snooz_log_last_;
+  std::filesystem::path temp_snoop_log_filtered;
+  std::filesystem::path temp_snoop_log_filtered_last;
+
+ private:
   void DeleteSnoopLogFiles() {
     if (std::filesystem::exists(temp_snoop_log_)) {
       ASSERT_TRUE(std::filesystem::remove(temp_snoop_log_));
@@ -231,14 +242,6 @@ class SnoopLoggerModuleTest : public Test {
       ASSERT_TRUE(std::filesystem::remove(temp_snooz_log_last_));
     }
   }
-
-  std::filesystem::path temp_dir_;
-  std::filesystem::path temp_snoop_log_;
-  std::filesystem::path temp_snoop_log_last_;
-  std::filesystem::path temp_snooz_log_;
-  std::filesystem::path temp_snooz_log_last_;
-  std::filesystem::path temp_snoop_log_filtered;
-  std::filesystem::path temp_snoop_log_filtered_last;
 };
 
 TEST_F(SnoopLoggerModuleTest, empty_snoop_log_test) {
