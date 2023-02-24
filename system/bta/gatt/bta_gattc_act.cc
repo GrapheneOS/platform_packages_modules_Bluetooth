@@ -34,6 +34,7 @@
 #include "bta/hh/bta_hh_int.h"
 #include "btif/include/btif_debug_conn.h"
 #include "device/include/controller.h"
+#include "device/include/interop.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -798,6 +799,18 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
         LOG_WARN(
             " Device LMP version 0x%02x < Bluetooth 5.1. Ignore database cache "
             "read.",
+            lmp_version);
+        p_clcb->p_srcb->srvc_hdl_db_hash = false;
+      }
+
+      // Some LMP 5.2 devices also don't support robust caching. This workaround
+      // conditionally disables the feature based on a combination of LMP
+      // version and OUI prefix.
+      if (lmp_version < 0x0c &&
+          interop_match_addr(INTEROP_DISABLE_ROBUST_CACHING, &p_clcb->bda)) {
+        LOG_WARN(
+            "Device LMP version 0x%02x <= Bluetooth 5.2 and MAC addr on "
+            "interop list, skipping robust caching",
             lmp_version);
         p_clcb->p_srcb->srvc_hdl_db_hash = false;
       }
