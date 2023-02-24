@@ -190,7 +190,7 @@ static jmethodID method_onSyncLost;
 static jmethodID method_onSyncReport;
 static jmethodID method_onSyncStarted;
 static jmethodID method_onSyncTransferredCallback;
-
+static jmethodID method_onBigInfoReport;
 /**
  * Distance Measurement callback methods
  */
@@ -1156,6 +1156,19 @@ class JniScanningCallbacks : ScanningCallbacks {
     sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj,
                                  method_onSyncTransferredCallback, pa_source,
                                  status, addr.get());
+  }
+
+  void OnBigInfoReport(uint16_t sync_handle, bool encrypted) {
+        std::shared_lock<std::shared_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
+    if (!mPeriodicScanCallbacksObj) {
+      ALOGE("mPeriodicScanCallbacksObj is NULL. Return.");
+      return;
+    }
+    sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj,
+                                 method_onBigInfoReport, sync_handle, encrypted);
   }
 };
 
@@ -2518,6 +2531,7 @@ static void periodicScanClassInitNative(JNIEnv* env, jclass clazz) {
   method_onSyncLost = env->GetMethodID(clazz, "onSyncLost", "(I)V");
   method_onSyncTransferredCallback = env->GetMethodID(
       clazz, "onSyncTransferredCallback", "(IILjava/lang/String;)V");
+  method_onBigInfoReport = env->GetMethodID(clazz, "onBigInfoReport", "(IZ)V");
 }
 
 static void periodicScanInitializeNative(JNIEnv* env, jobject object) {
