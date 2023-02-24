@@ -172,6 +172,10 @@ class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, 
     LOG_INFO("OnPeriodicSyncTransferred in LeScanningManagerFacadeService");
   };
 
+  void OnBigInfoReport(uint16_t sync_handle, bool encrypted) override {
+    LOG_INFO("OnBigInfoReport in LeScanningManagerFacadeService");
+  };
+
   LeScanningManager* le_scanning_manager_;
   os::Handler* facade_handler_;
   ::bluetooth::grpc::GrpcEventQueue<AdvertisingReportMsg> advertising_reports_{"advertising reports"};

@@ -245,6 +245,7 @@ class Btm {
     void OnPeriodicSyncLost(uint16_t sync_handle) override;
     void OnPeriodicSyncTransferred(int pa_source, uint8_t status,
                                    bluetooth::hci::Address address) override;
+    void OnBigInfoReport(uint16_t sync_handle, bool encrypted) override;
   };
   ScanningCallbacks scanning_callbacks_;
 
