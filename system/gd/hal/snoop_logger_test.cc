@@ -827,6 +827,9 @@ TEST_F(SnoopLoggerModuleTest, rfcomm_channel_filtered_sabme_ua_test) {
 
   test_registry.StopAll();
 
+  ASSERT_TRUE(bluetooth::os::SetSystemProperty(
+      SnoopLogger::kBtSnoopLogFilterProfileRfcommProperty, "false"));
+
   // Verify states after test
   ASSERT_TRUE(std::filesystem::exists(temp_snoop_log_filtered));
 
