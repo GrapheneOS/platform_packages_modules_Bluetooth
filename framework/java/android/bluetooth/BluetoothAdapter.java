@@ -5775,4 +5775,48 @@ public final class BluetoothAdapter {
         }
         return BT_SNOOP_LOG_MODE_DISABLED;
     }
+
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
+            BluetoothStatusCodes.FEATURE_SUPPORTED,
+            BluetoothStatusCodes.ERROR_UNKNOWN,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
+            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION,
+            BluetoothStatusCodes.FEATURE_NOT_SUPPORTED
+    })
+    public @interface IsOffloadedTransportDiscoveryDataScanSupportedReturnValues {}
+
+    /**
+     * Check if offloaded transport discovery data scan is supported or not.
+     *
+     * @return true if chipset supports on-chip tds filter scan
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothScanPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_SCAN,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @IsOffloadedTransportDiscoveryDataScanSupportedReturnValues
+    public int isOffloadedTransportDiscoveryDataScanSupported() {
+        if (!getLeAccess()) {
+            return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+        }
+        try {
+            mServiceLock.readLock().lock();
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                mService.isOffloadedTransportDiscoveryDataScanSupported(mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout())
+                        .getValue(BluetoothStatusCodes.ERROR_UNKNOWN);
+            }
+        } catch (RemoteException | TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+        return BluetoothStatusCodes.ERROR_UNKNOWN;
+    }
 }

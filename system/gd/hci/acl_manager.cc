@@ -103,6 +103,9 @@ struct AclManager::impl {
       classic_impl_ = nullptr;
     }
 
+    unknown_acl_alarm_.reset();
+    waiting_packets_.clear();
+
     delete round_robin_scheduler_;
     hci_queue_end_ = nullptr;
     handler_ = nullptr;
@@ -110,8 +113,44 @@ struct AclManager::impl {
     acl_scheduler_ = nullptr;
   }
 
+  void retry_unknown_acl(bool timed_out) {
+    std::vector<AclView> unsent_packets;
+    for (const auto& itr : waiting_packets_) {
+      auto handle = itr.GetHandle();
+      if (!classic_impl_->send_packet_upward(
+              handle,
+              [itr](struct acl_manager::assembler* assembler) {
+                assembler->on_incoming_packet(itr);
+              }) &&
+          !le_impl_->send_packet_upward(handle, [itr](struct acl_manager::assembler* assembler) {
+            assembler->on_incoming_packet(itr);
+          })) {
+        if (!timed_out) {
+          unsent_packets.push_back(itr);
+        } else {
+          LOG_ERROR(
+              "Dropping packet of size %zu to unknown connection 0x%0hx",
+              itr.size(),
+              itr.GetHandle());
+        }
+      }
+    }
+    waiting_packets_ = std::move(unsent_packets);
+  }
+
+  static void on_unknown_acl_timer(struct AclManager::impl* impl) {
+    LOG_INFO("Timer fired!");
+    impl->retry_unknown_acl(/* timed_out = */ true);
+    impl->unknown_acl_alarm_.reset();
+  }
+
   // Invoked from some external Queue Reactable context 2
   void dequeue_and_route_acl_packet_to_connection() {
+    // Retry any waiting packets first
+    if (!waiting_packets_.empty()) {
+      retry_unknown_acl(/* timed_out = */ false);
+    }
+
     auto packet = hci_queue_end_->TryDequeue();
     ASSERT(packet != nullptr);
     if (!packet->IsValid()) {
@@ -126,7 +165,16 @@ struct AclManager::impl {
     if (le_impl_->send_packet_upward(
             handle, [&packet](struct acl_manager::assembler* assembler) { assembler->on_incoming_packet(*packet); }))
       return;
-    LOG_INFO("Dropping packet of size %zu to unknown connection 0x%0hx", packet->size(), packet->GetHandle());
+    if (unknown_acl_alarm_ == nullptr) {
+      unknown_acl_alarm_.reset(new os::Alarm(handler_));
+    }
+    waiting_packets_.push_back(*packet);
+    LOG_INFO(
+        "Saving packet of size %zu to unknown connection 0x%0hx",
+        packet->size(),
+        packet->GetHandle());
+    unknown_acl_alarm_->Schedule(
+        BindOnce(&on_unknown_acl_timer, common::Unretained(this)), kWaitBeforeDroppingUnknownAcl);
   }
 
   void Dump(
@@ -146,6 +194,9 @@ struct AclManager::impl {
   std::atomic_bool enqueue_registered_ = false;
   uint16_t default_link_policy_settings_ = 0xffff;
   mutable std::mutex dumpsys_mutex_;
+  std::unique_ptr<os::Alarm> unknown_acl_alarm_;
+  std::vector<AclView> waiting_packets_;
+  static constexpr std::chrono::seconds kWaitBeforeDroppingUnknownAcl{1};
 };
 
 AclManager::AclManager() : pimpl_(std::make_unique<impl>(*this)) {}

@@ -224,6 +224,9 @@ struct tBTM_MSBC_PLC {
                     BTM_PLC_WINDOW_SIZE of packets. We use this to determine if
                     we want to disable the PLC temporarily */
 
+  int num_decoded_frames; /* Number of total read mSBC frames. */
+  int num_lost_frames;    /* Number of total lost mSBC frames. */
+
   void overlap_add(int16_t* output, float scaler_d, const int16_t* desc,
                    float scaler_a, const int16_t* asc) {
     for (int i = 0; i < BTM_PLC_OLAL; i++) {
@@ -278,13 +281,20 @@ struct tBTM_MSBC_PLC {
   }
 
   void deinit() {
-    if (pl_window) osi_free(pl_window);
+    if (pl_window) osi_free_and_reset((void**)&pl_window);
   }
+
+  int get_num_decoded_frames() { return num_decoded_frames; }
+
+  int get_num_lost_frames() { return num_lost_frames; }
 
   void handle_bad_frames(const uint8_t** output) {
     float scaler;
     int16_t* best_match_hist;
     int16_t* frame_head = &hist[BTM_PLC_HL];
+
+    num_decoded_frames++;
+    num_lost_frames++;
 
     /* mSBC codec is stateful, the history of signal would contribute to the
      * decode result decoded_buffer. This should never fail. */
@@ -350,6 +360,7 @@ struct tBTM_MSBC_PLC {
 
   void handle_good_frames(int16_t* input) {
     int16_t* frame_head;
+    num_decoded_frames++;
     if (handled_bad_frames != 0) {
       /* If there was a packet concealment before this good frame, we need to
        * reconverge the input frames */
@@ -380,6 +391,7 @@ struct tBTM_MSBC_INFO {
   uint8_t* msbc_decode_buf; /* Buffer to store mSBC packets to decode */
   size_t decode_buf_wo;     /* Write offset of the decode buffer */
   size_t decode_buf_ro;     /* Read offset of the decode buffer */
+  bool read_corrupted;      /* If the current mSBC packet read is corrupted */
 
   uint8_t* msbc_encode_buf; /* Buffer to store the encoded SCO packets */
   size_t encode_buf_wo;     /* Write offset of the encode buffer */
@@ -450,7 +462,7 @@ struct tBTM_MSBC_INFO {
     if (msbc_encode_buf) osi_free(msbc_encode_buf);
     if (plc) {
       plc->deinit();
-      osi_free(plc);
+      osi_free_and_reset((void**)&plc);
     }
   }
 
@@ -480,6 +492,12 @@ struct tBTM_MSBC_INFO {
   }
 
   const uint8_t* find_msbc_pkt_head() {
+    if (read_corrupted) {
+      LOG_WARN("Skip corrupted mSBC packets");
+      read_corrupted = false;
+      return nullptr;
+    }
+
     size_t rp = 0;
     while (rp < BTM_MSBC_PKT_LEN &&
            decode_buf_wo - (decode_buf_ro + rp) >= BTM_MSBC_PKT_LEN) {
@@ -569,11 +587,30 @@ void cleanup() {
   if (msbc_info == nullptr) return;
 
   msbc_info->deinit();
-  osi_free(msbc_info);
-  msbc_info = nullptr;
+  osi_free_and_reset((void**)&msbc_info);
 }
 
-size_t enqueue_packet(const uint8_t* data, size_t pkt_size) {
+bool fill_plc_stats(int* num_decoded_frames, double* packet_loss_ratio) {
+  if (msbc_info == NULL || num_decoded_frames == NULL ||
+      packet_loss_ratio == NULL)
+    return false;
+
+  int decoded_frames = msbc_info->plc->get_num_decoded_frames();
+  int lost_frames = msbc_info->plc->get_num_lost_frames();
+  if (decoded_frames <= 0 || lost_frames < 0 || lost_frames > decoded_frames) {
+    LOG_WARN(
+        "Unreasonable reported frame count: decoded_frames(%d), "
+        "lost_frames(%d)",
+        decoded_frames, lost_frames);
+    return false;
+  }
+
+  *num_decoded_frames = decoded_frames;
+  *packet_loss_ratio = (double)lost_frames / decoded_frames;
+  return true;
+}
+
+size_t enqueue_packet(const uint8_t* data, size_t pkt_size, bool corrupted) {
   if (msbc_info == nullptr) {
     LOG_WARN("mSBC buffer uninitialized or cleaned");
     return 0;
@@ -592,6 +629,7 @@ size_t enqueue_packet(const uint8_t* data, size_t pkt_size) {
     return 0;
   }
 
+  msbc_info->read_corrupted |= corrupted;
   if (msbc_info->write(data, pkt_size) != pkt_size) {
     LOG_DEBUG("Fail to write packet with size %lu to buffer",
               (unsigned long)pkt_size);

@@ -638,6 +638,14 @@ impl Bluetooth {
             .collect()
     }
 
+    /// Gets the bond state of a single device with its address.
+    pub fn get_bond_state_by_addr(&self, addr: &String) -> BtBondState {
+        match self.bonded_devices.get(addr) {
+            Some(device) => device.bond_state.clone(),
+            None => BtBondState::NotBonded,
+        }
+    }
+
     /// Check whether found devices are still fresh. If they're outside the
     /// freshness window, send a notification to clear the device from clients.
     fn trigger_freshness_check(&mut self) {
@@ -1575,10 +1583,7 @@ impl IBluetooth for Bluetooth {
     }
 
     fn get_bond_state(&self, device: BluetoothDevice) -> BtBondState {
-        match self.bonded_devices.get(&device.address) {
-            Some(device) => device.bond_state.clone(),
-            None => BtBondState::NotBonded,
-        }
+        self.get_bond_state_by_addr(&device.address)
     }
 
     fn set_pin(&self, device: BluetoothDevice, accept: bool, pin_code: Vec<u8>) -> bool {
@@ -1934,7 +1939,7 @@ impl IBluetooth for Bluetooth {
         // If SDP isn't completed yet, we wait for it to complete and retry the connection again.
         // Otherwise, this connection request is done, no retry is required.
         if !has_enabled_uuids {
-            warn!("[{}] SDP hasn't completed for device, wait to connect.", DisplayAddress(addr));
+            warn!("[{}] SDP hasn't completed for device, wait to connect.", DisplayAddress(&addr));
             if let Some(d) = self.get_remote_device_if_found_mut(&device.address) {
                 if uuids.len() == 0 || !d.services_resolved {
                     d.wait_to_connect = true;

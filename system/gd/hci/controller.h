@@ -38,6 +38,9 @@
 #define COD_AV_PORTABLE_AUDIO 0x041C
 #define COD_AV_HIFI_AUDIO 0x0428
 
+// TODO Remove this once all QTI specific hacks are removed.
+#define LMP_COMPID_QTI 0x001D
+
 namespace bluetooth {
 namespace hci {
 
