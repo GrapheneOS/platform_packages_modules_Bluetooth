@@ -186,25 +186,25 @@ class MapClientContent {
      * Store a message in database with the associated handle and timestamp.
      * The handle is used to associate the local message with the remote message.
      */
-    void storeMessage(Bmessage message, String handle, Long timestamp) {
+    void storeMessage(Bmessage message, String handle, Long timestamp, boolean seen) {
         logI("storeMessage(device=" + Utils.getLoggableAddress(mDevice) + ", time=" + timestamp
                 + ", handle=" + handle + ", type=" + message.getType()
                 + ", folder=" + message.getFolder());
 
         switch (message.getType()) {
             case MMS:
-                storeMms(message, handle, timestamp);
+                storeMms(message, handle, timestamp, seen);
                 return;
             case SMS_CDMA:
             case SMS_GSM:
-                storeSms(message, handle, timestamp);
+                storeSms(message, handle, timestamp, seen);
                 return;
             default:
                 logD("Request to store unsupported message type: " + message.getType());
         }
     }
 
-    private void storeSms(Bmessage message, String handle, Long timestamp) {
+    private void storeSms(Bmessage message, String handle, Long timestamp, boolean seen) {
         logD("storeSms");
         logV(message.toString());
         VCardEntry originator = message.getOriginator();
@@ -233,6 +233,7 @@ class MapClientContent {
         values.put(Sms.SUBSCRIPTION_ID, mSubscriptionId);
         values.put(Sms.DATE, timestamp);
         values.put(Sms.READ, readStatus);
+        values.put(Sms.SEEN, seen);
 
         Uri results = mResolver.insert(contentUri, values);
         mHandleToUriMap.put(handle, results);
@@ -301,7 +302,7 @@ class MapClientContent {
         }
     }
 
-    private void storeMms(Bmessage message, String handle, Long timestamp) {
+    private void storeMms(Bmessage message, String handle, Long timestamp, boolean seen) {
         logD("storeMms");
         logV(message.toString());
         try {
@@ -326,7 +327,7 @@ class MapClientContent {
             values.put(Mms.TEXT_ONLY, true);
             values.put(Mms.MESSAGE_BOX, messageBox);
             values.put(Mms.READ, read);
-            values.put(Mms.SEEN, 0);
+            values.put(Mms.SEEN, seen);
             values.put(Mms.MESSAGE_TYPE, PduHeaders.MESSAGE_TYPE_SEND_REQ);
             values.put(Mms.MMS_VERSION, PduHeaders.CURRENT_MMS_VERSION);
             values.put(Mms.PRIORITY, PduHeaders.PRIORITY_NORMAL);
