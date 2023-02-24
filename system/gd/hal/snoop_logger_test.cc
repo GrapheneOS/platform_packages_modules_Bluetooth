@@ -420,6 +420,15 @@ TEST_F(SnoopLoggerModuleTest, snoop_log_persists) {
   ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
 }
 
+void sync_handler(bluetooth::os::Handler* handler) {
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  handler->Post(bluetooth::common::BindOnce(
+      &std::promise<void>::set_value, bluetooth::common::Unretained(&promise)));
+  auto future_status = future.wait_for(std::chrono::seconds(1));
+  ASSERT_EQ(future_status, std::future_status::ready);
+}
+
 TEST_F(SnoopLoggerModuleTest, delete_old_snooz_log_files) {
   // Actual test
   auto* snoop_logger = new TestSnoopLoggerModule(
@@ -438,9 +447,13 @@ TEST_F(SnoopLoggerModuleTest, delete_old_snooz_log_files) {
   handler->Post(bluetooth::common::BindOnce(fake_timerfd_advance, 10));
   ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
   handler->Post(bluetooth::common::BindOnce(fake_timerfd_advance, 15));
+  sync_handler(handler);
   handler->Post(bluetooth::common::BindOnce(
       [](std::filesystem::path path) { ASSERT_FALSE(std::filesystem::exists(path)); }, temp_snooz_log_));
+  sync_handler(handler);
+
   test_registry->StopAll();
+  ASSERT_FALSE(std::filesystem::exists(temp_snooz_log_));
 }
 
 TEST_F(SnoopLoggerModuleTest, rotate_file_at_new_session_test) {
