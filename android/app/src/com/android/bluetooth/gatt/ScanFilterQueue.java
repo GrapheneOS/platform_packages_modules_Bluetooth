@@ -39,7 +39,7 @@ import java.util.UUID;
     public static final int TYPE_LOCAL_NAME = 4;
     public static final int TYPE_MANUFACTURER_DATA = 5;
     public static final int TYPE_SERVICE_DATA = 6;
-    public static final int TYPE_ADVERTISING_DATA_TYPE = 7;
+    public static final int TYPE_ADVERTISING_DATA_TYPE = 8;
 
     // Max length is 31 - 3(flags) - 2 (one byte for length and one byte for type).
     private static final int MAX_LEN_PER_FIELD = 26;
