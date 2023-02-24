@@ -85,6 +85,7 @@ cc_defaults {
         "libbt-sbc-encoder",
         "libbt-stack",
         "libbt-utils",
+        "libcom.android.sysprop.bluetooth",
         "libflatbuffers-cpp",
         "libFraunhoferAAC",
         "libg722codec",
