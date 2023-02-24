@@ -264,6 +264,7 @@ class MockCallbacks : public bluetooth::hci::ScanningCallback {
   MOCK_METHOD(void, OnPeriodicSyncReport, (uint16_t, int8_t, int8_t, uint8_t, std::vector<uint8_t>));
   MOCK_METHOD(void, OnPeriodicSyncLost, (uint16_t));
   MOCK_METHOD(void, OnPeriodicSyncTransferred, (int, uint8_t, Address));
+  MOCK_METHOD(void, OnBigInfoReport, (uint16_t, bool));
 } mock_callbacks_;
 
 class LeScanningManagerTest : public ::testing::Test {
