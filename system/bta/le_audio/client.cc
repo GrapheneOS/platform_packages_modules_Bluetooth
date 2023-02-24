@@ -3709,12 +3709,19 @@ class LeAudioClientImpl : public LeAudioClient {
               ToString(group->GetState()).c_str(),
               ToString(group->GetTargetState()).c_str());
 
-    // Make sure the other direction is tested against the available contexts
-    metadata_context_types_.source &= group->GetAvailableContexts();
+    /* When a certain context became unavailable while it was already in
+     * an active stream, it means that it is unavailable to other clients
+     * but we can keep using it.
+     */
+    auto current_available_contexts = group->GetAvailableContexts();
+    if ((audio_sender_state_ == AudioState::STARTED) ||
+        (audio_sender_state_ == AudioState::READY_TO_START)) {
+      current_available_contexts |= metadata_context_types_.sink;
+    }
 
     /* Set the remote sink metadata context from the playback tracks metadata */
     metadata_context_types_.sink = GetAllowedAudioContextsFromSourceMetadata(
-        source_metadata, group->GetAvailableContexts());
+        source_metadata, current_available_contexts);
     metadata_context_types_.sink =
         ChooseMetadataContextType(metadata_context_types_.sink);
 
@@ -3830,12 +3837,19 @@ class LeAudioClientImpl : public LeAudioClient {
               ToString(group->GetState()).c_str(),
               ToString(group->GetTargetState()).c_str());
 
-    // Make sure the other direction is tested against the available contexts
-    metadata_context_types_.sink &= group->GetAvailableContexts();
+    /* When a certain context became unavailable while it was already in
+     * an active stream, it means that it is unavailable to other clients
+     * but we can keep using it.
+     */
+    auto current_available_contexts = group->GetAvailableContexts();
+    if ((audio_receiver_state_ == AudioState::STARTED) ||
+        (audio_receiver_state_ == AudioState::READY_TO_START)) {
+      current_available_contexts |= metadata_context_types_.source;
+    }
 
     /* Set remote source metadata context from the recording tracks metadata */
     metadata_context_types_.source = GetAllowedAudioContextsFromSinkMetadata(
-        sink_metadata, group->GetAvailableContexts());
+        sink_metadata, current_available_contexts);
     metadata_context_types_.source =
         ChooseMetadataContextType(metadata_context_types_.source);
 
