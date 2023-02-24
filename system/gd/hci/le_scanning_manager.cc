@@ -198,6 +198,9 @@ class NullScanningCallback : public ScanningCallback {
   void OnPeriodicSyncTransferred(int pa_source, uint8_t status, Address address) override {
     LOG_INFO("OnPeriodicSyncTransferred in NullScanningCallback");
   };
+  void OnBigInfoReport(uint16_t sync_handle, bool encrypted) {
+    LOG_INFO("OnBigInfoReport in NullScanningCallback");
+  };
 };
 
 enum class BatchScanState {
@@ -327,6 +330,10 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
         break;
       case SubeventCode::SCAN_TIMEOUT:
         scanning_callbacks_->OnTimeout();
+        break;
+      case SubeventCode::BIG_INFO_ADVERTISING_REPORT:
+        periodic_sync_manager_.HandleLeBigInfoAdvertisingReport(
+            LeBigInfoAdvertisingReportView::Create(event));
         break;
       default:
         LOG_ALWAYS_FATAL("Unknown advertising subevent %s", SubeventCodeText(event.GetSubeventCode()).c_str());

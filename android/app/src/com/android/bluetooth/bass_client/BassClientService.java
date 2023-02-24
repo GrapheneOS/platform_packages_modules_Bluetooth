@@ -175,12 +175,13 @@ public class BassClientService extends ProfileService {
         return mPeriodicAdvertisementResultMap.get(device);
     }
 
-    PeriodicAdvertisementResult clearPeriodicAdvertisementResult(BluetoothDevice device) {
-        if (mPeriodicAdvertisementResultMap == null) {
-            Log.e(TAG, "getPeriodicAdvertisementResult: mPeriodicAdvertisementResultMap is null");
-            return null;
+    void clearNotifiedFlags() {
+        log("clearNotifiedFlags");
+        for (PeriodicAdvertisementResult result:
+                mPeriodicAdvertisementResultMap.values()) {
+            result.setNotified(false);
+            result.print();
         }
-        return mPeriodicAdvertisementResultMap.remove(device);
     }
 
     void updateBase(int syncHandlemap, BaseData base) {
@@ -317,6 +318,10 @@ public class BassClientService extends ProfileService {
         if (mDeviceToSyncHandleMap != null) {
             mDeviceToSyncHandleMap.clear();
             mDeviceToSyncHandleMap = null;
+        }
+        if (mPeriodicAdvertisementResultMap != null) {
+            mPeriodicAdvertisementResultMap.clear();
+            mPeriodicAdvertisementResultMap = null;
         }
         if (mActiveSourceMap != null) {
             mActiveSourceMap.clear();
@@ -526,9 +531,17 @@ public class BassClientService extends ProfileService {
     }
 
     private boolean hasRoomForBroadcastSourceAddition(BluetoothDevice device) {
+        BassClientStateMachine stateMachine = null;
+        synchronized (mStateMachines) {
+            stateMachine = getOrCreateStateMachine(device);
+        }
+        if (stateMachine == null) {
+            log("stateMachine is null");
+            return false;
+        }
         boolean isRoomAvailable = false;
         String emptyBluetoothDevice = "00:00:00:00:00:00";
-        for (BluetoothLeBroadcastReceiveState recvState: getAllSources(device)) {
+        for (BluetoothLeBroadcastReceiveState recvState: stateMachine.getAllSources()) {
             if (recvState.getSourceDevice().getAddress().equals(emptyBluetoothDevice)) {
                 isRoomAvailable = true;
                 break;
@@ -779,7 +792,7 @@ public class BassClientService extends ProfileService {
      * Get a list of all LE Audio Broadcast Sinks connected with the LE Audio Broadcast Assistant.
      * @return list of connected devices
      */
-    List<BluetoothDevice> getConnectedDevices() {
+    public List<BluetoothDevice> getConnectedDevices() {
         synchronized (mStateMachines) {
             List<BluetoothDevice> devices = new ArrayList<>();
             for (BassClientStateMachine sm : mStateMachines.values()) {
@@ -1079,6 +1092,12 @@ public class BassClientService extends ProfileService {
             Message message = stateMachine.obtainMessage(BassClientStateMachine.ADD_BCAST_SOURCE);
             message.obj = sourceMetadata;
             stateMachine.sendMessage(message);
+            if (code != null && code.length != 0) {
+                message = stateMachine.obtainMessage(BassClientStateMachine.SET_BCAST_CODE);
+                message.obj = sourceMetadata;
+                message.arg1 = BassClientStateMachine.ARGTYPE_METADATA;
+                stateMachine.sendMessage(message);
+            }
         }
     }
 
@@ -1147,6 +1166,12 @@ public class BassClientService extends ProfileService {
             message.arg2 = BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_INVALID;
             message.obj = updatedMetadata;
             stateMachine.sendMessage(message);
+            if (code != null && code.length != 0) {
+                message = stateMachine.obtainMessage(BassClientStateMachine.SET_BCAST_CODE);
+                message.obj = updatedMetadata;
+                message.arg1 = BassClientStateMachine.ARGTYPE_METADATA;
+                stateMachine.sendMessage(message);
+            }
         }
     }
 
@@ -1230,7 +1255,15 @@ public class BassClientService extends ProfileService {
                 log("stateMachine is null");
                 return Collections.emptyList();
             }
-            return stateMachine.getAllSources();
+            List<BluetoothLeBroadcastReceiveState> recvStates =
+                    new ArrayList<BluetoothLeBroadcastReceiveState>();
+            for (BluetoothLeBroadcastReceiveState rs: stateMachine.getAllSources()) {
+                String emptyBluetoothDevice = "00:00:00:00:00:00";
+                if (!rs.getSourceDevice().getAddress().equals(emptyBluetoothDevice)) {
+                    recvStates.add(rs);
+                }
+            }
+            return recvStates;
         }
     }
 

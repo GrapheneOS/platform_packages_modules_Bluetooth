@@ -629,6 +629,7 @@ class TestScanningCallbacks : public ::ScanningCallbacks {
   void OnPeriodicSyncLost(uint16_t sync_handle) override{};
   void OnPeriodicSyncTransferred(int pa_source, uint8_t status,
                                  RawAddress address) override{};
+  void OnBigInfoReport(uint16_t sync_handle, bool encrypted) override{};
 };
 
 TEST_F(MainShimTest, DISABLED_BleScannerInterfaceImpl_OnScanResult) {
