@@ -31,6 +31,7 @@
 #include "bta/include/bta_gatt_api.h"
 #include "bta/include/bta_gatt_queue.h"
 #include "bta/include/bta_hearing_aid_api.h"
+#include "btm_iso_api.h"
 #include "device/include/controller.h"
 #include "embdrv/g722/g722_enc_dec.h"
 #include "osi/include/compat.h"
@@ -48,12 +49,15 @@
 
 using base::Closure;
 using bluetooth::Uuid;
+using bluetooth::hci::IsoManager;
 using bluetooth::hearing_aid::ConnectionState;
 
 // The MIN_CE_LEN parameter for Connection Parameters based on the current
 // Connection Interval
 constexpr uint16_t MIN_CE_LEN_10MS_CI = 0x0006;
 constexpr uint16_t MIN_CE_LEN_20MS_CI = 0x000C;
+constexpr uint16_t MAX_CE_LEN_20MS_CI = 0x000C;
+constexpr uint16_t CE_LEN_20MS_CI_ISO_RUNNING = 0x0000;
 constexpr uint16_t CONNECTION_INTERVAL_10MS_PARAM = 0x0008;
 constexpr uint16_t CONNECTION_INTERVAL_20MS_PARAM = 0x0010;
 
@@ -242,8 +246,17 @@ class HearingAidImpl : public HearingAid {
  private:
   // Keep track of whether the Audio Service has resumed audio playback
   bool audio_running;
-  // For Testing: overwrite the MIN_CE_LEN during connection parameter updates
-  uint16_t overwrite_min_ce_len;
+  bool is_iso_running = false;
+  // For Testing: overwrite the MIN_CE_LEN and MAX_CE_LEN during connection
+  // parameter updates
+  int16_t overwrite_min_ce_len = -1;
+  int16_t overwrite_max_ce_len = -1;
+  const std::string PERSIST_MIN_CE_LEN_NAME =
+      "persist.bluetooth.hearing_aid_min_ce_len";
+  const std::string PERSIST_MAX_CE_LEN_NAME =
+      "persist.bluetooth.hearing_aid_max_ce_len";
+  // Record whether the connection parameter needs to update to a better one
+  bool needs_parameter_update = false;
 
  public:
   ~HearingAidImpl() override = default;
@@ -251,7 +264,8 @@ class HearingAidImpl : public HearingAid {
   HearingAidImpl(bluetooth::hearing_aid::HearingAidCallbacks* callbacks,
                  Closure initCb)
       : audio_running(false),
-        overwrite_min_ce_len(0),
+        overwrite_min_ce_len(-1),
+        overwrite_max_ce_len(-1),
         gatt_if(0),
         seq_counter(0),
         current_volume(VOLUME_UNKNOWN),
@@ -267,10 +281,15 @@ class HearingAidImpl : public HearingAid {
     }
     LOG_DEBUG("default_data_interval_ms=%u", default_data_interval_ms);
 
-    overwrite_min_ce_len = (uint16_t)osi_property_get_int32(
-        "persist.bluetooth.hearingaidmincelen", 0);
-    if (overwrite_min_ce_len) {
-      LOG_INFO("Overwrites MIN_CE_LEN=%u", overwrite_min_ce_len);
+    overwrite_min_ce_len =
+        (int16_t)osi_property_get_int32(PERSIST_MIN_CE_LEN_NAME.c_str(), -1);
+    if (overwrite_min_ce_len != -1) {
+      LOG_INFO("Overwrites MIN_CE_LEN=%d", overwrite_min_ce_len);
+    }
+    overwrite_max_ce_len =
+        (int16_t)osi_property_get_int32(PERSIST_MAX_CE_LEN_NAME.c_str(), -1);
+    if (overwrite_max_ce_len != -1) {
+      LOG_INFO("Overwrites MAX_CE_LEN=%d", overwrite_max_ce_len);
     }
 
     BTA_GATTC_AppRegister(
@@ -287,11 +306,39 @@ class HearingAidImpl : public HearingAid {
             },
             initCb),
         false);
+
+    IsoManager::GetInstance()->Start();
+    IsoManager::GetInstance()->RegisterOnIsoTrafficActiveCallback(
+        [](bool is_active) {
+          if (!instance) {
+            return;
+          }
+          instance->IsoTrafficEventCb(is_active);
+        });
+  }
+
+  void IsoTrafficEventCb(bool is_active) {
+    if (is_active) {
+      is_iso_running = true;
+    } else {
+      is_iso_running = false;
+      if (needs_parameter_update) {
+        for (auto& device : hearingDevices.devices) {
+          if (device.conn_id != 0) {
+            device.connection_update_status = STARTED;
+            device.requested_connection_interval =
+                UpdateBleConnParams(device.address);
+            return;
+          }
+        }
+      }
+    }
   }
 
   uint16_t UpdateBleConnParams(const RawAddress& address) {
     /* List of parameters that depends on the chosen Connection Interval */
-    uint16_t min_ce_len;
+    uint16_t min_ce_len = MIN_CE_LEN_20MS_CI;
+    uint16_t max_ce_len = MAX_CE_LEN_20MS_CI;
     uint16_t connection_interval;
 
     switch (default_data_interval_ms) {
@@ -300,7 +347,21 @@ class HearingAidImpl : public HearingAid {
         connection_interval = CONNECTION_INTERVAL_10MS_PARAM;
         break;
       case HA_INTERVAL_20_MS:
-        min_ce_len = MIN_CE_LEN_20MS_CI;
+        LOG_INFO("is_iso_running %d", is_iso_running);
+
+        // Because when ISO is connected, controller might not be able to
+        // update connection event length successfully.
+        // So if ISO is running, we use a small ce length to connect first,
+        // then update to a better value later on
+        if (is_iso_running) {
+          min_ce_len = CE_LEN_20MS_CI_ISO_RUNNING;
+          max_ce_len = CE_LEN_20MS_CI_ISO_RUNNING;
+          needs_parameter_update = true;
+        } else {
+          min_ce_len = MIN_CE_LEN_20MS_CI;
+          max_ce_len = MAX_CE_LEN_20MS_CI;
+          needs_parameter_update = false;
+        }
         connection_interval = CONNECTION_INTERVAL_20MS_PARAM;
         break;
       default:
@@ -310,14 +371,23 @@ class HearingAidImpl : public HearingAid {
         connection_interval = CONNECTION_INTERVAL_10MS_PARAM;
     }
 
-    if (overwrite_min_ce_len != 0) {
-      LOG_DEBUG("min_ce_len=%u is overwritten to %u", min_ce_len,
-                overwrite_min_ce_len);
+    if (overwrite_min_ce_len != -1) {
+      LOG_WARN("min_ce_len=%u for device %s is overwritten to %d", min_ce_len,
+               ADDRESS_TO_LOGGABLE_CSTR(address), overwrite_min_ce_len);
       min_ce_len = overwrite_min_ce_len;
     }
+    if (overwrite_max_ce_len != -1) {
+      LOG_WARN("max_ce_len=%u for device %s is overwritten to %d", max_ce_len,
+               ADDRESS_TO_LOGGABLE_CSTR(address), overwrite_max_ce_len);
+      max_ce_len = overwrite_max_ce_len;
+    }
 
+    LOG_INFO(
+        "L2CA_UpdateBleConnParams for device %s min_ce_len:%u "
+        "max_ce_len:%u",
+        ADDRESS_TO_LOGGABLE_CSTR(address), min_ce_len, max_ce_len);
     L2CA_UpdateBleConnParams(address, connection_interval, connection_interval,
-                             0x000A, 0x0064 /*1s*/, min_ce_len, min_ce_len);
+                             0x000A, 0x0064 /*1s*/, min_ce_len, max_ce_len);
     return connection_interval;
   }
 
