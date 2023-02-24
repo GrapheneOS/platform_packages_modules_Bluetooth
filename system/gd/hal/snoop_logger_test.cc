@@ -169,6 +169,11 @@ class SnoopLoggerModuleTest : public Test {
 
  protected:
   void SetUp() override {
+    const testing::TestInfo* const test_info =
+        testing::UnitTest::GetInstance()->current_test_info();
+
+    LOG_DEBUG(
+        "Setup for test %s in test suite %s.\n", test_info->name(), test_info->test_suite_name());
     temp_dir_ = std::filesystem::temp_directory_path();
     temp_snoop_log_ = temp_dir_ / "btsnoop_hci.log";
     temp_snoop_log_last_ = temp_dir_ / "btsnoop_hci.log.last";
@@ -197,6 +202,13 @@ class SnoopLoggerModuleTest : public Test {
     fake_timerfd_reset();
     test_registry->StopAll();
     delete test_registry;
+
+    const testing::TestInfo* const test_info =
+        testing::UnitTest::GetInstance()->current_test_info();
+    LOG_DEBUG(
+        "TearDown for test %s in test suite %s.\n",
+        test_info->name(),
+        test_info->test_suite_name());
   }
 
   void DeleteSnoopLogFiles() {
