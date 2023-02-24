@@ -1696,35 +1696,38 @@ impl IBluetoothGatt for BluetoothGatt {
             let mut gatt_async = gatt_async.lock().await;
 
             // Add and enable the monitor filter only when the MSFT extension is supported.
-            if let (true, Some(filter)) = (is_msft_supported, filter) {
-                let monitor_handle = match gatt_async.msft_adv_monitor_add((&filter).into()).await {
-                    Ok((handle, 0)) => handle,
-                    _ => {
-                        log::error!("Error adding advertisement monitor");
-                        return;
-                    }
-                };
+            if is_msft_supported {
+                if let Some(filter) = filter {
+                    let monitor_handle =
+                        match gatt_async.msft_adv_monitor_add((&filter).into()).await {
+                            Ok((handle, 0)) => handle,
+                            _ => {
+                                log::error!("Error adding advertisement monitor");
+                                return;
+                            }
+                        };
 
-                if let Some(scanner) =
-                    Self::find_scanner_by_id(&mut scanners.lock().unwrap(), scanner_id)
-                {
-                    // The monitor handle is needed in stop_scan().
-                    scanner.monitor_handle = Some(monitor_handle);
+                    if let Some(scanner) =
+                        Self::find_scanner_by_id(&mut scanners.lock().unwrap(), scanner_id)
+                    {
+                        // The monitor handle is needed in stop_scan().
+                        scanner.monitor_handle = Some(monitor_handle);
+                    }
+
+                    log::debug!("Added adv monitor handle = {}", monitor_handle);
                 }
 
-                log::debug!("Added adv monitor handle = {}", monitor_handle);
-            }
-
-            if !gatt_async
-                .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
-                .await
-                .map_or(false, |status| status == 0)
-            {
-                // TODO(b/266752123):
-                // Intel controller throws "Command Disallowed" error if we tried to enable/disable
-                // filter but it's already at the same state. This is harmless but we can improve
-                // the state machine to avoid calling enable/disable if it's already at that state
-                log::error!("Error updating Advertisement Monitor enable");
+                if !gatt_async
+                    .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
+                    .await
+                    .map_or(false, |status| status == 0)
+                {
+                    // TODO(b/266752123):
+                    // Intel controller throws "Command Disallowed" error if we tried to enable/disable
+                    // filter but it's already at the same state. This is harmless but we can improve
+                    // the state machine to avoid calling enable/disable if it's already at that state
+                    log::error!("Error updating Advertisement Monitor enable");
+                }
             }
 
             gatt_async.update_scan().await;
@@ -1755,6 +1758,7 @@ impl IBluetoothGatt for BluetoothGatt {
             .any(|(_uuid, scanner)| scanner.is_active && scanner.filter.is_none());
 
         let gatt_async = self.gatt_async.clone();
+        let is_msft_supported = self.is_msft_supported();
         tokio::spawn(async move {
             // The two operations below (monitor remove, update scan) happen one after another, and
             // cannot be interleaved with other GATT async operations.
@@ -1762,16 +1766,19 @@ impl IBluetoothGatt for BluetoothGatt {
             // at the end of this block.
             let mut gatt_async = gatt_async.lock().await;
 
-            if let Some(handle) = monitor_handle {
-                let _res = gatt_async.msft_adv_monitor_remove(handle).await;
-            }
+            // Remove and disable the monitor only when the MSFT extension is supported.
+            if is_msft_supported {
+                if let Some(handle) = monitor_handle {
+                    let _res = gatt_async.msft_adv_monitor_remove(handle).await;
+                }
 
-            if !gatt_async
-                .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
-                .await
-                .map_or(false, |status| status == 0)
-            {
-                log::error!("Error updating Advertisement Monitor enable");
+                if !gatt_async
+                    .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
+                    .await
+                    .map_or(false, |status| status == 0)
+                {
+                    log::error!("Error updating Advertisement Monitor enable");
+                }
             }
 
             gatt_async.update_scan().await;
