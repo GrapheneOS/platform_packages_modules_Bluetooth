@@ -31,6 +31,7 @@ public class PeriodicAdvertisementResult {
     private int mSyncHandle;
     private int mPAInterval;
     private int mBroadcastId;
+    private boolean mIsNotified;
 
     PeriodicAdvertisementResult(BluetoothDevice device,
                                 int addressType,
@@ -44,6 +45,7 @@ public class PeriodicAdvertisementResult {
         mSyncHandle = syncHandle;
         mPAInterval = paInterval;
         mBroadcastId = broadcastId;
+        mIsNotified = false;
     }
 
     /**
@@ -58,6 +60,21 @@ public class PeriodicAdvertisementResult {
      */
     public int getSyncHandle() {
         return mSyncHandle;
+    }
+
+    /**
+     * Get mIsNotified flag
+     */
+    public boolean isNotified() {
+        synchronized (this) {
+            return mIsNotified;
+        }
+    }
+
+    public void setNotified(boolean isNotified) {
+        synchronized (this) {
+            mIsNotified = isNotified;
+        }
     }
 
     /**
@@ -127,6 +144,7 @@ public class PeriodicAdvertisementResult {
         log("mSyncHandle:" + mSyncHandle);
         log("mPAInterval:" + mPAInterval);
         log("mBroadcastId:" + mBroadcastId);
+        log("mIsNotified: " + mIsNotified);
         log("-- END: PeriodicAdvertisementResult --");
     }
 

@@ -324,6 +324,7 @@ pub mod ffi {
         );
         unsafe fn gdscan_sync_lost_callback(sync_handle: u16);
         unsafe fn gdscan_sync_transfer_callback(status: u8, address: *const RawAddress);
+        unsafe fn gdscan_biginfo_report_callback(sync_handle: u16, encrypted: bool);
     }
 
     unsafe extern "C++" {
@@ -991,6 +992,9 @@ pub enum GattScannerInbandCallbacks {
 
     /// Params: Status, Address
     SyncTransferCallback(u8, RawAddress),
+
+    /// Params: Sync Handle, Encrypted
+    BigInfoReportCallback(u16, bool),
 }
 
 pub struct GattScannerInbandCallbacksDispatcher {
@@ -1034,6 +1038,7 @@ cb_variant!(GDScannerInbandCb, gdscan_sync_transfer_callback -> GattScannerInban
 u8, *const RawAddress, {
     let _1 = unsafe { *_1 };
 });
+cb_variant!(GDScannerInbandCb, gdscan_biginfo_report_callback -> GattScannerInbandCallbacks::BigInfoReportCallback, u16, bool);
 
 /// Advertising callbacks used by the GD implementation of BleAdvertiserInterface.
 /// These callbacks should be registered using |RegisterCallbacks| on
