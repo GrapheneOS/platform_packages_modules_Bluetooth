@@ -113,7 +113,6 @@ const Uuid UUID_HAS = Uuid::FromString("1854");
 const Uuid UUID_BASS = Uuid::FromString("184F");
 const Uuid UUID_BATTERY = Uuid::FromString("180F");
 const Uuid UUID_A2DP_SINK = Uuid::FromString("110B");
-const bool enable_address_consolidate = true;  // TODO remove
 
 #define COD_UNCLASSIFIED ((0x1F) << 8)
 #define COD_HID_KEYBOARD 0x0540
@@ -1176,7 +1175,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
       is_crosskey = true;
     }
 
-    if (!is_crosskey || !enable_address_consolidate) {
+    if (!is_crosskey) {
       btif_update_remote_properties(p_auth_cmpl->bd_addr, p_auth_cmpl->bd_name,
                                     NULL, dev_type);
     }
@@ -1219,15 +1218,11 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         /* Trigger SDP on the device */
         pairing_cb.sdp_attempts = 1;
 
-        if (is_crosskey && enable_address_consolidate) {
+        if (is_crosskey) {
           // If bonding occurred due to cross-key pairing, send address
           // consolidate callback
           GetInterfaceToProfiles()->events->invoke_address_consolidate_cb(
               pairing_cb.bd_addr, bd_addr);
-        } else if (is_crosskey && !enable_address_consolidate) {
-          // TODO remove
-          bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING);
-          bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDED);
         } else {
           bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDED);
         }
@@ -2002,10 +1997,9 @@ void BTIF_dm_enable() {
   /* clear control blocks */
   pairing_cb = {};
   pairing_cb.bond_type = tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT;
-  if (enable_address_consolidate) {
-    LOG_INFO("enable address consolidate");
-    btif_storage_load_le_devices();
-  }
+
+  // Enable address consolidation.
+  btif_storage_load_le_devices();
 
   /* This function will also trigger the adapter_properties_cb
   ** and bonded_devices_info_cb
