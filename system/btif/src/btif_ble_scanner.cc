@@ -343,12 +343,16 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
         &ScanningCallbacks::OnPeriodicSyncReport, base::Unretained(callbacks_));
     SyncLostCb sync_lost_cb = base::Bind(&ScanningCallbacks::OnPeriodicSyncLost,
                                          base::Unretained(callbacks_));
+    BigInfoReportCb biginfo_report_cb = base::Bind(&ScanningCallbacks::OnBigInfoReport,
+                                         base::Unretained(callbacks_));
+
     do_in_main_thread(
         FROM_HERE,
         base::Bind(&BTM_BleStartPeriodicSync, sid, address, skip, timeout,
                    jni_thread_wrapper(FROM_HERE, std::move(start_sync_cb)),
                    jni_thread_wrapper(FROM_HERE, std::move(sync_report_cb)),
-                   jni_thread_wrapper(FROM_HERE, std::move(sync_lost_cb))));
+                   jni_thread_wrapper(FROM_HERE, std::move(sync_lost_cb)),
+                   jni_thread_wrapper(FROM_HERE, std::move(biginfo_report_cb))));
   }
 
   void StopSync(uint16_t handle) override {
