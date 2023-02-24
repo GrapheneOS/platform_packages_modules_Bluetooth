@@ -415,7 +415,6 @@ class HFPProxy(ProfileProxy):
 
         return "OK"
 
-    @assert_description
     def TSC_verify_subscriber_number(self, **kwargs):
         """
         Using the Implementation Under Test (IUT), verify that the following is
@@ -743,6 +742,12 @@ class HFPProxy(ProfileProxy):
         see the HFP 1.5 Specification.
         """
 
+        def enable_call():
+            time.sleep(2)
+            self.hfp.MakeCallAsHandsfree(connection=self.connection, number=">1")
+
+        threading.Thread(target=enable_call).start()
+
         return "OK"
 
     @assert_description
@@ -881,6 +886,122 @@ class HFPProxy(ProfileProxy):
         Verify that the Hands Free \(HF\) speaker volume is displayed correctly on
         the Implementation Under Test \(IUT\).(?P<volume>[0-9]*)
         """
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_clear_memory(self, **kwargs):
+        """
+        Clear the memory indexed by TSPX_phone_number_memory on the AG such that
+        the memory slot becomes empty, then Click OK.
+        """
+        self.hfp.ClearCallHistory()
+
+        return "OK"
+
+    @assert_description
+    def TSC_enable_call_memory_invalid_tester(self, **kwargs):
+        """
+        The PTS will send a call request containing an invalid/out of range
+        memory index from the TSPX_phone_number_memory_invalid_index found in
+        the IXIT settings.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_hf_iut_enable_call_memory_invalid(self, pts_addr: bytes, **kwargs):
+        """
+        Click Ok, then attempt to place an outgoing call from the Implementation
+        Under Test (IUT) by entering a memory index which does not equal the
+        TSPX_phone_number_memory.  For further clarification please see the HFP
+        1.5 Specification.
+        """
+
+        def enable_call():
+            time.sleep(2)
+            self.hfp.MakeCallAsHandsfree(connection=self.connection, number=">9999")
+
+        threading.Thread(target=enable_call).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_hf_iut_verify_call_disable(self, **kwargs):
+        """
+        Verify that the call is disabled on the Implementation Under Test (IUT)
+        and then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_subscriber_number_unsupported(self, **kwargs):
+        """
+        Using the Implementation Under Test (IUT), verify that the subscriber
+        number information is not supported by the PTS, then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_query_call_list(self, **kwargs):
+        """
+        Using the Implementation Under Test (IUT), query the list of currents
+        calls on the Audio Gateway (AG), then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_verify_clcc_receipt(self, **kwargs):
+        """
+        Verify that the +CLCC response(s) received by the Implementation Under
+        Test (IUT) contains the correct call status information, then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_impair_ag_signal_expect_no_notification(self, **kwargs):
+        """
+        Impair the signal to the AG so that a reduction in signal strength can
+        be observed. Then, click OK.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_hf_iut_enable_call_last(self, pts_addr: bytes, **kwargs):
+        """
+        Click Ok, then place an outgoing call to the last number dialed on the
+        Implementation Under Test (IUT).
+        """
+
+        def enable_call():
+            time.sleep(2)
+            self.hfp.MakeCallAsHandsfree(connection=self.connection, number="123")
+
+        threading.Thread(target=enable_call).start()
+
+        return "OK"
+
+    @assert_description
+    def TSC_hf_disable_ecnr(self, **kwargs):
+        """
+        Using the Implemenation Under Test (IUT), disable  EC/NR, then click Ok.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_ag_iut_answer_call(self, **kwargs):
+        """
+        Click Ok, then answer the incoming call on the Implementation Under Test
+        (IUT).
+        """
+
+        self.hfp.AnswerCall()
 
         return "OK"
 
