@@ -87,6 +87,7 @@ class ScanningCallback {
       uint16_t sync_handle, int8_t tx_power, int8_t rssi, uint8_t status, std::vector<uint8_t> data) = 0;
   virtual void OnPeriodicSyncLost(uint16_t sync_handle) = 0;
   virtual void OnPeriodicSyncTransferred(int pa_source, uint8_t status, Address address) = 0;
+  virtual void OnBigInfoReport(uint16_t sync_handle, bool encrypted) = 0;
 };
 
 class AdvertisingPacketContentFilterCommand {
