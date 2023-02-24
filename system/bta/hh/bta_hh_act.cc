@@ -76,7 +76,7 @@ static const char* bta_hh_hid_event_name(uint16_t event);
  *
  ******************************************************************************/
 void bta_hh_api_enable(const tBTA_HH_DATA* p_data) {
-  tBTA_HH_STATUS status = BTA_HH_ERR;
+  tBTA_HH_STATUS status = BTA_HH_OK;
   uint8_t xx;
 
   /* initialize BTE HID */
@@ -84,32 +84,39 @@ void bta_hh_api_enable(const tBTA_HH_DATA* p_data) {
 
   memset(&bta_hh_cb, 0, sizeof(tBTA_HH_CB));
 
-  /* Register with L2CAP */
-  if (HID_HostRegister(bta_hh_cback) == HID_SUCCESS) {
-    /* store parameters */
-    bta_hh_cb.p_cback = p_data->api_enable.p_cback;
-
-    status = BTA_HH_OK;
-    /* initialize device CB */
-    for (xx = 0; xx < BTA_HH_MAX_DEVICE; xx++) {
-      bta_hh_cb.kdev[xx].state = BTA_HH_IDLE_ST;
-      bta_hh_cb.kdev[xx].hid_handle = BTA_HH_INVALID_HANDLE;
-      bta_hh_cb.kdev[xx].index = xx;
-    }
-
-    /* initialize control block map */
-    for (xx = 0; xx < BTA_HH_MAX_KNOWN; xx++)
-      bta_hh_cb.cb_index[xx] = BTA_HH_IDX_INVALID;
+  /* store parameters */
+  bta_hh_cb.p_cback = p_data->api_enable.p_cback;
+  /* initialize device CB */
+  for (xx = 0; xx < BTA_HH_MAX_DEVICE; xx++) {
+    bta_hh_cb.kdev[xx].state = BTA_HH_IDLE_ST;
+    bta_hh_cb.kdev[xx].hid_handle = BTA_HH_INVALID_HANDLE;
+    bta_hh_cb.kdev[xx].index = xx;
   }
 
-  if (status == BTA_HH_OK) {
+  /* initialize control block map */
+  for (xx = 0; xx < BTA_HH_MAX_KNOWN; xx++) {
+    bta_hh_cb.cb_index[xx] = BTA_HH_IDX_INVALID;
+  }
+
+  if (p_data->api_enable.enable_hid) {
+    /* Register with L2CAP */
+    if (HID_HostRegister(bta_hh_cback) != HID_SUCCESS) {
+      status = BTA_HH_ERR;
+    }
+  }
+
+  if (status == BTA_HH_OK && p_data->api_enable.enable_hogp) {
     bta_hh_le_enable();
-  } else
-  {
+  } else {
     /* signal BTA call back event */
     tBTA_HH bta_hh;
     bta_hh.status = status;
-    (*bta_hh_cb.p_cback)(BTA_HH_ENABLE_EVT, &bta_hh);
+    if (status != BTA_HH_OK) {
+      LOG_ERROR("Failed to register, status: %d", status);
+    }
+    if (bta_hh_cb.p_cback) {
+      (*bta_hh_cb.p_cback)(BTA_HH_ENABLE_EVT, &bta_hh);
+    }
   }
 }
 /*******************************************************************************

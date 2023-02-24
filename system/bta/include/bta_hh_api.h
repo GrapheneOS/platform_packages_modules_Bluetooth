@@ -327,7 +327,7 @@ typedef void(tBTA_HH_CBACK)(tBTA_HH_EVT event, tBTA_HH* p_data);
 
 /*******************************************************************************
  *
- * Function         BTA_HhRegister
+ * Function         BTA_HhEnable
  *
  * Description      This function enable HID host and registers HID-Host with
  *                  lower layers.
@@ -335,11 +335,12 @@ typedef void(tBTA_HH_CBACK)(tBTA_HH_EVT event, tBTA_HH* p_data);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhEnable(tBTA_HH_CBACK* p_cback);
+extern void BTA_HhEnable(tBTA_HH_CBACK* p_cback, bool enable_hid,
+                         bool enable_hogp);
 
 /*******************************************************************************
  *
- * Function         BTA_HhDeregister
+ * Function         BTA_HhDisable
  *
  * Description      This function is called when the host is about power down.
  *
