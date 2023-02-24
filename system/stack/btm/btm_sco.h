@@ -64,15 +64,25 @@ size_t init(size_t pkt_size);
 /* Clean up when the SCO connection is done */
 void cleanup();
 
+/* Fill in packet loss stats
+ * Args:
+ *    num_decoded_frames - Output argument for the number of decode frames
+ *    packet_loss_ratio - Output argument for the ratio of lost frames
+ * Returns:
+ *    False for invalid arguments or unreasonable stats. True otherwise.
+ */
+bool fill_plc_stats(int* num_decoded_frames, double* packet_loss_ratio);
+
 /* Try to enqueue a packet to a buffer.
  * Args:
  *    data - Pointer to received packet data bytes.
  *    pkt_size - Length of input packet. Passing packet with inconsistent size
  *        from the pkt_size set in init() will fail the call.
+ *    corrupted - If the current mSBC packet read is corrupted.
  * Returns:
  *    The length of enqueued bytes. 0 if failed.
  */
-size_t enqueue_packet(const uint8_t* data, size_t pkt_size);
+size_t enqueue_packet(const uint8_t* data, size_t pkt_size, bool corrupted);
 
 /* Try to decode mSBC frames from the packets in the buffer.
  * Args:

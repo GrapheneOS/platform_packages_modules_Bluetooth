@@ -557,6 +557,9 @@ void btif_get_adapter_property(bt_property_type_t type) {
     local_le_features
         .le_periodic_advertising_sync_transfer_recipient_supported =
         controller->supports_ble_periodic_advertising_sync_transfer_recipient();
+    local_le_features.adv_filter_extended_features_mask =
+        cmn_vsc_cb.adv_filter_extended_features_mask;
+
     memcpy(prop.val, &local_le_features, prop.len);
   } else if (prop.type == BT_PROPERTY_DYNAMIC_AUDIO_BUFFER) {
     tBTM_BLE_VSC_CB cmn_vsc_cb;
