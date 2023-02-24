@@ -125,6 +125,7 @@ TEST_F(SnoopLoggerSocketThreadModuleTest, socket_connect_test) {
   sls.Stop();
 
   ASSERT_FALSE(sls.ThreadIsRunning());
+  close(socket_fd);
 }
 
 TEST_F(SnoopLoggerSocketThreadModuleTest, socket_connect_disconnect_test) {
@@ -155,6 +156,7 @@ TEST_F(SnoopLoggerSocketThreadModuleTest, socket_connect_disconnect_test) {
   sls.Stop();
 
   ASSERT_FALSE(sls.ThreadIsRunning());
+  close(socket_fd);
 }
 
 TEST_F(SnoopLoggerSocketThreadModuleTest, socket_send_no_start_test) {
@@ -205,6 +207,7 @@ TEST_F(SnoopLoggerSocketThreadModuleTest, socket_send_before_connect_test) {
   a.wait();
   bytes_read = a.get();
   ASSERT_EQ(bytes_read, -1);
+  close(socket_fd);
 }
 
 TEST_F(SnoopLoggerSocketThreadModuleTest, socket_recv_file_header_test) {
@@ -242,6 +245,7 @@ TEST_F(SnoopLoggerSocketThreadModuleTest, socket_recv_file_header_test) {
 
   ASSERT_EQ(bytes_read, static_cast<int>(sizeof(SnoopLoggerCommon::FileHeaderType)));
   ASSERT_TRUE(std::memcmp(recv_buf, &SnoopLoggerCommon::kBtSnoopFileHeader, bytes_read) == 0);
+  close(socket_fd);
 }
 
 TEST_F(SnoopLoggerSocketThreadModuleTest, socket_send_recv_test) {
@@ -286,6 +290,7 @@ TEST_F(SnoopLoggerSocketThreadModuleTest, socket_send_recv_test) {
 
   ASSERT_EQ(bytes_read, static_cast<int>(sizeof(test_data)));
   ASSERT_TRUE(std::memcmp(recv_buf2, test_data, bytes_read) == 0);
+  close(socket_fd);
 }
 
 }  // namespace testing
