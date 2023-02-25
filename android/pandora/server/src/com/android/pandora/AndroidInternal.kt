@@ -22,6 +22,7 @@ import android.content.ComponentName
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Environment
 import android.provider.MediaStore.Images.Media
@@ -57,8 +58,6 @@ class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
   private val INCOMING_FILE_TITLE = "Incoming file"
   private val INCOMING_FILE_WAIT_TIMEOUT = 2000L
 
-  private val BT_PKG_NAME = "com.android.bluetooth"
-  private val BT_OPP_LAUNCHER_ACTIVITY = "com.android.bluetooth.opp.BluetoothOppLauncherActivity"
   private val BT_DEVICE_SELECT_WAIT_TIMEOUT = 3000L
   private val IMAGE_FILE_NAME = "OPP_TEST_IMAGE.bmp"
 
@@ -166,11 +165,22 @@ class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
     try {
       var sendingIntent = Intent(Intent.ACTION_SEND)
       sendingIntent.setType(type)
+      val activity =
+        context.packageManager!!
+          .queryIntentActivities(
+            sendingIntent,
+            PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong())
+          )
+          .filter { it!!.loadLabel(context.packageManager) == "Bluetooth" }
+          .first()
+          .activityInfo
       sendingIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-      sendingIntent.setComponent(ComponentName(BT_PKG_NAME, BT_OPP_LAUNCHER_ACTIVITY))
+      sendingIntent.setComponent(ComponentName(activity.applicationInfo.packageName, activity.name))
       sendingIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
       context.startActivity(sendingIntent)
-    } catch (e: Exception) {}
+    } catch (e: Exception) {
+      e.printStackTrace()
+    }
   }
 
   private fun getImageId(fileName: String): Long {
