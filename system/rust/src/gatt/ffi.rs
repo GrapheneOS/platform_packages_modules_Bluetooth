@@ -5,19 +5,24 @@ use anyhow::{bail, Result};
 use bt_common::init_flags::{
     always_use_private_gatt_for_debugging_is_enabled, rust_event_loop_is_enabled,
 };
+use cxx::UniquePtr;
 pub use inner::*;
 use log::{error, info, warn};
 
 use crate::{
     do_in_rust_thread,
-    packets::{AttBuilder, Serializable, SerializeError},
+    packets::{
+        AttAttributeDataChild, AttAttributeDataView, AttBuilder, AttErrorCode, Serializable,
+        SerializeError,
+    },
 };
 
 use super::{
     arbiter::{self, with_arbiter},
     channel::AttTransport,
-    ids::{AdvertiserId, AttHandle, ConnectionId, ServerId, TransportIndex},
+    ids::{AdvertiserId, AttHandle, ConnectionId, ServerId, TransactionId, TransportIndex},
     server::gatt_database::{AttPermissions, GattCharacteristicWithHandle, GattServiceWithHandle},
+    GattCallbacks,
 };
 
 #[cxx::bridge]
@@ -25,11 +30,47 @@ use super::{
 #[allow(clippy::too_many_arguments)]
 #[allow(missing_docs)]
 mod inner {
+    impl UniquePtr<GattServerCallbacks> {}
+
     #[namespace = "bluetooth"]
     extern "C++" {
         include!("bluetooth/uuid.h");
         /// A C++ UUID.
         type Uuid = crate::core::uuid::Uuid;
+    }
+
+    #[namespace = "bluetooth::gatt"]
+    unsafe extern "C++" {
+        include!("src/gatt/ffi/gatt_shim.h");
+
+        /// This contains the callbacks from Rust into C++ JNI needed for GATT
+        type GattServerCallbacks;
+
+        /// This callback is invoked when reading a characteristic - the client
+        /// must reply using SendResponse
+        #[cxx_name = "OnServerReadCharacteristic"]
+        fn on_server_read_characteristic(
+            self: &GattServerCallbacks,
+            conn_id: u16,
+            trans_id: u32,
+            attr_handle: u16,
+            offset: u32,
+            is_long: bool,
+        );
+
+        /// This callback is invoked when writing a characteristic - the client
+        /// must reply using SendResponse
+        #[cxx_name = "OnServerWriteCharacteristic"]
+        fn on_server_write_characteristic(
+            self: &GattServerCallbacks,
+            conn_id: u16,
+            trans_id: u32,
+            attr_handle: u16,
+            offset: u32,
+            need_response: bool,
+            is_prepare: bool,
+            value: &[u8],
+        );
     }
 
     /// What action the arbiter should take in response to an incoming packet
@@ -91,6 +132,7 @@ mod inner {
         fn close_server(server_id: u8);
         fn add_service(server_id: u8, service_records: Vec<GattRecord>);
         fn remove_service(server_id: u8, service_handle: u16);
+        fn send_response(server_id: u8, conn_id: u16, trans_id: u32, status: u8, value: &[u8]);
 
         // connection
         fn is_connection_isolated(conn_id: u16) -> bool;
@@ -98,6 +140,46 @@ mod inner {
         // arbitration
         fn associate_server_with_advertiser(server_id: u8, advertiser_id: u8);
         fn clear_advertiser(advertiser_id: u8);
+    }
+}
+
+/// Implementation of GattCallbacks wrapping the corresponding C++ methods
+pub struct GattCallbacksImpl(pub UniquePtr<GattServerCallbacks>);
+
+impl GattCallbacks for GattCallbacksImpl {
+    fn on_server_read_characteristic(
+        &self,
+        conn_id: ConnectionId,
+        trans_id: TransactionId,
+        handle: AttHandle,
+        offset: u32,
+        is_long: bool,
+    ) {
+        self.0
+            .as_ref()
+            .unwrap()
+            .on_server_read_characteristic(conn_id.0, trans_id.0, handle.0, offset, is_long);
+    }
+
+    fn on_server_write_characteristic(
+        &self,
+        conn_id: ConnectionId,
+        trans_id: TransactionId,
+        handle: AttHandle,
+        offset: u32,
+        need_response: bool,
+        is_prepare: bool,
+        value: AttAttributeDataView,
+    ) {
+        self.0.as_ref().unwrap().on_server_write_characteristic(
+            conn_id.0,
+            trans_id.0,
+            handle.0,
+            offset,
+            need_response,
+            is_prepare,
+            &value.get_raw_payload().collect::<Vec<_>>(),
+        );
     }
 }
 
@@ -241,6 +323,30 @@ fn is_connection_isolated(conn_id: u16) -> bool {
     }
 
     with_arbiter(|arbiter| arbiter.is_connection_isolated(ConnectionId(conn_id)))
+}
+
+fn send_response(_server_id: u8, conn_id: u16, trans_id: u32, status: u8, value: &[u8]) {
+    if !rust_event_loop_is_enabled() {
+        return;
+    }
+
+    // TODO(aryarahul): fixup error codes to allow app-specific values (i.e. don't
+    // make it an enum in PDL)
+    let value = if status == 0 {
+        Ok(AttAttributeDataChild::RawData(value.to_vec().into_boxed_slice()))
+    } else {
+        Err(AttErrorCode::try_from(status).unwrap_or(AttErrorCode::UNLIKELY_ERROR))
+    };
+    do_in_rust_thread(move |modules| {
+        match modules.gatt_callbacks.send_response(
+            ConnectionId(conn_id),
+            TransactionId(trans_id),
+            value,
+        ) {
+            Ok(()) => { /* no-op */ }
+            Err(err) => warn!("{err:?}"),
+        }
+    })
 }
 
 fn associate_server_with_advertiser(server_id: u8, advertiser_id: u8) {

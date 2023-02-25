@@ -94,6 +94,9 @@ cc_library_static {
     defaults: [
         "libchrome_support_defaults",
     ],
+    srcs: [
+        "src/gatt/ffi/gatt_shim.cc",
+    ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/include",
