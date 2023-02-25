@@ -17,6 +17,8 @@ use crate::core::init;
 use cxx::{type_id, ExternType};
 pub use inner::*;
 
+unsafe impl Send for GattServerCallbacks {}
+
 unsafe impl ExternType for Uuid {
     type Id = type_id!("bluetooth::Uuid");
     type Kind = cxx::kind::Trivial;
@@ -31,8 +33,14 @@ mod inner {
         type Uuid = crate::core::uuid::Uuid;
     }
 
+    #[namespace = "bluetooth::gatt"]
+    unsafe extern "C++" {
+        include!("src/gatt/ffi/gatt_shim.h");
+        type GattServerCallbacks = crate::gatt::GattServerCallbacks;
+    }
+
     #[namespace = "bluetooth::rust_shim"]
     extern "Rust" {
-        fn init();
+        fn init(gatt_server_callbacks: UniquePtr<GattServerCallbacks>);
     }
 }
