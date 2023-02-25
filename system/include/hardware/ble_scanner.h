@@ -107,6 +107,7 @@ class ScanningCallbacks {
   virtual void OnPeriodicSyncLost(uint16_t sync_handle) = 0;
   virtual void OnPeriodicSyncTransferred(int pa_source, uint8_t status,
                                          RawAddress address) = 0;
+  virtual void OnBigInfoReport(uint16_t sync_handle, bool encrypted) = 0;
 };
 
 class BleScannerInterface {

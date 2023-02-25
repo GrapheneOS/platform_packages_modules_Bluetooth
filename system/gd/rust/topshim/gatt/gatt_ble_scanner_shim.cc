@@ -391,6 +391,10 @@ void BleScannerIntf::OnPeriodicSyncTransferred(int, uint8_t status, RawAddress a
   rusty::gdscan_sync_transfer_callback(status, &addr);
 }
 
+void BleScannerIntf::OnBigInfoReport(uint16_t sync_handle, bool encrypted) {
+  rusty::gdscan_biginfo_report_callback(sync_handle, encrypted);
+}
+
 void BleScannerIntf::RegisterCallbacks() {
   // Register self as a callback handler. We will dispatch to Rust callbacks.
   scanner_intf_->RegisterCallbacks(this);
