@@ -214,6 +214,7 @@ typedef struct {
   StartSyncCb sync_start_cb;
   SyncReportCb sync_report_cb;
   SyncLostCb sync_lost_cb;
+  BigInfoReportCb biginfo_report_cb;
 } tBTM_BLE_PERIODIC_SYNC;
 
 typedef struct {
@@ -1239,7 +1240,7 @@ void btm_ble_periodic_adv_sync_lost(uint16_t sync_handle) {
 void BTM_BleStartPeriodicSync(uint8_t adv_sid, RawAddress address,
                               uint16_t skip, uint16_t timeout,
                               StartSyncCb syncCb, SyncReportCb reportCb,
-                              SyncLostCb lostCb) {
+                              SyncLostCb lostCb, BigInfoReportCb biginfo_reportCb) {
   LOG_DEBUG("%s", "[PSync]");
   int index = btm_ble_get_free_psync_index();
   tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
@@ -1253,6 +1254,7 @@ void BTM_BleStartPeriodicSync(uint8_t adv_sid, RawAddress address,
   p->sync_start_cb = syncCb;
   p->sync_report_cb = reportCb;
   p->sync_lost_cb = lostCb;
+  p->biginfo_report_cb = biginfo_reportCb;
   btm_queue_start_sync_req(adv_sid, address, skip, timeout);
 }
 
@@ -1462,6 +1464,15 @@ void btm_ble_biginfo_adv_report_rcvd(uint8_t* p, uint16_t param_len) {
       "%u",
       sync_handle, num_bises, nse, iso_interval, bn, pto, irc, max_pdu,
       sdu_interval, max_sdu, phy, framing, encryption);
+
+  int index = btm_ble_get_psync_index_from_handle(sync_handle);
+  if (index == MAX_SYNC_TRANSACTION) {
+    LOG_ERROR("[PSync]: index not found for handle %u", sync_handle);
+    return;
+  }
+  tBTM_BLE_PERIODIC_SYNC* ps = &btm_ble_pa_sync_cb.p_sync[index];
+  LOG_DEBUG("%s", "[PSync]: invoking callback");
+  ps->biginfo_report_cb.Run(sync_handle, encryption ? true : false);
 }
 
 /*******************************************************************************

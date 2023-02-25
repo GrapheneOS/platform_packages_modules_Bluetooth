@@ -165,6 +165,7 @@ void Btm::ScanningCallbacks::OnPeriodicSyncReport(uint16_t sync_handle,
 void Btm::ScanningCallbacks::OnPeriodicSyncLost(uint16_t sync_handle) {}
 void Btm::ScanningCallbacks::OnPeriodicSyncTransferred(
     int pa_source, uint8_t status, bluetooth::hci::Address address) {}
+void Btm::ScanningCallbacks::OnBigInfoReport(uint16_t sync_handle, bool encrypted) {}
 
 Btm::Btm(os::Handler* handler, neighbor::InquiryModule* inquiry)
     : scanning_timer_(handler), observing_timer_(handler) {
