@@ -7,7 +7,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use log::{error, info, warn};
+use log::{error, trace, warn};
 use tokio::task::spawn_local;
 
 use crate::{
@@ -63,14 +63,14 @@ impl<T: AttDatabase + 'static> AttServerBearer<T> {
                 let this = Rc::downgrade(self);
                 let packet = packet.to_owned_packet();
                 let task = spawn_local(async move {
-                    info!("starting ATT transaction");
+                    trace!("starting ATT transaction");
                     let reply = request_handler.process_packet(packet.view(), mtu).await;
                     match Weak::upgrade(&this) {
                         None => {
                             warn!("callback returned after disconnect");
                         }
                         Some(this) => {
-                            info!("sending reply packet");
+                            trace!("sending reply packet");
                             if let Err(err) = this.send_response(reply) {
                                 error!("serializer failure {err:?}, dropping packet and sending failed reply");
                                 this.send_response(AttErrorResponseBuilder {
@@ -103,26 +103,38 @@ impl<T: AttDatabase + 'static> AttServerBearer<T> {
 
 #[cfg(test)]
 mod test {
-    use tokio::{
-        runtime::Runtime,
-        sync::mpsc::{error::TryRecvError, unbounded_channel, UnboundedReceiver},
-        task::LocalSet,
-    };
+    use tokio::sync::mpsc::{error::TryRecvError, unbounded_channel, UnboundedReceiver};
 
     use super::*;
 
     use crate::{
         core::uuid::Uuid,
-        gatt::server::{
-            att_database::{AttAttribute, AttPermissions},
-            test::test_att_db::TestAttDatabase,
+        gatt::{
+            callbacks::GattDatastore,
+            ids::ConnectionId,
+            mocks::mock_datastore::{MockDatastore, MockDatastoreEvents},
+            server::{
+                att_database::{AttAttribute, AttPermissions},
+                gatt_database::{
+                    GattCharacteristicWithHandle, GattDatabase, GattServiceWithHandle,
+                },
+                test::test_att_db::TestAttDatabase,
+            },
         },
-        packets::{AttOpcode, AttReadRequestBuilder},
-        utils::packet::build_att_view_or_crash,
+        packets::{
+            AttAttributeDataChild, AttOpcode, AttReadRequestBuilder, AttReadResponseBuilder,
+        },
+        utils::{
+            packet::{build_att_data, build_att_view_or_crash},
+            task::block_on_locally,
+        },
     };
 
     const VALID_HANDLE: AttHandle = AttHandle(3);
     const INVALID_HANDLE: AttHandle = AttHandle(4);
+    const ANOTHER_VALID_HANDLE: AttHandle = AttHandle(10);
+
+    const CONN_ID: ConnectionId = ConnectionId(1);
 
     fn open_connection() -> (Rc<AttServerBearer<TestAttDatabase>>, UnboundedReceiver<AttBuilder>) {
         let db = TestAttDatabase::new(vec![(
@@ -143,7 +155,7 @@ mod test {
 
     #[test]
     fn test_single_transaction() {
-        LocalSet::new().block_on(&Runtime::new().unwrap(), async {
+        block_on_locally(async {
             let (conn, mut rx) = open_connection();
             conn.handle_packet(
                 build_att_view_or_crash(AttReadRequestBuilder {
@@ -158,7 +170,7 @@ mod test {
 
     #[test]
     fn test_sequential_transactions() {
-        LocalSet::new().block_on(&Runtime::new().unwrap(), async {
+        block_on_locally(async {
             let (conn, mut rx) = open_connection();
             conn.handle_packet(
                 build_att_view_or_crash(AttReadRequestBuilder {
@@ -182,6 +194,71 @@ mod test {
 
     #[test]
     fn test_concurrent_transaction_failure() {
-        // TODO(aryarahul) - Add this test once GATT callbacks are available
+        // arrange: AttServerBearer linked to a backing datastore and packet queue, with
+        // two characteristics in the database
+        let (datastore, mut data_rx) = MockDatastore::new();
+        let datastore = Rc::new(datastore);
+        datastore.add_connection(CONN_ID);
+        data_rx.blocking_recv().unwrap(); // ignore AddConnection() event
+        let db = Rc::new(GattDatabase::new(datastore));
+        db.add_service_with_handles(GattServiceWithHandle {
+            handle: AttHandle(1),
+            type_: Uuid::new(1),
+            characteristics: vec![
+                GattCharacteristicWithHandle {
+                    handle: VALID_HANDLE,
+                    type_: Uuid::new(2),
+                    permissions: AttPermissions::READONLY,
+                },
+                GattCharacteristicWithHandle {
+                    handle: ANOTHER_VALID_HANDLE,
+                    type_: Uuid::new(2),
+                    permissions: AttPermissions::READONLY,
+                },
+            ],
+        })
+        .unwrap();
+        let (tx, mut rx) = unbounded_channel();
+        let send_response = move |packet| {
+            tx.send(packet).unwrap();
+            Ok(())
+        };
+        let conn = AttServerBearer::new(db.get_att_database(CONN_ID), send_response);
+        let data = AttAttributeDataChild::RawData([1, 2].into());
+
+        // act: send two read requests before replying to either read
+        // first request
+        block_on_locally(async {
+            let req1 = build_att_view_or_crash(AttReadRequestBuilder {
+                attribute_handle: VALID_HANDLE.into(),
+            });
+            conn.handle_packet(req1.view());
+            // second request
+            let req2 = build_att_view_or_crash(AttReadRequestBuilder {
+                attribute_handle: ANOTHER_VALID_HANDLE.into(),
+            });
+            conn.handle_packet(req2.view());
+            // handle first reply
+            let MockDatastoreEvents::ReadCharacteristic(CONN_ID, VALID_HANDLE, data_resp) =
+                data_rx.recv().await.unwrap() else {
+                    unreachable!();
+            };
+            data_resp.send(Ok(data.clone())).unwrap();
+            trace!("reply sent from upper tester");
+
+            // assert: that the first reply was made
+            let resp = rx.recv().await.unwrap();
+            assert_eq!(
+                resp,
+                AttBuilder {
+                    opcode: AttOpcode::READ_RESPONSE,
+                    _child_: AttReadResponseBuilder { value: build_att_data(data) }.into(),
+                }
+            );
+            // assert no other replies were made
+            assert_eq!(rx.try_recv(), Err(TryRecvError::Empty));
+            // assert no callbacks are pending
+            assert_eq!(data_rx.try_recv().unwrap_err(), TryRecvError::Empty);
+        });
     }
 }

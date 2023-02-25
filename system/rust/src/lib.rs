@@ -16,7 +16,7 @@
 //! dependency order.
 
 use bt_common::init_flags::rust_event_loop_is_enabled;
-use gatt::channel::AttTransport;
+use gatt::{channel::AttTransport, GattCallbacks};
 use log::{info, warn};
 use tokio::task::LocalSet;
 
@@ -46,6 +46,8 @@ pub struct GlobalModuleRegistry {
 /// Java / C++ while the stack is running. If a module should not be exposed
 /// outside of Rust GD, there is no need to include it here.
 pub struct ModuleViews<'a> {
+    /// Receives synchronous callbacks from JNI
+    pub gatt_callbacks: Rc<gatt::callbacks::CallbackTransactionManager>,
     /// Proxies calls into GATT server
     pub gatt_module: &'a mut gatt::server::GattModule,
 }
@@ -57,7 +59,7 @@ impl GlobalModuleRegistry {
     /// have started, but before the legacy stack has initialized.
     /// Must be invoked from the Rust thread after JNI initializes it and passes
     /// in JNI modules.
-    pub fn start(att_transport: Rc<dyn AttTransport>) {
+    pub fn start(gatt_callbacks: Rc<dyn GattCallbacks>, att_transport: Rc<dyn AttTransport>) {
         info!("starting Rust modules");
         let rt = Builder::new_current_thread()
             .enable_all()
@@ -76,12 +78,15 @@ impl GlobalModuleRegistry {
 
         // Now enter the runtime
         local.block_on(&rt, async {
-            // Then we have the pure-Rust modules
-            let gatt_module = &mut gatt::server::GattModule::new(att_transport.clone());
+            // Then follow the pure-Rust modules
+            let gatt_callbacks =
+                Rc::new(gatt::callbacks::CallbackTransactionManager::new(gatt_callbacks));
+            let gatt_module =
+                &mut gatt::server::GattModule::new(gatt_callbacks.clone(), att_transport.clone());
 
             // All modules that are visible from incoming JNI / top-level interfaces should
             // be exposed here
-            let mut modules = ModuleViews { gatt_module };
+            let mut modules = ModuleViews { gatt_callbacks, gatt_module };
 
             // This is the core event loop that serializes incoming requests into the Rust
             // thread do_in_rust_thread lets us post into here from foreign
