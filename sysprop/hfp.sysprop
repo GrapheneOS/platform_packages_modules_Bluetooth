@@ -1,0 +1,12 @@
+module: "android.sysprop.bluetooth.Hfp"
+owner: Platform
+
+prop {
+    api_name: "hf_services"
+    type: Integer
+    scope: Internal
+    access: Readonly
+    prop_name: "bluetooth.hfp.hf_services_mask.config"
+}
+
+
