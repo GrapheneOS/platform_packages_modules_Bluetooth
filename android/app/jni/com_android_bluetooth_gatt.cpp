@@ -29,6 +29,7 @@
 #include "gd/common/init_flags.h"
 #include "hardware/bt_gatt.h"
 #include "rust/cxx.h"
+#include "rust/src/gatt/ffi/gatt_shim.h"
 #include "src/core/ffi.rs.h"
 #include "src/gatt/ffi.rs.h"
 #include "utils/Log.h"
@@ -1393,7 +1394,9 @@ static void initializeNative(JNIEnv* env, jobject object) {
 
   mCallbacksObj = env->NewGlobalRef(object);
 
-  bluetooth::rust_shim::init();
+  auto callbacks = std::make_unique<bluetooth::gatt::GattServerCallbacks>(
+      sGattServerCallbacks);
+  bluetooth::rust_shim::init(std::move(callbacks));
 }
 
 static void cleanupNative(JNIEnv* env, jobject object) {
@@ -2192,7 +2195,9 @@ static void gattServerSendResponseNative(JNIEnv* env, jobject object,
   }
 
   if (bluetooth::gatt::is_connection_isolated(conn_id)) {
-    // no-op
+    auto data = ::rust::Slice<const uint8_t>(response.attr_value.value,
+                                             response.attr_value.len);
+    bluetooth::gatt::send_response(server_if, conn_id, trans_id, status, data);
   } else {
     sGattIf->server->send_response(conn_id, trans_id, status, response);
   }
