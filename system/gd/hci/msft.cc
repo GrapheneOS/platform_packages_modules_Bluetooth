@@ -138,6 +138,11 @@ struct MsftExtensionManager::impl {
   }
 
   void msft_adv_monitor_add(const MsftAdvMonitor& monitor, MsftAdvMonitorAddCallback cb) {
+    if (!supports_msft_extensions()) {
+      LOG_WARN("Disallowed as MSFT extension is not supported.");
+      return;
+    }
+
     std::vector<MsftLeMonitorAdvConditionPattern> patterns;
     MsftLeMonitorAdvConditionPattern pattern;
     // The Microsoft Extension specifies 1 octet for the number of patterns.
@@ -168,6 +173,11 @@ struct MsftExtensionManager::impl {
   }
 
   void msft_adv_monitor_remove(uint8_t monitor_handle, MsftAdvMonitorRemoveCallback cb) {
+    if (!supports_msft_extensions()) {
+      LOG_WARN("Disallowed as MSFT extension is not supported.");
+      return;
+    }
+
     msft_adv_monitor_remove_cb_ = cb;
     hci_layer_->EnqueueCommand(
         MsftLeCancelMonitorAdvBuilder::Create(
@@ -176,6 +186,11 @@ struct MsftExtensionManager::impl {
   }
 
   void msft_adv_monitor_enable(bool enable, MsftAdvMonitorEnableCallback cb) {
+    if (!supports_msft_extensions()) {
+      LOG_WARN("Disallowed as MSFT extension is not supported.");
+      return;
+    }
+
     msft_adv_monitor_enable_cb_ = cb;
     hci_layer_->EnqueueCommand(
         MsftLeSetAdvFilterEnableBuilder::Create(static_cast<OpCode>(msft_.opcode.value()), enable),
