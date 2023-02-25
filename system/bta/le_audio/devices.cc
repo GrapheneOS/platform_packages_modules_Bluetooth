@@ -1039,7 +1039,7 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
       LOG_INFO("ASE ID: %d, is already assigned CIS ID: %d, type %d", ase->id,
                ase->cis_id, cises_[ase->cis_id].type);
       if (!cises_[ase->cis_id].addr.IsEmpty()) {
-        LOG_INFO("Bidirectional ASE already assigned");
+        LOG_INFO("Bi-Directional CIS already assigned");
         continue;
       }
       /* Reuse existing CIS ID if available*/
@@ -1049,6 +1049,18 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
     /* First check if we have bidirectional ASEs. If so, assign same CIS ID.*/
     struct ase* matching_bidir_ase =
         leAudioDevice->GetNextActiveAseWithDifferentDirection(ase);
+
+    for (; matching_bidir_ase != nullptr;
+         matching_bidir_ase = leAudioDevice->GetNextActiveAseWithSameDirection(
+             matching_bidir_ase)) {
+      if ((matching_bidir_ase->cis_id != kInvalidCisId) &&
+          (matching_bidir_ase->cis_id != cis_id)) {
+        LOG_INFO("Bi-Directional CIS is already used. ASE Id: %d cis_id=%d",
+                 matching_bidir_ase->id, matching_bidir_ase->cis_id);
+        continue;
+      }
+      break;
+    }
 
     if (matching_bidir_ase) {
       if (cis_id == kInvalidCisId) {
