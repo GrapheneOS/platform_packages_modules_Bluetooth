@@ -321,7 +321,7 @@ extern tSMP_CB smp_cb;
 extern void smp_init(void);
 
 /* smp main */
-extern void smp_sm_event(tSMP_CB* p_cb, tSMP_EVENT event,
+extern bool smp_sm_event(tSMP_CB* p_cb, tSMP_EVENT event,
                          tSMP_INT_DATA* p_data);
 
 extern tSMP_STATE smp_get_state(void);
