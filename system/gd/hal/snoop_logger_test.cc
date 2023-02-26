@@ -169,13 +169,21 @@ class SnoopLoggerModuleTest : public Test {
 
  protected:
   void SetUp() override {
-    temp_dir_ = std::filesystem::temp_directory_path();
-    temp_snoop_log_ = temp_dir_ / "btsnoop_hci.log";
-    temp_snoop_log_last_ = temp_dir_ / "btsnoop_hci.log.last";
-    temp_snooz_log_ = temp_dir_ / "btsnooz_hci.log";
-    temp_snooz_log_last_ = temp_dir_ / "btsnooz_hci.log.last";
-    temp_snoop_log_filtered = temp_dir_ / "btsnoop_hci.log.filtered";
-    temp_snoop_log_filtered_last = temp_dir_ / "btsnoop_hci.log.filtered.last";
+    const testing::TestInfo* const test_info =
+        testing::UnitTest::GetInstance()->current_test_info();
+
+    LOG_DEBUG(
+        "Setup for test %s in test suite %s.\n", test_info->name(), test_info->test_suite_name());
+    const std::filesystem::path temp_dir_ = std::filesystem::temp_directory_path();
+
+    temp_snoop_log_ = temp_dir_ / (std::string(test_info->name()) + "_btsnoop_hci.log");
+    temp_snoop_log_last_ = temp_dir_ / (std::string(test_info->name()) + "_btsnoop_hci.log.last");
+    temp_snooz_log_ = temp_dir_ / (std::string(test_info->name()) + "_btsnooz_hci.log");
+    temp_snooz_log_last_ = temp_dir_ / (std::string(test_info->name()) + "_btsnooz_hci.log.last");
+    temp_snoop_log_filtered =
+        temp_dir_ / (std::string(test_info->name()) + "_btsnoop_hci.log.filtered");
+    temp_snoop_log_filtered_last =
+        temp_dir_ / (std::string(test_info->name()) + "_btsnoop_hci.log.filtered.last");
     builder_ = new flatbuffers::FlatBufferBuilder();
 
     DeleteSnoopLogFiles();
@@ -197,8 +205,23 @@ class SnoopLoggerModuleTest : public Test {
     fake_timerfd_reset();
     test_registry->StopAll();
     delete test_registry;
+
+    const testing::TestInfo* const test_info =
+        testing::UnitTest::GetInstance()->current_test_info();
+    LOG_DEBUG(
+        "TearDown for test %s in test suite %s.\n",
+        test_info->name(),
+        test_info->test_suite_name());
   }
 
+  std::filesystem::path temp_snoop_log_;
+  std::filesystem::path temp_snoop_log_last_;
+  std::filesystem::path temp_snooz_log_;
+  std::filesystem::path temp_snooz_log_last_;
+  std::filesystem::path temp_snoop_log_filtered;
+  std::filesystem::path temp_snoop_log_filtered_last;
+
+ private:
   void DeleteSnoopLogFiles() {
     if (std::filesystem::exists(temp_snoop_log_)) {
       ASSERT_TRUE(std::filesystem::remove(temp_snoop_log_));
@@ -219,14 +242,6 @@ class SnoopLoggerModuleTest : public Test {
       ASSERT_TRUE(std::filesystem::remove(temp_snooz_log_last_));
     }
   }
-
-  std::filesystem::path temp_dir_;
-  std::filesystem::path temp_snoop_log_;
-  std::filesystem::path temp_snoop_log_last_;
-  std::filesystem::path temp_snooz_log_;
-  std::filesystem::path temp_snooz_log_last_;
-  std::filesystem::path temp_snoop_log_filtered;
-  std::filesystem::path temp_snoop_log_filtered_last;
 };
 
 TEST_F(SnoopLoggerModuleTest, empty_snoop_log_test) {
@@ -420,6 +435,15 @@ TEST_F(SnoopLoggerModuleTest, snoop_log_persists) {
   ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
 }
 
+void sync_handler(bluetooth::os::Handler* handler) {
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  handler->Post(bluetooth::common::BindOnce(
+      &std::promise<void>::set_value, bluetooth::common::Unretained(&promise)));
+  auto future_status = future.wait_for(std::chrono::seconds(1));
+  ASSERT_EQ(future_status, std::future_status::ready);
+}
+
 TEST_F(SnoopLoggerModuleTest, delete_old_snooz_log_files) {
   // Actual test
   auto* snoop_logger = new TestSnoopLoggerModule(
@@ -438,9 +462,13 @@ TEST_F(SnoopLoggerModuleTest, delete_old_snooz_log_files) {
   handler->Post(bluetooth::common::BindOnce(fake_timerfd_advance, 10));
   ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
   handler->Post(bluetooth::common::BindOnce(fake_timerfd_advance, 15));
+  sync_handler(handler);
   handler->Post(bluetooth::common::BindOnce(
       [](std::filesystem::path path) { ASSERT_FALSE(std::filesystem::exists(path)); }, temp_snooz_log_));
+  sync_handler(handler);
+
   test_registry->StopAll();
+  ASSERT_FALSE(std::filesystem::exists(temp_snooz_log_));
 }
 
 TEST_F(SnoopLoggerModuleTest, rotate_file_at_new_session_test) {
@@ -813,6 +841,9 @@ TEST_F(SnoopLoggerModuleTest, rfcomm_channel_filtered_sabme_ua_test) {
   ASSERT_TRUE(std::filesystem::exists(temp_snoop_log_filtered));
 
   test_registry.StopAll();
+
+  ASSERT_TRUE(bluetooth::os::SetSystemProperty(
+      SnoopLogger::kBtSnoopLogFilterProfileRfcommProperty, "false"));
 
   // Verify states after test
   ASSERT_TRUE(std::filesystem::exists(temp_snoop_log_filtered));
