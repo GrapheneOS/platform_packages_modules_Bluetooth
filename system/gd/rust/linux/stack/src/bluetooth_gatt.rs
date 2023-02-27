@@ -1062,7 +1062,7 @@ pub trait IScannerCallback: RPCProxy {
     /// When an LE advertisement matching aggregate filters is detected. This callback is shared
     /// among all scanner callbacks and is triggered for *every* advertisement that the controller
     /// receives. For listening to the beginning and end of a specific scanner's advertisements
-    /// detected while in RSSI range, use on_advertisement_found and on_scan_result_lost below.
+    /// detected while in RSSI range, use on_advertisement_found and on_advertisement_lost below.
     fn on_scan_result(&self, scan_result: ScanResult);
 
     /// When an LE advertisement matching aggregate filters is found. The criteria of
@@ -1073,7 +1073,7 @@ pub trait IScannerCallback: RPCProxy {
     /// how a device is considered lost is specified by ScanFilter.
     // TODO(b/269343922): Rename this to on_advertisement_lost for symmetry with
     // on_advertisement_found.
-    fn on_scan_result_lost(&self, scan_result: ScanResult);
+    fn on_advertisement_lost(&self, scan_result: ScanResult);
 
     /// When LE Scan module changes suspend mode due to system suspend/resume.
     fn on_suspend_mode_change(&self, suspend_mode: SuspendMode);
@@ -3912,7 +3912,7 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
             if track_adv_info.advertiser_state == 0x01 {
                 callback.on_advertisement_found(scan_result);
             } else {
-                callback.on_scan_result_lost(scan_result);
+                callback.on_advertisement_lost(scan_result);
             }
         });
     }
