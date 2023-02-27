@@ -1414,11 +1414,9 @@ public class BassClientStateMachine extends StateMachine {
             log("byte array broadcast Code:" + Arrays.toString(actualPIN));
             log("pinLength:" + actualPIN.length);
             // Broadcast_Code, Fill the PIN code in the Last Position
-            // This effectively adds padding zeros to LSB positions when the broadcast code
-            // is shorter than 16 octets
-            System.arraycopy(
-                    actualPIN, 0, res,
-                    (BassConstants.PIN_CODE_CMD_LEN - actualPIN.length), actualPIN.length);
+            // This effectively adds padding zeros to MSB positions when the broadcast code
+            // is shorter than 16 octets, skip the first 2 bytes for opcode and source_id.
+            System.arraycopy(actualPIN, 0, res, 2, actualPIN.length);
             log("SET_BCAST_PIN in Bytes");
             BassUtils.printByteArray(res);
         }
