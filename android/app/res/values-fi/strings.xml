@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"Bluetooth"</string>
     <string name="unknown_device" msgid="2317679521750821654">"Tuntematon laite"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"Tuntematon"</string>
+    <string name="not_provided" msgid="6938740494380012614">"Ei saatavilla"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"Lentokonetila"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"Et voi käyttää Bluetoothia lentokonetilassa."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Yli 4 Gt:n kokoisia tiedostoja ei voi siirtää."</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Muodosta Bluetooth-yhteys"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth päällä lentokonetilassa"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Jos pidät Bluetooth-yhteyden päällä, puhelin pitää sen päällä, kun seuraavan kerran olet lentokonetilassa"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth pysyy päällä"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Puhelimen Bluetooth pysyy päällä lentokonetilassa. Voit halutessasi laittaa Bluetooth-yhteyden pois päältä."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi ja Bluetooth pysyvät päällä"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Puhelimen Wi-Fi-yhteys ja Bluetooth pysyvät päällä lentokonetilassa. Voit halutessasi laittaa ne pois päältä."</string>
 </resources>

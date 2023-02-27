@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"블루투스"</string>
     <string name="unknown_device" msgid="2317679521750821654">"알 수 없는 장치"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"알 수 없음"</string>
+    <string name="not_provided" msgid="6938740494380012614">"제공되지 않음"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"비행기 모드"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"비행기 모드에서는 블루투스를 사용할 수 없습니다."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB보다 큰 파일은 전송할 수 없습니다"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"블루투스에 연결"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"비행기 모드에서 블루투스 사용 설정"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"블루투스를 켜진 상태로 유지하면 다음에 비행기 모드를 사용할 때도 블루투스 연결이 유지됩니다."</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"블루투스가 켜진 상태로 유지됨"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"휴대전화가 비행기 모드에서 블루투스를 켜진 상태로 유지합니다. 유지하지 않으려면 블루투스를 사용 중지하세요."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi 및 블루투스 계속 사용"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"휴대전화가 비행기 모드에서 Wi-Fi 및 블루투스를 켜진 상태로 유지합니다. 유지하지 않으려면 Wi-Fi와 블루투스를 사용 중지하세요."</string>
 </resources>
