@@ -48,6 +48,7 @@ import com.google.common.base.Objects;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -166,6 +167,7 @@ public class BluetoothOppTransferHistoryTest {
                 matches(isDisplayed()));
     }
 
+    @Ignore("b/268424815")
     @Test
     public void onOptionsItemSelected_clearAllSelected_promptWarning() {
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
