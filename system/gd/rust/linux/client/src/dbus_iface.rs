@@ -339,6 +339,11 @@ impl IScannerCallback for IScannerCallbackDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("OnAdvertisementFound")]
+    fn on_advertisement_found(&self, scan_result: ScanResult) {
+        dbus_generated!()
+    }
+
     #[dbus_method("OnScanResultLost")]
     fn on_scan_result_lost(&self, scan_result: ScanResult) {
         dbus_generated!()

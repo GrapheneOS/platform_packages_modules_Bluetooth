@@ -1059,13 +1059,20 @@ pub trait IScannerCallback: RPCProxy {
     /// When the `register_scanner` request is done.
     fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus);
 
-    /// When an LE advertisement matching aggregate filters is detected. Since this callback is
-    /// shared among all scanner callbacks, clients may receive more advertisements than what is
-    /// requested to be filtered in.
+    /// When an LE advertisement matching aggregate filters is detected. This callback is shared
+    /// among all scanner callbacks and is triggered for *every* advertisement that the controller
+    /// receives. For listening to the beginning and end of a specific scanner's advertisements
+    /// detected while in RSSI range, use on_advertisement_found and on_scan_result_lost below.
     fn on_scan_result(&self, scan_result: ScanResult);
+
+    /// When an LE advertisement matching aggregate filters is found. The criteria of
+    /// how a device is considered found is specified by ScanFilter.
+    fn on_advertisement_found(&self, scan_result: ScanResult);
 
     /// When an LE advertisement matching aggregate filters is no longer detected. The criteria of
     /// how a device is considered lost is specified by ScanFilter.
+    // TODO(b/269343922): Rename this to on_advertisement_lost for symmetry with
+    // on_advertisement_found.
     fn on_scan_result_lost(&self, scan_result: ScanResult);
 
     /// When LE Scan module changes suspend mode due to system suspend/resume.
@@ -3882,7 +3889,7 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
             let adv_data =
                 [&track_adv_info.adv_packet[..], &track_adv_info.scan_response[..]].concat();
 
-            callback.on_scan_result_lost(ScanResult {
+            let scan_result = ScanResult {
                 name: adv_parser::extract_name(adv_data.as_slice()),
                 address: track_adv_info.advertiser_address.to_string(),
                 addr_type: track_adv_info.advertiser_address_type,
@@ -3900,7 +3907,13 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
                 service_data: adv_parser::extract_service_data(adv_data.as_slice()),
                 manufacturer_data: adv_parser::extract_manufacturer_data(adv_data.as_slice()),
                 adv_data,
-            });
+            };
+
+            if track_adv_info.advertiser_state == 0x01 {
+                callback.on_advertisement_found(scan_result);
+            } else {
+                callback.on_scan_result_lost(scan_result);
+            }
         });
     }
 }
