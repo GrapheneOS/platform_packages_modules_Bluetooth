@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"بلوتوث"</string>
     <string name="unknown_device" msgid="2317679521750821654">"جهاز غير معروف"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"غير معروف"</string>
+    <string name="not_provided" msgid="6938740494380012614">"غير متوفر"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"وضع الطيران"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"لا يمكنك استخدام البلوتوث في وضع الطيران."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"يتعذّر نقل الملفات التي يزيد حجمها عن 4 غيغابايت"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"الاتصال ببلوتوث"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"تقنية البلوتوث مفعّلة في \"وضع الطيران\""</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"إذا واصلت تفعيل تقنية البلوتوث، سيتذكر هاتفك إبقاءها مفعَّلة في المرة القادمة التي تفعِّل فيها \"وضع الطيران\"."</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"تظل تقنية البلوتوث مفعّلة"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"يتذكر هاتفك الاحتفاظ بتقنية البلوتوث مفعَّلة في \"وضع الطيران\". يمكنك إيقاف تقنية البلوتوث إذا لم تكن تريد مواصلة تفعيلها."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"‏تظل شبكة Wi‑Fi وتقنية البلوتوث مفعَّلتَين."</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"‏يتذكر هاتفك الاحتفاظ بشبكة Wi‑Fi وتقنية البلوتوث مفعَّلتَين في \"وضع الطيران\". يمكنك إيقاف شبكة Wi‑Fi وتقنية البلوتوث إذا لم تكن تريد مواصلة تفعيلهما."</string>
 </resources>

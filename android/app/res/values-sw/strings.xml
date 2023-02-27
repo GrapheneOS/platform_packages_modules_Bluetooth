@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"Bluetooth"</string>
     <string name="unknown_device" msgid="2317679521750821654">"Kifaa kisichojulikana"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"Haijulikani"</string>
+    <string name="not_provided" msgid="6938740494380012614">"Haijawekwa"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"Hali ya ndegeni"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"Huwezi kutumia Bluetooth kifaa kikiwa katika hali ya Ndegeni."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Haiwezi kutuma faili zinazozidi GB 4"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Unganisha kwenye Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth itawashwa katika hali ya ndegeni"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Usipozima Bluetooth, simu yako itakumbuka kuiwasha wakati mwingine unapokuwa katika hali ya ndegeni"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth itaendelea kuwaka"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Simu yako itaendelea kuwasha Bluetooth katika hali ya ndegeni. Zima Bluetooth iwapo hutaki iendelee kuwaka."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi na Bluetooth zitaendelea kuwaka"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Simu yako itaendelea kuwasha Wi-Fi na Bluetooth ukiwa katika hali ya ndegeni. Zima Wi-Fi na Bluetooth ikiwa hutaki ziendelee kuwaka."</string>
 </resources>

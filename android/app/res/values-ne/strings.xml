@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"ब्लुटुथ"</string>
     <string name="unknown_device" msgid="2317679521750821654">"अज्ञात उपकरण"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"अज्ञात"</string>
+    <string name="not_provided" msgid="6938740494380012614">"प्रदान गरिएको छैन"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"हवाइजहाज मोड"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"हवाइजहाज मोडमा तपाईँले ब्लुटुथ प्रयोग गर्न पाउनु हुन्न।"</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"४ जि.बि. भन्दा ठूला फाइलहरूलाई स्थानान्तरण गर्न सकिँदैन"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ब्लुटुथमा कनेक्ट गर्नुहोस्"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"हवाइजहाज मोडमा ब्लुटुथ अन राखियोस्"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"तपाईंले ब्लुटुथ अन राखिराख्नुभयो भने तपाईंले आफ्नो फोन अर्को पटक हवाइजहाज मोडमा लैजाँदा तपाईंको फोनले ब्लुटुथ अन राख्नु पर्ने कुरा याद गर्छ"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ब्लुटुथ अन रहन्छ"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"तपाईंको फोन अर्को पटक हवाइजहाज मोडमा लैजाँदा तपाईंको फोनले ब्लुटुथ अन राख्नु पर्ने कुरा याद गर्छ तपाईं ब्लुटुथ अन भइनरहोस् भन्ने चाहनुहुन्छ भने ब्लुटुथ अफ गर्नुहोस्।"</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi र ब्लुटुथ अन रहिरहने छन्"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"हवाइजहाज मोडमा पनि तपाईंको फोनको Wi-Fi र ब्लुटुथ अन नै रहिरहने छन्। तपाईं Wi-Fi र ब्लुटुथ अन भइनरहोस् भन्ने चाहनुहुन्छ भने तिनलाई अफ गर्नुहोस्।"</string>
 </resources>

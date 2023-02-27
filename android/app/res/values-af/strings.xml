@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"Bluetooth"</string>
     <string name="unknown_device" msgid="2317679521750821654">"Onbekende toestel"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"Onbekend"</string>
+    <string name="not_provided" msgid="6938740494380012614">"Nie verskaf nie"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"Vliegtuigmodus"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"Jy kan nie Bluetooth in vliegtuigmodus gebruik nie."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>

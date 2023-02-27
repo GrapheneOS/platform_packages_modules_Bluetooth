@@ -23,13 +23,14 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"బ్లూటూత్"</string>
     <string name="unknown_device" msgid="2317679521750821654">"తెలియని పరికరం"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"తెలియదు"</string>
+    <string name="not_provided" msgid="6938740494380012614">"అందించబడలేదు"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"ఎయిర్‌ప్లేన్ మోడ్"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"మీరు ఎయిర్‌ప్లేన్ మోడ్‌లో బ్లూటూత్‌ను ఉపయోగించలేరు."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
     <string name="bt_enable_line1" msgid="8429910585843481489">"బ్లూటూత్ సేవలను ఉపయోగించడానికి, మీరు తప్పనిసరిగా ముందుగా బ్లూటూత్‌ను ప్రారంభించాలి."</string>
     <string name="bt_enable_line2" msgid="1466367120348920892">"ఇప్పుడే బ్లూటూత్‌ను ప్రారంభించాలా?"</string>
-    <string name="bt_enable_cancel" msgid="6770180540581977614">"రద్దు చేయి"</string>
-    <string name="bt_enable_ok" msgid="4224374055813566166">"ప్రారంభించు"</string>
+    <string name="bt_enable_cancel" msgid="6770180540581977614">"రద్దు చేయండి"</string>
+    <string name="bt_enable_ok" msgid="4224374055813566166">"ప్రారంభించండి"</string>
     <string name="incoming_file_confirm_title" msgid="938251186275547290">"ఫైల్ బదిలీ"</string>
     <string name="incoming_file_confirm_content" msgid="6573502088511901157">"ఇన్‌కమింగ్ ఫైల్‌ను ఆమోదించాలా?"</string>
     <string name="incoming_file_confirm_cancel" msgid="9205906062663982692">"తిరస్కరిస్తున్నాను"</string>
@@ -116,8 +117,8 @@
     <string name="transfer_menu_clear" msgid="7213491281898188730">"లిస్ట్‌ నుండి క్లియర్ చేయండి"</string>
     <string name="transfer_clear_dlg_title" msgid="128904516163257225">"క్లియర్ చేయండి"</string>
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"ప్రస్తుతం ప్లే అవుతున్నవి"</string>
-    <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"సేవ్ చేయి"</string>
-    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"రద్దు చేయి"</string>
+    <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"సేవ్ చేయండి"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"రద్దు చేయండి"</string>
     <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"మీరు బ్లూటూత్ ద్వారా షేర్ చేయాలనుకునే ఖాతాలను ఎంచుకోండి. మీరు ఇప్పటికీ కనెక్ట్ చేస్తున్నప్పుడు ఖాతాలకు అందించే ఏ యాక్సెస్‌నైనా ఆమోదించాల్సి ఉంటుంది."</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"మిగిలిన స్లాట్‌లు:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"యాప్‌ చిహ్నం"</string>
@@ -129,12 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB కన్నా పెద్ద ఫైళ్లు బదిలీ చేయబడవు"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"బ్లూటూత్‌కు కనెక్ట్ చేయి"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్ చేయబడింది"</string>
-    <!-- no translation found for bluetooth_enabled_apm_message (8409900562494838113) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"మీరు బ్లూటూత్‌ను ఆన్‌లో ఉంచినట్లయితే, మీరు తదుపరిసారి విమానం మోడ్‌లో ఉన్నప్పుడు దాన్ని ఆన్‌లో ఉంచాలని మీ ఫోన్ గుర్తుంచుకుంటుంది"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"బ్లూటూత్ ఆన్‌లో ఉంటుంది"</string>
-    <!-- no translation found for bluetooth_stays_on_message (7142453371222249965) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్‌లో ఉంచాలని మీ ఫోన్ గుర్తుంచుకుంటుంది. బ్లూటూత్ ఆన్‌లో ఉండకూడదనుకుంటే దాన్ని ఆఫ్ చేయండి."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi, బ్లూటూత్ ఆన్‌లో ఉంటాయి"</string>
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (2390749828997719812) -->
-    <skip />
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"మీ ఫోన్ విమానం మోడ్‌లో Wi‑Fiని, బ్లూటూత్‌ని ఆన్‌లో ఉంచాలని గుర్తుంచుకుంటుంది. Wi-Fi, బ్లూటూత్ ఆన్‌లో ఉండకూడదనుకుంటే వాటిని ఆఫ్ చేయండి."</string>
 </resources>
