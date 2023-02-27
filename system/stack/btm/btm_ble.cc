@@ -517,9 +517,9 @@ void BTM_ReadDevInfo(const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
     }
   } else /* there is a security device record exisitng */
   {
-    /* new inquiry result, overwrite device type in security device record */
+    /* new inquiry result, merge device type in security device record */
     if (p_inq_info) {
-      p_dev_rec->device_type = p_inq_info->results.device_type;
+      p_dev_rec->device_type |= p_inq_info->results.device_type;
       if (is_ble_addr_type_known(p_inq_info->results.ble_addr_type))
         p_dev_rec->ble.SetAddressType(p_inq_info->results.ble_addr_type);
       else
