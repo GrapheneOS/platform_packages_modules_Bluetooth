@@ -48,9 +48,7 @@ static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
   tAVRC_STS status = AVRC_STS_NO_ERROR;
   uint8_t* p;
   uint16_t len;
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
   uint8_t eventid = 0;
-#endif
 
   /* Check the vendor data */
   if (p_msg->vendor_len == 0) return AVRC_STS_NO_ERROR;
@@ -88,18 +86,21 @@ static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
 /* case AVRC_PDU_REQUEST_CONTINUATION_RSP: 0x40 */
 /* case AVRC_PDU_ABORT_CONTINUATION_RSP:   0x41 */
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
     case AVRC_PDU_SET_ABSOLUTE_VOLUME: /* 0x50 */
+      if (!avrcp_absolute_volume_is_enabled()) {
+        break;
+      }
       if (len != 1)
         status = AVRC_STS_INTERNAL_ERR;
       else {
         BE_STREAM_TO_UINT8(p_result->volume.volume, p);
       }
       break;
-#endif /* (AVRC_ADV_CTRL_INCLUDED == TRUE) */
 
     case AVRC_PDU_REGISTER_NOTIFICATION: /* 0x31 */
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
+      if (!avrcp_absolute_volume_is_enabled()) {
+        break;
+      }
       if (len < 1) {
         AVRC_TRACE_WARNING(
             "%s: invalid parameter length %d: must be at least 1", __func__,
@@ -124,7 +125,6 @@ static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR* p_msg,
       }
       AVRC_TRACE_DEBUG("%s PDU reg notif response:event %x, volume %x",
                        __func__, eventid, p_result->reg_notif.param.volume);
-#endif /* (AVRC_ADV_CTRL_INCLUDED == TRUE) */
       break;
     default:
       status = AVRC_STS_BAD_CMD;
