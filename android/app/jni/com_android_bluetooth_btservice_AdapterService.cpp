@@ -1137,6 +1137,11 @@ static jboolean createBondNative(JNIEnv* env, jobject obj, jbyteArray address,
   } else {
     ret = sBluetoothInterface->create_bond((RawAddress*)addr, transport);
   }
+
+  if (ret != BT_STATUS_SUCCESS) {
+    ALOGW("%s: Failed to initiate bonding. Status = %d", __func__, ret);
+  }
+
   env->ReleaseByteArrayElements(address, addr, 0);
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
