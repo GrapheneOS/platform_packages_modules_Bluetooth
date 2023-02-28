@@ -55,6 +55,7 @@
 #include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
+#include "stack/include/avrc_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"  // do_in_main_thread
@@ -3413,9 +3414,10 @@ bt_status_t btif_av_source_execute_service(bool enable) {
       features |= BTA_AV_FEAT_DELAY_RPT;
     }
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-    features |= BTA_AV_FEAT_RCCT | BTA_AV_FEAT_ADV_CTRL | BTA_AV_FEAT_BROWSE;
-#endif
+    if (avrcp_absolute_volume_is_enabled()) {
+      features |= BTA_AV_FEAT_RCCT | BTA_AV_FEAT_ADV_CTRL | BTA_AV_FEAT_BROWSE;
+    }
+
     BTA_AvEnable(features, bta_av_source_callback);
     btif_av_source.RegisterAllBtaHandles();
     return BT_STATUS_SUCCESS;
