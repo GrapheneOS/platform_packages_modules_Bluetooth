@@ -26,7 +26,6 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothManager;
 import android.bluetooth.IBluetoothStateChangeCallback;
 import android.content.Context;
@@ -36,8 +35,8 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.io.ByteArrayOutputStream;
@@ -154,6 +153,14 @@ public class TbsGatt {
 
         public abstract void onCallControlPointRequest(BluetoothDevice device, int opcode,
                 byte[] args);
+
+        /**
+         * Check if device has enabled inband ringtone
+         *
+         * @param device device which is checked for inband ringtone availability
+         * @return  {@code true} if enabled, {@code false} otherwise
+         */
+        public abstract boolean isInbandRingtoneEnabled(BluetoothDevice device);
     }
 
     TbsGatt(Context context) {
@@ -807,6 +814,14 @@ public class TbsGatt {
             byte[] value = gattCharacteristic.getValue();
             if (value == null) {
                 value = new byte[0];
+            }
+            /* TODO: Properly handle caching for multiple devices.
+             * This patch assumes, LeAudio services just uses single value
+             * for inband ringtone */
+            if (characteristic.getUuid().equals(UUID_STATUS_FLAGS) && (value.length == 2)) {
+                if (mCallback.isInbandRingtoneEnabled(device)) {
+                    value[0] = (byte) (value[0] | STATUS_FLAG_INBAND_RINGTONE_ENABLED);
+                }
             }
 
             int status;
