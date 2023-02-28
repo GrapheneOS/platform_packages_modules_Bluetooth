@@ -136,6 +136,7 @@ cc_library_static {
         "libbt-stack-core",
     ],
     whole_static_libs: [
+        "libcom.android.sysprop.bluetooth",
         "libldacBT_abr",
         "libldacBT_enc",
         "libaptx_enc",
