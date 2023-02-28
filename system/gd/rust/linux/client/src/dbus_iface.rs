@@ -1484,6 +1484,9 @@ impl IBluetoothGattServerCallback for IBluetoothGattCallbackDBus {
     #[dbus_method("OnServiceAdded")]
     fn on_service_added(&self, status: GattStatus, service: BluetoothGattService) {}
 
+    #[dbus_method("OnServiceRemoved")]
+    fn on_service_removed(&self, status: GattStatus, handle: i32) {}
+
     #[dbus_method("OnCharacteristicReadRequest")]
     fn on_characteristic_read_request(
         &self,

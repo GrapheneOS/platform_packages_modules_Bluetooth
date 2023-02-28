@@ -1048,13 +1048,13 @@ impl BluetoothSocketManager {
     pub fn handle_actions(&mut self, action: SocketActions) {
         match action {
             SocketActions::OnIncomingSocketReady(cbid, server_socket, status) => {
-                if let Some(callback) = self.callbacks.get_by_id(cbid) {
+                if let Some(callback) = self.callbacks.get_by_id_mut(cbid) {
                     callback.on_incoming_socket_ready(server_socket, status);
                 }
             }
 
             SocketActions::OnIncomingSocketClosed(cbid, socket_id, status) => {
-                if let Some(callback) = self.callbacks.get_by_id(cbid) {
+                if let Some(callback) = self.callbacks.get_by_id_mut(cbid) {
                     callback.on_incoming_socket_closed(socket_id, status);
 
                     // Also make sure to remove the socket from listening list.
@@ -1065,13 +1065,13 @@ impl BluetoothSocketManager {
             }
 
             SocketActions::OnHandleIncomingConnection(cbid, socket_id, socket) => {
-                if let Some(callback) = self.callbacks.get_by_id(cbid) {
+                if let Some(callback) = self.callbacks.get_by_id_mut(cbid) {
                     callback.on_handle_incoming_connection(socket_id, socket);
                 }
             }
 
             SocketActions::OnOutgoingConnectionResult(cbid, socket_id, status, socket) => {
-                if let Some(callback) = self.callbacks.get_by_id(cbid) {
+                if let Some(callback) = self.callbacks.get_by_id_mut(cbid) {
                     callback.on_outgoing_connection_result(socket_id, status, socket);
                 }
             }
