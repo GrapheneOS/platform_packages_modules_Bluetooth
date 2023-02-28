@@ -235,9 +235,11 @@ bool acl_create_le_connection(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_acl::acl_create_le_connection(bd_addr);
 }
-bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr) {
+bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr,
+                                      tBLE_ADDR_TYPE addr_type) {
   mock_function_count_map[__func__]++;
-  return test::mock::stack_acl::acl_create_le_connection_with_id(id, bd_addr);
+  return test::mock::stack_acl::acl_create_le_connection_with_id(id, bd_addr,
+                                                                 addr_type);
 }
 bool acl_is_role_switch_allowed() {
   mock_function_count_map[__func__]++;
