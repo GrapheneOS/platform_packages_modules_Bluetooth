@@ -91,6 +91,7 @@ struct MsftExtensionManager::impl {
       on_found_on_lost_info.advertiser_address_type = view.GetAddressType();
       on_found_on_lost_info.advertiser_address = view.GetBdAddr();
       on_found_on_lost_info.advertiser_state = view.GetMonitorState();
+      on_found_on_lost_info.monitor_handle = view.GetMonitorHandle();
       scanning_callbacks_->OnTrackAdvFoundLost(on_found_on_lost_info);
     } else {
       LOG_WARN("The Microsoft vendor event monitor state is invalid.");

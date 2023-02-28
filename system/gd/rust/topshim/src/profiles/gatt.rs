@@ -38,6 +38,7 @@ pub mod ffi {
 
     #[derive(Debug, Clone)]
     pub struct RustAdvertisingTrackInfo {
+        monitor_handle: u8,
         scanner_id: u8,
         filter_index: u8,
         advertiser_state: u8,

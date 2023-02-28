@@ -1067,13 +1067,13 @@ pub trait IScannerCallback: RPCProxy {
 
     /// When an LE advertisement matching aggregate filters is found. The criteria of
     /// how a device is considered found is specified by ScanFilter.
-    fn on_advertisement_found(&self, scan_result: ScanResult);
+    fn on_advertisement_found(&self, scanner_id: u8, scan_result: ScanResult);
 
     /// When an LE advertisement matching aggregate filters is no longer detected. The criteria of
     /// how a device is considered lost is specified by ScanFilter.
     // TODO(b/269343922): Rename this to on_advertisement_lost for symmetry with
     // on_advertisement_found.
-    fn on_advertisement_lost(&self, scan_result: ScanResult);
+    fn on_advertisement_lost(&self, scanner_id: u8, scan_result: ScanResult);
 
     /// When LE Scan module changes suspend mode due to system suspend/resume.
     fn on_suspend_mode_change(&self, suspend_mode: SuspendMode);
@@ -3885,6 +3885,18 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
     }
 
     fn on_track_adv_found_lost(&mut self, track_adv_info: RustAdvertisingTrackInfo) {
+        let scanner_id = match self.scanners.lock().unwrap().values().find_map(|scanner| {
+            scanner.monitor_handle.and_then(|handle| {
+                (handle == track_adv_info.monitor_handle).then(|| scanner.scanner_id).flatten()
+            })
+        }) {
+            Some(scanner_id) => scanner_id,
+            None => {
+                log::warn!("No scanner id having monitor handle {}", track_adv_info.monitor_handle);
+                return;
+            }
+        };
+
         self.scanner_callbacks.for_all_callbacks(|callback| {
             let adv_data =
                 [&track_adv_info.adv_packet[..], &track_adv_info.scan_response[..]].concat();
@@ -3910,9 +3922,9 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
             };
 
             if track_adv_info.advertiser_state == 0x01 {
-                callback.on_advertisement_found(scan_result);
+                callback.on_advertisement_found(scanner_id, scan_result);
             } else {
-                callback.on_advertisement_lost(scan_result);
+                callback.on_advertisement_lost(scanner_id, scan_result);
             }
         });
     }
