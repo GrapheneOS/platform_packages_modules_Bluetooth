@@ -197,9 +197,6 @@ void l2c_link_hci_conn_comp(tHCI_STATUS status, uint16_t handle,
       if (l2cu_start_post_bond_timer(handle)) return;
     }
 
-    /* Update the timeouts in the hold queue */
-    l2c_process_held_packets(false);
-
     alarm_cancel(p_lcb->l2c_lcb_timer);
 
     /* For all channels, send the event through their FSMs */
