@@ -277,16 +277,19 @@ extern struct GATT_CancelConnect GATT_CancelConnect;
 struct GATT_Connect {
   static bool return_value;
   std::function<bool(tGATT_IF gatt_if, const RawAddress& bd_addr,
-                     bool is_direct, tBT_TRANSPORT transport,
-                     bool opportunistic, uint8_t initiating_phys)>
-      body{[](tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
-              tBT_TRANSPORT transport, bool opportunistic,
+                     tBLE_ADDR_TYPE addr_type, bool is_direct,
+                     tBT_TRANSPORT transport, bool opportunistic,
+                     uint8_t initiating_phys)>
+      body{[](tGATT_IF gatt_if, const RawAddress& bd_addr,
+              tBLE_ADDR_TYPE addr_type, bool is_direct, tBT_TRANSPORT transport,
+              bool opportunistic,
               uint8_t initiating_phys) { return return_value; }};
-  bool operator()(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
+  bool operator()(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                  tBLE_ADDR_TYPE addr_type, bool is_direct,
                   tBT_TRANSPORT transport, bool opportunistic,
                   uint8_t initiating_phys) {
-    return body(gatt_if, bd_addr, is_direct, transport, opportunistic,
-                initiating_phys);
+    return body(gatt_if, bd_addr, addr_type, is_direct, transport,
+                opportunistic, initiating_phys);
   };
 };
 extern struct GATT_Connect GATT_Connect;
