@@ -20,6 +20,7 @@
 #include <cstdint>
 
 #include "stack/include/bt_hdr.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 // This header contains functions for L2cap-ACL to invoke
@@ -30,6 +31,8 @@ void acl_create_classic_connection(const RawAddress& bd_addr,
                                    bool is_bonding);
 bool acl_create_le_connection(const RawAddress& bd_addr);
 bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr);
+bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr,
+                                      tBLE_ADDR_TYPE addr_type);
 void acl_reject_connection_request(const RawAddress& bd_addr, uint8_t reason);
 void acl_send_data_packet_br_edr(const RawAddress& bd_addr, BT_HDR* p_buf);
 void acl_send_data_packet_ble(const RawAddress& bd_addr, BT_HDR* p_buf);

@@ -226,9 +226,9 @@ void gatt_find_in_device_record(const RawAddress& bd_addr,
  * Returns          true if connection is started, otherwise return false.
  *
  ******************************************************************************/
-bool gatt_connect(const RawAddress& rem_bda, tGATT_TCB* p_tcb,
-                  tBT_TRANSPORT transport, uint8_t initiating_phys,
-                  tGATT_IF gatt_if) {
+bool gatt_connect(const RawAddress& rem_bda, tBLE_ADDR_TYPE addr_type,
+                  tGATT_TCB* p_tcb, tBT_TRANSPORT transport,
+                  uint8_t initiating_phys, tGATT_IF gatt_if) {
   if (gatt_get_ch_state(p_tcb) != GATT_CH_OPEN)
     gatt_set_ch_state(p_tcb, GATT_CH_CONN);
 
@@ -244,9 +244,15 @@ bool gatt_connect(const RawAddress& rem_bda, tGATT_TCB* p_tcb,
   }
 
   p_tcb->att_lcid = L2CAP_ATT_CID;
-  return acl_create_le_connection_with_id(gatt_if, rem_bda);
+  return acl_create_le_connection_with_id(gatt_if, rem_bda, addr_type);
 }
 
+bool gatt_connect(const RawAddress& rem_bda, tGATT_TCB* p_tcb,
+                  tBT_TRANSPORT transport, uint8_t initiating_phys,
+                  tGATT_IF gatt_if) {
+  return gatt_connect(rem_bda, BLE_ADDR_PUBLIC, p_tcb, transport,
+                      initiating_phys, gatt_if);
+}
 /*******************************************************************************
  *
  * Function         gatt_disconnect
@@ -416,14 +422,15 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB* p_tcb,
 
 /** GATT connection initiation */
 bool gatt_act_connect(tGATT_REG* p_reg, const RawAddress& bd_addr,
-                      tBT_TRANSPORT transport, int8_t initiating_phys) {
+                      tBLE_ADDR_TYPE addr_type, tBT_TRANSPORT transport,
+                      int8_t initiating_phys) {
   tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, transport);
   if (p_tcb != NULL) {
     /* before link down, another app try to open a GATT connection */
     uint8_t st = gatt_get_ch_state(p_tcb);
     if (st == GATT_CH_OPEN && p_tcb->app_hold_link.empty() &&
         transport == BT_TRANSPORT_LE) {
-      if (!gatt_connect(bd_addr, p_tcb, transport, initiating_phys,
+      if (!gatt_connect(bd_addr, addr_type, p_tcb, transport, initiating_phys,
                         p_reg->gatt_if))
         return false;
     } else if (st == GATT_CH_CLOSING) {
@@ -441,7 +448,7 @@ bool gatt_act_connect(tGATT_REG* p_reg, const RawAddress& bd_addr,
     return false;
   }
 
-  if (!gatt_connect(bd_addr, p_tcb, transport, initiating_phys,
+  if (!gatt_connect(bd_addr, addr_type, p_tcb, transport, initiating_phys,
                     p_reg->gatt_if)) {
     LOG(ERROR) << "gatt_connect failed";
     fixed_queue_free(p_tcb->pending_ind_q, NULL);
@@ -450,6 +457,12 @@ bool gatt_act_connect(tGATT_REG* p_reg, const RawAddress& bd_addr,
   }
 
   return true;
+}
+
+bool gatt_act_connect(tGATT_REG* p_reg, const RawAddress& bd_addr,
+                      tBT_TRANSPORT transport, int8_t initiating_phys) {
+  return gatt_act_connect(p_reg, bd_addr, BLE_ADDR_PUBLIC, transport,
+                          initiating_phys);
 }
 
 namespace connection_manager {

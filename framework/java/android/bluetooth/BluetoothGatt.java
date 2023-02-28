@@ -256,8 +256,9 @@ public final class BluetoothGatt implements BluetoothProfile {
                     try {
                         final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
                         // autoConnect is inverse of "isDirect"
-                        mService.clientConnect(mClientIf, mDevice.getAddress(), !mAutoConnect,
-                                mTransport, mOpportunistic, mPhy, mAttributionSource, recv);
+                        mService.clientConnect(mClientIf, mDevice.getAddress(),
+                                mDevice.getAddressType(), !mAutoConnect, mTransport,
+                                mOpportunistic, mPhy, mAttributionSource, recv);
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                     } catch (RemoteException | TimeoutException e) {
                         Log.e(TAG, "", e);
@@ -1108,8 +1109,8 @@ public final class BluetoothGatt implements BluetoothProfile {
 
             // autoConnect is inverse of "isDirect"
             final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
-            mService.clientConnect(mClientIf, mDevice.getAddress(), !mAutoConnect, mTransport,
-                    mOpportunistic, mPhy, mAttributionSource, recv);
+            mService.clientConnect(mClientIf, mDevice.getAddress(), mDevice.getAddressType(),
+                    !mAutoConnect, mTransport, mOpportunistic, mPhy, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             return true;
         } catch (RemoteException | TimeoutException e) {
