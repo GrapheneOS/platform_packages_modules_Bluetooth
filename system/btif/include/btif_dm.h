@@ -104,7 +104,8 @@ void btif_dm_set_event_filter_connection_setup_all_devices();
 void btif_dm_allow_wake_by_hid(
     std::vector<RawAddress> classic_addrs,
     std::vector<std::pair<RawAddress, uint8_t>> le_addrs);
-void btif_dm_restore_filter_accept_list();
+void btif_dm_restore_filter_accept_list(
+    std::vector<std::pair<RawAddress, uint8_t>> le_devices);
 void btif_dm_set_default_event_mask_except(uint64_t mask, uint64_t le_mask);
 void btif_dm_set_event_filter_inquiry_result_all_devices();
 void btif_dm_metadata_changed(const RawAddress& remote_bd_addr, int key,

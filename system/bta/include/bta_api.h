@@ -1324,7 +1324,8 @@ extern void BTA_DmAllowWakeByHid(
  * Parameters
  *
  *******************************************************************************/
-extern void BTA_DmRestoreFilterAcceptList();
+extern void BTA_DmRestoreFilterAcceptList(
+    std::vector<std::pair<RawAddress, uint8_t>> le_devices);
 
 /*******************************************************************************
  *

@@ -742,9 +742,11 @@ void BTA_DmAllowWakeByHid(
                                           std::move(le_hid_devices)));
 }
 
-void BTA_DmRestoreFilterAcceptList() {
+void BTA_DmRestoreFilterAcceptList(
+    std::vector<std::pair<RawAddress, uint8_t>> le_devices) {
   APPL_TRACE_API("BTA_DmRestoreFilterAcceptList");
-  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_restore_filter_accept_list));
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_restore_filter_accept_list,
+                                          std::move(le_devices)));
 }
 
 void BTA_DmSetDefaultEventMaskExcept(uint64_t mask, uint64_t le_mask) {

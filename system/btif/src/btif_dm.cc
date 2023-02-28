@@ -3887,9 +3887,10 @@ void btif_dm_allow_wake_by_hid(
   BTA_DmAllowWakeByHid(std::move(classic_addrs), std::move(le_addrs));
 }
 
-void btif_dm_restore_filter_accept_list() {
+void btif_dm_restore_filter_accept_list(
+    std::vector<std::pair<RawAddress, uint8_t>> le_devices) {
   // Autoplumbed
-  BTA_DmRestoreFilterAcceptList();
+  BTA_DmRestoreFilterAcceptList(std::move(le_devices));
 }
 
 void btif_dm_set_default_event_mask_except(uint64_t mask, uint64_t le_mask) {

@@ -450,7 +450,8 @@ tBTM_STATUS bluetooth::shim::BTM_AllowWakeByHid(
   return BTM_SUCCESS;
 }
 
-tBTM_STATUS bluetooth::shim::BTM_RestoreFilterAcceptList() {
+tBTM_STATUS bluetooth::shim::BTM_RestoreFilterAcceptList(
+    std::vector<std::pair<RawAddress, uint8_t>> le_devices) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;
 }

@@ -745,8 +745,15 @@ static int set_default_event_mask_except(uint64_t mask, uint64_t le_mask) {
 
 static int restore_filter_accept_list() {
   if (!interface_ready()) return BT_STATUS_NOT_READY;
+  // TODO(b/260922031) - When restoring the filter accept list after a system
+  // suspend, we need to re-arm the LE connections that had `is_direct=False`.
+  // This should be the list of bonded devices and potentially any GATT
+  // connections that have `is_direct=False`. Currently, we only restore LE hid
+  // devices.
+  auto le_hid_addrs = btif_storage_get_le_hid_devices();
   do_in_main_thread(FROM_HERE,
-                    base::BindOnce(btif_dm_restore_filter_accept_list));
+                    base::BindOnce(btif_dm_restore_filter_accept_list,
+                                   std::move(le_hid_addrs)));
   return BT_STATUS_SUCCESS;
 }
 
