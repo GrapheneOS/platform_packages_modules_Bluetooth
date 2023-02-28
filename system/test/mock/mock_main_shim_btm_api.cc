@@ -444,6 +444,7 @@ tBTM_STATUS bluetooth::shim::BTM_SetEventFilterConnectionSetupAllDevices() {
 }
 
 tBTM_STATUS bluetooth::shim::BTM_AllowWakeByHid(
+    std::vector<RawAddress> classic_hid_devices,
     std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;

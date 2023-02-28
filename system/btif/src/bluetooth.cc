@@ -78,6 +78,7 @@
 #include "btif_keystore.h"
 #include "btif_metrics_logging.h"
 #include "btif_pan.h"
+#include "btif_profile_storage.h"
 #include "btif_sock.h"
 #include "btif_storage.h"
 #include "common/address_obfuscator.h"
@@ -751,9 +752,11 @@ static int restore_filter_accept_list() {
 
 static int allow_wake_by_hid() {
   if (!interface_ready()) return BT_STATUS_NOT_READY;
-  auto hid_addrs = btif_storage_get_hid_device_addresses();
+  auto le_hid_addrs = btif_storage_get_le_hid_devices();
+  auto classic_hid_addrs = btif_storage_get_wake_capable_classic_hid_devices();
   do_in_main_thread(FROM_HERE, base::BindOnce(btif_dm_allow_wake_by_hid,
-                                              std::move(hid_addrs)));
+                                              std::move(classic_hid_addrs),
+                                              std::move(le_hid_addrs)));
   return BT_STATUS_SUCCESS;
 }
 

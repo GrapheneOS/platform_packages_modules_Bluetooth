@@ -1355,9 +1355,12 @@ tBTM_STATUS bluetooth::shim::BTM_SetEventFilterConnectionSetupAllDevices() {
 }
 
 tBTM_STATUS bluetooth::shim::BTM_AllowWakeByHid(
+    std::vector<RawAddress> classic_hid_devices,
     std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices) {
-  // Autoplumbed
-  controller_get_interface()->allow_wake_by_hid();
+  // Allow classic HID wake.
+  controller_get_interface()->set_event_filter_allow_device_connection(
+      std::move(classic_hid_devices));
+
   // Allow BLE HID
   for (auto hid_address : le_hid_devices) {
     std::promise<bool> accept_promise;

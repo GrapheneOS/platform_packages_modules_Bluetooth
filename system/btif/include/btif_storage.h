@@ -272,18 +272,6 @@ bt_status_t btif_storage_load_bonded_hid_info(void);
  ******************************************************************************/
 bt_status_t btif_storage_remove_hid_info(const RawAddress& remote_bd_addr);
 
-/*******************************************************************************
- *
- * Function         btif_storage_get_hid_device_addresses
- *
- * Description      BTIF storage API - Finds all bonded HID devices
- *
- * Returns          std::vector of RawAddress
- *
- ******************************************************************************/
-std::vector<std::pair<RawAddress, uint8_t>>
-btif_storage_get_hid_device_addresses(void);
-
 /** Loads information about bonded hearing aid devices */
 void btif_storage_load_bonded_hearing_aids();
 

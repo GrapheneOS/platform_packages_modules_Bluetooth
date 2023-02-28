@@ -1312,6 +1312,7 @@ extern void BTA_DmSetEventFilterConnectionSetupAllDevices();
  *
  *******************************************************************************/
 extern void BTA_DmAllowWakeByHid(
+    std::vector<RawAddress> classic_hid_devices,
     std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices);
 
 /*******************************************************************************
