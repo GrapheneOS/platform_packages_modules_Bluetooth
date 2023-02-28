@@ -193,10 +193,14 @@ extern struct acl_create_le_connection acl_create_le_connection;
 // Params: uint8_t id, const RawAddress& bd_addr
 // Returns: bool
 struct acl_create_le_connection_with_id {
-  std::function<bool(uint8_t id, const RawAddress& bd_addr)> body{
-      [](uint8_t id, const RawAddress& bd_addr) { return false; }};
-  bool operator()(uint8_t id, const RawAddress& bd_addr) {
-    return body(id, bd_addr);
+  std::function<bool(uint8_t id, const RawAddress& bd_addr,
+                     tBLE_ADDR_TYPE addr_type)>
+      body{[](uint8_t id, const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type) {
+        return false;
+      }};
+  bool operator()(uint8_t id, const RawAddress& bd_addr,
+                  tBLE_ADDR_TYPE addr_type) {
+    return body(id, bd_addr, addr_type);
   };
 };
 extern struct acl_create_le_connection_with_id acl_create_le_connection_with_id;
