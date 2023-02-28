@@ -20,6 +20,7 @@ import static com.android.bluetooth.avrcp.AvrcpVolumeManager.AVRCP_MAX_VOL;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
@@ -39,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 @SmallTest
@@ -100,5 +102,23 @@ public class AvrcpVolumeManagerTest {
 
         verify(mAudioManager).setStreamVolume(eq(AudioManager.STREAM_MUSIC),
                 eq(TEST_DEVICE_MAX_VOUME), anyInt());
+    }
+
+    @Test
+    public void switchVolumeDevice() {
+        mAvrcpVolumeManager.volumeDeviceSwitched(mRemoteDevice);
+        mAvrcpVolumeManager.deviceConnected(mRemoteDevice, true);
+
+        // verify whether switchVolumeDevice is called by checking
+        // mAudioManager.setDeviceVolumeBehavior().
+        verify(mAudioManager).setDeviceVolumeBehavior(any(), anyInt());
+
+        Mockito.clearInvocations(mAudioManager);
+        mAvrcpVolumeManager.deviceDisconnected(mRemoteDevice);
+        // verify one more time when deviceConnected event comes first.
+        mAvrcpVolumeManager.deviceConnected(mRemoteDevice, true);
+        mAvrcpVolumeManager.volumeDeviceSwitched(mRemoteDevice);
+
+        verify(mAudioManager).setDeviceVolumeBehavior(any(), anyInt());
     }
 }
