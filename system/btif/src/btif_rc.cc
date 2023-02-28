@@ -599,22 +599,23 @@ void handle_rc_features(btif_rc_device_cb_t* p_dev) {
     rc_features = (btrc_remote_features_t)(rc_features | BTRC_FEAT_BROWSE);
   }
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
+  if (p_dev->rc_features & BTA_AV_FEAT_METADATA) {
+    rc_features = (btrc_remote_features_t)(rc_features | BTRC_FEAT_METADATA);
+  }
+
+  if (!avrcp_absolute_volume_is_enabled()) {
+    return;
+  }
+
   if ((p_dev->rc_features & BTA_AV_FEAT_ADV_CTRL) &&
       (p_dev->rc_features & BTA_AV_FEAT_RCTG)) {
     rc_features =
         (btrc_remote_features_t)(rc_features | BTRC_FEAT_ABSOLUTE_VOLUME);
   }
-#endif
-
-  if (p_dev->rc_features & BTA_AV_FEAT_METADATA) {
-    rc_features = (btrc_remote_features_t)(rc_features | BTRC_FEAT_METADATA);
-  }
 
   BTIF_TRACE_DEBUG("%s: rc_features: 0x%x", __func__, rc_features);
   HAL_CBACK(bt_rc_callbacks, remote_features_cb, p_dev->rc_addr, rc_features);
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
   BTIF_TRACE_DEBUG(
       "%s: Checking for feature flags in btif_rc_handler with label: %d",
       __func__, p_dev->rc_vol_label);
@@ -640,7 +641,6 @@ void handle_rc_features(btif_rc_device_cb_t* p_dev) {
       register_volumechange(p_dev->rc_vol_label, p_dev);
     }
   }
-#endif
 }
 
 /***************************************************************************
