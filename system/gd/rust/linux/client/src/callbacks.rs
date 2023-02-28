@@ -781,6 +781,10 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
         print_info!("GATT service added with status = {}, service = {:?}", status, service)
     }
 
+    fn on_service_removed(&self, status: GattStatus, handle: i32) {
+        print_info!("GATT service removed with status = {}, handle = {:?}", status, handle);
+    }
+
     fn on_characteristic_read_request(
         &self,
         addr: String,
