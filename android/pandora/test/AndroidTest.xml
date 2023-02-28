@@ -21,12 +21,7 @@
         <option name="install-arg" value="-g" />
     </target_preparer>
     <target_preparer class="com.android.tradefed.targetprep.PythonVirtualenvPreparer">
-        <option name="dep-module" value="mobly" />
         <option name="dep-module" value="grpcio" />
-        <option name="dep-module" value="pyee" />
-        <option name="dep-module" value="ansicolors" />
-        <option name="dep-module" value="websockets" />
-        <option name="dep-module" value="construct" />
         <option name="dep-module" value="cryptography" />
     </target_preparer>
     <test class="com.android.tradefed.testtype.mobly.MoblyBinaryHostTest">
