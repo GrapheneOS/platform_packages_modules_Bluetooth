@@ -312,8 +312,8 @@ public class GattNativeInterface {
     private native void gattClientRegisterAppNative(long appUuidLsb, long appUuidMsb,
             boolean eattSupport);
     private native void gattClientUnregisterAppNative(int clientIf);
-    private native void gattClientConnectNative(int clientIf, String address, boolean isDirect,
-            int transport, boolean opportunistic, int initiatingPhys);
+    private native void gattClientConnectNative(int clientIf, String address, int addressType,
+            boolean isDirect, int transport, boolean opportunistic, int initiatingPhys);
     private native void gattClientDisconnectNative(int clientIf, String address, int connId);
     private native void gattClientSetPreferredPhyNative(int clientIf, String address, int txPhy,
             int rxPhy, int phyOptions);
@@ -408,10 +408,10 @@ public class GattNativeInterface {
      * Connect to the remote Gatt server
      * @see {@link BluetoothDevice#connectGatt} for parameters.
      */
-    public void gattClientConnect(int clientIf, String address, boolean isDirect, int transport,
-            boolean opportunistic, int initiatingPhys) {
-        gattClientConnectNative(clientIf, address, isDirect, transport, opportunistic,
-                initiatingPhys);
+    public void gattClientConnect(int clientIf, String address, int addressType,
+            boolean isDirect, int transport, boolean opportunistic, int initiatingPhys) {
+        gattClientConnectNative(clientIf, address, addressType, isDirect, transport,
+                opportunistic, initiatingPhys);
     }
 
     /**

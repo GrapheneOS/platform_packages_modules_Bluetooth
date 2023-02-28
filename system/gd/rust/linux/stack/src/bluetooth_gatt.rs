@@ -2099,6 +2099,8 @@ impl IBluetoothGatt for BluetoothGatt {
         self.gatt.as_ref().unwrap().lock().unwrap().client.connect(
             client_id,
             &address,
+            // Addr type is default PUBLIC.
+            0,
             is_direct,
             transport.into(),
             opportunistic,
