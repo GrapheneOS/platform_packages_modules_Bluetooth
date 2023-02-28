@@ -1079,7 +1079,8 @@ extern void GATT_StartIf(tGATT_IF gatt_if);
  *                  GATT channel.
  *
  * Parameters       gatt_if: applicaiton interface
- *                  bd_addr: peer device address.
+ *                  bd_addr: peer device address
+ *                  addr_type: peer device address type
  *                  connection_type: connection type
  *                  transport : Physical transport for GATT connection
  *                              (BR/EDR or LE)
@@ -1094,6 +1095,11 @@ extern bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
                          tBTM_BLE_CONN_TYPE connection_type,
                          tBT_TRANSPORT transport, bool opportunistic);
 extern bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                         tBTM_BLE_CONN_TYPE connection_type,
+                         tBT_TRANSPORT transport, bool opportunistic,
+                         uint8_t initiating_phys);
+extern bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr,
+                         tBLE_ADDR_TYPE addr_type,
                          tBTM_BLE_CONN_TYPE connection_type,
                          tBT_TRANSPORT transport, bool opportunistic,
                          uint8_t initiating_phys);
