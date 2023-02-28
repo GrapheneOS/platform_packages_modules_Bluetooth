@@ -3637,7 +3637,10 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
   ccids = {.sink = {gtbs_ccid}, .source = {}};
-  EXPECT_CALL(mock_state_machine_, StartStream(_, _, _, ccids));
+  // Can be called twice to update metadata if local sink resumes after the
+  // source
+  EXPECT_CALL(mock_state_machine_, StartStream(_, _, _, ccids))
+      .Times(AtLeast(1));
   StartStreaming(AUDIO_USAGE_VOICE_COMMUNICATION, AUDIO_CONTENT_TYPE_SPEECH,
                  group_id);
 
@@ -3886,32 +3889,61 @@ TEST_F(UnicastTest, MicrophoneAttachToCurrentMediaScenario) {
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
 
+  // When the local audio source resumes we have no knowledge of recording
   EXPECT_CALL(mock_state_machine_,
-              StartStream(_, le_audio::types::LeAudioContextType::LIVE, _, _))
+              StartStream(_, le_audio::types::LeAudioContextType::MEDIA, _, _))
       .Times(1);
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id,
-                 AUDIO_SOURCE_MIC);
+                 AUDIO_SOURCE_INVALID);
+  SyncOnMainLoop();
+
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
-  SyncOnMainLoop();
 
   // Verify Data transfer on one audio source cis
   uint8_t cis_count_out = 1;
   uint8_t cis_count_in = 0;
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
-  // Suspend
-  /*TODO Need a way to verify STOP */
-  LeAudioClient::Get()->GroupSuspend(group_id);
-  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
-  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  // When the local audio sink resumes we should reconfigure
+  EXPECT_CALL(
+      mock_state_machine_,
+      ConfigureStream(_, le_audio::types::LeAudioContextType::LIVE, _, _))
+      .Times(1);
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, ReconfigurationComplete())
+      .Times(1);
 
-  // Resume
-  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id,
-                 AUDIO_SOURCE_MIC);
-  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  // Update metadata on local audio sink
+  UpdateSourceMetadata(AUDIO_SOURCE_MIC);
+
+  // Resume on local audio sink
+  ASSERT_NE(unicast_sink_hal_cb_, nullptr);
+  do_in_main_thread(
+      FROM_HERE,
+      base::BindOnce(
+          [](LeAudioSinkAudioHalClient::Callbacks* cb) { cb->OnAudioResume(); },
+          unicast_sink_hal_cb_));
+
+  /* The above will trigger reconfiguration. After that Audio Hal action
+   * is needed to restart the stream */
+  SyncOnMainLoop();
+
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+
+  SinkAudioResume();
+  do_in_main_thread(
+      FROM_HERE,
+      base::BindOnce(
+          [](LeAudioSinkAudioHalClient::Callbacks* cb) { cb->OnAudioResume(); },
+          unicast_sink_hal_cb_));
+  SyncOnMainLoop();
+
+  // Verify Data transfer on one audio source and sink cis
+  cis_count_out = 1;
+  cis_count_in = 1;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920, 60);
 
   // Stop
   StopStreaming(group_id);
