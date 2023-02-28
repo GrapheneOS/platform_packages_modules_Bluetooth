@@ -1800,15 +1800,8 @@ uint8_t l2c_fcr_process_peer_cfg_req(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
       p_cfg->fcr_present, p_cfg->fcr.mode, p_ccb->our_cfg.fcr.mode,
       p_ccb->p_rcb->ertm_info.preferred_mode);
 
-  /* If Peer wants basic, we are done (accept it or disconnect) */
-  if (p_cfg->fcr.mode == L2CAP_FCR_BASIC_MODE) {
-    /* If we do not allow basic, disconnect */
-    if (p_ccb->p_rcb->ertm_info.preferred_mode != L2CAP_FCR_BASIC_MODE)
-      fcr_ok = L2CAP_PEER_CFG_DISCONNECT;
-  }
-
   /* Need to negotiate if our modes are not the same */
-  else if (p_cfg->fcr.mode != p_ccb->p_rcb->ertm_info.preferred_mode) {
+  if (p_cfg->fcr.mode != p_ccb->p_rcb->ertm_info.preferred_mode) {
     /* If peer wants a mode that we don't support then retry our mode (ex.
     *rtx/flc), OR
     ** If we want ERTM and they wanted streaming retry our mode.

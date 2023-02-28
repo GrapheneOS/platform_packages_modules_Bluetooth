@@ -91,46 +91,9 @@ void l2c_rcv_acl_data(BT_HDR* p_msg) {
   /* Find the LCB based on the handle */
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_handle(handle);
   if (!p_lcb) {
-    /* There is a slight possibility (specifically with USB) that we get an */
-    /* L2CAP connection request before we get the HCI connection complete.  */
-    /* So for these types of messages, hold them for up to 2 seconds.       */
-    if (l2cap_len == 0) {
-      L2CAP_TRACE_WARNING("received empty L2CAP packet");
-      osi_free(p_msg);
-      return;
-    }
-    uint8_t cmd_code;
-    STREAM_TO_UINT8(cmd_code, p);
-
-    if ((p_msg->layer_specific != 0) || (rcv_cid != L2CAP_SIGNALLING_CID) ||
-        (cmd_code != L2CAP_CMD_INFO_REQ && cmd_code != L2CAP_CMD_CONN_REQ)) {
-      bool qcom_debug_log = (handle == 3804 && ((rcv_cid & 0xff) == 0xff) &&
-                             p_msg->layer_specific == 0);
-
-      if (!qcom_debug_log) {
-        L2CAP_TRACE_ERROR(
-            "L2CAP - rcvd ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur "
-            "count:%d",
-            handle, p_msg->layer_specific, rcv_cid, cmd_code,
-            list_length(l2cb.rcv_pending_q));
-      }
-
-      osi_free(p_msg);
-      return;
-    }
-
-    L2CAP_TRACE_WARNING(
-        "L2CAP - holding ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur "
-        "count:%d",
-        handle, p_msg->layer_specific, rcv_cid, cmd_code,
-        list_length(l2cb.rcv_pending_q));
-    p_msg->layer_specific = 2;
-    list_append(l2cb.rcv_pending_q, p_msg);
-
-    if (list_length(l2cb.rcv_pending_q) == 1) {
-      alarm_set_on_mloop(l2cb.receive_hold_timer, BT_1SEC_TIMEOUT_MS,
-                         l2c_receive_hold_timer_timeout, NULL);
-    }
+    LOG_ERROR("L2CAP - rcvd ACL for unknown handle:%d ls:%d cid:%d", handle,
+              p_msg->layer_specific, rcv_cid);
+    osi_free(p_msg);
     return;
   }
 
@@ -846,46 +809,6 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
 
 /*******************************************************************************
  *
- * Function         l2c_process_held_packets
- *
- * Description      This function processes any L2CAP packets that arrived
- *                  before the HCI connection complete arrived. It is a work
- *                  around for badly behaved controllers.
- *
- * Returns          void
- *
- ******************************************************************************/
-void l2c_process_held_packets(bool timed_out) {
-  if (list_is_empty(l2cb.rcv_pending_q)) return;
-
-  if (!timed_out) {
-    alarm_cancel(l2cb.receive_hold_timer);
-    L2CAP_TRACE_WARNING("L2CAP HOLD CONTINUE");
-  } else {
-    L2CAP_TRACE_WARNING("L2CAP HOLD TIMEOUT");
-  }
-
-  for (const list_node_t* node = list_begin(l2cb.rcv_pending_q);
-       node != list_end(l2cb.rcv_pending_q);) {
-    BT_HDR* p_buf = static_cast<BT_HDR*>(list_node(node));
-    node = list_next(node);
-    if (!timed_out || (!p_buf->layer_specific) ||
-        (--p_buf->layer_specific == 0)) {
-      list_remove(l2cb.rcv_pending_q, p_buf);
-      p_buf->layer_specific = 0xFFFF;
-      l2c_rcv_acl_data(p_buf);
-    }
-  }
-
-  /* If anyone still in the queue, restart the timeout */
-  if (!list_is_empty(l2cb.rcv_pending_q)) {
-    alarm_set_on_mloop(l2cb.receive_hold_timer, BT_1SEC_TIMEOUT_MS,
-                       l2c_receive_hold_timer_timeout, NULL);
-  }
-}
-
-/*******************************************************************************
- *
  * Function         l2c_init
  *
  * Description      This function is called once at startup to initialize
@@ -937,11 +860,6 @@ void l2c_init(void) {
   l2cb.l2c_ble_fixed_chnls_mask = L2CAP_FIXED_CHNL_ATT_BIT |
                                   L2CAP_FIXED_CHNL_BLE_SIG_BIT |
                                   L2CAP_FIXED_CHNL_SMP_BIT;
-
-  l2cb.rcv_pending_q = list_new(NULL);
-  CHECK(l2cb.rcv_pending_q != NULL);
-
-  l2cb.receive_hold_timer = alarm_new("l2c.receive_hold_timer");
 }
 
 void l2c_free(void) {
@@ -949,14 +867,6 @@ void l2c_free(void) {
     // L2CAP cleanup should be handled by GD stack manager
     return;
   }
-
-  list_free(l2cb.rcv_pending_q);
-  l2cb.rcv_pending_q = NULL;
-}
-
-void l2c_receive_hold_timer_timeout(UNUSED_ATTR void* data) {
-  /* Update the timeouts in the hold queue */
-  l2c_process_held_packets(true);
 }
 
 void l2c_ccb_timer_timeout(void* data) {
