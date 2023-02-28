@@ -192,9 +192,6 @@ public class TbsGeneric {
             mTbsGatt.clearSilentModeFlag();
         }
 
-        // Android supports inband ringtone
-        mTbsGatt.setInbandRingtoneFlag();
-
         mReceiver = new Receiver();
         mTbsGatt.getContext().registerReceiver(mReceiver,
                 new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION));
@@ -749,6 +746,16 @@ public class TbsGeneric {
                     Log.d(TAG, "onServiceAdded: success=" + success);
                 }
             }
+        }
+
+        @Override
+        public boolean isInbandRingtoneEnabled(BluetoothDevice device) {
+            if (!isLeAudioServiceAvailable()) {
+                Log.i(TAG, "LeAudio service not available");
+                return false;
+            }
+            int groupId = mLeAudioService.getGroupId(device);
+            return mLeAudioService.isInbandRingtoneEnabled(groupId);
         }
 
         @Override

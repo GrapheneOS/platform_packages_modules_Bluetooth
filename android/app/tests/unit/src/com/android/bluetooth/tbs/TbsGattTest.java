@@ -559,6 +559,18 @@ public class TbsGattTest {
     }
 
     @Test
+    public void testHandleIsInbandRingtoneEnabled() {
+        prepareDefaultService();
+        BluetoothGattCharacteristic characteristic =
+                getCharacteristic(TbsGatt.UUID_STATUS_FLAGS);
+
+        mTbsGatt.mGattServerCallback.onCharacteristicReadRequest(mCurrentDevice, 1, 0,
+                characteristic);
+        // Verify the higher layer callback call
+        verify(mMockTbsGattCallback).isInbandRingtoneEnabled(eq(mCurrentDevice));
+    }
+
+    @Test
     public void testClientCharacteristicConfiguration() {
         prepareDefaultService();
 
