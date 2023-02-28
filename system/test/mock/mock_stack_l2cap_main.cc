@@ -47,7 +47,6 @@ void l2c_fcrb_ack_timer_timeout(void* data) { inc_func_call_count(__func__); }
 void l2c_free(void) { inc_func_call_count(__func__); }
 void l2c_init(void) { inc_func_call_count(__func__); }
 void l2c_lcb_timer_timeout(void* data) { inc_func_call_count(__func__); }
-void l2c_process_held_packets(bool timed_out) { inc_func_call_count(__func__); }
 void l2c_rcv_acl_data(BT_HDR* p_msg) { inc_func_call_count(__func__); }
 void l2c_receive_hold_timer_timeout(UNUSED_ATTR void* data) {
   inc_func_call_count(__func__);
