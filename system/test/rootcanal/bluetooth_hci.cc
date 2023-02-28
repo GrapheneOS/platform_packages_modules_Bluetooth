@@ -171,21 +171,6 @@ Return<void> BluetoothHci::initialize_impl(
         });
   }
 
-  controller_->RegisterTaskScheduler(
-      [this](std::chrono::milliseconds delay, const TaskCallback& task) {
-        return async_manager_.ExecAsync(user_id_, delay, task);
-      });
-
-  controller_->RegisterPeriodicTaskScheduler(
-      [this](std::chrono::milliseconds delay, std::chrono::milliseconds period,
-             const TaskCallback& task) {
-        return async_manager_.ExecAsyncPeriodically(user_id_, delay, period,
-                                                    task);
-      });
-
-  controller_->RegisterTaskCancel(
-      [this](AsyncTaskId task) { async_manager_.CancelAsyncTask(task); });
-
   // Add the controller as a device in the model.
   size_t controller_index = test_model_.AddDevice(controller_);
   size_t low_energy_phy_index =
