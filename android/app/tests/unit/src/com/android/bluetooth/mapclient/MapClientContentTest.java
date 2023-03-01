@@ -467,7 +467,7 @@ public class MapClientContentTest {
      */
     @Test
     public void testCleanUpWithNoSubscriptions() {
-        when(mMockSubscription.getSubscriptionType())
+        when(mMockSubscriptionManager.getActiveSubscriptionInfoList())
                 .thenReturn(null);
 
         MapClientContent.clearAllContent(mMockContext);
