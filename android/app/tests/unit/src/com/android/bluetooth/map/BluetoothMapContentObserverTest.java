@@ -64,9 +64,11 @@ import org.mockito.Spy;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -89,7 +91,8 @@ public class BluetoothMapContentObserverTest {
     static final long TEST_OLD_FOLDER_ID = 6;
     static final int TEST_READ_FLAG_ONE = 1;
     static final int TEST_READ_FLAG_ZERO = 0;
-    static final long TEST_DATE = 1;
+    static final long TEST_DATE_MS = Calendar.getInstance().getTimeInMillis();
+    static final long TEST_DATE_SEC = TimeUnit.MILLISECONDS.toSeconds(TEST_DATE_MS);
     static final String TEST_SUBJECT = "subject";
     static final int TEST_MMS_MTYPE = 1;
     static final int TEST_MMS_TYPE_ALL = Telephony.BaseMmsColumns.MESSAGE_BOX_ALL;
@@ -941,7 +944,7 @@ public class BluetoothMapContentObserverTest {
                 BluetoothMapContract.MessageColumns.FROM_LIST,
                 BluetoothMapContract.MessageColumns.FLAG_HIGH_PRIORITY});
         cursor.addRow(new Object[] {TEST_HANDLE_ONE, TEST_INBOX_FOLDER_ID, TEST_READ_FLAG_ONE,
-                TEST_DATE, TEST_SUBJECT, TEST_ADDRESS, 1});
+                TEST_DATE_MS, TEST_SUBJECT, TEST_ADDRESS, 1});
         when(mProviderClient.query(any(), any(), any(), any(), any())).thenReturn(cursor);
 
         Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
@@ -979,7 +982,7 @@ public class BluetoothMapContentObserverTest {
                 BluetoothMapContract.MessageColumns.THREAD_ID,
                 BluetoothMapContract.MessageColumns.THREAD_NAME});
         cursor.addRow(new Object[] {TEST_HANDLE_ONE, TEST_INBOX_FOLDER_ID, TEST_READ_FLAG_ONE,
-                TEST_DATE, TEST_SUBJECT, TEST_ADDRESS, 1, 1, "threadName"});
+                TEST_DATE_MS, TEST_SUBJECT, TEST_ADDRESS, 1, 1, "threadName"});
         when(mProviderClient.query(any(), any(), any(), any(), any())).thenReturn(cursor);
 
         Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
@@ -1172,7 +1175,7 @@ public class BluetoothMapContentObserverTest {
                 Mms.MESSAGE_TYPE, Mms.THREAD_ID, Mms.READ, Mms.DATE, Mms.SUBJECT,
                 Mms.PRIORITY, Mms.Addr.ADDRESS});
         cursor.addRow(new Object[] {TEST_HANDLE_ONE, TEST_MMS_TYPE_ALL, TEST_MMS_MTYPE,
-                TEST_THREAD_ID, TEST_READ_FLAG_ONE, TEST_DATE, TEST_SUBJECT,
+                TEST_THREAD_ID, TEST_READ_FLAG_ONE, TEST_DATE_SEC, TEST_SUBJECT,
                 PduHeaders.PRIORITY_HIGH, null});
         doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
                 any(), any());
@@ -1202,7 +1205,7 @@ public class BluetoothMapContentObserverTest {
                 Mms.MESSAGE_TYPE, Mms.THREAD_ID, Mms.READ, Mms.DATE, Mms.SUBJECT,
                 Mms.PRIORITY, Mms.Addr.ADDRESS});
         cursor.addRow(new Object[] {TEST_HANDLE_ONE, TEST_MMS_TYPE_ALL, TEST_MMS_MTYPE,
-                TEST_THREAD_ID, TEST_READ_FLAG_ONE, TEST_DATE, TEST_SUBJECT,
+                TEST_THREAD_ID, TEST_READ_FLAG_ONE, TEST_DATE_SEC, TEST_SUBJECT,
                 PduHeaders.PRIORITY_HIGH, null});
         doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
                 any(), any());
@@ -1224,6 +1227,36 @@ public class BluetoothMapContentObserverTest {
                 TEST_THREAD_ID);
         Assert.assertEquals(mObserver.getMsgListMms().get(TEST_HANDLE_ONE).flagRead,
                 TEST_READ_FLAG_ONE);
+    }
+
+    @Test
+    public void handleMsgListChangesMms_withNonExistingOldMessage_andVersion12() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -1);
+        cal.add(Calendar.DATE, -1);
+        long timestampSec = TimeUnit.MILLISECONDS.toSeconds(cal.getTimeInMillis());
+
+        MatrixCursor cursor = new MatrixCursor(new String[] {Mms._ID, Mms.MESSAGE_BOX,
+            Mms.MESSAGE_TYPE, Mms.THREAD_ID, Mms.READ, Mms.DATE, Mms.SUBJECT,
+            Mms.PRIORITY, Mms.Addr.ADDRESS});
+        cursor.addRow(new Object[] {TEST_HANDLE_ONE, TEST_MMS_TYPE_ALL, TEST_MMS_MTYPE,
+            TEST_THREAD_ID, TEST_READ_FLAG_ONE, timestampSec, TEST_SUBJECT,
+            PduHeaders.PRIORITY_HIGH, null});
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+            any(), any());
+
+        Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
+        // Giving a different handle for msg below and cursor above makes handleMsgListChangesMms()
+        // function for a non-existing message
+        BluetoothMapContentObserver.Msg msg = new BluetoothMapContentObserver.Msg(TEST_HANDLE_TWO,
+            TEST_INBOX_FOLDER_ID, TEST_READ_FLAG_ONE);
+        map.put(TEST_HANDLE_TWO, msg);
+        mObserver.setMsgListMms(map, true);
+        mObserver.mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V12;
+
+        mObserver.handleMsgListChangesMms();
+
+        Assert.assertEquals(mObserver.getMsgListMms().get(TEST_HANDLE_ONE), null);
     }
 
     @Test
@@ -1376,7 +1409,7 @@ public class BluetoothMapContentObserverTest {
         MatrixCursor cursor = new MatrixCursor(new String[] {Sms._ID, Sms.TYPE, Sms.THREAD_ID,
                 Sms.READ, Sms.DATE, Sms.BODY, Sms.ADDRESS, ContactsContract.Contacts.DISPLAY_NAME});
         cursor.addRow(new Object[] {TEST_HANDLE_ONE, TEST_SMS_TYPE_INBOX, TEST_THREAD_ID,
-                TEST_READ_FLAG_ONE, TEST_DATE, TEST_SUBJECT, TEST_ADDRESS, null});
+                TEST_READ_FLAG_ONE, TEST_DATE_MS, TEST_SUBJECT, TEST_ADDRESS, null});
         doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
                 any(), any());
 
@@ -1405,7 +1438,7 @@ public class BluetoothMapContentObserverTest {
         MatrixCursor cursor = new MatrixCursor(new String[] {Sms._ID, Sms.TYPE, Sms.THREAD_ID,
                 Sms.READ, Sms.DATE, Sms.BODY, Sms.ADDRESS});
         cursor.addRow(new Object[] {TEST_HANDLE_ONE, TEST_SMS_TYPE_ALL, TEST_THREAD_ID,
-                TEST_READ_FLAG_ONE, TEST_DATE, "", null});
+                TEST_READ_FLAG_ONE, TEST_DATE_MS, "", null});
         doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
                 any(), any());
 
@@ -1427,6 +1460,33 @@ public class BluetoothMapContentObserverTest {
                 TEST_THREAD_ID);
         Assert.assertEquals(mObserver.getMsgListSms().get(TEST_HANDLE_ONE).flagRead,
                 TEST_READ_FLAG_ONE);
+    }
+
+    @Test
+    public void handleMsgListChangesSms_withNonExistingOldMessage_andVersion12() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -1);
+        cal.add(Calendar.DATE, -1);
+
+        MatrixCursor cursor = new MatrixCursor(new String[] {Sms._ID, Sms.TYPE, Sms.THREAD_ID,
+            Sms.READ, Sms.DATE, Sms.BODY, Sms.ADDRESS});
+        cursor.addRow(new Object[] {TEST_HANDLE_ONE, TEST_SMS_TYPE_ALL, TEST_THREAD_ID,
+            TEST_READ_FLAG_ONE, cal.getTimeInMillis(), "", null});
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), any(), any(),
+            any(), any());
+
+        Map<Long, BluetoothMapContentObserver.Msg> map = new HashMap<>();
+        // Giving a different handle for msg below and cursor above makes handleMsgListChangesMms()
+        // function for a non-existing message
+        BluetoothMapContentObserver.Msg msg = new BluetoothMapContentObserver.Msg(TEST_HANDLE_TWO,
+            TEST_SMS_TYPE_INBOX, TEST_READ_FLAG_ONE);
+        map.put(TEST_HANDLE_TWO, msg);
+        mObserver.setMsgListSms(map, true);
+        mObserver.mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V12;
+
+        mObserver.handleMsgListChangesSms();
+
+        Assert.assertEquals(mObserver.getMsgListSms().get(TEST_HANDLE_ONE), null);
     }
 
     @Test
