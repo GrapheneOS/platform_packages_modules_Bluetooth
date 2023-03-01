@@ -24,7 +24,6 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use log::{debug, warn};
 use num_traits::cast::ToPrimitive;
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::fs::File;
 use std::hash::Hash;
 use std::io::Write;
