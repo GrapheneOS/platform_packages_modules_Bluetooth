@@ -339,10 +339,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
     @VisibleForTesting
     public void onInitFlagsChanged() {
-        mHandler.removeMessages(MESSAGE_INIT_FLAGS_CHANGED);
-        mHandler.sendEmptyMessageDelayed(
-                MESSAGE_INIT_FLAGS_CHANGED,
-                DELAY_BEFORE_RESTART_DUE_TO_INIT_FLAGS_CHANGED_MS);
+        // TODO(b/265386284)
     }
 
     public boolean onFactoryReset(AttributionSource attributionSource) {
