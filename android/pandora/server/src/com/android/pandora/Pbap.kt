@@ -59,9 +59,9 @@ class Pbap(val context: Context) : PBAPImplBase(), Closeable {
         .getContentResolver()
         .query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null)
 
-    if (cursor.getCount() > 0) return // return if contacts are present
+    if (cursor.getCount() >= CONTACT_LIST_SIZE) return // return if contacts are present
 
-    for (item in 1..CONTACT_LIST_SIZE) {
+    for (item in cursor.getCount()+1..CONTACT_LIST_SIZE) {
       addContact(item)
     }
   }
@@ -142,7 +142,7 @@ class Pbap(val context: Context) : PBAPImplBase(), Closeable {
   companion object {
     const val DEFAULT_DISPLAY_NAME = "Contact Name %d"
     const val DEFAULT_EMAIL_ID = "user%d@example.com"
-    const val CONTACT_LIST_SIZE = 100
+    const val CONTACT_LIST_SIZE = 125
     const val PHONE_NUM_LENGTH = 10
   }
 }
