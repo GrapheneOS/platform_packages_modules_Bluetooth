@@ -116,7 +116,6 @@ config("target_defaults") {
   cflags_cc = [ "-std=c++17" ]
 
   defines = [
-    "HAS_NO_BDROID_BUILDCFG",
     "OS_GENERIC",
     "OS_LINUX_GENERIC",
     "TARGET_FLOSS",

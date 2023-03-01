@@ -101,7 +101,6 @@ cc_defaults {
         "packages/modules/Bluetooth/system/bta/include",
     ],
     cflags: [
-        "-DHAS_NO_BDROID_BUILDCFG",
         // http://b/264549607
         "-Wno-deprecated-builtins",
     ],
