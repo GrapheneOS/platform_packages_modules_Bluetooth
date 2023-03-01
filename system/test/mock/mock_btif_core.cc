@@ -56,88 +56,88 @@
 #endif
 
 bool is_on_jni_thread() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bt_property_t* property_deep_copy(const bt_property_t* prop) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 bt_status_t btif_cleanup_bluetooth() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return BT_STATUS_SUCCESS;
 }
 bt_status_t btif_init_bluetooth() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return BT_STATUS_SUCCESS;
 }
 bt_status_t btif_set_dynamic_audio_buffer_size(int codec, int size) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return BT_STATUS_SUCCESS;
 }
 bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,
                                   char* p_params, int param_len,
                                   tBTIF_COPY_CBACK* p_copy_cback) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return BT_STATUS_SUCCESS;
 }
 bt_status_t do_in_jni_thread(base::OnceClosure task) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   do_in_jni_thread_task_queue.push(std::move(task));
   return BT_STATUS_SUCCESS;
 }
 bt_status_t do_in_jni_thread(const base::Location& from_here,
                              base::OnceClosure task) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   do_in_jni_thread_task_queue.push(std::move(task));
   return BT_STATUS_SUCCESS;
 }
 btbase::AbstractMessageLoop* get_jni_message_loop() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 int btif_is_enabled(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 tBTA_SERVICE_MASK btif_get_enabled_services_mask(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 void DynamicAudiobufferSizeCompleteCallback(tBTM_VSC_CMPL* p_vsc_cmpl_params) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btif_adapter_properties_evt(bt_status_t status, uint32_t num_props,
                                  bt_property_t* p_props) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btif_disable_service(tBTA_SERVICE_ID service_id) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void btif_enable_bluetooth_evt() { mock_function_count_map[__func__]++; }
+void btif_enable_bluetooth_evt() { inc_func_call_count(__func__); }
 void btif_enable_service(tBTA_SERVICE_ID service_id) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void btif_get_adapter_properties(void) { mock_function_count_map[__func__]++; }
+void btif_get_adapter_properties(void) { inc_func_call_count(__func__); }
 void btif_get_adapter_property(bt_property_type_t type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btif_get_remote_device_properties(RawAddress remote_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btif_get_remote_device_property(RawAddress remote_addr,
                                      bt_property_type_t type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void btif_init_ok() { mock_function_count_map[__func__]++; }
+void btif_init_ok() { inc_func_call_count(__func__); }
 void btif_remote_properties_evt(bt_status_t status, RawAddress* remote_addr,
                                 uint32_t num_props, bt_property_t* p_props) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btif_set_adapter_property(bt_property_t* property) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btif_set_remote_device_property(RawAddress* remote_addr,
                                      bt_property_t* property) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }

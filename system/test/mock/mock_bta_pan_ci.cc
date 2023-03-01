@@ -35,25 +35,21 @@
 
 BT_HDR* bta_pan_ci_readbuf(uint16_t handle, RawAddress& src, RawAddress& dst,
                            uint16_t* p_protocol, bool* p_ext, bool* p_forward) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
-void bta_pan_ci_rx_ready(uint16_t handle) {
-  mock_function_count_map[__func__]++;
-}
+void bta_pan_ci_rx_ready(uint16_t handle) { inc_func_call_count(__func__); }
 void bta_pan_ci_rx_write(uint16_t handle, const RawAddress& dst,
                          const RawAddress& src, uint16_t protocol,
                          uint8_t* p_data, uint16_t len, bool ext) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void bta_pan_ci_rx_writebuf(uint16_t handle, const RawAddress& dst,
                             const RawAddress& src, uint16_t protocol,
                             BT_HDR* p_buf, bool ext) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void bta_pan_ci_tx_flow(uint16_t handle, bool enable) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void bta_pan_ci_tx_ready(uint16_t handle) {
-  mock_function_count_map[__func__]++;
-}
+void bta_pan_ci_tx_ready(uint16_t handle) { inc_func_call_count(__func__); }

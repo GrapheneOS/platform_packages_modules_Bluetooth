@@ -42,19 +42,19 @@
 
 void VolumeControl::AddFromStorage(const RawAddress& address,
                                    bool auto_connect) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void VolumeControl::CleanUp() { mock_function_count_map[__func__]++; }
-void VolumeControl::DebugDump(int fd) { mock_function_count_map[__func__]++; }
+void VolumeControl::CleanUp() { inc_func_call_count(__func__); }
+void VolumeControl::DebugDump(int fd) { inc_func_call_count(__func__); }
 VolumeControl* VolumeControl::Get(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 bool VolumeControl::IsVolumeControlRunning() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 void VolumeControl::Initialize(
     bluetooth::vc::VolumeControlCallbacks* callbacks) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
