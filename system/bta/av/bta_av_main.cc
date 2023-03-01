@@ -432,7 +432,7 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
 
   uint16_t profile_initialized = p_data->api_reg.service_uuid;
   if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK) {
-    p_bta_av_cfg = &bta_avk_cfg;
+    p_bta_av_cfg = get_bta_avk_cfg();
   } else if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE) {
     p_bta_av_cfg = &bta_av_cfg;
 
