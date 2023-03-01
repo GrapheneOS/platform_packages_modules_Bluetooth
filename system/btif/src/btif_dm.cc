@@ -87,6 +87,7 @@
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/sdp/sdpint.h"
 #include "stack_config.h"
 #include "types/raw_address.h"
@@ -152,6 +153,12 @@ const Uuid UUID_A2DP_SINK = Uuid::FromString("110B");
 
 #define ENCRYPTED_BREDR 2
 #define ENCRYPTED_LE 4
+
+namespace {
+
+constexpr char kBtmLogTag[] = "API";
+
+}
 
 struct btif_dm_pairing_cb_t {
   bt_bond_state_t state;
@@ -2346,6 +2353,11 @@ static void bta_energy_info_cb(tBTM_BLE_TX_TIME_MS tx_time,
 void btif_dm_start_discovery(void) {
   BTIF_TRACE_EVENT("%s", __func__);
 
+  BTM_LogHistory(
+      kBtmLogTag, RawAddress::kEmpty, "Device discovery",
+      base::StringPrintf("is_request_queued:%c",
+                         bta_dm_is_search_request_queued() ? 'T' : 'F'));
+
   /* no race here because we're guaranteed to be in the main thread */
   if (bta_dm_is_search_request_queued()) {
     LOG_INFO("%s skipping start discovery because a request is queued",
@@ -2368,6 +2380,8 @@ void btif_dm_start_discovery(void) {
  ******************************************************************************/
 void btif_dm_cancel_discovery(void) {
   LOG_INFO("Cancel search");
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Cancel discovery");
+
   BTA_DmSearchCancel();
 }
 
@@ -2385,6 +2399,11 @@ bool btif_dm_pairing_is_busy() {
 void btif_dm_create_bond(const RawAddress bd_addr, int transport) {
   BTIF_TRACE_EVENT("%s: bd_addr=%s, transport=%d", __func__,
                    ADDRESS_TO_LOGGABLE_CSTR(bd_addr), transport);
+
+  BTM_LogHistory(
+      kBtmLogTag, bd_addr, "Create bond",
+      base::StringPrintf("transport:%s", bt_transport_text(transport).c_str()));
+
   btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_CREATE_BOND,
                             pairing_cb.state);
 
@@ -2441,6 +2460,12 @@ void btif_dm_create_bond_out_of_band(const RawAddress bd_addr,
       oob_cb.data_present = (int)BTM_OOB_PRESENT_256;
     }
   }
+
+  BTM_LogHistory(
+      kBtmLogTag, bd_addr, "Create bond",
+      base::StringPrintf("transport:%s oob:%s",
+                         bt_transport_text(transport).c_str(),
+                         btm_oob_data_text(oob_cb.data_present).c_str()));
 
   uint8_t empty[] = {0, 0, 0, 0, 0, 0, 0};
   switch (transport) {
@@ -2524,6 +2549,8 @@ void btif_dm_cancel_bond(const RawAddress bd_addr) {
   BTIF_TRACE_EVENT("%s: bd_addr=%s", __func__,
                    ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
+  BTM_LogHistory(kBtmLogTag, bd_addr, "Cancel bond");
+
   btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_CANCEL_BOND,
                             pairing_cb.state);
 
@@ -2581,6 +2608,8 @@ void btif_dm_hh_open_failed(RawAddress* bdaddr) {
 void btif_dm_remove_bond(const RawAddress bd_addr) {
   BTIF_TRACE_EVENT("%s: bd_addr=%s", __func__,
                    ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+
+  BTM_LogHistory(kBtmLogTag, bd_addr, "Remove bond");
 
   btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_REMOVE_BOND,
                             pairing_cb.state);
@@ -2841,6 +2870,10 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t* prop) {
 void btif_dm_get_remote_services(RawAddress remote_addr, const int transport) {
   BTIF_TRACE_EVENT("%s: transport=%d, remote_addr=%s", __func__, transport,
                    ADDRESS_TO_LOGGABLE_CSTR(remote_addr));
+
+  BTM_LogHistory(
+      kBtmLogTag, remote_addr, "Service discovery",
+      base::StringPrintf("transport:%s", bt_transport_text(transport).c_str()));
 
   BTA_DmDiscover(remote_addr, btif_dm_search_services_evt, transport);
 }
