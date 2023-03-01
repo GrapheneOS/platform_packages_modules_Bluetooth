@@ -180,6 +180,11 @@ struct AclManager::impl {
   void Dump(
       std::promise<flatbuffers::Offset<AclManagerData>> promise, flatbuffers::FlatBufferBuilder* fb_builder) const;
 
+ private:
+  flatbuffers::Offset<LeAddressManagerData> DumpLeAddressManager(
+      flatbuffers::FlatBufferBuilder* fb_builder) const;
+
+ public:
   const AclManager& acl_manager_;
 
   classic_impl* classic_impl_ = nullptr;
@@ -434,10 +439,46 @@ const ModuleFactory AclManager::Factory = ModuleFactory([]() { return new AclMan
 
 AclManager::~AclManager() = default;
 
+flatbuffers::Offset<LeAddressManagerData> AclManager::impl::DumpLeAddressManager(
+    flatbuffers::FlatBufferBuilder* fb_builder) const {
+  const std::vector<int> le_registered_client_states =
+      (le_impl_ != nullptr) ? le_impl_->le_address_manager_->GetRegisteredClientStates()
+                            : std::vector<int>();
+
+  auto v_offset = fb_builder->CreateVector(le_registered_client_states);
+
+  auto address_policy_string = [this]() -> std::string {
+    switch (le_impl_->le_address_manager_->GetAddressPolicy()) {
+      case LeAddressManager::POLICY_NOT_SET:
+        return std::string("POLICY_NOT_SET");
+      case LeAddressManager::USE_PUBLIC_ADDRESS:
+        return std::string("USE_PUBLIC_ADDRESS");
+      case LeAddressManager::USE_STATIC_ADDRESS:
+        return std::string("USE_STATIC_ADDRESS");
+      case LeAddressManager::USE_NON_RESOLVABLE_ADDRESS:
+        return std::string("USE_NON_RESOLVABLE_ADDRESS");
+      case LeAddressManager::USE_RESOLVABLE_ADDRESS:
+        return std::string("USE_RESOLVABLE_ADDRESS");
+      default:
+        return std::string("UNKNOWN");
+    }
+  }();
+  auto fb_address_policy_string = fb_builder->CreateString(address_policy_string.c_str());
+
+  LeAddressManagerDataBuilder le_address_manager_data_builder(*fb_builder);
+  le_address_manager_data_builder.add_address_policy(fb_address_policy_string);
+  le_address_manager_data_builder.add_registered_client_states(v_offset);
+
+  return le_address_manager_data_builder.Finish();
+}
+
 void AclManager::impl::Dump(
     std::promise<flatbuffers::Offset<AclManagerData>> promise, flatbuffers::FlatBufferBuilder* fb_builder) const {
   const std::lock_guard<std::mutex> lock(dumpsys_mutex_);
   const auto connect_list = (le_impl_ != nullptr) ? le_impl_->connect_list : std::unordered_set<AddressWithType>();
+  const auto background_connect_list = (le_impl_ != nullptr)
+                                           ? le_impl_->background_connections_
+                                           : std::unordered_set<AddressWithType>();
   const auto le_connectability_state_text =
       (le_impl_ != nullptr) ? connectability_state_machine_text(le_impl_->connectability_state_) : "INDETERMINATE";
   const auto le_create_connection_timeout_alarms_count =
@@ -447,6 +488,10 @@ void AclManager::impl::Dump(
   auto le_connectability_state = fb_builder->CreateString(le_connectability_state_text);
 
   flatbuffers::Offset<flatbuffers::String> strings[connect_list.size()];
+  flatbuffers::Offset<flatbuffers::String>
+      background_connect_list_strings[background_connect_list.size()];
+
+  auto le_address_manager_data_offset = DumpLeAddressManager(fb_builder);
 
   size_t cnt = 0;
   for (const auto& it : connect_list) {
@@ -454,12 +499,25 @@ void AclManager::impl::Dump(
   }
   auto vecofstrings = fb_builder->CreateVector(strings, connect_list.size());
 
+  cnt = 0;
+  for (const auto& it : background_connect_list) {
+    strings[cnt++] = fb_builder->CreateString(it.ToString());
+  }
+  auto background_connect_list_string_vector =
+      fb_builder->CreateVector(background_connect_list_strings, background_connect_list.size());
+
   AclManagerDataBuilder builder(*fb_builder);
   builder.add_title(title);
   builder.add_le_filter_accept_list_count(connect_list.size());
   builder.add_le_filter_accept_list(vecofstrings);
+  builder.add_le_background_connection_list(background_connect_list_string_vector);
   builder.add_le_connectability_state(le_connectability_state);
   builder.add_le_create_connection_timeout_alarms_count(le_create_connection_timeout_alarms_count);
+  builder.add_address_manager_registered(
+      (le_impl_ != nullptr) ? le_impl_->address_manager_registered : false);
+  builder.add_ready_to_unregister((le_impl_ != nullptr) ? le_impl_->ready_to_unregister : false);
+  builder.add_pause_connection((le_impl_ != nullptr) ? le_impl_->pause_connection : false);
+  builder.add_le_address_manager(le_address_manager_data_offset);
 
   flatbuffers::Offset<AclManagerData> dumpsys_data = builder.Finish();
   promise.set_value(dumpsys_data);
