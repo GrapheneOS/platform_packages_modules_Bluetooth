@@ -96,13 +96,13 @@ A2dpCodecConfig* bta_av_get_a2dp_peer_current_codec::return_value = nullptr;
 // Mocked functions, if any
 void bta_av_co_audio_close(tBTA_AV_HNDL bta_av_handle,
                            const RawAddress& peer_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_audio_close(bta_av_handle,
                                                        peer_address);
 }
 void bta_av_co_audio_delay(tBTA_AV_HNDL bta_av_handle,
                            const RawAddress& peer_address, uint16_t delay) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_audio_delay(bta_av_handle,
                                                        peer_address, delay);
 }
@@ -110,14 +110,14 @@ void bta_av_co_audio_disc_res(tBTA_AV_HNDL bta_av_handle,
                               const RawAddress& peer_address, uint8_t num_seps,
                               uint8_t num_sinks, uint8_t num_sources,
                               uint16_t uuid_local) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_audio_disc_res(
       bta_av_handle, peer_address, num_seps, num_sinks, num_sources,
       uuid_local);
 }
 void bta_av_co_audio_drop(tBTA_AV_HNDL bta_av_handle,
                           const RawAddress& peer_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_audio_drop(bta_av_handle,
                                                       peer_address);
 }
@@ -127,20 +127,20 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL bta_av_handle,
                                        uint8_t* p_sep_info_idx, uint8_t seid,
                                        uint8_t* p_num_protect,
                                        uint8_t* p_protect_info) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_audio_getconfig(
       bta_av_handle, peer_address, p_codec_info, p_sep_info_idx, seid,
       p_num_protect, p_protect_info);
 }
 bool bta_av_co_audio_init(btav_a2dp_codec_index_t codec_index,
                           AvdtpSepConfig* p_cfg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_audio_init(codec_index,
                                                              p_cfg);
 }
 void bta_av_co_audio_open(tBTA_AV_HNDL bta_av_handle,
                           const RawAddress& peer_address, uint16_t mtu) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_audio_open(bta_av_handle,
                                                       peer_address, mtu);
 }
@@ -150,99 +150,99 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL bta_av_handle,
                                uint8_t num_protect,
                                const uint8_t* p_protect_info,
                                uint8_t t_local_sep, uint8_t avdt_handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_audio_setconfig(
       bta_av_handle, peer_address, p_codec_info, seid, num_protect,
       p_protect_info, t_local_sep, avdt_handle);
 }
 BT_HDR* bta_av_co_audio_source_data_path(const uint8_t* p_codec_info,
                                          uint32_t* p_timestamp) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_audio_source_data_path(
       p_codec_info, p_timestamp);
 }
 void bta_av_co_audio_start(tBTA_AV_HNDL bta_av_handle,
                            const RawAddress& peer_address,
                            const uint8_t* p_codec_info, bool* p_no_rtp_header) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_audio_start(
       bta_av_handle, peer_address, p_codec_info, p_no_rtp_header);
 }
 void bta_av_co_audio_stop(tBTA_AV_HNDL bta_av_handle,
                           const RawAddress& peer_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_audio_stop(bta_av_handle,
                                                       peer_address);
 }
 void bta_av_co_audio_update_mtu(tBTA_AV_HNDL bta_av_handle,
                                 const RawAddress& peer_address, uint16_t mtu) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_audio_update_mtu(bta_av_handle,
                                                             peer_address, mtu);
 }
 const tA2DP_DECODER_INTERFACE* bta_av_co_get_decoder_interface(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_get_decoder_interface();
 }
 int bta_av_co_get_encoder_effective_frame_size() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::
       bta_av_co_get_encoder_effective_frame_size();
 }
 const tA2DP_ENCODER_INTERFACE* bta_av_co_get_encoder_interface(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_get_encoder_interface();
 }
 void bta_av_co_get_peer_params(const RawAddress& peer_address,
                                tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_get_peer_params(peer_address,
                                                            p_peer_params);
 }
 btav_a2dp_scmst_info_t bta_av_co_get_scmst_info(
     const RawAddress& peer_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_get_scmst_info(peer_address);
 }
 void bta_av_co_init(
     const std::vector<btav_a2dp_codec_config_t>& codec_priorities) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::bta_av_co_init(codec_priorities);
 }
 bool bta_av_co_is_supported_codec(btav_a2dp_codec_index_t codec_index) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_is_supported_codec(
       codec_index);
 }
 bool bta_av_co_set_active_peer(const RawAddress& peer_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_set_active_peer(peer_address);
 }
 bool bta_av_co_set_codec_audio_config(
     const btav_a2dp_codec_config_t& codec_audio_config) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_set_codec_audio_config(
       codec_audio_config);
 }
 bool bta_av_co_set_codec_user_config(
     const RawAddress& peer_address,
     const btav_a2dp_codec_config_t& codec_user_config, bool* p_restart_output) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_co_set_codec_user_config(
       peer_address, codec_user_config, p_restart_output);
 }
 A2dpCodecConfig* bta_av_get_a2dp_current_codec(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_get_a2dp_current_codec();
 }
 A2dpCodecConfig* bta_av_get_a2dp_peer_current_codec(
     const RawAddress& peer_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_co_bta_av_co::bta_av_get_a2dp_peer_current_codec(
       peer_address);
 }
 void btif_a2dp_codec_debug_dump(int fd) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_co_bta_av_co::btif_a2dp_codec_debug_dump(fd);
 }
 // Mocked functions complete

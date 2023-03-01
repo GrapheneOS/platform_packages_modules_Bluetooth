@@ -31,11 +31,11 @@ using bluetooth::groups::DeviceGroups;
 
 void DeviceGroups::AddFromStorage(const RawAddress& addr,
                                   const std::vector<uint8_t>& in) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 bool DeviceGroups::GetForStorage(const RawAddress& addr,
                                  std::vector<uint8_t>& out) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
