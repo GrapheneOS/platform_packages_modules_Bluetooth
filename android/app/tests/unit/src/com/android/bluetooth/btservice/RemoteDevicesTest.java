@@ -6,11 +6,11 @@ import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
-import android.bluetooth.BluetoothAudioPolicy;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.HandlerThread;
@@ -527,10 +527,10 @@ public class RemoteDevicesTest {
         mRemoteDevices.addDeviceProperties(Utils.getBytesFromAddress(TEST_BT_ADDR_1));
 
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(mDevice1);
-        BluetoothAudioPolicy policies = new BluetoothAudioPolicy.Builder()
-                .setCallEstablishPolicy(BluetoothAudioPolicy.POLICY_ALLOWED)
-                .setConnectingTimePolicy(BluetoothAudioPolicy.POLICY_ALLOWED)
-                .setInBandRingtonePolicy(BluetoothAudioPolicy.POLICY_ALLOWED)
+        BluetoothSinkAudioPolicy policies = new BluetoothSinkAudioPolicy.Builder()
+                .setCallEstablishPolicy(BluetoothSinkAudioPolicy.POLICY_ALLOWED)
+                .setActiveDevicePolicyAfterConnection(BluetoothSinkAudioPolicy.POLICY_ALLOWED)
+                .setInBandRingtonePolicy(BluetoothSinkAudioPolicy.POLICY_ALLOWED)
                 .build();
         deviceProp.setHfAudioPolicyForRemoteAg(policies);
 

@@ -216,6 +216,12 @@ public final class BluetoothStatusCodes {
     public static final int ERROR_REMOTE_OPERATION_NOT_SUPPORTED = 27;
 
     /**
+     * Indicates that the feature status is not configured yet.
+     * @hide
+     */
+    public static final int FEATURE_NOT_CONFIGURED = 30;
+
+    /**
      * A GATT writeCharacteristic request is not permitted on the remote device.
      */
     public static final int ERROR_GATT_WRITE_NOT_ALLOWED = 200;
