@@ -1141,9 +1141,6 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 d.update_properties(&properties);
                 d.seen();
 
-                // Services are resolved.
-                d.services_resolved = true;
-
                 Bluetooth::send_metrics_remote_device_info(d);
 
                 let info = d.info.clone();
@@ -1155,6 +1152,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
                         _ => None,
                     })
                     .map_or(false, |v| v);
+
+                // Services are resolved when uuids are fetched.
+                d.services_resolved = has_uuids;
 
                 if d.wait_to_connect && has_uuids {
                     d.wait_to_connect = false;
