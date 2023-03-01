@@ -486,6 +486,9 @@ public class ContextMap<C, T> {
             }
             stats.recordAdvertiseStart(parameters, advertiseData, scanResponse,
                     periodicParameters, periodicData, duration, maxExtAdvEvents);
+            int advertiseInstanceCount = mAppAdvertiseStats.size();
+            Log.d(TAG, "advertiseInstanceCount is " + advertiseInstanceCount);
+            AppAdvertiseStats.recordAdvertiseInstanceCount(advertiseInstanceCount);
         }
     }
 
