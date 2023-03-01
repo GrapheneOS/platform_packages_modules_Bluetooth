@@ -79,16 +79,38 @@ public class BluetoothGattServerProxy {
         return mBluetoothGattServer.getService(uuid);
     }
 
+    /**
+    * See {@link android.bluetooth.BluetoothGattServer#sendResponse(
+    * android.bluetooth.BluetoothDevice, int, int, int, byte[])}
+    */
     public boolean sendResponse(BluetoothDevice device, int requestId, int status, int offset,
             byte[] value) {
         return mBluetoothGattServer.sendResponse(device, requestId, status, offset, value);
     }
 
+    /**
+     * See {@link android.bluetooth.BluetoothGattServer#notifyCharacteristicChanged(
+     * android.bluetooth.BluetoothDevice, BluetoothGattCharacteristic, boolean, byte[])}.
+     */
+    public int notifyCharacteristicChanged(BluetoothDevice device,
+            BluetoothGattCharacteristic characteristic, boolean confirm, byte[] value) {
+        return mBluetoothGattServer.notifyCharacteristicChanged(device, characteristic, confirm,
+                                                                value);
+    }
+
+    /**
+     * See {@link android.bluetooth.BluetoothGattServer#notifyCharacteristicChanged(
+     * android.bluetooth.BluetoothDevice, BluetoothGattCharacteristic, boolean)}.
+     */
     public boolean notifyCharacteristicChanged(BluetoothDevice device,
             BluetoothGattCharacteristic characteristic, boolean confirm) {
         return mBluetoothGattServer.notifyCharacteristicChanged(device, characteristic, confirm);
     }
 
+    /**
+     * Get connected devices
+     * @return list of connected devices
+     */
     public List<BluetoothDevice> getConnectedDevices() {
         return mBluetoothManager.getConnectedDevices(BluetoothProfile.GATT_SERVER);
     }
