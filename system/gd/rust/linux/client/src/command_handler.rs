@@ -188,6 +188,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
                     "gatt write-characteristic <address> <handle> <NoRsp|Write|Prepare> <value>",
                 ),
                 String::from("gatt read-characteristic <address> <handle>"),
+                String::from("gatt register-notification <address> <handle> <enable|disable>"),
                 String::from("gatt register-server"),
             ],
             description: String::from("GATT tools"),
@@ -1050,6 +1051,31 @@ impl CommandHandler {
                     .as_ref()
                     .unwrap()
                     .read_characteristic(client_id, addr, handle, auth_req);
+            }
+            "register-notification" => {
+                let addr = String::from(get_arg(args, 1)?);
+                let handle = String::from(get_arg(args, 2)?)
+                    .parse::<i32>()
+                    .or(Err("Failed to parse handle"))?;
+                let enable = match &get_arg(args, 3)?[..] {
+                    "enable" => true,
+                    "disable" => false,
+                    _ => {
+                        return Err("Failed to parse enable".into());
+                    }
+                };
+
+                let client_id = self
+                    .lock_context()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
+
+                self.lock_context()
+                    .gatt_dbus
+                    .as_ref()
+                    .unwrap()
+                    .register_for_notification(client_id, addr, handle, enable);
             }
             "register-server" => {
                 let dbus_connection = self.lock_context().dbus_connection.clone();
