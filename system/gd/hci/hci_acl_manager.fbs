@@ -2,12 +2,22 @@ namespace bluetooth.hci;
 
 attribute "privacy";
 
+table LeAddressManagerData {
+  address_policy:string (privacy:"Any");
+  registered_client_states:[int] (privacy:"Any");
+}
+
 table AclManagerData {
     title:string (privacy:"Any");
     le_filter_accept_list_count:int (privacy:"Any");
     le_filter_accept_list:[string] (privacy:"Any");
+    le_background_connection_list:[string] (privacy:"Any");
     le_connectability_state:string (privacy:"Any");
     le_create_connection_timeout_alarms_count:int (privacy:"Any");
+    address_manager_registered:bool (privacy:"Any");
+    ready_to_unregister:bool (privacy:"Any");
+    pause_connection:bool (privacy:"Any");
+    le_address_manager:LeAddressManagerData (privacy:"Any");
 }
 
 root_type AclManagerData;
