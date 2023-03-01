@@ -45,59 +45,57 @@
 #endif
 
 bool bta_av_chk_start(tBTA_AV_SCB* p_scb) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool bta_av_hdl_event(BT_HDR* p_msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool bta_av_link_role_ok(tBTA_AV_SCB* p_scb, uint8_t bits) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool bta_av_switch_if_needed(tBTA_AV_SCB* p_scb) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 const char* bta_av_evt_code(uint16_t evt_code) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 int BTA_AvObtainPeerChannelIndex(const RawAddress& peer_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 tBTA_AV_SCB* bta_av_addr_to_scb(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 tBTA_AV_SCB* bta_av_hndl_to_scb(uint16_t handle) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 void bta_av_api_deregister(tBTA_AV_DATA* p_data) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void bta_av_conn_cback(UNUSED_ATTR uint8_t handle, const RawAddress& bd_addr,
                        uint8_t event, tAVDT_CTRL* p_data, uint8_t scb_index) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void bta_av_dup_audio_buf(tBTA_AV_SCB* p_scb, BT_HDR* p_buf) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void bta_av_free_scb(tBTA_AV_SCB* p_scb) {
-  mock_function_count_map[__func__]++;
-}
-void bta_av_restore_switch(void) { mock_function_count_map[__func__]++; }
+void bta_av_free_scb(tBTA_AV_SCB* p_scb) { inc_func_call_count(__func__); }
+void bta_av_restore_switch(void) { inc_func_call_count(__func__); }
 void bta_av_sm_execute(tBTA_AV_CB* p_cb, uint16_t event, tBTA_AV_DATA* p_data) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void bta_debug_av_dump(int fd) { mock_function_count_map[__func__]++; }
+void bta_debug_av_dump(int fd) { inc_func_call_count(__func__); }
 void tBTA_AV_SCB::OnConnected(const RawAddress& peer_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void tBTA_AV_SCB::OnDisconnected() { mock_function_count_map[__func__]++; }
+void tBTA_AV_SCB::OnDisconnected() { inc_func_call_count(__func__); }
 void tBTA_AV_SCB::SetAvdtpVersion(uint16_t avdtp_version) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }

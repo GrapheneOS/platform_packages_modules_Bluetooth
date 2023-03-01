@@ -34,27 +34,21 @@
 #define UNUSED_ATTR
 #endif
 
-void BTA_HdEnable(tBTA_HD_CBACK* p_cback) {
-  mock_function_count_map[__func__]++;
-}
-void BTA_HdAddDevice(const RawAddress& addr) {
-  mock_function_count_map[__func__]++;
-}
-void BTA_HdConnect(const RawAddress& addr) {
-  mock_function_count_map[__func__]++;
-}
-void BTA_HdDisable(void) { mock_function_count_map[__func__]++; }
-void BTA_HdDisconnect(void) { mock_function_count_map[__func__]++; }
+void BTA_HdEnable(tBTA_HD_CBACK* p_cback) { inc_func_call_count(__func__); }
+void BTA_HdAddDevice(const RawAddress& addr) { inc_func_call_count(__func__); }
+void BTA_HdConnect(const RawAddress& addr) { inc_func_call_count(__func__); }
+void BTA_HdDisable(void) { inc_func_call_count(__func__); }
+void BTA_HdDisconnect(void) { inc_func_call_count(__func__); }
 void BTA_HdRegisterApp(tBTA_HD_APP_INFO* p_app_info, tBTA_HD_QOS_INFO* p_in_qos,
                        tBTA_HD_QOS_INFO* p_out_qos) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void BTA_HdRemoveDevice(const RawAddress& addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void BTA_HdReportError(uint8_t error) { mock_function_count_map[__func__]++; }
+void BTA_HdReportError(uint8_t error) { inc_func_call_count(__func__); }
 void BTA_HdSendReport(tBTA_HD_REPORT* p_report) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void BTA_HdUnregisterApp(void) { mock_function_count_map[__func__]++; }
-void BTA_HdVirtualCableUnplug(void) { mock_function_count_map[__func__]++; }
+void BTA_HdUnregisterApp(void) { inc_func_call_count(__func__); }
+void BTA_HdVirtualCableUnplug(void) { inc_func_call_count(__func__); }
