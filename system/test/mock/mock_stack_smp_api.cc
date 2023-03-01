@@ -83,6 +83,9 @@ void SMP_SecurityGrant(const RawAddress& bd_addr, tSMP_STATUS res) {
   inc_func_call_count(__func__);
 }
 
-void SMP_CrLocScOobData() { inc_func_call_count(__func__); }
+bool SMP_CrLocScOobData() {
+  inc_func_call_count(__func__);
+  return false;
+}
 
 void SMP_ClearLocScOobData() { inc_func_call_count(__func__); }
