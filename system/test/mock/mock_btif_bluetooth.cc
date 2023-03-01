@@ -59,44 +59,44 @@ struct set_hal_cbacks set_hal_cbacks;
 
 // Mocked functions, if any
 bool is_atv_device() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_bluetooth::is_atv_device();
 }
 bool is_common_criteria_mode() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_bluetooth::is_common_criteria_mode();
 }
 bool is_restricted_mode() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_bluetooth::is_restricted_mode();
 }
 int get_common_criteria_config_compare_result() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_bluetooth::
       get_common_criteria_config_compare_result();
 }
 int get_remote_device_properties(RawAddress* remote_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_bluetooth::get_remote_device_properties(remote_addr);
 }
 int get_remote_device_property(RawAddress* remote_addr,
                                bt_property_type_t type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_bluetooth::get_remote_device_property(remote_addr,
                                                                 type);
 }
 int get_remote_services(RawAddress* remote_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_bluetooth::get_remote_services(remote_addr);
 }
 int set_remote_device_property(RawAddress* remote_addr,
                                const bt_property_t* property) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btif_bluetooth::set_remote_device_property(remote_addr,
                                                                 property);
 }
 void set_hal_cbacks(bt_callbacks_t* callbacks) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btif_bluetooth::set_hal_cbacks(callbacks);
 }
 
