@@ -35,7 +35,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
-final class RequestGetMessage extends Request {
+class RequestGetMessage extends Request {
 
     private static final String TAG = "RequestGetMessage";
 

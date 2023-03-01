@@ -18,6 +18,8 @@ package com.android.bluetooth.mapclient;
 
 import android.util.Log;
 
+import com.android.internal.annotations.VisibleForTesting;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
@@ -43,7 +45,8 @@ public class EventReport {
     private final String mOldFolder;
     private final Bmessage.Type mMsgType;
 
-    private EventReport(HashMap<String, String> attrs) throws IllegalArgumentException {
+    @VisibleForTesting
+    EventReport(HashMap<String, String> attrs) throws IllegalArgumentException {
         mType = parseType(attrs.get("type"));
 
         if (mType != Type.MEMORY_FULL && mType != Type.MEMORY_AVAILABLE) {
