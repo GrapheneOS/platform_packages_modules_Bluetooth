@@ -28,7 +28,8 @@ class FlossContainerRunner:
         [f'{SRC_MOUNT}/build.py', '--target', 'test'],
     ]
 
-    def __init__(self, workdir, rootdir, image_tag, volume_name, container_name, staging_dir, use_docker):
+    def __init__(self, workdir, rootdir, image_tag, volume_name, container_name, staging_dir, use_docker,
+                 use_pseudo_tty):
         """ Constructor.
 
         Args:
@@ -39,12 +40,19 @@ class FlossContainerRunner:
             container_name: Name for running container instance.
             staging_dir: Directory to mount for artifacts instead of using volume.
             use_docker: Use docker binary if True (or podman when False).
+            use_pseudo_tty: Run container with pseudo tty if true.
         """
         self.workdir = workdir
         self.rootdir = rootdir
         self.image_tag = image_tag
         self.container_binary = 'docker' if use_docker else 'podman'
         self.env = os.environ.copy()
+
+        # Flags used by container exec:
+        # -i: interactive mode keeps STDIN open even if not attached
+        # -t: Allocate a pseudo-TTY (better user experience)
+        #     Only set if use_pseudo_tty is true.
+        self.container_exec_flags = '-it' if use_pseudo_tty else '-i'
 
         # Name of running container
         self.container_name = container_name
@@ -83,7 +91,8 @@ class FlossContainerRunner:
         try:
             subprocess.check_output([self.container_binary, 'volume', 'inspect', self.volume_name])
         except:
-            self.run_command(self.container_binary + ' volume create', [self.container_binary, 'volume', 'create', self.volume_name])
+            self.run_command(self.container_binary + ' volume create',
+                             [self.container_binary, 'volume', 'create', self.volume_name])
 
     def start_container(self):
         """Starts the container with correct mounts."""
@@ -104,14 +113,17 @@ class FlossContainerRunner:
         # Run the container image. It will run `tail` indefinitely so the container
         # doesn't close and we can run `<container_binary> exec` on it.
         self.run_command(self.container_binary + ' run', [
-            self.container_binary, 'run', '--name', self.container_name, '--mount', mount_output_volume, '--mount', mount_src_dir,
-            '-d', self.image_tag, 'tail', '-f', '/dev/null'
+            self.container_binary, 'run', '--name', self.container_name, '--mount', mount_output_volume, '--mount',
+            mount_src_dir, '-d', self.image_tag, 'tail', '-f', '/dev/null'
         ])
 
     def stop_container(self, ignore_error=False):
         """Stops the container for build."""
-        self.run_command(self.container_binary + ' stop', [self.container_binary, 'stop', '-t', '1', self.container_name], ignore_rc=ignore_error)
-        self.run_command(self.container_binary + ' rm', [self.container_binary, 'rm', self.container_name], ignore_rc=ignore_error)
+        self.run_command(self.container_binary + ' stop',
+                         [self.container_binary, 'stop', '-t', '1', self.container_name],
+                         ignore_rc=ignore_error)
+        self.run_command(self.container_binary + ' rm', [self.container_binary, 'rm', self.container_name],
+                         ignore_rc=ignore_error)
 
     def do_build(self):
         """Runs the basic build commands."""
@@ -121,14 +133,15 @@ class FlossContainerRunner:
         try:
             # Run all commands
             for i, cmd in enumerate(self.BUILD_COMMANDS):
-                self.run_command(self.container_binary + ' exec #{}'.format(i), [self.container_binary, 'exec', '-it', self.container_name] + cmd)
+                self.run_command(self.container_binary + ' exec #{}'.format(i),
+                                 [self.container_binary, 'exec', self.container_exec_flags, self.container_name] + cmd)
         finally:
             # Always stop container before exiting
             self.stop_container()
 
     def print_do_build(self):
         """Prints the commands for building."""
-        container_exec = [self.container_binary, 'exec', '-it', self.container_name]
+        container_exec = [self.container_binary, 'exec', self.container_exec_flags, self.container_name]
         print('Normally, build would run the following commands: \n')
         for cmd in self.BUILD_COMMANDS:
             print(' '.join(container_exec + cmd))
@@ -150,23 +163,29 @@ class FlossContainerRunner:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Builder Floss inside container image.')
-    parser.add_argument(
-        '--only-start',
-        action='store_true',
-        default=False,
-        help='Only start the container. Prints the commands it would have ran.')
+    parser.add_argument('--only-start',
+                        action='store_true',
+                        default=False,
+                        help='Only start the container. Prints the commands it would have ran.')
     parser.add_argument('--only-stop', action='store_true', default=False, help='Only stop the container and exit.')
     parser.add_argument('--image-tag', default='floss:latest', help='Container image to use to build.')
-    parser.add_argument(
-        '--volume-tag',
-        default='floss-out',
-        help='Name of volume to use. This is where build artifacts will be stored by default.')
-    parser.add_argument(
-        '--staging-dir',
-        default=None,
-        help='Staging directory to use instead of volume. Build artifacts will be written here.')
-    parser.add_argument('--container-name', default='floss-container-runner', help='What to name the started container.')
-    parser.add_argument('--use-docker', action='store_true', default=False, help='Use flag to use Docker to build Floss. Defaults to using podman.')
+    parser.add_argument('--volume-tag',
+                        default='floss-out',
+                        help='Name of volume to use. This is where build artifacts will be stored by default.')
+    parser.add_argument('--staging-dir',
+                        default=None,
+                        help='Staging directory to use instead of volume. Build artifacts will be written here.')
+    parser.add_argument('--container-name',
+                        default='floss-container-runner',
+                        help='What to name the started container.')
+    parser.add_argument('--use-docker',
+                        action='store_true',
+                        default=False,
+                        help='Use flag to use Docker to build Floss. Defaults to using podman.')
+    parser.add_argument('--no-tty',
+                        action='store_true',
+                        default=False,
+                        help='Use flag to disable pseudo tty for docker container.')
     args = parser.parse_args()
 
     # cwd should be set to same directory as this script (that's where
@@ -177,7 +196,8 @@ if __name__ == "__main__":
     # Determine staging directory absolute path
     staging = os.path.abspath(args.staging_dir) if args.staging_dir else None
 
-    fdr = FlossContainerRunner(workdir, rootdir, args.image_tag, args.volume_tag, args.container_name, staging, args.use_docker)
+    fdr = FlossContainerRunner(workdir, rootdir, args.image_tag, args.volume_tag, args.container_name, staging,
+                               args.use_docker, not args.no_tty)
 
     # Make sure container is runnable before continuing
     if fdr.check_container_runnable():
