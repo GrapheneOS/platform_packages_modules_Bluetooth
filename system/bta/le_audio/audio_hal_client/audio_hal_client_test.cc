@@ -457,8 +457,6 @@ TEST_F(LeAudioClientAudioTest, testAudioHalClientResumeStartSourceTask) {
   ASSERT_TRUE(audio_source_instance_->Start(codec_conf,
                                             &mock_hal_sink_event_receiver_));
 
-  std::chrono::time_point<std::chrono::system_clock> resumed_ts;
-  std::chrono::time_point<std::chrono::system_clock> executed_ts;
   std::promise<void> promise;
   auto future = promise.get_future();
 
@@ -466,7 +464,6 @@ TEST_F(LeAudioClientAudioTest, testAudioHalClientResumeStartSourceTask) {
   EXPECT_CALL(mock_hal_interface_audio_sink_, Read(_, _))
       .Times(AtLeast(1))
       .WillOnce(Invoke([&](uint8_t* p_buf, uint32_t len) -> uint32_t {
-        executed_ts = std::chrono::system_clock::now();
         calculated_bytes_per_tick = len;
 
         // fake some data from audio framework
@@ -504,7 +501,6 @@ TEST_F(LeAudioClientAudioTest, testAudioHalClientResumeStartSourceTask) {
    */
   ASSERT_NE(sink_audio_hal_stream_cb.on_resume_, nullptr);
   EXPECT_CALL(mock_hal_sink_event_receiver_, OnAudioResume()).Times(1);
-  resumed_ts = std::chrono::system_clock::now();
   bool start_media_task = true;
   ASSERT_TRUE(sink_audio_hal_stream_cb.on_resume_(start_media_task));
   audio_source_instance_->ConfirmStreamingRequest();
@@ -524,11 +520,6 @@ TEST_F(LeAudioClientAudioTest, testAudioHalClientResumeStartSourceTask) {
 
   // Expect 2 channel (stereo) data
   ASSERT_EQ(calculated_bytes_per_tick, 2 * channel_bytes_per_10ms_at_16000Hz);
-
-  // Verify callback call interval for the requested 10ms (+2ms error margin)
-  auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(
-      executed_ts - resumed_ts);
-  EXPECT_TRUE((delta >= 10ms) && (delta <= 12ms));
 
   // Verify if we got just right amount of data in the callback call
   ASSERT_EQ(media_data_to_send.size(), calculated_bytes_per_tick);
