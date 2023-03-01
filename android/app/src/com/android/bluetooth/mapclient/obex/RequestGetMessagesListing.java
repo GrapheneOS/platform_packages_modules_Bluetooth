@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /* Get a listing of messages in directory. */
-final class RequestGetMessagesListing extends Request {
+class RequestGetMessagesListing extends Request {
 
     private static final String TYPE = "x-bt/MAP-msg-listing";
 
