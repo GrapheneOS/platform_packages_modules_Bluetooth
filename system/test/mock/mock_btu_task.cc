@@ -46,4 +46,4 @@
 #define UNUSED_ATTR
 #endif
 
-void btu_hci_msg_process(BT_HDR* p_msg) { mock_function_count_map[__func__]++; }
+void btu_hci_msg_process(BT_HDR* p_msg) { inc_func_call_count(__func__); }
