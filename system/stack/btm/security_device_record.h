@@ -459,3 +459,14 @@ struct tBTM_SEC_DEV_REC {
         PRIVATE_NAME(sec_bd_name));
   }
 };
+
+inline std::string bond_type_text(
+    const tBTM_SEC_DEV_REC::tBTM_BOND_TYPE& bond_type) {
+  switch (bond_type) {
+    CASE_RETURN_TEXT(tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
+    CASE_RETURN_TEXT(tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT);
+    CASE_RETURN_TEXT(tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY);
+    default:
+      return base::StringPrintf("UNKNOWN[%hhu]", bond_type);
+  }
+}
