@@ -186,7 +186,7 @@ impl ContextMap {
         &mut self,
         callback_id: u32,
     ) -> Option<&mut GattClientCallback> {
-        self.callbacks.get_by_id(callback_id)
+        self.callbacks.get_by_id_mut(callback_id)
     }
 }
 
@@ -294,10 +294,7 @@ impl ServerContextMap {
         }
     }
 
-    fn get_callback_from_callback_id(
-        &mut self,
-        callback_id: u32,
-    ) -> Option<&mut GattServerCallback> {
+    fn get_callback_from_callback_id(&self, callback_id: u32) -> Option<&GattServerCallback> {
         self.callbacks.get_by_id(callback_id)
     }
 
@@ -969,6 +966,9 @@ pub trait IBluetoothGattServerCallback: RPCProxy {
 
     /// When there is a service added to the GATT server.
     fn on_service_added(&self, _status: GattStatus, _service: BluetoothGattService);
+
+    /// When a service has been removed from the GATT server.
+    fn on_service_removed(&self, status: GattStatus, handle: i32);
 
     /// When a remote device has requested to read a characteristic.
     fn on_characteristic_read_request(
@@ -2099,6 +2099,8 @@ impl IBluetoothGatt for BluetoothGatt {
         self.gatt.as_ref().unwrap().lock().unwrap().client.connect(
             client_id,
             &address,
+            // Addr type is default PUBLIC.
+            0,
             is_direct,
             transport.into(),
             opportunistic,
@@ -3298,6 +3300,14 @@ impl BtifGattServerCallbacks for BluetoothGatt {
     fn service_deleted_cb(&mut self, status: GattStatus, server_id: i32, handle: i32) {
         if status == GattStatus::Success {
             self.server_context_map.delete_service(server_id, handle);
+        }
+
+        if let Some(cb) = self
+            .server_context_map
+            .get_by_server_id(server_id)
+            .and_then(|server| self.server_context_map.get_callback_from_callback_id(server.cbid))
+        {
+            cb.on_service_removed(status, handle);
         }
     }
 

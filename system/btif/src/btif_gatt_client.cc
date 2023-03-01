@@ -274,18 +274,24 @@ static bt_status_t btif_gattc_unregister_app(int client_if) {
   return do_in_jni_thread(Bind(&btif_gattc_unregister_app_impl, client_if));
 }
 
-void btif_gattc_open_impl(int client_if, RawAddress address, bool is_direct,
+void btif_gattc_open_impl(int client_if, RawAddress address,
+                          tBLE_ADDR_TYPE addr_type, bool is_direct,
                           int transport_p, bool opportunistic,
                           int initiating_phys) {
-  // Ensure device is in inquiry database
-  tBLE_ADDR_TYPE addr_type = BLE_ADDR_PUBLIC;
-  int device_type = 0;
+  int device_type = BT_DEVICE_TYPE_UNKNOWN;
   tBT_TRANSPORT transport = (tBT_TRANSPORT)BT_TRANSPORT_LE;
 
-  if (btif_get_address_type(address, &addr_type) &&
-      btif_get_device_type(address, &device_type) &&
-      device_type != BT_DEVICE_TYPE_BREDR) {
+  if (addr_type == BLE_ADDR_RANDOM) {
+    device_type = BT_DEVICE_TYPE_BLE;
     BTA_DmAddBleDevice(address, addr_type, device_type);
+  } else {
+    // Ensure device is in inquiry database
+    addr_type = BLE_ADDR_PUBLIC;
+    if (btif_get_address_type(address, &addr_type) &&
+        btif_get_device_type(address, &device_type) &&
+        device_type != BT_DEVICE_TYPE_BREDR) {
+      BTA_DmAddBleDevice(address, addr_type, device_type);
+    }
   }
 
   // Check for background connections
@@ -335,17 +341,18 @@ void btif_gattc_open_impl(int client_if, RawAddress address, bool is_direct,
            device_type, addr_type, initiating_phys);
   tBTM_BLE_CONN_TYPE type =
       is_direct ? BTM_BLE_DIRECT_CONNECTION : BTM_BLE_BKG_CONNECT_ALLOW_LIST;
-  BTA_GATTC_Open(client_if, address, type, transport, opportunistic,
+  BTA_GATTC_Open(client_if, address, addr_type, type, transport, opportunistic,
                  initiating_phys);
 }
 
 static bt_status_t btif_gattc_open(int client_if, const RawAddress& bd_addr,
-                                   bool is_direct, int transport,
-                                   bool opportunistic, int initiating_phys) {
+                                   uint8_t addr_type, bool is_direct,
+                                   int transport, bool opportunistic,
+                                   int initiating_phys) {
   CHECK_BTGATT_INIT();
   // Closure will own this value and free it.
   return do_in_jni_thread(Bind(&btif_gattc_open_impl, client_if, bd_addr,
-                               is_direct, transport, opportunistic,
+                               addr_type, is_direct, transport, opportunistic,
                                initiating_phys));
 }
 

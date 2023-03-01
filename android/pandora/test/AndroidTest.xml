@@ -20,13 +20,13 @@
         <option name="install-arg" value="-r" />
         <option name="install-arg" value="-g" />
     </target_preparer>
+    <target_preparer class="com.android.tradefed.targetprep.RunHostCommandTargetPreparer">
+        <option name="host-setup-command" value="adb -s $SERIAL forward tcp:7300 tcp:6211" />
+        <option name="host-background-command" value="adb -s $SERIAL shell nc -L -p 6211 nc 192.168.97.1 7300" />
+        <option name="host-teardown-command" value="adb -s $SERIAL forward --remove tcp:7300" />
+    </target_preparer>
     <target_preparer class="com.android.tradefed.targetprep.PythonVirtualenvPreparer">
-        <option name="dep-module" value="mobly" />
         <option name="dep-module" value="grpcio" />
-        <option name="dep-module" value="pyee" />
-        <option name="dep-module" value="ansicolors" />
-        <option name="dep-module" value="websockets" />
-        <option name="dep-module" value="construct" />
         <option name="dep-module" value="cryptography" />
     </target_preparer>
     <test class="com.android.tradefed.testtype.mobly.MoblyBinaryHostTest">

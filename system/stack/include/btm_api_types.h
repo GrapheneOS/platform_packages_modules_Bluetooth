@@ -479,6 +479,26 @@ enum {
 
 typedef uint8_t tBTM_OOB_DATA;
 
+#ifndef CASE_RETURN_TEXT
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+#endif
+
+inline std::string btm_oob_data_text(const tBTM_OOB_DATA& data) {
+  switch (data) {
+    CASE_RETURN_TEXT(BTM_OOB_NONE);
+    CASE_RETURN_TEXT(BTM_OOB_PRESENT_192);
+    CASE_RETURN_TEXT(BTM_OOB_PRESENT_256);
+    CASE_RETURN_TEXT(BTM_OOB_PRESENT_192_AND_256);
+    CASE_RETURN_TEXT(BTM_OOB_UNKNOWN);
+    default:
+      return std::string("UNKNOWN[") + std::to_string(data) + std::string("]");
+  }
+}
+
+#undef CASE_RETURN_TEXT
+
 /* data type for BTM_SP_IO_REQ_EVT */
 typedef struct {
   RawAddress bd_addr;     /* peer address */

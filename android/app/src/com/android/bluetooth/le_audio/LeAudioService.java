@@ -282,6 +282,9 @@ public class LeAudioService extends ProfileService {
         mTmapGattServer = LeAudioObjectsFactory.getInstance().getTmapGattServer(this);
         mTmapGattServer.start(tmapRoleMask);
 
+        mLeAudioInbandRingtoneSupportedByPlatform =
+                        BluetoothProperties.isLeAudioInbandRingtoneSupported().orElse(true);
+
         mAudioManager.registerAudioDeviceCallback(mAudioManagerAudioDeviceCallback,
                        mHandler);
 
@@ -1927,41 +1930,43 @@ public class LeAudioService extends ProfileService {
                 removeStateMachine(device);
             }
 
-            LeAudioGroupDescriptor descriptor = getGroupDescriptor(deviceDescriptor.mGroupId);
-            if (descriptor == null) {
-                Log.e(TAG, "no descriptors for group: " + deviceDescriptor.mGroupId);
-                return;
-            }
+            synchronized (mGroupLock) {
+                LeAudioGroupDescriptor descriptor = getGroupDescriptor(deviceDescriptor.mGroupId);
+                if (descriptor == null) {
+                    Log.e(TAG, "no descriptors for group: " + deviceDescriptor.mGroupId);
+                    return;
+                }
 
-            List<BluetoothDevice> connectedDevices =
-                    getConnectedPeerDevices(deviceDescriptor.mGroupId);
-            /* Let's check if the last connected device is really connected */
-            if (connectedDevices.size() == 1 && Objects.equals(
-                    connectedDevices.get(0), descriptor.mLostLeadDeviceWhileStreaming)) {
-                clearLostDevicesWhileStreaming(descriptor);
-                return;
-            }
+                List<BluetoothDevice> connectedDevices =
+                        getConnectedPeerDevices(deviceDescriptor.mGroupId);
+                /* Let's check if the last connected device is really connected */
+                if (connectedDevices.size() == 1 && Objects.equals(
+                        connectedDevices.get(0), descriptor.mLostLeadDeviceWhileStreaming)) {
+                    clearLostDevicesWhileStreaming(descriptor);
+                    return;
+                }
 
-            if (getConnectedPeerDevices(deviceDescriptor.mGroupId).isEmpty()) {
-                descriptor.mIsConnected = false;
+                if (getConnectedPeerDevices(deviceDescriptor.mGroupId).isEmpty()) {
+                    descriptor.mIsConnected = false;
+                    if (descriptor.mIsActive) {
+                        /* Notify Native layer */
+                        setActiveDevice(null);
+                        descriptor.mIsActive = false;
+                        /* Update audio framework */
+                        updateActiveDevices(deviceDescriptor.mGroupId,
+                                descriptor.mDirection,
+                                descriptor.mDirection,
+                                descriptor.mIsActive);
+                        return;
+                    }
+                }
+
                 if (descriptor.mIsActive) {
-                    /* Notify Native layer */
-                    setActiveDevice(null);
-                    descriptor.mIsActive = false;
-                    /* Update audio framework */
                     updateActiveDevices(deviceDescriptor.mGroupId,
                             descriptor.mDirection,
                             descriptor.mDirection,
                             descriptor.mIsActive);
-                    return;
                 }
-            }
-
-            if (descriptor.mIsActive) {
-                updateActiveDevices(deviceDescriptor.mGroupId,
-                        descriptor.mDirection,
-                        descriptor.mDirection,
-                        descriptor.mIsActive);
             }
         }
     }
@@ -3312,6 +3317,8 @@ public class LeAudioService extends ProfileService {
         ProfileService.println(sb, "  mActiveAudioOutDevice: " + mActiveAudioOutDevice);
         ProfileService.println(sb, "  mActiveAudioInDevice: " + mActiveAudioInDevice);
         ProfileService.println(sb, "  mHfpHandoverDevice:" + mHfpHandoverDevice);
+        ProfileService.println(sb, "  mLeAudioIsInbandRingtoneSupported:"
+                                + mLeAudioInbandRingtoneSupportedByPlatform);
 
         for (Map.Entry<BluetoothDevice, LeAudioDeviceDescriptor> entry
                 : mDeviceDescriptors.entrySet()) {
