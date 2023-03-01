@@ -593,6 +593,7 @@ void bta_ag_codec_negotiate(tBTA_AG_SCB* p_scb) {
   }
 
   if ((p_scb->codec_updated || p_scb->codec_fallback) &&
+      (p_scb->features & BTA_AG_FEAT_CODEC) &&
       (p_scb->peer_features & BTA_AG_PEER_FEAT_CODEC)) {
     LOG_INFO("Starting codec negotiation");
     /* Change the power mode to Active until SCO open is completed. */
