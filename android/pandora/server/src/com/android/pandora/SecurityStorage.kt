@@ -67,11 +67,19 @@ class SecurityStorage(private val context: Context) : SecurityStorageImplBase(),
 
   override fun isBonded(request: IsBondedRequest, responseObserver: StreamObserver<BoolValue>) {
     grpcUnary(globalScope, responseObserver) {
-      check(request.getAddressCase() == IsBondedRequest.AddressCase.PUBLIC)
-      val bluetoothDevice = request.public.toBluetoothDevice(bluetoothAdapter)
-      Log.i(TAG, "isBonded: $bluetoothDevice")
-      val isBonded = bluetoothDevice.getBondState() == BluetoothDevice.BOND_BONDED
-      BoolValue.newBuilder().setValue(isBonded).build()
+      val bondedDevices = bluetoothAdapter.getBondedDevices()
+      val bondedDevice =
+        when(request.getAddressCase()!!) {
+          IsBondedRequest.AddressCase.PUBLIC -> bondedDevices.firstOrNull {
+            it.toByteString() == request.public
+          }
+          IsBondedRequest.AddressCase.RANDOM ->  bondedDevices.firstOrNull {
+            it.toByteString() == request.random
+          }
+          IsBondedRequest.AddressCase.ADDRESS_NOT_SET -> throw Status.UNKNOWN.asException()
+        }
+      Log.i(TAG, "isBonded: device=$bondedDevice")
+      BoolValue.newBuilder().setValue(bondedDevice != null).build()
     }
   }
 
