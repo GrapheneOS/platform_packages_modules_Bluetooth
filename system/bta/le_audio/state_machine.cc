@@ -2415,6 +2415,34 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
   }
 
+  void DisconnectCisIfNeeded(LeAudioDeviceGroup* group,
+                             LeAudioDevice* leAudioDevice, struct ase* ase) {
+    LOG_DEBUG(
+        "Group id: %d, %s, ase id: %d, cis_handle: 0x%04x, direction: %s, "
+        "data_path_state: %s",
+        group->group_id_, ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
+        ase->id, ase->cis_conn_hdl,
+        ase->direction == le_audio::types::kLeAudioDirectionSink ? "sink"
+                                                                 : "source",
+        bluetooth::common::ToString(ase->data_path_state).c_str());
+
+    auto bidirection_ase = leAudioDevice->GetAseToMatchBidirectionCis(ase);
+    if (bidirection_ase != nullptr &&
+        bidirection_ase->data_path_state ==
+            AudioStreamDataPathState::CIS_ESTABLISHED &&
+        (bidirection_ase->state == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING ||
+         bidirection_ase->state == AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING)) {
+      LOG_INFO("Still waiting for the bidirectional ase %d to be released (%s)",
+               bidirection_ase->id,
+               bluetooth::common::ToString(bidirection_ase->state).c_str());
+      return;
+    }
+
+    RemoveCisFromStreamConfiguration(group, leAudioDevice, ase->cis_conn_hdl);
+    IsoManager::GetInstance()->DisconnectCis(ase->cis_conn_hdl,
+                                             HCI_ERR_PEER_USER);
+  }
+
   void AseStateMachineProcessReleasing(
       struct le_audio::client_parser::ascs::ase_rsp_hdr& arh, struct ase* ase,
       LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice) {
@@ -2456,10 +2484,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                        AudioStreamDataPathState::CIS_ESTABLISHED ||
                    ase->data_path_state ==
                        AudioStreamDataPathState::CIS_PENDING) {
-          RemoveCisFromStreamConfiguration(group, leAudioDevice,
-                                           ase->cis_conn_hdl);
-          IsoManager::GetInstance()->DisconnectCis(ase->cis_conn_hdl,
-                                                   HCI_ERR_PEER_USER);
+          DisconnectCisIfNeeded(group, leAudioDevice, ase);
         } else {
           DLOG(INFO) << __func__ << ", Nothing to do ase data path state: "
                      << static_cast<int>(ase->data_path_state);
