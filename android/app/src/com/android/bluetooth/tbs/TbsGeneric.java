@@ -216,6 +216,34 @@ public class TbsGeneric {
         mIsInitialized = false;
     }
 
+    /**
+     * Set inband ringtone for the device.
+     * When set, notification will be sent to given device.
+     *
+     * @param device    device for which inband ringtone has been set
+     */
+    public synchronized void setInbandRingtoneSupport(BluetoothDevice device) {
+        if (mTbsGatt == null) {
+            Log.w(TAG, "setInbandRingtoneSupport, mTbsGatt is null");
+            return;
+        }
+        mTbsGatt.setInbandRingtoneFlag(device);
+    }
+
+    /**
+     * Clear inband ringtone for the device.
+     * When set, notification will be sent to given device.
+     *
+     * @param device    device for which inband ringtone has been cleared
+     */
+    public synchronized void clearInbandRingtoneSupport(BluetoothDevice device) {
+        if (mTbsGatt == null) {
+            Log.w(TAG, "setInbandRingtoneSupport, mTbsGatt is null");
+            return;
+        }
+        mTbsGatt.clearInbandRingtoneFlag(device);
+    }
+
     private synchronized boolean isSilentModeEnabled() {
         return mStoredRingerMode != AudioManager.RINGER_MODE_NORMAL;
     }
