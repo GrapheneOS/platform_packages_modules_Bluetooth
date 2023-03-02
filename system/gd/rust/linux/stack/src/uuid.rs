@@ -40,7 +40,7 @@ pub const COORDINATED_SET: &str = "00001846-0000-1000-8000-00805F9B34FB";
 pub const BASE_UUID: &str = "00000000-0000-1000-8000-00805F9B34FB";
 
 /// List of profiles that with known uuids.
-#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq, FromPrimitive, ToPrimitive, Copy)]
+#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq, Ord, FromPrimitive, ToPrimitive, Copy)]
 #[repr(u32)]
 pub enum Profile {
     A2dpSink,
