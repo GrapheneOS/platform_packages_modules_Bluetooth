@@ -776,9 +776,9 @@ package android.bluetooth {
     method public int getLmpVersion();
     method public int getManufacturerId();
     method public int getQualityReportId();
-    method @NonNull public String getQualityReportIdString();
     method @Nullable public String getRemoteAddress();
     method @Nullable public String getRemoteName();
+    method @NonNull public static String qualityReportIdToString(int);
     method public void writeToParcel(@NonNull android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothQualityReport> CREATOR;
     field public static final int QUALITY_REPORT_ID_A2DP_CHOPPY = 3; // 0x3
@@ -789,11 +789,11 @@ package android.bluetooth {
   }
 
   public static final class BluetoothQualityReport.BqrCommon implements android.os.Parcelable {
+    method @NonNull public static String connectionRoleToString(int);
     method public int getAfhSelectUnidealChannelCount();
     method public int getCalFailedItemCount();
     method public int getConnectionHandle();
     method public int getConnectionRole();
-    method @NonNull public String getConnectionRoleString();
     method public long getFlowOffCount();
     method public long getLastFlowOnTimestamp();
     method public long getLastTxAckTimestamp();
@@ -802,7 +802,6 @@ package android.bluetooth {
     method public long getNoRxCount();
     method public long getOverflowCount();
     method public int getPacketType();
-    method @Nullable public String getPacketTypeString();
     method public long getPiconetClock();
     method public long getRetransmissionCount();
     method public int getRssi();
@@ -810,6 +809,7 @@ package android.bluetooth {
     method public int getTxPowerLevel();
     method public long getUnderflowCount();
     method public int getUnusedAfhChannelCount();
+    method @Nullable public static String packetTypeToString(int);
     method public void writeToParcel(@NonNull android.os.Parcel, int);
     field public static final int CONNECTION_ROLE_CENTRAL = 0; // 0x0
     field public static final int CONNECTION_ROLE_PERIPHERAL = 1; // 0x1
@@ -817,7 +817,7 @@ package android.bluetooth {
   }
 
   public static final class BluetoothQualityReport.BqrConnectFail implements android.os.Parcelable {
-    method @NonNull public String getConnectFailIdString(int);
+    method @NonNull public static String connectFailIdToString(int);
     method public int getFailReason();
     method public void writeToParcel(@NonNull android.os.Parcel, int);
     field public static final int CONNECT_FAIL_ID_ACL_ALREADY_EXIST = 11; // 0xb
@@ -833,18 +833,18 @@ package android.bluetooth {
     method public long getArrivalTime();
     method public int getGlitchCount();
     method public int getLinkQuality();
-    method @Nullable public String getLinkQualityString();
     method public int getRxCxmDenials();
     method public long getScheduleTime();
     method public int getTxCxmDenials();
+    method @Nullable public static String linkQualityToString(int);
     method public void writeToParcel(@NonNull android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothQualityReport.BqrVsA2dpChoppy> CREATOR;
   }
 
   public static final class BluetoothQualityReport.BqrVsLsto implements android.os.Parcelable {
+    method @Nullable public static String connStateToString(int);
     method public long getBasebandStats();
     method public int getConnState();
-    method @Nullable public String getConnStateString();
     method public int getCxmDenials();
     method public long getLastTxAckTimestamp();
     method public long getNativeClock();
@@ -856,8 +856,8 @@ package android.bluetooth {
   }
 
   public static final class BluetoothQualityReport.BqrVsScoChoppy implements android.os.Parcelable {
+    method @Nullable public static String airFormatToString(int);
     method public int getAirFormat();
-    method @Nullable public String getAirFormatString();
     method public int getGlitchCount();
     method public int getGoodRxFrameCount();
     method public int getInstanceCount();
