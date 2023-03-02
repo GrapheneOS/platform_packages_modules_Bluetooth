@@ -29,6 +29,9 @@ using ScannerId = uint8_t;
 
 class AdvertisingFilterOnFoundOnLostInfo {
  public:
+  // For MSFT-based advertisement events, the monitor handle associates every event with the monitor
+  // filter this event comes from.
+  uint8_t monitor_handle;
   uint8_t scanner_id;
   uint8_t filter_index;
   uint8_t advertiser_state;
