@@ -2896,13 +2896,16 @@ void LeAudioDevices::SetInitialGroupAutoconnectState(
     return;
   }
 
+  /* This function is called when bluetooth started, therefore here we will
+   * try direct connection, if that failes, we fallback to background connection
+   */
   for (auto dev : leAudioDevices_) {
     if ((dev->group_id_ == group_id) &&
         (dev->GetConnectionState() == DeviceConnectState::DISCONNECTED)) {
       dev->SetConnectionState(DeviceConnectState::CONNECTING_AUTOCONNECT);
       dev->autoconnect_flag_ = true;
       btif_storage_set_leaudio_autoconnect(dev->address_, true);
-      BTA_GATTC_Open(gatt_if, dev->address_, reconnection_mode, false);
+      BTA_GATTC_Open(gatt_if, dev->address_, BTM_BLE_DIRECT_CONNECTION, false);
     }
   }
 }
