@@ -116,6 +116,10 @@ class MceStateMachine extends StateMachine {
     private static final int MSG_DISCONNECT = 2;
     private static final int MSG_CONNECTING_TIMEOUT = 3;
     private static final int MSG_DISCONNECTING_TIMEOUT = 4;
+
+    private static final boolean MESSAGE_SEEN = true;
+    private static final boolean MESSAGE_NOT_SEEN = false;
+
     // Folder names as defined in Bluetooth.org MAP spec V10
     private static final String FOLDER_TELECOM = "telecom";
     private static final String FOLDER_MSG = "msg";
@@ -162,11 +166,13 @@ class MceStateMachine extends StateMachine {
         private final String mHandle;
         private final Long mTimestamp;
         private boolean mRead;
+        private boolean mSeen;
 
-        MessageMetadata(String handle, Long timestamp, boolean read) {
+        MessageMetadata(String handle, Long timestamp, boolean read, boolean seen) {
             mHandle = handle;
             mTimestamp = timestamp;
             mRead = read;
+            mSeen = seen;
         }
 
         public String getHandle() {
@@ -184,6 +190,11 @@ class MceStateMachine extends StateMachine {
         public synchronized void setRead(boolean read) {
             mRead = read;
         }
+
+        public synchronized boolean getSeen() {
+            return mSeen;
+        }
+
     }
 
     // Map each message to its metadata via the handle
@@ -191,14 +202,16 @@ class MceStateMachine extends StateMachine {
             new ConcurrentHashMap<String, MessageMetadata>();
 
     MceStateMachine(MapClientService service, BluetoothDevice device) {
-        this(service, device, null);
+        this(service, device, null, null);
     }
 
     @VisibleForTesting
-    MceStateMachine(MapClientService service, BluetoothDevice device, MasClient masClient) {
+    MceStateMachine(MapClientService service, BluetoothDevice device, MasClient masClient,
+            MapClientContent database) {
         super(TAG);
         mMasClient = masClient;
         mService = service;
+        mDatabase = database;
 
         mPreviousState = BluetoothProfile.STATE_DISCONNECTED;
 
@@ -543,7 +556,10 @@ class MceStateMachine extends StateMachine {
                     setMessageStatus(handle, status);
                 }
             };
-            mDatabase = new MapClientContent(mService, callbacks, mDevice);
+            // Keeps mock database from being overwritten in tests
+            if (mDatabase == null) {
+                mDatabase = new MapClientContent(mService, callbacks, mDevice);
+            }
             onConnectionStateChanged(mPreviousState, BluetoothProfile.STATE_CONNECTED);
             if (Utils.isPtsTestMode()) return;
 
@@ -638,7 +654,7 @@ class MceStateMachine extends StateMachine {
                         if (messageHandle != null && messageHandle.length() > 2) {
                             if (SAVE_OUTBOUND_MESSAGES) {
                                 mDatabase.storeMessage(requestPushMessage.getBMsg(), messageHandle,
-                                        System.currentTimeMillis());
+                                        System.currentTimeMillis(), MESSAGE_SEEN);
                             }
                             mSentMessageLog.put(messageHandle.substring(2),
                                     requestPushMessage.getBMsg());
@@ -721,7 +737,7 @@ class MceStateMachine extends StateMachine {
                     if (!mMessages.containsKey(event.getHandle())) {
                         Calendar calendar = Calendar.getInstance();
                         MessageMetadata metadata = new MessageMetadata(event.getHandle(),
-                                calendar.getTime().getTime(), false);
+                                calendar.getTime().getTime(), false, MESSAGE_NOT_SEEN);
                         mMessages.put(event.getHandle(), metadata);
                     }
                     mMasClient.makeRequest(new RequestGetMessage(event.getHandle(),
@@ -782,7 +798,7 @@ class MceStateMachine extends StateMachine {
                     }
                     // A message listing coming from the server should always have up to date data
                     mMessages.put(msg.getHandle(), new MessageMetadata(msg.getHandle(),
-                            msg.getDateTime().getTime(), msg.isRead()));
+                            msg.getDateTime().getTime(), msg.isRead(), MESSAGE_SEEN));
                     getMessage(msg.getHandle());
                 }
             }
@@ -896,7 +912,8 @@ class MceStateMachine extends StateMachine {
                 return;
             }
             mDatabase.storeMessage(message, request.getHandle(),
-                    mMessages.get(request.getHandle()).getTimestamp());
+                    mMessages.get(request.getHandle()).getTimestamp(),
+                    mMessages.get(request.getHandle()).getSeen());
             if (!INBOX_PATH.equalsIgnoreCase(message.getFolder())) {
                 if (DBG) {
                     Log.d(TAG, "Ignoring message received in " + message.getFolder() + ".");

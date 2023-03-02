@@ -29,11 +29,11 @@ namespace bluetooth {
 namespace bqr {
 
 void DumpLmpLlMessage(uint8_t length, const uint8_t* p_event) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 void DumpBtScheduling(uint8_t length, const uint8_t* p_event) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 }  // namespace bqr

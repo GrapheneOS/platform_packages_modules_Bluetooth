@@ -24,7 +24,6 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use log::{debug, warn};
 use num_traits::cast::ToPrimitive;
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::fs::File;
 use std::hash::Hash;
 use std::io::Write;
@@ -638,6 +637,14 @@ impl Bluetooth {
             .collect()
     }
 
+    /// Gets the bond state of a single device with its address.
+    pub fn get_bond_state_by_addr(&self, addr: &String) -> BtBondState {
+        match self.bonded_devices.get(addr) {
+            Some(device) => device.bond_state.clone(),
+            None => BtBondState::NotBonded,
+        }
+    }
+
     /// Check whether found devices are still fresh. If they're outside the
     /// freshness window, send a notification to clear the device from clients.
     fn trigger_freshness_check(&mut self) {
@@ -1141,9 +1148,6 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 d.update_properties(&properties);
                 d.seen();
 
-                // Services are resolved.
-                d.services_resolved = true;
-
                 Bluetooth::send_metrics_remote_device_info(d);
 
                 let info = d.info.clone();
@@ -1155,6 +1159,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
                         _ => None,
                     })
                     .map_or(false, |v| v);
+
+                // Services are resolved when uuids are fetched.
+                d.services_resolved = has_uuids;
 
                 if d.wait_to_connect && has_uuids {
                     d.wait_to_connect = false;
@@ -1575,10 +1582,7 @@ impl IBluetooth for Bluetooth {
     }
 
     fn get_bond_state(&self, device: BluetoothDevice) -> BtBondState {
-        match self.bonded_devices.get(&device.address) {
-            Some(device) => device.bond_state.clone(),
-            None => BtBondState::NotBonded,
-        }
+        self.get_bond_state_by_addr(&device.address)
     }
 
     fn set_pin(&self, device: BluetoothDevice, accept: bool, pin_code: Vec<u8>) -> bool {
