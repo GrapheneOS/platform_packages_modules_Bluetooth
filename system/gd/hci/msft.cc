@@ -86,13 +86,13 @@ struct MsftExtensionManager::impl {
     ASSERT(view.IsValid());
 
     // The monitor state is 0x00 when the controller stops monitoring the device.
-    if (view.GetMonitorState() == 0x00) {
+    if (view.GetMonitorState() == 0x00 || view.GetMonitorState() == 0x01) {
       AdvertisingFilterOnFoundOnLostInfo on_found_on_lost_info;
       on_found_on_lost_info.advertiser_address_type = view.GetAddressType();
       on_found_on_lost_info.advertiser_address = view.GetBdAddr();
+      on_found_on_lost_info.advertiser_state = view.GetMonitorState();
+      on_found_on_lost_info.monitor_handle = view.GetMonitorHandle();
       scanning_callbacks_->OnTrackAdvFoundLost(on_found_on_lost_info);
-    } else if (view.GetMonitorState() == 0x01) {
-      // TODO: Bubble up this event via `OnScanResult`.
     } else {
       LOG_WARN("The Microsoft vendor event monitor state is invalid.");
       return;
