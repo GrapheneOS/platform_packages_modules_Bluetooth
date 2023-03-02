@@ -3064,7 +3064,11 @@ void btif_dm_generate_local_oob_data(tBT_TRANSPORT transport) {
         stop_oob_advertiser();
       }
       waiting_on_oob_advertiser_start = true;
-      SMP_CrLocScOobData();
+      if (!SMP_CrLocScOobData()) {
+        waiting_on_oob_advertiser_start = false;
+        GetInterfaceToProfiles()->events->invoke_oob_data_request_cb(
+            transport, false, Octet16{}, Octet16{}, RawAddress{}, 0x00);
+      }
     } else {
       GetInterfaceToProfiles()->events->invoke_oob_data_request_cb(
           transport, false, Octet16{}, Octet16{}, RawAddress{}, 0x00);
