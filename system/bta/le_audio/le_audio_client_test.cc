@@ -389,8 +389,11 @@ class UnicastTestNoInit : public Test {
         .mtu = 240,
     };
 
-    ASSERT_NE(peer_devices.count(conn_id), 0u);
-    peer_devices.at(conn_id)->connected = true;
+    if (status == GATT_SUCCESS) {
+      ASSERT_NE(peer_devices.count(conn_id), 0u);
+      peer_devices.at(conn_id)->connected = true;
+    }
+
     do_in_main_thread(
         FROM_HERE,
         base::BindOnce(
@@ -2613,26 +2616,27 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
                    std::move(ases)));
   });
 
-  // Expect stored device0 to connect automatically
+  // Expect stored device0 to connect automatically (first directed connection )
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
+      .Times(1);
+
+  // Expect stored device1 to connect automatically (first direct connection)
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address1, BTM_BLE_DIRECT_CONNECTION, _))
+      .Times(1);
+
+  ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
+      .WillByDefault(DoAll(Return(true)));
+  ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
+      .WillByDefault(DoAll(Return(true)));
+
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::CONNECTED, test_address0))
       .Times(1);
-  ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
-      .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address0,
-                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
-      .Times(1);
 
-  // Expect stored device1 to connect automatically
   EXPECT_CALL(mock_audio_hal_client_callbacks_,
               OnConnectionState(ConnectionState::CONNECTED, test_address1))
-      .Times(1);
-  ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
-      .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address1,
-                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
       .Times(1);
 
   ON_CALL(mock_groups_module_, GetGroupId(_, _))
@@ -2660,13 +2664,32 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
       framework_encode_preference);
   if (app_register_callback) app_register_callback.Run(gatt_if, GATT_SUCCESS);
 
-  /* For background connect, test needs to Inject Connected Event */
-  InjectConnectedEvent(test_address0, 1);
-  InjectConnectedEvent(test_address1, 2);
-
   // We need to wait for the storage callback before verifying stuff
   SyncOnMainLoop();
   ASSERT_TRUE(LeAudioClient::IsLeAudioClientRunning());
+
+  // Simulate devices are not there and phone fallbacks to targeted
+  // announcements
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address1,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+
+  // Devices not found
+  InjectConnectedEvent(test_address0, 0, GATT_ERROR);
+  InjectConnectedEvent(test_address1, 0, GATT_ERROR);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
+  /* For background connect, test needs to Inject Connected Event */
+  InjectConnectedEvent(test_address0, 1);
+  InjectConnectedEvent(test_address1, 2);
 
   // Verify if all went well and we got the proper group
   std::vector<RawAddress> devs =
@@ -2753,8 +2776,7 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
       .WillByDefault(DoAll(Return(true)));
   EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address0,
-                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+              Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
       .Times(1);
 
   // Expect stored device1 to NOT connect automatically
@@ -2764,8 +2786,7 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
       .WillByDefault(DoAll(Return(true)));
   EXPECT_CALL(mock_gatt_interface_,
-              Open(gatt_if, test_address1,
-                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+              Open(gatt_if, test_address1, BTM_BLE_DIRECT_CONNECTION, _))
       .Times(0);
 
   // Initialize
@@ -2783,6 +2804,23 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
                  &mock_hal_2_1_verifier),
       framework_encode_preference);
   if (app_register_callback) app_register_callback.Run(gatt_if, GATT_SUCCESS);
+
+  // We need to wait for the storage callback before verifying stuff
+  SyncOnMainLoop();
+  ASSERT_TRUE(LeAudioClient::IsLeAudioClientRunning());
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
+  // Simulate device is not there and phone fallbacks to targeted announcements
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+
+  // Devices not found
+  InjectConnectedEvent(test_address0, 0, GATT_ERROR);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 
   /* For background connect, test needs to Inject Connected Event */
   InjectConnectedEvent(test_address0, 1);
