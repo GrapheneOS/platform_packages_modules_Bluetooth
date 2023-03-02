@@ -174,6 +174,7 @@ cc_library_static {
     ],
     static_libs: [
         "lib-bt-packets",
+        "libcom.android.sysprop.bluetooth",
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu"
@@ -337,6 +338,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtcore",
+        "libcom.android.sysprop.bluetooth",
         "libflatbuffers-cpp",
         "libgmock",
     ],
@@ -973,6 +975,7 @@ cc_test {
         "libgmock",
         "libbt-common",
         "libbt-protos-lite",
+        "libcom.android.sysprop.bluetooth",
         "libosi", // ADDED
     ],
     generated_headers: [

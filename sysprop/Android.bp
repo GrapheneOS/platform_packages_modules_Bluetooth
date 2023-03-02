@@ -7,6 +7,7 @@ sysprop_library {
   host_supported: true,
   srcs: [
     "avrcp.sysprop",
+    "bta.sysprop",
   ],
   property_owner: "Platform",
   api_packages: ["android.sysprop"],
