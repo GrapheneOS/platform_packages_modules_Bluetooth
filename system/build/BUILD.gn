@@ -50,7 +50,6 @@ config("linux") {
   defines = [
     "_FORTIFY_SOURCE=2",
     "_GNU_SOURCE",
-    "HAS_NO_BDROID_BUILDCFG",
     "LOG_NDEBUG=1",
     "EXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
     "KERNEL_MISSING_CLOCK_BOOTTIME_ALARM=TRUE",

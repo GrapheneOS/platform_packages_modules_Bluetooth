@@ -50,31 +50,31 @@ struct module_start_up module_start_up;
 
 // Mocked functions, if any
 const module_t* get_module(const char* name) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btcore_module::get_module(name);
 }
 void module_clean_up(const module_t* module) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btcore_module::module_clean_up(module);
 }
 bool module_init(const module_t* module) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btcore_module::module_init(module);
 }
 void module_management_start(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btcore_module::module_management_start();
 }
 void module_management_stop(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btcore_module::module_management_stop();
 }
 void module_shut_down(const module_t* module) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::btcore_module::module_shut_down(module);
 }
 bool module_start_up(const module_t* module) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::btcore_module::module_start_up(module);
 }
 // Mocked functions complete

@@ -26,7 +26,6 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothManager;
 import android.bluetooth.IBluetoothStateChangeCallback;
 import android.content.Context;
@@ -36,13 +35,14 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -142,6 +142,8 @@ public class TbsGatt {
     private final GattCharacteristic mTerminationReasonCharacteristic;
     private final GattCharacteristic mIncomingCallCharacteristic;
     private final GattCharacteristic mCallFriendlyNameCharacteristic;
+    private boolean mSilentMode = false;
+    private Map<BluetoothDevice, Integer> mStatusFlagValue = new HashMap<>();
     private List<BluetoothDevice> mSubscribers = new ArrayList<>();
     private BluetoothGattServerProxy mBluetoothGattServer;
     private Handler mHandler;
@@ -154,6 +156,14 @@ public class TbsGatt {
 
         public abstract void onCallControlPointRequest(BluetoothDevice device, int opcode,
                 byte[] args);
+
+        /**
+         * Check if device has enabled inband ringtone
+         *
+         * @param device device which is checked for inband ringtone availability
+         * @return  {@code true} if enabled, {@code false} otherwise
+         */
+        public abstract boolean isInbandRingtoneEnabled(BluetoothDevice device);
     }
 
     TbsGatt(Context context) {
@@ -348,9 +358,24 @@ public class TbsGatt {
         }
 
         private void notifyCharacteristicChanged(BluetoothDevice device,
+                BluetoothGattCharacteristic characteristic, byte[] value) {
+            if (mBluetoothGattServer != null) {
+                mBluetoothGattServer.notifyCharacteristicChanged(device, characteristic, false,
+                                                                 value);
+            }
+        }
+
+        private void notifyCharacteristicChanged(BluetoothDevice device,
                 BluetoothGattCharacteristic characteristic) {
             if (mBluetoothGattServer != null) {
                 mBluetoothGattServer.notifyCharacteristicChanged(device, characteristic, false);
+            }
+        }
+
+        public void notifyWithValue(BluetoothDevice device,
+                BluetoothGattCharacteristic characteristic, byte[] value) {
+            if (isSubscribed(device)) {
+                notifyCharacteristicChanged(device, characteristic, value);
             }
         }
 
@@ -426,6 +451,11 @@ public class TbsGatt {
 
         public boolean setValueNoNotify(byte[] value) {
             return super.setValue(value);
+        }
+
+        public boolean notifyWithValue(BluetoothDevice device, byte[] value) {
+            mNotifier.notifyWithValue(device, this, value);
+            return true;
         }
 
         public boolean clearValue(boolean notify) {
@@ -597,34 +627,85 @@ public class TbsGatt {
         return mBearerListCurrentCallsCharacteristic.setValue(stream.toByteArray());
     }
 
-    private boolean updateStatusFlags(int flag, boolean set) {
-        Integer valueInt = mStatusFlagsCharacteristic
-                .getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 0);
+    private boolean updateStatusFlags(BluetoothDevice device, int valueInt) {
+        /* uint16_t */
+        byte[] value = new byte[2];
+        value[0] = (byte) (valueInt & 0xFF);
+        value[1] = (byte) ((valueInt >> 8) & 0xFF);
+        return mStatusFlagsCharacteristic.notifyWithValue(device, value);
+    }
 
-        if (((valueInt & flag) != 0) == set) {
+    private boolean updateStatusFlagsInbandRingtone(BluetoothDevice device, boolean set) {
+        boolean entryExist = mStatusFlagValue.containsKey(device);
+        if (entryExist
+                && (((mStatusFlagValue.get(device)
+                        & STATUS_FLAG_INBAND_RINGTONE_ENABLED) != 0) == set)) {
+            Log.i(TAG, "Silent mode already set for " + device);
             return false;
         }
 
-        valueInt ^= flag;
+        Integer valueInt = entryExist ? mStatusFlagValue.get(device) : 0;
+        valueInt ^= STATUS_FLAG_INBAND_RINGTONE_ENABLED;
 
-        return mStatusFlagsCharacteristic.setValue(valueInt,
-                BluetoothGattCharacteristic.FORMAT_UINT16, 0);
+        if (entryExist) {
+            mStatusFlagValue.replace(device, valueInt);
+        } else {
+            mStatusFlagValue.put(device, valueInt);
+        }
+        return updateStatusFlags(device, valueInt);
     }
 
-    public boolean setInbandRingtoneFlag() {
-        return updateStatusFlags(STATUS_FLAG_INBAND_RINGTONE_ENABLED, true);
+    private boolean updateStatusFlagsSilentMode(boolean set) {
+        mSilentMode = set;
+        for (BluetoothDevice device: mSubscribers) {
+            boolean entryExist = mStatusFlagValue.containsKey(device);
+            if (entryExist
+                    && (((mStatusFlagValue.get(device)
+                            & STATUS_FLAG_SILENT_MODE_ENABLED) != 0) == set)) {
+                Log.i(TAG, "Silent mode already set for " + device);
+                continue;
+            }
+
+            Integer valueInt = entryExist ? mStatusFlagValue.get(device) : 0;
+            valueInt ^= STATUS_FLAG_SILENT_MODE_ENABLED;
+
+            if (entryExist) {
+                mStatusFlagValue.replace(device, valueInt);
+            } else {
+                mStatusFlagValue.put(device, valueInt);
+            }
+            updateStatusFlags(device, valueInt);
+        }
+        return true;
     }
 
-    public boolean clearInbandRingtoneFlag() {
-        return updateStatusFlags(STATUS_FLAG_INBAND_RINGTONE_ENABLED, false);
+    /**
+     * Set inband ringtone for the device.
+     * When set, notification will be sent to given device.
+     *
+     * @param device    device for which inband ringtone has been set
+     * @return          true, when notification has been sent, false otherwise
+     */
+    public boolean setInbandRingtoneFlag(BluetoothDevice device) {
+        return updateStatusFlagsInbandRingtone(device, true);
     }
 
+    /**
+     * Clear inband ringtone for the device.
+     * When set, notification will be sent to given device.
+     *
+     * @param device    device for which inband ringtone has been cleared
+     * @return          true, when notification has been sent, false otherwise
+     */
+    public boolean clearInbandRingtoneFlag(BluetoothDevice device) {
+        return updateStatusFlagsInbandRingtone(device, false);
+    }
     public boolean setSilentModeFlag() {
-        return updateStatusFlags(STATUS_FLAG_SILENT_MODE_ENABLED, true);
+        return updateStatusFlagsSilentMode(true);
     }
 
     public boolean clearSilentModeFlag() {
-        return updateStatusFlags(STATUS_FLAG_SILENT_MODE_ENABLED, false);
+        return updateStatusFlagsSilentMode(false);
     }
 
     private void setCallControlPointOptionalOpcodes(boolean isLocalHoldOpcodeSupported,
@@ -803,10 +884,23 @@ public class TbsGatt {
             if (DBG) {
                 Log.d(TAG, "onCharacteristicReadRequest: device=" + device);
             }
-            GattCharacteristic gattCharacteristic = (GattCharacteristic) characteristic;
-            byte[] value = gattCharacteristic.getValue();
-            if (value == null) {
-                value = new byte[0];
+            byte[] value;
+            if (characteristic.getUuid().equals(UUID_STATUS_FLAGS)) {
+                value = new byte[2];
+                int valueInt = mSilentMode ? STATUS_FLAG_SILENT_MODE_ENABLED : 0;
+                if (mStatusFlagValue.containsKey(device)) {
+                    valueInt = mStatusFlagValue.get(device);
+                } else if (mCallback.isInbandRingtoneEnabled(device)) {
+                    valueInt |= STATUS_FLAG_INBAND_RINGTONE_ENABLED;
+                }
+                value[0] = (byte) (valueInt & 0xFF);
+                value[1] = (byte) ((valueInt >> 8) & 0xFF);
+            } else {
+                GattCharacteristic gattCharacteristic = (GattCharacteristic) characteristic;
+                value = gattCharacteristic.getValue();
+                if (value == null) {
+                    value = new byte[0];
+                }
             }
 
             int status;

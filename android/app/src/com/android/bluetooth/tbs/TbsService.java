@@ -17,6 +17,7 @@
 
 package com.android.bluetooth.tbs;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeCall;
 import android.bluetooth.IBluetoothLeCallControl;
 import android.bluetooth.IBluetoothLeCallControlCallback;
@@ -131,6 +132,35 @@ public class TbsService extends ProfileService {
 
         sTbsService = instance;
     }
+
+    /**
+     * Set inband ringtone for the device.
+     * When set, notification will be sent to given device.
+     *
+     * @param device    device for which inband ringtone has been set
+     */
+    public void setInbandRingtoneSupport(BluetoothDevice device) {
+        if (mTbsGeneric == null) {
+            Log.i(TAG, "setInbandRingtoneSupport, mTbsGeneric not available");
+            return;
+        }
+        mTbsGeneric.setInbandRingtoneSupport(device);
+    }
+
+    /**
+     * Clear inband ringtone for the device.
+     * When set, notification will be sent to given device.
+     *
+     * @param device    device for which inband ringtone has been clear
+     */
+    public void clearInbandRingtoneSupport(BluetoothDevice device) {
+        if (mTbsGeneric == null) {
+            Log.i(TAG, "clearInbandRingtoneSupport, mTbsGeneric not available");
+            return;
+        }
+        mTbsGeneric.clearInbandRingtoneSupport(device);
+    }
+
 
     /** Binder object: must be a static class or memory leak may occur */
     @VisibleForTesting

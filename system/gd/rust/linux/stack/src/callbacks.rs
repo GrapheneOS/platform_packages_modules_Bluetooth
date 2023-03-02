@@ -62,7 +62,12 @@ impl<T: RPCProxy + Send + ?Sized> Callbacks<T> {
     }
 
     /// Returns the callback object based on the given id.
-    pub fn get_by_id(&mut self, id: u32) -> Option<&mut Box<T>> {
+    pub fn get_by_id(&self, id: u32) -> Option<&Box<T>> {
+        self.callbacks.get(&id)
+    }
+
+    /// Returns the mut callback object based on the given id.
+    pub fn get_by_id_mut(&mut self, id: u32) -> Option<&mut Box<T>> {
         self.callbacks.get_mut(&id)
     }
 

@@ -401,3 +401,44 @@ TEST_F(StackBtmWithInitFreeTest, btm_sec_allocate_dev_rec__all) {
   // list is freed.
   // Further, the memory for each record is reused when necessary.
 }
+
+TEST_F(StackBtmTest, btm_oob_data_text) {
+  std::vector<std::pair<tBTM_OOB_DATA, std::string>> datas = {
+      std::make_pair(BTM_OOB_NONE, "BTM_OOB_NONE"),
+      std::make_pair(BTM_OOB_PRESENT_192, "BTM_OOB_PRESENT_192"),
+      std::make_pair(BTM_OOB_PRESENT_256, "BTM_OOB_PRESENT_256"),
+      std::make_pair(BTM_OOB_PRESENT_192_AND_256,
+                     "BTM_OOB_PRESENT_192_AND_256"),
+      std::make_pair(BTM_OOB_UNKNOWN, "BTM_OOB_UNKNOWN"),
+  };
+  for (const auto& data : datas) {
+    ASSERT_STREQ(data.second.c_str(), btm_oob_data_text(data.first).c_str());
+  }
+  auto unknown = base::StringPrintf("UNKNOWN[%hhu]",
+                                    std::numeric_limits<std::uint8_t>::max());
+  ASSERT_STREQ(unknown.c_str(),
+               btm_oob_data_text(static_cast<tBTM_OOB_DATA>(
+                                     std::numeric_limits<std::uint8_t>::max()))
+                   .c_str());
+}
+
+TEST_F(StackBtmTest, bond_type_text) {
+  std::vector<std::pair<tBTM_SEC_DEV_REC::tBTM_BOND_TYPE, std::string>> datas =
+      {
+          std::make_pair(tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN,
+                         "tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN"),
+          std::make_pair(tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT,
+                         "tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT"),
+          std::make_pair(tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY,
+                         "tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY"),
+      };
+  for (const auto& data : datas) {
+    ASSERT_STREQ(data.second.c_str(), bond_type_text(data.first).c_str());
+  }
+  auto unknown = base::StringPrintf("UNKNOWN[%hhu]",
+                                    std::numeric_limits<std::uint8_t>::max());
+  ASSERT_STREQ(unknown.c_str(),
+               bond_type_text(static_cast<tBTM_SEC_DEV_REC::tBTM_BOND_TYPE>(
+                                  std::numeric_limits<std::uint8_t>::max()))
+                   .c_str());
+}

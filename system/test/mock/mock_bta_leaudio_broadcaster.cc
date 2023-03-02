@@ -28,15 +28,15 @@
 #define UNUSED_ATTR
 #endif
 
-void LeAudioBroadcaster::DebugDump(int) { mock_function_count_map[__func__]++; }
+void LeAudioBroadcaster::DebugDump(int) { inc_func_call_count(__func__); }
 void LeAudioBroadcaster::Initialize(
     bluetooth::le_audio::LeAudioBroadcasterCallbacks*,
     base::RepeatingCallback<bool()>) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void LeAudioBroadcaster::Stop() { mock_function_count_map[__func__]++; }
-void LeAudioBroadcaster::Cleanup() { mock_function_count_map[__func__]++; }
+void LeAudioBroadcaster::Stop() { inc_func_call_count(__func__); }
+void LeAudioBroadcaster::Cleanup() { inc_func_call_count(__func__); }
 LeAudioBroadcaster* LeAudioBroadcaster::Get() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }

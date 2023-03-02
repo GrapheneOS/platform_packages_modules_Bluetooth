@@ -2856,12 +2856,15 @@ void acl_write_automatic_flush_timeout(const RawAddress& bd_addr,
   btsnd_hcic_write_auto_flush_tout(p_acl->hci_handle, flush_timeout_in_ticks);
 }
 
-bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr) {
+bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr,
+                                      tBLE_ADDR_TYPE addr_type) {
   tBLE_BD_ADDR address_with_type{
       .bda = bd_addr,
-      .type = BLE_ADDR_PUBLIC,
+      .type = addr_type,
   };
-  gatt_find_in_device_record(bd_addr, &address_with_type);
+  if (address_with_type.type == BLE_ADDR_PUBLIC) {
+    gatt_find_in_device_record(bd_addr, &address_with_type);
+  }
   LOG_DEBUG("Creating le direct connection to:%s",
             ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
 
@@ -2873,9 +2876,13 @@ bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr) {
     return false;
   }
 
-    bluetooth::shim::ACL_AcceptLeConnectionFrom(address_with_type,
-                                                /* is_direct */ true);
-    return true;
+  bluetooth::shim::ACL_AcceptLeConnectionFrom(address_with_type,
+                                              /* is_direct */ true);
+  return true;
+}
+
+bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr) {
+  return acl_create_le_connection_with_id(id, bd_addr, BLE_ADDR_PUBLIC);
 }
 
 bool acl_create_le_connection(const RawAddress& bd_addr) {
