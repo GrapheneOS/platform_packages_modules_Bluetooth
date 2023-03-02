@@ -2037,7 +2037,7 @@ impl BtifSdpCallbacks for Bluetooth {
 }
 
 impl BtifHHCallbacks for Bluetooth {
-    fn connection_state(&mut self, address: RawAddress, state: BthhConnectionState) {
+    fn connection_state(&mut self, mut address: RawAddress, state: BthhConnectionState) {
         debug!("Hid host connection state updated: Address({:?}) State({:?})", address, state);
 
         // HID or HOG is not differentiated by the hid host when callback this function. Assume HOG
@@ -2062,6 +2062,14 @@ impl BtifHHCallbacks for Bluetooth {
             BtStatus::Success,
             state as u32,
         );
+
+        if BtBondState::Bonded != self.get_bond_state_by_addr(&address.to_string()) {
+            warn!(
+                "[{}]: Rejecting a unbonded device's attempt to connect to HID/HOG profiles",
+                DisplayAddress(&address)
+            );
+            self.hh.as_ref().unwrap().disconnect(&mut address);
+        }
     }
 
     fn hid_info(&mut self, address: RawAddress, info: BthhHidInfo) {
