@@ -20,16 +20,16 @@
 #include "test/common/mock_functions.h"
 
 bool LeAudioHalVerifier::SupportsLeAudio() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return true;
 }
 
 bool LeAudioHalVerifier::SupportsLeAudioHardwareOffload() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return true;
 }
 
 bool LeAudioHalVerifier::SupportsLeAudioBroadcast() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return true;
 }
