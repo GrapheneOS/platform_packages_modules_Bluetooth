@@ -333,10 +333,6 @@ class Host(
         TRANSPORT_BREDR -> {
           Log.i(TAG, "disconnect BR_EDR")
           bluetoothDevice.disconnect()
-          flow
-            .filter { it.action == BluetoothDevice.ACTION_ACL_DISCONNECTED }
-            .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
-            .first()
         }
         TRANSPORT_LE -> {
           Log.i(TAG, "disconnect LE")
@@ -354,14 +350,18 @@ class Host(
             throw Status.UNKNOWN.asException()
           }
 
+          bluetoothDevice.disconnect()
           gattInstance.disconnectInstance()
-          gattInstance.waitForState(BluetoothProfile.STATE_DISCONNECTED)
         }
         else -> {
           Log.e(TAG, "Device type UNKNOWN")
           throw Status.UNKNOWN.asException()
         }
       }
+      flow
+        .filter { it.action == BluetoothDevice.ACTION_ACL_DISCONNECTED }
+        .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
+        .first()
 
       Empty.getDefaultInstance()
     }
