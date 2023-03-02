@@ -537,6 +537,7 @@ void BleScannerInterfaceImpl::OnTrackAdvFoundLost(
                              &on_found_on_lost_info.advertiser_address_type);
   }
 
+  track_info.monitor_handle = on_found_on_lost_info.monitor_handle;
   track_info.advertiser_address = raw_address;
   track_info.advertiser_address_type =
       on_found_on_lost_info.advertiser_address_type;
