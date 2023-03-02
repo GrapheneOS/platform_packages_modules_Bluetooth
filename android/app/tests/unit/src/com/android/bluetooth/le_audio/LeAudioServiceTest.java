@@ -1028,7 +1028,7 @@ public class LeAudioServiceTest {
     }
 
     /**
-     * Test setting active device group
+     * Test setting active device group with Ringtone context
      */
     @Test
     public void testSetActiveDeviceGroup() {
@@ -1037,7 +1037,7 @@ public class LeAudioServiceTest {
         int direction = 1;
         int snkAudioLocation = 3;
         int srcAudioLocation = 4;
-        int availableContexts = 5;
+        int availableContexts = 5 + BluetoothLeAudio.CONTEXT_TYPE_RINGTONE;
 
         // Not connected device
         assertThat(mService.setActiveDevice(mSingleDevice)).isFalse();
@@ -1078,6 +1078,58 @@ public class LeAudioServiceTest {
         mService.messageFromNative(groupStatusChangedEvent);
 
         verify(mTbsService).clearInbandRingtoneSupport(mSingleDevice);
+    }
+
+    /**
+     * Test setting active device group without Ringtone context
+     */
+    @Test
+    public void testSetActiveDeviceGroupWithoutRingtoneContext() {
+        int groupId = 1;
+        /* AUDIO_DIRECTION_OUTPUT_BIT = 0x01 */
+        int direction = 1;
+        int snkAudioLocation = 3;
+        int srcAudioLocation = 4;
+        int availableContexts = 5;
+
+        // Not connected device
+        assertThat(mService.setActiveDevice(mSingleDevice)).isFalse();
+
+        // Connected device
+        doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
+        connectTestDevice(mSingleDevice, testGroupId);
+
+             // Add location support
+        LeAudioStackEvent audioConfChangedEvent =
+             new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_AUDIO_CONF_CHANGED);
+        audioConfChangedEvent.device = mSingleDevice;
+        audioConfChangedEvent.valueInt1 = direction;
+        audioConfChangedEvent.valueInt2 = groupId;
+        audioConfChangedEvent.valueInt3 = snkAudioLocation;
+        audioConfChangedEvent.valueInt4 = srcAudioLocation;
+        audioConfChangedEvent.valueInt5 = availableContexts;
+        mService.messageFromNative(audioConfChangedEvent);
+
+        assertThat(mService.setActiveDevice(mSingleDevice)).isTrue();
+        verify(mNativeInterface).groupSetActive(groupId);
+
+
+        //Set group and device as active
+        LeAudioStackEvent groupStatusChangedEvent =
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED);
+        groupStatusChangedEvent.valueInt1 = groupId;
+        groupStatusChangedEvent.valueInt2 = LeAudioStackEvent.GROUP_STATUS_ACTIVE;
+        mService.messageFromNative(groupStatusChangedEvent);
+
+        // no active device
+        assertThat(mService.setActiveDevice(null)).isTrue();
+        verify(mNativeInterface).groupSetActive(BluetoothLeAudio.GROUP_ID_INVALID);
+
+        //Set group and device as inactive active
+        groupStatusChangedEvent.valueInt2 = LeAudioStackEvent.GROUP_STATUS_INACTIVE;
+        mService.messageFromNative(groupStatusChangedEvent);
+
+        verify(mTbsService, times(0)).clearInbandRingtoneSupport(mSingleDevice);
     }
 
     /**
@@ -1358,7 +1410,7 @@ public class LeAudioServiceTest {
         int direction = 1;
         int snkAudioLocation = 3;
         int srcAudioLocation = 4;
-        int availableContexts = 5;
+        int availableContexts = 5 + BluetoothLeAudio.CONTEXT_TYPE_RINGTONE;;
         int groupStatus = LeAudioStackEvent.GROUP_STATUS_ACTIVE;
         BluetoothDevice leadDevice;
         BluetoothDevice memberDevice = mLeftDevice;
@@ -1429,7 +1481,7 @@ public class LeAudioServiceTest {
         int direction = 1;
         int snkAudioLocation = 3;
         int srcAudioLocation = 4;
-        int availableContexts = 5;
+        int availableContexts = 5 + BluetoothLeAudio.CONTEXT_TYPE_RINGTONE;;
         int groupStatus = LeAudioStackEvent.GROUP_STATUS_ACTIVE;
         BluetoothDevice leadDevice;
         BluetoothDevice memberDevice = mLeftDevice;
