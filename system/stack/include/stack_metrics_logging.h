@@ -53,3 +53,7 @@ void log_manufacturer_info(const RawAddress& address,
 
 void log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum key,
                          int64_t value);
+
+void log_hfp_audio_packet_loss_stats(const RawAddress& address,
+                                     int num_decoded_frames,
+                                     double packet_loss_ratio);

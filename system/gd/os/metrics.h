@@ -121,6 +121,16 @@ void LogMetricA2dpAudioOverrunEvent(
 void LogMetricA2dpPlaybackEvent(const hci::Address& address, int playback_state, int audio_coding_mode);
 
 /**
+ * Log HFP audio capture packet loss statistics
+ *
+ * @param address HFP device associated with this stats
+ * @param num_decoded_frames number of decoded frames
+ * @param packet_loss_ratio ratio of packet loss frames
+ */
+void LogMetricHfpPacketLossStats(
+    const hci::Address& address, int num_decoded_frames, double packet_loss_ratio);
+
+/**
  * Log read RSSI result
  *
  * @param address device associated with this event
