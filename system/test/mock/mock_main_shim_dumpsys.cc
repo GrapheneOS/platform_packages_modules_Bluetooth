@@ -33,11 +33,11 @@
 
 void bluetooth::shim::RegisterDumpsysFunction(const void* token,
                                               DumpsysFunction func) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void bluetooth::shim::Dump(int fd, const char** args) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void bluetooth::shim::UnregisterDumpsysFunction(const void* token) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }

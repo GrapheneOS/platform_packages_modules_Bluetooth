@@ -33,9 +33,9 @@
 
 ActivityAttributionInterface*
 bluetooth::shim::get_activity_attribution_instance() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 void bluetooth::shim::init_activity_attribution() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
