@@ -40,6 +40,10 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 #endif
 
+bool avrcp_absolute_volume_is_enabled() {
+  mock_function_count_map[__func__]++;
+  return true;
+}
 uint16_t AVRC_Close(uint8_t handle) {
   mock_function_count_map[__func__]++;
   return 0;
