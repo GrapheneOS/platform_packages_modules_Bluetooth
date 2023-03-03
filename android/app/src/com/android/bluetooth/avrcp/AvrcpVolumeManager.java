@@ -272,8 +272,12 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
             return;
         }
 
-        // Wait until AudioManager informs us that the new device is connected
         mCurrentDevice = device;
+        if (!mDeviceMap.containsKey(device)) {
+            // Wait until AudioManager informs us that the new device is connected
+            return;
+        }
+        switchVolumeDevice(device);
     }
 
     synchronized void deviceDisconnected(@NonNull BluetoothDevice device) {
