@@ -127,6 +127,20 @@ struct LogMetricA2dpPlaybackEvent {
   };
 };
 extern struct LogMetricA2dpPlaybackEvent LogMetricA2dpPlaybackEvent;
+// Name: LogMetricHfpPacketLossStats
+// Params: const RawAddress& raw_address, int num_decoded_frames, double
+// packet_loss_ratio Returns: void
+struct LogMetricHfpPacketLossStats {
+  std::function<void(const RawAddress& raw_address, int num_decoded_frames,
+                     double packet_loss_ratio)>
+      body{[](const RawAddress& raw_address, int num_decoded_frames,
+              double packet_loss_ratio) {}};
+  void operator()(const RawAddress& raw_address, int num_decoded_frames,
+                  double packet_loss_ratio) {
+    body(raw_address, num_decoded_frames, packet_loss_ratio);
+  };
+};
+extern struct LogMetricHfpPacketLossStats LogMetricHfpPacketLossStats;
 // Name: LogMetricReadRssiResult
 // Params: const RawAddress& raw_address, uint16_t handle, uint32_t cmd_status,
 // int8_t rssi Returns: void
