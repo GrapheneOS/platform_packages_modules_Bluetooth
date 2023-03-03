@@ -22,7 +22,7 @@ from mmi2grpc._proxy import ProfileProxy
 from pandora.host_grpc import Host
 from pandora.host_pb2 import Connection
 from pandora_experimental._android_grpc import Android
-from pandora_experimental._android_pb2 import AccessType
+from pandora_experimental._android_pb2 import ACCESS_PHONEBOOK
 from pandora_experimental.pbap_grpc import PBAP
 
 
@@ -56,7 +56,7 @@ class PBAPProxy(ProfileProxy):
         """
         Please accept the l2cap channel connection for an OBEX connection.
         """
-        self._android.SetAccessPermission(address=pts_addr, access_type=AccessType.ACCESS_PHONEBOOK)
+        self._android.SetAccessPermission(address=pts_addr, access_type=ACCESS_PHONEBOOK)
         self.connection = self.host.WaitConnection(address=pts_addr).connection
 
         return "OK"
@@ -68,7 +68,7 @@ class PBAPProxy(ProfileProxy):
         """
         if ("PBAP/PSE/GOEP/BC/BV-03-I" in test):
             if self.connection is None:
-                self._android.SetAccessPermission(address=pts_addr, access_type=AccessType.ACCESS_PHONEBOOK)
+                self._android.SetAccessPermission(address=pts_addr, access_type=ACCESS_PHONEBOOK)
                 self.connection = self.host.WaitConnection(address=pts_addr).connection
 
         return "OK"
