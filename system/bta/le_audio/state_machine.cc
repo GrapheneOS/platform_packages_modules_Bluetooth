@@ -623,14 +623,26 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
-    /* If group is in Idle and not transitioning, just update the current group
+    /* If group is in Idle and not transitioning, update the current group
      * audio context availability which could change due to disconnected group
      * member.
      */
     if ((group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) &&
         !group->IsInTransition()) {
-      LOG(INFO) << __func__ << " group: " << group->group_id_ << " is in IDLE";
+      LOG_INFO("group: %d is in IDLE", group->group_id_);
       group->UpdateAudioContextTypeAvailability();
+
+      /* When OnLeAudioDeviceSetStateTimeout happens, group will transition
+       * to IDLE, and after that an ACL disconnect will be triggered. We need
+       * to check if CIG is created and if it is, remove it so it can be created
+       * again after reconnect. Otherwise we will get Command Disallowed on CIG
+       * Create when starting stream.
+       */
+      if (group->GetCigState() == CigState::CREATED) {
+        LOG_INFO("CIG is in CREATED state so removing CIG for Group %d",
+                 group->group_id_);
+        RemoveCigForGroup(group);
+      }
       return;
     }
 
