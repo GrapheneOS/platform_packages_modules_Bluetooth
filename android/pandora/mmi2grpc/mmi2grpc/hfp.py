@@ -18,9 +18,10 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.hfp_grpc import HFP
 from pandora.host_grpc import Host
-from pandora.host_pb2 import ConnectabilityMode, DiscoverabilityMode
-from pandora.security_grpc import Security, SecurityStorage, PairingEventAnswer
-from pandora_experimental.hfp_pb2 import AudioPath
+from pandora.host_pb2 import DISCOVERABLE_GENERAL, CONNECTABLE
+from pandora.security_grpc import Security, SecurityStorage
+from pandora.security_pb2 import PairingEventAnswer
+from pandora_experimental.hfp_pb2 import AUDIO_PATH_HANDSFREE, AUDIO_PATH_SPEAKERS
 
 import sys
 import threading
@@ -85,7 +86,7 @@ class HFPProxy(ProfileProxy):
             time.sleep(2)
 
             if test == "HFP/AG/SLC/BV-02-C":
-                self.host.SetConnectabilityMode(mode=ConnectabilityMode.CONNECTABLE)
+                self.host.SetConnectabilityMode(mode=CONNECTABLE)
                 self.connection = self.host.Connect(address=pts_addr).connection
             else:
                 if not self.connection:
@@ -130,7 +131,7 @@ class HFPProxy(ProfileProxy):
         Make the Implementation Under Test (IUT) connectable, then click Ok.
         """
 
-        self.host.SetConnectabilityMode(mode=ConnectabilityMode.CONNECTABLE)
+        self.host.SetConnectabilityMode(mode=CONNECTABLE)
 
         return "OK"
 
@@ -236,7 +237,7 @@ class HFPProxy(ProfileProxy):
             if "HFP/HF" in test:
                 self.hfp.DisconnectToAudioAsHandsfree(connection=self.connection)
             else:
-                self.hfp.SetAudioPath(audio_path=AudioPath.AUDIO_PATH_SPEAKERS)
+                self.hfp.SetAudioPath(audio_path=AUDIO_PATH_SPEAKERS)
 
         threading.Thread(target=disable_audio).start()
 
@@ -262,7 +263,7 @@ class HFPProxy(ProfileProxy):
             if "HFP/HF" in test:
                 self.hfp.ConnectToAudioAsHandsfree(connection=self.connection)
             else:
-                self.hfp.SetAudioPath(audio_path=AudioPath.AUDIO_PATH_HANDSFREE)
+                self.hfp.SetAudioPath(audio_path=AUDIO_PATH_HANDSFREE)
 
         threading.Thread(target=enable_audio).start()
 
@@ -772,7 +773,7 @@ class HFPProxy(ProfileProxy):
         click Ok.
         """
 
-        self.host.SetDiscoverabilityMode(mode=DiscoverabilityMode.DISCOVERABLE_GENERAL)
+        self.host.SetDiscoverabilityMode(mode=DISCOVERABLE_GENERAL)
 
         return "OK"
 
