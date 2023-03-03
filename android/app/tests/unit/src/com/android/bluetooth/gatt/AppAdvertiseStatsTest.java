@@ -18,16 +18,27 @@ package com.android.bluetooth.gatt;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
 
+import com.android.bluetooth.btservice.MetricsLogger;
+
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 /**
  * Test cases for {@link AppAdvertiseStats}.
@@ -41,6 +52,21 @@ public class AppAdvertiseStatsTest {
 
     @Mock
     private GattService service;
+
+    @Mock
+    private MetricsLogger  mMetricsLogger;
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        MetricsLogger.setInstanceForTesting(mMetricsLogger);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        MetricsLogger.setInstanceForTesting(null);
+        MetricsLogger.getInstance();
+    }
 
     @Test
     public void constructor() {
@@ -254,5 +280,53 @@ public class AppAdvertiseStatsTest {
         );
 
         AppAdvertiseStats.dumpToString(sb, appAdvertiseStats);
+    }
+
+    @Test
+    public void testAdvertiseCounterMetrics() {
+        int appUid = 0;
+        int id = 1;
+        String name = "name";
+
+        AppAdvertiseStats appAdvertiseStats = new AppAdvertiseStats(appUid, id, name, map, service);
+
+        AdvertisingSetParameters parameters = new AdvertisingSetParameters.Builder()
+                .setConnectable(true).build();
+        AdvertiseData advertiseData = new AdvertiseData.Builder().build();
+        AdvertiseData scanResponse = new AdvertiseData.Builder().build();
+        PeriodicAdvertisingParameters periodicParameters =
+                new PeriodicAdvertisingParameters.Builder().build();
+        AdvertiseData periodicData = new AdvertiseData.Builder().build();
+
+        appAdvertiseStats.recordAdvertiseStart(
+                parameters,
+                advertiseData,
+                scanResponse,
+                periodicParameters,
+                periodicData,
+                0,
+                0
+        );
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.LE_ADV_COUNT_ENABLE), eq((long) 1));
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.LE_ADV_COUNT_CONNECTABLE_ENABLE), eq((long)1));
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.LE_ADV_COUNT_PERIODIC_ENABLE), eq((long) 1));
+        Mockito.clearInvocations(mMetricsLogger);
+
+        appAdvertiseStats.recordAdvertiseStop();
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.LE_ADV_COUNT_DISABLE), eq((long) 1));
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.LE_ADV_COUNT_CONNECTABLE_DISABLE), eq((long)1));
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.LE_ADV_COUNT_PERIODIC_DISABLE), eq((long) 1));
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.LE_ADV_DURATION_COUNT_TOTAL_1M), eq((long) 1));
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.LE_ADV_DURATION_COUNT_CONNECTABLE_1M), eq((long) 1));
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.LE_ADV_DURATION_COUNT_PERIODIC_1M), eq((long) 1));
     }
 }
