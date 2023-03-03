@@ -58,6 +58,8 @@ typedef struct {
 
 class AdvertisingTrackInfo {
  public:
+  // For MSFT-based advertisement monitor.
+  uint8_t monitor_handle;
   uint8_t scanner_id;
   uint8_t filter_index;
   uint8_t advertiser_state;

@@ -333,9 +333,15 @@ impl IScannerCallback for ScannerCallback {
         }
     }
 
-    fn on_scan_result_lost(&self, scan_result: ScanResult) {
+    fn on_advertisement_found(&self, scanner_id: u8, scan_result: ScanResult) {
         if self.context.lock().unwrap().active_scanner_ids.len() > 0 {
-            print_info!("Scan result lost: {:#?}", scan_result);
+            print_info!("Advertisement found for scanner_id {} : {:#?}", scanner_id, scan_result);
+        }
+    }
+
+    fn on_advertisement_lost(&self, scanner_id: u8, scan_result: ScanResult) {
+        if self.context.lock().unwrap().active_scanner_ids.len() > 0 {
+            print_info!("Advertisement lost for scanner_id {} : {:#?}", scanner_id, scan_result);
         }
     }
 

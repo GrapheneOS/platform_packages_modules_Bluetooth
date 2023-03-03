@@ -1664,11 +1664,15 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (!leAudioDevice) return;
 
+    LOG_INFO("%s, status 0x%02x", ADDRESS_TO_LOGGABLE_CSTR(address), status);
+
     if (status != GATT_SUCCESS) {
       /* autoconnect connection failed, that's ok */
       if (leAudioDevice->GetConnectionState() ==
-          DeviceConnectState::CONNECTING_AUTOCONNECT) {
-        leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
+              DeviceConnectState::CONNECTING_AUTOCONNECT ||
+          leAudioDevice->autoconnect_flag_) {
+        LOG_INFO("Device not available now, do background connect.");
+        BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
         return;
       }
 

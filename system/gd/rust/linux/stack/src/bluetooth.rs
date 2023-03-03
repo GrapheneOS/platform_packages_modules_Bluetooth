@@ -1148,9 +1148,6 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 d.update_properties(&properties);
                 d.seen();
 
-                // Services are resolved.
-                d.services_resolved = true;
-
                 Bluetooth::send_metrics_remote_device_info(d);
 
                 let info = d.info.clone();
@@ -1162,6 +1159,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
                         _ => None,
                     })
                     .map_or(false, |v| v);
+
+                // Services are resolved when uuids are fetched.
+                d.services_resolved = has_uuids;
 
                 if d.wait_to_connect && has_uuids {
                     d.wait_to_connect = false;
@@ -1862,6 +1862,7 @@ impl IBluetooth for Bluetooth {
 
         // Check all remote uuids to see if they match enabled profiles and connect them.
         let mut has_enabled_uuids = false;
+        let mut has_media_profile = false;
         let uuids = self.get_remote_uuids(device.clone());
         for uuid in uuids.iter() {
             match UuidHelper::is_known_profile(uuid) {
@@ -1887,10 +1888,10 @@ impl IBluetooth for Bluetooth {
                                 }
                             }
 
-                            Profile::A2dpSink
-                            | Profile::A2dpSource
-                            | Profile::Hfp
-                            | Profile::AvrcpController => {
+                            Profile::A2dpSink | Profile::A2dpSource | Profile::Hfp
+                                if !has_media_profile =>
+                            {
+                                has_media_profile = true;
                                 let txl = self.tx.clone();
                                 let address = device.address.clone();
                                 topstack::get_runtime().spawn(async move {
@@ -1969,6 +1970,7 @@ impl IBluetooth for Bluetooth {
         }
 
         let uuids = self.get_remote_uuids(device.clone());
+        let mut has_media_profile = false;
         for uuid in uuids.iter() {
             match UuidHelper::is_known_profile(uuid) {
                 Some(p) => {
@@ -1981,7 +1983,10 @@ impl IBluetooth for Bluetooth {
                             Profile::A2dpSink
                             | Profile::A2dpSource
                             | Profile::Hfp
-                            | Profile::AvrcpController => {
+                            | Profile::AvrcpController
+                                if !has_media_profile =>
+                            {
+                                has_media_profile = true;
                                 let txl = self.tx.clone();
                                 let address = device.address.clone();
                                 topstack::get_runtime().spawn(async move {
@@ -2037,7 +2042,7 @@ impl BtifSdpCallbacks for Bluetooth {
 }
 
 impl BtifHHCallbacks for Bluetooth {
-    fn connection_state(&mut self, address: RawAddress, state: BthhConnectionState) {
+    fn connection_state(&mut self, mut address: RawAddress, state: BthhConnectionState) {
         debug!("Hid host connection state updated: Address({:?}) State({:?})", address, state);
 
         // HID or HOG is not differentiated by the hid host when callback this function. Assume HOG
@@ -2062,6 +2067,14 @@ impl BtifHHCallbacks for Bluetooth {
             BtStatus::Success,
             state as u32,
         );
+
+        if BtBondState::Bonded != self.get_bond_state_by_addr(&address.to_string()) {
+            warn!(
+                "[{}]: Rejecting a unbonded device's attempt to connect to HID/HOG profiles",
+                DisplayAddress(&address)
+            );
+            self.hh.as_ref().unwrap().disconnect(&mut address);
+        }
     }
 
     fn hid_info(&mut self, address: RawAddress, info: BthhHidInfo) {
