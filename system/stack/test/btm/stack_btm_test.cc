@@ -129,8 +129,6 @@ const stack_config_t* stack_config_get_interface(void) {
   return &mock_stack_config;
 }
 
-std::map<std::string, int> mock_function_count_map;
-
 namespace {
 
 using testing::_;
