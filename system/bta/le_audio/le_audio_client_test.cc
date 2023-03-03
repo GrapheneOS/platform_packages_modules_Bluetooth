@@ -802,6 +802,14 @@ class UnicastTestNoInit : public Test {
                                   metadata_context_types,
                               types::BidirectionalPair<std::vector<uint8_t>>
                                   ccid_lists) {
+          /* Do nothing if already streaming - the implementation would
+           * probably update the metadata.
+           */
+          if (group->GetState() ==
+              types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+            return true;
+          }
+
           /* Do what ReleaseCisIds(group) does: start */
           LeAudioDevice* leAudioDevice = group->GetFirstDevice();
           while (leAudioDevice != nullptr) {
@@ -3636,10 +3644,13 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
   fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
-  ccids = {.sink = {gtbs_ccid}, .source = {}};
-  // Can be called twice to update metadata if local sink resumes after the
-  // source
-  EXPECT_CALL(mock_state_machine_, StartStream(_, _, _, ccids))
+  // Conversational is a bidirectional scenario so expect GTBS CCID
+  // in the metadata for both directions. Can be called twice when one
+  // direction resume after the other and metadata is updated.
+  ccids = {.sink = {gtbs_ccid}, .source = {gtbs_ccid}};
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, types::LeAudioContextType::CONVERSATIONAL, _, ccids))
       .Times(AtLeast(1));
   StartStreaming(AUDIO_USAGE_VOICE_COMMUNICATION, AUDIO_CONTENT_TYPE_SPEECH,
                  group_id);
@@ -4013,7 +4024,7 @@ TEST_F(UnicastTest, UpdateNotSupportedContextType) {
   EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(0);
   types::BidirectionalPair<types::AudioContexts> contexts = {
       .sink = types::AudioContexts(types::LeAudioContextType::UNSPECIFIED),
-      .source = types::AudioContexts()};
+      .source = types::AudioContexts(types::LeAudioContextType::UNSPECIFIED)};
   EXPECT_CALL(
       mock_state_machine_,
       StartStream(_, types::LeAudioContextType::CONVERSATIONAL, contexts, _))
@@ -4060,7 +4071,7 @@ TEST_F(UnicastTest, StartNotSupportedContextType) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
   types::BidirectionalPair<types::AudioContexts> metadata = {
       .sink = types::AudioContexts(types::LeAudioContextType::UNSPECIFIED),
-      .source = types::AudioContexts()};
+      .source = types::AudioContexts(types::LeAudioContextType::UNSPECIFIED)};
   EXPECT_CALL(mock_state_machine_, StartStream(_, default_config, metadata, _))
       .Times(1);
 
