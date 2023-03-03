@@ -44,7 +44,7 @@ struct esco_parameters_for_codec esco_parameters_for_codec;
 
 // Mocked functions, if any
 enh_esco_params_t esco_parameters_for_codec(esco_codec_t codec) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_esco_parameters::esco_parameters_for_codec(codec);
 }
 // Mocked functions complete
