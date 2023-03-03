@@ -177,6 +177,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from("gatt client-connect <address>"),
                 String::from("gatt client-read-phy <address>"),
                 String::from("gatt client-discover-services <address>"),
+                String::from("gatt client-discover-service-by-uuid-pts <address> <uuid>"),
                 String::from("gatt client-disconnect <address>"),
                 String::from("gatt configure-mtu <address> <mtu>"),
                 String::from("gatt set-direct-connect <true|false>"),
@@ -931,6 +932,20 @@ impl CommandHandler {
 
                 let addr = String::from(get_arg(args, 1)?);
                 self.lock_context().gatt_dbus.as_ref().unwrap().discover_services(client_id, addr);
+            }
+            "client-discover-service-by-uuid-pts" => {
+                let client_id = self
+                    .lock_context()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
+                let addr = String::from(get_arg(args, 1)?);
+                let uuid = String::from(get_arg(args, 2)?);
+                self.lock_context()
+                    .gatt_dbus
+                    .as_ref()
+                    .unwrap()
+                    .btif_gattc_discover_service_by_uuid(client_id, addr, uuid);
             }
             "configure-mtu" => {
                 let client_id = self
