@@ -45,10 +45,10 @@ namespace mock = test::mock::hcic_hcicmds;
 
 namespace {
 void btsnd_hcic_disconnect(uint16_t handle, uint8_t reason) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void btsnd_hcic_switch_role(const RawAddress& bd_addr, uint8_t role) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 }  // namespace
 
