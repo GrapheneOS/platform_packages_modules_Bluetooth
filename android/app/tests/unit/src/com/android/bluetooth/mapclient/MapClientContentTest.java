@@ -37,7 +37,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Sms;
-import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.test.mock.MockContentProvider;
@@ -56,7 +55,6 @@ import com.android.vcard.VCardProperty;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -111,7 +109,6 @@ public class MapClientContentTest {
     private FakeContentProvider mMockSmsContentProvider;
     private FakeContentProvider mMockMmsContentProvider;
     private FakeContentProvider mMockThreadContentProvider;
-    private SmsManager mSmsManager = SmsManager.getDefault();
 
     @Mock
     private SubscriptionManager mMockSubscriptionManager;
@@ -120,8 +117,6 @@ public class MapClientContentTest {
 
     @Before
     public void setUp() throws Exception {
-        // Do not run test if sms is not supported
-        Assume.assumeTrue(mSmsManager.isImsSmsSupported());
         MockitoAnnotations.initMocks(this);
         mTargetContext = InstrumentationRegistry.getTargetContext();
 
