@@ -2788,6 +2788,32 @@ TEST_F(StateMachineTest, testStateTransitionTimeoutOnIdleState) {
   ASSERT_TRUE(fake_osi_alarm_set_on_mloop_.cb == nullptr);
 }
 
+TEST_F(StateMachineTest, testStateIdleNotifyAclDisconnectedRemoveCig) {
+  const auto context_type = kContextTypeRingtone;
+  const int leaudio_group_id = 4;
+
+  // Prepare fake connected device group
+  auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
+  group->SetCigState(types::CigState::CREATED);
+
+  // Assert current state
+  ASSERT_TRUE(group->GetState() ==
+              types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+  ASSERT_FALSE(group->IsInTransition());
+  ASSERT_TRUE(group->GetCigState() == types::CigState::CREATED);
+
+  // Expect RemoveCig to be called
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(group->group_id_, _)).Times(1);
+
+  // Disconnect device
+  auto* leAudioDevice = group->GetFirstDevice();
+  LeAudioGroupStateMachine::Get()->ProcessHciNotifAclDisconnected(
+      group, leAudioDevice);
+
+  // Assert Cig state transition to NONE after REMOVING
+  ASSERT_TRUE(group->GetCigState() == types::CigState::NONE);
+}
+
 TEST_F(StateMachineTest, testStateTransitionTimeout) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
