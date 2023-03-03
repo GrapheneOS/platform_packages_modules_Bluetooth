@@ -19,9 +19,8 @@
 #include <map>
 #include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
-
 // Mock include file to share data between tests and mock
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_device_iot_config.h"
 
 namespace test {
@@ -53,102 +52,102 @@ struct device_debug_iot_config_dump device_debug_iot_config_dump;
 // Mocked functions, if any
 bool device_iot_config_get_int(const std::string& section, const std::string& key,
                      int& value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_get_int(section, key, value);
 }
 
 bool device_iot_config_set_int(const std::string& section,
                                const std::string& key, int value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_set_int(section, key, value);
 }
 
 bool device_iot_config_int_add_one(const std::string& section,
                                const std::string& key) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_int_add_one(section, key);
 }
 
 bool device_iot_config_get_hex(const std::string& section,
                                const std::string& key, int& value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_get_hex(section, key, value);
 }
 
 bool device_iot_config_set_hex(const std::string& section,
                                const std::string& key, int value, int byte_num) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_set_hex(section, key, value, byte_num);
 }
 
 bool device_iot_config_set_hex_if_greater(const std::string& section,
                                const std::string& key, int value, int byte_num) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_set_hex_if_greater(section, key, value, byte_num);
 }
 
 bool device_iot_config_get_str(const std::string& section,
                                const std::string& key, char* value,
                                int* size_bytes) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_get_str(section, key, value, size_bytes);
 }
 
 bool device_iot_config_set_str(const std::string& section,
                                const std::string& key,
                                const std::string& value) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_set_str(section, key, value);
 }
 
 bool device_iot_config_get_bin(const std::string& section,
                                const std::string& key, uint8_t* value,
                                size_t* length) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_get_bin(section, key, value, length);
 }
 
 bool device_iot_config_set_bin(const std::string& section,
                                const std::string& key, const uint8_t* value,
                                size_t length) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_set_bin(section, key, value, length);
 }
 
 size_t device_iot_config_get_bin_length(const std::string& section,
                                         const std::string& key) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_get_bin_length(section, key);
 }
 
 bool device_iot_config_has_section(const std::string& section) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_has_section(section);
 }
 
 bool device_iot_config_exist(const std::string& section,
                              const std::string& key) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_exist(section, key);
 }
 
 bool device_iot_config_remove(const std::string& section,
                               const std::string& key) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_remove(section, key);
 }
 
 void device_iot_config_flush(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::device_iot_config::device_iot_config_flush();
 }
 
 bool device_iot_config_clear(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::device_iot_config::device_iot_config_clear();
 }
 
 void device_debug_iot_config_dump(int fd) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::device_iot_config::device_debug_iot_config_dump(fd);
 }

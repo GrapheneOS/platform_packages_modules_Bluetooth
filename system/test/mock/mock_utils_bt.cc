@@ -44,7 +44,7 @@ struct raise_priority_a2dp raise_priority_a2dp;
 
 // Mocked functions, if any
 void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::utils_bt::raise_priority_a2dp(high_task);
 }
 // Mocked functions complete
