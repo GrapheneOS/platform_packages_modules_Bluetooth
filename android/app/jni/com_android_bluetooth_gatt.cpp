@@ -1859,7 +1859,7 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
 
     curr.company_mask = env->GetIntField(current.get(), companyMaskFid);
 
-    curr.ad_type = env->GetByteField(current.get(), adTypeFid);
+    curr.ad_type = env->GetIntField(current.get(), adTypeFid);
 
     ScopedLocalRef<jbyteArray> data(
         env, (jbyteArray)env->GetObjectField(current.get(), dataFid));
