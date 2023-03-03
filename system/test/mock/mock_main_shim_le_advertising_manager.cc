@@ -35,9 +35,9 @@
 #endif
 
 BleAdvertiserInterface* bluetooth::shim::get_ble_advertiser_instance() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 void bluetooth::shim::init_advertising_manager() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }

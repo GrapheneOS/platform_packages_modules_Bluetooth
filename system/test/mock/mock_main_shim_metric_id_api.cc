@@ -38,31 +38,31 @@ namespace shim {
 bool InitMetricIdAllocator(
     const std::unordered_map<RawAddress, int>& paired_device_map,
     CallbackLegacy save_id_callback, CallbackLegacy forget_device_callback) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool CloseMetricIdAllocator() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool IsEmptyMetricIdAllocator() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool IsValidIdFromMetricIdAllocator(const int id) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool SaveDeviceOnMetricIdAllocator(const RawAddress& raw_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 int AllocateIdFromMetricIdAllocator(const RawAddress& raw_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 void ForgetDeviceFromMetricIdAllocator(const RawAddress& raw_address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 }  // namespace shim
