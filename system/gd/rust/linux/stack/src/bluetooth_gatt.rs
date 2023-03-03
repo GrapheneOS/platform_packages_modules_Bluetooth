@@ -1059,14 +1059,21 @@ pub trait IScannerCallback: RPCProxy {
     /// When the `register_scanner` request is done.
     fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus);
 
-    /// When an LE advertisement matching aggregate filters is detected. Since this callback is
-    /// shared among all scanner callbacks, clients may receive more advertisements than what is
-    /// requested to be filtered in.
+    /// When an LE advertisement matching aggregate filters is detected. This callback is shared
+    /// among all scanner callbacks and is triggered for *every* advertisement that the controller
+    /// receives. For listening to the beginning and end of a specific scanner's advertisements
+    /// detected while in RSSI range, use on_advertisement_found and on_advertisement_lost below.
     fn on_scan_result(&self, scan_result: ScanResult);
+
+    /// When an LE advertisement matching aggregate filters is found. The criteria of
+    /// how a device is considered found is specified by ScanFilter.
+    fn on_advertisement_found(&self, scanner_id: u8, scan_result: ScanResult);
 
     /// When an LE advertisement matching aggregate filters is no longer detected. The criteria of
     /// how a device is considered lost is specified by ScanFilter.
-    fn on_scan_result_lost(&self, scan_result: ScanResult);
+    // TODO(b/269343922): Rename this to on_advertisement_lost for symmetry with
+    // on_advertisement_found.
+    fn on_advertisement_lost(&self, scanner_id: u8, scan_result: ScanResult);
 
     /// When LE Scan module changes suspend mode due to system suspend/resume.
     fn on_suspend_mode_change(&self, suspend_mode: SuspendMode);
@@ -3888,11 +3895,23 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
     }
 
     fn on_track_adv_found_lost(&mut self, track_adv_info: RustAdvertisingTrackInfo) {
+        let scanner_id = match self.scanners.lock().unwrap().values().find_map(|scanner| {
+            scanner.monitor_handle.and_then(|handle| {
+                (handle == track_adv_info.monitor_handle).then(|| scanner.scanner_id).flatten()
+            })
+        }) {
+            Some(scanner_id) => scanner_id,
+            None => {
+                log::warn!("No scanner id having monitor handle {}", track_adv_info.monitor_handle);
+                return;
+            }
+        };
+
         self.scanner_callbacks.for_all_callbacks(|callback| {
             let adv_data =
                 [&track_adv_info.adv_packet[..], &track_adv_info.scan_response[..]].concat();
 
-            callback.on_scan_result_lost(ScanResult {
+            let scan_result = ScanResult {
                 name: adv_parser::extract_name(adv_data.as_slice()),
                 address: track_adv_info.advertiser_address.to_string(),
                 addr_type: track_adv_info.advertiser_address_type,
@@ -3910,7 +3929,13 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
                 service_data: adv_parser::extract_service_data(adv_data.as_slice()),
                 manufacturer_data: adv_parser::extract_manufacturer_data(adv_data.as_slice()),
                 adv_data,
-            });
+            };
+
+            if track_adv_info.advertiser_state == 0x01 {
+                callback.on_advertisement_found(scanner_id, scan_result);
+            } else {
+                callback.on_advertisement_lost(scanner_id, scan_result);
+            }
         });
     }
 }

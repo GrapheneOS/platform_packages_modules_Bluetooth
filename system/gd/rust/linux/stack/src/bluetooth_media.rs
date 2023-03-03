@@ -20,6 +20,7 @@ use bt_topshim::profiles::ProfileConnectionState;
 use bt_topshim::{metrics, topstack};
 use bt_utils::uinput::UInput;
 
+use itertools::Itertools;
 use log::{debug, info, warn};
 use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
@@ -49,6 +50,12 @@ const PROFILE_DISCOVERY_TIMEOUT_SEC: u64 = 10;
 // connect the missing profiles.
 // 6s is set to align with Android's default. See "btservice/PhonePolicy".
 const CONNECT_MISSING_PROFILES_TIMEOUT_SEC: u64 = 6;
+// The duration we assume the role of the initiator, i.e. the side that starts
+// the profile connection. If the profile is connected before this many seconds,
+// we assume we are the initiator and can keep connecting the remaining
+// profiles, otherwise we wait for the peer initiator.
+// Set to 5s to align with default page timeout (BT spec vol 4 part E sec 6.6)
+const CONNECT_AS_INITIATOR_TIMEOUT_SEC: u64 = 5;
 
 /// The list of profiles we consider as audio profiles for media.
 const MEDIA_AUDIO_PROFILES: &[uuid::Profile] =
@@ -212,7 +219,8 @@ pub enum MediaActions {
 
 #[derive(Debug, Clone, PartialEq)]
 enum DeviceConnectionStates {
-    ConnectingBeforeRetry, // Some profile is connected, initiated from either side
+    Initiating,            // Some profile is connected, initiated from host side
+    ConnectingBeforeRetry, // Some profile is connected, probably initiated from peer side
     ConnectingAfterRetry,  // Host initiated requests to missing profiles after timeout
     FullyConnected,        // All profiles (excluding AVRCP) are connected
     Disconnecting,         // Working towards disconnection of each connected profile
@@ -857,6 +865,53 @@ impl BluetoothMedia {
         }
     }
 
+    async fn wait_retry(
+        _fallback_tasks: &Arc<Mutex<HashMap<RawAddress, Option<(JoinHandle<()>, Instant)>>>>,
+        device_states: &Arc<Mutex<HashMap<RawAddress, DeviceConnectionStates>>>,
+        txl: &Sender<Message>,
+        addr: &RawAddress,
+        first_conn_ts: Instant,
+    ) {
+        let now_ts = Instant::now();
+        let total_duration = Duration::from_secs(CONNECT_MISSING_PROFILES_TIMEOUT_SEC);
+        let sleep_duration = (first_conn_ts + total_duration).saturating_duration_since(now_ts);
+        sleep(sleep_duration).await;
+
+        device_states.lock().unwrap().insert(*addr, DeviceConnectionStates::ConnectingAfterRetry);
+
+        info!(
+            "[{}]: Device connection state: {:?}.",
+            DisplayAddress(addr),
+            DeviceConnectionStates::ConnectingAfterRetry
+        );
+
+        let _ = txl.send(Message::Media(MediaActions::Connect(addr.to_string()))).await;
+    }
+
+    async fn wait_disconnect(
+        fallback_tasks: &Arc<Mutex<HashMap<RawAddress, Option<(JoinHandle<()>, Instant)>>>>,
+        device_states: &Arc<Mutex<HashMap<RawAddress, DeviceConnectionStates>>>,
+        txl: &Sender<Message>,
+        addr: &RawAddress,
+        first_conn_ts: Instant,
+    ) {
+        let now_ts = Instant::now();
+        let total_duration = Duration::from_secs(PROFILE_DISCOVERY_TIMEOUT_SEC);
+        let sleep_duration = (first_conn_ts + total_duration).saturating_duration_since(now_ts);
+        sleep(sleep_duration).await;
+
+        device_states.lock().unwrap().insert(*addr, DeviceConnectionStates::Disconnecting);
+        fallback_tasks.lock().unwrap().insert(*addr, None);
+
+        info!(
+            "[{}]: Device connection state: {:?}.",
+            DisplayAddress(addr),
+            DeviceConnectionStates::Disconnecting
+        );
+
+        let _ = txl.send(Message::Media(MediaActions::Disconnect(addr.to_string()))).await;
+    }
+
     fn notify_media_capability_updated(&mut self, addr: RawAddress) {
         let mut guard = self.fallback_tasks.lock().unwrap();
         let mut states = self.device_states.lock().unwrap();
@@ -901,6 +956,13 @@ impl BluetoothMedia {
         if missing_profiles.is_empty()
             || missing_profiles == HashSet::from([Profile::AvrcpController])
         {
+            info!(
+                "[{}]: Fully connected, available profiles: {:?}, connected profiles: {:?}.",
+                DisplayAddress(&addr),
+                available_profiles,
+                connected_profiles
+            );
+
             states.insert(addr, DeviceConnectionStates::FullyConnected);
         }
 
@@ -911,83 +973,32 @@ impl BluetoothMedia {
         );
 
         // React on updated device states
+        let tasks = self.fallback_tasks.clone();
+        let device_states = self.device_states.clone();
+        let txl = self.tx.clone();
+        let ts = first_conn_ts;
         match states.get(&addr).unwrap() {
-            DeviceConnectionStates::ConnectingBeforeRetry => {
-                let fallback_tasks = self.fallback_tasks.clone();
-                let device_states = self.device_states.clone();
-                let txl = self.tx.clone();
+            DeviceConnectionStates::Initiating => {
                 let task = topstack::get_runtime().spawn(async move {
-                    let now_ts = Instant::now();
-                    let total_duration = Duration::from_secs(CONNECT_MISSING_PROFILES_TIMEOUT_SEC);
-                    let sleep_duration =
-                        (first_conn_ts + total_duration).saturating_duration_since(now_ts);
-                    sleep(sleep_duration).await;
-
-                    {
-                        let mut states = device_states.lock().unwrap();
-                        states.insert(addr, DeviceConnectionStates::ConnectingAfterRetry);
-                    }
-
-                    info!(
-                        "[{}]: Device connection state: {:?}.",
-                        DisplayAddress(&addr),
-                        DeviceConnectionStates::ConnectingAfterRetry
-                    );
-
+                    // As initiator we can just immediately start connecting
                     let _ = txl.send(Message::Media(MediaActions::Connect(addr.to_string()))).await;
-
-                    let now_ts = Instant::now();
-                    let total_duration = Duration::from_secs(PROFILE_DISCOVERY_TIMEOUT_SEC);
-                    let sleep_duration =
-                        (first_conn_ts + total_duration).saturating_duration_since(now_ts);
-                    sleep(sleep_duration).await;
-
-                    {
-                        let mut states = device_states.lock().unwrap();
-                        let mut guard = fallback_tasks.lock().unwrap();
-                        states.insert(addr, DeviceConnectionStates::Disconnecting);
-                        guard.insert(addr, None);
-                    }
-
-                    info!(
-                        "[{}]: Device connection state: {:?}.",
-                        DisplayAddress(&addr),
-                        DeviceConnectionStates::Disconnecting
-                    );
-
-                    let _ =
-                        txl.send(Message::Media(MediaActions::Disconnect(addr.to_string()))).await;
+                    BluetoothMedia::wait_retry(&tasks, &device_states, &txl, &addr, ts).await;
+                    BluetoothMedia::wait_disconnect(&tasks, &device_states, &txl, &addr, ts).await;
                 });
-                guard.insert(addr, Some((task, first_conn_ts)));
+                guard.insert(addr, Some((task, ts)));
+            }
+            DeviceConnectionStates::ConnectingBeforeRetry => {
+                let task = topstack::get_runtime().spawn(async move {
+                    BluetoothMedia::wait_retry(&tasks, &device_states, &txl, &addr, ts).await;
+                    BluetoothMedia::wait_disconnect(&tasks, &device_states, &txl, &addr, ts).await;
+                });
+                guard.insert(addr, Some((task, ts)));
             }
             DeviceConnectionStates::ConnectingAfterRetry => {
-                let fallback_tasks = self.fallback_tasks.clone();
-                let device_states = self.device_states.clone();
-                let txl = self.tx.clone();
                 let task = topstack::get_runtime().spawn(async move {
-                    let now_ts = Instant::now();
-                    let total_duration = Duration::from_secs(PROFILE_DISCOVERY_TIMEOUT_SEC);
-                    let sleep_duration =
-                        (first_conn_ts + total_duration).saturating_duration_since(now_ts);
-                    sleep(sleep_duration).await;
-
-                    {
-                        let mut states = device_states.lock().unwrap();
-                        let mut guard = fallback_tasks.lock().unwrap();
-                        states.insert(addr, DeviceConnectionStates::Disconnecting);
-                        guard.insert(addr, None);
-                    }
-
-                    info!(
-                        "[{}]: Device connection state: {:?}.",
-                        DisplayAddress(&addr),
-                        DeviceConnectionStates::Disconnecting
-                    );
-
-                    let _ =
-                        txl.send(Message::Media(MediaActions::Disconnect(addr.to_string()))).await;
+                    BluetoothMedia::wait_disconnect(&tasks, &device_states, &txl, &addr, ts).await;
                 });
-                guard.insert(addr, Some((task, first_conn_ts)));
+                guard.insert(addr, Some((task, ts)));
             }
             DeviceConnectionStates::FullyConnected => {
                 // Rejecting the unbonded connection after we finished our profile
@@ -1480,10 +1491,15 @@ impl IBluetoothMedia for BluetoothMedia {
 
         let connected_profiles = self.connected_profiles.entry(addr).or_insert_with(HashSet::new);
 
+        // Sort here so the order of connection is always consistent
         let missing_profiles =
-            available_profiles.difference(&connected_profiles).collect::<HashSet<_>>();
+            available_profiles.difference(&connected_profiles).sorted().collect::<Vec<_>>();
 
-        for profile in &missing_profiles {
+        // Connect the profiles one-by-one so it won't stuck at the lower layer.
+        // Therefore, just connect to one profile for now.
+        // connect() will be called again after the first profile is successfully connected.
+        let mut is_connect = false;
+        for profile in missing_profiles {
             match profile {
                 uuid::Profile::A2dpSink => {
                     metrics::profile_connection_state_changed(
@@ -1502,6 +1518,9 @@ impl IBluetoothMedia for BluetoothMedia {
                                     status,
                                     BtavConnectionState::Disconnected as u32,
                                 );
+                            } else {
+                                is_connect = true;
+                                break;
                             }
                         }
                         None => {
@@ -1532,6 +1551,9 @@ impl IBluetoothMedia for BluetoothMedia {
                                     status,
                                     BthfConnectionState::Disconnected as u32,
                                 );
+                            } else {
+                                is_connect = true;
+                                break;
                             }
                         }
                         None => {
@@ -1549,7 +1571,7 @@ impl IBluetoothMedia for BluetoothMedia {
                     // Fluoride will resolve AVRCP as a part of A2DP connection request.
                     // Explicitly connect to it only when it is considered missing, and don't
                     // bother about it when A2DP is not connected.
-                    if missing_profiles.contains(&Profile::A2dpSink) {
+                    if !connected_profiles.contains(&Profile::A2dpSink) {
                         continue;
                     }
 
@@ -1572,6 +1594,9 @@ impl IBluetoothMedia for BluetoothMedia {
                                     status,
                                     BtavConnectionState::Disconnected as u32,
                                 );
+                            } else {
+                                is_connect = true;
+                                break;
                             }
                         }
 
@@ -1587,6 +1612,32 @@ impl IBluetoothMedia for BluetoothMedia {
                     };
                 }
                 _ => warn!("Unknown profile: {:?}", profile),
+            }
+        }
+
+        if is_connect {
+            let mut tasks = self.fallback_tasks.lock().unwrap();
+            let mut states = self.device_states.lock().unwrap();
+            if !tasks.contains_key(&addr) {
+                states.insert(addr, DeviceConnectionStates::Initiating);
+
+                let fallback_tasks = self.fallback_tasks.clone();
+                let device_states = self.device_states.clone();
+                let now_ts = Instant::now();
+                let task = topstack::get_runtime().spawn(async move {
+                    sleep(Duration::from_secs(CONNECT_AS_INITIATOR_TIMEOUT_SEC)).await;
+
+                    // If here the task is not yet aborted, probably connection is failed,
+                    // therefore here we release the states. Even if later the connection is
+                    // actually successful, we will just treat this as if the connection is
+                    // initiated by the peer and will reconnect the missing profiles after
+                    // some time, so it's safe.
+                    {
+                        device_states.lock().unwrap().remove(&addr);
+                        fallback_tasks.lock().unwrap().remove(&addr);
+                    }
+                });
+                tasks.insert(addr, Some((task, now_ts)));
             }
         }
     }
