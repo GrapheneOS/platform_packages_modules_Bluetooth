@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.gatt;
 
+import static android.bluetooth.BluetoothProtoEnums.LE_ADV_ERROR_ON_START_COUNT;
+
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
@@ -175,6 +177,7 @@ public class AdvertiseManager {
                 stats.recordAdvertiseStop();
             }
             mAdvertiserMap.removeAppAdvertiseStats(regId);
+            AppAdvertiseStats.recordAdvertiseErrorCount(LE_ADV_ERROR_ON_START_COUNT);
         }
 
         callback.onAdvertisingSetStarted(advertiserId, txPower, status);
