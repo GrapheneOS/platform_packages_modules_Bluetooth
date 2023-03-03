@@ -41,6 +41,7 @@ int AVRC_BldResponse_ = 0;
 uint8_t appl_trace_level = BT_TRACE_LEVEL_WARNING;
 uint8_t btif_trace_level = BT_TRACE_LEVEL_WARNING;
 
+bool avrcp_absolute_volume_is_enabled() { return true; }
 tAVRC_STS AVRC_BldCommand(tAVRC_COMMAND* p_cmd, BT_HDR** pp_pkt) { return 0; }
 tAVRC_STS AVRC_BldResponse(uint8_t handle, tAVRC_RESPONSE* p_rsp,
                            BT_HDR** pp_pkt) {
