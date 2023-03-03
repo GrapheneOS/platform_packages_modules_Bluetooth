@@ -30,6 +30,9 @@
 #include <base/functional/callback.h>
 #include <base/logging.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
+#ifdef OS_ANDROID
+#include <hfp.sysprop.h>
+#endif
 
 #include <cstdint>
 #include <string>
@@ -67,10 +70,6 @@ namespace headset {
 
 #ifndef BTIF_HFAG_SERVICE_NAME
 #define BTIF_HFAG_SERVICE_NAME ("Handsfree Gateway")
-#endif
-
-#ifndef BTIF_HF_SERVICES
-#define BTIF_HF_SERVICES (BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK)
 #endif
 
 #ifndef BTIF_HF_SERVICE_NAMES
@@ -148,6 +147,17 @@ static const char* dump_hf_call_state(bthf_call_state_t call_state) {
  */
 static bool is_active_device(const RawAddress& bd_addr) {
   return !active_bda.IsEmpty() && active_bda == bd_addr;
+}
+
+static tBTA_SERVICE_MASK get_BTIF_HF_SERVICES() {
+#ifdef OS_ANDROID
+  static const tBTA_SERVICE_MASK hf_services =
+      android::sysprop::bluetooth::Hfp::hf_services().value_or(
+          BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK);
+  return hf_services;
+#else
+  return BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK;
+#endif
 }
 
 /*******************************************************************************
@@ -843,11 +853,11 @@ bt_status_t HeadsetInterface::Init(Callbacks* callbacks, int max_hf_clients,
 // Invoke the enable service API to the core to set the appropriate service_id
 // Internally, the HSP_SERVICE_ID shall also be enabled if HFP is enabled
 // (phone) otherwise only HSP is enabled (tablet)
-#if (defined(BTIF_HF_SERVICES) && (BTIF_HF_SERVICES & BTA_HFP_SERVICE_MASK))
-  btif_enable_service(BTA_HFP_SERVICE_ID);
-#else
-  btif_enable_service(BTA_HSP_SERVICE_ID);
-#endif
+  if (get_BTIF_HF_SERVICES() & BTA_HFP_SERVICE_MASK) {
+    btif_enable_service(BTA_HFP_SERVICE_ID);
+  } else {
+    btif_enable_service(BTA_HSP_SERVICE_ID);
+  }
 
   return BT_STATUS_SUCCESS;
 }
@@ -1484,15 +1494,15 @@ void HeadsetInterface::Cleanup() {
   btif_queue_cleanup(UUID_SERVCLASS_AG_HANDSFREE);
 
   tBTA_SERVICE_MASK mask = btif_get_enabled_services_mask();
-#if (defined(BTIF_HF_SERVICES) && (BTIF_HF_SERVICES & BTA_HFP_SERVICE_MASK))
-  if ((mask & (1 << BTA_HFP_SERVICE_ID)) != 0) {
-    btif_disable_service(BTA_HFP_SERVICE_ID);
+  if (get_BTIF_HF_SERVICES() & BTA_HFP_SERVICE_MASK) {
+    if ((mask & (1 << BTA_HFP_SERVICE_ID)) != 0) {
+      btif_disable_service(BTA_HFP_SERVICE_ID);
+    }
+  } else {
+    if ((mask & (1 << BTA_HSP_SERVICE_ID)) != 0) {
+      btif_disable_service(BTA_HSP_SERVICE_ID);
+    }
   }
-#else
-  if ((mask & (1 << BTA_HSP_SERVICE_ID)) != 0) {
-    btif_disable_service(BTA_HSP_SERVICE_ID);
-  }
-#endif
 
   bt_hf_callbacks = nullptr;
 }
@@ -1556,7 +1566,8 @@ bt_status_t ExecuteService(bool b_enable) {
     /* Enable and register with BTA-AG */
     BTA_AgEnable(bte_hf_evt);
     for (uint8_t app_id = 0; app_id < btif_max_hf_clients; app_id++) {
-      BTA_AgRegister(BTIF_HF_SERVICES, btif_hf_features, service_names, app_id);
+      BTA_AgRegister(get_BTIF_HF_SERVICES(), btif_hf_features, service_names,
+                     app_id);
     }
   } else {
     /* De-register AG */
