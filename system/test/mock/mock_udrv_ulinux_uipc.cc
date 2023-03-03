@@ -36,46 +36,44 @@ bool mock_uipc_send_ret;
 
 bool UIPC_Open(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK* p_cback,
                const char* socket_path) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool UIPC_Send(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
                UNUSED_ATTR uint16_t msg_evt, const uint8_t* p_buf,
                uint16_t msglen) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return mock_uipc_send_ret;
 }
 int uipc_start_main_server_thread(tUIPC_STATE& uipc) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 std::unique_ptr<tUIPC_STATE> UIPC_Init() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return std::move(mock_uipc_init_ret);
 }
 const char* dump_uipc_event(tUIPC_EVENT event) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
                    uint32_t len) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return mock_uipc_read_ret;
 }
 bool UIPC_Ioctl(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint32_t request,
                 void* param) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 void UIPC_Close(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 void uipc_close_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-void uipc_main_cleanup(tUIPC_STATE& uipc) {
-  mock_function_count_map[__func__]++;
-}
+void uipc_main_cleanup(tUIPC_STATE& uipc) { inc_func_call_count(__func__); }
 void uipc_stop_main_server_thread(tUIPC_STATE& uipc) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
