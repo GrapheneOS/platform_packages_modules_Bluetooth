@@ -38,19 +38,19 @@ namespace bluetooth {
 namespace common {
 
 bool AddressObfuscator::IsInitialized() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 bool AddressObfuscator::IsSaltValid(const Octet32& salt_256bit) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
 std::string AddressObfuscator::Obfuscate(const RawAddress& address) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return 0;
 }
 void AddressObfuscator::Initialize(const Octet32& salt_256bit) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   salt_256bit_ = salt_256bit;
 }
 

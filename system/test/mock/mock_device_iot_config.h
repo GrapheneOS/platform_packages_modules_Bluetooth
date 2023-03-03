@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-extern std::map<std::string, int> mock_function_count_map;
-
 namespace test {
 namespace mock {
 namespace device_iot_config {
