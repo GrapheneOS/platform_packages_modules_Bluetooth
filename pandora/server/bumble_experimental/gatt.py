@@ -19,7 +19,7 @@ import logging
 from bumble.core import ProtocolError
 from bumble.device import Connection as BumbleConnection, Device, Peer
 from bumble.gatt_client import CharacteristicProxy, ServiceProxy
-from pandora_experimental.gatt_grpc import (
+from pandora_experimental.gatt_pb2 import (
     AttStatusCode,
     AttValue,
     ClearCacheRequest,

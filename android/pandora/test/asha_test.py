@@ -26,12 +26,20 @@ from bumble.gatt import GATT_ASHA_SERVICE
 from mobly import base_test, test_runner
 from mobly.asserts import assert_equal  # type: ignore
 from mobly.asserts import assert_in  # type: ignore
-from pandora.host_grpc import AdvertiseResponse
-from pandora.host_grpc import Connection
-from pandora.host_grpc import DataTypes
-from pandora.host_grpc import OwnAddressType
-from pandora.host_grpc import ScanningResponse
-from pandora.security_grpc import LESecurityLevel
+from pandora.host_pb2 import (
+    RANDOM,
+    PUBLIC,
+    AdvertiseResponse,
+    Connection,
+    DataTypes,
+    OwnAddressType,
+    ScanningResponse,
+)
+from pandora.security_pb2 import (
+    LE_LEVEL3,
+    LESecurityLevel
+)
+from pandora._utils import Stream
 
 ASHA_UUID = GATT_ASHA_SERVICE.to_hex_str()
 HISYCNID: List[int] = [0x01, 0x02, 0x03, 0x04, 0x5, 0x6, 0x7, 0x8]
@@ -60,7 +68,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         # ASHA hearing aid's IO capability is NO_OUTPUT_NO_INPUT
         setattr(self.ref.device, "io_capability", PairingDelegate.NO_OUTPUT_NO_INPUT)
 
-    def advertise(self, ref_address_type: OwnAddressType) -> AdvertiseResponse:
+    def advertise(self, ref_address_type: OwnAddressType) -> Stream[AdvertiseResponse]:
         """
         Ref device starts to advertise
         :return: Ref device's advertise response
@@ -96,7 +104,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         return ref
 
     def connect(
-        self, advertisement, ref: ScanningResponse, dut_address_type: OwnAddressType
+        self, advertisement: Stream[AdvertiseResponse], ref: ScanningResponse, dut_address_type: OwnAddressType
     ) -> Tuple[Connection, Connection]:
         """
         Helper method for Dut connects to Ref
@@ -113,14 +121,6 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         advertisement.cancel()
         return dut_ref, ref_dut
 
-    @asynchronous
-    async def setup_test(self) -> None:
-        async def reset(device: PandoraClient) -> None:
-            await device.aio.host.FactoryReset()
-            device.address = (await device.aio.host.ReadLocalAddress(wait_for_ready=True)).address  # type: ignore[assignment]
-
-        await asyncio.gather(reset(self.dut), reset(self.ref))
-
     def test_advertising_advertisment_data(self) -> None:
         """
         Ref starts ASHA advertisements with service data in advertisement data.
@@ -130,10 +130,10 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         protocol_version = 0x01
         truncated_hisyncid = HISYCNID[:4]
 
-        advertisement = self.advertise(ref_address_type=OwnAddressType.RANDOM)
+        advertisement = self.advertise(ref_address_type=RANDOM)
 
         # DUT starts a service discovery
-        scan_result = self.scan(dut_address_type=OwnAddressType.RANDOM)
+        scan_result = self.scan(dut_address_type=RANDOM)
         advertisement.cancel()
 
         # Verify Ref is correctly discovered by DUT as a hearing aid device
@@ -169,7 +169,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             ),
         )
 
-        scan_result = self.scan(dut_address_type=OwnAddressType.RANDOM)
+        scan_result = self.scan(dut_address_type=RANDOM)
         advertisement.cancel()
 
         # Verify Ref is correctly discovered by DUT as a hearing aid device.
@@ -185,8 +185,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         )
 
     @parameterized(
-        (OwnAddressType.RANDOM, OwnAddressType.PUBLIC),
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM),
+        (RANDOM, PUBLIC),
+        (RANDOM, RANDOM),
     )  # type: ignore[misc]
     def test_pairing(
         self,
@@ -203,24 +203,24 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         ref = self.scan(dut_address_type=dut_address_type)
 
         # DUT initiates connection to Ref.
-        dut_ref, ref_dut = self.connect(advertisement, ref, dut_address_type)
+        dut_ref, _ = self.connect(advertisement, ref, dut_address_type)
         assert dut_ref
 
         # DUT starts pairing with the Ref.
         secure = self.dut.security.Secure(
-            connection=dut_ref, le=LESecurityLevel.LE_LEVEL3
+            connection=dut_ref, le=LE_LEVEL3
         )
 
         assert_equal(secure.WhichOneof("result"), "success")
 
     @parameterized(
-        (OwnAddressType.RANDOM, OwnAddressType.PUBLIC),
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM),
+        (RANDOM, PUBLIC),
+        (RANDOM, RANDOM),
     )  # type: ignore[misc]
     def test_unbonding(
         self,
-        dut_address_type: OwnAddressType = OwnAddressType.RANDOM,
-        ref_address_type: OwnAddressType = OwnAddressType.RANDOM,
+        dut_address_type: OwnAddressType,
+        ref_address_type: OwnAddressType,
     ) -> None:
         """
         DUT removes bond with Ref.
@@ -268,8 +268,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         assert_equal(secure.WhichOneof("result"), "success")
 
     @parameterized(
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM),
-        (OwnAddressType.RANDOM, OwnAddressType.PUBLIC),
+        (RANDOM, RANDOM),
+        (RANDOM, PUBLIC),
     )  # type: ignore[misc]
     def test_connection(
         self, dut_address_type: OwnAddressType, ref_address_type: OwnAddressType
@@ -286,8 +286,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         assert ref_dut
 
     @parameterized(
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM),
-        (OwnAddressType.RANDOM, OwnAddressType.PUBLIC),
+        (RANDOM, RANDOM),
+        (RANDOM, PUBLIC),
     )  # type: ignore[misc]
     def test_disconnect_initiator(
         self,
@@ -300,13 +300,13 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         """
         advertisement = self.advertise(ref_address_type=ref_address_type)
         ref = self.scan(dut_address_type=dut_address_type)
-        dut_ref, ref_dut = self.connect(advertisement, ref, dut_address_type)
+        dut_ref, _ = self.connect(advertisement, ref, dut_address_type)
 
         self.dut.host.Disconnect(connection=dut_ref)
 
     @parameterized(
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM),
-        (OwnAddressType.RANDOM, OwnAddressType.PUBLIC),
+        (RANDOM, RANDOM),
+        (RANDOM, PUBLIC),
     )  # type: ignore[misc]
     def test_disconnect_acceptor(
         self,
@@ -325,10 +325,10 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         self.ref.host.Disconnect(connection=ref_dut)
 
     @parameterized(
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM, 0),
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM, 0.5),
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM, 1),
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM, 5),
+        (RANDOM, RANDOM, 0),
+        (RANDOM, RANDOM, 0.5),
+        (RANDOM, RANDOM, 1),
+        (RANDOM, RANDOM, 5),
     )  # type: ignore[misc]
     def test_reconnection(
         self,
@@ -343,10 +343,10 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         Verify that DUT and Ref are connected.
         """
 
-        def connect_and_disconnect():
+        def connect_and_disconnect() -> None:
             advertisement = self.advertise(ref_address_type=ref_address_type)
             ref = self.scan(dut_address_type=dut_address_type)
-            dut_ref, ref_dut = self.connect(advertisement, ref, dut_address_type)
+            dut_ref, _ = self.connect(advertisement, ref, dut_address_type)
             self.dut.host.Disconnect(connection=dut_ref)
 
         connect_and_disconnect()
@@ -355,8 +355,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         connect_and_disconnect()
 
     @parameterized(
-        (OwnAddressType.RANDOM, OwnAddressType.RANDOM),
-        (OwnAddressType.RANDOM, OwnAddressType.PUBLIC),
+        (RANDOM, RANDOM),
+        (RANDOM, PUBLIC),
     )  # type: ignore[misc]
     def test_auto_connection(
         self,
@@ -381,7 +381,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         # pairing
         secure = self.dut.security.Secure(
-            connection=dut_ref, le=LESecurityLevel.LE_LEVEL3
+            connection=dut_ref, le=LE_LEVEL3
         )
         assert_equal(secure.WhichOneof("result"), "success")
 
