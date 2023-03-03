@@ -662,9 +662,15 @@ public class LeAudioServiceTest {
         mService.bondStateChanged(mLeftDevice, BluetoothDevice.BOND_NONE);
         assertThat(mService.getDevices().contains(mLeftDevice)).isFalse();
 
+        // Remove bond will remove also device descriptor. Device has to be connected again
+        assertWithMessage("Connect failed").that(mService.connect(mLeftDevice)).isTrue();
+        verifyConnectionStateIntent(LeAudioStateMachine.sConnectTimeoutMs * 2,
+                mLeftDevice, BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
+
         // stack event: CONNECTION_STATE_CONNECTED - state machine should be created
         generateConnectionMessageFromNative(mLeftDevice, BluetoothProfile.STATE_CONNECTED,
-                BluetoothProfile.STATE_DISCONNECTED);
+                BluetoothProfile.STATE_CONNECTING);
         assertThat(BluetoothProfile.STATE_CONNECTED)
                 .isEqualTo(mService.getConnectionState(mLeftDevice));
         assertThat(mService.getDevices().contains(mLeftDevice)).isTrue();

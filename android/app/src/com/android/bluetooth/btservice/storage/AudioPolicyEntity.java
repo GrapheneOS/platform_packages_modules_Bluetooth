@@ -16,7 +16,7 @@
 
 package com.android.bluetooth.btservice.storage;
 
-import android.bluetooth.BluetoothAudioPolicy;
+import android.bluetooth.BluetoothSinkAudioPolicy;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -31,9 +31,9 @@ class AudioPolicyEntity {
     public int inBandRingtoneAudioPolicy;
 
     AudioPolicyEntity() {
-        callEstablishAudioPolicy = BluetoothAudioPolicy.POLICY_UNCONFIGURED;
-        connectingTimeAudioPolicy = BluetoothAudioPolicy.POLICY_UNCONFIGURED;
-        inBandRingtoneAudioPolicy = BluetoothAudioPolicy.POLICY_UNCONFIGURED;
+        callEstablishAudioPolicy = BluetoothSinkAudioPolicy.POLICY_UNCONFIGURED;
+        connectingTimeAudioPolicy = BluetoothSinkAudioPolicy.POLICY_UNCONFIGURED;
+        inBandRingtoneAudioPolicy = BluetoothSinkAudioPolicy.POLICY_UNCONFIGURED;
     }
 
     AudioPolicyEntity(int callEstablishAudioPolicy, int connectingTimeAudioPolicy,
