@@ -16,6 +16,7 @@
 package com.android.bluetooth.gatt;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
@@ -23,6 +24,8 @@ import android.os.ParcelUuid;
 import android.util.SparseArray;
 
 import androidx.annotation.VisibleForTesting;
+
+import com.android.bluetooth.btservice.MetricsLogger;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -164,6 +167,7 @@ public class AppAdvertiseStats {
             mPeriodicIncludeTxPower = periodicParameters.getIncludeTxPower();
             mPeriodicInterval = periodicParameters.getInterval();
         }
+        recordAdvertiseEnableCount(true, mConnectable, mPeriodicAdvertisingEnabled);
     }
 
     void recordAdvertiseStart(int duration, int maxExtAdvEvents) {
@@ -171,12 +175,35 @@ public class AppAdvertiseStats {
     }
 
     void recordAdvertiseStop() {
-        mAdvertisingEnabled = false;
-        mPeriodicAdvertisingEnabled = false;
+        recordAdvertiseEnableCount(false, mConnectable, mPeriodicAdvertisingEnabled);
         if (!mAdvertiserRecords.isEmpty()) {
             AppAdvertiserRecord record = mAdvertiserRecords.get(mAdvertiserRecords.size() - 1);
             record.stopTime = Instant.now();
+            Duration duration = Duration.between(record.startTime, record.stopTime);
+            recordAdvertiseDurationCount(duration, mConnectable, mPeriodicAdvertisingEnabled);
         }
+        mAdvertisingEnabled = false;
+        mPeriodicAdvertisingEnabled = false;
+    }
+
+    static void recordAdvertiseInstanceCount(int instanceCount) {
+        if (instanceCount < 5) {
+            MetricsLogger.getInstance().cacheCount(BluetoothProtoEnums.LE_ADV_INSTANCE_COUNT_5, 1);
+        } else if (instanceCount < 10) {
+            MetricsLogger.getInstance().cacheCount(BluetoothProtoEnums.LE_ADV_INSTANCE_COUNT_10, 1);
+        } else if (instanceCount < 15) {
+            MetricsLogger.getInstance().cacheCount(BluetoothProtoEnums.LE_ADV_INSTANCE_COUNT_15, 1);
+        } else {
+            MetricsLogger.getInstance().cacheCount(
+                    BluetoothProtoEnums.LE_ADV_INSTANCE_COUNT_15P, 1);
+        }
+    }
+
+    static void recordAdvertiseErrorCount(int key) {
+        if (key != BluetoothProtoEnums.LE_ADV_ERROR_ON_START_COUNT) {
+            return;
+        }
+        MetricsLogger.getInstance().cacheCount(key, 1);
     }
 
     void enableAdvertisingSet(boolean enable, int duration, int maxExtAdvEvents) {
@@ -267,6 +294,91 @@ public class AppAdvertiseStats {
 
     void setId(int id) {
         this.mId = id;
+    }
+
+    private static void recordAdvertiseDurationCount(Duration duration, boolean isConnectable,
+            boolean inPeriodic) {
+        if (duration.compareTo(Duration.ofMinutes(1)) < 0) {
+            MetricsLogger.getInstance().cacheCount(
+                    BluetoothProtoEnums.LE_ADV_DURATION_COUNT_TOTAL_1M, 1);
+            if (isConnectable) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_CONNECTABLE_1M, 1);
+            }
+            if (inPeriodic) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_PERIODIC_1M, 1);
+            }
+        } else if (duration.compareTo(Duration.ofMinutes(30)) < 0) {
+            MetricsLogger.getInstance().cacheCount(
+                    BluetoothProtoEnums.LE_ADV_DURATION_COUNT_TOTAL_30M, 1);
+            if (isConnectable) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_CONNECTABLE_30M, 1);
+            }
+            if (inPeriodic) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_PERIODIC_30M, 1);
+            }
+        } else if (duration.compareTo(Duration.ofHours(1)) < 0) {
+            MetricsLogger.getInstance().cacheCount(
+                    BluetoothProtoEnums.LE_ADV_DURATION_COUNT_TOTAL_1H, 1);
+            if (isConnectable) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_CONNECTABLE_1H, 1);
+            }
+            if (inPeriodic) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_PERIODIC_1H, 1);
+            }
+        } else if (duration.compareTo(Duration.ofHours(3)) < 0) {
+            MetricsLogger.getInstance().cacheCount(
+                    BluetoothProtoEnums.LE_ADV_DURATION_COUNT_TOTAL_3H, 1);
+            if (isConnectable) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_CONNECTABLE_3H, 1);
+            }
+            if (inPeriodic) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_PERIODIC_3H, 1);
+            }
+        } else {
+            MetricsLogger.getInstance().cacheCount(
+                    BluetoothProtoEnums.LE_ADV_DURATION_COUNT_TOTAL_3HP, 1);
+            if (isConnectable) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_CONNECTABLE_3HP, 1);
+            }
+            if (inPeriodic) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_DURATION_COUNT_PERIODIC_3HP, 1);
+            }
+        }
+    }
+
+    private static void recordAdvertiseEnableCount(boolean enable, boolean isConnectable,
+            boolean inPeriodic) {
+        if (enable) {
+            MetricsLogger.getInstance().cacheCount(BluetoothProtoEnums.LE_ADV_COUNT_ENABLE, 1);
+            if (isConnectable) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_COUNT_CONNECTABLE_ENABLE, 1);
+            }
+            if (inPeriodic) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_COUNT_PERIODIC_ENABLE, 1);
+            }
+        } else {
+            MetricsLogger.getInstance().cacheCount(BluetoothProtoEnums.LE_ADV_COUNT_DISABLE, 1);
+            if (isConnectable) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_COUNT_CONNECTABLE_DISABLE, 1);
+            }
+            if (inPeriodic) {
+                MetricsLogger.getInstance().cacheCount(
+                        BluetoothProtoEnums.LE_ADV_COUNT_PERIODIC_DISABLE, 1);
+            }
+        }
     }
 
     private static String printByteArrayInHex(byte[] data) {
