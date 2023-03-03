@@ -21,14 +21,12 @@
 
 #include <map>
 #include <string>
-
-extern std::map<std::string, int> mock_function_count_map;
-
 #include <vector>
 
 #include "btif/include/btif_common.h"
 #include "gd/common/init_flags.h"
 #include "main/shim/distance_measurement_manager.h"
+#include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
@@ -36,9 +34,9 @@ extern std::map<std::string, int> mock_function_count_map;
 
 DistanceMeasurementInterface*
 bluetooth::shim::get_distance_measurement_instance() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return nullptr;
 }
 void bluetooth::shim::init_distance_measurement_manager() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
