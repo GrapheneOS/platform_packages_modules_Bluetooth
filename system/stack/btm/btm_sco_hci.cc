@@ -597,13 +597,8 @@ bool fill_plc_stats(int* num_decoded_frames, double* packet_loss_ratio) {
 
   int decoded_frames = msbc_info->plc->get_num_decoded_frames();
   int lost_frames = msbc_info->plc->get_num_lost_frames();
-  if (decoded_frames <= 0 || lost_frames < 0 || lost_frames > decoded_frames) {
-    LOG_WARN(
-        "Unreasonable reported frame count: decoded_frames(%d), "
-        "lost_frames(%d)",
-        decoded_frames, lost_frames);
+  if (decoded_frames <= 0 || lost_frames <= 0 || lost_frames > decoded_frames)
     return false;
-  }
 
   *num_decoded_frames = decoded_frames;
   *packet_loss_ratio = (double)lost_frames / decoded_frames;
