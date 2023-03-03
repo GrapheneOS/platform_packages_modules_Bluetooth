@@ -6,8 +6,9 @@ from mmi2grpc._helpers import match_description
 from mmi2grpc._proxy import ProfileProxy
 
 from pandora.host_grpc import Host
-from pandora.host_pb2 import Connection, OwnAddressType
-from pandora.security_grpc import Security, PairingEventAnswer
+from pandora.host_pb2 import PUBLIC, RANDOM, Connection
+from pandora.security_pb2 import PairingEventAnswer
+from pandora.security_grpc import Security
 from pandora_experimental.l2cap_grpc import L2CAP
 
 from typing import Optional
@@ -97,7 +98,7 @@ class L2CAPProxy(ProfileProxy):
         """
         self.advertise = self.host.Advertise(
             connectable=True,
-            own_address_type=OwnAddressType.PUBLIC,
+            own_address_type=PUBLIC,
         )
         # not strictly necessary, but can save time on waiting connection
         tests_to_open_bluetooth_server_socket = [
@@ -358,7 +359,7 @@ class L2CAPProxy(ProfileProxy):
         """
         Initiate or create LE ACL connection to the PTS.
         """
-        self.connection = self.host.ConnectLE(own_address_type=OwnAddressType.RANDOM, public=pts_addr).connection
+        self.connection = self.host.ConnectLE(own_address_type=RANDOM, public=pts_addr).connection
         return "OK"
 
     @assert_description
