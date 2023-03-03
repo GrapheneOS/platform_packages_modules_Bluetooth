@@ -84,6 +84,9 @@ void SMP_SecurityGrant(const RawAddress& bd_addr, tSMP_STATUS res) {
   mock_function_count_map[__func__]++;
 }
 
-void SMP_CrLocScOobData() { mock_function_count_map[__func__]++; }
+bool SMP_CrLocScOobData() {
+  mock_function_count_map[__func__]++;
+  return false;
+}
 
 void SMP_ClearLocScOobData() { mock_function_count_map[__func__]++; }
