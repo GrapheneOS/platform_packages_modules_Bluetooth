@@ -107,7 +107,7 @@ pub struct LinuxSnoopPacket {
 }
 
 impl LinuxSnoopPacket {
-    pub fn index(&self) -> u16 {
+    pub fn adapter_index(&self) -> u16 {
         (self.flags >> 16).try_into().unwrap_or(0u16)
     }
 
@@ -327,25 +327,30 @@ pub struct Packet {
     /// Which adapter this packet is for. Unassociated packets should use 0xFFFE.
     pub adapter_index: u16,
 
+    /// Packet number in current stream.
+    pub index: usize,
+
     /// Inner data for this packet.
     pub inner: PacketChild,
 }
 
-impl<'a> TryFrom<&'a LinuxSnoopPacket> for Packet {
+impl<'a> TryFrom<(usize, &'a LinuxSnoopPacket)> for Packet {
     type Error = String;
 
-    fn try_from(item: &'a LinuxSnoopPacket) -> Result<Self, Self::Error> {
-        match PacketChild::try_from(item) {
+    fn try_from(item: (usize, &'a LinuxSnoopPacket)) -> Result<Self, Self::Error> {
+        let (index, packet) = item;
+        match PacketChild::try_from(packet) {
             Ok(inner) => {
-                let base_ts = i64::try_from(item.timestamp_magic_us)
+                let base_ts = i64::try_from(packet.timestamp_magic_us)
                     .map_err(|e| format!("u64 conversion error: {}", e))?;
 
                 let ts_secs = (base_ts / USECS_TO_SECS) + LINUX_SNOOP_OFFSET_TO_UNIXTIME_SECS;
                 let ts_nsecs = u32::try_from((base_ts % USECS_TO_SECS) * 1000).unwrap_or(0);
-                let ts = NaiveDateTime::from_timestamp(ts_secs, ts_nsecs);
-                let adapter_index = item.index();
+                let ts = NaiveDateTime::from_timestamp_opt(ts_secs, ts_nsecs)
+                    .ok_or(format!("timestamp conversion error: {}", base_ts))?;
+                let adapter_index = packet.adapter_index();
 
-                Ok(Packet { ts, adapter_index, inner })
+                Ok(Packet { ts, adapter_index, index, inner })
             }
 
             Err(e) => Err(e),
