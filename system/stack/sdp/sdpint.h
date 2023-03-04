@@ -124,18 +124,65 @@ typedef struct {
                            attributes in the responses */
 } tSDP_CONT_INFO;
 
+enum : uint8_t {
+  SDP_STATE_IDLE = 0,
+  SDP_STATE_CONN_SETUP = 1,
+  SDP_STATE_CFG_SETUP = 2,
+  SDP_STATE_CONNECTED = 3,
+  SDP_STATE_CONN_PEND = 4,
+};
+typedef uint8_t tSDP_STATE;
+
+#ifndef CASE_RETURN_TEXT
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+#endif
+
+inline std::string sdp_state_text(const tSDP_STATE& state) {
+  switch (state) {
+    CASE_RETURN_TEXT(SDP_STATE_IDLE);
+    CASE_RETURN_TEXT(SDP_STATE_CONN_SETUP);
+    CASE_RETURN_TEXT(SDP_STATE_CFG_SETUP);
+    CASE_RETURN_TEXT(SDP_STATE_CONNECTED);
+    CASE_RETURN_TEXT(SDP_STATE_CONN_PEND);
+    default:
+      return std::string("UNKNOWN[") + std::to_string(state) + std::string("]");
+  }
+}
+
+enum : uint8_t {
+  SDP_FLAGS_IS_ORIG = 0x01,
+  SDP_FLAGS_HIS_CFG_DONE = 0x02,
+  SDP_FLAGS_MY_CFG_DONE = 0x04,
+};
+typedef uint8_t tSDP_FLAGS;
+
+inline std::string sdp_flags_text(const tSDP_FLAGS& flags) {
+  switch (flags) {
+    CASE_RETURN_TEXT(SDP_FLAGS_IS_ORIG);
+    CASE_RETURN_TEXT(SDP_FLAGS_HIS_CFG_DONE);
+    CASE_RETURN_TEXT(SDP_FLAGS_MY_CFG_DONE);
+    default:
+      return std::string("UNKNOWN[") + std::to_string(flags) + std::string("]");
+  }
+}
+
+#undef CASE_RETURN_TEXT
+
+enum : uint8_t {
+  SDP_DISC_WAIT_CONN = 0,
+  SDP_DISC_WAIT_HANDLES = 1,
+  SDP_DISC_WAIT_ATTR = 2,
+  SDP_DISC_WAIT_SEARCH_ATTR = 3,
+  SDP_DISC_WAIT_UNUSED4 = 4,
+  SDP_DISC_WAIT_CANCEL = 5,
+};
+typedef uint8_t tSDP_DISC_WAIT;
+
 /* Define the SDP Connection Control Block */
 struct tCONN_CB {
-#define SDP_STATE_IDLE 0
-#define SDP_STATE_CONN_SETUP 1
-#define SDP_STATE_CFG_SETUP 2
-#define SDP_STATE_CONNECTED 3
-#define SDP_STATE_CONN_PEND 4
   uint8_t con_state;
-
-#define SDP_FLAGS_IS_ORIG 0x01
-#define SDP_FLAGS_HIS_CFG_DONE 0x02
-#define SDP_FLAGS_MY_CFG_DONE 0x04
   uint8_t con_flags;
 
   RawAddress device_address;
@@ -159,12 +206,6 @@ struct tCONN_CB {
   uint16_t transaction_id;
   uint16_t disconnect_reason; /* Disconnect reason            */
 
-#define SDP_DISC_WAIT_CONN 0
-#define SDP_DISC_WAIT_HANDLES 1
-#define SDP_DISC_WAIT_ATTR 2
-#define SDP_DISC_WAIT_SEARCH_ATTR 3
-#define SDP_DISC_WAIT_CANCEL 5
-
   uint8_t disc_state;
   bool is_attr_search;
 
@@ -183,9 +224,7 @@ struct tCONN_CB {
     return #code
 #endif
 
-using tSDP_DISC_WAIT = int;
-
-inline std::string discovery_state_text(const tSDP_DISC_WAIT& state) {
+inline std::string sdp_disc_wait_text(const tSDP_DISC_WAIT& state) {
   switch (state) {
     CASE_RETURN_TEXT(SDP_DISC_WAIT_CONN);
     CASE_RETURN_TEXT(SDP_DISC_WAIT_HANDLES);
