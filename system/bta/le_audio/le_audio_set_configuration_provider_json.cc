@@ -279,22 +279,24 @@ struct AudioSetConfigurationProviderJson {
             ? static_cast<types::LeAudioConfigurationStrategy>(strategy_int)
             : types::LeAudioConfigurationStrategy::RFU;
 
-    auto target_latency_int =
-        static_cast<int>(flat_subconfig->target_latency());
+    return SetConfiguration(
+        flat_subconfig->direction(), flat_subconfig->device_cnt(),
+        flat_subconfig->ase_cnt(),
+        CodecCapabilitySettingFromFlat(flat_subconfig->codec_id(),
+                                       flat_subconfig->codec_configuration()),
+        qos, strategy);
+  }
+
+  static uint8_t ValidateTargetLatency(int flat_target_latency) {
+    auto target_latency_int = static_cast<int>(flat_target_latency);
 
     bool valid_target_latency =
         (target_latency_int >= (int)types::kTargetLatencyLower &&
          target_latency_int <= (int)types::kTargetLatencyHigherReliability);
 
-    uint8_t target_latency =
-        valid_target_latency ? static_cast<uint8_t>(target_latency_int)
-                             : types::kTargetLatencyBalancedLatencyReliability;
-    return SetConfiguration(
-        flat_subconfig->direction(), flat_subconfig->device_cnt(),
-        flat_subconfig->ase_cnt(), target_latency,
-        CodecCapabilitySettingFromFlat(flat_subconfig->codec_id(),
-                                       flat_subconfig->codec_configuration()),
-        qos, strategy);
+    return valid_target_latency
+               ? static_cast<uint8_t>(target_latency_int)
+               : types::kTargetLatencyBalancedLatencyReliability;
   }
 
   AudioSetConfiguration AudioSetConfigurationFromFlat(
@@ -305,7 +307,7 @@ struct AudioSetConfigurationProviderJson {
     std::string codec_config_key = flat_cfg->codec_config_name()->str();
     auto* qos_config_key_array = flat_cfg->qos_config_name();
 
-    constexpr std::string_view default_qos = "QoS_Config_Server_Preferred";
+    constexpr std::string_view default_qos = "QoS_Config_Balanced_Reliability";
 
     std::string qos_sink_key(default_qos);
     std::string qos_source_key(default_qos);
@@ -321,9 +323,9 @@ struct AudioSetConfigurationProviderJson {
       }
     }
 
-    LOG_INFO("Config name %s, qos_sink %s, qos_source %s",
-             codec_config_key.c_str(), qos_sink_key.c_str(),
-             qos_source_key.c_str());
+    LOG_INFO("Audio set config %s: codec config %s, qos_sink %s, qos_source %s",
+             flat_cfg->name()->c_str(), codec_config_key.c_str(),
+             qos_sink_key.c_str(), qos_source_key.c_str());
 
     const bluetooth::le_audio::QosConfiguration* qos_sink_cfg = nullptr;
     for (auto i = qos_cfgs->begin(); i != qos_cfgs->end(); ++i) {
@@ -343,6 +345,8 @@ struct AudioSetConfigurationProviderJson {
 
     QosConfigSetting qos_sink;
     if (qos_sink_cfg != nullptr) {
+      qos_sink.target_latency =
+          ValidateTargetLatency(qos_sink_cfg->target_latency());
       qos_sink.retransmission_number = qos_sink_cfg->retransmission_number();
       qos_sink.max_transport_latency = qos_sink_cfg->max_transport_latency();
     } else {
@@ -351,6 +355,8 @@ struct AudioSetConfigurationProviderJson {
 
     QosConfigSetting qos_source;
     if (qos_source_cfg != nullptr) {
+      qos_source.target_latency =
+          ValidateTargetLatency(qos_source_cfg->target_latency());
       qos_source.retransmission_number =
           qos_source_cfg->retransmission_number();
       qos_source.max_transport_latency =
@@ -504,6 +510,12 @@ struct AudioSetConfigurationProviderJson {
 
     LOG_DEBUG(": Updating %d scenarios.", flat_scenarios->size());
     for (auto const& scenario : *flat_scenarios) {
+      LOG_DEBUG("Scenario %s configs:", scenario->name()->c_str());
+      auto configs = AudioSetConfigurationsFromFlatScenario(scenario);
+      for (auto& config : configs) {
+        LOG_DEBUG("\t\t Audio set config: %s", config->name.c_str());
+      }
+
       auto [it_begin, it_end] =
           ScenarioToContextTypes(scenario->name()->c_str());
       for (auto it = it_begin; it != it_end; ++it) {
@@ -565,8 +577,9 @@ struct AudioSetConfigurationProvider::impl {
                            : "Source (mic)\n")
                    << "     number of devices: " << +ent.device_cnt << " \n"
                    << "     number of ASEs: " << +ent.ase_cnt << " \n"
-                   << "     target latency: " << +ent.target_latency << " \n"
                    << "     strategy: " << (int)(ent.strategy) << " \n"
+                   << "     qos->target latency: " << +ent.qos.target_latency
+                   << " \n"
                    << "     qos->retransmission_number: "
                    << +ent.qos.retransmission_number << " \n"
                    << "     qos->max_transport_latency: "
@@ -627,7 +640,8 @@ AudioSetConfigurationProvider::GetConfigurations(
     ::le_audio::types::LeAudioContextType content_type) const {
   if (CodecManager::GetInstance()->GetCodecLocation() ==
       types::CodecLocation::ADSP) {
-    LOG_DEBUG("Get offload config for the context type: %d", (int)content_type);
+    LOG_VERBOSE("Get offload config for the context type: %d",
+                (int)content_type);
     const AudioSetConfigurations* offload_confs =
         CodecManager::GetInstance()->GetOffloadCodecConfig(content_type);
 
@@ -639,7 +653,8 @@ AudioSetConfigurationProvider::GetConfigurations(
     // doesn't support.
   }
 
-  LOG_DEBUG("Get software config for the context type: %d", (int)content_type);
+  LOG_VERBOSE("Get software config for the context type: %d",
+              (int)content_type);
 
   if (pimpl_->IsRunning())
     return pimpl_->config_provider_impl_->GetConfigurationsByContextType(
