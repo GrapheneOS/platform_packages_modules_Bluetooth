@@ -21,7 +21,6 @@ from mmi2grpc._proxy import ProfileProxy
 from pandora.host_grpc import Host
 from pandora.host_pb2 import Connection
 from pandora_experimental._android_grpc import Android
-from pandora_experimental._android_pb2 import AccessType
 
 
 class OPPProxy(ProfileProxy):

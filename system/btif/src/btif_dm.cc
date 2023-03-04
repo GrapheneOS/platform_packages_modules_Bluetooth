@@ -116,6 +116,10 @@ const Uuid UUID_BATTERY = Uuid::FromString("180F");
 const Uuid UUID_A2DP_SINK = Uuid::FromString("110B");
 
 #define COD_UNCLASSIFIED ((0x1F) << 8)
+
+/* Focus on Major and minor device class*/
+#define COD_DEVICE_MASK 0x1FFC
+
 #define COD_HID_KEYBOARD 0x0540
 #define COD_HID_POINTING 0x0580
 #define COD_HID_COMBO 0x05C0
@@ -510,7 +514,7 @@ static uint32_t get_cod(const RawAddress* remote_bdaddr) {
 }
 
 bool check_cod(const RawAddress* remote_bdaddr, uint32_t cod) {
-  return get_cod(remote_bdaddr) == cod;
+  return (get_cod(remote_bdaddr) & COD_DEVICE_MASK) == cod;
 }
 
 bool check_cod_hid(const RawAddress* remote_bdaddr) {

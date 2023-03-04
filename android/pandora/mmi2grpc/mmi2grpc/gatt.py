@@ -21,8 +21,23 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.gatt_grpc import GATT
 from pandora.host_grpc import Host
-from pandora.host_pb2 import ConnectabilityMode, OwnAddressType
-from pandora_experimental.gatt_pb2 import AttStatusCode, AttProperties, AttPermissions
+from pandora.host_pb2 import PUBLIC, RANDOM
+from pandora_experimental.gatt_pb2 import (
+    INVALID_HANDLE,
+    READ_NOT_PERMITTED,
+    UNKNOWN_ERROR,
+    INSUFFICIENT_AUTHENTICATION,
+    ATTRIBUTE_NOT_FOUND,
+    APPLICATION_ERROR,
+    INVALID_ATTRIBUTE_LENGTH,
+    WRITE_NOT_PERMITTED,
+    PERMISSION_NONE,
+    PROPERTY_READ,
+    PROPERTY_WRITE,
+    PERMISSION_READ,
+    PERMISSION_WRITE,
+    PERMISSION_READ_ENCRYPTED,
+)
 from pandora_experimental.gatt_pb2 import GattServiceParams
 from pandora_experimental.gatt_pb2 import GattCharacteristicParams
 from pandora_experimental.gatt_pb2 import ReadCharacteristicResponse
@@ -71,7 +86,7 @@ class GATTProxy(ProfileProxy):
         PTS.
         """
 
-        self.connection = self.host.ConnectLE(own_address_type=OwnAddressType.RANDOM, public=pts_addr).connection
+        self.connection = self.host.ConnectLE(own_address_type=RANDOM, public=pts_addr).connection
         if test in NEEDS_CACHE_CLEARED:
             self.gatt.ClearCache(connection=self.connection)
         return "OK"
@@ -474,10 +489,10 @@ class GATTProxy(ProfileProxy):
         """
 
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.status == AttStatusCode.INVALID_HANDLE
+            assert self.read_response.status == INVALID_HANDLE
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
             assert self.read_response.characteristics_read is not None
-            assert AttStatusCode.INVALID_HANDLE in\
+            assert INVALID_HANDLE in\
                     list(map(lambda characteristic_read: characteristic_read.status,\
                             self.read_response.characteristics_read))
         return "Yes"
@@ -496,14 +511,14 @@ class GATTProxy(ProfileProxy):
         # Android read error doesn't return an error code so we have to also
         # compare to the generic error code here.
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.status == AttStatusCode.READ_NOT_PERMITTED or\
-                    self.read_response.status == AttStatusCode.UNKNOWN_ERROR
+            assert self.read_response.status == READ_NOT_PERMITTED or\
+                   self.read_response.status == UNKNOWN_ERROR
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
             assert self.read_response.characteristics_read is not None
             status_list = list(map(lambda characteristic_read: characteristic_read.status,\
                     self.read_response.characteristics_read))
-            assert AttStatusCode.READ_NOT_PERMITTED in status_list or\
-                    AttStatusCode.UNKNOWN_ERROR in status_list
+            assert READ_NOT_PERMITTED in status_list or\
+                     UNKNOWN_ERROR in status_list
         return "Yes"
 
     @assert_description
@@ -518,10 +533,10 @@ class GATTProxy(ProfileProxy):
         """
 
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.status == AttStatusCode.INSUFFICIENT_AUTHENTICATION
+            assert self.read_response.status == INSUFFICIENT_AUTHENTICATION
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
             assert self.read_response.characteristics_read is not None
-            assert AttStatusCode.INSUFFICIENT_AUTHENTICATION in\
+            assert INSUFFICIENT_AUTHENTICATION in\
                     list(map(lambda characteristic_read: characteristic_read.status,\
                             self.read_response.characteristics_read))
         return "Yes"
@@ -557,14 +572,14 @@ class GATTProxy(ProfileProxy):
         # Android read error doesn't return an error code so we have to also
         # compare to the generic error code here.
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.status == AttStatusCode.ATTRIBUTE_NOT_FOUND or\
-                    self.read_response.status == AttStatusCode.UNKNOWN_ERROR
+            assert self.read_response.status == ATTRIBUTE_NOT_FOUND or\
+                    self.read_response.status == UNKNOWN_ERROR
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
             assert self.read_response.characteristics_read is not None
             status_list = list(map(lambda characteristic_read: characteristic_read.status,\
                     self.read_response.characteristics_read))
-            assert AttStatusCode.ATTRIBUTE_NOT_FOUND in status_list or\
-                    AttStatusCode.UNKNOWN_ERROR in status_list
+            assert ATTRIBUTE_NOT_FOUND in status_list or\
+                    UNKNOWN_ERROR in status_list
         return "Yes"
 
     def MMI_IUT_SEND_READ_GREATER_OFFSET(self, description: str, **kwargs):
@@ -609,10 +624,10 @@ class GATTProxy(ProfileProxy):
         """
 
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.status == AttStatusCode.APPLICATION_ERROR
+            assert self.read_response.status == APPLICATION_ERROR
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
             assert self.read_response.characteristics_read is not None
-            assert AttStatusCode.APPLICATION_ERROR in\
+            assert APPLICATION_ERROR in\
                     list(map(lambda characteristic_read: characteristic_read.status,\
                             self.read_response.characteristics_read))
         return "Yes"
@@ -766,7 +781,7 @@ class GATTProxy(ProfileProxy):
         """
 
         assert self.write_response is not None
-        assert self.write_response.status == AttStatusCode.INVALID_HANDLE
+        assert self.write_response.status == INVALID_HANDLE
         return "Yes"
 
     @assert_description
@@ -781,7 +796,7 @@ class GATTProxy(ProfileProxy):
         """
 
         assert self.write_response is not None
-        assert self.write_response.status == AttStatusCode.WRITE_NOT_PERMITTED
+        assert self.write_response.status == WRITE_NOT_PERMITTED
         return "Yes"
 
     def MMI_IUT_SEND_PREPARE_WRITE(self, description: str, **kwargs):
@@ -870,7 +885,7 @@ class GATTProxy(ProfileProxy):
         assert self.write_response is not None
         # See MMI_IUT_SEND_PREPARE_WRITE_GREATER_OFFSET
         if self.written_over_length == True:
-            assert self.write_response.status == AttStatusCode.INVALID_ATTRIBUTE_LENGTH
+            assert self.write_response.status == INVALID_ATTRIBUTE_LENGTH
         return "OK"
 
     def MMI_IUT_SEND_WRITE_REQUEST_GREATER(self, description: str, **kwargs):
@@ -902,7 +917,7 @@ class GATTProxy(ProfileProxy):
         """
 
         assert self.write_response is not None
-        assert self.write_response.status == AttStatusCode.INVALID_ATTRIBUTE_LENGTH
+        assert self.write_response.status == INVALID_ATTRIBUTE_LENGTH
         return "OK"
 
     def MMI_IUT_SEND_PREPARE_WRITE_REQUEST_GREATER(self, description: str, **kwargs):
@@ -949,7 +964,7 @@ class GATTProxy(ProfileProxy):
         """
         self.advertise = self.host.Advertise(
             connectable=True,
-            own_address_type=OwnAddressType.PUBLIC,
+            own_address_type=PUBLIC,
         )
         self.gatt.RegisterService(
             service=GattServiceParams(
@@ -957,13 +972,13 @@ class GATTProxy(ProfileProxy):
                 characteristics=[
                     GattCharacteristicParams(
                         uuid=BASE_READ_CHARACTERISTIC_UUID,
-                        properties=AttProperties.PROPERTY_READ,
-                        permissions=AttPermissions.PERMISSION_READ,
+                        properties=PROPERTY_READ,
+                        permissions=PERMISSION_READ,
                     ),
                     GattCharacteristicParams(
                         uuid=BASE_WRITE_CHARACTERISTIC_UUID,
-                        properties=AttProperties.PROPERTY_WRITE,
-                        permissions=AttPermissions.PERMISSION_WRITE,
+                        properties=PROPERTY_WRITE,
+                        permissions=PERMISSION_WRITE,
                     ),
                 ],
             ))
@@ -1042,8 +1057,8 @@ class GATTProxy(ProfileProxy):
                 characteristics=[
                     GattCharacteristicParams(
                         uuid=CUSTOM_CHARACTERISTIC_UUID,
-                        properties=AttProperties.PROPERTY_READ,
-                        permissions=AttPermissions.PERMISSION_NONE,
+                        properties=PROPERTY_READ,
+                        permissions=PERMISSION_NONE,
                     ),
                 ],
             ))
@@ -1086,8 +1101,8 @@ class GATTProxy(ProfileProxy):
                 characteristics=[
                     GattCharacteristicParams(
                         uuid=CUSTOM_CHARACTERISTIC_UUID,
-                        properties=AttProperties.PROPERTY_READ,
-                        permissions=AttPermissions.PERMISSION_READ_ENCRYPTED,
+                        properties=PROPERTY_READ,
+                        permissions=PERMISSION_READ_ENCRYPTED,
                     ),
                 ],
             ))
@@ -1119,8 +1134,8 @@ class GATTProxy(ProfileProxy):
                 characteristics=[
                     GattCharacteristicParams(
                         uuid=CUSTOM_CHARACTERISTIC_UUID,
-                        properties=AttProperties.PROPERTY_READ,
-                        permissions=AttPermissions.PERMISSION_NONE,
+                        properties=PROPERTY_READ,
+                        permissions=PERMISSION_NONE,
                     ),
                 ],
             ))
@@ -1152,8 +1167,8 @@ class GATTProxy(ProfileProxy):
                 characteristics=[
                     GattCharacteristicParams(
                         uuid=CUSTOM_CHARACTERISTIC_UUID,
-                        properties=AttProperties.PROPERTY_WRITE,
-                        permissions=AttPermissions.PERMISSION_NONE,
+                        properties=PROPERTY_WRITE,
+                        permissions=PERMISSION_NONE,
                     ),
                 ],
             ))
