@@ -362,6 +362,16 @@ TEST(GeneratedPacketTest, testChildWithNestedSum) {
   ASSERT_EQ(more_bytes, child_view.GetMoreBytes());
 }
 
+TEST(GeneratedPacketTest, testSizedWithSumBadSize) {
+  vector<uint8_t> size_too_big{0x01, 0x02, 0x23, 0x11, 0x22, 0x33, 0x66, 0x00};
+
+  auto shared_bytes = std::make_shared<std::vector<uint8_t>>(size_too_big);
+  PacketView<kLittleEndian> packet_bytes_view(shared_bytes);
+
+  auto sws = SizedWithSumView::Create(packet_bytes_view);
+  ASSERT_FALSE(sws.IsValid());
+}
+
 namespace {
 vector<uint8_t> parent_size_modifier = {
     0x02 /* Size */,
