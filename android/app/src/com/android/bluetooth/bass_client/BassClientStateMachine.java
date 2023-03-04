@@ -35,6 +35,8 @@ import android.bluetooth.BluetoothLeBroadcastReceiveState;
 import android.bluetooth.BluetoothLeBroadcastSubgroup;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothStatusCodes;
+import android.bluetooth.BluetoothUtils;
+import android.bluetooth.BluetoothUtils.TypeValueEntry;
 import android.bluetooth.le.PeriodicAdvertisingCallback;
 import android.bluetooth.le.PeriodicAdvertisingManager;
 import android.bluetooth.le.PeriodicAdvertisingReport;
@@ -60,6 +62,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -347,6 +350,32 @@ public class BassClientStateMachine extends StateMachine {
         }
     }
 
+    private String checkAndParseBroadcastName(ScanRecord record) {
+        log("checkAndParseBroadcastName");
+        byte[] rawBytes = record.getBytes();
+        List<TypeValueEntry> entries = BluetoothUtils.parseLengthTypeValueBytes(rawBytes);
+        if (rawBytes.length > 0 && rawBytes[0] > 0 && entries.isEmpty()) {
+            Log.e(TAG, "Invalid LTV entries in Scan record");
+            return null;
+        }
+
+        String broadcastName = null;
+        for (TypeValueEntry entry : entries) {
+            // Only use the first value of each type
+            if (broadcastName == null && entry.getType() == BassConstants.BCAST_NAME_AD_TYPE) {
+                byte[] bytes = entry.getValue();
+                int len = bytes.length;
+                if (len < BassConstants.BCAST_NAME_LEN_MIN
+                        || len > BassConstants.BCAST_NAME_LEN_MAX) {
+                    Log.e(TAG, "Invalid broadcast name length in Scan record" + len);
+                    return null;
+                }
+                broadcastName = new String(bytes, StandardCharsets.UTF_8);
+            }
+        }
+        return broadcastName;
+    }
+
     private boolean selectSource(
             ScanResult scanRes, boolean autoTriggered) {
         log("selectSource: ScanResult " + scanRes);
@@ -375,19 +404,31 @@ public class BassClientStateMachine extends StateMachine {
         if (scanRecord != null) {
             Map<ParcelUuid, byte[]> listOfUuids = scanRecord.getServiceData();
             int broadcastId = BassConstants.INVALID_BROADCAST_ID;
+            PublicBroadcastData pbData = null;
             if (listOfUuids != null) {
                 if (listOfUuids.containsKey(BassConstants.BAAS_UUID)) {
                     byte[] bId = listOfUuids.get(BassConstants.BAAS_UUID);
                     broadcastId = BassUtils.parseBroadcastId(bId);
                 }
+                if (listOfUuids.containsKey(BassConstants.PUBLIC_BROADCAST_UUID)) {
+                    byte[] pbAnnouncement =
+                            listOfUuids.get(BassConstants.PUBLIC_BROADCAST_UUID);
+                    pbData = PublicBroadcastData.parsePublicBroadcastData(pbAnnouncement);
+                }
             }
+            // Check if broadcast name present in scan record and parse
+            // null if no name present
+            String broadcastName = checkAndParseBroadcastName(scanRecord);
+
             mService.updatePeriodicAdvertisementResultMap(
                     scanRes.getDevice(),
                     scanRes.getDevice().getAddressType(),
                     BassConstants.INVALID_SYNC_HANDLE,
                     BassConstants.INVALID_ADV_SID,
                     scanRes.getPeriodicAdvertisingInterval(),
-                    broadcastId);
+                    broadcastId,
+                    pbData,
+                    broadcastName);
         }
         return true;
     }
@@ -466,6 +507,19 @@ public class BassClientStateMachine extends StateMachine {
             log("broadcast ID: " + broadcastId);
             metaData.setBroadcastId(broadcastId);
             metaData.setSourceAdvertisingSid(result.getAdvSid());
+
+            PublicBroadcastData pbData = result.getPublicBroadcastData();
+            if (pbData != null) {
+                metaData.setPublicBroadcast(true);
+                metaData.setAudioConfigQuality(pbData.getAudioConfigQuality());
+                metaData.setPublicBroadcastMetadata(BluetoothLeAudioContentMetadata
+                        .fromRawBytes(pbData.getMetadata()));
+            }
+
+            String broadcastName = result.getBroadcastName();
+            if (broadcastName != null) {
+                metaData.setBroadcastName(broadcastName);
+            }
         }
         metaData.setEncrypted(encrypted);
         return metaData.build();
@@ -490,13 +544,16 @@ public class BassClientStateMachine extends StateMachine {
                             + ", status: " + status);
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         // updates syncHandle, advSid
+                        // set other fields as invalid or null
                         mService.updatePeriodicAdvertisementResultMap(
                                 device,
                                 BassConstants.INVALID_ADV_ADDRESS_TYPE,
                                 syncHandle,
                                 advertisingSid,
                                 BassConstants.INVALID_ADV_INTERVAL,
-                                BassConstants.INVALID_BROADCAST_ID);
+                                BassConstants.INVALID_BROADCAST_ID,
+                                null,
+                                null);
                         sendMessageDelayed(PSYNC_ACTIVE_TIMEOUT,
                                 BassConstants.PSYNC_ACTIVE_TIMEOUT_MS);
                         mService.setActiveSyncedSource(mDevice, device);

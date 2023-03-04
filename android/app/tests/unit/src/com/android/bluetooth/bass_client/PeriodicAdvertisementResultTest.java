@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothLeBroadcastMetadata;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
@@ -32,6 +33,7 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class PeriodicAdvertisementResultTest {
     private static final String REMOTE_DEVICE_ADDRESS = "00:01:02:03:04:05";
+    private static final String TEST_BROADCAST_NAME = "Test";
 
     BluetoothDevice mDevice;
 
@@ -47,14 +49,19 @@ public class PeriodicAdvertisementResultTest {
         int advSid = 3;
         int paInterval = 4;
         int broadcastId = 5;
+        PublicBroadcastData pbData = generatePublicBroadcastData();
+        String broadcastName = TEST_BROADCAST_NAME;
         PeriodicAdvertisementResult result = new PeriodicAdvertisementResult(
-                mDevice, addressType, syncHandle, advSid, paInterval, broadcastId);
+                mDevice, addressType, syncHandle, advSid, paInterval, broadcastId,
+                pbData, broadcastName);
 
         assertThat(result.getAddressType()).isEqualTo(addressType);
         assertThat(result.getSyncHandle()).isEqualTo(syncHandle);
         assertThat(result.getAdvSid()).isEqualTo(advSid);
         assertThat(result.getAdvInterval()).isEqualTo(paInterval);
         assertThat(result.getBroadcastId()).isEqualTo(broadcastId);
+        assertThat(result.getPublicBroadcastData()).isEqualTo(pbData);
+        assertThat(result.getBroadcastName()).isEqualTo(broadcastName);
     }
 
     @Test
@@ -64,8 +71,11 @@ public class PeriodicAdvertisementResultTest {
         int advSid = 3;
         int paInterval = 4;
         int broadcastId = 5;
+        PublicBroadcastData pbData = null;
+        String broadcastName = null;
         PeriodicAdvertisementResult result = new PeriodicAdvertisementResult(
-                mDevice, addressType, syncHandle, advSid, paInterval, broadcastId);
+                mDevice, addressType, syncHandle, advSid, paInterval, broadcastId,
+                pbData, broadcastName);
 
         int newAddressType = 6;
         result.updateAddressType(newAddressType);
@@ -86,6 +96,14 @@ public class PeriodicAdvertisementResultTest {
         int newBroadcastId = 10;
         result.updateBroadcastId(newBroadcastId);
         assertThat(result.getBroadcastId()).isEqualTo(newBroadcastId);
+
+        PublicBroadcastData newPbData = generatePublicBroadcastData();
+        result.updatePublicBroadcastData(newPbData);
+        assertThat(result.getPublicBroadcastData()).isEqualTo(newPbData);
+
+        String newBroadcastName = TEST_BROADCAST_NAME;
+        result.updateBroadcastName(newBroadcastName);
+        assertThat(result.getBroadcastName()).isEqualTo(newBroadcastName);
     }
 
     @Test
@@ -95,9 +113,27 @@ public class PeriodicAdvertisementResultTest {
         int advSid = 3;
         int paInterval = 4;
         int broadcastId = 5;
+        PublicBroadcastData pbData = generatePublicBroadcastData();
+        String broadcastName = TEST_BROADCAST_NAME;
         PeriodicAdvertisementResult result = new PeriodicAdvertisementResult(
-                mDevice, addressType, syncHandle, advSid, paInterval, broadcastId);
+                mDevice, addressType, syncHandle, advSid, paInterval, broadcastId,
+                pbData, broadcastName);
 
         result.print();
+    }
+
+    /**
+     * Helper to generate test data for public broadcast.
+     */
+    private PublicBroadcastData generatePublicBroadcastData() {
+        PublicBroadcastData.PublicBroadcastInfo info =
+                new PublicBroadcastData.PublicBroadcastInfo();
+        info.isEncrypted = true;
+        info.audioConfigQuality = (
+                BluetoothLeBroadcastMetadata.AUDIO_CONFIG_QUALITY_STANDARD |
+                BluetoothLeBroadcastMetadata.AUDIO_CONFIG_QUALITY_HIGH);
+        info.metaDataLength = 3;
+        info.metaData = new byte[] { 0x06, 0x07, 0x08 };
+        return new PublicBroadcastData(info);
     }
 }
