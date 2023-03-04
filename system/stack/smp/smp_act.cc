@@ -217,6 +217,8 @@ void smp_send_app_cback(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
           break;
 
         // Expected, but nothing to do
+        case SMP_NC_REQ_EVT:
+        case SMP_SC_OOB_REQ_EVT:
         case SMP_SC_LOC_OOB_DATA_UP_EVT:
         case SMP_LE_ADDR_ASSOC_EVT:
           break;
