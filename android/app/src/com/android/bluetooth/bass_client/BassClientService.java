@@ -120,13 +120,16 @@ public class BassClientService extends ProfileService {
             int syncHandle,
             int advSid,
             int advInterval,
-            int bId) {
+            int bId,
+            PublicBroadcastData pbData,
+            String broadcastName) {
         log("updatePeriodicAdvertisementResultMap: device: " + device);
         log("updatePeriodicAdvertisementResultMap: syncHandle: " + syncHandle);
         log("updatePeriodicAdvertisementResultMap: advSid: " + advSid);
         log("updatePeriodicAdvertisementResultMap: addressType: " + addressType);
         log("updatePeriodicAdvertisementResultMap: advInterval: " + advInterval);
         log("updatePeriodicAdvertisementResultMap: broadcastId: " + bId);
+        log("updatePeriodicAdvertisementResultMap: broadcastName: " + broadcastName);
         log("mDeviceToSyncHandleMap" + mDeviceToSyncHandleMap);
         log("mPeriodicAdvertisementResultMap" + mPeriodicAdvertisementResultMap);
         // Cache the SyncHandle
@@ -138,7 +141,7 @@ public class BassClientService extends ProfileService {
             if (paRes == null) {
                 log("PAResmap: add >>>");
                 paRes = new PeriodicAdvertisementResult(device,
-                        addressType, syncHandle, advSid, advInterval, bId);
+                        addressType, syncHandle, advSid, advInterval, bId, pbData, broadcastName);
                 if (paRes != null) {
                     paRes.print();
                     mPeriodicAdvertisementResultMap.put(device, paRes);
@@ -158,6 +161,12 @@ public class BassClientService extends ProfileService {
                 }
                 if (bId != BassConstants.INVALID_BROADCAST_ID) {
                     paRes.updateBroadcastId(bId);
+                }
+                if (pbData != null) {
+                    paRes.updatePublicBroadcastData(pbData);
+                }
+                if (broadcastName != null) {
+                    paRes.updateBroadcastName(broadcastName);
                 }
                 log("PAResmap: update >>>");
                 paRes.print();
