@@ -52,7 +52,10 @@ public final class BluetoothUtils {
      */
     public static final UserHandle USER_HANDLE_NULL = UserHandle.of(-10000);
 
-    static class TypeValueEntry {
+    /**
+     * Class for Length-Value-Entry array parsing
+     */
+    public static class TypeValueEntry {
         private final int mType;
         private final byte[] mValue;
 
