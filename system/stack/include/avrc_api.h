@@ -236,6 +236,16 @@ typedef struct {
 /*****************************************************************************
  *  external function declarations
  ****************************************************************************/
+/******************************************************************************
+ *
+ * Function         avrcp_absolute_volume_is_enabled
+ *
+ * Description      Check if config support advance control (absolute volume)
+ *
+ * Returns          return true if absolute_volume is enabled
+ *
+ *****************************************************************************/
+bool avrcp_absolute_volume_is_enabled();
 
 /******************************************************************************
  *

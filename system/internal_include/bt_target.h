@@ -974,10 +974,6 @@
  *
  *****************************************************************************/
 
-#ifndef AVRC_ADV_CTRL_INCLUDED
-#define AVRC_ADV_CTRL_INCLUDED TRUE
-#endif
-
 #ifndef DUMP_PCM_DATA
 #define DUMP_PCM_DATA FALSE
 #endif
