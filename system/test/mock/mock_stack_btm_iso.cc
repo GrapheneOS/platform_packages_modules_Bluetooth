@@ -14,6 +14,8 @@ IsoManager::IsoManager() {}
 IsoManager::~IsoManager() {}
 void IsoManager::RegisterCigCallbacks(CigCallbacks* callbacks) const {}
 void IsoManager::RegisterBigCallbacks(BigCallbacks* callbacks) const {}
+void IsoManager::RegisterOnIsoTrafficActiveCallback(
+    void callbacks(bool)) const {}
 void IsoManager::CreateCig(uint8_t cig_id,
                            struct iso_manager::cig_create_params cig_params) {}
 void IsoManager::ReconfigureCig(
