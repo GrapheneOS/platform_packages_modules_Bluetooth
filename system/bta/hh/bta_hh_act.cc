@@ -159,13 +159,12 @@ void bta_hh_api_disable(void) {
  ******************************************************************************/
 void bta_hh_disc_cmpl(void) {
   LOG_DEBUG("Disconnect complete");
-
-  HID_HostDeregister();
-  bta_hh_le_deregister();
   tBTA_HH_STATUS status = BTA_HH_OK;
 
   /* Deregister with lower layer */
   if (HID_HostDeregister() != HID_SUCCESS) status = BTA_HH_ERR;
+
+  bta_hh_le_deregister();
 
   bta_hh_cleanup_disable(status);
 }
