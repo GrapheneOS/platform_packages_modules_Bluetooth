@@ -1,9 +1,10 @@
 ///! Rule group for tracking connection related issues.
 use chrono::NaiveDateTime;
 use std::collections::{HashMap, VecDeque};
+use std::convert::Into;
 use std::io::Write;
 
-use crate::engine::{Rule, RuleGroup};
+use crate::engine::{Rule, RuleGroup, Signal};
 use crate::parser::{Packet, PacketChild};
 use bt_packets::custom_types::Address;
 use bt_packets::hci::{
@@ -12,6 +13,20 @@ use bt_packets::hci::{
     LeConnectionManagementCommandChild, LeMetaEventChild, NumberOfCompletedPacketsPacket, OpCode,
     ScoConnectionCommandChild, SubeventCode,
 };
+
+enum ConnectionSignal {
+    NocpTimeout,
+    NocpDisconnect,
+}
+
+impl Into<&'static str> for ConnectionSignal {
+    fn into(self) -> &'static str {
+        match self {
+            ConnectionSignal::NocpTimeout => "Nocp",
+            ConnectionSignal::NocpDisconnect => "Nocp",
+        }
+    }
+}
 
 /// Valid values are in the range 0x0000-0x0EFF.
 pub type ConnectionHandle = u16;
@@ -60,6 +75,9 @@ struct OddDisconnectionsRule {
     /// identify bursts.
     nocp_by_handle: HashMap<ConnectionHandle, NocpData>,
 
+    /// Pre-defined signals discovered in the logs.
+    signals: Vec<Signal>,
+
     /// Interesting occurrences surfaced by this rule.
     reportable: Vec<(NaiveDateTime, String)>,
 }
@@ -76,6 +94,7 @@ impl OddDisconnectionsRule {
             sco_connection_attempt: HashMap::new(),
             last_sco_connection_attempt: None,
             nocp_by_handle: HashMap::new(),
+            signals: vec![],
             reportable: vec![],
         }
     }
@@ -285,6 +304,12 @@ impl OddDisconnectionsRule {
                         match self.nocp_by_handle.get_mut(&handle) {
                             Some(nocp_data) => {
                                 if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
+                                    self.signals.push(Signal {
+                                        index: packet.index,
+                                        ts: packet.ts.clone(),
+                                        tag: ConnectionSignal::NocpDisconnect.into(),
+                                    });
+
                                     self.reportable.push((
                                                 packet.ts,
                                                 format!("DisconnectionComplete for handle({}) showed incomplete in-flight ACL at {}",
@@ -411,6 +436,11 @@ impl OddDisconnectionsRule {
                 if let Some(acl_front_ts) = nocp_data.inflight_acl_ts.pop_front() {
                     let duration_since_acl = ts.signed_duration_since(acl_front_ts);
                     if duration_since_acl.num_milliseconds() > NOCP_CORRELATION_TIME_MS {
+                        self.signals.push(Signal {
+                            index: packet.index,
+                            ts: packet.ts.clone(),
+                            tag: ConnectionSignal::NocpTimeout.into(),
+                        });
                         self.reportable.push((
                             packet.ts,
                             format!(
@@ -501,6 +531,10 @@ impl Rule for OddDisconnectionsRule {
                 let _ = writeln!(writer, "[{:?}] {}", ts, message);
             }
         }
+    }
+
+    fn report_signals(&self) -> &[Signal] {
+        self.signals.as_slice()
     }
 }
 
