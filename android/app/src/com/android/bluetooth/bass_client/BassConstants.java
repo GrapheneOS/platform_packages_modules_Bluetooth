@@ -37,6 +37,8 @@ public class BassConstants {
             UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
     public static final ParcelUuid BASIC_AUDIO_UUID =
             ParcelUuid.fromString("00001851-0000-1000-8000-00805F9B34FB");
+    public static final ParcelUuid PUBLIC_BROADCAST_UUID =
+            ParcelUuid.fromString("00001856-0000-1000-8000-00805F9B34FB");
 
     public static final int INVALID_SYNC_HANDLE = -1;
     public static final int INVALID_ADV_SID = -1;
@@ -71,4 +73,8 @@ public class BassConstants {
     public static final int PSYNC_TIMEOUT = 200;
     public static final int PIN_CODE_CMD_LEN = 18;
     public static final int CONNECT_TIMEOUT_MS = 30000;
+    // broadcast name AD type and length
+    public static final int BCAST_NAME_AD_TYPE = 0x30;
+    public static final int BCAST_NAME_LEN_MIN = 4;
+    public static final int BCAST_NAME_LEN_MAX = 32;
 }
