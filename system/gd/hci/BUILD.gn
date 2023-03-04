@@ -31,6 +31,7 @@ source_set("BluetoothHciSources") {
     "le_address_manager.cc",
     "le_advertising_manager.cc",
     "le_scanning_manager.cc",
+    "le_scanning_reassembler.cc",
     "link_key.cc",
     "msft.cc",
     "remote_name_request.cc",
