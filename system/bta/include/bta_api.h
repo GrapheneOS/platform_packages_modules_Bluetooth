@@ -79,8 +79,6 @@ inline std::string bta_status_text(const tBTA_STATUS& status) {
 
 #undef CASE_RETURN_TEXT
 
-using tSDP_DISC_WAIT = int;
-
 /*
  * Service ID
  */
