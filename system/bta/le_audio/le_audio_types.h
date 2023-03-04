@@ -733,13 +733,14 @@ struct CodecCapabilitySetting {
 };
 
 struct QosConfigSetting {
+  uint8_t target_latency;
   uint8_t retransmission_number;
   uint16_t max_transport_latency;
 };
 
 struct SetConfiguration {
   SetConfiguration(uint8_t direction, uint8_t device_cnt, uint8_t ase_cnt,
-                   uint8_t target_latency, CodecCapabilitySetting codec,
+                   CodecCapabilitySetting codec,
                    QosConfigSetting qos = {.retransmission_number = 0,
                                            .max_transport_latency = 0},
                    le_audio::types::LeAudioConfigurationStrategy strategy =
@@ -748,7 +749,6 @@ struct SetConfiguration {
       : direction(direction),
         device_cnt(device_cnt),
         ase_cnt(ase_cnt),
-        target_latency(target_latency),
         codec(codec),
         qos(qos),
         strategy(strategy) {}
@@ -756,7 +756,6 @@ struct SetConfiguration {
   uint8_t direction;  /* Direction of set */
   uint8_t device_cnt; /* How many devices must be in set */
   uint8_t ase_cnt;    /* How many ASE we need in configuration */
-  uint8_t target_latency;
   CodecCapabilitySetting codec;
   QosConfigSetting qos;
   types::LeAudioConfigurationStrategy strategy;
