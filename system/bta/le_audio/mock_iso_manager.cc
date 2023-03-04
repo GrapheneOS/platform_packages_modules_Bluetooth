@@ -46,6 +46,11 @@ void IsoManager::RegisterBigCallbacks(
   pimpl_->RegisterBigCallbacks(callbacks);
 }
 
+void IsoManager::RegisterOnIsoTrafficActiveCallback(void callback(bool)) const {
+  if (!pimpl_) return;
+  pimpl_->RegisterOnIsoTrafficActiveCallbacks(callback);
+}
+
 void IsoManager::CreateCig(uint8_t cig_id,
                            struct iso_manager::cig_create_params cig_params) {
   if (!pimpl_) return;
