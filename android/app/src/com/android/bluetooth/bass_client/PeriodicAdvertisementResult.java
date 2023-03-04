@@ -32,13 +32,17 @@ public class PeriodicAdvertisementResult {
     private int mPAInterval;
     private int mBroadcastId;
     private boolean mIsNotified;
+    private PublicBroadcastData mPbData;
+    private String mBroadcastName;
 
     PeriodicAdvertisementResult(BluetoothDevice device,
                                 int addressType,
                                 int syncHandle,
                                 int advSid,
                                 int paInterval,
-                                int broadcastId) {
+                                int broadcastId,
+                                PublicBroadcastData pbData,
+                                String broadcastName) {
         mDevice = device;
         mAddressType = addressType;
         mAdvSid = advSid;
@@ -46,6 +50,8 @@ public class PeriodicAdvertisementResult {
         mPAInterval = paInterval;
         mBroadcastId = broadcastId;
         mIsNotified = false;
+        mPbData = pbData;
+        mBroadcastName = broadcastName;
     }
 
     /**
@@ -134,6 +140,34 @@ public class PeriodicAdvertisementResult {
     }
 
     /**
+     * Update public broadcast data
+     */
+    public void updatePublicBroadcastData(PublicBroadcastData pbData) {
+        mPbData = pbData;
+    }
+
+    /**
+     * Get public broadcast data
+     */
+    public PublicBroadcastData getPublicBroadcastData() {
+        return mPbData;
+    }
+
+    /**
+     * Update broadcast name
+     */
+    public void updateBroadcastName(String broadcastName) {
+        mBroadcastName = broadcastName;
+    }
+
+    /**
+     * Get broadcast name
+     */
+    public String getBroadcastName() {
+        return mBroadcastName;
+    }
+
+    /**
      * print
      */
     public void print() {
@@ -145,7 +179,13 @@ public class PeriodicAdvertisementResult {
         log("mPAInterval:" + mPAInterval);
         log("mBroadcastId:" + mBroadcastId);
         log("mIsNotified: " + mIsNotified);
+        log("mBroadcastName: " + mBroadcastName);
         log("-- END: PeriodicAdvertisementResult --");
+        if (mPbData != null) {
+            mPbData.print();
+        } else {
+            log("no public announcement present");
+        }
     }
 
     static void log(String msg) {
