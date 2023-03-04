@@ -153,6 +153,12 @@ public class MediaPlayerList {
                 mMediaSessionManager.getActiveSessions(null);
 
         for (android.media.session.MediaController controller : controllers) {
+            if ((controller.getFlags() & MediaSession.FLAG_EXCLUSIVE_GLOBAL_PRIORITY) != 0) {
+                // GLOBAL_PRIORITY session is created by Telecom to handle call control key events
+                // but Bluetooth Headset profile handles the key events for calls so we don't have
+                // to handle these sessions in AVRCP.
+                continue;
+            }
             addMediaPlayer(controller);
         }
 
@@ -665,7 +671,7 @@ public class MediaPlayerList {
 
     private void sendMediaUpdate(MediaData data) {
         d("sendMediaUpdate");
-        if (mCallback == null) {
+        if (mCallback == null || data == null) {
             return;
         }
 
@@ -680,7 +686,8 @@ public class MediaPlayerList {
         mCallback.run(data);
     }
 
-    private final MediaSessionManager.OnActiveSessionsChangedListener
+    @VisibleForTesting
+    final MediaSessionManager.OnActiveSessionsChangedListener
             mActiveSessionsChangedListener =
             new MediaSessionManager.OnActiveSessionsChangedListener() {
         @Override
@@ -699,6 +706,13 @@ public class MediaPlayerList {
                 HashSet<String> addedPackages = new HashSet<String>();
 
                 for (int i = 0; i < newControllers.size(); i++) {
+                    if ((newControllers.get(i).getFlags()
+                            & MediaSession.FLAG_EXCLUSIVE_GLOBAL_PRIORITY) != 0) {
+                        Log.d(TAG, "onActiveSessionsChanged: controller: "
+                                + newControllers.get(i).getPackageName()
+                                + " ignored due to global priority flag");
+                        continue;
+                    }
                     Log.d(TAG, "onActiveSessionsChanged: controller: "
                             + newControllers.get(i).getPackageName());
                     if (addedPackages.contains(newControllers.get(i).getPackageName())) {
@@ -845,7 +859,8 @@ public class MediaPlayerList {
         }
     };
 
-    private final MediaSessionManager.OnMediaKeyEventSessionChangedListener
+    @VisibleForTesting
+    final MediaSessionManager.OnMediaKeyEventSessionChangedListener
             mMediaKeyEventSessionChangedListener =
             new MediaSessionManager.OnMediaKeyEventSessionChangedListener() {
                 @Override
@@ -862,6 +877,13 @@ public class MediaPlayerList {
                     if (token != null) {
                         android.media.session.MediaController controller =
                                 new android.media.session.MediaController(mContext, token);
+                        if ((controller.getFlags() & MediaSession.FLAG_EXCLUSIVE_GLOBAL_PRIORITY)
+                                != 0) {
+                            // Skip adding controller for GLOBAL_PRIORITY session.
+                            Log.i(TAG, "onMediaKeyEventSessionChanged,"
+                                    + " ignoring global priority session");
+                            return;
+                        }
                         if (!haveMediaPlayer(controller.getPackageName())) {
                             // Since we have a controller, we can try to to recover by adding the
                             // player and then setting it as active.
