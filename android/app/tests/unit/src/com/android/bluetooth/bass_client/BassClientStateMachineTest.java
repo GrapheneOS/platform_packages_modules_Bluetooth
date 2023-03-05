@@ -46,6 +46,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doNothing;
@@ -111,6 +112,7 @@ public class BassClientStateMachineTest {
     private static final int CONNECTION_TIMEOUT_MS = 1_000;
     private static final int TIMEOUT_MS = 2_000;
     private static final int WAIT_MS = 1_200;
+    private static final String TEST_BROADCAST_NAME = "Test";
     private BluetoothAdapter mAdapter;
     private HandlerThread mHandlerThread;
     private StubBassClientStateMachine mBassClientStateMachine;
@@ -1048,7 +1050,11 @@ public class BassClientStateMachineTest {
                 0x05, 0x02, 0x52, 0x18, 0x0a, 0x11, // 16 bit service uuids
                 0x04, 0x09, 0x50, 0x65, 0x64, // name
                 0x02, 0x0A, (byte) 0xec, // tx power level
+                0x05, 0x30, 0x54, 0x65, 0x73, 0x74, // broadcast name: Test
                 0x06, 0x16, 0x52, 0x18, 0x50, 0x64, 0x65, // service data
+                0x08, 0x16, 0x56, 0x18, 0x07, 0x03, 0x06, 0x07, 0x08,
+                // service data - public broadcast,
+                // feature - 0x7, metadata len - 0x3, metadata - 0x6, 0x7, 0x8
                 0x05, (byte) 0xff, (byte) 0xe0, 0x00, 0x02, 0x15, // manufacturer specific data
                 0x03, 0x50, 0x01, 0x02, // an unknown data type won't cause trouble
         };
@@ -1061,7 +1067,8 @@ public class BassClientStateMachineTest {
                 SELECT_BCAST_SOURCE, BassConstants.AUTO, 0, scanResult);
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         verify(mBassClientService).updatePeriodicAdvertisementResultMap(
-                any(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt());
+                any(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
+                any(), eq(TEST_BROADCAST_NAME));
     }
 
     @Test

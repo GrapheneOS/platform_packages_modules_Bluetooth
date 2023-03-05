@@ -20,7 +20,9 @@ package com.android.bluetooth.btservice;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 
+import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
+import android.app.BroadcastOptions;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAdapter;
@@ -45,6 +47,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.os.SystemProperties;
 import android.os.UserHandle;
@@ -56,6 +59,7 @@ import androidx.annotation.VisibleForTesting;
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
+import com.android.modules.utils.build.SdkLevel;
 
 import com.google.common.collect.EvictingQueue;
 
@@ -1182,7 +1186,7 @@ class AdapterProperties {
                 mDiscoveryEndMs = System.currentTimeMillis();
                 intent = new Intent(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
                 Utils.sendBroadcast(mService, intent, BLUETOOTH_SCAN,
-                        Utils.getTempAllowlistBroadcastOptions());
+                        getBroadcastOptionsForDiscoveryFinished());
             } else if (state == AbstractionLayer.BT_DISCOVERY_STARTED) {
                 mDiscovering = true;
                 mDiscoveryEndMs = System.currentTimeMillis() + DEFAULT_DISCOVERY_TIMEOUT_MS;
@@ -1191,6 +1195,18 @@ class AdapterProperties {
                         Utils.getTempAllowlistBroadcastOptions());
             }
         }
+    }
+
+    /**
+     * @return broadcast options for ACTION_DISCOVERY_FINISHED broadcast
+     */
+    private static @NonNull Bundle getBroadcastOptionsForDiscoveryFinished() {
+        final BroadcastOptions options = Utils.getTempBroadcastOptions();
+        if (SdkLevel.isAtLeastU()) {
+            options.setDeliveryGroupPolicy(BroadcastOptions.DELIVERY_GROUP_POLICY_MOST_RECENT);
+            options.setDeferUntilActive(true);
+        }
+        return options.toBundle();
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
