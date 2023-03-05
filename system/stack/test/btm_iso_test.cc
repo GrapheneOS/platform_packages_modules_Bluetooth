@@ -43,6 +43,9 @@ using testing::Test;
 // Iso Manager currently works on top of the legacy HCI layer
 bool bluetooth::shim::is_gd_shim_enabled() { return false; }
 
+// for function pointer testing purpose
+bool IsIsoActive = false;
+
 tBTM_SEC_DEV_REC* btm_find_dev_by_handle(uint16_t handle) { return nullptr; }
 void BTM_LogHistory(const std::string& tag, const RawAddress& bd_addr,
                     const std::string& msg, const std::string& extra) {}
@@ -124,6 +127,7 @@ class IsoManagerTest : public Test {
 
     big_callbacks_.reset(new MockBigCallbacks());
     cig_callbacks_.reset(new MockCigCallbacks());
+    IsIsoActive = false;
 
     EXPECT_CALL(controller_interface_, GetIsoBufferCount())
         .Times(AtLeast(1))
@@ -151,6 +155,7 @@ class IsoManagerTest : public Test {
     manager_instance_->Start();
     manager_instance_->RegisterCigCallbacks(cig_callbacks_.get());
     manager_instance_->RegisterBigCallbacks(big_callbacks_.get());
+    manager_instance_->RegisterOnIsoTrafficActiveCallback(iso_active_callback);
 
     // Default mock SetCigParams action
     volatile_test_cig_create_cmpl_evt_ = kDefaultCigParamsEvt;
@@ -320,6 +325,7 @@ class IsoManagerTest : public Test {
 
   std::unique_ptr<MockBigCallbacks> big_callbacks_;
   std::unique_ptr<MockCigCallbacks> cig_callbacks_;
+  void (*iso_active_callback)(bool) = [](bool active) { IsIsoActive = active; };
 };
 
 const bluetooth::hci::iso_manager::cig_create_cmpl_evt
@@ -505,6 +511,7 @@ TEST_F(IsoManagerTest, RegisterCallbacks) {
 
   iso_mgr->RegisterBigCallbacks(big_callbacks_.get());
   iso_mgr->RegisterCigCallbacks(cig_callbacks_.get());
+  iso_mgr->RegisterOnIsoTrafficActiveCallback(iso_active_callback);
 }
 
 TEST_F(IsoManagerDeathTestNoInit, RegisterNullBigCallbacks) {
@@ -859,8 +866,10 @@ TEST_F(IsoManagerTest, RemoveCigValid) {
   uint8_t hci_mock_rsp_buffer[] = {HCI_SUCCESS,
                                    volatile_test_cig_create_cmpl_evt_.cig_id};
 
+  ASSERT_EQ(IsIsoActive, false);
   IsoManager::GetInstance()->CreateCig(
       volatile_test_cig_create_cmpl_evt_.cig_id, kDefaultCigParams);
+  ASSERT_EQ(IsIsoActive, true);
 
   ON_CALL(hcic_interface_, RemoveCig)
       .WillByDefault(
@@ -884,6 +893,7 @@ TEST_F(IsoManagerTest, RemoveCigValid) {
       volatile_test_cig_create_cmpl_evt_.cig_id);
   ASSERT_EQ(evt.cig_id, volatile_test_cig_create_cmpl_evt_.cig_id);
   ASSERT_EQ(evt.status, HCI_SUCCESS);
+  ASSERT_EQ(IsIsoActive, false);
 }
 
 TEST_F(IsoManagerTest, EstablishCisHciCall) {
@@ -1498,8 +1508,10 @@ TEST_F(IsoManagerTest, TerminateBigValid) {
   const uint8_t big_id = 0x22;
   const uint8_t reason = 0x16;  // Terminated by local host
   bluetooth::hci::iso_manager::big_terminate_cmpl_evt evt;
+  ASSERT_EQ(IsIsoActive, false);
 
   IsoManager::GetInstance()->CreateBig(big_id, kDefaultBigParams);
+  ASSERT_EQ(IsIsoActive, true);
 
   EXPECT_CALL(
       *big_callbacks_,
@@ -1514,6 +1526,7 @@ TEST_F(IsoManagerTest, TerminateBigValid) {
   IsoManager::GetInstance()->TerminateBig(big_id, reason);
   ASSERT_EQ(evt.big_id, big_id);
   ASSERT_EQ(evt.reason, reason);
+  ASSERT_EQ(IsIsoActive, false);
 }
 
 TEST_F(IsoManagerTest, SetupIsoDataPathValid) {

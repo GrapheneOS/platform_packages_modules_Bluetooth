@@ -20,10 +20,10 @@ import asyncio
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 
-from pandora.security_grpc import Security, PairingEventAnswer
-from pandora.security_pb2 import LESecurityLevel
+from pandora.security_grpc import Security
+from pandora.security_pb2 import LE_LEVEL3, PairingEventAnswer
 from pandora.host_grpc import Host
-from pandora.host_pb2 import ConnectabilityMode, OwnAddressType
+from pandora.host_pb2 import PUBLIC, RANDOM
 
 
 def debug(*args, **kwargs):
@@ -46,7 +46,7 @@ class SMProxy(ProfileProxy):
         """
         Initiate an connection from the IUT to the PTS.
         """
-        self.connection = self.host.ConnectLE(own_address_type=OwnAddressType.RANDOM, public=pts_addr).connection
+        self.connection = self.host.ConnectLE(own_address_type=RANDOM, public=pts_addr).connection
         return "OK"
 
     @assert_description
@@ -56,7 +56,7 @@ class SMProxy(ProfileProxy):
         """
         def secure():
             if self.connection:
-                self.security.Secure(connection=self.connection, le=LESecurityLevel.LE_LEVEL3)
+                self.security.Secure(connection=self.connection, le=LE_LEVEL3)
         Thread(target=secure).start()
         return "OK"
 
@@ -94,7 +94,7 @@ class SMProxy(ProfileProxy):
         """
         self.advertise = self.host.Advertise(
             connectable=True,
-            own_address_type=OwnAddressType.PUBLIC,
+            own_address_type=PUBLIC,
         )
         return "OK"
 

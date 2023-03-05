@@ -42,14 +42,12 @@ StopWatchLegacy::StopWatchLegacy(std::string text)
     : text_(std::move(text)),
       timestamp_(std::chrono::system_clock::now()),
       start_timestamp_(std::chrono::high_resolution_clock::now()) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
-StopWatchLegacy::~StopWatchLegacy() { mock_function_count_map[__func__]++; }
-void StopWatchLegacy::DumpStopWatchLog() {
-  mock_function_count_map[__func__]++;
-}
+StopWatchLegacy::~StopWatchLegacy() { inc_func_call_count(__func__); }
+void StopWatchLegacy::DumpStopWatchLog() { inc_func_call_count(__func__); }
 void StopWatchLegacy::RecordLog(StopWatchLog log) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 }  // namespace common
