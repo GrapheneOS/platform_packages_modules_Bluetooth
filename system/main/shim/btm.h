@@ -147,9 +147,9 @@ class Btm {
 
   // Remote device name API
   BtmStatus ReadClassicRemoteDeviceName(const RawAddress& raw_address,
-                                        tBTM_CMPL_CB* callback);
+                                        tBTM_NAME_CMPL_CB* callback);
   BtmStatus ReadLeRemoteDeviceName(const RawAddress& raw_address,
-                                   tBTM_CMPL_CB* callback);
+                                   tBTM_NAME_CMPL_CB* callback);
   BtmStatus CancelAllReadRemoteDeviceName();
 
   // Le neighbor interaction API
