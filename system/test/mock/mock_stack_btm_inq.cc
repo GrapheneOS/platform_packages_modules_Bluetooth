@@ -86,7 +86,7 @@ tBTM_STATUS BTM_ClearInqDb(const RawAddress* p_bda) {
   return BTM_SUCCESS;
 }
 tBTM_STATUS BTM_ReadRemoteDeviceName(const RawAddress& remote_bda,
-                                     tBTM_CMPL_CB* p_cb,
+                                     tBTM_NAME_CMPL_CB* p_cb,
                                      tBT_TRANSPORT transport) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;

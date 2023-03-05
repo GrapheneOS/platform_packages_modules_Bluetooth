@@ -171,7 +171,7 @@ tBTM_STATUS bluetooth::shim::BTM_ClearInqDb(const RawAddress* p_bda) {
   return BTM_SUCCESS;
 }
 tBTM_STATUS bluetooth::shim::BTM_ReadRemoteDeviceName(
-    const RawAddress& raw_address, tBTM_CMPL_CB* callback,
+    const RawAddress& raw_address, tBTM_NAME_CMPL_CB* callback,
     tBT_TRANSPORT transport) {
   inc_func_call_count(__func__);
   return BTM_SUCCESS;

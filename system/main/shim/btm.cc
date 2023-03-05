@@ -481,13 +481,13 @@ bool Btm::UseLeLink(const RawAddress& raw_address) const {
 }
 
 BtmStatus Btm::ReadClassicRemoteDeviceName(const RawAddress& raw_address,
-                                           tBTM_CMPL_CB* callback) {
+                                           tBTM_NAME_CMPL_CB* callback) {
   LOG_ALWAYS_FATAL("unreachable");
   return BTM_UNDEFINED;
 }
 
 BtmStatus Btm::ReadLeRemoteDeviceName(const RawAddress& raw_address,
-                                      tBTM_CMPL_CB* callback) {
+                                      tBTM_NAME_CMPL_CB* callback) {
   if (!CheckLeAclLink(raw_address)) {
     return BTM_UNKNOWN_ADDR;
   }
