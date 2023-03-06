@@ -131,6 +131,9 @@ struct hash<ConnectAddressWithType> {
 
 namespace {
 
+constexpr uint32_t kRunicBjarkan = 0x0016D2;
+constexpr uint32_t kRunicHagall = 0x0016BC;
+
 using HciHandle = uint16_t;
 using PageNumber = uint8_t;
 
@@ -1316,8 +1319,33 @@ void DumpsysRecord(int fd) {
 }
 #undef DUMPSYS_TAG
 
+#define DUMPSYS_TAG "shim::legacy::stack"
+void DumpsysNeighbor(int fd) {
+  LOG_DUMPSYS(fd, "Stack information %lc%lc", kRunicBjarkan, kRunicHagall);
+  if (btm_cb.neighbor.classic_inquiry.start_time_ms == 0) {
+    LOG_DUMPSYS(fd, "Classic inquiry:disabled");
+  } else {
+    LOG_DUMPSYS(fd, "Classic inquiry:enabled duration_s:%.3f results:%lu",
+                (timestamper_in_milliseconds.GetTimestamp() -
+                 btm_cb.neighbor.classic_inquiry.start_time_ms) /
+                    1000.0,
+                btm_cb.neighbor.classic_inquiry.results);
+  }
+  if (btm_cb.neighbor.le_scan.start_time_ms == 0) {
+    LOG_DUMPSYS(fd, "Le scan:disabled");
+  } else {
+    LOG_DUMPSYS(fd, "Le scan:enabled duration_s:%.3f results:%lu",
+                (timestamper_in_milliseconds.GetTimestamp() -
+                 btm_cb.neighbor.le_scan.start_time_ms) /
+                    1000.0,
+                btm_cb.neighbor.le_scan.results);
+  }
+}
+#undef DUMPSYS_TAG
+
 void shim::legacy::Acl::Dump(int fd) const {
   DumpsysRecord(fd);
+  DumpsysNeighbor(fd);
   DumpsysAcl(fd);
   DumpsysL2cap(fd);
   DumpsysBtm(fd);
