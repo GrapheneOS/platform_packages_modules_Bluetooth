@@ -45,6 +45,9 @@
 #include "btif/include/stack_manager.h"
 #include "btif_api.h"
 #include "btif_config.h"
+#include "btif_hd.h"
+#include "btif_hh.h"
+#include "btif_storage.h"
 #include "btif_util.h"
 #include "core_callbacks.h"
 #include "device/include/controller.h"
@@ -226,7 +229,11 @@ static int prop2cfg(const RawAddress* remote_bd_addr, bt_property_t* prop) {
                           info->product_id);
       btif_config_set_int(bdstr, BTIF_STORAGE_PATH_VERSION, info->version);
     } break;
-
+    case BT_PROPERTY_REMOTE_MODEL_NUM: {
+      strncpy(value, (char*)prop->val, prop->len);
+      value[prop->len] = '\0';
+      btif_config_set_str(bdstr, BT_CONFIG_KEY_DIS_MODEL_NUM, value);
+    } break;
     default:
       BTIF_TRACE_ERROR("Unknown prop type:%d", prop->type);
       return false;
@@ -383,6 +390,18 @@ static int cfg2prop(const RawAddress* remote_bd_addr, bt_property_t* prop) {
           ret = btif_config_get_int(bdstr, BTIF_STORAGE_PATH_VERSION, &val);
           info->version = (uint16_t)val;
         }
+      }
+    } break;
+
+    case BT_PROPERTY_REMOTE_MODEL_NUM: {
+      int len = prop->len;
+      ret = btif_config_get_str(bdstr, BT_CONFIG_KEY_DIS_MODEL_NUM,
+                                (char*)prop->val, &len);
+      if (ret && len && len <= prop->len)
+        prop->len = len - 1;
+      else {
+        prop->len = 0;
+        ret = false;
       }
     } break;
 
@@ -1032,9 +1051,9 @@ bt_status_t btif_storage_load_bonded_devices(void) {
   uint32_t i = 0;
   bt_property_t adapter_props[6];
   uint32_t num_props = 0;
-  bt_property_t remote_properties[9];
+  bt_property_t remote_properties[10];
   RawAddress addr;
-  bt_bdname_t name, alias;
+  bt_bdname_t name, alias, model_name;
   bt_scan_mode_t mode;
   uint32_t disc_timeout;
   Uuid local_uuids[BT_MAX_NUM_UUIDS];
@@ -1162,6 +1181,11 @@ bt_status_t btif_storage_load_bonded_devices(void) {
         num_props++;
       }
 #endif
+
+      btif_storage_get_remote_prop(p_remote_addr, BT_PROPERTY_REMOTE_MODEL_NUM,
+                                   &model_name, sizeof(model_name),
+                                   &remote_properties[num_props]);
+      num_props++;
 
       btif_remote_properties_evt(BT_STATUS_SUCCESS, p_remote_addr, num_props,
                                  remote_properties);

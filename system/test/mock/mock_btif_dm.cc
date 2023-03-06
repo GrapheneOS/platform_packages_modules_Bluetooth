@@ -52,6 +52,10 @@ bool check_cod_hid(const RawAddress& remote_bdaddr) {
   inc_func_call_count(__func__);
   return false;
 }
+bool is_device_le_audio_capable(const RawAddress bd_addr) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
 uint16_t btif_dm_get_connection_state(const RawAddress* bd_addr) {
   inc_func_call_count(__func__);
   return 0;
