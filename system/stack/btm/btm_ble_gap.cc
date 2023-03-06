@@ -2137,7 +2137,7 @@ void btm_ble_read_remote_name_cmpl(bool status, const RawAddress& bda,
  *
  ******************************************************************************/
 tBTM_STATUS btm_ble_read_remote_name(const RawAddress& remote_bda,
-                                     tBTM_CMPL_CB* p_cb) {
+                                     tBTM_NAME_CMPL_CB* p_cb) {
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
   if (!controller_get_interface()->supports_ble()) return BTM_ERR_PROCESSING;
