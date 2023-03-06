@@ -74,7 +74,7 @@ extern tBTM_CB btm_cb;
 
 extern void btm_inq_remote_name_timer_timeout(void* data);
 extern tBTM_STATUS btm_ble_read_remote_name(const RawAddress& remote_bda,
-                                            tBTM_CMPL_CB* p_cb);
+                                            tBTM_NAME_CMPL_CB* p_cb);
 extern bool btm_ble_cancel_remote_name(const RawAddress& remote_bda);
 extern tBTM_STATUS btm_ble_set_discoverability(uint16_t combined_mode);
 extern tBTM_STATUS btm_ble_set_connectability(uint16_t combined_mode);
@@ -182,7 +182,7 @@ void btm_clr_inq_result_flt(void);
 static void btm_inq_rmt_name_failed_cancelled(void);
 static tBTM_STATUS btm_initiate_rem_name(const RawAddress& remote_bda,
                                          uint8_t origin, uint64_t timeout_ms,
-                                         tBTM_CMPL_CB* p_cb);
+                                         tBTM_NAME_CMPL_CB* p_cb);
 
 static uint8_t btm_convert_uuid_to_eir_service(uint16_t uuid16);
 void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
@@ -662,7 +662,7 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
  *
  ******************************************************************************/
 tBTM_STATUS BTM_ReadRemoteDeviceName(const RawAddress& remote_bda,
-                                     tBTM_CMPL_CB* p_cb,
+                                     tBTM_NAME_CMPL_CB* p_cb,
                                      tBT_TRANSPORT transport) {
   if (bluetooth::shim::is_gd_shim_enabled()) {
     return bluetooth::shim::BTM_ReadRemoteDeviceName(remote_bda, p_cb,
@@ -1446,7 +1446,8 @@ void btm_process_cancel_complete(tHCI_STATUS status, uint8_t mode) {
  *
  ******************************************************************************/
 tBTM_STATUS btm_initiate_rem_name(const RawAddress& remote_bda, uint8_t origin,
-                                  uint64_t timeout_ms, tBTM_CMPL_CB* p_cb) {
+                                  uint64_t timeout_ms,
+                                  tBTM_NAME_CMPL_CB* p_cb) {
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
   /*** Make sure the device is ready ***/
@@ -1500,7 +1501,7 @@ void btm_process_remote_name(const RawAddress* bda, const BD_NAME bdn,
                              uint16_t evt_len, tHCI_STATUS hci_status) {
   tBTM_REMOTE_DEV_NAME rem_name;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-  tBTM_CMPL_CB* p_cb = p_inq->p_remname_cmpl_cb;
+  tBTM_NAME_CMPL_CB* p_cb = p_inq->p_remname_cmpl_cb;
   uint8_t* p_n1;
 
   uint16_t temp_evt_len;
