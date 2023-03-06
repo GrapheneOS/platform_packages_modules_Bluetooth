@@ -1376,6 +1376,13 @@ public class AdapterService extends Service {
             android.Manifest.permission.MODIFY_PHONE_STATE,
     })
     private int connectEnabledProfiles(BluetoothDevice device) {
+        if (mCsipSetCoordinatorService != null
+                && isProfileSupported(device, BluetoothProfile.CSIP_SET_COORDINATOR)
+                && mCsipSetCoordinatorService.getConnectionPolicy(device)
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting Coordinated Set Profile");
+            mCsipSetCoordinatorService.connect(device);
+        }
         if (mA2dpService != null && isProfileSupported(
                 device, BluetoothProfile.A2DP) && mA2dpService.getConnectionPolicy(device)
                 > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
@@ -1447,14 +1454,6 @@ public class AdapterService extends Service {
                 > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting Volume Control Profile");
             mVolumeControlService.connect(device);
-        }
-        if (mCsipSetCoordinatorService != null
-                && isProfileSupported(
-                device, BluetoothProfile.CSIP_SET_COORDINATOR)
-                && mCsipSetCoordinatorService.getConnectionPolicy(device)
-                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
-            Log.i(TAG, "connectEnabledProfiles: Connecting Coordinated Set Profile");
-            mCsipSetCoordinatorService.connect(device);
         }
         if (mLeAudioService != null && isProfileSupported(
                 device, BluetoothProfile.LE_AUDIO)
