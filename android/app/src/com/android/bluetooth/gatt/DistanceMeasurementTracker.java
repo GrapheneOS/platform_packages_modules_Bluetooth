@@ -52,8 +52,8 @@ class DistanceMeasurementTracker {
         mIdentityAddress = identityAddress;
         mUuid = uuid;
         mFrequency = frequency;
-        mDuration = params.getDuration();
-        mMethod = params.getMethod();
+        mDuration = params.getDurationSeconds();
+        mMethod = params.getMethodId();
         mCallback = callback;
     }
 
