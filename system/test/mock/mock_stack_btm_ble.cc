@@ -131,44 +131,44 @@ tBTM_STATUS btm_proc_smp_cback::return_value = 0;
 
 // Mocked functions, if any
 void BTM_BleConfirmReply(const RawAddress& bd_addr, uint8_t res) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_BleConfirmReply(bd_addr, res);
 }
 bool BTM_BleDataSignature(const RawAddress& bd_addr, uint8_t* p_text,
                           uint16_t len, BLE_SIGNATURE signature) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::BTM_BleDataSignature(bd_addr, p_text, len,
                                                          signature);
 }
 void BTM_BleLoadLocalKeys(uint8_t key_type, tBTM_BLE_LOCAL_KEYS* p_key) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_BleLoadLocalKeys(key_type, p_key);
 }
 void BTM_BleOobDataReply(const RawAddress& bd_addr, uint8_t res, uint8_t len,
                          uint8_t* p_data) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_BleOobDataReply(bd_addr, res, len, p_data);
 }
 void BTM_BlePasskeyReply(const RawAddress& bd_addr, uint8_t res,
                          uint32_t passkey) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_BlePasskeyReply(bd_addr, res, passkey);
 }
 void BTM_BleReadPhy(
     const RawAddress& bd_addr,
     base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_BleReadPhy(bd_addr, cb);
 }
 void BTM_BleSecureConnectionOobDataReply(const RawAddress& bd_addr,
                                          uint8_t* p_c, uint8_t* p_r) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_BleSecureConnectionOobDataReply(bd_addr, p_c,
                                                                  p_r);
 }
 void BTM_BleSetPhy(const RawAddress& bd_addr, uint8_t tx_phys, uint8_t rx_phys,
                    uint16_t phy_options) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_BleSetPhy(bd_addr, tx_phys, rx_phys,
                                            phy_options);
 }
@@ -176,79 +176,79 @@ void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
                               uint16_t max_conn_int,
                               uint16_t peripheral_latency,
                               uint16_t supervision_tout) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_BleSetPrefConnParams(
       bd_addr, min_conn_int, max_conn_int, peripheral_latency,
       supervision_tout);
 }
 bool BTM_BleVerifySignature(const RawAddress& bd_addr, uint8_t* p_orig,
                             uint16_t len, uint32_t counter, uint8_t* p_comp) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::BTM_BleVerifySignature(bd_addr, p_orig, len,
                                                            counter, p_comp);
 }
 const Octet16& BTM_GetDeviceDHK() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::BTM_GetDeviceDHK();
 }
 const Octet16& BTM_GetDeviceEncRoot() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::BTM_GetDeviceEncRoot();
 }
 const Octet16& BTM_GetDeviceIDRoot() {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::BTM_GetDeviceIDRoot();
 }
 bool BTM_ReadConnectedTransportAddress(RawAddress* remote_bda,
                                        tBT_TRANSPORT transport) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::BTM_ReadConnectedTransportAddress(
       remote_bda, transport);
 }
 void BTM_ReadDevInfo(const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
                      tBLE_ADDR_TYPE* p_addr_type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_ReadDevInfo(remote_bda, p_dev_type,
                                              p_addr_type);
 }
 bool BTM_GetRemoteDeviceName(const RawAddress& bd_addr, BD_NAME bd_name) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::BTM_GetRemoteDeviceName(bd_addr, bd_name);
 }
 void BTM_SecAddBleDevice(const RawAddress& bd_addr, tBT_DEVICE_TYPE dev_type,
                          tBLE_ADDR_TYPE addr_type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_SecAddBleDevice(bd_addr, dev_type, addr_type);
 }
 void BTM_SecAddBleKey(const RawAddress& bd_addr, tBTM_LE_KEY_VALUE* p_le_key,
                       tBTM_LE_KEY_TYPE key_type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_SecAddBleKey(bd_addr, p_le_key, key_type);
 }
 void BTM_SecurityGrant(const RawAddress& bd_addr, uint8_t res) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_SecurityGrant(bd_addr, res);
 }
 tBTM_STATUS BTM_SetBleDataLength(const RawAddress& bd_addr,
                                  uint16_t tx_pdu_length) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::BTM_SetBleDataLength(bd_addr,
                                                          tx_pdu_length);
 }
 bool BTM_UseLeLink(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::BTM_UseLeLink(bd_addr);
 }
 uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
                             tBTM_LE_IO_REQ* p_data) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_ble_br_keys_req(p_dev_rec, p_data);
 }
 void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
                        uint8_t role, tBLE_ADDR_TYPE addr_type,
                        bool addr_matched,
                        bool can_read_discoverable_characteristics) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_connected(
       bda, handle, enc_mode, role, addr_type, addr_matched,
       can_read_discoverable_characteristics);
@@ -256,135 +256,135 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
 tBTM_SEC_ACTION btm_ble_determine_security_act(bool is_originator,
                                                const RawAddress& bdaddr,
                                                uint16_t security_required) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_ble_determine_security_act(
       is_originator, bdaddr, security_required);
 }
 bool btm_ble_get_acl_remote_addr(uint16_t hci_handle, RawAddress& conn_addr,
                                  tBLE_ADDR_TYPE* p_addr_type) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_ble_get_acl_remote_addr(
       hci_handle, conn_addr, p_addr_type);
 }
 bool btm_ble_get_enc_key_type(const RawAddress& bd_addr, uint8_t* p_key_types) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_ble_get_enc_key_type(bd_addr,
                                                              p_key_types);
 }
 void btm_ble_increment_sign_ctr(const RawAddress& bd_addr, bool is_local) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_increment_sign_ctr(bd_addr, is_local);
 }
 uint8_t btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC* p_dev_rec,
                                     tBTM_LE_IO_REQ* p_data) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_ble_io_capabilities_req(p_dev_rec,
                                                                 p_data);
 }
 void btm_ble_link_encrypted(const RawAddress& bd_addr, uint8_t encr_enable) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_link_encrypted(bd_addr, encr_enable);
 }
 void btm_ble_link_sec_check(const RawAddress& bd_addr,
                             tBTM_LE_AUTH_REQ auth_req,
                             tBTM_BLE_SEC_REQ_ACT* p_sec_req_act) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_link_sec_check(bd_addr, auth_req,
                                                     p_sec_req_act);
 }
 void btm_ble_ltk_request(uint16_t handle, uint8_t rand[8], uint16_t ediv) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_ltk_request(handle, rand, ediv);
 }
 void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
                                const Octet16& stk) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_ltk_request_reply(bda, use_stk, stk);
 }
 void btm_ble_rand_enc_complete(uint8_t* p,uint16_t evt_len, uint16_t op_code,
                                tBTM_RAND_ENC_CB* p_enc_cplt_cback) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_rand_enc_complete(p, evt_len, op_code,
                                                        p_enc_cplt_cback);
 }
 uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_ble_read_sec_key_size(bd_addr);
 }
 void btm_ble_reset_id(void) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_reset_id();
 }
 tBTM_STATUS btm_ble_set_encryption(const RawAddress& bd_addr,
                                    tBTM_BLE_SEC_ACT sec_act,
                                    uint8_t link_role) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_ble_set_encryption(bd_addr, sec_act,
                                                            link_role);
 }
 void btm_ble_set_keep_rfu_in_auth_req(bool keep_rfu) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_set_keep_rfu_in_auth_req(keep_rfu);
 }
 void btm_ble_set_no_disc_if_pair_fail(bool disable_disc) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_set_no_disc_if_pair_fail(disable_disc);
 }
 void btm_ble_set_test_local_sign_cntr_value(bool enable,
                                             uint32_t test_local_sign_cntr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_set_test_local_sign_cntr_value(
       enable, test_local_sign_cntr);
 }
 void btm_ble_set_test_mac_value(bool enable, uint8_t* p_test_mac_val) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_set_test_mac_value(enable, p_test_mac_val);
 }
 tBTM_STATUS btm_ble_start_encrypt(const RawAddress& bda, bool use_stk,
                                   Octet16* p_stk) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_ble_start_encrypt(bda, use_stk, p_stk);
 }
 tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
                                               uint16_t psm, bool is_originator,
                                               tBTM_SEC_CALLBACK* p_callback,
                                               void* p_ref_data) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_ble_start_sec_check(
       bd_addr, psm, is_originator, p_callback, p_ref_data);
 }
 void btm_ble_test_command_complete(uint8_t* p) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_test_command_complete(p);
 }
 void btm_ble_update_sec_key_size(const RawAddress& bd_addr,
                                  uint8_t enc_key_size) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_ble_update_sec_key_size(bd_addr, enc_key_size);
 }
 bool btm_get_local_div(const RawAddress& bd_addr, uint16_t* p_div) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_get_local_div(bd_addr, p_div);
 }
 tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
                                const tSMP_EVT_DATA* p_data) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return test::mock::stack_btm_ble::btm_proc_smp_cback(event, bd_addr, p_data);
 }
 void btm_sec_save_le_key(const RawAddress& bd_addr, tBTM_LE_KEY_TYPE key_type,
                          tBTM_LE_KEY_VALUE* p_keys, bool pass_to_application) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::btm_sec_save_le_key(bd_addr, key_type, p_keys,
                                                  pass_to_application);
 }
 void doNothing(uint8_t* data, uint16_t len) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::doNothing(data, len);
 }
 void read_phy_cb(
     base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb,
     uint8_t* data, uint16_t len) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_btm_ble::read_phy_cb(cb, data, len);
 }
 // Mocked functions complete
