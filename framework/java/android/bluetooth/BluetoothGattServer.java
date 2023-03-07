@@ -626,7 +626,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
     public boolean connect(BluetoothDevice device, boolean autoConnect) {
         if (DBG) {
             Log.d(TAG,
-                    "connect() - device: " + device.getAddress() + ", auto: " + autoConnect);
+                    "connect() - device: " + device + ", auto: " + autoConnect);
         }
         if (mService == null || mServerIf == 0) return false;
 
@@ -654,7 +654,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void cancelConnection(BluetoothDevice device) {
-        if (DBG) Log.d(TAG, "cancelConnection() - device: " + device.getAddress());
+        if (DBG) Log.d(TAG, "cancelConnection() - device: " + device);
         if (mService == null || mServerIf == 0) return;
 
         try {
@@ -739,7 +739,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean sendResponse(BluetoothDevice device, int requestId,
             int status, int offset, byte[] value) {
-        if (VDBG) Log.d(TAG, "sendResponse() - device: " + device.getAddress());
+        if (VDBG) Log.d(TAG, "sendResponse() - device: " + device);
         if (mService == null || mServerIf == 0) return false;
 
         try {
@@ -818,7 +818,7 @@ public final class BluetoothGattServer implements BluetoothProfile {
     public int notifyCharacteristicChanged(@NonNull BluetoothDevice device,
             @NonNull BluetoothGattCharacteristic characteristic, boolean confirm,
             @NonNull byte[] value) {
-        if (VDBG) Log.d(TAG, "notifyCharacteristicChanged() - device: " + device.getAddress());
+        if (VDBG) Log.d(TAG, "notifyCharacteristicChanged() - device: " + device);
         if (mService == null || mServerIf == 0) {
             return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
         }
