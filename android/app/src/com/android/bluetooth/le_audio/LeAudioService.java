@@ -1945,7 +1945,6 @@ public class LeAudioService extends ProfileService {
                 return;
             }
             removeStateMachine(device);
-            mDeviceDescriptors.remove(device);
         }
     }
 
@@ -1967,6 +1966,8 @@ public class LeAudioService extends ProfileService {
             sm.doQuit();
             sm.cleanup();
             descriptor.mStateMachine = null;
+
+            mDeviceDescriptors.remove(device);
         }
     }
 
@@ -3462,7 +3463,12 @@ public class LeAudioService extends ProfileService {
                         continue;
                     }
 
-                    deviceDescriptor.mStateMachine.dump(sb);
+                    if (deviceDescriptor.mStateMachine != null) {
+                        deviceDescriptor.mStateMachine.dump(sb);
+                    } else {
+                        ProfileService.println(sb, "state machine is null");
+                    }
+
                     ProfileService.println(sb, "    mDevInbandRingtoneEnabled: "
                             + deviceDescriptor.mDevInbandRingtoneEnabled);
                     ProfileService.println(sb, "    mSinkAudioLocation: "
