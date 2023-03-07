@@ -6,6 +6,11 @@ use bt_topshim::btif::{
 };
 use bt_topshim::profiles::gatt::{AdvertisingStatus, GattStatus, LePhy};
 use bt_topshim::profiles::hid_host::BthhReportType;
+use bt_topshim::profiles::sdp::{
+    BtSdpDipRecord, BtSdpHeader, BtSdpHeaderOverlay, BtSdpMasRecord, BtSdpMnsRecord,
+    BtSdpOpsRecord, BtSdpPceRecord, BtSdpPseRecord, BtSdpRecord, BtSdpSapRecord, BtSdpType,
+    SupportedFormatsList,
+};
 use bt_topshim::profiles::socket::SocketType;
 use bt_topshim::profiles::ProfileConnectionState;
 
@@ -53,7 +58,7 @@ use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 use std::sync::Arc;
 
-use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
+use crate::dbus_arg::{DBusArg, DBusArgError, DirectDBus, RefArgToRust};
 
 fn make_object_path(idx: i32, name: &str) -> dbus::Path {
     dbus::Path::new(format!("/org/chromium/bluetooth/hci{}/{}", idx, name)).unwrap()
@@ -105,6 +110,217 @@ impl DBusArg for Uuid128Bit {
 
     fn to_dbus(data: [u8; 16]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         return Ok(data.to_vec());
+    }
+}
+
+impl_dbus_arg_enum!(BtSdpType);
+
+#[dbus_propmap(BtSdpHeader)]
+pub struct BtSdpHeaderDBus {
+    sdp_type: BtSdpType,
+    uuid: Uuid,
+    service_name_length: u32,
+    service_name: String,
+    rfcomm_channel_number: i32,
+    l2cap_psm: i32,
+    profile_version: i32,
+}
+
+#[dbus_propmap(BtSdpHeaderOverlay)]
+struct BtSdpHeaderOverlayDBus {
+    hdr: BtSdpHeader,
+    user1_len: i32,
+    user1_data: Vec<u8>,
+    user2_len: i32,
+    user2_data: Vec<u8>,
+}
+
+#[dbus_propmap(BtSdpMasRecord)]
+struct BtSdpMasRecordDBus {
+    hdr: BtSdpHeaderOverlay,
+    mas_instance_id: u32,
+    supported_features: u32,
+    supported_message_types: u32,
+}
+
+#[dbus_propmap(BtSdpMnsRecord)]
+struct BtSdpMnsRecordDBus {
+    hdr: BtSdpHeaderOverlay,
+    supported_features: u32,
+}
+
+#[dbus_propmap(BtSdpPseRecord)]
+struct BtSdpPseRecordDBus {
+    hdr: BtSdpHeaderOverlay,
+    supported_features: u32,
+    supported_repositories: u32,
+}
+
+#[dbus_propmap(BtSdpPceRecord)]
+struct BtSdpPceRecordDBus {
+    hdr: BtSdpHeaderOverlay,
+}
+
+impl_dbus_arg_from_into!(SupportedFormatsList, Vec<u8>);
+
+#[dbus_propmap(BtSdpOpsRecord)]
+struct BtSdpOpsRecordDBus {
+    hdr: BtSdpHeaderOverlay,
+    supported_formats_list_len: i32,
+    supported_formats_list: SupportedFormatsList,
+}
+
+#[dbus_propmap(BtSdpSapRecord)]
+struct BtSdpSapRecordDBus {
+    hdr: BtSdpHeaderOverlay,
+}
+
+#[dbus_propmap(BtSdpDipRecord)]
+struct BtSdpDipRecordDBus {
+    hdr: BtSdpHeaderOverlay,
+    spec_id: u16,
+    vendor: u16,
+    vendor_id_source: u16,
+    product: u16,
+    version: u16,
+    primary_record: bool,
+}
+
+fn read_propmap_value<T: 'static + DirectDBus>(
+    propmap: &dbus::arg::PropMap,
+    key: &str,
+) -> Result<T, Box<dyn std::error::Error>> {
+    let output = propmap
+        .get(key)
+        .ok_or(Box::new(DBusArgError::new(String::from(format!("Key {} does not exist", key,)))))?;
+    let output = <T as RefArgToRust>::ref_arg_to_rust(
+        output.as_static_inner(0).ok_or(Box::new(DBusArgError::new(String::from(format!(
+            "Unable to convert propmap[\"{}\"] to {}",
+            key,
+            stringify!(T),
+        )))))?,
+        String::from(stringify!(T)),
+    )?;
+    Ok(output)
+}
+
+fn parse_propmap_value<T: DBusArg>(
+    propmap: &dbus::arg::PropMap,
+    key: &str,
+) -> Result<T, Box<dyn std::error::Error>>
+where
+    <T as DBusArg>::DBusType: RefArgToRust<RustType = <T as DBusArg>::DBusType>,
+{
+    let output = propmap
+        .get(key)
+        .ok_or(Box::new(DBusArgError::new(String::from(format!("Key {} does not exist", key,)))))?;
+    let output = <<T as DBusArg>::DBusType as RefArgToRust>::ref_arg_to_rust(
+        output.as_static_inner(0).ok_or(Box::new(DBusArgError::new(String::from(format!(
+            "Unable to convert propmap[\"{}\"] to {}",
+            key,
+            stringify!(T),
+        )))))?,
+        format!("{}", stringify!(T)),
+    )?;
+    let output = T::from_dbus(output, None, None, None)?;
+    Ok(output)
+}
+
+fn write_propmap_value<T: DBusArg>(
+    propmap: &mut dbus::arg::PropMap,
+    value: T,
+    key: &str,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    T::DBusType: 'static + dbus::arg::RefArg,
+{
+    propmap.insert(String::from(key), dbus::arg::Variant(Box::new(DBusArg::to_dbus(value)?)));
+    Ok(())
+}
+
+impl DBusArg for BtSdpRecord {
+    type DBusType = dbus::arg::PropMap;
+    fn from_dbus(
+        data: dbus::arg::PropMap,
+        _conn: Option<std::sync::Arc<dbus::nonblock::SyncConnection>>,
+        _remote: Option<dbus::strings::BusName<'static>>,
+        _disconnect_watcher: Option<
+            std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
+        >,
+    ) -> Result<BtSdpRecord, Box<dyn std::error::Error>> {
+        let sdp_type = read_propmap_value::<u32>(&data, &String::from("type"))?;
+        let sdp_type = BtSdpType::from(sdp_type);
+        let record = match sdp_type {
+            BtSdpType::Raw => {
+                let arg_0 = parse_propmap_value::<BtSdpHeaderOverlay>(&data, "0")?;
+                BtSdpRecord::HeaderOverlay(arg_0)
+            }
+            BtSdpType::MapMas => {
+                let arg_0 = parse_propmap_value::<BtSdpMasRecord>(&data, "0")?;
+                BtSdpRecord::MapMas(arg_0)
+            }
+            BtSdpType::MapMns => {
+                let arg_0 = parse_propmap_value::<BtSdpMnsRecord>(&data, "0")?;
+                BtSdpRecord::MapMns(arg_0)
+            }
+            BtSdpType::PbapPse => {
+                let arg_0 = parse_propmap_value::<BtSdpPseRecord>(&data, "0")?;
+                BtSdpRecord::PbapPse(arg_0)
+            }
+            BtSdpType::PbapPce => {
+                let arg_0 = parse_propmap_value::<BtSdpPceRecord>(&data, "0")?;
+                BtSdpRecord::PbapPce(arg_0)
+            }
+            BtSdpType::OppServer => {
+                let arg_0 = parse_propmap_value::<BtSdpOpsRecord>(&data, "0")?;
+                BtSdpRecord::OppServer(arg_0)
+            }
+            BtSdpType::SapServer => {
+                let arg_0 = parse_propmap_value::<BtSdpSapRecord>(&data, "0")?;
+                BtSdpRecord::SapServer(arg_0)
+            }
+            BtSdpType::Dip => {
+                let arg_0 = parse_propmap_value::<BtSdpDipRecord>(&data, "0")?;
+                BtSdpRecord::Dip(arg_0)
+            }
+        };
+        Ok(record)
+    }
+
+    fn to_dbus(record: BtSdpRecord) -> Result<dbus::arg::PropMap, Box<dyn std::error::Error>> {
+        let mut map: dbus::arg::PropMap = std::collections::HashMap::new();
+        write_propmap_value::<u32>(
+            &mut map,
+            BtSdpType::from(&record) as u32,
+            &String::from("type"),
+        )?;
+        match record {
+            BtSdpRecord::HeaderOverlay(header) => {
+                write_propmap_value::<BtSdpHeaderOverlay>(&mut map, header, &String::from("0"))?
+            }
+            BtSdpRecord::MapMas(mas_record) => {
+                write_propmap_value::<BtSdpMasRecord>(&mut map, mas_record, &String::from("0"))?
+            }
+            BtSdpRecord::MapMns(mns_record) => {
+                write_propmap_value::<BtSdpMnsRecord>(&mut map, mns_record, &String::from("0"))?
+            }
+            BtSdpRecord::PbapPse(pse_record) => {
+                write_propmap_value::<BtSdpPseRecord>(&mut map, pse_record, &String::from("0"))?
+            }
+            BtSdpRecord::PbapPce(pce_record) => {
+                write_propmap_value::<BtSdpPceRecord>(&mut map, pce_record, &String::from("0"))?
+            }
+            BtSdpRecord::OppServer(ops_record) => {
+                write_propmap_value::<BtSdpOpsRecord>(&mut map, ops_record, &String::from("0"))?
+            }
+            BtSdpRecord::SapServer(sap_record) => {
+                write_propmap_value::<BtSdpSapRecord>(&mut map, sap_record, &String::from("0"))?
+            }
+            BtSdpRecord::Dip(dip_record) => {
+                write_propmap_value::<BtSdpDipRecord>(&mut map, dip_record, &String::from("0"))?
+            }
+        }
+        Ok(map)
     }
 }
 
@@ -302,6 +518,18 @@ impl IBluetoothCallback for IBluetoothCallbackDBus {
 
     #[dbus_method("OnBondStateChanged")]
     fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {}
+
+    #[dbus_method("OnSdpSearchComplete")]
+    fn on_sdp_search_complete(
+        &self,
+        remote_device: BluetoothDevice,
+        searched_uuid: Uuid128Bit,
+        sdp_records: Vec<BtSdpRecord>,
+    ) {
+    }
+
+    #[dbus_method("OnSdpRecordCreated")]
+    fn on_sdp_record_created(&self, record: BtSdpRecord, handle: i32) {}
 }
 
 struct IBluetoothConnectionCallbackDBus {}
@@ -596,6 +824,16 @@ impl IBluetooth for BluetoothDBus {
 
     #[dbus_method("SdpSearch")]
     fn sdp_search(&self, device: BluetoothDevice, uuid: Uuid128Bit) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("CreateSdpRecord")]
+    fn create_sdp_record(&self, sdp_record: BtSdpRecord) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("RemoveSdpRecord")]
+    fn remove_sdp_record(&self, handle: i32) -> bool {
         dbus_generated!()
     }
 
