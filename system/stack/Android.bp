@@ -1321,6 +1321,7 @@ cc_test {
         ":TestMockStackL2cap",
         ":TestMockStackSdp",
         ":TestMockStackSmp",
+        ":TestMockSrvcDis",
         "arbiter/acl_arbiter.cc",
         "eatt/eatt.cc",
         "gatt/att_protocol.cc",
