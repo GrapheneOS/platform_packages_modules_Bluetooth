@@ -35,6 +35,7 @@ rust_defaults {
         "libanyhow",
         "libcxx",
         "libbt_common",
+        "libbitflags",
 
         // needed to work around duplicate symbols
         // caused by bug in Soong

@@ -36,7 +36,7 @@ impl AttDatabase for TestAttDatabase {
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
         info!("reading {handle:?}");
         match self.attributes.get(&handle) {
-            Some((AttAttribute { permissions: AttPermissions { readable: false, .. }, .. }, _)) => {
+            Some((AttAttribute { permissions, .. }, _)) if !permissions.readable() => {
                 Err(AttErrorCode::READ_NOT_PERMITTED)
             }
             Some((_, data)) => {
@@ -53,7 +53,7 @@ impl AttDatabase for TestAttDatabase {
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode> {
         match self.attributes.get(&handle) {
-            Some((AttAttribute { permissions: AttPermissions { writable: false, .. }, .. }, _)) => {
+            Some((AttAttribute { permissions, .. }, _)) if !permissions.writable() => {
                 Err(AttErrorCode::WRITE_NOT_PERMITTED)
             }
             Some((_, data_cell)) => {

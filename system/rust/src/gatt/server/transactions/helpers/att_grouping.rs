@@ -68,7 +68,7 @@ mod test {
     }
 
     fn attr(handle: AttHandle, type_: Uuid) -> AttAttribute {
-        AttAttribute { handle, type_, permissions: AttPermissions::READONLY }
+        AttAttribute { handle, type_, permissions: AttPermissions::READABLE }
     }
 
     #[test]

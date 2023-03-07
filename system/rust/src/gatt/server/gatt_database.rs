@@ -110,7 +110,7 @@ impl<T: GattDatastore + ?Sized> GattDatabase<T> {
             AttAttribute {
                 handle: service.handle,
                 type_: PRIMARY_SERVICE_DECLARATION_UUID,
-                permissions: AttPermissions { readable: true, writable: false },
+                permissions: AttPermissions::READABLE,
             },
             AttAttributeBackingValue::Static(
                 GattServiceDeclarationValueBuilder { uuid: UuidBuilder::from(service.type_) }
@@ -135,15 +135,15 @@ impl<T: GattDatastore + ?Sized> GattDatabase<T> {
                 AttAttribute {
                     handle: declaration_handle,
                     type_: CHARACTERISTIC_UUID,
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 },
                 AttAttributeBackingValue::Static(
                     GattCharacteristicDeclarationValueBuilder {
                         properties: AttCharacteristicPropertiesBuilder {
                             broadcast: 0,
-                            read: characteristic.permissions.readable.into(),
+                            read: characteristic.permissions.readable().into(),
                             write_without_response: 0,
-                            write: characteristic.permissions.writable.into(),
+                            write: characteristic.permissions.writable().into(),
                             notify: 0,
                             indicate: 0,
                             authenticated_signed_writes: 0,
@@ -253,7 +253,7 @@ where
             let Some(attr) = services.attributes.get(&handle) else {
                 return Err(AttErrorCode::INVALID_HANDLE);
             };
-            if !attr.attribute.permissions.readable {
+            if !attr.attribute.permissions.readable() {
                 return Err(AttErrorCode::READ_NOT_PERMITTED);
             }
             Ok(attr.value.clone())
@@ -289,7 +289,7 @@ where
             let Some(attr) = services.attributes.get(&handle) else {
                 return Err(AttErrorCode::INVALID_HANDLE);
             };
-            if !attr.attribute.permissions.writable {
+            if !attr.attribute.permissions.writable() {
                 return Err(AttErrorCode::WRITE_NOT_PERMITTED);
             }
             Ok(gatt_db.datastore.clone())
@@ -362,7 +362,7 @@ mod test {
             vec![AttAttribute {
                 handle: SERVICE_HANDLE,
                 type_: PRIMARY_SERVICE_DECLARATION_UUID,
-                permissions: AttPermissions { readable: true, writable: false }
+                permissions: AttPermissions::READABLE
             }]
         );
         assert_eq!(
@@ -386,7 +386,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: AttHandle(3),
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 }],
             })
             .unwrap();
@@ -397,7 +397,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: AttHandle(6),
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 }],
             })
             .unwrap();
@@ -408,7 +408,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: AttHandle(9),
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 }],
             })
             .unwrap();
@@ -428,7 +428,7 @@ mod test {
             AttAttribute {
                 handle: AttHandle(1),
                 type_: PRIMARY_SERVICE_DECLARATION_UUID,
-                permissions: AttPermissions { readable: true, writable: false }
+                permissions: AttPermissions::READABLE
             }
         );
         assert_eq!(
@@ -436,7 +436,7 @@ mod test {
             AttAttribute {
                 handle: AttHandle(7),
                 type_: PRIMARY_SERVICE_DECLARATION_UUID,
-                permissions: AttPermissions { readable: true, writable: false }
+                permissions: AttPermissions::READABLE
             }
         );
     }
@@ -452,7 +452,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: CHARACTERISTIC_VALUE_HANDLE,
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions { readable: true, writable: true },
+                    permissions: AttPermissions::READABLE | AttPermissions::WRITABLE,
                 }],
             })
             .unwrap();
@@ -469,7 +469,7 @@ mod test {
             AttAttribute {
                 handle: CHARACTERISTIC_DECLARATION_HANDLE,
                 type_: CHARACTERISTIC_UUID,
-                permissions: AttPermissions { readable: true, writable: false }
+                permissions: AttPermissions::READABLE
             }
         );
         assert_eq!(
@@ -477,7 +477,7 @@ mod test {
             AttAttribute {
                 handle: CHARACTERISTIC_VALUE_HANDLE,
                 type_: CHARACTERISTIC_TYPE,
-                permissions: AttPermissions { readable: true, writable: true }
+                permissions: AttPermissions::READABLE | AttPermissions::WRITABLE
             }
         );
 
@@ -514,7 +514,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: CHARACTERISTIC_VALUE_HANDLE,
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions::READONLY,
+                    permissions: AttPermissions::READABLE,
                 }],
             })
             .unwrap();
@@ -554,7 +554,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: CHARACTERISTIC_VALUE_HANDLE,
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions { readable: false, writable: false },
+                    permissions: AttPermissions::empty(),
                 }],
             })
             .unwrap();
@@ -577,7 +577,7 @@ mod test {
             characteristics: vec![GattCharacteristicWithHandle {
                 handle: SERVICE_HANDLE,
                 type_: CHARACTERISTIC_TYPE,
-                permissions: AttPermissions { readable: false, writable: true },
+                permissions: AttPermissions::WRITABLE,
             }],
         });
 
@@ -618,7 +618,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: CHARACTERISTIC_VALUE_HANDLE,
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions { readable: false, writable: true },
+                    permissions: AttPermissions::WRITABLE,
                 }],
             })
             .unwrap();
@@ -667,7 +667,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: CHARACTERISTIC_VALUE_HANDLE,
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions { readable: false, writable: true },
+                    permissions: AttPermissions::WRITABLE,
                 }],
             })
             .unwrap();
@@ -704,7 +704,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: CHARACTERISTIC_VALUE_HANDLE,
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions::READONLY,
+                    permissions: AttPermissions::READABLE,
                 }],
             })
             .unwrap();

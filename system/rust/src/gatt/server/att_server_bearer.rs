@@ -173,7 +173,7 @@ mod test {
             AttAttribute {
                 handle: VALID_HANDLE,
                 type_: Uuid::new(0x1234),
-                permissions: AttPermissions { readable: true, writable: false },
+                permissions: AttPermissions::READABLE,
             },
             vec![5, 6],
         )]);
@@ -241,12 +241,12 @@ mod test {
                 GattCharacteristicWithHandle {
                     handle: VALID_HANDLE,
                     type_: Uuid::new(2),
-                    permissions: AttPermissions::READONLY,
+                    permissions: AttPermissions::READABLE,
                 },
                 GattCharacteristicWithHandle {
                     handle: ANOTHER_VALID_HANDLE,
                     type_: Uuid::new(2),
-                    permissions: AttPermissions::READONLY,
+                    permissions: AttPermissions::READABLE,
                 },
             ],
         })

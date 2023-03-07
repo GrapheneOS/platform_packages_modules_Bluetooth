@@ -250,10 +250,7 @@ fn records_to_service(service_records: &[GattRecord]) -> Result<GattServiceWithH
             GattRecordType::Characteristic => characteristics.push(GattCharacteristicWithHandle {
                 handle: AttHandle(record.attribute_handle),
                 type_: record.uuid,
-                permissions: AttPermissions {
-                    readable: record.properties & 0x02 != 0,
-                    writable: record.properties & 0x08 != 0,
-                },
+                permissions: AttPermissions::from_bits_truncate(record.properties),
             }),
             _ => {
                 warn!("ignoring unsupported database entry of type {:?}", record.record_type)
@@ -472,10 +469,7 @@ mod test {
         ])
         .unwrap();
 
-        assert_eq!(
-            service.characteristics[0].permissions,
-            AttPermissions { readable: true, writable: false }
-        );
+        assert_eq!(service.characteristics[0].permissions, AttPermissions::READABLE);
     }
 
     #[test]
@@ -486,10 +480,7 @@ mod test {
         ])
         .unwrap();
 
-        assert_eq!(
-            service.characteristics[0].permissions,
-            AttPermissions { readable: false, writable: true }
-        );
+        assert_eq!(service.characteristics[0].permissions, AttPermissions::WRITABLE);
     }
 
     #[test]
@@ -502,7 +493,7 @@ mod test {
 
         assert_eq!(
             service.characteristics[0].permissions,
-            AttPermissions { readable: true, writable: true }
+            AttPermissions::READABLE | AttPermissions::WRITABLE
         );
     }
 }

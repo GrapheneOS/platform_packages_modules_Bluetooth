@@ -123,7 +123,7 @@ mod test {
                 AttAttribute {
                     handle: AttHandle(3),
                     type_: Uuid::new(0x01020304),
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 },
                 vec![4, 5],
             ),
@@ -131,7 +131,7 @@ mod test {
                 AttAttribute {
                     handle: AttHandle(4),
                     type_: Uuid::new(0x01020305),
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 },
                 vec![4, 5],
             ),
@@ -139,7 +139,7 @@ mod test {
                 AttAttribute {
                     handle: AttHandle(5),
                     type_: Uuid::new(0x01020306),
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 },
                 vec![4, 5],
             ),
@@ -186,7 +186,7 @@ mod test {
                 AttAttribute {
                     handle: AttHandle(3),
                     type_: Uuid::new(0x0102),
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 },
                 vec![4, 5],
             ),
@@ -194,7 +194,7 @@ mod test {
                 AttAttribute {
                     handle: AttHandle(4),
                     type_: Uuid::new(0x0103),
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 },
                 vec![4, 5],
             ),
@@ -202,7 +202,7 @@ mod test {
                 AttAttribute {
                     handle: AttHandle(5),
                     type_: Uuid::new(0x01020306),
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 },
                 vec![4, 5],
             ),
@@ -275,7 +275,7 @@ mod test {
                 AttAttribute {
                     handle: AttHandle(3),
                     type_: Uuid::new(0x0102),
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 },
                 vec![4, 5],
             ),
@@ -283,7 +283,7 @@ mod test {
                 AttAttribute {
                     handle: AttHandle(4),
                     type_: Uuid::new(0x0103),
-                    permissions: AttPermissions { readable: true, writable: false },
+                    permissions: AttPermissions::READABLE,
                 },
                 vec![4, 5],
             ),
@@ -323,7 +323,7 @@ mod test {
             AttAttribute {
                 handle: AttHandle(3),
                 type_: Uuid::new(0x0102),
-                permissions: AttPermissions { readable: true, writable: false },
+                permissions: AttPermissions::READABLE,
             },
             vec![4, 5],
         )]);

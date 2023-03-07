@@ -57,7 +57,7 @@ fn create_server_and_open_connection(gatt: &mut GattModule) {
             characteristics: vec![GattCharacteristicWithHandle {
                 handle: HANDLE_2,
                 type_: UUID_2,
-                permissions: AttPermissions { readable: true, writable: true },
+                permissions: AttPermissions::READABLE | AttPermissions::WRITABLE,
             }],
         },
     )
