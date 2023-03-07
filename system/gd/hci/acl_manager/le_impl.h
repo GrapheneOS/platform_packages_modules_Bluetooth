@@ -59,6 +59,8 @@ constexpr uint16_t kScanWindow2mFast = 0x0018;    /* 15 ms = 24 *0.625 */
 constexpr uint16_t kScanWindowCodedFast = 0x0018; /* 15 ms = 24 *0.625 */
 constexpr uint16_t kScanIntervalSlow = 0x0800;    /* 1.28 s = 2048 *0.625 */
 constexpr uint16_t kScanWindowSlow = 0x0030;      /* 30 ms = 48 *0.625 */
+constexpr uint16_t kScanIntervalSystemSuspend = 0x0400; /* 640 ms = 1024 * 0.625 */
+constexpr uint16_t kScanWindowSystemSuspend = 0x0012;   /* 11.25ms = 18 * 0.625 */
 constexpr uint32_t kCreateConnectionTimeoutMs = 30 * 1000;
 constexpr uint8_t PHY_LE_NO_PACKET = 0x00;
 constexpr uint8_t PHY_LE_1M = 0x01;
@@ -887,6 +889,13 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       le_scan_window_2m = os::GetSystemPropertyUint32(kPropertyConnScanWindow2mFast, kScanWindow2mFast);
       le_scan_window_coded = os::GetSystemPropertyUint32(kPropertyConnScanWindowCodedFast, kScanWindowCodedFast);
     }
+    // Use specific parameters when in system suspend.
+    if (system_suspend_) {
+      le_scan_interval = kScanIntervalSystemSuspend;
+      le_scan_window = kScanWindowSystemSuspend;
+      le_scan_window_2m = le_scan_window;
+      le_scan_window_coded = le_scan_window;
+    }
     InitiatorFilterPolicy initiator_filter_policy = InitiatorFilterPolicy::USE_FILTER_ACCEPT_LIST;
     OwnAddressType own_address_type =
         static_cast<OwnAddressType>(le_address_manager_->GetInitiatorAddress().GetAddressType());
@@ -1260,6 +1269,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
   }
 
+  void set_system_suspend_state(bool suspended) {
+    system_suspend_ = suspended;
+  }
+
   static constexpr uint16_t kMinimumCeLength = 0x0002;
   static constexpr uint16_t kMaximumCeLength = 0x0C00;
   HciLayer* hci_layer_ = nullptr;
@@ -1281,6 +1294,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   bool ready_to_unregister = false;
   bool pause_connection = false;
   bool disarmed_while_arming_ = false;
+  bool system_suspend_ = false;
   ConnectabilityState connectability_state_{ConnectabilityState::DISARMED};
   std::map<AddressWithType, os::Alarm> create_connection_timeout_alarms_{};
 };
