@@ -1002,7 +1002,7 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void GroupSetActive(const int group_id) override {
-    DLOG(INFO) << __func__ << " group_id: " << group_id;
+    LOG_INFO(" group_id: %d", group_id);
 
     if (group_id == bluetooth::groups::kGroupUnknown) {
       if (active_group_id_ == bluetooth::groups::kGroupUnknown) {
@@ -1010,6 +1010,7 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       }
 
+      LOG_INFO("Active group_id changed %d -> %d", active_group_id_, group_id);
       auto group_id_to_close = active_group_id_;
       active_group_id_ = bluetooth::groups::kGroupUnknown;
 
@@ -1093,6 +1094,7 @@ class LeAudioClientImpl : public LeAudioClient {
       callbacks_->OnGroupStatus(active_group_id_, GroupStatus::INACTIVE);
     }
 
+    LOG_INFO("Active group_id changed %d -> %d", active_group_id_, group_id);
     active_group_id_ = group_id;
     callbacks_->OnGroupStatus(active_group_id_, GroupStatus::ACTIVE);
   }
@@ -3290,9 +3292,11 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnLocalAudioSourceSuspend() {
-    LOG_INFO("IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
-             ToString(audio_receiver_state_).c_str(),
-             ToString(audio_sender_state_).c_str());
+    LOG_INFO(
+        "active group_id: %d, IN: audio_receiver_state_: %s, "
+        "audio_sender_state_: %s",
+        active_group_id_, ToString(audio_receiver_state_).c_str(),
+        ToString(audio_sender_state_).c_str());
 
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Sink for Audio Framework.
@@ -3327,9 +3331,11 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnLocalAudioSourceResume() {
-    LOG_INFO("IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
-             ToString(audio_receiver_state_).c_str(),
-             ToString(audio_sender_state_).c_str());
+    LOG_INFO(
+        "active group_id: %d, IN: audio_receiver_state_: %s, "
+        "audio_sender_state_: %s",
+        active_group_id_, ToString(audio_receiver_state_).c_str(),
+        ToString(audio_sender_state_).c_str());
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Sink for Audio Framework.
      * e.g. Peer is a speaker
@@ -3436,9 +3442,11 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnLocalAudioSinkSuspend() {
-    LOG_INFO("IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
-             ToString(audio_receiver_state_).c_str(),
-             ToString(audio_sender_state_).c_str());
+    LOG_INFO(
+        "active group_id: %d, IN: audio_receiver_state_: %s, "
+        "audio_sender_state_: %s",
+        active_group_id_, ToString(audio_receiver_state_).c_str(),
+        ToString(audio_sender_state_).c_str());
 
     StartVbcCloseTimeout();
 
@@ -3481,9 +3489,11 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnLocalAudioSinkResume() {
-    LOG_INFO("IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
-             ToString(audio_receiver_state_).c_str(),
-             ToString(audio_sender_state_).c_str());
+    LOG_INFO(
+        "active group_id: %d IN: audio_receiver_state_: %s, "
+        "audio_sender_state_: %s",
+        active_group_id_, ToString(audio_receiver_state_).c_str(),
+        ToString(audio_sender_state_).c_str());
     /* Stop the VBC close watchdog if needed */
     StopVbcCloseTimeout();
 
@@ -3989,7 +3999,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     /* Make sure we have CONVERSATIONAL when in a call */
     if (in_call_) {
-      LOG_DEBUG(" In Call preference used.");
+      LOG_INFO(" In Call preference used.");
       metadata_context_types_.sink |=
           AudioContexts(LeAudioContextType::CONVERSATIONAL);
       metadata_context_types_.source |=
@@ -4443,10 +4453,12 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnStateMachineStatusReportCb(int group_id, GroupStreamStatus status) {
-    LOG_INFO("status: %d , audio_sender_state %s, audio_receiver_state %s",
-             static_cast<int>(status),
-             bluetooth::common::ToString(audio_sender_state_).c_str(),
-             bluetooth::common::ToString(audio_receiver_state_).c_str());
+    LOG_INFO(
+        "status: %d ,  group_id: %d, audio_sender_state %s, "
+        "audio_receiver_state %s",
+        static_cast<int>(status), group_id,
+        bluetooth::common::ToString(audio_sender_state_).c_str(),
+        bluetooth::common::ToString(audio_receiver_state_).c_str());
     LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
     switch (status) {
       case GroupStreamStatus::STREAMING:
