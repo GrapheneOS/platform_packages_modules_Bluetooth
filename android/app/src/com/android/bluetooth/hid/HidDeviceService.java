@@ -951,7 +951,7 @@ public class HidDeviceService extends ProfileService {
 
     private void setAndBroadcastConnectionState(BluetoothDevice device, int newState) {
         if (DBG) {
-            Log.d(TAG, "setAndBroadcastConnectionState(): device=" + device.getAddress()
+            Log.d(TAG, "setAndBroadcastConnectionState(): device=" + device
                     + " oldState=" + mHidDeviceState + " newState=" + newState);
         }
 
