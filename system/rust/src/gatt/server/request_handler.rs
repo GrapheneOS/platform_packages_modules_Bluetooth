@@ -23,11 +23,11 @@ use super::{
 
 /// This struct handles all requests needing ACKs. Only ONE should exist per
 /// bearer per database, to ensure serialization.
-pub struct AttTransactionHandler<Db: AttDatabase> {
+pub struct AttRequestHandler<Db: AttDatabase> {
     db: Db,
 }
 
-impl<Db: AttDatabase> AttTransactionHandler<Db> {
+impl<Db: AttDatabase> AttRequestHandler<Db> {
     pub fn new(db: Db) -> Self {
         Self { db }
     }
@@ -106,8 +106,8 @@ mod test {
         core::uuid::Uuid,
         gatt::server::{
             att_database::{AttAttribute, AttPermissions},
+            request_handler::AttRequestHandler,
             test::test_att_db::TestAttDatabase,
-            transaction_handler::AttTransactionHandler,
         },
         packets::{
             AttAttributeDataChild, AttReadRequestBuilder, AttReadResponseBuilder,
@@ -127,7 +127,7 @@ mod test {
             },
             vec![1, 2, 3],
         )]);
-        let mut handler = AttTransactionHandler { db };
+        let mut handler = AttRequestHandler { db };
         let att_view = build_att_view_or_crash(AttReadRequestBuilder {
             attribute_handle: AttHandle(3).into(),
         });
@@ -155,7 +155,7 @@ mod test {
             },
             vec![1, 2, 3],
         )]);
-        let mut handler = AttTransactionHandler { db };
+        let mut handler = AttRequestHandler { db };
         let att_view = build_att_view_or_crash(AttWriteResponseBuilder {});
 
         // act

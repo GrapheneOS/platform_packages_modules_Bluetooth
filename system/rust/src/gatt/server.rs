@@ -4,7 +4,7 @@
 mod att_database;
 pub mod att_server_bearer;
 pub mod gatt_database;
-mod transaction_handler;
+mod request_handler;
 mod transactions;
 
 #[cfg(test)]
