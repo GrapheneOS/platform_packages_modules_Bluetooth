@@ -75,17 +75,14 @@ bt_status_t btif_storage_load_bonded_hid_info(void);
  ******************************************************************************/
 bt_status_t btif_storage_remove_hid_info(const RawAddress& remote_bd_addr);
 
-/*******************************************************************************
- *
- * Function         btif_storage_get_hid_device_addresses
- *
- * Description      BTIF storage API - Finds all bonded HID devices
- *
- * Returns          std::vector of RawAddress
- *
- ******************************************************************************/
-std::vector<std::pair<RawAddress, uint8_t>>
-btif_storage_get_hid_device_addresses(void);
+/** Returns all bonded LE hid devices + their address types. */
+std::vector<std::pair<RawAddress, uint8_t>> btif_storage_get_le_hid_devices(
+    void);
+
+/** Returns all bonded Classic HID devices capable of waking the system from
+ * system suspend (i.e. Keyboards and Pointing devices).
+ */
+std::vector<RawAddress> btif_storage_get_wake_capable_classic_hid_devices(void);
 
 /** Loads information about bonded hearing aid devices */
 void btif_storage_load_bonded_hearing_aids();

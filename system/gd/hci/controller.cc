@@ -1161,17 +1161,6 @@ void Controller::LeRand(LeRandCallback cb) {
   CallOn(impl_.get(), &impl::le_rand, cb);
 }
 
-void Controller::AllowWakeByHid() {
-  // Allow Classic HID
-  auto class_of_device = ClassOfDevice::FromUint32Legacy(COD_HID_MAJOR).value();
-  auto class_of_device_mask = ClassOfDevice::FromUint32Legacy(COD_HID_MASK).value();
-  auto auto_accept_flag = AutoAcceptFlag::AUTO_ACCEPT_OFF;
-  std::unique_ptr<SetEventFilterConnectionSetupClassOfDeviceBuilder> packet =
-      SetEventFilterConnectionSetupClassOfDeviceBuilder::Create(
-          class_of_device, class_of_device_mask, auto_accept_flag);
-  CallOn(impl_.get(), &impl::set_event_filter, std::move(packet));
-}
-
 void Controller::SetEventFilterClearAll() {
   std::unique_ptr<SetEventFilterClearAllBuilder> packet = SetEventFilterClearAllBuilder::Create();
   CallOn(impl_.get(), &impl::set_event_filter, std::move(packet));

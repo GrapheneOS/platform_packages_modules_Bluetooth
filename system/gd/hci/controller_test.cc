@@ -528,10 +528,6 @@ TEST_F(ControllerTest, leRandTest) {
   ASSERT_EQ(kRandomNumber, le_rand_set_future.get());
 }
 
-TEST_F(ControllerTest, AllowWakeByHidTest) {
-  controller_->AllowWakeByHid();
-}
-
 TEST_F(ControllerTest, Dumpsys) {
   ModuleDumper dumper(fake_registry_, title);
 
