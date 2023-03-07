@@ -3830,13 +3830,18 @@ class LeAudioClientImpl : public LeAudioClient {
         (audio_receiver_state_ == AudioState::READY_TO_START)) {
       LOG_DEBUG("Other direction is streaming. Taking its contexts %s",
                 ToString(metadata_context_types_.source).c_str());
-
-      // If current direction has no valid context take the other direction
-      // context
-      if (metadata_context_types_.sink.none()) {
-        if (metadata_context_types_.source.any()) {
+      // If current direction has no valid context or we are in the
+      // bidirectional scenario, take the other direction context
+      if ((metadata_context_types_.sink.none() &&
+           metadata_context_types_.source.any()) ||
+          metadata_context_types_.source.test_any(bidir_contexts)) {
+        if (osi_property_get_bool(kAllowMultipleContextsInMetadata, true)) {
+          LOG_DEBUG("Aligning remote sink metadata to add the source context");
+          metadata_context_types_.sink =
+              metadata_context_types_.sink | metadata_context_types_.source;
+        } else {
           LOG_DEBUG(
-              "Aligning remote sink metadata to match the source context");
+              "Replacing remote sink metadata to match the source context");
           metadata_context_types_.sink = metadata_context_types_.source;
         }
       }
