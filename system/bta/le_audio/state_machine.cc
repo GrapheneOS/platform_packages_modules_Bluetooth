@@ -388,7 +388,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED);
 
     if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-      StartConfigQoSForTheGroup(group);
+      PrepareAndSendQoSToTheGroup(group);
     } else {
       LOG_ERROR(", invalid state transition, from: %s , to: %s",
                 ToString(group->GetState()).c_str(),
@@ -1538,7 +1538,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
   }
 
-  void StartConfigQoSForTheGroup(LeAudioDeviceGroup* group) {
+  void PrepareAndSendQoSToTheGroup(LeAudioDeviceGroup* group) {
     LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
     if (!leAudioDevice) {
       LOG(ERROR) << __func__ << ", no active devices in group";
@@ -1546,7 +1546,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
-    PrepareAndSendConfigQos(group, leAudioDevice);
+    for (; leAudioDevice;
+         leAudioDevice = group->GetNextActiveDevice(leAudioDevice)) {
+      PrepareAndSendConfigQos(group, leAudioDevice);
+    }
   }
 
   void PrepareAndSendCodecConfigure(LeAudioDeviceGroup* group,
@@ -1913,18 +1916,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return;
         }
 
-        LeAudioDevice* leAudioDeviceNext =
-            group->GetNextActiveDevice(leAudioDevice);
-
-        /* Configure ASEs qos for next device in group */
-        if (leAudioDeviceNext) {
-          PrepareAndSendConfigQos(group, leAudioDeviceNext);
-        } else {
-          leAudioDevice = group->GetFirstActiveDevice();
-          LOG_ASSERT(leAudioDevice)
-              << __func__ << " Shouldn't be called without an active device.";
-          PrepareAndSendEnableToTheGroup(group);
+        if (!group->HaveAllActiveDevicesAsesTheSameState(
+                AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED)) {
+          LOG_DEBUG("Waiting for all the devices to be in QoS state");
+          return;
         }
+
+        PrepareAndSendEnableToTheGroup(group);
 
         break;
       }
