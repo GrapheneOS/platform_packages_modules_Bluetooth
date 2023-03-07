@@ -122,4 +122,5 @@ void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
                                           tBT_DEVICE_TYPE dev_type);
 
 bool check_cod_hid(const RawAddress& bd_addr);
+bool is_device_le_audio_capable(const RawAddress bd_addr);
 #endif
