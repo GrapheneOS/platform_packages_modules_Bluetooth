@@ -358,7 +358,8 @@ class PhonePolicy {
         boolean isLeAudioProfileAllowed = false;
         if ((leAudioService != null) && Utils.arrayContains(uuids,
                 BluetoothUuid.LE_AUDIO) && (leAudioService.getConnectionPolicy(device)
-                != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)) {
+                != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)
+                && mAdapterService.isLeAudioAllowed(device)) {
             debugLog("setting le audio profile priority for device " + device);
             isLeAudioProfileAllowed = true;
             if (leAudioService.getConnectionPolicy(device)
@@ -725,7 +726,8 @@ class PhonePolicy {
             if (!leAudioConnDevList.contains(device) && (leAudioService.getConnectionPolicy(device)
                     == BluetoothProfile.CONNECTION_POLICY_ALLOWED)
                     && (leAudioService.getConnectionState(device)
-                    == BluetoothProfile.STATE_DISCONNECTED)) {
+                    == BluetoothProfile.STATE_DISCONNECTED)
+                    && mAdapterService.isLeAudioAllowed(device)) {
                 debugLog("Retrying connection to LEAudio with device " + device);
                 leAudioService.connect(device);
             }
