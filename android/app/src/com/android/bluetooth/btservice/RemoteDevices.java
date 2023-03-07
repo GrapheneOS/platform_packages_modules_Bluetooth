@@ -29,6 +29,7 @@ import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.BluetoothSinkAudioPolicy;
 import android.bluetooth.IBluetoothConnectionCallback;
 import android.content.BroadcastReceiver;
@@ -73,6 +74,7 @@ final class RemoteDevices {
 
     private static final int UUID_INTENT_DELAY = 6000;
     private static final int MESSAGE_UUID_INTENT = 1;
+    private static final String LOG_SOURCE_DIS = "DIS";
 
     private final HashMap<String, DeviceProperties> mDevices;
     private final HashMap<String, String> mDualDevicesMap;
@@ -935,6 +937,12 @@ final class RemoteDevices {
                             final String modelName = new String(val);
                             debugLog("Remote device model name: " + modelName);
                             deviceProperties.setModelName(modelName);
+                            BluetoothStatsLog.write(
+                                    BluetoothStatsLog.BLUETOOTH_DEVICE_INFO_REPORTED,
+                                    mAdapterService.obfuscateAddress(bdDevice),
+                                    BluetoothProtoEnums.DEVICE_INFO_INTERNAL, LOG_SOURCE_DIS, null,
+                                    modelName, null, null, mAdapterService.getMetricId(bdDevice),
+                                    bdDevice.getAddressType(), 0, 0, 0);
                             break;
                     }
                 }
