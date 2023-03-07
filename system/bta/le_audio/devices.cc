@@ -371,6 +371,18 @@ bool LeAudioDeviceGroup::IsGroupReadyToSuspendStream(void) {
   return iter == leAudioDevices_.end();
 }
 
+bool LeAudioDeviceGroup::HaveAnyActiveDeviceInUnconfiguredState() {
+  auto iter =
+      std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(), [](auto& d) {
+        if (d.expired())
+          return false;
+        else
+          return (((d.lock()).get())->HaveAnyUnconfiguredAses());
+      });
+
+  return iter != leAudioDevices_.end();
+}
+
 bool LeAudioDeviceGroup::HaveAllActiveDevicesAsesTheSameState(AseState state) {
   auto iter = std::find_if(
       leAudioDevices_.begin(), leAudioDevices_.end(), [&state](auto& d) {
