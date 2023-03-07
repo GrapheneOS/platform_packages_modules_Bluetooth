@@ -296,6 +296,7 @@ class LeAudioDeviceGroup {
   bool HaveAllActiveDevicesAsesTheSameState(types::AseState state);
   bool IsGroupStreamReady(void);
   bool IsGroupReadyToCreateStream(void);
+  bool IsGroupReadyToSuspendStream(void);
   bool HaveAllCisesDisconnected(void);
   uint8_t GetFirstFreeCisId(void);
   uint8_t GetFirstFreeCisId(types::CisType cis_type);
