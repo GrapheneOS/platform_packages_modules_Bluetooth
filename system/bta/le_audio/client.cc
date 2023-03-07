@@ -3763,25 +3763,6 @@ class LeAudioClientImpl : public LeAudioClient {
     metadata_context_types_.sink =
         ChooseMetadataContextType(metadata_context_types_.sink);
 
-    /* Mixed contexts in the voiceback channel scenarios can confuse the remote
-     * on how to configure each channel. We should align both direction
-     * metadata.
-     */
-    auto non_mixing_contexts = LeAudioContextType::GAME |
-                               LeAudioContextType::LIVE |
-                               LeAudioContextType::CONVERSATIONAL |
-                               LeAudioContextType::VOICEASSISTANTS;
-    if (metadata_context_types_.sink.test_any(non_mixing_contexts)) {
-      if (osi_property_get_bool(kAllowMultipleContextsInMetadata, true)) {
-        LOG_DEBUG("Aligning remote source metadata to add the sink context");
-        metadata_context_types_.source =
-            metadata_context_types_.source | metadata_context_types_.sink;
-      } else {
-        LOG_DEBUG("Replacing remote source metadata to match the sink context");
-        metadata_context_types_.source = metadata_context_types_.sink;
-      }
-    }
-
     ReconfigureOrUpdateRemoteSink(group);
   }
 
@@ -3814,6 +3795,24 @@ class LeAudioClientImpl : public LeAudioClient {
 
     /* Start with only this direction context metadata */
     auto configuration_context_candidates = metadata_context_types_.sink;
+
+    /* Mixed contexts in the voiceback channel scenarios can confuse the remote
+     * on how to configure each channel. We should align both direction
+     * metadata.
+     */
+    auto bidir_contexts = LeAudioContextType::GAME | LeAudioContextType::LIVE |
+                          LeAudioContextType::CONVERSATIONAL |
+                          LeAudioContextType::VOICEASSISTANTS;
+    if (metadata_context_types_.sink.test_any(bidir_contexts)) {
+      if (osi_property_get_bool(kAllowMultipleContextsInMetadata, true)) {
+        LOG_DEBUG("Aligning remote source metadata to add the sink context");
+        metadata_context_types_.source =
+            metadata_context_types_.source | metadata_context_types_.sink;
+      } else {
+        LOG_DEBUG("Replacing remote source metadata to match the sink context");
+        metadata_context_types_.source = metadata_context_types_.sink;
+      }
+    }
 
     /* If the local sink is started, ready to start or any direction is
      * reconfiguring when the remote sink configuration is active, then take
@@ -4009,25 +4008,6 @@ class LeAudioClientImpl : public LeAudioClient {
     metadata_context_types_.source =
         ChooseMetadataContextType(metadata_context_types_.source);
 
-    /* Mixed contexts in the voiceback channel scenarios can confuse the remote
-     * on how to configure each channel. We should align both direction
-     * metadata.
-     */
-    auto non_mixing_contexts = LeAudioContextType::GAME |
-                               LeAudioContextType::LIVE |
-                               LeAudioContextType::CONVERSATIONAL |
-                               LeAudioContextType::VOICEASSISTANTS;
-    if (metadata_context_types_.source.test_any(non_mixing_contexts)) {
-      if (osi_property_get_bool(kAllowMultipleContextsInMetadata, true)) {
-        LOG_DEBUG("Aligning remote sink metadata to add the source context");
-        metadata_context_types_.sink =
-            metadata_context_types_.sink | metadata_context_types_.source;
-      } else {
-        LOG_DEBUG("Replacing remote sink metadata to match the source context");
-        metadata_context_types_.sink = metadata_context_types_.source;
-      }
-    }
-
     /* Reconfigure or update only if the stream is already started
      * otherwise wait for the local sink to resume.
      */
@@ -4063,6 +4043,24 @@ class LeAudioClientImpl : public LeAudioClient {
 
     /* Start with only this direction context metadata */
     auto configuration_context_candidates = metadata_context_types_.source;
+
+    /* Mixed contexts in the voiceback channel scenarios can confuse the remote
+     * on how to configure each channel. We should align both direction
+     * metadata.
+     */
+    auto bidir_contexts = LeAudioContextType::GAME | LeAudioContextType::LIVE |
+                          LeAudioContextType::CONVERSATIONAL |
+                          LeAudioContextType::VOICEASSISTANTS;
+    if (metadata_context_types_.source.test_any(bidir_contexts)) {
+      if (osi_property_get_bool(kAllowMultipleContextsInMetadata, true)) {
+        LOG_DEBUG("Aligning remote sink metadata to add the source context");
+        metadata_context_types_.sink =
+            metadata_context_types_.sink | metadata_context_types_.source;
+      } else {
+        LOG_DEBUG("Replacing remote sink metadata to match the source context");
+        metadata_context_types_.sink = metadata_context_types_.source;
+      }
+    }
 
     /* If the local source is started, ready to start or any direction is
      * reconfiguring when the remote sink configuration is active, then take
