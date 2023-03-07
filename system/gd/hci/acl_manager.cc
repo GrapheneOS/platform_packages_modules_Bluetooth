@@ -388,6 +388,10 @@ void AclManager::OnLeSuspendInitiatedDisconnect(uint16_t handle, ErrorCode reaso
   CallOn(pimpl_->le_impl_, &le_impl::on_le_disconnect, handle, reason);
 }
 
+void AclManager::SetSystemSuspendState(bool suspended) {
+  CallOn(pimpl_->le_impl_, &le_impl::set_system_suspend_state, suspended);
+}
+
 LeAddressManager* AclManager::GetLeAddressManager() {
   return pimpl_->le_impl_->le_address_manager_;
 }
