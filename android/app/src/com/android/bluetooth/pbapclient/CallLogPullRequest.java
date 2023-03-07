@@ -147,17 +147,18 @@ public class CallLogPullRequest extends PullRequest {
             values.put(ContactsContract.RawContacts.TIMES_CONTACTED, mCallCounter.get(key));
             Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
                     Uri.encode(key));
-            Cursor c = mContext.getContentResolver().query(uri, null, null, null);
-            if (c != null && c.getCount() > 0) {
-                c.moveToNext();
-                String contactId = c.getString(c.getColumnIndex(
-                        ContactsContract.PhoneLookup.CONTACT_ID));
-                if (VDBG) {
-                    Log.d(TAG, "onPullComplete: ID " + contactId + " key : " + key);
+            try (Cursor c = mContext.getContentResolver().query(uri, null, null, null)) {
+                if (c != null && c.getCount() > 0) {
+                    c.moveToNext();
+                    String contactId = c.getString(c.getColumnIndex(
+                            ContactsContract.PhoneLookup.CONTACT_ID));
+                    if (VDBG) {
+                        Log.d(TAG, "onPullComplete: ID " + contactId + " key : " + key);
+                    }
+                    String where = ContactsContract.RawContacts.CONTACT_ID + "=" + contactId;
+                    mContext.getContentResolver().update(
+                            ContactsContract.RawContacts.CONTENT_URI, values, where, null);
                 }
-                String where = ContactsContract.RawContacts.CONTACT_ID + "=" + contactId;
-                mContext.getContentResolver().update(
-                        ContactsContract.RawContacts.CONTENT_URI, values, where, null);
             }
         }
         if (DBG) {
