@@ -918,7 +918,6 @@ package android.bluetooth {
 
   public final class BluetoothStatusCodes {
     field public static final int ALLOWED = 400; // 0x190
-    field public static final int DISTANCE_MEASUREMENT_ERROR_INTERNAL = 1301; // 0x515
     field public static final int ERROR_ALREADY_IN_TARGET_STATE = 26; // 0x1a
     field public static final int ERROR_ANOTHER_ACTIVE_OOB_REQUEST = 1000; // 0x3e8
     field public static final int ERROR_ANOTHER_ACTIVE_REQUEST = 29; // 0x1d
@@ -931,6 +930,7 @@ package android.bluetooth {
     field public static final int ERROR_CSIP_GROUP_LOCKED_BY_OTHER = 1208; // 0x4b8
     field public static final int ERROR_CSIP_INVALID_GROUP_ID = 1207; // 0x4b7
     field public static final int ERROR_CSIP_LOCKED_GROUP_MEMBER_LOST = 1209; // 0x4b9
+    field public static final int ERROR_DISTANCE_MEASUREMENT_INTERNAL = 1301; // 0x515
     field public static final int ERROR_HAP_INVALID_PRESET_INDEX = 1211; // 0x4bb
     field public static final int ERROR_HAP_PRESET_NAME_TOO_LONG = 1210; // 0x4ba
     field public static final int ERROR_HARDWARE_GENERIC = 20; // 0x14
@@ -1158,12 +1158,12 @@ package android.bluetooth.le {
   }
 
   public final class DistanceMeasurementParams implements android.os.Parcelable {
-    method public static int getDefaultDuration();
+    method public static int getDefaultDurationSeconds();
     method @NonNull public android.bluetooth.BluetoothDevice getDevice();
-    method public int getDuration();
+    method @IntRange(from=0) public int getDurationSeconds();
     method public int getFrequency();
-    method public static int getMaxDuration();
-    method public int getMethod();
+    method public static int getMaxDurationSeconds();
+    method public int getMethodId();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.le.DistanceMeasurementParams> CREATOR;
     field public static final int REPORT_FREQUENCY_HIGH = 2; // 0x2
     field public static final int REPORT_FREQUENCY_LOW = 0; // 0x0
@@ -1173,9 +1173,9 @@ package android.bluetooth.le {
   public static final class DistanceMeasurementParams.Builder {
     ctor public DistanceMeasurementParams.Builder(@NonNull android.bluetooth.BluetoothDevice);
     method @NonNull public android.bluetooth.le.DistanceMeasurementParams build();
-    method @NonNull public android.bluetooth.le.DistanceMeasurementParams.Builder setDuration(@IntRange(from=0, to=3600) int);
+    method @NonNull public android.bluetooth.le.DistanceMeasurementParams.Builder setDurationSeconds(@IntRange(from=0) int);
     method @NonNull public android.bluetooth.le.DistanceMeasurementParams.Builder setFrequency(int);
-    method @NonNull public android.bluetooth.le.DistanceMeasurementParams.Builder setMethod(int);
+    method @NonNull public android.bluetooth.le.DistanceMeasurementParams.Builder setMethodId(int);
   }
 
   public final class DistanceMeasurementResult implements android.os.Parcelable {
@@ -1184,7 +1184,7 @@ package android.bluetooth.le {
     method public double getErrorAltitudeAngle();
     method public double getErrorAzimuthAngle();
     method @FloatRange(from=0.0) public double getErrorMeters();
-    method public double getMeters();
+    method public double getResultMeters();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.le.DistanceMeasurementResult> CREATOR;
   }
 
