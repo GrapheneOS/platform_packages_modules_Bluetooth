@@ -2019,6 +2019,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       confs.push_back(conf);
     } while ((ase = leAudioDevice->GetNextActiveAse(ase)));
 
+    LOG_INFO("group_id: %d, %s", leAudioDevice->group_id_,
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     le_audio::client_parser::ascs::PrepareAseCtpEnable(confs, value);
 
     BtaGattQueue::WriteCharacteristic(leAudioDevice->conn_id_,
@@ -2038,6 +2040,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       ids.push_back(ase->id);
     } while ((ase = leAudioDevice->GetNextActiveAse(ase)));
 
+    LOG_INFO("group_id: %d, %s", leAudioDevice->group_id_,
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     std::vector<uint8_t> value;
     le_audio::client_parser::ascs::PrepareAseCtpDisable(ids, value);
 
@@ -2058,6 +2062,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       ids.push_back(ase->id);
     } while ((ase = leAudioDevice->GetNextActiveAse(ase)));
 
+    LOG_INFO("group_id: %d, %s", leAudioDevice->group_id_,
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     std::vector<uint8_t> value;
     le_audio::client_parser::ascs::PrepareAseCtpRelease(ids, value);
 
@@ -2128,6 +2134,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
+    LOG_INFO("group_id: %d, %s", leAudioDevice->group_id_,
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
     std::vector<uint8_t> value;
     le_audio::client_parser::ascs::PrepareAseCtpConfigQos(confs, value);
     BtaGattQueue::WriteCharacteristic(leAudioDevice->conn_id_,
@@ -2183,6 +2191,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
 
     if (confs.size() != 0) {
+      LOG_INFO("group_id: %d, %s", leAudioDevice->group_id_,
+               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       std::vector<uint8_t> value;
       le_audio::client_parser::ascs::PrepareAseCtpUpdateMetadata(confs, value);
 
@@ -2203,6 +2213,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     } while ((ase = leAudioDevice->GetNextActiveAse(ase)));
 
     if (ids.size() > 0) {
+      LOG_INFO("group_id: %d, %s", leAudioDevice->group_id_,
+               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       le_audio::client_parser::ascs::PrepareAseCtpAudioReceiverStartReady(
           ids, value);
 
