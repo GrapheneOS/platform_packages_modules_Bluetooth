@@ -20,10 +20,10 @@ python_library_host {
     name: "bumble_services_experimental-python",
     srcs: [
         "bumble_experimental/*.py",
-        ":pandora_experimental-python-src",
     ],
     libs: [
         "libprotobuf-python",
+        "pandora_experimental-python",
         "bumble",
     ],
 }

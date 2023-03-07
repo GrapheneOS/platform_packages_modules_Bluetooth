@@ -17,13 +17,8 @@ import logging
 
 from avatar import PandoraDevice, PandoraDevices, asynchronous
 from mobly import base_test, test_runner
-
+from pandora.host_pb2 import RANDOM, DataTypes
 from pandora_experimental.gatt_grpc import GATT
-from pandora.host_pb2 import (
-    RANDOM,
-    DataTypes,
-)
-
 from typing import Optional
 
 
@@ -36,7 +31,7 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
 
     def setup_class(self) -> None:
         self.devices = PandoraDevices(self)
-        self.dut, self.ref = self.devices
+        self.dut, self.ref, *_ = self.devices
 
     def teardown_class(self) -> None:
         if self.devices:

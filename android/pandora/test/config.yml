@@ -1,9 +1,22 @@
 ---
 
 TestBeds:
-- Name: ExampleTest
+- Name: android.bumble
   Controllers:
     AndroidDevice: '*'
     BumbleDevice:
+    - transport: 'tcp-client:127.0.0.1:6211'
+      classic_enabled: true
+- Name: bumble.bumble
+  Controllers:
+    BumbleDevice:
     - transport: 'tcp-client:127.0.0.1:7300'
       classic_enabled: true
+      class_of_device: 2360324
+      keystore: 'JsonKeyStore'
+      io_capability: display_output_only
+    - transport: 'tcp-client:127.0.0.1:7300'
+      classic_enabled: true
+      class_of_device: 2360324
+      keystore: 'JsonKeyStore'
+    AndroidDevice: '*'
