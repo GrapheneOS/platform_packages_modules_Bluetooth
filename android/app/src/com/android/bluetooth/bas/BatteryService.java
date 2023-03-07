@@ -61,7 +61,6 @@ public class BatteryService extends ProfileService {
 
     private static final int MAX_BATTERY_STATE_MACHINES = 10;
     private static BatteryService sBatteryService;
-
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
@@ -177,7 +176,11 @@ public class BatteryService extends ProfileService {
         return sBatteryService;
     }
 
-    private static synchronized void setBatteryService(BatteryService instance) {
+    /**
+     * Sets the battery service instance. It should be called only for testing purpose.
+     */
+    @VisibleForTesting
+    public static synchronized void setBatteryService(BatteryService instance) {
         if (DBG) {
             Log.d(TAG, "setBatteryService(): set to: " + instance);
         }
