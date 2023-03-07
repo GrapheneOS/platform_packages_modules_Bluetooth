@@ -385,6 +385,7 @@ cc_test {
     ],
     static_libs: [
         "libbluetooth-types",
+        "libcom.android.sysprop.bluetooth",
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
