@@ -239,6 +239,7 @@ void PacketDef::GenValidator(std::ostream& s) const {
         }
         s << "size_t end_sum_index = size() - (" << started_field->GetSize() << " - " << end_offset << ") / 8;";
       }
+      s << "if (end_sum_index >= size()) { return false; }";
       if (is_little_endian_) {
         s << "auto checksum_view = GetLittleEndianSubview(sum_index, end_sum_index);";
       } else {
