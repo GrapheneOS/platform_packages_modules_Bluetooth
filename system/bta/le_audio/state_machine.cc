@@ -287,20 +287,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
-    LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
-    if (leAudioDevice == nullptr) {
-      LOG(ERROR) << __func__
-                 << " Shouldn't be called without an active device.";
-      state_machine_callbacks_->StatusReportCb(group->group_id_,
-                                               GroupStreamStatus::IDLE);
-      return;
-    }
-
     /* All Ases should aim to achieve target state */
     SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-    PrepareAndSendRelease(leAudioDevice);
-    state_machine_callbacks_->StatusReportCb(group->group_id_,
-                                             GroupStreamStatus::RELEASING);
+
+    auto status = PrepareAndSendReleaseToTheGroup(group);
+    state_machine_callbacks_->StatusReportCb(group->group_id_, status);
   }
 
   void ProcessGattNotifEvent(uint8_t* value, uint16_t len, struct ase* ase,
@@ -661,7 +652,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
      * contexts table.
      */
     if (group->IsAnyDeviceConnected() && !group->HaveAllCisesDisconnected()) {
-      if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+      if ((group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) &&
+          (group->GetTargetState() ==
+           AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
         /* We keep streaming but want others to let know user that it might be
          * need to update offloader with new CIS configuration
          */
@@ -1490,7 +1483,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         }
         break;
       case AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING: {
-        LeAudioDevice* leAudioDeviceNext;
         ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
         ase->active = false;
         ase->configured_for_context_type =
@@ -1514,32 +1506,32 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return;
         }
 
-        leAudioDeviceNext = group->GetNextActiveDevice(leAudioDevice);
-
-        /* Configure ASEs for next device in group */
-        if (leAudioDeviceNext) {
-          PrepareAndSendRelease(leAudioDeviceNext);
-        } else {
-          /* Last node is in releasing state*/
-          group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-
-          group->PrintDebugState();
-          /* If all CISes are disconnected, notify upper layer about IDLE state,
-           * otherwise wait for */
-          if (!group->HaveAllCisesDisconnected()) {
-            LOG_WARN(
-                "Not all CISes removed before going to IDLE for group %d, "
-                "waiting...",
-                group->group_id_);
-            group->PrintDebugState();
-            return;
-          }
-
-          if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
-          ReleaseCisIds(group);
-          state_machine_callbacks_->StatusReportCb(group->group_id_,
-                                                   GroupStreamStatus::IDLE);
+        if (!group->HaveAllActiveDevicesAsesTheSameState(
+                AseState::BTA_LE_AUDIO_ASE_STATE_IDLE)) {
+          LOG_DEBUG("Waiting for more devices to get into idle state");
+          return;
         }
+
+        /* Last node is in releasing state*/
+        group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+        group->PrintDebugState();
+
+        /* If all CISes are disconnected, notify upper layer about IDLE state,
+         * otherwise wait for */
+        if (!group->HaveAllCisesDisconnected()) {
+          LOG_WARN(
+              "Not all CISes removed before going to IDLE for group %d, "
+              "waiting...",
+              group->group_id_);
+          group->PrintDebugState();
+          return;
+        }
+
+        if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
+        ReleaseCisIds(group);
+        state_machine_callbacks_->StatusReportCb(group->group_id_,
+                                                 GroupStreamStatus::IDLE);
+
         break;
       }
       default:
@@ -2048,6 +2040,22 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     BtaGattQueue::WriteCharacteristic(leAudioDevice->conn_id_,
                                       leAudioDevice->ctp_hdls_.val_hdl, value,
                                       GATT_WRITE_NO_RSP, NULL, NULL);
+  }
+
+  GroupStreamStatus PrepareAndSendReleaseToTheGroup(LeAudioDeviceGroup* group) {
+    LOG_INFO("group_id: %d", group->group_id_);
+    LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
+    if (!leAudioDevice) {
+      LOG_ERROR(" Shouldn't be called without an active device.");
+      return GroupStreamStatus::IDLE;
+    }
+
+    for (; leAudioDevice;
+         leAudioDevice = group->GetNextActiveDevice(leAudioDevice)) {
+      PrepareAndSendRelease(leAudioDevice);
+    }
+
+    return GroupStreamStatus::RELEASING;
   }
 
   void PrepareAndSendRelease(LeAudioDevice* leAudioDevice) {
