@@ -117,7 +117,7 @@ public class DistanceMeasurementNativeInterface {
             case REASON_INVALID_PARAMETERS:
                 return BluetoothStatusCodes.ERROR_BAD_PARAMETERS;
             case REASON_INTERNAL_ERROR:
-                return BluetoothStatusCodes.ERROR_DISTANCE_MEASUREMENT_INTERNAL;
+                return BluetoothStatusCodes.DISTANCE_MEASUREMENT_ERROR_INTERNAL;
             default:
                 return BluetoothStatusCodes.ERROR_UNKNOWN;
         }
