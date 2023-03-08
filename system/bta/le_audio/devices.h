@@ -294,7 +294,10 @@ class LeAudioDeviceGroup {
       types::AudioStreamDataPathState data_path_state);
   bool IsDeviceInTheGroup(LeAudioDevice* leAudioDevice);
   bool HaveAllActiveDevicesAsesTheSameState(types::AseState state);
+  bool HaveAnyActiveDeviceInUnconfiguredState();
   bool IsGroupStreamReady(void);
+  bool IsGroupReadyToCreateStream(void);
+  bool IsGroupReadyToSuspendStream(void);
   bool HaveAllCisesDisconnected(void);
   uint8_t GetFirstFreeCisId(void);
   uint8_t GetFirstFreeCisId(types::CisType cis_type);
