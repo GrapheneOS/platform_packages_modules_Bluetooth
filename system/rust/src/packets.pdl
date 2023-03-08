@@ -215,3 +215,11 @@ packet AttHandleValueIndication : Att(opcode = HANDLE_VALUE_INDICATION) {
 }
 
 packet AttHandleValueConfirmation : Att(opcode = HANDLE_VALUE_CONFIRMATION) {}
+
+packet AttExchangeMtuRequest : Att(opcode = EXCHANGE_MTU_REQUEST) {
+  mtu: 16,
+}
+
+packet AttExchangeMtuResponse : Att(opcode = EXCHANGE_MTU_RESPONSE) {
+  mtu: 16,
+}

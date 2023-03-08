@@ -7,13 +7,13 @@ use log::{error, info, trace};
 
 use crate::{
     do_in_rust_thread,
-    gatt::server::att_server_bearer::AttServerBearer,
-    packets::{OwnedAttView, OwnedPacket},
+    packets::{AttOpcode, OwnedAttView, OwnedPacket},
 };
 
 use super::{
     ffi::{InterceptAction, StoreCallbacksFromRust},
     ids::{AdvertiserId, ConnectionId, ServerId, TransportIndex},
+    mtu::MtuEvent,
     opcode_types::{classify_opcode, OperationType},
 };
 
@@ -32,7 +32,14 @@ pub struct Arbiter {
 pub fn initialize_arbiter() {
     *ARBITER.lock().unwrap() = Some(Arbiter::new());
 
-    StoreCallbacksFromRust(on_le_connect, on_le_disconnect, intercept_packet);
+    StoreCallbacksFromRust(
+        on_le_connect,
+        on_le_disconnect,
+        intercept_packet,
+        |tcb_idx| on_mtu_event(TransportIndex(tcb_idx), MtuEvent::OutgoingRequest),
+        |tcb_idx, mtu| on_mtu_event(TransportIndex(tcb_idx), MtuEvent::IncomingResponse(mtu)),
+        |tcb_idx, mtu| on_mtu_event(TransportIndex(tcb_idx), MtuEvent::IncomingRequest(mtu)),
+    );
 }
 
 /// Acquire the mutex holding the Arbiter and provide a mutable reference to the
@@ -93,6 +100,12 @@ impl Arbiter {
 
         let att = OwnedAttView::try_parse(packet).ok()?;
 
+        if att.view().get_opcode() == AttOpcode::EXCHANGE_MTU_REQUEST {
+            // special case: this server opcode is handled by legacy stack, and we snoop
+            // on its handling, since the MTU is shared between the client + server
+            return None;
+        }
+
         match classify_opcode(att.view().get_opcode()) {
             OperationType::Command | OperationType::Request | OperationType::Confirmation => {
                 Some((att, conn_id))
@@ -126,6 +139,11 @@ impl Arbiter {
     pub fn on_le_disconnect(&mut self, tcb_idx: TransportIndex) -> Option<ConnectionId> {
         info!("processing disconnection on transport {tcb_idx:?}");
         self.transport_to_owned_connection.remove(&tcb_idx)
+    }
+
+    /// Look up the conn_id for a given tcb_idx, if present
+    pub fn get_conn_id(&self, tcb_idx: TransportIndex) -> Option<ConnectionId> {
+        self.transport_to_owned_connection.get(&tcb_idx).copied()
     }
 }
 
@@ -168,13 +186,30 @@ fn intercept_packet(tcb_idx: u8, packet: Vec<u8>) -> InterceptAction {
     }
 }
 
+fn on_mtu_event(tcb_idx: TransportIndex, event: MtuEvent) {
+    if let Some(conn_id) = with_arbiter(|arbiter| arbiter.get_conn_id(tcb_idx)) {
+        do_in_rust_thread(move |modules| {
+            let Some(bearer) = modules.gatt_module.get_bearer(conn_id) else {
+                error!("Bearer for {conn_id:?} not found");
+                return;
+            };
+            if let Err(err) = bearer.handle_mtu_event(event) {
+                error!("{err:?}")
+            }
+        });
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     use crate::{
         gatt::ids::AttHandle,
-        packets::{AttBuilder, AttOpcode, AttReadRequestBuilder, Serializable},
+        packets::{
+            AttBuilder, AttExchangeMtuRequestBuilder, AttOpcode, AttReadRequestBuilder,
+            Serializable,
+        },
     };
 
     const TCB_IDX: TransportIndex = TransportIndex(1);
@@ -322,6 +357,21 @@ mod test {
         let packet = AttBuilder {
             opcode: AttOpcode::ERROR_RESPONSE,
             _child_: AttReadRequestBuilder { attribute_handle: AttHandle(1).into() }.into(),
+        };
+
+        let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());
+
+        assert!(out.is_none());
+    }
+
+    #[test]
+    fn test_mtu_bypass() {
+        let mut arbiter = Arbiter::new();
+        arbiter.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
+        arbiter.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let packet = AttBuilder {
+            opcode: AttOpcode::EXCHANGE_MTU_REQUEST,
+            _child_: AttExchangeMtuRequestBuilder { mtu: 64 }.into(),
         };
 
         let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());

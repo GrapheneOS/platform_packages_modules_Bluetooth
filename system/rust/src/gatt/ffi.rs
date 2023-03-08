@@ -149,6 +149,9 @@ mod inner {
             on_le_connect: fn(tcb_idx: u8, advertiser: u8),
             on_le_disconnect: fn(tcb_idx: u8),
             intercept_packet: fn(tcb_idx: u8, packet: Vec<u8>) -> InterceptAction,
+            on_outgoing_mtu_req: fn(tcb_idx: u8),
+            on_incoming_mtu_resp: fn(tcb_idx: u8, mtu: usize),
+            on_incoming_mtu_req: fn(tcb_idx: u8, mtu: usize),
         );
 
         /// Send an outgoing packet on the specified tcb_idx

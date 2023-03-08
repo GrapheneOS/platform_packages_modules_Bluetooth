@@ -40,6 +40,8 @@ pub fn HACK_child_to_opcode(child: &AttChild) -> AttOpcode {
         AttChild::AttWriteResponse(_) => AttOpcode::WRITE_RESPONSE,
         AttChild::AttHandleValueIndication(_) => AttOpcode::HANDLE_VALUE_INDICATION,
         AttChild::AttHandleValueConfirmation(_) => AttOpcode::HANDLE_VALUE_CONFIRMATION,
+        AttChild::AttExchangeMtuRequest(_) => AttOpcode::EXCHANGE_MTU_REQUEST,
+        AttChild::AttExchangeMtuResponse(_) => AttOpcode::EXCHANGE_MTU_RESPONSE,
     }
 }
 

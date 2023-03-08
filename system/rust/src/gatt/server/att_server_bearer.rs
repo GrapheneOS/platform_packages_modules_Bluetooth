@@ -4,6 +4,7 @@
 
 use std::{cell::Cell, future::Future};
 
+use anyhow::Result;
 use log::{error, trace, warn};
 use tokio::task::spawn_local;
 
@@ -14,6 +15,7 @@ use crate::{
     },
     gatt::{
         ids::AttHandle,
+        mtu::{AttMtu, MtuEvent},
         opcode_types::{classify_opcode, OperationType},
     },
     packets::{
@@ -34,8 +36,6 @@ enum AttRequestState<T: AttDatabase> {
     Pending(Option<OwnedHandle<()>>),
 }
 
-const DEFAULT_ATT_MTU: usize = 23;
-
 /// The errors that can occur while trying to send a packet
 #[derive(Debug)]
 pub enum SendError {
@@ -51,7 +51,7 @@ pub enum SendError {
 pub struct AttServerBearer<T: AttDatabase> {
     // general
     send_packet: Box<dyn Fn(AttBuilder) -> Result<(), SerializeError>>,
-    mtu: Cell<usize>,
+    mtu: AttMtu,
 
     // request state
     curr_request: Cell<AttRequestState<T>>,
@@ -71,7 +71,7 @@ impl<T: AttDatabase + Clone + 'static> AttServerBearer<T> {
         let (indication_handler, pending_confirmation) = IndicationHandler::new(db.clone());
         Self {
             send_packet: Box::new(send_packet),
-            mtu: Cell::new(DEFAULT_ATT_MTU),
+            mtu: AttMtu::new(),
 
             curr_request: AttRequestState::Idle(AttRequestHandler::new(db)).into(),
 
@@ -116,18 +116,34 @@ impl<T: AttDatabase + Clone + 'static> WeakBoxRef<'_, AttServerBearer<T>> {
         trace!("sending indication for handle {handle:?}");
 
         let locked_indication_handler = self.indication_handler.lock();
+        let pending_mtu = self.mtu.snapshot();
         let this = self.downgrade();
 
         async move {
-            locked_indication_handler
+            // first wait until we are at the head of the queue and are ready to send
+            // indications
+            let mut indication_handler = locked_indication_handler
                 .await
                 .ok_or_else(|| {
                     warn!("indication for handle {handle:?} cancelled while queued since the connection dropped");
                     IndicationError::SendError(SendError::ConnectionDropped)
-                })?
-                .send(handle, data, |packet| this.try_send_packet(packet))
+                })?;
+            // then, if MTU negotiation is taking place, wait for it to complete
+            let mtu = pending_mtu
                 .await
+                .ok_or_else(|| {
+                    warn!("indication for handle {handle:?} cancelled while waiting for MTU exchange to complete since the connection dropped");
+                    IndicationError::SendError(SendError::ConnectionDropped)
+                })?;
+            // finally, send, and wait for a response
+            indication_handler.send(handle, data, mtu, |packet| this.try_send_packet(packet)).await
         }
+    }
+
+    /// Handle a snooped MTU event, to update the MTU we use for our various
+    /// operations
+    pub fn handle_mtu_event(&self, mtu_event: MtuEvent) -> Result<()> {
+        self.mtu.handle_event(mtu_event)
     }
 
     fn handle_request(&self, packet: AttView<'_>) {
@@ -136,7 +152,7 @@ impl<T: AttDatabase + Clone + 'static> WeakBoxRef<'_, AttServerBearer<T>> {
             AttRequestState::Idle(mut request_handler) => {
                 // even if the MTU is updated afterwards, 5.3 3F 3.4.2.2 states that the
                 // request-time MTU should be used
-                let mtu = self.mtu.get();
+                let mtu = self.mtu.snapshot_or_default();
                 let packet = packet.to_owned_packet();
                 let this = self.downgrade();
                 let task = spawn_local(async move {
@@ -220,7 +236,7 @@ mod test {
         },
         utils::{
             packet::{build_att_data, build_att_view_or_crash},
-            task::block_on_locally,
+            task::{block_on_locally, try_await},
         },
     };
 
@@ -555,6 +571,104 @@ mod test {
                 pending_send.await.unwrap(),
                 Err(IndicationError::ConnectionDroppedWhileWaitingForConfirmation)
             ));
+        });
+    }
+
+    #[test]
+    fn test_single_indication_pending_mtu() {
+        block_on_locally(async {
+            // arrange: pending MTU negotiation
+            let (conn, mut rx) = open_connection();
+            conn.as_ref().handle_mtu_event(MtuEvent::OutgoingRequest).unwrap();
+
+            // act: try to send an indication with a large payload size
+            let _ =
+                try_await(conn.as_ref().send_indication(
+                    VALID_HANDLE,
+                    AttAttributeDataChild::RawData((1..50).collect()),
+                ))
+                .await;
+            // then resolve the MTU negotiation with a large MTU
+            conn.as_ref().handle_mtu_event(MtuEvent::IncomingResponse(100)).unwrap();
+
+            // assert: the indication was sent
+            assert_eq!(rx.recv().await.unwrap().opcode, AttOpcode::HANDLE_VALUE_INDICATION);
+        });
+    }
+
+    #[test]
+    fn test_single_indication_pending_mtu_fail() {
+        block_on_locally(async {
+            // arrange: pending MTU negotiation
+            let (conn, _) = open_connection();
+            conn.as_ref().handle_mtu_event(MtuEvent::OutgoingRequest).unwrap();
+
+            // act: try to send an indication with a large payload size
+            let pending_mtu =
+                try_await(conn.as_ref().send_indication(
+                    VALID_HANDLE,
+                    AttAttributeDataChild::RawData((1..50).collect()),
+                ))
+                .await
+                .unwrap_err();
+            // then resolve the MTU negotiation with a small MTU
+            conn.as_ref().handle_mtu_event(MtuEvent::IncomingResponse(32)).unwrap();
+
+            // assert: the indication failed to send
+            assert!(matches!(pending_mtu.await, Err(IndicationError::DataExceedsMtu { .. })));
+        });
+    }
+
+    #[test]
+    fn test_server_transaction_pending_mtu() {
+        block_on_locally(async {
+            // arrange: pending MTU negotiation
+            let (conn, mut rx) = open_connection();
+            conn.as_ref().handle_mtu_event(MtuEvent::OutgoingRequest).unwrap();
+
+            // act: send server packet
+            conn.as_ref().handle_packet(
+                build_att_view_or_crash(AttReadRequestBuilder {
+                    attribute_handle: VALID_HANDLE.into(),
+                })
+                .view(),
+            );
+
+            // assert: that we reply even while the MTU req is outstanding
+            assert_eq!(rx.recv().await.unwrap().opcode, AttOpcode::READ_RESPONSE);
+        });
+    }
+
+    #[test]
+    fn test_queued_indication_pending_mtu_uses_mtu_on_dequeue() {
+        block_on_locally(async {
+            // arrange: an outstanding indication
+            let (conn, mut rx) = open_connection();
+            let _ =
+                try_await(conn.as_ref().send_indication(
+                    VALID_HANDLE,
+                    AttAttributeDataChild::RawData([1, 2, 3].into()),
+                ))
+                .await;
+            rx.recv().await.unwrap(); // flush rx_queue
+
+            // act: enqueue an indication with a large payload
+            let _ =
+                try_await(conn.as_ref().send_indication(
+                    VALID_HANDLE,
+                    AttAttributeDataChild::RawData((1..50).collect()),
+                ))
+                .await;
+            // then perform MTU negotiation to upgrade to a large MTU
+            conn.as_ref().handle_mtu_event(MtuEvent::OutgoingRequest).unwrap();
+            conn.as_ref().handle_mtu_event(MtuEvent::IncomingResponse(512)).unwrap();
+            // finally resolve the first indication, so the second indication can be sent
+            conn.as_ref().handle_packet(
+                build_att_view_or_crash(AttHandleValueConfirmationBuilder {}).view(),
+            );
+
+            // assert: the second indication successfully sent (so it used the new MTU)
+            assert_eq!(rx.recv().await.unwrap().opcode, AttOpcode::HANDLE_VALUE_INDICATION);
         });
     }
 }

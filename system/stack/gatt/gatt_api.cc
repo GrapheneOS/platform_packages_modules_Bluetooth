@@ -38,6 +38,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"
+#include "stack/arbiter/acl_arbiter.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/gatt/gatt_int.h"
@@ -717,6 +718,8 @@ tGATT_STATUS GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu) {
   tGATT_CL_MSG gatt_cl_msg;
   gatt_cl_msg.mtu = mtu;
   LOG_DEBUG("Configuring ATT mtu size conn_id:%hu mtu:%hu", conn_id, mtu);
+
+  bluetooth::shim::arbiter::GetArbiter().OnOutgoingMtuReq(tcb_idx);
 
   return attp_send_cl_msg(*p_clcb->p_tcb, p_clcb, GATT_REQ_MTU, &gatt_cl_msg);
 }
