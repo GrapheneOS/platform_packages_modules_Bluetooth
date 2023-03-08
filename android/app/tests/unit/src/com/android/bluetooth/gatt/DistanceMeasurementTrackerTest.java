@@ -64,9 +64,9 @@ public class DistanceMeasurementTrackerTest {
         mUuid = UUID.randomUUID();
         mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(IDENTITY_ADDRESS);
         mParams = new DistanceMeasurementParams.Builder(mDevice)
-                .setDurationSeconds(TIMEOUT_S)
+                .setDuration(TIMEOUT_S)
                 .setFrequency(DistanceMeasurementParams.REPORT_FREQUENCY_LOW)
-                .setMethodId(mMethod)
+                .setMethod(mMethod)
                 .build();
         mTracker = new DistanceMeasurementTracker(
                 mDistanceMeasurementManager, mParams, IDENTITY_ADDRESS, mUuid, 1000, mCallback);
