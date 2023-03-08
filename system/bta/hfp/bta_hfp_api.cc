@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-#ifndef BTA_HFP_API_H
-#define BTA_HFP_API_H
+#include "bta_hfp_api.h"
 
-/* HFP Versions */
-#define HFP_HSP_VERSION_UNKNOWN 0x0000
-#define HFP_HSP_VERSION_DONT_CARE 0xFFFF
-#define HFP_VERSION_1_1 0x0101
-#define HFP_VERSION_1_5 0x0105
-#define HFP_VERSION_1_6 0x0106
-#define HFP_VERSION_1_7 0x0107
-#define HFP_VERSION_1_8 0x0108
+#ifdef OS_ANDROID
+#include <hfp.sysprop.h>
+#endif
 
-#define HSP_VERSION_1_0 0x0100
-#define HSP_VERSION_1_2 0x0102
+#define DEFAULT_BTA_HFP_VERSION HFP_VERSION_1_7
 
-#define HFP_VERSION_CONFIG_KEY "HfpVersion"
-#define HFP_SDP_FEATURES_CONFIG_KEY "HfpSdpFeatures"
-
-int get_default_hfp_version();
-
-#endif /* BTA_HFP_API_H */
+int get_default_hfp_version() {
+#ifdef OS_ANDROID
+  static const int version =
+      android::sysprop::bluetooth::Hfp::version().value_or(
+          DEFAULT_BTA_HFP_VERSION);
+  return version;
+#else
+  return DEFAULT_BTA_HFP_VERSION;
+#endif
+}
