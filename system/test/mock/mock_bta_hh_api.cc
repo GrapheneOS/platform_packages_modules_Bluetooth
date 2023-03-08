@@ -36,7 +36,9 @@
 #define UNUSED_ATTR
 #endif
 
-void BTA_HhEnable(tBTA_HH_CBACK* p_cback) { inc_func_call_count(__func__); }
+void BTA_HhEnable(tBTA_HH_CBACK* p_cback, bool enable_hidp, bool enable_hogp) {
+  inc_func_call_count(__func__);
+}
 void BTA_HhAddDev(const RawAddress& bda, tBTA_HH_ATTR_MASK attr_mask,
                   uint8_t sub_class, uint8_t app_id,
                   tBTA_HH_DEV_DSCP_INFO dscp_info) {
