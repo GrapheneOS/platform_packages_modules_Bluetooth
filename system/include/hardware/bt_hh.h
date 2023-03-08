@@ -89,6 +89,12 @@ typedef enum {
   BTHH_FEATURE_REPORT
 } bthh_report_type_t;
 
+/* Info for which profiles to enable */
+typedef struct {
+  bool hidp_enabled;
+  bool hogp_enabled;
+} bthh_profile_enable_t;
+
 typedef struct {
   int attr_mask;
   uint8_t sub_class;
@@ -212,6 +218,9 @@ typedef struct {
 
   /** Closes the interface. */
   void (*cleanup)(void);
+
+  /** Configure which profiles can be enabled. Affected after re-init */
+  void (*configure_enabled_profiles)(bool enable_hidp, bool enable_hogp);
 
 } bthh_interface_t;
 __END_DECLS
