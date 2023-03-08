@@ -3434,11 +3434,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @IntDef(
         prefix = { "FEATURE_" },
         value = {
-            /** Remote support status of audio policy feature is unknown/unconfigured **/
             BluetoothStatusCodes.FEATURE_NOT_CONFIGURED,
-            /** Remote support status of audio policy feature is supported **/
             BluetoothStatusCodes.FEATURE_SUPPORTED,
-            /** Remote support status of audio policy feature is not supported **/
             BluetoothStatusCodes.FEATURE_NOT_SUPPORTED,
         }
     )
