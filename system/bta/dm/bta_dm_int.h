@@ -583,8 +583,10 @@ extern void bta_dm_disconnect_all_acls(void);
 extern void bta_dm_le_rand(LeRandCallback cb);
 extern void bta_dm_set_event_filter_connection_setup_all_devices();
 extern void bta_dm_allow_wake_by_hid(
+    std::vector<RawAddress> classic_hid_devices,
     std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices);
-extern void bta_dm_restore_filter_accept_list();
+extern void bta_dm_restore_filter_accept_list(
+    std::vector<std::pair<RawAddress, uint8_t>> le_devices);
 extern void bta_dm_set_default_event_mask_except(uint64_t mask,
                                                  uint64_t le_mask);
 extern void bta_dm_set_event_filter_inquiry_result_all_devices();
