@@ -55,7 +55,7 @@ public final class DistanceMeasurementResult implements Parcelable {
      * @hide
      */
     @SystemApi
-    public double getResultMeters() {
+    public double getMeters() {
         return mMeters;
     }
 
