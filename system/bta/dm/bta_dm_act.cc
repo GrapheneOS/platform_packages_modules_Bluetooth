@@ -1857,18 +1857,26 @@ static void bta_dm_discover_next_device(void) {
  * Returns          void
  *
  ******************************************************************************/
-static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
+static tBT_TRANSPORT bta_dm_determine_discovery_transport(
+    const RawAddress& remote_bd_addr) {
   tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
   if (bta_dm_search_cb.transport == BT_TRANSPORT_AUTO) {
     tBT_DEVICE_TYPE dev_type;
     tBLE_ADDR_TYPE addr_type;
 
     BTM_ReadDevInfo(remote_bd_addr, &dev_type, &addr_type);
-    if (dev_type == BT_DEVICE_TYPE_BLE || addr_type == BLE_ADDR_RANDOM)
+    if (dev_type == BT_DEVICE_TYPE_BLE || addr_type == BLE_ADDR_RANDOM) {
       transport = BT_TRANSPORT_LE;
+    }
   } else {
     transport = bta_dm_search_cb.transport;
   }
+  return transport;
+}
+
+static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
+  const tBT_TRANSPORT transport =
+      bta_dm_determine_discovery_transport(remote_bd_addr);
 
   VLOG(1) << __func__ << " BDA: " << ADDRESS_TO_LOGGABLE_STR(remote_bd_addr);
 
@@ -4571,6 +4579,10 @@ tBTA_DM_PEER_DEVICE* allocate_device_for(const RawAddress& bd_addr,
 
 void bta_dm_remname_cback(const tBTM_REMOTE_DEV_NAME* p) {
   ::bta_dm_remname_cback(p);
+}
+
+tBT_TRANSPORT bta_dm_determine_discovery_transport(const RawAddress& bd_addr) {
+  return ::bta_dm_determine_discovery_transport(bd_addr);
 }
 
 }  // namespace testing
