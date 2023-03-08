@@ -121,6 +121,16 @@ public final class BluetoothSocket implements Closeable {
     /*package*/ static final int SEC_FLAG_AUTH_MITM = 1 << 3;
     /*package*/ static final int SEC_FLAG_AUTH_16_DIGIT = 1 << 4;
 
+    // Defined in BluetoothProtoEnums.L2capCocConnectionResult of proto logging
+    private static final int RESULT_L2CAP_CONN_UNKNOWN = 0;
+    private static final int RESULT_L2CAP_CONN_SUCCESS = 1;
+    private static final int RESULT_L2CAP_CONN_BlUETOOTH_SOCKET_CONNECTION_FAILED = 1000;
+    private static final int RESULT_L2CAP_CONN_BlUETOOTH_SOCKET_CONNECTION_CLOSED = 1001;
+    private static final int RESULT_L2CAP_CONN_BlUETOOTH_UNABLE_TO_SEND_RPC = 1002;
+    private static final int RESULT_L2CAP_CONN_BlUETOOTH_NULL_BLUETOOTH_DEVICE = 1003;
+    private static final int RESULT_L2CAP_CONN_BlUETOOTH_GET_SOCKET_MANAGER_FAILED = 1004;
+    private static final int RESULT_L2CAP_CONN_BlUETOOTH_NULL_FILE_DESCRIPTOR = 1005;
+
     private final int mType;  /* one of TYPE_RFCOMM etc */
     private BluetoothDevice mDevice;    /* remote device */
     private String mAddress;    /* remote address */
@@ -152,6 +162,8 @@ public final class BluetoothSocket implements Closeable {
     private ByteBuffer mL2capBuffer = null;
     private int mMaxTxPacketSize = 0; // The l2cap maximum packet size supported by the peer.
     private int mMaxRxPacketSize = 0; // The l2cap maximum packet size that can be received.
+
+    private long mSocketCreationTime = 0;
 
     private enum SocketState {
         INIT,
@@ -327,6 +339,7 @@ public final class BluetoothSocket implements Closeable {
             BluetoothDevice device, int port, ParcelUuid uuid, boolean mitm, boolean min16DigitPin)
             throws IOException {
         if (VDBG) Log.d(TAG, "Creating new BluetoothSocket of type: " + type);
+        mSocketCreationTime = System.currentTimeMillis();
         if (type == BluetoothSocket.TYPE_RFCOMM && uuid == null && fd == -1
                 && port != BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP) {
             if (port < 1 || port > MAX_RFCOMM_CHANNEL) {
@@ -403,6 +416,7 @@ public final class BluetoothSocket implements Closeable {
         mExcludeSdp = s.mExcludeSdp;
         mAuthMitm = s.mAuthMitm;
         mMin16DigitPin = s.mMin16DigitPin;
+        mSocketCreationTime = s.mSocketCreationTime;
     }
 
     private BluetoothSocket acceptSocket(String remoteAddr) throws IOException {
@@ -568,20 +582,42 @@ public final class BluetoothSocket implements Closeable {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void connect() throws IOException {
-        if (mDevice == null) throw new IOException(NULL_DEVICE_ERR_MSG);
-
+        IBluetooth bluetoothProxy =
+                BluetoothAdapter.getDefaultAdapter().getBluetoothService();
+        if (bluetoothProxy == null) {
+            throw new IOException(BLUETOOTH_OFF_FAILURE_MSG);
+        }
+        if (mDevice == null) {
+            logL2capcocClientConnection(
+                    bluetoothProxy, RESULT_L2CAP_CONN_BlUETOOTH_NULL_BLUETOOTH_DEVICE);
+            throw new IOException(NULL_DEVICE_ERR_MSG);
+        }
         try {
-            if (mSocketState == SocketState.CLOSED) throw new IOException(SOCKET_CLOSED_MSG);
-            IBluetooth bluetoothProxy =
-                    BluetoothAdapter.getDefaultAdapter().getBluetoothService();
-            if (bluetoothProxy == null) throw new IOException(BLUETOOTH_OFF_FAILURE_MSG);
+            if (mSocketState == SocketState.CLOSED) {
+                logL2capcocClientConnection(
+                        bluetoothProxy, RESULT_L2CAP_CONN_BlUETOOTH_SOCKET_CONNECTION_CLOSED);
+                throw new IOException(SOCKET_CLOSED_MSG);
+            }
+
             IBluetoothSocketManager socketManager = bluetoothProxy.getSocketManager();
-            if (socketManager == null) throw new IOException(SOCKET_MANAGER_FAILURE_MSG);
+            if (socketManager == null) {
+                logL2capcocClientConnection(
+                        bluetoothProxy, RESULT_L2CAP_CONN_BlUETOOTH_GET_SOCKET_MANAGER_FAILED);
+                throw new IOException(SOCKET_MANAGER_FAILURE_MSG);
+            }
             mPfd = socketManager.connectSocket(mDevice, mType, mUuid, mPort, getSecurityFlags());
             synchronized (this) {
                 if (DBG) Log.d(TAG, "connect(), SocketState: " + mSocketState + ", mPfd: " + mPfd);
-                if (mSocketState == SocketState.CLOSED) throw new IOException(SOCKET_CLOSED_MSG);
-                if (mPfd == null) throw new IOException(SOCKET_CONNECTION_FAILURE_MSG);
+                if (mSocketState == SocketState.CLOSED) {
+                    logL2capcocClientConnection(
+                            bluetoothProxy, RESULT_L2CAP_CONN_BlUETOOTH_SOCKET_CONNECTION_CLOSED);
+                    throw new IOException(SOCKET_CLOSED_MSG);
+                }
+                if (mPfd == null) {
+                    logL2capcocClientConnection(
+                            bluetoothProxy, RESULT_L2CAP_CONN_BlUETOOTH_NULL_FILE_DESCRIPTOR);
+                    throw new IOException(SOCKET_CONNECTION_FAILURE_MSG);
+                }
                 FileDescriptor fd = mPfd.getFileDescriptor();
                 mSocket = new LocalSocket(fd);
                 mSocketIS = mSocket.getInputStream();
@@ -590,51 +626,75 @@ public final class BluetoothSocket implements Closeable {
             int channel = readInt(mSocketIS);
             if (channel == 0) {
                 int errCode = (int) mSocketIS.read();
+                String exceptionMsg = "";
                 switch(errCode) {
                     case L2CAP_ACL_FAILURE:
-                        throw new IOException(L2CAP_ACL_FAILURE_MSG);
+                        exceptionMsg = L2CAP_ACL_FAILURE_MSG;
+                        break;
                     case L2CAP_CLIENT_SECURITY_FAILURE:
-                        throw new IOException(L2CAP_CLIENT_SECURITY_FAILURE_MSG);
+                        exceptionMsg = L2CAP_CLIENT_SECURITY_FAILURE_MSG;
+                        break;
                     case L2CAP_INSUFFICIENT_AUTHENTICATION:
-                        throw new IOException(L2CAP_INSUFFICIENT_AUTHORIZATION_MSG);
+                        exceptionMsg = L2CAP_INSUFFICIENT_AUTHORIZATION_MSG;
+                        break;
                     case L2CAP_INSUFFICIENT_AUTHORIZATION:
-                        throw new IOException(L2CAP_INSUFFICIENT_AUTHORIZATION_MSG);
+                        exceptionMsg = L2CAP_INSUFFICIENT_AUTHORIZATION_MSG;
+                        break;
                     case L2CAP_INSUFFICIENT_ENCRYPT_KEY_SIZE:
-                        throw new IOException(L2CAP_INSUFFICIENT_ENCRYPT_KEY_SIZE_MSG);
+                        exceptionMsg = L2CAP_INSUFFICIENT_ENCRYPT_KEY_SIZE_MSG;
+                        break;
                     case L2CAP_INSUFFICIENT_ENCRYPTION:
-                        throw new IOException(L2CAP_INSUFFICIENT_ENCRYPTION_MSG);
+                        exceptionMsg = L2CAP_INSUFFICIENT_ENCRYPTION_MSG;
+                        break;
                     case L2CAP_INVALID_SOURCE_CID:
-                        throw new IOException(L2CAP_INVALID_SOURCE_CID_MSG);
+                        exceptionMsg = L2CAP_INVALID_SOURCE_CID_MSG;
+                        break;
                     case L2CAP_SOURCE_CID_ALREADY_ALLOCATED:
-                        throw new IOException(L2CAP_SOURCE_CID_ALREADY_ALLOCATED_MSG);
+                        exceptionMsg = L2CAP_SOURCE_CID_ALREADY_ALLOCATED_MSG;
+                        break;
                     case L2CAP_UNACCEPTABLE_PARAMETERS:
-                        throw new IOException(L2CAP_UNACCEPTABLE_PARAMETERS_MSG);
+                        exceptionMsg = L2CAP_UNACCEPTABLE_PARAMETERS_MSG;
+                        break;
                     case L2CAP_INVALID_PARAMETERS:
-                        throw new IOException(L2CAP_INVALID_PARAMETERS_MSG);
+                        exceptionMsg = L2CAP_INVALID_PARAMETERS_MSG;
+                        break;
                     case L2CAP_NO_RESOURCES:
-                        throw new IOException(L2CAP_NO_RESOURCES_MSG);
+                        exceptionMsg = L2CAP_NO_RESOURCES_MSG;
+                        break;
                     case L2CAP_NO_PSM_AVAILABLE:
-                        throw new IOException(L2CAP_NO_PSM_AVAILABLE_MSG);
+                        exceptionMsg = L2CAP_NO_PSM_AVAILABLE_MSG;
+                        break;
                     case L2CAP_TIMEOUT:
-                        throw new IOException(L2CAP_TIMEOUT_MSG);
+                        exceptionMsg = L2CAP_TIMEOUT_MSG;
+                        break;
                     default:
-                        throw new IOException(L2CAP_UNKNOWN_ERR_MSG);
+                        exceptionMsg = L2CAP_UNKNOWN_ERR_MSG;
+                        errCode = RESULT_L2CAP_CONN_UNKNOWN;
                 }
+                logL2capcocClientConnection(bluetoothProxy, errCode);
+                throw new IOException(exceptionMsg);
             }
             if (channel < 0) {
+                logL2capcocClientConnection(
+                        bluetoothProxy, RESULT_L2CAP_CONN_BlUETOOTH_SOCKET_CONNECTION_FAILED);
                 throw new IOException(SOCKET_CONNECTION_FAILURE_MSG);
             }
             mPort = channel;
             waitSocketSignal(mSocketIS);
             synchronized (this) {
                 if (mSocketState == SocketState.CLOSED) {
+                    logL2capcocClientConnection(
+                            bluetoothProxy, RESULT_L2CAP_CONN_BlUETOOTH_SOCKET_CONNECTION_CLOSED);
                     throw new IOException(SOCKET_CLOSED_MSG);
                 }
                 mSocketState = SocketState.CONNECTED;
                 if (DBG) Log.d(TAG, "connect(), socket connected");
             }
+            logL2capcocClientConnection(bluetoothProxy, RESULT_L2CAP_CONN_SUCCESS);
         } catch (RemoteException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            logL2capcocClientConnection(
+                    bluetoothProxy, RESULT_L2CAP_CONN_BlUETOOTH_UNABLE_TO_SEND_RPC);
             throw new IOException("unable to send RPC: " + e.getMessage());
         }
     }
@@ -843,11 +903,28 @@ public final class BluetoothSocket implements Closeable {
         }
     }
 
+    private void logL2capcocClientConnection(IBluetooth bluetoothProxy, int errCode) {
+        if (mType != TYPE_L2CAP_LE) {
+            return;
+        }
+        try {
+            bluetoothProxy.logL2capcocClientConnection(
+                    mDevice, mPort, mAuth, errCode,
+                    System.currentTimeMillis() - mSocketCreationTime);
+        } catch (RemoteException e) {
+            Log.w(TAG, "logL2capcocClientConnection failed due to remote exception");
+        }
+    }
+
     /*package */ void removeChannel() {
     }
 
     /*package */ int getPort() {
         return mPort;
+    }
+
+    /*package */ long getSocketCreationTime() {
+        return mSocketCreationTime;
     }
 
     /**
