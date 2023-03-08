@@ -49,7 +49,8 @@
         <option name="profile" value="L2CAP/LE" />
         <option name="profile" value="MAP" />
         <option name="profile" value="OPP" />
-        <option name="profile" value="PAN" />
+        <!-- TODO(b/272303629): Reenable -->
+        <!--option name="profile" value="PAN" /-->
         <option name="profile" value="PBAP/PSE" />
         <option name="profile" value="RFCOMM" />
         <option name="profile" value="SDP" />
