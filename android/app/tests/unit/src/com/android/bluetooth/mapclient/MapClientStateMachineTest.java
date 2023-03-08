@@ -74,6 +74,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -607,7 +608,8 @@ public class MapClientStateMachineTest {
                 any(BroadcastOptions.class));
         assertThat(mMceStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_CONNECTED);
 
-        EventReport event = createNewEventReport("NewMessage", mTestMessageSmsHandle,
+        String dateTime = new ObexTime(Instant.now()).toString();
+        EventReport event = createNewEventReport("NewMessage", dateTime, mTestMessageSmsHandle,
                 "telecom/msg/inbox", null, "SMS_GSM");
 
         mMceStateMachine.receiveEvent(event);
@@ -641,7 +643,8 @@ public class MapClientStateMachineTest {
                 any(BroadcastOptions.class));
         assertThat(mMceStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_CONNECTED);
 
-        EventReport event = createNewEventReport("NewMessage", mTestMessageMmsHandle,
+        String dateTime = new ObexTime(Instant.now()).toString();
+        EventReport event = createNewEventReport("NewMessage", dateTime, mTestMessageMmsHandle,
                 "telecom/msg/inbox", null, "MMS");
 
         when(mMockRequestGetMessage.getMessage()).thenReturn(mTestIncomingMmsBmessage);
@@ -757,6 +760,43 @@ public class MapClientStateMachineTest {
                 any(), eq(MESSAGE_SEEN));
      }
 
+    /**
+     * Test receiving a new message notification.
+     */
+    @Test
+    public void testReceiveNewMessageNotification() {
+        setupSdpRecordReceipt();
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
+        mMceStateMachine.sendMessage(msg);
+
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        assertThat(mMceStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_CONNECTED);
+
+        // Receive a new message notification.
+        String dateTime = new ObexTime(Instant.now()).toString();
+        EventReport event = createNewEventReport("NewMessage", dateTime, mTestMessageSmsHandle,
+                "telecom/msg/inbox", null, "SMS_GSM");
+
+        Message notificationMessage =
+                Message.obtain(mHandler, MceStateMachine.MSG_NOTIFICATION, (Object)event);
+
+        mMceStateMachine.getCurrentState().processMessage(notificationMessage);
+
+        verify(mMockMasClient,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                        .makeRequest(any(RequestGetMessage.class));
+
+        MceStateMachine.MessageMetadata messageMetadata =
+                mMceStateMachine.mMessages.get(mTestMessageSmsHandle);
+        Assert.assertEquals(messageMetadata.getHandle(), mTestMessageSmsHandle);
+        Assert.assertEquals(
+                new ObexTime(Instant.ofEpochMilli(messageMetadata.getTimestamp())).toString(),
+                dateTime);
+    }
+
     private void setupSdpRecordReceipt() {
         // Perform first part of MAP connection logic.
         verify(mMockMapClientService,
@@ -829,12 +869,13 @@ public class MapClientStateMachineTest {
         return message;
     }
 
-    EventReport createNewEventReport(String mType, String mHandle, String mFolder, String
-                mOldFolder, String mMsgType){
+    EventReport createNewEventReport(String mType, String mDateTime, String mHandle, String mFolder,
+            String mOldFolder, String mMsgType){
 
         HashMap<String, String> attrs = new HashMap<String, String>();
 
         attrs.put("type", mType);
+        attrs.put("datetime", mDateTime);
         attrs.put("handle", mHandle);
         attrs.put("folder", mFolder);
         attrs.put("old_folder", mOldFolder);
