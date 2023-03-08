@@ -30,7 +30,7 @@
 static std::vector<uint8_t> _rsp_sig_ids{};
 
 void avdt_msg_send_rsp(AvdtpCcb* p_ccb, uint8_t sig_id, tAVDT_MSG* p_params) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   _rsp_sig_ids.push_back(sig_id);
 }
 
@@ -47,18 +47,18 @@ uint8_t mock_avdt_msg_send_rsp_get_sig_id_at(size_t nth) {
 }
 
 void avdt_msg_ind(AvdtpCcb* p_ccb, BT_HDR* p_buf) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 void avdt_msg_send_rej(AvdtpCcb* p_ccb, uint8_t sig_id, tAVDT_MSG* p_params) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 
 static std::vector<uint8_t> _cmd_sig_ids{};
 
 void avdt_msg_send_cmd(AvdtpCcb* p_ccb, void* p_scb, uint8_t sig_id,
                        tAVDT_MSG* p_params) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   _cmd_sig_ids.push_back(sig_id);
 }
 
@@ -75,7 +75,7 @@ uint8_t mock_avdt_msg_send_cmd_get_sig_id_at(size_t nth) {
 }
 
 bool avdt_msg_send(AvdtpCcb* p_ccb, BT_HDR* p_msg) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return true;
 }
 
