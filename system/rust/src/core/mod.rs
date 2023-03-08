@@ -1,6 +1,7 @@
 //! Shared data-types and utility methods go here.
 
 mod ffi;
+pub mod shared_box;
 pub mod uuid;
 
 use std::{rc::Rc, thread};

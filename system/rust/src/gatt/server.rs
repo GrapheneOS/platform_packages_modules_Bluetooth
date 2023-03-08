@@ -13,8 +13,8 @@ mod test;
 use std::{collections::HashMap, rc::Rc};
 
 use crate::{
+    core::shared_box::{SharedBox, WeakBoxRef},
     gatt::{ids::ConnectionId, server::gatt_database::GattDatabase},
-    packets::AttView,
 };
 
 use self::{
@@ -30,8 +30,8 @@ use log::info;
 #[allow(missing_docs)]
 pub struct GattModule {
     connection_bearers:
-        HashMap<ConnectionId, Rc<AttServerBearer<AttDatabaseImpl<dyn GattDatastore>>>>,
-    databases: HashMap<ServerId, Rc<GattDatabase<dyn GattDatastore>>>,
+        HashMap<ConnectionId, SharedBox<AttServerBearer<AttDatabaseImpl<dyn GattDatastore>>>>,
+    databases: HashMap<ServerId, SharedBox<GattDatabase<dyn GattDatastore>>>,
     datastore: Rc<dyn GattDatastore>,
     transport: Rc<dyn AttTransport>,
 }
@@ -58,7 +58,8 @@ impl GattModule {
             conn_id,
             AttServerBearer::new(database.get_att_database(conn_id), move |packet| {
                 transport.send_packet(conn_id.get_tcb_idx(), packet)
-            }),
+            })
+            .into(),
         );
         Ok(())
     }
@@ -68,15 +69,6 @@ impl GattModule {
         info!("disconnected conn_id {conn_id:?}");
         self.connection_bearers.remove(&conn_id);
         self.datastore.remove_connection(conn_id);
-    }
-
-    /// Handle an incoming ATT packet
-    pub fn handle_packet(&mut self, conn_id: ConnectionId, packet: AttView<'_>) -> Result<()> {
-        self.connection_bearers
-            .get(&conn_id)
-            .ok_or_else(|| anyhow!("dropping ATT packet for unregistered connection"))?
-            .handle_packet(packet);
-        Ok(())
     }
 
     /// Register a new GATT service on a given server
@@ -116,12 +108,18 @@ impl GattModule {
     /// Close a GATT server
     pub fn close_gatt_server(&mut self, server_id: ServerId) -> Result<()> {
         let old = self.databases.remove(&server_id);
-        let Some(old) = old else {
+        if old.is_none() {
             bail!("GATT server {server_id:?} did not exist")
         };
 
-        old.clear_all_services();
-
         Ok(())
+    }
+
+    /// Get an ATT bearer for a particular connection
+    pub fn get_bearer(
+        &self,
+        conn_id: ConnectionId,
+    ) -> Option<WeakBoxRef<AttServerBearer<AttDatabaseImpl<dyn GattDatastore>>>> {
+        self.connection_bearers.get(&conn_id).map(|x| x.as_ref())
     }
 }

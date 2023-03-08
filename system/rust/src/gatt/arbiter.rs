@@ -3,7 +3,7 @@
 
 use std::{collections::HashMap, sync::Mutex};
 
-use log::{error, info};
+use log::{error, info, trace};
 
 use crate::{
     do_in_rust_thread,
@@ -81,7 +81,7 @@ impl Arbiter {
     }
 
     /// Test to see if a buffer contains a valid ATT packet with an opcode we
-    /// are interested in intercepting
+    /// are interested in intercepting (those intended for servers)
     pub fn try_parse_att_server_packet(
         &self,
         tcb_idx: TransportIndex,
@@ -158,9 +158,11 @@ fn intercept_packet(tcb_idx: u8, packet: Vec<u8>) -> InterceptAction {
         arbiter.try_parse_att_server_packet(TransportIndex(tcb_idx), packet.into_boxed_slice())
     }) {
         do_in_rust_thread(move |modules| {
-            info!("pushing packet to GATT");
-            if let Err(err) = modules.gatt_module.handle_packet(conn_id, att.view()) {
-                error!("{:?}", err.context("failed to push packet to GATT"))
+            trace!("pushing packet to GATT");
+            if let Some(bearer) = modules.gatt_module.get_bearer(conn_id) {
+                bearer.handle_packet(att.view())
+            } else {
+                error!("{conn_id:?} closed, bearer does not exist");
             }
         });
         InterceptAction::Drop

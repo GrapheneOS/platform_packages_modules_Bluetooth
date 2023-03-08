@@ -8,7 +8,10 @@ use anyhow::{anyhow, bail, Result};
 use async_trait::async_trait;
 
 use crate::{
-    core::uuid::Uuid,
+    core::{
+        shared_box::{SharedBox, WeakBox},
+        uuid::Uuid,
+    },
     gatt::{
         callbacks::GattDatastore,
         ids::{AttHandle, ConnectionId},
@@ -68,11 +71,13 @@ struct GattDatabaseSchema {
     attributes: BTreeMap<AttHandle, AttAttributeWithBackingValue>,
 }
 
+#[derive(Clone)]
 enum AttAttributeBackingValue {
     Static(AttAttributeDataChild),
     Dynamic,
 }
 
+#[derive(Clone)]
 struct AttAttributeWithBackingValue {
     attribute: AttAttribute,
     value: AttAttributeBackingValue,
@@ -214,22 +219,19 @@ impl<T: GattDatastore + ?Sized> GattDatabase<T> {
 
         Ok(())
     }
+}
 
-    /// Clear all services
-    pub fn clear_all_services(&self) {
-        *self.schema.borrow_mut() = Default::default();
-    }
-
+impl<T: GattDatastore + ?Sized> SharedBox<GattDatabase<T>> {
     /// Generate an impl AttDatabase from a backing GattDatabase, associated
     /// with a given connection.
-    pub fn get_att_database(self: &Rc<Self>, conn_id: ConnectionId) -> AttDatabaseImpl<T> {
-        AttDatabaseImpl { gatt_db: self.clone(), conn_id }
+    pub fn get_att_database(&self, conn_id: ConnectionId) -> AttDatabaseImpl<T> {
+        AttDatabaseImpl { gatt_db: self.downgrade(), conn_id }
     }
 }
 
 /// An implementation of AttDatabase wrapping an underlying GattDatabase
 pub struct AttDatabaseImpl<T: ?Sized> {
-    gatt_db: Rc<GattDatabase<T>>,
+    gatt_db: WeakBox<GattDatabase<T>>,
     conn_id: ConnectionId,
 }
 
@@ -242,21 +244,35 @@ where
         &self,
         handle: AttHandle,
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
-        {
-            let services = self.gatt_db.schema.borrow();
+        let value = self.gatt_db.with(|gatt_db| {
+            let Some(gatt_db) = gatt_db else {
+                // db must have been closed
+                return Err(AttErrorCode::INVALID_HANDLE);
+            };
+            let services = gatt_db.schema.borrow();
             let Some(attr) = services.attributes.get(&handle) else {
                 return Err(AttErrorCode::INVALID_HANDLE);
             };
             if !attr.attribute.permissions.readable {
                 return Err(AttErrorCode::READ_NOT_PERMITTED);
             }
-            match &attr.value {
-                AttAttributeBackingValue::Static(val) => return Ok(val.clone()),
-                AttAttributeBackingValue::Dynamic => { /* fallthrough */ }
-            };
-        }
+            Ok(attr.value.clone())
+        })?;
 
-        self.gatt_db.datastore.read_characteristic(self.conn_id, handle).await
+        match value {
+            AttAttributeBackingValue::Static(val) => return Ok(val),
+            AttAttributeBackingValue::Dynamic => {
+                self.gatt_db
+                    .with(|gatt_db| {
+                        gatt_db
+                            .expect("no await points since last access, must be non-null")
+                            .datastore
+                            .clone()
+                    })
+                    .read_characteristic(self.conn_id, handle)
+                    .await
+            }
+        }
     }
 
     async fn write_attribute(
@@ -264,22 +280,29 @@ where
         handle: AttHandle,
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode> {
-        {
-            // block needed to drop the RefCell before the async point
-            let services = self.gatt_db.schema.borrow();
+        let datastore = self.gatt_db.with(|gatt_db| {
+            let Some(gatt_db) = gatt_db else {
+                // db must have been closed
+                return Err(AttErrorCode::INVALID_HANDLE);
+            };
+            let services = gatt_db.schema.borrow();
             let Some(attr) = services.attributes.get(&handle) else {
                 return Err(AttErrorCode::INVALID_HANDLE);
             };
             if !attr.attribute.permissions.writable {
                 return Err(AttErrorCode::WRITE_NOT_PERMITTED);
             }
-        }
+            Ok(gatt_db.datastore.clone())
+        })?;
 
-        self.gatt_db.datastore.write_characteristic(self.conn_id, handle, data).await
+        datastore.write_characteristic(self.conn_id, handle, data).await
     }
 
     fn list_attributes(&self) -> Vec<AttAttribute> {
-        self.gatt_db.schema.borrow().attributes.values().map(|attr| attr.attribute).collect()
+        self.gatt_db.with(|db| {
+            db.map(|db| db.schema.borrow().attributes.values().map(|attr| attr.attribute).collect())
+                .unwrap_or(vec![])
+        })
     }
 }
 
@@ -310,7 +333,7 @@ mod test {
     #[test]
     fn test_read_empty_db() {
         let (gatt_datastore, _) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
         let att_db = gatt_db.get_att_database(CONN_ID);
 
         let resp = tokio_test::block_on(att_db.read_attribute(AttHandle(1)));
@@ -321,7 +344,7 @@ mod test {
     #[test]
     fn test_single_service() {
         let (gatt_datastore, _) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
         gatt_db
             .add_service_with_handles(GattServiceWithHandle {
                 handle: SERVICE_HANDLE,
@@ -354,7 +377,7 @@ mod test {
     fn test_service_removal() {
         // arrange three services, each with a single characteristic
         let (gatt_datastore, _) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
 
         gatt_db
             .add_service_with_handles(GattServiceWithHandle {
@@ -421,7 +444,7 @@ mod test {
     #[test]
     fn test_single_characteristic_declaration() {
         let (gatt_datastore, _) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
         gatt_db
             .add_service_with_handles(GattServiceWithHandle {
                 handle: SERVICE_HANDLE,
@@ -483,7 +506,7 @@ mod test {
     fn test_single_characteristic_value() {
         // arrange: create a database with a single characteristic
         let (gatt_datastore, mut data_evts) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
         gatt_db
             .add_service_with_handles(GattServiceWithHandle {
                 handle: SERVICE_HANDLE,
@@ -523,7 +546,7 @@ mod test {
     #[test]
     fn test_unreadable_characteristic() {
         let (gatt_datastore, _) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
         gatt_db
             .add_service_with_handles(GattServiceWithHandle {
                 handle: SERVICE_HANDLE,
@@ -546,7 +569,7 @@ mod test {
     #[test]
     fn test_handle_clash() {
         let (gatt_datastore, _) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
 
         let result = gatt_db.add_service_with_handles(GattServiceWithHandle {
             handle: SERVICE_HANDLE,
@@ -584,33 +607,10 @@ mod test {
     }
 
     #[test]
-    fn test_clear_all_services() {
-        // arrange: db with some services
-        let (gatt_datastore, _) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
-        gatt_db
-            .add_service_with_handles(GattServiceWithHandle {
-                handle: SERVICE_HANDLE,
-                type_: SERVICE_TYPE,
-                characteristics: vec![],
-            })
-            .unwrap();
-
-        // act: clear services
-        gatt_db.clear_all_services();
-
-        // assert: no attributes left, nothing readable
-        let att_db = gatt_db.get_att_database(CONN_ID);
-        assert!(att_db.list_attributes().is_empty());
-        let read_result = tokio_test::block_on(att_db.read_attribute(SERVICE_HANDLE));
-        assert!(read_result.is_err());
-    }
-
-    #[test]
     fn test_write_single_characteristic_callback_invoked() {
         // arrange: create a database with a single characteristic
         let (gatt_datastore, mut data_evts) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
         gatt_db
             .add_service_with_handles(GattServiceWithHandle {
                 handle: SERVICE_HANDLE,
@@ -659,7 +659,7 @@ mod test {
     fn test_write_single_characteristic_recv_response() {
         // arrange: create a database with a single characteristic
         let (gatt_datastore, mut data_evts) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
         gatt_db
             .add_service_with_handles(GattServiceWithHandle {
                 handle: SERVICE_HANDLE,
@@ -696,7 +696,7 @@ mod test {
     #[test]
     fn test_unwriteable_characteristic() {
         let (gatt_datastore, _) = MockDatastore::new();
-        let gatt_db = Rc::new(GattDatabase::new(gatt_datastore.into()));
+        let gatt_db = SharedBox::new(GattDatabase::new(gatt_datastore.into()));
         gatt_db
             .add_service_with_handles(GattServiceWithHandle {
                 handle: SERVICE_HANDLE,
