@@ -11,6 +11,7 @@ impl<T: Builder> PayloadAccumulator<T> {
         Self { curr: 0, lim: size * 8, elems: vec![] }
     }
 
+    #[must_use]
     pub fn push(&mut self, builder: T) -> bool {
         // if serialization fails we WANT to continue, to get a clean SerializeError at
         // the end
@@ -47,11 +48,12 @@ mod test {
     fn test_nonempty() {
         let mut accumulator = PayloadAccumulator::new(128);
 
-        accumulator.push(AttBuilder {
+        let ok = accumulator.push(AttBuilder {
             opcode: AttOpcode::WRITE_RESPONSE,
             _child_: AttChild::RawData([1, 2].into()),
         });
 
+        assert!(ok);
         assert!(!accumulator.is_empty())
     }
 
@@ -59,11 +61,12 @@ mod test {
     fn test_push_serialize() {
         let mut accumulator = PayloadAccumulator::new(128);
 
-        accumulator.push(AttBuilder {
+        let ok = accumulator.push(AttBuilder {
             opcode: AttOpcode::WRITE_RESPONSE,
             _child_: AttChild::RawData([1, 2].into()),
         });
 
+        assert!(ok);
         assert_eq!(
             accumulator.into_boxed_slice().as_ref(),
             [AttBuilder {

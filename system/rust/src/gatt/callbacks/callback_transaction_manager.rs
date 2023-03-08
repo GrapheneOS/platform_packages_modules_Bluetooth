@@ -12,7 +12,7 @@ use crate::{
     packets::{AttAttributeDataChild, AttAttributeDataView, AttErrorCode},
 };
 
-use super::GattDatastore;
+use super::{AttributeBackingType, GattDatastore};
 
 struct PendingTransaction {
     response: oneshot::Sender<Result<AttAttributeDataChild, AttErrorCode>>,
@@ -121,15 +121,16 @@ impl GattDatastore for CallbackTransactionManager {
         assert!(old_conn.is_some(), "Received unexpected connection ID, something has gone wrong")
     }
 
-    async fn read_characteristic(
+    async fn read(
         &self,
         conn_id: ConnectionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
         let (trans_id, rx) =
             self.pending_transactions.borrow_mut().start_new_transaction(conn_id)?;
 
-        self.callbacks.on_server_read_characteristic(conn_id, trans_id, handle, 0, false);
+        self.callbacks.on_server_read(conn_id, trans_id, handle, attr_type, 0, false);
 
         if let Ok(value) = rx.await {
             value
@@ -139,17 +140,17 @@ impl GattDatastore for CallbackTransactionManager {
         }
     }
 
-    async fn write_characteristic(
+    async fn write(
         &self,
         conn_id: ConnectionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode> {
         let (trans_id, rx) =
             self.pending_transactions.borrow_mut().start_new_transaction(conn_id)?;
 
-        self.callbacks
-            .on_server_write_characteristic(conn_id, trans_id, handle, 0, true, false, data);
+        self.callbacks.on_server_write(conn_id, trans_id, handle, attr_type, 0, true, false, data);
 
         if let Ok(value) = rx.await {
             value.map(|_| ()) // the data passed back is irrelevant for write

@@ -4,13 +4,17 @@ use bluetooth_core::{
     core::uuid::Uuid,
     gatt::{
         self,
+        ffi::AttributeBackingType,
         ids::{AttHandle, ConnectionId, ServerId, TransportIndex},
         mocks::{
             mock_datastore::{MockDatastore, MockDatastoreEvents},
             mock_transport::MockAttTransport,
         },
         server::{
-            gatt_database::{AttPermissions, GattCharacteristicWithHandle, GattServiceWithHandle},
+            gatt_database::{
+                AttPermissions, GattCharacteristicWithHandle, GattDescriptorWithHandle,
+                GattServiceWithHandle,
+            },
             GattModule, IndicationError,
         },
     },
@@ -31,10 +35,15 @@ mod utils;
 const TCB_IDX: TransportIndex = TransportIndex(1);
 const SERVER_ID: ServerId = ServerId(2);
 const CONN_ID: ConnectionId = ConnectionId::new(TCB_IDX, SERVER_ID);
-const HANDLE_1: AttHandle = AttHandle(3);
-const HANDLE_2: AttHandle = AttHandle(5);
-const UUID_1: Uuid = Uuid::new(0x0102);
-const UUID_2: Uuid = Uuid::new(0x0103);
+
+const SERVICE_HANDLE: AttHandle = AttHandle(3);
+const CHARACTERISTIC_HANDLE: AttHandle = AttHandle(5);
+const DESCRIPTOR_HANDLE: AttHandle = AttHandle(6);
+
+const SERVICE_TYPE: Uuid = Uuid::new(0x0102);
+const CHARACTERISTIC_TYPE: Uuid = Uuid::new(0x0103);
+const DESCRIPTOR_TYPE: Uuid = Uuid::new(0x0104);
+
 const DATA: [u8; 4] = [1, 2, 3, 4];
 
 fn start_gatt_module() -> (
@@ -54,14 +63,19 @@ fn create_server_and_open_connection(gatt: &mut GattModule) {
     gatt.register_gatt_service(
         SERVER_ID,
         GattServiceWithHandle {
-            handle: HANDLE_1,
-            type_: UUID_1,
+            handle: SERVICE_HANDLE,
+            type_: SERVICE_TYPE,
             characteristics: vec![GattCharacteristicWithHandle {
-                handle: HANDLE_2,
-                type_: UUID_2,
+                handle: CHARACTERISTIC_HANDLE,
+                type_: CHARACTERISTIC_TYPE,
                 permissions: AttPermissions::READABLE
                     | AttPermissions::WRITABLE
                     | AttPermissions::INDICATE,
+                descriptors: vec![GattDescriptorWithHandle {
+                    handle: DESCRIPTOR_HANDLE,
+                    type_: DESCRIPTOR_TYPE,
+                    permissions: AttPermissions::READABLE | AttPermissions::WRITABLE,
+                }],
             }],
         },
     )
@@ -78,7 +92,11 @@ fn test_connection_creation() {
         gatt.open_gatt_server(SERVER_ID).unwrap();
         gatt.register_gatt_service(
             SERVER_ID,
-            GattServiceWithHandle { handle: HANDLE_1, type_: UUID_1, characteristics: vec![] },
+            GattServiceWithHandle {
+                handle: SERVICE_HANDLE,
+                type_: SERVICE_TYPE,
+                characteristics: vec![],
+            },
         )
         .unwrap();
 
@@ -101,7 +119,11 @@ fn test_disconnection() {
         gatt.open_gatt_server(SERVER_ID).unwrap();
         gatt.register_gatt_service(
             SERVER_ID,
-            GattServiceWithHandle { handle: HANDLE_1, type_: UUID_1, characteristics: vec![] },
+            GattServiceWithHandle {
+                handle: SERVICE_HANDLE,
+                type_: SERVICE_TYPE,
+                characteristics: vec![],
+            },
         )
         .unwrap();
         gatt.on_le_connect(CONN_ID).unwrap();
@@ -129,8 +151,10 @@ fn test_service_read() {
 
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
-            build_att_view_or_crash(AttReadRequestBuilder { attribute_handle: HANDLE_1.into() })
-                .view(),
+            build_att_view_or_crash(AttReadRequestBuilder {
+                attribute_handle: SERVICE_HANDLE.into(),
+            })
+            .view(),
         );
         let (tcb_idx, resp) = transport_rx.recv().await.unwrap();
 
@@ -142,7 +166,7 @@ fn test_service_read() {
                 opcode: AttOpcode::READ_RESPONSE,
                 _child_: AttReadResponseBuilder {
                     value: build_att_data(GattServiceDeclarationValueBuilder {
-                        uuid: UUID_1.into()
+                        uuid: SERVICE_TYPE.into()
                     })
                 }
                 .into()
@@ -165,8 +189,10 @@ fn test_server_closed_while_connected() {
 
         // act: read from the closed server
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
-            build_att_view_or_crash(AttReadRequestBuilder { attribute_handle: HANDLE_1.into() })
-                .view(),
+            build_att_view_or_crash(AttReadRequestBuilder {
+                attribute_handle: SERVICE_HANDLE.into(),
+            })
+            .view(),
         );
         let (_, resp) = transport_rx.recv().await.unwrap();
 
@@ -176,7 +202,7 @@ fn test_server_closed_while_connected() {
             resp._child_,
             AttErrorResponseBuilder {
                 opcode_in_error: AttOpcode::READ_REQUEST,
-                handle_in_error: HANDLE_1.into(),
+                handle_in_error: SERVICE_HANDLE.into(),
                 error_code: AttErrorCode::INVALID_HANDLE
             }
             .into()
@@ -197,11 +223,17 @@ fn test_characteristic_read() {
 
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
-            build_att_view_or_crash(AttReadRequestBuilder { attribute_handle: HANDLE_2.into() })
-                .view(),
+            build_att_view_or_crash(AttReadRequestBuilder {
+                attribute_handle: CHARACTERISTIC_HANDLE.into(),
+            })
+            .view(),
         );
-        let tx = if let MockDatastoreEvents::ReadCharacteristic(CONN_ID, HANDLE_2, tx) =
-            data_rx.recv().await.unwrap()
+        let tx = if let MockDatastoreEvents::Read(
+            CONN_ID,
+            CHARACTERISTIC_HANDLE,
+            AttributeBackingType::Characteristic,
+            tx,
+        ) = data_rx.recv().await.unwrap()
         {
             tx
         } else {
@@ -236,19 +268,23 @@ fn test_characteristic_write() {
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
             build_att_view_or_crash(AttWriteRequestBuilder {
-                handle: HANDLE_2.into(),
+                handle: CHARACTERISTIC_HANDLE.into(),
                 value: build_att_data(data.clone()),
             })
             .view(),
         );
-        let (tx, written_data) =
-            if let MockDatastoreEvents::WriteCharacteristic(CONN_ID, HANDLE_2, written_data, tx) =
-                data_rx.recv().await.unwrap()
-            {
-                (tx, written_data)
-            } else {
-                unreachable!()
-            };
+        let (tx, written_data) = if let MockDatastoreEvents::Write(
+            CONN_ID,
+            CHARACTERISTIC_HANDLE,
+            AttributeBackingType::Characteristic,
+            written_data,
+            tx,
+        ) = data_rx.recv().await.unwrap()
+        {
+            (tx, written_data)
+        } else {
+            unreachable!()
+        };
         tx.send(Ok(())).unwrap();
         let (tcb_idx, resp) = transport_rx.recv().await.unwrap();
 
@@ -280,8 +316,9 @@ fn test_send_indication() {
         data_rx.recv().await.unwrap();
 
         // act
-        let pending_indication =
-            spawn_local(gatt.get_bearer(CONN_ID).unwrap().send_indication(HANDLE_2, data.clone()));
+        let pending_indication = spawn_local(
+            gatt.get_bearer(CONN_ID).unwrap().send_indication(CHARACTERISTIC_HANDLE, data.clone()),
+        );
 
         let (tcb_idx, resp) = transport_rx.recv().await.unwrap();
 
@@ -297,7 +334,7 @@ fn test_send_indication() {
             AttBuilder {
                 opcode: AttOpcode::HANDLE_VALUE_INDICATION,
                 _child_: AttHandleValueIndicationBuilder {
-                    handle: HANDLE_2.into(),
+                    handle: CHARACTERISTIC_HANDLE.into(),
                     value: build_att_data(data),
                 }
                 .into()
@@ -316,11 +353,10 @@ fn test_send_indication_and_disconnect() {
         data_rx.recv().await.unwrap();
 
         // act: send an indication, then disconnect
-        let pending_indication = spawn_local(
-            gatt.get_bearer(CONN_ID)
-                .unwrap()
-                .send_indication(HANDLE_2, AttAttributeDataChild::RawData([1, 2, 3, 4].into())),
-        );
+        let pending_indication = spawn_local(gatt.get_bearer(CONN_ID).unwrap().send_indication(
+            CHARACTERISTIC_HANDLE,
+            AttAttributeDataChild::RawData([1, 2, 3, 4].into()),
+        ));
         transport_rx.recv().await.unwrap();
         gatt.on_le_disconnect(CONN_ID);
 
@@ -329,5 +365,55 @@ fn test_send_indication_and_disconnect() {
             pending_indication.await.unwrap(),
             Err(IndicationError::ConnectionDroppedWhileWaitingForConfirmation)
         ));
+    })
+}
+
+#[test]
+fn test_write_to_descriptor() {
+    start_test(async move {
+        // arrange
+        let (mut gatt, mut data_rx, mut transport_rx) = start_gatt_module();
+
+        let data = AttAttributeDataChild::RawData(DATA.into());
+
+        create_server_and_open_connection(&mut gatt);
+        data_rx.recv().await.unwrap();
+
+        // act
+        gatt.get_bearer(CONN_ID).unwrap().handle_packet(
+            build_att_view_or_crash(AttWriteRequestBuilder {
+                handle: DESCRIPTOR_HANDLE.into(),
+                value: build_att_data(data.clone()),
+            })
+            .view(),
+        );
+        let (tx, written_data) = if let MockDatastoreEvents::Write(
+            CONN_ID,
+            DESCRIPTOR_HANDLE,
+            AttributeBackingType::Descriptor,
+            written_data,
+            tx,
+        ) = data_rx.recv().await.unwrap()
+        {
+            (tx, written_data)
+        } else {
+            unreachable!()
+        };
+        tx.send(Ok(())).unwrap();
+        let (tcb_idx, resp) = transport_rx.recv().await.unwrap();
+
+        // assert
+        assert_eq!(tcb_idx, TCB_IDX);
+        assert_eq!(
+            resp,
+            AttBuilder {
+                opcode: AttOpcode::WRITE_RESPONSE,
+                _child_: AttWriteResponseBuilder {}.into()
+            }
+        );
+        assert_eq!(
+            data.to_vec().unwrap(),
+            written_data.view().get_raw_payload().collect::<Vec<_>>()
+        )
     })
 }

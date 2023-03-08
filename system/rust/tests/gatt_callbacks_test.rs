@@ -5,6 +5,7 @@ use std::rc::Rc;
 use bluetooth_core::{
     gatt::{
         callbacks::{CallbackResponseError, CallbackTransactionManager, GattDatastore},
+        ffi::AttributeBackingType,
         ids::{AttHandle, ConnectionId, ServerId, TransactionId, TransportIndex},
         mocks::mock_callbacks::{MockCallbackEvents, MockCallbacks},
     },
@@ -22,6 +23,7 @@ const CONN_ID: ConnectionId = ConnectionId::new(TCB_IDX, SERVER_ID);
 const ANOTHER_CONN_ID: ConnectionId = ConnectionId(10);
 
 const HANDLE_1: AttHandle = AttHandle(3);
+const BACKING_TYPE: AttributeBackingType = AttributeBackingType::Descriptor;
 
 fn initialize_manager_with_connection(
 ) -> (Rc<CallbackTransactionManager>, UnboundedReceiver<MockCallbackEvents>) {
@@ -34,8 +36,8 @@ fn initialize_manager_with_connection(
 
 async fn pull_trans_id(events_rx: &mut UnboundedReceiver<MockCallbackEvents>) -> TransactionId {
     match events_rx.recv().await.unwrap() {
-        MockCallbackEvents::OnServerReadCharacteristic(_, trans_id, _, _, _) => trans_id,
-        MockCallbackEvents::OnServerWriteCharacteristic(_, trans_id, _, _, _, _, _) => trans_id,
+        MockCallbackEvents::OnServerRead(_, trans_id, _, _, _, _) => trans_id,
+        MockCallbackEvents::OnServerWrite(_, trans_id, _, _, _, _, _, _) => trans_id,
         _ => unimplemented!(),
     }
 }
@@ -47,11 +49,11 @@ fn test_read_characteristic_callback() {
         let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
 
         // act: start read operation
-        spawn_local(async move { callback_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+        spawn_local(async move { callback_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
 
         // assert: verify the read callback is received
-        let MockCallbackEvents::OnServerReadCharacteristic(
-            CONN_ID, _, HANDLE_1, 0, false,
+        let MockCallbackEvents::OnServerRead(
+            CONN_ID, _, HANDLE_1, BACKING_TYPE, 0, false,
         ) = callbacks_rx.recv().await.unwrap() else {
           unreachable!()
         };
@@ -68,7 +70,7 @@ fn test_read_characteristic_response() {
         // act: start read operation
         let cloned_manager = callback_manager.clone();
         let pending_read =
-            spawn_local(async move { cloned_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
         // provide a response
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         callback_manager.send_response(CONN_ID, trans_id, data.clone()).unwrap();
@@ -89,7 +91,7 @@ fn test_sequential_reads() {
         // act: start read operation
         let cloned_manager = callback_manager.clone();
         let pending_read_1 =
-            spawn_local(async move { cloned_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
         // respond to first
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         callback_manager.send_response(CONN_ID, trans_id, data1.clone()).unwrap();
@@ -97,7 +99,7 @@ fn test_sequential_reads() {
         // do a second read operation
         let cloned_manager = callback_manager.clone();
         let pending_read_2 =
-            spawn_local(async move { cloned_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
         // respond to second
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         callback_manager.send_response(CONN_ID, trans_id, data2.clone()).unwrap();
@@ -119,12 +121,12 @@ fn test_concurrent_reads() {
         // act: start read operation
         let cloned_manager = callback_manager.clone();
         let pending_read_1 =
-            spawn_local(async move { cloned_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
 
         // do a second read operation
         let cloned_manager = callback_manager.clone();
         let pending_read_2 =
-            spawn_local(async move { cloned_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
 
         // respond to first
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
@@ -148,9 +150,9 @@ fn test_distinct_transaction_ids() {
 
         // act: start two read operations concurrently
         let cloned_manager = callback_manager.clone();
-        spawn_local(async move { cloned_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+        spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
         let cloned_manager = callback_manager.clone();
-        spawn_local(async move { cloned_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+        spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
 
         // pull both trans_ids
         let trans_id_1 = pull_trans_id(&mut callbacks_rx).await;
@@ -170,7 +172,7 @@ fn test_invalid_conn_id() {
 
         // act: start a read operation
         let cloned_manager = callback_manager.clone();
-        spawn_local(async move { cloned_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+        spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
         // respond with the correct trans_id but an invalid conn_id
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         let err = callback_manager.send_response(ANOTHER_CONN_ID, trans_id, data).unwrap_err();
@@ -189,7 +191,7 @@ fn test_invalid_trans_id() {
 
         // act: start a read operation
         let cloned_manager = callback_manager.clone();
-        spawn_local(async move { cloned_manager.read_characteristic(CONN_ID, HANDLE_1).await });
+        spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
         // respond with the correct conn_id but an invalid trans_id
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         let invalid_trans_id = TransactionId(trans_id.0 + 1);
@@ -211,12 +213,12 @@ fn test_write_characteristic_callback() {
             build_view_or_crash(build_att_data(AttAttributeDataChild::RawData([1, 2].into())));
         let cloned_data = data.view().to_owned_packet();
         spawn_local(async move {
-            callback_manager.write_characteristic(CONN_ID, HANDLE_1, cloned_data.view()).await
+            callback_manager.write(CONN_ID, HANDLE_1, BACKING_TYPE, cloned_data.view()).await
         });
 
         // assert: verify the write callback is received
-        let MockCallbackEvents::OnServerWriteCharacteristic(
-            CONN_ID, _, HANDLE_1, 0, /* needs_response = */ true, false, recv_data
+        let MockCallbackEvents::OnServerWrite(
+            CONN_ID, _, HANDLE_1, BACKING_TYPE, 0, /* needs_response = */ true, false, recv_data
         ) = callbacks_rx.recv().await.unwrap() else {
           unreachable!()
         };
@@ -238,7 +240,7 @@ fn test_write_characteristic_response() {
             build_view_or_crash(build_att_data(AttAttributeDataChild::RawData([1, 2].into())));
         let cloned_manager = callback_manager.clone();
         let pending_write = spawn_local(async move {
-            cloned_manager.write_characteristic(CONN_ID, HANDLE_1, data.view()).await
+            cloned_manager.write(CONN_ID, HANDLE_1, BACKING_TYPE, data.view()).await
         });
         // provide a response with some error code
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
