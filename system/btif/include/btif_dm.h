@@ -25,6 +25,25 @@
 #include "types/raw_address.h"
 
 /*******************************************************************************
+ *  Constants & Macros
+ ******************************************************************************/
+#define COD_MASK 0x07FF
+#define COD_UNCLASSIFIED ((0x1F) << 8)
+/* Focus on Major and minor device class*/
+#define COD_DEVICE_MASK 0x1FFC
+#define COD_HID_KEYBOARD 0x0540
+#define COD_HID_POINTING 0x0580
+#define COD_HID_COMBO 0x05C0
+#define COD_HID_MAJOR 0x0500
+#define COD_HID_MASK 0x0700
+#define COD_AV_HEADSETS 0x0404
+#define COD_AV_HANDSFREE 0x0408
+#define COD_AV_HEADPHONES 0x0418
+#define COD_AV_PORTABLE_AUDIO 0x041C
+#define COD_AV_HIFI_AUDIO 0x0428
+#define COD_CLASS_LE_AUDIO (1 << 14)
+
+/*******************************************************************************
  *  Functions
  ******************************************************************************/
 void btif_dm_init(uid_set_t* set);
@@ -83,8 +102,10 @@ void btif_dm_disconnect_all_acls();
 void btif_dm_le_rand(LeRandCallback callback);
 void btif_dm_set_event_filter_connection_setup_all_devices();
 void btif_dm_allow_wake_by_hid(
-    std::vector<std::pair<RawAddress, uint8_t>> addrs);
-void btif_dm_restore_filter_accept_list();
+    std::vector<RawAddress> classic_addrs,
+    std::vector<std::pair<RawAddress, uint8_t>> le_addrs);
+void btif_dm_restore_filter_accept_list(
+    std::vector<std::pair<RawAddress, uint8_t>> le_devices);
 void btif_dm_set_default_event_mask_except(uint64_t mask, uint64_t le_mask);
 void btif_dm_set_event_filter_inquiry_result_all_devices();
 void btif_dm_metadata_changed(const RawAddress& remote_bd_addr, int key,
@@ -122,4 +143,5 @@ void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
                                           tBT_DEVICE_TYPE dev_type);
 
 bool check_cod_hid(const RawAddress& bd_addr);
+bool is_device_le_audio_capable(const RawAddress bd_addr);
 #endif

@@ -89,6 +89,18 @@ packet ChildWithNestedSum : ParentWithSum {
   nested_checksum : SimpleSum,
 }
 
+packet SizedWithSum {
+  two_bytes : 16,
+  _size_(_payload_) : 8,
+  _checksum_start_(example_checksum),
+  _payload_,
+  example_checksum : SimpleSum,
+}
+
+test SizedWithSum {
+  "\x01\x02\x03\x01\x02\x03\x06\x00",
+}
+
 packet ParentSizeModifier {
   _size_(_payload_) : 8,
   _payload_ : [+2], // Include two_bytes in the size

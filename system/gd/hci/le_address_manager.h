@@ -104,18 +104,6 @@ class LeAddressManager {
     return cached_commands_.size();
   }
 
-  std::vector<int> GetRegisteredClientStates() const {
-    std::vector<int> client_states(registered_clients_.size());
-    for (const auto& client : registered_clients_) {
-      client_states.push_back(static_cast<int>(client.second));
-    }
-    return client_states;
-  }
-
-  AddressPolicy GetAddressPolicy() const {
-    return address_policy_;
-  }
-
  protected:
   AddressPolicy address_policy_ = AddressPolicy::POLICY_NOT_SET;
   std::chrono::milliseconds minimum_rotation_time_;
@@ -188,8 +176,8 @@ class LeAddressManager {
   Address public_address_;
   std::unique_ptr<os::Alarm> address_rotation_alarm_;
   crypto_toolbox::Octet16 rotation_irk_;
-  const uint8_t connect_list_size_;
-  const uint8_t resolving_list_size_;
+  uint8_t connect_list_size_;
+  uint8_t resolving_list_size_;
   std::queue<Command> cached_commands_;
   bool supports_ble_privacy_{false};
 };

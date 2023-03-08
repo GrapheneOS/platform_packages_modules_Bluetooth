@@ -2061,9 +2061,10 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) {
          << "      state: " << GetState()
          << ",\ttarget state: " << GetTargetState()
          << ",\tcig state: " << cig_state_ << "\n"
-         << "      group available contexts: " << GetAvailableContexts()
+         << "      group available contexts: " << GetAvailableContexts() << "\n"
          << "      configuration context type: "
          << bluetooth::common::ToString(GetConfigurationContextType()).c_str()
+         << "\n"
          << "      active configuration name: "
          << (active_conf ? active_conf->name : " not set") << "\n"
          << "      stream configuration: "
@@ -2580,7 +2581,13 @@ void LeAudioDevice::Dump(int fd) {
   std::string location = "unknown location";
 
   if (snk_audio_locations_.to_ulong() &
-      codec_spec_conf::kLeAudioLocationAnyLeft) {
+          codec_spec_conf::kLeAudioLocationAnyLeft &&
+      snk_audio_locations_.to_ulong() &
+          codec_spec_conf::kLeAudioLocationAnyRight) {
+    std::string location_left_right = "left/right";
+    location.swap(location_left_right);
+  } else if (snk_audio_locations_.to_ulong() &
+             codec_spec_conf::kLeAudioLocationAnyLeft) {
     std::string location_left = "left";
     location.swap(location_left);
   } else if (snk_audio_locations_.to_ulong() &
@@ -2762,8 +2769,19 @@ void LeAudioDeviceGroups::Cleanup(void) {
 }
 
 void LeAudioDeviceGroups::Dump(int fd, int active_group_id) {
+  /* Dump first active group */
   for (auto& g : groups_) {
-    g->Dump(fd, active_group_id);
+    if (g->group_id_ == active_group_id) {
+      g->Dump(fd, active_group_id);
+      break;
+    }
+  }
+
+  /* Dump non active group */
+  for (auto& g : groups_) {
+    if (g->group_id_ != active_group_id) {
+      g->Dump(fd, active_group_id);
+    }
   }
 }
 

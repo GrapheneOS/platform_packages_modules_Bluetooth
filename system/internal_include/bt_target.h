@@ -806,10 +806,6 @@
 #define PAN_INCLUDED TRUE
 #endif
 
-#ifndef PAN_NAP_DISABLED
-#define PAN_NAP_DISABLED FALSE
-#endif
-
 #ifndef PANU_DISABLED
 #define PANU_DISABLED FALSE
 #endif
