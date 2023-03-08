@@ -1204,7 +1204,7 @@ class AdapterProperties {
         final BroadcastOptions options = Utils.getTempBroadcastOptions();
         if (SdkLevel.isAtLeastU()) {
             options.setDeliveryGroupPolicy(BroadcastOptions.DELIVERY_GROUP_POLICY_MOST_RECENT);
-            options.setDeferUntilActive(true);
+            options.setDeferralPolicy(BroadcastOptions.DEFERRAL_POLICY_UNTIL_ACTIVE);
         }
         return options.toBundle();
     }
