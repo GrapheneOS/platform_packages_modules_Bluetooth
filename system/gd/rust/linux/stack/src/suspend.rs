@@ -242,11 +242,10 @@ impl ISuspend for Suspend {
     fn resume(&mut self) -> bool {
         self.intf.lock().unwrap().set_default_event_mask_except(0u64, 0u64);
 
-        // TODO(b/260922031) - This needs to be generalized and handled by LE
-        //                     manager to allow other devices to reconnect.
-        //                     Needs to be before `clear_event_filter`.
-        self.intf.lock().unwrap().allow_wake_by_hid();
+        // Restore event filter and accept list to normal.
         self.intf.lock().unwrap().clear_event_filter();
+        self.intf.lock().unwrap().clear_filter_accept_list();
+        self.intf.lock().unwrap().restore_filter_accept_list();
 
         if !self.audio_reconnect_list.is_empty() {
             let reconnect_list = self.audio_reconnect_list.clone();
