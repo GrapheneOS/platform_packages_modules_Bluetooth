@@ -240,9 +240,9 @@ void btif_storage_remove_csis_device(const RawAddress& address) {
 }
 void btif_storage_set_pce_profile_version(const RawAddress& remote_bd_addr,
                                           uint16_t peer_pce_version) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
 }
 bool btif_storage_is_pce_version_102(const RawAddress& remote_bd_addr) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   return false;
 }
