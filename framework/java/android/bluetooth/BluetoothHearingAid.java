@@ -112,7 +112,6 @@ public final class BluetoothHearingAid implements BluetoothProfile {
         }
 
         private AdvertisementServiceData(@NonNull Parcel in) {
-            in.setDataPosition(0);
             mCapability = in.readInt();
             mTruncatedHiSyncId = in.readInt();
         }
