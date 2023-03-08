@@ -71,7 +71,7 @@ public final class DistanceMeasurementSession {
     @IntDef(value = {
             BluetoothStatusCodes.SUCCESS,
             BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
-            BluetoothStatusCodes.DISTANCE_MEASUREMENT_ERROR_INTERNAL,
+            BluetoothStatusCodes.ERROR_DISTANCE_MEASUREMENT_INTERNAL,
     })
     public @interface StopSessionReturnValues{}
 
@@ -110,7 +110,7 @@ public final class DistanceMeasurementSession {
         try {
             final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
             mGatt.stopDistanceMeasurement(mUuid, mDistanceMeasurementParams.getDevice(),
-                    mDistanceMeasurementParams.getMethod(), mAttributionSource, recv);
+                    mDistanceMeasurementParams.getMethodId(), mAttributionSource, recv);
             return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
         } catch (TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -184,7 +184,7 @@ public final class DistanceMeasurementSession {
                 BluetoothStatusCodes.ERROR_TIMEOUT,
                 BluetoothStatusCodes.ERROR_NO_LE_CONNECTION,
                 BluetoothStatusCodes.ERROR_BAD_PARAMETERS,
-                BluetoothStatusCodes.DISTANCE_MEASUREMENT_ERROR_INTERNAL,
+                BluetoothStatusCodes.ERROR_DISTANCE_MEASUREMENT_INTERNAL,
         })
         @interface Reason {}
 
