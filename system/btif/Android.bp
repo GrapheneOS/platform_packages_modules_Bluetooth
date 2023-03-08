@@ -176,6 +176,7 @@ cc_defaults {
         "lib-bt-packets-base",
         "lib-bt-packets-avrcp",
         "libbt-audio-hal-interface",
+        "libcom.android.sysprop.bluetooth",
         "libaudio-a2dp-hw-utils",
     ],
     cflags: [
@@ -488,6 +489,7 @@ cc_test {
           "lib-bt-packets",
           "lib-bt-packets-avrcp",
           "lib-bt-packets-base",
+          "libcom.android.sysprop.bluetooth",
           "libc++fs",
           "libflatbuffers-cpp",
           "libgmock",
@@ -605,6 +607,7 @@ cc_test {
           "lib-bt-packets",
           "lib-bt-packets-avrcp",
           "lib-bt-packets-base",
+          "libcom.android.sysprop.bluetooth",
           "libc++fs",
           "libflatbuffers-cpp",
           "libgmock",
