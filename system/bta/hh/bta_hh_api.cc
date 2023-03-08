@@ -54,11 +54,11 @@ static const tBTA_SYS_REG bta_hh_reg = {bta_hh_hdl_event, BTA_HhDisable};
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HhEnable(tBTA_HH_CBACK* p_cback) {
+void BTA_HhEnable(tBTA_HH_CBACK* p_cback, bool enable_hid, bool enable_hogp) {
   /* register with BTA system manager */
   bta_sys_register(BTA_ID_HH, &bta_hh_reg);
 
-  post_on_bt_main([p_cback]() {
+  post_on_bt_main([p_cback, enable_hid, enable_hogp]() {
     tBTA_HH_DATA data = {
         .api_enable =
             {
@@ -67,6 +67,8 @@ void BTA_HhEnable(tBTA_HH_CBACK* p_cback) {
                         .event = BTA_HH_API_ENABLE_EVT,
                     },
                 .p_cback = p_cback,
+                .enable_hid = enable_hid,
+                .enable_hogp = enable_hogp,
             },
     };
     bta_hh_api_enable(&data);
