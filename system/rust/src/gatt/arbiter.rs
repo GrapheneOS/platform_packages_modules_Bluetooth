@@ -7,12 +7,14 @@ use log::{error, info, trace};
 
 use crate::{
     do_in_rust_thread,
-    packets::{AttOpcode, OwnedAttView, OwnedPacket},
+    gatt::server::att_server_bearer::AttServerBearer,
+    packets::{OwnedAttView, OwnedPacket},
 };
 
 use super::{
     ffi::{InterceptAction, StoreCallbacksFromRust},
     ids::{AdvertiserId, ConnectionId, ServerId, TransportIndex},
+    opcode_types::{classify_opcode, OperationType},
 };
 
 static ARBITER: Mutex<Option<Arbiter>> = Mutex::new(None);
@@ -91,15 +93,10 @@ impl Arbiter {
 
         let att = OwnedAttView::try_parse(packet).ok()?;
 
-        match att.view().get_opcode() {
-            AttOpcode::FIND_INFORMATION_REQUEST
-            | AttOpcode::FIND_BY_TYPE_VALUE_REQUEST
-            | AttOpcode::READ_BY_TYPE_REQUEST
-            | AttOpcode::READ_REQUEST
-            | AttOpcode::READ_BLOB_REQUEST
-            | AttOpcode::READ_MULTIPLE_REQUEST
-            | AttOpcode::READ_BY_GROUP_TYPE_REQUEST
-            | AttOpcode::WRITE_REQUEST => Some((att, conn_id)),
+        match classify_opcode(att.view().get_opcode()) {
+            OperationType::Command | OperationType::Request | OperationType::Confirmation => {
+                Some((att, conn_id))
+            }
             _ => None,
         }
     }
@@ -177,7 +174,7 @@ mod test {
 
     use crate::{
         gatt::ids::AttHandle,
-        packets::{AttBuilder, AttReadRequestBuilder, Serializable},
+        packets::{AttBuilder, AttOpcode, AttReadRequestBuilder, Serializable},
     };
 
     const TCB_IDX: TransportIndex = TransportIndex(1);
@@ -315,6 +312,21 @@ mod test {
         let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());
 
         assert!(matches!(out, Some((_, CONN_ID))));
+    }
+
+    #[test]
+    fn test_packet_bypass_when_isolated() {
+        let mut arbiter = Arbiter::new();
+        arbiter.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
+        arbiter.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let packet = AttBuilder {
+            opcode: AttOpcode::ERROR_RESPONSE,
+            _child_: AttReadRequestBuilder { attribute_handle: AttHandle(1).into() }.into(),
+        };
+
+        let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());
+
+        assert!(out.is_none());
     }
 
     #[test]

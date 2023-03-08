@@ -7,6 +7,7 @@ pub mod channel;
 pub mod ffi;
 pub mod ids;
 pub mod mocks;
+pub mod opcode_types;
 pub mod server;
 
 pub use self::callbacks::GattCallbacks;
