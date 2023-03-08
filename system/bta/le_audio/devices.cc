@@ -347,6 +347,42 @@ bool LeAudioDeviceGroup::IsDeviceInTheGroup(LeAudioDevice* leAudioDevice) {
   return true;
 }
 
+bool LeAudioDeviceGroup::IsGroupReadyToCreateStream(void) {
+  auto iter =
+      std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(), [](auto& d) {
+        if (d.expired())
+          return false;
+        else
+          return !(((d.lock()).get())->IsReadyToCreateStream());
+      });
+
+  return iter == leAudioDevices_.end();
+}
+
+bool LeAudioDeviceGroup::IsGroupReadyToSuspendStream(void) {
+  auto iter =
+      std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(), [](auto& d) {
+        if (d.expired())
+          return false;
+        else
+          return !(((d.lock()).get())->IsReadyToSuspendStream());
+      });
+
+  return iter == leAudioDevices_.end();
+}
+
+bool LeAudioDeviceGroup::HaveAnyActiveDeviceInUnconfiguredState() {
+  auto iter =
+      std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(), [](auto& d) {
+        if (d.expired())
+          return false;
+        else
+          return (((d.lock()).get())->HaveAnyUnconfiguredAses());
+      });
+
+  return iter != leAudioDevices_.end();
+}
+
 bool LeAudioDeviceGroup::HaveAllActiveDevicesAsesTheSameState(AseState state) {
   auto iter = std::find_if(
       leAudioDevices_.begin(), leAudioDevices_.end(), [&state](auto& d) {
