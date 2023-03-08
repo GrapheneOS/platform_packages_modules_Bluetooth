@@ -91,6 +91,8 @@ typedef struct {
   BT_HDR_RIGID hdr;
   uint8_t service_name[BTA_SERVICE_NAME_LEN + 1];
   tBTA_HH_CBACK* p_cback;
+  bool enable_hid;
+  bool enable_hogp;
 } tBTA_HH_API_ENABLE;
 
 typedef struct {
