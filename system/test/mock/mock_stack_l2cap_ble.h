@@ -79,6 +79,19 @@ struct L2CA_EnableUpdateBleConnParams {
   };
 };
 extern struct L2CA_EnableUpdateBleConnParams L2CA_EnableUpdateBleConnParams;
+// Name: L2CA_ConsolidateParams
+// Params: const RawAddress& identity, const RawAddress& rpa
+// Returns: bool
+struct L2CA_ConsolidateParams {
+  std::function<void(const RawAddress& identity_addr, const RawAddress& rpa)>
+      body{[](const RawAddress& identity_addr, const RawAddress& rpa) {
+        return false;
+      }};
+  void operator()(const RawAddress& identity_addr, const RawAddress& rpa) {
+    body(identity_addr, rpa);
+  };
+};
+extern struct L2CA_ConsolidateParams L2CA_ConsolidateParams;
 // Name: L2CA_GetBleConnRole
 // Params: const RawAddress& bd_addr
 // Returns: hci_role_t

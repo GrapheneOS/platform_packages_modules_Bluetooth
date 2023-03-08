@@ -72,6 +72,9 @@ void gatt_chk_srv_chg(tGATTS_SRV_CHG* p_srv_chg_clt) {
 void gatt_data_process(tGATT_TCB& tcb, uint16_t cid, BT_HDR* p_buf) {
   inc_func_call_count(__func__);
 }
+void gatt_consolidate(const RawAddress& identity_addr, const RawAddress& rpa) {
+  inc_func_call_count(__func__);
+}
 void gatt_find_in_device_record(const RawAddress& bd_addr,
                                 tBLE_BD_ADDR* address_with_type) {
   inc_func_call_count(__func__);
