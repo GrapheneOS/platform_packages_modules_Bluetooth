@@ -86,13 +86,13 @@ public class DistanceMeasurementManager {
     void startDistanceMeasurement(UUID uuid, DistanceMeasurementParams params,
             IDistanceMeasurementCallback callback) {
         Log.i(TAG, "startDistanceMeasurement device:" + params.getDevice().getAnonymizedAddress()
-                + ", method: " + params.getMethod());
+                + ", method: " + params.getMethodId());
         String identityAddress = mAdapterService.getIdentityAddress(
                 params.getDevice().getAddress());
         logd("Get identityAddress: " + params.getDevice().getAnonymizedAddress() + " => "
                 + BluetoothUtils.toAnonymizedAddress(identityAddress));
 
-        int frequencyValue = getFrequencyValue(params.getFrequency(), params.getMethod());
+        int frequencyValue = getFrequencyValue(params.getFrequency(), params.getMethodId());
         if (frequencyValue == -1) {
             invokeStartFail(callback, params.getDevice(),
                     BluetoothStatusCodes.ERROR_BAD_PARAMETERS);
@@ -102,7 +102,7 @@ public class DistanceMeasurementManager {
         DistanceMeasurementTracker tracker = new DistanceMeasurementTracker(
                 this, params, identityAddress, uuid, frequencyValue, callback);
 
-        switch (params.getMethod()) {
+        switch (params.getMethodId()) {
             case DistanceMeasurementMethod.DISTANCE_MEASUREMENT_METHOD_AUTO:
             case DistanceMeasurementMethod.DISTANCE_MEASUREMENT_METHOD_RSSI:
                 startRssiTracker(tracker);
@@ -140,7 +140,7 @@ public class DistanceMeasurementManager {
                 return stopRssiTracker(uuid, identityAddress, timeout);
             default:
                 Log.w(TAG, "stopDistanceMeasurement with invalid method:" + method);
-                return BluetoothStatusCodes.DISTANCE_MEASUREMENT_ERROR_INTERNAL;
+                return BluetoothStatusCodes.ERROR_DISTANCE_MEASUREMENT_INTERNAL;
         }
     }
 
@@ -149,7 +149,7 @@ public class DistanceMeasurementManager {
         HashSet<DistanceMeasurementTracker> set = mRssiTrackers.get(identityAddress);
         if (set == null) {
             Log.w(TAG, "Can't find rssi tracker");
-            return BluetoothStatusCodes.DISTANCE_MEASUREMENT_ERROR_INTERNAL;
+            return BluetoothStatusCodes.ERROR_DISTANCE_MEASUREMENT_INTERNAL;
         }
 
         for (DistanceMeasurementTracker tracker : set) {
