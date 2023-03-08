@@ -194,7 +194,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         group->CigGenerateCisIds(context_type);
         /* All ASEs should aim to achieve target state */
         SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
-        PrepareAndSendCodecConfigToTheGroup(group);
+        if (!PrepareAndSendCodecConfigToTheGroup(group)) {
+          group->PrintDebugState();
+          ClearGroup(group, true);
+        }
         break;
 
       case AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED: {
@@ -660,18 +663,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     /* Group is not connected and all the CISes are down.
      * Clean states and destroy HCI group
      */
-    group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-    group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-
-    /* Clear group pending status */
-    group->ClearPendingAvailableContextsChange();
-    group->ClearPendingConfiguration();
-
-    if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
-    ReleaseCisIds(group);
-    state_machine_callbacks_->StatusReportCb(group->group_id_,
-                                             GroupStreamStatus::IDLE);
-    RemoveCigForGroup(group);
+    ClearGroup(group, true);
   }
 
   void ProcessHciNotifCisEstablished(
@@ -1539,8 +1531,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   void PrepareAndSendQoSToTheGroup(LeAudioDeviceGroup* group) {
     LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
     if (!leAudioDevice) {
-      LOG(ERROR) << __func__ << ", no active devices in group";
-      StopStream(group);
+      LOG_ERROR("No active device for the group");
+      group->PrintDebugState();
+      ClearGroup(group, true);
       return;
     }
 
@@ -1554,7 +1547,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     LOG_INFO("group_id: %d", group->group_id_);
     auto leAudioDevice = group->GetFirstActiveDevice();
     if (!leAudioDevice) {
-      LOG(ERROR) << __func__ << ", no active devices in group";
+      LOG_ERROR("No active device for the group");
       return false;
     }
 
@@ -1995,13 +1988,33 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
   }
 
+  void ClearGroup(LeAudioDeviceGroup* group, bool report_idle_state) {
+    LOG_DEBUG("group_id: %d", group->group_id_);
+    group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+    group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+
+    /* Clear group pending status */
+    group->ClearPendingAvailableContextsChange();
+    group->ClearPendingConfiguration();
+
+    if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
+    ReleaseCisIds(group);
+    RemoveCigForGroup(group);
+
+    if (report_idle_state) {
+      state_machine_callbacks_->StatusReportCb(group->group_id_,
+                                               GroupStreamStatus::IDLE);
+    }
+  }
+
   void PrepareAndSendEnableToTheGroup(LeAudioDeviceGroup* group) {
     LOG_INFO("group_id: %d", group->group_id_);
 
     auto leAudioDevice = group->GetFirstActiveDevice();
     if (!leAudioDevice) {
-      LOG_ERROR("No active for the group,");
-      StopStream(group);
+      LOG_ERROR("No active device for the group");
+      group->PrintDebugState();
+      ClearGroup(group, true);
       return;
     }
 
@@ -2042,8 +2055,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     auto leAudioDevice = group->GetFirstActiveDevice();
     if (!leAudioDevice) {
-      LOG_ERROR("Shall not be called if there is no active device.");
-      StopStream(group);
+      LOG_ERROR("No active device for the group");
+      group->PrintDebugState();
+      ClearGroup(group, false);
       return GroupStreamStatus::IDLE;
     }
 
@@ -2080,7 +2094,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     LOG_INFO("group_id: %d", group->group_id_);
     LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
     if (!leAudioDevice) {
-      LOG_ERROR(" Shouldn't be called without an active device.");
+      LOG_ERROR("No active device for the group");
+      group->PrintDebugState();
+      ClearGroup(group, false);
       return GroupStreamStatus::IDLE;
     }
 
