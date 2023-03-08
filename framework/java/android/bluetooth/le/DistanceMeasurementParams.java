@@ -82,17 +82,17 @@ public final class DistanceMeasurementParams implements Parcelable {
     private BluetoothDevice mDevice = null;
     private int mDuration;
     private int mFrequency;
-    private int mMethod;
+    private int mMethodId;
 
     /**
      * @hide
      */
     public DistanceMeasurementParams(BluetoothDevice device, int duration, int frequency,
-            int method) {
+            int methodId) {
         mDevice = Objects.requireNonNull(device);
         mDuration = duration;
         mFrequency = frequency;
-        mMethod = method;
+        mMethodId = methodId;
     }
 
     /**
@@ -106,50 +106,54 @@ public final class DistanceMeasurementParams implements Parcelable {
     }
 
     /**
-     * Returns duration of this DistanceMeasurementParams.
+     * Returns duration in seconds of this DistanceMeasurementParams. Once the distance measurement
+     * successfully started, the Bluetooth process will keep reporting the measurement result
+     * until this time has been reached or the session is explicitly stopped with
+     * {@link DistanceMeasurementSession#stopSession}
      *
      * @hide
      */
     @SystemApi
-    public int getDuration() {
+    public @IntRange(from = 0) int getDurationSeconds() {
         return mDuration;
     }
 
     /**
-     * Returns frequency of this DistanceMeasurementParams.
+     * Returns frequency of this DistanceMeasurementParams. The Bluetooth process uses this value
+     * to determine report frequency of the measurement result.
      *
      * @hide
      */
     @SystemApi
-    public int getFrequency() {
+    public @ReportFrequency int getFrequency() {
         return mFrequency;
     }
 
     /**
-     * Returns method of this DistanceMeasurementParams.
+     * Returns method id of this DistanceMeasurementParams.
      *
      * @hide
      */
     @SystemApi
-    public int getMethod() {
-        return mMethod;
+    public @DistanceMeasurementMethodId int getMethodId() {
+        return mMethodId;
     }
 
     /**
-     * Get the default duration of the parameter.
+     * Get the default duration in seconds of the parameter.
      * @hide
      */
     @SystemApi
-    public static int getDefaultDuration() {
+    public static int getDefaultDurationSeconds() {
         return REPORT_DURATION_DEFAULT;
     }
 
     /**
-     * Get the maximum duration that can be set for the parameter.
+     * Get the maximum duration in seconds that can be set for the parameter.
      * @hide
      */
     @SystemApi
-    public static int getMaxDuration() {
+    public static int getMaxDurationSeconds() {
         return REPORT_DURATION_MAX;
     }
 
@@ -171,7 +175,7 @@ public final class DistanceMeasurementParams implements Parcelable {
         out.writeParcelable(mDevice, 0);
         out.writeInt(mDuration);
         out.writeInt(mFrequency);
-        out.writeInt(mMethod);
+        out.writeInt(mMethodId);
     }
 
     /**
@@ -183,9 +187,9 @@ public final class DistanceMeasurementParams implements Parcelable {
                 @Override
                 public @NonNull DistanceMeasurementParams createFromParcel(@NonNull Parcel in) {
                     Builder builder = new Builder((BluetoothDevice) in.readParcelable(null));
-                    builder.setDuration(in.readInt());
+                    builder.setDurationSeconds(in.readInt());
                     builder.setFrequency(in.readInt());
-                    builder.setMethod(in.readInt());
+                    builder.setMethodId(in.readInt());
                     return builder.build();
                 }
 
@@ -206,29 +210,32 @@ public final class DistanceMeasurementParams implements Parcelable {
         private BluetoothDevice mDevice = null;
         private int mDuration = REPORT_DURATION_DEFAULT;
         private int mFrequency = REPORT_FREQUENCY_LOW;
-        private int mMethod = DistanceMeasurementMethod.DISTANCE_MEASUREMENT_METHOD_RSSI;
+        private int mMethodId = DistanceMeasurementMethod.DISTANCE_MEASUREMENT_METHOD_RSSI;
 
         /**
          * Constructor of the Builder.
          *
-         * @param device device of the DistanceMeasurementParams
+         * @param device the remote device for the distance measurement
          */
         public Builder(@NonNull BluetoothDevice device) {
             mDevice = Objects.requireNonNull(device);
         }
 
         /**
-         * Set duration in seconds for the DistanceMeasurementParams.
+         * Set duration in seconds for the DistanceMeasurementParams. Once the distance measurement
+         * successfully started, the Bluetooth process will keep reporting the measurement result
+         * until this time has been reached or the session is explicitly stopped with
+         * {@link DistanceMeasurementSession#stopSession}.
          *
-         * @param duration duration of this DistanceMeasurementParams
+         * @param duration duration in seconds of this DistanceMeasurementParams
          * @return the same Builder instance
          * @throws IllegalArgumentException if duration greater than
-         * {@link DistanceMeasurementParams#getMaxDuration()} or less than zero.
+         * {@link DistanceMeasurementParams#getMaxDurationSeconds()} or less than zero.
          * @hide
          */
         @SystemApi
-        public @NonNull Builder setDuration(@IntRange(from = 0, to = 3600) int duration) {
-            if (duration < 0 || duration > getMaxDuration()) {
+        public @NonNull Builder setDurationSeconds(@IntRange(from = 0) int duration) {
+            if (duration < 0 || duration > getMaxDurationSeconds()) {
                 throw new IllegalArgumentException("illegal duration " + duration);
             }
             mDuration = duration;
@@ -236,7 +243,8 @@ public final class DistanceMeasurementParams implements Parcelable {
         }
 
         /**
-         * Set frequency for the DistanceMeasurementParams.
+         * Set frequency for the DistanceMeasurementParams. The Bluetooth process uses this value
+         * to determine report frequency of the measurement result.
          *
          * @param frequency frequency of this DistanceMeasurementParams
          * @return the same Builder instance
@@ -258,22 +266,22 @@ public final class DistanceMeasurementParams implements Parcelable {
         }
 
         /**
-         * Set method for the DistanceMeasurementParams.
+         * Set method id for the DistanceMeasurementParams.
          *
-         * @param method method of this DistanceMeasurementParams
+         * @param methodId method id of this DistanceMeasurementParams
          * @return the same Builder instance
          *
          * @hide
          */
         @SystemApi
-        public @NonNull Builder setMethod(@DistanceMeasurementMethodId int method) {
-            switch (method) {
+        public @NonNull Builder setMethodId(@DistanceMeasurementMethodId int methodId) {
+            switch (methodId) {
                 case DistanceMeasurementMethod.DISTANCE_MEASUREMENT_METHOD_AUTO:
                 case DistanceMeasurementMethod.DISTANCE_MEASUREMENT_METHOD_RSSI:
-                    mMethod = method;
+                    mMethodId = methodId;
                     break;
                 default:
-                    throw new IllegalArgumentException("unknown method " + method);
+                    throw new IllegalArgumentException("unknown method id " + methodId);
             }
             return this;
         }
@@ -285,7 +293,7 @@ public final class DistanceMeasurementParams implements Parcelable {
          */
         @SystemApi
         public @NonNull DistanceMeasurementParams build() {
-            return new DistanceMeasurementParams(mDevice, mDuration, mFrequency, mMethod);
+            return new DistanceMeasurementParams(mDevice, mDuration, mFrequency, mMethodId);
         }
     }
 }
