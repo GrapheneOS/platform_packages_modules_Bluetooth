@@ -289,8 +289,10 @@ void bta_dm_enable(tBTA_DM_SEC_CBACK* p_sec_cback) {
   btm_local_io_caps = btif_storage_get_local_io_caps();
 }
 
-void bta_dm_search_set_state(uint8_t state) { bta_dm_search_cb.state = state; }
-uint8_t bta_dm_search_get_state() { return bta_dm_search_cb.state; }
+void bta_dm_search_set_state(tBTA_DM_STATE state) {
+  bta_dm_search_cb.state = state;
+}
+tBTA_DM_STATE bta_dm_search_get_state() { return bta_dm_search_cb.state; }
 
 /*******************************************************************************
  *
