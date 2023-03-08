@@ -526,7 +526,7 @@ public final class BluetoothStatusCodes {
      * @hide
      */
     @SystemApi
-    public static final int DISTANCE_MEASUREMENT_ERROR_INTERNAL = 1301;
+    public static final int ERROR_DISTANCE_MEASUREMENT_INTERNAL = 1301;
 
 
     /**

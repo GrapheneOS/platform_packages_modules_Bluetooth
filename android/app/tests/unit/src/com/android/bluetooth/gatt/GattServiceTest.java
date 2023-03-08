@@ -768,7 +768,7 @@ public class GattServiceTest {
         UUID uuid = UUID.randomUUID();
         BluetoothDevice device = mAdapter.getRemoteDevice("00:01:02:03:04:05");
         DistanceMeasurementParams params = new DistanceMeasurementParams.Builder(device)
-                .setDuration(123)
+                .setDurationSeconds(123)
                 .setFrequency(DistanceMeasurementParams.REPORT_FREQUENCY_LOW)
                 .build();
         IDistanceMeasurementCallback callback = mock(IDistanceMeasurementCallback.class);
