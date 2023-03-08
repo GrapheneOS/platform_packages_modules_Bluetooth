@@ -54,9 +54,11 @@ class SMProxy(ProfileProxy):
         """
         Please start pairing process.
         """
+
         def secure():
             if self.connection:
                 self.security.Secure(connection=self.connection, le=LE_LEVEL3)
+
         Thread(target=secure).start()
         return "OK"
 
@@ -96,6 +98,7 @@ class SMProxy(ProfileProxy):
             connectable=True,
             own_address_type=PUBLIC,
         )
+
         return "OK"
 
     @assert_description
@@ -163,6 +166,28 @@ class SMProxy(ProfileProxy):
         """
         Please verify the passKey is correct: 000000
         """
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_INITIATE_CONNECTION_BR_EDR_PAIRING(self, test: str, pts_addr: bytes, **kwargs):
+        """
+        Please initiate a connection over BR/EDR to the PTS, and initiate
+        pairing process.
+    
+        Description: Verify that the Implementation Under Test
+        (IUT) can initiate a connect request over BR/EDR to PTS, and initiate
+        pairing process.
+        """
+        self.connection = self.host.Connect(address=pts_addr).connection
+
+        return "OK"
+
+    @assert_description
+    def MMI_ASK_IUT_PERFORM_FEATURE_EXCHANGE_OVER_BR(self, **kwargs):
+        """
+        Please start pairing feature exchange over BR/EDR.
+        """
+
         return "OK"
 
     def _handle_pairing_requests(self):
