@@ -24,6 +24,7 @@
 #include "gd/hci/controller.h"
 #include "hci/controller.h"
 #include "main/shim/entry.h"
+#include "main/shim/helpers.h"
 #include "main/shim/shim.h"
 #include "main/shim/stack.h"
 #include "osi/include/future.h"
@@ -342,8 +343,13 @@ static uint8_t controller_set_event_filter_connection_setup_all_devices() {
   return BTM_SUCCESS;
 }
 
-static uint8_t controller_allow_wake_by_hid() {
-  bluetooth::shim::GetController()->AllowWakeByHid();
+static uint8_t controller_set_event_filter_allow_device_connection(
+    std::vector<RawAddress> devices) {
+  for (const RawAddress& address : devices) {
+    bluetooth::shim::GetController()->SetEventFilterConnectionSetupAddress(
+        bluetooth::ToGdAddress(address),
+        bluetooth::hci::AutoAcceptFlag::AUTO_ACCEPT_OFF);
+  }
   return BTM_SUCCESS;
 }
 
@@ -472,7 +478,8 @@ static const controller_t interface = {
     .le_rand = controller_le_rand,
     .set_event_filter_connection_setup_all_devices =
         controller_set_event_filter_connection_setup_all_devices,
-    .allow_wake_by_hid = controller_allow_wake_by_hid,
+    .set_event_filter_allow_device_connection =
+        controller_set_event_filter_allow_device_connection,
     .set_default_event_mask_except = controller_set_default_event_mask_except,
     .set_event_filter_inquiry_result_all_devices =
         controller_set_event_filter_inquiry_result_all_devices};

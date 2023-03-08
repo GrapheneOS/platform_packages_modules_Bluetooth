@@ -1850,6 +1850,7 @@ tBTM_STATUS BTM_SetEventFilterConnectionSetupAllDevices(void);
  *
  *******************************************************************************/
 tBTM_STATUS BTM_AllowWakeByHid(
+    std::vector<RawAddress> classic_hid_devices,
     std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices);
 
 /*******************************************************************************
@@ -1861,7 +1862,8 @@ tBTM_STATUS BTM_AllowWakeByHid(
  * Parameters
  *
  *******************************************************************************/
-tBTM_STATUS BTM_RestoreFilterAcceptList(void);
+tBTM_STATUS BTM_RestoreFilterAcceptList(
+    std::vector<std::pair<RawAddress, uint8_t>> le_devices);
 
 /*******************************************************************************
  *
