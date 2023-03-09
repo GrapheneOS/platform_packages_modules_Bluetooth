@@ -145,8 +145,7 @@ bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,
     memcpy(p_msg->p_param, p_params, param_len); /* callback parameter data */
   }
 
-  do_in_jni_thread(base::Bind(&bt_jni_msg_ready, p_msg));
-  return BT_STATUS_SUCCESS;
+  return do_in_jni_thread(base::Bind(&bt_jni_msg_ready, p_msg));
 }
 
 /**
