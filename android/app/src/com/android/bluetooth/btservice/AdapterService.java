@@ -4661,29 +4661,29 @@ public class AdapterService extends Service {
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         @Override
-        public void isOffloadedTransportDiscoveryDataScanSupported(
+        public void getOffloadedTransportDiscoveryDataScanSupported(
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
-                receiver.send(isOffloadedTransportDiscoveryDataScanSupported(source));
+                receiver.send(getOffloadedTransportDiscoveryDataScanSupported(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
 
-        private int isOffloadedTransportDiscoveryDataScanSupported(
+        private int getOffloadedTransportDiscoveryDataScanSupported(
                 AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG,
-                            "isOffloadedTransportDiscoveryDataScanSupported")
+                            "getOffloadedTransportDiscoveryDataScanSupported")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource,
-                            "isOffloadedTransportDiscoveryDataScanSupported")) {
+                            "getOffloadedTransportDiscoveryDataScanSupported")) {
                 return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION;
             }
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.isOffloadedTransportDiscoveryDataScanSupported();
+            return service.getOffloadedTransportDiscoveryDataScanSupported();
         }
     }
 
@@ -5909,9 +5909,9 @@ public class AdapterService extends Service {
 
     /**
      * Return if offloaded TDS filter is supported.
-     * @return true if supported
+     * @return  {@code BluetoothStatusCodes.FEATURE_SUPPORTED} if supported
      */
-    public int isOffloadedTransportDiscoveryDataScanSupported() {
+    public int getOffloadedTransportDiscoveryDataScanSupported() {
         if (mAdapterProperties.isOffloadedTransportDiscoveryDataScanSupported()) {
             return BluetoothStatusCodes.FEATURE_SUPPORTED;
         }
