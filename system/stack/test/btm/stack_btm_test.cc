@@ -138,8 +138,7 @@ TEST_F(StackBtmTest, InformClientOnConnectionSuccess) {
   RawAddress bda({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
   btm_acl_connected(bda, 2, HCI_SUCCESS, false);
-  ASSERT_EQ(static_cast<size_t>(1),
-            mock_function_count_map.count("BTA_dm_acl_up"));
+  ASSERT_EQ(1, get_func_call_count("BTA_dm_acl_up"));
 
   get_btm_client_interface().lifecycle.btm_free();
 }
@@ -150,8 +149,7 @@ TEST_F(StackBtmTest, NoInformClientOnConnectionFail) {
   RawAddress bda({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
   btm_acl_connected(bda, 2, HCI_ERR_NO_CONNECTION, false);
-  ASSERT_EQ(static_cast<size_t>(0),
-            mock_function_count_map.count("BTA_dm_acl_up"));
+  ASSERT_EQ(0, get_func_call_count("BTA_dm_acl_up"));
 
   get_btm_client_interface().lifecycle.btm_free();
 }
