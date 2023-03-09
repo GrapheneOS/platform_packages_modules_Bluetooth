@@ -1,6 +1,6 @@
 mod utils;
 
-use std::rc::Rc;
+use std::{rc::Rc, time::Duration};
 
 use bluetooth_core::{
     gatt::{
@@ -12,15 +12,13 @@ use bluetooth_core::{
     packets::{AttAttributeDataChild, AttErrorCode, Packet},
     utils::packet::{build_att_data, build_view_or_crash},
 };
-use tokio::{sync::mpsc::UnboundedReceiver, task::spawn_local};
+use tokio::{sync::mpsc::UnboundedReceiver, task::spawn_local, time::Instant};
 use utils::start_test;
 
 const TCB_IDX: TransportIndex = TransportIndex(1);
 const SERVER_ID: ServerId = ServerId(2);
 
 const CONN_ID: ConnectionId = ConnectionId::new(TCB_IDX, SERVER_ID);
-
-const ANOTHER_CONN_ID: ConnectionId = ConnectionId(10);
 
 const HANDLE_1: AttHandle = AttHandle(3);
 const BACKING_TYPE: AttributeBackingType = AttributeBackingType::Descriptor;
@@ -29,8 +27,6 @@ fn initialize_manager_with_connection(
 ) -> (Rc<CallbackTransactionManager>, UnboundedReceiver<MockCallbackEvents>) {
     let (callbacks, callbacks_rx) = MockCallbacks::new();
     let callback_manager = Rc::new(CallbackTransactionManager::new(Rc::new(callbacks)));
-    callback_manager.add_connection(CONN_ID);
-
     (callback_manager, callbacks_rx)
 }
 
@@ -164,25 +160,6 @@ fn test_distinct_transaction_ids() {
 }
 
 #[test]
-fn test_invalid_conn_id() {
-    start_test(async {
-        // arrange
-        let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
-        let data = Ok(AttAttributeDataChild::RawData([1, 2].into()));
-
-        // act: start a read operation
-        let cloned_manager = callback_manager.clone();
-        spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
-        // respond with the correct trans_id but an invalid conn_id
-        let trans_id = pull_trans_id(&mut callbacks_rx).await;
-        let err = callback_manager.send_response(ANOTHER_CONN_ID, trans_id, data).unwrap_err();
-
-        // assert
-        assert_eq!(err, CallbackResponseError::NonExistentConnection(ANOTHER_CONN_ID));
-    });
-}
-
-#[test]
 fn test_invalid_trans_id() {
     start_test(async {
         // arrange
@@ -250,5 +227,26 @@ fn test_write_characteristic_response() {
 
         // assert: that the error code was received
         assert_eq!(pending_write.await.unwrap(), Err(AttErrorCode::WRITE_NOT_PERMITTED));
+    });
+}
+
+#[test]
+fn test_response_timeout() {
+    start_test(async {
+        // arrange
+        let (callback_manager, _callbacks_rx) = initialize_manager_with_connection();
+
+        // act: start operation
+        let time_sent = Instant::now();
+        let pending_write =
+            spawn_local(
+                async move { callback_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await },
+            );
+
+        // assert: that we time-out after 15s
+        assert_eq!(pending_write.await.unwrap(), Err(AttErrorCode::UNLIKELY_ERROR));
+        let time_slept = Instant::now().duration_since(time_sent);
+        assert!(time_slept > Duration::from_secs(14));
+        assert!(time_slept < Duration::from_secs(16));
     });
 }

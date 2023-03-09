@@ -55,7 +55,6 @@ impl GattModule {
                 conn_id.get_server_id(),
             );
         };
-        self.datastore.add_connection(conn_id);
         let transport = self.transport.clone();
         self.connection_bearers.insert(
             conn_id,
@@ -71,7 +70,6 @@ impl GattModule {
     pub fn on_le_disconnect(&mut self, conn_id: ConnectionId) {
         info!("disconnected conn_id {conn_id:?}");
         self.connection_bearers.remove(&conn_id);
-        self.datastore.remove_connection(conn_id);
     }
 
     /// Register a new GATT service on a given server

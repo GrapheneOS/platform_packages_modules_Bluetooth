@@ -59,13 +59,6 @@ pub trait GattCallbacks {
 /// into the GattModule
 #[async_trait(?Send)]
 pub trait GattDatastore {
-    /// Invoked to indicate when a new connection should be tracked
-    fn add_connection(&self, conn_id: ConnectionId);
-
-    /// Invoked to indicate that a connection has closed and all
-    /// pending transactions can be dropped.
-    fn remove_connection(&self, conn_id: ConnectionId);
-
     /// Read a characteristic from the specified connection at the given handle.
     async fn read(
         &self,

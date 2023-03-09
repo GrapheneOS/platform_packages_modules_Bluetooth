@@ -218,7 +218,6 @@ mod test {
     use crate::{
         core::{shared_box::SharedBox, uuid::Uuid},
         gatt::{
-            callbacks::GattDatastore,
             ffi::AttributeBackingType,
             ids::ConnectionId,
             mocks::mock_datastore::{MockDatastore, MockDatastoreEvents},
@@ -320,8 +319,6 @@ mod test {
         // two characteristics in the database
         let (datastore, mut data_rx) = MockDatastore::new();
         let datastore = Rc::new(datastore);
-        datastore.add_connection(CONN_ID);
-        data_rx.blocking_recv().unwrap(); // ignore AddConnection() event
         let db = SharedBox::new(GattDatabase::new(datastore));
         db.add_service_with_handles(GattServiceWithHandle {
             handle: AttHandle(1),

@@ -32,10 +32,6 @@ impl MockDatastore {
 /// Events representing calls to GattDatastore
 #[derive(Debug)]
 pub enum MockDatastoreEvents {
-    /// A new connection was created
-    AddConnection(ConnectionId),
-    /// A connection was removed
-    RemoveConnection(ConnectionId),
     /// A characteristic was read on a given handle. The oneshot is used to
     /// return the value read.
     Read(
@@ -57,14 +53,6 @@ pub enum MockDatastoreEvents {
 
 #[async_trait(?Send)]
 impl GattDatastore for MockDatastore {
-    fn add_connection(&self, conn_id: ConnectionId) {
-        self.0.send(MockDatastoreEvents::AddConnection(conn_id)).unwrap();
-    }
-
-    fn remove_connection(&self, conn_id: ConnectionId) {
-        self.0.send(MockDatastoreEvents::RemoveConnection(conn_id)).unwrap();
-    }
-
     async fn read(
         &self,
         conn_id: ConnectionId,

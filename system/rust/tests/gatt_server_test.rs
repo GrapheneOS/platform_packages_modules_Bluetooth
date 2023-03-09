@@ -84,70 +84,12 @@ fn create_server_and_open_connection(gatt: &mut GattModule) {
 }
 
 #[test]
-fn test_connection_creation() {
-    start_test(async move {
-        // arrange
-        let (mut gatt, mut data_rx, _) = start_gatt_module();
-
-        gatt.open_gatt_server(SERVER_ID).unwrap();
-        gatt.register_gatt_service(
-            SERVER_ID,
-            GattServiceWithHandle {
-                handle: SERVICE_HANDLE,
-                type_: SERVICE_TYPE,
-                characteristics: vec![],
-            },
-        )
-        .unwrap();
-
-        // act
-        gatt.on_le_connect(CONN_ID).unwrap();
-
-        // assert
-        assert!(matches!(
-            data_rx.recv().await.unwrap(),
-            MockDatastoreEvents::AddConnection(CONN_ID)
-        ));
-    })
-}
-#[test]
-fn test_disconnection() {
-    start_test(async move {
-        // arrange
-        let (mut gatt, mut data_rx, _) = start_gatt_module();
-
-        gatt.open_gatt_server(SERVER_ID).unwrap();
-        gatt.register_gatt_service(
-            SERVER_ID,
-            GattServiceWithHandle {
-                handle: SERVICE_HANDLE,
-                type_: SERVICE_TYPE,
-                characteristics: vec![],
-            },
-        )
-        .unwrap();
-        gatt.on_le_connect(CONN_ID).unwrap();
-        data_rx.recv().await.unwrap(); // drop the AddConnection event
-
-        // act
-        gatt.on_le_disconnect(CONN_ID);
-
-        // assert
-        assert!(matches!(
-            data_rx.recv().await.unwrap(),
-            MockDatastoreEvents::RemoveConnection(CONN_ID)
-        ));
-    })
-}
-
-#[test]
 fn test_service_read() {
     start_test(async move {
         // arrange
-        let (mut gatt, mut data_rx, mut transport_rx) = start_gatt_module();
+        let (mut gatt, _, mut transport_rx) = start_gatt_module();
 
         create_server_and_open_connection(&mut gatt);
-        data_rx.recv().await.unwrap();
 
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
@@ -179,12 +121,10 @@ fn test_service_read() {
 fn test_server_closed_while_connected() {
     start_test(async move {
         // arrange: set up a connection to a closed server
-        let (mut gatt, mut data_rx, mut transport_rx) = start_gatt_module();
+        let (mut gatt, _, mut transport_rx) = start_gatt_module();
 
         // open a server and connect
         create_server_and_open_connection(&mut gatt);
-        data_rx.recv().await.unwrap(); // drop the AddConnection message
-                                       // close the server but keep the connection up
         gatt.close_gatt_server(SERVER_ID).unwrap();
 
         // act: read from the closed server
@@ -219,7 +159,6 @@ fn test_characteristic_read() {
         let data = AttAttributeDataChild::RawData(DATA.into());
 
         create_server_and_open_connection(&mut gatt);
-        data_rx.recv().await.unwrap();
 
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
@@ -263,7 +202,6 @@ fn test_characteristic_write() {
         let data = AttAttributeDataChild::RawData(DATA.into());
 
         create_server_and_open_connection(&mut gatt);
-        data_rx.recv().await.unwrap();
 
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
@@ -308,12 +246,11 @@ fn test_characteristic_write() {
 fn test_send_indication() {
     start_test(async move {
         // arrange
-        let (mut gatt, mut data_rx, mut transport_rx) = start_gatt_module();
+        let (mut gatt, _, mut transport_rx) = start_gatt_module();
 
         let data = AttAttributeDataChild::RawData(DATA.into());
 
         create_server_and_open_connection(&mut gatt);
-        data_rx.recv().await.unwrap();
 
         // act
         let pending_indication = spawn_local(
@@ -347,10 +284,9 @@ fn test_send_indication() {
 fn test_send_indication_and_disconnect() {
     start_test(async move {
         // arrange
-        let (mut gatt, mut data_rx, mut transport_rx) = start_gatt_module();
+        let (mut gatt, _, mut transport_rx) = start_gatt_module();
 
         create_server_and_open_connection(&mut gatt);
-        data_rx.recv().await.unwrap();
 
         // act: send an indication, then disconnect
         let pending_indication = spawn_local(gatt.get_bearer(CONN_ID).unwrap().send_indication(
@@ -377,7 +313,6 @@ fn test_write_to_descriptor() {
         let data = AttAttributeDataChild::RawData(DATA.into());
 
         create_server_and_open_connection(&mut gatt);
-        data_rx.recv().await.unwrap();
 
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
