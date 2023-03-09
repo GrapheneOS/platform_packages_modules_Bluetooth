@@ -52,7 +52,7 @@ def assert_description(f):
             test.maxDiff = None
             test.assertMultiLineEqual(docstring.strip(), description.strip(),
                                       f'description does not match with function docstring of'
-                                      f'{f.__name__}')
+                                      f' {f.__name__}')
 
         return f(*args, **kwargs)
 
