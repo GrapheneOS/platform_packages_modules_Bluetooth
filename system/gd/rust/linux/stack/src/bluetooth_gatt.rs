@@ -1302,6 +1302,8 @@ pub struct BluetoothGatt {
     reliable_queue: HashSet<String>,
     scanner_callbacks: Callbacks<dyn IScannerCallback + Send>,
     scanners: Arc<Mutex<ScannersMap>>,
+    scan_suspend_mode: SuspendMode,
+    paused_scanner_ids: Vec<u8>,
     advertisers: Advertisers,
 
     adv_mon_add_cb_sender: CallbackSender<(u8, u8)>,
@@ -1332,6 +1334,8 @@ impl BluetoothGatt {
             reliable_queue: HashSet::new(),
             scanner_callbacks: Callbacks::new(tx.clone(), Message::ScannerCallbackDisconnected),
             scanners: scanners.clone(),
+            scan_suspend_mode: SuspendMode::Normal,
+            paused_scanner_ids: Vec::new(),
             small_rng: SmallRng::from_entropy(),
             advertisers: Advertisers::new(tx.clone()),
             adv_mon_add_cb_sender: async_helper_msft_adv_monitor_add.get_callback_sender(),
@@ -1452,14 +1456,60 @@ impl BluetoothGatt {
         self.scanner_callbacks.remove_callback(callback_id)
     }
 
+    /// Set the suspend mode.
+    pub fn set_scan_suspend_mode(&mut self, suspend_mode: SuspendMode) {
+        if suspend_mode != self.scan_suspend_mode {
+            self.scan_suspend_mode = suspend_mode;
+
+            // Notify current suspend mode to all active callbacks.
+            self.scanner_callbacks.for_all_callbacks(|callback| {
+                callback.on_suspend_mode_change(self.scan_suspend_mode.clone());
+            });
+        }
+    }
+
     /// Enters suspend mode for LE Scan.
     ///
     /// This "pauses" all operations managed by this module to prepare for system suspend. A
     /// callback is triggered to let clients know that this module is in suspend mode and some
     /// subsequent API calls will be blocked in this mode.
-    pub fn scan_enter_suspend(&mut self) {
-        // TODO(b/224603540): Implement
-        log::error!("TODO - scan_enter_suspend");
+    pub fn scan_enter_suspend(&mut self) -> BtStatus {
+        if self.get_scan_suspend_mode() != SuspendMode::Normal {
+            return BtStatus::Busy;
+        }
+        self.set_scan_suspend_mode(SuspendMode::Suspending);
+
+        // Collect the scanners that will be paused so that they can be re-enabled at resume.
+        let paused_scanner_ids = self
+            .scanners
+            .lock()
+            .unwrap()
+            .iter()
+            .filter_map(|(_uuid, scanner)| {
+                if let (true, Some(scanner_id)) = (scanner.is_active, scanner.scanner_id) {
+                    Some(scanner_id)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        // Note: We can't simply disable the LE scanning. When a filter is offloaded
+        // with the MSFT extension and it is monitoring a device, it sends a
+        // `Monitor Device Event` to indicate that monitoring is stopped and this
+        // can cause an early wake-up. Until we fix the disable + mask solution, we
+        // must remove all monitors before suspend and re-monitor them on resume.
+        for &scanner_id in &paused_scanner_ids {
+            self.stop_scan(scanner_id);
+            if let Some(scanner) =
+                Self::find_scanner_by_id(&mut self.scanners.lock().unwrap(), scanner_id)
+            {
+                scanner.is_suspended = true;
+            }
+        }
+        self.paused_scanner_ids = paused_scanner_ids;
+        self.set_scan_suspend_mode(SuspendMode::Suspended);
+        return BtStatus::Success;
     }
 
     /// Exits suspend mode for LE Scan.
@@ -1467,9 +1517,19 @@ impl BluetoothGatt {
     /// To be called after system resume/wake up. This "unpauses" the operations that were "paused"
     /// due to suspend. A callback is triggered to let clients when this module has exited suspend
     /// mode.
-    pub fn scan_exit_suspend(&mut self) {
-        // TODO(b/224603540): Implement
-        log::error!("TODO - scan_exit_suspend");
+    pub fn scan_exit_suspend(&mut self) -> BtStatus {
+        if self.get_scan_suspend_mode() != SuspendMode::Suspended {
+            return BtStatus::Busy;
+        }
+        self.set_scan_suspend_mode(SuspendMode::Resuming);
+
+        // The resume_scan() will add and reenable the monitors individually.
+        for scanner_id in self.paused_scanner_ids.drain(..).collect::<Vec<_>>() {
+            self.resume_scan(scanner_id);
+        }
+        self.set_scan_suspend_mode(SuspendMode::Normal);
+
+        return BtStatus::Success;
     }
 
     fn find_scanner_by_id<'a>(
@@ -1477,6 +1537,105 @@ impl BluetoothGatt {
         scanner_id: u8,
     ) -> Option<&'a mut ScannerInfo> {
         scanners.values_mut().find(|scanner| scanner.scanner_id == Some(scanner_id))
+    }
+
+    /// The resume_scan method is used to resume scanning after system suspension.
+    /// It assumes that scanner.filter has already had the filter data.
+    fn resume_scan(&mut self, scanner_id: u8) -> BtStatus {
+        let scan_suspend_mode = self.get_scan_suspend_mode();
+        if scan_suspend_mode != SuspendMode::Normal && scan_suspend_mode != SuspendMode::Resuming {
+            return BtStatus::Busy;
+        }
+
+        let filter = {
+            let mut scanners_lock = self.scanners.lock().unwrap();
+            if let Some(scanner) = Self::find_scanner_by_id(&mut scanners_lock, scanner_id) {
+                if scanner.is_suspended {
+                    scanner.is_suspended = false;
+                    scanner.is_active = true;
+                    // When a scanner resumes from a suspended state, the
+                    // scanner.filter has already had the filter data.
+                    scanner.filter.clone()
+                } else {
+                    log::warn!(
+                        "This Scanner {} is supposed to resume from suspended state",
+                        scanner_id
+                    );
+                    return BtStatus::Fail;
+                }
+            } else {
+                log::warn!("Scanner {} not found", scanner_id);
+                return BtStatus::Fail;
+            }
+        };
+
+        self.add_monitor_and_update_scan(scanner_id, filter)
+    }
+
+    fn add_monitor_and_update_scan(
+        &mut self,
+        scanner_id: u8,
+        filter: Option<ScanFilter>,
+    ) -> BtStatus {
+        let has_active_unfiltered_scanner = self
+            .scanners
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|(_uuid, scanner)| scanner.is_active && scanner.filter.is_none());
+
+        let gatt_async = self.gatt_async.clone();
+        let scanners = self.scanners.clone();
+        let is_msft_supported = self.is_msft_supported();
+
+        tokio::spawn(async move {
+            // The three operations below (monitor add, monitor enable, update scan) happen one
+            // after another, and cannot be interleaved with other GATT async operations.
+            // So acquire the GATT async lock in the beginning of this block and will be released
+            // at the end of this block.
+            // TODO(b/217274432): Consider not using async model but instead add actions when
+            // handling callbacks.
+            let mut gatt_async = gatt_async.lock().await;
+
+            // Add and enable the monitor filter only when the MSFT extension is supported.
+            if is_msft_supported {
+                if let Some(filter) = filter {
+                    let monitor_handle =
+                        match gatt_async.msft_adv_monitor_add((&filter).into()).await {
+                            Ok((handle, 0)) => handle,
+                            _ => {
+                                log::error!("Error adding advertisement monitor");
+                                return;
+                            }
+                        };
+
+                    if let Some(scanner) =
+                        Self::find_scanner_by_id(&mut scanners.lock().unwrap(), scanner_id)
+                    {
+                        // The monitor handle is needed in stop_scan().
+                        scanner.monitor_handle = Some(monitor_handle);
+                    }
+
+                    log::debug!("Added adv monitor handle = {}", monitor_handle);
+                }
+
+                if !gatt_async
+                    .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
+                    .await
+                    .map_or(false, |status| status == 0)
+                {
+                    // TODO(b/266752123):
+                    // Intel controller throws "Command Disallowed" error if we tried to enable/disable
+                    // filter but it's already at the same state. This is harmless but we can improve
+                    // the state machine to avoid calling enable/disable if it's already at that state
+                    log::error!("Error updating Advertisement Monitor enable");
+                }
+            }
+
+            gatt_async.update_scan().await;
+        });
+
+        BtStatus::Success
     }
 
     /// Remove an advertiser callback and unregisters all advertising sets associated with that callback.
@@ -1578,11 +1737,20 @@ struct ScannerInfo {
     filter: Option<ScanFilter>,
     // Adv monitor handle, if exists.
     monitor_handle: Option<u8>,
+    // Used by start_scan() to determine if it is called because of system resuming.
+    is_suspended: bool,
 }
 
 impl ScannerInfo {
     fn new(callback_id: u32) -> Self {
-        Self { callback_id, scanner_id: None, is_active: false, filter: None, monitor_handle: None }
+        Self {
+            callback_id,
+            scanner_id: None,
+            is_active: false,
+            filter: None,
+            monitor_handle: None,
+            is_suspended: false,
+        }
     }
 }
 
@@ -1667,6 +1835,11 @@ impl IBluetoothGatt for BluetoothGatt {
         _settings: ScanSettings,
         filter: Option<ScanFilter>,
     ) -> BtStatus {
+        let scan_suspend_mode = self.get_scan_suspend_mode();
+        if scan_suspend_mode != SuspendMode::Normal && scan_suspend_mode != SuspendMode::Resuming {
+            return BtStatus::Busy;
+        }
+
         // Multiplexing scanners happens at this layer. The implementations of start_scan
         // and stop_scan maintains the state of all registered scanners and based on the states
         // update the scanning and/or filter states of libbluetooth.
@@ -1682,68 +1855,16 @@ impl IBluetoothGatt for BluetoothGatt {
             }
         }
 
-        let has_active_unfiltered_scanner = self
-            .scanners
-            .lock()
-            .unwrap()
-            .iter()
-            .any(|(_uuid, scanner)| scanner.is_active && scanner.filter.is_none());
-
-        let gatt_async = self.gatt_async.clone();
-        let scanners = self.scanners.clone();
-        let is_msft_supported = self.is_msft_supported();
-
-        tokio::spawn(async move {
-            // The three operations below (monitor add, monitor enable, update scan) happen one
-            // after another, and cannot be interleaved with other GATT async operations.
-            // So acquire the GATT async lock in the beginning of this block and will be released
-            // at the end of this block.
-            // TODO(b/217274432): Consider not using async model but instead add actions when
-            // handling callbacks.
-            let mut gatt_async = gatt_async.lock().await;
-
-            // Add and enable the monitor filter only when the MSFT extension is supported.
-            if is_msft_supported {
-                if let Some(filter) = filter {
-                    let monitor_handle =
-                        match gatt_async.msft_adv_monitor_add((&filter).into()).await {
-                            Ok((handle, 0)) => handle,
-                            _ => {
-                                log::error!("Error adding advertisement monitor");
-                                return;
-                            }
-                        };
-
-                    if let Some(scanner) =
-                        Self::find_scanner_by_id(&mut scanners.lock().unwrap(), scanner_id)
-                    {
-                        // The monitor handle is needed in stop_scan().
-                        scanner.monitor_handle = Some(monitor_handle);
-                    }
-
-                    log::debug!("Added adv monitor handle = {}", monitor_handle);
-                }
-
-                if !gatt_async
-                    .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
-                    .await
-                    .map_or(false, |status| status == 0)
-                {
-                    // TODO(b/266752123):
-                    // Intel controller throws "Command Disallowed" error if we tried to enable/disable
-                    // filter but it's already at the same state. This is harmless but we can improve
-                    // the state machine to avoid calling enable/disable if it's already at that state
-                    log::error!("Error updating Advertisement Monitor enable");
-                }
-            }
-
-            gatt_async.update_scan().await;
-        });
-
-        BtStatus::Success
+        return self.add_monitor_and_update_scan(scanner_id, filter);
     }
 
     fn stop_scan(&mut self, scanner_id: u8) -> BtStatus {
+        let scan_suspend_mode = self.get_scan_suspend_mode();
+        if scan_suspend_mode != SuspendMode::Normal && scan_suspend_mode != SuspendMode::Suspending
+        {
+            return BtStatus::Busy;
+        }
+
         let monitor_handle = {
             let mut scanners_lock = self.scanners.lock().unwrap();
 
@@ -1795,8 +1916,7 @@ impl IBluetoothGatt for BluetoothGatt {
     }
 
     fn get_scan_suspend_mode(&self) -> SuspendMode {
-        // TODO(b/224603540): Implement.
-        return SuspendMode::Normal;
+        self.scan_suspend_mode.clone()
     }
 
     // Advertising
