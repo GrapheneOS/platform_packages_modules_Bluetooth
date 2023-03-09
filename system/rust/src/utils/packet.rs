@@ -38,6 +38,8 @@ pub fn HACK_child_to_opcode(child: &AttChild) -> AttOpcode {
         AttChild::AttFindByTypeValueResponse(_) => AttOpcode::FIND_BY_TYPE_VALUE_RESPONSE,
         AttChild::AttWriteRequest(_) => AttOpcode::WRITE_REQUEST,
         AttChild::AttWriteResponse(_) => AttOpcode::WRITE_RESPONSE,
+        AttChild::AttHandleValueIndication(_) => AttOpcode::HANDLE_VALUE_INDICATION,
+        AttChild::AttHandleValueConfirmation(_) => AttOpcode::HANDLE_VALUE_CONFIRMATION,
     }
 }
 

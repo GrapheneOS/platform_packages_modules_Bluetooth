@@ -39,6 +39,8 @@ class GattServerCallbacks {
                                    bool need_response, bool is_prepare,
                                    ::rust::Slice<const uint8_t> value) const;
 
+  void OnIndicationSentConfirmation(uint16_t conn_id, int status) const;
+
  private:
   const btgatt_server_callbacks_t& callbacks;
 };

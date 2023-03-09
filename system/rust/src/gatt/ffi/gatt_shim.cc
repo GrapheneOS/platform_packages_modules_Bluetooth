@@ -91,5 +91,11 @@ void GattServerCallbacks::OnServerWriteCharacteristic(
                  base::Owned(buf), value.size()));
 }
 
+void GattServerCallbacks::OnIndicationSentConfirmation(uint16_t conn_id,
+                                                       int status) const {
+  do_in_jni_thread(FROM_HERE,
+                   base::Bind(callbacks.indication_sent_cb, conn_id, status));
+}
+
 }  // namespace gatt
 }  // namespace bluetooth

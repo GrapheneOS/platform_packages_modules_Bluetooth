@@ -36,6 +36,7 @@ async fn pull_trans_id(events_rx: &mut UnboundedReceiver<MockCallbackEvents>) ->
     match events_rx.recv().await.unwrap() {
         MockCallbackEvents::OnServerReadCharacteristic(_, trans_id, _, _, _) => trans_id,
         MockCallbackEvents::OnServerWriteCharacteristic(_, trans_id, _, _, _, _, _) => trans_id,
+        _ => unimplemented!(),
     }
 }
 

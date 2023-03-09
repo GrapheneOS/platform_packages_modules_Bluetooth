@@ -10,7 +10,10 @@ use async_trait::async_trait;
 
 use crate::packets::{AttAttributeDataChild, AttAttributeDataView, AttErrorCode};
 
-use super::ids::{AttHandle, ConnectionId, TransactionId};
+use super::{
+    ids::{AttHandle, ConnectionId, TransactionId},
+    server::IndicationError,
+};
 
 /// These callbacks are expected to be made available to the GattModule from
 /// JNI.
@@ -38,6 +41,14 @@ pub trait GattCallbacks {
         need_response: bool,
         is_prepare: bool,
         value: AttAttributeDataView,
+    );
+
+    /// Invoked when a handle value indication transaction completes
+    /// (either due to an error, link loss, or the peer confirming it)
+    fn on_indication_sent_confirmation(
+        &self,
+        conn_id: ConnectionId,
+        result: Result<(), IndicationError>,
     );
 }
 

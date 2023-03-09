@@ -8,6 +8,7 @@ use bt_common::init_flags::{
 use cxx::UniquePtr;
 pub use inner::*;
 use log::{error, info, warn};
+use tokio::task::spawn_local;
 
 use crate::{
     do_in_rust_thread,
@@ -21,7 +22,11 @@ use super::{
     arbiter::{self, with_arbiter},
     channel::AttTransport,
     ids::{AdvertiserId, AttHandle, ConnectionId, ServerId, TransactionId, TransportIndex},
-    server::gatt_database::{AttPermissions, GattCharacteristicWithHandle, GattServiceWithHandle},
+    server::{
+        att_server_bearer::AttServerBearer,
+        gatt_database::{AttPermissions, GattCharacteristicWithHandle, GattServiceWithHandle},
+        IndicationError,
+    },
     GattCallbacks,
 };
 
@@ -71,6 +76,11 @@ mod inner {
             is_prepare: bool,
             value: &[u8],
         );
+
+        /// This callback is invoked when an indication has been sent and the
+        /// peer device has confirmed it, or if some error occurred.
+        #[cxx_name = "OnIndicationSentConfirmation"]
+        fn on_indication_sent_confirmation(&self, conn_id: u16, status: i32);
     }
 
     /// What action the arbiter should take in response to an incoming packet
@@ -132,7 +142,10 @@ mod inner {
         fn close_server(server_id: u8);
         fn add_service(server_id: u8, service_records: Vec<GattRecord>);
         fn remove_service(server_id: u8, service_handle: u16);
+
+        // att operations
         fn send_response(server_id: u8, conn_id: u16, trans_id: u32, status: u8, value: &[u8]);
+        fn send_indication(_server_id: u8, handle: u16, conn_id: u16, value: &[u8]);
 
         // connection
         fn is_connection_isolated(conn_id: u16) -> bool;
@@ -180,6 +193,20 @@ impl GattCallbacks for GattCallbacksImpl {
             is_prepare,
             &value.get_raw_payload().collect::<Vec<_>>(),
         );
+    }
+
+    fn on_indication_sent_confirmation(
+        &self,
+        conn_id: ConnectionId,
+        result: Result<(), IndicationError>,
+    ) {
+        self.0.as_ref().unwrap().on_indication_sent_confirmation(
+            conn_id.0,
+            match result {
+                Ok(()) => 0, // GATT_SUCCESS
+                _ => 133,    // GATT_ERROR
+            },
+        )
     }
 }
 
@@ -335,7 +362,7 @@ fn send_response(_server_id: u8, conn_id: u16, trans_id: u32, status: u8, value:
         Err(AttErrorCode::try_from(status).unwrap_or(AttErrorCode::UNLIKELY_ERROR))
     };
     do_in_rust_thread(move |modules| {
-        match modules.gatt_callbacks.send_response(
+        match modules.gatt_incoming_callbacks.send_response(
             ConnectionId(conn_id),
             TransactionId(trans_id),
             value,
@@ -343,6 +370,29 @@ fn send_response(_server_id: u8, conn_id: u16, trans_id: u32, status: u8, value:
             Ok(()) => { /* no-op */ }
             Err(err) => warn!("{err:?}"),
         }
+    })
+}
+
+fn send_indication(_server_id: u8, handle: u16, conn_id: u16, value: &[u8]) {
+    if !rust_event_loop_is_enabled() {
+        return;
+    }
+
+    let handle = AttHandle(handle);
+    let conn_id = ConnectionId(conn_id);
+    let value = AttAttributeDataChild::RawData(value.into());
+
+    do_in_rust_thread(move |modules| {
+        let Some(bearer) = modules.gatt_module.get_bearer(conn_id) else {
+            error!("connection {conn_id:?} does not exist");
+            return;
+        };
+        let pending_indication = bearer.send_indication(handle, value);
+        let gatt_outgoing_callbacks = modules.gatt_outgoing_callbacks.clone();
+        spawn_local(async move {
+            gatt_outgoing_callbacks
+                .on_indication_sent_confirmation(conn_id, pending_indication.await);
+        });
     })
 }
 

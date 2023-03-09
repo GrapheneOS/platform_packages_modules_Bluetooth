@@ -6,5 +6,5 @@ use tokio::{runtime::Builder, task::LocalSet};
 
 /// Run the supplied future on a single-threaded runtime
 pub fn block_on_locally<T>(f: impl Future<Output = T>) -> T {
-    LocalSet::new().block_on(&Builder::new_current_thread().build().unwrap(), f)
+    LocalSet::new().block_on(&Builder::new_current_thread().enable_time().build().unwrap(), f)
 }

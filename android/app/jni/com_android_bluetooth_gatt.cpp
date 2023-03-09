@@ -2147,8 +2147,13 @@ static void gattServerSendIndicationNative(JNIEnv* env, jobject object,
   jbyte* array = env->GetByteArrayElements(val, 0);
   int val_len = env->GetArrayLength(val);
 
-  sGattIf->server->send_indication(server_if, attr_handle, conn_id,
-                                   /*confirm*/ 1, (uint8_t*)array, val_len);
+  if (bluetooth::gatt::is_connection_isolated(conn_id)) {
+    auto data = ::rust::Slice<const uint8_t>((uint8_t*)array, val_len);
+    bluetooth::gatt::send_indication(server_if, attr_handle, conn_id, data);
+  } else {
+    sGattIf->server->send_indication(server_if, attr_handle, conn_id,
+                                     /*confirm*/ 1, (uint8_t*)array, val_len);
+  }
 
   env->ReleaseByteArrayElements(val, array, JNI_ABORT);
 }

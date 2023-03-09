@@ -3,6 +3,7 @@
 use crate::{
     gatt::{
         ids::{AttHandle, ConnectionId, TransactionId},
+        server::IndicationError,
         GattCallbacks,
     },
     packets::{AttAttributeDataView, OwnedAttAttributeDataView, Packet},
@@ -35,6 +36,8 @@ pub enum MockCallbackEvents {
         bool,
         OwnedAttAttributeDataView,
     ),
+    /// GattCallbacks#on_indication_sent_confirmation invoked
+    OnIndicationSentConfirmation(ConnectionId, Result<(), IndicationError>),
 }
 
 impl GattCallbacks for MockCallbacks {
@@ -74,5 +77,13 @@ impl GattCallbacks for MockCallbacks {
                 value.to_owned_packet(),
             ))
             .unwrap();
+    }
+
+    fn on_indication_sent_confirmation(
+        &self,
+        conn_id: ConnectionId,
+        result: Result<(), IndicationError>,
+    ) {
+        self.0.send(MockCallbackEvents::OnIndicationSentConfirmation(conn_id, result)).unwrap();
     }
 }
