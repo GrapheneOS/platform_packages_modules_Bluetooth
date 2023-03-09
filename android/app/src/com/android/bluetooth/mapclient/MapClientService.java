@@ -339,9 +339,11 @@ public class MapClientService extends ProfileService {
             Log.d(TAG, "stop()");
         }
 
-        mAdapterService.notifyActivityAttributionInfo(
-                getAttributionSource(),
-                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
+        if (mAdapterService != null) {
+            mAdapterService.notifyActivityAttributionInfo(
+                    getAttributionSource(),
+                    AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
+        }
         if (mMapReceiver != null) {
             unregisterReceiver(mMapReceiver);
             mMapReceiver = null;
