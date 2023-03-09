@@ -5781,12 +5781,13 @@ public final class BluetoothAdapter {
             BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION,
             BluetoothStatusCodes.FEATURE_NOT_SUPPORTED
     })
-    public @interface IsOffloadedTransportDiscoveryDataScanSupportedReturnValues {}
+    public @interface GetOffloadedTransportDiscoveryDataScanSupportedReturnValues {}
 
     /**
      * Check if offloaded transport discovery data scan is supported or not.
      *
-     * @return true if chipset supports on-chip tds filter scan
+     * @return  {@code BluetoothStatusCodes.FEATURE_SUPPORTED} if chipset supports on-chip tds
+     *          filter scan
      * @hide
      */
     @SystemApi
@@ -5795,8 +5796,8 @@ public final class BluetoothAdapter {
             android.Manifest.permission.BLUETOOTH_SCAN,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    @IsOffloadedTransportDiscoveryDataScanSupportedReturnValues
-    public int isOffloadedTransportDiscoveryDataScanSupported() {
+    @GetOffloadedTransportDiscoveryDataScanSupportedReturnValues
+    public int getOffloadedTransportDiscoveryDataScanSupported() {
         if (!getLeAccess()) {
             return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
         }
@@ -5804,7 +5805,7 @@ public final class BluetoothAdapter {
             mServiceLock.readLock().lock();
             if (mService != null) {
                 final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
-                mService.isOffloadedTransportDiscoveryDataScanSupported(mAttributionSource, recv);
+                mService.getOffloadedTransportDiscoveryDataScanSupported(mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout())
                         .getValue(BluetoothStatusCodes.ERROR_UNKNOWN);
             }
