@@ -46,6 +46,22 @@ using bluetooth::Uuid;
 /* Number of elements in service class id list. */
 #define BTA_HF_CLIENT_NUM_SVC_ELEMS 2
 
+#ifdef OS_ANDROID
+#include <hfp.sysprop.h>
+#endif
+
+#define DEFAULT_BTA_HFP_VERSION HFP_VERSION_1_7
+int get_default_hfp_version() {
+#ifdef OS_ANDROID
+  static const int version =
+      android::sysprop::bluetooth::Hfp::version().value_or(
+          DEFAULT_BTA_HFP_VERSION);
+  return version;
+#else
+  return DEFAULT_BTA_HFP_VERSION;
+#endif
+}
+
 /*******************************************************************************
  *
  * Function         bta_hf_client_sdp_cback
@@ -124,7 +140,7 @@ bool bta_hf_client_add_record(const char* p_service_name, uint8_t scn,
 
   /* add profile descriptor list */
   profile_uuid = UUID_SERVCLASS_HF_HANDSFREE;
-  version = BTA_HFP_VERSION;
+  version = get_default_hfp_version();
 
   result &= SDP_AddProfileDescriptorList(sdp_handle, profile_uuid, version);
 
