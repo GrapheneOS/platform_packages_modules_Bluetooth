@@ -9,4 +9,12 @@ prop {
     prop_name: "bluetooth.hfp.hf_services_mask.config"
 }
 
+prop {
+    api_name: "version"
+    type: Integer
+    scope: Internal
+    access: Readonly
+    prop_name: "bluetooth.hfp.version.config"
+}
+
 
