@@ -57,6 +57,7 @@ public class CompanionManager {
     private final int[] mGattConnHighDefault;
     private final int[] mGattConnBalanceDefault;
     private final int[] mGattConnLowDefault;
+    private final int[] mGattConnDckDefault;
 
     @VisibleForTesting static final int COMPANION_TYPE_NONE      = 0;
     @VisibleForTesting static final int COMPANION_TYPE_PRIMARY   = 1;
@@ -81,6 +82,9 @@ public class CompanionManager {
     static final String PROPERTY_LOW_MIN_INTERVAL = "bluetooth.gatt.low_priority_min.interval";
     static final String PROPERTY_LOW_MAX_INTERVAL = "bluetooth.gatt.low_priority_max.interval";
     static final String PROPERTY_LOW_LATENCY = "bluetooth.gatt.low_priority.latency";
+    static final String PROPERTY_DCK_MIN_INTERVAL = "bluetooth.gatt.dck_priority_min.interval";
+    static final String PROPERTY_DCK_MAX_INTERVAL = "bluetooth.gatt.dck_priority_max.interval";
+    static final String PROPERTY_DCK_LATENCY = "bluetooth.gatt.dck_priority.latency";
     static final String PROPERTY_SUFFIX_PRIMARY = ".primary";
     static final String PROPERTY_SUFFIX_SECONDARY = ".secondary";
 
@@ -109,6 +113,10 @@ public class CompanionManager {
                 getGattConfig(PROPERTY_LOW_MIN_INTERVAL, R.integer.gatt_low_power_min_interval),
                 getGattConfig(PROPERTY_LOW_MAX_INTERVAL, R.integer.gatt_low_power_max_interval),
                 getGattConfig(PROPERTY_LOW_LATENCY, R.integer.gatt_low_power_latency)};
+        mGattConnDckDefault = new int[] {
+                getGattConfig(PROPERTY_DCK_MIN_INTERVAL, R.integer.gatt_dck_priority_min_interval),
+                getGattConfig(PROPERTY_DCK_MAX_INTERVAL, R.integer.gatt_dck_priority_max_interval),
+                getGattConfig(PROPERTY_DCK_LATENCY, R.integer.gatt_dck_priority_latency)};
 
         mGattConnHighPrimary = new int[] {
                 getGattConfig(PROPERTY_HIGH_MIN_INTERVAL + PROPERTY_SUFFIX_PRIMARY,
@@ -397,6 +405,8 @@ public class CompanionManager {
                 return mGattConnHighDefault[type];
             case BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER:
                 return mGattConnLowDefault[type];
+            case BluetoothGatt.CONNECTION_PRIORITY_DCK:
+                return mGattConnDckDefault[type];
         }
         return mGattConnBalanceDefault[type];
     }
