@@ -13,13 +13,36 @@
 # limitations under the License.
 """SDP proxy module."""
 
-from mmi2grpc._helpers import assert_description
+from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 
 import sys
+import unittest
 import threading
 import os
 import socket
+from itertools import filterfalse
+
+# As per Bluetooth Assigned Numbers
+UUID_TO_SERVICE_NAME = {
+    # Service Classes and Profiles
+    0x1105: "OBEXObjectPush",
+    0x110A: "AudioSource",
+    0x110C: "A/V_RemoteControlTarget",
+    0x110E: "A/V_RemoteControl",
+    0x1112: "Headset - Audio Gateway",
+    0x1115: "PANU",
+    0x1116: "NAP",
+    0x111F: "HandsfreeAudioGateway",
+    0x112F: "Phonebook Access - PSE",
+    0x1132: "Message Access Server",
+    0x1203: "GenericAudio",
+    # GATT Service
+    0x1800: "Generic Access",
+    0x1855: "TMAS",
+    # Custom UUIDs
+    0xc26cf572_3369_4cf2_b5cc_d2cd130f5b2c: "Android Auto Compatibility",
+}
 
 
 class SDPProxy(ProfileProxy):
@@ -61,45 +84,41 @@ class SDPProxy(ProfileProxy):
 
         return "OK"
 
-    @assert_description
-    def TSC_SDP_mmi_verify_browsable_services(self, **kwargs):
+    @match_description
+    def TSC_SDP_mmi_verify_browsable_services(self, uuids, **kwargs):
+        r"""
+        Are all browsable service classes listed below\?
+
+        (?P<uuids>(?:0x[0-9A-F]+, )+0x[0-9A-F]+)
         """
-        Are all browsable service classes listed below?
 
-        0x1800, 0x110A, 0x110C,
-        0x110E, 0x1112, 0x1203, 0x111F, 0x1203, 0x1132, 0x1116, 0x1115, 0x112F,
-        0x1105
-        """
-        """
-        This is the decoded list of UUIDs:
-            Service Classes and Profiles 0x1105 OBEXObjectPush
-            Service Classes and Profiles 0x110A AudioSource
-            Service Classes and Profiles 0x110C A/V_RemoteControlTarget
-            Service Classes and Profiles 0x110E A/V_RemoteControl
-            Service Classes and Profiles 0x1112 Headset - Audio Gateway
-            Service Classes and Profiles 0x1115 PANU
-            Service Classes and Profiles 0x1116 NAP
-            Service Classes and Profiles 0x111F HandsfreeAudioGateway
-            Service Classes and Profiles 0x112F Phonebook Access - PSE
-            Service Classes and Profiles 0x1132 Message Access Server
-            Service Classes and Profiles 0x1203 GenericAudio
-            GATT Service 0x1800 Generic Access
-            GATT Service 0x1855 TMAS
+        uuid_list = uuids.split(", ")
+        service_names = list(map(lambda uuid: UUID_TO_SERVICE_NAME.get(int(uuid, 16), uuid), uuid_list))
+        test = unittest.TestCase()
 
-        The Android API only returns a subset of the profiles:
-            0x110A, 0x1112, 0x111F, 0x112F, 0x1132,
+        # yapf: disable
+        expected_services = [
+            "Generic Access",
+            "AudioSource",
+            "A/V_RemoteControlTarget",
+            "A/V_RemoteControl",
+            "Headset - Audio Gateway",
+            "GenericAudio",
+            "HandsfreeAudioGateway",
+            "GenericAudio",
+            "Message Access Server",
+            "NAP",
+            "PANU",
+            "Phonebook Access - PSE",
+            "OBEXObjectPush",
+            "Android Auto Compatibility",
+        ]
+        optional_services = [
+            "Android Auto Compatibility",
+        ]
+        # yapf: enable
 
-        Since the API doesn't return the full set, this test uses the
-        description to check that the number of profiles does not change
-        from the last time the test was successfully run.
+        optional_not_present = lambda service: service in optional_services and service not in service_names
 
-        Adding or Removing services from Android will cause this
-        test to be fail.  Updating the description above will cause
-        it to pass again.
-
-        The other option is to add a call to btif_enable_service() for each
-        profile which is browsable in SDP.  Then you can add a Host GRPC call
-        to BluetoothAdapter.getUuidsList and match the returned UUIDs to the
-        list given by PTS.
-        """
+        test.assertEqual(service_names, list(filterfalse(optional_not_present, expected_services)))
         return "OK"
