@@ -23,6 +23,22 @@ int get_default_hfp_version() {
 #endif
 }
 
+int get_default_hf_client_features() {
+#define DEFAULT_BTIF_HF_CLIENT_FEATURES                                        \
+  (BTA_HF_CLIENT_FEAT_ECNR | BTA_HF_CLIENT_FEAT_3WAY |                         \
+   BTA_HF_CLIENT_FEAT_CLI | BTA_HF_CLIENT_FEAT_VREC | BTA_HF_CLIENT_FEAT_VOL | \
+   BTA_HF_CLIENT_FEAT_ECS | BTA_HF_CLIENT_FEAT_ECC | BTA_HF_CLIENT_FEAT_CODEC)
+
+#ifdef OS_ANDROID
+  static const int features =
+      android::sysprop::bluetooth::Hfp::hf_client_features().value_or(
+          DEFAULT_BTIF_HF_CLIENT_FEATURES);
+  return features;
+#else
+  return DEFAULT_BTIF_HF_CLIENT_FEATURES;
+#endif
+}
+
 uint8_t btif_trace_level = BT_TRACE_LEVEL_WARNING;
 tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK* p_cback,
                                tBTA_HF_CLIENT_FEAT features,
@@ -43,9 +59,7 @@ const char* dump_hf_client_event(uint16_t event) {
 
 class BtifHfClientTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    gFeatures = BTIF_HF_CLIENT_FEATURES;
-  }
+  void SetUp() override { gFeatures = get_default_hf_client_features(); }
 
   void TearDown() override {}
 };

@@ -58,7 +58,7 @@ class BtaHfClientAddRecordTest : public ::testing::Test {
 };
 
 TEST_F(BtaHfClientAddRecordTest, test_hf_client_add_record) {
-  tBTA_HF_CLIENT_FEAT features = BTIF_HF_CLIENT_FEATURES;
+  tBTA_HF_CLIENT_FEAT features = get_default_hf_client_features();
   uint32_t sdp_handle = 0;
   uint8_t scn = 0;
 

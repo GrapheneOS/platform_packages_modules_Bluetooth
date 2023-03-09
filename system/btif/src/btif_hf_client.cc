@@ -68,13 +68,6 @@
 #define BTIF_HF_CLIENT_SERVICE_NAME ("Handsfree")
 #endif
 
-#ifndef BTIF_HF_CLIENT_FEATURES
-#define BTIF_HF_CLIENT_FEATURES                                                \
-  (BTA_HF_CLIENT_FEAT_ECNR | BTA_HF_CLIENT_FEAT_3WAY |                         \
-   BTA_HF_CLIENT_FEAT_CLI | BTA_HF_CLIENT_FEAT_VREC | BTA_HF_CLIENT_FEAT_VOL | \
-   BTA_HF_CLIENT_FEAT_ECS | BTA_HF_CLIENT_FEAT_ECC | BTA_HF_CLIENT_FEAT_CODEC)
-#endif
-
 /*******************************************************************************
  *  Local type definitions
  ******************************************************************************/
@@ -358,7 +351,7 @@ static bt_status_t connect_audio(const RawAddress* bd_addr) {
 
   CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
-  if ((BTIF_HF_CLIENT_FEATURES & BTA_HF_CLIENT_FEAT_CODEC) &&
+  if ((get_default_hf_client_features() & BTA_HF_CLIENT_FEAT_CODEC) &&
       (cb->peer_feat & BTA_HF_CLIENT_PEER_CODEC)) {
     BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_BCC, 0, 0, NULL);
   } else {
@@ -1085,7 +1078,7 @@ static void bta_hf_client_evt(tBTA_HF_CLIENT_EVT event,
 bt_status_t btif_hf_client_execute_service(bool b_enable) {
   BTIF_TRACE_EVENT("%s: enable: %d", __func__, b_enable);
 
-  tBTA_HF_CLIENT_FEAT features = BTIF_HF_CLIENT_FEATURES;
+  tBTA_HF_CLIENT_FEAT features = get_default_hf_client_features();
   uint16_t hfp_version = get_default_hfp_version();
   if (hfp_version >= HFP_VERSION_1_7) {
     features |= BTA_HF_CLIENT_FEAT_ESCO_S4;
