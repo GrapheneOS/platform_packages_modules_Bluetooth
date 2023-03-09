@@ -849,6 +849,28 @@ public class HeadsetClientStateMachineTest {
         mHeadsetClientStateMachine.setAudioRouteAllowed(true);
 
         Assert.assertTrue(mHeadsetClientStateMachine.getAudioRouteAllowed());
+
+        // Case 1: if remote is not supported
+        // Expect: Should not send +ANDROID to remote
+        mHeadsetClientStateMachine.mCurrentDevice = mTestDevice;
+        mHeadsetClientStateMachine.setAudioPolicyRemoteSupported(false);
+        verify(mNativeInterface, never()).sendAndroidAt(mTestDevice, "+ANDROID=1,1,0,0");
+
+        // Case 2: if remote is supported and mForceSetAudioPolicyProperty is false
+        // Expect: Should send +ANDROID:1,1,0,0 to remote
+        mHeadsetClientStateMachine.setAudioPolicyRemoteSupported(true);
+        mHeadsetClientStateMachine.setForceSetAudioPolicyProperty(false);
+        mHeadsetClientStateMachine.setAudioRouteAllowed(true);
+        verify(mNativeInterface).sendAndroidAt(mTestDevice, "+ANDROID=1,1,0,0");
+
+        mHeadsetClientStateMachine.setAudioRouteAllowed(false);
+        verify(mNativeInterface).sendAndroidAt(mTestDevice, "+ANDROID=1,2,0,0");
+
+        // Case 3: if remote is supported and mForceSetAudioPolicyProperty is true
+        // Expect: Should send +ANDROID:1,1,2,1 to remote
+        mHeadsetClientStateMachine.setForceSetAudioPolicyProperty(true);
+        mHeadsetClientStateMachine.setAudioRouteAllowed(true);
+        verify(mNativeInterface).sendAndroidAt(mTestDevice, "+ANDROID=1,1,2,1");
     }
 
     @Test
@@ -1429,6 +1451,7 @@ public class HeadsetClientStateMachineTest {
     public static class TestHeadsetClientStateMachine extends HeadsetClientStateMachine {
 
         Boolean allowConnect = null;
+        boolean mForceSetAudioPolicyProperty = false;
 
         TestHeadsetClientStateMachine(HeadsetClientService context, HeadsetService headsetService,
                 Looper looper, NativeInterface nativeInterface) {
@@ -1442,6 +1465,25 @@ public class HeadsetClientStateMachineTest {
         @Override
         public boolean okToConnect(BluetoothDevice device) {
             return allowConnect != null ? allowConnect : super.okToConnect(device);
+        }
+
+        @Override
+        public int getConnectingTimePolicyProperty() {
+            return 2;
+        }
+
+        @Override
+        public int getInBandRingtonePolicyProperty() {
+            return 1;
+        }
+
+        void setForceSetAudioPolicyProperty(boolean flag){
+            mForceSetAudioPolicyProperty = flag;
+        }
+
+        @Override
+        boolean getForceSetAudioPolicyProperty() {
+            return mForceSetAudioPolicyProperty;
         }
     }
 }
