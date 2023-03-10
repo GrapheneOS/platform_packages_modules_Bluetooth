@@ -77,16 +77,9 @@ namespace headset {
   { BTIF_HSAG_SERVICE_NAME, BTIF_HFAG_SERVICE_NAME }
 #endif
 
-#ifndef BTIF_HF_FEATURES
-#define BTIF_HF_FEATURES                                          \
-  (BTA_AG_FEAT_3WAY | BTA_AG_FEAT_ECNR | BTA_AG_FEAT_REJECT |     \
-   BTA_AG_FEAT_ECS | BTA_AG_FEAT_EXTERR | BTA_AG_FEAT_VREC |      \
-   BTA_AG_FEAT_CODEC | BTA_AG_FEAT_HF_IND | BTA_AG_FEAT_ESCO_S4 | \
-   BTA_AG_FEAT_UNAT)
-#endif
-
+static uint32_t get_hf_features();
 /* HF features supported at runtime */
-static uint32_t btif_hf_features = BTIF_HF_FEATURES;
+static uint32_t btif_hf_features = get_hf_features();
 
 #define BTIF_HF_INVALID_IDX (-1)
 
@@ -157,6 +150,25 @@ static tBTA_SERVICE_MASK get_BTIF_HF_SERVICES() {
   return hf_services;
 #else
   return BTA_HSP_SERVICE_MASK | BTA_HFP_SERVICE_MASK;
+#endif
+}
+
+/* HF features supported at runtime */
+static uint32_t get_hf_features() {
+#define DEFAULT_BTIF_HF_FEATURES                                  \
+  (BTA_AG_FEAT_3WAY | BTA_AG_FEAT_ECNR | BTA_AG_FEAT_REJECT |     \
+   BTA_AG_FEAT_ECS | BTA_AG_FEAT_EXTERR | BTA_AG_FEAT_VREC |      \
+   BTA_AG_FEAT_CODEC | BTA_AG_FEAT_HF_IND | BTA_AG_FEAT_ESCO_S4 | \
+   BTA_AG_FEAT_UNAT)
+#ifdef OS_ANDROID
+  static const uint32_t hf_features =
+      android::sysprop::bluetooth::Hfp::hf_features().value_or(
+          DEFAULT_BTIF_HF_FEATURES);
+  return hf_features;
+#elif TARGET_FLOSS
+  return BTA_AG_FEAT_ECS | BTA_AG_FEAT_CODEC;
+#else
+  return DEFAULT_BTIF_HF_FEATURES;
 #endif
 }
 
