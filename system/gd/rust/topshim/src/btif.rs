@@ -705,6 +705,7 @@ pub enum SupportedProfiles {
     Sdp,
     Socket,
     HfClient,
+    AvrcpCtrl,
 }
 
 impl From<SupportedProfiles> for Vec<u8> {
@@ -717,6 +718,7 @@ impl From<SupportedProfiles> for Vec<u8> {
             SupportedProfiles::Sdp => "sdp",
             SupportedProfiles::Socket => "socket",
             SupportedProfiles::HfClient => "handsfree_client",
+            SupportedProfiles::AvrcpCtrl => "avrcp_ctrl",
         }
         .bytes()
         .chain("\0".bytes())

@@ -126,6 +126,7 @@ rust_bindgen {
         "--allowlist-type=btsdp.*",
         "--allowlist-type=btsock_.*",
         "--allowlist-type=bthf_.*",
+        "--allowlist-type=btrc_.*",
         "--allowlist-type=sock_connect_signal_t",
         "--enable-cxx-namespaces",
         "--opaque-type=std::.*",
