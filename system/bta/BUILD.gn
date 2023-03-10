@@ -74,6 +74,7 @@ static_library("bta") {
     "hh/bta_hh_le.cc",
     "hh/bta_hh_main.cc",
     "hh/bta_hh_utils.cc",
+    "hfp/bta_hfp_api.cc",
     "hd/bta_hd_act.cc",
     "hd/bta_hd_api.cc",
     "hd/bta_hd_main.cc",

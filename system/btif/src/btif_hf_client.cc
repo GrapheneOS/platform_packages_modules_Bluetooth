@@ -1086,7 +1086,7 @@ bt_status_t btif_hf_client_execute_service(bool b_enable) {
   BTIF_TRACE_EVENT("%s: enable: %d", __func__, b_enable);
 
   tBTA_HF_CLIENT_FEAT features = BTIF_HF_CLIENT_FEATURES;
-  uint16_t hfp_version = BTA_HFP_VERSION;
+  uint16_t hfp_version = get_default_hfp_version();
   if (hfp_version >= HFP_VERSION_1_7) {
     features |= BTA_HF_CLIENT_FEAT_ESCO_S4;
   }

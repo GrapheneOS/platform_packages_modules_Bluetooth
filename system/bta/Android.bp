@@ -114,6 +114,7 @@ cc_library_static {
         "hh/bta_hh_le.cc",
         "hh/bta_hh_main.cc",
         "hh/bta_hh_utils.cc",
+        "hfp/bta_hfp_api.cc",
         "hd/bta_hd_act.cc",
         "hd/bta_hd_api.cc",
         "hd/bta_hd_main.cc",
@@ -130,6 +131,7 @@ cc_library_static {
         "avrcp-target-service",
         "lib-bt-packets",
         "libbt-bta-core",
+        "libcom.android.sysprop.bluetooth",
     ],
     generated_headers: [
         "LeAudioSetConfigSchemas_h",
@@ -215,6 +217,7 @@ cc_test {
         "libbt-audio-hal-interface",
         "libbluetooth-types",
         "libbt-protos-lite",
+        "libcom.android.sysprop.bluetooth",
         "libosi",
         "libbt-common",
     ],

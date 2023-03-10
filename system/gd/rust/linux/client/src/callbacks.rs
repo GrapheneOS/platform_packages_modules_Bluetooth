@@ -356,8 +356,10 @@ impl IScannerCallback for ScannerCallback {
         }
     }
 
-    fn on_suspend_mode_change(&self, _suspend_mode: SuspendMode) {
-        // No-op, not interesting for btclient.
+    fn on_suspend_mode_change(&self, suspend_mode: SuspendMode) {
+        if self.context.lock().unwrap().active_scanner_ids.len() > 0 {
+            print_info!("Scan suspend mode change: {:#?}", suspend_mode);
+        }
     }
 }
 

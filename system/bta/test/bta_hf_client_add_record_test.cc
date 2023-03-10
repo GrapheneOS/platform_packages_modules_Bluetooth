@@ -63,6 +63,6 @@ TEST_F(BtaHfClientAddRecordTest, test_hf_client_add_record) {
   uint8_t scn = 0;
 
   bta_hf_client_add_record("Handsfree", scn, features, sdp_handle);
-  ASSERT_EQ(gVersion, BTA_HFP_VERSION);
+  ASSERT_EQ(gVersion, get_default_hfp_version());
 }
 

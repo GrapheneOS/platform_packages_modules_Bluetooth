@@ -166,7 +166,7 @@ bool bta_ag_add_record(uint16_t service_uuid, const char* p_service_name,
     if (bluetooth::common::init_flags::hfp_dynamic_version_is_enabled()) {
       version = HFP_VERSION_1_6;
     } else {
-      version = BTA_HFP_VERSION;
+      version = get_default_hfp_version();
     }
   } else {
     profile_uuid = UUID_SERVCLASS_HEADSET;

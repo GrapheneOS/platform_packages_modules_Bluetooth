@@ -31,6 +31,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/inq_hci_link_interface.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
@@ -172,10 +173,21 @@ void bluetooth::shim::ACL_RemoteNameRequest(const RawAddress& addr,
               : hci::ClockOffsetValid::INVALID),
       GetGdShimHandler()->BindOnce([](hci::ErrorCode status) {
         if (status != hci::ErrorCode::SUCCESS) {
-          btm_process_remote_name(nullptr, nullptr, 0,
-                                  static_cast<tHCI_STATUS>(status));
-          btm_sec_rmt_name_request_complete(nullptr, nullptr,
+          do_in_main_thread(
+              FROM_HERE,
+              base::Bind(
+                  [](hci::ErrorCode status) {
+                    // NOTE: we intentionally don't supply the address, to match
+                    // the legacy behavior.
+                    // Callsites that want the address should use
+                    // StartRemoteNameRequest() directly, rather than going
+                    // through this shim.
+                    btm_process_remote_name(nullptr, nullptr, 0,
                                             static_cast<tHCI_STATUS>(status));
+                    btm_sec_rmt_name_request_complete(
+                        nullptr, nullptr, static_cast<tHCI_STATUS>(status));
+                  },
+                  status));
         }
       }),
       GetGdShimHandler()->BindOnce(
@@ -183,24 +195,32 @@ void bluetooth::shim::ACL_RemoteNameRequest(const RawAddress& addr,
             static_assert(sizeof(features) == 8);
             auto addr_array = addr.ToArray();
             auto p = (uint8_t*)osi_malloc(addr_array.size() + sizeof(features));
-            std::copy(addr_array.begin(), addr_array.end(), p);
+            std::copy(addr_array.rbegin(), addr_array.rend(), p);
             for (int i = 0; i != sizeof(features); ++i) {
               p[addr_array.size() + i] = features & ((1 << 8) - 1);
               features >>= 8;
             }
-            btm_sec_rmt_host_support_feat_evt(p);
+            do_in_main_thread(FROM_HERE,
+                              base::Bind(btm_sec_rmt_host_support_feat_evt, p));
           },
           addr),
       GetGdShimHandler()->BindOnce(
           [](RawAddress addr, hci::ErrorCode status,
              std::array<uint8_t, 248> name) {
-            auto p = (uint8_t*)osi_malloc(name.size());
-            std::copy(name.begin(), name.end(), p);
+            do_in_main_thread(
+                FROM_HERE,
+                base::Bind(
+                    [](RawAddress addr, hci::ErrorCode status,
+                       std::array<uint8_t, 248> name) {
+                      auto p = (uint8_t*)osi_malloc(name.size());
+                      std::copy(name.begin(), name.end(), p);
 
-            btm_process_remote_name(&addr, p, name.size(),
-                                    static_cast<tHCI_STATUS>(status));
-            btm_sec_rmt_name_request_complete(&addr, p,
+                      btm_process_remote_name(&addr, p, name.size(),
                                               static_cast<tHCI_STATUS>(status));
+                      btm_sec_rmt_name_request_complete(
+                          &addr, p, static_cast<tHCI_STATUS>(status));
+                    },
+                    addr, status, name));
           },
           addr));
 }
