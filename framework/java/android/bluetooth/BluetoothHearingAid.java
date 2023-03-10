@@ -908,7 +908,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
         }
         final IBluetoothHearingAid service = getService();
         AdvertisementServiceData result = null;
-        if (service == null || !isEnabled() || isValidDevice(device)) {
+        if (service == null || !isEnabled() || !isValidDevice(device)) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) {
                 log(Log.getStackTraceString(new Throwable()));
