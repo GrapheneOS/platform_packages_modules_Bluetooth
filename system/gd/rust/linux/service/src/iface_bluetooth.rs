@@ -15,7 +15,7 @@ use bt_topshim::profiles::sdp::{
 
 use btstack::bluetooth::{
     Bluetooth, BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
-    IBluetoothQA,
+    IBluetoothQALegacy,
 };
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, BluetoothSocketManager, CallbackId,
@@ -898,15 +898,15 @@ impl ISuspendCallback for SuspendCallbackDBus {
 impl_dbus_arg_enum!(BthhReportType);
 
 #[allow(dead_code)]
-struct IBluetoothQADBus {}
+struct IBluetoothQALegacyDBus {}
 
 #[generate_dbus_exporter(
-    export_bluetooth_qa_dbus_intf,
-    "org.chromium.bluetooth.BluetoothQA",
+    export_bluetooth_qa_legacy_dbus_intf,
+    "org.chromium.bluetooth.BluetoothQALegacy",
     BluetoothMixin,
     qa
 )]
-impl IBluetoothQA for IBluetoothQADBus {
+impl IBluetoothQALegacy for IBluetoothQALegacyDBus {
     #[dbus_method("GetConnectable")]
     fn get_connectable(&self) -> bool {
         dbus_generated!()
