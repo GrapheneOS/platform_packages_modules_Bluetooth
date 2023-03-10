@@ -161,7 +161,7 @@ bool bta_ag_add_record(uint16_t service_uuid, const char* p_service_name,
   /* add profile descriptor list */
   if (service_uuid == UUID_SERVCLASS_AG_HANDSFREE) {
     profile_uuid = UUID_SERVCLASS_HF_HANDSFREE;
-    version = BTA_HFP_VERSION;
+    version = get_default_hfp_version();
   } else {
     profile_uuid = UUID_SERVCLASS_HEADSET;
     version = HSP_VERSION_1_2;
