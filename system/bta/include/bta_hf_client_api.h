@@ -391,4 +391,15 @@ void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at,
  ******************************************************************************/
 void BTA_HfClientDumpStatistics(int fd);
 
+/*******************************************************************************
+ *
+ * function         get_default_hf_client_features
+ *
+ * description      return the hf_client features.
+ *                  value can be override via system property
+ *
+ * returns          int
+ *
+ ******************************************************************************/
+int get_default_hf_client_features();
 #endif /* BTA_HF_CLIENT_API_H */
