@@ -21,6 +21,7 @@
 #include <base/strings/string_util.h>
 #include <hardware/bt_vc.h>
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -48,6 +49,7 @@ using namespace bluetooth::vc::internal;
 namespace {
 class VolumeControlImpl;
 VolumeControlImpl* instance;
+std::mutex instance_mutex;
 
 /**
  * Overview:
@@ -1200,6 +1202,7 @@ class VolumeControlImpl : public VolumeControl {
 
 void VolumeControl::Initialize(
     bluetooth::vc::VolumeControlCallbacks* callbacks) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (instance) {
     LOG(ERROR) << "Already initialized!";
     return;
@@ -1226,6 +1229,7 @@ void VolumeControl::AddFromStorage(const RawAddress& address,
 };
 
 void VolumeControl::CleanUp() {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (!instance) {
     LOG(ERROR) << "Not initialized!";
     return;
@@ -1240,6 +1244,7 @@ void VolumeControl::CleanUp() {
 };
 
 void VolumeControl::DebugDump(int fd) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   dprintf(fd, "Volume Control Manager:\n");
   if (instance) instance->Dump(fd);
   dprintf(fd, "\n");
