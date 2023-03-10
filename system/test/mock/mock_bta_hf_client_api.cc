@@ -54,3 +54,7 @@ void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at,
                         uint32_t val1, uint32_t val2, const char* str) {
   inc_func_call_count(__func__);
 }
+int get_default_hf_client_features() {
+  inc_func_call_count(__func__);
+  return 0;
+}
