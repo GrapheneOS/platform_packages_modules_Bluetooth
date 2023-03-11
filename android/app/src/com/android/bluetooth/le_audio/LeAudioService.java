@@ -768,24 +768,26 @@ public class LeAudioService extends ProfileService {
                 return;
             }
         }
-        Log.i(TAG, "createBroadcast: isEncrypted=" + (isEncrypted ? "true" : "false"));
 
-        List<BluetoothLeBroadcastSubgroupSettings> settings =
+        List<BluetoothLeBroadcastSubgroupSettings> settingsList =
                 broadcastSettings.getSubgroupSettings();
-        if (settings == null || settings.size() < 1) {
+        if (settingsList == null || settingsList.size() < 1) {
             Log.d(TAG, "subgroup settings is not valid value");
             return;
         }
-        // only one subgroup is supported now
-        // TODO(b/267783231): Extend LE broadcast support for multi subgroup
-        BluetoothLeAudioContentMetadata contentMetadata = settings.get(0).getContentMetadata();
-        if (contentMetadata == null) {
-            Log.d(TAG, "contentMetadata cannot be null");
-            return;
-        }
 
-        mLeAudioBroadcasterNativeInterface.createBroadcast(
-                contentMetadata.getRawMetadata(), broadcastCode);
+        BluetoothLeAudioContentMetadata publicMetadata =
+                broadcastSettings.getPublicBroadcastMetadata();
+
+        Log.i(TAG, "createBroadcast: isEncrypted=" + (isEncrypted ? "true" : "false"));
+        mLeAudioBroadcasterNativeInterface.createBroadcast(broadcastSettings.isPublicBroadcast(),
+                broadcastSettings.getBroadcastName(), broadcastCode,
+                publicMetadata == null ? null : publicMetadata.getRawMetadata(),
+                settingsList.stream()
+                        .mapToInt(s -> s.getPreferredQuality()).toArray(),
+                settingsList.stream()
+                        .map(s -> s.getContentMetadata().getRawMetadata())
+                        .toArray(byte[][]::new));
     }
 
     /**
@@ -818,23 +820,23 @@ public class LeAudioService extends ProfileService {
             return;
         }
 
-        List<BluetoothLeBroadcastSubgroupSettings> settings =
+        List<BluetoothLeBroadcastSubgroupSettings> settingsList =
                 broadcastSettings.getSubgroupSettings();
-        if (settings == null || settings.size() < 1) {
+        if (settingsList == null || settingsList.size() < 1) {
             Log.d(TAG, "subgroup settings is not valid value");
             return;
         }
-        // only one subgroup is supported now
-        // TODO(b/267783231): Extend LE broadcast support for multi subgroup
-        BluetoothLeAudioContentMetadata contentMetadata = settings.get(0).getContentMetadata();
-        if (contentMetadata == null) {
-            Log.d(TAG, "contentMetadata cannot be null");
-            return;
-        }
+
+        BluetoothLeAudioContentMetadata publicMetadata =
+                broadcastSettings.getPublicBroadcastMetadata();
 
         if (DBG) Log.d(TAG, "updateBroadcast");
-        mLeAudioBroadcasterNativeInterface.updateMetadata(
-                broadcastId, contentMetadata.getRawMetadata());
+        mLeAudioBroadcasterNativeInterface.updateMetadata(broadcastId,
+                broadcastSettings.getBroadcastName(),
+                publicMetadata == null ? null : publicMetadata.getRawMetadata(),
+                settingsList.stream()
+                        .map(s -> s.getContentMetadata().getRawMetadata())
+                        .toArray(byte[][]::new));
     }
 
     /**

@@ -48,6 +48,11 @@ void btsnd_hcic_ble_rand(base::Callback<void(BT_OCTET8)> cb) {}
 namespace le_audio {
 namespace broadcaster {
 namespace {
+// bit 0: encrypted, bit 1: standard quality present
+static const uint8_t test_public_broadcast_features = 0x3;
+static const std::string test_broadcast_name = "Test";
+static const std::vector<uint8_t> default_public_metadata = {
+    5, le_audio::types::kLeAudioMetadataTypeProgramInfo, 0x1, 0x2, 0x3, 0x4};
 
 class MockBroadcastStatMachineCallbacks
     : public IBroadcastStateMachineCallbacks {
@@ -247,6 +252,8 @@ class StateMachineTest : public Test {
         getStreamConfigForContext(types::AudioContexts(context));
     auto broadcast_id = broadcast_id_lsb++;
     pending_broadcasts_.push_back(BroadcastStateMachine::CreateInstance({
+        .is_public = true,
+        .broadcast_name = test_broadcast_name,
         .broadcast_id = broadcast_id,
         // .streaming_phy = ,
         .codec_wrapper = codec_qos_pair.first,
@@ -832,6 +839,22 @@ TEST_F(StateMachineTest, GetBroadcastId) {
             BroadcastStateMachine::State::CONFIGURED);
 }
 
+TEST_F(StateMachineTest, IsPublicBroadcast) {
+  EXPECT_CALL(*(sm_callbacks_.get()), OnStateMachineCreateStatus(_, true))
+      .Times(1);
+
+  auto broadcast_id = InstantiateStateMachine();
+  ASSERT_EQ(broadcasts_[broadcast_id]->IsPublicBroadcast(), true);
+}
+
+TEST_F(StateMachineTest, GetBroadcastName) {
+  EXPECT_CALL(*(sm_callbacks_.get()), OnStateMachineCreateStatus(_, true))
+      .Times(1);
+
+  auto broadcast_id = InstantiateStateMachine();
+  ASSERT_EQ(broadcasts_[broadcast_id]->GetBroadcastName(), test_broadcast_name);
+}
+
 TEST_F(StateMachineTest, GetBroadcastAnnouncement) {
   EXPECT_CALL(*(sm_callbacks_.get()), OnStateMachineCreateStatus(_, true))
       .Times(1);
@@ -852,6 +875,26 @@ TEST_F(StateMachineTest, GetBroadcastAnnouncement) {
 
   ASSERT_EQ(announcement,
             broadcasts_[broadcast_id]->GetBroadcastAnnouncement());
+}
+
+TEST_F(StateMachineTest, GetPublicBroadcastAnnouncement) {
+  EXPECT_CALL(*(sm_callbacks_.get()), OnStateMachineCreateStatus(_, true))
+      .Times(1);
+
+  auto broadcast_id = InstantiateStateMachine();
+  bool is_public_metadata_valid;
+  types::LeAudioLtvMap public_ltv = types::LeAudioLtvMap::Parse(
+      default_public_metadata.data(), default_public_metadata.size(),
+      is_public_metadata_valid);
+  bluetooth::le_audio::PublicBroadcastAnnouncementData pb_announcement = {
+      .features = test_public_broadcast_features,
+      .metadata = public_ltv.Values()};
+
+  broadcasts_[broadcast_id]->UpdatePublicBroadcastAnnouncement(
+      broadcast_id, test_broadcast_name, pb_announcement);
+
+  ASSERT_EQ(pb_announcement,
+            broadcasts_[broadcast_id]->GetPublicBroadcastAnnouncement());
 }
 
 TEST_F(StateMachineTest, AnnouncementTest) {
@@ -895,6 +938,15 @@ TEST_F(StateMachineTest, AnnouncementTest) {
   ASSERT_EQ(a_data[2], (kBroadcastAudioAnnouncementServiceUuid & 0x00FF));
   ASSERT_EQ(a_data[3],
             ((kBroadcastAudioAnnouncementServiceUuid >> 8) & 0x00FF));
+  ASSERT_EQ(a_data[4], (broadcast_id & 0x0000FF));
+  ASSERT_EQ(a_data[5], ((broadcast_id >> 8) & 0x0000FF));
+  ASSERT_EQ(a_data[6], ((broadcast_id >> 16) & 0x0000FF));
+
+  ASSERT_NE(a_data[7], 0);     // size
+  ASSERT_EQ(a_data[8], 0x16);  // BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE
+  ASSERT_EQ(a_data[9], (kPublicBroadcastAnnouncementServiceUuid & 0x00FF));
+  ASSERT_EQ(a_data[10],
+            ((kPublicBroadcastAnnouncementServiceUuid >> 8) & 0x00FF));
 
   // Check periodic data for Basic Announcement UUID
   ASSERT_NE(p_data[0], 0);     // size
