@@ -630,6 +630,7 @@ cc_test {
         ":TestCommonMockFunctions",
         ":TestMockStackBtm",
         ":TestMockStackSdp",
+        ":TestMockStackArbiter",
         "gatt/gatt_utils.cc",
         "test/common/mock_eatt.cc",
         "test/common/mock_gatt_layer.cc",

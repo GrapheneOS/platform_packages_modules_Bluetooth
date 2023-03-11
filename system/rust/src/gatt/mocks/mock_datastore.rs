@@ -3,6 +3,7 @@
 use crate::{
     gatt::{
         callbacks::GattDatastore,
+        ffi::AttributeBackingType,
         ids::{AttHandle, ConnectionId},
     },
     packets::{
@@ -31,22 +32,20 @@ impl MockDatastore {
 /// Events representing calls to GattDatastore
 #[derive(Debug)]
 pub enum MockDatastoreEvents {
-    /// A new connection was created
-    AddConnection(ConnectionId),
-    /// A connection was removed
-    RemoveConnection(ConnectionId),
     /// A characteristic was read on a given handle. The oneshot is used to
     /// return the value read.
-    ReadCharacteristic(
+    Read(
         ConnectionId,
         AttHandle,
+        AttributeBackingType,
         oneshot::Sender<Result<AttAttributeDataChild, AttErrorCode>>,
     ),
     /// A characteristic was written to on a given handle. The oneshot is used
     /// to return whether the write succeeded.
-    WriteCharacteristic(
+    Write(
         ConnectionId,
         AttHandle,
+        AttributeBackingType,
         OwnedAttAttributeDataView,
         oneshot::Sender<Result<(), AttErrorCode>>,
     ),
@@ -54,37 +53,32 @@ pub enum MockDatastoreEvents {
 
 #[async_trait(?Send)]
 impl GattDatastore for MockDatastore {
-    fn add_connection(&self, conn_id: ConnectionId) {
-        self.0.send(MockDatastoreEvents::AddConnection(conn_id)).unwrap();
-    }
-
-    fn remove_connection(&self, conn_id: ConnectionId) {
-        self.0.send(MockDatastoreEvents::RemoveConnection(conn_id)).unwrap();
-    }
-
-    async fn read_characteristic(
+    async fn read(
         &self,
         conn_id: ConnectionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
         let (tx, rx) = oneshot::channel();
-        self.0.send(MockDatastoreEvents::ReadCharacteristic(conn_id, handle, tx)).unwrap();
+        self.0.send(MockDatastoreEvents::Read(conn_id, handle, attr_type, tx)).unwrap();
         let resp = rx.await.unwrap();
         info!("sending {resp:?} down from upper tester");
         resp
     }
 
-    async fn write_characteristic(
+    async fn write(
         &self,
         conn_id: ConnectionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode> {
         let (tx, rx) = oneshot::channel();
         self.0
-            .send(MockDatastoreEvents::WriteCharacteristic(
+            .send(MockDatastoreEvents::Write(
                 conn_id,
                 handle,
+                attr_type,
                 data.to_owned_packet(),
                 tx,
             ))

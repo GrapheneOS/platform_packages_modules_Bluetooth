@@ -25,19 +25,30 @@
 namespace bluetooth {
 namespace gatt {
 
+/// The GATT entity backing the value of a user-controlled
+/// attribute
+enum class AttributeBackingType {
+  /// A GATT characteristic
+  CHARACTERISTIC,
+  /// A GATT descriptor
+  DESCRIPTOR,
+};
+
 class GattServerCallbacks {
  public:
   GattServerCallbacks(const btgatt_server_callbacks_t& callbacks)
       : callbacks(callbacks){};
 
-  void OnServerReadCharacteristic(uint16_t conn_id, uint32_t trans_id,
-                                  uint16_t attr_handle, uint32_t offset,
-                                  bool is_long) const;
+  void OnServerRead(uint16_t conn_id, uint32_t trans_id, uint16_t attr_handle,
+                    AttributeBackingType attr_type, uint32_t offset,
+                    bool is_long) const;
 
-  void OnServerWriteCharacteristic(uint16_t conn_id, uint32_t trans_id,
-                                   uint16_t attr_handle, uint32_t offset,
-                                   bool need_response, bool is_prepare,
-                                   ::rust::Slice<const uint8_t> value) const;
+  void OnServerWrite(uint16_t conn_id, uint32_t trans_id, uint16_t attr_handle,
+                     AttributeBackingType attr_type, uint32_t offset,
+                     bool need_response, bool is_prepare,
+                     ::rust::Slice<const uint8_t> value) const;
+
+  void OnIndicationSentConfirmation(uint16_t conn_id, int status) const;
 
  private:
   const btgatt_server_callbacks_t& callbacks;
