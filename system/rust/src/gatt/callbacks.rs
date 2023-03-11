@@ -10,34 +10,48 @@ use async_trait::async_trait;
 
 use crate::packets::{AttAttributeDataChild, AttAttributeDataView, AttErrorCode};
 
-use super::ids::{AttHandle, ConnectionId, TransactionId};
+use super::{
+    ffi::AttributeBackingType,
+    ids::{AttHandle, ConnectionId, TransactionId},
+    server::IndicationError,
+};
 
 /// These callbacks are expected to be made available to the GattModule from
 /// JNI.
 pub trait GattCallbacks {
-    /// Invoked when a client tries to read a characteristic. Expects a response
-    /// using bluetooth::gatt::send_response();
-    fn on_server_read_characteristic(
+    /// Invoked when a client tries to read a characteristic/descriptor. Expects
+    /// a response using bluetooth::gatt::send_response();
+    fn on_server_read(
         &self,
         conn_id: ConnectionId,
         trans_id: TransactionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
         offset: u32,
         is_long: bool,
     );
 
-    /// Invoked when a client tries to write a characteristic. Expects a
-    /// response using bluetooth::gatt::send_response();
+    /// Invoked when a client tries to write a characteristic/descriptor.
+    /// Expects a response using bluetooth::gatt::send_response();
     #[allow(clippy::too_many_arguments)] // needed to match the C++ interface
-    fn on_server_write_characteristic(
+    fn on_server_write(
         &self,
         conn_id: ConnectionId,
         trans_id: TransactionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
         offset: u32,
         need_response: bool,
         is_prepare: bool,
         value: AttAttributeDataView,
+    );
+
+    /// Invoked when a handle value indication transaction completes
+    /// (either due to an error, link loss, or the peer confirming it)
+    fn on_indication_sent_confirmation(
+        &self,
+        conn_id: ConnectionId,
+        result: Result<(), IndicationError>,
     );
 }
 
@@ -45,25 +59,20 @@ pub trait GattCallbacks {
 /// into the GattModule
 #[async_trait(?Send)]
 pub trait GattDatastore {
-    /// Invoked to indicate when a new connection should be tracked
-    fn add_connection(&self, conn_id: ConnectionId);
-
-    /// Invoked to indicate that a connection has closed and all
-    /// pending transactions can be dropped.
-    fn remove_connection(&self, conn_id: ConnectionId);
-
     /// Read a characteristic from the specified connection at the given handle.
-    async fn read_characteristic(
+    async fn read(
         &self,
         conn_id: ConnectionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
     ) -> Result<AttAttributeDataChild, AttErrorCode>;
 
     /// Write data to a given characteristic on the specified connection.
-    async fn write_characteristic(
+    async fn write(
         &self,
         conn_id: ConnectionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode>;
 }
