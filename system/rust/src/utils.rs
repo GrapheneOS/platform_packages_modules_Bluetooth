@@ -2,4 +2,6 @@
 
 pub mod owned_handle;
 pub mod packet;
+
+#[cfg(test)]
 pub mod task;

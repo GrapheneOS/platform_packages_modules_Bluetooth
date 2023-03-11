@@ -199,6 +199,13 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockStackArbiter",
+    srcs: [
+      "mock/mock_stack_arbiter_*.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockStackL2cap",
     srcs: [
       "mock/mock_stack_l2cap_*.cc",
