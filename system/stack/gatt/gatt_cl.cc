@@ -33,6 +33,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/arbiter/acl_arbiter.h"
 #include "stack/eatt/eatt.h"
 #include "stack/include/bt_types.h"
 #include "types/bluetooth/uuid.h"
@@ -1102,6 +1103,9 @@ void gatt_process_mtu_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb, uint16_t len,
     if (mtu < tcb.payload_size && mtu >= GATT_DEF_BLE_MTU_SIZE)
       tcb.payload_size = mtu;
   }
+
+  bluetooth::shim::arbiter::GetArbiter().OnIncomingMtuResp(tcb.tcb_idx,
+                                                           tcb.payload_size);
 
   BTM_SetBleDataLength(tcb.peer_bda, tcb.payload_size + L2CAP_PKT_OVERHEAD);
 
