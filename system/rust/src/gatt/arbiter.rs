@@ -3,7 +3,7 @@
 
 use std::{collections::HashMap, sync::Mutex};
 
-use log::{error, info};
+use log::{error, info, trace};
 
 use crate::{
     do_in_rust_thread,
@@ -13,6 +13,8 @@ use crate::{
 use super::{
     ffi::{InterceptAction, StoreCallbacksFromRust},
     ids::{AdvertiserId, ConnectionId, ServerId, TransportIndex},
+    mtu::MtuEvent,
+    opcode_types::{classify_opcode, OperationType},
 };
 
 static ARBITER: Mutex<Option<Arbiter>> = Mutex::new(None);
@@ -30,7 +32,14 @@ pub struct Arbiter {
 pub fn initialize_arbiter() {
     *ARBITER.lock().unwrap() = Some(Arbiter::new());
 
-    StoreCallbacksFromRust(on_le_connect, on_le_disconnect, intercept_packet);
+    StoreCallbacksFromRust(
+        on_le_connect,
+        on_le_disconnect,
+        intercept_packet,
+        |tcb_idx| on_mtu_event(TransportIndex(tcb_idx), MtuEvent::OutgoingRequest),
+        |tcb_idx, mtu| on_mtu_event(TransportIndex(tcb_idx), MtuEvent::IncomingResponse(mtu)),
+        |tcb_idx, mtu| on_mtu_event(TransportIndex(tcb_idx), MtuEvent::IncomingRequest(mtu)),
+    );
 }
 
 /// Acquire the mutex holding the Arbiter and provide a mutable reference to the
@@ -81,7 +90,7 @@ impl Arbiter {
     }
 
     /// Test to see if a buffer contains a valid ATT packet with an opcode we
-    /// are interested in intercepting
+    /// are interested in intercepting (those intended for servers)
     pub fn try_parse_att_server_packet(
         &self,
         tcb_idx: TransportIndex,
@@ -91,15 +100,16 @@ impl Arbiter {
 
         let att = OwnedAttView::try_parse(packet).ok()?;
 
-        match att.view().get_opcode() {
-            AttOpcode::FIND_INFORMATION_REQUEST
-            | AttOpcode::FIND_BY_TYPE_VALUE_REQUEST
-            | AttOpcode::READ_BY_TYPE_REQUEST
-            | AttOpcode::READ_REQUEST
-            | AttOpcode::READ_BLOB_REQUEST
-            | AttOpcode::READ_MULTIPLE_REQUEST
-            | AttOpcode::READ_BY_GROUP_TYPE_REQUEST
-            | AttOpcode::WRITE_REQUEST => Some((att, conn_id)),
+        if att.view().get_opcode() == AttOpcode::EXCHANGE_MTU_REQUEST {
+            // special case: this server opcode is handled by legacy stack, and we snoop
+            // on its handling, since the MTU is shared between the client + server
+            return None;
+        }
+
+        match classify_opcode(att.view().get_opcode()) {
+            OperationType::Command | OperationType::Request | OperationType::Confirmation => {
+                Some((att, conn_id))
+            }
             _ => None,
         }
     }
@@ -130,6 +140,11 @@ impl Arbiter {
         info!("processing disconnection on transport {tcb_idx:?}");
         self.transport_to_owned_connection.remove(&tcb_idx)
     }
+
+    /// Look up the conn_id for a given tcb_idx, if present
+    pub fn get_conn_id(&self, tcb_idx: TransportIndex) -> Option<ConnectionId> {
+        self.transport_to_owned_connection.get(&tcb_idx).copied()
+    }
 }
 
 fn on_le_connect(tcb_idx: u8, advertiser: u8) {
@@ -158,14 +173,30 @@ fn intercept_packet(tcb_idx: u8, packet: Vec<u8>) -> InterceptAction {
         arbiter.try_parse_att_server_packet(TransportIndex(tcb_idx), packet.into_boxed_slice())
     }) {
         do_in_rust_thread(move |modules| {
-            info!("pushing packet to GATT");
-            if let Err(err) = modules.gatt_module.handle_packet(conn_id, att.view()) {
-                error!("{:?}", err.context("failed to push packet to GATT"))
+            trace!("pushing packet to GATT");
+            if let Some(bearer) = modules.gatt_module.get_bearer(conn_id) {
+                bearer.handle_packet(att.view())
+            } else {
+                error!("{conn_id:?} closed, bearer does not exist");
             }
         });
         InterceptAction::Drop
     } else {
         InterceptAction::Forward
+    }
+}
+
+fn on_mtu_event(tcb_idx: TransportIndex, event: MtuEvent) {
+    if let Some(conn_id) = with_arbiter(|arbiter| arbiter.get_conn_id(tcb_idx)) {
+        do_in_rust_thread(move |modules| {
+            let Some(bearer) = modules.gatt_module.get_bearer(conn_id) else {
+                error!("Bearer for {conn_id:?} not found");
+                return;
+            };
+            if let Err(err) = bearer.handle_mtu_event(event) {
+                error!("{err:?}")
+            }
+        });
     }
 }
 
@@ -175,7 +206,10 @@ mod test {
 
     use crate::{
         gatt::ids::AttHandle,
-        packets::{AttBuilder, AttReadRequestBuilder, Serializable},
+        packets::{
+            AttBuilder, AttExchangeMtuRequestBuilder, AttOpcode, AttReadRequestBuilder,
+            Serializable,
+        },
     };
 
     const TCB_IDX: TransportIndex = TransportIndex(1);
@@ -313,6 +347,36 @@ mod test {
         let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());
 
         assert!(matches!(out, Some((_, CONN_ID))));
+    }
+
+    #[test]
+    fn test_packet_bypass_when_isolated() {
+        let mut arbiter = Arbiter::new();
+        arbiter.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
+        arbiter.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let packet = AttBuilder {
+            opcode: AttOpcode::ERROR_RESPONSE,
+            _child_: AttReadRequestBuilder { attribute_handle: AttHandle(1).into() }.into(),
+        };
+
+        let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());
+
+        assert!(out.is_none());
+    }
+
+    #[test]
+    fn test_mtu_bypass() {
+        let mut arbiter = Arbiter::new();
+        arbiter.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
+        arbiter.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let packet = AttBuilder {
+            opcode: AttOpcode::EXCHANGE_MTU_REQUEST,
+            _child_: AttExchangeMtuRequestBuilder { mtu: 64 }.into(),
+        };
+
+        let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());
+
+        assert!(out.is_none());
     }
 
     #[test]

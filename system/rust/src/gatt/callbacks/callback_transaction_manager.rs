@@ -1,8 +1,8 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 
 use async_trait::async_trait;
-use log::{trace, warn};
-use tokio::sync::oneshot;
+use log::{error, trace, warn};
+use tokio::{sync::oneshot, time::timeout};
 
 use crate::{
     gatt::{
@@ -12,10 +12,44 @@ use crate::{
     packets::{AttAttributeDataChild, AttAttributeDataView, AttErrorCode},
 };
 
-use super::GattDatastore;
+use super::{AttributeBackingType, GattDatastore};
 
 struct PendingTransaction {
     response: oneshot::Sender<Result<AttAttributeDataChild, AttErrorCode>>,
+}
+
+#[derive(Debug)]
+struct PendingTransactionWatcher {
+    conn_id: ConnectionId,
+    trans_id: TransactionId,
+    rx: oneshot::Receiver<Result<AttAttributeDataChild, AttErrorCode>>,
+}
+
+enum PendingTransactionError {
+    SenderDropped,
+    Timeout,
+}
+
+impl PendingTransactionWatcher {
+    /// Wait for the transaction to resolve, or to hit the timeout. If the
+    /// timeout is reached, clean up state related to transaction watching.
+    async fn wait(
+        self,
+        manager: &CallbackTransactionManager,
+    ) -> Result<Result<AttAttributeDataChild, AttErrorCode>, PendingTransactionError> {
+        match timeout(TIMEOUT, self.rx).await {
+            Ok(Ok(result)) => Ok(result),
+            Ok(Err(_)) => Err(PendingTransactionError::SenderDropped),
+            Err(_) => {
+                manager
+                    .pending_transactions
+                    .borrow_mut()
+                    .pending_transactions
+                    .remove(&(self.conn_id, self.trans_id));
+                Err(PendingTransactionError::Timeout)
+            }
+        }
+    }
 }
 
 /// This struct converts the asynchronus read/write operations of GattDatastore
@@ -26,15 +60,18 @@ pub struct CallbackTransactionManager {
 }
 
 struct PendingTransactionsState {
-    pending_transactions: HashMap<ConnectionId, HashMap<TransactionId, PendingTransaction>>,
+    pending_transactions: HashMap<(ConnectionId, TransactionId), PendingTransaction>,
     next_transaction_id: u32,
 }
+
+/// We expect all responses to be provided within this timeout
+/// It should be less than 30s, as that is the ATT timeout that causes
+/// the client to disconnect.
+const TIMEOUT: Duration = Duration::from_secs(15);
 
 /// The cause of a failure to dispatch a call to send_response()
 #[derive(Debug, PartialEq, Eq)]
 pub enum CallbackResponseError {
-    /// The ConnectionId supplied was invalid
-    NonExistentConnection(ConnectionId),
     /// The TransactionId supplied was invalid
     NonExistentTransaction(TransactionId),
     /// The TransactionId was valid but has since terminated
@@ -62,101 +99,81 @@ impl CallbackTransactionManager {
         value: Result<AttAttributeDataChild, AttErrorCode>,
     ) -> Result<(), CallbackResponseError> {
         let mut pending = self.pending_transactions.borrow_mut();
-        if let Some(pending_transactions) = pending.pending_transactions.get_mut(&conn_id) {
-            if let Some(transaction) = pending_transactions.remove(&trans_id) {
-                if transaction.response.send(value).is_err() {
-                    Err(CallbackResponseError::ListenerHungUp(trans_id))
-                } else {
-                    trace!("got expected response for transaction {trans_id:?}");
-                    Ok(())
-                }
+        if let Some(transaction) = pending.pending_transactions.remove(&(conn_id, trans_id)) {
+            if transaction.response.send(value).is_err() {
+                Err(CallbackResponseError::ListenerHungUp(trans_id))
             } else {
-                Err(CallbackResponseError::NonExistentTransaction(trans_id))
+                trace!("got expected response for transaction {trans_id:?}");
+                Ok(())
             }
         } else {
-            Err(CallbackResponseError::NonExistentConnection(conn_id))
+            Err(CallbackResponseError::NonExistentTransaction(trans_id))
         }
     }
 }
 
 impl PendingTransactionsState {
-    fn start_new_transaction(
-        &mut self,
-        conn_id: ConnectionId,
-    ) -> Result<
-        (TransactionId, oneshot::Receiver<Result<AttAttributeDataChild, AttErrorCode>>),
-        AttErrorCode,
-    > {
+    fn start_new_transaction(&mut self, conn_id: ConnectionId) -> PendingTransactionWatcher {
         let trans_id = TransactionId(self.next_transaction_id);
-        self.next_transaction_id += 1;
+        self.next_transaction_id = self.next_transaction_id.wrapping_add(1);
 
         let (tx, rx) = oneshot::channel();
-        let pending_transactions = self.pending_transactions.get_mut(&conn_id);
-
-        if let Some(pending_transactions) = pending_transactions {
-            trace!("starting transaction {trans_id:?}");
-            pending_transactions.insert(trans_id, PendingTransaction { response: tx });
-        } else {
-            warn!("dropping read request attempt for transaction {trans_id:?} since connection is down - this error code should not be sent to the peer");
-            return Err(AttErrorCode::UNLIKELY_ERROR);
-        }
-
-        Ok((trans_id, rx))
+        self.pending_transactions.insert((conn_id, trans_id), PendingTransaction { response: tx });
+        PendingTransactionWatcher { conn_id, trans_id, rx }
     }
 }
 
 #[async_trait(?Send)]
 impl GattDatastore for CallbackTransactionManager {
-    fn add_connection(&self, conn_id: ConnectionId) {
-        let old_conn = self
-            .pending_transactions
-            .borrow_mut()
-            .pending_transactions
-            .insert(conn_id, HashMap::new());
-        assert!(old_conn.is_none(), "Connection ID reuse, something has gone wrong")
-    }
-
-    fn remove_connection(&self, conn_id: ConnectionId) {
-        let old_conn = self.pending_transactions.borrow_mut().pending_transactions.remove(&conn_id);
-        assert!(old_conn.is_some(), "Received unexpected connection ID, something has gone wrong")
-    }
-
-    async fn read_characteristic(
+    async fn read(
         &self,
         conn_id: ConnectionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
-        let (trans_id, rx) =
-            self.pending_transactions.borrow_mut().start_new_transaction(conn_id)?;
+        let pending_transaction =
+            self.pending_transactions.borrow_mut().start_new_transaction(conn_id);
+        let trans_id = pending_transaction.trans_id;
 
-        self.callbacks.on_server_read_characteristic(conn_id, trans_id, handle, 0, false);
+        self.callbacks.on_server_read(conn_id, trans_id, handle, attr_type, 0, false);
 
-        if let Ok(value) = rx.await {
-            value
-        } else {
-            warn!("sender side of {trans_id:?} dropped while handling request - most likely this response will not be sent over the air");
-            Err(AttErrorCode::UNLIKELY_ERROR)
+        match pending_transaction.wait(self).await {
+            Ok(value) => value,
+            Err(PendingTransactionError::SenderDropped) => {
+                warn!("sender side of {trans_id:?} dropped / timed out while handling request - most likely this response will not be sent over the air");
+                Err(AttErrorCode::UNLIKELY_ERROR)
+            }
+            Err(PendingTransactionError::Timeout) => {
+                warn!("no response received from Java after timeout - returning UNLIKELY_ERROR");
+                Err(AttErrorCode::UNLIKELY_ERROR)
+            }
         }
     }
 
-    async fn write_characteristic(
+    async fn write(
         &self,
         conn_id: ConnectionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode> {
-        let (trans_id, rx) =
-            self.pending_transactions.borrow_mut().start_new_transaction(conn_id)?;
+        let pending_transaction =
+            self.pending_transactions.borrow_mut().start_new_transaction(conn_id);
+        let trans_id = pending_transaction.trans_id;
 
-        self.callbacks
-            .on_server_write_characteristic(conn_id, trans_id, handle, 0, true, false, data);
+        self.callbacks.on_server_write(conn_id, trans_id, handle, attr_type, 0, true, false, data);
 
-        if let Ok(value) = rx.await {
-            value.map(|_| ()) // the data passed back is irrelevant for write
-                              // requests
-        } else {
-            warn!("sender side of {trans_id:?} dropped while handling request - most likely this response will not be sent over the air");
-            Err(AttErrorCode::UNLIKELY_ERROR)
+        match pending_transaction.wait(self).await {
+            Ok(value) => value.map(|_| ()), // the data passed back is irrelevant for write
+            // requests
+            Err(PendingTransactionError::SenderDropped) => {
+                error!("the CallbackTransactionManager dropped the sender TX without sending it");
+                Err(AttErrorCode::UNLIKELY_ERROR)
+            }
+            Err(PendingTransactionError::Timeout) => {
+                warn!("no response received from Java after timeout - returning UNLIKELY_ERROR");
+                Err(AttErrorCode::UNLIKELY_ERROR)
+            }
         }
     }
 }

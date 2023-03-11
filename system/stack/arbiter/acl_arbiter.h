@@ -44,6 +44,10 @@ class AclArbiter {
   virtual InterceptAction InterceptAttPacket(uint8_t tcb_idx,
                                              const BT_HDR* packet) = 0;
 
+  virtual void OnOutgoingMtuReq(uint8_t tcb_idx) = 0;
+  virtual void OnIncomingMtuResp(uint8_t tcb_idx, size_t mtu) = 0;
+  virtual void OnIncomingMtuReq(uint8_t tcb_idx, size_t mtu) = 0;
+
   AclArbiter() = default;
   AclArbiter(AclArbiter&& other) = default;
   AclArbiter& operator=(AclArbiter&& other) = default;
@@ -54,7 +58,10 @@ void StoreCallbacksFromRust(
     ::rust::Fn<void(uint8_t tcb_idx, uint8_t advertiser)> on_le_connect,
     ::rust::Fn<void(uint8_t tcb_idx)> on_le_disconnect,
     ::rust::Fn<InterceptAction(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer)>
-        intercept_packet);
+        intercept_packet,
+    ::rust::Fn<void(uint8_t tcb_idx)> on_outgoing_mtu_req,
+    ::rust::Fn<void(uint8_t tcb_idx, size_t mtu)> on_incoming_mtu_resp,
+    ::rust::Fn<void(uint8_t tcb_idx, size_t mtu)> on_incoming_mtu_req);
 
 void SendPacketToPeer(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer);
 

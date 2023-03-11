@@ -32,7 +32,7 @@ mod test {
         AttAttribute {
             handle: AttHandle(handle),
             type_: CHARACTERISTIC_UUID,
-            permissions: AttPermissions::READONLY,
+            permissions: AttPermissions::READABLE,
         }
     }
 
