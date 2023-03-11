@@ -14,11 +14,9 @@
 
 import asyncio
 import logging
-from typing import List, Optional, Tuple
-
 import time
-from avatar import PandoraDevices
-from avatar import parameterized
+
+from avatar import PandoraDevices, parameterized
 from avatar.aio import asynchronous
 from avatar.bumble_server.security import PairingDelegate
 from avatar.pandora_client import BumblePandoraClient, PandoraClient
@@ -26,20 +24,10 @@ from bumble.gatt import GATT_ASHA_SERVICE
 from mobly import base_test, test_runner
 from mobly.asserts import assert_equal  # type: ignore
 from mobly.asserts import assert_in  # type: ignore
-from pandora.host_pb2 import (
-    RANDOM,
-    PUBLIC,
-    AdvertiseResponse,
-    Connection,
-    DataTypes,
-    OwnAddressType,
-    ScanningResponse,
-)
-from pandora.security_pb2 import (
-    LE_LEVEL3,
-    LESecurityLevel
-)
 from pandora._utils import Stream
+from pandora.host_pb2 import PUBLIC, RANDOM, AdvertiseResponse, Connection, DataTypes, OwnAddressType, ScanningResponse
+from pandora.security_pb2 import LE_LEVEL3, LESecurityLevel
+from typing import List, Optional, Tuple
 
 ASHA_UUID = GATT_ASHA_SERVICE.to_hex_str()
 HISYCNID: List[int] = [0x01, 0x02, 0x03, 0x04, 0x5, 0x6, 0x7, 0x8]
@@ -54,7 +42,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
     def setup_class(self) -> None:
         self.devices = PandoraDevices(self)
-        dut, ref = self.devices
+        dut, ref, *_ = self.devices
         assert isinstance(ref, BumblePandoraClient)
         self.dut, self.ref = dut, ref
 
@@ -68,7 +56,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         # ASHA hearing aid's IO capability is NO_OUTPUT_NO_INPUT
         setattr(self.ref.device, "io_capability", PairingDelegate.NO_OUTPUT_NO_INPUT)
 
-    def advertise(self, ref_address_type: OwnAddressType) -> Stream[AdvertiseResponse]:
+    def ref_advertise_asha(self, ref_address_type: OwnAddressType) -> Stream[AdvertiseResponse]:
         """
         Ref device starts to advertise
         :return: Ref device's advertise response
@@ -85,25 +73,19 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             own_address_type=ref_address_type,
         )
 
-    def scan(self, dut_address_type: OwnAddressType) -> ScanningResponse:
+    def dut_scan_for_asha(self, dut_address_type: OwnAddressType) -> ScanningResponse:
         """
         DUT starts to scan for the Ref device.
-        :return: ScanningResponse
+        :return: ScanningResponse for ASHA
         """
         scan_result = self.dut.host.Scan(own_address_type=dut_address_type)
-        ref = next(
-            (
-                x
-                for x in scan_result
-                if ASHA_UUID in x.data.incomplete_service_class_uuids16
-            )
-        )
+        ref = next((x for x in scan_result if ASHA_UUID in x.data.incomplete_service_class_uuids16))
         scan_result.cancel()
 
         assert ref
         return ref
 
-    def connect(
+    def dut_connect_to_ref(
         self, advertisement: Stream[AdvertiseResponse], ref: ScanningResponse, dut_address_type: OwnAddressType
     ) -> Tuple[Connection, Connection]:
         """
@@ -111,9 +93,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         :return: a Tuple (DUT to REF connection, REF to DUT connection)
         """
         # DUT connects to Ref
-        dut_ref = self.dut.host.ConnectLE(
-            own_address_type=dut_address_type, **ref.address_asdict()
-        ).connection
+        dut_ref = self.dut.host.ConnectLE(own_address_type=dut_address_type, **ref.address_asdict()).connection
         ref_dut = (next(advertisement)).connection
         assert dut_ref
         assert ref_dut
@@ -130,10 +110,10 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         protocol_version = 0x01
         truncated_hisyncid = HISYCNID[:4]
 
-        advertisement = self.advertise(ref_address_type=RANDOM)
+        advertisement = self.ref_advertise_asha(ref_address_type=RANDOM)
 
         # DUT starts a service discovery
-        scan_result = self.scan(dut_address_type=RANDOM)
+        scan_result = self.dut_scan_for_asha(dut_address_type=RANDOM)
         advertisement.cancel()
 
         # Verify Ref is correctly discovered by DUT as a hearing aid device
@@ -169,7 +149,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             ),
         )
 
-        scan_result = self.scan(dut_address_type=RANDOM)
+        scan_result = self.dut_scan_for_asha(dut_address_type=RANDOM)
         advertisement.cancel()
 
         # Verify Ref is correctly discovered by DUT as a hearing aid device.
@@ -198,18 +178,16 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         DUT initiates connection to Ref.
         Verify that DUT and Ref are bonded and connected.
         """
-        advertisement = self.advertise(ref_address_type=ref_address_type)
+        advertisement = self.ref_advertise_asha(ref_address_type=ref_address_type)
 
-        ref = self.scan(dut_address_type=dut_address_type)
+        ref = self.dut_scan_for_asha(dut_address_type=dut_address_type)
 
         # DUT initiates connection to Ref.
-        dut_ref, _ = self.connect(advertisement, ref, dut_address_type)
+        dut_ref, _ = self.dut_connect_to_ref(advertisement, ref, dut_address_type)
         assert dut_ref
 
         # DUT starts pairing with the Ref.
-        secure = self.dut.security.Secure(
-            connection=dut_ref, le=LE_LEVEL3
-        )
+        secure = self.dut.security.Secure(connection=dut_ref, le=LE_LEVEL3)
 
         assert_equal(secure.WhichOneof("result"), "success")
 
@@ -230,14 +208,12 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         raise TestSkip("update rootcanal to retry")
 
-        advertisement = self.advertise(ref_address_type=ref_address_type)
-        ref = self.scan(dut_address_type=ref_address_type)
+        advertisement = self.ref_advertise_asha(ref_address_type=ref_address_type)
+        ref = self.dut_scan_for_asha(dut_address_type=ref_address_type)
 
-        dut_ref, ref_dut = self.connect(advertisement, ref, dut_address_type)
+        dut_ref, ref_dut = self.dut_connect_to_ref(advertisement, ref, dut_address_type)
 
-        secure = self.dut.security.Secure(
-            connection=dut_ref, le=LESecurityLevel.LE_LEVEL3
-        )
+        secure = self.dut.security.Secure(connection=dut_ref, le=LESecurityLevel.LE_LEVEL3)
 
         assert_equal(secure.WhichOneof("result"), "success")
         self.dut.host.Disconnect(dut_ref)
@@ -250,20 +226,14 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             self.dut.security_storage.DeleteBond(random=self.ref.random_address)
 
         # DUT connect to REF again
-        dut_ref = (
-            self.dut.host.ConnectLE(
-                own_address_type=dut_address_type, **ref.address_asdict()
-            )
-        ).connection
+        dut_ref = (self.dut.host.ConnectLE(own_address_type=dut_address_type, **ref.address_asdict())).connection
         # TODO very likely there is a bug in android here
         logging.debug("result should come out")
 
         advertisement.cancel()
         assert dut_ref
 
-        secure = self.dut.security.Secure(
-            connection=dut_ref, le=LESecurityLevel.LE_LEVEL3
-        )
+        secure = self.dut.security.Secure(connection=dut_ref, le=LESecurityLevel.LE_LEVEL3)
 
         assert_equal(secure.WhichOneof("result"), "success")
 
@@ -271,17 +241,15 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         (RANDOM, RANDOM),
         (RANDOM, PUBLIC),
     )  # type: ignore[misc]
-    def test_connection(
-        self, dut_address_type: OwnAddressType, ref_address_type: OwnAddressType
-    ) -> None:
+    def test_connection(self, dut_address_type: OwnAddressType, ref_address_type: OwnAddressType) -> None:
         """
         DUT discovers Ref.
         DUT initiates connection to Ref.
         Verify that DUT and Ref are connected.
         """
-        advertisement = self.advertise(ref_address_type=ref_address_type)
-        ref = self.scan(dut_address_type=dut_address_type)
-        dut_ref, ref_dut = self.connect(advertisement, ref, dut_address_type)
+        advertisement = self.ref_advertise_asha(ref_address_type=ref_address_type)
+        ref = self.dut_scan_for_asha(dut_address_type=dut_address_type)
+        dut_ref, ref_dut = self.dut_connect_to_ref(advertisement, ref, dut_address_type)
         assert dut_ref
         assert ref_dut
 
@@ -298,9 +266,9 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         DUT initiates disconnection to Ref.
         Verify that DUT and Ref are disconnected.
         """
-        advertisement = self.advertise(ref_address_type=ref_address_type)
-        ref = self.scan(dut_address_type=dut_address_type)
-        dut_ref, _ = self.connect(advertisement, ref, dut_address_type)
+        advertisement = self.ref_advertise_asha(ref_address_type=ref_address_type)
+        ref = self.dut_scan_for_asha(dut_address_type=dut_address_type)
+        dut_ref, _ = self.dut_connect_to_ref(advertisement, ref, dut_address_type)
 
         self.dut.host.Disconnect(connection=dut_ref)
 
@@ -317,9 +285,9 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         Ref initiates disconnection to DUT (typically when put back in its box).
         Verify that Ref is disconnected.
         """
-        advertisement = self.advertise(ref_address_type=ref_address_type)
-        ref = self.scan(dut_address_type=dut_address_type)
-        dut_ref, ref_dut = self.connect(advertisement, ref, dut_address_type)
+        advertisement = self.ref_advertise_asha(ref_address_type=ref_address_type)
+        ref = self.dut_scan_for_asha(dut_address_type=dut_address_type)
+        dut_ref, ref_dut = self.dut_connect_to_ref(advertisement, ref, dut_address_type)
         assert dut_ref
         assert ref_dut
         self.ref.host.Disconnect(connection=ref_dut)
@@ -344,9 +312,9 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         """
 
         def connect_and_disconnect() -> None:
-            advertisement = self.advertise(ref_address_type=ref_address_type)
-            ref = self.scan(dut_address_type=dut_address_type)
-            dut_ref, _ = self.connect(advertisement, ref, dut_address_type)
+            advertisement = self.ref_advertise_asha(ref_address_type=ref_address_type)
+            ref = self.dut_scan_for_asha(dut_address_type=dut_address_type)
+            dut_ref, _ = self.dut_connect_to_ref(advertisement, ref, dut_address_type)
             self.dut.host.Disconnect(connection=dut_ref)
 
         connect_and_disconnect()
@@ -368,21 +336,17 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         Ref starts sending ASHA advertisements.
         Verify that DUT auto-connects to Ref.
         """
-        advertisement = self.advertise(ref_address_type=ref_address_type)
-        ref = self.scan(dut_address_type=dut_address_type)
+        advertisement = self.ref_advertise_asha(ref_address_type=ref_address_type)
+        ref = self.dut_scan_for_asha(dut_address_type=dut_address_type)
 
         # manually connect and not cancel advertisement
-        dut_ref = self.dut.host.ConnectLE(
-            own_address_type=dut_address_type, **ref.address_asdict()
-        ).connection
+        dut_ref = self.dut.host.ConnectLE(own_address_type=dut_address_type, **ref.address_asdict()).connection
         ref_dut = next(advertisement).connection
         assert dut_ref
         assert ref_dut
 
         # pairing
-        secure = self.dut.security.Secure(
-            connection=dut_ref, le=LE_LEVEL3
-        )
+        secure = self.dut.security.Secure(connection=dut_ref, le=LE_LEVEL3)
         assert_equal(secure.WhichOneof("result"), "success")
 
         self.ref.host.Disconnect(connection=ref_dut)
