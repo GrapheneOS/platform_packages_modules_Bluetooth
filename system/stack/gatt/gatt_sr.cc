@@ -29,6 +29,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/arbiter/acl_arbiter.h"
 #include "stack/eatt/eatt.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
@@ -830,6 +831,9 @@ static void gatts_process_mtu_req(tGATT_TCB& tcb, uint16_t cid, uint16_t len,
   BT_HDR* p_buf =
       attp_build_sr_msg(tcb, GATT_RSP_MTU, &gatt_sr_msg, tcb.payload_size);
   attp_send_sr_msg(tcb, cid, p_buf);
+
+  bluetooth::shim::arbiter::GetArbiter().OnIncomingMtuReq(tcb.tcb_idx,
+                                                          tcb.payload_size);
 
   tGATTS_DATA gatts_data;
   gatts_data.mtu = tcb.payload_size;

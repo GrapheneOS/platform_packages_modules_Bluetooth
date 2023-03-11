@@ -47,6 +47,18 @@ class PassthroughAclArbiter : public AclArbiter {
     return InterceptAction::FORWARD;
   }
 
+  virtual void OnOutgoingMtuReq(uint8_t tcb_idx) override {
+    // no-op
+  }
+
+  virtual void OnIncomingMtuResp(uint8_t tcb_idx, size_t mtu) {
+    // no-op
+  }
+
+  virtual void OnIncomingMtuReq(uint8_t tcb_idx, size_t mtu) {
+    // no-op
+  }
+
   static PassthroughAclArbiter& Get() {
     static auto singleton = PassthroughAclArbiter();
     return singleton;
@@ -59,6 +71,9 @@ struct RustArbiterCallbacks {
   ::rust::Fn<void(uint8_t tcb_idx)> on_le_disconnect;
   ::rust::Fn<InterceptAction(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer)>
       intercept_packet;
+  ::rust::Fn<void(uint8_t tcb_idx)> on_outgoing_mtu_req;
+  ::rust::Fn<void(uint8_t tcb_idx, size_t mtu)> on_incoming_mtu_resp;
+  ::rust::Fn<void(uint8_t tcb_idx, size_t mtu)> on_incoming_mtu_req;
 };
 
 RustArbiterCallbacks callbacks_{};
@@ -86,6 +101,21 @@ class RustGattAclArbiter : public AclArbiter {
     auto vec = ::rust::Vec<uint8_t>();
     std::copy(packet_start, packet_end, std::back_inserter(vec));
     return callbacks_.intercept_packet(tcb_idx, std::move(vec));
+  }
+
+  virtual void OnOutgoingMtuReq(uint8_t tcb_idx) override {
+    LOG_DEBUG("Notifying Rust of outgoing MTU request");
+    callbacks_.on_outgoing_mtu_req(tcb_idx);
+  }
+
+  virtual void OnIncomingMtuResp(uint8_t tcb_idx, size_t mtu) {
+    LOG_DEBUG("Notifying Rust of incoming MTU response %zu", mtu);
+    callbacks_.on_incoming_mtu_resp(tcb_idx, mtu);
+  }
+
+  virtual void OnIncomingMtuReq(uint8_t tcb_idx, size_t mtu) {
+    LOG_DEBUG("Notifying Rust of incoming MTU request %zu", mtu);
+    callbacks_.on_incoming_mtu_req(tcb_idx, mtu);
   }
 
   void SendPacketToPeer(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer) {
@@ -116,9 +146,13 @@ void StoreCallbacksFromRust(
     ::rust::Fn<void(uint8_t tcb_idx, uint8_t advertiser)> on_le_connect,
     ::rust::Fn<void(uint8_t tcb_idx)> on_le_disconnect,
     ::rust::Fn<InterceptAction(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer)>
-        intercept_packet) {
+        intercept_packet,
+    ::rust::Fn<void(uint8_t tcb_idx)> on_outgoing_mtu_req,
+    ::rust::Fn<void(uint8_t tcb_idx, size_t mtu)> on_incoming_mtu_resp,
+    ::rust::Fn<void(uint8_t tcb_idx, size_t mtu)> on_incoming_mtu_req) {
   LOG_INFO("Received callbacks from Rust, registering in Arbiter");
-  callbacks_ = {on_le_connect, on_le_disconnect, intercept_packet};
+  callbacks_ = {on_le_connect,       on_le_disconnect,     intercept_packet,
+                on_outgoing_mtu_req, on_incoming_mtu_resp, on_incoming_mtu_req};
 }
 
 void SendPacketToPeer(uint8_t tcb_idx, ::rust::Vec<uint8_t> buffer) {
