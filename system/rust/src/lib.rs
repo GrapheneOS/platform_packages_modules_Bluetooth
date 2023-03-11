@@ -46,8 +46,10 @@ pub struct GlobalModuleRegistry {
 /// Java / C++ while the stack is running. If a module should not be exposed
 /// outside of Rust GD, there is no need to include it here.
 pub struct ModuleViews<'a> {
+    /// Lets us call out into C++
+    pub gatt_outgoing_callbacks: Rc<dyn GattCallbacks>,
     /// Receives synchronous callbacks from JNI
-    pub gatt_callbacks: Rc<gatt::callbacks::CallbackTransactionManager>,
+    pub gatt_incoming_callbacks: Rc<gatt::callbacks::CallbackTransactionManager>,
     /// Proxies calls into GATT server
     pub gatt_module: &'a mut gatt::server::GattModule,
 }
@@ -79,14 +81,20 @@ impl GlobalModuleRegistry {
         // Now enter the runtime
         local.block_on(&rt, async {
             // Then follow the pure-Rust modules
-            let gatt_callbacks =
-                Rc::new(gatt::callbacks::CallbackTransactionManager::new(gatt_callbacks));
-            let gatt_module =
-                &mut gatt::server::GattModule::new(gatt_callbacks.clone(), att_transport.clone());
+            let gatt_incoming_callbacks =
+                Rc::new(gatt::callbacks::CallbackTransactionManager::new(gatt_callbacks.clone()));
+            let gatt_module = &mut gatt::server::GattModule::new(
+                gatt_incoming_callbacks.clone(),
+                att_transport.clone(),
+            );
 
             // All modules that are visible from incoming JNI / top-level interfaces should
             // be exposed here
-            let mut modules = ModuleViews { gatt_callbacks, gatt_module };
+            let mut modules = ModuleViews {
+                gatt_outgoing_callbacks: gatt_callbacks,
+                gatt_incoming_callbacks,
+                gatt_module,
+            };
 
             // This is the core event loop that serializes incoming requests into the Rust
             // thread do_in_rust_thread lets us post into here from foreign
