@@ -2,7 +2,9 @@
 
 use crate::{
     gatt::{
+        ffi::AttributeBackingType,
         ids::{AttHandle, ConnectionId, TransactionId},
+        server::IndicationError,
         GattCallbacks,
     },
     packets::{AttAttributeDataView, OwnedAttAttributeDataView, Packet},
@@ -24,55 +26,69 @@ impl MockCallbacks {
 #[derive(Debug)]
 pub enum MockCallbackEvents {
     /// GattCallbacks#on_server_read_characteristic invoked
-    OnServerReadCharacteristic(ConnectionId, TransactionId, AttHandle, u32, bool),
+    OnServerRead(ConnectionId, TransactionId, AttHandle, AttributeBackingType, u32, bool),
     /// GattCallbacks#on_server_write_characteristic invoked
-    OnServerWriteCharacteristic(
+    OnServerWrite(
         ConnectionId,
         TransactionId,
         AttHandle,
+        AttributeBackingType,
         u32,
         bool,
         bool,
         OwnedAttAttributeDataView,
     ),
+    /// GattCallbacks#on_indication_sent_confirmation invoked
+    OnIndicationSentConfirmation(ConnectionId, Result<(), IndicationError>),
 }
 
 impl GattCallbacks for MockCallbacks {
-    fn on_server_read_characteristic(
+    fn on_server_read(
         &self,
         conn_id: ConnectionId,
         trans_id: TransactionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
         offset: u32,
         is_long: bool,
     ) {
         self.0
-            .send(MockCallbackEvents::OnServerReadCharacteristic(
-                conn_id, trans_id, handle, offset, is_long,
+            .send(MockCallbackEvents::OnServerRead(
+                conn_id, trans_id, handle, attr_type, offset, is_long,
             ))
             .unwrap();
     }
 
-    fn on_server_write_characteristic(
+    fn on_server_write(
         &self,
         conn_id: ConnectionId,
         trans_id: TransactionId,
         handle: AttHandle,
+        attr_type: AttributeBackingType,
         offset: u32,
         need_response: bool,
         is_prepare: bool,
         value: AttAttributeDataView,
     ) {
         self.0
-            .send(MockCallbackEvents::OnServerWriteCharacteristic(
+            .send(MockCallbackEvents::OnServerWrite(
                 conn_id,
                 trans_id,
                 handle,
+                attr_type,
                 offset,
                 need_response,
                 is_prepare,
                 value.to_owned_packet(),
             ))
             .unwrap();
+    }
+
+    fn on_indication_sent_confirmation(
+        &self,
+        conn_id: ConnectionId,
+        result: Result<(), IndicationError>,
+    ) {
+        self.0.send(MockCallbackEvents::OnIndicationSentConfirmation(conn_id, result)).unwrap();
     }
 }
