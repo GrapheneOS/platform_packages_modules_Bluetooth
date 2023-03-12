@@ -28,6 +28,10 @@
 
 #include <cstdint>
 
+#ifdef OS_ANDROID
+#include <hfp.sysprop.h>
+#endif
+
 #include "bt_trace.h"  // Legacy trace logging
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/sys/bta_sys.h"
@@ -204,3 +208,29 @@ void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at,
  *
  ******************************************************************************/
 void BTA_HfClientDumpStatistics(int fd) { bta_hf_client_dump_statistics(fd); }
+
+/*******************************************************************************
+ *
+ * function         get_default_hf_client_features
+ *
+ * description      return the hf_client features.
+ *                  value can be override via system property
+ *
+ * returns          int
+ *
+ ******************************************************************************/
+int get_default_hf_client_features() {
+#define DEFAULT_BTIF_HF_CLIENT_FEATURES                                        \
+  (BTA_HF_CLIENT_FEAT_ECNR | BTA_HF_CLIENT_FEAT_3WAY |                         \
+   BTA_HF_CLIENT_FEAT_CLI | BTA_HF_CLIENT_FEAT_VREC | BTA_HF_CLIENT_FEAT_VOL | \
+   BTA_HF_CLIENT_FEAT_ECS | BTA_HF_CLIENT_FEAT_ECC | BTA_HF_CLIENT_FEAT_CODEC)
+
+#ifdef OS_ANDROID
+  static const int features =
+      android::sysprop::bluetooth::Hfp::hf_client_features().value_or(
+          DEFAULT_BTIF_HF_CLIENT_FEATURES);
+  return features;
+#else
+  return DEFAULT_BTIF_HF_CLIENT_FEATURES;
+#endif
+}
