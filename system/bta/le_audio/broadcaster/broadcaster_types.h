@@ -32,14 +32,19 @@ namespace le_audio {
 namespace broadcaster {
 static const uint16_t kBroadcastAudioAnnouncementServiceUuid = 0x1852;
 static const uint16_t kBasicAudioAnnouncementServiceUuid = 0x1851;
+static const uint16_t kPublicBroadcastAnnouncementServiceUuid = 0x1856;
 
 static const uint8_t kBisIndexInvalid = 0;
 
 bool ToRawPacket(bluetooth::le_audio::BasicAudioAnnouncementData const&,
                  std::vector<uint8_t>&);
 
-void PrepareAdvertisingData(bluetooth::le_audio::BroadcastId& broadcast_id,
-                            std::vector<uint8_t>& periodic_data);
+void PrepareAdvertisingData(
+    bool is_public, const std::string& broadcast_name,
+    bluetooth::le_audio::BroadcastId& broadcast_id,
+    const bluetooth::le_audio::PublicBroadcastAnnouncementData&
+        public_announcement,
+    std::vector<uint8_t>& adv_data);
 void PreparePeriodicData(
     const bluetooth::le_audio::BasicAudioAnnouncementData& announcement,
     std::vector<uint8_t>& periodic_data);
@@ -169,5 +174,7 @@ namespace bluetooth {
 namespace le_audio {
 bool operator==(const BasicAudioAnnouncementData& lhs,
                 const BasicAudioAnnouncementData& rhs);
+bool operator==(const PublicBroadcastAnnouncementData& lhs,
+                const PublicBroadcastAnnouncementData& rhs);
 }  // namespace le_audio
 }  // namespace bluetooth

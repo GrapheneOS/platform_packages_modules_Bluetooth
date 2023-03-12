@@ -29,6 +29,23 @@ enum AttOpcode : 8 {
 
   WRITE_REQUEST = 0x12,
   WRITE_RESPONSE = 0x13,
+
+  WRITE_COMMAND = 0x52,
+
+  PREPARE_WRITE_REQUEST = 0x16,
+  PREPARE_WRITE_RESPONSE = 0x17,
+  EXECUTE_WRITE_REQUEST = 0x18,
+  EXECUTE_WRITE_RESPONSE = 0x19,
+
+  READ_MULTIPLE_VARIABLE_REQUEST = 0x20,
+  READ_MULTIPLE_VARIABLE_RESPONSE = 0x21,
+
+  HANDLE_VALUE_NOTIFICATION = 0x1B,
+
+  HANDLE_VALUE_INDICATION = 0x1D,
+  HANDLE_VALUE_CONFIRMATION = 0x1E,
+
+  SIGNED_WRITE_COMMAND = 0xD2,
 }
 
 packet Att {
@@ -97,7 +114,7 @@ packet AttFindInformationLongResponse : AttFindInformationResponse(format = LONG
   data: AttFindInformationResponseLongEntry[],
 }
 
-struct AttCharacteristicProperties {
+struct GattCharacteristicProperties {
   broadcast: 1,
   read: 1,
   write_without_response: 1,
@@ -109,7 +126,7 @@ struct AttCharacteristicProperties {
 }
 
 struct GattCharacteristicDeclarationValue : AttAttributeData {
-  properties: AttCharacteristicProperties,
+  properties: GattCharacteristicProperties,
   handle: AttHandle,
   uuid: Uuid,
 }
@@ -190,4 +207,19 @@ packet AttErrorResponse : Att(opcode = ERROR_RESPONSE) {
   opcode_in_error: AttOpcode,
   handle_in_error: AttHandle,
   error_code: AttErrorCode,
+}
+
+packet AttHandleValueIndication : Att(opcode = HANDLE_VALUE_INDICATION) {
+  handle: AttHandle,
+  value: AttAttributeData,
+}
+
+packet AttHandleValueConfirmation : Att(opcode = HANDLE_VALUE_CONFIRMATION) {}
+
+packet AttExchangeMtuRequest : Att(opcode = EXCHANGE_MTU_REQUEST) {
+  mtu: 16,
+}
+
+packet AttExchangeMtuResponse : Att(opcode = EXCHANGE_MTU_RESPONSE) {
+  mtu: 16,
 }
