@@ -330,6 +330,7 @@ cc_test {
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
+        "hf_client/bta_hf_client_api.cc",
         "test/bta_hf_client_add_record_test.cc",
     ],
     header_libs: ["libbluetooth_headers"],
