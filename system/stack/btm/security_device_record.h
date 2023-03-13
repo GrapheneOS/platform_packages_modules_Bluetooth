@@ -225,6 +225,8 @@ struct tBTM_SEC_DEV_REC {
   void* p_ref_data;
   uint32_t timestamp; /* Timestamp of the last connection   */
   uint16_t hci_handle;     /* Handle to connection when exists   */
+  uint16_t suggested_tx_octets; /* Recently suggested tx octects for data length
+                                   extension */
   uint16_t clock_offset;   /* Latest known clock offset          */
   RawAddress bd_addr;      /* BD_ADDR of the device              */
   DEV_CLASS dev_class;     /* DEV_CLASS of the device            */
@@ -357,6 +359,13 @@ struct tBTM_SEC_DEV_REC {
   bool is_security_state_br_edr_and_ble() const {
     return sec_state == BTM_SEC_STATE_DISCONNECTING_BOTH;
   }
+
+  /* Data length extension */
+  void set_suggested_tx_octect(uint16_t octets) {
+    suggested_tx_octets = octets;
+  }
+
+  uint16_t get_suggested_tx_octets() const { return suggested_tx_octets; }
 
  private:
   bool is_originator;         /* true if device is originating connection */
