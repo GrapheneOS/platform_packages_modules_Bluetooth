@@ -188,6 +188,7 @@ impl ISuspend for Suspend {
         self.intf.lock().unwrap().clear_event_filter();
         self.intf.lock().unwrap().clear_filter_accept_list();
 
+        self.bt.lock().unwrap().discovery_enter_suspend();
         self.gatt.lock().unwrap().advertising_enter_suspend();
         self.gatt.lock().unwrap().scan_enter_suspend();
 
@@ -280,6 +281,7 @@ impl ISuspend for Suspend {
             }));
         }
 
+        self.bt.lock().unwrap().discovery_exit_suspend();
         self.gatt.lock().unwrap().advertising_exit_suspend();
         self.gatt.lock().unwrap().scan_exit_suspend();
 
