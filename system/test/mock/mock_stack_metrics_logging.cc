@@ -134,7 +134,7 @@ void log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum key,
 void log_hfp_audio_packet_loss_stats(const RawAddress& address,
                                      int num_decoded_frames,
                                      double packet_loss_ratio) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::stack_metrics_logging::log_hfp_audio_packet_loss_stats(
       address, num_decoded_frames, packet_loss_ratio);
 }
