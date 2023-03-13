@@ -3905,6 +3905,7 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
     p_dev_rec->sec_flags &= ~(BTM_SEC_LE_AUTHENTICATED | BTM_SEC_LE_ENCRYPTED |
                               BTM_SEC_ROLE_SWITCHED);
     p_dev_rec->enc_key_size = 0;
+    p_dev_rec->suggested_tx_octets = 0;
 
     if ((p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN) == 0) {
       p_dev_rec->sec_flags &=
