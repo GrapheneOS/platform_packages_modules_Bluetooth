@@ -16,6 +16,8 @@
 
 package android.bluetooth;
 
+import static android.bluetooth.BluetoothUtils.getSyncTimeout;
+
 import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
@@ -27,6 +29,8 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.modules.utils.SynchronousResultReceiver;
+
 import java.io.Closeable;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -37,6 +41,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A connected or connecting Bluetooth socket.
@@ -123,13 +128,14 @@ public final class BluetoothSocket implements Closeable {
 
     // Defined in BluetoothProtoEnums.L2capCocConnectionResult of proto logging
     private static final int RESULT_L2CAP_CONN_UNKNOWN = 0;
-    private static final int RESULT_L2CAP_CONN_SUCCESS = 1;
+    /*package*/ static final int RESULT_L2CAP_CONN_SUCCESS = 1;
     private static final int RESULT_L2CAP_CONN_BLUETOOTH_SOCKET_CONNECTION_FAILED = 1000;
     private static final int RESULT_L2CAP_CONN_BLUETOOTH_SOCKET_CONNECTION_CLOSED = 1001;
     private static final int RESULT_L2CAP_CONN_BLUETOOTH_UNABLE_TO_SEND_RPC = 1002;
     private static final int RESULT_L2CAP_CONN_BLUETOOTH_NULL_BLUETOOTH_DEVICE = 1003;
     private static final int RESULT_L2CAP_CONN_BLUETOOTH_GET_SOCKET_MANAGER_FAILED = 1004;
     private static final int RESULT_L2CAP_CONN_BLUETOOTH_NULL_FILE_DESCRIPTOR = 1005;
+    /*package*/ static final int RESULT_L2CAP_CONN_SERVER_FAILURE = 2000;
 
     private final int mType;  /* one of TYPE_RFCOMM etc */
     private BluetoothDevice mDevice;    /* remote device */
@@ -537,6 +543,9 @@ public final class BluetoothSocket implements Closeable {
         mServiceName = name;
     }
 
+    /*package*/ boolean isAuth() {
+        return mAuth;
+    }
     /**
      * Attempt to connect to a remote device.
      * <p>This method will block until a connection is made or the connection
@@ -908,10 +917,12 @@ public final class BluetoothSocket implements Closeable {
             return;
         }
         try {
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             bluetoothProxy.logL2capcocClientConnection(
                     mDevice, mPort, mAuth, errCode,
-                    System.currentTimeMillis() - mSocketCreationTime);
-        } catch (RemoteException e) {
+                    System.currentTimeMillis() - mSocketCreationTime, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (RemoteException | TimeoutException e) {
             Log.w(TAG, "logL2capcocClientConnection failed due to remote exception");
         }
     }

@@ -676,6 +676,37 @@ public class AdapterService extends Service {
         return result;
     }
 
+    /**
+     *  Log L2CAP CoC Server Connection Metrics
+     *
+     *  @param port port of socket
+     *  @param isSecured if secured API is called
+     *  @param result transaction result of the connection
+     *  @param connectionLatencyMillis latency of the connection
+     *  @param timeoutMillis timeout set by the app
+     */
+    public void logL2capcocServerConnection(
+            BluetoothDevice device,
+            int port,
+            boolean isSecured,
+            int result,
+            long connectionLatencyMillis,
+            long timeoutMillis,
+            int appUid) {
+
+        int metricId = 0;
+        if (device != null) {
+            metricId = getMetricId(device);
+        }
+        Log.i(TAG, "Statslog L2capcoc server connection. metricId "
+                + metricId + " port " + port + " isSecured " + isSecured
+                + " result " + result + " connectionLatencyMillis " + connectionLatencyMillis
+                + " timeout set by app " + timeoutMillis + " appUid " + appUid);
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLUETOOTH_L2CAP_COC_SERVER_CONNECTION,
+                metricId, port, isSecured, result, connectionLatencyMillis, timeoutMillis, appUid);
+    }
+
     public void setMetricsLogger(MetricsLogger metricsLogger) {
         mMetricsLogger = metricsLogger;
     }
@@ -3455,6 +3486,34 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public void logL2capcocServerConnection(
+                BluetoothDevice device,
+                int port,
+                boolean isSecured,
+                int result,
+                long connectionLatencyMillis,
+                long timeoutMillis,
+                SynchronousResultReceiver receiver) {
+            AdapterService service = getService();
+            if (service == null) {
+                return;
+            }
+            try {
+                service.logL2capcocServerConnection(
+                        device,
+                        port,
+                        isSecured,
+                        result,
+                        connectionLatencyMillis,
+                        timeoutMillis,
+                        Binder.getCallingUid());
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
         public IBluetoothSocketManager getSocketManager() {
             AdapterService service = getService();
             if (service == null) {
@@ -3470,18 +3529,24 @@ public class AdapterService extends Service {
                 int port,
                 boolean isSecured,
                 int result,
-                long connectionLatencyMillis) {
+                long connectionLatencyMillis,
+                SynchronousResultReceiver receiver) {
             AdapterService service = getService();
             if (service == null) {
                 return;
             }
-            service.logL2capcocClientConnection(
-                    device,
-                    port,
-                    isSecured,
-                    result,
-                    connectionLatencyMillis,
-                    Binder.getCallingUid());
+            try {
+                service.logL2capcocClientConnection(
+                        device,
+                        port,
+                        isSecured,
+                        result,
+                        connectionLatencyMillis,
+                        Binder.getCallingUid());
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
         }
 
         @Override
