@@ -10,6 +10,7 @@ mod lint;
 mod parser;
 #[cfg(test)]
 mod test_utils;
+mod utils;
 
 #[derive(Debug)]
 enum OutputFormat {
