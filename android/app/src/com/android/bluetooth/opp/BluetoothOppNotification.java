@@ -61,7 +61,7 @@ import java.util.HashMap;
  * where there is an ongoing transfer, incoming transfer need confirm and
  * complete (successful or failed) transfer.
  */
-public class BluetoothOppNotification {
+class BluetoothOppNotification {
     private static final String TAG = "BluetoothOppNotification";
     private static final boolean V = Constants.VERBOSE;
 
@@ -152,7 +152,7 @@ public class BluetoothOppNotification {
      * @param ctx The context to use to obtain access to the Notification
      *            Service
      */
-    public BluetoothOppNotification(Context ctx) {
+    BluetoothOppNotification(Context ctx) {
         mContext = ctx;
         mNotificationMgr = mContext.getSystemService(NotificationManager.class);
         mNotificationChannel = new NotificationChannel(OPP_NOTIFICATION_CHANNEL,
