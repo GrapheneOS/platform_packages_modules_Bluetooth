@@ -97,20 +97,6 @@ public class ObexServerSockets {
     private static final int CREATE_RETRY_TIME = 10;
 
     /**
-      * Creates an RFCOMM {@link BluetoothServerSocket} and a L2CAP {@link BluetoothServerSocket}
-      * @param validator a reference to the {@link IObexConnectionHandler} object to call
-      *                  to validate an incoming connection.
-      * @param rfcommChannel fixed rfcomm channel number to listen on
-      * @param l2capPsm fixed l2cap psm to listen on
-      * @return a reference to a {@link ObexServerSockets} object instance.
-      * @throws IOException if it occurs while creating the {@link BluetoothServerSocket}s.
-    */
-    public static ObexServerSockets createWithFixedChannels(IObexConnectionHandler validator,
-            int rfcommChannel, int l2capPsm) {
-        return create(validator, rfcommChannel, l2capPsm, true);
-    }
-
-    /**
      * Creates an RFCOMM {@link BluetoothServerSocket} and a L2CAP {@link BluetoothServerSocket}
      * with specific l2cap and RFCOMM channel numbers. It is the responsibility of the caller to
      * ensure the numbers are free and can be used, e.g. by calling {@link #getL2capPsm()} and
