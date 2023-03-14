@@ -107,7 +107,7 @@ void bluetooth::shim::LogMetricA2dpPlaybackEvent(const RawAddress& raw_address,
 void bluetooth::shim::LogMetricHfpPacketLossStats(const RawAddress& raw_address,
                                                   int num_decoded_frames,
                                                   double packet_loss_ratio) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   test::mock::main_shim_metrics_api::LogMetricHfpPacketLossStats(
       raw_address, num_decoded_frames, packet_loss_ratio);
 }
