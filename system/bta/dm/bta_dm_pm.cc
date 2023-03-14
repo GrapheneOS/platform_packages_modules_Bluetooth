@@ -393,7 +393,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
 
   /* if no action for the event */
   if (get_bta_dm_pm_spec()[p_bta_dm_pm_cfg[i].spec_idx]
-          .actn_tbl[status]
+          .actn_tbl[status][0]
           .power_mode == BTA_DM_PM_NO_ACTION) {
     if (BTA_DM_PM_SSR0 == index) /* and do not need to set SSR, return. */
       return;
@@ -412,7 +412,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
   /* if subsystem has no more preference on the power mode remove
  the cb */
   if (get_bta_dm_pm_spec()[p_bta_dm_pm_cfg[i].spec_idx]
-          .actn_tbl[status]
+          .actn_tbl[status][0]
           .power_mode == BTA_DM_PM_NO_PREF) {
     if (j != bta_dm_conn_srvcs.count) {
       bta_dm_conn_srvcs.count--;
@@ -515,6 +515,7 @@ static void bta_dm_pm_set_mode(const RawAddress& peer_addr,
   const tBTA_DM_PM_CFG* p_pm_cfg;
   const tBTA_DM_PM_SPEC* p_pm_spec;
   const tBTA_DM_PM_ACTN* p_act0;
+  const tBTA_DM_PM_ACTN* p_act1;
   tBTA_DM_SRVCS* p_srvcs = NULL;
   bool timer_started = false;
   uint8_t timer_idx, available_timer = BTA_DM_PM_MODE_TIMER_MAX;
@@ -548,7 +549,8 @@ static void bta_dm_pm_set_mode(const RawAddress& peer_addr,
 
       p_pm_cfg = &p_bta_dm_pm_cfg[j];
       p_pm_spec = &get_bta_dm_pm_spec()[p_pm_cfg->spec_idx];
-      p_act0 = &p_pm_spec->actn_tbl[p_srvcs->state];
+      p_act0 = &p_pm_spec->actn_tbl[p_srvcs->state][0];
+      p_act1 = &p_pm_spec->actn_tbl[p_srvcs->state][1];
 
       allowed_modes |= p_pm_spec->allow_mask;
       LOG_DEBUG(
@@ -571,6 +573,15 @@ static void bta_dm_pm_set_mode(const RawAddress& peer_addr,
             p_srvcs->new_request = false;
             timeout_ms = p_act0->timeout;
           }
+        }
+      }
+      /* if first preference has already failed, try second preference */
+      else if (!(failed_pm & p_act1->power_mode)) {
+        pref_modes |= p_act1->power_mode;
+
+        if (p_act1->power_mode > pm_action) {
+          pm_action = p_act1->power_mode;
+          timeout_ms = p_act1->timeout;
         }
       }
     }
