@@ -3650,29 +3650,31 @@ static void handle_app_attr_txt_response(tBTA_AV_META_MSG* pmeta_msg,
      * for standard attributes.
      */
     p_app_settings->num_ext_attrs = 0;
-    for (xx = 0; xx < p_app_settings->ext_attr_index; xx++) {
+    for (xx = 0;
+         xx < p_app_settings->ext_attr_index && xx < AVRC_MAX_APP_ATTR_SIZE;
+         xx++) {
       osi_free_and_reset((void**)&p_app_settings->ext_attrs[xx].p_str);
     }
     p_app_settings->ext_attr_index = 0;
 
-    if (p_dev) {
-      for (xx = 0; xx < p_app_settings->num_attrs; xx++) {
-        attrs[xx] = p_app_settings->attrs[xx].attr_id;
-      }
-
-      do_in_jni_thread(
-          FROM_HERE,
-          base::Bind(bt_rc_ctrl_callbacks->playerapplicationsetting_cb,
-                     p_dev->rc_addr, p_app_settings->num_attrs,
-                     p_app_settings->attrs, 0, nullptr));
-      get_player_app_setting_cmd(xx, attrs, p_dev);
+    for (xx = 0; xx < p_app_settings->num_attrs && xx < AVRC_MAX_APP_ATTR_SIZE;
+         xx++) {
+      attrs[xx] = p_app_settings->attrs[xx].attr_id;
     }
+
+    do_in_jni_thread(
+        FROM_HERE, base::Bind(bt_rc_ctrl_callbacks->playerapplicationsetting_cb,
+                              p_dev->rc_addr, p_app_settings->num_attrs,
+                              p_app_settings->attrs, 0, nullptr));
+    get_player_app_setting_cmd(xx, attrs, p_dev);
+
     return;
   }
 
   for (xx = 0; xx < p_rsp->num_attr; xx++) {
     uint8_t x;
-    for (x = 0; x < p_app_settings->num_ext_attrs; x++) {
+    for (x = 0; x < p_app_settings->num_ext_attrs && x < AVRC_MAX_APP_ATTR_SIZE;
+         x++) {
       if (p_app_settings->ext_attrs[x].attr_id == p_rsp->p_attrs[xx].attr_id) {
         p_app_settings->ext_attrs[x].charset_id = p_rsp->p_attrs[xx].charset_id;
         p_app_settings->ext_attrs[x].str_len = p_rsp->p_attrs[xx].str_len;
@@ -3682,7 +3684,9 @@ static void handle_app_attr_txt_response(tBTA_AV_META_MSG* pmeta_msg,
     }
   }
 
-  for (xx = 0; xx < p_app_settings->ext_attrs[0].num_val; xx++) {
+  for (xx = 0;
+       xx < p_app_settings->ext_attrs[0].num_val && xx < BTRC_MAX_APP_ATTR_SIZE;
+       xx++) {
     vals[xx] = p_app_settings->ext_attrs[0].ext_attr_val[xx].val;
   }
   get_player_app_setting_value_text_cmd(vals, xx, p_dev);
@@ -3726,11 +3730,13 @@ static void handle_app_attr_val_txt_response(
      * for standard attributes.
      */
     p_app_settings->num_ext_attrs = 0;
-    for (xx = 0; xx < p_app_settings->ext_attr_index; xx++) {
+    for (xx = 0;
+         xx < p_app_settings->ext_attr_index && xx < AVRC_MAX_APP_ATTR_SIZE;
+         xx++) {
       int x;
       btrc_player_app_ext_attr_t* p_ext_attr = &p_app_settings->ext_attrs[xx];
 
-      for (x = 0; x < p_ext_attr->num_val; x++)
+      for (x = 0; x < p_ext_attr->num_val && x < BTRC_MAX_APP_ATTR_SIZE; x++)
         osi_free_and_reset((void**)&p_ext_attr->ext_attr_val[x].p_str);
       p_ext_attr->num_val = 0;
       osi_free_and_reset((void**)&p_app_settings->ext_attrs[xx].p_str);
@@ -3749,11 +3755,17 @@ static void handle_app_attr_val_txt_response(
     return;
   }
 
+  if (p_app_settings->ext_val_index >= AVRC_MAX_APP_ATTR_SIZE) {
+    BTIF_TRACE_ERROR("ext_val_index is 0x%02x, overflow!",
+                     p_app_settings->ext_val_index);
+    return;
+  }
+
   for (xx = 0; xx < p_rsp->num_attr; xx++) {
     uint8_t x;
     btrc_player_app_ext_attr_t* p_ext_attr;
     p_ext_attr = &p_app_settings->ext_attrs[p_app_settings->ext_val_index];
-    for (x = 0; x < p_rsp->num_attr; x++) {
+    for (x = 0; x < p_rsp->num_attr && x < BTRC_MAX_APP_ATTR_SIZE; x++) {
       if (p_ext_attr->ext_attr_val[x].val == p_rsp->p_attrs[xx].attr_id) {
         p_ext_attr->ext_attr_val[x].charset_id = p_rsp->p_attrs[xx].charset_id;
         p_ext_attr->ext_attr_val[x].str_len = p_rsp->p_attrs[xx].str_len;
@@ -3806,10 +3818,12 @@ static void handle_app_attr_val_txt_response(
  **************************************************************************/
 static void cleanup_app_attr_val_txt_response(
     btif_rc_player_app_settings_t* p_app_settings) {
-  for (uint8_t xx = 0; xx < p_app_settings->ext_attr_index; xx++) {
+  for (uint8_t xx = 0;
+       xx < p_app_settings->ext_attr_index && xx < AVRC_MAX_APP_ATTR_SIZE;
+       xx++) {
     int x;
     btrc_player_app_ext_attr_t* p_ext_attr = &p_app_settings->ext_attrs[xx];
-    for (x = 0; x < p_ext_attr->num_val; x++) {
+    for (x = 0; x < p_ext_attr->num_val && x < BTRC_MAX_APP_ATTR_SIZE; x++) {
       osi_free_and_reset((void**)&p_ext_attr->ext_attr_val[x].p_str);
     }
     p_ext_attr->num_val = 0;
