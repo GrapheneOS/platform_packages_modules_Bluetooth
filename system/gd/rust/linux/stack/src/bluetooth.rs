@@ -496,7 +496,7 @@ impl Bluetooth {
                 self.hh.as_mut().unwrap().disable();
             }
 
-            Profile::A2dpSource | Profile::Hfp => {
+            Profile::A2dpSource | Profile::Hfp | Profile::AvrcpTarget => {
                 self.bluetooth_media.lock().unwrap().disable_profile(profile);
             }
             // Ignore profiles that we don't connect.
@@ -514,7 +514,7 @@ impl Bluetooth {
                 self.hh.as_mut().unwrap().enable();
             }
 
-            Profile::A2dpSource | Profile::Hfp => {
+            Profile::A2dpSource | Profile::Hfp | Profile::AvrcpTarget => {
                 self.bluetooth_media.lock().unwrap().enable_profile(profile);
             }
             // Ignore profiles that we don't connect.
@@ -530,7 +530,7 @@ impl Bluetooth {
         match profile {
             Profile::Hid => Some(!self.hh.is_none() && self.hh.as_ref().unwrap().is_enabled()),
 
-            Profile::A2dpSource | Profile::Hfp => {
+            Profile::A2dpSource | Profile::Hfp | Profile::AvrcpTarget => {
                 self.bluetooth_media.lock().unwrap().is_profile_enabled(profile)
             }
             // Ignore profiles that we don't connect.
