@@ -127,12 +127,11 @@ cc_library_static {
     ],
 }
 
-// This library implements Python bindings to the DualModeController
-// class to enable scripted testing in Python.
+// This library implements a foreigh function interface over DualModeController
+// compatible with Python or Rust.
 cc_library_host_shared {
-    name: "lib_rootcanal_python3",
+    name: "lib_rootcanal_ffi",
     defaults: [
-        "bluetooth_py3_native_extension_defaults",
         "rootcanal_defaults",
     ],
     srcs: [
@@ -140,7 +139,7 @@ cc_library_host_shared {
         "model/controller/acl_connection_handler.cc",
         "model/controller/controller_properties.cc",
         "model/controller/dual_mode_controller.cc",
-        "model/controller/dual_mode_controller_python3.cc",
+        "model/controller/ffi.cc",
         "model/controller/isochronous_connection_handler.cc",
         "model/controller/le_advertiser.cc",
         "model/controller/link_layer_controller.cc",
@@ -163,14 +162,11 @@ cc_library_host_shared {
     whole_static_libs: [
         "libbase",
         "liblmp",
-    ],
-    header_libs: [
-        "pybind11_headers",
+        "liblog",
     ],
     cflags: [
         "-fexceptions",
     ],
-    rtti: true,
 }
 
 // Generate the python parser+serializer backend for
@@ -278,7 +274,7 @@ python_test_host {
         "test/LL/DDI/SCN/*.py",
     ],
     data: [
-        ":lib_rootcanal_python3",
+        ":lib_rootcanal_ffi",
     ],
     libs: [
         "typing_extensions",
