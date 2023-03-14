@@ -1536,6 +1536,7 @@ cc_test {
         "packages/modules/Bluetooth/system/device/include/",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
+        "packages/modules/Bluetooth/system/stack/btm",
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
@@ -1543,6 +1544,7 @@ cc_test {
         ":TestCommonMockFunctions",
         ":TestMockBtif",
         ":TestMockOsi",
+        ":TestMockStackBtm",
         ":TestMockStackL2cap",
         ":TestMockStackMetrics",
         ":LegacyStackSdp",
