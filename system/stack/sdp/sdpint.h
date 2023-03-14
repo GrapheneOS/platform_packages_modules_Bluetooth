@@ -341,5 +341,8 @@ extern void sdp_disc_server_rsp(tCONN_CB* p_ccb, BT_HDR* p_msg);
 
 extern void update_pce_entry_to_interop_database(RawAddress remote_addr);
 extern bool is_sdp_pbap_pce_disabled(RawAddress remote_addr);
+extern void sdp_save_local_pse_record_attributes(
+    int32_t rfcomm_channel_number, int32_t l2cap_psm, int32_t profile_version,
+    uint32_t supported_features, uint32_t supported_repositories);
 
 #endif
