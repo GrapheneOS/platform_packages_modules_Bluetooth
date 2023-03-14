@@ -101,7 +101,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         advertisement.cancel()
         return dut_ref, ref_dut
 
-    def test_advertising_advertisment_data(self) -> None:
+    def test_advertising_advertisement_data(self) -> None:
         """
         Ref starts ASHA advertisements with service data in advertisement data.
         DUT starts a service discovery.
