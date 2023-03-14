@@ -3,4 +3,6 @@
     "useLibraryCodeForTypes": true,
     "verboseOutput": false,
     "reportMissingTypeStubs": false,
+    "reportUnknownLambdaType": false,
+    "reportImportCycles": false,
 }
