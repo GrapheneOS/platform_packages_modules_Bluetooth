@@ -452,7 +452,7 @@ typedef struct {
 typedef struct {
   uint8_t allow_mask; /* mask of sniff/hold/park modes to allow */
   uint8_t ssr; /* set SSR on conn open/unpark */
-  tBTA_DM_PM_ACTN actn_tbl[BTA_DM_PM_NUM_EVTS];
+  tBTA_DM_PM_ACTN actn_tbl[BTA_DM_PM_NUM_EVTS][2];
 
 } tBTA_DM_PM_SPEC;
 
