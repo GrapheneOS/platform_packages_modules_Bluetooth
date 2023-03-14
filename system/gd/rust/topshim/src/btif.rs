@@ -977,6 +977,13 @@ macro_rules! mutcxxcall {
     };
 }
 
+#[no_mangle]
+extern "C" fn wake_lock_noop(_0: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int {
+    // The wakelock mechanism is not available on this platform,
+    // so just returning success to avoid error log.
+    0
+}
+
 /// Rust wrapper around `bt_interface_t`.
 pub struct BluetoothInterface {
     internal: RawInterfaceWrapper,
@@ -986,6 +993,7 @@ pub struct BluetoothInterface {
 
     // Need to take ownership of callbacks so it doesn't get freed after init
     callbacks: Option<Box<bindings::bt_callbacks_t>>,
+    os_callouts: Option<Box<bindings::bt_os_callouts_t>>,
 }
 
 impl BluetoothInterface {
@@ -1015,7 +1023,7 @@ impl BluetoothInterface {
         // Fill up callbacks struct to pass to init function (will be copied so
         // no need to worry about ownership)
         let mut callbacks = Box::new(bindings::bt_callbacks_t {
-            size: 16 * 8,
+            size: std::mem::size_of::<bindings::bt_callbacks_t>(),
             adapter_state_changed_cb: Some(adapter_state_cb),
             adapter_properties_cb: Some(adapter_properties_cb),
             remote_device_properties_cb: Some(remote_device_properties_cb),
@@ -1055,6 +1063,21 @@ impl BluetoothInterface {
 
         self.is_init = init == 0;
         self.callbacks = Some(callbacks);
+
+        if self.is_init {
+            // Fill up OSI function table and register it with BTIF.
+            // TODO(b/271931441) - pass a NoOpOsCallouts structure from
+            // gd/rust/linux/stack.
+            let mut callouts = Box::new(bindings::bt_os_callouts_t {
+                size: std::mem::size_of::<bindings::bt_os_callouts_t>(),
+                set_wake_alarm: None, // Not used
+                acquire_wake_lock: Some(wake_lock_noop),
+                release_wake_lock: Some(wake_lock_noop),
+            });
+            let callouts_ptr = LTCheckedPtrMut::from(&mut callouts);
+            ccall!(self, set_os_callouts, callouts_ptr.into());
+            self.os_callouts = Some(callouts);
+        }
 
         return self.is_init;
     }
@@ -1248,6 +1271,7 @@ pub fn get_btinterface() -> Option<BluetoothInterface> {
                 internal: RawInterfaceWrapper { raw: ifptr },
                 is_init: false,
                 callbacks: None,
+                os_callouts: None,
             });
         }
     }
