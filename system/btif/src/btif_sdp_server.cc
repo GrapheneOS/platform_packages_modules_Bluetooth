@@ -674,6 +674,10 @@ static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec) {
                                (uint8_t*)&supported_repositories_1_1);
     APPL_TRACE_DEBUG(" supported_repositories_1_1: 0x%x",
                      supported_repositories_1_1);
+    sdp_save_local_pse_record_attributes(
+        rec->hdr.rfcomm_channel_number, rec->hdr.l2cap_psm,
+        rec->hdr.profile_version, rec->supported_features,
+        rec->supported_repositories);
   } else {
     /* Add in the Bluetooth Profile Descriptor List */
     status &= SDP_AddProfileDescriptorList(
