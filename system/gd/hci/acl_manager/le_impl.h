@@ -975,8 +975,8 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
               conn_interval_max,
               conn_latency,
               supervision_timeout,
-              kMinimumCeLength,
-              kMaximumCeLength),
+              0x00,
+              0x00),
           handler_->BindOnce(&le_impl::on_create_connection, common::Unretained(this)));
     }
   }
@@ -1273,8 +1273,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     system_suspend_ = suspended;
   }
 
-  static constexpr uint16_t kMinimumCeLength = 0x0002;
-  static constexpr uint16_t kMaximumCeLength = 0x0C00;
   HciLayer* hci_layer_ = nullptr;
   Controller* controller_ = nullptr;
   os::Handler* handler_ = nullptr;
