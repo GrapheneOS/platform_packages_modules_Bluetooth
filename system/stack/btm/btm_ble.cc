@@ -647,10 +647,24 @@ tBTM_STATUS BTM_SetBleDataLength(const RawAddress& bd_addr,
     return BTM_ILLEGAL_VALUE;
   }
 
+  LOG_INFO("%s, %d", ADDRESS_TO_LOGGABLE_CSTR(bd_addr), tx_pdu_length);
+
+  auto p_dev_rec = btm_find_dev(bd_addr);
+  if (p_dev_rec == NULL) {
+    LOG_ERROR("Device %s not found", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+    return BTM_UNKNOWN_ADDR;
+  }
+
   if (tx_pdu_length > BTM_BLE_DATA_SIZE_MAX)
     tx_pdu_length = BTM_BLE_DATA_SIZE_MAX;
   else if (tx_pdu_length < BTM_BLE_DATA_SIZE_MIN)
     tx_pdu_length = BTM_BLE_DATA_SIZE_MIN;
+
+  if (p_dev_rec->get_suggested_tx_octets() >= tx_pdu_length) {
+    LOG_INFO(" Suggested TX octect already set to controller %d >= %d",
+             p_dev_rec->get_suggested_tx_octets(), tx_pdu_length);
+    return BTM_SUCCESS;
+  }
 
   uint16_t tx_time = BTM_BLE_DATA_TX_TIME_MAX_LEGACY;
 
@@ -667,6 +681,7 @@ tBTM_STATUS BTM_SetBleDataLength(const RawAddress& bd_addr,
   if (bluetooth::shim::is_gd_l2cap_enabled()) {
     uint16_t handle = bluetooth::shim::L2CA_GetLeHandle(bd_addr);
     btsnd_hcic_ble_set_data_length(handle, tx_pdu_length, tx_time);
+    p_dev_rec->set_suggested_tx_octect(tx_pdu_length);
     return BTM_SUCCESS;
   }
 
@@ -684,6 +699,7 @@ tBTM_STATUS BTM_SetBleDataLength(const RawAddress& bd_addr,
       tx_time, controller_get_interface()->get_ble_maximum_tx_time());
 
   btsnd_hcic_ble_set_data_length(hci_handle, tx_pdu_length, tx_time);
+  p_dev_rec->set_suggested_tx_octect(tx_pdu_length);
 
   return BTM_SUCCESS;
 }

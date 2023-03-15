@@ -22,6 +22,7 @@
  *  This is mainly dealing with client requests
  *
  ******************************************************************************/
+#define LOG_TAG "sdp_server"
 
 #include <base/location.h>
 #include <base/logging.h>
@@ -43,9 +44,11 @@
 #include "device/include/interop_config.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
+#include "stack/btm/btm_dev.h"
 #include "stack/include/avrc_api.h"
 #include "stack/include/avrc_defs.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btm_api.h"
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
 
@@ -66,6 +69,17 @@
 
 #define PBAP_1_2 0x0102
 #define PBAP_1_2_BL_LEN 14
+
+/* Used to set PBAP local SDP device record for PBAP 1.2 upgrade */
+typedef struct {
+  int32_t rfcomm_channel_number;
+  int32_t l2cap_psm;
+  int32_t profile_version;
+  uint32_t supported_features;
+  uint32_t supported_repositories;
+} tSDP_PSE_LOCAL_RECORD;
+
+static tSDP_PSE_LOCAL_RECORD sdpPseLocalRecord;
 
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -1060,11 +1074,23 @@ static bool is_device_in_allowlist_for_pbap(RawAddress remote_address,
     SDP_TRACE_DEBUG("device is in allowlist for pbap version < 1.2 ");
     return true;
   }
-  if (check_for_1_2 &&
-      interop_match_addr_or_name(INTEROP_ADV_PBAP_VER_1_2, &remote_address,
-                                 &btif_storage_get_remote_device_property)) {
-    SDP_TRACE_DEBUG("device is in allowlist for pbap version 1.2 ");
-    return true;
+  if (check_for_1_2) {
+    if (btm_sec_is_a_bonded_dev(remote_address)) {
+      if (interop_match_addr_or_name(
+              INTEROP_ADV_PBAP_VER_1_2, &remote_address,
+              &btif_storage_get_remote_device_property)) {
+        SDP_TRACE_DEBUG("device is in allowlist for pbap version 1.2 ");
+        return true;
+      }
+    } else {
+      char* p_name = BTM_SecReadDevName(remote_address);
+      if ((p_name != NULL) &&
+          interop_match_name(INTEROP_ADV_PBAP_VER_1_2, p_name)) {
+        SDP_TRACE_DEBUG(
+            "device is not paired & in allowlist for pbap version 1.2");
+        return true;
+      }
+    }
   }
   return false;
 }
@@ -1208,10 +1234,6 @@ static const tSDP_RECORD* sdp_upgrade_pse_record(const tSDP_RECORD* p_rec,
   }
 
   static tSDP_RECORD pbap_102_sdp_rec = {};
-
-  uint32_t supported_features = 0x021F;  // PBAP 1.2 Features
-  uint16_t pbap_0102 = PBAP_1_2;         // Profile version
-  uint32_t pbap_l2cap_psm = 0x1025;      // Fixed L2CAP PSM
   const tSDP_ATTRIBUTE* p_attr = &p_rec->attribute[0];
   uint8_t temp[4], j;
   uint8_t* p_temp = temp;
@@ -1223,19 +1245,25 @@ static const tSDP_RECORD* sdp_upgrade_pse_record(const tSDP_RECORD* p_rec,
                              p_attr->len, p_attr->value_ptr);
   }
 
+  /* Add supported repositories 1 byte */
+  status &= SDP_AddAttributeToRecord(
+      &pbap_102_sdp_rec, ATTR_ID_SUPPORTED_REPOSITORIES, UINT_DESC_TYPE,
+      (uint32_t)1, (uint8_t*)&sdpPseLocalRecord.supported_repositories);
+
   /* Add in the Bluetooth Profile Descriptor List */
   status &= SDP_AddProfileDescriptorListToRecord(
-      &pbap_102_sdp_rec, UUID_SERVCLASS_PHONE_ACCESS, pbap_0102);
+      &pbap_102_sdp_rec, UUID_SERVCLASS_PHONE_ACCESS,
+      sdpPseLocalRecord.profile_version);
 
   /* Add PBAP 1.2 supported features 4 */
-  UINT32_TO_BE_STREAM(p_temp, supported_features);
+  UINT32_TO_BE_STREAM(p_temp, sdpPseLocalRecord.supported_features);
   status &= SDP_AddAttributeToRecord(&pbap_102_sdp_rec,
                                      ATTR_ID_PBAP_SUPPORTED_FEATURES,
                                      UINT_DESC_TYPE, (uint32_t)4, temp);
 
   /* Add the L2CAP PSM */
   p_temp = temp;  // The macro modifies p_temp, hence rewind.
-  UINT16_TO_BE_STREAM(p_temp, pbap_l2cap_psm);
+  UINT16_TO_BE_STREAM(p_temp, sdpPseLocalRecord.l2cap_psm);
   status &= SDP_AddAttributeToRecord(&pbap_102_sdp_rec, ATTR_ID_GOEP_L2CAP_PSM,
                                      UINT_DESC_TYPE, (uint32_t)2, temp);
 
@@ -1284,4 +1312,31 @@ bool is_sdp_pbap_pce_disabled(RawAddress remote_address) {
   } else {
     return false;
   }
+}
+
+/*************************************************************************************
+**
+** Function        sdp_save_local_pse_record_attributes_val
+**
+** Description     Save pbap 1.2 sdp record attributes values, which would be
+*used for dynamic version upgrade.
+**
+** Returns         BOOLEAN
+**
+***************************************************************************************/
+void sdp_save_local_pse_record_attributes(int32_t rfcomm_channel_number,
+                                          int32_t l2cap_psm,
+                                          int32_t profile_version,
+                                          uint32_t supported_features,
+                                          uint32_t supported_repositories) {
+  SDP_TRACE_WARNING(
+      "rfcomm_channel_number: 0x%x, l2cap_psm: 0x%x profile_version: 0x%x"
+      "supported_features: 0x%x supported_repositories:  0x%x",
+      rfcomm_channel_number, l2cap_psm, profile_version, supported_features,
+      supported_repositories);
+  sdpPseLocalRecord.rfcomm_channel_number = rfcomm_channel_number;
+  sdpPseLocalRecord.l2cap_psm = l2cap_psm;
+  sdpPseLocalRecord.profile_version = profile_version;
+  sdpPseLocalRecord.supported_features = supported_features;
+  sdpPseLocalRecord.supported_repositories = supported_repositories;
 }
