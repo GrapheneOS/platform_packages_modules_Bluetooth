@@ -1,8 +1,12 @@
-use crate::btif::{BluetoothInterface, BtStatus, RawAddress, ToggleableProfile};
+use crate::btif::{BluetoothInterface, BtStatus, RawAddress, SupportedProfiles, ToggleableProfile};
 use crate::topstack::get_dispatchers;
 
 use std::sync::{Arc, Mutex};
 use topshim_macros::{cb_variant, profile_enabled_or};
+
+use crate::bindings::root as bindings;
+use crate::ccall;
+use crate::utils::LTCheckedPtrMut;
 
 use log::warn;
 
@@ -23,6 +27,7 @@ pub mod ffi {
 
     unsafe extern "C++" {
         include!("btav/btav_shim.h");
+        include!("btav_sink/btav_sink_shim.h");
 
         type AvrcpIntf;
 
@@ -194,5 +199,109 @@ impl Avrcp {
             &metadata.album,
             metadata.length_us,
         );
+    }
+}
+
+struct RawAvrcpCtrlWrapper {
+    raw: *const bindings::btrc_ctrl_interface_t,
+}
+
+// Pointers unsafe due to ownership but this is a static pointer so Send is ok.
+unsafe impl Send for RawAvrcpCtrlWrapper {}
+
+pub struct AvrcpCtrl {
+    internal: RawAvrcpCtrlWrapper,
+    callbacks: Option<Box<bindings::btrc_ctrl_callbacks_t>>,
+}
+
+cb_variant!(AvrcpCtCb, avrcp_connection_state_cb -> AvrcpCtrlCallbacks::ConnectionState,
+bool, bool, *const RawAddress, {
+    let _2 = unsafe { *_2 };
+});
+
+cb_variant!(AvrcpCtCb, avrcp_getrcfeatures_cb -> AvrcpCtrlCallbacks::GetRCFeatures,
+*const RawAddress, i32, {
+    let _0 = unsafe { *_0 };
+});
+
+cb_variant!(AvrcpCtCb, avrcp_get_cover_art_psm_cb -> AvrcpCtrlCallbacks::GetCoverArtPsm,
+*const RawAddress, u16, {
+    let _0 = unsafe { *_0 };
+});
+
+cb_variant!(AvrcpCtCb, avrcp_passthrough_rsp_cb -> AvrcpCtrlCallbacks::PassthroughRsp,
+*const RawAddress, i32, i32, {
+    let _0 = unsafe { *_0 };
+});
+
+#[derive(Debug)]
+pub enum AvrcpCtrlCallbacks {
+    PassthroughRsp(RawAddress, i32, i32),
+    ConnectionState(bool, bool, RawAddress),
+    GetRCFeatures(RawAddress, i32),
+    GetCoverArtPsm(RawAddress, u16),
+}
+
+pub struct AvrcpCtrlCallbacksDispatcher {
+    pub dispatch: Box<dyn Fn(AvrcpCtrlCallbacks) + Send>,
+}
+
+type AvrcpCtCb = Arc<Mutex<AvrcpCtrlCallbacksDispatcher>>;
+
+impl AvrcpCtrl {
+    pub fn new(intf: &BluetoothInterface) -> AvrcpCtrl {
+        let r = intf.get_profile_interface(SupportedProfiles::AvrcpCtrl);
+        AvrcpCtrl {
+            internal: RawAvrcpCtrlWrapper { raw: r as *const bindings::btrc_ctrl_interface_t },
+            callbacks: None,
+        }
+    }
+
+    pub fn initialize(&mut self, callbacks: AvrcpCtrlCallbacksDispatcher) -> bool {
+        // Register dispatcher
+        if get_dispatchers().lock().unwrap().set::<AvrcpCtCb>(Arc::new(Mutex::new(callbacks))) {
+            panic!("Tried to set dispatcher for AvrcpCt Callbacks but it already existed");
+        }
+
+        let callbacks = Box::new(bindings::btrc_ctrl_callbacks_t {
+            size: 21 * 8,
+            passthrough_rsp_cb: Some(avrcp_passthrough_rsp_cb),
+            groupnavigation_rsp_cb: None,
+            connection_state_cb: Some(avrcp_connection_state_cb),
+            getrcfeatures_cb: Some(avrcp_getrcfeatures_cb),
+            setplayerappsetting_rsp_cb: None,
+            playerapplicationsetting_cb: None,
+            playerapplicationsetting_changed_cb: None,
+            setabsvol_cmd_cb: None,
+            registernotification_absvol_cb: None,
+            track_changed_cb: None,
+            play_position_changed_cb: None,
+            play_status_changed_cb: None,
+            get_folder_items_cb: None,
+            change_folder_path_cb: None,
+            set_browsed_player_cb: None,
+            set_addressed_player_cb: None,
+            addressed_player_changed_cb: None,
+            now_playing_contents_changed_cb: None,
+            available_player_changed_cb: None,
+            get_cover_art_psm_cb: Some(avrcp_get_cover_art_psm_cb),
+        });
+
+        self.callbacks = Some(callbacks);
+
+        let cb_ptr = LTCheckedPtrMut::from(self.callbacks.as_mut().unwrap());
+
+        ccall!(self, init, cb_ptr.into());
+
+        true
+    }
+
+    pub fn send_pass_through_cmd(
+        &mut self,
+        addr: RawAddress,
+        key_code: u8,
+        key_state: u8,
+    ) -> BtStatus {
+        ccall!(self, send_pass_through_cmd, &addr, key_code.into(), key_state.into()).into()
     }
 }
