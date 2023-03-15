@@ -34,10 +34,11 @@ source_set("BluetoothMetricsSources") {
   sources = [
     "counter_metrics.cc",
     "utils.cc",
+    "metrics_state.cc"
   ]
 
-  configs += [ "//bt/system/gd:gd_defaults" ]
-  deps = [ "//bt/system/gd:gd_default_deps" ]
+  configs += [ "//bt/system/gd:gd_defaults"]
+  deps = [ "//bt/system/gd:gd_default_deps", "//bt/system:libbt-platform-protos-lite", "//bt/system/gd:libstatslog_bt"]
 
   if (target_os == "chromeos") {
     deps += [ ":BluetoothMetricsSources_chromeos" ]
