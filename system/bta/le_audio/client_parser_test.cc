@@ -1032,6 +1032,70 @@ TEST(LeAudioClientParserTest, testParseAseCtpNotification) {
   ASSERT_EQ(ntf.entries[1].reason, 0x03);
 }
 
+TEST(LeAudioClientParserTest, testParseAseCtpNotificationConfigurationIssue) {
+  ctp_ntf ntf;
+  const uint8_t value1[] = {
+      // Opcode
+      0x01,
+      // Number of ASEs
+      0x02,
+      // ASE ID
+      0x01,
+      // Response Code
+      0x07,
+      // Reason
+      0x01,
+      // ASE ID
+      0x03,
+      // Response Code
+      0x05,
+      // Reason
+      0x05,
+  };
+  ParseAseCtpNotification(ntf, sizeof(value1), value1);
+
+  ASSERT_EQ(ntf.op, 0x01u);
+  ASSERT_EQ(ntf.entries.size(), 2u);
+  ASSERT_EQ(ntf.entries[0].ase_id, 0x01u);
+  ASSERT_EQ(ntf.entries[0].response_code, 0x07u);
+  ASSERT_EQ(ntf.entries[0].reason, 0x01);
+  ASSERT_EQ(ntf.entries[1].ase_id, 0x03u);
+  ASSERT_EQ(ntf.entries[1].response_code, 0x05u);
+  ASSERT_EQ(ntf.entries[1].reason, 0x05);
+}
+
+TEST(LeAudioClientParserTest, testParseAseCtpNotificationMetadataIssue) {
+  ctp_ntf ntf;
+  const uint8_t value1[] = {
+      // Opcode
+      0x01,
+      // Number of ASEs
+      0x02,
+      // ASE ID
+      0x01,
+      // Response Code
+      0x0A,
+      // Reason
+      0x01,
+      // ASE ID
+      0x03,
+      // Response Code
+      0x0D,
+      // Reason
+      0xFF,
+  };
+  ParseAseCtpNotification(ntf, sizeof(value1), value1);
+
+  ASSERT_EQ(ntf.op, 0x01u);
+  ASSERT_EQ(ntf.entries.size(), 2u);
+  ASSERT_EQ(ntf.entries[0].ase_id, 0x01u);
+  ASSERT_EQ(ntf.entries[0].response_code, 0x0Au);
+  ASSERT_EQ(ntf.entries[0].reason, 0x01);
+  ASSERT_EQ(ntf.entries[1].ase_id, 0x03u);
+  ASSERT_EQ(ntf.entries[1].response_code, 0x0Du);
+  ASSERT_EQ(ntf.entries[1].reason, 0xFF);
+}
+
 TEST(LeAudioClientParserTest, testPrepareAseCtpCodecConfigEmpty) {
   std::vector<struct ctp_codec_conf> confs;
   std::vector<uint8_t> value;
