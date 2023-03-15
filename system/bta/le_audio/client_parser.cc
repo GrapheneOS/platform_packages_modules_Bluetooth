@@ -63,7 +63,7 @@ static std::map<uint8_t, std::string> ctp_opcode_map_string = {
     {kCtpOpcodeRelease, "Release"},
 };
 
-static std::map<uint8_t, std::string> ctp_reason_map_string = {
+static std::map<uint8_t, std::string> ctp_configuration_reason_map_string = {
     {kCtpResponseNoReason, ""},
     {kCtpResponseCodecId, "Codec ID"},
     {kCtpResponseCodecSpecificConfiguration, "Codec specific configuration"},
@@ -98,6 +98,31 @@ static std::map<uint8_t, std::string> ctp_response_code_map_string = {
     {kCtpResponseCodeInvalidMetadata, "Invalid Metadata"},
     {kCtpResponseCodeInsufficientResources, "Insufficient Resources"},
     {kCtpResponseCodeUnspecifiedError, "Unspecified Error"},
+};
+
+static std::map<uint8_t, std::string> ctp_metadata_reason_map_string = {
+    {kCtpMetadataResponsePreferredAudioContexts, "Preferred Audio Contexts"},
+    {kCtpMetadataResponseStreamingAudioContexts, "Streaming Audio Contexts"},
+    {kCtpMetadataResponseProgramInfo, "Program Info"},
+    {kCtpMetadataResponseLanguage, "Language"},
+    {kCtpMetadataResponseCcidList, "CCID List"},
+    {kCtpMetadataResponseParentalRating, "Parental Rating"},
+    {kCtpMetadataResponseProgramInfoUri, "Program Info URI"},
+    {kCtpMetadataResponseExtendedMetadata, "Extended Metadata"},
+    {kCtpMetadataResponseVendorSpecific, "Vendor Specific"},
+};
+
+static std::map<uint8_t, std::map<uint8_t, std::string>*>
+    ctp_response_code_map = {
+        {kCtpResponseCodeUnsupportedConfigurationParameterValue,
+         &ctp_configuration_reason_map_string},
+        {kCtpResponseCodeRejectedConfigurationParameterValue,
+         &ctp_configuration_reason_map_string},
+        {kCtpResponseCodeInvalidConfigurationParameterValue,
+         &ctp_configuration_reason_map_string},
+        {kCtpResponseCodeUnsupportedMetadata, &ctp_metadata_reason_map_string},
+        {kCtpResponseCodeRejectedMetadata, &ctp_metadata_reason_map_string},
+        {kCtpResponseCodeInvalidMetadata, &ctp_metadata_reason_map_string},
 };
 
 bool ParseAseStatusHeader(ase_rsp_hdr& arh, uint16_t len,
@@ -276,7 +301,12 @@ bool ParseAseCtpNotification(struct ctp_ntf& ntf, uint16_t len,
               << "] response: "
               << ctp_response_code_map_string[ntf.entries[i].response_code]
               << " (" << loghex(ntf.entries[i].response_code) << ")"
-              << " reason: " << ctp_reason_map_string[ntf.entries[i].reason]
+              << " reason: "
+              << ((ctp_response_code_map.count(ntf.entries[i].response_code) !=
+                   0)
+                      ? (*ctp_response_code_map[ntf.entries[i].response_code])
+                            [ntf.entries[i].reason]
+                      : "")
               << " (" << loghex(ntf.entries[i].reason) << ")";
 
   return true;
