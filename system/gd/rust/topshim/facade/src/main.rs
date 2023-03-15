@@ -1,18 +1,13 @@
 //! Starts the facade services that allow us to test the Bluetooth stack
 
-#[macro_use]
-extern crate clap;
-use clap::{App, Arg};
-
-#[macro_use]
-extern crate lazy_static;
-
 use bt_topshim::btif;
 
+use clap::{value_t, App, Arg};
 use futures::channel::mpsc;
 use futures::executor::block_on;
 use futures::stream::StreamExt;
 use grpcio::*;
+use lazy_static::lazy_static;
 use log::debug;
 use nix::sys::signal;
 use std::sync::{Arc, Mutex};
