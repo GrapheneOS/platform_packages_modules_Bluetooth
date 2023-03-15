@@ -46,15 +46,15 @@ case "$1" in
     pip install \
       'grpcio==1.51.1' \
       'protobuf==4.21.0' \
-      'pyright==1.1.296' \
+      'pyright==1.1.298' \
       'mypy==1.0' \
       'types-protobuf==4.21.0.3'
     export PYTHONPATH="$(IFS=:; echo "${_PANDORA_PYTHON_PATHS[*]}"):${PYTHONPATH}"
-    pyright \
-      -p "${_TEST_ROOT}" \
-      "$@" "${_TEST_FILES[@]}"
     mypy \
       --pretty --show-column-numbers --strict --no-warn-unused-ignores --ignore-missing-imports \
+      "$@" "${_TEST_FILES[@]}" || exit 1
+    pyright \
+      -p "${_TEST_ROOT}" \
       "$@" "${_TEST_FILES[@]}"
   ;;
   'run') shift

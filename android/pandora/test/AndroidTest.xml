@@ -28,10 +28,13 @@
         <option name="host-background-command" value="adb -s $SERIAL shell nc -L -p 6211 nc 192.168.97.1 7300" />
         <option name="host-teardown-command" value="adb -s $SERIAL forward --remove tcp:6211" />
     </target_preparer>
+    <target_preparer class="com.android.tradefed.targetprep.RunCommandTargetPreparer">
+        <option name="run-command" value="cmd bluetooth_manager enable" />
+        <option name="run-command" value="cmd bluetooth_manager wait-for-state:STATE_ON" />
+    </target_preparer>
     <target_preparer class="com.android.tradefed.targetprep.PythonVirtualenvPreparer">
         <option name="dep-module" value="grpcio==1.51.1" />
         <option name="dep-module" value="cryptography==35" />
-        <option name="dep-module" value="appdirs==1.4.4" />
     </target_preparer>
     <test class="com.android.tradefed.testtype.mobly.MoblyBinaryHostTest">
         <option name="mobly-par-file-name" value="avatar" />
