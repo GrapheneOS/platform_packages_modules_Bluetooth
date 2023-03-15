@@ -15,14 +15,15 @@
 import asyncio
 import logging
 
-from avatar import BumbleDevice, PandoraDevice, PandoraDevices, asynchronous
+from avatar import BumbleDevice, PandoraDevice, PandoraDevices, asynchronous, bumble_server
 from bumble.gatt import Characteristic, Service
 from bumble.smp import PairingConfig
+from bumble_experimental.gatt import GATTService
 from mobly import base_test, test_runner
 from pandora.host_pb2 import RANDOM, Connection, DataTypes
 from pandora.security_pb2 import LE_LEVEL3, PairingEventAnswer, SecureResponse
 from pandora_experimental.gatt_grpc import GATT
-from pandora_experimental.gatt_grpc_aio import GATT as AioGATT
+from pandora_experimental.gatt_grpc_aio import GATT as AioGATT, add_GATTServicer_to_server
 from pandora_experimental.gatt_pb2 import SUCCESS, ReadCharacteristicsFromUuidResponse
 from typing import Optional, Tuple
 
@@ -35,6 +36,11 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
     ref: BumbleDevice
 
     def setup_class(self) -> None:
+        # Register experimental bumble servicers hook.
+        bumble_server.register_servicer_hook(
+            lambda bumble, server: add_GATTServicer_to_server(GATTService(bumble.device), server)
+        )
+
         self.devices = PandoraDevices(self)
         dut, ref = self.devices
         assert isinstance(ref, BumbleDevice)
