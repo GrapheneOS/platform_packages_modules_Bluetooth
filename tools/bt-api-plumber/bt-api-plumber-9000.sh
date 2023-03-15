@@ -121,7 +121,7 @@ BTM_SHIM_FIND_PATTERNS=(
 BTM_SHIM_CODE_TEMPLATES=(
     "\\\\\/*******************************************************************************\\\n *\\\n * Function        BTM_:CamelApiName:\\\n *\\\n * Description    :API_DESCRIPTION:\\\n *\\\n * Parameters\\\n *\\\n *******************************************************************************\\\\\/\\\ntBTM_STATUS BTM_:CamelApiName:(void);"
     "  return BTM_SUCCESS;\\\n}\\\n\\\ntBTM_STATUS bluetooth::shim::BTM_:CamelApiName:() {\\\n  \\\\\/\\\\\/PLUMB: controller_get_interface()->:snake_api_name:();"
-    "  mock_function_count_map[__func__]++;\\\n  return BTM_SUCCESS;\\\n}\\\n\\\ntBTM_STATUS bluetooth::shim::BTM_:CamelApiName:() {"
+    "  inc_func_call_count(__func__);\\\n  return BTM_SUCCESS;\\\n}\\\n\\\ntBTM_STATUS bluetooth::shim::BTM_:CamelApiName:() {"
 )
 BTM_SHIM_REPLACEMENT_PATTERNS=(
     "FIRST\n\nSECOND"
