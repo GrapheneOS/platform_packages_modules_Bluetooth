@@ -582,17 +582,18 @@ class Host(
                   else -> DiscoverabilityMode.NOT_DISCOVERABLE
                 }
               dataTypesBuilder.setLeDiscoverabilityMode(mode)
-              var manufacturerData = ByteBuffer.allocate(32)
-              val manufacteurSpecificDatas = scanRecord.getManufacturerSpecificData()
-              for (i in 0..manufacteurSpecificDatas.size() - 1) {
-                val id = manufacteurSpecificDatas.keyAt(i)
+              var manufacturerData = ByteBuffer.allocate(512)
+              val manufacturerSpecificDatas = scanRecord.getManufacturerSpecificData()
+              for (i in 0..manufacturerSpecificDatas.size() - 1) {
+                val id = manufacturerSpecificDatas.keyAt(i)
                 manufacturerData
                   .put(id.toByte())
                   .put(id.shr(8).toByte())
-                  .put(manufacteurSpecificDatas.get(id))
+                  .put(manufacturerSpecificDatas.get(id))
               }
               dataTypesBuilder.setManufacturerSpecificData(
-                ByteString.copyFrom(manufacturerData.array())
+                ByteString.copyFrom(manufacturerData.array(), 0,
+                  manufacturerData.position())
               )
               val primaryPhy =
                 when (result.getPrimaryPhy()) {
