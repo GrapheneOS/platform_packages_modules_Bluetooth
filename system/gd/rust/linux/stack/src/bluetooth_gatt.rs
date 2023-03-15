@@ -520,6 +520,9 @@ pub trait IBluetoothGatt {
     /// Enumerates all GATT services on a connected device.
     fn discover_services(&self, client_id: i32, addr: String);
 
+    /// Discovers all GATT services on a connected device. Only used by PTS.
+    fn btif_gattc_discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String);
+
     /// Search a GATT service on a connected device based on a UUID.
     fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String);
 
@@ -2279,6 +2282,26 @@ impl IBluetoothGatt for BluetoothGatt {
         }
 
         self.gatt.as_ref().unwrap().lock().unwrap().client.search_service(conn_id.unwrap(), uuid);
+    }
+
+    fn btif_gattc_discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String) {
+        let conn_id = match self.context_map.get_conn_id_from_address(client_id, &addr) {
+            None => return,
+            Some(id) => id,
+        };
+
+        let uuid = match UuidHelper::parse_string(uuid) {
+            None => return,
+            Some(uuid) => uuid,
+        };
+
+        self.gatt
+            .as_ref()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .client
+            .btif_gattc_discover_service_by_uuid(conn_id, &uuid);
     }
 
     fn read_characteristic(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
