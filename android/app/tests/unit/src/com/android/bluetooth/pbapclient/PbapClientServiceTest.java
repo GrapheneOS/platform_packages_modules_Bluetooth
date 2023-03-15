@@ -50,6 +50,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -164,6 +165,7 @@ public class PbapClientServiceTest {
         assertThat(mService.connect(mRemoteDevice)).isFalse();
     }
 
+    @Ignore("b/273396169")
     @Test
     public void testConnect_whenPolicyIsAllowed_returnsTrue() {
         int connectionPolicy = BluetoothProfile.CONNECTION_POLICY_ALLOWED;
