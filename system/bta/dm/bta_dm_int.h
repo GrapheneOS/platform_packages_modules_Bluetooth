@@ -64,6 +64,7 @@
 typedef enum : uint16_t {
   /* DM search API events */
   BTA_DM_API_SEARCH_EVT = BTA_SYS_EVT_START(BTA_ID_DM_SEARCH),
+  BTA_DM_API_SEARCH_CANCEL_EVT,
   BTA_DM_API_DISCOVER_EVT,
   BTA_DM_INQUIRY_CMPL_EVT,
   BTA_DM_REMT_NAME_EVT,
@@ -76,6 +77,7 @@ typedef enum : uint16_t {
 inline std::string bta_dm_event_text(const tBTA_DM_EVT& event) {
   switch (event) {
     CASE_RETURN_TEXT(BTA_DM_API_SEARCH_EVT);
+    CASE_RETURN_TEXT(BTA_DM_API_SEARCH_CANCEL_EVT);
     CASE_RETURN_TEXT(BTA_DM_API_DISCOVER_EVT);
     CASE_RETURN_TEXT(BTA_DM_INQUIRY_CMPL_EVT);
     CASE_RETURN_TEXT(BTA_DM_REMT_NAME_EVT);
@@ -102,6 +104,10 @@ typedef struct {
   tBTA_DM_SEARCH_CBACK* p_cback;
   tBT_TRANSPORT transport;
 } tBTA_DM_API_DISCOVER;
+
+typedef struct {
+  BT_HDR_RIGID hdr;
+} tBTA_DM_API_DISCOVERY_CANCEL;
 
 typedef struct {
   RawAddress bd_addr;
