@@ -141,7 +141,8 @@ int LeAudioDeviceGroup::NumOfConnected(types::LeAudioContextType context_type) {
       leAudioDevices_.begin(), leAudioDevices_.end(),
       [type_set, check_context_type](auto& iter) {
         if (iter.expired()) return false;
-        if (iter.lock()->conn_id_ == GATT_INVALID_CONN_ID) return false;
+        if (iter.lock()->GetConnectionState() != DeviceConnectState::CONNECTED)
+          return false;
 
         if (!check_context_type) return true;
 
