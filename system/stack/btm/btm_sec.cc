@@ -4564,7 +4564,6 @@ static bool btm_sec_start_get_name(tBTM_SEC_DEV_REC* p_dev_rec) {
  *
  ******************************************************************************/
 static void btm_sec_wait_and_start_authentication(tBTM_SEC_DEV_REC* p_dev_rec) {
-  p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
   auto addr = new RawAddress(p_dev_rec->bd_addr);
 
   static const int32_t delay_auth =
@@ -4599,8 +4598,11 @@ static void btm_sec_auth_timer_timeout(void* data) {
     LOG_INFO("%s: invalid device or not found", __func__);
   } else if (btm_dev_authenticated(p_dev_rec)) {
     LOG_INFO("%s: device is already authenticated", __func__);
+  } else if (p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING) {
+    LOG_INFO("%s: device is in the process of authenticating", __func__);
   } else {
     LOG_INFO("%s: starting authentication", __func__);
+    p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
     btsnd_hcic_auth_request(p_dev_rec->hci_handle);
   }
 }
