@@ -933,192 +933,97 @@
             "qos_config_name": ["VND_QoS_Config_R5_L12"]
         },
         {
-            "name": "DualDev_OneChanStereoSnk_48_4_1_OneChanStereoSrc_32_2_1_Balanced_Reliability",
+            "name": "DualDev_OneChanStereoSnk_48_4_OneChanStereoSrc_32_2_Balanced_Reliability",
             "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanStereoSrc_32_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "DualDev_OneChanStereoSnk_48_4_2_OneChanStereoSrc_32_2_2_Balanced_Reliability",
-            "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanStereoSrc_32_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "DualDev_OneChanStereoSnk_48_4_1_OneChanStereoSrc_24_2_1_Balanced_Reliability",
+            "name": "DualDev_OneChanStereoSnk_48_4_OneChanStereoSrc_24_2_Balanced_Reliability",
             "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanStereoSrc_24_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "DualDev_OneChanStereoSnk_48_4_2_OneChanStereoSrc_24_2_2_Balanced_Reliability",
-            "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanStereoSrc_24_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "DualDev_OneChanStereoSnk_48_4_1_OneChanStereoSrc_16_2_1_Balanced_Reliability",
+            "name": "DualDev_OneChanStereoSnk_48_4_OneChanStereoSrc_16_2_Balanced_Reliability",
             "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanStereoSrc_16_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "DualDev_OneChanStereoSnk_48_4_2_OneChanStereoSrc_16_2_2_Balanced_Reliability",
-            "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanStereoSrc_16_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "DualDev_OneChanStereoSnk_48_4_1_OneChanMonoSrc_32_2_1_Balanced_Reliability",
+            "name": "DualDev_OneChanStereoSnk_48_4_OneChanMonoSrc_32_2_Balanced_Reliability",
             "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanMonoSrc_32_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "DualDev_OneChanStereoSnk_48_4_2_OneChanMonoSrc_32_2_2_Balanced_Reliability",
-            "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanMonoSrc_32_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "DualDev_OneChanStereoSnk_48_4_1_OneChanMonoSrc_24_2_1_Balanced_Reliability",
+            "name": "DualDev_OneChanStereoSnk_48_4_OneChanMonoSrc_24_2_Balanced_Reliability",
             "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanMonoSrc_24_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "DualDev_OneChanStereoSnk_48_4_2_OneChanMonoSrc_24_2_2_Balanced_Reliability",
-            "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanMonoSrc_24_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "DualDev_OneChanStereoSnk_48_4_1_OneChanMonoSrc_16_2_1_Balanced_Reliability",
+            "name": "DualDev_OneChanStereoSnk_48_4_OneChanMonoSrc_16_2_Balanced_Reliability",
             "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanMonoSrc_16_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "DualDev_OneChanStereoSnk_48_4_2_OneChanMonoSrc_16_2_2_Balanced_Reliability",
-            "codec_config_name": "DualDev_OneChanStereoSnk_48_4_OneChanMonoSrc_16_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "DualDev_OneChanDoubleStereoSnk_48_4_1_OneChanMonoSrc_32_2_1_Balanced_Reliability",
+            "name": "DualDev_OneChanDoubleStereoSnk_48_4_OneChanMonoSrc_32_2_Balanced_Reliability",
             "codec_config_name": "DualDev_OneChanDoubleStereoSnk_48_4_OneChanMonoSrc_32_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "DualDev_OneChanDoubleStereoSnk_48_4_2_OneChanMonoSrc_32_2_2_Balanced_Reliability",
-            "codec_config_name": "DualDev_OneChanDoubleStereoSnk_48_4_OneChanMonoSrc_32_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "DualDev_OneChanDoubleStereoSnk_48_4_1_OneChanMonoSrc_24_2_1_Balanced_Reliability",
+            "name": "DualDev_OneChanDoubleStereoSnk_48_4_OneChanMonoSrc_24_2_Balanced_Reliability",
             "codec_config_name": "DualDev_OneChanDoubleStereoSnk_48_4_OneChanMonoSrc_24_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "DualDev_OneChanDoubleStereoSnk_48_4_2_OneChanMonoSrc_24_2_2_Balanced_Reliability",
-            "codec_config_name": "DualDev_OneChanDoubleStereoSnk_48_4_OneChanMonoSrc_24_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "DualDev_OneChanDoubleStereoSnk_48_4_1_OneChanMonoSrc_16_2_1_Balanced_Reliability",
+            "name": "DualDev_OneChanDoubleStereoSnk_48_4_OneChanMonoSrc_16_2_Balanced_Reliability",
             "codec_config_name": "DualDev_OneChanDoubleStereoSnk_48_4_OneChanMonoSrc_16_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "DualDev_OneChanDoubleStereoSnk_48_4_2_OneChanMonoSrc_16_2_2_Balanced_Reliability",
-            "codec_config_name": "DualDev_OneChanDoubleStereoSnk_48_4_OneChanMonoSrc_16_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_1_TwoChanStereoSrc_32_2_1_Balanced_Reliability",
+            "name": "SingleDev_TwoChanStereoSnk_48_4_TwoChanStereoSrc_32_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_TwoChanStereoSrc_32_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_2_TwoChanStereoSrc_32_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_TwoChanStereoSrc_32_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_1_TwoChanStereoSrc_24_2_1_Balanced_Reliability",
+            "name": "SingleDev_TwoChanStereoSnk_48_4_TwoChanStereoSrc_24_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_TwoChanStereoSrc_24_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_2_TwoChanStereoSrc_24_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_TwoChanStereoSrc_24_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_1_TwoChanStereoSrc_16_2_1_Balanced_Reliability",
+            "name": "SingleDev_TwoChanStereoSnk_48_4_TwoChanStereoSrc_16_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_TwoChanStereoSrc_16_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_2_TwoChanStereoSrc_16_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_TwoChanStereoSrc_16_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_1_OneChanMonoSrc_32_2_1_Balanced_Reliability",
+            "name": "SingleDev_TwoChanStereoSnk_48_4_OneChanMonoSrc_32_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_OneChanMonoSrc_32_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_2_OneChanMonoSrc_32_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_OneChanMonoSrc_32_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_1_OneChanMonoSrc_24_2_1_Balanced_Reliability",
+            "name": "SingleDev_TwoChanStereoSnk_48_4_1_OneChanMonoSrc_24_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_OneChanMonoSrc_24_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_2_OneChanMonoSrc_24_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_OneChanMonoSrc_24_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_1_OneChanMonoSrc_16_2_1_Balanced_Reliability",
+            "name": "SingleDev_TwoChanStereoSnk_48_4_1_OneChanMonoSrc_16_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_OneChanMonoSrc_16_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_TwoChanStereoSnk_48_4_2_OneChanMonoSrc_16_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4_OneChanMonoSrc_16_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_OneChanStereoSnk_48_4_1_OneChanMonoSrc_32_2_1_Balanced_Reliability",
+            "name": "SingleDev_OneChanStereoSnk_48_4_1_OneChanMonoSrc_32_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_OneChanStereoSnk_48_4_OneChanMonoSrc_32_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_OneChanStereoSnk_48_4_2_OneChanMonoSrc_32_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_OneChanStereoSnk_48_4_OneChanMonoSrc_32_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_OneChanStereoSnk_48_4_1_OneChanMonoSrc_24_2_1_Balanced_Reliability",
+            "name": "SingleDev_OneChanStereoSnk_48_4_1_OneChanMonoSrc_24_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_OneChanStereoSnk_48_4_OneChanMonoSrc_24_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_OneChanStereoSnk_48_4_2_OneChanMonoSrc_24_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_OneChanStereoSnk_48_4_OneChanMonoSrc_24_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_OneChanStereoSnk_48_4_1_OneChanMonoSrc_16_2_1_Balanced_Reliability",
+            "name": "SingleDev_OneChanStereoSnk_48_4_1_OneChanMonoSrc_16_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_OneChanStereoSnk_48_4_OneChanMonoSrc_16_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_OneChanStereoSnk_48_4_2_OneChanMonoSrc_16_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_OneChanStereoSnk_48_4_OneChanMonoSrc_16_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_OneChanMonoSnk_48_4_1_OneChanMonoSrc_32_2_1_Balanced_Reliability",
-            "codec_config_name": "SingleDev_OneChanMonoSnk_48_4_OneChanMonoSrc_32_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_OneChanMonoSnk_48_4_2_OneChanMonoSrc_32_2_2_Balanced_Reliability",
+            "name": "SingleDev_OneChanMonoSnk_48_4_1_OneChanMonoSrc_32_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_OneChanMonoSnk_48_4_OneChanMonoSrc_32_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
@@ -1128,17 +1033,7 @@
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
         {
-            "name": "SingleDev_OneChanMonoSnk_48_4_2_OneChanMonoSrc_24_2_2_Balanced_Reliability",
-            "codec_config_name": "SingleDev_OneChanMonoSnk_48_4_OneChanMonoSrc_24_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_OneChanMonoSnk_48_4_1_OneChanMonoSrc_16_2_1_Balanced_Reliability",
-            "codec_config_name": "SingleDev_OneChanMonoSnk_48_4_OneChanMonoSrc_16_2",
-            "qos_config_name": ["QoS_Config_Balanced_Reliability"]
-        },
-        {
-            "name": "SingleDev_OneChanMonoSnk_48_4_2_OneChanMonoSrc_16_2_2_Balanced_Reliability",
+            "name": "SingleDev_OneChanMonoSnk_48_4_1_OneChanMonoSrc_16_2_Balanced_Reliability",
             "codec_config_name": "SingleDev_OneChanMonoSnk_48_4_OneChanMonoSrc_16_2",
             "qos_config_name": ["QoS_Config_Balanced_Reliability"]
         },
