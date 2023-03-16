@@ -132,7 +132,15 @@ impl FooData {
     fn conforms(bytes: &[u8]) -> bool {
         bytes.len() >= 4
     }
-    fn parse(mut bytes: &mut Cell<&[u8]>) -> Result<Self> {
+    fn parse(bytes: &[u8]) -> Result<Self> {
+        let mut cell = Cell::new(bytes);
+        let packet = Self::parse_inner(&mut cell)?;
+        if !cell.get().is_empty() {
+            return Err(Error::InvalidPacketError);
+        }
+        Ok(packet)
+    }
+    fn parse_inner(mut bytes: &mut Cell<&[u8]>) -> Result<Self> {
         if bytes.get().remaining() < 1 {
             return Err(Error::InvalidLengthError {
                 obj: "Foo".to_string(),
@@ -169,7 +177,7 @@ impl FooData {
         let child = match (a, b) {
             (100, _) => {
                 let mut cell = Cell::new(payload);
-                let child_data = BarData::parse(&mut cell)?;
+                let child_data = BarData::parse_inner(&mut cell)?;
                 if !cell.get().is_empty() {
                     return Err(Error::InvalidPacketError);
                 }
@@ -177,7 +185,7 @@ impl FooData {
             }
             (_, Enum16::B) => {
                 let mut cell = Cell::new(payload);
-                let child_data = BazData::parse(&mut cell)?;
+                let child_data = BazData::parse_inner(&mut cell)?;
                 if !cell.get().is_empty() {
                     return Err(Error::InvalidPacketError);
                 }
@@ -245,8 +253,16 @@ impl Foo {
         Ok(packet)
     }
     fn parse_inner(mut bytes: &mut Cell<&[u8]>) -> Result<Self> {
-        let data = FooData::parse(&mut bytes)?;
+        let data = FooData::parse_inner(&mut bytes)?;
         Ok(Self::new(Arc::new(data)).unwrap())
+    }
+    pub fn specialize(&self) -> FooChild {
+        match &self.foo.child {
+            FooDataChild::Bar(_) => FooChild::Bar(Bar::new(self.foo.clone()).unwrap()),
+            FooDataChild::Baz(_) => FooChild::Baz(Baz::new(self.foo.clone()).unwrap()),
+            FooDataChild::Payload(payload) => FooChild::Payload(payload.clone()),
+            FooDataChild::None => FooChild::None,
+        }
     }
     fn new(foo: Arc<FooData>) -> std::result::Result<Self, &'static str> {
         Ok(Self { foo })
@@ -306,7 +322,15 @@ impl BarData {
     fn conforms(bytes: &[u8]) -> bool {
         bytes.len() >= 1
     }
-    fn parse(mut bytes: &mut Cell<&[u8]>) -> Result<Self> {
+    fn parse(bytes: &[u8]) -> Result<Self> {
+        let mut cell = Cell::new(bytes);
+        let packet = Self::parse_inner(&mut cell)?;
+        if !cell.get().is_empty() {
+            return Err(Error::InvalidPacketError);
+        }
+        Ok(packet)
+    }
+    fn parse_inner(mut bytes: &mut Cell<&[u8]>) -> Result<Self> {
         if bytes.get().remaining() < 1 {
             return Err(Error::InvalidLengthError {
                 obj: "Bar".to_string(),
@@ -368,7 +392,7 @@ impl Bar {
         Ok(packet)
     }
     fn parse_inner(mut bytes: &mut Cell<&[u8]>) -> Result<Self> {
-        let data = FooData::parse(&mut bytes)?;
+        let data = FooData::parse_inner(&mut bytes)?;
         Ok(Self::new(Arc::new(data)).unwrap())
     }
     fn new(foo: Arc<FooData>) -> std::result::Result<Self, &'static str> {
@@ -435,7 +459,15 @@ impl BazData {
     fn conforms(bytes: &[u8]) -> bool {
         bytes.len() >= 2
     }
-    fn parse(mut bytes: &mut Cell<&[u8]>) -> Result<Self> {
+    fn parse(bytes: &[u8]) -> Result<Self> {
+        let mut cell = Cell::new(bytes);
+        let packet = Self::parse_inner(&mut cell)?;
+        if !cell.get().is_empty() {
+            return Err(Error::InvalidPacketError);
+        }
+        Ok(packet)
+    }
+    fn parse_inner(mut bytes: &mut Cell<&[u8]>) -> Result<Self> {
         if bytes.get().remaining() < 2 {
             return Err(Error::InvalidLengthError {
                 obj: "Baz".to_string(),
@@ -497,7 +529,7 @@ impl Baz {
         Ok(packet)
     }
     fn parse_inner(mut bytes: &mut Cell<&[u8]>) -> Result<Self> {
-        let data = FooData::parse(&mut bytes)?;
+        let data = FooData::parse_inner(&mut bytes)?;
         Ok(Self::new(Arc::new(data)).unwrap())
     }
     fn new(foo: Arc<FooData>) -> std::result::Result<Self, &'static str> {

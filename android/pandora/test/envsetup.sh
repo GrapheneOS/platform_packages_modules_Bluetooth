@@ -4,7 +4,7 @@ function avatar {
 
   # only compile when needed.
   if [[ "$1" == "run" ]]; then
-    m avatar avatar.sh PandoraServer tradefed
+    m avatar avatar.sh PandoraServer tradefed || return 1
     _AVATAR="avatar.sh"
   fi
 
