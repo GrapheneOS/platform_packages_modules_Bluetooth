@@ -22,6 +22,7 @@ rust_defaults {
         "libsyn",
         "libtempfile",
     ],
+    cfgs: ["tm_mainline_prod"],
     proc_macros: [
         "libpest_derive",
     ],
