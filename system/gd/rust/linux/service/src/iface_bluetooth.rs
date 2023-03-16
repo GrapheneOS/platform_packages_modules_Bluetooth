@@ -855,6 +855,16 @@ impl IBluetoothQA for IBluetoothQADBus {
         dbus_generated!()
     }
 
+    #[dbus_method("GetAlias")]
+    fn get_alias(&self) -> String {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetModalias")]
+    fn get_modalias(&self) -> String {
+        dbus_generated!()
+    }
+
     #[dbus_method("GetHIDReport")]
     fn get_hid_report(
         &mut self,
