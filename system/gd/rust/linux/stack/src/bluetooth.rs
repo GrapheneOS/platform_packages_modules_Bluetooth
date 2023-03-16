@@ -42,6 +42,7 @@ use crate::callbacks::Callbacks;
 use crate::uuid::{Profile, UuidHelper, HOGP};
 use crate::{Message, RPCProxy, SuspendMode};
 
+const FLOSS_VER: u16 = 0x0001;
 const DEFAULT_DISCOVERY_TIMEOUT_MS: u64 = 12800;
 const MIN_ADV_INSTANCES_FOR_MULTI_ADV: u8 = 5;
 
@@ -218,6 +219,13 @@ pub trait IBluetoothQA {
 
     /// Sets connectability. Returns true on success, false otherwise.
     fn set_connectable(&mut self, mode: bool) -> bool;
+
+    /// Returns the adapter's Bluetooth friendly name.
+    fn get_alias(&self) -> String;
+
+    /// Returns the adapter's Device ID information in modalias format
+    /// used by the kernel and udev.
+    fn get_modalias(&self) -> String;
 
     /// Gets HID report on the peer.
     fn get_hid_report(
@@ -2288,6 +2296,24 @@ impl IBluetoothQA for Bluetooth {
         self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::AdapterScanMode(
             if mode { BtScanMode::Connectable } else { BtScanMode::None_ },
         )) == 0
+    }
+
+    fn get_alias(&self) -> String {
+        let name = self.get_name();
+        if !name.is_empty() {
+            return name;
+        }
+
+        // If the adapter name is empty, generate one based on local BDADDR
+        // so that test programs can have a friendly name for the adapter.
+        match self.local_address {
+            None => "floss_0000".to_string(),
+            Some(addr) => format!("floss_{:02X}{:02X}", addr.address[4], addr.address[5]),
+        }
+    }
+
+    fn get_modalias(&self) -> String {
+        format!("bluetooth:v00E0pC405d{:04x}", FLOSS_VER)
     }
 
     fn get_hid_report(
