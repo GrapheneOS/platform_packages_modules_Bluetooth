@@ -824,7 +824,7 @@ impl RawAddress {
 pub struct DisplayAddress<'a>(pub &'a RawAddress);
 impl<'a> Display for DisplayAddress<'a> {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "xx:xx:xx:xx:{:2X}:{:2X}", &self.0.address[4], &self.0.address[5])
+        write!(f, "xx:xx:xx:xx:{:02X}:{:02X}", &self.0.address[4], &self.0.address[5])
     }
 }
 
@@ -1366,5 +1366,25 @@ mod tests {
                 _ => false,
             });
         }
+    }
+
+    #[test]
+    fn test_display_address() {
+        assert_eq!(
+            format!("{}", DisplayAddress(&RawAddress::from_string("00:00:00:00:00:00").unwrap())),
+            String::from("xx:xx:xx:xx:00:00")
+        );
+        assert_eq!(
+            format!("{}", DisplayAddress(&RawAddress::from_string("1a:2b:1a:2b:1a:2b").unwrap())),
+            String::from("xx:xx:xx:xx:1A:2B")
+        );
+        assert_eq!(
+            format!("{}", DisplayAddress(&RawAddress::from_string("3C:4D:3C:4D:3C:4D").unwrap())),
+            String::from("xx:xx:xx:xx:3C:4D")
+        );
+        assert_eq!(
+            format!("{}", DisplayAddress(&RawAddress::from_string("11:35:11:35:11:35").unwrap())),
+            String::from("xx:xx:xx:xx:11:35")
+        );
     }
 }
