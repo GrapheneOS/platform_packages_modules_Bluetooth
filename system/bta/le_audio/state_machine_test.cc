@@ -78,6 +78,8 @@ constexpr LeAudioContextType kContextTypeConversational =
     static_cast<LeAudioContextType>(0x0002);
 constexpr LeAudioContextType kContextTypeMedia =
     static_cast<LeAudioContextType>(0x0004);
+constexpr LeAudioContextType kContextTypeLive =
+    static_cast<LeAudioContextType>(0x0040);
 constexpr LeAudioContextType kContextTypeSoundEffects =
     static_cast<LeAudioContextType>(0x0080);
 constexpr LeAudioContextType kContextTypeRingtone =
@@ -548,6 +550,9 @@ class StateMachineTest : public Test {
 
   void InjectAclDisconnected(LeAudioDeviceGroup* group,
                              LeAudioDevice* leAudioDevice) {
+    // Do what the client.cc does when handling the disconnection event
+    leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
+    leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
     LeAudioGroupStateMachine::Get()->ProcessHciNotifAclDisconnected(
         group, leAudioDevice);
   }
@@ -740,6 +745,11 @@ class StateMachineTest : public Test {
         num_ase_src = 1 + additional_src_ases;
         break;
 
+      case kContextTypeLive:
+        num_ase_snk = 1 + additional_snk_ases;
+        num_ase_src = 1 + additional_src_ases;
+        break;
+
       default:
         ASSERT_TRUE(false);
     }
@@ -757,7 +767,7 @@ class StateMachineTest : public Test {
 
         // Prepare Sink Published Audio Capability records
         if ((kContextTypeRingtone | kContextTypeMedia |
-             kContextTypeConversational)
+             kContextTypeConversational | kContextTypeLive)
                 .test(context_type)) {
           // Set target ASE configurations
           std::vector<types::acs_ac_record> pac_recs;
@@ -775,14 +785,15 @@ class StateMachineTest : public Test {
           leAudioDevice->snk_pacs_.emplace_back(
               std::make_tuple(std::move(handle_pair), pac_recs));
 
-          snk_context_type.set(static_cast<LeAudioContextType>(context_type));
+          snk_context_type.set(context_type);
           leAudioDevice->snk_audio_locations_ =
               ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft |
               ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight;
         }
 
         // Prepare Source Published Audio Capability records
-        if (context_type == kContextTypeConversational) {
+        if ((context_type == kContextTypeConversational) ||
+            (context_type == kContextTypeLive)) {
           // Set target ASE configurations
           std::vector<types::acs_ac_record> pac_recs;
 
@@ -799,8 +810,7 @@ class StateMachineTest : public Test {
 
           leAudioDevice->src_pacs_.emplace_back(
               std::make_tuple(std::move(handle_pair), pac_recs));
-          src_context_type.set(
-              static_cast<LeAudioContextType>(kContextTypeConversational));
+          src_context_type.set(context_type);
 
           leAudioDevice->src_audio_locations_ =
               ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft |
@@ -3302,6 +3312,8 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
   lastDevice->conn_id_ = 3;
+  lastDevice->SetConnectionState(DeviceConnectState::CONNECTED);
+
   group->UpdateAudioContextTypeAvailability();
 
   // Make sure ASE with disconnected CIS are not left in STREAMING
@@ -3342,6 +3354,64 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   auto ase = fistDevice->GetFirstActiveAse();
   ASSERT_NE(ase->max_transport_latency, 0);
   ASSERT_NE(ase->retrans_nb, 0);
+}
+
+TEST_F(StateMachineTest, testStreamToGettingReadyDevice) {
+  const auto context_type = kContextTypeLive;
+  const auto leaudio_group_id = 666;
+  const auto num_devices = 2;
+
+  ContentControlIdKeeper::GetInstance()->SetCcid(call_context, call_ccid);
+
+  // Prepare multiple fake connected devices in a group
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
+
+  // Simulate the 2nd device still getting ready
+  auto* firstDevice = group->GetFirstDevice();
+  auto* secondDevice = group->GetNextDevice(firstDevice);
+  secondDevice->SetConnectionState(
+      DeviceConnectState::CONNECTED_BY_USER_GETTING_READY);
+  group->UpdateAudioContextTypeAvailability();
+
+  ASSERT_EQ(group->Size(), num_devices);
+  ASSERT_EQ(1, group->NumOfConnected());
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareReceiverStartReady(group);
+  PrepareDisableHandler(group);
+  PrepareReleaseHandler(group);
+
+  /* Three Writes:
+   * 1: Codec Config
+   * 2: Codec QoS
+   * 3: Enabling
+   */
+  // Expect actions only on the already prepared device
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(firstDevice->conn_id_,
+                                              firstDevice->ctp_hdls_.val_hdl, _,
+                                              GATT_WRITE_NO_RSP, _, _))
+      .Times(AtLeast(3));
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+
+  InjectInitialIdleNotification(group);
+
+  // Start the configuration and the stream
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, context_type,
+      {.sink = types::AudioContexts(context_type),
+       .source = types::AudioContexts(context_type)});
+
+  // Check if group has transitioned to a proper state with one device still
+  // being in the `CONNECTED_BY_USER_GETTING_READY` state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+  testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
 }
 
 TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
@@ -3411,6 +3481,8 @@ TEST_F(StateMachineTest, testAttachDeviceToTheConversationalStream) {
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
   lastDevice->conn_id_ = 3;
+  lastDevice->SetConnectionState(DeviceConnectState::CONNECTED);
+
   group->UpdateAudioContextTypeAvailability();
 
   // Make sure ASE with disconnected CIS are not left in STREAMING
