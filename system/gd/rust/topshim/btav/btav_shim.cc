@@ -288,7 +288,7 @@ int A2dpIntf::config_codec(RawAddress addr, ::rust::Vec<A2dpCodecConfig> codec_p
 }
 
 void A2dpIntf::cleanup() const {
-  // TODO: Implement.
+  intf_->cleanup();
 }
 bool A2dpIntf::set_audio_config(A2dpCodecConfig rconfig) const {
   bluetooth::audio::a2dp::AudioConfig config = {

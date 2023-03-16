@@ -39,7 +39,7 @@
 #define BTM_MAX_SCN_ 31  // PORT_MAX_RFC_PORTS packages/modules/Bluetooth/system/stack/include/rfcdefs.h
 
 constexpr size_t kMaxLogSize = 255;
-constexpr size_t kBtmLogHistoryBufferSize = 100;
+constexpr size_t kBtmLogHistoryBufferSize = 200;
 
 extern bluetooth::common::TimestamperInMilliseconds timestamper_in_milliseconds;
 

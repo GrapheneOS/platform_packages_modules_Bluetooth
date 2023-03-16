@@ -60,6 +60,16 @@ constexpr uint8_t kCtpResponseMaxTransportLatency = 0x08;
 constexpr uint8_t kCtpResponsePresentationDelay = 0x09;
 constexpr uint8_t kCtpResponseInvalidAseCisMapping = 0x0A;
 
+constexpr uint8_t kCtpMetadataResponsePreferredAudioContexts = 0x01;
+constexpr uint8_t kCtpMetadataResponseStreamingAudioContexts = 0x02;
+constexpr uint8_t kCtpMetadataResponseProgramInfo = 0x03;
+constexpr uint8_t kCtpMetadataResponseLanguage = 0x04;
+constexpr uint8_t kCtpMetadataResponseCcidList = 0x05;
+constexpr uint8_t kCtpMetadataResponseParentalRating = 0x06;
+constexpr uint8_t kCtpMetadataResponseProgramInfoUri = 0x07;
+constexpr uint8_t kCtpMetadataResponseExtendedMetadata = 0xFE;
+constexpr uint8_t kCtpMetadataResponseVendorSpecific = 0xFF;
+
 constexpr uint8_t kLeAudioErrorCtpUnsupporterdOpcode = 0xFF;
 constexpr uint8_t kLeAudioErrorCtpTruncatedOperation = 0xFE;
 constexpr uint8_t kLeAudioErrorCtpCtpErr = 0xFD;

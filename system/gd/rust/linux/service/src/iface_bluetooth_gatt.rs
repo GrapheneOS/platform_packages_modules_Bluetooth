@@ -783,6 +783,11 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("BtifGattcDiscoverServiceByUuid")]
+    fn btif_gattc_discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String) {
+        dbus_generated!()
+    }
+
     #[dbus_method("ReadCharacteristic")]
     fn read_characteristic(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
         dbus_generated!()
