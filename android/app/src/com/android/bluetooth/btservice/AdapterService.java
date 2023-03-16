@@ -5313,7 +5313,11 @@ public class AdapterService extends Service {
                 || mA2dpService.getConnectionPolicy(device)
                 == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
             Log.i(TAG, "setActiveDevice: Setting active A2dp device " + device);
-            mA2dpService.setActiveDevice(device);
+            if (device == null) {
+                mA2dpService.removeActiveDevice(false);
+            } else {
+                mA2dpService.setActiveDevice(device);
+            }
         }
 
         if (mHearingAidService != null && (device == null

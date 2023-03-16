@@ -25,8 +25,6 @@ import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_READ;
 import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE;
 import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE;
 
-import static java.util.Map.entry;
-
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.bluetooth.BluetoothAdapter;
@@ -937,9 +935,10 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
                     + " request up");
         }
 
+        // TODO: Activate/deactivate devices with ActiveDeviceManager
         if (req.getOpcode() == Request.Opcodes.PLAY) {
             if (mAdapterService.getActiveDevices(BluetoothProfile.A2DP).size() > 0) {
-                A2dpService.getA2dpService().setActiveDevice(null);
+                A2dpService.getA2dpService().removeActiveDevice(false);
             }
             if (mAdapterService.getActiveDevices(BluetoothProfile.HEARING_AID).size() > 0) {
                 HearingAidService.getHearingAidService().setActiveDevice(null);
