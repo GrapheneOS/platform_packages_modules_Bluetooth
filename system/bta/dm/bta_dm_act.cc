@@ -4013,6 +4013,11 @@ static void bta_dm_gatt_disc_complete(uint16_t conn_id, tGATT_STATUS status) {
             bta_dm_clear_conn_id_on_client_close_is_enabled()) {
       bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
     }
+  } else {
+    if (bluetooth::common::init_flags::
+            bta_dm_clear_conn_id_on_client_close_is_enabled()) {
+      bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
+    }
   }
   bta_dm_search_cb.gatt_disc_active = false;
 }
