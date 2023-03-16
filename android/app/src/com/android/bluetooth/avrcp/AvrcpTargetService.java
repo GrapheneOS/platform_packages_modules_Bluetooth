@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.NonNull;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
@@ -292,7 +293,7 @@ public class AvrcpTargetService extends ProfileService {
         return service.getActiveDevice();
     }
 
-    private void setA2dpActiveDevice(BluetoothDevice device) {
+    private void setA2dpActiveDevice(@NonNull BluetoothDevice device) {
         A2dpService service = A2dpService.getA2dpService();
         if (service == null) {
             Log.d(TAG, "setA2dpActiveDevice: A2dp service not found");
@@ -459,6 +460,7 @@ public class AvrcpTargetService extends ProfileService {
         Log.i(TAG, "setActiveDevice: device=" + device);
         if (device == null) {
             Log.wtf(TAG, "setActiveDevice: could not find device " + device);
+            return;
         }
         setA2dpActiveDevice(device);
     }
