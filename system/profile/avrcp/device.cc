@@ -680,6 +680,11 @@ void Device::MessageReceived(uint8_t label, std::shared_ptr<Packet> pkt) {
     case Opcode::SUBUNIT_INFO: {
     } break;
     case Opcode::PASS_THROUGH: {
+      /** Newavrcp not passthrough response pkt. @{ */
+      if (pkt->GetCType() == CType::ACCEPTED || pkt->GetCType() == CType::REJECTED
+          || pkt->GetCType() == CType::NOT_IMPLEMENTED)
+        break;
+      /** @} */
       auto pass_through_packet = Packet::Specialize<PassThroughPacket>(pkt);
 
       if (!pass_through_packet->IsValid()) {
