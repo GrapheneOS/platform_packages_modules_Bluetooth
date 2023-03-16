@@ -319,15 +319,16 @@ impl<'a> FieldParser<'a> {
                     }
                 });
             }
-            (ElementWidth::Unknown, ArrayShape::Static(_)) => {
+            (ElementWidth::Unknown, ArrayShape::Static(count)) => {
                 // The element width is not known, but the array
                 // element count is known statically. Parse elements
                 // item by item as an array.
+                let count = syn::Index::from(*count);
                 self.code.push(quote! {
                     // TODO(mgeisler): use
                     // https://doc.rust-lang.org/std/array/fn.try_from_fn.html
                     // when stabilized.
-                    let #id = std::array::from_fn(|_| #parse_element.unwrap());
+                    let #id = [0; #count].map(|_| #parse_element.unwrap());
                 });
             }
             (ElementWidth::Unknown, ArrayShape::CountField(count_field)) => {
@@ -366,7 +367,7 @@ impl<'a> FieldParser<'a> {
                     // TODO(mgeisler): use
                     // https://doc.rust-lang.org/std/array/fn.try_from_fn.html
                     // when stabilized.
-                    let #id = std::array::from_fn(|_| #parse_element.unwrap());
+                    let #id = [0; #count].map(|_| #parse_element.unwrap());
                 });
             }
             (ElementWidth::Static(_), ArrayShape::CountField(count_field)) => {
