@@ -605,7 +605,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   void ProcessHciNotifAclDisconnected(LeAudioDeviceGroup* group,
                                       LeAudioDevice* leAudioDevice) {
     FreeLinkQualityReports(leAudioDevice);
-    leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
     /* mark ASEs as not used. */
     leAudioDevice->DeactivateAllAses();
 
