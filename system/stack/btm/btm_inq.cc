@@ -565,17 +565,19 @@ void BTM_CancelInquiry(void) {
  ******************************************************************************/
 tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
                              tBTM_CMPL_CB* p_cmpl_cb) {
-  tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-
   if (bluetooth::shim::is_gd_shim_enabled()) {
     return bluetooth::shim::BTM_StartInquiry(p_results_cb, p_cmpl_cb);
   }
 
   /* Only one active inquiry is allowed in this implementation.
      Also do not allow an inquiry if the inquiry filter is being updated */
-  if (p_inq->inq_active) {
-    LOG(ERROR) << __func__ << ": BTM_BUSY";
-    return (BTM_BUSY);
+  if (btm_cb.btm_inq_vars.inq_active) {
+    LOG_WARN(
+        "Active device discovery already in progress inq_active:0x%02x"
+        " state:%hhu counter:%u",
+        btm_cb.btm_inq_vars.inq_active, btm_cb.btm_inq_vars.state,
+        btm_cb.btm_inq_vars.inq_counter);
+    return BTM_BUSY;
   }
 
   /*** Make sure the device is ready ***/
@@ -592,6 +594,8 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
 
   /* Save the inquiry parameters to be used upon the completion of
    * setting/clearing the inquiry filter */
+  tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
+
   p_inq->inqparms = {};
   p_inq->inqparms.mode = BTM_GENERAL_INQUIRY | BTM_BLE_GENERAL_INQUIRY;
   p_inq->inqparms.duration = BTIF_DM_DEFAULT_INQ_MAX_DURATION;
@@ -607,8 +611,8 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
       .results = 0,
   };
 
-  BTM_TRACE_DEBUG("BTM_StartInquiry: p_inq->inq_active = 0x%02x",
-                  p_inq->inq_active);
+  LOG_DEBUG("Starting device discovery inq_active:0x%02x",
+            btm_cb.btm_inq_vars.inq_active);
 
   if (controller_get_interface()->supports_ble()) {
     btm_ble_start_inquiry(p_inq->inqparms.duration);
