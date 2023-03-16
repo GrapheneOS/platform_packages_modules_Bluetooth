@@ -18,6 +18,7 @@ package android.bluetooth;
 
 import android.annotation.IntDef;
 import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.annotation.RequiresNoPermission;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
@@ -413,6 +414,33 @@ public interface BluetoothProfile {
          */
         @RequiresNoPermission
         void onServiceDisconnected(int profile);
+    }
+
+    /**
+     * A service listener that forwards methods calls to the given listener.
+     * This can be used to override specific method.
+     * @hide
+     */
+    class ForwardingServiceListener implements ServiceListener {
+        private final ServiceListener mListener;
+
+        ForwardingServiceListener(@Nullable ServiceListener listener) {
+            mListener = listener;
+        }
+
+        @Override
+        public void onServiceConnected(int profile, BluetoothProfile proxy) {
+            if (mListener != null) {
+                mListener.onServiceConnected(profile, proxy);
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(int profile) {
+            if (mListener != null) {
+                mListener.onServiceDisconnected(profile);
+            }
+        }
     }
 
     /**
