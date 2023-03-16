@@ -263,6 +263,13 @@ genrule {
     ],
 }
 
+filegroup {
+    name: "RootCanalLinkLayerPackets",
+    srcs: [
+        "packets/link_layer_packets.pdl",
+    ],
+}
+
 genrule {
     name: "RootCanalBrEdrBBGeneratedPackets_h",
     tools: [
