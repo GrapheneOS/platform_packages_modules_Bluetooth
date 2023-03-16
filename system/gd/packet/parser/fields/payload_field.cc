@@ -70,14 +70,6 @@ void PayloadField::GenGetter(std::ostream& s, Size start_offset, Size end_offset
   GenBounds(s, start_offset, end_offset, GetSize());
   s << "return GetLittleEndianSubview(field_begin, field_end);";
   s << "}\n\n";
-
-  s << "PacketView<!kLittleEndian> " << GetGetterFunctionName() << "BigEndian() const {";
-  s << "ASSERT(was_validated_);";
-  s << "size_t end_index = size();";
-  s << "auto to_bound = begin();";
-  GenBounds(s, start_offset, end_offset, GetSize());
-  s << "return GetBigEndianSubview(field_begin, field_end);";
-  s << "}\n";
 }
 
 std::string PayloadField::GetBuilderParameterType() const {
