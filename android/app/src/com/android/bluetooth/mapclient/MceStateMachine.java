@@ -122,6 +122,8 @@ class MceStateMachine extends StateMachine {
     private static final String FOLDER_SENT = "sent";
     private static final String INBOX_PATH = "telecom/msg/inbox";
 
+    // URI Scheme for messages with email contact
+    private static final String SCHEME_MAILTO = "mailto";
 
     // Connectivity States
     private int mPreviousState = BluetoothProfile.STATE_DISCONNECTED;
@@ -304,6 +306,18 @@ class MceStateMachine extends StateMachine {
                             Log.d(TAG, "Sending to phone numbers " + destEntryPhone.getValueList());
                         }
                     }
+                } else if (SCHEME_MAILTO.equals(contact.getScheme())) {
+                    VCardEntry destEntry = new VCardEntry();
+                    VCardProperty destEntryContact = new VCardProperty();
+                    destEntryContact.setName(VCardConstants.PROPERTY_EMAIL);
+                    destEntryContact.addValues(contact.getSchemeSpecificPart());
+                    destEntry.addProperty(destEntryContact);
+                    bmsg.addRecipient(destEntry);
+                    Log.d(TAG, "SPECIFIC: " + contact.getSchemeSpecificPart());
+                    if (DBG) {
+                        Log.d(TAG, "Sending to emails "
+                                + destEntryContact.getValueList());
+                    }
                 } else {
                     if (DBG) {
                         Log.w(TAG, "Scheme " + contact.getScheme() + " not supported.");
@@ -398,6 +412,10 @@ class MceStateMachine extends StateMachine {
 
     private String getContactURIFromPhone(String number) {
         return PhoneAccount.SCHEME_TEL + ":" + number;
+    }
+
+    private String getContactURIFromEmail(String email) {
+        return SCHEME_MAILTO + "://" + email;
     }
 
     Bmessage.Type getDefaultMessageType() {
@@ -837,6 +855,7 @@ class MceStateMachine extends StateMachine {
                             Log.d(TAG, originator.toString());
                         }
                         List<VCardEntry.PhoneData> phoneData = originator.getPhoneList();
+                        List<VCardEntry.EmailData> emailData = originator.getEmailList();
                         if (phoneData != null && phoneData.size() > 0) {
                             String phoneNumber = phoneData.get(0).getNumber();
                             if (DBG) {
@@ -844,6 +863,13 @@ class MceStateMachine extends StateMachine {
                             }
                             intent.putExtra(BluetoothMapClient.EXTRA_SENDER_CONTACT_URI,
                                     getContactURIFromPhone(phoneNumber));
+                        } else if (emailData != null && emailData.size() > 0) {
+                            String email = emailData.get(0).getAddress();
+                            if (DBG) {
+                                Log.d(TAG, "Originator email: " + email);
+                            }
+                            intent.putExtra(BluetoothMapClient.EXTRA_SENDER_CONTACT_URI,
+                                    getContactURIFromEmail(email));
                         }
                         intent.putExtra(BluetoothMapClient.EXTRA_SENDER_CONTACT_NAME,
                                 originator.getDisplayName());
