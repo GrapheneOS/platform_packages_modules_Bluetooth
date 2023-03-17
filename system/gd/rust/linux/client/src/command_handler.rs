@@ -456,6 +456,8 @@ impl CommandHandler {
                 let uuids = adapter_dbus.get_uuids();
                 let is_discoverable = adapter_dbus.get_discoverable();
                 let is_connectable = qa_dbus.get_connectable();
+                let alias = qa_dbus.get_alias();
+                let modalias = qa_dbus.get_modalias();
                 let discoverable_timeout = adapter_dbus.get_discoverable_timeout();
                 let cod = adapter_dbus.get_bluetooth_class();
                 let multi_adv_supported = adapter_dbus.is_multi_advertisement_supported();
@@ -475,6 +477,8 @@ impl CommandHandler {
                     .collect();
                 print_info!("Address: {}", address);
                 print_info!("Name: {}", name);
+                print_info!("Alias: {}", alias);
+                print_info!("Modalias: {}", modalias);
                 print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
                 print_info!("Discoverable: {}", is_discoverable);
                 print_info!("DiscoverableTimeout: {}s", discoverable_timeout);
