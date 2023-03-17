@@ -3097,23 +3097,21 @@ public final class BluetoothAdapter {
 
         mServiceLock.readLock().lock();
         try {
-            synchronized (mManagerCallback) {
-                if (mService != null) {
-                    final SynchronousResultReceiver<Long> recv = SynchronousResultReceiver.get();
-                    mService.getSupportedProfiles(mAttributionSource, recv);
-                    final long supportedProfilesBitMask =
-                            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue((long) 0);
+            if (mService != null) {
+                final SynchronousResultReceiver<Long> recv = SynchronousResultReceiver.get();
+                mService.getSupportedProfiles(mAttributionSource, recv);
+                final long supportedProfilesBitMask =
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue((long) 0);
 
-                    for (int i = 0; i <= BluetoothProfile.MAX_PROFILE_ID; i++) {
-                        if ((supportedProfilesBitMask & (1 << i)) != 0) {
-                            supportedProfiles.add(i);
-                        }
+                for (int i = 0; i <= BluetoothProfile.MAX_PROFILE_ID; i++) {
+                    if ((supportedProfilesBitMask & (1 << i)) != 0) {
+                        supportedProfiles.add(i);
                     }
-                } else {
-                    // Bluetooth is disabled. Just fill in known supported Profiles
-                    if (isHearingAidProfileSupported()) {
-                        supportedProfiles.add(BluetoothProfile.HEARING_AID);
-                    }
+                }
+            } else {
+                // Bluetooth is disabled. Just fill in known supported Profiles
+                if (isHearingAidProfileSupported()) {
+                    supportedProfiles.add(BluetoothProfile.HEARING_AID);
                 }
             }
         } catch (RemoteException | TimeoutException e) {
