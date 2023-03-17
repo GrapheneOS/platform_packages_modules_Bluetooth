@@ -350,6 +350,11 @@ cc_test {
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 // btif rc unit tests for target
@@ -387,6 +392,11 @@ cc_test {
         address: true,
         cfi: true,
         misc_undefined: ["bounds"],
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -426,6 +436,7 @@ cc_test {
             static_libs: [
                 "android.system.suspend.control-V1-ndk",
             ],
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
         },
     },
 }
@@ -454,6 +465,11 @@ cc_test {
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 cc_test {
@@ -570,6 +586,7 @@ cc_test {
                   "libbinder_ndk",
                   "android.hardware.bluetooth.audio-V3-ndk",
               ],
+              test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
           },
       },
       sanitize: {
@@ -692,6 +709,7 @@ cc_test {
                   "libbinder_ndk",
                   "android.hardware.bluetooth.audio-V3-ndk",
               ],
+              test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
           },
       },
       sanitize: {
