@@ -1204,7 +1204,10 @@ void bta_gattc_op_cmpl(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
     }
 
     bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_DISCOVER_EVT, NULL);
+    return;
   }
+
+  bta_gattc_continue(p_clcb);
 }
 
 /** start a search in the local server cache */
