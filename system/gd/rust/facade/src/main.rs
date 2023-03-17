@@ -1,7 +1,7 @@
 //! Starts the facade services that allow us to test the Bluetooth stack
 
 use bluetooth_with_facades::RootFacadeService;
-use clap::{value_parser, Arg, Command};
+use clap::{value_t, App, Arg};
 use futures::channel::mpsc;
 use futures::executor::block_on;
 use futures::stream::StreamExt;
@@ -20,42 +20,37 @@ fn main() {
 }
 
 async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
-    let matches = Command::new("bluetooth_with_facades")
+    let matches = App::new("bluetooth_with_facades")
         .about("The bluetooth stack, with testing facades enabled and exposed via gRPC.")
         .arg(
-            Arg::new("root-server-port")
+            Arg::with_name("root-server-port")
                 .long("root-server-port")
-                .value_parser(value_parser!(u16))
-                .default_value("8897"),
+                .default_value("8897")
+                .takes_value(true),
         )
+        .arg(Arg::with_name("grpc-port").long("grpc-port").default_value("8899").takes_value(true))
         .arg(
-            Arg::new("grpc-port")
-                .long("grpc-port")
-                .value_parser(value_parser!(u16))
-                .default_value("8899"),
-        )
-        .arg(
-            Arg::new("signal-port")
+            Arg::with_name("signal-port")
                 .long("signal-port")
-                .value_parser(value_parser!(u16))
-                .default_value("8895"),
+                .default_value("8895")
+                .takes_value(true),
         )
-        .arg(Arg::new("rootcanal-port").long("rootcanal-port").value_parser(value_parser!(u16)))
-        .arg(Arg::new("btsnoop").long("btsnoop"))
-        .arg(Arg::new("btsnooz").long("btsnooz"))
-        .arg(Arg::new("btconfig").long("btconfig"))
+        .arg(Arg::with_name("rootcanal-port").long("rootcanal-port").takes_value(true))
+        .arg(Arg::with_name("btsnoop").long("btsnoop").takes_value(true))
+        .arg(Arg::with_name("btsnooz").long("btsnooz").takes_value(true))
+        .arg(Arg::with_name("btconfig").long("btconfig").takes_value(true))
         .get_matches();
 
-    let root_server_port = *matches.get_one::<u16>("root-server-port").unwrap();
-    let grpc_port = *matches.get_one::<u16>("grpc-port").unwrap();
-    let rootcanal_port = matches.get_one::<u16>("rootcanal-port").copied();
+    let root_server_port = value_t!(matches, "root-server-port", u16).unwrap();
+    let grpc_port = value_t!(matches, "grpc-port", u16).unwrap();
+    let rootcanal_port = value_t!(matches, "rootcanal-port", u16).ok();
     let env = Arc::new(Environment::new(2));
     let mut server = ServerBuilder::new(env)
         .register_service(RootFacadeService::create(
             rt,
             grpc_port,
             rootcanal_port,
-            matches.get_one::<String>("btsnoop").cloned(),
+            matches.value_of("btsnoop").map(String::from),
         ))
         .bind("0.0.0.0", root_server_port)
         .build()

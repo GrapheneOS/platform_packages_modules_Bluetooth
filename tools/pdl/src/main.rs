@@ -11,7 +11,7 @@ mod parser;
 #[cfg(test)]
 mod test_utils;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 enum OutputFormat {
     JSON,
     Rust,
@@ -37,12 +37,12 @@ impl std::str::FromStr for OutputFormat {
 #[clap(name = "pdl-parser", about = "Packet Description Language parser tool.")]
 struct Opt {
     /// Print tool version and exit.
-    #[clap(short, long = "version")]
+    #[clap(short, long = "--version")]
     version: bool,
 
     /// Generate output in this format ("json", "rust", "rust_no_alloc", "rust_no_alloc_test"). The output
     /// will be printed on stdout in both cases.
-    #[clap(short, long = "output-format", name = "FORMAT", default_value = "JSON")]
+    #[clap(short, long = "--output-format", name = "FORMAT", default_value = "JSON")]
     output_format: OutputFormat,
 
     /// Input file.
@@ -51,7 +51,7 @@ struct Opt {
 }
 
 fn main() -> Result<(), String> {
-    let opt = Opt::parse();
+    let opt = Opt::from_args();
 
     if opt.version {
         println!("Packet Description Language parser version 1.0");
