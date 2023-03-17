@@ -35,20 +35,20 @@ impl From<bindings::bluetooth_sdp_types> for BtSdpType {
 impl From<&BtSdpRecord> for BtSdpType {
     fn from(record: &BtSdpRecord) -> Self {
         match record {
-            BtSdpRecord::HeaderOverlay(header) => header.hdr.sdp_type.clone(),
-            BtSdpRecord::MapMas(record) => record.hdr.hdr.sdp_type.clone(),
-            BtSdpRecord::MapMns(record) => record.hdr.hdr.sdp_type.clone(),
-            BtSdpRecord::PbapPse(record) => record.hdr.hdr.sdp_type.clone(),
-            BtSdpRecord::PbapPce(record) => record.hdr.hdr.sdp_type.clone(),
-            BtSdpRecord::OppServer(record) => record.hdr.hdr.sdp_type.clone(),
-            BtSdpRecord::SapServer(record) => record.hdr.hdr.sdp_type.clone(),
-            BtSdpRecord::Dip(record) => record.hdr.hdr.sdp_type.clone(),
+            BtSdpRecord::HeaderOverlay(header) => header.sdp_type.clone(),
+            BtSdpRecord::MapMas(record) => record.hdr.sdp_type.clone(),
+            BtSdpRecord::MapMns(record) => record.hdr.sdp_type.clone(),
+            BtSdpRecord::PbapPse(record) => record.hdr.sdp_type.clone(),
+            BtSdpRecord::PbapPce(record) => record.hdr.sdp_type.clone(),
+            BtSdpRecord::OppServer(record) => record.hdr.sdp_type.clone(),
+            BtSdpRecord::SapServer(record) => record.hdr.sdp_type.clone(),
+            BtSdpRecord::Dip(record) => record.hdr.sdp_type.clone(),
         }
     }
 }
 
 #[derive(Clone, Debug)]
-pub struct BtSdpHeader {
+pub struct BtSdpHeaderOverlay {
     pub sdp_type: BtSdpType,
     pub uuid: Uuid,
     pub service_name_length: u32,
@@ -56,34 +56,7 @@ pub struct BtSdpHeader {
     pub rfcomm_channel_number: i32,
     pub l2cap_psm: i32,
     pub profile_version: i32,
-}
 
-impl From<bindings::_bluetooth_sdp_hdr> for BtSdpHeader {
-    fn from(item: bindings::_bluetooth_sdp_hdr) -> Self {
-        let service_name = ascii_to_string(
-            unsafe {
-                std::slice::from_raw_parts(
-                    item.service_name as *const u8,
-                    item.service_name_length as usize,
-                )
-            },
-            item.service_name_length as usize,
-        );
-        BtSdpHeader {
-            sdp_type: BtSdpType::from(item.type_),
-            uuid: item.uuid,
-            service_name_length: item.service_name_length,
-            service_name,
-            rfcomm_channel_number: item.rfcomm_channel_number,
-            l2cap_psm: item.l2cap_psm,
-            profile_version: item.profile_version,
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct BtSdpHeaderOverlay {
-    pub hdr: BtSdpHeader,
     pub user1_len: i32,
     pub user1_data: Vec<u8>,
     pub user2_len: i32,
@@ -101,13 +74,33 @@ impl From<bindings::_bluetooth_sdp_hdr_overlay> for BtSdpHeaderOverlay {
             std::slice::from_raw_parts(item.user2_ptr, item.user2_ptr_len as usize).to_vec()
         };
 
-        BtSdpHeaderOverlay {
-            hdr: unsafe {
-                BtSdpHeader::from(
-                    *((&item as *const bindings::_bluetooth_sdp_hdr_overlay)
-                        as *const bindings::_bluetooth_sdp_hdr),
+        let sdp_hdr = unsafe {
+            *((&item as *const bindings::_bluetooth_sdp_hdr_overlay)
+                as *const bindings::_bluetooth_sdp_hdr)
+        };
+        let sdp_type = BtSdpType::from(sdp_hdr.type_);
+        let uuid = sdp_hdr.uuid;
+        let service_name_length = sdp_hdr.service_name_length;
+        let service_name = ascii_to_string(
+            unsafe {
+                std::slice::from_raw_parts(
+                    sdp_hdr.service_name as *const u8,
+                    sdp_hdr.service_name_length as usize,
                 )
             },
+            sdp_hdr.service_name_length as usize,
+        );
+        let rfcomm_channel_number = sdp_hdr.rfcomm_channel_number;
+        let l2cap_psm = sdp_hdr.l2cap_psm;
+        let profile_version = sdp_hdr.profile_version;
+        BtSdpHeaderOverlay {
+            sdp_type,
+            uuid,
+            service_name_length,
+            service_name,
+            rfcomm_channel_number,
+            l2cap_psm,
+            profile_version,
             user1_len,
             user1_data,
             user2_len,
@@ -270,17 +263,17 @@ impl From<bindings::bluetooth_sdp_record> for BtSdpRecord {
 
 impl BtSdpRecord {
     fn convert_header<'a>(hdr: &'a mut BtSdpHeaderOverlay) -> bindings::bluetooth_sdp_hdr_overlay {
-        let srv_name_ptr = LTCheckedPtrMut::from(&mut hdr.hdr.service_name);
+        let srv_name_ptr = LTCheckedPtrMut::from(&mut hdr.service_name);
         let user1_ptr = LTCheckedPtr::from(&hdr.user1_data);
         let user2_ptr = LTCheckedPtr::from(&hdr.user2_data);
         bindings::bluetooth_sdp_hdr_overlay {
-            type_: hdr.hdr.sdp_type.to_u32().unwrap(),
-            uuid: hdr.hdr.uuid,
-            service_name_length: hdr.hdr.service_name_length,
+            type_: hdr.sdp_type.to_u32().unwrap(),
+            uuid: hdr.uuid,
+            service_name_length: hdr.service_name_length,
             service_name: srv_name_ptr.cast_into::<c_char>(),
-            rfcomm_channel_number: hdr.hdr.rfcomm_channel_number,
-            l2cap_psm: hdr.hdr.l2cap_psm,
-            profile_version: hdr.hdr.profile_version,
+            rfcomm_channel_number: hdr.rfcomm_channel_number,
+            l2cap_psm: hdr.l2cap_psm,
+            profile_version: hdr.profile_version,
             user1_ptr_len: hdr.user1_len,
             user1_ptr: user1_ptr.into(),
             user2_ptr_len: hdr.user2_len,
