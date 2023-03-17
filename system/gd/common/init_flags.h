@@ -36,12 +36,12 @@ class InitFlags final {
     init_flags::load(std::move(rusted_flags));
   }
 
-  inline static bool IsDebugLoggingEnabledForTag(const std::string& tag) {
-    return init_flags::is_debug_logging_enabled_for_tag(tag);
+  inline static int GetLogLevelForTag(const std::string& tag) {
+    return init_flags::get_log_level_for_tag(tag);
   }
 
-  inline static bool IsDebugLoggingEnabledForAll() {
-    return init_flags::logging_debug_enabled_for_all_is_enabled();
+  inline static int GetDefaultLogLevel() {
+    return init_flags::get_default_log_level();
   }
 
   inline static bool IsDeviceIotConfigLoggingEnabled() {

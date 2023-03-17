@@ -30,6 +30,8 @@
 #include <cstring>
 #include <string>
 
+#define LOG_TAG "btm_sco"
+
 #include "device/include/controller.h"
 #include "device/include/device_iot_config.h"
 #include "embdrv/sbc/decoder/include/oi_codec_sbc.h"
