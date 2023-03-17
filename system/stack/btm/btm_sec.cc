@@ -48,7 +48,6 @@
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/security_device_record.h"
-#include "stack/eatt/eatt.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/btm_status.h"
@@ -4835,12 +4834,6 @@ void btm_sec_dev_rec_cback_event(tBTM_SEC_DEV_REC* p_dev_rec,
   }
 
   btm_sec_check_pending_reqs();
-
-  if (btm_status == BTM_SUCCESS && is_le_transport) {
-    /* Link is encrypted, start EATT */
-    bluetooth::eatt::EattExtension::GetInstance()->Connect(
-        p_dev_rec->ble.pseudo_addr);
-  }
 }
 
 void btm_sec_cr_loc_oob_data_cback_event(const RawAddress& address,
