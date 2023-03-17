@@ -1386,12 +1386,18 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         if (DBG) {
             Log.d(TAG, "Destroy");
         }
-        if (mBluetoothGattServer != null
-                && mBluetoothGattServer.removeService(mGattService)) {
+
+        if (mBluetoothGattServer == null) {
+            return;
+        }
+
+        if (mBluetoothGattServer.removeService(mGattService)) {
             if (mCallbacks != null) {
                 mCallbacks.onServiceInstanceUnregistered(ServiceStatus.OK);
             }
         }
+
+        mBluetoothGattServer.close();
     }
 
     @VisibleForTesting
