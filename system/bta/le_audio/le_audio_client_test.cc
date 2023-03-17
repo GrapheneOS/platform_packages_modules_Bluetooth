@@ -1327,6 +1327,9 @@ class UnicastTestNoInit : public Test {
       ASSERT_FALSE(LeAudioClient::IsLeAudioClientRunning());
     }
 
+    owned_mock_le_audio_sink_hal_client_.reset();
+    owned_mock_le_audio_source_hal_client_.reset();
+
     if (le_audio::AudioSetConfigurationProvider::Get())
       le_audio::AudioSetConfigurationProvider::Cleanup();
 
