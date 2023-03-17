@@ -961,4 +961,9 @@ cc_test {
             undefined : true
         },
     },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
