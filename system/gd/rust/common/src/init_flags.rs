@@ -251,6 +251,7 @@ fn parse_hci_adapter(flags: &mut InitFlags, values: Vec<&str>) {
 init_flags!(
     // LINT.IfChange
     flags: {
+        always_send_services_if_gatt_disc_done = true,
         always_use_private_gatt_for_debugging,
         asynchronously_start_l2cap_coc = true,
         btaa_hci = true,
