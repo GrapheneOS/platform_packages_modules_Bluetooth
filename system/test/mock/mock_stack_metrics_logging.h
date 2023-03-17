@@ -33,12 +33,7 @@
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 
-#include "common/metrics.h"
-#include "main/shim/metrics_api.h"
-#include "main/shim/shim.h"
-#include "stack/include/stack_metrics_logging.h"
 #include "test/common/mock_functions.h"
-#include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR

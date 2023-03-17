@@ -27,6 +27,7 @@
 
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_btif_avrcp_service.h"
+#include "types/raw_address.h"
 
 // Original usings
 
