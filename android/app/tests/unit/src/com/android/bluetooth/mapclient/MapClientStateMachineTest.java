@@ -398,10 +398,10 @@ public class MapClientStateMachineTest {
     }
 
     /**
-     * Test sending a message
+     * Test sending a message to a phone
      */
     @Test
-    public void testSendSMSMessage() {
+    public void testSendSMSMessageToPhone() {
         setupSdpRecordReceipt();
         Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
         mMceStateMachine.sendMessage(msg);
@@ -410,6 +410,26 @@ public class MapClientStateMachineTest {
 
         String testMessage = "Hello World!";
         Uri[] contacts = new Uri[] {Uri.parse("tel://5551212")};
+
+        verify(mMockMasClient, times(0)).makeRequest(any(RequestPushMessage.class));
+        mMceStateMachine.sendMapMessage(contacts, testMessage, null, null);
+        verify(mMockMasClient, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .makeRequest(any(RequestPushMessage.class));
+    }
+
+    /**
+     * Test sending a message to an email
+     */
+    @Test
+    public void testSendSMSMessageToEmail() {
+        setupSdpRecordReceipt();
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
+        mMceStateMachine.sendMessage(msg);
+        TestUtils.waitForLooperToFinishScheduledTask(mMceStateMachine.getHandler().getLooper());
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
+
+        String testMessage = "Hello World!";
+        Uri[] contacts = new Uri[] {Uri.parse("mailto://sms-test@google.com")};
 
         verify(mMockMasClient, times(0)).makeRequest(any(RequestPushMessage.class));
         mMceStateMachine.sendMapMessage(contacts, testMessage, null, null);
