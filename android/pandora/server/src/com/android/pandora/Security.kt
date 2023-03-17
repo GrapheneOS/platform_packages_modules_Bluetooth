@@ -235,7 +235,7 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
           when (answer.answerCase!!) {
             PairingEventAnswer.AnswerCase.CONFIRM -> device.setPairingConfirmation(true)
             PairingEventAnswer.AnswerCase.PASSKEY ->
-              device.setPin(answer.passkey.toString().toByteArray())
+              device.setPin(answer.passkey.toString().padStart(6, '0'))
             PairingEventAnswer.AnswerCase.PIN -> device.setPin(answer.pin.toByteArray())
             PairingEventAnswer.AnswerCase.ANSWER_NOT_SET -> error("unexpected pairing answer type")
           }
