@@ -95,24 +95,12 @@ void BTA_DmSearch(tBTA_DM_SEARCH_CBACK* p_cback) {
  *
  ******************************************************************************/
 void BTA_DmSearchCancel(void) {
-  bta_dm_search_clear_queue();
+  tBTA_DM_API_DISCOVERY_CANCEL* p_msg =
+      (tBTA_DM_API_DISCOVERY_CANCEL*)osi_calloc(
+          sizeof(tBTA_DM_API_DISCOVERY_CANCEL));
 
-  switch (bta_dm_search_get_state()) {
-    case BTA_DM_SEARCH_IDLE:
-      bta_dm_search_cancel_notify();
-      break;
-    case BTA_DM_SEARCH_ACTIVE:
-      bta_dm_search_set_state(BTA_DM_SEARCH_CANCELLING);
-      bta_dm_search_cancel();
-      break;
-    case BTA_DM_SEARCH_CANCELLING:
-      bta_dm_search_cancel_notify();
-      break;
-    case BTA_DM_DISCOVER_ACTIVE:
-      bta_dm_search_set_state(BTA_DM_SEARCH_CANCELLING);
-      bta_dm_search_cancel_notify();
-      break;
-  }
+  p_msg->hdr.event = BTA_DM_API_SEARCH_CANCEL_EVT;
+  bta_sys_sendmsg(p_msg);
 }
 
 /*******************************************************************************

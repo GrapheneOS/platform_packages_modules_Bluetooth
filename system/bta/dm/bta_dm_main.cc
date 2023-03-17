@@ -73,6 +73,10 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           bta_dm_search_set_state(BTA_DM_DISCOVER_ACTIVE);
           bta_dm_discover(message);
           break;
+        case BTA_DM_API_SEARCH_CANCEL_EVT:
+          bta_dm_search_clear_queue();
+          bta_dm_search_cancel_notify();
+          break;
         case BTA_DM_SDP_RESULT_EVT:
           bta_dm_free_sdp_db();
           break;
@@ -101,6 +105,11 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
         case BTA_DM_API_DISCOVER_EVT:
           bta_dm_queue_disc(message);
           break;
+        case BTA_DM_API_SEARCH_CANCEL_EVT:
+          bta_dm_search_clear_queue();
+          bta_dm_search_set_state(BTA_DM_SEARCH_CANCELLING);
+          bta_dm_search_cancel();
+          break;
         default:
           LOG_INFO("Received unexpected event 0x%x in state %d", p_msg->event,
                    bta_dm_search_cb.state);
@@ -113,6 +122,10 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           break;
         case BTA_DM_API_DISCOVER_EVT:
           bta_dm_queue_disc(message);
+          break;
+        case BTA_DM_API_SEARCH_CANCEL_EVT:
+          bta_dm_search_clear_queue();
+          bta_dm_search_cancel_notify();
           break;
         case BTA_DM_SDP_RESULT_EVT:
         case BTA_DM_REMT_NAME_EVT:
@@ -154,6 +167,11 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           break;
         case BTA_DM_API_DISCOVER_EVT:
           bta_dm_queue_disc(message);
+          break;
+        case BTA_DM_API_SEARCH_CANCEL_EVT:
+          bta_dm_search_clear_queue();
+          bta_dm_search_set_state(BTA_DM_SEARCH_CANCELLING);
+          bta_dm_search_cancel_notify();
           break;
         case BTA_DM_DISC_CLOSE_TOUT_EVT:
           if (bluetooth::common::init_flags::

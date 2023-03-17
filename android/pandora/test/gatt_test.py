@@ -119,9 +119,9 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         )
         self.ref.device.add_service(service)  # type:ignore
         # disable MITM requirement on REF side (since it only does just works)
-        self.ref.device.pairing_config_factory = lambda _: PairingConfig(
+        self.ref.device.pairing_config_factory = lambda _: PairingConfig(  # type:ignore
             sc=True, mitm=False, bonding=True
-        )  # type: ignore
+        )
         # manually handle pairing on the DUT side
         dut_pairing_events = self.dut.aio.security.OnPairing()
         # set up connection
