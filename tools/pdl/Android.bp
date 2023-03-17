@@ -11,7 +11,6 @@ rust_defaults {
     name: "pdl_defaults",
     // LINT.IfChange
     rustlibs: [
-        "libclap",
         "libcodespan_reporting",
         "libheck",
         "libpest",
@@ -19,6 +18,7 @@ rust_defaults {
         "libquote",
         "libserde",
         "libserde_json",
+        "libstructopt",
         "libsyn",
         "libtempfile",
     ],
