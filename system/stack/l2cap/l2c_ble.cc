@@ -180,6 +180,18 @@ bool L2CA_EnableUpdateBleConnParams(const RawAddress& rem_bda, bool enable) {
   return (true);
 }
 
+void L2CA_Consolidate(const RawAddress& identity_addr, const RawAddress& rpa) {
+  tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(rpa, BT_TRANSPORT_LE);
+  if (p_lcb == nullptr) {
+    return;
+  }
+
+  LOG_INFO("consolidating l2c_lcb record %s -> %s",
+           ADDRESS_TO_LOGGABLE_CSTR(rpa),
+           ADDRESS_TO_LOGGABLE_CSTR(identity_addr));
+  p_lcb->remote_bd_addr = identity_addr;
+}
+
 hci_role_t L2CA_GetBleConnRole(const RawAddress& bd_addr) {
   if (bluetooth::shim::is_gd_l2cap_enabled()) {
     return bluetooth::shim::L2CA_GetBleConnRole(bd_addr);

@@ -32,6 +32,7 @@
 #include "connection_manager.h"
 #include "device/include/interop.h"
 #include "gd/common/init_flags.h"
+#include "hardware/bt_gatt_types.h"
 #include "internal_include/stack_config.h"
 #include "l2c_api.h"
 #include "main/shim/acl_api.h"
@@ -957,6 +958,18 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
   }
 }
 
+void gatt_consolidate(const RawAddress& identity_addr, const RawAddress& rpa) {
+  tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(rpa, BT_TRANSPORT_LE);
+  if (p_tcb == NULL) return;
+
+  LOG_INFO("consolidate %s -> %s", ADDRESS_TO_LOGGABLE_CSTR(rpa),
+           ADDRESS_TO_LOGGABLE_CSTR(identity_addr));
+  p_tcb->peer_bda = identity_addr;
+
+  // Address changed, notify GATT clients/servers device is available under new
+  // address
+  gatt_send_conn_cback(p_tcb);
+}
 /*******************************************************************************
  *
  * Function         gatt_le_data_ind
