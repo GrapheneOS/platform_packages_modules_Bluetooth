@@ -117,10 +117,6 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
     abort();                                \
   } while (false)
 
-#ifndef LOG_EVENT_INT
-#define LOG_EVENT_INT(...)
-#endif
-
 #else
 /* syslog didn't work well here since we would be redefining LOG_DEBUG. */
 #include <sys/syscall.h>
@@ -184,10 +180,6 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
     LOGWRAPPER(__VA_ARGS__);  \
     abort();                  \
   } while (false)
-#endif
-
-#ifndef LOG_EVENT_INT
-#define LOG_EVENT_INT(...)
 #endif
 
 #endif /* defined(OS_ANDROID) */
