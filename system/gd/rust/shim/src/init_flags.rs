@@ -4,6 +4,7 @@ mod ffi {
         fn load(flags: Vec<String>);
         fn set_all_for_testing();
 
+        fn always_send_services_if_gatt_disc_done_is_enabled() -> bool;
         fn always_use_private_gatt_for_debugging_is_enabled() -> bool;
         fn asynchronously_start_l2cap_coc_is_enabled() -> bool;
         fn btaa_hci_is_enabled() -> bool;
