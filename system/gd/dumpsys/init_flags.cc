@@ -33,6 +33,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_gd_hci_enabled(true);
   builder.add_gd_controller_enabled(true);
 
+  builder.add_always_send_services_if_gatt_disc_done_is_enabled(
+      initFlags::always_send_services_if_gatt_disc_done_is_enabled());
   builder.add_always_use_private_gatt_for_debugging_is_enabled(
       initFlags::always_use_private_gatt_for_debugging_is_enabled());
   builder.add_asynchronously_start_l2cap_coc_is_enabled(initFlags::asynchronously_start_l2cap_coc_is_enabled());
