@@ -328,3 +328,5 @@ void btm_acl_update_inquiry_status(uint8_t status);
 void ACL_RegisterClient(struct acl_client_callback_s* callbacks);
 void ACL_UnregisterClient(struct acl_client_callback_s* callbacks);
 bool ACL_SupportTransparentSynchronousData(const RawAddress& bd_addr);
+void btm_acl_consolidate(const RawAddress& identity_addr,
+                         const RawAddress& rpa);
