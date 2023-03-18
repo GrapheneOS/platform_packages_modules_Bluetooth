@@ -49,6 +49,7 @@ namespace stack_l2cap_ble {
 // Function state capture and return values, if needed
 struct L2CA_UpdateBleConnParams L2CA_UpdateBleConnParams;
 struct L2CA_EnableUpdateBleConnParams L2CA_EnableUpdateBleConnParams;
+struct L2CA_ConsolidateParams L2CA_ConsolidateParams;
 struct L2CA_GetBleConnRole L2CA_GetBleConnRole;
 struct l2cble_notify_le_connection l2cble_notify_le_connection;
 struct l2cble_conn_comp l2cble_conn_comp;
@@ -91,6 +92,10 @@ bool L2CA_EnableUpdateBleConnParams(const RawAddress& rem_bda, bool enable) {
   inc_func_call_count(__func__);
   return test::mock::stack_l2cap_ble::L2CA_EnableUpdateBleConnParams(rem_bda,
                                                                      enable);
+}
+void L2CA_Consolidate(const RawAddress& identity_addr, const RawAddress& rpa) {
+  inc_func_call_count(__func__);
+  test::mock::stack_l2cap_ble::L2CA_ConsolidateParams(identity_addr, rpa);
 }
 hci_role_t L2CA_GetBleConnRole(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
