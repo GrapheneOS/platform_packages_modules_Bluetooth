@@ -40,6 +40,7 @@
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
+#include "stack/eatt/eatt.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/bt_types.h"
@@ -1562,6 +1563,13 @@ void btm_ble_link_encrypted(const RawAddress& bd_addr, uint8_t encr_enable) {
     else if (p_dev_rec->role_central)
       btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, true);
   }
+
+  if (encr_enable) {
+    /* Link is encrypted, start EATT */
+    bluetooth::eatt::EattExtension::GetInstance()->Connect(
+        p_dev_rec->ble.pseudo_addr);
+  }
+
   /* to notify GATT to send data if any request is pending */
   gatt_notify_enc_cmpl(p_dev_rec->ble.pseudo_addr);
 }
