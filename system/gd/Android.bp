@@ -479,6 +479,7 @@ cc_test {
                 "libutils",
                 "libcutils",
             ],
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
         },
         host_linux: {
             shared_libs: [
