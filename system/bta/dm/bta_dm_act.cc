@@ -496,6 +496,18 @@ void bta_dm_disable() {
   }
 }
 
+void bta_dm_consolidate(const RawAddress& identity_addr,
+                        const RawAddress& rpa) {
+  for (auto i = 0; i < bta_dm_cb.device_list.count; i++) {
+    if (bta_dm_cb.device_list.peer_device[i].peer_bdaddr != rpa) continue;
+
+    LOG_INFO("consolidating bda_dm_cb record %s -> %s",
+             ADDRESS_TO_LOGGABLE_CSTR(rpa),
+             ADDRESS_TO_LOGGABLE_CSTR(identity_addr));
+    bta_dm_cb.device_list.peer_device[i].peer_bdaddr = identity_addr;
+  }
+}
+
 /*******************************************************************************
  *
  * Function         bta_dm_wait_for_all_acl_to_drain

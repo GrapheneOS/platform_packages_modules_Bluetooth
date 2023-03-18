@@ -942,4 +942,8 @@ extern tBTM_STATUS BTM_BT_Quality_Report_VSE_Register(
 
 uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr);
 
+typedef void(BTM_CONSOLIDATION_CB)(const RawAddress& identity_addr,
+                                   const RawAddress& rpa);
+void BTM_SetConsolidationCallback(BTM_CONSOLIDATION_CB* cb);
+
 #endif /* BTM_API_H */
