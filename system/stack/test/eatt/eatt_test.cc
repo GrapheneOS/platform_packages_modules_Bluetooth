@@ -50,6 +50,7 @@ using bluetooth::eatt::EattChannelState;
 /* Needed for testing context */
 static tGATT_TCB test_tcb;
 void btif_storage_add_eatt_supported(const RawAddress& addr) { return; }
+void gatt_consolidate(const RawAddress& identity_addr, const RawAddress& rpa) {}
 void gatt_data_process(tGATT_TCB& tcb, uint16_t cid, BT_HDR* p_buf) { return; }
 tGATT_TCB* gatt_find_tcb_by_addr(const RawAddress& bda,
                                  tBT_TRANSPORT transport) {
