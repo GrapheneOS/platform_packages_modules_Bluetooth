@@ -66,7 +66,6 @@ cc_library_static {
         "packages/modules/Bluetooth/system/bta/include",
         "packages/modules/Bluetooth/system/bta/sys",
         "packages/modules/Bluetooth/system/device/include",
-        "packages/modules/Bluetooth/system/utils/include",
         "packages/modules/Bluetooth/system/gd/rust/shim",
         "packages/modules/Bluetooth/system/gd/hal",
     ],
@@ -192,7 +191,6 @@ cc_library_static {
         "packages/modules/Bluetooth/system/udrv/include",
         "packages/modules/Bluetooth/system/bta/include",
         "packages/modules/Bluetooth/system/bta/sys",
-        "packages/modules/Bluetooth/system/utils/include",
         "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     srcs: crypto_toolbox_srcs + [
@@ -323,7 +321,6 @@ cc_test {
         "libfmq",
         "libhidlbase",
         "liblog",
-        "libprocessgroup",
         "libutils",
         "libtinyxml2",
         "libz",
@@ -342,7 +339,6 @@ cc_test {
         "libbt-common",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
-        "libbt-utils",
         "libbtif",
         "libbtif-core",
         "libFraunhoferAAC",
@@ -387,7 +383,6 @@ cc_test {
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/gd/hal",
         "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
         ":TestCommonMockFunctions",
@@ -459,7 +454,6 @@ cc_test {
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: crypto_toolbox_srcs + [
         ":TestCommonLogMsg",
@@ -527,7 +521,6 @@ cc_test {
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
         ":TestMockDevice",
@@ -608,7 +601,6 @@ cc_test {
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
         "gatt/connection_manager.cc",
@@ -653,7 +645,6 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/eatt",
         "packages/modules/Bluetooth/system/stack/l2cap",
         "packages/modules/Bluetooth/system/stack/btm",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
         ":TestCommonMockFunctions",
@@ -706,7 +697,6 @@ cc_test {
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/stack/include",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
         "test/stack_avdtp_test.cc",
@@ -774,7 +764,6 @@ cc_test {
         "packages/modules/Bluetooth/system/embdrv/encoder_for_aptxhd/include",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/stack/include",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     target: {
         host: {
@@ -914,7 +903,6 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/btm",
         "packages/modules/Bluetooth/system/stack/eatt",
         "packages/modules/Bluetooth/system/stack/include",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: crypto_toolbox_srcs + [
         ":TestCommonMainHandler",
@@ -1149,7 +1137,6 @@ cc_test {
         "libbt-sbc-encoder",
         "libbt-protos-lite",
         "libbtdevice",
-        "libbt-utils",
         "libflatbuffers-cpp",
         "libgmock",
         "liblog",
@@ -1373,7 +1360,6 @@ cc_test {
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/stack/btm",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
@@ -1458,7 +1444,6 @@ cc_test {
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/stack/btm",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
@@ -1532,7 +1517,6 @@ cc_test {
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/stack/btm",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
@@ -1613,7 +1597,6 @@ cc_test {
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/btm",
-        "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
         ":TestCommonLogMsg",

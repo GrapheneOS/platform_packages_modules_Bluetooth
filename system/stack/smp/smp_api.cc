@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "bt_target.h"
-#include "bt_utils.h"
 #include "gd/os/log.h"
 #include "gd/os/rand.h"
 #include "l2c_api.h"

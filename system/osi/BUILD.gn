@@ -51,7 +51,6 @@ static_library("osi") {
     "//bt/system/linux_include",
     "//bt/system/osi/include_internal",
     "//bt/system/stack/include",
-    "//bt/system/utils/include",
   ]
 
   cflags = [
