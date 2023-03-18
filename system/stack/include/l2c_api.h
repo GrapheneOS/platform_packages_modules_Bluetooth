@@ -870,6 +870,8 @@ extern bool L2CA_EnableUpdateBleConnParams(const RawAddress& rem_bda,
  * Returns          link role.
  *
  ******************************************************************************/
+extern void L2CA_Consolidate(const RawAddress& identity_addr,
+                             const RawAddress& rpa);
 extern tHCI_ROLE L2CA_GetBleConnRole(const RawAddress& bd_addr);
 
 extern void L2CA_AdjustConnectionIntervals(uint16_t* min_interval,

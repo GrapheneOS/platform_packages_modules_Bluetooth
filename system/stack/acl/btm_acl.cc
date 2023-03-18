@@ -111,6 +111,8 @@ struct StackAclBtmAcl {
   void set_default_packet_types_supported(uint16_t packet_types_supported) {
     btm_cb.acl_cb_.btm_acl_pkt_types_supported = packet_types_supported;
   }
+  void btm_acl_consolidate(const RawAddress& identity_addr,
+                           const RawAddress& rpa);
 };
 
 struct RoleChangeView {
@@ -312,6 +314,26 @@ tACL_CONN* StackAclBtmAcl::btm_bda_to_acl(const RawAddress& bda,
 tACL_CONN* acl_get_connection_from_address(const RawAddress& bd_addr,
                                            tBT_TRANSPORT transport) {
   return internal_.btm_bda_to_acl(bd_addr, transport);
+}
+
+void StackAclBtmAcl::btm_acl_consolidate(const RawAddress& identity_addr,
+                                         const RawAddress& rpa) {
+  tACL_CONN* p_acl = &btm_cb.acl_cb_.acl_db[0];
+  for (uint8_t index = 0; index < MAX_L2CAP_LINKS; index++, p_acl++) {
+    if (!p_acl->in_use) continue;
+
+    if (p_acl->remote_addr == rpa) {
+      LOG_INFO("consolidate %s -> %s", ADDRESS_TO_LOGGABLE_CSTR(rpa),
+               ADDRESS_TO_LOGGABLE_CSTR(identity_addr));
+      p_acl->remote_addr = identity_addr;
+      return;
+    }
+  }
+}
+
+void btm_acl_consolidate(const RawAddress& identity_addr,
+                         const RawAddress& rpa) {
+  return internal_.btm_acl_consolidate(identity_addr, rpa);
 }
 
 /*******************************************************************************
