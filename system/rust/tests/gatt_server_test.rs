@@ -19,7 +19,7 @@ use bluetooth_core::{
         },
     },
     packets::{
-        AttAttributeDataChild, AttBuilder, AttChild, AttErrorCode, AttErrorResponseBuilder,
+        AttAttributeDataChild, AttBuilder, AttErrorCode, AttErrorResponseBuilder,
         AttHandleValueConfirmationBuilder, AttHandleValueIndicationBuilder, AttOpcode,
         AttReadRequestBuilder, AttReadResponseBuilder, AttWriteRequestBuilder,
         AttWriteResponseBuilder, GattServiceDeclarationValueBuilder, Serializable,
@@ -36,6 +36,10 @@ const TCB_IDX: TransportIndex = TransportIndex(1);
 const SERVER_ID: ServerId = ServerId(2);
 const CONN_ID: ConnectionId = ConnectionId::new(TCB_IDX, SERVER_ID);
 
+const ANOTHER_TCB_IDX: TransportIndex = TransportIndex(2);
+const ANOTHER_SERVER_ID: ServerId = ServerId(3);
+const ANOTHER_CONN_ID: ConnectionId = ConnectionId::new(ANOTHER_TCB_IDX, ANOTHER_SERVER_ID);
+
 const SERVICE_HANDLE: AttHandle = AttHandle(3);
 const CHARACTERISTIC_HANDLE: AttHandle = AttHandle(5);
 const DESCRIPTOR_HANDLE: AttHandle = AttHandle(6);
@@ -45,21 +49,21 @@ const CHARACTERISTIC_TYPE: Uuid = Uuid::new(0x0103);
 const DESCRIPTOR_TYPE: Uuid = Uuid::new(0x0104);
 
 const DATA: [u8; 4] = [1, 2, 3, 4];
+const ANOTHER_DATA: [u8; 4] = [5, 6, 7, 8];
 
-fn start_gatt_module() -> (
-    gatt::server::GattModule,
-    UnboundedReceiver<MockDatastoreEvents>,
-    UnboundedReceiver<(TransportIndex, AttBuilder)>,
-) {
-    let (datastore, data_rx) = MockDatastore::new();
+fn start_gatt_module() -> (gatt::server::GattModule, UnboundedReceiver<(TransportIndex, AttBuilder)>)
+{
     let (transport, transport_rx) = MockAttTransport::new();
-    let gatt = GattModule::new(Rc::new(datastore), Rc::new(transport));
+    let gatt = GattModule::new(Rc::new(transport));
 
-    (gatt, data_rx, transport_rx)
+    (gatt, transport_rx)
 }
 
-fn create_server_and_open_connection(gatt: &mut GattModule) {
+fn create_server_and_open_connection(
+    gatt: &mut GattModule,
+) -> UnboundedReceiver<MockDatastoreEvents> {
     gatt.open_gatt_server(SERVER_ID).unwrap();
+    let (datastore, data_rx) = MockDatastore::new();
     gatt.register_gatt_service(
         SERVER_ID,
         GattServiceWithHandle {
@@ -78,16 +82,18 @@ fn create_server_and_open_connection(gatt: &mut GattModule) {
                 }],
             }],
         },
+        Rc::new(datastore),
     )
     .unwrap();
     gatt.on_le_connect(CONN_ID).unwrap();
+    data_rx
 }
 
 #[test]
 fn test_service_read() {
     start_test(async move {
         // arrange
-        let (mut gatt, _, mut transport_rx) = start_gatt_module();
+        let (mut gatt, mut transport_rx) = start_gatt_module();
 
         create_server_and_open_connection(&mut gatt);
 
@@ -121,7 +127,7 @@ fn test_service_read() {
 fn test_server_closed_while_connected() {
     start_test(async move {
         // arrange: set up a connection to a closed server
-        let (mut gatt, _, mut transport_rx) = start_gatt_module();
+        let (mut gatt, mut transport_rx) = start_gatt_module();
 
         // open a server and connect
         create_server_and_open_connection(&mut gatt);
@@ -154,11 +160,11 @@ fn test_server_closed_while_connected() {
 fn test_characteristic_read() {
     start_test(async move {
         // arrange
-        let (mut gatt, mut data_rx, mut transport_rx) = start_gatt_module();
+        let (mut gatt, mut transport_rx) = start_gatt_module();
 
         let data = AttAttributeDataChild::RawData(DATA.into());
 
-        create_server_and_open_connection(&mut gatt);
+        let mut data_rx = create_server_and_open_connection(&mut gatt);
 
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
@@ -197,11 +203,11 @@ fn test_characteristic_read() {
 fn test_characteristic_write() {
     start_test(async move {
         // arrange
-        let (mut gatt, mut data_rx, mut transport_rx) = start_gatt_module();
+        let (mut gatt, mut transport_rx) = start_gatt_module();
 
         let data = AttAttributeDataChild::RawData(DATA.into());
 
-        create_server_and_open_connection(&mut gatt);
+        let mut data_rx = create_server_and_open_connection(&mut gatt);
 
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
@@ -246,7 +252,7 @@ fn test_characteristic_write() {
 fn test_send_indication() {
     start_test(async move {
         // arrange
-        let (mut gatt, _, mut transport_rx) = start_gatt_module();
+        let (mut gatt, mut transport_rx) = start_gatt_module();
 
         let data = AttAttributeDataChild::RawData(DATA.into());
 
@@ -284,7 +290,7 @@ fn test_send_indication() {
 fn test_send_indication_and_disconnect() {
     start_test(async move {
         // arrange
-        let (mut gatt, _, mut transport_rx) = start_gatt_module();
+        let (mut gatt, mut transport_rx) = start_gatt_module();
 
         create_server_and_open_connection(&mut gatt);
 
@@ -308,11 +314,11 @@ fn test_send_indication_and_disconnect() {
 fn test_write_to_descriptor() {
     start_test(async move {
         // arrange
-        let (mut gatt, mut data_rx, mut transport_rx) = start_gatt_module();
+        let (mut gatt, mut transport_rx) = start_gatt_module();
 
         let data = AttAttributeDataChild::RawData(DATA.into());
 
-        create_server_and_open_connection(&mut gatt);
+        let mut data_rx = create_server_and_open_connection(&mut gatt);
 
         // act
         gatt.get_bearer(CONN_ID).unwrap().handle_packet(
@@ -350,5 +356,78 @@ fn test_write_to_descriptor() {
             data.to_vec().unwrap(),
             written_data.view().get_raw_payload().collect::<Vec<_>>()
         )
+    })
+}
+
+#[test]
+fn test_multiple_servers() {
+    start_test(async move {
+        // arrange
+        let (mut gatt, mut transport_rx) = start_gatt_module();
+        let data = AttAttributeDataChild::RawData(DATA.into());
+        let another_data = AttAttributeDataChild::RawData(ANOTHER_DATA.into());
+        // open the default server (SERVER_ID on CONN_ID)
+        let mut data_rx_1 = create_server_and_open_connection(&mut gatt);
+        // open a second server and connect to it (ANOTHER_SERVER_ID on ANOTHER_CONN_ID)
+        let (datastore, mut data_rx_2) = MockDatastore::new();
+        gatt.open_gatt_server(ANOTHER_SERVER_ID).unwrap();
+        gatt.register_gatt_service(
+            ANOTHER_SERVER_ID,
+            GattServiceWithHandle {
+                handle: SERVICE_HANDLE,
+                type_: SERVICE_TYPE,
+                characteristics: vec![GattCharacteristicWithHandle {
+                    handle: CHARACTERISTIC_HANDLE,
+                    type_: CHARACTERISTIC_TYPE,
+                    permissions: AttPermissions::READABLE,
+                    descriptors: vec![],
+                }],
+            },
+            Rc::new(datastore),
+        )
+        .unwrap();
+        gatt.on_le_connect(ANOTHER_CONN_ID).unwrap();
+
+        // act: read from both connections
+        gatt.get_bearer(CONN_ID).unwrap().handle_packet(
+            build_att_view_or_crash(AttReadRequestBuilder {
+                attribute_handle: CHARACTERISTIC_HANDLE.into(),
+            })
+            .view(),
+        );
+        gatt.get_bearer(ANOTHER_CONN_ID).unwrap().handle_packet(
+            build_att_view_or_crash(AttReadRequestBuilder {
+                attribute_handle: CHARACTERISTIC_HANDLE.into(),
+            })
+            .view(),
+        );
+        // service the first read with `data`
+        let MockDatastoreEvents::Read(
+            CONN_ID,
+            _, _,
+            tx,
+        ) = data_rx_1.recv().await.unwrap() else {
+            unreachable!()
+        };
+        tx.send(Ok(data.clone())).unwrap();
+        // and then the second read with `another_data`
+        let MockDatastoreEvents::Read(
+            ANOTHER_CONN_ID,
+            _, _,
+            tx,
+        ) = data_rx_2.recv().await.unwrap() else {
+            unreachable!()
+        };
+        tx.send(Ok(another_data.clone())).unwrap();
+
+        // receive both response packets
+        let (tcb_idx_1, resp_1) = transport_rx.recv().await.unwrap();
+        let (tcb_idx_2, resp_2) = transport_rx.recv().await.unwrap();
+
+        // assert: the responses were routed to the correct connections
+        assert_eq!(tcb_idx_1, TCB_IDX);
+        assert_eq!(resp_1._child_.to_vec().unwrap(), DATA);
+        assert_eq!(tcb_idx_2, ANOTHER_TCB_IDX);
+        assert_eq!(resp_2._child_.to_vec().unwrap(), ANOTHER_DATA);
     })
 }

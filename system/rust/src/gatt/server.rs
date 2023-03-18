@@ -32,17 +32,15 @@ pub use indication_handler::IndicationError;
 
 #[allow(missing_docs)]
 pub struct GattModule {
-    connection_bearers:
-        HashMap<ConnectionId, SharedBox<AttServerBearer<AttDatabaseImpl<dyn GattDatastore>>>>,
-    databases: HashMap<ServerId, SharedBox<GattDatabase<dyn GattDatastore>>>,
-    datastore: Rc<dyn GattDatastore>,
+    connection_bearers: HashMap<ConnectionId, SharedBox<AttServerBearer<AttDatabaseImpl>>>,
+    databases: HashMap<ServerId, SharedBox<GattDatabase>>,
     transport: Rc<dyn AttTransport>,
 }
 
 impl GattModule {
-    /// Constructor. Uses `datastore` to read/write characteristics.
-    pub fn new(datastore: Rc<dyn GattDatastore>, transport: Rc<dyn AttTransport>) -> Self {
-        Self { connection_bearers: HashMap::new(), databases: HashMap::new(), datastore, transport }
+    /// Constructor.
+    pub fn new(transport: Rc<dyn AttTransport>) -> Self {
+        Self { connection_bearers: HashMap::new(), databases: HashMap::new(), transport }
     }
 
     /// Handle LE link connect
@@ -77,11 +75,12 @@ impl GattModule {
         &mut self,
         server_id: ServerId,
         service: GattServiceWithHandle,
+        datastore: Rc<dyn GattDatastore>,
     ) -> Result<()> {
         self.databases
             .get(&server_id)
             .ok_or_else(|| anyhow!("server {server_id:?} not opened"))?
-            .add_service_with_handles(service)
+            .add_service_with_handles(service, datastore)
     }
 
     /// Unregister an existing GATT service on a given server
@@ -98,8 +97,7 @@ impl GattModule {
 
     /// Open a GATT server
     pub fn open_gatt_server(&mut self, server_id: ServerId) -> Result<()> {
-        let old =
-            self.databases.insert(server_id, GattDatabase::new(self.datastore.clone()).into());
+        let old = self.databases.insert(server_id, GattDatabase::new().into());
         if old.is_some() {
             bail!("GATT server {server_id:?} already exists but was re-opened, clobbering old value...")
         }
@@ -120,7 +118,7 @@ impl GattModule {
     pub fn get_bearer(
         &self,
         conn_id: ConnectionId,
-    ) -> Option<WeakBoxRef<AttServerBearer<AttDatabaseImpl<dyn GattDatastore>>>> {
+    ) -> Option<WeakBoxRef<AttServerBearer<AttDatabaseImpl>>> {
         self.connection_bearers.get(&conn_id).map(|x| x.as_ref())
     }
 }

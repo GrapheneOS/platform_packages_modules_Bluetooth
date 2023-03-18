@@ -319,25 +319,28 @@ mod test {
         // two characteristics in the database
         let (datastore, mut data_rx) = MockDatastore::new();
         let datastore = Rc::new(datastore);
-        let db = SharedBox::new(GattDatabase::new(datastore));
-        db.add_service_with_handles(GattServiceWithHandle {
-            handle: AttHandle(1),
-            type_: Uuid::new(1),
-            characteristics: vec![
-                GattCharacteristicWithHandle {
-                    handle: VALID_HANDLE,
-                    type_: Uuid::new(2),
-                    permissions: AttPermissions::READABLE,
-                    descriptors: vec![],
-                },
-                GattCharacteristicWithHandle {
-                    handle: ANOTHER_VALID_HANDLE,
-                    type_: Uuid::new(2),
-                    permissions: AttPermissions::READABLE,
-                    descriptors: vec![],
-                },
-            ],
-        })
+        let db = SharedBox::new(GattDatabase::new());
+        db.add_service_with_handles(
+            GattServiceWithHandle {
+                handle: AttHandle(1),
+                type_: Uuid::new(1),
+                characteristics: vec![
+                    GattCharacteristicWithHandle {
+                        handle: VALID_HANDLE,
+                        type_: Uuid::new(2),
+                        permissions: AttPermissions::READABLE,
+                        descriptors: vec![],
+                    },
+                    GattCharacteristicWithHandle {
+                        handle: ANOTHER_VALID_HANDLE,
+                        type_: Uuid::new(2),
+                        permissions: AttPermissions::READABLE,
+                        descriptors: vec![],
+                    },
+                ],
+            },
+            datastore,
+        )
         .unwrap();
         let (tx, mut rx) = unbounded_channel();
         let send_packet = move |packet| {
