@@ -12,6 +12,7 @@ table InitFlagsData {
     gd_hci_enabled:bool (privacy:"Any");
     gd_controller_enabled:bool (privacy:"Any");
 
+    always_send_services_if_gatt_disc_done_is_enabled:bool (private:"Any");
     always_use_private_gatt_for_debugging_is_enabled:bool (private:"Any");
     asynchronously_start_l2cap_coc_is_enabled:bool (privacy:"Any");
     btaa_hci_is_enabled:bool (privacy:"Any");
