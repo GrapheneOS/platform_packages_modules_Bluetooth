@@ -360,6 +360,11 @@ cc_test {
     whole_static_libs: [
         "libbluetooth-for-tests",
     ],
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 cc_test {
@@ -429,6 +434,11 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 // Bluetooth stack smp unit tests for target
@@ -494,6 +504,11 @@ cc_test {
         "libgmock",
         "libosi",
     ],
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 // Bluetooth stack multi-advertising unit tests for target
@@ -536,6 +551,11 @@ cc_test {
     sanitize: {
         cfi: false,
     },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 // Bluetooth stack advertise data parsing unit tests for target
@@ -564,6 +584,11 @@ cc_test {
         "liblog",
         "libgmock",
     ],
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 // Bluetooth stack connection multiplexing
@@ -603,6 +628,11 @@ cc_test {
     ],
     sanitize: {
         cfi: false,
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -653,6 +683,11 @@ cc_test {
         address: true,
         cfi: true,
         misc_undefined: ["bounds"],
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -709,6 +744,11 @@ cc_test {
         address: true,
         cfi: true,
         misc_undefined: ["bounds"],
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -858,6 +898,11 @@ cc_test {
         cfi: true,
         misc_undefined: ["bounds"],
     },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 // gatt sr hash test
@@ -901,6 +946,11 @@ cc_test {
         "libgmock",
         "libosi",
     ],
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 // Iso manager unit tests
@@ -947,6 +997,11 @@ cc_test {
         diag: {
             undefined : true
         },
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -1002,6 +1057,11 @@ cc_test {
     ],
     sanitize: {
         cfi: false,
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -1117,6 +1177,11 @@ cc_test {
             undefined : true
         },
     },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 cc_test {
@@ -1162,6 +1227,11 @@ cc_test {
         diag: {
             undefined : true
         },
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -1217,6 +1287,11 @@ cc_test {
         diag: {
             undefined : true
         },
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -1281,6 +1356,11 @@ cc_test {
         diag: {
             undefined : true
         },
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -1361,6 +1441,11 @@ cc_test {
         diag: {
             undefined : true
         },
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
     },
 }
 
@@ -1516,6 +1601,11 @@ cc_test {
             undefined : true
         },
     },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
 
 // Bluetooth stack connection multiplexing
@@ -1560,4 +1650,9 @@ cc_test {
         "liblog",
         "libgmock",
     ],
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
+        }
+    },
 }
