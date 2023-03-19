@@ -60,7 +60,7 @@ java_sdk_library {
     jarjar_rules: ":bluetooth-jarjar-rules",
     installable: true,
     optimize: {
-        enabled: false
+        enabled: false,
     },
     hostdex: true, // for hiddenapi check
 
@@ -122,8 +122,7 @@ java_api_contribution {
     ],
 }
 
-platform_compat_config
-{
+platform_compat_config {
     name: "framework-bluetooth-compat-config",
     src: ":framework-bluetooth",
 }

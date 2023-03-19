@@ -21,7 +21,7 @@ cc_test_library {
     include_dirs: [
         "packages/modules/Bluetooth/system",
     ],
-    srcs: crypto_toolbox_srcs
+    srcs: crypto_toolbox_srcs,
 }
 
 // Bluetooth stack static library for target
@@ -143,19 +143,19 @@ cc_library_static {
         "libaptxhd_enc",
     ],
     host_supported: true,
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 filegroup {
-  name: "LegacyStackSdp",
-  srcs: [
+    name: "LegacyStackSdp",
+    srcs: [
         "sdp/sdp_api.cc",
         "sdp/sdp_db.cc",
         "sdp/sdp_discovery.cc",
         "sdp/sdp_main.cc",
         "sdp/sdp_server.cc",
         "sdp/sdp_utils.cc",
-  ],
+    ],
 }
 
 cc_library_static {
@@ -286,7 +286,7 @@ cc_library_static {
         "libbt-hci",
     ],
     host_supported: true,
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 // Bluetooth stack unit tests for target
@@ -362,7 +362,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -436,7 +436,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -506,7 +506,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -553,7 +553,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -586,7 +586,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -631,7 +631,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -686,7 +686,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -747,7 +747,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -787,7 +787,7 @@ cc_test {
                 ":BluetoothAndroidTestingLogCapture",
             ],
             test_config: "test/a2dp/AndroidTest.xml",
-        }
+        },
     },
     data: [
         "test/a2dp/raw_data/*",
@@ -895,7 +895,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -943,7 +943,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -974,7 +974,7 @@ cc_test {
         "test/common/mock_controller.cc",
         "test/common/mock_gatt_layer.cc",
         "test/common/mock_hcic_layer.cc",
-        ":TestCommonStackConfig"
+        ":TestCommonStackConfig",
     ],
     static_libs: [
         "libbt-common",
@@ -989,13 +989,13 @@ cc_test {
         all_undefined: true,
         integer_overflow: true,
         diag: {
-            undefined : true
+            undefined: true,
         },
     },
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -1020,10 +1020,10 @@ cc_test {
         "l2cap",
         "test/common",
     ],
-    include_dirs:[
+    include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/internal_include"
+        "packages/modules/Bluetooth/system/internal_include",
     ],
     srcs: [
         "eatt/eatt.cc",
@@ -1055,7 +1055,7 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -1167,13 +1167,13 @@ cc_test {
         integer_overflow: true,
         scs: true,
         diag: {
-            undefined : true
+            undefined: true,
         },
     },
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -1218,13 +1218,13 @@ cc_test {
         integer_overflow: true,
         scs: true,
         diag: {
-            undefined : true
+            undefined: true,
         },
     },
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -1278,13 +1278,13 @@ cc_test {
         integer_overflow: true,
         scs: true,
         diag: {
-            undefined : true
+            undefined: true,
         },
     },
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -1347,13 +1347,13 @@ cc_test {
         integer_overflow: true,
         scs: true,
         diag: {
-            undefined : true
+            undefined: true,
         },
     },
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -1432,13 +1432,13 @@ cc_test {
         integer_overflow: true,
         scs: true,
         diag: {
-            undefined : true
+            undefined: true,
         },
     },
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -1511,7 +1511,7 @@ cc_test {
         integer_overflow: true,
         scs: true,
         diag: {
-            undefined : true
+            undefined: true,
         },
     },
 }
@@ -1584,13 +1584,13 @@ cc_test {
         integer_overflow: true,
         scs: true,
         diag: {
-            undefined : true
+            undefined: true,
         },
     },
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
 
@@ -1639,6 +1639,6 @@ cc_test {
     target: {
         android: {
             test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        }
+        },
     },
 }
