@@ -794,12 +794,15 @@ impl BluetoothMedia {
                 // Respond OK/ERROR to the HF which sent the command.
                 // This should be called before calling phone_state_change.
                 self.simple_at_response(success, addr.clone());
-                if success {
-                    // Success means the call state has changed. Inform the LibBluetooth stack.
-                    self.phone_state_change("".into());
-                } else {
+                if !success {
                     warn!("[{}]: Unexpected dialing command from HF", DisplayAddress(&addr));
+                    return;
                 }
+                // Inform libbluetooth that the state has changed to dialing.
+                self.phone_state_change("".into());
+                // Change to alerting state and inform libbluetooth.
+                self.dialing_to_alerting();
+                self.phone_state_change("".into());
             }
             HfpCallbacks::CallHold(command, addr) => {
                 let success = match command {
@@ -814,7 +817,7 @@ impl BluetoothMedia {
                 // This should be called before calling phone_state_change.
                 self.simple_at_response(success, addr.clone());
                 if success {
-                    // Success means the call state has changed. Inform the LibBluetooth stack.
+                    // Success means the call state has changed. Inform libbluetooth.
                     self.phone_state_change("".into());
                 } else {
                     warn!(
@@ -1301,9 +1304,12 @@ impl BluetoothMedia {
         }
         // There must be exactly one incoming/dialing call in the list.
         for c in self.call_list.iter_mut() {
-            if c.state == CallState::Incoming || c.state == CallState::Dialing {
-                c.state = CallState::Active;
-                break;
+            match c.state {
+                CallState::Incoming | CallState::Dialing | CallState::Alerting => {
+                    c.state = CallState::Active;
+                    break;
+                }
+                _ => {}
             }
         }
         self.phone_state.state = CallState::Idle;
@@ -1319,16 +1325,19 @@ impl BluetoothMedia {
             CallState::Idle if self.phone_state.num_active > 0 => {
                 self.phone_state.num_active -= 1;
             }
-            CallState::Incoming | CallState::Dialing => {
+            CallState::Incoming | CallState::Dialing | CallState::Alerting => {
                 self.phone_state.state = CallState::Idle;
             }
             _ => {
                 return false;
             }
         }
-        // At this point, there must be exactly one incoming/dialing/active call to be removed.
+        // At this point, there must be exactly one incoming/dialing/alerting/active call to be
+        // removed.
         self.call_list.retain(|x| match x.state {
-            CallState::Active | CallState::Incoming | CallState::Dialing => false,
+            CallState::Active | CallState::Incoming | CallState::Dialing | CallState::Alerting => {
+                false
+            }
             _ => true,
         });
         true
@@ -1348,6 +1357,20 @@ impl BluetoothMedia {
             number: number.clone(),
         });
         self.phone_state.state = CallState::Dialing;
+        true
+    }
+
+    fn dialing_to_alerting(&mut self) -> bool {
+        if !self.phone_ops_enabled || self.phone_state.state != CallState::Dialing {
+            return false;
+        }
+        for c in self.call_list.iter_mut() {
+            if c.state == CallState::Dialing {
+                c.state = CallState::Alerting;
+                break;
+            }
+        }
+        self.phone_state.state = CallState::Alerting;
         true
     }
 
@@ -2111,6 +2134,9 @@ impl IBluetoothTelephony for BluetoothMedia {
         if !self.dialing_call_impl(number) {
             return false;
         }
+        self.phone_state_change("".into());
+        // Change to alerting state and inform libbluetooth.
+        self.dialing_to_alerting();
         self.phone_state_change("".into());
         true
     }
