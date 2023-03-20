@@ -13,9 +13,12 @@ rust_defaults {
     dylib: {
         enabled: false,
     },
-    srcs: ["src/lib.rs", ":bluetooth_core_rust_packets"],
+    srcs: [
+        "src/lib.rs",
+        ":bluetooth_core_rust_packets",
+    ],
     shared_libs: [
-      "libbase",
+        "libbase",
     ],
     static_libs: [
         "libbluetooth-core",

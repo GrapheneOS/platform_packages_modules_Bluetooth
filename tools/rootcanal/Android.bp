@@ -9,7 +9,7 @@ package {
     default_visibility: [
         "//device:__subpackages__",
         "//packages/modules/Bluetooth:__subpackages__",
-        "//tools/netsim:__subpackages__"
+        "//tools/netsim:__subpackages__",
     ],
 }
 
@@ -19,7 +19,7 @@ cc_defaults {
     tidy_checks: [
         "-*",
         "readability-*",
-	"-readability-function-size",
+        "-readability-function-size",
         "-readability-identifier-length",
         "-readability-implicit-bool-conversion",
         "-readability-magic-numbers",
@@ -112,7 +112,7 @@ cc_library_static {
         ".",
     ],
     export_generated_headers: [
-        "BluetoothGeneratedPackets_h"
+        "BluetoothGeneratedPackets_h",
     ],
     whole_static_libs: [
         "liblmp",
@@ -173,7 +173,7 @@ cc_library_host_shared {
 // packets/link_layer_packets.pdl.
 genrule {
     name: "link_layer_packets_python3_gen",
-    defaults: [ "pdl_python_generator_defaults" ],
+    defaults: ["pdl_python_generator_defaults"],
     cmd: "$(location :pdl) $(in) |" +
         " $(location :pdl_python_generator)" +
         " --output $(out) --custom-type-location py.bluetooth",
@@ -189,7 +189,7 @@ genrule {
 // hci_packets.pdl.
 genrule {
     name: "hci_packets_python3_gen",
-    defaults: [ "pdl_python_generator_defaults" ],
+    defaults: ["pdl_python_generator_defaults"],
     cmd: "$(location :pdl) $(in) |" +
         " $(location :pdl_python_generator)" +
         " --output $(out) --custom-type-location py.bluetooth",
