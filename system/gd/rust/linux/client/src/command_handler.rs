@@ -11,6 +11,7 @@ use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
 use bt_topshim::profiles::hid_host::BthhReportType;
+use bt_topshim::profiles::sdp::{BtSdpMpsRecord, BtSdpRecord};
 use bt_topshim::profiles::{gatt::LePhy, ProfileConnectionState};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
 use btstack::bluetooth_gatt::{GattWriteType, IBluetoothGatt, ScanSettings, ScanType};
@@ -1655,14 +1656,29 @@ impl CommandHandler {
                     .unwrap()
                     .set_battery_level(level);
             }
-            "enable" | "disable" => {
-                self.context
-                    .lock()
-                    .unwrap()
-                    .telephony_dbus
-                    .as_mut()
-                    .unwrap()
-                    .set_phone_ops_enabled(get_arg(args, 0)? == "enable");
+            "enable" => {
+                let mut context = self.lock_context();
+                context.telephony_dbus.as_mut().unwrap().set_phone_ops_enabled(true);
+                if context.mps_sdp_handle.is_none() {
+                    let success = context
+                        .adapter_dbus
+                        .as_mut()
+                        .unwrap()
+                        .create_sdp_record(BtSdpRecord::Mps(BtSdpMpsRecord::default()));
+                    if !success {
+                        return Err(format!("Failed to create SDP record").into());
+                    }
+                }
+            }
+            "disable" => {
+                let mut context = self.lock_context();
+                context.telephony_dbus.as_mut().unwrap().set_phone_ops_enabled(false);
+                if let Some(handle) = context.mps_sdp_handle.take() {
+                    let success = context.adapter_dbus.as_mut().unwrap().remove_sdp_record(handle);
+                    if !success {
+                        return Err(format!("Failed to remove SDP record").into());
+                    }
+                }
             }
             "incoming-call" => {
                 let success = self

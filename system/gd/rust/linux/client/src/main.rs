@@ -127,6 +127,9 @@ pub(crate) struct ClientContext {
 
     /// The schedule when a socket is connected.
     socket_test_schedule: Option<SocketSchedule>,
+
+    /// The handle of the SDP record for MPS (Multi-Profile Specification).
+    mps_sdp_handle: Option<i32>,
 }
 
 impl ClientContext {
@@ -170,6 +173,7 @@ impl ClientContext {
             is_restricted,
             gatt_client_context: GattClientContext::new(),
             socket_test_schedule: None,
+            mps_sdp_handle: None,
         }
     }
 
