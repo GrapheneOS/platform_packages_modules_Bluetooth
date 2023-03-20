@@ -111,6 +111,7 @@ lazy_static! {
         Profile::A2dpSink,
         Profile::A2dpSource,
         Profile::AvrcpController,
+        Profile::AvrcpTarget,
         Profile::Bas,
         Profile::Hsp,
         Profile::Hfp,
