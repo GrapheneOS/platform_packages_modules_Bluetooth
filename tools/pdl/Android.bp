@@ -15,6 +15,7 @@ rust_defaults {
         "libcodespan_reporting",
         "libheck",
         "libpest",
+        "libprettyplease",
         "libproc_macro2",
         "libquote",
         "libserde",
@@ -121,15 +122,7 @@ rust_test_host {
         "libpaste",
     ],
     test_suites: ["general-tests"],
-    enabled: false, // rustfmt is only available on x86.
-    arch: {
-        x86_64: {
-            enabled: true,
-        },
-    },
     data: [
-        ":rustfmt",
-        ":rustfmt.toml",
         ":pdl_generated_files",
     ],
 }
