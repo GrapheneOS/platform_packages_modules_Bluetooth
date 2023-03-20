@@ -7,39 +7,38 @@ package {
     default_applicable_licenses: ["system_bt_license"],
 }
 
-
 rust_library {
-  name : "libbt_common",
-  defaults: ["libbt_common_defaults"],
-  rustlibs: [
-      "libtokio",
-      "libnix",
-      "liblazy_static",
-      "liblog_rust",
-      "libcxx",
-      "libgrpcio",
-  ],
-  target: {
-      android: {
-          rustlibs: [
-              "libandroid_logger",
-              "librustutils",
-          ],
-          shared_libs: [
-              "libcutils",
-          ],
-      },
-      host: {
-          rustlibs: [
-              "libenv_logger",
-          ],
-      },
-  },
-  apex_available: [
-       "//apex_available:platform",
-       "com.android.btservices",
-  ],
-  min_sdk_version: "Tiramisu",
+    name: "libbt_common",
+    defaults: ["libbt_common_defaults"],
+    rustlibs: [
+        "libtokio",
+        "libnix",
+        "liblazy_static",
+        "liblog_rust",
+        "libcxx",
+        "libgrpcio",
+    ],
+    target: {
+        android: {
+            rustlibs: [
+                "libandroid_logger",
+                "librustutils",
+            ],
+            shared_libs: [
+                "libcutils",
+            ],
+        },
+        host: {
+            rustlibs: [
+                "libenv_logger",
+            ],
+        },
+    },
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.btservices",
+    ],
+    min_sdk_version: "Tiramisu",
 }
 
 rust_defaults {
@@ -74,13 +73,13 @@ rust_ffi_static {
     name: "libbt_common_ffi",
     defaults: ["libbt_common_defaults"],
     target: {
-          android: {
-              rustlibs: [
-                  "librustutils",
-                  "libandroid_logger",
-              ]
-          },
-     },
+        android: {
+            rustlibs: [
+                "librustutils",
+                "libandroid_logger",
+            ],
+        },
+    },
     apex_available: [
         "com.android.btservices",
     ],
@@ -121,13 +120,18 @@ cc_library_static {
     min_sdk_version: "30",
 }
 
-
 cc_library_static {
     name: "libbt_keystore_cc",
-    defaults: ["rust_static_cc_lib_defaults", "gd_ffi_defaults"],
+    defaults: [
+        "rust_static_cc_lib_defaults",
+        "gd_ffi_defaults",
+    ],
     header_libs: ["libbt_keystore_cc_headers"],
     srcs: ["keystore/fake_bt_keystore.cc"],
-    generated_headers: ["libbt_common_bridge_header", "cxx-bridge-header"],
+    generated_headers: [
+        "libbt_common_bridge_header",
+        "cxx-bridge-header",
+    ],
     generated_sources: ["libbt_common_bridge_code"],
     shared_libs: [
         "libchrome",

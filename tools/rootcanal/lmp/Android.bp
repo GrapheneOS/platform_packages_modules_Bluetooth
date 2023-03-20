@@ -10,7 +10,7 @@ package {
 rust_ffi {
     name: "liblmp",
     host_supported: true,
-    vendor_available : true,
+    vendor_available: true,
     crate_name: "lmp",
     srcs: [
         "src/lib.rs",
@@ -54,7 +54,10 @@ rust_test_host {
     ],
     auto_gen_config: true,
     edition: "2018",
-    proc_macros: ["libnum_derive", "libpaste"],
+    proc_macros: [
+        "libnum_derive",
+        "libpaste",
+    ],
     rustlibs: [
         "libbt_packets",
         "libbytes",

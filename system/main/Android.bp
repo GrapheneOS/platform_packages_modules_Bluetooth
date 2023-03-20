@@ -16,7 +16,7 @@ filegroup {
         "bte_logmsg.cc",
         "bte_main.cc",
         "stack_config.cc",
-    ]
+    ],
 }
 
 cc_library_static {
@@ -56,7 +56,7 @@ cc_library_static {
     ],
     header_libs: ["libbt_callbacks_cxx_headers"],
     host_supported: true,
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 cc_library {
@@ -216,7 +216,7 @@ cc_test {
         integer_overflow: true,
         scs: true,
         diag: {
-            undefined : true
+            undefined: true,
         },
     },
     generated_headers: [
@@ -224,5 +224,5 @@ cc_test {
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
