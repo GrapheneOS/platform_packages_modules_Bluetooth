@@ -3095,6 +3095,7 @@ public final class BluetoothAdapter {
     public @NonNull List<Integer> getSupportedProfiles() {
         final ArrayList<Integer> supportedProfiles = new ArrayList<Integer>();
 
+        mServiceLock.readLock().lock();
         try {
             synchronized (mManagerCallback) {
                 if (mService != null) {
@@ -3117,6 +3118,8 @@ public final class BluetoothAdapter {
             }
         } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } finally {
+            mServiceLock.readLock().unlock();
         }
         return supportedProfiles;
     }
