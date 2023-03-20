@@ -83,7 +83,7 @@ genrule {
         ":BluetoothGeneratedDumpsysBinarySchema_bfbs",
     ],
     out: [
-         "dumpsys_module_schema_data.cc",
+        "dumpsys_module_schema_data.cc",
     ],
 }
 
@@ -91,14 +91,14 @@ genrule {
     name: "BluetoothGeneratedDumpsysBundledSchema_cc",
     visibility: ["//visibility:private"],
     tools: [
-            "bluetooth_flatbuffer_bundler",
+        "bluetooth_flatbuffer_bundler",
     ],
     cmd: "$(location bluetooth_flatbuffer_bundler) -w -m bluetooth.DumpsysData -f generated_dumpsys_bundled_schema -n bluetooth::dumpsys -g $(genDir) $(locations :BluetoothGeneratedDumpsysBinarySchema_bfbs)",
     srcs: [
         ":BluetoothGeneratedDumpsysBinarySchema_bfbs",
     ],
     out: [
-         "generated_dumpsys_bundled_schema.cc",
+        "generated_dumpsys_bundled_schema.cc",
     ],
 }
 
@@ -106,14 +106,14 @@ genrule {
     name: "BluetoothGeneratedDumpsysBundledTestSchema_cc",
     visibility: ["//visibility:private"],
     tools: [
-            "bluetooth_flatbuffer_bundler",
+        "bluetooth_flatbuffer_bundler",
     ],
     cmd: "$(location bluetooth_flatbuffer_bundler) -w -m testing.DumpsysTestDataRoot  -f generated_dumpsys_bundled_test_schema -n testing -g $(genDir) $(locations :BluetoothGeneratedDumpsysTestData_bfbs)",
     srcs: [
         ":BluetoothGeneratedDumpsysTestData_bfbs",
     ],
     out: [
-         "generated_dumpsys_bundled_test_schema.cc",
+        "generated_dumpsys_bundled_test_schema.cc",
     ],
 }
 
@@ -127,7 +127,8 @@ genrule {
         "bluetooth_flatbuffer_test.fbs",
     ],
     out: [
-        "bluetooth_flatbuffer_test_generated.h", "bluetooth_flatbuffer_test.bfbs",
+        "bluetooth_flatbuffer_test_generated.h",
+        "bluetooth_flatbuffer_test.bfbs",
     ],
 }
 
@@ -158,7 +159,7 @@ cc_library {
     ],
     generated_sources: [
         "BluetoothGeneratedDumpsysBundledTestSchema_cc",
-   ],
+    ],
 }
 
 cc_library {
@@ -171,13 +172,16 @@ cc_library {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysTestSchema_cc",
-   ],
+    ],
 }
 
 cc_test {
     name: "bluetooth_flatbuffer_tests",
     test_suites: ["device-tests"],
-    defaults: ["fluoride_common_options", "mts_defaults"],
+    defaults: [
+        "fluoride_common_options",
+        "mts_defaults",
+    ],
     host_supported: true,
     test_options: {
         unit_test: true,

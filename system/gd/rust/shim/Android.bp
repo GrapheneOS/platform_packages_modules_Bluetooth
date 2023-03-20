@@ -70,7 +70,7 @@ cc_library_static {
     name: "libbt_shim_bridge",
     defaults: [
         "gd_ffi_defaults",
-        "libchrome_support_defaults"
+        "libchrome_support_defaults",
     ],
     generated_headers: [
         "libbt_init_flags_bridge_header",
@@ -108,7 +108,7 @@ cc_library_static {
     name: "libbluetooth_rust_interop",
     defaults: [
         "gd_ffi_defaults",
-        "libchrome_support_defaults"
+        "libchrome_support_defaults",
     ],
     static_libs: [
         "libbt_shim_bridge",
@@ -125,11 +125,14 @@ cc_library_static {
     name: "libbt_callbacks_cxx",
     defaults: [
         "gd_ffi_defaults",
-        "libchrome_support_defaults"
+        "libchrome_support_defaults",
     ],
     header_libs: ["libbt_callbacks_cxx_headers"],
     srcs: ["callbacks/callbacks.cc"],
-    generated_headers: ["libbt_shim_bridge_header", "cxx-bridge-header"],
+    generated_headers: [
+        "libbt_shim_bridge_header",
+        "cxx-bridge-header",
+    ],
     host_supported: true,
     apex_available: [
         "com.android.btservices",

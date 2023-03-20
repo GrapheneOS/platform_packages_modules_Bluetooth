@@ -33,5 +33,5 @@ cc_library_static {
     apex_available: [
         "com.android.btservices",
     ],
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
