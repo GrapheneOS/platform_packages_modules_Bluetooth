@@ -80,10 +80,10 @@ impl<T: AttDatabase + Clone + 'static> AttServerBearer<T> {
         }
     }
 
-    fn send_packet(&self, packet: impl Into<AttChild>) -> Result<(), SendError> {
+    fn send_packet(&self, packet: impl Into<AttChild>) -> Result<(), SerializeError> {
         let child = packet.into();
         let packet = AttBuilder { opcode: HACK_child_to_opcode(&child), _child_: child };
-        (self.send_packet)(packet).map_err(SendError::SerializeError)
+        (self.send_packet)(packet)
     }
 }
 
@@ -164,13 +164,10 @@ impl<T: AttDatabase + Clone + 'static> WeakBoxRef<'_, AttServerBearer<T>> {
                                 Ok(_) => {
                                     trace!("reply packet sent")
                                 }
-                                Err(SendError::ConnectionDropped) => {
-                                    warn!("callback returned after disconnect");
-                                }
-                                Err(SendError::SerializeError(err)) => {
+                                Err(err) => {
                                     error!("serializer failure {err:?}, dropping packet and sending failed reply");
                                     // if this also fails, we're stuck
-                                    if let Err(SendError::SerializeError(err)) = this.send_packet(AttErrorResponseBuilder {
+                                    if let Err(err) = this.send_packet(AttErrorResponseBuilder {
                                         opcode_in_error: packet.view().get_opcode(),
                                         handle_in_error: AttHandle(0).into(),
                                         error_code: AttErrorCode::UNLIKELY_ERROR,
@@ -203,6 +200,7 @@ impl<T: AttDatabase + Clone + 'static> WeakBox<AttServerBearer<T>> {
                 SendError::ConnectionDropped
             })?
             .send_packet(packet)
+            .map_err(SendError::SerializeError)
         })
     }
 }
