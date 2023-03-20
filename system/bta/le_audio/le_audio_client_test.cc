@@ -3373,6 +3373,10 @@ TEST_F(UnicastTest, DisconnectDeviceWhenGettingConnectionReady) {
       .Times(0);
 
   LeAudioClient::Get()->Disconnect(test_address0);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_gatt_queue_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 }
 
 TEST_F(UnicastTest, RemoveWhileStreaming) {
