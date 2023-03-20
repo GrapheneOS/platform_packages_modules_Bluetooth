@@ -27,6 +27,7 @@ import android.content.IntentFilter
 import android.media.*
 import android.net.MacAddress
 import android.os.ParcelFileDescriptor
+import android.os.ParcelUuid
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.protobuf.Any
