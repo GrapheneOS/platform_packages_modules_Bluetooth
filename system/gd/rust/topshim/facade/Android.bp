@@ -11,11 +11,14 @@ rust_defaults {
     name: "bt_topshim_facade.defaults",
     defaults: [
         "gd_rust_defaults",
-        "libchrome_support_defaults"
+        "libchrome_support_defaults",
     ],
     crate_name: "bt_topshim_facade",
     srcs: ["src/main.rs"],
-    ld_flags: ["-fsanitize=undefined", "-fsanitize-minimal-runtime"],
+    ld_flags: [
+        "-fsanitize=undefined",
+        "-fsanitize-minimal-runtime",
+    ],
     rustlibs: [
         "libbluetooth_rs",
         "libbt_common",
@@ -78,7 +81,7 @@ rust_defaults {
         "liblog",
         "libcutils",
         "libgrpc++",
-        "libgrpc_wrap"
+        "libgrpc_wrap",
     ],
     proc_macros: [
         "libpaste",

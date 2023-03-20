@@ -28,7 +28,7 @@ cc_library_static {
         "src/device_iot_config.cc",
         "src/device_iot_config_int.cc",
     ],
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 // Bluetooth device unit tests for target

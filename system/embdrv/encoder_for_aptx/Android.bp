@@ -32,7 +32,12 @@ cc_library_static {
         "src/QmfConv.c",
         "src/QuantiseDifference.c",
     ],
-    cflags: ["-O2", "-Werror", "-Wall", "-Wextra"],
+    cflags: [
+        "-O2",
+        "-Werror",
+        "-Wall",
+        "-Wextra",
+    ],
     tidy: true,
     tidy_checks: tidy_errors,
     tidy_checks_as_errors: tidy_errors,
