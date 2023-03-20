@@ -60,6 +60,19 @@ class MockVolumeInterface : public VolumeInterface {
   MOCK_METHOD1(SetVolume, void(int8_t));
 };
 
+class MockPlayerSettingsInterface : public PlayerSettingsInterface {
+ public:
+  MOCK_METHOD1(ListPlayerSettings, void(ListPlayerSettingsCallback));
+  MOCK_METHOD2(ListPlayerSettingValues,
+               void(PlayerAttribute, ListPlayerSettingValuesCallback));
+  MOCK_METHOD2(GetCurrentPlayerSettingValue,
+               void(std::vector<PlayerAttribute>,
+                    GetCurrentPlayerSettingValueCallback));
+  MOCK_METHOD3(SetPlayerSettings,
+               void(std::vector<PlayerAttribute>, std::vector<uint8_t>,
+                    SetPlayerSettingValueCallback));
+};
+
 class MockAvrcpInterface : public AvrcpInterface {
  public:
   MOCK_METHOD0(GetAvrcpVersion, uint16_t(void));
