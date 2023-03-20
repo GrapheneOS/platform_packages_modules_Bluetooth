@@ -80,7 +80,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -1059,8 +1058,8 @@ public final class BluetoothAdapter {
      * Use {@link #getDefaultAdapter} to get the BluetoothAdapter instance.
      */
     BluetoothAdapter(IBluetoothManager managerService, AttributionSource attributionSource) {
-        mManagerService = Objects.requireNonNull(managerService);
-        mAttributionSource = Objects.requireNonNull(attributionSource);
+        mManagerService = requireNonNull(managerService);
+        mAttributionSource = requireNonNull(attributionSource);
         mServiceLock.writeLock().lock();
         try {
             mService = getBluetoothService(mManagerCallback);
@@ -4339,7 +4338,7 @@ public final class BluetoothAdapter {
      * /
     @UnsupportedAppUsage
     /*package*/ IBluetooth getBluetoothService(IBluetoothManagerCallback cb) {
-        Objects.requireNonNull(cb);
+        requireNonNull(cb);
         synchronized (sServiceLock) {
             sProxyServiceStateCallbacks.put(cb, null);
             registerOrUnregisterAdapterLocked();
@@ -4348,7 +4347,7 @@ public final class BluetoothAdapter {
     }
 
     /*package*/ void removeServiceStateCallback(IBluetoothManagerCallback cb) {
-        Objects.requireNonNull(cb);
+        requireNonNull(cb);
         synchronized (sServiceLock) {
             sProxyServiceStateCallbacks.remove(cb);
             registerOrUnregisterAdapterLocked();
@@ -5145,8 +5144,8 @@ public final class BluetoothAdapter {
         if (DBG) {
             Log.d(TAG, "setPreferredAudioProfiles( " + modeToProfileBundle + ", " + device + ")");
         }
-        Objects.requireNonNull(modeToProfileBundle, "modeToProfileBundle must not be null");
-        Objects.requireNonNull(device, "device must not be null");
+        requireNonNull(modeToProfileBundle, "modeToProfileBundle must not be null");
+        requireNonNull(device, "device must not be null");
         if (!BluetoothAdapter.checkBluetoothAddress(getAddress())) {
             throw new IllegalArgumentException("device cannot have an invalid address");
         }
@@ -5230,7 +5229,7 @@ public final class BluetoothAdapter {
     @NonNull
     public Bundle getPreferredAudioProfiles(@NonNull BluetoothDevice device) {
         if (DBG) Log.d(TAG, "getPreferredAudioProfiles(" + device + ")");
-        Objects.requireNonNull(device, "device cannot be null");
+        requireNonNull(device, "device cannot be null");
         if (!BluetoothAdapter.checkBluetoothAddress(device.getAddress())) {
             throw new IllegalArgumentException("device cannot have an invalid address");
         }
@@ -5292,7 +5291,7 @@ public final class BluetoothAdapter {
     @NotifyActiveDeviceChangeAppliedReturnValues
     public int notifyActiveDeviceChangeApplied(@NonNull BluetoothDevice device) {
         if (DBG) Log.d(TAG, "notifyActiveDeviceChangeApplied(" + device + ")");
-        Objects.requireNonNull(device, "device cannot be null");
+        requireNonNull(device, "device cannot be null");
         if (!BluetoothAdapter.checkBluetoothAddress(device.getAddress())) {
             throw new IllegalArgumentException("device cannot have an invalid address");
         }
@@ -5371,8 +5370,8 @@ public final class BluetoothAdapter {
             @NonNull @CallbackExecutor Executor executor,
             @NonNull PreferredAudioProfilesChangedCallback callback) {
         if (DBG) Log.d(TAG, "registerPreferredAudioProfilesChangedCallback()");
-        Objects.requireNonNull(executor, "executor cannot be null");
-        Objects.requireNonNull(callback, "callback cannot be null");
+        requireNonNull(executor, "executor cannot be null");
+        requireNonNull(callback, "callback cannot be null");
 
         final int defaultValue = BluetoothStatusCodes.ERROR_UNKNOWN;
         int serviceCallStatus = defaultValue;
@@ -5445,7 +5444,7 @@ public final class BluetoothAdapter {
     public int unregisterPreferredAudioProfilesChangedCallback(
             @NonNull PreferredAudioProfilesChangedCallback callback) {
         if (DBG) Log.d(TAG, "unregisterPreferredAudioProfilesChangedCallback()");
-        Objects.requireNonNull(callback, "callback cannot be null");
+        requireNonNull(callback, "callback cannot be null");
 
         synchronized (mAudioProfilesChangedCallbackExecutorMap) {
             if (mAudioProfilesChangedCallbackExecutorMap.remove(callback) == null) {
@@ -5569,8 +5568,8 @@ public final class BluetoothAdapter {
             @NonNull @CallbackExecutor Executor executor,
             @NonNull BluetoothQualityReportReadyCallback callback) {
         if (DBG) Log.d(TAG, "registerBluetoothQualityReportReadyCallback()");
-        Objects.requireNonNull(executor, "executor cannot be null");
-        Objects.requireNonNull(callback, "callback cannot be null");
+        requireNonNull(executor, "executor cannot be null");
+        requireNonNull(callback, "callback cannot be null");
 
         final int defaultValue = BluetoothStatusCodes.ERROR_UNKNOWN;
         int serviceCallStatus = defaultValue;
@@ -5643,7 +5642,7 @@ public final class BluetoothAdapter {
     public int unregisterBluetoothQualityReportReadyCallback(
             @NonNull BluetoothQualityReportReadyCallback callback) {
         if (DBG) Log.d(TAG, "unregisterBluetoothQualityReportReadyCallback()");
-        Objects.requireNonNull(callback, "callback cannot be null");
+        requireNonNull(callback, "callback cannot be null");
 
         synchronized (mBluetoothQualityReportReadyCallbackExecutorMap) {
             if (mBluetoothQualityReportReadyCallbackExecutorMap.remove(callback) == null) {
