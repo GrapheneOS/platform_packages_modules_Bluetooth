@@ -2266,7 +2266,7 @@ class UnicastTestNoInit : public Test {
   gatt::MockBtaGattQueue mock_gatt_queue_;
   tBTA_GATTC_CBACK* gatt_callback;
   const uint8_t gatt_if = 0xfe;
-  uint8_t global_conn_id = 1;
+  uint16_t global_conn_id = 1;
   le_audio::LeAudioGroupStateMachine::Callbacks* state_machine_callbacks_;
   std::map<int, LeAudioDeviceGroup*> streaming_groups;
 
@@ -3162,6 +3162,217 @@ TEST_F(UnicastTest, RemoveTwoEarbudsCsisGrouped) {
 
   SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_btif_storage_);
+}
+
+TEST_F(UnicastTest, RemoveDeviceWhenConnected) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  int group_id = bluetooth::groups::kGroupUnknown;
+  uint16_t conn_id = 1;
+
+  SetSampleDatabaseEarbudsValid(
+      conn_id, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnGroupNodeStatus(test_address0, _, GroupNodeStatus::ADDED))
+      .WillOnce(DoAll(SaveArg<1>(&group_id)));
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, true))
+      .Times(1);
+  ConnectLeAudio(test_address0);
+  ASSERT_NE(group_id, bluetooth::groups::kGroupUnknown);
+
+  Mock::VerifyAndClearExpectations(&mock_btif_storage_);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, false))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
+  EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
+
+  LeAudioClient::Get()->RemoveDevice(test_address0);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_btif_storage_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_queue_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+}
+
+TEST_F(UnicastTest, RemoveDeviceWhenConnecting) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  uint16_t conn_id = 1;
+
+  /* Prepare  mock to not inject connect event so the device can stay in
+   * CONNECTING state*/
+  ON_CALL(mock_gatt_interface_, Open(_, _, BTM_BLE_DIRECT_CONNECTION, _))
+      .WillByDefault(DoAll(Return()));
+
+  SetSampleDatabaseEarbudsValid(
+      conn_id, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(0);
+  ConnectLeAudio(test_address0);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, true))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+      .Times(1);
+
+  LeAudioClient::Get()->RemoveDevice(test_address0);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+}
+
+TEST_F(UnicastTest, RemoveDeviceWhenGettingConnectionReady) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  uint16_t conn_id = 1;
+
+  /* Prepare  mock to not inject Service Search Complete*/
+  ON_CALL(mock_gatt_interface_, ServiceSearchRequest(_, _))
+      .WillByDefault(DoAll(Return()));
+
+  SetSampleDatabaseEarbudsValid(
+      conn_id, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(0);
+  ConnectLeAudio(test_address0);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
+  EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+      .Times(1);
+
+  LeAudioClient::Get()->RemoveDevice(test_address0);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_btif_storage_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+}
+
+TEST_F(UnicastTest, DisconnectDeviceWhenConnected) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  int group_id = bluetooth::groups::kGroupUnknown;
+  uint16_t conn_id = 1;
+
+  SetSampleDatabaseEarbudsValid(
+      conn_id, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnGroupNodeStatus(test_address0, _, GroupNodeStatus::ADDED))
+      .WillOnce(DoAll(SaveArg<1>(&group_id)));
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, true))
+      .Times(1);
+  ConnectLeAudio(test_address0);
+  ASSERT_NE(group_id, bluetooth::groups::kGroupUnknown);
+
+  Mock::VerifyAndClearExpectations(&mock_btif_storage_);
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, false))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
+  EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
+
+  LeAudioClient::Get()->Disconnect(test_address0);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_btif_storage_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_queue_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+}
+
+TEST_F(UnicastTest, DisconnectDeviceWhenConnecting) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  uint16_t conn_id = 1;
+
+  /* Prepare  mock to not inject connect event so the device can stay in
+   * CONNECTING state*/
+  ON_CALL(mock_gatt_interface_, Open(_, _, BTM_BLE_DIRECT_CONNECTION, _))
+      .WillByDefault(DoAll(Return()));
+
+  SetSampleDatabaseEarbudsValid(
+      conn_id, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(0);
+  ConnectLeAudio(test_address0);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  /* Prepare on call mock on Close - to not trigger Inject Disconnection, as it
+   * is done in default mock.
+   */
+  ON_CALL(mock_gatt_interface_, Close(_)).WillByDefault(DoAll(Return()));
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, true))
+      .Times(1);
+
+  LeAudioClient::Get()->Disconnect(test_address0);
+
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+}
+
+TEST_F(UnicastTest, DisconnectDeviceWhenGettingConnectionReady) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  uint16_t conn_id = global_conn_id;
+
+  /* Prepare  mock to not inject Service Search Complete*/
+  ON_CALL(mock_gatt_interface_, ServiceSearchRequest(_, _))
+      .WillByDefault(DoAll(Return()));
+
+  SetSampleDatabaseEarbudsValid(
+      conn_id, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(0);
+  ConnectLeAudio(test_address0);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+
+  EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
+  EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
+  EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
+      .Times(0);
+
+  LeAudioClient::Get()->Disconnect(test_address0);
 }
 
 TEST_F(UnicastTest, RemoveWhileStreaming) {

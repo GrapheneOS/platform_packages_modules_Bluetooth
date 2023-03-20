@@ -1105,10 +1105,37 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
-      Disconnect(address);
-      leAudioDevice->SetConnectionState(DeviceConnectState::REMOVING);
-      return;
+    LOG_INFO("%s, state: %s", ADDRESS_TO_LOGGABLE_CSTR(address),
+             bluetooth::common::ToString(leAudioDevice->GetConnectionState())
+                 .c_str());
+    auto connection_state = leAudioDevice->GetConnectionState();
+    switch (connection_state) {
+      case DeviceConnectState::REMOVING:
+      case DeviceConnectState::PENDING_REMOVAL:
+        /* Just return, and let device disconnect */
+        return;
+      case DeviceConnectState::CONNECTED:
+      case DeviceConnectState::CONNECTED_AUTOCONNECT_GETTING_READY:
+      case DeviceConnectState::CONNECTED_BY_USER_GETTING_READY:
+        /* ACL exist in this case, disconnect and mark as removing */
+        Disconnect(address);
+        [[fallthrough]];
+      case DeviceConnectState::DISCONNECTING:
+        /* Remove device from the background connect if it is there */
+        BTA_GATTC_CancelOpen(gatt_if_, address, false);
+        /* Device is disconnecting, just mark it shall be removed after all. */
+        leAudioDevice->SetConnectionState(DeviceConnectState::REMOVING);
+        return;
+      case DeviceConnectState::CONNECTING_BY_USER:
+        BTA_GATTC_CancelOpen(gatt_if_, address, true);
+        [[fallthrough]];
+      case DeviceConnectState::CONNECTING_AUTOCONNECT:
+        /* Cancel background conection */
+        BTA_GATTC_CancelOpen(gatt_if_, address, false);
+        break;
+      case DeviceConnectState::DISCONNECTED:
+        /* Do nothing, just remove device  */
+        break;
     }
 
     /* Remove the group assignment if not yet removed. It might happen that the
@@ -1267,24 +1294,27 @@ class LeAudioClientImpl : public LeAudioClient {
     return SerializeAses(leAudioDevice, out);
   }
 
-  void BackgroundConnectIfGroupConnected(LeAudioDevice* leAudioDevice) {
+  void BackgroundConnectIfNeeded(LeAudioDevice* leAudioDevice) {
     DLOG(INFO) << __func__ << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_);
     auto group = aseGroups_.FindById(leAudioDevice->group_id_);
     if (!group) {
-      DLOG(INFO) << __func__ << " Device is not yet part of the group. ";
+      LOG_INFO(" Device %s is not yet part of the group %d. ",
+               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
+               leAudioDevice->group_id_);
       return;
     }
 
-    if (!group->IsAnyDeviceConnected()) {
-      DLOG(INFO) << __func__ << " group: " << leAudioDevice->group_id_
-                 << " is not connected";
+    if (!leAudioDevice->autoconnect_flag_ && !group->IsAnyDeviceConnected()) {
+      LOG_DEBUG("Device %s not in the background connect",
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       return;
     }
 
-    DLOG(INFO) << __func__ << " Add "
-               << ADDRESS_TO_LOGGABLE_STR(leAudioDevice->address_)
-               << " to background connect to connected group: "
-               << leAudioDevice->group_id_;
+    LOG_INFO(
+        "Add %s added to background connect. autoconnect flag: %d "
+        "group_connected: %d",
+        ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
+        leAudioDevice->group_id_, group->IsAnyDeviceConnected());
 
     leAudioDevice->SetConnectionState(
         DeviceConnectState::CONNECTING_AUTOCONNECT);
@@ -1302,58 +1332,81 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    /* cancel pending direct connect */
-    if (leAudioDevice->GetConnectionState() ==
-        DeviceConnectState::CONNECTING_BY_USER) {
-      BTA_GATTC_CancelOpen(gatt_if_, address, true);
-    }
+    auto connection_state = leAudioDevice->GetConnectionState();
+    LOG_INFO("%s, state: %s", ADDRESS_TO_LOGGABLE_CSTR(address),
+             bluetooth::common::ToString(connection_state).c_str());
 
-    /* Removes all registrations for connection */
-    BTA_GATTC_CancelOpen(0, address, false);
+    switch (connection_state) {
+      case DeviceConnectState::CONNECTING_BY_USER:
+        /* Timeout happen on the Java layer. Device probably not in the range.
+         * Cancel just direct connection and keep background if it is there.
+         */
+        BTA_GATTC_CancelOpen(gatt_if_, address, true);
+        break;
+      case DeviceConnectState::CONNECTED: {
+        /* User is disconnecting the device, we shall remove the autoconnect
+         * flag for this device and all others
+         */
+        LOG_INFO("Removing autoconnect flag for group_id %d",
+                 leAudioDevice->group_id_);
 
-    if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
-      /* User is disconnecting the device, we shall remove the autoconnect
-       * flag for this device and all others
-       */
-      LOG_INFO("Removing autoconnect flag for group_id %d",
-               leAudioDevice->group_id_);
+        if (leAudioDevice->autoconnect_flag_) {
+          /* Removes device from background connect */
+          BTA_GATTC_CancelOpen(gatt_if_, address, false);
+          btif_storage_set_leaudio_autoconnect(address, false);
+          leAudioDevice->autoconnect_flag_ = false;
+        }
+        auto group = aseGroups_.FindById(leAudioDevice->group_id_);
 
-      auto group = aseGroups_.FindById(leAudioDevice->group_id_);
-
-      if (leAudioDevice->autoconnect_flag_) {
-        btif_storage_set_leaudio_autoconnect(address, false);
-        leAudioDevice->autoconnect_flag_ = false;
-      }
-
-      if (group) {
-        /* Remove devices from auto connect mode */
-        for (auto dev = group->GetFirstDevice(); dev;
-             dev = group->GetNextDevice(dev)) {
-          if (dev->GetConnectionState() ==
-              DeviceConnectState::CONNECTING_AUTOCONNECT) {
-            btif_storage_set_leaudio_autoconnect(address, false);
-            dev->autoconnect_flag_ = false;
-            BTA_GATTC_CancelOpen(gatt_if_, address, false);
-            dev->SetConnectionState(DeviceConnectState::DISCONNECTED);
+        if (group) {
+          /* Remove devices from auto connect mode */
+          for (auto dev = group->GetFirstDevice(); dev;
+               dev = group->GetNextDevice(dev)) {
+            if (dev->GetConnectionState() ==
+                DeviceConnectState::CONNECTING_AUTOCONNECT) {
+              btif_storage_set_leaudio_autoconnect(address, false);
+              dev->autoconnect_flag_ = false;
+              BTA_GATTC_CancelOpen(gatt_if_, address, false);
+              dev->SetConnectionState(DeviceConnectState::DISCONNECTED);
+            }
           }
         }
-      }
 
-      if (group &&
-          group->GetState() ==
-              le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-        leAudioDevice->closing_stream_for_disconnection_ = true;
-        groupStateMachine_->StopStream(group);
-        return;
+        if (group &&
+            group->GetState() ==
+                le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+          leAudioDevice->closing_stream_for_disconnection_ = true;
+          groupStateMachine_->StopStream(group);
+          return;
+        }
       }
-      DisconnectDevice(leAudioDevice);
-      return;
+        [[fallthrough]];
+      case DeviceConnectState::CONNECTED_BY_USER_GETTING_READY:
+        /* Timeout happen on the Java layer before native got ready with the
+         * device */
+        DisconnectDevice(leAudioDevice);
+        return;
+      case DeviceConnectState::CONNECTED_AUTOCONNECT_GETTING_READY:
+        /* Java is not aware about autoconnect actions,
+         * therefore this should not happen.
+         */
+        LOG_WARN("Should not happen - disconnect device");
+        DisconnectDevice(leAudioDevice);
+        return;
+      case DeviceConnectState::DISCONNECTED:
+      case DeviceConnectState::DISCONNECTING:
+      case DeviceConnectState::CONNECTING_AUTOCONNECT:
+      case DeviceConnectState::PENDING_REMOVAL:
+      case DeviceConnectState::REMOVING:
+        LOG_WARN("%s, invalid state %s", ADDRESS_TO_LOGGABLE_CSTR(address),
+                 bluetooth::common::ToString(connection_state).c_str());
+        break;
     }
 
     /* If this is a device which is a part of the group which is connected,
      * lets start backgroup connect
      */
-    BackgroundConnectIfGroupConnected(leAudioDevice);
+    BackgroundConnectIfNeeded(leAudioDevice);
   }
 
   void DisconnectDevice(LeAudioDevice* leAudioDevice,
