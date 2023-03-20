@@ -2157,7 +2157,7 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) {
 
 /* LeAudioDevice Class methods implementation */
 void LeAudioDevice::SetConnectionState(DeviceConnectState state) {
-  LOG_DEBUG(" %s --> %s",
+  LOG_DEBUG("%s, %s --> %s", ADDRESS_TO_LOGGABLE_CSTR(address_),
             bluetooth::common::ToString(connection_state_).c_str(),
             bluetooth::common::ToString(state).c_str());
   connection_state_ = state;
