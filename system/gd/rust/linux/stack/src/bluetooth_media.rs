@@ -1464,11 +1464,6 @@ impl IBluetoothMedia for BluetoothMedia {
         for profile in self.delay_enable_profiles.clone() {
             self.enable_profile(&profile);
         }
-
-        // Default to enable AVRCP since btadapterd will crash when connecting a headset while
-        // avrcp is disabled.
-        // TODO: fix b/251692015
-        self.enable_profile(&Profile::AvrcpTarget);
         true
     }
 
