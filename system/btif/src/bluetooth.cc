@@ -50,7 +50,6 @@
 #include <unistd.h>
 
 #include "audio_hal_interface/a2dp_encoding.h"
-#include "bt_utils.h"
 #include "bta/hh/bta_hh_int.h"  // for HID HACK profile methods
 #include "bta/include/bta_ar_api.h"
 #include "bta/include/bta_csis_api.h"

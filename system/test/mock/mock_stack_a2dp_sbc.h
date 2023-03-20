@@ -44,7 +44,6 @@
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 #include "test/common/mock_functions.h"
-#include "utils/include/bt_utils.h"
 
 // Original usings
 
