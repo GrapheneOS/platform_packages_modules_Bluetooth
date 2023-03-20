@@ -192,7 +192,7 @@ void bluetooth::shim::LogMetricBluetoothLEConnectionMetricEvent(
     android::bluetooth::le::LeConnectionType connection_type,
     android::bluetooth::le::LeConnectionState transaction_state,
     std::vector<std::pair<bluetooth::os::ArgumentType, int>> argument_list) {
-  mock_function_count_map[__func__]++;
+  inc_func_call_count(__func__);
   // test::mock::main_shim_metrics_api::LogMetricBluetoothLEConnectionMetricEvent(raw_address, origin_type, connection_type, transaction_state, argument_list);
 }
 
