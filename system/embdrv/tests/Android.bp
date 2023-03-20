@@ -17,8 +17,8 @@ cc_test {
     test_options: {
         unit_test: true,
     },
-    srcs: [ "src/aptx.cc" ],
-    whole_static_libs: [ "libaptx_enc" ],
+    srcs: ["src/aptx.cc"],
+    whole_static_libs: ["libaptx_enc"],
     sanitize: {
         address: true,
         cfi: true,
@@ -36,8 +36,8 @@ cc_test {
     test_options: {
         unit_test: true,
     },
-    srcs: [ "src/aptxhd.cc" ],
-    whole_static_libs: [ "libaptxhd_enc" ],
+    srcs: ["src/aptxhd.cc"],
+    whole_static_libs: ["libaptxhd_enc"],
     sanitize: {
         address: true,
         cfi: true,

@@ -48,8 +48,8 @@ filegroup {
 }
 
 filegroup {
-     name: "BluetoothFacade_security_layer",
-     srcs: [
-         "facade.cc",
-     ],
+    name: "BluetoothFacade_security_layer",
+    srcs: [
+        "facade.cc",
+    ],
 }

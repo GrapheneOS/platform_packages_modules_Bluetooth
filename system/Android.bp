@@ -179,6 +179,6 @@ genrule {
     srcs: ["blueberry/facade/topshim/facade.proto"],
     out: [
         "blueberry/facade/topshim/facade_pb2.py",
-        "blueberry/facade/topshim/facade_pb2_grpc.py"
+        "blueberry/facade/topshim/facade_pb2_grpc.py",
     ],
 }

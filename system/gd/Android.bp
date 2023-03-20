@@ -95,11 +95,11 @@ cc_defaults {
         "-google*",
         "-performance*",
         "-bugprone*",
-        "-cert-dcl21-cpp",  // warning: overloaded returns a non-constant object instead of a constant object type
-        "-cert-dcl59-cpp",  // warning: do not use unnamed namespaces in header files
-        "-cert-oop54-cpp",  // warning: operator=() does not handle self-assignment properly
-        "-cert-msc50-cpp",  // warning: rand() has limited randomness; use C++11 random library instead
-        "-cert-msc30-c",    // warning: rand() has limited randomness; use C++11 random library instead
+        "-cert-dcl21-cpp", // warning: overloaded returns a non-constant object instead of a constant object type
+        "-cert-dcl59-cpp", // warning: do not use unnamed namespaces in header files
+        "-cert-oop54-cpp", // warning: operator=() does not handle self-assignment properly
+        "-cert-msc50-cpp", // warning: rand() has limited randomness; use C++11 random library instead
+        "-cert-msc30-c", // warning: rand() has limited randomness; use C++11 random library instead
     ],
     tidy_checks_as_errors: [
         "cppcoreguidelines-pro-type-member-init",
@@ -127,7 +127,7 @@ cc_defaults {
     tidy_checks: [
         "-android-cloexec-pipe2", //  warning: 'pipe2' should use O_CLOEXEC where possible
         "-android-cloexec-accept", // warning: prefer accept4() to accept() because accept4() allows SOCK_CLOEXEC
-        "-android-cloexec-socket",  // warning: 'pipe2' should use O_CLOEXEC where possible
+        "-android-cloexec-socket", // warning: 'pipe2' should use O_CLOEXEC where possible
     ],
 }
 
@@ -221,7 +221,7 @@ cc_defaults {
         "packages/modules/Bluetooth/system/include",
         "packages/modules/Bluetooth/system/types",
     ],
-    export_static_lib_headers: [ "libbluetooth_rust_interop" ],
+    export_static_lib_headers: ["libbluetooth_rust_interop"],
 }
 
 cc_library {
@@ -339,7 +339,7 @@ cc_binary {
     sanitize: {
         address: true,
         cfi: true,
-    }
+    },
 }
 
 cc_test {
@@ -552,8 +552,8 @@ cc_fuzz {
         ":BluetoothL2capFuzzTestSources",
     ],
     fuzz_config: {
-       cc: ["android-bluetooth-security@google.com"],
-       componentid: 27441,
+        cc: ["android-bluetooth-security@google.com"],
+        componentid: 27441,
     },
 }
 
@@ -573,8 +573,8 @@ cc_fuzz {
         "hci/fuzz/acl_manager_fuzz_test.cc",
     ],
     fuzz_config: {
-       cc: ["android-bluetooth-security@google.com"],
-       componentid: 27441,
+        cc: ["android-bluetooth-security@google.com"],
+        componentid: 27441,
     },
 }
 
@@ -582,7 +582,7 @@ cc_benchmark {
     name: "bluetooth_benchmark_gd",
     defaults: [
         "gd_defaults",
-        "libchrome_support_defaults"
+        "libchrome_support_defaults",
     ],
     host_supported: true,
     srcs: [
@@ -640,9 +640,12 @@ rust_library {
     name: "libbt_packets",
     defaults: ["gd_rust_defaults"],
     crate_name: "bt_packets",
-    srcs: ["rust/packets/lib.rs", ":BluetoothGeneratedPackets_rust"],
+    srcs: [
+        "rust/packets/lib.rs",
+        ":BluetoothGeneratedPackets_rust",
+    ],
     edition: "2018",
-    vendor_available : true,
+    vendor_available: true,
     host_supported: true,
     proc_macros: ["libnum_derive"],
     rustlibs: [
@@ -661,9 +664,12 @@ rust_library {
     name: "libbt_packets_nonapex",
     defaults: ["gd_rust_defaults"],
     crate_name: "bt_packets",
-    srcs: ["rust/packets/lib.rs", ":BluetoothGeneratedPackets_rust"],
+    srcs: [
+        "rust/packets/lib.rs",
+        ":BluetoothGeneratedPackets_rust",
+    ],
     edition: "2018",
-    vendor_available : true,
+    vendor_available: true,
     host_supported: true,
     proc_macros: ["libnum_derive"],
     rustlibs: [
@@ -681,7 +687,10 @@ rust_test_host {
         "gd_rust_defaults",
         "mts_defaults",
     ],
-    srcs: ["rust/packets/lib.rs", ":BluetoothGeneratedPackets_rust"],
+    srcs: [
+        "rust/packets/lib.rs",
+        ":BluetoothGeneratedPackets_rust",
+    ],
     test_suites: ["general-tests"],
     edition: "2018",
     proc_macros: ["libnum_derive"],
@@ -714,7 +723,10 @@ rust_test_host {
         "gd_rust_defaults",
         "mts_defaults",
     ],
-    srcs: ["rust/packets/test_lib.rs", ":TestGeneratedPackets_rust"],
+    srcs: [
+        "rust/packets/test_lib.rs",
+        ":TestGeneratedPackets_rust",
+    ],
     test_suites: ["general-tests"],
     edition: "2018",
     proc_macros: ["libnum_derive"],
@@ -926,15 +938,14 @@ cc_library_host_shared {
 // hci_packets.pdl.
 genrule {
     name: "gd_hci_packets_python3_gen",
-    defaults: [ "pdl_python_generator_defaults" ],
+    defaults: ["pdl_python_generator_defaults"],
     cmd: "$(location :pdl) $(in) |" +
         " $(location :pdl_python_generator)" +
         " --output $(out) --custom-type-location blueberry.utils.bluetooth",
     srcs: [
         ":BluetoothHciPackets",
     ],
-    out:  [
+    out: [
         "hci_packets.py",
     ],
 }
-
