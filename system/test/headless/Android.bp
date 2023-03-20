@@ -8,36 +8,36 @@ package {
 }
 
 sh_binary {
-  name: "headless_build_timestamp",
-  host_supported: true,
-  src: "tools/build_timestamp.sh",
+    name: "headless_build_timestamp",
+    host_supported: true,
+    src: "tools/build_timestamp.sh",
 }
 
 genrule {
-  name : "HeadlessBuildTimestamp",
-  tools: [
-    "headless_build_timestamp",
-  ],
-  cmd: "$(location headless_build_timestamp) > $(out)",
-  out: [
-    "build_timestamp.h"
-  ],
+    name: "HeadlessBuildTimestamp",
+    tools: [
+        "headless_build_timestamp",
+    ],
+    cmd: "$(location headless_build_timestamp) > $(out)",
+    out: [
+        "build_timestamp.h",
+    ],
 }
 
 filegroup {
     name: "TestHeadlessModules",
     srcs: [
-          "connect/connect.cc",
-          "discovery/discovery.cc",
-          "dumpsys/dumpsys.cc",
-          "nop/nop.cc",
-          "pairing/pairing.cc",
-          "read/name.cc",
-          "read/read.cc",
-          "scan/scan.cc",
-          "sdp/sdp.cc",
-          "sdp/sdp_db.cc",
-     ],
+        "connect/connect.cc",
+        "discovery/discovery.cc",
+        "dumpsys/dumpsys.cc",
+        "nop/nop.cc",
+        "pairing/pairing.cc",
+        "read/name.cc",
+        "read/read.cc",
+        "scan/scan.cc",
+        "sdp/sdp.cc",
+        "sdp/sdp_db.cc",
+    ],
 }
 
 cc_binary {
@@ -125,11 +125,11 @@ cc_binary {
         "libbase",
         "libbinder_ndk",
         "libcrypto",
-        "libcutils",  // property_get_bool
+        "libcutils", // property_get_bool
         "libfmq",
         "libhidlbase",
         "libjsoncpp",
-        "liblog",  // __android_log_print
+        "liblog", // __android_log_print
         "libprocessgroup",
         "libtinyxml2",
         "libutils",
@@ -137,6 +137,6 @@ cc_binary {
     ],
     ldflags: ["-rdynamic"],
     sanitize: {
-      cfi: false,
+        cfi: false,
     },
 }

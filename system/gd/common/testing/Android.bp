@@ -10,27 +10,27 @@ package {
 filegroup {
     name: "BluetoothAndroidTestingLogCapture",
     srcs: [
-            "android/log_capture.cc",
-  ],
+        "android/log_capture.cc",
+    ],
 }
 
 filegroup {
     name: "BluetoothAndroidTestingLogCaptureTest",
     srcs: [
-            "android/log_capture_test.cc",
+        "android/log_capture_test.cc",
     ],
 }
 
 filegroup {
     name: "BluetoothHostTestingLogCapture",
     srcs: [
-            "host/log_capture.cc",
-  ],
+        "host/log_capture.cc",
+    ],
 }
 
 filegroup {
     name: "BluetoothHostTestingLogCaptureTest",
     srcs: [
-            "host/log_capture_test.cc",
+        "host/log_capture_test.cc",
     ],
 }

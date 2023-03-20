@@ -39,7 +39,7 @@ cc_defaults {
         "libevent",
     ],
     shared_libs: [
-      "libbase",
+        "libbase",
     ],
     target: {
         darwin: {
@@ -50,7 +50,7 @@ cc_defaults {
                 "libcutils",
                 "liblog",
             ],
-        }
+        },
     },
 }
 
@@ -65,7 +65,6 @@ cc_defaults {
         },
     },
 }
-
 
 // Fuzzable defaults are the subset of defaults that are used in fuzzing, which
 // requires no shared libraries, and no explicit sanitization.
@@ -95,7 +94,7 @@ cc_defaults {
     name: "fluoride_types_defaults",
     defaults: [
         "fluoride_types_defaults_fuzzable",
-        "libchrome_support_defaults"
+        "libchrome_support_defaults",
     ],
 }
 
@@ -111,15 +110,18 @@ cc_defaults {
         host: {
             static_libs: [
                 "libcutils",
-            ]
-        }
+            ],
+        },
     },
     defaults: ["fluoride_types_defaults_fuzzable"],
-    header_libs: ["libbluetooth_headers", "libbt_callbacks_cxx_headers"],
+    header_libs: [
+        "libbluetooth_headers",
+        "libbt_callbacks_cxx_headers",
+    ],
     generated_headers: [
         "libbt_shim_bridge_header",
         "libbt_message_loop_thread_bridge_header",
-        "cxx-bridge-header"
+        "cxx-bridge-header",
     ],
     include_dirs: ["packages/modules/Bluetooth/system/gd/rust/shim"],
     static_libs: [
@@ -176,7 +178,10 @@ cc_defaults {
 
 cc_defaults {
     name: "fluoride_basic_defaults",
-    defaults: ["fluoride_test_prod_shared_defaults", "libchrome_support_defaults"],
+    defaults: [
+        "fluoride_test_prod_shared_defaults",
+        "libchrome_support_defaults",
+    ],
     apex_available: [
         "//apex_available:platform",
         "com.android.btservices",
@@ -280,7 +285,10 @@ cc_defaults {
 
 cc_defaults {
     name: "fluoride_defaults",
-    defaults: ["fluoride_defaults_fuzzable", "fluoride_types_defaults"],
+    defaults: [
+        "fluoride_defaults_fuzzable",
+        "fluoride_types_defaults",
+    ],
     static_libs: [
         "libbluetooth_gd",
         "libbluetooth_rust_interop",

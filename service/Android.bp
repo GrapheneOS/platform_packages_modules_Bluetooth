@@ -75,7 +75,7 @@ java_library {
     apex_available: [
         "com.android.btservices",
     ],
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 // service-bluetooth static library
@@ -108,7 +108,7 @@ java_library {
     apex_available: [
         "com.android.btservices",
     ],
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 java_library {
@@ -117,7 +117,7 @@ java_library {
     proto: {
         type: "stream",
         include_dirs: [
-             "external/protobuf/src",
+            "external/protobuf/src",
         ],
     },
     srcs: [
@@ -127,7 +127,7 @@ java_library {
     apex_available: [
         "com.android.btservices",
     ],
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 java_library {
@@ -144,11 +144,12 @@ java_library {
     apex_available: [
         "com.android.btservices",
     ],
-    lint: { strict_updatability_linting: true },
+    lint: {
+        strict_updatability_linting: true,
+    },
 }
 
-platform_compat_config
-{
+platform_compat_config {
     name: "bluetooth-compat-config",
     src: ":service-bluetooth-pre-jarjar",
 }

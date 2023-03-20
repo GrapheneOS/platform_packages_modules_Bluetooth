@@ -59,12 +59,12 @@ cc_library_static {
 
 cc_library_static {
     name: "libbtcore",
-    visibility:[
+    visibility: [
         "//packages/apps/Test/connectivity/sl4n",
         "//packages/modules/Bluetooth:__subpackages__",
     ],
     defaults: ["libbtcore_defaults"],
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 cc_library_headers {
