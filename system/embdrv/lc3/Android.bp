@@ -12,7 +12,7 @@ cc_library_static {
     host_supported: true,
     apex_available: [
 
-        "com.android.btservices"
+        "com.android.btservices",
     ],
     defaults: ["fluoride_defaults"],
     srcs: [
@@ -28,35 +28,34 @@ cc_library_static {
         "-Wno-implicit-fallthrough",
     ],
     target: {
-       android: {
+        android: {
             sanitize: {
-                misc_undefined:[
-                   "unsigned-integer-overflow",
-                   "signed-integer-overflow",
-                   "bounds",
+                misc_undefined: [
+                    "unsigned-integer-overflow",
+                    "signed-integer-overflow",
+                    "bounds",
                 ],
                 cfi: true,
             },
-       },
+        },
     },
     export_include_dirs: [
         "include",
     ],
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 cc_fuzz {
-  name: "liblc3_fuzzer",
+    name: "liblc3_fuzzer",
 
-  srcs: [
-    "fuzzer/liblc3_fuzzer.cpp",
-  ],
+    srcs: [
+        "fuzzer/liblc3_fuzzer.cpp",
+    ],
 
-  static_libs: [
-    "liblc3",
-  ],
+    static_libs: [
+        "liblc3",
+    ],
 }
-
 
 cc_binary {
     name: "lc3_encoder",

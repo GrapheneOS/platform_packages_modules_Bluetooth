@@ -56,7 +56,6 @@ filegroup {
     ],
 }
 
-
 filegroup {
     name: "BluetoothOsSources_linux_generic",
     srcs: [
@@ -84,11 +83,11 @@ filegroup {
 }
 
 filegroup {
-name: "BluetoothOsBenchmarkSources",
-     srcs: [
-         "alarm_benchmark.cc",
-         "thread_benchmark.cc",
-         "queue_benchmark.cc",
+    name: "BluetoothOsBenchmarkSources",
+    srcs: [
+        "alarm_benchmark.cc",
+        "thread_benchmark.cc",
+        "queue_benchmark.cc",
     ],
 }
 

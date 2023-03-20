@@ -107,5 +107,5 @@ filegroup {
     name: "BluetoothHciPackets",
     srcs: [
         "hci_packets.pdl",
-    ]
+    ],
 }

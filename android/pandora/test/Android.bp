@@ -28,7 +28,10 @@ python_test_host {
         "libavatar",
         "bumble_services_experimental-python",
     ],
-    required: ["PandoraServer", "aapt"],
+    required: [
+        "PandoraServer",
+        "aapt",
+    ],
     test_suites: ["general-tests"],
     test_options: {
         unit_test: false,
@@ -45,5 +48,5 @@ sh_binary_host {
         "pandora_experimental-python-gen-src",
         "tradefed",
         "tradefed-test-framework",
-    ]
+    ],
 }
