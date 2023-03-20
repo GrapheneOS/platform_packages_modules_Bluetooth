@@ -75,6 +75,17 @@ void LEConnectionMetricState::AddStateChangedEvent(
   end_timepoint = current_timestamp;
 
   switch (state) {
+    case LeConnectionState::STATE_LE_ACL_START: {
+      int connection_type_cid = GetArgumentTypeFromList(argument_list, os::ArgumentType::L2CAP_CID);
+      if (connection_type_cid != -1) {
+        LeConnectionType connection_type = GetLeConnectionTypeFromCID(connection_type_cid);
+        if (connection_type != LeConnectionType::CONNECTION_TYPE_UNSPECIFIED) {
+          LOG_INFO("LEConnectionMetricsRemoteDevice: Populating the connection type\n");
+          input_connection_type = connection_type;
+        }
+      }
+      break;
+    }
     case LeConnectionState::STATE_LE_ACL_END: {
       int acl_status_code_from_args =
           GetArgumentTypeFromList(argument_list, os::ArgumentType::ACL_STATUS_CODE);
