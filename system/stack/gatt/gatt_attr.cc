@@ -27,7 +27,6 @@
 
 #include "base/functional/callback.h"
 #include "bt_target.h"
-#include "bt_utils.h"
 #include "btif/include/btif_storage.h"
 #include "eatt/eatt.h"
 #include "gatt_api.h"
