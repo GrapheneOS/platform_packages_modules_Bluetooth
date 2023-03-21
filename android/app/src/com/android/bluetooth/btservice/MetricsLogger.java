@@ -236,7 +236,7 @@ public class MetricsLogger {
         mAlarmManager.cancel(mOnAlarmListener);
     }
 
-    protected boolean logSanitizedBluetoothDeviceName(String deviceName) {
+    protected boolean logSanitizedBluetoothDeviceName(int metricId, String deviceName) {
         if (!mBloomFilterInitialized) {
             return false;
         }
@@ -276,13 +276,16 @@ public class MetricsLogger {
         if (matchedSha256 == null) {
             return false;
         }
-        statslogBluetoothDeviceNames(matchedString, matchedSha256);
+        statslogBluetoothDeviceNames(metricId, matchedString, matchedSha256);
         return true;
     }
 
-    protected void statslogBluetoothDeviceNames(String matchedString, byte[] sha256) {
-        Log.w(TAG, "Uploading sha256 hash of matched bluetooth device name: "
-                + (new String(sha256, StandardCharsets.UTF_8)));
+    protected void statslogBluetoothDeviceNames(int metricId, String matchedString, byte[] sha256) {
+        String sha256String = new String(sha256);
+        Log.d(TAG,
+                "Uploading sha256 hash of matched bluetooth device name: " + sha256String);
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLUETOOTH_HASHED_DEVICE_NAME_REPORTED, metricId, sha256String);
     }
 
     protected static byte[] getSha256(String name) {
