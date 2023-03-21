@@ -157,11 +157,18 @@ tBTM_STATUS BTM_PmRegister(uint8_t mask, uint8_t* p_pm_id,
 }
 
 void BTM_PM_OnConnected(uint16_t handle, const RawAddress& remote_bda) {
+  if (pm_mode_db.find(handle) != pm_mode_db.end()) {
+    LOG_ERROR("Overwriting power mode db entry handle:%hu peer:%s", handle,
+              PRIVATE_ADDRESS(remote_bda));
+  }
   pm_mode_db[handle] = {};
   pm_mode_db[handle].Init(remote_bda, handle);
 }
 
 void BTM_PM_OnDisconnected(uint16_t handle) {
+  if (pm_mode_db.find(handle) == pm_mode_db.end()) {
+    LOG_ERROR("Erasing unknown power mode db entry handle:%hu", handle);
+  }
   pm_mode_db.erase(handle);
   if (handle == pm_pend_link) {
     pm_pend_link = 0;
