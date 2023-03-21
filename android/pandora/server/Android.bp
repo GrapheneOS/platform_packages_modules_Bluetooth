@@ -59,7 +59,7 @@ android_test {
     test_config: "configs/PtsBotTest.xml",
     data: [
         "configs/pts_bot_tests_config.json",
-        ":mmi2grpc"
+        ":mmi2grpc",
     ],
     test_suites: ["device-tests"],
     min_sdk_version: "Tiramisu",
@@ -71,7 +71,7 @@ android_test {
     test_config: "configs/PtsBotTestMts.xml",
     data: [
         "configs/pts_bot_tests_config.json",
-        ":mmi2grpc"
+        ":mmi2grpc",
     ],
     test_suites: ["mts-bluetooth"],
     min_sdk_version: "Tiramisu",

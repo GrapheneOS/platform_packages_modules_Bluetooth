@@ -25,7 +25,7 @@ java_library {
         ],
         plugin: "grpc-java-plugin",
         output_params: [
-           "lite",
+            "lite",
         ],
     },
 }

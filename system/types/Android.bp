@@ -10,7 +10,7 @@ package {
 
 cc_library_headers {
     name: "libbluetooth-types-header",
-    visibility:["//visibility:public"],
+    visibility: ["//visibility:public"],
     export_include_dirs: ["./"],
     vendor_available: true,
     host_supported: true,
@@ -20,7 +20,7 @@ cc_library_headers {
         "//apex_available:platform",
         "com.android.media",
         "com.android.media.swcodec",
-        "com.android.btservices"
+        "com.android.btservices",
     ],
     // As part of updatable mainline modules(media, swcodec), it should support at least 29(Q)
     min_sdk_version: "29",
@@ -39,7 +39,7 @@ cc_library_static {
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-fvisibility=default",
     ],
-    visibility:["//visibility:public"],
+    visibility: ["//visibility:public"],
     host_supported: true,
     srcs: [
         "class_of_device.cc",
@@ -63,7 +63,7 @@ cc_test {
         "mts_defaults",
     ],
     include_dirs: [
-            "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system",
     ],
     host_supported: true,
     srcs: [

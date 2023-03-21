@@ -47,7 +47,7 @@ cc_fuzz {
         "-DBUILDCFG",
     ],
     fuzz_config: {
-       cc: ["android-bluetooth-security@google.com"],
-       componentid: 27441,
+        cc: ["android-bluetooth-security@google.com"],
+        componentid: 27441,
     },
 }
