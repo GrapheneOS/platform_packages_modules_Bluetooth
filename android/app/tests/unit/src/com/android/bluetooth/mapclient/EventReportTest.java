@@ -58,6 +58,8 @@ public class EventReportTest {
         EventReport report = EventReport.fromStream(new DataInputStream(stream));
 
         assertThat(report.getType()).isEqualTo(type);
+        assertThat(report.getDateTime()).isNull();
+        assertThat(report.getTimestamp()).isNull();
         assertThat(report.getHandle()).isEqualTo(handle);
         assertThat(report.getFolder()).isEqualTo(folder);
         assertThat(report.getOldFolder()).isEqualTo(oldFolder);
@@ -74,6 +76,39 @@ public class EventReportTest {
         EventReport report = EventReport.fromStream(new DataInputStream(stream));
 
         assertThat(report).isNull();
+    }
+
+    @Test
+    public void fromStreamWithDateTime() throws Exception {
+        EventReport.Type type = EventReport.Type.PARTICIPANT_CHAT_STATE_CHANGED;
+        String handle = "FFAB";
+        String dateTime = "20190101T121314";
+        String folder = "test_folder";
+        String oldFolder = "old_folder";
+        Bmessage.Type msgType = Bmessage.Type.MMS;
+
+        final StringBuilder xml = new StringBuilder();
+        xml.append("<event\n");
+        xml.append("type=\"" + type.toString() + "\"\n");
+        xml.append("datetime=\"" + dateTime + "\"\n");
+        xml.append("handle=\"" + handle + "\"\n");
+        xml.append("folder=\"" + folder + "\"\n");
+        xml.append("old_folder=\"" + oldFolder + "\"\n");
+        xml.append("msg_type=\"" + msgType + "\"\n");
+        xml.append("/>\n");
+        ByteArrayInputStream stream = new ByteArrayInputStream(xml.toString().getBytes());
+
+        EventReport report = EventReport.fromStream(new DataInputStream(stream));
+
+        assertThat(report.getType()).isEqualTo(type);
+        assertThat(report.getDateTime()).isEqualTo(dateTime);
+        assertThat(report.getTimestamp()).isEqualTo(
+                new ObexTime(dateTime).getInstant().toEpochMilli());
+        assertThat(report.getHandle()).isEqualTo(handle);
+        assertThat(report.getFolder()).isEqualTo(folder);
+        assertThat(report.getOldFolder()).isEqualTo(oldFolder);
+        assertThat(report.getMsgType()).isEqualTo(msgType);
+        assertThat(report.toString()).isNotEmpty();
     }
 
     @Test
