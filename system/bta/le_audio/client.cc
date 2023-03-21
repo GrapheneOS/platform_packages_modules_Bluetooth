@@ -1415,7 +1415,9 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTING);
+    if (leAudioDevice->GetConnectionState() != DeviceConnectState::REMOVING) {
+      leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTING);
+    }
 
     BtaGattQueue::Clean(leAudioDevice->conn_id_);
     BTA_GATTC_Close(leAudioDevice->conn_id_);
