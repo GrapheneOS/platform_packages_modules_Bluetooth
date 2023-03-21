@@ -20,11 +20,8 @@
 
 #include "osi/include/log.h"
 
-std::map<std::string, int> mock_function_count_map;
-
 static std::map<std::string, int>& _get_func_call_count_map() {
-  // TODO(265217208) return singleton map instead
-  // static std::map<std::string, int> mock_function_count_map;
+  static std::map<std::string, int> mock_function_count_map;
   return mock_function_count_map;
 }
 
