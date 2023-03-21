@@ -251,10 +251,7 @@ public final class TransportBlockFilter implements Parcelable {
 
     /**
      * Get a human-readable string for this object.
-     *
-     * @hide
      */
-    @SystemApi
     @Override
     public String toString() {
         return "TransportBlockFilter [mOrgId=" + mOrgId + ", mTdsFlags=" + mTdsFlags
