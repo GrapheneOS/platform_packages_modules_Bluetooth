@@ -4748,11 +4748,11 @@ public final class BluetoothAdapter {
             List<Pair<OnMetadataChangedListener, Executor>> listenerList =
                     mMetadataListeners.get(device);
             if (listenerList == null) {
-                // Create new listener/executor list for registeration
+                // Create new listener/executor list for registration
                 listenerList = new ArrayList<>();
                 mMetadataListeners.put(device, listenerList);
             } else {
-                // Check whether this device was already registed by the lisenter
+                // Check whether this device is already registered by the listener
                 if (listenerList.stream().anyMatch((pair) -> (pair.first.equals(listener)))) {
                     throw new IllegalArgumentException("listener was already regestered"
                             + " for the device");
