@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bt_utils.h"
 #include "bta_api.h"
 #include "bta_dm_ci.h"
 #include "bta_dm_co.h"

@@ -15,7 +15,6 @@ cc_defaults {
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/utils/include",
         "packages/modules/Bluetooth/system/stack/include",
     ],
 }
