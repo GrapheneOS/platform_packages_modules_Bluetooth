@@ -27,7 +27,6 @@
 #include "avct_api.h"
 #include "avct_int.h"
 #include "bt_target.h"
-#include "bt_utils.h"
 #include "bta/include/bta_api.h"
 #include "btm_api.h"
 #include "device/include/device_iot_config.h"
