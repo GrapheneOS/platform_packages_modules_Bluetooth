@@ -29,7 +29,6 @@
 
 #include "bt_target.h"
 #include "bt_trace.h"
-#include "bt_utils.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "osi/include/osi.h"

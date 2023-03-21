@@ -102,7 +102,6 @@ cc_binary {
         "libbt_shim_ffi",
         "libbt-stack",
         "libbt-stack-core",
-        "libbt-utils",
         "libc++fs",
         "libflatbuffers-cpp",
         "libFraunhoferAAC",
@@ -130,7 +129,6 @@ cc_binary {
         "libhidlbase",
         "libjsoncpp",
         "liblog", // __android_log_print
-        "libprocessgroup",
         "libtinyxml2",
         "libutils",
         "libPlatformProperties",

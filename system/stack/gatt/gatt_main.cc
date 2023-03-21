@@ -25,7 +25,6 @@
 #include <base/logging.h>
 
 #include "bt_target.h"
-#include "bt_utils.h"
 #include "btif/include/btif_dm.h"
 #include "btif/include/btif_storage.h"
 #include "btif/include/stack_manager.h"

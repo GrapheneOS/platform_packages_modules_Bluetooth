@@ -19,7 +19,6 @@
 #define LOG_TAG "bt_srvc"
 
 #include "bt_target.h"
-#include "bt_utils.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
 #include "osi/include/allocator.h"

@@ -34,7 +34,6 @@
 #include "device/include/controller.h"
 #include "stack/btm/btm_int_types.h"
 #include "test/common/mock_functions.h"
-#include "utils/include/bt_utils.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

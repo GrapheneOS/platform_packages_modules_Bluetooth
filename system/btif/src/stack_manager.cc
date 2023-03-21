@@ -39,7 +39,6 @@
 #include "stack/include/btu.h"
 
 // Temp includes
-#include "bt_utils.h"
 #include "bta/sys/bta_sys.h"
 #include "btif_config.h"
 #include "btif_profile_queue.h"
@@ -226,7 +225,6 @@ struct module_lookup {
 const struct module_lookup module_table[] = {
     {BTE_LOGMSG_MODULE, &bte_logmsg_module},
     {BTIF_CONFIG_MODULE, &btif_config_module},
-    {BT_UTILS_MODULE, &bt_utils_module},
     {GD_CONTROLLER_MODULE, &gd_controller_module},
     {GD_IDLE_MODULE, &gd_idle_module},
     {GD_SHIM_MODULE, &gd_shim_module},
@@ -258,7 +256,6 @@ static void init_stack_internal(bluetooth::core::CoreInterface* interface) {
 
   module_init(get_local_module(DEVICE_IOT_CONFIG_MODULE));
   module_init(get_local_module(OSI_MODULE));
-  module_init(get_local_module(BT_UTILS_MODULE));
   module_start_up(get_local_module(GD_IDLE_MODULE));
   module_init(get_local_module(BTIF_CONFIG_MODULE));
   btif_init_bluetooth();
@@ -440,7 +437,6 @@ static void event_clean_up_stack(std::promise<void> promise,
   module_clean_up(get_local_module(BTIF_CONFIG_MODULE));
   module_clean_up(get_local_module(DEVICE_IOT_CONFIG_MODULE));
 
-  module_clean_up(get_local_module(BT_UTILS_MODULE));
   module_clean_up(get_local_module(OSI_MODULE));
   module_shut_down(get_local_module(GD_IDLE_MODULE));
   module_management_stop();

@@ -99,7 +99,6 @@ cc_library {
         "libbtif-core",
         "libbt-hci",
         "libbt-stack-core",
-        "libbt-utils",
         "libbtcore",
         "libosi",
         "lib-bt-packets",
