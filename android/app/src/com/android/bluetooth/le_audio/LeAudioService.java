@@ -290,7 +290,12 @@ public class LeAudioService extends ProfileService {
             throw new IllegalStateException("TMAP GATT server started before start() is called");
         }
         mTmapGattServer = LeAudioObjectsFactory.getInstance().getTmapGattServer(this);
-        mTmapGattServer.start(tmapRoleMask);
+
+        try {
+            mTmapGattServer.start(tmapRoleMask);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Fail to start TmapGattServer", e);
+        }
 
         mLeAudioInbandRingtoneSupportedByPlatform =
                         BluetoothProperties.isLeAudioInbandRingtoneSupported().orElse(true);
