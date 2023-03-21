@@ -55,7 +55,7 @@ cc_library_static {
         },
     },
     host_supported: true,
-    min_sdk_version: "Tiramisu"
+    min_sdk_version: "Tiramisu",
 }
 
 // HCI unit tests for target
@@ -116,4 +116,3 @@ cc_test {
         "test/packet_fragmenter_host_test.cc",
     ],
 }
-

@@ -179,17 +179,29 @@ void PacketDef::GenValidator(std::ostream& s) const {
     }
   }
 
-  // Write the function declaration.
-  s << "virtual bool IsValid() " << (parent_ != nullptr ? " override" : "") << " {";
-  s << "if (was_validated_) { return true; } ";
-  s << "else { was_validated_ = true; was_validated_ = IsValid_(); return was_validated_; }";
-  s << "}";
+  // Generate the public validator IsValid().
+  // The method only needs to be generated for the top most class.
+  if (parent_ == nullptr) {
+    s << "bool IsValid() {" << std::endl;
+    s << "  if (was_validated_) {" << std::endl;
+    s << "    return true;" << std::endl;
+    s << "  } else {" << std::endl;
+    s << "    was_validated_ = true;" << std::endl;
+    s << "    return (was_validated_ = Validate());" << std::endl;
+    s << "  }" << std::endl;
+    s << "}" << std::endl;
+  }
 
-  s << "protected:";
-  s << "virtual bool IsValid_() const {";
-
-  if (parent_ != nullptr) {
-    s << "if (!" << parent_->name_ << "View::IsValid_()) { return false; } ";
+  // Generate the private validator Validate().
+  // The method is overridden by all child classes.
+  s << "protected:" << std::endl;
+  if (parent_ == nullptr) {
+    s << "virtual bool Validate() const {" << std::endl;
+  } else {
+    s << "bool Validate() const override {" << std::endl;
+    s << "  if (!" << parent_->name_ << "View::Validate()) {" << std::endl;
+    s << "    return false;" << std::endl;
+    s << "  }" << std::endl;
   }
 
   // Offset by the parents known size. We know that any dynamic fields can

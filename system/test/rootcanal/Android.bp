@@ -25,8 +25,8 @@ package {
 cc_binary {
     name: "android.hardware.bluetooth@1.1-service.sim",
     defaults: [
-      "gd_defaults",
-      "libchrome_support_defaults"
+        "gd_defaults",
+        "libchrome_support_defaults",
     ],
     proprietary: true,
     relative_install_path: "hw",
@@ -35,7 +35,7 @@ cc_binary {
         "service.cc",
     ],
     visibility: [
-        "//platform_testing/libraries/sts-common-util/host-side/rootcanal"
+        "//platform_testing/libraries/sts-common-util/host-side/rootcanal",
     ],
     header_libs: ["libbluetooth_headers"],
     shared_libs: [
@@ -77,8 +77,8 @@ cc_binary {
 cc_library_shared {
     name: "android.hardware.bluetooth@1.1-impl-sim",
     defaults: [
-      "gd_defaults",
-      "libchrome_support_defaults"
+        "gd_defaults",
+        "libchrome_support_defaults",
     ],
     proprietary: true,
     relative_install_path: "hw",
@@ -86,7 +86,7 @@ cc_library_shared {
         "bluetooth_hci.cc",
     ],
     visibility: [
-        "//platform_testing/libraries/sts-common-util/host-side/rootcanal"
+        "//platform_testing/libraries/sts-common-util/host-side/rootcanal",
     ],
     header_libs: ["libbluetooth_headers"],
     shared_libs: [
@@ -107,7 +107,7 @@ cc_library_shared {
         "libbt_init_flags_bridge_header",
     ],
     whole_static_libs: [
-        "libbt-rootcanal"
+        "libbt-rootcanal",
     ],
     static_libs: [
         "android.hardware.bluetooth-async",

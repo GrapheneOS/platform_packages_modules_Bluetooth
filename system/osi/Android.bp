@@ -46,16 +46,16 @@ cc_test_library {
 }
 
 filegroup {
-  name: "OsiCompatSources",
-  srcs: [
-    "src/compat.cc",
-  ],
+    name: "OsiCompatSources",
+    srcs: [
+        "src/compat.cc",
+    ],
 }
 
 // libosi static library for target
 cc_library_static {
     name: "libosi",
-    visibility:[
+    visibility: [
         "//packages/apps/Test/connectivity/sl4n",
         "//packages/modules/Bluetooth:__subpackages__",
     ],
@@ -65,7 +65,10 @@ cc_library_static {
     local_include_dirs: [
         "include_internal",
     ],
-    defaults: ["fluoride_osi_defaults", "fluoride_basic_defaults"],
+    defaults: [
+        "fluoride_osi_defaults",
+        "fluoride_basic_defaults",
+    ],
     // TODO(mcchou): Remove socket_utils sources after platform specific
     // dependencies are abstracted.
     srcs: [

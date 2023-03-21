@@ -41,7 +41,8 @@ genrule {
         "bundler_schema.fbs",
     ],
     out: [
-        "bundler_schema_generated.h", "bundler_schema.bfbs",
+        "bundler_schema_generated.h",
+        "bundler_schema.bfbs",
     ],
 }
 
