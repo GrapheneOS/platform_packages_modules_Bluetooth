@@ -1148,4 +1148,23 @@ public class TbsGeneric {
 
         return false;
     }
+
+    /**
+     * Dump status of TBS service along with related objects
+     *
+     * @param sb string builder object that TBS module will be appending
+     */
+    public void dump(StringBuilder sb) {
+        sb.append("\tRinger Mode: " + mStoredRingerMode);
+
+        sb.append("\n\tCurrent call list:");
+        for (TbsCall call : mCurrentCallsList.values()) {
+            sb.append("\n\t\tFriendly name: " + call.getSafeFriendlyName());
+            sb.append("\n\t\t\tState: " + TbsCall.stateToString(call.getState()));
+            sb.append("\n\t\t\tURI: " +  call.getSafeUri());
+            sb.append("\n\t\t\tFlags: " + TbsCall.flagsToString(call.getFlags()));
+        }
+
+        mTbsGatt.dump(sb);
+    }
 }
