@@ -1592,12 +1592,7 @@ public final class BluetoothAdapter {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean disable() {
-        try {
-            return mManagerService.disable(mAttributionSource, true);
-        } catch (RemoteException e) {
-            Log.e(TAG, "", e);
-        }
-        return false;
+        return disable(true);
     }
 
     /**
