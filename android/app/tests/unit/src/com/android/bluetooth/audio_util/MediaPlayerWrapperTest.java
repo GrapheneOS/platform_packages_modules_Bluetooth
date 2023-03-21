@@ -412,15 +412,42 @@ public class MediaPlayerWrapperTest {
                 MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
+        // Remove the current metadata so it does not override the default duration.
+        doReturn(null).when(mMockController).getMetadata();
+
         // Call getCurrentQueue() multiple times.
         for (int i = 0; i < 3; i++) {
-            Assert.assertEquals(wrapper.getCurrentQueue(),
-                    Util.toMetadataList(mMockContext, getQueueFromDescriptions(mTestQueue)));
+            Assert.assertEquals(
+                    Util.toMetadataList(mMockContext, getQueueFromDescriptions(mTestQueue)),
+                    wrapper.getCurrentQueue());
         }
+
+        doReturn(mTestMetadata.build()).when(mMockController).getMetadata();
 
         // Verify that getQueue() was only called twice. Once on creation and once during
         // registration
         verify(mMockController, times(2)).getQueue();
+    }
+
+    /*
+     * This test checks if the currently playing song queue duration is completed
+     * by the MediaController Metadata.
+     */
+    @Test
+    public void testQueueMetadata() {
+        MediaPlayerWrapper wrapper =
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
+
+        doReturn(null).when(mMockController).getMetadata();
+        Assert.assertFalse(Util.toMetadata(mMockContext, mTestMetadata.build()).duration
+                .equals(wrapper.getCurrentQueue().get(0).duration));
+        doReturn(mTestMetadata.build()).when(mMockController).getMetadata();
+        Assert.assertEquals(Util.toMetadata(mMockContext, mTestMetadata.build()).duration,
+                wrapper.getCurrentQueue().get(0).duration);
+        // The MediaController Metadata should still not be equal to the queue
+        // as the track count is different and should not be overridden.
+        Assert.assertFalse(Util.toMetadata(mMockContext, mTestMetadata.build())
+                .equals(wrapper.getCurrentQueue().get(0)));
     }
 
     /*
