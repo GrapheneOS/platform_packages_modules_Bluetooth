@@ -1253,8 +1253,15 @@ class UnicastTestNoInit : public Test {
           group->SetState(group->GetTargetState());
           state_machine_callbacks_->StatusReportCb(
               group->group_id_, GroupStreamStatus::RELEASING);
-          state_machine_callbacks_->StatusReportCb(group->group_id_,
-                                                   GroupStreamStatus::IDLE);
+
+          do_in_main_thread(
+              FROM_HERE,
+              base::BindOnce(
+                  [](le_audio::LeAudioGroupStateMachine::Callbacks* cb,
+                     int group_id) {
+                    cb->StatusReportCb(group_id, GroupStreamStatus::IDLE);
+                  },
+                  state_machine_callbacks_, group->group_id_));
         });
   }
 
@@ -3195,7 +3202,17 @@ TEST_F(UnicastTest, RemoveDeviceWhenConnected) {
   EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
   EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
 
-  LeAudioClient::Get()->RemoveDevice(test_address0);
+  /*
+   * StopStream will put calls on main_loop so to keep the correct order
+   * of operations and to avoid races we put the test command on main_loop as
+   * well.
+   */
+  do_in_main_thread(FROM_HERE, base::BindOnce(
+                                   [](LeAudioClient* client,
+                                      const RawAddress& test_address0) {
+                                     client->RemoveDevice(test_address0);
+                                   },
+                                   LeAudioClient::Get(), test_address0));
   SyncOnMainLoop();
 
   Mock::VerifyAndClearExpectations(&mock_btif_storage_);
@@ -3231,7 +3248,18 @@ TEST_F(UnicastTest, RemoveDeviceWhenConnecting) {
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
       .Times(1);
 
-  LeAudioClient::Get()->RemoveDevice(test_address0);
+  /*
+   * StopStream will put calls on main_loop so to keep the correct order
+   * of operations and to avoid races we put the test command on main_loop as
+   * well.
+   */
+  do_in_main_thread(FROM_HERE, base::BindOnce(
+                                   [](LeAudioClient* client,
+                                      const RawAddress& test_address0) {
+                                     client->RemoveDevice(test_address0);
+                                   },
+                                   LeAudioClient::Get(), test_address0));
+
   SyncOnMainLoop();
 
   Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
@@ -3264,7 +3292,18 @@ TEST_F(UnicastTest, RemoveDeviceWhenGettingConnectionReady) {
   EXPECT_CALL(mock_gatt_interface_, CancelOpen(gatt_if, test_address0, false))
       .Times(1);
 
-  LeAudioClient::Get()->RemoveDevice(test_address0);
+  /*
+   * StopStream will put calls on main_loop so to keep the correct order
+   * of operations and to avoid races we put the test command on main_loop as
+   * well.
+   */
+  do_in_main_thread(FROM_HERE, base::BindOnce(
+                                   [](LeAudioClient* client,
+                                      const RawAddress& test_address0) {
+                                     client->RemoveDevice(test_address0);
+                                   },
+                                   LeAudioClient::Get(), test_address0));
+
   SyncOnMainLoop();
 
   Mock::VerifyAndClearExpectations(&mock_btif_storage_);
@@ -3443,7 +3482,17 @@ TEST_F(UnicastTest, RemoveWhileStreaming) {
               OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
       .Times(1);
 
-  LeAudioClient::Get()->RemoveDevice(test_address0);
+  /*
+   * StopStream will put calls on main_loop so to keep the correct order
+   * of operations and to avoid races we put the test command on main_loop as
+   * well.
+   */
+  do_in_main_thread(FROM_HERE, base::BindOnce(
+                                   [](LeAudioClient* client,
+                                      const RawAddress& test_address0) {
+                                     client->RemoveDevice(test_address0);
+                                   },
+                                   LeAudioClient::Get(), test_address0));
 
   SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_groups_module_);
@@ -4398,8 +4447,14 @@ TEST_F(UnicastTest, NotifyAboutGroupTunrnedIdleEnabled) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, OnDestroyed()).Times(1);
 
-  LeAudioClient::Get()->GroupSetActive(bluetooth::groups::kGroupUnknown);
+  do_in_main_thread(
+      FROM_HERE, base::BindOnce(
+                     [](LeAudioClient* client) {
+                       client->GroupSetActive(bluetooth::groups::kGroupUnknown);
+                     },
+                     LeAudioClient::Get()));
 
+  SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
   LeAudioClient::Get()->SetInCall(false);
@@ -4459,8 +4514,15 @@ TEST_F(UnicastTest, NotifyAboutGroupTunrnedIdleDisabled) {
   EXPECT_CALL(*mock_le_audio_source_hal_client_, Stop()).Times(1);
   EXPECT_CALL(*mock_le_audio_source_hal_client_, OnDestroyed()).Times(1);
   EXPECT_CALL(*mock_le_audio_sink_hal_client_, OnDestroyed()).Times(1);
-  LeAudioClient::Get()->GroupSetActive(bluetooth::groups::kGroupUnknown);
 
+  do_in_main_thread(
+      FROM_HERE, base::BindOnce(
+                     [](LeAudioClient* client) {
+                       client->GroupSetActive(bluetooth::groups::kGroupUnknown);
+                     },
+                     LeAudioClient::Get()));
+
+  SyncOnMainLoop();
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
 
   LeAudioClient::Get()->SetInCall(false);
