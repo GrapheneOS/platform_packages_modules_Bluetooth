@@ -25,7 +25,6 @@
 #include <sys/time.h>
 
 #include "stack/include/bt_dev_class.h"
-#include "utils/include/bt_utils.h"
 
 /*******************************************************************************
  *  Constants & Macros

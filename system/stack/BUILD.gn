@@ -48,7 +48,6 @@ source_set("nonstandard_codecs") {
       "//bt/system/btif/include",
       "//bt/system/internal_include",
       "//bt/system/stack/include",
-      "//bt/system/utils/include",
     ]
 
     deps = [ "//bt/system/gd/rust/shim:init_flags_bridge_header" ]
@@ -219,7 +218,6 @@ source_set("stack") {
     "//bt/system/rpc/include",
     "//bt/system/types",
     "//bt/system/udrv/include",
-    "//bt/system/utils/include",
     "//bt/system/vnd/ble",
     "//bt/system/vnd/include",
   ]
@@ -285,7 +283,6 @@ if (defined(use.android) && use.android) {
       "//bt/system/stack/btm",
       "//bt/system/stack/include",
       "//bt/system/udrv/include",
-      "//bt/system/utils/include",
       "//bt/system/vnd/include",
     ]
 
@@ -345,7 +342,6 @@ if (defined(use.android) && use.android) {
       "//bt/system/",
       "//bt/system/linux_include",
       "//bt/system/internal_include",
-      "//bt/system/utils/include",
       "//bt/system/bta/include",
       "//bt/system/bta/sys",
       "//bt/system/embdrv/sbc/encoder/include",
@@ -355,7 +351,6 @@ if (defined(use.android) && use.android) {
       "//bt/system/stack/btm",
       "//bt/system/stack/include",
       "//bt/system/udrv/include",
-      "//bt/system/utils/include",
       "//bt/system/vnd/include",
     ]
 
