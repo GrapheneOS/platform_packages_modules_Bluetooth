@@ -1220,7 +1220,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         }
 
         if (stateFields.containsKey(PlayerStateField.PLAYBACK_STATE)) {
-            MediaState blaybackState =
+            MediaState playbackState =
                     (MediaState) stateFields.get(PlayerStateField.PLAYBACK_STATE);
             if (DBG) {
                 Log.d(TAG,
@@ -1228,7 +1228,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
                                 + stateFields.get(PlayerStateField.PLAYBACK_STATE));
             }
 
-            if (blaybackState == MediaState.INACTIVE) {
+            if (playbackState == MediaState.INACTIVE) {
                 setInitialCharacteristicValues();
             }
         }
