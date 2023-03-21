@@ -407,14 +407,14 @@ void btm_acl_created(const RawAddress& bda, uint16_t hci_handle,
   p_acl->transport = transport;
   p_acl->switch_role_failed_attempts = 0;
   p_acl->reset_switch_role();
-  BTM_PM_OnConnected(hci_handle, bda);
 
   LOG_DEBUG(
       "Created new ACL connection peer:%s role:%s handle:0x%04x transport:%s",
       PRIVATE_ADDRESS(bda), RoleText(p_acl->link_role).c_str(), hci_handle,
       bt_transport_text(transport).c_str());
 
-  if (transport == BT_TRANSPORT_BR_EDR) {
+  if (p_acl->is_transport_br_edr()) {
+    BTM_PM_OnConnected(hci_handle, bda);
     btm_set_link_policy(p_acl, btm_cb.acl_cb_.DefaultLinkPolicy());
   }
 
@@ -480,8 +480,10 @@ void btm_acl_removed(uint16_t handle) {
   }
   p_acl->in_use = false;
   NotifyAclLinkDown(*p_acl);
+  if (p_acl->is_transport_br_edr()) {
+    BTM_PM_OnDisconnected(handle);
+  }
   p_acl->Reset();
-  BTM_PM_OnDisconnected(handle);
 }
 
 /*******************************************************************************
