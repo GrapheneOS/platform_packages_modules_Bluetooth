@@ -1106,17 +1106,12 @@ class StateMachineTest : public Test {
 
             // Once we did the 'ReceiverStartReady' the server goes to
             // Streaming, when in Source role
-            auto meta_len = *ase_p++;
-            auto num_handled_bytes = ase_p - value.data();
-            ase_p += num_handled_bytes;
-
             const auto& ase = &(*it);
-            client_parser::ascs::ase_transient_state_params enable_params = {
-                .metadata = std::vector<uint8_t>(
-                    value.begin() + num_handled_bytes,
-                    value.begin() + num_handled_bytes + meta_len)};
-            InjectAseStateNotification(
-                ase, device, group, ascs::kAseStateStreaming, &enable_params);
+            client_parser::ascs::ase_transient_state_params streaming_params = {
+                .metadata = ase->metadata};
+            InjectAseStateNotification(ase, device, group,
+                                       ascs::kAseStateStreaming,
+                                       &streaming_params);
           }
         };
   }
