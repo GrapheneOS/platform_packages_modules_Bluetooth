@@ -1208,6 +1208,12 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
+    if (csis_group->GetDesiredSize() > 0 &&
+        (csis_group->GetDesiredSize() == csis_group->GetCurrentSize())) {
+      LOG_WARN("Group is already complete");
+      return;
+    }
+
     auto discovered_group_rsi = std::find_if(
         all_rsi.cbegin(), all_rsi.cend(), [&csis_group](const auto& rsi) {
           return csis_group->IsRsiMatching(rsi);
