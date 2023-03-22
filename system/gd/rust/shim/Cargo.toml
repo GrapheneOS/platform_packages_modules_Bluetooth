@@ -26,7 +26,7 @@ bluetooth_rs = { path = "../stack" }
 bt_packets = { path = "../packets" }
 
 # All external dependencies. Keep all versions at build/rust/Cargo.toml
-bindgen = "0.59"
+bindgen = "0.64"
 bytes = "1.0"
 cxx = { version = "1.0.42", features = ["c++17"] }
 env_logger = "0.8"
