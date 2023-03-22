@@ -1270,7 +1270,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         }
 
         if (stateFields.containsKey(PlayerStateField.PLAYBACK_STATE)) {
-            MediaState blaybackState =
+            MediaState playbackState =
                     (MediaState) stateFields.get(PlayerStateField.PLAYBACK_STATE);
             if (DBG) {
                 Log.d(TAG,
@@ -1278,7 +1278,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
                                 + stateFields.get(PlayerStateField.PLAYBACK_STATE));
             }
 
-            if (blaybackState == MediaState.INACTIVE) {
+            if (playbackState == MediaState.INACTIVE) {
                 setInitialCharacteristicValues();
             }
         }
@@ -1376,15 +1376,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
         int mediaState = getMediaStateChar();
         if (mediaState != mCurrentMediaState.getValue()) {
-            if ((getTrackDurationChar() == 0
-                    || getTrackDurationChar() == TRACK_DURATION_UNAVAILABLE)) {
-                // Set to INACTIVE if not set already
-                if (mediaState != MediaState.INACTIVE.getValue()) {
-                    updateMediaStateChar(MediaState.INACTIVE.getValue());
-                }
-            } else {
-                updateMediaStateChar(mCurrentMediaState.getValue());
-            }
+            updateMediaStateChar(mCurrentMediaState.getValue());
         }
 
         if (stateFields.containsKey(PlayerStateField.SEEKING_SPEED)) {
