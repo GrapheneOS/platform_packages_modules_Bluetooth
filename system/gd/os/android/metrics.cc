@@ -23,6 +23,7 @@
 #include <statslog_bt.h>
 
 #include "common/audit_log.h"
+#include "metrics/metrics_state.h"
 #include "common/metric_id_manager.h"
 #include "common/strings.h"
 #include "hci/hci_packets.h"
@@ -511,5 +512,44 @@ void LogMetricBluetoothCodePathCounterMetrics(int32_t key, int64_t count) {
   }
 }
 
+void LogMetricBluetoothLEConnectionMetricEvent(
+    const Address& address,
+    android::bluetooth::le::LeConnectionOriginType origin_type,
+    android::bluetooth::le::LeConnectionType connection_type,
+    android::bluetooth::le::LeConnectionState transaction_state,
+    std::vector<std::pair<os::ArgumentType, int>>& argument_list) {
+  bluetooth::metrics::MetricsCollector::GetLEConnectionMetricsCollector()->AddStateChangedEvent(
+      address, origin_type, connection_type, transaction_state, argument_list);
+}
+
+void LogMetricBluetoothLEConnection(os::LEConnectionSessionOptions session_options) {
+  int metric_id = 0;
+  if (!session_options.remote_address.IsEmpty()) {
+    metric_id = MetricIdManager::GetInstance().AllocateId(session_options.remote_address);
+  }
+  int ret = stats_write(
+      BLUETOOTH_LE_SESSION_CONNECTED,
+      session_options.acl_connection_state,
+      session_options.origin_type,
+      session_options.transaction_type,
+      session_options.transaction_state,
+      session_options.latency,
+      metric_id,
+      session_options.app_uid,
+      session_options.acl_latency,
+      session_options.status,
+      session_options.is_cancelled);
+
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed BluetoothLeSessionConnected - Address: %s, ACL Connection State: %s, Origin Type:  "
+        "%s",
+        ADDRESS_TO_LOGGABLE_CSTR(session_options.remote_address),
+        common::ToHexString(session_options.acl_connection_state).c_str(),
+        common::ToHexString(session_options.origin_type).c_str());
+  }
+}
+
 }  // namespace os
 }  // namespace bluetooth
+
