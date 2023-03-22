@@ -13,23 +13,35 @@ use bluetooth_core::{
         server::{
             gatt_database::{
                 AttPermissions, GattCharacteristicWithHandle, GattDescriptorWithHandle,
-                GattServiceWithHandle,
+                GattServiceWithHandle, CHARACTERISTIC_UUID, PRIMARY_SERVICE_DECLARATION_UUID,
             },
-            services::gap::DEVICE_NAME_UUID,
+            services::{
+                gap::DEVICE_NAME_UUID,
+                gatt::{
+                    CLIENT_CHARACTERISTIC_CONFIGURATION_UUID, GATT_SERVICE_UUID,
+                    SERVICE_CHANGE_UUID,
+                },
+            },
             GattModule, IndicationError,
         },
     },
     packets::{
         AttAttributeDataChild, AttBuilder, AttChild, AttErrorCode, AttErrorResponseBuilder,
-        AttHandleValueConfirmationBuilder, AttHandleValueIndicationBuilder, AttOpcode,
-        AttReadByTypeRequestBuilder, AttReadRequestBuilder, AttReadResponseBuilder,
-        AttWriteRequestBuilder, AttWriteResponseBuilder, GattServiceDeclarationValueBuilder,
-        Serializable,
+        AttFindByTypeValueRequestBuilder, AttFindInformationRequestBuilder,
+        AttFindInformationResponseChild, AttHandleValueConfirmationBuilder,
+        AttHandleValueIndicationBuilder, AttOpcode, AttReadByTypeRequestBuilder,
+        AttReadRequestBuilder, AttReadResponseBuilder, AttWriteRequestBuilder,
+        AttWriteResponseBuilder, GattClientCharacteristicConfigurationBuilder,
+        GattServiceChangedBuilder, GattServiceDeclarationValueBuilder, Serializable,
+        UuidAsAttDataBuilder,
     },
     utils::packet::{build_att_data, build_att_view_or_crash},
 };
 
-use tokio::{sync::mpsc::UnboundedReceiver, task::spawn_local};
+use tokio::{
+    sync::mpsc::{error::TryRecvError, UnboundedReceiver},
+    task::spawn_local,
+};
 use utils::start_test;
 
 mod utils;
@@ -302,7 +314,7 @@ fn test_send_indication_and_disconnect() {
             AttAttributeDataChild::RawData([1, 2, 3, 4].into()),
         ));
         transport_rx.recv().await.unwrap();
-        gatt.on_le_disconnect(CONN_ID);
+        gatt.on_le_disconnect(CONN_ID).unwrap();
 
         // assert: the pending indication resolves appropriately
         assert!(matches!(
@@ -458,5 +470,146 @@ fn test_read_device_name() {
             unreachable!("{resp:?}");
         };
         assert_eq!(resp.error_code, AttErrorCode::INSUFFICIENT_AUTHENTICATION);
+    });
+}
+
+#[test]
+fn test_ignored_service_change_indication() {
+    start_test(async move {
+        // arrange
+        let (mut gatt, mut transport_rx) = start_gatt_module();
+        create_server_and_open_connection(&mut gatt);
+
+        // act: add a new service
+        let (datastore, _) = MockDatastore::new();
+        gatt.register_gatt_service(
+            SERVER_ID,
+            GattServiceWithHandle {
+                handle: AttHandle(30),
+                type_: SERVICE_TYPE,
+                characteristics: vec![],
+            },
+            Rc::new(datastore),
+        )
+        .unwrap();
+
+        // assert: no packets should be sent
+        assert_eq!(transport_rx.try_recv().unwrap_err(), TryRecvError::Empty);
+    });
+}
+
+#[test]
+fn test_service_change_indication() {
+    start_test(async move {
+        // arrange
+        let (mut gatt, mut transport_rx) = start_gatt_module();
+        create_server_and_open_connection(&mut gatt);
+
+        // act: discover the GATT server
+        gatt.get_bearer(CONN_ID).unwrap().handle_packet(
+            build_att_view_or_crash(AttFindByTypeValueRequestBuilder {
+                starting_handle: AttHandle::MIN.into(),
+                ending_handle: AttHandle::MAX.into(),
+                attribute_type: PRIMARY_SERVICE_DECLARATION_UUID.try_into().unwrap(),
+                attribute_value: build_att_data(UuidAsAttDataBuilder {
+                    uuid: GATT_SERVICE_UUID.into(),
+                }),
+            })
+            .view(),
+        );
+        let AttChild::AttFindByTypeValueResponse(resp) = transport_rx.recv().await.unwrap().1._child_ else {
+            unreachable!()
+        };
+        let (starting_handle, ending_handle) = (
+            resp.handles_info[0].clone().found_attribute_handle,
+            resp.handles_info[0].clone().group_end_handle,
+        );
+        // act: discover the service changed characteristic
+        gatt.get_bearer(CONN_ID).unwrap().handle_packet(
+            build_att_view_or_crash(AttReadByTypeRequestBuilder {
+                starting_handle,
+                ending_handle,
+                attribute_type: CHARACTERISTIC_UUID.into(),
+            })
+            .view(),
+        );
+        let AttChild::AttReadByTypeResponse(resp) = transport_rx.recv().await.unwrap().1._child_ else {
+            unreachable!()
+        };
+        let service_change_char_handle = resp.data.into_vec().into_iter().find_map(|characteristic| {
+            let AttAttributeDataChild::GattCharacteristicDeclarationValue(decl) = characteristic.value._child_ else {
+                unreachable!();
+            };
+            if decl.uuid == SERVICE_CHANGE_UUID.into() {
+                Some(decl.handle)
+            } else {
+                None
+            }
+        }).unwrap();
+        // act: find the CCC descriptor for the service changed characteristic
+        gatt.get_bearer(CONN_ID).unwrap().handle_packet(
+            build_att_view_or_crash(AttFindInformationRequestBuilder {
+                starting_handle: service_change_char_handle.clone(),
+                ending_handle: AttHandle::MAX.into(),
+            })
+            .view(),
+        );
+        let AttChild::AttFindInformationResponse(resp) = transport_rx.recv().await.unwrap().1._child_ else {
+            unreachable!()
+        };
+        let AttFindInformationResponseChild::AttFindInformationShortResponse(resp) = resp._child_ else {
+            unreachable!()
+        };
+        let service_change_descriptor_handle = resp
+            .data
+            .into_vec()
+            .into_iter()
+            .find_map(|attr| {
+                if attr.uuid == CLIENT_CHARACTERISTIC_CONFIGURATION_UUID.try_into().unwrap() {
+                    Some(attr.handle)
+                } else {
+                    None
+                }
+            })
+            .unwrap();
+        // act: register for indications on this handle
+        gatt.get_bearer(CONN_ID).unwrap().handle_packet(
+            build_att_view_or_crash(AttWriteRequestBuilder {
+                handle: service_change_descriptor_handle,
+                value: build_att_data(GattClientCharacteristicConfigurationBuilder {
+                    notification: 0,
+                    indication: 1,
+                }),
+            })
+            .view(),
+        );
+        let AttChild::AttWriteResponse(_) = transport_rx.recv().await.unwrap().1._child_ else {
+            unreachable!()
+        };
+        // act: add a new service
+        let (datastore, _) = MockDatastore::new();
+        gatt.register_gatt_service(
+            SERVER_ID,
+            GattServiceWithHandle {
+                handle: AttHandle(30),
+                type_: SERVICE_TYPE,
+                characteristics: vec![],
+            },
+            Rc::new(datastore),
+        )
+        .unwrap();
+
+        // assert: we got an indication
+        let AttChild::AttHandleValueIndication(indication) = transport_rx.recv().await.unwrap().1._child_ else {
+            unreachable!()
+        };
+        assert_eq!(indication.handle, service_change_char_handle);
+        assert_eq!(
+            indication.value,
+            build_att_data(GattServiceChangedBuilder {
+                start_handle: AttHandle(30).into(),
+                end_handle: AttHandle(30).into(),
+            })
+        );
     });
 }

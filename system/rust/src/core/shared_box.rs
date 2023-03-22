@@ -88,3 +88,9 @@ impl<'a, T: ?Sized> Deref for WeakBoxRef<'a, T> {
         self.0
     }
 }
+
+impl<'a, T: ?Sized> Clone for WeakBoxRef<'a, T> {
+    fn clone(&self) -> Self {
+        Self(self.0, self.1.clone())
+    }
+}

@@ -100,10 +100,10 @@ mod test {
         gatt::{
             ids::ConnectionId,
             server::{
-                att_database::{
-                    AttDatabase, CHARACTERISTIC_UUID, PRIMARY_SERVICE_DECLARATION_UUID,
+                att_database::AttDatabase,
+                gatt_database::{
+                    GattDatabase, CHARACTERISTIC_UUID, PRIMARY_SERVICE_DECLARATION_UUID,
                 },
-                gatt_database::GattDatabase,
             },
         },
         utils::task::block_on_locally,

@@ -138,10 +138,19 @@ struct GattServiceDeclarationValue : AttAttributeData {
   uuid: Uuid,
 }
 
-struct AttClientCharacteristicConfiguration : AttAttributeData {
+struct GattClientCharacteristicConfiguration : AttAttributeData {
   notification: 1,
   indication: 1,
   _reserved_: 14,
+}
+
+struct GattServiceChanged : AttAttributeData {
+  start_handle: AttHandle,
+  end_handle: AttHandle,
+}
+
+struct UuidAsAttData : AttAttributeData {
+  uuid: Uuid,
 }
 
 struct AttAttributeData {

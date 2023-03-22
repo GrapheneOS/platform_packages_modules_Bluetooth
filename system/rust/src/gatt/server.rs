@@ -15,7 +15,7 @@ mod test;
 use std::{collections::HashMap, rc::Rc};
 
 use crate::{
-    core::shared_box::{SharedBox, WeakBoxRef},
+    core::shared_box::{SharedBox, WeakBox, WeakBoxRef},
     gatt::{ids::ConnectionId, server::gatt_database::GattDatabase},
 };
 
@@ -34,15 +34,20 @@ pub use indication_handler::IndicationError;
 
 #[allow(missing_docs)]
 pub struct GattModule {
-    connection_bearers: HashMap<ConnectionId, SharedBox<AttServerBearer<AttDatabaseImpl>>>,
+    connections: HashMap<ConnectionId, GattConnection>,
     databases: HashMap<ServerId, SharedBox<GattDatabase>>,
     transport: Rc<dyn AttTransport>,
+}
+
+struct GattConnection {
+    bearer: SharedBox<AttServerBearer<AttDatabaseImpl>>,
+    database: WeakBox<GattDatabase>,
 }
 
 impl GattModule {
     /// Constructor.
     pub fn new(transport: Rc<dyn AttTransport>) -> Self {
-        Self { connection_bearers: HashMap::new(), databases: HashMap::new(), transport }
+        Self { connections: HashMap::new(), databases: HashMap::new(), transport }
     }
 
     /// Handle LE link connect
@@ -56,20 +61,25 @@ impl GattModule {
             );
         };
         let transport = self.transport.clone();
-        self.connection_bearers.insert(
-            conn_id,
-            AttServerBearer::new(database.get_att_database(conn_id), move |packet| {
-                transport.send_packet(conn_id.get_tcb_idx(), packet)
-            })
-            .into(),
-        );
+        let bearer = SharedBox::new(AttServerBearer::new(
+            database.get_att_database(conn_id),
+            move |packet| transport.send_packet(conn_id.get_tcb_idx(), packet),
+        ));
+        database.on_bearer_ready(conn_id, bearer.as_ref());
+        self.connections.insert(conn_id, GattConnection { bearer, database: database.downgrade() });
         Ok(())
     }
 
     /// Handle an LE link disconnect
-    pub fn on_le_disconnect(&mut self, conn_id: ConnectionId) {
+    pub fn on_le_disconnect(&mut self, conn_id: ConnectionId) -> Result<()> {
         info!("disconnected conn_id {conn_id:?}");
-        self.connection_bearers.remove(&conn_id);
+        let connection = self.connections.remove(&conn_id);
+        let Some(connection) = connection else {
+            bail!("got disconnection from {conn_id:?} but bearer does not exist");
+        };
+        drop(connection.bearer);
+        connection.database.with(|db| db.map(|db| db.on_bearer_dropped(conn_id)));
+        Ok(())
     }
 
     /// Register a new GATT service on a given server
@@ -123,6 +133,6 @@ impl GattModule {
         &self,
         conn_id: ConnectionId,
     ) -> Option<WeakBoxRef<AttServerBearer<AttDatabaseImpl>>> {
-        self.connection_bearers.get(&conn_id).map(|x| x.as_ref())
+        self.connections.get(&conn_id).map(|x| x.bearer.as_ref())
     }
 }

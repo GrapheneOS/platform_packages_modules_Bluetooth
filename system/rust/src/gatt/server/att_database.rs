@@ -9,11 +9,6 @@ use crate::{
     },
 };
 
-// UUIDs from Bluetooth Assigned Numbers Sec 3.6
-pub const PRIMARY_SERVICE_DECLARATION_UUID: Uuid = Uuid::new(0x2800);
-pub const SECONDARY_SERVICE_DECLARATION_UUID: Uuid = Uuid::new(0x2801);
-pub const CHARACTERISTIC_UUID: Uuid = Uuid::new(0x2803);
-
 impl From<AttHandleView<'_>> for AttHandle {
     fn from(value: AttHandleView) -> Self {
         AttHandle(value.get_handle())
