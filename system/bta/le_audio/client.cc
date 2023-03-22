@@ -1415,7 +1415,9 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTING);
+    if (leAudioDevice->GetConnectionState() != DeviceConnectState::REMOVING) {
+      leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTING);
+    }
 
     BtaGattQueue::Clean(leAudioDevice->conn_id_);
     BTA_GATTC_Close(leAudioDevice->conn_id_);
@@ -3433,14 +3435,56 @@ class LeAudioClientImpl : public LeAudioClient {
             }
             break;
           case AudioState::READY_TO_START:
+            audio_sender_state_ = AudioState::READY_TO_START;
+            if (!IsDirectionAvailableForCurrentConfiguration(
+                    group, le_audio::types::kLeAudioDirectionSink)) {
+              LOG_WARN(
+                  " sink is not configured. \n audio_receiver_state: %s \n"
+                  "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                  "Reconfiguring to %s",
+                  ToString(audio_receiver_state_).c_str(),
+                  ToString(audio_sender_state_).c_str(),
+                  (group->IsPendingConfiguration() ? "true" : "false"),
+                  ToString(configuration_context_type_).c_str());
+              group->PrintDebugState();
+              SetConfigurationAndStopStreamWhenNeeded(
+                  group, configuration_context_type_);
+            }
+            break;
           case AudioState::STARTED:
             audio_sender_state_ = AudioState::READY_TO_START;
-            /* If signalling part is completed trigger start receiving audio
+            /* If signalling part is completed trigger start sending audio
              * here, otherwise it'll be called on group streaming state callback
              */
             if (group->GetState() ==
                 AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-              StartSendingAudio(active_group_id_);
+              if (IsDirectionAvailableForCurrentConfiguration(
+                      group, le_audio::types::kLeAudioDirectionSink)) {
+                StartSendingAudio(active_group_id_);
+              } else {
+                LOG_WARN(
+                    " sink is not configured. \n audio_receiver_state: %s \n"
+                    "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                    "Reconfiguring to %s",
+                    ToString(audio_receiver_state_).c_str(),
+                    ToString(audio_sender_state_).c_str(),
+                    (group->IsPendingConfiguration() ? "true" : "false"),
+                    ToString(configuration_context_type_).c_str());
+                group->PrintDebugState();
+                SetConfigurationAndStopStreamWhenNeeded(
+                    group, configuration_context_type_);
+              }
+            } else {
+              LOG_ERROR(
+                  " called in wrong state. \n audio_receiver_state: %s \n"
+                  "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                  "Reconfiguring to %s",
+                  ToString(audio_receiver_state_).c_str(),
+                  ToString(audio_sender_state_).c_str(),
+                  (group->IsPendingConfiguration() ? "true" : "false"),
+                  ToString(configuration_context_type_).c_str());
+              group->PrintDebugState();
+              CancelStreamingRequest();
             }
             break;
           case AudioState::RELEASING:
@@ -3450,21 +3494,50 @@ class LeAudioClientImpl : public LeAudioClient {
             audio_sender_state_ = audio_receiver_state_;
             break;
           case AudioState::READY_TO_RELEASE:
-            LOG_WARN(
-                " called in wrong state. \n audio_receiver_state: %s \n"
-                "audio_sender_state: %s \n",
-                ToString(audio_receiver_state_).c_str(),
-                ToString(audio_sender_state_).c_str());
-            CancelStreamingRequest();
+            /* If the other direction is streaming we can start sending audio */
+            if (group->GetState() ==
+                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+              if (IsDirectionAvailableForCurrentConfiguration(
+                      group, le_audio::types::kLeAudioDirectionSink)) {
+                StartSendingAudio(active_group_id_);
+              } else {
+                LOG_WARN(
+                    " sink is not configured. \n audio_receiver_state: %s \n"
+                    "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                    "Reconfiguring to %s",
+                    ToString(audio_receiver_state_).c_str(),
+                    ToString(audio_sender_state_).c_str(),
+                    (group->IsPendingConfiguration() ? "true" : "false"),
+                    ToString(configuration_context_type_).c_str());
+                group->PrintDebugState();
+                SetConfigurationAndStopStreamWhenNeeded(
+                    group, configuration_context_type_);
+              }
+            } else {
+              LOG_ERROR(
+                  " called in wrong state. \n audio_receiver_state: %s \n"
+                  "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                  "Reconfiguring to %s",
+                  ToString(audio_receiver_state_).c_str(),
+                  ToString(audio_sender_state_).c_str(),
+                  (group->IsPendingConfiguration() ? "true" : "false"),
+                  ToString(configuration_context_type_).c_str());
+              group->PrintDebugState();
+              CancelStreamingRequest();
+            }
             break;
         }
         break;
       case AudioState::READY_TO_START:
-        LOG_WARN(
+        LOG_ERROR(
             " called in wrong state. \n audio_receiver_state: %s \n"
-            "audio_sender_state: %s \n",
+            "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+            "Reconfiguring to %s",
             ToString(audio_receiver_state_).c_str(),
-            ToString(audio_sender_state_).c_str());
+            ToString(audio_sender_state_).c_str(),
+            (group->IsPendingConfiguration() ? "true" : "false"),
+            ToString(configuration_context_type_).c_str());
+        group->PrintDebugState();
         CancelStreamingRequest();
         break;
       case AudioState::READY_TO_RELEASE:
@@ -3598,24 +3671,56 @@ class LeAudioClientImpl : public LeAudioClient {
             }
             break;
           case AudioState::READY_TO_START:
+            audio_receiver_state_ = AudioState::READY_TO_START;
+            if (!IsDirectionAvailableForCurrentConfiguration(
+                    group, le_audio::types::kLeAudioDirectionSource)) {
+              LOG_WARN(
+                  " source is not configured. \n audio_receiver_state: %s \n"
+                  "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                  "Reconfiguring to %s",
+                  ToString(audio_receiver_state_).c_str(),
+                  ToString(audio_sender_state_).c_str(),
+                  (group->IsPendingConfiguration() ? "true" : "false"),
+                  ToString(configuration_context_type_).c_str());
+              group->PrintDebugState();
+              SetConfigurationAndStopStreamWhenNeeded(
+                  group, configuration_context_type_);
+            }
+            break;
           case AudioState::STARTED:
             audio_receiver_state_ = AudioState::READY_TO_START;
-            /* If signalling part is completed trigger start reveivin audio
+            /* If signalling part is completed trigger start receiving audio
              * here, otherwise it'll be called on group streaming state callback
              */
             if (group->GetState() ==
                 AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-              if (!IsDirectionAvailableForCurrentConfiguration(
+              if (IsDirectionAvailableForCurrentConfiguration(
                       group, le_audio::types::kLeAudioDirectionSource)) {
+                StartReceivingAudio(active_group_id_);
+              } else {
                 LOG_WARN(
-                    "Local audio sink was resumed when not in a proper "
-                    "configuration. This should not happen. Reconfiguring to "
-                    "VOICEASSISTANTS.");
+                    " source is not configured. \n audio_receiver_state: %s \n"
+                    "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                    "Reconfiguring to %s",
+                    ToString(audio_receiver_state_).c_str(),
+                    ToString(audio_sender_state_).c_str(),
+                    (group->IsPendingConfiguration() ? "true" : "false"),
+                    ToString(configuration_context_type_).c_str());
+                group->PrintDebugState();
                 SetConfigurationAndStopStreamWhenNeeded(
-                    group, LeAudioContextType::VOICEASSISTANTS);
-                break;
+                    group, configuration_context_type_);
               }
-              StartReceivingAudio(active_group_id_);
+            } else {
+              LOG_ERROR(
+                  " called in wrong state. \n audio_receiver_state: %s \n"
+                  "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                  "Reconfiguring to %s",
+                  ToString(audio_receiver_state_).c_str(),
+                  ToString(audio_sender_state_).c_str(),
+                  (group->IsPendingConfiguration() ? "true" : "false"),
+                  ToString(configuration_context_type_).c_str());
+              group->PrintDebugState();
+              CancelStreamingRequest();
             }
             break;
           case AudioState::RELEASING:
@@ -3625,21 +3730,51 @@ class LeAudioClientImpl : public LeAudioClient {
             audio_receiver_state_ = audio_sender_state_;
             break;
           case AudioState::READY_TO_RELEASE:
-            LOG_WARN(
-                " called in wrong state. \n audio_receiver_state: %s \n"
-                "audio_sender_state: %s \n",
-                ToString(audio_receiver_state_).c_str(),
-                ToString(audio_sender_state_).c_str());
-            CancelStreamingRequest();
+            /* If the other direction is streaming we can start receiving audio
+             */
+            if (group->GetState() ==
+                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+              if (IsDirectionAvailableForCurrentConfiguration(
+                      group, le_audio::types::kLeAudioDirectionSource)) {
+                StartReceivingAudio(active_group_id_);
+              } else {
+                LOG_WARN(
+                    " source is not configured. \n audio_receiver_state: %s \n"
+                    "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                    "Reconfiguring to %s",
+                    ToString(audio_receiver_state_).c_str(),
+                    ToString(audio_sender_state_).c_str(),
+                    (group->IsPendingConfiguration() ? "true" : "false"),
+                    ToString(configuration_context_type_).c_str());
+                group->PrintDebugState();
+                SetConfigurationAndStopStreamWhenNeeded(
+                    group, configuration_context_type_);
+              }
+            } else {
+              LOG_ERROR(
+                  " called in wrong state. \n audio_receiver_state: %s \n"
+                  "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+                  "Reconfiguring to %s",
+                  ToString(audio_receiver_state_).c_str(),
+                  ToString(audio_sender_state_).c_str(),
+                  (group->IsPendingConfiguration() ? "true" : "false"),
+                  ToString(configuration_context_type_).c_str());
+              group->PrintDebugState();
+              CancelStreamingRequest();
+            }
             break;
         }
         break;
       case AudioState::READY_TO_START:
-        LOG_WARN(
+        LOG_ERROR(
             " called in wrong state. \n audio_receiver_state: %s \n"
-            "audio_sender_state: %s \n",
+            "audio_sender_state: %s \n isPendingConfiguration: %s \n "
+            "Reconfiguring to %s",
             ToString(audio_receiver_state_).c_str(),
-            ToString(audio_sender_state_).c_str());
+            ToString(audio_sender_state_).c_str(),
+            (group->IsPendingConfiguration() ? "true" : "false"),
+            ToString(configuration_context_type_).c_str());
+        group->PrintDebugState();
         CancelStreamingRequest();
         break;
       case AudioState::READY_TO_RELEASE:

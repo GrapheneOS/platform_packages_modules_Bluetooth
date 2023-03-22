@@ -114,7 +114,6 @@ static_library("bta") {
     "//bt/system/stack/include",
     "//bt/system/stack/btm",
     "//bt/system/udrv/include",
-    "//bt/system/utils/include",
     "//bt/system/vnd/include",
     "//bt/system/btif/include",
     "//bt/system/btif/avrcp",

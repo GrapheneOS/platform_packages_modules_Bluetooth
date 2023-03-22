@@ -27,7 +27,6 @@
 #include <string.h>
 
 #include "bt_target.h"
-#include "bt_utils.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "osi/include/allocator.h"

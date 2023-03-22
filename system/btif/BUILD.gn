@@ -114,7 +114,6 @@ static_library("btif") {
     "//bt/system/stack/include",
     "//bt/system/internal_include",
     "//bt/system/udrv/include",
-    "//bt/system/utils/include",
     "//bt/system/vnd/include",
     "//bt/system/profile/avrcp",
   ]
