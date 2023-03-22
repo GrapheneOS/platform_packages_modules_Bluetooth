@@ -26,7 +26,7 @@ use self::{
     services::register_builtin_services,
 };
 
-use super::{callbacks::GattDatastore, channel::AttTransport, ids::AttHandle};
+use super::{callbacks::RawGattDatastore, channel::AttTransport, ids::AttHandle};
 use anyhow::{anyhow, bail, Result};
 use log::info;
 
@@ -87,7 +87,7 @@ impl GattModule {
         &mut self,
         server_id: ServerId,
         service: GattServiceWithHandle,
-        datastore: Rc<dyn GattDatastore>,
+        datastore: Rc<dyn RawGattDatastore>,
     ) -> Result<()> {
         self.databases
             .get(&server_id)

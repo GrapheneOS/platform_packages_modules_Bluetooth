@@ -50,6 +50,8 @@ class GattServerCallbacks {
 
   void OnIndicationSentConfirmation(uint16_t conn_id, int status) const;
 
+  void OnExecute(uint16_t conn_id, uint32_t trans_id, bool execute) const;
+
  private:
   const btgatt_server_callbacks_t& callbacks;
 };
