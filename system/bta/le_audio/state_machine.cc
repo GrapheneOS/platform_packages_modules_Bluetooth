@@ -481,7 +481,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     auto ase = leAudioDevice->GetFirstActiveAseByDataPathState(
         AudioStreamDataPathState::CIS_ESTABLISHED);
 
-    if (ase->cis_conn_hdl != conn_handle) {
+    if (!ase || ase->cis_conn_hdl != conn_handle) {
       LOG(ERROR) << __func__ << " Cannot find ase by handle " << +conn_handle;
       return;
     }
