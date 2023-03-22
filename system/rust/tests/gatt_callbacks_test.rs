@@ -250,3 +250,48 @@ fn test_response_timeout() {
         assert!(time_slept < Duration::from_secs(16));
     });
 }
+
+#[test]
+fn test_transaction_cleanup_after_timeout() {
+    start_test(async {
+        // arrange
+        let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
+
+        // act: start an operation
+        let cloned_manager = callback_manager.clone();
+        let pending =
+            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        let trans_id = pull_trans_id(&mut callbacks_rx).await;
+        // let it time out
+        assert_eq!(pending.await.unwrap(), Err(AttErrorCode::UNLIKELY_ERROR));
+        // try responding to it now
+        let resp =
+            callback_manager.send_response(CONN_ID, trans_id, Err(AttErrorCode::INVALID_HANDLE));
+
+        // assert: the response failed
+        assert_eq!(resp, Err(CallbackResponseError::NonExistentTransaction(trans_id)));
+    });
+}
+
+#[test]
+fn test_listener_hang_up() {
+    start_test(async {
+        // arrange
+        let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
+
+        // act: start an operation
+        let cloned_manager = callback_manager.clone();
+        let pending =
+            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        let trans_id = pull_trans_id(&mut callbacks_rx).await;
+        // cancel the listener, wait for it to stop
+        pending.abort();
+        pending.await.unwrap_err();
+        // try responding to it now
+        let resp =
+            callback_manager.send_response(CONN_ID, trans_id, Err(AttErrorCode::INVALID_HANDLE));
+
+        // assert: we get the expected error
+        assert_eq!(resp, Err(CallbackResponseError::ListenerHungUp(trans_id)));
+    });
+}
