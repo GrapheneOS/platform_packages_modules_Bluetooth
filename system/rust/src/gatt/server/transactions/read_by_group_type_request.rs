@@ -2,8 +2,9 @@ use crate::{
     core::uuid::Uuid,
     gatt::{
         ids::AttHandle,
-        server::att_database::{
-            StableAttDatabase, PRIMARY_SERVICE_DECLARATION_UUID, SECONDARY_SERVICE_DECLARATION_UUID,
+        server::{
+            att_database::StableAttDatabase,
+            gatt_database::{PRIMARY_SERVICE_DECLARATION_UUID, SECONDARY_SERVICE_DECLARATION_UUID},
         },
     },
     packets::{
@@ -98,8 +99,8 @@ mod test {
         gatt::{
             ids::AttHandle,
             server::{
-                att_database::{AttAttribute, CHARACTERISTIC_UUID},
-                gatt_database::AttPermissions,
+                att_database::AttAttribute,
+                gatt_database::{AttPermissions, CHARACTERISTIC_UUID},
                 test::test_att_db::TestAttDatabase,
             },
         },

@@ -358,7 +358,11 @@ fn add_service(server_id: u8, service_records: Vec<GattRecord>) {
         Ok(service) => {
             let handle = service.handle;
             do_in_rust_thread(move |modules| {
-                let ok = modules.gatt_module.register_gatt_service(server_id, service.clone());
+                let ok = modules.gatt_module.register_gatt_service(
+                    server_id,
+                    service.clone(),
+                    modules.gatt_incoming_callbacks.clone(),
+                );
                 match ok {
                     Ok(_) => info!(
                         "successfully registered service for server {server_id:?} with handle {handle:?} (service={service:?})"
