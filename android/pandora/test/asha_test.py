@@ -13,17 +13,17 @@
 # limitations under the License.
 
 import asyncio
+import avatar
 import logging
 import time
 
-from avatar import PandoraDevices, parameterized
-from avatar.aio import asynchronous
-from avatar.bumble_server.security import PairingDelegate
-from avatar.pandora_client import BumblePandoraClient, PandoraClient
+from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices
 from bumble.gatt import GATT_ASHA_SERVICE
-from mobly import base_test, test_runner
+from bumble.smp import PairingDelegate
+from mobly import base_test, signals, test_runner
 from mobly.asserts import assert_equal  # type: ignore
 from mobly.asserts import assert_in  # type: ignore
+from mobly.asserts import skip  # type: ignore
 from pandora._utils import Stream
 from pandora.host_pb2 import PUBLIC, RANDOM, AdvertiseResponse, Connection, DataTypes, OwnAddressType, ScanningResponse
 from pandora.security_pb2 import LE_LEVEL3, LESecurityLevel
@@ -37,22 +37,28 @@ COMPLETE_LOCAL_NAME: str = "Bumble"
 
 class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
     devices: Optional[PandoraDevices] = None
-    dut: PandoraClient
-    ref: BumblePandoraClient
+
+    # pandora devices.
+    dut: PandoraDevice
+    ref: PandoraDevice
 
     def setup_class(self) -> None:
         self.devices = PandoraDevices(self)
-        dut, ref, *_ = self.devices
-        assert isinstance(ref, BumblePandoraClient)
-        self.dut, self.ref = dut, ref
+        self.dut, self.ref, *_ = self.devices
 
     def teardown_class(self) -> None:
         if self.devices:
             self.devices.stop_all()
 
-    @asynchronous
+    @avatar.asynchronous
     async def setup_test(self) -> None:
         await asyncio.gather(self.dut.reset(), self.ref.reset())
+
+        if isinstance(self.dut, BumblePandoraDevice):
+            raise signals.TestSkip('DUT Bumble does not support Asha source')
+        if not isinstance(self.ref, BumblePandoraDevice):
+            raise signals.TestSkip('Test require Bumble as reference device(s)')
+
         # ASHA hearing aid's IO capability is NO_OUTPUT_NO_INPUT
         setattr(self.ref.device, "io_capability", PairingDelegate.NO_OUTPUT_NO_INPUT)
 
@@ -95,8 +101,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         # DUT connects to Ref
         dut_ref = self.dut.host.ConnectLE(own_address_type=dut_address_type, **ref.address_asdict()).connection
         ref_dut = (next(advertisement)).connection
-        assert dut_ref
-        assert ref_dut
+        assert dut_ref, ref_dut
 
         advertisement.cancel()
         return dut_ref, ref_dut
@@ -164,7 +169,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             (scan_result.data.service_data_uuid16[ASHA_UUID]).hex(),
         )
 
-    @parameterized(
+    @avatar.parameterized(
         (RANDOM, PUBLIC),
         (RANDOM, RANDOM),
     )  # type: ignore[misc]
@@ -191,7 +196,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         assert_equal(secure.WhichOneof("result"), "success")
 
-    @parameterized(
+    @avatar.parameterized(
         (RANDOM, PUBLIC),
         (RANDOM, RANDOM),
     )  # type: ignore[misc]
@@ -204,9 +209,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         DUT removes bond with Ref.
         Verify that DUT and Ref are disconnected and unbonded.
         """
-        from mobly.signals import TestSkip
-
-        raise TestSkip("update rootcanal to retry")
+        raise signals.TestSkip("TODO: update rootcanal to retry")
 
         advertisement = self.ref_advertise_asha(ref_address_type=ref_address_type)
         ref = self.dut_scan_for_asha(dut_address_type=ref_address_type)
@@ -237,7 +240,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         assert_equal(secure.WhichOneof("result"), "success")
 
-    @parameterized(
+    @avatar.parameterized(
         (RANDOM, RANDOM),
         (RANDOM, PUBLIC),
     )  # type: ignore[misc]
@@ -253,7 +256,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         assert dut_ref
         assert ref_dut
 
-    @parameterized(
+    @avatar.parameterized(
         (RANDOM, RANDOM),
         (RANDOM, PUBLIC),
     )  # type: ignore[misc]
@@ -272,7 +275,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         self.dut.host.Disconnect(connection=dut_ref)
 
-    @parameterized(
+    @avatar.parameterized(
         (RANDOM, RANDOM),
         (RANDOM, PUBLIC),
     )  # type: ignore[misc]
@@ -292,7 +295,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         assert ref_dut
         self.ref.host.Disconnect(connection=ref_dut)
 
-    @parameterized(
+    @avatar.parameterized(
         (RANDOM, RANDOM, 0),
         (RANDOM, RANDOM, 0.5),
         (RANDOM, RANDOM, 1),
@@ -322,7 +325,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         time.sleep(reconnection_gap)
         connect_and_disconnect()
 
-    @parameterized(
+    @avatar.parameterized(
         (RANDOM, RANDOM),
         (RANDOM, PUBLIC),
     )  # type: ignore[misc]
