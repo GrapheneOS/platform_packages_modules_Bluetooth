@@ -175,6 +175,18 @@ public class McpService extends ProfileService {
                 gmcs.dump(sb);
             }
         }
+
+        for (Map.Entry<BluetoothDevice, Integer> entry : mDeviceAuthorizations.entrySet()) {
+            String accessString;
+            if (entry.getValue() == BluetoothDevice.ACCESS_REJECTED) {
+                accessString = "ACCESS_REJECTED";
+            } else if (entry.getValue() == BluetoothDevice.ACCESS_ALLOWED) {
+                accessString = "ACCESS_ALLOWED";
+            } else {
+                accessString = "ACCESS_UNKNOWN";
+            }
+            sb.append("\n\t\tDevice: " + entry.getKey() + ", access: " + accessString);
+        }
     }
 
     public void onDeviceUnauthorized(BluetoothDevice device) {
@@ -188,7 +200,8 @@ public class McpService extends ProfileService {
     }
 
     public void setDeviceAuthorized(BluetoothDevice device, boolean isAuthorized) {
-        Log.i(TAG, "setDeviceAuthorized(): device: " + device + ", isAuthorized: " + isAuthorized);
+        Log.i(TAG, "\tsetDeviceAuthorized(): device: " + device + ", isAuthorized: "
+                + isAuthorized);
         int authorization = isAuthorized ? BluetoothDevice.ACCESS_ALLOWED
                 : BluetoothDevice.ACCESS_REJECTED;
         mDeviceAuthorizations.put(device, authorization);
