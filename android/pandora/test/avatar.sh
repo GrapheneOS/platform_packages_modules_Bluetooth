@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-_BT_ROOT="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth"
-_TEST_ROOT="${_BT_ROOT}/android/pandora/test"
-_TEST_FILES=("${_TEST_ROOT}/main.py" "${_TEST_ROOT}/"*_test.py)
-
 _USAGE="avatar [OPTIONS] <COMMAND> ...
   OPTIONS:
     -h, --help           Show this message and exit.
@@ -24,6 +20,15 @@ _USAGE="avatar [OPTIONS] <COMMAND> ...
                          See 'avatar run --help-all'
     "
 
+_BT_ROOT="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth"
+_TEST_ROOT="${_BT_ROOT}/android/pandora/test"
+_PY_SOURCES=(
+  "${ANDROID_BUILD_TOP}/external/pandora/avatar/"{avatar,examples}
+  "${_BT_ROOT}/pandora/server/bumble_experimental"
+  "${_TEST_ROOT}/"*_test.py
+  "${_TEST_ROOT}/main.py"
+)
+
 _PANDORA_PYTHON_PATHS=(
   "${_BT_ROOT}/pandora/server/"
   "${ANDROID_BUILD_TOP}/external/pandora/avatar/"
@@ -39,23 +44,23 @@ case "$1" in
     pip install \
       'black==22.10.0' \
       'isort==5.12.0'
-    black -S -l 119 "$@" "${_TEST_FILES[@]}"
-    isort --profile black -l 119 --ds --lbt 1 --ca "$@" "${_TEST_FILES[@]}"
+    black -S -l 119 "$@" "${_PY_SOURCES[@]}"
+    isort --profile black -l 119 --ds --lbt 1 --ca "$@" "${_PY_SOURCES[@]}"
   ;;
   'lint') shift
     pip install \
       'grpcio==1.51.1' \
       'protobuf==4.21.0' \
       'pyright==1.1.298' \
-      'mypy==1.0' \
+      'mypy==1.1.1' \
       'types-protobuf==4.21.0.3'
     export PYTHONPATH="$(IFS=:; echo "${_PANDORA_PYTHON_PATHS[*]}"):${PYTHONPATH}"
     mypy \
       --pretty --show-column-numbers --strict --no-warn-unused-ignores --ignore-missing-imports \
-      "$@" "${_TEST_FILES[@]}" || exit 1
+      "$@" "${_PY_SOURCES[@]}" || exit 1
     pyright \
       -p "${_TEST_ROOT}" \
-      "$@" "${_TEST_FILES[@]}"
+      "$@" "${_PY_SOURCES[@]}"
   ;;
   'run') shift
     tradefed.sh \

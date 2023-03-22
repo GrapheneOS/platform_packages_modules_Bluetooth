@@ -40,6 +40,6 @@
         <option name="mobly-par-file-name" value="avatar" />
         <option name="mobly-config-file-name" value="config.yml" />
         <option name="mobly-test-timeout" value="1800000" />
-        <option name="test-bed" value="android.bumble" />
+        <option name="test-bed" value="android.bumbles" />
     </test>
 </configuration>

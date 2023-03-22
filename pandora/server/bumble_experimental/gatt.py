@@ -19,8 +19,9 @@ import logging
 from bumble.core import ProtocolError
 from bumble.device import Connection as BumbleConnection, Device, Peer
 from bumble.gatt_client import CharacteristicProxy, ServiceProxy
+from pandora_experimental.gatt_grpc_aio import GATTServicer
 from pandora_experimental.gatt_pb2 import (
-    AttStatusCode,
+    SUCCESS,
     AttValue,
     ClearCacheRequest,
     ClearCacheResponse,
@@ -41,7 +42,6 @@ from pandora_experimental.gatt_pb2 import (
     WriteRequest,
     WriteResponse,
 )
-from pandora_experimental.gatt_grpc_aio import GATTServicer
 from typing import Dict, List
 
 
@@ -61,7 +61,7 @@ class GATTService(GATTServicer):
         self.device.remove_listener('disconnection', self.on_disconnection)  # type: ignore
 
     def on_connection(self, connection: BumbleConnection) -> None:
-        self.peers[connection.handle] = Peer(connection)
+        self.peers[connection.handle] = Peer(connection)  # type: ignore[no-untyped-call]
 
     def on_disconnection(self, connection: BumbleConnection) -> None:
         del self.peers[connection.handle]
@@ -89,11 +89,11 @@ class GATTService(GATTServicer):
 
         try:
             await peer.write_value(request.handle, request.value, with_response=True)  # type: ignore
-            status = 0
+            status = SUCCESS
         except ProtocolError as e:
             status = e.error_code
 
-        return WriteResponse(handle=request.handle, status=AttStatusCode(status))
+        return WriteResponse(handle=request.handle, status=status)
 
     async def DiscoverServiceByUuid(
         self, request: DiscoverServiceByUuidRequest, context: grpc.ServicerContext
@@ -110,7 +110,7 @@ class GATTService(GATTServicer):
         async def feed_service(service: ServiceProxy) -> None:
             characteristic: CharacteristicProxy
             for characteristic in await peer.discover_characteristics(service=service):  # type: ignore
-                await characteristic.discover_descriptors()
+                await characteristic.discover_descriptors()  # type: ignore[no-untyped-call]
 
         await asyncio.gather(*(feed_service(service) for service in services))
 
@@ -206,12 +206,12 @@ class GATTService(GATTServicer):
 
         try:
             value = await peer.read_value(request.handle)  # type: ignore
-            status = 0
+            status = SUCCESS
         except ProtocolError as e:
             value = bytes()
             status = e.error_code
 
-        return ReadCharacteristicResponse(value=AttValue(value=value), status=AttStatusCode(status))
+        return ReadCharacteristicResponse(value=AttValue(value=value), status=status)
 
     async def ReadCharacteristicsFromUuid(
         self, request: ReadCharacteristicsFromUuidRequest, context: grpc.ServicerContext
@@ -232,7 +232,7 @@ class GATTService(GATTServicer):
                 characteristics_read=[
                     ReadCharacteristicResponse(
                         value=AttValue(value=value, handle=handle),  # type: ignore
-                        status=AttStatusCode.SUCCESS,
+                        status=SUCCESS,
                     )
                     for handle, value in characteristics  # type: ignore
                 ]
@@ -255,9 +255,9 @@ class GATTService(GATTServicer):
 
         try:
             value = await peer.read_value(request.handle)  # type: ignore
-            status = 0
+            status = SUCCESS
         except ProtocolError as e:
             value = bytes()
             status = e.error_code
 
-        return ReadCharacteristicDescriptorResponse(value=AttValue(value=value), status=AttStatusCode(status))
+        return ReadCharacteristicDescriptorResponse(value=AttValue(value=value), status=status)
