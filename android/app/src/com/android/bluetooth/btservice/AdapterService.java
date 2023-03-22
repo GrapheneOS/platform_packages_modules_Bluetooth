@@ -1349,10 +1349,6 @@ public class AdapterService extends Service {
                  > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             return true;
         }
-        if (mBatteryService != null && mBatteryService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
-            return true;
-        }
         return false;
     }
 
