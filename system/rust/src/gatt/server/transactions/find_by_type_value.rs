@@ -80,8 +80,9 @@ mod test {
         gatt::{
             ffi::Uuid,
             server::{
-                att_database::{CHARACTERISTIC_UUID, PRIMARY_SERVICE_DECLARATION_UUID},
-                gatt_database::AttPermissions,
+                gatt_database::{
+                    AttPermissions, CHARACTERISTIC_UUID, PRIMARY_SERVICE_DECLARATION_UUID,
+                },
                 test::test_att_db::TestAttDatabase,
             },
         },

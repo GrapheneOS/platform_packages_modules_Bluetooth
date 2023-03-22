@@ -59,9 +59,12 @@ enum AttErrorCode : 8 {
   INVALID_HANDLE = 0x01,
   READ_NOT_PERMITTED = 0x02,
   WRITE_NOT_PERMITTED = 0x03,
+  INVALID_PDU = 0x04,
+  INSUFFICIENT_AUTHENTICATION = 0x05,
   REQUEST_NOT_SUPPORTED = 0x06,
   ATTRIBUTE_NOT_FOUND = 0x0A,
   UNSUPPORTED_GROUP_TYPE = 0x10,
+  APPLICATION_ERROR = 0x80,
   UNLIKELY_ERROR = 0x0E
 }
 
@@ -132,6 +135,21 @@ struct GattCharacteristicDeclarationValue : AttAttributeData {
 }
 
 struct GattServiceDeclarationValue : AttAttributeData {
+  uuid: Uuid,
+}
+
+struct GattClientCharacteristicConfiguration : AttAttributeData {
+  notification: 1,
+  indication: 1,
+  _reserved_: 14,
+}
+
+struct GattServiceChanged : AttAttributeData {
+  start_handle: AttHandle,
+  end_handle: AttHandle,
+}
+
+struct UuidAsAttData : AttAttributeData {
   uuid: Uuid,
 }
 
