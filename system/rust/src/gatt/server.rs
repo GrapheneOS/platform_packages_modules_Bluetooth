@@ -6,6 +6,7 @@ pub mod att_server_bearer;
 pub mod gatt_database;
 mod indication_handler;
 mod request_handler;
+pub mod services;
 mod transactions;
 
 #[cfg(test)]
@@ -22,6 +23,7 @@ use self::{
     super::ids::ServerId,
     att_server_bearer::AttServerBearer,
     gatt_database::{AttDatabaseImpl, GattServiceWithHandle},
+    services::register_builtin_services,
 };
 
 use super::{callbacks::GattDatastore, channel::AttTransport, ids::AttHandle};
@@ -97,7 +99,9 @@ impl GattModule {
 
     /// Open a GATT server
     pub fn open_gatt_server(&mut self, server_id: ServerId) -> Result<()> {
-        let old = self.databases.insert(server_id, GattDatabase::new().into());
+        let mut db = GattDatabase::new();
+        register_builtin_services(&mut db)?;
+        let old = self.databases.insert(server_id, db.into());
         if old.is_some() {
             bail!("GATT server {server_id:?} already exists but was re-opened, clobbering old value...")
         }

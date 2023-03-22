@@ -40,6 +40,7 @@ impl<Db: AttDatabase> AttRequestHandler<Db> {
             Ok(result) => result,
             Err(_) => {
                 // parse error, assume it's an unsupported request
+                // TODO(aryarahul): distinguish between REQUEST_NOT_SUPPORTED and INVALID_PDU
                 AttErrorResponseBuilder {
                     opcode_in_error: packet.get_opcode(),
                     handle_in_error: AttHandle(0).into(),
