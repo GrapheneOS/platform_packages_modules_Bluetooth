@@ -2041,6 +2041,21 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    /**
+     * BAP 1.01. 3.6.1
+     * ATT and EATT transport requirements
+     * The Unicast Client shall support a minimum ATT_MTU of 64 octets for one
+     * Unenhanced ATT bearer, or for at least one Enhanced ATT bearer if the
+     * Unicast Client supports Enhanced ATT bearers.
+     *
+     */
+    if (mtu < 64) {
+      LOG_ERROR("Device %s MTU is too low (%d). Disconnecting from LE Audio",
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), mtu);
+      Disconnect(leAudioDevice->address_);
+      return;
+    }
+
     leAudioDevice->mtu_ = mtu;
   }
 
