@@ -343,7 +343,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         mPendingAction = new Pair<Integer, Object>(NO_ACTION, 0);
     }
 
-    private void addQueuedAction(int action) {
+    @VisibleForTesting
+    void addQueuedAction(int action) {
         addQueuedAction(action, 0);
     }
 
@@ -2197,7 +2198,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         logD("setAudioPolicy: " + policies);
         mHsClientAudioPolicy = policies;
 
-        if (mAudioPolicyRemoteSupported != BluetoothStatusCodes.FEATURE_SUPPORTED) {
+        if (getAudioPolicyRemoteSupported() != BluetoothStatusCodes.FEATURE_SUPPORTED) {
             Log.e(TAG, "Audio Policy feature not supported!");
             return;
         }
@@ -2205,7 +2206,9 @@ public class HeadsetClientStateMachine extends StateMachine {
         if (!mNativeInterface.sendAndroidAt(mCurrentDevice,
                 "+ANDROID=" + createMaskString(policies))) {
             Log.e(TAG, "ERROR: Couldn't send call audio policies");
+            return;
         }
+        addQueuedAction(SEND_ANDROID_AT_COMMAND);
     }
 
     private boolean queryRemoteSupportedFeatures() {
