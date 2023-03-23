@@ -74,7 +74,7 @@ public class MetricsLoggerTest {
 
         @Override
         protected void statslogBluetoothDeviceNames(
-                int metricId, String matchedString, byte[] sha256) {
+                int metricId, String matchedString, String sha256) {
             mTestableDeviceNames.merge(matchedString, 1, Integer::sum);
         }
     }
