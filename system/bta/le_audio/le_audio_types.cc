@@ -450,6 +450,176 @@ const std::map<uint8_t, uint32_t> LeAudioLc3Config::frame_duration_map = {
     {codec_spec_conf::kLeAudioCodecLC3FrameDur10000us,
      LeAudioCodecConfiguration::kInterval10000Us}};
 
+std::string CapabilityTypeToStr(const uint8_t& type) {
+  switch (type) {
+    case codec_spec_caps::kLeAudioCodecLC3TypeSamplingFreq:
+      return "Supported Sampling Frequencies";
+    case codec_spec_caps::kLeAudioCodecLC3TypeFrameDuration:
+      return "Supported Frame Durations";
+    case codec_spec_caps::kLeAudioCodecLC3TypeAudioChannelCounts:
+      return "Supported Audio Channel Count";
+    case codec_spec_caps::kLeAudioCodecLC3TypeOctetPerFrame:
+      return "Supported Octets Per Codec Frame";
+    case codec_spec_caps::kLeAudioCodecLC3TypeMaxCodecFramesPerSdu:
+      return "Supported Max Codec Frames Per SDU";
+    default:
+      return "Unknown";
+  }
+}
+
+std::string CapabilityValueToStr(const uint8_t& type,
+                                 const std::vector<uint8_t>& value) {
+  std::string string = "";
+
+  switch (type) {
+    case codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq: {
+      if (value.size() != 2) {
+        return "Invalid size";
+      }
+
+      uint16_t u16_val = VEC_UINT8_TO_UINT16(value);
+
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq8000Hz) {
+        string += "8";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq11025Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "11.025";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq16000Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "16";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq22050Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "22.050";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq24000Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "24";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq32000Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "32";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq44100Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "44.1";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq48000Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "48";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq88200Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "88.2";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq96000Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "96";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq176400Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "176.4";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq192000Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "192";
+      }
+      if (u16_val & codec_spec_caps::kLeAudioSamplingFreq384000Hz) {
+        string += std::string((string.empty() ? "" : "|")) + "384";
+      }
+
+      return string += " [kHz]\n";
+    }
+    case codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration: {
+      if (value.size() != 1) {
+        return "Invalid size";
+      }
+
+      uint8_t u8_val = VEC_UINT8_TO_UINT8(value);
+
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3FrameDur7500us) {
+        string += "7.5";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3FrameDur10000us) {
+        string += std::string((string.empty() ? "" : "|")) + "10";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3FrameDurPrefer7500us) {
+        string += std::string((string.empty() ? "" : "|")) + "7.5 preferred";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3FrameDurPrefer10000us) {
+        string += std::string((string.empty() ? "" : "|")) + "10 preferred";
+      }
+
+      return string += " [ms]\n";
+    }
+    case codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation: {
+      if (value.size() != 1) {
+        return "Invalid size";
+      }
+
+      uint8_t u8_val = VEC_UINT8_TO_UINT8(value);
+
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountNone) {
+        string += "0";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel) {
+        string += std::string((string.empty() ? "" : "|")) + "1";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountTwoChannel) {
+        string += std::string((string.empty() ? "" : "|")) + "2";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountThreeChannel) {
+        string += std::string((string.empty() ? "" : "|")) + "3";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountFourChannel) {
+        string += std::string((string.empty() ? "" : "|")) + "4";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountFiveChannel) {
+        string += std::string((string.empty() ? "" : "|")) + "5";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountSixChannel) {
+        string += std::string((string.empty() ? "" : "|")) + "6";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountSevenChannel) {
+        string += std::string((string.empty() ? "" : "|")) + "7";
+      }
+      if (u8_val & codec_spec_caps::kLeAudioCodecLC3ChannelCountEightChannel) {
+        string += std::string((string.empty() ? "" : "|")) + "8";
+      }
+
+      return string += " channel/s\n";
+    }
+    case codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame: {
+      if (value.size() != 4) {
+        return "Invalid size";
+      }
+
+      uint16_t u16_min_number_of_octets = VEC_UINT8_TO_UINT16(value);
+      uint16_t u16_max_number_of_octets =
+          OFF_VEC_UINT8_TO_UINT16(value, sizeof(u16_min_number_of_octets));
+
+      string += "Minimum: " + std::to_string(u16_min_number_of_octets);
+      string += ", Maximum: " + std::to_string(u16_max_number_of_octets) + "\n";
+
+      return string;
+    }
+    case codec_spec_conf::kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu: {
+      if (value.size() != 1) {
+        return "Invalid size";
+      }
+
+      uint8_t u8_val = VEC_UINT8_TO_UINT8(value);
+
+      string += std::to_string(u8_val) + " frame/s\n";
+
+      return string;
+    }
+    default:
+      return base::HexEncode(value.data(), value.size()) + "\n";
+  }
+}
+
+std::string CodecCapabilitiesLtvFormat(const uint8_t& type,
+                                       const std::vector<uint8_t>& value) {
+  std::string string = "";
+
+  string += CapabilityTypeToStr(type) + ": ";
+  string += CapabilityValueToStr(type, value);
+
+  return string;
+}
+
 std::optional<std::vector<uint8_t>> LeAudioLtvMap::Find(uint8_t type) const {
   auto iter =
       std::find_if(values.cbegin(), values.cend(),
@@ -531,15 +701,22 @@ size_t LeAudioLtvMap::RawPacketSize() const {
   return bytes;
 }
 
-std::string LeAudioLtvMap::ToString() const {
+std::string LeAudioLtvMap::ToString(
+    const std::string& indent_string,
+    std::string (*format)(const uint8_t&, const std::vector<uint8_t>&)) const {
   std::string debug_str;
 
   for (const auto& value : values) {
     std::stringstream sstream;
 
-    sstream << "\ttype: " << std::to_string(value.first)
-            << "\tlen: " << std::to_string(value.second.size()) << "\tdata: "
-            << base::HexEncode(value.second.data(), value.second.size()) + "\n";
+    if (format == nullptr) {
+      sstream << indent_string + "type: " << std::to_string(value.first)
+              << "\tlen: " << std::to_string(value.second.size()) << "\tdata: "
+              << base::HexEncode(value.second.data(), value.second.size()) +
+                     "\n";
+    } else {
+      sstream << indent_string + format(value.first, value.second);
+    }
 
     debug_str += sstream.str();
   }
