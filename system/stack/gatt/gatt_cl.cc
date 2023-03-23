@@ -1099,14 +1099,32 @@ void gatt_process_mtu_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb, uint16_t len,
   } else {
     STREAM_TO_UINT16(mtu, p_data);
 
-    if (mtu < tcb.payload_size && mtu >= GATT_DEF_BLE_MTU_SIZE)
-      tcb.payload_size = mtu;
+    LOG_INFO("Local pending MTU %d, Remote (%s) MTU %d",
+             tcb.pending_user_mtu_exchange_value,
+             tcb.peer_bda.ToString().c_str(), mtu);
+
+    /* Aim for MAX as we did in the request */
+    if (mtu < GATT_DEF_BLE_MTU_SIZE) {
+      tcb.payload_size = GATT_DEF_BLE_MTU_SIZE;
+    } else {
+      tcb.payload_size = std::min(mtu, (uint16_t)(GATT_MAX_MTU_SIZE));
+    }
+
+    bluetooth::shim::arbiter::GetArbiter().OnIncomingMtuResp(tcb.tcb_idx,
+                                                             tcb.payload_size);
+
+    /* This is just to track the biggest MTU requested by the user.
+     * This value will be used in the BTM_SetBleDataLength */
+    if (tcb.pending_user_mtu_exchange_value > tcb.max_user_mtu) {
+      tcb.max_user_mtu =
+          std::min(tcb.pending_user_mtu_exchange_value, tcb.payload_size);
+    }
+    tcb.pending_user_mtu_exchange_value = 0;
+
+    LOG_INFO("MTU Exchange resulted in: %d", tcb.payload_size);
+
+    BTM_SetBleDataLength(tcb.peer_bda, tcb.max_user_mtu + L2CAP_PKT_OVERHEAD);
   }
-
-  bluetooth::shim::arbiter::GetArbiter().OnIncomingMtuResp(tcb.tcb_idx,
-                                                           tcb.payload_size);
-
-  BTM_SetBleDataLength(tcb.peer_bda, tcb.payload_size + L2CAP_PKT_OVERHEAD);
 
   gatt_end_operation(p_clcb, status, NULL);
 }
