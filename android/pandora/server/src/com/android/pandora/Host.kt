@@ -462,16 +462,43 @@ class Host(
           throw Status.UNKNOWN.asException()
         }
 
-        for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids16List()) {
-          val uuid16 = "0000${service_uuid}-0000-1000-8000-00805F9B34FB"
-          advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(uuid16))
+        // Handle service uuids
+        for (uuid16 in dataTypesRequest.getCompleteServiceClassUuids16List()) {
+          val parcel_uuid16 = ParcelUuid.fromString("0000${uuid16}-0000-1000-8000-00805F9B34FB")
+          advertisingDataBuilder.addServiceUuid(parcel_uuid16)
         }
-        for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids32List()) {
-          val uuid32 = "${service_uuid}-0000-1000-8000-00805F9B34FB"
-          advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
+        for (uuid32 in dataTypesRequest.getCompleteServiceClassUuids32List()) {
+          val parcel_uuid32 = ParcelUuid.fromString("${uuid32}-0000-1000-8000-00805F9B34FB")
+          advertisingDataBuilder.addServiceUuid(parcel_uuid32)
         }
-        for (service_uuid in dataTypesRequest.getCompleteServiceClassUuids128List()) {
-          advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(service_uuid))
+        for (uuid128 in dataTypesRequest.getCompleteServiceClassUuids128List()) {
+          advertisingDataBuilder.addServiceUuid(ParcelUuid.fromString(uuid128))
+        }
+
+        // Handle Service solicitation uuids
+        for (uuid16 in dataTypesRequest.getServiceSolicitationUuids16List()) {
+          val parcel_uuid16 = ParcelUuid.fromString("0000${uuid16}-0000-1000-8000-00805F9B34FB")
+          advertisingDataBuilder.addServiceSolicitationUuid(parcel_uuid16)
+        }
+        for (uuid32 in dataTypesRequest.getServiceSolicitationUuids32List()) {
+          val parcel_uuid32 = ParcelUuid.fromString("${uuid32}-0000-1000-8000-00805F9B34FB")
+          advertisingDataBuilder.addServiceSolicitationUuid(parcel_uuid32)
+        }
+        for (uuid128 in dataTypesRequest.getServiceSolicitationUuids128List()) {
+          advertisingDataBuilder.addServiceSolicitationUuid(ParcelUuid.fromString(uuid128))
+        }
+
+        // Handle service data uuids
+        for ((uuid16, data) in dataTypesRequest.getServiceDataUuid16()) {
+          val parcel_uuid16 = ParcelUuid.fromString("0000${uuid16}-0000-1000-8000-00805F9B34FB")
+          advertisingDataBuilder.addServiceData(parcel_uuid16, data.toByteArray())
+        }
+        for ((uuid32, data) in dataTypesRequest.getServiceDataUuid32()) {
+          val parcel_uuid32 = ParcelUuid.fromString("${uuid32}-0000-1000-8000-00805F9B34FB")
+          advertisingDataBuilder.addServiceData(parcel_uuid32, data.toByteArray())
+        }
+        for ((uuid128, data) in dataTypesRequest.getServiceDataUuid128()) {
+          advertisingDataBuilder.addServiceData(ParcelUuid.fromString(uuid128), data.toByteArray())
         }
 
         advertisingDataBuilder
