@@ -19,6 +19,7 @@ package com.android.bluetooth.tbs;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeCall;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothLeCallControl;
 import android.bluetooth.IBluetoothLeCallControlCallback;
 import android.content.AttributionSource;
@@ -31,9 +32,12 @@ import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.VisibleForTesting;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class TbsService extends ProfileService {
@@ -42,6 +46,7 @@ public class TbsService extends ProfileService {
     private static final boolean DBG = true;
 
     private static TbsService sTbsService;
+    private Map<BluetoothDevice, Integer> mDeviceAuthorizations = new HashMap<>();
 
     private final TbsGeneric mTbsGeneric = new TbsGeneric();
 
@@ -104,6 +109,7 @@ public class TbsService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "cleanup()");
         }
+        mDeviceAuthorizations.clear();
     }
 
     /**
@@ -131,6 +137,62 @@ public class TbsService extends ProfileService {
         }
 
         sTbsService = instance;
+    }
+
+    /**
+     * Sets device authorization for TBS.
+     *
+     * @param device device that would be authorized
+     * @param isAuthorized boolean value of authorization permission
+     * @hide
+     */
+    public void setDeviceAuthorized(BluetoothDevice device, boolean isAuthorized) {
+        Log.i(TAG, "setDeviceAuthorized(): device: " + device + ", isAuthorized: " + isAuthorized);
+        int authorization = isAuthorized ? BluetoothDevice.ACCESS_ALLOWED
+                : BluetoothDevice.ACCESS_REJECTED;
+        mDeviceAuthorizations.put(device, authorization);
+    }
+
+    /**
+     * Returns authorization value for given device.
+     *
+     * @param device device that would be authorized
+     * @return authorization value for device
+     *
+     * Possible authorization values:
+     * {@link BluetoothDevice.ACCESS_UNKNOWN},
+     * {@link BluetoothDevice.ACCESS_ALLOWED}
+     * @hide
+     */
+    public int getDeviceAuthorization(BluetoothDevice device) {
+        /* Telephony Bearer Service is allowed for
+         * 1. in PTS mode
+         * 2. authorized devices
+         * 3. Any LeAudio devices which are allowed to connect
+         */
+        int authorization = mDeviceAuthorizations.getOrDefault(device, Utils.isPtsTestMode()
+                ? BluetoothDevice.ACCESS_ALLOWED : BluetoothDevice.ACCESS_UNKNOWN);
+        if (authorization != BluetoothDevice.ACCESS_UNKNOWN) {
+            return authorization;
+        }
+
+        LeAudioService leAudioService = LeAudioService.getLeAudioService();
+        if (leAudioService == null) {
+            Log.e(TAG, "TBS access not permited. LeAudioService not available");
+            return BluetoothDevice.ACCESS_UNKNOWN;
+        }
+
+        if (leAudioService.getConnectionPolicy(device)
+                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            if (DBG) {
+                Log.d(TAG, "TBS authorization allowed based on supported LeAudio service");
+            }
+            setDeviceAuthorized(device, true);
+            return BluetoothDevice.ACCESS_ALLOWED;
+        }
+
+        Log.e(TAG, "TBS access not permited");
+        return BluetoothDevice.ACCESS_UNKNOWN;
     }
 
     /**

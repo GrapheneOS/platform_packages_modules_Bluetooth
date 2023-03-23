@@ -70,8 +70,6 @@ import java.util.UUID;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class TbsGattTest {
-    private static Context sContext;
-
     private BluetoothAdapter mAdapter;
     private BluetoothDevice mFirstDevice;
     private BluetoothDevice mSecondDevice;
@@ -91,17 +89,14 @@ public class TbsGattTest {
     private BluetoothGattServerProxy mMockGattServer;
     @Mock
     private TbsGatt.Callback mMockTbsGattCallback;
+    @Mock
+    private TbsService mMockTbsService;
 
     @Rule
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Captor
     private ArgumentCaptor<BluetoothGattService> mGattServiceCaptor;
-
-    @BeforeClass
-    public static void setUpOnce() {
-        sContext = getInstrumentation().getTargetContext();
-    }
 
     @Before
     public void setUp() throws Exception {
@@ -118,8 +113,10 @@ public class TbsGattTest {
 
         doReturn(true).when(mMockGattServer).addService(any(BluetoothGattService.class));
         doReturn(true).when(mMockGattServer).open(any(BluetoothGattServerCallback.class));
+        doReturn(BluetoothDevice.ACCESS_ALLOWED).when(mMockTbsService)
+                .getDeviceAuthorization(any(BluetoothDevice.class));
 
-        mTbsGatt = new TbsGatt(sContext);
+        mTbsGatt = new TbsGatt(mMockTbsService);
         mTbsGatt.setBluetoothGattServerForTesting(mMockGattServer);
 
         mFirstDevice = TestUtils.getTestDevice(mAdapter, 0);
