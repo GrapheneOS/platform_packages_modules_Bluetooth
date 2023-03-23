@@ -186,8 +186,9 @@ public class SdpManager {
             addressString = sAdapterService.getIdentityAddress(addressString);
             ParcelUuid uuid = Utils.byteArrayToUuid(uuidBytes)[0];
             for (SdpSearchInstance inst : mList) {
-                if (inst.getDevice().getAddress().equals(addressString) && inst.getUuid()
-                        .equals(uuid)) {
+                String instAddressString =
+                        sAdapterService.getIdentityAddress(inst.getDevice().getAddress());
+                if (instAddressString.equals(addressString) && inst.getUuid().equals(uuid)) {
                     return inst;
                 }
             }
@@ -195,10 +196,11 @@ public class SdpManager {
         }
 
         boolean isSearching(BluetoothDevice device, ParcelUuid uuid) {
-            String addressString = device.getAddress();
+            String addressString = sAdapterService.getIdentityAddress(device.getAddress());
             for (SdpSearchInstance inst : mList) {
-                if (inst.getDevice().getAddress().equals(addressString) && inst.getUuid()
-                        .equals(uuid)) {
+                String instAddressString =
+                        sAdapterService.getIdentityAddress(inst.getDevice().getAddress());
+                if (instAddressString.equals(addressString) && inst.getUuid().equals(uuid)) {
                     return inst.isSearching();
                 }
             }

@@ -18,6 +18,8 @@ package com.android.bluetooth.mapclient;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.mockito.Mockito.*;
 
 import android.app.BroadcastOptions;
@@ -65,6 +67,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,6 +80,9 @@ public class MapClientStateMachineTest {
 
     private static final int ASYNC_CALL_TIMEOUT_MILLIS = 100;
     private static final int DISCONNECT_TIMEOUT = 3000;
+
+    private String mTestMessageSmsHandle = "0001";
+
     @Rule
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
     private BluetoothAdapter mAdapter;
@@ -417,6 +423,43 @@ public class MapClientStateMachineTest {
         Assert.assertEquals(1, mMockContentProvider.mInsertOperationCount);
     }
 
+    /**
+     * Test receiving a new message notification.
+     */
+    @Test
+    public void testReceiveNewMessageNotification() {
+        setupSdpRecordReceipt();
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
+        mMceStateMachine.sendMessage(msg);
+
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
+                any(BroadcastOptions.class));
+        assertThat(mMceStateMachine.getState()).isEqualTo(BluetoothProfile.STATE_CONNECTED);
+
+        // Receive a new message notification.
+        String dateTime = new ObexTime(Instant.now()).toString();
+        EventReport event = createNewEventReport("NewMessage", dateTime, mTestMessageSmsHandle,
+                "telecom/msg/inbox", null, "SMS_GSM");
+
+        Message notificationMessage =
+                Message.obtain(mHandler, MceStateMachine.MSG_NOTIFICATION, (Object)event);
+
+        mMceStateMachine.getCurrentState().processMessage(notificationMessage);
+
+        verify(mMockMasClient,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                        .makeRequest(any(RequestGetMessage.class));
+
+        MceStateMachine.MessageMetadata messageMetadata =
+                mMceStateMachine.mMessages.get(mTestMessageSmsHandle);
+        Assert.assertEquals(messageMetadata.getHandle(), mTestMessageSmsHandle);
+        Assert.assertEquals(
+                new ObexTime(Instant.ofEpochMilli(messageMetadata.getTimestamp())).toString(),
+                dateTime);
+    }
+
     private void setupSdpRecordReceipt() {
         // Perform first part of MAP connection logic.
         verify(mMockMapClientService,
@@ -460,4 +503,21 @@ public class MapClientStateMachineTest {
         }
     }
 
+    EventReport createNewEventReport(String mType, String mDateTime, String mHandle, String mFolder,
+            String mOldFolder, String mMsgType){
+
+        HashMap<String, String> attrs = new HashMap<String, String>();
+
+        attrs.put("type", mType);
+        attrs.put("datetime", mDateTime);
+        attrs.put("handle", mHandle);
+        attrs.put("folder", mFolder);
+        attrs.put("old_folder", mOldFolder);
+        attrs.put("msg_type", mMsgType);
+
+        EventReport event = new EventReport(attrs);
+
+        return event;
+
+    }
 }
