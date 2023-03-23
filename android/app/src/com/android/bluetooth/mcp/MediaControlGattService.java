@@ -147,6 +147,56 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
     private LeAudioService mLeAudioService;
     private AdapterService mAdapterService;
 
+    private static String mcsUuidToString(UUID uuid) {
+        if (uuid.equals(UUID_PLAYER_NAME)) {
+            return "PLAYER_NAME";
+        } else if (uuid.equals(UUID_PLAYER_ICON_OBJ_ID)) {
+            return "PLAYER_ICON_OBJ_ID";
+        } else if (uuid.equals(UUID_PLAYER_ICON_URL)) {
+            return "PLAYER_ICON_URL";
+        } else if (uuid.equals(UUID_TRACK_CHANGED)) {
+            return "TRACK_CHANGED";
+        } else if (uuid.equals(UUID_TRACK_TITLE)) {
+            return "TRACK_TITLE";
+        } else if (uuid.equals(UUID_TRACK_DURATION)) {
+            return "TRACK_DURATION";
+        } else if (uuid.equals(UUID_TRACK_POSITION)) {
+            return "TRACK_POSITION";
+        } else if (uuid.equals(UUID_PLAYBACK_SPEED)) {
+            return "PLAYBACK_SPEED";
+        } else if (uuid.equals(UUID_SEEKING_SPEED)) {
+            return "SEEKING_SPEED";
+        } else if (uuid.equals(UUID_CURRENT_TRACK_SEGMENT_OBJ_ID)) {
+            return "CURRENT_TRACK_SEGMENT_OBJ_ID";
+        } else if (uuid.equals(UUID_CURRENT_TRACK_OBJ_ID)) {
+            return "CURRENT_TRACK_OBJ_ID";
+        } else if (uuid.equals(UUID_NEXT_TRACK_OBJ_ID)) {
+            return "NEXT_TRACK_OBJ_ID";
+        } else if (uuid.equals(UUID_CURRENT_GROUP_OBJ_ID)) {
+            return "CURRENT_GROUP_OBJ_ID";
+        } else if (uuid.equals(UUID_PARENT_GROUP_OBJ_ID)) {
+            return "PARENT_GROUP_OBJ_ID";
+        } else if (uuid.equals(UUID_PLAYING_ORDER)) {
+            return "PLAYING_ORDER";
+        } else if (uuid.equals(UUID_PLAYING_ORDER_SUPPORTED)) {
+            return "PLAYING_ORDER_SUPPORTED";
+        } else if (uuid.equals(UUID_MEDIA_STATE)) {
+            return "MEDIA_STATE";
+        } else if (uuid.equals(UUID_MEDIA_CONTROL_POINT)) {
+            return "MEDIA_CONTROL_POINT";
+        } else if (uuid.equals(UUID_MEDIA_CONTROL_POINT_OPCODES_SUPPORTED)) {
+            return "MEDIA_CONTROL_POINT_OPCODES_SUPPORTED";
+        } else if (uuid.equals(UUID_SEARCH_RESULT_OBJ_ID)) {
+            return "SEARCH_RESULT_OBJ_ID";
+        } else if (uuid.equals(UUID_SEARCH_CONTROL_POINT)) {
+            return "SEARCH_CONTROL_POINT";
+        } else if (uuid.equals(UUID_CONTENT_CONTROL_ID)) {
+            return "CONTENT_CONTROL_ID";
+        } else {
+            return "UNKNOWN(" + uuid + ")";
+        }
+    }
+
     private static class GattOpContext {
         public enum Operation {
             READ_CHARACTERISTIC,
@@ -1220,7 +1270,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         }
 
         if (stateFields.containsKey(PlayerStateField.PLAYBACK_STATE)) {
-            MediaState blaybackState =
+            MediaState playbackState =
                     (MediaState) stateFields.get(PlayerStateField.PLAYBACK_STATE);
             if (DBG) {
                 Log.d(TAG,
@@ -1228,7 +1278,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
                                 + stateFields.get(PlayerStateField.PLAYBACK_STATE));
             }
 
-            if (blaybackState == MediaState.INACTIVE) {
+            if (playbackState == MediaState.INACTIVE) {
                 setInitialCharacteristicValues();
             }
         }
@@ -1326,15 +1376,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
         int mediaState = getMediaStateChar();
         if (mediaState != mCurrentMediaState.getValue()) {
-            if ((getTrackDurationChar() == 0
-                    || getTrackDurationChar() == TRACK_DURATION_UNAVAILABLE)) {
-                // Set to INACTIVE if not set already
-                if (mediaState != MediaState.INACTIVE.getValue()) {
-                    updateMediaStateChar(MediaState.INACTIVE.getValue());
-                }
-            } else {
-                updateMediaStateChar(mCurrentMediaState.getValue());
-            }
+            updateMediaStateChar(mCurrentMediaState.getValue());
         }
 
         if (stateFields.containsKey(PlayerStateField.SEEKING_SPEED)) {
@@ -1960,7 +2002,25 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
     public void dump(StringBuilder sb) {
         sb.append("\tMediaControlService instance:");
         sb.append("\n\t\tCcid = " + mCcid);
-        sb.append("\n\t\tFeatures = " + String.format("0x%08X", mFeatures));
+        sb.append("\n\t\tFeatures:" + ServiceFeature.featuresToString(mFeatures, "\n\t\t\t"));
+
+        BluetoothGattCharacteristic characteristic =
+                mCharacteristics.get(CharId.PLAYER_NAME);
+        if (characteristic == null) {
+            sb.append("\n\t\tPlayer name: <No Player>");
+        } else {
+            sb.append("\n\t\tPlayer name: " + characteristic.getStringValue(0));
+        }
+
         sb.append("\n\t\tCurrentPlaybackState = " + mCurrentMediaState);
+        for (Map.Entry<String, HashMap<UUID, Short>> deviceEntry
+                : mCccDescriptorValues.entrySet()) {
+            sb.append("\n\t\tCCC states for device: " + "xx:xx:xx:xx:"
+                    + deviceEntry.getKey().substring(12));
+            for (Map.Entry<UUID, Short> entry : deviceEntry.getValue().entrySet()) {
+                sb.append("\n\t\t\tCharacteristic: " + mcsUuidToString(entry.getKey()) + ", value: "
+                        + Utils.cccIntToStr(entry.getValue()));
+            }
+        }
     }
 }

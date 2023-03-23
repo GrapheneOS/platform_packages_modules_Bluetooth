@@ -17,6 +17,8 @@
 
 package com.android.bluetooth.mcp;
 
+import java.util.BitSet;
+
 /**
  * Service features definition
  */
@@ -102,5 +104,20 @@ public final class ServiceFeature {
         if (serviceFeature == MEDIA_CONTROL_POINT_OPCODES_SUPPORTED_NOTIFY) return "MEDIA_CONTROL_POINT_OPCODES_SUPPORTED_NOTIFY";
 
         return "UNKNOWN(0x" + Long.toHexString(serviceFeature) + ")";
+    }
+
+    static String featuresToString(long serviceFeatures, String indent) {
+        BitSet bs = BitSet.valueOf(new long[] {serviceFeatures});
+        String string = "";
+
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+            if (i == Integer.MAX_VALUE) {
+                break;
+            } else {
+                string += indent + toString(1 << i);
+            }
+        }
+
+        return string;
     }
 }

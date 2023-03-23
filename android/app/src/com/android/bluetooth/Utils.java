@@ -74,6 +74,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
@@ -1120,5 +1121,27 @@ public final class Utils {
             if (Objects.equals(element, value)) return true;
         }
         return false;
+    }
+
+    /**
+     * CCC descriptor short integer value to string.
+     * @param cccValue the short value of CCC descriptor
+     * @return String value representing CCC state
+     */
+    public static String cccIntToStr(Short cccValue) {
+        String string = "";
+
+        if (cccValue == 0) {
+            return string += "NO SUBSCRIPTION";
+        }
+
+        if (BigInteger.valueOf(cccValue).testBit(0)) {
+            string += "NOTIFICATION";
+        }
+        if (BigInteger.valueOf(cccValue).testBit(1)) {
+            string += string.isEmpty() ? "INDICATION" : "|INDICATION";
+        }
+
+        return string;
     }
 }

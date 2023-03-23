@@ -1592,12 +1592,7 @@ public final class BluetoothAdapter {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean disable() {
-        try {
-            return mManagerService.disable(mAttributionSource, true);
-        } catch (RemoteException e) {
-            Log.e(TAG, "", e);
-        }
-        return false;
+        return disable(true);
     }
 
     /**
@@ -4757,11 +4752,11 @@ public final class BluetoothAdapter {
             List<Pair<OnMetadataChangedListener, Executor>> listenerList =
                     mMetadataListeners.get(device);
             if (listenerList == null) {
-                // Create new listener/executor list for registeration
+                // Create new listener/executor list for registration
                 listenerList = new ArrayList<>();
                 mMetadataListeners.put(device, listenerList);
             } else {
-                // Check whether this device was already registed by the lisenter
+                // Check whether this device is already registered by the listener
                 if (listenerList.stream().anyMatch((pair) -> (pair.first.equals(listener)))) {
                     throw new IllegalArgumentException("listener was already regestered"
                             + " for the device");

@@ -167,6 +167,7 @@ fun <T, U> grpcBidirectionalStream(
 ): StreamObserver<T> {
 
   val inputChannel = Channel<T>()
+  val serverCallStreamObserver = responseObserver as ServerCallStreamObserver<T>
 
   val job =
     scope.launch {
@@ -183,6 +184,8 @@ fun <T, U> grpcBidirectionalStream(
         }
         .launchIn(this)
     }
+
+  serverCallStreamObserver.setOnCancelHandler { job.cancel() }
 
   return object : StreamObserver<T> {
     override fun onNext(req: T) {

@@ -190,6 +190,9 @@ public class HeadsetClientStateMachine extends StateMachine {
 
     public int mAudioPolicyRemoteSupported;
     private BluetoothSinkAudioPolicy mHsClientAudioPolicy;
+    private final int mConnectingTimePolicyProperty;
+    private final int mInBandRingtonePolicyProperty;
+    private final boolean mForceSetAudioPolicyProperty;
 
     private boolean mAudioWbs;
     private int mVoiceRecognitionActive;
@@ -343,7 +346,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         mPendingAction = new Pair<Integer, Object>(NO_ACTION, 0);
     }
 
-    private void addQueuedAction(int action) {
+    @VisibleForTesting
+    void addQueuedAction(int action) {
         addQueuedAction(action, 0);
     }
 
@@ -883,6 +887,12 @@ public class HeadsetClientStateMachine extends StateMachine {
             R.bool.headset_client_initial_audio_route_allowed);
 
         mHsClientAudioPolicy = new BluetoothSinkAudioPolicy.Builder().build();
+        mConnectingTimePolicyProperty = getAudioPolicySystemProp(
+            "bluetooth.headset_client.audio_policy.connecting_time.config");
+        mInBandRingtonePolicyProperty = getAudioPolicySystemProp(
+            "bluetooth.headset_client.audio_policy.in_band_ringtone.config");
+        mForceSetAudioPolicyProperty = SystemProperties.getBoolean(
+            "bluetooth.headset_client.audio_policy.force_enabled", false);
 
         mIndicatorNetworkState = HeadsetClientHalConstants.NETWORK_STATE_NOT_AVAILABLE;
         mIndicatorNetworkType = HeadsetClientHalConstants.SERVICE_TYPE_HOME;
@@ -1329,6 +1339,17 @@ public class HeadsetClientStateMachine extends StateMachine {
                         + " to Connected, mCurrentDevice=" + mCurrentDevice);
             }
             mService.updateBatteryLevel();
+
+            // Send default policies to the remote if
+            //   1. need to set audio policy from system props
+            //   2. remote device supports audio policy
+            if (mForceSetAudioPolicyProperty
+                    && getAudioPolicyRemoteSupported() == BluetoothStatusCodes.FEATURE_SUPPORTED) {
+                setAudioPolicy(new BluetoothSinkAudioPolicy.Builder()
+                        .setActiveDevicePolicyAfterConnection(mConnectingTimePolicyProperty)
+                        .setInBandRingtonePolicy(mInBandRingtonePolicyProperty)
+                        .build());
+            }
         }
 
         @Override
@@ -2169,9 +2190,21 @@ public class HeadsetClientStateMachine extends StateMachine {
 
         /*
          * Backward compatibility for mAudioRouteAllowed
+         *
+         * Set default policies if
+         *  1. need to set audio policy from system props
+         *  2. remote device supports audio policy
          */
-        setAudioPolicy(new BluetoothSinkAudioPolicy.Builder(mHsClientAudioPolicy)
+        if (getForceSetAudioPolicyProperty()) {
+            setAudioPolicy(new BluetoothSinkAudioPolicy.Builder(mHsClientAudioPolicy)
+                    .setCallEstablishPolicy(establishPolicy)
+                    .setActiveDevicePolicyAfterConnection(getConnectingTimePolicyProperty())
+                    .setInBandRingtonePolicy(getInBandRingtonePolicyProperty())
+                    .build());
+        } else {
+            setAudioPolicy(new BluetoothSinkAudioPolicy.Builder(mHsClientAudioPolicy)
                 .setCallEstablishPolicy(establishPolicy).build());
+        }
     }
 
     public boolean getAudioRouteAllowed() {
@@ -2197,7 +2230,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         logD("setAudioPolicy: " + policies);
         mHsClientAudioPolicy = policies;
 
-        if (mAudioPolicyRemoteSupported != BluetoothStatusCodes.FEATURE_SUPPORTED) {
+        if (getAudioPolicyRemoteSupported() != BluetoothStatusCodes.FEATURE_SUPPORTED) {
             Log.e(TAG, "Audio Policy feature not supported!");
             return;
         }
@@ -2205,7 +2238,9 @@ public class HeadsetClientStateMachine extends StateMachine {
         if (!mNativeInterface.sendAndroidAt(mCurrentDevice,
                 "+ANDROID=" + createMaskString(policies))) {
             Log.e(TAG, "ERROR: Couldn't send call audio policies");
+            return;
         }
+        addQueuedAction(SEND_ANDROID_AT_COMMAND);
     }
 
     private boolean queryRemoteSupportedFeatures() {
@@ -2238,5 +2273,32 @@ public class HeadsetClientStateMachine extends StateMachine {
      */
     public int getAudioPolicyRemoteSupported() {
         return mAudioPolicyRemoteSupported;
+    }
+
+    /**
+     * handles the value of {@link BluetoothSinkAudioPolicy} from system property
+     */
+    private int getAudioPolicySystemProp(String propKey) {
+        int mProp = SystemProperties.getInt(propKey, BluetoothSinkAudioPolicy.POLICY_UNCONFIGURED);
+        if (mProp < BluetoothSinkAudioPolicy.POLICY_UNCONFIGURED
+                || mProp > BluetoothSinkAudioPolicy.POLICY_NOT_ALLOWED) {
+            mProp = BluetoothSinkAudioPolicy.POLICY_UNCONFIGURED;
+        }
+        return mProp;
+    }
+
+    @VisibleForTesting
+    boolean getForceSetAudioPolicyProperty() {
+        return mForceSetAudioPolicyProperty;
+    }
+
+    @VisibleForTesting
+    int getConnectingTimePolicyProperty() {
+        return mConnectingTimePolicyProperty;
+    }
+
+    @VisibleForTesting
+    int getInBandRingtonePolicyProperty() {
+        return mInBandRingtonePolicyProperty;
     }
 }
