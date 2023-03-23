@@ -21,16 +21,13 @@
 #include <bta/include/bta_api.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
-#include <frameworks/proto_logging/stats/enums/bluetooth/le/enums.pb.h>
 #include <stdint.h>
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "gd/os/metrics.h"
 #include "types/raw_address.h"
-#include "hci/address.h"
 
 namespace bluetooth {
 
@@ -522,14 +519,6 @@ void LogLeAudioConnectionSessionReported(
     std::vector<int32_t>& streaming_context_type);
 
 void LogLeAudioBroadcastSessionReported(int64_t duration_nanos);
-
-void LogLeBluetoothConnectionMetricEventReported(
-    const RawAddress& raw_address,
-    android::bluetooth::le::LeConnectionOriginType origin_type,
-    android::bluetooth::le::LeConnectionType connection_type,
-    android::bluetooth::le::LeConnectionState transaction_state,
-    std::vector<std::pair<os::ArgumentType, int>>
-        argument_list);
 
 }  // namespace common
 
