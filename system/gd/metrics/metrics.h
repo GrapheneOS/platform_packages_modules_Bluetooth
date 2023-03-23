@@ -16,7 +16,6 @@
 #pragma once
 
 #include <cstdint>
-
 #include "types/raw_address.h"
 
 namespace bluetooth {

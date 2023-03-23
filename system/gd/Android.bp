@@ -427,6 +427,7 @@ cc_test {
         "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
+        "libbt-platform-protos-lite"
     ],
     shared_libs: [
         "libcrypto",
