@@ -63,12 +63,13 @@
     <integer name="gatt_low_power_latency_secondary">15</integer>
     <!-- ============================================================ -->
 
-    <!-- Specifies latency parameters for high priority, balanced and low power
-         GATT configurations. These values represents the number of packets a
-         peripheral device is allowed to skip. -->
+    <!-- Specifies latency parameters for high priority, balanced, low power and
+         Digital Car Key-preferred GATT configurations. These values represent
+         the number of packets a peripheral device is allowed to skip. -->
     <integer name="gatt_high_priority_latency">0</integer>
     <integer name="gatt_balanced_priority_latency">0</integer>
     <integer name="gatt_low_power_latency">2</integer>
+    <integer name="gatt_dck_priority_latency">0</integer>
 
     <!-- Specifies the min/max subrate factor parameters for high priority,
          balanced and low power subrate request configurations. -->
