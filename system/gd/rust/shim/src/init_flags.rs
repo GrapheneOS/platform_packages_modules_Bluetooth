@@ -12,6 +12,7 @@ mod ffi {
         fn delay_hidh_cleanup_until_hidh_ready_start_is_enabled() -> bool;
         fn gd_hal_snoop_logger_filtering_is_enabled() -> bool;
         fn btm_dm_flush_discovery_queue_on_search_cancel_is_enabled() -> bool;
+        fn classic_discovery_only_is_enabled() -> bool;
         fn clear_hidd_interrupt_cid_on_disconnect_is_enabled() -> bool;
         fn device_iot_config_logging_is_enabled() -> bool;
         fn dynamic_avrcp_version_enhancement_is_enabled() -> bool;

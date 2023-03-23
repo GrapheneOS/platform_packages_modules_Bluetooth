@@ -18,6 +18,7 @@ table InitFlagsData {
     btaa_hci_is_enabled:bool (privacy:"Any");
     bta_dm_clear_conn_id_on_client_close_is_enabled:bool (privacy:"Any");
     btm_dm_flush_discovery_queue_on_search_cancel_is_enabled:bool (privacy:"Any");
+    classic_discovery_only_is_enabled:bool (privacy:"Any");
     clear_hidd_interrupt_cid_on_disconnect_is_enabled:bool (privacy:"Any");
     delay_hidh_cleanup_until_hidh_ready_start_is_enabled:bool (privacy:"Any");
     device_iot_config_logging_is_enabled:bool (privacy:"Any");
