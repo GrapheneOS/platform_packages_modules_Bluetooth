@@ -26,6 +26,7 @@
 #include <base/strings/string_number_conversions.h>  // HexEncode
 
 #include <cstdint>
+#include <mutex>
 #include <vector>
 
 #include "bta/include/bta_gatt_api.h"
@@ -125,6 +126,7 @@ inline uint8_t* get_l2cap_sdu_start_ptr(BT_HDR* msg) {
 
 class HearingAidImpl;
 HearingAidImpl* instance;
+std::mutex instance_mutex;
 HearingAidAudioReceiver* audioReceiver;
 
 class HearingDevices {
@@ -2018,6 +2020,7 @@ HearingAidAudioReceiverImpl audioReceiverImpl;
 
 void HearingAid::Initialize(
     bluetooth::hearing_aid::HearingAidCallbacks* callbacks, Closure initCb) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (instance) {
     LOG_ERROR("Already initialized!");
     return;
@@ -2081,6 +2084,7 @@ int HearingAid::GetDeviceCount() {
 }
 
 void HearingAid::CleanUp() {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   // Must stop audio source to make sure it doesn't call any of callbacks on our
   // soon to be  null instance
   HearingAidAudioSource::Stop();
@@ -2095,6 +2099,7 @@ void HearingAid::CleanUp() {
 };
 
 void HearingAid::DebugDump(int fd) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   dprintf(fd, "Hearing Aid Manager:\n");
   if (instance) instance->Dump(fd);
   HearingAidAudioSource::DebugDump(fd);
