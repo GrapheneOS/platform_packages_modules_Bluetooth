@@ -262,6 +262,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return false;
     }
 
+    group->Deactivate();
     ReleaseCisIds(group);
 
     if (!group->Configure(context_type, metadata_context_types, ccid_lists)) {
