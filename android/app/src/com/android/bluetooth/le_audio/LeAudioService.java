@@ -129,6 +129,8 @@ public class LeAudioService extends ProfileService {
     @VisibleForTesting
     AudioManager mAudioManager;
     LeAudioTmapGattServer mTmapGattServer;
+    int mTmapRoleMask;
+    boolean mTmapStarted = false;
 
     @VisibleForTesting
     TbsService mTbsService;
@@ -221,6 +223,22 @@ public class LeAudioService extends ProfileService {
         Log.i(TAG, "create()");
     }
 
+    private boolean registerTmap() {
+        if (mTmapGattServer != null) {
+            throw new IllegalStateException("TMAP GATT server started before start() is called");
+        }
+        mTmapGattServer = LeAudioObjectsFactory.getInstance().getTmapGattServer(this);
+
+        try {
+            mTmapGattServer.start(mTmapRoleMask);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Fail to start TmapGattServer", e);
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     protected boolean start() {
         Log.i(TAG, "start()");
@@ -268,7 +286,7 @@ public class LeAudioService extends ProfileService {
 
         mLeAudioCallbacks = new RemoteCallbackList<IBluetoothLeAudioCallback>();
 
-        int tmapRoleMask =
+        mTmapRoleMask =
                 LeAudioTmapGattServer.TMAP_ROLE_FLAG_CG | LeAudioTmapGattServer.TMAP_ROLE_FLAG_UMS;
 
         // Initialize Broadcast native interface
@@ -280,22 +298,12 @@ public class LeAudioService extends ProfileService {
                     LeAudioBroadcasterNativeInterface.getInstance(),
                     "LeAudioBroadcasterNativeInterface cannot be null when LeAudioService starts");
             mLeAudioBroadcasterNativeInterface.init();
-            tmapRoleMask |= LeAudioTmapGattServer.TMAP_ROLE_FLAG_BMS;
+            mTmapRoleMask |= LeAudioTmapGattServer.TMAP_ROLE_FLAG_BMS;
         } else {
             Log.w(TAG, "Le Audio Broadcasts not supported.");
         }
 
-        // the role mask is fixed in Android
-        if (mTmapGattServer != null) {
-            throw new IllegalStateException("TMAP GATT server started before start() is called");
-        }
-        mTmapGattServer = LeAudioObjectsFactory.getInstance().getTmapGattServer(this);
-
-        try {
-            mTmapGattServer.start(tmapRoleMask);
-        } catch (IllegalStateException e) {
-            Log.e(TAG, "Fail to start TmapGattServer", e);
-        }
+        mTmapStarted = registerTmap();
 
         mLeAudioInbandRingtoneSupportedByPlatform =
                         BluetoothProperties.isLeAudioInbandRingtoneSupported().orElse(true);
@@ -317,6 +325,10 @@ public class LeAudioService extends ProfileService {
     }
 
     private void init() {
+        if (!mTmapStarted) {
+            mTmapStarted = registerTmap();
+        }
+
         LeAudioNativeInterface nativeInterface = mLeAudioNativeInterface;
         if (nativeInterface == null) {
             Log.w(TAG, "the service is stopped. ignore init()");
@@ -341,6 +353,7 @@ public class LeAudioService extends ProfileService {
         } else {
             mTmapGattServer.stop();
             mTmapGattServer = null;
+            mTmapStarted = false;
         }
 
         //Don't wait for async call with INACTIVE group status, clean active
@@ -1863,6 +1876,9 @@ public class LeAudioService extends ProfileService {
                 ParcelUuid userUuid = entry.getKey();
                 Pair<Integer, Integer> ccidInformation = entry.getValue();
                 setCcidInformation(userUuid, ccidInformation.first, ccidInformation.second);
+            }
+            if (!mTmapStarted) {
+                mTmapStarted = registerTmap();
             }
         }
     }
