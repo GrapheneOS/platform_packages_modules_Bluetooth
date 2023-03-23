@@ -811,25 +811,28 @@ static void gatts_process_mtu_req(tGATT_TCB& tcb, uint16_t cid, uint16_t len,
     return;
   }
 
+  tGATT_SR_MSG gatt_sr_msg;
+
   uint16_t mtu = 0;
   uint8_t* p = p_data;
   STREAM_TO_UINT16(mtu, p);
   /* mtu must be greater than default MTU which is 23/48 */
-  if (mtu < GATT_DEF_BLE_MTU_SIZE)
+  if (mtu < GATT_DEF_BLE_MTU_SIZE) {
     tcb.payload_size = GATT_DEF_BLE_MTU_SIZE;
-  else if (mtu > GATT_MAX_MTU_SIZE)
-    tcb.payload_size = GATT_MAX_MTU_SIZE;
-  else
-    tcb.payload_size = mtu;
+  } else {
+    tcb.payload_size = std::min(mtu, (uint16_t)(GATT_MAX_MTU_SIZE));
+  }
 
-  LOG(INFO) << "MTU request PDU with MTU size " << +tcb.payload_size;
+  /* Always say to remote our real MAX MTU. */
+  gatt_sr_msg.mtu = GATT_MAX_MTU_SIZE;
+
+  LOG_INFO("MTU %d request from remote (%s), resulted MTU %d", mtu,
+           tcb.peer_bda.ToString().c_str(), tcb.payload_size);
 
   BTM_SetBleDataLength(tcb.peer_bda, tcb.payload_size + L2CAP_PKT_OVERHEAD);
 
-  tGATT_SR_MSG gatt_sr_msg;
-  gatt_sr_msg.mtu = tcb.payload_size;
   BT_HDR* p_buf =
-      attp_build_sr_msg(tcb, GATT_RSP_MTU, &gatt_sr_msg, tcb.payload_size);
+      attp_build_sr_msg(tcb, GATT_RSP_MTU, &gatt_sr_msg, GATT_DEF_BLE_MTU_SIZE);
   attp_send_sr_msg(tcb, cid, p_buf);
 
   bluetooth::shim::arbiter::GetArbiter().OnIncomingMtuReq(tcb.tcb_idx,
