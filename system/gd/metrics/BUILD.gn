@@ -15,8 +15,12 @@
 #
 
 source_set("BluetoothMetricsSources") {
-  sources = [ "counter_metrics.cc" ]
+  sources = [
+    "counter_metrics.cc",
+    # TODO(palash, abhishekpandit) - Need to add the changes for metrics_state.cc
+  ]
 
   configs += [ "//bt/system/gd:gd_defaults" ]
-  deps = [ "//bt/system/gd:gd_default_deps" ]
+
+  deps = [ "//bt/system/gd:gd_default_deps"]
 }
