@@ -163,7 +163,9 @@ fn on_le_disconnect(tcb_idx: u8) {
     if let Some(conn_id) = with_arbiter(|arbiter| arbiter.on_le_disconnect(TransportIndex(tcb_idx)))
     {
         do_in_rust_thread(move |modules| {
-            modules.gatt_module.on_le_disconnect(conn_id);
+            if let Err(err) = modules.gatt_module.on_le_disconnect(conn_id) {
+                error!("{err:?}")
+            }
         })
     }
 }

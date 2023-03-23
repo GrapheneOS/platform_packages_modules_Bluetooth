@@ -43,3 +43,12 @@ pub struct AdvertiserId(pub u8);
 /// The handle of a given ATT attribute
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct AttHandle(pub u16);
+
+impl AttHandle {
+    /// The (only) reserved AttHandle
+    pub const RESERVED: Self = AttHandle(0);
+    /// The smallest valid AttHandle
+    pub const MIN: Self = AttHandle(1);
+    /// The largest valid AttHandle
+    pub const MAX: Self = AttHandle(0xFFFF);
+}

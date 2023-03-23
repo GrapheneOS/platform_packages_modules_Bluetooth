@@ -290,7 +290,12 @@ public class LeAudioService extends ProfileService {
             throw new IllegalStateException("TMAP GATT server started before start() is called");
         }
         mTmapGattServer = LeAudioObjectsFactory.getInstance().getTmapGattServer(this);
-        mTmapGattServer.start(tmapRoleMask);
+
+        try {
+            mTmapGattServer.start(tmapRoleMask);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Fail to start TmapGattServer", e);
+        }
 
         mLeAudioInbandRingtoneSupportedByPlatform =
                         BluetoothProperties.isLeAudioInbandRingtoneSupported().orElse(true);
@@ -1431,7 +1436,8 @@ public class LeAudioService extends ProfileService {
         synchronized (mGroupLock) {
             LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
             if (descriptor == null || descriptor.mIsActive) {
-                Log.e(TAG, "no descriptors for group: " + groupId + " or group already active");
+                Log.e(TAG, "handleGroupTransitToActive: no descriptors for group: " + groupId
+                        + " or group already active");
                 return;
             }
 
@@ -1449,7 +1455,8 @@ public class LeAudioService extends ProfileService {
         synchronized (mGroupLock) {
             LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
             if (descriptor == null || !descriptor.mIsActive) {
-                Log.e(TAG, "no descriptors for group: " + groupId + " or group already inactive");
+                Log.e(TAG, "handleGroupTransitToInactive: no descriptors for group: " + groupId
+                        + " or group already inactive");
                 return;
             }
 
@@ -1715,7 +1722,7 @@ public class LeAudioService extends ProfileService {
                     descriptor.mAvailableContexts = available_contexts;
                     updateInbandRingtoneForTheGroup(groupId);
                 } else {
-                    Log.e(TAG, "no descriptors for group: " + groupId);
+                    Log.e(TAG, "messageFromNative: no descriptors for group: " + groupId);
                 }
             }
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE) {
@@ -2011,7 +2018,8 @@ public class LeAudioService extends ProfileService {
             if (descriptor != null) {
                 descriptor.mIsConnected = true;
             } else {
-                Log.e(TAG, "no descriptors for group: " + deviceDescriptor.mGroupId);
+                Log.e(TAG, "connectionStateChanged(STATE_CONNECTED): no descriptors for group: "
+                        + deviceDescriptor.mGroupId);
             }
         }
         // Check if the device is disconnected - if unbond, remove the state machine
@@ -2027,7 +2035,8 @@ public class LeAudioService extends ProfileService {
             synchronized (mGroupLock) {
                 LeAudioGroupDescriptor descriptor = getGroupDescriptor(deviceDescriptor.mGroupId);
                 if (descriptor == null) {
-                    Log.e(TAG, "no descriptors for group: " + deviceDescriptor.mGroupId);
+                    Log.e(TAG, "connectionStateChanged(STATE_DISCONNECTED): no descriptors for "
+                            + "group: " + deviceDescriptor.mGroupId);
                     return;
                 }
 
@@ -2467,6 +2476,10 @@ public class LeAudioService extends ProfileService {
 
         synchronized (mGroupLock) {
             LeAudioGroupDescriptor groupDescriptor = getGroupDescriptor(groupId);
+            if (groupDescriptor == null) {
+                Log.e(TAG, "handleGroupNodeRemoved: No valid descriptor for group: " + groupId);
+                return;
+            }
             if (DBG) {
                 Log.d(TAG, "Lost lead device is " + groupDescriptor.mLostLeadDeviceWhileStreaming);
             }

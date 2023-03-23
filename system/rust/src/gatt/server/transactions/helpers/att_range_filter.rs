@@ -24,7 +24,7 @@ pub fn filter_to_range(
 
 #[cfg(test)]
 mod test {
-    use crate::gatt::server::{att_database::CHARACTERISTIC_UUID, gatt_database::AttPermissions};
+    use crate::gatt::server::{gatt_database::AttPermissions, gatt_database::CHARACTERISTIC_UUID};
 
     use super::*;
 
