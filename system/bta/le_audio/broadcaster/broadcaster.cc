@@ -17,6 +17,8 @@
 
 #include <base/functional/bind.h>
 
+#include <mutex>
+
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/state_machine.h"
@@ -62,6 +64,7 @@ using le_audio::utils::GetAllowedAudioContextsFromSourceMetadata;
 namespace {
 class LeAudioBroadcasterImpl;
 LeAudioBroadcasterImpl* instance;
+std::mutex instance_mutex;
 
 /* Class definitions */
 
@@ -1019,6 +1022,7 @@ LeAudioBroadcasterImpl::LeAudioSourceCallbacksImpl
 void LeAudioBroadcaster::Initialize(
     bluetooth::le_audio::LeAudioBroadcasterCallbacks* callbacks,
     base::Callback<bool()> audio_hal_verifier) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   LOG_INFO();
   if (instance) {
     LOG_ERROR("Already initialized");
@@ -1059,6 +1063,7 @@ void LeAudioBroadcaster::Stop(void) {
 }
 
 void LeAudioBroadcaster::Cleanup(void) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   LOG_INFO();
 
   if (instance == nullptr) return;
@@ -1071,6 +1076,7 @@ void LeAudioBroadcaster::Cleanup(void) {
 }
 
 void LeAudioBroadcaster::DebugDump(int fd) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   dprintf(fd, "Le Audio Broadcaster:\n");
   if (instance) instance->Dump(fd);
   dprintf(fd, "\n");
