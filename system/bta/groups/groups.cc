@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <limits>
 #include <map>
+#include <mutex>
 #include <unordered_set>
 
 #include "bta_groups.h"
@@ -34,6 +35,7 @@ namespace groups {
 
 class DeviceGroupsImpl;
 DeviceGroupsImpl* instance;
+std::mutex instance_mutex;
 static constexpr int kMaxGroupId = 0xEF;
 
 class DeviceGroup {
@@ -328,6 +330,7 @@ class DeviceGroupsImpl : public DeviceGroups {
 };
 
 void DeviceGroups::Initialize(DeviceGroupsCallbacks* callbacks) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (instance == nullptr) {
     instance = new DeviceGroupsImpl(callbacks);
     return;
@@ -357,6 +360,7 @@ bool DeviceGroups::GetForStorage(const RawAddress& addr,
 }
 
 void DeviceGroups::CleanUp(DeviceGroupsCallbacks* callbacks) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (!instance) return;
 
   if (instance->Clear(callbacks)) {
@@ -377,6 +381,7 @@ std::ostream& operator<<(std::ostream& out,
 }
 
 void DeviceGroups::DebugDump(int fd) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   dprintf(fd, "Device Groups Manager:\n");
   if (instance)
     instance->Dump(fd);
