@@ -43,12 +43,14 @@
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
+#include "gd/metrics/metrics_state.h"
 #include "include/l2cap_hci_link_interface.h"
 #include "main/shim/acl_api.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/controller.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/l2c_api.h"
+#include "main/shim/metrics_api.h"
 #include "main/shim/shim.h"
 #include "os/parameter_provider.h"
 #include "osi/include/allocator.h"
@@ -72,6 +74,7 @@
 #include "stack/include/sco_hci_link_interface.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
+#include "os/metrics.h"
 
 void BTM_update_version_info(const RawAddress& bd_addr,
                              const remote_version_info& remote_version_info);
@@ -2766,9 +2769,18 @@ bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr) {
     return false;
   }
 
-    bluetooth::shim::ACL_AcceptLeConnectionFrom(address_with_type,
-                                                /* is_direct */ true);
-    return true;
+  // argument list
+  auto argument_list = std::vector<std::pair<bluetooth::os::ArgumentType, int>>();
+
+  bluetooth::shim::LogMetricBluetoothLEConnectionMetricEvent(
+      bd_addr, android::bluetooth::le::LeConnectionOriginType::ORIGIN_NATIVE,
+      android::bluetooth::le::LeConnectionType::CONNECTION_TYPE_LE_ACL,
+      android::bluetooth::le::LeConnectionState::STATE_LE_ACL_START,
+      argument_list);
+
+  bluetooth::shim::ACL_AcceptLeConnectionFrom(address_with_type,
+                                              /* is_direct */ true);
+  return true;
 }
 
 bool acl_create_le_connection(const RawAddress& bd_addr) {
