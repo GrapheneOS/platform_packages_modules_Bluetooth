@@ -669,7 +669,7 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
 
   /* class of device */
   cod = devclass2uint(dev_class);
-  if (cod == 0) {
+  if ((cod == 0) || (cod == COD_UNCLASSIFIED)) {
     /* Try to retrieve cod from storage */
     LOG_VERBOSE("class of device (cod) is unclassified, checking storage");
     BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
