@@ -226,8 +226,12 @@ constexpr uint8_t kLeAudioCodecLC3TypeMaxCodecFramesPerSdu =
 /* Sampling Frequencies */
 constexpr uint16_t kLeAudioSamplingFreq8000Hz =
     SamplingFreqConfig2Capability(codec_spec_conf::kLeAudioSamplingFreq8000Hz);
+constexpr uint16_t kLeAudioSamplingFreq11025Hz =
+    SamplingFreqConfig2Capability(codec_spec_conf::kLeAudioSamplingFreq11025Hz);
 constexpr uint16_t kLeAudioSamplingFreq16000Hz =
     SamplingFreqConfig2Capability(codec_spec_conf::kLeAudioSamplingFreq16000Hz);
+constexpr uint16_t kLeAudioSamplingFreq22050Hz =
+    SamplingFreqConfig2Capability(codec_spec_conf::kLeAudioSamplingFreq22050Hz);
 constexpr uint16_t kLeAudioSamplingFreq24000Hz =
     SamplingFreqConfig2Capability(codec_spec_conf::kLeAudioSamplingFreq24000Hz);
 constexpr uint16_t kLeAudioSamplingFreq32000Hz =
@@ -236,6 +240,16 @@ constexpr uint16_t kLeAudioSamplingFreq44100Hz =
     SamplingFreqConfig2Capability(codec_spec_conf::kLeAudioSamplingFreq44100Hz);
 constexpr uint16_t kLeAudioSamplingFreq48000Hz =
     SamplingFreqConfig2Capability(codec_spec_conf::kLeAudioSamplingFreq48000Hz);
+constexpr uint16_t kLeAudioSamplingFreq88200Hz =
+    SamplingFreqConfig2Capability(codec_spec_conf::kLeAudioSamplingFreq88200Hz);
+constexpr uint16_t kLeAudioSamplingFreq96000Hz =
+    SamplingFreqConfig2Capability(codec_spec_conf::kLeAudioSamplingFreq96000Hz);
+constexpr uint16_t kLeAudioSamplingFreq176400Hz = SamplingFreqConfig2Capability(
+    codec_spec_conf::kLeAudioSamplingFreq176400Hz);
+constexpr uint16_t kLeAudioSamplingFreq192000Hz = SamplingFreqConfig2Capability(
+    codec_spec_conf::kLeAudioSamplingFreq192000Hz);
+constexpr uint16_t kLeAudioSamplingFreq384000Hz = SamplingFreqConfig2Capability(
+    codec_spec_conf::kLeAudioSamplingFreq384000Hz);
 
 /* Frame Durations */
 constexpr uint8_t kLeAudioCodecLC3FrameDur7500us =
@@ -254,6 +268,12 @@ constexpr uint8_t kLeAudioCodecLC3FrameDurPrefer10000us = 0x20;
 constexpr uint8_t kLeAudioCodecLC3ChannelCountNone = 0x00;
 constexpr uint8_t kLeAudioCodecLC3ChannelCountSingleChannel = 0x01;
 constexpr uint8_t kLeAudioCodecLC3ChannelCountTwoChannel = 0x02;
+constexpr uint8_t kLeAudioCodecLC3ChannelCountThreeChannel = 0x04;
+constexpr uint8_t kLeAudioCodecLC3ChannelCountFourChannel = 0x08;
+constexpr uint8_t kLeAudioCodecLC3ChannelCountFiveChannel = 0x10;
+constexpr uint8_t kLeAudioCodecLC3ChannelCountSixChannel = 0x20;
+constexpr uint8_t kLeAudioCodecLC3ChannelCountSevenChannel = 0x40;
+constexpr uint8_t kLeAudioCodecLC3ChannelCountEightChannel = 0x40;
 
 /* Octets Per Frame - same as in Codec Specific Configurations but in
  * capabilities we get two values: min and max.
@@ -505,6 +525,10 @@ constexpr AudioContexts kLeAudioContextAllTypes =
     LeAudioContextType::NOTIFICATIONS | LeAudioContextType::RINGTONE |
     LeAudioContextType::ALERTS | LeAudioContextType::EMERGENCYALARM;
 
+/* Print formaters for LTV data */
+std::string CodecCapabilitiesLtvFormat(const uint8_t& type,
+                                       const std::vector<uint8_t>& value);
+
 /* Structures */
 class LeAudioLtvMap {
  public:
@@ -523,7 +547,9 @@ class LeAudioLtvMap {
   const std::map<uint8_t, std::vector<uint8_t>>& Values() const {
     return values;
   }
-  std::string ToString() const;
+  std::string ToString(
+      const std::string& indent_string,
+      std::string (*format)(const uint8_t&, const std::vector<uint8_t>&)) const;
   size_t RawPacketSize() const;
   uint8_t* RawPacket(uint8_t* p_buf) const;
   std::vector<uint8_t> RawPacket() const;

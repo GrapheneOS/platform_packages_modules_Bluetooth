@@ -186,6 +186,7 @@ class LeAudioDevice {
   bool ActivateConfiguredAses(types::LeAudioContextType context_type);
 
   void PrintDebugState(void);
+  void DumpPacsDebugState(std::stringstream& stream);
   void Dump(int fd);
 
   void DisconnectAcl(void);
@@ -198,6 +199,9 @@ class LeAudioDevice {
  private:
   types::BidirectionalPair<types::AudioContexts> avail_contexts_;
   types::BidirectionalPair<types::AudioContexts> supp_contexts_;
+
+  void DumpPacsDebugState(std::stringstream& stream,
+                          types::PublishedAudioCapabilities pacs);
 };
 
 /* LeAudioDevices class represents a wraper helper over all devices in le audio
