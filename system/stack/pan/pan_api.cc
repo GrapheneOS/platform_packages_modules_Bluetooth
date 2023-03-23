@@ -509,6 +509,12 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
       return PAN_FAILURE;
     }
 
+    /* There are cases where BNAP_WriteBuf alters p_buf->len.  However,
+     * the octets being handled are only used later by PAN for logging
+     * purposes, and for those purposes this length is arguably correct --
+     * it is the number of bytes handled at the PAN level. */
+    uint16_t bytes = p_buf->len;
+
     result =
         BNEP_WriteBuf(pan_cb.pcb[i].handle, dst, p_buf, protocol, &src, ext);
     if (result == BNEP_IGNORE_CMD) {
@@ -519,7 +525,7 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
       return (tPAN_RESULT)result;
     }
 
-    pan_cb.pcb[i].write.octets += p_buf->len;
+    pan_cb.pcb[i].write.octets += bytes;
     pan_cb.pcb[i].write.packets++;
 
     PAN_TRACE_DEBUG("PAN successfully wrote data for the PANU connection");
