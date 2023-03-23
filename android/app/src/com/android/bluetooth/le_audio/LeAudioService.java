@@ -363,7 +363,7 @@ public class LeAudioService extends ProfileService {
                 if (sm == null) {
                     continue;
                 }
-                sm.doQuit();
+                sm.quit();
                 sm.cleanup();
             }
 
@@ -1972,7 +1972,7 @@ public class LeAudioService extends ProfileService {
                 return;
             }
             Log.i(TAG, "removeStateMachine: removing state machine for device: " + device);
-            sm.doQuit();
+            sm.quit();
             sm.cleanup();
             descriptor.mStateMachine = null;
 
