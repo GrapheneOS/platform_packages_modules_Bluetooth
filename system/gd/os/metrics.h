@@ -20,6 +20,7 @@
 
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
+#include <frameworks/proto_logging/stats/enums/bluetooth/le/enums.pb.h>
 
 #include "hci/address.h"
 
@@ -294,6 +295,47 @@ void LogMetricBluetoothRemoteSupportedFeatures(
     const hci::Address& address, uint32_t page, uint64_t features, uint32_t connection_handle);
 
 void LogMetricBluetoothCodePathCounterMetrics(int32_t key, int64_t count);
-}  // namespace os
 
+using android::bluetooth::le::LeAclConnectionState;
+using android::bluetooth::le::LeConnectionOriginType;
+using android::bluetooth::le::LeConnectionType;
+using android::bluetooth::le::LeConnectionState;
+// Adding options
+struct LEConnectionSessionOptions {
+  // Contains the state of the LE-ACL Connection
+  LeAclConnectionState acl_connection_state = LeAclConnectionState::LE_ACL_UNSPECIFIED;
+  // Origin of the transaction
+  LeConnectionOriginType origin_type = LeConnectionOriginType::ORIGIN_UNSPECIFIED;
+  // Connection Type
+  LeConnectionType transaction_type = LeConnectionType::CONNECTION_TYPE_UNSPECIFIED;
+  // Transaction State
+  LeConnectionState transaction_state = LeConnectionState::STATE_UNSPECIFIED;
+  // Latency of the entire transaction
+  int64_t latency = 0;
+  // Address of the remote device
+  hci::Address remote_address = hci::Address::kEmpty;
+  // UID associated with the device
+  int app_uid = 0;
+  // Latency of the ACL Transaction
+  int64_t acl_latency = 0;
+  // Contains the error code associated with the ACL Connection if failed
+  android::bluetooth::hci::StatusEnum status = android::bluetooth::hci::StatusEnum::STATUS_UNKNOWN;
+  // Cancelled connection
+  bool is_cancelled = false;
+};
+
+// Argument Type
+enum ArgumentType { GATT_IF, L2CAP_PSM, L2CAP_CID, APP_UID, ACL_STATUS_CODE };
+void LogMetricBluetoothLEConnectionMetricEvent(
+    const hci::Address& address,
+    LeConnectionOriginType origin_type,
+    LeConnectionType connection_type,
+    LeConnectionState transaction_state,
+    std::vector<std::pair<os::ArgumentType, int>>& argument_list);
+
+// Upload LE Session
+void LogMetricBluetoothLEConnection(os::LEConnectionSessionOptions session_options);
+
+}  // namespace os
+   //
 }  // namespace bluetooth

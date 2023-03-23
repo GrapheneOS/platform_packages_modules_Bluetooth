@@ -36,7 +36,7 @@ source_set("BluetoothMetricsSources") {
     "utils.cc",
   ]
 
-  configs += [ "//bt/system/gd:gd_defaults" ]
+  configs += [ "//bt/system/gd:gd_defaults"]
   deps = [ "//bt/system/gd:gd_default_deps" ]
 
   if (target_os == "chromeos") {
