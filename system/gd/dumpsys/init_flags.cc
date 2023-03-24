@@ -78,6 +78,8 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_queue_l2cap_coc_while_encrypting_is_enabled(
       initFlags::queue_l2cap_coc_while_encrypting_is_enabled());
   builder.add_private_gatt_is_enabled(initFlags::private_gatt_is_enabled());
+  builder.add_read_encryption_key_size_is_enabled(
+      bluetooth::common::init_flags::read_encryption_key_size_is_enabled());
   builder.add_redact_log_is_enabled(initFlags::redact_log_is_enabled());
   builder.add_rust_event_loop_is_enabled(initFlags::rust_event_loop_is_enabled());
   builder.add_sdp_serialization_is_enabled(initFlags::sdp_serialization_is_enabled());

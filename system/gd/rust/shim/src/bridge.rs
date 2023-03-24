@@ -84,6 +84,7 @@ pub mod ffi {
         fn controller_supports_ble_periodic_advertising_adi(c: &Controller) -> bool;
         fn controller_supports_configure_data_path(c: &Controller) -> bool;
         fn controller_supports_set_min_encryption_key_size(c: &Controller) -> bool;
+        fn controller_supports_read_encryption_key_size(c: &Controller) -> bool;
 
         fn controller_supports_reading_remote_extended_features(c: &Controller) -> bool;
         fn controller_supports_enhanced_setup_synchronous_connection(c: &Controller) -> bool;
