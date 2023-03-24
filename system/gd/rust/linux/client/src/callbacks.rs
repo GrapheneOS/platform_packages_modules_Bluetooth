@@ -199,6 +199,18 @@ impl IBluetoothCallback for BtCallback {
         }
     }
 
+    fn on_pin_request(&self, remote_device: BluetoothDevice, _cod: u32, min_16_digit: bool) {
+        print_info!(
+            "Device [{}: {}] would like to pair, enter pin code {}",
+            &remote_device.address,
+            &remote_device.name,
+            match min_16_digit {
+                true => "with at least 16 digits",
+                false => "",
+            }
+        );
+    }
+
     fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {
         print_info!("Bonding state changed: [{}] state: {}, Status = {}", address, state, status);
 
