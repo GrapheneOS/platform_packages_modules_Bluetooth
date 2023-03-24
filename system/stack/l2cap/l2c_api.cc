@@ -36,8 +36,10 @@
 #include "gd/common/init_flags.h"
 #include "gd/hal/snoop_logger.h"
 #include "gd/os/system_properties.h"
+#include "gd/os/metrics.h"
 #include "hci/include/btsnoop.h"
 #include "main/shim/shim.h"
+#include "main/shim/metrics_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
@@ -1354,6 +1356,16 @@ bool L2CA_ConnectFixedChnl(uint16_t fixed_cid, const RawAddress& rem_bda) {
   }
 
   if (transport == BT_TRANSPORT_LE) {
+    auto argument_list = std::vector<std::pair<bluetooth::os::ArgumentType, int>>();
+    argument_list.push_back(std::make_pair(bluetooth::os::ArgumentType::L2CAP_CID, fixed_cid));
+
+    bluetooth::shim::LogMetricBluetoothLEConnectionMetricEvent(
+        rem_bda,
+        android::bluetooth::le::LeConnectionOriginType::ORIGIN_NATIVE,
+        android::bluetooth::le::LeConnectionType::CONNECTION_TYPE_LE_ACL,
+        android::bluetooth::le::LeConnectionState::STATE_LE_ACL_START,
+        argument_list);
+
     bool ret = l2cu_create_conn_le(p_lcb);
     if (!ret) {
       LOG_WARN("Unable to create fixed channel le connection fixed_cid:0x%04x",
