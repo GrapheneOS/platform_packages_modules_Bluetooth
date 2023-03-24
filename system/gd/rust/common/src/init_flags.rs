@@ -281,6 +281,7 @@ init_flags!(
         periodic_advertising_adi = true,
         private_gatt,
         queue_l2cap_coc_while_encrypting = true,
+        read_encryption_key_size = true,
         redact_log = true,
         rust_event_loop,
         sdp_serialization = true,

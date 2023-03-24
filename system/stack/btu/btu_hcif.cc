@@ -944,6 +944,8 @@ static void btu_hcif_encryption_change_evt(uint8_t* p) {
 
   if (status != HCI_SUCCESS || encr_enable == 0 ||
       BTM_IsBleConnection(handle) ||
+      (bluetooth::common::init_flags::read_encryption_key_size_is_enabled() &&
+       !controller_get_interface()->supports_read_encryption_key_size()) ||
       // Skip encryption key size check when using set_min_encryption_key_size
       (bluetooth::common::init_flags::set_min_encryption_is_enabled() &&
        controller_get_interface()->supports_set_min_encryption_key_size())) {
