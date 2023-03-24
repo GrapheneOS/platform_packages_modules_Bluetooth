@@ -65,6 +65,43 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
 
     private CloseGuard mCloseGuard;
 
+    private final class HapClientServiceListener extends ForwardingServiceListener {
+        HapClientServiceListener(ServiceListener listener) {
+            super(listener);
+        }
+
+        @Override
+        public void onServiceConnected(int profile, BluetoothProfile proxy) {
+            try {
+                if (profile == HAP_CLIENT) {
+                    // re-register the service-to-app callback
+                    synchronized (mCallbackExecutorMap) {
+                        if (mCallbackExecutorMap.isEmpty()) {
+                            return;
+                        }
+
+                        try {
+                            final IBluetoothHapClient service = getService();
+                            if (service != null) {
+                                final SynchronousResultReceiver<Integer> recv =
+                                        SynchronousResultReceiver.get();
+                                service.registerCallback(mCallback, mAttributionSource, recv);
+                                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                            }
+                        } catch (TimeoutException e) {
+                            Log.e(TAG, e.toString() + "\n"
+                                    + Log.getStackTraceString(new Throwable()));
+                        } catch (RemoteException e) {
+                            throw e.rethrowFromSystemServer();
+                        }
+                    }
+                }
+            } finally {
+                super.onServiceConnected(profile, proxy);
+            }
+        }
+    }
+
     /**
      * This class provides callbacks mechanism for the BluetoothHapClient profile.
      *
@@ -470,34 +507,6 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 }
             };
 
-    @SuppressLint("AndroidFrameworkBluetoothPermission")
-    private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
-            new IBluetoothStateChangeCallback.Stub() {
-                public void onBluetoothStateChange(boolean up) {
-                    if (DBG) Log.d(TAG, "onBluetoothStateChange: up=" + up);
-                    if (up) {
-                        // re-register the service-to-app callback
-                        synchronized (mCallbackExecutorMap) {
-                            if (mCallbackExecutorMap.isEmpty()) return;
-
-                            try {
-                                final IBluetoothHapClient service = getService();
-                                if (service != null) {
-                                    final SynchronousResultReceiver<Integer> recv =
-                                            SynchronousResultReceiver.get();
-                                    service.registerCallback(mCallback, mAttributionSource, recv);
-                                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
-                                }
-                            } catch (TimeoutException e) {
-                                Log.e(TAG, e.toString() + "\n"
-                                        + Log.getStackTraceString(new Throwable()));
-                            } catch (RemoteException e) {
-                                throw e.rethrowFromSystemServer();
-                            }
-                        }
-                    }
-                }
-            };
 
     /**
      * Create a BluetoothHapClient proxy object for interacting with the local
@@ -506,16 +515,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     /*package*/ BluetoothHapClient(Context context, ServiceListener listener) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAttributionSource = mAdapter.getAttributionSource();
-        mProfileConnector.connect(context, listener);
-
-        IBluetoothManager mgr = mAdapter.getBluetoothManager();
-        if (mgr != null) {
-            try {
-                mgr.registerStateChangeCallback(mBluetoothStateChangeCallback);
-            } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
-            }
-        }
+        mProfileConnector.connect(context, new HapClientServiceListener(listener));
 
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
@@ -535,15 +535,6 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     @Override
     public void close() {
         if (VDBG) log("close()");
-
-        IBluetoothManager mgr = mAdapter.getBluetoothManager();
-        if (mgr != null) {
-            try {
-                mgr.unregisterStateChangeCallback(mBluetoothStateChangeCallback);
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-            }
-        }
 
         mProfileConnector.disconnect();
     }
