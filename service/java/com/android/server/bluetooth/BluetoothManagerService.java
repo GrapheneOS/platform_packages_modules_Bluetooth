@@ -2533,6 +2533,9 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                                 mContext.getPackageName(), true);
                         handleEnable(mQuietEnable);
                     } else {
+                        mBluetoothLock.writeLock().lock();
+                        mBluetooth = null;
+                        mBluetoothLock.writeLock().unlock();
                         Log.e(TAG, "Reach maximum retry to restart Bluetooth!");
                     }
                     break;
