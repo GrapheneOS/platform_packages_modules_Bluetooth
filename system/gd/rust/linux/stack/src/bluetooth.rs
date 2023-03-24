@@ -383,6 +383,9 @@ pub trait IBluetoothCallback: RPCProxy {
         passkey: u32,
     );
 
+    /// When there is a pin request to display the event to client.
+    fn on_pin_request(&self, remote_device: BluetoothDevice, cod: u32, min_16_digit: bool);
+
     /// When a bonding attempt has completed.
     fn on_bond_state_changed(&self, status: u32, device_address: String, state: u32);
 
@@ -934,6 +937,16 @@ pub(crate) trait BtifBluetoothCallbacks {
 
     #[btif_callback(LeRandCallback)]
     fn le_rand_cb(&mut self, random: u64) {}
+
+    #[btif_callback(PinRequest)]
+    fn pin_request(
+        &mut self,
+        remote_addr: RawAddress,
+        remote_name: String,
+        cod: u32,
+        min_16_digit: bool,
+    ) {
+    }
 }
 
 #[btif_callbacks_dispatcher(dispatch_hid_host_callbacks, HHCallbacks)]
@@ -1155,13 +1168,31 @@ impl BtifBluetoothCallbacks for Bluetooth {
         passkey: u32,
     ) {
         // Currently this supports many agent because we accept many callbacks.
-        // TODO: We need a way to select the default agent.
+        // TODO(b/274706838): We need a way to select the default agent.
         self.callbacks.for_all_callbacks(|callback| {
             callback.on_ssp_request(
                 BluetoothDevice::new(remote_addr.to_string(), remote_name.clone()),
                 cod,
                 variant.clone(),
                 passkey,
+            );
+        });
+    }
+
+    fn pin_request(
+        &mut self,
+        remote_addr: RawAddress,
+        remote_name: String,
+        cod: u32,
+        min_16_digit: bool,
+    ) {
+        // Currently this supports many agent because we accept many callbacks.
+        // TODO(b/274706838): We need a way to select the default agent.
+        self.callbacks.for_all_callbacks(|callback| {
+            callback.on_pin_request(
+                BluetoothDevice::new(remote_addr.to_string(), remote_name.clone()),
+                cod,
+                min_16_digit,
             );
         });
     }
