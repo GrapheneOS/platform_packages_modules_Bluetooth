@@ -1331,7 +1331,9 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
     case BTA_DM_DISC_RES_EVT: {
       /* Remote name update */
       if (strlen((const char*)p_search_data->disc_res.bd_name)) {
-        bt_property_t properties[1];
+        /** Fix inquiry time too long @{ */
+        bt_property_t properties[3];
+        /** @} */
         bt_status_t status;
 
         properties[0].type = BT_PROPERTY_BDNAME;
@@ -1345,6 +1347,24 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
                 "failed to save remote device property", status);
         GetInterfaceToProfiles()->events->invoke_remote_device_properties_cb(
             status, bdaddr, 1, properties);
+        /** Fix inquiry time too long @{ */
+        uint32_t cod = 0;
+        /* Check if we already have cod in our btif_storage cache */
+        BTIF_STORAGE_FILL_PROPERTY(&properties[2], BT_PROPERTY_CLASS_OF_DEVICE, sizeof(uint32_t), &cod);
+        if (btif_storage_get_remote_device_property(
+                        &bdaddr, &properties[2]) == BT_STATUS_SUCCESS) {
+          BTIF_TRACE_DEBUG("%s, BTA_DM_DISC_RES_EVT, cod in storage = 0x%08x", __func__, cod);
+        } else {
+          BTIF_TRACE_DEBUG("%s, BTA_DM_DISC_RES_EVT, no cod in storage", __func__);
+          cod = 0;
+        }
+        if (cod != 0) {
+          BTIF_STORAGE_FILL_PROPERTY(&properties[1], BT_PROPERTY_BDADDR, sizeof(bdaddr), &bdaddr);
+          BTIF_STORAGE_FILL_PROPERTY(&properties[2], BT_PROPERTY_CLASS_OF_DEVICE, sizeof(uint32_t), &cod);
+          BTIF_TRACE_DEBUG("%s: Now we have name and cod, report to JNI", __func__);
+          GetInterfaceToProfiles()->events->invoke_device_found_cb(3, properties);
+        }
+        /** @} */
       }
       /* TODO: Services? */
     } break;
