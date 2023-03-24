@@ -376,6 +376,10 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
     current_connection_request_++;
   }
 
+  void OnConnectRequest(Address address, ClassOfDevice cod) override {
+    LOG_ERROR("Remote connect request unimplemented");
+  }
+
   void OnConnectFail(Address address, ErrorCode reason, bool locally_initiated) override {
     LOG_INFO("addr=%s, reason=%s",
              ADDRESS_TO_LOGGABLE_CSTR(address), ErrorCodeText(reason).c_str());

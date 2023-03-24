@@ -261,6 +261,12 @@ struct classic_impl : public security::ISecurityManagerListener {
         return;
 
       case ConnectionRequestLinkType::ACL:
+        // Need to upstream Cod information when getting connection_request
+        client_handler_->CallOn(
+            client_callbacks_,
+            &ConnectionCallbacks::OnConnectRequest,
+            address,
+            request.GetClassOfDevice());
         break;
 
       case ConnectionRequestLinkType::ESCO:
