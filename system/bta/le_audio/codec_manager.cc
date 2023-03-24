@@ -115,7 +115,7 @@ struct codec_manager_impl {
           update_receiver) {
     if (stream_conf.sink_streams.empty()) return;
 
-    if (stream_conf.sink_is_initial) {
+    if (stream_conf.sink_is_initial || aidl_version_ >= 3) {
       sink_config.stream_map =
           stream_conf.sink_offloader_streams_target_allocation;
     } else {
@@ -139,7 +139,7 @@ struct codec_manager_impl {
           update_receiver) {
     if (stream_conf.source_streams.empty()) return;
 
-    if (stream_conf.source_is_initial) {
+    if (stream_conf.source_is_initial || aidl_version_ >= 3) {
       source_config.stream_map =
           stream_conf.source_offloader_streams_target_allocation;
     } else {

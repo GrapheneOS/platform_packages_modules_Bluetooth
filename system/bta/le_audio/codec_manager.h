@@ -17,11 +17,12 @@
 #pragma once
 
 #include "le_audio_types.h"
+#define AIDL_VERSION_SUPPORT_STREAM_ACTIVE 3
 
 namespace le_audio {
 
 struct offload_config {
-  std::vector<std::pair<uint16_t, uint32_t>> stream_map;
+  std::vector<stream_map_info> stream_map;
   uint8_t bits_per_sample;
   uint32_t sampling_rate;
   uint32_t frame_duration;

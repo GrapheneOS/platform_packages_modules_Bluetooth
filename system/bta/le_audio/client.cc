@@ -3265,12 +3265,16 @@ class LeAudioClientImpl : public LeAudioClient {
 
     le_audio_source_hal_client_->UpdateRemoteDelay(remote_delay_ms);
     ConfirmLocalAudioSourceStreamingRequest();
-    /* We update the target audio allocation before streamStarted that the
-     * offloder would know how to configure offloader encoder. We should check
-     * if we need to update the current
-     * allocation here as the target allocation and the current allocation is
-     * different */
-    updateOffloaderIfNeeded(group);
+
+    if (CodecManager::GetInstance()->GetAidlVersionInUsed() <
+        AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
+      /* We update the target audio allocation before streamStarted that the
+       * offloder would know how to configure offloader encoder. We should check
+       * if we need to update the current
+       * allocation here as the target allocation and the current allocation is
+       * different */
+      updateOffloaderIfNeeded(group);
+    }
 
     return true;
   }
@@ -3328,12 +3332,16 @@ class LeAudioClientImpl : public LeAudioClient {
     }
     le_audio_sink_hal_client_->UpdateRemoteDelay(remote_delay_ms);
     ConfirmLocalAudioSinkStreamingRequest();
-    /* We update the target audio allocation before streamStarted that the
-     * offloder would know how to configure offloader decoder. We should check
-     * if we need to update the current
-     * allocation here as the target allocation and the current allocation is
-     * different */
-    updateOffloaderIfNeeded(group);
+
+    if (CodecManager::GetInstance()->GetAidlVersionInUsed() <
+        AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
+      /* We update the target audio allocation before streamStarted that the
+       * offloder would know how to configure offloader encoder. We should check
+       * if we need to update the current
+       * allocation here as the target allocation and the current allocation is
+       * different */
+      updateOffloaderIfNeeded(group);
+    }
   }
 
   void SuspendAudio(void) {
