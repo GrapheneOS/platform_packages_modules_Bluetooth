@@ -29,6 +29,7 @@ import android.provider.ContactsContract;
 import android.util.Log;
 import android.util.Pair;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.vcard.VCardEntry;
 import com.android.vcard.VCardEntry.PhoneData;
@@ -141,13 +142,15 @@ public class CallLogPullRequest extends PullRequest {
         }
     }
 
-    private void updateTimesContacted() {
+    @VisibleForTesting
+    void updateTimesContacted() {
         for (String key : mCallCounter.keySet()) {
             ContentValues values = new ContentValues();
             values.put(ContactsContract.RawContacts.TIMES_CONTACTED, mCallCounter.get(key));
             Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
                     Uri.encode(key));
-            try (Cursor c = mContext.getContentResolver().query(uri, null, null, null)) {
+            try (Cursor c = BluetoothMethodProxy.getInstance().contentResolverQuery(
+                    mContext.getContentResolver(), uri, null, null, null)) {
                 if (c != null && c.getCount() > 0) {
                     c.moveToNext();
                     String contactId = c.getString(c.getColumnIndex(
