@@ -2342,7 +2342,12 @@ void bta_av_rc_disc(uint8_t disc) {
 void bta_av_dereg_comp(tBTA_AV_DATA* p_data) {
   tBTA_AV_CB* p_cb = &bta_av_cb;
   tBTA_AV_SCB* p_scb;
-  tBTA_UTL_COD cod;
+  tBTA_UTL_COD cod = {
+    .minor = BTM_COD_MINOR_UNCLASSIFIED,
+    .major = BTM_COD_MAJOR_UNCLASSIFIED,
+    .service = 0,
+  };
+
   uint8_t mask;
   BT_HDR* p_buf;
 
