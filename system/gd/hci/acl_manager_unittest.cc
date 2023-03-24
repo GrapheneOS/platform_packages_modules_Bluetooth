@@ -350,6 +350,7 @@ class MockConnectionCallback : public ConnectionCallbacks {
       connection_promise_.set_value(connections_.back());
     }
   }
+  MOCK_METHOD(void, OnConnectRequest, (Address, ClassOfDevice), (override));
   MOCK_METHOD(void, OnConnectFail, (Address, ErrorCode reason), (override));
 
   MOCK_METHOD(void, HACK_OnEscoConnectRequest, (Address, ClassOfDevice), (override));

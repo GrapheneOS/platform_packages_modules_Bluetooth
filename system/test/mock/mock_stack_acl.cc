@@ -31,6 +31,7 @@ extern std::map<std::string, int> mock_function_count_map;
 // Mock include file to share data between tests and mock
 #include "stack/include/bt_hdr.h"
 #include "test/mock/mock_stack_acl.h"
+#include "types/class_of_device.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
@@ -103,6 +104,7 @@ struct BTM_RequestPeerSCA BTM_RequestPeerSCA;
 struct BTM_acl_after_controller_started BTM_acl_after_controller_started;
 struct BTM_block_role_switch_for BTM_block_role_switch_for;
 struct BTM_block_sniff_mode_for BTM_block_sniff_mode_for;
+struct btm_connection_request btm_connection_request;
 struct BTM_default_block_role_switch BTM_default_block_role_switch;
 struct BTM_default_unblock_role_switch BTM_default_unblock_role_switch;
 struct BTM_unblock_role_switch_for BTM_unblock_role_switch_for;
@@ -693,6 +695,10 @@ void btm_set_packet_types_from_address(const RawAddress& bd_addr,
 void hci_btm_set_link_supervision_timeout(tACL_CONN& link, uint16_t timeout) {
   mock_function_count_map[__func__]++;
   test::mock::stack_acl::hci_btm_set_link_supervision_timeout(link, timeout);
+}
+void btm_connection_request(const RawAddress& bda,
+                            const bluetooth::types::ClassOfDevice& cod) {
+  test::mock::stack_acl::btm_connection_request(bda, cod);
 }
 void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
                              uint8_t enc_mode) {

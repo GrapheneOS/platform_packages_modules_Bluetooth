@@ -374,6 +374,10 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
     current_connection_request_++;
   }
 
+  void OnConnectRequest(Address address, ClassOfDevice cod) override {
+    LOG_ERROR("Remote connect request unimplemented");
+  }
+
   void OnConnectFail(Address address, ErrorCode reason) override {
     LOG_INFO("addr=%s, reason=%s", address.ToString().c_str(), ErrorCodeText(reason).c_str());
     std::unique_ptr<BasePacketBuilder> builder =
