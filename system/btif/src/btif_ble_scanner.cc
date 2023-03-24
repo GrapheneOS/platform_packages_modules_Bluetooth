@@ -124,7 +124,7 @@ void bta_scan_results_cb_impl(RawAddress bd_addr, tBT_DEVICE_TYPE device_type,
         value, HCI_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
   }
 
-  if ((addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name)) {
+  if (p_eir_remote_name) {
     if (!btif_address_cache_find(bd_addr)) {
       btif_address_cache_add(bd_addr, addr_type);
 
