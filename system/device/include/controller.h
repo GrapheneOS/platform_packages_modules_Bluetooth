@@ -70,6 +70,7 @@ typedef struct controller_t {
   bool (*supports_encryption_pause)(void);
   bool (*supports_configure_data_path)(void);
   bool (*supports_set_min_encryption_key_size)(void);
+  bool (*supports_read_encryption_key_size)(void);
 
   bool (*supports_ble)(void);
   bool (*supports_ble_packet_extension)(void);
