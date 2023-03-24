@@ -129,6 +129,8 @@ public class LeAudioService extends ProfileService {
     @VisibleForTesting
     AudioManager mAudioManager;
     LeAudioTmapGattServer mTmapGattServer;
+    int mTmapRoleMask;
+    boolean mTmapStarted = false;
 
     @VisibleForTesting
     TbsService mTbsService;
@@ -221,6 +223,22 @@ public class LeAudioService extends ProfileService {
         Log.i(TAG, "create()");
     }
 
+    private boolean registerTmap() {
+        if (mTmapGattServer != null) {
+            throw new IllegalStateException("TMAP GATT server started before start() is called");
+        }
+        mTmapGattServer = LeAudioObjectsFactory.getInstance().getTmapGattServer(this);
+
+        try {
+            mTmapGattServer.start(mTmapRoleMask);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Fail to start TmapGattServer", e);
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     protected boolean start() {
         Log.i(TAG, "start()");
@@ -268,7 +286,7 @@ public class LeAudioService extends ProfileService {
 
         mLeAudioCallbacks = new RemoteCallbackList<IBluetoothLeAudioCallback>();
 
-        int tmapRoleMask =
+        mTmapRoleMask =
                 LeAudioTmapGattServer.TMAP_ROLE_FLAG_CG | LeAudioTmapGattServer.TMAP_ROLE_FLAG_UMS;
 
         // Initialize Broadcast native interface
@@ -280,22 +298,12 @@ public class LeAudioService extends ProfileService {
                     LeAudioBroadcasterNativeInterface.getInstance(),
                     "LeAudioBroadcasterNativeInterface cannot be null when LeAudioService starts");
             mLeAudioBroadcasterNativeInterface.init();
-            tmapRoleMask |= LeAudioTmapGattServer.TMAP_ROLE_FLAG_BMS;
+            mTmapRoleMask |= LeAudioTmapGattServer.TMAP_ROLE_FLAG_BMS;
         } else {
             Log.w(TAG, "Le Audio Broadcasts not supported.");
         }
 
-        // the role mask is fixed in Android
-        if (mTmapGattServer != null) {
-            throw new IllegalStateException("TMAP GATT server started before start() is called");
-        }
-        mTmapGattServer = LeAudioObjectsFactory.getInstance().getTmapGattServer(this);
-
-        try {
-            mTmapGattServer.start(tmapRoleMask);
-        } catch (IllegalStateException e) {
-            Log.e(TAG, "Fail to start TmapGattServer", e);
-        }
+        mTmapStarted = registerTmap();
 
         mLeAudioInbandRingtoneSupportedByPlatform =
                         BluetoothProperties.isLeAudioInbandRingtoneSupported().orElse(true);
@@ -317,6 +325,10 @@ public class LeAudioService extends ProfileService {
     }
 
     private void init() {
+        if (!mTmapStarted) {
+            mTmapStarted = registerTmap();
+        }
+
         LeAudioNativeInterface nativeInterface = mLeAudioNativeInterface;
         if (nativeInterface == null) {
             Log.w(TAG, "the service is stopped. ignore init()");
@@ -341,6 +353,7 @@ public class LeAudioService extends ProfileService {
         } else {
             mTmapGattServer.stop();
             mTmapGattServer = null;
+            mTmapStarted = false;
         }
 
         //Don't wait for async call with INACTIVE group status, clean active
@@ -363,7 +376,7 @@ public class LeAudioService extends ProfileService {
                 if (sm == null) {
                     continue;
                 }
-                sm.doQuit();
+                sm.quit();
                 sm.cleanup();
             }
 
@@ -1864,6 +1877,9 @@ public class LeAudioService extends ProfileService {
                 Pair<Integer, Integer> ccidInformation = entry.getValue();
                 setCcidInformation(userUuid, ccidInformation.first, ccidInformation.second);
             }
+            if (!mTmapStarted) {
+                mTmapStarted = registerTmap();
+            }
         }
     }
 
@@ -1972,7 +1988,7 @@ public class LeAudioService extends ProfileService {
                 return;
             }
             Log.i(TAG, "removeStateMachine: removing state machine for device: " + device);
-            sm.doQuit();
+            sm.quit();
             sm.cleanup();
             descriptor.mStateMachine = null;
 
@@ -2352,6 +2368,18 @@ public class LeAudioService extends ProfileService {
         return mMcpService;
     }
 
+    void setAuthorizationForRelatedProfiles(BluetoothDevice device, boolean authorize) {
+        McpService mcpService = getMcpService();
+        if (mcpService != null) {
+            mcpService.setDeviceAuthorized(device, authorize);
+        }
+
+        TbsService tbsService = getTbsService();
+        if (tbsService != null) {
+            tbsService.setDeviceAuthorized(device, authorize);
+        }
+    }
+
     /**
      * This function is called when the framework registers a callback with the service for this
      * first time. This is used as an indication that Bluetooth has been enabled.
@@ -2373,20 +2401,9 @@ public class LeAudioService extends ProfileService {
             }
         }
 
-        McpService mcpService = getMcpService();
-        if (mcpService == null) {
-            Log.e(TAG, "mcpService not available ");
-            return;
-        }
-
         synchronized (mGroupLock) {
-            for (Map.Entry<BluetoothDevice, LeAudioDeviceDescriptor> entry
-                    : mDeviceDescriptors.entrySet()) {
-                if (entry.getValue().mGroupId == LE_AUDIO_GROUP_ID_INVALID) {
-                    continue;
-                }
-
-                mcpService.setDeviceAuthorized(entry.getKey(), true);
+            for (BluetoothDevice device : mDeviceDescriptors.keySet()) {
+                setAuthorizationForRelatedProfiles(device, true);
             }
         }
     }
@@ -2441,10 +2458,7 @@ public class LeAudioService extends ProfileService {
         }
 
         if (mBluetoothEnabled) {
-            McpService mcpService = getMcpService();
-            if (mcpService != null) {
-                mcpService.setDeviceAuthorized(device, true);
-            }
+            setAuthorizationForRelatedProfiles(device, true);
         }
     }
 
@@ -2516,10 +2530,7 @@ public class LeAudioService extends ProfileService {
             notifyGroupNodeRemoved(device, groupId);
         }
 
-        McpService mcpService = getMcpService();
-        if (mcpService != null) {
-            mcpService.setDeviceAuthorized(device, false);
-        }
+        setAuthorizationForRelatedProfiles(device, false);
     }
 
     private void notifyGroupNodeRemoved(BluetoothDevice device, int groupId) {

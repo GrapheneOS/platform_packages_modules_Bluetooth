@@ -15,6 +15,7 @@
  *
  */
 
+#include <mutex>
 #include <string>
 #include <string_view>
 
@@ -598,11 +599,13 @@ struct AudioSetConfigurationProvider::impl {
 };
 
 static std::unique_ptr<AudioSetConfigurationProvider> config_provider;
+std::mutex instance_mutex;
 
 AudioSetConfigurationProvider::AudioSetConfigurationProvider()
     : pimpl_(std::make_unique<AudioSetConfigurationProvider::impl>(*this)) {}
 
 void AudioSetConfigurationProvider::Initialize() {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (!config_provider)
     config_provider = std::make_unique<AudioSetConfigurationProvider>();
 
@@ -611,6 +614,7 @@ void AudioSetConfigurationProvider::Initialize() {
 }
 
 void AudioSetConfigurationProvider::DebugDump(int fd) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (!config_provider || !config_provider->pimpl_->IsRunning()) {
     dprintf(
         fd,
@@ -626,6 +630,7 @@ void AudioSetConfigurationProvider::DebugDump(int fd) {
 }
 
 void AudioSetConfigurationProvider::Cleanup() {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (!config_provider) return;
   if (config_provider->pimpl_->IsRunning()) config_provider->pimpl_->Cleanup();
   config_provider.reset();

@@ -19,6 +19,7 @@
 #include <base/strings/string_number_conversions.h>
 
 #include <deque>
+#include <mutex>
 #include <optional>
 
 #include "advertise_data_parser.h"
@@ -177,6 +178,7 @@ inline lc3_pcm_format bits_to_lc3_bits(uint8_t bits_per_sample) {
 
 class LeAudioClientImpl;
 LeAudioClientImpl* instance;
+std::mutex instance_mutex;
 LeAudioSourceAudioHalClient::Callbacks* audioSinkReceiver;
 LeAudioSinkAudioHalClient::Callbacks* audioSourceReceiver;
 CigCallbacks* stateMachineHciCallbacks;
@@ -459,7 +461,7 @@ class LeAudioClientImpl : public LeAudioClient {
         group_id, ToString(group->GetState()).c_str(),
         ToString(group->GetTargetState()).c_str());
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-
+    group->CigClearCis();
     group->PrintDebugState();
 
     /* There is an issue with a setting up stream or any other operation which
@@ -2038,6 +2040,21 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByConnId(conn_id);
     if (!leAudioDevice) {
       LOG_DEBUG("Unknown connectect id %d", conn_id);
+      return;
+    }
+
+    /**
+     * BAP 1.01. 3.6.1
+     * ATT and EATT transport requirements
+     * The Unicast Client shall support a minimum ATT_MTU of 64 octets for one
+     * Unenhanced ATT bearer, or for at least one Enhanced ATT bearer if the
+     * Unicast Client supports Enhanced ATT bearers.
+     *
+     */
+    if (mtu < 64) {
+      LOG_ERROR("Device %s MTU is too low (%d). Disconnecting from LE Audio",
+                ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), mtu);
+      Disconnect(leAudioDevice->address_);
       return;
     }
 
@@ -5104,6 +5121,7 @@ void LeAudioClient::Initialize(
     base::Closure initCb, base::Callback<bool()> hal_2_1_verifier,
     const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
         offloading_preference) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (instance) {
     LOG(ERROR) << "Already initialized";
     return;
@@ -5140,6 +5158,7 @@ void LeAudioClient::Initialize(
 }
 
 void LeAudioClient::DebugDump(int fd) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   DeviceGroups::DebugDump(fd);
 
   dprintf(fd, "LeAudio Manager: \n");
@@ -5156,6 +5175,7 @@ void LeAudioClient::DebugDump(int fd) {
 }
 
 void LeAudioClient::Cleanup(base::Callback<void()> cleanupCb) {
+  std::scoped_lock<std::mutex> lock(instance_mutex);
   if (!instance) {
     LOG(ERROR) << "Not initialized";
     return;
