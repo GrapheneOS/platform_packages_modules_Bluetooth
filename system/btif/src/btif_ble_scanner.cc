@@ -150,9 +150,20 @@ void bta_scan_results_cb_impl(RawAddress bd_addr, tBT_DEVICE_TYPE device_type,
   }
 
   dev_type = (bt_device_type_t)device_type;
+
+  uint32_t remote_dev_type = 0;
   BTIF_STORAGE_FILL_PROPERTY(&properties, BT_PROPERTY_TYPE_OF_DEVICE,
-                             sizeof(dev_type), &dev_type);
-  btif_storage_set_remote_device_property(&(bd_addr), &properties);
+    sizeof(remote_dev_type), &remote_dev_type);
+  dev_type = (btif_storage_get_remote_device_property(&bd_addr, &properties) == BT_STATUS_SUCCESS) ?
+    (bt_device_type_t)(remote_dev_type | device_type) : (bt_device_type_t)device_type;
+
+  if ((remote_dev_type != dev_type) && (dev_type != 0)) {
+    BTIF_TRACE_DEBUG("%s dev_type change 0x%x=>0x%x, update config",
+          __func__, remote_dev_type, dev_type);
+    BTIF_STORAGE_FILL_PROPERTY(&properties, BT_PROPERTY_TYPE_OF_DEVICE,
+                               sizeof(dev_type), &dev_type);
+    btif_storage_set_remote_device_property(&(bd_addr), &properties);
+  }
 
   btif_storage_set_remote_addr_type(&bd_addr, addr_type);
   HAL_CBACK(bt_gatt_callbacks, scanner->scan_result_cb, ble_evt_type, addr_type,
