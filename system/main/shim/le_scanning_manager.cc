@@ -758,7 +758,7 @@ void BleScannerInterfaceImpl::handle_remote_properties(
   }
 
   // update device name
-  if ((addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name)) {
+  if (p_eir_remote_name) {
     if (!address_cache_.find(bd_addr)) {
       address_cache_.add(bd_addr);
 
