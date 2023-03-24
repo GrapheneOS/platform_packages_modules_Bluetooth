@@ -186,6 +186,8 @@ public class HeadsetClientStateMachine extends StateMachine {
     // Indicates whether audio can be routed to the device
     private boolean mAudioRouteAllowed;
 
+    private final boolean mClccPollDuringCall;
+
     private static final int CALL_AUDIO_POLICY_FEATURE_ID = 1;
 
     public int mAudioPolicyRemoteSupported;
@@ -552,7 +554,7 @@ public class HeadsetClientStateMachine extends StateMachine {
             // a valid call on the phone. The polling would at most continue until
             // OUTGOING_TIMEOUT_MILLI. This handles the potential scenario where the phone creates
             // and terminates a call before the first QUERY_CURRENT_CALLS completes.
-            if (mService.getResources().getBoolean(R.bool.hfp_clcc_poll_during_call)
+            if (mClccPollDuringCall
                     || (mCalls.containsKey(HF_ORIGINATED_CALL_ID))) {
                 sendMessageDelayed(QUERY_CURRENT_CALLS,
                         mService.getResources().getInteger(
@@ -885,6 +887,13 @@ public class HeadsetClientStateMachine extends StateMachine {
 
         mAudioRouteAllowed = context.getResources().getBoolean(
             R.bool.headset_client_initial_audio_route_allowed);
+
+        mAudioRouteAllowed = SystemProperties.getBoolean(
+            "bluetooth.headset_client.initial_audio_route.enabled", mAudioRouteAllowed);
+
+        mClccPollDuringCall = SystemProperties.getBoolean(
+            "bluetooth.hfp.clcc_poll_during_call.enabled",
+            mService.getResources().getBoolean(R.bool.hfp_clcc_poll_during_call));
 
         mHsClientAudioPolicy = new BluetoothSinkAudioPolicy.Builder().build();
         mConnectingTimePolicyProperty = getAudioPolicySystemProp(
@@ -1510,10 +1519,12 @@ public class HeadsetClientStateMachine extends StateMachine {
                     break;
                 case QUERY_CURRENT_CALLS:
                     removeMessages(QUERY_CURRENT_CALLS);
+                    if (DBG) {
+                        Log.d(TAG, "mClccPollDuringCall=" + mClccPollDuringCall);
+                    }
                     // If there are ongoing calls periodically check their status.
                     if (mCalls.size() > 1
-                            && mService.getResources().getBoolean(
-                            R.bool.hfp_clcc_poll_during_call)) {
+                            && mClccPollDuringCall) {
                         sendMessageDelayed(QUERY_CURRENT_CALLS,
                                 mService.getResources().getInteger(
                                 R.integer.hfp_clcc_poll_interval_during_call));
