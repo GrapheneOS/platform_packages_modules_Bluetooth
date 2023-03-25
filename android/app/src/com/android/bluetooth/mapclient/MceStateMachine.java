@@ -823,6 +823,11 @@ class MceStateMachine extends StateMachine {
                                 + " [Connected]: fetch message content, handle=" + msg.getHandle());
                     }
                     // A message listing coming from the server should always have up to date data
+                    if (msg.getDateTime() == null) {
+                        Log.w(TAG, "message with handle " + msg.getHandle()
+                                + " has a null datetime, ignoring");
+                        continue;
+                    }
                     mMessages.put(msg.getHandle(), new MessageMetadata(msg.getHandle(),
                             msg.getDateTime().getTime(), msg.isRead(), MESSAGE_SEEN));
                     getMessage(msg.getHandle());

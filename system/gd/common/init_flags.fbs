@@ -44,6 +44,7 @@ table InitFlagsData {
     periodic_advertising_adi_is_enabled:bool (privacy:"Any");
     private_gatt_is_enabled:bool (privacy:"Any");
     queue_l2cap_coc_while_encrypting_is_enabled:bool (privacy:"Any");
+    read_encryption_key_size_is_enabled:bool (privacy:"Any");
     redact_log_is_enabled:bool (privacy:"Any");
     rust_event_loop_is_enabled:bool (privacy:"Any");
     sdp_serialization_is_enabled:bool (privacy:"Any");

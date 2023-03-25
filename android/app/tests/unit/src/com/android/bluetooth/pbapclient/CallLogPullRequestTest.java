@@ -18,22 +18,31 @@ package com.android.bluetooth.pbapclient;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import android.accounts.Account;
 import android.content.Context;
+import android.database.MatrixCursor;
+import android.provider.ContactsContract;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.vcard.VCardConstants;
 import com.android.vcard.VCardEntry;
 import com.android.vcard.VCardProperty;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,10 +56,19 @@ public class CallLogPullRequestTest {
     private final HashMap<String, Integer> mCallCounter = new HashMap<>();
 
     private Context mTargetContext;
+    @Spy
+    private BluetoothMethodProxy mMapMethodProxy = BluetoothMethodProxy.getInstance();
 
     @Before
     public void setUp() {
+        MockitoAnnotations.initMocks(this);
+        BluetoothMethodProxy.setInstanceForTesting(mMapMethodProxy);
         mTargetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        BluetoothMethodProxy.setInstanceForTesting(null);
     }
 
     @Test
@@ -154,6 +172,25 @@ public class CallLogPullRequestTest {
             assertThat(mCallCounter.get(key)).isEqualTo(2);
             break;
         }
+    }
+
+    @Test
+    public void updateTimesContacted_cursorIsClosed() {
+        final String path = PbapClientConnectionHandler.OCH_PATH;
+        final CallLogPullRequest request = new CallLogPullRequest(
+                mTargetContext, path, mCallCounter, mAccount);
+        mCallCounter.put("key", 1);
+
+        MatrixCursor cursor = new MatrixCursor(
+                new String[] {ContactsContract.PhoneLookup.CONTACT_ID});
+        cursor.addRow(new Object[] {"contact_id"});
+        doReturn(cursor).when(mMapMethodProxy).contentResolverQuery(any(), any(), eq(null),
+                eq(null), eq(null));
+        assertThat(cursor.isClosed()).isFalse();
+
+        request.updateTimesContacted();
+
+        assertThat(cursor.isClosed()).isTrue();
     }
 
     private VCardProperty createProperty(String name, String value) {

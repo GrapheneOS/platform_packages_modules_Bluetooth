@@ -177,6 +177,7 @@ public class MapClientStateMachineTest {
         when(mMockMasClient.makeRequest(any(Request.class))).thenReturn(true);
         mMceStateMachine = new MceStateMachine(mMockMapClientService, mTestDevice, mMockMasClient,
                 mMockDatabase);
+        TestUtils.waitForLooperToFinishScheduledTask(mMceStateMachine.getHandler().getLooper());
         Assert.assertNotNull(mMceStateMachine);
         if (Looper.myLooper() == null) {
             Looper.prepare();

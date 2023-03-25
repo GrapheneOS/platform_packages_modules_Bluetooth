@@ -111,6 +111,7 @@ opcode_getters! {
     ble_set_privacy_mode => OpCode::LeSetPrivacyMode,
     configure_data_path => OpCode::ConfigureDataPath,
     set_min_encryption_key_size => OpCode::SetMinEncryptionKeySize,
+    read_encryption_key_size => OpCode::ReadEncryptionKeySize,
 }
 
 macro_rules! field_getters {
