@@ -41,7 +41,7 @@ java_defaults {
     },
 }
 
-// pre-jarjar version of service-uwb that builds against pre-jarjar version of framework-bluetooth
+// pre-jarjar version of service-bluetooth that builds against pre-jarjar version of framework-bluetooth
 java_library {
     name: "service-bluetooth-pre-jarjar",
     installable: false,
