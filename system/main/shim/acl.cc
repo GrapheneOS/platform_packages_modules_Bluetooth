@@ -1083,8 +1083,7 @@ struct shim::legacy::Acl::impl {
   void ignore_le_connection_from(
       const hci::AddressWithType& address_with_type) {
     shadow_acceptlist_.Remove(address_with_type);
-    GetAclManager()->CancelLeConnectAndRemoveFromBackgroundList(
-        address_with_type);
+    GetAclManager()->CancelLeConnect(address_with_type);
     LOG_DEBUG("Ignore Le connection from remote:%s",
               ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
     BTM_LogHistory(kBtmLogTag, ToLegacyAddressWithType(address_with_type),
@@ -1131,11 +1130,6 @@ struct shim::legacy::Acl::impl {
     GetAclManager()->ClearResolvingList();
     // TODO This should really be cleared after successful clear status
     shadow_address_resolution_list_.Clear();
-  }
-
-  void AddDeviceToFilterAcceptList(
-      const hci::AddressWithType& address_with_type) {
-    GetAclManager()->AddDeviceToFilterAcceptList(address_with_type);
   }
 
   void SetSystemSuspendState(bool suspended) {
@@ -1890,12 +1884,6 @@ void shim::legacy::Acl::RemoveFromAddressResolution(
 
 void shim::legacy::Acl::ClearAddressResolution() {
   handler_->CallOn(pimpl_.get(), &Acl::impl::ClearResolvingList);
-}
-
-void shim::legacy::Acl::AddDeviceToFilterAcceptList(
-    const hci::AddressWithType& address_with_type) {
-  handler_->CallOn(pimpl_.get(), &Acl::impl::AddDeviceToFilterAcceptList,
-                   address_with_type);
 }
 
 void shim::legacy::Acl::SetSystemSuspendState(bool suspended) {
