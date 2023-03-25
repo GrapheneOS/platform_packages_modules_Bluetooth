@@ -174,11 +174,9 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
   if (p_dev_rec != NULL) {
     RawAddress bda = p_dev_rec->bd_addr;
 
-    if (p_dev_rec->ble.in_controller_list & BTM_ACCEPTLIST_BIT) {
-      LOG_INFO("Remove device %s from filter accept list before delete record",
-               ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
-      BTM_AcceptlistRemove(p_dev_rec->bd_addr);
-    }
+    LOG_INFO("Remove device %s from filter accept list before delete record",
+             ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+    BTM_AcceptlistRemove(p_dev_rec->bd_addr);
 
     /* Clear out any saved BLE keys */
     btm_sec_clear_ble_keys(p_dev_rec);
