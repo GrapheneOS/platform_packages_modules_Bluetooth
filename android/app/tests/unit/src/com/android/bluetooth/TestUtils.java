@@ -94,7 +94,7 @@ public class TestUtils {
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Assert.assertNull("AdapterService.getAdapterService() must be null before setting another"
                 + " AdapterService", AdapterService.getAdapterService());
-        Assert.assertNotNull(adapterService);
+        Assert.assertNotNull("Adapter service should not be null", adapterService);
         // We cannot mock AdapterService.getAdapterService() with Mockito.
         // Hence we need to use reflection to call a private method to
         // initialize properly the AdapterService.sAdapterService field.
@@ -119,7 +119,7 @@ public class TestUtils {
         Assert.assertSame("AdapterService.getAdapterService() must return the same object as the"
                         + " supplied adapterService in this method", adapterService,
                 AdapterService.getAdapterService());
-        Assert.assertNotNull(adapterService);
+        Assert.assertNotNull("Adapter service should not be null", adapterService);
         Method method =
                 AdapterService.class.getDeclaredMethod("clearAdapterService", AdapterService.class);
         method.setAccessible(true);
@@ -142,7 +142,7 @@ public class TestUtils {
     public static <T extends ProfileService> void startService(ServiceTestRule serviceTestRule,
             Class<T> profileServiceClass) throws TimeoutException {
         AdapterService adapterService = AdapterService.getAdapterService();
-        Assert.assertNotNull(adapterService);
+        Assert.assertNotNull("Adapter service should not be null", adapterService);
         Assert.assertTrue("AdapterService.getAdapterService() must return a mocked or spied object"
                 + " before calling this method", MockUtil.isMock(adapterService));
         Intent startIntent =
