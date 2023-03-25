@@ -493,7 +493,7 @@ struct tBTM_MSBC_INFO {
 
   const uint8_t* find_msbc_pkt_head() {
     if (read_corrupted) {
-      LOG_WARN("Skip corrupted mSBC packets");
+      LOG_DEBUG("Skip corrupted mSBC packets");
       read_corrupted = false;
       return nullptr;
     }
@@ -597,7 +597,7 @@ bool fill_plc_stats(int* num_decoded_frames, double* packet_loss_ratio) {
 
   int decoded_frames = msbc_info->plc->get_num_decoded_frames();
   int lost_frames = msbc_info->plc->get_num_lost_frames();
-  if (decoded_frames <= 0 || lost_frames <= 0 || lost_frames > decoded_frames)
+  if (decoded_frames <= 0 || lost_frames < 0 || lost_frames > decoded_frames)
     return false;
 
   *num_decoded_frames = decoded_frames;
