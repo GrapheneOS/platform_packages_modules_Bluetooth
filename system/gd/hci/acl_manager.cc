@@ -307,21 +307,6 @@ void AclManager::RemoveFromBackgroundList(AddressWithType address_with_type) {
   CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_background_connection_list, address_with_type);
 }
 
-void AclManager::CancelLeConnectAndRemoveFromBackgroundList(AddressWithType address_with_type) {
-  CallOn(
-      pimpl_->le_impl_,
-      &le_impl::cancel_connection_and_remove_device_from_background_connection_list,
-      address_with_type);
-}
-
-void AclManager::AddDeviceToFilterAcceptList(AddressWithType address_with_type) {
-  CallOn(pimpl_->le_impl_, &le_impl::add_device_to_connect_list, address_with_type);
-}
-
-void AclManager::RemoveDeviceFromFilterAcceptList(AddressWithType address_with_type) {
-  CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_connect_list, address_with_type);
-}
-
 void AclManager::ClearFilterAcceptList() {
   CallOn(pimpl_->le_impl_, &le_impl::clear_filter_accept_list);
 }
