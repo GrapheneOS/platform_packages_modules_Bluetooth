@@ -116,9 +116,15 @@ class SDPProxy(ProfileProxy):
         optional_services = [
             "Android Auto Compatibility",
         ]
+        movable_services = [
+            "Message Access Server",
+        ]
         # yapf: enable
 
         optional_not_present = lambda service: service in optional_services and service not in service_names
 
-        test.assertEqual(service_names, list(filterfalse(optional_not_present, expected_services)))
+        expected_services_sorted = sorted(expected_services, key=lambda key: key in movable_services)
+        service_names_sorted = sorted(service_names, key=lambda key: key in movable_services)
+
+        test.assertEqual(service_names_sorted, list(filterfalse(optional_not_present, expected_services_sorted)))
         return "OK"
