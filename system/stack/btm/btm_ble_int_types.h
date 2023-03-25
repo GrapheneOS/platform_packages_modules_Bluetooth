@@ -248,22 +248,6 @@ typedef struct {
   /* target announcement observer */
   tBTM_INQ_RESULTS_CB* p_target_announcement_obs_results_cb;
 
-  /* background connection procedure cb value */
-  uint16_t scan_int;
-  uint16_t scan_win;
-
-  /* acceptlist information */
-  uint8_t wl_state;
-  void set_acceptlist_process_in_progress() {
-    wl_state |= BTM_BLE_ACCEPTLIST_INIT;
-  }
-  void reset_acceptlist_process_in_progress() {
-    wl_state &= ~BTM_BLE_ACCEPTLIST_INIT;
-  }
-  bool is_acceptlist_in_progress() const {
-    return wl_state & BTM_BLE_ACCEPTLIST_INIT;
-  }
-
  private:
   enum : uint8_t { /* BLE connection state */
                    BLE_CONN_IDLE = 0,
