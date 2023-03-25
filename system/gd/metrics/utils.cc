@@ -45,6 +45,29 @@ int GetArgumentTypeFromList(
   return -1;
 }
 
+os::LeConnectionType GetLeConnectionTypeFromCID(int fixed_cid) {
+  switch(fixed_cid) {
+    case 3: {
+      return os::LeConnectionType::CONNECTION_TYPE_L2CAP_FIXED_CHNL_AMP;
+    }
+    case 4: {
+      return os::LeConnectionType::CONNECTION_TYPE_L2CAP_FIXED_CHNL_ATT;
+    }
+    case 5: {
+      return os::LeConnectionType::CONNECTION_TYPE_L2CAP_FIXED_CHNL_LE_SIGNALLING;
+    }
+    case 6: {
+      return os::LeConnectionType::CONNECTION_TYPE_L2CAP_FIXED_CHNL_SMP;
+    }
+    case 7: {
+      return os::LeConnectionType::CONNECTION_TYPE_L2CAP_FIXED_CHNL_SMP_BR_EDR;
+    }
+    default: {
+      return os::LeConnectionType::CONNECTION_TYPE_UNSPECIFIED;
+    }
+  }
+}
+
 
 
 }  // namespace metrics
