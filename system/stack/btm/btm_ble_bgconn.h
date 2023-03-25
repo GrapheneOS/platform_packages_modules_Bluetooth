@@ -22,6 +22,11 @@
  * device can't be added, true otherwise. */
 extern bool BTM_AcceptlistAdd(const RawAddress& address);
 
+/** Adds the device into acceptlist and indicates whether to using direct
+ * connect parameters. Returns false if acceptlist is full and device can't
+ * be added, true otherwise. */
+extern bool BTM_AcceptlistAdd(const RawAddress& address, bool is_direct);
+
 /** Removes the device from acceptlist */
 extern void BTM_AcceptlistRemove(const RawAddress& address);
 
