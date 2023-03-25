@@ -818,6 +818,10 @@ impl RawAddress {
     pub fn to_byte_arr(&self) -> [u8; 6] {
         self.address.clone()
     }
+
+    pub fn empty() -> RawAddress {
+        unsafe { bindings::RawAddress_kEmpty }
+    }
 }
 
 /// Address that is safe to display in logs.
