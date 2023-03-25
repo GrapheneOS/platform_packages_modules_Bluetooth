@@ -38,6 +38,10 @@ namespace mock {
 namespace stack_gatt_api {
 
 // Function state capture and return values, if needed
+struct GATTC_GetAndRemoveListOfConnIdsWaitingForMtuRequest
+    GATTC_GetAndRemoveListOfConnIdsWaitingForMtuRequest;
+struct GATTC_TryMtuRequest GATTC_TryMtuRequest;
+struct GATTC_UpdateUserAttMtuIfNeeded GATTC_UpdateUserAttMtuIfNeeded;
 struct GATTC_ConfigureMTU GATTC_ConfigureMTU;
 struct GATTC_Discover GATTC_Discover;
 struct GATTC_ExecuteWrite GATTC_ExecuteWrite;
@@ -72,6 +76,11 @@ namespace test {
 namespace mock {
 namespace stack_gatt_api {
 
+std::list<uint16_t>
+    GATTC_GetAndRemoveListOfConnIdsWaitingForMtuRequest::return_value =
+        std::list<uint16_t>();
+tGATTC_TryMtuRequestResult GATTC_TryMtuRequest::return_value =
+    MTU_EXCHANGE_NOT_DONE_YET;
 tGATT_STATUS GATTC_ConfigureMTU::return_value = GATT_SUCCESS;
 tGATT_STATUS GATTC_Discover::return_value = GATT_SUCCESS;
 tGATT_STATUS GATTC_ExecuteWrite::return_value = GATT_SUCCESS;
@@ -99,6 +108,27 @@ bool is_active_service::return_value = false;
 }  // namespace test
 
 // Mocked functions, if any
+std::list<uint16_t> GATTC_GetAndRemoveListOfConnIdsWaitingForMtuRequest(
+    const RawAddress& remote_bda) {
+  inc_func_call_count(__func__);
+  return test::mock::stack_gatt_api::
+      GATTC_GetAndRemoveListOfConnIdsWaitingForMtuRequest(remote_bda);
+}
+tGATTC_TryMtuRequestResult GATTC_TryMtuRequest(const RawAddress& remote_bda,
+                                               tBT_TRANSPORT transport,
+                                               uint16_t conn_id,
+                                               uint16_t* current_mtu) {
+  inc_func_call_count(__func__);
+  return test::mock::stack_gatt_api::GATTC_TryMtuRequest(remote_bda, transport,
+                                                         conn_id, current_mtu);
+}
+void GATTC_UpdateUserAttMtuIfNeeded(const RawAddress& remote_bda,
+                                    tBT_TRANSPORT transport,
+                                    uint16_t user_mtu) {
+  inc_func_call_count(__func__);
+  test::mock::stack_gatt_api::GATTC_UpdateUserAttMtuIfNeeded(
+      remote_bda, transport, user_mtu);
+}
 tGATT_STATUS GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu) {
   inc_func_call_count(__func__);
   return test::mock::stack_gatt_api::GATTC_ConfigureMTU(conn_id, mtu);

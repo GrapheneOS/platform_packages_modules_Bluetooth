@@ -218,6 +218,10 @@ FORWARD_IF_RUST(supports_set_min_encryption_key_size,
                 GetController()->IsSupported(
                     bluetooth::hci::OpCode::SET_MIN_ENCRYPTION_KEY_SIZE))
 
+FORWARD_IF_RUST(supports_read_encryption_key_size,
+                GetController()->IsSupported(
+                    bluetooth::hci::OpCode::READ_ENCRYPTION_KEY_SIZE))
+
 FORWARD_IF_RUST(supports_reading_remote_extended_features,
                 GetController()->IsSupported(
                     bluetooth::hci::OpCode::READ_REMOTE_EXTENDED_FEATURES))
@@ -416,6 +420,7 @@ static const controller_t interface = {
     .supports_configure_data_path = supports_configure_data_path,
     .supports_set_min_encryption_key_size =
         supports_set_min_encryption_key_size,
+    .supports_read_encryption_key_size = supports_read_encryption_key_size,
 
     .supports_ble = supports_ble,
     .supports_ble_packet_extension = supports_packet_extension,

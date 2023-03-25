@@ -29,7 +29,9 @@ import com.android.internal.annotations.VisibleForTesting;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
+import com.google.common.hash.Hashing;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -43,8 +45,8 @@ import java.util.HashMap;
  */
 public class MetricsLogger {
     private static final String TAG = "BluetoothMetricsLogger";
-    private static final String BLOOMFILTER_PATH = "/data/misc/bluetooth/metrics";
-    private static final String BLOOMFILTER_FILE = "/devices";
+    private static final String BLOOMFILTER_PATH = "/data/misc/bluetooth";
+    private static final String BLOOMFILTER_FILE = "/devices_for_metrics";
     public static final String BLOOMFILTER_FULL_PATH = BLOOMFILTER_PATH + BLOOMFILTER_FILE;
 
     public static final boolean DEBUG = false;
@@ -112,8 +114,19 @@ public class MetricsLogger {
             FileInputStream in = new FileInputStream(new File(path));
             mBloomFilter = BloomFilter.readFrom(in, Funnels.byteArrayFunnel());
             mBloomFilterInitialized = true;
-        } catch (IOException e) {
-            Log.w(TAG, "MetricsLogger can't read the BloomFilter file");
+        } catch (IOException e1) {
+            Log.w(TAG, "MetricsLogger can't read the BloomFilter file.");
+            byte[] bloomfilterData = DeviceBloomfilterGenerator.hexStringToByteArray(
+                    DeviceBloomfilterGenerator.BLOOM_FILTER_DEFAULT);
+            try {
+                mBloomFilter = BloomFilter.readFrom(
+                        new ByteArrayInputStream(bloomfilterData), Funnels.byteArrayFunnel());
+                mBloomFilterInitialized = true;
+                Log.i(TAG, "The default bloomfilter is used");
+                return true;
+            } catch (IOException e2) {
+                Log.w(TAG, "The default bloomfilter can't be used.");
+            }
             return false;
         }
         return true;
@@ -253,7 +266,7 @@ public class MetricsLogger {
     }
 
     protected boolean logSanitizedBluetoothDeviceName(int metricId, String deviceName) {
-        if (!mBloomFilterInitialized) {
+        if (!mBloomFilterInitialized || deviceName == null) {
             return false;
         }
 
@@ -292,16 +305,18 @@ public class MetricsLogger {
         if (matchedSha256 == null) {
             return false;
         }
-        statslogBluetoothDeviceNames(metricId, matchedString, matchedSha256);
+        statslogBluetoothDeviceNames(
+                metricId,
+                matchedString,
+                Hashing.sha256().hashString(matchedString, StandardCharsets.UTF_8).toString());
         return true;
     }
 
-    protected void statslogBluetoothDeviceNames(int metricId, String matchedString, byte[] sha256) {
-        String sha256String = new String(sha256);
+    protected void statslogBluetoothDeviceNames(int metricId, String matchedString, String sha256) {
         Log.d(TAG,
-                "Uploading sha256 hash of matched bluetooth device name: " + sha256String);
+                "Uploading sha256 hash of matched bluetooth device name: " + sha256);
         BluetoothStatsLog.write(
-                BluetoothStatsLog.BLUETOOTH_HASHED_DEVICE_NAME_REPORTED, metricId, sha256String);
+                BluetoothStatsLog.BLUETOOTH_HASHED_DEVICE_NAME_REPORTED, metricId, sha256);
     }
 
     protected static byte[] getSha256(String name) {

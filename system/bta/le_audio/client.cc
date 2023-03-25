@@ -461,7 +461,7 @@ class LeAudioClientImpl : public LeAudioClient {
         group_id, ToString(group->GetState()).c_str(),
         ToString(group->GetTargetState()).c_str());
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-
+    group->CigClearCis();
     group->PrintDebugState();
 
     /* There is an issue with a setting up stream or any other operation which
@@ -1848,7 +1848,11 @@ class LeAudioClientImpl : public LeAudioClient {
   void changeMtuIfPossible(LeAudioDevice* leAudioDevice) {
     if (leAudioDevice->mtu_ == GATT_DEF_BLE_MTU_SIZE) {
       LOG(INFO) << __func__ << ", Configure MTU";
-      BtaGattQueue::ConfigureMtu(leAudioDevice->conn_id_, GATT_MAX_MTU_SIZE);
+      /* Use here kBapMinimumAttMtu, because we know that GATT will request
+       * GATT_MAX_MTU_SIZE on ATT anyways. We also know that GATT will use this
+       * kBapMinimumAttMtu as an input for Data Length Update procedure in the controller.
+       */
+      BtaGattQueue::ConfigureMtu(leAudioDevice->conn_id_, kBapMinimumAttMtu);
     }
   }
 
@@ -4806,6 +4810,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
   static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
       "persist.bluetooth.leaudio.notify.idle.during.call";
+
+  static constexpr uint16_t kBapMinimumAttMtu = 64;
 
   /* Current stream configuration */
   LeAudioCodecConfiguration current_source_codec_config;
