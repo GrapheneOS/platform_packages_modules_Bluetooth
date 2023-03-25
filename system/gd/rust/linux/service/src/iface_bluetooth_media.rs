@@ -175,6 +175,11 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("ResetActiveDevice")]
+    fn reset_active_device(&mut self) {
+        dbus_generated!()
+    }
+
     #[dbus_method("SetHfpActiveDevice")]
     fn set_hfp_active_device(&mut self, address: String) {
         dbus_generated!()
