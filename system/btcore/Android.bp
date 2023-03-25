@@ -89,6 +89,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: ["include"],
     include_dirs: ["packages/modules/Bluetooth/system"],
