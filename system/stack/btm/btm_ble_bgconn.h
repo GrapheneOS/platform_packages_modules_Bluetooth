@@ -27,14 +27,3 @@ extern void BTM_AcceptlistRemove(const RawAddress& address);
 
 /** Clear the acceptlist, end any pending acceptlist connections */
 extern void BTM_AcceptlistClear();
-
-/* Use fast scan window/interval for LE connection establishment.
- * This does not send any requests to controller, instead it changes the
- * parameters that will be used after next add/remove request.
- * Returns true, if the change is scheduled, false otherwise. */
-extern bool BTM_SetLeConnectionModeToFast();
-
-/* Use slow scan window/interval for LE connection establishment.
- * This does not send any requests to controller, instead it changes the
- * parameters that will be used after next add/remove request */
-extern void BTM_SetLeConnectionModeToSlow();

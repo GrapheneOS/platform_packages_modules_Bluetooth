@@ -237,7 +237,7 @@ void SecurityManagerImpl::NotifyDeviceUnbonded(hci::AddressWithType device) {
     iter.second->Post(
         common::Bind(&ISecurityManagerListener::OnDeviceUnbonded, common::Unretained(iter.first), device));
   }
-  acl_manager_->RemoveDeviceFromFilterAcceptList(device);
+  acl_manager_->CancelLeConnect(device);
 }
 
 void SecurityManagerImpl::NotifyEncryptionStateChanged(hci::EncryptionChangeView encryption_change_view) {

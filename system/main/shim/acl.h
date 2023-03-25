@@ -121,8 +121,6 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
   void Shutdown();
   void FinalShutdown();
 
-  void AddDeviceToFilterAcceptList(
-      const hci::AddressWithType& address_with_type);
   void ClearFilterAcceptList();
   void DisconnectAllForSuspend();
   void LeRand(LeRandCallback cb);
