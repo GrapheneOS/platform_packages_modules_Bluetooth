@@ -491,13 +491,10 @@ bool direct_connect_add(uint8_t app_id, const RawAddress& address) {
     }
   }
 
-  bool params_changed = BTM_SetLeConnectionModeToFast();
-
   if (!in_acceptlist) {
     if (!BTM_AcceptlistAdd(address)) {
       // if we can't add to acceptlist, turn parameters back to slow.
       LOG_WARN("Unable to add le device to acceptlist");
-      if (params_changed) BTM_SetLeConnectionModeToSlow();
       return false;
     }
     bgconn_dev[address].is_in_accept_list = true;
@@ -518,13 +515,6 @@ bool direct_connect_add(uint8_t app_id, const RawAddress& address) {
 static void schedule_direct_connect_add(uint8_t app_id,
                                         const RawAddress& address) {
   direct_connect_add(app_id, address);
-}
-
-static bool any_direct_connect_left() {
-  for (const auto& tmp : bgconn_dev) {
-    if (!tmp.second.doing_direct_conn.empty()) return true;
-  }
-  return false;
 }
 
 bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
@@ -550,12 +540,6 @@ bool direct_connect_remove(uint8_t app_id, const RawAddress& address) {
 
   // this will free the alarm
   it->second.doing_direct_conn.erase(app_it);
-
-  // if we removed last direct connection, lower the scan parameters used for
-  // connecting
-  if (!any_direct_connect_left()) {
-    BTM_SetLeConnectionModeToSlow();
-  }
 
   if (is_anyone_interested_to_use_accept_list(it)) {
     return true;

@@ -3497,9 +3497,6 @@ void btm_ble_init(void) {
   p_cb->inq_var.fast_adv_timer = alarm_new("btm_ble_inq.fast_adv_timer");
   p_cb->inq_var.inquiry_timer = alarm_new("btm_ble_inq.inquiry_timer");
 
-  /* for background connection, reset connection params to be undefined */
-  p_cb->scan_int = p_cb->scan_win = BTM_BLE_SCAN_PARAM_UNDEF;
-
   p_cb->inq_var.evt_type = BTM_BLE_NON_CONNECT_EVT;
 
   p_cb->addr_mgnt_cb.refresh_raddr_timer =
