@@ -119,6 +119,7 @@ rust_bindgen {
         "--allowlist-function=btgatt_.*",
         "--allowlist-function=btsdp.*",
         "--allowlist-function=hal_util_.*",
+        "--allowlist-function=osi_property_get.*",
         "--allowlist-type=bt_.*",
         "--allowlist-type=bthh_.*",
         "--allowlist-type=btgatt_.*",
@@ -137,8 +138,11 @@ rust_bindgen {
     shared_libs: [
         "libc++",
     ],
+    // The bindgen rule can only include headers via header_libs and does not
+    // support include_dirs. Make sure newly added headers have the correct
+    // header export target listed here.
     header_libs: [
         "libbluetooth_headers",
+        "libbluetooth_system_headers",
     ],
-    include_dirs: ["packages/modules/Bluetooth/system"],
 }
