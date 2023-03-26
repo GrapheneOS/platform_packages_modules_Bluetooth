@@ -1713,8 +1713,7 @@ void shim::legacy::Acl::OnLeConnectSuccess(
 }
 
 void shim::legacy::Acl::OnLeConnectFail(hci::AddressWithType address_with_type,
-                                        hci::ErrorCode reason,
-                                        bool locally_initiated) {
+                                        hci::ErrorCode reason) {
   tBLE_BD_ADDR legacy_address_with_type =
       ToLegacyAddressWithType(address_with_type);
 
@@ -1723,11 +1722,7 @@ void shim::legacy::Acl::OnLeConnectFail(hci::AddressWithType address_with_type,
   tHCI_STATUS status = ToLegacyHciErrorCode(reason);
 
   TRY_POSTING_ON_MAIN(acl_interface_.connection.le.on_failed,
-                      legacy_address_with_type, handle, enhanced, status,
-                      locally_initiated);
-  if (!locally_initiated) {
-    return;
-  }
+                      legacy_address_with_type, handle, enhanced, status);
 
   pimpl_->shadow_acceptlist_.Remove(address_with_type);
   LOG_WARN("Connection failed le remote:%s",

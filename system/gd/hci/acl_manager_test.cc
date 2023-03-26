@@ -487,8 +487,7 @@ TEST_F(AclManagerTest, invoke_registered_callback_le_connection_complete_fail) {
 
   EXPECT_CALL(
       mock_le_connection_callbacks_,
-      OnLeConnectFail(
-          remote_with_type, ErrorCode::CONNECTION_REJECTED_LIMITED_RESOURCES, /* locally_initiated */ true));
+      OnLeConnectFail(remote_with_type, ErrorCode::CONNECTION_REJECTED_LIMITED_RESOURCES));
 
   test_hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
       ErrorCode::CONNECTION_REJECTED_LIMITED_RESOURCES,

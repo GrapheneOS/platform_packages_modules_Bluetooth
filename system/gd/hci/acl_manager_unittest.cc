@@ -378,7 +378,7 @@ class MockLeConnectionCallbacks : public LeConnectionCallbacks {
       delete prom;
     }
   }
-  MOCK_METHOD(void, OnLeConnectFail, (AddressWithType, ErrorCode reason, bool locally_initiated), (override));
+  MOCK_METHOD(void, OnLeConnectFail, (AddressWithType, ErrorCode reason), (override));
 
   std::deque<std::shared_ptr<LeAclConnection>> le_connections_;
   std::unique_ptr<std::promise<void>> le_connection_promise_;
