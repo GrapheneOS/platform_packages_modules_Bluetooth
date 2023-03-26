@@ -149,6 +149,15 @@ public class LeAudioBinderTest {
     }
 
     @Test
+    public void setActiveDevice_withNullDevice_callsRemoveActiveDevice() {
+        AttributionSource source = new AttributionSource.Builder(0).build();
+        final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+
+        mBinder.setActiveDevice(null, source, recv);
+        verify(mMockService).removeActiveDevice(true);
+    }
+
+    @Test
     public void getActiveDevices() {
         AttributionSource source = new AttributionSource.Builder(0).build();
         final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
