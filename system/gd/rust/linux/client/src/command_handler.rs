@@ -184,7 +184,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from("gatt set-connect-transport <Bredr|LE|Auto>"),
                 String::from("gatt set-connect-opportunistic <true|false>"),
                 String::from("gatt set-connect-phy <Phy1m|Phy2m|PhyCoded>"),
-                String::from("gatt set-auth-req <MITM|SIGNED> <enable|disable>"),
+                String::from("gatt set-auth-req <NONE|EncNoMitm|EncMitm|SignedNoMitm|SignedMitm>"),
                 String::from(
                     "gatt write-characteristic <address> <handle> <NoRsp|Write|Prepare> <value>",
                 ),
@@ -1003,23 +1003,18 @@ impl CommandHandler {
             }
             "set-auth-req" => {
                 let flag = match &get_arg(args, 1)?[..] {
-                    "MITM" => AuthReq::MITM,
-                    "SIGNED" => AuthReq::SIGNED,
+                    "NONE" => AuthReq::NONE,
+                    "EncNoMitm" => AuthReq::EncNoMitm,
+                    "EncMitm" => AuthReq::EncMitm,
+                    "SignedNoMitm" => AuthReq::SignedNoMitm,
+                    "SignedMitm" => AuthReq::SignedMitm,
                     _ => {
                         return Err("Failed to parse auth-req".into());
                     }
                 };
 
-                let enable = match &get_arg(args, 2)?[..] {
-                    "enable" => true,
-                    "disable" => false,
-                    _ => {
-                        return Err("Failed to parse enable".into());
-                    }
-                };
-
-                self.lock_context().gatt_client_context.auth_req.set(flag, enable);
-                println!("AuthReq: {:?}", self.lock_context().gatt_client_context.auth_req);
+                self.lock_context().gatt_client_context.auth_req = flag;
+                println!("AuthReq: {:?}", self.lock_context().gatt_client_context.get_auth_req());
             }
             "write-characteristic" => {
                 let addr = String::from(get_arg(args, 1)?);
@@ -1044,7 +1039,7 @@ impl CommandHandler {
                     .client_id
                     .ok_or("GATT client is not yet registered.")?;
 
-                let auth_req = self.lock_context().gatt_client_context.get_auth_req_bits();
+                let auth_req = self.lock_context().gatt_client_context.get_auth_req().into();
 
                 self.lock_context()
                     .gatt_dbus
@@ -1063,7 +1058,7 @@ impl CommandHandler {
                     .client_id
                     .ok_or("GATT client is not yet registered.")?;
 
-                let auth_req = self.lock_context().gatt_client_context.get_auth_req_bits();
+                let auth_req = self.lock_context().gatt_client_context.get_auth_req().into();
 
                 self.lock_context()
                     .gatt_dbus
