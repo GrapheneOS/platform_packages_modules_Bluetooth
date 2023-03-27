@@ -1906,8 +1906,18 @@ impl IBluetoothSocketManager for BluetoothSocketManagerDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("ListenUsingInsecureL2capLeChannel")]
+    fn listen_using_insecure_l2cap_le_channel(&mut self, callback: CallbackId) -> SocketResult {
+        dbus_generated!()
+    }
+
     #[dbus_method("ListenUsingL2capChannel")]
     fn listen_using_l2cap_channel(&mut self, callback: CallbackId) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ListenUsingL2capLeChannel")]
+    fn listen_using_l2cap_le_channel(&mut self, callback: CallbackId) -> SocketResult {
         dbus_generated!()
     }
 
@@ -1941,8 +1951,28 @@ impl IBluetoothSocketManager for BluetoothSocketManagerDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("CreateInsecureL2capLeChannel")]
+    fn create_insecure_l2cap_le_channel(
+        &mut self,
+        callback: CallbackId,
+        device: BluetoothDevice,
+        psm: i32,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
     #[dbus_method("CreateL2capChannel")]
     fn create_l2cap_channel(
+        &mut self,
+        callback: CallbackId,
+        device: BluetoothDevice,
+        psm: i32,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("CreateL2capLeChannel")]
+    fn create_l2cap_le_channel(
         &mut self,
         callback: CallbackId,
         device: BluetoothDevice,
