@@ -189,6 +189,9 @@ fn build_commands() -> HashMap<String, CommandOption> {
                     "gatt write-characteristic <address> <handle> <NoRsp|Write|Prepare> <value>",
                 ),
                 String::from("gatt read-characteristic <address> <handle>"),
+                String::from(
+                    "gatt read-characteristic-by-uuid <address> <uuid> <start_handle> <end_handle>",
+                ),
                 String::from("gatt register-notification <address> <handle> <enable|disable>"),
                 String::from("gatt register-server"),
             ],
@@ -1065,6 +1068,33 @@ impl CommandHandler {
                     .as_ref()
                     .unwrap()
                     .read_characteristic(client_id, addr, handle, auth_req);
+            }
+            "read-characteristic-by-uuid" => {
+                let addr = String::from(get_arg(args, 1)?);
+                let uuid = String::from(get_arg(args, 2)?);
+                let start_handle = String::from(get_arg(args, 3)?)
+                    .parse::<i32>()
+                    .or(Err("Failed to parse start handle"))?;
+                let end_handle = String::from(get_arg(args, 4)?)
+                    .parse::<i32>()
+                    .or(Err("Failed to parse end handle"))?;
+
+                let client_id = self
+                    .lock_context()
+                    .gatt_client_context
+                    .client_id
+                    .ok_or("GATT client is not yet registered.")?;
+
+                let auth_req = self.lock_context().gatt_client_context.get_auth_req().into();
+
+                self.lock_context().gatt_dbus.as_ref().unwrap().read_using_characteristic_uuid(
+                    client_id,
+                    addr,
+                    uuid,
+                    start_handle,
+                    end_handle,
+                    auth_req,
+                );
             }
             "register-notification" => {
                 let addr = String::from(get_arg(args, 1)?);
