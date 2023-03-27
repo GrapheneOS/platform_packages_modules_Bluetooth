@@ -34,55 +34,7 @@
 //       still applies, but crafting proper inclusion is out of scope
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune the inclusion set.
-#include <base/logging.h>
-#include <hardware/bluetooth.h>
-#include <hardware/bluetooth_headset_interface.h>
-#include <hardware/bt_av.h>
-#include <hardware/bt_gatt.h>
-#include <hardware/bt_hd.h>
-#include <hardware/bt_hearing_aid.h>
-#include <hardware/bt_hf_client.h>
-#include <hardware/bt_hh.h>
-#include <hardware/bt_le_audio.h>
-#include <hardware/bt_pan.h>
-#include <hardware/bt_rc.h>
-#include <hardware/bt_sdp.h>
-#include <hardware/bt_sock.h>
-#include <hardware/bt_vc.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-#include "bta/include/bta_hearing_aid_api.h"
-#include "bta/include/bta_hf_client_api.h"
-#include "btif/avrcp/avrcp_service.h"
-#include "btif/include/btif_a2dp.h"
-#include "btif/include/btif_activity_attribution.h"
-#include "btif/include/btif_api.h"
-#include "btif/include/btif_av.h"
-#include "btif/include/btif_bqr.h"
-#include "btif/include/btif_config.h"
-#include "btif/include/btif_debug_conn.h"
-#include "btif/include/btif_hf.h"
-#include "btif/include/btif_keystore.h"
-#include "btif/include/btif_metrics_logging.h"
-#include "btif/include/btif_storage.h"
-#include "btif/include/stack_manager.h"
-#include "common/address_obfuscator.h"
-#include "common/metric_id_allocator.h"
-#include "common/metrics.h"
-#include "common/os_utils.h"
-#include "gd/common/init_flags.h"
-#include "main/shim/dumpsys.h"
-#include "main/shim/shim.h"
-#include "osi/include/alarm.h"
-#include "osi/include/allocation_tracker.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-#include "osi/include/wakelock.h"
-#include "stack/gatt/connection_manager.h"
-#include "stack/include/avdt_api.h"
+#include "include/hardware/bluetooth.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
