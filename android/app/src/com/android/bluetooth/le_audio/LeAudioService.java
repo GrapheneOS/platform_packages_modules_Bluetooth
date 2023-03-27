@@ -116,6 +116,7 @@ public class LeAudioService extends ProfileService {
     private HandlerThread mStateMachinesThread;
     private volatile BluetoothDevice mActiveAudioOutDevice;
     private volatile BluetoothDevice mActiveAudioInDevice;
+    private BluetoothDevice mExposedActiveDevice;
     private LeAudioCodecConfig mLeAudioCodecConfig;
     private final Object mGroupLock = new Object();
     ServiceFactory mServiceFactory = new ServiceFactory();
@@ -1115,6 +1116,11 @@ public class LeAudioService extends ProfileService {
                 byte[] addressBytes = Utils.getBytesFromAddress(address);
                 BluetoothDevice device = mAdapterService.getDeviceFromByte(addressBytes);
 
+                /* Don't expose already exposed active device */
+                if (device.equals(mExposedActiveDevice)) {
+                    return;
+                }
+
                 if (DBG) {
                     Log.d(TAG, " onAudioDevicesAdded: " + device + ", device type: "
                             + deviceInfo.getType() + ", isSink: " + deviceInfo.isSink()
@@ -1129,6 +1135,7 @@ public class LeAudioService extends ProfileService {
                     continue;
                 }
 
+                mExposedActiveDevice = device;
                 notifyActiveDeviceChanged(device);
                 return;
             }
