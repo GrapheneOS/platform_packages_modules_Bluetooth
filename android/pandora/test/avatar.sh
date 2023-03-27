@@ -12,7 +12,7 @@ _USAGE="avatar [OPTIONS] <COMMAND> ...
       OPTIONS: (subset, see 'avatar run --help-all')
         --include-filter=<ClassA[#test_a]>
                          Add a test filter in form of 'ClassA[#test_a]'.
-        --test-bed       Set mobly test bed (default is 'android.bumble').
+        --test-bed       Set mobly test bed (default is 'android.bumbles').
         --mobly-std-log  Print mobly logs to standard outputs.
         --mobly-options=<'--opt-a --opt-b'>
                          Pass additional options to mobly, like '--verbose' or '--list'.
