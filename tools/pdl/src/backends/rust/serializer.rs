@@ -1,5 +1,5 @@
 use crate::analyzer::ast as analyzer_ast;
-use crate::backends::rust::{mask_bits, types};
+use crate::backends::rust::{mask_bits, types, ToUpperCamelCase};
 use crate::{ast, lint};
 use quote::{format_ident, quote};
 
