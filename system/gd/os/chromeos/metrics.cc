@@ -182,5 +182,12 @@ void LogMetricBluetoothRemoteSupportedFeatures(
 
 void LogMetricBluetoothCodePathCounterMetrics(int32_t key, int64_t count) {}
 
+void LogMetricBluetoothLEConnectionMetricEvent(
+    const Address& raw_address,
+    android::bluetooth::le::LeConnectionOriginType origin_type,
+    android::bluetooth::le::LeConnectionType connection_type,
+    android::bluetooth::le::LeConnectionState transaction_state,
+    std::vector<std::pair<os::ArgumentType, int>>& argument_list) {}
+
 }  // namespace os
 }  // namespace bluetooth
