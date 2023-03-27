@@ -27,7 +27,7 @@ from mobly.asserts import assert_is_not_none  # type: ignore
 from mobly.asserts import assert_true  # type: ignore
 from mobly.asserts import fail  # type: ignore
 from pandora.host_pb2 import PUBLIC, DataTypes
-from typing import Optional
+from typing import Any, Dict, Optional
 
 
 class AdvertisingEventProperties(enum.IntEnum):
@@ -117,6 +117,60 @@ class LeAdvertisingTest(base_test.BaseTestClass):  # type: ignore[misc]
         # assert_equal(report.scannable, scannable)
         # TODO: direct_address is not set by the android server
         assert_equal(report.data.manufacturer_specific_data, manufacturer_specific_data)
+        assert_false(report.truncated, msg='expected non-truncated advertising report')
+
+    @parameterized(
+        (dict(incomplete_service_class_uuids16=["183A", "181F"]),),
+        # (dict(complete_service_class_uuids16=["183A", "181F"]),),
+        (dict(incomplete_service_class_uuids32=["FFFF183A", "FFFF181F"]),),
+        # (dict(complete_service_class_uuids32=["FFFF183A", "FFFF181F"]),),
+        (dict(incomplete_service_class_uuids128=["FFFF181F-FFFF-1000-8000-00805F9B34FB"]),),
+        # (dict(complete_service_class_uuids128=["FFFF183A-FFFF-1000-8000-00805F9B34FB"]),),
+        (dict(shortened_local_name="avatar"),),
+        (dict(complete_local_name="avatar_the_last_test_blender"),),
+        (dict(tx_power_level=20),),
+        (dict(class_of_device=0x40680),),
+        (dict(peripheral_connection_interval_min=0x0006, peripheral_connection_interval_max=0x0C80),),
+        (dict(service_solicitation_uuids16=["183A", "181F"]),),
+        (dict(service_solicitation_uuids32=["FFFF183A", "FFFF181F"]),),
+        (dict(service_solicitation_uuids128=["FFFF183A-FFFF-1000-8000-00805F9B34FB"]),),
+        (dict(service_data_uuid16={"183A": bytes([1, 2, 3, 4])}),),
+        (dict(service_data_uuid32={"FFFF183A": bytes([1, 2, 3, 4])}),),
+        (dict(service_data_uuid128={"FFFF181F-FFFF-1000-8000-00805F9B34FB": bytes([1, 2, 3, 4])}),),
+        # (dict(public_target_addresses=[bytes([1, 2, 3, 4, 5, 6]),
+        #                                   bytes([6, 5, 2, 4, 3, 1])]),),
+        # (dict(random_target_addresses=[bytes([1, 2, 3, 4, 5, 6]),
+        #                                   bytes([6, 5, 2, 4, 3, 1])]),),
+        (dict(appearance=0x0591),),
+        (dict(advertising_interval=0x1000),),
+        # (dict(advertising_interval=0x100000),),
+        (dict(uri="https://www.google.com"),),
+        (dict(le_supported_features=bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x10, 0x9F])),),
+        (dict(manufacturer_specific_data=bytes([0, 1, 2, 3, 4])),),
+        # (dict(le_discoverability_mode=DISCOVERABLE_GENERAL),),
+    )  # type: ignore[misc]
+    def test_advertising_data_types(self, advertising_data: Dict[str, Any]) -> None:
+        # Advertise from the Ref device with the specified advertising data.
+        # Validate that the Ref generates the correct advertising data,
+        # and that the dut presents the correct advertising data in the scan
+        # result.
+        advertiser = self.ref.host.Advertise(
+            legacy=True,
+            connectable=True,
+            data=DataTypes(**advertising_data),
+            own_address_type=PUBLIC,
+        )
+        scanner = self.dut.host.Scan(legacy=False, passive=False)
+
+        report = next((x for x in scanner if x.public == self.ref.address))
+
+        scanner.cancel()
+        advertiser.cancel()
+
+        assert_true(report.legacy, msg='expected legacy advertising report')
+        assert_equal(report.connectable, True)
+        for (key, value) in advertising_data.items():  # type: ignore [misc]
+            assert_equal(getattr(report.data, key), value)  # type: ignore [misc]
         assert_false(report.truncated, msg='expected non-truncated advertising report')
 
 
