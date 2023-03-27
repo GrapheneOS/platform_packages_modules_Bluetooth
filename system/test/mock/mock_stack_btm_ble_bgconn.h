@@ -131,6 +131,17 @@ struct BTM_AcceptlistAdd {
   bool operator()(const RawAddress& address) { return body(address); };
 };
 extern struct BTM_AcceptlistAdd BTM_AcceptlistAdd;
+// Name: BTM_AcceptlistAddDirect
+// Params: const RawAddress& address, bool is_direct
+// Returns: bool
+struct BTM_AcceptlistAddDirect {
+  std::function<bool(const RawAddress& address, bool is_direct)> body{
+      [](const RawAddress& address, bool is_direct) { return false; }};
+  bool operator()(const RawAddress& address, bool is_direct) {
+    return body(address, is_direct);
+  };
+};
+extern struct BTM_AcceptlistAddDirect BTM_AcceptlistAddDirect;
 // Name: BTM_AcceptlistRemove
 // Params: const RawAddress& address
 // Returns: void

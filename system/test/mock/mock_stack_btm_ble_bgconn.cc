@@ -52,6 +52,7 @@ struct BTM_BackgroundConnectAddressKnown BTM_BackgroundConnectAddressKnown;
 struct BTM_SetLeConnectionModeToFast BTM_SetLeConnectionModeToFast;
 struct BTM_SetLeConnectionModeToSlow BTM_SetLeConnectionModeToSlow;
 struct BTM_AcceptlistAdd BTM_AcceptlistAdd;
+struct BTM_AcceptlistAddDirect BTM_AcceptlistAddDirect;
 struct BTM_AcceptlistRemove BTM_AcceptlistRemove;
 struct BTM_AcceptlistClear BTM_AcceptlistClear;
 
@@ -95,6 +96,11 @@ void BTM_SetLeConnectionModeToSlow() {
 bool BTM_AcceptlistAdd(const RawAddress& address) {
   inc_func_call_count(__func__);
   return test::mock::stack_btm_ble_bgconn::BTM_AcceptlistAdd(address);
+}
+bool BTM_AcceptlistAdd(const RawAddress& address, bool is_direct) {
+  inc_func_call_count(__func__);
+  return test::mock::stack_btm_ble_bgconn::BTM_AcceptlistAddDirect(address,
+                                                                   is_direct);
 }
 void BTM_AcceptlistRemove(const RawAddress& address) {
   inc_func_call_count(__func__);
