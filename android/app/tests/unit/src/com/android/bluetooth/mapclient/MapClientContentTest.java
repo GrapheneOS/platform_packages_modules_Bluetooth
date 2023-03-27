@@ -31,6 +31,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothMapClient;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -55,6 +56,7 @@ import com.android.vcard.VCardProperty;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -120,6 +122,10 @@ public class MapClientContentTest {
         MockitoAnnotations.initMocks(this);
         mTargetContext = InstrumentationRegistry.getTargetContext();
 
+        // Do not run test if there is no telephony feature (no support for sms)
+        PackageManager packageManager = mTargetContext.getPackageManager();
+        Assume.assumeTrue(packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY));
+
         mMockSmsContentProvider = Mockito.spy(new FakeContentProvider(mTargetContext));
 
         mMockMmsContentProvider = Mockito.spy(new FakeContentProvider(mTargetContext));
@@ -142,7 +148,6 @@ public class MapClientContentTest {
         when(mMockSubscriptionManager.getActiveSubscriptionInfoList())
                 .thenReturn(Arrays.asList(mMockSubscription));
         createTestMessages();
-
     }
 
     @After
