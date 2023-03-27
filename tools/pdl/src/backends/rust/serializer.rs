@@ -1,4 +1,4 @@
-use crate::backends::rust::{mask_bits, types, ToUpperCamelCase};
+use crate::backends::rust::{mask_bits, types};
 use crate::parser::ast as parser_ast;
 use crate::{ast, lint};
 use quote::{format_ident, quote};

@@ -11,7 +11,7 @@ pub mod ast {
     use serde::Serialize;
 
     /// Field and declaration size information.
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Default, Debug, Clone, Copy)]
     #[allow(unused)]
     pub enum Size {
         /// Constant size in bits.
@@ -21,13 +21,8 @@ pub mod ast {
         Dynamic,
         /// The size cannot be determined statically or at runtime.
         /// The packet assumes the largest possible size.
+        #[default]
         Unknown,
-    }
-
-    impl Default for Size {
-        fn default() -> Size {
-            Size::Unknown
-        }
     }
 
     #[derive(Debug, Serialize, Default)]
