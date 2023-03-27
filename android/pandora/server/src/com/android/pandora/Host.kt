@@ -66,6 +66,41 @@ import kotlinx.coroutines.runBlocking
 import pandora.HostGrpc.HostImplBase
 import pandora.HostProto.*
 
+object ByteArrayOps {
+  public fun getUShortAt(input: ByteArray, index: Int): UShort {
+    return (
+      ((input[index + 1].toUInt() and 0xffU) shl 8) or
+       (input[index].toUInt() and 0xffU)).toUShort()
+  }
+
+  public fun getShortAt(input: ByteArray, index: Int): Short {
+    return getUShortAt(input, index).toShort()
+  }
+
+  public fun getUIntAt(input: ByteArray, index: Int): UInt {
+    return (
+      ((input[index + 3].toUInt() and 0xffU) shl 24) or
+      ((input[index + 2].toUInt() and 0xffU) shl 16) or
+      ((input[index + 1].toUInt() and 0xffU) shl 8) or
+       (input[index].toUInt() and 0xffU))
+  }
+
+  public fun getIntAt(input: ByteArray, index: Int): Int {
+    return getUIntAt(input, index).toInt()
+  }
+
+  public fun getUInt24At(input: ByteArray, index: Int): UInt {
+    return (
+      ((input[index + 2].toUInt() and 0xffU) shl 16) or
+      ((input[index + 1].toUInt() and 0xffU) shl 8) or
+       (input[index].toUInt() and 0xffU))
+  }
+
+  public fun getInt24At(input: ByteArray, index: Int): Int {
+    return getUInt24At(input, index).toInt()
+  }
+}
+
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Host(
   private val context: Context,
@@ -564,14 +599,45 @@ class Host(
 
               var dataTypesBuilder =
                 DataTypes.newBuilder().setTxPowerLevel(scanRecord.getTxPowerLevel())
-              scanData[ScanRecord.DATA_TYPE_LOCAL_NAME_SHORT]?.let {
+
+                scanData[ScanRecord.DATA_TYPE_LOCAL_NAME_SHORT]?.let {
                 dataTypesBuilder.setShortenedLocalName(it.decodeToString())
               }
                 ?: run { dataTypesBuilder.setIncludeShortenedLocalName(false) }
-              scanData[ScanRecord.DATA_TYPE_LOCAL_NAME_COMPLETE]?.let {
+
+                scanData[ScanRecord.DATA_TYPE_LOCAL_NAME_COMPLETE]?.let {
                 dataTypesBuilder.setCompleteLocalName(it.decodeToString())
               }
                 ?: run { dataTypesBuilder.setIncludeCompleteLocalName(false) }
+
+                scanData[ScanRecord.DATA_TYPE_ADVERTISING_INTERVAL]?.let {
+                dataTypesBuilder.setAdvertisingInterval(ByteArrayOps.getShortAt(it, 0).toInt())
+              }
+
+                scanData[ScanRecord.DATA_TYPE_ADVERTISING_INTERVAL_LONG]?.let {
+                dataTypesBuilder.setAdvertisingInterval(ByteArrayOps.getIntAt(it, 0))
+              }
+
+                scanData[ScanRecord.DATA_TYPE_APPEARANCE]?.let {
+                dataTypesBuilder.setAppearance(ByteArrayOps.getShortAt(it, 0).toInt())
+              }
+
+                scanData[ScanRecord.DATA_TYPE_CLASS_OF_DEVICE]?.let {
+                dataTypesBuilder.setClassOfDevice(ByteArrayOps.getInt24At(it, 0))
+              }
+
+                scanData[ScanRecord.DATA_TYPE_URI]?.let {
+                dataTypesBuilder.setUri(it.decodeToString())
+              }
+
+                scanData[ScanRecord.DATA_TYPE_LE_SUPPORTED_FEATURES]?.let {
+                dataTypesBuilder.setLeSupportedFeatures(ByteString.copyFrom(it))
+              }
+
+                scanData[ScanRecord.DATA_TYPE_SLAVE_CONNECTION_INTERVAL_RANGE]?.let {
+                dataTypesBuilder.setPeripheralConnectionIntervalMin(ByteArrayOps.getShortAt(it, 0).toInt())
+                dataTypesBuilder.setPeripheralConnectionIntervalMax(ByteArrayOps.getShortAt(it, 2).toInt())
+              }
 
               for (serviceDataEntry in serviceData) {
                 val parcelUuid = serviceDataEntry.key
@@ -580,27 +646,53 @@ class Host(
                 // use upper case uuid as the key
                 if (BluetoothUuid.is16BitUuid(parcelUuid)) {
                   val uuid16 = parcelUuid.uuid.toString().substring(4, 8).uppercase()
-                  dataTypesBuilder.addIncompleteServiceClassUuids16(uuid16)
                   dataTypesBuilder.putServiceDataUuid16(
                     uuid16,
                     ByteString.copyFrom(serviceDataEntry.value)
                   )
                 } else if (BluetoothUuid.is32BitUuid(parcelUuid)) {
                   val uuid32 = parcelUuid.uuid.toString().substring(0, 8).uppercase()
-                  dataTypesBuilder.addIncompleteServiceClassUuids32(uuid32)
                   dataTypesBuilder.putServiceDataUuid32(
                     uuid32,
                     ByteString.copyFrom(serviceDataEntry.value)
                   )
                 } else {
                   val uuid128 = parcelUuid.uuid.toString().uppercase()
-                  dataTypesBuilder.addIncompleteServiceClassUuids128(uuid128)
                   dataTypesBuilder.putServiceDataUuid128(
                     uuid128,
                     ByteString.copyFrom(serviceDataEntry.value)
                   )
                 }
               }
+
+              for (serviceUuid in scanRecord.serviceSolicitationUuids ?: listOf<ParcelUuid>()) {
+                Log.d(TAG, serviceUuid.uuid.toString())
+                if (BluetoothUuid.is16BitUuid(serviceUuid)) {
+                  val uuid16 = serviceUuid.uuid.toString().substring(4, 8).uppercase()
+                  dataTypesBuilder.addServiceSolicitationUuids16(uuid16)
+                } else if (BluetoothUuid.is32BitUuid(serviceUuid)) {
+                  val uuid32 = serviceUuid.uuid.toString().substring(0, 8).uppercase()
+                  dataTypesBuilder.addServiceSolicitationUuids32(uuid32)
+                } else {
+                  val uuid128 = serviceUuid.uuid.toString().uppercase()
+                  dataTypesBuilder.addServiceSolicitationUuids128(uuid128)
+                }
+              }
+
+              for (serviceUuid in scanRecord.serviceUuids ?: listOf<ParcelUuid>()) {
+                Log.d(TAG, serviceUuid.uuid.toString())
+                if (BluetoothUuid.is16BitUuid(serviceUuid)) {
+                  val uuid16 = serviceUuid.uuid.toString().substring(4, 8).uppercase()
+                  dataTypesBuilder.addIncompleteServiceClassUuids16(uuid16)
+                } else if (BluetoothUuid.is32BitUuid(serviceUuid)) {
+                  val uuid32 = serviceUuid.uuid.toString().substring(0, 8).uppercase()
+                  dataTypesBuilder.addIncompleteServiceClassUuids32(uuid32)
+                } else {
+                  val uuid128 = serviceUuid.uuid.toString().uppercase()
+                  dataTypesBuilder.addIncompleteServiceClassUuids128(uuid128)
+                }
+              }
+
               // Flags DataTypes CSSv10 1.3 Flags
               val mode: DiscoverabilityMode =
                 when (result.scanRecord.advertiseFlags and 0b11) {
@@ -628,12 +720,22 @@ class Host(
                   BluetoothDevice.PHY_LE_CODED -> PrimaryPhy.PRIMARY_CODED
                   else -> PrimaryPhy.UNRECOGNIZED
                 }
+              val secondaryPhy =
+                when (result.getSecondaryPhy()) {
+                  ScanResult.PHY_UNUSED -> SecondaryPhy.SECONDARY_NONE
+                  BluetoothDevice.PHY_LE_1M -> SecondaryPhy.SECONDARY_1M
+                  BluetoothDevice.PHY_LE_2M -> SecondaryPhy.SECONDARY_2M
+                  BluetoothDevice.PHY_LE_CODED -> SecondaryPhy.SECONDARY_CODED
+                  else -> SecondaryPhy.UNRECOGNIZED
+                }
               var scanningResponseBuilder =
                 ScanningResponse.newBuilder()
                   .setLegacy(result.isLegacy())
                   .setConnectable(result.isConnectable())
-                  .setSid(result.getPeriodicAdvertisingInterval())
+                  .setTruncated(result.getDataStatus() == ScanResult.DATA_TRUNCATED)
+                  .setSid(result.getAdvertisingSid())
                   .setPrimaryPhy(primaryPhy)
+                  .setSecondaryPhy(secondaryPhy)
                   .setTxPower(result.getTxPower())
                   .setRssi(result.getRssi())
                   .setPeriodicAdvertisingInterval(result.getPeriodicAdvertisingInterval().toFloat())
