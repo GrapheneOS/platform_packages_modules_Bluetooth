@@ -35,7 +35,8 @@ use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-const SOCKET_TEST_WRITE: &[u8] = b"01234567890123456789";
+const SOCKET_TEST_WRITE: &[u8] =
+    b"01234567890123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 /// Callback context for manager interface callbacks.
 pub(crate) struct BtManagerCallback {
