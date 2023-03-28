@@ -442,5 +442,20 @@ public class TbsService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
+        sb.append("TbsService instance:\n");
+
+        mTbsGeneric.dump(sb);
+
+        for (Map.Entry<BluetoothDevice, Integer> entry : mDeviceAuthorizations.entrySet()) {
+            String accessString;
+            if (entry.getValue() == BluetoothDevice.ACCESS_REJECTED) {
+                accessString = "ACCESS_REJECTED";
+            } else if (entry.getValue() == BluetoothDevice.ACCESS_ALLOWED) {
+                accessString = "ACCESS_ALLOWED";
+            } else {
+                accessString = "ACCESS_UNKNOWN";
+            }
+            sb.append("\n\tDevice: " + entry.getKey() + ", access: " + accessString);
+        }
     }
 }
