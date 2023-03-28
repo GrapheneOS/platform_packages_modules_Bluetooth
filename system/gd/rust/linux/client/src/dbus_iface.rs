@@ -1931,6 +1931,18 @@ impl IBluetoothSocketManager for BluetoothSocketManagerDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("ListenUsingRfcomm")]
+    fn listen_using_rfcomm(
+        &mut self,
+        callback: CallbackId,
+        channel: Option<i32>,
+        application_uuid: Option<Uuid>,
+        name: Option<String>,
+        flags: Option<i32>,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
     #[dbus_method("CreateInsecureL2capChannel")]
     fn create_insecure_l2cap_channel(
         &mut self,
