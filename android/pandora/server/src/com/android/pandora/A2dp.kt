@@ -28,6 +28,8 @@ import android.util.Log
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import java.io.Closeable
+import java.io.PrintWriter
+import java.io.StringWriter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -91,8 +93,7 @@ class A2dp(val context: Context) : A2DPImplBase(), Closeable {
             .first()
 
         if (state == BluetoothProfile.STATE_DISCONNECTED) {
-          Log.e(TAG, "openSource failed, A2DP has been disconnected")
-          throw Status.UNKNOWN.asException()
+          throw RuntimeException("openSource failed, A2DP has been disconnected")
         }
       }
 
@@ -124,8 +125,7 @@ class A2dp(val context: Context) : A2DPImplBase(), Closeable {
             .first()
 
         if (state == BluetoothProfile.STATE_DISCONNECTED) {
-          Log.e(TAG, "waitSource failed, A2DP has been disconnected")
-          throw Status.UNKNOWN.asException()
+          throw RuntimeException("waitSource failed, A2DP has been disconnected")
         }
       }
 
@@ -146,8 +146,7 @@ class A2dp(val context: Context) : A2DPImplBase(), Closeable {
       Log.i(TAG, "start: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
-        Log.e(TAG, "Device is not connected, cannot start")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Device is not connected, cannot start")
       }
 
       audioTrack!!.play()
@@ -171,13 +170,11 @@ class A2dp(val context: Context) : A2DPImplBase(), Closeable {
       Log.i(TAG, "suspend: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
-        Log.e(TAG, "Device is not connected, cannot suspend")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Device is not connected, cannot suspend")
       }
 
       if (!bluetoothA2dp.isA2dpPlaying(device)) {
-        Log.e(TAG, "Device is already suspended, cannot suspend")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Device is already suspended, cannot suspend")
       }
 
       val a2dpPlayingStateFlow =
@@ -201,8 +198,7 @@ class A2dp(val context: Context) : A2DPImplBase(), Closeable {
       Log.i(TAG, "isSuspended: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
-        Log.e(TAG, "Device is not connected, cannot get suspend state")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Device is not connected, cannot get suspend state")
       }
 
       val isSuspended = bluetoothA2dp.isA2dpPlaying(device)
@@ -216,8 +212,7 @@ class A2dp(val context: Context) : A2DPImplBase(), Closeable {
       Log.i(TAG, "close: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
-        Log.e(TAG, "Device is not connected, cannot close")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Device is not connected, cannot close")
       }
 
       val a2dpConnectionStateChangedFlow =
@@ -270,9 +265,13 @@ class A2dp(val context: Context) : A2DPImplBase(), Closeable {
           )
         }
       }
-      override fun onError(t: Throwable?) {
-        Log.e(TAG, t.toString())
-        responseObserver.onError(t)
+      override fun onError(t: Throwable) {
+        t.printStackTrace()
+        val sw = StringWriter()
+        t.printStackTrace(PrintWriter(sw))
+        responseObserver.onError(
+          Status.UNKNOWN.withCause(t).withDescription(sw.toString()).asException()
+        )
       }
       override fun onCompleted() {
         responseObserver.onNext(PlaybackAudioResponse.getDefaultInstance())
@@ -290,8 +289,7 @@ class A2dp(val context: Context) : A2DPImplBase(), Closeable {
       Log.i(TAG, "getAudioEncoding: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
-        Log.e(TAG, "Device is not connected, cannot getAudioEncoding")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Device is not connected, cannot getAudioEncoding")
       }
 
       // For now, we only support 44100 kHz sampling rate.

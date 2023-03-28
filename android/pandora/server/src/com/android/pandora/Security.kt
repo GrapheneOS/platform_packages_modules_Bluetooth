@@ -34,7 +34,6 @@ import android.content.IntentFilter
 import android.util.Log
 import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
-import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
@@ -119,7 +118,8 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
             check(request.getLevelCase() == SecureRequest.LevelCase.LE)
             val level = request.le
             if (level == LE_LEVEL1) true
-            else if (level == LE_LEVEL4) throw Status.UNKNOWN.asException()
+            else if (level == LE_LEVEL4)
+              throw RuntimeException("secure: Low-energy level 4 not supported")
             else {
               bluetoothDevice.createBond(transport)
               waitLESecurityLevel(bluetoothDevice, level)
@@ -129,13 +129,14 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
             check(request.getLevelCase() == SecureRequest.LevelCase.CLASSIC)
             val level = request.classic
             if (level == LEVEL0) true
-            else if (level >= LEVEL3) throw Status.UNKNOWN.asException()
+            else if (level >= LEVEL3)
+              throw RuntimeException("secure: Classic level up to 3 not supported")
             else {
               bluetoothDevice.createBond(transport)
               waitBREDRSecurityLevel(bluetoothDevice, level)
             }
           }
-          else -> throw Status.UNKNOWN.asException()
+          else -> throw RuntimeException("secure: Invalid transport")
         }
       val secureResponseBuilder = SecureResponse.newBuilder()
       if (reached) secureResponseBuilder.setSuccess(Empty.getDefaultInstance())
@@ -159,7 +160,7 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
     Log.i(TAG, "waitBREDRSecurityLevel")
     return when (level) {
       LEVEL0 -> true
-      LEVEL3 -> throw Status.UNKNOWN.asException()
+      LEVEL3 -> throw RuntimeException("waitSecurity: Classic level 3 not supported")
       else -> {
         val bondState = waitBondIntent(bluetoothDevice)
         val isEncrypted = bluetoothDevice.isEncrypted()
@@ -179,14 +180,14 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
     Log.i(TAG, "waitLESecurityLevel")
     return when (level) {
       LE_LEVEL1 -> true
-      LE_LEVEL4 -> throw Status.UNKNOWN.asException()
+      LE_LEVEL4 -> throw RuntimeException("waitSecurity: Low-energy level 4 not supported")
       else -> {
         val bondState = waitBondIntent(bluetoothDevice)
         val isEncrypted = bluetoothDevice.isEncrypted()
         when (level) {
           LE_LEVEL2 -> isEncrypted
           LE_LEVEL3 -> isEncrypted && bondState == BOND_BONDED
-          else -> throw Status.UNKNOWN.asException()
+          else -> throw RuntimeException("waitSecurity: Low-energy level 4 not supported")
         }
       }
     }
@@ -210,7 +211,7 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
             check(request.hasClassic())
             waitBREDRSecurityLevel(bluetoothDevice, request.classic)
           }
-          else -> throw Status.UNKNOWN.asException()
+          else -> throw RuntimeException("secure: Invalid transport")
         }
       val waitSecurityBuilder = WaitSecurityResponse.newBuilder()
       if (reached) waitSecurityBuilder.setSuccess(Empty.getDefaultInstance())
