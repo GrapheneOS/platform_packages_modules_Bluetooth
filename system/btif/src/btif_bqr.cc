@@ -293,8 +293,12 @@ void EnableBtQualityReport(bool is_enable) {
 
   char bqr_prop_evtmask[PROPERTY_VALUE_MAX] = {0};
   char bqr_prop_interval_ms[PROPERTY_VALUE_MAX] = {0};
+  char bqr_prop_vnd_quality_mask[PROPERTY_VALUE_MAX] = {0};
+  char bqr_prop_vnd_trace_mask[PROPERTY_VALUE_MAX] = {0};
   osi_property_get(kpPropertyEventMask, bqr_prop_evtmask, "");
   osi_property_get(kpPropertyMinReportIntervalMs, bqr_prop_interval_ms, "");
+  osi_property_get(kpPropertyVndQualityMask, bqr_prop_vnd_quality_mask, "");
+  osi_property_get(kpPropertyVndTraceMask, bqr_prop_vnd_trace_mask, "");
 
   if (strlen(bqr_prop_evtmask) == 0 || strlen(bqr_prop_interval_ms) == 0) {
     LOG(WARNING) << __func__ << ": Bluetooth Quality Report is disabled."
@@ -311,10 +315,16 @@ void EnableBtQualityReport(bool is_enable) {
         static_cast<uint32_t>(atoi(bqr_prop_evtmask));
     bqr_config.minimum_report_interval_ms =
         static_cast<uint16_t>(atoi(bqr_prop_interval_ms));
+    bqr_config.vnd_quality_mask =
+        static_cast<uint32_t>(atoi(bqr_prop_vnd_quality_mask));
+    bqr_config.vnd_trace_mask =
+        static_cast<uint32_t>(atoi(bqr_prop_vnd_trace_mask));
   } else {
     bqr_config.report_action = REPORT_ACTION_CLEAR;
     bqr_config.quality_event_mask = kQualityEventMaskAllOff;
     bqr_config.minimum_report_interval_ms = kMinReportIntervalNoLimit;
+    bqr_config.vnd_quality_mask = 0;
+    bqr_config.vnd_trace_mask = 0;
   }
 
   tBTM_BLE_VSC_CB cmn_vsc_cb;
@@ -350,6 +360,10 @@ void ConfigureBqr(const BqrConfiguration& bqr_config) {
   UINT8_TO_STREAM(p_param, bqr_config.report_action);
   UINT32_TO_STREAM(p_param, bqr_config.quality_event_mask);
   UINT16_TO_STREAM(p_param, bqr_config.minimum_report_interval_ms);
+  if (vendor_cap_supported_version >= kBqrVndLogVersion) {
+    UINT32_TO_STREAM(p_param, bqr_config.vnd_quality_mask);
+    UINT32_TO_STREAM(p_param, bqr_config.vnd_trace_mask);
+  }
 
   BTM_VendorSpecificCommand(HCI_CONTROLLER_BQR, p_param - param, param,
                             BqrVscCompleteCallback);
@@ -364,9 +378,14 @@ void BqrVscCompleteCallback(tBTM_VSC_CMPL* p_vsc_cmpl_params) {
 
   uint8_t* p_event_param_buf = p_vsc_cmpl_params->p_param_buf;
   uint8_t status = 0xff;
+  uint8_t command_complete_param_len = 5;
+  uint32_t current_vnd_quality_mask = 0;
+  uint32_t current_vnd_trace_mask = 0;
   // [Return Parameter]         | [Size]   | [Purpose]
   // Status                     | 1 octet  | Command complete status
   // Current_Quality_Event_Mask | 4 octets | Indicates current bit mask setting
+  // Vendor_Specific_Quality_Mask | 4 octets | vendor quality bit mask setting
+  // Vendor_Specific_Trace_Mask | 4 octets | vendor trace bit mask setting
   STREAM_TO_UINT8(status, p_event_param_buf);
   if (status != HCI_SUCCESS) {
     LOG(ERROR) << __func__
@@ -374,9 +393,13 @@ void BqrVscCompleteCallback(tBTM_VSC_CMPL* p_vsc_cmpl_params) {
     return;
   }
 
-  if (p_vsc_cmpl_params->param_len != 5) {
+  if (vendor_cap_supported_version >= kBqrVndLogVersion) {
+    command_complete_param_len = 13;
+  }
+
+  if (p_vsc_cmpl_params->param_len != command_complete_param_len) {
     LOG(FATAL) << __func__
-               << ": The length of returned parameters is not equal to 5: "
+               << ": The length of returned parameters is incorrect: "
                << std::to_string(p_vsc_cmpl_params->param_len);
     return;
   }
@@ -384,8 +407,16 @@ void BqrVscCompleteCallback(tBTM_VSC_CMPL* p_vsc_cmpl_params) {
   uint32_t current_quality_event_mask = kQualityEventMaskAllOff;
   STREAM_TO_UINT32(current_quality_event_mask, p_event_param_buf);
 
+  if (vendor_cap_supported_version >= kBqrVndLogVersion) {
+    STREAM_TO_UINT32(current_vnd_quality_mask, p_event_param_buf);
+    STREAM_TO_UINT32(current_vnd_trace_mask, p_event_param_buf);
+  }
+
   LOG(INFO) << __func__
-            << ", current event mask: " << loghex(current_quality_event_mask);
+            << ", current event mask: " << loghex(current_quality_event_mask)
+            << ", vendor quality: " << loghex(current_vnd_quality_mask)
+            << ", vendor trace: " << loghex(current_vnd_trace_mask);
+
   ConfigureBqrCmpl(current_quality_event_mask);
 }
 
@@ -486,10 +517,12 @@ void CategorizeBqrEvent(uint8_t length, const uint8_t* p_bqr_event) {
 
     // The Root Inflammation and Log Dump related event should be handled and
     // intercepted already.
+    case QUALITY_REPORT_ID_VENDOR_SPECIFIC_QUALITY:
     case QUALITY_REPORT_ID_ROOT_INFLAMMATION:
     case QUALITY_REPORT_ID_LMP_LL_MESSAGE_TRACE:
     case QUALITY_REPORT_ID_BT_SCHEDULING_TRACE:
     case QUALITY_REPORT_ID_CONTROLLER_DBG_INFO:
+    case QUALITY_REPORT_ID_VENDOR_SPECIFIC_TRACE:
       LOG(WARNING) << __func__
                    << ": Unexpected ID: " << loghex(quality_report_id);
       break;
