@@ -34,6 +34,7 @@ mod ffi {
         fn get_default_log_level() -> i32;
         fn get_hci_adapter() -> i32;
         fn get_log_level_for_tag(tag: &str) -> i32;
+        fn get_asha_packet_drop_frequency_threshold() -> i32;
         fn hfp_dynamic_version_is_enabled() -> bool;
         fn irk_rotation_is_enabled() -> bool;
         fn leaudio_targeted_announcement_reconnection_mode_is_enabled() -> bool;
