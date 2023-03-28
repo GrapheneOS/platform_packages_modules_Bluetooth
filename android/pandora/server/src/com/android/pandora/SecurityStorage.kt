@@ -18,7 +18,6 @@ package com.android.pandora
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothDevice.BOND_BONDED
 import android.bluetooth.BluetoothDevice.BOND_NONE
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -69,13 +68,11 @@ class SecurityStorage(private val context: Context) : SecurityStorageImplBase(),
     grpcUnary(globalScope, responseObserver) {
       val bondedDevices = bluetoothAdapter.getBondedDevices()
       val bondedDevice =
-        when(request.getAddressCase()!!) {
-          IsBondedRequest.AddressCase.PUBLIC -> bondedDevices.firstOrNull {
-            it.toByteString() == request.public
-          }
-          IsBondedRequest.AddressCase.RANDOM ->  bondedDevices.firstOrNull {
-            it.toByteString() == request.random
-          }
+        when (request.getAddressCase()!!) {
+          IsBondedRequest.AddressCase.PUBLIC ->
+            bondedDevices.firstOrNull { it.toByteString() == request.public }
+          IsBondedRequest.AddressCase.RANDOM ->
+            bondedDevices.firstOrNull { it.toByteString() == request.random }
           IsBondedRequest.AddressCase.ADDRESS_NOT_SET -> throw Status.UNKNOWN.asException()
         }
       Log.i(TAG, "isBonded: device=$bondedDevice")
