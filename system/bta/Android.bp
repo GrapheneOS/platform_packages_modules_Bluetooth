@@ -187,7 +187,6 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     srcs: [
@@ -269,7 +268,6 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -362,7 +360,6 @@ cc_test {
         "fluoride_bta_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     include_dirs: [
@@ -417,7 +414,6 @@ cc_test {
         "fluoride_bta_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     include_dirs: [
@@ -460,7 +456,6 @@ cc_test {
         "fluoride_bta_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     include_dirs: [
@@ -580,7 +575,6 @@ cc_test {
         "fluoride_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     target: {
@@ -669,7 +663,6 @@ cc_test {
         "fluoride_bta_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
@@ -763,7 +756,6 @@ cc_test {
         "fluoride_bta_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
@@ -815,7 +807,6 @@ cc_test {
         "fluoride_bta_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     include_dirs: [
@@ -887,7 +878,6 @@ cc_test {
         "fluoride_bta_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
@@ -944,7 +934,6 @@ cc_test {
         "fluoride_bta_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
@@ -1004,6 +993,11 @@ cc_test {
         integer_overflow: true,
         diag: {
             undefined: true,
+        },
+    },
+    target: {
+        android: {
+            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
         },
     },
 }
