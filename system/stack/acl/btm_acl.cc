@@ -2799,6 +2799,15 @@ void acl_create_classic_connection(const RawAddress& bd_addr,
   return bluetooth::shim::ACL_CreateClassicConnection(bd_addr);
 }
 
+void btm_connection_request(const RawAddress& bda,
+                            const bluetooth::types::ClassOfDevice& cod) {
+  // Copy Cod information
+  DEV_CLASS dc;
+  dc[0] = cod.cod[2], dc[1] = cod.cod[1], dc[2] = cod.cod[0];
+
+  btm_sec_conn_req(bda, dc);
+}
+
 void btm_acl_connection_request(const RawAddress& bda, uint8_t* dc) {
   btm_sec_conn_req(bda, dc);
   l2c_link_hci_conn_req(bda);
