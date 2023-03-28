@@ -1,12 +1,20 @@
-use bitflags::bitflags;
 use bt_topshim::btif::BtTransport;
 use bt_topshim::profiles::gatt::LePhy;
 
-bitflags! {
-    pub(crate) struct AuthReq: i32 {
-        // reference to system/stack/include/gatt_api.h
-        const MITM   = 0x01;
-        const SIGNED = 0x10;
+#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+pub enum AuthReq {
+    // reference to system/stack/include/gatt_api.h
+    NONE = 0,
+    EncNoMitm = 1,
+    EncMitm = 2,
+    SignedNoMitm = 3,
+    SignedMitm = 4,
+}
+
+impl From<AuthReq> for i32 {
+    fn from(auth_req: AuthReq) -> Self {
+        auth_req as i32
     }
 }
 
@@ -30,7 +38,7 @@ impl GattClientContext {
     pub(crate) fn new() -> Self {
         GattClientContext {
             client_id: None,
-            auth_req: AuthReq::empty(),
+            auth_req: AuthReq::NONE,
             is_connect_direct: false,
             connect_transport: BtTransport::Le,
             connect_opportunistic: false,
@@ -38,7 +46,7 @@ impl GattClientContext {
         }
     }
 
-    pub(crate) fn get_auth_req_bits(&self) -> i32 {
-        self.auth_req.bits()
+    pub(crate) fn get_auth_req(&self) -> AuthReq {
+        self.auth_req
     }
 }

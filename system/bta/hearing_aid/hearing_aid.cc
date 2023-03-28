@@ -322,16 +322,18 @@ class HearingAidImpl : public HearingAid {
   void IsoTrafficEventCb(bool is_active) {
     if (is_active) {
       is_iso_running = true;
+      needs_parameter_update = true;
     } else {
       is_iso_running = false;
-      if (needs_parameter_update) {
-        for (auto& device : hearingDevices.devices) {
-          if (device.conn_id != 0) {
-            device.connection_update_status = STARTED;
-            device.requested_connection_interval =
-                UpdateBleConnParams(device.address);
-            return;
-          }
+    }
+    LOG_INFO("is_iso_running: %d, needs_parameter_update: %d", is_iso_running,
+             needs_parameter_update);
+    if (needs_parameter_update) {
+      for (auto& device : hearingDevices.devices) {
+        if (device.conn_id != 0) {
+          device.connection_update_status = STARTED;
+          device.requested_connection_interval =
+              UpdateBleConnParams(device.address);
         }
       }
     }
