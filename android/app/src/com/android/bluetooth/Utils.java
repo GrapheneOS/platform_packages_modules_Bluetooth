@@ -110,6 +110,7 @@ public final class Utils {
      */
     public static final char PAUSE = ',';
     public static final char WAIT = ';';
+    public static final String PAIRING_UI_PROPERTY = "bluetooth.pairing_ui_package.name";
 
     private static boolean isPause(char c) {
         return c == 'p' || c == 'P';
