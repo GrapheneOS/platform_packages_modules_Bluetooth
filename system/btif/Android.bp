@@ -244,7 +244,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: btifCommonIncludes,
@@ -313,7 +312,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: btifCommonIncludes,
@@ -344,7 +342,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -383,7 +380,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -424,7 +420,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: btifCommonIncludes,
@@ -451,7 +446,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: [
@@ -575,7 +569,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: [

@@ -350,7 +350,6 @@ cc_test {
         "gd_clang_coverage_bin",
         "libchrome_support_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
@@ -446,7 +445,6 @@ cc_test {
         "gd_clang_coverage_bin",
         "libchrome_support_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     include_dirs: ["packages/modules/Bluetooth/system/gd"],
     host_supported: true,

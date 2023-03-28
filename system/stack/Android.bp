@@ -293,7 +293,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     local_include_dirs: [
@@ -363,7 +362,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -433,7 +431,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     test_suites: ["device-tests"],
@@ -498,7 +495,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     local_include_dirs: [
@@ -540,7 +536,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     local_include_dirs: [
@@ -569,7 +564,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     test_suites: ["general-tests"],
@@ -608,7 +602,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -658,7 +651,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -714,7 +706,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -745,9 +736,6 @@ cc_test {
                 ":BluetoothAndroidTestingLogCapture",
             ],
             test_config: "test/a2dp/AndroidTest.xml",
-        },
-        android_x86: {
-            test_config: "test/a2dp/AndroidTestForce32.xml",
         },
     },
     data: [
@@ -820,7 +808,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -862,7 +849,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -910,7 +896,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "btm",
@@ -959,7 +944,6 @@ cc_test {
         "fluoride_defaults",
         "clang_coverage_bin",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
@@ -1013,7 +997,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
@@ -1123,7 +1106,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
@@ -1170,7 +1152,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
@@ -1226,7 +1207,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
@@ -1291,7 +1271,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
@@ -1371,7 +1350,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
@@ -1445,7 +1423,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
@@ -1519,7 +1496,6 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
