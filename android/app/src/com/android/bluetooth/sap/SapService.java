@@ -24,6 +24,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
+import android.os.SystemProperties;
 import android.sysprop.BluetoothProperties;
 import android.text.TextUtils;
 import android.util.Log;
@@ -397,7 +398,9 @@ public class SapService extends ProfileService {
                     } else if (permission != BluetoothDevice.ACCESS_REJECTED) {
                         Intent intent =
                                 new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
-                        intent.setPackage(getString(R.string.pairing_ui_package));
+                        intent.setPackage(SystemProperties.get(
+                                Utils.PAIRING_UI_PROPERTY,
+                                getString(R.string.pairing_ui_package)));
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                 BluetoothDevice.REQUEST_TYPE_SIM_ACCESS);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
@@ -773,7 +776,9 @@ public class SapService extends ProfileService {
 
     private void sendCancelUserConfirmationIntent(BluetoothDevice device) {
         Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-        intent.setPackage(getString(R.string.pairing_ui_package));
+        intent.setPackage(SystemProperties.get(
+                Utils.PAIRING_UI_PROPERTY,
+                getString(R.string.pairing_ui_package)));
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                 BluetoothDevice.REQUEST_TYPE_SIM_ACCESS);
