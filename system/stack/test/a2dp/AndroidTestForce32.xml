@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2023 The Android Open Source Project
+<!-- Copyright 2022 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -13,35 +13,26 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<configuration description="Runs {MODULE}.">
-  <option name="not-shardable" value="true" />
-
-  <option name="test-suite-tag" value="apct" />
-  <option name="test-suite-tag" value="apct-native" />
+<configuration description="Runs net_test_stack_a2dp_codecs_native.">
   <target_preparer class="com.android.tradefed.targetprep.RootTargetPreparer" />
   <target_preparer class="com.android.compatibility.common.tradefed.targetprep.FilePusher">
         <option name="cleanup" value="true" />
-        <option name="push" value="{MODULE}->/data/local/tmp/{MODULE}" />
-        <option name="append-bitness" value="true" />
-    </target_preparer>
-  <target_preparer class="com.android.tradefed.targetprep.RunCommandTargetPreparer">
-    <option name="run-command" value="settings put global ble_scan_always_enabled 0" />
-    <option name="run-command" value="cmd bluetooth_manager disable" />
-    <option name="run-command" value="cmd bluetooth_manager wait-for-state:STATE_OFF" />
+        <option name="push" value="net_test_stack_a2dp_codecs_native32->/data/local/tmp/net_test_stack_a2dp_codecs_native" />
   </target_preparer>
-  <target_preparer class="com.android.tradefed.targetprep.FolderSaver">
-    <option name="device-path" value="/data/vendor/ssrdump" />
+  <target_preparer class="com.android.compatibility.common.tradefed.targetprep.FilePusher">
+        <option name="cleanup" value="true" />
+        <option name="push" value="pcm0844s.wav->/data/local/tmp/test/a2dp/raw_data/pcm0844s.wav" />
+        <option name="push" value="pcm1644s.wav->/data/local/tmp/test/a2dp/raw_data/pcm1644s.wav" />
   </target_preparer>
   <test class="com.android.tradefed.testtype.GTest" >
     <option name="native-test-device-path" value="/data/local/tmp" />
-    <option name="module-name" value="{MODULE}" />
+    <option name="module-name" value="net_test_stack_a2dp_codecs_native" />
     <option name="run-test-as" value="0" />
   </test>
 
   <!-- Only run tests in MTS if the Bluetooth Mainline module is installed. -->
   <object type="module_controller"
           class="com.android.tradefed.testtype.suite.module.MainlineTestModuleController">
-      <option name="mainline-module-package-name" value="com.android.btservices" />
-      <option name="mainline-module-package-name" value="com.google.android.btservices" />
+      <option name="mainline-module-package-name" value="com.google.android.bluetooth" />
   </object>
 </configuration>
