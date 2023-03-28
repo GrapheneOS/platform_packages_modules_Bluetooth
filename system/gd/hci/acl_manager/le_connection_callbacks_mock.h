@@ -36,10 +36,7 @@ class MockLeConnectionCallbacks : public LeConnectionCallbacks {
       (AddressWithType address_with_type, std::unique_ptr<LeAclConnection> connection),
       (override));
   MOCK_METHOD(
-      void,
-      OnLeConnectFail,
-      (AddressWithType address_with_type, ErrorCode reason, bool locally_initiated),
-      (override));
+      void, OnLeConnectFail, (AddressWithType address_with_type, ErrorCode reason), (override));
 };
 
 }  // namespace acl_manager
