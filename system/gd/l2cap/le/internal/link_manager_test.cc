@@ -276,8 +276,7 @@ TEST_F(L2capLeLinkManagerTest, connect_fixed_channel_service_without_acl_with_hc
       &hci::acl_manager::LeConnectionCallbacks::OnLeConnectFail,
       common::Unretained(hci_le_connection_callbacks),
       address_with_type,
-      hci::ErrorCode::PAGE_TIMEOUT,
-      true /* locally_initiated */));
+      hci::ErrorCode::PAGE_TIMEOUT));
   SyncHandler(hci_callback_handler);
   SyncHandler(user_handler_);
   EXPECT_EQ(my_result.connection_result_code, FixedChannelManager::ConnectionResultCode::FAIL_HCI_ERROR);
