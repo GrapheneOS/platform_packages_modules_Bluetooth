@@ -154,8 +154,9 @@ public class BluetoothInCallService extends InCallService {
                             setBluetoothHeadset(new BluetoothHeadsetProxy((BluetoothHeadset) proxy));
                             updateHeadsetWithCallState(true /* force */);
                         } else {
-                           setBluetoothLeCallControl(new BluetoothLeCallControlProxy((BluetoothLeCallControl) proxy));
-                           sendTbsCurrentCallsList();
+                            setBluetoothLeCallControl(new BluetoothLeCallControlProxy((
+                                    BluetoothLeCallControl) proxy));
+                            sendTbsCurrentCallsList();
                         }
                     }
                 }
@@ -687,6 +688,7 @@ public class BluetoothInCallService extends InCallService {
         }
         if (mBluetoothLeCallControl != null) {
             mBluetoothLeCallControl.unregisterBearer();
+            mBluetoothLeCallControl.closeBluetoothLeCallControlProxy(this);
         }
         mProfileListener = null;
         sInstance = null;
