@@ -56,11 +56,7 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
   ) {}
   private var mGattInstanceValuesRead = arrayListOf<GattInstanceValueRead>()
 
-  class GattInstanceValueWrote(
-    var uuid: UUID?,
-    var handle: Int,
-    var status: AttStatusCode
-  ) {}
+  class GattInstanceValueWrote(var uuid: UUID?, var handle: Int, var status: AttStatusCode) {}
   private var mGattInstanceValueWrote = GattInstanceValueWrote(null, 0, AttStatusCode.UNKNOWN_ERROR)
 
   companion object GattManager {
@@ -320,7 +316,8 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
       characteristic.getInstanceId(),
       AttStatusCode.UNKNOWN_ERROR
     )
-    if (mGatt.writeCharacteristic(
+    if (
+      mGatt.writeCharacteristic(
         characteristic,
         value,
         BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
@@ -329,7 +326,6 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
       waitForWriteEnd()
     }
     return mGattInstanceValueWrote
-
   }
 
   public suspend fun writeDescriptorBlocking(
@@ -341,15 +337,10 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
       descriptor.getInstanceId(),
       AttStatusCode.UNKNOWN_ERROR
     )
-    if (mGatt.writeDescriptor(
-        descriptor,
-        value
-      ) == BluetoothStatusCodes.SUCCESS
-    ) {
+    if (mGatt.writeDescriptor(descriptor, value) == BluetoothStatusCodes.SUCCESS) {
       waitForWriteEnd()
     }
     return mGattInstanceValueWrote
-
   }
 
   public fun disconnectInstance() {
