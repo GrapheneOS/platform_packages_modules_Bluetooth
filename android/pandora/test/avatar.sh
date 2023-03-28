@@ -20,6 +20,7 @@ _USAGE="avatar [OPTIONS] <COMMAND> ...
                          See 'avatar run --help-all'
     "
 
+_VENV_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/avatar/venv"
 _BT_ROOT="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth"
 _TEST_ROOT="${_BT_ROOT}/android/pandora/test"
 _PY_SOURCES=(
@@ -41,31 +42,33 @@ _PANDORA_PYTHON_PATHS=(
 
 case "$1" in
   'format') shift
-    pip install \
+    python3 -m pip install \
       'black==22.10.0' \
       'isort==5.12.0'
-    black -S -l 119 "$@" "${_PY_SOURCES[@]}"
-    isort --profile black -l 119 --ds --lbt 1 --ca "$@" "${_PY_SOURCES[@]}"
+    python3 -m black -S -l 119 "$@" "${_PY_SOURCES[@]}"
+    python3 -m isort --profile black -l 119 --ds --lbt 1 --ca "$@" "${_PY_SOURCES[@]}"
   ;;
   'lint') shift
-    pip install \
+    python3 -m pip install \
       'grpcio==1.51.1' \
       'protobuf==4.21.0' \
       'pyright==1.1.298' \
       'mypy==1.1.1' \
       'types-protobuf==4.21.0.3'
     export PYTHONPATH="$(IFS=:; echo "${_PANDORA_PYTHON_PATHS[*]}"):${PYTHONPATH}"
-    mypy \
+    python3 -m mypy \
       --pretty --show-column-numbers --strict --no-warn-unused-ignores --ignore-missing-imports \
       "$@" "${_PY_SOURCES[@]}" || exit 1
-    pyright \
+    python3 -m pyright \
       -p "${_TEST_ROOT}" \
       "$@" "${_PY_SOURCES[@]}"
   ;;
   'run') shift
+    [ ! -d "${_VENV_DIR}" ] && python3 -m venv "${_VENV_DIR}"
     tradefed.sh \
       run commandAndExit template/local_min --template:map test=avatar --log-level INFO \
-      "$@"
+        --venv-dir "${_VENV_DIR}" \
+        "$@"
   ;;
   'help'|'--help'|'-h') shift
     echo "${_USAGE}"
