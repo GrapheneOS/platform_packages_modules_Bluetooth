@@ -1088,7 +1088,10 @@ final class RemoteDevices {
                 // Send PAIRING_CANCEL intent to dismiss any dialog requesting bonding.
                 intent = new Intent(BluetoothDevice.ACTION_PAIRING_CANCEL);
                 intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-                intent.setPackage(mAdapterService.getString(R.string.pairing_ui_package));
+                intent.setPackage(SystemProperties.get(
+                        Utils.PAIRING_UI_PROPERTY,
+                        mAdapterService.getString(R.string.pairing_ui_package)));
+
                 Utils.sendBroadcast(mAdapterService, intent, BLUETOOTH_CONNECT,
                         Utils.getTempAllowlistBroadcastOptions());
             } else if (device.getBondState() == BluetoothDevice.BOND_NONE) {
