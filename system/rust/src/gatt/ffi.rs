@@ -22,6 +22,7 @@ use crate::{
 
 use super::{
     arbiter::{self, with_arbiter},
+    callbacks::{GattWriteRequestType, GattWriteType, TransactionDecision},
     channel::AttTransport,
     ids::{AdvertiserId, AttHandle, ConnectionId, ServerId, TransactionId, TransportIndex},
     server::{
@@ -96,6 +97,10 @@ mod inner {
             is_prepare: bool,
             value: &[u8],
         );
+
+        /// This callback is invoked when executing / cancelling a write
+        #[cxx_name = "OnExecute"]
+        fn on_execute(self: &GattServerCallbacks, conn_id: u16, trans_id: u32, execute: bool);
 
         /// This callback is invoked when an indication has been sent and the
         /// peer device has confirmed it, or if some error occurred.
@@ -190,12 +195,15 @@ impl GattCallbacks for GattCallbacksImpl {
         handle: AttHandle,
         attr_type: AttributeBackingType,
         offset: u32,
-        is_long: bool,
     ) {
-        self.0
-            .as_ref()
-            .unwrap()
-            .on_server_read(conn_id.0, trans_id.0, handle.0, attr_type, offset, is_long);
+        self.0.as_ref().unwrap().on_server_read(
+            conn_id.0,
+            trans_id.0,
+            handle.0,
+            attr_type,
+            offset,
+            offset != 0,
+        );
     }
 
     fn on_server_write(
@@ -204,9 +212,7 @@ impl GattCallbacks for GattCallbacksImpl {
         trans_id: TransactionId,
         handle: AttHandle,
         attr_type: AttributeBackingType,
-        offset: u32,
-        need_response: bool,
-        is_prepare: bool,
+        write_type: GattWriteType,
         value: AttAttributeDataView,
     ) {
         self.0.as_ref().unwrap().on_server_write(
@@ -214,9 +220,12 @@ impl GattCallbacks for GattCallbacksImpl {
             trans_id.0,
             handle.0,
             attr_type,
-            offset,
-            need_response,
-            is_prepare,
+            match write_type {
+                GattWriteType::Request(GattWriteRequestType::Prepare { offset }) => offset,
+                _ => 0,
+            },
+            matches!(write_type, GattWriteType::Request { .. }),
+            matches!(write_type, GattWriteType::Request(GattWriteRequestType::Prepare { .. })),
             &value.get_raw_payload().collect::<Vec<_>>(),
         );
     }
@@ -231,6 +240,22 @@ impl GattCallbacks for GattCallbacksImpl {
             match result {
                 Ok(()) => 0, // GATT_SUCCESS
                 _ => 133,    // GATT_ERROR
+            },
+        )
+    }
+
+    fn on_execute(
+        &self,
+        conn_id: ConnectionId,
+        trans_id: TransactionId,
+        decision: TransactionDecision,
+    ) {
+        self.0.as_ref().unwrap().on_execute(
+            conn_id.0,
+            trans_id.0,
+            match decision {
+                TransactionDecision::Execute => true,
+                TransactionDecision::Cancel => false,
             },
         )
     }

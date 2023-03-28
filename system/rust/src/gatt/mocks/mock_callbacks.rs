@@ -2,6 +2,7 @@
 
 use crate::{
     gatt::{
+        callbacks::{GattWriteType, TransactionDecision},
         ffi::AttributeBackingType,
         ids::{AttHandle, ConnectionId, TransactionId},
         server::IndicationError,
@@ -26,20 +27,20 @@ impl MockCallbacks {
 #[derive(Debug)]
 pub enum MockCallbackEvents {
     /// GattCallbacks#on_server_read_characteristic invoked
-    OnServerRead(ConnectionId, TransactionId, AttHandle, AttributeBackingType, u32, bool),
+    OnServerRead(ConnectionId, TransactionId, AttHandle, AttributeBackingType, u32),
     /// GattCallbacks#on_server_write_characteristic invoked
     OnServerWrite(
         ConnectionId,
         TransactionId,
         AttHandle,
         AttributeBackingType,
-        u32,
-        bool,
-        bool,
+        GattWriteType,
         OwnedAttAttributeDataView,
     ),
     /// GattCallbacks#on_indication_sent_confirmation invoked
     OnIndicationSentConfirmation(ConnectionId, Result<(), IndicationError>),
+    /// GattCallbacks#on_execute invoked
+    OnExecute(ConnectionId, TransactionId, TransactionDecision),
 }
 
 impl GattCallbacks for MockCallbacks {
@@ -50,12 +51,9 @@ impl GattCallbacks for MockCallbacks {
         handle: AttHandle,
         attr_type: AttributeBackingType,
         offset: u32,
-        is_long: bool,
     ) {
         self.0
-            .send(MockCallbackEvents::OnServerRead(
-                conn_id, trans_id, handle, attr_type, offset, is_long,
-            ))
+            .send(MockCallbackEvents::OnServerRead(conn_id, trans_id, handle, attr_type, offset))
             .unwrap();
     }
 
@@ -65,9 +63,7 @@ impl GattCallbacks for MockCallbacks {
         trans_id: TransactionId,
         handle: AttHandle,
         attr_type: AttributeBackingType,
-        offset: u32,
-        need_response: bool,
-        is_prepare: bool,
+        write_type: GattWriteType,
         value: AttAttributeDataView,
     ) {
         self.0
@@ -76,9 +72,7 @@ impl GattCallbacks for MockCallbacks {
                 trans_id,
                 handle,
                 attr_type,
-                offset,
-                need_response,
-                is_prepare,
+                write_type,
                 value.to_owned_packet(),
             ))
             .unwrap();
@@ -90,5 +84,14 @@ impl GattCallbacks for MockCallbacks {
         result: Result<(), IndicationError>,
     ) {
         self.0.send(MockCallbackEvents::OnIndicationSentConfirmation(conn_id, result)).unwrap();
+    }
+
+    fn on_execute(
+        &self,
+        conn_id: ConnectionId,
+        trans_id: TransactionId,
+        decision: TransactionDecision,
+    ) {
+        self.0.send(MockCallbackEvents::OnExecute(conn_id, trans_id, decision)).unwrap()
     }
 }
