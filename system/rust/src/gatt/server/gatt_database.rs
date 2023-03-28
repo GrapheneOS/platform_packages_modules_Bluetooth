@@ -14,7 +14,7 @@ use crate::{
         uuid::Uuid,
     },
     gatt::{
-        callbacks::GattDatastore,
+        callbacks::{GattWriteRequestType, RawGattDatastore},
         ffi::AttributeBackingType,
         ids::{AttHandle, ConnectionId},
     },
@@ -99,8 +99,8 @@ struct GattDatabaseSchema {
 #[derive(Clone)]
 enum AttAttributeBackingValue {
     Static(AttAttributeDataChild),
-    DynamicCharacteristic(Rc<dyn GattDatastore>),
-    DynamicDescriptor(Rc<dyn GattDatastore>),
+    DynamicCharacteristic(Rc<dyn RawGattDatastore>),
+    DynamicDescriptor(Rc<dyn RawGattDatastore>),
 }
 
 #[derive(Clone)]
@@ -166,7 +166,7 @@ impl GattDatabase {
     pub fn add_service_with_handles(
         &self,
         service: GattServiceWithHandle,
-        datastore: Rc<dyn GattDatastore>,
+        datastore: Rc<dyn RawGattDatastore>,
     ) -> Result<()> {
         let mut attributes = BTreeMap::new();
         let mut attribute_cnt = 0;
@@ -360,10 +360,24 @@ impl AttDatabase for AttDatabaseImpl {
         match value {
             AttAttributeBackingValue::Static(val) => return Ok(val),
             AttAttributeBackingValue::DynamicCharacteristic(datastore) => {
-                datastore.read(self.conn_id, handle, AttributeBackingType::Characteristic).await
+                datastore
+                    .read(
+                        self.conn_id,
+                        handle,
+                        /* offset */ 0,
+                        AttributeBackingType::Characteristic,
+                    )
+                    .await
             }
             AttAttributeBackingValue::DynamicDescriptor(datastore) => {
-                datastore.read(self.conn_id, handle, AttributeBackingType::Descriptor).await
+                datastore
+                    .read(
+                        self.conn_id,
+                        handle,
+                        /* offset */ 0,
+                        AttributeBackingType::Descriptor,
+                    )
+                    .await
             }
         }
     }
@@ -395,11 +409,25 @@ impl AttDatabase for AttDatabaseImpl {
             }
             AttAttributeBackingValue::DynamicCharacteristic(datastore) => {
                 datastore
-                    .write(self.conn_id, handle, AttributeBackingType::Characteristic, data)
+                    .write(
+                        self.conn_id,
+                        handle,
+                        AttributeBackingType::Characteristic,
+                        GattWriteRequestType::Request,
+                        data,
+                    )
                     .await
             }
             AttAttributeBackingValue::DynamicDescriptor(datastore) => {
-                datastore.write(self.conn_id, handle, AttributeBackingType::Descriptor, data).await
+                datastore
+                    .write(
+                        self.conn_id,
+                        handle,
+                        AttributeBackingType::Descriptor,
+                        GattWriteRequestType::Request,
+                        data,
+                    )
+                    .await
             }
         }
     }

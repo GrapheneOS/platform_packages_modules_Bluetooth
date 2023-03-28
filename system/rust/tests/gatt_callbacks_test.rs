@@ -4,7 +4,10 @@ use std::{rc::Rc, time::Duration};
 
 use bluetooth_core::{
     gatt::{
-        callbacks::{CallbackResponseError, CallbackTransactionManager, GattDatastore},
+        callbacks::{
+            CallbackResponseError, CallbackTransactionManager, GattWriteRequestType, GattWriteType,
+            RawGattDatastore, TransactionDecision,
+        },
         ffi::AttributeBackingType,
         ids::{AttHandle, ConnectionId, ServerId, TransactionId, TransportIndex},
         mocks::mock_callbacks::{MockCallbackEvents, MockCallbacks},
@@ -23,6 +26,9 @@ const CONN_ID: ConnectionId = ConnectionId::new(TCB_IDX, SERVER_ID);
 const HANDLE_1: AttHandle = AttHandle(3);
 const BACKING_TYPE: AttributeBackingType = AttributeBackingType::Descriptor;
 
+const OFFSET: u32 = 12;
+const WRITE_REQUEST_TYPE: GattWriteRequestType = GattWriteRequestType::Prepare { offset: 7 };
+
 fn initialize_manager_with_connection(
 ) -> (Rc<CallbackTransactionManager>, UnboundedReceiver<MockCallbackEvents>) {
     let (callbacks, callbacks_rx) = MockCallbacks::new();
@@ -32,8 +38,9 @@ fn initialize_manager_with_connection(
 
 async fn pull_trans_id(events_rx: &mut UnboundedReceiver<MockCallbackEvents>) -> TransactionId {
     match events_rx.recv().await.unwrap() {
-        MockCallbackEvents::OnServerRead(_, trans_id, _, _, _, _) => trans_id,
-        MockCallbackEvents::OnServerWrite(_, trans_id, _, _, _, _, _, _) => trans_id,
+        MockCallbackEvents::OnServerRead(_, trans_id, _, _, _) => trans_id,
+        MockCallbackEvents::OnServerWrite(_, trans_id, _, _, _, _) => trans_id,
+        MockCallbackEvents::OnExecute(_, trans_id, _) => trans_id,
         _ => unimplemented!(),
     }
 }
@@ -45,11 +52,13 @@ fn test_read_characteristic_callback() {
         let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
 
         // act: start read operation
-        spawn_local(async move { callback_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        spawn_local(
+            async move { callback_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await },
+        );
 
         // assert: verify the read callback is received
         let MockCallbackEvents::OnServerRead(
-            CONN_ID, _, HANDLE_1, BACKING_TYPE, 0, false,
+            CONN_ID, _, HANDLE_1, BACKING_TYPE, OFFSET,
         ) = callbacks_rx.recv().await.unwrap() else {
           unreachable!()
         };
@@ -65,8 +74,9 @@ fn test_read_characteristic_response() {
 
         // act: start read operation
         let cloned_manager = callback_manager.clone();
-        let pending_read =
-            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        let pending_read = spawn_local(async move {
+            cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await
+        });
         // provide a response
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         callback_manager.send_response(CONN_ID, trans_id, data.clone()).unwrap();
@@ -86,16 +96,18 @@ fn test_sequential_reads() {
 
         // act: start read operation
         let cloned_manager = callback_manager.clone();
-        let pending_read_1 =
-            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        let pending_read_1 = spawn_local(async move {
+            cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await
+        });
         // respond to first
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         callback_manager.send_response(CONN_ID, trans_id, data1.clone()).unwrap();
 
         // do a second read operation
         let cloned_manager = callback_manager.clone();
-        let pending_read_2 =
-            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        let pending_read_2 = spawn_local(async move {
+            cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await
+        });
         // respond to second
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         callback_manager.send_response(CONN_ID, trans_id, data2.clone()).unwrap();
@@ -116,13 +128,15 @@ fn test_concurrent_reads() {
 
         // act: start read operation
         let cloned_manager = callback_manager.clone();
-        let pending_read_1 =
-            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        let pending_read_1 = spawn_local(async move {
+            cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await
+        });
 
         // do a second read operation
         let cloned_manager = callback_manager.clone();
-        let pending_read_2 =
-            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        let pending_read_2 = spawn_local(async move {
+            cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await
+        });
 
         // respond to first
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
@@ -146,9 +160,13 @@ fn test_distinct_transaction_ids() {
 
         // act: start two read operations concurrently
         let cloned_manager = callback_manager.clone();
-        spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        spawn_local(
+            async move { cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await },
+        );
         let cloned_manager = callback_manager.clone();
-        spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        spawn_local(
+            async move { cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await },
+        );
 
         // pull both trans_ids
         let trans_id_1 = pull_trans_id(&mut callbacks_rx).await;
@@ -168,7 +186,9 @@ fn test_invalid_trans_id() {
 
         // act: start a read operation
         let cloned_manager = callback_manager.clone();
-        spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        spawn_local(
+            async move { cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await },
+        );
         // respond with the correct conn_id but an invalid trans_id
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         let invalid_trans_id = TransactionId(trans_id.0 + 1);
@@ -190,12 +210,14 @@ fn test_write_characteristic_callback() {
             build_view_or_crash(build_att_data(AttAttributeDataChild::RawData([1, 2].into())));
         let cloned_data = data.view().to_owned_packet();
         spawn_local(async move {
-            callback_manager.write(CONN_ID, HANDLE_1, BACKING_TYPE, cloned_data.view()).await
+            callback_manager
+                .write(CONN_ID, HANDLE_1, BACKING_TYPE, WRITE_REQUEST_TYPE, cloned_data.view())
+                .await
         });
 
         // assert: verify the write callback is received
         let MockCallbackEvents::OnServerWrite(
-            CONN_ID, _, HANDLE_1, BACKING_TYPE, 0, /* needs_response = */ true, false, recv_data
+            CONN_ID, _, HANDLE_1, BACKING_TYPE, GattWriteType::Request(WRITE_REQUEST_TYPE), recv_data
         ) = callbacks_rx.recv().await.unwrap() else {
           unreachable!()
         };
@@ -217,7 +239,9 @@ fn test_write_characteristic_response() {
             build_view_or_crash(build_att_data(AttAttributeDataChild::RawData([1, 2].into())));
         let cloned_manager = callback_manager.clone();
         let pending_write = spawn_local(async move {
-            cloned_manager.write(CONN_ID, HANDLE_1, BACKING_TYPE, data.view()).await
+            cloned_manager
+                .write(CONN_ID, HANDLE_1, BACKING_TYPE, GattWriteRequestType::Request, data.view())
+                .await
         });
         // provide a response with some error code
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
@@ -238,10 +262,9 @@ fn test_response_timeout() {
 
         // act: start operation
         let time_sent = Instant::now();
-        let pending_write =
-            spawn_local(
-                async move { callback_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await },
-            );
+        let pending_write = spawn_local(async move {
+            callback_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await
+        });
 
         // assert: that we time-out after 15s
         assert_eq!(pending_write.await.unwrap(), Err(AttErrorCode::UNLIKELY_ERROR));
@@ -259,8 +282,9 @@ fn test_transaction_cleanup_after_timeout() {
 
         // act: start an operation
         let cloned_manager = callback_manager.clone();
-        let pending =
-            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        let pending = spawn_local(async move {
+            cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await
+        });
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         // let it time out
         assert_eq!(pending.await.unwrap(), Err(AttErrorCode::UNLIKELY_ERROR));
@@ -281,8 +305,9 @@ fn test_listener_hang_up() {
 
         // act: start an operation
         let cloned_manager = callback_manager.clone();
-        let pending =
-            spawn_local(async move { cloned_manager.read(CONN_ID, HANDLE_1, BACKING_TYPE).await });
+        let pending = spawn_local(async move {
+            cloned_manager.read(CONN_ID, HANDLE_1, OFFSET, BACKING_TYPE).await
+        });
         let trans_id = pull_trans_id(&mut callbacks_rx).await;
         // cancel the listener, wait for it to stop
         pending.abort();
@@ -293,5 +318,71 @@ fn test_listener_hang_up() {
 
         // assert: we get the expected error
         assert_eq!(resp, Err(CallbackResponseError::ListenerHungUp(trans_id)));
+    });
+}
+
+#[test]
+fn test_write_no_response_callback() {
+    start_test(async {
+        // arrange
+        let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
+
+        // act: start write_no_response operation
+        let data =
+            build_view_or_crash(build_att_data(AttAttributeDataChild::RawData([1, 2].into())));
+        callback_manager.write_no_response(CONN_ID, HANDLE_1, BACKING_TYPE, data.view());
+
+        // assert: verify the write callback is received
+        let MockCallbackEvents::OnServerWrite(
+            CONN_ID, _, HANDLE_1, BACKING_TYPE, GattWriteType::Command, recv_data
+        ) = callbacks_rx.recv().await.unwrap() else {
+          unreachable!()
+        };
+        assert_eq!(
+            recv_data.view().get_raw_payload().collect::<Vec<_>>(),
+            data.view().get_raw_payload().collect::<Vec<_>>()
+        );
+    });
+}
+
+#[test]
+fn test_execute_characteristic_callback() {
+    start_test(async {
+        // arrange
+        let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
+
+        // act: start execute operation
+        spawn_local(
+            async move { callback_manager.execute(CONN_ID, TransactionDecision::Cancel).await },
+        );
+
+        // assert: verify the execute callback is received
+        let MockCallbackEvents::OnExecute(
+            CONN_ID, _, TransactionDecision::Cancel
+        ) = callbacks_rx.recv().await.unwrap() else {
+          unreachable!()
+        };
+    });
+}
+
+#[test]
+fn test_execute_characteristic_response() {
+    start_test(async {
+        // arrange
+        let (callback_manager, mut callbacks_rx) = initialize_manager_with_connection();
+
+        // act: start execute operation
+        let cloned_manager = callback_manager.clone();
+        let pending_execute = spawn_local(async move {
+            cloned_manager.execute(CONN_ID, TransactionDecision::Cancel).await
+        });
+        // provide a response with some error code
+        let trans_id = pull_trans_id(&mut callbacks_rx).await;
+        callback_manager
+            .send_response(CONN_ID, trans_id, Err(AttErrorCode::WRITE_NOT_PERMITTED))
+            .unwrap();
+
+        // assert: that the error code was received
+        assert_eq!(pending_execute.await.unwrap(), Err(AttErrorCode::WRITE_NOT_PERMITTED));
     });
 }
