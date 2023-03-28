@@ -27,15 +27,17 @@ import android.content.IntentFilter
 import android.media.*
 import android.net.MacAddress
 import android.os.ParcelFileDescriptor
-import android.os.ParcelUuid
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.protobuf.Any
 import com.google.protobuf.ByteString
+import io.grpc.Status
 import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.concurrent.CancellationException
 import java.util.stream.Collectors
 import kotlinx.coroutines.CoroutineScope
@@ -103,7 +105,7 @@ fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
  * @param scope coroutine scope used to run the coroutine.
  * @param responseObserver the gRPC stream observer on which to send the response.
  * @param timeout the duration in seconds after which the coroutine is automatically cancelled and
- * returns a timeout error. Default: 60s.
+ *   returns a timeout error. Default: 60s.
  * @param block the suspended function to execute to get the response.
  * @return reference to the coroutine as a Job.
  *
@@ -133,7 +135,11 @@ fun <T> grpcUnary(
       responseObserver.onCompleted()
     } catch (e: Throwable) {
       e.printStackTrace()
-      responseObserver.onError(e)
+      val sw = StringWriter()
+      e.printStackTrace(PrintWriter(sw))
+      responseObserver.onError(
+        Status.UNKNOWN.withCause(e).withDescription(sw.toString()).asException()
+      )
     }
   }
 }
@@ -181,7 +187,11 @@ fun <T, U> grpcBidirectionalStream(
         }
         .catch {
           it.printStackTrace()
-          responseObserver.onError(it)
+          val sw = StringWriter()
+          it.printStackTrace(PrintWriter(sw))
+          responseObserver.onError(
+            Status.UNKNOWN.withCause(it).withDescription(sw.toString()).asException()
+          )
         }
         .launchIn(this)
     }
@@ -208,6 +218,11 @@ fun <T, U> grpcBidirectionalStream(
     override fun onError(e: Throwable) {
       job.cancel()
       e.printStackTrace()
+      val sw = StringWriter()
+      e.printStackTrace(PrintWriter(sw))
+      responseObserver.onError(
+        Status.UNKNOWN.withCause(e).withDescription(sw.toString()).asException()
+      )
     }
   }
 }
@@ -254,7 +269,11 @@ fun <T> grpcServerStream(
         }
         .catch {
           it.printStackTrace()
-          responseObserver.onError(it)
+          val sw = StringWriter()
+          it.printStackTrace(PrintWriter(sw))
+          responseObserver.onError(
+            Status.UNKNOWN.withCause(it).withDescription(sw.toString()).asException()
+          )
         }
         .launchIn(this)
     }
