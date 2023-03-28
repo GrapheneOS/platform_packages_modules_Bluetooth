@@ -79,7 +79,8 @@ class MediaPlayerBrowserService : MediaBrowserService() {
   }
 
   fun play() {
-    if (currentTrack == -1 || currentTrack == QUEUE_SIZE) currentTrack = QUEUE_START_INDEX else currentTrack += 1
+    if (currentTrack == -1 || currentTrack == QUEUE_SIZE) currentTrack = QUEUE_START_INDEX
+    else currentTrack += 1
     setPlaybackState(PlaybackState.STATE_PLAYING)
     mediaSession.setMetadata(metadataItems.get("" + currentTrack))
   }
@@ -102,14 +103,16 @@ class MediaPlayerBrowserService : MediaBrowserService() {
   }
 
   fun forward() {
-    if (currentTrack == QUEUE_SIZE || currentTrack == -1) currentTrack = QUEUE_START_INDEX else currentTrack += 1
+    if (currentTrack == QUEUE_SIZE || currentTrack == -1) currentTrack = QUEUE_START_INDEX
+    else currentTrack += 1
     setPlaybackState(PlaybackState.STATE_SKIPPING_TO_NEXT)
     mediaSession.setMetadata(metadataItems.get("" + currentTrack))
     setPlaybackState(PlaybackState.STATE_PLAYING)
   }
 
   fun backward() {
-    if (currentTrack == QUEUE_START_INDEX || currentTrack == -1) currentTrack = QUEUE_SIZE else currentTrack -= 1
+    if (currentTrack == QUEUE_START_INDEX || currentTrack == -1) currentTrack = QUEUE_SIZE
+    else currentTrack -= 1
     setPlaybackState(PlaybackState.STATE_SKIPPING_TO_PREVIOUS)
     mediaSession.setMetadata(metadataItems.get("" + currentTrack))
     setPlaybackState(PlaybackState.STATE_PLAYING)
@@ -190,8 +193,14 @@ class MediaPlayerBrowserService : MediaBrowserService() {
         MediaMetadata.Builder()
           .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, NOW_PLAYING_PREFIX + item)
           .putString(MediaMetadata.METADATA_KEY_TITLE, "Title$item")
-          .putString(MediaMetadata.METADATA_KEY_ARTIST, if (item != QUEUE_SIZE) "Artist$item" else generateAlphanumericString(512))
-          .putString(MediaMetadata.METADATA_KEY_ALBUM, if (item != QUEUE_SIZE) "Album$item" else generateAlphanumericString(512))
+          .putString(
+            MediaMetadata.METADATA_KEY_ARTIST,
+            if (item != QUEUE_SIZE) "Artist$item" else generateAlphanumericString(512)
+          )
+          .putString(
+            MediaMetadata.METADATA_KEY_ALBUM,
+            if (item != QUEUE_SIZE) "Album$item" else generateAlphanumericString(512)
+          )
           .putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, item.toLong())
           .putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, QUEUE_SIZE.toLong())
           .build()
@@ -252,6 +261,6 @@ class MediaPlayerBrowserService : MediaBrowserService() {
     const val QUEUE_SIZE = 6
     const val NEW_QUEUE_ITEM_INDEX = 7
 
-    fun isInitialized() : Boolean = this::instance.isInitialized
+    fun isInitialized(): Boolean = this::instance.isInitialized
   }
 }

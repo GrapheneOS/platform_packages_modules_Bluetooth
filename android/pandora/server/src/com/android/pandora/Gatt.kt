@@ -26,7 +26,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
-import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import java.io.Closeable
 import java.util.UUID
@@ -77,8 +76,7 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
       val mtu = request.mtu
       Log.i(TAG, "exchangeMTU MTU=$mtu")
       if (!GattInstance.get(request.connection.address).mGatt.requestMtu(mtu)) {
-        Log.e(TAG, "Error on requesting MTU $mtu")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Error on requesting MTU $mtu")
       }
       ExchangeMTUResponse.newBuilder().build()
     }
@@ -383,8 +381,7 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
 
   private suspend fun tryDiscoverServices(gattInstance: GattInstance) {
     if (!gattInstance.servicesDiscovered() && !gattInstance.mGatt.discoverServices()) {
-      Log.e(TAG, "Error on discovering services for $gattInstance")
-      throw Status.UNKNOWN.asException()
+      throw RuntimeException("Error on discovering services for $gattInstance")
     } else {
       gattInstance.waitForDiscoveryEnd()
     }
