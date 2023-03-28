@@ -153,6 +153,40 @@ public class TbsGatt {
     private HashMap<BluetoothDevice, HashMap<UUID, Short>> mCccDescriptorValues;
     private TbsService mTbsService;
 
+    private static String tbsUuidToString(UUID uuid) {
+        if (uuid.equals(UUID_BEARER_PROVIDER_NAME)) {
+            return "BEARER_PROVIDER_NAME";
+        } else if (uuid.equals(UUID_BEARER_UCI)) {
+            return "BEARER_UCI";
+        } else if (uuid.equals(UUID_BEARER_TECHNOLOGY)) {
+            return "BEARER_TECHNOLOGY";
+        } else if (uuid.equals(UUID_BEARER_URI_SCHEMES_SUPPORTED_LIST)) {
+            return "BEARER_URI_SCHEMES_SUPPORTED_LIST";
+        } else if (uuid.equals(UUID_BEARER_LIST_CURRENT_CALLS)) {
+            return "BEARER_LIST_CURRENT_CALLS";
+        } else if (uuid.equals(UUID_CONTENT_CONTROL_ID)) {
+            return "CONTENT_CONTROL_ID";
+        } else if (uuid.equals(UUID_STATUS_FLAGS)) {
+            return "STATUS_FLAGS";
+        } else if (uuid.equals(UUID_CALL_STATE)) {
+            return "CALL_STATE";
+        } else if (uuid.equals(UUID_CALL_CONTROL_POINT)) {
+            return "CALL_CONTROL_POINT";
+        } else if (uuid.equals(UUID_CALL_CONTROL_POINT_OPTIONAL_OPCODES)) {
+            return "CALL_CONTROL_POINT_OPTIONAL_OPCODES";
+        } else if (uuid.equals(UUID_TERMINATION_REASON)) {
+            return "TERMINATION_REASON";
+        } else if (uuid.equals(UUID_INCOMING_CALL)) {
+            return "INCOMING_CALL";
+        } else if (uuid.equals(UUID_CALL_FRIENDLY_NAME)) {
+            return "CALL_FRIENDLY_NAME";
+        } else if (uuid.equals(UUID_CLIENT_CHARACTERISTIC_CONFIGURATION)) {
+            return "CLIENT_CHARACTERISTIC_CONFIGURATION";
+        } else {
+            return "UNKNOWN(" + uuid + ")";
+        }
+    }
+
     public static abstract class Callback {
 
         public abstract void onServiceAdded(boolean success);
@@ -1080,4 +1114,17 @@ public class TbsGatt {
             }
         }
     };
+
+    public void dump(StringBuilder sb) {
+        sb.append("\n\tSilent mode: " + mSilentMode);
+
+        for (Map.Entry<BluetoothDevice, HashMap<UUID, Short>> deviceEntry
+                : mCccDescriptorValues.entrySet()) {
+            sb.append("\n\tCCC states for device: " + deviceEntry.getKey());
+            for (Map.Entry<UUID, Short> entry : deviceEntry.getValue().entrySet()) {
+                sb.append("\n\t\tCharacteristic: " + tbsUuidToString(entry.getKey()) + ", value: "
+                        + Utils.cccIntToStr(entry.getValue()));
+            }
+        }
+    }
 }
