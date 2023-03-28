@@ -52,6 +52,7 @@ const acl_interface_t& GetAclInterface() {
       .on_packets_completed = acl_packets_completed,
 
       .connection.classic.on_connected = on_acl_br_edr_connected,
+      .connection.classic.on_connect_request = btm_connection_request,
       .connection.classic.on_failed = on_acl_br_edr_failed,
       .connection.classic.on_disconnected = btm_acl_disconnected,
 
