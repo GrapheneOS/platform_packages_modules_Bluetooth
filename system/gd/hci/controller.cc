@@ -178,6 +178,13 @@ struct Controller::impl {
           handler->BindOnceOn(this, &Controller::impl::le_set_host_feature_handler));
     }
 
+    if (is_supported(OpCode::READ_DEFAULT_ERRONEOUS_DATA_REPORTING)) {
+      hci_->EnqueueCommand(
+          ReadDefaultErroneousDataReportingBuilder::Create(),
+          handler->BindOnceOn(
+              this, &Controller::impl::read_default_erroneous_data_reporting_handler));
+    }
+
     // Skip vendor capabilities check if configured.
     if (os::GetSystemPropertyBool(
             kPropertyVendorCapabilitiesEnabled, kDefaultVendorCapabilitiesEnabled)) {
@@ -379,6 +386,35 @@ struct Controller::impl {
     ASSERT(complete_view.IsValid());
     ErrorCode status = complete_view.GetStatus();
     ASSERT_LOG(status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
+  }
+
+  void read_default_erroneous_data_reporting_handler(CommandCompleteView view) {
+    auto complete_view = ReadDefaultErroneousDataReportingCompleteView::Create(view);
+    ASSERT(complete_view.IsValid());
+    ErrorCode status = complete_view.GetStatus();
+    ASSERT_LOG(
+        status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
+    Enable erroneous_data_reporting = complete_view.GetErroneousDataReporting();
+    LOG_INFO("read default erroneous data reporting: %hhu", erroneous_data_reporting);
+
+    // Enable Erroneous Data Reporting if it is disabled and the write command is supported.
+    if (erroneous_data_reporting == Enable::DISABLED &&
+        is_supported(OpCode::WRITE_DEFAULT_ERRONEOUS_DATA_REPORTING)) {
+      std::unique_ptr<WriteDefaultErroneousDataReportingBuilder> packet =
+          WriteDefaultErroneousDataReportingBuilder::Create(Enable::ENABLED);
+      hci_->EnqueueCommand(
+          std::move(packet),
+          module_.GetHandler()->BindOnceOn(
+              this, &Controller::impl::write_default_erroneous_data_reporting_handler));
+    }
+  }
+
+  void write_default_erroneous_data_reporting_handler(CommandCompleteView view) {
+    auto complete_view = WriteDefaultErroneousDataReportingCompleteView::Create(view);
+    ASSERT(complete_view.IsValid());
+    ErrorCode status = complete_view.GetStatus();
+    ASSERT_LOG(
+        status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
   }
 
   void le_read_local_supported_features_handler(CommandCompleteView view) {
