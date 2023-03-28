@@ -40,8 +40,8 @@
 #endif
 
 void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
-                             uint16_t handle, bool enhanced, tHCI_STATUS status,
-                             bool locally_initiated) {
+                             uint16_t handle, bool enhanced,
+                             tHCI_STATUS status) {
   inc_func_call_count(__func__);
 }
 void acl_ble_enhanced_connection_complete(
