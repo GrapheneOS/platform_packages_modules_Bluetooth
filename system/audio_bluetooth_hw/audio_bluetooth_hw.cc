@@ -39,7 +39,8 @@ static int adev_set_parameters(struct audio_hw_device* dev,
 
   LOG(VERBOSE) << __func__ << ": ParamsMap=[" << GetAudioParamString(params)
                << "]";
-  if (params.find("A2dpSuspended") == params.end()) {
+  if (params.find("A2dpSuspended") == params.end() &&
+      params.find("LeAudioSuspended") == params.end()) {
     return -ENOSYS;
   }
 

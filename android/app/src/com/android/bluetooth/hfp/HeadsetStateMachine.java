@@ -1113,8 +1113,10 @@ public class HeadsetStateMachine extends StateMachine {
                 case CONNECT_AUDIO:
                     stateLogD("CONNECT_AUDIO, device=" + mDevice);
                     mSystemInterface.getAudioManager().setA2dpSuspended(true);
+                    mSystemInterface.getAudioManager().setLeAudioSuspended(true);
                     if (!mNativeInterface.connectAudio(mDevice)) {
                         mSystemInterface.getAudioManager().setA2dpSuspended(false);
+                        mSystemInterface.getAudioManager().setLeAudioSuspended(false);
                         stateLogE("Failed to connect SCO audio for " + mDevice);
                         // No state change involved, fire broadcast immediately
                         broadcastAudioState(mDevice, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
