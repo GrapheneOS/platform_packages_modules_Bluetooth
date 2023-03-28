@@ -1849,6 +1849,7 @@ public class HeadsetService extends ProfileService {
             if (mActiveDevice != null && callState != HeadsetHalConstants.CALL_STATE_DISCONNECTED
                     && !mSystemInterface.isCallIdle() && isCallIdleBefore) {
                 mSystemInterface.getAudioManager().setA2dpSuspended(true);
+                mSystemInterface.getAudioManager().setLeAudioSuspended(true);
             }
         });
         doForEachConnectedStateMachine(
@@ -1859,6 +1860,7 @@ public class HeadsetService extends ProfileService {
                     && mSystemInterface.isCallIdle() && !isAudioOn()) {
                 // Resume A2DP when call ended and SCO is not connected
                 mSystemInterface.getAudioManager().setA2dpSuspended(false);
+                mSystemInterface.getAudioManager().setLeAudioSuspended(false);
             }
         });
         if (callState == HeadsetHalConstants.CALL_STATE_IDLE) {
@@ -2094,6 +2096,7 @@ public class HeadsetService extends ProfileService {
                 // Unsuspend A2DP when SCO connection is gone and call state is idle
                 if (mSystemInterface.isCallIdle()) {
                     mSystemInterface.getAudioManager().setA2dpSuspended(false);
+                    mSystemInterface.getAudioManager().setLeAudioSuspended(false);
                 }
             }
         }
