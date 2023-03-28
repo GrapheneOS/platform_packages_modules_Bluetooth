@@ -254,6 +254,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: btifCommonIncludes,
@@ -323,6 +324,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: btifCommonIncludes,
@@ -345,11 +347,6 @@ cc_test {
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
-    target: {
-        android: {
-            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        },
-    },
 }
 
 // btif rc unit tests for target
@@ -358,6 +355,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -388,11 +386,6 @@ cc_test {
         cfi: true,
         misc_undefined: ["bounds"],
     },
-    target: {
-        android: {
-            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        },
-    },
 }
 
 // btif config cache unit tests for target
@@ -401,6 +394,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -431,7 +425,6 @@ cc_test {
             static_libs: [
                 "android.system.suspend.control-V1-ndk",
             ],
-            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
         },
     },
 }
@@ -442,6 +435,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: btifCommonIncludes,
@@ -460,11 +454,6 @@ cc_test {
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
-    target: {
-        android: {
-            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
-        },
-    },
 }
 
 cc_test {
@@ -473,6 +462,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: [
@@ -580,7 +570,6 @@ cc_test {
                 "libbinder_ndk",
                 "android.hardware.bluetooth.audio-V3-ndk",
             ],
-            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
         },
     },
     sanitize: {
@@ -597,6 +586,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     include_dirs: [
@@ -703,7 +693,6 @@ cc_test {
                 "libbinder_ndk",
                 "android.hardware.bluetooth.audio-V3-ndk",
             ],
-            test_config_template: ":BluetoothGTestNotShardableConfigTemplate",
         },
     },
     sanitize: {

@@ -49,6 +49,7 @@ cc_test {
         "clang_coverage_bin",
         "libchrome_support_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     test_options: {
