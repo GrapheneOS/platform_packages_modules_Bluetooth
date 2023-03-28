@@ -67,8 +67,3 @@ filegroup {
         "AndroidTestTemplate.xml",
     ],
 }
-
-filegroup {
-    name: "BluetoothGTestNotShardableConfigTemplate",
-    srcs: ["AndroidGtestNotShardableTemplate.xml"],
-}
