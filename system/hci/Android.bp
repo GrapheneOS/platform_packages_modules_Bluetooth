@@ -65,6 +65,7 @@ cc_test {
         "fluoride_basic_defaults",
         "fluoride_test_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: false,
     local_include_dirs: [
@@ -99,6 +100,7 @@ cc_test {
     defaults: [
         "fluoride_unit_test_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: [
         "include",
