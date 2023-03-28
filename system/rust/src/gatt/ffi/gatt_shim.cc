@@ -121,5 +121,19 @@ void GattServerCallbacks::OnIndicationSentConfirmation(uint16_t conn_id,
                    base::Bind(callbacks.indication_sent_cb, conn_id, status));
 }
 
+void GattServerCallbacks::OnExecute(uint16_t conn_id, uint32_t trans_id,
+                                    bool execute) const {
+  auto addr = AddressOfConnection(conn_id);
+  if (!addr.has_value()) {
+    LOG_WARN("Dropping server execute write since connection %d not found",
+             conn_id);
+    return;
+  }
+
+  do_in_jni_thread(
+      FROM_HERE, base::Bind(callbacks.request_exec_write_cb, conn_id, trans_id,
+                            addr.value(), execute));
+}
+
 }  // namespace gatt
 }  // namespace bluetooth
