@@ -41,6 +41,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/btm/security_device_record.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_client_interface.h"
+#include "types/class_of_device.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
@@ -829,6 +830,20 @@ struct btm_acl_connected {
   };
 };
 extern struct btm_acl_connected btm_acl_connected;
+// Name: btm_connection_request
+// Params: const RawAddress& bda, const bluetooth::types::ClassOfDevice& cod
+// Returns: void
+struct btm_connection_request {
+  std::function<void(const RawAddress& bda,
+                     const bluetooth::types::ClassOfDevice& cod)>
+      body{[](const RawAddress& bda,
+              const bluetooth::types::ClassOfDevice& cod) { ; }};
+  void operator()(const RawAddress& bda,
+                  const bluetooth::types::ClassOfDevice& cod) {
+    body(bda, cod);
+  };
+};
+extern struct btm_acl_connection_request btm_acl_connection_request;
 // Name: btm_acl_connection_request
 // Params: const RawAddress& bda, uint8_t* dc
 // Returns: void

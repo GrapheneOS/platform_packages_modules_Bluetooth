@@ -36,6 +36,8 @@ namespace legacy {
 typedef struct {
   void (*on_connected)(const RawAddress& bda, uint16_t handle,
                        uint8_t enc_mode);
+  void (*on_connect_request)(const RawAddress& bda,
+                             const types::ClassOfDevice&);
   void (*on_failed)(const RawAddress& bda, tHCI_STATUS status);
   void (*on_disconnected)(tHCI_STATUS status, uint16_t handle,
                           tHCI_STATUS reason);
