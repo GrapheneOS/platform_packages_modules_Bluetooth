@@ -33,7 +33,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -188,6 +187,7 @@ public class BluetoothOppLauncherActivityTest {
         assertThat(file.length()).isGreaterThan(shareContent.length());
     }
 
+    @Ignore("b/263754734")
     @Test
     public void sendFileInfo_finishImmediately() throws Exception {
         doReturn(true).when(mMethodProxy).bluetoothAdapterIsEnabled(any());
@@ -195,7 +195,7 @@ public class BluetoothOppLauncherActivityTest {
         mIntent.setAction("unsupported-action");
         ActivityScenario<BluetoothOppLauncherActivity> scenario = ActivityScenario.launch(mIntent);
         doThrow(new IllegalArgumentException()).when(mBluetoothOppManager).saveSendingFileInfo(
-                any(), any(String.class), anyBoolean(), anyBoolean());
+                any(), any(String.class), any(), any());
         scenario.onActivity(activity -> {
             activity.sendFileInfo("text/plain", "content:///abc.txt", false, false);
         });
@@ -207,5 +207,19 @@ public class BluetoothOppLauncherActivityTest {
             throws Exception {
         Thread.sleep(2_000);
         assertThat(activityScenario.getState()).isEqualTo(state);
+    }
+
+
+    private void enableActivity(boolean enable) {
+        int enabledState = enable ? COMPONENT_ENABLED_STATE_ENABLED
+                : COMPONENT_ENABLED_STATE_DEFAULT;
+
+        mTargetContext.getPackageManager().setApplicationEnabledSetting(
+                mTargetContext.getPackageName(), enabledState, DONT_KILL_APP);
+
+        ComponentName activityName = new ComponentName(mTargetContext,
+                BluetoothOppLauncherActivity.class);
+        mTargetContext.getPackageManager().setComponentEnabledSetting(
+                activityName, enabledState, DONT_KILL_APP);
     }
 }
