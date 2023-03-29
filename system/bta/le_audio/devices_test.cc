@@ -1366,6 +1366,21 @@ TEST_F(LeAudioAseConfigurationTest, test_reactivation_conversational) {
   /* Only two ASEs can be bonded to one bi-directional CIS */
   ASSERT_EQ(bi_dir_ases_count, 2);
 }
+
+TEST_F(LeAudioAseConfigurationTest, test_num_of_connected) {
+  auto device1 = AddTestDevice(2, 1);
+  auto device2 = AddTestDevice(2, 1);
+  ASSERT_EQ(2, group_->NumOfConnected());
+
+  // Drop the ACL connection
+  device1->conn_id_ = GATT_INVALID_CONN_ID;
+  ASSERT_EQ(1, group_->NumOfConnected());
+
+  // Fully disconnect the other device
+  device2->SetConnectionState(DeviceConnectState::DISCONNECTING);
+  ASSERT_EQ(0, group_->NumOfConnected());
+}
+
 }  // namespace
 }  // namespace internal
 }  // namespace le_audio
