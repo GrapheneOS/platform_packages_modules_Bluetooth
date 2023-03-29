@@ -116,6 +116,7 @@ cc_test {
     defaults: [
         "net_test_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     srcs: [
         "adapter/adapter_unittest.cc",

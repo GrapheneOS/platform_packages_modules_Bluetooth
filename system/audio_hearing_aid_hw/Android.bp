@@ -43,6 +43,7 @@ cc_test {
     defaults: [
         "audio_hearing_aid_hw_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     srcs: [
         "test/audio_hearing_aid_hw_test.cc",
