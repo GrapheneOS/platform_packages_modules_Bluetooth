@@ -25,7 +25,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.*
 import android.util.Log
-import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import java.io.Closeable
 import kotlinx.coroutines.CoroutineScope
@@ -85,8 +84,7 @@ class A2dpSink(val context: Context) : A2DPImplBase(), Closeable {
             .first()
 
         if (state == BluetoothProfile.STATE_DISCONNECTED) {
-          Log.e(TAG, "waitStream failed, A2DP has been disconnected")
-          throw Status.UNKNOWN.asException()
+          throw RuntimeException("waitStream failed, A2DP has been disconnected")
         }
       }
 
@@ -100,8 +98,7 @@ class A2dpSink(val context: Context) : A2DPImplBase(), Closeable {
       val device = request.sink.connection.toBluetoothDevice(bluetoothAdapter)
       Log.i(TAG, "close: device=$device")
       if (bluetoothA2dpSink.getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
-        Log.e(TAG, "Device is not connected, cannot close")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Device is not connected, cannot close")
       }
 
       val a2dpConnectionStateChangedFlow =

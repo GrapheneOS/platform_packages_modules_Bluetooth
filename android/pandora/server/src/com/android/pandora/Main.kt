@@ -20,8 +20,8 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Debug
 import android.util.Log
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.MonitoringInstrumentation
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi

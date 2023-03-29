@@ -61,7 +61,7 @@ class Pbap(val context: Context) : PBAPImplBase(), Closeable {
 
     if (cursor.getCount() >= CONTACT_LIST_SIZE) return // return if contacts are present
 
-    for (item in cursor.getCount()+1..CONTACT_LIST_SIZE) {
+    for (item in cursor.getCount() + 1..CONTACT_LIST_SIZE) {
       addContact(item)
     }
   }
