@@ -422,8 +422,7 @@ public class BluetoothOppLauncherActivity extends Activity {
             launchDevicePicker();
             finish();
         } catch (IllegalArgumentException exception) {
-            String message = exception.getMessage();
-            showToast(message != null ? message : "IllegalArgumentException");
+            showToast(exception.getMessage());
             finish();
         }
     }
