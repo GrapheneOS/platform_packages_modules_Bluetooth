@@ -36,24 +36,8 @@
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune from (or add to ) the inclusion set.
 #include <base/functional/bind.h>
-#include <base/logging.h>
-#include <base/task/cancelable_task_tracker.h>
-#include <base/threading/thread.h>
 
-#include <mutex>
-#include <sstream>
-
-#include "abstract_message_loop.h"
-#include "bta/sys/bta_sys.h"
 #include "btif/avrcp/avrcp_service.h"
-#include "btif/include/btif_av.h"
-#include "btif/include/btif_common.h"
-#include "btif/include/btif_dm.h"
-#include "profile/avrcp/device.h"
-#include "stack/include/bt_hdr.h"
-#include "stack/include/btu.h"
-#include "types/bluetooth/uuid.h"
-#include "types/raw_address.h"
 
 // Original usings
 

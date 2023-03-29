@@ -34,6 +34,9 @@
 #include "types/raw_address.h"
 
 // Mock include file to share data between tests and mock
+#include "stack/include/btm_api_types.h"
+#include "stack/include/btm_status.h"
+#include "stack/include/hcidefs.h"
 #include "test/mock/mock_device_controller.h"
 
 // Mocked compile conditionals, if any

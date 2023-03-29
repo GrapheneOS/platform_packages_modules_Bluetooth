@@ -57,6 +57,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.sysprop.BluetoothProperties;
@@ -457,7 +458,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     break;
                 case USER_TIMEOUT:
                     Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-                    intent.setPackage(getString(R.string.pairing_ui_package));
+                    intent.setPackage(SystemProperties.get(
+                            Utils.PAIRING_UI_PROPERTY,
+                            getString(R.string.pairing_ui_package)));
                     PbapStateMachine stateMachine = (PbapStateMachine) msg.obj;
                     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, stateMachine.getRemoteDevice());
                     intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,

@@ -1585,6 +1585,20 @@ void shim::legacy::Acl::OnConnectSuccess(
                                      : "classic Remote initiated");
 }
 
+void shim::legacy::Acl::OnConnectRequest(hci::Address address,
+                                         hci::ClassOfDevice cod) {
+  const RawAddress bd_addr = ToRawAddress(address);
+
+  types::ClassOfDevice legacy_cod;
+  legacy_cod.FromOctets(cod.data());
+
+  TRY_POSTING_ON_MAIN(acl_interface_.connection.classic.on_connect_request,
+                      bd_addr, legacy_cod);
+  LOG_DEBUG("Received connect request remote:%s",
+            ADDRESS_TO_LOGGABLE_CSTR(address));
+  BTM_LogHistory(kBtmLogTag, ToRawAddress(address), "Connection request");
+}
+
 void shim::legacy::Acl::OnConnectFail(hci::Address address,
                                       hci::ErrorCode reason,
                                       bool locally_initiated) {
@@ -1713,8 +1727,7 @@ void shim::legacy::Acl::OnLeConnectSuccess(
 }
 
 void shim::legacy::Acl::OnLeConnectFail(hci::AddressWithType address_with_type,
-                                        hci::ErrorCode reason,
-                                        bool locally_initiated) {
+                                        hci::ErrorCode reason) {
   tBLE_BD_ADDR legacy_address_with_type =
       ToLegacyAddressWithType(address_with_type);
 
@@ -1723,11 +1736,7 @@ void shim::legacy::Acl::OnLeConnectFail(hci::AddressWithType address_with_type,
   tHCI_STATUS status = ToLegacyHciErrorCode(reason);
 
   TRY_POSTING_ON_MAIN(acl_interface_.connection.le.on_failed,
-                      legacy_address_with_type, handle, enhanced, status,
-                      locally_initiated);
-  if (!locally_initiated) {
-    return;
-  }
+                      legacy_address_with_type, handle, enhanced, status);
 
   pimpl_->shadow_acceptlist_.Remove(address_with_type);
   LOG_WARN("Connection failed le remote:%s",
