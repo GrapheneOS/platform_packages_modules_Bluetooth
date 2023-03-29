@@ -286,6 +286,10 @@ void LinkManager::OnConnectSuccess(std::unique_ptr<hci::acl_manager::ClassicAclC
   pending_links_.erase(device);
 }
 
+void LinkManager::OnConnectRequest(hci::Address device, hci::ClassOfDevice cod) {
+  LOG_ERROR("Remote connect request unimplemented");
+}
+
 void LinkManager::OnConnectFail(hci::Address device, hci::ErrorCode reason, bool locally_initiated) {
   // Notify all pending links for this device
   auto pending_link = pending_links_.find(device);

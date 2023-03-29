@@ -36,6 +36,8 @@ namespace legacy {
 typedef struct {
   void (*on_connected)(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
                        bool locally_initiated);
+  void (*on_connect_request)(const RawAddress& bda,
+                             const types::ClassOfDevice&);
   void (*on_failed)(const RawAddress& bda, tHCI_STATUS status,
                     bool locally_initiated);
   void (*on_disconnected)(tHCI_STATUS status, uint16_t handle,
@@ -50,7 +52,7 @@ typedef struct {
                        tBLE_ADDR_TYPE peer_addr_type,
                        bool can_read_discoverable_characteristics);
   void (*on_failed)(const tBLE_BD_ADDR& address_with_type, uint16_t handle,
-                    bool enhanced, tHCI_STATUS status, bool locally_initiated);
+                    bool enhanced, tHCI_STATUS status);
   void (*on_disconnected)(tHCI_STATUS status, uint16_t handle,
                           tHCI_STATUS reason);
   void (*on_iso_disconnected)(uint16_t handle, tHCI_STATUS reason);

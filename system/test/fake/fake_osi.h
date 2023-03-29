@@ -16,29 +16,14 @@
 
 #pragma once
 
-#include <gmock/gmock.h>
+namespace test {
+namespace fake {
 
-#include <memory>
-
-#include "hci/acl_manager/le_acl_connection.h"
-#include "hci/address_with_type.h"
-#include "hci/hci_packets.h"
-
-namespace bluetooth {
-namespace hci {
-namespace acl_manager {
-
-class MockLeConnectionCallbacks : public LeConnectionCallbacks {
+class FakeOsi {
  public:
-  MOCK_METHOD(
-      void,
-      OnLeConnectSuccess,
-      (AddressWithType address_with_type, std::unique_ptr<LeAclConnection> connection),
-      (override));
-  MOCK_METHOD(
-      void, OnLeConnectFail, (AddressWithType address_with_type, ErrorCode reason), (override));
+  FakeOsi();
+  ~FakeOsi();
 };
 
-}  // namespace acl_manager
-}  // namespace hci
-}  // namespace bluetooth
+}  // namespace fake
+}  // namespace test

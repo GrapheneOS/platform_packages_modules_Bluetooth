@@ -503,6 +503,21 @@ filegroup {
     ],
 }
 
+filegroup {
+  name: "TestMockGdOsLoggingLogRedaction",
+  srcs: [
+      "mock/mock_gd_os_logging_log_redaction.cc"
+  ],
+}
+
+filegroup {
+  name: "TestFakeOsi",
+  srcs: [
+      ":TestMockOsi",
+      "fake/fake_osi.cc"
+  ],
+}
+
 cc_defaults {
     name: "mts_defaults",
     target: {
