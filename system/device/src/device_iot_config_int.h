@@ -22,8 +22,6 @@
 #include "osi/include/config.h"
 #include "osi/include/osi.h"
 
-#define BT_IOT_CONFIG_SOURCE_TAG_NUM 1010003
-
 #define PROPERTY_ENABLE_LOGGING \
   "persist.bluetooth.device_iot_config.enablelogging"
 #define PROPERTY_FACTORY_RESET "persist.bluetooth.factoryreset"
