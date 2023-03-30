@@ -100,7 +100,24 @@ impl BluetoothServerSocket {
         }
     }
 
-    fn make_rfcomm_channel(flags: i32, name: String, uuid: Uuid) -> Self {
+    fn make_rfcomm_channel(
+        flags: i32,
+        name: Option<String>,
+        channel: Option<i32>,
+        uuid: Option<Uuid>,
+    ) -> Self {
+        BluetoothServerSocket {
+            id: 0,
+            sock_type: SocketType::Rfcomm,
+            flags,
+            psm: None,
+            channel: channel,
+            name: name,
+            uuid: uuid,
+        }
+    }
+
+    fn make_default_rfcomm_channel(flags: i32, name: String, uuid: Uuid) -> Self {
         BluetoothServerSocket {
             id: 0,
             sock_type: SocketType::Rfcomm,
@@ -303,6 +320,18 @@ pub trait IBluetoothSocketManager {
         callback: CallbackId,
         name: String,
         uuid: Uuid,
+    ) -> SocketResult;
+
+    /// Generic method for setting up an RFCOMM listening socket.  Prefer to use one of the other
+    /// RFCOMM listen methods when possible as they reflect the more preferred RFCOMM flows, but
+    /// this method exposes all of the options that the stack supports.
+    fn listen_using_rfcomm(
+        &mut self,
+        callback: CallbackId,
+        channel: Option<i32>,
+        application_uuid: Option<Uuid>,
+        name: Option<String>,
+        flags: Option<i32>,
     ) -> SocketResult;
 
     /// Create an insecure L2CAP connection.
@@ -1171,7 +1200,7 @@ impl IBluetoothSocketManager for BluetoothSocketManager {
         }
 
         let socket_info =
-            BluetoothServerSocket::make_rfcomm_channel(socket::SOCK_FLAG_NONE, name, uuid);
+            BluetoothServerSocket::make_default_rfcomm_channel(socket::SOCK_FLAG_NONE, name, uuid);
         self.socket_listen(socket_info, callback)
     }
 
@@ -1185,10 +1214,36 @@ impl IBluetoothSocketManager for BluetoothSocketManager {
             return SocketResult::new(BtStatus::NotReady, INVALID_SOCKET_ID);
         }
 
-        let socket_info =
-            BluetoothServerSocket::make_rfcomm_channel(socket::SOCK_META_FLAG_SECURE, name, uuid);
+        let socket_info = BluetoothServerSocket::make_default_rfcomm_channel(
+            socket::SOCK_META_FLAG_SECURE,
+            name,
+            uuid,
+        );
 
         self.socket_listen(socket_info, callback)
+    }
+
+    fn listen_using_rfcomm(
+        &mut self,
+        callback: CallbackId,
+        channel: Option<i32>,
+        application_uuid: Option<Uuid>,
+        name: Option<String>,
+        flags: Option<i32>,
+    ) -> SocketResult {
+        if self.callbacks.get_by_id(callback).is_none() {
+            return SocketResult::new(BtStatus::NotReady, INVALID_SOCKET_ID);
+        }
+
+        let flags = match flags {
+            Some(flags) => flags,
+            None => socket::SOCK_FLAG_NONE,
+        };
+
+        self.socket_listen(
+            BluetoothServerSocket::make_rfcomm_channel(flags, name, channel, application_uuid),
+            callback,
+        )
     }
 
     fn create_insecure_l2cap_channel(
