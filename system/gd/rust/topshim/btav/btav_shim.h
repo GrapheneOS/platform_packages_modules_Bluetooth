@@ -50,6 +50,7 @@ class A2dpIntf {
   bool set_audio_config(A2dpCodecConfig rconfig) const;
   bool start_audio_request() const;
   bool stop_audio_request() const;
+  bool suspend_audio_request() const;
   RustPresentationPosition get_presentation_position() const;
 
  private:
