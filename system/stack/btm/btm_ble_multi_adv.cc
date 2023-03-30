@@ -978,11 +978,6 @@ class BleAdvertisingManagerImpl
       return;
     }
 
-    if (BTM_BleLocalPrivacyEnabled() &&
-        advertising_handle <= BTM_BLE_MULTI_ADV_MAX) {
-      btm_acl_update_conn_addr(connection_handle, p_inst->own_address);
-    }
-
     VLOG(1) << "reneabling advertising";
 
     if (p_inst->in_use) {
