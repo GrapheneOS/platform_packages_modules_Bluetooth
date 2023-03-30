@@ -9,7 +9,7 @@ use crate::bt_gatt::AuthReq;
 use crate::callbacks::{BtGattCallback, BtGattServerCallback};
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
-use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
+use bt_topshim::btif::{BtConnectionState, BtDiscMode, BtStatus, BtTransport};
 use bt_topshim::profiles::hid_host::BthhReportType;
 use bt_topshim::profiles::sdp::{BtSdpMpsRecord, BtSdpRecord};
 use bt_topshim::profiles::{gatt::LePhy, ProfileConnectionState};
@@ -121,12 +121,17 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("adapter"),
         CommandOption {
-            rules: vec![String::from(
-                "adapter <enable|disable|show|discoverable|connectable|set-name>",
-            )],
+            rules: vec![
+                String::from("adapter enable"),
+                String::from("adapter disable"),
+                String::from("adapter show"),
+                String::from("adapter discoverable <on|limited|off> <duration>"),
+                String::from("adapter connectable <on|off>"),
+                String::from("adapter set-name <name>"),
+            ],
             description: String::from(
                 "Enable/Disable/Show default bluetooth adapter. (e.g. adapter enable)\n
-                 Discoverable On/Off (e.g. adapter discoverable on)\n
+                 Discoverable On/Limited/Off (e.g. adapter discoverable on 60)\n
                  Connectable On/Off (e.g. adapter connectable on)",
             ),
             function_pointer: CommandHandler::cmd_adapter,
@@ -506,14 +511,36 @@ impl CommandHandler {
             }
             "discoverable" => match &get_arg(args, 1)?[..] {
                 "on" => {
+                    let duration = String::from(get_arg(args, 2)?)
+                        .parse::<u32>()
+                        .or(Err("Failed parsing duration."))?;
+
                     let discoverable = self
                         .lock_context()
                         .adapter_dbus
                         .as_mut()
                         .unwrap()
-                        .set_discoverable(true, 60);
+                        .set_discoverable(BtDiscMode::GeneralDiscoverable, duration);
                     print_info!(
-                        "Set discoverable for 60s: {}",
+                        "Set discoverable for {} seconds: {}",
+                        duration,
+                        if discoverable { "succeeded" } else { "failed" }
+                    );
+                }
+                "limited" => {
+                    let duration = String::from(get_arg(args, 2)?)
+                        .parse::<u32>()
+                        .or(Err("Failed parsing duration."))?;
+
+                    let discoverable = self
+                        .lock_context()
+                        .adapter_dbus
+                        .as_mut()
+                        .unwrap()
+                        .set_discoverable(BtDiscMode::LimitedDiscoverable, duration);
+                    print_info!(
+                        "Set limited discoverable for {} seconds: {}",
+                        duration,
                         if discoverable { "succeeded" } else { "failed" }
                     );
                 }
@@ -523,7 +550,7 @@ impl CommandHandler {
                         .adapter_dbus
                         .as_mut()
                         .unwrap()
-                        .set_discoverable(false, 60);
+                        .set_discoverable(BtDiscMode::NonDiscoverable, 0 /*not used*/);
                     print_info!(
                         "Turn discoverable off: {}",
                         if discoverable { "succeeded" } else { "failed" }
