@@ -84,6 +84,7 @@ pub mod ffi {
         Idle,
         Incoming,
         Dialing,
+        Alerting,
         Active, // Only used by CLCC response
         Held,   // Only used by CLCC response
     }
