@@ -199,6 +199,7 @@ pub mod ffi {
         fn set_audio_config(self: &A2dpIntf, config: A2dpCodecConfig) -> bool;
         fn start_audio_request(self: &A2dpIntf) -> bool;
         fn stop_audio_request(self: &A2dpIntf) -> bool;
+        fn suspend_audio_request(self: &A2dpIntf) -> bool;
         fn cleanup(self: &A2dpIntf);
         fn get_presentation_position(self: &A2dpIntf) -> RustPresentationPosition;
         // A2dp sink functions
@@ -377,6 +378,11 @@ impl A2dp {
     #[profile_enabled_or]
     pub fn stop_audio_request(&self) {
         self.internal.stop_audio_request();
+    }
+
+    #[profile_enabled_or]
+    pub fn suspend_audio_request(&self) {
+        self.internal.suspend_audio_request();
     }
 
     #[profile_enabled_or_default]

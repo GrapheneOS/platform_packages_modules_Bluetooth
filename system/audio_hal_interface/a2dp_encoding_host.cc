@@ -173,6 +173,21 @@ bool StopRequest() {
   return true;
 }
 
+bool SuspendRequest() {
+  if (a2dp_pending_cmd_ != A2DP_CTRL_CMD_NONE) {
+    LOG_WARN("%s: busy in pending_cmd=%u", __func__, a2dp_pending_cmd_);
+    return false;
+  }
+  if (!btif_av_stream_started_ready()) {
+    LOG_WARN("%s: AV stream is not started", __func__);
+    return false;
+  }
+  LOG_INFO("%s: handling", __func__);
+  a2dp_pending_cmd_ = A2DP_CTRL_CMD_SUSPEND;
+  btif_av_stream_suspend();
+  return true;
+}
+
 // Invoked by audio server to check audio presentation position periodically.
 PresentationPosition GetPresentationPosition() {
   PresentationPosition presentation_position{
