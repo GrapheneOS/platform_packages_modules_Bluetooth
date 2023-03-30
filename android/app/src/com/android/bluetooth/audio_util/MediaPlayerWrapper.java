@@ -131,6 +131,23 @@ public class MediaPlayerWrapper {
     }
 
     List<Metadata> getCurrentQueue() {
+        // MediaSession#QueueItem's MediaDescription doesn't necessarily include media duration,
+        // so the playing media info metadata should be obtained by the MediaController.
+        // MediaSession doesn't include the Playlist Metadata, only the current song one.
+        Metadata mediaPlayingMetadata = getCurrentMetadata();
+
+        // The queue metadata is built with QueueId in place of MediaId, so we can't compare it.
+        // MediaDescription is usually compared via its title, artist and album.
+        if (mediaPlayingMetadata != null) {
+            for (Metadata metadata : mCurrentData.queue) {
+                if (metadata.title.equals(mediaPlayingMetadata.title)
+                        && metadata.artist.equals(mediaPlayingMetadata.artist)
+                        && metadata.album.equals(mediaPlayingMetadata.album)) {
+                    // Replace default values by MediaController non default values.
+                    metadata.replaceDefaults(mediaPlayingMetadata);
+                }
+            }
+        }
         return mCurrentData.queue;
     }
 
