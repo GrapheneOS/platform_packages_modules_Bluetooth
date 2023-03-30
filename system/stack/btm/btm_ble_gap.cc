@@ -536,11 +536,16 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
       if (duration == 0) {
         if (alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
           alarm_cancel(btm_cb.ble_ctr_cb.observer_timer);
-          return BTM_CMD_STARTED;
+        } else {
+          BTM_TRACE_ERROR("%s Scan with no duration started twice!", __func__);
+        }
+      } else {
+        if (alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
+          BTM_TRACE_ERROR("%s Scan with duration started twice!", __func__);
         }
       }
-      BTM_TRACE_ERROR("%s Observe Already Active", __func__);
-      return status;
+      BTM_TRACE_WARNING("%s Observer was already active", __func__);
+      return BTM_CMD_STARTED;
     }
 
     btm_cb.ble_ctr_cb.p_obs_results_cb = p_results_cb;
