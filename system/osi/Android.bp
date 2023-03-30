@@ -125,6 +125,7 @@ cc_test {
     defaults: [
         "fluoride_osi_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     srcs: [

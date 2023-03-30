@@ -41,10 +41,10 @@ import android.os.ParcelUuid
 import android.util.Log
 import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
-import io.grpc.Status
 import io.grpc.stub.StreamObserver
-import java.nio.ByteBuffer
 import java.io.Closeable
+import java.lang.IllegalArgumentException
+import java.nio.ByteBuffer
 import java.time.Duration
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -68,9 +68,8 @@ import pandora.HostProto.*
 
 object ByteArrayOps {
   public fun getUShortAt(input: ByteArray, index: Int): UShort {
-    return (
-      ((input[index + 1].toUInt() and 0xffU) shl 8) or
-       (input[index].toUInt() and 0xffU)).toUShort()
+    return (((input[index + 1].toUInt() and 0xffU) shl 8) or (input[index].toUInt() and 0xffU))
+      .toUShort()
   }
 
   public fun getShortAt(input: ByteArray, index: Int): Short {
@@ -78,11 +77,10 @@ object ByteArrayOps {
   }
 
   public fun getUIntAt(input: ByteArray, index: Int): UInt {
-    return (
-      ((input[index + 3].toUInt() and 0xffU) shl 24) or
+    return (((input[index + 3].toUInt() and 0xffU) shl 24) or
       ((input[index + 2].toUInt() and 0xffU) shl 16) or
       ((input[index + 1].toUInt() and 0xffU) shl 8) or
-       (input[index].toUInt() and 0xffU))
+      (input[index].toUInt() and 0xffU))
   }
 
   public fun getIntAt(input: ByteArray, index: Int): Int {
@@ -90,10 +88,9 @@ object ByteArrayOps {
   }
 
   public fun getUInt24At(input: ByteArray, index: Int): UInt {
-    return (
-      ((input[index + 2].toUInt() and 0xffU) shl 16) or
+    return (((input[index + 2].toUInt() and 0xffU) shl 16) or
       ((input[index + 1].toUInt() and 0xffU) shl 8) or
-       (input[index].toUInt() and 0xffU))
+      (input[index].toUInt() and 0xffU))
   }
 
   public fun getInt24At(input: ByteArray, index: Int): Int {
@@ -280,14 +277,14 @@ class Host(
     responseObserver: StreamObserver<WaitConnectionResponse>
   ) {
     grpcUnary(scope, responseObserver) {
-      if (request.address.isEmpty()) throw Status.UNKNOWN.asException()
+      if (request.address.isEmpty())
+        throw IllegalArgumentException("Request address field must be set")
       var bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
 
       Log.i(TAG, "waitConnection: device=$bluetoothDevice")
 
       if (!bluetoothAdapter.isEnabled) {
-        Log.e(TAG, "Bluetooth is not enabled, cannot waitConnection")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Bluetooth is not enabled, cannot waitConnection")
       }
 
       if (!bluetoothDevice.isConnected() || waitedAclConnection.contains(bluetoothDevice)) {
@@ -312,8 +309,7 @@ class Host(
       val bluetoothDevice = request.connection.toBluetoothDevice(bluetoothAdapter)
       Log.i(TAG, "waitDisconnection: device=$bluetoothDevice")
       if (!bluetoothAdapter.isEnabled) {
-        Log.e(TAG, "Bluetooth is not enabled, cannot waitDisconnection")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Bluetooth is not enabled, cannot waitDisconnection")
       }
       if (bluetoothDevice.bondState != BluetoothDevice.BOND_NONE) {
         flow
@@ -327,6 +323,8 @@ class Host(
 
   override fun connect(request: ConnectRequest, responseObserver: StreamObserver<ConnectResponse>) {
     grpcUnary(scope, responseObserver) {
+      if (request.address.isEmpty())
+        throw IllegalArgumentException("Request address field must be set")
       val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
 
       Log.i(TAG, "connect: address=$bluetoothDevice")
@@ -360,8 +358,7 @@ class Host(
       Log.i(TAG, "disconnect: device=$bluetoothDevice")
 
       if (!bluetoothDevice.isConnected()) {
-        Log.e(TAG, "Device is not connected, cannot disconnect")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("Device is not connected, cannot disconnect")
       }
 
       when (request.connection.transport) {
@@ -381,16 +378,14 @@ class Host(
               instance
             }
           if (gattInstance.isDisconnected()) {
-            Log.e(TAG, "Device is not connected, cannot disconnect")
-            throw Status.UNKNOWN.asException()
+            throw RuntimeException("Device is not connected, cannot disconnect")
           }
 
           bluetoothDevice.disconnect()
           gattInstance.disconnectInstance()
         }
         else -> {
-          Log.e(TAG, "Device type UNKNOWN")
-          throw Status.UNKNOWN.asException()
+          throw RuntimeException("Device type UNKNOWN")
         }
       }
       flow
@@ -412,8 +407,7 @@ class Host(
         ownAddressType != OwnAddressType.RANDOM &&
           ownAddressType != OwnAddressType.RESOLVABLE_OR_RANDOM
       ) {
-        Log.e(TAG, "connectLE: Unsupported OwnAddressType: $ownAddressType")
-        throw Status.UNKNOWN.asException()
+        throw RuntimeException("connectLE: Unsupported OwnAddressType: $ownAddressType")
       }
       val (address, type) =
         when (request.getAddressCase()!!) {
@@ -425,7 +419,8 @@ class Host(
             Pair(request.publicIdentity, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
           ConnectLERequest.AddressCase.RANDOM_STATIC_IDENTITY ->
             Pair(request.randomStaticIdentity, BluetoothDevice.ADDRESS_TYPE_RANDOM)
-          ConnectLERequest.AddressCase.ADDRESS_NOT_SET -> throw Status.UNKNOWN.asException()
+          ConnectLERequest.AddressCase.ADDRESS_NOT_SET ->
+            throw IllegalArgumentException("Request address field must be set")
         }
       Log.i(TAG, "connectLE: $address")
       val bluetoothDevice = scanLeDevice(address.decodeAsMacAddressToString(), type)!!
@@ -493,8 +488,7 @@ class Host(
             !dataTypesRequest.getIncompleteServiceClassUuids32List().isEmpty() or
             !dataTypesRequest.getIncompleteServiceClassUuids128List().isEmpty()
         ) {
-          Log.e(TAG, "Incomplete Service Class Uuids not supported")
-          throw Status.UNKNOWN.asException()
+          throw RuntimeException("Incomplete Service Class Uuids not supported")
         }
 
         // Handle service uuids
@@ -600,43 +594,47 @@ class Host(
               var dataTypesBuilder =
                 DataTypes.newBuilder().setTxPowerLevel(scanRecord.getTxPowerLevel())
 
-                scanData[ScanRecord.DATA_TYPE_LOCAL_NAME_SHORT]?.let {
+              scanData[ScanRecord.DATA_TYPE_LOCAL_NAME_SHORT]?.let {
                 dataTypesBuilder.setShortenedLocalName(it.decodeToString())
               }
                 ?: run { dataTypesBuilder.setIncludeShortenedLocalName(false) }
 
-                scanData[ScanRecord.DATA_TYPE_LOCAL_NAME_COMPLETE]?.let {
+              scanData[ScanRecord.DATA_TYPE_LOCAL_NAME_COMPLETE]?.let {
                 dataTypesBuilder.setCompleteLocalName(it.decodeToString())
               }
                 ?: run { dataTypesBuilder.setIncludeCompleteLocalName(false) }
 
-                scanData[ScanRecord.DATA_TYPE_ADVERTISING_INTERVAL]?.let {
+              scanData[ScanRecord.DATA_TYPE_ADVERTISING_INTERVAL]?.let {
                 dataTypesBuilder.setAdvertisingInterval(ByteArrayOps.getShortAt(it, 0).toInt())
               }
 
-                scanData[ScanRecord.DATA_TYPE_ADVERTISING_INTERVAL_LONG]?.let {
+              scanData[ScanRecord.DATA_TYPE_ADVERTISING_INTERVAL_LONG]?.let {
                 dataTypesBuilder.setAdvertisingInterval(ByteArrayOps.getIntAt(it, 0))
               }
 
-                scanData[ScanRecord.DATA_TYPE_APPEARANCE]?.let {
+              scanData[ScanRecord.DATA_TYPE_APPEARANCE]?.let {
                 dataTypesBuilder.setAppearance(ByteArrayOps.getShortAt(it, 0).toInt())
               }
 
-                scanData[ScanRecord.DATA_TYPE_CLASS_OF_DEVICE]?.let {
+              scanData[ScanRecord.DATA_TYPE_CLASS_OF_DEVICE]?.let {
                 dataTypesBuilder.setClassOfDevice(ByteArrayOps.getInt24At(it, 0))
               }
 
-                scanData[ScanRecord.DATA_TYPE_URI]?.let {
+              scanData[ScanRecord.DATA_TYPE_URI]?.let {
                 dataTypesBuilder.setUri(it.decodeToString())
               }
 
-                scanData[ScanRecord.DATA_TYPE_LE_SUPPORTED_FEATURES]?.let {
+              scanData[ScanRecord.DATA_TYPE_LE_SUPPORTED_FEATURES]?.let {
                 dataTypesBuilder.setLeSupportedFeatures(ByteString.copyFrom(it))
               }
 
-                scanData[ScanRecord.DATA_TYPE_SLAVE_CONNECTION_INTERVAL_RANGE]?.let {
-                dataTypesBuilder.setPeripheralConnectionIntervalMin(ByteArrayOps.getShortAt(it, 0).toInt())
-                dataTypesBuilder.setPeripheralConnectionIntervalMax(ByteArrayOps.getShortAt(it, 2).toInt())
+              scanData[ScanRecord.DATA_TYPE_SLAVE_CONNECTION_INTERVAL_RANGE]?.let {
+                dataTypesBuilder.setPeripheralConnectionIntervalMin(
+                  ByteArrayOps.getShortAt(it, 0).toInt()
+                )
+                dataTypesBuilder.setPeripheralConnectionIntervalMax(
+                  ByteArrayOps.getShortAt(it, 2).toInt()
+                )
               }
 
               for (serviceDataEntry in serviceData) {
@@ -711,8 +709,7 @@ class Host(
                   .put(manufacturerSpecificDatas.get(id))
               }
               dataTypesBuilder.setManufacturerSpecificData(
-                ByteString.copyFrom(manufacturerData.array(), 0,
-                  manufacturerData.position())
+                ByteString.copyFrom(manufacturerData.array(), 0, manufacturerData.position())
               )
               val primaryPhy =
                 when (result.getPrimaryPhy()) {
