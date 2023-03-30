@@ -4050,10 +4050,12 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
   LeAudioClient::Get()->GroupSetActive(group_id);
 
   StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+  auto group = streaming_groups.at(group_id);
 
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
   Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
   SyncOnMainLoop();
+  ASSERT_EQ(2, group->NumOfConnected());
 
   // Expect two iso channels to be fed with data
   uint8_t cis_count_out = 2;
@@ -4062,7 +4064,6 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
 
   // Disconnect one device and expect the group to keep on streaming
   EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(0);
-  auto group = streaming_groups.at(group_id);
   auto device = group->GetFirstDevice();
   for (auto& ase : device->ases_) {
     InjectCisDisconnected(group_id, ase.cis_conn_hdl);
@@ -4073,9 +4074,22 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
                    BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, false))
       .Times(1);
 
+  // Record NumOfConnected when groupStateMachine_ gets notified about the
+  // disconnection
+  int num_of_connected = 0;
+  ON_CALL(mock_state_machine_, ProcessHciNotifAclDisconnected(_, _))
+      .WillByDefault([&num_of_connected](LeAudioDeviceGroup* group,
+                                         LeAudioDevice* leAudioDevice) {
+        num_of_connected = group->NumOfConnected();
+      });
+
   auto conn_id = device->conn_id_;
   InjectDisconnectedEvent(device->conn_id_, GATT_CONN_TERMINATE_PEER_USER);
   SyncOnMainLoop();
+
+  // Make sure the state machine knows about the disconnected device
+  ASSERT_EQ(1, num_of_connected);
+
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
   // Expect one channel ISO Data to be sent
