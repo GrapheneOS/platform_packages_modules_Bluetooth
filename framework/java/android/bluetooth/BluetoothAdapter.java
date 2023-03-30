@@ -3987,6 +3987,22 @@ public final class BluetoothAdapter {
                                 }
                             }
                         }
+                        synchronized (mBluetoothConnectionCallbackExecutorMap) {
+                            if (!mBluetoothConnectionCallbackExecutorMap.isEmpty()) {
+                                try {
+                                    final SynchronousResultReceiver recv =
+                                            SynchronousResultReceiver.get();
+                                    mService.registerBluetoothConnectionCallback(
+                                            mConnectionCallback,
+                                            mAttributionSource, recv);
+                                    recv.awaitResultNoInterrupt(getSyncTimeout())
+                                            .getValue(null);
+                                } catch (RemoteException | TimeoutException e) {
+                                    Log.e(TAG, "onBluetoothServiceUp: Failed to register "
+                                            + "bluetooth connection callback", e);
+                                }
+                            }
+                        }
                     } finally {
                         mServiceLock.readLock().unlock();
                     }
