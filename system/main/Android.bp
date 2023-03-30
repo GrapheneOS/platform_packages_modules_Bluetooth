@@ -91,7 +91,6 @@ cc_library {
     whole_static_libs: [
         "libbluetooth_core_rs",
     ],
-    logtags: ["../../EventLogTags.logtags"],
     // Shared library link options.
     // References to global symbols and functions should bind to the library
     // itself. This is to avoid issues with some of the unit/system tests
@@ -155,6 +154,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",

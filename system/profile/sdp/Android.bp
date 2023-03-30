@@ -33,6 +33,7 @@ cc_test {
         "fluoride_defaults",
         "clang_coverage_bin",
         "mts_defaults",
+        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     include_dirs: [
