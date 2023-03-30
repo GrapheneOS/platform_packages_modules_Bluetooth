@@ -220,8 +220,6 @@ cc_defaults {
                 "android.hardware.bluetooth.audio@2.0",
                 "android.hardware.bluetooth.audio@2.1",
                 "android.hardware.bluetooth.audio-V3-ndk",
-                "android.hardware.bluetooth@1.0",
-                "android.hardware.bluetooth@1.1",
                 "android.system.suspend-V1-ndk",
                 "libaaudio",
                 "libbinder_ndk",
@@ -241,8 +239,6 @@ cc_defaults {
             shared_libs: [
                 "android.hardware.bluetooth.audio@2.0",
                 "android.hardware.bluetooth.audio@2.1",
-                "android.hardware.bluetooth@1.0",
-                "android.hardware.bluetooth@1.1",
                 "libbinder_ndk",
                 "libcutils",
                 "libhidlbase",
@@ -302,8 +298,6 @@ cc_defaults {
         },
         host_linux: {
             shared_libs: [
-                "android.hardware.bluetooth@1.0",
-                "android.hardware.bluetooth@1.1",
                 "libcutils",
                 "libhidlbase",
                 "libstatslog_bt",
@@ -312,8 +306,6 @@ cc_defaults {
         },
         android: {
             shared_libs: [
-                "android.hardware.bluetooth@1.0",
-                "android.hardware.bluetooth@1.1",
                 "libcutils",
                 "libhidlbase",
                 "libstatssocket",
