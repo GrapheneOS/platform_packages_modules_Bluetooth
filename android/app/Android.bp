@@ -252,7 +252,6 @@ android_app {
         "modules-utils-backgroundthread",
         "modules-utils-bytesmatcher",
         "modules-utils-statemachine",
-        "modules-utils-synchronous-result-receiver",
         "net-utils-services-common",
         "networkstack-client",
         "sap-api-java-static",
