@@ -95,6 +95,8 @@ static headset::bthf_call_state_t from_rust_call_state(rusty::CallState state) {
       return headset::BTHF_CALL_STATE_INCOMING;
     case rusty::CallState::Dialing:
       return headset::BTHF_CALL_STATE_DIALING;
+    case rusty::CallState::Alerting:
+      return headset::BTHF_CALL_STATE_ALERTING;
     case rusty::CallState::Active:
       return headset::BTHF_CALL_STATE_ACTIVE;
     case rusty::CallState::Held:
