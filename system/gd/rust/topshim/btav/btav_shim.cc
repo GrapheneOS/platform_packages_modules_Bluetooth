@@ -304,6 +304,9 @@ bool A2dpIntf::start_audio_request() const {
 bool A2dpIntf::stop_audio_request() const {
   return bluetooth::audio::a2dp::StopRequest();
 }
+bool A2dpIntf::suspend_audio_request() const {
+  return bluetooth::audio::a2dp::SuspendRequest();
+}
 RustPresentationPosition A2dpIntf::get_presentation_position() const {
   bluetooth::audio::a2dp::PresentationPosition p = bluetooth::audio::a2dp::GetPresentationPosition();
   RustPresentationPosition rposition = {
