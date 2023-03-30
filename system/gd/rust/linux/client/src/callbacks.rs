@@ -253,7 +253,12 @@ impl IBluetoothCallback for BtCallback {
     ) {
     }
 
-    fn on_sdp_record_created(&self, _record: BtSdpRecord, _handle: i32) {}
+    fn on_sdp_record_created(&self, record: BtSdpRecord, handle: i32) {
+        print_info!("SDP record handle={} created", handle);
+        if let BtSdpRecord::Mps(_) = record {
+            self.context.lock().unwrap().mps_sdp_handle = Some(handle);
+        }
+    }
 }
 
 impl RPCProxy for BtCallback {
