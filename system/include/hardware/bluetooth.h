@@ -68,7 +68,8 @@ typedef struct { uint8_t name[249]; } __attribute__((packed)) bt_bdname_t;
 typedef enum {
   BT_SCAN_MODE_NONE,
   BT_SCAN_MODE_CONNECTABLE,
-  BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE
+  BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE,
+  BT_SCAN_MODE_CONNECTABLE_LIMITED_DISCOVERABLE
 } bt_scan_mode_t;
 
 /** Bluetooth Adapter State */
