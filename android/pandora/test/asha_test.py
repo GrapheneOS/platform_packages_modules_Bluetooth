@@ -18,15 +18,17 @@ import enum
 import grpc
 import logging
 
-from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices, asynchronous
+from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices, asynchronous, bumble_server
 from bumble.gatt import GATT_ASHA_SERVICE
 from bumble.smp import PairingDelegate
+from bumble_experimental.asha import ASHAService
 from mobly import base_test, signals, test_runner
 from mobly.asserts import assert_equal  # type: ignore
 from mobly.asserts import assert_in  # type: ignore
 from pandora._utils import AioStream
 from pandora.host_pb2 import PUBLIC, RANDOM, AdvertiseResponse, Connection, DataTypes, OwnAddressType, ScanningResponse
 from pandora.security_pb2 import LE_LEVEL3, LESecurityLevel
+from pandora_experimental.asha_grpc_aio import Asha as AioAsha, add_AshaServicer_to_server
 from typing import List, Optional, Tuple
 
 ASHA_UUID = GATT_ASHA_SERVICE.to_hex_str()
@@ -54,6 +56,11 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
     ref_right: PandoraDevice
 
     def setup_class(self) -> None:
+        # Register experimental bumble servicers hook.
+        bumble_server.register_servicer_hook(
+            lambda bumble, server: add_AshaServicer_to_server(ASHAService(bumble.device), server)
+        )
+
         self.devices = PandoraDevices(self)
         self.dut, self.ref_left, self.ref_right, *_ = self.devices
 
@@ -84,7 +91,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         :return: Ref device's advertise stream
         """
         # Ref starts advertising with ASHA service data
-        await ref_device.aio.asha.Register(capability=CAPABILITY, hisyncid=HISYCNID)
+        asha = AioAsha(ref_device.aio.channel)
+        await asha.Register(capability=CAPABILITY, hisyncid=HISYCNID)
         return ref_device.aio.host.Advertise(
             legacy=True,
             connectable=True,
@@ -171,7 +179,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         protocol_version = 0x01
         truncated_hisyncid = HISYCNID[:4]
 
-        await self.ref_left.aio.asha.Register(capability=CAPABILITY, hisyncid=HISYCNID)
+        asha = AioAsha(self.ref_left.aio.channel)
+        await asha.Register(capability=CAPABILITY, hisyncid=HISYCNID)
 
         # advertise with ASHA service data in scan response
         advertisement = self.ref_left.aio.host.Advertise(
