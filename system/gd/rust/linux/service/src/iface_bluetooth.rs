@@ -1,6 +1,6 @@
 use bt_topshim::btif::{
-    BtBondState, BtConnectionState, BtDeviceType, BtPropertyType, BtSspVariant, BtStatus,
-    BtTransport, Uuid, Uuid128Bit,
+    BtBondState, BtConnectionState, BtDeviceType, BtDiscMode, BtPropertyType, BtSspVariant,
+    BtStatus, BtTransport, Uuid, Uuid128Bit,
 };
 use bt_topshim::profiles::socket::SocketType;
 use bt_topshim::profiles::ProfileConnectionState;
@@ -385,6 +385,8 @@ impl DBusArg for BtSdpRecord {
     }
 }
 
+impl_dbus_arg_enum!(BtDiscMode);
+
 #[allow(dead_code)]
 struct IBluetoothDBus {}
 
@@ -465,7 +467,7 @@ impl IBluetooth for IBluetoothDBus {
     }
 
     #[dbus_method("SetDiscoverable")]
-    fn set_discoverable(&mut self, mode: bool, duration: u32) -> bool {
+    fn set_discoverable(&mut self, mode: BtDiscMode, duration: u32) -> bool {
         dbus_generated!()
     }
 

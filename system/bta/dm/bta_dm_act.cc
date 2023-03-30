@@ -583,6 +583,11 @@ bool BTA_DmSetVisibility(bt_scan_mode_t mode) {
       conn_mode_param = BTA_DM_CONN;
       break;
 
+    case BT_SCAN_MODE_CONNECTABLE_LIMITED_DISCOVERABLE:
+      disc_mode_param = BTA_DM_LIMITED_DISC;
+      conn_mode_param = BTA_DM_CONN;
+      break;
+
     default:
       return false;
   }

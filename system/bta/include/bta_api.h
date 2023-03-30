@@ -138,6 +138,8 @@ typedef uint16_t tBTA_SEC;
 #define BTA_DM_GENERAL_DISC                         \
   BTM_GENERAL_DISCOVERABLE /* General discoverable. \
                               */
+#define BTA_DM_LIMITED_DISC BTM_LIMITED_DISCOVERABLE
+
 typedef uint16_t
     tBTA_DM_DISC; /* this discoverability mode is a bit mask among BR mode and
                      LE mode */
