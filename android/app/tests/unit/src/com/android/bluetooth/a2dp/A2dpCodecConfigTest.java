@@ -45,9 +45,6 @@ import java.util.Arrays;
 @RunWith(AndroidJUnit4.class)
 public class A2dpCodecConfigTest {
 
-    // TODO(b/240635097): remove in U
-    private static final int SOURCE_CODEC_TYPE_OPUS = 6;
-
     private Context mTargetContext;
     private BluetoothDevice mTestDevice;
     private A2dpCodecConfig mA2dpCodecConfig;
@@ -61,7 +58,7 @@ public class A2dpCodecConfigTest {
             BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX,
             BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD,
             BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC,
-            SOURCE_CODEC_TYPE_OPUS // TODO(b/240635097): update in U
+            BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS
     };
 
     // Not use the default value to make sure it reads from config
@@ -113,7 +110,7 @@ public class A2dpCodecConfigTest {
                                      | BluetoothCodecConfig.BITS_PER_SAMPLE_32,
                                      BluetoothCodecConfig.CHANNEL_MODE_STEREO,
                                      0, 0, 0, 0),       // Codec-specific fields
-            buildBluetoothCodecConfig(SOURCE_CODEC_TYPE_OPUS, // TODO(b/240635097): update in U
+            buildBluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS,
                                      OPUS_PRIORITY_DEFAULT,
                                      BluetoothCodecConfig.SAMPLE_RATE_48000,
                                      BluetoothCodecConfig.BITS_PER_SAMPLE_16,
@@ -152,7 +149,7 @@ public class A2dpCodecConfigTest {
                                      BluetoothCodecConfig.BITS_PER_SAMPLE_32,
                                      BluetoothCodecConfig.CHANNEL_MODE_STEREO,
                                      0, 0, 0, 0),       // Codec-specific fields
-            buildBluetoothCodecConfig(SOURCE_CODEC_TYPE_OPUS, // TODO(b/240635097): update in U
+            buildBluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS,
                                      OPUS_PRIORITY_DEFAULT,
                                      BluetoothCodecConfig.SAMPLE_RATE_48000,
                                      BluetoothCodecConfig.BITS_PER_SAMPLE_16,
@@ -212,7 +209,7 @@ public class A2dpCodecConfigTest {
                 case BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC:
                     Assert.assertEquals(config.getCodecPriority(), LDAC_PRIORITY_DEFAULT);
                     break;
-                case SOURCE_CODEC_TYPE_OPUS: // TODO(b/240635097): update in U
+                case BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS:
                     Assert.assertEquals(config.getCodecPriority(), OPUS_PRIORITY_DEFAULT);
                     break;
             }
@@ -245,9 +242,8 @@ public class A2dpCodecConfigTest {
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, PRIORITY_HIGH,
                 true);
         testCodecPriorityChangeHelper(
-                // TODO(b/240635097): update in U
-                SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
-                SOURCE_CODEC_TYPE_OPUS, PRIORITY_HIGH,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, PRIORITY_HIGH,
                 false);
     }
 
@@ -259,33 +255,27 @@ public class A2dpCodecConfigTest {
     public void testSetCodecPreference_priorityDefaultToRaiseHigh() {
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC, PRIORITY_HIGH,
-                // TODO(b/240635097): update in U
-                SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
                 true);
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC, PRIORITY_HIGH,
-                // TODO(b/240635097): update in U
-                SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
                 true);
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX, PRIORITY_HIGH,
-                // TODO(b/240635097): update in U
-                SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
                 true);
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD, PRIORITY_HIGH,
-                // TODO(b/240635097): update in U
-                SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
                 true);
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, PRIORITY_HIGH,
-                // TODO(b/240635097): update in U
-                SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
                 true);
         testCodecPriorityChangeHelper(
-                // TODO(b/240635097): update in U
-                SOURCE_CODEC_TYPE_OPUS, PRIORITY_HIGH,
-                SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, PRIORITY_HIGH,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, OPUS_PRIORITY_DEFAULT,
                 false);
     }
 
@@ -312,8 +302,7 @@ public class A2dpCodecConfigTest {
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC, PRIORITY_HIGH,
                 true);
         testCodecPriorityChangeHelper(
-                // TODO(b/240635097): update in U
-                SOURCE_CODEC_TYPE_OPUS, PRIORITY_HIGH,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, PRIORITY_HIGH,
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC, PRIORITY_HIGH,
                 true);
     }
@@ -341,8 +330,7 @@ public class A2dpCodecConfigTest {
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC, PRIORITY_HIGH,
                 true);
         testCodecPriorityChangeHelper(
-                // TODO(b/240635097): update in U
-                SOURCE_CODEC_TYPE_OPUS, PRIORITY_HIGH,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS, PRIORITY_HIGH,
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC, PRIORITY_HIGH,
                 true);
     }

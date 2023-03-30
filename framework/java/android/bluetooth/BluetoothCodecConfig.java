@@ -41,7 +41,7 @@ public final class BluetoothCodecConfig implements Parcelable {
     @IntDef(prefix = "SOURCE_CODEC_TYPE_",
         value = {SOURCE_CODEC_TYPE_SBC, SOURCE_CODEC_TYPE_AAC, SOURCE_CODEC_TYPE_APTX,
             SOURCE_CODEC_TYPE_APTX_HD, SOURCE_CODEC_TYPE_LDAC, SOURCE_CODEC_TYPE_LC3,
-            SOURCE_CODEC_TYPE_INVALID})
+            SOURCE_CODEC_TYPE_OPUS, SOURCE_CODEC_TYPE_INVALID})
     @Retention(RetentionPolicy.SOURCE)
     public @interface SourceCodecType {}
 
@@ -79,7 +79,7 @@ public final class BluetoothCodecConfig implements Parcelable {
     /**
      * Source codec type Opus.
      */
-    private static final int SOURCE_CODEC_TYPE_OPUS = 6;
+    public static final int SOURCE_CODEC_TYPE_OPUS = 6;
 
     /**
      * Source codec type invalid. This is the default value used for codec
