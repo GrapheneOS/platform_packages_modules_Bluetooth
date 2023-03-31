@@ -52,7 +52,9 @@ impl IBluetoothLogging for BluetoothLogging {
         log::set_max_level(level);
 
         // Update log level in libbluetooth.
-        init_flags::update_logging_debug_enabled_for_all(self.is_debug);
+        let level =
+            if self.is_debug { init_flags::LOG_TAG_DEBUG } else { init_flags::LOG_TAG_INFO };
+        init_flags::update_default_log_level(level);
 
         // Mark the start of debug logging with a debug print.
         if self.is_debug {

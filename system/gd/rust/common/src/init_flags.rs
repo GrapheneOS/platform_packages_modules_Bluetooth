@@ -2,6 +2,7 @@ use lazy_static::lazy_static;
 use log::{error, info};
 use paste::paste;
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::fmt;
 use std::sync::Mutex;
 
@@ -219,7 +220,7 @@ macro_rules! init_flags {
 
 #[derive(Default)]
 struct ExplicitTagSettings {
-    map: HashMap<String, bool>,
+    map: HashMap<String, i32>,
 }
 
 impl fmt::Display for ExplicitTagSettings {
@@ -228,25 +229,88 @@ impl fmt::Display for ExplicitTagSettings {
     }
 }
 
-fn parse_logging_tag(flags: &mut InitFlags, values: Vec<&str>, enabled: bool) {
-    for tag in values[1].split(',') {
-        flags.logging_debug_explicit_tag_settings.map.insert(tag.to_string(), enabled);
+struct LogLevel(i32);
+
+impl TryFrom<&str> for LogLevel {
+    type Error = &'static str;
+
+    fn try_from(tag_value: &str) -> Result<Self, Self::Error> {
+        match tag_value {
+            "LOG_FATAL" => Ok(LogLevel(LOG_TAG_FATAL)),
+            "LOG_ERROR" => Ok(LogLevel(LOG_TAG_ERROR)),
+            "LOG_WARN" => Ok(LogLevel(LOG_TAG_WARN)),
+            "LOG_NOTICE" => Ok(LogLevel(LOG_TAG_NOTICE)),
+            "LOG_INFO" => Ok(LogLevel(LOG_TAG_INFO)),
+            "LOG_DEBUG" => Ok(LogLevel(LOG_TAG_DEBUG)),
+            "LOG_VERBOSE" => Ok(LogLevel(LOG_TAG_VERBOSE)),
+            _ => Err("Invalid tag value"),
+        }
     }
 }
 
-/// Return true if `tag` is enabled in the flag
-pub fn is_debug_logging_enabled_for_tag(tag: &str) -> bool {
-    let guard = FLAGS.lock().unwrap();
-    *guard
-        .logging_debug_explicit_tag_settings
-        .map
-        .get(tag)
-        .unwrap_or(&guard.logging_debug_enabled_for_all)
+fn deprecated_set_debug_logging_enabled_for_all(flags: &mut InitFlags, values: Vec<&str>) {
+    let truthy: bool = values[1].parse().unwrap_or(false);
+    flags.default_log_level = if truthy { LOG_TAG_VERBOSE } else { LOG_TAG_INFO };
+
+    // Leave a note that this flag is deprecated in the logs.
+    log::error!(
+        "DEPRECATED flag used: INIT_logging_debug_enabled_for_all. Use INIT_default_log_level_str=LOG_VERBOSE instead.",
+    );
+}
+
+fn parse_log_level(flags: &mut InitFlags, values: Vec<&str>) {
+    if let Ok(v) = LogLevel::try_from(values[1]) {
+        flags.default_log_level = v.0;
+    }
+}
+
+fn parse_logging_tag(flags: &mut InitFlags, values: Vec<&str>) {
+    for tag in values[1].split(',') {
+        let tagstr = tag.to_string();
+        let pair = tagstr.split(':').collect::<Vec<&str>>();
+        if pair.len() == 2 {
+            if let Ok(v) = LogLevel::try_from(pair[1]) {
+                flags.logging_explicit_tag_settings.map.insert(pair[0].into(), v.0);
+            }
+        }
+    }
+}
+
+fn parse_debug_logging_tag(flags: &mut InitFlags, values: Vec<&str>, enabled: bool) {
+    let log_level: i32 = if enabled { LOG_TAG_VERBOSE } else { LOG_TAG_INFO };
+
+    for tag in values[1].split(',') {
+        flags.logging_explicit_tag_settings.map.insert(tag.to_string(), log_level);
+    }
 }
 
 fn parse_hci_adapter(flags: &mut InitFlags, values: Vec<&str>) {
     flags.hci_adapter = values[1].parse().unwrap_or(0);
 }
+
+/// Returns the log level for given flag.
+pub fn get_log_level_for_tag(tag: &str) -> i32 {
+    let guard = FLAGS.lock().unwrap();
+    *guard.logging_explicit_tag_settings.map.get(tag).unwrap_or(&guard.default_log_level)
+}
+
+// Keep these values in sync with the values in gd/os/log_tags.h
+// They are used to control the log level for each tag.
+
+/// Fatal log level.
+pub const LOG_TAG_FATAL: i32 = 0;
+/// Error log level.
+pub const LOG_TAG_ERROR: i32 = 1;
+/// Warning log level.
+pub const LOG_TAG_WARN: i32 = 2;
+/// Notice log level.
+pub const LOG_TAG_NOTICE: i32 = 3;
+/// Info log level. This is usually the default log level on most systems.
+pub const LOG_TAG_INFO: i32 = 4;
+/// Debug log level.
+pub const LOG_TAG_DEBUG: i32 = 5;
+/// Verbose log level.
+pub const LOG_TAG_VERBOSE: i32 = 6;
 
 init_flags!(
     // LINT.IfChange
@@ -294,16 +358,19 @@ init_flags!(
     // dynamic flags can be updated at runtime and should be accessed directly
     // to check.
     dynamic_flags: {
-        logging_debug_enabled_for_all,
+        default_log_level : i32 = LOG_TAG_INFO,
     }
     // extra_fields are not a 1 to 1 match with "INIT_*" flags
     extra_fields: {
-        logging_debug_explicit_tag_settings: ExplicitTagSettings,
+        logging_explicit_tag_settings: ExplicitTagSettings,
     }
     // LINT.ThenChange(/system/gd/common/init_flags.fbs)
     extra_parsed_flags: {
-        "INIT_logging_debug_enabled_for_tags" => parse_logging_tag(_, _, true),
-        "INIT_logging_debug_disabled_for_tags" => parse_logging_tag(_, _, false),
+        "INIT_default_log_level_str" => parse_log_level(_, _),
+        "INIT_log_level_for_tags" => parse_logging_tag(_, _),
+        "INIT_logging_debug_enabled_for_all" => deprecated_set_debug_logging_enabled_for_all(_, _),
+        "INIT_logging_debug_enabled_for_tags" => parse_debug_logging_tag(_, _, true),
+        "INIT_logging_debug_disabled_for_tags" => parse_debug_logging_tag(_, _, false),
         "--hci" => parse_hci_adapter(_, _),
     }
     dependencies: {
@@ -375,22 +442,24 @@ mod tests {
     fn explicit_flag() {
         let _guard = ASYNC_LOCK.lock().unwrap();
         test_load(vec![
-            "INIT_logging_debug_enabled_for_all=true",
+            "INIT_default_log_level=LOG_VERBOSE",
             "INIT_logging_debug_enabled_for_tags=foo,bar",
-            "INIT_logging_debug_disabled_for_tags=foo,bar2",
+            "INIT_logging_debug_disabled_for_tags=foo,bar2,fizz",
             "INIT_logging_debug_enabled_for_tags=bar2",
+            "INIT_log_level_for_tags=fizz:LOG_WARN,buzz:LOG_NOTICE",
         ]);
-        assert!(!is_debug_logging_enabled_for_tag("foo"));
-        assert!(is_debug_logging_enabled_for_tag("bar"));
-        assert!(is_debug_logging_enabled_for_tag("bar2"));
-        assert!(is_debug_logging_enabled_for_tag("unknown_flag"));
-        assert!(logging_debug_enabled_for_all_is_enabled());
-        FLAGS.lock().unwrap().logging_debug_enabled_for_all = false;
-        assert!(!is_debug_logging_enabled_for_tag("foo"));
-        assert!(is_debug_logging_enabled_for_tag("bar"));
-        assert!(is_debug_logging_enabled_for_tag("bar2"));
-        assert!(!is_debug_logging_enabled_for_tag("unknown_flag"));
-        assert!(!logging_debug_enabled_for_all_is_enabled());
+
+        assert!(get_log_level_for_tag("foo") == LOG_TAG_INFO);
+        assert!(get_log_level_for_tag("bar") == LOG_TAG_VERBOSE);
+        assert!(get_log_level_for_tag("bar2") == LOG_TAG_VERBOSE);
+        assert!(get_log_level_for_tag("unknown_flag") == LOG_TAG_VERBOSE);
+        assert!(get_default_log_level() == LOG_TAG_VERBOSE);
+        FLAGS.lock().unwrap().default_log_level = LOG_TAG_INFO;
+        assert!(get_log_level_for_tag("foo") == LOG_TAG_INFO);
+        assert!(get_log_level_for_tag("bar") == LOG_TAG_VERBOSE);
+        assert!(get_log_level_for_tag("bar2") == LOG_TAG_VERBOSE);
+        assert!(get_log_level_for_tag("unknown_flag") == LOG_TAG_INFO);
+        assert!(get_default_log_level() == LOG_TAG_INFO);
     }
     #[test]
     fn test_redact_logging() {
@@ -406,13 +475,33 @@ mod tests {
     #[test]
     fn test_runtime_update() {
         let _guard = ASYNC_LOCK.lock().unwrap();
-        test_load(vec!["INIT_btaa_hci=true", "INIT_logging_debug_enabled_for_all=true"]);
+        test_load(vec!["INIT_btaa_hci=true", "INIT_default_log_level=LOG_WARN"]);
         assert!(btaa_hci_is_enabled());
-        assert!(logging_debug_enabled_for_all_is_enabled());
+        assert!(get_default_log_level() == LOG_TAG_WARN);
 
-        update_logging_debug_enabled_for_all(false);
-        assert!(!logging_debug_enabled_for_all_is_enabled());
-        update_logging_debug_enabled_for_all(true);
-        assert!(logging_debug_enabled_for_all_is_enabled());
+        update_default_log_level(LOG_TAG_DEBUG);
+        assert!(get_default_log_level() == LOG_TAG_DEBUG);
+        update_default_log_level(LOG_TAG_ERROR);
+        assert!(get_default_log_level() == LOG_TAG_ERROR);
+    }
+    #[test]
+    fn test_default_log_level() {
+        // Default log level can be provided via int value or string.
+        // The string version is just for ease-of-use.
+        let _guard = ASYNC_LOCK.lock().unwrap();
+        test_load(vec!["INIT_default_log_level=1"]);
+        assert!(get_default_log_level() == LOG_TAG_ERROR);
+        test_load(vec!["INIT_default_log_level_str=LOG_VERBOSE"]);
+        assert!(get_default_log_level() == LOG_TAG_VERBOSE);
+        test_load(vec!["INIT_default_log_level_str=LOG_VERBOSE", "INIT_default_log_level=0"]);
+        assert!(get_default_log_level() == LOG_TAG_FATAL);
+    }
+    #[test]
+    fn test_deprecated_logging_flag() {
+        let _guard = ASYNC_LOCK.lock().unwrap();
+        test_load(vec!["INIT_default_log_level_str=1", "INIT_logging_debug_enabled_for_all=true"]);
+        assert!(get_default_log_level() == LOG_TAG_VERBOSE);
+        test_load(vec!["INIT_logging_debug_enabled_for_all=false"]);
+        assert!(get_default_log_level() == LOG_TAG_INFO);
     }
 }
