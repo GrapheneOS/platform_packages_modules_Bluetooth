@@ -83,28 +83,28 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         services = gatt.DiscoverServices(ref_dut)
         self.ref.log.info(f'REF services: {services}')
 
+    async def connect_dut_to_ref(self) -> Tuple[Connection, Connection]:
+        ref_advertisement = self.ref.aio.host.Advertise(
+            legacy=True,
+            connectable=True,
+        )
+
+        dut_connection_to_ref = (
+            await self.dut.aio.host.ConnectLE(public=self.ref.address, own_address_type=RANDOM)
+        ).connection
+        assert dut_connection_to_ref
+
+        ref_connection_to_dut = (await anext(aiter(ref_advertisement))).connection
+        ref_advertisement.cancel()
+
+        return dut_connection_to_ref, ref_connection_to_dut
+
     @avatar.asynchronous
     async def test_read_characteristic_while_pairing(self) -> None:
         if isinstance(self.dut, BumblePandoraDevice):
             raise signals.TestSkip('TODO: b/273941061')
         if not isinstance(self.ref, BumblePandoraDevice):
             raise signals.TestSkip('Test require Bumble as reference device(s)')
-
-        async def connect_dut_to_ref() -> Tuple[Connection, Connection]:
-            ref_advertisement = self.ref.aio.host.Advertise(
-                legacy=True,
-                connectable=True,
-            )
-
-            dut_connection_to_ref = (
-                await self.dut.aio.host.ConnectLE(public=self.ref.address, own_address_type=RANDOM)
-            ).connection
-            assert dut_connection_to_ref
-
-            ref_connection_to_dut = (await anext(aiter(ref_advertisement))).connection
-            ref_advertisement.cancel()
-
-            return dut_connection_to_ref, ref_connection_to_dut
 
         # arrange: set up GATT service on REF side with a characteristic
         # that can only be read after pairing
@@ -129,7 +129,7 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         # manually handle pairing on the DUT side
         dut_pairing_events = self.dut.aio.security.OnPairing()
         # set up connection
-        dut_connection_to_ref, ref_connection_to_dut = await connect_dut_to_ref()
+        dut_connection_to_ref, ref_connection_to_dut = await self.connect_dut_to_ref()
 
         # act: initiate pairing from REF side (send a security request)
         async def ref_secure() -> SecureResponse:
@@ -166,6 +166,68 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         # make sure pairing was successful
         ref_secure_res = await ref_secure_task
         assert ref_secure_res.result_variant() == 'success'
+
+    @avatar.asynchronous
+    async def test_rediscover_whenever_unbonded(self) -> None:
+        if not isinstance(self.ref, BumblePandoraDevice):
+            raise signals.TestSkip('Test require Bumble as reference device(s)')
+
+        # arrange: set up one GATT service on REF side
+        dut_gatt = AioGATT(self.dut.aio.channel)
+        SERVICE_UUID_1 = "00005a00-0000-1000-8000-00805f9b34fb"
+        SERVICE_UUID_2 = "00005a01-0000-1000-8000-00805f9b34fb"
+        self.ref.device.add_service(Service(SERVICE_UUID_1, []))  # type:ignore
+        # connect both devices
+        dut_connection_to_ref, ref_connection_to_dut = await self.connect_dut_to_ref()
+
+        # act: perform service discovery, disconnect, add the second service, reconnect, and try discovery again
+        first_discovery = await dut_gatt.DiscoverServices(dut_connection_to_ref)
+        await self.ref.aio.host.Disconnect(ref_connection_to_dut)
+        self.ref.device.add_service(Service(SERVICE_UUID_2, []))  # type:ignore
+        dut_connection_to_ref, _ = await self.connect_dut_to_ref()
+        second_discovery = await dut_gatt.DiscoverServices(dut_connection_to_ref)
+
+        # assert: that we found only one service in the first discovery
+        assert any(service.uuid == SERVICE_UUID_1 for service in first_discovery.services)
+        assert not any(service.uuid == SERVICE_UUID_2 for service in first_discovery.services)
+        # assert: but found both in the second discovery
+        assert any(service.uuid == SERVICE_UUID_1 for service in second_discovery.services)
+        assert any(service.uuid == SERVICE_UUID_2 for service in second_discovery.services)
+
+    @avatar.asynchronous
+    async def test_do_not_discover_when_bonded(self) -> None:
+        # NOTE: if service change indication is ever enabled in Bumble, both this test + the previous test must DISABLE IT
+        # otherwise this test will fail, and the previous test will pass even on a broken implementation
+
+        if not isinstance(self.ref, BumblePandoraDevice):
+            raise signals.TestSkip('Test require Bumble as reference device(s)')
+
+        # arrange: set up one GATT service on REF side
+        dut_gatt = AioGATT(self.dut.aio.channel)
+        SERVICE_UUID_1 = "00005a00-0000-1000-8000-00805f9b34fb"
+        SERVICE_UUID_2 = "00005a01-0000-1000-8000-00805f9b34fb"
+        self.ref.device.add_service(Service(SERVICE_UUID_1, []))  # type:ignore
+        # connect both devices
+        dut_connection_to_ref, ref_connection_to_dut = await self.connect_dut_to_ref()
+        # bond devices and disconnect
+        await self.dut.aio.security.Secure(connection=dut_connection_to_ref, le=LE_LEVEL3)
+        await self.ref.aio.host.Disconnect(ref_connection_to_dut)
+
+        # act: connect, perform service discovery, disconnect, add the second service, reconnect, and try discovery again
+        dut_connection_to_ref, ref_connection_to_dut = await self.connect_dut_to_ref()
+        first_discovery = await dut_gatt.DiscoverServices(dut_connection_to_ref)
+        await self.ref.aio.host.Disconnect(ref_connection_to_dut)
+
+        self.ref.device.add_service(Service(SERVICE_UUID_2, []))  # type:ignore
+        dut_connection_to_ref, _ = await self.connect_dut_to_ref()
+        second_discovery = await dut_gatt.DiscoverServices(dut_connection_to_ref)
+
+        # assert: that we found only one service in the first discovery
+        assert any(service.uuid == SERVICE_UUID_1 for service in first_discovery.services)
+        assert not any(service.uuid == SERVICE_UUID_2 for service in first_discovery.services)
+        # assert: but found both in the second discovery
+        assert any(service.uuid == SERVICE_UUID_1 for service in second_discovery.services)
+        assert any(service.uuid == SERVICE_UUID_2 for service in second_discovery.services)
 
 
 if __name__ == '__main__':
