@@ -496,6 +496,15 @@ extern void bta_gattc_get_gatt_db(uint16_t conn_id, uint16_t start_handle,
                                   uint16_t end_handle, btgatt_db_element_t** db,
                                   int* count);
 extern void bta_gattc_init_cache(tBTA_GATTC_SERV* p_srvc_cb);
+
+enum class RobustCachingSupport {
+  UNSUPPORTED,
+  SUPPORTED,
+  UNKNOWN,
+};
+RobustCachingSupport GetRobustCachingSupport(const tBTA_GATTC_CLCB* p_clcb,
+                                             const gatt::Database& db);
+
 extern void bta_gattc_reset_discover_st(tBTA_GATTC_SERV* p_srcb,
                                         tGATT_STATUS status);
 
