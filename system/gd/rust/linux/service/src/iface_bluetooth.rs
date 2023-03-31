@@ -750,6 +750,18 @@ impl IBluetoothSocketManager for IBluetoothSocketManagerDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("ListenUsingRfcomm")]
+    fn listen_using_rfcomm(
+        &mut self,
+        callback: CallbackId,
+        channel: Option<i32>,
+        application_uuid: Option<Uuid>,
+        name: Option<String>,
+        flags: Option<i32>,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
     #[dbus_method("ListenUsingRfcommWithServiceRecord")]
     fn listen_using_rfcomm_with_service_record(
         &mut self,
