@@ -25,12 +25,12 @@ mod ffi {
         fn gd_remote_name_request_is_enabled() -> bool;
         fn gd_rust_is_enabled() -> bool;
         fn gd_security_is_enabled() -> bool;
+        fn get_default_log_level() -> i32;
         fn get_hci_adapter() -> i32;
+        fn get_log_level_for_tag(tag: &str) -> i32;
         fn hfp_dynamic_version_is_enabled() -> bool;
         fn irk_rotation_is_enabled() -> bool;
-        fn is_debug_logging_enabled_for_tag(tag: &str) -> bool;
         fn leaudio_targeted_announcement_reconnection_mode_is_enabled() -> bool;
-        fn logging_debug_enabled_for_all_is_enabled() -> bool;
         fn pass_phy_update_callback_is_enabled() -> bool;
         fn pbap_pse_dynamic_version_upgrade_is_enabled() -> bool;
         fn periodic_advertising_adi_is_enabled() -> bool;
