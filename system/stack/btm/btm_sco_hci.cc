@@ -23,6 +23,9 @@
 #include <cfloat>
 #include <memory>
 
+// Define before including log.h
+#define LOG_TAG "sco_hci"
+
 #include "btif/include/core_callbacks.h"
 #include "btif/include/stack_manager.h"
 #include "osi/include/allocator.h"
