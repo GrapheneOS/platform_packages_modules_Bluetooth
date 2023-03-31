@@ -25,6 +25,7 @@
 #include "module.h"
 #include "os/handler.h"
 #include "os/log.h"
+#include "os/system_properties.h"
 #include "os/thread.h"
 #include "os/wakelock_manager.h"
 
@@ -45,7 +46,8 @@ void StackManager::StartUp(ModuleList* modules, Thread* stack_thread) {
   handler_->Post(common::BindOnce(&StackManager::handle_start_up, common::Unretained(this), modules, stack_thread,
                                   std::move(promise)));
 
-  auto init_status = future.wait_for(std::chrono::seconds(3));
+  auto init_status = future.wait_for(std::chrono::milliseconds(
+      get_gd_stack_timeout_ms(/* is_start = */ true)));
 
   WakelockManager::Get().Release();
 
@@ -71,7 +73,8 @@ void StackManager::ShutDown() {
   auto future = promise.get_future();
   handler_->Post(common::BindOnce(&StackManager::handle_shut_down, common::Unretained(this), std::move(promise)));
 
-  auto stop_status = future.wait_for(std::chrono::seconds(5));
+  auto stop_status = future.wait_for(std::chrono::milliseconds(
+      get_gd_stack_timeout_ms(/* is_start = */ false)));
 
   WakelockManager::Get().Release();
   WakelockManager::Get().CleanUp();
@@ -90,6 +93,13 @@ void StackManager::ShutDown() {
 void StackManager::handle_shut_down(std::promise<void> promise) {
   registry_.StopAll();
   promise.set_value();
+}
+
+std::chrono::milliseconds StackManager::get_gd_stack_timeout_ms(bool is_start) {
+  auto gd_timeout = os::GetSystemPropertyUint32(
+        is_start ? "bluetooth.gd.start_timeout" : "bluetooth.gd.stop_timeout",
+        /* default_value = */ is_start ? 3000 : 5000);
+  return std::chrono::milliseconds(gd_timeout);
 }
 
 }  // namespace bluetooth
