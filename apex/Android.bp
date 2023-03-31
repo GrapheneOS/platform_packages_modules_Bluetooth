@@ -23,6 +23,7 @@ apex {
     compat_configs: [
         "bluetooth-compat-config",
         "framework-bluetooth-compat-config",
+        "bluetoothapk-platform-compat-config",
     ],
     apps: ["Bluetooth"],
 

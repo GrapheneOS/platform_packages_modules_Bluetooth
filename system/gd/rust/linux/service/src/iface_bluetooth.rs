@@ -1,6 +1,6 @@
 use bt_topshim::btif::{
-    BtBondState, BtConnectionState, BtDeviceType, BtPropertyType, BtSspVariant, BtStatus,
-    BtTransport, Uuid, Uuid128Bit,
+    BtBondState, BtConnectionState, BtDeviceType, BtDiscMode, BtPropertyType, BtSspVariant,
+    BtStatus, BtTransport, Uuid, Uuid128Bit,
 };
 use bt_topshim::profiles::socket::SocketType;
 use bt_topshim::profiles::ProfileConnectionState;
@@ -8,8 +8,9 @@ use bt_topshim::profiles::ProfileConnectionState;
 use bt_topshim::profiles::hid_host::BthhReportType;
 
 use bt_topshim::profiles::sdp::{
-    BtSdpDipRecord, BtSdpHeaderOverlay, BtSdpMasRecord, BtSdpMnsRecord, BtSdpOpsRecord,
-    BtSdpPceRecord, BtSdpPseRecord, BtSdpRecord, BtSdpSapRecord, BtSdpType, SupportedFormatsList,
+    BtSdpDipRecord, BtSdpHeaderOverlay, BtSdpMasRecord, BtSdpMnsRecord, BtSdpMpsRecord,
+    BtSdpOpsRecord, BtSdpPceRecord, BtSdpPseRecord, BtSdpRecord, BtSdpSapRecord, BtSdpType,
+    SupportedDependencies, SupportedFormatsList, SupportedScenarios,
 };
 
 use btstack::bluetooth::{
@@ -228,6 +229,17 @@ struct BtSdpDipRecordDBus {
     primary_record: bool,
 }
 
+impl_dbus_arg_from_into!(SupportedScenarios, Vec<u8>);
+impl_dbus_arg_from_into!(SupportedDependencies, Vec<u8>);
+
+#[dbus_propmap(BtSdpMpsRecord)]
+pub struct BtSdpMpsRecordDBus {
+    hdr: BtSdpHeaderOverlay,
+    supported_scenarios_mpsd: SupportedScenarios,
+    supported_scenarios_mpmd: SupportedScenarios,
+    supported_dependencies: SupportedDependencies,
+}
+
 fn read_propmap_value<T: 'static + DirectDBus>(
     propmap: &dbus::arg::PropMap,
     key: &str,
@@ -325,6 +337,10 @@ impl DBusArg for BtSdpRecord {
                 let arg_0 = parse_propmap_value::<BtSdpDipRecord>(&data, "0")?;
                 BtSdpRecord::Dip(arg_0)
             }
+            BtSdpType::Mps => {
+                let arg_0 = parse_propmap_value::<BtSdpMpsRecord>(&data, "0")?;
+                BtSdpRecord::Mps(arg_0)
+            }
         };
         Ok(record)
     }
@@ -361,10 +377,15 @@ impl DBusArg for BtSdpRecord {
             BtSdpRecord::Dip(dip_record) => {
                 write_propmap_value::<BtSdpDipRecord>(&mut map, dip_record, &String::from("0"))?
             }
+            BtSdpRecord::Mps(mps_record) => {
+                write_propmap_value::<BtSdpMpsRecord>(&mut map, mps_record, &String::from("0"))?
+            }
         }
         Ok(map)
     }
 }
+
+impl_dbus_arg_enum!(BtDiscMode);
 
 #[allow(dead_code)]
 struct IBluetoothDBus {}
@@ -446,7 +467,7 @@ impl IBluetooth for IBluetoothDBus {
     }
 
     #[dbus_method("SetDiscoverable")]
-    fn set_discoverable(&mut self, mode: bool, duration: u32) -> bool {
+    fn set_discoverable(&mut self, mode: BtDiscMode, duration: u32) -> bool {
         dbus_generated!()
     }
 
@@ -704,8 +725,18 @@ impl IBluetoothSocketManager for IBluetoothSocketManagerDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("ListenUsingInsecureL2capLeChannel")]
+    fn listen_using_insecure_l2cap_le_channel(&mut self, callback: CallbackId) -> SocketResult {
+        dbus_generated!()
+    }
+
     #[dbus_method("ListenUsingL2capChannel")]
     fn listen_using_l2cap_channel(&mut self, callback: CallbackId) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ListenUsingL2capLeChannel")]
+    fn listen_using_l2cap_le_channel(&mut self, callback: CallbackId) -> SocketResult {
         dbus_generated!()
     }
 
@@ -739,8 +770,28 @@ impl IBluetoothSocketManager for IBluetoothSocketManagerDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("CreateInsecureL2capLeChannel")]
+    fn create_insecure_l2cap_le_channel(
+        &mut self,
+        callback: CallbackId,
+        device: BluetoothDevice,
+        psm: i32,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
     #[dbus_method("CreateL2capChannel")]
     fn create_l2cap_channel(
+        &mut self,
+        callback: CallbackId,
+        device: BluetoothDevice,
+        psm: i32,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("CreateL2capLeChannel")]
+    fn create_l2cap_le_channel(
         &mut self,
         callback: CallbackId,
         device: BluetoothDevice,
