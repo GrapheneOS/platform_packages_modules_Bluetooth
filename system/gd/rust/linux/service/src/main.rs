@@ -126,6 +126,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Forward --hci to Fluoride.
     init_flags.push(format!("--hci={}", hci_index));
+    let logging = Arc::new(Mutex::new(Box::new(BluetoothLogging::new(is_debug, log_output))));
 
     let (tx, rx) = Stack::create_channel();
     let sig_notifier = Arc::new((Mutex::new(false), Condvar::new()));
@@ -168,7 +169,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth_media.clone(),
         tx.clone(),
     ))));
-    let logging = Arc::new(Mutex::new(Box::new(BluetoothLogging::new(is_debug, log_output))));
     let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(tx.clone()))));
 
     topstack::get_runtime().block_on(async {
