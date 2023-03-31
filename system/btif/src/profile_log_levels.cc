@@ -137,7 +137,7 @@ void load_levels_from_config(const config_t* config) {
     if (value != -1) {
       functions->trace_level = value;
     }
-    if (bluetooth::common::InitFlags::IsDebugLoggingEnabledForAll()) {
+    if (bluetooth::common::InitFlags::GetDefaultLogLevel() >= LOG_TAG_VERBOSE) {
       LOG_INFO("Enable logging for %s because all debug logs are enabled",
                functions->trc_name);
       functions->trace_level = BT_TRACE_LEVEL_VERBOSE;

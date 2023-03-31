@@ -64,13 +64,13 @@ flatbuffers::Offset<bluetooth::common::InitFlagsData> bluetooth::dumpsys::InitFl
   builder.add_gd_remote_name_request_is_enabled(initFlags::gd_remote_name_request_is_enabled());
   builder.add_gd_rust_is_enabled(initFlags::gd_rust_is_enabled());
   builder.add_gd_security_is_enabled(initFlags::gd_security_is_enabled());
+  builder.add_get_default_log_level(initFlags::get_default_log_level());
   builder.add_get_hci_adapter(initFlags::get_hci_adapter());
+  // get_log_level_for_tag -- skipped in dumpsys
   builder.add_hfp_dynamic_version_is_enabled(initFlags::hfp_dynamic_version_is_enabled());
   builder.add_irk_rotation_is_enabled(initFlags::irk_rotation_is_enabled());
-  // is_debug_logging_enabled_for_tag -- skipped in dumpsys
   builder.add_leaudio_targeted_announcement_reconnection_mode_is_enabled(
       initFlags::leaudio_targeted_announcement_reconnection_mode_is_enabled());
-  builder.add_logging_debug_enabled_for_all_is_enabled(initFlags::logging_debug_enabled_for_all_is_enabled());
   builder.add_pass_phy_update_callback_is_enabled(initFlags::pass_phy_update_callback_is_enabled());
   builder.add_pbap_pse_dynamic_version_upgrade_is_enabled(
       initFlags::pbap_pse_dynamic_version_upgrade_is_enabled());

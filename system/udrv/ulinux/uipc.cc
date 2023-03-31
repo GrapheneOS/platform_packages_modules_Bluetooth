@@ -41,6 +41,9 @@
 #include <mutex>
 #include <set>
 
+// Define before including log.h
+#define LOG_TAG "uipc"
+
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
