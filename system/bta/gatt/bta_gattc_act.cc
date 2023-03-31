@@ -548,14 +548,24 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
       p_clcb->p_srcb->state = BTA_GATTC_SERV_LOAD;
       // Consider the case that if GATT Server is changed, but no service
       // changed indication is received, the database might be out of date. So
-      // if robust caching is enabled, any time when connection is established,
-      // always check the db hash first, not just load the stored database.
-      gatt::Database db = bta_gattc_cache_load(p_clcb->p_srcb->server_bda);
-      if (!bta_gattc_is_robust_caching_enabled() && !db.IsEmpty()) {
-        p_clcb->p_srcb->gatt_database = db;
-        p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
-        bta_gattc_reset_discover_st(p_clcb->p_srcb, GATT_SUCCESS);
-      } else {
+      // if robust caching is known to be supported, always check the db hash
+      // first, before loading the stored database.
+
+      // Only load the database if we are bonded, since the device cache is
+      // meaningless otherwise (as we need to do rediscovery regardless)
+      gatt::Database db = btm_sec_is_a_bonded_dev(p_clcb->bda)
+                              ? bta_gattc_cache_load(p_clcb->p_srcb->server_bda)
+                              : gatt::Database();
+      auto robust_caching_support = GetRobustCachingSupport(p_clcb, db);
+      LOG_INFO("Connected to %s, robust caching support is %d",
+               p_clcb->bda.ToRedactedStringForLogging().c_str(),
+               robust_caching_support);
+      if (db.IsEmpty() ||
+          robust_caching_support == RobustCachingSupport::SUPPORTED) {
+        // If the peer device is expected to support robust caching, or if we
+        // don't know its services yet, then we should do discovery (which may
+        // short-circuit through a hash match, but might also do the full
+        // discovery).
         p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC;
 
         /* set true to read database hash before service discovery */
@@ -565,6 +575,10 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
 
         /* cache load failure, start discovery */
         bta_gattc_start_discover(p_clcb, NULL);
+      } else {
+        p_clcb->p_srcb->gatt_database = db;
+        p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
+        bta_gattc_reset_discover_st(p_clcb->p_srcb, GATT_SUCCESS);
       }
     } else /* cache is building */
       p_clcb->state = BTA_GATTC_DISCOVER_ST;
@@ -832,35 +846,10 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
       p_clcb->p_srcb->update_count = 0;
       p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC_ACT;
 
-      /* This is workaround for the embedded devices being already on the market
-       * and having a serious problem with handle Read By Type with
-       * GATT_UUID_DATABASE_HASH. With this workaround, Android will assume that
-       * embedded device having LMP version lower than 5.1 (0x0a), it does not
-       * support GATT Caching.
-       */
-      uint8_t lmp_version = 0;
-      if (!BTM_ReadRemoteVersion(p_clcb->bda, &lmp_version, nullptr, nullptr)) {
-        LOG_WARN("Could not read remote version for %s",
-                 ADDRESS_TO_LOGGABLE_CSTR(p_clcb->bda));
-      }
-
-      if (lmp_version < 0x0a) {
-        LOG_WARN(
-            " Device LMP version 0x%02x < Bluetooth 5.1. Ignore database cache "
-            "read.",
-            lmp_version);
-        p_clcb->p_srcb->srvc_hdl_db_hash = false;
-      }
-
-      // Some LMP 5.2 devices also don't support robust caching. This workaround
-      // conditionally disables the feature based on a combination of LMP
-      // version and OUI prefix.
-      if (lmp_version < 0x0c &&
-          interop_match_addr(INTEROP_DISABLE_ROBUST_CACHING, &p_clcb->bda)) {
-        LOG_WARN(
-            "Device LMP version 0x%02x <= Bluetooth 5.2 and MAC addr on "
-            "interop list, skipping robust caching",
-            lmp_version);
+      if (GetRobustCachingSupport(p_clcb, p_clcb->p_srcb->gatt_database) ==
+          RobustCachingSupport::UNSUPPORTED) {
+        // Skip initial DB hash read if we have strong reason (due to interop,
+        // or a prior discovery) to believe that it is unsupported.
         p_clcb->p_srcb->srvc_hdl_db_hash = false;
       }
 
