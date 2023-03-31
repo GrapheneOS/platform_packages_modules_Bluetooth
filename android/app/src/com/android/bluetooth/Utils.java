@@ -97,7 +97,7 @@ public final class Utils {
 
     private static final String ENABLE_DUAL_MODE_AUDIO =
             "persist.bluetooth.enable_dual_mode_audio";
-    private static final boolean sDualModeEnabled =
+    private static boolean sDualModeEnabled =
             SystemProperties.getBoolean(ENABLE_DUAL_MODE_AUDIO, false);;
 
     private static final String KEY_TEMP_ALLOW_LIST_DURATION_MS = "temp_allow_list_duration_ms";
@@ -146,6 +146,15 @@ public final class Utils {
     public static boolean isDualModeAudioEnabled() {
         Log.i(TAG, "Dual mode enable state is: " + sDualModeEnabled);
         return sDualModeEnabled;
+    }
+
+    /**
+     * Only exposed for testing, do not invoke this method outside of tests.
+     * @param enabled true if the dual mode state is enabled, false otherwise
+     */
+    public static void setDualModeAudioStateForTesting(boolean enabled) {
+        Log.i(TAG, "Updating dual mode audio state for testing to: " + enabled);
+        sDualModeEnabled = enabled;
     }
 
     public static @Nullable String getName(@Nullable BluetoothDevice device) {

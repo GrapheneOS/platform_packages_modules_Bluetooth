@@ -1284,8 +1284,9 @@ public class AdapterService extends Service {
      * @param profile           is the profile we are checking for support
      * @return true if the profile is supported by both the local and remote device, false otherwise
      */
+    @VisibleForTesting
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    private boolean isProfileSupported(BluetoothDevice device, int profile) {
+    boolean isProfileSupported(BluetoothDevice device, int profile) {
         ParcelUuid[] remoteDeviceUuids = getRemoteUuids(device);
         ParcelUuid[] localDeviceUuids = mAdapterProperties.getUuids();
         if (remoteDeviceUuids == null || remoteDeviceUuids.length == 0) {
@@ -5343,6 +5344,35 @@ public class AdapterService extends Service {
             mHeadsetService.setActiveDevice(device);
         }
 
+        return true;
+    }
+
+    /**
+     * Checks if all supported classic audio profiles are active on this LE Audio device.
+     * @param leAudioDevice the remote device
+     * @return {@code true} if all supported classic audio profiles are active on this device,
+     * {@code false} otherwise
+     */
+    public boolean isAllSupportedClassicAudioProfilesActive(BluetoothDevice leAudioDevice) {
+        if (mLeAudioService == null) {
+            return false;
+        }
+        boolean a2dpSupported = isProfileSupported(leAudioDevice, BluetoothProfile.A2DP);
+        boolean hfpSupported = isProfileSupported(leAudioDevice, BluetoothProfile.HEADSET);
+
+        List<BluetoothDevice> groupDevices = mLeAudioService.getGroupDevices(leAudioDevice);
+        if (hfpSupported && mHeadsetService != null) {
+            BluetoothDevice activeHfpDevice = mHeadsetService.getActiveDevice();
+            if (activeHfpDevice == null || !groupDevices.contains(activeHfpDevice)) {
+                return false;
+            }
+        }
+        if (a2dpSupported && mA2dpService != null) {
+            BluetoothDevice activeA2dpDevice = mA2dpService.getActiveDevice();
+            if (activeA2dpDevice == null || !groupDevices.contains(activeA2dpDevice)) {
+                return false;
+            }
+        }
         return true;
     }
 
