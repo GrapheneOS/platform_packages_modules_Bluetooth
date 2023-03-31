@@ -94,6 +94,12 @@ public final class Utils {
     private static final String TAG = "BluetoothUtils";
     private static final int MICROS_PER_UNIT = 625;
     private static final String PTS_TEST_MODE_PROPERTY = "persist.bluetooth.pts";
+
+    private static final String ENABLE_DUAL_MODE_AUDIO =
+            "persist.bluetooth.enable_dual_mode_audio";
+    private static final boolean sDualModeEnabled =
+            SystemProperties.getBoolean(ENABLE_DUAL_MODE_AUDIO, false);;
+
     private static final String KEY_TEMP_ALLOW_LIST_DURATION_MS = "temp_allow_list_duration_ms";
     private static final long DEFAULT_TEMP_ALLOW_LIST_DURATION_MS = 20_000;
 
@@ -118,6 +124,28 @@ public final class Utils {
 
     private static boolean isToneWait(char c) {
         return c == 'w' || c == 'W';
+    }
+
+    /**
+     * Check if dual mode audio is enabled. This is set via the system property
+     * persist.bluetooth.enable_dual_mode_audio.
+     * <p>
+     * When set to {@code false}, we will not connect A2DP and HFP on a dual mode (BR/EDR + BLE)
+     * device. We will only attempt to use BLE Audio in this scenario.
+     * <p>
+     * When set to {@code true}, we will connect all the supported audio profiles
+     * (A2DP, HFP, and LE Audio) at the same time. In this state, we will respect calls to
+     * profile-specific APIs (e.g. if a SCO API is invoked, we will route audio over HFP). If no
+     * profile-specific API is invoked to route audio (e.g. Telecom routed phone calls, media,
+     * game audio, etc.), then audio will be routed in accordance with the preferred audio profiles
+     * for the remote device. You can get the preferred audio profiles for a remote device by
+     * calling {@link BluetoothAdapter#getPreferredAudioProfiles(BluetoothDevice)}.
+     *
+     * @return true if dual mode audio is enabled, false otherwise
+     */
+    public static boolean isDualModeAudioEnabled() {
+        Log.i(TAG, "Dual mode enable state is: " + sDualModeEnabled);
+        return sDualModeEnabled;
     }
 
     public static @Nullable String getName(@Nullable BluetoothDevice device) {
