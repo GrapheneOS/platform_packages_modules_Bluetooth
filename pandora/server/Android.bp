@@ -26,4 +26,7 @@ python_library_host {
         "pandora_experimental-python",
         "bumble",
     ],
+    data: [
+        "bumble_experimental/py.typed",
+    ]
 }
