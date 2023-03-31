@@ -291,6 +291,14 @@ public class LeAudioServiceTest {
         assertThat((BluetoothDevice)intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)).isEqualTo(device);
         assertThat(intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1)).isEqualTo(newState);
         assertThat(intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1)).isEqualTo(prevState);
+
+        if (newState == BluetoothProfile.STATE_CONNECTED) {
+            // ActiveDeviceManager calls deviceConnected when connected.
+            mService.deviceConnected(device);
+        } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            // ActiveDeviceManager calls deviceDisconnected when connected.
+            mService.deviceDisconnected(device, false);
+        }
     }
 
     /**
@@ -1070,7 +1078,7 @@ public class LeAudioServiceTest {
         verify(mTbsService).setInbandRingtoneSupport(mSingleDevice);
 
         // no active device
-        assertThat(mService.setActiveDevice(null)).isTrue();
+        assertThat(mService.removeActiveDevice(false)).isTrue();
         verify(mNativeInterface).groupSetActive(BluetoothLeAudio.GROUP_ID_INVALID);
 
         //Set group and device as inactive active
@@ -1122,7 +1130,7 @@ public class LeAudioServiceTest {
         mService.messageFromNative(groupStatusChangedEvent);
 
         // no active device
-        assertThat(mService.setActiveDevice(null)).isTrue();
+        assertThat(mService.removeActiveDevice(false)).isTrue();
         verify(mNativeInterface).groupSetActive(BluetoothLeAudio.GROUP_ID_INVALID);
 
         //Set group and device as inactive active
