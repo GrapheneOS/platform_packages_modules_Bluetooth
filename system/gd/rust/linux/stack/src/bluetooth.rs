@@ -213,7 +213,7 @@ pub trait IBluetooth {
 ///
 /// This interface is provided for testing and debugging.
 /// Clients should not use this interface for production.
-pub trait IBluetoothQA {
+pub trait IBluetoothQALegacy {
     /// Returns whether the adapter is connectable.
     fn get_connectable(&self) -> bool;
 
@@ -2316,7 +2316,7 @@ impl BtifHHCallbacks for Bluetooth {
     }
 }
 
-impl IBluetoothQA for Bluetooth {
+impl IBluetoothQALegacy for Bluetooth {
     fn get_connectable(&self) -> bool {
         match self.properties.get(&BtPropertyType::AdapterScanMode) {
             Some(prop) => match prop {
