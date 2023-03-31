@@ -69,8 +69,8 @@ public class Config {
             "ro.bluetooth.leaudio_switcher.supported";
     private static final String LE_AUDIO_BROADCAST_DYNAMIC_SWITCH_PROPERTY =
             "ro.bluetooth.leaudio_broadcast_switcher.supported";
-    private static final String LE_AUDIO_DYNAMIC_ENABLED_PROPERTY =
-            "persist.bluetooth.leaudio_switcher.enabled";
+    private static final String LE_AUDIO_SWITCHER_DISABLED_PROPERTY =
+            "persist.bluetooth.leaudio_switcher.disabled";
 
     private static final Set<String> PERSISTENT_FLAGS = Set.of(
             FEATURE_HEARING_AID,
@@ -184,12 +184,12 @@ public class Config {
                 SystemProperties.getBoolean(LE_AUDIO_DYNAMIC_SWITCH_PROPERTY, false);
 
         if (leAudioDynamicSwitchSupported) {
-            final String leAudioDynamicEnabled = SystemProperties
-                    .get(LE_AUDIO_DYNAMIC_ENABLED_PROPERTY, "none");
-            if (leAudioDynamicEnabled.equals("true")) {
-                setLeAudioProfileStatus(true);
-            } else if (leAudioDynamicEnabled.equals("false")) {
+            final String leAudioSwitcherDisabled = SystemProperties
+                    .get(LE_AUDIO_SWITCHER_DISABLED_PROPERTY, "none");
+            if (leAudioSwitcherDisabled.equals("true")) {
                 setLeAudioProfileStatus(false);
+            } else if (leAudioSwitcherDisabled.equals("false")) {
+                setLeAudioProfileStatus(true);
             }
         }
 
