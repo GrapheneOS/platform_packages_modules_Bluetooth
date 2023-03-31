@@ -236,7 +236,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             &mut cr.lock().unwrap(),
             disconnect_watcher.clone(),
         );
-        let qa_iface = iface_bluetooth::export_bluetooth_qa_dbus_intf(
+        let qa_legacy_iface = iface_bluetooth::export_bluetooth_qa_legacy_dbus_intf(
             conn.clone(),
             &mut cr.lock().unwrap(),
             disconnect_watcher.clone(),
@@ -305,7 +305,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         cr.lock().unwrap().insert(
             make_object_name(adapter_index, "adapter"),
-            &[adapter_iface, qa_iface, socket_mgr_iface, suspend_iface],
+            &[adapter_iface, qa_legacy_iface, socket_mgr_iface, suspend_iface],
             mixin,
         );
 
