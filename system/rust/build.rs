@@ -11,7 +11,7 @@ fn main() {
     let dest_file = File::create(dest_path).unwrap();
 
     let pdl = Command::new("pdl")
-        .args(&["--output-format", "rust_no_alloc", "src/packets.pdl"])
+        .args(["--output-format", "rust_no_alloc", "src/packets.pdl"])
         .stdout(Stdio::piped())
         .spawn()
         .unwrap();
@@ -22,7 +22,7 @@ fn main() {
     rustfmt.wait().unwrap();
 
     if let Some(err) = rustfmt.stderr {
-        panic!("{:?}", err);
+        panic!("{err:?}");
     }
 
     println!("cargo:rerun-if-changed=build.rs");
