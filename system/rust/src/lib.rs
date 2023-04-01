@@ -32,6 +32,7 @@ mod do_not_use {
     use bt_shim::*;
 }
 
+pub mod connection;
 pub mod core;
 pub mod gatt;
 pub mod packets;
