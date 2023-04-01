@@ -105,7 +105,7 @@ struct tBLE_BD_ADDR {
   bool IsAddressResolvable() const {
     return ((bda.address)[0] & kResolvableAddressMask) == kResolvableAddressMsb;
   }
-  bool IsPublic() const { return type & 0x01; }
+  bool IsPublic() const { return !(type & 0x01); }
   bool IsResolvablePrivateAddress() const {
     return IsAddressResolvable() && IsRandomDeviceType();
   }
