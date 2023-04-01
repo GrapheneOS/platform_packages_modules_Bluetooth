@@ -24,9 +24,26 @@ unsafe impl ExternType for Uuid {
     type Kind = cxx::kind::Trivial;
 }
 
+unsafe impl ExternType for AddressWithType {
+    type Id = type_id!("bluetooth::core::AddressWithType");
+    type Kind = cxx::kind::Trivial;
+}
+
 #[allow(dead_code, missing_docs)]
 #[cxx::bridge]
 mod inner {
+    #[derive(Debug)]
+    pub enum AddressTypeForFFI {
+        Public,
+        Random,
+    }
+
+    #[namespace = "bluetooth::core"]
+    extern "C++" {
+        include!("src/core/ffi/types.h");
+        type AddressWithType = crate::core::address::AddressWithType;
+    }
+
     #[namespace = "bluetooth"]
     extern "C++" {
         include!("bluetooth/uuid.h");
