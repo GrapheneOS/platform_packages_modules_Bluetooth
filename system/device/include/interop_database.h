@@ -181,9 +181,6 @@ static const interop_addr_entry_t interop_addr_database[] = {
     // Honda Civic Carkit
     {{{0x0c, 0xd9, 0xc1, 0, 0, 0}}, 3, INTEROP_AVRCP_1_4_ONLY},
 
-    // BMW Carkit
-    {{{0x9c, 0xdf, 0x03, 0, 0, 0}}, 3, INTEROP_AVRCP_1_4_ONLY},
-
     // KDDI Carkit
     {{{0x44, 0xea, 0xd8, 0, 0, 0}}, 3, INTEROP_DISABLE_SNIFF},
 
@@ -192,6 +189,9 @@ static const interop_addr_entry_t interop_addr_database[] = {
 
     // BMW Carkit
     {{{0x00, 0x0a, 0x08, 0, 0, 0}}, 3, INTEROP_AVRCP_1_3_ONLY},
+
+    // Harman/Becker Automotive Systems GmbH (BMW Carkit) - b/234548635
+    {{{0x9c, 0xdf, 0x03, 0, 0, 0}}, 3, INTEROP_AVRCP_1_3_ONLY},
 
     // Eero Wi-Fi Router
     {{{0x08, 0x9b, 0xf1, 0, 0, 0}}, 3, INTEROP_DISABLE_ROBUST_CACHING},
