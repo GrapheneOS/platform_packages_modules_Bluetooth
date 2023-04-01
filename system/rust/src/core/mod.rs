@@ -1,5 +1,6 @@
 //! Shared data-types and utility methods go here.
 
+pub mod address;
 mod ffi;
 pub mod shared_box;
 pub mod shared_mutex;
