@@ -15,7 +15,8 @@ use bt_topshim::profiles::socket::SocketType;
 use bt_topshim::profiles::ProfileConnectionState;
 
 use btstack::bluetooth::{
-    BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback, IBluetoothQA,
+    BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
+    IBluetoothQALegacy,
 };
 use btstack::bluetooth_admin::{IBluetoothAdmin, IBluetoothAdminPolicyCallback, PolicyEffect};
 use btstack::bluetooth_adv::{
@@ -872,25 +873,25 @@ impl IBluetooth for BluetoothDBus {
     }
 }
 
-pub(crate) struct BluetoothQADBus {
+pub(crate) struct BluetoothQALegacyDBus {
     client_proxy: ClientDBusProxy,
 }
 
-impl BluetoothQADBus {
-    pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> BluetoothQADBus {
-        BluetoothQADBus {
+impl BluetoothQALegacyDBus {
+    pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> BluetoothQALegacyDBus {
+        BluetoothQALegacyDBus {
             client_proxy: ClientDBusProxy::new(
                 conn.clone(),
                 String::from("org.chromium.bluetooth"),
                 make_object_path(index, "adapter"),
-                String::from("org.chromium.bluetooth.BluetoothQA"),
+                String::from("org.chromium.bluetooth.BluetoothQALegacy"),
             ),
         }
     }
 }
 
 #[generate_dbus_interface_client]
-impl IBluetoothQA for BluetoothQADBus {
+impl IBluetoothQALegacy for BluetoothQALegacyDBus {
     #[dbus_method("GetConnectable")]
     fn get_connectable(&self) -> bool {
         dbus_generated!()
@@ -1958,6 +1959,18 @@ impl IBluetoothSocketManager for BluetoothSocketManagerDBus {
         callback: CallbackId,
         name: String,
         uuid: Uuid,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ListenUsingRfcomm")]
+    fn listen_using_rfcomm(
+        &mut self,
+        callback: CallbackId,
+        channel: Option<i32>,
+        application_uuid: Option<Uuid>,
+        name: Option<String>,
+        flags: Option<i32>,
     ) -> SocketResult {
         dbus_generated!()
     }

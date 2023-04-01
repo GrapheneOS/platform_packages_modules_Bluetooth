@@ -15,7 +15,7 @@ use bt_topshim::profiles::sdp::{
 
 use btstack::bluetooth::{
     Bluetooth, BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
-    IBluetoothQA,
+    IBluetoothQALegacy,
 };
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, BluetoothSocketManager, CallbackId,
@@ -750,6 +750,18 @@ impl IBluetoothSocketManager for IBluetoothSocketManagerDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("ListenUsingRfcomm")]
+    fn listen_using_rfcomm(
+        &mut self,
+        callback: CallbackId,
+        channel: Option<i32>,
+        application_uuid: Option<Uuid>,
+        name: Option<String>,
+        flags: Option<i32>,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
     #[dbus_method("ListenUsingRfcommWithServiceRecord")]
     fn listen_using_rfcomm_with_service_record(
         &mut self,
@@ -886,15 +898,15 @@ impl ISuspendCallback for SuspendCallbackDBus {
 impl_dbus_arg_enum!(BthhReportType);
 
 #[allow(dead_code)]
-struct IBluetoothQADBus {}
+struct IBluetoothQALegacyDBus {}
 
 #[generate_dbus_exporter(
-    export_bluetooth_qa_dbus_intf,
-    "org.chromium.bluetooth.BluetoothQA",
+    export_bluetooth_qa_legacy_dbus_intf,
+    "org.chromium.bluetooth.BluetoothQALegacy",
     BluetoothMixin,
     qa
 )]
-impl IBluetoothQA for IBluetoothQADBus {
+impl IBluetoothQALegacy for IBluetoothQALegacyDBus {
     #[dbus_method("GetConnectable")]
     fn get_connectable(&self) -> bool {
         dbus_generated!()

@@ -122,7 +122,12 @@ bool Iterator<little_endian>::operator>=(const Iterator<little_endian>& itr) con
 
 template <bool little_endian>
 uint8_t Iterator<little_endian>::operator*() const {
-  ASSERT_LOG(index_ < end_ && !(begin_ > index_), "Index %zu out of bounds: [%zu,%zu)", index_, begin_, end_);
+  ASSERT_LOG(
+      NumBytesRemaining() > 0,
+      "Index %zu out of bounds: [%zu,%zu)",
+      index_,
+      begin_,
+      end_);
   size_t index = index_;
 
   for (auto view : data_) {
@@ -137,7 +142,7 @@ uint8_t Iterator<little_endian>::operator*() const {
 
 template <bool little_endian>
 size_t Iterator<little_endian>::NumBytesRemaining() const {
-  if (end_ > index_ && !(begin_ > index_)) {
+  if (end_ > index_ && index_ >= begin_) {
     return end_ - index_;
   }
   return 0;

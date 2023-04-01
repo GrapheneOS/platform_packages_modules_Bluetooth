@@ -5326,7 +5326,11 @@ public class AdapterService extends Service {
                 || mLeAudioService.getConnectionPolicy(device)
                 == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
             Log.i(TAG, "setActiveDevice: Setting active Le Audio device " + device);
-            mLeAudioService.setActiveDevice(device);
+            if (device == null) {
+                mLeAudioService.removeActiveDevice(false);
+            } else {
+                mLeAudioService.setActiveDevice(device);
+            }
         }
 
         if (setA2dp && mA2dpService != null && (device == null
@@ -5539,6 +5543,13 @@ public class AdapterService extends Service {
                     BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
+        if (mBatteryService != null && isProfileSupported(
+                device, BluetoothProfile.BATTERY)) {
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting Battery Service");
+            mBatteryService.setConnectionPolicy(device,
+                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            numProfilesConnected++;
+        }
 
         Log.i(TAG, "connectAllEnabledProfiles: Number of Profiles Connected: "
                 + numProfilesConnected);
@@ -5687,6 +5698,14 @@ public class AdapterService extends Service {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting "
                             + "LE Broadcast Assistant Profile");
             mBassClientService.disconnect(device);
+        }
+        if (mBatteryService != null && (mBatteryService.getConnectionState(device)
+                == BluetoothProfile.STATE_CONNECTED
+                || mBatteryService.getConnectionState(device)
+                == BluetoothProfile.STATE_CONNECTING)) {
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting "
+                            + "Battery Service");
+            mBatteryService.disconnect(device);
         }
 
         return BluetoothStatusCodes.SUCCESS;

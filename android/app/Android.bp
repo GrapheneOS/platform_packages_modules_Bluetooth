@@ -72,6 +72,10 @@ cc_library_shared {
         "libc++fs",
         "libbluetooth_core_rs_bridge",
     ],
+    shared_libs: [
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
+    ],
     sanitize: {
         scs: true,
     },
@@ -202,7 +206,6 @@ android_app {
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth.audio-V3-ndk",
-        "bluetoothapk-platform-compat-config",
     ],
     apex_available: [
         "com.android.btservices",
