@@ -85,12 +85,8 @@ class HFPProxy(ProfileProxy):
         def enable_slc():
             time.sleep(2)
 
-            if test == "HFP/AG/SLC/BV-02-C":
-                self.host.SetConnectabilityMode(mode=CONNECTABLE)
+            if not self.connection:
                 self.connection = self.host.Connect(address=pts_addr).connection
-            else:
-                if not self.connection:
-                    self.connection = self.host.Connect(address=pts_addr).connection
 
             if "HFP/HF" in test:
                 self.hfp.EnableSlcAsHandsfree(connection=self.connection)
@@ -132,6 +128,9 @@ class HFPProxy(ProfileProxy):
         """
 
         self.host.SetConnectabilityMode(mode=CONNECTABLE)
+        # these two test cases fail if Connection is established in "TSC_iut_enable_slc"
+        if test in ("HFP/AG/SLC/BV-02-C", "HFP/AG/SLC/BV-04-C"):
+            self.connection = self.host.Connect(address=pts_addr).connection
 
         return "OK"
 
@@ -345,6 +344,15 @@ class HFPProxy(ProfileProxy):
         """
 
         self.hfp.DeclineCall()
+
+        return "OK"
+
+    @assert_description
+    def TSC_disable_ag_cellular_network_expect_no_notification(self, **kwargs):
+        """
+        Disable the control channel, such that the AG is de-registered. Then,
+        click OK.
+        """
 
         return "OK"
 

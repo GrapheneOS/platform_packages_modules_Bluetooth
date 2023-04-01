@@ -24,6 +24,8 @@
 
 #include "bt_target.h"  // Must be first to define build configuration
 
+#define LOG_TAG "bt_bta_av"
+
 #include "bta/av/bta_av_int.h"
 #include "osi/include/log.h"
 

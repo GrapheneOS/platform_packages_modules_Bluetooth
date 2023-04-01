@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,14 @@
  */
 #pragma once
 
-#include <cstdarg>
-#include <cstdint>
-
-/**
- * This header is used for systems targeting syslog as their log target (i.e.
- * Floss builds).
- */
-
-/**
- * Write log to syslog.
- */
-void write_syslog(int tag, const char* format, ...);
+// These log levels may need to be mapped to system values. These values are
+// used to control the log level via init flags.
+enum LogLevels {
+  LOG_TAG_FATAL = 0,
+  LOG_TAG_ERROR,
+  LOG_TAG_WARN,
+  LOG_TAG_NOTICE,
+  LOG_TAG_INFO,
+  LOG_TAG_DEBUG,
+  LOG_TAG_VERBOSE
+};

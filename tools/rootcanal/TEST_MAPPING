@@ -1,12 +1,7 @@
 {
-  "presubmit" : [
+  "imports" : [
     {
-      "name" : "VtsHalBluetoothTargetTest"
-    }
-  ],
-  "hwasan-presubmit" : [
-    {
-      "name" : "VtsHalBluetoothTargetTest"
+      "path" : "hardware/interfaces/bluetooth/aidl"
     }
   ]
 }
