@@ -23,6 +23,12 @@ impl<T> SharedBox<T> {
         Self(t.into())
     }
 
+    /// Constructs a new SharedBox<T> while giving you a WeakBox<T> to the allocation,
+    /// to allow you to construct a T which holds a weak pointer to itself.
+    pub fn new_cyclic(f: impl FnOnce(WeakBox<T>) -> T) -> Self {
+        Self(Rc::new_cyclic(|weak| f(WeakBox(weak.clone()))))
+    }
+
     /// Produce a weak reference to the contents
     pub fn downgrade(&self) -> WeakBox<T> {
         WeakBox(Rc::downgrade(&self.0))
