@@ -555,7 +555,7 @@ final class BondStateMachine extends StateMachine {
         }
         BluetoothDevice device = mRemoteDevices.getDevice(address);
         if (device == null) {
-            warnLog("Device is not known for:" + Utils.getAddressStringFromByte(address));
+            warnLog("Device is not known for:" + Utils.getRedactedAddressStringFromByte(address));
             mRemoteDevices.addDeviceProperties(address);
             device = Objects.requireNonNull(mRemoteDevices.getDevice(address));
         }
@@ -592,7 +592,7 @@ final class BondStateMachine extends StateMachine {
                 BluetoothDevice.BOND_BONDING,
                 BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REQUESTED, 0);
 
-        infoLog("pinRequestCallback: " + bdDevice.getAddress()
+        infoLog("pinRequestCallback: " + bdDevice
                 + " name:" + Utils.getName(bdDevice) + " cod:" + new BluetoothClass(cod));
 
         Message msg = obtainMessage(PIN_REQUEST);
