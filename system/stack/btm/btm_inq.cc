@@ -520,12 +520,19 @@ void BTM_CancelInquiry(void) {
     if ((p_inq->inqparms.mode & BTM_BR_INQUIRY_MASK) != 0) {
       bluetooth::legacy::hci::GetInterface().InquiryCancel();
     }
-    if ((p_inq->inqparms.mode & BTM_BLE_INQUIRY_MASK) != 0)
-      btm_ble_stop_inquiry();
+
+    if (!bluetooth::shim::is_classic_discovery_only_enabled()) {
+      if ((p_inq->inqparms.mode & BTM_BLE_INQUIRY_MASK) != 0)
+        btm_ble_stop_inquiry();
+    }
 
     p_inq->inq_counter++;
     btm_clr_inq_result_flt();
   }
+}
+
+static void btm_classic_inquiry_timeout(UNUSED_ATTR void* data) {
+  btm_process_inq_complete(HCI_SUCCESS, BTM_BR_INQUIRY_MASK);
 }
 
 /*******************************************************************************
@@ -614,11 +621,16 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
   LOG_DEBUG("Starting device discovery inq_active:0x%02x",
             btm_cb.btm_inq_vars.inq_active);
 
-  if (controller_get_interface()->supports_ble()) {
-    btm_ble_start_inquiry(p_inq->inqparms.duration);
-  } else {
-    LOG_WARN("Trying to do LE scan on a non-LE adapter");
-    p_inq->inqparms.mode &= ~BTM_BLE_INQUIRY_MASK;
+  // Also do BLE scanning here if we aren't limiting discovery to classic only.
+  // This path does not play nicely with GD BLE scanning and may cause issues
+  // with other scanners.
+  if (!bluetooth::shim::is_classic_discovery_only_enabled()) {
+    if (controller_get_interface()->supports_ble()) {
+      btm_ble_start_inquiry(p_inq->inqparms.duration);
+    } else {
+      LOG_WARN("Trying to do LE scan on a non-LE adapter");
+      p_inq->inqparms.mode &= ~BTM_BLE_INQUIRY_MASK;
+    }
   }
 
   btm_acl_update_inquiry_status(BTM_INQUIRY_STARTED);
@@ -638,6 +650,17 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
 
   bluetooth::legacy::hci::GetInterface().StartInquiry(
       general_inq_lap, p_inq->inqparms.duration, 0);
+
+  // If we are only doing classic discovery, we should also set a timeout for
+  // the inquiry if a duration is set.
+  if (bluetooth::shim::is_classic_discovery_only_enabled() &&
+      p_inq->inqparms.duration != 0) {
+    /* start inquiry timer */
+    uint64_t duration_ms = p_inq->inqparms.duration * 1000;
+    alarm_set_on_mloop(p_inq->classic_inquiry_timer, duration_ms,
+                       btm_classic_inquiry_timeout, NULL);
+  }
+
   return BTM_CMD_STARTED;
 }
 
@@ -1357,6 +1380,8 @@ void btm_process_inq_complete(tHCI_STATUS status, uint8_t mode) {
 
   p_inq->inqparms.mode &= ~(mode);
   const auto inq_active = p_inq->inq_active;
+
+  alarm_cancel(p_inq->classic_inquiry_timer);
 
 #if (BTM_INQ_DEBUG == TRUE)
   BTM_TRACE_DEBUG("btm_process_inq_complete inq_active:0x%x state:%d",
