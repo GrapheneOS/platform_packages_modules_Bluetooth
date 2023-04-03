@@ -340,7 +340,7 @@ public class NativeInterface {
         // BluetoothAdapter.getDefaultAdapter().getRemoteDevice(Utils.getAddressStringFromByte
         // (address));
         if (DBG) {
-            Log.d(TAG, "Device addr " + event.device.getAddress() + " State " + state);
+            Log.d(TAG, "Device addr " + event.device + " State " + state);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
