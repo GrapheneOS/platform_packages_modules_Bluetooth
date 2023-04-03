@@ -1327,7 +1327,7 @@ public class BassClientStateMachine extends StateMachine {
         byte[] bcastSourceAddr = Utils.getBytesFromAddress(advSource.getAddress());
         BassUtils.reverse(bcastSourceAddr);
         stream.write(bcastSourceAddr, 0, 6);
-        log("Address bytes: " + advSource.getAddress());
+        log("Address bytes: " + advSource);
 
         // Advertising_SID
         stream.write(metaData.getSourceAdvertisingSid());
