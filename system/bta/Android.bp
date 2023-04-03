@@ -88,6 +88,7 @@ cc_library_static {
         "le_audio/client_parser.cc",
         "le_audio/audio_hal_client/audio_sink_hal_client.cc",
         "le_audio/audio_hal_client/audio_source_hal_client.cc",
+        "le_audio/le_audio_log_history.cc",
         "le_audio/le_audio_utils.cc",
         "le_audio/le_audio_set_configuration_provider.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
