@@ -144,7 +144,8 @@ class BleScannerInterfaceImpl : public ::BleScannerInterface,
       bluetooth::hci::AdvertisingPacketContentFilterCommand&
           advertising_packet_content_filter_command,
       ApcfCommand apcf_command);
-  void handle_remote_properties(RawAddress bd_addr, tBLE_ADDR_TYPE addr_type,
+  void handle_remote_properties(uint16_t event_type, RawAddress bd_addr,
+                                tBLE_ADDR_TYPE addr_type,
                                 std::vector<uint8_t> advertising_data);
 
   class AddressCache {
