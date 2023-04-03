@@ -65,5 +65,12 @@ bool is_gd_stack_started_up();
  */
 bool is_gd_dumpsys_module_started();
 
+/**
+ * Checks whether discovery should be classic only (vs also triggering BLE).
+ *
+ * @return true if discovery should be limited to classic.
+ */
+bool is_classic_discovery_only_enabled();
+
 }  // namespace shim
 }  // namespace bluetooth
