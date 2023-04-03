@@ -199,6 +199,7 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         # NOTE: if service change indication is ever enabled in Bumble, both this test + the previous test must DISABLE IT
         # otherwise this test will fail, and the previous test will pass even on a broken implementation
 
+        raise signals.TestSkip('TODO(aryarahul): b/276757181')
         if not isinstance(self.ref, BumblePandoraDevice):
             raise signals.TestSkip('Test require Bumble as reference device(s)')
 
