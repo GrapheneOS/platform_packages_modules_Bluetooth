@@ -12,3 +12,6 @@
 #include "hardware/bt_rc.h"
 #include "hardware/bt_sdp.h"
 #include "hardware/bt_sock.h"
+
+// Sysprops
+#include "osi/include/properties.h"

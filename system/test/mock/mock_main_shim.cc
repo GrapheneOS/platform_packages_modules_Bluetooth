@@ -45,6 +45,10 @@ bool bluetooth::shim::is_gd_shim_enabled() {
   inc_func_call_count(__func__);
   return false;
 }
+bool bluetooth::shim::is_classic_discovery_only_enabled() {
+  inc_func_call_count(__func__);
+  return false;
+}
 namespace test {
 namespace mock {
 bool bluetooth_shim_is_gd_stack_started_up = false;
