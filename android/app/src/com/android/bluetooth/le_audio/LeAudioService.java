@@ -3496,6 +3496,7 @@ public class LeAudioService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
+        ProfileService.println(sb, "isDualModeAudioEnabled: " + Utils.isDualModeAudioEnabled());
         ProfileService.println(sb, "Active Groups information: ");
         ProfileService.println(sb, "  currentlyActiveGroupId: " + getActiveGroupId());
         ProfileService.println(sb, "  mActiveAudioOutDevice: " + mActiveAudioOutDevice);
@@ -3510,11 +3511,12 @@ public class LeAudioService extends ProfileService {
                                                 : mGroupDescriptors.entrySet()) {
                 LeAudioGroupDescriptor groupDescriptor = groupEntry.getValue();
                 Integer groupId = groupEntry.getKey();
+                BluetoothDevice leadDevice = getConnectedGroupLeadDevice(groupId);
                 ProfileService.println(sb, "Group: " + groupId);
                 ProfileService.println(sb, "  isActive: " + groupDescriptor.mIsActive);
                 ProfileService.println(sb, "  isConnected: " + groupDescriptor.mIsConnected);
                 ProfileService.println(sb, "  mDirection: " + groupDescriptor.mDirection);
-                ProfileService.println(sb, "  group lead: " + getConnectedGroupLeadDevice(groupId));
+                ProfileService.println(sb, "  group lead: " + leadDevice);
                 ProfileService.println(sb, "  first device: " + getFirstDeviceFromGroup(groupId));
                 ProfileService.println(sb, "  lost lead device: "
                         + groupDescriptor.mLostLeadDeviceWhileStreaming);
