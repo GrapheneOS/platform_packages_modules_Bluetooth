@@ -157,7 +157,7 @@ final class RemoteDevices {
     private final Predicate<BluetoothDevice> mLocationDenylistPredicate = (device) -> {
         final MacAddress parsedAddress = MacAddress.fromString(device.getAddress());
         if (mAdapterService.getLocationDenylistMac().test(parsedAddress.toByteArray())) {
-            Log.v(TAG, "Skipping device matching denylist: " + parsedAddress);
+            Log.v(TAG, "Skipping device matching denylist: " + device);
             return true;
         }
         final String name = Utils.getName(device);
@@ -877,7 +877,7 @@ final class RemoteDevices {
                             break;
                         case AbstractionLayer.BT_PROPERTY_BDADDR:
                             deviceProperties.setAddress(val);
-                            debugLog("Remote Address is:" + Utils.getAddressStringFromByte(val));
+                            debugLog("Remote Address is:" + Utils.getRedactedAddressStringFromByte(val));
                             break;
                         case AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE:
                             final int newBluetoothClass = Utils.byteArrayToInt(val);
@@ -898,7 +898,7 @@ final class RemoteDevices {
                         case AbstractionLayer.BT_PROPERTY_UUIDS:
                             final ParcelUuid[] newUuids = Utils.byteArrayToUuid(val);
                             if (areUuidsEqual(newUuids, deviceProperties.getUuids())) {
-                                debugLog( "Skip uuids update for " + bdDevice.getAddress());
+                                debugLog( "Skip uuids update for " + bdDevice);
                                 break;
                             }
                             deviceProperties.setUuids(newUuids);
@@ -1002,12 +1002,13 @@ final class RemoteDevices {
         BluetoothDevice device = getDevice(mainAddress);
         if (device == null) {
             errorLog("addressConsolidateCallback: device is NULL, address="
-                    + Utils.getAddressStringFromByte(mainAddress) + ", secondaryAddress="
-                            + Utils.getAddressStringFromByte(secondaryAddress));
+                    + Utils.getRedactedAddressStringFromByte(mainAddress)
+                    + ", secondaryAddress="
+                    + Utils.getRedactedAddressStringFromByte(secondaryAddress));
             return;
         }
         Log.d(TAG, "addressConsolidateCallback device: " + device + ", secondaryAddress:"
-                + Utils.getAddressStringFromByte(secondaryAddress));
+                + Utils.getRedactedAddressStringFromByte(secondaryAddress));
 
         DeviceProperties deviceProperties = getDeviceProperties(device);
         deviceProperties.setIsConsolidated(true);
@@ -1026,12 +1027,13 @@ final class RemoteDevices {
         BluetoothDevice device = getDevice(mainAddress);
         if (device == null) {
             errorLog("leAddressAssociateCallback: device is NULL, address="
-                    + Utils.getAddressStringFromByte(mainAddress) + ", secondaryAddress="
-                    + Utils.getAddressStringFromByte(secondaryAddress));
+                    + Utils.getRedactedAddressStringFromByte(mainAddress)
+                    + ", secondaryAddress="
+                    + Utils.getRedactedAddressStringFromByte(secondaryAddress));
             return;
         }
         Log.d(TAG, "leAddressAssociateCallback device: " + device + ", secondaryAddress:"
-                + Utils.getAddressStringFromByte(secondaryAddress));
+                + Utils.getRedactedAddressStringFromByte(secondaryAddress));
 
         DeviceProperties deviceProperties = getDeviceProperties(device);
         deviceProperties.mIdentityAddress = Utils.getAddressStringFromByte(secondaryAddress);
@@ -1052,7 +1054,8 @@ final class RemoteDevices {
 
         if (device == null) {
             warnLog("aclStateChangeCallback: device is NULL, address="
-                    + Utils.getAddressStringFromByte(address) + ", newState=" + newState);
+                    + Utils.getRedactedAddressStringFromByte(address)
+                    + ", newState=" + newState);
             addDeviceProperties(address);
             device = Objects.requireNonNull(getDevice(address));
         }

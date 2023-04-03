@@ -104,7 +104,7 @@ public class LeAudioRecycleViewAdapter
         if (leAudioDeviceStateWrapper != null) {
             holder.deviceName.setText(parent.getString(R.string.notes_icon) + " "
                     + leAudioDeviceStateWrapper.device.getName() + " ["
-                    + leAudioDeviceStateWrapper.device.getAddress() + "]");
+                    + leAudioDeviceStateWrapper.device + "]");
 
             if (leAudioDeviceStateWrapper.device.getUuids() != null) {
                 holder.itemView.findViewById(R.id.le_audio_switch)
