@@ -95,7 +95,9 @@ MutationEntry Device::RemoveFromTempConfig() {
 LeDevice Device::Le() {
   auto device_type = GetDeviceType();
   ASSERT(device_type);
-  ASSERT(device_type == DeviceType::LE || device_type == DeviceType::DUAL);
+  ASSERT(
+      device_type == DeviceType::LE || device_type == DeviceType::DUAL ||
+      device_type == DeviceType::UNKNOWN);
   return LeDevice(config_, memory_only_config_, section_);
 }
 
