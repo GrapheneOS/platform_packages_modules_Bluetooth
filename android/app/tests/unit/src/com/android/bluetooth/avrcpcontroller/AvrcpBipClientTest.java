@@ -137,7 +137,7 @@ public class AvrcpBipClientTest {
         AvrcpBipClient client = new AvrcpBipClient(mTestDevice, TEST_PSM,
                 mArtManager.new BipClientCallback(mTestDevice));
 
-        String expected = "<AvrcpBipClient" + " device=" + mTestDevice.getAddress() + " psm="
+        String expected = "<AvrcpBipClient" + " device=" + mTestDevice + " psm="
                 + TEST_PSM + " state=" + client.getStateName() + ">";
         assertThat(client.toString()).isEqualTo(expected);
     }

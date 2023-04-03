@@ -448,7 +448,7 @@ public class AvrcpBipClient {
 
     @Override
     public String toString() {
-        return "<AvrcpBipClient" + " device=" + mDevice.getAddress() + " psm=" + mPsm
+        return "<AvrcpBipClient" + " device=" + mDevice + " psm=" + mPsm
                 + " state=" + getStateName() + ">";
     }
 
@@ -457,7 +457,7 @@ public class AvrcpBipClient {
      */
     private void debug(String msg) {
         if (DBG) {
-            Log.d(TAG, "[" + mDevice.getAddress() + "] " + msg);
+            Log.d(TAG, "[" + mDevice + "] " + msg);
         }
     }
 
@@ -465,17 +465,17 @@ public class AvrcpBipClient {
      * Print to warn
      */
     private void warn(String msg) {
-        Log.w(TAG, "[" + mDevice.getAddress() + "] " + msg);
+        Log.w(TAG, "[" + mDevice+ "] " + msg);
     }
 
     /**
      * Print to error
      */
     private void error(String msg) {
-        Log.e(TAG, "[" + mDevice.getAddress() + "] " + msg);
+        Log.e(TAG, "[" + mDevice + "] " + msg);
     }
 
     private void error(String msg, Throwable e) {
-        Log.e(TAG, "[" + mDevice.getAddress() + "] " + msg, e);
+        Log.e(TAG, "[" + mDevice + "] " + msg, e);
     }
 }

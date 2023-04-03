@@ -374,7 +374,7 @@ public class A2dpSinkService extends ProfileService {
                     + ", InstanceMap start state: " + sb.toString());
         }
         if (getConnectionPolicy(device) == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
-            Log.w(TAG, "Connection not allowed: <" + device.getAddress()
+            Log.w(TAG, "Connection not allowed: <" + device
                     + "> is CONNECTION_POLICY_FORBIDDEN");
             return false;
         }

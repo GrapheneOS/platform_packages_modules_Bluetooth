@@ -304,7 +304,7 @@ public class GattService extends ProfileService {
         final MacAddress parsedAddress = MacAddress
                 .fromString(scanResult.getDevice().getAddress());
         if (mAdapterService.getLocationDenylistMac().test(parsedAddress.toByteArray())) {
-            Log.v(TAG, "Skipping device matching denylist: " + parsedAddress);
+            Log.v(TAG, "Skipping device matching denylist: " + scanResult.getDevice());
             return true;
         }
         final ScanRecord scanRecord = scanResult.getScanRecord();

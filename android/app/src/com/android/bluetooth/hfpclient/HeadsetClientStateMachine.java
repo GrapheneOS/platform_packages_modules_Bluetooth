@@ -231,7 +231,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         if (mCurrentDevice != null) {
             ProfileService.println(sb,
                     "==== StateMachine for " + mCurrentDevice + " ====");
-            ProfileService.println(sb, "  mCurrentDevice: " + mCurrentDevice.getAddress() + "("
+            ProfileService.println(sb, "  mCurrentDevice: " + mCurrentDevice + "("
                     + Utils.getName(mCurrentDevice) + ") " + this.toString());
         }
         ProfileService.println(sb, "  mAudioState: " + mAudioState);
