@@ -15,7 +15,7 @@ _USAGE="avatar [OPTIONS] <COMMAND> ...
         --test-bed       Set mobly test bed (default is 'android.bumbles').
         --mobly-std-log  Print mobly logs to standard outputs.
         --mobly-options=<'--opt-a --opt-b'>
-                         Pass additional options to mobly, like '--verbose' or '--list'.
+                         Pass additional options to mobly, like '--verbose' or '--list_tests'.
         ...              All other tradefed options, like '--log-level VERBOSE'.
                          See 'avatar run --help-all'
     "
@@ -40,22 +40,26 @@ _PANDORA_PYTHON_PATHS=(
   "${ANDROID_BUILD_TOP}/out/soong/.intermediates/packages/modules/Bluetooth/pandora/interfaces/python/pandora_experimental-python-gen-src/gen/"
 )
 
+if [[ "$1" =~ ^('format'|'lint'|'run')$ ]]; then
+  [ ! -d "${_VENV_DIR}" ] && python3 -m venv "${_VENV_DIR}"
+  python3 -m pip install \
+    'grpcio==1.51.1' \
+    'cryptography==35' \
+    'protobuf==4.22.1' \
+    'pyright==1.1.298' \
+    'mypy==1.1.1' \
+    'types-protobuf==4.22.0.1' \
+    'black==22.10.0' \
+    'isort==5.12.0'
+  export PYTHONPATH="$(IFS=:; echo "${_PANDORA_PYTHON_PATHS[*]}"):${PYTHONPATH}"
+fi
+
 case "$1" in
   'format') shift
-    python3 -m pip install \
-      'black==22.10.0' \
-      'isort==5.12.0'
     python3 -m black -S -l 119 "$@" "${_PY_SOURCES[@]}"
     python3 -m isort --profile black -l 119 --ds --lbt 1 --ca "$@" "${_PY_SOURCES[@]}"
   ;;
   'lint') shift
-    python3 -m pip install \
-      'grpcio==1.51.1' \
-      'protobuf==4.21.0' \
-      'pyright==1.1.298' \
-      'mypy==1.1.1' \
-      'types-protobuf==4.21.0.3'
-    export PYTHONPATH="$(IFS=:; echo "${_PANDORA_PYTHON_PATHS[*]}"):${PYTHONPATH}"
     python3 -m mypy \
       --pretty --show-column-numbers --strict --no-warn-unused-ignores --ignore-missing-imports \
       "$@" "${_PY_SOURCES[@]}" || exit 1
@@ -64,7 +68,6 @@ case "$1" in
       "$@" "${_PY_SOURCES[@]}"
   ;;
   'run') shift
-    [ ! -d "${_VENV_DIR}" ] && python3 -m venv "${_VENV_DIR}"
     tradefed.sh \
       run commandAndExit template/local_min --template:map test=avatar --log-level INFO \
         --venv-dir "${_VENV_DIR}" \
