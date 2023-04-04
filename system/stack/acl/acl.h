@@ -182,8 +182,6 @@ struct tACL_CONN {
 
   RawAddress active_remote_addr;
   tBLE_ADDR_TYPE active_remote_addr_type;
-  RawAddress conn_addr;
-  tBLE_ADDR_TYPE conn_addr_type;
 
   RawAddress remote_addr;
   bool in_use{false};
