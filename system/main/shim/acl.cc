@@ -1267,9 +1267,6 @@ void DumpsysAcl(int fd) {
       LOG_DUMPSYS(fd, "    [le] active_remote_addr:%s[%s]",
                   ADDRESS_TO_LOGGABLE_CSTR(link.active_remote_addr),
                   AddressTypeText(link.active_remote_addr_type).c_str());
-      LOG_DUMPSYS(fd, "    [le] conn_addr:%s[%s]",
-                  ADDRESS_TO_LOGGABLE_CSTR(link.conn_addr),
-                  AddressTypeText(link.conn_addr_type).c_str());
     }
   }
 }
