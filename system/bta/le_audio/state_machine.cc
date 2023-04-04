@@ -673,6 +673,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ClearGroup(group, true);
   }
 
+  void cancel_watchdog_if_needed(void) {
+    if (alarm_is_scheduled(watchdog_)) {
+      alarm_cancel(watchdog_);
+    }
+  }
+
   void ProcessHciNotifCisEstablished(
       LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice,
       const bluetooth::hci::iso_manager::cis_establish_cmpl_evt* event)
@@ -757,7 +763,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING &&
         group->IsGroupStreamReady()) {
       /* No more transition for group */
-      alarm_cancel(watchdog_);
+      cancel_watchdog_if_needed();
       PrepareDataPath(group);
     }
   }
@@ -877,7 +883,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
              AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED) &&
             group->HaveAllCisesDisconnected()) {
           /* No more transition for group */
-          alarm_cancel(watchdog_);
+          cancel_watchdog_if_needed();
 
           state_machine_callbacks_->StatusReportCb(
               group->group_id_, GroupStreamStatus::SUSPENDED);
@@ -905,9 +911,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
          * In such an event, there is need to notify upper layer about state
          * from here.
          */
-        if (alarm_is_scheduled(watchdog_)) {
-          alarm_cancel(watchdog_);
-        }
+        cancel_watchdog_if_needed();
 
         if (current_group_state == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
           LOG_INFO(
@@ -997,7 +1001,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     timeoutMs =
         osi_property_get_int32(kStateTransitionTimeoutMsProp, timeoutMs);
 
-    if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
+    cancel_watchdog_if_needed();
 
     alarm_set_on_mloop(
         watchdog_, timeoutMs,
@@ -1545,7 +1549,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return;
         }
 
-        if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
+        cancel_watchdog_if_needed();
         ReleaseCisIds(group);
         state_machine_callbacks_->StatusReportCb(group->group_id_,
                                                  GroupStreamStatus::IDLE);
@@ -1760,7 +1764,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
               group->group_id_, GroupStreamStatus::CONFIGURED_BY_USER);
 
           /* No more transition for group */
-          alarm_cancel(watchdog_);
+          cancel_watchdog_if_needed();
           return;
         }
 
@@ -1847,7 +1851,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
               group->group_id_, GroupStreamStatus::CONFIGURED_BY_USER);
 
           /* No more transition for group */
-          alarm_cancel(watchdog_);
+          cancel_watchdog_if_needed();
           return;
         }
 
@@ -1908,7 +1912,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             return;
           }
 
-          if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
+          cancel_watchdog_if_needed();
 
           state_machine_callbacks_->StatusReportCb(
               group->group_id_, GroupStreamStatus::CONFIGURED_AUTONOMOUS);
@@ -2000,7 +2004,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         if (group->GetTargetState() ==
             AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED) {
           /* No more transition for group */
-          alarm_cancel(watchdog_);
+          cancel_watchdog_if_needed();
 
           state_machine_callbacks_->StatusReportCb(
               group->group_id_, GroupStreamStatus::SUSPENDED);
@@ -2032,7 +2036,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     group->ClearPendingAvailableContextsChange();
     group->ClearPendingConfiguration();
 
-    if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
+    cancel_watchdog_if_needed();
     ReleaseCisIds(group);
     RemoveCigForGroup(group);
 
@@ -2439,7 +2443,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         if (group->GetTargetState() ==
             AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
           /* No more transition for group */
-          alarm_cancel(watchdog_);
+          cancel_watchdog_if_needed();
           PrepareDataPath(group);
 
           return;
