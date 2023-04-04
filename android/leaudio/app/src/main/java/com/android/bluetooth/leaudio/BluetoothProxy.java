@@ -95,7 +95,7 @@ public class BluetoothProxy {
         }
         @Override
         public void onGroupNodeAdded(BluetoothDevice device, int groupId) {
-            Log.d("LeCB:", device.getAddress() + " group added " + groupId);
+            Log.d("LeCB:", device + " group added " + groupId);
             if (device == null || groupId == BluetoothLeAudio.GROUP_ID_INVALID) {
                 Log.d("LeCB:", "invalid parameter");
                 return;
@@ -123,7 +123,7 @@ public class BluetoothProxy {
                 return;
             }
 
-            Log.d("LeCB:", device.getAddress() + " group added " + groupId);
+            Log.d("LeCB:", device + " group added " + groupId);
             if (device == null || groupId == BluetoothLeAudio.GROUP_ID_INVALID) {
                 Log.d("LeCB:", "invalid parameter");
                 return;

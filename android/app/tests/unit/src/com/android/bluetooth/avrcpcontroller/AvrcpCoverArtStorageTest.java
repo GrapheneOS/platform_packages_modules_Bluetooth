@@ -333,7 +333,7 @@ public final class AvrcpCoverArtStorageTest {
     @Test
     public void toString_returnsDeviceInfo() {
         String expectedString =
-                "CoverArtStorage:\n" + "  " + mDevice1.getAddress() + " (" + 1 + "):" + "\n    "
+                "CoverArtStorage:\n" + "  " + mDevice1 + " (" + 1 + "):" + "\n    "
                         + mHandle1 + "\n";
 
         mAvrcpCoverArtStorage.addImage(mDevice1, mHandle1, mImage1);
