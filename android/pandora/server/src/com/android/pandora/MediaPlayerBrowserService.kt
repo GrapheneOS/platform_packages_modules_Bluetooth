@@ -18,6 +18,7 @@ package com.android.pandora
 
 import android.content.Intent
 import android.os.Bundle
+import android.media.MediaPlayer;
 import android.support.v4.media.*
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.session.*
@@ -25,6 +26,9 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_ALL
+import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_GROUP
+import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_NONE
 import android.util.Log
 
 import androidx.media.MediaBrowserServiceCompat
@@ -36,6 +40,7 @@ class MediaPlayerBrowserService : MediaBrowserServiceCompat() {
 
   private lateinit var mediaSession: MediaSessionCompat
   private lateinit var playbackStateBuilder: PlaybackStateCompat.Builder
+  private var mMediaPlayer: MediaPlayer? = null
   private val mediaIdToChildren = mutableMapOf<String, MutableList<MediaItem>>()
   private var metadataItems = mutableMapOf<String, MediaMetadataCompat>()
   private var queue = mutableListOf<MediaSessionCompat.QueueItem>()
@@ -78,6 +83,32 @@ class MediaPlayerBrowserService : MediaBrowserServiceCompat() {
   private fun setPlaybackState(state: Int) {
     playbackStateBuilder.setState(state, 0, 1.0f).setActiveQueueItemId(currentTrack.toLong())
     mediaSession.setPlaybackState(playbackStateBuilder.build())
+  }
+
+  fun startTestPlayback() {
+    if (mMediaPlayer == null) {
+      // File copied from: development/samples/ApiDemos/res/raw/test_cbr.mp3
+      // to: packages/modules/Bluetooth/android/pandora/server/res/raw/test_cbr.mp3
+      val resourceId: Int = getResources().getIdentifier("test_cbr", "raw", getPackageName());
+      mMediaPlayer = MediaPlayer.create(this, resourceId)
+      if (mMediaPlayer == null) {
+        Log.e(TAG, "Failed to create MediaPlayer.")
+        return
+      }
+    }
+
+    mMediaPlayer?.setOnCompletionListener {
+      stopTestPlayback()
+    }
+
+    mMediaPlayer?.start()
+  }
+
+  fun stopTestPlayback() {
+    mMediaPlayer?.stop()
+    mMediaPlayer?.setOnCompletionListener(null)
+    mMediaPlayer?.release()
+    mMediaPlayer = null
   }
 
   fun play() {
@@ -141,6 +172,22 @@ class MediaPlayerBrowserService : MediaBrowserServiceCompat() {
     mediaSession.setQueue(queue)
   }
 
+  fun getShuffleMode() : Int {
+    val controller = mediaSession.getController()
+    return controller.getShuffleMode()
+  }
+
+  fun setShuffleMode(shuffleMode: Int) {
+    val controller = mediaSession.getController()
+    val transportControls = controller.getTransportControls()
+    when (shuffleMode) {
+      SHUFFLE_MODE_NONE,
+      SHUFFLE_MODE_ALL,
+      SHUFFLE_MODE_GROUP -> transportControls.setShuffleMode(shuffleMode)
+      else -> transportControls.setShuffleMode(SHUFFLE_MODE_NONE)
+    }
+  }
+
   private val mSessionCallback: MediaSessionCompat.Callback =
     object : MediaSessionCompat.Callback() {
       override fun onPlay() {
@@ -166,6 +213,11 @@ class MediaPlayerBrowserService : MediaBrowserServiceCompat() {
       override fun onMediaButtonEvent(mediaButtonEvent: Intent): Boolean {
         Log.i(TAG, "MediaSessionCallback——》onMediaButtonEvent $mediaButtonEvent")
         return super.onMediaButtonEvent(mediaButtonEvent)
+      }
+
+      override fun onSetShuffleMode(shuffleMode: Int) {
+        Log.i(TAG, "MediaSessionCallback——》onSetShuffleMode $shuffleMode")
+        mediaSession.setShuffleMode(shuffleMode)
       }
     }
 
