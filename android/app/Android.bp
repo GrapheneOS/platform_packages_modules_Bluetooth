@@ -231,6 +231,9 @@ android_app {
         "framework-statsd.stubs.module_lib",
         "framework-tethering.stubs.module_lib",
         "unsupportedappusage",
+
+        // Need to link the class at runtime
+        "framework-bluetooth",
     ],
     static_libs: [
         "android.hardware.radio-V1.0-java",
