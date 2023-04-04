@@ -618,6 +618,75 @@ class AVRCPProxy(ProfileProxy):
         return "OK"
 
     @assert_description
+    def TSC_AVRCP_mmi_iut_reject_list_player_application_setting_values_invalid_attribute(self, **kwargs):
+        """
+        PTS has sent a List Player Application Setting Values command with an
+        invalid Attribute Id.  The IUT must respond with the error code: Invalid
+        Parameter (0x01).
+
+        Description: Verify that the IUT can properly reject
+        a List Player Application Setting Values command that contains an
+        invalid attribute id.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_reject_set_player_application_setting_value_invalid_pair(self, **kwargs):
+        """
+        PTS has sent a Set Player Application Setting Value command with an
+        invalid Attribute and Value.  The IUT must respond with the error code:
+        Invalid Parameter (0x01).
+
+        Description: Verify that the IUT can properly
+        reject a Set Player Application Setting Value command that contains an
+        invalid attribute and value.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_reject_get_current_player_application_setting_value_invalid_attribute(self, **kwargs):
+        """
+        PTS has sent a Get Current Player Application Setting Value command with
+        an invalid Attribute.  The IUT must respond with the error code: Invalid
+        Parameter (0x01).
+
+        Description: Verify that the IUT can properly reject
+        an Get Current Player Application Setting Value command that contains an
+        invalid attribute.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_accept_get_current_player_application_setting_value(self, **kwargs):
+        """
+        Take action to send a valid response to the [Get Current Player
+        Application Setting Value] command sent by the PTS.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_accept_list_player_application_setting_attributes(self, **kwargs):
+        """
+        Take action to send a valid response to the [List Player Application
+        Setting Attributes] command sent by the PTS.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_accept_list_player_application_setting_values(self, **kwargs):
+        """
+        Take action to send a valid response to the [List Player Application
+        Setting Values] command sent by the PTS.
+        """
+
+        return "OK"
+
+    @assert_description
     def TSC_AVRCP_mmi_iut_reject_set_addressed_player_invalid_player_id(self, **kwargs):
         """
         PTS has sent a Set Addressed Player command with an invalid Player Id.
