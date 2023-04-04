@@ -24,13 +24,14 @@ from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd.cert import gd_base_test
 from blueberry.facade import common_pb2 as common
 from google.protobuf import empty_pb2 as empty_proto
+from blueberry.facade.hci import controller_facade_pb2 as controller_facade
 from blueberry.facade.hci import \
     le_advertising_manager_facade_pb2 as le_advertising_facade
 from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
 from blueberry.facade.hci.le_advertising_manager_facade_pb2 import AdvertisingCallbackMsgType
 from blueberry.facade.hci.le_advertising_manager_facade_pb2 import AdvertisingStatus
 
-from mobly import test_runner
+from mobly import asserts, test_runner
 
 from blueberry.utils import bluetooth
 import hci_packets as hci
@@ -296,6 +297,10 @@ class LeAdvertisingManagerTest(gd_base_test.GdBaseTestClass):
                                                        create_response.advertiser_id))
 
     def test_enable_periodic_advertising_callback(self):
+        check_feature = self.dut.hci_controller.SupportsBlePeriodicAdvertising(empty_proto.Empty())
+        if not check_feature.supported:
+            asserts.skip("Periodic advertising not supported.")
+
         self.set_address_policy_with_static_address()
         create_response = self.create_advertiser()
         enable_periodic_advertising_request = le_advertising_facade.EnablePeriodicAdvertisingRequest(
