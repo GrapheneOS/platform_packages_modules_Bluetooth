@@ -82,9 +82,6 @@ void acl_ble_enhanced_connection_complete(
     return;
   }
 
-  btm_ble_refresh_local_resolvable_private_addr(address_with_type.bda,
-                                                local_rpa);
-
   if (peer_addr_type & BLE_ADDR_TYPE_ID_BIT)
     btm_ble_refresh_peer_resolvable_private_addr(
         address_with_type.bda, peer_rpa, tBTM_SEC_BLE::BTM_BLE_ADDR_RRA);
