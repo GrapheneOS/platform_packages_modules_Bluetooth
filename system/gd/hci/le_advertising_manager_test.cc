@@ -62,6 +62,10 @@ class TestController : public Controller {
     return 0x0672;
   }
 
+  bool SupportsBlePeriodicAdvertising() const override {
+    return true;
+  }
+
   bool SupportsBleExtendedAdvertising() const override {
     return support_ble_extended_advertising_;
   }
