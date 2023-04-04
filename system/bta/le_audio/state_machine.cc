@@ -1478,6 +1478,14 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     RemoveDataPathByCisHandle(leAudioDevice, ase->cis_conn_hdl);
   }
 
+  void SetAseState(LeAudioDevice* leAudioDevice, struct ase* ase,
+                   AseState state) {
+    LOG_INFO("%s, ase_id: %d, %s -> %s",
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_), ase->id,
+             ToString(ase->state).c_str(), ToString(state).c_str());
+    ase->state = state;
+  }
+
   void AseStateMachineProcessIdle(
       struct le_audio::client_parser::ascs::ase_rsp_hdr& arh, struct ase* ase,
       LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice) {
@@ -1493,7 +1501,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         }
         break;
       case AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING: {
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
+        SetAseState(leAudioDevice, ase, AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
         ase->active = false;
         ase->configured_for_context_type =
             le_audio::types::LeAudioContextType::UNINITIALIZED;
@@ -1687,7 +1695,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         ase->preferred_pres_delay_min = rsp.preferred_pres_delay_min;
         ase->preferred_pres_delay_max = rsp.preferred_pres_delay_max;
 
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
 
         if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
           /* This is autonomus change of the remote device */
@@ -1853,7 +1862,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         break;
       case AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING:
         LeAudioDevice* leAudioDeviceNext;
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
         ase->active = false;
 
         if (!leAudioDevice->HaveAllActiveAsesSameState(
@@ -1925,7 +1935,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     switch (ase->state) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED: {
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED);
 
         if (!leAudioDevice->HaveAllActiveAsesSameState(
                 AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED)) {
@@ -1964,17 +1975,18 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return;
         }
 
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED);
 
         /* Process the Disable Transition of the rest of group members if no
          * more ASE notifications has to come from this device. */
-        if (leAudioDevice->IsReadyToSuspendStream())
-          ProcessGroupDisable(group);
+        if (leAudioDevice->IsReadyToSuspendStream()) ProcessGroupDisable(group);
 
         break;
 
       case AseState::BTA_LE_AUDIO_ASE_STATE_DISABLING: {
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED);
 
         /* More ASEs notification from this device has to come for this group */
         if (!group->HaveAllActiveDevicesAsesTheSameState(
@@ -2304,7 +2316,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     switch (ase->state) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED:
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING);
 
         if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
           if (ase->data_path_state < AudioStreamDataPathState::CIS_PENDING) {
@@ -2383,7 +2396,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return;
         }
 
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
         if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
           /* We are here because of the reconnection of the single device. */
@@ -2399,7 +2413,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       case AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING: {
         std::vector<uint8_t> value;
 
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
         if (!group->HaveAllActiveDevicesAsesTheSameState(
                 AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
@@ -2488,7 +2503,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         /* TODO: Disable */
         break;
       case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING:
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_DISABLING;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_DISABLING);
 
         /* Process the Disable Transition of the rest of group members if no
          * more ASE notifications has to come from this device. */
@@ -2547,14 +2563,16 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     switch (ase->state) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED:
       case AseState::BTA_LE_AUDIO_ASE_STATE_DISABLING: {
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
         break;
       }
       case AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED:
         /* At this point all of the active ASEs within group are released. */
         RemoveCigForGroup(group);
 
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
         if (group->HaveAllActiveDevicesAsesTheSameState(
                 AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING))
           group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
@@ -2563,7 +2581,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
       case AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING:
       case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING: {
-        ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING;
+        SetAseState(leAudioDevice, ase,
+                    AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
 
         /* Happens when bi-directional completive ASE releasing state came */
         if (ase->data_path_state == AudioStreamDataPathState::CIS_DISCONNECTING)
