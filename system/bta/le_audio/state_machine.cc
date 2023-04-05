@@ -806,7 +806,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     /* Cis establishment may came after setting group state to streaming, e.g.
      * for autonomous scenario when ase is sink */
     if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING &&
-        group->IsGroupStreamReady()) {
+        group->GetFirstActiveDeviceByDataPathState(
+            AudioStreamDataPathState::CIS_ESTABLISHED)) {
       /* No more transition for group */
       cancel_watchdog_if_needed(group->group_id_);
       PrepareDataPath(group);
@@ -2609,8 +2610,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return;
         }
 
+        /* This case may happen because of the reconnection device. */
         if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-          /* We are here because of the reconnection of the single device. */
+          /* Not all CISes establish evens came */
+          if (group->GetFirstActiveDeviceByDataPathState(
+                  AudioStreamDataPathState::CIS_PENDING))
+            return;
+
+          /* Streaming status notification came after setting data path */
+          if (!group->GetFirstActiveDeviceByDataPathState(
+                  AudioStreamDataPathState::CIS_ESTABLISHED))
+            return;
           PrepareDataPath(group);
           return;
         }
