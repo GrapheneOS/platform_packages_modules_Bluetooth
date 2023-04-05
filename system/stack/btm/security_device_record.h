@@ -230,7 +230,7 @@ struct tBTM_SEC_DEV_REC {
   RawAddress bd_addr;      /* BD_ADDR of the device              */
   DEV_CLASS dev_class;     /* DEV_CLASS of the device            */
   LinkKey link_key;        /* Device link key                    */
-  tHCI_STATUS sec_status;      /* status for pin_or_key_missing      */
+  tHCI_STATUS sec_status;  /* Status in encryption change event  */
 
  public:
   RawAddress RemoteAddress() const { return bd_addr; }
