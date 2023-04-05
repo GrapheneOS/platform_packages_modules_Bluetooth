@@ -171,9 +171,12 @@ void bta_hh_disc_cmpl(void) {
   /* Deregister with lower layer */
   if (HID_HostDeregister() != HID_SUCCESS) status = BTA_HH_ERR;
 
-  bta_hh_le_deregister();
-
-  bta_hh_cleanup_disable(status);
+  if (bta_hh_cb.gatt_if != BTA_GATTS_INVALID_IF) {
+    LOG_DEBUG("Deregister HOGP host before cleanup");
+    bta_hh_le_deregister();
+  } else {
+    bta_hh_cleanup_disable(status);
+  }
 }
 
 /*******************************************************************************
