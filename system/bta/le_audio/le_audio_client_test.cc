@@ -54,6 +54,7 @@ using testing::Invoke;
 using testing::Matcher;
 using testing::Mock;
 using testing::MockFunction;
+using testing::NiceMock;
 using testing::NotNull;
 using testing::Return;
 using testing::SaveArg;
@@ -303,12 +304,12 @@ class UnicastTestNoInit : public Test {
      * will not free them manually.
      */
 
-    owned_mock_le_audio_sink_hal_client_.reset(new MockLeAudioSinkHalClient());
+    owned_mock_le_audio_sink_hal_client_.reset(new NiceMock<MockLeAudioSinkHalClient>());
     mock_le_audio_sink_hal_client_ =
         (MockLeAudioSinkHalClient*)owned_mock_le_audio_sink_hal_client_.get();
 
     owned_mock_le_audio_source_hal_client_.reset(
-        new MockLeAudioSourceHalClient());
+        new NiceMock<MockLeAudioSourceHalClient>());
     mock_le_audio_source_hal_client_ =
         (MockLeAudioSourceHalClient*)
             owned_mock_le_audio_source_hal_client_.get();
@@ -555,7 +556,7 @@ class UnicastTestNoInit : public Test {
           do_in_main_thread(
               FROM_HERE,
               base::BindOnce(
-                  [](std::map<uint16_t, std::unique_ptr<MockDeviceWrapper>>*
+                  [](std::map<uint16_t, std::unique_ptr<NiceMock<MockDeviceWrapper>>>*
                          peer_devices,
                      uint16_t conn_id, uint16_t handle, GATT_READ_OP_CB cb,
                      void* cb_data) -> void {
@@ -1327,6 +1328,9 @@ class UnicastTestNoInit : public Test {
       ASSERT_FALSE(LeAudioClient::IsLeAudioClientRunning());
     }
 
+    owned_mock_le_audio_sink_hal_client_.reset();
+    owned_mock_le_audio_source_hal_client_.reset();
+
     if (le_audio::AudioSetConfigurationProvider::Get())
       le_audio::AudioSetConfigurationProvider::Cleanup();
 
@@ -1435,10 +1439,10 @@ class UnicastTestNoInit : public Test {
     };
 
     MockDeviceWrapper(RawAddress addr, const std::list<gatt::Service>& services,
-                      std::unique_ptr<MockDeviceWrapper::csis_mock> csis,
-                      std::unique_ptr<MockDeviceWrapper::cas_mock> cas,
-                      std::unique_ptr<MockDeviceWrapper::ascs_mock> ascs,
-                      std::unique_ptr<MockDeviceWrapper::pacs_mock> pacs)
+                      std::unique_ptr<NiceMock<MockDeviceWrapper::csis_mock>> csis,
+                      std::unique_ptr<NiceMock<MockDeviceWrapper::cas_mock>> cas,
+                      std::unique_ptr<NiceMock<MockDeviceWrapper::ascs_mock>> ascs,
+                      std::unique_ptr<NiceMock<MockDeviceWrapper::pacs_mock>> pacs)
         : addr(addr) {
       this->services = services;
       this->csis = std::move(csis);
@@ -1673,10 +1677,10 @@ class UnicastTestNoInit : public Test {
   }
 
   void set_sample_database(uint16_t conn_id, RawAddress addr,
-                           std::unique_ptr<MockDeviceWrapper::csis_mock> csis,
-                           std::unique_ptr<MockDeviceWrapper::cas_mock> cas,
-                           std::unique_ptr<MockDeviceWrapper::ascs_mock> ascs,
-                           std::unique_ptr<MockDeviceWrapper::pacs_mock> pacs) {
+                           std::unique_ptr<NiceMock<MockDeviceWrapper::csis_mock>> csis,
+                           std::unique_ptr<NiceMock<MockDeviceWrapper::cas_mock>> cas,
+                           std::unique_ptr<NiceMock<MockDeviceWrapper::ascs_mock>> ascs,
+                           std::unique_ptr<NiceMock<MockDeviceWrapper::pacs_mock>> pacs) {
     gatt::DatabaseBuilder bob;
 
     /* Generic Access Service */
@@ -1841,17 +1845,17 @@ class UnicastTestNoInit : public Test {
     }
 
     // Assign conn_id to a certain device - this does not mean it is connected
-    auto dev_wrapper = std::make_unique<MockDeviceWrapper>(
+    auto dev_wrapper = std::make_unique<NiceMock<MockDeviceWrapper>>(
         addr, bob.Build().Services(), std::move(csis), std::move(cas),
         std::move(ascs), std::move(pacs));
     peer_devices.emplace(conn_id, std::move(dev_wrapper));
   }
 
   void SetSampleDatabaseEmpty(uint16_t conn_id, RawAddress addr) {
-    auto csis = std::make_unique<MockDeviceWrapper::csis_mock>();
-    auto cas = std::make_unique<MockDeviceWrapper::cas_mock>();
-    auto pacs = std::make_unique<MockDeviceWrapper::pacs_mock>();
-    auto ascs = std::make_unique<MockDeviceWrapper::ascs_mock>();
+    auto csis = std::make_unique<NiceMock<MockDeviceWrapper::csis_mock>>();
+    auto cas = std::make_unique<NiceMock<MockDeviceWrapper::cas_mock>>();
+    auto pacs = std::make_unique<NiceMock<MockDeviceWrapper::pacs_mock>>();
+    auto ascs = std::make_unique<NiceMock<MockDeviceWrapper::ascs_mock>>();
     set_sample_database(conn_id, addr, std::move(csis), std::move(cas),
                         std::move(ascs), std::move(pacs));
   }
@@ -1862,7 +1866,7 @@ class UnicastTestNoInit : public Test {
       uint8_t source_channel_cnt = 0x03, uint16_t sample_freq_mask = 0x0004,
       bool add_csis = true, bool add_cas = true, bool add_pacs = true,
       int add_ascs_cnt = 1, uint8_t set_size = 2, uint8_t rank = 1) {
-    auto csis = std::make_unique<MockDeviceWrapper::csis_mock>();
+    auto csis = std::make_unique<NiceMock<MockDeviceWrapper::csis_mock>>();
     if (add_csis) {
       // attribute handles
       csis->start = 0x0010;
@@ -1879,7 +1883,7 @@ class UnicastTestNoInit : public Test {
       csis->rank = rank;
     }
 
-    auto cas = std::make_unique<MockDeviceWrapper::cas_mock>();
+    auto cas = std::make_unique<NiceMock<MockDeviceWrapper::cas_mock>>();
     if (add_cas) {
       // attribute handles
       cas->start = 0x0040;
@@ -1888,7 +1892,7 @@ class UnicastTestNoInit : public Test {
       // other params
     }
 
-    auto pacs = std::make_unique<MockDeviceWrapper::pacs_mock>();
+    auto pacs = std::make_unique<NiceMock<MockDeviceWrapper::pacs_mock>>();
     if (add_pacs) {
       // attribute handles
       pacs->start = 0x0060;
@@ -1908,7 +1912,7 @@ class UnicastTestNoInit : public Test {
       // other params
     }
 
-    auto ascs = std::make_unique<MockDeviceWrapper::ascs_mock>();
+    auto ascs = std::make_unique<NiceMock<MockDeviceWrapper::ascs_mock>>();
     if (add_ascs_cnt > 0) {
       // attribute handles
       ascs->start = 0x0090;
@@ -2252,25 +2256,25 @@ class UnicastTestNoInit : public Test {
         bluetooth::hci::iso_manager::kIsoEventCigOnRemoveCmpl, &evt);
   }
 
-  MockAudioHalClientCallbacks mock_audio_hal_client_callbacks_;
+  NiceMock<MockAudioHalClientCallbacks> mock_audio_hal_client_callbacks_;
   LeAudioSourceAudioHalClient::Callbacks* unicast_source_hal_cb_ = nullptr;
   LeAudioSinkAudioHalClient::Callbacks* unicast_sink_hal_cb_ = nullptr;
 
   uint8_t default_channel_cnt = 0x03;
   uint8_t default_ase_cnt = 1;
 
-  MockCsisClient mock_csis_client_module_;
-  MockDeviceGroups mock_groups_module_;
+  NiceMock<MockCsisClient> mock_csis_client_module_;
+  NiceMock<MockDeviceGroups> mock_groups_module_;
   bluetooth::groups::DeviceGroupsCallbacks* group_callbacks_;
-  MockLeAudioGroupStateMachine mock_state_machine_;
+  NiceMock<MockLeAudioGroupStateMachine> mock_state_machine_;
 
-  MockFunction<void()> mock_storage_load;
-  MockFunction<bool()> mock_hal_2_1_verifier;
+  NiceMock<MockFunction<void()>> mock_storage_load;
+  NiceMock<MockFunction<bool()>> mock_hal_2_1_verifier;
 
-  controller::MockControllerInterface controller_interface_;
-  bluetooth::manager::MockBtmInterface mock_btm_interface_;
-  gatt::MockBtaGattInterface mock_gatt_interface_;
-  gatt::MockBtaGattQueue mock_gatt_queue_;
+  NiceMock<controller::MockControllerInterface> controller_interface_;
+  NiceMock<bluetooth::manager::MockBtmInterface> mock_btm_interface_;
+  NiceMock<gatt::MockBtaGattInterface> mock_gatt_interface_;
+  NiceMock<gatt::MockBtaGattQueue> mock_gatt_queue_;
   tBTA_GATTC_CBACK* gatt_callback;
   const uint8_t gatt_if = 0xfe;
   uint16_t global_conn_id = 1;
@@ -2285,9 +2289,9 @@ class UnicastTestNoInit : public Test {
   uint16_t supported_snk_context_types_ = 0xffff;
   uint16_t supported_src_context_types_ = 0xffff;
 
-  bluetooth::storage::MockBtifStorageInterface mock_btif_storage_;
+  NiceMock<bluetooth::storage::MockBtifStorageInterface> mock_btif_storage_;
 
-  std::map<uint16_t, std::unique_ptr<MockDeviceWrapper>> peer_devices;
+  std::map<uint16_t, std::unique_ptr<NiceMock<MockDeviceWrapper>>> peer_devices;
   std::list<int> group_locks;
   std::map<RawAddress, int> groups;
 };
