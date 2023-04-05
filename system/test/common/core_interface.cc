@@ -69,7 +69,6 @@ struct bluetooth::core::HACK_ProfileInterface HACK_profileInterface = {
     .btif_hh_virtual_unplug = nullptr,
     .bta_hh_read_ssr_param = nullptr,
     .bta_hh_le_is_hh_gatt_if = nullptr,
-    .bta_hh_cleanup_disable = nullptr,
 
     // AVDTP
     .btif_av_set_dynamic_audio_buffer_size = nullptr,
