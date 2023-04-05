@@ -160,7 +160,7 @@ impl BtSocket {
 
         let uuid = match service_uuid {
             Some(uu) => Some(Uuid::from(uu)),
-            None => None,
+            None => Some(Uuid::from([0; 16])),
         };
         let uuid_ptr = LTCheckedPtr::from(&uuid);
 
