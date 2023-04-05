@@ -2283,15 +2283,6 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_DM_LE_FEATURES_READ:
       btif_get_adapter_property(BT_PROPERTY_LOCAL_LE_FEATURES);
       break;
-    /* add case for HANDLE_KEY_MISSING */
-    case BTA_DM_REPORT_BONDING_EVT:
-      LOG_WARN("Received encryption failed: Report bonding firstly.");
-      bd_addr = p_data->delete_key_RC_to_unpair.bd_addr;
-      GetInterfaceToProfiles()->events->invoke_bond_state_changed_cb(
-          BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING,
-          pairing_cb.fail_reason);
-      btif_dm_remove_bond(bd_addr);
-      break;
 
     case BTA_DM_LE_ADDR_ASSOC_EVT:
       GetInterfaceToProfiles()->events->invoke_le_address_associate_cb(

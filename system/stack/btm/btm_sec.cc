@@ -3423,8 +3423,8 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
         status == HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE) {
       p_dev_rec->sec_flags &= ~(BTM_SEC_LE_LINK_KEY_KNOWN);
       p_dev_rec->ble.key_type = BTM_LE_KEY_NONE;
-      p_dev_rec->sec_status = status;
     }
+    p_dev_rec->sec_status = status;
     btm_ble_link_encrypted(p_dev_rec->ble.pseudo_addr, encr_enable);
     return;
   } else {
