@@ -4584,17 +4584,6 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tHCI_STATUS result) {
 }
 #endif /* BLE_VND_INCLUDED */
 
-void bta_dm_process_delete_key_RC_to_unpair(const RawAddress& bd_addr)
-{
-    LOG_WARN("RC key missing");
-    tBTA_DM_SEC param = {
-        .delete_key_RC_to_unpair = {
-            .bd_addr = bd_addr,
-        },
-    };
-    bta_dm_cb.p_sec_cback(BTA_DM_REPORT_BONDING_EVT, &param);
-}
-
 /*******************************************************************************
  *
  * Function         bta_dm_ble_subrate_request
