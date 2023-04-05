@@ -229,13 +229,6 @@ void bta_gattc_register(const Uuid& app_uuid, tBTA_GATTC_CBACK* p_cback,
 
 /** De-Register a GATT client application with BTA */
 void bta_gattc_deregister(tBTA_GATTC_RCB* p_clreg) {
-  if (!p_clreg) {
-    LOG(ERROR) << __func__ << ": Deregister Failed unknown client cif";
-    GetInterfaceToProfiles()->profileSpecific_HACK->bta_hh_cleanup_disable(
-        BTA_HH_OK);
-    return;
-  }
-
   uint8_t accept_list_size = 0;
   if (controller_get_interface()->supports_ble()) {
     accept_list_size = controller_get_interface()->get_ble_acceptlist_size();
