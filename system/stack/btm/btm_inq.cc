@@ -601,18 +601,19 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
 
   /* Save the inquiry parameters to be used upon the completion of
    * setting/clearing the inquiry filter */
-  tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-
-  p_inq->inqparms = {};
-  p_inq->inqparms.mode = BTM_GENERAL_INQUIRY | BTM_BLE_GENERAL_INQUIRY;
-  p_inq->inqparms.duration = BTIF_DM_DEFAULT_INQ_MAX_DURATION;
+  btm_cb.btm_inq_vars.inqparms = {
+      // tBTM_INQ_PARMS
+      .mode = BTM_GENERAL_INQUIRY | BTM_BLE_GENERAL_INQUIRY,
+      .duration = BTIF_DM_DEFAULT_INQ_MAX_DURATION,
+  };
 
   /* Initialize the inquiry variables */
-  p_inq->state = BTM_INQ_ACTIVE_STATE;
-  p_inq->p_inq_cmpl_cb = p_cmpl_cb;
-  p_inq->p_inq_results_cb = p_results_cb;
-  p_inq->inq_cmpl_info.num_resp = 0; /* Clear the results counter */
-  p_inq->inq_active = p_inq->inqparms.mode;
+  btm_cb.btm_inq_vars.state = BTM_INQ_ACTIVE_STATE;
+  btm_cb.btm_inq_vars.p_inq_cmpl_cb = p_cmpl_cb;
+  btm_cb.btm_inq_vars.p_inq_results_cb = p_results_cb;
+  btm_cb.btm_inq_vars.inq_cmpl_info.num_resp =
+      0; /* Clear the results counter */
+  btm_cb.btm_inq_vars.inq_active = btm_cb.btm_inq_vars.inqparms.mode;
   btm_cb.neighbor.classic_inquiry = {
       .start_time_ms = timestamper_in_milliseconds.GetTimestamp(),
       .results = 0,
@@ -626,16 +627,17 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
   // with other scanners.
   if (!bluetooth::shim::is_classic_discovery_only_enabled()) {
     if (controller_get_interface()->supports_ble()) {
-      btm_ble_start_inquiry(p_inq->inqparms.duration);
+      btm_ble_start_inquiry(btm_cb.btm_inq_vars.inqparms.duration);
     } else {
       LOG_WARN("Trying to do LE scan on a non-LE adapter");
-      p_inq->inqparms.mode &= ~BTM_BLE_INQUIRY_MASK;
+      btm_cb.btm_inq_vars.inqparms.mode &= ~BTM_BLE_INQUIRY_MASK;
     }
   }
 
   btm_acl_update_inquiry_status(BTM_INQUIRY_STARTED);
 
-  if (p_inq->inq_active & BTM_SSP_INQUIRY_ACTIVE) {
+  if (btm_cb.btm_inq_vars.inq_active & BTM_SSP_INQUIRY_ACTIVE) {
+    LOG_INFO("Not starting inquiry as SSP is in progress");
     btm_process_inq_complete(HCI_ERR_MAX_NUM_OF_CONNECTIONS,
                              BTM_GENERAL_INQUIRY);
     return BTM_CMD_STARTED;
@@ -644,20 +646,21 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
   btm_clr_inq_result_flt();
 
   /* Allocate memory to hold bd_addrs responding */
-  p_inq->p_bd_db = (tINQ_BDADDR*)osi_calloc(BT_DEFAULT_BUFFER_SIZE);
-  p_inq->max_bd_entries =
+  btm_cb.btm_inq_vars.p_bd_db =
+      (tINQ_BDADDR*)osi_calloc(BT_DEFAULT_BUFFER_SIZE);
+  btm_cb.btm_inq_vars.max_bd_entries =
       (uint16_t)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
 
   bluetooth::legacy::hci::GetInterface().StartInquiry(
-      general_inq_lap, p_inq->inqparms.duration, 0);
+      general_inq_lap, btm_cb.btm_inq_vars.inqparms.duration, 0);
 
   // If we are only doing classic discovery, we should also set a timeout for
   // the inquiry if a duration is set.
   if (bluetooth::shim::is_classic_discovery_only_enabled() &&
-      p_inq->inqparms.duration != 0) {
+      btm_cb.btm_inq_vars.inqparms.duration != 0) {
     /* start inquiry timer */
-    uint64_t duration_ms = p_inq->inqparms.duration * 1000;
-    alarm_set_on_mloop(p_inq->classic_inquiry_timer, duration_ms,
+    uint64_t duration_ms = btm_cb.btm_inq_vars.inqparms.duration * 1000;
+    alarm_set_on_mloop(btm_cb.btm_inq_vars.classic_inquiry_timer, duration_ms,
                        btm_classic_inquiry_timeout, NULL);
   }
 
