@@ -59,19 +59,7 @@ void BTA_HhEnable(tBTA_HH_CBACK* p_cback, bool enable_hid, bool enable_hogp) {
   bta_sys_register(BTA_ID_HH, &bta_hh_reg);
 
   post_on_bt_main([p_cback, enable_hid, enable_hogp]() {
-    tBTA_HH_DATA data = {
-        .api_enable =
-            {
-                .hdr =
-                    {
-                        .event = BTA_HH_API_ENABLE_EVT,
-                    },
-                .p_cback = p_cback,
-                .enable_hid = enable_hid,
-                .enable_hogp = enable_hogp,
-            },
-    };
-    bta_hh_api_enable(&data);
+    bta_hh_api_enable(p_cback, enable_hid, enable_hogp);
   });
 }
 
