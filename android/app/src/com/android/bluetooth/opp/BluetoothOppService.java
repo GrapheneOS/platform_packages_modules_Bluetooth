@@ -1115,11 +1115,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
     // Run in a background thread at boot.
     private static void trimDatabase(ContentResolver contentResolver) {
-        if (contentResolver.acquireContentProviderClient(BluetoothShare.CONTENT_URI) == null) {
-            Log.w(TAG, "ContentProvider doesn't exist");
-            return;
-        }
-
         // remove the invisible/unconfirmed inbound shares
         int delNum = contentResolver.delete(BluetoothShare.CONTENT_URI, WHERE_INVISIBLE_UNCONFIRMED,
                 null);
