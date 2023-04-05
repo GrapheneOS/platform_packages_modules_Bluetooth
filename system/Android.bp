@@ -182,3 +182,20 @@ genrule {
         "blueberry/facade/topshim/facade_pb2_grpc.py",
     ],
 }
+
+// Export system headers for rules that can't simply use `include_dirs`
+cc_library_headers {
+    name: "libbluetooth_system_headers",
+    defaults: ["libchrome_support_defaults"],
+    visibility: [
+        "//packages/modules/Bluetooth/system:__subpackages__",
+    ],
+    export_include_dirs: ["./"],
+    vendor_available: true,
+    host_supported: true,
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.btservices",
+    ],
+    min_sdk_version: "30",
+}

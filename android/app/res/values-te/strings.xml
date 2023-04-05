@@ -94,8 +94,8 @@
     <string name="status_not_accept" msgid="1165798802740579658">"కంటెంట్‌కు మద్దతు లేదు."</string>
     <string name="status_forbidden" msgid="4017060451358837245">"లక్ష్య పరికరం బదిలీని నిషేధించింది."</string>
     <string name="status_canceled" msgid="8441679418717978515">"వినియోగదారు బదిలీని రద్దు చేశారు."</string>
-    <string name="status_file_error" msgid="5379018888714679311">"నిల్వ సమస్య."</string>
-    <string name="status_no_sd_card_nosdcard" msgid="6445646484924125975">"USB నిల్వ లేదు."</string>
+    <string name="status_file_error" msgid="5379018888714679311">"స్టోరేజ్‌ సమస్య."</string>
+    <string name="status_no_sd_card_nosdcard" msgid="6445646484924125975">"USB స్టోరేజ్‌ లేదు."</string>
     <string name="status_no_sd_card_default" msgid="8878262565692541241">"SD కార్డు లేదు. బదిలీ చేయబడిన ఫైళ్లను సేవ్ చేయడానికి SD కార్డుని చొప్పించండి."</string>
     <string name="status_connection_error" msgid="8253709700568062220">"కనెక్షన్ విఫలమైంది."</string>
     <string name="status_protocol_error" msgid="3231573735130475654">"రిక్వెస్ట్‌ సరిగ్గా నిర్వహించబడదు."</string>
