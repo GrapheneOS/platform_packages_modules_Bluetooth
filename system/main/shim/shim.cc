@@ -81,3 +81,7 @@ bool bluetooth::shim::is_gd_dumpsys_module_started() {
 bool bluetooth::shim::is_gd_btaa_enabled() {
   return bluetooth::common::init_flags::btaa_hci_is_enabled();
 }
+
+bool bluetooth::shim::is_classic_discovery_only_enabled() {
+  return bluetooth::common::init_flags::classic_discovery_only_is_enabled();
+}

@@ -56,7 +56,7 @@ fn main() {
         .blocklist_function(".*Uuid_.*")
         .allowlist_type("(bt_|bthh_|btgatt_|btsdp|bluetooth_sdp|btsock_|bthf_|btrc_).*")
         .allowlist_type("sock_connect_signal_t")
-        .allowlist_function("(bt_|bthh_|btgatt_|btsdp).*")
+        .allowlist_function("(bt_|bthh_|btgatt_|btsdp|osi_property_get).*")
         .allowlist_function("hal_util_.*")
         // We must opaque out std:: in order to prevent bindgen from choking
         .opaque_type("std::.*")

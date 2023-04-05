@@ -202,6 +202,7 @@ typedef struct {
 #define BTM_EXT_RMT_NAME_TIMEOUT_MS (40 * 1000) /* 40 seconds */
 
   alarm_t* remote_name_timer;
+  alarm_t* classic_inquiry_timer;
 
   uint16_t discoverable_mode;
   uint16_t connectable_mode;
@@ -245,10 +246,15 @@ typedef struct {
 
   void Init() {
     alarm_free(remote_name_timer);
+    alarm_free(classic_inquiry_timer);
     remote_name_timer = alarm_new("btm_inq.remote_name_timer");
+    classic_inquiry_timer = alarm_new("btm_inq.classic_inquiry_timer");
     no_inc_ssp = BTM_NO_SSP_ON_INQUIRY;
   }
-  void Free() { alarm_free(remote_name_timer); }
+  void Free() {
+    alarm_free(remote_name_timer);
+    alarm_free(classic_inquiry_timer);
+  }
 
 } tBTM_INQUIRY_VAR_ST;
 
