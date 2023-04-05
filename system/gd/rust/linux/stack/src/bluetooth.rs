@@ -712,6 +712,17 @@ impl Bluetooth {
         Ok(())
     }
 
+    /// Sets the adapter's connectable mode for classic connections.
+    pub(crate) fn set_connectable_internal(&mut self, mode: bool) -> bool {
+        self.is_connectable = mode;
+        if mode && self.get_discoverable() {
+            return true;
+        }
+        self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::AdapterScanMode(
+            if mode { BtScanMode::Connectable } else { BtScanMode::None_ },
+        )) == 0
+    }
+
     /// Returns all bonded and connected devices.
     pub(crate) fn get_bonded_and_connected_devices(&mut self) -> Vec<BluetoothDevice> {
         self.bonded_devices
@@ -2474,13 +2485,7 @@ impl IBluetoothQALegacy for Bluetooth {
     }
 
     fn set_connectable(&mut self, mode: bool) -> bool {
-        self.is_connectable = mode;
-        if mode && self.get_discoverable() {
-            return true;
-        }
-        self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::AdapterScanMode(
-            if mode { BtScanMode::Connectable } else { BtScanMode::None_ },
-        )) == 0
+        self.set_connectable_internal(mode)
     }
 
     fn get_alias(&self) -> String {
