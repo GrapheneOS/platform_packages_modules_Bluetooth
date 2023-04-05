@@ -23,6 +23,7 @@
 #include "common/bidi_queue.h"
 #include "common/callback.h"
 #include "hci/acl_manager/connection_callbacks.h"
+#include "hci/acl_manager/le_acceptlist_callbacks.h"
 #include "hci/acl_manager/le_connection_callbacks.h"
 #include "hci/address.h"
 #include "hci/address_with_type.h"
@@ -78,6 +79,7 @@ public:
  // Should register only once when user module starts.
  virtual void RegisterLeCallbacks(acl_manager::LeConnectionCallbacks* callbacks, os::Handler* handler);
  virtual void UnregisterLeCallbacks(acl_manager::LeConnectionCallbacks* callbacks, std::promise<void> promise);
+ void RegisterLeAcceptlistCallbacks(acl_manager::LeAcceptlistCallbacks* callbacks);
 
  // Generates OnConnectSuccess if connected, or OnConnectFail otherwise
  virtual void CreateConnection(Address address);
