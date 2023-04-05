@@ -138,7 +138,7 @@ void IsoManager::Start() {
   // It is needed here as IsoManager which is a singleton creates it, but in
   // this mock we want to destroy and recreate the mock on each test case.
   if (!pimpl_) {
-    pimpl_ = std::make_unique<impl>();
+    pimpl_ = std::make_unique<testing::NiceMock<impl>>();
   }
 
   mock_pimpl_ = pimpl_.get();
