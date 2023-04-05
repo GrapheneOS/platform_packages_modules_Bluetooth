@@ -4442,6 +4442,12 @@ void bta_dm_set_event_filter_connection_setup_all_devices() {
 void bta_dm_allow_wake_by_hid(
     std::vector<RawAddress> classic_hid_devices,
     std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices) {
+  // If there are any entries in the classic hid list, we should also make
+  // the adapter connectable for classic.
+  if (classic_hid_devices.size() > 0) {
+    BTM_SetConnectability(BTA_DM_CONN);
+  }
+
   bluetooth::shim::BTM_AllowWakeByHid(std::move(classic_hid_devices),
                                       std::move(le_hid_devices));
 }
