@@ -94,7 +94,7 @@ class L2cap(val context: Context) : L2CAPImplBase(), Closeable {
         connectionOutStreamMap[connection] = bluetoothSocket.getOutputStream()!!
       } catch (e: IOException) {
         Log.e(TAG, "bluetoothServerSocket not accepted", e)
-        return@grpcUnary AcceptL2CAPChannelResponse.newBuilder().build()
+        throw e
       }
 
       AcceptL2CAPChannelResponse.newBuilder().build()

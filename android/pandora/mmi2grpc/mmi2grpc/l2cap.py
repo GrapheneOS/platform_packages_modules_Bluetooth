@@ -117,11 +117,21 @@ class L2CAPProxy(ProfileProxy):
         tests_require_secure_connection = [
             "L2CAP/LE/CFC/BV-13-C",
         ]
+        tests_connection_target_to_failed = [
+            "L2CAP/LE/CFC/BV-05-C",
+        ]
 
         if test in tests_to_open_bluetooth_server_socket:
             secure_connection = test in tests_require_secure_connection
             self.l2cap.ListenL2CAPChannel(connection=self.connection, secure=secure_connection)
-            self.l2cap.AcceptL2CAPChannel(connection=self.connection)
+            try:
+                self.l2cap.AcceptL2CAPChannel(connection=self.connection)
+            except Exception as e:
+                if test in tests_connection_target_to_failed:
+                    self.test_status_map[test] = 'OK'
+                    print(test, 'connection targets to fail', file=sys.stderr)
+                else:
+                    raise e
         return "OK"
 
     @assert_description
