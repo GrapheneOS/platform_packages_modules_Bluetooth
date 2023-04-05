@@ -287,6 +287,86 @@ cc_library_static {
     min_sdk_version: "Tiramisu",
 }
 
+cc_defaults {
+    name: "btstack_fuzzer_default",
+    host_supported: true,
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        // Mocked components have too many unused parameters
+        "-Wno-unused-parameter",
+        "-DHAS_NO_BDROID_BUILDCFG",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/test/common",
+        "packages/modules/Bluetooth/system/types",
+    ],
+    static_libs: [
+        "libchrome",
+    ],
+    target: {
+        darwin: {
+            enabled: false,
+        },
+        android: {
+            shared_libs: [
+                "libcutils",
+                "libutils",
+            ],
+        },
+        host: {
+            cflags: [
+                "-DOS_GENERIC",
+            ],
+        },
+    },
+}
+
+cc_fuzz {
+    name: "sdp-fuzzer",
+    defaults: [
+        "btstack_fuzzer_default",
+        "fluoride_defaults_fuzzable",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/stack/btm",
+    ],
+    srcs: [
+        ":LegacyStackSdp",
+        ":TestCommonLogMsg",
+        ":TestCommonMockFunctions",
+        ":TestFakeOsi",
+        ":TestMockBtif",
+        ":TestMockDevice",
+        ":TestMockGdOsLoggingLogRedaction",
+        ":TestMockStackL2cap",
+        ":TestMockStackMetrics",
+        ":TestMockStackBtm",
+        "fuzzers/sdp_fuzzer.cc",
+    ],
+    fuzz_config: {
+        cc: [
+            "android-bluetooth-security@google.com",
+            "android-security-assurance-redteam@google.com",
+        ],
+        componentid: 27441,
+        hotlists: [
+            "4810445",
+            "3705175",
+        ],
+        acknowledgement: [
+            "Android Red Team of Google",
+            "Android Bluetooth Team of Google",
+        ],
+    },
+}
+
 // Bluetooth stack unit tests for target
 cc_test {
     name: "net_test_stack",
