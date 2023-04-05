@@ -405,6 +405,12 @@ class MockLeConnectionCallbacks : public LeConnectionCallbacks {
       void, OnLeConnectFail, (AddressWithType address_with_type, ErrorCode reason), (override));
 };
 
+class MockLeAcceptlistCallbacks : public LeAcceptlistCallbacks {
+ public:
+  MOCK_METHOD(void, OnLeConnectSuccess, (AddressWithType address_with_type), (override));
+  MOCK_METHOD(void, OnResolvingListChange, (), (override));
+};
+
 class MockLeConnectionManagementCallbacks : public LeConnectionManagementCallbacks {
  public:
   MOCK_METHOD(
@@ -542,7 +548,6 @@ class LeImplTest : public ::testing::Test {
 
   Address remote_address_;
   AddressWithType fixed_address_;
-  AddressWithType remote_public_address_;
   Address local_rpa_;
   Address remote_rpa_;
   AddressWithType remote_public_address_with_type_;
@@ -1668,6 +1673,58 @@ INSTANTIATE_TEST_SUITE_P(
     LeImplTestParameterizedByDiscoverability,
     LeImplTestParameterizedByDiscoverability,
     ::testing::Values(false, true));
+
+TEST_F(LeImplTest, ConnectionCompleteAcceptlistCallback) {
+  // arrange
+  MockLeAcceptlistCallbacks callbacks;
+  le_impl_->handle_register_le_acceptlist_callbacks(&callbacks);
+  set_random_device_address_policy();
+
+  // expect
+  AddressWithType remote_address;
+  EXPECT_CALL(callbacks, OnLeConnectSuccess(_)).WillOnce([&](AddressWithType addr) {
+    remote_address = addr;
+  });
+
+  // act
+  auto command = LeEnhancedConnectionCompleteBuilder::Create(
+      ErrorCode::SUCCESS,
+      kHciHandle,
+      Role::PERIPHERAL,
+      AddressType::PUBLIC_DEVICE_ADDRESS,
+      remote_address_,
+      local_rpa_,
+      remote_rpa_,
+      0x0024,
+      0x0000,
+      0x0011,
+      ClockAccuracy::PPM_30);
+  auto bytes = Serialize<LeEnhancedConnectionCompleteBuilder>(std::move(command));
+  auto view = CreateLeEventView<hci::LeEnhancedConnectionCompleteView>(bytes);
+  ASSERT_TRUE(view.IsValid());
+  le_impl_->on_le_event(view);
+  sync_handler();
+
+  // assert
+  ASSERT_EQ(remote_public_address_with_type_, remote_address);
+}
+
+TEST_F(LeImplTest, ResolvingListCallback) {
+  // arrange
+  MockLeAcceptlistCallbacks callbacks;
+  le_impl_->handle_register_le_acceptlist_callbacks(&callbacks);
+
+  // expect
+  AddressWithType remote_address;
+  EXPECT_CALL(callbacks, OnResolvingListChange()).Times(1);
+
+  // act
+  le_impl_->add_device_to_resolving_list(
+      remote_public_address_with_type_, kPeerIdentityResolvingKey, kLocalIdentityResolvingKey);
+
+  // assert
+  Mock::VerifyAndClearExpectations(&callbacks);
+}
 
 }  // namespace acl_manager
 }  // namespace hci
