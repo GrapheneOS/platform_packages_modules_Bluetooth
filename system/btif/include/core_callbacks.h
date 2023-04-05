@@ -112,7 +112,6 @@ struct HACK_ProfileInterface {
                                           uint16_t* p_max_ssr_lat,
                                           uint16_t* p_min_ssr_tout);
   bool (*bta_hh_le_is_hh_gatt_if)(tGATT_IF client_if);
-  void (*bta_hh_cleanup_disable)(tBTA_HH_STATUS status);
 
   // AVDTP hacks
   void (*btif_av_set_dynamic_audio_buffer_size)(
