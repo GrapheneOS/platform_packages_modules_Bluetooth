@@ -863,7 +863,7 @@ class VolumeControlImpl : public VolumeControl {
         LOG_DEBUG("Address: %s: isReady: %s",
                   ADDRESS_TO_LOGGABLE_CSTR(dev->address),
                   dev->IsReady() ? "true" : "false");
-        if (dev->IsReady()) {
+        if (dev->IsReady() && (dev->mute != mute)) {
           std::vector<RawAddress> devices = {dev->address};
           PrepareVolumeControlOperation(
               devices, bluetooth::groups::kGroupUnknown, false, opcode, arg);
@@ -882,7 +882,7 @@ class VolumeControlImpl : public VolumeControl {
       auto devices = csis_api->GetDeviceList(group_id);
       for (auto it = devices.begin(); it != devices.end();) {
         auto dev = volume_control_devices_.FindByAddress(*it);
-        if (!dev || !dev->IsReady()) {
+        if (!dev || !dev->IsReady() || (dev->mute == mute)) {
           it = devices.erase(it);
         } else {
           it++;
@@ -948,7 +948,7 @@ class VolumeControlImpl : public VolumeControl {
       auto devices = csis_api->GetDeviceList(group_id);
       for (auto it = devices.begin(); it != devices.end();) {
         auto dev = volume_control_devices_.FindByAddress(*it);
-        if (!dev || !dev->IsReady()) {
+        if (!dev || !dev->IsReady() || (dev->volume == volume)) {
           it = devices.erase(it);
         } else {
           it++;
