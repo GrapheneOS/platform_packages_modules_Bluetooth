@@ -1001,6 +1001,38 @@ class VolumeControlValueSetTest : public VolumeControlTest {
     TestConnect(test_address);
     GetConnectedEvent(test_address, conn_id);
     GetSearchCompleteEvent(conn_id);
+
+    ON_CALL(gatt_queue,
+            WriteCharacteristic(conn_id, 0x0024, _, GATT_WRITE, _, _))
+        .WillByDefault([this](uint16_t conn_id, uint16_t handle,
+                              std::vector<uint8_t> value,
+                              tGATT_WRITE_TYPE write_type, GATT_WRITE_OP_CB cb,
+                              void* cb_data) {
+          std::vector<uint8_t> ntf_value(
+              {value[0], 0, static_cast<uint8_t>(value[1] + 1)});
+          switch (value[0]) {
+            case 0x06:  // mute
+              ntf_value[1] = 1;
+              break;
+            case 0x05:  // unmute
+              break;
+            case 0x04:  // set abs. volume
+              ntf_value[0] = value[2];
+              ntf_value[1] = (value[2] ? 0 : 1);
+              break;
+            case 0x03:  // unmute rel. up
+              break;
+            case 0x02:  // unmute rel. down
+              break;
+            case 0x01:  // rel. up
+              break;
+            case 0x00:  // rel. down
+              break;
+            default:
+              break;
+          }
+          GetNotificationEvent(0x0021, ntf_value);
+        });
   }
 
   void GetNotificationEvent(uint16_t handle, std::vector<uint8_t>& value) {
@@ -1023,19 +1055,6 @@ class VolumeControlValueSetTest : public VolumeControlTest {
 };
 
 TEST_F(VolumeControlValueSetTest, test_set_volume) {
-  ON_CALL(gatt_queue, WriteCharacteristic(conn_id, 0x0024, _, GATT_WRITE, _, _))
-      .WillByDefault([this](uint16_t conn_id, uint16_t handle,
-                            std::vector<uint8_t> value,
-                            tGATT_WRITE_TYPE write_type, GATT_WRITE_OP_CB cb,
-                            void* cb_data) {
-        std::vector<uint8_t> ntf_value({
-            value[2],                            // volume level
-            0,                                   // muted
-            static_cast<uint8_t>(value[1] + 1),  // change counter
-        });
-        GetNotificationEvent(0x0021, ntf_value);
-      });
-
   const std::vector<uint8_t> vol_x10({0x04, 0x00, 0x10});
   EXPECT_CALL(gatt_queue,
               WriteCharacteristic(conn_id, 0x0024, vol_x10, GATT_WRITE, _, _))
@@ -1056,17 +1075,30 @@ TEST_F(VolumeControlValueSetTest, test_set_volume) {
   VolumeControl::Get()->SetVolume(test_address, 0x20);
 }
 
-TEST_F(VolumeControlValueSetTest, test_mute) {
-  std::vector<uint8_t> mute({0x06, 0x00});
+TEST_F(VolumeControlValueSetTest, test_mute_unmute) {
+  std::vector<uint8_t> mute_x0({0x06, 0x00});
   EXPECT_CALL(gatt_queue,
-              WriteCharacteristic(conn_id, 0x0024, mute, GATT_WRITE, _, _));
+              WriteCharacteristic(conn_id, 0x0024, mute_x0, GATT_WRITE, _, _))
+      .Times(1);
+  // Don't mute when already muted
+  std::vector<uint8_t> mute_x1({0x06, 0x01});
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id, 0x0024, mute_x1, GATT_WRITE, _, _))
+      .Times(0);
   VolumeControl::Get()->Mute(test_address);
-}
+  VolumeControl::Get()->Mute(test_address);
 
-TEST_F(VolumeControlValueSetTest, test_unmute) {
-  std::vector<uint8_t> unmute({0x05, 0x00});
+  // Needs to be muted to unmute
+  std::vector<uint8_t> unmute_x1({0x05, 0x01});
   EXPECT_CALL(gatt_queue,
-              WriteCharacteristic(conn_id, 0x0024, unmute, GATT_WRITE, _, _));
+              WriteCharacteristic(conn_id, 0x0024, unmute_x1, GATT_WRITE, _, _))
+      .Times(1);
+  // Don't unmute when already unmuted
+  std::vector<uint8_t> unmute_x2({0x05, 0x02});
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id, 0x0024, unmute_x2, GATT_WRITE, _, _))
+      .Times(0);
+  VolumeControl::Get()->UnMute(test_address);
   VolumeControl::Get()->UnMute(test_address);
 }
 
