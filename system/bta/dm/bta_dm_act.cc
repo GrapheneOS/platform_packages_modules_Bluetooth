@@ -4442,6 +4442,12 @@ void bta_dm_set_event_filter_connection_setup_all_devices() {
 void bta_dm_allow_wake_by_hid(
     std::vector<RawAddress> classic_hid_devices,
     std::vector<std::pair<RawAddress, uint8_t>> le_hid_devices) {
+  // If there are any entries in the classic hid list, we should also make
+  // the adapter connectable for classic.
+  if (classic_hid_devices.size() > 0) {
+    BTM_SetConnectability(BTA_DM_CONN);
+  }
+
   bluetooth::shim::BTM_AllowWakeByHid(std::move(classic_hid_devices),
                                       std::move(le_hid_devices));
 }
@@ -4577,17 +4583,6 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tHCI_STATUS result) {
   }
 }
 #endif /* BLE_VND_INCLUDED */
-
-void bta_dm_process_delete_key_RC_to_unpair(const RawAddress& bd_addr)
-{
-    LOG_WARN("RC key missing");
-    tBTA_DM_SEC param = {
-        .delete_key_RC_to_unpair = {
-            .bd_addr = bd_addr,
-        },
-    };
-    bta_dm_cb.p_sec_cback(BTA_DM_REPORT_BONDING_EVT, &param);
-}
 
 /*******************************************************************************
  *

@@ -551,9 +551,13 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
             hci::LeSetExtendedAdvertisingEnableBuilder::Create(Enable::DISABLED, enabled_vector),
             module_handler_->BindOnce(impl::check_status<LeSetExtendedAdvertisingEnableCompleteView>));
 
-        le_advertising_interface_->EnqueueCommand(
-            hci::LeSetPeriodicAdvertisingEnableBuilder::Create(false, false, advertiser_id),
-            module_handler_->BindOnce(impl::check_status<LeSetPeriodicAdvertisingEnableCompleteView>));
+        // Only set periodic advertising if supported.
+        if (controller_->SupportsBlePeriodicAdvertising()) {
+          le_advertising_interface_->EnqueueCommand(
+              hci::LeSetPeriodicAdvertisingEnableBuilder::Create(false, false, advertiser_id),
+              module_handler_->BindOnce(
+                  impl::check_status<LeSetPeriodicAdvertisingEnableCompleteView>));
+        }
       } break;
     }
 
@@ -1089,6 +1093,10 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   }
 
   void enable_periodic_advertising(AdvertiserId advertiser_id, bool enable, bool include_adi) {
+    if (!controller_->SupportsBlePeriodicAdvertising()) {
+      return;
+    }
+
     if (include_adi && !controller_->SupportsBlePeriodicAdvertisingAdi()) {
       include_adi = false;
     }

@@ -15,6 +15,7 @@
  */
 package com.android.bluetooth;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,11 +30,12 @@ import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.MessageQueue;
-import android.os.Process;
+import android.service.media.MediaBrowserService;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.rule.ServiceTestRule;
 
+import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
@@ -364,6 +366,18 @@ public class TestUtils {
             return null;
         }
         return adapterConfig;
+    }
+
+    /**
+     * Prepare the intent to start bluetooth browser media service.
+     *
+     * @return intent with the appropriate component & action set.
+     */
+    public static Intent prepareIntentToStartBluetoothBrowserMediaService() {
+        final Intent intent = new Intent(InstrumentationRegistry.getTargetContext(),
+                BluetoothMediaBrowserService.class);
+        intent.setAction(MediaBrowserService.SERVICE_INTERFACE);
+        return intent;
     }
 
     /**

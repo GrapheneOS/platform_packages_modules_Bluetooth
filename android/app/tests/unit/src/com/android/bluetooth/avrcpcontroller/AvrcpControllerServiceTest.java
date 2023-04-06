@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.support.v4.media.session.PlaybackStateCompat;
 
@@ -54,12 +55,14 @@ import java.util.Arrays;
 @RunWith(AndroidJUnit4.class)
 public class AvrcpControllerServiceTest {
     private static final String REMOTE_DEVICE_ADDRESS = "00:00:00:00:00:00";
-    private static final byte[] REMOTE_DEVICE_ADDRESS_AS_ARRAY = new byte[] {0, 0, 0, 0, 0, 0};
+    private static final byte[] REMOTE_DEVICE_ADDRESS_AS_ARRAY = new byte[]{0, 0, 0, 0, 0, 0};
 
     private AvrcpControllerService mService = null;
     private BluetoothAdapter mAdapter = null;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
+    @Rule
+    public final ServiceTestRule mBluetoothBrowserMediaServiceTestRule = new ServiceTestRule();
 
     @Mock private AdapterService mAdapterService;
     @Mock private AvrcpControllerStateMachine mStateMachine;
@@ -79,7 +82,9 @@ public class AvrcpControllerServiceTest {
         assertThat(mAdapter).isNotNull();
         mRemoteDevice = mAdapter.getRemoteDevice(REMOTE_DEVICE_ADDRESS);
         mService.mDeviceStateMap.put(mRemoteDevice, mStateMachine);
-        BluetoothMediaBrowserService.setActive(false);
+        final Intent bluetoothBrowserMediaServiceStartIntent =
+                TestUtils.prepareIntentToStartBluetoothBrowserMediaService();
+        mBluetoothBrowserMediaServiceTestRule.startService(bluetoothBrowserMediaServiceStartIntent);
     }
 
     @After

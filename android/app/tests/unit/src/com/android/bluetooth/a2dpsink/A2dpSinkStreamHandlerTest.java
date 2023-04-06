@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.media.AudioManager;
@@ -39,7 +40,6 @@ import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,11 +68,14 @@ public class A2dpSinkStreamHandlerTest {
     @Rule
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
+    @Rule
+    public final ServiceTestRule mBluetoothBrowserMediaServiceTestRule = new ServiceTestRule();
+
     @Mock
     private AdapterService mAdapterService;
 
     @Before
-    public void setUp() throws Exception{
+    public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         MockitoAnnotations.initMocks(this);
         // Mock the looper
@@ -82,6 +85,9 @@ public class A2dpSinkStreamHandlerTest {
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, AvrcpControllerService.class);
+        final Intent bluetoothBrowserMediaServiceStartIntent =
+                TestUtils.prepareIntentToStartBluetoothBrowserMediaService();
+        mBluetoothBrowserMediaServiceTestRule.startService(bluetoothBrowserMediaServiceStartIntent);
 
         mHandlerThread = new HandlerThread("A2dpSinkStreamHandlerTest");
         mHandlerThread.start();
@@ -101,7 +107,6 @@ public class A2dpSinkStreamHandlerTest {
         when(mMockPackageManager.hasSystemFeature(any())).thenReturn(false);
 
         mStreamHandler = spy(new A2dpSinkStreamHandler(mMockA2dpSink, mMockNativeInterface));
-        BluetoothMediaBrowserService.setActive(false);
     }
 
     @After

@@ -229,13 +229,6 @@ void bta_gattc_register(const Uuid& app_uuid, tBTA_GATTC_CBACK* p_cback,
 
 /** De-Register a GATT client application with BTA */
 void bta_gattc_deregister(tBTA_GATTC_RCB* p_clreg) {
-  if (!p_clreg) {
-    LOG(ERROR) << __func__ << ": Deregister Failed unknown client cif";
-    GetInterfaceToProfiles()->profileSpecific_HACK->bta_hh_cleanup_disable(
-        BTA_HH_OK);
-    return;
-  }
-
   uint8_t accept_list_size = 0;
   if (controller_get_interface()->supports_ble()) {
     accept_list_size = controller_get_interface()->get_ble_acceptlist_size();
@@ -1003,11 +996,16 @@ void bta_gattc_write(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
   attr.len = p_data->api_write.len;
   attr.auth_req = p_data->api_write.auth_req;
 
-  if (p_data->api_write.p_value)
-    memcpy(attr.value, p_data->api_write.p_value, p_data->api_write.len);
+  /* Before coping to the fixed array, make sure it fits. */
+  if (attr.len > GATT_MAX_ATTR_LEN) {
+    status = GATT_INVALID_ATTR_LEN;
+  } else {
+    if (p_data->api_write.p_value)
+      memcpy(attr.value, p_data->api_write.p_value, p_data->api_write.len);
 
-  status =
-      GATTC_Write(p_clcb->bta_conn_id, p_data->api_write.write_type, &attr);
+    status =
+        GATTC_Write(p_clcb->bta_conn_id, p_data->api_write.write_type, &attr);
+  }
 
   /* write fail */
   if (status != GATT_SUCCESS) {
