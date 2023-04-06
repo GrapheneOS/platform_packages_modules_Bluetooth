@@ -13,6 +13,7 @@ use tokio::{
 use crate::{core::address::AddressWithType, do_in_rust_thread};
 
 use super::{
+    attempt_manager::ConnectionMode,
     le_manager::{ErrorCode, InactiveLeAclManager, LeAclManager, LeAclManagerConnectionCallbacks},
     ConnectionManagerClient, LeConnection,
 };
@@ -113,13 +114,13 @@ pub struct LeAclManagerCallbackShim(
 impl LeAclManagerCallbackShim {
     fn on_le_connect_success(&self, address: AddressWithType) {
         let _ = self.0.send(Box::new(move |callback| {
-            callback.on_le_connect_success(LeConnection { remote_address: address })
+            callback.on_le_connect(address, Ok(LeConnection { remote_address: address }))
         }));
     }
 
     fn on_le_connect_fail(&self, address: AddressWithType, status: u8) {
         let _ = self.0.send(Box::new(move |callback| {
-            callback.on_le_connect_fail(address, ErrorCode(status));
+            callback.on_le_connect(address, Err(ErrorCode(status)))
         }));
     }
 
@@ -176,7 +177,8 @@ pub fn register_callbacks() {
         |client, address| {
             let client = ConnectionManagerClient::GattClient(client);
             do_in_rust_thread(move |modules| {
-                let result = modules.connection_manager.start_direct_connection(client, address);
+                let result =
+                    modules.connection_manager.as_ref().start_direct_connection(client, address);
                 if let Err(err) = result {
                     warn!("Failed to start direct connection from {client:?} to {address:?} ({err:?})")
                 }
@@ -185,7 +187,11 @@ pub fn register_callbacks() {
         |client, address| {
             let client = ConnectionManagerClient::GattClient(client);
             do_in_rust_thread(move |modules| {
-                let result = modules.connection_manager.cancel_direct_connection(client, address);
+                let result = modules.connection_manager.cancel_connection(
+                    client,
+                    address,
+                    ConnectionMode::Direct,
+                );
                 if let Err(err) = result {
                     warn!("Failed to cancel direct connection from {client:?} to {address:?} ({err:?})")
                 }
@@ -203,8 +209,11 @@ pub fn register_callbacks() {
         |client, address| {
             let client = ConnectionManagerClient::GattClient(client);
             do_in_rust_thread(move |modules| {
-                let result =
-                    modules.connection_manager.remove_background_connection(client, address);
+                let result = modules.connection_manager.cancel_connection(
+                    client,
+                    address,
+                    ConnectionMode::Background,
+                );
                 if let Err(err) = result {
                     warn!("Failed to remove background connection from {client:?} to {address:?} ({err:?})")
                 }
