@@ -608,6 +608,42 @@ public class VolumeControlServiceTest {
     }
 
     /**
+     * Test if autonomous Mute/Unmute propagates the event to audio manager.
+     */
+    @Test
+    public void testAutonomousMuteUnmute() {
+        int streamType = AudioManager.STREAM_MUSIC;
+        int streamVol = getLeAudioVolume(19, MEDIA_MIN_VOL, MEDIA_MAX_VOL, streamType);
+
+        // Send a message to trigger volume state changed broadcast
+        final VolumeControlStackEvent stackEvent = new VolumeControlStackEvent(
+                VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED);
+        stackEvent.device = null;
+        stackEvent.valueInt1 = 1;       // groupId
+        stackEvent.valueInt2 = streamVol;
+        stackEvent.valueBool1 = false;  // isMuted
+        stackEvent.valueBool2 = true;   // isAutonomous
+
+        doReturn(false).when(mAudioManager)
+                .isStreamMute(eq(AudioManager.STREAM_MUSIC));
+
+        // Verify that muting LeAudio device, sets the mute state on the audio device
+        stackEvent.valueBool1 = true;
+        mService.messageFromNative(stackEvent);
+        verify(mAudioManager, times(1)).adjustStreamVolume(eq(streamType),
+                eq(AudioManager.ADJUST_MUTE), anyInt());
+
+        doReturn(true).when(mAudioManager)
+                .isStreamMute(eq(AudioManager.STREAM_MUSIC));
+
+        // Verify that unmuting LeAudio device, unsets the mute state on the audio device
+        stackEvent.valueBool1 = false;
+        mService.messageFromNative(stackEvent);
+        verify(mAudioManager, times(1)).adjustStreamVolume(eq(streamType),
+                eq(AudioManager.ADJUST_UNMUTE), anyInt());
+    }
+
+    /**
      * Test Volume Control cache.
      */
     @Test
@@ -639,6 +675,99 @@ public class VolumeControlServiceTest {
         mService.messageFromNative(stackEvent);
 
         Assert.assertEquals(volume, mService.getGroupVolume(groupId));
+    }
+
+    /**
+     * Test Volume Control Mute cache.
+     */
+    @Test
+    public void testMuteCache() throws Exception {
+        int groupId = 1;
+        int volume = 6;
+
+        Assert.assertEquals(false, mService.getGroupMute(groupId));
+
+        // Send autonomous volume change
+        VolumeControlStackEvent stackEvent = new VolumeControlStackEvent(
+                VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED);
+        stackEvent.device = null;
+        stackEvent.valueInt1 = groupId;
+        stackEvent.valueInt2 = volume;
+        stackEvent.valueBool1 = false; /* unmuted */
+        stackEvent.valueBool2 = true; /* autonomous */
+        mService.messageFromNative(stackEvent);
+
+        // Mute
+        final SynchronousResultReceiver<Void> voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.muteGroup(groupId, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+        Assert.assertEquals(true, mService.getGroupMute(groupId));
+
+        // Make sure the volume is kept even when muted
+        Assert.assertEquals(volume, mService.getGroupVolume(groupId));
+
+        // Send autonomous unmute
+        stackEvent.valueBool1 = false; /* unmuted */
+        mService.messageFromNative(stackEvent);
+
+        Assert.assertEquals(false, mService.getGroupMute(groupId));
+    }
+
+    /**
+     * Test Volume Control with muted stream.
+     */
+    @Test
+    public void testVolumeChangeWhileMuted() throws Exception {
+        int groupId = 1;
+        int volume = 6;
+
+        Assert.assertEquals(false, mService.getGroupMute(groupId));
+
+        // Set the initial volume state
+        VolumeControlStackEvent stackEvent = new VolumeControlStackEvent(
+                VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED);
+        stackEvent.device = null;
+        stackEvent.valueInt1 = groupId;
+        stackEvent.valueInt2 = volume;
+        stackEvent.valueBool1 = false; /* unmuted */
+        stackEvent.valueBool2 = true; /* autonomous */
+        mService.messageFromNative(stackEvent);
+
+        // Mute
+        mService.muteGroup(groupId);
+        Assert.assertEquals(true, mService.getGroupMute(groupId));
+        verify(mNativeInterface, times(1)).muteGroup(eq(groupId));
+
+        // Make sure the volume is kept even when muted
+        doReturn(true).when(mAudioManager)
+                .isStreamMute(eq(AudioManager.STREAM_MUSIC));
+        Assert.assertEquals(volume, mService.getGroupVolume(groupId));
+
+        // Lower the volume and keep it mute
+        mService.setGroupVolume(groupId, --volume);
+        Assert.assertEquals(true, mService.getGroupMute(groupId));
+        verify(mNativeInterface, times(1)).setGroupVolume(eq(groupId), eq(volume));
+        verify(mNativeInterface, times(0)).unmuteGroup(eq(groupId));
+
+        // Don't unmute on consecutive calls either
+        mService.setGroupVolume(groupId, --volume);
+        Assert.assertEquals(true, mService.getGroupMute(groupId));
+        verify(mNativeInterface, times(1)).setGroupVolume(eq(groupId), eq(volume));
+        verify(mNativeInterface, times(0)).unmuteGroup(eq(groupId));
+
+        // Raise the volume and unmute
+        volume += 10; // avoid previous volume levels and simplify mock verification
+        doReturn(false).when(mAudioManager)
+                .isStreamMute(eq(AudioManager.STREAM_MUSIC));
+        mService.setGroupVolume(groupId, ++volume);
+        Assert.assertEquals(false, mService.getGroupMute(groupId));
+        verify(mNativeInterface, times(1)).setGroupVolume(eq(groupId), eq(volume));
+        // Verify the number of unmute calls after the second volume change
+        mService.setGroupVolume(groupId, ++volume);
+        Assert.assertEquals(false, mService.getGroupMute(groupId));
+        verify(mNativeInterface, times(1)).setGroupVolume(eq(groupId), eq(volume));
+        // Make sure we unmuted only once
+        verify(mNativeInterface, times(1)).unmuteGroup(eq(groupId));
     }
 
     /**
@@ -725,6 +854,109 @@ public class VolumeControlServiceTest {
         when(mCsipService.getGroupId(mDeviceTwo, BluetoothUuid.CAP)).thenReturn(groupId);
         mService.handleGroupNodeAdded(groupId, mDeviceTwo);
         verify(mNativeInterface, times(1)).setVolume(eq(mDeviceTwo), eq(groupVolume));
+    }
+
+    /**
+     * Test setting volume to 0 for a group member who connects after the volume level
+     * for a group was already changed and cached. LeAudio has no knowledge of mute
+     * for anything else than telephony, thus setting volume level to 0 is considered
+     * as muting.
+     */
+    @Test
+    public void testMuteLateConnectingDevice() throws Exception {
+        int groupId = 1;
+        int volume = 100;
+
+        // Both devices are in the same group
+        when(mCsipService.getGroupId(mDevice, BluetoothUuid.CAP)).thenReturn(groupId);
+        when(mCsipService.getGroupId(mDeviceTwo, BluetoothUuid.CAP)).thenReturn(groupId);
+
+        // Update the device policy so okToConnect() returns true
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(any(BluetoothDevice.class),
+                        eq(BluetoothProfile.VOLUME_CONTROL)))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        doReturn(true).when(mNativeInterface).connectVolumeControl(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectVolumeControl(any(BluetoothDevice.class));
+
+        generateConnectionMessageFromNative(mDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mDevice));
+        Assert.assertTrue(mService.getDevices().contains(mDevice));
+
+        // Set the initial volume and mute conditions
+        doReturn(true).when(mAudioManager).isStreamMute(anyInt());
+        mService.setGroupVolume(groupId, volume);
+
+        verify(mNativeInterface, times(1)).setGroupVolume(eq(groupId), eq(volume));
+        verify(mNativeInterface, times(0)).setVolume(eq(mDeviceTwo), eq(volume));
+        // Check if it was muted
+        verify(mNativeInterface, times(1)).muteGroup(eq(groupId));
+
+        Assert.assertEquals(true, mService.getGroupMute(groupId));
+
+        // Verify that second device gets the proper group volume level when connected
+        generateConnectionMessageFromNative(mDeviceTwo, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mDeviceTwo));
+        Assert.assertTrue(mService.getDevices().contains(mDeviceTwo));
+        verify(mNativeInterface, times(1)).setVolume(eq(mDeviceTwo), eq(volume));
+        // Check if new device was muted
+        verify(mNativeInterface, times(1)).mute(eq(mDeviceTwo));
+    }
+
+    /**
+     * Test setting volume to 0 for a new group member who is discovered after the volume level
+     * for a group was already changed and cached. LeAudio has no knowledge of mute
+     * for anything else than telephony, thus setting volume level to 0 is considered
+     * as muting.
+     */
+    @Test
+    public void testMuteLateDiscoveredGroupMember() throws Exception {
+        int groupId = 1;
+        int volume = 100;
+
+        // For now only one device is in the group
+        when(mCsipService.getGroupId(mDevice, BluetoothUuid.CAP)).thenReturn(groupId);
+        when(mCsipService.getGroupId(mDeviceTwo, BluetoothUuid.CAP)).thenReturn(-1);
+
+        // Update the device policy so okToConnect() returns true
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(any(BluetoothDevice.class),
+                        eq(BluetoothProfile.VOLUME_CONTROL)))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        doReturn(true).when(mNativeInterface).connectVolumeControl(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectVolumeControl(any(BluetoothDevice.class));
+
+        generateConnectionMessageFromNative(mDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mDevice));
+        Assert.assertTrue(mService.getDevices().contains(mDevice));
+
+        // Set the initial volume and mute conditions
+        doReturn(true).when(mAudioManager).isStreamMute(anyInt());
+        mService.setGroupVolume(groupId, volume);
+
+        // Verify that second device will not get the group volume level if it is not a group member
+        generateConnectionMessageFromNative(mDeviceTwo, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mDeviceTwo));
+        Assert.assertTrue(mService.getDevices().contains(mDeviceTwo));
+        verify(mNativeInterface, times(0)).setVolume(eq(mDeviceTwo), eq(volume));
+        // Check if it was not muted
+        verify(mNativeInterface, times(0)).mute(eq(mDeviceTwo));
+
+        // But gets the volume when it becomes the group member
+        when(mCsipService.getGroupId(mDeviceTwo, BluetoothUuid.CAP)).thenReturn(groupId);
+        mService.handleGroupNodeAdded(groupId, mDeviceTwo);
+        verify(mNativeInterface, times(1)).setVolume(eq(mDeviceTwo), eq(volume));
+        verify(mNativeInterface, times(1)).mute(eq(mDeviceTwo));
     }
 
     @Test
