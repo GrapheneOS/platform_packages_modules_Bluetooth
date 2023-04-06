@@ -20,10 +20,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.Mockito.when;
 
+import android.util.Xml;
+
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.SignedLongLong;
-import com.android.internal.util.FastXmlSerializer;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -124,7 +125,7 @@ public class BluetoothMapConvoContactElementTest {
                 TEST_PRESENCE_STATUS, TEST_PRESENCE_AVAILABILITY, TEST_LAST_ACTIVITY,
                 TEST_CHAT_STATE, TEST_PRIORITY, TEST_BT_UID);
 
-        final XmlSerializer serializer = new FastXmlSerializer();
+        final XmlSerializer serializer = Xml.newSerializer();
         final StringWriter writer = new StringWriter();
 
         serializer.setOutput(writer);

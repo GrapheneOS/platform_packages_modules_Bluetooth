@@ -30,6 +30,7 @@
 #include "common/init_flags.h"
 #include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/acl_manager/assembler.h"
+#include "hci/acl_manager/le_acceptlist_callbacks.h"
 #include "hci/acl_manager/le_connection_management_callbacks.h"
 #include "hci/acl_manager/round_robin_scheduler.h"
 #include "hci/controller.h"
@@ -469,6 +470,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
           common::Unretained(le_client_callbacks_),
           remote_address,
           std::move(connection)));
+      if (le_acceptlist_callbacks_ != nullptr) {
+        le_acceptlist_callbacks_->OnLeConnectSuccess(remote_address);
+      }
     }
   }
 
@@ -626,6 +630,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
           common::Unretained(le_client_callbacks_),
           remote_address,
           std::move(connection)));
+      if (le_acceptlist_callbacks_ != nullptr) {
+        le_acceptlist_callbacks_->OnLeConnectSuccess(remote_address);
+      }
     }
   }
 
@@ -775,6 +782,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         conn_handle, DataAsPeripheral{adv_set_address, adv_set_id, is_discoverable});
 
     if (connection != nullptr) {
+      if (le_acceptlist_callbacks_ != nullptr) {
+        le_acceptlist_callbacks_->OnLeConnectSuccess(connection->GetRemoteAddress());
+      }
       le_client_handler_->Post(common::BindOnce(
           &LeConnectionCallbacks::OnLeConnectSuccess,
           common::Unretained(le_client_callbacks_),
@@ -833,12 +843,18 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     register_with_address_manager();
     le_address_manager_->AddDeviceToResolvingList(
         address_with_type.ToPeerAddressType(), address_with_type.GetAddress(), peer_irk, local_irk);
+    if (le_acceptlist_callbacks_ != nullptr) {
+      le_acceptlist_callbacks_->OnResolvingListChange();
+    }
   }
 
   void remove_device_from_resolving_list(AddressWithType address_with_type) {
     register_with_address_manager();
     le_address_manager_->RemoveDeviceFromResolvingList(
         address_with_type.ToPeerAddressType(), address_with_type.GetAddress());
+    if (le_acceptlist_callbacks_ != nullptr) {
+      le_acceptlist_callbacks_->OnResolvingListChange();
+    }
   }
 
   void update_connectability_state_after_armed(const ErrorCode& status) {
@@ -1194,6 +1210,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     le_client_handler_ = handler;
   }
 
+  void handle_register_le_acceptlist_callbacks(LeAcceptlistCallbacks* callbacks) {
+    ASSERT(le_acceptlist_callbacks_ == nullptr);
+    le_acceptlist_callbacks_ = callbacks;
+  }
+
   void handle_unregister_le_callbacks(LeConnectionCallbacks* callbacks, std::promise<void> promise) {
     ASSERT_LOG(le_client_callbacks_ == callbacks, "Registered le callback entity is different then unregister request");
     le_client_callbacks_ = nullptr;
@@ -1312,6 +1333,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   LeAclConnectionInterface* le_acl_connection_interface_ = nullptr;
   LeConnectionCallbacks* le_client_callbacks_ = nullptr;
   os::Handler* le_client_handler_ = nullptr;
+  LeAcceptlistCallbacks* le_acceptlist_callbacks_ = nullptr;
   std::unordered_set<AddressWithType> connecting_le_{};
   bool arm_on_resume_{};
   std::unordered_set<AddressWithType> direct_connections_{};
