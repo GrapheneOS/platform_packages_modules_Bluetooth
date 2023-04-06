@@ -59,7 +59,7 @@ impl BtManagerCallback {
 }
 
 impl IBluetoothManagerCallback for BtManagerCallback {
-    fn on_hci_device_changed(&self, hci_interface: i32, present: bool) {
+    fn on_hci_device_changed(&mut self, hci_interface: i32, present: bool) {
         print_info!("hci{} present = {}", hci_interface, present);
 
         if present {
@@ -69,11 +69,11 @@ impl IBluetoothManagerCallback for BtManagerCallback {
         }
     }
 
-    fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {
+    fn on_hci_enabled_changed(&mut self, hci_interface: i32, enabled: bool) {
         self.context.lock().unwrap().set_adapter_enabled(hci_interface, enabled);
     }
 
-    fn on_default_adapter_changed(&self, hci_interface: i32) {
+    fn on_default_adapter_changed(&mut self, hci_interface: i32) {
         print_info!("hci{} is now the default", hci_interface);
     }
 }
@@ -115,22 +115,22 @@ impl BtCallback {
 }
 
 impl IBluetoothCallback for BtCallback {
-    fn on_adapter_property_changed(&self, _prop: BtPropertyType) {}
+    fn on_adapter_property_changed(&mut self, _prop: BtPropertyType) {}
 
-    fn on_address_changed(&self, addr: String) {
+    fn on_address_changed(&mut self, addr: String) {
         print_info!("Address changed to {}", &addr);
         self.context.lock().unwrap().adapter_address = Some(addr);
     }
 
-    fn on_name_changed(&self, name: String) {
+    fn on_name_changed(&mut self, name: String) {
         print_info!("Name changed to {}", &name);
     }
 
-    fn on_discoverable_changed(&self, discoverable: bool) {
+    fn on_discoverable_changed(&mut self, discoverable: bool) {
         print_info!("Discoverable changed to {}", &discoverable);
     }
 
-    fn on_device_found(&self, remote_device: BluetoothDevice) {
+    fn on_device_found(&mut self, remote_device: BluetoothDevice) {
         self.context
             .lock()
             .unwrap()
@@ -141,7 +141,7 @@ impl IBluetoothCallback for BtCallback {
         print_info!("Found device: {:?}", remote_device);
     }
 
-    fn on_device_cleared(&self, remote_device: BluetoothDevice) {
+    fn on_device_cleared(&mut self, remote_device: BluetoothDevice) {
         match self.context.lock().unwrap().found_devices.remove(&remote_device.address) {
             Some(_) => print_info!("Removed device: {:?}", remote_device),
             None => (),
@@ -150,14 +150,14 @@ impl IBluetoothCallback for BtCallback {
         self.context.lock().unwrap().bonded_devices.remove(&remote_device.address);
     }
 
-    fn on_discovering_changed(&self, discovering: bool) {
+    fn on_discovering_changed(&mut self, discovering: bool) {
         self.context.lock().unwrap().discovering_state = discovering;
 
         print_info!("Discovering: {}", discovering);
     }
 
     fn on_ssp_request(
-        &self,
+        &mut self,
         remote_device: BluetoothDevice,
         _cod: u32,
         variant: BtSspVariant,
@@ -200,7 +200,7 @@ impl IBluetoothCallback for BtCallback {
         }
     }
 
-    fn on_pin_request(&self, remote_device: BluetoothDevice, _cod: u32, min_16_digit: bool) {
+    fn on_pin_request(&mut self, remote_device: BluetoothDevice, _cod: u32, min_16_digit: bool) {
         print_info!(
             "Device [{}: {}] would like to pair, enter pin code {}",
             &remote_device.address,
@@ -212,7 +212,7 @@ impl IBluetoothCallback for BtCallback {
         );
     }
 
-    fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {
+    fn on_bond_state_changed(&mut self, status: u32, address: String, state: u32) {
         print_info!("Bonding state changed: [{}] state: {}, Status = {}", address, state, status);
 
         // Clear bonding attempt if bonding fails or succeeds
@@ -247,14 +247,14 @@ impl IBluetoothCallback for BtCallback {
     }
 
     fn on_sdp_search_complete(
-        &self,
+        &mut self,
         _remote_device: BluetoothDevice,
         _searched_uuid: Uuid128Bit,
         _sdp_records: Vec<BtSdpRecord>,
     ) {
     }
 
-    fn on_sdp_record_created(&self, record: BtSdpRecord, handle: i32) {
+    fn on_sdp_record_created(&mut self, record: BtSdpRecord, handle: i32) {
         print_info!("SDP record handle={} created", handle);
         if let BtSdpRecord::Mps(_) = record {
             self.context.lock().unwrap().mps_sdp_handle = Some(handle);
@@ -298,11 +298,11 @@ impl BtConnectionCallback {
 }
 
 impl IBluetoothConnectionCallback for BtConnectionCallback {
-    fn on_device_connected(&self, remote_device: BluetoothDevice) {
+    fn on_device_connected(&mut self, remote_device: BluetoothDevice) {
         print_info!("Connected: [{}]: {}", remote_device.address, remote_device.name);
     }
 
-    fn on_device_disconnected(&self, remote_device: BluetoothDevice) {
+    fn on_device_disconnected(&mut self, remote_device: BluetoothDevice) {
         print_info!("Disconnected: [{}]: {}", remote_device.address, remote_device.name);
     }
 }
@@ -343,7 +343,7 @@ impl ScannerCallback {
 }
 
 impl IScannerCallback for ScannerCallback {
-    fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus) {
+    fn on_scanner_registered(&mut self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus) {
         if status != GattStatus::Success {
             print_error!("Failed registering scanner, status = {}", status);
             return;
@@ -356,25 +356,25 @@ impl IScannerCallback for ScannerCallback {
         );
     }
 
-    fn on_scan_result(&self, scan_result: ScanResult) {
+    fn on_scan_result(&mut self, scan_result: ScanResult) {
         if self.context.lock().unwrap().active_scanner_ids.len() > 0 {
             print_info!("Scan result: {:#?}", scan_result);
         }
     }
 
-    fn on_advertisement_found(&self, scanner_id: u8, scan_result: ScanResult) {
+    fn on_advertisement_found(&mut self, scanner_id: u8, scan_result: ScanResult) {
         if self.context.lock().unwrap().active_scanner_ids.len() > 0 {
             print_info!("Advertisement found for scanner_id {} : {:#?}", scanner_id, scan_result);
         }
     }
 
-    fn on_advertisement_lost(&self, scanner_id: u8, scan_result: ScanResult) {
+    fn on_advertisement_lost(&mut self, scanner_id: u8, scan_result: ScanResult) {
         if self.context.lock().unwrap().active_scanner_ids.len() > 0 {
             print_info!("Advertisement lost for scanner_id {} : {:#?}", scanner_id, scan_result);
         }
     }
 
-    fn on_suspend_mode_change(&self, suspend_mode: SuspendMode) {
+    fn on_suspend_mode_change(&mut self, suspend_mode: SuspendMode) {
         if self.context.lock().unwrap().active_scanner_ids.len() > 0 {
             print_info!("Scan suspend mode change: {:#?}", suspend_mode);
         }
@@ -415,12 +415,12 @@ impl AdminCallback {
 }
 
 impl IBluetoothAdminPolicyCallback for AdminCallback {
-    fn on_service_allowlist_changed(&self, allowlist: Vec<Uuid128Bit>) {
+    fn on_service_allowlist_changed(&mut self, allowlist: Vec<Uuid128Bit>) {
         print_info!("new allowlist: {:?}", allowlist);
     }
 
     fn on_device_policy_effect_changed(
-        &self,
+        &mut self,
         device: BluetoothDevice,
         new_policy_effect: Option<PolicyEffect>,
     ) {
@@ -469,7 +469,7 @@ impl AdvertisingSetCallback {
 
 impl IAdvertisingSetCallback for AdvertisingSetCallback {
     fn on_advertising_set_started(
-        &self,
+        &mut self,
         reg_id: i32,
         advertiser_id: i32,
         tx_power: i32,
@@ -499,7 +499,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         }
     }
 
-    fn on_own_address_read(&self, advertiser_id: i32, address_type: i32, address: String) {
+    fn on_own_address_read(&mut self, advertiser_id: i32, address_type: i32, address: String) {
         print_info!(
             "on_own_address_read: advertiser_id = {}, address_type = {}, address = {}",
             advertiser_id,
@@ -508,11 +508,16 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         );
     }
 
-    fn on_advertising_set_stopped(&self, advertiser_id: i32) {
+    fn on_advertising_set_stopped(&mut self, advertiser_id: i32) {
         print_info!("on_advertising_set_stopped: advertiser_id = {}", advertiser_id);
     }
 
-    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: AdvertisingStatus) {
+    fn on_advertising_enabled(
+        &mut self,
+        advertiser_id: i32,
+        enable: bool,
+        status: AdvertisingStatus,
+    ) {
         print_info!(
             "on_advertising_enabled: advertiser_id = {}, enable = {}, status = {:?}",
             advertiser_id,
@@ -521,7 +526,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         );
     }
 
-    fn on_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {
+    fn on_advertising_data_set(&mut self, advertiser_id: i32, status: AdvertisingStatus) {
         print_info!(
             "on_advertising_data_set: advertiser_id = {}, status = {:?}",
             advertiser_id,
@@ -529,7 +534,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         );
     }
 
-    fn on_scan_response_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {
+    fn on_scan_response_data_set(&mut self, advertiser_id: i32, status: AdvertisingStatus) {
         print_info!(
             "on_scan_response_data_set: advertiser_id = {}, status = {:?}",
             advertiser_id,
@@ -538,7 +543,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
     }
 
     fn on_advertising_parameters_updated(
-        &self,
+        &mut self,
         advertiser_id: i32,
         tx_power: i32,
         status: AdvertisingStatus,
@@ -552,7 +557,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
     }
 
     fn on_periodic_advertising_parameters_updated(
-        &self,
+        &mut self,
         advertiser_id: i32,
         status: AdvertisingStatus,
     ) {
@@ -563,7 +568,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         );
     }
 
-    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus) {
+    fn on_periodic_advertising_data_set(&mut self, advertiser_id: i32, status: AdvertisingStatus) {
         print_info!(
             "on_periodic_advertising_data_set: advertiser_id = {}, status = {:?}",
             advertiser_id,
@@ -572,7 +577,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
     }
 
     fn on_periodic_advertising_enabled(
-        &self,
+        &mut self,
         advertiser_id: i32,
         enable: bool,
         status: AdvertisingStatus,
@@ -585,7 +590,7 @@ impl IAdvertisingSetCallback for AdvertisingSetCallback {
         );
     }
 
-    fn on_suspend_mode_change(&self, suspend_mode: SuspendMode) {
+    fn on_suspend_mode_change(&mut self, suspend_mode: SuspendMode) {
         print_info!("on_suspend_mode_change: advertising suspend_mode = {:?}", suspend_mode);
     }
 }
@@ -626,13 +631,13 @@ impl BtGattCallback {
 }
 
 impl IBluetoothGattCallback for BtGattCallback {
-    fn on_client_registered(&self, status: GattStatus, client_id: i32) {
+    fn on_client_registered(&mut self, status: GattStatus, client_id: i32) {
         print_info!("GATT Client registered status = {}, client_id = {}", status, client_id);
         self.context.lock().unwrap().gatt_client_context.client_id = Some(client_id);
     }
 
     fn on_client_connection_state(
-        &self,
+        &mut self,
         status: GattStatus,
         client_id: i32,
         connected: bool,
@@ -647,7 +652,7 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+    fn on_phy_update(&mut self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
         print_info!(
             "Phy updated: addr = {}, tx_phy = {:?}, rx_phy = {:?}, status = {:?}",
             addr,
@@ -657,7 +662,7 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+    fn on_phy_read(&mut self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
         print_info!(
             "Phy read: addr = {}, tx_phy = {:?}, rx_phy = {:?}, status = {:?}",
             addr,
@@ -668,7 +673,7 @@ impl IBluetoothGattCallback for BtGattCallback {
     }
 
     fn on_search_complete(
-        &self,
+        &mut self,
         addr: String,
         services: Vec<BluetoothGattService>,
         status: GattStatus,
@@ -682,7 +687,7 @@ impl IBluetoothGattCallback for BtGattCallback {
     }
 
     fn on_characteristic_read(
-        &self,
+        &mut self,
         addr: String,
         status: GattStatus,
         handle: i32,
@@ -697,7 +702,7 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_characteristic_write(&self, addr: String, status: GattStatus, handle: i32) {
+    fn on_characteristic_write(&mut self, addr: String, status: GattStatus, handle: i32) {
         print_info!(
             "GATT Characteristic write: addr = {}, status = {}, handle = {}",
             addr,
@@ -706,11 +711,17 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_execute_write(&self, addr: String, status: GattStatus) {
+    fn on_execute_write(&mut self, addr: String, status: GattStatus) {
         print_info!("GATT execute write addr = {}, status = {}", addr, status);
     }
 
-    fn on_descriptor_read(&self, addr: String, status: GattStatus, handle: i32, value: Vec<u8>) {
+    fn on_descriptor_read(
+        &mut self,
+        addr: String,
+        status: GattStatus,
+        handle: i32,
+        value: Vec<u8>,
+    ) {
         print_info!(
             "GATT Descriptor read: addr = {}, status = {}, handle = {}, value = {:?}",
             addr,
@@ -720,7 +731,7 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_descriptor_write(&self, addr: String, status: GattStatus, handle: i32) {
+    fn on_descriptor_write(&mut self, addr: String, status: GattStatus, handle: i32) {
         print_info!(
             "GATT Descriptor write: addr = {}, status = {}, handle = {}",
             addr,
@@ -729,20 +740,20 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>) {
+    fn on_notify(&mut self, addr: String, handle: i32, value: Vec<u8>) {
         print_info!("GATT Notification: addr = {}, handle = {}, value = {:?}", addr, handle, value);
     }
 
-    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: GattStatus) {
+    fn on_read_remote_rssi(&mut self, addr: String, rssi: i32, status: GattStatus) {
         print_info!("Remote RSSI read: addr = {}, rssi = {}, status = {}", addr, rssi, status);
     }
 
-    fn on_configure_mtu(&self, addr: String, mtu: i32, status: GattStatus) {
+    fn on_configure_mtu(&mut self, addr: String, mtu: i32, status: GattStatus) {
         print_info!("MTU configured: addr = {}, mtu = {}, status = {}", addr, mtu, status);
     }
 
     fn on_connection_updated(
-        &self,
+        &mut self,
         addr: String,
         interval: i32,
         latency: i32,
@@ -759,7 +770,7 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_service_changed(&self, addr: String) {
+    fn on_service_changed(&mut self, addr: String) {
         print_info!("Service changed for {}", addr,);
     }
 }
@@ -801,11 +812,11 @@ impl BtGattServerCallback {
 }
 
 impl IBluetoothGattServerCallback for BtGattServerCallback {
-    fn on_server_registered(&self, status: GattStatus, server_id: i32) {
+    fn on_server_registered(&mut self, status: GattStatus, server_id: i32) {
         print_info!("GATT Server registered status = {}, server_id = {}", status, server_id);
     }
 
-    fn on_server_connection_state(&self, server_id: i32, connected: bool, addr: String) {
+    fn on_server_connection_state(&mut self, server_id: i32, connected: bool, addr: String) {
         print_info!(
             "GATT server connection with server_id = {}, connected = {}, addr = {}",
             server_id,
@@ -814,16 +825,16 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
         );
     }
 
-    fn on_service_added(&self, status: GattStatus, service: BluetoothGattService) {
+    fn on_service_added(&mut self, status: GattStatus, service: BluetoothGattService) {
         print_info!("GATT service added with status = {}, service = {:?}", status, service)
     }
 
-    fn on_service_removed(&self, status: GattStatus, handle: i32) {
+    fn on_service_removed(&mut self, status: GattStatus, handle: i32) {
         print_info!("GATT service removed with status = {}, handle = {:?}", status, handle);
     }
 
     fn on_characteristic_read_request(
-        &self,
+        &mut self,
         addr: String,
         trans_id: i32,
         offset: i32,
@@ -841,7 +852,7 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
     }
 
     fn on_descriptor_read_request(
-        &self,
+        &mut self,
         addr: String,
         trans_id: i32,
         offset: i32,
@@ -859,7 +870,7 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
     }
 
     fn on_characteristic_write_request(
-        &self,
+        &mut self,
         addr: String,
         trans_id: i32,
         offset: i32,
@@ -884,7 +895,7 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
     }
 
     fn on_descriptor_write_request(
-        &self,
+        &mut self,
         addr: String,
         trans_id: i32,
         offset: i32,
@@ -908,7 +919,7 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
         );
     }
 
-    fn on_execute_write(&self, addr: String, trans_id: i32, exec_write: bool) {
+    fn on_execute_write(&mut self, addr: String, trans_id: i32, exec_write: bool) {
         print_info!(
             "GATT executed write for addr = {}, trans_id = {}, exec_write = {}",
             addr,
@@ -917,7 +928,7 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
         );
     }
 
-    fn on_notification_sent(&self, addr: String, status: GattStatus) {
+    fn on_notification_sent(&mut self, addr: String, status: GattStatus) {
         print_info!(
             "GATT notification/indication sent for addr = {} with status = {}",
             addr,
@@ -925,11 +936,11 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
         );
     }
 
-    fn on_mtu_changed(&self, addr: String, mtu: i32) {
+    fn on_mtu_changed(&mut self, addr: String, mtu: i32) {
         print_info!("GATT server MTU changed for addr = {}, mtu = {}", addr, mtu);
     }
 
-    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+    fn on_phy_update(&mut self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
         print_info!(
             "GATT server phy updated for addr = {}: tx_phy = {:?}, rx_phy = {:?}, status = {}",
             addr,
@@ -939,7 +950,7 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
         );
     }
 
-    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+    fn on_phy_read(&mut self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
         print_info!(
             "GATT server phy read for addr = {}: tx_phy = {:?}, rx_phy = {:?}, status = {}",
             addr,
@@ -950,7 +961,7 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
     }
 
     fn on_connection_updated(
-        &self,
+        &mut self,
         addr: String,
         interval: i32,
         latency: i32,
@@ -968,7 +979,7 @@ impl IBluetoothGattServerCallback for BtGattServerCallback {
     }
 
     fn on_subrate_change(
-        &self,
+        &mut self,
         addr: String,
         subrate_factor: i32,
         latency: i32,
@@ -1165,9 +1176,9 @@ impl SuspendCallback {
 
 impl ISuspendCallback for SuspendCallback {
     // TODO(b/224606285): Implement suspend utils in btclient.
-    fn on_callback_registered(&self, _callback_id: u32) {}
-    fn on_suspend_ready(&self, _suspend_id: i32) {}
-    fn on_resumed(&self, _suspend_id: i32) {}
+    fn on_callback_registered(&mut self, _callback_id: u32) {}
+    fn on_suspend_ready(&mut self, _suspend_id: i32) {}
+    fn on_resumed(&mut self, _suspend_id: i32) {}
 }
 
 impl RPCProxy for SuspendCallback {
