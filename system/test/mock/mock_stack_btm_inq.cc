@@ -176,3 +176,7 @@ bool BTM_IsRemoteNameKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   inc_func_call_count(__func__);
   return false;
 }
+void btm_clear_all_pending_le_entry(void) { inc_func_call_count(__func__); }
+
+// Mocked functions complete
+// END mockcify generation
