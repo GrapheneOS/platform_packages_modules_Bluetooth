@@ -65,6 +65,7 @@ private val alphanumeric = ('A'..'Z') + ('a'..'z') + ('0'..'9')
 
 val initiatedConnection = HashSet<BluetoothDevice>()
 val waitedAclConnection = HashSet<BluetoothDevice>()
+val waitedAclDisconnection = HashSet<BluetoothDevice>()
 
 fun shell(cmd: String): String {
   val fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd)
@@ -85,9 +86,13 @@ fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
   val broadcastReceiver: BroadcastReceiver =
     object : BroadcastReceiver() {
       override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == BluetoothDevice.ACTION_ACL_CONNECTED) {
+          waitedAclDisconnection.remove(intent.getBluetoothDeviceExtra())
+        }
         if (intent.action == BluetoothDevice.ACTION_ACL_DISCONNECTED) {
           initiatedConnection.remove(intent.getBluetoothDeviceExtra())
           waitedAclConnection.remove(intent.getBluetoothDeviceExtra())
+          waitedAclDisconnection.add(intent.getBluetoothDeviceExtra())
         }
         trySendBlocking(intent)
       }
