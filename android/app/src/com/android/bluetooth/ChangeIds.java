@@ -30,13 +30,4 @@ public class ChangeIds {
     @ChangeId
     @EnabledSince(targetSdkVersion = android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     public static final long ENFORCE_CONNECT = 211757425L;
-
-    /**
-     * Starting with {@link android.os.Build.VERSION_CODES#UPSIDE_DOWN_CAKE},
-     * {@link android.Manifest.permission.BLUETOOTH_PRIVILEGED} permission is enforced in
-     * {@link A2dpService#setCodecConfigPreference}.
-     */
-    @ChangeId
-    @EnabledSince(targetSdkVersion = android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    public static final long ENFORCE_CODEC_CONFIG_PRIVILEGED = 268572180L;
 }
