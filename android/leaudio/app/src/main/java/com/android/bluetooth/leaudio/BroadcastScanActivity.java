@@ -19,6 +19,7 @@ package com.android.bluetooth.leaudio;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothLeAudioContentMetadata;
 import android.bluetooth.BluetoothLeBroadcastChannel;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastSubgroup;
@@ -29,6 +30,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -83,6 +85,27 @@ public class BroadcastScanActivity extends AppCompatActivity {
                 View alertView =
                         inflater.inflate(R.layout.broadcast_scan_add_encrypted_source_dialog,
                                          null);
+
+                boolean isPublic = broadcast.isPublicBroadcast();
+                TextView addr_text = alertView.findViewById(R.id.broadcast_with_pbp_text);
+                addr_text.setText("Broadcast with PBP: " + (isPublic ? "Yes" : "No"));
+
+                String name = broadcast.getBroadcastName();
+                addr_text = alertView.findViewById(R.id.broadcast_name_text);
+                if (isPublic && name != null) {
+                    addr_text.setText("Public Name: " + name);
+                } else {
+                    addr_text.setVisibility(View.INVISIBLE);
+                }
+
+                BluetoothLeAudioContentMetadata publicMetadata =
+                        broadcast.getPublicBroadcastMetadata();
+                addr_text = alertView.findViewById(R.id.public_program_info_text);
+                if (isPublic && publicMetadata != null) {
+                    addr_text.setText("Public Info: " + publicMetadata.getProgramInfo());
+                } else {
+                    addr_text.setVisibility(View.INVISIBLE);
+                }
 
                 final EditText channels_input_text =
                         alertView.findViewById(R.id.broadcast_channel_map);
