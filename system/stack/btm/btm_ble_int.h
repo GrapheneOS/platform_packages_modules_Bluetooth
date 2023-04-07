@@ -43,7 +43,6 @@ extern void btm_send_hci_set_scan_params(uint8_t scan_type, uint16_t scan_int,
                                          uint16_t scan_win,
                                          tBLE_ADDR_TYPE addr_type_own,
                                          uint8_t scan_filter_policy);
-extern void btm_clear_all_pending_le_entry(void);
 
 extern void btm_ble_init(void);
 extern void btm_ble_free();
