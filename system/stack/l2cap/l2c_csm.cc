@@ -83,9 +83,12 @@ static void l2c_csm_send_config_req(tL2C_CCB* p_ccb) {
 }
 
 // Send a config response with result OK and adjust the state machine
-static void l2c_csm_send_config_rsp_ok(tL2C_CCB* p_ccb) {
+static void l2c_csm_send_config_rsp_ok(tL2C_CCB* p_ccb, bool cbit) {
   tL2CAP_CFG_INFO config{};
   config.result = L2CAP_CFG_OK;
+  if (cbit) {
+    config.flags = L2CAP_CFG_FLAGS_MASK_CONT;
+  }
   l2c_csm_execute(p_ccb, L2CEVT_L2CA_CONFIG_RSP, &config);
 }
 
@@ -1008,7 +1011,8 @@ static void l2c_csm_config(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
       if (cfg_result == L2CAP_PEER_CFG_OK) {
         LOG_DEBUG("Calling Config_Req_Cb(), CID: 0x%04x, C-bit %d",
                   p_ccb->local_cid, (p_cfg->flags & L2CAP_CFG_FLAGS_MASK_CONT));
-        l2c_csm_send_config_rsp_ok(p_ccb);
+        l2c_csm_send_config_rsp_ok(p_ccb,
+                                   p_cfg->flags & L2CAP_CFG_FLAGS_MASK_CONT);
         if (p_ccb->config_done & OB_CFG_DONE) {
           if (p_ccb->remote_config_rsp_result == L2CAP_CFG_OK) {
             l2c_csm_indicate_connection_open(p_ccb);
@@ -1324,7 +1328,8 @@ static void l2c_csm_open(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
       }
       if (cfg_result == L2CAP_PEER_CFG_OK) {
         (*p_ccb->p_rcb->api.pL2CA_ConfigInd_Cb)(p_ccb->local_cid, p_cfg);
-        l2c_csm_send_config_rsp_ok(p_ccb);
+        l2c_csm_send_config_rsp_ok(p_ccb,
+                                   p_cfg->flags & L2CAP_CFG_FLAGS_MASK_CONT);
       }
 
       /* Error in config parameters: reset state and config flag */
