@@ -211,7 +211,6 @@ void btm_ble_update_mode_operation(uint8_t link_role, const RawAddress* bd_addr,
 void btm_ble_write_adv_enable_complete(uint8_t* p, uint16_t evt_len) {
   inc_func_call_count(__func__);
 }
-void btm_clear_all_pending_le_entry(void) { inc_func_call_count(__func__); }
 void btm_send_hci_set_scan_params(uint8_t scan_type, uint16_t scan_int,
                                   uint16_t scan_win,
                                   tBLE_ADDR_TYPE addr_type_own,
