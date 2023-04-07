@@ -356,7 +356,6 @@ impl HidHost {
     }
 
     /// return true if we need to restart hh
-    #[profile_enabled_or(true)]
     pub fn configure_enabled_profiles(&mut self) -> bool {
         let needs_restart = self.is_profile_updated;
         if self.is_profile_updated {
