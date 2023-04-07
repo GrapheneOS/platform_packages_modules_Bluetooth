@@ -16,11 +16,11 @@ rust_ffi {
         "src/lib.rs",
 
         ":LmpGeneratedPackets_rust",
+        ":rootcanal_hci_packets_rust_gen",
     ],
     edition: "2018",
     proc_macros: ["libnum_derive"],
     rustlibs: [
-        "libbt_packets_nonapex",
         "libbytes",
         "libnum_bigint",
         "libnum_integer",
@@ -53,6 +53,7 @@ rust_test_host {
         "src/lib.rs",
 
         ":LmpGeneratedPackets_rust",
+        ":rootcanal_hci_packets_rust_gen",
     ],
     auto_gen_config: true,
     edition: "2018",
