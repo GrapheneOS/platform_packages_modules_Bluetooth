@@ -740,7 +740,34 @@ public class LeAudioService extends ProfileService {
         return result;
     }
 
-    private Integer getActiveGroupId() {
+    /**
+     * Get all the devices within a given group.
+     * @param device the device for which we want to get all devices in its group
+     * @return all devices within a given group or empty list
+     */
+    public List<BluetoothDevice> getGroupDevices(BluetoothDevice device) {
+        List<BluetoothDevice> result = new ArrayList<>();
+        int groupId = getGroupId(device);
+
+        if (groupId == LE_AUDIO_GROUP_ID_INVALID) {
+            return result;
+        }
+
+        synchronized (mGroupLock) {
+            for (Map.Entry<BluetoothDevice, LeAudioDeviceDescriptor> entry
+                    : mDeviceDescriptors.entrySet()) {
+                if (entry.getValue().mGroupId == groupId) {
+                    result.add(entry.getKey());
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Get the active device group id
+     */
+    public Integer getActiveGroupId() {
         synchronized (mGroupLock) {
             for (Map.Entry<Integer, LeAudioGroupDescriptor> entry : mGroupDescriptors.entrySet()) {
                 LeAudioGroupDescriptor descriptor = entry.getValue();
@@ -1297,6 +1324,9 @@ public class LeAudioService extends ProfileService {
      * @return true on success, otherwise false
      */
     public boolean setActiveDevice(BluetoothDevice device) {
+        Log.i(TAG, "setActiveDevice: device=" + device + ", current out="
+                + mActiveAudioOutDevice + ", current in=" + mActiveAudioInDevice);
+        /* Clear active group */
         if (device == null) {
             Log.e(TAG, "device should not be null!");
             return removeActiveDevice(false);
@@ -1305,6 +1335,14 @@ public class LeAudioService extends ProfileService {
             Log.e(TAG, "setActiveDevice(" + device + "): failed because group device is not "
                     + "connected");
             return false;
+        }
+
+        if (Utils.isDualModeAudioEnabled()) {
+            if (!mAdapterService.isAllSupportedClassicAudioProfilesActive(device)) {
+                Log.e(TAG, "setActiveDevice(" + device + "): failed because the device is not "
+                                + "active for all supported classic audio profiles");
+                return false;
+            }
         }
         setActiveGroupWithDevice(device, false);
         return true;
@@ -3420,6 +3458,7 @@ public class LeAudioService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
+        ProfileService.println(sb, "isDualModeAudioEnabled: " + Utils.isDualModeAudioEnabled());
         ProfileService.println(sb, "Active Groups information: ");
         ProfileService.println(sb, "  currentlyActiveGroupId: " + getActiveGroupId());
         ProfileService.println(sb, "  mActiveAudioOutDevice: " + mActiveAudioOutDevice);
@@ -3434,11 +3473,12 @@ public class LeAudioService extends ProfileService {
                                                 : mGroupDescriptors.entrySet()) {
                 LeAudioGroupDescriptor groupDescriptor = groupEntry.getValue();
                 Integer groupId = groupEntry.getKey();
+                BluetoothDevice leadDevice = getConnectedGroupLeadDevice(groupId);
                 ProfileService.println(sb, "Group: " + groupId);
                 ProfileService.println(sb, "  isActive: " + groupDescriptor.mIsActive);
                 ProfileService.println(sb, "  isConnected: " + groupDescriptor.mIsConnected);
                 ProfileService.println(sb, "  mDirection: " + groupDescriptor.mDirection);
-                ProfileService.println(sb, "  group lead: " + getConnectedGroupLeadDevice(groupId));
+                ProfileService.println(sb, "  group lead: " + leadDevice);
                 ProfileService.println(sb, "  first device: " + getFirstDeviceFromGroup(groupId));
                 ProfileService.println(sb, "  lost lead device: "
                         + groupDescriptor.mLostLeadDeviceWhileStreaming);
