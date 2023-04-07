@@ -19,6 +19,7 @@ package com.android.bluetooth.leaudio;
 
 import android.app.Application;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
+import android.bluetooth.BluetoothLeBroadcastSettings;
 import android.bluetooth.BluetoothLeAudioContentMetadata;
 
 import androidx.annotation.NonNull;
@@ -40,16 +41,16 @@ public class BroadcasterViewModel extends AndroidViewModel {
         mBluetooth.initProfiles();
     }
 
-    public boolean startBroadcast(BluetoothLeAudioContentMetadata meta, byte[] code) {
-        return mBluetooth.startBroadcast(meta, code);
+    public boolean startBroadcast(BluetoothLeBroadcastSettings settings) {
+        return mBluetooth.startBroadcast(settings);
     }
 
     public boolean stopBroadcast(int broadcastId) {
         return mBluetooth.stopBroadcast(broadcastId);
     }
 
-    public boolean updateBroadcast(int broadcastId, String programInfo) {
-        return mBluetooth.updateBroadcast(broadcastId, programInfo);
+    public boolean updateBroadcast(int broadcastId, BluetoothLeBroadcastSettings settings) {
+        return mBluetooth.updateBroadcast(broadcastId, settings);
     }
 
     public int getMaximumNumberOfBroadcast() {

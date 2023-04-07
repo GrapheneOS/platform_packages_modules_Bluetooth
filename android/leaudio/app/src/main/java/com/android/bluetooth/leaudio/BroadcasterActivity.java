@@ -19,11 +19,14 @@ package com.android.bluetooth.leaudio;
 
 import android.bluetooth.BluetoothLeAudioContentMetadata;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
+import android.bluetooth.BluetoothLeBroadcastSettings;
+import android.bluetooth.BluetoothLeBroadcastSubgroupSettings;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.TextView;
@@ -62,7 +65,10 @@ public class BroadcasterActivity extends AppCompatActivity {
                 final EditText code_input_text = alertView.findViewById(R.id.broadcast_code_input);
                 final EditText program_info = alertView.findViewById(R.id.broadcast_program_info_input);
                 final NumberPicker contextPicker = alertView.findViewById(R.id.context_picker);
-
+                final EditText broadcast_name = alertView.findViewById(R.id.broadcast_name_input);
+                final CheckBox publicCheckbox = alertView.findViewById(R.id.is_public_checkbox);
+                final EditText public_content =
+                        alertView.findViewById(R.id.broadcast_public_content_input);
                 // Add context type selector
                 contextPicker.setMinValue(1);
                 contextPicker.setMaxValue(
@@ -81,6 +87,13 @@ public class BroadcasterActivity extends AppCompatActivity {
                         contentBuilder.setProgramInfo(programInfo);
                     }
 
+                    final BluetoothLeAudioContentMetadata.Builder publicContentBuilder =
+                            new BluetoothLeAudioContentMetadata.Builder();
+                    final String publicContent = public_content.getText().toString();
+                    if (!publicContent.isEmpty()) {
+                        publicContentBuilder.setProgramInfo(publicContent);
+                    }
+
                     // Extract raw metadata
                     byte[] metaBuffer = contentBuilder.build().getRawMetadata();
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -93,11 +106,26 @@ public class BroadcasterActivity extends AppCompatActivity {
                     stream.write((byte)(contextValue & 0x00FF)); // Value LSB
                     stream.write((byte)((contextValue & 0xFF00) >> 8)); // Value MSB
 
-                    if (mViewModel.startBroadcast(
-                                BluetoothLeAudioContentMetadata.fromRawBytes(stream.toByteArray()),
-                            code_input_text.getText() == null
-                                    || code_input_text.getText().length() == 0 ? null
-                                            : code_input_text.getText().toString().getBytes()))
+                    BluetoothLeBroadcastSubgroupSettings.Builder subgroupBuilder =
+                            new BluetoothLeBroadcastSubgroupSettings.Builder()
+                            .setContentMetadata(BluetoothLeAudioContentMetadata
+                                    .fromRawBytes(stream.toByteArray()));
+                    final boolean is_public_option = publicCheckbox.isChecked();
+                    final String broadcastName = broadcast_name.getText().toString();
+                    BluetoothLeBroadcastSettings.Builder builder =
+                            new BluetoothLeBroadcastSettings.Builder()
+                                    .setPublicBroadcast(is_public_option)
+                                    .setBroadcastName(broadcastName.isEmpty() ? null
+                                            : broadcastName)
+                                    .setBroadcastCode(code_input_text.getText() == null
+                                            || code_input_text.getText().length() == 0 ? null
+                                            : code_input_text.getText().toString().getBytes())
+                                    .setPublicBroadcastMetadata(publicContentBuilder.build());
+
+                    // builder expect at least one subgroup setting
+                    builder.addSubgroupSettings(subgroupBuilder.build());
+
+                    if (mViewModel.startBroadcast(builder.build()))
                         Toast.makeText(BroadcasterActivity.this, "Broadcast was created.",
                                 Toast.LENGTH_SHORT).show();
                 });
@@ -144,7 +172,28 @@ public class BroadcasterActivity extends AppCompatActivity {
                 addr_text.setText("Pa Sync Interval: " + metadata.getPaSyncInterval());
 
                 addr_text = metaLayout.findViewById(R.id.is_encrypted_text);
-                addr_text.setText("Is Encrypted: " + metadata.isEncrypted());
+                addr_text.setText("Is Encrypted: " + (metadata.isEncrypted() ? "Yes" : "No"));
+
+                boolean isPublic = metadata.isPublicBroadcast();
+                addr_text = metaLayout.findViewById(R.id.is_public_text);
+                addr_text.setText("Is Public Broadcast: " + (isPublic ? "Yes" : "No"));
+
+                String name = metadata.getBroadcastName();
+                addr_text = metaLayout.findViewById(R.id.broadcast_name_text);
+                if (isPublic && name != null) {
+                    addr_text.setText("Public Name: " + name);
+                } else {
+                    addr_text.setVisibility(View.INVISIBLE);
+                }
+
+                BluetoothLeAudioContentMetadata publicMetadata =
+                        metadata.getPublicBroadcastMetadata();
+                addr_text = metaLayout.findViewById(R.id.public_program_info_text);
+                if (isPublic && publicMetadata != null) {
+                    addr_text.setText("Public Info: " + publicMetadata.getProgramInfo());
+                } else {
+                    addr_text.setVisibility(View.INVISIBLE);
+                }
 
                 byte[] code = metadata.getBroadcastCode();
                 addr_text = metaLayout.findViewById(R.id.broadcast_code_text);
@@ -170,18 +219,61 @@ public class BroadcasterActivity extends AppCompatActivity {
 
                 LayoutInflater inflater = getLayoutInflater();
                 View alertView = inflater.inflate(R.layout.broadcaster_add_broadcast_dialog, null);
-                EditText program_info_input_text = alertView.findViewById(R.id.broadcast_program_info_input);
+                EditText program_info_input_text =
+                        alertView.findViewById(R.id.broadcast_program_info_input);
+                EditText broadcast_name_input_text =
+                        alertView.findViewById(R.id.broadcast_name_input);
+                EditText public_content_input_text =
+                        alertView.findViewById(R.id.broadcast_public_content_input);
 
                 // The Code cannot be changed, so just hide it
                 final EditText code_input_text = alertView.findViewById(R.id.broadcast_code_input);
                 code_input_text.setVisibility(View.GONE);
+                // Public broadcast flag cannot be changed, so just hide it
+                final CheckBox public_input_checkbox =
+                        alertView.findViewById(R.id.is_public_checkbox);
+                public_input_checkbox.setVisibility(View.GONE);
+                // Context picker cannot be changed, so just hide it
+                final NumberPicker content_input_text = alertView.findViewById(R.id.context_picker);
+                content_input_text.setVisibility(View.GONE);
 
                 modifyAlert.setView(alertView)
                         .setNegativeButton("Cancel", (modifyDialog, modifyWhich) -> {
                             // Do nothing
                         }).setPositiveButton("Update", (modifyDialog, modifyWhich) -> {
+                            BluetoothLeAudioContentMetadata.Builder contentBuilder =
+                                    new BluetoothLeAudioContentMetadata.Builder();
+                            String programInfo = program_info_input_text.getText().toString();
+                            if (!programInfo.isEmpty()) {
+                                contentBuilder.setProgramInfo(programInfo);
+                            }
+
+                            final BluetoothLeAudioContentMetadata.Builder publicContentBuilder =
+                                    new BluetoothLeAudioContentMetadata.Builder();
+                            final String publicContent =
+                                    public_content_input_text.getText().toString();
+                            if (!publicContent.isEmpty()) {
+                                publicContentBuilder.setProgramInfo(publicContent);
+                            }
+
+                            BluetoothLeBroadcastSubgroupSettings.Builder subgroupBuilder =
+                                    new BluetoothLeBroadcastSubgroupSettings.Builder()
+                                    .setContentMetadata(contentBuilder.build());
+
+                            final String broadcastName =
+                                    broadcast_name_input_text.getText().toString();
+                            BluetoothLeBroadcastSettings.Builder builder =
+                                    new BluetoothLeBroadcastSettings.Builder()
+                                            .setBroadcastName(broadcastName.isEmpty() ? null
+                                                    : broadcastName)
+                                            .setPublicBroadcastMetadata(
+                                                    publicContentBuilder.build());
+
+                            // builder expect at least one subgroup setting
+                            builder.addSubgroupSettings(subgroupBuilder.build());
+
                             if (mViewModel.updateBroadcast(broadcastId,
-                                    program_info_input_text.getText().toString()))
+                                    builder.build()))
                                 Toast.makeText(BroadcasterActivity.this, "Broadcast was updated.",
                                         Toast.LENGTH_SHORT).show();
                         });
