@@ -171,6 +171,7 @@ class Host(
 
       initiatedConnection.clear()
       waitedAclConnection.clear()
+      waitedAclDisconnection.clear()
 
       bluetoothAdapter.clearBluetooth()
 
@@ -190,6 +191,8 @@ class Host(
       Log.i(TAG, "reset")
       initiatedConnection.clear()
       waitedAclConnection.clear()
+      waitedAclDisconnection.clear()
+
       rebootBluetooth()
 
       Empty.getDefaultInstance()
@@ -311,12 +314,18 @@ class Host(
       if (!bluetoothAdapter.isEnabled) {
         throw RuntimeException("Bluetooth is not enabled, cannot waitDisconnection")
       }
-      if (bluetoothDevice.bondState != BluetoothDevice.BOND_NONE) {
+      if (
+        bluetoothDevice.bondState != BluetoothDevice.BOND_NONE &&
+          !waitedAclDisconnection.contains(bluetoothDevice)
+      ) {
         flow
           .filter { it.action == BluetoothDevice.ACTION_ACL_DISCONNECTED }
           .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
           .first()
       }
+
+      waitedAclDisconnection.add(bluetoothDevice)
+
       Empty.getDefaultInstance()
     }
   }
