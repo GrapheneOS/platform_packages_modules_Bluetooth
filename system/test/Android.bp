@@ -292,8 +292,8 @@ filegroup {
 filegroup {
     name: "TestMockMainShimLeScanning",
     srcs: [
-        "mock/mock_main_shim_le_scanning_manager.cc",
         "mock/mock_main_shim.cc",
+        "mock/mock_main_shim_le_scanning_manager.cc",
     ],
 }
 
@@ -307,8 +307,8 @@ filegroup {
 filegroup {
     name: "TestMockBtif",
     srcs: [
-        ":TestCommonJniThread",
         ":TestCommonCoreInterface",
+        ":TestCommonJniThread",
         ":TestMockBluetoothInterface",
         "mock/mock_btif*.cc",
     ],
@@ -504,18 +504,18 @@ filegroup {
 }
 
 filegroup {
-  name: "TestMockGdOsLoggingLogRedaction",
-  srcs: [
-      "mock/mock_gd_os_logging_log_redaction.cc"
-  ],
+    name: "TestMockGdOsLoggingLogRedaction",
+    srcs: [
+        "mock/mock_gd_os_logging_log_redaction.cc",
+    ],
 }
 
 filegroup {
-  name: "TestFakeOsi",
-  srcs: [
-      ":TestMockOsi",
-      "fake/fake_osi.cc"
-  ],
+    name: "TestFakeOsi",
+    srcs: [
+        ":TestMockOsi",
+        "fake/fake_osi.cc",
+    ],
 }
 
 cc_defaults {
@@ -545,20 +545,20 @@ cc_test {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/include",
         "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/include",
     ],
     srcs: [
-        "common/log_msg_test.cc",
         "common/log_msg.cc",
+        "common/log_msg_test.cc",
     ],
     shared_libs: [
         "libchrome",
     ],
     cflags: [
         "-Wall",
-        "-Wextra",
         "-Werror",
+        "-Wextra",
         // there are too many unused parameters in all the code.
         "-Wno-unused-parameter",
         // http://b/264549607

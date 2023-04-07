@@ -18,9 +18,9 @@ cc_library_headers {
     native_bridge_supported: true,
     apex_available: [
         "//apex_available:platform",
+        "com.android.btservices",
         "com.android.media",
         "com.android.media.swcodec",
-        "com.android.btservices",
     ],
     // As part of updatable mainline modules(media, swcodec), it should support at least 29(Q)
     min_sdk_version: "29",
@@ -42,9 +42,9 @@ cc_library_static {
     visibility: ["//visibility:public"],
     host_supported: true,
     srcs: [
+        "bluetooth/uuid.cc",
         "class_of_device.cc",
         "raw_address.cc",
-        "bluetooth/uuid.cc",
     ],
     header_libs: ["libbluetooth-types-header"],
     export_header_lib_headers: ["libbluetooth-types-header"],
@@ -59,9 +59,9 @@ cc_test {
     name: "net_test_types",
     test_suites: ["device-tests"],
     defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
