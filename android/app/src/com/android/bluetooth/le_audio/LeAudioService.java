@@ -116,6 +116,7 @@ public class LeAudioService extends ProfileService {
     private HandlerThread mStateMachinesThread;
     private volatile BluetoothDevice mActiveAudioOutDevice;
     private volatile BluetoothDevice mActiveAudioInDevice;
+    private BluetoothDevice mExposedActiveDevice;
     private LeAudioCodecConfig mLeAudioCodecConfig;
     private final Object mGroupLock = new Object();
     ServiceFactory mServiceFactory = new ServiceFactory();
@@ -193,8 +194,6 @@ public class LeAudioService extends ProfileService {
             new LinkedHashMap<>();
 
     private BroadcastReceiver mBondStateChangedReceiver;
-    private BroadcastReceiver mMuteStateChangedReceiver;
-    private int mStoredRingerMode = -1;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private final AudioManagerAudioDeviceCallback mAudioManagerAudioDeviceCallback =
             new AudioManagerAudioDeviceCallback();
@@ -274,10 +273,6 @@ public class LeAudioService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         mBondStateChangedReceiver = new BondStateChangedReceiver();
         registerReceiver(mBondStateChangedReceiver, filter);
-        filter = new IntentFilter();
-        filter.addAction(AudioManager.RINGER_MODE_CHANGED_ACTION);
-        mMuteStateChangedReceiver = new MuteStateChangedReceiver();
-        registerReceiver(mMuteStateChangedReceiver, filter);
 
         mLeAudioCallbacks = new RemoteCallbackList<IBluetoothLeAudioCallback>();
 
@@ -396,9 +391,6 @@ public class LeAudioService extends ProfileService {
         // Unregister broadcast receivers
         unregisterReceiver(mBondStateChangedReceiver);
         mBondStateChangedReceiver = null;
-        unregisterReceiver(mMuteStateChangedReceiver);
-        mMuteStateChangedReceiver = null;
-
 
         if (mBroadcastCallbacks != null) {
             mBroadcastCallbacks.kill();
@@ -1121,6 +1113,11 @@ public class LeAudioService extends ProfileService {
                 byte[] addressBytes = Utils.getBytesFromAddress(address);
                 BluetoothDevice device = mAdapterService.getDeviceFromByte(addressBytes);
 
+                /* Don't expose already exposed active device */
+                if (device.equals(mExposedActiveDevice)) {
+                    return;
+                }
+
                 if (DBG) {
                     Log.d(TAG, " onAudioDevicesAdded: " + device + ", device type: "
                             + deviceInfo.getType() + ", isSink: " + deviceInfo.isSink()
@@ -1135,6 +1132,7 @@ public class LeAudioService extends ProfileService {
                     continue;
                 }
 
+                mExposedActiveDevice = device;
                 notifyActiveDeviceChanged(device);
                 return;
             }
@@ -2101,42 +2099,6 @@ public class LeAudioService extends ProfileService {
                         descriptor.mDirection,
                         descriptor.mIsActive,
                         hasFallbackDevice);
-            }
-        }
-    }
-
-    @VisibleForTesting
-    synchronized boolean isSilentModeEnabled() {
-        return mStoredRingerMode != AudioManager.RINGER_MODE_NORMAL;
-    }
-
-    private class MuteStateChangedReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!AudioManager.RINGER_MODE_CHANGED_ACTION.equals(intent.getAction())) {
-                return;
-            }
-
-            final String action = intent.getAction();
-            if (action.equals(AudioManager.RINGER_MODE_CHANGED_ACTION)) {
-                if (!Utils.isPtsTestMode()) return;
-
-                int ringerMode = intent.getIntExtra(AudioManager.EXTRA_RINGER_MODE, -1);
-
-                if (ringerMode < 0 || ringerMode == mStoredRingerMode) return;
-
-                mStoredRingerMode = ringerMode;
-                int activeGroupId = getActiveGroupId();
-                if (activeGroupId == LE_AUDIO_GROUP_ID_INVALID) return;
-
-                VolumeControlService service = mServiceFactory.getVolumeControlService();
-                if (service == null) return;
-
-                if (isSilentModeEnabled()) {
-                    service.muteGroup(activeGroupId);
-                } else {
-                    service.unmuteGroup(activeGroupId);
-                }
             }
         }
     }

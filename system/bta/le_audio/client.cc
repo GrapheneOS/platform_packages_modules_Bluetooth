@@ -1716,6 +1716,35 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioCharValueHandle(conn_id, hdl, len, value);
   }
 
+  bool IsDeviceGroupStreaming(LeAudioDevice* leAudioDevice) {
+    LOG_DEBUG("%s", ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
+
+    if (leAudioDevice->group_id_ != active_group_id_) {
+      return false;
+    }
+    auto group = aseGroups_.FindById(active_group_id_);
+    return (group != nullptr &&
+            group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+  }
+
+  void AddToBackgroundConnectCheckStreaming(LeAudioDevice* leAudioDevice) {
+    /* If device belongs to streaming group, add it on allow list */
+    auto address = leAudioDevice->address_;
+    if (IsDeviceGroupStreaming(leAudioDevice)) {
+      LOG_INFO("Group %d in streaming state. Adding %s to allow list ",
+               leAudioDevice->group_id_, ADDRESS_TO_LOGGABLE_CSTR(address));
+      /* Make sure TA is canceled before adding to allow list */
+      BTA_GATTC_CancelOpen(gatt_if_, address, false);
+      BTA_GATTC_Open(gatt_if_, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
+    } else {
+      LOG_INFO(
+          "Adding %s to backgroud connect (default reconnection_mode "
+          "(0x%02x))",
+          ADDRESS_TO_LOGGABLE_CSTR(address), reconnection_mode_);
+      BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
+    }
+  }
+
   void OnGattConnected(tGATT_STATUS status, uint16_t conn_id,
                        tGATT_IF client_if, RawAddress address,
                        tBT_TRANSPORT transport, uint16_t mtu) {
@@ -1731,7 +1760,7 @@ class LeAudioClientImpl : public LeAudioClient {
               DeviceConnectState::CONNECTING_AUTOCONNECT ||
           leAudioDevice->autoconnect_flag_) {
         LOG_INFO("Device not available now, do background connect.");
-        BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
+        AddToBackgroundConnectCheckStreaming(leAudioDevice);
         return;
       }
 
@@ -1949,11 +1978,19 @@ class LeAudioClientImpl : public LeAudioClient {
      * or if autoconnect is set and device got disconnected because of some
      * issues
      */
+    LOG_INFO("%s, autoconnect %d, reason 0x%02x",
+             ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
+             leAudioDevice->autoconnect_flag_, reason);
+
     if (reason != GATT_CONN_TERMINATE_LOCAL_HOST ||
         leAudioDevice->autoconnect_flag_) {
       leAudioDevice->SetConnectionState(
           DeviceConnectState::CONNECTING_AUTOCONNECT);
-      BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
+      if (reason == GATT_CONN_TIMEOUT) {
+        AddToBackgroundConnectCheckStreaming(leAudioDevice);
+      } else {
+        BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
+      }
     } else {
       leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
     }
@@ -4695,6 +4732,10 @@ class LeAudioClientImpl : public LeAudioClient {
 
         if (group) {
           updateOffloaderIfNeeded(group);
+          if (reconnection_mode_ ==
+              BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS) {
+            group->AddToAllowListNotConnectedGroupMembers(gatt_if_);
+          }
         }
 
         if (audio_sender_state_ == AudioState::READY_TO_START)
@@ -4766,6 +4807,10 @@ class LeAudioClientImpl : public LeAudioClient {
           HandlePendingAvailableContextsChange(group);
           HandlePendingDeviceRemove(group);
           HandlePendingDeviceDisconnection(group);
+          if (reconnection_mode_ ==
+              BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS) {
+            group->RemoveFromAllowListNotConnectedGroupMembers(gatt_if_);
+          }
         }
         break;
       }
