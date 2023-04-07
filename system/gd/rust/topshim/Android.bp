@@ -13,6 +13,7 @@ rust_library_host_rlib {
     crate_name: "bt_topshim",
     srcs: [
         "src/lib.rs",
+
         ":libbt_topshim_wrapper_bindgen",
     ],
     rustlibs: [
