@@ -540,6 +540,10 @@ class PhonePolicy {
                 A2dpService a2dpService = mFactory.getA2dpService();
                 HeadsetService hsService = mFactory.getHeadsetService();
                 LeAudioService leAudioService = mFactory.getLeAudioService();
+                if (leAudioService == null) {
+                    debugLog("processActiveDeviceChanged: LeAudioService is null");
+                    return;
+                }
                 List<BluetoothDevice> leAudioActiveGroupDevices =
                         leAudioService.getGroupDevices(leAudioService.getGroupId(device));
 
