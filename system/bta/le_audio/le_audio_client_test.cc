@@ -4162,12 +4162,12 @@ TEST_F(UnicastTest, TwoEarbudsStreamingProfileDisconnect) {
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 }
 
-TEST_F(UnicastTest, TwoEarbudsWithSourceSupporting32kHz) {
+TEST_F(UnicastTest, EarbudsWithStereoSinkMonoSourceSupporting32kHz) {
   const RawAddress test_address0 = GetTestAddress(0);
   int group_id = 0;
   SetSampleDatabaseEarbudsValid(
       1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
-      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      codec_spec_conf::kLeAudioLocationFrontLeft, default_channel_cnt,
       default_channel_cnt, 0x0024,
       /* source sample freq 32/16khz */ true, /*add_csis*/
       true,                                   /*add_cas*/
