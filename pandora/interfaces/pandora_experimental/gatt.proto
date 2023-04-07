@@ -37,6 +37,12 @@ service GATT {
 
   // Register a GATT service
   rpc RegisterService(RegisterServiceRequest) returns (RegisterServiceResponse);
+
+  // Set characteristic notification/indication with given client characteristic configuration descriptor handle
+  rpc SetCharacteristicNotificationFromHandle(SetCharacteristicNotificationFromHandleRequest) returns  (SetCharacteristicNotificationFromHandleResponse);
+
+  // Wait for characteristic notification/indication
+  rpc WaitCharacteristicNotification(WaitCharacteristicNotificationRequest) returns (WaitCharacteristicNotificationResponse);
 }
 
 enum AttStatusCode {
@@ -63,6 +69,11 @@ enum AttPermissions {
   PERMISSION_READ = 0x01;
   PERMISSION_WRITE = 0x10;
   PERMISSION_READ_ENCRYPTED = 0x02;
+}
+
+enum EnableValue {
+  ENABLE_NOTIFICATION_VALUE = 0;
+  ENABLE_INDICATION_VALUE = 1;
 }
 
 // A message representing a GATT service.
@@ -116,6 +127,30 @@ message WriteRequest {
 message WriteResponse {
   uint32 handle = 1;
   AttStatusCode status = 2;
+}
+
+// Request for the `SetCharacteristicNotificationFromHandle` rpc.
+message SetCharacteristicNotificationFromHandleRequest {
+  Connection connection = 1;
+  uint32 handle = 2;
+  EnableValue enable_value = 3;
+}
+
+// Response for the `SetCharacteristicNotificationFromHandle` rpc.
+message SetCharacteristicNotificationFromHandleResponse {
+  uint32 handle = 1;
+  AttStatusCode status = 2;
+}
+
+// Request for the `WaitCharacteristicNotification` rpc.
+message WaitCharacteristicNotificationRequest {
+  Connection connection = 1;
+  uint32 handle = 2;
+}
+
+// Response for the `WaitCharacteristicNotification` rpc.
+message WaitCharacteristicNotificationResponse {
+  bool characteristic_notification_received = 1;
 }
 
 // Request for the `DiscoverServiceByUuid` rpc.
