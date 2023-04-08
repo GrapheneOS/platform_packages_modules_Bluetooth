@@ -73,21 +73,21 @@ cc_library_static {
         "libchrome_support_defaults",
     ],
     generated_headers: [
-        "libbt_init_flags_bridge_header",
-        "libbt_shim_bridge_header",
-        "libbt_message_loop_thread_bridge_header",
         "cxx-bridge-header",
+        "libbt_init_flags_bridge_header",
+        "libbt_message_loop_thread_bridge_header",
+        "libbt_shim_bridge_header",
     ],
     generated_sources: [
         "libbt_init_flags_bridge_code",
-        "libbt_shim_bridge_code",
         "libbt_message_loop_thread_bridge_code",
+        "libbt_shim_bridge_code",
     ],
     export_generated_headers: [
-        "libbt_init_flags_bridge_header",
-        "libbt_shim_bridge_header",
-        "libbt_message_loop_thread_bridge_header",
         "cxx-bridge-header",
+        "libbt_init_flags_bridge_header",
+        "libbt_message_loop_thread_bridge_header",
+        "libbt_shim_bridge_header",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/gd",
@@ -130,8 +130,8 @@ cc_library_static {
     header_libs: ["libbt_callbacks_cxx_headers"],
     srcs: ["callbacks/callbacks.cc"],
     generated_headers: [
-        "libbt_shim_bridge_header",
         "cxx-bridge-header",
+        "libbt_shim_bridge_header",
     ],
     host_supported: true,
     apex_available: [

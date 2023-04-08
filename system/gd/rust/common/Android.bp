@@ -11,12 +11,12 @@ rust_library {
     name: "libbt_common",
     defaults: ["libbt_common_defaults"],
     rustlibs: [
-        "libtokio",
-        "libnix",
-        "liblazy_static",
-        "liblog_rust",
         "libcxx",
         "libgrpcio",
+        "liblazy_static",
+        "liblog_rust",
+        "libnix",
+        "libtokio",
     ],
     target: {
         android: {
@@ -47,19 +47,19 @@ rust_defaults {
     crate_name: "bt_common",
     srcs: ["src/lib.rs"],
     rustlibs: [
-        "libtokio",
-        "libnix",
+        "libbt_facade_helpers",
+        "libbt_packets",
+        "libcxx",
+        "libenv_logger",
+        "libfutures",
+        "libgrpcio",
         "liblazy_static",
         "liblog_rust",
-        "libcxx",
-        "libgrpcio",
-        "libbt_packets",
-        "libfutures",
-        "libnum_traits",
-        "libnix",
         "liblog_rust",
-        "libbt_facade_helpers",
-        "libenv_logger",
+        "libnix",
+        "libnix",
+        "libnum_traits",
+        "libtokio",
     ],
     proc_macros: [
         "libpaste",
@@ -75,8 +75,8 @@ rust_ffi_static {
     target: {
         android: {
             rustlibs: [
-                "librustutils",
                 "libandroid_logger",
+                "librustutils",
             ],
         },
     },
@@ -90,15 +90,15 @@ cc_library_static {
     name: "libbt_common_bridge",
     defaults: ["gd_ffi_defaults"],
     generated_headers: [
-        "libbt_common_bridge_header",
         "cxx-bridge-header",
+        "libbt_common_bridge_header",
     ],
     generated_sources: [
         "libbt_common_bridge_code",
     ],
     export_generated_headers: [
-        "libbt_common_bridge_header",
         "cxx-bridge-header",
+        "libbt_common_bridge_header",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/gd",
@@ -123,14 +123,14 @@ cc_library_static {
 cc_library_static {
     name: "libbt_keystore_cc",
     defaults: [
-        "rust_static_cc_lib_defaults",
         "gd_ffi_defaults",
+        "rust_static_cc_lib_defaults",
     ],
     header_libs: ["libbt_keystore_cc_headers"],
     srcs: ["keystore/fake_bt_keystore.cc"],
     generated_headers: [
-        "libbt_common_bridge_header",
         "cxx-bridge-header",
+        "libbt_common_bridge_header",
     ],
     generated_sources: ["libbt_common_bridge_code"],
     shared_libs: [
@@ -193,15 +193,15 @@ rust_test_host {
     test_suites: ["general-tests"],
     auto_gen_config: true,
     rustlibs: [
-        "libtokio",
-        "libnix",
-        "liblazy_static",
-        "liblog_rust",
-        "libfutures",
-        "libenv_logger",
-        "libgrpcio",
         "libbt_common",
         "libcxx",
+        "libenv_logger",
+        "libfutures",
+        "libgrpcio",
+        "liblazy_static",
+        "liblog_rust",
+        "libnix",
+        "libtokio",
     ],
     proc_macros: [
         "libpaste",

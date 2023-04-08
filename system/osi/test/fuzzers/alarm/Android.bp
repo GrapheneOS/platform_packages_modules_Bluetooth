@@ -15,10 +15,10 @@ cc_fuzz {
         "fuzz_alarm.cc",
     ],
     shared_libs: [
+        "libcrypto",
+        "libcutils",
         "liblog",
         "libprotobuf-cpp-lite",
-        "libcutils",
-        "libcrypto",
     ],
     static_libs: [
         "libbt-common",

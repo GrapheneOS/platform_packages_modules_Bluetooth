@@ -15,7 +15,7 @@ cc_fuzz {
         "fuzz_allocator.cc",
     ],
     static_libs: [
-        "libosi",
         "liblog",
+        "libosi",
     ],
 }

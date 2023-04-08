@@ -22,11 +22,11 @@ python_library_host {
         "bumble_experimental/*.py",
     ],
     libs: [
+        "bumble",
         "libprotobuf-python",
         "pandora_experimental-python",
-        "bumble",
     ],
     data: [
         "bumble_experimental/py.typed",
-    ]
+    ],
 }
