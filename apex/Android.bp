@@ -22,8 +22,8 @@ apex {
     systemserverclasspath_fragments: ["com.android.btservices-systemserverclasspath-fragment"],
     compat_configs: [
         "bluetooth-compat-config",
-        "framework-bluetooth-compat-config",
         "bluetoothapk-platform-compat-config",
+        "framework-bluetooth-compat-config",
     ],
     apps: ["Bluetooth"],
 
@@ -41,9 +41,9 @@ apex {
         "audio_set_configurations_json",
         "audio_set_scenarios_bfbs",
         "audio_set_scenarios_json",
-        "btservices-linker-config",
         "bt_did.conf",
         "bt_stack.conf",
+        "btservices-linker-config",
         "interop_database.conf",
         "privapp_allowlist_com.android.bluetooth.xml",
     ],
