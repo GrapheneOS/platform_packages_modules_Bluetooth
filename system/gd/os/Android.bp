@@ -61,9 +61,9 @@ filegroup {
     srcs: [
         "linux_generic/alarm.cc",
         "linux_generic/files.cc",
+        "linux_generic/reactive_semaphore.cc",
         "linux_generic/reactor.cc",
         "linux_generic/repeating_alarm.cc",
-        "linux_generic/reactive_semaphore.cc",
         "linux_generic/thread.cc",
         "linux_generic/wakelock_manager.cc",
     ],
@@ -86,8 +86,8 @@ filegroup {
     name: "BluetoothOsBenchmarkSources",
     srcs: [
         "alarm_benchmark.cc",
-        "thread_benchmark.cc",
         "queue_benchmark.cc",
+        "thread_benchmark.cc",
     ],
 }
 

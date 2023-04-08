@@ -19,8 +19,8 @@ package {
 filegroup {
     name: "services.bluetooth-sources",
     srcs: [
-        "java/**/*.java",
         ":statslog-bluetooth-java-gen",
+        "java/**/*.java",
     ],
     visibility: [
         "//frameworks/base/services",
@@ -56,20 +56,20 @@ java_library {
         strict_updatability_linting: true,
     },
     libs: [
+        "app-compat-annotations",
         "framework-annotations-lib",
         "framework-bluetooth-pre-jarjar",
         "framework-configinfrastructure",
-        "app-compat-annotations",
         "framework-statsd.stubs.module_lib",
     ],
 
     static_libs: [
         "androidx.annotation_annotation",
         "androidx.appcompat_appcompat",
-        "modules-utils-shell-command-handler",
         "bluetooth-manager-service-proto-java-gen",
-        "bluetooth-proto-enums-java-gen",
         "bluetooth-nano-protos",
+        "bluetooth-proto-enums-java-gen",
+        "modules-utils-shell-command-handler",
     ],
 
     apex_available: [
@@ -85,13 +85,13 @@ java_library {
     defaults: ["service-bluetooth-common-defaults"],
     installable: true,
     static_libs: [
-        "service-bluetooth-pre-jarjar",
         "androidx.appcompat_appcompat",
+        "service-bluetooth-pre-jarjar",
     ],
 
     libs: [
-        "framework-bluetooth.impl",
         "app-compat-annotations",
+        "framework-bluetooth.impl",
     ],
     sdk_version: "system_server_current",
 
