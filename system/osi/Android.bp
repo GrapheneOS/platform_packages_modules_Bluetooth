@@ -65,8 +65,8 @@ cc_library_static {
         "include_internal",
     ],
     defaults: [
-        "fluoride_osi_defaults",
         "fluoride_basic_defaults",
+        "fluoride_osi_defaults",
     ],
     // TODO(mcchou): Remove socket_utils sources after platform specific
     // dependencies are abstracted.
@@ -104,8 +104,8 @@ cc_library_static {
     target: {
         host_linux: {
             cflags: [
-                "-D_GNU_SOURCE",
                 "-DOS_GENERIC",
+                "-D_GNU_SOURCE",
             ],
         },
     },
@@ -123,9 +123,9 @@ cc_test {
     name: "net_test_osi",
     test_suites: ["device-tests"],
     defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_osi_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     srcs: [
@@ -145,18 +145,17 @@ cc_test {
         "test/reactor_test.cc",
         "test/ringbuffer_test.cc",
         "test/thread_test.cc",
-        "test/wakelock_test.cc",
+        "test/wakelock_test.cc", // test internal sources only used inside the libosi
 
-        // test internal sources only used inside the libosi
         "test/internal/semaphore_test.cc",
     ],
     shared_libs: [
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
         "libbase",
-        "liblog",
-        "libcutils",
         "libcrypto",
+        "libcutils",
+        "liblog",
     ],
     local_include_dirs: [
         "include_internal",
@@ -165,10 +164,10 @@ cc_test {
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
+        "libc++fs",
         "libgmock",
         "libosi",
         "libprotobuf-cpp-lite",
-        "libc++fs",
     ],
     target: {
         host_linux: {

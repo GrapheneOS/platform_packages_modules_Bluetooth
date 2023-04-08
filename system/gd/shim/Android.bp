@@ -18,8 +18,8 @@ filegroup {
 filegroup {
     name: "BluetoothShimTestSources",
     srcs: [
-        "dumpsys_test.cc",
         "dumpsys_args_test.cc",
+        "dumpsys_test.cc",
     ],
 }
 
