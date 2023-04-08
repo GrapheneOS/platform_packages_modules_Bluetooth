@@ -848,6 +848,30 @@ tBTM_STATUS BTM_ClearInqDb(const RawAddress* p_bda) {
 }
 
 /*******************************************************************************
+ *
+ * Function         btm_clear_all_pending_le_entry
+ *
+ * Description      This function is called to clear all LE pending entry in
+ *                  inquiry database.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void btm_clear_all_pending_le_entry(void) {
+  uint16_t xx;
+  tINQ_DB_ENT* p_ent = btm_cb.btm_inq_vars.inq_db;
+
+  for (xx = 0; xx < BTM_INQ_DB_SIZE; xx++, p_ent++) {
+    /* mark all pending LE entry as unused if an LE only device has scan
+     * response outstanding */
+    if ((p_ent->in_use) &&
+        (p_ent->inq_info.results.device_type == BT_DEVICE_TYPE_BLE) &&
+        !p_ent->scan_rsp)
+      p_ent->in_use = false;
+  }
+}
+
+/*******************************************************************************
  *******************************************************************************
  *                                                                            **
  *                    BTM Internal Inquiry Functions                          **
