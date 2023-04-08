@@ -1746,4 +1746,38 @@ public class LeAudioServiceTest {
         generateGroupNodeRemoved(mRightDevice, groupId);
         verify(mMcpService, times(1)).setDeviceAuthorized(mRightDevice, false);
     }
+
+    @Test
+    public void testGetGroupDevices() {
+        int firstGroupId = 1;
+        int secondGroupId = 2;
+
+        doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
+        connectTestDevice(mLeftDevice, firstGroupId);
+        connectTestDevice(mRightDevice, firstGroupId);
+        connectTestDevice(mSingleDevice, secondGroupId);
+
+        // Checks group device lists for groupId 1
+        List<BluetoothDevice> firstGroupDevicesById = mService.getGroupDevices(firstGroupId);
+        List<BluetoothDevice> firstGroupDevicesByLeftDevice = mService.getGroupDevices(mLeftDevice);
+        List<BluetoothDevice> firstGroupDevicesByRightDevice = mService.getGroupDevices(
+                mRightDevice);
+
+        assertThat(firstGroupDevicesById.size()).isEqualTo(2);
+        assertThat(firstGroupDevicesById.contains(mLeftDevice)).isTrue();
+        assertThat(firstGroupDevicesById.contains(mRightDevice)).isTrue();
+        assertThat(firstGroupDevicesById.contains(mSingleDevice)).isFalse();
+        assertThat(firstGroupDevicesById.equals(firstGroupDevicesByLeftDevice)).isTrue();
+        assertThat(firstGroupDevicesById.equals(firstGroupDevicesByRightDevice)).isTrue();
+
+        // Checks group device lists for groupId 2
+        List<BluetoothDevice> secondGroupDevicesById = mService.getGroupDevices(secondGroupId);
+        List<BluetoothDevice> secondGroupDevicesByDevice = mService.getGroupDevices(mSingleDevice);
+
+        assertThat(secondGroupDevicesById.size()).isEqualTo(1);
+        assertThat(secondGroupDevicesById.contains(mSingleDevice)).isTrue();
+        assertThat(secondGroupDevicesById.contains(mLeftDevice)).isFalse();
+        assertThat(secondGroupDevicesById.contains(mRightDevice)).isFalse();
+        assertThat(secondGroupDevicesById.equals(secondGroupDevicesByDevice)).isTrue();
+    }
 }
