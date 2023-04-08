@@ -17,8 +17,8 @@ android_test {
         exclude_filter: [],
     },
     libs: [
-        "android.test.runner",
         "android.test.base",
+        "android.test.runner",
     ],
     static_libs: [
         "androidx.test.ext.truth",

@@ -108,14 +108,19 @@ cc_defaults {
     ],
     tidy_flags: [
         "--header-filter=^.*packages/modules/Bluetooth/system/.*.h$",
+
         "--extra-arg-before=-Xclang",
         "--extra-arg-before=-analyzer-config",
+
         "--extra-arg-before=-Xclang",
         "--extra-arg-before=optin.cplusplus.UninitializedObject:Pedantic=true",
+
         "--extra-arg-before=-Xclang",
         "--extra-arg-before=-analyzer-config",
+
         "--extra-arg-before=-Xclang",
         "--extra-arg-before=optin.cplusplus.UninitializedObject:CheckPointeeInitialization=true",
+
     ],
 }
 
@@ -428,7 +433,7 @@ cc_test {
         "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
-        "libbt-platform-protos-lite"
+        "libbt-platform-protos-lite",
     ],
     shared_libs: [
         "libcrypto",
@@ -643,6 +648,7 @@ rust_library {
     crate_name: "bt_packets",
     srcs: [
         "rust/packets/lib.rs",
+
         ":BluetoothGeneratedPackets_rust",
     ],
     edition: "2018",
@@ -667,6 +673,7 @@ rust_library {
     crate_name: "bt_packets",
     srcs: [
         "rust/packets/lib.rs",
+
         ":BluetoothGeneratedPackets_rust",
     ],
     edition: "2018",
@@ -690,6 +697,7 @@ rust_test_host {
     ],
     srcs: [
         "rust/packets/lib.rs",
+
         ":BluetoothGeneratedPackets_rust",
     ],
     test_suites: ["general-tests"],
@@ -726,6 +734,7 @@ rust_test_host {
     ],
     srcs: [
         "rust/packets/test_lib.rs",
+
         ":TestGeneratedPackets_rust",
     ],
     test_suites: ["general-tests"],
