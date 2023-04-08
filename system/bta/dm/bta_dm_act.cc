@@ -351,7 +351,7 @@ void BTA_dm_on_hw_off() {
   alarm_free(bta_dm_search_cb.gatt_close_timer);
   osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
   fixed_queue_free(bta_dm_search_cb.pending_discovery_queue, osi_free);
-  memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
+  bta_dm_search_cb = {};
 }
 
 void BTA_dm_on_hw_on() {
@@ -372,7 +372,7 @@ void BTA_dm_on_hw_on() {
   alarm_free(bta_dm_search_cb.gatt_close_timer);
   osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
   fixed_queue_free(bta_dm_search_cb.pending_discovery_queue, osi_free);
-  memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
+  bta_dm_search_cb = {};
   /*
    * TODO: Should alarm_free() the bta_dm_search_cb timers during
    * graceful shutdown.

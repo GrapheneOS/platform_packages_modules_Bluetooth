@@ -501,3 +501,29 @@ TEST_F(BtaDmTest, bta_dm_determine_discovery_transport__BT_TRANSPORT_AUTO) {
             bluetooth::legacy::testing::bta_dm_determine_discovery_transport(
                 bd_addr));
 }
+
+TEST_F(BtaDmTest, bta_dm_search_evt_text) {
+  std::vector<std::pair<tBTA_DM_SEARCH_EVT, std::string>> events = {
+      std::make_pair(BTA_DM_INQ_RES_EVT, "BTA_DM_INQ_RES_EVT"),
+      std::make_pair(BTA_DM_INQ_CMPL_EVT, "BTA_DM_INQ_CMPL_EVT"),
+      std::make_pair(BTA_DM_DISC_RES_EVT, "BTA_DM_DISC_RES_EVT"),
+      std::make_pair(BTA_DM_GATT_OVER_LE_RES_EVT,
+                     "BTA_DM_GATT_OVER_LE_RES_EVT"),
+      std::make_pair(BTA_DM_DISC_CMPL_EVT, "BTA_DM_DISC_CMPL_EVT"),
+      std::make_pair(BTA_DM_SEARCH_CANCEL_CMPL_EVT,
+                     "BTA_DM_SEARCH_CANCEL_CMPL_EVT"),
+      std::make_pair(BTA_DM_DID_RES_EVT, "BTA_DM_DID_RES_EVT"),
+      std::make_pair(BTA_DM_GATT_OVER_SDP_RES_EVT,
+                     "BTA_DM_GATT_OVER_SDP_RES_EVT"),
+  };
+  for (const auto& event : events) {
+    ASSERT_STREQ(event.second.c_str(),
+                 bta_dm_search_evt_text(event.first).c_str());
+  }
+  ASSERT_STREQ(
+      base::StringPrintf("UNKNOWN[%hhu]", std::numeric_limits<uint8_t>::max())
+          .c_str(),
+      bta_dm_search_evt_text(
+          static_cast<tBTA_DM_SEARCH_EVT>(std::numeric_limits<uint8_t>::max()))
+          .c_str());
+}

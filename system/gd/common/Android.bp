@@ -12,8 +12,8 @@ filegroup {
     srcs: [
         "audit_log.cc",
         "metric_id_manager.cc",
-        "strings.cc",
         "stop_watch.cc",
+        "strings.cc",
     ],
 }
 
