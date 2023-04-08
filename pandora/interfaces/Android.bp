@@ -19,8 +19,8 @@ java_library {
     ],
     proto: {
         include_dirs: [
-            "external/protobuf/src",
             "external/pandora/bt-test-interfaces",
+            "external/protobuf/src",
             "packages/modules/Bluetooth/pandora/interfaces",
         ],
         plugin: "grpc-java-plugin",
@@ -34,9 +34,9 @@ java_library {
     name: "pandora_experimental-proto-java",
     visibility: ["//packages/modules/Bluetooth/android/pandora/server"],
     srcs: [
+        ":libprotobuf-internal-protos",
         ":pandora-protos",
         "pandora_experimental/*.proto",
-        ":libprotobuf-internal-protos",
     ],
     static_libs: [
         "libprotobuf-java-lite",
@@ -47,8 +47,8 @@ java_library {
         canonical_path_from_root: false,
         type: "lite",
         include_dirs: [
-            "external/protobuf/src",
             "external/pandora/bt-test-interfaces",
+            "external/protobuf/src",
             "packages/modules/Bluetooth/pandora/interfaces",
         ],
     },

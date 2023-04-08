@@ -28,8 +28,8 @@ filegroup {
     srcs: [
         "adapter_config_test.cc",
         "classic_device_test.cc",
-        "config_cache_test.cc",
         "config_cache_helper_test.cc",
+        "config_cache_test.cc",
         "device_test.cc",
         "le_device_test.cc",
         "legacy_config_file_test.cc",

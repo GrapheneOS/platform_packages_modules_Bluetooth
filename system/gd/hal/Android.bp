@@ -20,9 +20,9 @@ filegroup {
 filegroup {
     name: "BluetoothHalTestSources",
     srcs: [
-        "snoop_logger_test.cc",
         "snoop_logger_socket_test.cc",
         "snoop_logger_socket_thread_test.cc",
+        "snoop_logger_test.cc",
     ],
 }
 

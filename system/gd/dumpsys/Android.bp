@@ -34,18 +34,18 @@ genrule {
     ],
     cmd: "$(location flatc) -I packages/modules/Bluetooth/system/gd -b --schema -o $(genDir) --cpp $(in) ",
     srcs: [
-        "test_data/root.fbs",
         "test_data/bar.fbs",
         "test_data/baz.fbs",
         "test_data/foo.fbs",
         "test_data/qux.fbs",
+        "test_data/root.fbs",
     ],
     out: [
-        "root_generated.h",
         "bar_generated.h",
         "baz_generated.h",
         "foo_generated.h",
         "qux_generated.h",
+        "root_generated.h",
     ],
 }
 
@@ -57,18 +57,18 @@ genrule {
     ],
     cmd: "$(location flatc) -I packages/modules/Bluetooth/system/gd -b --schema -o $(genDir) --cpp $(in) ",
     srcs: [
-        "test_data/root.fbs",
         "test_data/bar.fbs",
         "test_data/baz.fbs",
         "test_data/foo.fbs",
         "test_data/qux.fbs",
+        "test_data/root.fbs",
     ],
     out: [
-        "root.bfbs",
         "bar.bfbs",
         "baz.bfbs",
         "foo.bfbs",
         "qux.bfbs",
+        "root.bfbs",
     ],
 }
 
@@ -127,8 +127,8 @@ genrule {
         "bluetooth_flatbuffer_test.fbs",
     ],
     out: [
-        "bluetooth_flatbuffer_test_generated.h",
         "bluetooth_flatbuffer_test.bfbs",
+        "bluetooth_flatbuffer_test_generated.h",
     ],
 }
 
@@ -136,9 +136,9 @@ cc_library {
     name: "libbluetooth-dumpsys",
     host_supported: true,
     defaults: [
-        "gd_defaults",
         "gd_clang_file_coverage",
         "gd_clang_tidy",
+        "gd_defaults",
     ],
     generated_sources: [
         "BluetoothGeneratedDumpsysBundledSchema_cc",
@@ -153,9 +153,9 @@ cc_library {
     name: "libbluetooth-dumpsys-test",
     host_supported: true,
     defaults: [
-        "gd_defaults",
         "gd_clang_file_coverage",
         "gd_clang_tidy",
+        "gd_defaults",
     ],
     generated_sources: [
         "BluetoothGeneratedDumpsysBundledTestSchema_cc",
@@ -166,9 +166,9 @@ cc_library {
     name: "libbluetooth-dumpsys-unittest",
     host_supported: true,
     defaults: [
-        "gd_defaults",
         "gd_clang_file_coverage",
         "gd_clang_tidy",
+        "gd_defaults",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysTestSchema_cc",
@@ -179,17 +179,17 @@ cc_test {
     name: "bluetooth_flatbuffer_tests",
     test_suites: ["device-tests"],
     defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_common_options",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     test_options: {
         unit_test: true,
     },
     static_libs: [
-        "libgmock",
         "libflatbuffers-cpp",
+        "libgmock",
     ],
     srcs: [
         "bluetooth_flatbuffer_test.cc",
