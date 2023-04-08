@@ -10,8 +10,11 @@ java_library_static {
     sdk_version: "core_platform",
 
     libs: [
+        // order matters: classes in framework-bluetooth are resolved before framework, meaning
+        // @hide APIs in framework-bluetooth are resolved before @SystemApi stubs in framework
         // Access to hidden apis in Bluetooth:
         "framework-bluetooth.impl",
+
         "framework",
     ],
 
