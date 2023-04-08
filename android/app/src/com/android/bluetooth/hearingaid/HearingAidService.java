@@ -107,7 +107,7 @@ public class HearingAidService extends ProfileService {
     private final ServiceFactory mFactory = new ServiceFactory();
 
     public static boolean isEnabled() {
-        return BluetoothProperties.isProfileAshaCentralEnabled().orElse(false);
+        return BluetoothProperties.isProfileAshaCentralEnabled().orElse(true);
     }
 
     @Override
