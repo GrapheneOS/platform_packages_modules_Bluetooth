@@ -1361,10 +1361,10 @@ public class BluetoothProxy {
         return mBroadcastStatusMutableLive;
     }
 
-    public boolean startBroadcast(BluetoothLeAudioContentMetadata meta, byte[] code) {
+    public boolean startBroadcast(BluetoothLeBroadcastSettings settings) {
         if (mBluetoothLeBroadcast == null)
             return false;
-        mBluetoothLeBroadcast.startBroadcast(meta, code);
+        mBluetoothLeBroadcast.startBroadcast(settings);
         return true;
     }
 
@@ -1379,14 +1379,10 @@ public class BluetoothProxy {
         return mBluetoothLeBroadcast.getAllBroadcastMetadata();
     }
 
-    public boolean updateBroadcast(int broadcastId, String programInfo) {
+    public boolean updateBroadcast(int broadcastId, BluetoothLeBroadcastSettings settings) {
         if (mBluetoothLeBroadcast == null) return false;
 
-        BluetoothLeAudioContentMetadata.Builder contentBuilder =
-                new BluetoothLeAudioContentMetadata.Builder();
-        contentBuilder.setProgramInfo(programInfo);
-
-        mBluetoothLeBroadcast.updateBroadcast(broadcastId, contentBuilder.build());
+        mBluetoothLeBroadcast.updateBroadcast(broadcastId, settings);
         return true;
     }
 

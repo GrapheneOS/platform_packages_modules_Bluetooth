@@ -741,7 +741,7 @@ void BleScannerInterfaceImpl::handle_remote_properties(
   uint8_t flag_len;
   const uint8_t* p_flag = AdvertiseDataParser::GetFieldByType(
       advertising_data, BTM_BLE_AD_TYPE_FLAG, &flag_len);
-  bluetooth::hci::DeviceType device_type;
+  auto device_type = bluetooth::hci::DeviceType::UNKNOWN;
   bool is_adv_connectable = event_type & (1 << BLE_EVT_CONNECTABLE_BIT);
   // 1. If adv is connectable and flag data is not present, device type is
   // DUAL mode.

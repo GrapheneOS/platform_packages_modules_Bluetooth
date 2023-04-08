@@ -29,14 +29,16 @@ python_test_host {
         "bumble_services_experimental-python",
     ],
     required: [
-        "PandoraServer",
         "aapt",
     ],
     test_suites: ["general-tests"],
     test_options: {
         unit_test: false,
     },
-    data: ["config.yml"],
+    data: [
+        ":PandoraServer",
+        "config.yml",
+    ],
 }
 
 sh_binary_host {
