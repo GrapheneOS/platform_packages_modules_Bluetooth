@@ -20,13 +20,13 @@ python_test_host {
     name: "avatar",
     main: "main.py",
     srcs: [
-        "main.py",
         "*_test.py",
         "example.py",
+        "main.py",
     ],
     libs: [
-        "libavatar",
         "bumble_services_experimental-python",
+        "libavatar",
     ],
     required: [
         "aapt",
