@@ -25,9 +25,9 @@ rust_ffi {
         "libnum_bigint",
         "libnum_integer",
         "libnum_traits",
-        "libthiserror",
         "libpin_utils",
         "librand",
+        "libthiserror",
     ],
     include_dirs: ["include"],
 }
@@ -66,8 +66,8 @@ rust_test_host {
         "libnum_bigint",
         "libnum_integer",
         "libnum_traits",
-        "libthiserror",
         "libpin_utils",
         "librand",
+        "libthiserror",
     ],
 }
