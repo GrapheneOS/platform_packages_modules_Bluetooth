@@ -19,18 +19,18 @@ java_library_static {
     ],
 
     static_libs: [
-        "androidx.test.runner",
         "androidx.test.core",
+        "androidx.test.runner",
         "androidx.test.uiautomator_uiautomator",
-        "grpc-java-netty-shaded-test",
         "grpc-java-lite",
+        "grpc-java-netty-shaded-test",
         "guava",
-        "opencensus-java-api",
         "kotlin-test",
         "kotlinx_coroutines",
+        "opencensus-java-api",
+        "opencensus-java-contrib-grpc-metrics",
         "pandora_experimental-grpc-java",
         "pandora_experimental-proto-java",
-        "opencensus-java-contrib-grpc-metrics",
     ],
 }
 
@@ -59,8 +59,8 @@ android_test {
     test_config: "configs/PtsBotTest.xml",
     data: [
         ":PandoraServer",
-        "configs/pts_bot_tests_config.json",
         ":mmi2grpc",
+        "configs/pts_bot_tests_config.json",
     ],
     test_suites: ["device-tests"],
     min_sdk_version: "Tiramisu",
@@ -71,8 +71,8 @@ android_test {
     test_config: "configs/PtsBotTestMts.xml",
     data: [
         ":PandoraServer",
-        "configs/pts_bot_tests_config.json",
         ":mmi2grpc",
+        "configs/pts_bot_tests_config.json",
     ],
     test_suites: ["mts-bluetooth"],
     min_sdk_version: "Tiramisu",
