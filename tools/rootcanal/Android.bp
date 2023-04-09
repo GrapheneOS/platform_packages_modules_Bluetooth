@@ -37,8 +37,8 @@ cc_defaults {
         "gd_defaults",
     ],
     cflags: [
-        "-fvisibility=hidden",
         "-DROOTCANAL_LMP",
+        "-fvisibility=hidden",
     ],
     local_include_dirs: [
         "include",
@@ -47,9 +47,9 @@ cc_defaults {
         "libbase_headers",
     ],
     generated_headers: [
-        "RootCanalGeneratedPackets_h",
-        "RootCanalBrEdrBBGeneratedPackets_h",
         "BluetoothGeneratedPackets_h",
+        "RootCanalBrEdrBBGeneratedPackets_h",
+        "RootCanalGeneratedPackets_h",
     ],
 }
 
@@ -72,6 +72,8 @@ cc_library_static {
     host_supported: true,
     proprietary: true,
     srcs: [
+        ":BluetoothPacketSources",
+        ":lib_sources",
         "model/controller/acl_connection.cc",
         "model/controller/acl_connection_handler.cc",
         "model/controller/controller_properties.cc",
@@ -97,20 +99,18 @@ cc_library_static {
         "model/hci/hci_socket_transport.cc",
         "model/setup/async_manager.cc",
         "model/setup/device_boutique.cc",
-        "model/setup/phy_layer.cc",
         "model/setup/phy_device.cc",
+        "model/setup/phy_layer.cc",
         "model/setup/test_channel_transport.cc",
         "model/setup/test_command_handler.cc",
         "model/setup/test_model.cc",
         "net/posix/posix_async_socket.cc",
         "net/posix/posix_async_socket_connector.cc",
         "net/posix/posix_async_socket_server.cc",
-        ":lib_sources",
-        ":BluetoothPacketSources",
     ],
     export_include_dirs: [
-        "include",
         ".",
+        "include",
     ],
     export_generated_headers: [
         "BluetoothGeneratedPackets_h",
@@ -136,6 +136,8 @@ cc_library_host_shared {
         "rootcanal_defaults",
     ],
     srcs: [
+        ":BluetoothPacketSources",
+        ":lib_sources",
         "model/controller/acl_connection.cc",
         "model/controller/acl_connection_handler.cc",
         "model/controller/controller_properties.cc",
@@ -148,12 +150,10 @@ cc_library_host_shared {
         "model/controller/security_manager.cc",
         "model/devices/device.cc",
         "model/setup/async_manager.cc",
-        ":lib_sources",
-        ":BluetoothPacketSources",
     ],
     export_include_dirs: [
-        "include",
         ".",
+        "include",
     ],
     stl: "libc++_static",
     static_libs: [
@@ -216,34 +216,34 @@ cc_library_static {
 cc_test_host {
     name: "rootcanal_hci_test",
     defaults: [
-        "clang_file_coverage",
         "clang_coverage_bin",
+        "clang_file_coverage",
         "rootcanal_defaults",
     ],
     srcs: [
-        "test/controller/le/rpa_generation_test.cc",
-        "test/controller/le/le_set_random_address_test.cc",
-        "test/controller/le/le_clear_filter_accept_list_test.cc",
         "test/controller/le/le_add_device_to_filter_accept_list_test.cc",
-        "test/controller/le/le_remove_device_from_filter_accept_list_test.cc",
         "test/controller/le/le_add_device_to_resolving_list_test.cc",
+        "test/controller/le/le_clear_filter_accept_list_test.cc",
         "test/controller/le/le_clear_resolving_list_test.cc",
-        "test/controller/le/le_create_connection_test.cc",
         "test/controller/le/le_create_connection_cancel_test.cc",
+        "test/controller/le/le_create_connection_test.cc",
         "test/controller/le/le_extended_create_connection_test.cc",
+        "test/controller/le/le_remove_device_from_filter_accept_list_test.cc",
         "test/controller/le/le_remove_device_from_resolving_list_test.cc",
-        "test/controller/le/le_set_address_resolution_enable_test.cc",
-        "test/controller/le/le_set_advertising_parameters_test.cc",
-        "test/controller/le/le_set_advertising_enable_test.cc",
-        "test/controller/le/le_set_scan_parameters_test.cc",
-        "test/controller/le/le_set_scan_enable_test.cc",
-        "test/controller/le/le_set_extended_scan_parameters_test.cc",
-        "test/controller/le/le_set_extended_scan_enable_test.cc",
-        "test/controller/le/le_set_extended_advertising_parameters_test.cc",
-        "test/controller/le/le_set_extended_advertising_data_test.cc",
-        "test/controller/le/le_set_extended_scan_response_data_test.cc",
-        "test/controller/le/le_set_extended_advertising_enable_test.cc",
         "test/controller/le/le_scanning_filter_duplicates_test.cc",
+        "test/controller/le/le_set_address_resolution_enable_test.cc",
+        "test/controller/le/le_set_advertising_enable_test.cc",
+        "test/controller/le/le_set_advertising_parameters_test.cc",
+        "test/controller/le/le_set_extended_advertising_data_test.cc",
+        "test/controller/le/le_set_extended_advertising_enable_test.cc",
+        "test/controller/le/le_set_extended_advertising_parameters_test.cc",
+        "test/controller/le/le_set_extended_scan_enable_test.cc",
+        "test/controller/le/le_set_extended_scan_parameters_test.cc",
+        "test/controller/le/le_set_extended_scan_response_data_test.cc",
+        "test/controller/le/le_set_random_address_test.cc",
+        "test/controller/le/le_set_scan_enable_test.cc",
+        "test/controller/le/le_set_scan_parameters_test.cc",
+        "test/controller/le/rpa_generation_test.cc",
     ],
     header_libs: [
         "libbluetooth_headers",
@@ -266,13 +266,13 @@ python_test_host {
     name: "rootcanal_ll_test",
     main: "test/main.py",
     srcs: [
-        "py/controller.py",
-        "py/bluetooth.py",
         ":hci_packets_python3_gen",
         ":link_layer_packets_python3_gen",
-        "test/main.py",
+        "py/bluetooth.py",
+        "py/controller.py",
         "test/LL/DDI/ADV/*.py",
         "test/LL/DDI/SCN/*.py",
+        "test/main.py",
     ],
     data: [
         ":lib_rootcanal_ffi",
@@ -294,9 +294,9 @@ python_test_host {
 cc_test_host {
     name: "rootcanal_test_host",
     defaults: [
-        "fluoride_common_options",
-        "clang_file_coverage",
         "clang_coverage_bin",
+        "clang_file_coverage",
+        "fluoride_common_options",
     ],
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
     isolated: false,
@@ -319,8 +319,8 @@ cc_test_host {
         "libbt-rootcanal",
     ],
     cflags: [
-        "-fvisibility=hidden",
         "-DLOG_NDEBUG=1",
+        "-fvisibility=hidden",
     ],
     target: {
         darwin: {
@@ -348,13 +348,13 @@ cc_binary_host {
         "libbt-rootcanal",
     ],
     static_libs: [
+        "breakpad_client",
         "libc++fs",
         "libcrypto",
+        "libgflags",
         "libjsoncpp",
         "libprotobuf-cpp-lite",
         "libscriptedbeaconpayload-protos-lite",
-        "breakpad_client",
-        "libgflags",
     ],
     sanitize: {
         address: true,
@@ -429,8 +429,8 @@ cc_library_static {
         "include",
     ],
     export_include_dirs: [
-        "include",
         ".",
+        "include",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/gd",
