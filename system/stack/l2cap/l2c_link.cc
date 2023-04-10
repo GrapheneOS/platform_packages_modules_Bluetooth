@@ -434,26 +434,18 @@ bool l2c_link_hci_disc_comp(uint16_t handle, tHCI_REASON reason) {
         for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++) {
           if (p_lcb->p_fixed_ccbs[xx] &&
               p_lcb->p_fixed_ccbs[xx] != p_lcb->p_pending_ccb) {
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(
-                xx + L2CAP_FIRST_FIXED_CHNL, p_lcb->remote_bd_addr, false,
-                p_lcb->DisconnectReason(), p_lcb->transport);
-            if (p_lcb->p_fixed_ccbs[xx] == NULL) {
-              LOG_ERROR(
-                  "unexpected p_fixed_ccbs[%d] is NULL remote_bd_addr = %s "
-                  "p_lcb = %p in_use = %d link_state = %d handle = %d "
-                  "link_role = %d is_bonding = %d disc_reason = %d transport = "
-                  "%d",
-                  xx, ADDRESS_TO_LOGGABLE_CSTR(p_lcb->remote_bd_addr), p_lcb,
-                  p_lcb->in_use, p_lcb->link_state, p_lcb->Handle(),
-                  p_lcb->LinkRole(), p_lcb->IsBonding(),
-                  p_lcb->DisconnectReason(), p_lcb->transport);
-            }
-            CHECK(p_lcb->p_fixed_ccbs[xx] != NULL);
             l2cu_release_ccb(p_lcb->p_fixed_ccbs[xx]);
 
             p_lcb->p_fixed_ccbs[xx] = NULL;
+            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(
+                xx + L2CAP_FIRST_FIXED_CHNL, p_lcb->remote_bd_addr, false,
+                p_lcb->DisconnectReason(), p_lcb->transport);
           }
         }
+        /* Cleanup connection state to avoid race conditions because
+         * l2cu_release_lcb won't be invoked to cleanup */
+        btm_acl_removed(p_lcb->Handle());
+        p_lcb->InvalidateHandle();
       }
       if (p_lcb->transport == BT_TRANSPORT_LE) {
         if (l2cu_create_conn_le(p_lcb))
