@@ -987,9 +987,42 @@ public class BluetoothInCallServiceTest {
         mBluetoothInCallService.onCallAdded(activeCall);
         doReturn(null).when(mMockCallInfo).getActiveCall();
         when(activeCall.getHandle()).thenReturn(Uri.parse("tel:555-0001"));
-        mBluetoothInCallService.onCallRemoved(activeCall);
+
+        mBluetoothInCallService.onCallRemoved(activeCall, true /* forceRemoveCallback */);
 
         verify(mMockBluetoothHeadset).phoneStateChanged(eq(0), eq(0), eq(CALL_STATE_IDLE),
+                eq(""), eq(128), nullable(String.class));
+    }
+
+    @Test
+    public void testOnDetailsChangeExternalRemovesCall() throws Exception {
+        BluetoothCall activeCall = createActiveCall();
+        mBluetoothInCallService.onCallAdded(activeCall);
+        doReturn(null).when(mMockCallInfo).getActiveCall();
+        when(activeCall.getHandle()).thenReturn(Uri.parse("tel:555-0001"));
+
+        when(activeCall.isExternalCall()).thenReturn(true);
+        mBluetoothInCallService.getCallback(activeCall).onDetailsChanged(activeCall, null);
+
+        verify(mMockBluetoothHeadset).phoneStateChanged(eq(0), eq(0), eq(CALL_STATE_IDLE),
+                eq(""), eq(128), nullable(String.class));
+    }
+
+    @Test
+    public void testOnDetailsChangeExternalAddsCall() throws Exception {
+        BluetoothCall activeCall = createActiveCall();
+        mBluetoothInCallService.onCallAdded(activeCall);
+        when(activeCall.getHandle()).thenReturn(Uri.parse("tel:555-0001"));
+        BluetoothInCallService.CallStateCallback callBack = mBluetoothInCallService.getCallback(
+                activeCall);
+
+        when(activeCall.isExternalCall()).thenReturn(true);
+        callBack.onDetailsChanged(activeCall, null);
+
+        when(activeCall.isExternalCall()).thenReturn(false);
+        callBack.onDetailsChanged(activeCall, null);
+
+        verify(mMockBluetoothHeadset).phoneStateChanged(eq(1), eq(0), eq(CALL_STATE_IDLE),
                 eq(""), eq(128), nullable(String.class));
     }
 
