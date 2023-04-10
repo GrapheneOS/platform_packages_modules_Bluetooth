@@ -2375,7 +2375,9 @@ public final class BluetoothAdapter {
     }
 
     /**
-     * Sets device as the active devices for the profiles passed into the function
+     * Sets device as the active devices for the use cases passed into the function. Note that in
+     * order to make a device active for LE Audio, it must be the active device for audio and
+     * phone calls.
      *
      * @param device is the remote bluetooth device
      * @param profiles represents the purpose for which we are setting this as the active device.
