@@ -30,6 +30,7 @@ use btstack::bluetooth_gatt::{
     ScanFilterPattern, ScanResult, ScanSettings, ScanType,
 };
 use btstack::bluetooth_media::IBluetoothTelephony;
+use btstack::bluetooth_qa::IBluetoothQA;
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, CallbackId, IBluetoothSocketManager,
     IBluetoothSocketManagerCallbacks, SocketId, SocketResult,
@@ -2226,3 +2227,23 @@ impl IBluetoothTelephony for BluetoothTelephonyDBus {
         dbus_generated!()
     }
 }
+
+pub(crate) struct BluetoothQADBus {
+    _client_proxy: ClientDBusProxy,
+}
+
+impl BluetoothQADBus {
+    pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> BluetoothQADBus {
+        BluetoothQADBus {
+            _client_proxy: ClientDBusProxy::new(
+                conn.clone(),
+                String::from("org.chromium.bluetooth"),
+                make_object_path(index, "qa"),
+                String::from("org.chromium.bluetooth.BluetoothQA"),
+            ),
+        }
+    }
+}
+
+#[generate_dbus_interface_client]
+impl IBluetoothQA for BluetoothQADBus {}

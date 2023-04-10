@@ -1,3 +1,4 @@
+use btstack::bluetooth_qa::BluetoothQA;
 use clap::{App, AppSettings, Arg};
 use dbus::{channel::MatchingReceiver, message::MatchRule};
 use dbus_crossroads::Crossroads;
@@ -38,6 +39,7 @@ mod iface_bluetooth;
 mod iface_bluetooth_admin;
 mod iface_bluetooth_gatt;
 mod iface_bluetooth_media;
+mod iface_bluetooth_qa;
 mod iface_bluetooth_telephony;
 mod iface_logging;
 
@@ -174,6 +176,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     ))));
     let logging = Arc::new(Mutex::new(Box::new(BluetoothLogging::new(is_debug, log_output))));
     let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(tx.clone()))));
+    let qa = Arc::new(Mutex::new(Box::new(BluetoothQA::new(tx.clone()))));
 
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
@@ -236,6 +239,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // Register D-Bus method handlers of IBluetooth.
         let adapter_iface = iface_bluetooth::export_bluetooth_dbus_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
+        let qa_iface = iface_bluetooth_qa::export_bluetooth_qa_dbus_intf(
             conn.clone(),
             &mut cr.lock().unwrap(),
             disconnect_watcher.clone(),
@@ -354,6 +362,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             &[logging_iface],
             logging.clone(),
         );
+
+        cr.lock().unwrap().insert(make_object_name(adapter_index, "qa"), &[qa_iface], qa.clone());
 
         // Hold locks and initialize all interfaces. This must be done AFTER DBus is
         // initialized so DBus can properly enforce user policies.
