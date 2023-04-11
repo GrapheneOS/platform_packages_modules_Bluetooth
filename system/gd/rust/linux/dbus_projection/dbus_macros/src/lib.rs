@@ -751,20 +751,74 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
                     let remote__ = self.remote.clone();
                     let objpath__ = self.objpath.clone();
                     let conn__ = self.conn.clone();
-                    tokio::spawn(async move {
-                        let proxy = dbus::nonblock::Proxy::new(
+
+                    let proxy = dbus::nonblock::Proxy::new(
                             remote__,
                             objpath__,
                             std::time::Duration::from_secs(2),
                             conn__,
                         );
-                        let future: dbus::nonblock::MethodReply<()> = proxy.method_call(
-                            #dbus_iface_name,
-                            #dbus_method_name,
-                            (#method_args),
-                        );
-                        let _result = future.await;
-                    });
+                    let future: dbus::nonblock::MethodReply<()> = proxy.method_call(
+                        #dbus_iface_name,
+                        #dbus_method_name,
+                        (#method_args),
+                    );
+
+                    // Acquire await lock before pushing task.
+                    let has_await_block = {
+                        let await_guard = self.futures_awaiting.lock().unwrap();
+                        self.cb_futures.lock().unwrap().push_back(future);
+                        *await_guard
+                    };
+
+                    // Only insert async task if there isn't already one.
+                    if !has_await_block {
+                        // Callbacks will await in the order they were called.
+                        let futures = self.cb_futures.clone();
+                        let already_awaiting = self.futures_awaiting.clone();
+                        tokio::spawn(async move {
+                            // Check for another await block.
+                            {
+                                let mut await_guard = already_awaiting.lock().unwrap();
+                                if *await_guard {
+                                    return;
+                                }
+
+                                // We are now the only awaiting block. Mark and
+                                // drop the lock.
+                                *await_guard = true;
+                            }
+
+                            loop {
+                                // Go through all pending futures and await them.
+                                while futures.lock().unwrap().len() > 0 {
+                                    let future = {
+                                        let mut guard = futures.lock().unwrap();
+                                        match guard.pop_front() {
+                                            Some(f) => f,
+                                            None => {break;}
+                                        }
+                                    };
+                                    let _result = future.await;
+                                }
+
+                                // Acquire await block and make final check on
+                                // futures list to avoid racing against
+                                // insertion. Must acquire in-order to avoid a
+                                // deadlock.
+                                {
+                                    let mut await_guard = already_awaiting.lock().unwrap();
+                                    let futures_guard = futures.lock().unwrap();
+                                    if (*futures_guard).len() > 0 {
+                                        continue;
+                                    }
+
+                                    *await_guard = false;
+                                    break;
+                                }
+                            }
+                        });
+                    }
                 }
             };
         }
@@ -780,6 +834,31 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
             remote: dbus::strings::BusName<'static>,
             objpath: Path<'static>,
             disconnect_watcher: std::sync::Arc<std::sync::Mutex<DisconnectWatcher>>,
+
+            /// Callback futures to await. If accessing with |futures_awaiting|,
+            /// always acquire |futures_awaiting| first to avoid deadlock.
+            cb_futures: std::sync::Arc<std::sync::Mutex<std::collections::VecDeque<dbus::nonblock::MethodReply<()>>>>,
+
+            /// Is there a task already awaiting on |cb_futures|? If acquiring
+            /// with |cb_futures|, always acquire this lock first to avoid deadlocks.
+            futures_awaiting: std::sync::Arc<std::sync::Mutex<bool>>,
+        }
+
+        impl #struct_ident {
+            fn new(
+                conn: std::sync::Arc<dbus::nonblock::SyncConnection>,
+                remote: dbus::strings::BusName<'static>,
+                objpath: Path<'static>,
+                disconnect_watcher: std::sync::Arc<std::sync::Mutex<DisconnectWatcher>>) -> Self {
+                Self {
+                    conn,
+                    remote,
+                    objpath,
+                    disconnect_watcher,
+                    cb_futures: std::sync::Arc::new(std::sync::Mutex::new(std::collections::VecDeque::new())),
+                    futures_awaiting: std::sync::Arc::new(std::sync::Mutex::new(false)),
+                }
+            }
         }
 
         impl #trait_ for #struct_ident {
@@ -809,12 +888,12 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
                 remote__: Option<dbus::strings::BusName<'static>>,
                 disconnect_watcher__: Option<std::sync::Arc<std::sync::Mutex<DisconnectWatcher>>>,
             ) -> Result<Box<dyn #trait_ + Send>, Box<dyn std::error::Error>> {
-                Ok(Box::new(#struct_ident {
-                    conn: conn__.unwrap(),
-                    remote: remote__.unwrap(),
-                    objpath: objpath__,
-                    disconnect_watcher: disconnect_watcher__.unwrap(),
-                }))
+                Ok(Box::new(#struct_ident::new(
+                    conn__.unwrap(),
+                    remote__.unwrap(),
+                    objpath__,
+                    disconnect_watcher__.unwrap(),
+                )))
             }
 
             fn to_dbus(_data: Box<dyn #trait_ + Send>) -> Result<Path<'static>, Box<dyn std::error::Error>> {
