@@ -18,6 +18,7 @@
 package com.android.bluetooth.btservice;
 
 import static android.bluetooth.BluetoothDevice.TRANSPORT_AUTO;
+import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 import static android.text.format.DateUtils.MINUTE_IN_MILLIS;
 import static android.text.format.DateUtils.SECOND_IN_MILLIS;
 
@@ -1242,41 +1243,60 @@ public class AdapterService extends Service {
      * @param device the remote device
      * @return {@code true} if it's a dual mode audio device, {@code false} otherwise
      */
-    private boolean isDualModeAudioSinkDevice(BluetoothDevice device) {
-        return isProfileSupported(device, BluetoothProfile.LE_AUDIO)
-                && mLeAudioService != null && (isProfileSupported(device, BluetoothProfile.HEADSET)
-                || isProfileSupported(device, BluetoothProfile.A2DP));
+    public boolean isDualModeAudioSinkDevice(BluetoothDevice device) {
+        if (mLeAudioService == null
+                || mLeAudioService.getGroupId(device) == LE_AUDIO_GROUP_ID_INVALID) {
+            return false;
+        }
+
+        // Check if any device in the CSIP group is a dual mode audio sink device
+        for (BluetoothDevice groupDevice: mLeAudioService.getGroupDevices(
+                mLeAudioService.getGroupId(device))) {
+            if (isProfileSupported(groupDevice, BluetoothProfile.LE_AUDIO)
+                    && (isProfileSupported(groupDevice, BluetoothProfile.HEADSET)
+                    || isProfileSupported(groupDevice, BluetoothProfile.A2DP))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
      * Checks whether the local and remote device support a connection for duplex audio (input and
      * output) over HFP or LE Audio.
      *
-     * @param device the remote device
+     * @param groupDevices the devices in the CSIP group
      * @return {@code true} if duplex is supported on the remote device, {@code false} otherwise
      */
-    private boolean isDuplexAudioSupported(BluetoothDevice device) {
-        if (isProfileSupported(device, BluetoothProfile.HEADSET)) {
-            return true;
+    private boolean isDuplexAudioSupported(List<BluetoothDevice> groupDevices) {
+        for (BluetoothDevice device: groupDevices) {
+            if (isProfileSupported(device, BluetoothProfile.HEADSET)
+                    || (isProfileSupported(device, BluetoothProfile.LE_AUDIO)
+                    && mLeAudioService != null
+                    && mLeAudioService.isLeAudioDuplexSupported(device))) {
+                return true;
+            }
         }
-        return isProfileSupported(device, BluetoothProfile.LE_AUDIO) && mLeAudioService != null
-                && mLeAudioService.isLeAudioDuplexSupported(device);
+        return false;
     }
 
     /**
      * Checks whether the local and remote device support a connection for output only audio over
      * A2DP or LE Audio.
      *
-     * @param device the remote device
-     * @return {@code true} if output only is supported on the remote device, {@code false}
-     * otherwise
+     * @param groupDevices the devices in the CSIP group
+     * @return {@code true} if output only is supported, {@code false} otherwise
      */
-    private boolean isOutputOnlyAudioSupported(BluetoothDevice device) {
-        if (isProfileSupported(device, BluetoothProfile.A2DP)) {
-            return true;
+    private boolean isOutputOnlyAudioSupported(List<BluetoothDevice> groupDevices) {
+        for (BluetoothDevice device: groupDevices) {
+            if (isProfileSupported(device, BluetoothProfile.A2DP)
+                    || (isProfileSupported(device, BluetoothProfile.LE_AUDIO)
+                    && mLeAudioService != null
+                    && mLeAudioService.isLeAudioOutputSupported(device))) {
+                return true;
+            }
         }
-        return isProfileSupported(device, BluetoothProfile.LE_AUDIO) && mLeAudioService != null
-                && mLeAudioService.isLeAudioOutputSupported(device);
+        return false;
     }
 
     /**
@@ -4816,10 +4836,10 @@ public class AdapterService extends Service {
                 duplexDefault = BluetoothProfile.LE_AUDIO;
             }
 
-            if (isOutputOnlyAudioSupported(groupLead)) {
+            if (isOutputOnlyAudioSupported(mLeAudioService.getGroupDevices(device))) {
                 storedBundle.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY, outputOnlyDefault);
             }
-            if (isDuplexAudioSupported(groupLead)) {
+            if (isDuplexAudioSupported(mLeAudioService.getGroupDevices(device))) {
                 storedBundle.putInt(BluetoothAdapter.AUDIO_MODE_DUPLEX, duplexDefault);
             }
         }
@@ -4862,12 +4882,12 @@ public class AdapterService extends Service {
             // Copies relevant keys & values from modeToProfile bundle
             Bundle strippedPreferences = new Bundle();
             if (modeToProfileBundle.containsKey(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY)
-                    && isOutputOnlyAudioSupported(groupLead)) {
+                    && isOutputOnlyAudioSupported(mLeAudioService.getGroupDevices(device))) {
                 strippedPreferences.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY,
                         modeToProfileBundle.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY));
             }
             if (modeToProfileBundle.containsKey(BluetoothAdapter.AUDIO_MODE_DUPLEX)
-                    && isDuplexAudioSupported(groupLead)) {
+                    && isDuplexAudioSupported(mLeAudioService.getGroupDevices(device))) {
                 strippedPreferences.putInt(BluetoothAdapter.AUDIO_MODE_DUPLEX,
                         modeToProfileBundle.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX));
             }
