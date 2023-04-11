@@ -91,7 +91,7 @@ pub trait IAdvertisingSetCallback: RPCProxy {
     /// * `tx_power` - Transmit power that will be used for this advertising set.
     /// * `status` - Status of this operation.
     fn on_advertising_set_started(
-        &self,
+        &mut self,
         reg_id: i32,
         advertiser_id: i32,
         tx_power: i32,
@@ -99,27 +99,32 @@ pub trait IAdvertisingSetCallback: RPCProxy {
     );
 
     /// Callback triggered in response to `get_own_address` indicating result of the operation.
-    fn on_own_address_read(&self, advertiser_id: i32, address_type: i32, address: String);
+    fn on_own_address_read(&mut self, advertiser_id: i32, address_type: i32, address: String);
 
     /// Callback triggered in response to `stop_advertising_set` indicating the advertising set
     /// is stopped.
-    fn on_advertising_set_stopped(&self, advertiser_id: i32);
+    fn on_advertising_set_stopped(&mut self, advertiser_id: i32);
 
     /// Callback triggered in response to `enable_advertising_set` indicating result of
     /// the operation.
-    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: AdvertisingStatus);
+    fn on_advertising_enabled(
+        &mut self,
+        advertiser_id: i32,
+        enable: bool,
+        status: AdvertisingStatus,
+    );
 
     /// Callback triggered in response to `set_advertising_data` indicating result of the operation.
-    fn on_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus);
+    fn on_advertising_data_set(&mut self, advertiser_id: i32, status: AdvertisingStatus);
 
     /// Callback triggered in response to `set_scan_response_data` indicating result of
     /// the operation.
-    fn on_scan_response_data_set(&self, advertiser_id: i32, status: AdvertisingStatus);
+    fn on_scan_response_data_set(&mut self, advertiser_id: i32, status: AdvertisingStatus);
 
     /// Callback triggered in response to `set_advertising_parameters` indicating result of
     /// the operation.
     fn on_advertising_parameters_updated(
-        &self,
+        &mut self,
         advertiser_id: i32,
         tx_power: i32,
         status: AdvertisingStatus,
@@ -128,26 +133,26 @@ pub trait IAdvertisingSetCallback: RPCProxy {
     /// Callback triggered in response to `set_periodic_advertising_parameters` indicating result of
     /// the operation.
     fn on_periodic_advertising_parameters_updated(
-        &self,
+        &mut self,
         advertiser_id: i32,
         status: AdvertisingStatus,
     );
 
     /// Callback triggered in response to `set_periodic_advertising_data` indicating result of
     /// the operation.
-    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: AdvertisingStatus);
+    fn on_periodic_advertising_data_set(&mut self, advertiser_id: i32, status: AdvertisingStatus);
 
     /// Callback triggered in response to `set_periodic_advertising_enable` indicating result of
     /// the operation.
     fn on_periodic_advertising_enabled(
-        &self,
+        &mut self,
         advertiser_id: i32,
         enable: bool,
         status: AdvertisingStatus,
     );
 
     /// When advertising module changes its suspend mode due to system suspend/resume.
-    fn on_suspend_mode_change(&self, suspend_mode: SuspendMode);
+    fn on_suspend_mode_change(&mut self, suspend_mode: SuspendMode);
 }
 
 // Advertising interval range.
@@ -609,8 +614,9 @@ impl Advertisers {
 
     /// Notify current suspend mode to all active callbacks.
     fn notify_suspend_mode(&mut self) {
+        let suspend_mode = &self.suspend_mode;
         self.callbacks.for_all_callbacks(|callback| {
-            callback.on_suspend_mode_change(self.suspend_mode.clone());
+            callback.on_suspend_mode_change(suspend_mode.clone());
         });
     }
 }

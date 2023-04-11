@@ -79,11 +79,11 @@ struct BluetoothManagerCallbackDBus {}
 #[dbus_proxy_obj(BluetoothManagerCallback, "org.chromium.bluetooth.ManagerCallback")]
 impl IBluetoothManagerCallback for BluetoothManagerCallbackDBus {
     #[dbus_method("OnHciDeviceChanged")]
-    fn on_hci_device_changed(&self, hci_interface: i32, present: bool) {}
+    fn on_hci_device_changed(&mut self, hci_interface: i32, present: bool) {}
 
     #[dbus_method("OnHciEnabledChanged")]
-    fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {}
+    fn on_hci_enabled_changed(&mut self, hci_interface: i32, enabled: bool) {}
 
     #[dbus_method("OnDefaultAdapterChanged")]
-    fn on_default_adapter_changed(&self, hci_interface: i32) {}
+    fn on_default_adapter_changed(&mut self, hci_interface: i32) {}
 }
