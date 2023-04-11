@@ -24,6 +24,7 @@ import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothLeAudioCodecConfig;
@@ -2821,6 +2822,45 @@ public class LeAudioService extends ProfileService {
             return null;
         }
         return getConnectedGroupLeadDevice(groupId);
+    }
+
+    /**
+     * Sends the preferred audio profile change requested from a call to
+     * {@link BluetoothAdapter#setPreferredAudioProfiles(BluetoothDevice, Bundle)} to the audio
+     * framework to apply the change. The audio framework will call
+     * {@link BluetoothAdapter#notifyActiveDeviceChangeApplied(BluetoothDevice)} once the
+     * change is successfully applied.
+     *
+     * @return the number of requests sent to the audio framework
+     */
+    public int sendPreferredAudioProfileChangeToAudioFramework() {
+        if (mActiveAudioOutDevice == null && mActiveAudioInDevice == null) {
+            Log.e(TAG, "sendPreferredAudioProfileChangeToAudioFramework: no active device");
+            return 0;
+        }
+
+        int audioFrameworkCalls = 0;
+
+        if (mActiveAudioOutDevice != null) {
+            int volume = getAudioDeviceGroupVolume(getGroupId(mActiveAudioOutDevice));
+            final boolean suppressNoisyIntent = mActiveAudioOutDevice != null;
+            Log.i(TAG, "Sending LE Audio Output active device changed for preferred profile "
+                    + "change with volume=" + volume + " and suppressNoisyIntent="
+                    + suppressNoisyIntent);
+            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
+                    mActiveAudioOutDevice, getLeAudioOutputProfile(suppressNoisyIntent, volume));
+            audioFrameworkCalls++;
+        }
+
+        if (mActiveAudioInDevice != null) {
+            Log.i(TAG, "Sending LE Audio Input active device changed for audio profile change");
+            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioInDevice,
+                    mActiveAudioInDevice, BluetoothProfileConnectionInfo.createLeAudioInfo(false,
+                            false));
+            audioFrameworkCalls++;
+        }
+
+        return audioFrameworkCalls;
     }
 
     /**
