@@ -52,15 +52,15 @@ pub trait IBluetoothManager {
 /// Interface of Bluetooth Manager callbacks.
 pub trait IBluetoothManagerCallback: RPCProxy {
     /// HCI device presence has changed.
-    fn on_hci_device_changed(&self, hci_interface: i32, present: bool);
+    fn on_hci_device_changed(&mut self, hci_interface: i32, present: bool);
 
     /// HCI device is enabled or disabled.
-    fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool);
+    fn on_hci_enabled_changed(&mut self, hci_interface: i32, enabled: bool);
 
     /// The default adapter has changed. At start-up, if the default adapter is
     /// already available, this won't be sent out. This will only be sent in two
     /// cases:
     ///   * Default adapter is no longer available and we need to use a backup.
     ///   * Desired default adapter re-appears and we should switch back.
-    fn on_default_adapter_changed(&self, hci_interface: i32);
+    fn on_default_adapter_changed(&mut self, hci_interface: i32);
 }

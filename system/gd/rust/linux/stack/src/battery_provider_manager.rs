@@ -7,7 +7,7 @@ use tokio::sync::mpsc::Sender;
 /// Callback for BatteryProvider implementers.
 pub trait IBatteryProviderCallback: RPCProxy {
     /// Requests that the BatteryProvider send updated battery information.
-    fn refresh_battery_info(&self);
+    fn refresh_battery_info(&mut self);
 }
 
 /// Interface for managing BatteryProvider instances.
@@ -46,7 +46,7 @@ impl BatteryProviderManager {
     }
 
     /// Request battery info refresh from all battery providers.
-    pub fn refresh_battery_info(&self) {
+    pub fn refresh_battery_info(&mut self) {
         self.battery_provider_callbacks
             .for_all_callbacks(|callback| callback.refresh_battery_info());
     }
