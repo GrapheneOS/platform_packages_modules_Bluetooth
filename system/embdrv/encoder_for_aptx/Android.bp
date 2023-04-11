@@ -27,15 +27,15 @@ cc_library_static {
     host_supported: true,
     export_include_dirs: ["include"],
     srcs: [
-        "src/aptXbtenc.c",
         "src/ProcessSubband.c",
         "src/QmfConv.c",
         "src/QuantiseDifference.c",
+        "src/aptXbtenc.c",
     ],
     cflags: [
         "-O2",
-        "-Werror",
         "-Wall",
+        "-Werror",
         "-Wextra",
     ],
     tidy: true,

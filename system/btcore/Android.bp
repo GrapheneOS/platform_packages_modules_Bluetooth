@@ -87,9 +87,9 @@ cc_test {
     name: "net_test_btcore",
     test_suites: ["device-tests"],
     defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     local_include_dirs: ["include"],
     include_dirs: ["packages/modules/Bluetooth/system"],
@@ -103,9 +103,9 @@ cc_test {
         "liblog",
     ],
     static_libs: [
+        "libbtcore",
         "libosi",
         "libosi-AllocationTestHarness",
-        "libbtcore",
     ],
     host_supported: true,
     test_options: {
