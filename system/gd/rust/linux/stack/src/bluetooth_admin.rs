@@ -45,14 +45,14 @@ pub struct PolicyEffect {
 
 pub trait IBluetoothAdminPolicyCallback: RPCProxy {
     /// This gets called when service allowlist changed.
-    fn on_service_allowlist_changed(&self, allowlist: Vec<Uuid128Bit>);
+    fn on_service_allowlist_changed(&mut self, allowlist: Vec<Uuid128Bit>);
     /// This gets called when
     /// 1. a new device is found by adapter
     /// 2. the policy effect to a device is changed due to
     ///    the remote services changed or
     ///    the service allowlist changed.
     fn on_device_policy_effect_changed(
-        &self,
+        &mut self,
         device: BluetoothDevice,
         new_policy_effect: Option<PolicyEffect>,
     );
@@ -222,8 +222,9 @@ impl IBluetoothAdmin for BluetoothAdmin {
                 warn!("Failed to write config");
             }
 
+            let allowed_services = self.get_allowed_services();
             self.callbacks.for_all_callbacks(|cb| {
-                cb.on_service_allowlist_changed(self.get_allowed_services());
+                cb.on_service_allowlist_changed(allowed_services.clone());
             });
 
             for (device, effect) in self.device_policy_affect_cache.clone().iter() {

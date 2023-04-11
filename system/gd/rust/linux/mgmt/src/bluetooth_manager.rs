@@ -34,7 +34,7 @@ impl BluetoothManager {
     }
 
     pub(crate) fn callback_hci_device_change(&mut self, hci_device: i32, present: bool) {
-        for (_, callback) in &self.callbacks {
+        for (_, callback) in &mut self.callbacks {
             callback.on_hci_device_changed(hci_device, present);
         }
     }
@@ -46,13 +46,13 @@ impl BluetoothManager {
             info!("Stopped {}", hci_device);
         }
 
-        for (_, callback) in &self.callbacks {
+        for (_, callback) in &mut self.callbacks {
             callback.on_hci_enabled_changed(hci_device, enabled);
         }
     }
 
     pub(crate) fn callback_default_adapter_change(&mut self, hci_device: i32) {
-        for (_, callback) in &self.callbacks {
+        for (_, callback) in &mut self.callbacks {
             callback.on_default_adapter_changed(hci_device);
         }
     }

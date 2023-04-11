@@ -76,9 +76,9 @@ impl RPCProxy for ISuspendCallbackDBus {}
 )]
 impl ISuspendCallback for ISuspendCallbackDBus {
     #[dbus_method("OnCallbackRegistered")]
-    fn on_callback_registered(&self, callback_id: u32) {}
+    fn on_callback_registered(&mut self, callback_id: u32) {}
     #[dbus_method("OnSuspendReady")]
-    fn on_suspend_ready(&self, suspend_id: i32) {}
+    fn on_suspend_ready(&mut self, suspend_id: i32) {}
     #[dbus_method("OnResumed")]
-    fn on_resumed(&self, suspend_id: i32) {}
+    fn on_resumed(&mut self, suspend_id: i32) {}
 }
