@@ -28,6 +28,7 @@ import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothA2dp.OptionalCodecsPreferenceStatus;
 import android.bluetooth.BluetoothA2dp.OptionalCodecsSupportStatus;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
@@ -45,6 +46,7 @@ import android.media.AudioManager;
 import android.media.BluetoothProfileConnectionInfo;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.HandlerThread;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
@@ -1653,5 +1655,26 @@ public class A2dpService extends ProfileService {
         }
         mA2dpCodecConfig.switchCodecByBufferSize(
                 device, isLowLatency, getCodecStatus(device).getCodecConfig().getCodecType());
+    }
+
+    /**
+     * Sends the preferred audio profile change requested from a call to
+     * {@link BluetoothAdapter#setPreferredAudioProfiles(BluetoothDevice, Bundle)} to the audio
+     * framework to apply the change. The audio framework will call
+     * {@link BluetoothAdapter#notifyActiveDeviceChangeApplied(BluetoothDevice)} once the
+     * change is successfully applied.
+     *
+     * @return the number of requests sent to the audio framework
+     */
+    public int sendPreferredAudioProfileChangeToAudioFramework() {
+        synchronized (mStateMachines) {
+            if (mActiveDevice == null) {
+                Log.e(TAG, "sendPreferredAudioProfileChangeToAudioFramework: no active device");
+                return 0;
+            }
+            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveDevice, mActiveDevice,
+                    BluetoothProfileConnectionInfo.createA2dpInfo(false, -1));
+            return 1;
+        }
     }
 }

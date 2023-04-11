@@ -931,6 +931,26 @@ public class A2dpServiceTest {
                 verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
     }
 
+    /**
+     * Tests that {@link A2dpService#sendPreferredAudioProfileChangeToAudioFramework()} sends
+     * requests to the audio framework when there is an active A2DP device.
+     */
+    @Test
+    public void testSendPreferredAudioProfileChangeToAudioFramework() {
+        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+        Assert.assertTrue(mA2dpService.removeActiveDevice(true));
+        Assert.assertNull(mA2dpService.getActiveDevice());
+
+        // Send 0 requests when the active device is null
+        Assert.assertEquals(0, mA2dpService.sendPreferredAudioProfileChangeToAudioFramework());
+
+        // Send 1 request when there is an A2DP active device
+        connectDevice(mTestDevice);
+        Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
+        Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
+        Assert.assertEquals(1, mA2dpService.sendPreferredAudioProfileChangeToAudioFramework());
+    }
+
     @Test
     public void testDumpDoesNotCrash() {
         mA2dpService.dump(new StringBuilder());
