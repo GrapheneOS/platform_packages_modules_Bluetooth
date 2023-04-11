@@ -26,7 +26,7 @@ struct IBatteryManagerCallbackDBus {}
 #[dbus_proxy_obj(BatteryManagerCallback, "org.chromium.bluetooth.BatteryManagerCallback")]
 impl IBatteryManagerCallback for IBatteryManagerCallbackDBus {
     #[dbus_method("OnBatteryInfoUpdated")]
-    fn on_battery_info_updated(&self, remote_address: String, battery_set: BatterySet) {
+    fn on_battery_info_updated(&mut self, remote_address: String, battery_set: BatterySet) {
         dbus_generated!()
     }
 }

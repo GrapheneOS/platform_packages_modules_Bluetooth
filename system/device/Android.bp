@@ -23,10 +23,10 @@ cc_library_static {
     ],
     srcs: [
         "src/controller.cc",
-        "src/esco_parameters.cc",
-        "src/interop.cc",
         "src/device_iot_config.cc",
         "src/device_iot_config_int.cc",
+        "src/esco_parameters.cc",
+        "src/interop.cc",
     ],
     min_sdk_version: "Tiramisu",
 }
@@ -36,9 +36,9 @@ cc_test {
     name: "net_test_device",
     test_suites: ["device-tests"],
     defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     host_supported: true,
     include_dirs: ["packages/modules/Bluetooth/system"],
@@ -51,11 +51,11 @@ cc_test {
         "liblog",
     ],
     static_libs: [
-        "libbtdevice",
+        "libbluetooth-types",
         "libbtcore",
+        "libbtdevice",
         "libosi",
         "libosi-AllocationTestHarness",
-        "libbluetooth-types",
     ],
 }
 
@@ -64,14 +64,14 @@ cc_test {
     name: "net_test_device_iot_config",
     test_suites: ["device-tests"],
     defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/device/src",
+        "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs: [
         ":TestCommonMockFunctions",
@@ -81,14 +81,14 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
-        "liblog",
         "libdl",
+        "liblog",
     ],
     static_libs: [
-        "libbtdevice",
+        "libbluetooth-types",
         "libbtcore",
+        "libbtdevice",
         "libgmock",
         "libosi-AllocationTestHarness",
-        "libbluetooth-types",
     ],
 }

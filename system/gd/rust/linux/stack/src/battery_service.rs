@@ -83,13 +83,13 @@ pub trait IBatteryServiceCallback: RPCProxy {
     /// Called when the status of BatteryService has changed. Trying to read from devices that do
     /// not support BAS will result in this method being called with BatteryServiceNotSupported.
     fn on_battery_service_status_updated(
-        &self,
+        &mut self,
         remote_address: String,
         status: BatteryServiceStatus,
     );
 
     /// Invoked when battery level for a device has been changed due to notification.
-    fn on_battery_info_updated(&self, remote_address: String, battery_info: BatterySet);
+    fn on_battery_info_updated(&mut self, remote_address: String, battery_info: BatterySet);
 }
 
 impl BatteryService {
@@ -357,7 +357,7 @@ impl BatteryProviderCallback {
 }
 
 impl IBatteryProviderCallback for BatteryProviderCallback {
-    fn refresh_battery_info(&self) {
+    fn refresh_battery_info(&mut self) {
         let tx = self.tx.clone();
         tokio::spawn(async move {
             let _ = tx.send(Message::BatteryServiceRefresh).await;
@@ -386,7 +386,7 @@ impl IBluetoothGattCallback for GattCallback {
     // requests serially. This reduces overall complexity including removing the need to share state
     // data with callbacks.
 
-    fn on_client_registered(&self, status: GattStatus, client_id: i32) {
+    fn on_client_registered(&mut self, status: GattStatus, client_id: i32) {
         let tx = self.tx.clone();
         tokio::spawn(async move {
             let _ = tx
@@ -398,7 +398,7 @@ impl IBluetoothGattCallback for GattCallback {
     }
 
     fn on_client_connection_state(
-        &self,
+        &mut self,
         status: GattStatus,
         client_id: i32,
         connected: bool,
@@ -415,7 +415,7 @@ impl IBluetoothGattCallback for GattCallback {
     }
 
     fn on_search_complete(
-        &self,
+        &mut self,
         addr: String,
         services: Vec<BluetoothGattService>,
         status: GattStatus,
@@ -431,7 +431,7 @@ impl IBluetoothGattCallback for GattCallback {
     }
 
     fn on_characteristic_read(
-        &self,
+        &mut self,
         addr: String,
         status: GattStatus,
         handle: i32,
@@ -447,7 +447,7 @@ impl IBluetoothGattCallback for GattCallback {
         });
     }
 
-    fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>) {
+    fn on_notify(&mut self, addr: String, handle: i32, value: Vec<u8>) {
         let tx = self.tx.clone();
         tokio::spawn(async move {
             let _ = tx
@@ -456,16 +456,23 @@ impl IBluetoothGattCallback for GattCallback {
         });
     }
 
-    fn on_phy_update(&self, _addr: String, _tx_phy: LePhy, _rx_phy: LePhy, _status: GattStatus) {}
+    fn on_phy_update(
+        &mut self,
+        _addr: String,
+        _tx_phy: LePhy,
+        _rx_phy: LePhy,
+        _status: GattStatus,
+    ) {
+    }
 
-    fn on_phy_read(&self, _addr: String, _tx_phy: LePhy, _rx_phy: LePhy, _status: GattStatus) {}
+    fn on_phy_read(&mut self, _addr: String, _tx_phy: LePhy, _rx_phy: LePhy, _status: GattStatus) {}
 
-    fn on_characteristic_write(&self, _addr: String, _status: GattStatus, _handle: i32) {}
+    fn on_characteristic_write(&mut self, _addr: String, _status: GattStatus, _handle: i32) {}
 
-    fn on_execute_write(&self, _addr: String, _status: GattStatus) {}
+    fn on_execute_write(&mut self, _addr: String, _status: GattStatus) {}
 
     fn on_descriptor_read(
-        &self,
+        &mut self,
         _addr: String,
         _status: GattStatus,
         _handle: i32,
@@ -473,14 +480,14 @@ impl IBluetoothGattCallback for GattCallback {
     ) {
     }
 
-    fn on_descriptor_write(&self, _addr: String, _status: GattStatus, _handle: i32) {}
+    fn on_descriptor_write(&mut self, _addr: String, _status: GattStatus, _handle: i32) {}
 
-    fn on_read_remote_rssi(&self, _addr: String, _rssi: i32, _status: GattStatus) {}
+    fn on_read_remote_rssi(&mut self, _addr: String, _rssi: i32, _status: GattStatus) {}
 
-    fn on_configure_mtu(&self, _addr: String, _mtu: i32, _status: GattStatus) {}
+    fn on_configure_mtu(&mut self, _addr: String, _mtu: i32, _status: GattStatus) {}
 
     fn on_connection_updated(
-        &self,
+        &mut self,
         _addr: String,
         _interval: i32,
         _latency: i32,
@@ -489,7 +496,7 @@ impl IBluetoothGattCallback for GattCallback {
     ) {
     }
 
-    fn on_service_changed(&self, _addr: String) {}
+    fn on_service_changed(&mut self, _addr: String) {}
 }
 
 impl RPCProxy for GattCallback {
