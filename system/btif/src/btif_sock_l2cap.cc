@@ -269,6 +269,7 @@ static l2cap_socket* btsock_l2cap_alloc_l(const char* name,
   unsigned security = 0;
   int fds[2];
   l2cap_socket* sock = (l2cap_socket*)osi_calloc(sizeof(*sock));
+  int sock_type = SOCK_SEQPACKET;
 
   if (flags & BTSOCK_FLAG_ENCRYPT)
     security |= is_server ? BTM_SEC_IN_ENCRYPT : BTM_SEC_OUT_ENCRYPT;
@@ -279,7 +280,12 @@ static l2cap_socket* btsock_l2cap_alloc_l(const char* name,
   if (flags & BTSOCK_FLAG_AUTH_16_DIGIT)
     security |= BTM_SEC_IN_MIN_16_DIGIT_PIN;
 
-  if (socketpair(AF_LOCAL, SOCK_SEQPACKET, 0, fds)) {
+    // For Floss, set socket as SOCK_STREAM
+    // TODO(b:271828292): Set SOCK_STREAM for everyone after verification tests
+#if TARGET_FLOSS
+  sock_type = SOCK_STREAM;
+#endif
+  if (socketpair(AF_LOCAL, sock_type, 0, fds)) {
     LOG_ERROR("socketpair failed:%s", strerror(errno));
     goto fail_sockpair;
   }
