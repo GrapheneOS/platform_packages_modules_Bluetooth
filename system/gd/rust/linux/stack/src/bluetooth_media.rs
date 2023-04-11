@@ -6,8 +6,8 @@ use bt_topshim::btif::{
 };
 use bt_topshim::profiles::a2dp::{
     A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, A2dpCodecBitsPerSample, A2dpCodecChannelMode,
-    A2dpCodecConfig, A2dpCodecSampleRate, BtavAudioState, BtavConnectionState,
-    PresentationPosition,
+    A2dpCodecConfig, A2dpCodecIndex, A2dpCodecPriority, A2dpCodecSampleRate, BtavAudioState,
+    BtavConnectionState, PresentationPosition,
 };
 use bt_topshim::profiles::avrcp::{
     Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher, PlayerMetadata,
@@ -90,9 +90,11 @@ pub trait IBluetoothMedia {
 
     fn set_audio_config(
         &mut self,
-        sample_rate: i32,
-        bits_per_sample: i32,
-        channel_mode: i32,
+        address: String,
+        codec_type: A2dpCodecIndex,
+        sample_rate: A2dpCodecSampleRate,
+        bits_per_sample: A2dpCodecBitsPerSample,
+        channel_mode: A2dpCodecChannelMode,
     ) -> bool;
 
     // Set the A2DP/AVRCP volume. Valid volume specified by the spec should be
@@ -2162,21 +2164,71 @@ impl IBluetoothMedia for BluetoothMedia {
 
     fn set_audio_config(
         &mut self,
-        sample_rate: i32,
-        bits_per_sample: i32,
-        channel_mode: i32,
+        address: String,
+        codec_type: A2dpCodecIndex,
+        sample_rate: A2dpCodecSampleRate,
+        bits_per_sample: A2dpCodecBitsPerSample,
+        channel_mode: A2dpCodecChannelMode,
     ) -> bool {
-        if !A2dpCodecSampleRate::validate_bits(sample_rate)
-            || !A2dpCodecBitsPerSample::validate_bits(bits_per_sample)
-            || !A2dpCodecChannelMode::validate_bits(channel_mode)
-        {
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Invalid device address {}", address);
+                return false;
+            }
+            Some(addr) => addr,
+        };
+
+        if self.a2dp_states.get(&addr).is_none() {
+            warn!(
+                "[{}]: Ignore set config event for unconnected or disconnected A2DP device",
+                DisplayAddress(&addr)
+            );
             return false;
         }
 
         match self.a2dp.as_mut() {
             Some(a2dp) => {
-                a2dp.set_audio_config(sample_rate, bits_per_sample, channel_mode);
-                true
+                let caps = self.a2dp_caps.get(&addr).unwrap_or(&Vec::new()).to_vec();
+
+                for cap in &caps {
+                    if A2dpCodecIndex::from(cap.codec_type) == codec_type {
+                        if (A2dpCodecSampleRate::from_bits(cap.sample_rate).unwrap() & sample_rate)
+                            != sample_rate
+                        {
+                            warn!("Unsupported sample rate {:?}", sample_rate);
+                            return false;
+                        }
+                        if (A2dpCodecBitsPerSample::from_bits(cap.bits_per_sample).unwrap()
+                            & bits_per_sample)
+                            != bits_per_sample
+                        {
+                            warn!("Unsupported bit depth {:?}", bits_per_sample);
+                            return false;
+                        }
+                        if (A2dpCodecChannelMode::from_bits(cap.channel_mode).unwrap()
+                            & channel_mode)
+                            != channel_mode
+                        {
+                            warn!("Unsupported channel mode {:?}", channel_mode);
+                            return false;
+                        }
+
+                        let config = vec![A2dpCodecConfig {
+                            codec_type: codec_type as i32,
+                            codec_priority: A2dpCodecPriority::Highest as i32,
+                            sample_rate: sample_rate.bits() as i32,
+                            bits_per_sample: bits_per_sample.bits() as i32,
+                            channel_mode: channel_mode.bits() as i32,
+                            ..Default::default()
+                        }];
+
+                        a2dp.config_codec(addr, config);
+                        return true;
+                    }
+                }
+
+                warn!("Unsupported codec type {:?}", codec_type);
+                false
             }
             None => {
                 warn!("Uninitialized A2DP to set audio config");

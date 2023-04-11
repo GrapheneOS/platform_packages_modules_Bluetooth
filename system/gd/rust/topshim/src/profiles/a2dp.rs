@@ -4,6 +4,7 @@ use crate::topstack::get_dispatchers;
 use bitflags::bitflags;
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::FromPrimitive;
+use std::convert::{TryFrom, TryInto};
 use std::sync::{Arc, Mutex};
 use topshim_macros::{cb_variant, profile_enabled_or, profile_enabled_or_default};
 
@@ -38,8 +39,8 @@ impl From<u32> for BtavAudioState {
     }
 }
 
-#[derive(Debug, FromPrimitive, PartialEq, PartialOrd)]
-#[repr(u32)]
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(i32)]
 pub enum A2dpCodecIndex {
     SrcSbc = 0,
     SrcAac,
@@ -67,7 +68,7 @@ impl From<i32> for A2dpCodecIndex {
     }
 }
 
-#[derive(Debug, FromPrimitive, PartialEq, PartialOrd)]
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(i32)]
 pub enum A2dpCodecPriority {
     Disabled = -1,
@@ -113,6 +114,20 @@ impl A2dpCodecSampleRate {
     }
 }
 
+impl TryInto<i32> for A2dpCodecSampleRate {
+    type Error = ();
+    fn try_into(self) -> Result<i32, Self::Error> {
+        Ok(self.bits())
+    }
+}
+
+impl TryFrom<i32> for A2dpCodecSampleRate {
+    type Error = ();
+    fn try_from(val: i32) -> Result<Self, Self::Error> {
+        Self::from_bits(val).ok_or(())
+    }
+}
+
 bitflags! {
     pub struct A2dpCodecBitsPerSample: i32 {
         const SAMPLE_NONE = 0x0;
@@ -128,6 +143,20 @@ impl A2dpCodecBitsPerSample {
     }
 }
 
+impl TryInto<i32> for A2dpCodecBitsPerSample {
+    type Error = ();
+    fn try_into(self) -> Result<i32, Self::Error> {
+        Ok(self.bits())
+    }
+}
+
+impl TryFrom<i32> for A2dpCodecBitsPerSample {
+    type Error = ();
+    fn try_from(val: i32) -> Result<Self, Self::Error> {
+        Self::from_bits(val).ok_or(())
+    }
+}
+
 bitflags! {
     pub struct A2dpCodecChannelMode: i32 {
         const MODE_NONE = 0x0;
@@ -139,6 +168,20 @@ bitflags! {
 impl A2dpCodecChannelMode {
     pub fn validate_bits(val: i32) -> bool {
         val <= A2dpCodecChannelMode::all().bits()
+    }
+}
+
+impl TryInto<i32> for A2dpCodecChannelMode {
+    type Error = ();
+    fn try_into(self) -> Result<i32, Self::Error> {
+        Ok(self.bits())
+    }
+}
+
+impl TryFrom<i32> for A2dpCodecChannelMode {
+    type Error = ();
+    fn try_from(val: i32) -> Result<Self, Self::Error> {
+        Self::from_bits(val).ok_or(())
     }
 }
 
@@ -364,10 +407,8 @@ impl A2dp {
     }
 
     #[profile_enabled_or]
-    pub fn set_audio_config(&self, sample_rate: i32, bits_per_sample: i32, channel_mode: i32) {
-        let config =
-            A2dpCodecConfig { sample_rate, bits_per_sample, channel_mode, ..Default::default() };
-        self.internal.set_audio_config(config);
+    pub fn config_codec(&self, addr: RawAddress, config: Vec<A2dpCodecConfig>) {
+        self.internal.config_codec(addr, config);
     }
 
     #[profile_enabled_or(false)]
