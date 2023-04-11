@@ -325,10 +325,6 @@ cc_test {
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
-    shared_libs: [
-        "android.hardware.bluetooth@1.0",
-        "android.hardware.bluetooth@1.1",
-    ],
     static_libs: [
         "libbluetooth-types",
         "libflatbuffers-cpp",
