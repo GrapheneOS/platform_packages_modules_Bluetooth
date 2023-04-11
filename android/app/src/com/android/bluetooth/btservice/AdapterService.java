@@ -4811,36 +4811,51 @@ public class AdapterService extends Service {
                 || !isDualModeAudioSinkDevice(device)) {
             return Bundle.EMPTY;
         }
-        // Gets the lead device in the CSIP group to set the preference
-        BluetoothDevice groupLead = mLeAudioService.getLeadDevice(device);
-        if (groupLead == null) {
+        // Checks if the device is part of an LE Audio group
+        List<BluetoothDevice> groupDevices = mLeAudioService.getGroupDevices(device);
+        if (groupDevices.isEmpty()) {
             return Bundle.EMPTY;
         }
 
         // If there are no preferences stored, return the defaults
-        Bundle storedBundle = mDatabaseManager.getPreferredAudioProfiles(groupLead);
+        Bundle storedBundle = Bundle.EMPTY;
+        for (BluetoothDevice groupDevice: groupDevices) {
+            Bundle groupDevicePreferences = mDatabaseManager.getPreferredAudioProfiles(groupDevice);
+            if (!groupDevicePreferences.isEmpty()) {
+                storedBundle = groupDevicePreferences;
+                break;
+            }
+        }
+
         if (storedBundle.isEmpty()) {
-            // Gets the default output only audio profile or defaults to LE_AUDIO if not present
-            int outputOnlyDefault = BluetoothProperties.getDefaultOutputOnlyAudioProfile().orElse(
-                    BluetoothProfile.LE_AUDIO);
-            if (outputOnlyDefault != BluetoothProfile.A2DP
-                    && outputOnlyDefault != BluetoothProfile.LE_AUDIO) {
-                outputOnlyDefault = BluetoothProfile.LE_AUDIO;
+            Bundle defaultPreferencesBundle = new Bundle();
+            boolean useDefaultPreferences = false;
+            if (isOutputOnlyAudioSupported(groupDevices)) {
+                // Gets the default output only audio profile or defaults to LE_AUDIO if not present
+                int outputOnlyDefault = BluetoothProperties.getDefaultOutputOnlyAudioProfile()
+                        .orElse(BluetoothProfile.LE_AUDIO);
+                if (outputOnlyDefault != BluetoothProfile.A2DP
+                        && outputOnlyDefault != BluetoothProfile.LE_AUDIO) {
+                    outputOnlyDefault = BluetoothProfile.LE_AUDIO;
+                }
+                defaultPreferencesBundle.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY,
+                        outputOnlyDefault);
+                useDefaultPreferences = true;
+            }
+            if (isDuplexAudioSupported(groupDevices)) {
+                // Gets the default duplex audio profile or defaults to LE_AUDIO if not present
+                int duplexDefault = BluetoothProperties.getDefaultDuplexAudioProfile().orElse(
+                        BluetoothProfile.LE_AUDIO);
+                if (duplexDefault != BluetoothProfile.HEADSET
+                        && duplexDefault != BluetoothProfile.LE_AUDIO) {
+                    duplexDefault = BluetoothProfile.LE_AUDIO;
+                }
+                defaultPreferencesBundle.putInt(BluetoothAdapter.AUDIO_MODE_DUPLEX, duplexDefault);
+                useDefaultPreferences = true;
             }
 
-            // Gets the default duplex audio profile or defaults to LE_AUDIO if not present
-            int duplexDefault = BluetoothProperties.getDefaultDuplexAudioProfile().orElse(
-                    BluetoothProfile.LE_AUDIO);
-            if (duplexDefault != BluetoothProfile.HEADSET
-                    && duplexDefault != BluetoothProfile.LE_AUDIO) {
-                duplexDefault = BluetoothProfile.LE_AUDIO;
-            }
-
-            if (isOutputOnlyAudioSupported(mLeAudioService.getGroupDevices(device))) {
-                storedBundle.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY, outputOnlyDefault);
-            }
-            if (isDuplexAudioSupported(mLeAudioService.getGroupDevices(device))) {
-                storedBundle.putInt(BluetoothAdapter.AUDIO_MODE_DUPLEX, duplexDefault);
+            if (useDefaultPreferences) {
+                return defaultPreferencesBundle;
             }
         }
         return storedBundle;
