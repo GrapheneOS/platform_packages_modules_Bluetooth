@@ -42,20 +42,20 @@ cc_binary {
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
         "libbase",
+        "libcrypto",
         "libcutils",
         "libhidlbase",
         "libjsoncpp",
         "liblog",
-        "libutils",
         "libprotobuf-cpp-lite",
-        "libcrypto",
+        "libutils",
     ],
     cflags: [
         "-fvisibility=hidden",
     ],
     generated_headers: [
-        "RootCanalGeneratedPackets_h",
         "BluetoothGeneratedPackets_h",
+        "RootCanalGeneratedPackets_h",
         "libbt_init_flags_bridge_header",
     ],
     whole_static_libs: [
@@ -98,12 +98,12 @@ cc_library_shared {
         "libhidlbase",
         "libjsoncpp",
         "liblog",
-        "libutils",
         "libprotobuf-cpp-lite",
+        "libutils",
     ],
     generated_headers: [
-        "RootCanalGeneratedPackets_h",
         "BluetoothGeneratedPackets_h",
+        "RootCanalGeneratedPackets_h",
         "libbt_init_flags_bridge_header",
     ],
     whole_static_libs: [

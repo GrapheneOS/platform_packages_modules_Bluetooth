@@ -12,12 +12,12 @@ cc_library_static {
     defaults: ["libchrome_support_defaults"],
     host_supported: true,
     export_include_dirs: [
-        "./include",
         "./",
+        "./include",
     ],
     static_libs: [
-        "lib-bt-packets-base",
         "lib-bt-packets-avrcp",
+        "lib-bt-packets-base",
     ],
     apex_available: [
         "com.android.btservices",
@@ -28,9 +28,9 @@ cc_library_static {
 cc_test {
     name: "net_test_btpackets",
     defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
         "mts_defaults",
-        "bluetooth_gtest_x86_asan_workaround",
     ],
     test_suites: ["device-tests"],
     host_supported: true,
@@ -73,10 +73,10 @@ cc_test {
         "libcrypto",
     ],
     static_libs: [
-        "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
         "lib-bt-packets-avrcp",
+        "lib-bt-packets-base",
+        "libgmock",
     ],
     cflags: [
         "-DBUILDCFG",
