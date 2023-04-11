@@ -532,7 +532,10 @@ void BTM_CancelInquiry(void) {
 }
 
 static void btm_classic_inquiry_timeout(UNUSED_ATTR void* data) {
-  btm_process_inq_complete(HCI_SUCCESS, BTM_BR_INQUIRY_MASK);
+  // We mark both classic inquiry and BLE inquiry complete so that we stop
+  // processing BLE results as inquiry results.
+  btm_process_inq_complete(HCI_SUCCESS,
+                           (BTM_BR_INQUIRY_MASK | BTM_BLE_INQUIRY_MASK));
 }
 
 /*******************************************************************************
@@ -1407,8 +1410,6 @@ void btm_process_inq_complete(tHCI_STATUS status, uint8_t mode) {
 
   p_inq->inqparms.mode &= ~(mode);
   const auto inq_active = p_inq->inq_active;
-
-  alarm_cancel(p_inq->classic_inquiry_timer);
 
 #if (BTM_INQ_DEBUG == TRUE)
   BTM_TRACE_DEBUG("btm_process_inq_complete inq_active:0x%x state:%d",
