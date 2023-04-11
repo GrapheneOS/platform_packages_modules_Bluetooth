@@ -11,8 +11,8 @@ cc_defaults {
     name: "fluoride_common_options",
     cflags: [
         "-Wall",
-        "-Wextra",
         "-Werror",
+        "-Wextra",
         // there are too many unused parameters in all the code.
         "-Wno-unused-parameter",
         // http://b/264549607
@@ -35,8 +35,8 @@ cc_defaults {
     defaults: ["fluoride_common_options"],
     static_libs: [
         "libchrome",
-        "libmodpb64",
         "libevent",
+        "libmodpb64",
     ],
     shared_libs: [
         "libbase",
@@ -74,9 +74,9 @@ cc_defaults {
     cflags: [
         "-DEXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
         "-fvisibility=hidden",
+        "-DLOG_NDEBUG=1",
         // struct BT_HDR is defined as a variable-size header in a struct.
         "-Wno-gnu-variable-sized-type-not-at-end",
-        "-DLOG_NDEBUG=1",
     ],
     conlyflags: [
         "-std=c99",
@@ -119,15 +119,15 @@ cc_defaults {
         "libbt_callbacks_cxx_headers",
     ],
     generated_headers: [
-        "libbt_shim_bridge_header",
-        "libbt_message_loop_thread_bridge_header",
         "cxx-bridge-header",
+        "libbt_message_loop_thread_bridge_header",
+        "libbt_shim_bridge_header",
     ],
     include_dirs: ["packages/modules/Bluetooth/system/gd/rust/shim"],
     static_libs: [
         "libbluetooth-types",
-        "libbt-platform-protos-lite",
         "libbluetooth_rust_interop",
+        "libbt-platform-protos-lite",
         "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
@@ -155,11 +155,11 @@ cc_defaults {
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
+        "libcutils",
+        "libgmock",
         "libosi",
         "libosi-AlarmTestHarness",
         "libosi-AllocationTestHarness",
-        "libcutils",
-        "libgmock",
     ],
     sanitize: {
         address: true,
@@ -187,26 +187,26 @@ cc_defaults {
         "com.android.btservices",
     ],
     shared_libs: [
-        "libcrypto",
         "libbase",
+        "libcrypto",
         "liblog",
         "libnativehelper",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
+        "libFraunhoferAAC",
         "libbluetooth-dumpsys",
+        "libbluetooth-types",
         "libbluetooth_gd",
         "libbluetooth_rust_interop",
-        "libbluetooth-types",
-        "libbt_callbacks_cxx",
         "libbt-platform-protos-lite",
         "libbt-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
+        "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
         "libflatbuffers-cpp",
-        "libFraunhoferAAC",
         "libg722codec",
         "liblc3",
         "libopus",
@@ -217,15 +217,15 @@ cc_defaults {
     target: {
         android: {
             shared_libs: [
+                "android.hardware.bluetooth.audio-V3-ndk",
                 "android.hardware.bluetooth.audio@2.0",
                 "android.hardware.bluetooth.audio@2.1",
-                "android.hardware.bluetooth.audio-V3-ndk",
                 "android.system.suspend-V1-ndk",
                 "libaaudio",
                 "libbinder_ndk",
                 "libcutils",
-                "libhidlbase",
                 "libfmq",
+                "libhidlbase",
                 "libtinyxml2",
                 "libutils",
                 "libz",
@@ -241,8 +241,8 @@ cc_defaults {
                 "android.hardware.bluetooth.audio@2.1",
                 "libbinder_ndk",
                 "libcutils",
-                "libhidlbase",
                 "libfmq",
+                "libhidlbase",
                 "libtinyxml2",
                 "libutils",
                 "libz",
@@ -255,24 +255,24 @@ cc_defaults {
     name: "fluoride_full_defaults",
     defaults: ["fluoride_basic_defaults"],
     static_libs: [
-        "libbte",
+        "avrcp-target-service",
+        "lib-bt-packets",
+        "lib-bt-packets-avrcp",
+        "lib-bt-packets-base",
+        "libaudio-a2dp-hw-utils",
+        "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",
         "libbt-common",
-        "libbtdevice",
-        "libbtif",
-        "libbtif-core",
         "libbt-hci",
         "libbt-stack",
         "libbt-stack-core",
         "libbtcore",
+        "libbtdevice",
+        "libbte",
+        "libbtif",
+        "libbtif-core",
         "libosi",
-        "avrcp-target-service",
-        "lib-bt-packets",
-        "libbt-audio-hal-interface",
-        "libaudio-a2dp-hw-utils",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
 }
 
@@ -285,9 +285,9 @@ cc_defaults {
     static_libs: [
         "libbluetooth_gd",
         "libbluetooth_rust_interop",
-        "libbt_shim_ffi",
         "libbt_callbacks_cxx",
         "libbt_shim_bridge",
+        "libbt_shim_ffi",
         "libbt_shim_ffi",
         "libstatslog_bt",
     ],
@@ -329,8 +329,8 @@ cc_defaults {
     target: {
         glibc: {
             cflags: [
-                "-fprofile-instr-generate",
                 "-fcoverage-mapping",
+                "-fprofile-instr-generate",
             ],
         },
     },
@@ -347,8 +347,8 @@ cc_defaults {
     target: {
         glibc: {
             ldflags: [
-                "-fprofile-instr-generate",
                 "-fcoverage-mapping",
+                "-fprofile-instr-generate",
             ],
         },
     },
