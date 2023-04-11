@@ -20,20 +20,20 @@ cc_library_static {
     ],
     cflags: [
         "-O3",
-        "-ffast-math",
         "-Wmissing-braces",
         "-Wno-#warnings",
-        "-Wuninitialized",
-        "-Wno-self-assign",
         "-Wno-implicit-fallthrough",
+        "-Wno-self-assign",
+        "-Wuninitialized",
+        "-ffast-math",
     ],
     target: {
         android: {
             sanitize: {
                 misc_undefined: [
-                    "unsigned-integer-overflow",
-                    "signed-integer-overflow",
                     "bounds",
+                    "signed-integer-overflow",
+                    "unsigned-integer-overflow",
                 ],
                 cfi: true,
             },
