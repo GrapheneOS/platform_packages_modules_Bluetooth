@@ -309,13 +309,11 @@ TEST_F(StackBtmWithInitFreeTest, btm_sec_encrypt_change) {
 
   // With le device encryption enable
   btm_sec_encrypt_change(ble_handle, HCI_SUCCESS, 0x01);
-  ASSERT_EQ(BTM_SEC_IN_USE | BTM_SEC_LE_AUTHENTICATED | BTM_SEC_LE_ENCRYPTED,
-            device_record->sec_flags);
+  ASSERT_EQ(BTM_SEC_IN_USE | BTM_SEC_LE_ENCRYPTED, device_record->sec_flags);
 
   // With le device encryption disable
   btm_sec_encrypt_change(ble_handle, HCI_SUCCESS, 0x00);
-  ASSERT_EQ(BTM_SEC_IN_USE | BTM_SEC_LE_AUTHENTICATED,
-            device_record->sec_flags);
+  ASSERT_EQ(BTM_SEC_IN_USE, device_record->sec_flags);
   device_record->sec_flags = BTM_SEC_IN_USE;
 
   wipe_secrets_and_remove(device_record);

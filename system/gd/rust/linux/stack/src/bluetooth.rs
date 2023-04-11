@@ -1978,16 +1978,6 @@ impl IBluetooth for Bluetooth {
             return false;
         }
 
-        let is_bonding = match self.found_devices.get(&device.address) {
-            Some(d) => d.bond_state == BtBondState::Bonding,
-            None => false,
-        };
-
-        if !is_bonding {
-            warn!("Can't set pairing confirmation. Device {} isn't bonding.", device.address);
-            return false;
-        }
-
         self.intf.lock().unwrap().ssp_reply(
             &addr.unwrap(),
             BtSspVariant::PasskeyConfirmation,
