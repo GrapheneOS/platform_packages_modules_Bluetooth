@@ -3270,6 +3270,9 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (iGatt == null) {
                 // BLE is not supported
                 return null;
+            } else if (NULL_MAC_ADDRESS.equals(mAddress)) {
+                Log.e(TAG, "Unable to connect gatt, invalid address " + mAddress);
+                return null;
             }
             BluetoothGatt gatt = new BluetoothGatt(
                     iGatt, this, transport, opportunistic, phy, mAttributionSource);
