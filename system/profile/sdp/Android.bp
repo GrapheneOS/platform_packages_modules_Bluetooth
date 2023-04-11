@@ -10,8 +10,8 @@ package {
 cc_library_static {
     name: "sdp_service",
     defaults: [
-        "fluoride_defaults",
         "clang_file_coverage",
+        "fluoride_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -30,10 +30,10 @@ cc_test {
     name: "bluetooth_test_sdp",
     test_suites: ["general-tests"],
     defaults: [
-        "fluoride_defaults",
-        "clang_coverage_bin",
-        "mts_defaults",
         "bluetooth_gtest_x86_asan_workaround",
+        "clang_coverage_bin",
+        "fluoride_defaults",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -43,11 +43,11 @@ cc_test {
         "common/test/data_element_reader_test.cc",
     ],
     static_libs: [
+        "lib-bt-packets",
+        "lib-bt-packets-avrcp",
+        "lib-bt-packets-base",
+        "libbluetooth-types",
         "libgmock",
         "sdp_service",
-        "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
-        "libbluetooth-types",
     ],
 }

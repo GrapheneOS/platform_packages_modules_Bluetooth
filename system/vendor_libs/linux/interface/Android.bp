@@ -28,9 +28,9 @@ cc_binary {
     proprietary: true,
     relative_install_path: "hw",
     srcs: [
-        "hci_packetizer.cc",
-        "h4_protocol.cc",
         "bluetooth_hci.cc",
+        "h4_protocol.cc",
+        "hci_packetizer.cc",
         "service.cc",
     ],
     header_libs: ["libbluetooth_headers"],
@@ -71,14 +71,14 @@ cc_test_host {
     name: "bluetooth-btlinux-hci-test",
     srcs: [
         "async_fd_watcher.cc",
-        "hci_packetizer.cc",
         "h4_protocol.cc",
         "h4_protocol_unittest.cc",
+        "hci_packetizer.cc",
     ],
     cflags: [
+        "-DNO_THREAD_PRIORITY",
         "-Wall",
         "-Werror",
-        "-DNO_THREAD_PRIORITY",
     ],
     shared_libs: [
         "libbase",
