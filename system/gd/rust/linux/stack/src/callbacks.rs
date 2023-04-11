@@ -72,9 +72,9 @@ impl<T: RPCProxy + Send + ?Sized> Callbacks<T> {
     }
 
     /// Applies the given function on all active callbacks.
-    pub fn for_all_callbacks<F: Fn(&Box<T>)>(&self, f: F) {
-        for (_, callback) in self.callbacks.iter() {
-            f(&callback);
+    pub fn for_all_callbacks<F: Fn(&mut Box<T>)>(&mut self, f: F) {
+        for (_, ref mut callback) in self.callbacks.iter_mut() {
+            f(callback);
         }
     }
 }
