@@ -406,9 +406,12 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         assert dut_ref, ref_dut
 
         # Pairing
-        # FIXME: assert that the security Level is reached on ref side
-        secure = await self.dut.aio.security.Secure(connection=dut_ref, le=LE_LEVEL3)
-        assert_equal(secure.WhichOneof("result"), "success")
+        (secure, wait_security) = await asyncio.gather(
+            self.dut.aio.security.Secure(connection=dut_ref, le=LE_LEVEL3),
+            self.ref_left.aio.security.WaitSecurity(connection=ref_dut, le=LE_LEVEL3),
+        )
+        assert_equal(secure.result_variant(), 'success')
+        assert_equal(wait_security.result_variant(), 'success')
 
         await self.ref_left.aio.host.Disconnect(connection=ref_dut)
 
@@ -460,6 +463,90 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             await self.ref_right.aio.host.Disconnect(connection=ref_right_dut)
             assert not await self.is_device_connected(device=self.ref_right, connection=ref_right_dut, timeout=5.0)
             assert await self.is_device_connected(device=self.ref_left, connection=ref_left_dut, timeout=5.0)
+
+    @avatar.parameterized(
+        (RANDOM, RANDOM, Ear.LEFT),
+        (RANDOM, RANDOM, Ear.RIGHT),
+        (RANDOM, PUBLIC, Ear.LEFT),
+        (RANDOM, PUBLIC, Ear.RIGHT),
+    )  # type: ignore[misc]
+    @asynchronous
+    async def test_auto_connection_dual_device(
+        self, dut_address_type: OwnAddressType, ref_address_type: OwnAddressType, tested_device: Ear
+    ) -> None:
+        """
+        Prerequisites: DUT and Ref are connected and bonded. Ref is a dual device.
+        Description:
+           1. One peripheral of Ref initiates disconnection to DUT.
+           2. The disconnected peripheral starts sending ASHA advertisements.
+           3. Verify that DUT auto-connects to the peripheral.
+        """
+
+        advertisement_left = await self.ref_advertise_asha(ref_device=self.ref_left, ref_address_type=ref_address_type)
+        ref_left = await self.dut_scan_for_asha(dut_address_type=dut_address_type)
+        (dut_ref_left_res, ref_left_dut_res) = await asyncio.gather(
+            self.dut.aio.host.ConnectLE(own_address_type=dut_address_type, **ref_left.address_asdict()),
+            anext(aiter(advertisement_left)),  # pytype: disable=name-error
+        )
+        assert_equal(dut_ref_left_res.result_variant(), 'connection')
+        dut_ref_left, ref_left_dut = dut_ref_left_res.connection, ref_left_dut_res.connection
+        assert dut_ref_left, ref_left_dut
+        advertisement_left.cancel()
+
+        advertisement_right = await self.ref_advertise_asha(
+            ref_device=self.ref_right, ref_address_type=ref_address_type
+        )
+        ref_right = await self.dut_scan_for_asha(dut_address_type=dut_address_type)
+        (dut_ref_right_res, ref_right_dut_res) = await asyncio.gather(
+            self.dut.aio.host.ConnectLE(own_address_type=dut_address_type, **ref_right.address_asdict()),
+            anext(aiter(advertisement_right)),  # pytype: disable=name-error
+        )
+        assert_equal(dut_ref_right_res.result_variant(), 'connection')
+        dut_ref_right, ref_right_dut = dut_ref_right_res.connection, ref_right_dut_res.connection
+        assert dut_ref_right, ref_right_dut
+        advertisement_right.cancel()
+
+        # Pairing
+        (secure_left, wait_security_left) = await asyncio.gather(
+            self.dut.aio.security.Secure(connection=dut_ref_left, le=LE_LEVEL3),
+            self.ref_left.aio.security.WaitSecurity(connection=ref_left_dut, le=LE_LEVEL3),
+        )
+        assert_equal(secure_left.result_variant(), 'success')
+        assert_equal(wait_security_left.result_variant(), 'success')
+
+        (secure_right, wait_security_right) = await asyncio.gather(
+            self.dut.aio.security.Secure(connection=dut_ref_right, le=LE_LEVEL3),
+            self.ref_right.aio.security.WaitSecurity(connection=ref_right_dut, le=LE_LEVEL3),
+        )
+        assert_equal(secure_right.result_variant(), 'success')
+        assert_equal(wait_security_right.result_variant(), 'success')
+
+        if tested_device == Ear.LEFT:
+            await asyncio.gather(
+                self.ref_left.aio.host.Disconnect(connection=ref_left_dut),
+                self.dut.aio.host.WaitDisconnection(connection=dut_ref_left),
+            )
+            assert not await self.is_device_connected(device=self.ref_left, connection=ref_left_dut, timeout=5.0)
+
+            advertisement_left = await self.ref_advertise_asha(
+                ref_device=self.ref_left, ref_address_type=ref_address_type
+            )
+            ref_left_dut = (await anext(aiter(advertisement_left))).connection
+            advertisement_left.cancel()
+            assert ref_left_dut
+        else:
+            await asyncio.gather(
+                self.ref_right.aio.host.Disconnect(connection=ref_right_dut),
+                self.dut.aio.host.WaitDisconnection(connection=dut_ref_right),
+            )
+            assert not await self.is_device_connected(device=self.ref_right, connection=ref_right_dut, timeout=5.0)
+
+            advertisement_right = await self.ref_advertise_asha(
+                ref_device=self.ref_right, ref_address_type=ref_address_type
+            )
+            ref_right_dut = (await anext(aiter(advertisement_right))).connection
+            advertisement_right.cancel()
+            assert ref_right_dut
 
 
 if __name__ == "__main__":
