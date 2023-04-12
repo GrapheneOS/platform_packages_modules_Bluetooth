@@ -2370,7 +2370,7 @@ impl BtifSdpCallbacks for Bluetooth {
         _count: i32,
         records: Vec<BtSdpRecord>,
     ) {
-        let uuid = match UuidHelper::from_string(uuid.to_string()) {
+        let uuid_to_send = match UuidHelper::from_string(uuid.to_string()) {
             Some(uu) => uu,
             None => return,
         };
@@ -2378,8 +2378,25 @@ impl BtifSdpCallbacks for Bluetooth {
             Some(info) => info,
             None => BluetoothDevice::new(address.to_string(), "".to_string()),
         };
+
+        // The SDP records we get back do not populate the UUID so we populate it ourselves before
+        // sending them on.
+        let mut records = records;
+        records.iter_mut().for_each(|record| {
+            match record {
+                BtSdpRecord::HeaderOverlay(header) => header.uuid = uuid.clone(),
+                BtSdpRecord::MapMas(record) => record.hdr.uuid = uuid.clone(),
+                BtSdpRecord::MapMns(record) => record.hdr.uuid = uuid.clone(),
+                BtSdpRecord::PbapPse(record) => record.hdr.uuid = uuid.clone(),
+                BtSdpRecord::PbapPce(record) => record.hdr.uuid = uuid.clone(),
+                BtSdpRecord::OppServer(record) => record.hdr.uuid = uuid.clone(),
+                BtSdpRecord::SapServer(record) => record.hdr.uuid = uuid.clone(),
+                BtSdpRecord::Dip(record) => record.hdr.uuid = uuid.clone(),
+                BtSdpRecord::Mps(record) => record.hdr.uuid = uuid.clone(),
+            };
+        });
         self.callbacks.for_all_callbacks(|callback| {
-            callback.on_sdp_search_complete(device_info.clone(), uuid, records.clone());
+            callback.on_sdp_search_complete(device_info.clone(), uuid_to_send, records.clone());
         });
         debug!(
             "Sdp search result found: Status({:?}) Address({:?}) Uuid({:?})",
