@@ -54,8 +54,6 @@ cc_binary {
         "-fvisibility=hidden",
     ],
     generated_headers: [
-        "BluetoothGeneratedPackets_h",
-        "RootCanalGeneratedPackets_h",
         "libbt_init_flags_bridge_header",
     ],
     whole_static_libs: [
@@ -102,8 +100,6 @@ cc_library_shared {
         "libutils",
     ],
     generated_headers: [
-        "BluetoothGeneratedPackets_h",
-        "RootCanalGeneratedPackets_h",
         "libbt_init_flags_bridge_header",
     ],
     whole_static_libs: [
