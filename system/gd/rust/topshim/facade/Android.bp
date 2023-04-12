@@ -21,6 +21,7 @@ rust_defaults {
     ],
     rustlibs: [
         "libbluetooth_rs",
+        "libbluetooth_core_rs_for_facade",
         "libbt_common",
         "libbt_facade_helpers",
         "libbt_packets",
@@ -45,6 +46,7 @@ rust_defaults {
         "libaudio-a2dp-hw-utils",
         "libbluetooth-dumpsys",
         "libbluetooth-types",
+        "libbluetooth_core_rs",
         "libbluetooth_gd", // Gabeldorsche
         "libbt-audio-hal-interface",
         "libbt-bta",
