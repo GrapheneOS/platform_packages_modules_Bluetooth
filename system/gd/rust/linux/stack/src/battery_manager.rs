@@ -36,7 +36,7 @@ pub struct Batteries(Vec<BatterySet>);
 /// Callback for interacting with the BatteryManager.
 pub trait IBatteryManagerCallback: RPCProxy {
     /// Invoked whenever battery information associated with the given remote changes.
-    fn on_battery_info_updated(&self, remote_address: String, battery_set: BatterySet);
+    fn on_battery_info_updated(&mut self, remote_address: String, battery_set: BatterySet);
 }
 
 /// Central point for getting battery information that might be sourced from numerous systems.

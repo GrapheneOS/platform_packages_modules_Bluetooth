@@ -48,32 +48,32 @@ impl_dbus_arg_from_into!(HfpCodecCapability, i32);
 #[dbus_proxy_obj(BluetoothMediaCallback, "org.chromium.bluetooth.BluetoothMediaCallback")]
 impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
     #[dbus_method("OnBluetoothAudioDeviceAdded")]
-    fn on_bluetooth_audio_device_added(&self, device: BluetoothAudioDevice) {
+    fn on_bluetooth_audio_device_added(&mut self, device: BluetoothAudioDevice) {
         dbus_generated!()
     }
 
     #[dbus_method("OnBluetoothAudioDeviceRemoved")]
-    fn on_bluetooth_audio_device_removed(&self, addr: String) {
+    fn on_bluetooth_audio_device_removed(&mut self, addr: String) {
         dbus_generated!()
     }
 
     #[dbus_method("OnAbsoluteVolumeSupportedChanged")]
-    fn on_absolute_volume_supported_changed(&self, supported: bool) {
+    fn on_absolute_volume_supported_changed(&mut self, supported: bool) {
         dbus_generated!()
     }
 
     #[dbus_method("OnAbsoluteVolumeChanged")]
-    fn on_absolute_volume_changed(&self, volume: u8) {
+    fn on_absolute_volume_changed(&mut self, volume: u8) {
         dbus_generated!()
     }
 
     #[dbus_method("OnHfpVolumeChanged")]
-    fn on_hfp_volume_changed(&self, volume: u8, addr: String) {
+    fn on_hfp_volume_changed(&mut self, volume: u8, addr: String) {
         dbus_generated!()
     }
 
     #[dbus_method("OnHfpAudioDisconnected")]
-    fn on_hfp_audio_disconnected(&self, addr: String) {
+    fn on_hfp_audio_disconnected(&mut self, addr: String) {
         dbus_generated!()
     }
 }

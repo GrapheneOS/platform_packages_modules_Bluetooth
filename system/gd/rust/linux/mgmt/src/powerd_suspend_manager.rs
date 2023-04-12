@@ -114,11 +114,11 @@ fn send_handle_suspend_readiness(
 }
 
 impl ISuspendCallback for SuspendCallback {
-    fn on_callback_registered(&self, callback_id: u32) {
+    fn on_callback_registered(&mut self, callback_id: u32) {
         log::debug!("Suspend callback registered, callback_id = {}", callback_id);
     }
 
-    fn on_suspend_ready(&self, suspend_id: i32) {
+    fn on_suspend_ready(&mut self, suspend_id: i32) {
         // Received when adapter is ready to suspend. Tell powerd that suspend is ready.
         log::debug!("Suspend ready, adapter suspend_id = {}", suspend_id);
 
@@ -139,7 +139,7 @@ impl ISuspendCallback for SuspendCallback {
         }
     }
 
-    fn on_resumed(&self, suspend_id: i32) {
+    fn on_resumed(&mut self, suspend_id: i32) {
         // Received when adapter is ready to suspend. This is just for our information and powerd
         // doesn't need to know about this.
         log::debug!("Suspend resumed, adapter suspend_id = {}", suspend_id);

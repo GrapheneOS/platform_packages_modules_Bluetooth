@@ -32,8 +32,8 @@ cc_library {
         "com.android.btservices",
     ],
     shared_libs: [
-        "liblog",
         "libcutils",
+        "liblog",
     ],
     static_libs: [
         "libbluetooth_gd",
@@ -60,8 +60,8 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "audio_a2dp_hw_defaults",
-        "mts_defaults",
         "bluetooth_gtest_x86_asan_workaround",
+        "mts_defaults",
     ],
     srcs: [
         "test/audio_a2dp_hw_test.cc",
