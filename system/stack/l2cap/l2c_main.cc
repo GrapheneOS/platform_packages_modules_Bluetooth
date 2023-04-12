@@ -241,6 +241,8 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
 
   uint8_t* p_next_cmd = p;
   uint8_t* p_pkt_end = p + pkt_len;
+  uint8_t last_id = 0;
+  bool first_cmd = true;
 
   tL2CAP_CFG_INFO cfg_info;
   memset(&cfg_info, 0, sizeof(cfg_info));
@@ -249,13 +251,26 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   while (true) {
     /* Smallest command is 4 bytes */
     p = p_next_cmd;
-    if (p > (p_pkt_end - 4)) break;
+    if (p > (p_pkt_end - 4)) {
+      /* Reject to the previous endpoint if reliable channel is being used.
+       * This is required in L2CAP/COS/CED/BI-02-C */
+      if (!first_cmd &&
+          (cfg_info.fcr.mode == L2CAP_FCR_BASIC_MODE ||
+           cfg_info.fcr.mode == L2CAP_FCR_ERTM_MODE) &&
+          p != p_pkt_end)
+        l2cu_send_peer_cmd_reject(p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, last_id,
+                                  0, 0);
+      break;
+    }
 
     uint8_t cmd_code, id;
     uint16_t cmd_len;
     STREAM_TO_UINT8(cmd_code, p);
     STREAM_TO_UINT8(id, p);
     STREAM_TO_UINT16(cmd_len, p);
+
+    last_id = id;
+    first_cmd = false;
 
     if (cmd_len > BT_SMALL_BUFFER_SIZE) {
       LOG_WARN("Command size %u exceeds limit %d", cmd_len,

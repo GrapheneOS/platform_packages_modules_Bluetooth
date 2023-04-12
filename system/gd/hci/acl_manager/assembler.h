@@ -118,6 +118,11 @@ struct assembler {
         LOG_ERROR("Controller sent a starting packet without finishing previous packet. Drop previous one.");
       }
       size_t l2cap_pdu_size = GetL2capPduSize(packet);
+      if (l2cap_pdu_size == 0) {
+        LOG_WARN("dropping an invalid L2CAP packet");
+        return;
+      }
+
       remaining_sdu_continuation_packet_size_ = l2cap_pdu_size - (payload_size - kL2capBasicFrameHeaderSize);
       if ((payload_size - kL2capBasicFrameHeaderSize) > l2cap_pdu_size) {
         LOG_WARN(
