@@ -71,6 +71,7 @@ cc_defaults {
         "lib-bt-packets-base",
         "libFraunhoferAAC",
         "libaudio-a2dp-hw-utils",
+        "libbluetooth_core_rs",
         "libbluetooth-dumpsys",
         "libbluetooth-types",
         "libbt-audio-hal-interface",

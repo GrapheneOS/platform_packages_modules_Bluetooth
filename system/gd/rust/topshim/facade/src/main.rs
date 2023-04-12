@@ -31,6 +31,8 @@ mod utils;
 // clippy that is denied on the rust command line so we can't just allow it.
 // This is fine for now since bt_shim doesn't export anything
 #[allow(unused)]
+use bluetooth_core_rs_for_facade::*;
+#[allow(unused)]
 use bt_shim::*;
 
 fn main() {
