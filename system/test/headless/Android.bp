@@ -85,6 +85,7 @@ cc_binary {
         "libaudio-a2dp-hw-utils",
         "libbluetooth-dumpsys",
         "libbluetooth_gd",
+        "libbluetooth_core_rs",
         "libbluetooth_rust_interop",
         "libbt-audio-hal-interface",
         "libbt-bta",
