@@ -69,6 +69,9 @@ void init();
 // Check if wideband speech is supported on local device.
 bool get_wbs_supported();
 
+// Check if super wideband speech is supported on local device.
+bool get_swb_supported();
+
 // Checks the details of the codecs (specified as a bitmask of enum codec).
 bt_codecs get_codec_capabilities(uint64_t codecs);
 
