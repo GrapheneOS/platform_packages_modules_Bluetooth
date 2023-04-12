@@ -120,18 +120,18 @@ extern ::ScanningCallbacks* bluetooth::shim::default_scanning_callback;
 
 extern tBTM_CB btm_cb;
 
-extern void btm_ble_process_adv_pkt_cont_for_inquiry(
+void btm_ble_process_adv_pkt_cont_for_inquiry(
     uint16_t event_type, tBLE_ADDR_TYPE address_type,
     const RawAddress& raw_address, uint8_t primary_phy, uint8_t secondary_phy,
     uint8_t advertising_sid, int8_t tx_power, int8_t rssi,
     uint16_t periodic_adv_int, std::vector<uint8_t> advertising_data);
 
-extern void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
-                                                 BD_NAME bd_name,
-                                                 tBT_DEVICE_TYPE dev_type);
+void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
+                                          BD_NAME bd_name,
+                                          tBT_DEVICE_TYPE dev_type);
 
-extern void btm_ble_process_adv_addr(RawAddress& raw_address,
-                                     tBLE_ADDR_TYPE* address_type);
+void btm_ble_process_adv_addr(RawAddress& raw_address,
+                              tBLE_ADDR_TYPE* address_type);
 
 using bluetooth::shim::BleScannerInterfaceImpl;
 
@@ -396,12 +396,12 @@ void BleScannerInterfaceImpl::BatchscanReadReports(int client_if,
                                                       batch_scan_mode);
 }
 
-extern bool btm_random_pseudo_to_identity_addr(
-    RawAddress* random_pseudo, tBLE_ADDR_TYPE* p_identity_addr_type);
+bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
+                                        tBLE_ADDR_TYPE* p_identity_addr_type);
 
-extern bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
-                                               tBLE_ADDR_TYPE* p_addr_type,
-                                               bool refresh);
+bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
+                                        tBLE_ADDR_TYPE* p_addr_type,
+                                        bool refresh);
 
 extern tACL_CONN* btm_acl_for_bda(const RawAddress& bd_addr,
                                   tBT_TRANSPORT transport);
