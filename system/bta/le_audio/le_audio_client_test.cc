@@ -4073,10 +4073,11 @@ TEST_F(UnicastTest, TwoEarbuds2ndDisconnected) {
     InjectCisDisconnected(group_id, ase.cis_conn_hdl);
   }
 
-  EXPECT_CALL(mock_gatt_interface_,
-              Open(_, device->address_,
-                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, false))
-      .Times(1);
+  /* It is called twice. Once with BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS,
+   * and then after delay with BTM_BLE_BKG_CONNECT_ALLOW_LIST
+   */
+  EXPECT_CALL(mock_gatt_interface_, Open(_, device->address_, _, false))
+      .Times(2);
 
   // Record NumOfConnected when groupStateMachine_ gets notified about the
   // disconnection

@@ -405,6 +405,7 @@ class LeAudioDeviceGroup {
   }
 
   bool IsInTransition(void);
+  bool IsStreaming(void);
   bool IsReleasingOrIdle(void);
 
   void PrintDebugState(void);
