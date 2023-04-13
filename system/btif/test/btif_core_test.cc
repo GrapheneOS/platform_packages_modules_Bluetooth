@@ -46,6 +46,7 @@ module_t gd_controller_module;
 module_t gd_idle_module;
 module_t gd_shim_module;
 module_t osi_module;
+module_t rust_module;
 
 namespace {
 
