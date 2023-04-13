@@ -92,7 +92,13 @@ void BTA_GATTC_AppRegister(tBTA_GATTC_CBACK* p_client_cb,
 }
 
 static void app_deregister_impl(tGATT_IF client_if) {
-  bta_gattc_deregister(bta_gattc_cl_get_regcb(client_if));
+  tBTA_GATTC_RCB* p_clreg = bta_gattc_cl_get_regcb(client_if);
+
+  if (p_clreg != nullptr) {
+    bta_gattc_deregister(p_clreg);
+  } else {
+    LOG_ERROR("Unknown GATT ID: %d, state: %d", client_if, bta_gattc_cb.state);
+  }
 }
 /*******************************************************************************
  *
