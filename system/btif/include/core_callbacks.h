@@ -111,7 +111,6 @@ struct HACK_ProfileInterface {
   tBTA_HH_STATUS (*bta_hh_read_ssr_param)(const RawAddress& bd_addr,
                                           uint16_t* p_max_ssr_lat,
                                           uint16_t* p_min_ssr_tout);
-  bool (*bta_hh_le_is_hh_gatt_if)(tGATT_IF client_if);
 
   // AVDTP hacks
   void (*btif_av_set_dynamic_audio_buffer_size)(
