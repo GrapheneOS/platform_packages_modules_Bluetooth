@@ -5622,7 +5622,11 @@ public class AdapterService extends Service {
                 || mHearingAidService.getConnectionPolicy(device)
                 == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
             Log.i(TAG, "setActiveDevice: Setting active Hearing Aid " + device);
-            mHearingAidService.setActiveDevice(device);
+            if (device == null) {
+                mHearingAidService.removeActiveDevice(false);
+            } else {
+                mHearingAidService.setActiveDevice(device);
+            }
         }
 
         if (setHeadset && hfpSupported) {
