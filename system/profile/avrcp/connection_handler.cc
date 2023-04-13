@@ -428,7 +428,7 @@ void ConnectionHandler::SdpCb(RawAddress bdaddr, SdpCallback cb,
                               uint16_t status) {
   VLOG(1) << __PRETTY_FUNCTION__ << ": SDP lookup callback received";
 
-  if (status == SDP_CONN_FAILED and !retry) {
+  if (status == SDP_CONN_FAILED && !retry) {
     LOG(WARNING) << __PRETTY_FUNCTION__ << ": SDP Failure retry again";
     SdpLookup(bdaddr, cb, true);
     return;
