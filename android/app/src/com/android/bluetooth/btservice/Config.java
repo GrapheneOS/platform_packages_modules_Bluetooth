@@ -18,6 +18,7 @@ package com.android.bluetooth.btservice;
 
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.SystemProperties;
 import android.util.Log;
@@ -191,6 +192,11 @@ public class Config {
             } else if (leAudioSwitcherDisabled.equals("false")) {
                 setLeAudioProfileStatus(true);
             }
+        }
+
+        // Disable ASHA if BLE is not supported on this platform
+        if (!ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            setProfileEnabled(HearingAidService.class, false);
         }
 
         ArrayList<Class> profiles = new ArrayList<>(PROFILE_SERVICES_AND_FLAGS.length);

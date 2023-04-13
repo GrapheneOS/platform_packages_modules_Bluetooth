@@ -667,28 +667,6 @@ rust_library {
     min_sdk_version: "30",
 }
 
-rust_library {
-    name: "libbt_packets_nonapex",
-    defaults: ["gd_rust_defaults"],
-    crate_name: "bt_packets",
-    srcs: [
-        "rust/packets/lib.rs",
-
-        ":BluetoothGeneratedPackets_rust",
-    ],
-    edition: "2018",
-    vendor_available: true,
-    host_supported: true,
-    proc_macros: ["libnum_derive"],
-    rustlibs: [
-        "libbytes",
-        "libnum_traits",
-        "libthiserror",
-        "liblog_rust",
-    ],
-    min_sdk_version: "30",
-}
-
 rust_test_host {
     name: "libbt_packets_test",
     defaults: [

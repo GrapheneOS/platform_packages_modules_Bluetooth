@@ -88,9 +88,6 @@ cc_library {
         "packages/modules/Bluetooth/system/vnd/include",
         "system/security/keystore/include",
     ],
-    whole_static_libs: [
-        "libbluetooth_core_rs",
-    ],
     shared_libs: [
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",

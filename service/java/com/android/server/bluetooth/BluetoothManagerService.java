@@ -601,8 +601,12 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
         mBluetoothNotificationManager = new BluetoothNotificationManager(mContext);
 
+        // Disable ASHA if BLE is not supported on this platform
         mIsHearingAidProfileSupported =
-                BluetoothProperties.isProfileAshaCentralEnabled().orElse(false);
+                BluetoothProperties.isProfileAshaCentralEnabled().orElse(true);
+        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            mIsHearingAidProfileSupported = false;
+        }
 
         String value = SystemProperties.get(
                 "persist.sys.fflag.override.settings_bluetooth_hearing_aid");
