@@ -31,9 +31,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSinkAudioPolicy;
+import android.bluetooth.BluetoothStatusCodes;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
 
 import androidx.room.Room;
 import androidx.room.testing.MigrationTestHelper;
@@ -57,6 +59,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @MediumTest
@@ -649,6 +652,31 @@ public final class DatabaseManagerTest {
         mDatabaseManager.mMetadataCache.clear();
         // Wait for clear database
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+    }
+
+    @Test
+    public void testSetGetPreferredAudioProfiles() {
+        Bundle preferences = new Bundle();
+        preferences.putInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY, BluetoothProfile.LE_AUDIO);
+        preferences.putInt(BluetoothAdapter.AUDIO_MODE_DUPLEX, BluetoothProfile.LE_AUDIO);
+
+        // TEST 1: If input is invalid, throws the right Exception
+        Assert.assertThrows(NullPointerException.class,
+                () -> mDatabaseManager.setPreferredAudioProfiles(null, preferences));
+        Assert.assertThrows(NullPointerException.class,
+                () -> mDatabaseManager.setPreferredAudioProfiles(new ArrayList<>(), null));
+        Assert.assertThrows(IllegalArgumentException.class,
+                () -> mDatabaseManager.setPreferredAudioProfiles(new ArrayList<>(), preferences));
+        Assert.assertThrows(IllegalArgumentException.class,
+                () -> mDatabaseManager.getPreferredAudioProfiles(null));
+
+        // TEST 2: If not stored, setter fails and getter returns an empty Bundle
+        testSetGetPreferredAudioProfilesCase(false, preferences, Bundle.EMPTY,
+                BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED);
+
+        // TEST 3: If stored, setter succeeds and getter returns the stored preference
+        testSetGetPreferredAudioProfilesCase(true, preferences, preferences,
+                BluetoothStatusCodes.SUCCESS);
     }
 
     @Test
@@ -1507,6 +1535,68 @@ public final class DatabaseManagerTest {
         restartDatabaseManagerHelper();
         Assert.assertEquals(policy,
                 mDatabaseManager.getAudioPolicyMetadata(mTestDevice));
+
+        mDatabaseManager.factoryReset();
+        mDatabaseManager.mMetadataCache.clear();
+        // Wait for clear database
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+    }
+
+    void testSetGetPreferredAudioProfilesCase(boolean stored, Bundle preferencesToSet,
+            Bundle expectedPreferences, int expectedSetResult) {
+        if (stored) {
+            Metadata data = new Metadata(TEST_BT_ADDR);
+            Metadata data2 = new Metadata(TEST_BT_ADDR2);
+            mDatabaseManager.mMetadataCache.put(TEST_BT_ADDR, data);
+            mDatabaseManager.mMetadataCache.put(TEST_BT_ADDR2, data2);
+            mDatabase.insert(data);
+            mDatabase.insert(data2);
+        }
+        List<BluetoothDevice> groupDevices = new ArrayList<>();
+        groupDevices.add(mTestDevice);
+        groupDevices.add(mTestDevice2);
+
+        Assert.assertEquals(expectedSetResult,
+                mDatabaseManager.setPreferredAudioProfiles(groupDevices, preferencesToSet));
+        Bundle testDevicePreferences = mDatabaseManager.getPreferredAudioProfiles(mTestDevice);
+        Bundle testDevice2Preferences = mDatabaseManager.getPreferredAudioProfiles(mTestDevice2);
+        Assert.assertNotNull(testDevicePreferences);
+        Assert.assertNotNull(testDevice2Preferences);
+
+        Assert.assertEquals(expectedPreferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY),
+                testDevicePreferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY));
+        Assert.assertEquals(expectedPreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX),
+                testDevicePreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX));
+        Assert.assertEquals(0,
+                testDevice2Preferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY));
+        Assert.assertEquals(0, testDevice2Preferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX));
+
+        // Wait for database update
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+
+        List<Metadata> list = mDatabase.load();
+
+        // Check number of metadata in the database
+        if (!stored) {
+            Assert.assertEquals(0, list.size());
+            return;
+        }
+        Assert.assertEquals(2, list.size());
+
+        // Check whether the device is in database
+        restartDatabaseManagerHelper();
+        testDevicePreferences = mDatabaseManager.getPreferredAudioProfiles(mTestDevice);
+        testDevice2Preferences = mDatabaseManager.getPreferredAudioProfiles(mTestDevice2);
+        Assert.assertNotNull(testDevicePreferences);
+        Assert.assertNotNull(testDevice2Preferences);
+
+        Assert.assertEquals(expectedPreferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY),
+                testDevicePreferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY));
+        Assert.assertEquals(expectedPreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX),
+                testDevicePreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX));
+        Assert.assertEquals(0,
+                testDevice2Preferences.getInt(BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY));
+        Assert.assertEquals(0, testDevice2Preferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX));
 
         mDatabaseManager.factoryReset();
         mDatabaseManager.mMetadataCache.clear();

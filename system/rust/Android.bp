@@ -22,7 +22,6 @@ rust_defaults {
         "libbase",
     ],
     static_libs: [
-        "libbluetooth-core",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
 
@@ -71,6 +70,16 @@ rust_defaults {
     apex_available: ["com.android.btservices"],
 }
 
+rust_library {
+    name: "libbluetooth_core_rs_for_facade",
+    crate_name: "bluetooth_core_rs_for_facade",
+    defaults: ["libbluetooth_core_rs_defaults"],
+    rustlibs: [
+        "libtokio",
+    ],
+    host_supported: true,
+}
+
 rust_ffi_static {
     name: "libbluetooth_core_rs",
     crate_name: "bluetooth_core",
@@ -115,7 +124,6 @@ cc_library_static {
     ],
     export_include_dirs: ["."],
     static_libs: [
-        "libbluetooth-core",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],

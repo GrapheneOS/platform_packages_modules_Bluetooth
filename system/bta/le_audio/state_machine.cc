@@ -496,7 +496,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                                        uint16_t conn_handle) override {
     log_history_->AddLogHistory(
         kLogHciEvent, group->group_id_, leAudioDevice->address_,
-        kLogSetDataPathOp + "c_h:" + loghex(conn_handle) +
+        kLogSetDataPathOp + "cis_h:" + loghex(conn_handle) +
             " STATUS=" + loghex(status));
 
     if (status) {
@@ -585,7 +585,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
       log_history_->AddLogHistory(
           kLogStateMachineTag, group->group_id_, leAudioDevice->address_,
-          kLogCisDisconnectOp + "c_h:" + loghex(conn_hdl));
+          kLogCisDisconnectOp + "cis_h:" + loghex(conn_hdl));
     }
   }
 
@@ -727,7 +727,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     log_history_->AddLogHistory(
         kLogHciEvent, group->group_id_, leAudioDevice->address_,
-        kLogCisEstablishedOp + "c_h:" + loghex(event->cis_conn_hdl) +
+        kLogCisEstablishedOp + "cis_h:" + loghex(event->cis_conn_hdl) +
             " STATUS=" + loghex(event->status));
 
     if (event->status) {
@@ -859,7 +859,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     LeAudioLogHistory::Get()->AddLogHistory(
         kLogStateMachineTag, leAudioDevice->group_id_, leAudioDevice->address_,
-        kLogRemoveDataPathOp + " c_h:" + loghex(cis_conn_hdl));
+        kLogRemoveDataPathOp + " cis_h:" + loghex(cis_conn_hdl));
   }
 
   void ProcessHciNotifCisDisconnected(
@@ -873,7 +873,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     log_history_->AddLogHistory(
         kLogHciEvent, group->group_id_, leAudioDevice->address_,
-        kLogCisDisconnectedOp + "c_h:" + loghex(event->cis_conn_hdl) +
+        kLogCisDisconnectedOp + "cis_h:" + loghex(event->cis_conn_hdl) +
             " REASON=" + loghex(event->reason));
 
     /* If this is peer disconnecting CIS, make sure to clear data path */
@@ -1457,19 +1457,19 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           BTM_GetHCIConnHandle(leAudioDevice->address_, BT_TRANSPORT_LE);
       conn_pairs.push_back({.cis_conn_handle = ase->cis_conn_hdl,
                             .acl_conn_handle = acl_handle});
-      LOG(INFO) << __func__ << " cis handle: " << +ase->cis_conn_hdl
-                << " acl handle : " << loghex(+acl_handle);
-      extra_stream << "c_h:" << +ase->cis_conn_hdl << " a_h:" << +acl_handle
-                   << ";;";
+      LOG_INFO(" cis handle: 0x%04x, acl handle: 0x%04x", ase->cis_conn_hdl,
+               acl_handle);
+      extra_stream << "cis_h:" << loghex(ase->cis_conn_hdl)
+                   << " acl_h:" << loghex(acl_handle) << ";;";
     } while ((ase = leAudioDevice->GetNextActiveAse(ase)));
-
-    IsoManager::GetInstance()->EstablishCis(
-        {.conn_pairs = std::move(conn_pairs)});
 
     LeAudioLogHistory::Get()->AddLogHistory(
         kLogStateMachineTag, leAudioDevice->group_id_, RawAddress::kEmpty,
         kLogCisCreateOp + "#CIS: " + std::to_string(conn_pairs.size()),
         extra_stream.str());
+
+    IsoManager::GetInstance()->EstablishCis(
+        {.conn_pairs = std::move(conn_pairs)});
   }
 
   static void CisCreate(LeAudioDeviceGroup* group) {
@@ -1538,7 +1538,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     LeAudioLogHistory::Get()->AddLogHistory(
         kLogStateMachineTag, group_id, RawAddress::kEmpty,
-        kLogSetDataPathOp + "c_h:" + loghex(ase->cis_conn_hdl),
+        kLogSetDataPathOp + "cis_h:" + loghex(ase->cis_conn_hdl),
         "direction: " + loghex(param.data_path_dir));
 
     IsoManager::GetInstance()->SetupIsoDataPath(ase->cis_conn_hdl,
@@ -2746,7 +2746,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                                              HCI_ERR_PEER_USER);
     log_history_->AddLogHistory(
         kLogStateMachineTag, group->group_id_, leAudioDevice->address_,
-        kLogCisDisconnectOp + "c_h:" + loghex(ase->cis_conn_hdl));
+        kLogCisDisconnectOp + "cis_h:" + loghex(ase->cis_conn_hdl));
   }
 
   void AseStateMachineProcessReleasing(

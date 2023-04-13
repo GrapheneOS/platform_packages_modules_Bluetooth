@@ -265,6 +265,7 @@ cc_test {
         "android.system.suspend.control-V1-ndk",
         "libFraunhoferAAC",
         "libbluetooth-types",
+        "libbluetooth_core_rs",
         "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",

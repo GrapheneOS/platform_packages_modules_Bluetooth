@@ -907,6 +907,10 @@ bool LeAudioDeviceGroup::IsInTransition(void) {
   return target_state_ != current_state_;
 }
 
+bool LeAudioDeviceGroup::IsStreaming(void) {
+  return current_state_ == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING;
+}
+
 bool LeAudioDeviceGroup::IsReleasingOrIdle(void) {
   return (target_state_ == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) ||
          (current_state_ == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
