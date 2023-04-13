@@ -54,6 +54,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -172,6 +173,11 @@ public class HearingAidServiceTest {
 
     private void verifyConnectionStateIntent(int timeoutMs, BluetoothDevice device,
             int newState, int prevState) {
+        verifyConnectionStateIntent(timeoutMs, device, newState, prevState, true);
+    }
+
+    private void verifyConnectionStateIntent(int timeoutMs, BluetoothDevice device,
+            int newState, int prevState, boolean stopAudio) {
         Intent intent = TestUtils.waitForIntent(timeoutMs, mDeviceQueueMap.get(device));
         Assert.assertNotNull(intent);
         Assert.assertEquals(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED,
@@ -183,8 +189,11 @@ public class HearingAidServiceTest {
         if (newState == BluetoothProfile.STATE_CONNECTED) {
             // ActiveDeviceManager calls setActiveDevice when connected.
             mService.setActiveDevice(device);
+        } else if (prevState == BluetoothProfile.STATE_CONNECTED) {
+            if (mService.getConnectedDevices().isEmpty()) {
+                mService.removeActiveDevice(stopAudio);
+            }
         }
-
     }
 
     private void verifyNoConnectionStateIntent(int timeoutMs, BluetoothDevice device) {
@@ -550,7 +559,7 @@ public class HearingAidServiceTest {
 
         // Verify the audio is routed to Hearing Aid Profile
         verify(mAudioManager).handleBluetoothActiveDeviceChanged(
-                any(BluetoothDevice.class), eq(null), any(BluetoothProfileConnectionInfo.class));
+                eq(mLeftDevice), eq(null), any(BluetoothProfileConnectionInfo.class));
 
         // Send a disconnect request
         Assert.assertTrue("Disconnect failed", mService.disconnect(mLeftDevice));
@@ -601,9 +610,79 @@ public class HearingAidServiceTest {
         Assert.assertFalse(mService.getConnectedDevices().contains(mLeftDevice));
         Assert.assertFalse(mService.getConnectedDevices().contains(mRightDevice));
 
-        // Verify the audio is not routed to Hearing Aid Profile
+        // Verify the audio is not routed to Hearing Aid Profile.
+        // Music should be paused (i.e. should not suppress noisy intent)
+        ArgumentCaptor<BluetoothProfileConnectionInfo> connectionInfoArgumentCaptor =
+                ArgumentCaptor.forClass(BluetoothProfileConnectionInfo.class);
         verify(mAudioManager).handleBluetoothActiveDeviceChanged(
-                eq(null), any(BluetoothDevice.class), any(BluetoothProfileConnectionInfo.class));
+                eq(null), eq(mLeftDevice), connectionInfoArgumentCaptor.capture());
+        BluetoothProfileConnectionInfo connectionInfo = connectionInfoArgumentCaptor.getValue();
+        Assert.assertFalse(connectionInfo.isSuppressNoisyIntent());
+    }
+
+    /**
+     * Test that the noisy intent is suppressed when we call HearingAidService#removeActiveDevice()
+     * with (stopAudio == false).
+     */
+    @Test
+    public void testAudioManagerConnectDisconnect_suppressNoisyIntentCase() throws Exception {
+        // Update hiSyncId map
+        getHiSyncIdFromNative();
+        // Update the device priority so okToConnect() returns true
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(mLeftDevice, BluetoothProfile.HEARING_AID))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        doReturn(true).when(mNativeInterface).connectHearingAid(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectHearingAid(any(BluetoothDevice.class));
+
+        // Send a connect request
+        Assert.assertTrue("Connect failed", mService.connect(mLeftDevice));
+
+        // Verify the connection state broadcast, and that we are in Connecting state
+        verifyConnectionStateIntent(TIMEOUT_MS, mLeftDevice, BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                mService.getConnectionState(mLeftDevice));
+
+        HearingAidStackEvent connCompletedEvent;
+        // Send a message to trigger connection completed
+        connCompletedEvent = new HearingAidStackEvent(
+                HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connCompletedEvent.device = mLeftDevice;
+        connCompletedEvent.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_CONNECTED;
+        mService.messageFromNative(connCompletedEvent);
+
+        // Verify the connection state broadcast, and that we are in Connected state
+        verifyConnectionStateIntent(TIMEOUT_MS, mLeftDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_CONNECTING);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mLeftDevice));
+
+        // Verify the list of connected devices
+        Assert.assertTrue(mService.getConnectedDevices().contains(mLeftDevice));
+
+        // Verify the audio is routed to Hearing Aid Profile
+        verify(mAudioManager).handleBluetoothActiveDeviceChanged(
+                eq(mLeftDevice), eq(null), any(BluetoothProfileConnectionInfo.class));
+
+        // Send a disconnect request
+        Assert.assertTrue("Disconnect failed", mService.disconnect(mLeftDevice));
+
+        // Verify the connection state broadcast, and that we are in Disconnecting state
+        // Note that we call verifyConnectionStateIntent() with (stopAudio == false).
+        verifyConnectionStateIntent(TIMEOUT_MS, mLeftDevice, BluetoothProfile.STATE_DISCONNECTING,
+                BluetoothProfile.STATE_CONNECTED, false);
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTING,
+                mService.getConnectionState(mLeftDevice));
+
+        // Verify the audio is not routed to Hearing Aid Profile.
+        // Note that music should be not paused (i.e. should suppress noisy intent)
+        ArgumentCaptor<BluetoothProfileConnectionInfo> connectionInfoArgumentCaptor =
+                ArgumentCaptor.forClass(BluetoothProfileConnectionInfo.class);
+        verify(mAudioManager).handleBluetoothActiveDeviceChanged(
+                eq(null), eq(mLeftDevice), connectionInfoArgumentCaptor.capture());
+        BluetoothProfileConnectionInfo connectionInfo = connectionInfoArgumentCaptor.getValue();
+        Assert.assertTrue(connectionInfo.isSuppressNoisyIntent());
     }
 
     /**
