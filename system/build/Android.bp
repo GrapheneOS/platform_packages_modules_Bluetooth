@@ -169,14 +169,6 @@ cc_defaults {
 }
 
 cc_defaults {
-    name: "fluoride_unit_test_defaults",
-    defaults: ["fluoride_test_defaults"],
-    test_options: {
-        unit_test: true,
-    },
-}
-
-cc_defaults {
     name: "fluoride_basic_defaults",
     defaults: [
         "fluoride_test_prod_shared_defaults",
