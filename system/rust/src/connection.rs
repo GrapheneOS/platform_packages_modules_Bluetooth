@@ -17,7 +17,10 @@ use self::le_manager::{
     ErrorCode, InactiveLeAclManager, LeAclManager, LeAclManagerConnectionCallbacks,
 };
 
+mod ffi;
 pub mod le_manager;
+
+pub use ffi::{LeAclManagerImpl, LeAclManagerShim};
 
 /// Possible errors returned when making a connection attempt
 #[derive(Debug)]
