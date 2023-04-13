@@ -68,7 +68,6 @@ java_sdk_library {
         "//external/sl4a/Common",
         "//frameworks/opt/wear",
         "//packages/modules/Bluetooth/android/app/tests/unit",
-        "//packages/modules/Bluetooth/framework/tests/bumble",
         "//packages/modules/Bluetooth/android/pandora/server",
         "//packages/modules/Bluetooth/service",
         "//packages/modules/Connectivity/nearby/tests/multidevices/clients/test_support/fastpair_provider",
