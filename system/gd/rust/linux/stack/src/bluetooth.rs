@@ -1135,6 +1135,12 @@ impl BtifBluetoothCallbacks for Bluetooth {
                     Err(err) => warn!("create_pid_file() error: {}", err),
                     _ => (),
                 }
+
+                // Inform the rest of the stack we're ready.
+                let txl = self.tx.clone();
+                tokio::spawn(async move {
+                    let _ = txl.send(Message::AdapterReady).await;
+                });
             }
         }
     }

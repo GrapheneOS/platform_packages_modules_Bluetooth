@@ -687,7 +687,11 @@ pub struct BluetoothGattDescriptor {
 }
 
 impl BluetoothGattDescriptor {
-    fn new(uuid: Uuid128Bit, instance_id: i32, permissions: i32) -> BluetoothGattDescriptor {
+    pub(crate) fn new(
+        uuid: Uuid128Bit,
+        instance_id: i32,
+        permissions: i32,
+    ) -> BluetoothGattDescriptor {
         BluetoothGattDescriptor { uuid, instance_id, permissions }
     }
 }
@@ -705,16 +709,27 @@ pub struct BluetoothGattCharacteristic {
 }
 
 impl BluetoothGattCharacteristic {
-    pub const PROPERTY_BROADCAST: i32 = 0x01;
-    pub const PROPERTY_READ: i32 = 0x02;
-    pub const PROPERTY_WRITE_NO_RESPONSE: i32 = 0x04;
-    pub const PROPERTY_WRITE: i32 = 0x08;
-    pub const PROPERTY_NOTIFY: i32 = 0x10;
-    pub const PROPERTY_INDICATE: i32 = 0x20;
-    pub const PROPERTY_SIGNED_WRITE: i32 = 0x40;
-    pub const PROPERTY_EXTENDED_PROPS: i32 = 0x80;
+    // Properties are u8 but i32 in these apis.
+    pub const PROPERTY_BROADCAST: i32 = 1 << 0;
+    pub const PROPERTY_READ: i32 = 1 << 1;
+    pub const PROPERTY_WRITE_NO_RESPONSE: i32 = 1 << 2;
+    pub const PROPERTY_WRITE: i32 = 1 << 3;
+    pub const PROPERTY_NOTIFY: i32 = 1 << 4;
+    pub const PROPERTY_INDICATE: i32 = 1 << 5;
+    pub const PROPERTY_SIGNED_WRITE: i32 = 1 << 6;
+    pub const PROPERTY_EXTENDED_PROPS: i32 = 1 << 7;
 
-    fn new(
+    // Permissions are u16 but i32 in these apis.
+    pub const PERMISSION_READ: i32 = 1 << 0;
+    pub const PERMISSION_READ_ENCRYPTED: i32 = 1 << 1;
+    pub const PERMISSION_READ_ENCRYPED_MITM: i32 = 1 << 2;
+    pub const PERMISSION_WRITE: i32 = 1 << 4;
+    pub const PERMISSION_WRITE_ENCRYPTED: i32 = 1 << 5;
+    pub const PERMISSION_WRITE_ENCRYPTED_MITM: i32 = 1 << 6;
+    pub const PERMISSION_WRITE_SIGNED: i32 = 1 << 7;
+    pub const PERMISSION_WRITE_SIGNED_MITM: i32 = 1 << 8;
+
+    pub(crate) fn new(
         uuid: Uuid128Bit,
         instance_id: i32,
         properties: i32,
@@ -748,7 +763,11 @@ pub struct BluetoothGattService {
 }
 
 impl BluetoothGattService {
-    fn new(uuid: Uuid128Bit, instance_id: i32, service_type: i32) -> BluetoothGattService {
+    pub(crate) fn new(
+        uuid: Uuid128Bit,
+        instance_id: i32,
+        service_type: i32,
+    ) -> BluetoothGattService {
         BluetoothGattService {
             uuid,
             instance_id,
@@ -1095,12 +1114,18 @@ pub trait IScannerCallback: RPCProxy {
 #[derive(Debug, FromPrimitive, ToPrimitive)]
 #[repr(u8)]
 /// GATT write type.
-enum GattDbElementType {
+pub(crate) enum GattDbElementType {
     PrimaryService = 0,
     SecondaryService = 1,
     IncludedService = 2,
     Characteristic = 3,
     Descriptor = 4,
+}
+
+impl Into<i32> for GattDbElementType {
+    fn into(self) -> i32 {
+        self.to_u8().unwrap_or(0).into()
+    }
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive, Copy, Clone)]
@@ -1728,10 +1753,10 @@ impl BluetoothGatt {
     /// Start an active scan on given scanner id. This will look up and assign
     /// the correct ScanSettings for it as well.
     pub(crate) fn start_active_scan(&mut self, scanner_id: u8) -> BtStatus {
-        let interval: u16 = sysprop::get_i32(sysprop::Property::LeInquiryScanInterval)
+        let interval: u16 = sysprop::get_i32(sysprop::PropertyI32::LeInquiryScanInterval)
             .try_into()
             .expect("Bad value configured for LeInquiryScanInterval");
-        let window: u16 = sysprop::get_i32(sysprop::Property::LeInquiryScanWindow)
+        let window: u16 = sysprop::get_i32(sysprop::PropertyI32::LeInquiryScanWindow)
             .try_into()
             .expect("Bad value configured for LeInquiryScanWindow");
 
