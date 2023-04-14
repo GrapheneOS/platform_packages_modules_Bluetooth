@@ -64,7 +64,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,6 +95,7 @@ public class GattServiceTest {
     @Mock private GattService.ScannerMap mScannerMap;
     @Mock private GattService.ScannerMap.App mApp;
     @Mock private GattService.PendingIntentInfo mPiInfo;
+    @Mock private PeriodicScanManager mPeriodicScanManager;
     @Mock private ScanManager mScanManager;
     @Mock private Set<String> mReliableQueue;
     @Mock private GattService.ServerMap mServerMap;
@@ -144,6 +144,7 @@ public class GattServiceTest {
 
         mService.mClientMap = mClientMap;
         mService.mScannerMap = mScannerMap;
+        mService.mPeriodicScanManager = mPeriodicScanManager;
         mService.mScanManager = mScanManager;
         mService.mReliableQueue = mReliableQueue;
         mService.mServerMap = mServerMap;
@@ -701,7 +702,6 @@ public class GattServiceTest {
                 mAttributionSource);
     }
 
-    @Ignore("b/265327402")
     @Test
     public void registerSync() {
         ScanResult scanResult = new ScanResult(mDevice, 1, 2, 3, 4, 5, 6, 7, null, 8);
@@ -710,6 +710,7 @@ public class GattServiceTest {
         IPeriodicAdvertisingCallback callback = mock(IPeriodicAdvertisingCallback.class);
 
         mService.registerSync(scanResult, skip, timeout, callback, mAttributionSource);
+        verify(mPeriodicScanManager).startSync(scanResult, skip, timeout, callback);
     }
 
     @Test
@@ -718,9 +719,9 @@ public class GattServiceTest {
         int syncHandle = 2;
 
         mService.transferSync(mDevice, serviceData, syncHandle, mAttributionSource);
+        verify(mPeriodicScanManager).transferSync(mDevice, serviceData, syncHandle);
     }
 
-    @Ignore("b/265327402")
     @Test
     public void transferSetInfo() {
         int serviceData = 1;
@@ -729,14 +730,15 @@ public class GattServiceTest {
 
         mService.transferSetInfo(mDevice, serviceData, advHandle, callback,
                 mAttributionSource);
+        verify(mPeriodicScanManager).transferSetInfo(mDevice, serviceData, advHandle, callback);
     }
 
-    @Ignore("b/265327402")
     @Test
     public void unregisterSync() {
         IPeriodicAdvertisingCallback callback = mock(IPeriodicAdvertisingCallback.class);
 
         mService.unregisterSync(callback, mAttributionSource);
+        verify(mPeriodicScanManager).stopSync(callback);
     }
 
     @Test
