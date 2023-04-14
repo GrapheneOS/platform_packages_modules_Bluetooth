@@ -460,6 +460,15 @@ class CsisClientTest : public ::testing::Test {
     CsisClient::AddFromStorage(address, storage_buf, true);
   }
 
+  void InjectEncryptionEvent(const RawAddress& test_address, uint16_t conn_id) {
+    tBTA_GATTC_ENC_CMPL_CB event_data = {
+        .client_if = static_cast<tGATT_IF>(conn_id),
+        .remote_bda = test_address,
+    };
+
+    gatt_callback(BTA_GATTC_ENC_CMPL_CB_EVT, (tBTA_GATTC*)&event_data);
+  }
+
   void InjectConnectedEvent(const RawAddress& address, uint16_t conn_id) {
     tBTA_GATTC_OPEN event_data = {
         .status = GATT_SUCCESS,
@@ -526,17 +535,17 @@ class CsisClientTest : public ::testing::Test {
     gatt_callback(BTA_GATTC_CLOSE_EVT, (tBTA_GATTC*)&event_data);
   }
 
-  void SetEncryptionResult(const RawAddress& address, bool success) {
-    ON_CALL(btm_interface, GetSecurityFlagsByTransport(address, NotNull(), _))
-        .WillByDefault(DoAll(SetArgPointee<1>(0), Return(true)));
-    EXPECT_CALL(btm_interface,
-                SetEncryption(address, _, NotNull(), _, BTM_BLE_SEC_ENCRYPT))
-        .WillOnce(Invoke(
-            [&success](const RawAddress& bd_addr, tBT_TRANSPORT transport,
+  void SetEncryptionResult(const RawAddress& address, uint16_t conn_id,
+                           bool success) {
+    ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
+        .WillByDefault(DoAll(Return(success)));
+
+    ON_CALL(btm_interface, SetEncryption(address, _, _, _, _))
+        .WillByDefault(
+            Invoke([&](const RawAddress& bd_addr, tBT_TRANSPORT transport,
                        tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
                        tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
-              p_callback(&bd_addr, transport, p_ref_data,
-                         success ? BTM_SUCCESS : BTM_FAILED_ON_SECURITY);
+              InjectEncryptionEvent(bd_addr, conn_id);
               return BTM_SUCCESS;
             }));
   }
