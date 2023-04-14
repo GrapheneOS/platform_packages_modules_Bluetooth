@@ -136,7 +136,7 @@ async fn provide_controller(mut hci: CommandSender) -> Arc<ControllerExports> {
             1
         };
     let le_periodic_advertiser_list_size =
-        if commands.is_supported(OpCode::LeReadPeriodicAdvertisingListSize) {
+        if commands.is_supported(OpCode::LeReadPeriodicAdvertiserListSize) {
             assert_success!(hci.send(LeReadPeriodicAdvertiserListSizeBuilder {}))
                 .get_periodic_advertiser_list_size()
         } else {

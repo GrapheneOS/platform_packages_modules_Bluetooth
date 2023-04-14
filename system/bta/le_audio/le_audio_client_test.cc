@@ -4643,6 +4643,10 @@ TEST_F(UnicastTest, SpeakerStreamingTimeout) {
   // Verify Data transfer on one audio source cis
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
+  // Do not accept direct connect, but expect it to arrive.
+  ON_CALL(mock_gatt_interface_, Open(_, _, BTM_BLE_DIRECT_CONNECTION, _))
+      .WillByDefault(Return());
+
   state_machine_callbacks_->OnStateTransitionTimeout(group_id);
 
   /* No assigned cises should remain when transition remains in IDLE state */

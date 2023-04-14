@@ -2308,6 +2308,48 @@ void DualModeController::LeRemoveDeviceFromResolvingList(CommandView command) {
           kNumCommandPackets, status));
 }
 
+void DualModeController::LeSetPeriodicAdvertisingParameters(
+    CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeSetPeriodicAdvertisingParametersView::Create(
+          bluetooth::hci::LeAdvertisingCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LeSetPeriodicAdvertisingParameters(
+      command_view.GetAdvertisingHandle(),
+      command_view.GetPeriodicAdvertisingIntervalMin(),
+      command_view.GetPeriodicAdvertisingIntervalMax(),
+      command_view.GetIncludeTxPower());
+  send_event_(
+      bluetooth::hci::LeSetPeriodicAdvertisingParametersCompleteBuilder::Create(
+          kNumCommandPackets, status));
+}
+
+void DualModeController::LeSetPeriodicAdvertisingData(CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeSetPeriodicAdvertisingDataRawView::Create(
+          bluetooth::hci::LeAdvertisingCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LeSetPeriodicAdvertisingData(
+      command_view.GetAdvertisingHandle(), command_view.GetOperation(),
+      command_view.GetAdvertisingData());
+  send_event_(
+      bluetooth::hci::LeSetPeriodicAdvertisingDataCompleteBuilder::Create(
+          kNumCommandPackets, status));
+}
+
+void DualModeController::LeSetPeriodicAdvertisingEnable(CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeSetPeriodicAdvertisingEnableView::Create(
+          bluetooth::hci::LeAdvertisingCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LeSetPeriodicAdvertisingEnable(
+      command_view.GetEnable(), command_view.GetIncludeAdi(),
+      command_view.GetAdvertisingHandle());
+  send_event_(
+      bluetooth::hci::LeSetPeriodicAdvertisingEnableCompleteBuilder::Create(
+          kNumCommandPackets, status));
+}
+
 void DualModeController::LeSetExtendedScanParameters(CommandView command) {
   auto command_view = bluetooth::hci::LeSetExtendedScanParametersView::Create(
       bluetooth::hci::LeScanningCommandView::Create(command));
@@ -3429,8 +3471,8 @@ const std::unordered_map<OpCode, OpCodeIndex>
          OpCodeIndex::LE_REMOVE_ADVERTISING_SET},
         {OpCode::LE_CLEAR_ADVERTISING_SETS,
          OpCodeIndex::LE_CLEAR_ADVERTISING_SETS},
-        {OpCode::LE_SET_PERIODIC_ADVERTISING_PARAM,
-         OpCodeIndex::LE_SET_PERIODIC_ADVERTISING_PARAM},
+        {OpCode::LE_SET_PERIODIC_ADVERTISING_PARAMETERS,
+         OpCodeIndex::LE_SET_PERIODIC_ADVERTISING_PARAMETERS},
         {OpCode::LE_SET_PERIODIC_ADVERTISING_DATA,
          OpCodeIndex::LE_SET_PERIODIC_ADVERTISING_DATA},
         {OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE,
@@ -3447,14 +3489,14 @@ const std::unordered_map<OpCode, OpCodeIndex>
          OpCodeIndex::LE_PERIODIC_ADVERTISING_CREATE_SYNC_CANCEL},
         {OpCode::LE_PERIODIC_ADVERTISING_TERMINATE_SYNC,
          OpCodeIndex::LE_PERIODIC_ADVERTISING_TERMINATE_SYNC},
-        {OpCode::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISING_LIST,
-         OpCodeIndex::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISING_LIST},
-        {OpCode::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISING_LIST,
-         OpCodeIndex::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISING_LIST},
-        {OpCode::LE_CLEAR_PERIODIC_ADVERTISING_LIST,
-         OpCodeIndex::LE_CLEAR_PERIODIC_ADVERTISING_LIST},
-        {OpCode::LE_READ_PERIODIC_ADVERTISING_LIST_SIZE,
-         OpCodeIndex::LE_READ_PERIODIC_ADVERTISING_LIST_SIZE},
+        {OpCode::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISER_LIST,
+         OpCodeIndex::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISER_LIST},
+        {OpCode::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISER_LIST,
+         OpCodeIndex::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISER_LIST},
+        {OpCode::LE_CLEAR_PERIODIC_ADVERTISER_LIST,
+         OpCodeIndex::LE_CLEAR_PERIODIC_ADVERTISER_LIST},
+        {OpCode::LE_READ_PERIODIC_ADVERTISER_LIST_SIZE,
+         OpCodeIndex::LE_READ_PERIODIC_ADVERTISER_LIST_SIZE},
         {OpCode::LE_READ_TRANSMIT_POWER, OpCodeIndex::LE_READ_TRANSMIT_POWER},
         {OpCode::LE_READ_RF_PATH_COMPENSATION_POWER,
          OpCodeIndex::LE_READ_RF_PATH_COMPENSATION_POWER},
@@ -3960,12 +4002,12 @@ const std::unordered_map<OpCode, DualModeController::CommandHandler>
          &DualModeController::LeRemoveAdvertisingSet},
         {OpCode::LE_CLEAR_ADVERTISING_SETS,
          &DualModeController::LeClearAdvertisingSets},
-        //{OpCode::LE_SET_PERIODIC_ADVERTISING_PARAM,
-        //&DualModeController::LeSetPeriodicAdvertisingParam},
-        //{OpCode::LE_SET_PERIODIC_ADVERTISING_DATA,
-        //&DualModeController::LeSetPeriodicAdvertisingData},
-        //{OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE,
-        //&DualModeController::LeSetPeriodicAdvertisingEnable},
+        {OpCode::LE_SET_PERIODIC_ADVERTISING_PARAMETERS,
+         &DualModeController::LeSetPeriodicAdvertisingParameters},
+        {OpCode::LE_SET_PERIODIC_ADVERTISING_DATA,
+         &DualModeController::LeSetPeriodicAdvertisingData},
+        {OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE,
+         &DualModeController::LeSetPeriodicAdvertisingEnable},
         {OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS,
          &DualModeController::LeSetExtendedScanParameters},
         {OpCode::LE_SET_EXTENDED_SCAN_ENABLE,
@@ -3978,14 +4020,14 @@ const std::unordered_map<OpCode, DualModeController::CommandHandler>
         //&DualModeController::LePeriodicAdvertisingCreateSyncCancel},
         //{OpCode::LE_PERIODIC_ADVERTISING_TERMINATE_SYNC,
         //&DualModeController::LePeriodicAdvertisingTerminateSync},
-        //{OpCode::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISING_LIST,
-        //&DualModeController::LeAddDeviceToPeriodicAdvertisingList},
-        //{OpCode::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISING_LIST,
-        //&DualModeController::LeRemoveDeviceFromPeriodicAdvertisingList},
-        //{OpCode::LE_CLEAR_PERIODIC_ADVERTISING_LIST,
-        //&DualModeController::LeClearPeriodicAdvertisingList},
-        //{OpCode::LE_READ_PERIODIC_ADVERTISING_LIST_SIZE,
-        //&DualModeController::LeReadPeriodicAdvertisingListSize},
+        //{OpCode::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISER_LIST,
+        //&DualModeController::LeAddDeviceToPeriodicAdvertiserList},
+        //{OpCode::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISER_LIST,
+        //&DualModeController::LeRemoveDeviceFromPeriodicAdvertiserList},
+        //{OpCode::LE_CLEAR_PERIODIC_ADVERTISER_LIST,
+        //&DualModeController::LeClearPeriodicAdvertiserList},
+        //{OpCode::LE_READ_PERIODIC_ADVERTISER_LIST_SIZE,
+        //&DualModeController::LeReadPeriodicAdvertiserListSize},
         //{OpCode::LE_READ_TRANSMIT_POWER,
         //&DualModeController::LeReadTransmitPower},
         //{OpCode::LE_READ_RF_PATH_COMPENSATION_POWER,

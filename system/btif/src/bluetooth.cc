@@ -333,7 +333,6 @@ static bluetooth::core::CoreInterface* CreateInterfaceToProfiles() {
       .btif_hh_connect = btif_hh_connect,
       .btif_hh_virtual_unplug = btif_hh_virtual_unplug,
       .bta_hh_read_ssr_param = bta_hh_read_ssr_param,
-      .bta_hh_le_is_hh_gatt_if = bta_hh_le_is_hh_gatt_if,
 
       // AVDTP
       .btif_av_set_dynamic_audio_buffer_size =

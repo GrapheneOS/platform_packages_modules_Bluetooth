@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::core::init;
+use crate::core::{start, stop};
 
 use cxx::{type_id, ExternType};
 pub use inner::*;
 
 unsafe impl Send for GattServerCallbacks {}
+unsafe impl Send for Future {}
 
 unsafe impl ExternType for Uuid {
     type Id = type_id!("bluetooth::Uuid");
@@ -36,6 +37,18 @@ mod inner {
     pub enum AddressTypeForFFI {
         Public,
         Random,
+    }
+
+    unsafe extern "C++" {
+        include!("osi/include/future.h");
+        include!("src/core/ffi/module.h");
+
+        #[cxx_name = "future_t"]
+        type Future;
+
+        #[namespace = "bluetooth::rust_shim"]
+        #[cxx_name = "FutureReady"]
+        fn future_ready(future: Pin<&mut Future>);
     }
 
     #[namespace = "bluetooth::core"]
@@ -58,6 +71,11 @@ mod inner {
 
     #[namespace = "bluetooth::rust_shim"]
     extern "Rust" {
-        fn init(gatt_server_callbacks: UniquePtr<GattServerCallbacks>);
+        fn start(
+            gatt_server_callbacks: UniquePtr<GattServerCallbacks>,
+            on_started: Pin<&'static mut Future>,
+        );
+
+        fn stop();
     }
 }

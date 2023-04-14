@@ -476,11 +476,13 @@ class PeriodicSyncManager {
   }
 
   void HandleStartSyncRequest(uint8_t sid, const AddressWithType& address_with_type, uint16_t skip, uint16_t timeout) {
-    auto options = static_cast<PeriodicAdvertisingOptions>(0);
-    auto sync_cte_type = static_cast<PeriodicSyncCteType>(
+    PeriodicAdvertisingOptions options;
+    auto sync_cte_type =
         static_cast<uint8_t>(PeriodicSyncCteType::AVOID_AOA_CONSTANT_TONE_EXTENSION) |
-        static_cast<uint8_t>(PeriodicSyncCteType::AVOID_AOD_CONSTANT_TONE_EXTENSION_WITH_ONE_US_SLOTS) |
-        static_cast<uint8_t>(PeriodicSyncCteType::AVOID_AOD_CONSTANT_TONE_EXTENSION_WITH_TWO_US_SLOTS));
+        static_cast<uint8_t>(
+            PeriodicSyncCteType::AVOID_AOD_CONSTANT_TONE_EXTENSION_WITH_ONE_US_SLOTS) |
+        static_cast<uint8_t>(
+            PeriodicSyncCteType::AVOID_AOD_CONSTANT_TONE_EXTENSION_WITH_TWO_US_SLOTS);
     auto sync = GetSyncFromAddressWithTypeAndSid(address_with_type, sid);
     sync->sync_state = PERIODIC_SYNC_STATE_PENDING;
     AdvertisingAddressType advertisingAddressType =

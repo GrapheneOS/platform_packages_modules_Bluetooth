@@ -991,7 +991,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
                 A2dpService.getA2dpService().removeActiveDevice(false);
             }
             if (mAdapterService.getActiveDevices(BluetoothProfile.HEARING_AID).size() > 0) {
-                HearingAidService.getHearingAidService().setActiveDevice(null);
+                HearingAidService.getHearingAidService().removeActiveDevice(false);
             }
             if (mLeAudioService == null) {
                 mLeAudioService = LeAudioService.getLeAudioService();

@@ -257,8 +257,8 @@ CmdEvtActivityClassification lookup_cmd(hci::OpCode opcode) {
     case hci::OpCode::LE_SET_SCAN_ENABLE:
     case hci::OpCode::LE_SET_DEFAULT_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS:
     case hci::OpCode::LE_SET_PERIODIC_ADVERTISING_RECEIVE_ENABLE:
-    case hci::OpCode::LE_CLEAR_PERIODIC_ADVERTISING_LIST:
-    case hci::OpCode::LE_READ_PERIODIC_ADVERTISING_LIST_SIZE:
+    case hci::OpCode::LE_CLEAR_PERIODIC_ADVERTISER_LIST:
+    case hci::OpCode::LE_READ_PERIODIC_ADVERTISER_LIST_SIZE:
     case hci::OpCode::LE_PERIODIC_ADVERTISING_TERMINATE_SYNC:
       classification = {.activity = Activity::SCAN, .connection_handle_pos = 0, .address_pos = 0};
       break;
@@ -274,7 +274,7 @@ CmdEvtActivityClassification lookup_cmd(hci::OpCode opcode) {
     case hci::OpCode::LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS:
     case hci::OpCode::LE_REMOVE_ADVERTISING_SET:
     case hci::OpCode::LE_CLEAR_ADVERTISING_SETS:
-    case hci::OpCode::LE_SET_PERIODIC_ADVERTISING_PARAM:
+    case hci::OpCode::LE_SET_PERIODIC_ADVERTISING_PARAMETERS:
     case hci::OpCode::LE_SET_PERIODIC_ADVERTISING_DATA:
     case hci::OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE:
     case hci::OpCode::LE_SET_ADVERTISING_SET_RANDOM_ADDRESS:
@@ -310,8 +310,8 @@ CmdEvtActivityClassification lookup_cmd(hci::OpCode opcode) {
     case hci::OpCode::LE_PERIODIC_ADVERTISING_CREATE_SYNC:
       classification = {.activity = Activity::SCAN, .connection_handle_pos = 0, .address_pos = 6};
       break;
-    case hci::OpCode::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISING_LIST:
-    case hci::OpCode::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISING_LIST:
+    case hci::OpCode::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISER_LIST:
+    case hci::OpCode::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISER_LIST:
       classification = {.activity = Activity::SCAN, .connection_handle_pos = 0, .address_pos = 4};
       break;
     case hci::OpCode::LE_PERIODIC_ADVERTISING_SYNC_TRANSFER:

@@ -30,7 +30,6 @@
 #include "hardware/bt_gatt.h"
 #include "rust/cxx.h"
 #include "rust/src/gatt/ffi/gatt_shim.h"
-#include "src/core/ffi.rs.h"
 #include "src/gatt/ffi.rs.h"
 #include "utils/Log.h"
 #define info(fmt, ...) ALOGI("%s(L%d): " fmt, __func__, __LINE__, ##__VA_ARGS__)
@@ -1393,10 +1392,6 @@ static void initializeNative(JNIEnv* env, jobject object) {
       JniDistanceMeasurementCallbacks::GetInstance());
 
   mCallbacksObj = env->NewGlobalRef(object);
-
-  auto callbacks = std::make_unique<bluetooth::gatt::GattServerCallbacks>(
-      sGattServerCallbacks);
-  bluetooth::rust_shim::init(std::move(callbacks));
 }
 
 static void cleanupNative(JNIEnv* env, jobject object) {

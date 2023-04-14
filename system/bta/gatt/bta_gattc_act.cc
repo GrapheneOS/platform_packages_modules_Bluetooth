@@ -147,13 +147,7 @@ void bta_gattc_disable() {
     if (!bta_gattc_cb.cl_rcb[i].in_use) continue;
 
     bta_gattc_cb.state = BTA_GATTC_STATE_DISABLING;
-/* don't deregister HH GATT IF */
-/* HH GATT IF will be deregistered by bta_hh_le_deregister when disable HH */
-    if (!GetInterfaceToProfiles()
-             ->profileSpecific_HACK->bta_hh_le_is_hh_gatt_if(
-                 bta_gattc_cb.cl_rcb[i].client_if)) {
-      bta_gattc_deregister(&bta_gattc_cb.cl_rcb[i]);
-    }
+    bta_gattc_deregister(&bta_gattc_cb.cl_rcb[i]);
   }
 
   /* no registered apps, indicate disable completed */

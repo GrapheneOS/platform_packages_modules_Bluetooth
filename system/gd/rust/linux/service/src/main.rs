@@ -128,6 +128,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Forward --hci to Fluoride.
     init_flags.push(format!("--hci={}", hci_index));
+    let logging = Arc::new(Mutex::new(Box::new(BluetoothLogging::new(is_debug, log_output))));
 
     // Always treat discovery as classic only
     init_flags.push(String::from("INIT_classic_discovery_only=true"));
@@ -174,7 +175,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth_media.clone(),
         tx.clone(),
     ))));
-    let logging = Arc::new(Mutex::new(Box::new(BluetoothLogging::new(is_debug, log_output))));
     let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(tx.clone()))));
     let qa = Arc::new(Mutex::new(Box::new(BluetoothQA::new(tx.clone()))));
 
