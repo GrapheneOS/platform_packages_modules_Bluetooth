@@ -75,6 +75,9 @@ std::ostream& operator<<(std::ostream& os, const DeviceConnectState& state) {
     case DeviceConnectState::DISCONNECTING:
       char_value_ = "DISCONNECTING";
       break;
+    case DeviceConnectState::DISCONNECTING_AND_RECOVER:
+      char_value_ = "DISCONNECTING_AND_RECOVER";
+      break;
     case DeviceConnectState::PENDING_REMOVAL:
       char_value_ = "PENDING_REMOVAL";
       break;

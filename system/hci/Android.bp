@@ -99,7 +99,7 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "fluoride_unit_test_defaults",
+        "fluoride_test_defaults",
         "mts_defaults",
     ],
     local_include_dirs: [

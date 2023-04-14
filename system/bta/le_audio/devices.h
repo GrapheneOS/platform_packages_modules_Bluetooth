@@ -48,6 +48,9 @@ enum class DeviceConnectState : uint8_t {
   REMOVING,
   /* Disconnecting */
   DISCONNECTING,
+  /* Disconnecting for recover - after that we want direct connect to be
+     initiated */
+  DISCONNECTING_AND_RECOVER,
   /* Device will be removed after scheduled action is finished: One of such
    * action is taking Stream to IDLE
    */

@@ -1070,11 +1070,13 @@ TEST_F(LeExtendedAdvertisingAPITest, set_periodic_parameter) {
   advertising_config.max_interval = 0x1000;
   advertising_config.min_interval = 0x0006;
   le_advertising_manager_->SetPeriodicParameters(advertiser_id_, advertising_config);
-  ASSERT_EQ(OpCode::LE_SET_PERIODIC_ADVERTISING_PARAM, test_hci_layer_->GetCommand().GetOpCode());
+  ASSERT_EQ(
+      OpCode::LE_SET_PERIODIC_ADVERTISING_PARAMETERS, test_hci_layer_->GetCommand().GetOpCode());
   EXPECT_CALL(
       mock_advertising_callback_,
       OnPeriodicAdvertisingParametersUpdated(advertiser_id_, AdvertisingCallback::AdvertisingStatus::SUCCESS));
-  test_hci_layer_->IncomingEvent(LeSetPeriodicAdvertisingParamCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+  test_hci_layer_->IncomingEvent(
+      LeSetPeriodicAdvertisingParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
   sync_client_handler();
 }
 

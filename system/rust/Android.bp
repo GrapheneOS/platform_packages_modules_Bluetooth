@@ -112,11 +112,13 @@ cc_library_static {
         "libchrome_support_defaults",
     ],
     srcs: [
+        "src/core/ffi/module.cc",
         "src/gatt/ffi/gatt_shim.cc",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/gd/rust/shim",
         "packages/modules/Bluetooth/system/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",

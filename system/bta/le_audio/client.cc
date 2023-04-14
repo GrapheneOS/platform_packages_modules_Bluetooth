@@ -1123,6 +1123,7 @@ class LeAudioClientImpl : public LeAudioClient {
         Disconnect(address);
         [[fallthrough]];
       case DeviceConnectState::DISCONNECTING:
+      case DeviceConnectState::DISCONNECTING_AND_RECOVER:
         /* Remove device from the background connect if it is there */
         BTA_GATTC_CancelOpen(gatt_if_, address, false);
         /* Device is disconnecting, just mark it shall be removed after all. */
@@ -1397,6 +1398,7 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       case DeviceConnectState::DISCONNECTED:
       case DeviceConnectState::DISCONNECTING:
+      case DeviceConnectState::DISCONNECTING_AND_RECOVER:
       case DeviceConnectState::CONNECTING_AUTOCONNECT:
       case DeviceConnectState::PENDING_REMOVAL:
       case DeviceConnectState::REMOVING:
@@ -1427,6 +1429,8 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Remote in bad state, force ACL Disconnection. */
     if (acl_force_disconnect) {
       leAudioDevice->DisconnectAcl();
+      leAudioDevice->SetConnectionState(
+          DeviceConnectState::DISCONNECTING_AND_RECOVER);
     }
   }
 
@@ -1982,6 +1986,39 @@ class LeAudioClientImpl : public LeAudioClient {
     );
   }
 
+  void recoveryReconnect(RawAddress address) {
+    LOG_INFO("Reconnecting to %s after timeout on state machine.",
+             ADDRESS_TO_LOGGABLE_CSTR(address));
+    LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
+
+    if (leAudioDevice == nullptr ||
+        leAudioDevice->GetConnectionState() !=
+            DeviceConnectState::DISCONNECTING_AND_RECOVER) {
+      LOG_WARN("Device %s, not interested in recovery connect anymore",
+               ADDRESS_TO_LOGGABLE_CSTR(address));
+      return;
+    }
+
+    leAudioDevice->SetConnectionState(
+        DeviceConnectState::CONNECTING_AUTOCONNECT);
+    BTA_GATTC_Open(gatt_if_, address, BTM_BLE_DIRECT_CONNECTION, false);
+  }
+
+  void scheduleRecoveryReconnect(RawAddress& address) {
+    LOG_INFO("Schedule reconnecting to %s after timeout on state machine.",
+             ADDRESS_TO_LOGGABLE_CSTR(address));
+    do_in_main_thread_delayed(
+        FROM_HERE,
+        base::BindOnce(&LeAudioClientImpl::recoveryReconnect,
+                       base::Unretained(this), address),
+#if BASE_VER < 931007
+        base::TimeDelta::FromMilliseconds(kRecoveryReconnectDelayMs)
+#else
+        base::Milliseconds(kDeviceAttachDelayMs)
+#endif
+    );
+  }
+
   void OnGattDisconnected(uint16_t conn_id, tGATT_IF client_if,
                           RawAddress address, tGATT_DISCONN_REASON reason) {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
@@ -2017,6 +2054,19 @@ class LeAudioClientImpl : public LeAudioClient {
       leAudioDevices_.Remove(address);
       return;
     }
+
+    if (leAudioDevice->GetConnectionState() ==
+        DeviceConnectState::DISCONNECTING_AND_RECOVER) {
+      /* We are back after disconnecting device which was in a bad state.
+       * lets try to reconnected - 30 sec with direct connect and later fallback
+       * to default background reconnection mode.
+       * Since GATT notifies us before ACL was dropped, let's wait a bit
+       * before we do reconnect.
+       */
+      scheduleRecoveryReconnect(address);
+      return;
+    }
+
     /* Attempt background re-connect if disconnect was not intended locally
      * or if autoconnect is set and device got disconnected because of some
      * issues
@@ -4903,6 +4953,7 @@ class LeAudioClientImpl : public LeAudioClient {
   /* Reconnection mode */
   tBTM_BLE_CONN_TYPE reconnection_mode_;
   static constexpr uint64_t kGroupStreamingWatchDelayMs = 3000;
+  static constexpr uint64_t kRecoveryReconnectDelayMs = 2000;
 
   static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
       "persist.bluetooth.leaudio.notify.idle.during.call";

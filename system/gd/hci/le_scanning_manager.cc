@@ -1090,10 +1090,10 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
       LOG_WARN("Batch scan is not supported");
       return;
     }
-    AdvertisingAddressType own_address_type = AdvertisingAddressType::PUBLIC_ADDRESS;
+    PeerAddressType own_address_type = PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS;
     if (own_address_type_ == OwnAddressType::RANDOM_DEVICE_ADDRESS ||
         own_address_type_ == OwnAddressType::RESOLVABLE_OR_RANDOM_ADDRESS) {
-      own_address_type = AdvertisingAddressType::RANDOM_ADDRESS;
+      own_address_type = PeerAddressType::RANDOM_DEVICE_OR_IDENTITY_ADDRESS;
     }
     uint8_t truncated_mode_enabled = 0x00;
     uint8_t full_mode_enabled = 0x00;

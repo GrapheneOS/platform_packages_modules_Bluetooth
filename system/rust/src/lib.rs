@@ -39,8 +39,8 @@ pub mod packets;
 pub mod utils;
 
 /// The owner of the main Rust thread on which all Rust modules run
-pub struct GlobalModuleRegistry {
-    task_tx: MainThreadTx,
+struct GlobalModuleRegistry {
+    pub task_tx: MainThreadTx,
 }
 
 /// The ModuleViews lets us access all publicly accessible Rust modules from
@@ -62,7 +62,11 @@ impl GlobalModuleRegistry {
     /// have started, but before the legacy stack has initialized.
     /// Must be invoked from the Rust thread after JNI initializes it and passes
     /// in JNI modules.
-    pub fn start(gatt_callbacks: Rc<dyn GattCallbacks>, att_transport: Rc<dyn AttTransport>) {
+    pub fn start(
+        gatt_callbacks: Rc<dyn GattCallbacks>,
+        att_transport: Rc<dyn AttTransport>,
+        on_started: impl FnOnce(),
+    ) {
         info!("starting Rust modules");
         let rt = Builder::new_current_thread()
             .enable_all()
@@ -70,7 +74,7 @@ impl GlobalModuleRegistry {
             .expect("failed to start tokio runtime");
         let local = LocalSet::new();
 
-        let (tx, mut rx) = mpsc::unbounded_channel::<BoxedMainThreadCallback>();
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let prev_registry = GLOBAL_MODULE_REGISTRY.lock().unwrap().replace(Self { task_tx: tx });
 
         // initialization should only happen once
@@ -94,12 +98,21 @@ impl GlobalModuleRegistry {
                 gatt_module,
             };
 
+            // notify upper layer that we are ready to receive messages
+            on_started();
+
             // This is the core event loop that serializes incoming requests into the Rust
             // thread do_in_rust_thread lets us post into here from foreign
             // threads
             info!("starting Tokio event loop");
-            while let Some(f) = rx.recv().await {
-                f(&mut modules)
+            while let Some(message) = rx.recv().await {
+                match message {
+                    MainThreadTxMessage::Callback(f) => f(&mut modules),
+                    MainThreadTxMessage::Stop => {
+                        GLOBAL_MODULE_REGISTRY.lock().unwrap().take();
+                        break;
+                    }
+                }
             }
         });
         warn!("Rust thread queue has stopped, shutting down executor thread");
@@ -107,7 +120,11 @@ impl GlobalModuleRegistry {
 }
 
 type BoxedMainThreadCallback = Box<dyn for<'a> FnOnce(&'a mut ModuleViews) + Send + 'static>;
-type MainThreadTx = mpsc::UnboundedSender<BoxedMainThreadCallback>;
+enum MainThreadTxMessage {
+    Callback(BoxedMainThreadCallback),
+    Stop,
+}
+type MainThreadTx = mpsc::UnboundedSender<MainThreadTxMessage>;
 
 thread_local! {
     /// The TX end of a channel into the Rust thread, so external callers can
@@ -116,7 +133,7 @@ thread_local! {
     /// clone this channel to fail loudly if it's not yet initialized.
     ///
     /// This will be lazily initialized on first use from each client thread
-    pub static MAIN_THREAD_TX: MainThreadTx =
+    static MAIN_THREAD_TX: MainThreadTx =
         GLOBAL_MODULE_REGISTRY.lock().unwrap().as_ref().expect("stack not initialized").task_tx.clone();
 }
 
@@ -137,7 +154,7 @@ where
         warn!("ignoring do_in_rust_thread() invocation since Rust loop is inactive");
         return;
     }
-    let ret = MAIN_THREAD_TX.with(|tx| tx.send(Box::new(f)));
+    let ret = MAIN_THREAD_TX.with(|tx| tx.send(MainThreadTxMessage::Callback(Box::new(f))));
     if ret.is_err() {
         panic!("Rust call failed");
     }

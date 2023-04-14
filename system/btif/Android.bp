@@ -294,9 +294,9 @@ cc_test {
     target: {
         android: {
             shared_libs: [
-                "libbinder_ndk",
                 "android.hardware.bluetooth.audio-V3-ndk",
                 "libPlatformProperties",
+                "libbinder_ndk",
             ],
         },
     },

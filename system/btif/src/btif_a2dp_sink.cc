@@ -735,7 +735,7 @@ static void btif_a2dp_sink_set_focus_state_event(
 }
 
 void btif_a2dp_sink_set_audio_track_gain(float gain) {
-  LOG_INFO("%s: set gain to %f", __func__, gain);
+  LOG_DEBUG("%s: set gain to %f", __func__, gain);
   LockGuard lock(g_mutex);
 
 #ifndef OS_GENERIC

@@ -201,20 +201,6 @@ void bta_hh_le_enable(void) {
 
 /*******************************************************************************
  *
- * Function         bta_hh_le_is_hh_gatt_if
- *
- * Description      Check to see if client_if is BTA HH LE GATT interface
- *
- *
- * Returns          whether it is HH GATT IF
- *
- ******************************************************************************/
-bool bta_hh_le_is_hh_gatt_if(tGATT_IF client_if) {
-  return (bta_hh_cb.gatt_if == client_if);
-}
-
-/*******************************************************************************
- *
  * Function         bta_hh_le_deregister
  *
  * Description      De-register BTA HH from BTA GATTC
