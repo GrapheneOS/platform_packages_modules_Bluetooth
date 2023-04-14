@@ -329,7 +329,7 @@ typedef enum : uint8_t {
   BTA_AG_MIC_EVT = 8,         /* Microphone volume changed */
   BTA_AG_AT_CKPD_EVT = 9,     /* CKPD from the HS */
   BTA_AG_DISABLE_EVT = 30,    /* AG disabled */
-  BTA_AG_WBS_EVT = 31,        /* SCO codec info */
+  BTA_AG_CODEC_EVT = 31,      /* SCO codec info */
   /* Values below are for HFP only */
   BTA_AG_AT_A_EVT = 10,    /* Answer a call */
   BTA_AG_AT_D_EVT = 11,    /* Place a call using number or memory dial */
