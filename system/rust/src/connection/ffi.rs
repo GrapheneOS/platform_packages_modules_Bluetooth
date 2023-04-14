@@ -4,16 +4,17 @@ use std::{fmt::Debug, pin::Pin};
 
 use cxx::UniquePtr;
 pub use inner::*;
+use log::warn;
 use tokio::{
     sync::mpsc::{unbounded_channel, UnboundedSender},
     task::spawn_local,
 };
 
-use crate::core::address::AddressWithType;
+use crate::{core::address::AddressWithType, do_in_rust_thread};
 
 use super::{
     le_manager::{ErrorCode, InactiveLeAclManager, LeAclManager, LeAclManagerConnectionCallbacks},
-    LeConnection,
+    ConnectionManagerClient, LeConnection,
 };
 
 unsafe impl Send for LeAclManagerShim {}
@@ -69,6 +70,21 @@ mod inner {
         fn on_le_connect_fail(&self, address: AddressWithType, status: u8);
         #[cxx_name = "OnDisconnect"]
         fn on_disconnect(&self, address: AddressWithType);
+    }
+
+    #[namespace = "bluetooth::connection"]
+    unsafe extern "C++" {
+        include!("stack/arbiter/acl_arbiter.h");
+
+        /// Register APIs exposed by Rust
+        fn RegisterRustApis(
+            start_direct_connection: fn(client_id: u8, address: AddressWithType),
+            stop_direct_connection: fn(client_id: u8, address: AddressWithType),
+            add_background_connection: fn(client_id: u8, address: AddressWithType),
+            remove_background_connection: fn(client_id: u8, address: AddressWithType),
+            remove_client: fn(client_id: u8),
+            stop_all_connections_to_device: fn(address: AddressWithType),
+        );
     }
 }
 
@@ -152,4 +168,58 @@ impl Debug for LeAclManagerImpl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("LeAclManagerImpl").finish()
     }
+}
+
+/// Registers all connection-manager callbacks into C++ dependencies
+pub fn register_callbacks() {
+    RegisterRustApis(
+        |client, address| {
+            let client = ConnectionManagerClient::GattClient(client);
+            do_in_rust_thread(move |modules| {
+                let result = modules.connection_manager.start_direct_connection(client, address);
+                if let Err(err) = result {
+                    warn!("Failed to start direct connection from {client:?} to {address:?} ({err:?})")
+                }
+            });
+        },
+        |client, address| {
+            let client = ConnectionManagerClient::GattClient(client);
+            do_in_rust_thread(move |modules| {
+                let result = modules.connection_manager.cancel_direct_connection(client, address);
+                if let Err(err) = result {
+                    warn!("Failed to cancel direct connection from {client:?} to {address:?} ({err:?})")
+                }
+            })
+        },
+        |client, address| {
+            let client = ConnectionManagerClient::GattClient(client);
+            do_in_rust_thread(move |modules| {
+                let result = modules.connection_manager.add_background_connection(client, address);
+                if let Err(err) = result {
+                    warn!("Failed to add background connection from {client:?} to {address:?} ({err:?})")
+                }
+            })
+        },
+        |client, address| {
+            let client = ConnectionManagerClient::GattClient(client);
+            do_in_rust_thread(move |modules| {
+                let result =
+                    modules.connection_manager.remove_background_connection(client, address);
+                if let Err(err) = result {
+                    warn!("Failed to remove background connection from {client:?} to {address:?} ({err:?})")
+                }
+            })
+        },
+        |client| {
+            let client = ConnectionManagerClient::GattClient(client);
+            do_in_rust_thread(move |modules| {
+                modules.connection_manager.remove_client(client);
+            })
+        },
+        |address| {
+            do_in_rust_thread(move |modules| {
+                modules.connection_manager.cancel_unconditionally(address);
+            })
+        },
+    )
 }

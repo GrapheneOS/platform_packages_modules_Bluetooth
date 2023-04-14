@@ -20,7 +20,7 @@ use self::le_manager::{
 mod ffi;
 pub mod le_manager;
 
-pub use ffi::{LeAclManagerImpl, LeAclManagerShim};
+pub use ffi::{register_callbacks, LeAclManagerImpl, LeAclManagerShim};
 
 /// Possible errors returned when making a connection attempt
 #[derive(Debug)]
@@ -146,14 +146,14 @@ impl ConnectionManager {
     }
 
     fn on_le_connect_success(&self, _conn: LeConnection) {
-        todo!()
+        // TODO(aryarahul)
     }
 
     fn on_le_connect_fail(&self, _address: AddressWithType, _status: ErrorCode) {
-        todo!()
+        // TODO(aryarahul)
     }
 
     fn on_disconnect(&self, _address: AddressWithType) {
-        todo!()
+        // TODO(aryarahul)
     }
 }

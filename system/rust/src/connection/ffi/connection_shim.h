@@ -45,5 +45,34 @@ class LeAclManagerShim {
   std::unique_ptr<impl> pimpl_;
 };
 
+void RegisterRustApis(
+    ::rust::Fn<void(uint8_t client_id, core::AddressWithType address)>
+        start_direct_connection,
+    ::rust::Fn<void(uint8_t client_id, core::AddressWithType address)>
+        stop_direct_connection,
+    ::rust::Fn<void(uint8_t client_id, core::AddressWithType address)>
+        add_background_connection,
+    ::rust::Fn<void(uint8_t client_id, core::AddressWithType address)>
+        remove_background_connection,
+    ::rust::Fn<void(uint8_t client_id)> remove_client,
+    ::rust::Fn<void(core::AddressWithType address)>
+        stop_all_connections_to_device);
+
+struct RustConnectionManager {
+  ::rust::Fn<void(uint8_t client_id, core::AddressWithType address)>
+      start_direct_connection;
+  ::rust::Fn<void(uint8_t client_id, core::AddressWithType address)>
+      stop_direct_connection;
+  ::rust::Fn<void(uint8_t client_id, core::AddressWithType address)>
+      add_background_connection;
+  ::rust::Fn<void(uint8_t client_id, core::AddressWithType address)>
+      remove_background_connection;
+  ::rust::Fn<void(uint8_t client_id)> remove_client;
+  ::rust::Fn<void(core::AddressWithType address)>
+      stop_all_connections_to_device;
+};
+
+RustConnectionManager& GetConnectionManager();
+
 }  // namespace connection
 }  // namespace bluetooth

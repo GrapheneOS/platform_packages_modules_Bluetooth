@@ -87,6 +87,7 @@ impl GlobalModuleRegistry {
 
         // First, setup FFI and C++ modules
         gatt::arbiter::initialize_arbiter();
+        connection::register_callbacks();
 
         // Now enter the runtime
         local.block_on(&rt, async {
