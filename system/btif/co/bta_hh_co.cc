@@ -685,14 +685,13 @@ void bta_hh_co_get_rpt_rsp(uint8_t dev_handle, uint8_t status, uint8_t* p_rpt,
     ev.u.feature_answer.err = status;
     ev.u.feature_answer.size = len;
     osi_free(get_rpt_id);
-
-    if (len >= GET_RPT_RSP_OFFSET) {
-      if (len - GET_RPT_RSP_OFFSET > UHID_DATA_MAX) {
+    if (len > 0) {
+      if (len > UHID_DATA_MAX) {
         APPL_TRACE_WARNING("%s: Report size greater than allowed size",
                            __func__);
         return;
       }
-      memcpy(ev.u.feature_answer.data, p_rpt + GET_RPT_RSP_OFFSET, len - GET_RPT_RSP_OFFSET);
+      memcpy(ev.u.feature_answer.data, p_rpt + GET_RPT_RSP_OFFSET, len);
       uhid_write(p_dev->fd, &ev);
     }
   }
