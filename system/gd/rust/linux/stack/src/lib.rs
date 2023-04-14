@@ -15,6 +15,7 @@ pub mod bluetooth_logging;
 pub mod bluetooth_media;
 pub mod bluetooth_qa;
 pub mod callbacks;
+pub mod dis;
 pub mod socket_manager;
 pub mod suspend;
 pub mod uuid;
@@ -38,6 +39,7 @@ use crate::bluetooth_gatt::{
     dispatch_le_scanner_callbacks, dispatch_le_scanner_inband_callbacks, BluetoothGatt,
 };
 use crate::bluetooth_media::{BluetoothMedia, MediaActions};
+use crate::dis::{DeviceInformation, ServiceCallbacks};
 use crate::socket_manager::{BluetoothSocketManager, SocketActions};
 use crate::suspend::Suspend;
 use bt_topshim::{
@@ -54,6 +56,9 @@ use bt_topshim::{
 pub enum Message {
     // Shuts down the stack.
     Shutdown,
+
+    // Adapter is enabled and ready.
+    AdapterReady,
 
     // Callbacks from libbluetooth
     A2dp(A2dpCallbacks),
@@ -115,6 +120,9 @@ pub enum Message {
     // Admin policy related
     AdminCallbackDisconnected(u32),
     HidHostEnable,
+
+    // Dis callbacks
+    Dis(ServiceCallbacks),
 }
 
 /// Represents suspend mode of a module.
@@ -150,6 +158,7 @@ impl Stack {
         suspend: Arc<Mutex<Box<Suspend>>>,
         bluetooth_socketmgr: Arc<Mutex<Box<BluetoothSocketManager>>>,
         bluetooth_admin: Arc<Mutex<Box<BluetoothAdmin>>>,
+        bluetooth_dis: Arc<Mutex<Box<DeviceInformation>>>,
     ) {
         loop {
             let m = rx.recv().await;
@@ -162,6 +171,14 @@ impl Stack {
             match m.unwrap() {
                 Message::Shutdown => {
                     bluetooth.lock().unwrap().disable();
+                }
+
+                Message::AdapterReady => {
+                    // Initialize objects that need the adapter to be fully
+                    // enabled before running.
+
+                    // Register device information service.
+                    bluetooth_dis.lock().unwrap().initialize();
                 }
 
                 Message::A2dp(a) => {
@@ -321,6 +338,9 @@ impl Stack {
                 }
                 Message::HidHostEnable => {
                     bluetooth.lock().unwrap().enable_hidhost();
+                }
+                Message::Dis(callback) => {
+                    bluetooth_dis.lock().unwrap().handle_callbacks(&callback);
                 }
             }
         }
