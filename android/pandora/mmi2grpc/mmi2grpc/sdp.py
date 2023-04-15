@@ -116,6 +116,7 @@ class SDPProxy(ProfileProxy):
             "Android Auto Compatibility",
         ]
         optional_services = [
+            "A/V_RemoteControlController",
             "Android Auto Compatibility",
         ]
         movable_services = [
