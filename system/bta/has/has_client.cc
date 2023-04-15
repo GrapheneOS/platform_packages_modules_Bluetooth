@@ -1874,25 +1874,13 @@ class HasClientImpl : public HasClient {
     /* verify bond */
     if (BTM_IsEncrypted(device->addr, BT_TRANSPORT_LE)) {
       /* if link has been encrypted */
-      if (device->isGattServiceValid()) {
-        instance->OnEncrypted(*device);
-      } else {
-        BTA_GATTC_ServiceSearchRequest(device->conn_id,
-                                       &kUuidHearingAccessService);
-      }
+      OnEncrypted(*device);
       return;
     }
 
-    int result = BTM_SetEncryption(
-        evt.remote_bda, BT_TRANSPORT_LE,
-        [](const RawAddress* bd_addr, tBT_TRANSPORT transport, void* p_ref_data,
-           tBTM_STATUS status) {
-          if (instance)
-            instance->OnLeEncryptionComplete(*bd_addr, status == BTM_SUCCESS);
-        },
-        nullptr, BTM_BLE_SEC_ENCRYPT);
-
-    DLOG(INFO) << __func__ << ": Encryption request result: " << result;
+    int result = BTM_SetEncryption(device->addr, BT_TRANSPORT_LE, nullptr,
+                                   nullptr, BTM_BLE_SEC_ENCRYPT);
+    LOG_INFO("Encryption required. Request result: 0x%02x", result);
   }
 
   void OnGattDisconnected(const tBTA_GATTC_CLOSE& evt) {
