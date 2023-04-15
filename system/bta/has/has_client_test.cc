@@ -654,6 +654,15 @@ class HasClientTestBase : public ::testing::Test {
 
     encryption_result = true;
 
+    ON_CALL(btm_interface, SetEncryption(_, _, _, _, _))
+        .WillByDefault(
+            Invoke([this](const RawAddress& bd_addr, tBT_TRANSPORT transport,
+                          tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
+                          tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
+              InjectEncryptionEvent(bd_addr);
+              return BTM_SUCCESS;
+            }));
+
     MockCsisClient::SetMockInstanceForTesting(&mock_csis_client_module_);
     ON_CALL(mock_csis_client_module_, Get())
         .WillByDefault(Return(&mock_csis_client_module_));
@@ -868,26 +877,20 @@ class HasClientTestBase : public ::testing::Test {
     gatt_callback(BTA_GATTC_NOTIF_EVT, (tBTA_GATTC*)&event_data);
   }
 
+  void InjectEncryptionEvent(const RawAddress& test_address) {
+    tBTA_GATTC_ENC_CMPL_CB event_data = {
+        .client_if = static_cast<tGATT_IF>(GetTestConnId(test_address)),
+        .remote_bda = test_address,
+    };
+
+    gatt_callback(BTA_GATTC_ENC_CMPL_CB_EVT, (tBTA_GATTC*)&event_data);
+  }
+
   void SetEncryptionResult(const RawAddress& address, bool success) {
     encryption_result = success;
+
     ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
-        .WillByDefault(Return(success));
-    ON_CALL(btm_interface, GetSecurityFlagsByTransport(address, NotNull(), _))
-        .WillByDefault(
-            DoAll(SetArgPointee<1>(success ? BTM_SEC_FLAG_ENCRYPTED : 0),
-                  Return(true)));
-    if (!success) {
-      EXPECT_CALL(btm_interface,
-                  SetEncryption(address, _, NotNull(), _, BTM_BLE_SEC_ENCRYPT))
-          .WillOnce(Invoke(
-              [success](const RawAddress& bd_addr, tBT_TRANSPORT transport,
-                        tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
-                        tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
-                p_callback(&bd_addr, transport, p_ref_data,
-                           success ? BTM_SUCCESS : BTM_FAILED_ON_SECURITY);
-                return BTM_SUCCESS;
-              }));
-    }
+        .WillByDefault(DoAll(Return(encryption_result)));
   }
 
   void InjectNotifyReadPresetResponse(uint16_t conn_id,
