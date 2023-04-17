@@ -866,10 +866,10 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_HH_CLOSE_EVT:
       BTIF_TRACE_DEBUG("BTA_HH_CLOSE_EVT: status = %d, handle = %d",
                        p_data->dev_status.status, p_data->dev_status.handle);
-      HAL_CBACK(bt_hh_callbacks, connection_state_cb,
-                (RawAddress*)&p_data->conn.bda, BTHH_CONN_STATE_DISCONNECTING);
       p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
       if (p_dev != NULL) {
+        HAL_CBACK(bt_hh_callbacks, connection_state_cb, &(p_dev->bd_addr),
+                  BTHH_CONN_STATE_DISCONNECTING);
         BTIF_TRACE_DEBUG("%s: uhid fd=%d local_vup=%d", __func__, p_dev->fd,
                          p_dev->local_vup);
         btif_hh_stop_vup_timer(&(p_dev->bd_addr));
