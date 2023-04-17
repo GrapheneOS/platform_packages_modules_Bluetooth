@@ -4734,7 +4734,7 @@ class LeAudioClientImpl : public LeAudioClient {
               group, le_audio::types::kLeAudioDirectionSource) &&
           (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
       if (has_audio_source_configured) {
-        LOG_DEBUG(
+        LOG_INFO(
             "Audio source is already available in the current configuration "
             "context in %s. Not switching to %s right now.",
             ToString(configuration_context_type_).c_str(),
@@ -4759,9 +4759,9 @@ class LeAudioClientImpl : public LeAudioClient {
       LeAudioDeviceGroup* group, LeAudioContextType new_configuration_context,
       BidirectionalPair<AudioContexts> remote_contexts) {
     if (new_configuration_context != configuration_context_type_) {
-      LOG_DEBUG("Changing configuration context from %s to %s",
-                ToString(configuration_context_type_).c_str(),
-                ToString(new_configuration_context).c_str());
+      LOG_INFO("Checking whether to change configuration context from %s to %s",
+               ToString(configuration_context_type_).c_str(),
+               ToString(new_configuration_context).c_str());
 
       LeAudioLogHistory::Get()->AddLogHistory(
           kLogAfCallBt, active_group_id_, RawAddress::kEmpty,
@@ -4776,7 +4776,7 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-      LOG_DEBUG(
+      LOG_INFO(
           "The %s configuration did not change. Updating the metadata to "
           "sink=%s, source=%s",
           ToString(configuration_context_type_).c_str(),
