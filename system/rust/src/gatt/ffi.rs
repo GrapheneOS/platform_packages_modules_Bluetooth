@@ -9,7 +9,7 @@ use bt_common::init_flags::{
 };
 use cxx::UniquePtr;
 pub use inner::*;
-use log::{error, info, warn};
+use log::{error, info, trace, warn};
 use tokio::task::spawn_local;
 
 use crate::{
@@ -196,6 +196,7 @@ impl GattCallbacks for GattCallbacksImpl {
         attr_type: AttributeBackingType,
         offset: u32,
     ) {
+        trace!("on_server_read ({conn_id:?}, {trans_id:?}, {handle:?}, {attr_type:?}, {offset:?}");
         self.0.as_ref().unwrap().on_server_read(
             conn_id.0,
             trans_id.0,
@@ -215,6 +216,9 @@ impl GattCallbacks for GattCallbacksImpl {
         write_type: GattWriteType,
         value: AttAttributeDataView,
     ) {
+        trace!(
+            "on_server_write ({conn_id:?}, {trans_id:?}, {handle:?}, {attr_type:?}, {write_type:?}"
+        );
         self.0.as_ref().unwrap().on_server_write(
             conn_id.0,
             trans_id.0,
@@ -235,6 +239,7 @@ impl GattCallbacks for GattCallbacksImpl {
         conn_id: ConnectionId,
         result: Result<(), IndicationError>,
     ) {
+        trace!("on_indication_sent_confirmation ({conn_id:?}, {result:?}");
         self.0.as_ref().unwrap().on_indication_sent_confirmation(
             conn_id.0,
             match result {
@@ -250,6 +255,7 @@ impl GattCallbacks for GattCallbacksImpl {
         trans_id: TransactionId,
         decision: TransactionDecision,
     ) {
+        trace!("on_execute ({conn_id:?}, {trans_id:?}, {decision:?}");
         self.0.as_ref().unwrap().on_execute(
             conn_id.0,
             trans_id.0,
@@ -322,7 +328,7 @@ fn consume_descriptors<'a>(
     {
         let mut att_permissions = AttPermissions::empty();
         att_permissions.set(AttPermissions::READABLE, permissions & 0x01 != 0);
-        att_permissions.set(AttPermissions::WRITABLE, permissions & 0x10 != 0);
+        att_permissions.set(AttPermissions::WRITABLE_WITH_RESPONSE, permissions & 0x10 != 0);
 
         out.push(GattDescriptorWithHandle {
             handle: AttHandle(*attribute_handle),
@@ -444,6 +450,9 @@ fn send_response(_server_id: u8, conn_id: u16, trans_id: u32, status: u8, value:
     } else {
         Err(AttErrorCode::try_from(status).unwrap_or(AttErrorCode::UNLIKELY_ERROR))
     };
+
+    trace!("send_response {conn_id:?}, {trans_id:?}, {:?}", value.as_ref().err());
+
     do_in_rust_thread(move |modules| {
         match modules.gatt_incoming_callbacks.send_response(
             ConnectionId(conn_id),
@@ -464,6 +473,8 @@ fn send_indication(_server_id: u8, handle: u16, conn_id: u16, value: &[u8]) {
     let handle = AttHandle(handle);
     let conn_id = ConnectionId(conn_id);
     let value = AttAttributeDataChild::RawData(value.into());
+
+    trace!("send_indication {handle:?}, {conn_id:?}");
 
     do_in_rust_thread(move |modules| {
         let Some(bearer) = modules.gatt_module.get_bearer(conn_id) else {
@@ -627,7 +638,7 @@ mod test {
         ])
         .unwrap();
 
-        assert_eq!(service.characteristics[0].permissions, AttPermissions::WRITABLE);
+        assert_eq!(service.characteristics[0].permissions, AttPermissions::WRITABLE_WITH_RESPONSE);
     }
 
     #[test]
@@ -640,7 +651,7 @@ mod test {
 
         assert_eq!(
             service.characteristics[0].permissions,
-            AttPermissions::READABLE | AttPermissions::WRITABLE
+            AttPermissions::READABLE | AttPermissions::WRITABLE_WITH_RESPONSE
         );
     }
 
@@ -673,10 +684,13 @@ mod test {
         .unwrap();
 
         assert_eq!(service.characteristics[0].descriptors[0].permissions, AttPermissions::READABLE);
-        assert_eq!(service.characteristics[0].descriptors[1].permissions, AttPermissions::WRITABLE);
+        assert_eq!(
+            service.characteristics[0].descriptors[1].permissions,
+            AttPermissions::WRITABLE_WITH_RESPONSE
+        );
         assert_eq!(
             service.characteristics[0].descriptors[2].permissions,
-            AttPermissions::READABLE | AttPermissions::WRITABLE
+            AttPermissions::READABLE | AttPermissions::WRITABLE_WITH_RESPONSE
         );
     }
 
