@@ -19,6 +19,7 @@ use tokio::task::JoinHandle;
 use tokio::time;
 
 use crate::bluetooth::BluetoothDevice;
+use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
 use crate::callbacks::Callbacks;
 use crate::uuid::UuidHelper;
 use crate::Message;
@@ -396,11 +397,19 @@ struct InternalListeningSocket {
 
     /// Channel to future that listens for `accept` and `close` signals.
     tx: Sender<SocketRunnerActions>,
+
+    /// Used by admin
+    uuid: Option<Uuid>,
 }
 
 impl InternalListeningSocket {
-    fn new(_callback_id: CallbackId, socket_id: SocketId, tx: Sender<SocketRunnerActions>) -> Self {
-        InternalListeningSocket { _callback_id, socket_id, tx }
+    fn new(
+        _callback_id: CallbackId,
+        socket_id: SocketId,
+        tx: Sender<SocketRunnerActions>,
+        uuid: Option<Uuid>,
+    ) -> Self {
+        InternalListeningSocket { _callback_id, socket_id, tx, uuid }
     }
 }
 
@@ -492,11 +501,14 @@ pub struct BluetoothSocketManager {
 
     /// Channel TX for the mainloop for topstack.
     tx: Sender<Message>,
+
+    /// Admin
+    admin: Arc<Mutex<Box<BluetoothAdmin>>>,
 }
 
 impl BluetoothSocketManager {
     /// Constructs the IBluetooth implementation.
-    pub fn new(tx: Sender<Message>) -> Self {
+    pub fn new(tx: Sender<Message>, admin: Arc<Mutex<Box<BluetoothAdmin>>>) -> Self {
         let callbacks = Callbacks::new(tx.clone(), Message::SocketManagerCallbackDisconnected);
         let socket_counter: u64 = 1000;
         let futures = HashMap::new();
@@ -518,6 +530,7 @@ impl BluetoothSocketManager {
             sock: None,
             socket_counter,
             tx,
+            admin,
         }
     }
 
@@ -549,6 +562,13 @@ impl BluetoothSocketManager {
         mut socket_info: BluetoothServerSocket,
         cbid: CallbackId,
     ) -> SocketResult {
+        if let Some(uuid) = socket_info.uuid {
+            if !self.admin.lock().unwrap().is_service_allowed(uuid.into()) {
+                log::debug!("service {} is blocked by admin policy", uuid);
+                return SocketResult::new(BtStatus::AuthRejected, INVALID_SOCKET_ID);
+            }
+        }
+
         // Create listener socket pair
         let (mut status, result) =
             self.sock.as_ref().expect("Socket Manager not initialized").listen(
@@ -578,7 +598,7 @@ impl BluetoothSocketManager {
                 let (runner_tx, runner_rx) = channel::<SocketRunnerActions>(10);
 
                 // Keep track of active listener sockets.
-                let listener = InternalListeningSocket::new(cbid, id, runner_tx);
+                let listener = InternalListeningSocket::new(cbid, id, runner_tx, socket_info.uuid);
                 self.listening.entry(cbid).or_default().push(listener);
 
                 // Push a listening task to local runtime to wait for device to
@@ -632,6 +652,13 @@ impl BluetoothSocketManager {
         mut socket_info: BluetoothSocket,
         cbid: CallbackId,
     ) -> SocketResult {
+        if let Some(uuid) = socket_info.uuid {
+            if !self.admin.lock().unwrap().is_service_allowed(uuid.into()) {
+                log::debug!("service {} is blocked by admin policy", uuid);
+                return SocketResult::new(BtStatus::AuthRejected, INVALID_SOCKET_ID);
+            }
+        }
+
         let addr = match RawAddress::from_string(socket_info.remote_device.address.clone()) {
             Some(v) => v,
             None => {
@@ -1133,6 +1160,35 @@ impl BluetoothSocketManager {
                 }
             }
         }
+    }
+
+    /// Close Rfcomm sockets whose UUID is not allowed by policy
+    pub fn handle_admin_policy_changed(&mut self) {
+        let forbidden_sockets = self
+            .listening
+            .values()
+            .into_iter()
+            .flatten()
+            .filter(|sock| {
+                sock.uuid
+                    // Don't need to close L2cap socket (indicated by no uuid).
+                    .map_or(false, |uuid| {
+                        !self.admin.lock().unwrap().is_service_allowed(uuid.into())
+                    })
+            })
+            .map(|sock| (sock.socket_id, sock.tx.clone(), sock.uuid.unwrap()))
+            .collect::<Vec<(u64, Sender<SocketRunnerActions>, Uuid)>>();
+
+        self.runtime.spawn(async move {
+            for (id, tx, uuid) in forbidden_sockets {
+                log::debug!(
+                    "socket id {} is not allowed by admin policy due to uuid {}, closing",
+                    id,
+                    uuid
+                );
+                let _ = tx.send(SocketRunnerActions::Close(id)).await;
+            }
+        });
     }
 
     pub fn remove_callback(&mut self, callback: CallbackId) {
