@@ -40,7 +40,7 @@ bitflags! {
         /// Attribute can be written to using WRITE_CMD
         const WRITABLE_WITHOUT_RESPONSE = 0x04;
         /// Attribute can be written to using WRITE_REQ
-        const WRITABLE = 0x08;
+        const WRITABLE_WITH_RESPONSE = 0x08;
         /// Attribute value may be sent using indications
         const INDICATE = 0x20;
     }
@@ -52,8 +52,8 @@ impl AttPermissions {
         self.contains(AttPermissions::READABLE)
     }
     /// Attribute can be written to using WRITE_REQ
-    pub fn writable(&self) -> bool {
-        self.contains(AttPermissions::WRITABLE)
+    pub fn writable_with_response(&self) -> bool {
+        self.contains(AttPermissions::WRITABLE_WITH_RESPONSE)
     }
     /// Attribute can be written to using WRITE_CMD
     pub fn writable_without_response(&self) -> bool {

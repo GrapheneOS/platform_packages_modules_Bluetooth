@@ -62,7 +62,7 @@ impl AttDatabase for TestAttDatabase {
     ) -> Result<(), AttErrorCode> {
         match self.attributes.get(&handle) {
             Some(TestAttributeWithData { attribute: AttAttribute { permissions, .. }, .. })
-                if !permissions.writable() =>
+                if !permissions.writable_with_response() =>
             {
                 Err(AttErrorCode::WRITE_NOT_PERMITTED)
             }
@@ -78,7 +78,7 @@ impl AttDatabase for TestAttDatabase {
             Some(TestAttributeWithData {
                 attribute: AttAttribute { permissions, .. },
                 data: data_cell,
-            }) if !permissions.writable() => {
+            }) if !permissions.writable_with_response() => {
                 data_cell.replace(data.get_raw_payload().collect());
             }
             _ => {

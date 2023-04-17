@@ -328,7 +328,7 @@ fn consume_descriptors<'a>(
     {
         let mut att_permissions = AttPermissions::empty();
         att_permissions.set(AttPermissions::READABLE, permissions & 0x01 != 0);
-        att_permissions.set(AttPermissions::WRITABLE, permissions & 0x10 != 0);
+        att_permissions.set(AttPermissions::WRITABLE_WITH_RESPONSE, permissions & 0x10 != 0);
 
         out.push(GattDescriptorWithHandle {
             handle: AttHandle(*attribute_handle),
@@ -638,7 +638,7 @@ mod test {
         ])
         .unwrap();
 
-        assert_eq!(service.characteristics[0].permissions, AttPermissions::WRITABLE);
+        assert_eq!(service.characteristics[0].permissions, AttPermissions::WRITABLE_WITH_RESPONSE);
     }
 
     #[test]
@@ -651,7 +651,7 @@ mod test {
 
         assert_eq!(
             service.characteristics[0].permissions,
-            AttPermissions::READABLE | AttPermissions::WRITABLE
+            AttPermissions::READABLE | AttPermissions::WRITABLE_WITH_RESPONSE
         );
     }
 
@@ -684,10 +684,13 @@ mod test {
         .unwrap();
 
         assert_eq!(service.characteristics[0].descriptors[0].permissions, AttPermissions::READABLE);
-        assert_eq!(service.characteristics[0].descriptors[1].permissions, AttPermissions::WRITABLE);
+        assert_eq!(
+            service.characteristics[0].descriptors[1].permissions,
+            AttPermissions::WRITABLE_WITH_RESPONSE
+        );
         assert_eq!(
             service.characteristics[0].descriptors[2].permissions,
-            AttPermissions::READABLE | AttPermissions::WRITABLE
+            AttPermissions::READABLE | AttPermissions::WRITABLE_WITH_RESPONSE
         );
     }
 

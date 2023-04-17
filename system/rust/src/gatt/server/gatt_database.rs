@@ -215,7 +215,7 @@ impl GattDatabase {
                                 .permissions
                                 .writable_without_response()
                                 .into(),
-                            write: characteristic.permissions.writable().into(),
+                            write: characteristic.permissions.writable_with_response().into(),
                             notify: 0,
                             indicate: characteristic.permissions.indicate().into(),
                             authenticated_signed_writes: 0,
@@ -399,7 +399,7 @@ impl AttDatabase for AttDatabaseImpl {
             let Some(attr) = services.attributes.get(&handle) else {
                 return Err(AttErrorCode::INVALID_HANDLE);
             };
-            if !attr.attribute.permissions.writable() {
+            if !attr.attribute.permissions.writable_with_response() {
                 return Err(AttErrorCode::WRITE_NOT_PERMITTED);
             }
             Ok(attr.value.clone())
@@ -682,7 +682,7 @@ mod test {
                         handle: CHARACTERISTIC_VALUE_HANDLE,
                         type_: CHARACTERISTIC_TYPE,
                         permissions: AttPermissions::READABLE
-                            | AttPermissions::WRITABLE
+                            | AttPermissions::WRITABLE_WITH_RESPONSE
                             | AttPermissions::INDICATE,
                         descriptors: vec![],
                     }],
@@ -712,7 +712,7 @@ mod test {
                 handle: CHARACTERISTIC_VALUE_HANDLE,
                 type_: CHARACTERISTIC_TYPE,
                 permissions: AttPermissions::READABLE
-                    | AttPermissions::WRITABLE
+                    | AttPermissions::WRITABLE_WITH_RESPONSE
                     | AttPermissions::INDICATE
             }
         );
@@ -871,7 +871,7 @@ mod test {
                 characteristics: vec![GattCharacteristicWithHandle {
                     handle: SERVICE_HANDLE,
                     type_: CHARACTERISTIC_TYPE,
-                    permissions: AttPermissions::WRITABLE,
+                    permissions: AttPermissions::WRITABLE_WITH_RESPONSE,
                     descriptors: vec![],
                 }],
             },
@@ -923,7 +923,7 @@ mod test {
                     characteristics: vec![GattCharacteristicWithHandle {
                         handle: CHARACTERISTIC_VALUE_HANDLE,
                         type_: CHARACTERISTIC_TYPE,
-                        permissions: AttPermissions::WRITABLE,
+                        permissions: AttPermissions::WRITABLE_WITH_RESPONSE,
                         descriptors: vec![],
                     }],
                 },
@@ -977,7 +977,7 @@ mod test {
                     characteristics: vec![GattCharacteristicWithHandle {
                         handle: CHARACTERISTIC_VALUE_HANDLE,
                         type_: CHARACTERISTIC_TYPE,
-                        permissions: AttPermissions::WRITABLE,
+                        permissions: AttPermissions::WRITABLE_WITH_RESPONSE,
                         descriptors: vec![],
                     }],
                 },
@@ -1102,7 +1102,7 @@ mod test {
                         descriptors: vec![GattDescriptorWithHandle {
                             handle: DESCRIPTOR_HANDLE,
                             type_: DESCRIPTOR_TYPE,
-                            permissions: AttPermissions::WRITABLE,
+                            permissions: AttPermissions::WRITABLE_WITH_RESPONSE,
                         }],
                     }],
                 },
@@ -1163,13 +1163,13 @@ mod test {
                                 GattDescriptorWithHandle {
                                     handle: AttHandle(7),
                                     type_: DESCRIPTOR_TYPE,
-                                    permissions: AttPermissions::WRITABLE,
+                                    permissions: AttPermissions::WRITABLE_WITH_RESPONSE,
                                 },
                                 GattDescriptorWithHandle {
                                     handle: AttHandle(8),
                                     type_: DESCRIPTOR_TYPE,
                                     permissions: AttPermissions::READABLE
-                                        | AttPermissions::WRITABLE,
+                                        | AttPermissions::WRITABLE_WITH_RESPONSE,
                                 },
                             ],
                         },
@@ -1198,8 +1198,11 @@ mod test {
         assert_eq!(attributes[7].handle, AttHandle(8));
         // assert: check the permissions of the descriptors are correct
         assert_eq!(attributes[3].permissions, AttPermissions::READABLE);
-        assert_eq!(attributes[6].permissions, AttPermissions::WRITABLE);
-        assert_eq!(attributes[7].permissions, AttPermissions::READABLE | AttPermissions::WRITABLE);
+        assert_eq!(attributes[6].permissions, AttPermissions::WRITABLE_WITH_RESPONSE);
+        assert_eq!(
+            attributes[7].permissions,
+            AttPermissions::READABLE | AttPermissions::WRITABLE_WITH_RESPONSE
+        );
     }
 
     #[test]
@@ -1530,7 +1533,8 @@ mod test {
                     characteristics: vec![GattCharacteristicWithHandle {
                         handle: CHARACTERISTIC_VALUE_HANDLE,
                         type_: CHARACTERISTIC_TYPE,
-                        permissions: AttPermissions::READABLE | AttPermissions::WRITABLE,
+                        permissions: AttPermissions::READABLE
+                            | AttPermissions::WRITABLE_WITH_RESPONSE,
                         descriptors: vec![],
                     }],
                 },
