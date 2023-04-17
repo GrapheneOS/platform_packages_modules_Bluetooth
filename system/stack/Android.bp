@@ -316,6 +316,7 @@ cc_test {
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
+        "libPlatformProperties",
         "libaaudio",
         "libbinder_ndk",
         "libcrypto",
@@ -1430,6 +1431,13 @@ cc_test {
         "libbinder_ndk",
         "libcrypto",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libPlatformProperties",
+            ],
+        },
+    },
     sanitize: {
         address: true,
         all_undefined: true,

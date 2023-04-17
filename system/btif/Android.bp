@@ -210,9 +210,6 @@ cc_library_static {
     ],
     target: {
         android: {
-            whole_static_libs: [
-                "libPlatformProperties",
-            ],
             srcs: ["src/btif_avrcp_audio_track.cc"],
         },
         host: {
@@ -298,6 +295,7 @@ cc_test {
         android: {
             shared_libs: [
                 "android.hardware.bluetooth.audio-V3-ndk",
+                "libPlatformProperties",
                 "libbinder_ndk",
             ],
         },

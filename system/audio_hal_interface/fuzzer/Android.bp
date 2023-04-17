@@ -38,6 +38,7 @@ cc_defaults {
         "android.hardware.bluetooth@1.1",
         "android.system.suspend-V1-ndk",
         "android.system.suspend.control-V1-ndk",
+        "libPlatformProperties",
         "libaaudio",
         "libbinder_ndk",
         "libcrypto",
