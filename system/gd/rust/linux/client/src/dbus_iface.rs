@@ -2242,13 +2242,13 @@ impl IBluetoothTelephony for BluetoothTelephonyDBus {
 }
 
 pub(crate) struct BluetoothQADBus {
-    _client_proxy: ClientDBusProxy,
+    client_proxy: ClientDBusProxy,
 }
 
 impl BluetoothQADBus {
     pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> BluetoothQADBus {
         BluetoothQADBus {
-            _client_proxy: ClientDBusProxy::new(
+            client_proxy: ClientDBusProxy::new(
                 conn.clone(),
                 String::from("org.chromium.bluetooth"),
                 make_object_path(index, "qa"),
@@ -2259,4 +2259,9 @@ impl BluetoothQADBus {
 }
 
 #[generate_dbus_interface_client]
-impl IBluetoothQA for BluetoothQADBus {}
+impl IBluetoothQA for BluetoothQADBus {
+    #[dbus_method("AddMediaPlayer")]
+    fn add_media_player(&self, name: String, browsing_supported: bool) {
+        dbus_generated!()
+    }
+}

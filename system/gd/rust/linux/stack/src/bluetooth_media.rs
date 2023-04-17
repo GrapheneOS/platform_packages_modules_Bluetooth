@@ -1601,6 +1601,9 @@ impl BluetoothMedia {
         self.notify_media_capability_updated(addr);
         self.connect(address);
     }
+    pub fn add_player(&mut self, name: String, browsing_supported: bool) {
+        self.avrcp.as_mut().unwrap().add_player(&name, browsing_supported);
+    }
 }
 
 fn get_a2dp_dispatcher(tx: Sender<Message>) -> A2dpCallbacksDispatcher {
