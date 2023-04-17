@@ -16,6 +16,7 @@ use bt_topshim::profiles::{gatt::LePhy, ProfileConnectionState};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQALegacy};
 use btstack::bluetooth_gatt::{GattWriteType, IBluetoothGatt, ScanSettings, ScanType};
 use btstack::bluetooth_media::IBluetoothTelephony;
+use btstack::bluetooth_qa::IBluetoothQA;
 use btstack::socket_manager::{IBluetoothSocketManager, SocketResult};
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
@@ -265,6 +266,14 @@ fn build_commands() -> HashMap<String, CommandOption> {
             rules: vec![String::from("get-address")],
             description: String::from("Gets the local device address."),
             function_pointer: CommandHandler::cmd_get_address,
+        },
+    );
+    command_options.insert(
+        String::from("qa"),
+        CommandOption {
+            rules: vec![String::from("qa add-media-player <name> <browsing_supported>")],
+            description: String::from("Methods for testing purposes"),
+            function_pointer: CommandHandler::cmd_qa,
         },
     );
     command_options.insert(
@@ -1873,6 +1882,33 @@ impl CommandHandler {
                 return Err(format!("Invalid argument '{}'", other).into());
             }
         }
+        Ok(())
+    }
+
+    fn cmd_qa(&mut self, args: &Vec<String>) -> CommandResult {
+        if !self.context.lock().unwrap().adapter_ready {
+            return Err(self.adapter_not_ready());
+        }
+
+        let command = get_arg(args, 0)?;
+
+        match &command[..] {
+            "add-media-player" => {
+                let name = String::from(get_arg(args, 1)?);
+                let browsing_supported = String::from(get_arg(args, 2)?)
+                    .parse::<bool>()
+                    .or(Err("Failed to parse browsing_supported"))?;
+                self.context
+                    .lock()
+                    .unwrap()
+                    .qa_dbus
+                    .as_mut()
+                    .unwrap()
+                    .add_media_player(name, browsing_supported);
+            }
+            _ => return Err(CommandError::InvalidArgs),
+        };
+
         Ok(())
     }
 }
