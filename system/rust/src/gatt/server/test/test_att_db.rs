@@ -7,21 +7,31 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use log::info;
-use std::{cell::RefCell, collections::BTreeMap};
+use log::{info, warn};
+use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TestAttDatabase {
-    attributes: BTreeMap<AttHandle, (AttAttribute, RefCell<Vec<u8>>)>,
+    attributes: Rc<BTreeMap<AttHandle, TestAttributeWithData>>,
+}
+
+#[derive(Debug)]
+struct TestAttributeWithData {
+    attribute: AttAttribute,
+    data: RefCell<Vec<u8>>,
 }
 
 impl TestAttDatabase {
     pub fn new(attributes: Vec<(AttAttribute, Vec<u8>)>) -> Self {
         Self {
-            attributes: attributes
-                .into_iter()
-                .map(|(att, data)| (att.handle, (att, RefCell::new(data))))
-                .collect(),
+            attributes: Rc::new(
+                attributes
+                    .into_iter()
+                    .map(|(attribute, data)| {
+                        (attribute.handle, TestAttributeWithData { attribute, data: data.into() })
+                    })
+                    .collect(),
+            ),
         }
     }
 }
@@ -34,10 +44,12 @@ impl AttDatabase for TestAttDatabase {
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
         info!("reading {handle:?}");
         match self.attributes.get(&handle) {
-            Some((AttAttribute { permissions, .. }, _)) if !permissions.readable() => {
+            Some(TestAttributeWithData { attribute: AttAttribute { permissions, .. }, .. })
+                if !permissions.readable() =>
+            {
                 Err(AttErrorCode::READ_NOT_PERMITTED)
             }
-            Some((_, data)) => {
+            Some(TestAttributeWithData { data, .. }) => {
                 Ok(AttAttributeDataChild::RawData(data.borrow().clone().into_boxed_slice()))
             }
             None => Err(AttErrorCode::INVALID_HANDLE),
@@ -49,18 +61,33 @@ impl AttDatabase for TestAttDatabase {
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode> {
         match self.attributes.get(&handle) {
-            Some((AttAttribute { permissions, .. }, _)) if !permissions.writable() => {
+            Some(TestAttributeWithData { attribute: AttAttribute { permissions, .. }, .. })
+                if !permissions.writable_with_response() =>
+            {
                 Err(AttErrorCode::WRITE_NOT_PERMITTED)
             }
-            Some((_, data_cell)) => {
+            Some(TestAttributeWithData { data: data_cell, .. }) => {
                 data_cell.replace(data.get_raw_payload().collect());
                 Ok(())
             }
             None => Err(AttErrorCode::INVALID_HANDLE),
         }
     }
+    fn write_no_response_attribute(&self, handle: AttHandle, data: AttAttributeDataView<'_>) {
+        match self.attributes.get(&handle) {
+            Some(TestAttributeWithData {
+                attribute: AttAttribute { permissions, .. },
+                data: data_cell,
+            }) if !permissions.writable_with_response() => {
+                data_cell.replace(data.get_raw_payload().collect());
+            }
+            _ => {
+                warn!("rejecting write command to {handle:?}")
+            }
+        }
+    }
     fn list_attributes(&self) -> Vec<AttAttribute> {
-        self.attributes.values().map(|(att, _)| *att).collect()
+        self.attributes.values().map(|attr| attr.attribute).collect()
     }
 }
 
