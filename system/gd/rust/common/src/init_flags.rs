@@ -397,6 +397,9 @@ pub fn load(raw_flags: Vec<String>) {
     let flags = InitFlags::parse(raw_flags);
     info!("Flags loaded: {}", flags);
     *FLAGS.lock().unwrap() = flags;
+
+    // re-init to respect log levels set by flags
+    crate::init_logging();
 }
 
 #[cfg(test)]
