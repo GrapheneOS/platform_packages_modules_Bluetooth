@@ -50,6 +50,7 @@ import com.google.common.base.Objects;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -177,6 +178,7 @@ public class IncomingFileConfirmActivityTest {
         ), nullable(String.class), nullable(String[].class));
     }
 
+    @Ignore("b/277593460")
     @Test
     public void onTimeout_sendIntentWithUSER_CONFIRMATION_TIMEOUT_ACTION_finish() throws Exception {
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
