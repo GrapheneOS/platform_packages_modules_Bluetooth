@@ -87,12 +87,12 @@ fn create_server_and_open_connection(
                 handle: CHARACTERISTIC_HANDLE,
                 type_: CHARACTERISTIC_TYPE,
                 permissions: AttPermissions::READABLE
-                    | AttPermissions::WRITABLE
+                    | AttPermissions::WRITABLE_WITH_RESPONSE
                     | AttPermissions::INDICATE,
                 descriptors: vec![GattDescriptorWithHandle {
                     handle: DESCRIPTOR_HANDLE,
                     type_: DESCRIPTOR_TYPE,
-                    permissions: AttPermissions::READABLE | AttPermissions::WRITABLE,
+                    permissions: AttPermissions::READABLE | AttPermissions::WRITABLE_WITH_RESPONSE,
                 }],
             }],
         },

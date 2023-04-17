@@ -164,7 +164,7 @@ pub fn register_gatt_service(database: &mut GattDatabase) -> Result<()> {
                 descriptors: vec![GattDescriptorWithHandle {
                     handle: SERVICE_CHANGE_CCC_DESCRIPTOR_HANDLE,
                     type_: CLIENT_CHARACTERISTIC_CONFIGURATION_UUID,
-                    permissions: AttPermissions::READABLE | AttPermissions::WRITABLE,
+                    permissions: AttPermissions::READABLE | AttPermissions::WRITABLE_WITH_RESPONSE,
                 }],
             }],
         },
@@ -245,7 +245,10 @@ mod test {
         assert_eq!(attrs[3].type_, CLIENT_CHARACTERISTIC_CONFIGURATION_UUID);
         // assert: permissions of value attrs are correct
         assert_eq!(attrs[2].permissions, AttPermissions::INDICATE);
-        assert_eq!(attrs[3].permissions, AttPermissions::READABLE | AttPermissions::WRITABLE);
+        assert_eq!(
+            attrs[3].permissions,
+            AttPermissions::READABLE | AttPermissions::WRITABLE_WITH_RESPONSE
+        );
     }
 
     #[test]
