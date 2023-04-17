@@ -27,6 +27,7 @@ use crate::{
 
 use super::{
     att_database::AttDatabase,
+    command_handler::AttCommandHandler,
     indication_handler::{ConfirmationWatcher, IndicationError, IndicationHandler},
     request_handler::AttRequestHandler,
 };
@@ -59,6 +60,9 @@ pub struct AttServerBearer<T: AttDatabase> {
     // indication state
     indication_handler: SharedMutex<IndicationHandler<T>>,
     pending_confirmation: ConfirmationWatcher,
+
+    // command handler (across all bearers)
+    command_handler: AttCommandHandler<T>,
 }
 
 impl<T: AttDatabase + Clone + 'static> AttServerBearer<T> {
@@ -73,10 +77,12 @@ impl<T: AttDatabase + Clone + 'static> AttServerBearer<T> {
             send_packet: Box::new(send_packet),
             mtu: AttMtu::new(),
 
-            curr_request: AttRequestState::Idle(AttRequestHandler::new(db)).into(),
+            curr_request: AttRequestState::Idle(AttRequestHandler::new(db.clone())).into(),
 
             indication_handler: SharedMutex::new(indication_handler),
             pending_confirmation,
+
+            command_handler: AttCommandHandler::new(db),
         }
     }
 
@@ -93,10 +99,10 @@ impl<T: AttDatabase + Clone + 'static> WeakBoxRef<'_, AttServerBearer<T>> {
     pub fn handle_packet(&self, packet: AttView<'_>) {
         match classify_opcode(packet.get_opcode()) {
             OperationType::Command => {
-                error!("dropping ATT command (currently unsupported)");
+                self.command_handler.process_packet(packet);
             }
             OperationType::Request => {
-                Self::handle_request(self, packet);
+                self.handle_request(packet);
             }
             OperationType::Confirmation => self.pending_confirmation.on_confirmation(),
             OperationType::Response | OperationType::Notification | OperationType::Indication => {

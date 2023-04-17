@@ -51,7 +51,7 @@ mod test {
             AttAttribute {
                 handle: AttHandle(1),
                 type_: Uuid::new(0x1234),
-                permissions: AttPermissions::READABLE | AttPermissions::WRITABLE,
+                permissions: AttPermissions::READABLE | AttPermissions::WRITABLE_WITH_RESPONSE,
             },
             vec![],
         )]);
