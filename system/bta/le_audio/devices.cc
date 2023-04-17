@@ -2746,7 +2746,7 @@ void LeAudioDevice::Dump(int fd) {
     stream
         << "id  active dir     cis_id  cis_handle  sdu  latency rtn  state";
     for (auto& ase : ases_) {
-      stream << std::setfill('\xA0') << "\n\t" << std::left << std::setw(4)
+      stream << std::setfill('\x20') << "\n\t" << std::left << std::setw(4)
              << static_cast<int>(ase.id) << std::left << std::setw(7)
              << (ase.active ? "true" : "false") << std::left << std::setw(8)
              << (ase.direction == types::kLeAudioDirectionSink ? "sink"
