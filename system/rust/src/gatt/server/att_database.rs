@@ -37,6 +37,8 @@ bitflags! {
     pub struct AttPermissions : u8 {
         /// Attribute can be read using READ_REQ
         const READABLE = 0x02;
+        /// Attribute can be written to using WRITE_CMD
+        const WRITABLE_WITHOUT_RESPONSE = 0x04;
         /// Attribute can be written to using WRITE_REQ
         const WRITABLE = 0x08;
         /// Attribute value may be sent using indications
@@ -52,6 +54,10 @@ impl AttPermissions {
     /// Attribute can be written to using WRITE_REQ
     pub fn writable(&self) -> bool {
         self.contains(AttPermissions::WRITABLE)
+    }
+    /// Attribute can be written to using WRITE_CMD
+    pub fn writable_without_response(&self) -> bool {
+        self.contains(AttPermissions::WRITABLE_WITHOUT_RESPONSE)
     }
     /// Attribute value may be sent using indications
     pub fn indicate(&self) -> bool {
@@ -73,6 +79,9 @@ pub trait AttDatabase {
         handle: AttHandle,
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode>;
+
+    /// Write to an attribute by handle
+    fn write_no_response_attribute(&self, handle: AttHandle, data: AttAttributeDataView<'_>);
 
     /// List all the attributes in this database.
     ///
@@ -120,6 +129,10 @@ impl AttDatabase for SnapshottedAttDatabase<'_> {
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode> {
         self.backing.write_attribute(handle, data).await
+    }
+
+    fn write_no_response_attribute(&self, handle: AttHandle, data: AttAttributeDataView<'_>) {
+        self.backing.write_no_response_attribute(handle, data);
     }
 
     fn list_attributes(&self) -> Vec<AttAttribute> {
