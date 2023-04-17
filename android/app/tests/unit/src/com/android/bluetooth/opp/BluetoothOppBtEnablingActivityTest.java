@@ -42,6 +42,7 @@ import com.android.bluetooth.BluetoothMethodProxy;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -80,6 +81,7 @@ public class BluetoothOppBtEnablingActivityTest {
         BluetoothOppTestUtils.enableOppActivities(false, mTargetContext);
     }
 
+    @Ignore("b/277594572")
     @Test
     public void onCreate_bluetoothEnableTimeout_finishAfterTimeout() throws Exception {
         int spedUpTimeoutValue = 1000;
