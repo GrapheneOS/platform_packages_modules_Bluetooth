@@ -123,6 +123,9 @@ pub enum Message {
 
     // Dis callbacks
     Dis(ServiceCallbacks),
+
+    // Qualification Only
+    QaAddMediaPlayer(String, bool),
 }
 
 /// Represents suspend mode of a module.
@@ -341,6 +344,10 @@ impl Stack {
                 }
                 Message::Dis(callback) => {
                     bluetooth_dis.lock().unwrap().handle_callbacks(&callback);
+                }
+                // Qualification Only
+                Message::QaAddMediaPlayer(name, browsing_supported) => {
+                    bluetooth_media.lock().unwrap().add_player(name, browsing_supported);
                 }
             }
         }

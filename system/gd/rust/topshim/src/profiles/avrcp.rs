@@ -47,6 +47,7 @@ pub mod ffi {
             album: &String,
             length_us: i64,
         );
+        fn add_player(self: Pin<&mut AvrcpIntf>, name: &String, browsing_supported: bool) -> u16;
 
     }
     extern "Rust" {
@@ -199,6 +200,11 @@ impl Avrcp {
             &metadata.album,
             metadata.length_us,
         );
+    }
+
+    #[profile_enabled_or]
+    pub fn add_player(&mut self, name: &String, browsing_supported: bool) {
+        self.internal.pin_mut().add_player(name, browsing_supported);
     }
 }
 
