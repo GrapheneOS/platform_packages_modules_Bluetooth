@@ -54,6 +54,7 @@ table InitFlagsData {
     set_min_encryption_is_enabled:bool (privacy:"Any");
     subrating_is_enabled:bool (privacy:"Any");
     trigger_advertising_callbacks_on_first_resume_after_pause_is_enabled:bool (privacy:"Any");
+    use_unified_connection_manager_is_enabled:bool (privacy:"Any");
 }
 // LINT.ThenChange(/system/gd/dumpsys/init_flags.cc)
 

@@ -56,9 +56,8 @@ pub trait LeAclManager: Debug {
 /// The callbacks invoked by the LeAclManager in response to events from the controller
 pub trait LeAclManagerConnectionCallbacks {
     /// Invoked when an LE connection to a given address completes
-    fn on_le_connect_success(&self, conn: LeConnection);
-    /// Invoked when an LE connection attempt has failed / times out
-    fn on_le_connect_fail(&self, address: AddressWithType, status: ErrorCode);
-    /// Invoked when a peer device disconnects from us
+    fn on_le_connect(&self, address: AddressWithType, result: Result<LeConnection, ErrorCode>);
+    /// Invoked when a peer device disconnects from us. The address must match the address
+    /// supplied on the initial connection.
     fn on_disconnect(&self, address: AddressWithType);
 }
