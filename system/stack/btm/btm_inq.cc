@@ -409,10 +409,13 @@ tBTM_STATUS BTM_SetConnectability(uint16_t page_mode) {
 
   uint8_t scan_mode = 0;
   uint16_t window = BTM_DEFAULT_CONN_WINDOW;
-  uint16_t interval = BTM_DEFAULT_CONN_INTERVAL;
+  uint16_t interval = (uint16_t)osi_property_get_int32(
+      BTM_PAGE_SCAN_INTERVAL_PROPERTY, BTM_DEFAULT_CONN_INTERVAL);
+
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
-  BTM_TRACE_API("BTM_SetConnectability");
+  BTM_TRACE_API("BTM_SetConnectability page scan interval  = (%d * 0.625)ms",
+                interval);
 
   if (controller_get_interface()->supports_ble()) {
     if (btm_ble_set_connectability(page_mode) != BTM_SUCCESS) {
