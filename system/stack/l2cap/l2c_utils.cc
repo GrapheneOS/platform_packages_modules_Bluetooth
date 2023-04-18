@@ -2315,6 +2315,38 @@ static void l2cu_set_acl_priority_latency_syna(tL2C_LCB* p_lcb,
 
 /*******************************************************************************
  *
+ * Function         l2cu_set_acl_priority_unisoc
+ *
+ * Description      Sends a VSC to set the ACL priority on Unisoc chip.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+
+static void l2cu_set_acl_priority_unisoc(tL2C_LCB* p_lcb,
+                                               tL2CAP_PRIORITY priority) {
+  uint8_t vs_param;
+  if (priority == L2CAP_PRIORITY_HIGH) {
+    // priority to high
+    LOG_INFO("Set ACL priority: High Priority Mode");
+    vs_param = HCI_UNISOC_ACL_HIGH_PRIORITY;
+  } else {
+    // priority to normal
+    LOG_INFO("Set ACL priority: Normal Mode");
+    vs_param = HCI_UNISOC_ACL_NORMAL_PRIORITY;
+  }
+
+  uint8_t command[HCI_UNISOC_ACL_PRIORITY_PARAM_SIZE];
+  uint8_t* pp = command;
+  UINT16_TO_STREAM(pp, p_lcb->Handle());
+  UINT8_TO_STREAM(pp, vs_param);
+
+  BTM_VendorSpecificCommand(HCI_UNISOC_SET_ACL_PRIORITY,
+                            HCI_UNISOC_ACL_PRIORITY_PARAM_SIZE, command, NULL);
+}
+
+/*******************************************************************************
+ *
  * Function         l2cu_set_acl_priority
  *
  * Description      Sets the transmission priority for a channel.
@@ -2351,6 +2383,10 @@ bool l2cu_set_acl_priority(const RawAddress& bd_addr, tL2CAP_PRIORITY priority,
 
       case LMP_COMPID_SYNAPTICS:
         l2cu_set_acl_priority_latency_syna(p_lcb, priority);
+        break;
+
+      case LMP_COMPID_UNISOC:
+        l2cu_set_acl_priority_unisoc(p_lcb, priority);
         break;
 
       default:
