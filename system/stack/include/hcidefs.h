@@ -912,12 +912,21 @@ typedef struct {
 // TODO Remove this once all QTI specific hacks are removed.
 #define LMP_COMPID_QTI 0x001D
 
+// TODO Remove this once all UNISOC specific hacks are removed.
+#define LMP_COMPID_UNISOC 0x073F
+
 /* Parameter information for HCI_SYNA_SET_ACL_PRIORITY */
 #define HCI_SYNA_ACL_PRIORITY_PARAM_SIZE 3
 #define HCI_SYNA_ACL_NORMAL_PRIORITY 0xF0
 #define HCI_SYNA_ACL_HIGH_PRIORITY 0xF2
 #define HCI_SYNA_ACL_HIGH_PRIORITY_LOW_LATENCY 0xF3
 #define HCI_SYNA_SET_ACL_PRIORITY (0x0057 | HCI_GRP_VENDOR_SPECIFIC)
+
+/* Parameter information for HCI_UNISOC_SET_ACL_PRIORITY */
+#define HCI_UNISOC_ACL_PRIORITY_PARAM_SIZE 3
+#define HCI_UNISOC_SET_ACL_PRIORITY (0x0057 | HCI_GRP_VENDOR_SPECIFIC)
+#define HCI_UNISOC_ACL_NORMAL_PRIORITY 0x00
+#define HCI_UNISOC_ACL_HIGH_PRIORITY 0xFF
 
 /*
  * Define packet size
