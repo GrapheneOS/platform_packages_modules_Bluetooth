@@ -966,10 +966,11 @@ uint8_t LeAudioDeviceGroup::GetFirstFreeCisId(CisType cis_type) {
   return kInvalidCisId;
 }
 
-types::LeAudioConfigurationStrategy LeAudioDeviceGroup::GetGroupStrategy(void) {
+types::LeAudioConfigurationStrategy LeAudioDeviceGroup::GetGroupStrategy(
+    int expected_group_size) {
   /* Simple strategy picker */
-  LOG_DEBUG(" Group %d size %d", group_id_, Size());
-  if (Size() > 1) {
+  LOG_DEBUG(" Group %d size %d", group_id_, expected_group_size);
+  if (expected_group_size > 1) {
     return types::LeAudioConfigurationStrategy::MONO_ONE_CIS_PER_DEVICE;
   }
 
@@ -1024,7 +1025,7 @@ void LeAudioDeviceGroup::CigGenerateCisIds(
    * If the last happen it means, group size is 1 */
   int group_size = csis_group_size > 0 ? csis_group_size : 1;
 
-  get_cis_count(*confs, group_size, GetGroupStrategy(),
+  get_cis_count(*confs, group_size, GetGroupStrategy(group_size),
                 GetAseCount(types::kLeAudioDirectionSink),
                 GetAseCount(types::kLeAudioDirectionSource), cis_count_bidir,
                 cis_count_unidir_sink, cis_count_unidir_source);
@@ -2039,7 +2040,7 @@ LeAudioDeviceGroup::FindFirstSupportedConfiguration(
 
   /* Filter out device set for each end every scenario */
 
-  auto required_snk_strategy = GetGroupStrategy();
+  auto required_snk_strategy = GetGroupStrategy(Size());
   for (const auto& conf : *confs) {
     if (IsConfigurationSupported(conf, context_type, required_snk_strategy)) {
       LOG_DEBUG("found: %s", conf->name.c_str());
