@@ -712,6 +712,20 @@ impl Bluetooth {
         Ok(())
     }
 
+    /// Returns whether the adapter is connectable.
+    pub(crate) fn get_connectable_internal(&self) -> bool {
+        match self.properties.get(&BtPropertyType::AdapterScanMode) {
+            Some(prop) => match prop {
+                BluetoothProperty::AdapterScanMode(mode) => match *mode {
+                    BtScanMode::Connectable | BtScanMode::ConnectableDiscoverable => true,
+                    _ => false,
+                },
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+
     /// Sets the adapter's connectable mode for classic connections.
     pub(crate) fn set_connectable_internal(&mut self, mode: bool) -> bool {
         self.is_connectable = mode;
@@ -721,6 +735,23 @@ impl Bluetooth {
         self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::AdapterScanMode(
             if mode { BtScanMode::Connectable } else { BtScanMode::None_ },
         )) == 0
+    }
+
+    /// Returns adapter's discoverable mode.
+    pub(crate) fn get_discoverable_mode(&self) -> BtDiscMode {
+        let off_mode = BtDiscMode::NonDiscoverable;
+
+        match self.properties.get(&BtPropertyType::AdapterScanMode) {
+            Some(prop) => match prop {
+                BluetoothProperty::AdapterScanMode(mode) => match *mode {
+                    BtScanMode::ConnectableDiscoverable => BtDiscMode::GeneralDiscoverable,
+                    BtScanMode::ConnectableLimitedDiscoverable => BtDiscMode::LimitedDiscoverable,
+                    _ => off_mode,
+                },
+                _ => off_mode,
+            },
+            _ => off_mode,
+        }
     }
 
     /// Returns all bonded and connected devices.
@@ -2486,16 +2517,7 @@ impl BtifHHCallbacks for Bluetooth {
 
 impl IBluetoothQALegacy for Bluetooth {
     fn get_connectable(&self) -> bool {
-        match self.properties.get(&BtPropertyType::AdapterScanMode) {
-            Some(prop) => match prop {
-                BluetoothProperty::AdapterScanMode(mode) => match *mode {
-                    BtScanMode::Connectable | BtScanMode::ConnectableDiscoverable => true,
-                    _ => false,
-                },
-                _ => false,
-            },
-            _ => false,
-        }
+        self.get_connectable_internal()
     }
 
     fn set_connectable(&mut self, mode: bool) -> bool {
