@@ -371,6 +371,30 @@ class PublishedAudioCapabilitiesBuilder {
                        .metadata = std::vector<uint8_t>(0)}));
   }
 
+  void Add(LeAudioCodecId codec_id, uint16_t capa_sampling_frequency,
+           uint8_t capa_frame_duration, uint8_t audio_channel_counts,
+           uint16_t octets_per_frame_min, uint16_t ocets_per_frame_max,
+           uint8_t codec_frames_per_sdu = 1) {
+    uint32_t octets_per_frame_range =
+        octets_per_frame_min | (ocets_per_frame_max << 16);
+
+    pac_records_.push_back(
+        acs_ac_record({.codec_id = codec_id,
+                       .codec_spec_caps = LeAudioLtvMap({
+                           {kLeAudioCodecLC3TypeSamplingFreq,
+                            UINT16_TO_VEC_UINT8(capa_sampling_frequency)},
+                           {kLeAudioCodecLC3TypeFrameDuration,
+                            UINT8_TO_VEC_UINT8(capa_frame_duration)},
+                           {kLeAudioCodecLC3TypeAudioChannelCounts,
+                            UINT8_TO_VEC_UINT8(audio_channel_counts)},
+                           {kLeAudioCodecLC3TypeOctetPerFrame,
+                            UINT32_TO_VEC_UINT8(octets_per_frame_range)},
+                           {kLeAudioCodecLC3TypeMaxCodecFramesPerSdu,
+                            UINT8_TO_VEC_UINT8(codec_frames_per_sdu)},
+                       }),
+                       .metadata = std::vector<uint8_t>(0)}));
+  }
+
   void Add(const CodecCapabilitySetting& setting,
            uint8_t audio_channel_counts) {
     if (setting.id != LeAudioCodecIdLc3) return;
@@ -432,7 +456,8 @@ class LeAudioAseConfigurationTest : public Test {
   LeAudioDevice* AddTestDevice(int snk_ase_num, int src_ase_num,
                                int snk_ase_num_cached = 0,
                                int src_ase_num_cached = 0,
-                               bool invert_ases_emplacement = false) {
+                               bool invert_ases_emplacement = false,
+                               bool out_of_range_device = false) {
     int index = group_->Size() + 1;
     auto device = (std::make_shared<LeAudioDevice>(
         GetTestAddress(index), DeviceConnectState::DISCONNECTED));
@@ -441,7 +466,9 @@ class LeAudioAseConfigurationTest : public Test {
     addresses_.push_back(device->address_);
     LOG_INFO(" Addresses %d", (int)(addresses_.size()));
 
-    group_->AddNode(device);
+    if (out_of_range_device == false) {
+      group_->AddNode(device);
+    }
 
     int ase_id = 1;
     for (int i = 0; i < (invert_ases_emplacement ? snk_ase_num : src_ase_num);
@@ -496,7 +523,9 @@ class LeAudioAseConfigurationTest : public Test {
         ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight;
 
     device->conn_id_ = index;
-    device->SetConnectionState(DeviceConnectState::CONNECTED);
+    device->SetConnectionState(out_of_range_device
+                                   ? DeviceConnectState::DISCONNECTED
+                                   : DeviceConnectState::CONNECTED);
     group_->ReloadAudioDirections();
     group_->ReloadAudioLocations();
     return device.get();
@@ -637,7 +666,7 @@ class LeAudioAseConfigurationTest : public Test {
 
           /* Make sure the strategy is the expected one */
           if (entry.direction == kLeAudioDirectionSink &&
-              group_->GetGroupStrategy() != entry.strategy) {
+              group_->GetGroupStrategy(group_->Size()) != entry.strategy) {
             interesting_configuration = false;
           }
 
@@ -1379,6 +1408,93 @@ TEST_F(LeAudioAseConfigurationTest, test_num_of_connected) {
   // Fully disconnect the other device
   device2->SetConnectionState(DeviceConnectState::DISCONNECTING);
   ASSERT_EQ(0, group_->NumOfConnected());
+}
+
+/*
+ * Failure happens when there is no matching single device scenario for dual
+ * device scanario. Stereo location for single earbud seems to be invalid but
+ * possible and stack should handle it.
+ *
+ * Failing scenario:
+ * 1. Connect two - stereo location earbuds
+ * 2. Disconnect one of earbud
+ * 3. CIS generator will look for dual device scenario with matching strategy
+ * 4. There is no dual device scenario with strategy stereo channels per device
+ */
+TEST_F(LeAudioAseConfigurationTest, test_getting_cis_count) {
+  LeAudioDevice* left = AddTestDevice(2, 1);
+  LeAudioDevice* right = AddTestDevice(0, 0, 0, 0, false, true);
+
+  /* Change location as by default it is stereo */
+  left->snk_audio_locations_ = kChannelAllocationStereo;
+  right->snk_audio_locations_ = kChannelAllocationStereo;
+  group_->ReloadAudioLocations();
+
+  auto all_configurations =
+      ::le_audio::AudioSetConfigurationProvider::Get()->GetConfigurations(
+          LeAudioContextType::MEDIA);
+  ASSERT_NE(nullptr, all_configurations);
+  ASSERT_NE(all_configurations->end(), all_configurations->begin());
+
+  /* Pick configuration for media */
+  auto iter = std::find_if(all_configurations->begin(),
+                           all_configurations->end(), [](auto& configuration) {
+                             return configuration->name ==
+                                    "SingleDev_TwoChanStereoSnk_48_4_High_"
+                                    "Reliability";
+                           });
+
+  ASSERT_NE(iter, all_configurations->end());
+
+  auto media_configuration = *iter;
+
+  // Build PACs for device
+  PublishedAudioCapabilitiesBuilder snk_pac_builder;
+  snk_pac_builder.Reset();
+
+  /* Create PACs for media. Single PAC for each direction is enough.
+   */
+  for (const auto& entry : (*media_configuration).confs) {
+    if (entry.direction == kLeAudioDirectionSink) {
+      snk_pac_builder.Add(LeAudioCodecIdLc3, 0x00b5, 0x03, 0x03, 0x001a, 0x00f0,
+                          2);
+    }
+  }
+
+  left->snk_pacs_ = snk_pac_builder.Get();
+  left->snk_pacs_ = snk_pac_builder.Get();
+
+  ::le_audio::types::AudioLocations group_snk_audio_locations = 3;
+  ::le_audio::types::AudioLocations group_src_audio_locations = 0;
+  uint8_t number_of_already_active_ases = 0;
+
+  BidirectionalPair<AudioLocations> group_audio_locations = {
+      .sink = group_snk_audio_locations, .source = group_src_audio_locations};
+
+  /* Get entry for the sink direction and use it to set configuration */
+  BidirectionalPair<std::vector<uint8_t>> ccid_lists = {{}, {}};
+  BidirectionalPair<AudioContexts> audio_contexts = {AudioContexts(),
+                                                     AudioContexts()};
+
+  /* Get entry for the sink direction and use it to set configuration */
+  for (auto& ent : media_configuration->confs) {
+    left->ConfigureAses(ent, group_->GetConfigurationContextType(),
+                        &number_of_already_active_ases, group_audio_locations,
+                        audio_contexts, ccid_lists, false);
+  }
+
+  /* Generate CIS, simulate CIG creation and assign cis handles to ASEs.*/
+  std::vector<uint16_t> handles = {0x0012};
+  group_->CigGenerateCisIds(LeAudioContextType::MEDIA);
+
+  /* Verify prepared CISes by counting generated entries */
+  int snk_cis_count = std::count_if(
+      this->group_->cises_.begin(), this->group_->cises_.end(), [](auto& cis) {
+        return cis.type == CisType::CIS_TYPE_UNIDIRECTIONAL_SINK;
+      });
+
+  /* Two CIS should be prepared for dual dev expected set */
+  ASSERT_EQ(snk_cis_count, 2);
 }
 
 }  // namespace
