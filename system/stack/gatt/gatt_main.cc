@@ -38,6 +38,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
+#include "rust/src/connection/ffi/connection_shim.h"
 #include "stack/arbiter/acl_arbiter.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
@@ -291,16 +292,26 @@ bool gatt_disconnect(tGATT_TCB* p_tcb) {
       L2CA_RemoveFixedChnl(L2CAP_ATT_CID, p_tcb->peer_bda);
       gatt_set_ch_state(p_tcb, GATT_CH_CLOSING);
     } else {
-      if (!connection_manager::direct_connect_remove(CONN_MGR_ID_L2CAP,
-                                                     p_tcb->peer_bda)) {
-        BTM_AcceptlistRemove(p_tcb->peer_bda);
-        LOG_INFO(
-            "GATT connection manager has no record but removed filter "
-            "acceptlist "
-            "gatt_if:%hhu peer:%s",
-            static_cast<uint8_t>(CONN_MGR_ID_L2CAP),
-            ADDRESS_TO_LOGGABLE_CSTR(p_tcb->peer_bda));
+      if (bluetooth::common::init_flags::
+              use_unified_connection_manager_is_enabled()) {
+        // TODO(aryarahul): this might not be necessary now that the connection
+        // manager handles GATT client closure correctly in GATT_Deregister
+        bluetooth::connection::GetConnectionManager()
+            .stop_all_connections_to_device(
+                bluetooth::connection::ResolveRawAddress(p_tcb->peer_bda));
+      } else {
+        if (!connection_manager::direct_connect_remove(CONN_MGR_ID_L2CAP,
+                                                       p_tcb->peer_bda)) {
+          BTM_AcceptlistRemove(p_tcb->peer_bda);
+          LOG_INFO(
+              "GATT connection manager has no record but removed filter "
+              "acceptlist "
+              "gatt_if:%hhu peer:%s",
+              static_cast<uint8_t>(CONN_MGR_ID_L2CAP),
+              ADDRESS_TO_LOGGABLE_CSTR(p_tcb->peer_bda));
+        }
       }
+
       gatt_cleanup_upon_disc(p_tcb->peer_bda, GATT_CONN_TERMINATE_LOCAL_HOST,
                              p_tcb->transport);
     }
@@ -921,8 +932,15 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
   tGATT_REG* p_reg;
   uint16_t conn_id;
 
-  std::set<tGATT_IF> apps =
-      connection_manager::get_apps_connecting_to(p_tcb->peer_bda);
+  std::set<tGATT_IF> apps = {};
+  if (bluetooth::common::init_flags::
+          use_unified_connection_manager_is_enabled()) {
+    // TODO(aryarahul): this should be done via callbacks passed into the
+    // connection manager
+    apps = {};
+  } else {
+    apps = connection_manager::get_apps_connecting_to(p_tcb->peer_bda);
+  }
 
   /* notifying all applications for the connection up event */
   for (i = 0, p_reg = gatt_cb.cl_rcb; i < GATT_MAX_APPS; i++, p_reg++) {
@@ -940,7 +958,10 @@ static void gatt_send_conn_cback(tGATT_TCB* p_tcb) {
   }
 
   /* Remove the direct connection */
-  connection_manager::on_connection_complete(p_tcb->peer_bda);
+  if (!bluetooth::common::init_flags::
+          use_unified_connection_manager_is_enabled()) {
+    connection_manager::on_connection_complete(p_tcb->peer_bda);
+  }
 
   if (p_tcb->att_lcid == L2CAP_ATT_CID) {
     if (!p_tcb->app_hold_link.empty()) {
