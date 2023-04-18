@@ -289,7 +289,8 @@ class LeAudioDeviceGroup {
   LeAudioDevice* GetFirstDevice(void);
   LeAudioDevice* GetFirstDeviceWithActiveContext(
       types::LeAudioContextType context_type);
-  le_audio::types::LeAudioConfigurationStrategy GetGroupStrategy(void);
+  le_audio::types::LeAudioConfigurationStrategy GetGroupStrategy(
+      int expected_group_size);
   int GetAseCount(uint8_t direction);
   LeAudioDevice* GetNextDevice(LeAudioDevice* leAudioDevice);
   LeAudioDevice* GetNextDeviceWithActiveContext(
