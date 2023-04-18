@@ -16,10 +16,12 @@
 //! dependency order.
 
 use bt_common::init_flags::rust_event_loop_is_enabled;
+use connection::le_manager::InactiveLeAclManager;
 use gatt::{channel::AttTransport, GattCallbacks};
 use log::{info, warn};
 use tokio::task::LocalSet;
 
+use self::core::shared_box::SharedBox;
 use std::{rc::Rc, sync::Mutex};
 use tokio::runtime::Builder;
 
@@ -53,6 +55,8 @@ pub struct ModuleViews<'a> {
     pub gatt_incoming_callbacks: Rc<gatt::callbacks::CallbackTransactionManager>,
     /// Proxies calls into GATT server
     pub gatt_module: &'a mut gatt::server::GattModule,
+    /// Proxies calls into connection manager
+    pub connection_manager: SharedBox<connection::ConnectionManager>,
 }
 
 static GLOBAL_MODULE_REGISTRY: Mutex<Option<GlobalModuleRegistry>> = Mutex::new(None);
@@ -65,6 +69,7 @@ impl GlobalModuleRegistry {
     pub fn start(
         gatt_callbacks: Rc<dyn GattCallbacks>,
         att_transport: Rc<dyn AttTransport>,
+        le_acl_manager: impl InactiveLeAclManager,
         on_started: impl FnOnce(),
     ) {
         info!("starting Rust modules");
@@ -82,6 +87,7 @@ impl GlobalModuleRegistry {
 
         // First, setup FFI and C++ modules
         gatt::arbiter::initialize_arbiter();
+        connection::register_callbacks();
 
         // Now enter the runtime
         local.block_on(&rt, async {
@@ -90,12 +96,15 @@ impl GlobalModuleRegistry {
                 Rc::new(gatt::callbacks::CallbackTransactionManager::new(gatt_callbacks.clone()));
             let gatt_module = &mut gatt::server::GattModule::new(att_transport.clone());
 
+            let connection_manager = connection::ConnectionManager::new(le_acl_manager);
+
             // All modules that are visible from incoming JNI / top-level interfaces should
             // be exposed here
             let mut modules = ModuleViews {
                 gatt_outgoing_callbacks: gatt_callbacks,
                 gatt_incoming_callbacks,
                 gatt_module,
+                connection_manager,
             };
 
             // notify upper layer that we are ready to receive messages
