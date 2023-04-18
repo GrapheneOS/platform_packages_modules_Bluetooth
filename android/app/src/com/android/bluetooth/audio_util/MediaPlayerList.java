@@ -108,6 +108,8 @@ public class MediaPlayerList {
 
     private BrowsablePlayerConnector mBrowsablePlayerConnector;
 
+    private MediaPlayerSettingsEventListener mPlayerSettingsListener;
+
     public interface MediaUpdateCallback {
         void run(MediaData data);
         void run(boolean availablePlayers, boolean addressedPlayers, boolean uids);
@@ -119,6 +121,16 @@ public class MediaPlayerList {
 
     public interface GetFolderItemsCallback {
         void run(String parentId, List<ListItem> items);
+    }
+
+    /**
+     * Listener for PlayerSettingsManager.
+     */
+    public interface MediaPlayerSettingsEventListener {
+        /**
+         * Called when the active player has changed.
+         */
+        void onActivePlayerChanged(MediaPlayerWrapper player);
     }
 
     public MediaPlayerList(Looper looper, Context context) {
@@ -633,6 +645,10 @@ public class MediaPlayerList {
         mActivePlayerLogger.logd(TAG, "setActivePlayer(): setting player to "
                 + getActivePlayer().getPackageName());
 
+        if (mPlayerSettingsListener != null) {
+            mPlayerSettingsListener.onActivePlayerChanged(getActivePlayer());
+        }
+
         // Ensure that metadata is synced on the new player
         if (!getActivePlayer().isMetadataSynced()) {
             Log.w(TAG, "setActivePlayer(): Metadata not synced on new player");
@@ -696,7 +712,12 @@ public class MediaPlayerList {
             synchronized (MediaPlayerList.this) {
                 Log.v(TAG, "onActiveSessionsChanged: number of controllers: "
                         + newControllers.size());
-                if (newControllers.size() == 0) return;
+                if (newControllers.size() == 0) {
+                    if (mPlayerSettingsListener != null) {
+                        mPlayerSettingsListener.onActivePlayerChanged(null);
+                    }
+                    return;
+                }
 
                 // Apps are allowed to have multiple MediaControllers. If an app does have
                 // multiple controllers then newControllers contains them in highest
@@ -795,6 +816,10 @@ public class MediaPlayerList {
     void injectAudioPlaybacActive(boolean isActive) {
         mAudioPlaybackIsActive = isActive;
         updateMediaForAudioPlayback();
+    }
+
+    void setPlayerSettingsCallback(MediaPlayerSettingsEventListener listener) {
+        mPlayerSettingsListener = listener;
     }
 
     private final AudioManager.AudioPlaybackCallback mAudioPlaybackCallback =

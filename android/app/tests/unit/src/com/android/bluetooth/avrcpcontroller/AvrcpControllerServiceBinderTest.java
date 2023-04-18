@@ -82,13 +82,6 @@ public class AvrcpControllerServiceBinderTest {
     }
 
     @Test
-    public void setPlayerApplicationSetting_notImplemented_doesNothing() {
-        BluetoothAvrcpPlayerSettings settings = new BluetoothAvrcpPlayerSettings(1);
-
-        mBinder.setPlayerApplicationSetting(settings, null, SynchronousResultReceiver.get());
-    }
-
-    @Test
     public void getPlayerSettings_notImplemented_doesNothing() {
         mBinder.getPlayerSettings(mRemoteDevice, null, SynchronousResultReceiver.get());
     }
