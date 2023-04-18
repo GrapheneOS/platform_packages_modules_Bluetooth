@@ -1046,7 +1046,9 @@ struct shim::legacy::Acl::impl {
     if (connection != handle_to_le_connection_map_.end()) {
       auto remote_address_with_type =
           connection->second->GetRemoteAddressWithType();
-      GetAclManager()->RemoveFromBackgroundList(remote_address_with_type);
+      if (!common::init_flags::use_unified_connection_manager_is_enabled()) {
+        GetAclManager()->RemoveFromBackgroundList(remote_address_with_type);
+      }
       connection->second->InitiateDisconnect(
           ToDisconnectReasonFromLegacy(reason));
       LOG_DEBUG("Disconnection initiated le remote:%s handle:%hu",
