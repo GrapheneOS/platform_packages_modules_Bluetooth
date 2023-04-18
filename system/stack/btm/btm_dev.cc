@@ -38,6 +38,7 @@
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
+#include "rust/src/connection/ffi/connection_shim.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
@@ -176,7 +177,14 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
 
     LOG_INFO("Remove device %s from filter accept list before delete record",
              ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
-    BTM_AcceptlistRemove(p_dev_rec->bd_addr);
+    if (bluetooth::common::init_flags::
+            use_unified_connection_manager_is_enabled()) {
+      bluetooth::connection::GetConnectionManager()
+          .stop_all_connections_to_device(
+              bluetooth::connection::ResolveRawAddress(p_dev_rec->bd_addr));
+    } else {
+      BTM_AcceptlistRemove(p_dev_rec->bd_addr);
+    }
 
     /* Clear out any saved BLE keys */
     btm_sec_clear_ble_keys(p_dev_rec);

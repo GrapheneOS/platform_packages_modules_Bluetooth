@@ -21,6 +21,7 @@
 #include "btcore/include/module.h"
 #include "osi/include/log.h"
 #ifndef TARGET_FLOSS
+#include "src/connection/ffi/connection_shim.h"
 #include "src/core/ffi.rs.h"
 #include "src/gatt/ffi.rs.h"
 #endif
@@ -64,7 +65,7 @@ future_t* Start() {
   bluetooth::rust_shim::start(
       std::make_unique<bluetooth::gatt::GattServerCallbacks>(
           *bt_gatt_callbacks->server),
-      *fut);
+      std::make_unique<bluetooth::connection::LeAclManagerShim>(), *fut);
 
   return fut;
 }

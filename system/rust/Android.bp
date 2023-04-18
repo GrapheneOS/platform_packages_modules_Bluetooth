@@ -39,6 +39,7 @@ rust_defaults {
         "libbt_common",
         "libcxx",
         "liblog_rust",
+        "libscopeguard",
 
         // needed to work around duplicate symbols
         // caused by bug in Soong
@@ -112,6 +113,7 @@ cc_library_static {
         "libchrome_support_defaults",
     ],
     srcs: [
+        "src/connection/ffi/connection_shim.cc",
         "src/core/ffi/module.cc",
         "src/gatt/ffi/gatt_shim.cc",
     ],
@@ -128,6 +130,8 @@ cc_library_static {
     static_libs: [
         "libbt_shim_bridge",
         "libbt_shim_ffi",
+
+        "libflatbuffers-cpp",
     ],
     generated_headers: [
         "cxx-bridge-header",
@@ -167,6 +171,7 @@ cc_library_static {
 filegroup {
     name: "libbluetooth_core_rs_ffi",
     srcs: [
+        "src/connection/ffi.rs",
         "src/core/ffi.rs",
         "src/gatt/ffi.rs",
     ],
