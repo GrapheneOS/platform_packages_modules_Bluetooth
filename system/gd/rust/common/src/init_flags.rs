@@ -355,6 +355,7 @@ init_flags!(
         set_min_encryption = true,
         subrating = true,
         trigger_advertising_callbacks_on_first_resume_after_pause = true,
+        use_unified_connection_manager,
     }
     // dynamic flags can be updated at runtime and should be accessed directly
     // to check.

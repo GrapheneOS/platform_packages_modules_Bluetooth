@@ -32,6 +32,7 @@
 #include "bt_target.h"  // Must be first to define build configuration
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "rust/src/connection/ffi/connection_shim.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/eatt/eatt.h"
 #include "stack/gatt/connection_manager.h"
@@ -1493,20 +1494,27 @@ bool gatt_cancel_open(tGATT_IF gatt_if, const RawAddress& bda) {
     gatt_disconnect(p_tcb);
   }
 
-  if (!connection_manager::direct_connect_remove(gatt_if, bda)) {
-    if (!connection_manager::is_background_connection(bda)) {
-      BTM_AcceptlistRemove(bda);
-      LOG_INFO(
-          "Gatt connection manager has no background record but "
-          " removed filter acceptlist gatt_if:%hhu peer:%s",
-          gatt_if, ADDRESS_TO_LOGGABLE_CSTR(bda));
-    } else {
-      LOG_INFO(
-          "Gatt connection manager maintains a background record"
-          " preserving filter acceptlist gatt_if:%hhu peer:%s",
-          gatt_if, ADDRESS_TO_LOGGABLE_CSTR(bda));
+  if (bluetooth::common::init_flags::
+          use_unified_connection_manager_is_enabled()) {
+    bluetooth::connection::GetConnectionManager().stop_direct_connection(
+        gatt_if, bluetooth::connection::ResolveRawAddress(bda));
+  } else {
+    if (!connection_manager::direct_connect_remove(gatt_if, bda)) {
+      if (!connection_manager::is_background_connection(bda)) {
+        BTM_AcceptlistRemove(bda);
+        LOG_INFO(
+            "Gatt connection manager has no background record but "
+            " removed filter acceptlist gatt_if:%hhu peer:%s",
+            gatt_if, ADDRESS_TO_LOGGABLE_CSTR(bda));
+      } else {
+        LOG_INFO(
+            "Gatt connection manager maintains a background record"
+            " preserving filter acceptlist gatt_if:%hhu peer:%s",
+            gatt_if, ADDRESS_TO_LOGGABLE_CSTR(bda));
+      }
     }
   }
+
   return true;
 }
 
@@ -1762,5 +1770,13 @@ uint8_t* gatt_dbg_op_name(uint8_t op_code) {
 bool gatt_auto_connect_dev_remove(tGATT_IF gatt_if, const RawAddress& bd_addr) {
   tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
   if (p_tcb) gatt_update_app_use_link_flag(gatt_if, p_tcb, false, false);
-  return connection_manager::background_connect_remove(gatt_if, bd_addr);
+  if (bluetooth::common::init_flags::
+          use_unified_connection_manager_is_enabled()) {
+    bluetooth::connection::GetConnectionManager().remove_background_connection(
+        gatt_if, bluetooth::connection::ResolveRawAddress(bd_addr));
+    // TODO(aryarahul): handle failure case
+    return true;
+  } else {
+    return connection_manager::background_connect_remove(gatt_if, bd_addr);
+  }
 }

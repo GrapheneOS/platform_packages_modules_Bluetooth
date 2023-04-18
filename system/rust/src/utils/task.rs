@@ -1,8 +1,12 @@
 //! This module provides utilities relating to async tasks, typically for usage
 //! only in test
 
-use std::{future::Future, time::Duration};
+use std::{
+    future::{Future, IntoFuture},
+    time::Duration,
+};
 
+use bt_common::init_logging;
 use tokio::{
     runtime::Builder,
     select,
@@ -11,6 +15,7 @@ use tokio::{
 
 /// Run the supplied future on a single-threaded runtime
 pub fn block_on_locally<T>(f: impl Future<Output = T>) -> T {
+    init_logging();
     LocalSet::new().block_on(
         &Builder::new_current_thread().enable_time().start_paused(true).build().unwrap(),
         async move {
@@ -39,9 +44,9 @@ pub fn block_on_locally<T>(f: impl Future<Output = T>) -> T {
 ///
 /// MUST only be run in an environment where time is mocked.
 pub async fn try_await<T: 'static>(
-    f: impl Future<Output = T> + 'static,
+    f: impl IntoFuture<Output = T> + 'static,
 ) -> Result<T, impl Future<Output = T>> {
-    let mut handle = spawn_local(f);
+    let mut handle = spawn_local(f.into_future());
 
     select! {
         t = &mut handle => Ok(t.unwrap()),

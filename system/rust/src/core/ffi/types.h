@@ -18,6 +18,7 @@
 
 #include <array>
 
+#include "types/ble_address_with_type.h"
 namespace bluetooth {
 namespace core {
 
@@ -31,6 +32,14 @@ struct AddressWithType {
   std::array<uint8_t, 6> address;
   AddressType address_type;
 };
+
+inline core::AddressWithType ToRustAddress(tBLE_BD_ADDR address) {
+  auto array = address.bda.ToArray();
+  std::reverse(std::begin(array), std::end(array));
+  return core::AddressWithType{array, address.IsPublic()
+                                          ? core::AddressType::Public
+                                          : core::AddressType::Random};
+}
 
 }  // namespace core
 }  // namespace bluetooth
