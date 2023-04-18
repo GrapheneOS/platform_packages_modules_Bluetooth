@@ -37,6 +37,7 @@
 #include "main/shim/stack.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "osi/include/properties.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sec.h"
@@ -765,7 +766,12 @@ tBTM_STATUS bluetooth::shim::BTM_SetConnectability(uint16_t page_mode,
   uint16_t le_connectible_mode = page_mode >> 8;
 
   if (!window) window = BTM_DEFAULT_CONN_WINDOW;
-  if (!interval) interval = BTM_DEFAULT_CONN_INTERVAL;
+  if (!interval) {
+    interval = (uint16_t)osi_property_get_int32(BTM_PAGE_SCAN_INTERVAL_PROPERTY,
+                                                BTM_DEFAULT_CONN_INTERVAL);
+  }
+  LOG_INFO("shim::BTM_SetConnectability page scan interval = (%d * 0.625)ms",
+           interval);
 
   switch (le_connectible_mode) {
     case kConnectibleModeOff:
