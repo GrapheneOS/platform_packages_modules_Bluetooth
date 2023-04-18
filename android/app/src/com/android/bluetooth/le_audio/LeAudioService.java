@@ -1297,7 +1297,8 @@ public class LeAudioService extends ProfileService {
                     == BluetoothProfile.STATE_CONNECTED);
 
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
-                    previousActiveOutDevice, getLeAudioOutputProfile(suppressNoisyIntent, volume));
+                    previousActiveOutDevice, BluetoothProfileConnectionInfo.createLeAudioOutputInfo(
+                            suppressNoisyIntent, volume));
         }
 
         if (isNewActiveInDevice) {
@@ -1492,22 +1493,6 @@ public class LeAudioService extends ProfileService {
                 sm.sendMessage(LeAudioStateMachine.CONNECT);
             }
         }
-    }
-
-    BluetoothProfileConnectionInfo getLeAudioOutputProfile(boolean suppressNoisyIntent,
-            int volume) {
-        /* TODO - b/236618595 */
-        Parcel parcel = Parcel.obtain();
-        parcel.writeInt(BluetoothProfile.LE_AUDIO);
-        parcel.writeBoolean(suppressNoisyIntent);
-        parcel.writeInt(volume);
-        parcel.writeBoolean(true /* isLeOutput */);
-        parcel.setDataPosition(0);
-
-        BluetoothProfileConnectionInfo profileInfo =
-                BluetoothProfileConnectionInfo.CREATOR.createFromParcel(parcel);
-        parcel.recycle();
-        return profileInfo;
     }
 
     BluetoothProfileConnectionInfo getBroadcastProfile(boolean suppressNoisyIntent) {
@@ -2988,7 +2973,8 @@ public class LeAudioService extends ProfileService {
                     + "change with volume=" + volume + " and suppressNoisyIntent="
                     + suppressNoisyIntent);
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
-                    mActiveAudioOutDevice, getLeAudioOutputProfile(suppressNoisyIntent, volume));
+                    mActiveAudioOutDevice, BluetoothProfileConnectionInfo.createLeAudioOutputInfo(
+                            suppressNoisyIntent, volume));
             audioFrameworkCalls++;
         }
 
