@@ -335,6 +335,9 @@ cc_defaults {
             "close_fd_mask=3",
             // This limits the maximum corpus size to 4KB
             "max_len=4096",
+            // TODO: b/280300628 for fixing memory leaks. Until it's fixed leak
+            // detection needs to be turned off to unblock fuzzing.
+            "detect_leaks=0",
         ],
         cc: [
             "android-bluetooth-security@google.com",
@@ -374,6 +377,211 @@ cc_fuzz {
         ":TestMockStackBtm",
         "fuzzers/sdp_fuzzer.cc",
     ],
+}
+
+cc_fuzz {
+    name: "gatt-fuzzer",
+    defaults: [
+        "btstack_fuzzer_default",
+        "fluoride_defaults_fuzzable",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/stack/btm",
+        "external/flatbuffers/include",
+        "external/rust/crates/quiche/deps/boringssl/src/include",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
+    srcs: crypto_toolbox_srcs + [
+        "gatt/*.cc",
+        "eatt/*.cc",
+        ":TestCommonLogMsg",
+        ":TestCommonMockFunctions",
+        ":TestCommonStackConfig",
+        ":TestFakeOsi",
+        ":TestMockBtif",
+        ":TestMockDevice",
+        ":TestMockGdOsLoggingLogRedaction",
+        ":TestMockSrvcDis",
+        ":TestMockStackL2cap",
+        ":TestMockStackMetrics",
+        ":TestMockStackBtm",
+        ":TestMockStackAcl",
+        ":TestMockStackHcic",
+        ":TestMockMainShim",
+        ":TestMockStackSdp",
+        ":TestMockStackArbiter",
+        ":TestMockRustFfi",
+        "fuzzers/gatt_fuzzer.cc",
+    ],
+    static_libs: [
+        "libgmock",
+    ],
+}
+
+cc_fuzz {
+    name: "smp-fuzzer",
+    defaults: [
+        "btstack_fuzzer_default",
+        "fluoride_defaults_fuzzable",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/stack/btm",
+        "external/flatbuffers/include",
+        "external/rust/crates/quiche/deps/boringssl/src/include",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
+    srcs: crypto_toolbox_srcs + [
+        "smp/smp_*.cc",
+        ":TestCommonLogMsg",
+        ":TestCommonMockFunctions",
+        ":TestCommonStackConfig",
+        ":TestFakeOsi",
+        ":TestMockBtif",
+        ":TestMockDevice",
+        ":TestMockGdOsLoggingLogRedaction",
+        ":TestMockStackL2cap",
+        ":TestMockStackMetrics",
+        ":TestMockStackBtm",
+        ":TestMockStackAcl",
+        ":TestMockStackHcic",
+        ":TestMockMainShim",
+        "fuzzers/smp_fuzzer.cc",
+    ],
+    static_libs: [
+        "libgmock",
+    ],
+}
+
+cc_fuzz {
+    name: "bnep-fuzzer",
+    defaults: [
+        "btstack_fuzzer_default",
+        "fluoride_defaults_fuzzable",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/stack/btm",
+        "external/flatbuffers/include",
+        "external/rust/crates/quiche/deps/boringssl/src/include",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
+    srcs: [
+        "bnep/*.cc",
+        ":TestCommonLogMsg",
+        ":TestCommonMockFunctions",
+        ":TestCommonStackConfig",
+        ":TestFakeOsi",
+        ":TestMockBtif",
+        ":TestMockDevice",
+        ":TestMockGdOsLoggingLogRedaction",
+        ":TestMockStackL2cap",
+        ":TestMockStackMetrics",
+        ":TestMockStackBtm",
+        ":TestMockStackAcl",
+        ":TestMockStackHcic",
+        ":TestMockMainShim",
+        "fuzzers/bnep_fuzzer.cc",
+    ],
+    static_libs: [
+        "libgmock",
+    ],
+}
+
+cc_fuzz {
+    name: "avrc-fuzzer",
+    defaults: [
+        "btstack_fuzzer_default",
+        "fluoride_defaults_fuzzable",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/stack/btm",
+        "external/flatbuffers/include",
+        "external/rust/crates/quiche/deps/boringssl/src/include",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
+    srcs: [
+        "avrc/*.cc",
+        "avct/*.cc",
+        ":TestCommonLogMsg",
+        ":TestCommonMockFunctions",
+        ":TestCommonStackConfig",
+        ":TestFakeOsi",
+        ":TestMockBtif",
+        ":TestMockDevice",
+        ":TestMockGdOsLoggingLogRedaction",
+        ":TestMockStackL2cap",
+        ":TestMockStackMetrics",
+        ":TestMockStackBtm",
+        ":TestMockStackAcl",
+        ":TestMockStackHcic",
+        ":TestMockMainShim",
+        ":TestMockStackSdp",
+        "fuzzers/avrc_fuzzer.cc",
+    ],
+    static_libs: [
+        "libgmock",
+    ],
+    target: {
+        android: {
+            static_libs: [
+                "libcom.android.sysprop.bluetooth",
+            ],
+        },
+    },
+}
+
+cc_fuzz {
+    name: "l2cap-fuzzer",
+    defaults: [
+        "btstack_fuzzer_default",
+        "fluoride_defaults_fuzzable",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/stack/btm",
+        "external/flatbuffers/include",
+        "external/rust/crates/quiche/deps/boringssl/src/include",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
+    srcs: [
+        "l2cap/*.cc",
+        ":TestCommonLogMsg",
+        ":TestCommonMockFunctions",
+        ":TestCommonStackConfig",
+        ":TestFakeOsi",
+        ":TestMockBtif",
+        ":TestMockDevice",
+        ":TestMockGdOsLoggingLogRedaction",
+        ":TestMockStackMetrics",
+        ":TestMockStackBtm",
+        ":TestMockStackAcl",
+        ":TestMockStackHcic",
+        ":TestMockMainShim",
+        "fuzzers/l2cap_fuzzer.cc",
+    ],
+    static_libs: [
+        "libgmock",
+    ],
+    target: {
+        android: {
+            shared_libs: [
+                "libPlatformProperties",
+            ],
+        },
+    },
 }
 
 // Bluetooth stack unit tests for target
