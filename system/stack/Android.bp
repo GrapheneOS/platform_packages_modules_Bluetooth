@@ -281,8 +281,8 @@ cc_library_static {
         "-fvisibility=default",
     ],
     static_libs: [
-        "libbt-hci",
         "libbluetooth_core_rs",
+        "libbt-hci",
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
@@ -332,11 +332,9 @@ cc_test {
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
         "android.system.suspend.control-V1-ndk",
-        "libbt-audio-hal-interface",
         "libFraunhoferAAC",
-        "libbluetooth_core_rs",
         "libbluetooth-dumpsys",
-        "libbtcore",
+        "libbluetooth_core_rs",
         "libbt-audio-hal-interface",
         "libbt-bta",
         "libbt-bta-core",
