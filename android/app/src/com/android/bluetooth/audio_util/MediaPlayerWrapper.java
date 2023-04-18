@@ -108,6 +108,10 @@ public class MediaPlayerWrapper {
         return mPackageName;
     }
 
+    public MediaSession.Token getSessionToken() {
+        return mMediaController.getSessionToken();
+    }
+
     protected List<MediaSession.QueueItem> getQueue() {
         return mMediaController.getQueue();
     }
