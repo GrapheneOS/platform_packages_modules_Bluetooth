@@ -382,13 +382,13 @@ cc_test {
                 ":BluetoothOsTestSources_android",
             ],
             static_libs: [
+                "android.hardware.bluetooth@1.0",
+                "android.hardware.bluetooth@1.1",
                 "android.system.suspend-V1-ndk",
                 "android.system.suspend.control-V1-ndk",
                 "libstatslog_bt",
             ],
             shared_libs: [
-                "android.hardware.bluetooth@1.0",
-                "android.hardware.bluetooth@1.1",
                 "libbinder_ndk",
                 "libcutils",
                 "libhidlbase",
