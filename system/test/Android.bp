@@ -392,6 +392,13 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockRustFfi",
+    srcs: [
+        "mock/mock_rust_ffi_connection*.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockStackBtu",
     srcs: [
         "mock/mock_stack_btu*.cc",
