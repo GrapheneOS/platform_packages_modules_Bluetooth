@@ -20,11 +20,4 @@ android_app {
     ],
 
     privileged: true,
-
-    required: ["libbluetooth"],
-    apex_available: [
-        "//apex_available:platform",
-        "com.android.bluetooth.updatable",
-    ],
-
 }
