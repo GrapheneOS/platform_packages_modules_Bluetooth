@@ -676,6 +676,7 @@ class AdapterProperties {
                 if (!mBondedDevices.contains(device)) {
                     debugLog("Adding bonded device:" + device);
                     mBondedDevices.add(device);
+                    cleanupPrevBondRecordsFor(device);
                 }
             } else if (state == BluetoothDevice.BOND_NONE) {
                 // remove device from list
@@ -688,6 +689,35 @@ class AdapterProperties {
             invalidateGetBondStateCache();
         } catch (Exception ee) {
             Log.w(TAG, "onBondStateChanged: Exception ", ee);
+        }
+    }
+
+    void cleanupPrevBondRecordsFor(BluetoothDevice currentDevice) {
+        String currentAddress = currentDevice.getAddress();
+        String currentIdentityAddress = mService.getIdentityAddress(currentAddress);
+        debugLog("cleanupPrevBondRecordsFor: " + currentDevice);
+        if (currentIdentityAddress == null) {
+            return;
+        }
+
+        for (BluetoothDevice device : mBondedDevices) {
+            String address = device.getAddress();
+            String identityAddress = mService.getIdentityAddress(address);
+            if (currentIdentityAddress.equals(identityAddress) && !currentAddress.equals(address)) {
+                if (mService.removeBondNative(Utils.getBytesFromAddress(device.getAddress()))) {
+                    mBondedDevices.remove(device);
+                    infoLog("Removing old bond record: "
+                                    + device
+                                    + " for current device: "
+                                    + currentDevice);
+                } else {
+                    Log.e(TAG, "Unexpected error while removing old bond record:"
+                                    + device
+                                    + " for current device: "
+                                    + currentDevice);
+                }
+                break;
+            }
         }
     }
 
