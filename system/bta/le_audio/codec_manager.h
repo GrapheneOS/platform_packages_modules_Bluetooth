@@ -70,6 +70,7 @@ class CodecManager {
       const std::vector<uint16_t>& conn_handle,
       std::function<void(const ::le_audio::broadcast_offload_config& config)>
           update_receiver);
+  virtual int GetAidlVersionInUsed(void) const;
 
  private:
   struct impl;
