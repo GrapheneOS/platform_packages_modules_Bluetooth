@@ -345,12 +345,7 @@ typedef enum {
    */
   BT_PROPERTY_LOCAL_IO_CAPS,
 
-  /**
-   * Description - Local Input/Output Capabilities for BLE
-   * Access mode - GET and SET
-   * Data Type - bt_io_cap_t.
-   */
-  BT_PROPERTY_LOCAL_IO_CAPS_BLE,
+  BT_PROPERTY_RESERVED_0F,
 
   BT_PROPERTY_DYNAMIC_AUDIO_BUFFER,
 

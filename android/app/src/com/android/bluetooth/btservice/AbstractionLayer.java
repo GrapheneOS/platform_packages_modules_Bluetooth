@@ -60,7 +60,6 @@ public final class AbstractionLayer {
     public static final int BT_DEVICE_TYPE_DUAL = 0x03;
 
     static final int BT_PROPERTY_LOCAL_IO_CAPS = 0x0e;
-    static final int BT_PROPERTY_LOCAL_IO_CAPS_BLE = 0x0f;
 
     static final int BT_BOND_STATE_NONE = 0x00;
     static final int BT_BOND_STATE_BONDING = 0x01;
