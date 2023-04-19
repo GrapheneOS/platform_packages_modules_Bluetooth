@@ -51,6 +51,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -68,7 +69,7 @@ public class BluetoothOppTransferActivityTest {
     Context mTargetContext;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mBluetoothMethodProxy = Mockito.spy(BluetoothMethodProxy.getInstance());
         BluetoothMethodProxy.setInstanceForTesting(mBluetoothMethodProxy);
@@ -104,6 +105,7 @@ public class BluetoothOppTransferActivityTest {
                         BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)
         ));
         BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
+        BluetoothOppTestUtils.wakeUpAndDismissKeyGuard();
     }
 
     @After

@@ -28,9 +28,14 @@ import static org.mockito.Mockito.doReturn;
 import android.content.ComponentName;
 import android.content.Context;
 import android.database.Cursor;
+import android.os.RemoteException;
+
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.uiautomator.UiDevice;
 
 import org.mockito.internal.util.MockUtil;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -144,6 +149,12 @@ public class BluetoothOppTestUtils {
                     activityName, enabledState, DONT_KILL_APP);
         });
 
+    }
+
+    public static void wakeUpAndDismissKeyGuard() throws Exception {
+        final UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        device.executeShellCommand("input keyevent KEYCODE_WAKEUP");
+        device.wakeUp();
     }
 }
 
