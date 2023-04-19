@@ -49,6 +49,8 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.io.IOException;
+
 @RunWith(AndroidJUnit4.class)
 public class BluetoothOppBtEnablingActivityTest {
     @Spy
@@ -60,7 +62,7 @@ public class BluetoothOppBtEnablingActivityTest {
     int mRealTimeoutValue;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mBluetoothMethodProxy = Mockito.spy(BluetoothMethodProxy.getInstance());
         BluetoothMethodProxy.setInstanceForTesting(mBluetoothMethodProxy);
@@ -72,6 +74,7 @@ public class BluetoothOppBtEnablingActivityTest {
 
         mRealTimeoutValue = BluetoothOppBtEnablingActivity.sBtEnablingTimeoutMs;
         BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
+        BluetoothOppTestUtils.wakeUpAndDismissKeyGuard();
     }
 
     @After
