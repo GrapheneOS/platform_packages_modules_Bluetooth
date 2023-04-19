@@ -73,8 +73,8 @@ cc_defaults {
     defaults: ["fluoride_common_options"],
     cflags: [
         "-DEXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
-        "-fvisibility=hidden",
         "-DLOG_NDEBUG=1",
+        "-fvisibility=hidden",
         // struct BT_HDR is defined as a variable-size header in a struct.
         "-Wno-gnu-variable-sized-type-not-at-end",
     ],

@@ -67,8 +67,8 @@ cc_library_shared {
         "packages/modules/Bluetooth/system/types",
     ],
     static_libs: [
-        "libbluetooth-types",
         "libbluetooth",
+        "libbluetooth-types",
         "libbluetooth_core_rs",
         "libbluetooth_core_rs_bridge",
         "libc++fs",
