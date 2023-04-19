@@ -26,6 +26,7 @@ java_defaults {
         "androidx.test.espresso.intents",
         "androidx.test.ext.truth",
         "androidx.test.rules",
+        "androidx.test.uiautomator_uiautomator",
         "framework-bluetooth-pre-jarjar",
         "gson",
         "mockito-target",
