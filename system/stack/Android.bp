@@ -401,8 +401,6 @@ cc_test {
         "android.hardware.bluetooth.audio-V3-ndk",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
-        "android.hardware.bluetooth@1.0",
-        "android.hardware.bluetooth@1.1",
         "libPlatformProperties",
         "libaaudio",
         "libbinder_ndk",
@@ -418,6 +416,8 @@ cc_test {
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
         "android.system.suspend.control-V1-ndk",
         "libFraunhoferAAC",
         "libbluetooth-dumpsys",
@@ -569,8 +569,6 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
-        "android.hardware.bluetooth@1.0",
-        "android.hardware.bluetooth@1.1",
         "libcrypto",
         "libcutils",
     ],
@@ -607,8 +605,6 @@ cc_test {
         "test/ble_advertiser_test.cc",
     ],
     shared_libs: [
-        "android.hardware.bluetooth@1.0",
-        "android.hardware.bluetooth@1.1",
         "libbinder_ndk",
         "libcrypto",
         "libcutils",
@@ -640,8 +636,6 @@ cc_test {
         "test/ad_parser_unittest.cc",
     ],
     shared_libs: [
-        "android.hardware.bluetooth@1.0",
-        "android.hardware.bluetooth@1.1",
         "libbinder_ndk",
         "libcrypto",
     ],
