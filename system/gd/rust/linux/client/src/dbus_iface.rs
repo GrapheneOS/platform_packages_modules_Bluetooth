@@ -872,6 +872,11 @@ impl IBluetooth for BluetoothDBus {
     fn is_wbs_supported(&self) -> bool {
         dbus_generated!()
     }
+
+    #[dbus_method("IsSwbSupported")]
+    fn is_swb_supported(&self) -> bool {
+        dbus_generated!()
+    }
 }
 
 pub(crate) struct BluetoothQALegacyDBus {
