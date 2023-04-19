@@ -434,14 +434,17 @@ struct eatt_impl {
     LOG(INFO) << __func__ << "lcid: " << loghex(lcid)
               << " local cfg?: " << is_local_cfg;
 
+    EattChannel* channel = find_channel_by_cid(bda, lcid);
+    if (!channel) return;
+
+    // regardless of success result, we have finished reconfiguration
+    channel->EattChannelSetState(EattChannelState::EATT_CHANNEL_OPENED);
+
     if (p_cfg->result != L2CAP_CFG_OK) {
       LOG(INFO) << __func__ << " reconfig failed lcid: " << loghex(lcid)
                 << " result: " << loghex(p_cfg->result);
       return;
     }
-
-    EattChannel* channel = find_channel_by_cid(bda, lcid);
-    if (!channel) return;
 
     /* On this layer we don't care about mps as this is handled in L2CAP layer
      */
@@ -449,9 +452,6 @@ struct eatt_impl {
       channel->rx_mtu_ = p_cfg->mtu;
     else
       channel->tx_mtu_ = p_cfg->mtu;
-
-    /* Go back to open state */
-    channel->EattChannelSetState(EattChannelState::EATT_CHANNEL_OPENED);
 
     if (stack_config_get_interface()->get_pts_l2cap_ecoc_reconfigure()) {
       /* Upper tester for L2CAP - schedule sending data */
@@ -674,7 +674,8 @@ struct eatt_impl {
     auto iter = find_if(
         eatt_dev->eatt_channels.begin(), eatt_dev->eatt_channels.end(),
         [](const std::pair<uint16_t, std::shared_ptr<EattChannel>>& el) {
-          return !GATT_HANDLE_IS_VALID(el.second->indicate_handle_);
+          return el.second->state_ == EattChannelState::EATT_CHANNEL_OPENED &&
+                 !GATT_HANDLE_IS_VALID(el.second->indicate_handle_);
         });
 
     return (iter == eatt_dev->eatt_channels.end()) ? nullptr
@@ -689,7 +690,8 @@ struct eatt_impl {
     auto iter = find_if(
         eatt_dev->eatt_channels.begin(), eatt_dev->eatt_channels.end(),
         [](const std::pair<uint16_t, std::shared_ptr<EattChannel>>& el) {
-          return el.second->cl_cmd_q_.empty();
+          return el.second->state_ == EattChannelState::EATT_CHANNEL_OPENED &&
+                 el.second->cl_cmd_q_.empty();
         });
 
     return (iter == eatt_dev->eatt_channels.end()) ? nullptr
@@ -826,9 +828,13 @@ struct eatt_impl {
 
     tL2CAP_LE_CFG_INFO cfg = {.mps = eatt_dev->rx_mps_, .mtu = new_mtu};
 
-    if (!L2CA_ReconfigCreditBasedConnsReq(eatt_dev->bda_, cids, &cfg))
+    if (!L2CA_ReconfigCreditBasedConnsReq(eatt_dev->bda_, cids, &cfg)) {
       LOG(ERROR) << __func__ << "Could not start reconfig cid: " << loghex(cid)
                  << " or device " << bd_addr;
+      return;
+    }
+
+    channel->EattChannelSetState(EattChannelState::EATT_CHANNEL_RECONFIGURING);
   }
 
   void reconfigure_all(const RawAddress& bd_addr, uint16_t new_mtu) {
@@ -862,9 +868,16 @@ struct eatt_impl {
 
     tL2CAP_LE_CFG_INFO cfg = {.mps = eatt_dev->rx_mps_, .mtu = new_mtu};
 
-    if (!L2CA_ReconfigCreditBasedConnsReq(eatt_dev->bda_, cids, &cfg))
+    if (!L2CA_ReconfigCreditBasedConnsReq(eatt_dev->bda_, cids, &cfg)) {
       LOG(ERROR) << __func__ << "Could not start reconfig for device "
                  << bd_addr;
+      return;
+    }
+
+    for (auto& channel : eatt_dev->eatt_channels) {
+      channel.second->EattChannelSetState(
+          EattChannelState::EATT_CHANNEL_RECONFIGURING);
+    }
   }
 
   void supported_features_cb(uint8_t role, const RawAddress& bd_addr,

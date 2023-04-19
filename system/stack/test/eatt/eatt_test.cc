@@ -624,4 +624,50 @@ TEST_F(EattTest, TestCollisionHandling) {
   ConnectDeviceEattSupported(5, true /* collision*/);
 }
 
+TEST_F(EattTest, ChannelUnavailableWhileOpening) {
+  // arrange
+  ON_CALL(gatt_interface_, ClientReadSupportedFeatures)
+      .WillByDefault(
+          [](const RawAddress& addr,
+             base::OnceCallback<void(const RawAddress&, uint8_t)> cb) {
+            std::move(cb).Run(addr, BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK);
+            return true;
+          });
+  ON_CALL(gatt_interface_, GetEattSupport).WillByDefault(Return(true));
+
+  // expect
+  EXPECT_CALL(l2cap_interface_,
+              ConnectCreditBasedReq(BT_PSM_EATT, test_address, _))
+      .WillOnce(Return(std::vector<uint16_t>{61}));
+
+  // act: start
+  eatt_instance_->Connect(test_address);
+  auto available_channel_for_request =
+      eatt_instance_->GetChannelAvailableForClientRequest(test_address);
+  auto available_channel_for_indication =
+      eatt_instance_->GetChannelAvailableForIndication(test_address);
+
+  // assert
+  ASSERT_EQ(available_channel_for_request, nullptr);
+  ASSERT_EQ(available_channel_for_indication, nullptr);
+}
+
+TEST_F(EattTest, ChannelUnavailableWhileReconfiguring) {
+  // arrange
+  ON_CALL(l2cap_interface_, ReconfigCreditBasedConnsReq(_, _, _))
+      .WillByDefault(Return(true));
+  ConnectDeviceEattSupported(/* num_of_accepted_connections = */ 1);
+
+  // act: reconfigure, then get available channels
+  eatt_instance_->Reconfigure(test_address, connected_cids_[0], 300);
+  auto available_channel_for_request =
+      eatt_instance_->GetChannelAvailableForClientRequest(test_address);
+  auto available_channel_for_indication =
+      eatt_instance_->GetChannelAvailableForIndication(test_address);
+
+  // assert
+  ASSERT_EQ(available_channel_for_request, nullptr);
+  ASSERT_EQ(available_channel_for_indication, nullptr);
+}
+
 }  // namespace
