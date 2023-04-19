@@ -1803,13 +1803,14 @@ uint8_t l2c_fcr_process_peer_cfg_req(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
   /* Need to negotiate if our modes are not the same */
   if (p_cfg->fcr.mode != p_ccb->p_rcb->ertm_info.preferred_mode) {
     /* If peer wants a mode that we don't support then retry our mode (ex.
-    *rtx/flc), OR
-    ** If we want ERTM and they wanted streaming retry our mode.
-    ** Note: If we have already determined they support our mode previously
-    **       from their EXF mask.
-    */
+     *rtx/flc), OR
+     ** If we want ERTM and they want non-basic mode, retry our mode.
+     ** Note: If we have already determined they support our mode previously
+     **       from their EXF mask.
+     */
     if ((((1 << p_cfg->fcr.mode) & L2CAP_FCR_CHAN_OPT_ALL_MASK) == 0) ||
-        (p_ccb->p_rcb->ertm_info.preferred_mode == L2CAP_FCR_ERTM_MODE)) {
+        ((p_ccb->p_rcb->ertm_info.preferred_mode == L2CAP_FCR_ERTM_MODE) &&
+         (p_cfg->fcr.mode != L2CAP_FCR_BASIC_MODE))) {
       p_cfg->fcr.mode = p_ccb->our_cfg.fcr.mode;
       p_cfg->fcr.tx_win_sz = p_ccb->our_cfg.fcr.tx_win_sz;
       p_cfg->fcr.max_transmit = p_ccb->our_cfg.fcr.max_transmit;
