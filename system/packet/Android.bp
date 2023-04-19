@@ -70,8 +70,6 @@ cc_test {
         "tests/base/packet_test.cc",
     ],
     shared_libs: [
-        "android.hardware.bluetooth@1.0",
-        "android.hardware.bluetooth@1.1",
         "libbase",
         "libbinder_ndk",
         "libcrypto",
