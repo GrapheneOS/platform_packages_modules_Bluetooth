@@ -51,6 +51,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -73,11 +74,12 @@ public class BluetoothOppUtilityTest {
 
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         BluetoothMethodProxy.setInstanceForTesting(mCallProxy);
         BluetoothOppTestUtils.enableOppActivities(true, mContext);
+        BluetoothOppTestUtils.wakeUpAndDismissKeyGuard();
     }
 
     @After

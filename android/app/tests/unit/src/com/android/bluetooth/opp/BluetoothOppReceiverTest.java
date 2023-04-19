@@ -60,6 +60,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,7 +73,7 @@ public class BluetoothOppReceiverTest {
     BluetoothOppReceiver mReceiver;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mContext = spy(new ContextWrapper(
                 InstrumentationRegistry.getInstrumentation().getTargetContext()));
@@ -85,6 +86,7 @@ public class BluetoothOppReceiverTest {
         Intents.init();
 
         BluetoothOppTestUtils.enableOppActivities(true, mContext);
+        BluetoothOppTestUtils.wakeUpAndDismissKeyGuard();
     }
 
     @After
