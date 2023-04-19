@@ -39,6 +39,7 @@
 #include "bta_sdp_api.h"
 #include "bta_sys.h"
 #include "btif_common.h"
+#include "btif_sock_sdp.h"
 #include "btif_sock_util.h"
 #include "btif_util.h"
 #include "osi/include/allocator.h"
@@ -383,6 +384,12 @@ void on_create_record_event(int id) {
         break;
       case SDP_TYPE_MPS:
         handle = add_mps_sdp(&record->mps);
+        break;
+      case SDP_TYPE_RAW:
+        if (record->hdr.rfcomm_channel_number > 0) {
+          handle = add_rfc_sdp_rec(record->hdr.service_name, record->hdr.uuid,
+                                   record->hdr.rfcomm_channel_number);
+        }
         break;
       default:
         BTIF_TRACE_DEBUG("Record type %d is not supported", record->hdr.type);
