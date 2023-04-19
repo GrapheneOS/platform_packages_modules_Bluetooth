@@ -246,3 +246,8 @@ packet AttExchangeMtuRequest : Att(opcode = EXCHANGE_MTU_REQUEST) {
 packet AttExchangeMtuResponse : Att(opcode = EXCHANGE_MTU_RESPONSE) {
   mtu: 16,
 }
+
+packet AttWriteCommand : Att(opcode = WRITE_COMMAND) {
+  handle : AttHandle,
+  value : AttAttributeData,
+}

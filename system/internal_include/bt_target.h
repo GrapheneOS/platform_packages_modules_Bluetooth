@@ -271,6 +271,7 @@
 #ifndef BTM_DEFAULT_CONN_INTERVAL
 #define BTM_DEFAULT_CONN_INTERVAL 0x0400
 #endif
+#define BTM_PAGE_SCAN_INTERVAL_PROPERTY "bluetooth.btm.pagescan_interval"
 
 /* When automatic inquiry scan is enabled, this sets the inquiry scan window. */
 #ifndef BTM_DEFAULT_DISC_WINDOW

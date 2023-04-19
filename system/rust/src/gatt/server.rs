@@ -9,6 +9,7 @@ mod request_handler;
 pub mod services;
 mod transactions;
 
+mod command_handler;
 #[cfg(test)]
 mod test;
 

@@ -46,6 +46,7 @@ mod ffi {
         fn set_min_encryption_is_enabled() -> bool;
         fn subrating_is_enabled() -> bool;
         fn trigger_advertising_callbacks_on_first_resume_after_pause_is_enabled() -> bool;
+        fn use_unified_connection_manager_is_enabled() -> bool;
     }
 }
 
