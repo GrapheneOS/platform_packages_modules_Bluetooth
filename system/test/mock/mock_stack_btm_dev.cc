@@ -19,6 +19,8 @@
  *   Functions generated:16
  */
 
+#include "test/mock/mock_stack_btm_dev.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +43,16 @@
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
 #endif
+
+namespace test {
+namespace mock {
+namespace stack_btm_dev {
+
+struct btm_find_dev btm_find_dev;
+
+}
+}  // namespace mock
+}  // namespace test
 
 bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
                       const BD_NAME& bd_name, uint8_t* features,
@@ -76,7 +88,7 @@ char* BTM_SecReadDevName(const RawAddress& bd_addr) {
 }
 tBTM_SEC_DEV_REC* btm_find_dev(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
-  return nullptr;
+  return test::mock::stack_btm_dev::btm_find_dev.body(bd_addr);
 }
 tBTM_SEC_DEV_REC* btm_find_dev_by_handle(uint16_t handle) {
   inc_func_call_count(__func__);
