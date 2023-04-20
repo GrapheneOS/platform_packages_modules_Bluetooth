@@ -2868,11 +2868,13 @@ bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr,
       .bda = bd_addr,
       .type = addr_type,
   };
-  if (address_with_type.type == BLE_ADDR_PUBLIC) {
-    gatt_find_in_device_record(bd_addr, &address_with_type);
-  }
-  LOG_DEBUG("Creating le direct connection to:%s",
-            ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
+
+  gatt_find_in_device_record(bd_addr, &address_with_type);
+
+  LOG_DEBUG("Creating le direct connection to:%s type:%s (initial type: %s)",
+            ADDRESS_TO_LOGGABLE_CSTR(address_with_type),
+            AddressTypeText(address_with_type.type).c_str(),
+            AddressTypeText(addr_type).c_str());
 
   if (address_with_type.type == BLE_ADDR_ANONYMOUS) {
     LOG_WARN(
