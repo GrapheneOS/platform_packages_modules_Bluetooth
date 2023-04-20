@@ -24,7 +24,7 @@
     <string name="unknown_device" msgid="2317679521750821654">"తెలియని పరికరం"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"తెలియదు"</string>
     <string name="not_provided" msgid="6938740494380012614">"అందించబడలేదు"</string>
-    <string name="airplane_error_title" msgid="2570111716678850860">"ఎయిర్‌ప్లేన్ మోడ్"</string>
+    <string name="airplane_error_title" msgid="2570111716678850860">"విమానం మోడ్"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"మీరు ఎయిర్‌ప్లేన్ మోడ్‌లో బ్లూటూత్‌ను ఉపయోగించలేరు."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
     <string name="bt_enable_line1" msgid="8429910585843481489">"బ్లూటూత్ సేవలను ఉపయోగించడానికి, మీరు తప్పనిసరిగా ముందుగా బ్లూటూత్‌ను ప్రారంభించాలి."</string>
@@ -70,7 +70,7 @@
     <string name="upload_succ_ok" msgid="6797291708604959167">"సరే"</string>
     <string name="upload_fail_line1" msgid="7044307783071776426">"ఫైల్ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"కి పంపబడలేదు."</string>
     <string name="upload_fail_line1_2" msgid="6102642590057711459">"ఫైల్: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_cancel" msgid="1632528037932779727">"మూసివేయి"</string>
+    <string name="upload_fail_cancel" msgid="1632528037932779727">"మూసివేయండి"</string>
     <string name="bt_error_btn_ok" msgid="2802751202009957372">"సరే"</string>
     <string name="unknown_file" msgid="3719981572107052685">"తెలియని ఫైల్"</string>
     <string name="unknown_file_desc" msgid="9185609398960437760">"ఈ రకమైన ఫైల్‌ను మేనేజ్ చేయడానికి యాప్ ఏదీ లేదు. \n"</string>

@@ -382,13 +382,13 @@ cc_test {
                 ":BluetoothOsTestSources_android",
             ],
             static_libs: [
+                "android.hardware.bluetooth@1.0",
+                "android.hardware.bluetooth@1.1",
                 "android.system.suspend-V1-ndk",
                 "android.system.suspend.control-V1-ndk",
                 "libstatslog_bt",
             ],
             shared_libs: [
-                "android.hardware.bluetooth@1.0",
-                "android.hardware.bluetooth@1.1",
                 "libbinder_ndk",
                 "libcutils",
                 "libhidlbase",
@@ -428,10 +428,10 @@ cc_test {
         "libbluetooth_gd_unit_tests",
         "libbluetooth_rust_interop",
         "libbt-platform-protos-lite",
+        "libbt-platform-protos-lite",
         "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
-        "libbt-platform-protos-lite",
         "libc++fs",
         "libflatbuffers-cpp",
         "libgmock",
@@ -481,8 +481,6 @@ cc_test {
     target: {
         android: {
             shared_libs: [
-                "android.hardware.bluetooth@1.0",
-                "android.hardware.bluetooth@1.1",
                 "libcutils",
                 "libhidlbase",
                 "libutils",
@@ -490,8 +488,6 @@ cc_test {
         },
         host_linux: {
             shared_libs: [
-                "android.hardware.bluetooth@1.0",
-                "android.hardware.bluetooth@1.1",
                 "libcutils",
                 "libhidlbase",
                 "libutils",

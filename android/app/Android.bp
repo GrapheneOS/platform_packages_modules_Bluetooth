@@ -67,8 +67,8 @@ cc_library_shared {
         "packages/modules/Bluetooth/system/types",
     ],
     static_libs: [
-        "libbluetooth-types",
         "libbluetooth",
+        "libbluetooth-types",
         "libbluetooth_core_rs",
         "libbluetooth_core_rs_bridge",
         "libc++fs",
@@ -201,13 +201,6 @@ android_app {
         optimize: false,
         proguard_flags_files: ["proguard.flags"],
     },
-    required: [
-        "android.hardware.bluetooth.audio-V3-ndk",
-        "android.hardware.bluetooth.audio@2.0",
-        "android.hardware.bluetooth.audio@2.1",
-        "android.hardware.bluetooth@1.0",
-        "android.hardware.bluetooth@1.1",
-    ],
     apex_available: [
         "com.android.btservices",
     ],

@@ -225,7 +225,9 @@ extern struct BTM_BleVerifySignature BTM_BleVerifySignature;
 // Return: const Octet16&
 struct BTM_GetDeviceDHK {
   static const Octet16 return_value;
-  std::function<const Octet16&()> body{[]() { return return_value; }};
+  std::function<const Octet16&()> body{
+      // Explicit return type is needed otherwise it returns copy of object
+      []() -> const Octet16& { return return_value; }};
   const Octet16& operator()() { return body(); };
 };
 extern struct BTM_GetDeviceDHK BTM_GetDeviceDHK;
@@ -235,7 +237,9 @@ extern struct BTM_GetDeviceDHK BTM_GetDeviceDHK;
 // Return: const Octet16&
 struct BTM_GetDeviceEncRoot {
   static const Octet16 return_value;
-  std::function<const Octet16&()> body{[]() { return return_value; }};
+  std::function<const Octet16&()> body{
+      // Explicit return type is needed otherwise it returns copy of object
+      []() -> const Octet16& { return return_value; }};
   const Octet16& operator()() { return body(); };
 };
 extern struct BTM_GetDeviceEncRoot BTM_GetDeviceEncRoot;
@@ -245,7 +249,9 @@ extern struct BTM_GetDeviceEncRoot BTM_GetDeviceEncRoot;
 // Return: const Octet16&
 struct BTM_GetDeviceIDRoot {
   static const Octet16 return_value;
-  std::function<const Octet16&()> body{[]() { return return_value; }};
+  std::function<const Octet16&()> body{
+      // Explicit return type is needed otherwise it returns copy of object
+      []() -> const Octet16& { return return_value; }};
   const Octet16& operator()() { return body(); };
 };
 extern struct BTM_GetDeviceIDRoot BTM_GetDeviceIDRoot;
