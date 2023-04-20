@@ -29,11 +29,15 @@
 #include <string>
 
 #include "common/init_flags.h"
+#include "common/testing/log_capture.h"
 #include "common/time_util.h"
 #include "os/log.h"
 #include "osi/include/allocator.h"
 #include "osi/test/AllocationTestHarness.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/a2dp_sbc_decoder.h"
+#include "stack/include/a2dp_sbc_encoder.h"
+#include "stack/include/avdt_api.h"
 #include "test_util.h"
 #include "wav_reader.h"
 
@@ -42,6 +46,7 @@ namespace {
 constexpr uint32_t kSbcReadSize = 512;
 constexpr uint32_t kA2dpTickUs = 23 * 1000;
 constexpr char kWavFile[] = "test/a2dp/raw_data/pcm1644s.wav";
+constexpr uint16_t kPeerMtu = 1000;
 const uint8_t kCodecInfoSbcCapability[AVDT_CODEC_SIZE] = {
     6,                   // Length (A2DP_SBC_INFO_LEN)
     0,                   // Media Type: AVDT_MEDIA_TYPE_AUDIO
@@ -90,9 +95,11 @@ class A2dpSbcTest : public AllocationTestHarness {
     if (encoder_iface_ != nullptr) {
       encoder_iface_->encoder_cleanup();
     }
+    A2DP_UnloadEncoderSbc();
     if (decoder_iface_ != nullptr) {
       decoder_iface_->decoder_cleanup();
     }
+    A2DP_UnloadDecoderSbc();
     AllocationTestHarness::TearDown();
   }
 
@@ -105,24 +112,26 @@ class A2dpSbcTest : public AllocationTestHarness {
 
     // Create the codec capability - SBC Sink
     memset(codec_info_result, 0, sizeof(codec_info_result));
+    ASSERT_TRUE(A2DP_IsSinkCodecSupportedSbc(kCodecInfoSbcCapability));
     peer_codec_index = A2DP_SinkCodecIndex(kCodecInfoSbcCapability);
     ASSERT_NE(peer_codec_index, BTAV_A2DP_CODEC_INDEX_MAX);
-    codec_config_ = a2dp_codecs_->findSinkCodecConfig(kCodecInfoSbcCapability);
-    ASSERT_NE(codec_config_, nullptr);
+    sink_codec_config_ = a2dp_codecs_->findSinkCodecConfig(kCodecInfoSbcCapability);
+    ASSERT_NE(sink_codec_config_, nullptr);
     ASSERT_TRUE(a2dp_codecs_->setSinkCodecConfig(kCodecInfoSbcCapability, true,
                                                  codec_info_result, true));
-    ASSERT_EQ(a2dp_codecs_->getCurrentCodecConfig(), codec_config_);
+    ASSERT_TRUE(a2dp_codecs_->setPeerSinkCodecCapabilities(kCodecInfoSbcCapability));
     // Compare the result codec with the local test codec info
     for (size_t i = 0; i < kCodecInfoSbcCapability[0] + 1; i++) {
       ASSERT_EQ(codec_info_result[i], kCodecInfoSbcCapability[i]);
     }
-    ASSERT_EQ(codec_config_->getAudioBitsPerSample(), 16);
+    ASSERT_TRUE(a2dp_codecs_->setCodecConfig(kCodecInfoSbcCapability, true, codec_info_result, true));
+    source_codec_config_ = a2dp_codecs_->getCurrentCodecConfig();
   }
 
-  void InitializeEncoder(a2dp_source_read_callback_t read_cb,
+  void InitializeEncoder(bool peer_supports_3mbps, a2dp_source_read_callback_t read_cb,
                          a2dp_source_enqueue_callback_t enqueue_cb) {
-    tA2DP_ENCODER_INIT_PEER_PARAMS peer_params = {true, true, 1000};
-    encoder_iface_->encoder_init(&peer_params, codec_config_, read_cb,
+    tA2DP_ENCODER_INIT_PEER_PARAMS peer_params = {true, peer_supports_3mbps, kPeerMtu};
+    encoder_iface_->encoder_init(&peer_params, sink_codec_config_, read_cb,
                                  enqueue_cb);
   }
 
@@ -142,10 +151,12 @@ class A2dpSbcTest : public AllocationTestHarness {
     packet->len = packet_length;
     return packet;
   }
-  A2dpCodecConfig* codec_config_;
+  A2dpCodecConfig* sink_codec_config_;
+  A2dpCodecConfig* source_codec_config_;
   A2dpCodecs* a2dp_codecs_;
   tA2DP_ENCODER_INTERFACE* encoder_iface_;
   tA2DP_DECODER_INTERFACE* decoder_iface_;
+  std::unique_ptr<LogCapture> log_capture_;
 };
 
 TEST_F(A2dpSbcTest, a2dp_source_read_underflow) {
@@ -159,7 +170,7 @@ TEST_F(A2dpSbcTest, a2dp_source_read_underflow) {
     osi_free(p_buf);
     return false;
   };
-  InitializeEncoder(read_cb, enqueue_cb);
+  InitializeEncoder(true, read_cb, enqueue_cb);
   uint64_t timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
   usleep(kA2dpTickUs);
@@ -184,7 +195,7 @@ TEST_F(A2dpSbcTest, a2dp_enqueue_cb_is_invoked) {
     osi_free(p_buf);
     return false;
   };
-  InitializeEncoder(read_cb, enqueue_cb);
+  InitializeEncoder(true, read_cb, enqueue_cb);
   uint64_t timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
   usleep(kA2dpTickUs);
@@ -229,7 +240,7 @@ TEST_F(A2dpSbcTest, decoded_data_cb_invoked) {
     osi_free(p_buf);
     return false;
   };
-  InitializeEncoder(read_cb, enqueue_cb);
+  InitializeEncoder(true, read_cb, enqueue_cb);
 
   uint64_t timestamp_us = bluetooth::common::time_gettimeofday_us();
   encoder_iface_->send_frames(timestamp_us);
@@ -237,6 +248,64 @@ TEST_F(A2dpSbcTest, decoded_data_cb_invoked) {
   promise.get_future().wait();
   decoder_iface_->decode_packet(packet);
   osi_free(packet);
+}
+
+TEST_F(A2dpSbcTest, set_source_codec_config_works) {
+  uint8_t codec_info_result[AVDT_CODEC_SIZE];
+  ASSERT_TRUE(a2dp_codecs_->setCodecConfig(kCodecInfoSbcCapability, true, codec_info_result, true));
+  ASSERT_TRUE(A2DP_CodecTypeEqualsSbc(codec_info_result, kCodecInfoSbcCapability));
+  ASSERT_TRUE(A2DP_CodecEqualsSbc(codec_info_result, kCodecInfoSbcCapability));
+  auto* codec_config = a2dp_codecs_->findSourceCodecConfig(kCodecInfoSbcCapability);
+  ASSERT_EQ(codec_config->name(), source_codec_config_->name());
+  ASSERT_EQ(codec_config->getAudioBitsPerSample(), source_codec_config_->getAudioBitsPerSample());
+}
+
+TEST_F(A2dpSbcTest, sink_supports_sbc) {
+  ASSERT_TRUE(A2DP_IsSinkCodecSupportedSbc(kCodecInfoSbcCapability));
+}
+
+TEST_F(A2dpSbcTest, effective_mtu_when_peer_supports_3mbps) {
+  auto read_cb = +[](uint8_t* p_buf, uint32_t len) -> uint32_t {
+    ASSERT(kSbcReadSize == len);
+    return len;
+  };
+  auto enqueue_cb = +[](BT_HDR* p_buf, size_t frames_n, uint32_t len) -> bool {
+    osi_free(p_buf);
+    return false;
+  };
+  InitializeEncoder(true, read_cb, enqueue_cb);
+  ASSERT_EQ(a2dp_sbc_get_effective_frame_size(), kPeerMtu);
+}
+
+TEST_F(A2dpSbcTest, effective_mtu_when_peer_does_not_support_3mbps) {
+  auto read_cb = +[](uint8_t* p_buf, uint32_t len) -> uint32_t {
+    ASSERT(kSbcReadSize == len);
+    return len;
+  };
+  auto enqueue_cb = +[](BT_HDR* p_buf, size_t frames_n, uint32_t len) -> bool {
+    osi_free(p_buf);
+    return false;
+  };
+  InitializeEncoder(false, read_cb, enqueue_cb);
+  ASSERT_EQ(a2dp_sbc_get_effective_frame_size(), 663 /* MAX_2MBPS_AVDTP_MTU */);
+}
+
+TEST_F(A2dpSbcTest, debug_codec_dump) {
+  log_capture_ = std::make_unique<LogCapture>();
+  a2dp_codecs_->debug_codec_dump(2);
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise,
+                                     "Current Codec: SBC");
+}
+
+TEST_F(A2dpSbcTest, codec_info_string) {
+  auto codec_info = A2DP_CodecInfoString(kCodecInfoSbcCapability);
+  ASSERT_NE(codec_info.find("samp_freq: 44100"), std::string::npos);
+  ASSERT_NE(codec_info.find("ch_mode: Joint"), std::string::npos);
+}
+
+TEST_F(A2dpSbcTest, get_track_bits_per_sample) {
+  ASSERT_EQ(A2DP_GetTrackBitsPerSampleSbc(kCodecInfoSbcCapability), 16);
 }
 
 }  // namespace testing

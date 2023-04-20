@@ -1006,7 +1006,8 @@ tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_ble_rand_enc_complete(uint8_t* p, uint16_t op_code,
+void btm_ble_rand_enc_complete(uint8_t* p, uint16_t evt_len,
+                               uint16_t op_code,
                                tBTM_RAND_ENC_CB* p_enc_cplt_cback) {
   tBTM_RAND_ENC params;
   uint8_t* p_dest = params.param_buf;
@@ -1017,6 +1018,11 @@ void btm_ble_rand_enc_complete(uint8_t* p, uint16_t op_code,
 
   /* If there was a callback address for vcs complete, call it */
   if (p_enc_cplt_cback && p) {
+
+    if (evt_len < 1) {
+      goto err_out;
+    }
+
     /* Pass paramters to the callback function */
     STREAM_TO_UINT8(params.status, p); /* command status */
 
@@ -1028,12 +1034,21 @@ void btm_ble_rand_enc_complete(uint8_t* p, uint16_t op_code,
       else
         params.param_len = OCTET16_LEN;
 
+      if (evt_len < 1 + params.param_len) {
+        goto err_out;
+      }
+
       /* Fetch return info from HCI event message */
       memcpy(p_dest, p, params.param_len);
     }
     if (p_enc_cplt_cback) /* Call the Encryption complete callback function */
       (*p_enc_cplt_cback)(&params);
   }
+
+  return;
+
+err_out:
+  BTM_TRACE_ERROR("%s malformatted event packet, too short", __func__);
 }
 
 /*******************************************************************************

@@ -94,12 +94,12 @@ cc_library_static {
     srcs: [
         // AVRCP Target Service
         "avrcp/avrcp_service.cc",
+        // Callouts
         "co/bta_av_co.cc",
         "co/bta_hh_co.cc",
         "co/bta_pan_co.cc",
         // HAL layer
         "src/bluetooth.cc",
-        "src/bluetooth_data_migration.cc",
         // BTIF implementation
         "src/btif_a2dp.cc",
         "src/btif_a2dp_control.cc",
