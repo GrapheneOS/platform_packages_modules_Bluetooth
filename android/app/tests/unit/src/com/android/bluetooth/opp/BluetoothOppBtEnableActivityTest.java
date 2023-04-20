@@ -16,10 +16,6 @@
 
 package com.android.bluetooth.opp;
 
-import static android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
-import static android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
-import static android.content.pm.PackageManager.DONT_KILL_APP;
-
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -31,7 +27,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import static org.mockito.Mockito.mock;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
@@ -46,19 +41,22 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
+
 public class BluetoothOppBtEnableActivityTest {
 
     Intent mIntent;
     Context mTargetContext;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mTargetContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mIntent = new Intent();
         mIntent.setClass(mTargetContext, BluetoothOppBtEnableActivity.class);
         Intents.init();
         BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
+        BluetoothOppTestUtils.wakeUpAndDismissKeyGuard();
     }
 
     @After

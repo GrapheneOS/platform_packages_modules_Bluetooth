@@ -46,8 +46,6 @@ cc_test {
         "test/interop_test.cc",
     ],
     shared_libs: [
-        "android.hardware.bluetooth@1.0",
-        "android.hardware.bluetooth@1.1",
         "liblog",
     ],
     static_libs: [
@@ -79,8 +77,6 @@ cc_test {
         "test/device_iot_config_test.cc",
     ],
     shared_libs: [
-        "android.hardware.bluetooth@1.0",
-        "android.hardware.bluetooth@1.1",
         "libdl",
         "liblog",
     ],

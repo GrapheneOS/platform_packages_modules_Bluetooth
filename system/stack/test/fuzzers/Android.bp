@@ -21,6 +21,7 @@ cc_defaults {
     static_libs: [
         "libFraunhoferAAC",
         "libbluetooth-dumpsys",
+        "libbluetooth_core_rs",
         "libbluetooth_gd",
         "libbt-audio-hal-interface",
         "libbt-bta",
@@ -36,7 +37,6 @@ cc_defaults {
         "libbtdevice",
         "libbte",
         "libbtif",
-        "libbluetooth_core_rs",
         "libbtif-core",
         "libg722codec",
         "liblc3",

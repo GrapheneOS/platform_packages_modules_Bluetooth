@@ -20,8 +20,8 @@ rust_defaults {
         "-fsanitize=undefined",
     ],
     rustlibs: [
-        "libbluetooth_rs",
         "libbluetooth_core_rs_for_facade",
+        "libbluetooth_rs",
         "libbt_common",
         "libbt_facade_helpers",
         "libbt_packets",
