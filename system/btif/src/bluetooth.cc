@@ -502,7 +502,6 @@ static int set_adapter_property(const bt_property_t* property) {
     case BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT:
     case BT_PROPERTY_CLASS_OF_DEVICE:
     case BT_PROPERTY_LOCAL_IO_CAPS:
-    case BT_PROPERTY_LOCAL_IO_CAPS_BLE:
       break;
     default:
       return BT_STATUS_FAIL;
