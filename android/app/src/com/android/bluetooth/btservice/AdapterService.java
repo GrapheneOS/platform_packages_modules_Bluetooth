@@ -5487,10 +5487,16 @@ public class AdapterService extends Service {
         }
         if (mHearingAidService != null && isProfileSupported(
                 device, BluetoothProfile.HEARING_AID)) {
-            Log.i(TAG, "connectAllEnabledProfiles: Connecting Hearing Aid Profile");
-            mHearingAidService.setConnectionPolicy(device,
+            if (mHapClientService != null && isProfileSupported(
+                    device, BluetoothProfile.HAP_CLIENT)) {
+                Log.i(TAG, "connectAllEnabledProfiles: Hearing Access Client Profile is enabled"
+                        + " at the same time with Hearing Aid Profile, ignore Hearing Aid Profile");
+            } else {
+                Log.i(TAG, "connectAllEnabledProfiles: Connecting Hearing Aid Profile");
+                mHearingAidService.setConnectionPolicy(device,
                     BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-            numProfilesConnected++;
+                numProfilesConnected++;
+            }
         }
         if (mHapClientService != null && isProfileSupported(
                 device, BluetoothProfile.HAP_CLIENT)) {
