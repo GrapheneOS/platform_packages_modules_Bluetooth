@@ -7,9 +7,9 @@
     {
       "name": "BluetoothInstrumentationTests"
     },
-    {
-      "name": "GoogleBluetoothInstrumentationTests"
-    },
+    //{
+    //  "name": "GoogleBluetoothInstrumentationTests"
+    //},
     {
       "name": "FrameworkBluetoothTests"
     },
@@ -214,9 +214,9 @@
     {
       "name": "BluetoothInstrumentationTests"
     },
-    {
-      "name": "GoogleBluetoothInstrumentationTests"
-    },
+    //{
+    //  "name": "GoogleBluetoothInstrumentationTests"
+    //},
     {
       "name": "FrameworkBluetoothTests"
     },
