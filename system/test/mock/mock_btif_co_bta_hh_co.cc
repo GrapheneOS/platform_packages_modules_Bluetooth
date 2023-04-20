@@ -53,8 +53,8 @@ void bta_hh_co_data(uint8_t dev_handle, uint8_t* p_rpt, uint16_t len,
   inc_func_call_count(__func__);
 }
 void bta_hh_co_destroy(int fd) { inc_func_call_count(__func__); }
-void bta_hh_co_get_rpt_rsp(uint8_t dev_handle, uint8_t status, uint8_t* p_rpt,
-                           uint16_t len) {
+void bta_hh_co_get_rpt_rsp(uint8_t dev_handle, uint8_t status,
+                           const uint8_t* p_rpt, uint16_t len) {
   inc_func_call_count(__func__);
 }
 void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
