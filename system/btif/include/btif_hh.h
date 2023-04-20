@@ -91,7 +91,6 @@ typedef struct {
   bthh_connection_state_t dev_status;
   uint8_t dev_handle;
   RawAddress bd_addr;
-  bool le_hid;
   tBTA_HH_ATTR_MASK attr_mask;
   uint8_t sub_class;
   uint8_t app_id;
@@ -104,8 +103,7 @@ typedef struct {
   fixed_queue_t* get_rpt_id_queue;
 #if ENABLE_UHID_SET_REPORT
   fixed_queue_t* set_rpt_id_queue;
-#endif  // ENSABLE_UHID_SET_REPORT
-  uint8_t get_rpt_snt;
+#endif // ENABLE_UHID_SET_REPORT
   bool local_vup;  // Indicated locally initiated VUP
 } btif_hh_device_t;
 
