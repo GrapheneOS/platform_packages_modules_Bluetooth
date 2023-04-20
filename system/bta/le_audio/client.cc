@@ -957,6 +957,27 @@ class LeAudioClientImpl : public LeAudioClient {
     in_call_ = in_call;
   }
 
+  void SendAudioProfilePreferences(
+      const int group_id, bool is_output_preference_le_audio,
+      bool is_duplex_preference_le_audio) override {
+    LOG_INFO(
+        "group_id: %d, is_output_preference_le_audio: %d, "
+        "is_duplex_preference_le_audio: %d",
+        group_id, is_output_preference_le_audio, is_duplex_preference_le_audio);
+    if (group_id == bluetooth::groups::kGroupUnknown) {
+      LOG_WARN("Unknown group_id");
+      return;
+    }
+    LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
+    if (!group) {
+      LOG_WARN("group_id %d does not exist", group_id);
+      return;
+    }
+
+    group->is_output_preference_le_audio = is_output_preference_le_audio;
+    group->is_duplex_preference_le_audio = is_duplex_preference_le_audio;
+  }
+
   void StartAudioSession(LeAudioDeviceGroup* group,
                          LeAudioCodecConfiguration* source_config,
                          LeAudioCodecConfiguration* sink_config) {
@@ -1001,6 +1022,42 @@ class LeAudioClientImpl : public LeAudioClient {
 
     le_audio_sink_hal_client_->Start(audio_framework_sink_config,
                                      audioSourceReceiver);
+  }
+
+  bool isOutputPreferenceLeAudio(const RawAddress& address) {
+    LOG_INFO(" address: %s, active_group_id_: %d",
+             address.ToStringForLogging().c_str(), active_group_id_);
+    std::vector<RawAddress> active_leaudio_devices =
+        GetGroupDevices(active_group_id_);
+    if (std::find(active_leaudio_devices.begin(), active_leaudio_devices.end(),
+                  address) == active_leaudio_devices.end()) {
+      LOG_INFO("Device %s is not active for LE Audio",
+               address.ToStringForLogging().c_str());
+      return false;
+    }
+
+    LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
+    LOG_INFO(" active_group_id: %d, is_output_preference_le_audio_: %d",
+             group->group_id_, group->is_output_preference_le_audio);
+    return group->is_output_preference_le_audio;
+  }
+
+  bool isDuplexPreferenceLeAudio(const RawAddress& address) {
+    LOG_INFO(" address: %s, active_group_id_: %d",
+             address.ToStringForLogging().c_str(), active_group_id_);
+    std::vector<RawAddress> active_leaudio_devices =
+        GetGroupDevices(active_group_id_);
+    if (std::find(active_leaudio_devices.begin(), active_leaudio_devices.end(),
+                  address) == active_leaudio_devices.end()) {
+      LOG_INFO("Device %s is not active for LE Audio",
+               address.ToStringForLogging().c_str());
+      return false;
+    }
+
+    LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
+    LOG_INFO(" active_group_id: %d, is_duplex_preference_le_audio: %d",
+             group->group_id_, group->is_duplex_preference_le_audio);
+    return group->is_duplex_preference_le_audio;
   }
 
   void GroupSetActive(const int group_id) override {
