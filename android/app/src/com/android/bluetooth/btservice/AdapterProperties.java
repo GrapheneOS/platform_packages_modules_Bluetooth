@@ -320,42 +320,6 @@ class AdapterProperties {
         }
     }
 
-    /**
-     * Set the Bluetooth Class of Device (CoD) of the adapter.
-     *
-     * <p>Bluetooth stack stores some adapter properties in native BT stack storage and some in the
-     * Java Android stack. Bluetooth CoD is stored in the Android layer through
-     * {@link android.provider.Settings.Global#BLUETOOTH_CLASS_OF_DEVICE}.
-     *
-     * <p>Due to this, the getAdapterPropertyNative and adapterPropertyChangedCallback methods don't
-     * actually update mBluetoothClass. Hence, we update the field mBluetoothClass every time we
-     * successfully update BluetoothClass.
-     *
-     * @param bluetoothClass BluetoothClass of the device
-     */
-    boolean setBluetoothClass(BluetoothClass bluetoothClass) {
-        synchronized (mObject) {
-            boolean result =
-                    mService.setAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE,
-                            bluetoothClass.getClassOfDeviceBytes());
-
-            if (result) {
-                mBluetoothClass = bluetoothClass;
-            }
-
-            return result;
-        }
-    }
-
-    /**
-     * @return the BluetoothClass of the Bluetooth adapter.
-     */
-    BluetoothClass getBluetoothClass() {
-        synchronized (mObject) {
-            return mBluetoothClass;
-        }
-    }
-
     boolean setIoCapability(int capability) {
         synchronized (mObject) {
             boolean result = mService.setAdapterPropertyNative(
@@ -1218,7 +1182,6 @@ class AdapterProperties {
         writer.println(TAG);
         writer.println("  " + "Name: " + getName());
         writer.println("  " + "Address: " + Utils.getAddressStringFromByte(mAddress));
-        writer.println("  " + "BluetoothClass: " + getBluetoothClass());
         writer.println("  " + "ScanMode: " + dumpScanMode(getScanMode()));
         writer.println("  " + "ConnectionState: " + dumpConnectionState(getConnectionState()));
         writer.println("  " + "State: " + BluetoothAdapter.nameForState(getState()));
