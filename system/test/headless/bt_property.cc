@@ -98,9 +98,6 @@ void process_property(const RawAddress& bd_addr, const bt_property_t* prop) {
     case BT_PROPERTY_LOCAL_IO_CAPS:
       LOG_CONSOLE("BT_PROPERTY_LOCAL_IO_CAPS");
       break;
-    case BT_PROPERTY_LOCAL_IO_CAPS_BLE:
-      LOG_CONSOLE("BT_PROPERTY_LOCAL_IO_CAPS_BLE");
-      break;
     case BT_PROPERTY_DYNAMIC_AUDIO_BUFFER:
       LOG_CONSOLE("BT_PROPERTY_DYNAMIC_AUDIO_BUFFER");
       break;
