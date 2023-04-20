@@ -51,6 +51,7 @@ class Server(context: Context) {
         mapOf(
             BluetoothProfile.A2DP to ::A2dp,
             BluetoothProfile.A2DP_SINK to ::A2dpSink,
+            BluetoothProfile.HEARING_AID to ::Asha,
             BluetoothProfile.AVRCP to ::Avrcp,
             BluetoothProfile.GATT to ::Gatt,
             BluetoothProfile.HEADSET to ::Hfp,
