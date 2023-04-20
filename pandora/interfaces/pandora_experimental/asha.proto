@@ -33,7 +33,9 @@ service Asha {
   // Playback audio
   rpc PlaybackAudio(stream PlaybackAudioRequest) returns (PlaybackAudioResponse);
   // Stop a started stream.
-  rpc Stop(stream StopRequest) returns (StopResponse);
+  rpc Stop(StopRequest) returns (StopResponse);
+  // Wait for ASHA device to be connected.
+  rpc WaitPeripheral(WaitPeripheralRequest) returns (WaitPeripheralResponse);
 }
 
 // Request of the `Register` method.
@@ -85,3 +87,16 @@ message StopRequest {
 
 // Response of the `Stop` method.
 message StopResponse {}
+
+// Request for the `WaitPeripheral` method.
+message WaitPeripheralRequest {
+  // The connection that is awaiting the stream.
+  Connection connection = 1;
+}
+
+// Response for the `WaitPeripheral` method.
+message WaitPeripheralResponse {
+  // Result of the `WaitPeripheral` call:
+  // - If successful: the connection to the ASHA device.
+  Connection connection = 1;
+}
