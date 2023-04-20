@@ -18,6 +18,7 @@
  * Generated mock file from original source file
  *   Functions generated:21
  */
+#include "test/mock/mock_stack_btm_devctl.h"
 
 #include <base/logging.h>
 #include <stddef.h>
@@ -49,10 +50,21 @@
 #define UNUSED_ATTR
 #endif
 
+namespace test {
+namespace mock {
+namespace stack_btm_devctl {
+
+struct BTM_IsDeviceUp BTM_IsDeviceUp;
+
+}
+}  // namespace mock
+}  // namespace test
+
 bool BTM_IsDeviceUp(void) {
   inc_func_call_count(__func__);
-  return false;
+  return test::mock::stack_btm_devctl::BTM_IsDeviceUp();
 }
+
 tBTM_STATUS BTM_BT_Quality_Report_VSE_Register(
     bool is_register, tBTM_BT_QUALITY_REPORT_RECEIVER* p_bqr_report_receiver) {
   inc_func_call_count(__func__);
