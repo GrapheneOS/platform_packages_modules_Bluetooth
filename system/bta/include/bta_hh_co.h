@@ -103,7 +103,7 @@ extern void bta_hh_co_set_rpt_rsp(uint8_t dev_handle, uint8_t status);
  *
  ******************************************************************************/
 extern void bta_hh_co_get_rpt_rsp(uint8_t dev_handle, uint8_t status,
-                                  uint8_t* p_rpt, uint16_t len);
+                                  const uint8_t* p_rpt, uint16_t len);
 
 /*******************************************************************************
  *
