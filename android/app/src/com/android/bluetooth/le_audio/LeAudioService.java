@@ -396,6 +396,7 @@ public class LeAudioService extends ProfileService {
 
         mActiveAudioOutDevice = null;
         mActiveAudioInDevice = null;
+        mExposedActiveDevice = null;
         mLeAudioCodecConfig = null;
 
         // Set the service and BLE devices as inactive
@@ -1242,6 +1243,8 @@ public class LeAudioService extends ProfileService {
                 if (address.equals("00:00:00:00:00:00")) {
                     continue;
                 }
+
+                mExposedActiveDevice = null;
 
                 if (DBG) {
                     Log.d(TAG, " onAudioDevicesRemoved: " + address + ", device type: "
