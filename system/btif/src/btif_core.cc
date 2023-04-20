@@ -324,7 +324,7 @@ bt_status_t btif_cleanup_bluetooth() {
  ****************************************************************************/
 
 static bt_status_t btif_in_get_adapter_properties(void) {
-  const static uint32_t NUM_ADAPTER_PROPERTIES = 8;
+  const static uint32_t NUM_ADAPTER_PROPERTIES = 7;
   bt_property_t properties[NUM_ADAPTER_PROPERTIES];
   uint32_t num_props = 0;
 
@@ -336,7 +336,6 @@ static bt_status_t btif_in_get_adapter_properties(void) {
   Uuid local_uuids[BT_MAX_NUM_UUIDS];
   bt_status_t status;
   bt_io_cap_t local_bt_io_cap;
-  bt_io_cap_t local_bt_io_cap_ble;
 
   /* RawAddress */
   BTIF_STORAGE_FILL_PROPERTY(&properties[num_props], BT_PROPERTY_BDADDR,
@@ -384,12 +383,6 @@ static bt_status_t btif_in_get_adapter_properties(void) {
   /* LOCAL IO Capabilities */
   BTIF_STORAGE_FILL_PROPERTY(&properties[num_props], BT_PROPERTY_LOCAL_IO_CAPS,
                              sizeof(bt_io_cap_t), &local_bt_io_cap);
-  btif_storage_get_adapter_property(&properties[num_props]);
-  num_props++;
-
-  BTIF_STORAGE_FILL_PROPERTY(&properties[num_props],
-                             BT_PROPERTY_LOCAL_IO_CAPS_BLE, sizeof(bt_io_cap_t),
-                             &local_bt_io_cap_ble);
   btif_storage_get_adapter_property(&properties[num_props]);
   num_props++;
 
@@ -670,8 +663,7 @@ void btif_set_adapter_property(bt_property_t* property) {
       BTM_SetDeviceClass(dev_class);
       btif_core_storage_adapter_notify_empty_success();
     } break;
-    case BT_PROPERTY_LOCAL_IO_CAPS:
-    case BT_PROPERTY_LOCAL_IO_CAPS_BLE: {
+    case BT_PROPERTY_LOCAL_IO_CAPS: {
       // Changing IO Capability of stack at run-time is not currently supported.
       // This call changes the stored value which will affect the stack next
       // time it starts up.

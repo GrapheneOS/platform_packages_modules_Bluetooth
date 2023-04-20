@@ -109,12 +109,6 @@ public class AdapterServiceBinderTest {
     }
 
     @Test
-    public void getLeIoCapability() {
-        mBinder.getLeIoCapability(mAttributionSource, SynchronousResultReceiver.get());
-        verify(mService.mAdapterProperties).getLeIoCapability();
-    }
-
-    @Test
     public void getLeMaximumAdvertisingDataLength() {
         mBinder.getLeMaximumAdvertisingDataLength(SynchronousResultReceiver.get());
         verify(mService).getLeMaximumAdvertisingDataLength();
@@ -189,13 +183,6 @@ public class AdapterServiceBinderTest {
         int capability = BluetoothAdapter.IO_CAPABILITY_MAX - 1;
         mBinder.setIoCapability(capability, mAttributionSource, SynchronousResultReceiver.get());
         verify(mService.mAdapterProperties).setIoCapability(capability);
-    }
-
-    @Test
-    public void setLeIoCapability() {
-        int capability = BluetoothAdapter.IO_CAPABILITY_MAX - 1;
-        mBinder.setLeIoCapability(capability, mAttributionSource, SynchronousResultReceiver.get());
-        verify(mService.mAdapterProperties).setLeIoCapability(capability);
     }
 
     @Test
