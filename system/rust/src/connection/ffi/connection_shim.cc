@@ -74,6 +74,16 @@ struct LeAclManagerShim::impl : hci::acl_manager::LeAcceptlistCallbacks {
  public:
   impl() { acl_manager_ = shim::GetAclManager(); }
 
+  ~impl() {
+    if (callbacks_.has_value()) {
+      callbacks_.reset();
+      auto promise = std::promise<void>();
+      auto future = promise.get_future();
+      acl_manager_->UnregisterLeAcceptlistCallbacks(this, std::move(promise));
+      future.wait();
+    }
+  }
+
   void CreateLeConnection(core::AddressWithType address, bool is_direct) {
     acl_manager_->CreateLeConnection(ToCppAddress(address), is_direct);
   }
