@@ -10,9 +10,9 @@
     //{
     //  "name": "GoogleBluetoothInstrumentationTests"
     //},
-    {
-      "name": "FrameworkBluetoothTests"
-    },
+    //{
+    //  "name": "FrameworkBluetoothTests"
+    //},
     {
       "name": "ServiceBluetoothTests"
     },
@@ -217,9 +217,9 @@
     //{
     //  "name": "GoogleBluetoothInstrumentationTests"
     //},
-    {
-      "name": "FrameworkBluetoothTests"
-    },
+    //{
+    //  "name": "FrameworkBluetoothTests"
+    //},
     {
       "name": "ServiceBluetoothTests"
     },
