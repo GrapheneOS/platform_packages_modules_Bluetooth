@@ -59,6 +59,7 @@ struct StreamCallbacks {
 
 std::vector<::le_audio::set_configurations::AudioSetConfiguration>
 get_offload_capabilities();
+int GetAidlInterfaceVersion();
 
 class LeAudioClientInterface {
  public:
