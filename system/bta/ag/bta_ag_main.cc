@@ -560,6 +560,7 @@ static void bta_ag_better_state_machine(tBTA_AG_SCB* p_scb, uint16_t event,
           bta_ag_sco_listen(p_scb, data);
           break;
         case BTA_AG_SCO_OPEN_EVT:
+          LOG_INFO("Opening sco for EVT BTA_AG_SCO_OPEN_EVT");
           bta_ag_sco_conn_open(p_scb, data);
           break;
         case BTA_AG_SCO_CLOSE_EVT:
@@ -597,6 +598,7 @@ static void bta_ag_better_state_machine(tBTA_AG_SCB* p_scb, uint16_t event,
           bta_ag_rfc_fail(p_scb, data);
           break;
         case BTA_AG_SCO_OPEN_EVT:
+          LOG_INFO("Opening sco for EVT BTA_AG_SCO_OPEN_EVT");
           bta_ag_sco_conn_open(p_scb, data);
           break;
         case BTA_AG_SCO_CLOSE_EVT:
@@ -655,6 +657,7 @@ static void bta_ag_better_state_machine(tBTA_AG_SCB* p_scb, uint16_t event,
           bta_ag_rfc_data(p_scb, data);
           break;
         case BTA_AG_SCO_OPEN_EVT:
+          LOG_INFO("Opening sco for EVT BTA_AG_SCO_OPEN_EVT");
           bta_ag_sco_conn_open(p_scb, data);
           bta_ag_post_sco_open(p_scb, data);
           break;
@@ -690,6 +693,7 @@ static void bta_ag_better_state_machine(tBTA_AG_SCB* p_scb, uint16_t event,
           bta_ag_rfc_close(p_scb, data);
           break;
         case BTA_AG_SCO_OPEN_EVT:
+          LOG_INFO("Opening sco for EVT BTA_AG_SCO_OPEN_EVT");
           bta_ag_sco_conn_open(p_scb, data);
           break;
         case BTA_AG_SCO_CLOSE_EVT:
