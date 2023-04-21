@@ -66,6 +66,7 @@ bool is_source_hal_enabled();
 bool is_sink_hal_enabled();
 
 std::vector<AudioSetConfiguration> get_offload_capabilities();
+int GetAidlInterfaceVersion();
 
 class LeAudioTransport {
  public:
