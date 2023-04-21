@@ -23,7 +23,6 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"Bluetooth"</string>
     <string name="unknown_device" msgid="2317679521750821654">"უცნობი მოწყობილობა"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"უცნობი"</string>
-    <string name="not_provided" msgid="6938740494380012614">"არ არის მითითებული"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"თვითმფრინავის რეჟიმი"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"თვითმფრინავის რეჟიმში Bluetooth-ს ვერ გამოიყენებთ."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -110,8 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"სიიდან ყველა ერთეული ამოიშლება."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth გაზიარება: გაგზავნილი ფაილები"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth გაზიარება: მიღებული ფაილები"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# წარუმატებელი.}other{# წარუმატებელი.}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# წარმატებული, %1$s}other{# წარმატებული, %1$s}}"</string>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"სიის გასუფთავება"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"გახსნა"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"სიიდან ამოშლა"</string>
@@ -129,10 +130,4 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth აუდიო"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4 გბაიტზე დიდი მოცულობის ფაილების გადატანა ვერ მოხერხდება"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth-თან დაკავშირება"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth ჩართულია თვითმფრინავის რეჟიმში"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"თუ Bluetooth-ს ჩართულს დატოვებთ, თქვენი ტელეფონი დაიმახსოვრებს და ჩართულს დატოვებს მას, როდესაც შემდეგ ჯერზე თვითმფრინავის რეჟიმში იქნებით"</string>
-    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth რᲩება Ჩართული"</string>
-    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"თქვენს ტელეფონს ემახსოვრება, რომ Bluetooth ჩართული უნდა იყოს თვითმფრინავის რეჟიმში. გამორთეთ Bluetooth, თუ არ გსურთ, რომ ის ჩართული იყოს."</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi და Bluetooth ჩართული დარჩება"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"თქვენს ტელეფონს ემახსოვრება, რომ Wi‑Fi და Bluetooth ჩართული უნდა იყოს თვითმფრინავის რეჟიმში. გამორთეთ Wi-Fi და Bluetooth, თუ არ გსურთ, რომ ისინი ჩართული იყოს."</string>
 </resources>

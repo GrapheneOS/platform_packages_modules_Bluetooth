@@ -238,7 +238,7 @@ void BTM_SetPinType(uint8_t pin_type, PIN_CODE pin_code, uint8_t pin_code_len) {
 void NotifyBondingCanceled(tBTM_STATUS btm_status) {
   inc_func_call_count(__func__);
 }
-void btm_create_conn_cancel_complete(const uint8_t* p) {
+void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len) {
   inc_func_call_count(__func__);
 }
 void btm_io_capabilities_req(const RawAddress& p) {
@@ -250,7 +250,9 @@ void btm_io_capabilities_rsp(const uint8_t* p) {
 void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
   inc_func_call_count(__func__);
 }
-void btm_read_local_oob_complete(uint8_t* p) { inc_func_call_count(__func__); }
+void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len) {
+  inc_func_call_count(__func__);
+}
 void btm_rem_oob_req(const uint8_t* p) { inc_func_call_count(__func__); }
 void btm_sec_abort_access_req(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);

@@ -17,7 +17,6 @@
 static_library("btcore") {
   sources = [
     "src/device_class.cc",
-    "src/hal_util.cc",
     "src/module.cc",
     "src/osi_module.cc",
     "src/property.cc",

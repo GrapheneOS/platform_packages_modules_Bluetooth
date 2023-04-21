@@ -455,7 +455,7 @@ void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc);
  * Returns          void
  *
  ******************************************************************************/
-void btm_create_conn_cancel_complete(const uint8_t* p);
+void btm_create_conn_cancel_complete(const uint8_t* p, uint16_t evt_len);
 
 /*******************************************************************************
  *
@@ -583,7 +583,7 @@ void btm_rem_oob_req(const uint8_t* p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_read_local_oob_complete(uint8_t* p);
+void btm_read_local_oob_complete(uint8_t* p, uint16_t evt_len);
 
 /*******************************************************************************
  *
