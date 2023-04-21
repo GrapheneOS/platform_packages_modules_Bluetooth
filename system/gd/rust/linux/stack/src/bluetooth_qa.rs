@@ -1,6 +1,7 @@
 //! Anything related to the Qualification API (IBluetoothQA).
 
 use crate::Message;
+use bt_topshim::btif::BtDiscMode;
 use tokio::sync::mpsc::Sender;
 
 /// Defines the Qualification API
@@ -11,11 +12,16 @@ pub trait IBluetoothQA {
 
 pub struct BluetoothQA {
     tx: Sender<Message>,
+    disc_mode: BtDiscMode,
 }
 
 impl BluetoothQA {
     pub fn new(tx: Sender<Message>) -> BluetoothQA {
-        BluetoothQA { tx }
+        BluetoothQA { tx, disc_mode: BtDiscMode::NonDiscoverable }
+    }
+
+    pub fn handle_discoverable_mode_changed(&mut self, mode: BtDiscMode) {
+        self.disc_mode = mode;
     }
 }
 
