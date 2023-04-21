@@ -4848,6 +4848,21 @@ public class AdapterService extends Service {
                 return dbResult;
             }
 
+            int outputOnlyPreference = strippedPreferences.getInt(
+                    BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
+            if (outputOnlyPreference == 0) {
+                outputOnlyPreference = previousPreferences.getInt(
+                        BluetoothAdapter.AUDIO_MODE_OUTPUT_ONLY);
+            }
+            int duplexPreference = strippedPreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX);
+            if (duplexPreference == 0) {
+                duplexPreference = previousPreferences.getInt(BluetoothAdapter.AUDIO_MODE_DUPLEX);
+            }
+
+            mLeAudioService.sendAudioProfilePreferencesToNative(groupId,
+                    outputOnlyPreference == BluetoothProfile.LE_AUDIO,
+                    duplexPreference == BluetoothProfile.LE_AUDIO);
+
             /* Populates the HashMap to hold requests on the groupId. We will update
             numRequestsToAudioFramework after we make requests to the audio framework */
             PendingAudioProfilePreferenceRequest holdRequest =
