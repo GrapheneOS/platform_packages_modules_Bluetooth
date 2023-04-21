@@ -352,6 +352,22 @@ int bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len) {
   return uhid_write(fd, &ev);
 }
 
+static bool uhid_fd_open(btif_hh_device_t* p_dev) {
+  if (p_dev->fd < 0) {
+    p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
+    if (p_dev->fd < 0) {
+      LOG_ERROR("Failed to open uhid, err:%s", strerror(errno));
+      return false;
+    }
+  }
+
+  if (p_dev->hh_keep_polling == 0) {
+    p_dev->hh_keep_polling = 1;
+    p_dev->hh_poll_thread_id = create_thread(btif_hh_poll_event_thread, p_dev);
+  }
+  return true;
+}
+
 /*******************************************************************************
  *
  * Function      bta_hh_co_open
@@ -359,17 +375,16 @@ int bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len) {
  * Description   When connection is opened, this call-out function is executed
  *               by HH to do platform specific initialization.
  *
- * Returns       void.
+ * Returns       True if platform specific initialization is successful
  ******************************************************************************/
-void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
+bool bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
                     tBTA_HH_ATTR_MASK attr_mask, uint8_t app_id) {
   uint32_t i;
   btif_hh_device_t* p_dev = NULL;
 
   if (dev_handle == BTA_HH_INVALID_HANDLE) {
-    APPL_TRACE_WARNING("%s: Oops, dev_handle (%d) is invalid...", __func__,
-                       dev_handle);
-    return;
+    LOG_WARN("dev_handle (%d) is invalid", dev_handle);
+    return false;
   }
 
   for (i = 0; i < BTIF_HH_MAX_HID; i++) {
@@ -377,25 +392,15 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
     if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN &&
         p_dev->dev_handle == dev_handle) {
       // We found a device with the same handle. Must be a device reconnected.
-      APPL_TRACE_WARNING(
-          "%s: Found an existing device with the same handle dev_status=%d, "
+      LOG_INFO(
+          "Found an existing device with the same handle dev_status=%d, "
           "address=%s, attr_mask=0x%04x, sub_class=0x%02x, app_id=%d",
-          __func__, p_dev->dev_status, ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr),
+          p_dev->dev_status, ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr),
           p_dev->attr_mask, p_dev->sub_class, p_dev->app_id);
 
-      if (p_dev->fd < 0) {
-        p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
-        if (p_dev->fd < 0) {
-          APPL_TRACE_ERROR("%s: Error: failed to open uhid, err:%s", __func__,
-                           strerror(errno));
-          return;
-        } else
-          APPL_TRACE_DEBUG("%s: uhid fd = %d", __func__, p_dev->fd);
+      if (!uhid_fd_open(p_dev)) {
+        return false;
       }
-
-      p_dev->hh_keep_polling = 1;
-      p_dev->hh_poll_thread_id =
-          create_thread(btif_hh_poll_event_thread, p_dev);
       break;
     }
     p_dev = NULL;
@@ -406,6 +411,14 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
     for (i = 0; i < BTIF_HH_MAX_HID; i++) {
       if (btif_hh_cb.devices[i].dev_status == BTHH_CONN_STATE_UNKNOWN) {
         p_dev = &btif_hh_cb.devices[i];
+        p_dev->fd = -1;
+        p_dev->hh_keep_polling = 0;
+
+        // This is a new device, open the uhid driver now.
+        if (!uhid_fd_open(p_dev)) {
+          return false;
+        }
+
         p_dev->dev_handle = dev_handle;
         p_dev->attr_mask = attr_mask;
         p_dev->sub_class = sub_class;
@@ -413,27 +426,14 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
         p_dev->local_vup = false;
 
         btif_hh_cb.device_num++;
-        // This is a new device,open the uhid driver now.
-        p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
-        if (p_dev->fd < 0) {
-          APPL_TRACE_ERROR("%s: Error: failed to open uhid, err:%s", __func__,
-                           strerror(errno));
-          return;
-        } else {
-          APPL_TRACE_DEBUG("%s: uhid fd = %d", __func__, p_dev->fd);
-          p_dev->hh_keep_polling = 1;
-          p_dev->hh_poll_thread_id =
-              create_thread(btif_hh_poll_event_thread, p_dev);
-        }
-
         break;
       }
     }
   }
 
   if (p_dev == NULL) {
-    APPL_TRACE_ERROR("%s: Error: too many HID devices are connected", __func__);
-    return;
+    LOG_ERROR("Too many HID devices are connected");
+    return false;
   }
 
   p_dev->dev_status = BTHH_CONN_STATE_CONNECTED;
@@ -444,7 +444,8 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
   CHECK(p_dev->set_rpt_id_queue);
 #endif  // ENABLE_UHID_SET_REPORT
 
-  APPL_TRACE_DEBUG("%s: Return device status %d", __func__, p_dev->dev_status);
+  LOG_DEBUG("Return device status %d", p_dev->dev_status);
+  return true;
 }
 
 /*******************************************************************************
