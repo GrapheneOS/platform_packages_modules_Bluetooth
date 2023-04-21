@@ -72,6 +72,8 @@ bool LeAudioClientInterface::ReleaseSource(
   return false;
 }
 
+int GetAidlInterfaceVersion() { return 0; }
+
 }  // namespace le_audio
 }  // namespace audio
 }  // namespace bluetooth
