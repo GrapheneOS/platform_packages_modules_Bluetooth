@@ -120,6 +120,7 @@ pub enum Message {
     // Admin policy related
     AdminCallbackDisconnected(u32),
     HidHostEnable,
+    AdminPolicyChanged,
 
     // Dis callbacks
     Dis(ServiceCallbacks),
@@ -341,6 +342,9 @@ impl Stack {
                 }
                 Message::HidHostEnable => {
                     bluetooth.lock().unwrap().enable_hidhost();
+                }
+                Message::AdminPolicyChanged => {
+                    bluetooth_socketmgr.lock().unwrap().handle_admin_policy_changed();
                 }
                 Message::Dis(callback) => {
                     bluetooth_dis.lock().unwrap().handle_callbacks(&callback);
