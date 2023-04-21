@@ -464,6 +464,10 @@ static bool get_wbs_supported() {
   return hfp_hal_interface::get_wbs_supported();
 }
 
+static bool get_swb_supported() {
+  return hfp_hal_interface::get_swb_supported();
+}
+
 bool is_common_criteria_mode() {
   return is_bluetooth_uid() && common_criteria_mode;
 }
@@ -1116,6 +1120,7 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     .set_event_filter_connection_setup_all_devices =
         set_event_filter_connection_setup_all_devices,
     .get_wbs_supported = get_wbs_supported,
+    .get_swb_supported = get_swb_supported,
     .metadata_changed = metadata_changed,
     .interop_match_addr = interop_match_addr,
     .interop_match_name = interop_match_name,
