@@ -29,8 +29,14 @@
 
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_dm_api.h"
+
+#ifdef OS_ANDROID
+#include "bta/le_audio/devices.h"
+#endif
+
 #include "btif/include/btif_config.h"
 #include "device/include/device_iot_config.h"
+#include "os/system_properties.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
@@ -760,6 +766,10 @@ void bta_ag_post_sco_close(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       if (bta_ag_inband_enabled(p_scb) &&
           !(p_scb->features & BTA_AG_FEAT_NOSCO)) {
         p_scb->post_sco = BTA_AG_POST_SCO_RING;
+        if (!bta_ag_is_sco_open_allowed(p_scb,
+                                        "BTA_AG_POST_SCO_CALL_END_INCALL")) {
+          break;
+        }
         bta_ag_sco_open(p_scb, data);
       } else {
         p_scb->post_sco = BTA_AG_POST_SCO_NONE;
