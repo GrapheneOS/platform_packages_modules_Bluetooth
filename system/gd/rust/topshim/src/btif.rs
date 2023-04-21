@@ -1245,6 +1245,10 @@ impl BluetoothInterface {
         ccall!(self, get_wbs_supported)
     }
 
+    pub fn get_swb_supported(&self) -> bool {
+        ccall!(self, get_swb_supported)
+    }
+
     pub fn le_rand(&self) -> i32 {
         ccall!(self, le_rand)
     }

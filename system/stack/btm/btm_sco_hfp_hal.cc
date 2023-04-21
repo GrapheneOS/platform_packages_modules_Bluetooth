@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "device/include/esco_parameters.h"
+#include "osi/include/properties.h"
 
 namespace hfp_hal_interface {
 namespace {
@@ -47,6 +48,10 @@ void init() {
 
 // Android statically compiles WBS support.
 bool get_wbs_supported() { return !DISABLE_WBS; }
+
+bool get_swb_supported() {
+  return osi_property_get_bool("bluetooth.hfp.swb.supported", false);
+}
 
 // Checks the supported codecs
 bt_codecs get_codec_capabilities(uint64_t codecs) {
