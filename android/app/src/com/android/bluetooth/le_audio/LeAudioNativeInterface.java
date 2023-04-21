@@ -316,6 +316,24 @@ public class LeAudioNativeInterface {
         setInCallNative(inCall);
     }
 
+    /**
+     * Sends the audio preferences for the groupId to the native stack.
+     *
+     * @param groupId is the groupId corresponding to the preferences
+     * @param isOutputPreferenceLeAudio whether LEA is preferred for OUTPUT_ONLY
+     * @param isDuplexPreferenceLeAudio whether LEA is preferred for DUPLEX
+     */
+    public void sendAudioProfilePreferences(int groupId, boolean isOutputPreferenceLeAudio,
+            boolean isDuplexPreferenceLeAudio) {
+        if (DBG) {
+            Log.d(TAG, "sendAudioProfilePreferences groupId=" + groupId
+                    + ", isOutputPreferenceLeAudio=" + isOutputPreferenceLeAudio
+                    + ", isDuplexPreferenceLeAudio=" + isDuplexPreferenceLeAudio);
+        }
+        sendAudioProfilePreferencesNative(groupId, isOutputPreferenceLeAudio,
+                isDuplexPreferenceLeAudio);
+    }
+
     // Native methods that call into the JNI interface
     private static native void classInitNative();
     private native void initNative(BluetoothLeAudioCodecConfig[] codecConfigOffloading);
@@ -330,4 +348,7 @@ public class LeAudioNativeInterface {
             BluetoothLeAudioCodecConfig outputCodecConfig);
     private native void setCcidInformationNative(int ccid, int contextType);
     private native void setInCallNative(boolean inCall);
+    /*package*/
+    private native void sendAudioProfilePreferencesNative(int groupId,
+            boolean isOutputPreferenceLeAudio, boolean isDuplexPreferenceLeAudio);
 }

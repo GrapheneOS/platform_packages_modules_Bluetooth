@@ -136,6 +136,13 @@ cc_library_static {
     generated_headers: [
         "LeAudioSetConfigSchemas_h",
     ],
+    target: {
+        android: {
+            whole_static_libs: [
+                "libPlatformProperties",
+            ],
+        },
+    },
     host_supported: true,
     min_sdk_version: "Tiramisu",
 }
@@ -596,6 +603,9 @@ cc_test {
             sanitize: {
                 misc_undefined: ["bounds"],
             },
+            whole_static_libs: [
+                "libPlatformProperties",
+            ],
         },
     },
     include_dirs: [
@@ -745,6 +755,9 @@ cc_test {
             shared_libs: [
                 "android.hardware.bluetooth.audio-V3-ndk",
                 "libbinder_ndk",
+            ],
+            whole_static_libs: [
+                "libPlatformProperties",
             ],
         },
     },

@@ -98,7 +98,7 @@ public final class Utils {
     private static final String ENABLE_DUAL_MODE_AUDIO =
             "persist.bluetooth.enable_dual_mode_audio";
     private static boolean sDualModeEnabled =
-            SystemProperties.getBoolean(ENABLE_DUAL_MODE_AUDIO, false);;
+            SystemProperties.getBoolean(ENABLE_DUAL_MODE_AUDIO, false);
 
     private static final String KEY_TEMP_ALLOW_LIST_DURATION_MS = "temp_allow_list_duration_ms";
     private static final long DEFAULT_TEMP_ALLOW_LIST_DURATION_MS = 20_000;
