@@ -632,14 +632,19 @@ AudioConfiguration offload_config_to_hal_audio_config(
       .peerDelayUs = static_cast<int32_t>(offload_config.peer_delay_ms * 1000),
       .leAudioCodecConfig = LeAudioCodecConfiguration(lc3_config)};
 
-  for (auto& [handle, location] : offload_config.stream_map) {
+  for (auto& [handle, location, state] : offload_config.stream_map) {
     ucast_config.streamMap.push_back({
         .streamHandle = handle,
         .audioChannelAllocation = static_cast<int32_t>(location),
+        .isStreamActive = state,
     });
   }
 
   return AudioConfiguration(ucast_config);
+}
+
+int GetAidlInterfaceVersion() {
+  return BluetoothAudioSinkClientInterface::GetAidlInterfaceVersion();
 }
 
 }  // namespace le_audio

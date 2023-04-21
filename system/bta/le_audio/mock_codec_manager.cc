@@ -75,6 +75,11 @@ void CodecManager::UpdateBroadcastConnHandle(
     return pimpl_->UpdateBroadcastConnHandle(conn_handle, update_receiver);
 }
 
+int CodecManager::GetAidlVersionInUsed() const {
+  if (!pimpl_) return -1;
+  return pimpl_->GetAidlVersionInUsed();
+}
+
 void CodecManager::Start(
     const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
         offloading_preference) {
