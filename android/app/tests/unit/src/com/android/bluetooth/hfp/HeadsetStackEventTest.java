@@ -101,8 +101,7 @@ public class HeadsetStackEventTest {
         event = new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_BIA, device);
         assertThat(event.getTypeString()).isEqualTo("EVENT_TYPE_BIA");
 
-        int unknownType = 21;
-        event = new HeadsetStackEvent(unknownType, device);
-        assertThat(event.getTypeString()).isEqualTo("UNKNOWN");
+        event = new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_SWB, device);
+        assertThat(event.getTypeString()).isEqualTo("EVENT_TYPE_SWB");
     }
 }
