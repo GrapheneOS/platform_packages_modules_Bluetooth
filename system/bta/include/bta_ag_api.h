@@ -52,9 +52,11 @@
 #define BTA_AG_FEAT_ECC 0x00000080    /* Enhanced Call Control */
 #define BTA_AG_FEAT_EXTERR 0x00000100 /* Extended error codes */
 #define BTA_AG_FEAT_CODEC 0x00000200  /* Codec Negotiation */
+#define BTA_AG_FEAT_SWB 0x00000400    /* Super Wide Band */
 
 /* AG SDP feature masks */
 #define BTA_AG_FEAT_WBS_SUPPORT 0x0020 /* Supports WBS */
+#define BTA_AG_FEAT_SWB_SUPPORT 0x0100 /* Supports SWB */
 
 /* Only SDP feature bits 0 to 4 matches BRSF feature bits */
 #define HFP_SDP_BRSF_FEATURES_MASK 0x001F
@@ -327,7 +329,7 @@ typedef enum : uint8_t {
   BTA_AG_MIC_EVT = 8,         /* Microphone volume changed */
   BTA_AG_AT_CKPD_EVT = 9,     /* CKPD from the HS */
   BTA_AG_DISABLE_EVT = 30,    /* AG disabled */
-  BTA_AG_WBS_EVT = 31,        /* SCO codec info */
+  BTA_AG_CODEC_EVT = 31,      /* SCO codec info */
   /* Values below are for HFP only */
   BTA_AG_AT_A_EVT = 10,    /* Answer a call */
   BTA_AG_AT_D_EVT = 11,    /* Place a call using number or memory dial */
