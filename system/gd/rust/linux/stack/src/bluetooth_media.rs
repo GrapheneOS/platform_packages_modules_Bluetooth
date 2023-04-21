@@ -104,7 +104,7 @@ pub trait IBluetoothMedia {
     /// Returns true iff A2DP audio has started.
     fn get_a2dp_audio_started(&mut self, address: String) -> bool;
 
-    /// Returns the negotiated codec (CVSD=1, mSBC=2) to use if HFP audio has started.
+    /// Returns the negotiated codec (CVSD=1, mSBC=2, LC3=4) to use if HFP audio has started.
     /// Returns 0 if HFP audio hasn't started.
     fn get_hfp_audio_final_codecs(&mut self, address: String) -> u8;
 
@@ -769,13 +769,36 @@ impl BluetoothMedia {
                     .unwrap()
                     .set_battery_info(self.battery_provider_id, battery_set);
             }
-            HfpCallbacks::CapsUpdate(wbs_supported, addr) => {
-                let hfp_cap = match wbs_supported {
-                    true => HfpCodecCapability::CVSD | HfpCodecCapability::MSBC,
-                    false => HfpCodecCapability::CVSD,
-                };
-
-                self.hfp_cap.insert(addr, hfp_cap);
+            HfpCallbacks::WbsCapsUpdate(wbs_supported, addr) => {
+                if let Some(cur_hfp_cap) = self.hfp_cap.get_mut(&addr) {
+                    if wbs_supported {
+                        *cur_hfp_cap |= HfpCodecCapability::MSBC;
+                    } else if (*cur_hfp_cap & HfpCodecCapability::MSBC) == HfpCodecCapability::MSBC
+                    {
+                        *cur_hfp_cap ^= HfpCodecCapability::MSBC;
+                    }
+                } else {
+                    let new_hfp_cap = match wbs_supported {
+                        true => HfpCodecCapability::CVSD | HfpCodecCapability::MSBC,
+                        false => HfpCodecCapability::CVSD,
+                    };
+                    self.hfp_cap.insert(addr, new_hfp_cap);
+                }
+            }
+            HfpCallbacks::SwbCapsUpdate(swb_supported, addr) => {
+                if let Some(cur_hfp_cap) = self.hfp_cap.get_mut(&addr) {
+                    if swb_supported {
+                        *cur_hfp_cap |= HfpCodecCapability::LC3;
+                    } else if (*cur_hfp_cap & HfpCodecCapability::LC3) == HfpCodecCapability::LC3 {
+                        *cur_hfp_cap ^= HfpCodecCapability::LC3;
+                    }
+                } else {
+                    let new_hfp_cap = match swb_supported {
+                        true => HfpCodecCapability::CVSD | HfpCodecCapability::LC3,
+                        false => HfpCodecCapability::CVSD,
+                    };
+                    self.hfp_cap.insert(addr, new_hfp_cap);
+                }
             }
             HfpCallbacks::IndicatorQuery(addr) => {
                 match self.hfp.as_mut() {
@@ -2171,6 +2194,7 @@ impl IBluetoothMedia for BluetoothMedia {
 
         match self.hfp_audio_state.get(&addr) {
             Some(BthfAudioState::Connected) => match self.hfp_cap.get(&addr) {
+                Some(caps) if (*caps & HfpCodecCapability::LC3) == HfpCodecCapability::LC3 => 4,
                 Some(caps) if (*caps & HfpCodecCapability::MSBC) == HfpCodecCapability::MSBC => 2,
                 Some(caps) if (*caps & HfpCodecCapability::CVSD) == HfpCodecCapability::CVSD => 1,
                 _ => {

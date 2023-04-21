@@ -37,6 +37,7 @@ static jmethodID method_onDialCall;
 static jmethodID method_onSendDtmf;
 static jmethodID method_onNoiseReductionEnable;
 static jmethodID method_onWBS;
+static jmethodID method_onSWB;
 static jmethodID method_onAtChld;
 static jmethodID method_onAtCnum;
 static jmethodID method_onAtCind;
@@ -236,6 +237,19 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
                                  addr.get());
   }
 
+  void SwbCallback(bluetooth::headset::bthf_swb_config_t swb_config,
+                   RawAddress* bd_addr) override {
+    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid() || !mCallbacksObj) return;
+
+    ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+    if (addr.get() == nullptr) return;
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSWB, swb_config,
+                                 addr.get());
+  }
+
   void AtChldCallback(bluetooth::headset::bthf_chld_type_t chld,
                       RawAddress* bd_addr) override {
     std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
@@ -414,6 +428,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onNoiseReductionEnable =
       env->GetMethodID(clazz, "onNoiseReductionEnable", "(Z[B)V");
   method_onWBS = env->GetMethodID(clazz, "onWBS", "(I[B)V");
+  method_onSWB = env->GetMethodID(clazz, "onSWB", "(I[B)V");
   method_onAtChld = env->GetMethodID(clazz, "onAtChld", "(I[B)V");
   method_onAtCnum = env->GetMethodID(clazz, "onAtCnum", "([B)V");
   method_onAtCind = env->GetMethodID(clazz, "onAtCind", "([B)V");
