@@ -2174,6 +2174,12 @@ class LeAudioClientImpl : public LeAudioClient {
              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
              leAudioDevice->autoconnect_flag_, reason);
 
+    if (group == nullptr) {
+      LOG_ERROR("Group id %d is null", leAudioDevice->group_id_);
+      leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
+      return;
+    }
+
     if (reason != GATT_CONN_TERMINATE_LOCAL_HOST ||
         leAudioDevice->autoconnect_flag_) {
       leAudioDevice->SetConnectionState(
