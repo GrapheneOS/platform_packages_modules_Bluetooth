@@ -822,6 +822,17 @@ uint8_t get_num_of_devices_in_configuration(
     const AudioSetConfiguration* audio_set_configuration);
 }  // namespace set_configurations
 
+struct stream_map_info {
+  stream_map_info(uint16_t stream_handle, uint32_t audio_channel_allocation,
+                  bool is_stream_active)
+      : stream_handle(stream_handle),
+        audio_channel_allocation(audio_channel_allocation),
+        is_stream_active(is_stream_active) {}
+  uint16_t stream_handle;
+  uint32_t audio_channel_allocation;
+  bool is_stream_active;
+};
+
 struct stream_configuration {
   bool pending_configuration;
 
@@ -842,12 +853,10 @@ struct stream_configuration {
   int sink_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> sink_streams;
-  /* cis_handle, target allocation */
-  std::vector<std::pair<uint16_t, uint32_t>>
-      sink_offloader_streams_target_allocation;
-  /* cis_handle, current allocation */
-  std::vector<std::pair<uint16_t, uint32_t>>
-      sink_offloader_streams_current_allocation;
+  /* cis_handle, target allocation, stream active state */
+  std::vector<stream_map_info> sink_offloader_streams_target_allocation;
+  /* cis_handle, current allocation, stream active state */
+  std::vector<stream_map_info> sink_offloader_streams_current_allocation;
   bool sink_offloader_changed;
   bool sink_is_initial;
 
@@ -863,14 +872,13 @@ struct stream_configuration {
   int source_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> source_streams;
-  /* cis_handle, target allocation */
-  std::vector<std::pair<uint16_t, uint32_t>>
-      source_offloader_streams_target_allocation;
-  /* cis_handle, current allocation */
-  std::vector<std::pair<uint16_t, uint32_t>>
-      source_offloader_streams_current_allocation;
+  /* cis_handle, target allocation, stream active state */
+  std::vector<stream_map_info> source_offloader_streams_target_allocation;
+  /* cis_handle, current allocation, stream active state */
+  std::vector<stream_map_info> source_offloader_streams_current_allocation;
   bool source_offloader_changed;
   bool source_is_initial;
+  bool is_active;
 };
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
