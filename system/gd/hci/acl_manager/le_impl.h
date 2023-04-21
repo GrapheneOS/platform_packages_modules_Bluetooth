@@ -313,17 +313,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     return connections.send_packet_upward(handle, cb);
   }
 
-  void report_le_connection_failure(AddressWithType address, ErrorCode status) {
-    le_client_handler_->Post(common::BindOnce(
-        &LeConnectionCallbacks::OnLeConnectFail,
-        common::Unretained(le_client_callbacks_),
-        address,
-        status));
-    if (le_acceptlist_callbacks_ != nullptr) {
-      le_acceptlist_callbacks_->OnLeConnectFail(address, status);
-    }
-  }
-
   // connection canceled by LeAddressManager.OnPause(), will auto reconnect by LeAddressManager.OnResume()
   void on_le_connection_canceled_on_pause() {
     ASSERT_LOG(pause_connection, "Connection must be paused to ack the le address manager");
@@ -398,7 +387,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       }
 
       if (status != ErrorCode::SUCCESS) {
-        report_le_connection_failure(remote_address, status);
+        le_client_handler_->Post(common::BindOnce(
+            &LeConnectionCallbacks::OnLeConnectFail,
+            common::Unretained(le_client_callbacks_),
+            remote_address,
+            status));
         return;
       }
     } else {
@@ -411,7 +404,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       if (status != ErrorCode::SUCCESS) {
         std::string error_code = ErrorCodeText(status);
         LOG_WARN("Received on_le_connection_complete with error code %s", error_code.c_str());
-        report_le_connection_failure(remote_address, status);
+        le_client_handler_->Post(common::BindOnce(
+            &LeConnectionCallbacks::OnLeConnectFail,
+            common::Unretained(le_client_callbacks_),
+            remote_address,
+            status));
         return;
       }
 
@@ -546,7 +543,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       }
 
       if (status != ErrorCode::SUCCESS) {
-        report_le_connection_failure(remote_address, status);
+        le_client_handler_->Post(common::BindOnce(
+            &LeConnectionCallbacks::OnLeConnectFail,
+            common::Unretained(le_client_callbacks_),
+            remote_address,
+            status));
         return;
       }
 
@@ -560,7 +561,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       if (status != ErrorCode::SUCCESS) {
         std::string error_code = ErrorCodeText(status);
         LOG_WARN("Received on_le_enhanced_connection_complete with error code %s", error_code.c_str());
-        report_le_connection_failure(remote_address, status);
+        le_client_handler_->Post(common::BindOnce(
+            &LeConnectionCallbacks::OnLeConnectFail,
+            common::Unretained(le_client_callbacks_),
+            remote_address,
+            status));
         return;
       }
 
@@ -663,9 +668,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
           callbacks->OnDisconnection(reason);
         },
         kRemoveConnectionAfterwards);
-    if (le_acceptlist_callbacks_ != nullptr) {
-      le_acceptlist_callbacks_->OnLeDisconnection(remote_address);
-    }
     connections.crash_on_unknown_handle_ = event_also_routes_to_other_receivers;
 
     if (background_connections_.count(remote_address) == 1) {
