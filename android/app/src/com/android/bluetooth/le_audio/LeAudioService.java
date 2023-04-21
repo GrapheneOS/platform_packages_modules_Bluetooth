@@ -2348,6 +2348,27 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
+     * Sends the preferred audio profiles for a dual mode audio device to the native stack.
+     *
+     * @param groupId is the group id of the device which had a preference change
+     * @param isOutputPreferenceLeAudio {@code true} if {@link BluetoothProfile#LE_AUDIO} is
+     * preferred for {@link BluetoothAdapter#AUDIO_MODE_OUTPUT_ONLY}, {@code false} if it is
+     * {@link BluetoothProfile#A2DP}
+     * @param isDuplexPreferenceLeAudio {@code true} if {@link BluetoothProfile#LE_AUDIO} is
+     * preferred for {@link BluetoothAdapter#AUDIO_MODE_DUPLEX}, {@code false} if it is
+     * {@link BluetoothProfile#HEADSET}
+     */
+    public void sendAudioProfilePreferencesToNative(int groupId, boolean isOutputPreferenceLeAudio,
+            boolean isDuplexPreferenceLeAudio) {
+        if (!mLeAudioNativeIsInitialized) {
+            Log.e(TAG, "Le Audio not initialized properly.");
+            return;
+        }
+        mLeAudioNativeInterface.sendAudioProfilePreferences(groupId, isOutputPreferenceLeAudio,
+                isDuplexPreferenceLeAudio);
+    }
+
+    /**
      * Set Inactive by HFP during handover
      */
     public void setInactiveForHfpHandover(BluetoothDevice hfpHandoverDevice) {

@@ -289,6 +289,28 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                            Unretained(LeAudioClient::Get()), in_call));
   }
 
+  void SendAudioProfilePreferences(int group_id,
+                                   bool is_output_preference_le_audio,
+                                   bool is_duplex_preference_le_audio) {
+    DVLOG(2) << __func__ << " group_id: " << group_id
+             << ", is_output_preference_le_audio: "
+             << is_output_preference_le_audio
+             << ", is_duplex_preference_le_audio: "
+             << is_duplex_preference_le_audio;
+    if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
+      DVLOG(2) << __func__
+               << " call ignored, due to already started cleanup procedure or "
+                  "service being not read";
+      return;
+    }
+
+    do_in_main_thread(
+        FROM_HERE,
+        Bind(&LeAudioClient::SendAudioProfilePreferences,
+             Unretained(LeAudioClient::Get()), group_id,
+             is_output_preference_le_audio, is_duplex_preference_le_audio));
+  }
+
  private:
   LeAudioClientCallbacks* callbacks;
 };
