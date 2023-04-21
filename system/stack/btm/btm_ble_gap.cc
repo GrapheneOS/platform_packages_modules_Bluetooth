@@ -2398,6 +2398,42 @@ static void btm_ble_appearance_to_cod(uint16_t appearance, uint8_t* dev_class) {
   };
 }
 
+bool btm_ble_get_appearance_as_cod(std::vector<uint8_t> const& data,
+                                   DEV_CLASS dev_class) {
+  /* Check to see the BLE device has the Appearance UUID in the advertising
+   * data. If it does then try to convert the appearance value to a class of
+   * device value Fluoride can use. Otherwise fall back to trying to infer if
+   * it is a HID device based on the service class.
+   */
+  uint8_t len;
+  const uint8_t* p_uuid16 = AdvertiseDataParser::GetFieldByType(
+      data, BTM_BLE_AD_TYPE_APPEARANCE, &len);
+  if (p_uuid16 && len == 2) {
+    btm_ble_appearance_to_cod((uint16_t)p_uuid16[0] | (p_uuid16[1] << 8),
+                              dev_class);
+    return true;
+  }
+
+  p_uuid16 = AdvertiseDataParser::GetFieldByType(
+      data, BTM_BLE_AD_TYPE_16SRV_CMPL, &len);
+  if (p_uuid16 == NULL) {
+    return false;
+  }
+
+  for (uint8_t i = 0; i + 2 <= len; i = i + 2) {
+    /* if this BLE device supports HID over LE, set HID Major in class of
+     * device */
+    if ((p_uuid16[i] | (p_uuid16[i + 1] << 8)) == UUID_SERVCLASS_LE_HID) {
+      dev_class[0] = 0;
+      dev_class[1] = BTM_COD_MAJOR_PERIPHERAL;
+      dev_class[2] = 0;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /**
  * Update adv packet information into inquiry result.
  */
@@ -2446,35 +2482,7 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
       p_cur->flag = *p_flag;
     }
 
-    /* Check to see the BLE device has the Appearance UUID in the advertising
-     * data.  If it does
-     * then try to convert the appearance value to a class of device value
-     * Bluedroid can use.
-     * Otherwise fall back to trying to infer if it is a HID device based on the
-     * service class.
-     */
-    const uint8_t* p_uuid16 = AdvertiseDataParser::GetFieldByType(
-        data, BTM_BLE_AD_TYPE_APPEARANCE, &len);
-    if (p_uuid16 && len == 2) {
-      btm_ble_appearance_to_cod((uint16_t)p_uuid16[0] | (p_uuid16[1] << 8),
-                                p_cur->dev_class);
-    } else {
-      p_uuid16 = AdvertiseDataParser::GetFieldByType(
-          data, BTM_BLE_AD_TYPE_16SRV_CMPL, &len);
-      if (p_uuid16 != NULL) {
-        uint8_t i;
-        for (i = 0; i + 2 <= len; i = i + 2) {
-          /* if this BLE device support HID over LE, set HID Major in class of
-           * device */
-          if ((p_uuid16[i] | (p_uuid16[i + 1] << 8)) == UUID_SERVCLASS_LE_HID) {
-            p_cur->dev_class[0] = 0;
-            p_cur->dev_class[1] = BTM_COD_MAJOR_PERIPHERAL;
-            p_cur->dev_class[2] = 0;
-            break;
-          }
-        }
-      }
-    }
+    btm_ble_get_appearance_as_cod(data, p_cur->dev_class);
 
     const uint8_t* p_rsi =
         AdvertiseDataParser::GetFieldByType(data, BTM_BLE_AD_TYPE_RSI, &len);
