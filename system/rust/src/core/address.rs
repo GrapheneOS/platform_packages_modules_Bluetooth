@@ -1,7 +1,7 @@
 //! An address with type (public / random)
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-#[repr(C)]
+#[repr(u8)]
 /// The type of an LE address (see: 5.3 Vol 6B 1.3 Device Axddress)
 pub enum AddressType {
     /// A public address
