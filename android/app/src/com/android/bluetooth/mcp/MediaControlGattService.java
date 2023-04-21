@@ -75,7 +75,7 @@ import java.util.UUID;
  */
 public class MediaControlGattService implements MediaControlGattServiceInterface {
     private static final String TAG = "MediaControlGattService";
-    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+    private static final boolean DBG = Log.isLoggable(TAG, Log.INFO);
     private static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
 
     /* MCS assigned UUIDs */
