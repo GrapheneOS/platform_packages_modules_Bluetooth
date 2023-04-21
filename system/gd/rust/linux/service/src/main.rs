@@ -176,7 +176,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth_media.clone(),
         tx.clone(),
     ))));
-    let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(tx.clone()))));
+    let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(
+        tx.clone(),
+        bluetooth_admin.clone(),
+    ))));
     let qa = Arc::new(Mutex::new(Box::new(BluetoothQA::new(tx.clone()))));
     let dis =
         Arc::new(Mutex::new(Box::new(DeviceInformation::new(bluetooth_gatt.clone(), tx.clone()))));
