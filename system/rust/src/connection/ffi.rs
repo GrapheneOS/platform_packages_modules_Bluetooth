@@ -70,7 +70,7 @@ mod inner {
         fn on_le_connect_success(&self, address: AddressWithType);
         #[cxx_name = "OnLeConnectFail"]
         fn on_le_connect_fail(&self, address: AddressWithType, status: u8);
-        #[cxx_name = "OnDisconnect"]
+        #[cxx_name = "OnLeDisconnection"]
         fn on_disconnect(&self, address: AddressWithType);
     }
 
