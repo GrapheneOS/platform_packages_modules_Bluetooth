@@ -150,6 +150,7 @@ public class HeadsetStateMachine extends StateMachine {
     // Audio Parameters
     private boolean mHasNrecEnabled = false;
     private boolean mHasWbsEnabled = false;
+    private boolean mHasSwbEnabled = false;
     // AT Phone book keeps a group of states used by AT+CPBR commands
     @VisibleForTesting
     final AtPhonebook mPhonebook;
@@ -250,6 +251,7 @@ public class HeadsetStateMachine extends StateMachine {
         }
         mHasWbsEnabled = false;
         mHasNrecEnabled = false;
+        mHasSwbEnabled = false;
     }
 
     public void dump(StringBuilder sb) {
@@ -343,6 +345,7 @@ public class HeadsetStateMachine extends StateMachine {
         // Should not be called from enter() method
         void broadcastAudioState(BluetoothDevice device, int fromState, int toState) {
             stateLogD("broadcastAudioState: " + device + ": " + fromState + "->" + toState);
+            // TODO(b/278520111): add metrics for SWB
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
                     mAdapterService.obfuscateAddress(device),
                     getConnectionStateFromAudioState(toState),
@@ -480,6 +483,7 @@ public class HeadsetStateMachine extends StateMachine {
             updateAgIndicatorEnableState(null);
             mNeedDialingOutReply = false;
             mHasWbsEnabled = false;
+            mHasSwbEnabled = false;
             mHasNrecEnabled = false;
             broadcastStateTransitions();
             // Remove the state machine for unbonded devices
@@ -643,6 +647,9 @@ public class HeadsetStateMachine extends StateMachine {
                             break;
                         case HeadsetStackEvent.EVENT_TYPE_WBS:
                             processWBSEvent(event.valueInt);
+                            break;
+                        case HeadsetStackEvent.EVENT_TYPE_SWB:
+                            processSWBEvent(event.valueInt);
                             break;
                         case HeadsetStackEvent.EVENT_TYPE_BIND:
                             processAtBind(event.valueString, event.device);
@@ -981,6 +988,9 @@ public class HeadsetStateMachine extends StateMachine {
                             break;
                         case HeadsetStackEvent.EVENT_TYPE_WBS:
                             processWBSEvent(event.valueInt);
+                            break;
+                        case HeadsetStackEvent.EVENT_TYPE_SWB:
+                            processSWBEvent(event.valueInt);
                             break;
                         case HeadsetStackEvent.EVENT_TYPE_AT_CHLD:
                             processAtChld(event.valueInt, event.device);
@@ -1359,6 +1369,9 @@ public class HeadsetStateMachine extends StateMachine {
                         case HeadsetStackEvent.EVENT_TYPE_WBS:
                             stateLogE("Cannot change WBS state when audio is connected: " + event);
                             break;
+                        case HeadsetStackEvent.EVENT_TYPE_SWB:
+                            stateLogE("Cannot change SWB state when audio is connected: " + event);
+                            break;
                         default:
                             super.processMessage(message);
                             break;
@@ -1567,6 +1580,7 @@ public class HeadsetStateMachine extends StateMachine {
                 + " Name=" + getCurrentDeviceName()
                 + " hasNrecEnabled=" + mHasNrecEnabled
                 + " hasWbsEnabled=" + mHasWbsEnabled);
+        am.setParameters("bt_swb=" + (mHasSwbEnabled ? "on" : "off"));
         am.setBluetoothHeadsetProperties(getCurrentDeviceName(), mHasNrecEnabled, mHasWbsEnabled);
     }
 
@@ -1721,6 +1735,23 @@ public class HeadsetStateMachine extends StateMachine {
                 return;
         }
         log("processWBSEvent: " + prevWbs + " -> " + mHasWbsEnabled);
+    }
+
+    private void processSWBEvent(int swbConfig) {
+        boolean prev_swb = mHasSwbEnabled;
+        switch (swbConfig) {
+            case HeadsetHalConstants.BTHF_SWB_YES:
+                mHasSwbEnabled = true;
+                break;
+            case HeadsetHalConstants.BTHF_SWB_NO:
+            case HeadsetHalConstants.BTHF_SWB_NONE:
+                mHasSwbEnabled = false;
+                break;
+            default:
+                Log.e(TAG, "processSWBEvent: unknown swb_config");
+                return;
+        }
+        log("processSWBEvent: " + prev_swb + " -> " + mHasSwbEnabled);
     }
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)

@@ -258,6 +258,31 @@ bool BluetoothAudioClientInterface::SetLowLatencyModeAllowed(bool allowed) {
   return true;
 }
 
+int BluetoothAudioClientInterface::GetAidlInterfaceVersion() {
+  int aidl_version = -1;
+  if (!is_aidl_available()) {
+    return aidl_version;
+  }
+
+  auto provider_factory = IBluetoothAudioProviderFactory::fromBinder(
+      ::ndk::SpAIBinder(AServiceManager_waitForService(
+          kDefaultAudioProviderFactoryInterface.c_str())));
+
+  if (provider_factory == nullptr) {
+    LOG(ERROR) << __func__ << ", can't get aidl version from unknown factory";
+    return aidl_version;
+  }
+
+  auto aidl_retval = provider_factory->getInterfaceVersion(&aidl_version);
+  if (!aidl_retval.isOk()) {
+    LOG(FATAL) << __func__
+               << ": BluetoothAudioHal::getInterfaceVersion failure: "
+               << aidl_retval.getDescription();
+  }
+
+  return aidl_version;
+}
+
 int BluetoothAudioClientInterface::StartSession() {
   std::lock_guard<std::mutex> guard(internal_mutex_);
   if (provider_ == nullptr) {

@@ -203,6 +203,11 @@ typedef enum {
   BTA_AG_SCO_MSBC_SETTINGS_T1,
 } tBTA_AG_SCO_MSBC_SETTINGS;
 
+typedef enum {
+  BTA_AG_SCO_LC3_SETTINGS_T2 = 0, /* preferred/default when codec is LC3 */
+  BTA_AG_SCO_LC3_SETTINGS_T1,
+} tBTA_AG_SCO_LC3_SETTINGS;
+
 /* type for each service control block */
 struct tBTA_AG_SCB {
   char clip[BTA_AG_AT_MAX_LEN + 1];     /* number string used for CLIP */
@@ -253,8 +258,10 @@ struct tBTA_AG_SCB {
       inuse_codec;     /* codec being used for the current SCO connection */
   bool codec_updated;  /* set to true whenever the app updates codec type */
   bool codec_fallback; /* If sco nego fails for mSBC, fallback to CVSD */
-  tBTA_AG_SCO_MSBC_SETTINGS
-      codec_msbc_settings; /* settings to be used for the impending eSCO */
+  tBTA_AG_SCO_MSBC_SETTINGS codec_msbc_settings; /* settings to be used for the
+                                                    impending eSCO on WB */
+  tBTA_AG_SCO_LC3_SETTINGS codec_lc3_settings;   /* settings to be used for the
+                                                    impending eSCO on SWB */
 
   tBTA_AG_HF_IND
       peer_hf_indicators[BTA_AG_MAX_NUM_PEER_HF_IND]; /* Peer supported
@@ -266,9 +273,11 @@ struct tBTA_AG_SCB {
   std::string ToString() const {
     return base::StringPrintf(
         "codec_updated=%d, codec_fallback=%d, "
-        "sco_codec=%d, peer_codec=%d, msbc_settings=%d, device=%s",
+        "sco_codec=%d, peer_codec=%d, msbc_settings=%d, lc3_settings=%d, "
+        "device=%s",
         codec_updated, codec_fallback, sco_codec, peer_codecs,
-        codec_msbc_settings, ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
+        codec_msbc_settings, codec_lc3_settings,
+        ADDRESS_TO_LOGGABLE_CSTR(peer_addr));
   }
 };
 
@@ -409,6 +418,8 @@ extern void bta_ag_handle_collision(tBTA_AG_SCB* p_scb,
 /* Internal utility functions */
 extern void bta_ag_sco_codec_nego(tBTA_AG_SCB* p_scb, bool result);
 extern void bta_ag_codec_negotiate(tBTA_AG_SCB* p_scb);
+extern bool bta_ag_is_sco_open_allowed(tBTA_AG_SCB* p_scb,
+                                       const std::string event);
 extern void bta_ag_send_bcs(tBTA_AG_SCB* p_scb);
 extern void bta_ag_set_sco_offload_enabled(bool value);
 extern void bta_ag_set_sco_allowed(bool value);
