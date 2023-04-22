@@ -190,7 +190,10 @@ class IUT:
         # Handles A2DP and AVDTP MMIs.
         if profile in ("A2DP", "AVDTP"):
             if not self._a2dp:
-                self._a2dp = A2DPProxy(grpc.insecure_channel(f"localhost:{self.pandora_server_port}"))
+                self._a2dp = A2DPProxy(
+                    grpc.insecure_channel(f"localhost:{self.pandora_server_port}"),
+                    self.rootcanal,
+                )
             return self._a2dp.interact(test, interaction, description, pts_address)
         # Handles AVRCP and AVCTP MMIs.
         if profile in ("AVRCP", "AVCTP"):
