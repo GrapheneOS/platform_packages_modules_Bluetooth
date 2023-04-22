@@ -43,7 +43,12 @@ class HIDProxy(ProfileProxy):
         range.
         """
 
-        self.host.Disconnect(connection=self.connection)
+        # Performing out of range action
+        def disconnect():
+            sleep(2)
+            self.rootcanal.disconnect_phy()
+
+        Thread(target=disconnect).start()
 
         return "OK"
 
