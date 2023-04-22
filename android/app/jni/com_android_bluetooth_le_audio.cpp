@@ -542,6 +542,19 @@ static void setInCallNative(JNIEnv* env, jobject object, jboolean inCall) {
   sLeAudioClientInterface->SetInCall(inCall);
 }
 
+static void sendAudioProfilePreferencesNative(
+    JNIEnv* env, jint groupId, jboolean isOutputPreferenceLeAudio,
+    jboolean isDuplexPreferenceLeAudio) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
+  if (!sLeAudioClientInterface) {
+    LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
+    return;
+  }
+
+  sLeAudioClientInterface->SendAudioProfilePreferences(
+      groupId, isOutputPreferenceLeAudio, isDuplexPreferenceLeAudio);
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "([Landroid/bluetooth/BluetoothLeAudioCodecConfig;)V",
@@ -558,6 +571,8 @@ static JNINativeMethod sMethods[] = {
      (void*)setCodecConfigPreferenceNative},
     {"setCcidInformationNative", "(II)V", (void*)setCcidInformationNative},
     {"setInCallNative", "(Z)V", (void*)setInCallNative},
+    {"sendAudioProfilePreferencesNative", "(IZZ)V",
+     (void*)sendAudioProfilePreferencesNative},
 };
 
 /* Le Audio Broadcaster */

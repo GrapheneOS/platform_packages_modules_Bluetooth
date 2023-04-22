@@ -29,8 +29,14 @@
 
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_dm_api.h"
+
+#ifdef OS_ANDROID
+#include "bta/le_audio/devices.h"
+#endif
+
 #include "btif/include/btif_config.h"
 #include "device/include/device_iot_config.h"
+#include "os/system_properties.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
@@ -380,6 +386,7 @@ void bta_ag_rfc_close(tBTA_AG_SCB* p_scb,
   p_scb->codec_updated = false;
   p_scb->codec_fallback = false;
   p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
+  p_scb->codec_lc3_settings = BTA_AG_SCO_LC3_SETTINGS_T2;
   p_scb->role = 0;
   p_scb->svc_conn = false;
   p_scb->hsp_version = HSP_VERSION_1_2;
@@ -480,7 +487,13 @@ void bta_ag_rfc_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       if (!p_scb->received_at_bac && sdp_wbs_support) {
         p_scb->codec_updated = true;
         p_scb->peer_codecs = BTM_SCO_CODEC_CVSD | BTM_SCO_CODEC_MSBC;
-        p_scb->sco_codec = UUID_CODEC_MSBC;
+        p_scb->sco_codec = BTM_SCO_CODEC_MSBC;
+      }
+      bool sdp_swb_support = p_scb->peer_sdp_features & BTA_AG_FEAT_SWB_SUPPORT;
+      if (!p_scb->received_at_bac && sdp_swb_support) {
+        p_scb->codec_updated = true;
+        p_scb->peer_codecs |= BTM_SCO_CODEC_LC3;
+        p_scb->sco_codec = BTM_SCO_CODEC_LC3;
       }
     } else {
       APPL_TRACE_WARNING("%s: Failed read cached peer HFP SDP features for %s",
@@ -753,6 +766,10 @@ void bta_ag_post_sco_close(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       if (bta_ag_inband_enabled(p_scb) &&
           !(p_scb->features & BTA_AG_FEAT_NOSCO)) {
         p_scb->post_sco = BTA_AG_POST_SCO_RING;
+        if (!bta_ag_is_sco_open_allowed(p_scb,
+                                        "BTA_AG_POST_SCO_CALL_END_INCALL")) {
+          break;
+        }
         bta_ag_sco_open(p_scb, data);
       } else {
         p_scb->post_sco = BTA_AG_POST_SCO_NONE;
@@ -824,12 +841,12 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
   /* Check if the requested codec type is valid */
   if ((codec_type != BTM_SCO_CODEC_NONE) &&
       (codec_type != BTM_SCO_CODEC_CVSD) &&
-      (codec_type != BTM_SCO_CODEC_MSBC)) {
+      (codec_type != BTM_SCO_CODEC_MSBC) && (codec_type != BTM_SCO_CODEC_LC3)) {
     val.num = codec_type;
     val.hdr.status = BTA_AG_FAIL_RESOURCES;
     APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d",
                      codec_type);
-    (*bta_ag_cb.p_cback)(BTA_AG_WBS_EVT, (tBTA_AG*)&val);
+    (*bta_ag_cb.p_cback)(BTA_AG_CODEC_EVT, (tBTA_AG*)&val);
     return;
   }
 
@@ -847,7 +864,7 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
                      codec_type);
   }
 
-  (*bta_ag_cb.p_cback)(BTA_AG_WBS_EVT, (tBTA_AG*)&val);
+  (*bta_ag_cb.p_cback)(BTA_AG_CODEC_EVT, (tBTA_AG*)&val);
 }
 
 static void bta_ag_collision_timer_cback(void* data) {

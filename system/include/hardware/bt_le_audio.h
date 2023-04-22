@@ -158,6 +158,11 @@ class LeAudioClientInterface {
 
   /* Set In call flag */
   virtual void SetInCall(bool in_call) = 0;
+
+  /* Sends a preferred audio profiles change */
+  virtual void SendAudioProfilePreferences(
+      int group_id, bool is_output_preference_le_audio,
+      bool is_duplex_preference_le_audio) = 0;
 };
 
 /* Represents the broadcast source state. */

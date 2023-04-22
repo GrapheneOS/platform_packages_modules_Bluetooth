@@ -314,7 +314,7 @@ TEST_F(BtifCoreTest, dump_hf_event) {
       std::make_pair(BTA_AG_MIC_EVT, "BTA_AG_MIC_EVT"),
       std::make_pair(BTA_AG_AT_CKPD_EVT, "BTA_AG_AT_CKPD_EVT"),
       std::make_pair(BTA_AG_DISABLE_EVT, "BTA_AG_DISABLE_EVT"),
-      std::make_pair(BTA_AG_WBS_EVT, "BTA_AG_WBS_EVT"),
+      std::make_pair(BTA_AG_CODEC_EVT, "BTA_AG_CODEC_EVT"),
       std::make_pair(BTA_AG_AT_A_EVT, "BTA_AG_AT_A_EVT"),
       std::make_pair(BTA_AG_AT_D_EVT, "BTA_AG_AT_D_EVT"),
       std::make_pair(BTA_AG_AT_CHLD_EVT, "BTA_AG_AT_CHLD_EVT"),

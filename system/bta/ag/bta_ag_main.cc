@@ -159,6 +159,7 @@ static tBTA_AG_SCB* bta_ag_scb_alloc(void) {
           alarm_new("bta_ag.scb_codec_negotiation_timer");
       /* set eSCO mSBC setting to T2 as the preferred */
       p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
+      p_scb->codec_lc3_settings = BTA_AG_SCO_LC3_SETTINGS_T2;
       APPL_TRACE_DEBUG("bta_ag_scb_alloc %d", bta_ag_scb_to_idx(p_scb));
       break;
     }
@@ -559,6 +560,7 @@ static void bta_ag_better_state_machine(tBTA_AG_SCB* p_scb, uint16_t event,
           bta_ag_sco_listen(p_scb, data);
           break;
         case BTA_AG_SCO_OPEN_EVT:
+          LOG_INFO("Opening sco for EVT BTA_AG_SCO_OPEN_EVT");
           bta_ag_sco_conn_open(p_scb, data);
           break;
         case BTA_AG_SCO_CLOSE_EVT:
@@ -596,6 +598,7 @@ static void bta_ag_better_state_machine(tBTA_AG_SCB* p_scb, uint16_t event,
           bta_ag_rfc_fail(p_scb, data);
           break;
         case BTA_AG_SCO_OPEN_EVT:
+          LOG_INFO("Opening sco for EVT BTA_AG_SCO_OPEN_EVT");
           bta_ag_sco_conn_open(p_scb, data);
           break;
         case BTA_AG_SCO_CLOSE_EVT:
@@ -654,6 +657,7 @@ static void bta_ag_better_state_machine(tBTA_AG_SCB* p_scb, uint16_t event,
           bta_ag_rfc_data(p_scb, data);
           break;
         case BTA_AG_SCO_OPEN_EVT:
+          LOG_INFO("Opening sco for EVT BTA_AG_SCO_OPEN_EVT");
           bta_ag_sco_conn_open(p_scb, data);
           bta_ag_post_sco_open(p_scb, data);
           break;
@@ -689,6 +693,7 @@ static void bta_ag_better_state_machine(tBTA_AG_SCB* p_scb, uint16_t event,
           bta_ag_rfc_close(p_scb, data);
           break;
         case BTA_AG_SCO_OPEN_EVT:
+          LOG_INFO("Opening sco for EVT BTA_AG_SCO_OPEN_EVT");
           bta_ag_sco_conn_open(p_scb, data);
           break;
         case BTA_AG_SCO_CLOSE_EVT:

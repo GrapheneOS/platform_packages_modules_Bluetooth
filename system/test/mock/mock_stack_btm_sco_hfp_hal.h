@@ -112,6 +112,16 @@ struct get_wbs_supported {
 };
 extern struct get_wbs_supported get_wbs_supported;
 
+// Name: get_swb_supported
+// Params:
+// Return: bool
+struct get_swb_supported {
+  static bool return_value;
+  std::function<bool()> body{[]() { return return_value; }};
+  bool operator()() { return body(); };
+};
+extern struct get_swb_supported get_swb_supported;
+
 // Name: init
 // Params:
 // Return: void

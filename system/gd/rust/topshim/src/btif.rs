@@ -396,6 +396,12 @@ impl From<[u8; 16]> for Uuid {
     }
 }
 
+impl From<Uuid> for [u8; 16] {
+    fn from(uuid: Uuid) -> Self {
+        uuid.uu
+    }
+}
+
 impl Hash for Uuid {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.uu.hash(state);
@@ -1243,6 +1249,10 @@ impl BluetoothInterface {
 
     pub fn get_wbs_supported(&self) -> bool {
         ccall!(self, get_wbs_supported)
+    }
+
+    pub fn get_swb_supported(&self) -> bool {
+        ccall!(self, get_swb_supported)
     }
 
     pub fn le_rand(&self) -> i32 {

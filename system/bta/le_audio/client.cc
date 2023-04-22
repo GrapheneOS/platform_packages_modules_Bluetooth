@@ -999,6 +999,27 @@ class LeAudioClientImpl : public LeAudioClient {
     in_call_ = in_call;
   }
 
+  void SendAudioProfilePreferences(
+      const int group_id, bool is_output_preference_le_audio,
+      bool is_duplex_preference_le_audio) override {
+    LOG_INFO(
+        "group_id: %d, is_output_preference_le_audio: %d, "
+        "is_duplex_preference_le_audio: %d",
+        group_id, is_output_preference_le_audio, is_duplex_preference_le_audio);
+    if (group_id == bluetooth::groups::kGroupUnknown) {
+      LOG_WARN("Unknown group_id");
+      return;
+    }
+    LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
+    if (!group) {
+      LOG_WARN("group_id %d does not exist", group_id);
+      return;
+    }
+
+    group->is_output_preference_le_audio = is_output_preference_le_audio;
+    group->is_duplex_preference_le_audio = is_duplex_preference_le_audio;
+  }
+
   void StartAudioSession(LeAudioDeviceGroup* group,
                          LeAudioCodecConfiguration* source_config,
                          LeAudioCodecConfiguration* sink_config) {
@@ -1043,6 +1064,42 @@ class LeAudioClientImpl : public LeAudioClient {
 
     le_audio_sink_hal_client_->Start(audio_framework_sink_config,
                                      audioSourceReceiver);
+  }
+
+  bool isOutputPreferenceLeAudio(const RawAddress& address) {
+    LOG_INFO(" address: %s, active_group_id_: %d",
+             address.ToStringForLogging().c_str(), active_group_id_);
+    std::vector<RawAddress> active_leaudio_devices =
+        GetGroupDevices(active_group_id_);
+    if (std::find(active_leaudio_devices.begin(), active_leaudio_devices.end(),
+                  address) == active_leaudio_devices.end()) {
+      LOG_INFO("Device %s is not active for LE Audio",
+               address.ToStringForLogging().c_str());
+      return false;
+    }
+
+    LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
+    LOG_INFO(" active_group_id: %d, is_output_preference_le_audio_: %d",
+             group->group_id_, group->is_output_preference_le_audio);
+    return group->is_output_preference_le_audio;
+  }
+
+  bool isDuplexPreferenceLeAudio(const RawAddress& address) {
+    LOG_INFO(" address: %s, active_group_id_: %d",
+             address.ToStringForLogging().c_str(), active_group_id_);
+    std::vector<RawAddress> active_leaudio_devices =
+        GetGroupDevices(active_group_id_);
+    if (std::find(active_leaudio_devices.begin(), active_leaudio_devices.end(),
+                  address) == active_leaudio_devices.end()) {
+      LOG_INFO("Device %s is not active for LE Audio",
+               address.ToStringForLogging().c_str());
+      return false;
+    }
+
+    LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
+    LOG_INFO(" active_group_id: %d, is_duplex_preference_le_audio: %d",
+             group->group_id_, group->is_duplex_preference_le_audio);
+    return group->is_duplex_preference_le_audio;
   }
 
   void GroupSetActive(const int group_id) override {
@@ -2116,6 +2173,12 @@ class LeAudioClientImpl : public LeAudioClient {
     LOG_INFO("%s, autoconnect %d, reason 0x%02x",
              ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
              leAudioDevice->autoconnect_flag_, reason);
+
+    if (group == nullptr) {
+      LOG_ERROR("Group id %d is null", leAudioDevice->group_id_);
+      leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
+      return;
+    }
 
     if (reason != GATT_CONN_TERMINATE_LOCAL_HOST ||
         leAudioDevice->autoconnect_flag_) {
@@ -3265,12 +3328,16 @@ class LeAudioClientImpl : public LeAudioClient {
 
     le_audio_source_hal_client_->UpdateRemoteDelay(remote_delay_ms);
     ConfirmLocalAudioSourceStreamingRequest();
-    /* We update the target audio allocation before streamStarted that the
-     * offloder would know how to configure offloader encoder. We should check
-     * if we need to update the current
-     * allocation here as the target allocation and the current allocation is
-     * different */
-    updateOffloaderIfNeeded(group);
+
+    if (CodecManager::GetInstance()->GetAidlVersionInUsed() <
+        AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
+      /* We update the target audio allocation before streamStarted that the
+       * offloder would know how to configure offloader encoder. We should check
+       * if we need to update the current
+       * allocation here as the target allocation and the current allocation is
+       * different */
+      updateOffloaderIfNeeded(group);
+    }
 
     return true;
   }
@@ -3328,12 +3395,16 @@ class LeAudioClientImpl : public LeAudioClient {
     }
     le_audio_sink_hal_client_->UpdateRemoteDelay(remote_delay_ms);
     ConfirmLocalAudioSinkStreamingRequest();
-    /* We update the target audio allocation before streamStarted that the
-     * offloder would know how to configure offloader decoder. We should check
-     * if we need to update the current
-     * allocation here as the target allocation and the current allocation is
-     * different */
-    updateOffloaderIfNeeded(group);
+
+    if (CodecManager::GetInstance()->GetAidlVersionInUsed() <
+        AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
+      /* We update the target audio allocation before streamStarted that the
+       * offloder would know how to configure offloader encoder. We should check
+       * if we need to update the current
+       * allocation here as the target allocation and the current allocation is
+       * different */
+      updateOffloaderIfNeeded(group);
+    }
   }
 
   void SuspendAudio(void) {

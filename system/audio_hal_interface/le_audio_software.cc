@@ -63,6 +63,15 @@ aidl::BluetoothAudioSinkClientInterface* get_aidl_client_interface(
   return aidl::le_audio::LeAudioSinkTransport::interface_unicast_;
 }
 
+int GetAidlInterfaceVersion() {
+  if (HalVersionManager::GetHalTransport() ==
+      BluetoothAudioHalTransport::HIDL) {
+    return -1;
+  }
+
+  return aidl::le_audio::GetAidlInterfaceVersion();
+}
+
 aidl::le_audio::LeAudioSinkTransport* get_aidl_transport_instance(
     bool is_broadcaster) {
   if (is_broadcaster)

@@ -438,11 +438,6 @@ static bt_status_t btif_in_get_remote_device_properties(RawAddress* bd_addr) {
   return BT_STATUS_SUCCESS;
 }
 
-static void btif_core_storage_adapter_notify_empty_success() {
-  GetInterfaceToProfiles()->events->invoke_adapter_properties_cb(
-      BT_STATUS_SUCCESS, 0, NULL);
-}
-
 static void btif_core_storage_adapter_write(bt_property_t* prop) {
   BTIF_TRACE_EVENT("type: %d, len %d, 0x%x", prop->type, prop->len, prop->val);
   bt_status_t status = btif_storage_set_adapter_property(prop);
@@ -652,16 +647,6 @@ void btif_set_adapter_property(bt_property_t* property) {
          will change the SCAN_MODE property after setting timeout,
          if required */
       btif_core_storage_adapter_write(property);
-    } break;
-    case BT_PROPERTY_CLASS_OF_DEVICE: {
-      DEV_CLASS dev_class;
-      memcpy(dev_class, property->val, DEV_CLASS_LEN);
-
-      BTIF_TRACE_EVENT("set property dev_class : 0x%02x%02x%02x", dev_class[0],
-                       dev_class[1], dev_class[2]);
-
-      BTM_SetDeviceClass(dev_class);
-      btif_core_storage_adapter_notify_empty_success();
     } break;
     case BT_PROPERTY_LOCAL_IO_CAPS: {
       // Changing IO Capability of stack at run-time is not currently supported.

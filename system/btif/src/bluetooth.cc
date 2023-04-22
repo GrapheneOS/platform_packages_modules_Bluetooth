@@ -464,6 +464,10 @@ static bool get_wbs_supported() {
   return hfp_hal_interface::get_wbs_supported();
 }
 
+static bool get_swb_supported() {
+  return hfp_hal_interface::get_swb_supported();
+}
+
 bool is_common_criteria_mode() {
   return is_bluetooth_uid() && common_criteria_mode;
 }
@@ -486,7 +490,7 @@ static int get_adapter_properties(void) {
 static int get_adapter_property(bt_property_type_t type) {
   /* Allow get_adapter_property only for BDADDR and BDNAME if BT is disabled */
   if (!btif_is_enabled() && (type != BT_PROPERTY_BDADDR) &&
-      (type != BT_PROPERTY_BDNAME) && (type != BT_PROPERTY_CLASS_OF_DEVICE))
+      (type != BT_PROPERTY_BDNAME))
     return BT_STATUS_NOT_READY;
 
   do_in_main_thread(FROM_HERE, base::BindOnce(btif_get_adapter_property, type));
@@ -1116,6 +1120,7 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     .set_event_filter_connection_setup_all_devices =
         set_event_filter_connection_setup_all_devices,
     .get_wbs_supported = get_wbs_supported,
+    .get_swb_supported = get_swb_supported,
     .metadata_changed = metadata_changed,
     .interop_match_addr = interop_match_addr,
     .interop_match_name = interop_match_name,

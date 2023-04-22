@@ -23,6 +23,10 @@
 #include <tuple>
 #include <vector>
 
+#ifdef OS_ANDROID
+#include <android/sysprop/BluetoothProperties.sysprop.h>
+#endif
+
 #include "audio_hal_client/audio_hal_client.h"
 #include "bt_types.h"
 #include "bta_groups.h"
@@ -36,6 +40,9 @@
 #include "raw_address.h"
 
 namespace le_audio {
+
+// Maps to BluetoothProfile#LE_AUDIO
+#define LE_AUDIO_PROFILE_CONSTANT 22
 
 /* Enums */
 enum class DeviceConnectState : uint8_t {
@@ -251,6 +258,10 @@ class LeAudioDeviceGroup {
   types::AudioLocations snk_audio_locations_;
   types::AudioLocations src_audio_locations_;
 
+  /* Whether LE Audio is preferred for OUTPUT_ONLY and DUPLEX cases */
+  bool is_output_preference_le_audio;
+  bool is_duplex_preference_le_audio;
+
   std::vector<struct types::cis> cises_;
   explicit LeAudioDeviceGroup(const int group_id)
       : group_id_(group_id),
@@ -268,7 +279,20 @@ class LeAudioDeviceGroup {
         pending_group_available_contexts_change_(
             types::LeAudioContextType::UNINITIALIZED),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
-        current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {}
+        current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
+#ifdef OS_ANDROID
+    // 22 maps to BluetoothProfile#LE_AUDIO
+    is_output_preference_le_audio = android::sysprop::BluetoothProperties::
+                                        getDefaultOutputOnlyAudioProfile() ==
+                                    LE_AUDIO_PROFILE_CONSTANT;
+    is_duplex_preference_le_audio =
+        android::sysprop::BluetoothProperties::getDefaultDuplexAudioProfile() ==
+        LE_AUDIO_PROFILE_CONSTANT;
+#else
+    is_output_preference_le_audio = true;
+    is_duplex_preference_le_audio = true;
+#endif
+  }
   ~LeAudioDeviceGroup(void);
 
   void AddNode(const std::shared_ptr<LeAudioDevice>& leAudioDevice);
