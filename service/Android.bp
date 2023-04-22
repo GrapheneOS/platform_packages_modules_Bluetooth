@@ -39,6 +39,10 @@ java_defaults {
             enabled: false,
         },
     },
+    apex_available: [
+        "com.android.btservices",
+    ],
+    min_sdk_version: "Tiramisu",
 }
 
 // pre-jarjar version of service-bluetooth that builds against pre-jarjar version of framework-bluetooth
@@ -71,11 +75,6 @@ java_library {
         "bluetooth-proto-enums-java-gen",
         "modules-utils-shell-command-handler",
     ],
-
-    apex_available: [
-        "com.android.btservices",
-    ],
-    min_sdk_version: "Tiramisu",
 }
 
 // service-bluetooth static library
@@ -105,10 +104,6 @@ java_library {
     visibility: [
         "//packages/modules/Bluetooth/apex",
     ],
-    apex_available: [
-        "com.android.btservices",
-    ],
-    min_sdk_version: "Tiramisu",
 }
 
 java_library {
