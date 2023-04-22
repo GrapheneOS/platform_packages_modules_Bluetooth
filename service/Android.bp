@@ -21,6 +21,7 @@ filegroup {
     srcs: [
         ":statslog-bluetooth-java-gen",
         "src/**/*.java",
+        "src/**/*.kt",
     ],
     visibility: [
         "//frameworks/base/services",
