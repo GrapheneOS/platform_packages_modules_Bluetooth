@@ -20,7 +20,7 @@ filegroup {
     name: "services.bluetooth-sources",
     srcs: [
         ":statslog-bluetooth-java-gen",
-        "java/**/*.java",
+        "src/**/*.java",
     ],
     visibility: [
         "//frameworks/base/services",
