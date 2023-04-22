@@ -23,6 +23,7 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"بلوٹوتھ"</string>
     <string name="unknown_device" msgid="2317679521750821654">"نامعلوم آلہ"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"نامعلوم"</string>
+    <string name="not_provided" msgid="6938740494380012614">"فراہم نہیں کیا گیا"</string>
     <string name="airplane_error_title" msgid="2570111716678850860">"ہوائی جہاز وضع"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"آپ ہوائی جہاز وضع میں بلوٹوتھ استعمال نہیں کر سکتے ہیں۔"</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
@@ -109,10 +110,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"سبھی آئٹمز فہرست سے صاف کر دیے جائیں گے۔"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"بلوٹوتھ اشتراک: ارسال کردہ فائلیں"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"بلوٹوتھ اشتراک: فائلیں موصول ہو گئیں"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# ناکام۔}other{# ناکام۔}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‏# کامیاب، ‎%1$s‎}other{‏# کامیاب، ‎%1$s‎}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"فہرست صاف کریں"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"کھولیں"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"فہرست سے صاف کریں"</string>
@@ -130,4 +129,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"بلوٹوتھ آڈیو"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"‏4GB سے بڑی فائلیں منتقل نہیں کی جا سکتیں"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"بلوٹوتھ سے منسلک کریں"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ہوائی جہاز وضع میں بلوٹوتھ آن ہے"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"اگر آپ بلوٹوتھ کو آن رکھتے ہیں تو آپ کا فون آپ کے اگلی مرتبہ ہوائی جہاز وضع میں ہونے پر اسے آن رکھنا یاد رکھے گا"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"بلوٹوتھ آن رہتا ہے"</string>
+    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"آپ کا فون ہوائی جہاز وضع میں بلوٹوتھ کو آن رکھنا یاد رکھتا ہے۔ اگر آپ نہیں چاہتے ہیں کہ بلوٹوتھ آن رہے تو اسے آف کریں۔"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"‏Wi-Fi اور بلوٹوتھ آن رہنے دیں"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"‏آپ کا فون ہوائی جہاز وضع میں Wi-Fi اور بلوٹوتھ کو آن رکھنا یاد رکھتا ہے۔ اگر آپ نہیں چاہتے ہیں کہ Wi-Fi اور بلوٹوتھ آن رہیں تو انہیں آف کریں۔"</string>
 </resources>
