@@ -228,8 +228,8 @@ class CsisClientImpl : public CsisClient {
     }
 
     callbacks_->OnDeviceAvailable(device->addr, csis_group->GetGroupId(),
-                                  csis_instance->GetRank(),
-                                  csis_group->GetDesiredSize(), uuid);
+                                  csis_group->GetDesiredSize(),
+                                  csis_instance->GetRank(), uuid);
   }
 
   void Connect(const RawAddress& address) override {
