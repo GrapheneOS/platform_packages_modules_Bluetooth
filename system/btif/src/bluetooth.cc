@@ -78,6 +78,7 @@
 #include "btif_metrics_logging.h"
 #include "btif_pan.h"
 #include "btif_profile_storage.h"
+#include "btif_rc.h"
 #include "btif_sock.h"
 #include "btif_storage.h"
 #include "common/address_obfuscator.h"
@@ -767,6 +768,7 @@ static void dump(int fd, const char** arguments) {
   btif_debug_conn_dump(fd);
   btif_debug_bond_event_dump(fd);
   btif_debug_linkkey_type_dump(fd);
+  btif_debug_rc_dump(fd);
   btif_debug_a2dp_dump(fd);
   btif_debug_av_dump(fd);
   bta_debug_av_dump(fd);
