@@ -136,8 +136,7 @@ target_link_libraries(libscriptedbeaconpayload-protos-lite
                       PRIVATE protobuf::libprotobuf)
 
 add_library(libbt-rootcanal.headers INTERFACE)
-target_include_directories(libbt-rootcanal.headers INTERFACE .
-                                                             ${ROOTCANAL_ROOT})
+target_include_directories(libbt-rootcanal.headers INTERFACE ${ROOTCANAL_ROOT})
 target_link_libraries(libbt-rootcanal.headers
                       INTERFACE android-emu-base-headers)
 android_license(TARGET "libbt-rootcanal.headers" LIBNAME None SPDX Apache-2.0
@@ -164,25 +163,9 @@ target_include_directories(
     ${ROOTCANAL_ROOT}/include
     ${BT_ROOT}/gd
     ${BT_ROOT})
+
 target_compile_options(BluetoothPacketSources
                        PUBLIC -Wno-inconsistent-missing-override)
-
-android_add_library(
-  TARGET aemu-rootcanal-log-wrapper LICENSE Apache-2.0 SRC emulator/src/log.cc
-  DEPS android-emu-base android-emu-base-headers android-emu-base-logging)
-target_include_directories(
-  aemu-rootcanal-log-wrapper
-  PRIVATE ${ROOTCANAL_ROOT}/emulator ${ROOTCANAL_ROOT}/emulator/include)
-
-android_add_library(
-  TARGET libbt-hci-packets LICENSE Apache-2.0 SOURCE_DIR ${ROOTCANAL_ROOT}
-  SRC model/hci/h4_parser.cc model/hci/hci_protocol.cc
-  DEPS aemu-rootcanal-log-wrapper android-emu-base android-emu-base-headers)
-target_include_directories(libbt-hci-packets
-   PUBLIC
-     ${ROOTCANAL_ROOT}/emulator
-     ${ROOTCANAL_ROOT}/emulator/include
-     ${ROOTCANAL_ROOT})
 
 android_add_library(
   TARGET libbt-rootcanal
@@ -190,6 +173,7 @@ android_add_library(
   SOURCE_DIR ${ROOTCANAL_ROOT}
   SRC ${BluetoothGeneratedPackets_h}
       ${RootCanalGeneratedPackets_h}
+      emulator/src/log.cc
       lib/crypto/crypto.cc
       lib/hci/address.cc
       lib/hci/class_of_device.cc
@@ -202,7 +186,6 @@ android_add_library(
       model/controller/le_advertiser.cc
       model/controller/link_layer_controller.cc
       model/controller/sco_connection.cc
-      model/controller/security_manager.cc
       model/devices/beacon.cc
       model/devices/beacon_swarm.cc
       model/devices/device.cc
@@ -227,14 +210,14 @@ android_add_library(
   DARWIN net/posix/posix_async_socket.cc
          net/posix/posix_async_socket_connector.cc
          net/posix/posix_async_socket_server.cc
-  DEPS aemu-rootcanal-log-wrapper
-       android-emu-base
+  DEPS android-emu-base
        android-emu-base-headers
+       android-emu-base-logging
        BluetoothPacketSources
        crypto
        jsoncpp
-       libbt-hci-packets
        libscriptedbeaconpayload-protos-lite)
+
 target_include_directories(
   libbt-rootcanal
   PUBLIC ${ROOTCANAL_ROOT}/emulator
@@ -244,6 +227,7 @@ target_include_directories(
          ${BT_ROOT}/gd
          ${BT_ROOT}
          ${CMAKE_CURRENT_BINARY_DIR}/packet_gen)
+
 target_compile_options(libbt-rootcanal
                        PUBLIC -Wno-inconsistent-missing-override)
 
