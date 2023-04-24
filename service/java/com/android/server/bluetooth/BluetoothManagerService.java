@@ -434,6 +434,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
     private static final Object ON_AIRPLANE_MODE_CHANGED_TOKEN = new Object();
     private static final Object ON_SATELLITE_MODE_CHANGED_TOKEN = new Object();
+    private static final Object ON_SWITCH_USER_TOKEN = new Object();
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     void onAirplaneModeChanged() {
@@ -445,6 +446,12 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     void onSatelliteModeChanged() {
         delayModeChangedIfNeeded(ON_SATELLITE_MODE_CHANGED_TOKEN,
                 () -> handleSatelliteModeChanged(), "onSatelliteModeChanged");
+    }
+
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
+    void onSwitchUser(UserHandle userHandle) {
+        delayModeChangedIfNeeded(ON_SWITCH_USER_TOKEN,
+                () -> handleSwitchUser(userHandle), "onSwitchUser");
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
@@ -1828,7 +1835,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     /**
      * Called when switching to a different foreground user.
      */
-    public void handleOnSwitchUser(UserHandle userHandle) {
+    void handleSwitchUser(UserHandle userHandle) {
         if (DBG) {
             Log.d(TAG, "User " + userHandle + " switched");
         }
