@@ -23,7 +23,6 @@ add_custom_target(lmp_rust_packets DEPENDS ${LmpGeneratedPackets_rs}
 add_dependencies(cargo-build_lmp lmp_rust_packets)
 
 # Enable lmp in rootcanal
-target_link_libraries(libbt-rootcanal PRIVATE lmp)
-target_compile_definitions(libbt-rootcanal PRIVATE ROOTCANAL_LMP)
+target_link_libraries(libbt-rootcanal PUBLIC lmp)
 target_include_directories(libbt-rootcanal
-                           PRIVATE ${ROOTCANAL_ROOT}/lmp/include)
+    PUBLIC ${ROOTCANAL_ROOT}/lmp/include)
