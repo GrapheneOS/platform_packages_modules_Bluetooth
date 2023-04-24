@@ -6481,7 +6481,16 @@ public class AdapterService extends Service {
         writer.write(sb.toString());
         writer.flush();
 
-        dumpNative(fd, args);
+        final int currentState = mAdapterProperties.getState();
+        if (currentState == BluetoothAdapter.STATE_OFF
+                || currentState == BluetoothAdapter.STATE_TURNING_OFF
+                || currentState == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
+            writer.println();
+            writer.println("Not dumping, since Bluetooth is turning off");
+            writer.println();
+        } else {
+            dumpNative(fd, args);
+        }
     }
 
     private void dumpMetrics(FileDescriptor fd) {
