@@ -13,4 +13,5 @@ cc_fuzz {
     srcs: [
         "fuzz_avrc.cc",
     ],
+    static_libs: ["libchrome"],
 }
