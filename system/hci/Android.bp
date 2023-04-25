@@ -91,11 +91,16 @@ cc_test {
         "libbluetooth-for-tests",
         "libbt-hci",
         "libbtcore",
+        "libchrome",
     ],
 }
 
 cc_test {
     name: "net_test_hci_fragmenter_native",
+    static_libs: [
+        "libbase",
+        "libchrome",
+    ],
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",

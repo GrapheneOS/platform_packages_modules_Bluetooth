@@ -37,6 +37,7 @@ cc_fuzz {
         "libbluetooth-types",
         "libbtcore",
         "libbtdevice",
+        "libchrome",
         "libosi",
     ],
     include_dirs: [
