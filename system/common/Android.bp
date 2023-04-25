@@ -84,6 +84,8 @@ cc_test {
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
+        "libevent",
         "libgmock",
         "libprotobuf-cpp-lite",
     ],
@@ -110,6 +112,8 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
+        "libchrome",
+        "libevent",
         "libgmock",
         "libosi",
     ],
@@ -131,6 +135,8 @@ cc_benchmark {
     ],
     static_libs: [
         "libbt-common",
+        "libchrome",
+        "libevent",
         "libosi",
     ],
 }
@@ -155,6 +161,8 @@ cc_benchmark {
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
+        "libevent",
         "libosi",
     ],
 }

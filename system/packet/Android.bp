@@ -78,6 +78,7 @@ cc_test {
         "lib-bt-packets",
         "lib-bt-packets-avrcp",
         "lib-bt-packets-base",
+        "libchrome",
         "libgmock",
     ],
     cflags: [

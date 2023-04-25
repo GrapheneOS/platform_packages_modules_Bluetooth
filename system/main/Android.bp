@@ -199,6 +199,8 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtdevice",
+        "libchrome",
+        "libevent",
         "libflatbuffers-cpp",
         "libgmock",
         "liblog",
