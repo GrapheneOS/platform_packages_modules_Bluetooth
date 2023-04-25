@@ -72,6 +72,9 @@ cc_library_shared {
         "libbluetooth_core_rs",
         "libbluetooth_core_rs_bridge",
         "libc++fs",
+        "libchrome",
+        "libevent",
+        "libmodpb64",
     ],
     shared_libs: [
         "android.hardware.bluetooth@1.0",
