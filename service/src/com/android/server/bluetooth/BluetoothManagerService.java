@@ -27,6 +27,7 @@ import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_USE
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.BLUETOOTH_APM_STATE;
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.NOTIFICATION_NOT_SHOWN;
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.USED;
+import static com.android.server.bluetooth.ChangeIds.RESTRICT_ENABLE_DISABLE;
 
 import android.Manifest;
 import android.annotation.NonNull;
@@ -51,8 +52,6 @@ import android.bluetooth.IBluetoothManager;
 import android.bluetooth.IBluetoothManagerCallback;
 import android.bluetooth.IBluetoothProfileServiceConnection;
 import android.bluetooth.IBluetoothStateChangeCallback;
-import android.compat.annotation.ChangeId;
-import android.compat.annotation.EnabledSince;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -199,14 +198,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
     private static final int FLAGS_SYSTEM_APP =
             ApplicationInfo.FLAG_SYSTEM | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP;
-
-    /**
-     * Starting with {@link android.os.Build.VERSION_CODES#TIRAMISU}, applications are
-     * not allowed to enable/disable Bluetooth.
-     */
-    @ChangeId
-    @EnabledSince(targetSdkVersion = android.os.Build.VERSION_CODES.TIRAMISU)
-    static final long RESTRICT_ENABLE_DISABLE = 218493289L;
 
     private final Context mContext;
 
