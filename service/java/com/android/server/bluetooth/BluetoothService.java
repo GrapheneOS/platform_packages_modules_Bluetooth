@@ -65,7 +65,7 @@ public class BluetoothService extends SystemService {
         if (!mInitialized) {
             initialize();
         } else {
-            mBluetoothManagerService.handleOnSwitchUser(to.getUserHandle());
+            mBluetoothManagerService.onSwitchUser(to.getUserHandle());
         }
     }
 
