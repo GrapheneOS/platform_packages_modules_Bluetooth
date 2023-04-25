@@ -192,6 +192,8 @@ class ShadowAcceptlist {
 
   void Clear() { acceptlist_set_.clear(); }
 
+  uint8_t GetMaxSize() const { return max_acceptlist_size_; }
+
  private:
   uint8_t max_acceptlist_size_{0};
   std::unordered_set<ConnectAddressWithType> acceptlist_set_;
@@ -238,6 +240,8 @@ class ShadowAddressResolutionList {
   size_t Size() const { return address_resolution_set_.size(); }
 
   void Clear() { address_resolution_set_.clear(); }
+
+  uint8_t GetMaxSize() const { return max_address_resolution_size_; }
 
  private:
   uint8_t max_address_resolution_size_{0};
@@ -1146,8 +1150,7 @@ struct shim::legacy::Acl::impl {
     }
     const auto acceptlist = shadow_acceptlist_.GetCopy();
     LOG_DEBUG("Shadow le accept list  size:%-3zu controller_max_size:%hhu",
-              acceptlist.size(),
-              controller_get_interface()->get_ble_acceptlist_size());
+              acceptlist.size(), shadow_acceptlist_.GetMaxSize());
     for (auto& entry : acceptlist) {
       LOG_DEBUG("acceptlist:%s", ADDRESS_TO_LOGGABLE_CSTR(entry));
     }
@@ -1178,8 +1181,7 @@ struct shim::legacy::Acl::impl {
     LOG_DUMPSYS(fd,
                 "Shadow le accept list              size:%-3zu "
                 "controller_max_size:%hhu",
-                acceptlist.size(),
-                controller_get_interface()->get_ble_acceptlist_size());
+                acceptlist.size(), shadow_acceptlist_.GetMaxSize());
     unsigned cnt = 0;
     for (auto& entry : acceptlist) {
       LOG_DUMPSYS(fd, "  %03u %s", ++cnt, ADDRESS_TO_LOGGABLE_CSTR(entry));
@@ -1189,7 +1191,7 @@ struct shim::legacy::Acl::impl {
                 "Shadow le address resolution list  size:%-3zu "
                 "controller_max_size:%hhu",
                 address_resolution_list.size(),
-                controller_get_interface()->get_ble_resolving_list_max_size());
+                shadow_address_resolution_list_.GetMaxSize());
     cnt = 0;
     for (auto& entry : address_resolution_list) {
       LOG_DUMPSYS(fd, "  %03u %s", ++cnt, ADDRESS_TO_LOGGABLE_CSTR(entry));
