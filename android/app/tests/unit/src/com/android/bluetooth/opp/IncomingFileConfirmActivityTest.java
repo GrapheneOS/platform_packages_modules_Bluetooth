@@ -23,6 +23,9 @@ import static androidx.test.espresso.matcher.RootMatchers.isDialog;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
+import static com.android.bluetooth.opp.BluetoothOppIncomingFileConfirmActivity.DISMISS_TIMEOUT_DIALOG;
+import static com.android.bluetooth.opp.BluetoothOppIncomingFileConfirmActivity.DISMISS_TIMEOUT_DIALOG_VALUE;
+
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +33,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 import android.content.Context;
@@ -50,7 +54,6 @@ import com.google.common.base.Objects;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -76,7 +79,7 @@ public class IncomingFileConfirmActivityTest {
     Intent mIntent;
     Context mTargetContext;
 
-    boolean mDestroyed;
+    static final int TIMEOUT_MS = 3_000;
 
     @Before
     public void setUp() throws Exception {
@@ -148,7 +151,7 @@ public class IncomingFileConfirmActivityTest {
         // To work around (possibly) ActivityScenario's bug.
         // The dialog button is clicked (no error throw) but onClick() is not triggered.
         // It works normally if sleep for a few seconds
-        Thread.sleep(3_000);
+        Thread.sleep(TIMEOUT_MS);
         onView(withText(mTargetContext.getText(R.string.incoming_file_confirm_cancel).toString()))
                 .inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
 
@@ -169,7 +172,7 @@ public class IncomingFileConfirmActivityTest {
         // To work around (possibly) ActivityScenario's bug.
         // The dialog button is clicked (no error throw) but onClick() is not triggered.
         // It works normally if sleep for a few seconds
-        Thread.sleep(3_000);
+        Thread.sleep(TIMEOUT_MS);
         onView(withText(mTargetContext.getText(R.string.incoming_file_confirm_ok).toString()))
                 .inRoot(isDialog()).check(matches(isDisplayed())).perform(click());
 
@@ -180,9 +183,8 @@ public class IncomingFileConfirmActivityTest {
         ), nullable(String.class), nullable(String[].class));
     }
 
-    @Ignore("b/277593460")
     @Test
-    public void onTimeout_sendIntentWithUSER_CONFIRMATION_TIMEOUT_ACTION_finish() throws Exception {
+    public void onTimeout_broadcastUserConfirmationTimeoutAction_sendDismissTimeoutDialogMessage() {
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);
         ActivityScenario<BluetoothOppIncomingFileConfirmActivity> scenario =
                 ActivityScenario.launch(mIntent);
@@ -191,11 +193,8 @@ public class IncomingFileConfirmActivityTest {
         Intent in = new Intent(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION);
         mTargetContext.sendBroadcast(in);
 
-        // To work around (possibly) ActivityScenario's bug.
-        // The dialog button is clicked (no error throw) but onClick() is not triggered.
-        // It works normally if sleep for a few seconds
-        Thread.sleep(3_000);
-        assertThat(scenario.getState()).isEqualTo(Lifecycle.State.DESTROYED);
+        verify(mBluetoothMethodProxy, timeout(TIMEOUT_MS)).handlerSendMessageDelayed(any(),
+                eq(DISMISS_TIMEOUT_DIALOG), eq((long) DISMISS_TIMEOUT_DIALOG_VALUE));
     }
 
     @Test
