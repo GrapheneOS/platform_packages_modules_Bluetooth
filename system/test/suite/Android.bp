@@ -128,5 +128,7 @@ cc_test {
     static_libs: [
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
+        "libchrome",
+        "libevent",
     ],
 }

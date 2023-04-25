@@ -94,7 +94,6 @@ cc_defaults {
     name: "fluoride_types_defaults",
     defaults: [
         "fluoride_types_defaults_fuzzable",
-        "libchrome_support_defaults",
     ],
 }
 
@@ -172,7 +171,6 @@ cc_defaults {
     name: "fluoride_basic_defaults",
     defaults: [
         "fluoride_test_prod_shared_defaults",
-        "libchrome_support_defaults",
     ],
     apex_available: [
         "//apex_available:platform",
