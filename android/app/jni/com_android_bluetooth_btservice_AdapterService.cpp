@@ -1218,7 +1218,7 @@ static jboolean set_data(JNIEnv* env, bt_oob_data_t& oob_data, jobject oobData,
     }
 
     oobDataLengthBytes = env->GetByteArrayElements(oobDataLength, NULL);
-    memcpy(oob_data.oob_data_length, oobDataLengthBytes, len);
+    memcpy(oob_data.oob_data_length, oobDataLengthBytes, OOB_DATA_LEN_SIZE);
     env->ReleaseByteArrayElements(oobDataLength, oobDataLengthBytes, 0);
 
     // Optional
