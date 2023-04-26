@@ -22,6 +22,7 @@ import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHapClient;
 import android.bluetooth.BluetoothHeadset;
@@ -320,6 +321,10 @@ class ActiveDeviceManager {
                 // Activate HFP, if A2DP is not supported or enabled.
                 if (dbManager.getProfileConnectionPolicy(device, BluetoothProfile.A2DP)
                         != BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+                    if (isWatch(device)) {
+                        Log.i(TAG, "Do not set hfp active for watch device " + device);
+                        return;
+                    }
                     // Tries to make the device active for HFP
                     boolean hfpMadeActive = setHfpActiveDevice(device);
 
@@ -1049,6 +1054,34 @@ class ActiveDeviceManager {
             return hearingAidService.getHiSyncId(mHearingAidActiveDevices.iterator().next());
         }
         return BluetoothHearingAid.HI_SYNC_ID_INVALID;
+    }
+
+    /**
+     * Checks CoD and metadata to determine if the device is a watch
+     * @param device the remote device
+     * @return {@code true} if it's a watch, {@code false} otherwise
+     */
+    private boolean isWatch(BluetoothDevice device) {
+        // Check CoD
+        BluetoothClass deviceClass = device.getBluetoothClass();
+        if (deviceClass != null && deviceClass.getDeviceClass()
+                == BluetoothClass.Device.WEARABLE_WRIST_WATCH) {
+            return true;
+        }
+
+        // Check metadata
+        DatabaseManager dbManager = mAdapterService.getDatabase();
+        byte[] deviceType = dbManager.getCustomMeta(device,
+            BluetoothDevice.METADATA_DEVICE_TYPE);
+        if (deviceType == null) {
+            return false;
+        }
+        String deviceTypeStr = new String(deviceType);
+        if (deviceTypeStr.equals(BluetoothDevice.DEVICE_TYPE_WATCH)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
