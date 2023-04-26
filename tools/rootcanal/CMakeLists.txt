@@ -278,4 +278,4 @@ target_include_directories(
 target_compile_options(libbt-rootcanal
                        PUBLIC -Wno-inconsistent-missing-override)
 
-add_subdirectory(lmp)
+add_subdirectory(rust)
