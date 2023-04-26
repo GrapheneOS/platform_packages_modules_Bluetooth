@@ -944,6 +944,7 @@ public class DatabaseManager {
         mHandler = new DatabaseHandler(mHandlerThread.getLooper());
 
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         mAdapterService.registerReceiver(mReceiver, filter);

@@ -105,6 +105,7 @@ public class CsipSetCoordinatorServiceTest {
         CsipSetCoordinatorStateMachine.sConnectTimeoutMs = TIMEOUT_MS; // 1s
 
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothCsipSetCoordinator.ACTION_CSIS_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothCsipSetCoordinator.ACTION_CSIS_DEVICE_AVAILABLE);
         filter.addAction(BluetoothCsipSetCoordinator.ACTION_CSIS_SET_MEMBER_AVAILABLE);

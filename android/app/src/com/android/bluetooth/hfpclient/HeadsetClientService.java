@@ -129,6 +129,7 @@ public class HeadsetClientService extends ProfileService {
             }
 
             IntentFilter filter = new IntentFilter(AudioManager.ACTION_VOLUME_CHANGED);
+            filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
             filter.addAction(Intent.ACTION_BATTERY_CHANGED);
             registerReceiver(mBroadcastReceiver, filter);
 

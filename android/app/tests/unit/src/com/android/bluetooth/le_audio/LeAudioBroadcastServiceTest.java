@@ -185,6 +185,7 @@ public class LeAudioBroadcastServiceTest {
 
         // Set up the State Changed receiver
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
 
         mLeAudioIntentReceiver = new LeAudioIntentReceiver();
         mTargetContext.registerReceiver(mLeAudioIntentReceiver, filter);

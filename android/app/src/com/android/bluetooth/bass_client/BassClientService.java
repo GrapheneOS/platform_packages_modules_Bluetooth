@@ -259,6 +259,7 @@ public class BassClientService extends ProfileService {
         mCallbacks = new Callbacks(mCallbackHandlerThread.getLooper());
 
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         filter.addAction(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED);
         mIntentReceiver = new BroadcastReceiver() {

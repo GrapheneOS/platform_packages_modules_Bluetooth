@@ -689,6 +689,7 @@ public class BluetoothMapService extends ProfileService {
         mSessionStatusHandler = new MapServiceMessageHandler(looper);
 
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
@@ -696,6 +697,7 @@ public class BluetoothMapService extends ProfileService {
 
         // We need two filters, since Type only applies to the ACTION_MESSAGE_SENT
         IntentFilter filterMessageSent = new IntentFilter();
+        filterMessageSent.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filterMessageSent.addAction(BluetoothMapContentObserver.ACTION_MESSAGE_SENT);
         try {
             filterMessageSent.addDataType("message/*");
