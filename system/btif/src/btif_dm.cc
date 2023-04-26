@@ -48,6 +48,7 @@
 #include <unistd.h>
 
 #include <mutex>
+#include <optional>
 
 #include "advertise_data_parser.h"
 #include "bta/include/bta_api.h"
@@ -3029,13 +3030,13 @@ void btif_dm_load_local_oob(void) {
 }
 
 static bool waiting_on_oob_advertiser_start = false;
-static std::unique_ptr<uint8_t> oob_advertiser_id_;
+static std::optional<uint8_t> oob_advertiser_id_;
 static void stop_oob_advertiser() {
   // For chasing an advertising bug b/237023051
-  LOG_DEBUG("oob_advertiser_id: %s", oob_advertiser_id_.get());
+  LOG_DEBUG("oob_advertiser_id: %d", oob_advertiser_id_.value());
   auto advertiser = get_ble_advertiser_instance();
-  advertiser->Unregister(*oob_advertiser_id_);
-  oob_advertiser_id_ = nullptr;
+  advertiser->Unregister(oob_advertiser_id_.value());
+  oob_advertiser_id_ = {};
 }
 
 /*******************************************************************************
@@ -3057,8 +3058,8 @@ void btif_dm_generate_local_oob_data(tBT_TRANSPORT transport) {
     // advertising then request the address.
     if (!waiting_on_oob_advertiser_start) {
       // For chasing an advertising bug b/237023051
-      LOG_DEBUG("oob_advertiser_id: %s", oob_advertiser_id_.get());
-      if (oob_advertiser_id_ != nullptr) {
+      LOG_DEBUG("oob_advertiser_id: %d", oob_advertiser_id_.value_or(255));
+      if (oob_advertiser_id_.has_value()) {
         stop_oob_advertiser();
       }
       waiting_on_oob_advertiser_start = true;
@@ -3093,7 +3094,7 @@ static void start_advertising_callback(uint8_t id, tBT_TRANSPORT transport,
         transport, false, c, r, RawAddress{}, 0x00);
     SMP_ClearLocScOobData();
     waiting_on_oob_advertiser_start = false;
-    oob_advertiser_id_ = nullptr;
+    oob_advertiser_id_ = {};
     return;
   }
   LOG_DEBUG("OOB advertiser with id %hhd", id);
@@ -3109,7 +3110,7 @@ static void timeout_cb(uint8_t id, tBTM_STATUS status) {
   advertiser->Unregister(id);
   SMP_ClearLocScOobData();
   waiting_on_oob_advertiser_start = false;
-  oob_advertiser_id_ = nullptr;
+  oob_advertiser_id_ = {};
 }
 
 // Step Two: CallBack from Step One, advertise and get address
@@ -3122,12 +3123,12 @@ static void id_status_callback(tBT_TRANSPORT transport, bool is_valid,
         transport, false, c, r, RawAddress{}, 0x00);
     SMP_ClearLocScOobData();
     waiting_on_oob_advertiser_start = false;
-    oob_advertiser_id_ = nullptr;
+    oob_advertiser_id_ = {};
     return;
   }
 
-  oob_advertiser_id_ = std::make_unique<uint8_t>(id);
-  LOG_ERROR("oob_advertiser_id: %s", oob_advertiser_id_.get());
+  oob_advertiser_id_ = id;
+  LOG_INFO("oob_advertiser_id: %d", id);
 
   auto advertiser = get_ble_advertiser_instance();
   AdvertiseParameters parameters{};
