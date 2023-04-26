@@ -757,6 +757,10 @@ void gatt_process_notification(tGATT_TCB& tcb, uint16_t cid, uint8_t op_code,
     // Make sure we don't read past the remaining data even if the length says
     // we can Also need to watch comparing the int16_t with the uint16_t
     value.len = std::min((uint16_t)rem_len, value.len);
+    if (value.len > sizeof(value.value)) {
+      LOG(ERROR) << "Unexpected value.len (>GATT_MAX_ATTR_LEN), stop";
+      return ;
+    }
     STREAM_TO_ARRAY(value.value, p, value.len);
     // Accounting
     rem_len -= value.len;
