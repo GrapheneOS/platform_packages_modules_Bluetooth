@@ -34,6 +34,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.Handler;
+import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.provider.Telephony;
 import android.util.Log;
@@ -192,6 +193,14 @@ public class BluetoothMethodProxy {
      */
     public boolean handlerSendEmptyMessage(Handler handler, final int what) {
         return handler.sendEmptyMessage(what);
+    }
+
+    /**
+     * Proxies {@link Handler#sendMessageDelayed(Message, long)}.
+     */
+    public boolean handlerSendMessageDelayed(Handler handler, final int what,
+            final long delayMillis) {
+        return handler.sendMessageDelayed(handler.obtainMessage(what), delayMillis);
     }
 
     /**
