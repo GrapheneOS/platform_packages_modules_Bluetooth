@@ -26,7 +26,7 @@ struct Link {
     // Only store one HCI packet as our Num_HCI_Command_Packets
     // is always 1
     hci: Cell<Option<hci::CommandPacket>>,
-    lmp: RefCell<VecDeque<lmp::PacketPacket>>,
+    lmp: RefCell<VecDeque<lmp::LmpPacket>>,
 }
 
 impl Default for Link {
@@ -40,7 +40,7 @@ impl Default for Link {
 }
 
 impl Link {
-    fn ingest_lmp(&self, packet: lmp::PacketPacket) {
+    fn ingest_lmp(&self, packet: lmp::LmpPacket) {
         self.lmp.borrow_mut().push_back(packet);
     }
 
@@ -59,7 +59,7 @@ impl Link {
         }
     }
 
-    fn poll_lmp_packet<P: TryFrom<lmp::PacketPacket>>(&self) -> Poll<P> {
+    fn poll_lmp_packet<P: TryFrom<lmp::LmpPacket>>(&self) -> Poll<P> {
         let mut queue = self.lmp.borrow_mut();
         let packet = queue.front().and_then(|packet| packet.clone().try_into().ok());
 
@@ -109,7 +109,7 @@ impl LinkManager {
     pub fn ingest_lmp(
         &self,
         from: hci::Address,
-        packet: lmp::PacketPacket,
+        packet: lmp::LmpPacket,
     ) -> Result<(), LinkManagerError> {
         if let Some(link) = self.get_link(from) {
             link.ingest_lmp(packet);
@@ -124,127 +124,109 @@ impl LinkManager {
         command: &hci::CommandPacket,
         status: hci::ErrorCode,
     ) -> Result<(), LinkManagerError> {
-        use hci::ConnectionManagementCommandChild::*;
-        use hci::SecurityCommandChild::*;
+        use hci::CommandChild::*;
         #[allow(unused_imports)]
         use Option::None; // Overwrite `None` variant of `Child` enum
 
         let event: hci::EventPacket = match command.specialize() {
-            hci::CommandChild::SecurityCommand(command) => match command.specialize() {
-                LinkKeyRequestReply(packet) => hci::LinkKeyRequestReplyCompleteBuilder {
+            LinkKeyRequestReply(packet) => hci::LinkKeyRequestReplyCompleteBuilder {
+                status,
+                bd_addr: packet.get_bd_addr(),
+                num_hci_command_packets,
+            }
+            .into(),
+            LinkKeyRequestNegativeReply(packet) => {
+                hci::LinkKeyRequestNegativeReplyCompleteBuilder {
                     status,
                     bd_addr: packet.get_bd_addr(),
                     num_hci_command_packets,
                 }
-                .into(),
-                LinkKeyRequestNegativeReply(packet) => {
-                    hci::LinkKeyRequestNegativeReplyCompleteBuilder {
-                        status,
-                        bd_addr: packet.get_bd_addr(),
-                        num_hci_command_packets,
-                    }
-                    .into()
-                }
-                PinCodeRequestReply(packet) => hci::PinCodeRequestReplyCompleteBuilder {
+                .into()
+            }
+            PinCodeRequestReply(packet) => hci::PinCodeRequestReplyCompleteBuilder {
+                status,
+                bd_addr: packet.get_bd_addr(),
+                num_hci_command_packets,
+            }
+            .into(),
+            PinCodeRequestNegativeReply(packet) => {
+                hci::PinCodeRequestNegativeReplyCompleteBuilder {
                     status,
                     bd_addr: packet.get_bd_addr(),
                     num_hci_command_packets,
                 }
-                .into(),
-                PinCodeRequestNegativeReply(packet) => {
-                    hci::PinCodeRequestNegativeReplyCompleteBuilder {
-                        status,
-                        bd_addr: packet.get_bd_addr(),
-                        num_hci_command_packets,
-                    }
-                    .into()
-                }
-                IoCapabilityRequestReply(packet) => hci::IoCapabilityRequestReplyCompleteBuilder {
+                .into()
+            }
+            IoCapabilityRequestReply(packet) => hci::IoCapabilityRequestReplyCompleteBuilder {
+                status,
+                bd_addr: packet.get_bd_addr(),
+                num_hci_command_packets,
+            }
+            .into(),
+            IoCapabilityRequestNegativeReply(packet) => {
+                hci::IoCapabilityRequestNegativeReplyCompleteBuilder {
                     status,
                     bd_addr: packet.get_bd_addr(),
                     num_hci_command_packets,
                 }
-                .into(),
-                IoCapabilityRequestNegativeReply(packet) => {
-                    hci::IoCapabilityRequestNegativeReplyCompleteBuilder {
-                        status,
-                        bd_addr: packet.get_bd_addr(),
-                        num_hci_command_packets,
-                    }
-                    .into()
-                }
-                UserConfirmationRequestReply(packet) => {
-                    hci::UserConfirmationRequestReplyCompleteBuilder {
-                        status,
-                        bd_addr: packet.get_bd_addr(),
-                        num_hci_command_packets,
-                    }
-                    .into()
-                }
-                UserConfirmationRequestNegativeReply(packet) => {
-                    hci::UserConfirmationRequestNegativeReplyCompleteBuilder {
-                        status,
-                        bd_addr: packet.get_bd_addr(),
-                        num_hci_command_packets,
-                    }
-                    .into()
-                }
-                UserPasskeyRequestReply(packet) => hci::UserPasskeyRequestReplyCompleteBuilder {
+                .into()
+            }
+            UserConfirmationRequestReply(packet) => {
+                hci::UserConfirmationRequestReplyCompleteBuilder {
                     status,
                     bd_addr: packet.get_bd_addr(),
                     num_hci_command_packets,
                 }
-                .into(),
-                UserPasskeyRequestNegativeReply(packet) => {
-                    hci::UserPasskeyRequestNegativeReplyCompleteBuilder {
-                        status,
-                        bd_addr: packet.get_bd_addr(),
-                        num_hci_command_packets,
-                    }
-                    .into()
-                }
-                RemoteOobDataRequestReply(packet) => {
-                    hci::RemoteOobDataRequestReplyCompleteBuilder {
-                        status,
-                        bd_addr: packet.get_bd_addr(),
-                        num_hci_command_packets,
-                    }
-                    .into()
-                }
-                RemoteOobDataRequestNegativeReply(packet) => {
-                    hci::RemoteOobDataRequestNegativeReplyCompleteBuilder {
-                        status,
-                        bd_addr: packet.get_bd_addr(),
-                        num_hci_command_packets,
-                    }
-                    .into()
-                }
-                SendKeypressNotification(packet) => hci::SendKeypressNotificationCompleteBuilder {
+                .into()
+            }
+            UserConfirmationRequestNegativeReply(packet) => {
+                hci::UserConfirmationRequestNegativeReplyCompleteBuilder {
                     status,
                     bd_addr: packet.get_bd_addr(),
                     num_hci_command_packets,
                 }
-                .into(),
-                _ => return Err(LinkManagerError::UnhandledHciPacket),
-            },
-            hci::CommandChild::AclCommand(command) => match command.specialize() {
-                hci::AclCommandChild::ConnectionManagementCommand(command) => {
-                    match command.specialize() {
-                        AuthenticationRequested(_) => hci::AuthenticationRequestedStatusBuilder {
-                            status,
-                            num_hci_command_packets,
-                        }
-                        .into(),
-                        SetConnectionEncryption(_) => hci::SetConnectionEncryptionStatusBuilder {
-                            status,
-                            num_hci_command_packets,
-                        }
-                        .into(),
-                        _ => return Err(LinkManagerError::UnhandledHciPacket),
-                    }
+                .into()
+            }
+            UserPasskeyRequestReply(packet) => hci::UserPasskeyRequestReplyCompleteBuilder {
+                status,
+                bd_addr: packet.get_bd_addr(),
+                num_hci_command_packets,
+            }
+            .into(),
+            UserPasskeyRequestNegativeReply(packet) => {
+                hci::UserPasskeyRequestNegativeReplyCompleteBuilder {
+                    status,
+                    bd_addr: packet.get_bd_addr(),
+                    num_hci_command_packets,
                 }
-                _ => return Err(LinkManagerError::UnhandledHciPacket),
-            },
+                .into()
+            }
+            RemoteOobDataRequestReply(packet) => hci::RemoteOobDataRequestReplyCompleteBuilder {
+                status,
+                bd_addr: packet.get_bd_addr(),
+                num_hci_command_packets,
+            }
+            .into(),
+            RemoteOobDataRequestNegativeReply(packet) => {
+                hci::RemoteOobDataRequestNegativeReplyCompleteBuilder {
+                    status,
+                    bd_addr: packet.get_bd_addr(),
+                    num_hci_command_packets,
+                }
+                .into()
+            }
+            SendKeypressNotification(packet) => hci::SendKeypressNotificationCompleteBuilder {
+                status,
+                bd_addr: packet.get_bd_addr(),
+                num_hci_command_packets,
+            }
+            .into(),
+            AuthenticationRequested(_) => {
+                hci::AuthenticationRequestedStatusBuilder { status, num_hci_command_packets }.into()
+            }
+            SetConnectionEncryption(_) => {
+                hci::SetConnectionEncryptionStatusBuilder { status, num_hci_command_packets }.into()
+            }
             _ => return Err(LinkManagerError::UnhandledHciPacket),
         };
         self.ops.send_hci_event(&event.to_vec());
@@ -318,7 +300,7 @@ impl procedure::Context for LinkContext {
         }
     }
 
-    fn poll_lmp_packet<P: TryFrom<lmp::PacketPacket>>(&self) -> Poll<P> {
+    fn poll_lmp_packet<P: TryFrom<lmp::LmpPacket>>(&self) -> Poll<P> {
         if let Some(manager) = self.manager.upgrade() {
             manager.link(self.index).poll_lmp_packet()
         } else {
@@ -332,7 +314,7 @@ impl procedure::Context for LinkContext {
         }
     }
 
-    fn send_lmp_packet<P: Into<lmp::PacketPacket>>(&self, packet: P) {
+    fn send_lmp_packet<P: Into<lmp::LmpPacket>>(&self, packet: P) {
         if let Some(manager) = self.manager.upgrade() {
             manager.ops.send_lmp_packet(self.peer_address(), &packet.into().to_vec())
         }
