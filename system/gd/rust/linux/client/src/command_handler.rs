@@ -234,6 +234,14 @@ fn build_commands() -> HashMap<String, CommandOption> {
         },
     );
     command_options.insert(
+        String::from("sdp"),
+        CommandOption {
+            rules: vec![String::from("sdp search <address> <uuid>")],
+            description: String::from("Service Discovery Protocol utilities."),
+            function_pointer: CommandHandler::cmd_sdp,
+        },
+    );
+    command_options.insert(
         String::from("socket"),
         CommandOption {
             rules: vec![
@@ -1383,6 +1391,34 @@ impl CommandHandler {
             _ => return Err(CommandError::InvalidArgs),
         }
 
+        Ok(())
+    }
+
+    fn cmd_sdp(&mut self, args: &Vec<String>) -> CommandResult {
+        if !self.lock_context().adapter_ready {
+            return Err(self.adapter_not_ready());
+        }
+
+        let command = get_arg(args, 0)?;
+
+        match &command[..] {
+            "search" => {
+                let device = BluetoothDevice {
+                    address: String::from(get_arg(args, 1)?),
+                    name: String::from(""),
+                };
+                let uuid = match UuidHelper::parse_string(get_arg(args, 2)?) {
+                    Some(uu) => uu.uu,
+                    None => return Err(CommandError::Failed("Invalid UUID".into())),
+                };
+                let success =
+                    self.lock_context().adapter_dbus.as_ref().unwrap().sdp_search(device, uuid);
+                if !success {
+                    return Err("Unable to execute SDP search".into());
+                }
+            }
+            _ => return Err(CommandError::InvalidArgs),
+        }
         Ok(())
     }
 
