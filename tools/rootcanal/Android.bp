@@ -213,8 +213,6 @@ cc_library_static {
 cc_test_host {
     name: "rootcanal_hci_test",
     defaults: [
-        "clang_coverage_bin",
-        "clang_file_coverage",
         "rootcanal_defaults",
     ],
     srcs: [
@@ -299,8 +297,6 @@ python_test_host {
 cc_test_host {
     name: "rootcanal_test_host",
     defaults: [
-        "clang_coverage_bin",
-        "clang_file_coverage",
         "fluoride_common_options",
     ],
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
