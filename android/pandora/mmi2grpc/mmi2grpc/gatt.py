@@ -39,11 +39,15 @@ from pandora_experimental.gatt_pb2 import (
     PERMISSION_READ,
     PERMISSION_WRITE,
     PERMISSION_READ_ENCRYPTED,
+    PERMISSION_READ_ENCRYPTED_MITM,
+    PERMISSION_WRITE_ENCRYPTED,
+    PERMISSION_WRITE_ENCRYPTED_MITM,
     ENABLE_NOTIFICATION_VALUE,
     ENABLE_INDICATION_VALUE,
 )
 from pandora_experimental.gatt_pb2 import GattServiceParams
 from pandora_experimental.gatt_pb2 import GattCharacteristicParams
+from pandora_experimental.gatt_pb2 import GattDescriptorParams
 from pandora_experimental.gatt_pb2 import ReadCharacteristicResponse
 from pandora_experimental.gatt_pb2 import ReadCharacteristicsFromUuidResponse
 
@@ -58,11 +62,15 @@ MMI_SERVER = {
 }
 
 # These UUIDs are used as reference for GATT server tests
-BASE_READ_WRITE_SERVICE_UUID = "0000fffa-0000-1000-8000-00805f9b34fb"
-BASE_READ_CHARACTERISTIC_UUID = "0000fffb-0000-1000-8000-00805f9b34fb"
-BASE_WRITE_CHARACTERISTIC_UUID = "0000fffc-0000-1000-8000-00805f9b34fb"
-CUSTOM_SERVICE_UUID = "0000fffd-0000-1000-8000-00805f9b34fb"
-CUSTOM_CHARACTERISTIC_UUID = "0000fffe-0000-1000-8000-00805f9b34fb"
+BASE_READ_WRITE_SERVICE_UUID = "0000fffe-0000-1000-8000-00805f9b34fb"
+BASE_READ_CHARACTERISTIC_UUID = "0000ffd-0000-1000-8000-00805f9b34fb"
+BASE_WRITE_CHARACTERISTIC_UUID = "0000fffa-0000-1000-8000-00805f9b34fb"
+BASE_READ_WRITE_ENCRYPTED_CHARACTERISTIC_UUID = "0000fff9-0000-1000-8000-00805f9b34fb"
+BASE_READ_WRITE_ENCRYPTED_MITM_CHARACTERISTIC_UUID = "0000fff8-0000-1000-8000-00805f9b34fb"
+BASE_READ_DESCRIPTOR_UUID = "0000fff7-0000-1000-8000-00805f9b34fb"
+BASE_WRITE_DESCRIPTOR_UUID = "0000fff6-0000-1000-8000-00805f9b34fb"
+CUSTOM_SERVICE_UUID = "0000fff5-0000-1000-8000-00805f9b34fb"
+CUSTOM_CHARACTERISTIC_UUID = "0000fff4-0000-1000-8000-00805f9b34fb"
 
 
 class GATTProxy(ProfileProxy):
@@ -987,11 +995,28 @@ class GATTProxy(ProfileProxy):
                     uuid=BASE_READ_CHARACTERISTIC_UUID,
                     properties=PROPERTY_READ,
                     permissions=PERMISSION_READ,
+                    descriptors=[
+                        GattDescriptorParams(
+                            uuid=BASE_READ_DESCRIPTOR_UUID,
+                            properties=PROPERTY_READ,
+                            permissions=PERMISSION_READ,
+                        ),
+                    ],
                 ),
                 GattCharacteristicParams(
                     uuid=BASE_WRITE_CHARACTERISTIC_UUID,
                     properties=PROPERTY_WRITE,
                     permissions=PERMISSION_WRITE,
+                ),
+                GattCharacteristicParams(
+                    uuid=BASE_READ_WRITE_ENCRYPTED_CHARACTERISTIC_UUID,
+                    properties=PROPERTY_READ | PROPERTY_WRITE,
+                    permissions=PERMISSION_READ_ENCRYPTED | PERMISSION_WRITE_ENCRYPTED,
+                ),
+                GattCharacteristicParams(
+                    uuid=BASE_READ_WRITE_ENCRYPTED_MITM_CHARACTERISTIC_UUID,
+                    properties=PROPERTY_READ | PROPERTY_WRITE,
+                    permissions=PERMISSION_READ_ENCRYPTED_MITM | PERMISSION_WRITE_ENCRYPTED_MITM,
                 ),
             ],
         ))
