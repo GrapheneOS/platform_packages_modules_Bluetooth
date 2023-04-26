@@ -336,7 +336,7 @@ static int out_set_parameters(struct audio_stream* stream,
     }
   }
 
-  if (params.find("routing") != params.end()) {
+  if (params.find(AUDIO_PARAMETER_STREAM_ROUTING) != params.end()) {
     auto routing_param = params.find("routing");
     LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
               << ", stream param '" << routing_param->first.c_str() << "="
@@ -391,8 +391,8 @@ static int out_set_parameters(struct audio_stream* stream,
     }
   }
 
-  if (params.find("closing") != params.end()) {
-    if (params["closing"] == "true") {
+  if (params.find(AUDIO_PARAMETER_KEY_CLOSING) != params.end()) {
+    if (params[AUDIO_PARAMETER_KEY_CLOSING] == "true") {
       LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                 << " stream param closing, disallow any writes?";
       if (out->bluetooth_output_->GetState() !=
@@ -404,8 +404,8 @@ static int out_set_parameters(struct audio_stream* stream,
     }
   }
 
-  if (params.find("exiting") != params.end()) {
-    if (params["exiting"] == "1") {
+  if (params.find(AUDIO_PARAMETER_KEY_EXITING) != params.end()) {
+    if (params[AUDIO_PARAMETER_KEY_EXITING] == "1") {
       LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                 << " stream param exiting";
       if (out->bluetooth_output_->GetState() !=
