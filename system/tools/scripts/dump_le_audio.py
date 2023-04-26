@@ -77,6 +77,7 @@ UUID_ASE_CONTROL_POINT = 0x2BC6
 # opcode for ase control
 OPCODE_CONFIG_CODEC = 0x01
 OPCODE_ENABLE = 0x03
+OPCODE_UPDATE_METADATA = 0x07
 OPCODE_RELEASE = 0x08
 
 # opcode for hci command
@@ -101,8 +102,12 @@ TYPE_FRAME_DURATION = 0x02
 TYPE_CHANNEL_ALLOCATION = 0x03
 TYPE_OCTETS_PER_FRAME = 0x04
 
+CONTEXT_TYPE_UNSPECIFIED = 0x0001
 CONTEXT_TYPE_CONVERSATIONAL = 0x0002
 CONTEXT_TYPE_MEDIA = 0x0004
+CONTEXT_TYPE_GAME = 0x0008
+CONTEXT_TYPE_VOICEASSISTANTS = 0x0020
+CONTEXT_TYPE_LIVE = 0x0040
 CONTEXT_TYPE_RINGTONE = 0x0200
 
 # sample frequency
@@ -315,8 +320,9 @@ def parse_att_write_cmd(packet, connection_handle, timestamp):
                 # ignore target_latency, target_phy, codec_id
                 packet = unpack_data(packet, 7, True)
                 packet = parse_codec_information(connection_handle, ase_id, packet)
-        elif opcode == OPCODE_ENABLE:
-            debug_print("enable")
+        elif opcode == OPCODE_ENABLE or opcode == OPCODE_UPDATE_METADATA:
+            if debug_enable:
+                debug_print("enable or update metadata")
             numbers_of_ases, packet = unpack_data(packet, 1, False)
             for i in range(numbers_of_ases):
                 ase_id, packet = unpack_data(packet, 1, False)
@@ -333,7 +339,10 @@ def parse_att_write_cmd(packet, connection_handle, timestamp):
                     (connection_map[connection_handle].context, packet) = unpack_data(packet, 2, False)
                     break
 
-            connection_map[connection_handle].start_time = timestamp
+            if opcode == OPCODE_ENABLE:
+                debug_print("enable, set timestamp")
+                connection_map[connection_handle].start_time = timestamp
+
             if debug_enable:
                 connection_map[connection_handle].dump()
 
@@ -561,8 +570,12 @@ def dump_cis_audio_data_to_file(acl_handle):
         connection_map[acl_handle].dump()
     file_name = ""
     context_case = {
+        CONTEXT_TYPE_UNSPECIFIED: "Unspecified",
         CONTEXT_TYPE_CONVERSATIONAL: "Conversational",
         CONTEXT_TYPE_MEDIA: "Media",
+        CONTEXT_TYPE_GAME: "Game",
+        CONTEXT_TYPE_VOICEASSISTANTS: "VoiceAssistants",
+        CONTEXT_TYPE_LIVE: "Live",
         CONTEXT_TYPE_RINGTONE: "Ringtone"
     }
     file_name += context_case.get(connection_map[acl_handle].context, "Unknown")
