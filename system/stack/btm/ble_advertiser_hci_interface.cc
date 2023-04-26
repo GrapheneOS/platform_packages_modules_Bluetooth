@@ -292,10 +292,14 @@ class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
     uint8_t sub_event, adv_inst, change_reason;
     uint16_t conn_handle;
 
+    if (length < 1) {
+      return;
+    }
+
     STREAM_TO_UINT8(sub_event, p);
     length--;
 
-    if (sub_event != HCI_VSE_SUBCODE_BLE_MULTI_ADV_ST_CHG || length != 4) {
+    if (sub_event != HCI_VSE_SUBCODE_BLE_MULTI_ADV_ST_CHG || length < 4) {
       return;
     }
 
