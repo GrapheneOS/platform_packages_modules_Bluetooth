@@ -10,7 +10,7 @@ corrosion_set_env_vars(generate-canonical-tests CARGO_HOME=${Rust_CARGO_HOME})
 corrosion_set_env_vars(pdl CARGO_HOME=${Rust_CARGO_HOME})
 corrosion_set_hostbuild(pdl)
 
-get_property(pdl_EXECUTABLE TARGET pdl PROPERTY IMPORTED_LOCATION_RELEASE)
+get_property(pdl_EXECUTABLE TARGET pdl PROPERTY EXECUTABLE_PATH)
 
 # These tests depend on the tempfile crate which was not imported because
 # the crate remove_dir_all does not have a compatible version.
