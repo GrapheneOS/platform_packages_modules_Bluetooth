@@ -704,7 +704,7 @@ void gatt_rsp_timeout(void* data) {
   }
 }
 
-extern void gatts_proc_srv_chg_ind_ack(tGATT_TCB tcb);
+void gatts_proc_srv_chg_ind_ack(tGATT_TCB tcb);
 
 /*******************************************************************************
  *

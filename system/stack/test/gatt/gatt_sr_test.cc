@@ -144,7 +144,7 @@ void gatt_sr_update_cl_status(tGATT_TCB& p_tcb, bool chg_aware) {
 /**
  * Test class to test selected functionality in stack/gatt/gatt_sr.cc
  */
-extern void allocation_tracker_uninit(void);
+void allocation_tracker_uninit(void);
 namespace {
 uint16_t kHandle = 1;
 bt_gatt_db_attribute_type_t kGattCharacteristicType = BTGATT_DB_CHARACTERISTIC;

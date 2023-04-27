@@ -44,8 +44,7 @@
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
-extern void gatt_consolidate(const RawAddress& identity_addr,
-                             const RawAddress& rpa);
+void gatt_consolidate(const RawAddress& identity_addr, const RawAddress& rpa);
 
 namespace {
 
@@ -147,7 +146,7 @@ void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
 }
 
 /** Removes the device from acceptlist */
-extern void BTM_AcceptlistRemove(const RawAddress& address);
+void BTM_AcceptlistRemove(const RawAddress& address);
 
 /** Free resources associated with the device associated with |bd_addr| address.
  *
