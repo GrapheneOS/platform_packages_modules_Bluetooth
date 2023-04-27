@@ -2096,8 +2096,6 @@ public class HeadsetStateMachine extends StateMachine {
             processAtCpbs(atCommand.substring(5), commandType, device);
         } else if (atCommand.startsWith("+CPBR")) {
             processAtCpbr(atCommand.substring(5), commandType, device);
-        } else if (atCommand.startsWith("+ANDROID")) {
-            processAndroidAt(atCommand, device);
         } else {
             processVendorSpecificAt(atCommand, device);
         }
