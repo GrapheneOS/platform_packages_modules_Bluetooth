@@ -373,7 +373,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -429,7 +428,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -473,7 +471,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -594,7 +591,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_defaults",
         "mts_defaults",
     ],
@@ -689,7 +685,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -789,7 +784,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -842,7 +836,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -916,7 +909,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -974,7 +966,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],

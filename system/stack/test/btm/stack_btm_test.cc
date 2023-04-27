@@ -28,7 +28,6 @@
 #include "btif/include/btif_hh.h"
 #include "common/init_flags.h"
 #include "hci/include/hci_layer.h"
-#include "hci/include/hci_packet_factory.h"
 #include "internal_include/stack_config.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
