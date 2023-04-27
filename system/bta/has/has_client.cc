@@ -34,7 +34,6 @@
 #include "bta_groups.h"
 #include "bta_has_api.h"
 #include "bta_le_audio_uuids.h"
-#include "btm_int.h"
 #include "btm_sec.h"
 #include "device/include/controller.h"
 #include "gap_api.h"
