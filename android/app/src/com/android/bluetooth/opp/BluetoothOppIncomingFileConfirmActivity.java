@@ -131,8 +131,9 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
                 onTimeout();
             }
         };
-        registerReceiver(mReceiver,
-                new IntentFilter(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION));
+        IntentFilter filter = new IntentFilter(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        registerReceiver(mReceiver, filter);
     }
 
     private View createView() {

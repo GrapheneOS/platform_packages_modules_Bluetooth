@@ -612,7 +612,9 @@ public class AdapterService extends Service {
         mBluetoothQualityReportNativeInterface.init();
 
         mSdpManager = SdpManager.init(this);
-        registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
+        IntentFilter filter = new IntentFilter(ACTION_ALARM_WAKEUP);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        registerReceiver(mAlarmBroadcastReceiver, filter);
         loadLeAudioAllowDevices();
 
         mDatabaseManager = new DatabaseManager(this);

@@ -141,6 +141,7 @@ public class MediaPlayerList {
 
         // Register for intents where available players might have changed
         IntentFilter pkgFilter = new IntentFilter();
+        pkgFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         pkgFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
         pkgFilter.addAction(Intent.ACTION_PACKAGE_DATA_CLEARED);
         pkgFilter.addAction(Intent.ACTION_PACKAGE_ADDED);

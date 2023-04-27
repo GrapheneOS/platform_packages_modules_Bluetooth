@@ -249,6 +249,7 @@ public class BassClientServiceTest {
 
         // Set up the Connection State Changed receiver
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED);
 
         mBassIntentReceiver = new BassIntentReceiver();

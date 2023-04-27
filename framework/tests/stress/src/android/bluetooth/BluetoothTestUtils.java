@@ -495,6 +495,7 @@ public class BluetoothTestUtils extends Assert {
         };
 
         final IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         mContext.registerReceiver(receiver, filter);
         // Note: for Wear Local Edition builds, which have Permission Review Mode enabled to
         // obey China CMIIT, BluetoothAdapter may not startup immediately on methods enable/disable.
@@ -541,6 +542,7 @@ public class BluetoothTestUtils extends Assert {
         };
 
         final IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         mContext.registerReceiver(receiver, filter);
         // Note: for Wear Local Edition builds, which have Permission Review Mode enabled to
         // obey China CMIIT, BluetoothAdapter may not startup immediately on methods enable/disable.
@@ -593,6 +595,7 @@ public class BluetoothTestUtils extends Assert {
         };
 
         final IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         mContext.registerReceiver(receiver, filter);
         assertEquals(adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE),
                 BluetoothStatusCodes.SUCCESS);
@@ -644,6 +647,7 @@ public class BluetoothTestUtils extends Assert {
         };
 
         final IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         mContext.registerReceiver(receiver, filter);
         assertEquals(adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE),
                 BluetoothStatusCodes.SUCCESS);
@@ -1531,6 +1535,7 @@ public class BluetoothTestUtils extends Assert {
 
     private void addReceiver(BroadcastReceiver receiver, String[] actions) {
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         for (String action: actions) {
             filter.addAction(action);
         }
