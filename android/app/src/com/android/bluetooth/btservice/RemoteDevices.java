@@ -1139,7 +1139,7 @@ final class RemoteDevices {
                 }
                 resetBatteryLevel(device);
             }
-            if (!mAdapterService.isAnyProfileEnabled(device)) {
+            if (mAdapterService.checkifAllProfilesAreUnknown(device)) {
                 DeviceProperties deviceProp = getDeviceProperties(device);
                 if (deviceProp != null) {
                     deviceProp.setBondingInitiatedLocally(false);
