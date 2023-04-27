@@ -3307,6 +3307,7 @@ public class BluetoothMapContentObserver {
             Handler handler = new Handler(Looper.getMainLooper());
 
             IntentFilter intentFilter = new IntentFilter();
+            intentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
             intentFilter.addAction(ACTION_MESSAGE_DELIVERY);
             try {
                 intentFilter.addDataType("message/*");
@@ -3442,6 +3443,7 @@ public class BluetoothMapContentObserver {
 
             Handler handler = new Handler(Looper.getMainLooper());
             IntentFilter intentFilter = new IntentFilter();
+            intentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
             intentFilter.addAction(Intent.ACTION_BOOT_COMPLETED);
             mContext.registerReceiver(this, intentFilter, null, handler);
         }

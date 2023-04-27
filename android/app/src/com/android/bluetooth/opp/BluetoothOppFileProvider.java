@@ -66,6 +66,7 @@ public class BluetoothOppFileProvider extends FileProvider {
             mProviderInfo = info;
             if (!mRegisteredReceiver) {
                 IntentFilter userFilter = new IntentFilter();
+                userFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
                 userFilter.addAction(Intent.ACTION_USER_UNLOCKED);
                 mContext.registerReceiver(mBroadcastReceiver, userFilter, null, null);
                 mRegisteredReceiver = true;

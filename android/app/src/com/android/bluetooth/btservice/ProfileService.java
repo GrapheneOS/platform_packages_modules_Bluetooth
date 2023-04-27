@@ -333,6 +333,7 @@ public abstract class ProfileService extends Service {
         mAdapterService.addProfile(this);
 
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(Intent.ACTION_USER_SWITCHED);
         filter.addAction(Intent.ACTION_USER_UNLOCKED);
         mUserSwitchedReceiver = new BroadcastReceiver() {
