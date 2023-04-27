@@ -200,6 +200,7 @@ public class ScanManager {
                     FOREGROUND_IMPORTANCE_CUTOFF);
         }
         IntentFilter locationIntentFilter = new IntentFilter(LocationManager.MODE_CHANGED_ACTION);
+        locationIntentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         mService.registerReceiver(mLocationReceiver, locationIntentFilter);
         mService.registerReceiver(mBluetoothConnectionReceiver,
                 getBluetoothConnectionIntentFilter());
@@ -328,6 +329,7 @@ public class ScanManager {
 
     private IntentFilter getBluetoothConnectionIntentFilter() {
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
@@ -986,6 +988,7 @@ public class ScanManager {
             mBatchScanIntervalIntent = PendingIntent.getBroadcast(mService, 0, batchIntent,
                     PendingIntent.FLAG_IMMUTABLE);
             IntentFilter filter = new IntentFilter();
+            filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
             filter.addAction(ACTION_REFRESH_BATCHED_SCAN);
             mBatchAlarmReceiver = new BroadcastReceiver() {
                 @Override

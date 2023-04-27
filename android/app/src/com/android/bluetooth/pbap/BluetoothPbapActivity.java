@@ -120,8 +120,9 @@ public class BluetoothPbapActivity extends AlertActivity
                     + "PBAP_ACCESS_REQUEST or PBAP_AUTH_CHALL ");
             finish();
         }
-        registerReceiver(mReceiver,
-                new IntentFilter(BluetoothPbapService.USER_CONFIRM_TIMEOUT_ACTION));
+        IntentFilter filter = new IntentFilter(BluetoothPbapService.USER_CONFIRM_TIMEOUT_ACTION);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        registerReceiver(mReceiver, filter);
     }
 
     private void showPbapDialog(int id) {
