@@ -175,6 +175,7 @@ public class A2dpService extends ProfileService {
 
         // Step 7: Setup broadcast receivers
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         mBondStateChangedReceiver = new BondStateChangedReceiver();
         registerReceiver(mBondStateChangedReceiver, filter);

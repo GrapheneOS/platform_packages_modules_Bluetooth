@@ -321,6 +321,7 @@ public class MapClientService extends ProfileService {
 
         mMapReceiver = new MapBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         registerReceiver(mMapReceiver, filter);

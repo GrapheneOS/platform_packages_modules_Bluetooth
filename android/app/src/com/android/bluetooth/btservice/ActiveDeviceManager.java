@@ -672,6 +672,7 @@ class ActiveDeviceManager {
         mHandler = new Handler(mHandlerThread.getLooper());
 
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);

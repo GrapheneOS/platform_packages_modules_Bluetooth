@@ -235,6 +235,7 @@ public class AvrcpTargetService extends ProfileService {
 
         mReceiver = new AvrcpBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(AudioManager.ACTION_VOLUME_CHANGED);
