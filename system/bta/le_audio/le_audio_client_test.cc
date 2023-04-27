@@ -4648,6 +4648,7 @@ TEST_F(UnicastTest, SpeakerStreamingTimeout) {
       .WillByDefault(Return());
 
   state_machine_callbacks_->OnStateTransitionTimeout(group_id);
+  SyncOnMainLoop();
 
   /* No assigned cises should remain when transition remains in IDLE state */
   auto group = streaming_groups.at(group_id);
