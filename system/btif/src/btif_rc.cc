@@ -400,7 +400,7 @@ static const uint8_t media_attr_list_no_cover_art_size =
 /*****************************************************************************
  *  Externs
  *****************************************************************************/
-extern bool check_cod(const RawAddress& remote_bdaddr, uint32_t cod);
+bool check_cod(const RawAddress& remote_bdaddr, uint32_t cod);
 
 /*****************************************************************************
  *  Functions

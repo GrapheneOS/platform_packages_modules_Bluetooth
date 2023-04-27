@@ -77,14 +77,14 @@ extern tBTM_CB btm_cb;
    BTM_SEC_LE_LINK_KEY_KNOWN | BTM_SEC_LE_LINK_KEY_AUTHED)
 
 void btm_inq_stop_on_ssp(void);
-extern void btm_ble_advertiser_notify_terminated_legacy(
-    uint8_t status, uint16_t connection_handle);
-extern bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
-                                     const RawAddress& new_pseudo_addr);
-extern void bta_dm_remove_device(const RawAddress& bd_addr);
-extern void bta_dm_process_remove_device(const RawAddress& bd_addr);
-extern void btm_inq_clear_ssp(void);
-extern void HACK_acl_check_sm4(tBTM_SEC_DEV_REC& p_dev_rec);
+void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
+                                                 uint16_t connection_handle);
+bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
+                              const RawAddress& new_pseudo_addr);
+void bta_dm_remove_device(const RawAddress& bd_addr);
+void bta_dm_process_remove_device(const RawAddress& bd_addr);
+void btm_inq_clear_ssp(void);
+void HACK_acl_check_sm4(tBTM_SEC_DEV_REC& p_dev_rec);
 
 /*******************************************************************************
  *             L O C A L    F U N C T I O N     P R O T O T Y P E S            *

@@ -32,7 +32,7 @@
 #undef LOG_TAG
 #include "btif/src/btif_rc.cc"
 
-extern void allocation_tracker_uninit(void);
+void allocation_tracker_uninit(void);
 
 namespace {
 int AVRC_BldResponse_ = 0;

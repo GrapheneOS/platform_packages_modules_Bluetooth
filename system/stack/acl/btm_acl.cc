@@ -96,8 +96,8 @@ void l2c_link_hci_conn_comp(tHCI_STATUS status, uint16_t handle,
 void BTM_db_reset(void);
 
 extern tBTM_CB btm_cb;
-extern void btm_iot_save_remote_properties(tACL_CONN* p_acl_cb);
-extern void btm_iot_save_remote_versions(tACL_CONN* p_acl_cb);
+void btm_iot_save_remote_properties(tACL_CONN* p_acl_cb);
+void btm_iot_save_remote_versions(tACL_CONN* p_acl_cb);
 
 struct StackAclBtmAcl {
   tACL_CONN* acl_allocate_connection();

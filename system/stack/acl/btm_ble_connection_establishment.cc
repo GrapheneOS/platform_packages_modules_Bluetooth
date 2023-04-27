@@ -38,11 +38,11 @@
 
 extern tBTM_CB btm_cb;
 
-extern void btm_ble_advertiser_notify_terminated_legacy(
-    uint8_t status, uint16_t connection_handle);
+void btm_ble_advertiser_notify_terminated_legacy(uint8_t status,
+                                                 uint16_t connection_handle);
 
-extern bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
-                                     const RawAddress& new_pseudo_addr);
+bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
+                              const RawAddress& new_pseudo_addr);
 /** LE connection complete. */
 void btm_ble_create_ll_conn_complete(tHCI_STATUS status) {
   if (status == HCI_SUCCESS) return;
