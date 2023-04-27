@@ -53,32 +53,36 @@ static constexpr bool kPassiveScanning = false;
 
 using BtmRemoteDeviceName = tBTM_REMOTE_DEV_NAME;
 
-extern void btm_process_cancel_complete(tHCI_STATUS status, uint8_t mode);
-extern void btm_process_inq_complete(tHCI_STATUS status, uint8_t result_type);
-extern void btm_ble_process_adv_addr(RawAddress& raw_address,
-                                     tBLE_ADDR_TYPE* address_type);
-extern void btm_ble_process_adv_pkt_cont(
-    uint16_t event_type, tBLE_ADDR_TYPE address_type,
-    const RawAddress& raw_address, uint8_t primary_phy, uint8_t secondary_phy,
-    uint8_t advertising_sid, int8_t tx_power, int8_t rssi,
-    uint16_t periodic_adv_int, uint8_t data_len, const uint8_t* data,
-    const RawAddress& original_bda);
+void btm_process_cancel_complete(tHCI_STATUS status, uint8_t mode);
+void btm_process_inq_complete(tHCI_STATUS status, uint8_t result_type);
+void btm_ble_process_adv_addr(RawAddress& raw_address,
+                              tBLE_ADDR_TYPE* address_type);
+void btm_ble_process_adv_pkt_cont(uint16_t event_type,
+                                  tBLE_ADDR_TYPE address_type,
+                                  const RawAddress& raw_address,
+                                  uint8_t primary_phy, uint8_t secondary_phy,
+                                  uint8_t advertising_sid, int8_t tx_power,
+                                  int8_t rssi, uint16_t periodic_adv_int,
+                                  uint8_t data_len, const uint8_t* data,
+                                  const RawAddress& original_bda);
 
-extern void btm_api_process_inquiry_result(const RawAddress& raw_address,
-                                           uint8_t page_scan_rep_mode,
-                                           DEV_CLASS device_class,
-                                           uint16_t clock_offset);
+void btm_api_process_inquiry_result(const RawAddress& raw_address,
+                                    uint8_t page_scan_rep_mode,
+                                    DEV_CLASS device_class,
+                                    uint16_t clock_offset);
 
-extern void btm_api_process_inquiry_result_with_rssi(RawAddress raw_address,
-                                                     uint8_t page_scan_rep_mode,
-                                                     DEV_CLASS device_class,
-                                                     uint16_t clock_offset,
-                                                     int8_t rssi);
+void btm_api_process_inquiry_result_with_rssi(RawAddress raw_address,
+                                              uint8_t page_scan_rep_mode,
+                                              DEV_CLASS device_class,
+                                              uint16_t clock_offset,
+                                              int8_t rssi);
 
-extern void btm_api_process_extended_inquiry_result(
-    RawAddress raw_address, uint8_t page_scan_rep_mode, DEV_CLASS device_class,
-    uint16_t clock_offset, int8_t rssi, const uint8_t* eir_data,
-    size_t eir_len);
+void btm_api_process_extended_inquiry_result(RawAddress raw_address,
+                                             uint8_t page_scan_rep_mode,
+                                             DEV_CLASS device_class,
+                                             uint16_t clock_offset, int8_t rssi,
+                                             const uint8_t* eir_data,
+                                             size_t eir_len);
 
 namespace bluetooth {
 
