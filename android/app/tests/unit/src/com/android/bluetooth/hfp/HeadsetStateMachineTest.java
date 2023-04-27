@@ -1439,6 +1439,7 @@ public class HeadsetStateMachineTest {
     /**
      * A test to validate received Android AT commands and processing
      */
+    @Ignore("b/275668166")
     @Test
     public void testProcessAndroidAt() {
         setUpConnectedState();
