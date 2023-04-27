@@ -127,6 +127,7 @@ public class SapServer extends Thread implements Callback {
 
         /* Register for phone state change and the RIL cfm message */
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
         filter.addAction(SAP_DISCONNECT_ACTION);
         mIntentReceiver = new SapServerBroadcastReceiver();

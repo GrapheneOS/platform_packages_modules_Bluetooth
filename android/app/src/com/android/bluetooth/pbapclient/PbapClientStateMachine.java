@@ -251,6 +251,7 @@ class PbapClientStateMachine extends StateMachine {
 
             public void register() {
                 IntentFilter filter = new IntentFilter();
+                filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
                 filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
                 mService.registerReceiver(this, filter);
             }
