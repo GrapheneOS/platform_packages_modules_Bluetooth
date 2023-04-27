@@ -1134,9 +1134,9 @@ TEST_F(BleAdvertisingManagerTest, test_cleanup_during_execution) {
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 }
 
-extern void testRecomputeTimeout1();
-extern void testRecomputeTimeout2();
-extern void testRecomputeTimeout3();
+void testRecomputeTimeout1();
+void testRecomputeTimeout2();
+void testRecomputeTimeout3();
 
 TEST_F(BleAdvertisingManagerTest, test_recompute_timeout) {
   testRecomputeTimeout1();

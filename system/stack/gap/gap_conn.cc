@@ -103,7 +103,7 @@ static tGAP_CCB* gap_allocate_ccb(void);
 static void gap_release_ccb(tGAP_CCB* p_ccb);
 static void gap_checks_con_flags(tGAP_CCB* p_ccb);
 
-extern bool BTM_UseLeLink(const RawAddress& bd_addr);
+bool BTM_UseLeLink(const RawAddress& bd_addr);
 
 /*******************************************************************************
  *
@@ -1016,7 +1016,7 @@ static void gap_release_ccb(tGAP_CCB* p_ccb) {
   if (p_ccb->transport == BT_TRANSPORT_LE) L2CA_DeregisterLECoc(p_ccb->psm);
 }
 
-extern void gap_attr_db_init(void);
+void gap_attr_db_init(void);
 
 /*
  * This routine should not be called except once per stack invocation.
