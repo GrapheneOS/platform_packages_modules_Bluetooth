@@ -86,7 +86,7 @@ void btif_storage_set_leaudio_has_active_preset(const RawAddress& address,
                                                 uint8_t active_preset);
 void btif_storage_remove_leaudio_has(const RawAddress& address);
 
-extern bool gatt_profile_get_eatt_support(const RawAddress& remote_bda);
+bool gatt_profile_get_eatt_support(const RawAddress& remote_bda);
 
 namespace {
 class HasClientImpl;

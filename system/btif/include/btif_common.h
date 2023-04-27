@@ -152,11 +152,11 @@ typedef struct {
  *  Functions
  ******************************************************************************/
 
-extern bt_status_t do_in_jni_thread(base::OnceClosure task);
-extern bt_status_t do_in_jni_thread(const base::Location& from_here,
-                                    base::OnceClosure task);
-extern bool is_on_jni_thread();
-extern btbase::AbstractMessageLoop* get_jni_message_loop();
+bt_status_t do_in_jni_thread(base::OnceClosure task);
+bt_status_t do_in_jni_thread(const base::Location& from_here,
+                             base::OnceClosure task);
+bool is_on_jni_thread();
+btbase::AbstractMessageLoop* get_jni_message_loop();
 
 using BtJniClosure = std::function<void()>;
 void post_on_bt_jni(BtJniClosure closure);

@@ -50,7 +50,7 @@
 
 using bluetooth::Uuid;
 
-extern bool BTM_BackgroundConnectAddressKnown(const RawAddress& address);
+bool BTM_BackgroundConnectAddressKnown(const RawAddress& address);
 /**
  * Add an service handle range to the list in decending order of the start
  * handle. Return reference to the newly added element.

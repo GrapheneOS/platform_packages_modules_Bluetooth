@@ -70,9 +70,9 @@ using base::StringPrintf;
 
 static void l2cble_start_conn_update(tL2C_LCB* p_lcb);
 static void l2cble_start_subrate_change(tL2C_LCB* p_lcb);
-extern void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
-                                    uint16_t latency, uint16_t timeout,
-                                    tHCI_STATUS status);
+void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
+                             uint16_t latency, uint16_t timeout,
+                             tHCI_STATUS status);
 
 /*******************************************************************************
  *
