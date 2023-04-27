@@ -224,6 +224,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         mBatchId = 1;
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         registerReceiver(mBluetoothReceiver, filter);
 
         if (V) {

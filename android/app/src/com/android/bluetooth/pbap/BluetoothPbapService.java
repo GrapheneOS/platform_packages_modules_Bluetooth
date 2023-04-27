@@ -670,6 +670,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         mHandlerThread.start();
         mSessionStatusHandler = new PbapHandler(mHandlerThread.getLooper());
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(AUTH_RESPONSE_ACTION);
         filter.addAction(AUTH_CANCELLED_ACTION);
