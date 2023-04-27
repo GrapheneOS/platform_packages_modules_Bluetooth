@@ -248,10 +248,19 @@ impl IBluetoothCallback for BtCallback {
 
     fn on_sdp_search_complete(
         &mut self,
-        _remote_device: BluetoothDevice,
-        _searched_uuid: Uuid128Bit,
-        _sdp_records: Vec<BtSdpRecord>,
+        remote_device: BluetoothDevice,
+        searched_uuid: Uuid128Bit,
+        sdp_records: Vec<BtSdpRecord>,
     ) {
+        print_info!(
+            "SDP search of {} for UUID {} returned {} results",
+            remote_device.address,
+            UuidWrapper(&searched_uuid),
+            sdp_records.len()
+        );
+        if !sdp_records.is_empty() {
+            print_info!("{:?}", sdp_records);
+        }
     }
 
     fn on_sdp_record_created(&mut self, record: BtSdpRecord, handle: i32) {
