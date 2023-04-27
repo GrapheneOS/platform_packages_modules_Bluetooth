@@ -53,7 +53,7 @@
     <string name="download_line4" msgid="5234701398884321314"></string>
     <string name="download_line5" msgid="4124272066218470715">"Примање датотеки..."</string>
     <string name="download_cancel" msgid="1705762428762702342">"Запри"</string>
-    <string name="download_ok" msgid="2404442707314575833">"Сокриј"</string>
+    <string name="download_ok" msgid="2404442707314575833">"Скриј"</string>
     <string name="incoming_line1" msgid="6342300988329482408">"Од"</string>
     <string name="incoming_line2" msgid="2199520895444457585">"Име на датотека"</string>
     <string name="incoming_line3" msgid="8630078246326525633">"Големина"</string>
