@@ -311,10 +311,8 @@ TEST_F(BtaDmTest, bta_dm_set_encryption) {
   BTA_DM_ENCRYPT_CBACK_queue = {};
 }
 
-extern void bta_dm_encrypt_cback(const RawAddress* bd_addr,
-                                 tBT_TRANSPORT transport,
-                                 UNUSED_ATTR void* p_ref_data,
-                                 tBTM_STATUS result);
+void bta_dm_encrypt_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
+                          UNUSED_ATTR void* p_ref_data, tBTM_STATUS result);
 
 TEST_F(BtaDmTest, bta_dm_encrypt_cback) {
   const RawAddress bd_addr{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}};
