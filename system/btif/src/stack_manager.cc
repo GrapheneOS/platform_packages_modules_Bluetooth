@@ -257,6 +257,8 @@ static void init_stack_internal(bluetooth::core::CoreInterface* interface) {
 
   module_management_start();
 
+  main_thread_start_up();
+
   module_init(get_local_module(DEVICE_IOT_CONFIG_MODULE));
   module_init(get_local_module(OSI_MODULE));
   module_start_up(get_local_module(GD_IDLE_MODULE));
@@ -332,8 +334,6 @@ static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
 
   module_init(get_local_module(BTE_LOGMSG_MODULE));
 
-  main_thread_start_up();
-
   btif_init_ok();
   BTA_dm_init();
   bta_dm_enable(bte_dm_evt);
@@ -395,8 +395,6 @@ static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
 
   future_await(local_hack_future);
 
-  main_thread_shut_down();
-
   module_clean_up(get_local_module(BTE_LOGMSG_MODULE));
 
   gatt_free();
@@ -446,6 +444,9 @@ static void event_clean_up_stack(std::promise<void> promise,
 
   module_clean_up(get_local_module(OSI_MODULE));
   module_shut_down(get_local_module(GD_IDLE_MODULE));
+
+  main_thread_shut_down();
+
   module_management_stop();
   LOG_INFO("%s finished", __func__);
 
