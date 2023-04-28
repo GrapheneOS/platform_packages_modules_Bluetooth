@@ -802,8 +802,13 @@ bt_status_t btif_storage_add_remote_device(const RawAddress* remote_bd_addr,
   /* TODO: If writing a property, fails do we go back undo the earlier
    * written properties? */
   for (i = 0; i < num_properties; i++) {
-    /* Ignore the RSSI as this is not stored in DB */
-    if (properties[i].type == BT_PROPERTY_REMOTE_RSSI) continue;
+    /* Ignore properties that are not stored in DB */
+    if (properties[i].type == BT_PROPERTY_REMOTE_RSSI ||
+        properties[i].type == BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER ||
+        properties[i].type == BT_PROPERTY_REMOTE_ASHA_CAPABILITY ||
+        properties[i].type == BT_PROPERTY_REMOTE_ASHA_TRUNCATED_HISYNCID) {
+      continue;
+    }
 
     /* address for remote device needs special handling as we also store
      * timestamp */
