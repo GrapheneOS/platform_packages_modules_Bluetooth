@@ -160,6 +160,7 @@
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService"/>
             </intent-filter>
+            <meta-data android:name="androidx.car.app.launchable" android:value="true" />
         </service>
         <provider android:process="@string/process"
              android:name="com.android.bluetooth.avrcpcontroller.AvrcpCoverArtProvider"
