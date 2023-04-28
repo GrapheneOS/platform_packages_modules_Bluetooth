@@ -26,8 +26,12 @@
 using bluetooth::common::MessageLoopThread;
 using bluetooth::common::OnceTimer;
 
+namespace {
 // Allowed error between the expected and actual delay for DoInThreadDelayed().
 constexpr uint32_t delay_error_ms = 3;
+auto kFutureWaitTimeout = std::chrono::seconds(3);
+
+}  // namespace
 
 /**
  * Unit tests to verify Task Scheduler.
@@ -103,7 +107,7 @@ TEST_F(OnceTimerTest, schedule_task) {
                    base::Milliseconds(delay_ms));
 #endif
   EXPECT_TRUE(timer_->IsScheduled());
-  future.get();
+  ASSERT_EQ(std::future_status::ready, future.wait_for(kFutureWaitTimeout));
   ASSERT_EQ(name, my_name);
   std::this_thread::sleep_for(std::chrono::milliseconds(delay_error_ms));
   EXPECT_FALSE(timer_->IsScheduled());
@@ -187,7 +191,7 @@ TEST_F(OnceTimerTest, cancel_current_task_no_effect) {
                    base::Milliseconds(delay_ms));
 #endif
   EXPECT_TRUE(timer_->IsScheduled());
-  future.get();
+  ASSERT_EQ(std::future_status::ready, future.wait_for(kFutureWaitTimeout));
   timer_->CancelAndWait();
   ASSERT_EQ(counter_, 1);
   EXPECT_FALSE(timer_->IsScheduled());
@@ -264,6 +268,6 @@ TEST_F(OnceTimerTest, reschedule_task_when_firing_must_schedule_new_task) {
 #else
                    base::Milliseconds(delay_ms));
 #endif
-  future.get();
+  ASSERT_EQ(std::future_status::ready, future.wait_for(kFutureWaitTimeout));
   ASSERT_EQ(name, my_name);
 }
