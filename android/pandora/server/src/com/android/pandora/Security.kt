@@ -234,7 +234,7 @@ class Security(private val context: Context) : SecurityImplBase(), Closeable {
           )
           val device = answer.event.address.toBluetoothDevice(bluetoothAdapter)
           when (answer.answerCase!!) {
-            PairingEventAnswer.AnswerCase.CONFIRM -> device.setPairingConfirmation(true)
+            PairingEventAnswer.AnswerCase.CONFIRM -> device.setPairingConfirmation(answer.confirm)
             PairingEventAnswer.AnswerCase.PASSKEY ->
               device.setPin(answer.passkey.toString().padStart(6, '0'))
             PairingEventAnswer.AnswerCase.PIN -> device.setPin(answer.pin.toByteArray())
