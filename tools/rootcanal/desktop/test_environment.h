@@ -64,13 +64,11 @@ class TestEnvironment {
         link_socket_server_(link_server_port),
         link_ble_socket_server_(link_ble_server_port),
         connector_(connector),
-        controller_properties_file_(controller_properties_file),
+        controller_properties_(controller_properties_file),
         default_commands_file_(default_commands_file),
         enable_hci_sniffer_(enable_hci_sniffer),
         enable_baseband_sniffer_(enable_baseband_sniffer),
-        enable_pcap_filter_(enable_pcap_filter),
-        controller_(std::make_shared<rootcanal::DualModeController>(
-            controller_properties_file)) {
+        enable_pcap_filter_(enable_pcap_filter) {
     test_model_.SetReuseDeviceIds(!disable_address_reuse);
   }
 
@@ -80,12 +78,13 @@ class TestEnvironment {
 
  private:
   rootcanal::AsyncManager async_manager_;
+  rootcanal::TestChannelTransport test_channel_transport_;
   std::shared_ptr<AsyncDataChannelServer> test_socket_server_;
   std::shared_ptr<AsyncDataChannelServer> hci_socket_server_;
   std::shared_ptr<AsyncDataChannelServer> link_socket_server_;
   std::shared_ptr<AsyncDataChannelServer> link_ble_socket_server_;
   std::shared_ptr<AsyncDataChannelConnector> connector_;
-  std::string controller_properties_file_;
+  rootcanal::ControllerProperties controller_properties_;
   std::string default_commands_file_;
   bool enable_hci_sniffer_;
   bool enable_baseband_sniffer_;
@@ -97,15 +96,9 @@ class TestEnvironment {
   void SetUpHciServer(ConnectCallback on_connect);
   void SetUpLinkLayerServer();
   void SetUpLinkBleLayerServer();
+
   std::shared_ptr<Device> ConnectToRemoteServer(const std::string& server,
                                                 int port, Phy::Type phy_type);
-
-  std::shared_ptr<rootcanal::DualModeController> controller_;
-
-  rootcanal::TestChannelTransport test_channel_transport_;
-  rootcanal::TestChannelTransport remote_hci_transport_;
-  rootcanal::TestChannelTransport remote_link_layer_transport_;
-  rootcanal::TestChannelTransport remote_link_ble_layer_transport_;
 
   rootcanal::TestModel test_model_{
       [this]() { return async_manager_.GetNextUserId(); },
