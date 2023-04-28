@@ -23,7 +23,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.IBluetoothOobDataCallback;
 import android.content.AttributionSource;
 import android.os.ParcelUuid;
@@ -97,21 +96,9 @@ public class AdapterServiceBinderTest {
     }
 
     @Test
-    public void getBluetoothClass() {
-        mBinder.getBluetoothClass(mAttributionSource, SynchronousResultReceiver.get());
-        verify(mService.mAdapterProperties).getBluetoothClass();
-    }
-
-    @Test
     public void getIoCapability() {
         mBinder.getIoCapability(mAttributionSource, SynchronousResultReceiver.get());
         verify(mService.mAdapterProperties).getIoCapability();
-    }
-
-    @Test
-    public void getLeIoCapability() {
-        mBinder.getLeIoCapability(mAttributionSource, SynchronousResultReceiver.get());
-        verify(mService.mAdapterProperties).getLeIoCapability();
     }
 
     @Test
@@ -178,24 +165,10 @@ public class AdapterServiceBinderTest {
     }
 
     @Test
-    public void setBluetoothClass() {
-        BluetoothClass btClass = new BluetoothClass(0);
-        mBinder.setBluetoothClass(btClass, mAttributionSource, SynchronousResultReceiver.get());
-        verify(mService.mAdapterProperties).setBluetoothClass(btClass);
-    }
-
-    @Test
     public void setIoCapability() {
         int capability = BluetoothAdapter.IO_CAPABILITY_MAX - 1;
         mBinder.setIoCapability(capability, mAttributionSource, SynchronousResultReceiver.get());
         verify(mService.mAdapterProperties).setIoCapability(capability);
-    }
-
-    @Test
-    public void setLeIoCapability() {
-        int capability = BluetoothAdapter.IO_CAPABILITY_MAX - 1;
-        mBinder.setLeIoCapability(capability, mAttributionSource, SynchronousResultReceiver.get());
-        verify(mService.mAdapterProperties).setLeIoCapability(capability);
     }
 
     @Test

@@ -355,6 +355,7 @@ init_flags!(
         set_min_encryption = true,
         subrating = true,
         trigger_advertising_callbacks_on_first_resume_after_pause = true,
+        use_unified_connection_manager,
     }
     // dynamic flags can be updated at runtime and should be accessed directly
     // to check.
@@ -397,6 +398,9 @@ pub fn load(raw_flags: Vec<String>) {
     let flags = InitFlags::parse(raw_flags);
     info!("Flags loaded: {}", flags);
     *FLAGS.lock().unwrap() = flags;
+
+    // re-init to respect log levels set by flags
+    crate::init_logging();
 }
 
 #[cfg(test)]

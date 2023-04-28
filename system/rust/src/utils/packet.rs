@@ -42,6 +42,7 @@ pub fn HACK_child_to_opcode(child: &AttChild) -> AttOpcode {
         AttChild::AttHandleValueConfirmation(_) => AttOpcode::HANDLE_VALUE_CONFIRMATION,
         AttChild::AttExchangeMtuRequest(_) => AttOpcode::EXCHANGE_MTU_REQUEST,
         AttChild::AttExchangeMtuResponse(_) => AttOpcode::EXCHANGE_MTU_RESPONSE,
+        AttChild::AttWriteCommand(_) => AttOpcode::WRITE_COMMAND,
     }
 }
 

@@ -307,6 +307,9 @@ bool get_wbs_supported() {
   return false;
 }
 
+// Here SWB default to be false at linux, change if needed
+bool get_swb_supported() { return false; }
+
 // Checks the supported codecs
 bt_codecs get_codec_capabilities(uint64_t codecs) {
   bt_codecs codec_list = {.offload_capable = offload_supported};

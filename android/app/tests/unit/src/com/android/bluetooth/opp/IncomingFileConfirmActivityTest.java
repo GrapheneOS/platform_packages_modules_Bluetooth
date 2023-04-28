@@ -50,6 +50,7 @@ import com.google.common.base.Objects;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -57,6 +58,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -77,7 +79,7 @@ public class IncomingFileConfirmActivityTest {
     boolean mDestroyed;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mBluetoothMethodProxy = Mockito.spy(BluetoothMethodProxy.getInstance());
         BluetoothMethodProxy.setInstanceForTesting(mBluetoothMethodProxy);
@@ -124,6 +126,7 @@ public class IncomingFileConfirmActivityTest {
         ));
 
         BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
+        BluetoothOppTestUtils.wakeUpAndDismissKeyGuard();
     }
 
     @After
@@ -177,6 +180,7 @@ public class IncomingFileConfirmActivityTest {
         ), nullable(String.class), nullable(String[].class));
     }
 
+    @Ignore("b/277593460")
     @Test
     public void onTimeout_sendIntentWithUSER_CONFIRMATION_TIMEOUT_ACTION_finish() throws Exception {
         BluetoothOppTestUtils.setUpMockCursor(mCursor, mCursorMockDataList);

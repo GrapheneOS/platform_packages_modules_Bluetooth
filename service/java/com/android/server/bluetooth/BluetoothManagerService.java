@@ -155,7 +155,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private static final int DELAY_FOR_RETRY_INIT_FLAG_CHECK_MS = 86400000;
 
     private static final int MESSAGE_ENABLE = 1;
-    private static final int MESSAGE_DISABLE = 2;
+    @VisibleForTesting
+    static final int MESSAGE_DISABLE = 2;
     private static final int MESSAGE_HANDLE_ENABLE_DELAYED = 3;
     private static final int MESSAGE_HANDLE_DISABLE_DELAYED = 4;
     private static final int MESSAGE_REGISTER_STATE_CHANGE_CALLBACK = 30;
@@ -243,6 +244,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
     private BluetoothNotificationManager mBluetoothNotificationManager;
 
+    private BluetoothSatelliteModeListener mBluetoothSatelliteModeListener;
+
     // used inside handler thread
     private boolean mQuietEnable = false;
     private boolean mEnable;
@@ -324,19 +327,19 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     public void onUserRestrictionsChanged(UserHandle userHandle) {
         final boolean newBluetoothDisallowed = mUserManager.hasUserRestrictionForUser(
                 UserManager.DISALLOW_BLUETOOTH, userHandle);
-        boolean newBluetoothSharingDisallowed = mUserManager.hasUserRestrictionForUser(
-                UserManager.DISALLOW_BLUETOOTH_SHARING, userHandle);
+        // Disallow Bluetooth sharing when either Bluetooth is disallowed or Bluetooth sharing
+        // is disallowed
+        final boolean newBluetoothSharingDisallowed = mUserManager.hasUserRestrictionForUser(
+                UserManager.DISALLOW_BLUETOOTH_SHARING, userHandle) || newBluetoothDisallowed;
+
+        // Disable OPP activities for this userHandle
+        updateOppLauncherComponentState(userHandle, newBluetoothSharingDisallowed);
+
         // DISALLOW_BLUETOOTH can only be set by DO or PO on the system user.
-        if (userHandle == UserHandle.SYSTEM) {
-            if (newBluetoothDisallowed) {
-                updateOppLauncherComponentState(userHandle, true); // Sharing disallowed
-                sendDisableMsg(BluetoothProtoEnums.ENABLE_DISABLE_REASON_DISALLOWED,
-                        mContext.getPackageName());
-            } else {
-                updateOppLauncherComponentState(userHandle, newBluetoothSharingDisallowed);
-            }
-        } else {
-            updateOppLauncherComponentState(userHandle, newBluetoothSharingDisallowed);
+        // Only trigger once instead of for all users
+        if (userHandle == UserHandle.SYSTEM && newBluetoothDisallowed) {
+            sendDisableMsg(BluetoothProtoEnums.ENABLE_DISABLE_REASON_DISALLOWED,
+                    mContext.getPackageName());
         }
     }
 
@@ -489,6 +492,79 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         }
     }
 
+    final Runnable mOnSatelliteModeChangedRunnable = () -> {
+        onSatelliteModeChanged();
+    };
+
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
+    void onSatelliteModeChanged() {
+        int delaySatelliteMs = 0;
+        int state = getState();
+        Log.d(TAG, "onSatelliteModeChanged state : " + BluetoothAdapter.nameForState(state)
+                + ", isSatelliteModeSensitive() : " + isSatelliteModeSensitive()
+                + ", isSatelliteModeOn() : " + isSatelliteModeOn());
+
+        if (mHandler.hasCallbacks(mOnSatelliteModeChangedRunnable)) {
+            mHandler.removeCallbacks(mOnSatelliteModeChangedRunnable);
+        }
+
+        if (state == BluetoothAdapter.STATE_BLE_ON && isBluetoothPersistedStateOn()) {
+            delaySatelliteMs = SERVICE_RESTART_TIME_MS;
+        }
+        if (state != BluetoothAdapter.STATE_ON && state != BluetoothAdapter.STATE_OFF
+                && state != BluetoothAdapter.STATE_BLE_ON) {
+            // If Bluetooth is turning state, should handle event after delay
+            delaySatelliteMs = ADD_PROXY_DELAY_MS;
+        } else if (mHandler.hasMessages(MESSAGE_ENABLE)
+                || mHandler.hasMessages(MESSAGE_DISABLE)
+                || mHandler.hasMessages(MESSAGE_HANDLE_ENABLE_DELAYED)
+                || mHandler.hasMessages(MESSAGE_HANDLE_DISABLE_DELAYED)
+                || mHandler.hasMessages(MESSAGE_RESTART_BLUETOOTH_SERVICE)
+                || mHandler.hasMessages(MESSAGE_TIMEOUT_BIND)
+                || mHandler.hasMessages(MESSAGE_BIND_PROFILE_SERVICE)) {
+            // If Bluetooth restarting, should handle event after delay
+            delaySatelliteMs = SERVICE_RESTART_TIME_MS;
+        }
+
+        if (delaySatelliteMs > 0) {
+            Log.d(TAG, "onSatelliteModeChanged delay MS : " + delaySatelliteMs);
+            mHandler.postDelayed(mOnSatelliteModeChangedRunnable, delaySatelliteMs);
+        } else {
+            handleSatelliteModeChanged();
+        }
+    }
+
+    private void handleSatelliteModeChanged() {
+        if (shouldBluetoothBeOn() && getState() != BluetoothAdapter.STATE_ON) {
+            sendEnableMsg(mQuietEnableExternal,
+                    BluetoothProtoEnums.ENABLE_DISABLE_REASON_SATELLITE_MODE,
+                    mContext.getPackageName());
+        } else if (!shouldBluetoothBeOn() && getState() != BluetoothAdapter.STATE_OFF) {
+            sendDisableMsg(BluetoothProtoEnums.ENABLE_DISABLE_REASON_SATELLITE_MODE,
+                    mContext.getPackageName());
+        }
+    }
+
+    private boolean shouldBluetoothBeOn() {
+        if (!isBluetoothPersistedStateOn()) {
+            Log.d(TAG, "shouldBluetoothBeOn: User want BT off.");
+            return false;
+        }
+
+        if (isSatelliteModeOn()) {
+            Log.d(TAG, "shouldBluetoothBeOn: BT should be off as satellite mode is on.");
+            return false;
+        }
+
+        if (isAirplaneModeOn() && isBluetoothPersistedStateOnAirplane()) {
+            Log.d(TAG, "shouldBluetoothBeOn: BT should be off as airplaneMode is on.");
+            return false;
+        }
+
+        Log.d(TAG, "shouldBluetoothBeOn: BT should be on.");
+        return true;
+    }
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -568,10 +644,12 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     };
 
     BluetoothManagerService(Context context) {
-        mBluetoothHandlerThread = new HandlerThread("BluetoothManagerService");
+        mBluetoothHandlerThread = BluetoothServerProxy.getInstance()
+                .createHandlerThread("BluetoothManagerService");
         mBluetoothHandlerThread.start();
 
-        mHandler = new BluetoothHandler(mBluetoothHandlerThread.getLooper());
+        mHandler = BluetoothServerProxy.getInstance().newBluetoothHandler(
+                new BluetoothHandler(mBluetoothHandlerThread.getLooper()));
 
         mContext = context;
 
@@ -681,6 +759,9 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             Log.w(TAG, "Unable to resolve SystemUI's UID.");
         }
         mSystemUiUid = systemUiUid;
+
+        mBluetoothSatelliteModeListener = new BluetoothSatelliteModeListener(
+                this, mBluetoothHandlerThread.getLooper(), context);
     }
 
     /**
@@ -689,6 +770,33 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private boolean isAirplaneModeOn() {
         return Settings.Global.getInt(mContext.getContentResolver(),
                 Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
+    }
+
+    /**
+     * @hide constant copied from {@link Settings.Global}
+     * TODO(b/274636414): Migrate to official API in Android V.
+     */
+    @VisibleForTesting
+    static final String SETTINGS_SATELLITE_MODE_RADIOS = "satellite_mode_radios";
+    /**
+     * @hide constant copied from {@link Settings.Global}
+     * TODO(b/274636414): Migrate to official API in Android V.
+     */
+    @VisibleForTesting
+    static final String SETTINGS_SATELLITE_MODE_ENABLED = "satellite_mode_enabled";
+
+    private boolean isSatelliteModeSensitive() {
+        final String satelliteRadios = Settings.Global.getString(mContext.getContentResolver(),
+                SETTINGS_SATELLITE_MODE_RADIOS);
+        return satelliteRadios != null
+                && satelliteRadios.contains(Settings.Global.RADIO_BLUETOOTH);
+    }
+
+    /** Returns true if satellite mode is turned on. */
+    private boolean isSatelliteModeOn() {
+        if (!isSatelliteModeSensitive()) return false;
+        return Settings.Global.getInt(mContext.getContentResolver(),
+                SETTINGS_SATELLITE_MODE_ENABLED, 0) == 1;
     }
 
     /**
@@ -819,8 +927,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             }
             return;
         }
-        mName = Settings.Secure.getString(mContentResolver, Settings.Secure.BLUETOOTH_NAME);
-        mAddress = Settings.Secure.getString(mContentResolver, Settings.Secure.BLUETOOTH_ADDRESS);
+        mName = BluetoothServerProxy.getInstance()
+                .settingsSecureGetString(mContentResolver, Settings.Secure.BLUETOOTH_NAME);
+        mAddress = BluetoothServerProxy.getInstance()
+                .settingsSecureGetString(mContentResolver, Settings.Secure.BLUETOOTH_ADDRESS);
+
         if (DBG) {
             Log.d(TAG, "Stored bluetooth Name=" + mName + ",Address=" + mAddress);
         }
@@ -1232,6 +1343,12 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                     + " mBinding = " + mBinding + " mState = "
                     + BluetoothAdapter.nameForState(mState));
         }
+
+        if (isSatelliteModeOn()) {
+            Log.d(TAG, "enableBle(): not enabling - satellite mode is on.");
+            return false;
+        }
+
         updateBleAppCount(token, true, packageName);
 
         if (mState == BluetoothAdapter.STATE_ON
@@ -1265,6 +1382,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             Log.d(TAG, "disableBle(" + packageName + "):  mBluetooth =" + mBluetooth
                     + " mBinding = " + mBinding + " mState = "
                     + BluetoothAdapter.nameForState(mState));
+        }
+
+        if (isSatelliteModeOn()) {
+            Log.d(TAG, "disableBle(): not disabling - satellite mode is on.");
+            return false;
         }
 
         if (mState == BluetoothAdapter.STATE_OFF) {
@@ -1393,6 +1515,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             throw new SecurityException("no permission to enable Bluetooth quietly");
         }
 
+        if (isSatelliteModeOn()) {
+            Log.d(TAG, "enableNoAutoConnect(): not enabling - satellite mode is on.");
+            return false;
+        }
+
         synchronized (mReceiver) {
             mQuietEnableExternal = true;
             mEnableExternal = true;
@@ -1420,6 +1547,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 && !isProfileOwner(callingUid, packageName)) {
             Log.d(TAG, "enable(): not enabling - Caller is not one of: "
                     + "privileged | system | deviceOwner | profileOwner");
+            return false;
+        }
+
+        if (isSatelliteModeOn()) {
+            Log.d(TAG, "enable(): not enabling - satellite mode is on.");
             return false;
         }
 
@@ -1485,6 +1617,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 && !isProfileOwner(callingUid, packageName)) {
             Log.d(TAG, "disable(): not disabling - Caller is not one of: "
                     + "privileged | system | deviceOwner | profileOwner");
+            return false;
+        }
+
+        if (isSatelliteModeOn()) {
+            Log.d(TAG, "disable: not disabling - satellite mode is on.");
             return false;
         }
 
@@ -2062,7 +2199,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
     private BluetoothServiceConnection mConnection = new BluetoothServiceConnection();
 
-    private class BluetoothHandler extends Handler {
+    @VisibleForTesting
+    class BluetoothHandler extends Handler {
         boolean mGetNameAddressOnly = false;
         private int mWaitForEnableRetry;
         private int mWaitForDisableRetry;
@@ -2968,7 +3106,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     }
 
     private void sendDisableMsg(int reason, String packageName) {
-        mHandler.sendMessage(mHandler.obtainMessage(MESSAGE_DISABLE));
+        BluetoothServerProxy.getInstance().handlerSendWhatMessage(mHandler, MESSAGE_DISABLE);
         addActiveLog(reason, packageName, false);
     }
 
@@ -3518,3 +3656,4 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         return BluetoothAdapter.BT_SNOOP_LOG_MODE_DISABLED;
     }
 }
+

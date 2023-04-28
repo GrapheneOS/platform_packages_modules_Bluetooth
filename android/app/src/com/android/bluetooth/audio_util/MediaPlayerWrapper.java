@@ -108,6 +108,10 @@ public class MediaPlayerWrapper {
         return mPackageName;
     }
 
+    public MediaSession.Token getSessionToken() {
+        return mMediaController.getSessionToken();
+    }
+
     protected List<MediaSession.QueueItem> getQueue() {
         return mMediaController.getQueue();
     }
@@ -140,6 +144,10 @@ public class MediaPlayerWrapper {
         // MediaDescription is usually compared via its title, artist and album.
         if (mediaPlayingMetadata != null) {
             for (Metadata metadata : mCurrentData.queue) {
+                if (metadata.title == null || metadata.artist == null || metadata.album == null) {
+                    // if one of the informations is missing we can't assume it is the same media.
+                    continue;
+                }
                 if (metadata.title.equals(mediaPlayingMetadata.title)
                         && metadata.artist.equals(mediaPlayingMetadata.artist)
                         && metadata.album.equals(mediaPlayingMetadata.album)) {

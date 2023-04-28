@@ -209,6 +209,9 @@ pub trait IBluetooth {
 
     /// Returns whether WBS is supported.
     fn is_wbs_supported(&self) -> bool;
+
+    /// Returns whether SWB is supported.
+    fn is_swb_supported(&self) -> bool;
 }
 
 /// Adapter API for Bluetooth qualification and verification.
@@ -712,6 +715,20 @@ impl Bluetooth {
         Ok(())
     }
 
+    /// Returns whether the adapter is connectable.
+    pub(crate) fn get_connectable_internal(&self) -> bool {
+        match self.properties.get(&BtPropertyType::AdapterScanMode) {
+            Some(prop) => match prop {
+                BluetoothProperty::AdapterScanMode(mode) => match *mode {
+                    BtScanMode::Connectable | BtScanMode::ConnectableDiscoverable => true,
+                    _ => false,
+                },
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+
     /// Sets the adapter's connectable mode for classic connections.
     pub(crate) fn set_connectable_internal(&mut self, mode: bool) -> bool {
         self.is_connectable = mode;
@@ -721,6 +738,23 @@ impl Bluetooth {
         self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::AdapterScanMode(
             if mode { BtScanMode::Connectable } else { BtScanMode::None_ },
         )) == 0
+    }
+
+    /// Returns adapter's discoverable mode.
+    pub(crate) fn get_discoverable_mode(&self) -> BtDiscMode {
+        let off_mode = BtDiscMode::NonDiscoverable;
+
+        match self.properties.get(&BtPropertyType::AdapterScanMode) {
+            Some(prop) => match prop {
+                BluetoothProperty::AdapterScanMode(mode) => match *mode {
+                    BtScanMode::ConnectableDiscoverable => BtDiscMode::GeneralDiscoverable,
+                    BtScanMode::ConnectableLimitedDiscoverable => BtDiscMode::LimitedDiscoverable,
+                    _ => off_mode,
+                },
+                _ => off_mode,
+            },
+            _ => off_mode,
+        }
     }
 
     /// Returns all bonded and connected devices.
@@ -1135,6 +1169,12 @@ impl BtifBluetoothCallbacks for Bluetooth {
                     Err(err) => warn!("create_pid_file() error: {}", err),
                     _ => (),
                 }
+
+                // Inform the rest of the stack we're ready.
+                let txl = self.tx.clone();
+                tokio::spawn(async move {
+                    let _ = txl.send(Message::AdapterReady).await;
+                });
             }
         }
     }
@@ -2359,6 +2399,10 @@ impl IBluetooth for Bluetooth {
     fn is_wbs_supported(&self) -> bool {
         self.intf.lock().unwrap().get_wbs_supported()
     }
+
+    fn is_swb_supported(&self) -> bool {
+        self.intf.lock().unwrap().get_swb_supported()
+    }
 }
 
 impl BtifSdpCallbacks for Bluetooth {
@@ -2480,16 +2524,7 @@ impl BtifHHCallbacks for Bluetooth {
 
 impl IBluetoothQALegacy for Bluetooth {
     fn get_connectable(&self) -> bool {
-        match self.properties.get(&BtPropertyType::AdapterScanMode) {
-            Some(prop) => match prop {
-                BluetoothProperty::AdapterScanMode(mode) => match *mode {
-                    BtScanMode::Connectable | BtScanMode::ConnectableDiscoverable => true,
-                    _ => false,
-                },
-                _ => false,
-            },
-            _ => false,
-        }
+        self.get_connectable_internal()
     }
 
     fn set_connectable(&mut self, mode: bool) -> bool {

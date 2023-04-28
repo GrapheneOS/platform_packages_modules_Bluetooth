@@ -201,20 +201,6 @@ void bta_hh_le_enable(void) {
 
 /*******************************************************************************
  *
- * Function         bta_hh_le_is_hh_gatt_if
- *
- * Description      Check to see if client_if is BTA HH LE GATT interface
- *
- *
- * Returns          whether it is HH GATT IF
- *
- ******************************************************************************/
-bool bta_hh_le_is_hh_gatt_if(tGATT_IF client_if) {
-  return (bta_hh_cb.gatt_if == client_if);
-}
-
-/*******************************************************************************
- *
  * Function         bta_hh_le_deregister
  *
  * Description      De-register BTA HH from BTA GATTC
@@ -1740,56 +1726,53 @@ void bta_hh_le_api_disc_act(tBTA_HH_DEV_CB* p_cb) {
 static void read_report_cb(uint16_t conn_id, tGATT_STATUS status,
                            uint16_t handle, uint16_t len, uint8_t* value,
                            void* data) {
-  const gatt::Characteristic* p_char =
-      BTA_GATTC_GetCharacteristic(conn_id, handle);
-
-  if (p_char == NULL) return;
-
-  uint16_t char_uuid = p_char->uuid.As16Bit();
-
-  if (char_uuid != GATT_UUID_HID_REPORT &&
-      char_uuid != GATT_UUID_HID_BT_KB_INPUT &&
-      char_uuid != GATT_UUID_HID_BT_KB_OUTPUT &&
-      char_uuid != GATT_UUID_HID_BT_MOUSE_INPUT &&
-      char_uuid != GATT_UUID_BATTERY_LEVEL) {
-    APPL_TRACE_ERROR("%s: Unexpected Read UUID: 0x%04x", __func__, char_uuid);
-    return;
-  }
-
   tBTA_HH_DEV_CB* p_dev_cb = (tBTA_HH_DEV_CB*)data;
   if (p_dev_cb->w4_evt != BTA_HH_GET_RPT_EVT) {
-    APPL_TRACE_ERROR("Unexpected READ cmpl, w4_evt = %d", p_dev_cb->w4_evt);
+    LOG_WARN("Unexpected Read response, w4_evt = %d", p_dev_cb->w4_evt);
     return;
   }
 
-  /* GET_REPORT */
-  BT_HDR* p_buf = NULL;
-  tBTA_HH_LE_RPT* p_rpt;
-  tBTA_HH_HSDATA hs_data;
-  uint8_t* pp;
+  const gatt::Characteristic* p_char =
+      BTA_GATTC_GetCharacteristic(conn_id, handle);
+  if (p_char == nullptr) {
+    LOG_ERROR("Unknown handle");
+    return;
+  }
 
-  memset(&hs_data, 0, sizeof(hs_data));
+  uint16_t char_uuid = p_char->uuid.As16Bit();
+  switch (char_uuid) {
+    case GATT_UUID_HID_REPORT:
+    case GATT_UUID_HID_BT_KB_INPUT:
+    case GATT_UUID_HID_BT_KB_OUTPUT:
+    case GATT_UUID_HID_BT_MOUSE_INPUT:
+    case GATT_UUID_BATTERY_LEVEL:
+      break;
+    default:
+      LOG_ERROR("Unexpected Read UUID: 0x%04x", char_uuid);
+      return;
+  }
+
+  tBTA_HH_HSDATA hs_data = {};
   hs_data.status = BTA_HH_ERR;
   hs_data.handle = p_dev_cb->hid_handle;
-
   if (status == GATT_SUCCESS) {
+    tBTA_HH_LE_RPT* p_rpt;
     const gatt::Service* p_svc =
         BTA_GATTC_GetOwningService(conn_id, p_char->value_handle);
 
     p_rpt = bta_hh_le_find_report_entry(p_dev_cb, p_svc->handle, char_uuid,
                                         p_char->value_handle);
-
-    if (p_rpt != NULL && len) {
-      p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + len + 1);
+    if (p_rpt != nullptr && len) {
+      BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR) + len + 1);
       /* pack data send to app */
       hs_data.status = BTA_HH_OK;
       p_buf->len = len + 1;
       p_buf->layer_specific = 0;
       p_buf->offset = 0;
 
+      uint8_t* pp = (uint8_t*)(p_buf + 1);
       /* attach report ID as the first byte of the report before sending it to
        * USB HID driver */
-      pp = (uint8_t*)(p_buf + 1);
       UINT8_TO_STREAM(pp, p_rpt->rpt_id);
       memcpy(pp, value, len);
 
@@ -1799,8 +1782,7 @@ static void read_report_cb(uint16_t conn_id, tGATT_STATUS status,
 
   p_dev_cb->w4_evt = 0;
   (*bta_hh_cb.p_cback)(BTA_HH_GET_RPT_EVT, (tBTA_HH*)&hs_data);
-
-  osi_free_and_reset((void**)&p_buf);
+  osi_free(hs_data.rsp_data.p_rpt_data);
 }
 
 /*******************************************************************************

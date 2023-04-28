@@ -27,6 +27,8 @@ static std::string kLogControlPointCmd("ASCS_CP_CMD");
 static std::string kLogControlPointNotif("ASCS_CP_NOTIF");
 static std::string kLogAseStateNotif("ASE_NOTIF");
 static std::string kLogHciEvent("HCI_EVENT");
+static std::string kLogAfCallBt("AF --> ");
+static std::string kLogBtCallAf("AF <-- ");
 
 /* Operations on SM and ASEs */
 static std::string kLogStateChangedOp("STATE CHANGED");
@@ -51,6 +53,16 @@ static std::string kLogCisDisconnectedOp("CIS_DISCONNECTED: ");
 static std::string kLogSetDataPathOp("SET_DATA_PATH: ");
 static std::string kLogRemoveDataPathOp("REMOVE_DATA_PATH: ");
 static std::string kLogDataPathCompleteOp("DATA_PATH_COMPLETE: ");
+
+/* AF Client operations */
+static std::string kLogAfResume("RESUME_REQ: ");
+static std::string kLogAfSuspend("SUSPEND_REQ: ");
+static std::string kLogAfMetadataUpdate("METADATA_UPDATE: ");
+static std::string kLogAfResumeConfirm("RESUME_CONFIRMED: ");
+static std::string kLogAfSuspendConfirm("SUSPEND_CONFIRMED: ");
+static std::string kLogAfCancel("REQUEST_CANCELED: ");
+static std::string kLogAfReconfigComplete("RECONFIG_COMPLETE_EVT: ");
+static std::string kLogAfSuspendForReconfig("SUSPEND_FOR_RECONFIG_EVT: ");
 
 class LeAudioLogHistory {
  public:

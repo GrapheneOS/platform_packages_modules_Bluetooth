@@ -69,6 +69,7 @@
 #include "device/include/interop.h"
 #include "internal_include/stack_config.h"
 #include "main/shim/controller.h"
+#include "rust/src/core/ffi/module.h"
 #include "stack/include/smp_api.h"
 
 #ifndef BT_STACK_CLEANUP_WAIT_MS
@@ -214,6 +215,7 @@ extern const module_t gd_idle_module;
 extern const module_t gd_shim_module;
 extern const module_t interop_module;
 extern const module_t osi_module;
+extern const module_t rust_module;
 extern const module_t stack_config_module;
 extern const module_t device_iot_config_module;
 
@@ -230,6 +232,7 @@ const struct module_lookup module_table[] = {
     {GD_SHIM_MODULE, &gd_shim_module},
     {INTEROP_MODULE, &interop_module},
     {OSI_MODULE, &osi_module},
+    {RUST_MODULE, &rust_module},
     {STACK_CONFIG_MODULE, &stack_config_module},
     {DEVICE_IOT_CONFIG_MODULE, &device_iot_config_module},
     {NULL, NULL},
@@ -349,6 +352,8 @@ static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
     return;
   }
 
+  module_start_up(get_local_module(RUST_MODULE));
+
   stack_is_running = true;
   LOG_INFO("%s finished", __func__);
   do_in_jni_thread(FROM_HERE, base::Bind(event_signal_stack_up, nullptr));
@@ -365,6 +370,8 @@ static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
   future_t* local_hack_future = future_new();
   hack_future = local_hack_future;
   stack_is_running = false;
+
+  module_shut_down(get_local_module(RUST_MODULE));
 
   do_in_main_thread(FROM_HERE, base::Bind(&btm_ble_multi_adv_cleanup));
 

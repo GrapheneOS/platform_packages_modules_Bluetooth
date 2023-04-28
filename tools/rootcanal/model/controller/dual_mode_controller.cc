@@ -2308,6 +2308,140 @@ void DualModeController::LeRemoveDeviceFromResolvingList(CommandView command) {
           kNumCommandPackets, status));
 }
 
+void DualModeController::LeSetPeriodicAdvertisingParameters(
+    CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeSetPeriodicAdvertisingParametersView::Create(
+          bluetooth::hci::LeAdvertisingCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LeSetPeriodicAdvertisingParameters(
+      command_view.GetAdvertisingHandle(),
+      command_view.GetPeriodicAdvertisingIntervalMin(),
+      command_view.GetPeriodicAdvertisingIntervalMax(),
+      command_view.GetIncludeTxPower());
+  send_event_(
+      bluetooth::hci::LeSetPeriodicAdvertisingParametersCompleteBuilder::Create(
+          kNumCommandPackets, status));
+}
+
+void DualModeController::LeSetPeriodicAdvertisingData(CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeSetPeriodicAdvertisingDataRawView::Create(
+          bluetooth::hci::LeAdvertisingCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LeSetPeriodicAdvertisingData(
+      command_view.GetAdvertisingHandle(), command_view.GetOperation(),
+      command_view.GetAdvertisingData());
+  send_event_(
+      bluetooth::hci::LeSetPeriodicAdvertisingDataCompleteBuilder::Create(
+          kNumCommandPackets, status));
+}
+
+void DualModeController::LeSetPeriodicAdvertisingEnable(CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeSetPeriodicAdvertisingEnableView::Create(
+          bluetooth::hci::LeAdvertisingCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LeSetPeriodicAdvertisingEnable(
+      command_view.GetEnable(), command_view.GetIncludeAdi(),
+      command_view.GetAdvertisingHandle());
+  send_event_(
+      bluetooth::hci::LeSetPeriodicAdvertisingEnableCompleteBuilder::Create(
+          kNumCommandPackets, status));
+}
+
+void DualModeController::LePeriodicAdvertisingCreateSync(CommandView command) {
+  auto command_view =
+      bluetooth::hci::LePeriodicAdvertisingCreateSyncView::Create(
+          bluetooth::hci::LeScanningCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LePeriodicAdvertisingCreateSync(
+      command_view.GetOptions(), command_view.GetAdvertisingSid(),
+      command_view.GetAdvertiserAddressType(),
+      command_view.GetAdvertiserAddress(), command_view.GetSkip(),
+      command_view.GetSyncTimeout(), command_view.GetSyncCteType());
+  send_event_(
+      bluetooth::hci::LePeriodicAdvertisingCreateSyncStatusBuilder::Create(
+          status, kNumCommandPackets));
+}
+
+void DualModeController::LePeriodicAdvertisingCreateSyncCancel(
+    CommandView command) {
+  auto command_view =
+      bluetooth::hci::LePeriodicAdvertisingCreateSyncCancelView::Create(
+          bluetooth::hci::LeScanningCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status =
+      link_layer_controller_.LePeriodicAdvertisingCreateSyncCancel();
+  send_event_(
+      bluetooth::hci::LePeriodicAdvertisingCreateSyncCancelCompleteBuilder::
+          Create(kNumCommandPackets, status));
+}
+
+void DualModeController::LePeriodicAdvertisingTerminateSync(
+    CommandView command) {
+  auto command_view =
+      bluetooth::hci::LePeriodicAdvertisingTerminateSyncView::Create(
+          bluetooth::hci::LeScanningCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LePeriodicAdvertisingTerminateSync(
+      command_view.GetSyncHandle());
+  send_event_(
+      bluetooth::hci::LePeriodicAdvertisingTerminateSyncCompleteBuilder::Create(
+          kNumCommandPackets, status));
+}
+
+void DualModeController::LeAddDeviceToPeriodicAdvertiserList(
+    CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeAddDeviceToPeriodicAdvertiserListView::Create(
+          bluetooth::hci::LeScanningCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LeAddDeviceToPeriodicAdvertiserList(
+      command_view.GetAdvertiserAddressType(),
+      command_view.GetAdvertiserAddress(), command_view.GetAdvertisingSid());
+  send_event_(
+      bluetooth::hci::LeAddDeviceToPeriodicAdvertiserListCompleteBuilder::
+          Create(kNumCommandPackets, status));
+}
+
+void DualModeController::LeRemoveDeviceFromPeriodicAdvertiserList(
+    CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeRemoveDeviceFromPeriodicAdvertiserListView::Create(
+          bluetooth::hci::LeScanningCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status =
+      link_layer_controller_.LeRemoveDeviceFromPeriodicAdvertiserList(
+          command_view.GetAdvertiserAddressType(),
+          command_view.GetAdvertiserAddress(),
+          command_view.GetAdvertisingSid());
+  send_event_(
+      bluetooth::hci::LeRemoveDeviceFromPeriodicAdvertiserListCompleteBuilder::
+          Create(kNumCommandPackets, status));
+}
+
+void DualModeController::LeClearPeriodicAdvertiserList(CommandView command) {
+  auto command_view = bluetooth::hci::LeClearPeriodicAdvertiserListView::Create(
+      bluetooth::hci::LeScanningCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  ErrorCode status = link_layer_controller_.LeClearPeriodicAdvertiserList();
+  send_event_(
+      bluetooth::hci::LeClearPeriodicAdvertiserListCompleteBuilder::Create(
+          kNumCommandPackets, status));
+}
+
+void DualModeController::LeReadPeriodicAdvertiserListSize(CommandView command) {
+  auto command_view =
+      bluetooth::hci::LeReadPeriodicAdvertiserListSizeView::Create(
+          bluetooth::hci::LeScanningCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  send_event_(
+      bluetooth::hci::LeReadPeriodicAdvertiserListSizeCompleteBuilder::Create(
+          kNumCommandPackets, ErrorCode::SUCCESS,
+          properties_.le_periodic_advertiser_list_size));
+}
+
 void DualModeController::LeSetExtendedScanParameters(CommandView command) {
   auto command_view = bluetooth::hci::LeSetExtendedScanParametersView::Create(
       bluetooth::hci::LeScanningCommandView::Create(command));
@@ -3960,32 +4094,32 @@ const std::unordered_map<OpCode, DualModeController::CommandHandler>
          &DualModeController::LeRemoveAdvertisingSet},
         {OpCode::LE_CLEAR_ADVERTISING_SETS,
          &DualModeController::LeClearAdvertisingSets},
-        //{OpCode::LE_SET_PERIODIC_ADVERTISING_PARAMETERS,
-        //&DualModeController::LeSetPeriodicAdvertisingParameters},
-        //{OpCode::LE_SET_PERIODIC_ADVERTISING_DATA,
-        //&DualModeController::LeSetPeriodicAdvertisingData},
-        //{OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE,
-        //&DualModeController::LeSetPeriodicAdvertisingEnable},
+        {OpCode::LE_SET_PERIODIC_ADVERTISING_PARAMETERS,
+         &DualModeController::LeSetPeriodicAdvertisingParameters},
+        {OpCode::LE_SET_PERIODIC_ADVERTISING_DATA,
+         &DualModeController::LeSetPeriodicAdvertisingData},
+        {OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE,
+         &DualModeController::LeSetPeriodicAdvertisingEnable},
         {OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS,
          &DualModeController::LeSetExtendedScanParameters},
         {OpCode::LE_SET_EXTENDED_SCAN_ENABLE,
          &DualModeController::LeSetExtendedScanEnable},
         {OpCode::LE_EXTENDED_CREATE_CONNECTION,
          &DualModeController::LeExtendedCreateConnection},
-        //{OpCode::LE_PERIODIC_ADVERTISING_CREATE_SYNC,
-        //&DualModeController::LePeriodicAdvertisingCreateSync},
-        //{OpCode::LE_PERIODIC_ADVERTISING_CREATE_SYNC_CANCEL,
-        //&DualModeController::LePeriodicAdvertisingCreateSyncCancel},
-        //{OpCode::LE_PERIODIC_ADVERTISING_TERMINATE_SYNC,
-        //&DualModeController::LePeriodicAdvertisingTerminateSync},
-        //{OpCode::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISER_LIST,
-        //&DualModeController::LeAddDeviceToPeriodicAdvertiserList},
-        //{OpCode::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISER_LIST,
-        //&DualModeController::LeRemoveDeviceFromPeriodicAdvertiserList},
-        //{OpCode::LE_CLEAR_PERIODIC_ADVERTISER_LIST,
-        //&DualModeController::LeClearPeriodicAdvertiserList},
-        //{OpCode::LE_READ_PERIODIC_ADVERTISER_LIST_SIZE,
-        //&DualModeController::LeReadPeriodicAdvertiserListSize},
+        {OpCode::LE_PERIODIC_ADVERTISING_CREATE_SYNC,
+         &DualModeController::LePeriodicAdvertisingCreateSync},
+        {OpCode::LE_PERIODIC_ADVERTISING_CREATE_SYNC_CANCEL,
+         &DualModeController::LePeriodicAdvertisingCreateSyncCancel},
+        {OpCode::LE_PERIODIC_ADVERTISING_TERMINATE_SYNC,
+         &DualModeController::LePeriodicAdvertisingTerminateSync},
+        {OpCode::LE_ADD_DEVICE_TO_PERIODIC_ADVERTISER_LIST,
+         &DualModeController::LeAddDeviceToPeriodicAdvertiserList},
+        {OpCode::LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISER_LIST,
+         &DualModeController::LeRemoveDeviceFromPeriodicAdvertiserList},
+        {OpCode::LE_CLEAR_PERIODIC_ADVERTISER_LIST,
+         &DualModeController::LeClearPeriodicAdvertiserList},
+        {OpCode::LE_READ_PERIODIC_ADVERTISER_LIST_SIZE,
+         &DualModeController::LeReadPeriodicAdvertiserListSize},
         //{OpCode::LE_READ_TRANSMIT_POWER,
         //&DualModeController::LeReadTransmitPower},
         //{OpCode::LE_READ_RF_PATH_COMPENSATION_POWER,

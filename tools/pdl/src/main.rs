@@ -1,5 +1,20 @@
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 //! PDL parser and analyzer.
 
+use argh::FromArgs;
 use codespan_reporting::term::{self, termcolor};
 
 mod analyzer;
@@ -33,50 +48,25 @@ impl std::str::FromStr for OutputFormat {
     }
 }
 
-#[derive(Debug)]
+#[derive(FromArgs, Debug)]
+/// PDL analyzer and generator.
 struct Opt {
-    /// Print tool version and exit.
+    #[argh(switch)]
+    /// print tool version and exit.
     version: bool,
 
-    /// Generate output in this format ("json", "rust", "rust_no_alloc", "rust_no_alloc_test"). The output
+    #[argh(option, default = "OutputFormat::JSON")]
+    /// generate output in this format ("json", "rust", "rust_no_alloc", "rust_no_alloc_test"). The output
     /// will be printed on stdout in both cases.
     output_format: OutputFormat,
 
-    /// Input file.
+    #[argh(positional)]
+    /// input file.
     input_file: String,
 }
 
-impl Opt {
-    fn parse() -> Opt {
-        let app = clap::App::new("Packet Description Language parser")
-            .version("1.0")
-            .arg(
-                clap::Arg::with_name("input-file")
-                    .value_name("FILE")
-                    .help("Input PDL file")
-                    .required(true),
-            )
-            .arg(
-                clap::Arg::with_name("output-format")
-                    .value_name("FORMAT")
-                    .long("output-format")
-                    .help("Output file format")
-                    .takes_value(true)
-                    .default_value("json")
-                    .possible_values(["json", "rust", "rust_no_alloc", "rust_no_alloc_test"]),
-            );
-        let matches = app.get_matches();
-
-        Opt {
-            version: matches.is_present("version"),
-            input_file: matches.value_of("input-file").unwrap().into(),
-            output_format: matches.value_of("output-format").unwrap().parse().unwrap(),
-        }
-    }
-}
-
 fn main() -> Result<(), String> {
-    let opt = Opt::parse();
+    let opt: Opt = argh::from_env();
 
     if opt.version {
         println!("Packet Description Language parser version 1.0");

@@ -1742,30 +1742,22 @@ class CsisClientImpl : public CsisClient {
     device->conn_id = evt.conn_id;
 
     /* Verify bond */
-    uint8_t sec_flag = 0;
-    BTM_GetSecurityFlagsByTransport(evt.remote_bda, &sec_flag, BT_TRANSPORT_LE);
-
-    /* If link has been encrypted look for the service or report */
-    if (sec_flag & BTM_SEC_FLAG_ENCRYPTED) {
-      if (device->is_gatt_service_valid) {
-        instance->OnEncrypted(device);
-      } else {
-        BTA_GATTC_ServiceSearchRequest(device->conn_id, &kCsisServiceUuid);
-      }
-
+    if (BTM_SecIsSecurityPending(device->addr)) {
+      /* if security collision happened, wait for encryption done
+       * (BTA_GATTC_ENC_CMPL_CB_EVT) */
       return;
     }
 
-    int result = BTM_SetEncryption(
-        evt.remote_bda, BT_TRANSPORT_LE,
-        [](const RawAddress* bd_addr, tBT_TRANSPORT transport, void* p_ref_data,
-           tBTM_STATUS status) {
-          if (instance) instance->OnLeEncryptionComplete(*bd_addr, status);
-        },
-        nullptr, BTM_BLE_SEC_ENCRYPT);
+    /* verify bond */
+    if (BTM_IsEncrypted(device->addr, BT_TRANSPORT_LE)) {
+      /* if link has been encrypted */
+      OnEncrypted(device);
+      return;
+    }
 
-    DLOG(INFO) << __func__
-               << " Encryption required. Request result: " << result;
+    int result = BTM_SetEncryption(device->addr, BT_TRANSPORT_LE, nullptr,
+                                   nullptr, BTM_BLE_SEC_ENCRYPT);
+    LOG_INFO("Encryption required. Request result: 0x%02x", result);
   }
 
   void OnGattDisconnected(const tBTA_GATTC_CLOSE& evt) {
@@ -1897,17 +1889,15 @@ class CsisClientImpl : public CsisClient {
   }
 
   void OnLeEncryptionComplete(const RawAddress& address, uint8_t status) {
-    DLOG(INFO) << __func__ << " " << ADDRESS_TO_LOGGABLE_STR(address);
+    LOG_INFO("%s", ADDRESS_TO_LOGGABLE_CSTR(address));
     auto device = FindDeviceByAddress(address);
     if (device == nullptr) {
-      LOG(WARNING) << "Skipping unknown device"
-                   << ADDRESS_TO_LOGGABLE_STR(address);
+      LOG_WARN("Skipping unknown device %s", ADDRESS_TO_LOGGABLE_CSTR(address));
       return;
     }
 
     if (status != BTM_SUCCESS) {
-      LOG(ERROR) << "encryption failed"
-                 << " status: " << status;
+      LOG_ERROR("encryption failed. status: 0x%02x", status);
 
       BTA_GATTC_Close(device->conn_id);
       return;

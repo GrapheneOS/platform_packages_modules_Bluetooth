@@ -14,5 +14,4 @@
     <instrumentation android:name="androidx.test.runner.AndroidJUnitRunner"
                      android:targetPackage="android.bluetooth"
                      android:label="Bumble Bluetooth Test"/>
-
 </manifest>

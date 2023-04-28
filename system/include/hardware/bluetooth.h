@@ -345,12 +345,7 @@ typedef enum {
    */
   BT_PROPERTY_LOCAL_IO_CAPS,
 
-  /**
-   * Description - Local Input/Output Capabilities for BLE
-   * Access mode - GET and SET
-   * Data Type - bt_io_cap_t.
-   */
-  BT_PROPERTY_LOCAL_IO_CAPS_BLE,
+  BT_PROPERTY_RESERVED_0F,
 
   BT_PROPERTY_DYNAMIC_AUDIO_BUFFER,
 
@@ -407,25 +402,38 @@ typedef struct {
   void* val;
 } bt_property_t;
 
+// OOB_ADDRESS_SIZE is 6 bytes address + 1 byte address type
+#define OOB_ADDRESS_SIZE 7
+#define OOB_C_SIZE 16
+#define OOB_R_SIZE 16
+#define OOB_NAME_MAX_SIZE 256
+// Classic
+#define OOB_DATA_LEN_SIZE 2
+#define OOB_COD_SIZE 3
+// LE
+#define OOB_TK_SIZE 16
+#define OOB_LE_FLAG_SIZE 1
+#define OOB_LE_ROLE_SIZE 1
+#define OOB_LE_APPEARANCE_SIZE 2
 /** Represents the actual Out of Band data itself */
 typedef struct bt_oob_data_s {
   // Both
   bool is_valid = false; /* Default to invalid data; force caller to verify */
-  uint8_t address[7]; /* Bluetooth Device Address (6) plus Address Type (1) */
-  uint8_t c[16];      /* Simple Pairing Hash C-192/256 (Classic or LE) */
-  uint8_t r[16];      /* Simple Pairing Randomizer R-192/256 (Classic or LE) */
-  uint8_t device_name[256]; /* Name of the device */
+  uint8_t address[OOB_ADDRESS_SIZE];
+  uint8_t c[OOB_C_SIZE];      /* Simple Pairing Hash C-192/256 (Classic or LE) */
+  uint8_t r[OOB_R_SIZE];      /* Simple Pairing Randomizer R-192/256 (Classic or LE) */
+  uint8_t device_name[OOB_NAME_MAX_SIZE]; /* Name of the device */
 
   // Classic
-  uint8_t oob_data_length[2]; /* Classic only data Length. Value includes this
-                                 in length */
-  uint8_t class_of_device[2]; /* Class of Device (Classic or LE) */
+  uint8_t oob_data_length[OOB_DATA_LEN_SIZE]; /* Classic only data Length. Value includes this
+                                                 in length */
+  uint8_t class_of_device[OOB_COD_SIZE]; /* Class of Device (Classic or LE) */
 
   // LE
   uint8_t le_device_role;   /* Supported and preferred role of device */
-  uint8_t sm_tk[16];        /* Security Manager TK Value (LE Only) */
+  uint8_t sm_tk[OOB_TK_SIZE];        /* Security Manager TK Value (LE Only) */
   uint8_t le_flags;         /* LE Flags for discoverability and features */
-  uint8_t le_appearance[2]; /* For the appearance of the device */
+  uint8_t le_appearance[OOB_LE_APPEARANCE_SIZE]; /* For the appearance of the device */
 } bt_oob_data_t;
 
 /** Bluetooth Device Type */
@@ -888,6 +896,13 @@ typedef struct {
    *
    */
   bool (*get_wbs_supported)();
+
+  /**
+   *
+   * Is swb supported by the controller
+   *
+   */
+  bool (*get_swb_supported)();
 
   /**
    * Data passed from BluetoothDevice.metadata_changed

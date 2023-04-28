@@ -25,6 +25,7 @@ use btstack::{
     bluetooth_gatt::BluetoothGatt,
     bluetooth_logging::BluetoothLogging,
     bluetooth_media::BluetoothMedia,
+    dis::DeviceInformation,
     socket_manager::BluetoothSocketManager,
     suspend::Suspend,
     Message, Stack,
@@ -175,8 +176,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth_media.clone(),
         tx.clone(),
     ))));
-    let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(tx.clone()))));
+    let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(
+        tx.clone(),
+        bluetooth_admin.clone(),
+    ))));
     let qa = Arc::new(Mutex::new(Box::new(BluetoothQA::new(tx.clone()))));
+    let dis =
+        Arc::new(Mutex::new(Box::new(DeviceInformation::new(bluetooth_gatt.clone(), tx.clone()))));
 
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
@@ -219,6 +225,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             suspend.clone(),
             bt_sock_mgr.clone(),
             bluetooth_admin.clone(),
+            dis.clone(),
         ));
 
         // Set up the disconnect watcher to monitor client disconnects.

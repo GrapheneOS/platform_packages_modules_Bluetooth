@@ -558,6 +558,22 @@ class DualModeController : public Device {
   // 7.8.60
   void LeClearAdvertisingSets(CommandView command);
 
+  // 7.8.61 - 7.8.63
+  void LeSetPeriodicAdvertisingParameters(CommandView command);
+  void LeSetPeriodicAdvertisingData(CommandView command);
+  void LeSetPeriodicAdvertisingEnable(CommandView command);
+
+  // 7.8.67 - 7.8.69
+  void LePeriodicAdvertisingCreateSync(CommandView command);
+  void LePeriodicAdvertisingCreateSyncCancel(CommandView command);
+  void LePeriodicAdvertisingTerminateSync(CommandView command);
+
+  // 7.8.70 - 7.8.73
+  void LeAddDeviceToPeriodicAdvertiserList(CommandView command);
+  void LeRemoveDeviceFromPeriodicAdvertiserList(CommandView command);
+  void LeClearPeriodicAdvertiserList(CommandView command);
+  void LeReadPeriodicAdvertiserListSize(CommandView command);
+
   // 7.8.64
   void LeSetExtendedScanParameters(CommandView command);
 

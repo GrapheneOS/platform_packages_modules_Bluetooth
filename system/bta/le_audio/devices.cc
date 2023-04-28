@@ -966,10 +966,11 @@ uint8_t LeAudioDeviceGroup::GetFirstFreeCisId(CisType cis_type) {
   return kInvalidCisId;
 }
 
-types::LeAudioConfigurationStrategy LeAudioDeviceGroup::GetGroupStrategy(void) {
+types::LeAudioConfigurationStrategy LeAudioDeviceGroup::GetGroupStrategy(
+    int expected_group_size) {
   /* Simple strategy picker */
-  LOG_DEBUG(" Group %d size %d", group_id_, Size());
-  if (Size() > 1) {
+  LOG_DEBUG(" Group %d size %d", group_id_, expected_group_size);
+  if (expected_group_size > 1) {
     return types::LeAudioConfigurationStrategy::MONO_ONE_CIS_PER_DEVICE;
   }
 
@@ -1024,7 +1025,7 @@ void LeAudioDeviceGroup::CigGenerateCisIds(
    * If the last happen it means, group size is 1 */
   int group_size = csis_group_size > 0 ? csis_group_size : 1;
 
-  get_cis_count(*confs, group_size, GetGroupStrategy(),
+  get_cis_count(*confs, group_size, GetGroupStrategy(group_size),
                 GetAseCount(types::kLeAudioDirectionSink),
                 GetAseCount(types::kLeAudioDirectionSource), cis_count_bidir,
                 cis_count_unidir_sink, cis_count_unidir_source);
@@ -1833,10 +1834,8 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
 
   CisType cis_type;
   std::vector<std::pair<uint16_t, uint32_t>>* streams;
-  std::vector<std::pair<uint16_t, uint32_t>>*
-      offloader_streams_target_allocation;
-  std::vector<std::pair<uint16_t, uint32_t>>*
-      offloader_streams_current_allocation;
+  std::vector<stream_map_info>* offloader_streams_target_allocation;
+  std::vector<stream_map_info>* offloader_streams_current_allocation;
   std::string tag;
   uint32_t available_allocations = 0;
   bool* changed_flag;
@@ -1874,7 +1873,9 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
 
   if (offloader_streams_target_allocation->size() == 0) {
     *is_initial = true;
-  } else if (*is_initial) {
+  } else if (*is_initial ||
+             CodecManager::GetInstance()->GetAidlVersionInUsed() >=
+                 AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
     // As multiple CISes phone call case, the target_allocation already have the
     // previous data, but the is_initial flag not be cleared. We need to clear
     // here to avoid make duplicated target allocation stream map.
@@ -1894,24 +1895,16 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
   if (*is_initial && !not_all_cises_connected) {
     *changed_flag = false;
   }
-
-  /* Note: For the offloader case we simplify allocation to only Left and Right.
-   * If we need 2 CISes and only one is connected, the connected one will have
-   * allocation set to stereo (left | right) and other one will have allocation
-   * set to 0. Offloader in this case shall mix left and right and send it on
-   * connected CIS. If there is only single CIS with stereo allocation, it means
-   * that peer device support channel count 2 and offloader shall send two
-   * channels in the single CIS.
-   */
-
   for (auto& cis_entry : cises_) {
     if ((cis_entry.type == CisType::CIS_TYPE_BIDIRECTIONAL ||
          cis_entry.type == cis_type) &&
         cis_entry.conn_handle != 0) {
       uint32_t target_allocation = 0;
       uint32_t current_allocation = 0;
+      bool is_active = false;
       for (const auto& s : *streams) {
         if (s.first == cis_entry.conn_handle) {
+          is_active = true;
           target_allocation = AdjustAllocationForOffloader(s.second);
           current_allocation = target_allocation;
           if (not_all_cises_connected) {
@@ -1930,15 +1923,17 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
 
       LOG_INFO(
           "%s: Cis handle 0x%04x, target allocation  0x%08x, current "
-          "allocation 0x%08x",
+          "allocation 0x%08x, active: %d",
           tag.c_str(), cis_entry.conn_handle, target_allocation,
-          current_allocation);
-      if (*is_initial) {
-        offloader_streams_target_allocation->emplace_back(
-            std::make_pair(cis_entry.conn_handle, target_allocation));
+          current_allocation, is_active);
+
+      if (*is_initial || CodecManager::GetInstance()->GetAidlVersionInUsed() >=
+                             AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
+        offloader_streams_target_allocation->emplace_back(stream_map_info(
+            cis_entry.conn_handle, target_allocation, is_active));
       }
-      offloader_streams_current_allocation->emplace_back(
-          std::make_pair(cis_entry.conn_handle, current_allocation));
+      offloader_streams_current_allocation->emplace_back(stream_map_info(
+          cis_entry.conn_handle, current_allocation, is_active));
     }
   }
 }
@@ -2039,7 +2034,7 @@ LeAudioDeviceGroup::FindFirstSupportedConfiguration(
 
   /* Filter out device set for each end every scenario */
 
-  auto required_snk_strategy = GetGroupStrategy();
+  auto required_snk_strategy = GetGroupStrategy(Size());
   for (const auto& conf : *confs) {
     if (IsConfigurationSupported(conf, context_type, required_snk_strategy)) {
       LOG_DEBUG("found: %s", conf->name.c_str());
@@ -2746,7 +2741,7 @@ void LeAudioDevice::Dump(int fd) {
     stream
         << "id  active dir     cis_id  cis_handle  sdu  latency rtn  state";
     for (auto& ase : ases_) {
-      stream << std::setfill('\xA0') << "\n\t" << std::left << std::setw(4)
+      stream << std::setfill('\x20') << "\n\t" << std::left << std::setw(4)
              << static_cast<int>(ase.id) << std::left << std::setw(7)
              << (ase.active ? "true" : "false") << std::left << std::setw(8)
              << (ase.direction == types::kLeAudioDirectionSink ? "sink"

@@ -93,6 +93,8 @@ class BluetoothAudioClientInterface {
 
   static bool is_aidl_available();
 
+  static int GetAidlInterfaceVersion();
+
  protected:
   mutable std::mutex internal_mutex_;
   /***

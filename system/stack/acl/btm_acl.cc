@@ -58,6 +58,8 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/properties.h"
+#include "rust/src/connection/ffi/connection_shim.h"
+#include "rust/src/core/ffi/types.h"
 #include "stack/acl/acl.h"
 #include "stack/acl/peer_packet_types.h"
 #include "stack/btm/btm_dev.h"
@@ -202,6 +204,19 @@ static void hci_btsnd_hcic_disconnect(tACL_CONN& p_acl, tHCI_STATUS reason,
            ADDRESS_TO_LOGGABLE_CSTR(p_acl.remote_addr),
            hci_error_code_text(reason).c_str(), comment.c_str());
   p_acl.disconnect_reason = reason;
+
+  if (bluetooth::common::init_flags::
+          use_unified_connection_manager_is_enabled()) {
+    if (!p_acl.is_transport_br_edr()) {
+      // TODO(aryarahul): this should be moved into GATT, so when a client
+      // disconnects, it removes its request to autoConnect, even if the ACL
+      // link stays up due to the presence of other clients.
+      bluetooth::connection::GetConnectionManager()
+          .stop_all_connections_to_device(bluetooth::core::ToRustAddress(
+              tBLE_BD_ADDR{.bda = p_acl.active_remote_addr,
+                           .type = p_acl.active_remote_addr_type}));
+    }
+  }
 
   return bluetooth::shim::ACL_Disconnect(
       p_acl.hci_handle, p_acl.is_transport_br_edr(), reason, comment);
@@ -2853,11 +2868,13 @@ bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr,
       .bda = bd_addr,
       .type = addr_type,
   };
-  if (address_with_type.type == BLE_ADDR_PUBLIC) {
-    gatt_find_in_device_record(bd_addr, &address_with_type);
-  }
-  LOG_DEBUG("Creating le direct connection to:%s",
-            ADDRESS_TO_LOGGABLE_CSTR(address_with_type));
+
+  gatt_find_in_device_record(bd_addr, &address_with_type);
+
+  LOG_DEBUG("Creating le direct connection to:%s type:%s (initial type: %s)",
+            ADDRESS_TO_LOGGABLE_CSTR(address_with_type),
+            AddressTypeText(address_with_type.type).c_str(),
+            AddressTypeText(addr_type).c_str());
 
   if (address_with_type.type == BLE_ADDR_ANONYMOUS) {
     LOG_WARN(
@@ -2876,8 +2893,14 @@ bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr,
       android::bluetooth::le::LeConnectionState::STATE_LE_ACL_START,
       argument_list);
 
-  bluetooth::shim::ACL_AcceptLeConnectionFrom(address_with_type,
-                                              /* is_direct */ true);
+  if (bluetooth::common::init_flags::
+          use_unified_connection_manager_is_enabled()) {
+    bluetooth::connection::GetConnectionManager().start_direct_connection(
+        id, bluetooth::core::ToRustAddress(address_with_type));
+  } else {
+    bluetooth::shim::ACL_AcceptLeConnectionFrom(address_with_type,
+                                                /* is_direct */ true);
+  }
   return true;
 }
 

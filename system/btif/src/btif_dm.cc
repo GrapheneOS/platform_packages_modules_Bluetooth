@@ -2839,13 +2839,6 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t* prop) {
       prop->len = sizeof(uint32_t);
     } break;
 
-    case BT_PROPERTY_CLASS_OF_DEVICE: {
-      DEV_CLASS dev_class;
-      btif_dm_get_local_class_of_device(dev_class);
-      memcpy(prop->val, dev_class, sizeof(DEV_CLASS));
-      prop->len = sizeof(DEV_CLASS);
-    } break;
-
       // While fetching IO_CAP* values for the local device, we maintain
       // backward compatibility by using the value from #define macros
       // BTM_LOCAL_IO_CAPS, BTM_LOCAL_IO_CAPS_BLE if the values have never been
@@ -2853,11 +2846,6 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t* prop) {
 
     case BT_PROPERTY_LOCAL_IO_CAPS: {
       *(bt_io_cap_t*)prop->val = (bt_io_cap_t)BTM_LOCAL_IO_CAPS;
-      prop->len = sizeof(bt_io_cap_t);
-    } break;
-
-    case BT_PROPERTY_LOCAL_IO_CAPS_BLE: {
-      *(bt_io_cap_t*)prop->val = (bt_io_cap_t)BTM_LOCAL_IO_CAPS_BLE;
       prop->len = sizeof(bt_io_cap_t);
     } break;
 
