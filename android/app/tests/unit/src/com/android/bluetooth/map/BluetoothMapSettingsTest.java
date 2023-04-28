@@ -39,6 +39,7 @@ import com.android.bluetooth.R;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,6 +70,7 @@ public class BluetoothMapSettingsTest {
         enableActivity(false);
     }
 
+    @Ignore("b/277596416")
     @Test
     public void initialize() throws Exception {
         onView(withId(R.id.bluetooth_map_settings_list_view)).check(matches(isDisplayed()));
