@@ -282,9 +282,9 @@ static void btif_stats_add_bond_event(const RawAddress& bd_addr,
 /******************************************************************************
  *  Externs
  *****************************************************************************/
-extern bt_status_t btif_sdp_execute_service(bool b_enable);
-extern void btif_iot_update_remote_info(tBTA_DM_AUTH_CMPL* p_auth_cmpl,
-                                        bool is_ble, bool is_ssp);
+bt_status_t btif_sdp_execute_service(bool b_enable);
+void btif_iot_update_remote_info(tBTA_DM_AUTH_CMPL* p_auth_cmpl, bool is_ble,
+                                 bool is_ssp);
 
 /******************************************************************************
  *  Functions
