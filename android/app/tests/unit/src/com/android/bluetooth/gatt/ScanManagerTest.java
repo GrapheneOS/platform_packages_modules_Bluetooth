@@ -37,6 +37,7 @@ import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -1054,7 +1055,6 @@ public class ScanManagerTest {
         final boolean isFiltered = true;
         // Turn on screen
         sendMessageWaitForProcessed(createScreenOnOffMessage(true));
-        verify(mMetricsLogger, never()).cacheCount(anyInt(), anyLong());
         Mockito.clearInvocations(mMetricsLogger);
         // Create scan client
         ScanClient client = createScanClient(0, isFiltered, SCAN_MODE_LOW_POWER);
@@ -1085,7 +1085,6 @@ public class ScanManagerTest {
         final boolean isFiltered = true;
         // Turn on screen
         sendMessageWaitForProcessed(createScreenOnOffMessage(true));
-        verify(mMetricsLogger, never()).cacheCount(anyInt(), anyLong());
         Mockito.clearInvocations(mMetricsLogger);
         // Create scan client
         ScanClient client = createScanClient(0, isFiltered, SCAN_MODE_LOW_POWER);
@@ -1136,7 +1135,6 @@ public class ScanManagerTest {
         final boolean isFiltered = true;
         // Turn on screen
         sendMessageWaitForProcessed(createScreenOnOffMessage(true));
-        verify(mMetricsLogger, never()).cacheCount(anyInt(), anyLong());
         Mockito.clearInvocations(mMetricsLogger);
         // Create scan clients with different duty cycles
         ScanClient client = createScanClient(0, isFiltered, SCAN_MODE_LOW_POWER);
@@ -1216,5 +1214,26 @@ public class ScanManagerTest {
                     && capturedDuration <= weightedScanDuration + DELAY_ASYNC_MS).isTrue();
             Mockito.clearInvocations(mMetricsLogger);
         }
+    }
+
+    @Test
+    public void testMetricsScreenOnOff() {
+        // Turn off screen initially
+        sendMessageWaitForProcessed(createScreenOnOffMessage(false));
+        Mockito.clearInvocations(mMetricsLogger);
+        // Turn on screen
+        sendMessageWaitForProcessed(createScreenOnOffMessage(true));
+        verify(mMetricsLogger, never()).cacheCount(
+                eq(BluetoothProtoEnums.SCREEN_OFF_EVENT), anyLong());
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.SCREEN_ON_EVENT), anyLong());
+        Mockito.clearInvocations(mMetricsLogger);
+        // Turn off screen
+        sendMessageWaitForProcessed(createScreenOnOffMessage(false));
+        verify(mMetricsLogger, never()).cacheCount(
+                eq(BluetoothProtoEnums.SCREEN_ON_EVENT), anyLong());
+        verify(mMetricsLogger, times(1)).cacheCount(
+                eq(BluetoothProtoEnums.SCREEN_OFF_EVENT), anyLong());
+        Mockito.clearInvocations(mMetricsLogger);
     }
 }
