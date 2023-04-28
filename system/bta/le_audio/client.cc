@@ -1523,13 +1523,14 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     BtaGattQueue::Clean(leAudioDevice->conn_id_);
-    BTA_GATTC_Close(leAudioDevice->conn_id_);
 
     /* Remote in bad state, force ACL Disconnection. */
     if (acl_force_disconnect) {
       leAudioDevice->DisconnectAcl();
       leAudioDevice->SetConnectionState(
           DeviceConnectState::DISCONNECTING_AND_RECOVER);
+    } else {
+      BTA_GATTC_Close(leAudioDevice->conn_id_);
     }
   }
 
