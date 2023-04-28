@@ -510,8 +510,6 @@ class GdAndroidDevice(GdDeviceBase):
             overwrite_existing=False)
         self.push_or_die(
             *generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libandroid_runtime_lazy.so"), overwrite_existing=False)
-        self.push_or_die(
-            *generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libbacktrace.so"), overwrite_existing=False)
         self.push_or_die(*generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libbase.so"), overwrite_existing=False)
         self.push_or_die(
             *generate_dir_pair(local_dir, self.DEVICE_LIB_DIR, "libbinder_ndk.so"), overwrite_existing=False)
