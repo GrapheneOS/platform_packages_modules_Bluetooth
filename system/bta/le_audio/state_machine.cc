@@ -688,12 +688,14 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
      */
     group->UpdateAudioContextTypeAvailability();
 
-    /* ACL of one of the device has been dropped.
-     * If there is active CIS, do nothing here. Just update the available
-     * contexts table.
-     */
-    if (group->IsAnyDeviceConnected() && !group->HaveAllCisesDisconnected()) {
-      if ((group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) &&
+    if (group->IsAnyDeviceConnected()) {
+      /*
+       * ACL of one of the device has been dropped. If number of CISes has
+       * changed notify upper layer so the offloader can be updated with CIS
+       * information.
+       */
+      if (!group->HaveAllCisesDisconnected() &&
+          (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) &&
           (group->GetTargetState() ==
            AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
         /* We keep streaming but want others to let know user that it might be
