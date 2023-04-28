@@ -53,8 +53,6 @@ void VolumeControlDevice::Disconnect(tGATT_IF gatt_if) {
     BtaGattQueue::Clean(connection_id);
     BTA_GATTC_Close(connection_id);
     connection_id = GATT_INVALID_CONN_ID;
-  } else {
-    BTA_GATTC_CancelOpen(gatt_if, address, false);
   }
 
   device_ready = false;
