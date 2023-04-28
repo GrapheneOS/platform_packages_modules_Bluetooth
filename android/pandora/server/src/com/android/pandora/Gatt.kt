@@ -241,14 +241,18 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
       Log.i(TAG, "registerService")
       val service =
         BluetoothGattService(UUID.fromString(request.service.uuid), SERVICE_TYPE_PRIMARY)
-      for (characteristic in request.service.characteristicsList) {
-        service.addCharacteristic(
-          BluetoothGattCharacteristic(
-            UUID.fromString(characteristic.uuid),
-            characteristic.properties,
-            characteristic.permissions
-          )
-        )
+      for (characteristic_params in request.service.characteristicsList) {
+        val characteristic = BluetoothGattCharacteristic(
+          UUID.fromString(characteristic_params.uuid),
+          characteristic_params.properties,
+          characteristic_params.permissions)
+        for (descriptor_params in characteristic_params.descriptorsList) {
+          characteristic.addDescriptor(BluetoothGattDescriptor(
+            UUID.fromString(descriptor_params.uuid),
+            descriptor_params.properties,
+            descriptor_params.permissions))
+        }
+        service.addCharacteristic(characteristic)
       }
 
       val fullService = coroutineScope {
