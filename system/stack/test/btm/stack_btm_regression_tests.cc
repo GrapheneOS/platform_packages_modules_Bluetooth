@@ -18,18 +18,20 @@
 
 #include <gtest/gtest.h>
 
+#include "ble_hci_link_interface.h"
 #include "bt_hdr.h"
 #include "btm_ble_api_types.h"
 #include "hci_error_code.h"
 #include "osi/include/allocator.h"
-#include "ble_hci_link_interface.h"
+#include "test/fake/fake_osi.h"
 
 namespace {
 
 class StackBTMRegressionTests : public ::testing::Test {
  protected:
-  void SetUp() override {}
+  void SetUp() override { fake_osi_ = std::make_unique<test::fake::FakeOsi>(); }
   void TearDown() override {}
+  std::unique_ptr<test::fake::FakeOsi> fake_osi_;
 };
 
 // regression test for b/260078907
