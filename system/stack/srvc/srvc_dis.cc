@@ -260,9 +260,16 @@ bool dis_gatt_c_read_dis_req(uint16_t conn_id) {
  ******************************************************************************/
 void dis_c_cmpl_cback(tSRVC_CLCB* p_clcb, tGATTC_OPTYPE op, tGATT_STATUS status,
                       tGATT_CL_COMPLETE* p_data) {
-  uint16_t read_type = dis_attr_uuid[dis_cb.dis_read_uuid_idx];
+  uint16_t read_type;
   uint8_t *pp = NULL, *p_str;
   uint16_t conn_id = p_clcb->conn_id;
+
+  if (dis_cb.dis_read_uuid_idx >= (sizeof(dis_attr_uuid)/sizeof(dis_attr_uuid[0]))) {
+    LOG(ERROR) << "invalid dis_cb.dis_read_uuid_idx";
+    return;
+  }
+
+  read_type = dis_attr_uuid[dis_cb.dis_read_uuid_idx];
 
   VLOG(1) << __func__
           << StringPrintf("op_code: 0x%02x  status: 0x%02x read_type: 0x%04x",
