@@ -1207,6 +1207,10 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    /* Remove device from the background connect if it is there */
+    BTA_GATTC_CancelOpen(gatt_if_, address, false);
+    btif_storage_set_leaudio_autoconnect(address, false);
+
     LOG_INFO("%s, state: %s", ADDRESS_TO_LOGGABLE_CSTR(address),
              bluetooth::common::ToString(leAudioDevice->GetConnectionState())
                  .c_str());
@@ -1224,8 +1228,6 @@ class LeAudioClientImpl : public LeAudioClient {
         [[fallthrough]];
       case DeviceConnectState::DISCONNECTING:
       case DeviceConnectState::DISCONNECTING_AND_RECOVER:
-        /* Remove device from the background connect if it is there */
-        BTA_GATTC_CancelOpen(gatt_if_, address, false);
         /* Device is disconnecting, just mark it shall be removed after all. */
         leAudioDevice->SetConnectionState(DeviceConnectState::REMOVING);
         return;
@@ -1233,9 +1235,6 @@ class LeAudioClientImpl : public LeAudioClient {
         BTA_GATTC_CancelOpen(gatt_if_, address, true);
         [[fallthrough]];
       case DeviceConnectState::CONNECTING_AUTOCONNECT:
-        /* Cancel background conection */
-        BTA_GATTC_CancelOpen(gatt_if_, address, false);
-        break;
       case DeviceConnectState::DISCONNECTED:
         /* Do nothing, just remove device  */
         break;
@@ -1451,20 +1450,25 @@ class LeAudioClientImpl : public LeAudioClient {
         break;
       case DeviceConnectState::CONNECTED: {
         /* User is disconnecting the device, we shall remove the autoconnect
-         * flag for this device and all others
+         * flag for this device and all others if not TA is used
          */
-        LOG_INFO("Removing autoconnect flag for group_id %d",
-                 leAudioDevice->group_id_);
+        /* If target announcement is used, do not remove autoconnect
+         */
+        bool remove_from_autoconnect =
+            (reconnection_mode_ != BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS);
 
-        if (leAudioDevice->autoconnect_flag_) {
+        if (leAudioDevice->autoconnect_flag_ && remove_from_autoconnect) {
+          LOG_INFO("Removing autoconnect flag for group_id %d",
+                   leAudioDevice->group_id_);
+
           /* Removes device from background connect */
           BTA_GATTC_CancelOpen(gatt_if_, address, false);
           btif_storage_set_leaudio_autoconnect(address, false);
           leAudioDevice->autoconnect_flag_ = false;
         }
-        auto group = aseGroups_.FindById(leAudioDevice->group_id_);
 
-        if (group) {
+        auto group = aseGroups_.FindById(leAudioDevice->group_id_);
+        if (group && remove_from_autoconnect) {
           /* Remove devices from auto connect mode */
           for (auto dev = group->GetFirstDevice(); dev;
                dev = group->GetNextDevice(dev)) {
@@ -2074,7 +2078,7 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void scheduleGroupConnectedCheck(int group_id) {
-    LOG_INFO("Schedule group_id %d streaming check.", group_id);
+    LOG_INFO("Schedule group_id %d connected check.", group_id);
     do_in_main_thread_delayed(
         FROM_HERE,
         base::BindOnce(
