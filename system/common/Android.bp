@@ -23,7 +23,6 @@ cc_library_static {
         "address_obfuscator.cc",
         "message_loop_thread.cc",
         "metric_id_allocator.cc",
-        "once_timer.cc",
         "os_utils.cc",
         "repeating_timer.cc",
         "stop_watch_legacy.cc",
@@ -66,7 +65,6 @@ cc_test {
         "lru_unittest.cc",
         "message_loop_thread_unittest.cc",
         "metric_id_allocator_unittest.cc",
-        "once_timer_unittest.cc",
         "repeating_timer_unittest.cc",
         "state_machine_unittest.cc",
         "time_util_unittest.cc",
@@ -133,32 +131,6 @@ cc_benchmark {
     ],
     static_libs: [
         "libbt-common",
-        "libchrome",
-        "libevent",
-        "libosi",
-    ],
-}
-
-cc_benchmark {
-    name: "bluetooth_benchmark_timer_performance",
-    defaults: [
-        "fluoride_defaults",
-    ],
-    host_supported: false,
-    include_dirs: ["packages/modules/Bluetooth/system"],
-    srcs: [
-        "benchmark/timer_performance_benchmark.cc",
-    ],
-    shared_libs: [
-        "libcrypto",
-        "libcrypto",
-        "libcutils",
-        "liblog",
-        "libprotobuf-cpp-lite",
-    ],
-    static_libs: [
-        "libbt-common",
-        "libbt-protos-lite",
         "libchrome",
         "libevent",
         "libosi",
