@@ -1930,7 +1930,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
   APPL_TRACE_DEBUG(
       "%s name_discover_done = %d p_btm_inq_info 0x%x state = %d, transport=%d",
       __func__, bta_dm_search_cb.name_discover_done,
-      bta_dm_search_cb.p_btm_inq_info, bta_dm_search_cb.state, transport);
+      bta_dm_search_cb.p_btm_inq_info, bta_dm_search_get_state(), transport);
 
   if (bta_dm_search_cb.p_btm_inq_info) {
     APPL_TRACE_DEBUG("%s appl_knows_rem_name %d", __func__,
@@ -1939,7 +1939,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
   if (((bta_dm_search_cb.p_btm_inq_info) &&
        (bta_dm_search_cb.p_btm_inq_info->results.device_type ==
         BT_DEVICE_TYPE_BLE) &&
-       (bta_dm_search_cb.state == BTA_DM_SEARCH_ACTIVE)) ||
+       (bta_dm_search_get_state() == BTA_DM_SEARCH_ACTIVE)) ||
       (transport == BT_TRANSPORT_LE &&
        interop_match_addr(INTEROP_DISABLE_NAME_REQUEST,
                           &bta_dm_search_cb.peer_bdaddr))) {
@@ -1961,7 +1961,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
         (!bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name)))) {
     if (bta_dm_read_remote_device_name(bta_dm_search_cb.peer_bdaddr,
                                        transport)) {
-      if (bta_dm_search_cb.state != BTA_DM_DISCOVER_ACTIVE) {
+      if (bta_dm_search_get_state() != BTA_DM_DISCOVER_ACTIVE) {
         LOG_DEBUG("Reset transport state for next discovery");
         bta_dm_search_cb.transport = BT_TRANSPORT_AUTO;
       }
@@ -4349,7 +4349,7 @@ void btm_dm_start_gatt_discovery(const RawAddress& bd_addr) {
  *
  ******************************************************************************/
 void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
-  VLOG(1) << "DM Search state= " << bta_dm_search_cb.state
+  VLOG(1) << "DM Search state= " << bta_dm_search_get_state()
           << " search_cb.peer_dbaddr:" << bta_dm_search_cb.peer_bdaddr
           << " connected_bda=" << p_data->remote_bda.address;
 
@@ -4546,7 +4546,7 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
       break;
 
     case BTA_GATTC_SEARCH_CMPL_EVT:
-      if (bta_dm_search_cb.state != BTA_DM_SEARCH_IDLE)
+      if (bta_dm_search_get_state() != BTA_DM_SEARCH_IDLE)
         bta_dm_gatt_disc_complete(p_data->search_cmpl.conn_id,
                                   p_data->search_cmpl.status);
       break;
@@ -4562,8 +4562,8 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
       }
 
       /* in case of disconnect before search is completed */
-      if ((bta_dm_search_cb.state != BTA_DM_SEARCH_IDLE) &&
-          (bta_dm_search_cb.state != BTA_DM_SEARCH_ACTIVE) &&
+      if ((bta_dm_search_get_state() != BTA_DM_SEARCH_IDLE) &&
+          (bta_dm_search_get_state() != BTA_DM_SEARCH_ACTIVE) &&
           p_data->close.remote_bda == bta_dm_search_cb.peer_bdaddr) {
         bta_dm_gatt_disc_complete((uint16_t)GATT_INVALID_CONN_ID,
                                   (tGATT_STATUS)GATT_ERROR);
