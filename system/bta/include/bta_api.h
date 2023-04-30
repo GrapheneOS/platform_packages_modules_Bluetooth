@@ -527,6 +527,7 @@ typedef struct {
   size_t num_uuids;
   bluetooth::Uuid* p_uuid_list;
   tBTA_STATUS result;
+  tHCI_STATUS hci_status;
 } tBTA_DM_DISC_RES;
 
 /* Structure associated with tBTA_DM_DISC_BLE_RES */
