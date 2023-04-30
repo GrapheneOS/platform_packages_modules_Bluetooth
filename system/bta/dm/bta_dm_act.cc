@@ -1131,7 +1131,7 @@ void bta_dm_disc_rmt_name(tBTA_DM_MSG* p_data) {
       kBtmLogTag, disc_res->bd_addr, "Remote name completed",
       base::StringPrintf(
           "status:%s name:\"%s\" service:0x%x device_type:%s num_uuids:%zu",
-          bta_status_text(disc_res->result).c_str(), disc_res->bd_name,
+          hci_status_code_text(disc_res->hci_status).c_str(), disc_res->bd_name,
           disc_res->services, DeviceTypeText(disc_res->device_type).c_str(),
           disc_res->num_uuids));
 
@@ -2201,9 +2201,16 @@ static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
  *
  ******************************************************************************/
 static void bta_dm_remname_cback(const tBTM_REMOTE_DEV_NAME* p) {
+  CHECK(p != nullptr);
+
   tBTM_REMOTE_DEV_NAME* p_remote_name = (tBTM_REMOTE_DEV_NAME*)p;
-  APPL_TRACE_DEBUG("bta_dm_remname_cback len = %d name=<%s>",
-                   p_remote_name->length, p_remote_name->remote_bd_name);
+  LOG_INFO(
+      "Remote name request complete peer:%s btm_status:%s hci_status:%s "
+      "name[0]:%c length:%hu",
+      ADDRESS_TO_LOGGABLE_CSTR(p_remote_name->bd_addr),
+      btm_status_text(p_remote_name->status).c_str(),
+      hci_error_code_text(p_remote_name->hci_status).c_str(),
+      p_remote_name->remote_bd_name[0], p_remote_name->length);
 
   if (bta_dm_search_cb.peer_bdaddr == p_remote_name->bd_addr) {
     if (bluetooth::shim::is_gd_security_enabled()) {
@@ -2248,6 +2255,7 @@ static void bta_dm_remname_cback(const tBTM_REMOTE_DEV_NAME* p) {
 
   tBTA_DM_REM_NAME* p_msg =
       (tBTA_DM_REM_NAME*)osi_malloc(sizeof(tBTA_DM_REM_NAME));
+  p_msg->result.disc_res.hci_status = p->hci_status;
   p_msg->result.disc_res.bd_addr = bta_dm_search_cb.peer_bdaddr;
   strlcpy((char*)p_msg->result.disc_res.bd_name,
           (char*)p_remote_name->remote_bd_name, BD_NAME_LEN + 1);
