@@ -11,7 +11,6 @@ filegroup {
     name: "BluetoothDumpsysSources",
     srcs: [
         "filter.cc",
-        "init_flags.cc",
         "internal/filter_internal.cc",
         "reflection_schema.cc",
     ],
