@@ -114,7 +114,7 @@ cc_library_static {
         "rootcanal_link_layer_packets_cxx_gen",
     ],
     whole_static_libs: [
-        "liblmp",
+        "librootcanal_rs",
     ],
     shared_libs: [
         "libbase",
@@ -159,7 +159,7 @@ cc_library_host_shared {
     ],
     whole_static_libs: [
         "libbase",
-        "liblmp",
+        "librootcanal_rs",
         "liblog",
     ],
     cflags: [
