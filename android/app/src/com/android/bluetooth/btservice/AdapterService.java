@@ -7093,6 +7093,23 @@ public class AdapterService extends Service {
         return true;
     }
 
+    /**
+     * Sends service discovery UUIDs internally within the stack. This is meant to remove internal
+     * dependencies on the broadcast {@link BluetoothDevice#ACTION_UUID}.
+     *
+     * @param device is the remote device whose UUIDs have been discovered
+     * @param uuids are the services supported on the remote device
+     */
+    void sendUuidsInternal(BluetoothDevice device, ParcelUuid[] uuids) {
+        Log.i(TAG, "sendUuidsInternal: Received service discovery UUIDs for device " + device);
+        if (DBG) {
+            for (int i = 0; i < uuids.length; i++) {
+                Log.d(TAG, "index=" + i + "uuid=" + uuids[i]);
+            }
+        }
+        mPhonePolicy.onUuidsDiscovered(device, uuids);
+    }
+
     static native void classInitNative();
 
     native boolean initNative(boolean startRestricted, boolean isCommonCriteriaMode,
