@@ -163,35 +163,22 @@ cc_defaults {
         "libbase",
         "libbinder_ndk",
         "libcrypto",
-        "libcutils",
         "libfmq",
-        "libhidlbase",
-        "liblog",
         "libnativehelper",
         "libtinyxml2",
-        "libutils",
-        "libz",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
         "libFraunhoferAAC",
         "libbluetooth-dumpsys",
-        "libbluetooth-types",
-        "libbluetooth_gd",
-        "libbluetooth_rust_interop",
-        "libbt-platform-protos-lite",
         "libbt-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
-        "libbt_callbacks_cxx",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
         "libflatbuffers-cpp",
         "libg722codec",
         "liblc3",
         "libopus",
         "libprotobuf-cpp-lite",
-        "libstatslog_bt",
         "libudrv-uipc",
     ],
     target: {
@@ -214,7 +201,6 @@ cc_defaults {
     defaults: ["fluoride_basic_defaults"],
     static_libs: [
         "avrcp-target-service",
-        "lib-bt-packets",
         "lib-bt-packets-avrcp",
         "lib-bt-packets-base",
         "libaudio-a2dp-hw-utils",
@@ -242,11 +228,6 @@ cc_defaults {
     ],
     static_libs: [
         "libbluetooth_gd",
-        "libbluetooth_rust_interop",
-        "libbt_callbacks_cxx",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
-        "libbt_shim_ffi",
         "libstatslog_bt",
     ],
     shared_libs: [
@@ -258,11 +239,6 @@ cc_defaults {
         darwin: {
             // libstatslog_bt -> libbinder doesn't build on mac
             enabled: false,
-        },
-        host_linux: {
-            shared_libs: [
-                "libstatslog_bt",
-            ],
         },
         android: {
             shared_libs: [
