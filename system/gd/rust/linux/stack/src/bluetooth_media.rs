@@ -471,8 +471,7 @@ impl BluetoothMedia {
                 self.a2dp_audio_state.insert(addr, state);
             }
             A2dpCallbacks::AudioConfig(addr, _config, _local_caps, a2dp_caps) => {
-                // TODO(b/254808917): revert to debug log once fixed
-                info!("[{}]: a2dp updated audio config: {:?}", DisplayAddress(&addr), a2dp_caps);
+                debug!("[{}]: a2dp updated audio config: {:?}", DisplayAddress(&addr), a2dp_caps);
                 self.a2dp_caps.insert(addr, a2dp_caps);
             }
             A2dpCallbacks::MandatoryCodecPreferred(_addr) => {}
@@ -1313,8 +1312,7 @@ impl BluetoothMedia {
     }
 
     fn start_audio_request_impl(&mut self) -> bool {
-        // TODO(b/254808917): revert to debug log once fixed
-        info!("Start audio request");
+        debug!("Start audio request");
 
         match self.a2dp.as_mut() {
             Some(a2dp) => a2dp.start_audio_request(),
@@ -2151,8 +2149,7 @@ impl IBluetoothMedia for BluetoothMedia {
             return;
         }
 
-        // TODO(b/254808917): revert to debug log once fixed
-        info!("Stop audio request");
+        debug!("Stop audio request");
 
         match self.a2dp.as_mut() {
             Some(a2dp) => a2dp.stop_audio_request(),
