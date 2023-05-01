@@ -20,7 +20,6 @@ cc_defaults {
         android: {
             test_config_template: "AndroidTestTemplate.xml",
             cflags: [
-                "-DOS_ANDROID",
                 "-DOS_LINUX_GENERIC",
             ],
             shared_libs: [

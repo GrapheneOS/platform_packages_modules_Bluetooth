@@ -289,9 +289,6 @@ cc_defaults {
                 "libstatssocket",
                 "libutils",
             ],
-            cflags: [
-                "-DOS_ANDROID",
-            ],
             sanitize: {
                 misc_undefined: ["bounds"],
             },

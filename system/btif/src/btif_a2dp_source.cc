@@ -364,7 +364,7 @@ bool btif_a2dp_source_startup(void) {
 static void btif_a2dp_source_startup_delayed() {
   LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
   if (!btif_a2dp_source_thread.EnableRealTimeScheduling()) {
-#if defined(OS_ANDROID)
+#if defined(__ANDROID__)
     LOG(FATAL) << __func__ << ": unable to enable real time scheduling";
 #endif
   }
