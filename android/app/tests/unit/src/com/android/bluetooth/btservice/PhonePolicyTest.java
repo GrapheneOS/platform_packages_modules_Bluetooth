@@ -133,13 +133,10 @@ public class PhonePolicyTest {
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
 
         // Inject an event for UUIDs updated for a remote device with only HFP enabled
-        Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         ParcelUuid[] uuids = new ParcelUuid[2];
         uuids[0] = BluetoothUuid.HFP;
         uuids[1] = BluetoothUuid.A2DP_SINK;
-        intent.putExtra(BluetoothDevice.EXTRA_UUID, uuids);
-        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+        mPhonePolicy.onUuidsDiscovered(device, uuids);
 
         // Check that the priorities of the devices for preferred profiles are set to ON
         verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
@@ -167,13 +164,10 @@ public class PhonePolicyTest {
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
 
         // Inject an event for UUIDs updated for a remote device with only HFP enabled
-        Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         ParcelUuid[] uuids = new ParcelUuid[2];
         uuids[0] = BluetoothUuid.HFP;
         uuids[1] = BluetoothUuid.A2DP_SINK;
-        intent.putExtra(BluetoothDevice.EXTRA_UUID, uuids);
-        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+        mPhonePolicy.onUuidsDiscovered(device, uuids);
 
         // Check auto connect
         verify(mA2dpService, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
@@ -249,14 +243,11 @@ public class PhonePolicyTest {
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
 
         // Inject an event for UUIDs updated for a remote device with only HFP enabled
-        Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         ParcelUuid[] uuids = new ParcelUuid[3];
         uuids[0] = BluetoothUuid.HFP;
         uuids[1] = BluetoothUuid.A2DP_SINK;
         uuids[2] = BluetoothUuid.LE_AUDIO;
-        intent.putExtra(BluetoothDevice.EXTRA_UUID, uuids);
-        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+        mPhonePolicy.onUuidsDiscovered(device, uuids);
     }
 
     /**
@@ -890,12 +881,8 @@ public class PhonePolicyTest {
         when(mA2dpService.getConnectionPolicy(device))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
 
-        // Inject an event for UUIDs updated for a remote device with only HFP enabled
-        Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-
-        // Put no UUIDs
-        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+        // Inject an event for UUIDs updated for a remote device with no supported services
+        mPhonePolicy.onUuidsDiscovered(device, null);
 
         // Check that we do not crash and not call any setPriority methods
         verify(mHeadsetService,
