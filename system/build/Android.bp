@@ -158,10 +158,19 @@ cc_defaults {
         "com.android.btservices",
     ],
     shared_libs: [
+        "android.hardware.bluetooth.audio@2.0",
+        "android.hardware.bluetooth.audio@2.1",
         "libbase",
+        "libbinder_ndk",
         "libcrypto",
+        "libcutils",
+        "libfmq",
+        "libhidlbase",
         "liblog",
         "libnativehelper",
+        "libtinyxml2",
+        "libutils",
+        "libz",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
@@ -189,34 +198,12 @@ cc_defaults {
         android: {
             shared_libs: [
                 "android.hardware.bluetooth.audio-V3-ndk",
-                "android.hardware.bluetooth.audio@2.0",
-                "android.hardware.bluetooth.audio@2.1",
                 "android.system.suspend-V1-ndk",
                 "libPlatformProperties",
                 "libaaudio",
-                "libbinder_ndk",
-                "libcutils",
-                "libfmq",
-                "libhidlbase",
-                "libtinyxml2",
-                "libutils",
-                "libz",
             ],
             static_libs: [
                 "android.system.suspend.control-V1-ndk",
-            ],
-        },
-        host_linux: {
-            shared_libs: [
-                "android.hardware.bluetooth.audio@2.0",
-                "android.hardware.bluetooth.audio@2.1",
-                "libbinder_ndk",
-                "libcutils",
-                "libfmq",
-                "libhidlbase",
-                "libtinyxml2",
-                "libutils",
-                "libz",
             ],
         },
     },
@@ -262,6 +249,11 @@ cc_defaults {
         "libbt_shim_ffi",
         "libstatslog_bt",
     ],
+    shared_libs: [
+        "libcutils",
+        "libhidlbase",
+        "libutils",
+    ],
     target: {
         darwin: {
             // libstatslog_bt -> libbinder doesn't build on mac
@@ -269,18 +261,12 @@ cc_defaults {
         },
         host_linux: {
             shared_libs: [
-                "libcutils",
-                "libhidlbase",
                 "libstatslog_bt",
-                "libutils",
             ],
         },
         android: {
             shared_libs: [
-                "libcutils",
-                "libhidlbase",
                 "libstatssocket",
-                "libutils",
             ],
             sanitize: {
                 misc_undefined: ["bounds"],
