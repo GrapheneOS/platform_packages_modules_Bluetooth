@@ -878,6 +878,13 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
         if (p_dev->local_vup) {
           p_dev->local_vup = false;
           BTA_DmRemoveDevice(p_dev->bd_addr);
+        } else if (p_data->dev_status.status == BTA_HH_HS_SERVICE_CHANGED) {
+          /* Local disconnection due to service change in the HOGP device.
+             HID descriptor would be read again, so remove it from cache. */
+          LOG_WARN(
+              "Removing cached descriptor due to service change, handle = %d",
+              p_data->dev_status.handle);
+          btif_storage_remove_hid_info(p_dev->bd_addr);
         }
 
         btif_hh_cb.status = (BTIF_HH_STATUS)BTIF_HH_DEV_DISCONNECTED;
