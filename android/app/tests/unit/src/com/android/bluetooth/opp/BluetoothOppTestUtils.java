@@ -150,11 +150,5 @@ public class BluetoothOppTestUtils {
         });
 
     }
-
-    public static void wakeUpAndDismissKeyGuard() throws Exception {
-        final UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-        device.executeShellCommand("input keyevent KEYCODE_WAKEUP");
-        device.wakeUp();
-    }
 }
 
