@@ -1079,22 +1079,22 @@ void btm_clr_inq_result_flt(void) {
  *
  ******************************************************************************/
 bool btm_inq_find_bdaddr(const RawAddress& p_bda) {
-  tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-  tINQ_BDADDR* p_db = &p_inq->p_bd_db[0];
+  tINQ_BDADDR* p_db = btm_cb.btm_inq_vars.p_bd_db;
   uint16_t xx;
 
   /* Don't bother searching, database doesn't exist or periodic mode */
   if (!p_db) return (false);
 
-  for (xx = 0; xx < p_inq->num_bd_entries; xx++, p_db++) {
-    if (p_db->bd_addr == p_bda && p_db->inq_count == p_inq->inq_counter)
+  for (xx = 0; xx < btm_cb.btm_inq_vars.num_bd_entries; xx++, p_db++) {
+    if (p_db->bd_addr == p_bda &&
+        p_db->inq_count == btm_cb.btm_inq_vars.inq_counter)
       return (true);
   }
 
-  if (xx < p_inq->max_bd_entries) {
-    p_db->inq_count = p_inq->inq_counter;
+  if (xx < btm_cb.btm_inq_vars.max_bd_entries) {
+    p_db->inq_count = btm_cb.btm_inq_vars.inq_counter;
     p_db->bd_addr = p_bda;
-    p_inq->num_bd_entries++;
+    btm_cb.btm_inq_vars.num_bd_entries++;
   }
 
   /* If here, New Entry */
