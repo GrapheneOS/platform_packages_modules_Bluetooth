@@ -49,6 +49,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
 
 import com.google.common.base.Objects;
 
@@ -129,7 +130,7 @@ public class IncomingFileConfirmActivityTest {
         ));
 
         BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
-        BluetoothOppTestUtils.wakeUpAndDismissKeyGuard();
+        TestUtils.wakeUpAndDismissKeyGuard();
     }
 
     @After
