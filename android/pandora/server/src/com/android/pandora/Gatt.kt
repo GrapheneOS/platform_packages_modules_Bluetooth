@@ -66,6 +66,8 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
   override fun close() {
     serverManager.server.close()
     mScope.cancel()
+    // Clear existing Gatt instances to fix flakiness: b/279599889
+    GattInstance.clearAllInstances()
   }
 
   override fun exchangeMTU(
