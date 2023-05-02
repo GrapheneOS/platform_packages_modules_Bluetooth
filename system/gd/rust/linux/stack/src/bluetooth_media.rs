@@ -1867,7 +1867,7 @@ impl IBluetoothMedia for BluetoothMedia {
         true
     }
 
-    // TODO(b/263808543): Currently this is designed to be called from both the
+    // TODO(b/278963515): Currently this is designed to be called from both the
     // UI and via disconnection callbacks. Remove this workaround once the
     // proper fix has landed.
     fn disconnect(&mut self, address: String) {
@@ -1893,7 +1893,7 @@ impl IBluetoothMedia for BluetoothMedia {
         for profile in connected_profiles {
             match profile {
                 uuid::Profile::A2dpSink => {
-                    // Some headsets (b/263808543) will try reconnecting to A2DP
+                    // Some headsets (b/278963515) will try reconnecting to A2DP
                     // when HFP is running but (requested to be) disconnected.
                     if connected_profiles.contains(&Profile::Hfp) {
                         continue;
@@ -2000,14 +2000,6 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn set_active_device(&mut self, address: String) {
-        // During MPS tests, there might be some A2DP stream manipulation unexpected to CRAS.
-        // CRAS would then attempt to reset the active device. Ignore it during test.
-        // TODO(b/265988575): CRAS is migrating to use ResetActiveDevice instead. Remove this
-        // after the migration is done.
-        if !self.is_complete_profiles_required() && address == String::from("00:00:00:00:00:00") {
-            return;
-        }
-
         let addr = match RawAddress::from_string(address.clone()) {
             None => {
                 warn!("Invalid device address for set_active_device");
