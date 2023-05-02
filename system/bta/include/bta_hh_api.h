@@ -239,9 +239,11 @@ typedef struct {
   RawAddress bda;        /* HID device bd address    */
   tBTA_HH_STATUS status; /* operation status         */
   uint8_t handle;        /* device handle            */
-  bool le_hid;         /* is LE devices? */
-  bool scps_supported; /* scan parameter service supported */
-
+  bool le_hid;           /* is LE devices? */
+  bool scps_supported;   /* scan parameter service supported */
+  uint8_t sub_class;     /* Cod sub class */
+  uint16_t attr_mask;    /* attribute mask */
+  uint8_t app_id;
 } tBTA_HH_CONN;
 
 typedef tBTA_HH_CONN tBTA_HH_DEV_INFO;
