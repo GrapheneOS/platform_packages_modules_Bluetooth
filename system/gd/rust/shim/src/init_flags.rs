@@ -1,8 +1,15 @@
 #[cxx::bridge(namespace = bluetooth::common::init_flags)]
 mod ffi {
+    struct InitFlagWithValue {
+        flag: &'static str,
+        value: String,
+    }
+
     extern "Rust" {
         fn load(flags: Vec<String>);
         fn set_all_for_testing();
+
+        fn dump() -> Vec<InitFlagWithValue>;
 
         fn always_send_services_if_gatt_disc_done_is_enabled() -> bool;
         fn always_use_private_gatt_for_debugging_is_enabled() -> bool;
@@ -48,6 +55,15 @@ mod ffi {
         fn trigger_advertising_callbacks_on_first_resume_after_pause_is_enabled() -> bool;
         fn use_unified_connection_manager_is_enabled() -> bool;
     }
+}
+
+use crate::init_flags::ffi::InitFlagWithValue;
+
+fn dump() -> Vec<InitFlagWithValue> {
+    bt_common::init_flags::dump()
+        .into_iter()
+        .map(|(flag, value)| InitFlagWithValue { flag, value })
+        .collect()
 }
 
 use bt_common::init_flags::*;
