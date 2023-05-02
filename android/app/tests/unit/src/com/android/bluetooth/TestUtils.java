@@ -34,6 +34,7 @@ import android.service.media.MediaBrowserService;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.rule.ServiceTestRule;
+import androidx.test.uiautomator.UiDevice;
 
 import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService;
 import com.android.bluetooth.btservice.AdapterService;
@@ -378,6 +379,13 @@ public class TestUtils {
                 BluetoothMediaBrowserService.class);
         intent.setAction(MediaBrowserService.SERVICE_INTERFACE);
         return intent;
+    }
+
+    public static void wakeUpAndDismissKeyGuard() throws Exception {
+        final UiDevice device = UiDevice.getInstance(
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation());
+        device.wakeUp();
+        device.executeShellCommand("wm dismiss-keyguard");
     }
 
     /**
