@@ -4561,12 +4561,18 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
         }
       }
 
-      /* in case of disconnect before search is completed */
-      if ((bta_dm_search_get_state() != BTA_DM_SEARCH_IDLE) &&
-          (bta_dm_search_get_state() != BTA_DM_SEARCH_ACTIVE) &&
-          p_data->close.remote_bda == bta_dm_search_cb.peer_bdaddr) {
-        bta_dm_gatt_disc_complete((uint16_t)GATT_INVALID_CONN_ID,
-                                  (tGATT_STATUS)GATT_ERROR);
+      switch (bta_dm_search_get_state()) {
+        case BTA_DM_SEARCH_IDLE:
+        case BTA_DM_SEARCH_ACTIVE:
+          break;
+
+        case BTA_DM_SEARCH_CANCELLING:
+        case BTA_DM_DISCOVER_ACTIVE:
+          /* in case of disconnect before search is completed */
+          if (p_data->close.remote_bda == bta_dm_search_cb.peer_bdaddr) {
+            bta_dm_gatt_disc_complete((uint16_t)GATT_INVALID_CONN_ID,
+                                      (tGATT_STATUS)GATT_ERROR);
+          }
       }
       break;
 
