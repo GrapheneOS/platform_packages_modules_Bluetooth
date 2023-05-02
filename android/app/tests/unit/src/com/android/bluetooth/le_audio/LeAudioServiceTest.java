@@ -1748,6 +1748,48 @@ public class LeAudioServiceTest {
         verify(mMcpService, times(1)).setDeviceAuthorized(mRightDevice, false);
     }
 
+    /**
+     * Test verifying that when the LE Audio connection policy of a device is set to
+     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN}, we unauthorize McpService and
+     * TbsService. When the LE Audio connection policy is set to
+     * {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED}, we will authorize these services.
+     */
+    @Test
+    public void testMcsAndTbsAuthorizationWithConnectionPolicy() {
+        int groupId = 1;
+
+        mService.handleBluetoothEnabled();
+        doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectLeAudio(any(BluetoothDevice.class));
+        doReturn(true).when(mDatabaseManager).setProfileConnectionPolicy(any(BluetoothDevice.class),
+                anyInt(), anyInt());
+        when(mDatabaseManager.getProfileConnectionPolicy(mSingleDevice, BluetoothProfile.LE_AUDIO))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+
+        // Ensures GATT server services are not authorized when the device does not have a group
+        assertThat(mService.setConnectionPolicy(mSingleDevice,
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED)).isTrue();
+        verify(mMcpService, never()).setDeviceAuthorized(mSingleDevice, false);
+        verify(mTbsService, never()).setDeviceAuthorized(mSingleDevice, false);
+
+        // Connects the test device and verifies GATT server services are authorized
+        connectTestDevice(mSingleDevice, groupId);
+        verify(mMcpService, times(1)).setDeviceAuthorized(mSingleDevice, true);
+        verify(mTbsService, times(1)).setDeviceAuthorized(mSingleDevice, true);
+
+        // Ensure that disconnecting unauthorizes GATT server services
+        assertThat(mService.setConnectionPolicy(mSingleDevice,
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)).isTrue();
+        verify(mMcpService, times(1)).setDeviceAuthorized(mSingleDevice, false);
+        verify(mTbsService, times(1)).setDeviceAuthorized(mSingleDevice, false);
+
+        // Connecting a device that has a group re-authorizes the GATT server services
+        assertThat(mService.setConnectionPolicy(mSingleDevice,
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED)).isTrue();
+        verify(mMcpService, times(2)).setDeviceAuthorized(mSingleDevice, true);
+        verify(mTbsService, times(2)).setDeviceAuthorized(mSingleDevice, true);
+    }
+
     @Test
     public void testGetGroupDevices() {
         int firstGroupId = 1;
