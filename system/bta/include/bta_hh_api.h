@@ -138,7 +138,8 @@ typedef enum : uint8_t {
   BTA_HH_ERR_NO_RES,      /* out of system resources */
   BTA_HH_ERR_AUTH_FAILED, /* authentication fail */
   BTA_HH_ERR_HDL,
-  BTA_HH_ERR_SEC
+  BTA_HH_ERR_SEC,
+  BTA_HH_HS_SERVICE_CHANGED /* GATT service changed on the peer */
 } tBTA_HH_STATUS;
 
 inline tBTA_HH_STATUS to_bta_hh_status(uint32_t status) {
