@@ -17,7 +17,9 @@
 package com.android.bluetooth.btservice;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -83,7 +85,9 @@ public class ActiveDeviceManagerTest {
     private ActiveDeviceManager mActiveDeviceManager;
     private long mHearingAidHiSyncId = 1010;
 
-    private static final int TIMEOUT_MS = 1000;
+    private static final int TIMEOUT_MS = 1_000;
+    private static final int A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS =
+            ActiveDeviceManager.A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS + 2_000;
     private boolean mOriginalDualModeAudioState;
 
     @Mock private AdapterService mAdapterService;
@@ -191,6 +195,17 @@ public class ActiveDeviceManagerTest {
     public void onlyA2dpConnected_setA2dpActive() {
         a2dpConnected(mA2dpDevice, false);
         verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpDevice);
+    }
+
+    @Test
+    public void a2dpHeadsetConnected_setA2dpActiveShouldBeCalledAfterHeadsetConnected() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_IN_CALL);
+
+        a2dpConnected(mA2dpHeadsetDevice, true);
+        verify(mA2dpService, after(TIMEOUT_MS).never()).setActiveDevice(mA2dpHeadsetDevice);
+        headsetConnected(mA2dpHeadsetDevice, true);
+        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
     }
 
     /**
@@ -322,6 +337,25 @@ public class ActiveDeviceManagerTest {
         verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mHeadsetDevice);
     }
 
+    @Test
+    public void a2dpConnectedButHeadsetNotConnected_setA2dpActive() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_IN_CALL);
+
+        a2dpConnected(mA2dpHeadsetDevice, true);
+        verify(mA2dpService, timeout(A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS))
+                .setActiveDevice(mA2dpHeadsetDevice);
+    }
+
+
+    @Test
+    public void headsetConnectedButA2dpNotConnected_setHeadsetActive() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+
+        headsetConnected(mA2dpHeadsetDevice, true);
+        verify(mHeadsetService, timeout(A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS))
+                .setActiveDevice(mA2dpHeadsetDevice);
+    }
+
     /**
      * A headset device with connecting audio policy set to NOT ALLOWED.
      */
@@ -366,8 +400,9 @@ public class ActiveDeviceManagerTest {
     public void hearingAidActive_clearA2dpAndHeadsetActive() {
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
-        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
-        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS).atLeastOnce()).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mHeadsetService, timeout(TIMEOUT_MS).atLeastOnce())
+                .setActiveDevice(mA2dpHeadsetDevice);
 
         hearingAidActiveDeviceChanged(mHearingAidDevice);
         verify(mA2dpService, timeout(TIMEOUT_MS)).removeActiveDevice(false);
@@ -502,8 +537,9 @@ public class ActiveDeviceManagerTest {
     public void leAudioActive_clearA2dpAndHeadsetActive() {
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
-        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
-        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS).atLeastOnce()).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mHeadsetService, timeout(TIMEOUT_MS).atLeastOnce())
+                .setActiveDevice(mA2dpHeadsetDevice);
 
         leAudioActiveDeviceChanged(mLeAudioDevice);
         verify(mA2dpService, timeout(TIMEOUT_MS)).removeActiveDevice(false);
@@ -514,14 +550,14 @@ public class ActiveDeviceManagerTest {
      * An LE Audio is connected. Then a combo (A2DP + Headset) device is connected.
      */
     @Test
-    public void leAudioActive_dontSetA2dpAndHeadsetActive() {
+    public void leAudioActive_setA2dpAndHeadsetActive() {
         leAudioActiveDeviceChanged(mLeAudioDevice);
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
 
         TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
-        verify(mA2dpService).setActiveDevice(mA2dpHeadsetDevice);
-        verify(mHeadsetService).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mA2dpService, atLeastOnce()).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mHeadsetService, atLeastOnce()).setActiveDevice(mA2dpHeadsetDevice);
     }
 
     /**
@@ -647,7 +683,8 @@ public class ActiveDeviceManagerTest {
 
         a2dpDisconnected(mA2dpDevice);
         verify(mA2dpService, timeout(TIMEOUT_MS).atLeast(1)).removeActiveDevice(false);
-        verify(mHearingAidService, timeout(TIMEOUT_MS).times(2)).setActiveDevice(mHearingAidDevice);
+        verify(mHearingAidService, timeout(TIMEOUT_MS).times(2))
+                .setActiveDevice(mHearingAidDevice);
     }
 
     /**
@@ -721,9 +758,11 @@ public class ActiveDeviceManagerTest {
         // Ensure we remove the LEA active device when classic audio profiles are made active
         a2dpConnected(mDualModeAudioDevice, true);
         headsetConnected(mDualModeAudioDevice, true);
-        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mDualModeAudioDevice);
-        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mDualModeAudioDevice);
-        verify(mLeAudioService, timeout(TIMEOUT_MS)).removeActiveDevice(true);
+        verify(mA2dpService, timeout(TIMEOUT_MS).atLeastOnce())
+                .setActiveDevice(mDualModeAudioDevice);
+        verify(mHeadsetService, timeout(TIMEOUT_MS).atLeastOnce())
+                .setActiveDevice(mDualModeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS).atLeastOnce()).removeActiveDevice(true);
         Assert.assertEquals(mDualModeAudioDevice, mActiveDeviceManager.getA2dpActiveDevice());
         Assert.assertEquals(mDualModeAudioDevice, mActiveDeviceManager.getHfpActiveDevice());
 
@@ -807,8 +846,9 @@ public class ActiveDeviceManagerTest {
         a2dpConnected(mA2dpHeadsetDevice, true);
         headsetConnected(mA2dpHeadsetDevice, true);
         TestUtils.waitForLooperToFinishScheduledTask(mActiveDeviceManager.getHandlerLooper());
-        verify(mA2dpService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
-        verify(mHeadsetService, timeout(TIMEOUT_MS)).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mA2dpService, timeout(TIMEOUT_MS).atLeastOnce()).setActiveDevice(mA2dpHeadsetDevice);
+        verify(mHeadsetService, timeout(TIMEOUT_MS).atLeastOnce())
+                .setActiveDevice(mA2dpHeadsetDevice);
         verify(mLeAudioService, never()).removeActiveDevice(anyBoolean());
 
         headsetConnected(mHeadsetDevice, false);
