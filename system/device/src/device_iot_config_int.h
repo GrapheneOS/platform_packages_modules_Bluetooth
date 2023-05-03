@@ -49,15 +49,15 @@ static const char* TIME_STRING_FORMAT = "%Y-%m-%d %H:%M:%S";
 #define IOT_CONFIG_FLUSH_EVT 0
 #define IOT_CONFIG_SAVE_TIMER_FIRED_EVT 1
 
-#if defined(OS_GENERIC)
-static const char* IOT_CONFIG_FILE_PATH = "bt_remote_dev_info.conf";
-static const char* IOT_CONFIG_BACKUP_PATH = "bt_remote_dev_info.bak";
-#else   // !defined(OS_GENERIC)
+#ifdef __ANDROID__
 static const char* IOT_CONFIG_FILE_PATH =
     "/data/misc/bluedroid/bt_remote_dev_info.conf";
 static const char* IOT_CONFIG_BACKUP_PATH =
     "/data/misc/bluedroid/bt_remote_dev_info.bak";
-#endif  // defined(OS_GENERIC)
+#else   // !__ANDROID__
+static const char* IOT_CONFIG_FILE_PATH = "bt_remote_dev_info.conf";
+static const char* IOT_CONFIG_BACKUP_PATH = "bt_remote_dev_info.bak";
+#endif  // __ANDROID__
 static const uint64_t CONFIG_SETTLE_PERIOD_MS = 12000;
 
 enum ConfigSource { NOT_LOADED, ORIGINAL, BACKUP, NEW_FILE, RESET };
