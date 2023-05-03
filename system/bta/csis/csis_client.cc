@@ -692,7 +692,8 @@ class CsisClientImpl : public CsisClient {
   void Dump(int fd) {
     std::stringstream stream;
 
-    stream << "  Groups\n";
+    stream << "  APP ID: " << +gatt_if_ << "\n"
+           << "  Groups:\n";
     for (const auto& g : csis_groups_) {
       stream << "    == id: " << g->GetGroupId() << " ==\n"
              << "    uuid: " << g->GetUuid() << "\n"
