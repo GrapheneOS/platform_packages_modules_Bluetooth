@@ -23,7 +23,7 @@
 #include <tuple>
 #include <vector>
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include <android/sysprop/BluetoothProperties.sysprop.h>
 #endif
 
@@ -280,7 +280,7 @@ class LeAudioDeviceGroup {
             types::LeAudioContextType::UNINITIALIZED),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
     // 22 maps to BluetoothProfile#LE_AUDIO
     is_output_preference_le_audio = android::sysprop::BluetoothProperties::
                                         getDefaultOutputOnlyAudioProfile() ==

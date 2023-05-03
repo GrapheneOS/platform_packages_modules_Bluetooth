@@ -28,7 +28,7 @@
 #include <base/strings/stringprintf.h>
 #include <log/log.h>
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include <android/sysprop/BluetoothProperties.sysprop.h>
 #endif
 
@@ -1669,14 +1669,14 @@ void L2CA_AdjustConnectionIntervals(uint16_t* min_interval,
                                     uint16_t floor_interval) {
   // Allow for customization by systemprops for mainline
   uint16_t phone_min_interval = floor_interval;
-  #ifdef OS_ANDROID
-    phone_min_interval =
-        android::sysprop::BluetoothProperties::getGapLeConnMinLimit().value_or(
-            floor_interval);
-  #else
-    phone_min_interval = (uint16_t)osi_property_get_int32(
+#ifdef __ANDROID__
+  phone_min_interval =
+      android::sysprop::BluetoothProperties::getGapLeConnMinLimit().value_or(
+          floor_interval);
+#else
+  phone_min_interval = (uint16_t)osi_property_get_int32(
       "bluetooth.core.gap.le.conn.min.limit", (int32_t)floor_interval);
-  #endif
+#endif
 
   if (GetInterfaceToProfiles()
           ->profileSpecific_HACK->GetHearingAidDeviceCount()) {

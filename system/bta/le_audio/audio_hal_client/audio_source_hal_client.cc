@@ -215,7 +215,7 @@ bool SourceImpl::InitAudioSinkThread() {
 
   /* Schedule the rest of the operations */
   if (!worker_thread_->EnableRealTimeScheduling()) {
-#if defined(OS_ANDROID)
+#if defined(__ANDROID__)
     LOG(FATAL) << __func__ << ", Failed to increase media thread priority";
 #endif
   }

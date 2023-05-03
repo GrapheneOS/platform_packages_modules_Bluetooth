@@ -46,7 +46,7 @@
 #define BTIF_HH_POLLING_SLEEP_DURATION_US 5000
 
 #ifndef ENABLE_UHID_SET_REPORT
-#if defined(OS_ANDROID) || defined(TARGET_FLOSS)
+#if defined(__ANDROID__) || defined(TARGET_FLOSS)
 #define ENABLE_UHID_SET_REPORT 1
 #else
 #define ENABLE_UHID_SET_REPORT 0
