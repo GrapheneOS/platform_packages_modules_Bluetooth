@@ -32,7 +32,6 @@ mod ffi {
         fn gd_link_policy_is_enabled() -> bool;
         fn gd_remote_name_request_is_enabled() -> bool;
         fn gd_rust_is_enabled() -> bool;
-        fn gd_security_is_enabled() -> bool;
         fn get_default_log_level() -> i32;
         fn get_hci_adapter() -> i32;
         fn get_log_level_for_tag(tag: &str) -> i32;
