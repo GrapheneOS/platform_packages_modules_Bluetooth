@@ -15,13 +15,9 @@
  */
 
 #define LOG_TAG "a2dp_vendor_opus_encoder"
-#define ATRACE_TAG ATRACE_TAG_AUDIO
 
 #include "a2dp_vendor_opus_encoder.h"
 
-#ifndef OS_GENERIC
-#include <cutils/trace.h>
-#endif
 #include <dlfcn.h>
 #include <inttypes.h>
 #include <opus.h>

@@ -600,9 +600,6 @@ cc_test {
             enabled: false,
         },
         android: {
-            cflags: [
-                "-DOS_ANDROID",
-            ],
             sanitize: {
                 misc_undefined: ["bounds"],
             },
