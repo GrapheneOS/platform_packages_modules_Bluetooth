@@ -659,12 +659,10 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
   if (strlen((const char*)bd_name)) {
     BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties], BT_PROPERTY_BDNAME,
                                strlen((char*)bd_name), bd_name);
-    if (!bluetooth::shim::is_gd_security_enabled()) {
-      status = btif_storage_set_remote_device_property(
-          &bdaddr, &properties[num_properties]);
-      ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device name",
-              status);
-    }
+    status = btif_storage_set_remote_device_property(
+        &bdaddr, &properties[num_properties]);
+    ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device name",
+            status);
     num_properties++;
   }
 
@@ -689,12 +687,10 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
   BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
                              BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
 
-  if (!bluetooth::shim::is_gd_security_enabled()) {
-    status = btif_storage_set_remote_device_property(
-        &bdaddr, &properties[num_properties]);
-    ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device class",
-            status);
-  }
+  status = btif_storage_set_remote_device_property(&bdaddr,
+                                                   &properties[num_properties]);
+  ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device class",
+          status);
   num_properties++;
 
   /* device type */
@@ -712,12 +708,10 @@ static void btif_update_remote_properties(const RawAddress& bdaddr,
   BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
                              BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type),
                              &dev_type);
-  if (!bluetooth::shim::is_gd_security_enabled()) {
-    status = btif_storage_set_remote_device_property(
-        &bdaddr, &properties[num_properties]);
-    ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device type",
-            status);
-  }
+  status = btif_storage_set_remote_device_property(&bdaddr,
+                                                   &properties[num_properties]);
+  ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device type",
+          status);
   num_properties++;
 
   GetInterfaceToProfiles()->events->invoke_remote_device_properties_cb(
@@ -1106,36 +1100,34 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
 
   RawAddress bd_addr = p_auth_cmpl->bd_addr;
   tBLE_ADDR_TYPE addr_type = p_auth_cmpl->addr_type;
-  if (!bluetooth::shim::is_gd_security_enabled()) {
-    if ((p_auth_cmpl->success) && (p_auth_cmpl->key_present)) {
-      if ((p_auth_cmpl->key_type < HCI_LKEY_TYPE_DEBUG_COMB) ||
-          (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB) ||
-          (p_auth_cmpl->key_type == HCI_LKEY_TYPE_CHANGED_COMB) ||
-          (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB_P_256) ||
-          pairing_cb.bond_type == tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT) {
-        bt_status_t ret;
-        BTIF_TRACE_DEBUG("%s: Storing link key. key_type=0x%x, bond_type=%d",
-                         __func__, p_auth_cmpl->key_type, pairing_cb.bond_type);
-        if (!bd_addr.IsEmpty()) {
-          ret = btif_storage_add_bonded_device(&bd_addr, p_auth_cmpl->key,
-                                               p_auth_cmpl->key_type,
-                                               pairing_cb.pin_code_len);
-        } else {
-          LOG_WARN("bd_addr is empty");
-          ret = BT_STATUS_FAIL;
-        }
-        ASSERTC(ret == BT_STATUS_SUCCESS, "storing link key failed", ret);
+  if ((p_auth_cmpl->success) && (p_auth_cmpl->key_present)) {
+    if ((p_auth_cmpl->key_type < HCI_LKEY_TYPE_DEBUG_COMB) ||
+        (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB) ||
+        (p_auth_cmpl->key_type == HCI_LKEY_TYPE_CHANGED_COMB) ||
+        (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB_P_256) ||
+        pairing_cb.bond_type == tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT) {
+      bt_status_t ret;
+      BTIF_TRACE_DEBUG("%s: Storing link key. key_type=0x%x, bond_type=%d",
+                       __func__, p_auth_cmpl->key_type, pairing_cb.bond_type);
+      if (!bd_addr.IsEmpty()) {
+        ret = btif_storage_add_bonded_device(&bd_addr, p_auth_cmpl->key,
+                                             p_auth_cmpl->key_type,
+                                             pairing_cb.pin_code_len);
       } else {
-        BTIF_TRACE_DEBUG(
-            "%s: Temporary key. Not storing. key_type=0x%x, bond_type=%d",
-            __func__, p_auth_cmpl->key_type, pairing_cb.bond_type);
-        if (pairing_cb.bond_type == tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY) {
-          BTIF_TRACE_DEBUG("%s: sending BT_BOND_STATE_NONE for Temp pairing",
-                           __func__);
-          btif_storage_remove_bonded_device(&bd_addr);
-          bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_NONE);
-          return;
-        }
+        LOG_WARN("bd_addr is empty");
+        ret = BT_STATUS_FAIL;
+      }
+      ASSERTC(ret == BT_STATUS_SUCCESS, "storing link key failed", ret);
+    } else {
+      BTIF_TRACE_DEBUG(
+          "%s: Temporary key. Not storing. key_type=0x%x, bond_type=%d",
+          __func__, p_auth_cmpl->key_type, pairing_cb.bond_type);
+      if (pairing_cb.bond_type == tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY) {
+        BTIF_TRACE_DEBUG("%s: sending BT_BOND_STATE_NONE for Temp pairing",
+                         __func__);
+        btif_storage_remove_bonded_device(&bd_addr);
+        bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_NONE);
+        return;
       }
     }
   }
@@ -1159,9 +1151,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
       return;
     }
 
-    if (!bluetooth::shim::is_gd_security_enabled()) {
-      btif_storage_set_remote_addr_type(&bd_addr, p_auth_cmpl->addr_type);
-    }
+    btif_storage_set_remote_addr_type(&bd_addr, p_auth_cmpl->addr_type);
 
     int dev_type;
     if (BTM_GetPeerDeviceTypeFromFeatures(bd_addr) == BT_DEVICE_TYPE_DUMO) {
