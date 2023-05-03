@@ -379,7 +379,6 @@ init_flags!(
         gd_link_policy,
         gd_remote_name_request,
         gd_rust,
-        gd_security,
         hci_adapter: i32,
         hfp_dynamic_version = true,
         irk_rotation,
@@ -419,8 +418,7 @@ init_flags!(
     }
     dependencies: {
         always_use_private_gatt_for_debugging => private_gatt,
-        private_gatt => rust_event_loop,
-        gd_core => gd_security
+        private_gatt => rust_event_loop
     }
 );
 
