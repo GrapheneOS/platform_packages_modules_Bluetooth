@@ -31,12 +31,10 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
 #include "os/log_tags.h"
 #include "os/logging/log_adapter.h"
 
-#if defined(OS_ANDROID)
+#if defined(__ANDROID__)
 
 #include <log/log.h>
 #include <log/log_event_list.h>
-
-#include "common/init_flags.h"
 
 #ifdef FUZZ_TARGET
 #define LOG_VERBOSE(...)
@@ -46,6 +44,10 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
 #else
 
 static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
+
+#if __has_include("src/init_flags.rs.h")
+
+#include "common/init_flags.h"
 
 #define LOG_VERBOSE(fmt, args...)                                                      \
   do {                                                                                 \
@@ -60,6 +62,7 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
       ALOGD("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args);                 \
     }                                                                                \
   } while (false)
+#endif /* __has_include("src/init_flags.rs.h") */
 
 #define LOG_INFO(fmt, args...) ALOGI("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
 #define LOG_WARN(fmt, args...) ALOGW("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
@@ -185,7 +188,7 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
   } while (false)
 #endif
 
-#endif /* defined(OS_ANDROID) */
+#endif /* defined(__ANDROID__) */
 
 #define ASSERT(condition)                                    \
   do {                                                       \
