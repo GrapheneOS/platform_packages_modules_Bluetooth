@@ -211,6 +211,20 @@ public class AdvertiseManager {
             AdvertiseData scanResponse, PeriodicAdvertisingParameters periodicParameters,
             AdvertiseData periodicData, int duration, int maxExtAdvEvents, int serverIf,
             IAdvertisingSetCallback callback) {
+        // If we are using an isolated server, force usage of an NRPA
+        if (serverIf != 0
+                && parameters.getOwnAddressType()
+                        != AdvertisingSetParameters.ADDRESS_TYPE_RANDOM_NON_RESOLVABLE) {
+            Log.w(TAG, "Cannot advertise an isolated GATT server using a resolvable address");
+            try {
+                callback.onAdvertisingSetStarted(
+                        0x00, 0x00, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
+            } catch (RemoteException exception) {
+                Log.e(TAG, "Failed to callback:" + Log.getStackTraceString(exception));
+            }
+            return;
+        }
+
         AdvertisingSetDeathRecipient deathRecipient = new AdvertisingSetDeathRecipient(callback);
         IBinder binder = toBinder(callback);
         try {
