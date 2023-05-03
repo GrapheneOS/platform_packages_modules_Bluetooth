@@ -132,9 +132,6 @@ void Stack::StartEverything() {
     modules.add<l2cap::le::L2capLeModule>();
     modules.add<hci::LeAdvertisingManager>();
   }
-  if (common::init_flags::gd_security_is_enabled()) {
-    modules.add<security::SecurityModule>();
-  }
   modules.add<hci::LeAdvertisingManager>();
   modules.add<hci::MsftExtensionManager>();
   modules.add<hci::LeScanningManager>();
