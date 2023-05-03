@@ -178,6 +178,7 @@ const uint16_t BTM_EIR_UUID_LKUP_TBL[BTM_EIR_MAX_SERVICES] = {
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void btm_clr_inq_db(const RawAddress* p_bda);
+static void btm_init_inq_result_flt(void);
 void btm_clr_inq_result_flt(void);
 static void btm_inq_rmt_name_failed_cancelled(void);
 static tBTM_STATUS btm_initiate_rem_name(const RawAddress& remote_bda,
@@ -651,11 +652,7 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
 
   btm_clr_inq_result_flt();
 
-  /* Allocate memory to hold bd_addrs responding */
-  btm_cb.btm_inq_vars.p_bd_db =
-      (tINQ_BDADDR*)osi_calloc(BT_DEFAULT_BUFFER_SIZE);
-  btm_cb.btm_inq_vars.max_bd_entries =
-      (uint16_t)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
+  btm_init_inq_result_flt();
 
   bluetooth::legacy::hci::GetInterface().StartInquiry(
       general_inq_lap, btm_cb.btm_inq_vars.inqparms.duration, 0);
@@ -1052,20 +1049,26 @@ void btm_clr_inq_db(const RawAddress* p_bda) {
 
 /*******************************************************************************
  *
- * Function         btm_clr_inq_result_flt
+ * Function         btm_[init|clr]_inq_result_flt
  *
- * Description      This function looks through the bdaddr database for a match
- *                  based on Bluetooth Device Address
+ * Description      These functions initialize and clear the bdaddr
+ *                  database for a match based on Bluetooth Device Address
  *
- * Returns          true if found, else false (new entry)
+ * Returns          None
  *
  ******************************************************************************/
-void btm_clr_inq_result_flt(void) {
-  tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
+static void btm_init_inq_result_flt(void) {
+  /* Allocate memory to hold bd_addrs responding */
+  btm_cb.btm_inq_vars.p_bd_db =
+      (tINQ_BDADDR*)osi_calloc(BT_DEFAULT_BUFFER_SIZE);
+  btm_cb.btm_inq_vars.max_bd_entries =
+      (uint16_t)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
+}
 
-  osi_free_and_reset((void**)&p_inq->p_bd_db);
-  p_inq->num_bd_entries = 0;
-  p_inq->max_bd_entries = 0;
+void btm_clr_inq_result_flt(void) {
+  osi_free_and_reset((void**)&btm_cb.btm_inq_vars.p_bd_db);
+  btm_cb.btm_inq_vars.num_bd_entries = 0;
+  btm_cb.btm_inq_vars.max_bd_entries = 0;
 }
 
 /*******************************************************************************
