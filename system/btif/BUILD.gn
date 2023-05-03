@@ -91,7 +91,6 @@ static_library("btif") {
     "src/btif_storage.cc",
     "src/btif_uid.cc",
     "src/btif_util.cc",
-    "src/profile_log_levels.cc",
     "src/stack_manager.cc",
   ]
 
