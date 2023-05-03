@@ -30,7 +30,7 @@
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_dm_api.h"
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include "bta/le_audio/devices.h"
 #endif
 

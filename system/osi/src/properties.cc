@@ -26,13 +26,13 @@
 
 #include "gd/os/system_properties.h"
 
-#if !defined(OS_GENERIC)
+#ifdef __ANDROID__
 #undef PROPERTY_VALUE_MAX
 #include <cutils/properties.h>
 #if BUILD_SANITY_PROPERTY_VALUE_MAX != PROPERTY_VALUE_MAX
 #error "PROPERTY_VALUE_MAX from osi/include/properties.h != the Android value"
 #endif  // GENERIC_PROPERTY_VALUE_MAX != PROPERTY_VALUE_MAX
-#endif  // !defined(OS_GENERIC)
+#endif  // __ANDROID__
 
 int osi_property_get(const char* key, char* value, const char* default_value) {
   std::optional<std::string> result = bluetooth::os::GetSystemProperty(key);

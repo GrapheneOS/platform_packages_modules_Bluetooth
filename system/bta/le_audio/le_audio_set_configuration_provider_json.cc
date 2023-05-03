@@ -39,7 +39,7 @@ using le_audio::types::LeAudioContextType;
 namespace le_audio {
 using ::le_audio::CodecManager;
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 static const std::vector<
     std::pair<const char* /*schema*/, const char* /*content*/>>
     kLeAudioSetConfigs = {
