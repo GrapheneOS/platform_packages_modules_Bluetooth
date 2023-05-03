@@ -165,7 +165,6 @@ cc_defaults {
         "libcrypto",
         "libfmq",
         "libnativehelper",
-        "libtinyxml2",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",

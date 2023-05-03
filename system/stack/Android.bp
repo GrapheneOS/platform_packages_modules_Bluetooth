@@ -324,7 +324,6 @@ cc_test {
         "libfmq",
         "libhidlbase",
         "liblog",
-        "libtinyxml2",
         "libutils",
         "libz",
     ],

@@ -38,7 +38,6 @@
 #include "btif_api.h"
 #include "btif_common.h"
 #include "btif_config_cache.h"
-#include "btif_config_transcode.h"
 #include "btif_keystore.h"
 #include "btif_metrics_logging.h"
 #include "common/address_obfuscator.h"
