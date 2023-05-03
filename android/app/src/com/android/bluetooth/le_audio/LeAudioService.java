@@ -70,6 +70,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.mcp.McpService;
 import com.android.bluetooth.tbs.TbsGatt;
@@ -147,6 +148,9 @@ public class LeAudioService extends ProfileService {
 
     @VisibleForTesting
     VolumeControlService mVolumeControlService;
+
+    @VisibleForTesting
+    CsipSetCoordinatorService mCsipSetCoordinatorService;
 
     @VisibleForTesting
     RemoteCallbackList<IBluetoothLeBroadcastCallback> mBroadcastCallbacks;
@@ -441,6 +445,7 @@ public class LeAudioService extends ProfileService {
         mMcpService = null;
         mTbsService = null;
         mVolumeControlService = null;
+        mCsipSetCoordinatorService = null;
 
         return true;
     }
@@ -2427,7 +2432,33 @@ public class LeAudioService extends ProfileService {
             setAuthorizationForRelatedProfiles(device, false);
             disconnect(device);
         }
+        setLeAudioGattClientProfilesPolicy(device, connectionPolicy);
         return true;
+    }
+
+    /**
+     * Sets the connection policy for LE Audio GATT client profiles
+     * @param device is the remote device
+     * @param connectionPolicy is the connection policy we wish to set
+     */
+    private void setLeAudioGattClientProfilesPolicy(BluetoothDevice device, int connectionPolicy) {
+        if (DBG) {
+            Log.d(TAG, "setLeAudioGattClientProfilesPolicy for device " + device + " to policy="
+                    + connectionPolicy);
+        }
+        if (mVolumeControlService == null) {
+            mVolumeControlService = mServiceFactory.getVolumeControlService();
+        }
+        if (mVolumeControlService != null) {
+            mVolumeControlService.setConnectionPolicy(device, connectionPolicy);
+        }
+
+        if (mCsipSetCoordinatorService == null) {
+            mCsipSetCoordinatorService = mServiceFactory.getCsipSetCoordinatorService();
+        }
+        if (mCsipSetCoordinatorService != null) {
+            mCsipSetCoordinatorService.setConnectionPolicy(device, connectionPolicy);
+        }
     }
 
     /**
