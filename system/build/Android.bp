@@ -213,6 +213,7 @@ cc_defaults {
                 "android.hardware.bluetooth.audio@2.0",
                 "android.hardware.bluetooth.audio@2.1",
                 "android.system.suspend-V1-ndk",
+                "libPlatformProperties",
                 "libaaudio",
                 "libbinder_ndk",
                 "libcutils",
@@ -221,7 +222,6 @@ cc_defaults {
                 "libtinyxml2",
                 "libutils",
                 "libz",
-                "libPlatformProperties",
             ],
             static_libs: [
                 "android.system.suspend.control-V1-ndk",
