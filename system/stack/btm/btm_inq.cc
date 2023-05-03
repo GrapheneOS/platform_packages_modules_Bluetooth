@@ -536,10 +536,11 @@ void BTM_CancelInquiry(void) {
 }
 
 static void btm_classic_inquiry_timeout(UNUSED_ATTR void* data) {
-  // We mark both classic inquiry and BLE inquiry complete so that we stop
-  // processing BLE results as inquiry results.
-  btm_process_inq_complete(HCI_SUCCESS,
-                           (BTM_BR_INQUIRY_MASK | BTM_BLE_INQUIRY_MASK));
+  // When the Inquiry Complete event is received, the classic inquiry
+  // will be marked as completed. Therefore, we only need to mark
+  // the BLE inquiry as completed here to stop processing BLE results
+  // as inquiry results.
+  btm_process_inq_complete(HCI_SUCCESS, BTM_BLE_INQUIRY_MASK);
 }
 
 /*******************************************************************************
