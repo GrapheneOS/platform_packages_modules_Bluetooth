@@ -18,7 +18,7 @@
     package="com.android.pandora">
     <uses-sdk android:minSdkVersion="33"/>
 
-    <application android:debuggable="true">
+    <application>
         <uses-library android:name="android.test.runner" />
 
           <service android:name=".MediaPlayerBrowserService"
