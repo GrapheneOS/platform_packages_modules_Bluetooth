@@ -3363,7 +3363,7 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         break;
 
       case BTA_DM_AUTH_SMP_CONN_TOUT: {
-        if (btm_sec_is_a_bonded_dev(bd_addr)) {
+        if (!p_auth_cmpl->is_ctkd && btm_sec_is_a_bonded_dev(bd_addr)) {
           LOG(INFO) << __func__ << " Bonded device addr="
                     << ADDRESS_TO_LOGGABLE_STR(bd_addr)
                     << " timed out - will not remove the keys";
@@ -3371,7 +3371,9 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
           // unbonded, and will disconnect HID profile.
           return;
         }
-
+        LOG_INFO(
+            "Removing ble bonding keys on SMP_CONN_TOUT during crosskey: %d",
+            p_auth_cmpl->is_ctkd);
         btif_dm_remove_ble_bonding_keys();
         status = BT_STATUS_AUTH_FAILURE;
         break;
