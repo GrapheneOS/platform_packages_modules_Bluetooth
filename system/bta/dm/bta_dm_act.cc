@@ -26,7 +26,7 @@
 #define LOG_TAG "bt_bta_dm"
 
 #include <base/logging.h>
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include <bta.sysprop.h>
 #endif
 
@@ -178,7 +178,7 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tHCI_STATUS result);
 // Time to wait after receiving shutdown request to delay the actual shutdown
 // process. This time may be zero which invokes immediate shutdown.
 static uint64_t get_DisableDelayTimerInMs() {
-#ifndef OS_ANDROID
+#ifndef __ANDROID__
   return 200;
 #else
   static const uint64_t kDisableDelayTimerInMs =

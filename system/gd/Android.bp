@@ -19,21 +19,12 @@ cc_defaults {
     target: {
         android: {
             test_config_template: "AndroidTestTemplate.xml",
-            cflags: [
-                "-DOS_ANDROID",
-                "-DOS_LINUX_GENERIC",
-            ],
             shared_libs: [
                 "liblog",
             ],
             sanitize: {
                 misc_undefined: ["bounds"],
             },
-        },
-        host: {
-            cflags: [
-                "-DOS_LINUX_GENERIC",
-            ],
         },
         darwin: {
             enabled: false,

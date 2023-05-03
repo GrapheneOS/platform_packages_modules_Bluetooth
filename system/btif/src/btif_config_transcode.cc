@@ -20,7 +20,7 @@
 
 #include "osi/include/config.h"
 
-#ifndef OS_ANDROID
+#ifndef __ANDROID__
 std::unique_ptr<config_t> btif_config_transcode(const char* xml_filename) {
   // Legacy XML config never exists for non-Android
   return nullptr;
