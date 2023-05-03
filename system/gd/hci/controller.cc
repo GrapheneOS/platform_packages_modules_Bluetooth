@@ -120,13 +120,12 @@ struct Controller::impl {
     }
 
     // SSP is managed by security layer once enabled
-    if (!common::init_flags::gd_security_is_enabled()) {
-      write_simple_pairing_mode(Enable::ENABLED);
-      if (module_.SupportsSecureConnections()) {
-        hci_->EnqueueCommand(
-            WriteSecureConnectionsHostSupportBuilder::Create(Enable::ENABLED),
-            handler->BindOnceOn(this, &Controller::impl::write_secure_connections_host_support_complete_handler));
-      }
+    write_simple_pairing_mode(Enable::ENABLED);
+    if (module_.SupportsSecureConnections()) {
+      hci_->EnqueueCommand(
+          WriteSecureConnectionsHostSupportBuilder::Create(Enable::ENABLED),
+          handler->BindOnceOn(
+              this, &Controller::impl::write_secure_connections_host_support_complete_handler));
     }
     if (is_supported(OpCode::LE_READ_SUGGESTED_DEFAULT_DATA_LENGTH) && module_.SupportsBleDataPacketLengthExtension()) {
       hci_->EnqueueCommand(
