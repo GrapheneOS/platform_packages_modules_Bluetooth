@@ -51,7 +51,12 @@
 #include "osi/include/osi.h"
 #include "types/raw_address.h"
 
-#if defined(OS_GENERIC)
+#ifdef __ANDROID__
+static const char* INTEROP_DYNAMIC_FILE_PATH =
+    "/data/misc/bluedroid/interop_database_dynamic.conf";
+static const char* INTEROP_STATIC_FILE_PATH =
+    "/apex/com.android.btservices/etc/bluetooth/interop_database.conf";
+#else  // !__ANDROID__
 #include <base/files/file_util.h>
 
 #include <filesystem>
@@ -66,12 +71,7 @@ static const std::filesystem::path kStaticConfigFileConfigFile =
 
 static const char* INTEROP_STATIC_FILE_PATH =
     kStaticConfigFileConfigFile.c_str();
-#else   // !defined(OS_GENERIC)
-static const char* INTEROP_DYNAMIC_FILE_PATH =
-    "/data/misc/bluedroid/interop_database_dynamic.conf";
-static const char* INTEROP_STATIC_FILE_PATH =
-    "/apex/com.android.btservices/etc/bluetooth/interop_database.conf";
-#endif  // defined(OS_GENERIC)
+#endif  // __ANDROID__
 
 #define CASE_RETURN_STR(const) \
   case const:                  \
