@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <mutex>
+
 #include "advertise_data_parser.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
@@ -67,6 +69,17 @@ void btm_log_history_scan_mode(uint8_t scan_mode) {
                          (scan_mode & HCI_PAGE_SCAN_ENABLED) ? 'T' : 'F'));
   scan_mode_cached_ = scan_mode;
 }
+
+// Inquiry database lock
+std::mutex inq_db_lock_;
+// Inquiry database
+tINQ_DB_ENT inq_db_[BTM_INQ_DB_SIZE];
+
+// Inquiry bluetooth device database lock
+std::mutex bd_db_lock_;
+tINQ_BDADDR* p_bd_db_;    /* Pointer to memory that holds bdaddrs */
+uint16_t num_bd_entries_; /* Number of entries in database */
+uint16_t max_bd_entries_; /* Maximum number of entries that can be stored */
 
 }  // namespace
 
@@ -786,8 +799,9 @@ tBTM_INQ_INFO* BTM_InqDbRead(const RawAddress& p_bda) {
  ******************************************************************************/
 tBTM_INQ_INFO* BTM_InqDbFirst(void) {
   uint16_t xx;
-  tINQ_DB_ENT* p_ent = btm_cb.btm_inq_vars.inq_db;
 
+  std::lock_guard<std::mutex> lock(inq_db_lock_);
+  tINQ_DB_ENT* p_ent = inq_db_;
   for (xx = 0; xx < BTM_INQ_DB_SIZE; xx++, p_ent++) {
     if (p_ent->in_use) return (&p_ent->inq_info);
   }
@@ -808,15 +822,16 @@ tBTM_INQ_INFO* BTM_InqDbFirst(void) {
  *
  ******************************************************************************/
 tBTM_INQ_INFO* BTM_InqDbNext(tBTM_INQ_INFO* p_cur) {
-  tINQ_DB_ENT* p_ent;
   uint16_t inx;
 
-  if (p_cur) {
-    p_ent = (tINQ_DB_ENT*)((uint8_t*)p_cur - offsetof(tINQ_DB_ENT, inq_info));
-    inx = (uint16_t)((p_ent - btm_cb.btm_inq_vars.inq_db) + 1);
+  std::lock_guard<std::mutex> lock(inq_db_lock_);
 
-    for (p_ent = &btm_cb.btm_inq_vars.inq_db[inx]; inx < BTM_INQ_DB_SIZE;
-         inx++, p_ent++) {
+  if (p_cur) {
+    tINQ_DB_ENT* p_ent =
+        (tINQ_DB_ENT*)((uint8_t*)p_cur - offsetof(tINQ_DB_ENT, inq_info));
+    inx = (uint16_t)((p_ent - inq_db_) + 1);
+
+    for (p_ent = &inq_db_[inx]; inx < BTM_INQ_DB_SIZE; inx++, p_ent++) {
       if (p_ent->in_use) return (&p_ent->inq_info);
     }
 
@@ -863,7 +878,8 @@ tBTM_STATUS BTM_ClearInqDb(const RawAddress* p_bda) {
  ******************************************************************************/
 void btm_clear_all_pending_le_entry(void) {
   uint16_t xx;
-  tINQ_DB_ENT* p_ent = btm_cb.btm_inq_vars.inq_db;
+  std::lock_guard<std::mutex> lock(inq_db_lock_);
+  tINQ_DB_ENT* p_ent = inq_db_;
 
   for (xx = 0; xx < BTM_INQ_DB_SIZE; xx++, p_ent++) {
     /* mark all pending LE entry as unused if an LE only device has scan
@@ -1026,14 +1042,14 @@ void btm_inq_clear_ssp(void) {
  *
  ******************************************************************************/
 void btm_clr_inq_db(const RawAddress* p_bda) {
-  tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-  tINQ_DB_ENT* p_ent = p_inq->inq_db;
   uint16_t xx;
 
 #if (BTM_INQ_DEBUG == TRUE)
   BTM_TRACE_DEBUG("btm_clr_inq_db: inq_active:0x%x state:%d",
                   btm_cb.btm_inq_vars.inq_active, btm_cb.btm_inq_vars.state);
 #endif
+  std::lock_guard<std::mutex> lock(inq_db_lock_);
+  tINQ_DB_ENT* p_ent = inq_db_;
   for (xx = 0; xx < BTM_INQ_DB_SIZE; xx++, p_ent++) {
     if (p_ent->in_use) {
       /* If this is the specified BD_ADDR or clearing all devices */
@@ -1059,17 +1075,26 @@ void btm_clr_inq_db(const RawAddress* p_bda) {
  *
  ******************************************************************************/
 static void btm_init_inq_result_flt(void) {
+  std::lock_guard<std::mutex> lock(bd_db_lock_);
+
+  if (p_bd_db_ != nullptr) {
+    LOG_ERROR("Memory leak with bluetooth device database");
+  }
+
   /* Allocate memory to hold bd_addrs responding */
-  btm_cb.btm_inq_vars.p_bd_db =
-      (tINQ_BDADDR*)osi_calloc(BT_DEFAULT_BUFFER_SIZE);
-  btm_cb.btm_inq_vars.max_bd_entries =
-      (uint16_t)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
+  p_bd_db_ = (tINQ_BDADDR*)osi_calloc(BT_DEFAULT_BUFFER_SIZE);
+  max_bd_entries_ = (uint16_t)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
 }
 
 void btm_clr_inq_result_flt(void) {
-  osi_free_and_reset((void**)&btm_cb.btm_inq_vars.p_bd_db);
-  btm_cb.btm_inq_vars.num_bd_entries = 0;
-  btm_cb.btm_inq_vars.max_bd_entries = 0;
+  std::lock_guard<std::mutex> lock(bd_db_lock_);
+  if (p_bd_db_ == nullptr) {
+    LOG_WARN("Memory being reset multiple times");
+  }
+
+  osi_free_and_reset((void**)&p_bd_db_);
+  num_bd_entries_ = 0;
+  max_bd_entries_ = 0;
 }
 
 /*******************************************************************************
@@ -1083,22 +1108,23 @@ void btm_clr_inq_result_flt(void) {
  *
  ******************************************************************************/
 bool btm_inq_find_bdaddr(const RawAddress& p_bda) {
-  tINQ_BDADDR* p_db = btm_cb.btm_inq_vars.p_bd_db;
+  std::lock_guard<std::mutex> lock(bd_db_lock_);
+  tINQ_BDADDR* p_db = p_bd_db_;
   uint16_t xx;
 
   /* Don't bother searching, database doesn't exist or periodic mode */
   if (!p_db) return (false);
 
-  for (xx = 0; xx < btm_cb.btm_inq_vars.num_bd_entries; xx++, p_db++) {
+  for (xx = 0; xx < num_bd_entries_; xx++, p_db++) {
     if (p_db->bd_addr == p_bda &&
         p_db->inq_count == btm_cb.btm_inq_vars.inq_counter)
       return (true);
   }
 
-  if (xx < btm_cb.btm_inq_vars.max_bd_entries) {
+  if (xx < max_bd_entries_) {
     p_db->inq_count = btm_cb.btm_inq_vars.inq_counter;
     p_db->bd_addr = p_bda;
-    btm_cb.btm_inq_vars.num_bd_entries++;
+    num_bd_entries_++;
   }
 
   /* If here, New Entry */
@@ -1117,7 +1143,8 @@ bool btm_inq_find_bdaddr(const RawAddress& p_bda) {
  ******************************************************************************/
 tINQ_DB_ENT* btm_inq_db_find(const RawAddress& p_bda) {
   uint16_t xx;
-  tINQ_DB_ENT* p_ent = btm_cb.btm_inq_vars.inq_db;
+  std::lock_guard<std::mutex> lock(inq_db_lock_);
+  tINQ_DB_ENT* p_ent = inq_db_;
 
   for (xx = 0; xx < BTM_INQ_DB_SIZE; xx++, p_ent++) {
     if (p_ent->in_use && p_ent->inq_info.results.remote_bd_addr == p_bda)
@@ -1141,9 +1168,11 @@ tINQ_DB_ENT* btm_inq_db_find(const RawAddress& p_bda) {
  ******************************************************************************/
 tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda) {
   uint16_t xx;
-  tINQ_DB_ENT* p_ent = btm_cb.btm_inq_vars.inq_db;
-  tINQ_DB_ENT* p_old = btm_cb.btm_inq_vars.inq_db;
   uint64_t ot = UINT64_MAX;
+
+  std::lock_guard<std::mutex> lock(inq_db_lock_);
+  tINQ_DB_ENT* p_ent = inq_db_;
+  tINQ_DB_ENT* p_old = inq_db_;
 
   for (xx = 0; xx < BTM_INQ_DB_SIZE; xx++, p_ent++) {
     if (!p_ent->in_use) {
@@ -1373,8 +1402,9 @@ void btm_process_inq_results(const uint8_t* p, uint8_t hci_evt_len,
  ******************************************************************************/
 void btm_sort_inq_result(void) {
   uint8_t xx, yy, num_resp;
-  tINQ_DB_ENT* p_ent = btm_cb.btm_inq_vars.inq_db;
-  tINQ_DB_ENT* p_next = btm_cb.btm_inq_vars.inq_db + 1;
+  std::lock_guard<std::mutex> lock(inq_db_lock_);
+  tINQ_DB_ENT* p_ent = inq_db_;
+  tINQ_DB_ENT* p_next = inq_db_ + 1;
   int size;
   tINQ_DB_ENT* p_tmp = (tINQ_DB_ENT*)osi_malloc(sizeof(tINQ_DB_ENT));
 
