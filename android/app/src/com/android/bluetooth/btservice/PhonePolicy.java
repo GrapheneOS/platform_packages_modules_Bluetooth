@@ -420,6 +420,8 @@ class PhonePolicy {
                 == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
             if (isLeAudioProfileAllowed) {
                 debugLog("LE Audio preferred over ASHA for device " + device);
+                mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                        BluetoothProfile.HEARING_AID, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
             } else {
                 debugLog("setting hearing aid profile priority for device " + device);
                 if (mAutoConnectProfilesSupported) {
