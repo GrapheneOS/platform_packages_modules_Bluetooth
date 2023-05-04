@@ -19,8 +19,9 @@ from typing import Optional
 from grpc import RpcError
 
 from mmi2grpc._audio import AudioSignal
-from mmi2grpc._helpers import assert_description
+from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
+from mmi2grpc._rootcanal import RootCanal
 from pandora_experimental.a2dp_grpc import A2DP
 from pandora_experimental.a2dp_pb2 import Sink, Source, PlaybackAudioRequest
 from pandora.host_grpc import Host
@@ -40,11 +41,12 @@ class A2DPProxy(ProfileProxy):
     sink: Optional[Sink] = None
     source: Optional[Source] = None
 
-    def __init__(self, channel):
+    def __init__(self, channel, rootcanal):
         super().__init__(channel)
 
         self.host = Host(channel)
         self.a2dp = A2DP(channel)
+        self.rootcanal = rootcanal
 
         def convert_frame(data):
             return PlaybackAudioRequest(data=data, source=self.source)
@@ -162,11 +164,8 @@ class A2DPProxy(ProfileProxy):
         Action: This
         can be also be done by placing the IUT or PTS in an RF shielded box.
          """
-        assert self.connection
-        self.host.Disconnect(connection=self.connection)
-        self.connection = None
-        self.sink = None
-        self.source = None
+        self.rootcanal.disconnect_phy()
+
         return "OK"
 
     @assert_description
@@ -186,8 +185,8 @@ class A2DPProxy(ProfileProxy):
         if test == "A2DP/SRC/SUS/BV-01-I":
             # Stream is not suspended when we receive the interaction
             time.sleep(1)
-
-        self.a2dp.Start(source=self.source)
+        if test != "A2DP/SRC/SET/BV-03-I":  # Not initiating a2dp start again for this test case
+            self.a2dp.Start(source=self.source)
         self.audio.start()
         return "OK"
 
@@ -397,6 +396,7 @@ class A2DPProxy(ProfileProxy):
         Action: Press OK when the
         IUT is ready to accept Bluetooth connections again.
         """
+        self.rootcanal.reconnect_phy_if_needed()
 
         return "OK"
 
@@ -434,17 +434,20 @@ class A2DPProxy(ProfileProxy):
         # TODO: Extract and verify attribute name and value from description
         return "OK"
 
-    @assert_description
-    def TSC_A2DP_mmi_user_confirm_optional_string_attribute(self, **kwargs):
+    @match_description
+    def TSC_A2DP_mmi_user_confirm_optional_string_attribute(self, name: str, test: str, **kwargs):
         """
         Tester found the optional SDP attribute named 'Service Name'.  Press
         'Yes' if the string displayed below is correct.
 
-        Value: Advanced Audio
-        Source
+        Value: (?P<name>[\w\s]+)
         """
 
-        # TODO: Extract and verify attribute name and value from description
+        if "SRC" in test:
+            assert name == "Advanced Audio Source", name
+        else:
+            assert name == "Advanced Audio Sink", name
+
         return "OK"
 
     @assert_description
@@ -582,5 +585,49 @@ class A2DPProxy(ProfileProxy):
         - M = 0
         """
 
+        # TODO: verify
+        return "OK"
+
+    @assert_description
+    def TSC_AVDTPEX_mmi_iut_initiate_delayreport(self, **kwargs):
+        """
+        Take action if necessary to initiate a Delay Reporting command.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVDTPEX_mmi_iut_initiate_set_configuration_delay_reporting(self, **kwargs):
+        """
+        Take action to configure a stream with Delay Reporting.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVDTPEX_mmi_iut_initiate_set_configuration_delayreport(self, **kwargs):
+        """
+        Take action to initiate a stream using delay reporting.
+
+        Note: The IUT
+        must send a Delay Report command immediately after configuration of the
+        stream.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVDTP_mmi_iut_initiate_delayreport(self, **kwargs):
+        """
+        Take action if necessary to initiate a Delay Reporting command.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_A2DP_mmi_user_verify_delay_report_value(self, **kwargs):
+        """
+        Is the delay value 3000, within a device acceptable range?
+        """
         # TODO: verify
         return "OK"

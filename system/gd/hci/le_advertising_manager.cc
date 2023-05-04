@@ -19,6 +19,7 @@
 #include <mutex>
 
 #include "common/init_flags.h"
+#include "common/strings.h"
 #include "hci/acl_manager.h"
 #include "hci/controller.h"
 #include "hci/hci_layer.h"
@@ -36,6 +37,13 @@ namespace hci {
 const ModuleFactory LeAdvertisingManager::Factory = ModuleFactory([]() { return new LeAdvertisingManager(); });
 constexpr int kIdLocal = 0xff;  // Id for advertiser not register from Java layer
 constexpr uint16_t kLenOfFlags = 0x03;
+constexpr int64_t kLeAdvertisingTxPowerMin = -127;
+constexpr int64_t kLeAdvertisingTxPowerMax = 20;
+constexpr int64_t kLeTxPathLossCompMin = -128;
+constexpr int64_t kLeTxPathLossCompMax = 127;
+
+// system properties
+const std::string kLeTxPathLossCompProperty = "bluetooth.hardware.radio.le_tx_path_loss_comp_db";
 
 enum class AdvertisingApiType {
   LEGACY = 1,
@@ -149,6 +157,40 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     for (size_t i = 0; i < enabled_sets_.size(); i++) {
       enabled_sets_[i].advertising_handle_ = kInvalidHandle;
     }
+    le_tx_path_loss_comp_ = get_tx_path_loss_compensation();
+  }
+
+  int8_t get_tx_path_loss_compensation() {
+    int8_t compensation = 0;
+    auto compensation_prop = os::GetSystemProperty(kLeTxPathLossCompProperty);
+    if (compensation_prop) {
+      auto compensation_number = common::Int64FromString(compensation_prop.value());
+      if (compensation_number) {
+        int64_t number = compensation_number.value();
+        if (number < kLeTxPathLossCompMin || number > kLeTxPathLossCompMax) {
+          LOG_ERROR("Invalid number for tx path loss compensation: %" PRId64, number);
+        } else {
+          compensation = number;
+        }
+      }
+    }
+    LOG_INFO("Tx path loss compensation: %d", compensation);
+    return compensation;
+  }
+
+  int8_t get_tx_power_after_calibration(int8_t tx_power) {
+    if (le_tx_path_loss_comp_ == 0) {
+      return tx_power;
+    }
+    int8_t calibrated_tx_power = tx_power;
+    int64_t number = tx_power + le_tx_path_loss_comp_;
+    if (number < kLeAdvertisingTxPowerMin || number > kLeAdvertisingTxPowerMax) {
+      LOG_ERROR("Invalid number for calibrated tx power: %" PRId64, number);
+    } else {
+      calibrated_tx_power = number;
+    }
+    LOG_INFO("tx_power: %d, calibrated_tx_power: %d", tx_power, calibrated_tx_power);
+    return calibrated_tx_power;
   }
 
   size_t GetNumberOfAdvertisingInstances() const {
@@ -630,6 +672,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   }
 
   void set_parameters(AdvertiserId advertiser_id, AdvertisingConfig config) {
+    config.tx_power = get_tx_power_after_calibration(static_cast<int8_t>(config.tx_power));
     advertising_sets_[advertiser_id].connectable = config.connectable;
     advertising_sets_[advertiser_id].discoverable = config.discoverable;
     advertising_sets_[advertiser_id].tx_power = config.tx_power;
@@ -1251,6 +1294,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   hci::Controller* controller_;
   uint16_t le_maximum_advertising_data_length_;
   int8_t le_physical_channel_tx_power_ = 0;
+  int8_t le_tx_path_loss_comp_ = 0;
   hci::LeAdvertisingInterface* le_advertising_interface_;
   std::map<AdvertiserId, Advertiser> advertising_sets_;
   hci::LeAddressManager* le_address_manager_;

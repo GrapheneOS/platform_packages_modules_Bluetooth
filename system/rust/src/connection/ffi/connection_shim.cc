@@ -43,7 +43,7 @@ struct LeAclManagerCallbackShim {
   void OnLeConnectFail(core::AddressWithType addr, uint8_t status) const {
     LOG_ALWAYS_FATAL("system/rust not available in Floss");
   };
-  void OnLeDisconnection(core::AddressWithType addr) const {
+  void OnDisconnect(core::AddressWithType addr) const {
     LOG_ALWAYS_FATAL("system/rust not available in Floss");
   };
 };
@@ -92,18 +92,6 @@ struct LeAclManagerShim::impl : hci::acl_manager::LeAcceptlistCallbacks {
   // hci::acl_manager::LeAcceptlistCallbacks
   virtual void OnLeConnectSuccess(hci::AddressWithType address) {
     callbacks_.value()->OnLeConnectSuccess(ToRustAddress(address));
-  }
-
-  // hci::acl_manager::LeAcceptlistCallbacks
-  virtual void OnLeConnectFail(hci::AddressWithType address,
-                               hci::ErrorCode reason) {
-    callbacks_.value()->OnLeConnectFail(ToRustAddress(address),
-                                        static_cast<uint8_t>(reason));
-  }
-
-  // hci::acl_manager::LeAcceptlistCallbacks
-  virtual void OnLeDisconnection(hci::AddressWithType address) {
-    callbacks_.value()->OnLeDisconnection(ToRustAddress(address));
   }
 
   // hci::acl_manager::LeAcceptlistCallbacks
