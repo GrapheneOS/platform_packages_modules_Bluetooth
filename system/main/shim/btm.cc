@@ -509,25 +509,7 @@ BtmStatus Btm::CancelAllReadRemoteDeviceName() {
   return BTM_UNDEFINED;
 }
 
-void Btm::StartAdvertising() {
-  if (advertiser_id_ == hci::LeAdvertisingManager::kInvalidId) {
-    LOG_WARN("%s Already advertising; please stop prior to starting again",
-             __func__);
-    return;
-  }
-
-  hci::AdvertisingConfig config = {};
-  advertiser_id_ = GetAdvertising()->ExtendedCreateAdvertiser(
-      0x00, config,
-      common::Bind([](hci::Address, hci::AddressType) { /*OnScan*/ }),
-      common::Bind([](hci::ErrorCode, uint8_t, uint8_t) { /*OnTerminated*/ }),
-      0, 0, GetGdShimHandler());
-  if (advertiser_id_ == hci::LeAdvertisingManager::kInvalidId) {
-    LOG_WARN("%s Unable to start advertising", __func__);
-    return;
-  }
-  LOG_INFO("%s Started advertising", __func__);
-}
+void Btm::StartAdvertising() { LOG_ALWAYS_FATAL("unreachable"); }
 
 void Btm::StopAdvertising() {
   if (advertiser_id_ == hci::LeAdvertisingManager::kInvalidId) {
