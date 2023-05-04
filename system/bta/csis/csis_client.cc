@@ -971,7 +971,8 @@ class CsisClientImpl : public CsisClient {
 
   void OnCsisSizeValueUpdate(uint16_t conn_id, tGATT_STATUS status,
                              uint16_t handle, uint16_t len,
-                             const uint8_t* value) {
+                             const uint8_t* value,
+                             bool notify_valid_services = false) {
     auto device = FindDeviceByConnId(conn_id);
 
     if (device == nullptr) {
@@ -1018,10 +1019,13 @@ class CsisClientImpl : public CsisClient {
     if (new_size > csis_group->GetCurrentSize()) {
       CsisActiveDiscovery(csis_group);
     }
+
+    if (notify_valid_services) NotifyCsisDeviceValidAndStoreIfNeeded(device);
   }
 
   void OnCsisLockReadRsp(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
-                         uint16_t len, const uint8_t* value) {
+                         uint16_t len, const uint8_t* value,
+                         bool notify_valid_services = false) {
     auto device = FindDeviceByConnId(conn_id);
     if (device == nullptr) {
       LOG(WARNING) << "Skipping unknown device, conn_id=" << loghex(conn_id);
@@ -1057,10 +1061,13 @@ class CsisClientImpl : public CsisClient {
       return;
     }
     csis_instance->SetLockState((CsisLockState)(value[0]));
+
+    if (notify_valid_services) NotifyCsisDeviceValidAndStoreIfNeeded(device);
   }
 
   void OnCsisRankReadRsp(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
-                         uint16_t len, const uint8_t* value) {
+                         uint16_t len, const uint8_t* value,
+                         bool notify_valid_services) {
     auto device = FindDeviceByConnId(conn_id);
     if (device == nullptr) {
       LOG(WARNING) << __func__
@@ -1100,6 +1107,8 @@ class CsisClientImpl : public CsisClient {
     csis_instance->SetRank((value[0]));
     auto csis_group = FindCsisGroup(csis_instance->GetGroupId());
     csis_group->SortByCsisRank();
+
+    if (notify_valid_services) NotifyCsisDeviceValidAndStoreIfNeeded(device);
   }
 
   void OnCsisObserveCompleted(void) {
@@ -1615,6 +1624,26 @@ class CsisClientImpl : public CsisClient {
     }
     device->SetCsisInstance(csis_inst->svc_data.start_handle, csis_inst);
 
+    bool notify_after_sirk_read = false;
+    bool notify_after_lock_read = false;
+    bool notify_after_rank_read = false;
+    bool notify_after_size_read = false;
+
+    /* Find which read will be the last one*/
+    if (is_last_instance) {
+      if (csis_inst->svc_data.rank_handle != GAP_INVALID_HANDLE) {
+        notify_after_rank_read = true;
+      } else if (csis_inst->svc_data.size_handle.val_hdl !=
+                 GAP_INVALID_HANDLE) {
+        notify_after_size_read = true;
+      } else if (csis_inst->svc_data.lock_handle.val_hdl !=
+                 GAP_INVALID_HANDLE) {
+        notify_after_lock_read = true;
+      } else {
+        notify_after_sirk_read = true;
+      }
+    }
+
     /* Read SIRK */
     BtaGattQueue::ReadCharacteristic(
         device->conn_id, csis_inst->svc_data.sirk_handle.val_hdl,
@@ -1624,7 +1653,7 @@ class CsisClientImpl : public CsisClient {
             instance->OnCsisSirkValueUpdate(conn_id, status, handle, len, value,
                                             (bool)user_data);
         },
-        (void*)is_last_instance);
+        (void*)notify_after_sirk_read);
 
     /* Read Lock */
     if (csis_inst->svc_data.lock_handle.val_hdl != GAP_INVALID_HANDLE) {
@@ -1633,9 +1662,10 @@ class CsisClientImpl : public CsisClient {
           [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
              uint16_t len, uint8_t* value, void* user_data) {
             if (instance)
-              instance->OnCsisLockReadRsp(conn_id, status, handle, len, value);
+              instance->OnCsisLockReadRsp(conn_id, status, handle, len, value,
+                                          (bool)user_data);
           },
-          nullptr);
+          (void*)notify_after_lock_read);
     }
 
     /* Read Size */
@@ -1646,9 +1676,9 @@ class CsisClientImpl : public CsisClient {
              uint16_t len, uint8_t* value, void* user_data) {
             if (instance)
               instance->OnCsisSizeValueUpdate(conn_id, status, handle, len,
-                                              value);
+                                              value, (bool)user_data);
           },
-          nullptr);
+          (void*)notify_after_size_read);
     }
 
     /* Read Rank */
@@ -1658,10 +1688,12 @@ class CsisClientImpl : public CsisClient {
           [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
              uint16_t len, uint8_t* value, void* user_data) {
             if (instance)
-              instance->OnCsisRankReadRsp(conn_id, status, handle, len, value);
+              instance->OnCsisRankReadRsp(conn_id, status, handle, len, value,
+                                          (bool)user_data);
           },
-          nullptr);
+          (void*)notify_after_rank_read);
     }
+
     return true;
   }
 
