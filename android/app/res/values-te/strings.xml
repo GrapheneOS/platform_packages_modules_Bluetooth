@@ -86,7 +86,7 @@
     <string name="bt_sm_2_1_nosdcard" msgid="288667514869424273">"ఫైల్‌ను సేవ్ చేయడానికి USB స్టోరేజ్‌లో సరిపడేంత స్పేస్ లేదు."</string>
     <string name="bt_sm_2_1_default" msgid="5070195264206471656">"ఫైల్‌ను సేవ్ చేయడానికి SD కార్డ్‌లో సరిపడేంత స్పేస్ లేదు."</string>
     <string name="bt_sm_2_2" msgid="6200119660562110560">"కావలసిన స్థలం: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
-    <string name="ErrorTooManyRequests" msgid="5049670841391761475">"చాలా ఎక్కువ రిక్వెస్ట్‌లు ప్రాసెస్ చేయబడుతున్నాయి. తర్వాత మళ్లీ ప్రయత్నించండి."</string>
+    <string name="ErrorTooManyRequests" msgid="5049670841391761475">"చాలా ఎక్కువ రిక్వెస్ట్‌లు ప్రాసెస్ చేయబడుతున్నాయి. తర్వాత మళ్లీ ట్రై చేయండి."</string>
     <string name="status_pending" msgid="4781040740237733479">"ఫైల్ బదిలీ ఇంకా ప్రారంభించబడలేదు."</string>
     <string name="status_running" msgid="7419075903776657351">"ఫైల్ బదిలీ కొనసాగుతోంది."</string>
     <string name="status_success" msgid="7963589000098719541">"ఫైల్ బదిలీ విజయవంతంగా పూర్తయింది."</string>
