@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <inttypes.h>
+
 #include <cstdlib>
 
 #ifndef LOG_TAG
