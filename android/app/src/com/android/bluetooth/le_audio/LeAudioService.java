@@ -1201,16 +1201,20 @@ public class LeAudioService extends ProfileService {
                 byte[] addressBytes = Utils.getBytesFromAddress(address);
                 BluetoothDevice device = mAdapterService.getDeviceFromByte(addressBytes);
 
-                /* Don't expose already exposed active device */
-                if (device.equals(mExposedActiveDevice)) {
-                    return;
-                }
-
                 if (DBG) {
                     Log.d(TAG, " onAudioDevicesAdded: " + device + ", device type: "
                             + deviceInfo.getType() + ", isSink: " + deviceInfo.isSink()
                             + " isSource: " + deviceInfo.isSource());
                 }
+
+                /* Don't expose already exposed active device */
+                if (device.equals(mExposedActiveDevice)) {
+                    if (DBG) {
+                        Log.d(TAG, " onAudioDevicesAdded: " + device + " is already exposed");
+                    }
+                    return;
+                }
+
 
                 if ((deviceInfo.isSink() && !device.equals(mActiveAudioOutDevice))
                         || (deviceInfo.isSource() && !device.equals(mActiveAudioInDevice))) {
@@ -3653,6 +3657,7 @@ public class LeAudioService extends ProfileService {
         ProfileService.println(sb, "  currentlyActiveGroupId: " + getActiveGroupId());
         ProfileService.println(sb, "  mActiveAudioOutDevice: " + mActiveAudioOutDevice);
         ProfileService.println(sb, "  mActiveAudioInDevice: " + mActiveAudioInDevice);
+        ProfileService.println(sb, "  mExposedActiveDevice: " + mExposedActiveDevice);
         ProfileService.println(sb, "  mHfpHandoverDevice:" + mHfpHandoverDevice);
         ProfileService.println(sb, "  mLeAudioIsInbandRingtoneSupported:"
                                 + mLeAudioInbandRingtoneSupportedByPlatform);

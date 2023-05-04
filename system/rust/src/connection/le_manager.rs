@@ -57,7 +57,6 @@ pub trait LeAclManager: Debug {
 pub trait LeAclManagerConnectionCallbacks {
     /// Invoked when an LE connection to a given address completes
     fn on_le_connect(&self, address: AddressWithType, result: Result<LeConnection, ErrorCode>);
-    /// Invoked when a peer device disconnects from us. The address must match the address
-    /// supplied on the initial connection.
+    /// Invoked when a peer device disconnects from us
     fn on_disconnect(&self, address: AddressWithType);
 }
