@@ -265,6 +265,20 @@ static rfc_slot_t* create_srv_accept_rfc_slot(rfc_slot_t* srv_rs,
   return accept_rs;
 }
 
+bt_status_t btsock_rfc_control_req(uint8_t dlci, const RawAddress& bd_addr,
+                                   uint8_t modem_signal, uint8_t break_signal,
+                                   uint8_t discard_buffers,
+                                   uint8_t break_signal_seq, bool fc) {
+  int status =
+      RFCOMM_ControlReqFromBTSOCK(dlci, bd_addr, modem_signal, break_signal,
+                                  discard_buffers, break_signal_seq, fc);
+  if (status != PORT_SUCCESS) {
+    LOG_WARN("failed to send control parameters, status=%d", status);
+    return BT_STATUS_FAIL;
+  }
+  return BT_STATUS_SUCCESS;
+}
+
 bt_status_t btsock_rfc_listen(const char* service_name,
                               const Uuid* service_uuid, int channel,
                               int* sock_fd, int flags, int app_uid) {
