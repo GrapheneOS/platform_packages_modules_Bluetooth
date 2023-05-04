@@ -246,6 +246,8 @@ fn build_commands() -> HashMap<String, CommandOption> {
         CommandOption {
             rules: vec![
                 String::from("socket listen <auth-required> <Bredr|LE>"),
+                String::from("socket listen-rfcomm <scn>"),
+                String::from("socket send-msc <dlci> <address>"),
                 String::from(
                     "socket connect <address> <l2cap|rfcomm> <psm|uuid> <auth-required> <Bredr|LE>",
                 ),
@@ -1460,6 +1462,33 @@ impl CommandHandler {
                 };
 
                 self.context.lock().unwrap().socket_test_schedule = Some(schedule);
+            }
+            "send-msc" => {
+                let dlci =
+                    String::from(get_arg(args, 1)?).parse::<u8>().or(Err("Failed parsing DLCI"))?;
+                let addr = String::from(get_arg(args, 2)?);
+                self.context.lock().unwrap().qa_dbus.as_mut().unwrap().rfcomm_send_msc(dlci, addr);
+            }
+            "listen-rfcomm" => {
+                let scn = String::from(get_arg(args, 1)?)
+                    .parse::<i32>()
+                    .or(Err("Failed parsing Service Channel Number"))?;
+                let SocketResult { status, id } = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .socket_manager_dbus
+                    .as_mut()
+                    .unwrap()
+                    .listen_using_rfcomm(callback_id, Some(scn), None, None, None);
+                if status != BtStatus::Success {
+                    return Err(format!(
+                        "Failed to request for listening using rfcomm, status = {:?}",
+                        status,
+                    )
+                    .into());
+                }
+                print_info!("Requested for listening using rfcomm on socket {}", id);
             }
             "listen" => {
                 let auth_required = String::from(get_arg(args, 1)?)
