@@ -470,6 +470,14 @@ bool SDP_AddAttributeToRecord(tSDP_RECORD* p_rec, uint16_t attr_id,
   p_attr->len = attr_len;
 
   if (p_rec->free_pad_ptr + attr_len >= SDP_MAX_PAD_LEN) {
+    if (p_rec->free_pad_ptr >= SDP_MAX_PAD_LEN) {
+      SDP_TRACE_ERROR(
+          "SDP_AddAttributeToRecord failed: free pad %d equals or exceeds max "
+          "padding length %d",
+          p_rec->free_pad_ptr, SDP_MAX_PAD_LEN);
+      return (false);
+    }
+
     /* do truncate only for text string type descriptor */
     if (attr_type == TEXT_STR_DESC_TYPE) {
       SDP_TRACE_WARNING(
