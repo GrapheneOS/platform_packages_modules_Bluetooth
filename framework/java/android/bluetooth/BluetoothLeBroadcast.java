@@ -562,11 +562,17 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
                 service.startBroadcast(
                         buildBroadcastSettingsFromMetadata(contentMetadata, broadcastCode),
-                        mAttributionSource);
+                        mAttributionSource, recv);
+                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
+            } catch (SecurityException e) {
+                throw e;
             }
         }
     }
@@ -595,9 +601,15 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                service.startBroadcast(broadcastSettings, mAttributionSource);
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                service.startBroadcast(broadcastSettings, mAttributionSource, recv);
+                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
+            } catch (SecurityException e) {
+                throw e;
             }
         }
     }
@@ -633,11 +645,17 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
                 service.updateBroadcast(broadcastId,
                         buildBroadcastSettingsFromMetadata(contentMetadata, null),
-                        mAttributionSource);
+                        mAttributionSource, recv);
+                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
+            } catch (SecurityException e) {
+                throw e;
             }
         }
     }
@@ -672,9 +690,15 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                service.updateBroadcast(broadcastId, broadcastSettings, mAttributionSource);
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                service.updateBroadcast(broadcastId, broadcastSettings, mAttributionSource, recv);
+                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
+            } catch (SecurityException e) {
+                throw e;
             }
         }
     }
@@ -704,9 +728,15 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                service.stopBroadcast(broadcastId, mAttributionSource);
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                service.stopBroadcast(broadcastId, mAttributionSource, recv);
+                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
+            } catch (SecurityException e) {
+                throw e;
             }
         }
     }
