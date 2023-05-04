@@ -554,6 +554,9 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     public void startBroadcast(@NonNull BluetoothLeAudioContentMetadata contentMetadata,
             @Nullable byte[] broadcastCode) {
         Objects.requireNonNull(contentMetadata, "contentMetadata cannot be null");
+        if (mCallbackExecutorMap.isEmpty()) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
 
         if (DBG) log("startBroadcasting");
         final IBluetoothLeAudio service = getService();
@@ -593,6 +596,9 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             })
     public void startBroadcast(@NonNull BluetoothLeBroadcastSettings broadcastSettings) {
         Objects.requireNonNull(broadcastSettings, "broadcastSettings cannot be null");
+        if (mCallbackExecutorMap.isEmpty()) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
 
         if (DBG) log("startBroadcasting");
         final IBluetoothLeAudio service = getService();
@@ -637,6 +643,9 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     public void updateBroadcast(int broadcastId,
             @NonNull BluetoothLeAudioContentMetadata contentMetadata) {
         Objects.requireNonNull(contentMetadata, "contentMetadata cannot be null");
+        if (mCallbackExecutorMap.isEmpty()) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
 
         if (DBG) log("updateBroadcast");
         final IBluetoothLeAudio service = getService();
@@ -682,6 +691,9 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     public void updateBroadcast(
             int broadcastId, @NonNull BluetoothLeBroadcastSettings broadcastSettings) {
         Objects.requireNonNull(broadcastSettings, "broadcastSettings cannot be null");
+        if (mCallbackExecutorMap.isEmpty()) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
 
         if (DBG) log("updateBroadcast");
         final IBluetoothLeAudio service = getService();
@@ -721,6 +733,10 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public void stopBroadcast(int broadcastId) {
+        if (mCallbackExecutorMap.isEmpty()) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
+
         if (DBG) log("disableBroadcastMode");
         final IBluetoothLeAudio service = getService();
         if (service == null) {
