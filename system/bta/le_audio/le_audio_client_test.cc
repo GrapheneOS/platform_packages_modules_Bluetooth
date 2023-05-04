@@ -2518,10 +2518,13 @@ TEST_F(UnicastTest, ConnectTwoEarbudsCsisGrouped) {
 
   Mock::VerifyAndClearExpectations(&mock_btif_storage_);
 
+  /* for Target announcements AutoConnect is always there, until
+   * device is removed
+   */
   EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, false))
-      .Times(1);
+      .Times(0);
   EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, false))
-      .Times(1);
+      .Times(0);
 
   // Verify grouping information
   std::vector<RawAddress> devs =
@@ -2567,10 +2570,13 @@ TEST_F(UnicastTest, ConnectTwoEarbudsCsisGroupUnknownAtConnect) {
   ASSERT_NE(std::find(devs.begin(), devs.end(), test_address0), devs.end());
   ASSERT_NE(std::find(devs.begin(), devs.end(), test_address1), devs.end());
 
+  /* for Target announcements AutoConnect is always there, until
+   *  device is removed
+   */
   EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, false))
-      .Times(1);
+      .Times(0);
   EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, false))
-      .Times(1);
+      .Times(0);
   DisconnectLeAudio(test_address0, 1);
   DisconnectLeAudio(test_address1, 2);
 }
@@ -2919,6 +2925,7 @@ TEST_F(UnicastTest, GroupingAddRemove) {
   SyncOnMainLoop();
 
   Mock::VerifyAndClearExpectations(&mock_groups_module_);
+  Mock::VerifyAndClearExpectations(&mock_btif_storage_);
 
   EXPECT_CALL(mock_groups_module_, AddDevice(test_address1, _, group_id0))
       .Times(1);
@@ -3346,8 +3353,11 @@ TEST_F(UnicastTest, DisconnectDeviceWhenConnected) {
   Mock::VerifyAndClearExpectations(&mock_btif_storage_);
   Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
 
+  /* for Target announcements AutoConnect is always there, until
+   * device is removed
+   */
   EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, false))
-      .Times(1);
+      .Times(0);
   EXPECT_CALL(mock_gatt_queue_, Clean(conn_id)).Times(AtLeast(1));
   EXPECT_CALL(mock_gatt_interface_, Close(conn_id)).Times(1);
 
@@ -4158,15 +4168,27 @@ TEST_F(UnicastTest, TwoEarbudsStreamingProfileDisconnect) {
   uint8_t cis_count_in = 0;
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
-  // Disconnect one device and expect the group to keep on streaming
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(_, _, BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(_, _, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
+      .Times(1);
   EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
-  EXPECT_CALL(mock_gatt_interface_, Open(_, _, _, _)).Times(0);
 
   DisconnectLeAudio(test_address0, 1);
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(_, _, BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(1);
+
   DisconnectLeAudio(test_address1, 2);
 
   SyncOnMainLoop();
-  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 }
 
 TEST_F(UnicastTest, EarbudsWithStereoSinkMonoSourceSupporting32kHz) {
