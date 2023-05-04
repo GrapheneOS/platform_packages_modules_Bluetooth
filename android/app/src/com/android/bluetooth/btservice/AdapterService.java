@@ -1429,7 +1429,7 @@ public class AdapterService extends Service {
      * @return false if one of profile is enabled or disabled, true otherwise
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    boolean checkifAllProfilesAreUnknown(BluetoothDevice device) {
+    boolean isAllProfilesUnknown(BluetoothDevice device) {
         if (mA2dpService != null && mA2dpService.getConnectionPolicy(device)
                 != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
@@ -5641,7 +5641,7 @@ public class AdapterService extends Service {
         }
 
         // Checks if any profiles are enablde or disabled and if so, only connect enabled profiles
-        if (!checkifAllProfilesAreUnknown(device)) {
+        if (!isAllProfilesUnknown(device)) {
             return connectEnabledProfiles(device);
         }
 
