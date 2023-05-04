@@ -2329,11 +2329,19 @@ static PeriodicAdvertisingParameters parsePeriodicParams(JNIEnv* env,
   return p;
 }
 
-static void ble_advertising_set_started_cb(int reg_id, uint8_t advertiser_id,
+static void ble_advertising_set_started_cb(int reg_id, int server_if,
+                                           uint8_t advertiser_id,
                                            int8_t tx_power, uint8_t status) {
   std::shared_lock<std::shared_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid() || !mAdvertiseCallbacksObj) return;
+
+  // tie advertiser ID to server_if, once the advertisement has started
+  if (status == 0 /* AdvertisingCallback::AdvertisingStatus::SUCCESS */ &&
+      server_if != 0) {
+    bluetooth::gatt::associate_server_with_advertiser(server_if, advertiser_id);
+  }
+
   sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
                                method_onAdvertisingSetStarted, reg_id,
                                advertiser_id, tx_power, status);
@@ -2376,15 +2384,10 @@ static void startAdvertisingSetNative(
       periodic_data_data, periodic_data_data + periodic_data_len);
   env->ReleaseByteArrayElements(periodic_data, periodic_data_data, JNI_ABORT);
 
-  auto advertiser_id = sGattIf->advertiser->StartAdvertisingSet(
-      reg_id, base::Bind(&ble_advertising_set_started_cb, reg_id), params,
-      data_vec, scan_resp_vec, periodicParams, periodic_data_vec, duration,
-      maxExtAdvEvents, base::Bind(ble_advertising_set_timeout_cb));
-
-  // tie advertiser ID to server_if
-  if (server_if != 0) {
-    bluetooth::gatt::associate_server_with_advertiser(server_if, advertiser_id);
-  }
+  sGattIf->advertiser->StartAdvertisingSet(
+      reg_id, base::Bind(&ble_advertising_set_started_cb, reg_id, server_if),
+      params, data_vec, scan_resp_vec, periodicParams, periodic_data_vec,
+      duration, maxExtAdvEvents, base::Bind(ble_advertising_set_timeout_cb));
 }
 
 static void stopAdvertisingSetNative(JNIEnv* env, jobject object,
