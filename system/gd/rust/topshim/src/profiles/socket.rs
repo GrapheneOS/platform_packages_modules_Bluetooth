@@ -222,6 +222,32 @@ impl BtSocket {
     pub fn request_max_tx_data_length(&self, addr: RawAddress) {
         ccall!(self, request_max_tx_data_length, &addr);
     }
+
+    pub fn send_msc(&self, dlci: u8, addr: RawAddress) -> BtStatus {
+        // PORT_DTRDSR_ON | PORT_CTSRTS_ON | PORT_DCD_ON
+        const default_modem_signal: u8 = 0x01 | 0x02 | 0x08;
+
+        const default_break_signal: u8 = 0;
+        const default_discard_buffers: u8 = 0;
+        const default_break_signal_seq: u8 = 1; // In sequence.
+
+        // In RFCOMM/DEVA-DEVB/RFC/BV-21-C and RFCOMM/DEVA-DEVB/RFC/BV-22-C test flow
+        // we are requested to send an MSC command with FC=0.
+        const fc: bool = false;
+
+        ccall!(
+            self,
+            control_req,
+            dlci,
+            &addr,
+            default_modem_signal,
+            default_break_signal,
+            default_discard_buffers,
+            default_break_signal_seq,
+            fc
+        )
+        .into()
+    }
 }
 
 #[cfg(test)]
