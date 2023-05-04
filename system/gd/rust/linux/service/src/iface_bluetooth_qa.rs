@@ -13,4 +13,8 @@ impl IBluetoothQA for IBluetoothQADBus {
     fn add_media_player(&self, name: String, browsing_supported: bool) {
         dbus_generated!()
     }
+    #[dbus_method("RfcommSendMsc")]
+    fn rfcomm_send_msc(&self, dlci: u8, addr: String) {
+        dbus_generated!()
+    }
 }

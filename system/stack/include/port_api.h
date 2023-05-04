@@ -193,6 +193,32 @@ int RFCOMM_CreateConnectionWithSecurity(uint16_t uuid, uint8_t scn,
 
 /*******************************************************************************
  *
+ * Function         RFCOMM_ControlReqFromBTSOCK
+ *
+ * Description      Send control parameters to the peer.
+ *                  So far only for qualification use.
+ *                  RFCOMM layer starts the control request only when it is the
+ *                  client. This API allows the host to start the control
+ *                  request while it works as a RFCOMM server.
+ *
+ * Parameters:      dlci             - the DLCI to send the MSC command
+ *                  bd_addr          - bd_addr of the peer
+ *                  modem_signal     - [DTR/DSR | RTS/CTS | RI | DCD]
+ *                  break_signal     - 0-3 s in steps of 200 ms
+ *                  discard_buffers  - 0 for do not discard, 1 for discard
+ *                  break_signal_seq - ASAP or in sequence
+ *                  fc               - true when the device is unable to accept
+ *                                     frames
+ *
+ ******************************************************************************/
+extern int RFCOMM_ControlReqFromBTSOCK(uint8_t dlci, const RawAddress& bd_addr,
+                                       uint8_t modem_signal,
+                                       uint8_t break_signal,
+                                       uint8_t discard_buffers,
+                                       uint8_t break_signal_seq, bool fc);
+
+/*******************************************************************************
+ *
  * Function         RFCOMM_RemoveConnection
  *
  * Description      This function is called to close the specified connection.
