@@ -75,19 +75,6 @@ Stack* Stack::GetInstance() {
   return &instance;
 }
 
-void Stack::StartIdleMode() {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-  ASSERT_LOG(!is_running_, "%s Gd stack already running", __func__);
-  LOG_INFO("%s Starting Gd stack", __func__);
-  ModuleList modules;
-  modules.add<metrics::CounterMetrics>();
-  modules.add<storage::StorageModule>();
-  Start(&modules);
-  // Make sure the leaf modules are started
-  ASSERT(stack_manager_.GetInstance<storage::StorageModule>() != nullptr);
-  is_running_ = true;
-}
-
 void Stack::StartEverything() {
   if (common::init_flags::gd_rust_is_enabled()) {
     if (rust_stack_ == nullptr) {
