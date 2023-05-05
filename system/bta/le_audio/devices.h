@@ -368,7 +368,6 @@ class LeAudioDeviceGroup {
   void SetPendingConfiguration(void);
   void ClearPendingConfiguration(void);
   void AddToAllowListNotConnectedGroupMembers(int gatt_if);
-  void RemoveFromAllowListNotConnectedGroupMembers(int gatt_if);
   bool IsConfigurationSupported(
       LeAudioDevice* leAudioDevice,
       const set_configurations::AudioSetConfiguration* audio_set_conf);
