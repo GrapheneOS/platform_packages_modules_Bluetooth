@@ -29,10 +29,8 @@
 #include "main/shim/stack.h"
 #include "osi/include/future.h"
 #include "osi/include/log.h"
-#include "src/bridge.rs.h"
 #include "types/raw_address.h"
 
-using ::bluetooth::common::init_flags::gd_rust_is_enabled;
 using ::bluetooth::shim::GetController;
 
 constexpr int kMaxSupportedCodecs = 8;  // MAX_LOCAL_SUPPORTED_CODECS_SIZE
@@ -67,38 +65,23 @@ static future_t* start_up(void) {
   LOG_INFO("%s Starting up", __func__);
   data_.ready = true;
 
-  if (gd_rust_is_enabled()) {
-    auto controller =
-        bluetooth::shim::Stack::GetInstance()->GetRustController();
-    auto rust_string_address =
-        bluetooth::shim::rust::controller_get_address(**controller);
-    auto string_address =
-        std::string(rust_string_address.data(), rust_string_address.length());
-    RawAddress::FromString(string_address, data_.raw_address);
+  std::string string_address = GetController()->GetMacAddress().ToString();
+  RawAddress::FromString(string_address, data_.raw_address);
 
-    data_.le_supported_states =
-        bluetooth::shim::rust::controller_get_le_supported_states(**controller);
+  data_.le_supported_states =
+      bluetooth::shim::GetController()->GetLeSupportedStates();
 
-    LOG_INFO("Mac address:%s", ADDRESS_TO_LOGGABLE_CSTR(data_.raw_address));
-  } else {
-    std::string string_address = GetController()->GetMacAddress().ToString();
-    RawAddress::FromString(string_address, data_.raw_address);
+  auto local_version_info =
+      bluetooth::shim::GetController()->GetLocalVersionInformation();
+  data_.bt_version.hci_version =
+      static_cast<uint8_t>(local_version_info.hci_version_);
+  data_.bt_version.hci_revision = local_version_info.hci_revision_;
+  data_.bt_version.lmp_version =
+      static_cast<uint8_t>(local_version_info.lmp_version_);
+  data_.bt_version.lmp_subversion = local_version_info.lmp_subversion_;
+  data_.bt_version.manufacturer = local_version_info.manufacturer_name_;
 
-    data_.le_supported_states =
-        bluetooth::shim::GetController()->GetLeSupportedStates();
-
-    auto local_version_info =
-        bluetooth::shim::GetController()->GetLocalVersionInformation();
-    data_.bt_version.hci_version =
-        static_cast<uint8_t>(local_version_info.hci_version_);
-    data_.bt_version.hci_revision = local_version_info.hci_revision_;
-    data_.bt_version.lmp_version =
-        static_cast<uint8_t>(local_version_info.lmp_version_);
-    data_.bt_version.lmp_subversion = local_version_info.lmp_subversion_;
-    data_.bt_version.manufacturer = local_version_info.manufacturer_name_;
-
-    LOG_INFO("Mac address:%s", ADDRESS_TO_LOGGABLE_CSTR(data_.raw_address));
-  }
+  LOG_INFO("Mac address:%s", ADDRESS_TO_LOGGABLE_CSTR(data_.raw_address));
 
   data_.phy = kPhyLe1M;
 
@@ -133,15 +116,8 @@ static const uint8_t* get_ble_supported_states(void) {
   return (const uint8_t*)&data_.le_supported_states;
 }
 
-#define MAP_TO_GD(legacy, gd)                                            \
-  static bool legacy(void) {                                             \
-    if (gd_rust_is_enabled()) {                                          \
-      return bluetooth::shim::rust::controller_##legacy(                 \
-          **bluetooth::shim::Stack::GetInstance()->GetRustController()); \
-    } else {                                                             \
-      return GetController()->gd();                                      \
-    }                                                                    \
-  }
+#define MAP_TO_GD(legacy, gd) \
+  static bool legacy(void) { return GetController()->gd(); }
 
 MAP_TO_GD(supports_simple_pairing, SupportsSimplePairing)
 MAP_TO_GD(supports_secure_connections, SupportsSecureConnections)
@@ -200,62 +176,45 @@ MAP_TO_GD(supports_ble_connection_subrating, SupportsBleConnectionSubrating)
 MAP_TO_GD(supports_ble_connection_subrating_host,
           SupportsBleConnectionSubratingHost)
 
-#define FORWARD_IF_RUST(legacy, gd)                                      \
-  static bool legacy(void) {                                             \
-    if (gd_rust_is_enabled()) {                                          \
-      return bluetooth::shim::rust::controller_##legacy(                 \
-          **bluetooth::shim::Stack::GetInstance()->GetRustController()); \
-    } else {                                                             \
-      return gd;                                                         \
-    }                                                                    \
-  }
+#define FORWARD(legacy, gd) \
+  static bool legacy(void) { return gd; }
 
-FORWARD_IF_RUST(
+FORWARD(
     supports_configure_data_path,
     GetController()->IsSupported(bluetooth::hci::OpCode::CONFIGURE_DATA_PATH))
 
-FORWARD_IF_RUST(supports_set_min_encryption_key_size,
-                GetController()->IsSupported(
-                    bluetooth::hci::OpCode::SET_MIN_ENCRYPTION_KEY_SIZE))
+FORWARD(supports_set_min_encryption_key_size,
+        GetController()->IsSupported(
+            bluetooth::hci::OpCode::SET_MIN_ENCRYPTION_KEY_SIZE))
 
-FORWARD_IF_RUST(supports_read_encryption_key_size,
-                GetController()->IsSupported(
-                    bluetooth::hci::OpCode::READ_ENCRYPTION_KEY_SIZE))
+FORWARD(supports_read_encryption_key_size,
+        GetController()->IsSupported(
+            bluetooth::hci::OpCode::READ_ENCRYPTION_KEY_SIZE))
 
-FORWARD_IF_RUST(supports_reading_remote_extended_features,
-                GetController()->IsSupported(
-                    bluetooth::hci::OpCode::READ_REMOTE_EXTENDED_FEATURES))
+FORWARD(supports_reading_remote_extended_features,
+        GetController()->IsSupported(
+            bluetooth::hci::OpCode::READ_REMOTE_EXTENDED_FEATURES))
 
-FORWARD_IF_RUST(
-    supports_enhanced_setup_synchronous_connection,
-    GetController()->IsSupported(
-        bluetooth::hci::OpCode::ENHANCED_SETUP_SYNCHRONOUS_CONNECTION))
+FORWARD(supports_enhanced_setup_synchronous_connection,
+        GetController()->IsSupported(
+            bluetooth::hci::OpCode::ENHANCED_SETUP_SYNCHRONOUS_CONNECTION))
 
-FORWARD_IF_RUST(
-    supports_enhanced_accept_synchronous_connection,
-    GetController()->IsSupported(
-        bluetooth::hci::OpCode::ENHANCED_ACCEPT_SYNCHRONOUS_CONNECTION))
+FORWARD(supports_enhanced_accept_synchronous_connection,
+        GetController()->IsSupported(
+            bluetooth::hci::OpCode::ENHANCED_ACCEPT_SYNCHRONOUS_CONNECTION))
 
-FORWARD_IF_RUST(
+FORWARD(
     supports_ble_set_privacy_mode,
     GetController()->IsSupported(bluetooth::hci::OpCode::LE_SET_PRIVACY_MODE))
 
-#define FORWARD_GETTER_IF_RUST(type, legacy, gd)                         \
-  static type legacy(void) {                                             \
-    if (gd_rust_is_enabled()) {                                          \
-      return bluetooth::shim::rust::controller_##legacy(                 \
-          **bluetooth::shim::Stack::GetInstance()->GetRustController()); \
-    } else {                                                             \
-      return gd;                                                         \
-    }                                                                    \
-  }
+#define FORWARD_GETTER(type, legacy, gd) \
+  static type legacy(void) { return gd; }
 
-FORWARD_GETTER_IF_RUST(uint16_t, get_acl_buffer_length,
-                       GetController()->GetAclPacketLength())
-FORWARD_GETTER_IF_RUST(
-    uint16_t, get_le_buffer_length,
-    GetController()->GetLeBufferSize().le_data_packet_length_)
-FORWARD_GETTER_IF_RUST(
+FORWARD_GETTER(uint16_t, get_acl_buffer_length,
+               GetController()->GetAclPacketLength())
+FORWARD_GETTER(uint16_t, get_le_buffer_length,
+               GetController()->GetLeBufferSize().le_data_packet_length_)
+FORWARD_GETTER(
     uint16_t, get_iso_buffer_length,
     GetController()->GetControllerIsoBufferSize().le_data_packet_length_)
 
@@ -271,46 +230,36 @@ static uint16_t get_iso_packet_size(void) {
   return get_iso_buffer_length() + kHciDataPreambleSize;
 }
 
-FORWARD_GETTER_IF_RUST(uint16_t, get_le_suggested_default_data_length,
-                       GetController()->GetLeSuggestedDefaultDataLength())
+FORWARD_GETTER(uint16_t, get_le_suggested_default_data_length,
+               GetController()->GetLeSuggestedDefaultDataLength())
 
 static uint16_t get_le_maximum_tx_data_length(void) {
-  if (gd_rust_is_enabled()) {
-    return bluetooth::shim::rust::controller_get_le_maximum_tx_data_length(
-        **bluetooth::shim::Stack::GetInstance()->GetRustController());
-  } else {
-    ::bluetooth::hci::LeMaximumDataLength le_maximum_data_length =
-        GetController()->GetLeMaximumDataLength();
-    return le_maximum_data_length.supported_max_tx_octets_;
-  }
+  ::bluetooth::hci::LeMaximumDataLength le_maximum_data_length =
+      GetController()->GetLeMaximumDataLength();
+  return le_maximum_data_length.supported_max_tx_octets_;
 }
 
 static uint16_t get_le_maximum_tx_time(void) {
-  if (gd_rust_is_enabled()) {
-    return bluetooth::shim::rust::controller_get_le_maximum_tx_time(
-        **bluetooth::shim::Stack::GetInstance()->GetRustController());
-  } else {
-    ::bluetooth::hci::LeMaximumDataLength le_maximum_data_length =
-        GetController()->GetLeMaximumDataLength();
-    return le_maximum_data_length.supported_max_tx_time_;
-  }
+  ::bluetooth::hci::LeMaximumDataLength le_maximum_data_length =
+      GetController()->GetLeMaximumDataLength();
+  return le_maximum_data_length.supported_max_tx_time_;
 }
 
-FORWARD_GETTER_IF_RUST(uint16_t, get_le_max_advertising_data_length,
-                       GetController()->GetLeMaximumAdvertisingDataLength())
-FORWARD_GETTER_IF_RUST(uint8_t, get_le_supported_advertising_sets,
-                       GetController()->GetLeNumberOfSupportedAdverisingSets())
-FORWARD_GETTER_IF_RUST(uint8_t, get_le_periodic_advertiser_list_size,
-                       GetController()->GetLePeriodicAdvertiserListSize())
-FORWARD_GETTER_IF_RUST(uint16_t, get_acl_buffers,
-                       GetController()->GetNumAclPacketBuffers())
-FORWARD_GETTER_IF_RUST(uint8_t, get_le_buffers,
-                       GetController()->GetLeBufferSize().total_num_le_packets_)
-FORWARD_GETTER_IF_RUST(
+FORWARD_GETTER(uint16_t, get_le_max_advertising_data_length,
+               GetController()->GetLeMaximumAdvertisingDataLength())
+FORWARD_GETTER(uint8_t, get_le_supported_advertising_sets,
+               GetController()->GetLeNumberOfSupportedAdverisingSets())
+FORWARD_GETTER(uint8_t, get_le_periodic_advertiser_list_size,
+               GetController()->GetLePeriodicAdvertiserListSize())
+FORWARD_GETTER(uint16_t, get_acl_buffers,
+               GetController()->GetNumAclPacketBuffers())
+FORWARD_GETTER(uint8_t, get_le_buffers,
+               GetController()->GetLeBufferSize().total_num_le_packets_)
+FORWARD_GETTER(
     uint8_t, get_iso_buffers,
     GetController()->GetControllerIsoBufferSize().total_num_le_packets_)
-FORWARD_GETTER_IF_RUST(uint8_t, get_le_connect_list_size,
-                       GetController()->GetLeFilterAcceptListSize())
+FORWARD_GETTER(uint8_t, get_le_connect_list_size,
+               GetController()->GetLeFilterAcceptListSize())
 
 static void set_ble_resolving_list_max_size(int resolving_list_max_size) {
   LOG_DEBUG("UNSUPPORTED");
