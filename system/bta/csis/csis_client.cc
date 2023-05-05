@@ -1106,6 +1106,11 @@ class CsisClientImpl : public CsisClient {
 
     csis_instance->SetRank((value[0]));
     auto csis_group = FindCsisGroup(csis_instance->GetGroupId());
+    if (!csis_group) {
+      LOG(ERROR) << __func__ << " Unknown group id yet";
+      return;
+    }
+
     csis_group->SortByCsisRank();
 
     if (notify_valid_services) NotifyCsisDeviceValidAndStoreIfNeeded(device);
