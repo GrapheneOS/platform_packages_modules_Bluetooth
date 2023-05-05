@@ -1146,11 +1146,13 @@ void BTA_DmBleObserve(bool start, uint8_t duration,
  * Parameters       start: start or stop the scan procedure,
  *                  duration_sec: Duration of the scan. Continuous scan if 0 is
  *                                passed,
+ *                  low_latency_scan: whether this is a low latency scan,
+ *                                    default is false,
  *
  * Returns          void
  *
  ******************************************************************************/
-void BTA_DmBleScan(bool start, uint8_t duration);
+void BTA_DmBleScan(bool start, uint8_t duration, bool low_latency_scan = false);
 
 /*******************************************************************************
  *
