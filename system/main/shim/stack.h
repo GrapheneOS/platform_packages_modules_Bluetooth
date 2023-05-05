@@ -44,8 +44,6 @@ class Stack {
 
   ~Stack() = default;
 
-  // Idle mode, config is loaded, but controller is not enabled
-  void StartIdleMode();
   // Running mode, everything is up
   void StartEverything();
 
