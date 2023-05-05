@@ -721,6 +721,11 @@ bool BleScannerInterfaceImpl::parse_filter_command(
   advertising_packet_content_filter_command.tds_flags = apcf_command.tds_flags;
   advertising_packet_content_filter_command.tds_flags_mask =
       apcf_command.tds_flags_mask;
+  advertising_packet_content_filter_command.meta_data_type =
+      static_cast<bluetooth::hci::ApcfMetaDataType>(
+          apcf_command.meta_data_type);
+  advertising_packet_content_filter_command.meta_data.assign(
+      apcf_command.meta_data.begin(), apcf_command.meta_data.end());
   advertising_packet_content_filter_command.data.assign(
       apcf_command.data.begin(), apcf_command.data.end());
   advertising_packet_content_filter_command.data_mask.assign(
