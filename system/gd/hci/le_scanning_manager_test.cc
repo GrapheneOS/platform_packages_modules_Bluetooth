@@ -83,7 +83,8 @@ hci::AdvertisingPacketContentFilterCommand make_filter(const hci::ApcfFilterType
       filter.org_id = 0x02;
       filter.tds_flags = 0x01;
       filter.tds_flags_mask = 0xFF;
-      filter.data = {0x4B, 0x4B, 0x14, 0x96, 0x96, 0x96, 0x5E, 0xA6, 0x33};
+      filter.meta_data_type = hci::ApcfMetaDataType::WIFI_NAN_HASH;
+      filter.meta_data = {0x4B, 0x14, 0x96, 0x96, 0x96, 0x5E, 0xA6, 0x33};
       break;
     default:
       break;
@@ -518,6 +519,7 @@ TEST_F(LeScanningManagerAndroidHciTest, scan_filter_add_transport_discovery_data
   ASSERT_EQ(OpCode::LE_ADV_FILTER, commandView.GetOpCode());
   auto filter_command_view = LeAdvFilterTransportDiscoveryDataView::Create(
       LeAdvFilterView::Create(LeScanningCommandView::Create(commandView)));
+
   ASSERT_TRUE(filter_command_view.IsValid());
   ASSERT_EQ(filter_command_view.GetApcfOpcode(), ApcfOpcode::TRANSPORT_DISCOVERY_DATA);
 
