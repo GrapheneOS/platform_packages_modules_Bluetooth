@@ -222,10 +222,6 @@ typedef struct {
   uint32_t inq_counter; /* Counter incremented each time an inquiry completes */
   /* Used for determining whether or not duplicate devices */
   /* have responded to the same inquiry */
-  tINQ_BDADDR* p_bd_db;    /* Pointer to memory that holds bdaddrs */
-  uint16_t num_bd_entries; /* Number of entries in database */
-  uint16_t max_bd_entries; /* Maximum number of entries that can be stored */
-  tINQ_DB_ENT inq_db[BTM_INQ_DB_SIZE];
   tBTM_INQ_PARMS inqparms; /* Contains the parameters for the current inquiry */
   tBTM_INQUIRY_CMPL
       inq_cmpl_info; /* Status and number of responses from the last inquiry */
