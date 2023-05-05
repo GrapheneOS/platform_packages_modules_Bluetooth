@@ -1786,6 +1786,8 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
   jfieldID orgFid = env->GetFieldID(entryClazz, "org_id", "I");
   jfieldID TDSFlagsFid = env->GetFieldID(entryClazz, "tds_flags", "I");
   jfieldID TDSFlagsMaskFid = env->GetFieldID(entryClazz, "tds_flags_mask", "I");
+  jfieldID metaDataTypeFid = env->GetFieldID(entryClazz, "meta_data_type", "I");
+  jfieldID metaDataFid = env->GetFieldID(entryClazz, "meta_data", "[B");
 
   for (int i = 0; i < numFilters; ++i) {
     ApcfCommand curr{};
@@ -1881,6 +1883,19 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
     curr.org_id = env->GetIntField(current.get(), orgFid);
     curr.tds_flags = env->GetIntField(current.get(), TDSFlagsFid);
     curr.tds_flags_mask = env->GetIntField(current.get(), TDSFlagsMaskFid);
+    curr.meta_data_type = env->GetIntField(current.get(), metaDataTypeFid);
+
+    ScopedLocalRef<jbyteArray> meta_data(
+        env, (jbyteArray)env->GetObjectField(current.get(), metaDataFid));
+    if (meta_data.get() != NULL) {
+      jbyte* data_array = env->GetByteArrayElements(meta_data.get(), 0);
+      int data_len = env->GetArrayLength(meta_data.get());
+      if (data_array && data_len) {
+        curr.meta_data =
+            std::vector<uint8_t>(data_array, data_array + data_len);
+        env->ReleaseByteArrayElements(meta_data.get(), data_array, JNI_ABORT);
+      }
+    }
 
     native_filters.push_back(curr);
   }
