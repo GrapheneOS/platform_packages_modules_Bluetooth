@@ -84,6 +84,8 @@ pub mod ffi {
         org_id: u8,
         tds_flags: u8,
         tds_flags_mask: u8,
+        meta_data_type: u8,
+        meta_data: Vec<u8>,
         data: Vec<u8>,
         data_mask: Vec<u8>,
         irk: [u8; 16],
