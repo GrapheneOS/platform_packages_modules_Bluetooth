@@ -133,6 +133,9 @@ class LeAudioClientInterface {
   /** Disconnect from LEAudio */
   virtual void Disconnect(const RawAddress& address) = 0;
 
+  /* Set enable/disable State for the LeAudio device */
+  virtual void SetEnableState(const RawAddress& address, bool enabled) = 0;
+
   /* Cleanup the LeAudio */
   virtual void Cleanup(void) = 0;
 
