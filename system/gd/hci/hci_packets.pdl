@@ -5206,10 +5206,30 @@ packet LeAdvFilterServiceDataComplete : LeAdvFilterComplete (apcf_opcode = SERVI
   apcf_available_spaces : 8,
 }
 
-packet LeAdvFilterTransportDiscoveryData : LeAdvFilter (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {
+packet LeAdvFilterTransportDiscoveryDataOld : LeAdvFilter (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {
   apcf_action : ApcfAction,
   apcf_filter_index : 8,
   apcf_transport_discovery_data : 8[],
+}
+
+enum ApcfMetaDataType : 8 {
+  INVALID = 0x00,
+  WIFI_NAN_HASH = 0x01,
+}
+
+packet LeAdvFilterTransportDiscoveryData : LeAdvFilter (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {
+  apcf_action : ApcfAction,
+  apcf_filter_index : 8,
+  org_id : 8,
+  tds_flags: 8,
+  tds_flags_mask: 8,
+  _size_(transport_data): 8,
+  transport_data: 8[],
+  _size_(transport_data_mask): 8,
+  transport_data_mask: 8[],
+  meta_data_type: ApcfMetaDataType,
+  _size_(meta_data): 8,
+  meta_data: 8[],
 }
 
 packet LeAdvFilterTransportDiscoveryDataComplete : LeAdvFilterComplete (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {
