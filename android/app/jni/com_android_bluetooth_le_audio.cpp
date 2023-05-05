@@ -435,6 +435,27 @@ static jboolean disconnectLeAudioNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
+static jboolean setEnableStateNative(JNIEnv* env, jobject object,
+                                     jbyteArray address, jboolean enabled) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
+
+  if (!sLeAudioClientInterface) {
+    LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
+    return JNI_FALSE;
+  }
+
+  if (!addr) {
+    jniThrowIOException(env, EINVAL);
+    return JNI_FALSE;
+  }
+
+  RawAddress* tmpraw = (RawAddress*)addr;
+  sLeAudioClientInterface->SetEnableState(*tmpraw, enabled);
+  env->ReleaseByteArrayElements(address, addr, 0);
+  return JNI_TRUE;
+}
+
 static jboolean groupAddNodeNative(JNIEnv* env, jobject object, jint group_id,
                                    jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
@@ -562,6 +583,7 @@ static JNINativeMethod sMethods[] = {
     {"cleanupNative", "()V", (void*)cleanupNative},
     {"connectLeAudioNative", "([B)Z", (void*)connectLeAudioNative},
     {"disconnectLeAudioNative", "([B)Z", (void*)disconnectLeAudioNative},
+    {"setEnableStateNative", "([BZ)Z", (void*)setEnableStateNative},
     {"groupAddNodeNative", "(I[B)Z", (void*)groupAddNodeNative},
     {"groupRemoveNodeNative", "(I[B)Z", (void*)groupRemoveNodeNative},
     {"groupSetActiveNative", "(I)V", (void*)groupSetActiveNative},
