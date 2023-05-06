@@ -483,13 +483,32 @@ void BTM_CancelInquiry(void) {
 
   CHECK(BTM_IsDeviceUp());
 
+  btm_cb.neighbor.inquiry_history_->Push({
+      .status = tBTM_INQUIRY_CMPL::CANCELED,
+      .num_resp = btm_cb.btm_inq_vars.inq_cmpl_info.num_resp,
+      .resp_type =
+          {
+              btm_cb.btm_inq_vars.inq_cmpl_info
+                  .resp_type[BTM_INQ_RESULT_STANDARD],
+              btm_cb.btm_inq_vars.inq_cmpl_info
+                  .resp_type[BTM_INQ_RESULT_WITH_RSSI],
+              btm_cb.btm_inq_vars.inq_cmpl_info
+                  .resp_type[BTM_INQ_RESULT_EXTENDED],
+          },
+      .start_time_ms = btm_cb.neighbor.classic_inquiry.start_time_ms,
+  });
+
+  const auto end_time_ms = timestamper_in_milliseconds.GetTimestamp();
   BTM_LogHistory(
       kBtmLogTag, RawAddress::kEmpty, "Classic inquiry canceled",
-      base::StringPrintf("duration_s:%6.3f results:%lu",
-                         (timestamper_in_milliseconds.GetTimestamp() -
-                          btm_cb.neighbor.classic_inquiry.start_time_ms) /
-                             1000.0,
-                         btm_cb.neighbor.classic_inquiry.results));
+      base::StringPrintf(
+          "duration_s:%6.3f results:%lu std:%u rssi:%u ext:%u",
+          (end_time_ms - btm_cb.neighbor.classic_inquiry.start_time_ms) /
+              1000.0,
+          btm_cb.neighbor.classic_inquiry.results,
+          p_inq->inq_cmpl_info.resp_type[BTM_INQ_RESULT_STANDARD],
+          p_inq->inq_cmpl_info.resp_type[BTM_INQ_RESULT_WITH_RSSI],
+          p_inq->inq_cmpl_info.resp_type[BTM_INQ_RESULT_EXTENDED]));
   btm_cb.neighbor.classic_inquiry = {};
 
   /* Only cancel if not in periodic mode, otherwise the caller should call
@@ -567,12 +586,18 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
         " state:%hhu counter:%u",
         btm_cb.btm_inq_vars.inq_active, btm_cb.btm_inq_vars.state,
         btm_cb.btm_inq_vars.inq_counter);
+    btm_cb.neighbor.inquiry_history_->Push({
+        .status = tBTM_INQUIRY_CMPL::NOT_STARTED,
+    });
     return BTM_BUSY;
   }
 
   /*** Make sure the device is ready ***/
   if (!BTM_IsDeviceUp()) {
     LOG(ERROR) << __func__ << ": adapter is not up";
+    btm_cb.neighbor.inquiry_history_->Push({
+        .status = tBTM_INQUIRY_CMPL::NOT_STARTED,
+    });
     return BTM_WRONG_MODE;
   }
 
@@ -594,8 +619,7 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
   btm_cb.btm_inq_vars.state = BTM_INQ_ACTIVE_STATE;
   btm_cb.btm_inq_vars.p_inq_cmpl_cb = p_cmpl_cb;
   btm_cb.btm_inq_vars.p_inq_results_cb = p_results_cb;
-  btm_cb.btm_inq_vars.inq_cmpl_info.num_resp =
-      0; /* Clear the results counter */
+  btm_cb.btm_inq_vars.inq_cmpl_info = {}; /* Clear the results counter */
   btm_cb.btm_inq_vars.inq_active = btm_cb.btm_inq_vars.inqparms.mode;
   btm_cb.neighbor.classic_inquiry = {
       .start_time_ms = timestamper_in_milliseconds.GetTimestamp(),
@@ -1311,8 +1335,21 @@ void btm_process_inq_results(const uint8_t* p, uint8_t hci_evt_len,
 
       p_i->time_of_resp = bluetooth::common::time_get_os_boottime_ms();
 
-      if (p_i->inq_count != p_inq->inq_counter)
-        p_inq->inq_cmpl_info.num_resp++; /* A new response was found */
+      if (p_i->inq_count != p_inq->inq_counter) {
+        /* A new response was found */
+        btm_cb.btm_inq_vars.inq_cmpl_info.num_resp++;
+        switch (static_cast<tBTM_INQ_RESULT>(inq_res_mode)) {
+          case BTM_INQ_RESULT_STANDARD:
+          case BTM_INQ_RESULT_WITH_RSSI:
+          case BTM_INQ_RESULT_EXTENDED:
+            btm_cb.btm_inq_vars.inq_cmpl_info.resp_type[inq_res_mode]++;
+            break;
+          case BTM_INQ_RES_IGNORE_RSSI:
+            btm_cb.btm_inq_vars.inq_cmpl_info
+                .resp_type[BTM_INQ_RESULT_STANDARD]++;
+            break;
+        }
+      }
 
       p_cur->inq_result_type |= BTM_INQ_RESULT_BR;
       if (p_i->inq_count != p_inq->inq_counter) {
@@ -1399,22 +1436,21 @@ void btm_sort_inq_result(void) {
  *
  ******************************************************************************/
 void btm_process_inq_complete(tHCI_STATUS status, uint8_t mode) {
-  tBTM_CMPL_CB* p_inq_cb = btm_cb.btm_inq_vars.p_inq_cmpl_cb;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
   p_inq->inqparms.mode &= ~(mode);
   const auto inq_active = p_inq->inq_active;
 
-#if (BTM_INQ_DEBUG == TRUE)
-  BTM_TRACE_DEBUG("btm_process_inq_complete inq_active:0x%x state:%d",
-                  btm_cb.btm_inq_vars.inq_active, btm_cb.btm_inq_vars.state);
-#endif
   btm_acl_update_inquiry_status(BTM_INQUIRY_COMPLETE);
+
+  if (status != HCI_SUCCESS) {
+    LOG_WARN("Received unexpected hci status:%s",
+             hci_error_code_text(status).c_str());
+  }
+
   /* Ignore any stray or late complete messages if the inquiry is not active */
   if (p_inq->inq_active) {
-    p_inq->inq_cmpl_info.status =
-        (tBTM_STATUS)((status == HCI_SUCCESS) ? BTM_SUCCESS
-                                              : BTM_ERR_PROCESSING);
+    p_inq->inq_cmpl_info.hci_status = status;
 
     /* Notify caller that the inquiry has completed; (periodic inquiries do not
      * send completion events */
@@ -1427,36 +1463,60 @@ void btm_process_inq_complete(tHCI_STATUS status, uint8_t mode) {
 
       btm_clr_inq_result_flt();
 
-      if ((p_inq->inq_cmpl_info.status == BTM_SUCCESS) &&
+      if ((status == HCI_SUCCESS) &&
           controller_get_interface()->supports_rssi_with_inquiry_results()) {
         btm_sort_inq_result();
       }
 
+      if (btm_cb.btm_inq_vars.p_inq_cmpl_cb) {
+        (btm_cb.btm_inq_vars.p_inq_cmpl_cb)(
+            (tBTM_INQUIRY_CMPL*)&p_inq->inq_cmpl_info);
+      } else {
+        LOG_WARN("No callback to return inquiry result");
+      }
+
+      btm_cb.neighbor.inquiry_history_->Push({
+          .status = tBTM_INQUIRY_CMPL::TIMER_POPPED,
+          .num_resp = btm_cb.btm_inq_vars.inq_cmpl_info.num_resp,
+          .resp_type =
+              {
+                  btm_cb.btm_inq_vars.inq_cmpl_info
+                      .resp_type[BTM_INQ_RESULT_STANDARD],
+                  btm_cb.btm_inq_vars.inq_cmpl_info
+                      .resp_type[BTM_INQ_RESULT_WITH_RSSI],
+                  btm_cb.btm_inq_vars.inq_cmpl_info
+                      .resp_type[BTM_INQ_RESULT_EXTENDED],
+              },
+          .start_time_ms = btm_cb.neighbor.classic_inquiry.start_time_ms,
+      });
+      const auto end_time_ms = timestamper_in_milliseconds.GetTimestamp();
+      BTM_LogHistory(
+          kBtmLogTag, RawAddress::kEmpty, "Classic inquiry complete",
+          base::StringPrintf(
+              "duration_s:%6.3f results:%lu inq_active:0x%02x std:%u rssi:%u "
+              "ext:%u status:%s",
+              (end_time_ms - btm_cb.neighbor.classic_inquiry.start_time_ms) /
+                  1000.0,
+              btm_cb.neighbor.classic_inquiry.results, inq_active,
+              p_inq->inq_cmpl_info.resp_type[BTM_INQ_RESULT_STANDARD],
+              p_inq->inq_cmpl_info.resp_type[BTM_INQ_RESULT_WITH_RSSI],
+              p_inq->inq_cmpl_info.resp_type[BTM_INQ_RESULT_EXTENDED],
+              hci_error_code_text(status).c_str()));
+
+      btm_cb.neighbor.classic_inquiry.start_time_ms = 0;
       /* Clear the results callback if set */
       p_inq->p_inq_results_cb = NULL;
       p_inq->inq_active = BTM_INQUIRY_INACTIVE;
       p_inq->p_inq_cmpl_cb = NULL;
 
-      /* If we have a callback registered for inquiry complete, call it */
-      BTM_TRACE_DEBUG("BTM Inq Compl Callback: status 0x%02x, num results %d",
-                      p_inq->inq_cmpl_info.status,
-                      p_inq->inq_cmpl_info.num_resp);
-
-      if (p_inq_cb) (p_inq_cb)((tBTM_INQUIRY_CMPL*)&p_inq->inq_cmpl_info);
-      BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Classic inquiry complete",
-                     base::StringPrintf(
-                         "duration_s:%6.3f results:%lu inq_active:0x%02x",
-                         (timestamper_in_milliseconds.GetTimestamp() -
-                          btm_cb.neighbor.classic_inquiry.start_time_ms) /
-                             1000.0,
-                         btm_cb.neighbor.classic_inquiry.results, inq_active));
-      btm_cb.neighbor.classic_inquiry.start_time_ms = 0;
+    } else {
+      LOG_INFO(
+          "Inquiry params is not clear so not sending callback inq_parms:%u",
+          btm_cb.btm_inq_vars.inqparms.mode);
     }
   } else {
     LOG_ERROR("Received inquiry complete when no inquiry was active");
   }
-  BTM_TRACE_DEBUG("inq_active:0x%x state:%d", btm_cb.btm_inq_vars.inq_active,
-                  btm_cb.btm_inq_vars.state);
 }
 
 /*******************************************************************************
