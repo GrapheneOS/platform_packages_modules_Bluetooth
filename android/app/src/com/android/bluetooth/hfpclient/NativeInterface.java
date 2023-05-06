@@ -35,7 +35,7 @@ import java.util.Objects;
  */
 public class NativeInterface {
     private static final String TAG = "NativeInterface";
-    private static final boolean DBG = false;
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
     private AdapterService mAdapterService;
 
     static {
