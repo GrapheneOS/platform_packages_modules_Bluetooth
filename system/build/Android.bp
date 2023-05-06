@@ -94,21 +94,15 @@ cc_defaults {
         },
     },
     defaults: ["fluoride_types_defaults_fuzzable"],
-    header_libs: [
-        "libbluetooth_headers",
-        "libbt_callbacks_cxx_headers",
-    ],
+    header_libs: ["libbluetooth_headers"],
     generated_headers: [
         "cxx-bridge-header",
-        "libbt_message_loop_thread_bridge_header",
-        "libbt_shim_bridge_header",
     ],
     include_dirs: ["packages/modules/Bluetooth/system/gd/rust/shim"],
     static_libs: [
         "libbluetooth-types",
         "libbluetooth_rust_interop",
         "libbt-platform-protos-lite",
-        "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
