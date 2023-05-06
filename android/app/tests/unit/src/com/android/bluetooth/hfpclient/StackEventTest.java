@@ -24,6 +24,8 @@ import androidx.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.lang.reflect.Field;
+
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class StackEventTest {
@@ -42,50 +44,24 @@ public class StackEventTest {
     }
 
     @Test
-    public void eventTypeToString() {
-        int invalidType = 23;
-
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_NONE)).isEqualTo(
-                "EVENT_TYPE_NONE");
-        assertThat(StackEvent.eventTypeToString(
-                StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED)).isEqualTo(
-                "EVENT_TYPE_CONNECTION_STATE_CHANGED");
-        assertThat(
-                StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED)).isEqualTo(
-                "EVENT_TYPE_AUDIO_STATE_CHANGED");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_NETWORK_STATE)).isEqualTo(
-                "EVENT_TYPE_NETWORK_STATE");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_ROAMING_STATE)).isEqualTo(
-                "EVENT_TYPE_ROAMING_STATE");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_NETWORK_SIGNAL)).isEqualTo(
-                "EVENT_TYPE_NETWORK_SIGNAL");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_BATTERY_LEVEL)).isEqualTo(
-                "EVENT_TYPE_BATTERY_LEVEL");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_OPERATOR_NAME)).isEqualTo(
-                "EVENT_TYPE_OPERATOR_NAME");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_CALL)).isEqualTo(
-                "EVENT_TYPE_CALL");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_CALLSETUP)).isEqualTo(
-                "EVENT_TYPE_CALLSETUP");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_CALLHELD)).isEqualTo(
-                "EVENT_TYPE_CALLHELD");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_CLIP)).isEqualTo(
-                "EVENT_TYPE_CLIP");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_CALL_WAITING)).isEqualTo(
-                "EVENT_TYPE_CALL_WAITING");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_CURRENT_CALLS)).isEqualTo(
-                "EVENT_TYPE_CURRENT_CALLS");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_VOLUME_CHANGED)).isEqualTo(
-                "EVENT_TYPE_VOLUME_CHANGED");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_CMD_RESULT)).isEqualTo(
-                "EVENT_TYPE_CMD_RESULT");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_SUBSCRIBER_INFO)).isEqualTo(
-                "EVENT_TYPE_SUBSCRIBER_INFO");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_RESP_AND_HOLD)).isEqualTo(
-                "EVENT_TYPE_RESP_AND_HOLD");
-        assertThat(StackEvent.eventTypeToString(StackEvent.EVENT_TYPE_RING_INDICATION)).isEqualTo(
-                "EVENT_TYPE_RING_INDICATION");
-        assertThat(StackEvent.eventTypeToString(invalidType)).isEqualTo(
-                "EVENT_TYPE_UNKNOWN:" + invalidType);
+    public void testToString_allEventFields_toStringMatchesName() throws IllegalAccessException {
+        Class<StackEvent> stackEventClass = StackEvent.class;
+        Field[] fields = stackEventClass.getFields();
+        for (Field field : fields) {
+            Class<?> t = field.getType();
+            String fieldName = field.getName();
+            if (fieldName.startsWith("EVENT_TYPE")) {
+                if (t == int.class) {
+                    int stackEventType = field.getInt(null);
+                    if (fieldName.equals("EVENT_TYPE_UNKNOWN_EVENT")) {
+                        assertThat(StackEvent.eventTypeToString(stackEventType)).isEqualTo(
+                                "EVENT_TYPE_UNKNOWN:" + stackEventType);
+                    } else {
+                        String eventTypeToString = StackEvent.eventTypeToString(stackEventType);
+                        assertThat(eventTypeToString).isEqualTo(fieldName);
+                    }
+                }
+            }
+        }
     }
 }
