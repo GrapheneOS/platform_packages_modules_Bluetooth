@@ -38,6 +38,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.SystemProperties;
+import android.provider.DeviceConfig;
 import android.util.Log;
 
 import com.android.bluetooth.R;
@@ -98,6 +99,10 @@ class PhonePolicy {
 
     @VisibleForTesting static final String AUTO_CONNECT_PROFILES_PROPERTY =
             "bluetooth.auto_connect_profiles.enabled";
+    private static final String CONFIG_LE_AUDIO_ENABLED_BY_DEFAULT = "le_audio_enabled_by_default";
+
+    private static boolean sLeAudioEnabledByDefault = DeviceConfig.getBoolean(
+            DeviceConfig.NAMESPACE_BLUETOOTH, CONFIG_LE_AUDIO_ENABLED_BY_DEFAULT, false);
 
     // Timeouts
     @VisibleForTesting static int sConnectOtherProfilesTimeoutMillis = 6000; // 6s
@@ -295,7 +300,8 @@ class PhonePolicy {
         if ((leAudioService != null) && Utils.arrayContains(uuids,
                 BluetoothUuid.LE_AUDIO) && (leAudioService.getConnectionPolicy(device)
                 != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)
-                && mAdapterService.isLeAudioAllowed(device)) {
+                && mAdapterService.isLeAudioAllowed(device)
+                && (sLeAudioEnabledByDefault || isDualModeAudioEnabled())) {
             isLeAudioProfileAllowed = true;
         }
 
@@ -353,7 +359,7 @@ class PhonePolicy {
             }
         }
 
-        // CSIP should be connected prior than LE Audio
+        // CSIP should be connected prior to LE Audio
         if ((csipSetCooridnatorService != null)
                 && (Utils.arrayContains(uuids, BluetoothUuid.COORDINATED_SET))
                 && (csipSetCooridnatorService.getConnectionPolicy(device)
@@ -391,6 +397,10 @@ class PhonePolicy {
                 mAdapterService.getDatabase().setProfileConnectionPolicy(device,
                         BluetoothProfile.LE_AUDIO, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             }
+        } else if (!sLeAudioEnabledByDefault) {
+            debugLog("clear LEA profile priority because dual mode is disabled by default");
+            mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                    BluetoothProfile.LE_AUDIO, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
         }
 
         if ((hearingAidService != null) && Utils.arrayContains(uuids,
@@ -415,7 +425,7 @@ class PhonePolicy {
 
         if ((volumeControlService != null) && Utils.arrayContains(uuids,
                 BluetoothUuid.VOLUME_CONTROL) && (volumeControlService.getConnectionPolicy(device)
-                == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
+                == BluetoothProfile.CONNECTION_POLICY_UNKNOWN) && isLeAudioProfileAllowed) {
             debugLog("setting volume control profile priority for device " + device);
             if (mAutoConnectProfilesSupported) {
                 volumeControlService.setConnectionPolicy(device,
@@ -425,6 +435,10 @@ class PhonePolicy {
                         BluetoothProfile.VOLUME_CONTROL,
                         BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             }
+        } else if (!sLeAudioEnabledByDefault) {
+            debugLog("clear VCP priority because dual mode is disabled by default");
+            mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                    BluetoothProfile.VOLUME_CONTROL, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
         }
 
         if ((hapClientService != null) && Utils.arrayContains(uuids,
@@ -836,6 +850,11 @@ class PhonePolicy {
         } else {
             warnLog("onUuidsDiscovered: uuids is null for device " + device);
         }
+    }
+
+    @VisibleForTesting
+    void setLeAudioEnabledByDefaultForTesting(boolean enabled) {
+        sLeAudioEnabledByDefault = enabled;
     }
 
     private static void debugLog(String msg) {
