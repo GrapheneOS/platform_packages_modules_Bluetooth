@@ -26,6 +26,7 @@
 #define LOG_TAG "bt_btm_ble"
 
 #include <base/logging.h>
+#include <base/strings/stringprintf.h>
 
 #include <cstdint>
 
@@ -45,6 +46,7 @@
 #include "stack/include/bt_octets.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/include/btu.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/l2cap_security_interface.h"
@@ -63,6 +65,10 @@ void gatt_notify_phy_updated(tGATT_STATUS status, uint16_t handle,
 #ifndef PROPERTY_BLE_PRIVACY_ENABLED
 #define PROPERTY_BLE_PRIVACY_ENABLED "bluetooth.core.gap.le.privacy.enabled"
 #endif
+
+namespace {
+constexpr char kBtmLogTag[] = "SEC";
+}
 
 // Pairing parameters defined in Vol 3, Part H, Chapter 3.5.1 - 3.5.2
 // All present in the exact decimal values, not hex
@@ -251,8 +257,12 @@ const Octet16& BTM_GetDeviceDHK() { return btm_cb.devcb.id_keys.dhk; }
  *
  ******************************************************************************/
 void BTM_SecurityGrant(const RawAddress& bd_addr, uint8_t res) {
-  tSMP_STATUS res_smp =
+  const tSMP_STATUS res_smp =
       (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_REPEATED_ATTEMPTS;
+  BTM_LogHistory(kBtmLogTag, bd_addr, "Granted",
+                 base::StringPrintf("passkey_status:%s",
+                                    smp_status_text(res_smp).c_str()));
+
   BTM_TRACE_DEBUG("BTM_SecurityGrant");
   SMP_SecurityGrant(bd_addr, res_smp);
 }
@@ -274,13 +284,17 @@ void BTM_SecurityGrant(const RawAddress& bd_addr, uint8_t res) {
 void BTM_BlePasskeyReply(const RawAddress& bd_addr, uint8_t res,
                          uint32_t passkey) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-  tSMP_STATUS res_smp =
-      (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_PASSKEY_ENTRY_FAIL;
-
   if (p_dev_rec == NULL) {
     BTM_TRACE_ERROR("Passkey reply to Unknown device");
     return;
   }
+
+  const tSMP_STATUS res_smp =
+      (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_PASSKEY_ENTRY_FAIL;
+  BTM_LogHistory(kBtmLogTag, bd_addr, "Passkey reply",
+                 base::StringPrintf("transport:%s authenticate_status:%s",
+                                    bt_transport_text(BT_TRANSPORT_LE).c_str(),
+                                    smp_status_text(res_smp).c_str()));
 
   p_dev_rec->sec_flags |= BTM_SEC_LE_AUTHENTICATED;
   BTM_TRACE_DEBUG("BTM_BlePasskeyReply");
@@ -301,13 +315,18 @@ void BTM_BlePasskeyReply(const RawAddress& bd_addr, uint8_t res,
  ******************************************************************************/
 void BTM_BleConfirmReply(const RawAddress& bd_addr, uint8_t res) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-  tSMP_STATUS res_smp =
-      (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_PASSKEY_ENTRY_FAIL;
-
   if (p_dev_rec == NULL) {
     BTM_TRACE_ERROR("Passkey reply to Unknown device");
     return;
   }
+  const tSMP_STATUS res_smp =
+      (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_PASSKEY_ENTRY_FAIL;
+
+  BTM_LogHistory(kBtmLogTag, bd_addr, "Confirm reply",
+                 base::StringPrintf(
+                     "transport:%s numeric_comparison_authenticate_status:%s",
+                     bt_transport_text(BT_TRANSPORT_LE).c_str(),
+                     smp_status_text(res_smp).c_str()));
 
   p_dev_rec->sec_flags |= BTM_SEC_LE_AUTHENTICATED;
   BTM_TRACE_DEBUG("%s", __func__);
@@ -331,15 +350,17 @@ void BTM_BleConfirmReply(const RawAddress& bd_addr, uint8_t res) {
  ******************************************************************************/
 void BTM_BleOobDataReply(const RawAddress& bd_addr, uint8_t res, uint8_t len,
                          uint8_t* p_data) {
-  tSMP_STATUS res_smp = (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_OOB_FAIL;
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-
-  BTM_TRACE_DEBUG("%s:", __func__);
-
   if (p_dev_rec == NULL) {
     BTM_TRACE_ERROR("%s: Unknown device", __func__);
     return;
   }
+
+  const tSMP_STATUS res_smp = (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_OOB_FAIL;
+  BTM_LogHistory(kBtmLogTag, bd_addr, "Oob data reply",
+                 base::StringPrintf("transport:%s authenticate_status:%s",
+                                    bt_transport_text(BT_TRANSPORT_LE).c_str(),
+                                    smp_status_text(res_smp).c_str()));
 
   p_dev_rec->sec_flags |= BTM_SEC_LE_AUTHENTICATED;
   SMP_OobDataReply(bd_addr, res_smp, len, p_data);
@@ -361,13 +382,15 @@ void BTM_BleOobDataReply(const RawAddress& bd_addr, uint8_t res, uint8_t len,
 void BTM_BleSecureConnectionOobDataReply(const RawAddress& bd_addr,
                                          uint8_t* p_c, uint8_t* p_r) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-
-  BTM_TRACE_DEBUG("%s:", __func__);
-
   if (p_dev_rec == NULL) {
     BTM_TRACE_ERROR("%s: Unknown device", __func__);
     return;
   }
+
+  BTM_LogHistory(
+      kBtmLogTag, bd_addr, "Oob data reply",
+      base::StringPrintf("transport:%s",
+                         bt_transport_text(BT_TRANSPORT_LE).c_str()));
 
   p_dev_rec->sec_flags |= BTM_SEC_LE_AUTHENTICATED;
 
