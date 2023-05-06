@@ -435,7 +435,7 @@ static bool check_eir_appearance(tBTA_DM_SEARCH* p_search_data,
         p_search_data->inq_res.p_eir, p_search_data->inq_res.eir_len,
         HCI_EIR_APPEARANCE_TYPE, &appearance_len);
 
-    if (p_eir_appearance) {
+    if (p_eir_appearance && appearance_len >= 2) {
       if (p_appearance) {
         *p_appearance = *((uint16_t*)p_eir_appearance);
       }
