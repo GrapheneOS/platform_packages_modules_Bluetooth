@@ -2469,6 +2469,8 @@ public class LeAudioService extends ProfileService {
         if (mCsipSetCoordinatorService == null) {
             mCsipSetCoordinatorService = mServiceFactory.getCsipSetCoordinatorService();
         }
+
+        // Disallow setting CSIP to forbidden until characteristic reads are complete
         if (mCsipSetCoordinatorService != null) {
             mCsipSetCoordinatorService.setConnectionPolicy(device, connectionPolicy);
         }
