@@ -845,8 +845,6 @@ void bta_dm_ci_rmt_oob_act(std::unique_ptr<tBTA_DM_CI_RMT_OOB> msg) {
  *
  ******************************************************************************/
 void bta_dm_search_start(tBTA_DM_MSG* p_data) {
-  tBTM_INQUIRY_CMPL result = {};
-
   bta_dm_gattc_register();
 
   APPL_TRACE_DEBUG("%s avoid_scatter=%d", __func__,
@@ -857,14 +855,19 @@ void bta_dm_search_start(tBTA_DM_MSG* p_data) {
   bta_dm_search_cb.p_search_cback = p_data->search.p_cback;
   bta_dm_search_cb.services = p_data->search.services;
 
-  result.status = BTM_StartInquiry(bta_dm_inq_results_cb, bta_dm_inq_cmpl_cb);
-
-  APPL_TRACE_EVENT("%s status=%d", __func__, result.status);
-  if (result.status != BTM_CMD_STARTED) {
-    LOG(ERROR) << __func__ << ": BTM_StartInquiry returned "
-               << std::to_string(result.status);
-    result.num_resp = 0;
-    bta_dm_inq_cmpl_cb((void*)&result);
+  const tBTM_STATUS btm_status =
+      BTM_StartInquiry(bta_dm_inq_results_cb, bta_dm_inq_cmpl_cb);
+  switch (btm_status) {
+    case BTM_CMD_STARTED:
+      // Completion callback will be executed when controller inquiry
+      // timer pops or is cancelled by the user
+      break;
+    default:
+      LOG_WARN("Unable to start device discovery search btm_status:%s",
+               btm_status_text(btm_status).c_str());
+      // Not started so completion callback is executed now
+      bta_dm_inq_cmpl(0);
+      break;
   }
 }
 
