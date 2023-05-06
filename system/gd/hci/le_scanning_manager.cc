@@ -29,6 +29,7 @@
 #include "module.h"
 #include "os/handler.h"
 #include "os/log.h"
+#include "os/system_properties.h"
 #include "storage/storage_module.h"
 
 namespace bluetooth {
@@ -36,6 +37,11 @@ namespace hci {
 
 constexpr uint16_t kLeScanWindowMin = 0x0004;
 constexpr uint16_t kLeScanWindowMax = 0x4000;
+constexpr int64_t kLeScanRssiMin = -127;
+constexpr int64_t kLeScanRssiMax = 20;
+constexpr int64_t kLeScanRssiUnknown = 127;
+constexpr int64_t kLeRxPathLossCompMin = -128;
+constexpr int64_t kLeRxPathLossCompMax = 127;
 constexpr uint16_t kDefaultLeExtendedScanWindow = 4800;
 constexpr uint16_t kLeExtendedScanWindowMax = 0xFFFF;
 constexpr uint16_t kLeScanIntervalMin = 0x0004;
@@ -48,6 +54,9 @@ constexpr uint8_t kDirectedBit = 2;
 constexpr uint8_t kScanResponseBit = 3;
 constexpr uint8_t kLegacyBit = 4;
 constexpr uint8_t kDataStatusBits = 5;
+
+// system properties
+const std::string kLeRxPathLossCompProperty = "bluetooth.hardware.radio.le_rx_path_loss_comp_db";
 
 const ModuleFactory LeScanningManager::Factory = ModuleFactory([]() { return new LeScanningManager(); });
 
@@ -212,6 +221,7 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
     }
     batch_scan_config_.current_state = BatchScanState::DISABLED_STATE;
     batch_scan_config_.ref_value = kInvalidScannerId;
+    le_rx_path_loss_comp_ = get_rx_path_loss_compensation();
   }
 
   void stop() {
@@ -276,6 +286,38 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
     bool continuing{false};
     bool truncated{false};
   };
+
+  int8_t get_rx_path_loss_compensation() {
+    int8_t compensation = 0;
+    auto compensation_prop = os::GetSystemProperty(kLeRxPathLossCompProperty);
+    if (compensation_prop) {
+      auto compensation_number = common::Int64FromString(compensation_prop.value());
+      if (compensation_number) {
+        int64_t number = compensation_number.value();
+        if (number < kLeRxPathLossCompMin || number > kLeRxPathLossCompMax) {
+          LOG_ERROR("Invalid number for rx path loss compensation: %" PRId64, number);
+        } else {
+          compensation = number;
+        }
+      }
+    }
+    LOG_INFO("Rx path loss compensation: %d", compensation);
+    return compensation;
+  }
+
+  int8_t get_rssi_after_calibration(int8_t rssi) {
+    if (le_rx_path_loss_comp_ == 0 || rssi == kLeScanRssiUnknown) {
+      return rssi;
+    }
+    int8_t calibrated_rssi = rssi;
+    int64_t number = rssi + le_rx_path_loss_comp_;
+    if (number < kLeScanRssiMin || number > kLeScanRssiMax) {
+      LOG_ERROR("Invalid number for calibrated rssi: %" PRId64, number);
+    } else {
+      calibrated_rssi = number;
+    }
+    return calibrated_rssi;
+  }
 
   uint16_t transform_to_extended_event_type(ExtendedEventTypeOptions o) {
     return (o.connectable ? 0x0001 << 0 : 0) | (o.scannable ? 0x0001 << 1 : 0) |
@@ -414,7 +456,7 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
           secondary_phy,
           advertising_sid,
           tx_power,
-          rssi,
+          get_rssi_after_calibration(rssi),
           periodic_advertising_interval,
           complete_advertising_data.value());
     }
@@ -1584,6 +1626,7 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
   std::map<ScannerId, std::vector<uint8_t>> batch_scan_result_cache_;
   std::unordered_map<uint8_t, ScannerId> tracker_id_map_;
   uint16_t total_num_of_advt_tracked_ = 0x00;
+  int8_t le_rx_path_loss_comp_ = 0;
 
   static void check_status(CommandCompleteView view) {
     switch (view.GetCommandOpCode()) {
