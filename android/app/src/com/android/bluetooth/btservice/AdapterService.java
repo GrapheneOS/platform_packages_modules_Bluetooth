@@ -7101,6 +7101,14 @@ public class AdapterService extends Service {
      * @param uuids are the services supported on the remote device
      */
     void sendUuidsInternal(BluetoothDevice device, ParcelUuid[] uuids) {
+        if (device == null) {
+            Log.w(TAG, "sendUuidsInternal: null device");
+            return;
+        }
+        if (uuids == null) {
+            Log.w(TAG, "sendUuidsInternal: uuids is null");
+            return;
+        }
         Log.i(TAG, "sendUuidsInternal: Received service discovery UUIDs for device " + device);
         if (DBG) {
             for (int i = 0; i < uuids.length; i++) {
