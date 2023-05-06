@@ -20,6 +20,7 @@ package com.android.bluetooth.csip;
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.*;
+import android.bluetooth.BluetoothUuid;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -37,7 +38,9 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.le_audio.LeAudioService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +56,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -73,6 +77,9 @@ public class CsipSetCoordinatorServiceTest {
     private static final int TIMEOUT_MS = 1000;
 
     @Mock private AdapterService mAdapterService;
+    @Mock private LeAudioService mLeAudioService;
+    @Spy
+    private ServiceFactory mServiceFactory = new ServiceFactory();
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private CsipSetCoordinatorNativeInterface mCsipSetCoordinatorNativeInterface;
     @Mock private IBluetoothCsipSetCoordinatorLockCallback mCsipSetCoordinatorLockCallback;
@@ -100,6 +107,8 @@ public class CsipSetCoordinatorServiceTest {
 
         startService();
         mService.mCsipSetCoordinatorNativeInterface = mCsipSetCoordinatorNativeInterface;
+        mService.mServiceFactory = mServiceFactory;
+        when(mServiceFactory.getLeAudioService()).thenReturn(mLeAudioService);
 
         // Override the timeout value to speed up the test
         CsipSetCoordinatorStateMachine.sConnectTimeoutMs = TIMEOUT_MS; // 1s
@@ -531,6 +540,55 @@ public class CsipSetCoordinatorServiceTest {
         Assert.assertEquals(mTestDevice, intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
         Assert.assertEquals(
                 group_id, intent.getIntExtra(BluetoothCsipSetCoordinator.EXTRA_CSIS_GROUP_ID, -1));
+    }
+
+    /**
+     * Test that we make CSIP FORBIDDEN after all set members are paired if the LE Audio connection
+     * policy is FORBIDDEN.
+     */
+    @Test
+    public void testDisableCsipAfterConnectingIfLeAudioDisabled() {
+        int group_id = 0x01;
+        int group_size = 0x02;
+        long uuidLsb = BluetoothUuid.CAP.getUuid().getLeastSignificantBits();
+        long uuidMsb = BluetoothUuid.CAP.getUuid().getMostSignificantBits();
+
+        doCallRealMethod()
+                .when(mCsipSetCoordinatorNativeInterface)
+                .onDeviceAvailable(any(byte[].class), anyInt(), anyInt(), anyInt(), anyLong(),
+                        anyLong());
+        when(mLeAudioService.getConnectionPolicy(any())).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+
+        // Make first set device available and connected
+        mCsipSetCoordinatorNativeInterface.onDeviceAvailable(
+                getByteAddress(mTestDevice), group_id, group_size, 0x02, uuidLsb, uuidMsb);
+        mService.connectionStateChanged(mTestDevice, BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_CONNECTED);
+
+        // Another device with the highest rank
+        mCsipSetCoordinatorNativeInterface.onDeviceAvailable(
+                getByteAddress(mTestDevice2), group_id, group_size, 0x01, uuidLsb, uuidMsb);
+
+        // When LEA is FORBIDDEN, verify we don't disable CSIP until all set devices are available
+        verify(mDatabaseManager, never()).setProfileConnectionPolicy(mTestDevice,
+                BluetoothProfile.CSIP_SET_COORDINATOR,
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+        verify(mDatabaseManager, never()).setProfileConnectionPolicy(mTestDevice2,
+                BluetoothProfile.CSIP_SET_COORDINATOR,
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+
+        // Mark the second device as connected
+        mService.connectionStateChanged(mTestDevice2, BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_CONNECTED);
+
+        // When LEA is FORBIDDEN, verify we disable CSIP once all set devices are available
+        verify(mDatabaseManager, times(1)).setProfileConnectionPolicy(mTestDevice,
+                BluetoothProfile.CSIP_SET_COORDINATOR,
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+        verify(mDatabaseManager, times(1)).setProfileConnectionPolicy(mTestDevice2,
+                BluetoothProfile.CSIP_SET_COORDINATOR,
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
     }
 
     @Test
