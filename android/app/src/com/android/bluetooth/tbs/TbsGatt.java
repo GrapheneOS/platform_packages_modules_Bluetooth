@@ -132,7 +132,7 @@ public class TbsGatt {
     @VisibleForTesting
     public static final int CALL_CONTROL_POINT_RESULT_INVALID_OUTGOING_URI = 0x06;
 
-    private Object mPendingGattOperationsLock = new Object();
+    private final Object mPendingGattOperationsLock = new Object();
     private final Context mContext;
     private final GattCharacteristic mBearerProviderNameCharacteristic;
     private final GattCharacteristic mBearerUciCharacteristic;
