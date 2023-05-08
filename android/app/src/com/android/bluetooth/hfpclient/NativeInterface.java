@@ -275,6 +275,10 @@ public class NativeInterface {
      */
     @VisibleForTesting
     public boolean sendAndroidAt(BluetoothDevice device, String cmd) {
+        if (device == null) {
+            Log.w(TAG, "Don't need to send " + cmd + " because no remote device");
+            return false;
+        }
         return sendAndroidAtNative(getByteAddress(device), cmd);
     }
 
