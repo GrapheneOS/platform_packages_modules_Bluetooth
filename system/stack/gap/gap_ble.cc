@@ -246,7 +246,7 @@ void server_attr_request_cback(uint16_t conn_id, uint32_t trans_id,
  * Returns true if read started, else false if GAP is busy.
  */
 bool send_cl_read_request(tGAP_CLCB& clcb) {
-  if (!clcb.requests.size()) {
+  if (!clcb.requests.size() || clcb.cl_op_uuid != 0) {
     return false;
   }
 
