@@ -623,10 +623,10 @@ impl CommandHandler {
 
         match &command[..] {
             "start" => {
-                self.lock_context().adapter_dbus.as_ref().unwrap().start_discovery();
+                self.lock_context().adapter_dbus.as_mut().unwrap().start_discovery();
             }
             "stop" => {
-                self.lock_context().adapter_dbus.as_ref().unwrap().cancel_discovery();
+                self.lock_context().adapter_dbus.as_mut().unwrap().cancel_discovery();
             }
             _ => return Err(CommandError::InvalidArgs),
         }
@@ -661,7 +661,7 @@ impl CommandHandler {
                 let success = self
                     .lock_context()
                     .adapter_dbus
-                    .as_ref()
+                    .as_mut()
                     .unwrap()
                     .create_bond(device.clone(), BtTransport::Auto);
 
