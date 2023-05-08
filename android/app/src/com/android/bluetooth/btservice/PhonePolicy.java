@@ -390,19 +390,24 @@ class PhonePolicy {
             }
         }
 
-        if (isLeAudioProfileAllowed) {
-            debugLog("setting le audio profile priority for device " + device);
-            if (mAutoConnectProfilesSupported) {
-                leAudioService.setConnectionPolicy(device,
-                        BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        if ((leAudioService != null)
+                && Utils.arrayContains(uuids, BluetoothUuid.LE_AUDIO)
+                && (leAudioService.getConnectionPolicy(device)
+                    == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
+            if (isLeAudioProfileAllowed) {
+                debugLog("setting le audio profile priority for device " + device);
+                if (mAutoConnectProfilesSupported) {
+                    leAudioService.setConnectionPolicy(device,
+                            BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                } else {
+                    mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                            BluetoothProfile.LE_AUDIO, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                }
             } else {
+                debugLog("clear LEA profile priority because LE audio is not allowed");
                 mAdapterService.getDatabase().setProfileConnectionPolicy(device,
-                        BluetoothProfile.LE_AUDIO, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                        BluetoothProfile.LE_AUDIO, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
             }
-        } else {
-            debugLog("clear LEA profile priority because dual mode is disabled by default");
-            mAdapterService.getDatabase().setProfileConnectionPolicy(device,
-                    BluetoothProfile.LE_AUDIO, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
         }
 
         if ((hearingAidService != null)
