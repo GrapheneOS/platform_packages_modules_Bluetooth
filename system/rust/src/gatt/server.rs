@@ -10,6 +10,7 @@ pub mod services;
 mod transactions;
 
 mod command_handler;
+pub mod isolation_manager;
 #[cfg(test)]
 mod test;
 
