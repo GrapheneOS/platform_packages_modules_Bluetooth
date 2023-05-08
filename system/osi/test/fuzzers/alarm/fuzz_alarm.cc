@@ -135,6 +135,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
   // Alarm must be non-null, or set() will trigger assert
   if (alarm) {
     if (!fuzz_set_alarm(alarm, MAX_ALARM_DURATION, cb, &dataProvider)) {
+      alarm_free(alarm);
       return 0;
     }
     alarm_cancel(alarm);
@@ -150,8 +151,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
     for (int i = 0; i < num_alarms; i++) {
       uint64_t interval =
           dataProvider.ConsumeIntegralInRange<uint64_t>(0, MAX_ALARM_DURATION);
-      if (fuzz_set_alarm(alarm, interval, cb, &dataProvider)) {
-        return 0;
+      if (!fuzz_set_alarm(alarm, interval, cb, &dataProvider)) {
+        num_alarms = i;
+        break;
       }
       alarm_get_remaining_ms(alarm);
     }
