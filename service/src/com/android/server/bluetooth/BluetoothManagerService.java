@@ -65,7 +65,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.ContentObserver;
-import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -213,7 +212,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private String mAddress;
     private String mName;
     private final ContentResolver mContentResolver;
-    private final BatteryStatsManager mBatteryStatsManager;
     private final RemoteCallbackList<IBluetoothManagerCallback> mCallbacks;
     private final RemoteCallbackList<IBluetoothStateChangeCallback> mStateChangeCallbacks;
     private IBinder mBluetoothBinder;
@@ -642,8 +640,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         registerForBleScanModeChange();
         mCallbacks = new RemoteCallbackList<IBluetoothManagerCallback>();
         mStateChangeCallbacks = new RemoteCallbackList<IBluetoothStateChangeCallback>();
-
-        mBatteryStatsManager = context.getSystemService(BatteryStatsManager.class);
 
         mUserManager = mContext.getSystemService(UserManager.class);
 
@@ -3098,12 +3094,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             }
             mActiveLogs.add(
                     new ActiveLog(reason, packageName, enable, System.currentTimeMillis()));
-        }
-
-        if (enable) {
-            mBatteryStatsManager.reportBluetoothOn(Binder.getCallingUid(), reason, packageName);
-        } else {
-            mBatteryStatsManager.reportBluetoothOff(Binder.getCallingUid(), reason, packageName);
         }
     }
 
