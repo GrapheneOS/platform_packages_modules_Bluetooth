@@ -162,7 +162,7 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
         characteristic: BluetoothGattCharacteristic,
         value: ByteArray
       ) {
-        Log.i(TAG, "onCharacteristicChanged, characteristic: " + characteristic.getUuid().toString())
+        Log.i(TAG, "onCharacteristicChanged, characteristic: " + characteristic.getUuid().toString().uppercase())
         mCharacteristicChangedMap[characteristic] = true
         mOnCharacteristicChanged.value = true
       }
