@@ -1106,6 +1106,11 @@ class CsisClientImpl : public CsisClient {
 
     csis_instance->SetRank((value[0]));
     auto csis_group = FindCsisGroup(csis_instance->GetGroupId());
+    if (!csis_group) {
+      LOG(ERROR) << __func__ << " Unknown group id yet";
+      return;
+    }
+
     csis_group->SortByCsisRank();
 
     if (notify_valid_services) NotifyCsisDeviceValidAndStoreIfNeeded(device);
@@ -1251,8 +1256,8 @@ class CsisClientImpl : public CsisClient {
   void CsisActiveObserverSet(bool enable) {
     bool is_ad_type_filter_supported =
         bluetooth::shim::is_ad_type_filter_supported();
-    LOG_INFO("Group_id %d: enable: %d, is_ad_type_filter_supported: %d", enable,
-             discovering_group_, is_ad_type_filter_supported);
+    LOG_INFO("Group_id %d: enable: %d, is_ad_type_filter_supported: %d",
+             discovering_group_, enable, is_ad_type_filter_supported);
     if (is_ad_type_filter_supported) {
       bluetooth::shim::set_ad_type_rsi_filter(enable);
     } else {
