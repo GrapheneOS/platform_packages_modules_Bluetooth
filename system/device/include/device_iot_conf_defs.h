@@ -20,7 +20,6 @@
 
 #define IOT_CONF_KEY_SECTION_ADAPTER "Adapter"
 #define IOT_CONF_KEY_ADDRESS "Address"
-#define IOT_CONF_KEY_BT_ONOFF_COUNT "BTOnOffCount"
 
 #define IOT_CONF_KEY_REMOTE_NAME "Name"
 #define IOT_CONF_KEY_DEVCLASS "DevClass"
