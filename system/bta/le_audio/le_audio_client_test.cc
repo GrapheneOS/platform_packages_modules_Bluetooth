@@ -2490,6 +2490,40 @@ TEST_F(UnicastTest, ConnectRemoteDisconnectOneEarbud) {
   SyncOnMainLoop();
 }
 
+/* same as above case except the disconnect is initiated by remote */
+TEST_F(UnicastTest, ConnectRemoteDisconnectOnTimeoutOneEarbud) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  SetSampleDatabaseEarbudsValid(1, test_address0,
+                                codec_spec_conf::kLeAudioLocationStereo,
+                                codec_spec_conf::kLeAudioLocationStereo);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  ConnectLeAudio(test_address0);
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
+      .Times(1);
+
+  /* Remove default action on the direct connect */
+  ON_CALL(mock_gatt_interface_, Open(_, _, BTM_BLE_DIRECT_CONNECTION, _))
+      .WillByDefault(Return());
+
+  /* For remote disconnection, expect stack to try background re-connect */
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
+      .Times(1);
+
+  EXPECT_CALL(mock_audio_hal_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  InjectDisconnectedEvent(1, GATT_CONN_TIMEOUT);
+  SyncOnMainLoop();
+
+  /* For background connect, test needs to Inject Connected Event */
+  InjectConnectedEvent(test_address0, 1);
+  SyncOnMainLoop();
+}
+
 TEST_F(UnicastTest, ConnectTwoEarbudsCsisGrouped) {
   uint8_t group_size = 2;
   int group_id = 2;
@@ -4170,9 +4204,6 @@ TEST_F(UnicastTest, TwoEarbudsStreamingProfileDisconnect) {
 
   EXPECT_CALL(mock_gatt_interface_,
               Open(_, _, BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
-      .Times(1);
-  EXPECT_CALL(mock_gatt_interface_,
-              Open(_, _, BTM_BLE_BKG_CONNECT_ALLOW_LIST, _))
       .Times(1);
   EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
 

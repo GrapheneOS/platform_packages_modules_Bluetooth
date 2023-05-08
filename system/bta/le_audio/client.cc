@@ -2142,6 +2142,31 @@ class LeAudioClientImpl : public LeAudioClient {
     );
   }
 
+  void autoConnect(RawAddress address) {
+    auto leAudioDevice = leAudioDevices_.FindByAddress(address);
+    if (leAudioDevice == nullptr) {
+      LOG_WARN("Device %s not valid anymore",
+               ADDRESS_TO_LOGGABLE_CSTR(address));
+      return;
+    }
+
+    BackgroundConnectIfNeeded(leAudioDevice);
+  }
+
+  void scheduleAutoConnect(RawAddress& address) {
+    LOG_INFO("Schedule auto connect %s ", ADDRESS_TO_LOGGABLE_CSTR(address));
+    do_in_main_thread_delayed(
+        FROM_HERE,
+        base::BindOnce(&LeAudioClientImpl::autoConnect, base::Unretained(this),
+                       address),
+#if BASE_VER < 931007
+        base::TimeDelta::FromMilliseconds(kAutoConnectAfterOwnDisconnectDelayMs)
+#else
+        base::Milliseconds(kDeviceAttachDelayMs)
+#endif
+    );
+  }
+
   void recoveryReconnect(RawAddress address) {
     LOG_INFO("Reconnecting to %s after timeout on state machine.",
              ADDRESS_TO_LOGGABLE_CSTR(address));
@@ -2245,24 +2270,43 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    if (reason != GATT_CONN_TERMINATE_LOCAL_HOST ||
-        leAudioDevice->autoconnect_flag_) {
+    if (reason == GATT_CONN_TERMINATE_LOCAL_HOST) {
+      if (leAudioDevice->autoconnect_flag_) {
+        /* In this case ACL might not yet been disconnected */
+        scheduleAutoConnect(address);
+      } else {
+        /* Just acknowledge disconnected state*/
+        leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
+      }
+      return;
+    }
+
+    /* Remote disconnects from us or Timeout happens */
+    /* In this case ACL is disconnected */
+    if (reason == GATT_CONN_TIMEOUT) {
       leAudioDevice->SetConnectionState(
           DeviceConnectState::CONNECTING_AUTOCONNECT);
-      if (reason == GATT_CONN_TIMEOUT) {
-        /* If timeout try to reconnect for 30 sec.*/
-        BTA_GATTC_Open(gatt_if_, address, BTM_BLE_DIRECT_CONNECTION, false);
-      } else {
-        BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
-        if (group->IsAnyDeviceConnected()) {
-          /* If all set is disconnecting, let's give it some time.
-           * If not all get disconnected, and there will be group member
-           * connected we want to put disconnected devices to allow list
-           */
-          scheduleGroupConnectedCheck(leAudioDevice->group_id_);
-        }
+
+      /* If timeout try to reconnect for 30 sec.*/
+      BTA_GATTC_Open(gatt_if_, address, BTM_BLE_DIRECT_CONNECTION, false);
+      return;
+    }
+
+    /* In other disconnect resons we act based on the autoconnect_flag_ */
+    if (leAudioDevice->autoconnect_flag_) {
+      leAudioDevice->SetConnectionState(
+          DeviceConnectState::CONNECTING_AUTOCONNECT);
+
+      BTA_GATTC_Open(gatt_if_, address, reconnection_mode_, false);
+      if (group->IsAnyDeviceConnected()) {
+        /* If all set is disconnecting, let's give it some time.
+         * If not all get disconnected, and there will be group member
+         * connected we want to put disconnected devices to allow list
+         */
+        scheduleGroupConnectedCheck(leAudioDevice->group_id_);
       }
     } else {
+      /* Just acknowledge disconnected state*/
       leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
     }
   }
@@ -5195,6 +5239,7 @@ class LeAudioClientImpl : public LeAudioClient {
   tBTM_BLE_CONN_TYPE reconnection_mode_;
   static constexpr uint64_t kGroupConnectedWatchDelayMs = 3000;
   static constexpr uint64_t kRecoveryReconnectDelayMs = 2000;
+  static constexpr uint64_t kAutoConnectAfterOwnDisconnectDelayMs = 1000;
 
   static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
       "persist.bluetooth.leaudio.notify.idle.during.call";
