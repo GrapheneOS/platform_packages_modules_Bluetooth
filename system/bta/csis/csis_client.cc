@@ -814,6 +814,7 @@ class CsisClientImpl : public CsisClient {
      * CSIS group.
      */
     bool notify_connected = false;
+    int group_id_to_discover = bluetooth::groups::kGroupUnknown;
     for (const auto& csis_group : csis_groups_) {
       if (!csis_group->IsDeviceInTheGroup(device)) continue;
 
@@ -837,9 +838,25 @@ class CsisClientImpl : public CsisClient {
           device->addr, group_id, csis_group->GetDesiredSize(),
           csis_instance->GetRank(), csis_instance->GetUuid());
       notify_connected = true;
+
+      if (group_id_to_discover == bluetooth::groups::kGroupUnknown) {
+        group_id_to_discover = group_id;
+      }
     }
-    if (notify_connected)
+
+    if (notify_connected) {
       callbacks_->OnConnectionState(device->addr, ConnectionState::CONNECTED);
+
+      if (group_id_to_discover != bluetooth::groups::kGroupUnknown) {
+        /* Start active search for the other device
+         * b/281120322
+         */
+        auto g = FindCsisGroup(group_id_to_discover);
+        if (g->GetDesiredSize() > g->GetCurrentSize()) {
+          CsisActiveDiscovery(g);
+        }
+      }
+    }
 
     if (device->first_connection) {
       device->first_connection = false;
@@ -1016,9 +1033,6 @@ class CsisClientImpl : public CsisClient {
 
     auto new_size = value[0];
     csis_group->SetDesiredSize(new_size);
-    if (new_size > csis_group->GetCurrentSize()) {
-      CsisActiveDiscovery(csis_group);
-    }
 
     if (notify_valid_services) NotifyCsisDeviceValidAndStoreIfNeeded(device);
   }
@@ -1510,10 +1524,6 @@ class CsisClientImpl : public CsisClient {
                << loghex(csis_group->GetDesiredSize())
                << ", actual group Size: "
                << loghex(csis_group->GetCurrentSize());
-
-    /* Start active search for the other device */
-    if (csis_group->GetDesiredSize() > csis_group->GetCurrentSize())
-      CsisActiveDiscovery(csis_group);
   }
 
   void DeregisterNotifications(std::shared_ptr<CsisDevice> device) {
