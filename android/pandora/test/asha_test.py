@@ -20,19 +20,21 @@ import logging
 
 from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices, asynchronous, bumble_server
 from bumble.gatt import GATT_ASHA_SERVICE
-from bumble.smp import PairingDelegate
+from bumble.pairing import PairingDelegate
 from bumble_experimental.asha import AshaGattService, AshaService
 from mobly import base_test, signals, test_runner
 from mobly.asserts import assert_equal  # type: ignore
+from mobly.asserts import assert_false  # type: ignore
 from mobly.asserts import assert_in  # type: ignore
-from mobly.asserts import skip  # type: ignore
+from mobly.asserts import assert_is_not_none  # type: ignore
+from mobly.asserts import assert_true  # type: ignore
 from pandora._utils import AioStream
 from pandora.host_pb2 import PUBLIC, RANDOM, AdvertiseResponse, Connection, DataTypes, OwnAddressType, ScanningResponse
 from pandora.security_pb2 import LE_LEVEL3
 from pandora_experimental.asha_grpc_aio import Asha as AioAsha, add_AshaServicer_to_server
 from typing import List, Optional, Tuple
 
-ASHA_UUID = GATT_ASHA_SERVICE.to_hex_str()
+ASHA_UUID = GATT_ASHA_SERVICE.to_hex_str('-')
 HISYCNID: List[int] = [0x01, 0x02, 0x03, 0x04, 0x5, 0x6, 0x7, 0x8]
 COMPLETE_LOCAL_NAME: str = "Bumble"
 AUDIO_SIGNAL_AMPLITUDE = 0.8
@@ -44,9 +46,6 @@ class Ear(enum.IntEnum):
 
     LEFT = 0
     RIGHT = 1
-
-    def __repr__(self) -> str:
-        return str(self.value)
 
 
 class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
@@ -60,18 +59,18 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
     def setup_class(self) -> None:
         # Register experimental bumble servicers hook.
         bumble_server.register_servicer_hook(
-            lambda bumble, server: add_AshaServicer_to_server(AshaService(bumble.device), server)
+            lambda bumble, _, server: add_AshaServicer_to_server(AshaService(bumble.device), server)
         )
 
         self.devices = PandoraDevices(self)
         self.dut, ref_left, ref_right, *_ = self.devices
 
         if isinstance(self.dut, BumblePandoraDevice):
-            raise signals.TestAbortAll('DUT Bumble does not support Asha source')
+            raise signals.TestAbortClass('DUT Bumble does not support Asha source')
         if not isinstance(ref_left, BumblePandoraDevice):
-            raise signals.TestAbortAll('Test require Bumble as reference device(s)')
+            raise signals.TestAbortClass('Test require Bumble as reference device(s)')
         if not isinstance(ref_right, BumblePandoraDevice):
-            raise signals.TestAbortAll('Test require Bumble as reference device(s)')
+            raise signals.TestAbortClass('Test require Bumble as reference device(s)')
 
         self.ref_left, self.ref_right = ref_left, ref_right
 
@@ -84,8 +83,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         await asyncio.gather(self.dut.reset(), self.ref_left.reset(), self.ref_right.reset())
 
         # ASHA hearing aid's IO capability is NO_OUTPUT_NO_INPUT
-        setattr(self.ref_left.device, "io_capability", PairingDelegate.NO_OUTPUT_NO_INPUT)
-        setattr(self.ref_right.device, "io_capability", PairingDelegate.NO_OUTPUT_NO_INPUT)
+        self.ref_left.server_config.io_capability = PairingDelegate.NO_OUTPUT_NO_INPUT
+        self.ref_right.server_config.io_capability = PairingDelegate.NO_OUTPUT_NO_INPUT
 
     async def ref_advertise_asha(
         self, ref_device: PandoraDevice, ref_address_type: OwnAddressType, ear: Ear
@@ -125,7 +124,6 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             )
         )
         dut_scan.cancel()
-        assert ref
         return ref
 
     async def dut_connect_to_ref(
@@ -141,9 +139,9 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         )
         assert_equal(dut_ref_res.result_variant(), 'connection')
         dut_ref, ref_dut = dut_ref_res.connection, ref_dut_res.connection
-        assert dut_ref and ref_dut
+        assert_is_not_none(dut_ref)
+        assert dut_ref
         advertisement.cancel()
-
         return dut_ref, ref_dut
 
     async def is_device_connected(self, device: PandoraDevice, connection: Connection, timeout: float) -> bool:
@@ -151,7 +149,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             await device.aio.host.WaitDisconnection(connection=connection, timeout=timeout)
             return False
         except grpc.RpcError as e:
-            assert e.code() == grpc.StatusCode.DEADLINE_EXCEEDED  # type: ignore
+            assert_equal(e.code(), grpc.StatusCode.DEADLINE_EXCEEDED)  # type: ignore
             return True
 
     def get_expected_advertisement_data(self, ear: Ear) -> str:
@@ -246,7 +244,6 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         # DUT initiates connection to Ref.
         dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
-        assert dut_ref, ref_dut
 
         # DUT starts pairing with the Ref.
         (secure, wait_security) = await asyncio.gather(
@@ -280,7 +277,6 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             ref = await self.dut_scan_for_asha(dut_address_type=dut_address_type, ear=ear)
             # DUT initiates connection to ref_device.
             dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
-            assert dut_ref, ref_dut
             advertisement.cancel()
 
             return dut_ref, ref_dut
@@ -356,7 +352,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         logging.debug("result should come out")
 
         advertisement.cancel()
-        assert dut_ref
+        assert_is_not_none(dut_ref)
 
         secure = await self.dut.aio.security.Secure(connection=dut_ref, le=LE_LEVEL3)
 
@@ -378,8 +374,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         )
         ref = await self.dut_scan_for_asha(dut_address_type=dut_address_type, ear=Ear.LEFT)
 
-        dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
-        assert dut_ref, ref_dut
+        _, _ = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
 
     @avatar.parameterized(
         (RANDOM, RANDOM),
@@ -401,11 +396,10 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         ref = await self.dut_scan_for_asha(dut_address_type=dut_address_type, ear=Ear.LEFT)
 
         dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
-        assert dut_ref, ref_dut
         advertisement.cancel()
 
         await self.dut.aio.host.Disconnect(connection=dut_ref)
-        assert not await self.is_device_connected(self.ref_left, ref_dut, 5)
+        assert_false(await self.is_device_connected(self.ref_left, ref_dut, 5), "Should be disconnected")
 
     @avatar.parameterized(
         (RANDOM, RANDOM),
@@ -429,7 +423,6 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             ref = await self.dut_scan_for_asha(dut_address_type=dut_address_type, ear=ear)
             # DUT initiates connection to ref_device.
             dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
-            assert dut_ref, ref_dut
             advertisement.cancel()
 
             return dut_ref, ref_dut
@@ -445,8 +438,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         )
 
         # Verify the Refs are disconnected
-        assert not await self.is_device_connected(self.ref_left, ref_left_dut, 5)
-        assert not await self.is_device_connected(self.ref_right, ref_right_dut, 5)
+        assert_false(await self.is_device_connected(self.ref_left, ref_left_dut, 5), "Should be disconnected")
+        assert_false(await self.is_device_connected(self.ref_right, ref_right_dut, 5), "Should be disconnected")
 
     @avatar.parameterized(
         (RANDOM, RANDOM),
@@ -468,11 +461,10 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         ref = await self.dut_scan_for_asha(dut_address_type=dut_address_type, ear=Ear.LEFT)
 
         dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
-        assert dut_ref, ref_dut
         advertisement.cancel()
 
         await self.ref_left.aio.host.Disconnect(connection=ref_dut)
-        assert not await self.is_device_connected(self.dut, dut_ref, 5)
+        assert_false(await self.is_device_connected(self.dut, dut_ref, 5), "Should be disconnected")
 
     @avatar.parameterized(
         (RANDOM, RANDOM, 0),
@@ -534,7 +526,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         )
         assert_equal(dut_ref_res.result_variant(), 'connection')
         dut_ref, ref_dut = dut_ref_res.connection, ref_dut_res.connection
-        assert dut_ref, ref_dut
+        assert_is_not_none(dut_ref)
+        assert dut_ref
 
         # Pairing
         (secure, wait_security) = await asyncio.gather(
@@ -548,7 +541,6 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         ref_dut = (await anext(aiter(advertisement))).connection
         advertisement.cancel()
-        assert ref_dut
 
     @avatar.parameterized(
         (RANDOM, RANDOM, Ear.LEFT),
@@ -572,30 +564,28 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             ref_device=self.ref_left, ref_address_type=ref_address_type, ear=Ear.LEFT
         )
         ref_left = await self.dut_scan_for_asha(dut_address_type=dut_address_type, ear=Ear.LEFT)
-        dut_ref_left, ref_left_dut = await self.dut_connect_to_ref(
+        _, ref_left_dut = await self.dut_connect_to_ref(
             advertisement=advertisement_left, ref=ref_left, dut_address_type=dut_address_type
         )
         advertisement_left.cancel()
-        assert dut_ref_left, ref_left_dut
 
         advertisement_right = await self.ref_advertise_asha(
             ref_device=self.ref_right, ref_address_type=ref_address_type, ear=Ear.RIGHT
         )
         ref_right = await self.dut_scan_for_asha(dut_address_type=dut_address_type, ear=Ear.RIGHT)
-        dut_ref_right, ref_right_dut = await self.dut_connect_to_ref(
+        _, ref_right_dut = await self.dut_connect_to_ref(
             advertisement=advertisement_right, ref=ref_right, dut_address_type=dut_address_type
         )
         advertisement_right.cancel()
-        assert dut_ref_right, ref_right_dut
 
         if disconnect_device == Ear.LEFT:
             await self.ref_left.aio.host.Disconnect(connection=ref_left_dut)
-            assert await self.is_device_connected(device=self.ref_right, connection=ref_right_dut, timeout=5.0)
-            assert not await self.is_device_connected(device=self.ref_left, connection=ref_left_dut, timeout=5.0)
+            assert_true(await self.is_device_connected(self.ref_right, ref_right_dut, 5), "Should be disconnected")
+            assert_false(await self.is_device_connected(self.ref_left, ref_left_dut, 5), "Should be disconnected")
         else:
             await self.ref_right.aio.host.Disconnect(connection=ref_right_dut)
-            assert not await self.is_device_connected(device=self.ref_right, connection=ref_right_dut, timeout=5.0)
-            assert await self.is_device_connected(device=self.ref_left, connection=ref_left_dut, timeout=5.0)
+            assert_false(await self.is_device_connected(self.ref_right, ref_right_dut, 5), "Should be disconnected")
+            assert_true(await self.is_device_connected(self.ref_left, ref_left_dut, 5), "Should be disconnected")
 
     @avatar.parameterized(
         (RANDOM, RANDOM, Ear.LEFT),
@@ -625,7 +615,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         )
         assert_equal(dut_ref_left_res.result_variant(), 'connection')
         dut_ref_left, ref_left_dut = dut_ref_left_res.connection, ref_left_dut_res.connection
-        assert dut_ref_left, ref_left_dut
+        assert_is_not_none(dut_ref_left)
+        assert dut_ref_left
         advertisement_left.cancel()
 
         advertisement_right = await self.ref_advertise_asha(
@@ -638,7 +629,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         )
         assert_equal(dut_ref_right_res.result_variant(), 'connection')
         dut_ref_right, ref_right_dut = dut_ref_right_res.connection, ref_right_dut_res.connection
-        assert dut_ref_right, ref_right_dut
+        assert_is_not_none(dut_ref_right)
+        assert dut_ref_right
         advertisement_right.cancel()
 
         # Pairing
@@ -661,27 +653,25 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
                 self.ref_left.aio.host.Disconnect(connection=ref_left_dut),
                 self.dut.aio.host.WaitDisconnection(connection=dut_ref_left),
             )
-            assert not await self.is_device_connected(device=self.ref_left, connection=ref_left_dut, timeout=5.0)
+            assert_false(await self.is_device_connected(self.ref_left, ref_left_dut, 5), "Should be disconnected")
 
             advertisement_left = await self.ref_advertise_asha(
                 ref_device=self.ref_left, ref_address_type=ref_address_type, ear=Ear.LEFT
             )
             ref_left_dut = (await anext(aiter(advertisement_left))).connection
             advertisement_left.cancel()
-            assert ref_left_dut
         else:
             await asyncio.gather(
                 self.ref_right.aio.host.Disconnect(connection=ref_right_dut),
                 self.dut.aio.host.WaitDisconnection(connection=dut_ref_right),
             )
-            assert not await self.is_device_connected(device=self.ref_right, connection=ref_right_dut, timeout=5.0)
+            assert_false(await self.is_device_connected(self.ref_right, ref_right_dut, 5), "Should be disconnected")
 
             advertisement_right = await self.ref_advertise_asha(
                 ref_device=self.ref_right, ref_address_type=ref_address_type, ear=Ear.RIGHT
             )
             ref_right_dut = (await anext(aiter(advertisement_right))).connection
             advertisement_right.cancel()
-            assert ref_right_dut
 
     @asynchronous
     async def test_music_start(self) -> None:
@@ -698,8 +688,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         ref = await self.dut_scan_for_asha(dut_address_type=RANDOM, ear=Ear.LEFT)
 
         # DUT initiates connection to Ref.
-        dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, RANDOM)
-        assert dut_ref, ref_dut
+        dut_ref, _ = await self.dut_connect_to_ref(advertisement, ref, RANDOM)
 
         asha_service = next((x for x in self.ref_left.device.gatt_server.attributes if isinstance(x, AshaGattService)))
 
@@ -724,10 +713,10 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         await self.dut.aio.security.Secure(connection=dut_ref, le=LE_LEVEL3)
 
         le_psm_out_result = await asyncio.wait_for(le_psm_future, timeout=3.0)
-        assert le_psm_out_result is not None
+        assert_is_not_none(le_psm_out_result)
 
         read_only_properties_result = await asyncio.wait_for(read_only_properties_future, timeout=3.0)
-        assert read_only_properties_result is not None
+        assert_is_not_none(read_only_properties_result)
 
         dut_asha = AioAsha(self.dut.aio.channel)
 
@@ -745,12 +734,12 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         )
 
         logging.info(f"start_result:{start_result}")
-        assert start_result is not None
-        assert isinstance(start_result, dict)
-        assert start_result['codec'] == 1
-        assert start_result['audiotype'] == 0
-        assert start_result['volume'] is not None
-        assert start_result['otherstate'] == 0
+        assert_is_not_none(start_result)
+        assert_true(isinstance(start_result, dict), "")
+        assert_equal(start_result['codec'], 1)
+        assert_equal(start_result['audiotype'], 0)
+        assert_is_not_none(start_result['volume'])
+        assert_equal(start_result['otherstate'], 0)
 
     @asynchronous
     async def test_set_volume(self) -> None:
@@ -770,7 +759,6 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         # DUT initiates connection to Ref.
         dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, RANDOM)
-        assert dut_ref, ref_dut
 
         # DUT starts pairing with the Ref.
         # FIXME: assert the security Level on ref side
@@ -792,8 +780,8 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         _, volume_result = await asyncio.gather(dut_asha.SetVolume(1), asyncio.wait_for(volume_future, timeout=3.0))
 
         logging.info(f"start_result:{volume_result}")
-        assert volume_result is not None
-        assert volume_result == 0  # Android max volume's value is 0
+        assert_is_not_none(volume_result)
+        assert_equal(volume_result, 0)
 
     @asynchronous
     async def test_music_stop(self) -> None:
@@ -811,7 +799,6 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         # DUT initiates connection to Ref.
         dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, RANDOM)
-        assert dut_ref, ref_dut
 
         # DUT starts pairing with the Ref.
         # FIXME: assert the security Level on ref side
@@ -833,7 +820,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         _, stop_result = await asyncio.gather(dut_asha.Stop(), asyncio.wait_for(stop_future, timeout=10.0))
 
         logging.info(f"stop_result:{stop_result}")
-        assert stop_result is not None
+        assert_is_not_none(stop_result)
 
         ref_asha = AioAsha(self.ref_left.aio.channel)
         try:
@@ -861,8 +848,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         ref = await self.dut_scan_for_asha(dut_address_type=RANDOM, ear=Ear.LEFT)
 
         # DUT initiates connection to Ref.
-        dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, RANDOM)
-        assert dut_ref, ref_dut
+        dut_ref, _ = await self.dut_connect_to_ref(advertisement, ref, RANDOM)
 
         # DUT starts pairing with the Ref.
         # FIXME: assert the security Level on ref side
@@ -883,7 +869,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         _, stop_result = await asyncio.gather(dut_asha.Stop(), asyncio.wait_for(stop_future, timeout=10.0))
 
         logging.info(f"stop_result:{stop_result}")
-        assert stop_result is not None
+        assert_is_not_none(stop_result)
 
         # restart music streaming
         logging.info("restart music streaming")
@@ -901,7 +887,7 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
         )
 
         logging.info(f"start_result:{start_result}")
-        assert start_result is not None
+        assert_is_not_none(start_result)
 
 
 if __name__ == "__main__":
