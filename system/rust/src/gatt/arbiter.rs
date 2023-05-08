@@ -64,8 +64,11 @@ fn try_parse_att_server_packet(
 }
 
 fn on_le_connect(tcb_idx: u8, advertiser: u8) {
+    let tcb_idx = TransportIndex(tcb_idx);
+    let advertiser = AdvertiserId(advertiser);
     if let Some(conn_id) = with_arbiter(|arbiter| {
-        arbiter.on_le_connect(TransportIndex(tcb_idx), AdvertiserId(advertiser))
+        arbiter.on_le_connect(tcb_idx, advertiser);
+        arbiter.get_conn_id(tcb_idx)
     }) {
         do_in_rust_thread(move |modules| {
             if let Err(err) = modules.gatt_module.on_le_connect(conn_id) {
@@ -77,7 +80,12 @@ fn on_le_connect(tcb_idx: u8, advertiser: u8) {
 
 fn on_le_disconnect(tcb_idx: u8) {
     let tcb_idx = TransportIndex(tcb_idx);
-    if with_arbiter(|arbiter| arbiter.on_le_disconnect(tcb_idx)) {
+    let was_isolated = with_arbiter(|arbiter| {
+        let was_isolated = arbiter.get_conn_id(tcb_idx).is_some();
+        arbiter.on_le_disconnect(tcb_idx);
+        was_isolated
+    });
+    if was_isolated {
         do_in_rust_thread(move |modules| {
             if let Err(err) = modules.gatt_module.on_le_disconnect(tcb_idx) {
                 error!("{err:?}")

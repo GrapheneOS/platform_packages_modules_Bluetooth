@@ -61,30 +61,27 @@ impl IsolationManager {
         self.transport_to_owned_connection.get(&tcb_idx).copied()
     }
 
-    /// Handles an incoming connection, and reports if it should be isolated to a given connection ID
-    pub fn on_le_connect(
-        &mut self,
-        tcb_idx: TransportIndex,
-        advertiser: AdvertiserId,
-    ) -> Option<ConnectionId> {
+    /// Handles an incoming connection
+    pub fn on_le_connect(&mut self, tcb_idx: TransportIndex, advertiser: AdvertiserId) {
         info!(
             "processing incoming connection on transport {tcb_idx:?} to advertiser {advertiser:?}"
         );
-        let server_id = *self.advertiser_to_server.get(&advertiser)?;
-        info!("connection is isolated to server {server_id:?}");
-
-        let conn_id = ConnectionId::new(tcb_idx, server_id);
-        let old = self.transport_to_owned_connection.insert(tcb_idx, conn_id);
-        if old.is_some() {
-            error!("new server {server_id:?} on transport {tcb_idx:?} displacing existing registered connection {conn_id:?}")
+        if let Some(server_id) = self.advertiser_to_server.get(&advertiser).copied() {
+            info!("connection is isolated to server {server_id:?}");
+            let conn_id = ConnectionId::new(tcb_idx, server_id);
+            let old = self.transport_to_owned_connection.insert(tcb_idx, conn_id);
+            if old.is_some() {
+                error!("new server {server_id:?} on transport {tcb_idx:?} displacing existing registered connection {conn_id:?}")
+            }
+        } else {
+            info!("connection can access all servers");
         }
-        Some(conn_id)
     }
 
-    /// Handle a disconnection, if any, and return whether the disconnection was registered
-    pub fn on_le_disconnect(&mut self, tcb_idx: TransportIndex) -> bool {
+    /// Handle a disconnection
+    pub fn on_le_disconnect(&mut self, tcb_idx: TransportIndex) {
         info!("processing disconnection on transport {tcb_idx:?}");
-        self.transport_to_owned_connection.remove(&tcb_idx).is_some()
+        self.transport_to_owned_connection.remove(&tcb_idx);
     }
 }
 
@@ -104,7 +101,8 @@ mod test {
     fn test_non_isolated_connect() {
         let mut isolation_manager = IsolationManager::new();
 
-        let conn_id = isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let conn_id = isolation_manager.get_conn_id(TCB_IDX);
 
         assert!(conn_id.is_none())
     }
@@ -114,7 +112,8 @@ mod test {
         let mut isolation_manager = IsolationManager::new();
         isolation_manager.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
 
-        let conn_id = isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let conn_id = isolation_manager.get_conn_id(TCB_IDX);
 
         assert_eq!(conn_id, Some(CONN_ID));
     }
@@ -124,30 +123,10 @@ mod test {
         let mut isolation_manager = IsolationManager::new();
         isolation_manager.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
 
-        let conn_id = isolation_manager.on_le_connect(TCB_IDX, ANOTHER_ADVERTISER_ID);
+        isolation_manager.on_le_connect(TCB_IDX, ANOTHER_ADVERTISER_ID);
+        let conn_id = isolation_manager.get_conn_id(TCB_IDX);
 
         assert!(conn_id.is_none())
-    }
-
-    #[test]
-    fn test_non_isolated_disconnect() {
-        let mut isolation_manager = IsolationManager::new();
-        isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
-
-        let ok = isolation_manager.on_le_disconnect(TCB_IDX);
-
-        assert!(!ok)
-    }
-
-    #[test]
-    fn test_isolated_disconnect() {
-        let mut isolation_manager = IsolationManager::new();
-        isolation_manager.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
-        isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
-
-        let ok = isolation_manager.on_le_disconnect(TCB_IDX);
-
-        assert!(ok)
     }
 
     #[test]
@@ -158,7 +137,8 @@ mod test {
         isolation_manager.clear_advertiser(ADVERTISER_ID);
 
         // a new advertiser appeared with the same ID and got a connection
-        let conn_id = isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let conn_id = isolation_manager.get_conn_id(TCB_IDX);
 
         // but we should not be isolated since this is a new advertiser reusing the old
         // ID
@@ -173,28 +153,19 @@ mod test {
         isolation_manager.clear_server(SERVER_ID);
 
         // then afterwards we get a connection to this advertiser
-        let conn_id = isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let conn_id = isolation_manager.get_conn_id(TCB_IDX);
 
         // since the server is gone, we should not capture the connection
         assert!(conn_id.is_none())
     }
 
     #[test]
-    fn test_connection_isolated() {
-        let mut isolation_manager = IsolationManager::new();
-        isolation_manager.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
-        let conn_id = isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID).unwrap();
-
-        let is_isolated = isolation_manager.is_connection_isolated(conn_id);
-
-        assert!(is_isolated)
-    }
-
-    #[test]
     fn test_connection_isolated_after_advertiser_stops() {
         let mut isolation_manager = IsolationManager::new();
         isolation_manager.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
-        let conn_id = isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID).unwrap();
+        isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let conn_id = isolation_manager.get_conn_id(TCB_IDX).unwrap();
         isolation_manager.clear_advertiser(ADVERTISER_ID);
 
         let is_isolated = isolation_manager.is_connection_isolated(conn_id);
@@ -206,7 +177,8 @@ mod test {
     fn test_connection_isolated_after_server_stops() {
         let mut isolation_manager = IsolationManager::new();
         isolation_manager.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
-        let conn_id = isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID).unwrap();
+        isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let conn_id = isolation_manager.get_conn_id(TCB_IDX).unwrap();
         isolation_manager.clear_server(SERVER_ID);
 
         let is_isolated = isolation_manager.is_connection_isolated(conn_id);
@@ -234,7 +206,8 @@ mod test {
         isolation_manager.clear_advertiser(ADVERTISER_ID);
         isolation_manager.on_le_disconnect(TCB_IDX);
 
-        let conn_id = isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        isolation_manager.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        let conn_id = isolation_manager.get_conn_id(TCB_IDX);
 
         assert!(conn_id.is_none());
         assert!(!isolation_manager.is_connection_isolated(CONN_ID));
