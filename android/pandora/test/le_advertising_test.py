@@ -21,11 +21,7 @@ from avatar import PandoraDevice, PandoraDevices, asynchronous, parameterized
 from mobly import base_test, test_runner
 from mobly.asserts import assert_equal  # type: ignore
 from mobly.asserts import assert_false  # type: ignore
-from mobly.asserts import assert_in  # type: ignore
-from mobly.asserts import assert_is_none  # type: ignore
-from mobly.asserts import assert_is_not_none  # type: ignore
 from mobly.asserts import assert_true  # type: ignore
-from mobly.asserts import fail  # type: ignore
 from pandora.host_pb2 import PUBLIC, DataTypes
 from typing import Any, Dict, Optional
 
@@ -41,9 +37,6 @@ class AdvertisingEventProperties(enum.IntEnum):
     DIRECTED = 0x04
     LEGACY = 0x10
     ANONYMOUS = 0x20
-
-    def __repr__(self) -> str:
-        return str(self.value)
 
 
 class LeAdvertisingTest(base_test.BaseTestClass):  # type: ignore[misc]
