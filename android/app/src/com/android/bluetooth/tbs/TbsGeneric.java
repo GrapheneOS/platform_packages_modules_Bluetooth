@@ -218,6 +218,18 @@ public class TbsGeneric {
     }
 
     /**
+     * Inform TBS GATT instance about authorization change for device.
+     *
+     * @param device device for which authorization is changed
+     */
+    public void onDeviceAuthorizationSet(BluetoothDevice device) {
+        // Notify TBS GATT service instance in case of pending operations
+        if (mTbsGatt != null) {
+            mTbsGatt.onDeviceAuthorizationSet(device);
+        }
+    }
+
+    /**
      * Set inband ringtone for the device.
      * When set, notification will be sent to given device.
      *
