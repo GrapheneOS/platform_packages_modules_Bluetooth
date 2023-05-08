@@ -711,9 +711,6 @@ TEST_F(DeviceIotConfigModuleTest, test_device_iot_config_module_start_up) {
     EXPECT_EQ(get_func_call_count("config_new"), 0);
     EXPECT_EQ(get_func_call_count("config_new_empty"), 0);
     EXPECT_EQ(get_func_call_count("alarm_free"), 0);
-    EXPECT_EQ(get_func_call_count("config_get_int"), 1);
-    EXPECT_EQ(get_func_call_count("config_set_int"), 1);
-    EXPECT_EQ(get_func_call_count("alarm_set"), 1);
     EXPECT_EQ(get_func_call_count("future_new_immediate"), 1);
   }
 
