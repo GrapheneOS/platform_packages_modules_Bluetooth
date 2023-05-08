@@ -3518,10 +3518,13 @@ impl BtifGattServerCallbacks for BluetoothGatt {
             self.server_context_map.delete_service(server_id, handle);
         }
 
-        if let Some(server) = self.server_context_map.get_by_server_id(server_id) {
-            if let Some(cb) =
-                self.server_context_map.get_callback_from_callback_id(server.cbid).as_mut()
-            {
+        let cbid = self
+            .server_context_map
+            .get_by_server_id(server_id)
+            .and_then(|server| Some(server.cbid));
+
+        if let Some(cbid) = cbid {
+            if let Some(cb) = self.server_context_map.get_callback_from_callback_id(cbid).as_mut() {
                 cb.on_service_removed(status, handle);
             }
         }
