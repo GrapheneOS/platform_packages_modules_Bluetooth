@@ -77,6 +77,8 @@ filegroup {
         "tests/generated/packet_decl_array_unknown_element_width_dynamic_count_little_endian.rs",
         "tests/generated/packet_decl_array_unknown_element_width_dynamic_size_big_endian.rs",
         "tests/generated/packet_decl_array_unknown_element_width_dynamic_size_little_endian.rs",
+        "tests/generated/packet_decl_array_with_padding_big_endian.rs",
+        "tests/generated/packet_decl_array_with_padding_little_endian.rs",
         "tests/generated/packet_decl_child_packets_big_endian.rs",
         "tests/generated/packet_decl_child_packets_little_endian.rs",
         "tests/generated/packet_decl_complex_scalars_big_endian.rs",
