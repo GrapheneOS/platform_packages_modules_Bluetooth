@@ -4,7 +4,7 @@ use crate::{
     gatt::{
         callbacks::GattDatastore,
         ffi::AttributeBackingType,
-        ids::{AttHandle, ConnectionId},
+        ids::{AttHandle, TransportIndex},
     },
     packets::{
         AttAttributeDataChild, AttAttributeDataView, AttErrorCode, OwnedAttAttributeDataView,
@@ -35,7 +35,7 @@ pub enum MockDatastoreEvents {
     /// A characteristic was read on a given handle. The oneshot is used to
     /// return the value read.
     Read(
-        ConnectionId,
+        TransportIndex,
         AttHandle,
         AttributeBackingType,
         oneshot::Sender<Result<AttAttributeDataChild, AttErrorCode>>,
@@ -43,7 +43,7 @@ pub enum MockDatastoreEvents {
     /// A characteristic was written to on a given handle. The oneshot is used
     /// to return whether the write succeeded.
     Write(
-        ConnectionId,
+        TransportIndex,
         AttHandle,
         AttributeBackingType,
         OwnedAttAttributeDataView,
@@ -55,12 +55,12 @@ pub enum MockDatastoreEvents {
 impl GattDatastore for MockDatastore {
     async fn read(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
         let (tx, rx) = oneshot::channel();
-        self.0.send(MockDatastoreEvents::Read(conn_id, handle, attr_type, tx)).unwrap();
+        self.0.send(MockDatastoreEvents::Read(tcb_idx, handle, attr_type, tx)).unwrap();
         let resp = rx.await.unwrap();
         info!("sending {resp:?} down from upper tester");
         resp
@@ -68,7 +68,7 @@ impl GattDatastore for MockDatastore {
 
     async fn write(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
         data: AttAttributeDataView<'_>,
@@ -76,7 +76,7 @@ impl GattDatastore for MockDatastore {
         let (tx, rx) = oneshot::channel();
         self.0
             .send(MockDatastoreEvents::Write(
-                conn_id,
+                tcb_idx,
                 handle,
                 attr_type,
                 data.to_owned_packet(),
