@@ -2273,4 +2273,8 @@ impl IBluetoothQA for BluetoothQADBus {
     fn rfcomm_send_msc(&self, dlci: u8, addr: String) {
         dbus_generated!()
     }
+    #[dbus_method("GetDiscoverableMode")]
+    fn get_discoverable_mode(&self) -> BtDiscMode {
+        dbus_generated!()
+    }
 }
