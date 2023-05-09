@@ -1305,7 +1305,7 @@ class CsisClientImpl : public CsisClient {
 
           instance->OnActiveScanResult(&p_data->inq_res);
         });
-    BTA_DmBleScan(enable, bluetooth::csis::kDefaultScanDurationS);
+    BTA_DmBleScan(enable, bluetooth::csis::kDefaultScanDurationS, true);
 
     /* Need to call it by ourselfs */
     if (!enable) {
