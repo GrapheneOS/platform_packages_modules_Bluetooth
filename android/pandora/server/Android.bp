@@ -19,6 +19,7 @@ java_library_static {
     ],
 
     static_libs: [
+        "androidx.media_media",
         "androidx.test.core",
         "androidx.test.runner",
         "androidx.test.uiautomator_uiautomator",
