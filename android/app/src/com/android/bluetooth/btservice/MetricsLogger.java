@@ -15,6 +15,8 @@
  */
 package com.android.bluetooth.btservice;
 
+import static com.android.bluetooth.BtRestrictedStatsLog.RESTRICTED_BLUETOOTH_DEVICE_NAME_REPORTED;
+
 import android.app.AlarmManager;
 import android.content.Context;
 import android.os.SystemClock;
@@ -24,8 +26,10 @@ import com.android.bluetooth.BluetoothMetricsProto.BluetoothLog;
 import com.android.bluetooth.BluetoothMetricsProto.ProfileConnectionStats;
 import com.android.bluetooth.BluetoothMetricsProto.ProfileId;
 import com.android.bluetooth.BluetoothStatsLog;
+import com.android.bluetooth.BtRestrictedStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.modules.utils.build.SdkLevel;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
@@ -288,6 +292,11 @@ public class MetricsLogger {
             String toBeMatched = "";
             for (int end = start; end < words.length; end++) {
                 toBeMatched += words[end];
+                // TODO(b/280868296): Refactor to log even if bloom filter isn't initialized.
+                if (SdkLevel.isAtLeastU()) {
+                    BtRestrictedStatsLog.write(RESTRICTED_BLUETOOTH_DEVICE_NAME_REPORTED,
+                            toBeMatched);
+                }
                 byte[] sha256 = getSha256(toBeMatched);
                 if (sha256 == null) {
                     continue;
