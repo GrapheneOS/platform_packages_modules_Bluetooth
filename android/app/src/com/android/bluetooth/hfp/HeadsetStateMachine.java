@@ -1580,7 +1580,7 @@ public class HeadsetStateMachine extends StateMachine {
                 + " Name=" + getCurrentDeviceName()
                 + " hasNrecEnabled=" + mHasNrecEnabled
                 + " hasWbsEnabled=" + mHasWbsEnabled);
-        am.setParameters("bt_swb=" + (mHasSwbEnabled ? "on" : "off"));
+        am.setParameters("bt_lc3_swb=" + (mHasSwbEnabled ? "on" : "off"));
         am.setBluetoothHeadsetProperties(getCurrentDeviceName(), mHasNrecEnabled, mHasWbsEnabled);
     }
 
