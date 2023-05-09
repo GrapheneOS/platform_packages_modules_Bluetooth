@@ -1,5 +1,6 @@
 use btstack::bluetooth_qa::IBluetoothQA;
 
+use bt_topshim::btif::BtDiscMode;
 use dbus_macros::{dbus_method, generate_dbus_exporter};
 use dbus_projection::dbus_generated;
 
@@ -15,6 +16,10 @@ impl IBluetoothQA for IBluetoothQADBus {
     }
     #[dbus_method("RfcommSendMsc")]
     fn rfcomm_send_msc(&self, dlci: u8, addr: String) {
+        dbus_generated!()
+    }
+    #[dbus_method("GetDiscoverableMode")]
+    fn get_discoverable_mode(&self) -> BtDiscMode {
         dbus_generated!()
     }
 }

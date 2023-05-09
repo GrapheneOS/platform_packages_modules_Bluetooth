@@ -8,6 +8,9 @@ use tokio::sync::mpsc::Sender;
 pub trait IBluetoothQA {
     fn add_media_player(&self, name: String, browsing_supported: bool);
     fn rfcomm_send_msc(&self, dlci: u8, addr: String);
+
+    /// Returns adapter's discoverable mode.
+    fn get_discoverable_mode(&self) -> BtDiscMode;
 }
 
 pub struct BluetoothQA {
@@ -37,5 +40,8 @@ impl IBluetoothQA for BluetoothQA {
         tokio::spawn(async move {
             let _ = txl.send(Message::QaRfcommSendMsc(dlci, addr)).await;
         });
+    }
+    fn get_discoverable_mode(&self) -> BtDiscMode {
+        self.disc_mode.clone()
     }
 }
