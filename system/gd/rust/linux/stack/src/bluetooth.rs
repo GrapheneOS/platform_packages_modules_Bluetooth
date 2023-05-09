@@ -745,7 +745,7 @@ impl Bluetooth {
     }
 
     /// Returns adapter's discoverable mode.
-    pub(crate) fn get_discoverable_mode(&self) -> BtDiscMode {
+    pub fn get_discoverable_mode(&self) -> BtDiscMode {
         let off_mode = BtDiscMode::NonDiscoverable;
 
         match self.properties.get(&BtPropertyType::AdapterScanMode) {
@@ -759,6 +759,16 @@ impl Bluetooth {
             },
             _ => off_mode,
         }
+    }
+
+    /// Caches the discoverable mode into BluetoothQA.
+    pub fn cache_discoverable_mode_into_qa(&self) {
+        let disc_mode = self.get_discoverable_mode();
+
+        let txl = self.tx.clone();
+        tokio::spawn(async move {
+            let _ = txl.send(Message::QaOnDiscoverableModeChanged(disc_mode)).await;
+        });
     }
 
     /// Returns all bonded and connected devices.
@@ -1213,6 +1223,8 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
         // Update local property cache
         for prop in properties {
+            self.properties.insert(prop.get_type(), prop.clone());
+
             match &prop {
                 BluetoothProperty::BdAddr(bdaddr) => {
                     self.update_local_address(&bdaddr);
@@ -1241,6 +1253,8 @@ impl BtifBluetoothCallbacks for Bluetooth {
                     });
                 }
                 BluetoothProperty::AdapterScanMode(mode) => {
+                    self.cache_discoverable_mode_into_qa();
+
                     self.callbacks.for_all_callbacks(|callback| {
                         callback
                             .on_discoverable_changed(*mode == BtScanMode::ConnectableDiscoverable);
@@ -1248,8 +1262,6 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 }
                 _ => {}
             }
-
-            self.properties.insert(prop.get_type(), prop.clone());
 
             self.callbacks.for_all_callbacks(|callback| {
                 callback.on_adapter_property_changed(prop.get_type());
