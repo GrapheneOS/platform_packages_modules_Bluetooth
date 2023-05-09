@@ -4019,9 +4019,11 @@ void bta_dm_ble_config_local_privacy(bool privacy_enable) {
   BTM_BleConfigPrivacy(privacy_enable);
 }
 
-static void bta_dm_start_scan(uint8_t duration_sec) {
-  tBTM_STATUS status = BTM_BleObserve(
-      true, duration_sec, bta_dm_observe_results_cb, bta_dm_observe_cmpl_cb);
+static void bta_dm_start_scan(uint8_t duration_sec,
+                              bool low_latency_scan = false) {
+  tBTM_STATUS status =
+      BTM_BleObserve(true, duration_sec, bta_dm_observe_results_cb,
+                     bta_dm_observe_cmpl_cb, low_latency_scan);
 
   if (status != BTM_CMD_STARTED) {
     tBTA_DM_SEARCH data = {
@@ -4054,7 +4056,8 @@ void bta_dm_ble_observe(bool start, uint8_t duration,
   bta_dm_start_scan(duration);
 }
 
-void bta_dm_ble_scan(bool start, uint8_t duration_sec) {
+void bta_dm_ble_scan(bool start, uint8_t duration_sec,
+                     bool low_latency_scan = false) {
   /* Start or stop only if there is no active main scanner */
   if (bta_dm_search_cb.p_scan_cback != NULL) return;
 
@@ -4063,7 +4066,7 @@ void bta_dm_ble_scan(bool start, uint8_t duration_sec) {
     return;
   }
 
-  bta_dm_start_scan(duration_sec);
+  bta_dm_start_scan(duration_sec, low_latency_scan);
 }
 
 void bta_dm_ble_csis_observe(bool observe, tBTA_DM_SEARCH_CBACK* p_cback) {
