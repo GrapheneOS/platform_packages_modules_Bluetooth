@@ -21,8 +21,8 @@
     <application android:debuggable="true"
          android:largeHeap="true">
         <uses-library android:name="android.test.runner"/>
-        <activity android:label="BluetoothTestDummyLabel"
-             android:name="BluetoothTestDummyName"
+        <activity android:label="BluetoothTestFakeLabel"
+             android:name="BluetoothTestFakeName"
              android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
