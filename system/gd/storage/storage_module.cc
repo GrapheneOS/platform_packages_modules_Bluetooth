@@ -167,11 +167,14 @@ void StorageModule::Start() {
   if (!is_config_checksum_pass(kConfigBackupComparePass)) {
     LegacyConfigFile::FromPath(config_backup_path_).Delete();
   }
+  bool save_needed = false;
   auto config = LegacyConfigFile::FromPath(config_file_path_).Read(temp_devices_capacity_);
   if (!config || !config->HasSection(kAdapterSection)) {
     LOG_WARN("cannot load config at %s, using backup at %s.", config_file_path_.c_str(), config_backup_path_.c_str());
     config = LegacyConfigFile::FromPath(config_backup_path_).Read(temp_devices_capacity_);
     file_source = "Backup";
+    // Make sure to update the file, since it wasn't read from the config_file_path_
+    save_needed = true;
   }
   if (!config || !config->HasSection(kAdapterSection)) {
     LOG_WARN("cannot load backup config at %s; creating new empty ones", config_backup_path_.c_str());
@@ -198,7 +201,10 @@ void StorageModule::Start() {
   config->SetPersistentConfigChangedCallback([this] { this->CallOn(this, &StorageModule::SaveDelayed); });
   // TODO (b/158035889) Migrate metrics module to GD
   pimpl_ = std::make_unique<impl>(GetHandler(), std::move(config.value()), temp_devices_capacity_);
-  SaveDelayed();
+  if (save_needed) {
+    // Set a timer and write the new config file to disk.
+    SaveDelayed();
+  }
   if (bluetooth::os::ParameterProvider::GetBtKeystoreInterface() != nullptr) {
     bluetooth::os::ParameterProvider::GetBtKeystoreInterface()->ConvertEncryptOrDecryptKeyIfNeeded();
   }
@@ -206,7 +212,10 @@ void StorageModule::Start() {
 
 void StorageModule::Stop() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
-  SaveImmediately();
+  if (pimpl_->has_pending_config_save_) {
+    // Save pending changes before stopping the module.
+    SaveImmediately();
+  }
   if (bluetooth::os::ParameterProvider::GetBtKeystoreInterface() != nullptr) {
     bluetooth::os::ParameterProvider::GetBtKeystoreInterface()->clear_map();
   }
