@@ -225,26 +225,26 @@ impl BtSocket {
 
     pub fn send_msc(&self, dlci: u8, addr: RawAddress) -> BtStatus {
         // PORT_DTRDSR_ON | PORT_CTSRTS_ON | PORT_DCD_ON
-        const default_modem_signal: u8 = 0x01 | 0x02 | 0x08;
+        const DEFAULT_MODEM_SIGNAL: u8 = 0x01 | 0x02 | 0x08;
 
-        const default_break_signal: u8 = 0;
-        const default_discard_buffers: u8 = 0;
-        const default_break_signal_seq: u8 = 1; // In sequence.
+        const DEFAULT_BREAK_SIGNAL: u8 = 0;
+        const DEFAULT_DISCARD_BUFFERS: u8 = 0;
+        const DEFAULT_BREAK_SIGNAL_SEQ: u8 = 1; // In sequence.
 
         // In RFCOMM/DEVA-DEVB/RFC/BV-21-C and RFCOMM/DEVA-DEVB/RFC/BV-22-C test flow
         // we are requested to send an MSC command with FC=0.
-        const fc: bool = false;
+        const FC: bool = false;
 
         ccall!(
             self,
             control_req,
             dlci,
             &addr,
-            default_modem_signal,
-            default_break_signal,
-            default_discard_buffers,
-            default_break_signal_seq,
-            fc
+            DEFAULT_MODEM_SIGNAL,
+            DEFAULT_BREAK_SIGNAL,
+            DEFAULT_DISCARD_BUFFERS,
+            DEFAULT_BREAK_SIGNAL_SEQ,
+            FC
         )
         .into()
     }
