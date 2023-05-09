@@ -17,4 +17,22 @@ service MediaPlayer {
   rpc Backward(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc SetLargeMetadata(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc UpdateQueue(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc GetShuffleMode(google.protobuf.Empty) returns (GetShuffleModeResponse);
+  rpc SetShuffleMode(SetShuffleModeRequest) returns (google.protobuf.Empty);
+  rpc StartTestPlayback(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc StopTestPlayback(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+enum ShuffleMode {
+  NONE = 0;
+  ALL = 1;
+  GROUP = 2;
+}
+
+message SetShuffleModeRequest {
+  ShuffleMode mode = 1;
+}
+
+message GetShuffleModeResponse {
+  ShuffleMode mode = 1;
 }
