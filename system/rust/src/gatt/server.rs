@@ -27,7 +27,11 @@ use self::{
     services::register_builtin_services,
 };
 
-use super::{callbacks::RawGattDatastore, channel::AttTransport, ids::AttHandle};
+use super::{
+    callbacks::RawGattDatastore,
+    channel::AttTransport,
+    ids::{AttHandle, TransportIndex},
+};
 use anyhow::{anyhow, bail, Result};
 use log::info;
 
@@ -35,7 +39,7 @@ pub use indication_handler::IndicationError;
 
 #[allow(missing_docs)]
 pub struct GattModule {
-    connections: HashMap<ConnectionId, GattConnection>,
+    connections: HashMap<TransportIndex, GattConnection>,
     databases: HashMap<ServerId, SharedBox<GattDatabase>>,
     transport: Rc<dyn AttTransport>,
 }
@@ -61,25 +65,29 @@ impl GattModule {
                 conn_id.get_server_id(),
             );
         };
+
+        // TODO(aryarahul): do not pass in conn_id at all, derive it using the IsolationManager instead
+        let tcb_idx = conn_id.get_tcb_idx();
+
         let transport = self.transport.clone();
         let bearer = SharedBox::new(AttServerBearer::new(
-            database.get_att_database(conn_id),
-            move |packet| transport.send_packet(conn_id.get_tcb_idx(), packet),
+            database.get_att_database(tcb_idx),
+            move |packet| transport.send_packet(tcb_idx, packet),
         ));
-        database.on_bearer_ready(conn_id, bearer.as_ref());
-        self.connections.insert(conn_id, GattConnection { bearer, database: database.downgrade() });
+        database.on_bearer_ready(tcb_idx, bearer.as_ref());
+        self.connections.insert(tcb_idx, GattConnection { bearer, database: database.downgrade() });
         Ok(())
     }
 
     /// Handle an LE link disconnect
-    pub fn on_le_disconnect(&mut self, conn_id: ConnectionId) -> Result<()> {
-        info!("disconnected conn_id {conn_id:?}");
-        let connection = self.connections.remove(&conn_id);
+    pub fn on_le_disconnect(&mut self, tcb_idx: TransportIndex) -> Result<()> {
+        info!("disconnected conn_id {tcb_idx:?}");
+        let connection = self.connections.remove(&tcb_idx);
         let Some(connection) = connection else {
-            bail!("got disconnection from {conn_id:?} but bearer does not exist");
+            bail!("got disconnection from {tcb_idx:?} but bearer does not exist");
         };
         drop(connection.bearer);
-        connection.database.with(|db| db.map(|db| db.on_bearer_dropped(conn_id)));
+        connection.database.with(|db| db.map(|db| db.on_bearer_dropped(tcb_idx)));
         Ok(())
     }
 
@@ -88,12 +96,12 @@ impl GattModule {
         &mut self,
         server_id: ServerId,
         service: GattServiceWithHandle,
-        datastore: Rc<dyn RawGattDatastore>,
+        datastore: impl RawGattDatastore + 'static,
     ) -> Result<()> {
         self.databases
             .get(&server_id)
             .ok_or_else(|| anyhow!("server {server_id:?} not opened"))?
-            .add_service_with_handles(service, datastore)
+            .add_service_with_handles(service, Rc::new(datastore))
     }
 
     /// Unregister an existing GATT service on a given server
@@ -132,8 +140,8 @@ impl GattModule {
     /// Get an ATT bearer for a particular connection
     pub fn get_bearer(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
     ) -> Option<WeakBoxRef<AttServerBearer<AttDatabaseImpl>>> {
-        self.connections.get(&conn_id).map(|x| x.bearer.as_ref())
+        self.connections.get(&tcb_idx).map(|x| x.bearer.as_ref())
     }
 }
