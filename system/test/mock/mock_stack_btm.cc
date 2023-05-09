@@ -203,7 +203,8 @@ struct btm_client_interface_t btm_client_interface = {
                                    tBTM_BLE_LOCAL_KEYS* p_key) {},
         .BTM_BleObserve =
             [](bool start, uint8_t duration, tBTM_INQ_RESULTS_CB* p_results_cb,
-               tBTM_CMPL_CB* p_cmpl_cb) -> tBTM_STATUS { return BTM_SUCCESS; },
+               tBTM_CMPL_CB* p_cmpl_cb,
+               bool low_latency_scan) -> tBTM_STATUS { return BTM_SUCCESS; },
         .BTM_BlePasskeyReply = [](const RawAddress& bd_addr, uint8_t res,
                                   uint32_t passkey) {},
         .BTM_BleReadControllerFeatures =

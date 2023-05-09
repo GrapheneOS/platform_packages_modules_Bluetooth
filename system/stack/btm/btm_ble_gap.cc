@@ -492,13 +492,15 @@ void BTM_BleTargetAnnouncementObserve(bool enable,
  *                  duration: how long the scan should last, in seconds. 0 means
  *                  scan without timeout. Starting the scan second time without
  *                  timeout will disable the timer.
+ *                  low_latency_scan: whether this is a low latency scan,
+ *                                    default is false.
  *
  * Returns          void
  *
  ******************************************************************************/
 tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
                            tBTM_INQ_RESULTS_CB* p_results_cb,
-                           tBTM_CMPL_CB* p_cmpl_cb) {
+                           tBTM_CMPL_CB* p_cmpl_cb, bool low_latency_scan) {
   tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
   tBTM_STATUS status = BTM_WRONG_MODE;
 
@@ -507,13 +509,21 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
   uint32_t scan_window =
       !p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window;
 
+  // use low latency scanning if the scanning is active
+  if (low_latency_scan) {
+    scan_interval = BTM_BLE_LOW_LATENCY_SCAN_INT;
+    scan_window = BTM_BLE_LOW_LATENCY_SCAN_WIN;
+  }
+
   BTM_TRACE_EVENT("%s : scan_type:%d, %d, %d", __func__, p_inq->scan_type,
-                  p_inq->scan_interval, p_inq->scan_window);
+                  scan_interval, scan_window);
 
   if (!controller_get_interface()->supports_ble()) return BTM_ILLEGAL_VALUE;
 
   if (start) {
-    /* shared inquiry database, do not allow observe if any inquiry is active */
+    /* shared inquiry database, do not allow observe if any inquiry is active.
+     * except we are doing CSIS active scanning
+     */
     if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
       if (duration == 0) {
         if (alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
@@ -522,12 +532,26 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
           BTM_TRACE_ERROR("%s Scan with no duration started twice!", __func__);
         }
       } else {
-        if (alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
+        if (!low_latency_scan &&
+            alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
           BTM_TRACE_ERROR("%s Scan with duration started twice!", __func__);
         }
       }
-      BTM_TRACE_WARNING("%s Observer was already active", __func__);
-      return BTM_CMD_STARTED;
+      /*
+       * we stop current observation request for below scenarios
+       * 1. if the scan we wish to start is not low latency
+       * 2. current ongoing scanning is low latency
+       */
+      bool is_ongoing_low_latency =
+          p_inq->scan_interval == BTM_BLE_GAP_DISC_SCAN_INT &&
+          p_inq->scan_window == BTM_BLE_LOW_LATENCY_SCAN_WIN;
+      if (!low_latency_scan || is_ongoing_low_latency) {
+        BTM_TRACE_WARNING("%s Observer was already active, is_low_latency: %d",
+                          __func__, is_ongoing_low_latency);
+        return BTM_CMD_STARTED;
+      }
+      // stop any scan without low latency config
+      btm_ble_stop_observe();
     }
 
     btm_cb.ble_ctr_cb.p_obs_results_cb = p_results_cb;
@@ -552,7 +576,10 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
         .start_time_ms = timestamper_in_milliseconds.GetTimestamp(),
         .results = 0,
     };
-    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le observe started");
+
+    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le observe started",
+                   base::StringPrintf("low latency scanning enabled: %d",
+                                      low_latency_scan));
 
     if (status == BTM_CMD_STARTED) {
       btm_cb.ble_ctr_cb.set_ble_observe_active();
