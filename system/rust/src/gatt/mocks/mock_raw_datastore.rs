@@ -4,7 +4,7 @@ use crate::{
     gatt::{
         callbacks::{GattWriteRequestType, RawGattDatastore, TransactionDecision},
         ffi::AttributeBackingType,
-        ids::{AttHandle, ConnectionId},
+        ids::{AttHandle, TransportIndex},
     },
     packets::{
         AttAttributeDataChild, AttAttributeDataView, AttErrorCode, OwnedAttAttributeDataView,
@@ -35,7 +35,7 @@ pub enum MockRawDatastoreEvents {
     /// A characteristic was read on a given handle. The oneshot is used to
     /// return the value read.
     Read(
-        ConnectionId,
+        TransportIndex,
         AttHandle,
         AttributeBackingType,
         u32,
@@ -44,7 +44,7 @@ pub enum MockRawDatastoreEvents {
     /// A characteristic was written to on a given handle. The oneshot is used
     /// to return whether the write succeeded.
     Write(
-        ConnectionId,
+        TransportIndex,
         AttHandle,
         AttributeBackingType,
         GattWriteRequestType,
@@ -52,23 +52,23 @@ pub enum MockRawDatastoreEvents {
         oneshot::Sender<Result<(), AttErrorCode>>,
     ),
     /// A characteristic was written to on a given handle, where the response was disregarded.
-    WriteNoResponse(ConnectionId, AttHandle, AttributeBackingType, OwnedAttAttributeDataView),
+    WriteNoResponse(TransportIndex, AttHandle, AttributeBackingType, OwnedAttAttributeDataView),
     /// The prepared writes have been committed / aborted. The oneshot is used
     /// to return whether this operation succeeded.
-    Execute(ConnectionId, TransactionDecision, oneshot::Sender<Result<(), AttErrorCode>>),
+    Execute(TransportIndex, TransactionDecision, oneshot::Sender<Result<(), AttErrorCode>>),
 }
 
 #[async_trait(?Send)]
 impl RawGattDatastore for MockRawDatastore {
     async fn read(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         offset: u32,
         attr_type: AttributeBackingType,
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
         let (tx, rx) = oneshot::channel();
-        self.0.send(MockRawDatastoreEvents::Read(conn_id, handle, attr_type, offset, tx)).unwrap();
+        self.0.send(MockRawDatastoreEvents::Read(tcb_idx, handle, attr_type, offset, tx)).unwrap();
         let resp = rx.await.unwrap();
         info!("sending {resp:?} down from upper tester");
         resp
@@ -76,7 +76,7 @@ impl RawGattDatastore for MockRawDatastore {
 
     async fn write(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
         write_type: GattWriteRequestType,
@@ -85,7 +85,7 @@ impl RawGattDatastore for MockRawDatastore {
         let (tx, rx) = oneshot::channel();
         self.0
             .send(MockRawDatastoreEvents::Write(
-                conn_id,
+                tcb_idx,
                 handle,
                 attr_type,
                 write_type,
@@ -98,14 +98,14 @@ impl RawGattDatastore for MockRawDatastore {
 
     fn write_no_response(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
         data: AttAttributeDataView<'_>,
     ) {
         self.0
             .send(MockRawDatastoreEvents::WriteNoResponse(
-                conn_id,
+                tcb_idx,
                 handle,
                 attr_type,
                 data.to_owned_packet(),
@@ -115,11 +115,11 @@ impl RawGattDatastore for MockRawDatastore {
 
     async fn execute(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         decision: TransactionDecision,
     ) -> Result<(), AttErrorCode> {
         let (tx, rx) = oneshot::channel();
-        self.0.send(MockRawDatastoreEvents::Execute(conn_id, decision, tx)).unwrap();
+        self.0.send(MockRawDatastoreEvents::Execute(tcb_idx, decision, tx)).unwrap();
         rx.await.unwrap()
     }
 }
