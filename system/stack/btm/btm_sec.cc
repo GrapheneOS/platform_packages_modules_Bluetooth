@@ -163,6 +163,18 @@ static bool concurrentPeerAuthIsEnabled() {
   return sCONCURRENT_PEER_AUTH_IS_ENABLED;
 }
 
+/**
+ * Whether we should handle encryption change events from a peer device, while
+ * we are in the IDLE state. This matters if we are waiting to retry encryption
+ * following an LMP timeout, and then we get an encryption change event from the
+ * peer.
+ */
+static bool handleUnexpectedEncryptionChange() {
+  static const bool sHandleUnexpectedEncryptionChange = osi_property_get_bool(
+      "bluetooth.btm.sec.handle_unexpected_encryption_change.enabled", false);
+  return sHandleUnexpectedEncryptionChange;
+}
+
 void NotifyBondingCanceled(tBTM_STATUS btm_status) {
   if (btm_cb.api.p_bond_cancel_cmpl_callback) {
     btm_cb.api.p_bond_cancel_cmpl_callback(BTM_SUCCESS);
@@ -3443,11 +3455,15 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
                       __func__, p_dev_rec, p_dev_rec->p_callback);
       p_dev_rec->p_callback = NULL;
       l2cu_resubmit_pending_sec_req(&p_dev_rec->bd_addr);
+      return;
     } else if (!concurrentPeerAuthIsEnabled() &&
                p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING) {
       p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
+      return;
     }
-    return;
+    if (!handleUnexpectedEncryptionChange()) {
+      return;
+    }
   }
 
   p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
