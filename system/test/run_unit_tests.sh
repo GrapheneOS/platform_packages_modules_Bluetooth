@@ -13,6 +13,7 @@ known_tests=(
   net_test_bta_security
   net_test_btif
   net_test_btif_profile_queue
+  net_test_btif_avrcp_audio_track
   net_test_btif_config_cache
   net_test_device
   net_test_device_iot_config
