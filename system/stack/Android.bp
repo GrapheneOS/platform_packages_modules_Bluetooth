@@ -1112,6 +1112,7 @@ cc_test {
         "test/btm/stack_btm_regression_tests.cc",
         "test/btm/stack_btm_test.cc",
         "test/common/mock_eatt.cc",
+        "test/stack_include_test.cc",
     ],
     static_libs: [
         "libbt-common",
