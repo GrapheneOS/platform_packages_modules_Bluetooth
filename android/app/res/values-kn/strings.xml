@@ -28,7 +28,7 @@
     <string name="airplane_error_msg" msgid="4853111123699559578">"ಏರ್‌ಪ್ಲೇನ್‌ ಮೋಡ್‌ನಲ್ಲಿ ನೀವು ಬ್ಲೂಟೂತ್‌‌ ಬಳಸಲು ಸಾಧ್ಯವಿಲ್ಲ."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
     <string name="bt_enable_line1" msgid="8429910585843481489">"ಬ್ಲೂಟೂತ್‌ ಸೇವೆಗಳನ್ನು ಬಳಸಲು, ಮೊದಲು ನೀವದನ್ನು ಆನ್‌ ಮಾಡಬೇಕು."</string>
-    <string name="bt_enable_line2" msgid="1466367120348920892">"ಇದೀಗ ಬ್ಲೂಟೂತ್‌ ಆನ್‌ ಮಾಡುವುದೇ?"</string>
+    <string name="bt_enable_line2" msgid="1466367120348920892">"ಇದೀಗ ಬ್ಲೂಟೂತ್‌ ಆನ್‌ ಮಾಡಬೇಕೆ?"</string>
     <string name="bt_enable_cancel" msgid="6770180540581977614">"ರದ್ದುಮಾಡಿ"</string>
     <string name="bt_enable_ok" msgid="4224374055813566166">"ಆನ್‌ ಮಾಡಿ"</string>
     <string name="incoming_file_confirm_title" msgid="938251186275547290">"ಫೈಲ್ ವರ್ಗಾವಣೆ"</string>
