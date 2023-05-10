@@ -106,16 +106,6 @@ Mutation StorageModule::Modify() {
   return Mutation(&pimpl_->cache_, &pimpl_->memory_only_cache_);
 }
 
-ConfigCache* StorageModule::GetConfigCache() {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-  return &pimpl_->cache_;
-}
-
-ConfigCache* StorageModule::GetMemoryOnlyConfigCache() {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-  return &pimpl_->memory_only_cache_;
-}
-
 void StorageModule::SaveDelayed() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
   if (pimpl_->has_pending_config_save_) {
@@ -146,6 +136,11 @@ void StorageModule::SaveImmediately() {
     bluetooth::os::ParameterProvider::GetBtKeystoreInterface()->set_encrypt_key_or_remove_key(
         kConfigFilePrefix, kConfigFileHash);
   }
+}
+
+void StorageModule::Clear() {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  pimpl_->cache_.Clear();
 }
 
 void StorageModule::ListDependencies(ModuleList* list) const {
@@ -260,7 +255,7 @@ AdapterConfig StorageModule::GetAdapterConfig() {
 
 std::vector<Device> StorageModule::GetBondedDevices() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
-  auto persistent_sections = GetConfigCache()->GetPersistentSections();
+  auto persistent_sections = pimpl_->cache_.GetPersistentSections();
   std::vector<Device> result;
   result.reserve(persistent_sections.size());
   for (const auto& section : persistent_sections) {
@@ -271,6 +266,120 @@ std::vector<Device> StorageModule::GetBondedDevices() {
 
 bool StorageModule::is_config_checksum_pass(int check_bit) {
   return ((os::ParameterProvider::GetCommonCriteriaConfigCompareResult() & check_bit) == check_bit);
+}
+
+bool StorageModule::HasSection(const std::string& section) const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return pimpl_->cache_.HasSection(section);
+}
+
+bool StorageModule::HasProperty(const std::string& section, const std::string& property) const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return pimpl_->cache_.HasProperty(section, property);
+}
+
+std::optional<std::string> StorageModule::GetProperty(
+    const std::string& section, const std::string& property) const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return pimpl_->cache_.GetProperty(section, property);
+}
+
+void StorageModule::SetProperty(std::string section, std::string property, std::string value) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  pimpl_->cache_.SetProperty(section, property, value);
+}
+
+std::vector<std::string> StorageModule::GetPersistentSections() const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return pimpl_->cache_.GetPersistentSections();
+}
+
+void StorageModule::RemoveSection(const std::string& section) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  pimpl_->cache_.RemoveSection(section);
+}
+
+bool StorageModule::RemoveProperty(const std::string& section, const std::string& property) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return pimpl_->cache_.RemoveProperty(section, property);
+}
+
+void StorageModule::ConvertEncryptOrDecryptKeyIfNeeded() {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  pimpl_->cache_.ConvertEncryptOrDecryptKeyIfNeeded();
+}
+
+void StorageModule::RemoveSectionWithProperty(const std::string& property) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return pimpl_->cache_.RemoveSectionWithProperty(property);
+}
+
+void StorageModule::SetBool(const std::string& section, const std::string& property, bool value) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  ConfigCacheHelper::FromConfigCache(pimpl_->cache_).SetBool(section, property, value);
+}
+
+std::optional<bool> StorageModule::GetBool(
+    const std::string& section, const std::string& property) const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return ConfigCacheHelper::FromConfigCache(pimpl_->cache_).GetBool(section, property);
+}
+
+void StorageModule::SetUint64(
+    const std::string& section, const std::string& property, uint64_t value) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  ConfigCacheHelper::FromConfigCache(pimpl_->cache_).SetUint64(section, property, value);
+}
+
+std::optional<uint64_t> StorageModule::GetUint64(
+    const std::string& section, const std::string& property) const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return ConfigCacheHelper::FromConfigCache(pimpl_->cache_).GetUint64(section, property);
+}
+
+void StorageModule::SetUint32(
+    const std::string& section, const std::string& property, uint32_t value) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  ConfigCacheHelper::FromConfigCache(pimpl_->cache_).SetUint32(section, property, value);
+}
+
+std::optional<uint32_t> StorageModule::GetUint32(
+    const std::string& section, const std::string& property) const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return ConfigCacheHelper::FromConfigCache(pimpl_->cache_).GetUint32(section, property);
+}
+void StorageModule::SetInt64(
+    const std::string& section, const std::string& property, int64_t value) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  ConfigCacheHelper::FromConfigCache(pimpl_->cache_).SetInt64(section, property, value);
+}
+std::optional<int64_t> StorageModule::GetInt64(
+    const std::string& section, const std::string& property) const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return ConfigCacheHelper::FromConfigCache(pimpl_->cache_).GetInt64(section, property);
+}
+
+void StorageModule::SetInt(const std::string& section, const std::string& property, int value) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  ConfigCacheHelper::FromConfigCache(pimpl_->cache_).SetInt(section, property, value);
+}
+
+std::optional<int> StorageModule::GetInt(
+    const std::string& section, const std::string& property) const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return ConfigCacheHelper::FromConfigCache(pimpl_->cache_).GetInt(section, property);
+}
+
+void StorageModule::SetBin(
+    const std::string& section, const std::string& property, const std::vector<uint8_t>& value) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  ConfigCacheHelper::FromConfigCache(pimpl_->cache_).SetBin(section, property, value);
+}
+
+std::optional<std::vector<uint8_t>> StorageModule::GetBin(
+    const std::string& section, const std::string& property) const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  return ConfigCacheHelper::FromConfigCache(pimpl_->cache_).GetBin(section, property);
 }
 
 }  // namespace storage
