@@ -17,7 +17,6 @@ import grpc
 import logging
 import struct
 
-from avatar.bumble_server import utils
 from bumble.core import AdvertisingData
 from bumble.device import Connection, Connection as BumbleConnection, Device
 from bumble.gatt import (
@@ -32,6 +31,7 @@ from bumble.gatt import (
     TemplateService,
 )
 from bumble.l2cap import Channel
+from bumble.pandora import utils
 from bumble.utils import AsyncRunner
 from google.protobuf.empty_pb2 import Empty  # pytype: disable=pyi-error
 from pandora_experimental.asha_grpc_aio import AshaServicer
