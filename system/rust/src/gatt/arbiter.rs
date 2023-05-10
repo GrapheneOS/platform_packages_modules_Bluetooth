@@ -51,7 +51,7 @@ fn try_parse_att_server_packet(
     tcb_idx: TransportIndex,
     packet: Box<[u8]>,
 ) -> Option<OwnedAttView> {
-    isolation_manager.get_conn_id(tcb_idx)?;
+    isolation_manager.get_server_id(tcb_idx)?;
 
     let att = OwnedAttView::try_parse(packet).ok()?;
 
@@ -82,7 +82,7 @@ fn on_le_connect(tcb_idx: u8, advertiser: u8) {
 
 fn on_le_disconnect(tcb_idx: u8) {
     let tcb_idx = TransportIndex(tcb_idx);
-    let was_isolated = with_arbiter(|arbiter| arbiter.get_conn_id(tcb_idx).is_some());
+    let was_isolated = with_arbiter(|arbiter| arbiter.is_connection_isolated(tcb_idx));
     if was_isolated {
         do_in_rust_thread(move |modules| {
             if let Err(err) = modules.gatt_module.on_le_disconnect(tcb_idx) {
@@ -112,7 +112,7 @@ fn intercept_packet(tcb_idx: u8, packet: Vec<u8>) -> InterceptAction {
 }
 
 fn on_mtu_event(tcb_idx: TransportIndex, event: MtuEvent) {
-    if with_arbiter(|arbiter| arbiter.get_conn_id(tcb_idx)).is_some() {
+    if with_arbiter(|arbiter| arbiter.is_connection_isolated(tcb_idx)) {
         do_in_rust_thread(move |modules| {
             let Some(bearer) = modules.gatt_module.get_bearer(tcb_idx) else {
                 error!("Bearer for {tcb_idx:?} not found");

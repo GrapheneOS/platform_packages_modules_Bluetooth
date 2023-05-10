@@ -83,15 +83,12 @@ impl GattModule {
         info!("connected on tcb_idx {tcb_idx:?}");
         self.isolation_manager.lock().unwrap().on_le_connect(tcb_idx, advertiser_id);
 
-        let Some(conn_id) = self.isolation_manager.lock().unwrap().get_conn_id(tcb_idx) else {
+        let Some(server_id) = self.isolation_manager.lock().unwrap().get_server_id(tcb_idx) else {
             bail!("non-isolated servers are not yet supported (b/274945531)")
         };
-        let database = self.databases.get(&conn_id.get_server_id());
+        let database = self.databases.get(&server_id);
         let Some(database) = database else {
-            bail!(
-                "got connection to conn_id {conn_id:?} (server_id {:?}) but this server does not exist!",
-                conn_id.get_server_id(),
-            );
+            bail!("got connection to {server_id:?} but this server does not exist!");
         };
 
         let transport = self.transport.clone();

@@ -431,7 +431,7 @@ fn is_connection_isolated(conn_id: u16) -> bool {
         return false;
     }
 
-    with_arbiter(|arbiter| arbiter.is_connection_isolated(ConnectionId(conn_id)))
+    with_arbiter(|arbiter| arbiter.is_connection_isolated(ConnectionId(conn_id).get_tcb_idx()))
 }
 
 fn send_response(_server_id: u8, conn_id: u16, trans_id: u32, status: u8, value: &[u8]) {

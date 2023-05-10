@@ -651,7 +651,7 @@ fn test_disconnection_unisolates_connection() {
         gatt.on_le_disconnect(TCB_IDX).unwrap();
 
         // assert
-        let is_connection_isolated = gatt.get_isolation_manager().get_conn_id(TCB_IDX).is_some();
+        let is_connection_isolated = gatt.get_isolation_manager().is_connection_isolated(TCB_IDX);
         assert!(!is_connection_isolated);
     });
 }
