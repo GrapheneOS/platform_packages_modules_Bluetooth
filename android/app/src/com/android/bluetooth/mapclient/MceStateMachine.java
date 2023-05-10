@@ -66,7 +66,6 @@ import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.map.BluetoothMapbMessageMime;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 import com.android.vcard.VCardConstants;
@@ -135,6 +134,7 @@ class MceStateMachine extends StateMachine {
 
     // Connectivity States
     private int mPreviousState = BluetoothProfile.STATE_DISCONNECTED;
+    private int mMostRecentState = BluetoothProfile.STATE_DISCONNECTED;
     private State mDisconnected;
     private State mConnecting;
     private State mConnected;
@@ -252,6 +252,9 @@ class MceStateMachine extends StateMachine {
     }
 
     private void onConnectionStateChanged(int prevState, int state) {
+        if (mMostRecentState == state) {
+            return;
+        }
         // mDevice == null only at setInitialState
         if (mDevice == null) {
             return;
@@ -263,6 +266,7 @@ class MceStateMachine extends StateMachine {
         if (prevState != state && state == BluetoothProfile.STATE_CONNECTED) {
             MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.MAP_CLIENT);
         }
+        setState(state);
         Intent intent = new Intent(BluetoothMapClient.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
@@ -273,21 +277,12 @@ class MceStateMachine extends StateMachine {
                 Utils.getTempBroadcastOptions());
     }
 
+    private synchronized void setState(int state) {
+        mMostRecentState = state;
+    }
+
     public synchronized int getState() {
-        IState currentState = this.getCurrentState();
-        if (currentState == null || currentState.getClass() == Disconnected.class) {
-            return BluetoothProfile.STATE_DISCONNECTED;
-        }
-        if (currentState.getClass() == Connected.class) {
-            return BluetoothProfile.STATE_CONNECTED;
-        }
-        if (currentState.getClass() == Connecting.class) {
-            return BluetoothProfile.STATE_CONNECTING;
-        }
-        if (currentState.getClass() == Disconnecting.class) {
-            return BluetoothProfile.STATE_DISCONNECTING;
-        }
-        return BluetoothProfile.STATE_DISCONNECTED;
+        return mMostRecentState;
     }
 
     public boolean disconnect() {
@@ -306,7 +301,7 @@ class MceStateMachine extends StateMachine {
         if (contacts == null || contacts.length <= 0) {
             return false;
         }
-        if (this.getCurrentState() == mConnected) {
+        if (mMostRecentState == BluetoothProfile.STATE_CONNECTED) {
             Bmessage bmsg = new Bmessage();
             // Set type and status.
             bmsg.setType(getDefaultMessageType());
@@ -368,7 +363,7 @@ class MceStateMachine extends StateMachine {
         if (DBG) {
             Log.d(TAG, "getMessage" + handle);
         }
-        if (this.getCurrentState() == mConnected) {
+        if (mMostRecentState == BluetoothProfile.STATE_CONNECTED) {
             sendMessage(MSG_INBOUND_MESSAGE, handle);
             return true;
         }
@@ -379,7 +374,7 @@ class MceStateMachine extends StateMachine {
         if (DBG) {
             Log.d(TAG, "getMessage");
         }
-        if (this.getCurrentState() == mConnected) {
+        if (mMostRecentState == BluetoothProfile.STATE_CONNECTED) {
             sendMessage(MSG_GET_MESSAGE_LISTING, FOLDER_INBOX);
             return true;
         }
@@ -387,7 +382,7 @@ class MceStateMachine extends StateMachine {
     }
 
     synchronized int getSupportedFeatures() {
-        if (this.getCurrentState() == mConnected && mMasClient != null) {
+        if (mMostRecentState == BluetoothProfile.STATE_CONNECTED && mMasClient != null) {
             if (DBG) Log.d(TAG, "returning getSupportedFeatures from SDP record");
             return mMasClient.getSdpMasRecord().getSupportedFeatures();
         }
@@ -399,7 +394,7 @@ class MceStateMachine extends StateMachine {
         if (DBG) {
             Log.d(TAG, "setMessageStatus(" + handle + ", " + status + ")");
         }
-        if (this.getCurrentState() == mConnected) {
+        if (mMostRecentState == BluetoothProfile.STATE_CONNECTED) {
             RequestSetMessageStatus.StatusIndicator statusIndicator;
             byte value;
             switch (status) {
