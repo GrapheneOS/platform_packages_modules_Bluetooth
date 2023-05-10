@@ -335,6 +335,38 @@ cc_test {
     cflags: ["-DBUILDCFG"],
 }
 
+// btif avrcp audio track unit tests
+cc_test {
+    name: "net_test_btif_avrcp_audio_track",
+    defaults: [
+        "bluetooth_gtest_x86_asan_workaround",
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
+    test_suites: ["device-tests"],
+    include_dirs: btifCommonIncludes + [
+        "frameworks/av/media/libaaudio/include",
+    ],
+    srcs: [
+        ":TestCommonMockFunctions",
+        ":TestMockFrameworks",
+        "src/btif_avrcp_audio_track.cc",
+        "test/btif_avrcp_audio_track_test.cc",
+    ],
+    header_libs: ["libbluetooth_headers"],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
+    static_libs: [
+        "libbluetooth-types",
+        "libchrome",
+        "libflatbuffers-cpp",
+        "libosi",
+    ],
+    cflags: ["-DBUILDCFG"],
+}
+
 // btif rc unit tests for target
 cc_test {
     name: "net_test_btif_rc",
