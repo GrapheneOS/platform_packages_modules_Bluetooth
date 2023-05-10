@@ -391,6 +391,7 @@ init_flags!(
         read_encryption_key_size = true,
         redact_log = true,
         rust_event_loop = true,
+        sco_codec_timeout_clear,
         sdp_serialization = true,
         sdp_skip_rnr_if_known = true,
         bluetooth_quality_report_callback = true,
