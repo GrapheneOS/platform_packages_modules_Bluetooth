@@ -34,6 +34,7 @@ filegroup {
         "le_device_test.cc",
         "legacy_config_file_test.cc",
         "mutation_test.cc",
+        "storage_module_test.cc",
     ],
 }
 
