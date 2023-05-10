@@ -758,6 +758,13 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE* p_rc_rsp,
   uint16_t u16;
   tAVRC_MSG_VENDOR* p_vendor = &p_msg->msg.vendor;
 
+  if (p_vendor->vendor_len == 0) {
+    p_rc_rsp->rsp.status = AVRC_STS_BAD_PARAM;
+    APPL_TRACE_DEBUG("%s: p_vendor->vendor_len == 0", __func__);
+    // the caller of this function assume 0 to be an invalid event
+    return 0;
+  }
+
   pdu = *(p_vendor->p_vendor_data);
   p_rc_rsp->pdu = pdu;
   *p_ctype = AVRC_RSP_REJ;
