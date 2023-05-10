@@ -25,6 +25,7 @@
 #include "osi/include/compat.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
+#include "stack/include/acl_api.h"
 #include "stack/include/port_api.h"
 
 /* Uncomment to enable AT traffic dumping */
@@ -325,6 +326,19 @@ static void bta_hf_client_handle_error(tBTA_HF_CLIENT_CB* client_cb,
 
 static void bta_hf_client_handle_ring(tBTA_HF_CLIENT_CB* client_cb) {
   APPL_TRACE_DEBUG("%s", __func__);
+
+  const bool exit_sniff_while_ring = osi_property_get_bool(
+      "bluetooth.headset_client.exit_sniff_while_ring", false);
+
+  // Invoke mode change to active mode if feature flag is enabled and current
+  // status is sniff
+  if (exit_sniff_while_ring) {
+    tBTM_PM_MODE mode;
+    if (BTM_ReadPowerMode(client_cb->peer_addr, &mode) &&
+        mode == BTM_PM_STS_SNIFF) {
+      bta_sys_busy(BTA_ID_HS, 1, client_cb->peer_addr);
+    }
+  }
   bta_hf_client_evt_val(client_cb, BTA_HF_CLIENT_RING_INDICATION, 0);
 }
 
