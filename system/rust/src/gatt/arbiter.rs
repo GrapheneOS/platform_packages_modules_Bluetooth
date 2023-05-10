@@ -1,9 +1,10 @@
 //! This module handles "arbitration" of ATT packets, to determine whether they
 //! should be handled by the primary stack or by the Rust stack
 
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use log::{error, trace};
+use once_cell::sync::OnceCell;
 
 use crate::{
     do_in_rust_thread,
@@ -18,11 +19,12 @@ use super::{
     server::isolation_manager::IsolationManager,
 };
 
-static ARBITER: Mutex<Option<IsolationManager>> = Mutex::new(None);
+static ARBITER: OnceCell<Arc<Mutex<IsolationManager>>> = OnceCell::new();
 
 /// Initialize the Arbiter
-pub fn initialize_arbiter() {
-    *ARBITER.lock().unwrap() = Some(IsolationManager::new());
+pub fn initialize_arbiter() -> Arc<Mutex<IsolationManager>> {
+    let arbiter = Arc::new(Mutex::new(IsolationManager::new()));
+    ARBITER.set(arbiter.clone()).unwrap_or_else(|_| panic!("Rust stack should only start up once"));
 
     StoreCallbacksFromRust(
         on_le_connect,
@@ -32,12 +34,14 @@ pub fn initialize_arbiter() {
         |tcb_idx, mtu| on_mtu_event(TransportIndex(tcb_idx), MtuEvent::IncomingResponse(mtu)),
         |tcb_idx, mtu| on_mtu_event(TransportIndex(tcb_idx), MtuEvent::IncomingRequest(mtu)),
     );
+
+    arbiter
 }
 
 /// Acquire the mutex holding the Arbiter and provide a mutable reference to the
 /// supplied closure
 pub fn with_arbiter<T>(f: impl FnOnce(&mut IsolationManager) -> T) -> T {
-    f(ARBITER.lock().unwrap().as_mut().unwrap())
+    f(ARBITER.get().unwrap().lock().as_mut().unwrap())
 }
 
 /// Test to see if a buffer contains a valid ATT packet with an opcode we
@@ -66,12 +70,10 @@ fn try_parse_att_server_packet(
 fn on_le_connect(tcb_idx: u8, advertiser: u8) {
     let tcb_idx = TransportIndex(tcb_idx);
     let advertiser = AdvertiserId(advertiser);
-    if let Some(conn_id) = with_arbiter(|arbiter| {
-        arbiter.on_le_connect(tcb_idx, advertiser);
-        arbiter.get_conn_id(tcb_idx)
-    }) {
+    let is_isolated = with_arbiter(|arbiter| arbiter.is_advertiser_isolated(advertiser));
+    if is_isolated {
         do_in_rust_thread(move |modules| {
-            if let Err(err) = modules.gatt_module.on_le_connect(conn_id) {
+            if let Err(err) = modules.gatt_module.on_le_connect(tcb_idx, Some(advertiser)) {
                 error!("{err:?}")
             }
         })
@@ -80,11 +82,7 @@ fn on_le_connect(tcb_idx: u8, advertiser: u8) {
 
 fn on_le_disconnect(tcb_idx: u8) {
     let tcb_idx = TransportIndex(tcb_idx);
-    let was_isolated = with_arbiter(|arbiter| {
-        let was_isolated = arbiter.get_conn_id(tcb_idx).is_some();
-        arbiter.on_le_disconnect(tcb_idx);
-        was_isolated
-    });
+    let was_isolated = with_arbiter(|arbiter| arbiter.get_conn_id(tcb_idx).is_some());
     if was_isolated {
         do_in_rust_thread(move |modules| {
             if let Err(err) = modules.gatt_module.on_le_disconnect(tcb_idx) {
@@ -149,7 +147,7 @@ mod test {
     ) -> IsolationManager {
         let mut isolation_manager = IsolationManager::new();
         isolation_manager.associate_server_with_advertiser(server_id, ADVERTISER_ID);
-        isolation_manager.on_le_connect(tcb_idx, ADVERTISER_ID);
+        isolation_manager.on_le_connect(tcb_idx, Some(ADVERTISER_ID));
         isolation_manager
     }
 
