@@ -34,7 +34,6 @@
 #include "bta_groups.h"
 #include "bta_has_api.h"
 #include "bta_le_audio_uuids.h"
-#include "btm_int.h"
 #include "btm_sec.h"
 #include "device/include/controller.h"
 #include "gap_api.h"
@@ -87,7 +86,7 @@ void btif_storage_set_leaudio_has_active_preset(const RawAddress& address,
                                                 uint8_t active_preset);
 void btif_storage_remove_leaudio_has(const RawAddress& address);
 
-extern bool gatt_profile_get_eatt_support(const RawAddress& remote_bda);
+bool gatt_profile_get_eatt_support(const RawAddress& remote_bda);
 
 namespace {
 class HasClientImpl;

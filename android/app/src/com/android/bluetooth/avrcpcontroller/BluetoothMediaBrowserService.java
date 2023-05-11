@@ -121,6 +121,7 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
 
         mReceiver = new LocaleChangedReceiver();
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(Intent.ACTION_LOCALE_CHANGED);
         registerReceiver(mReceiver, filter);
     }

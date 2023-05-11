@@ -10,7 +10,6 @@ package {
 cc_library_static {
     name: "libbt-common",
     defaults: [
-        "clang_file_coverage",
         "fluoride_basic_defaults",
     ],
     host_supported: true,
@@ -46,7 +45,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_defaults",
         "mts_defaults",
     ],
@@ -84,6 +82,8 @@ cc_test {
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
+        "libevent",
         "libgmock",
         "libprotobuf-cpp-lite",
     ],
@@ -110,6 +110,8 @@ cc_test {
     ],
     static_libs: [
         "libbt-common",
+        "libchrome",
+        "libevent",
         "libgmock",
         "libosi",
     ],
@@ -131,6 +133,8 @@ cc_benchmark {
     ],
     static_libs: [
         "libbt-common",
+        "libchrome",
+        "libevent",
         "libosi",
     ],
 }
@@ -155,6 +159,8 @@ cc_benchmark {
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
+        "libevent",
         "libosi",
     ],
 }

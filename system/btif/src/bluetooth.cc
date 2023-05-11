@@ -78,6 +78,7 @@
 #include "btif_metrics_logging.h"
 #include "btif_pan.h"
 #include "btif_profile_storage.h"
+#include "btif_rc.h"
 #include "btif_sock.h"
 #include "btif_storage.h"
 #include "common/address_obfuscator.h"
@@ -173,12 +174,12 @@ extern CsisClientInterface* btif_csis_client_get_interface();
 /* Volume Control client */
 extern VolumeControlInterface* btif_volume_control_get_interface();
 
-extern bt_status_t btif_av_sink_execute_service(bool b_enable);
-extern bt_status_t btif_hh_execute_service(bool b_enable);
-extern bt_status_t btif_hf_client_execute_service(bool b_enable);
-extern bt_status_t btif_sdp_execute_service(bool b_enable);
-extern bt_status_t btif_hh_connect(const RawAddress* bd_addr);
-extern bt_status_t btif_hd_execute_service(bool b_enable);
+bt_status_t btif_av_sink_execute_service(bool b_enable);
+bt_status_t btif_hh_execute_service(bool b_enable);
+bt_status_t btif_hf_client_execute_service(bool b_enable);
+bt_status_t btif_sdp_execute_service(bool b_enable);
+bt_status_t btif_hh_connect(const RawAddress* bd_addr);
+bt_status_t btif_hd_execute_service(bool b_enable);
 
 /*******************************************************************************
  *  Callbacks from bluetooth::core (see go/invisalign-bt)
@@ -767,6 +768,7 @@ static void dump(int fd, const char** arguments) {
   btif_debug_conn_dump(fd);
   btif_debug_bond_event_dump(fd);
   btif_debug_linkkey_type_dump(fd);
+  btif_debug_rc_dump(fd);
   btif_debug_a2dp_dump(fd);
   btif_debug_av_dump(fd);
   bta_debug_av_dump(fd);

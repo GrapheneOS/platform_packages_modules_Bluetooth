@@ -34,6 +34,7 @@ import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothHidDevice;
 import android.bluetooth.BluetoothHidHost;
+import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothMap;
 import android.bluetooth.BluetoothMapClient;
 import android.bluetooth.BluetoothPan;
@@ -198,6 +199,9 @@ class AdapterProperties {
                 case BluetoothPbap.ACTION_CONNECTION_STATE_CHANGED:
                     sendConnectionStateChange(BluetoothProfile.PBAP, intent);
                     break;
+                case BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED:
+                    sendConnectionStateChange(BluetoothProfile.LE_AUDIO, intent);
+                    break;
                 default:
                     Log.w(TAG, "Received unknown intent " + intent);
                     break;
@@ -241,6 +245,7 @@ class AdapterProperties {
                 && !SystemProperties.getBoolean(A2DP_OFFLOAD_DISABLED_PROPERTY, false);
 
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
@@ -254,6 +259,7 @@ class AdapterProperties {
         filter.addAction(BluetoothMapClient.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothSap.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
         mService.registerReceiver(mReceiver, filter);
         mReceiverRegistered = true;
         invalidateBluetoothCaches();

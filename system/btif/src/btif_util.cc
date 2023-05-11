@@ -335,6 +335,19 @@ const char* dump_bt_status(bt_status_t status) {
   }
 }
 
+const char* dump_rc_opcode(uint8_t opcode) {
+  switch (opcode) {
+    CASE_RETURN_STR(AVRC_OP_UNIT_INFO)
+    CASE_RETURN_STR(AVRC_OP_SUB_INFO)
+    CASE_RETURN_STR(AVRC_OP_VENDOR)
+    CASE_RETURN_STR(AVRC_OP_PASS_THRU)
+    CASE_RETURN_STR(AVRC_OP_BROWSE)
+    CASE_RETURN_STR(AVRC_OP_INVALID)
+    default:
+      return "UNKNOWN_OPCODE";
+  }
+}
+
 const char* dump_rc_event(uint8_t event) {
   switch (event) {
     CASE_RETURN_STR(BTA_AV_RC_OPEN_EVT)
@@ -355,6 +368,7 @@ const char* dump_rc_event(uint8_t event) {
 
 const char* dump_rc_notification_event_id(uint8_t event_id) {
   switch (event_id) {
+    CASE_RETURN_STR(AVRC_EVT_INVALID)
     CASE_RETURN_STR(AVRC_EVT_PLAY_STATUS_CHANGE)
     CASE_RETURN_STR(AVRC_EVT_TRACK_CHANGE)
     CASE_RETURN_STR(AVRC_EVT_TRACK_REACHED_END)
