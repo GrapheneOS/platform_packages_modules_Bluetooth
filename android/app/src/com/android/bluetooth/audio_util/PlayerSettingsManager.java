@@ -76,7 +76,7 @@ public class PlayerSettingsManager {
         if (mediaPlayerWrapper != null) {
             mActivePlayerController = new MediaControllerCompat(mService,
                     MediaSessionCompat.Token.fromToken(mediaPlayerWrapper.getSessionToken()));
-            mActivePlayerController.registerCallback(new MediaControllerCallback());
+            mActivePlayerController.registerCallback(mControllerCallback);
         } else {
             mActivePlayerController = null;
             updateRemoteDevice();
