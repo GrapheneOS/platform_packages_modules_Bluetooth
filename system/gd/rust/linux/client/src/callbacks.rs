@@ -212,6 +212,15 @@ impl IBluetoothCallback for BtCallback {
         );
     }
 
+    fn on_pin_display(&mut self, remote_device: BluetoothDevice, pincode: String) {
+        print_info!(
+            "Device [{}: {}] would like to pair, enter pin code {} on the remote",
+            &remote_device.address,
+            &remote_device.name,
+            pincode
+        );
+    }
+
     fn on_bond_state_changed(&mut self, status: u32, address: String, state: u32) {
         print_info!("Bonding state changed: [{}] state: {}, Status = {}", address, state, status);
 
