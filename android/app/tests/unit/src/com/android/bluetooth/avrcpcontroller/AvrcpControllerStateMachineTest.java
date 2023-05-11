@@ -49,9 +49,7 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1424,7 +1422,6 @@ public class AvrcpControllerStateMachineTest {
     /**
      * Test receiving an audio focus loss event. A pause should be sent if we were playing
      */
-    @Ignore("b/260948676")
     @Test
     public void testOnAudioFocusLossWhilePlaying_pauseSent() {
         setUpConnectedState(true, true);
