@@ -20,11 +20,14 @@ use bt_topshim::{
 };
 
 use bt_utils::array_utils;
+use bt_utils::cod::{is_cod_hid_combo, is_cod_hid_keyboard};
 use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 
 use log::{debug, warn};
 use num_traits::cast::ToPrimitive;
+use num_traits::pow;
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::fs::File;
 use std::hash::Hash;
 use std::io::Write;
@@ -401,6 +404,9 @@ pub trait IBluetoothCallback: RPCProxy {
 
     /// When there is a pin request to display the event to client.
     fn on_pin_request(&mut self, remote_device: BluetoothDevice, cod: u32, min_16_digit: bool);
+
+    /// When there is a auto-gen pin to display the event to client.
+    fn on_pin_display(&mut self, remote_device: BluetoothDevice, pincode: String);
 
     /// When a bonding attempt has completed.
     fn on_bond_state_changed(&mut self, status: u32, device_address: String, state: u32);
@@ -1368,15 +1374,36 @@ impl BtifBluetoothCallbacks for Bluetooth {
         cod: u32,
         min_16_digit: bool,
     ) {
-        // Currently this supports many agent because we accept many callbacks.
-        // TODO(b/274706838): We need a way to select the default agent.
-        self.callbacks.for_all_callbacks(|callback| {
-            callback.on_pin_request(
-                BluetoothDevice::new(remote_addr.to_string(), remote_name.clone()),
-                cod,
-                min_16_digit,
-            );
-        });
+        let device = BluetoothDevice::new(remote_addr.to_string(), remote_name.clone());
+
+        let digits = match min_16_digit {
+            true => 16,
+            false => 6,
+        };
+
+        if is_cod_hid_keyboard(cod) || is_cod_hid_combo(cod) {
+            debug!("auto gen pin for device {} (cod={:#x})", device.address, cod);
+            // generate a random pin code to display.
+            let pin = rand::random::<u64>() % pow(10, digits);
+            let display_pin = format!("{:06}", pin);
+
+            // Currently this supports many agent because we accept many callbacks.
+            // TODO(b/274706838): We need a way to select the default agent.
+            self.callbacks.for_all_callbacks(|callback| {
+                callback.on_pin_display(device.clone(), display_pin.clone());
+            });
+
+            let pin_vec = display_pin.chars().map(|d| d.try_into().unwrap()).collect::<Vec<u8>>();
+
+            self.set_pin(device, true, pin_vec);
+        } else {
+            debug!("sending pin request for device {} (cod={:#x}) to clients", device.address, cod);
+            // Currently this supports many agent because we accept many callbacks.
+            // TODO(b/274706838): We need a way to select the default agent.
+            self.callbacks.for_all_callbacks(|callback| {
+                callback.on_pin_request(device.clone(), cod, min_16_digit);
+            });
+        }
     }
 
     fn bond_state(
