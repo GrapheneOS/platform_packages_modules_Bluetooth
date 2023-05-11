@@ -7100,7 +7100,9 @@ public class AdapterService extends Service {
                 Log.d(TAG, "index=" + i + "uuid=" + uuids[i]);
             }
         }
-        mPhonePolicy.onUuidsDiscovered(device, uuids);
+        if (mPhonePolicy != null) {
+            mPhonePolicy.onUuidsDiscovered(device, uuids);
+        }
     }
 
     static native void classInitNative();
