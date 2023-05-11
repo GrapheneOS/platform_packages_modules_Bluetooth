@@ -1589,12 +1589,13 @@ static bool btif_is_interesting_le_service(bluetooth::Uuid uuid) {
           uuid == UUID_BATTERY);
 }
 
-static void btif_get_existing_uuids(RawAddress* bd_addr, Uuid* existing_uuids) {
+static bt_status_t btif_get_existing_uuids(RawAddress* bd_addr,
+                                           Uuid* existing_uuids) {
   bt_property_t tmp_prop;
   BTIF_STORAGE_FILL_PROPERTY(&tmp_prop, BT_PROPERTY_UUIDS,
                              sizeof(existing_uuids), existing_uuids);
 
-  btif_storage_get_remote_device_property(bd_addr, &tmp_prop);
+  return btif_storage_get_remote_device_property(bd_addr, &tmp_prop);
 }
 
 static bool btif_should_ignore_uuid(const Uuid& uuid) {
@@ -1699,6 +1700,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
               btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED &&
           (check_cod_le_audio(bd_addr) ||
            metadata_cb.le_audio_cache.contains(bd_addr) ||
+           metadata_cb.le_audio_cache.contains(pairing_cb.bd_addr) ||
            BTA_DmCheckLeAudioCapable(bd_addr))) {
         skip_reporting_wait_for_le = true;
       }
@@ -1739,10 +1741,13 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
             prop.len = Uuid::kNumBytes128;
           }
         }
-        // Both SDP and bonding are done, clear pairing control block in case
-        // it is not already cleared
-        pairing_cb = {};
-        LOG_INFO("clearing btif pairing_cb");
+
+        if (!skip_reporting_wait_for_le) {
+          // Both SDP and bonding are done, clear pairing control block in case
+          // it is not already cleared
+          pairing_cb = {};
+          LOG_INFO("clearing btif pairing_cb");
+        }
       }
 
       const tBTA_STATUS bta_status = p_data->disc_res.result;
@@ -1792,10 +1797,13 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       std::vector<uint8_t> property_value;
       std::set<Uuid> uuids;
       RawAddress& bd_addr = p_data->disc_ble_res.bd_addr;
+      RawAddress static_addr_copy = pairing_cb.static_bdaddr;
 
       if (event == BTA_DM_GATT_OVER_LE_RES_EVT) {
         LOG_INFO("New GATT over LE UUIDs for %s:",
                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+        BTM_LogHistory(kBtmLogTag, bd_addr,
+                       "Discovered GATT services using LE transport");
         if ((bd_addr == pairing_cb.bd_addr ||
              bd_addr == pairing_cb.static_bdaddr)) {
           if (pairing_cb.gatt_over_le !=
@@ -1819,6 +1827,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       } else {
         LOG_INFO("New GATT over SDP UUIDs for %s:",
                  ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
+        BTM_LogHistory(kBtmLogTag, bd_addr,
+                       "Discovered GATT services using SDP transport");
       }
 
       for (Uuid uuid : *p_data->disc_ble_res.services) {
@@ -1838,7 +1848,17 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       }
 
       Uuid existing_uuids[BT_MAX_NUM_UUIDS] = {};
-      btif_get_existing_uuids(&bd_addr, existing_uuids);
+      bt_status_t existing_lookup_result =
+          btif_get_existing_uuids(&bd_addr, existing_uuids);
+      if (existing_lookup_result == BT_STATUS_FAIL &&
+          bd_addr != static_addr_copy) {
+        existing_lookup_result =
+            btif_get_existing_uuids(&static_addr_copy, existing_uuids);
+        if (existing_lookup_result != BT_STATUS_FAIL) {
+          LOG_INFO("Got some existing UUIDs by static address %s",
+                   ADDRESS_TO_LOGGABLE_CSTR(static_addr_copy));
+        }
+      }
       for (int i = 0; i < BT_MAX_NUM_UUIDS; i++) {
         Uuid uuid = existing_uuids[i];
         if (uuid.IsEmpty()) {
