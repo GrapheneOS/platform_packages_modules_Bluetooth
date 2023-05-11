@@ -1114,6 +1114,7 @@ static void bta_ag_sco_event(tBTA_AG_SCB* p_scb, uint8_t event) {
           /* If last SCO instance then finish shutting down */
           if (!bta_ag_other_scb_open(p_scb)) {
             p_sco->state = BTA_AG_SCO_SHUTDOWN_ST;
+            bta_sys_sco_unuse(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
           } else /* Other instance is still listening */
           {
             p_sco->state = BTA_AG_SCO_LISTEN_ST;
