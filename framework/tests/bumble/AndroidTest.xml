@@ -15,7 +15,7 @@
       <option name="python-virtualenv" value="true"/>
       <option name="host-setup-command" value="adb -s $SERIAL reverse tcp:7999 tcp:7999" />
       <option name="host-background-command"
-        value="$EXTRA_FILE(host_testcases)/bumble_pandora_server/x86_64/bumble_pandora_server"/>
+        value="$EXTRA_FILE(host_testcases)/BumbleBluetoothTests/bumble_pandora_server"/>
       <option name="host-teardown-command" value="adb -s $SERIAL reverse --remove tcp:7999" />
     </target_preparer>
 
