@@ -16,12 +16,7 @@
 
 package com.android.server.bluetooth;
 
-import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_ENHANCEMENT;
-import static com.android.server.bluetooth.BluetoothAirplaneModeListener.BT_DEFAULT_APM_STATE;
-
-import android.content.Context;
 import android.provider.DeviceConfig;
-import android.provider.Settings;
 import android.util.Log;
 
 /**
@@ -36,64 +31,26 @@ import android.util.Log;
 public class BluetoothDeviceConfigListener {
     private static final String TAG = "BluetoothDeviceConfigListener";
 
-    private static final int DEFAULT_APM_ENHANCEMENT = 0;
-    private static final int DEFAULT_BT_APM_STATE = 0;
-
     private final BluetoothManagerService mService;
     private final boolean mLogDebug;
-    private final Context mContext;
     private final BluetoothDeviceConfigChangeTracker mConfigChangeTracker;
 
-    private boolean mPrevApmEnhancement;
-    private boolean mPrevBtApmState;
-
-    BluetoothDeviceConfigListener(BluetoothManagerService service, boolean logDebug,
-            Context context) {
+    BluetoothDeviceConfigListener(BluetoothManagerService service, boolean logDebug) {
         mService = service;
         mLogDebug = logDebug;
-        mContext = context;
         mConfigChangeTracker =
                 new BluetoothDeviceConfigChangeTracker(
                         DeviceConfig.getProperties(DeviceConfig.NAMESPACE_BLUETOOTH));
-        updateApmConfigs();
         DeviceConfig.addOnPropertiesChangedListener(
                 DeviceConfig.NAMESPACE_BLUETOOTH,
                 (Runnable r) -> r.run(),
                 mDeviceConfigChangedListener);
     }
 
-    private void updateApmConfigs() {
-        mPrevApmEnhancement = DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
-                APM_ENHANCEMENT, false);
-        mPrevBtApmState = DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
-                BT_DEFAULT_APM_STATE, false);
-
-        Settings.Global.putInt(mContext.getContentResolver(),
-                APM_ENHANCEMENT, mPrevApmEnhancement ? 1 : 0);
-        Settings.Global.putInt(mContext.getContentResolver(),
-                BT_DEFAULT_APM_STATE, mPrevBtApmState ? 1 : 0);
-    }
-
     private final DeviceConfig.OnPropertiesChangedListener mDeviceConfigChangedListener =
             new DeviceConfig.OnPropertiesChangedListener() {
                 @Override
                 public void onPropertiesChanged(DeviceConfig.Properties newProperties) {
-                    boolean apmEnhancement = newProperties.getBoolean(
-                            APM_ENHANCEMENT, mPrevApmEnhancement);
-                    if (apmEnhancement != mPrevApmEnhancement) {
-                        mPrevApmEnhancement = apmEnhancement;
-                        Settings.Global.putInt(mContext.getContentResolver(),
-                                APM_ENHANCEMENT, apmEnhancement ? 1 : 0);
-                    }
-
-                    boolean btApmState = newProperties.getBoolean(
-                            BT_DEFAULT_APM_STATE, mPrevBtApmState);
-                    if (btApmState != mPrevBtApmState) {
-                        mPrevBtApmState = btApmState;
-                        Settings.Global.putInt(mContext.getContentResolver(),
-                                BT_DEFAULT_APM_STATE, btApmState ? 1 : 0);
-                    }
-
                     if (mConfigChangeTracker.shouldRestartWhenPropertiesUpdated(newProperties)) {
                         Log.d(TAG, "Properties changed, enqueuing restart");
                         mService.onInitFlagsChanged();
