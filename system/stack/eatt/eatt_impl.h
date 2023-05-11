@@ -708,6 +708,7 @@ struct eatt_impl {
 
       fixed_queue_free(channel->server_outstanding_cmd_.multi_rsp_q, NULL);
       channel->server_outstanding_cmd_.multi_rsp_q = NULL;
+      iter++;
     }
   }
 
