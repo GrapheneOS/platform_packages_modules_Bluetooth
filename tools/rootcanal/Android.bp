@@ -289,6 +289,8 @@ python_test_host {
         ":link_layer_packets_python3_gen",
         "py/bluetooth.py",
         "py/controller.py",
+        "test/LL/CON_/CEN/*.py",
+        "test/LL/CON_/PER/*.py",
         "test/LL/DDI/ADV/*.py",
         "test/LL/DDI/SCN/*.py",
         "test/main.py",
