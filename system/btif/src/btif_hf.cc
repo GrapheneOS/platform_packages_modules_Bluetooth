@@ -1536,7 +1536,7 @@ void HeadsetInterface::Cleanup() {
     }
   }
 
-  bt_hf_callbacks = nullptr;
+  do_in_jni_thread(FROM_HERE, base::Bind([]() { bt_hf_callbacks = nullptr; }));
 }
 
 bt_status_t HeadsetInterface::SetScoOffloadEnabled(bool value) {

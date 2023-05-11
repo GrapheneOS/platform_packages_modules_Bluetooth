@@ -195,10 +195,9 @@ extern std::vector<uint16_t> L2CA_ConnectCreditBasedReq(
  *
  ******************************************************************************/
 
-extern bool L2CA_ConnectCreditBasedRsp(const RawAddress& p_bd_addr, uint8_t id,
-                                       std::vector<uint16_t>& accepted_lcids,
-                                       uint16_t result,
-                                       tL2CAP_LE_CFG_INFO* p_cfg);
+bool L2CA_ConnectCreditBasedRsp(const RawAddress& p_bd_addr, uint8_t id,
+                                std::vector<uint16_t>& accepted_lcids,
+                                uint16_t result, tL2CAP_LE_CFG_INFO* p_cfg);
 
 /*******************************************************************************
  *

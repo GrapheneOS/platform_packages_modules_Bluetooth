@@ -34,7 +34,6 @@
 #include "btif/include/btif_bqr.h"
 #include "common/message_loop_thread.h"
 #include "hci/include/hci_layer.h"
-#include "hci/include/hci_packet_factory.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/controller.h"
 #include "main/shim/entry.h"
@@ -51,8 +50,8 @@
 
 extern tBTM_CB btm_cb;
 
-extern void btm_inq_db_reset(void);
-extern void btm_pm_reset(void);
+void btm_inq_db_reset(void);
+void btm_pm_reset(void);
 /******************************************************************************/
 /*               L O C A L    D A T A    D E F I N I T I O N S                */
 /******************************************************************************/

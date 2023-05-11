@@ -82,6 +82,7 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
         }
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         registerReceiver(mBluetoothReceiver, filter);
         mRegistered = true;
 

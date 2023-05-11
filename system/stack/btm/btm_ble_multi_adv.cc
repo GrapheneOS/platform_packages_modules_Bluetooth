@@ -46,7 +46,7 @@ using RegisterCb =
 using IdTxPowerStatusCb = base::Callback<void(
     uint8_t /* inst_id */, int8_t /* tx_power */, uint8_t /* status */)>;
 using SetEnableData = BleAdvertiserHciInterface::SetEnableData;
-extern void btm_gen_resolvable_private_addr(
+void btm_gen_resolvable_private_addr(
     base::Callback<void(const RawAddress& rpa)> cb);
 
 constexpr int ADV_DATA_LEN_MAX = 251;

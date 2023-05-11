@@ -564,7 +564,7 @@ void bta_hh_connect(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-extern void btif_hh_remove_device(RawAddress bd_addr);
+void btif_hh_remove_device(RawAddress bd_addr);
 void bta_hh_api_disc_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
   CHECK(p_cb != nullptr);
 

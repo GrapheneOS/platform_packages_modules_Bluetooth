@@ -64,19 +64,19 @@ using bluetooth::common::MetricIdAllocator;
 extern tBTM_CB btm_cb;
 std::mutex btm_cb_mutex_;
 
-extern bool btm_inq_find_bdaddr(const RawAddress& p_bda);
+bool btm_inq_find_bdaddr(const RawAddress& p_bda);
 extern tINQ_DB_ENT* btm_inq_db_find(const RawAddress& raw_address);
 extern tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda);
 
 /**
  * Legacy bluetooth btm stack entry points
  */
-extern void btm_acl_update_inquiry_status(uint8_t status);
-extern void btm_clear_all_pending_le_entry(void);
-extern void btm_clr_inq_result_flt(void);
-extern void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
-extern void btm_sort_inq_result(void);
-extern void btm_process_inq_complete(tHCI_STATUS status, uint8_t result_type);
+void btm_acl_update_inquiry_status(uint8_t status);
+void btm_clear_all_pending_le_entry(void);
+void btm_clr_inq_result_flt(void);
+void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
+void btm_sort_inq_result(void);
+void btm_process_inq_complete(tHCI_STATUS status, uint8_t result_type);
 
 static bool is_classic_device(tBT_DEVICE_TYPE device_type) {
   return device_type == BT_DEVICE_TYPE_BREDR;

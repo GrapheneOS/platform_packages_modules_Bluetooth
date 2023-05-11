@@ -277,7 +277,6 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
             advertisement = await self.ref_advertise_asha(
                 ref_device=ref_device, ref_address_type=ref_address_type, ear=ear
             )
-            expected_data = self.get_expected_advertisement_data(ear)
             ref = await self.dut_scan_for_asha(dut_address_type=dut_address_type, ear=ear)
             # DUT initiates connection to ref_device.
             dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
@@ -403,10 +402,51 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
         assert dut_ref, ref_dut
+        advertisement.cancel()
 
-        await asyncio.gather(
-            self.dut.aio.host.Disconnect(connection=dut_ref), self.is_device_connected(self.ref_left, ref_dut, 5)
+        await self.dut.aio.host.Disconnect(connection=dut_ref)
+        assert not await self.is_device_connected(self.ref_left, ref_dut, 5)
+
+    @avatar.parameterized(
+        (RANDOM, RANDOM),
+        (RANDOM, PUBLIC),
+    )  # type: ignore[misc]
+    @asynchronous
+    async def test_disconnect_initiator_dual_device(
+        self,
+        dut_address_type: OwnAddressType,
+        ref_address_type: OwnAddressType,
+    ) -> None:
+        """
+        DUT initiates disconnection to Ref.
+        Verify that DUT and Ref are disconnected.
+        """
+
+        async def ref_device_connect(ref_device: BumblePandoraDevice, ear: Ear) -> Tuple[Connection, Connection]:
+            advertisement = await self.ref_advertise_asha(
+                ref_device=ref_device, ref_address_type=ref_address_type, ear=ear
+            )
+            ref = await self.dut_scan_for_asha(dut_address_type=dut_address_type, ear=ear)
+            # DUT initiates connection to ref_device.
+            dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
+            assert dut_ref, ref_dut
+            advertisement.cancel()
+
+            return dut_ref, ref_dut
+
+        ((dut_ref_left, ref_left_dut), (dut_ref_right, ref_right_dut)) = await asyncio.gather(
+            ref_device_connect(self.ref_left, Ear.LEFT), ref_device_connect(self.ref_right, Ear.RIGHT)
         )
+
+        # Disconnect from DUT
+        await asyncio.gather(
+            self.dut.aio.host.Disconnect(connection=dut_ref_left),
+            self.dut.aio.host.Disconnect(connection=dut_ref_right),
+        )
+
+        # Verify the Refs are disconnected
+        assert not await self.is_device_connected(self.ref_left, ref_left_dut, 5)
+        assert not await self.is_device_connected(self.ref_right, ref_right_dut, 5)
 
     @avatar.parameterized(
         (RANDOM, RANDOM),
@@ -429,10 +469,10 @@ class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
 
         dut_ref, ref_dut = await self.dut_connect_to_ref(advertisement, ref, dut_address_type)
         assert dut_ref, ref_dut
+        advertisement.cancel()
 
-        await asyncio.gather(
-            self.ref_left.aio.host.Disconnect(connection=ref_dut), self.is_device_connected(self.dut, dut_ref, 5)
-        )
+        await self.ref_left.aio.host.Disconnect(connection=ref_dut)
+        assert not await self.is_device_connected(self.dut, dut_ref, 5)
 
     @avatar.parameterized(
         (RANDOM, RANDOM, 0),

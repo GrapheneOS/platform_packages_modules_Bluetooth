@@ -19,7 +19,6 @@ cc_defaults {
     tidy_checks: [
         "-*",
         "readability-*",
-
         "-readability-function-size",
         "-readability-identifier-length",
         "-readability-implicit-bool-conversion",
@@ -37,7 +36,6 @@ cc_defaults {
         "gd_defaults",
     ],
     cflags: [
-        "-DROOTCANAL_LMP",
         "-fvisibility=hidden",
     ],
     local_include_dirs: [
@@ -82,7 +80,6 @@ cc_library_static {
         "model/controller/le_advertiser.cc",
         "model/controller/link_layer_controller.cc",
         "model/controller/sco_connection.cc",
-        "model/controller/security_manager.cc",
         "model/devices/baseband_sniffer.cc",
         "model/devices/beacon.cc",
         "model/devices/beacon_swarm.cc",
@@ -148,7 +145,6 @@ cc_library_host_shared {
         "model/controller/le_advertiser.cc",
         "model/controller/link_layer_controller.cc",
         "model/controller/sco_connection.cc",
-        "model/controller/security_manager.cc",
         "model/devices/device.cc",
         "model/setup/async_manager.cc",
     ],
@@ -217,8 +213,6 @@ cc_library_static {
 cc_test_host {
     name: "rootcanal_hci_test",
     defaults: [
-        "clang_coverage_bin",
-        "clang_file_coverage",
         "rootcanal_defaults",
     ],
     srcs: [
@@ -303,8 +297,6 @@ python_test_host {
 cc_test_host {
     name: "rootcanal_test_host",
     defaults: [
-        "clang_coverage_bin",
-        "clang_file_coverage",
         "fluoride_common_options",
     ],
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
@@ -313,7 +305,6 @@ cc_test_host {
         "test/async_manager_unittest.cc",
         "test/h4_parser_unittest.cc",
         "test/posix_socket_unittest.cc",
-        "test/security_manager_unittest.cc",
     ],
     header_libs: [
         "libbluetooth_headers",

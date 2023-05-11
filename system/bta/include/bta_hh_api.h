@@ -335,8 +335,7 @@ typedef void(tBTA_HH_CBACK)(tBTA_HH_EVT event, tBTA_HH* p_data);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhEnable(tBTA_HH_CBACK* p_cback, bool enable_hid,
-                         bool enable_hogp);
+void BTA_HhEnable(tBTA_HH_CBACK* p_cback, bool enable_hid, bool enable_hogp);
 
 /*******************************************************************************
  *
@@ -347,7 +346,7 @@ extern void BTA_HhEnable(tBTA_HH_CBACK* p_cback, bool enable_hid,
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhDisable(void);
+void BTA_HhDisable(void);
 
 /*******************************************************************************
  *
@@ -360,7 +359,7 @@ extern void BTA_HhDisable(void);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhOpen(const RawAddress& dev_bda);
+void BTA_HhOpen(const RawAddress& dev_bda);
 
 /*******************************************************************************
  *
@@ -371,7 +370,7 @@ extern void BTA_HhOpen(const RawAddress& dev_bda);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhClose(uint8_t dev_handle);
+void BTA_HhClose(uint8_t dev_handle);
 
 /*******************************************************************************
  *
@@ -382,7 +381,7 @@ extern void BTA_HhClose(uint8_t dev_handle);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhSetProtoMode(uint8_t handle, tBTA_HH_PROTO_MODE t_type);
+void BTA_HhSetProtoMode(uint8_t handle, tBTA_HH_PROTO_MODE t_type);
 
 /*******************************************************************************
  *
@@ -394,7 +393,7 @@ extern void BTA_HhSetProtoMode(uint8_t handle, tBTA_HH_PROTO_MODE t_type);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhGetProtoMode(uint8_t dev_handle);
+void BTA_HhGetProtoMode(uint8_t dev_handle);
 /*******************************************************************************
  *
  * Function         BTA_HhSetReport
@@ -404,8 +403,8 @@ extern void BTA_HhGetProtoMode(uint8_t dev_handle);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhSetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
-                            BT_HDR* p_data);
+void BTA_HhSetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
+                     BT_HDR* p_data);
 
 /*******************************************************************************
  *
@@ -416,8 +415,8 @@ extern void BTA_HhSetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhGetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
-                            uint8_t rpt_id, uint16_t buf_size);
+void BTA_HhGetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
+                     uint8_t rpt_id, uint16_t buf_size);
 /*******************************************************************************
  *
  * Function         BTA_HhSetIdle
@@ -427,7 +426,7 @@ extern void BTA_HhGetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
+void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
 
 /*******************************************************************************
  *
@@ -438,7 +437,7 @@ extern void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhGetIdle(uint8_t dev_handle);
+void BTA_HhGetIdle(uint8_t dev_handle);
 
 /*******************************************************************************
  *
@@ -449,7 +448,7 @@ extern void BTA_HhGetIdle(uint8_t dev_handle);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhSendCtrl(uint8_t dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type);
+void BTA_HhSendCtrl(uint8_t dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type);
 
 /*******************************************************************************
  *
@@ -460,7 +459,7 @@ extern void BTA_HhSendCtrl(uint8_t dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
+void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
 
 /*******************************************************************************
  *
@@ -471,7 +470,7 @@ extern void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhGetIdle(uint8_t dev_handle);
+void BTA_HhGetIdle(uint8_t dev_handle);
 
 /*******************************************************************************
  *
@@ -482,8 +481,8 @@ extern void BTA_HhGetIdle(uint8_t dev_handle);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhSendData(uint8_t dev_handle, const RawAddress& dev_bda,
-                           BT_HDR* p_buf);
+void BTA_HhSendData(uint8_t dev_handle, const RawAddress& dev_bda,
+                    BT_HDR* p_buf);
 
 /*******************************************************************************
  *
@@ -494,7 +493,7 @@ extern void BTA_HhSendData(uint8_t dev_handle, const RawAddress& dev_bda,
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhGetDscpInfo(uint8_t dev_handle);
+void BTA_HhGetDscpInfo(uint8_t dev_handle);
 
 /*******************************************************************************
  * Function         BTA_HhAddDev
@@ -507,9 +506,9 @@ extern void BTA_HhGetDscpInfo(uint8_t dev_handle);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhAddDev(const RawAddress& bda, tBTA_HH_ATTR_MASK attr_mask,
-                         uint8_t sub_class, uint8_t app_id,
-                         tBTA_HH_DEV_DSCP_INFO dscp_info);
+void BTA_HhAddDev(const RawAddress& bda, tBTA_HH_ATTR_MASK attr_mask,
+                  uint8_t sub_class, uint8_t app_id,
+                  tBTA_HH_DEV_DSCP_INFO dscp_info);
 /*******************************************************************************
  *
  * Function         BTA_HhRemoveDev
@@ -519,6 +518,6 @@ extern void BTA_HhAddDev(const RawAddress& bda, tBTA_HH_ATTR_MASK attr_mask,
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HhRemoveDev(uint8_t dev_handle);
+void BTA_HhRemoveDev(uint8_t dev_handle);
 
 #endif /* BTA_HH_API_H */
