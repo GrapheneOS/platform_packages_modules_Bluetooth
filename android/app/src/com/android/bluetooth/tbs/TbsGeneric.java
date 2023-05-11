@@ -193,8 +193,9 @@ public class TbsGeneric {
         }
 
         mReceiver = new Receiver();
-        mTbsGatt.getContext().registerReceiver(mReceiver,
-                new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION));
+        IntentFilter filter = new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        mTbsGatt.getContext().registerReceiver(mReceiver, filter);
 
         mIsInitialized = true;
         return true;

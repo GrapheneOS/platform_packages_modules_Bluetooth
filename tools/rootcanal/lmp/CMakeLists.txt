@@ -1,29 +1,33 @@
 message(STATUS "Enabling bluetooth LMP module.")
 
+# TODO(b/279494407): migrate hci packets to new generator
 android_bluetooth_packet_gen(
-  GENERATED HciGeneratedPackets_rs INCLUDES gd SRC hci/hci_packets.pdl
-  SOURCE_DIR ${BT_ROOT} LANG rust)
+    GENERATED hci_packets_rs INCLUDES packets SRC hci/hci_packets.pdl
+    SOURCE_DIR ${ROOTCANAL_ROOT} LANG rust)
 
-android_bluetooth_packet_gen(
-  GENERATED LmpGeneratedPackets_rs INCLUDES lmp SRC lmp_packets.pdl
-  SOURCE_DIR ${ROOTCANAL_ROOT} LANG rust)
+pdl_gen(
+    NAME lmp_packets_rs
+    INPUT ${ROOTCANAL_ROOT}/lmp/lmp_packets.pdl
+    OUTPUT lmp_packets.rs
+    LANG rust)
+
 # This will automatically register all the tests as well.
 corrosion_import_crate(MANIFEST_PATH ${ROOTCANAL_ROOT}/lmp/Cargo.toml FLAGS
                        --offline --verbose --verbose)
 corrosion_set_env_vars(lmp
-  LMP_PACKETS_PREBUILT=${LmpGeneratedPackets_rs}
-  HCI_PACKETS_PREBUILT=${HciGeneratedPackets_rs}
+  LMP_PACKETS_PREBUILT=${lmp_packets_rs}
+  HCI_PACKETS_PREBUILT=${hci_packets_rs}
   CARGO_HOME=${Rust_CARGO_HOME})
+
 android_license(TARGET "lmp" LIBNAME None SPDX None LICENSE None LOCAL None)
 
-add_custom_target(lmp_rust_packets DEPENDS ${LmpGeneratedPackets_rs}
-                                           ${HciGeneratedPackets_rs})
+add_custom_target(lmp_rust_packets DEPENDS ${lmp_packets_rs}
+                                           ${hci_packets_rs})
 
 # Make sure we have the rust packets generated before we build them.
 add_dependencies(cargo-build_lmp lmp_rust_packets)
 
-# Enable lmp in rootcanal
-target_link_libraries(libbt-rootcanal PRIVATE lmp)
-target_compile_definitions(libbt-rootcanal PRIVATE ROOTCANAL_LMP)
+# Enable lmp in rootcanal.
+target_link_libraries(libbt-rootcanal PUBLIC lmp)
 target_include_directories(libbt-rootcanal
-                           PRIVATE ${ROOTCANAL_ROOT}/lmp/include)
+    PUBLIC ${ROOTCANAL_ROOT}/lmp/include)

@@ -20,7 +20,8 @@ filegroup {
     name: "services.bluetooth-sources",
     srcs: [
         ":statslog-bluetooth-java-gen",
-        "java/**/*.java",
+        "src/**/*.java",
+        "src/**/*.kt",
     ],
     visibility: [
         "//frameworks/base/services",
@@ -39,6 +40,13 @@ java_defaults {
             enabled: false,
         },
     },
+    apex_available: [
+        "com.android.btservices",
+    ],
+    min_sdk_version: "Tiramisu",
+    defaults_visibility: [
+        ":__subpackages__",
+    ],
 }
 
 // pre-jarjar version of service-bluetooth that builds against pre-jarjar version of framework-bluetooth
@@ -56,11 +64,11 @@ java_library {
         strict_updatability_linting: true,
     },
     libs: [
-        "app-compat-annotations",
         "framework-annotations-lib",
         "framework-bluetooth-pre-jarjar",
         "framework-configinfrastructure",
         "framework-statsd.stubs.module_lib",
+        "service-bluetooth.change-ids",
     ],
 
     static_libs: [
@@ -71,11 +79,6 @@ java_library {
         "bluetooth-proto-enums-java-gen",
         "modules-utils-shell-command-handler",
     ],
-
-    apex_available: [
-        "com.android.btservices",
-    ],
-    min_sdk_version: "Tiramisu",
 }
 
 // service-bluetooth static library
@@ -90,7 +93,6 @@ java_library {
     ],
 
     libs: [
-        "app-compat-annotations",
         "framework-bluetooth.impl",
     ],
     sdk_version: "system_server_current",
@@ -105,10 +107,6 @@ java_library {
     visibility: [
         "//packages/modules/Bluetooth/apex",
     ],
-    apex_available: [
-        "com.android.btservices",
-    ],
-    min_sdk_version: "Tiramisu",
 }
 
 java_library {
@@ -147,9 +145,4 @@ java_library {
     lint: {
         strict_updatability_linting: true,
     },
-}
-
-platform_compat_config {
-    name: "bluetooth-compat-config",
-    src: ":service-bluetooth-pre-jarjar",
 }

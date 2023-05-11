@@ -677,8 +677,8 @@ uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
  *
  ******************************************************************************/
 
-extern bool UIPC_Ioctl(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint32_t request,
-                       void* param) {
+bool UIPC_Ioctl(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint32_t request,
+                void* param) {
   LOG_DEBUG("#### UIPC_Ioctl : ch_id %d, request %d ####", ch_id, request);
   std::lock_guard<std::recursive_mutex> lock(uipc.mutex);
 

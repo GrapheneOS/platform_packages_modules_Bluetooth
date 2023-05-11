@@ -54,6 +54,7 @@ import android.widget.Toast;
 
 import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.R;
+import com.android.internal.annotations.VisibleForTesting;
 
 /**
  * This class is designed to ask user to confirm if accept incoming file;
@@ -63,9 +64,11 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
     private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
-    private static final int DISMISS_TIMEOUT_DIALOG = 0;
+    @VisibleForTesting
+    static final int DISMISS_TIMEOUT_DIALOG = 0;
 
-    private static final int DISMISS_TIMEOUT_DIALOG_VALUE = 2000;
+    @VisibleForTesting
+    static final int DISMISS_TIMEOUT_DIALOG_VALUE = 2000;
 
     private static final String PREFERENCE_USER_TIMEOUT = "user_timeout";
 
@@ -128,8 +131,9 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
                 onTimeout();
             }
         };
-        registerReceiver(mReceiver,
-                new IntentFilter(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION));
+        IntentFilter filter = new IntentFilter(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION);
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        registerReceiver(mReceiver, filter);
     }
 
     private View createView() {
@@ -224,8 +228,8 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
                 DialogInterface.BUTTON_POSITIVE,
                 getString(R.string.incoming_file_confirm_timeout_ok));
 
-        mTimeoutHandler.sendMessageDelayed(mTimeoutHandler.obtainMessage(DISMISS_TIMEOUT_DIALOG),
-                DISMISS_TIMEOUT_DIALOG_VALUE);
+        BluetoothMethodProxy.getInstance().handlerSendMessageDelayed(mTimeoutHandler,
+                DISMISS_TIMEOUT_DIALOG, DISMISS_TIMEOUT_DIALOG_VALUE);
     }
 
     private final Handler mTimeoutHandler = new Handler() {
