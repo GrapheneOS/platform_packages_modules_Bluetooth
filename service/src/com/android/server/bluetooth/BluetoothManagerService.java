@@ -3491,8 +3491,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private boolean isPrivileged(int pid, int uid) {
         return (mContext.checkPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED, pid, uid)
                 == PackageManager.PERMISSION_GRANTED)
-                || (mContext.checkPermission(android.Manifest.permission.NETWORK_SETTINGS, pid, uid)
-                == PackageManager.PERMISSION_GRANTED)
                 || (mContext.getPackageManager().checkSignatures(uid, Process.SYSTEM_UID)
                 == PackageManager.SIGNATURE_MATCH);
     }
