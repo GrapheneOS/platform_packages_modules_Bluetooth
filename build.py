@@ -70,7 +70,6 @@ VALID_TARGETS = [
     'hosttools',  # Build the host tools (i.e. packetgen)
     'main',  # Build the main C++ codebase
     'prepare',  # Prepare the output directory (gn gen + rust setup)
-    'rootcanal',  # Build Rust targets for RootCanal
     'rust',  # Build only the rust components + copy artifacts to output dir
     'test',  # Run the unit tests
     'utils',  # Build Floss utils
@@ -459,15 +458,6 @@ class HostBuild():
         """
         self._rust_build()
 
-    def _target_rootcanal(self):
-        """ Build rust artifacts for RootCanal in an already prepared environment.
-        """
-        cmd = ['cargo', 'build']
-        if not self.args.rust_debug:
-            cmd.append('--release')
-
-        self.run_command('rust', cmd, cwd=os.path.join(self.platform_dir, 'bt/tools/rootcanal'), env=self.env)
-
     def _target_main(self):
         """ Build the main GN artifacts in an already prepared environment.
         """
@@ -485,7 +475,6 @@ class HostBuild():
             rust_test_cmd = rust_test_cmd + [self.args.test_name, "--", "--test-threads=1", "--nocapture"]
 
         self.run_command('test', rust_test_cmd, cwd=os.path.join(self.platform_dir, 'bt'), env=self.env)
-        self.run_command('test', rust_test_cmd, cwd=os.path.join(self.platform_dir, 'bt/tools/rootcanal'), env=self.env)
 
         # Host tests second based on host test list
         for t in HOST_TESTS:
@@ -566,7 +555,6 @@ class HostBuild():
         # Remove Cargo.lock that may have become generated
         cargo_lock_files = [
             os.path.join(self.platform_dir, 'bt', 'Cargo.lock'),
-            os.path.join(self.platform_dir, 'bt', 'tools', 'rootcanal', 'Cargo.lock'),
         ]
         for lock_file in cargo_lock_files:
             try:
@@ -597,8 +585,6 @@ class HostBuild():
             self._target_prepare()
         elif self.target == 'hosttools':
             self._target_hosttools()
-        elif self.target == 'rootcanal':
-            self._target_rootcanal()
         elif self.target == 'rust':
             self._target_rust()
         elif self.target == 'docs':

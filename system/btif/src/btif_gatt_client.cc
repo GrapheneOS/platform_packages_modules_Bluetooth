@@ -61,12 +61,11 @@ using base::Owned;
 using bluetooth::Uuid;
 using std::vector;
 
-extern bool btif_get_address_type(const RawAddress& bda,
-                                  tBLE_ADDR_TYPE* p_addr_type);
-extern bool btif_get_device_type(const RawAddress& bda, int* p_device_type);
+bool btif_get_address_type(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type);
+bool btif_get_device_type(const RawAddress& bda, int* p_device_type);
 
-extern bt_status_t btif_gattc_test_command_impl(
-    int command, const btgatt_test_params_t* params);
+bt_status_t btif_gattc_test_command_impl(int command,
+                                         const btgatt_test_params_t* params);
 extern const btgatt_callbacks_t* bt_gatt_callbacks;
 
 /*******************************************************************************

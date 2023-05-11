@@ -120,19 +120,18 @@ static tHID_KB_LIST hid_kb_numlock_on_list[] = {{LOGITECH_KB_MX5500_PRODUCT_ID,
 /*******************************************************************************
  *  Externs
  ******************************************************************************/
-extern bool check_cod(const RawAddress* remote_bdaddr, uint32_t cod);
-extern bool check_cod_hid(const RawAddress* remote_bdaddr);
-extern void bta_hh_co_destroy(int fd);
-extern void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev,
-                                    const char* dev_name, uint16_t vendor_id,
-                                    uint16_t product_id, uint16_t version,
-                                    uint8_t ctry_code, int dscp_len,
-                                    uint8_t* p_dscp);
-extern void bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len);
-extern void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data);
-extern void btif_dm_hh_open_failed(RawAddress* bdaddr);
-extern void btif_hd_service_registration();
-extern void btif_hh_timer_timeout(void* data);
+bool check_cod(const RawAddress* remote_bdaddr, uint32_t cod);
+bool check_cod_hid(const RawAddress* remote_bdaddr);
+void bta_hh_co_destroy(int fd);
+void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev, const char* dev_name,
+                             uint16_t vendor_id, uint16_t product_id,
+                             uint16_t version, uint8_t ctry_code, int dscp_len,
+                             uint8_t* p_dscp);
+void bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len);
+void bte_hh_evt(tBTA_HH_EVT event, tBTA_HH* p_data);
+void btif_dm_hh_open_failed(RawAddress* bdaddr);
+void btif_hd_service_registration();
+void btif_hh_timer_timeout(void* data);
 
 /*******************************************************************************
  *  Functions

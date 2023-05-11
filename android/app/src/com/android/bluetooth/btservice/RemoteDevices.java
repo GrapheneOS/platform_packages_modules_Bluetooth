@@ -190,6 +190,7 @@ final class RemoteDevices {
      */
     void init() {
         IntentFilter filter = new IntentFilter();
+        filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         filter.addAction(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT);
         filter.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
@@ -1139,7 +1140,7 @@ final class RemoteDevices {
                 }
                 resetBatteryLevel(device);
             }
-            if (!mAdapterService.isAnyProfileEnabled(device)) {
+            if (mAdapterService.checkifAllProfilesAreUnknown(device)) {
                 DeviceProperties deviceProp = getDeviceProperties(device);
                 if (deviceProp != null) {
                     deviceProp.setBondingInitiatedLocally(false);

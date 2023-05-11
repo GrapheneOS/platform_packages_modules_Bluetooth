@@ -16,10 +16,13 @@
 
 #include "once_timer.h"
 
+#include <base/logging.h>
+
+#include <memory>
+#include <mutex>
+
 #include "message_loop_thread.h"
 #include "time_util.h"
-
-#include <base/logging.h>
 
 namespace bluetooth {
 
@@ -48,7 +51,12 @@ bool OnceTimer::Schedule(const base::WeakPtr<MessageLoopThread>& thread,
   task_ = std::move(task);
   task_wrapper_.Reset(
       base::BindOnce(&OnceTimer::RunTask, base::Unretained(this)));
-  message_loop_thread_ = thread;
+  {
+    std::unique_lock<decltype(message_loop_thread_write_mutex_)> lock(
+        message_loop_thread_write_mutex_);
+    message_loop_thread_ = thread;
+  }
+
   delay_ = delay;
   uint64_t time_until_next_us = time_next_task_us - time_get_os_boottime_us();
   if (!thread->DoInThreadDelayed(
@@ -62,7 +70,11 @@ bool OnceTimer::Schedule(const base::WeakPtr<MessageLoopThread>& thread,
                << ": failed to post task to message loop for thread " << *thread
                << ", from " << from_here.ToString();
     task_wrapper_.Cancel();
-    message_loop_thread_ = nullptr;
+    {
+      std::unique_lock<decltype(message_loop_thread_write_mutex_)> lock(
+          message_loop_thread_write_mutex_);
+      message_loop_thread_ = nullptr;
+    }
     delay_ = {};
     return false;
   }
@@ -102,8 +114,12 @@ void OnceTimer::CancelHelper(std::promise<void> promise) {
 
 // This runs on message loop thread
 void OnceTimer::CancelClosure(std::promise<void> promise) {
-  message_loop_thread_ = nullptr;
   task_wrapper_.Cancel();
+  {
+    std::unique_lock<decltype(message_loop_thread_write_mutex_)> lock(
+        message_loop_thread_write_mutex_);
+    message_loop_thread_ = nullptr;
+  }
   delay_ = base::TimeDelta();
   promise.set_value();
 }
@@ -127,7 +143,11 @@ void OnceTimer::RunTask() {
 
   task_wrapper_.Cancel();
   std::move(task_).Run();
-  message_loop_thread_ = nullptr;
+  {
+    std::unique_lock<decltype(message_loop_thread_write_mutex_)> lock(
+        message_loop_thread_write_mutex_);
+    message_loop_thread_ = nullptr;
+  }
 }
 
 }  // namespace common

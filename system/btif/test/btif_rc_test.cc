@@ -32,7 +32,7 @@
 #undef LOG_TAG
 #include "btif/src/btif_rc.cc"
 
-extern void allocation_tracker_uninit(void);
+void allocation_tracker_uninit(void);
 
 namespace {
 int AVRC_BldResponse_ = 0;
@@ -92,6 +92,7 @@ bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,
 const char* dump_rc_event(uint8_t event) { return nullptr; }
 const char* dump_rc_notification_event_id(uint8_t event_id) { return nullptr; }
 const char* dump_rc_pdu(uint8_t pdu) { return nullptr; }
+const char* dump_rc_opcode(uint8_t pdu) { return nullptr; }
 bt_status_t do_in_jni_thread(const base::Location& from_here,
                              base::OnceClosure task) {
   return BT_STATUS_SUCCESS;

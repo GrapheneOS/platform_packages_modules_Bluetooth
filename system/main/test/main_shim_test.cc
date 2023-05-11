@@ -779,3 +779,8 @@ TEST_F(MainShimTest, ticks_to_seconds) {
   ASSERT_THAT(kTicksInSec,
               DoubleNear(ticks_to_seconds(kTicks), kMaxAbsoluteError));
 }
+
+TEST_F(MainShimTest, DumpConnectionHistory) {
+  auto acl = MakeAcl();
+  acl->DumpConnectionHistory(1);
+}
