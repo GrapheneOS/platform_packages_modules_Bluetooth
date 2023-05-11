@@ -1356,7 +1356,7 @@ public class HeadsetClientStateMachine extends StateMachine {
             //   2. remote device supports audio policy
             if (mForceSetAudioPolicyProperty
                     && getAudioPolicyRemoteSupported() == BluetoothStatusCodes.FEATURE_SUPPORTED) {
-                setAudioPolicy(new BluetoothSinkAudioPolicy.Builder()
+                setAudioPolicy(new BluetoothSinkAudioPolicy.Builder(mHsClientAudioPolicy)
                         .setActiveDevicePolicyAfterConnection(mConnectingTimePolicyProperty)
                         .setInBandRingtonePolicy(mInBandRingtonePolicyProperty)
                         .build());
@@ -2244,7 +2244,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         mHsClientAudioPolicy = policies;
 
         if (getAudioPolicyRemoteSupported() != BluetoothStatusCodes.FEATURE_SUPPORTED) {
-            Log.e(TAG, "Audio Policy feature not supported!");
+            Log.i(TAG, "Audio Policy feature not supported!");
             return;
         }
 
