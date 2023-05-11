@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <queue>
 
 #include "stack/gatt/gatt_int.h"
@@ -24,6 +25,7 @@
 
 #define EATT_MIN_MTU_MPS (64)
 #define EATT_DEFAULT_MTU (256)
+#define EATT_MAX_TX_MTU  (1024)
 
 namespace bluetooth {
 namespace eatt {
@@ -58,12 +60,13 @@ class EattChannel {
   EattChannel(RawAddress& bda, uint16_t cid, uint16_t tx_mtu, uint16_t rx_mtu)
       : bda_(bda),
         cid_(cid),
-        tx_mtu_(tx_mtu),
         rx_mtu_(rx_mtu),
         state_(EattChannelState::EATT_CHANNEL_PENDING),
         indicate_handle_(0),
         ind_ack_timer_(NULL),
-        ind_confirmation_timer_(NULL) {}
+        ind_confirmation_timer_(NULL) {
+    EattChannelSetTxMTU(tx_mtu);
+  }
 
   ~EattChannel() {
     if (ind_ack_timer_ != NULL) {
@@ -92,7 +95,10 @@ class EattChannel {
     }
     state_ = state;
   }
-  void EattChannelSetTxMTU(uint16_t tx_mtu) { this->tx_mtu_ = tx_mtu; }
+
+  void EattChannelSetTxMTU(uint16_t tx_mtu) {
+    this->tx_mtu_ = std::min<uint16_t>(tx_mtu, EATT_MAX_TX_MTU);
+  }
 };
 
 /* Interface class */
