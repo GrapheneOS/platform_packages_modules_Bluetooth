@@ -1195,7 +1195,7 @@ tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
 
 bool BTM_SecIsSecurityPending(const RawAddress& bd_addr) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-  return p_dev_rec && (p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING ||
+  return p_dev_rec && (p_dev_rec->is_security_state_encrypting() ||
                        p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING);
 }
 
@@ -3092,7 +3092,7 @@ static void btm_sec_auth_collision(uint16_t handle) {
           p_dev_rec->sec_state);
       /* We will restart authentication after timeout */
       if (p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING ||
-          p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING)
+          p_dev_rec->is_security_state_bredr_encrypting())
         p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
 
       btm_cb.p_collided_dev_rec = p_dev_rec;
@@ -3448,7 +3448,7 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
   }
 
   /* If this encryption was started by peer do not need to do anything */
-  if (p_dev_rec->sec_state != BTM_SEC_STATE_ENCRYPTING) {
+  if (!p_dev_rec->is_security_state_bredr_encrypting()) {
     if (BTM_SEC_STATE_DELAY_FOR_ENC == p_dev_rec->sec_state) {
       p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
       BTM_TRACE_DEBUG("%s: clearing callback. p_dev_rec=%p, p_callback=%p",
@@ -4424,9 +4424,10 @@ tBTM_STATUS btm_sec_execute_procedure(tBTM_SEC_DEV_REC* p_dev_rec) {
           .c_str(),
       p_dev_rec->sec_state);
 
-  if (p_dev_rec->sec_state != BTM_SEC_STATE_IDLE) {
-    LOG_DEBUG(
-        "Security state is idle indicating remote name request is outstanding");
+  if (p_dev_rec->sec_state != BTM_SEC_STATE_IDLE &&
+      p_dev_rec->sec_state != BTM_SEC_STATE_LE_ENCRYPTING) {
+    LOG_INFO("No immediate action taken in busy state: %s",
+              security_state_text(p_dev_rec->sec_state).c_str());
     return (BTM_CMD_STARTED);
   }
 
