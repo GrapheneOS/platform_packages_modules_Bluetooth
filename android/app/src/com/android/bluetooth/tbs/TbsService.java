@@ -139,6 +139,16 @@ public class TbsService extends ProfileService {
         sTbsService = instance;
     }
 
+    public void onDeviceUnauthorized(BluetoothDevice device) {
+        if (Utils.isPtsTestMode()) {
+            Log.d(TAG, "PTS test: setDeviceAuthorized");
+            setDeviceAuthorized(device, true);
+            return;
+        }
+        Log.w(TAG, "onDeviceUnauthorized - authorization notification not implemented yet ");
+        setDeviceAuthorized(device, false);
+    }
+
     /**
      * Sets device authorization for TBS.
      *
