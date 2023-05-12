@@ -12,27 +12,13 @@ cc_library_static {
     name: "libbt-hci",
     defaults: ["fluoride_basic_defaults"],
     srcs: [
-        "src/btsnoop.cc",
-        "src/btsnoop_mem.cc",
-        "src/btsnoop_net.cc",
         "src/buffer_allocator.cc",
-        "src/hci_inject.cc",
-        "src/hci_packet_factory.cc",
-        "src/hci_packet_parser.cc",
         "src/packet_fragmenter.cc",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
-    target: {
-        android: {
-            srcs: ["src/hci_layer_android.cc"],
-        },
-        host: {
-            srcs: ["src/hci_layer_linux.cc"],
-        },
-    },
     local_include_dirs: [
         "include",
     ],
@@ -46,13 +32,6 @@ cc_library_static {
         "packages/modules/Bluetooth/system/stack/include",
         "system/libhwbinder/include",
     ],
-    product_variables: {
-        debuggable: {
-            cflags: [
-                "-DBT_NET_DEBUG=true",
-            ],
-        },
-    },
     host_supported: true,
     min_sdk_version: "Tiramisu",
 }
@@ -91,11 +70,16 @@ cc_test {
         "libbluetooth-for-tests",
         "libbt-hci",
         "libbtcore",
+        "libchrome",
     ],
 }
 
 cc_test {
     name: "net_test_hci_fragmenter_native",
+    static_libs: [
+        "libbase",
+        "libchrome",
+    ],
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",

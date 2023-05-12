@@ -78,6 +78,7 @@ class OnceTimer final {
   bool IsScheduled() const;
 
  private:
+  mutable std::mutex message_loop_thread_write_mutex_;
   base::WeakPtr<MessageLoopThread> message_loop_thread_;
   base::CancelableOnceClosure task_wrapper_;
   base::OnceClosure task_;

@@ -168,33 +168,32 @@ extern tBTA_GATTS_CB bta_gatts_cb;
 /*****************************************************************************
  *  Function prototypes
  ****************************************************************************/
-extern bool bta_gatts_hdl_event(BT_HDR_RIGID* p_msg);
+bool bta_gatts_hdl_event(BT_HDR_RIGID* p_msg);
 
-extern void bta_gatts_api_disable(tBTA_GATTS_CB* p_cb);
-extern void bta_gatts_api_enable(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_data);
-extern void bta_gatts_register(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
-extern void bta_gatts_start_if(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
-extern void bta_gatts_deregister(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
-extern void bta_gatts_delete_service(tBTA_GATTS_SRVC_CB* p_srvc_cb,
-                                     tBTA_GATTS_DATA* p_msg);
-extern void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB* p_srvc_cb,
-                                   tBTA_GATTS_DATA* p_msg);
+void bta_gatts_api_disable(tBTA_GATTS_CB* p_cb);
+void bta_gatts_api_enable(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_data);
+void bta_gatts_register(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
+void bta_gatts_start_if(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
+void bta_gatts_deregister(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
+void bta_gatts_delete_service(tBTA_GATTS_SRVC_CB* p_srvc_cb,
+                              tBTA_GATTS_DATA* p_msg);
+void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB* p_srvc_cb,
+                            tBTA_GATTS_DATA* p_msg);
 
-extern void bta_gatts_send_rsp(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
-extern void bta_gatts_indicate_handle(tBTA_GATTS_CB* p_cb,
-                                      tBTA_GATTS_DATA* p_msg);
+void bta_gatts_send_rsp(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
+void bta_gatts_indicate_handle(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
 
-extern void bta_gatts_open(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
-extern void bta_gatts_cancel_open(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
-extern void bta_gatts_close(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
+void bta_gatts_open(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
+void bta_gatts_cancel_open(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
+void bta_gatts_close(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg);
 
-extern tBTA_GATTS_RCB* bta_gatts_find_app_rcb_by_app_if(tGATT_IF server_if);
-extern uint8_t bta_gatts_find_app_rcb_idx_by_app_if(tBTA_GATTS_CB* p_cb,
-                                                    tGATT_IF server_if);
-extern uint8_t bta_gatts_alloc_srvc_cb(tBTA_GATTS_CB* p_cb, uint8_t rcb_idx);
-extern tBTA_GATTS_SRVC_CB* bta_gatts_find_srvc_cb_by_srvc_id(
-    tBTA_GATTS_CB* p_cb, uint16_t service_id);
-extern tBTA_GATTS_SRVC_CB* bta_gatts_find_srvc_cb_by_attr_id(
-    tBTA_GATTS_CB* p_cb, uint16_t attr_id);
+tBTA_GATTS_RCB* bta_gatts_find_app_rcb_by_app_if(tGATT_IF server_if);
+uint8_t bta_gatts_find_app_rcb_idx_by_app_if(tBTA_GATTS_CB* p_cb,
+                                             tGATT_IF server_if);
+uint8_t bta_gatts_alloc_srvc_cb(tBTA_GATTS_CB* p_cb, uint8_t rcb_idx);
+tBTA_GATTS_SRVC_CB* bta_gatts_find_srvc_cb_by_srvc_id(tBTA_GATTS_CB* p_cb,
+                                                      uint16_t service_id);
+tBTA_GATTS_SRVC_CB* bta_gatts_find_srvc_cb_by_attr_id(tBTA_GATTS_CB* p_cb,
+                                                      uint16_t attr_id);
 
 #endif /* BTA_GATTS_INT_H */

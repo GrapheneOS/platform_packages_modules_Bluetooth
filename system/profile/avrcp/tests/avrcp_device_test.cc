@@ -175,6 +175,67 @@ TEST_F(AvrcpDeviceTest, trackChangedTest) {
   test_device->HandleTrackUpdate();
 }
 
+TEST_F(AvrcpDeviceTest, playerSettingsChangedTest) {
+  MockMediaInterface interface;
+  NiceMock<MockA2dpInterface> a2dp_interface;
+  MockPlayerSettingsInterface player_settings_interface;
+  std::vector<PlayerAttribute> attributes = {PlayerAttribute::REPEAT,
+                                             PlayerAttribute::SHUFFLE};
+  std::vector<uint8_t> attributes_values = {
+      static_cast<uint8_t>(PlayerRepeatValue::OFF),
+      static_cast<uint8_t>(PlayerShuffleValue::ALL)};
+
+  test_device->RegisterInterfaces(&interface, &a2dp_interface, nullptr,
+                                  &player_settings_interface);
+
+  EXPECT_CALL(player_settings_interface, GetCurrentPlayerSettingValue(_, _))
+      .Times(1)
+      .WillRepeatedly(InvokeCb<1>(attributes, attributes_values));
+
+  // Test the interim response for player settings changed
+  auto interim_response =
+      RegisterNotificationResponseBuilder::MakePlayerSettingChangedBuilder(
+          true, attributes, attributes_values);
+  EXPECT_CALL(response_cb,
+              Call(1, false, matchPacket(std::move(interim_response))))
+      .Times(1);
+
+  auto request = RegisterNotificationRequestBuilder::MakeBuilder(
+      Event::PLAYER_APPLICATION_SETTING_CHANGED, 0);
+  auto pkt = TestAvrcpPacket::Make();
+  request->Serialize(pkt);
+  SendMessage(1, pkt);
+
+  // Test the changed response for player settings changed
+  auto changed_response =
+      RegisterNotificationResponseBuilder::MakePlayerSettingChangedBuilder(
+          false, attributes, attributes_values);
+  EXPECT_CALL(response_cb,
+              Call(1, false, matchPacket(std::move(changed_response))))
+      .Times(1);
+
+  test_device->HandlePlayerSettingChanged(attributes, attributes_values);
+}
+
+TEST_F(AvrcpDeviceTest, playerSettingsChangedNotSupportedTest) {
+  MockMediaInterface interface;
+  NiceMock<MockA2dpInterface> a2dp_interface;
+
+  test_device->RegisterInterfaces(&interface, &a2dp_interface, nullptr,
+                                  nullptr);
+
+  auto response = RejectBuilder::MakeBuilder(CommandPdu::REGISTER_NOTIFICATION,
+                                             Status::INVALID_COMMAND);
+  EXPECT_CALL(response_cb, Call(1, false, matchPacket(std::move(response))))
+      .Times(1);
+
+  auto request = RegisterNotificationRequestBuilder::MakeBuilder(
+      Event::PLAYER_APPLICATION_SETTING_CHANGED, 0);
+  auto pkt = TestAvrcpPacket::Make();
+  request->Serialize(pkt);
+  SendMessage(1, pkt);
+}
+
 TEST_F(AvrcpDeviceTest, playStatusTest) {
   MockMediaInterface interface;
   NiceMock<MockA2dpInterface> a2dp_interface;
@@ -1532,6 +1593,58 @@ TEST_F(AvrcpDeviceTest, mediaKeyInactiveDeviceTest) {
 TEST_F(AvrcpDeviceTest, getCapabilitiesTest) {
   MockMediaInterface interface;
   NiceMock<MockA2dpInterface> a2dp_interface;
+  MockPlayerSettingsInterface player_settings_interface;
+
+  test_device->RegisterInterfaces(&interface, &a2dp_interface, nullptr,
+                                  &player_settings_interface);
+
+  // GetCapabilities with CapabilityID COMPANY_ID
+  auto request_company_id_response =
+      GetCapabilitiesResponseBuilder::MakeCompanyIdBuilder(0x001958);
+  request_company_id_response->AddCompanyId(0x002345);
+  EXPECT_CALL(
+      response_cb,
+      Call(1, false, matchPacket(std::move(request_company_id_response))))
+      .Times(1);
+
+  auto request_company_id =
+      TestAvrcpPacket::Make(get_capabilities_request_company_id);
+  SendMessage(1, request_company_id);
+
+  // GetCapabilities with CapabilityID EVENTS_SUPPORTED
+  auto request_events_supported_response =
+      GetCapabilitiesResponseBuilder::MakeEventsSupportedBuilder(
+          Event::PLAYBACK_STATUS_CHANGED);
+  request_events_supported_response->AddEvent(Event::TRACK_CHANGED);
+  request_events_supported_response->AddEvent(Event::PLAYBACK_POS_CHANGED);
+  request_events_supported_response->AddEvent(
+      Event::PLAYER_APPLICATION_SETTING_CHANGED);
+
+  EXPECT_CALL(
+      response_cb,
+      Call(2, false, matchPacket(std::move(request_events_supported_response))))
+      .Times(1);
+
+  auto request_events_supported =
+      TestAvrcpPacket::Make(get_capabilities_request);
+  SendMessage(2, request_events_supported);
+
+  // GetCapabilities with CapabilityID UNKNOWN
+  auto request_unknown_response = RejectBuilder::MakeBuilder(
+      CommandPdu::GET_CAPABILITIES, Status::INVALID_PARAMETER);
+
+  EXPECT_CALL(response_cb,
+              Call(3, false, matchPacket(std::move(request_unknown_response))))
+      .Times(1);
+
+  auto request_unknown =
+      TestAvrcpPacket::Make(get_capabilities_request_unknown);
+  SendMessage(3, request_unknown);
+}
+
+TEST_F(AvrcpDeviceTest, getCapabilitiesPlayerSettingsNotSupportedTest) {
+  MockMediaInterface interface;
+  NiceMock<MockA2dpInterface> a2dp_interface;
 
   test_device->RegisterInterfaces(&interface, &a2dp_interface, nullptr,
                                   nullptr);
@@ -1555,8 +1668,6 @@ TEST_F(AvrcpDeviceTest, getCapabilitiesTest) {
           Event::PLAYBACK_STATUS_CHANGED);
   request_events_supported_response->AddEvent(Event::TRACK_CHANGED);
   request_events_supported_response->AddEvent(Event::PLAYBACK_POS_CHANGED);
-  request_events_supported_response->AddEvent(
-      Event::PLAYER_APPLICATION_SETTING_CHANGED);
 
   EXPECT_CALL(
       response_cb,
@@ -1647,6 +1758,25 @@ TEST_F(AvrcpDeviceTest, listPlayerSettingsTest) {
   SendMessage(1, request);
 }
 
+TEST_F(AvrcpDeviceTest, listPlayerSettingsNotSupportedTest) {
+  MockMediaInterface interface;
+  NiceMock<MockA2dpInterface> a2dp_interface;
+
+  test_device->RegisterInterfaces(&interface, &a2dp_interface, nullptr,
+                                  nullptr);
+
+  auto response = RejectBuilder::MakeBuilder(
+      CommandPdu::LIST_PLAYER_APPLICATION_SETTING_ATTRIBUTES,
+      Status::INVALID_COMMAND);
+
+  EXPECT_CALL(response_cb, Call(1, false, matchPacket(std::move(response))))
+      .Times(1);
+
+  auto request =
+      TestAvrcpPacket::Make(list_player_application_setting_attributes_request);
+  SendMessage(1, request);
+}
+
 TEST_F(AvrcpDeviceTest, listPlayerSettingValuesTest) {
   MockMediaInterface interface;
   NiceMock<MockA2dpInterface> a2dp_interface;
@@ -1672,6 +1802,25 @@ TEST_F(AvrcpDeviceTest, listPlayerSettingValuesTest) {
       response_cb,
       Call(1, false,
            matchPacket(std::move(player_settings_list_values_response))))
+      .Times(1);
+
+  auto request = TestAvrcpPacket::Make(
+      list_player_application_setting_attribute_values_request);
+  SendMessage(1, request);
+}
+
+TEST_F(AvrcpDeviceTest, listPlayerSettingValuesNotSupportedTest) {
+  MockMediaInterface interface;
+  NiceMock<MockA2dpInterface> a2dp_interface;
+
+  test_device->RegisterInterfaces(&interface, &a2dp_interface, nullptr,
+                                  nullptr);
+
+  auto response = RejectBuilder::MakeBuilder(
+      CommandPdu::LIST_PLAYER_APPLICATION_SETTING_VALUES,
+      Status::INVALID_COMMAND);
+
+  EXPECT_CALL(response_cb, Call(1, false, matchPacket(std::move(response))))
       .Times(1);
 
   auto request = TestAvrcpPacket::Make(
@@ -1750,6 +1899,26 @@ TEST_F(AvrcpDeviceTest, getCurrentPlayerApplicationSettingValueTest) {
 }
 
 TEST_F(AvrcpDeviceTest,
+       getCurrentPlayerApplicationSettingValueNotSupportedTest) {
+  MockMediaInterface interface;
+  NiceMock<MockA2dpInterface> a2dp_interface;
+
+  test_device->RegisterInterfaces(&interface, &a2dp_interface, nullptr,
+                                  nullptr);
+
+  auto response = RejectBuilder::MakeBuilder(
+      CommandPdu::GET_CURRENT_PLAYER_APPLICATION_SETTING_VALUE,
+      Status::INVALID_COMMAND);
+
+  EXPECT_CALL(response_cb, Call(1, false, matchPacket(std::move(response))))
+      .Times(1);
+
+  auto request = TestAvrcpPacket::Make(
+      get_current_player_application_setting_value_request);
+  SendMessage(1, request);
+}
+
+TEST_F(AvrcpDeviceTest,
        invalidSettingGetCurrentPlayerApplicationSettingValueTest) {
   MockMediaInterface interface;
   NiceMock<MockA2dpInterface> a2dp_interface;
@@ -1812,6 +1981,25 @@ TEST_F(AvrcpDeviceTest, setPlayerApplicationSettingValueTest) {
   EXPECT_CALL(
       response_cb,
       Call(1, false, matchPacket(std::move(set_player_settings_response))))
+      .Times(1);
+
+  auto request =
+      TestAvrcpPacket::Make(set_player_application_setting_value_request);
+  SendMessage(1, request);
+}
+
+TEST_F(AvrcpDeviceTest, setPlayerApplicationSettingValueNotSupportedTest) {
+  MockMediaInterface interface;
+  NiceMock<MockA2dpInterface> a2dp_interface;
+
+  test_device->RegisterInterfaces(&interface, &a2dp_interface, nullptr,
+                                  nullptr);
+
+  auto response = RejectBuilder::MakeBuilder(
+      CommandPdu::SET_PLAYER_APPLICATION_SETTING_VALUE,
+      Status::INVALID_COMMAND);
+
+  EXPECT_CALL(response_cb, Call(1, false, matchPacket(std::move(response))))
       .Times(1);
 
   auto request =

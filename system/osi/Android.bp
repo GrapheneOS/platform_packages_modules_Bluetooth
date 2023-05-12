@@ -163,6 +163,8 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libc++fs",
+        "libchrome",
+        "libevent",
         "libgmock",
         "libosi",
         "libprotobuf-cpp-lite",

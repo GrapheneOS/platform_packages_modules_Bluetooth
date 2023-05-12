@@ -120,18 +120,18 @@ extern ::ScanningCallbacks* bluetooth::shim::default_scanning_callback;
 
 extern tBTM_CB btm_cb;
 
-extern void btm_ble_process_adv_pkt_cont_for_inquiry(
+void btm_ble_process_adv_pkt_cont_for_inquiry(
     uint16_t event_type, tBLE_ADDR_TYPE address_type,
     const RawAddress& raw_address, uint8_t primary_phy, uint8_t secondary_phy,
     uint8_t advertising_sid, int8_t tx_power, int8_t rssi,
     uint16_t periodic_adv_int, std::vector<uint8_t> advertising_data);
 
-extern void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
-                                                 BD_NAME bd_name,
-                                                 tBT_DEVICE_TYPE dev_type);
+void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
+                                          BD_NAME bd_name,
+                                          tBT_DEVICE_TYPE dev_type);
 
-extern void btm_ble_process_adv_addr(RawAddress& raw_address,
-                                     tBLE_ADDR_TYPE* address_type);
+void btm_ble_process_adv_addr(RawAddress& raw_address,
+                              tBLE_ADDR_TYPE* address_type);
 
 using bluetooth::shim::BleScannerInterfaceImpl;
 
@@ -396,12 +396,12 @@ void BleScannerInterfaceImpl::BatchscanReadReports(int client_if,
                                                       batch_scan_mode);
 }
 
-extern bool btm_random_pseudo_to_identity_addr(
-    RawAddress* random_pseudo, tBLE_ADDR_TYPE* p_identity_addr_type);
+bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
+                                        tBLE_ADDR_TYPE* p_identity_addr_type);
 
-extern bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
-                                               tBLE_ADDR_TYPE* p_addr_type,
-                                               bool refresh);
+bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
+                                        tBLE_ADDR_TYPE* p_addr_type,
+                                        bool refresh);
 
 extern tACL_CONN* btm_acl_for_bda(const RawAddress& bd_addr,
                                   tBT_TRANSPORT transport);
@@ -513,8 +513,8 @@ void BleScannerInterfaceImpl::OnScanResult(
   do_in_jni_thread(
       FROM_HERE,
       base::BindOnce(&BleScannerInterfaceImpl::handle_remote_properties,
-                     base::Unretained(this), event_type, raw_address,
-                     ble_addr_type, advertising_data));
+                     base::Unretained(this), raw_address, ble_addr_type,
+                     advertising_data));
 
   do_in_jni_thread(
       FROM_HERE,
@@ -726,7 +726,7 @@ bool BleScannerInterfaceImpl::parse_filter_command(
 }
 
 void BleScannerInterfaceImpl::handle_remote_properties(
-    uint16_t event_type, RawAddress bd_addr, tBLE_ADDR_TYPE addr_type,
+    RawAddress bd_addr, tBLE_ADDR_TYPE addr_type,
     std::vector<uint8_t> advertising_data) {
   if (!bluetooth::shim::is_gd_stack_started_up()) {
     LOG_WARN("Gd stack is stopped, return");
@@ -738,33 +738,16 @@ void BleScannerInterfaceImpl::handle_remote_properties(
     return;
   }
 
+  auto device_type = bluetooth::hci::DeviceType::LE;
   uint8_t flag_len;
   const uint8_t* p_flag = AdvertiseDataParser::GetFieldByType(
       advertising_data, BTM_BLE_AD_TYPE_FLAG, &flag_len);
-  auto device_type = bluetooth::hci::DeviceType::UNKNOWN;
-  bool is_adv_connectable = event_type & (1 << BLE_EVT_CONNECTABLE_BIT);
-  // 1. If adv is connectable and flag data is not present, device type is
-  // DUAL mode.
-  if (is_adv_connectable && p_flag == nullptr) {
-    device_type = bluetooth::hci::DeviceType::DUAL;
+
+  if (p_flag != NULL && flag_len != 0) {
+    if ((BTM_BLE_BREDR_NOT_SPT & *p_flag) == 0) {
+      device_type = bluetooth::hci::DeviceType::DUAL;
+    }
   }
-  // 2. If adv is not connectable and flag data is not present, device type is
-  // UNKNOWN.
-  else if (!is_adv_connectable && p_flag == nullptr) {
-    device_type = bluetooth::hci::DeviceType::UNKNOWN;
-  }
-  // 3. If flag data is present, use `BR/EDR Not Supported` bit to find device
-  // type.
-  else {
-    device_type = (BTM_BLE_BREDR_NOT_SPT & *p_flag)
-                      ? bluetooth::hci::DeviceType::LE
-                      : bluetooth::hci::DeviceType::DUAL;
-  }
-  LOG_DEBUG(
-      "%s event_type: %d, is_adv_connectable: %d, flag data: %d, device_type: "
-      "%d",
-      __func__, event_type, is_adv_connectable, (p_flag ? *p_flag : 0),
-      device_type);
 
   uint8_t remote_name_len;
   const uint8_t* p_eir_remote_name = AdvertiseDataParser::GetFieldByType(

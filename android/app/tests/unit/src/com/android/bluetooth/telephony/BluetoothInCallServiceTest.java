@@ -117,6 +117,7 @@ public class BluetoothInCallServiceTest {
         public IBinder onBind(Intent intent) {
             IBinder binder = super.onBind(intent);
             IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+            intentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
             registerReceiver(mBluetoothAdapterReceiver, intentFilter);
             mTelephonyManager = getSystemService(TelephonyManager.class);
             mTelecomManager = getSystemService(TelecomManager.class);
