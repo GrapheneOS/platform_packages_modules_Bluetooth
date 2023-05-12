@@ -97,7 +97,7 @@ public class BrowseTree {
                 .setBrowsable(true).build());
         mNowPlayingNode.mBrowseScope = AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING;
         mNowPlayingNode.setExpectedChildren(DEFAULT_FOLDER_SIZE);
-        mBrowseMap.put(ROOT, mRootNode);
+        mBrowseMap.put(mRootNode.getID(), mRootNode);
         mBrowseMap.put(NOW_PLAYING_PREFIX, mNowPlayingNode);
 
         mCurrentBrowseNode = mRootNode;
