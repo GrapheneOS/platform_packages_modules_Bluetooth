@@ -326,6 +326,7 @@ void bta_ag_disc_fail(tBTA_AG_SCB* p_scb,
  ******************************************************************************/
 void bta_ag_open_fail(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
   /* call open cback w. failure */
+  LOG_DEBUG("state [0x%02x]", p_scb->state);
   bta_ag_cback_open(p_scb, data.api_open.bd_addr, BTA_AG_FAIL_RESOURCES);
 }
 
@@ -844,8 +845,7 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       (codec_type != BTM_SCO_CODEC_MSBC) && (codec_type != BTM_SCO_CODEC_LC3)) {
     val.num = codec_type;
     val.hdr.status = BTA_AG_FAIL_RESOURCES;
-    APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d",
-                     codec_type);
+    LOG_ERROR("bta_ag_setcodec error: unsupported codec type %d", codec_type);
     (*bta_ag_cb.p_cback)(BTA_AG_CODEC_EVT, (tBTA_AG*)&val);
     return;
   }
@@ -860,8 +860,7 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
   } else {
     val.num = codec_type;
     val.hdr.status = BTA_AG_FAIL_RESOURCES;
-    APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d",
-                     codec_type);
+    LOG_ERROR("bta_ag_setcodec error: unsupported codec type %d", codec_type);
   }
 
   (*bta_ag_cb.p_cback)(BTA_AG_CODEC_EVT, (tBTA_AG*)&val);
