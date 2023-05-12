@@ -380,14 +380,14 @@ void btif_storage_load_bonded_hearing_aids() {
   for (const auto& bd_addr : btif_config_get_paired_devices()) {
     const std::string& name = bd_addr.ToString();
 
-    int size = STORAGE_UUID_STRING_SIZE * HEARINGAID_MAX_NUM_UUIDS;
+    int size = STORAGE_UUID_STRING_SIZE * BT_MAX_NUM_UUIDS;
     char uuid_str[size];
     bool isHearingaidDevice = false;
     if (btif_config_get_str(name, BTIF_STORAGE_PATH_REMOTE_SERVICE, uuid_str,
                             &size)) {
-      Uuid p_uuid[HEARINGAID_MAX_NUM_UUIDS];
+      Uuid p_uuid[BT_MAX_NUM_UUIDS];
       size_t num_uuids =
-          btif_split_uuids_string(uuid_str, p_uuid, HEARINGAID_MAX_NUM_UUIDS);
+          btif_split_uuids_string(uuid_str, p_uuid, BT_MAX_NUM_UUIDS);
       for (size_t i = 0; i < num_uuids; i++) {
         if (p_uuid[i] == Uuid::FromString("FDF0")) {
           isHearingaidDevice = true;
