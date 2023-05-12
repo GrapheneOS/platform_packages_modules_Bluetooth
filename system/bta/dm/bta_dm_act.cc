@@ -87,6 +87,7 @@ void BTIF_dm_enable();
 void btm_ble_adv_init(void);
 void btm_ble_scanner_init(void);
 
+static void bta_dm_gatt_disc_complete(uint16_t conn_id, tGATT_STATUS status);
 static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
                                   uint16_t eir_len);
 static void bta_dm_inq_cmpl_cb(void* p_result);
@@ -602,6 +603,16 @@ static void bta_dm_process_remove_device_no_callback(
 
 void bta_dm_process_remove_device(const RawAddress& bd_addr) {
   bta_dm_process_remove_device_no_callback(bd_addr);
+
+  /* Conclude service search if it was pending */
+  if (bta_dm_search_cb.state == BTA_DM_DISCOVER_ACTIVE &&
+      bta_dm_search_cb.peer_bdaddr == bd_addr) {
+    LOG_INFO(
+        "Device removed while service discovery was pending, "
+        "conclude the service disvovery");
+    bta_dm_gatt_disc_complete((uint16_t)GATT_INVALID_CONN_ID,
+                              (tGATT_STATUS)GATT_ERROR);
+  }
 
   if (bta_dm_cb.p_sec_cback) {
     tBTA_DM_SEC sec_event;
