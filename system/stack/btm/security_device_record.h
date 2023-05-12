@@ -170,6 +170,7 @@ typedef enum : uint8_t {
   BTM_SEC_STATE_DELAY_FOR_ENC = 7,
   BTM_SEC_STATE_DISCONNECTING_BLE = 8,
   BTM_SEC_STATE_DISCONNECTING_BOTH = 9,
+  BTM_SEC_STATE_LE_ENCRYPTING = 10,
 } tSECURITY_STATE;
 
 static inline std::string security_state_text(const tSECURITY_STATE& state) {
@@ -184,6 +185,7 @@ static inline std::string security_state_text(const tSECURITY_STATE& state) {
     CASE_RETURN_TEXT(BTM_SEC_STATE_DELAY_FOR_ENC);
     CASE_RETURN_TEXT(BTM_SEC_STATE_DISCONNECTING_BLE);
     CASE_RETURN_TEXT(BTM_SEC_STATE_DISCONNECTING_BOTH);
+    CASE_RETURN_TEXT(BTM_SEC_STATE_LE_ENCRYPTING);
     default:
       return base::StringPrintf("UNKNOWN[%hhu]", state);
   }
@@ -334,8 +336,15 @@ struct tBTM_SEC_DEV_REC {
   bool is_security_state_authenticating() const {
     return sec_state == BTM_SEC_STATE_AUTHENTICATING;
   }
-  bool is_security_state_encrypting() const {
+  bool is_security_state_bredr_encrypting() const {
     return sec_state == BTM_SEC_STATE_ENCRYPTING;
+  }
+  bool is_security_state_le_encrypting() const {
+    return sec_state == BTM_SEC_STATE_LE_ENCRYPTING;
+  }
+  bool is_security_state_encrypting() const {
+    return (is_security_state_bredr_encrypting() ||
+            is_security_state_le_encrypting());
   }
   bool is_security_state_getting_name() const {
     return sec_state == BTM_SEC_STATE_GETTING_NAME;
