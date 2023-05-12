@@ -1817,4 +1817,95 @@ public class AvrcpControllerStateMachineTest {
         Assert.assertTrue(nowPlaying.isCached());
         assertNowPlayingList(updatedNowPlayingList);
     }
+
+    /**
+     * Test making a browse request where results don't come back within the timeout window. The
+     * node should still be notified on.
+     */
+    @Test
+    public void testMakeBrowseRequestWithTimeout_contentsCachedAndNotified() {
+        setUpConnectedState(true, true);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+
+        //Set something arbitrary for the current Now Playing list
+        List<AvrcpItem> nowPlayingList = new ArrayList<AvrcpItem>();
+        nowPlayingList.add(makeNowPlayingItem(1, "Song 1"));
+        setNowPlayingList(nowPlayingList);
+        clearInvocations(mAvrcpControllerService);
+
+        // Invalidate the contents by doing a new fetch
+        BrowseTree.BrowseNode nowPlaying = mAvrcpStateMachine.findNode("NOW_PLAYING");
+        mAvrcpStateMachine.requestContents(nowPlaying);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        // Request for new contents should be sent
+        verify(mAvrcpControllerService, times(1)).getNowPlayingListNative(
+                eq(mTestAddress), eq(0), eq(19));
+        Assert.assertFalse(nowPlaying.isCached());
+
+        // Send timeout on our own instead of waiting 10 seconds
+        mAvrcpStateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_INTERNAL_CMD_TIMEOUT);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        // Node should be set to cached and notified on
+        assertNowPlayingList(new ArrayList<AvrcpItem>());
+        Assert.assertTrue(nowPlaying.isCached());
+
+        // See that state from BluetoothMediaBrowserService is updated to null (i.e. empty)
+        MediaSessionCompat session = BluetoothMediaBrowserService.getSession();
+        Assert.assertNotNull(session);
+        MediaControllerCompat controller = session.getController();
+        Assert.assertNotNull(controller);
+        List<MediaSessionCompat.QueueItem> queue = controller.getQueue();
+        Assert.assertNull(queue);
+    }
+
+    /**
+     * Test making a browse request with a null node. The request should not generate any native
+     * layer browse requests.
+     */
+    @Test
+    public void testNullBrowseRequest_requestDropped() {
+        setUpConnectedState(true, true);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+        clearInvocations(mAvrcpControllerService);
+        mAvrcpStateMachine.requestContents(null);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        verifyNoMoreInteractions(mAvrcpControllerService);
+    }
+
+    /**
+     * Test making a browse request with browsing disconnected. The request should not generate any
+     * native layer browse requests.
+     */
+    @Test
+    public void testBrowseRequestWhileDisconnected_requestDropped() {
+        final String rootName = "__ROOT__";
+        setUpConnectedState(true, false);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+        clearInvocations(mAvrcpControllerService);
+        BrowseTree.BrowseNode deviceRoot = mAvrcpStateMachine.findNode(rootName);
+        mAvrcpStateMachine.requestContents(deviceRoot);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        verifyNoMoreInteractions(mAvrcpControllerService);
+    }
+
+    /**
+     * Queue a control channel connection event, a request while browse is disconnected, a browse
+     * connection event, and then another browse request and be sure the final request still is sent
+     */
+    @Test
+    public void testBrowseRequestWhileDisconnectedThenRequestWhileConnected_secondRequestSent() {
+        final String rootName = "__ROOT__";
+        setUpConnectedState(true, false);
+        sendAudioFocusUpdate(AudioManager.AUDIOFOCUS_GAIN);
+        clearInvocations(mAvrcpControllerService);
+        BrowseTree.BrowseNode deviceRoot = mAvrcpStateMachine.findNode(rootName);
+        mAvrcpStateMachine.requestContents(deviceRoot);
+        // issues a player list fetch
+        mAvrcpStateMachine.connect(StackEvent.connectionStateChanged(true, true));
+        TestUtils.waitForLooperToBeIdle(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService, times(1)).getPlayerListNative(
+                eq(mTestAddress), eq(0), eq(19));
+    }
 }
