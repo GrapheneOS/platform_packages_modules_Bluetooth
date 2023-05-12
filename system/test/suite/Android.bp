@@ -58,7 +58,6 @@ cc_defaults {
         "libhidlbase",
         "liblog",
         "libstatssocket",
-        "libtinyxml2",
         "libutils",
         "libPlatformProperties",
     ],
