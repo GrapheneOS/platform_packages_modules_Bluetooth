@@ -187,7 +187,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     BrowseTree.BrowseNode findNode(String parentMediaId) {
-        logD("FindNode");
+        logD("findNode(device=" + mDevice + ", mediaId=" + parentMediaId + ")");
         return mBrowseTree.findBrowseNodeByID(parentMediaId);
     }
 
@@ -288,7 +288,8 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     @Override
     protected void unhandledMessage(Message msg) {
-        Log.w(TAG, "Unhandled message in state " + getCurrentState() + "msg.what=" + msg.what);
+        Log.w(TAG, "Unhandled message in state " + getCurrentState() + "msg.what="
+                + eventToString(msg.what));
     }
 
     private static void logD(String message) {
@@ -405,9 +406,8 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     void nowPlayingContentChanged() {
-        mBrowseTree.mNowPlayingNode.setCached(false);
         removeUnusedArtworkFromBrowseTree();
-        sendMessage(MESSAGE_GET_FOLDER_ITEMS, mBrowseTree.mNowPlayingNode);
+        requestContents(mBrowseTree.mNowPlayingNode);
     }
 
     protected class Disconnected extends State {
@@ -471,7 +471,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
-            logD(STATE_TAG + " processMessage " + msg.what);
+            logD(STATE_TAG + " processMessage " + eventToString(msg.what));
             switch (msg.what) {
                 case ACTIVE_DEVICE_CHANGE:
                     int state = msg.arg1;
@@ -636,6 +636,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // invalid
                     mBrowseTree.mNowPlayingNode.setCached(false);
                     if (isActive()) {
+                        logD("Addressed player change has invalidated the now playing list");
                         BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
                     }
                     removeUnusedArtworkFromBrowseTree();
@@ -661,13 +662,14 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // guaranteed to have the addressed player now.
                     mAddressedPlayer = mAvailablePlayerList.get(mAddressedPlayerId);
 
-                    // Fetch metadata including the now playing list if the new player supports the
-                    // now playing feature
+                    // Fetch metadata including the now playing list. The specification claims that
+                    // the player feature bit only incidates if the player *natively* supports a now
+                    // playing list. However, now playing is mandatory if browsing is supported,
+                    // even if the player doesn't support it. A list of one item can be returned
+                    // instead.
                     mService.getCurrentMetadataNative(Utils.getByteAddress(mDevice));
                     mService.getPlaybackStateNative(Utils.getByteAddress(mDevice));
-                    if (mAddressedPlayer.supportsFeature(AvrcpPlayer.FEATURE_NOW_PLAYING)) {
-                        sendMessage(MESSAGE_GET_FOLDER_ITEMS, mBrowseTree.mNowPlayingNode);
-                    }
+                    requestContents(mBrowseTree.mNowPlayingNode);
                     logD("AddressedPlayer = " + mAddressedPlayer);
                     return true;
 
@@ -816,29 +818,28 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         @Override
         public void enter() {
-            logD(STATE_TAG + " Entering GetFolderList");
+            logD(STATE_TAG + ": Entering GetFolderList");
             // Setup the timeouts.
             sendMessageDelayed(MESSAGE_INTERNAL_CMD_TIMEOUT, CMD_TIMEOUT_MILLIS);
             super.enter();
             mAbort = false;
             Message msg = getCurrentMessage();
             if (msg.what == MESSAGE_GET_FOLDER_ITEMS) {
-                {
-                    logD(STATE_TAG + " new Get Request");
-                    mBrowseNode = (BrowseTree.BrowseNode) msg.obj;
-                }
+                mBrowseNode = (BrowseTree.BrowseNode) msg.obj;
+                logD(STATE_TAG + ": new fetch request, node=" + mBrowseNode);
             }
 
             if (mBrowseNode == null) {
                 transitionTo(mConnected);
             } else {
+                mBrowseNode.setCached(false);
                 navigateToFolderOrRetrieve(mBrowseNode);
             }
         }
 
         @Override
         public boolean processMessage(Message msg) {
-            logD(STATE_TAG + " processMessage " + msg.what);
+            logD(STATE_TAG + " processMessage " + eventToString(msg.what));
             switch (msg.what) {
                 case MESSAGE_PROCESS_GET_FOLDER_ITEMS:
                     ArrayList<AvrcpItem> folderList = (ArrayList<AvrcpItem>) msg.obj;
@@ -941,10 +942,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                             mAddressedPlayer = mAvailablePlayerList.get(mAddressedPlayerId);
                             mService.getCurrentMetadataNative(Utils.getByteAddress(mDevice));
                             mService.getPlaybackStateNative(Utils.getByteAddress(mDevice));
-                            mBrowseTree.mNowPlayingNode.setCached(false);
-                            if (mAddressedPlayer.supportsFeature(AvrcpPlayer.FEATURE_NOW_PLAYING)) {
-                                sendMessage(MESSAGE_GET_FOLDER_ITEMS, mBrowseTree.mNowPlayingNode);
-                            }
+                            requestContents(mBrowseTree.mNowPlayingNode);
                         }
                         logD("AddressedPlayer = " + mAddressedPlayer);
 
@@ -979,20 +977,23 @@ class AvrcpControllerStateMachine extends StateMachine {
                     break;
 
                 case MESSAGE_GET_FOLDER_ITEMS:
-                    if (!mBrowseNode.equals(msg.obj)) {
-                        if (shouldAbort(mBrowseNode.getScope(),
-                                ((BrowseTree.BrowseNode) msg.obj).getScope())) {
+                    BrowseTree.BrowseNode requested = (BrowseTree.BrowseNode) msg.obj;
+                    if (!mBrowseNode.equals(requested) || requested.isNowPlaying()) {
+                        if (shouldAbort(mBrowseNode.getScope(), requested.getScope())) {
                             mAbort = true;
                         }
                         deferMessage(msg);
-                        logD("GetFolderItems: Go Get Another Directory");
+                        logD("GetFolderItems: Enqueue new request for node=" + requested
+                                + ", abort=" + mAbort);
                     } else {
-                        logD("GetFolderItems: Get The Same Directory, ignore");
+                        logD("GetFolderItems: Ignore request, node=" + requested);
                     }
                     break;
 
                 default:
                     // All of these messages should be handled by parent state immediately.
+                    logD("GetFolderItems: Passing message to parent state, type="
+                            + eventToString(msg.what));
                     return false;
             }
             return true;
@@ -1094,6 +1095,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         @Override
         public void exit() {
+            logd("GetFolderItems: fetch complete, node=" + mBrowseNode);
             removeMessages(MESSAGE_INTERNAL_CMD_TIMEOUT);
             mBrowseNode = null;
             super.exit();
@@ -1327,5 +1329,78 @@ class AvrcpControllerStateMachine extends StateMachine {
     private boolean shouldRequestFocus() {
         return mService.getResources()
                 .getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus);
+    }
+
+    private static String eventToString(int event) {
+        switch (event) {
+            case CONNECT:
+                return "CONNECT";
+            case DISCONNECT:
+                return "DISCONNECT";
+            case ACTIVE_DEVICE_CHANGE:
+                return "ACTIVE_DEVICE_CHANGE";
+            case AUDIO_FOCUS_STATE_CHANGE:
+                return "AUDIO_FOCUS_STATE_CHANGE";
+            case CLEANUP:
+                return "CLEANUP";
+            case CONNECT_TIMEOUT:
+                return "CONNECT_TIMEOUT";
+            case MESSAGE_INTERNAL_ABS_VOL_TIMEOUT:
+                return "MESSAGE_INTERNAL_ABS_VOL_TIMEOUT";
+            case STACK_EVENT:
+                return "STACK_EVENT";
+            case MESSAGE_INTERNAL_CMD_TIMEOUT:
+                return "MESSAGE_INTERNAL_CMD_TIMEOUT";
+            case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
+                return "MESSAGE_PROCESS_SET_ABS_VOL_CMD";
+            case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                return "MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION";
+            case MESSAGE_PROCESS_TRACK_CHANGED:
+                return "MESSAGE_PROCESS_TRACK_CHANGED";
+            case MESSAGE_PROCESS_PLAY_POS_CHANGED:
+                return "MESSAGE_PROCESS_PLAY_POS_CHANGED";
+            case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
+                return "MESSAGE_PROCESS_PLAY_STATUS_CHANGED";
+            case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                return "MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION";
+            case MESSAGE_PROCESS_GET_FOLDER_ITEMS:
+                return "MESSAGE_PROCESS_GET_FOLDER_ITEMS";
+            case MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE:
+                return "MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE";
+            case MESSAGE_PROCESS_GET_PLAYER_ITEMS:
+                return "MESSAGE_PROCESS_GET_PLAYER_ITEMS";
+            case MESSAGE_PROCESS_FOLDER_PATH:
+                return "MESSAGE_PROCESS_FOLDER_PATH";
+            case MESSAGE_PROCESS_SET_BROWSED_PLAYER:
+                return "MESSAGE_PROCESS_SET_BROWSED_PLAYER";
+            case MESSAGE_PROCESS_SET_ADDRESSED_PLAYER:
+                return "MESSAGE_PROCESS_SET_ADDRESSED_PLAYER";
+            case MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED:
+                return "MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED";
+            case MESSAGE_PROCESS_NOW_PLAYING_CONTENTS_CHANGED:
+                return "MESSAGE_PROCESS_NOW_PLAYING_CONTENTS_CHANGED";
+            case MESSAGE_PROCESS_SUPPORTED_APPLICATION_SETTINGS:
+                return "MESSAGE_PROCESS_SUPPORTED_APPLICATION_SETTINGS";
+            case MESSAGE_PROCESS_CURRENT_APPLICATION_SETTINGS:
+                return "MESSAGE_PROCESS_CURRENT_APPLICATION_SETTINGS";
+            case MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED:
+                return "MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED";
+            case MESSAGE_PROCESS_RECEIVED_COVER_ART_PSM:
+                return "MESSAGE_PROCESS_RECEIVED_COVER_ART_PSM";
+            case MESSAGE_GET_FOLDER_ITEMS:
+                return "MESSAGE_GET_FOLDER_ITEMS";
+            case MESSAGE_PLAY_ITEM:
+                return "MESSAGE_PLAY_ITEM";
+            case MSG_AVRCP_PASSTHRU:
+                return "MSG_AVRCP_PASSTHRU";
+            case MSG_AVRCP_SET_SHUFFLE:
+                return "MSG_AVRCP_SET_SHUFFLE";
+            case MSG_AVRCP_SET_REPEAT:
+                return "MSG_AVRCP_SET_REPEAT";
+            case MESSAGE_PROCESS_IMAGE_DOWNLOADED:
+                return "MESSAGE_PROCESS_IMAGE_DOWNLOADED";
+            default:
+                return "UNKNOWN_EVENT_ID_" + event;
+        }
     }
 }
