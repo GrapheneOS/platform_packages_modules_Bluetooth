@@ -177,7 +177,6 @@ cc_library_static {
         "src/btif_bqr.cc",
         "src/btif_config.cc",
         "src/btif_config_cache.cc",
-        "src/btif_config_transcode.cc",
         "src/btif_core.cc",
         "src/btif_debug_conn.cc",
         "src/btif_dm.cc",
@@ -566,7 +565,6 @@ cc_test {
         "libcutils",
         "libhidlbase",
         "liblog",
-        "libtinyxml2",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
@@ -699,7 +697,6 @@ cc_test {
         "libcutils",
         "libhidlbase",
         "liblog",
-        "libtinyxml2",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
