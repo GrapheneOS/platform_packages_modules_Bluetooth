@@ -249,11 +249,6 @@ Device StorageModule::GetDeviceByLeIdentityAddress(hci::Address le_identity_addr
       Device::ConfigKeyAddressType::LE_IDENTITY_ADDRESS);
 }
 
-AdapterConfig StorageModule::GetAdapterConfig() {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-  return AdapterConfig(&pimpl_->cache_, &pimpl_->memory_only_cache_, kAdapterSection);
-}
-
 std::vector<Device> StorageModule::GetBondedDevices() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
   auto persistent_sections = pimpl_->cache_.GetPersistentSections();
