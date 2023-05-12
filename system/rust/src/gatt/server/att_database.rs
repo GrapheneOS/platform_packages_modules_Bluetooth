@@ -34,6 +34,7 @@ bitflags! {
     ///
     /// These values are from Core Spec 5.3 Vol 3G 3.3.1.1 Characteristic Properties,
     /// and also match what Android uses in JNI.
+    #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     pub struct AttPermissions : u8 {
         /// Attribute can be read using READ_REQ
         const READABLE = 0x02;
