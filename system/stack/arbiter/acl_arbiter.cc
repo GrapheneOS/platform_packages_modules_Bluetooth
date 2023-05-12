@@ -16,7 +16,7 @@
 
 #include "stack/arbiter/acl_arbiter.h"
 
-#include <base/bind.h>
+#include <base/functional/bind.h>
 
 #include <iterator>
 #include <unordered_map>
