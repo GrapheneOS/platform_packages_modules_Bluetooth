@@ -151,10 +151,6 @@ void BtifConfigInterface::ConvertEncryptOrDecryptKeyIfNeeded() {
   GetStorage()->ConvertEncryptOrDecryptKeyIfNeeded();
 }
 
-void BtifConfigInterface::Save() { GetStorage()->SaveDelayed(); }
-
-void BtifConfigInterface::Flush() { GetStorage()->SaveImmediately(); }
-
 void BtifConfigInterface::Clear() { GetStorage()->Clear(); }
 
 }  // namespace shim

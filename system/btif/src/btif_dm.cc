@@ -1970,8 +1970,6 @@ void BTIF_dm_report_inquiry_status_change(tBTM_STATUS status) {
 
 void BTIF_dm_on_hw_error() {
   BTIF_TRACE_ERROR("Received H/W Error. ");
-  /* Flush storage data */
-  btif_config_flush();
   usleep(100000); /* 100milliseconds */
   /* Killing the process to force a restart as part of fault tolerance */
   kill(getpid(), SIGKILL);
