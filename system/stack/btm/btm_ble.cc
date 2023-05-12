@@ -1269,7 +1269,7 @@ void btm_ble_link_sec_check(const RawAddress& bd_addr,
     return;
   }
 
-  if (p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING ||
+  if (p_dev_rec->is_security_state_encrypting() ||
       p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING) {
     /* race condition: discard the security request while central is encrypting
      * the link */
@@ -1431,7 +1431,7 @@ tBTM_STATUS btm_ble_start_encrypt(const RawAddress& bda, bool use_stk,
     return BTM_WRONG_MODE;
   }
 
-  if (p_rec->sec_state == BTM_SEC_STATE_ENCRYPTING) {
+  if (p_rec->is_security_state_encrypting()) {
     BTM_TRACE_WARNING("Link Encryption is active, Busy!");
     return BTM_BUSY;
   }
@@ -1449,7 +1449,7 @@ tBTM_STATUS btm_ble_start_encrypt(const RawAddress& bda, bool use_stk,
   }
 
   if (p_rec->sec_state == BTM_SEC_STATE_IDLE)
-    p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
+    p_rec->sec_state = BTM_SEC_STATE_LE_ENCRYPTING;
 
   return BTM_CMD_STARTED;
 }
@@ -1477,7 +1477,7 @@ void btm_ble_link_encrypted(const RawAddress& bd_addr, uint8_t encr_enable) {
 
   BTM_TRACE_DEBUG("btm_ble_link_encrypted encr_enable=%d", encr_enable);
 
-  enc_cback = (p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING);
+  enc_cback = p_dev_rec->is_security_state_le_encrypting();
 
   smp_link_encrypted(bd_addr, encr_enable);
 
