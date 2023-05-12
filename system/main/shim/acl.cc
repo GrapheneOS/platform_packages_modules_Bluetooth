@@ -1354,7 +1354,7 @@ void DumpsysNeighbor(int fd) {
   LOG_DUMPSYS(fd, "Last %zu inquiry scans:", copy.size());
   for (const auto& it : copy) {
     LOG_DUMPSYS(fd,
-                "  %s - %s duration_ms:%-5Lu num_resp:%-2u"
+                "  %s - %s duration_ms:%-5llu num_resp:%-2u"
                 " std:%-2u rssi:%-2u ext:%-2u %12s",
                 EpochMillisToString(it.entry.start_time_ms).c_str(),
                 EpochMillisToString(it.timestamp).c_str(),
