@@ -1412,4 +1412,7 @@ void BTA_DmBleSubrateRequest(const RawAddress& bd_addr, uint16_t subrate_min,
  *
  ******************************************************************************/
 bool BTA_DmCheckLeAudioCapable(const RawAddress& address);
+
+void DumpsysBtaDm(int fd);
+
 #endif /* BTA_API_H */
