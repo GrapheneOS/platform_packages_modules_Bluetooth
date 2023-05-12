@@ -178,7 +178,6 @@ cc_defaults {
     target: {
         android: {
             shared_libs: [
-                "android.hardware.bluetooth.audio-V3-ndk",
                 "android.system.suspend-V1-ndk",
                 "libPlatformProperties",
                 "libaaudio",
