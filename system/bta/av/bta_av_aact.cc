@@ -543,7 +543,6 @@ static void bta_av_a2dp_sdp_cback(bool found, tA2DP_Service* p_service,
                               AVDTP_VERSION_CONFIG_KEY,
                               (const uint8_t*)&p_service->avdt_version,
                               sizeof(p_service->avdt_version))) {
-        btif_config_save();
       } else {
         APPL_TRACE_WARNING("%s: Failed to store peer AVDTP version for %s",
                            __func__,
