@@ -263,7 +263,6 @@ void btif_enable_bluetooth_evt() {
     LOG_INFO("%s: Storing '%s' into the config file", __func__,
             ADDRESS_TO_LOGGABLE_CSTR(local_bd_addr));
     btif_config_set_str("Adapter", "Address", bdstr.c_str());
-    btif_config_save();
 
     // fire HAL callback for property change
     bt_property_t prop;
