@@ -447,7 +447,7 @@ struct eatt_impl {
     if (is_local_cfg)
       channel->rx_mtu_ = p_cfg->mtu;
     else
-      channel->tx_mtu_ = p_cfg->mtu;
+      channel->EattChannelSetTxMTU(p_cfg->mtu);
 
     /* Go back to open state */
     channel->EattChannelSetState(EattChannelState::EATT_CHANNEL_OPENED);
