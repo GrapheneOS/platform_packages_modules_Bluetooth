@@ -1112,7 +1112,6 @@ static void store_avrcp_profile_feature(tSDP_DISC_REC* sdp_rec) {
                           (const uint8_t*)&avrcp_features,
                           sizeof(avrcp_features))) {
     LOG_INFO("Saving avrcp_features: 0x%x", avrcp_features);
-    btif_config_save();
   } else {
     LOG_INFO("Failed to store avrcp_features 0x%x for %s", avrcp_features,
              ADDRESS_TO_LOGGABLE_CSTR(sdp_rec->remote_bd_addr));
@@ -1153,7 +1152,6 @@ static void bta_dm_store_audio_profiles_version() {
                               audio_profile.profile_key,
                               (const uint8_t*)&profile_version,
                               sizeof(profile_version))) {
-        btif_config_save();
       } else {
         LOG_INFO("Failed to store peer profile version for %s",
                  ADDRESS_TO_LOGGABLE_CSTR(sdp_rec->remote_bd_addr));
