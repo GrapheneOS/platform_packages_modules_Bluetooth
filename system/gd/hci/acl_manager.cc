@@ -243,6 +243,16 @@ void AclManager::UnregisterLeCallbacks(LeConnectionCallbacks* callbacks, std::pr
   CallOn(pimpl_->le_impl_, &le_impl::handle_unregister_le_callbacks, common::Unretained(callbacks), std::move(promise));
 }
 
+void AclManager::UnregisterLeAcceptlistCallbacks(
+    LeAcceptlistCallbacks* callbacks, std::promise<void> promise) {
+  ASSERT(callbacks != nullptr);
+  CallOn(
+      pimpl_->le_impl_,
+      &le_impl::handle_unregister_le_acceptlist_callbacks,
+      common::Unretained(callbacks),
+      std::move(promise));
+}
+
 void AclManager::CreateConnection(Address address) {
   CallOn(pimpl_->classic_impl_, &classic_impl::create_connection, address);
 }
