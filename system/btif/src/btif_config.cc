@@ -192,7 +192,6 @@ static future_t* init(void) {
 }
 
 static future_t* shut_down(void) {
-  btif_config_flush();
   return future_new_immediate(FUTURE_SUCCESS);
 }
 
@@ -313,20 +312,9 @@ bool btif_config_remove(const std::string& section, const std::string& key) {
   return bluetooth::shim::BtifConfigInterface::RemoveProperty(section, key);
 }
 
-void btif_config_save(void) {
-  CHECK(bluetooth::shim::is_gd_stack_started_up());
-  bluetooth::shim::BtifConfigInterface::Save();
-}
-
-void btif_config_flush(void) {
-  CHECK(bluetooth::shim::is_gd_stack_started_up());
-  bluetooth::shim::BtifConfigInterface::Flush();
-}
-
 bool btif_config_clear(void) {
   CHECK(bluetooth::shim::is_gd_stack_started_up());
   bluetooth::shim::BtifConfigInterface::Clear();
-  bluetooth::shim::BtifConfigInterface::Save();
   return true;
 }
 

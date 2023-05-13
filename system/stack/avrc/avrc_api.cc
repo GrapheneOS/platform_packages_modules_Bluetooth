@@ -1448,7 +1448,6 @@ void AVRC_SaveControllerVersion(const RawAddress& bdaddr,
   } else if (btif_config_set_bin(
                  bdaddr.ToString(), AVRCP_CONTROLLER_VERSION_CONFIG_KEY,
                  (const uint8_t*)&new_version, sizeof(new_version))) {
-    btif_config_save();
     LOG_INFO("store AVRC controller version %x for %s into config.",
              new_version, ADDRESS_TO_LOGGABLE_CSTR(bdaddr));
   } else {
