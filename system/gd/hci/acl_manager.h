@@ -80,6 +80,8 @@ public:
  virtual void RegisterLeCallbacks(acl_manager::LeConnectionCallbacks* callbacks, os::Handler* handler);
  virtual void UnregisterLeCallbacks(acl_manager::LeConnectionCallbacks* callbacks, std::promise<void> promise);
  void RegisterLeAcceptlistCallbacks(acl_manager::LeAcceptlistCallbacks* callbacks);
+ void UnregisterLeAcceptlistCallbacks(
+     acl_manager::LeAcceptlistCallbacks* callbacks, std::promise<void> promise);
 
  // Generates OnConnectSuccess if connected, or OnConnectFail otherwise
  virtual void CreateConnection(Address address);

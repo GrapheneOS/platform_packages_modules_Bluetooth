@@ -2,6 +2,7 @@
 
 use std::{fmt::Debug, pin::Pin};
 
+use bt_common::init_flags;
 use cxx::UniquePtr;
 pub use inner::*;
 use log::warn;
@@ -69,7 +70,7 @@ mod inner {
         fn on_le_connect_success(&self, address: AddressWithType);
         #[cxx_name = "OnLeConnectFail"]
         fn on_le_connect_fail(&self, address: AddressWithType, status: u8);
-        #[cxx_name = "OnDisconnect"]
+        #[cxx_name = "OnLeDisconnection"]
         fn on_disconnect(&self, address: AddressWithType);
     }
 
@@ -140,7 +141,10 @@ impl InactiveLeAclManager for LeAclManagerImpl {
     ) -> Self::ActiveManager {
         let (tx, mut rx) = unbounded_channel();
 
-        self.0.pin_mut().register_rust_callbacks(Box::new(LeAclManagerCallbackShim(tx)));
+        // only register callbacks if the feature is enabled
+        if init_flags::use_unified_connection_manager_is_enabled() {
+            self.0.pin_mut().register_rust_callbacks(Box::new(LeAclManagerCallbackShim(tx)));
+        }
 
         spawn_local(async move {
             while let Some(f) = rx.recv().await {
