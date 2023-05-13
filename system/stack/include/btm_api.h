@@ -646,7 +646,7 @@ void BTM_SecClearSecurityFlags(const RawAddress& bd_addr);
  * Returns          true - dev is bonded
  *
  ******************************************************************************/
-extern bool btm_sec_is_a_bonded_dev(const RawAddress& bda);
+bool btm_sec_is_a_bonded_dev(const RawAddress& bda);
 
 /*******************************************************************************
  *
@@ -663,8 +663,7 @@ extern bool btm_sec_is_a_bonded_dev(const RawAddress& bda);
  *                  BT_DEVICE_TYPE_BLE if only BLE transport is supported.
  *
  ******************************************************************************/
-extern tBT_DEVICE_TYPE BTM_GetPeerDeviceTypeFromFeatures(
-    const RawAddress& bd_addr);
+tBT_DEVICE_TYPE BTM_GetPeerDeviceTypeFromFeatures(const RawAddress& bd_addr);
 
 /*****************************************************************************
  *  POWER MANAGEMENT FUNCTIONS
@@ -757,8 +756,7 @@ bool BTM_IsPhy2mSupported(const RawAddress& remote_bda, tBT_TRANSPORT transport)
  *                  from peer device
  *
  ******************************************************************************/
-extern void BTM_RequestPeerSCA(const RawAddress& remote_bda,
-                               tBT_TRANSPORT transport);
+void BTM_RequestPeerSCA(const RawAddress& remote_bda, tBT_TRANSPORT transport);
 
 /*******************************************************************************
  *
@@ -770,8 +768,7 @@ extern void BTM_RequestPeerSCA(const RawAddress& remote_bda,
  *                  is not supported by peer device or ACL does not exist
  *
  ******************************************************************************/
-extern uint8_t BTM_GetPeerSCA(const RawAddress& remote_bda,
-                              tBT_TRANSPORT transport);
+uint8_t BTM_GetPeerSCA(const RawAddress& remote_bda, tBT_TRANSPORT transport);
 
 /*******************************************************************************
  *
@@ -937,7 +934,7 @@ uint16_t BTM_GetClockOffset(const RawAddress& remote_bda);
 /* Read maximum data packet that can be sent over current connection */
 uint16_t BTM_GetMaxPacketSize(const RawAddress& addr);
 
-extern tBTM_STATUS BTM_BT_Quality_Report_VSE_Register(
+tBTM_STATUS BTM_BT_Quality_Report_VSE_Register(
     bool is_register, tBTM_BT_QUALITY_REPORT_RECEIVER* p_bqr_report_receiver);
 
 uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr);

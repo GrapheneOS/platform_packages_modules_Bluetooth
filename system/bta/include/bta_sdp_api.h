@@ -114,7 +114,7 @@ typedef struct {
  *                  BTA_SDP_FAIL if internal failure.
  *
  ******************************************************************************/
-extern tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK* p_cback);
+tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK* p_cback);
 
 /*******************************************************************************
  *
@@ -128,8 +128,8 @@ extern tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK* p_cback);
  *                  BTA_SDP_FAIL if internal failure.
  *
  ******************************************************************************/
-extern tBTA_SDP_STATUS BTA_SdpSearch(const RawAddress& bd_addr,
-                                     const bluetooth::Uuid& uuid);
+tBTA_SDP_STATUS BTA_SdpSearch(const RawAddress& bd_addr,
+                              const bluetooth::Uuid& uuid);
 
 /*******************************************************************************
  *
@@ -143,7 +143,7 @@ extern tBTA_SDP_STATUS BTA_SdpSearch(const RawAddress& bd_addr,
  *                  BTA_SDP_FAILURE, otherwise.
  *
  ******************************************************************************/
-extern tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data);
+tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data);
 
 /*******************************************************************************
  *
@@ -157,6 +157,6 @@ extern tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data);
  *                  BTA_SDP_FAILURE, otherwise.
  *
  ******************************************************************************/
-extern tBTA_SDP_STATUS BTA_SdpRemoveRecordByUser(void* user_data);
+tBTA_SDP_STATUS BTA_SdpRemoveRecordByUser(void* user_data);
 
 #endif /* BTA_SDP_API_H */

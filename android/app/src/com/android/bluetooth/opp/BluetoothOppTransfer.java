@@ -622,6 +622,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 if (mBluetoothReceiver == null) {
                     mBluetoothReceiver = new OppConnectionReceiver();
                     IntentFilter filter = new IntentFilter();
+                    filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
                     filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
                     filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
                     mContext.registerReceiver(mBluetoothReceiver, filter);

@@ -26,8 +26,10 @@
 
 #if defined(OS_GENERIC)
 #include <base/files/file_util.h>
+#include <unistd.h>
 
 #include <filesystem>
+#include <system_error>
 
 static const std::filesystem::path kStaticConfigFileConfigFile =
     std::filesystem::temp_directory_path() / "interop_database.conf";
@@ -103,12 +105,17 @@ class InteropTest : public ::testing::Test {
     ASSERT_EQ(fwrite(INTEROP_STATIC_FILE_CONTENT, 1,
                      sizeof(INTEROP_STATIC_FILE_CONTENT), fp),
               sizeof(INTEROP_STATIC_FILE_CONTENT));
+    // Force data to be flushed on disk and not only in user-space
+    ASSERT_EQ(fsync(fileno(fp)), 0)
+        << "Associated ERRNO error is: " << strerror(errno);
     ASSERT_EQ(fclose(fp), 0);
 #endif
   }
   virtual void TearDown() override {
 #if defined(OS_GENERIC)
-    EXPECT_TRUE(std::filesystem::remove(kStaticConfigFileConfigFile));
+    std::error_code ec;
+    EXPECT_TRUE(std::filesystem::remove(kStaticConfigFileConfigFile, ec))
+        << "Associated error is: " << ec;
 #endif
   }
 };

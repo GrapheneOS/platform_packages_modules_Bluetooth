@@ -40,7 +40,7 @@
 #include "test_util.h"
 #include "wav_reader.h"
 
-extern void allocation_tracker_uninit(void);
+void allocation_tracker_uninit(void);
 namespace {
 constexpr uint32_t kAacReadSize = 1024 * 2 * 2;
 constexpr uint32_t kA2dpTickUs = 23 * 1000;

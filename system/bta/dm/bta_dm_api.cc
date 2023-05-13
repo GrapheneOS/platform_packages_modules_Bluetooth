@@ -588,8 +588,8 @@ void BTA_DmCloseACL(const RawAddress& bd_addr, bool remove_dev,
  * Returns          void.
  *
  ******************************************************************************/
-extern void BTA_DmBleObserve(bool start, uint8_t duration,
-                             tBTA_DM_SEARCH_CBACK* p_results_cb) {
+void BTA_DmBleObserve(bool start, uint8_t duration,
+                      tBTA_DM_SEARCH_CBACK* p_results_cb) {
   APPL_TRACE_API("%s:start = %d ", __func__, start);
   do_in_main_thread(
       FROM_HERE, base::Bind(bta_dm_ble_observe, start, duration, p_results_cb));
@@ -609,7 +609,7 @@ extern void BTA_DmBleObserve(bool start, uint8_t duration,
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_DmBleScan(bool start, uint8_t duration_sec) {
+void BTA_DmBleScan(bool start, uint8_t duration_sec) {
   APPL_TRACE_API("%s:start = %d ", __func__, start);
   do_in_main_thread(FROM_HERE,
                     base::Bind(bta_dm_ble_scan, start, duration_sec));

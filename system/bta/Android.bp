@@ -226,6 +226,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtcore",
+        "libchrome",
         "libcom.android.sysprop.bluetooth",
         "libosi",
     ],
@@ -269,6 +270,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtcore",
+        "libchrome",
         "libosi",
     ],
 }
@@ -352,7 +354,9 @@ cc_test {
         "libbt-protos-lite",
         "libbtcore",
         "libbtdevice",
+        "libchrome",
         "libcom.android.sysprop.bluetooth",
+        "libevent",
         "libflatbuffers-cpp",
         "libgmock",
     ],
@@ -369,7 +373,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -403,6 +406,7 @@ cc_test {
         "crypto_toolbox_for_tests",
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
         "libgmock",
         "libosi",
     ],
@@ -424,7 +428,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -446,6 +449,7 @@ cc_test {
         "crypto_toolbox_for_tests",
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
         "libgmock",
         "libosi",
     ],
@@ -467,7 +471,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -500,6 +503,7 @@ cc_test {
         "crypto_toolbox_for_tests",
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
         "libgmock",
         "libosi",
     ],
@@ -587,7 +591,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_defaults",
         "mts_defaults",
     ],
@@ -666,6 +669,8 @@ cc_test {
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
+        "libevent",
         "libflatbuffers-cpp",
         "libgmock",
         "libosi",
@@ -680,7 +685,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -736,6 +740,8 @@ cc_test {
         "libbt-audio-hal-interface",
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
+        "libevent",
         "libflatbuffers-cpp",
         "libgmock",
         "liblc3",
@@ -778,7 +784,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -810,6 +815,7 @@ cc_test {
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
         "libgmock",
         "liblc3",
     ],
@@ -830,7 +836,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -873,6 +878,8 @@ cc_test {
         "libbt-audio-hal-interface",
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
+        "libevent",
         "libgmock",
         "liblc3",
         "libosi",
@@ -902,7 +909,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -940,6 +946,7 @@ cc_test {
         "crypto_toolbox_for_tests",
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
         "libgmock",
     ],
     sanitize: {
@@ -959,7 +966,6 @@ cc_test {
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
-        "clang_coverage_bin",
         "fluoride_bta_defaults",
         "mts_defaults",
     ],
@@ -1005,9 +1011,11 @@ cc_test {
         "crypto_toolbox_for_tests",
         "libbt-common",
         "libbt-protos-lite",
+        "libchrome",
         "libcom.android.sysprop.bluetooth",
+        "libevent",
         "libgmock",
-        "libosi", // ADDED
+        "libosi",
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",

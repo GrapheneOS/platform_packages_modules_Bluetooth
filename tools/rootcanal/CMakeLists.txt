@@ -8,6 +8,9 @@ corrosion_import_crate(
 
 corrosion_set_env_vars(generate-canonical-tests CARGO_HOME=${Rust_CARGO_HOME})
 corrosion_set_env_vars(pdl CARGO_HOME=${Rust_CARGO_HOME})
+corrosion_set_hostbuild(pdl)
+
+get_property(pdl_EXECUTABLE TARGET pdl PROPERTY EXECUTABLE_PATH)
 
 # These tests depend on the tempfile crate which was not imported because
 # the crate remove_dir_all does not have a compatible version.
@@ -15,11 +18,55 @@ set_tests_properties(cargo-test_pdl PROPERTIES DISABLED True)
 set_tests_properties(cargo-test_generate-canonical-tests PROPERTIES DISABLED True)
 
 android_license(
-    TARGET "pdl"
+    TARGET pdl
     LIBNAME None
     SPDX None
     LICENSE None
     LOCAL None)
+
+# Generate the Rust/C++ backend for a .pdl specification file.
+function(pdl_gen)
+  # Parse arguments.
+  set(options)
+  set(oneValueArgs NAME INPUT OUTPUT LANG)
+  cmake_parse_arguments(pdl "${options}" "${oneValueArgs}"
+                        "${multiValueArgs}" ${ARGN})
+
+  if(NOT pdl_NAME)
+    message(FATAL_ERROR "Error: name not specified")
+  endif()
+
+  if(NOT pdl_INPUT)
+    message(FATAL_ERROR "Error: output file not specified")
+  endif()
+
+  if(NOT pdl_OUTPUT)
+    message(FATAL_ERROR "Error: output file not specified")
+  endif()
+
+  set(pdl_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/pdl_gen)
+  set(pdl_OUTPUT "${pdl_OUTPUT_DIR}/${pdl_OUTPUT}")
+
+  get_filename_component(pdl_INPUT_ABSOLUTE ${pdl_INPUT} ABSOLUTE)
+  get_filename_component(pdl_OUTPUT_ABSOLUTE ${pdl_OUTPUT} ABSOLUTE)
+  get_filename_component(pdl_OUTPUT_DIR ${pdl_OUTPUT_ABSOLUTE} DIRECTORY)
+  set(${pdl_NAME} "${pdl_OUTPUT_ABSOLUTE}" PARENT_SCOPE)
+
+  file(MAKE_DIRECTORY ${pdl_OUTPUT_DIR})
+
+  if(pdl_LANG STREQUAL "rust")
+    add_custom_command(
+        OUTPUT "${pdl_OUTPUT_ABSOLUTE}"
+        COMMAND
+        ${pdl_EXECUTABLE}
+                --output-format rust
+                "${pdl_INPUT_ABSOLUTE}"
+                    > "${pdl_OUTPUT_ABSOLUTE}"
+        COMMENT "Generating rust module from ${pdl_INPUT}"
+        VERBATIM
+        DEPENDS pdl ${pdl_INPUT_ABSOLUTE})
+  endif()
+endfunction()
 
 # ~~~
 # ! foobar : Compile .pdl files to C++/Rust!
@@ -136,8 +183,7 @@ target_link_libraries(libscriptedbeaconpayload-protos-lite
                       PRIVATE protobuf::libprotobuf)
 
 add_library(libbt-rootcanal.headers INTERFACE)
-target_include_directories(libbt-rootcanal.headers INTERFACE .
-                                                             ${ROOTCANAL_ROOT})
+target_include_directories(libbt-rootcanal.headers INTERFACE ${ROOTCANAL_ROOT})
 target_link_libraries(libbt-rootcanal.headers
                       INTERFACE android-emu-base-headers)
 android_license(TARGET "libbt-rootcanal.headers" LIBNAME None SPDX Apache-2.0
@@ -164,25 +210,9 @@ target_include_directories(
     ${ROOTCANAL_ROOT}/include
     ${BT_ROOT}/gd
     ${BT_ROOT})
+
 target_compile_options(BluetoothPacketSources
                        PUBLIC -Wno-inconsistent-missing-override)
-
-android_add_library(
-  TARGET aemu-rootcanal-log-wrapper LICENSE Apache-2.0 SRC emulator/src/log.cc
-  DEPS android-emu-base android-emu-base-headers android-emu-base-logging)
-target_include_directories(
-  aemu-rootcanal-log-wrapper
-  PRIVATE ${ROOTCANAL_ROOT}/emulator ${ROOTCANAL_ROOT}/emulator/include)
-
-android_add_library(
-  TARGET libbt-hci-packets LICENSE Apache-2.0 SOURCE_DIR ${ROOTCANAL_ROOT}
-  SRC model/hci/h4_parser.cc model/hci/hci_protocol.cc
-  DEPS aemu-rootcanal-log-wrapper android-emu-base android-emu-base-headers)
-target_include_directories(libbt-hci-packets
-   PUBLIC
-     ${ROOTCANAL_ROOT}/emulator
-     ${ROOTCANAL_ROOT}/emulator/include
-     ${ROOTCANAL_ROOT})
 
 android_add_library(
   TARGET libbt-rootcanal
@@ -190,6 +220,7 @@ android_add_library(
   SOURCE_DIR ${ROOTCANAL_ROOT}
   SRC ${BluetoothGeneratedPackets_h}
       ${RootCanalGeneratedPackets_h}
+      emulator/src/log.cc
       lib/crypto/crypto.cc
       lib/hci/address.cc
       lib/hci/class_of_device.cc
@@ -202,7 +233,6 @@ android_add_library(
       model/controller/le_advertiser.cc
       model/controller/link_layer_controller.cc
       model/controller/sco_connection.cc
-      model/controller/security_manager.cc
       model/devices/beacon.cc
       model/devices/beacon_swarm.cc
       model/devices/device.cc
@@ -227,14 +257,14 @@ android_add_library(
   DARWIN net/posix/posix_async_socket.cc
          net/posix/posix_async_socket_connector.cc
          net/posix/posix_async_socket_server.cc
-  DEPS aemu-rootcanal-log-wrapper
-       android-emu-base
+  DEPS android-emu-base
        android-emu-base-headers
+       android-emu-base-logging
        BluetoothPacketSources
        crypto
        jsoncpp
-       libbt-hci-packets
        libscriptedbeaconpayload-protos-lite)
+
 target_include_directories(
   libbt-rootcanal
   PUBLIC ${ROOTCANAL_ROOT}/emulator
@@ -244,6 +274,7 @@ target_include_directories(
          ${BT_ROOT}/gd
          ${BT_ROOT}
          ${CMAKE_CURRENT_BINARY_DIR}/packet_gen)
+
 target_compile_options(libbt-rootcanal
                        PUBLIC -Wno-inconsistent-missing-override)
 

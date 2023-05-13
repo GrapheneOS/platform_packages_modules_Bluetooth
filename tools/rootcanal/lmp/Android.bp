@@ -34,16 +34,9 @@ rust_ffi {
 
 genrule {
     name: "LmpGeneratedPackets_rust",
-    tools: [
-        "bluetooth_packetgen",
-    ],
-    cmd: "$(location bluetooth_packetgen) --include=packages/modules/Bluetooth/tools/rootcanal/lmp  --out=$(genDir) $(in) --rust",
-    srcs: [
-        "lmp_packets.pdl",
-    ],
-    out: [
-        "lmp_packets.rs",
-    ],
+    defaults: ["pdl_rust_generator_defaults"],
+    srcs: ["lmp_packets.pdl"],
+    out: ["lmp_packets.rs"],
 }
 
 rust_test_host {
