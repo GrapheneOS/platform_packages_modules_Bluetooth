@@ -366,7 +366,6 @@ bool bta_ag_sdp_find_attr(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK service) {
         if (btif_config_set_bin(
                 p_scb->peer_addr.ToString(), HFP_VERSION_CONFIG_KEY,
                 (const uint8_t*)&peer_version, sizeof(peer_version))) {
-          btif_config_save();
         } else {
           APPL_TRACE_WARNING("%s: Failed to store peer HFP version for %s",
                              __func__,
@@ -395,7 +394,6 @@ bool bta_ag_sdp_find_attr(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK service) {
           if (btif_config_set_bin(
                   p_scb->peer_addr.ToString(), HFP_SDP_FEATURES_CONFIG_KEY,
                   (const uint8_t*)&sdp_features, sizeof(sdp_features))) {
-            btif_config_save();
           } else {
             APPL_TRACE_WARNING(
                 "%s: Failed to store peer HFP SDP Features for %s", __func__,
