@@ -114,13 +114,8 @@ cc_defaults {
 }
 
 cc_defaults {
-    name: "fluoride_test_prod_shared_defaults",
-    defaults: ["fluoride_defaults"],
-}
-
-cc_defaults {
     name: "fluoride_test_defaults",
-    defaults: ["fluoride_test_prod_shared_defaults"],
+    defaults: ["fluoride_defaults"],
     host_supported: true,
     shared_libs: [
         "libcrypto",
@@ -145,7 +140,7 @@ cc_defaults {
 cc_defaults {
     name: "fluoride_basic_defaults",
     defaults: [
-        "fluoride_test_prod_shared_defaults",
+        "fluoride_defaults",
     ],
     apex_available: [
         "//apex_available:platform",
