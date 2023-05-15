@@ -18,9 +18,10 @@
 
 #include <gtest/gtest.h>
 
-#include "bta/sdp/bta_sdp_act.cc"
+#include "bta/sdp/bta_sdp_int.h"
+#include "btif/include/btif_sock_sdp.h"
 #include "main/shim/metrics_api.h"
-#include "stack/sdp/sdp_api.cc"
+#include "test/mock/mock_stack_sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
@@ -28,8 +29,7 @@ namespace {
 const RawAddress bdaddr({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 }  // namespace
 
-extern tBTA_SDP_CB bta_sdp_cb;
-extern tBTA_SDP_CFG* p_bta_sdp_cfg;
+tBTA_SDP_CB bta_sdp_cb;
 
 static tSDP_DISC_ATTR g_attr_service_class_id_list;
 static tSDP_DISC_ATTR g_sub_attr;
@@ -41,17 +41,9 @@ static tSDP_DISC_ATTR g_attr_vendor_product_version;
 static tSDP_DISC_ATTR g_attr_vendor_product_primary_record;
 static tSDP_DISC_REC g_rec;
 
-bool sdpu_compare_uuid_with_attr(const Uuid& uuid, tSDP_DISC_ATTR* p_attr) {
-  return true;
-}
-
 static void sdp_dm_cback(tBTA_SDP_EVT event, tBTA_SDP* p_data,
                          void* user_data) {
   return;
-}
-
-bool bluetooth::shim::CountCounterMetrics(int32_t key, int64_t count) {
-  return true;
 }
 
 class BtaDipTest : public ::testing::Test {
@@ -109,11 +101,21 @@ class BtaDipTest : public ::testing::Test {
   void TearDown() override {}
 };
 
+namespace bluetooth {
+namespace testing {
+
+void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
+                               tSDP_DISC_REC* p_rec);
+void bta_sdp_search_cback(tSDP_RESULT result, const void* user_data);
+
+}  // namespace testing
+}  // namespace bluetooth
+
 // Test that bta_create_dip_sdp_record can parse sdp record to bluetooth_sdp_record correctly
 TEST_F(BtaDipTest, test_bta_create_dip_sdp_record) {
   bluetooth_sdp_record record;
 
-  bta_create_dip_sdp_record(&record, &g_rec);
+  bluetooth::testing::bta_create_dip_sdp_record(&record, &g_rec);
 
   ASSERT_EQ(record.dip.spec_id, 0x0103);
   ASSERT_EQ(record.dip.vendor, 0x18d1);
@@ -127,6 +129,5 @@ TEST_F(BtaDipTest, test_bta_sdp_search_cback) {
   Uuid* userdata = (Uuid*)malloc(sizeof(Uuid));
 
   memcpy(userdata, &UUID_DIP, sizeof(UUID_DIP));
-  bta_sdp_search_cback(SDP_SUCCESS, userdata);
+  bluetooth::testing::bta_sdp_search_cback(SDP_SUCCESS, userdata);
 }
-
