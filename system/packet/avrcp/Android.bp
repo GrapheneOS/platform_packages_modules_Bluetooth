@@ -9,7 +9,7 @@ package {
 
 cc_library_static {
     name: "lib-bt-packets-avrcp",
-    defaults: ["libchrome_support_defaults"],
+    defaults: ["fluoride_common_options"],
     header_libs: ["avrcp_headers"],
     export_header_lib_headers: ["avrcp_headers"],
     export_include_dirs: ["."],
@@ -44,6 +44,7 @@ cc_library_static {
     ],
     static_libs: [
         "lib-bt-packets-base",
+        "libchrome",
     ],
     apex_available: [
         "com.android.btservices",
