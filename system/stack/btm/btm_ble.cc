@@ -70,21 +70,8 @@ namespace {
 constexpr char kBtmLogTag[] = "SEC";
 }
 
-// Pairing parameters defined in Vol 3, Part H, Chapter 3.5.1 - 3.5.2
-// All present in the exact decimal values, not hex
-// Ex: bluetooth.core.smp.le.ctkd.initiator_key_distribution 15(0x0f)
-static const char kPropertyCtkdAuthRequest[] =
-    "bluetooth.core.smp.le.ctkd.auth_request";
-static const char kPropertyCtkdIoCapabilities[] =
-    "bluetooth.core.smp.le.ctkd.io_capabilities";
-// Vol 3, Part H, Chapter 3.6.1, Figure 3.11
-// |EncKey(1)|IdKey(1)|SignKey(1)|LinkKey(1)|Reserved(4)|
-static const char kPropertyCtkdInitiatorKeyDistribution[] =
-    "bluetooth.core.smp.le.ctkd.initiator_key_distribution";
-static const char kPropertyCtkdResponderKeyDistribution[] =
-    "bluetooth.core.smp.le.ctkd.responder_key_distribution";
-static const char kPropertyCtkdMaxKeySize[] =
-    "bluetooth.core.smp.le.ctkd.max_key_size";
+static constexpr char kPropertyCtkdDisableCsrkDistribution[] =
+    "bluetooth.core.smp.le.ctkd.quirk_disable_csrk_distribution";
 
 /******************************************************************************/
 /* External Function to be called by other modules                            */
@@ -1761,18 +1748,19 @@ uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
                             tBTM_LE_IO_REQ* p_data) {
   uint8_t callback_rc = BTM_SUCCESS;
   BTM_TRACE_DEBUG("%s", __func__);
-  p_data->io_cap =
-      osi_property_get_int32(kPropertyCtkdIoCapabilities, BTM_IO_CAP_UNKNOWN);
-  p_data->auth_req = osi_property_get_int32(kPropertyCtkdAuthRequest,
-                                            BTM_LE_AUTH_REQ_SC_MITM_BOND);
-  p_data->init_keys = osi_property_get_int32(
-      kPropertyCtkdInitiatorKeyDistribution, SMP_BR_SEC_DEFAULT_KEY);
-  p_data->resp_keys = osi_property_get_int32(
-      kPropertyCtkdResponderKeyDistribution, SMP_BR_SEC_DEFAULT_KEY);
-  p_data->max_key_size =
-      osi_property_get_int32(kPropertyCtkdMaxKeySize, BTM_BLE_MAX_KEY_SIZE);
-  // No OOB data for BR/EDR
-  p_data->oob_data = false;
+  *p_data = tBTM_LE_IO_REQ{
+      .io_cap = BTM_IO_CAP_UNKNOWN,
+      .auth_req = BTM_LE_AUTH_REQ_SC_MITM_BOND,
+      .init_keys = SMP_BR_SEC_DEFAULT_KEY,
+      .resp_keys = SMP_BR_SEC_DEFAULT_KEY,
+      .max_key_size = BTM_BLE_MAX_KEY_SIZE,
+      .oob_data = false,
+  };
+
+  if (osi_property_get_bool(kPropertyCtkdDisableCsrkDistribution, false)) {
+    p_data->init_keys &= (~SMP_SEC_KEY_TYPE_CSRK);
+    p_data->resp_keys &= (~SMP_SEC_KEY_TYPE_CSRK);
+  }
 
   return callback_rc;
 }
