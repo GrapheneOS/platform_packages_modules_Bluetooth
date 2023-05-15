@@ -153,6 +153,15 @@ struct btsnd_hcic_delete_stored_key {
 };
 extern struct btsnd_hcic_delete_stored_key btsnd_hcic_delete_stored_key;
 
+// Name: btsnd_hcic_enable_test_mode
+// Params: void
+// Return: void
+struct btsnd_hcic_enable_test_mode {
+  std::function<void(void)> body{[](void) {}};
+  void operator()(void) { body(); };
+};
+extern struct btsnd_hcic_enable_test_mode btsnd_hcic_enable_test_mode;
+
 // Name: btsnd_hcic_enhanced_accept_synchronous_connection
 // Params: const RawAddress& bd_addr, enh_esco_params_t* p_params
 // Return: void
@@ -486,6 +495,21 @@ struct btsnd_hcic_set_conn_encrypt {
   void operator()(uint16_t handle, bool enable) { body(handle, enable); };
 };
 extern struct btsnd_hcic_set_conn_encrypt btsnd_hcic_set_conn_encrypt;
+
+// Name: btsnd_hcic_set_event_filter
+// Params: uint8_t filt_type, uint8_t filt_cond_type, uint8_t* filt_cond,
+// uint8_t filt_cond_len Return: void
+struct btsnd_hcic_set_event_filter {
+  std::function<void(uint8_t filt_type, uint8_t filt_cond_type,
+                     uint8_t* filt_cond, uint8_t filt_cond_len)>
+      body{[](uint8_t filt_type, uint8_t filt_cond_type, uint8_t* filt_cond,
+              uint8_t filt_cond_len) {}};
+  void operator()(uint8_t filt_type, uint8_t filt_cond_type, uint8_t* filt_cond,
+                  uint8_t filt_cond_len) {
+    body(filt_type, filt_cond_type, filt_cond, filt_cond_len);
+  };
+};
+extern struct btsnd_hcic_set_event_filter btsnd_hcic_set_event_filter;
 
 // Name: btsnd_hcic_setup_esco_conn
 // Params: uint16_t handle, uint32_t transmit_bandwidth, uint32_t
