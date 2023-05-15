@@ -420,6 +420,15 @@ struct BTA_DmSetLocalDiRecord {
 };
 extern struct BTA_DmSetLocalDiRecord BTA_DmSetLocalDiRecord;
 
+// Name: BTA_EnableTestMode
+// Params: void
+// Return: void
+struct BTA_EnableTestMode {
+  std::function<void(void)> body{[](void) {}};
+  void operator()(void) { body(); };
+};
+extern struct BTA_EnableTestMode BTA_EnableTestMode;
+
 // Name: BTA_GetEirService
 // Params: uint8_t* p_eir, size_t eir_len, tBTA_SERVICE_MASK* p_services
 // Return: void

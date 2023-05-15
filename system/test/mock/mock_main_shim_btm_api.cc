@@ -271,6 +271,10 @@ void bluetooth::shim::BTM_BleReadPhy(
     base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb) {
   inc_func_call_count(__func__);
 }
+void bluetooth::shim::BTM_BleReceiverTest(uint8_t rx_freq,
+                                          tBTM_CMPL_CB* p_cmd_cmpl_cback) {
+  inc_func_call_count(__func__);
+}
 void bluetooth::shim::BTM_BleSecureConnectionOobDataReply(
     const RawAddress& bd_addr, uint8_t* p_c, uint8_t* p_r) {
   inc_func_call_count(__func__);
@@ -288,6 +292,15 @@ void bluetooth::shim::BTM_BleSetPrefConnParams(const RawAddress& bd_addr,
                                                uint16_t max_conn_int,
                                                uint16_t peripheral_latency,
                                                uint16_t supervision_tout) {
+  inc_func_call_count(__func__);
+}
+void bluetooth::shim::BTM_BleTestEnd(tBTM_CMPL_CB* p_cmd_cmpl_cback) {
+  inc_func_call_count(__func__);
+}
+void bluetooth::shim::BTM_BleTransmitterTest(uint8_t tx_freq,
+                                             uint8_t test_data_len,
+                                             uint8_t packet_payload,
+                                             tBTM_CMPL_CB* p_cmd_cmpl_cback) {
   inc_func_call_count(__func__);
 }
 void bluetooth::shim::BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy) {
