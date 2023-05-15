@@ -569,3 +569,18 @@ void bta_sdp_remove_record(void* user_data) {
   if (bta_sdp_cb.p_dm_cback)
     bta_sdp_cb.p_dm_cback(BTA_SDP_REMOVE_RECORD_USER_EVT, NULL, user_data);
 }
+
+namespace bluetooth {
+namespace testing {
+
+void bta_create_dip_sdp_record(bluetooth_sdp_record* record,
+                               tSDP_DISC_REC* p_rec) {
+  ::bta_create_dip_sdp_record(record, p_rec);
+}
+
+void bta_sdp_search_cback(tSDP_RESULT result, const void* user_data) {
+  ::bta_sdp_search_cback(result, user_data);
+}
+
+}  // namespace testing
+}  // namespace bluetooth
