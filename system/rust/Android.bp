@@ -109,9 +109,7 @@ rust_test_host {
 
 cc_library_static {
     name: "libbluetooth_core_rs_bridge",
-    defaults: [
-        "libchrome_support_defaults",
-    ],
+    defaults: ["fluoride_common_options"],
     srcs: [
         "src/connection/ffi/connection_shim.cc",
         "src/core/ffi/module.cc",
@@ -131,6 +129,7 @@ cc_library_static {
         "libbt_shim_bridge",
         "libbt_shim_ffi",
 
+        "libchrome",
         "libflatbuffers-cpp",
     ],
     generated_headers: [
