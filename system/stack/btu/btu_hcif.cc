@@ -1139,6 +1139,12 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       LOG(ERROR) << "No command complete expected, but received!";
       break;
 
+    case HCI_BLE_TRANSMITTER_TEST:
+    case HCI_BLE_RECEIVER_TEST:
+    case HCI_BLE_TEST_END:
+      btm_ble_test_command_complete(p);
+      break;
+
     case HCI_BLE_ADD_DEV_RESOLVING_LIST:
       btm_ble_add_resolving_list_entry_complete(p, evt_len);
       break;

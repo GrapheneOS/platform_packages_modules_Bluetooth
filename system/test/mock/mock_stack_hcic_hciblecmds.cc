@@ -75,6 +75,7 @@ struct btsnd_hcic_ble_read_resolvable_addr_local
     btsnd_hcic_ble_read_resolvable_addr_local;
 struct btsnd_hcic_ble_read_resolvable_addr_peer
     btsnd_hcic_ble_read_resolvable_addr_peer;
+struct btsnd_hcic_ble_receiver_test btsnd_hcic_ble_receiver_test;
 struct btsnd_hcic_ble_set_addr_resolution_enable
     btsnd_hcic_ble_set_addr_resolution_enable;
 struct btsnd_hcic_ble_set_adv_data btsnd_hcic_ble_set_adv_data;
@@ -100,6 +101,8 @@ struct btsnd_hcic_ble_set_scan_enable btsnd_hcic_ble_set_scan_enable;
 struct btsnd_hcic_ble_set_scan_params btsnd_hcic_ble_set_scan_params;
 struct btsnd_hcic_ble_set_scan_rsp_data btsnd_hcic_ble_set_scan_rsp_data;
 struct btsnd_hcic_ble_start_enc btsnd_hcic_ble_start_enc;
+struct btsnd_hcic_ble_test_end btsnd_hcic_ble_test_end;
+struct btsnd_hcic_ble_transmitter_test btsnd_hcic_ble_transmitter_test;
 struct btsnd_hcic_ble_upd_ll_conn_params btsnd_hcic_ble_upd_ll_conn_params;
 struct btsnd_hcic_ble_write_adv_params btsnd_hcic_ble_write_adv_params;
 struct btsnd_hcic_create_big btsnd_hcic_create_big;
@@ -300,6 +303,10 @@ void btsnd_hcic_ble_read_resolvable_addr_peer(uint8_t addr_type_peer,
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_read_resolvable_addr_peer(
       addr_type_peer, bda_peer);
 }
+void btsnd_hcic_ble_receiver_test(uint8_t rx_freq) {
+  inc_func_call_count(__func__);
+  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_receiver_test(rx_freq);
+}
 void btsnd_hcic_ble_set_addr_resolution_enable(uint8_t addr_resolution_enable) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_set_addr_resolution_enable(
@@ -410,6 +417,16 @@ void btsnd_hcic_ble_start_enc(uint16_t handle,
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_start_enc(handle, rand,
                                                               ediv, ltk);
+}
+void btsnd_hcic_ble_test_end(void) {
+  inc_func_call_count(__func__);
+  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_test_end();
+}
+void btsnd_hcic_ble_transmitter_test(uint8_t tx_freq, uint8_t test_data_len,
+                                     uint8_t payload) {
+  inc_func_call_count(__func__);
+  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_transmitter_test(
+      tx_freq, test_data_len, payload);
 }
 void btsnd_hcic_ble_upd_ll_conn_params(uint16_t handle, uint16_t conn_int_min,
                                        uint16_t conn_int_max,
