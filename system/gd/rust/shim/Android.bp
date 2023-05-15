@@ -67,7 +67,6 @@ cc_library_static {
     name: "libbt_shim_bridge",
     defaults: [
         "gd_ffi_defaults",
-        "libchrome_support_defaults",
     ],
     generated_headers: [
         "cxx-bridge-header",
@@ -97,7 +96,6 @@ cc_library_static {
     name: "libbluetooth_rust_interop",
     defaults: [
         "gd_ffi_defaults",
-        "libchrome_support_defaults",
     ],
     static_libs: [
         "libbt_shim_bridge",

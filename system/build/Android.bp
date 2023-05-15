@@ -23,30 +23,6 @@ cc_defaults {
     ],
 }
 
-cc_defaults {
-    name: "libchrome_support_defaults",
-    defaults: ["fluoride_common_options"],
-    static_libs: [
-        "libchrome",
-        "libevent",
-        "libmodpb64",
-    ],
-    shared_libs: [
-        "libbase",
-    ],
-    target: {
-        darwin: {
-            enabled: false,
-        },
-        android: {
-            shared_libs: [
-                "libcutils",
-                "liblog",
-            ],
-        },
-    },
-}
-
 // Fuzzable defaults are the subset of defaults that are used in fuzzing, which
 // requires no shared libraries, and no explicit sanitization.
 cc_defaults {

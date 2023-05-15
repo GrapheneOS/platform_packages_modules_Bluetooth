@@ -186,7 +186,6 @@ genrule {
 // Export system headers for rules that can't simply use `include_dirs`
 cc_library_headers {
     name: "libbluetooth_system_headers",
-    defaults: ["libchrome_support_defaults"],
     visibility: [
         "//packages/modules/Bluetooth/system:__subpackages__",
     ],
