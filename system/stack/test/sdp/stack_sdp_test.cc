@@ -227,3 +227,37 @@ TEST_F(StackSdpMainTest, sdp_flags_text) {
                                   std::numeric_limits<uint8_t>::max()))
                    .c_str());
 }
+
+TEST_F(StackSdpMainTest, sdp_status_text) {
+  std::vector<std::pair<tSDP_STATUS, std::string>> status = {
+      std::make_pair(SDP_SUCCESS, "SDP_SUCCESS"),
+      std::make_pair(SDP_INVALID_VERSION, "SDP_INVALID_VERSION"),
+      std::make_pair(SDP_INVALID_SERV_REC_HDL, "SDP_INVALID_SERV_REC_HDL"),
+      std::make_pair(SDP_INVALID_REQ_SYNTAX, "SDP_INVALID_REQ_SYNTAX"),
+      std::make_pair(SDP_INVALID_PDU_SIZE, "SDP_INVALID_PDU_SIZE"),
+      std::make_pair(SDP_INVALID_CONT_STATE, "SDP_INVALID_CONT_STATE"),
+      std::make_pair(SDP_NO_RESOURCES, "SDP_NO_RESOURCES"),
+      std::make_pair(SDP_DI_REG_FAILED, "SDP_DI_REG_FAILED"),
+      std::make_pair(SDP_DI_DISC_FAILED, "SDP_DI_DISC_FAILED"),
+      std::make_pair(SDP_NO_DI_RECORD_FOUND, "SDP_NO_DI_RECORD_FOUND"),
+      std::make_pair(SDP_ERR_ATTR_NOT_PRESENT, "SDP_ERR_ATTR_NOT_PRESENT"),
+      std::make_pair(SDP_ILLEGAL_PARAMETER, "SDP_ILLEGAL_PARAMETER"),
+      std::make_pair(HID_SDP_NO_SERV_UUID, "HID_SDP_NO_SERV_UUID"),
+      std::make_pair(HID_SDP_MANDATORY_MISSING, "HID_SDP_MANDATORY_MISSING"),
+      std::make_pair(SDP_NO_RECS_MATCH, "SDP_NO_RECS_MATCH"),
+      std::make_pair(SDP_CONN_FAILED, "SDP_CONN_FAILED"),
+      std::make_pair(SDP_CFG_FAILED, "SDP_CFG_FAILED"),
+      std::make_pair(SDP_GENERIC_ERROR, "SDP_GENERIC_ERROR"),
+      std::make_pair(SDP_DB_FULL, "SDP_DB_FULL"),
+      std::make_pair(SDP_CANCEL, "SDP_CANCEL"),
+  };
+  for (const auto& stat : status) {
+    ASSERT_STREQ(stat.second.c_str(), sdp_status_text(stat.first).c_str());
+  }
+  auto unknown =
+      base::StringPrintf("UNKNOWN[%hu]", std::numeric_limits<uint16_t>::max());
+  ASSERT_STREQ(unknown.c_str(),
+               sdp_status_text(static_cast<tSDP_STATUS>(
+                                   std::numeric_limits<uint16_t>::max()))
+                   .c_str());
+}
