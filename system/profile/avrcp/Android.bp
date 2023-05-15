@@ -11,7 +11,6 @@ cc_library_static {
     name: "avrcp-target-service",
     defaults: [
         "fluoride_defaults",
-        "libchrome_support_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -46,7 +45,6 @@ cc_test {
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
         "fluoride_defaults",
-        "libchrome_support_defaults",
         "mts_defaults",
     ],
     host_supported: true,
@@ -69,7 +67,9 @@ cc_test {
         "lib-bt-packets-base",
         "libbase",
         "libbtdevice",
+        "libchrome",
         "libcutils",
+        "libevent",
         "libgmock",
         "liblog",
         "libosi",
@@ -86,7 +86,6 @@ cc_fuzz {
     host_supported: true,
     defaults: [
         "fluoride_defaults_fuzzable",
-        "libchrome_support_defaults",
     ],
     srcs: [
         "tests/avrcp_device_fuzz/avrcp_device_fuzz.cc",
@@ -104,6 +103,7 @@ cc_fuzz {
         "lib-bt-packets-base",
         "libbase",
         "libbluetooth_gd",
+        "libchrome",
         "libcutils",
         "libevent",
         "liblog",

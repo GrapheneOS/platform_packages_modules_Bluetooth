@@ -45,7 +45,6 @@ cc_library_static {
     name: "libbt_topshim_cxx",
     defaults: [
         "gd_ffi_defaults",
-        "libchrome_support_defaults",
     ],
     srcs: [
         "btav/btav_shim.cc",
@@ -71,6 +70,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/types",
     ],
     host_supported: true,
+    static_libs: ["libchrome"],
 }
 
 gensrcs {
