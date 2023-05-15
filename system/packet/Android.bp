@@ -9,7 +9,7 @@ package {
 
 cc_library_static {
     name: "lib-bt-packets",
-    defaults: ["libchrome_support_defaults"],
+    defaults: ["fluoride_common_options"],
     host_supported: true,
     export_include_dirs: [
         "./",

@@ -11,7 +11,6 @@ rust_defaults {
     name: "bt_topshim_facade.defaults",
     defaults: [
         "gd_rust_defaults",
-        "libchrome_support_defaults",
     ],
     crate_name: "bt_topshim_facade",
     srcs: ["src/main.rs"],
