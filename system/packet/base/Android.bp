@@ -9,7 +9,7 @@ package {
 
 cc_library_static {
     name: "lib-bt-packets-base",
-    defaults: ["libchrome_support_defaults"],
+    defaults: ["fluoride_common_options"],
     export_include_dirs: ["./"],
     host_supported: true,
     include_dirs: ["packages/modules/Bluetooth/system/include"],
@@ -22,4 +22,5 @@ cc_library_static {
         "com.android.btservices",
     ],
     min_sdk_version: "30",
+    static_libs: ["libchrome"],
 }
