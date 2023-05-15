@@ -34,7 +34,7 @@ cc_library_headers {
 cc_library_static {
     name: "libbluetooth-types",
     vendor_available: true,
-    defaults: ["fluoride_types_defaults"],
+    defaults: ["fluoride_types_defaults_fuzzable"],
     cflags: [
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-fvisibility=default",
