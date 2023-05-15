@@ -3769,6 +3769,44 @@ void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
   btif_update_remote_properties(bd_addr, bd_name, dev_class, dev_type);
 }
 
+static void btif_dm_ble_tx_test_cback(void* p) {
+  char* p_param = (char*)p;
+  uint8_t status;
+  STREAM_TO_UINT8(status, p_param);
+  GetInterfaceToProfiles()->events->invoke_le_test_mode_cb(
+      (status == 0) ? BT_STATUS_SUCCESS : BT_STATUS_FAIL, 0);
+}
+
+static void btif_dm_ble_rx_test_cback(void* p) {
+  char* p_param = (char*)p;
+  uint8_t status;
+  STREAM_TO_UINT8(status, p_param);
+  GetInterfaceToProfiles()->events->invoke_le_test_mode_cb(
+      (status == 0) ? BT_STATUS_SUCCESS : BT_STATUS_FAIL, 0);
+}
+
+static void btif_dm_ble_test_end_cback(void* p) {
+  char* p_param = (char*)p;
+  uint8_t status;
+  uint16_t count = 0;
+  STREAM_TO_UINT8(status, p_param);
+  if (status == 0) STREAM_TO_UINT16(count, p_param);
+  GetInterfaceToProfiles()->events->invoke_le_test_mode_cb(
+      (status == 0) ? BT_STATUS_SUCCESS : BT_STATUS_FAIL, count);
+}
+
+void btif_ble_transmitter_test(uint8_t tx_freq, uint8_t test_data_len,
+                               uint8_t packet_payload) {
+  BTM_BleTransmitterTest(tx_freq, test_data_len, packet_payload,
+                         btif_dm_ble_tx_test_cback);
+}
+
+void btif_ble_receiver_test(uint8_t rx_freq) {
+  BTM_BleReceiverTest(rx_freq, btif_dm_ble_rx_test_cback);
+}
+
+void btif_ble_test_end() { BTM_BleTestEnd(btif_dm_ble_test_end_cback); }
+
 void btif_dm_on_disable() {
   /* cancel any pending pairing requests */
   if (is_bonding_or_sdp()) {
