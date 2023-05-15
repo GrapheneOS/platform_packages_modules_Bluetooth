@@ -997,6 +997,47 @@ void btsnd_hcic_write_def_policy_set(uint16_t settings) {
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
 
+void btsnd_hcic_set_event_filter(uint8_t filt_type, uint8_t filt_cond_type,
+                                 uint8_t* filt_cond, uint8_t filt_cond_len) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_SET_EVENT_FILTER);
+
+  if (filt_type) {
+    p->len = (uint16_t)(HCIC_PREAMBLE_SIZE + 2 + filt_cond_len);
+    UINT8_TO_STREAM(pp, (uint8_t)(2 + filt_cond_len));
+
+    UINT8_TO_STREAM(pp, filt_type);
+    UINT8_TO_STREAM(pp, filt_cond_type);
+
+    if (filt_cond_type == HCI_FILTER_COND_DEVICE_CLASS) {
+      DEVCLASS_TO_STREAM(pp, filt_cond);
+      filt_cond += DEV_CLASS_LEN;
+      DEVCLASS_TO_STREAM(pp, filt_cond);
+      filt_cond += DEV_CLASS_LEN;
+
+      filt_cond_len -= (2 * DEV_CLASS_LEN);
+    } else if (filt_cond_type == HCI_FILTER_COND_BD_ADDR) {
+      BDADDR_TO_STREAM(pp, *((RawAddress*)filt_cond));
+      filt_cond += BD_ADDR_LEN;
+
+      filt_cond_len -= BD_ADDR_LEN;
+    }
+
+    if (filt_cond_len) ARRAY_TO_STREAM(pp, filt_cond, filt_cond_len);
+  } else {
+    p->len = (uint16_t)(HCIC_PREAMBLE_SIZE + 1);
+    UINT8_TO_STREAM(pp, 1);
+
+    UINT8_TO_STREAM(pp, filt_type);
+  }
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}
+
 void btsnd_hcic_write_pin_type(uint8_t type) {
   BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
   uint8_t* pp = (uint8_t*)(p + 1);
@@ -1577,6 +1618,19 @@ void btsnd_hcic_read_failed_contact_counter(uint16_t handle) {
   UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_CMD_HANDLE);
 
   UINT16_TO_STREAM(pp, handle);
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}
+
+void btsnd_hcic_enable_test_mode(void) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+
+  p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_ENABLE_DEV_UNDER_TEST_MODE);
+  UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_READ_CMD);
 
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
