@@ -43,9 +43,12 @@ struct BTM_BleLoadLocalKeys BTM_BleLoadLocalKeys;
 struct BTM_BleOobDataReply BTM_BleOobDataReply;
 struct BTM_BlePasskeyReply BTM_BlePasskeyReply;
 struct BTM_BleReadPhy BTM_BleReadPhy;
+struct BTM_BleReceiverTest BTM_BleReceiverTest;
 struct BTM_BleSecureConnectionOobDataReply BTM_BleSecureConnectionOobDataReply;
 struct BTM_BleSetPhy BTM_BleSetPhy;
 struct BTM_BleSetPrefConnParams BTM_BleSetPrefConnParams;
+struct BTM_BleTestEnd BTM_BleTestEnd;
+struct BTM_BleTransmitterTest BTM_BleTransmitterTest;
 struct BTM_BleVerifySignature BTM_BleVerifySignature;
 struct BTM_GetDeviceDHK BTM_GetDeviceDHK;
 struct BTM_GetDeviceEncRoot BTM_GetDeviceEncRoot;
@@ -160,6 +163,10 @@ void BTM_BleReadPhy(
   inc_func_call_count(__func__);
   test::mock::stack_btm_ble::BTM_BleReadPhy(bd_addr, cb);
 }
+void BTM_BleReceiverTest(uint8_t rx_freq, tBTM_CMPL_CB* p_cmd_cmpl_cback) {
+  inc_func_call_count(__func__);
+  test::mock::stack_btm_ble::BTM_BleReceiverTest(rx_freq, p_cmd_cmpl_cback);
+}
 void BTM_BleSecureConnectionOobDataReply(const RawAddress& bd_addr,
                                          uint8_t* p_c, uint8_t* p_r) {
   inc_func_call_count(__func__);
@@ -180,6 +187,17 @@ void BTM_BleSetPrefConnParams(const RawAddress& bd_addr, uint16_t min_conn_int,
   test::mock::stack_btm_ble::BTM_BleSetPrefConnParams(
       bd_addr, min_conn_int, max_conn_int, peripheral_latency,
       supervision_tout);
+}
+void BTM_BleTestEnd(tBTM_CMPL_CB* p_cmd_cmpl_cback) {
+  inc_func_call_count(__func__);
+  test::mock::stack_btm_ble::BTM_BleTestEnd(p_cmd_cmpl_cback);
+}
+void BTM_BleTransmitterTest(uint8_t tx_freq, uint8_t test_data_len,
+                            uint8_t packet_payload,
+                            tBTM_CMPL_CB* p_cmd_cmpl_cback) {
+  inc_func_call_count(__func__);
+  test::mock::stack_btm_ble::BTM_BleTransmitterTest(
+      tx_freq, test_data_len, packet_payload, p_cmd_cmpl_cback);
 }
 bool BTM_BleVerifySignature(const RawAddress& bd_addr, uint8_t* p_orig,
                             uint16_t len, uint32_t counter, uint8_t* p_comp) {

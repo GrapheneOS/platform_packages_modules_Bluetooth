@@ -36,6 +36,7 @@ static bluetooth::core::EventCallbacks eventCallbacks = {
     .invoke_le_address_associate_cb = invoke_le_address_associate_cb,
     .invoke_acl_state_changed_cb = invoke_acl_state_changed_cb,
     .invoke_thread_evt_cb = invoke_thread_evt_cb,
+    .invoke_le_test_mode_cb = invoke_le_test_mode_cb,
     .invoke_energy_info_cb = invoke_energy_info_cb,
     .invoke_link_quality_report_cb = invoke_link_quality_report_cb};
 

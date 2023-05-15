@@ -460,6 +460,52 @@ void btsnd_hcic_ble_ltk_req_neg_reply(uint16_t handle) {
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
 
+void btsnd_hcic_ble_receiver_test(uint8_t rx_freq) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+
+  p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_WRITE_PARAM1;
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_BLE_RECEIVER_TEST);
+  UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_WRITE_PARAM1);
+
+  UINT8_TO_STREAM(pp, rx_freq);
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}
+
+void btsnd_hcic_ble_transmitter_test(uint8_t tx_freq, uint8_t test_data_len,
+                                     uint8_t payload) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+
+  p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_WRITE_PARAM3;
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_BLE_TRANSMITTER_TEST);
+  UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_WRITE_PARAM3);
+
+  UINT8_TO_STREAM(pp, tx_freq);
+  UINT8_TO_STREAM(pp, test_data_len);
+  UINT8_TO_STREAM(pp, payload);
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}
+
+void btsnd_hcic_ble_test_end(void) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+
+  p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_BLE_TEST_END);
+  UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_READ_CMD);
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}
+
 void btsnd_hcic_ble_read_host_supported(void) {
   BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
   uint8_t* pp = (uint8_t*)(p + 1);

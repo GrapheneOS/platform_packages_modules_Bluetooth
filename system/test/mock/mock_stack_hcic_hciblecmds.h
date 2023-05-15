@@ -464,6 +464,16 @@ struct btsnd_hcic_ble_read_resolvable_addr_peer {
 };
 extern struct btsnd_hcic_ble_read_resolvable_addr_peer
     btsnd_hcic_ble_read_resolvable_addr_peer;
+
+// Name: btsnd_hcic_ble_receiver_test
+// Params: uint8_t rx_freq
+// Return: void
+struct btsnd_hcic_ble_receiver_test {
+  std::function<void(uint8_t rx_freq)> body{[](uint8_t rx_freq) {}};
+  void operator()(uint8_t rx_freq) { body(rx_freq); };
+};
+extern struct btsnd_hcic_ble_receiver_test btsnd_hcic_ble_receiver_test;
+
 // Name: btsnd_hcic_ble_rm_device_resolving_list
 // Params: uint8_t addr_type_peer, const RawAddress& bda_peer
 // Return: void
@@ -720,6 +730,27 @@ struct btsnd_hcic_ble_start_enc {
   };
 };
 extern struct btsnd_hcic_ble_start_enc btsnd_hcic_ble_start_enc;
+
+// Name: btsnd_hcic_ble_test_end
+// Params: void
+// Return: void
+struct btsnd_hcic_ble_test_end {
+  std::function<void(void)> body{[](void) {}};
+  void operator()(void) { body(); };
+};
+extern struct btsnd_hcic_ble_test_end btsnd_hcic_ble_test_end;
+
+// Name: btsnd_hcic_ble_transmitter_test
+// Params: uint8_t tx_freq, uint8_t test_data_len, uint8_t payload
+// Return: void
+struct btsnd_hcic_ble_transmitter_test {
+  std::function<void(uint8_t tx_freq, uint8_t test_data_len, uint8_t payload)>
+      body{[](uint8_t tx_freq, uint8_t test_data_len, uint8_t payload) {}};
+  void operator()(uint8_t tx_freq, uint8_t test_data_len, uint8_t payload) {
+    body(tx_freq, test_data_len, payload);
+  };
+};
+extern struct btsnd_hcic_ble_transmitter_test btsnd_hcic_ble_transmitter_test;
 
 // Name: btsnd_hcic_ble_upd_ll_conn_params
 // Params: uint16_t handle, uint16_t conn_int_min, uint16_t conn_int_max,

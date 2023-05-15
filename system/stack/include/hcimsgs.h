@@ -372,6 +372,12 @@ void btsnd_hcic_ble_write_host_supported(uint8_t le_host_spt,
 
 void btsnd_hcic_ble_read_host_supported(void);
 
+void btsnd_hcic_ble_receiver_test(uint8_t rx_freq);
+
+void btsnd_hcic_ble_transmitter_test(uint8_t tx_freq, uint8_t test_data_len,
+                                     uint8_t payload);
+void btsnd_hcic_ble_test_end(void);
+
 void btsnd_hcic_ble_rc_param_req_reply(uint16_t handle, uint16_t conn_int_min,
                                        uint16_t conn_int_max,
                                        uint16_t conn_latency,
