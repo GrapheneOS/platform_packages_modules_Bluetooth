@@ -765,6 +765,15 @@ static void callback_thread_event(bt_cb_thread_evt event) {
   }
 }
 
+static void dut_mode_recv_callback(uint16_t opcode, uint8_t* buf, uint8_t len) {
+
+}
+
+static void le_test_mode_recv_callback(bt_status_t status,
+                                       uint16_t packet_count) {
+  ALOGV("%s: status:%d packet_count:%d ", __func__, status, packet_count);
+}
+
 static void energy_info_recv_callback(bt_activity_energy_info* p_energy_info,
                                       bt_uid_traffic_t* uid_data) {
   std::shared_lock<std::shared_timed_mutex> lock(jniObjMutex);
@@ -814,6 +823,8 @@ static bt_callbacks_t sBluetoothCallbacks = {sizeof(sBluetoothCallbacks),
                                              le_address_associate_callback,
                                              acl_state_changed_callback,
                                              callback_thread_event,
+                                             dut_mode_recv_callback,
+                                             le_test_mode_recv_callback,
                                              energy_info_recv_callback,
                                              link_quality_report_callback,
                                              generate_local_oob_data_callback,
