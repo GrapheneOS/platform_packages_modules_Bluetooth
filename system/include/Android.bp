@@ -9,13 +9,13 @@ package {
 
 cc_library_headers {
     name: "avrcp_headers",
-    defaults: ["libchrome_support_defaults"],
     export_include_dirs: ["./hardware/avrcp/"],
     header_libs: ["internal_include_headers"],
     export_header_lib_headers: ["internal_include_headers"],
 
     // We need this in case some file outside of the Bluetooth project includes
     // bluetooth.h but doesn't include libchrome which avrcp.h depends on.
+    static_libs: ["libchrome"],
     export_static_lib_headers: ["libchrome"],
 
     vendor_available: true,
@@ -29,7 +29,6 @@ cc_library_headers {
 
 cc_library_headers {
     name: "libbluetooth_headers",
-    defaults: ["libchrome_support_defaults"],
     visibility: [
         "//packages/apps/Test/connectivity/sl4n",
         "//packages/modules/Bluetooth:__subpackages__",
