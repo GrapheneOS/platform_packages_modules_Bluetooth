@@ -35,6 +35,10 @@
 #define UNUSED_ATTR
 #endif
 
+bool btif_is_dut_mode() {
+  inc_func_call_count(__func__);
+  return false;
+}
 bool is_on_jni_thread() {
   inc_func_call_count(__func__);
   return false;
@@ -92,6 +96,10 @@ void btif_adapter_properties_evt(bt_status_t status, uint32_t num_props,
   inc_func_call_count(__func__);
 }
 void btif_disable_service(tBTA_SERVICE_ID service_id) {
+  inc_func_call_count(__func__);
+}
+void btif_dut_mode_configure(uint8_t enable) { inc_func_call_count(__func__); }
+void btif_dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len) {
   inc_func_call_count(__func__);
 }
 void btif_enable_bluetooth_evt() { inc_func_call_count(__func__); }

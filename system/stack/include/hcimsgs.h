@@ -203,6 +203,12 @@ void btsnd_hcic_enhanced_flush(uint16_t handle, uint8_t packet_type);
 
 /**** end of Simple Pairing Commands ****/
 
+extern void btsnd_hcic_set_event_filter(uint8_t filt_type,
+                                        uint8_t filt_cond_type,
+                                        uint8_t* filt_cond,
+                                        uint8_t filt_cond_len);
+/* Set Event Filter */
+
 /* Delete Stored Key */
 void btsnd_hcic_delete_stored_key(const RawAddress& bd_addr,
                                   bool delete_all_flag);
@@ -253,6 +259,7 @@ void btsnd_hcic_read_rssi(uint16_t handle); /* Read RSSI */
 using ReadEncKeySizeCb = base::OnceCallback<void(uint8_t, uint16_t, uint8_t)>;
 void btsnd_hcic_read_encryption_key_size(uint16_t handle, ReadEncKeySizeCb cb);
 void btsnd_hcic_read_failed_contact_counter(uint16_t handle);
+void btsnd_hcic_enable_test_mode(void); /* Enable Device Under Test Mode */
 void btsnd_hcic_write_pagescan_type(uint8_t type); /* Write Page Scan Type */
 void btsnd_hcic_write_inqscan_type(uint8_t type);  /* Write Inquiry Scan Type */
 void btsnd_hcic_write_inquiry_mode(uint8_t type);  /* Write Inquiry Mode */
@@ -364,6 +371,12 @@ void btsnd_hcic_ble_write_host_supported(uint8_t le_host_spt,
                                          uint8_t simul_le_host_spt);
 
 void btsnd_hcic_ble_read_host_supported(void);
+
+void btsnd_hcic_ble_receiver_test(uint8_t rx_freq);
+
+void btsnd_hcic_ble_transmitter_test(uint8_t tx_freq, uint8_t test_data_len,
+                                     uint8_t payload);
+void btsnd_hcic_ble_test_end(void);
 
 void btsnd_hcic_ble_rc_param_req_reply(uint16_t handle, uint16_t conn_int_min,
                                        uint16_t conn_int_max,
