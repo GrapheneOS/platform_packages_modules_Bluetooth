@@ -72,13 +72,6 @@ cc_defaults {
 }
 
 cc_defaults {
-    name: "fluoride_types_defaults",
-    defaults: [
-        "fluoride_types_defaults_fuzzable",
-    ],
-}
-
-cc_defaults {
     name: "fluoride_defaults_fuzzable",
     target: {
         android: {
@@ -187,7 +180,6 @@ cc_defaults {
     name: "fluoride_defaults",
     defaults: [
         "fluoride_defaults_fuzzable",
-        "fluoride_types_defaults",
     ],
     static_libs: [
         "libbluetooth_gd",
