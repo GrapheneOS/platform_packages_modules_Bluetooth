@@ -38,7 +38,7 @@
 // TODO(b/198260375): Make SCO data owner group configurable.
 #define SCO_HOST_DATA_GROUP "bluetooth-audio"
 
-/* Per Bluetooth Core v5.0 and HFP 1.7 specification. */
+/* Per Bluetooth Core v5.0 and HFP 1.9 specification. */
 #define BTM_MSBC_H2_HEADER_0 0x01
 #define BTM_MSBC_H2_HEADER_LEN 2
 #define BTM_MSBC_PKT_LEN 60
@@ -60,6 +60,12 @@
  * window */
 #define BTM_PLC_WINDOW_SIZE 5
 #define BTM_PLC_PL_THRESHOLD 1
+
+/* LC3 definitions */
+#define BTM_LC3_H2_HEADER_0 0x01
+#define BTM_LC3_H2_HEADER_LEN 2
+#define BTM_LC3_PKT_LEN 60
+#define BTM_LC3_FS 240 /* Frame Size */
 
 namespace {
 
@@ -754,6 +760,345 @@ tBTM_SCO_PKT_STATUS* get_pkt_status() {
 }
 
 }  // namespace wbs
+
+// TODO(b/269970706): fill `pkt_status` and allow `debug_dump`
+namespace swb {
+
+/* Second octet of H2 header is composed by 4 bits fixed 0x8 and 4 bits
+ * sequence number 0000, 0011, 1100, 1111. */
+constexpr uint8_t btm_h2_header_frames_count[] = {0x08, 0x38, 0xc8, 0xf8};
+
+/* Supported SCO packet sizes for LC3. The SWB-LC3 frame parsing
+ * code ties to limited packet size values. Specifically list them out
+ * to check against when setting packet size. The first entry is the default
+ * value as a fallback. */
+constexpr size_t btm_swb_supported_pkt_size[] = {BTM_LC3_PKT_LEN, 72, 0};
+
+/* Buffer size should be set to least common multiple of SCO packet size and
+ * BTM_LC3_PKT_LEN for optimizing buffer copy. */
+constexpr size_t btm_swb_lc3_buffer_size[] = {BTM_LC3_PKT_LEN, 360, 0};
+
+/* Define the structure that contains LC3 data */
+struct tBTM_LC3_INFO {
+  size_t packet_size; /* SCO LC3 packet size supported by lower layer */
+  size_t buf_size; /* The size of the buffer, determined by the packet_size. */
+
+  uint8_t* lc3_decode_buf; /* Buffer to store LC3 packets to decode */
+  size_t decode_buf_wo;    /* Write offset of the decode buffer */
+  size_t decode_buf_ro;    /* Read offset of the decode buffer */
+  bool read_corrupted;     /* If the current LC3 packet read is corrupted */
+
+  uint8_t* lc3_encode_buf; /* Buffer to store the encoded SCO packets */
+  size_t encode_buf_wo;    /* Write offset of the encode buffer */
+  size_t encode_buf_ro;    /* Read offset of the encode buffer */
+
+  int16_t decoded_pcm_buf[BTM_LC3_FS]; /* Buffer to store decoded PCM */
+
+  uint8_t num_encoded_lc3_pkts; /* Number of the encoded LC3 packets */
+
+  static size_t get_supported_packet_size(size_t pkt_size,
+                                          size_t* buffer_size) {
+    int i;
+    for (i = 0; btm_swb_supported_pkt_size[i] != 0 &&
+                btm_swb_supported_pkt_size[i] != pkt_size;
+         i++)
+      ;
+    /* In case of unsupported value, error log and fallback to
+     * BTM_LC3_PKT_LEN(60). */
+    if (btm_swb_supported_pkt_size[i] == 0) {
+      LOG_WARN("Unsupported packet size %lu", (unsigned long)pkt_size);
+      i = 0;
+    }
+
+    if (buffer_size) {
+      *buffer_size = btm_swb_lc3_buffer_size[i];
+    }
+    return btm_swb_supported_pkt_size[i];
+  }
+
+  bool verify_h2_header_seq_num(const uint8_t num) {
+    for (int i = 0; i < 4; i++) {
+      if (num == btm_h2_header_frames_count[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+ public:
+  size_t init(size_t pkt_size) {
+    decode_buf_wo = 0;
+    decode_buf_ro = 0;
+    encode_buf_wo = 0;
+    encode_buf_ro = 0;
+
+    pkt_size = get_supported_packet_size(pkt_size, &buf_size);
+    if (pkt_size == packet_size) return packet_size;
+    packet_size = pkt_size;
+
+    if (lc3_decode_buf) osi_free(lc3_decode_buf);
+    lc3_decode_buf = (uint8_t*)osi_calloc(buf_size);
+
+    if (lc3_encode_buf) osi_free(lc3_encode_buf);
+    lc3_encode_buf = (uint8_t*)osi_calloc(buf_size);
+
+    return packet_size;
+  }
+
+  void deinit() {
+    if (lc3_decode_buf) osi_free(lc3_decode_buf);
+    if (lc3_encode_buf) osi_free(lc3_encode_buf);
+  }
+
+  size_t decodable() { return decode_buf_wo - decode_buf_ro; }
+
+  uint8_t* fill_lc3_pkt_template() {
+    uint8_t* wp = &lc3_encode_buf[encode_buf_wo];
+    if (buf_size - encode_buf_wo < BTM_LC3_PKT_LEN) {
+      LOG_DEBUG("Packet queue can't accommodate more packets.");
+      return nullptr;
+    }
+
+    wp[0] = BTM_LC3_H2_HEADER_0;
+    wp[1] = btm_h2_header_frames_count[num_encoded_lc3_pkts % 4];
+    encode_buf_wo += BTM_LC3_PKT_LEN;
+
+    num_encoded_lc3_pkts++;
+    return wp + BTM_LC3_H2_HEADER_LEN;
+  }
+
+  void mark_pkt_decoded() {
+    if (decode_buf_ro + BTM_LC3_PKT_LEN > decode_buf_wo) {
+      LOG_ERROR("Trying to mark read offset beyond write offset.");
+      return;
+    }
+
+    decode_buf_ro += BTM_LC3_PKT_LEN;
+    if (decode_buf_ro == decode_buf_wo) {
+      decode_buf_ro = 0;
+      decode_buf_wo = 0;
+    }
+  }
+
+  size_t write(const std::vector<uint8_t>& input) {
+    if (input.size() > buf_size - decode_buf_wo) {
+      return 0;
+    }
+
+    std::copy(input.begin(), input.end(), lc3_decode_buf + decode_buf_wo);
+    decode_buf_wo += input.size();
+    return input.size();
+  }
+
+  const uint8_t* find_lc3_pkt_head() {
+    if (read_corrupted) {
+      LOG_DEBUG("Skip corrupted LC3 packets");
+      read_corrupted = false;
+      return nullptr;
+    }
+
+    size_t rp = 0;
+    while (rp < BTM_LC3_PKT_LEN &&
+           decode_buf_wo - (decode_buf_ro + rp) >= BTM_LC3_PKT_LEN) {
+      if ((lc3_decode_buf[decode_buf_ro + rp] != BTM_LC3_H2_HEADER_0) ||
+          !verify_h2_header_seq_num(lc3_decode_buf[decode_buf_ro + rp + 1])) {
+        rp++;
+        continue;
+      }
+
+      if (rp != 0) {
+        LOG_WARN("Skipped %lu bytes of LC3 data ahead of a valid LC3 frame",
+                 (unsigned long)rp);
+        decode_buf_ro += rp;
+      }
+      return &lc3_decode_buf[decode_buf_ro];
+    }
+
+    return nullptr;
+  }
+
+  size_t mark_pkt_dequeued() {
+    LOG_DEBUG(
+        "Try to mark an encoded packet dequeued: ro:%lu wo:%lu pkt_size:%lu",
+        (unsigned long)encode_buf_ro, (unsigned long)encode_buf_wo,
+        (unsigned long)packet_size);
+
+    if (encode_buf_wo - encode_buf_ro < packet_size) return 0;
+
+    encode_buf_ro += packet_size;
+    if (encode_buf_ro == encode_buf_wo) {
+      encode_buf_ro = 0;
+      encode_buf_wo = 0;
+    }
+
+    return packet_size;
+  }
+
+  const uint8_t* sco_pkt_read_ptr() {
+    if (encode_buf_wo - encode_buf_ro < packet_size) {
+      LOG_DEBUG("Insufficient data as a SCO packet to read.");
+      return nullptr;
+    }
+
+    return &lc3_encode_buf[encode_buf_ro];
+  }
+};
+
+static tBTM_LC3_INFO* lc3_info;
+static int decoded_frames;
+static int lost_frames;
+
+size_t init(size_t pkt_size) {
+  GetInterfaceToProfiles()->lc3Codec->initialize();
+
+  decoded_frames = 0;
+  lost_frames = 0;
+
+  if (lc3_info) {
+    LOG_WARN("Re-initiating LC3 buffer that is active or not cleaned");
+    lc3_info->deinit();
+    osi_free(lc3_info);
+  }
+
+  lc3_info = (tBTM_LC3_INFO*)osi_calloc(sizeof(*lc3_info));
+  return lc3_info->init(pkt_size);
+}
+
+void cleanup() {
+  GetInterfaceToProfiles()->lc3Codec->cleanup();
+
+  decoded_frames = 0;
+  lost_frames = 0;
+
+  if (lc3_info == nullptr) return;
+
+  lc3_info->deinit();
+  osi_free_and_reset((void**)&lc3_info);
+}
+
+bool fill_plc_stats(int* num_decoded_frames, double* packet_loss_ratio) {
+  if (lc3_info == NULL || num_decoded_frames == NULL ||
+      packet_loss_ratio == NULL)
+    return false;
+
+  if (decoded_frames <= 0 || lost_frames < 0 || lost_frames > decoded_frames)
+    return false;
+
+  *num_decoded_frames = decoded_frames;
+  *packet_loss_ratio = (double)lost_frames / decoded_frames;
+  return true;
+}
+
+bool enqueue_packet(const std::vector<uint8_t>& data, bool corrupted) {
+  if (lc3_info == nullptr) {
+    LOG_WARN("LC3 buffer uninitialized or cleaned");
+    return false;
+  }
+
+  if (data.size() != lc3_info->packet_size) {
+    LOG_WARN(
+        "Ignoring the coming packet with size %lu that is inconsistent with "
+        "the HAL reported packet size %lu",
+        (unsigned long)data.size(), (unsigned long)lc3_info->packet_size);
+    return false;
+  }
+
+  lc3_info->read_corrupted |= corrupted;
+  if (lc3_info->write(data) != data.size()) {
+    LOG_DEBUG("Fail to write packet with size %lu to buffer",
+              (unsigned long)data.size());
+    return false;
+  }
+
+  return true;
+}
+
+size_t decode(const uint8_t** out_data) {
+  const uint8_t* frame_head = nullptr;
+
+  if (lc3_info == nullptr) {
+    LOG_WARN("LC3 buffer uninitialized or cleaned");
+    return 0;
+  }
+
+  if (out_data == nullptr) {
+    LOG_WARN("%s Invalid output pointer", __func__);
+    return 0;
+  }
+
+  if (lc3_info->decodable() < BTM_LC3_PKT_LEN) {
+    LOG_DEBUG("No complete LC3 packet to decode");
+    return 0;
+  }
+
+  frame_head = lc3_info->find_lc3_pkt_head();
+  if (frame_head == nullptr) {
+    LOG_DEBUG("No valid LC3 packet to decode %lu, %lu",
+              (unsigned long)lc3_info->decode_buf_ro,
+              (unsigned long)lc3_info->decode_buf_wo);
+  }
+
+  bool plc_conducted = !GetInterfaceToProfiles()->lc3Codec->decodePacket(
+      frame_head, lc3_info->decoded_pcm_buf, sizeof(lc3_info->decoded_pcm_buf));
+
+  ++decoded_frames;
+  lost_frames += plc_conducted;
+
+  *out_data = (const uint8_t*)lc3_info->decoded_pcm_buf;
+  lc3_info->mark_pkt_decoded();
+
+  return BTM_LC3_CODE_SIZE;
+}
+
+size_t encode(int16_t* data, size_t len) {
+  uint8_t* pkt_body = nullptr;
+  if (lc3_info == nullptr) {
+    LOG_WARN("LC3 buffer uninitialized or cleaned");
+    return 0;
+  }
+
+  if (data == nullptr) {
+    LOG_WARN("Invalid data to encode");
+    return 0;
+  }
+
+  if (len < BTM_LC3_CODE_SIZE) {
+    LOG_DEBUG(
+        "PCM frames with size %lu is insufficient to be encoded into a LC3 "
+        "packet",
+        (unsigned long)len);
+    return 0;
+  }
+
+  pkt_body = lc3_info->fill_lc3_pkt_template();
+  if (pkt_body == nullptr) {
+    LOG_DEBUG("Failed to fill the template to fill the LC3 packet");
+    return 0;
+  }
+
+  return GetInterfaceToProfiles()->lc3Codec->encodePacket(data, pkt_body);
+}
+
+size_t dequeue_packet(const uint8_t** output) {
+  if (lc3_info == nullptr) {
+    LOG_WARN("LC3 buffer uninitialized or cleaned");
+    return 0;
+  }
+
+  if (output == nullptr) {
+    LOG_WARN("%s Invalid output pointer", __func__);
+    return 0;
+  }
+
+  *output = lc3_info->sco_pkt_read_ptr();
+  if (*output == nullptr) {
+    LOG_DEBUG("Insufficient data to dequeue.");
+    return 0;
+  }
+
+  return lc3_info->mark_pkt_dequeued();
+}
+}  // namespace swb
 
 }  // namespace sco
 }  // namespace audio

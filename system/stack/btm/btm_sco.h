@@ -25,6 +25,7 @@
 #include "stack/include/btm_api_types.h"
 
 #define BTM_MSBC_CODE_SIZE 240
+#define BTM_LC3_CODE_SIZE 480
 
 constexpr uint16_t kMaxScoLinks = static_cast<uint16_t>(BTM_MAX_SCO_LINKS);
 
@@ -116,6 +117,70 @@ size_t dequeue_packet(const uint8_t** output);
 tBTM_SCO_PKT_STATUS* get_pkt_status();
 }  // namespace bluetooth::audio::sco::wbs
 
+/* SCO-over-HCI audio HFP SWB related definitions */
+namespace bluetooth::audio::sco::swb {
+
+/* Initialize struct used for storing SWB related information.
+ * Args:
+ *    pkt_size - Length of the SCO packet. It is determined based on the BT-USB
+ *    adapter's capability and alt mode setting. The value should be queried
+ *    from HAL interface. It will be used to determine the size of the SCO
+ *    packet buffer. Currently, the stack only supports 60 and 72.
+ * Returns:
+ *    The selected packet size. Will fallback to the typical LC3 packet
+ *    length(60) if the pkt_size argument is not supported.
+ */
+size_t init(size_t pkt_size);
+
+/* Clean up when the SCO connection is done */
+void cleanup();
+
+/* Fill in packet loss stats
+ * Args:
+ *    num_decoded_frames - Output argument for the number of decode frames
+ *    packet_loss_ratio - Output argument for the ratio of lost frames
+ * Returns:
+ *    False for invalid arguments or unreasonable stats. True otherwise.
+ */
+bool fill_plc_stats(int* num_decoded_frames, double* packet_loss_ratio);
+
+/* Try to enqueue a packet to a buffer.
+ * Args:
+ *    data - Vector of received packet data bytes.
+ *    corrupted - If the current LC3 packet read is corrupted.
+ * Returns:
+ *    true if enqueued, false if it failed.
+ */
+bool enqueue_packet(const std::vector<uint8_t>& data, bool corrupted);
+
+/* Try to decode LC3 frames from the packets in the buffer.
+ * Args:
+ *    output - Pointer to the decoded PCM bytes caller can read from.
+ * Returns:
+ *    The length of decoded bytes. 0 if failed.
+ */
+size_t decode(const uint8_t** output);
+
+/* Try to encode PCM data into one SCO packet and put the packets in the buffer.
+ * Args:
+ *    data - Pointer to the input PCM bytes for the encoder to encode.
+ *    len - Length of the input data.
+ * Returns:
+ *    The length of input data that is encoded. 0 if failed.
+ */
+size_t encode(int16_t* data, size_t len);
+
+/* Dequeue a SCO packet with encoded LC3 data if possible. The length of the
+ * packet is determined by the pkt_size set by the init().
+ * Args:
+ *    output - Pointer to output LC3 packets encoded by the encoder.
+ * Returns:
+ *    The length of dequeued packet. 0 if failed.
+ */
+size_t dequeue_packet(const uint8_t** output);
+
+}  // namespace bluetooth::audio::sco::swb
+
 #ifndef CASE_RETURN_TEXT
 #define CASE_RETURN_TEXT(code) \
   case code:                   \
@@ -176,10 +241,10 @@ typedef struct {
     return esco.setup.input_data_path == ESCO_DATA_PATH_HCI;
   }
   bool is_wbs() const {
-    return esco.setup.transmit_coding_format.coding_format ==
-               ESCO_CODING_FORMAT_TRANSPNT ||
-           esco.setup.transmit_coding_format.coding_format ==
-               ESCO_CODING_FORMAT_MSBC;
+    return esco.setup.coding_format == ESCO_CODING_FORMAT_MSBC;
+  }
+  bool is_swb() const {
+    return esco.setup.coding_format == ESCO_CODING_FORMAT_LC3;
   }
   uint16_t Handle() const { return hci_handle; }
 

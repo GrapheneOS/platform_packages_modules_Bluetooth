@@ -23,6 +23,7 @@
 #include "btm_sco_hfp_hal.h"
 #include "gd/common/init_flags.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 #include "stack/acl/acl.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/sdpdefs.h"
@@ -308,8 +309,16 @@ bool get_wbs_supported() {
   return false;
 }
 
-// Here SWB default to be false at linux, change if needed
-bool get_swb_supported() { return false; }
+// Check if super-wideband speech is supported on local device
+bool get_swb_supported() {
+  for (cached_codec_info c : cached_codecs) {
+    // SWB runs on the same path as MSBC non-offload.
+    if (c.inner.codec == MSBC_TRANSPARENT) {
+      return osi_property_get_bool("bluetooth.sco.swb_supported", false);
+    }
+  }
+  return false;
+}
 
 // Checks the supported codecs
 bt_codecs get_codec_capabilities(uint64_t codecs) {
@@ -360,12 +369,20 @@ void set_codec_datapath(int codec_uuid) {
   bt_codec* codec;
   uint8_t codec_id;
 
+  if (codec_uuid == UUID_CODEC_LC3 && get_offload_enabled()) {
+    LOG_ERROR("Offload path for LC3 is not implemented.");
+    return;
+  }
+
   switch (codec_uuid) {
     case UUID_CODEC_CVSD:
       codec_id = codec::CVSD;
       break;
     case UUID_CODEC_MSBC:
       codec_id = get_offload_enabled() ? codec::MSBC : codec::MSBC_TRANSPARENT;
+      break;
+    case UUID_CODEC_LC3:
+      codec_id = get_offload_enabled() ? codec::LC3 : codec::MSBC_TRANSPARENT;
       break;
     default:
       LOG_WARN("Unsupported codec (%d). Won't set datapath.", codec_uuid);
@@ -427,13 +444,22 @@ void notify_sco_connection_change(RawAddress device, bool is_connected,
     return;
   }
 
-  // Default to cvsd and try to convert codec.
-  int converted_codec = MGMT_SCO_CODEC_CVSD;
+  if (codec == codec::LC3) {
+    LOG_ERROR("Offload path for LC3 is not implemented.");
+    return;
+  }
 
-  if (codec == codec::MSBC) {
-    converted_codec = MGMT_SCO_CODEC_MSBC;
-  } else if (codec == codec::MSBC_TRANSPARENT) {
-    converted_codec = MGMT_SCO_CODEC_MSBC_TRANSPARENT;
+  int converted_codec;
+
+  switch (codec) {
+    case codec::MSBC:
+      converted_codec = MGMT_SCO_CODEC_MSBC;
+      break;
+    case codec::MSBC_TRANSPARENT:
+      converted_codec = MGMT_SCO_CODEC_MSBC_TRANSPARENT;
+      break;
+    default:
+      converted_codec = MGMT_SCO_CODEC_CVSD;
   }
 
   int ret = mgmt_notify_sco_connection_change(fd, hci, device, is_connected,

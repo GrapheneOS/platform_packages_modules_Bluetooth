@@ -138,6 +138,7 @@ struct CoreInterface {
 
   // codecs
   CodecInterface* msbcCodec;
+  CodecInterface* lc3Codec;
 
   // DO NOT add any more methods here
   HACK_ProfileInterface* profileSpecific_HACK;
@@ -150,10 +151,12 @@ struct CoreInterface {
 
   CoreInterface(EventCallbacks* eventCallbacks,
                 ConfigInterface* configInterface, CodecInterface* msbcCodec,
+                CodecInterface* lc3Codec,
                 HACK_ProfileInterface* profileSpecific_HACK)
       : events{eventCallbacks},
         config{configInterface},
         msbcCodec{msbcCodec},
+        lc3Codec{lc3Codec},
         profileSpecific_HACK{profileSpecific_HACK} {};
 
   CoreInterface(const CoreInterface&) = delete;

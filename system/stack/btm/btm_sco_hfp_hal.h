@@ -33,6 +33,7 @@ enum codec : uint64_t {
   CVSD = 1 << 0,
   MSBC_TRANSPARENT = 1 << 1,
   MSBC = 1 << 2,
+  LC3 = 1 << 3,
 };
 
 struct bt_codec {
@@ -55,6 +56,8 @@ constexpr inline int esco_coding_to_codec(esco_coding_format_t esco_coding) {
       return codec::MSBC_TRANSPARENT;
     case ESCO_CODING_FORMAT_MSBC:
       return codec::MSBC;
+    case ESCO_CODING_FORMAT_LC3:
+      return codec::LC3;
 
     // Default to CVSD encoding if unknown format.
     case ESCO_CODING_FORMAT_CVSD:

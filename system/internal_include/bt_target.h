@@ -250,9 +250,9 @@
  * Initial SCO TX credit
  ************************/
 /* The size of buffer used for TX SCO data packets. The size should be divisible
- * by BTM_MSBC_CODE_SIZE(240) */
+ * by BTM_MSBC_CODE_SIZE(240) and BTM_LC3_CODE_SIZE(480). */
 #ifndef BTM_SCO_DATA_SIZE_MAX
-#define BTM_SCO_DATA_SIZE_MAX 240
+#define BTM_SCO_DATA_SIZE_MAX 480
 #endif
 
 /* The size in bytes of the BTM inquiry database. */
