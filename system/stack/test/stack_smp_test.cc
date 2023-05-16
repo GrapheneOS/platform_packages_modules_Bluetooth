@@ -28,12 +28,15 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/smp_api.h"
+#include "stack/include/smp_status.h"
 #include "stack/smp/p_256_ecc_pp.h"
 #include "stack/smp/smp_int.h"
 #include "test/common/mock_functions.h"
 #include "test/mock/mock_stack_acl.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
+
+using testing::StrEq;
 
 tBTM_CB btm_cb;
 
@@ -140,8 +143,6 @@ Octet16 smp_gen_p2_4_confirm(tSMP_CB* p_cb, const RawAddress& remote_bda);
 tSMP_STATUS smp_calculate_comfirm(tSMP_CB* p_cb, const Octet16& rand,
                                   Octet16* output);
 
-namespace testing {
-
 void dump_uint128(const Octet16& a, char* buffer) {
   for (unsigned int i = 0; i < OCTET16_LEN; ++i) {
     snprintf(buffer, 3, "%02x", a[i]);
@@ -174,7 +175,7 @@ Octet16 parse_uint128(const char* input) {
   return output;
 }
 
-class SmpCalculateConfirmTest : public Test {
+class SmpCalculateConfirmTest : public testing::Test {
  protected:
   tSMP_CB p_cb_;
   // Set random to 0x5783D52156AD6F0E6388274EC6702EE0
@@ -401,4 +402,43 @@ TEST(SmpEccValidationTest, test_invalid_points) {
 
   EXPECT_FALSE(ECC_ValidatePoint(p));
 }
-}  // namespace testing
+
+TEST(SmpStatusText, smp_status_text) {
+  std::vector<std::pair<tSMP_STATUS, std::string>> status = {
+      std::make_pair(SMP_SUCCESS, "SMP_SUCCESS"),
+      std::make_pair(SMP_PASSKEY_ENTRY_FAIL, "SMP_PASSKEY_ENTRY_FAIL"),
+      std::make_pair(SMP_OOB_FAIL, "SMP_OOB_FAIL"),
+      std::make_pair(SMP_PAIR_AUTH_FAIL, "SMP_PAIR_AUTH_FAIL"),
+      std::make_pair(SMP_CONFIRM_VALUE_ERR, "SMP_CONFIRM_VALUE_ERR"),
+      std::make_pair(SMP_PAIR_NOT_SUPPORT, "SMP_PAIR_NOT_SUPPORT"),
+      std::make_pair(SMP_ENC_KEY_SIZE, "SMP_ENC_KEY_SIZE"),
+      std::make_pair(SMP_INVALID_CMD, "SMP_INVALID_CMD"),
+      std::make_pair(SMP_PAIR_FAIL_UNKNOWN, "SMP_PAIR_FAIL_UNKNOWN"),
+      std::make_pair(SMP_REPEATED_ATTEMPTS, "SMP_REPEATED_ATTEMPTS"),
+      std::make_pair(SMP_INVALID_PARAMETERS, "SMP_INVALID_PARAMETERS"),
+      std::make_pair(SMP_DHKEY_CHK_FAIL, "SMP_DHKEY_CHK_FAIL"),
+      std::make_pair(SMP_NUMERIC_COMPAR_FAIL, "SMP_NUMERIC_COMPAR_FAIL"),
+      std::make_pair(SMP_BR_PARING_IN_PROGR, "SMP_BR_PARING_IN_PROGR"),
+      std::make_pair(SMP_XTRANS_DERIVE_NOT_ALLOW,
+                     "SMP_XTRANS_DERIVE_NOT_ALLOW"),
+      std::make_pair(SMP_MAX_FAIL_RSN_PER_SPEC,
+                     "SMP_XTRANS_DERIVE_NOT_ALLOW"),  // NOTE: Dup
+      std::make_pair(SMP_PAIR_INTERNAL_ERR, "SMP_PAIR_INTERNAL_ERR"),
+      std::make_pair(SMP_UNKNOWN_IO_CAP, "SMP_UNKNOWN_IO_CAP"),
+      std::make_pair(SMP_BUSY, "SMP_BUSY"),
+      std::make_pair(SMP_ENC_FAIL, "SMP_ENC_FAIL"),
+      std::make_pair(SMP_STARTED, "SMP_STARTED"),
+      std::make_pair(SMP_RSP_TIMEOUT, "SMP_RSP_TIMEOUT"),
+      std::make_pair(SMP_FAIL, "SMP_FAIL"),
+      std::make_pair(SMP_CONN_TOUT, "SMP_CONN_TOUT"),
+  };
+  for (const auto& stat : status) {
+    ASSERT_STREQ(stat.second.c_str(), smp_status_text(stat.first).c_str());
+  }
+  auto unknown =
+      base::StringPrintf("UNKNOWN[%hhu]", std::numeric_limits<uint8_t>::max());
+  ASSERT_STREQ(unknown.c_str(),
+               smp_status_text(static_cast<tSMP_STATUS>(
+                                   std::numeric_limits<uint8_t>::max()))
+                   .c_str());
+}
