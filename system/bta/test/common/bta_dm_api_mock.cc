@@ -32,3 +32,13 @@ void BTA_DmBleCsisObserve(bool observe, tBTA_DM_SEARCH_CBACK* p_results_cb) {
   LOG_ASSERT(dm_interface) << "Mock BTA DM interface not set!";
   return dm_interface->BTA_DmBleCsisObserve(observe, p_results_cb);
 }
+
+void BTA_DmSirkSecCbRegister(tBTA_DM_SEC_CBACK* p_cback) {
+  LOG_ASSERT(dm_interface) << "Mock BTA DM interface not set!";
+  return dm_interface->BTA_DmSirkSecCbRegister(p_cback);
+}
+
+void BTA_DmSirkConfirmDeviceReply(const RawAddress& bd_addr, bool accept) {
+  LOG_ASSERT(dm_interface) << "Mock BTA DM interface not set!";
+  return dm_interface->BTA_DmSirkConfirmDeviceReply(bd_addr, accept);
+}

@@ -2367,6 +2367,11 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
           p_data->proc_id_addr.pairing_bda, p_data->proc_id_addr.id_addr);
       break;
 
+    case BTA_DM_SIRK_VERIFICATION_REQ_EVT:
+      GetInterfaceToProfiles()->events->invoke_le_address_associate_cb(
+          p_data->proc_id_addr.pairing_bda, p_data->proc_id_addr.id_addr);
+      break;
+
     default:
       BTIF_TRACE_WARNING("%s: unhandled event (%d)", __func__, event);
       break;

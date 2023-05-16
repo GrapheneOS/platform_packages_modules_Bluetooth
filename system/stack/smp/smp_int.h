@@ -147,7 +147,8 @@ typedef enum : uint8_t {
   SMP_SC_OOB_DATA_EVT = (SMP_SELF_DEF_EVT + 23),  // 0x27
 
   SMP_CR_LOC_SC_OOB_DATA_EVT = (SMP_SELF_DEF_EVT + 24),  // 0x28
-  SMP_MAX_EVT = SMP_CR_LOC_SC_OOB_DATA_EVT,              // 0x28
+  SMP_SIRK_DEVICE_VALID_EVT = (SMP_SELF_DEF_EVT + 25),   // 0x29
+  SMP_MAX_EVT = SMP_SIRK_DEVICE_VALID_EVT,               // 0x29
 } tSMP_EVENT;
 typedef tSMP_EVENT tSMP_BR_EVENT;
 
@@ -357,6 +358,7 @@ void smp_enc_cmpl(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_proc_discard(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_pairing_cmpl(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_decide_association_model(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
+void smp_sirk_verify(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_send_app_cback(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_proc_compare(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_check_auth_req(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);

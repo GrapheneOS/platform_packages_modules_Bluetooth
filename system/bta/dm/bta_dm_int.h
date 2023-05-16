@@ -332,6 +332,7 @@ extern tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 typedef struct {
   tBTA_DM_ACTIVE_LINK device_list;
   tBTA_DM_SEC_CBACK* p_sec_cback;
+  tBTA_DM_SEC_CBACK* p_sec_sirk_cback;
   tBTA_BLE_ENERGY_INFO_CBACK* p_energy_info_cback;
   bool disabling;
   alarm_t* disable_timer;
@@ -510,6 +511,9 @@ void bta_dm_enable(tBTA_DM_SEC_CBACK*);
 void bta_dm_disable();
 void bta_dm_init_cb(void);
 void bta_dm_deinit_cb(void);
+void bta_dm_ble_sirk_sec_cb_register(tBTA_DM_SEC_CBACK*);
+void bta_dm_ble_sirk_confirm_device_reply(const RawAddress& bd_addr,
+                                          bool accept);
 void bta_dm_set_dev_name(const std::vector<uint8_t>&);
 void bta_dm_set_visibility(tBTA_DM_DISC, tBTA_DM_CONN);
 void bta_dm_set_scan_config(tBTA_DM_MSG* p_data);
