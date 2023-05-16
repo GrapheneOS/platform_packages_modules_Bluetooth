@@ -1,9 +1,10 @@
 message(STATUS "Enabling bluetooth LMP module.")
 
-# TODO(b/279494407): migrate hci packets to new generator
-android_bluetooth_packet_gen(
-    GENERATED hci_packets_rs INCLUDES packets SRC hci/hci_packets.pdl
-    SOURCE_DIR ${ROOTCANAL_ROOT} LANG rust)
+pdl_gen(
+    NAME hci_packets_rs
+    INPUT ${ROOTCANAL_ROOT}/packets/hci/hci_packets.pdl
+    OUTPUT hci_packets.rs
+    LANG rust)
 
 pdl_gen(
     NAME lmp_packets_rs
