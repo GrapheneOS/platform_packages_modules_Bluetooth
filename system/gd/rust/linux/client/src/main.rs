@@ -13,12 +13,13 @@ use crate::bt_adv::AdvSet;
 use crate::bt_gatt::GattClientContext;
 use crate::callbacks::{
     AdminCallback, AdvertisingSetCallback, BtCallback, BtConnectionCallback, BtManagerCallback,
-    BtSocketManagerCallback, QACallback, ScannerCallback, SuspendCallback,
+    BtSocketManagerCallback, MediaCallback, QACallback, ScannerCallback, SuspendCallback,
 };
 use crate::command_handler::{CommandHandler, SocketSchedule};
 use crate::dbus_iface::{
-    BluetoothAdminDBus, BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus, BluetoothQADBus,
-    BluetoothQALegacyDBus, BluetoothSocketManagerDBus, BluetoothTelephonyDBus, SuspendDBus,
+    BluetoothAdminDBus, BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus, BluetoothMediaDBus,
+    BluetoothQADBus, BluetoothQALegacyDBus, BluetoothSocketManagerDBus, BluetoothTelephonyDBus,
+    SuspendDBus,
 };
 use crate::editor::AsyncEditor;
 use bt_topshim::topstack;
@@ -95,6 +96,9 @@ pub(crate) struct ClientContext {
     /// Proxy for Telephony interface.
     pub(crate) telephony_dbus: Option<BluetoothTelephonyDBus>,
 
+    /// Proxy for Media interface.
+    pub(crate) media_dbus: Option<BluetoothMediaDBus>,
+
     /// Channel to send actions to take in the foreground
     fg: mpsc::Sender<ForegroundActions>,
 
@@ -168,6 +172,7 @@ impl ClientContext {
             suspend_dbus: None,
             socket_manager_dbus: None,
             telephony_dbus: None,
+            media_dbus: None,
             fg: tx,
             dbus_connection,
             dbus_crossroads,
@@ -227,6 +232,8 @@ impl ClientContext {
         self.suspend_dbus = Some(SuspendDBus::new(conn.clone(), idx));
 
         self.telephony_dbus = Some(BluetoothTelephonyDBus::new(conn.clone(), idx));
+
+        self.media_dbus = Some(BluetoothMediaDBus::new(conn.clone(), idx));
 
         // Trigger callback registration in the foreground
         let fg = self.fg.clone();
@@ -470,6 +477,8 @@ async fn start_interactive_shell(
                     format!("/org/chromium/bluetooth/client/{}/socket_manager_callback", adapter);
                 let qa_cb_objpath: String =
                     format!("/org/chromium/bluetooth/client/{}/qa_manager_callback", adapter);
+                let media_cb_objpath: String =
+                    format!("/org/chromium/bluetooth/client/{}/bluetooth_media_callback", adapter);
 
                 let dbus_connection = context.lock().unwrap().dbus_connection.clone();
                 let dbus_crossroads = context.lock().unwrap().dbus_crossroads.clone();
@@ -600,6 +609,21 @@ async fn start_interactive_shell(
                         dbus_crossroads.clone(),
                     ),
                 ));
+
+                context
+                    .lock()
+                    .unwrap()
+                    .media_dbus
+                    .as_mut()
+                    .unwrap()
+                    .rpc
+                    .register_callback(Box::new(MediaCallback::new(
+                        media_cb_objpath,
+                        dbus_connection.clone(),
+                        dbus_crossroads.clone(),
+                    )))
+                    .await
+                    .expect("D-Bus error on IBluetoothMedia::RegisterCallback");
 
                 context.lock().unwrap().adapter_ready = true;
                 let adapter_address = context.lock().unwrap().update_adapter_address();
