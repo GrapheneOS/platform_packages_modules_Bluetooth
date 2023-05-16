@@ -340,6 +340,11 @@ typedef struct {
   /* Use for server. if false, should handle database out of sync. */
   bool is_robust_cache_change_aware;
 
+  /* SIRK read related data */
+  tGATT_STATUS gatt_status;
+  uint8_t sirk_type;
+  Octet16 sirk;
+
   bool in_use;
   uint8_t tcb_idx;
 
@@ -503,6 +508,11 @@ void gatt_cl_init_sr_status(tGATT_TCB& tcb);
 bool gatt_cl_read_sr_supp_feat_req(
     const RawAddress& peer_bda,
     base::OnceCallback<void(const RawAddress&, uint8_t)> cb);
+bool gatt_cl_read_sirk_req(
+    const RawAddress& peer_bda,
+    base::OnceCallback<void(tGATT_STATUS status, const RawAddress&,
+                            uint8_t sirk_type, Octet16& sirk)>
+        cb);
 bool gatt_sr_is_cl_multi_variable_len_notif_supported(tGATT_TCB& tcb);
 
 bool gatt_sr_is_cl_change_aware(tGATT_TCB& tcb);
