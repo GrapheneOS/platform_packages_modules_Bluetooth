@@ -75,7 +75,9 @@ class BluetoothShellCommand extends BasicShellCommandHandler {
         }
         @Override
         public int exec(String cmd) throws RemoteException {
-            return mManagerService.enable(AttributionSource.myAttributionSource()) ? 0 : -1;
+            return mManagerService.getBinder().enable(AttributionSource.myAttributionSource())
+                    ? 0
+                    : -1;
         }
         @Override
         public void onHelp(PrintWriter pw) {
@@ -91,7 +93,11 @@ class BluetoothShellCommand extends BasicShellCommandHandler {
         }
         @Override
         public int exec(String cmd) throws RemoteException {
-            return mManagerService.disable(AttributionSource.myAttributionSource(), true) ? 0 : -1;
+            return mManagerService
+                            .getBinder()
+                            .disable(AttributionSource.myAttributionSource(), true)
+                    ? 0
+                    : -1;
         }
         @Override
         public void onHelp(PrintWriter pw) {
