@@ -26,6 +26,7 @@
 #include <functional>
 #include <vector>
 
+#include "common/init_flags.h"
 #include "stack/include/gap_api.h"
 #include "types/raw_address.h"
 
@@ -38,7 +39,8 @@ constexpr uint8_t CAPABILITY_BINAURAL = 0x02;
 constexpr uint8_t CAPABILITY_RESERVED = 0xFC;
 
 // Number of retry for phy update. This targets to reduce phy update collision.
-constexpr uint8_t PHY_UPDATE_RETRY_LIMIT = 5;
+const static uint8_t PHY_UPDATE_RETRY_LIMIT =
+    bluetooth::common::init_flags::get_asha_phy_update_retry_limit();
 
 /** Implementations of HearingAid will also implement this interface */
 class HearingAidAudioReceiver {
