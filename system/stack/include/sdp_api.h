@@ -48,21 +48,6 @@
 typedef void(tSDP_DISC_CMPL_CB)(tSDP_RESULT result);
 typedef void(tSDP_DISC_CMPL_CB2)(tSDP_RESULT result, const void* user_data);
 
-typedef struct {
-  RawAddress peer_addr;
-  uint16_t peer_mtu;
-} tSDP_DR_OPEN;
-
-typedef struct {
-  uint8_t* p_data;
-  uint16_t data_len;
-} tSDP_DR_DATA;
-
-typedef union {
-  tSDP_DR_OPEN open;
-  tSDP_DR_DATA data;
-} tSDP_DATA;
-
 /* Define a structure to hold the discovered service information. */
 typedef struct {
   union {
