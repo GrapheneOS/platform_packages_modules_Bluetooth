@@ -28,6 +28,7 @@
 #include "bta/dm/bta_dm_int.h"
 #include "gd/common/circular_buffer.h"
 #include "gd/common/strings.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 
@@ -230,6 +231,7 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
   return true;
 }
 
+extern TimestampedStringCircularBuffer gatt_history_;
 #define DUMPSYS_TAG "shim::legacy::bta::dm"
 void DumpsysBtaDm(int fd) {
   LOG_DUMPSYS_TITLE(fd, DUMPSYS_TAG);
@@ -241,5 +243,11 @@ void DumpsysBtaDm(int fd) {
   }
   LOG_DUMPSYS(fd, " current bta_dm_search_state:%s",
               bta_dm_state_text(bta_dm_search_get_state()).c_str());
+  auto gatt_history = gatt_history_.Pull();
+  LOG_DUMPSYS(fd, " last %zu gatt history entries", gatt_history.size());
+  for (const auto& it : gatt_history) {
+    LOG_DUMPSYS(fd, "   %s %s", EpochMillisToString(it.timestamp).c_str(),
+                it.entry.c_str());
+  }
 }
 #undef DUMPSYS_TAG
