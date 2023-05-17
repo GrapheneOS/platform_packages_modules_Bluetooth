@@ -15,6 +15,7 @@ rust_defaults {
         "libcodespan_reporting",
         "libheck",
         "libpest",
+        "libprettyplease",
         "libproc_macro2",
         "libquote",
         "libserde",
@@ -121,15 +122,7 @@ rust_test_host {
         "libpaste",
     ],
     test_suites: ["general-tests"],
-    enabled: false, // rustfmt is only available on x86.
-    arch: {
-        x86_64: {
-            enabled: true,
-        },
-    },
     data: [
-        ":rustfmt",
-        ":rustfmt.toml",
         ":pdl_generated_files",
     ],
 }
@@ -153,13 +146,8 @@ rust_test_host {
 
 genrule_defaults {
     name: "pdl_rust_generator_defaults",
-    cmd: "set -o pipefail;" +
-        " $(location :pdl) --output-format rust $(in) |" +
-        " $(location :rustfmt) > $(out)",
-    tools: [
-        ":pdl",
-        ":rustfmt",
-    ],
+    cmd: "$(location :pdl) --output-format rust $(in) > $(out)",
+    tools: [":pdl"],
     defaults_visibility: [
         "//external/uwb/src",
         "//packages/modules/Bluetooth:__subpackages__",
@@ -252,6 +240,7 @@ rust_binary_host {
     name: "pdl_generate_tests",
     srcs: ["src/bin/generate-canonical-tests.rs"],
     rustlibs: [
+        "libprettyplease",
         "libproc_macro2",
         "libquote",
         "libserde",
@@ -261,32 +250,20 @@ rust_binary_host {
     ],
 }
 
-genrule_defaults {
-    name: "pdl_rust_generator_src_defaults",
-    tools: [
-        ":pdl_generate_tests",
-        ":rustfmt",
-    ],
-}
-
 genrule {
     name: "pdl_rust_generator_tests_le_src",
-    cmd: "set -o pipefail;" +
-        " $(location :pdl_generate_tests) $(in) pdl_le_backend |" +
-        " $(location :rustfmt) > $(out)",
+    cmd: "$(location :pdl_generate_tests) $(in) pdl_le_backend > $(out)",
     srcs: ["tests/canonical/le_test_vectors.json"],
     out: ["le_canonical.rs"],
-    defaults: ["pdl_rust_generator_src_defaults"],
+    tools: [":pdl_generate_tests"],
 }
 
 genrule {
     name: "pdl_rust_generator_tests_be_src",
-    cmd: "set -o pipefail;" +
-        " $(location :pdl_generate_tests) $(in) pdl_be_backend |" +
-        " $(location :rustfmt) > $(out)",
+    cmd: "$(location :pdl_generate_tests) $(in) pdl_be_backend > $(out)",
     srcs: ["tests/canonical/be_test_vectors.json"],
     out: ["be_canonical.rs"],
-    defaults: ["pdl_rust_generator_src_defaults"],
+    tools: [":pdl_generate_tests"],
 }
 
 rust_test_host {
@@ -404,13 +381,8 @@ python_test_host {
 // Defaults for the rust_noalloc backend
 genrule_defaults {
     name: "pdl_rust_noalloc_generator_defaults",
-    cmd: "set -o pipefail;" +
-        " $(location :pdl) --output-format rust_no_alloc $(in) |" +
-        " $(location :rustfmt) > $(out)",
-    tools: [
-        ":pdl",
-        ":rustfmt",
-    ],
+    cmd: "$(location :pdl) --output-format rust_no_alloc $(in) > $(out)",
+    tools: [":pdl"],
 }
 
 // Generate the rust_noalloc backend srcs against the little-endian test vectors
