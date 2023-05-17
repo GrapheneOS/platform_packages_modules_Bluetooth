@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use quote::quote;
 use std::path::Path;
 
+use crate::quote_block;
+
 /// Generate the file preamble.
-pub fn generate(path: &Path) -> proc_macro2::TokenStream {
+pub fn generate(path: &Path) -> String {
+    let mut code = String::new();
     // TODO(mgeisler): Make the  generated code free from warnings.
     //
     // The code either needs
@@ -48,7 +50,7 @@ pub fn generate(path: &Path) -> proc_macro2::TokenStream {
     // mod foo { include_str!("generated.rs") }
     // use foo::*;
     // fn after() {}
-    quote! {
+    code.push_str(&quote_block! {
         #[doc = #module_doc_string]
 
         use bytes::{Buf, BufMut, Bytes, BytesMut};
@@ -73,7 +75,9 @@ pub fn generate(path: &Path) -> proc_macro2::TokenStream {
                 &self.0
             }
         }
+    });
 
+    code.push_str(&quote_block! {
         #[derive(Debug, Error)]
         pub enum Error {
             #[error("Packet parsing failed")]
@@ -93,12 +97,16 @@ pub fn generate(path: &Path) -> proc_macro2::TokenStream {
             #[error("expected child {expected}, got {actual}")]
             InvalidChildError { expected: &'static str, actual: String },
         }
+    });
 
+    code.push_str(&quote_block! {
         pub trait Packet {
             fn to_bytes(self) -> Bytes;
             fn to_vec(self) -> Vec<u8>;
         }
-    }
+    });
+
+    code
 }
 
 #[cfg(test)]
@@ -108,7 +116,7 @@ mod tests {
 
     #[test]
     fn test_generate_preamble() {
-        let actual_code = generate(Path::new("some/path/foo.pdl")).to_string();
+        let actual_code = generate(Path::new("some/path/foo.pdl"));
         assert_snapshot_eq("tests/generated/preamble.rs", &format_rust(&actual_code));
     }
 }
