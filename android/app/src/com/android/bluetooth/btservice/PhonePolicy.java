@@ -506,8 +506,9 @@ class PhonePolicy {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     private void processProfileStateChanged(BluetoothDevice device, int profileId, int nextState,
             int prevState) {
-        debugLog("processProfileStateChanged, device=" + device + ", profile=" + profileId + ", "
-                + prevState + " -> " + nextState);
+        debugLog("processProfileStateChanged, device=" + device + ", profile="
+                + BluetoothProfile.getProfileName(profileId) + ", " + prevState + " -> "
+                + nextState);
         if (((profileId == BluetoothProfile.A2DP) || (profileId == BluetoothProfile.HEADSET)
                 || (profileId == BluetoothProfile.LE_AUDIO)
                 || (profileId == BluetoothProfile.CSIP_SET_COORDINATOR)
@@ -544,8 +545,9 @@ class PhonePolicy {
      * @param device is the device we just made the active device
      */
     private void processActiveDeviceChanged(BluetoothDevice device, int profileId) {
-        debugLog("processActiveDeviceChanged, device=" + device + ", profile=" + profileId
-                + " isDualModeAudioEnabled=" + isDualModeAudioEnabled());
+        debugLog("processActiveDeviceChanged, device=" + device + ", profile="
+                + BluetoothProfile.getProfileName(profileId) + " isDualModeAudioEnabled="
+                + isDualModeAudioEnabled());
 
         if (device != null) {
             mDatabaseManager.setConnection(device, profileId == BluetoothProfile.A2DP);
