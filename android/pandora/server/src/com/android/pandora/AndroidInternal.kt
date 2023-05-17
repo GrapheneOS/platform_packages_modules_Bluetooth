@@ -149,6 +149,17 @@ class AndroidInternal(val context: Context) : AndroidImplBase(), Closeable {
     }
   }
 
+  override fun sendPing(
+    request: SendPingRequest,
+    responseObserver: StreamObserver<Empty>
+  ) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      val pingStatus =
+        Runtime.getRuntime().exec("ping -I bt-pan -c 1 ${request.ipAddress}").waitFor()
+      Empty.getDefaultInstance()
+    }
+  }
+
   suspend private fun waitAndSelectBluetoothDevice() {
     var selectJob =
       scope.async {

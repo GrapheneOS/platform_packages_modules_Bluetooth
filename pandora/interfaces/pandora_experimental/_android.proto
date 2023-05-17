@@ -22,6 +22,8 @@ service Android {
   rpc AcceptIncomingFile(google.protobuf.Empty) returns (google.protobuf.Empty);
   // Send file
   rpc SendFile(google.protobuf.Empty) returns (google.protobuf.Empty);
+  // Send ping
+  rpc SendPing(SendPingRequest) returns (google.protobuf.Empty);
 }
 
 message LogRequest {
@@ -48,4 +50,9 @@ message SetAccessPermissionRequest {
 message InternalConnectionRef {
   bytes address = 1;
   int32 transport = 2;
+}
+
+// Request for the `SendPing` rpc.
+message SendPingRequest {
+  string ip_address = 1;
 }
