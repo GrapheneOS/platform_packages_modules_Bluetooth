@@ -18,21 +18,26 @@
 
 #include <gtest/gtest.h>
 
-#include "security/test/fake_storage_module.h"
+#include "storage/storage_module.h"
 
 namespace bluetooth {
 namespace security {
 namespace record {
 namespace {
 
+static const std::chrono::milliseconds kTestConfigSaveDelay = std::chrono::milliseconds(100);
+
+using storage::StorageModule;
+
 class DISABLED_SecurityRecordStorageTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Make Fake storage module
-    storage_module_ = new FakeStorageModule();
+    // Make storage module
+    storage_module_ =
+        new StorageModule("/tmp/temp_config.txt", kTestConfigSaveDelay, 100, false, false);
 
     // Inject
-    fake_registry_.InjectTestModule(&storage::StorageModule::Factory, storage_module_);
+    fake_registry_.InjectTestModule(&StorageModule::Factory, storage_module_);
 
     // Make storage
     record_storage_ = new record::SecurityRecordStorage(storage_module_, handler_);
@@ -45,13 +50,13 @@ class DISABLED_SecurityRecordStorageTest : public ::testing::Test {
   }
 
   void synchronize() {
-    fake_registry_.SynchronizeModuleHandler(&FakeStorageModule::Factory, std::chrono::milliseconds(20));
+    fake_registry_.SynchronizeModuleHandler(&StorageModule::Factory, std::chrono::milliseconds(20));
   }
 
   TestModuleRegistry fake_registry_;
   os::Thread& thread_ = fake_registry_.GetTestThread();
   os::Handler* handler_ = nullptr;
-  FakeStorageModule* storage_module_;
+  StorageModule* storage_module_;
   record::SecurityRecordStorage* record_storage_;
 };
 
