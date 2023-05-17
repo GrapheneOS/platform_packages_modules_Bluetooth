@@ -1490,7 +1490,8 @@ void bta_dm_search_cmpl() {
   bta_dm_search_cb.gatt_disc_active = false;
 
 #if TARGET_FLOSS
-  if (DIS_ReadDISInfo(bta_dm_search_cb.peer_bdaddr, bta_dm_read_dis_cmpl,
+  if (conn_id != GATT_INVALID_CONN_ID &&
+      DIS_ReadDISInfo(bta_dm_search_cb.peer_bdaddr, bta_dm_read_dis_cmpl,
                       DIS_ATTR_PNP_ID_BIT)) {
     return;
   }
