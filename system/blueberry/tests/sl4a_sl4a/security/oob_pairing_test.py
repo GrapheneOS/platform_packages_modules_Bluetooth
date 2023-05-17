@@ -99,9 +99,11 @@ class OobPairingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
 
     def test_le_generate_local_oob_data(self):
         oob_data = self.dut_security_.generate_oob_data(Security.TRANSPORT_LE)
-        assertThat(oob_data).isNotNone()
+        assertThat(oob_data[0]).isEqualTo(0)
+        assertThat(oob_data[1]).isNotNone()
         oob_data = self.cert_security_.generate_oob_data(Security.TRANSPORT_LE)
-        assertThat(oob_data).isNotNone()
+        assertThat(oob_data[0]).isEqualTo(0)
+        assertThat(oob_data[1]).isNotNone()
 
     def test_le_generate_local_oob_data_stress(self):
         for i in range(1, 20):
