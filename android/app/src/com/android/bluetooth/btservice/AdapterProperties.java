@@ -729,17 +729,17 @@ class AdapterProperties {
                     metricId, device.getName());
             MetricsLogger.getInstance().logSanitizedBluetoothDeviceName(metricId, device.getName());
         }
-        Log.d(TAG,
-                "PROFILE_CONNECTION_STATE_CHANGE: profile=" + profile + ", device=" + device + ", "
-                        + prevState + " -> " + state);
+        Log.d(TAG, "PROFILE_CONNECTION_STATE_CHANGE: profile="
+                + BluetoothProfile.getProfileName(profile) + ", device=" + device + ", "
+                + prevState + " -> " + state);
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_CONNECTION_STATE_CHANGED, state,
                 0 /* deprecated */, profile, mService.obfuscateAddress(device),
                 metricId, 0, -1);
 
         if (!isNormalStateTransition(prevState, state)) {
-            Log.w(TAG,
-                    "PROFILE_CONNECTION_STATE_CHANGE: unexpected transition for profile=" + profile
-                            + ", device=" + device + ", " + prevState + " -> " + state);
+            Log.w(TAG, "PROFILE_CONNECTION_STATE_CHANGE: unexpected transition for profile="
+                    + BluetoothProfile.getProfileName(profile)
+                    + ", device=" + device + ", " + prevState + " -> " + state);
         }
         sendConnectionStateChange(device, profile, state, prevState);
     }
