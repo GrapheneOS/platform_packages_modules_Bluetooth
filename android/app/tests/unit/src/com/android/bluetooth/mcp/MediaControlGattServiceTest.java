@@ -32,7 +32,6 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.le_audio.LeAudioService;
@@ -1186,5 +1185,12 @@ public class MediaControlGattServiceTest {
         MediaState playback_state = MediaState.SEEKING;
         state_map.put(PlayerStateField.PLAYBACK_STATE, playback_state);
         mMcpService.updatePlayerState(state_map);
+    }
+
+    @Test
+    public void testDumpDoesNotCrash() {
+        mMcpService.dump(new StringBuilder());
+        BluetoothGattService service = initAllFeaturesGattService();
+        mMcpService.dump(new StringBuilder());
     }
 }
