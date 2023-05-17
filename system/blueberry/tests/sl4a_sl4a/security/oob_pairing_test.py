@@ -132,8 +132,9 @@ class OobPairingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
     def test_le_oob_advertiser_not_using_public_address(self):
         #TODO(optedoblivion): Use sysprop and make another test to handle non privacy case
         oob_data = self.dut_security_.generate_oob_data(Security.TRANSPORT_LE)
-        assertThat(oob_data).isNotNone()
-        advertiser_address = oob_data.to_sl4a_address()
+        assertThat(oob_data[0]).isEqualTo(0)
+        assertThat(oob_data[1]).isNotNone()
+        advertiser_address = oob_data[1].to_sl4a_address()
         public_address = self.dut_advertiser_.get_local_public_address()
         logging.info("DUT Advertiser Address: %s " % advertiser_address)
         logging.info("DUT Public Address: %s " % public_address)
