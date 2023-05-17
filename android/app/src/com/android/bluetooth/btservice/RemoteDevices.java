@@ -697,9 +697,13 @@ final class RemoteDevices {
     }
 
     private void sendUuidIntent(BluetoothDevice device, DeviceProperties prop) {
+        // Send uuids within the stack before the broadcast is sent out
+        ParcelUuid[] uuids = prop == null ? null : prop.getUuids();
+        mAdapterService.sendUuidsInternal(device, uuids);
+
         Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.putExtra(BluetoothDevice.EXTRA_UUID, prop == null ? null : prop.getUuids());
+        intent.putExtra(BluetoothDevice.EXTRA_UUID, uuids);
         Utils.sendBroadcast(mAdapterService, intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());
 
@@ -1140,7 +1144,7 @@ final class RemoteDevices {
                 }
                 resetBatteryLevel(device);
             }
-            if (mAdapterService.checkifAllProfilesAreUnknown(device)) {
+            if (mAdapterService.isAllProfilesUnknown(device)) {
                 DeviceProperties deviceProp = getDeviceProperties(device);
                 if (deviceProp != null) {
                     deviceProp.setBondingInitiatedLocally(false);

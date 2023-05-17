@@ -147,8 +147,14 @@ typedef struct {
 #define BTA_HH_LE_RPT_MAX 20
 #endif
 
+enum tBTA_HH_SERVICE_STATE {
+  BTA_HH_SERVICE_UNKNOWN,
+  BTA_HH_SERVICE_CHANGED,
+  BTA_HH_SERVICE_DISCOVERED,
+};
+
 typedef struct {
-  bool in_use;
+  tBTA_HH_SERVICE_STATE state;
   uint8_t srvc_inst_id;
   tBTA_HH_LE_RPT report[BTA_HH_LE_RPT_MAX];
 

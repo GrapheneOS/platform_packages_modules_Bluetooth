@@ -110,11 +110,11 @@ static inline int create_server_socket(const char* name) {
   LOG_DEBUG("create_server_socket %s", name);
 
   if (osi_socket_local_server_bind(s, name,
-#if defined(OS_GENERIC)
-                                   ANDROID_SOCKET_NAMESPACE_FILESYSTEM
-#else   // !defined(OS_GENERIC)
+#ifdef __ANDROID__
                                    ANDROID_SOCKET_NAMESPACE_ABSTRACT
-#endif  // defined(OS_GENERIC)
+#else   // !__ANDROID__
+                                   ANDROID_SOCKET_NAMESPACE_FILESYSTEM
+#endif  // __ANDROID__
                                    ) < 0) {
     LOG_DEBUG("socket failed to create (%s)", strerror(errno));
     close(s);

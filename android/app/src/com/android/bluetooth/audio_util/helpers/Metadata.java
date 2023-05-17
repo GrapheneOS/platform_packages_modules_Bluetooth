@@ -38,6 +38,16 @@ public class Metadata implements Cloneable {
     public String duration;
     public Image image;
 
+    // Media ID is an implementation detail and doesn't need to be localized
+    public static final String EMPTY_MEDIA_ID = "Not Provided";
+    public static final String EMPTY_TITLE = "Not Provided";
+    public static final String EMPTY_ARTIST = "";
+    public static final String EMPTY_ALBUM = "";
+    public static final String EMPTY_TRACK_NUM = "1";
+    public static final String EMPTY_NUM_TRACKS = "1";
+    public static final String EMPTY_GENRE = "";
+    public static final String EMPTY_DURATION = "0";
+
     @Override
     public Metadata clone() {
         Metadata data = new Metadata();
@@ -282,21 +292,19 @@ public class Metadata implements Cloneable {
          */
         public Builder useDefaults() {
             if (mMetadata.mediaId == null) {
-                mMetadata.mediaId =
-                        mContext != null ? mContext.getString(R.string.not_provided)
-                                : "Not Provided";
+                mMetadata.mediaId = EMPTY_MEDIA_ID;
             }
             if (mMetadata.title == null) {
                 mMetadata.title =
                         mContext != null ? mContext.getString(R.string.not_provided)
-                                : "Not Provided";
+                                : EMPTY_TITLE;
             }
-            if (mMetadata.artist == null) mMetadata.artist = "";
-            if (mMetadata.album == null) mMetadata.album = "";
-            if (mMetadata.trackNum == null) mMetadata.trackNum = "1";
-            if (mMetadata.numTracks == null) mMetadata.numTracks = "1";
-            if (mMetadata.genre == null) mMetadata.genre = "";
-            if (mMetadata.duration == null) mMetadata.duration = "0";
+            if (mMetadata.artist == null) mMetadata.artist = EMPTY_ARTIST;
+            if (mMetadata.album == null) mMetadata.album = EMPTY_ALBUM;
+            if (mMetadata.trackNum == null) mMetadata.trackNum = EMPTY_TRACK_NUM;
+            if (mMetadata.numTracks == null) mMetadata.numTracks = EMPTY_NUM_TRACKS;
+            if (mMetadata.genre == null) mMetadata.genre = EMPTY_GENRE;
+            if (mMetadata.duration == null) mMetadata.duration = EMPTY_DURATION;
             // The default value chosen for an image is null. Update here if we pick something else
             return this;
         }

@@ -35,7 +35,7 @@ import java.util.Objects;
  */
 public class NativeInterface {
     private static final String TAG = "NativeInterface";
-    private static final boolean DBG = false;
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
     private AdapterService mAdapterService;
 
     static {
@@ -275,6 +275,10 @@ public class NativeInterface {
      */
     @VisibleForTesting
     public boolean sendAndroidAt(BluetoothDevice device, String cmd) {
+        if (device == null) {
+            Log.w(TAG, "Don't need to send " + cmd + " because no remote device");
+            return false;
+        }
         return sendAndroidAtNative(getByteAddress(device), cmd);
     }
 

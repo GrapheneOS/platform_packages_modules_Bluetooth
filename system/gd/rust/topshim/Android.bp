@@ -47,7 +47,6 @@ cc_library_static {
         "gd_ffi_defaults",
         "libchrome_support_defaults",
     ],
-    header_libs: ["libbt_callbacks_cxx_headers"],
     srcs: [
         "btav/btav_shim.cc",
         "btav_sink/btav_sink_shim.cc",

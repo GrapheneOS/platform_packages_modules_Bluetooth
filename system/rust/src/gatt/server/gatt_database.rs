@@ -16,7 +16,7 @@ use crate::{
     gatt::{
         callbacks::{GattWriteRequestType, RawGattDatastore},
         ffi::AttributeBackingType,
-        ids::{AttHandle, ConnectionId},
+        ids::{AttHandle, TransportIndex},
     },
     packets::{
         AttAttributeDataChild, AttAttributeDataView, AttErrorCode,
@@ -120,11 +120,11 @@ pub trait GattDatabaseCallbacks {
     /// A peer device on the given bearer has connected to this database (and can see its attributes)
     fn on_le_connect(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         bearer: WeakBoxRef<AttServerBearer<AttDatabaseImpl>>,
     );
     /// A peer device has disconnected from this database
-    fn on_le_disconnect(&self, conn_id: ConnectionId);
+    fn on_le_disconnect(&self, tcb_idx: TransportIndex);
     /// The attributes in the specified range have changed
     fn on_service_change(&self, range: RangeInclusive<AttHandle>);
 }
@@ -144,18 +144,18 @@ impl GattDatabase {
     /// The supplied bearer is guaranteed to be ready for use.
     pub fn on_bearer_ready(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         bearer: WeakBoxRef<AttServerBearer<AttDatabaseImpl>>,
     ) {
         for listener in self.listeners.borrow().iter() {
-            listener.on_le_connect(conn_id, bearer.clone());
+            listener.on_le_connect(tcb_idx, bearer.clone());
         }
     }
 
     /// When the connection has dropped.
-    pub fn on_bearer_dropped(&self, conn_id: ConnectionId) {
+    pub fn on_bearer_dropped(&self, tcb_idx: TransportIndex) {
         for listener in self.listeners.borrow().iter() {
-            listener.on_le_disconnect(conn_id);
+            listener.on_le_disconnect(tcb_idx);
         }
     }
 
@@ -328,15 +328,15 @@ impl SharedBox<GattDatabase> {
     ///
     /// Note: After the AttDatabaseImpl is constructed, we MUST call on_bearer_ready() with
     /// the resultant bearer, so that the listeners get the correct sequence of callbacks.
-    pub fn get_att_database(&self, conn_id: ConnectionId) -> AttDatabaseImpl {
-        AttDatabaseImpl { gatt_db: self.downgrade(), conn_id }
+    pub fn get_att_database(&self, tcb_idx: TransportIndex) -> AttDatabaseImpl {
+        AttDatabaseImpl { gatt_db: self.downgrade(), tcb_idx }
     }
 }
 
 /// An implementation of AttDatabase wrapping an underlying GattDatabase
 pub struct AttDatabaseImpl {
     gatt_db: WeakBox<GattDatabase>,
-    conn_id: ConnectionId,
+    tcb_idx: TransportIndex,
 }
 
 #[async_trait(?Send)]
@@ -365,7 +365,7 @@ impl AttDatabase for AttDatabaseImpl {
             AttAttributeBackingValue::DynamicCharacteristic(datastore) => {
                 datastore
                     .read(
-                        self.conn_id,
+                        self.tcb_idx,
                         handle,
                         /* offset */ 0,
                         AttributeBackingType::Characteristic,
@@ -375,7 +375,7 @@ impl AttDatabase for AttDatabaseImpl {
             AttAttributeBackingValue::DynamicDescriptor(datastore) => {
                 datastore
                     .read(
-                        self.conn_id,
+                        self.tcb_idx,
                         handle,
                         /* offset */ 0,
                         AttributeBackingType::Descriptor,
@@ -413,7 +413,7 @@ impl AttDatabase for AttDatabaseImpl {
             AttAttributeBackingValue::DynamicCharacteristic(datastore) => {
                 datastore
                     .write(
-                        self.conn_id,
+                        self.tcb_idx,
                         handle,
                         AttributeBackingType::Characteristic,
                         GattWriteRequestType::Request,
@@ -424,7 +424,7 @@ impl AttDatabase for AttDatabaseImpl {
             AttAttributeBackingValue::DynamicDescriptor(datastore) => {
                 datastore
                     .write(
-                        self.conn_id,
+                        self.tcb_idx,
                         handle,
                         AttributeBackingType::Descriptor,
                         GattWriteRequestType::Request,
@@ -463,7 +463,7 @@ impl AttDatabase for AttDatabaseImpl {
             }
             AttAttributeBackingValue::DynamicCharacteristic(datastore) => {
                 datastore.write_no_response(
-                    self.conn_id,
+                    self.tcb_idx,
                     handle,
                     AttributeBackingType::Characteristic,
                     data,
@@ -471,7 +471,7 @@ impl AttDatabase for AttDatabaseImpl {
             }
             AttAttributeBackingValue::DynamicDescriptor(datastore) => {
                 datastore.write_no_response(
-                    self.conn_id,
+                    self.tcb_idx,
                     handle,
                     AttributeBackingType::Descriptor,
                     data,
@@ -490,7 +490,7 @@ impl AttDatabase for AttDatabaseImpl {
 
 impl Clone for AttDatabaseImpl {
     fn clone(&self) -> Self {
-        Self { gatt_db: self.gatt_db.clone(), conn_id: self.conn_id }
+        Self { gatt_db: self.gatt_db.clone(), tcb_idx: self.tcb_idx }
     }
 }
 
@@ -505,7 +505,7 @@ impl AttDatabaseImpl {
         self.gatt_db.with(|db| {
             db.map(|db| {
                 for listener in db.listeners.borrow().iter() {
-                    listener.on_le_disconnect(self.conn_id)
+                    listener.on_le_disconnect(self.tcb_idx)
                 }
             })
         });
@@ -541,12 +541,12 @@ mod test {
     const DESCRIPTOR_HANDLE: AttHandle = AttHandle(4);
     const DESCRIPTOR_TYPE: Uuid = Uuid::new(0x9ABC);
 
-    const CONN_ID: ConnectionId = ConnectionId(1);
+    const TCB_IDX: TransportIndex = TransportIndex(1);
 
     #[test]
     fn test_read_empty_db() {
         let gatt_db = SharedBox::new(GattDatabase::new());
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
 
         let resp = tokio_test::block_on(att_db.read_attribute(AttHandle(1)));
 
@@ -567,7 +567,7 @@ mod test {
                 Rc::new(gatt_datastore),
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
 
         let attrs = att_db.list_attributes();
         let service_value = tokio_test::block_on(att_db.read_attribute(SERVICE_HANDLE));
@@ -640,7 +640,7 @@ mod test {
                 gatt_datastore,
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
         assert_eq!(att_db.list_attributes().len(), 9);
 
         // act: remove the middle service
@@ -690,7 +690,7 @@ mod test {
                 Rc::new(gatt_datastore),
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
 
         let attrs = att_db.list_attributes();
         let characteristic_decl =
@@ -743,7 +743,7 @@ mod test {
         // arrange
         let (gatt_datastore, _) = MockDatastore::new();
         let gatt_db = SharedBox::new(GattDatabase::new());
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
 
         // act: add a characteristic with all permission bits set
         gatt_db
@@ -806,7 +806,7 @@ mod test {
                 Rc::new(gatt_datastore),
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
         let data = AttAttributeDataChild::RawData(Box::new([1, 2]));
 
         // act: read from the database, and supply a value from the backing datastore
@@ -814,7 +814,7 @@ mod test {
             join!(
                 async {
                     let MockDatastoreEvents::Read(
-                    CONN_ID,
+                    TCB_IDX,
                     CHARACTERISTIC_VALUE_HANDLE,
                     AttributeBackingType::Characteristic,
                     reply,
@@ -853,7 +853,7 @@ mod test {
             .unwrap();
 
         let characteristic_value = tokio_test::block_on(
-            gatt_db.get_att_database(CONN_ID).read_attribute(CHARACTERISTIC_VALUE_HANDLE),
+            gatt_db.get_att_database(TCB_IDX).read_attribute(CHARACTERISTIC_VALUE_HANDLE),
         );
 
         assert_eq!(characteristic_value, Err(AttErrorCode::READ_NOT_PERMITTED));
@@ -930,7 +930,7 @@ mod test {
                 Rc::new(gatt_datastore),
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
         let data =
             build_view_or_crash(build_att_data(AttAttributeDataChild::RawData(Box::new([1, 2]))));
 
@@ -946,7 +946,7 @@ mod test {
             });
 
             let MockDatastoreEvents::Write(
-                CONN_ID,
+                TCB_IDX,
                 CHARACTERISTIC_VALUE_HANDLE,
                 AttributeBackingType::Characteristic,
                 recv_data,
@@ -984,7 +984,7 @@ mod test {
                 Rc::new(gatt_datastore),
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
         let data =
             build_view_or_crash(build_att_data(AttAttributeDataChild::RawData(Box::new([1, 2]))));
 
@@ -1030,7 +1030,7 @@ mod test {
 
         let characteristic_value = tokio_test::block_on(
             gatt_db
-                .get_att_database(CONN_ID)
+                .get_att_database(TCB_IDX)
                 .write_attribute(CHARACTERISTIC_VALUE_HANDLE, data.view()),
         );
 
@@ -1060,7 +1060,7 @@ mod test {
                 Rc::new(gatt_datastore),
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
         let data = AttAttributeDataChild::RawData(Box::new([1, 2]));
 
         let descriptor_value = block_on_locally(async {
@@ -1069,7 +1069,7 @@ mod test {
                 spawn_local(async move { att_db.read_attribute(DESCRIPTOR_HANDLE).await.unwrap() });
 
             let MockDatastoreEvents::Read(
-                CONN_ID,
+                TCB_IDX,
                 DESCRIPTOR_HANDLE,
                 AttributeBackingType::Descriptor,
                 reply,
@@ -1109,7 +1109,7 @@ mod test {
                 Rc::new(gatt_datastore),
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
         let data =
             build_view_or_crash(build_att_data(AttAttributeDataChild::RawData(Box::new([1, 2]))));
 
@@ -1121,7 +1121,7 @@ mod test {
             });
 
             let MockDatastoreEvents::Write(
-                CONN_ID,
+                TCB_IDX,
                 DESCRIPTOR_HANDLE,
                 AttributeBackingType::Descriptor,
                 _,
@@ -1180,7 +1180,7 @@ mod test {
             .unwrap();
 
         // act: get the attributes
-        let attributes = gatt_db.get_att_database(CONN_ID).list_attributes();
+        let attributes = gatt_db.get_att_database(TCB_IDX).list_attributes();
 
         // assert: check the attributes are in the correct order
         assert_eq!(attributes.len(), 8);
@@ -1244,7 +1244,7 @@ mod test {
             )
             .unwrap();
 
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
         let data = AttAttributeDataChild::RawData(Box::new([1, 2]));
 
         // act: read from the second characteristic and supply a response from the second datastore
@@ -1252,7 +1252,7 @@ mod test {
             join!(
                 async {
                     let MockDatastoreEvents::Read(
-                    CONN_ID,
+                    TCB_IDX,
                     AttHandle(6),
                     AttributeBackingType::Characteristic,
                     reply,
@@ -1277,7 +1277,7 @@ mod test {
     fn make_bearer(
         gatt_db: &SharedBox<GattDatabase>,
     ) -> SharedBox<AttServerBearer<AttDatabaseImpl>> {
-        SharedBox::new(AttServerBearer::new(gatt_db.get_att_database(CONN_ID), |_| {
+        SharedBox::new(AttServerBearer::new(gatt_db.get_att_database(TCB_IDX), |_| {
             unreachable!();
         }))
     }
@@ -1291,11 +1291,11 @@ mod test {
         let bearer = make_bearer(&gatt_db);
 
         // act: open a connection
-        gatt_db.on_bearer_ready(CONN_ID, bearer.as_ref());
+        gatt_db.on_bearer_ready(TCB_IDX, bearer.as_ref());
 
         // assert: we got the callback
         let event = rx.blocking_recv().unwrap();
-        assert!(matches!(event, MockCallbackEvents::OnLeConnect(CONN_ID, _)));
+        assert!(matches!(event, MockCallbackEvents::OnLeConnect(TCB_IDX, _)));
     }
 
     #[test]
@@ -1306,11 +1306,11 @@ mod test {
         gatt_db.register_listener(Rc::new(callbacks));
 
         // act: disconnect
-        gatt_db.on_bearer_dropped(CONN_ID);
+        gatt_db.on_bearer_dropped(TCB_IDX);
 
         // assert: we got the callback
         let event = rx.blocking_recv().unwrap();
-        assert!(matches!(event, MockCallbackEvents::OnLeDisconnect(CONN_ID)));
+        assert!(matches!(event, MockCallbackEvents::OnLeDisconnect(TCB_IDX)));
     }
 
     #[test]
@@ -1323,13 +1323,13 @@ mod test {
         gatt_db.register_listener(Rc::new(callbacks2));
 
         // act: disconnect
-        gatt_db.on_bearer_dropped(CONN_ID);
+        gatt_db.on_bearer_dropped(TCB_IDX);
 
         // assert: we got the callback on both listeners
         let event = rx1.blocking_recv().unwrap();
-        assert!(matches!(event, MockCallbackEvents::OnLeDisconnect(CONN_ID)));
+        assert!(matches!(event, MockCallbackEvents::OnLeDisconnect(TCB_IDX)));
         let event = rx2.blocking_recv().unwrap();
-        assert!(matches!(event, MockCallbackEvents::OnLeDisconnect(CONN_ID)));
+        assert!(matches!(event, MockCallbackEvents::OnLeDisconnect(TCB_IDX)));
     }
 
     #[test]
@@ -1502,7 +1502,7 @@ mod test {
                 Rc::new(gatt_datastore),
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
         let data =
             build_view_or_crash(build_att_data(AttAttributeDataChild::RawData(Box::new([1, 2]))));
 
@@ -1511,7 +1511,7 @@ mod test {
 
         // assert: we got a callback
         let event = data_evts.blocking_recv().unwrap();
-        let MockRawDatastoreEvents::WriteNoResponse(CONN_ID, CHARACTERISTIC_VALUE_HANDLE, AttributeBackingType::Characteristic, recv_data) = event else {
+        let MockRawDatastoreEvents::WriteNoResponse(TCB_IDX, CHARACTERISTIC_VALUE_HANDLE, AttributeBackingType::Characteristic, recv_data) = event else {
             unreachable!("{event:?}");
         };
         assert_eq!(
@@ -1541,7 +1541,7 @@ mod test {
                 Rc::new(gatt_datastore),
             )
             .unwrap();
-        let att_db = gatt_db.get_att_database(CONN_ID);
+        let att_db = gatt_db.get_att_database(TCB_IDX);
         let data =
             build_view_or_crash(build_att_data(AttAttributeDataChild::RawData(Box::new([1, 2]))));
 

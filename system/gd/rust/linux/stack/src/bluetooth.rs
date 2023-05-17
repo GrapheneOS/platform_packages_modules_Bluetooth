@@ -118,10 +118,10 @@ pub trait IBluetooth {
     fn is_le_extended_advertising_supported(&self) -> bool;
 
     /// Starts BREDR Inquiry.
-    fn start_discovery(&self) -> bool;
+    fn start_discovery(&mut self) -> bool;
 
     /// Cancels BREDR Inquiry.
-    fn cancel_discovery(&self) -> bool;
+    fn cancel_discovery(&mut self) -> bool;
 
     /// Checks if discovery is started.
     fn is_discovering(&self) -> bool;
@@ -130,7 +130,7 @@ pub trait IBluetooth {
     fn get_discovery_end_millis(&self) -> u64;
 
     /// Initiates pairing to a remote device. Triggers connection if not already started.
-    fn create_bond(&self, device: BluetoothDevice, transport: BtTransport) -> bool;
+    fn create_bond(&mut self, device: BluetoothDevice, transport: BtTransport) -> bool;
 
     /// Cancels any pending bond attempt on given device.
     fn cancel_bond_process(&self, device: BluetoothDevice) -> bool;
@@ -459,8 +459,10 @@ pub struct Bluetooth {
     is_connectable: bool,
     is_discovering: bool,
     is_discovering_before_suspend: bool,
+    is_discovery_paused: bool,
     discovery_suspend_mode: SuspendMode,
     local_address: Option<RawAddress>,
+    pending_discovery: bool,
     properties: HashMap<BtPropertyType, BluetoothProperty>,
     profiles_ready: bool,
     found_devices: HashMap<String, BluetoothDeviceContext>,
@@ -505,8 +507,10 @@ impl Bluetooth {
             is_connectable: false,
             is_discovering: false,
             is_discovering_before_suspend: false,
+            is_discovery_paused: false,
             discovery_suspend_mode: SuspendMode::Normal,
             local_address: None,
+            pending_discovery: false,
             properties: HashMap::new(),
             profiles_ready: false,
             found_devices: HashMap::new(),
@@ -741,7 +745,7 @@ impl Bluetooth {
     }
 
     /// Returns adapter's discoverable mode.
-    pub(crate) fn get_discoverable_mode(&self) -> BtDiscMode {
+    pub fn get_discoverable_mode_internal(&self) -> BtDiscMode {
         let off_mode = BtDiscMode::NonDiscoverable;
 
         match self.properties.get(&BtPropertyType::AdapterScanMode) {
@@ -755,6 +759,16 @@ impl Bluetooth {
             },
             _ => off_mode,
         }
+    }
+
+    /// Caches the discoverable mode into BluetoothQA.
+    pub fn cache_discoverable_mode_into_qa(&self) {
+        let disc_mode = self.get_discoverable_mode_internal();
+
+        let txl = self.tx.clone();
+        tokio::spawn(async move {
+            let _ = txl.send(Message::QaOnDiscoverableModeChanged(disc_mode)).await;
+        });
     }
 
     /// Returns all bonded and connected devices.
@@ -990,6 +1004,23 @@ impl Bluetooth {
 
         return BtStatus::Success;
     }
+
+    /// Temporarily stop the discovery process and mark it as paused so that clients cannot restart
+    /// it.
+    fn pause_discovery(&mut self) {
+        self.cancel_discovery();
+        self.is_discovery_paused = true;
+    }
+
+    /// Remove the paused flag to allow clients to begin discovery, and if there is already a
+    /// pending request, start discovery.
+    fn resume_discovery(&mut self) {
+        if self.pending_discovery {
+            self.pending_discovery = false;
+            self.start_discovery();
+        }
+        self.is_discovery_paused = false;
+    }
 }
 
 #[btif_callbacks_dispatcher(dispatch_base_callbacks, BaseCallbacks)]
@@ -1192,6 +1223,8 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
         // Update local property cache
         for prop in properties {
+            self.properties.insert(prop.get_type(), prop.clone());
+
             match &prop {
                 BluetoothProperty::BdAddr(bdaddr) => {
                     self.update_local_address(&bdaddr);
@@ -1220,6 +1253,8 @@ impl BtifBluetoothCallbacks for Bluetooth {
                     });
                 }
                 BluetoothProperty::AdapterScanMode(mode) => {
+                    self.cache_discoverable_mode_into_qa();
+
                     self.callbacks.for_all_callbacks(|callback| {
                         callback
                             .on_discoverable_changed(*mode == BtScanMode::ConnectableDiscoverable);
@@ -1227,8 +1262,6 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 }
                 _ => {}
             }
-
-            self.properties.insert(prop.get_type(), prop.clone());
 
             self.callbacks.for_all_callbacks(|callback| {
                 callback.on_adapter_property_changed(prop.get_type());
@@ -1399,6 +1432,12 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 .and_modify(|d| d.bond_state = bond_state.clone());
         }
 
+        // Resume discovery once the bonding process is complete. Discovery was paused before the
+        // bond request to avoid ACL connection from interfering with active inquiry.
+        if &bond_state == &BtBondState::NotBonded || &bond_state == &BtBondState::Bonded {
+            self.resume_discovery();
+        }
+
         // Send bond state changed notifications
         self.callbacks.for_all_callbacks(|callback| {
             callback.on_bond_state_changed(
@@ -1490,6 +1529,10 @@ impl BtifBluetoothCallbacks for Bluetooth {
         conn_direction: BtConnectionDirection,
         _acl_handle: u16,
     ) {
+        // If discovery was previously paused at connect_all_enabled_profiles to avoid an outgoing
+        // ACL connection colliding with an ongoing inquiry, resume it.
+        self.resume_discovery();
+
         if status != BtStatus::Success {
             warn!(
                 "Connection to [{}] failed. Status: {:?}, Reason: {:?}",
@@ -1788,9 +1831,16 @@ impl IBluetooth for Bluetooth {
         }
     }
 
-    fn start_discovery(&self) -> bool {
+    fn start_discovery(&mut self) -> bool {
         // Short-circuit to avoid sending multiple start discovery calls.
         if self.is_discovering {
+            return true;
+        }
+
+        // Short-circuit if paused and add the discovery intent to the queue.
+        if self.is_discovery_paused {
+            self.pending_discovery = true;
+            debug!("Queue the discovery request during paused state");
             return true;
         }
 
@@ -1805,7 +1855,13 @@ impl IBluetooth for Bluetooth {
         self.intf.lock().unwrap().start_discovery() == 0
     }
 
-    fn cancel_discovery(&self) -> bool {
+    fn cancel_discovery(&mut self) -> bool {
+        // Client no longer want to discover, clear the request
+        if self.is_discovery_paused {
+            self.pending_discovery = false;
+            debug!("Cancel the discovery request during paused state");
+        }
+
         // Reject the cancel discovery request if the underlying stack is not in a discovering
         // state. For example, previous start discovery was enqueued for ongoing discovery.
         if !self.is_discovering {
@@ -1841,7 +1897,7 @@ impl IBluetooth for Bluetooth {
         }
     }
 
-    fn create_bond(&self, device: BluetoothDevice, transport: BtTransport) -> bool {
+    fn create_bond(&mut self, device: BluetoothDevice, transport: BtTransport) -> bool {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
@@ -1869,8 +1925,7 @@ impl IBluetooth for Bluetooth {
         metrics::bond_create_attempt(address, device_type.clone());
 
         // BREDR connection won't work when Inquiry is in progress.
-        self.cancel_discovery();
-
+        self.pause_discovery();
         let status = self.intf.lock().unwrap().create_bond(&address, transport);
 
         if status != 0 {
@@ -2225,20 +2280,21 @@ impl IBluetooth for Bluetooth {
             }
         };
 
-        // log ACL connection attempt if it's not already connected.
         let is_connected = self
             .get_remote_device_if_found(&device.address)
             .map_or(false, |d| d.acl_state == BtAclState::Connected);
         if !is_connected {
+            // log ACL connection attempt if it's not already connected.
             metrics::acl_connect_attempt(addr, BtAclState::Connected);
+            // Pause discovery before connecting, or the ACL connection request may conflict with
+            // the ongoing inquiry.
+            self.pause_discovery();
         }
-
-        // Cancel discovery before attempting to connect (or we'll get connection failures).
-        self.cancel_discovery();
 
         // Check all remote uuids to see if they match enabled profiles and connect them.
         let mut has_enabled_uuids = false;
         let mut has_media_profile = false;
+        let mut has_supported_profile = false;
         let uuids = self.get_remote_uuids(device.clone());
         for uuid in uuids.iter() {
             match UuidHelper::is_known_profile(uuid) {
@@ -2246,6 +2302,7 @@ impl IBluetooth for Bluetooth {
                     if UuidHelper::is_profile_supported(&p) {
                         match p {
                             Profile::Hid | Profile::Hogp => {
+                                has_supported_profile = true;
                                 let status = self.hh.as_ref().unwrap().connect(&mut addr);
                                 metrics::profile_connection_state_changed(
                                     addr,
@@ -2267,6 +2324,7 @@ impl IBluetooth for Bluetooth {
                             Profile::A2dpSink | Profile::A2dpSource | Profile::Hfp
                                 if !has_media_profile =>
                             {
+                                has_supported_profile = true;
                                 has_media_profile = true;
                                 let txl = self.tx.clone();
                                 let address = device.address.clone();
@@ -2278,6 +2336,7 @@ impl IBluetooth for Bluetooth {
                             }
 
                             Profile::Bas => {
+                                has_supported_profile = true;
                                 let tx = self.tx.clone();
                                 let transport =
                                     match self.get_remote_device_if_found(&device.address) {
@@ -2321,6 +2380,13 @@ impl IBluetooth for Bluetooth {
                     d.wait_to_connect = true;
                 }
             }
+        }
+
+        // If the SDP has not been completed or the device does not have a profile that we are
+        // interested in connecting to, resume discovery now. Other cases will be handled in the
+        // ACL connection state or bond state callbacks.
+        if !has_enabled_uuids || !has_supported_profile {
+            self.resume_discovery();
         }
 
         return true;

@@ -465,12 +465,6 @@ inline bool BTM_LE_STATES_SUPPORTED(const uint8_t* x, uint8_t bit_num) {
 
 void BTM_BleOpportunisticObserve(bool enable,
                                  tBTM_INQ_RESULTS_CB* p_results_cb) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    bluetooth::shim::BTM_BleOpportunisticObserve(enable, p_results_cb);
-    // NOTE: passthrough, no return here. GD would send the results back to BTM,
-    // and it needs the callbacks set properly.
-  }
-
   if (enable) {
     btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb = p_results_cb;
   } else {
@@ -480,12 +474,6 @@ void BTM_BleOpportunisticObserve(bool enable,
 
 void BTM_BleTargetAnnouncementObserve(bool enable,
                                       tBTM_INQ_RESULTS_CB* p_results_cb) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    bluetooth::shim::BTM_BleTargetAnnouncementObserve(enable, p_results_cb);
-    // NOTE: passthrough, no return here. GD would send the results back to BTM,
-    // and it needs the callbacks set properly.
-  }
-
   if (enable) {
     btm_cb.ble_ctr_cb.p_target_announcement_obs_results_cb = p_results_cb;
   } else {
@@ -504,18 +492,15 @@ void BTM_BleTargetAnnouncementObserve(bool enable,
  *                  duration: how long the scan should last, in seconds. 0 means
  *                  scan without timeout. Starting the scan second time without
  *                  timeout will disable the timer.
+ *                  low_latency_scan: whether this is a low latency scan,
+ *                                    default is false.
  *
  * Returns          void
  *
  ******************************************************************************/
 tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
                            tBTM_INQ_RESULTS_CB* p_results_cb,
-                           tBTM_CMPL_CB* p_cmpl_cb) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    return bluetooth::shim::BTM_BleObserve(start, duration, p_results_cb,
-                                           p_cmpl_cb);
-  }
-
+                           tBTM_CMPL_CB* p_cmpl_cb, bool low_latency_scan) {
   tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
   tBTM_STATUS status = BTM_WRONG_MODE;
 
@@ -524,13 +509,21 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
   uint32_t scan_window =
       !p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window;
 
+  // use low latency scanning if the scanning is active
+  if (low_latency_scan) {
+    scan_interval = BTM_BLE_LOW_LATENCY_SCAN_INT;
+    scan_window = BTM_BLE_LOW_LATENCY_SCAN_WIN;
+  }
+
   BTM_TRACE_EVENT("%s : scan_type:%d, %d, %d", __func__, p_inq->scan_type,
-                  p_inq->scan_interval, p_inq->scan_window);
+                  scan_interval, scan_window);
 
   if (!controller_get_interface()->supports_ble()) return BTM_ILLEGAL_VALUE;
 
   if (start) {
-    /* shared inquiry database, do not allow observe if any inquiry is active */
+    /* shared inquiry database, do not allow observe if any inquiry is active.
+     * except we are doing CSIS active scanning
+     */
     if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
       if (duration == 0) {
         if (alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
@@ -539,12 +532,26 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
           BTM_TRACE_ERROR("%s Scan with no duration started twice!", __func__);
         }
       } else {
-        if (alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
+        if (!low_latency_scan &&
+            alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
           BTM_TRACE_ERROR("%s Scan with duration started twice!", __func__);
         }
       }
-      BTM_TRACE_WARNING("%s Observer was already active", __func__);
-      return BTM_CMD_STARTED;
+      /*
+       * we stop current observation request for below scenarios
+       * 1. if the scan we wish to start is not low latency
+       * 2. current ongoing scanning is low latency
+       */
+      bool is_ongoing_low_latency =
+          p_inq->scan_interval == BTM_BLE_GAP_DISC_SCAN_INT &&
+          p_inq->scan_window == BTM_BLE_LOW_LATENCY_SCAN_WIN;
+      if (!low_latency_scan || is_ongoing_low_latency) {
+        BTM_TRACE_WARNING("%s Observer was already active, is_low_latency: %d",
+                          __func__, is_ongoing_low_latency);
+        return BTM_CMD_STARTED;
+      }
+      // stop any scan without low latency config
+      btm_ble_stop_observe();
     }
 
     btm_cb.ble_ctr_cb.p_obs_results_cb = p_results_cb;
@@ -569,7 +576,10 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
         .start_time_ms = timestamper_in_milliseconds.GetTimestamp(),
         .results = 0,
     };
-    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le observe started");
+
+    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le observe started",
+                   base::StringPrintf("low latency scanning enabled: %d",
+                                      low_latency_scan));
 
     if (status == BTM_CMD_STARTED) {
       btm_cb.ble_ctr_cb.set_ble_observe_active();
@@ -878,9 +888,6 @@ bool BTM_BleConfigPrivacy(bool privacy_mode) {
  *
  ******************************************************************************/
 uint8_t BTM_BleMaxMultiAdvInstanceCount(void) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    return bluetooth::shim::BTM_BleMaxMultiAdvInstanceCount();
-  }
   return btm_cb.cmn_ble_vsc_cb.adv_inst_max < BTM_BLE_MULTI_ADV_MAX
              ? btm_cb.cmn_ble_vsc_cb.adv_inst_max
              : BTM_BLE_MULTI_ADV_MAX;
@@ -896,9 +903,6 @@ uint8_t BTM_BleMaxMultiAdvInstanceCount(void) {
  *
  ******************************************************************************/
 bool BTM_BleLocalPrivacyEnabled(void) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    return bluetooth::shim::BTM_BleLocalPrivacyEnabled();
-  }
   return (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE);
 }
 
@@ -2402,6 +2406,42 @@ static void btm_ble_appearance_to_cod(uint16_t appearance, uint8_t* dev_class) {
   };
 }
 
+bool btm_ble_get_appearance_as_cod(std::vector<uint8_t> const& data,
+                                   DEV_CLASS dev_class) {
+  /* Check to see the BLE device has the Appearance UUID in the advertising
+   * data. If it does then try to convert the appearance value to a class of
+   * device value Fluoride can use. Otherwise fall back to trying to infer if
+   * it is a HID device based on the service class.
+   */
+  uint8_t len;
+  const uint8_t* p_uuid16 = AdvertiseDataParser::GetFieldByType(
+      data, BTM_BLE_AD_TYPE_APPEARANCE, &len);
+  if (p_uuid16 && len == 2) {
+    btm_ble_appearance_to_cod((uint16_t)p_uuid16[0] | (p_uuid16[1] << 8),
+                              dev_class);
+    return true;
+  }
+
+  p_uuid16 = AdvertiseDataParser::GetFieldByType(
+      data, BTM_BLE_AD_TYPE_16SRV_CMPL, &len);
+  if (p_uuid16 == NULL) {
+    return false;
+  }
+
+  for (uint8_t i = 0; i + 2 <= len; i = i + 2) {
+    /* if this BLE device supports HID over LE, set HID Major in class of
+     * device */
+    if ((p_uuid16[i] | (p_uuid16[i + 1] << 8)) == UUID_SERVCLASS_LE_HID) {
+      dev_class[0] = 0;
+      dev_class[1] = BTM_COD_MAJOR_PERIPHERAL;
+      dev_class[2] = 0;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /**
  * Update adv packet information into inquiry result.
  */
@@ -2450,35 +2490,7 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
       p_cur->flag = *p_flag;
     }
 
-    /* Check to see the BLE device has the Appearance UUID in the advertising
-     * data.  If it does
-     * then try to convert the appearance value to a class of device value
-     * Bluedroid can use.
-     * Otherwise fall back to trying to infer if it is a HID device based on the
-     * service class.
-     */
-    const uint8_t* p_uuid16 = AdvertiseDataParser::GetFieldByType(
-        data, BTM_BLE_AD_TYPE_APPEARANCE, &len);
-    if (p_uuid16 && len == 2) {
-      btm_ble_appearance_to_cod((uint16_t)p_uuid16[0] | (p_uuid16[1] << 8),
-                                p_cur->dev_class);
-    } else {
-      p_uuid16 = AdvertiseDataParser::GetFieldByType(
-          data, BTM_BLE_AD_TYPE_16SRV_CMPL, &len);
-      if (p_uuid16 != NULL) {
-        uint8_t i;
-        for (i = 0; i + 2 <= len; i = i + 2) {
-          /* if this BLE device support HID over LE, set HID Major in class of
-           * device */
-          if ((p_uuid16[i] | (p_uuid16[i + 1] << 8)) == UUID_SERVCLASS_LE_HID) {
-            p_cur->dev_class[0] = 0;
-            p_cur->dev_class[1] = BTM_COD_MAJOR_PERIPHERAL;
-            p_cur->dev_class[2] = 0;
-            break;
-          }
-        }
-      }
-    }
+    btm_ble_get_appearance_as_cod(data, p_cur->dev_class);
 
     const uint8_t* p_rsi =
         AdvertiseDataParser::GetFieldByType(data, BTM_BLE_AD_TYPE_RSI, &len);

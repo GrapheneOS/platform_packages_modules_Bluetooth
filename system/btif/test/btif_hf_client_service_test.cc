@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include "bta_hfp_api.h"
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include <hfp.sysprop.h>
 #endif
 
@@ -13,7 +13,7 @@ static tBTA_HF_CLIENT_FEAT gFeatures;
 
 #define DEFAULT_BTA_HFP_VERSION HFP_VERSION_1_7
 int get_default_hfp_version() {
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
   static const int version =
       android::sysprop::bluetooth::Hfp::version().value_or(
           DEFAULT_BTA_HFP_VERSION);
@@ -29,7 +29,7 @@ int get_default_hf_client_features() {
    BTA_HF_CLIENT_FEAT_CLI | BTA_HF_CLIENT_FEAT_VREC | BTA_HF_CLIENT_FEAT_VOL | \
    BTA_HF_CLIENT_FEAT_ECS | BTA_HF_CLIENT_FEAT_ECC | BTA_HF_CLIENT_FEAT_CODEC)
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
   static const int features =
       android::sysprop::bluetooth::Hfp::hf_client_features().value_or(
           DEFAULT_BTIF_HF_CLIENT_FEATURES);

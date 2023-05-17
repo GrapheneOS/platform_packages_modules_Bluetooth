@@ -16,6 +16,7 @@ import asyncio
 import grpc
 import logging
 
+from avatar.bumble_server import utils
 from bumble.core import ProtocolError
 from bumble.device import Connection as BumbleConnection, Device, Peer
 from bumble.gatt_client import CharacteristicProxy, ServiceProxy
@@ -66,6 +67,7 @@ class GATTService(GATTServicer):
     def on_disconnection(self, connection: BumbleConnection) -> None:
         del self.peers[connection.handle]
 
+    @utils.rpc
     async def ExchangeMTU(self, request: ExchangeMTURequest, context: grpc.ServicerContext) -> ExchangeMTUResponse:
         connection_handle = int.from_bytes(request.connection.cookie.value, 'big')
         logging.info(f"ExchangeMTU: {connection_handle}")
@@ -79,6 +81,7 @@ class GATTService(GATTServicer):
 
         return ExchangeMTUResponse()
 
+    @utils.rpc
     async def WriteAttFromHandle(self, request: WriteRequest, context: grpc.ServicerContext) -> WriteResponse:
         connection_handle = int.from_bytes(request.connection.cookie.value, 'big')
         logging.info(f"WriteAttFromHandle: {connection_handle}")
@@ -95,6 +98,7 @@ class GATTService(GATTServicer):
 
         return WriteResponse(handle=request.handle, status=status)
 
+    @utils.rpc
     async def DiscoverServiceByUuid(
         self, request: DiscoverServiceByUuidRequest, context: grpc.ServicerContext
     ) -> DiscoverServicesResponse:
@@ -119,12 +123,12 @@ class GATTService(GATTServicer):
                 GattService(
                     handle=service.handle,
                     type=int.from_bytes(bytes(service.type), 'little'),
-                    uuid=str(service.uuid),
+                    uuid=service.uuid.to_hex_str('-'),  # type: ignore
                     characteristics=[
                         GattCharacteristic(
                             properties=characteristic.properties,  # type: ignore
                             permissions=0,  # TODO
-                            uuid=str(characteristic.uuid),  # type: ignore
+                            uuid=characteristic.uuid.to_hex_str('-'),  # type: ignore
                             handle=characteristic.handle,  # type: ignore
                             descriptors=[
                                 GattCharacteristicDescriptor(
@@ -142,6 +146,7 @@ class GATTService(GATTServicer):
             ]
         )
 
+    @utils.rpc
     async def DiscoverServices(
         self, request: DiscoverServicesRequest, context: grpc.ServicerContext
     ) -> DiscoverServicesResponse:
@@ -165,12 +170,12 @@ class GATTService(GATTServicer):
                 GattService(
                     handle=service.handle,
                     type=int.from_bytes(bytes(service.type), 'little'),
-                    uuid=str(service.uuid),
+                    uuid=service.uuid.to_hex_str('-'),  # type: ignore
                     characteristics=[
                         GattCharacteristic(
                             properties=characteristic.properties,  # type: ignore
                             permissions=0,  # TODO
-                            uuid=str(characteristic.uuid),  # type: ignore
+                            uuid=characteristic.uuid.to_hex_str('-'),  # type: ignore
                             handle=characteristic.handle,  # type: ignore
                             descriptors=[
                                 GattCharacteristicDescriptor(
@@ -190,10 +195,12 @@ class GATTService(GATTServicer):
 
     # TODO: implement `DiscoverServicesSdp`
 
+    @utils.rpc
     async def ClearCache(self, request: ClearCacheRequest, context: grpc.ServicerContext) -> ClearCacheResponse:
-        logging.info(f"ClearCache")
+        logging.info("ClearCache")
         return ClearCacheResponse()
 
+    @utils.rpc
     async def ReadCharacteristicFromHandle(
         self, request: ReadCharacteristicRequest, context: grpc.ServicerContext
     ) -> ReadCharacteristicResponse:
@@ -213,6 +220,7 @@ class GATTService(GATTServicer):
 
         return ReadCharacteristicResponse(value=AttValue(value=value), status=status)
 
+    @utils.rpc
     async def ReadCharacteristicsFromUuid(
         self, request: ReadCharacteristicsFromUuidRequest, context: grpc.ServicerContext
     ) -> ReadCharacteristicsFromUuidResponse:
@@ -243,6 +251,7 @@ class GATTService(GATTServicer):
                 characteristics_read=[ReadCharacteristicResponse(status=e.error_code)]
             )
 
+    @utils.rpc
     async def ReadCharacteristicDescriptorFromHandle(
         self, request: ReadCharacteristicDescriptorRequest, context: grpc.ServicerContext
     ) -> ReadCharacteristicDescriptorResponse:

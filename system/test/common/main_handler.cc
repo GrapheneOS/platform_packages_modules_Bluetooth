@@ -87,7 +87,7 @@ bool is_on_main_thread() {
 #include <sys/syscall.h> /* For SYS_xxx definitions */
 #include <unistd.h>
   return main_thread.GetThreadId() == syscall(__NR_gettid);
-#elif defined(OS_ANDROID)
+#elif defined(__ANDROID__)
 #include <sys/types.h>
 #include <unistd.h>
   return main_thread.GetThreadId() == gettid();

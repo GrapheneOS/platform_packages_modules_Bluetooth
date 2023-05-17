@@ -38,6 +38,11 @@ class Server(context: Context) {
     val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)!!.adapter
 
     val security = Security(context)
+
+    // If Bluetooth is turned off, the server will try to get the available profiles,
+    // but they will be null which will cause the server to crash.
+    // Filtering the nullable profiles will allow the user to
+    // perform a factory reset to turn the Bluetooth back on.
     services =
       listOf(
         security,
@@ -60,6 +65,7 @@ class Server(context: Context) {
             BluetoothProfile.PAN to ::Pan,
             BluetoothProfile.PBAP to ::Pbap,
           )
+          .filter { bluetoothAdapter.isEnabled }
           .filter { bluetoothAdapter.getSupportedProfiles().contains(it.key) == true }
           .map { it.value(context) }
 

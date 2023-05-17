@@ -17,7 +17,7 @@
  ******************************************************************************/
 #pragma once
 
-#if defined(OS_GENERIC)
+#ifndef __ANDROID__
 
 #include <cstdint>
 

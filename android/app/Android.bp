@@ -141,6 +141,7 @@ android_app {
 
     srcs: [
         ":statslog-bluetooth-java-gen",
+        ":statslog-bt-restricted-java-gen",
         "src/**/*.java",
     ],
     aaptflags: [
@@ -260,6 +261,15 @@ genrule {
         " --javaPackage com.android.bluetooth --javaClass BluetoothStatsLog" +
         " --minApiLevel 33",
     out: ["com/android/bluetooth/BluetoothStatsLog.java"],
+}
+
+genrule {
+    name: "statslog-bt-restricted-java-gen",
+    tools: ["stats-log-api-gen"],
+    cmd: "$(location stats-log-api-gen) --java $(out) --module bt_restricted" +
+        " --javaPackage com.android.bluetooth --javaClass BtRestrictedStatsLog" +
+        " --minApiLevel 34",
+    out: ["com/android/bluetooth/BtRestrictedStatsLog.java"],
 }
 
 android_app_certificate {
