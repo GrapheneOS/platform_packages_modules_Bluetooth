@@ -1,5 +1,6 @@
 //! Parsing of various Bluetooth packets.
 use chrono::NaiveDateTime;
+use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::cast::FromPrimitive;
 use std::convert::TryFrom;
 use std::fs::File;

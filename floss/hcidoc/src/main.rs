@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate num_derive;
-
 use clap::{Arg, ArgAction, Command};
 use std::io::Write;
 
