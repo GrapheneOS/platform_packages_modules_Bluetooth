@@ -405,8 +405,6 @@ class BluetoothManagerService {
     }
 
     private void delayModeChangedIfNeeded(Object token, Runnable r, String modechanged) {
-        mHandler.removeCallbacksAndMessages(token);
-
         final int state = getState();
         final int delayMs = estimateBusyTime(state);
         Log.d(TAG, "delayModeChangedIfNeeded(" + modechanged + "): "
@@ -415,6 +413,8 @@ class BluetoothManagerService {
                 + ", isSatelliteModeSensitive()=" + isSatelliteModeSensitive()
                 + ", isSatelliteModeOn()=" + isSatelliteModeOn()
                 + ", delayed=" + delayMs + "ms");
+
+        mHandler.removeCallbacksAndMessages(token);
 
         if (delayMs > 0) {
             mHandler.postDelayed(() -> delayModeChangedIfNeeded(token, r, modechanged),
@@ -430,20 +430,38 @@ class BluetoothManagerService {
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     void onAirplaneModeChanged() {
-        delayModeChangedIfNeeded(ON_AIRPLANE_MODE_CHANGED_TOKEN,
-                () -> handleAirplaneModeChanged(), "onAirplaneModeChanged");
+        mHandler.postDelayed(
+                () ->
+                        delayModeChangedIfNeeded(
+                                ON_AIRPLANE_MODE_CHANGED_TOKEN,
+                                () -> handleAirplaneModeChanged(),
+                                "onAirplaneModeChanged"),
+                ON_AIRPLANE_MODE_CHANGED_TOKEN,
+                0);
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     void onSatelliteModeChanged() {
-        delayModeChangedIfNeeded(ON_SATELLITE_MODE_CHANGED_TOKEN,
-                () -> handleSatelliteModeChanged(), "onSatelliteModeChanged");
+        mHandler.postDelayed(
+                () ->
+                        delayModeChangedIfNeeded(
+                                ON_SATELLITE_MODE_CHANGED_TOKEN,
+                                () -> handleSatelliteModeChanged(),
+                                "onSatelliteModeChanged"),
+                ON_SATELLITE_MODE_CHANGED_TOKEN,
+                0);
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     void onSwitchUser(UserHandle userHandle) {
-        delayModeChangedIfNeeded(ON_SWITCH_USER_TOKEN,
-                () -> handleSwitchUser(userHandle), "onSwitchUser");
+        mHandler.postDelayed(
+                () ->
+                        delayModeChangedIfNeeded(
+                                ON_SWITCH_USER_TOKEN,
+                                () -> handleSwitchUser(userHandle),
+                                "onSwitchUser"),
+                ON_SWITCH_USER_TOKEN,
+                0);
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
