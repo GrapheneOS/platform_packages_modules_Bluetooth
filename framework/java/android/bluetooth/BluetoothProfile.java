@@ -537,7 +537,7 @@ public interface BluetoothProfile {
             case BATTERY:
                 return "BATTERY";
             default:
-                return "UNKNOWN_PROFILE";
+                return "UNKNOWN_PROFILE (" + profile + ")";
         }
     }
 }
