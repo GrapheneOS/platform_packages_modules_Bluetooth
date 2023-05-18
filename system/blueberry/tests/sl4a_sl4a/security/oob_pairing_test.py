@@ -78,7 +78,7 @@ class OobPairingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         if wait_for_oob_data:
             assertThat(oob_data[0]).isEqualTo(0)
             assertThat(oob_data[1]).isNotNone()
-        self.dut_security_.create_bond_out_of_band(oob_data[1], wait_for_device_bonded)
+        self.dut_security_.create_bond_out_of_band(oob_data[1], None, -1, wait_for_device_bonded)
 
     def __create_le_bond_oob_double_sided(self, wait_for_oob_data=True, wait_for_device_bonded=True):
         # Genearte OOB data on DUT, but we don't use it
