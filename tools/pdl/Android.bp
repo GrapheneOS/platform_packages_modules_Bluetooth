@@ -132,9 +132,9 @@ rust_test_host {
         },
     },
     data: [
+        ":pdl_generated_files",
         ":rustfmt",
         ":rustfmt.toml",
-        ":pdl_generated_files",
     ],
 }
 
@@ -553,12 +553,12 @@ cc_test_host {
         "scripts",
     ],
     generated_headers: [
-        "pdl_cxx_canonical_le_src_gen",
         "pdl_cxx_canonical_be_src_gen",
+        "pdl_cxx_canonical_le_src_gen",
     ],
     generated_sources: [
-        "pdl_cxx_canonical_le_test_gen",
         "pdl_cxx_canonical_be_test_gen",
+        "pdl_cxx_canonical_le_test_gen",
     ],
     static_libs: [
         "libgtest",

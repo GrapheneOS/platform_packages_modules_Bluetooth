@@ -118,8 +118,8 @@ cc_library_static {
         "librootcanal_config",
     ],
     whole_static_libs: [
-        "librootcanal_rs",
         "librootcanal_config",
+        "librootcanal_rs",
     ],
     shared_libs: [
         "libbase",
@@ -171,13 +171,13 @@ cc_library_host_shared {
     stl: "libc++_static",
     static_libs: [
         "libcrypto",
-        "librootcanal_config",
         "libprotobuf-cpp-full",
+        "librootcanal_config",
     ],
     whole_static_libs: [
         "libbase",
-        "librootcanal_rs",
         "liblog",
+        "librootcanal_rs",
     ],
     cflags: [
         "-fexceptions",
