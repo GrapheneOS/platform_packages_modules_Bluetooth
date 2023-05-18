@@ -61,7 +61,7 @@ class Security:
                 logging.error("Failed to generate OOB data!")
                 # Check if generating oob data failed without blocking
                 try:
-                    generate_failure_event = self.__device.ed.pop_event(self.SL4A_EVENT_GENERATE_OOB_DATA_FAILURE, 0)
+                    generate_failure_event = self.__device.ed.pop_event(self.SL4A_EVENT_GENERATE_OOB_DATA_ERROR, 0)
                 except queue.Empty as error:
                     logging.error("Failed to generate OOB Data without error code")
                     assertThat(True).isFalse()
