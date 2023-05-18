@@ -23,6 +23,7 @@
 #include <cstdint>
 
 #include "bt_target.h"
+#include "stack/include/sdp_callback.h"
 #include "stack/include/sdp_device_id.h"
 #include "stack/include/sdp_status.h"
 #include "stack/include/sdpdefs.h"
@@ -37,10 +38,6 @@
 /*****************************************************************************
  *  Type Definitions
  ****************************************************************************/
-
-/* Define a callback function for when discovery is complete. */
-typedef void(tSDP_DISC_CMPL_CB)(tSDP_RESULT result);
-typedef void(tSDP_DISC_CMPL_CB2)(tSDP_RESULT result, const void* user_data);
 
 /* API into the SDP layer for service discovery. */
 
