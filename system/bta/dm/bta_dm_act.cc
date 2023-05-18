@@ -4781,6 +4781,12 @@ tBT_TRANSPORT bta_dm_determine_discovery_transport(const RawAddress& bd_addr) {
   return ::bta_dm_determine_discovery_transport(bd_addr);
 }
 
+tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event, tBTM_SP_EVT_DATA* p_data) {
+  return ::bta_dm_sp_cback(event, p_data);
+}
+
+void btm_set_local_io_caps(uint8_t io_caps) { ::btm_local_io_caps = io_caps; }
+
 }  // namespace testing
 }  // namespace legacy
 }  // namespace bluetooth
