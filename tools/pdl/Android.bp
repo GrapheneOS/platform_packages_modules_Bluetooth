@@ -486,7 +486,9 @@ genrule {
     ],
     srcs: [
         "tests/canonical/le_test_file.pdl",
+
         "tests/canonical/le_test_vectors.json",
+
         ":pdl_cxx_canonical_le_src_gen",
     ],
     out: [
@@ -533,7 +535,9 @@ genrule {
     ],
     srcs: [
         ":pdl_be_test_file",
+
         "tests/canonical/be_test_vectors.json",
+
         ":pdl_cxx_canonical_be_src_gen",
     ],
     out: [

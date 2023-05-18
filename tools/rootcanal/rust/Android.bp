@@ -14,6 +14,7 @@ rust_ffi {
     crate_name: "rootcanal_rs",
     srcs: [
         "src/lib.rs",
+
         ":rootcanal_lmp_packets_rust_gen",
         ":rootcanal_hci_packets_rust_gen",
     ],
@@ -43,6 +44,7 @@ rust_test_host {
     crate_name: "rootcanal_rs",
     srcs: [
         "src/lib.rs",
+
         ":rootcanal_lmp_packets_rust_gen",
         ":rootcanal_hci_packets_rust_gen",
     ],

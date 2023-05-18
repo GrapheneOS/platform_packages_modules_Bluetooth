@@ -19,6 +19,7 @@ cc_defaults {
     tidy_checks: [
         "-*",
         "readability-*",
+
         "-readability-function-size",
         "-readability-identifier-length",
         "-readability-implicit-bool-conversion",
