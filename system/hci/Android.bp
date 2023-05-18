@@ -73,30 +73,3 @@ cc_test {
         "libchrome",
     ],
 }
-
-cc_test {
-    name: "net_test_hci_fragmenter_native",
-    static_libs: [
-        "libbase",
-        "libchrome",
-    ],
-    test_suites: ["device-tests"],
-    defaults: [
-        "bluetooth_gtest_x86_asan_workaround",
-        "fluoride_test_defaults",
-        "mts_defaults",
-    ],
-    local_include_dirs: [
-        "include",
-    ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/osi/test",
-        "packages/modules/Bluetooth/system/stack/include",
-    ],
-    srcs: [
-        "src/buffer_allocator.cc",
-        "test/packet_fragmenter_host_test.cc",
-    ],
-}
