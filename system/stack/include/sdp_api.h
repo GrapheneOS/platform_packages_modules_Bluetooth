@@ -23,6 +23,7 @@
 #include <cstdint>
 
 #include "bt_target.h"
+#include "stack/include/sdp_device_id.h"
 #include "stack/include/sdp_status.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/sdp/sdp_discovery_db.h"
@@ -40,26 +41,6 @@
 /* Define a callback function for when discovery is complete. */
 typedef void(tSDP_DISC_CMPL_CB)(tSDP_RESULT result);
 typedef void(tSDP_DISC_CMPL_CB2)(tSDP_RESULT result, const void* user_data);
-
-/* Device Identification (DI) data structure
-*/
-/* Used to set the DI record */
-typedef struct t_sdp_di_record {
-  uint16_t vendor;
-  uint16_t vendor_id_source;
-  uint16_t product;
-  uint16_t version;
-  bool primary_record;
-  char client_executable_url[SDP_MAX_ATTR_LEN]; /* optional */
-  char service_description[SDP_MAX_ATTR_LEN];   /* optional */
-  char documentation_url[SDP_MAX_ATTR_LEN];     /* optional */
-} tSDP_DI_RECORD;
-
-/* Used to get the DI record */
-typedef struct t_sdp_di_get_record {
-  uint16_t spec_id;
-  tSDP_DI_RECORD rec;
-} tSDP_DI_GET_RECORD;
 
 /* API into the SDP layer for service discovery. */
 
