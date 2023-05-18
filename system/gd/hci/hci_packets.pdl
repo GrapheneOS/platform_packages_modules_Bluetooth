@@ -716,7 +716,7 @@ enum OpCodeIndex : 16 {
   LE_READ_BUFFER_SIZE_V2 = 415,
   LE_READ_ISO_TX_SYNC = 416,
   LE_SET_CIG_PARAMETERS = 417,
-  LE_SET_CIG_PARAMETERS_TEST = 418,
+  LE_SET_CIG_PARAMETERS_TEST = 420,
   LE_CREATE_CIS = 421,
   LE_REMOVE_CIG = 422,
   LE_ACCEPT_CIS_REQUEST = 423,
@@ -4483,7 +4483,7 @@ packet LeSetCigParameters : LeIsoCommand (op_code = LE_SET_CIG_PARAMETERS) {
   cig_id : 8,
   sdu_interval_m_to_s : 24,
   sdu_interval_s_to_m : 24,
-  peripherals_clock_accuracy : ClockAccuracy,
+  worst_case_sca : ClockAccuracy,
   packing : Packing,
   framing : Enable,
   max_transport_latency_m_to_s : 16,
@@ -4519,7 +4519,7 @@ packet LeSetCigParametersTest : LeIsoCommand (op_code = LE_SET_CIG_PARAMETERS_TE
   ft_m_to_s : 8,
   ft_s_to_m : 8,
   iso_interval : 16,
-  peripherals_clock_accuracy : ClockAccuracy,
+  worst_case_sca : ClockAccuracy,
   packing : Packing,
   framing : Enable,
   _count_(cis_config) : 8,
@@ -6414,7 +6414,7 @@ enum IsoPacketStatusFlag : 2 {
 packet IsoWithTimestamp : Iso (ts_flag = PRESENT) {
   time_stamp : 32,
   packet_sequence_number : 16,
-  _size_(_payload_) : 12, // iso_sdu_length
+  iso_sdu_length : 12,
   _reserved_ : 2,
   packet_status_flag : IsoPacketStatusFlag,
   _payload_,
@@ -6422,7 +6422,7 @@ packet IsoWithTimestamp : Iso (ts_flag = PRESENT) {
 
 packet IsoWithoutTimestamp : Iso (ts_flag = NOT_PRESENT) {
   packet_sequence_number : 16,
-  _size_(_payload_) : 12, // iso_sdu_length
+  iso_sdu_length : 12,
   _reserved_ : 2,
   packet_status_flag : IsoPacketStatusFlag,
   _payload_,

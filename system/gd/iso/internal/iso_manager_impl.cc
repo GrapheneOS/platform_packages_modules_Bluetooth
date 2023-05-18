@@ -254,7 +254,8 @@ void IsoManagerImpl::SendIsoPacket(uint16_t cis_handle, std::vector<uint8_t> pac
   auto builder = hci::IsoWithoutTimestampBuilder::Create(
       cis_handle,
       hci::IsoPacketBoundaryFlag::COMPLETE_SDU,
-      0 /* sequence_number*/,
+      0 /* sequence_number */,
+      packet.size() /* iso_sdu_length */,
       hci::IsoPacketStatusFlag::VALID,
       std::make_unique<bluetooth::packet::RawBuilder>(packet));
   LOG_INFO("%c%c", packet[0], packet[1]);
