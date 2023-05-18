@@ -138,6 +138,12 @@ bool a2dp_vendor_opus_decoder_decode_packet(BT_HDR* p_buf) {
                               A2DP_OPUS_DECODE_BUFFER_LENGTH, 0 /* flags */);
       }
 
+      if (ret_val < OPUS_OK) {
+        LOG_ERROR("Opus DecodeFrame retry failed with %d, dropping packet",
+                  ret_val);
+        return false;
+      }
+
       size_t frame_len =
           ret_val * numChannels * sizeof(a2dp_opus_decoder_cb.decode_buf[0]);
       a2dp_opus_decoder_cb.decode_callback(
