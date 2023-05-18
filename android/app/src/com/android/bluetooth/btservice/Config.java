@@ -91,14 +91,15 @@ public class Config {
         }
     }
 
-    /**
-     * List of profile services related to LE audio
-     */
-    private static final HashSet<Class> mLeAudioUnicastProfiles = new HashSet<Class>(
-            Arrays.asList(LeAudioService.class,
-                        VolumeControlService.class,
-                        McpService.class,
-                        CsipSetCoordinatorService.class));
+    /** List of profile services related to LE audio */
+    private static final HashSet<Class> LE_AUDIO_UNICAST_PROFILES =
+            new HashSet<Class>(
+                    Arrays.asList(
+                            LeAudioService.class,
+                            VolumeControlService.class,
+                            McpService.class,
+                            CsipSetCoordinatorService.class,
+                            TbsService.class));
 
     /**
      * List of profile services with the profile-supported resource flag and bit mask.
@@ -281,7 +282,7 @@ public class Config {
     }
 
     static HashSet<Class> getLeAudioUnicastProfiles() {
-        return mLeAudioUnicastProfiles;
+        return LE_AUDIO_UNICAST_PROFILES;
     }
 
     static Class[] getSupportedProfiles() {
