@@ -157,7 +157,7 @@ void btif_sock_cleanup(void) {
 }
 
 void btif_sock_connection_logger(int state, int role, const RawAddress& addr) {
-  LOG_INFO("address=%s, role=%d, state=%d", ADDRESS_TO_LOGGABLE_CSTR(addr),
+  LOG_INFO("address=%s, state=%d, role=%d", ADDRESS_TO_LOGGABLE_CSTR(addr),
            state, role);
 
   uint8_t index = logger_index++ % SOCK_LOGGER_SIZE_MAX;
