@@ -150,7 +150,7 @@ void rfc_port_sm_state_closed(tPORT* p_port, tRFC_PORT_EVENT event,
 
       /* Open will be continued after security checks are passed */
       p_port->rfc.state = RFC_STATE_TERM_WAIT_SEC_CHECK;
-      btm_sec_mx_access_request(p_port->rfc.p_mcb->bd_addr, true,
+      btm_sec_mx_access_request(p_port->rfc.p_mcb->bd_addr, false,
                                 p_port->sec_mask, &rfc_sec_check_complete,
                                 p_port);
       return;
