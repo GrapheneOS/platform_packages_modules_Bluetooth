@@ -3114,7 +3114,8 @@ void LeAudioDevices::Dump(int fd, int group_id) {
 void LeAudioDevices::Cleanup(tGATT_IF client_if) {
   for (auto const& device : leAudioDevices_) {
     auto connection_state = device->GetConnectionState();
-    if (connection_state == DeviceConnectState::DISCONNECTED) {
+    if (connection_state == DeviceConnectState::DISCONNECTED ||
+        connection_state == DeviceConnectState::DISCONNECTING) {
       continue;
     }
 

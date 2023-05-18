@@ -4204,21 +4204,22 @@ TEST_F(UnicastTest, TwoEarbudsStreamingProfileDisconnect) {
 
   EXPECT_CALL(mock_gatt_interface_,
               Open(_, _, BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
-      .Times(1);
+      .Times(2);
   EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
 
+  /* Do not inject OPEN_EVENT by default */
+  ON_CALL(mock_gatt_interface_, Open(_, _, _, _))
+      .WillByDefault(DoAll(Return()));
+  ON_CALL(mock_gatt_interface_, Close(_)).WillByDefault(DoAll(Return()));
+
   DisconnectLeAudio(test_address0, 1);
-  SyncOnMainLoop();
-  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
-  Mock::VerifyAndClearExpectations(&mock_state_machine_);
-
-  EXPECT_CALL(mock_gatt_interface_,
-              Open(_, _, BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
-      .Times(1);
-
   DisconnectLeAudio(test_address1, 2);
 
+  InjectDisconnectedEvent(1);
+  InjectDisconnectedEvent(2);
+
   SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
   Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 }
 
