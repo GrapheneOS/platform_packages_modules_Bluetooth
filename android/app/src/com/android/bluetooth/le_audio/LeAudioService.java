@@ -1182,15 +1182,20 @@ public class LeAudioService extends ProfileService {
 
         @Override
         public void onScanFailed(int errorCode) {
-            Log.w(TAG, "Scan failed " + errorCode + " scan retries: " + mScanRetries);
+            Log.w(TAG, "Scan failed err: " + errorCode + " scan retries: " + mScanRetries);
             switch(errorCode) {
-                case SCAN_FAILED_INTERNAL_ERROR: {
+                case SCAN_FAILED_INTERNAL_ERROR:
+                case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
                     if (mScanRetries < mMaxScanRetires) {
                         mScanRetries++;
                         Log.w(TAG, "Failed to start. Let's retry");
                         mHandler.post(() -> startAudioServersBackgroundScan(/* retry = */ true));
                     }
-                }
+                    break;
+                default:
+                    /* Indicate scan is no running */
+                    mScanCallback = null;
+                    break;
             }
         }
     }
