@@ -230,7 +230,7 @@ void gatt_act_write(tGATT_CLCB* p_clcb, uint8_t sec_act) {
   CHECK(p_clcb->p_attr_buf);
   tGATT_VALUE& attr = *((tGATT_VALUE*)p_clcb->p_attr_buf);
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, p_clcb->cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, p_clcb->cid);
 
   switch (p_clcb->op_subtype) {
     case GATT_WRITE_NO_RSP: {
@@ -351,7 +351,7 @@ void gatt_send_prepare_write(tGATT_TCB& tcb, tGATT_CLCB* p_clcb) {
   VLOG(1) << __func__ << StringPrintf(" type=0x%x", type);
   uint16_t to_send = p_attr->len - p_attr->offset;
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, p_clcb->cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, p_clcb->cid);
   if (to_send > (payload_size -
                  GATT_WRITE_LONG_HDR_SIZE)) /* 2 = uint16_t offset bytes  */
     to_send = payload_size - GATT_WRITE_LONG_HDR_SIZE;
@@ -805,7 +805,7 @@ void gatt_process_read_by_type_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
   }
 
   STREAM_TO_UINT8(value_len, p);
-  uint16_t payload_size = gatt_tcb_get_payload_size_rx(tcb, p_clcb->cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, p_clcb->cid);
   if ((value_len > (payload_size - 2)) || (value_len > (len - 1))) {
     /* this is an error case that server's response containing a value length
        which is larger than MTU-2
@@ -995,7 +995,7 @@ void gatt_process_read_rsp(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
   uint16_t offset = p_clcb->counter;
   uint8_t* p = p_data;
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_rx(tcb, p_clcb->cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, p_clcb->cid);
 
   if (p_clcb->operation == GATTC_OPTYPE_READ) {
     if (p_clcb->op_subtype != GATT_READ_BY_HANDLE) {
@@ -1207,7 +1207,7 @@ void gatt_client_handle_server_rsp(tGATT_TCB& tcb, uint16_t cid,
                                    uint8_t* p_data) {
   VLOG(1) << __func__ << " opcode: " << loghex(op_code) << " cid" << +cid;
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_rx(tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, cid);
 
   if (op_code == GATT_HANDLE_VALUE_IND || op_code == GATT_HANDLE_VALUE_NOTIF ||
       op_code == GATT_HANDLE_MULTI_VALUE_NOTIF) {
