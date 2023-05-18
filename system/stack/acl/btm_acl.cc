@@ -148,7 +148,7 @@ constexpr uint16_t BTM_ACL_EXCEPTION_PKTS_MASK =
      HCI_PKT_TYPES_MASK_NO_2_DH3 | HCI_PKT_TYPES_MASK_NO_3_DH3 |
      HCI_PKT_TYPES_MASK_NO_2_DH5 | HCI_PKT_TYPES_MASK_NO_3_DH5);
 
-inline bool IsEprAvailable(const tACL_CONN& p_acl) {
+static bool IsEprAvailable(const tACL_CONN& p_acl) {
   if (!p_acl.peer_lmp_feature_valid[0]) {
     LOG_WARN("Checking incomplete feature page read");
     return false;
