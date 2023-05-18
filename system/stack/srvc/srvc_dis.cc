@@ -428,7 +428,7 @@ tDIS_STATUS DIS_SrUpdate(tDIS_ATTR_BIT dis_attr_bit, tDIS_ATTR* p_info) {
  *
  * Description      Read remote device DIS information.
  *
- * Returns          void
+ * Returns          true on success, false otherwise
  *
  ******************************************************************************/
 bool DIS_ReadDISInfo(const RawAddress& peer_bda, tDIS_READ_CBACK* p_cback,
@@ -453,8 +453,10 @@ bool DIS_ReadDISInfo(const RawAddress& peer_bda, tDIS_READ_CBACK* p_cback,
           << StringPrintf(" cl_read_uuid: 0x%04x",
                           dis_attr_uuid[dis_cb.dis_read_uuid_idx]);
 
-  GATT_GetConnIdIfConnected(srvc_eng_cb.gatt_if, peer_bda, &conn_id,
-                            BT_TRANSPORT_LE);
+  if (!GATT_GetConnIdIfConnected(srvc_eng_cb.gatt_if, peer_bda, &conn_id,
+                                 BT_TRANSPORT_LE)) {
+    conn_id = GATT_INVALID_CONN_ID;
+  }
 
   /* need to enhance it as multiple service is needed */
   srvc_eng_request_channel(peer_bda, SRVC_ID_DIS);
