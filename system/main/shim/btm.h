@@ -89,12 +89,6 @@ class Btm {
   Btm(os::Handler* handler, neighbor::InquiryModule* inquiry);
   ~Btm() = default;
 
-  // Inquiry result callbacks
-  void OnInquiryResult(bluetooth::hci::InquiryResultView view);
-  void OnInquiryResultWithRssi(bluetooth::hci::InquiryResultWithRssiView view);
-  void OnExtendedInquiryResult(bluetooth::hci::ExtendedInquiryResultView view);
-  void OnInquiryComplete(bluetooth::hci::ErrorCode status);
-
   void SetStandardInquiryResultMode();
   void SetInquiryWithRssiResultMode();
   void SetExtendedInquiryResultMode();
