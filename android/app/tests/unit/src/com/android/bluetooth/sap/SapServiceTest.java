@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.content.Intent;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -37,7 +38,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -151,6 +151,12 @@ public class SapServiceTest {
     public void testGetRemoteDeviceName() {
         assertThat(SapService.getRemoteDeviceName()).isNull();
     }
+
+    @Test
+    public void testReceiver_ConnectionAccessReplyIntent_shouldNotCrash() {
+        Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
+        intent.putExtra(
+                BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE, BluetoothDevice.REQUEST_TYPE_SIM_ACCESS);
+        mService.mSapReceiver.onReceive(mTargetContext, intent);
+    }
 }
-
-
