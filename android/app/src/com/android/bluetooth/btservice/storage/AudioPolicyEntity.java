@@ -36,13 +36,6 @@ class AudioPolicyEntity {
         inBandRingtoneAudioPolicy = BluetoothSinkAudioPolicy.POLICY_UNCONFIGURED;
     }
 
-    AudioPolicyEntity(int callEstablishAudioPolicy, int connectingTimeAudioPolicy,
-            int inBandRingtoneAudioPolicy) {
-        this.callEstablishAudioPolicy = callEstablishAudioPolicy;
-        this.connectingTimeAudioPolicy = connectingTimeAudioPolicy;
-        this.inBandRingtoneAudioPolicy = inBandRingtoneAudioPolicy;
-    }
-
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("callEstablishAudioPolicy=")
