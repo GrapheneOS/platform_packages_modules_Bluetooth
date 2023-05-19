@@ -88,11 +88,9 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                                 service.registerCallback(mCallback, mAttributionSource, recv);
                                 recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                             }
-                        } catch (TimeoutException e) {
+                        } catch (RemoteException | TimeoutException e) {
                             Log.e(TAG, e.toString() + "\n"
                                     + Log.getStackTraceString(new Throwable()));
-                        } catch (RemoteException e) {
-                            throw e.rethrowFromSystemServer();
                         }
                     }
                 }
