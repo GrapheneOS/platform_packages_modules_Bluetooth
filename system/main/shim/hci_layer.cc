@@ -381,27 +381,6 @@ static void transmit_command(const BT_HDR* command,
   }
 }
 
-static void transmit_fragment(const uint8_t* stream, size_t length) {
-  uint16_t handle_with_flags;
-  STREAM_TO_UINT16(handle_with_flags, stream);
-  auto pb_flag = static_cast<bluetooth::hci::PacketBoundaryFlag>(
-      handle_with_flags >> 12 & 0b11);
-  auto bc_flag =
-      static_cast<bluetooth::hci::BroadcastFlag>(handle_with_flags >> 14);
-  uint16_t handle = HCID_GET_HANDLE(handle_with_flags);
-  ASSERT_LOG(handle <= HCI_HANDLE_MAX, "Require handle <= 0x%X, but is 0x%X",
-             HCI_HANDLE_MAX, handle);
-  length -= 2;
-  // skip data total length
-  stream += 2;
-  length -= 2;
-  auto payload = MakeUniquePacket(stream, length);
-  auto acl_packet = bluetooth::hci::AclBuilder::Create(handle, pb_flag, bc_flag,
-                                                       std::move(payload));
-  pending_data->Enqueue(std::move(acl_packet),
-                        bluetooth::shim::GetGdShimHandler());
-}
-
 static void transmit_sco_fragment(const uint8_t* stream, size_t length) {
   uint16_t handle_with_flags;
   STREAM_TO_UINT16(handle_with_flags, stream);
@@ -598,11 +577,7 @@ static void transmit_fragment(BT_HDR* packet, bool send_transmit_finished) {
   bool free_after_transmit =
       event != MSG_STACK_TO_HC_HCI_CMD && send_transmit_finished;
 
-  if (event == MSG_STACK_TO_HC_HCI_ACL) {
-    const uint8_t* stream = packet->data + packet->offset;
-    size_t length = packet->len;
-    cpp::transmit_fragment(stream, length);
-  } else if (event == MSG_STACK_TO_HC_HCI_SCO) {
+  if (event == MSG_STACK_TO_HC_HCI_SCO) {
     const uint8_t* stream = packet->data + packet->offset;
     size_t length = packet->len;
     cpp::transmit_sco_fragment(stream, length);
