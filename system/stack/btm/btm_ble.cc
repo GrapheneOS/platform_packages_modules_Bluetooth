@@ -2073,6 +2073,8 @@ void BTM_BleSirkConfirmDeviceReply(const RawAddress& bd_addr, uint8_t res) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   tSMP_STATUS res_smp = (res == BTM_SUCCESS) ? SMP_SUCCESS : SMP_FAIL;
 
+  LOG_INFO("Confirmation result: %s", smp_status_text(res_smp).c_str());
+
   if (p_dev_rec == NULL) {
     LOG_ERROR("Confirmation of Unknown device");
     return;
