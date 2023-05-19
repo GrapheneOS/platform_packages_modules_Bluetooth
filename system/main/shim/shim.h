@@ -23,7 +23,6 @@
 #include "main/shim/entry.h"
 #include "osi/include/future.h"
 
-static const char GD_IDLE_MODULE[] = "gd_idle_module";
 static const char GD_SHIM_MODULE[] = "gd_shim_module";
 
 constexpr future_t* kReturnImmediate = nullptr;
@@ -45,7 +44,6 @@ namespace shim {
  *
  * @return true if using gd shim core, false if using legacy.
  */
-bool is_gd_security_enabled();
 bool is_gd_link_policy_enabled();
 bool is_gd_l2cap_enabled();
 bool is_gd_shim_enabled();

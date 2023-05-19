@@ -342,7 +342,7 @@ static void l2c_csm_closed(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
 
     case L2CEVT_TIMEOUT:
       l2cu_release_ccb(p_ccb);
-      (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_TIMEOUT);
+      (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_OTHER_ERROR);
       bluetooth::shim::CountCounterMetrics(
           android::bluetooth::CodePathCounterKeyEnum::
               L2CAP_TIMEOUT_AT_CSM_CLOSED,
@@ -717,7 +717,7 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
         (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(
             local_cid, le_result_to_l2c_conn(p_ci->l2cap_result));
       } else {
-        (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, p_ci->l2cap_result);
+        (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_OTHER_ERROR);
       }
       bluetooth::shim::CountCounterMetrics(
           android::bluetooth::CodePathCounterKeyEnum::L2CAP_CONNECT_RSP_NEG, 1);

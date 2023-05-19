@@ -59,13 +59,13 @@ RUN apt-get update && \
 # Next install the Rust toolchain. Download the toolchain to the local folder
 # using curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs
 ADD rustup/rustup.sh /tmp
-RUN /tmp/rustup.sh -y --default-toolchain 1.60.0
+RUN /tmp/rustup.sh -y --default-toolchain 1.68.2
 
 # Add .cargo/bin to $PATH
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install cargo packages required on build image.
-RUN cargo install cxxbridge-cmd --version 1.0.42
+RUN cargo install cxxbridge-cmd --version 1.0.94
 
 # Rename llvm packages. By default, they are named 11vm-ar-13, etc. which won't
 # work properly with the build.

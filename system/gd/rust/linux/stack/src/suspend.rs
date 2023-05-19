@@ -195,7 +195,8 @@ impl ISuspend for Suspend {
         self.intf.lock().unwrap().set_default_event_mask_except(MASKED_EVENTS_FOR_SUSPEND, 0u64);
 
         self.connectable_to_restore = self.bt.lock().unwrap().get_connectable_internal();
-        self.discoverable_mode_to_restore = self.bt.lock().unwrap().get_discoverable_mode();
+        self.discoverable_mode_to_restore =
+            self.bt.lock().unwrap().get_discoverable_mode_internal();
         self.bt.lock().unwrap().set_connectable_internal(false);
         self.intf.lock().unwrap().clear_event_filter();
         self.intf.lock().unwrap().clear_filter_accept_list();

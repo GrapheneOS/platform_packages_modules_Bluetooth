@@ -199,7 +199,8 @@ Return<void> BluetoothHci::initialize_impl(
     SetUpHciServer([this](std::shared_ptr<AsyncDataChannel> socket,
                           AsyncDataChannelServer* srv) {
       auto transport = HciSocketTransport::Create(socket);
-      test_model_.AddHciConnection(HciDevice::Create(transport, ""));
+      test_model_.AddHciConnection(
+          HciDevice::Create(transport, rootcanal::ControllerProperties()));
       srv->StartListening();
     });
     SetUpLinkLayerServer([this](std::shared_ptr<AsyncDataChannel> socket,

@@ -692,7 +692,8 @@ class CsisClientImpl : public CsisClient {
   void Dump(int fd) {
     std::stringstream stream;
 
-    stream << "  Groups\n";
+    stream << "  APP ID: " << +gatt_if_ << "\n"
+           << "  Groups:\n";
     for (const auto& g : csis_groups_) {
       stream << "    == id: " << g->GetGroupId() << " ==\n"
              << "    uuid: " << g->GetUuid() << "\n"
@@ -813,6 +814,7 @@ class CsisClientImpl : public CsisClient {
      * CSIS group.
      */
     bool notify_connected = false;
+    int group_id_to_discover = bluetooth::groups::kGroupUnknown;
     for (const auto& csis_group : csis_groups_) {
       if (!csis_group->IsDeviceInTheGroup(device)) continue;
 
@@ -836,9 +838,25 @@ class CsisClientImpl : public CsisClient {
           device->addr, group_id, csis_group->GetDesiredSize(),
           csis_instance->GetRank(), csis_instance->GetUuid());
       notify_connected = true;
+
+      if (group_id_to_discover == bluetooth::groups::kGroupUnknown) {
+        group_id_to_discover = group_id;
+      }
     }
-    if (notify_connected)
+
+    if (notify_connected) {
       callbacks_->OnConnectionState(device->addr, ConnectionState::CONNECTED);
+
+      if (group_id_to_discover != bluetooth::groups::kGroupUnknown) {
+        /* Start active search for the other device
+         * b/281120322
+         */
+        auto g = FindCsisGroup(group_id_to_discover);
+        if (g->GetDesiredSize() > g->GetCurrentSize()) {
+          CsisActiveDiscovery(g);
+        }
+      }
+    }
 
     if (device->first_connection) {
       device->first_connection = false;
@@ -970,7 +988,8 @@ class CsisClientImpl : public CsisClient {
 
   void OnCsisSizeValueUpdate(uint16_t conn_id, tGATT_STATUS status,
                              uint16_t handle, uint16_t len,
-                             const uint8_t* value) {
+                             const uint8_t* value,
+                             bool notify_valid_services = false) {
     auto device = FindDeviceByConnId(conn_id);
 
     if (device == nullptr) {
@@ -1014,13 +1033,13 @@ class CsisClientImpl : public CsisClient {
 
     auto new_size = value[0];
     csis_group->SetDesiredSize(new_size);
-    if (new_size > csis_group->GetCurrentSize()) {
-      CsisActiveDiscovery(csis_group);
-    }
+
+    if (notify_valid_services) NotifyCsisDeviceValidAndStoreIfNeeded(device);
   }
 
   void OnCsisLockReadRsp(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
-                         uint16_t len, const uint8_t* value) {
+                         uint16_t len, const uint8_t* value,
+                         bool notify_valid_services = false) {
     auto device = FindDeviceByConnId(conn_id);
     if (device == nullptr) {
       LOG(WARNING) << "Skipping unknown device, conn_id=" << loghex(conn_id);
@@ -1056,10 +1075,13 @@ class CsisClientImpl : public CsisClient {
       return;
     }
     csis_instance->SetLockState((CsisLockState)(value[0]));
+
+    if (notify_valid_services) NotifyCsisDeviceValidAndStoreIfNeeded(device);
   }
 
   void OnCsisRankReadRsp(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
-                         uint16_t len, const uint8_t* value) {
+                         uint16_t len, const uint8_t* value,
+                         bool notify_valid_services) {
     auto device = FindDeviceByConnId(conn_id);
     if (device == nullptr) {
       LOG(WARNING) << __func__
@@ -1098,7 +1120,14 @@ class CsisClientImpl : public CsisClient {
 
     csis_instance->SetRank((value[0]));
     auto csis_group = FindCsisGroup(csis_instance->GetGroupId());
+    if (!csis_group) {
+      LOG(ERROR) << __func__ << " Unknown group id yet";
+      return;
+    }
+
     csis_group->SortByCsisRank();
+
+    if (notify_valid_services) NotifyCsisDeviceValidAndStoreIfNeeded(device);
   }
 
   void OnCsisObserveCompleted(void) {
@@ -1246,8 +1275,8 @@ class CsisClientImpl : public CsisClient {
   void CsisActiveObserverSet(bool enable) {
     bool is_ad_type_filter_supported =
         bluetooth::shim::is_ad_type_filter_supported();
-    LOG_INFO("Group_id %d: enable: %d, is_ad_type_filter_supported: %d", enable,
-             discovering_group_, is_ad_type_filter_supported);
+    LOG_INFO("Group_id %d: enable: %d, is_ad_type_filter_supported: %d",
+             discovering_group_, enable, is_ad_type_filter_supported);
     if (is_ad_type_filter_supported) {
       bluetooth::shim::set_ad_type_rsi_filter(enable);
     } else {
@@ -1276,7 +1305,7 @@ class CsisClientImpl : public CsisClient {
 
           instance->OnActiveScanResult(&p_data->inq_res);
         });
-    BTA_DmBleScan(enable, bluetooth::csis::kDefaultScanDurationS);
+    BTA_DmBleScan(enable, bluetooth::csis::kDefaultScanDurationS, true);
 
     /* Need to call it by ourselfs */
     if (!enable) {
@@ -1500,10 +1529,6 @@ class CsisClientImpl : public CsisClient {
                << loghex(csis_group->GetDesiredSize())
                << ", actual group Size: "
                << loghex(csis_group->GetCurrentSize());
-
-    /* Start active search for the other device */
-    if (csis_group->GetDesiredSize() > csis_group->GetCurrentSize())
-      CsisActiveDiscovery(csis_group);
   }
 
   void DeregisterNotifications(std::shared_ptr<CsisDevice> device) {
@@ -1614,6 +1639,26 @@ class CsisClientImpl : public CsisClient {
     }
     device->SetCsisInstance(csis_inst->svc_data.start_handle, csis_inst);
 
+    bool notify_after_sirk_read = false;
+    bool notify_after_lock_read = false;
+    bool notify_after_rank_read = false;
+    bool notify_after_size_read = false;
+
+    /* Find which read will be the last one*/
+    if (is_last_instance) {
+      if (csis_inst->svc_data.rank_handle != GAP_INVALID_HANDLE) {
+        notify_after_rank_read = true;
+      } else if (csis_inst->svc_data.size_handle.val_hdl !=
+                 GAP_INVALID_HANDLE) {
+        notify_after_size_read = true;
+      } else if (csis_inst->svc_data.lock_handle.val_hdl !=
+                 GAP_INVALID_HANDLE) {
+        notify_after_lock_read = true;
+      } else {
+        notify_after_sirk_read = true;
+      }
+    }
+
     /* Read SIRK */
     BtaGattQueue::ReadCharacteristic(
         device->conn_id, csis_inst->svc_data.sirk_handle.val_hdl,
@@ -1623,7 +1668,7 @@ class CsisClientImpl : public CsisClient {
             instance->OnCsisSirkValueUpdate(conn_id, status, handle, len, value,
                                             (bool)user_data);
         },
-        (void*)is_last_instance);
+        (void*)notify_after_sirk_read);
 
     /* Read Lock */
     if (csis_inst->svc_data.lock_handle.val_hdl != GAP_INVALID_HANDLE) {
@@ -1632,9 +1677,10 @@ class CsisClientImpl : public CsisClient {
           [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
              uint16_t len, uint8_t* value, void* user_data) {
             if (instance)
-              instance->OnCsisLockReadRsp(conn_id, status, handle, len, value);
+              instance->OnCsisLockReadRsp(conn_id, status, handle, len, value,
+                                          (bool)user_data);
           },
-          nullptr);
+          (void*)notify_after_lock_read);
     }
 
     /* Read Size */
@@ -1645,9 +1691,9 @@ class CsisClientImpl : public CsisClient {
              uint16_t len, uint8_t* value, void* user_data) {
             if (instance)
               instance->OnCsisSizeValueUpdate(conn_id, status, handle, len,
-                                              value);
+                                              value, (bool)user_data);
           },
-          nullptr);
+          (void*)notify_after_size_read);
     }
 
     /* Read Rank */
@@ -1657,10 +1703,12 @@ class CsisClientImpl : public CsisClient {
           [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
              uint16_t len, uint8_t* value, void* user_data) {
             if (instance)
-              instance->OnCsisRankReadRsp(conn_id, status, handle, len, value);
+              instance->OnCsisRankReadRsp(conn_id, status, handle, len, value,
+                                          (bool)user_data);
           },
-          nullptr);
+          (void*)notify_after_rank_read);
     }
+
     return true;
   }
 

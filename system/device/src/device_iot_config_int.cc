@@ -162,8 +162,6 @@ future_t* device_iot_config_module_init(void) {
 
 future_t* device_iot_config_module_start_up(void) {
   LOG_INFO("");
-  device_iot_config_int_add_one(IOT_CONF_KEY_SECTION_ADAPTER,
-                                IOT_CONF_KEY_BT_ONOFF_COUNT);
   return future_new_immediate(FUTURE_SUCCESS);
 }
 

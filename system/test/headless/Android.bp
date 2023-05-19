@@ -97,7 +97,6 @@ cc_binary {
         "libbt-sbc-encoder",
         "libbt-stack",
         "libbt-stack-core",
-        "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
         "libbtdevice",

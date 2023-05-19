@@ -31,7 +31,6 @@ using std::vector;
 
 namespace rootcanal {
 constexpr uint16_t kNumCommandPackets = 0x01;
-constexpr uint16_t kLeMaximumAdvertisingDataLength = 512;
 constexpr uint16_t kLeMaximumDataLength = 64;
 constexpr uint16_t kLeMaximumDataTime = 0x148;
 
@@ -61,11 +60,8 @@ void DualModeController::SendCommandCompleteUnknownOpCodeEvent(
           static_cast<uint8_t>(ErrorCode::UNKNOWN_HCI_COMMAND)})));
 }
 
-DualModeController::DualModeController(const std::string& properties_filename,
-                                       uint16_t /*num_keys*/)
-    : properties_(properties_filename) {
-  loopback_mode_ = LoopbackMode::NO_LOOPBACK;
-
+DualModeController::DualModeController(ControllerProperties properties)
+    : properties_(std::move(properties)) {
   Address public_address{};
   ASSERT(Address::FromString("3C:5A:B4:04:05:06", public_address));
   SetAddress(public_address);
@@ -75,6 +71,10 @@ DualModeController::DualModeController(const std::string& properties_filename,
              Phy::Type phy_type, int8_t tx_power) {
         this->SendLinkLayerPacket(packet, phy_type, tx_power);
       });
+}
+
+void DualModeController::ForwardToLm(CommandView command) {
+  link_layer_controller_.ForwardToLm(command);
 }
 
 void DualModeController::SniffSubrating(CommandView command) {
@@ -189,6 +189,15 @@ void DualModeController::HandleCommand(
     send_event_(bluetooth::hci::LoopbackCommandBuilder::Create(
         std::move(raw_builder_ptr)));
   }
+  // Quirk to reset the host stack when a command is received before the Hci
+  // Reset command.
+  else if (properties_.quirks.hardware_error_before_reset &&
+           !controller_reset_ &&
+           op_code != OpCode::RESET) {
+    LOG_WARN("Received command %s before HCI Reset; sending the Hardware"
+             " Error event", OpCodeText(op_code).c_str());
+    send_event_(bluetooth::hci::HardwareErrorBuilder::Create(0x42));
+  }
   // Command is both supported and implemented.
   // Invoke the registered handler.
   else if (is_supported_command && is_implemented_command) {
@@ -276,6 +285,7 @@ void DualModeController::Reset(CommandView command) {
     loopback_mode_ = LoopbackMode::NO_LOOPBACK;
   }
 
+  controller_reset_ = true;
   send_event_(bluetooth::hci::ResetCompleteBuilder::Create(kNumCommandPackets,
                                                            ErrorCode::SUCCESS));
 }
@@ -797,53 +807,6 @@ void DualModeController::RejectSynchronousConnection(CommandView command) {
       status, kNumCommandPackets));
 }
 
-void DualModeController::IoCapabilityRequestReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::UserConfirmationRequestReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::UserConfirmationRequestNegativeReply(
-    CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::PinCodeRequestReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::PinCodeRequestNegativeReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::UserPasskeyRequestReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::UserPasskeyRequestNegativeReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::RemoteOobDataRequestReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::RemoteOobDataRequestNegativeReply(
-    CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::IoCapabilityRequestNegativeReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::RemoteOobExtendedDataRequestReply(
-    CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
 void DualModeController::ReadInquiryResponseTransmitPowerLevel(
     CommandView command) {
   auto command_view =
@@ -855,10 +818,6 @@ void DualModeController::ReadInquiryResponseTransmitPowerLevel(
   send_event_(
       bluetooth::hci::ReadInquiryResponseTransmitPowerLevelCompleteBuilder::
           Create(kNumCommandPackets, ErrorCode::SUCCESS, tx_power));
-}
-
-void DualModeController::SendKeypressNotification(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
 }
 
 void DualModeController::EnhancedFlush(CommandView command) {
@@ -1002,14 +961,6 @@ void DualModeController::WriteInquiryScanType(CommandView command) {
   ASSERT(command_view.IsValid());
   send_event_(bluetooth::hci::WriteInquiryScanTypeCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS));
-}
-
-void DualModeController::AuthenticationRequested(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::SetConnectionEncryption(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
 }
 
 void DualModeController::ChangeConnectionLinkKey(CommandView command) {
@@ -1464,14 +1415,6 @@ void DualModeController::RejectConnectionRequest(CommandView command) {
   auto status = link_layer_controller_.RejectConnectionRequest(addr, reason);
   send_event_(bluetooth::hci::RejectConnectionRequestStatusBuilder::Create(
       status, kNumCommandPackets));
-}
-
-void DualModeController::LinkKeyRequestReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
-}
-
-void DualModeController::LinkKeyRequestNegativeReply(CommandView command) {
-  link_layer_controller_.ForwardToLm(command);
 }
 
 void DualModeController::DeleteStoredLinkKey(CommandView command) {
@@ -2332,16 +2275,22 @@ void DualModeController::LeGetVendorCapabilities(CommandView command) {
   auto command_view = bluetooth::hci::LeGetVendorCapabilitiesView::Create(
       bluetooth::hci::VendorCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  vector<uint8_t> caps = properties_.le_vendor_capabilities;
-  if (caps.empty()) {
+
+  if (!properties_.supports_le_get_vendor_capabilities_command) {
     SendCommandCompleteUnknownOpCodeEvent(OpCode::LE_GET_VENDOR_CAPABILITIES);
     return;
+  }
+
+  // Ensure a minimal size for vendor capabilities.
+  vector<uint8_t> vendor_capabilities = properties_.le_vendor_capabilities;
+  if (vendor_capabilities.size() < 8) {
+    vendor_capabilities.resize(8);
   }
 
   std::unique_ptr<bluetooth::packet::RawBuilder> raw_builder_ptr =
       std::make_unique<bluetooth::packet::RawBuilder>();
   raw_builder_ptr->AddOctets1(static_cast<uint8_t>(ErrorCode::SUCCESS));
-  raw_builder_ptr->AddOctets(properties_.le_vendor_capabilities);
+  raw_builder_ptr->AddOctets(vendor_capabilities);
 
   send_event_(bluetooth::hci::CommandCompleteBuilder::Create(
       kNumCommandPackets, OpCode::LE_GET_VENDOR_CAPABILITIES,
@@ -2628,7 +2577,7 @@ void DualModeController::LeReadMaximumAdvertisingDataLength(
   send_event_(
       bluetooth::hci::LeReadMaximumAdvertisingDataLengthCompleteBuilder::Create(
           kNumCommandPackets, ErrorCode::SUCCESS,
-          kLeMaximumAdvertisingDataLength));
+          properties_.le_max_advertising_data_length));
 }
 
 void DualModeController::LeReadNumberOfSupportedAdvertisingSets(
@@ -3294,20 +3243,16 @@ const std::unordered_map<OpCode, DualModeController::CommandHandler>
          &DualModeController::AcceptConnectionRequest},
         {OpCode::REJECT_CONNECTION_REQUEST,
          &DualModeController::RejectConnectionRequest},
-        {OpCode::LINK_KEY_REQUEST_REPLY,
-         &DualModeController::LinkKeyRequestReply},
+        {OpCode::LINK_KEY_REQUEST_REPLY, &DualModeController::ForwardToLm},
         {OpCode::LINK_KEY_REQUEST_NEGATIVE_REPLY,
-         &DualModeController::LinkKeyRequestNegativeReply},
-        {OpCode::PIN_CODE_REQUEST_REPLY,
-         &DualModeController::PinCodeRequestReply},
+         &DualModeController::ForwardToLm},
+        {OpCode::PIN_CODE_REQUEST_REPLY, &DualModeController::ForwardToLm},
         {OpCode::PIN_CODE_REQUEST_NEGATIVE_REPLY,
-         &DualModeController::PinCodeRequestNegativeReply},
+         &DualModeController::ForwardToLm},
         {OpCode::CHANGE_CONNECTION_PACKET_TYPE,
          &DualModeController::ChangeConnectionPacketType},
-        {OpCode::AUTHENTICATION_REQUESTED,
-         &DualModeController::AuthenticationRequested},
-        {OpCode::SET_CONNECTION_ENCRYPTION,
-         &DualModeController::SetConnectionEncryption},
+        {OpCode::AUTHENTICATION_REQUESTED, &DualModeController::ForwardToLm},
+        {OpCode::SET_CONNECTION_ENCRYPTION, &DualModeController::ForwardToLm},
         {OpCode::CHANGE_CONNECTION_LINK_KEY,
          &DualModeController::ChangeConnectionLinkKey},
         {OpCode::CENTRAL_LINK_KEY, &DualModeController::CentralLinkKey},
@@ -3328,22 +3273,20 @@ const std::unordered_map<OpCode, DualModeController::CommandHandler>
          &DualModeController::AcceptSynchronousConnection},
         {OpCode::REJECT_SYNCHRONOUS_CONNECTION,
          &DualModeController::RejectSynchronousConnection},
-        {OpCode::IO_CAPABILITY_REQUEST_REPLY,
-         &DualModeController::IoCapabilityRequestReply},
+        {OpCode::IO_CAPABILITY_REQUEST_REPLY, &DualModeController::ForwardToLm},
         {OpCode::USER_CONFIRMATION_REQUEST_REPLY,
-         &DualModeController::UserConfirmationRequestReply},
+         &DualModeController::ForwardToLm},
         {OpCode::USER_CONFIRMATION_REQUEST_NEGATIVE_REPLY,
-         &DualModeController::UserConfirmationRequestNegativeReply},
-        {OpCode::USER_PASSKEY_REQUEST_REPLY,
-         &DualModeController::UserPasskeyRequestReply},
+         &DualModeController::ForwardToLm},
+        {OpCode::USER_PASSKEY_REQUEST_REPLY, &DualModeController::ForwardToLm},
         {OpCode::USER_PASSKEY_REQUEST_NEGATIVE_REPLY,
-         &DualModeController::UserPasskeyRequestNegativeReply},
+         &DualModeController::ForwardToLm},
         {OpCode::REMOTE_OOB_DATA_REQUEST_REPLY,
-         &DualModeController::RemoteOobDataRequestReply},
+         &DualModeController::ForwardToLm},
         {OpCode::REMOTE_OOB_DATA_REQUEST_NEGATIVE_REPLY,
-         &DualModeController::RemoteOobDataRequestNegativeReply},
+         &DualModeController::ForwardToLm},
         {OpCode::IO_CAPABILITY_REQUEST_NEGATIVE_REPLY,
-         &DualModeController::IoCapabilityRequestNegativeReply},
+         &DualModeController::ForwardToLm},
         {OpCode::ENHANCED_SETUP_SYNCHRONOUS_CONNECTION,
          &DualModeController::EnhancedSetupSynchronousConnection},
         {OpCode::ENHANCED_ACCEPT_SYNCHRONOUS_CONNECTION,
@@ -3360,7 +3303,7 @@ const std::unordered_map<OpCode, DualModeController::CommandHandler>
         //{OpCode::RECEIVE_SYNCHRONIZATION_TRAIN,
         //&DualModeController::ReceiveSynchronizationTrain},
         {OpCode::REMOTE_OOB_EXTENDED_DATA_REQUEST_REPLY,
-         &DualModeController::RemoteOobExtendedDataRequestReply},
+         &DualModeController::ForwardToLm},
 
         // LINK_POLICY
         {OpCode::HOLD_MODE, &DualModeController::HoldMode},
@@ -3486,8 +3429,7 @@ const std::unordered_map<OpCode, DualModeController::CommandHandler>
         //{OpCode::WRITE_DEFAULT_ERRONEOUS_DATA_REPORTING,
         //&DualModeController::WriteDefaultErroneousDataReporting},
         {OpCode::ENHANCED_FLUSH, &DualModeController::EnhancedFlush},
-        {OpCode::SEND_KEYPRESS_NOTIFICATION,
-         &DualModeController::SendKeypressNotification},
+        {OpCode::SEND_KEYPRESS_NOTIFICATION, &DualModeController::ForwardToLm},
         {OpCode::SET_EVENT_MASK_PAGE_2, &DualModeController::SetEventMaskPage2},
         //{OpCode::READ_FLOW_CONTROL_MODE,
         //&DualModeController::ReadFlowControlMode},
