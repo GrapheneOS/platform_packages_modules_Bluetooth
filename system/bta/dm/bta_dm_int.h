@@ -131,11 +131,12 @@ typedef struct {
   bool accept;
 } tBTA_DM_CI_RMT_OOB;
 
-/* data type for BTA_DM_REMT_NAME_EVT */
 typedef struct {
   BT_HDR_RIGID hdr;
-  tBTA_DM_SEARCH result;
-} tBTA_DM_REM_NAME;
+  RawAddress bd_addr;
+  BD_NAME bd_name; /* Name of peer device. */
+  tHCI_STATUS hci_status;
+} tBTA_DM_REMOTE_NAME;
 
 /* data type for tBTA_DM_DISC_RESULT */
 typedef struct {
@@ -180,7 +181,7 @@ typedef union {
 
   tBTA_DM_API_DISCOVER discover;
 
-  tBTA_DM_REM_NAME rem_name;
+  tBTA_DM_REMOTE_NAME remote_name_msg;
 
   tBTA_DM_DISC_RESULT disc_result;
 
@@ -383,6 +384,7 @@ inline std::string bta_dm_state_text(const tBTA_DM_STATE& state) {
       return base::StringPrintf("UNKNOWN[%d]", state);
   }
 }
+#undef CASE_RETURN_TEXT
 
 /* DM search control block */
 typedef struct {
@@ -562,7 +564,7 @@ void bta_dm_search_start(tBTA_DM_MSG* p_data);
 void bta_dm_search_cancel();
 void bta_dm_discover(tBTA_DM_MSG* p_data);
 void bta_dm_inq_cmpl(uint8_t num);
-void bta_dm_rmt_name(tBTA_DM_MSG* p_data);
+void bta_dm_remote_name_cmpl(const tBTA_DM_MSG* p_data);
 void bta_dm_sdp_result(tBTA_DM_MSG* p_data);
 void bta_dm_search_cmpl();
 void bta_dm_free_sdp_db();
@@ -575,7 +577,6 @@ void bta_dm_execute_queued_request();
 bool bta_dm_is_search_request_queued();
 void bta_dm_search_clear_queue();
 void bta_dm_search_cancel_notify();
-void bta_dm_disc_rmt_name(tBTA_DM_MSG* p_data);
 tBTA_DM_PEER_DEVICE* bta_dm_find_peer_device(const RawAddress& peer_addr);
 
 void bta_dm_clear_event_filter(void);
@@ -605,5 +606,4 @@ void bta_dm_ble_subrate_request(const RawAddress& bd_addr, uint16_t subrate_min,
                                 uint16_t cont_num, uint16_t timeout);
 void bta_dm_consolidate(const RawAddress& identity_addr, const RawAddress& rpa);
 
-#undef CASE_RETURN_TEXT
 #endif /* BTA_DM_INT_H */
