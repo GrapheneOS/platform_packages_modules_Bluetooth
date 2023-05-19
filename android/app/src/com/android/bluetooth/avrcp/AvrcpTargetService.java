@@ -32,11 +32,11 @@ import android.sysprop.BluetoothProperties;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothEventLogger;
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
-import com.android.bluetooth.audio_util.BTAudioEventLogger;
 import com.android.bluetooth.audio_util.MediaData;
 import com.android.bluetooth.audio_util.MediaPlayerList;
 import com.android.bluetooth.audio_util.MediaPlayerWrapper;
@@ -63,10 +63,10 @@ public class AvrcpTargetService extends ProfileService {
 
     private static final int AVRCP_MAX_VOL = 127;
     private static final int MEDIA_KEY_EVENT_LOGGER_SIZE = 20;
-    private static final String MEDIA_KEY_EVENT_LOGGER_TITLE = "Media Key Events";
+    private static final String MEDIA_KEY_EVENT_LOGGER_TITLE = "BTAudio Media Key Events";
     private static int sDeviceMaxVolume = 0;
-    private final BTAudioEventLogger mMediaKeyEventLogger = new BTAudioEventLogger(
-            MEDIA_KEY_EVENT_LOGGER_SIZE, MEDIA_KEY_EVENT_LOGGER_TITLE);
+    private final BluetoothEventLogger mMediaKeyEventLogger =
+            new BluetoothEventLogger(MEDIA_KEY_EVENT_LOGGER_SIZE, MEDIA_KEY_EVENT_LOGGER_TITLE);
 
     private AvrcpVersion mAvrcpVersion;
     private MediaPlayerList mMediaPlayerList;
