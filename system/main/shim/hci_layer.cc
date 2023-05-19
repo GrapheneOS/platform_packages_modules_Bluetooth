@@ -551,24 +551,6 @@ static void transmit_command(const BT_HDR* command,
   cpp::transmit_command(command, complete_callback, status_callback, context);
 }
 
-static void command_complete_callback(BT_HDR* response, void* context) {
-  auto future = static_cast<future_t*>(context);
-  future_ready(future, response);
-}
-
-static void command_status_callback(uint8_t status, BT_HDR* command,
-                                    void* context) {
-  LOG_ALWAYS_FATAL(
-      "transmit_command_futured should only send command complete opcode");
-}
-
-static future_t* transmit_command_futured(const BT_HDR* command) {
-  future_t* future = future_new();
-  transmit_command(command, command_complete_callback, command_status_callback,
-                   future);
-  return future;
-}
-
 static void transmit_fragment(BT_HDR* packet, bool send_transmit_finished) {
   uint16_t event = packet->event & MSG_EVT_MASK;
 
@@ -610,7 +592,6 @@ static void transmit_downward(uint16_t type, void* raw_data) {
 
 static hci_t interface = {.set_data_cb = set_data_cb,
                           .transmit_command = transmit_command,
-                          .transmit_command_futured = transmit_command_futured,
                           .transmit_downward = transmit_downward};
 
 const hci_t* bluetooth::shim::hci_layer_get_interface() {
