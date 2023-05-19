@@ -35,9 +35,6 @@ rust_library {
     proc_macros: [
         "libnum_derive",
     ],
-    apex_available: [
-        "com.android.btservices",
-    ],
     min_sdk_version: "30",
     target: {
         android: {
@@ -121,9 +118,6 @@ cc_library_static {
         "android.hardware.bluetooth@1.1",
         "libhidlbase",
         "libutils",
-    ],
-    apex_available: [
-        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }
