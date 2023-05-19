@@ -20,6 +20,7 @@ import android.annotation.NonNull;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothUtils;
 import android.bluetooth.IBluetoothAvrcpTarget;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -76,6 +77,25 @@ public class AvrcpTargetService extends ProfileService {
     private AvrcpNativeInterface mNativeInterface;
     private AvrcpVolumeManager mVolumeManager;
     private ServiceFactory mFactory = new ServiceFactory();
+    private final BroadcastReceiver mUserUnlockedReceiver =
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    // EXTRA_USER_HANDLE is sent for ACTION_USER_UNLOCKED
+                    // (even if the documentation doesn't mention it)
+                    final int userId =
+                            intent.getIntExtra(
+                                    Intent.EXTRA_USER_HANDLE,
+                                    BluetoothUtils.USER_HANDLE_NULL.getIdentifier());
+                    if (userId == BluetoothUtils.USER_HANDLE_NULL.getIdentifier()) {
+                        Log.e(TAG, "userChangeReceiver received an invalid EXTRA_USER_HANDLE");
+                        return;
+                    }
+                    if (mMediaPlayerList != null) {
+                        mMediaPlayerList.init(new ListCallback());
+                    }
+                }
+            };
 
     // Only used to see if the metadata has changed from its previous value
     private MediaData mCurrentData;
@@ -183,20 +203,16 @@ public class AvrcpTargetService extends ProfileService {
     }
 
     @Override
-    protected void setUserUnlocked(int userId) {
-        Log.i(TAG, "User unlocked, initializing the service");
-
-        if (mMediaPlayerList != null) {
-            mMediaPlayerList.init(new ListCallback());
-        }
-    }
-
-    @Override
     protected boolean start() {
         if (sInstance != null) {
             Log.wtf(TAG, "The service has already been initialized");
             return false;
         }
+
+        IntentFilter userFilter = new IntentFilter();
+        userFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        userFilter.addAction(Intent.ACTION_USER_UNLOCKED);
+        getApplicationContext().registerReceiver(mUserUnlockedReceiver, userFilter);
 
         Log.i(TAG, "Starting the AVRCP Target Service");
         mCurrentData = new MediaData(null, null, null);
@@ -280,6 +296,7 @@ public class AvrcpTargetService extends ProfileService {
         if (mPlayerSettingsManager != null) mPlayerSettingsManager.cleanup();
         if (mMediaPlayerList != null) mMediaPlayerList.cleanup();
         if (mNativeInterface != null) mNativeInterface.cleanup();
+        getApplicationContext().unregisterReceiver(mUserUnlockedReceiver);
 
         mPlayerSettingsManager = null;
         mMediaPlayerList = null;
