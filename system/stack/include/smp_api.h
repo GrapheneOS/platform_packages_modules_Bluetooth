@@ -200,6 +200,20 @@ bool SMP_CrLocScOobData();
  ******************************************************************************/
 void SMP_ClearLocScOobData();
 
+/*******************************************************************************
+ *
+ * Function         SMP_SirkConfirmDeviceReply
+ *
+ * Description      This function is called after Security Manager submitted
+ *                  verification of device with CSIP.
+ *
+ * Parameters:      bd_addr      - Address of the device with which verification
+ *                                 was requested
+ *                  res          - comparison result SMP_SUCCESS if success
+ *
+ ******************************************************************************/
+void SMP_SirkConfirmDeviceReply(const RawAddress& bd_addr, uint8_t res);
+
 // Called when LTK request is received from controller.
 bool smp_proc_ltk_request(const RawAddress& bda);
 

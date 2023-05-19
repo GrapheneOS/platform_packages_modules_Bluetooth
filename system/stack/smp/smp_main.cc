@@ -91,6 +91,7 @@ const char* const smp_event_name[] = {"PAIRING_REQ_EVT",
                                       "KEYPRESS_NOTIFICATION_EVT",
                                       "SEC_CONN_OOB_DATA_EVT",
                                       "CREATE_LOCAL_SEC_CONN_OOB_DATA_EVT",
+                                      "SIRK_DEVICE_VALID_EVT",
                                       "OUT_OF_RANGE_EVT"};
 
 const char* smp_get_event_name(tSMP_EVENT event);
@@ -137,6 +138,7 @@ enum {
   SMP_CHECK_AUTH_REQ,
   SMP_PAIR_TERMINATE,
   SMP_ENC_CMPL,
+  SMP_SIRK_VERIFY,
   SMP_PROC_DISCARD,
   SMP_CREATE_PRIVATE_KEY,
   SMP_USE_OOB_PRIVATE_KEY,
@@ -201,6 +203,7 @@ static const tSMP_ACT smp_sm_action[] = {
     smp_check_auth_req,
     smp_pair_terminate,
     smp_enc_cmpl,
+    smp_sirk_verify,
     smp_proc_discard,
     smp_create_private_key,
     smp_use_oob_private_key,
@@ -232,9 +235,10 @@ static const tSMP_ACT smp_sm_action[] = {
 /************ SMP Central FSM State/Event Indirection Table **************/
 static const uint8_t smp_central_entry_map[][SMP_STATE_MAX] = {
     /* state name: */
-    /* Idle, WaitApp Rsp, SecReq Pend, Pair ReqRsp, Wait Cfm, Confirm, Rand,
-       PublKey Exch, SCPhs1 Strt, Wait Cmtm, Wait Nonce, SCPhs2 Strt, Wait
-       DHKChk, DHKChk, Enc Pend, Bond Pend, CrLocSc OobData */
+    /* Idle, WaitApp Rsp, SecReq Pend, Pair ReqRsp, Wait Cfm,
+       Confirm, Rand, PublKey Exch, SCPhs1 Strt, Wait Cmtm, Wait Nonce,
+       SCPhs2 Strt, Wait DHKChk, DHKChk, Enc Pend, Bond Pend, CrLocSc OobData
+     */
     /* PAIR_REQ */
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     /* PAIR_RSP */
@@ -283,7 +287,7 @@ static const uint8_t smp_central_entry_map[][SMP_STATE_MAX] = {
     {0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0},
     /* AUTH_CMPL */
     {4, 0x82, 0, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82,
-     0x82, 0x82, 0x82, 0},
+     0x82, 0x82, 7, 0},
     /* ENC_REQ */
     {0, 4, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0},
     /* BOND_REQ */
@@ -318,6 +322,8 @@ static const uint8_t smp_central_entry_map[][SMP_STATE_MAX] = {
     {0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     /* CR_LOC_SC_OOB_DATA */
     {5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    /* SIRK_VERIFY */
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x82, 0},
 };
 
 static const uint8_t smp_all_table[][SMP_SM_NUM_COLS] = {
@@ -512,6 +518,7 @@ static const uint8_t smp_central_enc_pending_table[][SMP_SM_NUM_COLS] = {
     {SMP_CHECK_AUTH_REQ, SMP_SM_NO_ACTION, SMP_STATE_ENCRYPTION_PENDING},
     /* BOND_REQ */
     {SMP_KEY_DISTRIBUTE, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING}};
+
 static const uint8_t smp_central_bond_pending_table[][SMP_SM_NUM_COLS] = {
     /* Event                  Action                 Next State */
     /* ENC_INFO */
@@ -526,7 +533,10 @@ static const uint8_t smp_central_bond_pending_table[][SMP_SM_NUM_COLS] = {
     {SMP_PROC_ID_ADDR, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING},
     /* KEY_READY */
     /* LTK ready */
-    {SMP_SEND_ENC_INFO, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING}};
+    {SMP_SEND_ENC_INFO, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING},
+    /* AUTH_CMPL */
+    {SMP_SIRK_VERIFY, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING},
+};
 
 static const uint8_t
     smp_central_create_local_sec_conn_oob_data[][SMP_SM_NUM_COLS] = {
@@ -595,7 +605,7 @@ static const uint8_t smp_peripheral_entry_map[][SMP_STATE_MAX] = {
     /* ENC_REQ */
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
     /* BOND_REQ */
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 1},
     /* DISCARD_SEC_REQ */
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     /* PUBL_KEY_EXCH_REQ */
@@ -626,6 +636,8 @@ static const uint8_t smp_peripheral_entry_map[][SMP_STATE_MAX] = {
     {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     /* CR_LOC_SC_OOB_DATA */
     {3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    /* SIRK_VERIFY */
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 };
 
 static const uint8_t smp_peripheral_idle_table[][SMP_SM_NUM_COLS] = {
@@ -838,6 +850,7 @@ static const uint8_t smp_peripheral_enc_pending_table[][SMP_SM_NUM_COLS] = {
     {SMP_CHECK_AUTH_REQ, SMP_SM_NO_ACTION, SMP_STATE_ENCRYPTION_PENDING},
     /* BOND_REQ */
     {SMP_KEY_DISTRIBUTE, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING}};
+
 static const uint8_t smp_peripheral_bond_pending_table[][SMP_SM_NUM_COLS] = {
     /* Event                  Action                 Next State */
 
@@ -855,8 +868,9 @@ static const uint8_t smp_peripheral_bond_pending_table[][SMP_SM_NUM_COLS] = {
     /* CENTRAL_ID*/
     {SMP_PROC_CENTRAL_ID, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING},
     /* ID_ADDR */
-    {SMP_PROC_ID_ADDR, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING}
-
+    {SMP_PROC_ID_ADDR, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING},
+    /* AUTH_CMPL */
+    {SMP_SIRK_VERIFY, SMP_SM_NO_ACTION, SMP_STATE_BOND_PENDING},
 };
 
 static const uint8_t
@@ -924,7 +938,8 @@ static const tSMP_SM_TBL smp_state_table[][2] = {
 
     /* SMP_STATE_CREATE_LOCAL_SEC_CONN_OOB_DATA */
     {smp_central_create_local_sec_conn_oob_data,
-     smp_peripheral_create_local_sec_conn_oob_data}};
+     smp_peripheral_create_local_sec_conn_oob_data},
+};
 
 typedef const uint8_t (*tSMP_ENTRY_TBL)[SMP_STATE_MAX];
 static const tSMP_ENTRY_TBL smp_entry_table[] = {smp_central_entry_map,
@@ -1020,7 +1035,6 @@ bool smp_sm_event(tSMP_CB* p_cb, tSMP_EVENT event, tSMP_INT_DATA* p_data) {
   }
 
   /* Get possible next state from state table. */
-
   smp_set_state(state_table[entry - 1][SMP_SME_NEXT_STATE]);
 
   /* If action is not ignore, clear param, exec action and get next state.
