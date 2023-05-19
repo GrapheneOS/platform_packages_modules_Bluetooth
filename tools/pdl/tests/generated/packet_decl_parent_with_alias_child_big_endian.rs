@@ -1,18 +1,16 @@
-// @generated rust packets from test
-
+#![rustfmt::skip]
+/// @generated rust packets from test.
 use bytes::{Buf, BufMut, Bytes, BytesMut};
-use std::cell::Cell;
 use std::convert::{TryFrom, TryInto};
+use std::cell::Cell;
 use std::fmt;
 use std::sync::Arc;
 use thiserror::Error;
-
 type Result<T> = std::result::Result<T, Error>;
-
-#[doc = r" Private prevents users from creating arbitrary scalar values"]
-#[doc = r" in situations where the value needs to be validated."]
-#[doc = r" Users can freely deref the value, but only the backend"]
-#[doc = r" may create it."]
+/// Private prevents users from creating arbitrary scalar values
+/// in situations where the value needs to be validated.
+/// Users can freely deref the value, but only the backend
+/// may create it.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Private<T>(T);
 impl<T> std::ops::Deref for Private<T> {
@@ -21,7 +19,6 @@ impl<T> std::ops::Deref for Private<T> {
         &self.0
     }
 }
-
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Packet parsing failed")]
@@ -32,7 +29,9 @@ pub enum Error {
     InvalidFixedValue { expected: u64, actual: u64 },
     #[error("when parsing {obj} needed length of {wanted} but got {got}")]
     InvalidLengthError { obj: String, wanted: usize, got: usize },
-    #[error("array size ({array} bytes) is not a multiple of the element size ({element} bytes)")]
+    #[error(
+        "array size ({array} bytes) is not a multiple of the element size ({element} bytes)"
+    )]
     InvalidArraySize { array: usize, element: usize },
     #[error("Due to size restrictions a struct could not be parsed.")]
     ImpossibleStructError,
@@ -41,12 +40,10 @@ pub enum Error {
     #[error("expected child {expected}, got {actual}")]
     InvalidChildError { expected: &'static str, actual: String },
 }
-
 pub trait Packet {
     fn to_bytes(self) -> Bytes;
     fn to_vec(self) -> Vec<u8>;
 }
-
 #[repr(u64)]
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -111,7 +108,6 @@ impl From<Enum8> for u64 {
         u8::from(value) as Self
     }
 }
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ParentDataChild {
@@ -173,14 +169,13 @@ impl ParentData {
                 got: bytes.get().remaining(),
             });
         }
-        let v = Enum8::try_from(bytes.get_mut().get_u8()).map_err(|_| {
-            Error::InvalidEnumValueError {
+        let v = Enum8::try_from(bytes.get_mut().get_u8())
+            .map_err(|_| Error::InvalidEnumValueError {
                 obj: "Parent".to_string(),
                 field: "v".to_string(),
                 value: bytes.get_mut().get_u8() as u64,
                 type_: "Enum8".to_string(),
-            }
-        })?;
+            })?;
         let payload = bytes.get();
         bytes.get_mut().advance(payload.len());
         let child = match (v) {
@@ -194,7 +189,9 @@ impl ParentData {
                 let child_data = NormalChildData::parse_inner(&mut cell)?;
                 ParentDataChild::NormalChild(Arc::new(child_data))
             }
-            _ if !payload.is_empty() => ParentDataChild::Payload(Bytes::copy_from_slice(payload)),
+            _ if !payload.is_empty() => {
+                ParentDataChild::Payload(Bytes::copy_from_slice(payload))
+            }
             _ => ParentDataChild::None,
         };
         Ok(Self { v, child })
@@ -287,7 +284,6 @@ impl From<ParentBuilder> for Parent {
         builder.build().into()
     }
 }
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum AliasChildDataChild {
@@ -421,13 +417,19 @@ impl AliasChild {
     }
     pub fn specialize(&self) -> AliasChildChild {
         match &self.aliaschild.child {
-            AliasChildDataChild::NormalGrandChild1(_) => AliasChildChild::NormalGrandChild1(
-                NormalGrandChild1::new(self.parent.clone()).unwrap(),
-            ),
-            AliasChildDataChild::NormalGrandChild2(_) => AliasChildChild::NormalGrandChild2(
-                NormalGrandChild2::new(self.parent.clone()).unwrap(),
-            ),
-            AliasChildDataChild::Payload(payload) => AliasChildChild::Payload(payload.clone()),
+            AliasChildDataChild::NormalGrandChild1(_) => {
+                AliasChildChild::NormalGrandChild1(
+                    NormalGrandChild1::new(self.parent.clone()).unwrap(),
+                )
+            }
+            AliasChildDataChild::NormalGrandChild2(_) => {
+                AliasChildChild::NormalGrandChild2(
+                    NormalGrandChild2::new(self.parent.clone()).unwrap(),
+                )
+            }
+            AliasChildDataChild::Payload(payload) => {
+                AliasChildChild::Payload(payload.clone())
+            }
             AliasChildDataChild::None => AliasChildChild::None,
         }
     }
@@ -437,8 +439,8 @@ impl AliasChild {
             _ => {
                 return Err(Error::InvalidChildError {
                     expected: stringify!(ParentDataChild::AliasChild),
-                    actual: format!("{:?}", &parent.child),
-                })
+                    actual: format!("{:?}", & parent.child),
+                });
             }
         };
         Ok(Self { parent, aliaschild })
@@ -461,8 +463,10 @@ impl AliasChildBuilder {
                 Some(bytes) => AliasChildDataChild::Payload(bytes),
             },
         });
-        let parent =
-            Arc::new(ParentData { v: self.v, child: ParentDataChild::AliasChild(aliaschild) });
+        let parent = Arc::new(ParentData {
+            v: self.v,
+            child: ParentDataChild::AliasChild(aliaschild),
+        });
         AliasChild::new(parent).unwrap()
     }
 }
@@ -476,7 +480,6 @@ impl From<AliasChildBuilder> for AliasChild {
         builder.build().into()
     }
 }
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct NormalChildData {}
@@ -558,8 +561,8 @@ impl NormalChild {
             _ => {
                 return Err(Error::InvalidChildError {
                     expected: stringify!(ParentDataChild::NormalChild),
-                    actual: format!("{:?}", &parent.child),
-                })
+                    actual: format!("{:?}", & parent.child),
+                });
             }
         };
         Ok(Self { parent, normalchild })
@@ -577,8 +580,10 @@ impl NormalChild {
 impl NormalChildBuilder {
     pub fn build(self) -> NormalChild {
         let normalchild = Arc::new(NormalChildData {});
-        let parent =
-            Arc::new(ParentData { v: Enum8::A, child: ParentDataChild::NormalChild(normalchild) });
+        let parent = Arc::new(ParentData {
+            v: Enum8::A,
+            child: ParentDataChild::NormalChild(normalchild),
+        });
         NormalChild::new(parent).unwrap()
     }
 }
@@ -592,7 +597,6 @@ impl From<NormalChildBuilder> for NormalChild {
         builder.build().into()
     }
 }
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct NormalGrandChild1Data {}
@@ -681,8 +685,8 @@ impl NormalGrandChild1 {
             _ => {
                 return Err(Error::InvalidChildError {
                     expected: stringify!(ParentDataChild::AliasChild),
-                    actual: format!("{:?}", &parent.child),
-                })
+                    actual: format!("{:?}", & parent.child),
+                });
             }
         };
         let normalgrandchild1 = match &aliaschild.child {
@@ -690,11 +694,15 @@ impl NormalGrandChild1 {
             _ => {
                 return Err(Error::InvalidChildError {
                     expected: stringify!(AliasChildDataChild::NormalGrandChild1),
-                    actual: format!("{:?}", &aliaschild.child),
-                })
+                    actual: format!("{:?}", & aliaschild.child),
+                });
             }
         };
-        Ok(Self { parent, aliaschild, normalgrandchild1 })
+        Ok(Self {
+            parent,
+            aliaschild,
+            normalgrandchild1,
+        })
     }
     pub fn get_v(&self) -> Enum8 {
         self.parent.as_ref().v
@@ -712,8 +720,10 @@ impl NormalGrandChild1Builder {
         let aliaschild = Arc::new(AliasChildData {
             child: AliasChildDataChild::NormalGrandChild1(normalgrandchild1),
         });
-        let parent =
-            Arc::new(ParentData { v: Enum8::B, child: ParentDataChild::AliasChild(aliaschild) });
+        let parent = Arc::new(ParentData {
+            v: Enum8::B,
+            child: ParentDataChild::AliasChild(aliaschild),
+        });
         NormalGrandChild1::new(parent).unwrap()
     }
 }
@@ -732,7 +742,6 @@ impl From<NormalGrandChild1Builder> for NormalGrandChild1 {
         builder.build().into()
     }
 }
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum NormalGrandChild2DataChild {
@@ -866,8 +875,8 @@ impl NormalGrandChild2 {
             _ => {
                 return Err(Error::InvalidChildError {
                     expected: stringify!(ParentDataChild::AliasChild),
-                    actual: format!("{:?}", &parent.child),
-                })
+                    actual: format!("{:?}", & parent.child),
+                });
             }
         };
         let normalgrandchild2 = match &aliaschild.child {
@@ -875,11 +884,15 @@ impl NormalGrandChild2 {
             _ => {
                 return Err(Error::InvalidChildError {
                     expected: stringify!(AliasChildDataChild::NormalGrandChild2),
-                    actual: format!("{:?}", &aliaschild.child),
-                })
+                    actual: format!("{:?}", & aliaschild.child),
+                });
             }
         };
-        Ok(Self { parent, aliaschild, normalgrandchild2 })
+        Ok(Self {
+            parent,
+            aliaschild,
+            normalgrandchild2,
+        })
     }
     pub fn get_v(&self) -> Enum8 {
         self.parent.as_ref().v
@@ -908,8 +921,10 @@ impl NormalGrandChild2Builder {
         let aliaschild = Arc::new(AliasChildData {
             child: AliasChildDataChild::NormalGrandChild2(normalgrandchild2),
         });
-        let parent =
-            Arc::new(ParentData { v: Enum8::C, child: ParentDataChild::AliasChild(aliaschild) });
+        let parent = Arc::new(ParentData {
+            v: Enum8::C,
+            child: ParentDataChild::AliasChild(aliaschild),
+        });
         NormalGrandChild2::new(parent).unwrap()
     }
 }

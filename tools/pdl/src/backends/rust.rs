@@ -1015,7 +1015,7 @@ mod tests {
     use crate::analyzer;
     use crate::ast;
     use crate::parser::parse_inline;
-    use crate::test_utils::{assert_snapshot_eq, rustfmt};
+    use crate::test_utils::{assert_snapshot_eq, format_rust};
     use paste::paste;
 
     /// Parse a string fragment as a PDL file.
@@ -1098,7 +1098,7 @@ mod tests {
                     let actual_code = generate(&db, &file);
                     assert_snapshot_eq(
                         &format!("tests/generated/{name}_{endianness}.rs"),
-                        &rustfmt(&actual_code),
+                        &format_rust(&actual_code),
                     );
                 }
             }
