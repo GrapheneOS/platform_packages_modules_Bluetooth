@@ -525,6 +525,11 @@ filegroup {
     ],
 }
 
+filegroup {
+    name: "TestCommonBtifTraceLevel",
+    srcs: ["common/btif_trace_level.cc"],
+}
+
 cc_defaults {
     name: "mts_defaults",
     target: {
