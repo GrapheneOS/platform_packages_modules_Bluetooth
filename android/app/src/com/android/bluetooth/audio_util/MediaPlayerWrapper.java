@@ -26,6 +26,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothEventLogger;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -45,13 +46,13 @@ public class MediaPlayerWrapper {
     static boolean sTesting = false;
     private static final int PLAYBACK_STATE_CHANGE_EVENT_LOGGER_SIZE = 5;
     private static final String PLAYBACK_STATE_CHANGE_LOGGER_EVENT_TITLE =
-            "Playback State change Event";
+            "BTAudio Playback State change Event";
 
     final Context mContext;
     private MediaController mMediaController;
     private String mPackageName;
     private Looper mLooper;
-    private final BTAudioEventLogger mPlaybackStateChangeEventLogger;
+    private final BluetoothEventLogger mPlaybackStateChangeEventLogger;
 
     private MediaData mCurrentData;
 
@@ -88,8 +89,10 @@ public class MediaPlayerWrapper {
         mMediaController = controller;
         mPackageName = controller.getPackageName();
         mLooper = looper;
-        mPlaybackStateChangeEventLogger = new BTAudioEventLogger(
-                PLAYBACK_STATE_CHANGE_EVENT_LOGGER_SIZE, PLAYBACK_STATE_CHANGE_LOGGER_EVENT_TITLE);
+        mPlaybackStateChangeEventLogger =
+                new BluetoothEventLogger(
+                        PLAYBACK_STATE_CHANGE_EVENT_LOGGER_SIZE,
+                        PLAYBACK_STATE_CHANGE_LOGGER_EVENT_TITLE);
 
         mCurrentData = new MediaData(null, null, null);
         mCurrentData.queue = Util.toMetadataList(mContext, getQueue());

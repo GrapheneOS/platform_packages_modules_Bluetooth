@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.audio_util;
+package com.android.bluetooth;
 
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
-
 import com.google.common.collect.EvictingQueue;
 
-
-// This class is to store logs for Audio for given size.
-public class BTAudioEventLogger {
+/** This class is to store logs for given size. */
+public class BluetoothEventLogger {
     private final String mTitle;
     private final EvictingQueue<Event> mEvents;
 
@@ -44,25 +41,29 @@ public class BTAudioEventLogger {
         }
     }
 
-    public BTAudioEventLogger(int size, String title) {
+    public BluetoothEventLogger(int size, String title) {
         mEvents = EvictingQueue.create(size);
         mTitle = title;
     }
 
+    /** Add the event record */
     public synchronized void add(String msg) {
         Event event = new Event(msg);
         mEvents.add(event);
     }
 
+    /** Add the event record and log message */
     public synchronized void logv(String tag, String msg) {
         add(msg);
         Log.v(tag, msg);
     }
 
+    /** Add the event record and log debug message */
     public synchronized void logd(String tag, String msg) {
         logd(true, tag, msg);
     }
 
+    /** Add the event record and log debug message */
     public synchronized void logd(boolean debug, String tag, String msg) {
         add(msg);
         if (debug) {
@@ -70,8 +71,21 @@ public class BTAudioEventLogger {
         }
     }
 
+    /** Add the event record and log warning message */
+    public synchronized void logw(String tag, String msg) {
+        add(msg);
+        Log.w(tag, msg);
+    }
+
+    /** Add the event record and log error message */
+    public synchronized void loge(String tag, String msg) {
+        add(msg);
+        Log.e(tag, msg);
+    }
+
+    /** Dump all the events */
     public synchronized void dump(StringBuilder sb) {
-        sb.append("BTAudio ").append(mTitle).append(":\n");
+        sb.append(mTitle).append(":\n");
         for (Event event : mEvents) {
             sb.append("  ").append(event.toString()).append("\n");
         }

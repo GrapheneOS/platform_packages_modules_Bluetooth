@@ -36,6 +36,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.android.bluetooth.BluetoothEventLogger;
 import com.android.bluetooth.Utils;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -71,9 +72,10 @@ public class MediaPlayerList {
     private static final int BLUETOOTH_PLAYER_ID = 0;
     private static final String BLUETOOTH_PLAYER_NAME = "Bluetooth Player";
     private static final int ACTIVE_PLAYER_LOGGER_SIZE = 5;
-    private static final String ACTIVE_PLAYER_LOGGER_TITLE = "Active Player Events";
+    private static final String ACTIVE_PLAYER_LOGGER_TITLE = "BTAudio Active Player Events";
     private static final int AUDIO_PLAYBACK_STATE_LOGGER_SIZE = 15;
-    private static final String AUDIO_PLAYBACK_STATE_LOGGER_TITLE = "Audio Playback State Events";
+    private static final String AUDIO_PLAYBACK_STATE_LOGGER_TITLE =
+            "BTAudio Audio Playback State Events";
 
     // mediaId's for the now playing list will be in the form of "NowPlayingId[XX]" where [XX]
     // is the Queue ID for the requested item.
@@ -90,10 +92,11 @@ public class MediaPlayerList {
     private MediaData mCurrMediaData = null;
     private final AudioManager mAudioManager;
 
-    private final BTAudioEventLogger mActivePlayerLogger = new BTAudioEventLogger(
-        ACTIVE_PLAYER_LOGGER_SIZE, ACTIVE_PLAYER_LOGGER_TITLE);
-    private final BTAudioEventLogger mAudioPlaybackStateLogger = new BTAudioEventLogger(
-        AUDIO_PLAYBACK_STATE_LOGGER_SIZE, AUDIO_PLAYBACK_STATE_LOGGER_TITLE);
+    private final BluetoothEventLogger mActivePlayerLogger =
+            new BluetoothEventLogger(ACTIVE_PLAYER_LOGGER_SIZE, ACTIVE_PLAYER_LOGGER_TITLE);
+    private final BluetoothEventLogger mAudioPlaybackStateLogger =
+            new BluetoothEventLogger(
+                    AUDIO_PLAYBACK_STATE_LOGGER_SIZE, AUDIO_PLAYBACK_STATE_LOGGER_TITLE);
 
     private Map<Integer, MediaPlayerWrapper> mMediaPlayers =
             Collections.synchronizedMap(new HashMap<Integer, MediaPlayerWrapper>());
