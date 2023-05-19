@@ -32,11 +32,15 @@
 
 #define LOG_TAG "btm_sco"
 
+#include "common/bidi_queue.h"
 #include "device/include/controller.h"
 #include "device/include/device_iot_config.h"
 #include "embdrv/sbc/decoder/include/oi_codec_sbc.h"
 #include "embdrv/sbc/decoder/include/oi_status.h"
+#include "gd/hci/hci_layer.h"
+#include "hci/hci_packets.h"
 #include "hci/include/hci_layer.h"
+#include "main/shim/entry.h"
 #include "main/shim/hci_layer.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -49,6 +53,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_api_types.h"
+#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/hci_error_code.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/class_of_device.h"
@@ -72,6 +77,100 @@ const bluetooth::legacy::hci::Interface& GetLegacyHciInterface() {
 
 };  // namespace
 
+// forward declaration for dequeueing packets
+void btm_route_sco_data(BT_HDR* p_msg);
+
+namespace cpp {
+constexpr size_t kBtHdrSize = sizeof(BT_HDR);
+bluetooth::common::BidiQueueEnd<bluetooth::hci::ScoBuilder,
+                                bluetooth::hci::ScoView>* hci_sco_queue_end =
+    nullptr;
+static bluetooth::os::EnqueueBuffer<bluetooth::hci::ScoBuilder>*
+    pending_sco_data = nullptr;
+
+static BT_HDR* WrapPacketAndCopy(
+    uint16_t event,
+    bluetooth::hci::PacketView<bluetooth::hci::kLittleEndian>* data) {
+  size_t packet_size = data->size() + kBtHdrSize;
+  BT_HDR* packet = reinterpret_cast<BT_HDR*>(osi_malloc(packet_size));
+  packet->offset = 0;
+  packet->len = data->size();
+  packet->layer_specific = 0;
+  packet->event = event;
+  std::copy(data->begin(), data->end(), packet->data);
+  return packet;
+}
+
+static void transmit_sco_fragment(const uint8_t* stream, size_t length) {
+  uint16_t handle_with_flags;
+  STREAM_TO_UINT16(handle_with_flags, stream);
+  uint16_t handle = HCID_GET_HANDLE(handle_with_flags);
+  ASSERT_LOG(handle <= HCI_HANDLE_MAX, "Require handle <= 0x%X, but is 0x%X",
+             HCI_HANDLE_MAX, handle);
+
+  length -= 2;
+  // skip data total length
+  stream += 1;
+  length -= 1;
+  auto payload = std::vector<uint8_t>(stream, stream + length);
+  auto sco_packet = bluetooth::hci::ScoBuilder::Create(
+      handle, bluetooth::hci::PacketStatusFlag::CORRECTLY_RECEIVED,
+      std::move(payload));
+
+  pending_sco_data->Enqueue(std::move(sco_packet),
+                            bluetooth::shim::GetGdShimHandler());
+}
+static void sco_data_callback() {
+  if (hci_sco_queue_end == nullptr) {
+    return;
+  }
+  auto packet = hci_sco_queue_end->TryDequeue();
+  ASSERT(packet != nullptr);
+  if (!packet->IsValid()) {
+    LOG_INFO("Dropping invalid packet of size %zu", packet->size());
+    return;
+  }
+  auto data = WrapPacketAndCopy(MSG_HC_TO_STACK_HCI_SCO, packet.get());
+  if (do_in_main_thread(FROM_HERE, base::Bind(&btm_route_sco_data, data)) !=
+      BT_STATUS_SUCCESS) {
+    LOG(ERROR) << __func__
+               << ": do_in_main_thread failed from sco_data_callback";
+  }
+}
+static void register_for_sco() {
+  hci_sco_queue_end = bluetooth::shim::GetHciLayer()->GetScoQueueEnd();
+  hci_sco_queue_end->RegisterDequeue(
+      bluetooth::shim::GetGdShimHandler(),
+      bluetooth::common::Bind(sco_data_callback));
+  pending_sco_data =
+      new bluetooth::os::EnqueueBuffer<bluetooth::hci::ScoBuilder>(
+          hci_sco_queue_end);
+}
+
+static void shut_down_sco() {
+  if (pending_sco_data != nullptr) {
+    pending_sco_data->Clear();
+    delete pending_sco_data;
+    pending_sco_data = nullptr;
+  }
+  if (hci_sco_queue_end != nullptr) {
+    hci_sco_queue_end->UnregisterDequeue();
+    hci_sco_queue_end = nullptr;
+  }
+}
+};  // namespace cpp
+
+void tSCO_CB::Init() {
+  hfp_hal_interface::init();
+  def_esco_parms = esco_parameters_for_codec(
+      ESCO_CODEC_CVSD_S3, hfp_hal_interface::get_offload_enabled());
+  cpp::register_for_sco();
+}
+
+void tSCO_CB::Free() {
+  cpp::shut_down_sco();
+  bluetooth::audio::sco::cleanup();
+}
 /******************************************************************************/
 /*               L O C A L    D A T A    D E F I N I T I O N S                */
 /******************************************************************************/
@@ -382,11 +481,8 @@ void btm_send_sco_packet(std::vector<uint8_t> data) {
   }
   BT_HDR* packet = btm_sco_make_packet(std::move(data), active_sco->hci_handle);
 
-  auto hci = bluetooth::shim::hci_layer_get_interface();
-
   packet->event = BT_EVT_TO_LM_HCI_SCO;
-
-  hci->transmit_downward(packet->event, packet);
+  cpp::transmit_sco_fragment(packet->data + packet->offset, packet->len);
 }
 
 // Build a SCO packet from uint8

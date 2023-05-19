@@ -204,13 +204,9 @@ typedef struct {
     return nullptr;
   }
 
-  void Init() {
-    hfp_hal_interface::init();
-    def_esco_parms = esco_parameters_for_codec(
-        ESCO_CODEC_CVSD_S3, hfp_hal_interface::get_offload_enabled());
-  }
+  void Init();
 
-  void Free() { bluetooth::audio::sco::cleanup(); }
+  void Free();
 
   uint16_t get_index(const tSCO_CONN* p_sco) const {
     CHECK(p_sco != nullptr);
