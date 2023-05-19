@@ -14,8 +14,9 @@ rust_ffi {
     crate_name: "rootcanal_rs",
     srcs: [
         "src/lib.rs",
-        ":rootcanal_lmp_packets_rust_gen",
+
         ":rootcanal_hci_packets_rust_gen",
+        ":rootcanal_lmp_packets_rust_gen",
     ],
     edition: "2018",
     proc_macros: ["libnum_derive"],
@@ -43,8 +44,9 @@ rust_test_host {
     crate_name: "rootcanal_rs",
     srcs: [
         "src/lib.rs",
-        ":rootcanal_lmp_packets_rust_gen",
+
         ":rootcanal_hci_packets_rust_gen",
+        ":rootcanal_lmp_packets_rust_gen",
     ],
     auto_gen_config: true,
     edition: "2018",
