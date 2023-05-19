@@ -84,7 +84,7 @@ TEST_F(BtifAvrcpAudioTrackTest,
   for (size_t index = 0; index < bufferLength; ++index) {
     data[index] = index;
   }
-  BtifAvrcpAudioTrackWriteData(trackHolder, data, bufferLength - 1);
+  BtifAvrcpAudioTrackWriteData(trackHolder, data, bufferLength);
   const int16_t* dataInt = (int16_t*)data;
   for (size_t index = 0; index < bufferLength / sampleSize; ++index) {
     const float expected = dataInt[index] * scaleQ15ToFloat * gainValue;
