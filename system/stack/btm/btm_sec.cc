@@ -116,7 +116,6 @@ static tBTM_STATUS btm_sec_send_hci_disconnect(tBTM_SEC_DEV_REC* p_dev_rec,
                                                tHCI_STATUS reason,
                                                uint16_t conn_handle,
                                                std::string comment);
-tBTM_SEC_DEV_REC* btm_sec_find_dev_by_sec_state(uint8_t state);
 
 static bool btm_dev_authenticated(tBTM_SEC_DEV_REC* p_dev_rec);
 static bool btm_dev_encrypted(tBTM_SEC_DEV_REC* p_dev_rec);
@@ -228,6 +227,23 @@ static bool btm_dev_16_digit_authenticated(tBTM_SEC_DEV_REC* p_dev_rec) {
     return (true);
   }
   return (false);
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_sec_find_dev_by_sec_state
+ *
+ * Description      Look for the record in the device database for the device
+ *                  which is being authenticated or encrypted
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
+static tBTM_SEC_DEV_REC* btm_sec_find_dev_by_sec_state(uint8_t state) {
+  list_node_t* n = list_foreach(btm_cb.sec_dev_rec, is_sec_state_equal, &state);
+  if (n) return static_cast<tBTM_SEC_DEV_REC*>(list_node(n));
+
+  return nullptr;
 }
 
 /*******************************************************************************
@@ -4679,23 +4695,6 @@ bool is_sec_state_equal(void* data, void* context) {
   if (p_dev_rec->sec_state == *state) return false;
 
   return true;
-}
-
-/*******************************************************************************
- *
- * Function         btm_sec_find_dev_by_sec_state
- *
- * Description      Look for the record in the device database for the device
- *                  which is being authenticated or encrypted
- *
- * Returns          Pointer to the record or NULL
- *
- ******************************************************************************/
-tBTM_SEC_DEV_REC* btm_sec_find_dev_by_sec_state(uint8_t state) {
-  list_node_t* n = list_foreach(btm_cb.sec_dev_rec, is_sec_state_equal, &state);
-  if (n) return static_cast<tBTM_SEC_DEV_REC*>(list_node(n));
-
-  return NULL;
 }
 
 /*******************************************************************************

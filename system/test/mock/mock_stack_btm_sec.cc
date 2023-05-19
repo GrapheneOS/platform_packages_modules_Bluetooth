@@ -132,10 +132,6 @@ tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
   return 0;
 }
-tBTM_SEC_DEV_REC* btm_sec_find_dev_by_sec_state(uint8_t state) {
-  inc_func_call_count(__func__);
-  return nullptr;
-}
 tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm) {
   inc_func_call_count(__func__);
   return nullptr;
