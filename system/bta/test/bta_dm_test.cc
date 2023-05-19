@@ -525,3 +525,18 @@ TEST_F(BtaDmTest, bta_dm_search_evt_text) {
           static_cast<tBTA_DM_SEARCH_EVT>(std::numeric_limits<uint8_t>::max()))
           .c_str());
 }
+
+TEST_F(BtaDmTest, bta_dm_remote_name_cmpl) {
+  tBTA_DM_MSG msg = {
+      .remote_name_msg =
+          {
+              // tBTA_DM_REMOTE_NAME
+              .hdr = {},
+              .bd_addr = kRawAddress,
+              .bd_name = {0},
+              .hci_status = HCI_SUCCESS,
+          },
+  };
+  bta_dm_remote_name_cmpl(&msg);
+  ASSERT_EQ(1, get_func_call_count("BTM_InqDbRead"));
+}
