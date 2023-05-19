@@ -101,25 +101,6 @@ static BT_HDR* WrapPacketAndCopy(
   return packet;
 }
 
-static void transmit_sco_fragment(const uint8_t* stream, size_t length) {
-  uint16_t handle_with_flags;
-  STREAM_TO_UINT16(handle_with_flags, stream);
-  uint16_t handle = HCID_GET_HANDLE(handle_with_flags);
-  ASSERT_LOG(handle <= HCI_HANDLE_MAX, "Require handle <= 0x%X, but is 0x%X",
-             HCI_HANDLE_MAX, handle);
-
-  length -= 2;
-  // skip data total length
-  stream += 1;
-  length -= 1;
-  auto payload = std::vector<uint8_t>(stream, stream + length);
-  auto sco_packet = bluetooth::hci::ScoBuilder::Create(
-      handle, bluetooth::hci::PacketStatusFlag::CORRECTLY_RECEIVED,
-      std::move(payload));
-
-  pending_sco_data->Enqueue(std::move(sco_packet),
-                            bluetooth::shim::GetGdShimHandler());
-}
 static void sco_data_callback() {
   if (hci_sco_queue_end == nullptr) {
     return;
@@ -130,11 +111,10 @@ static void sco_data_callback() {
     LOG_INFO("Dropping invalid packet of size %zu", packet->size());
     return;
   }
-  auto data = WrapPacketAndCopy(MSG_HC_TO_STACK_HCI_SCO, packet.get());
+  auto data = WrapPacketAndCopy(0x1200 /* delete next CL */, packet.get());
   if (do_in_main_thread(FROM_HERE, base::Bind(&btm_route_sco_data, data)) !=
       BT_STATUS_SUCCESS) {
-    LOG(ERROR) << __func__
-               << ": do_in_main_thread failed from sco_data_callback";
+    LOG_ERROR("do_in_main_thread failed from sco_data_callback");
   }
 }
 static void register_for_sco() {
@@ -479,25 +459,20 @@ void btm_send_sco_packet(std::vector<uint8_t> data) {
   if (active_sco == nullptr || data.empty()) {
     return;
   }
-  BT_HDR* packet = btm_sco_make_packet(std::move(data), active_sco->hci_handle);
-
-  packet->event = BT_EVT_TO_LM_HCI_SCO;
-  cpp::transmit_sco_fragment(packet->data + packet->offset, packet->len);
-}
-
-// Build a SCO packet from uint8
-BT_HDR* btm_sco_make_packet(std::vector<uint8_t> data, uint16_t sco_handle) {
   ASSERT_LOG(data.size() <= BTM_SCO_DATA_SIZE_MAX, "Invalid SCO data size: %lu",
              (unsigned long)data.size());
-  BT_HDR* p_buf = (BT_HDR*)osi_calloc(BT_SMALL_BUFFER_SIZE);
-  p_buf->event = BT_EVT_TO_LM_HCI_SCO;
-  // SCO header size is 3 per Core 5.2 Vol 4 Part E 5.4.3 figure 5.3
-  p_buf->len = data.size() + 3;
-  uint8_t* payload = p_buf->data;
-  UINT16_TO_STREAM(payload, sco_handle);
-  UINT8_TO_STREAM(payload, data.size());
-  ARRAY_TO_STREAM(payload, data.data(), static_cast<int>(data.size()));
-  return p_buf;
+
+  uint16_t handle_with_flags = active_sco->hci_handle;
+  uint16_t handle = HCID_GET_HANDLE(handle_with_flags);
+  ASSERT_LOG(handle <= HCI_HANDLE_MAX, "Require handle <= 0x%X, but is 0x%X",
+             HCI_HANDLE_MAX, handle);
+
+  auto sco_packet = bluetooth::hci::ScoBuilder::Create(
+      handle, bluetooth::hci::PacketStatusFlag::CORRECTLY_RECEIVED,
+      std::move(data));
+
+  cpp::pending_sco_data->Enqueue(std::move(sco_packet),
+                                 bluetooth::shim::GetGdShimHandler());
 }
 
 /*******************************************************************************

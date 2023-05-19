@@ -254,21 +254,6 @@ TEST_F(StackBtmWithQueuesTest, change_packet_type) {
   get_btm_client_interface().lifecycle.btm_free();
 }
 
-TEST(ScoTest, make_sco_packet) {
-  std::vector<uint8_t> data = {10, 20, 30};
-  uint16_t handle = 0xab;
-  BT_HDR* p = btm_sco_make_packet(data, handle);
-  ASSERT_EQ(p->event, BT_EVT_TO_LM_HCI_SCO);
-  ASSERT_EQ(p->len, 3 + data.size());
-  ASSERT_EQ(p->data[0], 0xab);
-  ASSERT_EQ(p->data[1], 0);
-  ASSERT_EQ(p->data[2], 3);
-  ASSERT_EQ(p->data[3], 10);
-  ASSERT_EQ(p->data[4], 20);
-  ASSERT_EQ(p->data[5], 30);
-  osi_free(p);
-}
-
 TEST(BtmTest, BTM_EIR_MAX_SERVICES) { ASSERT_EQ(46, BTM_EIR_MAX_SERVICES); }
 
 }  // namespace
