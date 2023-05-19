@@ -19,9 +19,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +38,7 @@ import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService.BrowseResult;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
@@ -174,7 +177,90 @@ public class AvrcpControllerServiceTest {
 
         mService.getContents(parentMediaId);
 
-        verify(node).getContents();
+        verify(node, atLeastOnce()).getContents();
+    }
+
+    /**
+     * Pre-conditions: No node in BrowseTree for specified media ID
+     * Test: Call AvrcpControllerService.getContents()
+     * Expected Output: BrowseResult object with status ERROR_MEDIA_ID_INVALID
+     */
+    @Test
+    public void testGetContentsNoNode_returnInvalidMediaIdStatus() {
+        String parentMediaId = "test_parent_media_id";
+        when(mStateMachine.findNode(parentMediaId)).thenReturn(null);
+        BrowseResult result = mService.getContents(parentMediaId);
+
+        assertThat(result.getStatus()).isEqualTo(BrowseResult.ERROR_MEDIA_ID_INVALID);
+    }
+
+    /**
+     * Pre-conditions: No device is connected - parent media ID is at the root of the BrowseTree
+     * Test: Call AvrcpControllerService.getContents()
+     * Expected Output: BrowseResult object with status NO_DEVICE_CONNECTED
+     */
+    @Test
+    public void getContentsNoDeviceConnected_returnNoDeviceConnectedStatus() {
+        String parentMediaId = BrowseTree.ROOT;
+        BrowseResult result = mService.getContents(parentMediaId);
+
+        assertThat(result.getStatus()).isEqualTo(BrowseResult.NO_DEVICE_CONNECTED);
+    }
+
+    /**
+     * Pre-conditions: At least one device is connected
+     * Test: Call AvrcpControllerService.getContents()
+     * Expected Output: BrowseResult object with status SUCCESS
+     */
+    @Test
+    public void getContentsOneDeviceConnected_returnSuccessStatus() {
+        String parentMediaId = BrowseTree.ROOT;
+        mService.sBrowseTree.onConnected(mRemoteDevice);
+        BrowseResult result = mService.getContents(parentMediaId);
+
+        assertThat(result.getStatus()).isEqualTo(BrowseResult.SUCCESS);
+    }
+
+    /**
+     * Pre-conditions: Node for specified media ID is not cached
+     * Test: {@link BrowseTree.BrowseNode#getContents} returns {@code null} when the node has no
+     * children/items and the node is not cached.
+     * When {@link AvrcpControllerService#getContents} receives a node that is not cached,
+     * it should interpret the status as `DOWNLOAD_PENDING`.
+     * Expected Output: BrowseResult object with status DOWNLOAD_PENDING; verify that a download
+     * request has been sent by checking if mStateMachine.requestContents() is called
+     */
+    @Test
+    public void getContentsNodeNotCached_returnDownloadPendingStatus() {
+        String parentMediaId = "test_parent_media_id";
+        BrowseTree.BrowseNode node = mock(BrowseTree.BrowseNode.class);
+        when(mStateMachine.findNode(parentMediaId)).thenReturn(node);
+        when(node.isCached()).thenReturn(false);
+        when(node.getDevice()).thenReturn(mRemoteDevice);
+        when(node.getID()).thenReturn(parentMediaId);
+
+        BrowseResult result = mService.getContents(parentMediaId);
+
+        verify(mStateMachine, times(1)).requestContents(eq(node));
+        assertThat(result.getStatus()).isEqualTo(BrowseResult.DOWNLOAD_PENDING);
+    }
+
+    /**
+     * Pre-conditions: Parent media ID that is not BrowseTree.ROOT; isCached returns true
+     * Test: Call AvrcpControllerService.getContents()
+     * Expected Output: BrowseResult object with status SUCCESS
+     */
+    @Test
+    public void getContentsNoErrorConditions_returnsSuccessStatus() {
+        String parentMediaId = "test_parent_media_id";
+        BrowseTree.BrowseNode node = mock(BrowseTree.BrowseNode.class);
+        when(mStateMachine.findNode(parentMediaId)).thenReturn(node);
+        when(node.getContents()).thenReturn(new ArrayList(0));
+        when(node.isCached()).thenReturn(true);
+
+        BrowseResult result = mService.getContents(parentMediaId);
+
+        assertThat(result.getStatus()).isEqualTo(BrowseResult.SUCCESS);
     }
 
     @Test
