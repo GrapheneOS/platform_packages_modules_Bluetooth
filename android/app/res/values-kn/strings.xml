@@ -78,7 +78,7 @@
     <string name="not_exist_file_desc" msgid="250802392160941265">"ಫೈಲ್‌ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ. \n"</string>
     <string name="enabling_progress_title" msgid="5262637688863903594">"ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ…"</string>
     <string name="enabling_progress_content" msgid="685427201206684584">"ಬ್ಲೂಟೂತ್‌ ಆನ್‌ ಮಾಡಲಾಗುತ್ತಿದೆ…"</string>
-    <string name="bt_toast_1" msgid="8791691594887576215">"ಫೈಲ್‌ ಸ್ವೀಕರಿಸಲಾಗುತ್ತದೆ. ಅಧಿಸೂಚನೆ ಫಲಕದಲ್ಲಿ ಪ್ರಗತಿಯನ್ನು ಪರಿಶೀಲಿಸಿ."</string>
+    <string name="bt_toast_1" msgid="8791691594887576215">"ಫೈಲ್‌ ಸ್ವೀಕರಿಸಲಾಗುತ್ತದೆ. ನೋಟಿಫಿಕೇಶನ್ ಫಲಕದಲ್ಲಿ ಪ್ರಗತಿಯನ್ನು ಪರಿಶೀಲಿಸಿ."</string>
     <string name="bt_toast_2" msgid="2041575937953174042">"ಫೈಲ್‌ ಸ್ವೀಕರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ."</string>
     <string name="bt_toast_3" msgid="3053157171297761920">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" ರಿಂದ ಫೈಲ್‌ ಸ್ವೀಕರಿಸುವುದನ್ನು ನಿಲ್ಲಿಸಲಾಗಿದೆ"</string>
     <string name="bt_toast_4" msgid="480365991944956695">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ಇವರಿಗೆ ಫೈಲ್‌‌ ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ"</string>
