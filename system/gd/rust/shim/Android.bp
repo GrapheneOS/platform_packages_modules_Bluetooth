@@ -32,17 +32,8 @@ rust_defaults {
     crate_name: "bt_shim",
     srcs: ["src/lib.rs"],
     rustlibs: [
-        "libbluetooth_rs",
-        "libbt_common",
-        "libbt_facade_helpers",
-        "libbt_packets",
+        "libbt_common_only_init_flags",
         "libcxx",
-        "libfutures",
-        "liblazy_static",
-        "liblog_rust",
-        "libnix",
-        "libnum_traits",
-        "libtokio",
     ],
     proc_macros: [
         "libpaste",
