@@ -2018,13 +2018,14 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean isLogRedactionEnabled() {
+        public void isLogRedactionEnabled(SynchronousResultReceiver receiver) {
             AdapterService service = getService();
             if (service == null) {
                 // by default return true
-                return true;
+                receiver.send(true);
+            } else {
+                receiver.send(service.isLogRedactionEnabled());
             }
-            return service.isLogRedactionEnabled();
         }
 
         @Override
