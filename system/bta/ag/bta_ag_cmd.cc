@@ -28,7 +28,7 @@
 #include "bta/include/bta_ag_api.h"
 #include "bta/include/utl.h"
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include "bta/le_audio/devices.h"
 #endif
 
@@ -1860,7 +1860,7 @@ void bta_ag_send_bcs(tBTA_AG_SCB* p_scb) {
  *
  ******************************************************************************/
 bool bta_ag_is_sco_open_allowed(tBTA_AG_SCB* p_scb, const std::string event) {
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
   /* Do not open SCO if 1. the dual mode audio system property is enabled,
   2. LEA is active, and 3. LEA is preferred for DUPLEX */
   if (bluetooth::os::GetSystemPropertyBool(

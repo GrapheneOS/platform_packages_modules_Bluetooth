@@ -2988,6 +2988,8 @@ TEST_F(StateMachineTest, testStateTransitionTimeoutOnIdleState) {
        .source = types::AudioContexts(context_type)}));
 
   // Disconnect device
+  // in client.cc before this function is called, state of device is changed.
+  leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
   LeAudioGroupStateMachine::Get()->ProcessHciNotifAclDisconnected(
       group, leAudioDevice);
 

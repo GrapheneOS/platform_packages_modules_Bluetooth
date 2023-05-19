@@ -909,6 +909,7 @@ class HasClientImpl : public HasClient {
 
   void Dump(int fd) const {
     std::stringstream stream;
+    stream << " APP ID: " << +gatt_if_ << " \n";
     if (devices_.size()) {
       stream << "  {\"Known HAS devices\": [";
       for (const auto& device : devices_) {

@@ -199,6 +199,21 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                            Unretained(LeAudioClient::Get()), address));
   }
 
+  void SetEnableState(const RawAddress& address, bool enabled) override {
+    DVLOG(2) << __func__ << " address: " << address << ", enabled: " << enabled;
+
+    if (!initialized || !LeAudioClient::IsLeAudioClientRunning()) {
+      DVLOG(2) << __func__
+               << " call ignored, due to already started cleanup procedure or "
+                  "service being not read";
+      return;
+    }
+
+    do_in_main_thread(FROM_HERE,
+                      Bind(&LeAudioClient::SetEnableState,
+                           Unretained(LeAudioClient::Get()), address, enabled));
+  }
+
   void GroupAddNode(const int group_id, const RawAddress& address) override {
     DVLOG(2) << __func__ << " group_id: " << group_id
              << " address: " << ADDRESS_TO_LOGGABLE_STR(address);

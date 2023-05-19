@@ -2506,6 +2506,40 @@ packet WriteInquiryResponseTransmitPowerLevelComplete : CommandComplete (command
   status : ErrorCode,
 }
 
+packet ReadDefaultErroneousDataReporting : Command (op_code = READ_DEFAULT_ERRONEOUS_DATA_REPORTING) {
+}
+
+test ReadDefaultErroneousDataReporting {
+  "\x5a\x0c\x00",
+}
+
+packet ReadDefaultErroneousDataReportingComplete : CommandComplete (command_op_code = READ_DEFAULT_ERRONEOUS_DATA_REPORTING) {
+  status : ErrorCode,
+  erroneous_data_reporting : Enable,
+}
+
+test ReadDefaultErroneousDataReportingComplete {
+  "\x0e\x05\x02\x5a\x0c\x00\x00", // status success, Erroneous data reporting disabled
+  "\x0e\x05\x02\x5a\x0c\x00\x01", // status success, Erroneous data reporting enabled
+}
+
+packet WriteDefaultErroneousDataReporting : Command (op_code = WRITE_DEFAULT_ERRONEOUS_DATA_REPORTING) {
+  erroneous_data_reporting : Enable,
+}
+
+test WriteDefaultErroneousDataReporting {
+  "\x5b\x0c\x01\x00", // disable Erroneous Data reporting
+  "\x5b\x0c\x01\x01", // enable Erroneous Data reporting
+}
+
+packet WriteDefaultErroneousDataReportingComplete : CommandComplete (command_op_code = WRITE_DEFAULT_ERRONEOUS_DATA_REPORTING) {
+  status : ErrorCode,
+}
+
+test WriteDefaultErroneousDataReportingComplete {
+  "\x0e\x04\x01\x5b\x0c\x00", // status success
+}
+
 enum KeypressNotificationType : 8 {
   ENTRY_STARTED = 0,
   DIGIT_ENTERED = 1,
@@ -5172,10 +5206,30 @@ packet LeAdvFilterServiceDataComplete : LeAdvFilterComplete (apcf_opcode = SERVI
   apcf_available_spaces : 8,
 }
 
-packet LeAdvFilterTransportDiscoveryData : LeAdvFilter (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {
+packet LeAdvFilterTransportDiscoveryDataOld : LeAdvFilter (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {
   apcf_action : ApcfAction,
   apcf_filter_index : 8,
   apcf_transport_discovery_data : 8[],
+}
+
+enum ApcfMetaDataType : 8 {
+  INVALID = 0x00,
+  WIFI_NAN_HASH = 0x01,
+}
+
+packet LeAdvFilterTransportDiscoveryData : LeAdvFilter (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {
+  apcf_action : ApcfAction,
+  apcf_filter_index : 8,
+  org_id : 8,
+  tds_flags: 8,
+  tds_flags_mask: 8,
+  _size_(transport_data): 8,
+  transport_data: 8[],
+  _size_(transport_data_mask): 8,
+  transport_data_mask: 8[],
+  meta_data_type: ApcfMetaDataType,
+  _size_(meta_data): 8,
+  meta_data: 8[],
 }
 
 packet LeAdvFilterTransportDiscoveryDataComplete : LeAdvFilterComplete (apcf_opcode = TRANSPORT_DISCOVERY_DATA) {

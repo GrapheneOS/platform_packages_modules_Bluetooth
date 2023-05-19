@@ -90,6 +90,8 @@ public class StackEvent {
                 return "EVENT_TYPE_CONNECTION_STATE_CHANGED";
             case EVENT_TYPE_AUDIO_STATE_CHANGED:
                 return "EVENT_TYPE_AUDIO_STATE_CHANGED";
+            case EVENT_TYPE_VR_STATE_CHANGED:
+                return "EVENT_TYPE_VR_STATE_CHANGED";
             case EVENT_TYPE_NETWORK_STATE:
                 return "EVENT_TYPE_NETWORK_STATE";
             case EVENT_TYPE_ROAMING_STATE:
@@ -122,6 +124,8 @@ public class StackEvent {
                 return "EVENT_TYPE_RESP_AND_HOLD";
             case EVENT_TYPE_RING_INDICATION:
                 return "EVENT_TYPE_RING_INDICATION";
+            case EVENT_TYPE_IN_BAND_RINGTONE:
+                return "EVENT_TYPE_IN_BAND_RINGTONE";
             default:
                 return "EVENT_TYPE_UNKNOWN:" + type;
         }

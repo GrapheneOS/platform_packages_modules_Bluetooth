@@ -50,6 +50,7 @@ TestCommandHandler::TestCommandHandler(TestModel& test_model)
   SET_HANDLER("stop_timer", StopTimer);
   SET_HANDLER("reset", Reset);
 #undef SET_HANDLER
+  send_response_ = [](std::string const&) {};
 }
 
 void TestCommandHandler::AddDefaults() {
@@ -86,30 +87,6 @@ void TestCommandHandler::HandleCommand(const std::string& name,
     return;
   }
   active_commands_[name](args);
-}
-
-void TestCommandHandler::FromFile(const std::string& file_name) {
-  if (file_name.empty()) {
-    return;
-  }
-
-  std::ifstream file(file_name.c_str());
-
-  const std::regex re("\\s+");
-
-  std::string line;
-  while (std::getline(file, line)) {
-    auto begin = std::sregex_token_iterator(line.begin(), line.end(), re, -1);
-    auto end = std::sregex_token_iterator();
-    auto params = std::vector<std::string>(std::next(begin), end);
-
-    HandleCommand(*begin, params);
-  }
-
-  if (file.fail()) {
-    LOG_ERROR("Error reading commands from file.");
-    return;
-  }
 }
 
 void TestCommandHandler::RegisterSendResponse(

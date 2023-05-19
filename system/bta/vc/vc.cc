@@ -621,7 +621,10 @@ class VolumeControlImpl : public VolumeControl {
     instance->OnGattWriteCcc(connection_id, status, handle, len, value, data);
   }
 
-  void Dump(int fd) { volume_control_devices_.DebugDump(fd); }
+  void Dump(int fd) {
+    dprintf(fd, "APP ID: %d\n", gatt_if_);
+    volume_control_devices_.DebugDump(fd);
+  }
 
   void Disconnect(const RawAddress& address) override {
     VolumeControlDevice* device =

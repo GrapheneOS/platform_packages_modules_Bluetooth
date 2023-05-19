@@ -211,7 +211,6 @@ extern const module_t bt_utils_module;
 extern const module_t bte_logmsg_module;
 extern const module_t btif_config_module;
 extern const module_t gd_controller_module;
-extern const module_t gd_idle_module;
 extern const module_t gd_shim_module;
 extern const module_t interop_module;
 extern const module_t osi_module;
@@ -228,7 +227,6 @@ const struct module_lookup module_table[] = {
     {BTE_LOGMSG_MODULE, &bte_logmsg_module},
     {BTIF_CONFIG_MODULE, &btif_config_module},
     {GD_CONTROLLER_MODULE, &gd_controller_module},
-    {GD_IDLE_MODULE, &gd_idle_module},
     {GD_SHIM_MODULE, &gd_shim_module},
     {INTEROP_MODULE, &interop_module},
     {OSI_MODULE, &osi_module},
@@ -257,14 +255,16 @@ static void init_stack_internal(bluetooth::core::CoreInterface* interface) {
 
   module_management_start();
 
+  main_thread_start_up();
+
   module_init(get_local_module(DEVICE_IOT_CONFIG_MODULE));
   module_init(get_local_module(OSI_MODULE));
-  module_start_up(get_local_module(GD_IDLE_MODULE));
+  bte_main_init();
+  module_start_up(get_local_module(GD_SHIM_MODULE));
   module_init(get_local_module(BTIF_CONFIG_MODULE));
   btif_init_bluetooth();
 
   module_init(get_local_module(INTEROP_MODULE));
-  bte_main_init();
   module_init(get_local_module(STACK_CONFIG_MODULE));
 
   // stack init is synchronous, so no waiting necessary here
@@ -312,9 +312,7 @@ static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
   hack_future = local_hack_future;
 
   LOG_INFO("%s Gd shim module enabled", __func__);
-  module_shut_down(get_local_module(GD_IDLE_MODULE));
   get_btm_client_interface().lifecycle.btm_init();
-  module_start_up(get_local_module(GD_SHIM_MODULE));
   module_start_up(get_local_module(BTIF_CONFIG_MODULE));
 
   l2c_init();
@@ -331,8 +329,6 @@ static void event_start_up_stack(bluetooth::core::CoreInterface* interface,
   bta_sys_init();
 
   module_init(get_local_module(BTE_LOGMSG_MODULE));
-
-  main_thread_start_up();
 
   btif_init_ok();
   BTA_dm_init();
@@ -395,8 +391,6 @@ static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
 
   future_await(local_hack_future);
 
-  main_thread_shut_down();
-
   module_clean_up(get_local_module(BTE_LOGMSG_MODULE));
 
   gatt_free();
@@ -404,10 +398,7 @@ static void event_shut_down_stack(ProfileStopCallback stopProfiles) {
   sdp_free();
   get_btm_client_interface().lifecycle.btm_ble_free();
 
-  LOG_INFO("%s Gd shim module disabled", __func__);
-  module_shut_down(get_local_module(GD_SHIM_MODULE));
   get_btm_client_interface().lifecycle.btm_free();
-  module_start_up(get_local_module(GD_IDLE_MODULE));
 
   hack_future = future_new();
   do_in_jni_thread(FROM_HERE, base::Bind(event_signal_stack_down, nullptr));
@@ -445,7 +436,11 @@ static void event_clean_up_stack(std::promise<void> promise,
   module_clean_up(get_local_module(DEVICE_IOT_CONFIG_MODULE));
 
   module_clean_up(get_local_module(OSI_MODULE));
-  module_shut_down(get_local_module(GD_IDLE_MODULE));
+  LOG_INFO("%s Gd shim module disabled", __func__);
+  module_shut_down(get_local_module(GD_SHIM_MODULE));
+
+  main_thread_shut_down();
+
   module_management_stop();
   LOG_INFO("%s finished", __func__);
 

@@ -50,7 +50,9 @@ class Util {
      */
     public static final boolean isEmptyData(Metadata data) {
         if (data == null) return true;
-        return (empty_data().equals(data) && data.mediaId.equals("Not Provided"));
+        // Note: We need both equals() and an explicit media id check because equals() does
+        // not check for the media ID.
+        return (empty_data().equals(data) && data.mediaId.equals(Metadata.EMPTY_MEDIA_ID));
     }
 
     /**

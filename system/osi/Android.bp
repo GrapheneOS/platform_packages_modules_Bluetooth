@@ -104,7 +104,6 @@ cc_library_static {
     target: {
         host_linux: {
             cflags: [
-                "-DOS_GENERIC",
                 "-D_GNU_SOURCE",
             ],
         },
@@ -169,11 +168,6 @@ cc_test {
         "libosi",
         "libprotobuf-cpp-lite",
     ],
-    target: {
-        host_linux: {
-            cflags: ["-DOS_GENERIC"],
-        },
-    },
     cflags: [
         "-DLIB_OSI_INTERNAL",
     ],

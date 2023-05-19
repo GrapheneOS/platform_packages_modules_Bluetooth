@@ -538,7 +538,7 @@ void bta_dm_ble_set_conn_params(const RawAddress&, uint16_t, uint16_t, uint16_t,
                                 uint16_t);
 void bta_dm_close_gatt_conn(tBTA_DM_MSG* p_data);
 void bta_dm_ble_observe(bool, uint8_t, tBTA_DM_SEARCH_CBACK*);
-void bta_dm_ble_scan(bool, uint8_t);
+void bta_dm_ble_scan(bool, uint8_t, bool);
 void bta_dm_ble_csis_observe(bool, tBTA_DM_SEARCH_CBACK*);
 void bta_dm_ble_update_conn_params(const RawAddress&, uint16_t, uint16_t,
                                    uint16_t, uint16_t, uint16_t, uint16_t);

@@ -62,11 +62,11 @@ static future_t* init() {
 // TODO(armansito): Find a better way than searching by a hardcoded path.
 #if defined(TARGET_FLOSS)
   const char* path = "/var/lib/bluetooth/bt_stack.conf";
-#elif defined(OS_GENERIC)
-  const char* path = "bt_stack.conf";
-#else  // !defined(OS_GENERIC)
+#elif defined(__ANDROID__)
   const char* path = "/apex/com.android.btservices/etc/bluetooth/bt_stack.conf";
-#endif  // defined(OS_GENERIC)
+#else   // !defined(__ANDROID__)
+  const char* path = "bt_stack.conf";
+#endif  // defined(__ANDROID__)
   CHECK(path != NULL);
 
   LOG_INFO("%s attempt to load stack conf from %s", __func__, path);

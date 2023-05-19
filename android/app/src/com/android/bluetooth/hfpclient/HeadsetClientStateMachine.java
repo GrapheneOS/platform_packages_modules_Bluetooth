@@ -245,6 +245,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         ProfileService.println(sb, "  mAudioRouteAllowed: " + mAudioRouteAllowed);
         ProfileService.println(sb, "  mAudioPolicyRemoteSupported: " + mAudioPolicyRemoteSupported);
         ProfileService.println(sb, "  mHsClientAudioPolicy: " + mHsClientAudioPolicy);
+        ProfileService.println(sb, "  mInBandRing: " + mInBandRing);
 
         ProfileService.println(sb, "  mCalls:");
         if (mCalls != null) {
@@ -1186,6 +1187,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                         case StackEvent.EVENT_TYPE_CLIP:
                         case StackEvent.EVENT_TYPE_CALL_WAITING:
                         case StackEvent.EVENT_TYPE_VOLUME_CHANGED:
+                        case StackEvent.EVENT_TYPE_IN_BAND_RINGTONE:
                             deferMessage(message);
                             break;
                         case StackEvent.EVENT_TYPE_CMD_RESULT:

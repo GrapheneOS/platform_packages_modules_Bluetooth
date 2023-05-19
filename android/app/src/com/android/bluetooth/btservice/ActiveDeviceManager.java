@@ -116,7 +116,9 @@ import java.util.Set;
  */
 class ActiveDeviceManager {
     private static final String TAG = "ActiveDeviceManager";
-    private static final boolean DBG = true; // Log.isLoggable(TAG, Log.DEBUG);
+    private static final boolean DBG = true;
+    @VisibleForTesting
+    static final int A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS = 5_000;
 
     private final AdapterService mAdapterService;
     private final ServiceFactory mFactory;
@@ -148,6 +150,8 @@ class ActiveDeviceManager {
     private BluetoothDevice mLeAudioActiveDevice = null;
     @GuardedBy("mLock")
     private BluetoothDevice mLeHearingAidActiveDevice = null;
+    @GuardedBy("mLock")
+    private BluetoothDevice mPendingActiveDevice = null;
 
     // Broadcast receiver for all changes
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -270,14 +274,31 @@ class ActiveDeviceManager {
                     }
                     return;
                 }
+                // Activate A2DP if audio mode is normal or HFP is not supported or enabled.
                 DatabaseManager dbManager = mAdapterService.getDatabase();
-                // Activate A2DP, if HFP is not supported or enabled.
                 if (dbManager.getProfileConnectionPolicy(device, BluetoothProfile.HEADSET)
-                        != BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+                        != BluetoothProfile.CONNECTION_POLICY_ALLOWED
+                        || mAudioManager.getMode() == AudioManager.MODE_NORMAL) {
                     boolean a2dpMadeActive = setA2dpActiveDevice(device);
                     if (a2dpMadeActive && !Utils.isDualModeAudioEnabled()) {
                         setLeAudioActiveDevice(null, true);
                     }
+                } else {
+                    if (DBG) {
+                        Log.d(TAG, "A2DP activation is suspended until HFP connected: "
+                                + device);
+                    }
+
+                    mHandler.removeCallbacksAndMessages(mPendingActiveDevice);
+                    mPendingActiveDevice = device;
+                    // Activate A2DP if HFP is failed to connect.
+                    mHandler.postDelayed(
+                            () -> {
+                                Log.w(TAG, "HFP connection timeout. Activate A2DP for " + device);
+                                setA2dpActiveDevice(device);
+                            },
+                            mPendingActiveDevice,
+                            A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS);
                 }
             }
         }
@@ -317,10 +338,11 @@ class ActiveDeviceManager {
                     }
                     return;
                 }
+                // Activate HFP if audio mode is not normal or A2DP is not supported or enabled.
                 DatabaseManager dbManager = mAdapterService.getDatabase();
-                // Activate HFP, if A2DP is not supported or enabled.
                 if (dbManager.getProfileConnectionPolicy(device, BluetoothProfile.A2DP)
-                        != BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+                        != BluetoothProfile.CONNECTION_POLICY_ALLOWED
+                        || mAudioManager.getMode() != AudioManager.MODE_NORMAL) {
                     if (isWatch(device)) {
                         Log.i(TAG, "Do not set hfp active for watch device " + device);
                         return;
@@ -332,6 +354,21 @@ class ActiveDeviceManager {
                     if (hfpMadeActive && !Utils.isDualModeAudioEnabled()) {
                         setLeAudioActiveDevice(null, true);
                     }
+                } else {
+                    if (DBG) {
+                        Log.d(TAG, "HFP activation is suspended until A2DP connected: "
+                                + device);
+                    }
+                    mHandler.removeCallbacksAndMessages(mPendingActiveDevice);
+                    mPendingActiveDevice = device;
+                    // Activate HFP if A2DP is failed to connect.
+                    mHandler.postDelayed(
+                            () -> {
+                                Log.w(TAG, "A2DP connection timeout. Activate HFP for " + device);
+                                setHfpActiveDevice(device);
+                            },
+                            mPendingActiveDevice,
+                            A2DP_HFP_SYNC_CONNECTION_TIMEOUT_MS);
                 }
             }
         }
@@ -726,6 +763,12 @@ class ActiveDeviceManager {
             Log.d(TAG, "setA2dpActiveDevice(" + device + ")"
                     + (device == null ? " hasFallbackDevice=" + hasFallbackDevice : ""));
         }
+        synchronized (mLock) {
+            if (mPendingActiveDevice != null) {
+                mHandler.removeCallbacksAndMessages(mPendingActiveDevice);
+                mPendingActiveDevice = null;
+            }
+        }
 
         final A2dpService a2dpService = mFactory.getA2dpService();
         if (a2dpService == null) {
@@ -754,6 +797,10 @@ class ActiveDeviceManager {
         synchronized (mLock) {
             if (DBG) {
                 Log.d(TAG, "setHfpActiveDevice(" + device + ")");
+            }
+            if (mPendingActiveDevice != null) {
+                mHandler.removeCallbacksAndMessages(mPendingActiveDevice);
+                mPendingActiveDevice = null;
             }
             final HeadsetService headsetService = mFactory.getHeadsetService();
             if (headsetService == null) {
@@ -963,7 +1010,10 @@ class ActiveDeviceManager {
                     if (DBG) {
                         Log.d(TAG, "set LE audio device active: " + device);
                     }
-                    setLeAudioActiveDevice(device);
+                    if (!setLeAudioActiveDevice(device)) {
+                        return false;
+                    }
+
                     if (!Utils.isDualModeAudioEnabled()) {
                         setA2dpActiveDevice(null, true);
                         setHfpActiveDevice(null);
