@@ -34,6 +34,7 @@ import com.android.bluetooth.BluetoothPrefs;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
+import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService.BrowseResult;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -321,10 +322,10 @@ public class AvrcpControllerService extends ProfileService {
      * Get a List of MediaItems that are children of the specified media Id
      *
      * @param parentMediaId The player or folder to get the contents of
-     * @return List of Children if available, an empty list if there are none,
-     * or null if a search must be performed.
+     * @return List of Children if available, an empty list if there are none, or null if a search
+     *     must be performed.
      */
-    public synchronized List<MediaItem> getContents(String parentMediaId) {
+    public synchronized BrowseResult getContents(String parentMediaId) {
         if (DBG) Log.d(TAG, "getContents(" + parentMediaId + ")");
 
         BrowseTree.BrowseNode requestedNode = sBrowseTree.findBrowseNodeByID(parentMediaId);
@@ -337,27 +338,36 @@ public class AvrcpControllerService extends ProfileService {
                 }
             }
         }
-
         // If we don't find a node in the tree then do not have any way to browse for the contents.
         // Return an empty list instead.
         if (requestedNode == null) {
             if (DBG) Log.d(TAG, "Didn't find a node");
-            return new ArrayList(0);
-        } else {
-            // If we found a node and it belongs to a device then go ahead and make it active
-            BluetoothDevice device = requestedNode.getDevice();
-            if (device != null) {
-                setActiveDevice(device);
-            }
-
-            if (!requestedNode.isCached()) {
-                if (DBG) Log.d(TAG, "node is not cached");
-                refreshContents(requestedNode);
-            }
-            if (DBG) Log.d(TAG, "Returning contents");
-            return requestedNode.getContents();
+            return new BrowseResult(new ArrayList(0), BrowseResult.ERROR_MEDIA_ID_INVALID);
         }
+        if (parentMediaId.equals(BrowseTree.ROOT) && requestedNode.getChildrenCount() == 0) {
+            return new BrowseResult(null, BrowseResult.NO_DEVICE_CONNECTED);
+        }
+        // If we found a node and it belongs to a device then go ahead and make it active
+        BluetoothDevice device = requestedNode.getDevice();
+        if (device != null) {
+            setActiveDevice(device);
+        }
+
+        List<MediaItem> contents = requestedNode.getContents();
+
+        if (DBG) Log.d(TAG, "Returning contents");
+        if (!requestedNode.isCached()) {
+            if (DBG) Log.d(TAG, "node is not cached");
+            refreshContents(requestedNode);
+            /* Ongoing downloads can have partial results and we want to make sure they get sent
+             * to the client. If a download gets kicked off as a result of this request, the
+             * contents will be null until the first results arrive.
+             */
+            return new BrowseResult(contents, BrowseResult.DOWNLOAD_PENDING);
+        }
+        return new BrowseResult(contents, BrowseResult.SUCCESS);
     }
+
 
     @Override
     protected IProfileServiceBinder initBinder() {
