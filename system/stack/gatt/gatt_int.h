@@ -598,8 +598,7 @@ bool gatt_tcb_get_cid_available_for_indication(tGATT_TCB* p_tcb,
 bool gatt_tcb_find_indicate_handle(tGATT_TCB& tcb, uint16_t cid,
                                    uint16_t* indicated_handle_p);
 uint16_t gatt_tcb_get_att_cid(tGATT_TCB& tcb, bool eatt_support);
-uint16_t gatt_tcb_get_payload_size_tx(tGATT_TCB& tcb, uint16_t cid);
-uint16_t gatt_tcb_get_payload_size_rx(tGATT_TCB& tcb, uint16_t cid);
+uint16_t gatt_tcb_get_payload_size(tGATT_TCB& tcb, uint16_t cid);
 void gatt_clcb_invalidate(tGATT_TCB* p_tcb, const tGATT_CLCB* p_clcb);
 uint16_t gatt_get_mtu(const RawAddress& bda, tBT_TRANSPORT transport);
 bool gatt_is_pending_mtu_exchange(tGATT_TCB* p_tcb);
