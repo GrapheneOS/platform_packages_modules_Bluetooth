@@ -1950,6 +1950,60 @@ void LeAudioDeviceGroup::ClearPendingConfiguration(void) {
   stream_conf.pending_configuration = false;
 }
 
+void LeAudioDeviceGroup::Disable(int gatt_if) {
+  enabled_ = false;
+
+  for (auto& device_iter : leAudioDevices_) {
+    if (!device_iter.lock()->autoconnect_flag_) {
+      continue;
+    }
+
+    auto connection_state = device_iter.lock()->GetConnectionState();
+    auto address = device_iter.lock()->address_;
+
+    btif_storage_set_leaudio_autoconnect(address, false);
+    device_iter.lock()->autoconnect_flag_ = false;
+
+    LOG_INFO("Group %d in state %s. Removing %s from background connect",
+             group_id_, bluetooth::common::ToString(GetState()).c_str(),
+             ADDRESS_TO_LOGGABLE_CSTR(address));
+
+    BTA_GATTC_CancelOpen(gatt_if, address, false);
+
+    if (connection_state == DeviceConnectState::CONNECTING_AUTOCONNECT) {
+      device_iter.lock()->SetConnectionState(DeviceConnectState::DISCONNECTED);
+    }
+  }
+}
+
+void LeAudioDeviceGroup::Enable(int gatt_if,
+                                tBTM_BLE_CONN_TYPE reconnection_mode) {
+  enabled_ = true;
+  for (auto& device_iter : leAudioDevices_) {
+    if (device_iter.lock()->autoconnect_flag_) {
+      continue;
+    }
+
+    auto address = device_iter.lock()->address_;
+    auto connection_state = device_iter.lock()->GetConnectionState();
+
+    btif_storage_set_leaudio_autoconnect(address, true);
+    device_iter.lock()->autoconnect_flag_ = true;
+
+    LOG_INFO("Group %d in state %s. Adding %s from background connect",
+             group_id_, bluetooth::common::ToString(GetState()).c_str(),
+             ADDRESS_TO_LOGGABLE_CSTR(address));
+
+    if (connection_state == DeviceConnectState::DISCONNECTED) {
+      BTA_GATTC_Open(gatt_if, address, reconnection_mode, false);
+      device_iter.lock()->SetConnectionState(
+          DeviceConnectState::CONNECTING_AUTOCONNECT);
+    }
+  }
+}
+
+bool LeAudioDeviceGroup::IsEnabled(void) { return enabled_; };
+
 void LeAudioDeviceGroup::AddToAllowListNotConnectedGroupMembers(int gatt_if) {
   for (const auto& device_iter : leAudioDevices_) {
     auto connection_state = device_iter.lock()->GetConnectionState();
@@ -1971,27 +2025,6 @@ void LeAudioDeviceGroup::AddToAllowListNotConnectedGroupMembers(int gatt_if) {
     BTA_GATTC_Open(gatt_if, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
     device_iter.lock()->SetConnectionState(
         DeviceConnectState::CONNECTING_AUTOCONNECT);
-  }
-}
-
-void LeAudioDeviceGroup::RemoveFromAllowListNotConnectedGroupMembers(
-    int gatt_if) {
-  for (const auto& device_iter : leAudioDevices_) {
-    auto connection_state = device_iter.lock()->GetConnectionState();
-    if (connection_state != DeviceConnectState::CONNECTING_AUTOCONNECT) {
-      continue;
-    }
-
-    auto address = device_iter.lock()->address_;
-    LOG_INFO(
-        "Group %d in state %s. Adding %s back to target announcement"
-        "reconnect policy",
-        group_id_, bluetooth::common::ToString(GetState()).c_str(),
-        ADDRESS_TO_LOGGABLE_CSTR(address));
-
-    BTA_GATTC_CancelOpen(gatt_if, address, false);
-    BTA_GATTC_Open(gatt_if, address, BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS,
-                   false);
   }
 }
 
@@ -2088,6 +2121,7 @@ void LeAudioDeviceGroup::PrintDebugState(void) {
   std::stringstream debug_str;
 
   debug_str << "\n Groupd id: " << group_id_
+            << (enabled_ ? " enabled" : " disabled")
             << ", state: " << bluetooth::common::ToString(GetState())
             << ", target state: "
             << bluetooth::common::ToString(GetTargetState())
@@ -2143,6 +2177,7 @@ void LeAudioDeviceGroup::Dump(int fd, int active_group_id) {
   auto* active_conf = GetActiveConfiguration();
 
   stream << "\n    == Group id: " << group_id_
+         << (enabled_ ? " enabled" : " disabled")
          << " == " << (is_active ? ",\tActive\n" : ",\tInactive\n")
          << "      state: " << GetState()
          << ",\ttarget state: " << GetTargetState()

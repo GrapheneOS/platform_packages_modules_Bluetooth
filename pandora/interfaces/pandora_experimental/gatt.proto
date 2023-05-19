@@ -67,8 +67,11 @@ enum AttProperties {
 enum AttPermissions {
   PERMISSION_NONE = 0x00;
   PERMISSION_READ = 0x01;
-  PERMISSION_WRITE = 0x10;
   PERMISSION_READ_ENCRYPTED = 0x02;
+  PERMISSION_READ_ENCRYPTED_MITM = 0x04;
+  PERMISSION_WRITE = 0x10;
+  PERMISSION_WRITE_ENCRYPTED = 0x20;
+  PERMISSION_WRITE_ENCRYPTED_MITM = 0x40;
 }
 
 enum EnableValue {
@@ -230,6 +233,13 @@ message GattServiceParams {
 }
 
 message GattCharacteristicParams {
+  uint32 properties = 1;
+  uint32 permissions = 2;
+  string uuid = 3;
+  repeated GattDescriptorParams descriptors = 4;
+}
+
+message GattDescriptorParams {
   uint32 properties = 1;
   uint32 permissions = 2;
   string uuid = 3;

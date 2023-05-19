@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use log::{error, info};
 use paste::paste;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::convert::TryFrom;
 use std::fmt;
 use std::sync::Mutex;
@@ -90,19 +90,44 @@ macro_rules! create_setter_fn {
 }
 
 macro_rules! init_flags {
-    (flags: { $($flag:ident $(: $type:ty)? $(= $default:tt)?,)* }
+    (
+        name: $name:ident
+        $($args:tt)*
+    ) => {
+        init_flags_struct! {
+            name: $name
+            $($args)*
+        }
+
+        init_flags_getters! {
+            $($args)*
+        }
+    }
+}
+
+trait FlagHolder: Default {
+    fn get_defaults_for_test() -> Self;
+    fn parse(flags: Vec<String>) -> Self;
+    fn dump(&self) -> BTreeMap<&'static str, String>;
+    fn reconcile(self) -> Self;
+}
+
+macro_rules! init_flags_struct {
+    (
+     name: $name:ident
+     flags: { $($flag:ident $(: $type:ty)? $(= $default:tt)?,)* }
      dynamic_flags: { $($dy_flag:ident $(: $dy_type:ty)? $(= $dy_default:tt)?,)* }
      extra_fields: { $($extra_field:ident : $extra_field_type:ty $(= $extra_default:tt)?,)* }
      extra_parsed_flags: { $($extra_flag:tt => $extra_flag_fn:ident(_, _ $(,$extra_args:tt)*),)*}
      dependencies: { $($parent:ident => $child:ident),* }) => {
 
-        struct InitFlags {
+        struct $name {
             $($flag : type_expand!($($type)?),)*
             $($dy_flag : type_expand!($($dy_type)?),)*
             $($extra_field : $extra_field_type,)*
         }
 
-        impl Default for InitFlags {
+        impl Default for $name {
             fn default() -> Self {
                 Self {
                     $($flag : default_value!($($type)? $(= $default)?),)*
@@ -112,17 +137,23 @@ macro_rules! init_flags {
             }
         }
 
-        /// Sets all bool flags to true
-        /// Set all other flags and extra fields to their default type value
-        pub fn set_all_for_testing() {
-            *FLAGS.lock().unwrap() = InitFlags {
-                $($flag: test_value!($($type)?),)*
-                $($dy_flag: test_value!($($dy_type)?),)*
-                $($extra_field: test_value!($extra_field_type),)*
-            };
-        }
+        impl FlagHolder for $name {
+            fn get_defaults_for_test() -> Self {
+                Self {
+                    $($flag: test_value!($($type)?),)*
+                    $($dy_flag: test_value!($($dy_type)?),)*
+                    $($extra_field: test_value!($extra_field_type),)*
+                }
+            }
 
-        impl InitFlags {
+            fn dump(&self) -> BTreeMap<&'static str, String> {
+                [
+                    $((stringify!($flag), format!("{}", self.$flag)),)*
+                    $((stringify!($dy_flag), format!("{}", self.$dy_flag)),)*
+                    $((stringify!($extra_field), format!("{}", self.$extra_field)),)*
+                ].into()
+            }
+
             fn parse(flags: Vec<String>) -> Self {
                 let mut init_flags = Self::default();
 
@@ -150,6 +181,7 @@ macro_rules! init_flags {
                 init_flags.reconcile()
             }
 
+            #[allow(unused_mut)]
             fn reconcile(mut self) -> Self {
                 loop {
                     // dependencies can be specified in any order
@@ -159,17 +191,11 @@ macro_rules! init_flags {
                     })*
                     break;
                 }
-
-                // TODO: acl should not be off if l2cap is on, but need to reconcile legacy code
-                if self.gd_l2cap {
-                  // TODO This can never be turned off  self.gd_acl = false;
-                }
-
                 self
             }
         }
 
-        impl fmt::Display for InitFlags {
+        impl fmt::Display for $name {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, concat!(
                     concat!($(concat!(stringify!($flag), "={}")),*),
@@ -180,6 +206,17 @@ macro_rules! init_flags {
                     $(self.$extra_field),*)
             }
         }
+
+    }
+}
+
+macro_rules! init_flags_getters {
+    (
+     flags: { $($flag:ident $(: $type:ty)? $(= $default:tt)?,)* }
+     dynamic_flags: { $($dy_flag:ident $(: $dy_type:ty)? $(= $dy_default:tt)?,)* }
+     extra_fields: { $($extra_field:ident : $extra_field_type:ty $(= $extra_default:tt)?,)* }
+     extra_parsed_flags: { $($extra_flag:tt => $extra_flag_fn:ident(_, _ $(,$extra_args:tt)*),)*}
+     dependencies: { $($parent:ident => $child:ident),* }) => {
 
         $(create_getter_fn!($flag $($type)?);)*
 
@@ -294,6 +331,12 @@ pub fn get_log_level_for_tag(tag: &str) -> i32 {
     *guard.logging_explicit_tag_settings.map.get(tag).unwrap_or(&guard.default_log_level)
 }
 
+/// Sets all bool flags to true
+/// Set all other flags and extra fields to their default type value
+pub fn set_all_for_testing() {
+    *FLAGS.lock().unwrap() = InitFlags::get_defaults_for_test();
+}
+
 // Keep these values in sync with the values in gd/os/log_tags.h
 // They are used to control the log level for each tag.
 
@@ -313,7 +356,7 @@ pub const LOG_TAG_DEBUG: i32 = 5;
 pub const LOG_TAG_VERBOSE: i32 = 6;
 
 init_flags!(
-    // LINT.IfChange
+    name: InitFlags
     flags: {
         always_send_services_if_gatt_disc_done = true,
         always_use_private_gatt_for_debugging,
@@ -336,7 +379,6 @@ init_flags!(
         gd_link_policy,
         gd_remote_name_request,
         gd_rust,
-        gd_security,
         hci_adapter: i32,
         hfp_dynamic_version = true,
         irk_rotation,
@@ -349,6 +391,7 @@ init_flags!(
         read_encryption_key_size = true,
         redact_log = true,
         rust_event_loop = true,
+        sco_codec_timeout_clear,
         sdp_serialization = true,
         sdp_skip_rnr_if_known = true,
         bluetooth_quality_report_callback = true,
@@ -366,7 +409,6 @@ init_flags!(
     extra_fields: {
         logging_explicit_tag_settings: ExplicitTagSettings,
     }
-    // LINT.ThenChange(/system/gd/common/init_flags.fbs)
     extra_parsed_flags: {
         "INIT_default_log_level_str" => parse_log_level(_, _),
         "INIT_log_level_for_tags" => parse_logging_tag(_, _),
@@ -377,8 +419,7 @@ init_flags!(
     }
     dependencies: {
         always_use_private_gatt_for_debugging => private_gatt,
-        private_gatt => rust_event_loop,
-        gd_core => gd_security
+        private_gatt => rust_event_loop
     }
 );
 
@@ -401,6 +442,11 @@ pub fn load(raw_flags: Vec<String>) {
 
     // re-init to respect log levels set by flags
     crate::init_logging();
+}
+
+/// Dumps all flag K-V pairs, storing values as strings
+pub fn dump() -> BTreeMap<&'static str, String> {
+    FLAGS.lock().unwrap().dump()
 }
 
 #[cfg(test)]
@@ -449,7 +495,7 @@ mod tests {
     fn explicit_flag() {
         let _guard = ASYNC_LOCK.lock().unwrap();
         test_load(vec![
-            "INIT_default_log_level=LOG_VERBOSE",
+            "INIT_default_log_level_str=LOG_VERBOSE",
             "INIT_logging_debug_enabled_for_tags=foo,bar",
             "INIT_logging_debug_disabled_for_tags=foo,bar2,fizz",
             "INIT_logging_debug_enabled_for_tags=bar2",
@@ -482,7 +528,7 @@ mod tests {
     #[test]
     fn test_runtime_update() {
         let _guard = ASYNC_LOCK.lock().unwrap();
-        test_load(vec!["INIT_btaa_hci=true", "INIT_default_log_level=LOG_WARN"]);
+        test_load(vec!["INIT_btaa_hci=true", "INIT_default_log_level_str=LOG_WARN"]);
         assert!(btaa_hci_is_enabled());
         assert!(get_default_log_level() == LOG_TAG_WARN);
 
@@ -510,5 +556,32 @@ mod tests {
         assert!(get_default_log_level() == LOG_TAG_VERBOSE);
         test_load(vec!["INIT_logging_debug_enabled_for_all=false"]);
         assert!(get_default_log_level() == LOG_TAG_INFO);
+    }
+
+    init_flags_struct!(
+        name: InitFlagsForTest
+        flags: {
+            cat,
+        }
+        dynamic_flags: {
+            dog: i32 = 8,
+        }
+        extra_fields: {
+            elephant: String,
+        }
+        extra_parsed_flags: {}
+        dependencies: {}
+    );
+
+    #[test]
+    fn test_dumpsys() {
+        let flags = InitFlagsForTest { dog: 3, elephant: "Go bears!".into(), ..Default::default() };
+
+        let out = flags.dump();
+
+        assert_eq!(out.len(), 3);
+        assert_eq!(out["cat"], "false");
+        assert_eq!(out["dog"], "3");
+        assert_eq!(out["elephant"], "Go bears!");
     }
 }

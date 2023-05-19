@@ -159,10 +159,6 @@ void BTM_AcceptlistRemove(const RawAddress& address);
  * Returns true if removed OK, false if not found or ACL link is active.
  */
 bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
-  if (bluetooth::shim::is_gd_shim_enabled()) {
-    return bluetooth::shim::BTM_SecDeleteDevice(bd_addr);
-  }
-
   if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE) ||
       BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_BR_EDR)) {
     LOG_WARN("%s FAILED: Cannot Delete when connection to %s is active",

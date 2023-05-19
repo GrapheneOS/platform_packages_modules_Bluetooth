@@ -19,6 +19,10 @@ package com.android.pandora
 import android.content.Context
 import android.content.Intent
 import android.media.*
+import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_ALL
+import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_GROUP
+import android.support.v4.media.session.PlaybackStateCompat.SHUFFLE_MODE_NONE
+import android.util.Log
 import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
 import java.io.Closeable
@@ -27,6 +31,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import pandora.MediaPlayerGrpc.MediaPlayerImplBase
 import pandora.MediaPlayerProto.*
+import pandora.MediaPlayerProto.ShuffleMode
+import pandora.MediaPlayerProto.SetShuffleModeRequest
+import pandora.MediaPlayerProto.GetShuffleModeResponse
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class MediaPlayer(val context: Context) : MediaPlayerImplBase(), Closeable {
@@ -101,6 +108,56 @@ class MediaPlayer(val context: Context) : MediaPlayerImplBase(), Closeable {
   override fun updateQueue(request: Empty, responseObserver: StreamObserver<Empty>) {
     grpcUnary<Empty>(scope, responseObserver) {
       MediaPlayerBrowserService.instance.updateQueue()
+      Empty.getDefaultInstance()
+    }
+  }
+
+  override fun getShuffleMode(
+    request: Empty,
+    responseObserver: StreamObserver<GetShuffleModeResponse>
+  ) {
+    grpcUnary(scope, responseObserver) {
+      val mode: Int = MediaPlayerBrowserService.instance.getShuffleMode()
+      val shuffleMode = when (mode) {
+        SHUFFLE_MODE_NONE -> ShuffleMode.NONE
+        SHUFFLE_MODE_ALL -> ShuffleMode.ALL
+        SHUFFLE_MODE_GROUP -> ShuffleMode.GROUP
+        else -> ShuffleMode.NONE
+      }
+      GetShuffleModeResponse.newBuilder()
+        .setMode(shuffleMode)
+        .build()
+    }
+  }
+
+  override fun setShuffleMode(
+    request: SetShuffleModeRequest,
+    responseObserver: StreamObserver<Empty>
+  ) {
+    grpcUnary(scope, responseObserver) {
+      when (request.mode!!) {
+        ShuffleMode.NONE ->
+          MediaPlayerBrowserService.instance.setShuffleMode(SHUFFLE_MODE_NONE)
+        ShuffleMode.ALL ->
+          MediaPlayerBrowserService.instance.setShuffleMode(SHUFFLE_MODE_ALL)
+        ShuffleMode.GROUP ->
+          MediaPlayerBrowserService.instance.setShuffleMode(SHUFFLE_MODE_GROUP)
+        else -> MediaPlayerBrowserService.instance.setShuffleMode(SHUFFLE_MODE_NONE)
+      }
+      Empty.getDefaultInstance()
+    }
+  }
+
+  override fun startTestPlayback(request: Empty, responseObserver: StreamObserver<Empty>) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      MediaPlayerBrowserService.instance.startTestPlayback()
+      Empty.getDefaultInstance()
+    }
+  }
+
+  override fun stopTestPlayback(request: Empty, responseObserver: StreamObserver<Empty>) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      MediaPlayerBrowserService.instance.stopTestPlayback()
       Empty.getDefaultInstance()
     }
   }

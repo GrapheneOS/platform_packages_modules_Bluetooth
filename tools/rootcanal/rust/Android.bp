@@ -8,14 +8,13 @@ package {
 }
 
 rust_ffi {
-    name: "liblmp",
+    name: "librootcanal_rs",
     host_supported: true,
     vendor_available: true,
-    crate_name: "lmp",
+    crate_name: "rootcanal_rs",
     srcs: [
         "src/lib.rs",
-
-        ":LmpGeneratedPackets_rust",
+        ":rootcanal_lmp_packets_rust_gen",
         ":rootcanal_hci_packets_rust_gen",
     ],
     edition: "2018",
@@ -33,19 +32,18 @@ rust_ffi {
 }
 
 genrule {
-    name: "LmpGeneratedPackets_rust",
+    name: "rootcanal_lmp_packets_rust_gen",
     defaults: ["pdl_rust_generator_defaults"],
     srcs: ["lmp_packets.pdl"],
     out: ["lmp_packets.rs"],
 }
 
 rust_test_host {
-    name: "liblmp_tests",
-    crate_name: "lmp",
+    name: "rootcanal_rs_test",
+    crate_name: "rootcanal_rs",
     srcs: [
         "src/lib.rs",
-
-        ":LmpGeneratedPackets_rust",
+        ":rootcanal_lmp_packets_rust_gen",
         ":rootcanal_hci_packets_rust_gen",
     ],
     auto_gen_config: true,

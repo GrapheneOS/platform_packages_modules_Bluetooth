@@ -19,21 +19,12 @@ cc_defaults {
     target: {
         android: {
             test_config_template: "AndroidTestTemplate.xml",
-            cflags: [
-                "-DOS_ANDROID",
-                "-DOS_LINUX_GENERIC",
-            ],
             shared_libs: [
                 "liblog",
             ],
             sanitize: {
                 misc_undefined: ["bounds"],
             },
-        },
-        host: {
-            cflags: [
-                "-DOS_LINUX_GENERIC",
-            ],
         },
         darwin: {
             enabled: false,
@@ -184,7 +175,6 @@ cc_defaults {
         "libbluetooth-protos",
         "libbluetooth_rust_interop",
         "libbt-platform-protos-lite",
-        "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
@@ -271,7 +261,6 @@ cc_binary {
         "libbluetooth-protos",
         "libbluetooth_gd",
         "libbluetooth_rust_interop",
-        "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
         "libflatbuffers-cpp",
@@ -393,7 +382,6 @@ cc_test {
         "libbluetooth_rust_interop",
         "libbt-platform-protos-lite",
         "libbt-platform-protos-lite",
-        "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
         "libc++fs",
@@ -437,7 +425,6 @@ cc_test {
     },
     static_libs: [
         "libbluetooth_rust_interop",
-        "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
@@ -471,7 +458,6 @@ cc_defaults {
         "libbluetooth-protos",
         "libbluetooth_gd_fuzzing",
         "libbluetooth_rust_interop",
-        "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
         "libchrome",

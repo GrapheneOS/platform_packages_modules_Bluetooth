@@ -617,13 +617,12 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
   /* increase connection number */
   bta_hh_cb.cnt_num++;
 
-  /* initialize device driver */
-  bta_hh_co_open(p_cb->hid_handle, p_cb->sub_class, p_cb->attr_mask,
-                 p_cb->app_id);
-
   conn.status = p_cb->status;
   conn.le_hid = p_cb->is_le_device;
   conn.scps_supported = p_cb->scps_supported;
+  conn.sub_class = p_cb->sub_class;
+  conn.attr_mask = p_cb->attr_mask;
+  conn.app_id = p_cb->app_id;
 
   BTM_LogHistory(kBtmLogTag, p_cb->addr, "Opened",
                  base::StringPrintf(
@@ -634,26 +633,25 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
   {
     /* inform role manager */
     bta_sys_conn_open(BTA_ID_HH, p_cb->app_id, p_cb->addr);
-  }
-  /* set protocol mode when not default report mode */
-  if (p_cb->mode != BTA_HH_PROTO_RPT_MODE
-      && !p_cb->is_le_device
-      ) {
-    if ((HID_HostWriteDev(dev_handle, HID_TRANS_SET_PROTOCOL,
-                          HID_PAR_PROTOCOL_BOOT_MODE, 0, 0, NULL)) !=
-        HID_SUCCESS) {
-      /* HID connection is up, while SET_PROTO fail */
-      conn.status = BTA_HH_ERR_PROTO;
-      (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH*)&conn);
-    } else {
-      conn.status = BTA_HH_OK;
-      p_cb->w4_evt = BTA_HH_OPEN_EVT;
-    }
-  } else
-    (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH*)&conn);
 
+    /* set protocol mode when not default report mode */
+    if (p_cb->mode != BTA_HH_PROTO_RPT_MODE) {
+      tHID_STATUS status =
+          HID_HostWriteDev(dev_handle, HID_TRANS_SET_PROTOCOL,
+                           HID_PAR_PROTOCOL_BOOT_MODE, 0, 0, NULL);
+
+      if (status == HID_SUCCESS) {
+        p_cb->w4_evt = BTA_HH_SET_PROTO_EVT;
+      } else {
+        /* HID connection is up, while SET_PROTO fail */
+        conn.status = BTA_HH_ERR_PROTO;
+      }
+    }
+  }
   p_cb->incoming_conn = false;
   p_cb->incoming_hid_handle = BTA_HH_INVALID_HANDLE;
+
+  (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH*)&conn);
 }
 /*******************************************************************************
  *
@@ -989,7 +987,7 @@ void bta_hh_close_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
 void bta_hh_get_dscp_act(tBTA_HH_DEV_CB* p_cb,
                          UNUSED_ATTR const tBTA_HH_DATA* p_data) {
   if (p_cb->is_le_device) {
-    if (p_cb->hid_srvc.in_use) {
+    if (p_cb->hid_srvc.state >= BTA_HH_SERVICE_DISCOVERED) {
       p_cb->dscp_info.hid_handle = p_cb->hid_handle;
     }
     bta_hh_le_get_dscp_act(p_cb);

@@ -1429,7 +1429,7 @@ public class AdapterService extends Service {
      * @return false if one of profile is enabled or disabled, true otherwise
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    boolean checkifAllProfilesAreUnknown(BluetoothDevice device) {
+    boolean isAllProfilesUnknown(BluetoothDevice device) {
         if (mA2dpService != null && mA2dpService.getConnectionPolicy(device)
                 != BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
             return false;
@@ -5641,7 +5641,7 @@ public class AdapterService extends Service {
         }
 
         // Checks if any profiles are enablde or disabled and if so, only connect enabled profiles
-        if (!checkifAllProfilesAreUnknown(device)) {
+        if (!isAllProfilesUnknown(device)) {
             return connectEnabledProfiles(device);
         }
 
@@ -7091,6 +7091,31 @@ public class AdapterService extends Service {
         }
 
         return true;
+    }
+
+    /**
+     * Sends service discovery UUIDs internally within the stack. This is meant to remove internal
+     * dependencies on the broadcast {@link BluetoothDevice#ACTION_UUID}.
+     *
+     * @param device is the remote device whose UUIDs have been discovered
+     * @param uuids are the services supported on the remote device
+     */
+    void sendUuidsInternal(BluetoothDevice device, ParcelUuid[] uuids) {
+        if (device == null) {
+            Log.w(TAG, "sendUuidsInternal: null device");
+            return;
+        }
+        if (uuids == null) {
+            Log.w(TAG, "sendUuidsInternal: uuids is null");
+            return;
+        }
+        Log.i(TAG, "sendUuidsInternal: Received service discovery UUIDs for device " + device);
+        if (DBG) {
+            for (int i = 0; i < uuids.length; i++) {
+                Log.d(TAG, "index=" + i + "uuid=" + uuids[i]);
+            }
+        }
+        mPhonePolicy.onUuidsDiscovered(device, uuids);
     }
 
     static native void classInitNative();

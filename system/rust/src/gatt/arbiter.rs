@@ -90,13 +90,15 @@ impl Arbiter {
     }
 
     /// Test to see if a buffer contains a valid ATT packet with an opcode we
-    /// are interested in intercepting (those intended for servers)
+    /// are interested in intercepting (those intended for servers that are isolated)
     pub fn try_parse_att_server_packet(
         &self,
         tcb_idx: TransportIndex,
         packet: Box<[u8]>,
-    ) -> Option<(OwnedAttView, ConnectionId)> {
-        let conn_id = *self.transport_to_owned_connection.get(&tcb_idx)?;
+    ) -> Option<OwnedAttView> {
+        if !self.transport_to_owned_connection.contains_key(&tcb_idx) {
+            return None;
+        }
 
         let att = OwnedAttView::try_parse(packet).ok()?;
 
@@ -108,7 +110,7 @@ impl Arbiter {
 
         match classify_opcode(att.view().get_opcode()) {
             OperationType::Command | OperationType::Request | OperationType::Confirmation => {
-                Some((att, conn_id))
+                Some(att)
             }
             _ => None,
         }
@@ -135,10 +137,10 @@ impl Arbiter {
         Some(conn_id)
     }
 
-    /// Handle a disconnection and return the disconnected conn_id, if any
-    pub fn on_le_disconnect(&mut self, tcb_idx: TransportIndex) -> Option<ConnectionId> {
+    /// Handle a disconnection, if any, and return whether the disconnection was registered
+    pub fn on_le_disconnect(&mut self, tcb_idx: TransportIndex) -> bool {
         info!("processing disconnection on transport {tcb_idx:?}");
-        self.transport_to_owned_connection.remove(&tcb_idx)
+        self.transport_to_owned_connection.remove(&tcb_idx).is_some()
     }
 
     /// Look up the conn_id for a given tcb_idx, if present
@@ -160,10 +162,10 @@ fn on_le_connect(tcb_idx: u8, advertiser: u8) {
 }
 
 fn on_le_disconnect(tcb_idx: u8) {
-    if let Some(conn_id) = with_arbiter(|arbiter| arbiter.on_le_disconnect(TransportIndex(tcb_idx)))
-    {
+    let tcb_idx = TransportIndex(tcb_idx);
+    if with_arbiter(|arbiter| arbiter.on_le_disconnect(tcb_idx)) {
         do_in_rust_thread(move |modules| {
-            if let Err(err) = modules.gatt_module.on_le_disconnect(conn_id) {
+            if let Err(err) = modules.gatt_module.on_le_disconnect(tcb_idx) {
                 error!("{err:?}")
             }
         })
@@ -171,15 +173,16 @@ fn on_le_disconnect(tcb_idx: u8) {
 }
 
 fn intercept_packet(tcb_idx: u8, packet: Vec<u8>) -> InterceptAction {
-    if let Some((att, conn_id)) = with_arbiter(|arbiter| {
-        arbiter.try_parse_att_server_packet(TransportIndex(tcb_idx), packet.into_boxed_slice())
+    let tcb_idx = TransportIndex(tcb_idx);
+    if let Some(att) = with_arbiter(|arbiter| {
+        arbiter.try_parse_att_server_packet(tcb_idx, packet.into_boxed_slice())
     }) {
         do_in_rust_thread(move |modules| {
             trace!("pushing packet to GATT");
-            if let Some(bearer) = modules.gatt_module.get_bearer(conn_id) {
+            if let Some(bearer) = modules.gatt_module.get_bearer(tcb_idx) {
                 bearer.handle_packet(att.view())
             } else {
-                error!("{conn_id:?} closed, bearer does not exist");
+                error!("Bearer for {tcb_idx:?} not found");
             }
         });
         InterceptAction::Drop
@@ -189,10 +192,10 @@ fn intercept_packet(tcb_idx: u8, packet: Vec<u8>) -> InterceptAction {
 }
 
 fn on_mtu_event(tcb_idx: TransportIndex, event: MtuEvent) {
-    if let Some(conn_id) = with_arbiter(|arbiter| arbiter.get_conn_id(tcb_idx)) {
+    if with_arbiter(|arbiter| arbiter.get_conn_id(tcb_idx)).is_some() {
         do_in_rust_thread(move |modules| {
-            let Some(bearer) = modules.gatt_module.get_bearer(conn_id) else {
-                error!("Bearer for {conn_id:?} not found");
+            let Some(bearer) = modules.gatt_module.get_bearer(tcb_idx) else {
+                error!("Bearer for {tcb_idx:?} not found");
                 return;
             };
             if let Err(err) = bearer.handle_mtu_event(event) {
@@ -215,12 +218,13 @@ mod test {
     };
 
     const TCB_IDX: TransportIndex = TransportIndex(1);
-    const ADVERTISER_ID: AdvertiserId = AdvertiserId(2);
-    const SERVER_ID: ServerId = ServerId(3);
+    const ANOTHER_TCB_IDX: TransportIndex = TransportIndex(2);
+    const ADVERTISER_ID: AdvertiserId = AdvertiserId(3);
+    const SERVER_ID: ServerId = ServerId(4);
 
     const CONN_ID: ConnectionId = ConnectionId::new(TCB_IDX, SERVER_ID);
 
-    const ANOTHER_ADVERTISER_ID: AdvertiserId = AdvertiserId(4);
+    const ANOTHER_ADVERTISER_ID: AdvertiserId = AdvertiserId(5);
 
     #[test]
     fn test_non_isolated_connect() {
@@ -256,9 +260,9 @@ mod test {
         let mut arbiter = Arbiter::new();
         arbiter.on_le_connect(TCB_IDX, ADVERTISER_ID);
 
-        let conn_id = arbiter.on_le_disconnect(TCB_IDX);
+        let ok = arbiter.on_le_disconnect(TCB_IDX);
 
-        assert!(conn_id.is_none())
+        assert!(!ok)
     }
 
     #[test]
@@ -267,9 +271,9 @@ mod test {
         arbiter.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
         arbiter.on_le_connect(TCB_IDX, ADVERTISER_ID);
 
-        let conn_id = arbiter.on_le_disconnect(TCB_IDX);
+        let ok = arbiter.on_le_disconnect(TCB_IDX);
 
-        assert_eq!(conn_id, Some(CONN_ID));
+        assert!(ok)
     }
 
     #[test]
@@ -348,7 +352,7 @@ mod test {
 
         let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());
 
-        assert!(matches!(out, Some((_, CONN_ID))));
+        assert!(out.is_some());
     }
 
     #[test]
@@ -397,6 +401,23 @@ mod test {
     }
 
     #[test]
+    fn test_packet_bypass_when_different_connection() {
+        let mut arbiter = Arbiter::new();
+        arbiter.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
+        arbiter.on_le_connect(TCB_IDX, ADVERTISER_ID);
+        arbiter.on_le_connect(ANOTHER_TCB_IDX, ANOTHER_ADVERTISER_ID);
+        let packet = AttBuilder {
+            opcode: AttOpcode::READ_REQUEST,
+            _child_: AttReadRequestBuilder { attribute_handle: AttHandle(1).into() }.into(),
+        };
+
+        let out =
+            arbiter.try_parse_att_server_packet(ANOTHER_TCB_IDX, packet.to_vec().unwrap().into());
+
+        assert!(out.is_none());
+    }
+
+    #[test]
     fn test_packet_capture_when_isolated_after_advertiser_closes() {
         let mut arbiter = Arbiter::new();
         arbiter.associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
@@ -409,7 +430,7 @@ mod test {
 
         let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());
 
-        assert!(matches!(out, Some((_, CONN_ID))));
+        assert!(out.is_some());
     }
 
     #[test]
@@ -425,7 +446,7 @@ mod test {
 
         let out = arbiter.try_parse_att_server_packet(TCB_IDX, packet.to_vec().unwrap().into());
 
-        assert!(matches!(out, Some((_, CONN_ID))));
+        assert!(out.is_some());
     }
 
     #[test]

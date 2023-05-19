@@ -59,6 +59,7 @@ import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.mcp.McpService;
 import com.android.bluetooth.tbs.TbsService;
@@ -115,6 +116,7 @@ public class LeAudioServiceTest {
     @Mock private McpService mMcpService;
     @Mock private TbsService mTbsService;
     @Mock private VolumeControlService mVolumeControlService;
+    @Mock private CsipSetCoordinatorService mCsipSetCoordinatorService;
     @Spy private LeAudioObjectsFactory mObjectsFactory = LeAudioObjectsFactory.getInstance();
     @Spy private ServiceFactory mServiceFactory = new ServiceFactory();
 
@@ -184,6 +186,7 @@ public class LeAudioServiceTest {
         mService.mTbsService = mTbsService;
         mService.mServiceFactory = mServiceFactory;
         when(mServiceFactory.getVolumeControlService()).thenReturn(mVolumeControlService);
+        when(mServiceFactory.getCsipSetCoordinatorService()).thenReturn(mCsipSetCoordinatorService);
 
         LeAudioStackEvent stackEvent =
         new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_NATIVE_INITIALIZED);
@@ -919,11 +922,19 @@ public class LeAudioServiceTest {
         doReturn(true).when(mNativeInterface).disconnectLeAudio(any(BluetoothDevice.class));
         doReturn(true).when(mDatabaseManager).setProfileConnectionPolicy(any(BluetoothDevice.class),
                 anyInt(), anyInt());
+        when(mVolumeControlService.setConnectionPolicy(any(), anyInt())).thenReturn(true);
+        when(mCsipSetCoordinatorService.setConnectionPolicy(any(), anyInt())).thenReturn(true);
         when(mDatabaseManager.getProfileConnectionPolicy(mSingleDevice, BluetoothProfile.LE_AUDIO))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
 
         assertThat(mService.setConnectionPolicy(mSingleDevice,
                 BluetoothProfile.CONNECTION_POLICY_ALLOWED)).isTrue();
+
+        // Verify connection policy for CSIP and VCP are also set
+        verify(mVolumeControlService, times(1)).setConnectionPolicy(
+                mSingleDevice, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mCsipSetCoordinatorService, times(1)).setConnectionPolicy(
+                mSingleDevice, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
 
         // Verify the connection state broadcast, and that we are in Connecting state
         verifyConnectionStateIntent(TIMEOUT_MS, mSingleDevice, BluetoothProfile.STATE_CONNECTING,
@@ -948,6 +959,12 @@ public class LeAudioServiceTest {
         // Set connection policy to forbidden
         assertThat(mService.setConnectionPolicy(mSingleDevice,
                 BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)).isTrue();
+
+        // Verify connection policy for CSIP and VCP are also set
+        verify(mVolumeControlService, times(1)).setConnectionPolicy(
+                mSingleDevice, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
+        verify(mCsipSetCoordinatorService, times(1)).setConnectionPolicy(
+                mSingleDevice, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
 
         // Verify the connection state broadcast, and that we are in Connecting state
         verifyConnectionStateIntent(TIMEOUT_MS, mSingleDevice, BluetoothProfile.STATE_DISCONNECTING,
@@ -1746,6 +1763,48 @@ public class LeAudioServiceTest {
 
         generateGroupNodeRemoved(mRightDevice, groupId);
         verify(mMcpService, times(1)).setDeviceAuthorized(mRightDevice, false);
+    }
+
+    /**
+     * Test verifying that when the LE Audio connection policy of a device is set to
+     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN}, we unauthorize McpService and
+     * TbsService. When the LE Audio connection policy is set to
+     * {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED}, we will authorize these services.
+     */
+    @Test
+    public void testMcsAndTbsAuthorizationWithConnectionPolicy() {
+        int groupId = 1;
+
+        mService.handleBluetoothEnabled();
+        doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectLeAudio(any(BluetoothDevice.class));
+        doReturn(true).when(mDatabaseManager).setProfileConnectionPolicy(any(BluetoothDevice.class),
+                anyInt(), anyInt());
+        when(mDatabaseManager.getProfileConnectionPolicy(mSingleDevice, BluetoothProfile.LE_AUDIO))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+
+        // Ensures GATT server services are not authorized when the device does not have a group
+        assertThat(mService.setConnectionPolicy(mSingleDevice,
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED)).isTrue();
+        verify(mMcpService, never()).setDeviceAuthorized(mSingleDevice, false);
+        verify(mTbsService, never()).setDeviceAuthorized(mSingleDevice, false);
+
+        // Connects the test device and verifies GATT server services are authorized
+        connectTestDevice(mSingleDevice, groupId);
+        verify(mMcpService, times(1)).setDeviceAuthorized(mSingleDevice, true);
+        verify(mTbsService, times(1)).setDeviceAuthorized(mSingleDevice, true);
+
+        // Ensure that disconnecting unauthorizes GATT server services
+        assertThat(mService.setConnectionPolicy(mSingleDevice,
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)).isTrue();
+        verify(mMcpService, times(1)).setDeviceAuthorized(mSingleDevice, false);
+        verify(mTbsService, times(1)).setDeviceAuthorized(mSingleDevice, false);
+
+        // Connecting a device that has a group re-authorizes the GATT server services
+        assertThat(mService.setConnectionPolicy(mSingleDevice,
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED)).isTrue();
+        verify(mMcpService, times(2)).setDeviceAuthorized(mSingleDevice, true);
+        verify(mTbsService, times(2)).setDeviceAuthorized(mSingleDevice, true);
     }
 
     @Test
