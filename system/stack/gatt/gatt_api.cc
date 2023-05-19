@@ -475,7 +475,7 @@ tGATT_STATUS GATTS_HandleValueIndication(uint16_t conn_id, uint16_t attr_handle,
   tGATT_SR_MSG gatt_sr_msg;
   gatt_sr_msg.attr_value = indication;
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(*p_tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(*p_tcb, cid);
   BT_HDR* p_msg = attp_build_sr_msg(*p_tcb, GATT_HANDLE_VALUE_IND, &gatt_sr_msg,
                                     payload_size);
   if (!p_msg) return GATT_NO_RESOURCES;
@@ -494,7 +494,7 @@ static tGATT_STATUS GATTS_HandleMultileValueNotification(
   LOG_INFO("");
 
   uint16_t cid = gatt_tcb_get_att_cid(*p_tcb, true /* eatt support */);
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(*p_tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(*p_tcb, cid);
 
   /* TODO Handle too big packet size here. Not needed now for testing. */
   /* Just build the message. */
@@ -608,7 +608,7 @@ tGATT_STATUS GATTS_HandleValueNotification(uint16_t conn_id,
   gatt_sr_msg.attr_value = notif;
 
   uint16_t cid = gatt_tcb_get_att_cid(*p_tcb, p_reg->eatt_support);
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(*p_tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(*p_tcb, cid);
   BT_HDR* p_buf = attp_build_sr_msg(*p_tcb, GATT_HANDLE_VALUE_NOTIF,
                                     &gatt_sr_msg, payload_size);
 
@@ -967,8 +967,7 @@ tGATT_STATUS GATTC_Read(uint16_t conn_id, tGATT_READ_TYPE type,
   p_clcb->op_subtype = type;
   p_clcb->auth_req = p_read->by_handle.auth_req;
   p_clcb->counter = 0;
-  p_clcb->read_req_current_mtu =
-      gatt_tcb_get_payload_size_tx(*p_tcb, p_clcb->cid);
+  p_clcb->read_req_current_mtu = gatt_tcb_get_payload_size(*p_tcb, p_clcb->cid);
 
   switch (type) {
     case GATT_READ_BY_TYPE:
