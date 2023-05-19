@@ -78,8 +78,5 @@ rust_library {
         "libprotobuf_deprecated",
         "libtokio",
     ],
-    apex_available: [
-        "com.android.btservices",
-    ],
     min_sdk_version: "30",
 }
