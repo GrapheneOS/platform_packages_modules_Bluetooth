@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include <deque>
 #include <map>
 
 #include "base/functional/callback.h"
@@ -60,7 +61,7 @@ typedef struct {
   gatt_sr_supported_feat_cb cb;
 } gatt_op_cb_data;
 
-static std::map<uint16_t, gatt_op_cb_data> OngoingOps;
+static std::map<uint16_t, std::deque<gatt_op_cb_data>> OngoingOps;
 
 static void gatt_request_cback(uint16_t conn_id, uint32_t trans_id,
                                uint8_t op_code, tGATTS_DATA* p_data);
@@ -382,6 +383,8 @@ void gatt_profile_db_init(void) {
   std::array<uint8_t, Uuid::kNumBytes128> tmp;
   tmp.fill(0x81);
 
+  OngoingOps.clear();
+
   /* Create a GATT profile service */
   gatt_cb.gatt_if = GATT_Register(Uuid::From128BitBE(tmp), "GattProfileDb",
                                   &gatt_profile_cback, false);
@@ -514,8 +517,7 @@ static void gatt_disc_cmpl_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
   gatt_cl_start_config_ccc(p_clcb);
 }
 
-static bool gatt_svc_read_cl_supp_feat_req(uint16_t conn_id,
-                                           gatt_op_cb_data* cb) {
+static bool gatt_svc_read_cl_supp_feat_req(uint16_t conn_id) {
   tGATT_READ_PARAM param;
 
   memset(&param, 0, sizeof(tGATT_READ_PARAM));
@@ -533,7 +535,13 @@ static bool gatt_svc_read_cl_supp_feat_req(uint16_t conn_id,
     return false;
   }
 
-  cb->op_uuid = GATT_UUID_CLIENT_SUP_FEAT;
+  gatt_op_cb_data cb_data;
+
+  cb_data.cb =
+      base::BindOnce([](const RawAddress& bdaddr, uint8_t support) { return; });
+  cb_data.op_uuid = GATT_UUID_CLIENT_SUP_FEAT;
+  OngoingOps[conn_id].emplace_back(std::move(cb_data));
+
   return true;
 }
 
@@ -580,21 +588,19 @@ static void gatt_cl_op_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
     return;
   }
 
-  if (iter == OngoingOps.end()) {
+  if (iter == OngoingOps.end() || (iter->second.size() == 0)) {
     /* If OngoingOps is empty it means we are not interested in the result here.
      */
     LOG_DEBUG("Unexpected read complete");
     return;
   }
 
-  gatt_op_cb_data* operation_callback_data = &iter->second;
-  uint16_t cl_op_uuid = operation_callback_data->op_uuid;
-  operation_callback_data->op_uuid = 0;
+  uint16_t cl_op_uuid = iter->second.front().op_uuid;
 
   if (op == GATTC_OPTYPE_WRITE) {
     if (cl_op_uuid == GATT_UUID_GATT_SRV_CHGD) {
       LOG_DEBUG("Write response from Service Changed CCC");
-      OngoingOps.erase(iter);
+      iter->second.pop_front();
       /* Read server supported features here supported */
       read_sr_supported_feat_req(
           conn_id, base::BindOnce([](const RawAddress& bdaddr,
@@ -605,6 +611,7 @@ static void gatt_cl_op_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
     return;
   }
 
+  /* Handle Read operations */
   uint8_t* pp = p_data->att_value.value;
 
   VLOG(1) << __func__ << " cl_op_uuid " << loghex(cl_op_uuid);
@@ -614,6 +621,9 @@ static void gatt_cl_op_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
       uint8_t tcb_idx = GATT_GET_TCB_IDX(conn_id);
       tGATT_TCB& tcb = gatt_cb.tcb[tcb_idx];
 
+      auto operation_callback_data = std::move(iter->second.front());
+      iter->second.pop_front();
+
       /* Check if EATT is supported */
       if (status == GATT_SUCCESS) {
         STREAM_TO_UINT8(tcb.sr_supp_feat, pp);
@@ -621,28 +631,21 @@ static void gatt_cl_op_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
       }
 
       /* Notify user about the supported features */
-      std::move(operation_callback_data->cb)
-          .Run(tcb.peer_bda, tcb.sr_supp_feat);
+      std::move(operation_callback_data.cb).Run(tcb.peer_bda, tcb.sr_supp_feat);
 
       /* If server supports EATT lets try to find handle for the
        * client supported features characteristic, where we could write
        * our supported features as a client.
        */
       if (tcb.sr_supp_feat & BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK) {
-        /* If read succeed, return here */
-        if (gatt_svc_read_cl_supp_feat_req(conn_id, operation_callback_data))
-          return;
+        gatt_svc_read_cl_supp_feat_req(conn_id);
       }
 
-      /* Could not read client supported charcteristic or eatt is not
-       * supported. Erase callback data now.
-       */
-      OngoingOps.erase(iter);
       break;
     }
     case GATT_UUID_CLIENT_SUP_FEAT:
       /*We don't need callback data anymore */
-      OngoingOps.erase(iter);
+      iter->second.pop_front();
 
       if (status != GATT_SUCCESS) {
         LOG(INFO) << __func__
@@ -698,7 +701,7 @@ static void gatt_cl_start_config_ccc(tGATT_PROFILE_CLCB* p_clcb) {
       cb_data.cb = base::BindOnce(
           [](const RawAddress& bdaddr, uint8_t support) { return; });
       cb_data.op_uuid = GATT_UUID_GATT_SRV_CHGD;
-      OngoingOps[p_clcb->conn_id] = std::move(cb_data);
+      OngoingOps[p_clcb->conn_id].emplace_back(std::move(cb_data));
 
       break;
     }
@@ -777,7 +780,7 @@ static bool read_sr_supported_feat_req(
 
   cb_data.cb = std::move(cb);
   cb_data.op_uuid = GATT_UUID_SERVER_SUP_FEAT;
-  OngoingOps[conn_id] = std::move(cb_data);
+  OngoingOps[conn_id].emplace_back(std::move(cb_data));
 
   return true;
 }
@@ -817,10 +820,8 @@ bool gatt_cl_read_sr_supp_feat_req(
   }
 
   auto it = OngoingOps.find(conn_id);
-  if (it != OngoingOps.end()) {
-    LOG(ERROR) << __func__ << " There is ongoing operation for conn_id: "
-               << loghex(conn_id);
-    return false;
+  if (it == OngoingOps.end()) {
+    OngoingOps[conn_id] = std::deque<gatt_op_cb_data>();
   }
 
   return read_sr_supported_feat_req(conn_id, std::move(cb));
