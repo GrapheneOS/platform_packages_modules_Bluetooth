@@ -851,7 +851,7 @@ tGATT_STATUS gatt_send_error_rsp(tGATT_TCB& tcb, uint16_t cid, uint8_t err_code,
   msg.error.reason = err_code;
   msg.error.handle = handle;
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, cid);
   p_buf = attp_build_sr_msg(tcb, GATT_RSP_ERROR, &msg, payload_size);
   if (p_buf != NULL) {
     status = attp_send_sr_msg(tcb, cid, p_buf);
@@ -1119,39 +1119,21 @@ uint16_t gatt_tcb_get_att_cid(tGATT_TCB& tcb, bool eatt_support) {
 
 /*******************************************************************************
  *
- * Function         gatt_tcb_get_payload_size_tx
+ * Function         gatt_tcb_get_payload_size
  *
  * Description      This function gets payload size for the GATT operation
  *
- * Returns          Payload size for sending data
+ * Returns          Payload size for sending/receiving data
  *
  ******************************************************************************/
-uint16_t gatt_tcb_get_payload_size_tx(tGATT_TCB& tcb, uint16_t cid) {
+uint16_t gatt_tcb_get_payload_size(tGATT_TCB& tcb, uint16_t cid) {
   if (!tcb.eatt || (cid == tcb.att_lcid)) return tcb.payload_size;
 
   EattChannel* channel =
       EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
 
-  return channel->tx_mtu_;
-}
-
-/*******************************************************************************
- *
- * Function         gatt_tcb_get_payload_size_rx
- *
- * Description      This function gets payload size for the GATT operation
- *
- * Returns          Payload size for receiving data
- *
- ******************************************************************************/
-
-uint16_t gatt_tcb_get_payload_size_rx(tGATT_TCB& tcb, uint16_t cid) {
-  if (!tcb.eatt || (cid == tcb.att_lcid)) return tcb.payload_size;
-
-  EattChannel* channel =
-      EattExtension::GetInstance()->FindEattChannelByCid(tcb.peer_bda, cid);
-
-  return channel->rx_mtu_;
+  /* ATT MTU for EATT is min from tx and rx mtu*/
+  return std::min<uint16_t>(channel->tx_mtu_, channel->rx_mtu_);
 }
 
 /*******************************************************************************
