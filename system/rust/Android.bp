@@ -36,7 +36,7 @@ rust_defaults {
     rustlibs: [
         "libanyhow",
         "libbitflags",
-        "libbt_common",
+        "libbt_common_only_init_flags",
         "libcxx",
         "liblog_rust",
         "libscopeguard",
