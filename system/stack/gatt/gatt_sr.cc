@@ -287,7 +287,7 @@ tGATT_STATUS gatt_sr_process_app_rsp(tGATT_TCB& tcb, tGATT_IF gatt_if,
                                      tGATTS_RSP* p_msg,
                                      tGATT_SR_CMD* sr_res_p) {
   tGATT_STATUS ret_code = GATT_SUCCESS;
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, sr_res_p->cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, sr_res_p->cid);
 
   VLOG(1) << __func__ << " gatt_if=" << +gatt_if;
 
@@ -521,7 +521,7 @@ static tGATT_STATUS gatt_build_primary_service_rsp(
 
   uint8_t* p = (uint8_t*)(p_msg + 1) + L2CAP_MIN_OFFSET;
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, cid);
 
   for (tGATT_SRV_LIST_ELEM& el : *gatt_cb.srv_list_info) {
     if (el.s_hdl < s_hdl || el.s_hdl > e_hdl ||
@@ -716,7 +716,7 @@ void gatts_process_primary_service_req(tGATT_TCB& tcb, uint16_t cid,
     }
   }
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, cid);
 
   uint16_t msg_len =
       (uint16_t)(sizeof(BT_HDR) + payload_size + L2CAP_MIN_OFFSET);
@@ -752,7 +752,7 @@ static void gatts_process_find_info(tGATT_TCB& tcb, uint16_t cid,
     return;
   }
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, cid);
   uint16_t buf_len =
       (uint16_t)(sizeof(BT_HDR) + payload_size + L2CAP_MIN_OFFSET);
 
@@ -891,7 +891,7 @@ static void gatts_process_read_by_type_req(tGATT_TCB& tcb, uint16_t cid,
     return;
   }
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, cid);
 
   size_t msg_len = sizeof(BT_HDR) + payload_size + L2CAP_MIN_OFFSET;
   BT_HDR* p_msg = (BT_HDR*)osi_calloc(msg_len);
@@ -1038,7 +1038,7 @@ static void gatts_process_read_req(tGATT_TCB& tcb, uint16_t cid,
                                    tGATT_SRV_LIST_ELEM& el, uint8_t op_code,
                                    uint16_t handle, uint16_t len,
                                    uint8_t* p_data) {
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, cid);
 
   size_t buf_len = sizeof(BT_HDR) + payload_size + L2CAP_MIN_OFFSET;
   uint16_t offset = 0;
@@ -1355,7 +1355,7 @@ void gatt_server_handle_client_req(tGATT_TCB& tcb, uint16_t cid,
   /* The message has to be smaller than the agreed MTU, len does not include op
    * code */
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_rx(tcb, cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, cid);
   if (len >= payload_size) {
     LOG(ERROR) << StringPrintf("server receive invalid PDU size:%d pdu size:%d",
                                len + 1, payload_size);

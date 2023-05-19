@@ -519,7 +519,7 @@ tGATT_STATUS attp_send_cl_msg(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
     return GATT_ILLEGAL_PARAMETER;
   }
 
-  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, p_clcb->cid);
+  uint16_t payload_size = gatt_tcb_get_payload_size(tcb, p_clcb->cid);
 
   switch (op_code) {
     case GATT_REQ_MTU:
