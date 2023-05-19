@@ -436,16 +436,9 @@ genrule {
 
 genrule {
     name: "rootcanal_hci_packets_rust_gen",
-    tools: [
-        "bluetooth_packetgen",
-    ],
-    cmd: "$(location bluetooth_packetgen) --include=packages/modules/Bluetooth/tools/rootcanal/packets --out=$(genDir) $(in) --rust",
-    srcs: [
-        "packets/hci/hci_packets.pdl",
-    ],
-    out: [
-        "hci/hci_packets.rs",
-    ],
+    defaults: ["pdl_rust_generator_defaults"],
+    srcs: ["packets/hci/hci_packets.pdl"],
+    out: ["hci_packets.rs"],
 }
 
 // bt_vhci_forwarder in cuttlefish depends on this H4Packetizer implementation.
