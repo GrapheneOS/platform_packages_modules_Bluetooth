@@ -449,7 +449,7 @@ static void sco_data_callback() {
     return;
   }
   auto data = WrapPacketAndCopy(MSG_HC_TO_STACK_HCI_SCO, packet.get());
-  packet_fragmenter->reassemble_and_dispatch(data);
+  send_data_upwards.Run(FROM_HERE, data);
 }
 
 static void iso_data_callback() {
@@ -577,11 +577,7 @@ static void transmit_fragment(BT_HDR* packet, bool send_transmit_finished) {
   bool free_after_transmit =
       event != MSG_STACK_TO_HC_HCI_CMD && send_transmit_finished;
 
-  if (event == MSG_STACK_TO_HC_HCI_SCO) {
-    const uint8_t* stream = packet->data + packet->offset;
-    size_t length = packet->len;
-    cpp::transmit_sco_fragment(stream, length);
-  } else if (event == MSG_STACK_TO_HC_HCI_ISO) {
+  if (event == MSG_STACK_TO_HC_HCI_ISO) {
     const uint8_t* stream = packet->data + packet->offset;
     size_t length = packet->len;
     cpp::transmit_iso_fragment(stream, length);
@@ -613,6 +609,12 @@ static const packet_fragmenter_callbacks_t packet_fragmenter_callbacks = {
     transmit_fragment, dispatch_reassembled, fragmenter_transmit_finished};
 
 static void transmit_downward(uint16_t type, void* raw_data) {
+  if (type == BT_EVT_TO_LM_HCI_SCO) {
+    BT_HDR* event = static_cast<BT_HDR*>(raw_data);
+    bluetooth::shim::GetGdShimHandler()->Call(
+        cpp::transmit_sco_fragment, event->data + event->offset, event->len);
+    return;
+  }
   bluetooth::shim::GetGdShimHandler()->Call(
       packet_fragmenter->fragment_and_dispatch, static_cast<BT_HDR*>(raw_data));
 }
