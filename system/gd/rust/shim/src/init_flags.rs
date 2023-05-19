@@ -47,6 +47,7 @@ mod ffi {
         fn read_encryption_key_size_is_enabled() -> bool;
         fn redact_log_is_enabled() -> bool;
         fn rust_event_loop_is_enabled() -> bool;
+        fn sco_codec_select_lc3_is_enabled() -> bool;
         fn sco_codec_timeout_clear_is_enabled() -> bool;
         fn sdp_serialization_is_enabled() -> bool;
         fn sdp_skip_rnr_if_known_is_enabled() -> bool;
