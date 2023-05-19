@@ -39,6 +39,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.BluetoothMethodProxy;
+import com.android.bluetooth.TestUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -74,7 +75,7 @@ public class BluetoothOppBtEnablingActivityTest {
 
         mRealTimeoutValue = BluetoothOppBtEnablingActivity.sBtEnablingTimeoutMs;
         BluetoothOppTestUtils.enableOppActivities(true, mTargetContext);
-        BluetoothOppTestUtils.wakeUpAndDismissKeyGuard();
+        TestUtils.wakeUpAndDismissKeyGuard();
     }
 
     @After

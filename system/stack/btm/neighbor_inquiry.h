@@ -86,13 +86,14 @@ enum : uint16_t {
 };
 
 /* Define inquiry results mode */
-enum : uint8_t {
+typedef enum : uint8_t {
   BTM_INQ_RESULT_STANDARD = 0,
   BTM_INQ_RESULT_WITH_RSSI = 1,
   BTM_INQ_RESULT_EXTENDED = 2,
   /* RSSI value not supplied (ignore it) */
   BTM_INQ_RES_IGNORE_RSSI = 0x7f,
-};
+} tBTM_INQ_RESULT;
+constexpr size_t kMaxNumberInquiryResults = BTM_INQ_RESULT_EXTENDED + 1;
 
 /* These are the fields returned in each device's response to the inquiry.  It
  * is returned in the results callback if registered.
@@ -181,9 +182,39 @@ typedef struct /* contains the parameters passed to the inquiry functions */
 
 /* Structure returned with inquiry complete callback */
 typedef struct {
-  tBTM_STATUS status;
+  // Possible inquiry completion status
+  enum STATUS {
+    CANCELED,      // Expected user API cancel
+    TIMER_POPPED,  // Expected controller initiated timeout
+    NOT_STARTED,   // Unexpected controller unable to execute inquiry command
+    SSP_ACTIVE,    // Unexpected secure simple pairing is operational
+  };
+  STATUS status;
+  tHCI_STATUS hci_status;
   uint8_t num_resp; /* Number of results from the current inquiry */
+  unsigned resp_type[kMaxNumberInquiryResults];
+  long long start_time_ms;
 } tBTM_INQUIRY_CMPL;
+
+#ifndef CASE_RETURN_TEXT
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+#endif
+
+inline std::string btm_inquiry_cmpl_status_text(
+    const tBTM_INQUIRY_CMPL::STATUS& status) {
+  switch (status) {
+    CASE_RETURN_TEXT(tBTM_INQUIRY_CMPL::CANCELED);
+    CASE_RETURN_TEXT(tBTM_INQUIRY_CMPL::TIMER_POPPED);
+    CASE_RETURN_TEXT(tBTM_INQUIRY_CMPL::NOT_STARTED);
+    CASE_RETURN_TEXT(tBTM_INQUIRY_CMPL::SSP_ACTIVE);
+    default:
+      return std::string("UNKNOWN[") + std::to_string(status) +
+             std::string("]");
+  }
+}
+#undef CASE_RETURN_TEXT
 
 /* Structure returned with remote name  request */
 typedef struct {
@@ -222,10 +253,6 @@ typedef struct {
   uint32_t inq_counter; /* Counter incremented each time an inquiry completes */
   /* Used for determining whether or not duplicate devices */
   /* have responded to the same inquiry */
-  tINQ_BDADDR* p_bd_db;    /* Pointer to memory that holds bdaddrs */
-  uint16_t num_bd_entries; /* Number of entries in database */
-  uint16_t max_bd_entries; /* Maximum number of entries that can be stored */
-  tINQ_DB_ENT inq_db[BTM_INQ_DB_SIZE];
   tBTM_INQ_PARMS inqparms; /* Contains the parameters for the current inquiry */
   tBTM_INQUIRY_CMPL
       inq_cmpl_info; /* Status and number of responses from the last inquiry */

@@ -66,6 +66,8 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
   override fun close() {
     serverManager.server.close()
     mScope.cancel()
+    // Clear existing Gatt instances to fix flakiness: b/279599889
+    GattInstance.clearAllInstances()
   }
 
   override fun exchangeMTU(
@@ -159,7 +161,7 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
         .first()
       val uuidsList = arrayListOf<String>()
       for (parcelUuid in bluetoothDevice.getUuids()) {
-        uuidsList.add(parcelUuid.toString())
+        uuidsList.add(parcelUuid.toString().uppercase())
       }
       DiscoverServicesSdpResponse.newBuilder().addAllServiceUuids(uuidsList).build()
     }
@@ -241,14 +243,18 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
       Log.i(TAG, "registerService")
       val service =
         BluetoothGattService(UUID.fromString(request.service.uuid), SERVICE_TYPE_PRIMARY)
-      for (characteristic in request.service.characteristicsList) {
-        service.addCharacteristic(
-          BluetoothGattCharacteristic(
-            UUID.fromString(characteristic.uuid),
-            characteristic.properties,
-            characteristic.permissions
-          )
-        )
+      for (characteristic_params in request.service.characteristicsList) {
+        val characteristic = BluetoothGattCharacteristic(
+          UUID.fromString(characteristic_params.uuid),
+          characteristic_params.properties,
+          characteristic_params.permissions)
+        for (descriptor_params in characteristic_params.descriptorsList) {
+          characteristic.addDescriptor(BluetoothGattDescriptor(
+            UUID.fromString(descriptor_params.uuid),
+            descriptor_params.properties,
+            descriptor_params.permissions))
+        }
+        service.addCharacteristic(characteristic)
       }
 
       val fullService = coroutineScope {
@@ -262,7 +268,7 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
           GattService.newBuilder()
             .setHandle(fullService.instanceId)
             .setType(fullService.type)
-            .setUuid(fullService.uuid.toString())
+            .setUuid(fullService.uuid.toString().uppercase())
             .addAllIncludedServices(generateServicesList(service.includedServices, 1))
             .addAllCharacteristics(generateCharacteristicsList(service.characteristics))
             .build()
@@ -373,7 +379,7 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
         GattService.newBuilder()
           .setHandle(service.getInstanceId())
           .setType(service.getType())
-          .setUuid(service.getUuid().toString())
+          .setUuid(service.getUuid().toString().uppercase())
           .addAllIncludedServices(generateServicesList(service.getIncludedServices(), dpth + 1))
           .addAllCharacteristics(generateCharacteristicsList(service.characteristics))
       newServicesList.add(serviceBuilder.build())
@@ -391,7 +397,7 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
         GattCharacteristic.newBuilder()
           .setProperties(characteristic.getProperties())
           .setPermissions(characteristic.getPermissions())
-          .setUuid(characteristic.getUuid().toString())
+          .setUuid(characteristic.getUuid().toString().uppercase())
           .addAllDescriptors(generateDescriptorsList(characteristic.getDescriptors()))
           .setHandle(characteristic.getInstanceId())
       newCharacteristicsList.add(characteristicBuilder.build())
@@ -409,7 +415,7 @@ class Gatt(private val context: Context) : GATTImplBase(), Closeable {
         GattCharacteristicDescriptor.newBuilder()
           .setHandle(descriptor.getInstanceId())
           .setPermissions(descriptor.getPermissions())
-          .setUuid(descriptor.getUuid().toString())
+          .setUuid(descriptor.getUuid().toString().uppercase())
       newDescriptorsList.add(descriptorBuilder.build())
     }
     return newDescriptorsList

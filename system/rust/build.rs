@@ -1,3 +1,7 @@
+//! Build file to generate packets
+//!
+//! Run `cargo install .` in `tools/pdl` to ensure `pdl` is in your
+//! path.
 use std::{
     env,
     fs::File,

@@ -44,7 +44,6 @@ uint8_t btu_trace_level = BT_TRACE_LEVEL_DEBUG;
 
 module_t bt_utils_module;
 module_t gd_controller_module;
-module_t gd_idle_module;
 module_t gd_shim_module;
 module_t osi_module;
 module_t rust_module;

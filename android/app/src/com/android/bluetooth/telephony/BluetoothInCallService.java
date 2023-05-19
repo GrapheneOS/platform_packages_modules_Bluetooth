@@ -31,6 +31,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.DeviceConfig;
 import android.telecom.BluetoothCallQualityReport;
 import android.telecom.Call;
 import android.telecom.CallAudioState;
@@ -51,6 +52,7 @@ import androidx.annotation.VisibleForTesting;
 import com.android.bluetooth.hfp.BluetoothHeadsetProxy;
 import com.android.bluetooth.tbs.BluetoothLeCallControlProxy;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -59,6 +61,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,6 +75,7 @@ import java.util.concurrent.Executors;
 public class BluetoothInCallService extends InCallService {
 
     private static final String TAG = "BluetoothInCallService";
+    private static final String CLCC_INFERENCE = "ConferenceCallInference";
 
     // match up with bthf_call_state_t of bt_hf.h
     private static final int CALL_STATE_ACTIVE = 0;
@@ -129,6 +133,14 @@ public class BluetoothInCallService extends InCallService {
 
     @VisibleForTesting
     public final HashMap<Integer, BluetoothCall> mBluetoothCallHashMap = new HashMap<>();
+
+    private final HashMap<Integer, BluetoothCall> mBluetoothConferenceCallInference =
+            new HashMap<>();
+
+    private final Map<String, Integer> mClccInferenceIndexMap = new HashMap<>();
+
+    // A queue record the removal order of bluetooth calls
+    private final Queue<Integer> mBluetoothCallQueue = new ArrayDeque<>();
 
     // A map from Calls to indexes used to identify calls for CLCC (C* List Current Calls).
     private final Map<String, Integer> mClccIndexMap = new HashMap<>();
@@ -626,6 +638,17 @@ public class BluetoothInCallService extends InCallService {
 
         if (mBluetoothCallHashMap.containsKey(call.getId())) {
             mBluetoothCallHashMap.remove(call.getId());
+
+            mBluetoothCallQueue.add(call.getId());
+            mBluetoothConferenceCallInference.put(call.getId(), call);
+            mClccInferenceIndexMap.put(getClccMapKey(call), mClccIndexMap.get(getClccMapKey(call)));
+            // queue size limited to 2 because merge operation only happens on 2 calls
+            // we are only interested in last 2 calls merged
+            if (mBluetoothCallQueue.size() > 2) {
+                Integer callId = mBluetoothCallQueue.peek();
+                mBluetoothCallQueue.remove();
+                mBluetoothConferenceCallInference.remove(callId);
+            }
         }
 
         mClccIndexMap.remove(getClccMapKey(call));
@@ -703,6 +726,9 @@ public class BluetoothInCallService extends InCallService {
         mCallbacks.clear();
         mBluetoothCallHashMap.clear();
         mClccIndexMap.clear();
+        mBluetoothConferenceCallInference.clear();
+        mClccInferenceIndexMap.clear();
+        mBluetoothCallQueue.clear();
         mMaxNumberOfCalls = 0;
     }
 
@@ -714,6 +740,53 @@ public class BluetoothInCallService extends InCallService {
 
     private void sendListOfCalls(boolean shouldLog) {
         Collection<BluetoothCall> calls = mCallInfo.getBluetoothCalls();
+        boolean isInferenceEnabled =
+                DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, CLCC_INFERENCE, false);
+        Log.d(TAG, "is conference call inference enabled: " + isInferenceEnabled);
+        for (BluetoothCall call : calls) {
+            if (isInferenceEnabled && call.isConference()
+                    && call.getChildrenIds().size() < 2
+                    && !mBluetoothConferenceCallInference.isEmpty()) {
+                Log.d(TAG, "conference call inferred size: "
+                        + mBluetoothConferenceCallInference.size()
+                        + "current size: " + mBluetoothCallHashMap.size());
+                // Do conference call inference until at least 2 children arrive
+                // If carrier does send children info, then inference will end when info arrives.
+                // If carrier does not send children info, then inference won't impact actual value.
+                for (BluetoothCall inferredCall : mBluetoothConferenceCallInference.values()) {
+                    int index = mClccInferenceIndexMap.get(getClccMapKey(inferredCall));
+                    // save the index so later on when real children arrive, index is the same
+                    mClccIndexMap.put(getClccMapKey(inferredCall), index);
+                    int direction = inferredCall.isIncoming() ? 1 : 0;
+                    int state = CALL_STATE_ACTIVE;
+                    boolean isPartOfConference = true;
+                    final Uri addressUri;
+                    if (inferredCall.getGatewayInfo() != null) {
+                        addressUri = inferredCall.getGatewayInfo().getOriginalAddress();
+                    } else {
+                        addressUri = inferredCall.getHandle();
+                    }
+                    String address = addressUri == null ? null : addressUri.getSchemeSpecificPart();
+                    if (address != null) {
+                        address = PhoneNumberUtils.stripSeparators(address);
+                    }
+
+                    int addressType =
+                            address == null ? -1 : PhoneNumberUtils.toaFromString(address);
+                    Log.i(TAG, "sending inferred clcc for BluetoothCall "
+                            + index + ", "
+                            + direction + ", "
+                            + state + ", "
+                            + isPartOfConference + ", "
+                            + addressType);
+                    mBluetoothHeadset.clccResponse(
+                            index, direction, state, 0, isPartOfConference, address, addressType);
+                }
+                sendClccEndMarker();
+                return;
+            }
+        }
+
         for (BluetoothCall call : calls) {
             // We don't send the parent conference BluetoothCall to the bluetooth device.
             // We do, however want to send conferences that have no children to the bluetooth

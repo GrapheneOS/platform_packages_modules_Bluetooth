@@ -1803,6 +1803,12 @@ LinkLayerController::LinkLayerController(const Address& address,
     : address_(address),
       properties_(properties),
       lm_(nullptr, link_manager_destroy) {
+
+  if (properties_.quirks.has_default_random_address) {
+    LOG_WARN("Configuring a default random address for this controller");
+    random_address_ = Address { 0xba, 0xdb, 0xad, 0xba, 0xdb, 0xad };
+  }
+
   ops_ = {
       .user_pointer = this,
       .get_handle =
@@ -2181,9 +2187,6 @@ void LinkLayerController::IncomingPacket(
       break;
     case (model::packets::PacketType::READ_CLOCK_OFFSET_RESPONSE):
       IncomingReadClockOffsetResponse(incoming);
-      break;
-    case (model::packets::PacketType::RSSI_WRAPPER):
-      LOG_ERROR("Dropping double-wrapped RSSI packet");
       break;
     case model::packets::PacketType::SCO_CONNECTION_REQUEST:
       IncomingScoConnectionRequest(incoming);

@@ -34,7 +34,7 @@
 #include <linux/if_ether.h>
 #include <linux/if_tun.h>
 #include <net/if.h>
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include <pan.sysprop.h>
 #endif
 #include <poll.h>
@@ -97,7 +97,7 @@ static btpan_interface_t pan_if = {
 const btpan_interface_t* btif_pan_get_interface() { return &pan_if; }
 
 static bool pan_nap_is_enabled() {
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
   // replace build time config PAN_NAP_DISABLED with runtime
   static const bool nap_is_enabled =
       android::sysprop::bluetooth::Pan::nap().value_or(true);

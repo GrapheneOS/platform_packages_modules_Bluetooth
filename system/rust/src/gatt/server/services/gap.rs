@@ -10,7 +10,7 @@ use crate::{
     gatt::{
         callbacks::GattDatastore,
         ffi::AttributeBackingType,
-        ids::{AttHandle, ConnectionId},
+        ids::{AttHandle, TransportIndex},
         server::gatt_database::{
             AttPermissions, GattCharacteristicWithHandle, GattDatabase, GattServiceWithHandle,
         },
@@ -36,7 +36,7 @@ pub const DEVICE_APPEARANCE_UUID: Uuid = Uuid::new(0x2A01);
 impl GattDatastore for GapService {
     async fn read(
         &self,
-        _: ConnectionId,
+        _: TransportIndex,
         handle: AttHandle,
         _: AttributeBackingType,
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
@@ -54,7 +54,7 @@ impl GattDatastore for GapService {
 
     async fn write(
         &self,
-        _: ConnectionId,
+        _: TransportIndex,
         _: AttHandle,
         _: AttributeBackingType,
         _: AttAttributeDataView<'_>,
@@ -97,25 +97,20 @@ mod test {
 
     use crate::{
         core::shared_box::SharedBox,
-        gatt::{
-            ids::ConnectionId,
-            server::{
-                att_database::AttDatabase,
-                gatt_database::{
-                    GattDatabase, CHARACTERISTIC_UUID, PRIMARY_SERVICE_DECLARATION_UUID,
-                },
-            },
+        gatt::server::{
+            att_database::AttDatabase,
+            gatt_database::{GattDatabase, CHARACTERISTIC_UUID, PRIMARY_SERVICE_DECLARATION_UUID},
         },
         utils::task::block_on_locally,
     };
 
-    const CONN_ID: ConnectionId = ConnectionId(1);
+    const TCB_IDX: TransportIndex = TransportIndex(1);
 
     fn init_dbs() -> (SharedBox<GattDatabase>, impl AttDatabase) {
         let mut gatt_database = GattDatabase::new();
         register_gap_service(&mut gatt_database).unwrap();
         let gatt_database = SharedBox::new(gatt_database);
-        let att_database = gatt_database.get_att_database(CONN_ID);
+        let att_database = gatt_database.get_att_database(TCB_IDX);
         (gatt_database, att_database)
     }
 

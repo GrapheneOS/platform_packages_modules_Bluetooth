@@ -648,7 +648,7 @@ class Host(
 
               for (serviceDataEntry in serviceData) {
                 val parcelUuid = serviceDataEntry.key
-                Log.d(TAG, parcelUuid.uuid.toString())
+                Log.d(TAG, parcelUuid.uuid.toString().uppercase())
 
                 // use upper case uuid as the key
                 if (BluetoothUuid.is16BitUuid(parcelUuid)) {
@@ -673,7 +673,7 @@ class Host(
               }
 
               for (serviceUuid in scanRecord.serviceSolicitationUuids ?: listOf<ParcelUuid>()) {
-                Log.d(TAG, serviceUuid.uuid.toString())
+                Log.d(TAG, serviceUuid.uuid.toString().uppercase())
                 if (BluetoothUuid.is16BitUuid(serviceUuid)) {
                   val uuid16 = serviceUuid.uuid.toString().substring(4, 8).uppercase()
                   dataTypesBuilder.addServiceSolicitationUuids16(uuid16)
@@ -687,7 +687,7 @@ class Host(
               }
 
               for (serviceUuid in scanRecord.serviceUuids ?: listOf<ParcelUuid>()) {
-                Log.d(TAG, serviceUuid.uuid.toString())
+                Log.d(TAG, serviceUuid.uuid.toString().uppercase())
                 if (BluetoothUuid.is16BitUuid(serviceUuid)) {
                   val uuid16 = serviceUuid.uuid.toString().substring(4, 8).uppercase()
                   dataTypesBuilder.addIncompleteServiceClassUuids16(uuid16)
