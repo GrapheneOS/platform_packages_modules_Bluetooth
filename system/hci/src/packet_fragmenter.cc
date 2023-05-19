@@ -30,7 +30,6 @@
 #include "device/include/controller.h"
 #include "hci/include/buffer_allocator.h"
 #include "osi/include/log.h"
-#include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 
 #define HCI_ISO_BF_FIRST_FRAGMENTED_PACKET (0)
@@ -81,35 +80,21 @@ static const allocator_t* buffer_allocator;
 static const controller_t* controller;
 static const packet_fragmenter_callbacks_t* callbacks;
 
-static std::unordered_map<uint16_t /* handle */, BT_HDR*> partial_packets;
 static std::unordered_map<uint16_t /* handle */, BT_HDR*> partial_iso_packets;
 
 static void init(const packet_fragmenter_callbacks_t* result_callbacks) {
   callbacks = result_callbacks;
 }
 
-static void cleanup() {
-  partial_packets.clear();
-  partial_iso_packets.clear();
-}
-
-static void fragment_and_dispatch_iso(BT_HDR* packet);
+static void cleanup() { partial_iso_packets.clear(); }
 
 static void fragment_and_dispatch(BT_HDR* packet) {
   CHECK(packet != NULL);
 
   uint16_t event = packet->event & MSG_EVT_MASK;
 
-  if (event == MSG_HC_TO_STACK_HCI_SCO) {
-    callbacks->fragmented(packet, true);
-  } else if (event == MSG_STACK_TO_HC_HCI_ISO) {
-    fragment_and_dispatch_iso(packet);
-  } else {
-    callbacks->fragmented(packet, true);
-  }
-}
+  CHECK(event == MSG_STACK_TO_HC_HCI_ISO);
 
-static void fragment_and_dispatch_iso(BT_HDR* packet) {
   uint8_t* stream = packet->data + packet->offset;
   uint16_t max_data_size = controller->get_iso_data_size();
   uint16_t max_packet_size = max_data_size + HCI_ISO_PREAMBLE_SIZE;
@@ -155,13 +140,16 @@ static void fragment_and_dispatch_iso(BT_HDR* packet) {
   callbacks->fragmented(packet, true);
 }
 
-static void reassemble_and_dispatch_iso(UNUSED_ATTR BT_HDR* packet) {
+static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR* packet) {
   uint8_t* stream = packet->data;
   uint16_t handle;
   uint16_t iso_length;
   uint8_t iso_hdr_len = HCI_ISO_HEADER_LEN_WITHOUT_TS;
   BT_HDR* partial_packet;
   uint16_t iso_full_len;
+
+  uint16_t event = packet->event & MSG_EVT_MASK;
+  CHECK(event == MSG_HC_TO_STACK_HCI_ISO);
 
   STREAM_TO_UINT16(handle, stream);
   STREAM_TO_UINT16(iso_length, stream);
@@ -333,16 +321,6 @@ static void reassemble_and_dispatch_iso(UNUSED_ATTR BT_HDR* packet) {
       LOG_ERROR("%s Unexpected packet, dropping full packet", __func__);
       buffer_allocator->free(packet);
       break;
-  }
-}
-
-static void reassemble_and_dispatch(BT_HDR* packet) {
-  if ((packet->event & MSG_EVT_MASK) == MSG_HC_TO_STACK_HCI_SCO) {
-    callbacks->reassembled(packet);
-  } else if ((packet->event & MSG_EVT_MASK) == MSG_HC_TO_STACK_HCI_ISO) {
-    reassemble_and_dispatch_iso(packet);
-  } else {
-    callbacks->reassembled(packet);
   }
 }
 
