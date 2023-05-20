@@ -1433,30 +1433,12 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void BackgroundConnectIfNeeded(LeAudioDevice* leAudioDevice) {
-    auto group = GetGroupIfEnabled(leAudioDevice->group_id_);
-    if (group == nullptr) {
-      LOG_INFO(" Device %s is not yet part of the group %d. ",
-               ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
-               leAudioDevice->group_id_);
-      return;
-    }
-
-    if (!leAudioDevice->autoconnect_flag_ && !group->IsAnyDeviceConnected()) {
+    if (!leAudioDevice->autoconnect_flag_) {
       LOG_DEBUG("Device %s not in the background connect",
                 ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
       return;
     }
-
-    LOG_INFO(
-        "Add %s added to background connect. autoconnect flag: %d "
-        "group_connected: %d",
-        ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_),
-        leAudioDevice->group_id_, group->IsAnyDeviceConnected());
-
-    leAudioDevice->SetConnectionState(
-        DeviceConnectState::CONNECTING_AUTOCONNECT);
-    BTA_GATTC_Open(gatt_if_, leAudioDevice->address_, reconnection_mode_,
-                   false);
+    AddToBackgroundConnectCheckGroupConnected(leAudioDevice);
   }
 
   void Disconnect(const RawAddress& address) override {
@@ -2259,6 +2241,8 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
+
     /* Attempt background re-connect if disconnect was not initiated locally
      * or if autoconnect is set and device got disconnected because of some
      * issues
@@ -2266,7 +2250,6 @@ class LeAudioClientImpl : public LeAudioClient {
     if (group == nullptr || !group->IsEnabled()) {
       LOG_ERROR("Group id %d (%p) disabled or null", leAudioDevice->group_id_,
                 group);
-      leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
       return;
     }
 
@@ -2274,9 +2257,6 @@ class LeAudioClientImpl : public LeAudioClient {
       if (leAudioDevice->autoconnect_flag_) {
         /* In this case ACL might not yet been disconnected */
         scheduleAutoConnect(address);
-      } else {
-        /* Just acknowledge disconnected state*/
-        leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
       }
       return;
     }
@@ -2305,9 +2285,6 @@ class LeAudioClientImpl : public LeAudioClient {
          */
         scheduleGroupConnectedCheck(leAudioDevice->group_id_);
       }
-    } else {
-      /* Just acknowledge disconnected state*/
-      leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
     }
   }
 
