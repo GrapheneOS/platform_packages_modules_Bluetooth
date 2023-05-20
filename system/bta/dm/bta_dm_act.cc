@@ -138,6 +138,7 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
                                     tBTM_LE_EVT_DATA* p_data);
 static void bta_dm_ble_id_key_cback(uint8_t key_type,
                                     tBTM_BLE_LOCAL_KEYS* p_key);
+static uint8_t bta_dm_sirk_verifiction_cback(const RawAddress& bd_addr);
 static void bta_dm_gattc_register(void);
 static void btm_dm_start_gatt_discovery(const RawAddress& bd_addr);
 static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data);
@@ -349,7 +350,8 @@ const tBTM_APPL_INFO bta_security = {
     .p_bond_cancel_cmpl_callback = &bta_dm_bond_cancel_complete_cback,
     .p_sp_callback = &bta_dm_sp_cback,
     .p_le_callback = &bta_dm_ble_smp_cback,
-    .p_le_key_callback = &bta_dm_ble_id_key_cback};
+    .p_le_key_callback = &bta_dm_ble_id_key_cback,
+    .p_sirk_verification_callback = &bta_dm_sirk_verifiction_cback};
 
 #define MAX_DISC_RAW_DATA_BUF (4096)
 uint8_t g_disc_raw_data_buf[MAX_DISC_RAW_DATA_BUF];
@@ -365,6 +367,20 @@ void bta_dm_enable(tBTA_DM_SEC_CBACK* p_sec_cback) {
   if (p_sec_cback != NULL) bta_dm_cb.p_sec_cback = p_sec_cback;
 
   btm_local_io_caps = btif_storage_get_local_io_caps();
+}
+
+void bta_dm_ble_sirk_sec_cb_register(tBTA_DM_SEC_CBACK* p_cback) {
+  /* Save the callback to be called when a request of member validation will be
+   * needed. */
+  LOG_DEBUG("");
+  bta_dm_cb.p_sec_sirk_cback = p_cback;
+}
+
+void bta_dm_ble_sirk_confirm_device_reply(const RawAddress& bd_addr,
+                                          bool accept) {
+  LOG_DEBUG("");
+  get_btm_client_interface().security.BTM_BleSirkConfirmDeviceReply(
+      bd_addr, accept ? BTM_SUCCESS : BTM_NOT_AUTHORIZED);
 }
 
 void bta_dm_search_set_state(tBTA_DM_STATE state) {
@@ -4025,6 +4041,31 @@ static void bta_dm_ble_id_key_cback(uint8_t key_type,
       break;
   }
   return;
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_sirk_verifiction_cback
+ *
+ * Description      SIRK verification when pairing CSIP set member.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+static uint8_t bta_dm_sirk_verifiction_cback(const RawAddress& bd_addr) {
+  tBTA_DM_SEC sec_event = {.ble_req = {
+                               .bd_addr = bd_addr,
+                           }};
+
+  if (bta_dm_cb.p_sec_sirk_cback) {
+    LOG_DEBUG("callback called");
+    bta_dm_cb.p_sec_sirk_cback(BTA_DM_SIRK_VERIFICATION_REQ_EVT, &sec_event);
+    return BTM_CMD_STARTED;
+  }
+
+  LOG_DEBUG("no callback registered");
+
+  return BTM_SUCCESS_NO_SECURITY;
 }
 
 /*******************************************************************************
