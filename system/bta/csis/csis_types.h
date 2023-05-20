@@ -271,9 +271,18 @@ class CsisDevice : public GattServiceDevice {
     }
   }
 
+  void SetExpectedGroupIdMember(int group_id) {
+    LOG_DEBUG("Expected Group ID: %d, for member: %s is set", group_id,
+              ADDRESS_TO_LOGGABLE_CSTR(addr));
+    expected_group_id_member = group_id;
+  }
+
+  inline int GetExpectedGroupIdMember() { return expected_group_id_member; }
+
  private:
   /* Instances per start handle  */
   std::map<uint16_t, std::shared_ptr<CsisInstance>> csis_instances_;
+  int expected_group_id_member = bluetooth::groups::kGroupUnknown;
 };
 
 /*

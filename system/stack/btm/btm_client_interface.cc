@@ -128,6 +128,7 @@ struct btm_client_interface_t btm_client_interface = {
             .BTM_IsEncrypted = BTM_IsEncrypted,
             .BTM_SecIsSecurityPending = BTM_SecIsSecurityPending,
             .BTM_IsLinkKeyKnown = BTM_IsLinkKeyKnown,
+            .BTM_BleSirkConfirmDeviceReply = BTM_BleSirkConfirmDeviceReply,
         },
 
     .ble =

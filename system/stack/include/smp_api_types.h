@@ -99,8 +99,9 @@ typedef enum : uint8_t {
   SMP_UNUSED11 = 11,
   SMP_BR_KEYS_REQ_EVT = 12, /* SMP over BR keys request event */
   SMP_UNUSED13 = 13,
-  SMP_CONSENT_REQ_EVT = 14,   /* Consent request event */
-  SMP_LE_ADDR_ASSOC_EVT = 15, /* Identity address association event */
+  SMP_CONSENT_REQ_EVT = 14,           /* Consent request event */
+  SMP_LE_ADDR_ASSOC_EVT = 15,         /* Identity address association event */
+  SMP_SIRK_VERIFICATION_REQ_EVT = 16, /* SIRK verification request event */
 } tSMP_EVT;
 
 /* Device IO capability */
@@ -243,5 +244,8 @@ typedef struct {
  * events occur.*/
 typedef tBTM_STATUS(tSMP_CALLBACK)(tSMP_EVT event, const RawAddress& bd_addr,
                                    const tSMP_EVT_DATA* p_data);
+/* Security Manager SIRK verification event - Called by the stack when Security
+ * Manager requires verification from CSIP.*/
+typedef tBTM_STATUS(tSMP_SIRK_CALLBACK)(const RawAddress& bd_addr);
 
 #endif  // SMP_API_TYPES_H
