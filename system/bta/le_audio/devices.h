@@ -23,7 +23,7 @@
 #include <tuple>
 #include <vector>
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include <android/sysprop/BluetoothProperties.sysprop.h>
 #endif
 
@@ -250,6 +250,7 @@ class LeAudioDevices {
 class LeAudioDeviceGroup {
  public:
   const int group_id_;
+  bool enabled_;
   types::CigState cig_state_;
 
   struct stream_configuration stream_conf;
@@ -265,6 +266,7 @@ class LeAudioDeviceGroup {
   std::vector<struct types::cis> cises_;
   explicit LeAudioDeviceGroup(const int group_id)
       : group_id_(group_id),
+        enabled_(true),
         cig_state_(types::CigState::NONE),
         stream_conf({}),
         audio_directions_(0),
@@ -280,7 +282,7 @@ class LeAudioDeviceGroup {
             types::LeAudioContextType::UNINITIALIZED),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
     // 22 maps to BluetoothProfile#LE_AUDIO
     is_output_preference_le_audio = android::sysprop::BluetoothProperties::
                                         getDefaultOutputOnlyAudioProfile() ==
@@ -368,7 +370,9 @@ class LeAudioDeviceGroup {
   void SetPendingConfiguration(void);
   void ClearPendingConfiguration(void);
   void AddToAllowListNotConnectedGroupMembers(int gatt_if);
-  void RemoveFromAllowListNotConnectedGroupMembers(int gatt_if);
+  void Disable(int gatt_if);
+  void Enable(int gatt_if, tBTM_BLE_CONN_TYPE reconnection_mode);
+  bool IsEnabled(void);
   bool IsConfigurationSupported(
       LeAudioDevice* leAudioDevice,
       const set_configurations::AudioSetConfiguration* audio_set_conf);

@@ -256,6 +256,17 @@ public class LeAudioNativeInterface {
     }
 
     /**
+     * Enable/Disable LeAudio for the group.
+     *
+     * @param device the remote device
+     * @param enabled true if enabled, false to disabled
+     * @return true on success, otherwise false.
+     */
+    public boolean setEnableState(BluetoothDevice device, boolean enabled) {
+        return setEnableStateNative(getByteAddress(device), enabled);
+    }
+
+    /**
      * Add new Node into a group.
      * @param groupId group identifier
      * @param device remote device
@@ -340,6 +351,7 @@ public class LeAudioNativeInterface {
     private native void cleanupNative();
     private native boolean connectLeAudioNative(byte[] address);
     private native boolean disconnectLeAudioNative(byte[] address);
+    private native boolean setEnableStateNative(byte[] address, boolean enabled);
     private native boolean groupAddNodeNative(int groupId, byte[] address);
     private native boolean groupRemoveNodeNative(int groupId, byte[] address);
     private native void groupSetActiveNative(int groupId);

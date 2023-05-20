@@ -53,7 +53,6 @@ cc_library_static {
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
-    header_libs: ["libbt_callbacks_cxx_headers"],
     host_supported: true,
     min_sdk_version: "Tiramisu",
 }

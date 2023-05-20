@@ -26,8 +26,6 @@ config("gd_defaults") {
   ]
 
   defines = [
-    "OS_LINUX_GENERIC",
-    "OS_GENERIC",
     "TARGET_FLOSS",
   ]
 

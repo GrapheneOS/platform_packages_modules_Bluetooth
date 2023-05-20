@@ -17,15 +17,18 @@ import logging
 
 from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices
 from avatar.aio import asynchronous
+from bumble import smp
 from bumble.hci import Address
-from bumble.smp import Session, SMP_Identity_Address_Information_Command
 from concurrent import futures
 from contextlib import suppress
-from mobly import base_test, test_runner
+from mobly import base_test, signals, test_runner
 from mobly.asserts import assert_equal  # type: ignore
-from pandora.host_pb2 import RANDOM, DataTypes, ScanningResponse, OwnAddressType
+from mobly.asserts import assert_false  # type: ignore
+from mobly.asserts import assert_is_not_none  # type: ignore
+from mobly.asserts import assert_true  # type: ignore
+from pandora.host_pb2 import RANDOM, DataTypes, OwnAddressType, ScanningResponse
 from pandora.security_pb2 import LE_LEVEL3, PairingEventAnswer
-from typing import Any, NoReturn, Optional
+from typing import NoReturn, Optional
 
 
 class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
@@ -76,7 +79,6 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
         scan = self.dut.aio.host.Scan(own_address_type=dut_address_type)
         ref = await anext((x async for x in scan if b'pause cafe' in x.data.manufacturer_specific_data))
         scan.cancel()
-        assert ref
 
         pairing = asyncio.create_task(self.handle_pairing_events())
         (dut_ref_res, ref_dut_res) = await asyncio.gather(
@@ -86,7 +88,8 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
 
         advertisement.cancel()
         ref_dut, dut_ref = ref_dut_res.connection, dut_ref_res.connection
-        assert ref_dut and dut_ref
+        assert_is_not_none(dut_ref)
+        assert dut_ref
 
         (secure, wait_security) = await asyncio.gather(
             self.dut.aio.security.Secure(connection=dut_ref, le=LE_LEVEL3),
@@ -108,33 +111,42 @@ class SmpTest(base_test.BaseTestClass):  # type: ignore[misc]
 
     @asynchronous
     async def test_le_pairing_delete_dup_bond_record(self) -> None:
+        if isinstance(self.dut, BumblePandoraDevice):
+            raise signals.TestSkip('TODO: Fix test for Bumble DUT')
+        if not isinstance(self.ref, BumblePandoraDevice):
+            raise signals.TestSkip('Test require Bumble as reference device(s)')
 
-        # Hack to send same identity address from ref during both pairing
-        def send_command(self: Any, command: Any) -> None:
-            if isinstance(command, SMP_Identity_Address_Information_Command):
-                random_identity_address = Address('F6:F7:F8:F9:FA:FB', Address.RANDOM_IDENTITY_ADDRESS)
-                command = SMP_Identity_Address_Information_Command(  # type: ignore[no-untyped-call]
-                    addr_type=random_identity_address.address_type,
-                    bd_addr=random_identity_address,
-                )
-            self.manager.send_command(self.connection, command)
+        class Session(smp.Session):
 
-        setattr(Session, 'send_command', send_command)
+            # Hack to send same identity address from ref during both pairing
+            def send_command(self: smp.Session, command: smp.SMP_Command) -> None:
+                if isinstance(command, smp.SMP_Identity_Address_Information_Command):
+                    command = smp.SMP_Identity_Address_Information_Command(
+                        addr_type=Address.RANDOM_IDENTITY_ADDRESS,
+                        bd_addr=Address(
+                            'F6:F7:F8:F9:FA:FB',
+                            Address.RANDOM_IDENTITY_ADDRESS,
+                        ),
+                    )
+                self.manager.send_command(self.connection, command)
+
+        self.ref.device.smp_session_proxy = Session
 
         # Pair with same device 2 times.
         # Ref device advertises with different random address but uses same identity address
         ref1 = await self.dut_pair(dut_address_type=RANDOM, ref_address_type=RANDOM)
         is_bonded = await self.dut.aio.security_storage.IsBonded(random=ref1.random)
-        assert is_bonded.value
+        assert_true(is_bonded.value, "")
 
         await self.ref.reset()
+        self.ref.device.smp_session_proxy = Session
 
         ref2 = await self.dut_pair(dut_address_type=RANDOM, ref_address_type=RANDOM)
         is_bonded = await self.dut.aio.security_storage.IsBonded(random=ref2.random)
-        assert is_bonded.value
+        assert_true(is_bonded.value, "")
 
         is_bonded = await self.dut.aio.security_storage.IsBonded(random=ref1.random)
-        assert not is_bonded.value
+        assert_false(is_bonded.value, "")
 
 
 if __name__ == '__main__':

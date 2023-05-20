@@ -40,6 +40,7 @@
 
 constexpr size_t kMaxLogSize = 255;
 constexpr size_t kBtmLogHistoryBufferSize = 200;
+constexpr size_t kMaxInquiryScanHistory = 10;
 
 extern bluetooth::common::TimestamperInMilliseconds timestamper_in_milliseconds;
 
@@ -313,6 +314,11 @@ typedef struct tBTM_CB {
       long long start_time_ms;
       unsigned long results;
     } classic_inquiry, le_scan, le_inquiry, le_observe, le_legacy_scan;
+    std::unique_ptr<
+        bluetooth::common::TimestampedCircularBuffer<tBTM_INQUIRY_CMPL>>
+        inquiry_history_ = std::make_unique<
+            bluetooth::common::TimestampedCircularBuffer<tBTM_INQUIRY_CMPL>>(
+            kMaxInquiryScanHistory);
   } neighbor;
 
   void Init(uint8_t initial_security_mode) {

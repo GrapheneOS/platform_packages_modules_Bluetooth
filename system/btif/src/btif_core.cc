@@ -75,12 +75,12 @@ static void bt_jni_msg_ready(void* context);
 // TODO(armansito): Find a better way than searching by a hardcoded path.
 #if defined(TARGET_FLOSS)
 #define BTE_DID_CONF_FILE "/var/lib/bluetooth/bt_did.conf"
-#elif defined(OS_GENERIC)
-#define BTE_DID_CONF_FILE "bt_did.conf"
-#else  // !defined(OS_GENERIC)
+#elif defined(__ANDROID__)
 #define BTE_DID_CONF_FILE \
   "/apex/com.android.btservices/etc/bluetooth/bt_did.conf"
-#endif  // defined(OS_GENERIC)
+#else  // !defined(__ANDROID__)
+#define BTE_DID_CONF_FILE "bt_did.conf"
+#endif  // defined(__ANDROID__)
 #endif  // BTE_DID_CONF_FILE
 
 #define CODEC_TYPE_NUMBER 32

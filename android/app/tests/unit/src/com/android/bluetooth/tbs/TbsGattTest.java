@@ -121,6 +121,9 @@ public class TbsGattTest {
 
         mFirstDevice = TestUtils.getTestDevice(mAdapter, 0);
         mSecondDevice = TestUtils.getTestDevice(mAdapter, 1);
+
+        when(mMockTbsService.getDeviceAuthorization(any(BluetoothDevice.class))).thenReturn(
+                BluetoothDevice.ACCESS_ALLOWED);
     }
 
     @After
@@ -813,4 +816,88 @@ public class TbsGattTest {
                 eq(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE));
 
     }
+
+    @Test
+    public void testCharacteristicReadUnauthorized() {
+        prepareDefaultService();
+
+        BluetoothGattCharacteristic characteristic =
+                getCharacteristic(TbsGatt.UUID_BEARER_TECHNOLOGY);
+
+        doReturn(BluetoothDevice.ACCESS_REJECTED)
+                .when(mMockTbsService)
+                .getDeviceAuthorization(any(BluetoothDevice.class));
+
+        mTbsGatt.mGattServerCallback.onCharacteristicReadRequest(
+                mFirstDevice, 1, 0, characteristic);
+
+        verify(mMockGattServer)
+                .sendResponse(eq(mFirstDevice), eq(1),
+                        eq(BluetoothGatt.GATT_INSUFFICIENT_AUTHORIZATION), eq(0), any());
+    }
+
+    @Test
+    public void testCharacteristicWriteUnauthorized() {
+        prepareDefaultService();
+
+        BluetoothGattCharacteristic characteristic =
+                getCharacteristic(TbsGatt.UUID_CALL_CONTROL_POINT);
+
+        doReturn(BluetoothDevice.ACCESS_REJECTED)
+                .when(mMockTbsService)
+                .getDeviceAuthorization(any(BluetoothDevice.class));
+
+        byte[] value = new byte[] {0x00, /* opcode */ 0x0A, /* argument */ };
+
+        mTbsGatt.mGattServerCallback.onCharacteristicWriteRequest(
+                mFirstDevice, 1, characteristic, false, true, 0, value);
+
+        verify(mMockGattServer)
+                .sendResponse(eq(mFirstDevice), eq(1),
+                        eq(BluetoothGatt.GATT_INSUFFICIENT_AUTHORIZATION), eq(0), any());
+    }
+
+    @Test
+    public void testDescriptorReadUnauthorized() {
+        prepareDefaultService();
+
+        BluetoothGattDescriptor descriptor =
+                getCharacteristic(TbsGatt.UUID_BEARER_TECHNOLOGY)
+                        .getDescriptor(TbsGatt.UUID_CLIENT_CHARACTERISTIC_CONFIGURATION);
+        Assert.assertNotNull(descriptor);
+
+        doReturn(BluetoothDevice.ACCESS_REJECTED)
+                .when(mMockTbsService)
+                .getDeviceAuthorization(any(BluetoothDevice.class));
+
+        mTbsGatt.mGattServerCallback.onDescriptorReadRequest(mFirstDevice, 1, 0, descriptor);
+
+        verify(mMockGattServer)
+                .sendResponse(eq(mFirstDevice), eq(1),
+                        eq(BluetoothGatt.GATT_INSUFFICIENT_AUTHORIZATION), eq(0), any());
+    }
+
+    @Test
+    public void testDescriptorWriteUnauthorized() {
+        prepareDefaultService();
+
+        BluetoothGattDescriptor descriptor =
+                getCharacteristic(TbsGatt.UUID_CALL_CONTROL_POINT)
+                        .getDescriptor(TbsGatt.UUID_CLIENT_CHARACTERISTIC_CONFIGURATION);
+        Assert.assertNotNull(descriptor);
+
+        doReturn(BluetoothDevice.ACCESS_REJECTED)
+                .when(mMockTbsService)
+                .getDeviceAuthorization(any(BluetoothDevice.class));
+
+        byte[] value = new byte[] {0x00, /* opcode */ 0x0A, /* argument */ };
+
+        mTbsGatt.mGattServerCallback.onDescriptorWriteRequest(
+                mFirstDevice, 1, descriptor, false, true, 0, value);
+
+        verify(mMockGattServer)
+                .sendResponse(eq(mFirstDevice), eq(1),
+                        eq(BluetoothGatt.GATT_INSUFFICIENT_AUTHORIZATION), eq(0), any());
+    }
+
 }

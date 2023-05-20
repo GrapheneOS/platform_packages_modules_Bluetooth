@@ -6,7 +6,7 @@ use tokio::{sync::oneshot, time::timeout};
 
 use crate::{
     gatt::{
-        ids::{AttHandle, ConnectionId, TransactionId},
+        ids::{AttHandle, ConnectionId, ServerId, TransactionId, TransportIndex},
         GattCallbacks,
     },
     packets::{AttAttributeDataChild, AttAttributeDataView, AttErrorCode},
@@ -48,7 +48,7 @@ const TIMEOUT: Duration = Duration::from_secs(15);
 /// The cause of a failure to dispatch a call to send_response()
 #[derive(Debug, PartialEq, Eq)]
 pub enum CallbackResponseError {
-    /// The TransactionId supplied was invalid
+    /// The TransactionId supplied was invalid for the specified connection
     NonExistentTransaction(TransactionId),
     /// The TransactionId was valid but has since terminated
     ListenerHungUp(TransactionId),
@@ -85,6 +85,11 @@ impl CallbackTransactionManager {
         } else {
             Err(CallbackResponseError::NonExistentTransaction(trans_id))
         }
+    }
+
+    /// Get an impl GattDatastore tied to a particular server
+    pub fn get_datastore(self: &Rc<Self>, server_id: ServerId) -> impl RawGattDatastore {
+        GattDatastoreImpl { callback_transaction_manager: self.clone(), server_id }
     }
 }
 
@@ -124,37 +129,58 @@ impl PendingTransactionWatcher {
     }
 }
 
+struct GattDatastoreImpl {
+    callback_transaction_manager: Rc<CallbackTransactionManager>,
+    server_id: ServerId,
+}
+
 #[async_trait(?Send)]
-impl RawGattDatastore for CallbackTransactionManager {
+impl RawGattDatastore for GattDatastoreImpl {
     async fn read(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         offset: u32,
         attr_type: AttributeBackingType,
     ) -> Result<AttAttributeDataChild, AttErrorCode> {
-        let pending_transaction =
-            self.pending_transactions.borrow_mut().start_new_transaction(conn_id);
+        let conn_id = ConnectionId::new(tcb_idx, self.server_id);
+
+        let pending_transaction = self
+            .callback_transaction_manager
+            .pending_transactions
+            .borrow_mut()
+            .start_new_transaction(conn_id);
         let trans_id = pending_transaction.trans_id;
 
-        self.callbacks.on_server_read(conn_id, trans_id, handle, attr_type, offset);
+        self.callback_transaction_manager.callbacks.on_server_read(
+            ConnectionId::new(tcb_idx, self.server_id),
+            trans_id,
+            handle,
+            attr_type,
+            offset,
+        );
 
-        pending_transaction.wait(self).await
+        pending_transaction.wait(&self.callback_transaction_manager).await
     }
 
     async fn write(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
         write_type: GattWriteRequestType,
         data: AttAttributeDataView<'_>,
     ) -> Result<(), AttErrorCode> {
-        let pending_transaction =
-            self.pending_transactions.borrow_mut().start_new_transaction(conn_id);
+        let conn_id = ConnectionId::new(tcb_idx, self.server_id);
+
+        let pending_transaction = self
+            .callback_transaction_manager
+            .pending_transactions
+            .borrow_mut()
+            .start_new_transaction(conn_id);
         let trans_id = pending_transaction.trans_id;
 
-        self.callbacks.on_server_write(
+        self.callback_transaction_manager.callbacks.on_server_write(
             conn_id,
             trans_id,
             handle,
@@ -164,18 +190,24 @@ impl RawGattDatastore for CallbackTransactionManager {
         );
 
         // the data passed back is irrelevant for write requests
-        pending_transaction.wait(self).await.map(|_| ())
+        pending_transaction.wait(&self.callback_transaction_manager).await.map(|_| ())
     }
 
     fn write_no_response(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
         data: AttAttributeDataView<'_>,
     ) {
-        let trans_id = self.pending_transactions.borrow_mut().alloc_transaction_id();
-        self.callbacks.on_server_write(
+        let conn_id = ConnectionId::new(tcb_idx, self.server_id);
+
+        let trans_id = self
+            .callback_transaction_manager
+            .pending_transactions
+            .borrow_mut()
+            .alloc_transaction_id();
+        self.callback_transaction_manager.callbacks.on_server_write(
             conn_id,
             trans_id,
             handle,
@@ -187,16 +219,21 @@ impl RawGattDatastore for CallbackTransactionManager {
 
     async fn execute(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         decision: TransactionDecision,
     ) -> Result<(), AttErrorCode> {
-        let pending_transaction =
-            self.pending_transactions.borrow_mut().start_new_transaction(conn_id);
+        let conn_id = ConnectionId::new(tcb_idx, self.server_id);
+
+        let pending_transaction = self
+            .callback_transaction_manager
+            .pending_transactions
+            .borrow_mut()
+            .start_new_transaction(conn_id);
         let trans_id = pending_transaction.trans_id;
 
-        self.callbacks.on_execute(conn_id, trans_id, decision);
+        self.callback_transaction_manager.callbacks.on_execute(conn_id, trans_id, decision);
 
         // the data passed back is irrelevant for execute requests
-        pending_transaction.wait(self).await.map(|_| ())
+        pending_transaction.wait(&self.callback_transaction_manager).await.map(|_| ())
     }
 }

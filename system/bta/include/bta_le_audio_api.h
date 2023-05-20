@@ -48,6 +48,7 @@ class LeAudioClient {
   virtual void RemoveDevice(const RawAddress& address) = 0;
   virtual void Connect(const RawAddress& address) = 0;
   virtual void Disconnect(const RawAddress& address) = 0;
+  virtual void SetEnableState(const RawAddress& address, bool enabled) = 0;
   virtual void GroupAddNode(const int group_id, const RawAddress& addr) = 0;
   virtual void GroupRemoveNode(const int group_id, const RawAddress& addr) = 0;
   virtual void GroupStream(const int group_id, const uint16_t content_type) = 0;

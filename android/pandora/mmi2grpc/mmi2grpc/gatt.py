@@ -39,11 +39,15 @@ from pandora_experimental.gatt_pb2 import (
     PERMISSION_READ,
     PERMISSION_WRITE,
     PERMISSION_READ_ENCRYPTED,
+    PERMISSION_READ_ENCRYPTED_MITM,
+    PERMISSION_WRITE_ENCRYPTED,
+    PERMISSION_WRITE_ENCRYPTED_MITM,
     ENABLE_NOTIFICATION_VALUE,
     ENABLE_INDICATION_VALUE,
 )
 from pandora_experimental.gatt_pb2 import GattServiceParams
 from pandora_experimental.gatt_pb2 import GattCharacteristicParams
+from pandora_experimental.gatt_pb2 import GattDescriptorParams
 from pandora_experimental.gatt_pb2 import ReadCharacteristicResponse
 from pandora_experimental.gatt_pb2 import ReadCharacteristicsFromUuidResponse
 
@@ -57,12 +61,18 @@ MMI_SERVER = {
     "GATT/SR/GAD/BV-01-C",
 }
 
+BASE_UUID = "0000XXXX-0000-1000-8000-00805F9B34FB"
+
 # These UUIDs are used as reference for GATT server tests
-BASE_READ_WRITE_SERVICE_UUID = "0000fffa-0000-1000-8000-00805f9b34fb"
-BASE_READ_CHARACTERISTIC_UUID = "0000fffb-0000-1000-8000-00805f9b34fb"
-BASE_WRITE_CHARACTERISTIC_UUID = "0000fffc-0000-1000-8000-00805f9b34fb"
-CUSTOM_SERVICE_UUID = "0000fffd-0000-1000-8000-00805f9b34fb"
-CUSTOM_CHARACTERISTIC_UUID = "0000fffe-0000-1000-8000-00805f9b34fb"
+BASE_READ_WRITE_SERVICE_UUID = "0000FFFE-0000-1000-8000-00805F9B34FB"
+BASE_READ_CHARACTERISTIC_UUID = "0000FFD-0000-1000-8000-00805F9B34FB"
+BASE_WRITE_CHARACTERISTIC_UUID = "0000FFFA-0000-1000-8000-00805F9B34FB"
+BASE_READ_WRITE_ENCRYPTED_CHARACTERISTIC_UUID = "0000FFF9-0000-1000-8000-00805F9B34FB"
+BASE_READ_WRITE_ENCRYPTED_MITM_CHARACTERISTIC_UUID = "0000FFF8-0000-1000-8000-00805F9B34FB"
+BASE_READ_DESCRIPTOR_UUID = "0000FFF7-0000-1000-8000-00805F9B34FB"
+BASE_WRITE_DESCRIPTOR_UUID = "0000FFF6-0000-1000-8000-00805F9B34FB"
+CUSTOM_SERVICE_UUID = "0000FFF5-0000-1000-8000-00805F9B34FB"
+CUSTOM_CHARACTERISTIC_UUID = "0000FFF4-0000-1000-8000-00805F9B34FB"
 
 
 class GATTProxy(ProfileProxy):
@@ -987,11 +997,28 @@ class GATTProxy(ProfileProxy):
                     uuid=BASE_READ_CHARACTERISTIC_UUID,
                     properties=PROPERTY_READ,
                     permissions=PERMISSION_READ,
+                    descriptors=[
+                        GattDescriptorParams(
+                            uuid=BASE_READ_DESCRIPTOR_UUID,
+                            properties=PROPERTY_READ,
+                            permissions=PERMISSION_READ,
+                        ),
+                    ],
                 ),
                 GattCharacteristicParams(
                     uuid=BASE_WRITE_CHARACTERISTIC_UUID,
                     properties=PROPERTY_WRITE,
                     permissions=PERMISSION_WRITE,
+                ),
+                GattCharacteristicParams(
+                    uuid=BASE_READ_WRITE_ENCRYPTED_CHARACTERISTIC_UUID,
+                    properties=PROPERTY_READ | PROPERTY_WRITE,
+                    permissions=PERMISSION_READ_ENCRYPTED | PERMISSION_WRITE_ENCRYPTED,
+                ),
+                GattCharacteristicParams(
+                    uuid=BASE_READ_WRITE_ENCRYPTED_MITM_CHARACTERISTIC_UUID,
+                    properties=PROPERTY_READ | PROPERTY_WRITE,
+                    permissions=PERMISSION_READ_ENCRYPTED_MITM | PERMISSION_WRITE_ENCRYPTED_MITM,
                 ),
             ],
         ))
@@ -1277,9 +1304,6 @@ class GATTProxy(ProfileProxy):
         return "OK"
 
 
-common_uuid = "0000XXXX-0000-1000-8000-00805f9b34fb"
-
-
 def stringHandleToInt(handle: str):
     return int(handle, 16)
 
@@ -1300,23 +1324,23 @@ def formatUuid(uuid: str):
     """
     uuid_len = len(uuid)
     if uuid_len == 4:
-        return common_uuid.replace(common_uuid[4:8], uuid.lower())
+        return BASE_UUID.replace(BASE_UUID[4:8], uuid.upper())
     elif uuid_len == 32 or uuid_len == 39:
-        uuidCharList = list(uuid.replace('-', '').lower())
+        uuidCharList = list(uuid.replace('-', '').upper())
         uuidCharList.insert(20, '-')
         uuidCharList.insert(16, '-')
         uuidCharList.insert(12, '-')
         uuidCharList.insert(8, '-')
         return ''.join(uuidCharList)
     else:
-        return uuid
+        return uuid.upper()
 
 
 # PTS asks wrong uuid for services discovered by SDP in some tests
 def formatSdpUuid(uuid: str):
     if uuid[3] == '1':
         uuid = uuid[:3] + 'f'
-    return common_uuid.replace(common_uuid[4:8], uuid.lower())
+    return BASE_UUID.replace(BASE_UUID[4:8], uuid.upper())
 
 
 def compareIncludedServices(service, service_handle, included_handle, included_uuid):
