@@ -103,6 +103,75 @@ public final class Request {
         public static final int FIRST_GROUP = 0x040000;
         public static final int LAST_GROUP = 0x080000;
         public static final int GOTO_GROUP = 0x100000;
+
+        static String toString(int opcodes) {
+            StringBuilder sb = new StringBuilder();
+            boolean is_complex = false;
+
+            sb.append("0x" + Integer.toHexString(opcodes) + " (");
+            for (int i = 1; i <= opcodes; i <<= 1) {
+                int opcode = opcodes & i;
+                if (opcode != 0) {
+                    if (is_complex) {
+                        sb.append(" | ");
+                    } else {
+                        is_complex = true;
+                    }
+                    sb.append(singleOpcodeToString(opcode));
+                }
+            }
+            sb.append(")");
+            return sb.toString();
+        }
+
+        private static String singleOpcodeToString(int opcode) {
+            switch (opcode) {
+                case 0x01:
+                    return "PLAY";
+                case 0x02:
+                    return "PAUSE";
+                case 0x04:
+                    return "FAST_REWIND";
+                case 0x08:
+                    return "FAST_FORWARD";
+                case 0x10:
+                    return "STOP";
+                case 0x20:
+                    return "MOVE_RELATIVE";
+                case 0x40:
+                    return "PREVIOUS_SEGMENT";
+                case 0x80:
+                    return "NEXT_SEGMENT";
+                case 0x0100:
+                    return "FIRST_SEGMENT";
+                case 0x0200:
+                    return "LAST_SEGMENT";
+                case 0x0400:
+                    return "GOTO_SEGMENT";
+                case 0x0800:
+                    return "PREVIOUS_TRACK";
+                case 0x1000:
+                    return "NEXT_TRACK";
+                case 0x2000:
+                    return "FIRST_TRACK";
+                case 0x4000:
+                    return "LAST_TRACK";
+                case 0x8000:
+                    return "GOTO_TRACK";
+                case 0x010000:
+                    return "PREVIOUS_GROUP";
+                case 0x020000:
+                    return "NEXT_GROUP";
+                case 0x040000:
+                    return "FIRST_GROUP";
+                case 0x080000:
+                    return "LAST_GROUP";
+                case 0x100000:
+                    return "GOTO_GROUP";
+                default:
+                    return "0x" + Integer.toHexString(opcode);
+            }
+        }
     }
 
     /**
