@@ -23,15 +23,9 @@ import static org.mockito.AdditionalMatchers.*;
 import android.bluetooth.*;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.IBluetoothManager;
-import android.bluetooth.IBluetoothLeCallControl;
-import android.bluetooth.IBluetoothLeCallControlCallback;
-import android.content.Context;
 import android.os.Looper;
 import android.util.Pair;
-import android.util.Log;
 
-import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -44,26 +38,19 @@ import com.google.common.primitives.Bytes;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -850,7 +837,7 @@ public class TbsGattTest {
         mTbsGatt.mGattServerCallback.onCharacteristicReadRequest(
                 mFirstDevice, 1, 0, characteristic);
 
-        verify(mMockTbsService).onDeviceUnauthorized(eq(mFirstDevice));
+        verify(mMockTbsService, times(0)).onDeviceUnauthorized(eq(mFirstDevice));
     }
 
     @Test
@@ -928,7 +915,7 @@ public class TbsGattTest {
 
         mTbsGatt.mGattServerCallback.onDescriptorReadRequest(mFirstDevice, 1, 0, descriptor);
 
-        verify(mMockTbsService).onDeviceUnauthorized(eq(mFirstDevice));
+        verify(mMockTbsService, times(0)).onDeviceUnauthorized(eq(mFirstDevice));
     }
 
     @Test
@@ -972,6 +959,6 @@ public class TbsGattTest {
         mTbsGatt.mGattServerCallback.onDescriptorWriteRequest(
                 mFirstDevice, 1, descriptor, false, true, 0, value);
 
-        verify(mMockTbsService).onDeviceUnauthorized(eq(mFirstDevice));
+        verify(mMockTbsService, times(0)).onDeviceUnauthorized(eq(mFirstDevice));
     }
 }
