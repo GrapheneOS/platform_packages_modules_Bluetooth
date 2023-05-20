@@ -1215,6 +1215,51 @@ void smp_enc_cmpl(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 }
 
 /*******************************************************************************
+ * Function     smp_sirk_verify
+ * Description   verify if device belongs to csis group.
+ ******************************************************************************/
+void smp_sirk_verify(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
+  tBTM_STATUS callback_rc;
+  LOG_DEBUG("");
+
+  if (p_data->status != SMP_SUCCESS) {
+    LOG_DEBUG(
+        "Cancel device verification due to invalid status (%d) while "
+        "bonding.",
+        p_data->status);
+
+    tSMP_INT_DATA smp_int_data;
+    smp_int_data.status = SMP_SIRK_DEVICE_INVALID;
+
+    BTM_LogHistory(
+        kBtmLogTag, p_cb->pairing_bda, "SIRK verification",
+        base::StringPrintf("Verification failed, smp_status:%s",
+                           smp_status_text(smp_int_data.status).c_str()));
+
+    smp_sm_event(p_cb, SMP_SIRK_DEVICE_VALID_EVT, &smp_int_data);
+
+    return;
+  }
+
+  if (p_cb->p_callback) {
+    p_cb->cb_evt = SMP_SIRK_VERIFICATION_REQ_EVT;
+    callback_rc = (*p_cb->p_callback)(p_cb->cb_evt, p_cb->pairing_bda, nullptr);
+
+    /* There is no member validator callback - device is by default valid */
+    if (callback_rc == BTM_SUCCESS_NO_SECURITY) {
+      BTM_LogHistory(kBtmLogTag, p_cb->pairing_bda, "SIRK verification",
+                     base::StringPrintf("Device validated due to no security"));
+
+      tSMP_INT_DATA smp_int_data;
+      smp_int_data.status = SMP_SUCCESS;
+      smp_sm_event(p_cb, SMP_SIRK_DEVICE_VALID_EVT, &smp_int_data);
+    }
+  } else {
+    LOG_ERROR("There are no registrated callbacks for SMP");
+  }
+}
+
+/*******************************************************************************
  * Function     smp_check_auth_req
  * Description  check authentication request
  ******************************************************************************/

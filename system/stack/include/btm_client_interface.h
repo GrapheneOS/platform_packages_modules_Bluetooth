@@ -160,6 +160,8 @@ struct btm_client_interface_t {
     bool (*BTM_SecIsSecurityPending)(const RawAddress& bd_addr);
     bool (*BTM_IsLinkKeyKnown)(const RawAddress& bd_addr,
                                tBT_TRANSPORT transport);
+    void (*BTM_BleSirkConfirmDeviceReply)(const RawAddress& bd_addr,
+                                          uint8_t res);
   } security;
 
   struct {

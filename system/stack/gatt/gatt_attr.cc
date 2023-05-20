@@ -55,10 +55,13 @@ using bluetooth::Uuid;
 
 using gatt_sr_supported_feat_cb =
     base::OnceCallback<void(const RawAddress&, uint8_t)>;
+using gatt_sirk_cb = base::OnceCallback<void(
+    tGATT_STATUS status, const RawAddress&, uint8_t sirk_type, Octet16& sirk)>;
 
 typedef struct {
   uint16_t op_uuid;
   gatt_sr_supported_feat_cb cb;
+  gatt_sirk_cb sirk_cb;
 } gatt_op_cb_data;
 
 static std::map<uint16_t, std::deque<gatt_op_cb_data>> OngoingOps;
@@ -85,6 +88,11 @@ static bool gatt_sr_is_robust_caching_enabled();
 
 static bool read_sr_supported_feat_req(
     uint16_t conn_id, base::OnceCallback<void(const RawAddress&, uint8_t)> cb);
+static bool read_sr_sirk_req(
+    uint16_t conn_id,
+    base::OnceCallback<void(tGATT_STATUS status, const RawAddress&,
+                            uint8_t sirk_type, Octet16& sirk)>
+        cb);
 
 static tGATT_STATUS gatt_sr_read_db_hash(uint16_t conn_id,
                                          tGATT_VALUE* p_value);
@@ -643,6 +651,24 @@ static void gatt_cl_op_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
 
       break;
     }
+    case GATT_UUID_CSIS_SIRK: {
+      uint8_t tcb_idx = GATT_GET_TCB_IDX(conn_id);
+      tGATT_TCB& tcb = gatt_cb.tcb[tcb_idx];
+
+      auto operation_callback_data = std::move(iter->second.front());
+      iter->second.pop_front();
+      tcb.gatt_status = status;
+
+      if (status == GATT_SUCCESS) {
+        STREAM_TO_UINT8(tcb.sirk_type, pp);
+        STREAM_TO_ARRAY(tcb.sirk.data(), pp, 16);
+      }
+
+      std::move(operation_callback_data.sirk_cb)
+          .Run(tcb.gatt_status, tcb.peer_bda, tcb.sirk_type, tcb.sirk);
+
+      break;
+    }
     case GATT_UUID_CLIENT_SUP_FEAT:
       /*We don't need callback data anymore */
       iter->second.pop_front();
@@ -785,6 +811,34 @@ static bool read_sr_supported_feat_req(
   return true;
 }
 
+static bool read_sr_sirk_req(
+    uint16_t conn_id,
+    base::OnceCallback<void(tGATT_STATUS status, const RawAddress&,
+                            uint8_t sirk_type, Octet16& sirk)>
+        cb) {
+  tGATT_READ_PARAM param = {};
+
+  param.service.s_handle = 1;
+  param.service.e_handle = 0xFFFF;
+  param.service.auth_req = 0;
+
+  param.service.uuid = bluetooth::Uuid::From16Bit(GATT_UUID_CSIS_SIRK);
+
+  if (GATTC_Read(conn_id, GATT_READ_BY_TYPE, &param) != GATT_SUCCESS) {
+    LOG_ERROR("Read GATT Support features GATT_Read Failed, conn_id: %d",
+              static_cast<int>(conn_id));
+    return false;
+  }
+
+  gatt_op_cb_data cb_data;
+
+  cb_data.sirk_cb = std::move(cb);
+  cb_data.op_uuid = GATT_UUID_CSIS_SIRK;
+  OngoingOps[conn_id].emplace_back(std::move(cb_data));
+
+  return true;
+}
+
 /*******************************************************************************
  *
  * Function         gatt_cl_read_sr_supp_feat_req
@@ -825,6 +879,50 @@ bool gatt_cl_read_sr_supp_feat_req(
   }
 
   return read_sr_supported_feat_req(conn_id, std::move(cb));
+}
+
+/*******************************************************************************
+ *
+ * Function         gatt_cl_read_sirk_req
+ *
+ * Description      Read remote SIRK if it's a set member device.
+ *
+ * Returns          bool
+ *
+ ******************************************************************************/
+bool gatt_cl_read_sirk_req(
+    const RawAddress& peer_bda,
+    base::OnceCallback<void(tGATT_STATUS status, const RawAddress&,
+                            uint8_t sirk_type, Octet16& sirk)>
+        cb) {
+  tGATT_PROFILE_CLCB* p_clcb;
+  uint16_t conn_id;
+
+  if (!cb) return false;
+
+  LOG_DEBUG("BDA: %s, read SIRK", ADDRESS_TO_LOGGABLE_CSTR(peer_bda));
+
+  GATT_GetConnIdIfConnected(gatt_cb.gatt_if, peer_bda, &conn_id,
+                            BT_TRANSPORT_LE);
+  if (conn_id == GATT_INVALID_CONN_ID) return false;
+
+  p_clcb = gatt_profile_find_clcb_by_conn_id(conn_id);
+  if (!p_clcb) {
+    p_clcb = gatt_profile_clcb_alloc(conn_id, peer_bda, BT_TRANSPORT_LE);
+  }
+
+  if (!p_clcb) {
+    LOG_VERBOSE("p_clcb is NULL, conn_id: %04x", conn_id);
+    return false;
+  }
+
+  auto it = OngoingOps.find(conn_id);
+
+  if (it == OngoingOps.end()) {
+    OngoingOps[conn_id] = std::deque<gatt_op_cb_data>();
+  }
+
+  return read_sr_sirk_req(conn_id, std::move(cb));
 }
 
 /*******************************************************************************
