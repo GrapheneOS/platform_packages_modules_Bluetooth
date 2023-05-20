@@ -21,6 +21,7 @@
 #include <cstddef>
 
 #include "stack/include/sdp_api.h"
+#include "stack/sdp/internal/sdp_api.h"
 #include "stack/sdp/sdpint.h"
 #include "test/mock/mock_osi_allocator.h"
 #include "test/mock/mock_stack_l2cap_api.h"

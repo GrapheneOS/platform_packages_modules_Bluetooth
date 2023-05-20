@@ -205,6 +205,8 @@ cc_test {
         ":TestMockBtif",
         ":TestMockMainShim",
         ":TestMockStackBtm",
+        ":TestMockStackL2cap",
+        ":TestMockStackMetrics",
         "test/bta_dip_test.cc",
         "test/bta_dm_cust_uuid_test.cc",
         "test/bta_hf_client_add_record_test.cc",
