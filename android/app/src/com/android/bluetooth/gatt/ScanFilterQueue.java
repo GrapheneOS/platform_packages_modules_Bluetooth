@@ -50,6 +50,10 @@ import java.util.UUID;
     // Values defined in bluedroid.
     private static final byte DEVICE_TYPE_ALL = 2;
 
+    // Meta data type for Transport Block Filter
+    public static final int TYPE_INVALID = 0x00;
+    public static final int TYPE_WIFI_NAN_HASH = 0x01; // WIFI NAN HASH type
+
     class Entry {
         public byte type;
         public String address;
@@ -66,6 +70,8 @@ import java.util.UUID;
         public int org_id;
         public int tds_flags;
         public int tds_flags_mask;
+        public int meta_data_type;
+        public byte[] meta_data;
     }
 
     private Set<Entry> mEntries = new HashSet<Entry>();
@@ -154,7 +160,7 @@ import java.util.UUID;
     }
 
     void addTransportDiscoveryData(int orgId, int tdsFlags, int tdsFlagsMask,
-            byte[] transportData, byte[] transportDataMask) {
+            byte[] transportData, byte[] transportDataMask, int metaDataType, byte[] metaData) {
         Entry entry = new Entry();
         entry.type = TYPE_TRANSPORT_DISCOVERY_DATA;
         entry.org_id = orgId;
@@ -162,6 +168,8 @@ import java.util.UUID;
         entry.tds_flags_mask = tdsFlagsMask;
         entry.data = transportData;
         entry.data_mask = transportDataMask;
+        entry.meta_data_type = metaDataType;
+        entry.meta_data = metaData;
         mEntries.add(entry);
     }
 
@@ -265,12 +273,12 @@ import java.util.UUID;
                     == OrganizationId.WIFI_ALLIANCE_NEIGHBOR_AWARENESS_NETWORKING) {
                 addTransportDiscoveryData(transportBlockFilter.getOrgId(),
                         transportBlockFilter.getTdsFlags(), transportBlockFilter.getTdsFlagsMask(),
-                        transportBlockFilter.getWifiNanHash(), null);
+                        null, null, TYPE_WIFI_NAN_HASH, transportBlockFilter.getWifiNanHash());
             } else {
                 addTransportDiscoveryData(transportBlockFilter.getOrgId(),
                         transportBlockFilter.getTdsFlags(), transportBlockFilter.getTdsFlagsMask(),
                         transportBlockFilter.getTransportData(),
-                        transportBlockFilter.getTransportDataMask());
+                        transportBlockFilter.getTransportDataMask(), TYPE_INVALID, null);
             }
 
         }

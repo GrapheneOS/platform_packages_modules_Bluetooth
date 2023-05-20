@@ -234,7 +234,7 @@ impl StateMachineProxy {
             .unwrap()
             .iter()
             // Filter to adapters that are present or enabled.
-            .filter(|&(_, a)| a.present)
+            .filter(|&(_, a)| a.present || state_to_enabled(a.state))
             .map(|(_, a)| a.clone())
             .collect::<Vec<AdapterState>>()
     }

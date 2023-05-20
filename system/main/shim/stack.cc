@@ -75,39 +75,7 @@ Stack* Stack::GetInstance() {
   return &instance;
 }
 
-void Stack::StartIdleMode() {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-  ASSERT_LOG(!is_running_, "%s Gd stack already running", __func__);
-  LOG_INFO("%s Starting Gd stack", __func__);
-  ModuleList modules;
-  modules.add<metrics::CounterMetrics>();
-  modules.add<storage::StorageModule>();
-  Start(&modules);
-  // Make sure the leaf modules are started
-  ASSERT(stack_manager_.GetInstance<storage::StorageModule>() != nullptr);
-  is_running_ = true;
-}
-
 void Stack::StartEverything() {
-  if (common::init_flags::gd_rust_is_enabled()) {
-    if (rust_stack_ == nullptr) {
-      rust_stack_ = new ::rust::Box<rust::Stack>(rust::stack_create());
-    }
-    rust::stack_start(**rust_stack_);
-
-    rust_hci_ = new ::rust::Box<rust::Hci>(rust::get_hci(**rust_stack_));
-    rust_controller_ =
-        new ::rust::Box<rust::Controller>(rust::get_controller(**rust_stack_));
-    bluetooth::shim::hci_on_reset_complete();
-
-    // Create the acl shim layer
-    acl_ = new legacy::Acl(
-        stack_handler_, legacy::GetAclInterface(),
-        controller_get_interface()->get_ble_acceptlist_size(),
-        controller_get_interface()->get_ble_resolving_list_max_size());
-    return;
-  }
-
   std::lock_guard<std::recursive_mutex> lock(mutex_);
   ASSERT_LOG(!is_running_, "%s Gd stack already running", __func__);
   LOG_INFO("%s Starting Gd stack", __func__);
@@ -131,9 +99,6 @@ void Stack::StartEverything() {
     modules.add<l2cap::classic::L2capClassicModule>();
     modules.add<l2cap::le::L2capLeModule>();
     modules.add<hci::LeAdvertisingManager>();
-  }
-  if (common::init_flags::gd_security_is_enabled()) {
-    modules.add<security::SecurityModule>();
   }
   modules.add<hci::LeAdvertisingManager>();
   modules.add<hci::MsftExtensionManager>();
@@ -204,13 +169,6 @@ void Stack::Start(ModuleList* modules) {
 }
 
 void Stack::Stop() {
-  if (common::init_flags::gd_rust_is_enabled()) {
-    if (rust_stack_ != nullptr) {
-      rust::stack_stop(**rust_stack_);
-    }
-    return;
-  }
-
   std::lock_guard<std::recursive_mutex> lock(mutex_);
   if (!common::init_flags::gd_core_is_enabled()) {
     bluetooth::shim::hci_on_shutting_down();

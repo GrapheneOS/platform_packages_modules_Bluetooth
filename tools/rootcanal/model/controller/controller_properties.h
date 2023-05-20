@@ -22,12 +22,34 @@
 #include <string>
 #include <vector>
 
+#include "config.pb.h"
 #include "hci/address.h"
 #include "hci/hci_packets.h"
 
 namespace rootcanal {
 using bluetooth::hci::HciVersion;
 using bluetooth::hci::LmpVersion;
+
+// Local controller quirks.
+struct ControllerQuirks {
+  // The specification states that the Random Address is invalid until
+  // explicitly set by the command LE Set Random Address. Certain HCI commands
+  // check for this condition.
+  //
+  // This quirk configures a default value for the LE random address in order
+  // to bypass this validation. The default random address will
+  // be ba:db:ad:ba:db:ad.
+  bool has_default_random_address{false};
+
+  // This quirks configures the controller to send an Hardware Error event
+  // in case a command is received before the HCI Reset command.
+  //
+  // Receiving a different command is indicative of the emulator being
+  // started from a snapshot. In this case the controller state is lost
+  // but the Host stack is loaded post-initialization. This quirk
+  // ensures that the stack will reset itself after reloading.
+  bool hardware_error_before_reset{false};
+};
 
 // Local controller information.
 //
@@ -39,7 +61,10 @@ using bluetooth::hci::LmpVersion;
 // Controller. The Host device cannot modify any of these parameters.
 struct ControllerProperties {
  public:
-  explicit ControllerProperties(const std::string& file_name = "");
+  ControllerProperties();
+  ControllerProperties(rootcanal::configuration::Controller const&);
+  ControllerProperties(ControllerProperties const&) = default;
+  ControllerProperties(ControllerProperties&&) = default;
   ~ControllerProperties() = default;
 
   // Perform a bitwise and operation on the supported commands mask;
@@ -51,8 +76,12 @@ struct ControllerProperties {
   bool CheckSupportedFeatures() const;
 
   // Check if the supported command mask is valid according to the
-  // specification.
+  // specification. If fixup is true, then the mask is updated instead of
+  // returning an error.
   bool CheckSupportedCommands() const;
+
+  // Enabled quirks.
+  ControllerQuirks quirks{};
 
   // Local Version Information (Vol 4, Part E § 7.4.1).
   HciVersion hci_version{HciVersion::V_5_3};
@@ -66,14 +95,17 @@ struct ControllerProperties {
   bool le_supported{true};
 
   // Local Supported Commands (Vol 4, Part E § 7.4.2).
-  std::array<uint8_t, 64> supported_commands;
+  std::array<uint8_t, 64> supported_commands{};
+
+  // Vendor Supported Commands.
+  bool supports_le_get_vendor_capabilities_command{true};
 
   // Local Supported Features (Vol 4, Part E § 7.4.3) and
   // Local Extended Features (Vol 4, Part E § 7.4.3).
-  std::array<uint64_t, 3> lmp_features;
+  std::array<uint64_t, 3> lmp_features{};
 
   // LE Local Supported Features (Vol 4, Part E § 7.8.3).
-  uint64_t le_features;
+  uint64_t le_features{0};
 
   // Buffer Size (Vol 4, Part E § 7.4.5).
   uint16_t acl_data_packet_length{1024};
@@ -114,7 +146,7 @@ struct ControllerProperties {
   // LE Number of Supported Advertising Sets (Vol 4, Part E § 7.8.58)
   // Note: the controller can change the number of advertising sets
   // at any time. This behaviour is not emulated here.
-  uint8_t le_num_supported_advertising_sets{8};
+  uint8_t le_num_supported_advertising_sets{16};
 
   // LE Periodic Advertiser List Size (Vol 4, Part E § 7.8.73).
   uint8_t le_periodic_advertiser_list_size{8};

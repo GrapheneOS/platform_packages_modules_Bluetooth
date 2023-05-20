@@ -22,7 +22,7 @@
 
 #include <base/logging.h>
 #include <base/run_loop.h>
-#ifndef OS_GENERIC
+#ifdef __ANDROID__
 #include <cutils/trace.h>
 #endif
 #include <inttypes.h>
@@ -364,7 +364,7 @@ bool btif_a2dp_source_startup(void) {
 static void btif_a2dp_source_startup_delayed() {
   LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
   if (!btif_a2dp_source_thread.EnableRealTimeScheduling()) {
-#if defined(OS_ANDROID)
+#if defined(__ANDROID__)
     LOG(FATAL) << __func__ << ": unable to enable real time scheduling";
 #endif
   }
@@ -917,7 +917,7 @@ static void btif_a2dp_source_audio_handle_timer(void) {
   CHECK(btif_a2dp_source_cb.encoder_interface != nullptr);
   size_t transmit_queue_length =
       fixed_queue_length(btif_a2dp_source_cb.tx_audio_queue);
-#ifndef OS_GENERIC
+#ifdef __ANDROID__
   ATRACE_INT("btif TX queue", transmit_queue_length);
 #endif
   if (btif_a2dp_source_cb.encoder_interface->set_transmit_queue_length !=

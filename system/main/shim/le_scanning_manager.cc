@@ -126,12 +126,16 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
     uint8_t advertising_sid, int8_t tx_power, int8_t rssi,
     uint16_t periodic_adv_int, std::vector<uint8_t> advertising_data);
 
-void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
-                                          BD_NAME bd_name,
-                                          tBT_DEVICE_TYPE dev_type);
+extern void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
+                                                 BD_NAME bd_name,
+                                                 DEV_CLASS dev_class,
+                                                 tBT_DEVICE_TYPE dev_type);
 
 void btm_ble_process_adv_addr(RawAddress& raw_address,
                               tBLE_ADDR_TYPE* address_type);
+
+extern bool btm_ble_get_appearance_as_cod(std::vector<uint8_t> const& data,
+                                          DEV_CLASS dev_class);
 
 using bluetooth::shim::BleScannerInterfaceImpl;
 
@@ -717,6 +721,11 @@ bool BleScannerInterfaceImpl::parse_filter_command(
   advertising_packet_content_filter_command.tds_flags = apcf_command.tds_flags;
   advertising_packet_content_filter_command.tds_flags_mask =
       apcf_command.tds_flags_mask;
+  advertising_packet_content_filter_command.meta_data_type =
+      static_cast<bluetooth::hci::ApcfMetaDataType>(
+          apcf_command.meta_data_type);
+  advertising_packet_content_filter_command.meta_data.assign(
+      apcf_command.meta_data.begin(), apcf_command.meta_data.end());
   advertising_packet_content_filter_command.data.assign(
       apcf_command.data.begin(), apcf_command.data.end());
   advertising_packet_content_filter_command.data_mask.assign(
@@ -758,6 +767,8 @@ void BleScannerInterfaceImpl::handle_remote_properties(
         advertising_data, HCI_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
   }
 
+  bt_bdname_t bdname = {0};
+
   // update device name
   if (p_eir_remote_name) {
     if (!address_cache_.find(bd_addr)) {
@@ -772,15 +783,21 @@ void BleScannerInterfaceImpl::handle_remote_properties(
           return;
         }
 
-        bt_bdname_t bdname;
         memcpy(bdname.name, p_eir_remote_name, remote_name_len);
         if (remote_name_len < BD_NAME_LEN + 1)
           bdname.name[remote_name_len] = '\0';
-
-        btif_dm_update_ble_remote_properties(bd_addr, bdname.name, device_type);
+        btif_dm_update_ble_remote_properties(bd_addr, bdname.name, NULL,
+                                             device_type);
       }
     }
   }
+
+  DEV_CLASS dev_class;
+  if (btm_ble_get_appearance_as_cod(advertising_data, dev_class)) {
+    btif_dm_update_ble_remote_properties(bd_addr, bdname.name, dev_class,
+                                         device_type);
+  }
+
   auto* storage_module = bluetooth::shim::GetStorage();
   bluetooth::hci::Address address = ToGdAddress(bd_addr);
 

@@ -315,8 +315,9 @@ public class LeAudioBinderTest {
     public void startBroadcast() {
         BluetoothLeBroadcastSettings broadcastSettings = buildBroadcastSettingsFromMetadata();
         AttributionSource source = new AttributionSource.Builder(0).build();
+        final SynchronousResultReceiver<Void> recv = SynchronousResultReceiver.get();
 
-        mBinder.startBroadcast(broadcastSettings, source);
+        mBinder.startBroadcast(broadcastSettings, source, recv);
         verify(mMockService).createBroadcast(broadcastSettings);
     }
 
@@ -324,8 +325,9 @@ public class LeAudioBinderTest {
     public void stopBroadcast() {
         int id = 1;
         AttributionSource source = new AttributionSource.Builder(0).build();
+        final SynchronousResultReceiver<Void> recv = SynchronousResultReceiver.get();
 
-        mBinder.stopBroadcast(id, source);
+        mBinder.stopBroadcast(id, source, recv);
         verify(mMockService).stopBroadcast(id);
     }
 
@@ -334,8 +336,9 @@ public class LeAudioBinderTest {
         int id = 1;
         BluetoothLeBroadcastSettings broadcastSettings = buildBroadcastSettingsFromMetadata();
         AttributionSource source = new AttributionSource.Builder(0).build();
+        final SynchronousResultReceiver<Void> recv = SynchronousResultReceiver.get();
 
-        mBinder.updateBroadcast(id, broadcastSettings, source);
+        mBinder.updateBroadcast(id, broadcastSettings, source, recv);
         verify(mMockService).updateBroadcast(id, broadcastSettings);
     }
 

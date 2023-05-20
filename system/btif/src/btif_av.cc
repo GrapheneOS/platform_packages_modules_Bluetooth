@@ -2910,8 +2910,6 @@ static void bta_av_sink_media_callback(const RawAddress& peer_address,
                                        tBTA_AV_EVT event,
                                        tBTA_AV_MEDIA* p_data) {
   BTIF_TRACE_EVENT("%s: event=%d", __func__, event);
-  BTIF_TRACE_EVENT("%s: address=%s", __func__,
-                   ADDRESS_TO_LOGGABLE_CSTR(p_data->avk_config.bd_addr));
 
   switch (event) {
     case BTA_AV_SINK_MEDIA_DATA_EVT: {
@@ -2928,6 +2926,9 @@ static void bta_av_sink_media_callback(const RawAddress& peer_address,
     }
     case BTA_AV_SINK_MEDIA_CFG_EVT: {
       btif_av_sink_config_req_t config_req;
+
+      BTIF_TRACE_EVENT("%s: address=%s", __func__,
+                       ADDRESS_TO_LOGGABLE_CSTR(p_data->avk_config.bd_addr));
 
       // Update the codec info of the A2DP Sink decoder
       btif_a2dp_sink_update_decoder((uint8_t*)(p_data->avk_config.codec_info));

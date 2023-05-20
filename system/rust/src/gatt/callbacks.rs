@@ -13,7 +13,7 @@ use crate::packets::{AttAttributeDataChild, AttAttributeDataView, AttErrorCode};
 
 use super::{
     ffi::AttributeBackingType,
-    ids::{AttHandle, ConnectionId, TransactionId},
+    ids::{AttHandle, ConnectionId, TransactionId, TransportIndex},
     server::IndicationError,
 };
 
@@ -98,7 +98,7 @@ pub trait RawGattDatastore {
     /// Read a characteristic from the specified connection at the given handle.
     async fn read(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         offset: u32,
         attr_type: AttributeBackingType,
@@ -107,7 +107,7 @@ pub trait RawGattDatastore {
     /// Write data to a given characteristic on the specified connection.
     async fn write(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
         write_type: GattWriteRequestType,
@@ -118,7 +118,7 @@ pub trait RawGattDatastore {
     /// for a response from the upper layer.
     fn write_no_response(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
         data: AttAttributeDataView<'_>,
@@ -127,7 +127,7 @@ pub trait RawGattDatastore {
     /// Execute or cancel any prepared writes
     async fn execute(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         decision: TransactionDecision,
     ) -> Result<(), AttErrorCode>;
 }
@@ -139,7 +139,7 @@ pub trait GattDatastore {
     /// Read a characteristic from the specified connection at the given handle.
     async fn read(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
     ) -> Result<AttAttributeDataChild, AttErrorCode>;
@@ -147,7 +147,7 @@ pub trait GattDatastore {
     /// Write data to a given characteristic on the specified connection.
     async fn write(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
         data: AttAttributeDataView<'_>,
@@ -159,7 +159,7 @@ impl<T: GattDatastore + ?Sized> RawGattDatastore for T {
     /// Read a characteristic from the specified connection at the given handle.
     async fn read(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         offset: u32,
         attr_type: AttributeBackingType,
@@ -168,13 +168,13 @@ impl<T: GattDatastore + ?Sized> RawGattDatastore for T {
             warn!("got read blob request for non-long attribute {handle:?}");
             return Err(AttErrorCode::ATTRIBUTE_NOT_LONG);
         }
-        self.read(conn_id, handle, attr_type).await
+        self.read(tcb_idx, handle, attr_type).await
     }
 
     /// Write data to a given characteristic on the specified connection.
     async fn write(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         attr_type: AttributeBackingType,
         write_type: GattWriteRequestType,
@@ -182,26 +182,26 @@ impl<T: GattDatastore + ?Sized> RawGattDatastore for T {
     ) -> Result<(), AttErrorCode> {
         match write_type {
             GattWriteRequestType::Prepare { .. } => {
-                warn!("got prepare write attempt to characteristic {handle:?} not supporting write_without_response");
+                warn!("got prepare write attempt on {tcb_idx:?} to characteristic {handle:?} not supporting write_without_response");
                 Err(AttErrorCode::WRITE_REQUEST_REJECTED)
             }
-            GattWriteRequestType::Request => self.write(conn_id, handle, attr_type, data).await,
+            GattWriteRequestType::Request => self.write(tcb_idx, handle, attr_type, data).await,
         }
     }
 
     fn write_no_response(
         &self,
-        conn_id: ConnectionId,
+        tcb_idx: TransportIndex,
         handle: AttHandle,
         _: AttributeBackingType,
         _: AttAttributeDataView<'_>,
     ) {
         // silently drop, since there's no way to return an error
-        warn!("got write command on {conn_id:?} to characteristic {handle:?} not supporting write_without_response");
+        warn!("got write command on {tcb_idx:?} to characteristic {handle:?} not supporting write_without_response");
     }
 
     /// Execute or cancel any prepared writes
-    async fn execute(&self, _: ConnectionId, _: TransactionDecision) -> Result<(), AttErrorCode> {
+    async fn execute(&self, _: TransportIndex, _: TransactionDecision) -> Result<(), AttErrorCode> {
         // we never do prepared writes, so who cares
         return Ok(());
     }
@@ -222,7 +222,7 @@ mod test {
 
     use super::*;
 
-    const CONN_ID: ConnectionId = ConnectionId(1);
+    const TCB_IDX: TransportIndex = TransportIndex(1);
     const HANDLE: AttHandle = AttHandle(1);
     const DATA: [u8; 4] = [1, 2, 3, 4];
 
@@ -236,7 +236,7 @@ mod test {
             spawn_local(async move {
                 RawGattDatastore::read(
                     &datastore,
-                    CONN_ID,
+                    TCB_IDX,
                     HANDLE,
                     0,
                     AttributeBackingType::Characteristic,
@@ -248,7 +248,7 @@ mod test {
             // assert: got read event
             assert!(matches!(
                 resp,
-                MockDatastoreEvents::Read(CONN_ID, HANDLE, AttributeBackingType::Characteristic, _)
+                MockDatastoreEvents::Read(TCB_IDX, HANDLE, AttributeBackingType::Characteristic, _)
             ));
         });
     }
@@ -263,7 +263,7 @@ mod test {
             let pending = spawn_local(async move {
                 RawGattDatastore::read(
                     &datastore,
-                    CONN_ID,
+                    TCB_IDX,
                     HANDLE,
                     0,
                     AttributeBackingType::Characteristic,
@@ -289,7 +289,7 @@ mod test {
         // act: send read blob request
         let resp = block_on_locally(RawGattDatastore::read(
             &datastore,
-            CONN_ID,
+            TCB_IDX,
             HANDLE,
             1,
             AttributeBackingType::Characteristic,
@@ -315,7 +315,7 @@ mod test {
             spawn_local(async move {
                 RawGattDatastore::write(
                     &datastore,
-                    CONN_ID,
+                    TCB_IDX,
                     HANDLE,
                     AttributeBackingType::Characteristic,
                     GattWriteRequestType::Request,
@@ -329,7 +329,7 @@ mod test {
             assert!(matches!(
                 resp,
                 MockDatastoreEvents::Write(
-                    CONN_ID,
+                    TCB_IDX,
                     HANDLE,
                     AttributeBackingType::Characteristic,
                     _,
@@ -349,7 +349,7 @@ mod test {
             let pending = spawn_local(async move {
                 RawGattDatastore::write(
                     &datastore,
-                    CONN_ID,
+                    TCB_IDX,
                     HANDLE,
                     AttributeBackingType::Characteristic,
                     GattWriteRequestType::Request,
@@ -376,7 +376,7 @@ mod test {
         // act: send prepare write request
         let resp = block_on_locally(RawGattDatastore::write(
             &datastore,
-            CONN_ID,
+            TCB_IDX,
             HANDLE,
             AttributeBackingType::Characteristic,
             GattWriteRequestType::Prepare { offset: 1 },
@@ -397,7 +397,7 @@ mod test {
         // act: send write command
         RawGattDatastore::write_no_response(
             &datastore,
-            CONN_ID,
+            TCB_IDX,
             HANDLE,
             AttributeBackingType::Characteristic,
             make_data().view(),
@@ -415,7 +415,7 @@ mod test {
         // act: send execute request
         let resp = block_on_locally(RawGattDatastore::execute(
             &datastore,
-            CONN_ID,
+            TCB_IDX,
             TransactionDecision::Execute,
         ));
 

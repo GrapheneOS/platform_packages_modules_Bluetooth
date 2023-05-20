@@ -57,6 +57,11 @@ static bt_status_t btsock_connect(const RawAddress* bd_addr, btsock_type_t type,
                                   int flags, int app_uid);
 
 static void btsock_request_max_tx_data_length(const RawAddress& bd_addr);
+static bt_status_t btsock_control_req(uint8_t dlci, const RawAddress& bd_addr,
+                                      uint8_t modem_signal,
+                                      uint8_t break_signal,
+                                      uint8_t discard_buffers,
+                                      uint8_t break_signal_seq, bool fc);
 
 static void btsock_signaled(int fd, int type, int flags, uint32_t user_id);
 
@@ -81,9 +86,10 @@ static SockConnectionEvent connection_logger[SOCK_LOGGER_SIZE_MAX];
 
 const btsock_interface_t* btif_sock_get_interface(void) {
   static btsock_interface_t interface = {
-      sizeof(interface), btsock_listen, /* listen */
-      btsock_connect,                   /* connect */
-      btsock_request_max_tx_data_length /* request_max_tx_data_length */
+      sizeof(interface), btsock_listen,  /* listen */
+      btsock_connect,                    /* connect */
+      btsock_request_max_tx_data_length, /* request_max_tx_data_length */
+      btsock_control_req                 /* send_control_req */
   };
 
   return &interface;
@@ -230,6 +236,15 @@ void SockConnectionEvent::dump(const int fd) {
 
   dprintf(fd, "  %s\t%s\t%s   \t%s\n", eventtime,
           ADDRESS_TO_LOGGABLE_CSTR(addr), str_state, str_role);
+}
+
+static bt_status_t btsock_control_req(uint8_t dlci, const RawAddress& bd_addr,
+                                      uint8_t modem_signal,
+                                      uint8_t break_signal,
+                                      uint8_t discard_buffers,
+                                      uint8_t break_signal_seq, bool fc) {
+  return btsock_rfc_control_req(dlci, bd_addr, modem_signal, break_signal,
+                                discard_buffers, break_signal_seq, fc);
 }
 
 static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,

@@ -151,6 +151,10 @@ public class TbsService extends ProfileService {
         int authorization = isAuthorized ? BluetoothDevice.ACCESS_ALLOWED
                 : BluetoothDevice.ACCESS_REJECTED;
         mDeviceAuthorizations.put(device, authorization);
+
+        if (mTbsGeneric != null) {
+            mTbsGeneric.onDeviceAuthorizationSet(device);
+        }
     }
 
     /**
