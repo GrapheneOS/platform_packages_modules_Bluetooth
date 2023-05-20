@@ -138,4 +138,7 @@
 /* Database Hash characteristic */
 #define GATT_UUID_DATABASE_HASH 0x2B2A
 
+/* CSIS SIRK characteristic */
+#define GATT_UUID_CSIS_SIRK 0x2B84
+
 #endif
