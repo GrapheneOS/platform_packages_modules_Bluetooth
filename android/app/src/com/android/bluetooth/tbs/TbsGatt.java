@@ -478,6 +478,7 @@ public class TbsGatt {
 
         private void notifyCharacteristicChanged(BluetoothDevice device,
                 BluetoothGattCharacteristic characteristic) {
+            if (getDeviceAuthorization(device) != BluetoothDevice.ACCESS_ALLOWED) return;
             if (mBluetoothGattServer != null) {
                 mBluetoothGattServer.notifyCharacteristicChanged(device, characteristic, false);
             }
@@ -566,8 +567,17 @@ public class TbsGatt {
         }
 
         public boolean notifyWithValue(BluetoothDevice device, byte[] value) {
-            mNotifier.notifyWithValue(device, this, value);
-            return true;
+            if (isNotifiable()) {
+                mNotifier.notifyWithValue(device, this, value);
+                return true;
+            }
+            return false;
+        }
+
+        public void notify(BluetoothDevice device) {
+            if (isNotifiable()) {
+                mNotifier.notify(device, this);
+            }
         }
 
         public boolean clearValue(boolean notify) {
@@ -1010,9 +1020,134 @@ public class TbsGatt {
         }
     }
 
+    private void onUnauthorizedCharRead(BluetoothDevice device, GattOpContext op) {
+        UUID charUuid = op.mCharacteristic.getUuid();
+        boolean allowToReadRealValue = false;
+        byte[] buffer = null;
+
+        /* Allow only some informations to be disclosed at this stage. */
+        if (charUuid.equals(UUID_BEARER_PROVIDER_NAME)) {
+            ByteBuffer bb = ByteBuffer.allocate(0).order(ByteOrder.LITTLE_ENDIAN);
+            bb.put("".getBytes());
+            buffer = bb.array();
+
+        } else if (charUuid.equals(UUID_BEARER_UCI)) {
+            buffer = "E.164".getBytes();
+
+        } else if (charUuid.equals(UUID_BEARER_TECHNOLOGY)) {
+            allowToReadRealValue = true;
+
+        } else if (charUuid.equals(UUID_BEARER_URI_SCHEMES_SUPPORTED_LIST)) {
+            ByteBuffer bb = ByteBuffer.allocate(0).order(ByteOrder.LITTLE_ENDIAN);
+            bb.put("".getBytes());
+            buffer = bb.array();
+
+        } else if (charUuid.equals(UUID_BEARER_LIST_CURRENT_CALLS)) {
+            ByteBuffer bb = ByteBuffer.allocate(0).order(ByteOrder.LITTLE_ENDIAN);
+            bb.put("".getBytes());
+            buffer = bb.array();
+
+        } else if (charUuid.equals(UUID_CONTENT_CONTROL_ID)) {
+            allowToReadRealValue = true;
+
+        } else if (charUuid.equals(UUID_STATUS_FLAGS)) {
+            allowToReadRealValue = true;
+
+        } else if (charUuid.equals(UUID_CALL_STATE)) {
+            ByteBuffer bb = ByteBuffer.allocate(0).order(ByteOrder.LITTLE_ENDIAN);
+            bb.put("".getBytes());
+            buffer = bb.array();
+
+        } else if (charUuid.equals(UUID_CALL_CONTROL_POINT)) {
+            // No read is available on this characteristic
+
+        } else if (charUuid.equals(UUID_CALL_CONTROL_POINT_OPTIONAL_OPCODES)) {
+            ByteBuffer bb = ByteBuffer.allocate(1).order(ByteOrder.LITTLE_ENDIAN);
+            bb.put((byte) 0x00);
+            buffer = bb.array();
+
+        } else if (charUuid.equals(UUID_TERMINATION_REASON)) {
+            // No read is available on this characteristic
+
+        } else if (charUuid.equals(UUID_INCOMING_CALL)) {
+            ByteBuffer bb = ByteBuffer.allocate(0).order(ByteOrder.LITTLE_ENDIAN);
+            bb.put("".getBytes());
+            buffer = bb.array();
+
+        } else if (charUuid.equals(UUID_CALL_FRIENDLY_NAME)) {
+            ByteBuffer bb = ByteBuffer.allocate(1).order(ByteOrder.LITTLE_ENDIAN);
+            bb.put((byte) 0x00);
+            buffer = bb.array();
+        }
+
+        if (allowToReadRealValue) {
+            if (op.mCharacteristic.getValue() != null) {
+                buffer =
+                        Arrays.copyOfRange(
+                                op.mCharacteristic.getValue(),
+                                op.mOffset,
+                                op.mCharacteristic.getValue().length);
+            }
+        }
+
+        if (buffer != null) {
+            mBluetoothGattServer.sendResponse(
+                    device, op.mRequestId, BluetoothGatt.GATT_SUCCESS, op.mOffset, buffer);
+        } else {
+            mBluetoothGattServer.sendResponse(
+                    device,
+                    op.mRequestId,
+                    BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH,
+                    op.mOffset,
+                    buffer);
+        }
+    }
+
     private void onUnauthorizedGattOperation(BluetoothDevice device, GattOpContext op) {
         if (DBG) {
             Log.d(TAG, "onUnauthorizedGattOperation device: " + device);
+        }
+
+        int status = BluetoothGatt.GATT_SUCCESS;
+
+        switch (op.mOperation) {
+            /* Allow not yet authorized devices to subscribe for notifications */
+            case READ_DESCRIPTOR:
+                byte[] value = getCccBytes(device, op.mDescriptor.getCharacteristic().getUuid());
+                if (value.length < op.mOffset) {
+                    status = BluetoothGatt.GATT_INVALID_OFFSET;
+                } else {
+                    value = Arrays.copyOfRange(value, op.mOffset, value.length);
+                    status = BluetoothGatt.GATT_SUCCESS;
+                }
+
+                mBluetoothGattServer.sendResponse(device, op.mRequestId, status, op.mOffset, value);
+                return;
+            case WRITE_DESCRIPTOR:
+                if (op.mPreparedWrite) {
+                    status = BluetoothGatt.GATT_FAILURE;
+                } else if (op.mOffset > 0) {
+                    status = BluetoothGatt.GATT_INVALID_OFFSET;
+                } else if (op.mValue.length != 2) {
+                    status = BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
+                } else {
+                    status = BluetoothGatt.GATT_SUCCESS;
+                    setCcc(device, op.mDescriptor.getCharacteristic().getUuid(), op.mValue);
+                }
+
+                if (op.mResponseNeeded) {
+                    mBluetoothGattServer.sendResponse(
+                            device, op.mRequestId, status, op.mOffset, op.mValue);
+                }
+                return;
+            case READ_CHARACTERISTIC:
+                onUnauthorizedCharRead(device, op);
+                return;
+            case WRITE_CHARACTERISTIC:
+                // store as pending operation
+                break;
+            default:
+                break;
         }
 
         synchronized (mPendingGattOperationsLock) {
@@ -1160,6 +1295,38 @@ public class TbsGatt {
         }
     }
 
+    private GattCharacteristic getLocalCharacteristicWrapper(UUID uuid) {
+        if (uuid.equals(UUID_BEARER_PROVIDER_NAME)) {
+            return mBearerProviderNameCharacteristic;
+        } else if (uuid.equals(UUID_BEARER_UCI)) {
+            return mBearerUciCharacteristic;
+        } else if (uuid.equals(UUID_BEARER_TECHNOLOGY)) {
+            return mBearerTechnologyCharacteristic;
+        } else if (uuid.equals(UUID_BEARER_URI_SCHEMES_SUPPORTED_LIST)) {
+            return mBearerUriSchemesSupportedListCharacteristic;
+        } else if (uuid.equals(UUID_BEARER_LIST_CURRENT_CALLS)) {
+            return mBearerListCurrentCallsCharacteristic;
+        } else if (uuid.equals(UUID_CONTENT_CONTROL_ID)) {
+            return mContentControlIdCharacteristic;
+        } else if (uuid.equals(UUID_STATUS_FLAGS)) {
+            return mStatusFlagsCharacteristic;
+        } else if (uuid.equals(UUID_CALL_STATE)) {
+            return mCallStateCharacteristic;
+        } else if (uuid.equals(UUID_CALL_CONTROL_POINT)) {
+            return mCallControlPointCharacteristic;
+        } else if (uuid.equals(UUID_CALL_CONTROL_POINT_OPTIONAL_OPCODES)) {
+            return mCallControlPointOptionalOpcodesCharacteristic;
+        } else if (uuid.equals(UUID_TERMINATION_REASON)) {
+            return mTerminationReasonCharacteristic;
+        } else if (uuid.equals(UUID_INCOMING_CALL)) {
+            return mIncomingCallCharacteristic;
+        } else if (uuid.equals(UUID_CALL_FRIENDLY_NAME)) {
+            return mCallFriendlyNameCharacteristic;
+        }
+
+        return null;
+    }
+
     /**
      * Callback for TBS GATT instance about authorization change for device.
      *
@@ -1167,6 +1334,18 @@ public class TbsGatt {
      */
     public void onDeviceAuthorizationSet(BluetoothDevice device) {
         processPendingGattOperations(device);
+
+        BluetoothGattService gattService = mBluetoothGattServer.getService(UUID_GTBS);
+        if (gattService != null) {
+            List<BluetoothGattCharacteristic> characteristics = gattService.getCharacteristics();
+            for (BluetoothGattCharacteristic characteristic : characteristics) {
+                GattCharacteristic wrapper =
+                        getLocalCharacteristicWrapper(characteristic.getUuid());
+                if (wrapper != null) {
+                    wrapper.notify(device);
+                }
+            }
+        }
     }
 
     private void clearUnauthorizedGattOperationss(BluetoothDevice device) {
