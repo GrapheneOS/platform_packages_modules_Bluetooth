@@ -116,8 +116,6 @@ config("target_defaults") {
   cflags_cc = [ "-std=c++17" ]
 
   defines = [
-    "OS_GENERIC",
-    "OS_LINUX_GENERIC",
     "TARGET_FLOSS",
     "EXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
     "FALLTHROUGH_INTENDED=[[clang::fallthrough]]",

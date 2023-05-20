@@ -23,7 +23,7 @@
  ******************************************************************************/
 #include "avrc_api.h"
 
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
 #include <avrcp.sysprop.h>
 #endif
 #include <base/logging.h>
@@ -88,7 +88,7 @@ static const uint8_t avrc_ctrl_event_map[] = {
  *
  *****************************************************************************/
 bool avrcp_absolute_volume_is_enabled() {
-#ifdef OS_ANDROID
+#ifdef __ANDROID__
   static const bool absolute_volume =
       android::sysprop::bluetooth::Avrcp::absolute_volume().value_or(true);
   return absolute_volume;

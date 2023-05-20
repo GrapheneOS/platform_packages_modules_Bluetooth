@@ -73,6 +73,9 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
       requireNotNull(instance) { "Unable to find GATT instance for $address" }
       return instance
     }
+    fun clearAllInstances() {
+        gattInstances.clear()
+    }
   }
 
   private val mCallback =
@@ -159,7 +162,7 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
         characteristic: BluetoothGattCharacteristic,
         value: ByteArray
       ) {
-        Log.i(TAG, "onCharacteristicChanged, characteristic: " + characteristic.getUuid().toString())
+        Log.i(TAG, "onCharacteristicChanged, characteristic: " + characteristic.getUuid().toString().uppercase())
         mCharacteristicChangedMap[characteristic] = true
         mOnCharacteristicChanged.value = true
       }

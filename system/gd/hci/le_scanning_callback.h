@@ -106,6 +106,8 @@ class AdvertisingPacketContentFilterCommand {
   uint8_t org_id;
   uint8_t tds_flags;
   uint8_t tds_flags_mask;
+  ApcfMetaDataType meta_data_type;
+  std::vector<uint8_t> meta_data;
   uint8_t ad_type;
   std::vector<uint8_t> data;
   std::vector<uint8_t> data_mask;

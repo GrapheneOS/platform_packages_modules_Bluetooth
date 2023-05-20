@@ -392,7 +392,7 @@ fn add_service(server_id: u8, service_records: Vec<GattRecord>) {
                 let ok = modules.gatt_module.register_gatt_service(
                     server_id,
                     service.clone(),
-                    modules.gatt_incoming_callbacks.clone(),
+                    modules.gatt_incoming_callbacks.get_datastore(server_id),
                 );
                 match ok {
                     Ok(_) => info!(
@@ -477,7 +477,7 @@ fn send_indication(_server_id: u8, handle: u16, conn_id: u16, value: &[u8]) {
     trace!("send_indication {handle:?}, {conn_id:?}");
 
     do_in_rust_thread(move |modules| {
-        let Some(bearer) = modules.gatt_module.get_bearer(conn_id) else {
+        let Some(bearer) = modules.gatt_module.get_bearer(conn_id.get_tcb_idx()) else {
             error!("connection {conn_id:?} does not exist");
             return;
         };

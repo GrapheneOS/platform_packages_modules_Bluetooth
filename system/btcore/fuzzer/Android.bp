@@ -43,7 +43,6 @@ cc_defaults {
         "libbluetooth-types",
         "libbluetooth_rust_interop",
         "libbt-common",
-        "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
         "libbtcore",

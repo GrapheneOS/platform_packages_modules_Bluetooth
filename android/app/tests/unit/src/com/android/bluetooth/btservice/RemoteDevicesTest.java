@@ -87,13 +87,16 @@ public class RemoteDevicesTest {
 
     @Test
     public void testSendUuidIntent() {
+        doNothing().when(mAdapterService).sendUuidsInternal(any(), any());
+
         // Verify that a handler message is sent by the method call
         mRemoteDevices.updateUuids(mDevice1);
         Message msg = mTestLooperManager.next();
         Assert.assertNotNull(msg);
 
-        // Verify that executing that message results in a broadcast intent
+        // Verify that executing that message results in a direct call and broadcast intent
         mTestLooperManager.execute(msg);
+        verify(mAdapterService).sendUuidsInternal(any(), any());
         verify(mAdapterService).sendBroadcast(any(), anyString(), any());
         verifyNoMoreInteractions(mAdapterService);
     }

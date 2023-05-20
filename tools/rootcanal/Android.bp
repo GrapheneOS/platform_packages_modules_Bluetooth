@@ -113,17 +113,32 @@ cc_library_static {
         "rootcanal_hci_packets_cxx_gen",
         "rootcanal_link_layer_packets_cxx_gen",
     ],
+    export_static_lib_headers: [
+        "librootcanal_config",
+    ],
     whole_static_libs: [
-        "liblmp",
+        "librootcanal_rs",
+        "librootcanal_config",
     ],
     shared_libs: [
         "libbase",
         "libcrypto",
     ],
     static_libs: [
-        "libjsoncpp",
         "libscriptedbeaconpayload-protos-lite",
     ],
+}
+
+// This library contains the generated headers for the
+// RootCanal configuration file / parameter.
+cc_library_static {
+    name: "librootcanal_config",
+    host_supported: true,
+    vendor_available: true,
+    proto: {
+        export_proto_headers: true,
+    },
+    srcs: ["config.proto"],
 }
 
 // This library implements a foreigh function interface over DualModeController
@@ -155,11 +170,12 @@ cc_library_host_shared {
     stl: "libc++_static",
     static_libs: [
         "libcrypto",
-        "libjsoncpp",
+        "librootcanal_config",
+        "libprotobuf-cpp-full",
     ],
     whole_static_libs: [
         "libbase",
-        "liblmp",
+        "librootcanal_rs",
         "liblog",
     ],
     cflags: [
@@ -257,10 +273,10 @@ cc_test_host {
     shared_libs: [
         "libbase",
         "libcrypto",
+        "libprotobuf-cpp-full",
     ],
     static_libs: [
         "libbt-rootcanal",
-        "libjsoncpp",
     ],
 }
 
@@ -352,8 +368,7 @@ cc_binary_host {
         "libc++fs",
         "libcrypto",
         "libgflags",
-        "libjsoncpp",
-        "libprotobuf-cpp-lite",
+        "libprotobuf-cpp-full",
         "libscriptedbeaconpayload-protos-lite",
     ],
     sanitize: {

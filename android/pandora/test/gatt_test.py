@@ -18,9 +18,13 @@ import logging
 
 from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices, bumble_server
 from bumble.gatt import Characteristic, Service
-from bumble.smp import PairingConfig
+from bumble.pairing import PairingConfig
 from bumble_experimental.gatt import GATTService
 from mobly import base_test, signals, test_runner
+from mobly.asserts import assert_equal  # type: ignore
+from mobly.asserts import assert_in  # type: ignore
+from mobly.asserts import assert_is_not_none  # type: ignore
+from mobly.asserts import assert_not_in  # type: ignore
 from pandora.host_pb2 import RANDOM, Connection, DataTypes
 from pandora.security_pb2 import LE_LEVEL3, PairingEventAnswer, SecureResponse
 from pandora_experimental.gatt_grpc import GATT
@@ -39,7 +43,7 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
     def setup_class(self) -> None:
         # Register experimental bumble servicers hook.
         bumble_server.register_servicer_hook(
-            lambda bumble, server: add_GATTServicer_to_server(GATTService(bumble.device), server)
+            lambda bumble, _, server: add_GATTServicer_to_server(GATTService(bumble.device), server)
         )
 
         self.devices = PandoraDevices(self)
@@ -56,6 +60,7 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
     def test_print_dut_gatt_services(self) -> None:
         advertise = self.ref.host.Advertise(legacy=True, connectable=True)
         dut_ref = self.dut.host.ConnectLE(public=self.ref.address, own_address_type=RANDOM).connection
+        assert_is_not_none(dut_ref)
         assert dut_ref
         advertise.cancel()
 
@@ -76,6 +81,7 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         scan.cancel()
 
         ref_dut = self.ref.host.ConnectLE(own_address_type=RANDOM, **dut.address_asdict()).connection
+        assert_is_not_none(ref_dut)
         assert ref_dut
         advertise.cancel()
 
@@ -92,6 +98,7 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         dut_connection_to_ref = (
             await self.dut.aio.host.ConnectLE(public=self.ref.address, own_address_type=RANDOM)
         ).connection
+        assert_is_not_none(dut_connection_to_ref)
         assert dut_connection_to_ref
 
         ref_connection_to_dut = (await anext(aiter(ref_advertisement))).connection
@@ -108,8 +115,8 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
 
         # arrange: set up GATT service on REF side with a characteristic
         # that can only be read after pairing
-        SERVICE_UUID = "00005a00-0000-1000-8000-00805f9b34fb"
-        CHARACTERISTIC_UUID = "00006a00-0000-1000-8000-00805f9b34fb"
+        SERVICE_UUID = "00005A00-0000-1000-8000-00805F9B34FB"
+        CHARACTERISTIC_UUID = "00006A00-0000-1000-8000-00805F9B34FB"
         service = Service(
             SERVICE_UUID,
             [
@@ -160,12 +167,12 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         # assert: that the read succeeded (so Android re-tried the read after pairing)
         read_response = await dut_read_task
         self.ref.log.info(read_response)
-        assert read_response.characteristics_read[0].status == SUCCESS
-        assert read_response.characteristics_read[0].value.value == b"Hello, world!"
+        assert_equal(read_response.characteristics_read[0].status, SUCCESS)
+        assert_equal(read_response.characteristics_read[0].value.value, b"Hello, world!")
 
         # make sure pairing was successful
         ref_secure_res = await ref_secure_task
-        assert ref_secure_res.result_variant() == 'success'
+        assert_equal(ref_secure_res.result_variant(), 'success')
 
     @avatar.asynchronous
     async def test_rediscover_whenever_unbonded(self) -> None:
@@ -174,8 +181,8 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
 
         # arrange: set up one GATT service on REF side
         dut_gatt = AioGATT(self.dut.aio.channel)
-        SERVICE_UUID_1 = "00005a00-0000-1000-8000-00805f9b34fb"
-        SERVICE_UUID_2 = "00005a01-0000-1000-8000-00805f9b34fb"
+        SERVICE_UUID_1 = "00005A00-0000-1000-8000-00805F9B34FB"
+        SERVICE_UUID_2 = "00005A01-0000-1000-8000-00805F9B34FB"
         self.ref.device.add_service(Service(SERVICE_UUID_1, []))  # type:ignore
         # connect both devices
         dut_connection_to_ref, ref_connection_to_dut = await self.connect_dut_to_ref()
@@ -188,11 +195,11 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         second_discovery = await dut_gatt.DiscoverServices(dut_connection_to_ref)
 
         # assert: that we found only one service in the first discovery
-        assert any(service.uuid == SERVICE_UUID_1 for service in first_discovery.services)
-        assert not any(service.uuid == SERVICE_UUID_2 for service in first_discovery.services)
+        assert_in(SERVICE_UUID_1, (service.uuid for service in first_discovery.services))
+        assert_not_in(SERVICE_UUID_2, (service.uuid for service in first_discovery.services))
         # assert: but found both in the second discovery
-        assert any(service.uuid == SERVICE_UUID_1 for service in second_discovery.services)
-        assert any(service.uuid == SERVICE_UUID_2 for service in second_discovery.services)
+        assert_in(SERVICE_UUID_1, (service.uuid for service in second_discovery.services))
+        assert_in(SERVICE_UUID_2, (service.uuid for service in second_discovery.services))
 
     @avatar.asynchronous
     async def test_do_not_discover_when_bonded(self) -> None:
@@ -205,8 +212,8 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
 
         # arrange: set up one GATT service on REF side
         dut_gatt = AioGATT(self.dut.aio.channel)
-        SERVICE_UUID_1 = "00005a00-0000-1000-8000-00805f9b34fb"
-        SERVICE_UUID_2 = "00005a01-0000-1000-8000-00805f9b34fb"
+        SERVICE_UUID_1 = "00005A00-0000-1000-8000-00805F9B34FB"
+        SERVICE_UUID_2 = "00005A01-0000-1000-8000-00805F9B34FB"
         self.ref.device.add_service(Service(SERVICE_UUID_1, []))  # type:ignore
         # connect both devices
         dut_connection_to_ref, ref_connection_to_dut = await self.connect_dut_to_ref()
@@ -224,11 +231,11 @@ class GattTest(base_test.BaseTestClass):  # type: ignore[misc]
         second_discovery = await dut_gatt.DiscoverServices(dut_connection_to_ref)
 
         # assert: that we found only one service in the first discovery
-        assert any(service.uuid == SERVICE_UUID_1 for service in first_discovery.services)
-        assert not any(service.uuid == SERVICE_UUID_2 for service in first_discovery.services)
+        assert_in(SERVICE_UUID_1, (service.uuid for service in first_discovery.services))
+        assert_not_in(SERVICE_UUID_2, (service.uuid for service in first_discovery.services))
         # assert: but found both in the second discovery
-        assert any(service.uuid == SERVICE_UUID_1 for service in second_discovery.services)
-        assert any(service.uuid == SERVICE_UUID_2 for service in second_discovery.services)
+        assert_in(SERVICE_UUID_1, (service.uuid for service in second_discovery.services))
+        assert_in(SERVICE_UUID_2, (service.uuid for service in second_discovery.services))
 
 
 if __name__ == '__main__':

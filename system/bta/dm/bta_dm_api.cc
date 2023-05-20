@@ -605,14 +605,16 @@ void BTA_DmBleObserve(bool start, uint8_t duration,
  * Parameters       start: start or stop the scan procedure,
  *                  duration_sec: Duration of the scan. Continuous scan if 0 is
  *                                passed,
+ *                  low_latency_scan: whether this is an low latency scan,
+ *                                    default is false.
  *
  * Returns          void
  *
  ******************************************************************************/
-void BTA_DmBleScan(bool start, uint8_t duration_sec) {
+void BTA_DmBleScan(bool start, uint8_t duration_sec, bool low_latency_scan) {
   APPL_TRACE_API("%s:start = %d ", __func__, start);
-  do_in_main_thread(FROM_HERE,
-                    base::Bind(bta_dm_ble_scan, start, duration_sec));
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_ble_scan, start, duration_sec,
+                                          low_latency_scan));
 }
 
 /*******************************************************************************

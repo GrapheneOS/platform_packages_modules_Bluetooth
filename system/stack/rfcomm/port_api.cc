@@ -235,6 +235,47 @@ int RFCOMM_CreateConnectionWithSecurity(uint16_t uuid, uint8_t scn,
 
 /*******************************************************************************
  *
+ * Function         RFCOMM_ControlReqFromBTSOCK
+ *
+ * Description      Send control parameters to the peer.
+ *                  So far only for qualification use.
+ *                  RFCOMM layer starts the control request only when it is the
+ *                  client. This API allows the host to start the control
+ *                  request while it works as a RFCOMM server.
+ *
+ * Parameters:      dlci             - the DLCI to send the MSC command
+ *                  bd_addr          - bd_addr of the peer
+ *                  modem_signal     - [DTR/DSR | RTS/CTS | RI | DCD]
+ *                  break_signal     - 0-3 s in steps of 200 ms
+ *                  discard_buffers  - 0 for do not discard, 1 for discard
+ *                  break_signal_seq - ASAP or in sequence
+ *                  fc               - true when the device is unable to accept
+ *                                     frames
+ *
+ ******************************************************************************/
+int RFCOMM_ControlReqFromBTSOCK(uint8_t dlci, const RawAddress& bd_addr,
+                                uint8_t modem_signal, uint8_t break_signal,
+                                uint8_t discard_buffers,
+                                uint8_t break_signal_seq, bool fc) {
+  tRFC_MCB* p_mcb = port_find_mcb(bd_addr);
+  if (!p_mcb) {
+    return PORT_BAD_BD_ADDR;
+  }
+  tPORT* p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+  if (!p_port) {
+    return PORT_NOT_OPENED;
+  }
+  p_port->local_ctrl.modem_signal = modem_signal;
+  p_port->local_ctrl.break_signal = break_signal;
+  p_port->local_ctrl.discard_buffers = discard_buffers;
+  p_port->local_ctrl.break_signal_seq = break_signal_seq;
+  p_port->local_ctrl.fc = fc;
+  RFCOMM_ControlReq(p_mcb, dlci, &p_port->local_ctrl);
+  return PORT_SUCCESS;
+}
+
+/*******************************************************************************
+ *
  * Function         RFCOMM_RemoveConnection
  *
  * Description      This function is called to close the specified connection.
