@@ -939,6 +939,20 @@ uint8_t BTM_GetEirUuidList(const uint8_t* p_eir, size_t eir_len,
  ******************************************************************************/
 tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void);
 
+/*******************************************************************************
+ *
+ * Function         BTM_BleSirkConfirmDeviceReply
+ *
+ * Description      This procedure confirms requested to validate set device.
+ *
+ * Parameter        bd_addr     - BD address of the peer
+ *                  res         - confirmation result BTM_SUCCESS if success
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void BTM_BleSirkConfirmDeviceReply(const RawAddress& bd_addr, uint8_t res);
+
 /**
  * Send remote name request, either to legacy HCI, or to GD shim Name module
  */

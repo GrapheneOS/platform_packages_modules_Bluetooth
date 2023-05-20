@@ -143,6 +143,10 @@ class ShimUi : public bluetooth::security::UI {
     if (bta_callbacks->p_le_key_callback == nullptr) {
       LOG_INFO("UNIMPLEMENTED %s le_key_callback", __func__);
     }
+
+    if (bta_callbacks->p_sirk_verification_callback == nullptr) {
+      LOG_INFO("UNIMPLEMENTED %s sirk_verification_callback", __func__);
+    }
   }
 
   void DisplayPairingPrompt(const bluetooth::hci::AddressWithType& address,
@@ -274,6 +278,10 @@ class ShimBondListener : public bluetooth::security::ISecurityManagerListener {
 
     if (bta_callbacks->p_le_key_callback == nullptr) {
       LOG_INFO("UNIMPLEMENTED %s le_key_callback", __func__);
+    }
+
+    if (bta_callbacks->p_sirk_verification_callback == nullptr) {
+      LOG_INFO("UNIMPLEMENTED %s sirk_verification_callback", __func__);
     }
   }
 

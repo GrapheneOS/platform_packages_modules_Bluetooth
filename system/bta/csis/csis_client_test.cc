@@ -31,6 +31,14 @@
 #include "hardware/bt_gatt_types.h"
 #include "test/common/mock_functions.h"
 
+bool gatt_cl_read_sirk_req(
+    const RawAddress& peer_bda,
+    base::OnceCallback<void(tGATT_STATUS status, const RawAddress&,
+                            uint8_t sirk_type, Octet16& sirk)>
+        cb) {
+  return true;
+}
+
 namespace bluetooth {
 namespace csis {
 namespace internal {
