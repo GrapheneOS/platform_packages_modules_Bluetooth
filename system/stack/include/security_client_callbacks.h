@@ -73,6 +73,11 @@ typedef void(tBTM_AUTH_COMPLETE_CALLBACK)(const RawAddress& bd_addr,
                                           tBTM_BD_NAME bd_name,
                                           tHCI_REASON reason);
 
+/* Request SIRK verification for found member. Parameters are
+ *              BD Address of remote
+ */
+typedef uint8_t(tBTM_SIRK_VERIFICATION_CALLBACK)(const RawAddress& bd_addr);
+
 struct tBTM_APPL_INFO {
   tBTM_PIN_CALLBACK* p_pin_callback{nullptr};
   tBTM_LINK_KEY_CALLBACK* p_link_key_callback{nullptr};
@@ -81,4 +86,5 @@ struct tBTM_APPL_INFO {
   tBTM_SP_CALLBACK* p_sp_callback{nullptr};
   tBTM_LE_CALLBACK* p_le_callback{nullptr};
   tBTM_LE_KEY_CALLBACK* p_le_key_callback{nullptr};
+  tBTM_SIRK_VERIFICATION_CALLBACK* p_sirk_verification_callback{nullptr};
 };

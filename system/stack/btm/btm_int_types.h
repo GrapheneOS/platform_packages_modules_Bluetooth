@@ -117,6 +117,7 @@ typedef struct {
   uint16_t psm;
   bool is_orig;
   tBTM_SEC_CALLBACK* p_callback;
+  tSMP_SIRK_CALLBACK* p_sirk_callback;
   void* p_ref_data;
   uint16_t rfcomm_security_requirement;
   tBT_TRANSPORT transport;
