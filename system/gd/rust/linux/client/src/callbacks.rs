@@ -3,8 +3,9 @@ use crate::dbus_iface::{
     export_admin_policy_callback_dbus_intf, export_advertising_set_callback_dbus_intf,
     export_bluetooth_callback_dbus_intf, export_bluetooth_connection_callback_dbus_intf,
     export_bluetooth_gatt_callback_dbus_intf, export_bluetooth_manager_callback_dbus_intf,
-    export_gatt_server_callback_dbus_intf, export_scanner_callback_dbus_intf,
-    export_socket_callback_dbus_intf, export_suspend_callback_dbus_intf,
+    export_gatt_server_callback_dbus_intf, export_qa_callback_dbus_intf,
+    export_scanner_callback_dbus_intf, export_socket_callback_dbus_intf,
+    export_suspend_callback_dbus_intf,
 };
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
@@ -20,6 +21,7 @@ use btstack::bluetooth_gatt::{
     BluetoothGattService, IBluetoothGattCallback, IBluetoothGattServerCallback, IScannerCallback,
     ScanResult,
 };
+use btstack::bluetooth_qa::IBluetoothQACallback;
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, IBluetoothSocketManager,
     IBluetoothSocketManagerCallbacks, SocketId,
@@ -1207,6 +1209,77 @@ impl RPCProxy for SuspendCallback {
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
         let iface = export_suspend_callback_dbus_intf(
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
+    }
+}
+
+/// Callback container for suspend interface callbacks.
+pub(crate) struct QACallback {
+    objpath: String,
+    _context: Arc<Mutex<ClientContext>>,
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
+}
+
+impl QACallback {
+    pub(crate) fn new(
+        objpath: String,
+        _context: Arc<Mutex<ClientContext>>,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, _context, dbus_connection, dbus_crossroads }
+    }
+}
+
+impl IBluetoothQACallback for QACallback {
+    fn on_fetch_discoverable_mode_completed(&mut self, mode: bt_topshim::btif::BtDiscMode) {
+        print_info!("Discoverable mode: {:?}", mode);
+    }
+
+    fn on_fetch_connectable_completed(&mut self, connectable: bool) {
+        print_info!("Connectable mode: {:?}", connectable);
+    }
+
+    fn on_set_connectable_completed(&mut self, succeed: bool) {
+        print_info!(
+            "Set connectable mode: {}",
+            match succeed {
+                true => "succeeded",
+                false => "failed",
+            }
+        );
+    }
+
+    fn on_fetch_alias_completed(&mut self, alias: String) {
+        print_info!("Alias: {}", alias);
+    }
+
+    fn on_get_hid_report_completed(&mut self, status: BtStatus) {
+        print_info!("Get HID report: {:?}", status);
+    }
+
+    fn on_set_hid_report_completed(&mut self, status: BtStatus) {
+        print_info!("Set HID report: {:?}", status);
+    }
+
+    fn on_send_hid_data_completed(&mut self, status: BtStatus) {
+        print_info!("Send HID data: {:?}", status);
+    }
+}
+
+impl RPCProxy for QACallback {
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        let iface = export_qa_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
             Arc::new(Mutex::new(DisconnectWatcher::new())),
