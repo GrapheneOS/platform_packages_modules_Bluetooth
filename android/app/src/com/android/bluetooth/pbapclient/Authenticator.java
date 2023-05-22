@@ -25,8 +25,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 public class Authenticator extends AbstractAccountAuthenticator {
-    private static final String TAG = "PbapAuthenticator";
-    private static final boolean DBG = Utils.DBG;
+    private static final String TAG = "PbapClientAuthenticator";
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
 
     public Authenticator(Context context) {
         super(context);
