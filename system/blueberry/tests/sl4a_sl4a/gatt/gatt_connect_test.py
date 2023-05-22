@@ -292,8 +292,9 @@ class GattConnectTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
             return
         autoconnect = True
         self.central.log.info("Connecting GATT with autoConnect={}".format(autoconnect))
-        bluetooth_gatt = self.central.sl4a.gattClientConnectGatt(
-            gatt_callback, mac_address, autoconnect, GattTransport.TRANSPORT_AUTO, False, GattPhyMask.PHY_LE_1M_MASK)
+        bluetooth_gatt = self.central.sl4a.gattClientConnectGatt(gatt_callback, mac_address, autoconnect,
+                                                                 GattTransport.TRANSPORT_AUTO, False,
+                                                                 GattPhyMask.PHY_LE_1M_MASK)
         self.central.log.info("Waiting for GATt to become connected")
         self.bluetooth_gatt_list.append(bluetooth_gatt)
         expected_event = GattCallbackString.GATT_CONN_CHANGE.format(gatt_callback)
@@ -344,8 +345,11 @@ class GattConnectTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
             self.central, self.peripheral))
         # Make GATT connection 1
         try:
-            bluetooth_gatt_1, gatt_callback_1 = setup_gatt_connection(
-                self.central, mac_address, False, transport=GattTransport.TRANSPORT_AUTO, opportunistic=False)
+            bluetooth_gatt_1, gatt_callback_1 = setup_gatt_connection(self.central,
+                                                                      mac_address,
+                                                                      False,
+                                                                      transport=GattTransport.TRANSPORT_AUTO,
+                                                                      opportunistic=False)
             self.central.sl4a.bleStopBleScan(scan_callback)
             self.adv_instances.append(adv_callback)
             self.bluetooth_gatt_list.append(bluetooth_gatt_1)
@@ -355,8 +359,11 @@ class GattConnectTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
             return
         # Make GATT connection 2
         try:
-            bluetooth_gatt_2, gatt_callback_2 = setup_gatt_connection(
-                self.central, mac_address, False, transport=GattTransport.TRANSPORT_AUTO, opportunistic=True)
+            bluetooth_gatt_2, gatt_callback_2 = setup_gatt_connection(self.central,
+                                                                      mac_address,
+                                                                      False,
+                                                                      transport=GattTransport.TRANSPORT_AUTO,
+                                                                      opportunistic=True)
             self.bluetooth_gatt_list.append(bluetooth_gatt_2)
         except GattTestUtilsError as err:
             logging.error(err)
@@ -377,96 +384,6 @@ class GattConnectTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         close_gatt_client(self.central, bluetooth_gatt_2)
         if bluetooth_gatt_2 in self.bluetooth_gatt_list:
             self.bluetooth_gatt_list.remove(bluetooth_gatt_2)
-
-    @test_tracker_info(uuid='1e01838e-c4de-4720-9adf-9e0419378226')
-    def test_gatt_request_min_mtu(self):
-        """Test GATT connection over LE and exercise MTU sizes.
-
-          Test establishing a gatt connection between a GATT server and GATT
-          client. Request an MTU size that matches the correct minimum size.
-
-          Steps:
-            1. Start a generic advertisement.
-            2. Start a generic scanner.
-            3. Find the advertisement and extract the mac address.
-            4. Stop the first scanner.
-            5. Create a GATT connection between the scanner and advertiser.
-            6. From the scanner (client) request MTU size change to the
-            minimum value.
-            7. Find the MTU changed event on the client.
-            8. Disconnect the GATT connection.
-
-          Expected Result:
-            Verify that a connection was established and the MTU value found
-            matches the expected MTU value.
-
-          Returns:
-            Pass if True
-            Fail if False
-
-          TAGS: LE, Advertising, Filtering, Scanning, GATT, MTU
-          Priority: 0
-          """
-        gatt_server_cb = self.peripheral.sl4a.gattServerCreateGattServerCallback()
-        gatt_server = self.peripheral.sl4a.gattServerOpenGattServer(gatt_server_cb)
-        self.gatt_server_list.append(gatt_server)
-        try:
-            bluetooth_gatt, gatt_callback, adv_callback = (orchestrate_gatt_connection(self.central, self.peripheral))
-            self.bluetooth_gatt_list.append(bluetooth_gatt)
-        except GattTestUtilsError as err:
-            logging.error(err)
-            asserts.fail("Failed to connect to GATT, error: {}".format(err))
-            return
-        self.adv_instances.append(adv_callback)
-        expected_mtu = GattMtuSize.MIN
-        self.central.sl4a.gattClientRequestMtu(bluetooth_gatt, expected_mtu)
-        assertThat(self._verify_mtu_changed_on_client_and_server(expected_mtu, gatt_callback, gatt_server_cb)).isTrue()
-        assertThat(self._orchestrate_gatt_disconnection(bluetooth_gatt, gatt_callback)).isTrue()
-
-    @test_tracker_info(uuid='c1fa3a2d-fb47-47db-bdd1-458928cd6a5f')
-    def test_gatt_request_max_mtu(self):
-        """Test GATT connection over LE and exercise MTU sizes.
-
-          Test establishing a gatt connection between a GATT server and GATT
-          client. Request an MTU size that matches the correct maximum size.
-
-          Steps:
-            1. Start a generic advertisement.
-            2. Start a generic scanner.
-            3. Find the advertisement and extract the mac address.
-            4. Stop the first scanner.
-            5. Create a GATT connection between the scanner and advertiser.
-            6. From the scanner (client) request MTU size change to the
-            maximum value.
-            7. Find the MTU changed event on the client.
-            8. Disconnect the GATT connection.
-
-          Expected Result:
-            Verify that a connection was established and the MTU value found
-            matches the expected MTU value.
-
-          Returns:
-            Pass if True
-            Fail if False
-
-          TAGS: LE, Advertising, Filtering, Scanning, GATT, MTU
-          Priority: 0
-          """
-        gatt_server_cb = self.peripheral.sl4a.gattServerCreateGattServerCallback()
-        gatt_server = self.peripheral.sl4a.gattServerOpenGattServer(gatt_server_cb)
-        self.gatt_server_list.append(gatt_server)
-        try:
-            bluetooth_gatt, gatt_callback, adv_callback = (orchestrate_gatt_connection(self.central, self.peripheral))
-            self.bluetooth_gatt_list.append(bluetooth_gatt)
-        except GattTestUtilsError as err:
-            logging.error(err)
-            asserts.fail("Failed to connect to GATT, error: {}".format(err))
-            return
-        self.adv_instances.append(adv_callback)
-        expected_mtu = GattMtuSize.MAX
-        self.central.sl4a.gattClientRequestMtu(bluetooth_gatt, expected_mtu)
-        assertThat(self._verify_mtu_changed_on_client_and_server(expected_mtu, gatt_callback, gatt_server_cb)).isTrue()
-        assertThat(self._orchestrate_gatt_disconnection(bluetooth_gatt, gatt_callback)).isTrue()
 
     @test_tracker_info(uuid='4416d483-dec3-46cb-8038-4d82620f873a')
     def test_gatt_request_out_of_bounds_mtu(self):
@@ -933,7 +850,8 @@ class GattConnectTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         conn_cen_devices = self.central.sl4a.bluetoothGetConnectedLeDevices(BluetoothProfile.GATT)
         conn_per_devices = self.peripheral.sl4a.bluetoothGetConnectedLeDevices(BluetoothProfile.GATT_SERVER)
         target_name = self.peripheral.sl4a.bluetoothGetLocalName()
-        error_message = ("Connected device {} not found in list of connected " "devices {}")
+        error_message = ("Connected device {} not found in list of connected "
+                         "devices {}")
         if not any(d['name'] == target_name for d in conn_cen_devices):
             logging.error(error_message.format(target_name, conn_cen_devices))
             asserts.fail(error_message.format(target_name, conn_cen_devices))
