@@ -1,18 +1,16 @@
-// @generated rust packets from test
-
+#![rustfmt::skip]
+/// @generated rust packets from test.
 use bytes::{Buf, BufMut, Bytes, BytesMut};
-use std::cell::Cell;
 use std::convert::{TryFrom, TryInto};
+use std::cell::Cell;
 use std::fmt;
 use std::sync::Arc;
 use thiserror::Error;
-
 type Result<T> = std::result::Result<T, Error>;
-
-#[doc = r" Private prevents users from creating arbitrary scalar values"]
-#[doc = r" in situations where the value needs to be validated."]
-#[doc = r" Users can freely deref the value, but only the backend"]
-#[doc = r" may create it."]
+/// Private prevents users from creating arbitrary scalar values
+/// in situations where the value needs to be validated.
+/// Users can freely deref the value, but only the backend
+/// may create it.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Private<T>(T);
 impl<T> std::ops::Deref for Private<T> {
@@ -21,7 +19,6 @@ impl<T> std::ops::Deref for Private<T> {
         &self.0
     }
 }
-
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Packet parsing failed")]
@@ -32,7 +29,9 @@ pub enum Error {
     InvalidFixedValue { expected: u64, actual: u64 },
     #[error("when parsing {obj} needed length of {wanted} but got {got}")]
     InvalidLengthError { obj: String, wanted: usize, got: usize },
-    #[error("array size ({array} bytes) is not a multiple of the element size ({element} bytes)")]
+    #[error(
+        "array size ({array} bytes) is not a multiple of the element size ({element} bytes)"
+    )]
     InvalidArraySize { array: usize, element: usize },
     #[error("Due to size restrictions a struct could not be parsed.")]
     ImpossibleStructError,
@@ -41,12 +40,10 @@ pub enum Error {
     #[error("expected child {expected}, got {actual}")]
     InvalidChildError { expected: &'static str, actual: String },
 }
-
 pub trait Packet {
     fn to_bytes(self) -> Bytes;
     fn to_vec(self) -> Vec<u8>;
 }
-
 #[repr(u64)]
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -105,7 +102,6 @@ impl From<Enum8> for u64 {
         u8::from(value) as Self
     }
 }
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ParentDataChild {
@@ -164,14 +160,13 @@ impl ParentData {
                 got: bytes.get().remaining(),
             });
         }
-        let v = Enum8::try_from(bytes.get_mut().get_u8()).map_err(|_| {
-            Error::InvalidEnumValueError {
+        let v = Enum8::try_from(bytes.get_mut().get_u8())
+            .map_err(|_| Error::InvalidEnumValueError {
                 obj: "Parent".to_string(),
                 field: "v".to_string(),
                 value: bytes.get_mut().get_u8() as u64,
                 type_: "Enum8".to_string(),
-            }
-        })?;
+            })?;
         let payload: &[u8] = &[];
         let child = match (v) {
             (Enum8::A) if ChildData::conforms(&payload) => {
@@ -179,7 +174,9 @@ impl ParentData {
                 let child_data = ChildData::parse_inner(&mut cell)?;
                 ParentDataChild::Child(Arc::new(child_data))
             }
-            _ if !payload.is_empty() => ParentDataChild::Payload(Bytes::copy_from_slice(payload)),
+            _ if !payload.is_empty() => {
+                ParentDataChild::Payload(Bytes::copy_from_slice(payload))
+            }
             _ => ParentDataChild::None,
         };
         Ok(Self { v, child })
@@ -248,7 +245,10 @@ impl Parent {
 }
 impl ParentBuilder {
     pub fn build(self) -> Parent {
-        let parent = Arc::new(ParentData { v: self.v, child: ParentDataChild::None });
+        let parent = Arc::new(ParentData {
+            v: self.v,
+            child: ParentDataChild::None,
+        });
         Parent::new(parent).unwrap()
     }
 }
@@ -257,7 +257,6 @@ impl From<ParentBuilder> for Parent {
         builder.build().into()
     }
 }
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ChildData {}
@@ -339,8 +338,8 @@ impl Child {
             _ => {
                 return Err(Error::InvalidChildError {
                     expected: stringify!(ParentDataChild::Child),
-                    actual: format!("{:?}", &parent.child),
-                })
+                    actual: format!("{:?}", & parent.child),
+                });
             }
         };
         Ok(Self { parent, child })
@@ -358,7 +357,10 @@ impl Child {
 impl ChildBuilder {
     pub fn build(self) -> Child {
         let child = Arc::new(ChildData {});
-        let parent = Arc::new(ParentData { v: Enum8::A, child: ParentDataChild::None });
+        let parent = Arc::new(ParentData {
+            v: Enum8::A,
+            child: ParentDataChild::None,
+        });
         Child::new(parent).unwrap()
     }
 }
