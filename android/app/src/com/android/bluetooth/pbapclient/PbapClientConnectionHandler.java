@@ -58,8 +58,8 @@ class PbapClientConnectionHandler extends Handler {
     private static final int UPPER_LIMIT = 65535;
 
     static final String TAG = "PbapClientConnHandler";
-    static final boolean DBG = Utils.DBG;
-    static final boolean VDBG = Utils.VDBG;
+    static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+    static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
     static final int MSG_CONNECT = 1;
     static final int MSG_DISCONNECT = 2;
     static final int MSG_DOWNLOAD = 3;

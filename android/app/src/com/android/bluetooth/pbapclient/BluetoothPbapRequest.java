@@ -28,8 +28,8 @@ import java.io.InputStream;
 
 abstract class BluetoothPbapRequest {
 
-    private static final String TAG = "BluetoothPbapRequest";
-    private static final boolean DBG = Utils.DBG;
+    static final String TAG = "PbapClient.BaseRequest";
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
 
     protected static final byte OAP_TAGID_ORDER = 0x01;
     protected static final byte OAP_TAGID_SEARCH_VALUE = 0x02;
