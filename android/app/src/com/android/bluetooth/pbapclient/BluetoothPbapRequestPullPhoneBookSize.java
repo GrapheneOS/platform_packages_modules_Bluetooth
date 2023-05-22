@@ -22,10 +22,8 @@ import com.android.bluetooth.ObexAppParameters;
 import com.android.obex.HeaderSet;
 
 final class BluetoothPbapRequestPullPhoneBookSize extends BluetoothPbapRequest {
-
-    private static final boolean VDBG = Utils.VDBG;
-
-    private static final String TAG = "BtPbapReqPullPhoneBookSize";
+    private static final String TAG = "PbapClient.PullPbSize";
+    private static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
 
     private static final String TYPE = "x-bt/phonebook";
 
