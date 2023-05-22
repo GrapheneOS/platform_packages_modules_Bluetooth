@@ -25,40 +25,46 @@
 #include <map>
 
 #include "common/bind.h"
+#include "hci/acl_manager/connection_callbacks_mock.h"
+#include "hci/acl_manager/connection_management_callbacks_mock.h"
 #include "hci/acl_manager/le_connection_callbacks_mock.h"
 #include "hci/acl_manager/le_connection_management_callbacks_mock.h"
 #include "hci/address.h"
 #include "hci/class_of_device.h"
 #include "hci/controller.h"
+#include "hci/controller_mock.h"
 #include "hci/hci_layer.h"
 #include "hci/hci_layer_fake.h"
 #include "os/fake_timer/fake_timerfd.h"
 #include "os/thread.h"
 #include "packet/raw_builder.h"
 
+using bluetooth::common::BidiQueue;
+using bluetooth::common::BidiQueueEnd;
+using bluetooth::os::fake_timer::fake_timerfd_advance;
+using bluetooth::packet::kLittleEndian;
+using bluetooth::packet::PacketView;
+using bluetooth::packet::RawBuilder;
 using testing::_;
 
-namespace bluetooth {
-namespace hci {
-namespace acl_manager {
 namespace {
-
-using common::BidiQueue;
-using common::BidiQueueEnd;
-using os::fake_timer::fake_timerfd_advance;
-using packet::kLittleEndian;
-using packet::PacketView;
-using packet::RawBuilder;
 
 constexpr auto kTimeout = std::chrono::seconds(2);
 constexpr auto kShortTimeout = std::chrono::milliseconds(100);
+constexpr uint16_t kHciHandle = 123;
 constexpr uint16_t kScanIntervalFast = 0x0060;
 constexpr uint16_t kScanWindowFast = 0x0030;
 constexpr uint16_t kScanIntervalSlow = 0x0800;
 constexpr uint16_t kScanWindowSlow = 0x0030;
-const AddressWithType empty_address_with_type = hci::AddressWithType();
+const bluetooth::hci::AddressWithType empty_address_with_type = bluetooth::hci::AddressWithType();
 
-class TestController : public Controller {
+}  // namespace
+
+namespace bluetooth {
+namespace hci {
+namespace acl_manager {
+
+class TestController : public testing::MockController {
  public:
   void RegisterCompletedAclPacketsCallback(
       common::ContextualCallback<void(uint16_t /* handle */, uint16_t /* packets */)> cb) override {
@@ -106,7 +112,13 @@ class AclManagerNoCallbacksTest : public ::testing::Test {
  protected:
   void SetUp() override {
     test_hci_layer_ = new TestHciLayer;  // Ownership is transferred to registry
-    test_controller_ = new TestController;
+    test_controller_ = new TestController;  // Ownership is transferred to registry
+
+    EXPECT_CALL(*test_controller_, GetMacAddress());
+    EXPECT_CALL(*test_controller_, GetLeFilterAcceptListSize());
+    EXPECT_CALL(*test_controller_, GetLeResolvingListSize());
+    EXPECT_CALL(*test_controller_, SupportsBlePrivacy());
+
     fake_registry_.InjectTestModule(&HciLayer::Factory, test_hci_layer_);
     fake_registry_.InjectTestModule(&Controller::Factory, test_controller_);
     client_handler_ = fake_registry_.GetTestModuleHandler(&HciLayer::Factory);
@@ -133,13 +145,22 @@ class AclManagerNoCallbacksTest : public ::testing::Test {
     my_initiating_address = AddressWithType(
         set_random_address_packet.GetRandomAddress(), AddressType::RANDOM_DEVICE_ADDRESS);
     test_hci_layer_->IncomingEvent(LeSetRandomAddressCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+
+    ON_CALL(mock_connection_callback_, OnConnectSuccess)
+        .WillByDefault([this](std::unique_ptr<ClassicAclConnection> connection) {
+          connections_.push_back(std::move(connection));
+          if (connection_promise_ != nullptr) {
+            connection_promise_->set_value();
+            connection_promise_.reset();
+          }
+        });
   }
 
   void TearDown() override {
     // Invalid mutex exception is raised if the connections
     // are cleared after the AclConnectionInterface is deleted
     // through fake_registry_.
-    mock_connection_callback_.Clear();
+    connections_.clear();
     le_connections_.clear();
     fake_registry_.SynchronizeModuleHandler(&AclManager::Factory, std::chrono::milliseconds(20));
     fake_registry_.StopAll();
@@ -160,9 +181,9 @@ class AclManagerNoCallbacksTest : public ::testing::Test {
   const bool use_connect_list_ = true;  // gd currently only supports connect list
 
   std::future<void> GetConnectionFuture() {
-    ASSERT_LOG(mock_connection_callback_.connection_promise_ == nullptr, "Promises promises ... Only one at a time");
-    mock_connection_callback_.connection_promise_ = std::make_unique<std::promise<void>>();
-    return mock_connection_callback_.connection_promise_->get_future();
+    ASSERT_LOG(connection_promise_ == nullptr, "Promises promises ... Only one at a time");
+    connection_promise_ = std::make_unique<std::promise<void>>();
+    return connection_promise_->get_future();
   }
 
   std::future<void> GetLeConnectionFuture() {
@@ -172,7 +193,7 @@ class AclManagerNoCallbacksTest : public ::testing::Test {
   }
 
   std::shared_ptr<ClassicAclConnection> GetLastConnection() {
-    return mock_connection_callback_.connections_.back();
+    return connections_.back();
   }
 
   std::shared_ptr<LeAclConnection> GetLastLeConnection() {
@@ -203,29 +224,9 @@ class AclManagerNoCallbacksTest : public ::testing::Test {
     return command;
   }
 
-  class MockConnectionCallback : public ConnectionCallbacks {
-   public:
-    void OnConnectSuccess(std::unique_ptr<ClassicAclConnection> connection) override {
-      // Convert to std::shared_ptr during push_back()
-      connections_.push_back(std::move(connection));
-      if (connection_promise_ != nullptr) {
-        connection_promise_->set_value();
-        connection_promise_.reset();
-      }
-    }
-
-    void Clear() {
-      connections_.clear();
-    }
-    MOCK_METHOD(void, OnConnectRequest, (Address, ClassOfDevice), (override));
-    MOCK_METHOD(void, OnConnectFail, (Address, ErrorCode reason, bool locally_initiated), (override));
-
-    MOCK_METHOD(void, HACK_OnEscoConnectRequest, (Address, ClassOfDevice), (override));
-    MOCK_METHOD(void, HACK_OnScoConnectRequest, (Address, ClassOfDevice), (override));
-
-    std::list<std::shared_ptr<ClassicAclConnection>> connections_;
-    std::unique_ptr<std::promise<void>> connection_promise_;
-  } mock_connection_callback_;
+  std::list<std::shared_ptr<ClassicAclConnection>> connections_;
+  std::unique_ptr<std::promise<void>> connection_promise_;
+  MockConnectionCallback mock_connection_callback_;
 
   std::list<std::shared_ptr<LeAclConnection>> le_connections_;
   std::unique_ptr<std::promise<void>> le_connection_promise_;
@@ -272,7 +273,7 @@ class AclManagerWithConnectionTest : public AclManagerTest {
     // Invalid mutex exception is raised if the connection
     // is cleared after the AclConnectionInterface is deleted
     // through fake_registry_.
-    mock_connection_callback_.Clear();
+    connections_.clear();
     le_connections_.clear();
     connection_.reset();
     fake_registry_.SynchronizeModuleHandler(&HciLayer::Factory, std::chrono::milliseconds(20));
@@ -283,55 +284,12 @@ class AclManagerWithConnectionTest : public AclManagerTest {
   uint16_t handle_;
   std::shared_ptr<ClassicAclConnection> connection_;
 
-  class MockConnectionManagementCallbacks : public ConnectionManagementCallbacks {
-   public:
-    MOCK_METHOD1(OnConnectionPacketTypeChanged, void(uint16_t packet_type));
-    MOCK_METHOD1(OnAuthenticationComplete, void(hci::ErrorCode hci_status));
-    MOCK_METHOD1(OnEncryptionChange, void(EncryptionEnabled enabled));
-    MOCK_METHOD0(OnChangeConnectionLinkKeyComplete, void());
-    MOCK_METHOD1(OnReadClockOffsetComplete, void(uint16_t clock_offse));
-    MOCK_METHOD3(OnModeChange, void(ErrorCode status, Mode current_mode, uint16_t interval));
-    MOCK_METHOD5(
-        OnSniffSubrating,
-        void(
-            ErrorCode status,
-            uint16_t maximum_transmit_latency,
-            uint16_t maximum_receive_latency,
-            uint16_t minimum_remote_timeout,
-            uint16_t minimum_local_timeout));
-    MOCK_METHOD5(OnQosSetupComplete, void(ServiceType service_type, uint32_t token_rate, uint32_t peak_bandwidth,
-                                          uint32_t latency, uint32_t delay_variation));
-    MOCK_METHOD6(OnFlowSpecificationComplete,
-                 void(FlowDirection flow_direction, ServiceType service_type, uint32_t token_rate,
-                      uint32_t token_bucket_size, uint32_t peak_bandwidth, uint32_t access_latency));
-    MOCK_METHOD0(OnFlushOccurred, void());
-    MOCK_METHOD1(OnRoleDiscoveryComplete, void(Role current_role));
-    MOCK_METHOD1(OnReadLinkPolicySettingsComplete, void(uint16_t link_policy_settings));
-    MOCK_METHOD1(OnReadAutomaticFlushTimeoutComplete, void(uint16_t flush_timeout));
-    MOCK_METHOD1(OnReadTransmitPowerLevelComplete, void(uint8_t transmit_power_level));
-    MOCK_METHOD1(OnReadLinkSupervisionTimeoutComplete, void(uint16_t link_supervision_timeout));
-    MOCK_METHOD1(OnReadFailedContactCounterComplete, void(uint16_t failed_contact_counter));
-    MOCK_METHOD1(OnReadLinkQualityComplete, void(uint8_t link_quality));
-    MOCK_METHOD2(OnReadAfhChannelMapComplete, void(AfhMode afh_mode, std::array<uint8_t, 10> afh_channel_map));
-    MOCK_METHOD1(OnReadRssiComplete, void(uint8_t rssi));
-    MOCK_METHOD2(OnReadClockComplete, void(uint32_t clock, uint16_t accuracy));
-    MOCK_METHOD1(OnCentralLinkKeyComplete, void(KeyFlag flag));
-    MOCK_METHOD2(OnRoleChange, void(ErrorCode hci_status, Role new_role));
-    MOCK_METHOD1(OnDisconnection, void(ErrorCode reason));
-    MOCK_METHOD4(
-        OnReadRemoteVersionInformationComplete,
-        void(hci::ErrorCode hci_status, uint8_t lmp_version, uint16_t manufacturer_name, uint16_t sub_version));
-    MOCK_METHOD1(OnReadRemoteSupportedFeaturesComplete, void(uint64_t features));
-    MOCK_METHOD3(
-        OnReadRemoteExtendedFeaturesComplete, void(uint8_t page_number, uint8_t max_page_number, uint64_t features));
-  } mock_connection_management_callbacks_;
+  MockConnectionManagementCallbacks mock_connection_management_callbacks_;
 };
 
 TEST_F(AclManagerTest, startup_teardown) {}
 
 TEST_F(AclManagerTest, invoke_registered_callback_connection_complete_success) {
-  uint16_t handle = 1;
-
   acl_manager_->CreateConnection(remote);
 
   // Wait for the connection request
@@ -342,8 +300,8 @@ TEST_F(AclManagerTest, invoke_registered_callback_connection_complete_success) {
 
   auto first_connection = GetConnectionFuture();
 
-  test_hci_layer_->IncomingEvent(
-      ConnectionCompleteBuilder::Create(ErrorCode::SUCCESS, handle, remote, LinkType::ACL, Enable::DISABLED));
+  test_hci_layer_->IncomingEvent(ConnectionCompleteBuilder::Create(
+      ErrorCode::SUCCESS, kHciHandle, remote, LinkType::ACL, Enable::DISABLED));
 
   auto first_connection_status = first_connection.wait_for(kTimeout);
   ASSERT_EQ(first_connection_status, std::future_status::ready);
@@ -353,8 +311,6 @@ TEST_F(AclManagerTest, invoke_registered_callback_connection_complete_success) {
 }
 
 TEST_F(AclManagerTest, invoke_registered_callback_connection_complete_fail) {
-  uint16_t handle = 0x123;
-
   acl_manager_->CreateConnection(remote);
 
   // Wait for the connection request
@@ -363,12 +319,36 @@ TEST_F(AclManagerTest, invoke_registered_callback_connection_complete_fail) {
     last_command = GetConnectionManagementCommand(OpCode::CREATE_CONNECTION);
   }
 
+  struct callback_t {
+    hci::Address bd_addr;
+    hci::ErrorCode reason;
+    bool is_locally_initiated;
+  };
+
+  auto promise = std::promise<callback_t>();
+  auto future = promise.get_future();
+  ON_CALL(mock_connection_callback_, OnConnectFail)
+      .WillByDefault(
+          [&promise](hci::Address bd_addr, hci::ErrorCode reason, bool is_locally_initiated) {
+            promise.set_value({
+                .bd_addr = bd_addr,
+                .reason = reason,
+                .is_locally_initiated = is_locally_initiated,
+            });
+          });
+
   EXPECT_CALL(mock_connection_callback_, OnConnectFail(remote, ErrorCode::PAGE_TIMEOUT, true));
-  test_hci_layer_->IncomingEvent(
-      ConnectionCompleteBuilder::Create(ErrorCode::PAGE_TIMEOUT, handle, remote, LinkType::ACL, Enable::DISABLED));
-  fake_registry_.SynchronizeModuleHandler(&HciLayer::Factory, std::chrono::milliseconds(20));
-  fake_registry_.SynchronizeModuleHandler(&AclManager::Factory, std::chrono::milliseconds(20));
-  fake_registry_.SynchronizeModuleHandler(&HciLayer::Factory, std::chrono::milliseconds(20));
+
+  // Remote response event to the connection request
+  test_hci_layer_->IncomingEvent(ConnectionCompleteBuilder::Create(
+      ErrorCode::PAGE_TIMEOUT, kHciHandle, remote, LinkType::ACL, Enable::DISABLED));
+
+  ASSERT_EQ(std::future_status::ready, future.wait_for(kTimeout));
+  auto callback = future.get();
+
+  ASSERT_EQ(remote, callback.bd_addr);
+  ASSERT_EQ(ErrorCode::PAGE_TIMEOUT, callback.reason);
+  ASSERT_EQ(true, callback.is_locally_initiated);
 }
 
 class AclManagerWithLeConnectionTest : public AclManagerTest {
@@ -436,7 +416,7 @@ class AclManagerWithLeConnectionTest : public AclManagerTest {
     // Invalid mutex exception is raised if the connection
     // is cleared after the AclConnectionInterface is deleted
     // through fake_registry_.
-    mock_connection_callback_.Clear();
+    connections_.clear();
     le_connections_.clear();
     connection_.reset();
     fake_registry_.SynchronizeModuleHandler(&HciLayer::Factory, std::chrono::milliseconds(20));
@@ -1407,7 +1387,6 @@ TEST_F(AclManagerWithConnectionTest, remote_esco_connect_request) {
   fake_registry_.SynchronizeModuleHandler(&HciLayer::Factory, std::chrono::milliseconds(20));
 }
 
-}  // namespace
 }  // namespace acl_manager
 }  // namespace hci
 }  // namespace bluetooth
