@@ -57,10 +57,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @hide
  */
 public class PbapClientService extends ProfileService {
-    private static final boolean DBG = com.android.bluetooth.pbapclient.Utils.DBG;
-    private static final boolean VDBG = com.android.bluetooth.pbapclient.Utils.VDBG;
-
     private static final String TAG = "PbapClientService";
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+    private static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
+
     private static final String SERVICE_NAME = "Phonebook Access PCE";
 
     /**
