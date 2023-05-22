@@ -385,13 +385,8 @@ python_test_host {
 // Defaults for the rust_noalloc backend
 genrule_defaults {
     name: "pdl_rust_noalloc_generator_defaults",
-    cmd: "set -o pipefail;" +
-        " $(location :pdl) --output-format rust_no_alloc $(in) |" +
-        " $(location :rustfmt) > $(out)",
-    tools: [
-        ":pdl",
-        ":rustfmt",
-    ],
+    cmd: "$(location :pdl) --output-format rust_no_alloc $(in) > $(out)",
+    tools: [":pdl"],
 }
 
 // Generate the rust_noalloc backend srcs against the little-endian test vectors
