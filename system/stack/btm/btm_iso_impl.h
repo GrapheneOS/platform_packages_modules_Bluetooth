@@ -33,6 +33,7 @@
 #include "device/include/controller.h"
 #include "hci/include/hci_layer.h"
 #include "internal_include/stack_config.h"
+#include "main/shim/hci_layer.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
@@ -517,10 +518,6 @@ struct iso_impl {
     return packet;
   }
 
-  void send_iso_data_hci_packet(BT_HDR* packet) {
-    bte_main_hci_send(packet, MSG_STACK_TO_HC_HCI_ISO | 0x0001);
-  }
-
   void send_iso_data(uint16_t iso_handle, const uint8_t* data,
                      uint16_t data_len) {
     iso_base* iso = GetIsoIfKnown(iso_handle);
@@ -565,7 +562,9 @@ struct iso_impl {
     BT_HDR* packet =
         prepare_ts_hci_packet(iso_handle, ts, iso->sync_info.seq_nb, data_len);
     memcpy(packet->data + kIsoDataInTsBtHdrOffset, data, data_len);
-    send_iso_data_hci_packet(packet);
+    auto hci = bluetooth::shim::hci_layer_get_interface();
+    packet->event = MSG_STACK_TO_HC_HCI_ISO | 0x0001;
+    hci->transmit_downward(packet->event, packet);
   }
 
   void process_cis_est_pkt(uint8_t len, uint8_t* data) {
