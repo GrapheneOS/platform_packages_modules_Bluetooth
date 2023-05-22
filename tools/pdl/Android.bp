@@ -150,13 +150,8 @@ rust_test_host {
 
 genrule_defaults {
     name: "pdl_rust_generator_defaults",
-    cmd: "set -o pipefail;" +
-        " $(location :pdl) --output-format rust $(in) |" +
-        " $(location :rustfmt) > $(out)",
-    tools: [
-        ":pdl",
-        ":rustfmt",
-    ],
+    cmd: "$(location :pdl) --output-format rust $(in) > $(out)",
+    tools: [":pdl"],
     defaults_visibility: [
         "//external/uwb/src",
         "//packages/modules/Bluetooth:__subpackages__",
