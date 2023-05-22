@@ -75,14 +75,12 @@ bool fill_plc_stats(int* num_decoded_frames, double* packet_loss_ratio);
 
 /* Try to enqueue a packet to a buffer.
  * Args:
- *    data - Pointer to received packet data bytes.
- *    pkt_size - Length of input packet. Passing packet with inconsistent size
- *        from the pkt_size set in init() will fail the call.
+ *    data - Vector of received packet data bytes.
  *    corrupted - If the current mSBC packet read is corrupted.
  * Returns:
- *    The length of enqueued bytes. 0 if failed.
+ *    true if enqueued, false if it failed.
  */
-size_t enqueue_packet(const uint8_t* data, size_t pkt_size, bool corrupted);
+bool enqueue_packet(const std::vector<uint8_t>& data, bool corrupted);
 
 /* Try to decode mSBC frames from the packets in the buffer.
  * Args:

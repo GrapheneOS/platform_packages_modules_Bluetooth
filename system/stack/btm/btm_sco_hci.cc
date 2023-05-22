@@ -484,14 +484,14 @@ struct tBTM_MSBC_INFO {
     }
   }
 
-  size_t write(const uint8_t* input, size_t len) {
-    if (len > buf_size - decode_buf_wo) {
+  size_t write(const std::vector<uint8_t>& input) {
+    if (input.size() > buf_size - decode_buf_wo) {
       return 0;
     }
 
-    std::copy(input, input + len, msbc_decode_buf + decode_buf_wo);
-    decode_buf_wo += len;
-    return len;
+    std::copy(input.begin(), input.end(), msbc_decode_buf + decode_buf_wo);
+    decode_buf_wo += input.size();
+    return input.size();
   }
 
   const uint8_t* find_msbc_pkt_head() {
@@ -608,33 +608,28 @@ bool fill_plc_stats(int* num_decoded_frames, double* packet_loss_ratio) {
   return true;
 }
 
-size_t enqueue_packet(const uint8_t* data, size_t pkt_size, bool corrupted) {
+bool enqueue_packet(const std::vector<uint8_t>& data, bool corrupted) {
   if (msbc_info == nullptr) {
     LOG_WARN("mSBC buffer uninitialized or cleaned");
-    return 0;
+    return false;
   }
 
-  if (pkt_size != msbc_info->packet_size) {
+  if (data.size() != msbc_info->packet_size) {
     LOG_WARN(
         "Ignoring the coming packet with size %lu that is inconsistent with "
         "the HAL reported packet size %lu",
-        (unsigned long)pkt_size, (unsigned long)msbc_info->packet_size);
-    return 0;
-  }
-
-  if (data == nullptr) {
-    LOG_WARN("Invalid data to enqueue");
-    return 0;
+        (unsigned long)data.size(), (unsigned long)msbc_info->packet_size);
+    return false;
   }
 
   msbc_info->read_corrupted |= corrupted;
-  if (msbc_info->write(data, pkt_size) != pkt_size) {
+  if (msbc_info->write(data) != data.size()) {
     LOG_DEBUG("Fail to write packet with size %lu to buffer",
-              (unsigned long)pkt_size);
-    return 0;
+              (unsigned long)data.size());
+    return false;
   }
 
-  return pkt_size;
+  return true;
 }
 
 size_t decode(const uint8_t** out_data) {

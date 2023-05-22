@@ -78,28 +78,14 @@ const bluetooth::legacy::hci::Interface& GetLegacyHciInterface() {
 };  // namespace
 
 // forward declaration for dequeueing packets
-void btm_route_sco_data(BT_HDR* p_msg);
+void btm_route_sco_data(bluetooth::hci::ScoView valid_packet);
 
 namespace cpp {
-constexpr size_t kBtHdrSize = sizeof(BT_HDR);
 bluetooth::common::BidiQueueEnd<bluetooth::hci::ScoBuilder,
                                 bluetooth::hci::ScoView>* hci_sco_queue_end =
     nullptr;
 static bluetooth::os::EnqueueBuffer<bluetooth::hci::ScoBuilder>*
     pending_sco_data = nullptr;
-
-static BT_HDR* WrapPacketAndCopy(
-    uint16_t event,
-    bluetooth::hci::PacketView<bluetooth::hci::kLittleEndian>* data) {
-  size_t packet_size = data->size() + kBtHdrSize;
-  BT_HDR* packet = reinterpret_cast<BT_HDR*>(osi_malloc(packet_size));
-  packet->offset = 0;
-  packet->len = data->size();
-  packet->layer_specific = 0;
-  packet->event = event;
-  std::copy(data->begin(), data->end(), packet->data);
-  return packet;
-}
 
 static void sco_data_callback() {
   if (hci_sco_queue_end == nullptr) {
@@ -111,8 +97,7 @@ static void sco_data_callback() {
     LOG_INFO("Dropping invalid packet of size %zu", packet->size());
     return;
   }
-  auto data = WrapPacketAndCopy(0x1200 /* delete next CL */, packet.get());
-  if (do_in_main_thread(FROM_HERE, base::Bind(&btm_route_sco_data, data)) !=
+  if (do_in_main_thread(FROM_HERE, base::Bind(&btm_route_sco_data, *packet)) !=
       BT_STATUS_SUCCESS) {
     LOG_ERROR("do_in_main_thread failed from sco_data_callback");
   }
@@ -290,56 +275,39 @@ static tSCO_CONN* btm_get_active_sco() {
  * Returns          void
  *
  ******************************************************************************/
-void btm_route_sco_data(BT_HDR* p_msg) {
-  uint8_t* payload = p_msg->data;
-  if (p_msg->len < 3) {
-    LOG_ERROR("Received incomplete SCO header");
-    osi_free(p_msg);
-    return;
-  }
-
-  uint8_t data_len = 0;
-  uint16_t handle_with_flags = 0;
-  STREAM_TO_UINT16(handle_with_flags, payload);
-  STREAM_TO_UINT8(data_len, payload);
-  if (p_msg->len != data_len + 3) {
-    LOG_ERROR("Received invalid SCO data of size: %hhu, dropping", data_len);
-    osi_free(p_msg);
-    return;
-  }
-
-  uint16_t handle = HCID_GET_HANDLE(handle_with_flags);
+void btm_route_sco_data(bluetooth::hci::ScoView valid_packet) {
+  uint16_t handle = valid_packet.GetHandle();
   if (handle > HCI_HANDLE_MAX) {
-    LOG_ERROR(
-        "Receive invalid SCO data with handle: 0x%X, required to be <= 0x%X, "
-        "dropping",
-        handle, HCI_HANDLE_MAX);
-    osi_free(p_msg);
+    LOG_ERROR("Dropping SCO data with invalid handle: 0x%X > 0x%X, ", handle,
+              HCI_HANDLE_MAX);
     return;
   }
 
   tSCO_CONN* active_sco = btm_get_active_sco();
   if (active_sco == nullptr) {
     LOG_ERROR("Received SCO data when there is no active SCO connection");
-    osi_free(p_msg);
     return;
   }
   if (active_sco->hci_handle != handle) {
-    LOG_ERROR(
-        "Drop packet with handle(0x%X) different from the active handle(0x%X)",
-        handle, active_sco->hci_handle);
-    osi_free(p_msg);
+    LOG_ERROR("Dropping packet with handle(0x%X) != active handle(0x%X)",
+              handle, active_sco->hci_handle);
     return;
   }
 
+  auto data = valid_packet.GetData();
+  auto data_len = data.size();
+  auto rx_data = data.data();
   const uint8_t* decoded = nullptr;
   size_t written = 0, rc = 0;
   if (active_sco->is_wbs()) {
-    uint16_t status = HCID_GET_PKT_STATUS(handle_with_flags);
+    auto status = valid_packet.GetPacketStatusFlag();
 
-    if (status > 0) LOG_DEBUG("Packet corrupted with status(0x%X)", status);
-    rc = bluetooth::audio::sco::wbs::enqueue_packet(payload, data_len,
-                                                    status > 0);
+    if (status != bluetooth::hci::PacketStatusFlag::CORRECTLY_RECEIVED) {
+      LOG_DEBUG("Packet corrupted with status(%s)",
+                PacketStatusFlagText(status).c_str());
+    }
+    rc = bluetooth::audio::sco::wbs::enqueue_packet(
+        data, status != bluetooth::hci::PacketStatusFlag::CORRECTLY_RECEIVED);
     if (rc != data_len) LOG_DEBUG("Failed to enqueue packet");
 
     while (rc) {
@@ -352,9 +320,8 @@ void btm_route_sco_data(BT_HDR* p_msg) {
       written += bluetooth::audio::sco::write(decoded, rc);
     }
   } else {
-    written = bluetooth::audio::sco::write(payload, data_len);
+    written = bluetooth::audio::sco::write(rx_data, data_len);
   }
-  osi_free(p_msg);
 
   /* For Chrome OS, we send the outgoing data after receiving an incoming one.
    * server, so that we can keep the data read/write rate balanced */
