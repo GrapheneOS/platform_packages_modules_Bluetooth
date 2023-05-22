@@ -119,7 +119,7 @@ static tHID_KB_LIST hid_kb_numlock_on_list[] = {{LOGITECH_KB_MX5500_PRODUCT_ID,
  ******************************************************************************/
 bool check_cod(const RawAddress* remote_bdaddr, uint32_t cod);
 bool check_cod_hid(const RawAddress* remote_bdaddr);
-void bta_hh_co_destroy(int fd);
+void bta_hh_co_close(btif_hh_device_t* p_dev);
 void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev, const char* dev_name,
                              uint16_t vendor_id, uint16_t product_id,
                              uint16_t version, uint8_t ctry_code, int dscp_len,
@@ -528,13 +528,7 @@ void btif_hh_remove_device(RawAddress bd_addr) {
     BTIF_TRACE_WARNING("%s: device_num = 0", __func__);
   }
 
-  p_dev->hh_keep_polling = 0;
-  p_dev->hh_poll_thread_id = -1;
-  BTIF_TRACE_DEBUG("%s: uhid fd = %d", __func__, p_dev->fd);
-  if (p_dev->fd >= 0) {
-    bta_hh_co_destroy(p_dev->fd);
-    p_dev->fd = -1;
-  }
+  bta_hh_co_close(p_dev);
 }
 
 bool btif_hh_copy_hid_info(tBTA_HH_DEV_DSCP_INFO* dest,
@@ -889,10 +883,7 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
         btif_hh_cb.status = (BTIF_HH_STATUS)BTIF_HH_DEV_DISCONNECTED;
         p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
 
-        if (p_dev->fd >= 0) {
-          bta_hh_co_destroy(p_dev->fd);
-          p_dev->fd = -1;
-        }
+        bta_hh_co_close(p_dev);
         HAL_CBACK(bt_hh_callbacks, connection_state_cb, &(p_dev->bd_addr),
                   p_dev->dev_status);
       } else {
@@ -1821,12 +1812,7 @@ static void cleanup(void) {
     p_dev = &btif_hh_cb.devices[i];
     if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN && p_dev->fd >= 0) {
       BTIF_TRACE_DEBUG("%s: Closing uhid fd = %d", __func__, p_dev->fd);
-      if (p_dev->fd >= 0) {
-        bta_hh_co_destroy(p_dev->fd);
-        p_dev->fd = -1;
-      }
-      p_dev->hh_keep_polling = 0;
-      p_dev->hh_poll_thread_id = -1;
+      bta_hh_co_close(p_dev);
     }
   }
 }
