@@ -122,7 +122,7 @@ class OPPProxy(ProfileProxy):
         Take action to create an rfcomm channel for an OBEX connection.
         """
 
-        self._android.SendFile()
+        self._android.SendFile('PTS')
 
         return "OK"
 
@@ -132,7 +132,7 @@ class OPPProxy(ProfileProxy):
         Take action to create an l2cap channel for an OBEX connection.
         """
 
-        self._android.SendFile()
+        self._android.SendFile('PTS')
 
         return "OK"
 
