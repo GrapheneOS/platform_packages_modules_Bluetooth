@@ -19,19 +19,18 @@
 #include <base/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/include/bta_hf_client_api.h"
-#include "types/bluetooth/uuid.h"
-
-static uint16_t gVersion;
+#include "test/fake/fake_osi.h"
 
 class BtaHfClientAddRecordTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    gVersion = 0;
-  }
+  void SetUp() override { fake_osi_ = std::make_unique<test::fake::FakeOsi>(); }
 
   void TearDown() override {}
+  std::unique_ptr<test::fake::FakeOsi> fake_osi_;
 };
 
 TEST_F(BtaHfClientAddRecordTest, test_hf_client_add_record) {

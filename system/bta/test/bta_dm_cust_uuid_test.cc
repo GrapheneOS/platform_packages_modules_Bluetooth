@@ -18,15 +18,22 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "bta/dm/bta_dm_int.h"
 #include "stack/include/bt_hdr.h"
+#include "test/fake/fake_osi.h"
 #include "types/bluetooth/uuid.h"
 
 using bluetooth::Uuid;
 
 class BtaCustUuid : public testing::Test {
  protected:
-  void SetUp() override { bta_dm_cb = {}; }
+  void SetUp() override {
+    fake_osi_ = std::make_unique<test::fake::FakeOsi>();
+    bta_dm_cb = {};
+  }
+  std::unique_ptr<test::fake::FakeOsi> fake_osi_;
 };
 
 namespace {

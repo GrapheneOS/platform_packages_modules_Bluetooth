@@ -18,9 +18,12 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/include/bta_hf_client_api.h"
 #include "common/message_loop_thread.h"
+#include "test/fake/fake_osi.h"
 #include "types/raw_address.h"
 
 namespace base {
@@ -37,10 +40,12 @@ const RawAddress bdaddr2({0x66, 0x55, 0x44, 0x33, 0x22, 0x11});
 class BtaHfClientTest : public testing::Test {
  protected:
   void SetUp() override {
+    fake_osi_ = std::make_unique<test::fake::FakeOsi>();
     // Reset the memory block, this is the state on which the allocate handle
     // would start operating
     bta_hf_client_cb_arr_init();
   }
+  std::unique_ptr<test::fake::FakeOsi> fake_osi_;
 };
 
 // Test that when we can allocate a device on the block and then check
