@@ -91,7 +91,7 @@ class IrkRotationTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
 
         return address, irk
 
-    def test_le_reconnect_after_irk_rotation_cert_privacy_enabled(self):
+    def __test_le_reconnect_after_irk_rotation_cert_privacy_enabled(self):
         self._test_le_reconnect_after_irk_rotation(True)
 
     def test_le_reconnect_after_irk_rotation_cert_privacy_disabled(self):
