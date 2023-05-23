@@ -17,7 +17,6 @@
 #include "baseband_sniffer.h"
 
 #include "log.h"
-#include "packet/raw_builder.h"
 #include "pcap.h"
 
 using std::vector;
@@ -38,11 +37,7 @@ BaseBandSniffer::BaseBandSniffer(const std::string& filename) {
 
 void BaseBandSniffer::AppendRecord(
     std::unique_ptr<bredr_bb::BaseBandPacketBuilder> packet) {
-  auto bytes = std::vector<uint8_t>();
-  bytes.reserve(packet->size());
-  bluetooth::packet::BitInserter i(bytes);
-  packet->Serialize(i);
-
+  std::vector<uint8_t> bytes = packet->SerializeToBytes();
   pcap::WriteRecordHeader(output_, bytes.size());
   output_.write((char*)bytes.data(), bytes.size());
   output_.flush();
@@ -152,9 +147,7 @@ void BaseBandSniffer::ReceiveLinkLayerPacket(
   } else if (packet_type == model::packets::PacketType::LMP) {
     auto lmp_view = model::packets::LmpView::Create(packet);
     ASSERT(lmp_view.IsValid());
-    auto lmp_bytes = std::vector<uint8_t>(lmp_view.GetPayload().begin(),
-                                          lmp_view.GetPayload().end());
-
+    auto lmp_bytes = lmp_view.GetPayload();
     uint8_t bt_packet_type = 0b0011;  // DM1
 
     AppendRecord(bredr_bb::DM1AclPacketBuilder::Create(
@@ -165,7 +158,7 @@ void BaseBandSniffer::ReceiveLinkLayerPacket(
         flags,
         0x3,  // llid
         1,    // flow
-        std::make_unique<bluetooth::packet::RawBuilder>(lmp_bytes),
+        std::move(lmp_bytes),
         0  // crc
         ));
   }
