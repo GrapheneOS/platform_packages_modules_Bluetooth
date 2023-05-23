@@ -64,8 +64,6 @@ typedef struct hci_t {
                            command_complete_cb complete_callback,
                            command_status_cb status_cb, void* context);
 
-  future_t* (*transmit_command_futured)(const BT_HDR* command);
-
   // Send some data downward through the HCI layer
   void (*transmit_downward)(uint16_t type, void* data);
 } hci_t;
