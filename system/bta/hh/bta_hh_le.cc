@@ -1679,8 +1679,7 @@ void bta_hh_gatt_close(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
 
   /* deregister all notification */
   bta_hh_le_deregister_input_notif(p_cb);
-  /* finaliza device driver */
-  bta_hh_co_close(p_cb->hid_handle, p_cb->app_id);
+
   /* update total conn number */
   bta_hh_cb.cnt_num--;
 
