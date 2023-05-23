@@ -64,7 +64,7 @@ BT_HDR* AllocateWrappedIncomingL2capAclPacket(const uint8_t* acl_packet_bytes,
   packet->offset = 4 + L2CAP_PKT_OVERHEAD;
   packet->len = static_cast<uint16_t>(buffer_length - 4 - L2CAP_PKT_OVERHEAD);
   packet->layer_specific = 0;
-  packet->event = MSG_HC_TO_STACK_HCI_ACL;
+  packet->event = 0x1100;  // MSG_HC_TO_STACK_HCI_ACL;
   memcpy(packet->data, acl_packet_bytes, buffer_length);
   return packet;
 }

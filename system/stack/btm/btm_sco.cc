@@ -36,6 +36,8 @@
 #include "device/include/device_iot_config.h"
 #include "embdrv/sbc/decoder/include/oi_codec_sbc.h"
 #include "embdrv/sbc/decoder/include/oi_status.h"
+#include "hci/include/hci_layer.h"
+#include "main/shim/hci_layer.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
@@ -379,7 +381,12 @@ void btm_send_sco_packet(std::vector<uint8_t> data) {
     return;
   }
   BT_HDR* packet = btm_sco_make_packet(std::move(data), active_sco->hci_handle);
-  bte_main_hci_send(packet, BT_EVT_TO_LM_HCI_SCO);
+
+  auto hci = bluetooth::shim::hci_layer_get_interface();
+
+  packet->event = BT_EVT_TO_LM_HCI_SCO;
+
+  hci->transmit_downward(packet->event, packet);
 }
 
 // Build a SCO packet from uint8
