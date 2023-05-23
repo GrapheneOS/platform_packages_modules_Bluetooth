@@ -1991,6 +1991,12 @@ public class HeadsetStateMachine extends StateMachine {
 
             Object[] args = generateArgs(arg);
 
+            if (!(args[0] instanceof String)) {
+                Log.w(TAG, "Incorrect type of Android AT command!");
+                mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+                return true;
+            }
+
             String type = (String) args[0];
 
             if (type.equals(BluetoothSinkAudioPolicy.HFP_SET_SINK_AUDIO_POLICY_ID)) {
