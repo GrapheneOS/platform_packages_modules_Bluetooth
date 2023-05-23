@@ -323,6 +323,7 @@ cc_test_host {
     srcs: [
         "test/async_manager_unittest.cc",
         "test/h4_parser_unittest.cc",
+        "test/pcap_filter_unittest.cc",
         "test/posix_socket_unittest.cc",
     ],
     header_libs: [
