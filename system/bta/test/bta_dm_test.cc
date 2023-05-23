@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <memory>
 
 #include "bta/dm/bta_dm_int.h"
 #include "bta/hf_client/bta_hf_client_int.h"
@@ -31,6 +32,7 @@
 #include "stack/include/btm_status.h"
 #include "test/common/main_handler.h"
 #include "test/common/mock_functions.h"
+#include "test/fake/fake_osi.h"
 #include "test/mock/mock_osi_alarm.h"
 #include "test/mock/mock_osi_allocator.h"
 #include "test/mock/mock_stack_acl.h"
@@ -63,33 +65,12 @@ const tBTA_SYS_REG bta_dm_search_reg = {bta_dm_search_sm_execute,
 
 }  // namespace
 
-struct alarm_t {
-  alarm_t(const char* name){};
-  int any_value;
-};
-
 class BtaDmTest : public testing::Test {
  protected:
   void SetUp() override {
     reset_mock_function_count_map();
     bluetooth::common::InitFlags::Load(test_flags);
-    test::mock::osi_alarm::alarm_new.body = [](const char* name) -> alarm_t* {
-      return new alarm_t(name);
-    };
-    test::mock::osi_alarm::alarm_free.body = [](alarm_t* alarm) {
-      delete alarm;
-    };
-    test::mock::osi_allocator::osi_malloc.body = [](size_t size) {
-      return malloc(size);
-    };
-    test::mock::osi_allocator::osi_calloc.body = [](size_t size) {
-      return calloc(1UL, size);
-    };
-    test::mock::osi_allocator::osi_free.body = [](void* ptr) { free(ptr); };
-    test::mock::osi_allocator::osi_free_and_reset.body = [](void** ptr) {
-      free(*ptr);
-      *ptr = nullptr;
-    };
+    fake_osi_ = std::make_unique<test::fake::FakeOsi>();
 
     main_thread_start_up();
     post_on_bt_main([]() { LOG_INFO("Main thread started up"); });
@@ -108,14 +89,9 @@ class BtaDmTest : public testing::Test {
     bta_dm_deinit_cb();
     post_on_bt_main([]() { LOG_INFO("Main thread shutting down"); });
     main_thread_shut_down();
-
-    test::mock::osi_alarm::alarm_new = {};
-    test::mock::osi_alarm::alarm_free = {};
-    test::mock::osi_allocator::osi_malloc = {};
-    test::mock::osi_allocator::osi_calloc = {};
-    test::mock::osi_allocator::osi_free = {};
-    test::mock::osi_allocator::osi_free_and_reset = {};
   }
+
+  std::unique_ptr<test::fake::FakeOsi> fake_osi_;
 };
 
 TEST_F(BtaDmTest, nop) {
