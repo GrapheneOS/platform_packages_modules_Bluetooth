@@ -69,13 +69,11 @@ import android.os.Process;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.sysprop.BluetoothProperties;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.proto.ProtoOutputStream;
 
@@ -277,7 +275,7 @@ class BluetoothManagerService {
     private final BluetoothHandler mHandler;
     private int mErrorRecoveryRetryCounter;
 
-    private boolean mIsHearingAidProfileSupported;
+    private final boolean mIsHearingAidProfileSupported;
 
     // Save a ProfileServiceConnections object for each of the bound
     // bluetooth profile services
@@ -659,18 +657,6 @@ class BluetoothManagerService {
             mIsHearingAidProfileSupported =
                     BluetoothProperties.isProfileAshaCentralEnabled()
                             .orElse(isAshaEnabledByDefault);
-        }
-
-        String value = SystemProperties.get(
-                "persist.sys.fflag.override.settings_bluetooth_hearing_aid");
-
-        if (!TextUtils.isEmpty(value)) {
-            boolean isHearingAidEnabled = Boolean.parseBoolean(value);
-            Log.v(TAG, "set feature flag HEARING_AID_SETTINGS to " + isHearingAidEnabled);
-            if (isHearingAidEnabled && !mIsHearingAidProfileSupported) {
-                // Overwrite to enable support by FeatureFlag
-                mIsHearingAidProfileSupported = true;
-            }
         }
 
         IntentFilter filter = new IntentFilter();
