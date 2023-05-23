@@ -91,10 +91,8 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                                 service.registerCallback(mCallback, mAttributionSource, recv);
                                 recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                             }
-                        } catch (TimeoutException e) {
+                        } catch (RemoteException | TimeoutException e) {
                             Log.e(TAG, "Failed to register callback", e);
-                        } catch (RemoteException e) {
-                            throw e.rethrowFromSystemServer();
                         }
                     }
                 }
