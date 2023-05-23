@@ -16,7 +16,8 @@ import asyncio
 import avatar
 import logging
 
-from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices, bumble_server
+from avatar import BumblePandoraDevice, PandoraDevice, PandoraDevices
+from bumble import pandora as bumble_server
 from bumble.gatt import Characteristic, Service
 from bumble.pairing import PairingConfig
 from bumble_experimental.gatt import GATTService
