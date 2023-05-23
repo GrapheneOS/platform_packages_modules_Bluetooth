@@ -206,6 +206,27 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockStackAvct",
+    srcs: [
+        "mock/mock_stack_avct_*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockStackAvdt",
+    srcs: [
+        "mock/mock_stack_avdt_*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockStackAvrc",
+    srcs: [
+        "mock/mock_stack_avrc_*.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockStackL2cap",
     srcs: [
         "mock/mock_stack_l2cap_*.cc",
@@ -311,6 +332,20 @@ filegroup {
         ":TestCommonJniThread",
         ":TestMockBluetoothInterface",
         "mock/mock_btif*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockStackHid",
+    srcs: [
+        "mock/mock_stack_hid*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockStackPan",
+    srcs: [
+        "mock/mock_stack_pan*.cc",
     ],
 }
 
