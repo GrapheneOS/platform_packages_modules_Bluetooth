@@ -1,24 +1,24 @@
 set(BT_ROOT ${AOSP_ROOT}/packages/modules/Bluetooth/system)
 set(ROOTCANAL_ROOT ${AOSP_ROOT}/packages/modules/Bluetooth/tools/rootcanal)
-set(PDL_ROOT ${AOSP_ROOT}/packages/modules/Bluetooth/tools/pdl)
+set(PDL_ROOT ${AOSP_ROOT}/external/rust/crates/pdl-compiler)
 
 corrosion_import_crate(
     MANIFEST_PATH ${PDL_ROOT}/Cargo.toml
     FLAGS --offline --verbose --verbose)
 
 corrosion_set_env_vars(generate-canonical-tests CARGO_HOME=${Rust_CARGO_HOME})
-corrosion_set_env_vars(pdl CARGO_HOME=${Rust_CARGO_HOME})
-corrosion_set_hostbuild(pdl)
+corrosion_set_env_vars(pdlc CARGO_HOME=${Rust_CARGO_HOME})
+corrosion_set_hostbuild(pdlc)
 
-get_property(pdl_EXECUTABLE TARGET pdl PROPERTY EXECUTABLE_PATH)
+get_property(pdlc_EXECUTABLE TARGET pdlc PROPERTY EXECUTABLE_PATH)
 
 # These tests depend on the tempfile crate which was not imported because
 # the crate remove_dir_all does not have a compatible version.
-set_tests_properties(cargo-test_pdl PROPERTIES DISABLED True)
+set_tests_properties(cargo-test_pdlc PROPERTIES DISABLED True)
 set_tests_properties(cargo-test_generate-canonical-tests PROPERTIES DISABLED True)
 
 android_license(
-    TARGET pdl
+    TARGET pdlc
     LIBNAME None
     SPDX None
     LICENSE None
@@ -58,13 +58,13 @@ function(pdl_gen)
     add_custom_command(
         OUTPUT "${pdl_OUTPUT_ABSOLUTE}"
         COMMAND
-        ${pdl_EXECUTABLE}
+        ${pdlc_EXECUTABLE}
                 --output-format rust
                 "${pdl_INPUT_ABSOLUTE}"
                     > "${pdl_OUTPUT_ABSOLUTE}"
         COMMENT "Generating rust module from ${pdl_INPUT}"
         VERBATIM
-        DEPENDS pdl ${pdl_INPUT_ABSOLUTE})
+        DEPENDS pdlc ${pdl_INPUT_ABSOLUTE})
   endif()
 endfunction()
 
