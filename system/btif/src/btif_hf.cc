@@ -1587,6 +1587,7 @@ bt_status_t HeadsetInterface::SetActiveDevice(RawAddress* active_device_addr) {
  *
  ******************************************************************************/
 bt_status_t ExecuteService(bool b_enable) {
+  LOG_INFO("service starts to: %s", b_enable ? "Initialize" : "Shutdown");
   const char* service_names_raw[] = BTIF_HF_SERVICE_NAMES;
   std::vector<std::string> service_names;
   for (const char* service_name_raw : service_names_raw) {

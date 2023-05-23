@@ -61,7 +61,7 @@ tBTA_STATUS BTA_AgEnable(tBTA_AG_CBACK* p_cback) {
   /* Error if AG is already enabled, or AG is in the middle of disabling. */
   for (const tBTA_AG_SCB& scb : bta_ag_cb.scb) {
     if (scb.in_use) {
-      APPL_TRACE_ERROR("BTA_AgEnable: FAILED, AG already enabled.");
+      LOG_ERROR("BTA_AgEnable: FAILED, AG already enabled.");
       return BTA_FAILURE;
     }
   }

@@ -35,6 +35,12 @@ class LeAcceptlistCallbacks {
   // Invoked when controller sends Connection Complete event with Success error code
   // AddressWithType is the address returned by the controller.
   virtual void OnLeConnectSuccess(AddressWithType) = 0;
+  // Invoked when controller sends Connection Complete event with failing error code
+  // AddressWithType is the address returned by the controller.
+  virtual void OnLeConnectFail(AddressWithType, ErrorCode reason) = 0;
+  // Invoked when an LE connection is disconnected. AddressWithType is the remote address
+  // associated with this connection at the time of connection.
+  virtual void OnLeDisconnection(AddressWithType) = 0;
   // Invoked when the resolving list has changed, so we need to re-resolve our addresses.
   virtual void OnResolvingListChange() = 0;
 };
