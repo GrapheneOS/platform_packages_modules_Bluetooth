@@ -48,9 +48,14 @@ static tBTA_HH_RPT_CACHE_ENTRY sReportCache[BTA_HH_NV_LOAD_MAX];
 #define BTA_HH_CACHE_REPORT_VERSION 1
 #define THREAD_NORMAL_PRIORITY 0
 #define BT_HH_THREAD "bt_hh_thread"
+#define BTA_HH_UHID_POLL_PERIOD_MS 50
+/* Max number of polling interrupt allowed */
+#define BTA_HH_UHID_INTERRUPT_COUNT_MAX 100
 
 static const bthh_report_type_t map_rtype_uhid_hh[] = {
     BTHH_FEATURE_REPORT, BTHH_OUTPUT_REPORT, BTHH_INPUT_REPORT};
+
+static void* btif_hh_poll_event_thread(void* arg);
 
 void uhid_set_non_blocking(int fd) {
   int opts = fcntl(fd, F_GETFL);
@@ -265,6 +270,36 @@ static inline pthread_t create_thread(void* (*start_routine)(void*),
   return thread_id;
 }
 
+/* Internal function to close the UHID driver*/
+static void uhid_fd_close(btif_hh_device_t* p_dev) {
+  if (p_dev->fd >= 0) {
+    struct uhid_event ev = {};
+    ev.type = UHID_DESTROY;
+    uhid_write(p_dev->fd, &ev);
+    LOG_DEBUG("Closing fd=%d, addr:%s", p_dev->fd,
+              ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr));
+    close(p_dev->fd);
+    p_dev->fd = -1;
+  }
+}
+
+/* Internal function to open the UHID driver*/
+static bool uhid_fd_open(btif_hh_device_t* p_dev) {
+  if (p_dev->fd < 0) {
+    p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
+    if (p_dev->fd < 0) {
+      LOG_ERROR("Failed to open uhid, err:%s", strerror(errno));
+      return false;
+    }
+  }
+
+  if (p_dev->hh_keep_polling == 0) {
+    p_dev->hh_keep_polling = 1;
+    p_dev->hh_poll_thread_id = create_thread(btif_hh_poll_event_thread, p_dev);
+  }
+  return true;
+}
+
 /*******************************************************************************
  *
  * Function btif_hh_poll_event_thread
@@ -277,20 +312,23 @@ static inline pthread_t create_thread(void* (*start_routine)(void*),
 static void* btif_hh_poll_event_thread(void* arg) {
   btif_hh_device_t* p_dev = (btif_hh_device_t*)arg;
   struct pollfd pfds[1];
+  pid_t pid = gettid();
 
   // This thread is created by bt_main_thread with RT priority. Lower the thread
   // priority here since the tasks in this thread is not timing critical.
   struct sched_param sched_params;
   sched_params.sched_priority = THREAD_NORMAL_PRIORITY;
-  if (sched_setscheduler(gettid(), SCHED_OTHER, &sched_params)) {
-    APPL_TRACE_ERROR("%s: Failed to set thread priority to normal", __func__);
+  if (sched_setscheduler(pid, SCHED_OTHER, &sched_params)) {
+    LOG_ERROR("Failed to set thread priority to normal: %s", strerror(errno));
     p_dev->hh_poll_thread_id = -1;
+    p_dev->hh_keep_polling = 0;
+    uhid_fd_close(p_dev);
     return 0;
   }
-  p_dev->pid = gettid();
+
   pthread_setname_np(pthread_self(), BT_HH_THREAD);
   LOG_DEBUG("Host hid polling thread created name:%s pid:%d fd:%d",
-            BT_HH_THREAD, p_dev->pid, p_dev->fd);
+            BT_HH_THREAD, pid, p_dev->fd);
 
   pfds[0].fd = p_dev->fd;
   pfds[0].events = POLLIN;
@@ -300,40 +338,37 @@ static void* btif_hh_poll_event_thread(void* arg) {
 
   while (p_dev->hh_keep_polling) {
     int ret;
-    OSI_NO_INTR(ret = poll(pfds, 1, 50));
+    int counter = 0;
+
+    do {
+      if (counter++ > BTA_HH_UHID_INTERRUPT_COUNT_MAX) {
+        LOG_ERROR("Polling interrupted");
+        break;
+      }
+      ret = poll(pfds, 1, BTA_HH_UHID_POLL_PERIOD_MS);
+    } while (ret == -1 && errno == EINTR);
+
     if (ret < 0) {
-      APPL_TRACE_ERROR("%s: Cannot poll for fds: %s\n", __func__,
-                       strerror(errno));
+      LOG_ERROR("Cannot poll for fds: %s\n", strerror(errno));
       break;
     }
     if (pfds[0].revents & POLLIN) {
       APPL_TRACE_DEBUG("%s: POLLIN", __func__);
       ret = uhid_read_event(p_dev);
-      if (ret != 0) break;
+      if (ret != 0) {
+        LOG_ERROR("Unhandled UHID event");
+        break;
+      }
     }
   }
 
+  /* Todo: Disconnect if loop exited due to a failure */
+  LOG_INFO("Polling thread stopped for device %s",
+           ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr));
   p_dev->hh_poll_thread_id = -1;
-  p_dev->pid = -1;
-  return 0;
-}
-
-static inline void btif_hh_close_poll_thread(btif_hh_device_t* p_dev) {
-  APPL_TRACE_DEBUG("%s", __func__);
   p_dev->hh_keep_polling = 0;
-  if (p_dev->hh_poll_thread_id > 0)
-    pthread_join(p_dev->hh_poll_thread_id, NULL);
-
-  return;
-}
-
-void bta_hh_co_destroy(int fd) {
-  struct uhid_event ev;
-  memset(&ev, 0, sizeof(ev));
-  ev.type = UHID_DESTROY;
-  uhid_write(fd, &ev);
-  APPL_TRACE_DEBUG("%s: Closing fd=%d", __func__, fd);
-  close(fd);
+  uhid_fd_close(p_dev);
+  return 0;
 }
 
 int bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len) {
@@ -350,22 +385,6 @@ int bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len) {
   memcpy(ev.u.input.data, rpt, len);
 
   return uhid_write(fd, &ev);
-}
-
-static bool uhid_fd_open(btif_hh_device_t* p_dev) {
-  if (p_dev->fd < 0) {
-    p_dev->fd = open(dev_path, O_RDWR | O_CLOEXEC);
-    if (p_dev->fd < 0) {
-      LOG_ERROR("Failed to open uhid, err:%s", strerror(errno));
-      return false;
-    }
-  }
-
-  if (p_dev->hh_keep_polling == 0) {
-    p_dev->hh_keep_polling = 1;
-    p_dev->hh_poll_thread_id = create_thread(btif_hh_poll_event_thread, p_dev);
-  }
-  return true;
 }
 
 /*******************************************************************************
@@ -455,43 +474,31 @@ bool bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
  * Description   When connection is closed, this call-out function is executed
  *               by HH to do platform specific finalization.
  *
- * Parameters    dev_handle  - device handle
- *                  app_id      - application id
+ * Parameters    p_dev  - device
  *
- * Returns          void.
+ * Returns       void.
  ******************************************************************************/
-void bta_hh_co_close(uint8_t dev_handle, uint8_t app_id) {
-  uint32_t i;
-  btif_hh_device_t* p_dev = NULL;
+void bta_hh_co_close(btif_hh_device_t* p_dev) {
+  LOG_INFO("Closing device handle=%d, status=%d, address=%s", p_dev->dev_handle,
+           p_dev->dev_status, ADDRESS_TO_LOGGABLE_CSTR(p_dev->bd_addr));
 
-  APPL_TRACE_WARNING("%s: dev_handle = %d, app_id = %d", __func__, dev_handle,
-                     app_id);
-  if (dev_handle == BTA_HH_INVALID_HANDLE) {
-    APPL_TRACE_WARNING("%s: Oops, dev_handle (%d) is invalid...", __func__,
-                       dev_handle);
-    return;
-  }
-
-  for (i = 0; i < BTIF_HH_MAX_HID; i++) {
-    p_dev = &btif_hh_cb.devices[i];
-    fixed_queue_flush(p_dev->get_rpt_id_queue, osi_free);
-    fixed_queue_free(p_dev->get_rpt_id_queue, NULL);
-    p_dev->get_rpt_id_queue = NULL;
+  /* Clear the queues */
+  fixed_queue_flush(p_dev->get_rpt_id_queue, osi_free);
+  fixed_queue_free(p_dev->get_rpt_id_queue, NULL);
+  p_dev->get_rpt_id_queue = NULL;
 #if ENABLE_UHID_SET_REPORT
-    fixed_queue_flush(p_dev->set_rpt_id_queue, osi_free);
-    fixed_queue_free(p_dev->set_rpt_id_queue, nullptr);
-    p_dev->set_rpt_id_queue = nullptr;
+  fixed_queue_flush(p_dev->set_rpt_id_queue, osi_free);
+  fixed_queue_free(p_dev->set_rpt_id_queue, nullptr);
+  p_dev->set_rpt_id_queue = nullptr;
 #endif  // ENABLE_UHID_SET_REPORT
-    if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN &&
-        p_dev->dev_handle == dev_handle) {
-      APPL_TRACE_WARNING(
-          "%s: Found an existing device with the same handle "
-          "dev_status = %d, dev_handle =%d",
-          __func__, p_dev->dev_status, p_dev->dev_handle);
-      btif_hh_close_poll_thread(p_dev);
-      break;
-    }
+
+  /* Stop the polling thread */
+  p_dev->hh_keep_polling = 0;
+  if (p_dev->hh_poll_thread_id > 0) {
+    pthread_join(p_dev->hh_poll_thread_id, NULL);
   }
+  p_dev->hh_poll_thread_id = -1;
+  /* UHID file descriptor is closed by the polling thread */
 }
 
 /*******************************************************************************
