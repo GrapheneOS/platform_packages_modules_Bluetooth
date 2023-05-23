@@ -171,10 +171,9 @@ static bool event_already_registered_in_hci_layer(
     case bluetooth::hci::EventCode::LE_META_EVENT:
     case bluetooth::hci::EventCode::DISCONNECTION_COMPLETE:
     case bluetooth::hci::EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE:
-      return true;
     case bluetooth::hci::EventCode::REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION:
     case bluetooth::hci::EventCode::REMOTE_NAME_REQUEST_COMPLETE:
-      return bluetooth::common::init_flags::gd_remote_name_request_is_enabled();
+      return true;
     default:
       return false;
   }
