@@ -70,18 +70,6 @@ bool bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class, uint16_t attr_mask,
 
 /*******************************************************************************
  *
- * Function         bta_hh_co_close
- *
- * Description      This callout function is executed by HH when connection is
- *                  closed, and device specific finalizatio nmay be needed.
- *
- * Returns          void.
- *
- ******************************************************************************/
-void bta_hh_co_close(uint8_t dev_handle, uint8_t app_id);
-
-/*******************************************************************************
- *
  * Function         bta_hh_co_set_rpt_rsp
  *
  * Description      This callout function is executed by HH when Set Report
