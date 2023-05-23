@@ -285,12 +285,6 @@ typedef struct {
 
 } tBTM_INQUIRY_VAR_ST;
 
-typedef union /* contains the inquiry filter condition */
-{
-  RawAddress bdaddr_cond;
-  tBTM_COD_COND cod_cond;
-} tBTM_INQ_FILT_COND;
-
 #define BTM_INQ_RESULT_BR 0x01
 #define BTM_INQ_RESULT_BLE 0x02
 
