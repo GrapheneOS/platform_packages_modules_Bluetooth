@@ -267,16 +267,11 @@ static bool event_already_registered_in_le_scanning_manager(
 }  // namespace
 
 namespace cpp {
-bluetooth::common::BidiQueueEnd<bluetooth::hci::AclBuilder,
-                                bluetooth::hci::AclView>* hci_queue_end =
-    nullptr;
 bluetooth::common::BidiQueueEnd<bluetooth::hci::ScoBuilder,
                                 bluetooth::hci::ScoView>* hci_sco_queue_end =
     nullptr;
 bluetooth::common::BidiQueueEnd<bluetooth::hci::IsoBuilder,
                                 bluetooth::hci::IsoView>* hci_iso_queue_end =
-    nullptr;
-static bluetooth::os::EnqueueBuffer<bluetooth::hci::AclBuilder>* pending_data =
     nullptr;
 static bluetooth::os::EnqueueBuffer<bluetooth::hci::IsoBuilder>*
     pending_iso_data = nullptr;
@@ -490,11 +485,6 @@ static void register_for_iso() {
 }
 
 static void on_shutting_down() {
-  if (pending_data != nullptr) {
-    pending_data->Clear();
-    delete pending_data;
-    pending_data = nullptr;
-  }
   if (pending_sco_data != nullptr) {
     pending_sco_data->Clear();
     delete pending_sco_data;
@@ -504,25 +494,6 @@ static void on_shutting_down() {
     pending_iso_data->Clear();
     delete pending_iso_data;
     pending_iso_data = nullptr;
-  }
-  if (hci_queue_end != nullptr) {
-    for (uint16_t event_code_raw = 0; event_code_raw < 0x100;
-         event_code_raw++) {
-      auto event_code = static_cast<bluetooth::hci::EventCode>(event_code_raw);
-      if (!is_valid_event_code(event_code)) {
-        continue;
-      }
-      if (event_already_registered_in_hci_layer(event_code)) {
-        continue;
-      } else if (event_already_registered_in_le_advertising_manager(
-                     event_code)) {
-        continue;
-      } else if (event_already_registered_in_le_scanning_manager(event_code)) {
-        continue;
-      }
-      bluetooth::shim::GetHciLayer()->UnregisterEventHandler(event_code);
-    }
-    hci_queue_end = nullptr;
   }
   if (hci_sco_queue_end != nullptr) {
     hci_sco_queue_end->UnregisterDequeue();
@@ -549,24 +520,6 @@ static void transmit_command(const BT_HDR* command,
                              command_complete_cb complete_callback,
                              command_status_cb status_callback, void* context) {
   cpp::transmit_command(command, complete_callback, status_callback, context);
-}
-
-static void command_complete_callback(BT_HDR* response, void* context) {
-  auto future = static_cast<future_t*>(context);
-  future_ready(future, response);
-}
-
-static void command_status_callback(uint8_t status, BT_HDR* command,
-                                    void* context) {
-  LOG_ALWAYS_FATAL(
-      "transmit_command_futured should only send command complete opcode");
-}
-
-static future_t* transmit_command_futured(const BT_HDR* command) {
-  future_t* future = future_new();
-  transmit_command(command, command_complete_callback, command_status_callback,
-                   future);
-  return future;
 }
 
 static void transmit_fragment(BT_HDR* packet, bool send_transmit_finished) {
@@ -610,7 +563,6 @@ static void transmit_downward(uint16_t type, void* raw_data) {
 
 static hci_t interface = {.set_data_cb = set_data_cb,
                           .transmit_command = transmit_command,
-                          .transmit_command_futured = transmit_command_futured,
                           .transmit_downward = transmit_downward};
 
 const hci_t* bluetooth::shim::hci_layer_get_interface() {
