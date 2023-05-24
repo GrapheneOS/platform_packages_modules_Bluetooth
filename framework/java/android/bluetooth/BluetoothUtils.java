@@ -35,10 +35,8 @@ public final class BluetoothUtils {
      */
     private BluetoothUtils() {}
 
-    /**
-     * Timeout value for synchronous binder call
-     */
-    private static final Duration SYNC_CALLS_TIMEOUT = Duration.ofSeconds(5);
+    /** Timeout value for synchronous binder call */
+    private static final Duration SYNC_CALLS_TIMEOUT = Duration.ofSeconds(3);
 
     /**
      * @return timeout value for synchronous binder call
