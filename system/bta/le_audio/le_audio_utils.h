@@ -16,7 +16,11 @@
 
 #pragma once
 
+#ifdef TARGET_FLOSS
+#include <audio_hal_interface/audio_linux.h>
+#else
 #include <hardware/audio.h>
+#endif
 
 #include <bitset>
 #include <vector>

@@ -16,6 +16,7 @@
  */
 
 #include <base/functional/bind.h>
+#include <base/logging.h>
 #include <lc3.h>
 
 #include <mutex>
