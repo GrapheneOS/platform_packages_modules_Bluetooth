@@ -48,6 +48,10 @@ typedef uint8_t tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
 inline constexpr tBTM_BD_NAME kBtmBdNameEmpty = {};
 constexpr size_t kBdNameLength = static_cast<size_t>(BD_NAME_LEN);
 
+inline size_t bd_name_copy(BD_NAME bd_name_dest, const char* src) {
+  return strlcpy(reinterpret_cast<char*>(bd_name_dest), const_cast<char*>(src),
+                 kBdNameLength + 1);
+}
 inline size_t bd_name_copy(BD_NAME bd_name_dest, const BD_NAME bd_name_src) {
   return strlcpy(reinterpret_cast<char*>(bd_name_dest),
                  reinterpret_cast<const char*>(bd_name_src), kBdNameLength + 1);
