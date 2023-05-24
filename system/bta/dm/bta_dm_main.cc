@@ -21,9 +21,13 @@
  *  This is the main implementation file for the BTA device manager.
  *
  ******************************************************************************/
+#include <base/strings/stringprintf.h>
+#include <stddef.h>
 
 #include "bt_trace.h"
 #include "bta/dm/bta_dm_int.h"
+#include "gd/common/circular_buffer.h"
+#include "gd/common/strings.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 
@@ -31,9 +35,37 @@
  * Constants and types
  ****************************************************************************/
 
+namespace {
+constexpr size_t kSearchStateHistorySize = 50;
+constexpr char kTimeFormatString[] = "%Y-%m-%d %H:%M:%S";
+
+constexpr unsigned MillisPerSecond = 1000;
+std::string EpochMillisToString(long long time_ms) {
+  time_t time_sec = time_ms / MillisPerSecond;
+  struct tm tm;
+  localtime_r(&time_sec, &tm);
+  std::string s = bluetooth::common::StringFormatTime(kTimeFormatString, tm);
+  return base::StringPrintf(
+      "%s.%03u", s.c_str(),
+      static_cast<unsigned int>(time_ms % MillisPerSecond));
+}
+}  // namespace
+
 tBTA_DM_CB bta_dm_cb;
 tBTA_DM_SEARCH_CB bta_dm_search_cb;
 tBTA_DM_DI_CB bta_dm_di_cb;
+
+struct tSEARCH_STATE_HISTORY {
+  const tBTA_DM_STATE state;
+  const tBTA_DM_EVT event;
+  std::string ToString() const {
+    return base::StringPrintf("state:%25s event:%s",
+                              bta_dm_state_text(state).c_str(),
+                              bta_dm_event_text(event).c_str());
+  }
+};
+bluetooth::common::TimestampedCircularBuffer<tSEARCH_STATE_HISTORY>
+    search_state_history_(kSearchStateHistorySize);
 
 /*******************************************************************************
  *
@@ -58,9 +90,14 @@ void bta_dm_search_sm_disable() { bta_sys_deregister(BTA_ID_DM_SEARCH); }
  *
  ******************************************************************************/
 bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
-  LOG_INFO("bta_dm_search_sm_execute state:%d, event:0x%x",
-           bta_dm_search_get_state(), p_msg->event);
-
+  const tBTA_DM_EVT event = static_cast<tBTA_DM_EVT>(p_msg->event);
+  LOG_INFO("state:%s, event:%s[0x%x]",
+           bta_dm_state_text(bta_dm_search_get_state()).c_str(),
+           bta_dm_event_text(event).c_str(), event);
+  search_state_history_.Push({
+      .state = bta_dm_search_get_state(),
+      .event = event,
+  });
   tBTA_DM_MSG* message = (tBTA_DM_MSG*)p_msg;
   switch (bta_dm_search_get_state()) {
     case BTA_DM_SEARCH_IDLE:
@@ -84,8 +121,9 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           bta_dm_close_gatt_conn(message);
           break;
         default:
-          LOG_INFO("Received unexpected event 0x%x in state %d", p_msg->event,
-                   bta_dm_search_get_state());
+          LOG_INFO("Received unexpected event %s[0x%x] in state %s",
+                   bta_dm_event_text(event).c_str(), event,
+                   bta_dm_state_text(bta_dm_search_get_state()).c_str());
       }
       break;
     case BTA_DM_SEARCH_ACTIVE:
@@ -111,8 +149,9 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           bta_dm_search_cancel();
           break;
         default:
-          LOG_INFO("Received unexpected event 0x%x in state %d", p_msg->event,
-                   bta_dm_search_get_state());
+          LOG_INFO("Received unexpected event %s[0x%x] in state %s",
+                   bta_dm_event_text(event).c_str(), event,
+                   bta_dm_state_text(bta_dm_search_get_state()).c_str());
       }
       break;
     case BTA_DM_SEARCH_CANCELLING:
@@ -144,8 +183,9 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           }
           [[fallthrough]];
         default:
-          LOG_INFO("Received unexpected event 0x%x in state %d", p_msg->event,
-                   bta_dm_search_get_state());
+          LOG_INFO("Received unexpected event %s[0x%x] in state %s",
+                   bta_dm_event_text(event).c_str(), event,
+                   bta_dm_state_text(bta_dm_search_get_state()).c_str());
       }
       break;
     case BTA_DM_DISCOVER_ACTIVE:
@@ -181,10 +221,25 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           }
           [[fallthrough]];
         default:
-          LOG_INFO("Received unexpected event 0x%x in state %d", p_msg->event,
-                   bta_dm_search_get_state());
+          LOG_INFO("Received unexpected event %s[0x%x] in state %s",
+                   bta_dm_event_text(event).c_str(), event,
+                   bta_dm_state_text(bta_dm_search_get_state()).c_str());
       }
       break;
   }
   return true;
 }
+
+#define DUMPSYS_TAG "shim::legacy::bta::dm"
+void DumpsysBtaDm(int fd) {
+  LOG_DUMPSYS_TITLE(fd, DUMPSYS_TAG);
+  auto copy = search_state_history_.Pull();
+  LOG_DUMPSYS(fd, " last %zu search state transitions", copy.size());
+  for (const auto& it : copy) {
+    LOG_DUMPSYS(fd, "   %s %s", EpochMillisToString(it.timestamp).c_str(),
+                it.entry.ToString().c_str());
+  }
+  LOG_DUMPSYS(fd, " current bta_dm_search_state:%s",
+              bta_dm_state_text(bta_dm_search_get_state()).c_str());
+}
+#undef DUMPSYS_TAG

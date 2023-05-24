@@ -64,7 +64,7 @@ cc_library {
         "//packages/modules/Bluetooth:__subpackages__",
         "//vendor:__subpackages__",
     ],
-    defaults: ["fluoride_full_defaults"],
+    defaults: ["fluoride_basic_defaults"],
     header_libs: ["libbluetooth_headers"],
     export_header_lib_headers: ["libbluetooth_headers"],
     include_dirs: [

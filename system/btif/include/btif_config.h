@@ -69,7 +69,5 @@ size_t btif_config_get_bin_length(const std::string& section,
 
 std::vector<RawAddress> btif_config_get_paired_devices();
 
-void btif_config_save(void);
-void btif_config_flush(void);
 bool btif_config_clear(void);
 void btif_debug_config_dump(int fd);
