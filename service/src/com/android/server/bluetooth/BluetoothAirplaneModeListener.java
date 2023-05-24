@@ -57,8 +57,6 @@ public class BluetoothAirplaneModeListener {
     public static final String APM_USER_TOGGLED_BLUETOOTH = "apm_user_toggled_bluetooth";
     // keeps track of whether bt should remain on in airplane mode
     public static final String BLUETOOTH_APM_STATE = "bluetooth_apm_state";
-    // keeps track of what the default value for bt should be in airplane mode
-    public static final String BT_DEFAULT_APM_STATE = "bt_default_apm_state";
     // keeps track of whether user enabling bt notification was shown
     public static final String APM_BT_ENABLED_NOTIFICATION = "apm_bt_enabled_notification";
 

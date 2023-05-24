@@ -392,6 +392,9 @@ public class DatabaseManager {
             logMetadataChange(data, profileStr + " connection policy changed: "
                                     + oldConnectionPolicy + " -> " + newConnectionPolicy);
 
+            Log.v(TAG, "setProfileConnectionPolicy: device " + device.getAnonymizedAddress()
+                    + " profile=" + profileStr + ", connectionPolicy=" + newConnectionPolicy);
+
             data.setProfileConnectionPolicy(profile, newConnectionPolicy);
             updateDatabase(data);
             return true;

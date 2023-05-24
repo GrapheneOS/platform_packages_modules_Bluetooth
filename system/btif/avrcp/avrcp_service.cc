@@ -32,8 +32,11 @@
 #include "device.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"
+#include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
+
+using namespace bluetooth::legacy::stack::sdp;
 
 namespace bluetooth {
 namespace avrcp {
@@ -121,26 +124,29 @@ class SdpInterfaceImpl : public SdpInterface {
   bool InitDiscoveryDb(tSDP_DISCOVERY_DB* a, uint32_t b, uint16_t c,
                        const bluetooth::Uuid* d, uint16_t e,
                        uint16_t* f) override {
-    return SDP_InitDiscoveryDb(a, b, c, d, e, f);
+    return get_legacy_stack_sdp_api()->service.SDP_InitDiscoveryDb(a, b, c, d,
+                                                                   e, f);
   }
 
   bool ServiceSearchAttributeRequest(const RawAddress& a, tSDP_DISCOVERY_DB* b,
                                      tSDP_DISC_CMPL_CB* c) override {
-    return SDP_ServiceSearchAttributeRequest(a, b, c);
+    return get_legacy_stack_sdp_api()
+        ->service.SDP_ServiceSearchAttributeRequest(a, b, c);
   }
 
   tSDP_DISC_REC* FindServiceInDb(tSDP_DISCOVERY_DB* a, uint16_t b,
                                  t_sdp_disc_rec* c) override {
-    return SDP_FindServiceInDb(a, b, c);
+    return get_legacy_stack_sdp_api()->db.SDP_FindServiceInDb(a, b, c);
   }
 
   tSDP_DISC_ATTR* FindAttributeInRec(t_sdp_disc_rec* a, uint16_t b) override {
-    return SDP_FindAttributeInRec(a, b);
+    return get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(a, b);
   }
 
   bool FindProfileVersionInRec(t_sdp_disc_rec* a, uint16_t b,
                                uint16_t* c) override {
-    return SDP_FindProfileVersionInRec(a, b, c);
+    return get_legacy_stack_sdp_api()->record.SDP_FindProfileVersionInRec(a, b,
+                                                                          c);
   }
 } sdp_interface_;
 
@@ -371,7 +377,7 @@ void AvrcpService::Init(MediaInterface* media_interface,
   profile_version = avrcp_interface_.GetAvrcpVersion();
 
   uint16_t supported_features = GetSupportedFeatures(profile_version);
-  sdp_record_handle = SDP_CreateRecord();
+  sdp_record_handle = get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
 
   avrcp_interface_.AddRecord(UUID_SERVCLASS_AV_REM_CTRL_TARGET,
                              "AV Remote Control Target", NULL,
@@ -379,7 +385,7 @@ void AvrcpService::Init(MediaInterface* media_interface,
                              profile_version, 0);
   bta_sys_add_uuid(UUID_SERVCLASS_AV_REM_CTRL_TARGET);
 
-  ct_sdp_record_handle = SDP_CreateRecord();
+  ct_sdp_record_handle = get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
 
   avrcp_interface_.AddRecord(UUID_SERVCLASS_AV_REMOTE_CONTROL,
                              "AV Remote Control", NULL, AVRCP_SUPF_TG_CT,
@@ -452,7 +458,7 @@ void AvrcpService::RegisterBipServer(int psm) {
   avrcp_interface_.RemoveRecord(sdp_record_handle);
   uint16_t supported_features
       = GetSupportedFeatures(profile_version) | AVRC_SUPF_TG_PLAYER_COVER_ART;
-  sdp_record_handle = SDP_CreateRecord();
+  sdp_record_handle = get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
   avrcp_interface_.AddRecord(UUID_SERVCLASS_AV_REM_CTRL_TARGET,
                              "AV Remote Control Target", NULL,
                              supported_features, sdp_record_handle, true,
@@ -463,7 +469,7 @@ void AvrcpService::UnregisterBipServer() {
   LOG(INFO) << "AVRCP Target Service has unregistered a BIP OBEX server";
   avrcp_interface_.RemoveRecord(sdp_record_handle);
   uint16_t supported_features = GetSupportedFeatures(profile_version);
-  sdp_record_handle = SDP_CreateRecord();
+  sdp_record_handle = get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
   avrcp_interface_.AddRecord(UUID_SERVCLASS_AV_REM_CTRL_TARGET,
                              "AV Remote Control Target", NULL,
                              supported_features, sdp_record_handle, true,

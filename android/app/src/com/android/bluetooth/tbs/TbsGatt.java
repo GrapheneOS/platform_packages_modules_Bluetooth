@@ -1025,7 +1025,7 @@ public class TbsGatt {
             operations.add(op);
             // Send authorization request for each device only for it's first GATT request
             if (operations.size() == 1) {
-                mTbsService.getDeviceAuthorization(device);
+                mTbsService.onDeviceUnauthorized(device);
             }
         }
     }

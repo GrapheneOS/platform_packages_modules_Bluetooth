@@ -90,11 +90,22 @@ public class BrowseTreeTest {
     }
 
     @Test
-    public void findBrowseNodeByID() {
-        BrowseTree browseTree = new BrowseTree(mTestDevice);
-
-        assertThat(browseTree.findBrowseNodeByID(ILLEGAL_ID)).isNull();
+    public void findBrowseNodeByIDForRoot() {
+        BrowseTree browseTree = new BrowseTree(null);
         assertThat(browseTree.findBrowseNodeByID(BrowseTree.ROOT)).isEqualTo(browseTree.mRootNode);
+    }
+
+    @Test
+    public void findBrowseNodeByIDForDevice() {
+        BrowseTree browseTree = new BrowseTree(mTestDevice);
+        final String deviceId = BrowseTree.ROOT + mTestDevice.getAddress().toString();
+        assertThat(browseTree.findBrowseNodeByID(deviceId)).isEqualTo(browseTree.mRootNode);
+    }
+
+    @Test
+    public void findBrowseNodeByIDForIllegalId() {
+        BrowseTree browseTree = new BrowseTree(mTestDevice);
+        assertThat(browseTree.findBrowseNodeByID(ILLEGAL_ID)).isNull();
     }
 
     @Test

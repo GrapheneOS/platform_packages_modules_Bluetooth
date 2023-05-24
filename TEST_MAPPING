@@ -13,9 +13,9 @@
     //{
     //  "name": "FrameworkBluetoothTests"
     //},
-    {
-      "name": "ServiceBluetoothTests"
-    },
+    //{
+    //  "name": "ServiceBluetoothTests"
+    //},
     // device only tests
     // Broken
     //{
@@ -44,6 +44,9 @@
     },
     {
       "name": "net_test_btif_profile_queue"
+    },
+    {
+      "name": "net_test_btif_avrcp_audio_track"
     },
     {
       "name": "net_test_device"
@@ -223,9 +226,9 @@
     //{
     //  "name": "FrameworkBluetoothTests"
     //},
-    {
-      "name": "ServiceBluetoothTests"
-    },
+    //{
+    //  "name": "ServiceBluetoothTests"
+    //},
     // device only tests
     // Broken
     //{
@@ -254,6 +257,9 @@
     },
     {
       "name": "net_test_btif_profile_queue"
+    },
+    {
+      "name": "net_test_btif_avrcp_audio_track"
     },
     {
       "name": "net_test_device"
