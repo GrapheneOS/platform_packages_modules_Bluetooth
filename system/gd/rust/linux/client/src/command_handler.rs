@@ -1536,7 +1536,7 @@ impl CommandHandler {
                 let (addr, sock_type, psm_or_uuid) =
                     (&get_arg(args, 1)?, &get_arg(args, 2)?, &get_arg(args, 3)?);
                 let device = BluetoothDevice {
-                    address: addr.clone().into(),
+                    address: String::from(*addr),
                     name: String::from("Socket Connect Device"),
                 };
 
@@ -1558,7 +1558,7 @@ impl CommandHandler {
 
                     match &sock_type[0..] {
                         "l2cap" => {
-                            let psm = match psm_or_uuid.clone().parse::<i32>() {
+                            let psm = match psm_or_uuid.parse::<i32>() {
                                 Ok(v) => v,
                                 Err(e) => {
                                     return Err(CommandError::Failed(format!(
@@ -1583,7 +1583,7 @@ impl CommandHandler {
                             }
                         }
                         "rfcomm" => {
-                            let uuid = match UuidHelper::parse_string(psm_or_uuid.clone()) {
+                            let uuid = match UuidHelper::parse_string(*psm_or_uuid) {
                                 Some(uu) => uu,
                                 None => {
                                     return Err(CommandError::Failed(format!(
