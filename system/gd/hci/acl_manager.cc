@@ -243,6 +243,16 @@ void AclManager::UnregisterLeCallbacks(LeConnectionCallbacks* callbacks, std::pr
   CallOn(pimpl_->le_impl_, &le_impl::handle_unregister_le_callbacks, common::Unretained(callbacks), std::move(promise));
 }
 
+void AclManager::UnregisterLeAcceptlistCallbacks(
+    LeAcceptlistCallbacks* callbacks, std::promise<void> promise) {
+  ASSERT(callbacks != nullptr);
+  CallOn(
+      pimpl_->le_impl_,
+      &le_impl::handle_unregister_le_acceptlist_callbacks,
+      common::Unretained(callbacks),
+      std::move(promise));
+}
+
 void AclManager::CreateConnection(Address address) {
   CallOn(pimpl_->classic_impl_, &classic_impl::create_connection, address);
 }
@@ -273,9 +283,13 @@ void AclManager::SetPrivacyPolicyForInitiatorAddress(
     std::chrono::milliseconds minimum_rotation_time,
     std::chrono::milliseconds maximum_rotation_time) {
   crypto_toolbox::Octet16 rotation_irk{};
-  auto irk = GetDependency<storage::StorageModule>()->GetAdapterConfig().GetLeIdentityResolvingKey();
-  if (irk.has_value()) {
-    rotation_irk = irk->bytes;
+  auto irk_prop =
+      GetDependency<storage::StorageModule>()->GetProperty("Adapter", "LE_LOCAL_KEY_IRK");
+  if (irk_prop.has_value()) {
+    auto irk = common::ByteArray<16>::FromString(irk_prop.value());
+    if (irk.has_value()) {
+      rotation_irk = irk->bytes;
+    }
   }
   CallOn(
       pimpl_->le_impl_,

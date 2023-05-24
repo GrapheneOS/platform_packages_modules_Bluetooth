@@ -58,7 +58,6 @@ cc_defaults {
         "libhidlbase",
         "liblog",
         "libstatssocket",
-        "libtinyxml2",
         "libutils",
         "libPlatformProperties",
     ],
@@ -103,13 +102,6 @@ cc_defaults {
         "libbluetooth_headers",
         "libhardware_headers",
     ],
-    target: {
-        android: {
-            shared_libs: [
-                "android.hardware.bluetooth.audio-V3-ndk",
-            ],
-        },
-    },
 }
 
 cc_test {
@@ -126,8 +118,13 @@ cc_test {
         "gatt/gatt_unittest.cc",
     ],
     static_libs: [
+        "android.hardware.audio.common-V1-ndk",
+        "android.hardware.bluetooth.audio-V3-ndk",
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
+        "android.hardware.common-V2-ndk",
+        "android.hardware.common.fmq-V1-ndk",
+        "android.media.audio.common.types-V2-ndk",
         "libchrome",
         "libevent",
     ],

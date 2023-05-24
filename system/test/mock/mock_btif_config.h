@@ -201,22 +201,6 @@ struct btif_config_remove {
   };
 };
 extern struct btif_config_remove btif_config_remove;
-// Name: btif_config_save
-// Params: void
-// Returns: void
-struct btif_config_save {
-  std::function<void(void)> body{[](void) {}};
-  void operator()(void) { body(); };
-};
-extern struct btif_config_save btif_config_save;
-// Name: btif_config_flush
-// Params: void
-// Returns: void
-struct btif_config_flush {
-  std::function<void(void)> body{[](void) {}};
-  void operator()(void) { body(); };
-};
-extern struct btif_config_flush btif_config_flush;
 // Name: btif_config_clear
 // Params: void
 // Returns: bool

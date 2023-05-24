@@ -29,8 +29,6 @@
 #include "stack/include/gap_api.h"
 #include "types/raw_address.h"
 
-constexpr uint16_t HEARINGAID_MAX_NUM_UUIDS = 1;
-
 constexpr uint16_t HA_INTERVAL_10_MS = 10;
 constexpr uint16_t HA_INTERVAL_20_MS = 20;
 

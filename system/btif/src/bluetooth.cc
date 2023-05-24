@@ -51,6 +51,7 @@
 
 #include "audio_hal_interface/a2dp_encoding.h"
 #include "bta/hh/bta_hh_int.h"  // for HID HACK profile methods
+#include "bta/include/bta_api.h"
 #include "bta/include/bta_ar_api.h"
 #include "bta/include/bta_csis_api.h"
 #include "bta/include/bta_has_api.h"
@@ -795,6 +796,7 @@ static void dump(int fd, const char** arguments) {
   bluetooth::bqr::DebugDump(fd);
   PAN_Dumpsys(fd);
   DumpsysHid(fd);
+  DumpsysBtaDm(fd);
   bluetooth::shim::Dump(fd, arguments);
 }
 

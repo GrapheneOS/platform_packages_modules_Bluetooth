@@ -104,6 +104,7 @@ class LEConnectionMetricsRemoteDevice {
   void UploadLEConnectionSession(const hci::Address& address);
 
  private:
+  mutable std::mutex le_connection_metrics_remote_device_guard;
   std::vector<std::unique_ptr<LEConnectionMetricState>> device_metrics;
   std::unordered_map<hci::Address, LEConnectionMetricState*> opened_devices;
   BaseMetricsLoggerModule* metrics_logger_module;
