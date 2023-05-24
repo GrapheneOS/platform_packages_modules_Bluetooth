@@ -371,6 +371,7 @@ cc_test {
         "sys/utl.cc",
         "test/bta_api_test.cc",
         "test/bta_av_test.cc",
+        "test/bta_dm_cust_uuid_test.cc",
         "test/bta_dm_test.cc",
         "test/bta_gatt_test.cc",
         "test/bta_hf_client_add_record_test.cc",
