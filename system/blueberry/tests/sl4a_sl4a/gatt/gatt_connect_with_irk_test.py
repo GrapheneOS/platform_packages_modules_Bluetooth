@@ -111,8 +111,8 @@ class GattConnectWithIrkTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
 
         # Set up SL4A DUT side to scan
         addr_type = ble_address_types["public"]
-        logging.info("Start scanning for PUBLIC_ADDRESS %s with address type %d and IRK %s" % (cert_public_address,
-                                                                                               addr_type, irk))
+        logging.info("Start scanning for PUBLIC_ADDRESS %s with address type %d and IRK %s" %
+                     (cert_public_address, addr_type, irk))
         self.dut.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['low_latency'])
         self.dut.sl4a.bleSetScanSettingsLegacy(False)
         filter_list, scan_settings, scan_callback = generate_ble_scan_objects(self.dut.sl4a)
@@ -129,8 +129,7 @@ class GattConnectWithIrkTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         assertThat(mac_address).isNotNone()
         logging.info("Filter advertisement with address {}".format(mac_address))
 
-        # Stop scanning and try to connect GATT
-        self.dut.sl4a.bleStopBleScan(scan_callback)
+        # Try to connect GATT
         gatt_callback = self.dut.sl4a.gattCreateGattCallback()
         bluetooth_gatt = self.dut.sl4a.gattClientConnectGatt(gatt_callback, mac_address, False,
                                                              GattTransport.TRANSPORT_LE, False, None)
@@ -142,6 +141,7 @@ class GattConnectWithIrkTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
 
         # Test over
         self.cert.sl4a.bleStopBleAdvertising(advertise_callback)
+        self.dut.sl4a.bleStopBleScan(scan_callback)
 
 
 if __name__ == '__main__':
