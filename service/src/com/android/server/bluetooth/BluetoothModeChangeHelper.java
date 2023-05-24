@@ -17,7 +17,6 @@
 package com.android.server.bluetooth;
 
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.BLUETOOTH_APM_STATE;
-import static com.android.server.bluetooth.BluetoothAirplaneModeListener.BT_DEFAULT_APM_STATE;
 
 import android.annotation.RequiresPermission;
 import android.app.ActivityManager;
@@ -195,9 +194,8 @@ public class BluetoothModeChangeHelper {
     public boolean isBluetoothOnAPM() {
         Context userContext = mContext.createContextAsUser(
                 UserHandle.of(ActivityManager.getCurrentUser()), 0);
-        int defaultBtApmState = getSettingsInt(BT_DEFAULT_APM_STATE);
         return Settings.Secure.getInt(userContext.getContentResolver(),
-                BLUETOOTH_APM_STATE, defaultBtApmState) == 1;
+                BLUETOOTH_APM_STATE, 0) == 1;
     }
 
     /**

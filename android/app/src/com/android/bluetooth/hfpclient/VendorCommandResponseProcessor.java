@@ -127,12 +127,7 @@ class VendorCommandResponseProcessor {
         return true;
     }
 
-    public boolean processEvent(String atString, BluetoothDevice device) {
-        if (device == null) {
-            Log.w(TAG, "processVendorEvent device is null");
-            return false;
-        }
-
+    private String getVendorIdFromAtCommand(String atString) {
         // Get event code
         int indexOfEqual = atString.indexOf('=');
         int indexOfColon = atString.indexOf(':');
@@ -148,13 +143,29 @@ class VendorCommandResponseProcessor {
         // replace all white spaces
         eventCode = eventCode.replaceAll("\\s+", "");
 
+        return eventCode;
+    }
+
+    public boolean isAndroidAtCommand(String atString) {
+        String eventCode = getVendorIdFromAtCommand(atString);
+        Integer vendorId = SUPPORTED_VENDOR_EVENTS.get(eventCode);
+        if (vendorId == null) {
+            return false;
+        }
+        return vendorId == BluetoothAssignedNumbers.GOOGLE;
+    }
+
+    public boolean processEvent(String atString, BluetoothDevice device) {
+        if (device == null) {
+            Log.w(TAG, "processVendorEvent device is null");
+            return false;
+        }
+
+        String eventCode = getVendorIdFromAtCommand(atString);
         Integer vendorId = SUPPORTED_VENDOR_EVENTS.get(eventCode);
         if (vendorId == null) {
             Log.e(TAG, "Invalid response: " + atString + ". " + eventCode);
             return false;
-        } else if (vendorId == BluetoothAssignedNumbers.GOOGLE) {
-            Log.i(TAG, "received +ANDROID event. Setting Audio policy to true");
-            mService.setAudioPolicyRemoteSupported(device, true);
         } else {
             broadcastVendorSpecificEventIntent(vendorId, eventCode, atString, device);
             logD("process vendor event " + vendorId + ", " + eventCode + ", "

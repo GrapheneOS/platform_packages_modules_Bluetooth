@@ -755,10 +755,6 @@ cc_test {
     ],
     target: {
         android: {
-            shared_libs: [
-                "android.hardware.bluetooth.audio-V3-ndk",
-                "libbinder_ndk",
-            ],
             whole_static_libs: [
                 "libPlatformProperties",
             ],
@@ -881,14 +877,6 @@ cc_test {
         "liblc3",
         "libosi",
     ],
-    target: {
-        android: {
-            shared_libs: [
-                "android.hardware.bluetooth.audio-V3-ndk",
-                "libbinder_ndk",
-            ],
-        },
-    },
     sanitize: {
         cfi: true,
         scs: true,

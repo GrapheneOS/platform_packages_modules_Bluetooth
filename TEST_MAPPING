@@ -46,6 +46,9 @@
       "name": "net_test_btif_profile_queue"
     },
     {
+      "name": "net_test_btif_avrcp_audio_track"
+    },
+    {
       "name": "net_test_device"
     },
     {
@@ -254,6 +257,9 @@
     },
     {
       "name": "net_test_btif_profile_queue"
+    },
+    {
+      "name": "net_test_btif_avrcp_audio_track"
     },
     {
       "name": "net_test_device"
