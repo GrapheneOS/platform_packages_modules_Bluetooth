@@ -369,9 +369,6 @@
       "name": "net_test_eatt"
     },
     {
-      "name": "net_test_hci_fragmenter_native"
-    },
-    {
       "name": "net_test_main_shim"
     },
     {
