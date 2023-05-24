@@ -123,6 +123,12 @@ inline constexpr DEV_CLASS kDevClassEmpty = {};
   }
 
 #ifdef __cplusplus
+inline void dev_class_copy(DEV_CLASS& dst, const DEV_CLASS& src) {
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
+}
+
 #include <sstream>
 inline std::string dev_class_text(const DEV_CLASS& dev_class) {
   std::ostringstream oss;
