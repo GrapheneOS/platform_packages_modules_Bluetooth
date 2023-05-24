@@ -206,12 +206,13 @@ def write_record_file(file_name, audio_params, frames):
     wf.close()
 
 
-def get_mac_address_of_generic_advertisement(scan_device, adv_device):
+def get_mac_address_of_generic_advertisement(scan_device, adv_device, adv_addr_type=None):
     """Start generic advertisement and get it's mac address by LE scanning.
 
     Args:
         scan_ad: The Android device to use as the scanner.
         adv_device: The Android device to use as the advertiser.
+        adv_addr_type: The address type for the advertiser (refer to AdvertiseSettings.java)
 
     Returns:
         mac_address: The mac address of the advertisement.
@@ -222,6 +223,10 @@ def get_mac_address_of_generic_advertisement(scan_device, adv_device):
     adv_device.sl4a.bleSetAdvertiseSettingsAdvertiseMode(ble_advertise_settings_modes['low_latency'])
     adv_device.sl4a.bleSetAdvertiseSettingsIsConnectable(True)
     adv_device.sl4a.bleSetAdvertiseSettingsTxPowerLevel(ble_advertise_settings_tx_powers['high'])
+
+    if adv_addr_type is not None:
+        adv_device.sl4a.bleSetAdvertiseSettingsOwnAddressType(adv_addr_type)
+
     advertise_callback, advertise_data, advertise_settings = (generate_ble_advertise_objects(adv_device.sl4a))
     adv_device.sl4a.bleStartBleAdvertising(advertise_callback, advertise_data, advertise_settings)
     try:
