@@ -24,9 +24,10 @@ _VENV_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/avatar/venv"
 _BT_ROOT="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth"
 _TEST_ROOT="${_BT_ROOT}/android/pandora/test"
 _PY_SOURCES=(
-  "${ANDROID_BUILD_TOP}/external/pandora/avatar/"{avatar,cases}
+  "${ANDROID_BUILD_TOP}/external/pandora/avatar/"{avatar,examples}
   "${_BT_ROOT}/pandora/server/bumble_experimental"
-  "${_TEST_ROOT}/"*.py
+  "${_TEST_ROOT}/"*_test.py
+  "${_TEST_ROOT}/main.py"
 )
 
 _PANDORA_PYTHON_PATHS=(
