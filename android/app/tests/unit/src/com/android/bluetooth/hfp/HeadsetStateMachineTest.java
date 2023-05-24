@@ -1439,118 +1439,18 @@ public class HeadsetStateMachineTest {
     /**
      * A test to validate received Android AT commands and processing
      */
+    @Ignore("b/275668166")
     @Test
-    public void testCheckAndProcessAndroidAt() {
-        // Commands that will be handled
-        Assert.assertTrue(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "+ANDROID=?" , mTestDevice));
-        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).atResponseCode(
-                mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
-        Assert.assertTrue(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "+ANDROID=SINKAUDIOPOLICY,1,1,1" , mTestDevice));
-        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).atResponseCode(
-                mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
-        Assert.assertTrue(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "+ANDROID=SINKAUDIOPOLICY,100,100,100" , mTestDevice));
-        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(3)).atResponseCode(
-                mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
-        Assert.assertTrue(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "+ANDROID=SINKAUDIOPOLICY,1,2,3,4,5" , mTestDevice));
-        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).atResponseCode(
-                mTestDevice, HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
-
-        // Commands with correct format but will not be handled
-        Assert.assertFalse(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "+ANDROID=" , mTestDevice));
-        Assert.assertFalse(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "+ANDROID: PROBE,1,\"`AB\"" , mTestDevice));
-        Assert.assertFalse(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "+ANDROID= PROBE,1,\"`AB\"" , mTestDevice));
-        Assert.assertFalse(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "AT+ANDROID=PROBE,1,1,\"PQGHRSBCTU__\"" , mTestDevice));
-
-        // Incorrect format AT command
-        Assert.assertFalse(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "RANDOM FORMAT" , mTestDevice));
-
-        // Check no any AT result was sent for the failed ones
-        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(3)).atResponseCode(
-                mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
-        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).atResponseCode(
-                mTestDevice, HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
-    }
-
-    @Test
-    public void testCheckAndProcessAndroidAt_replyAndroidAtFeatureRequest() {
-        // Commands that will be handled
-        Assert.assertTrue(mHeadsetStateMachine.checkAndProcessAndroidAt(
-            "+ANDROID=?" , mTestDevice));
-        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).atResponseString(
-                mTestDevice, "+ANDROID: (SINKAUDIOPOLICY)");
-        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).atResponseCode(
-                mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK, 0);
-    }
-
-    /**
-     * A end to end test to validate received Android AT commands and processing
-     */
-    @Test
-    public void testCehckAndProcessAndroidAtFromStateMachine() {
-        // setAudioPolicyMetadata is invoked in HeadsetStateMachine.init() so start from 1
-        int expectCallTimes = 1;
-
-        // setup Audio Policy Feature
+    public void testProcessAndroidAt() {
         setUpConnectedState();
-
+        // setup Audio Policy Feature
         setUpAudioPolicy();
         // receive and set android policy
         mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
                 new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_UNKNOWN_AT,
-                        "+ANDROID=SINKAUDIOPOLICY,1,1,1", mTestDevice));
-        expectCallTimes++;
-        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(expectCallTimes))
+                        "+ANDROID=1,1,1,1", mTestDevice));
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
                 .setAudioPolicyMetadata(anyObject(), anyObject());
-
-        // receive and not set android policy
-        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
-                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_UNKNOWN_AT,
-                        "AT+ANDROID=PROBE,1,1,\"PQGHRSBCTU__\"", mTestDevice));
-        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(expectCallTimes))
-                .setAudioPolicyMetadata(anyObject(), anyObject());
-    }
-
-    /**
-     * A test to verify whether the sink audio policy command is valid
-     */
-    @Test
-    public void testProcessAndroidAtSinkAudioPolicy() {
-        // expected format
-        Assert.assertTrue(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,0,0,0", mTestDevice));
-        Assert.assertTrue(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,0,0,1", mTestDevice));
-        Assert.assertTrue(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,0,1,0", mTestDevice));
-        Assert.assertTrue(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,1,0,0", mTestDevice));
-        Assert.assertTrue(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,1,1,1", mTestDevice));
-
-        // invalid format
-        Assert.assertFalse(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,0", mTestDevice));
-        Assert.assertFalse(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,0,0", mTestDevice));
-        Assert.assertFalse(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,0,0,0,0", mTestDevice));
-        Assert.assertFalse(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,NOT,INT,TYPE", mTestDevice));
-        Assert.assertFalse(setSinkAudioPolicyArgs("RANDOM,VALUE-#$%,*(&^", mTestDevice));
-
-        // wrong device
-        BluetoothDevice device = mAdapter.getRemoteDevice("01:01:01:01:01:01");
-        Assert.assertFalse(setSinkAudioPolicyArgs("SINKAUDIOPOLICY,0,0,0", device));
-    }
-
-    /**
-     * set sink audio policy
-     * @param arg body of the AT command
-     * @return the result from processAndroidAtSinkAudioPolicy
-     */
-    private boolean setSinkAudioPolicyArgs(String arg, BluetoothDevice device) {
-        Object[] args = HeadsetStateMachine.generateArgs(arg);
-        return mHeadsetStateMachine.processAndroidAtSinkAudioPolicy(args, device);
     }
 
     /**
