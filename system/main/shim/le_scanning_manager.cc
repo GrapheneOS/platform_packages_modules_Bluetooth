@@ -29,12 +29,10 @@
 #include "advertise_data_parser.h"
 #include "btif/include/btif_common.h"
 #include "hci/address.h"
-#include "hci/enum_helper.h"
 #include "hci/le_scanning_manager.h"
 #include "hci/msft.h"
 #include "include/hardware/ble_scanner.h"
 #include "main/shim/ble_scanner_interface_impl.h"
-#include "main/shim/config.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
@@ -42,6 +40,9 @@
 #include "main/shim/shim.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/btm_log_history.h"
+#include "storage/device.h"
+#include "storage/le_device.h"
+#include "storage/storage_module.h"
 #include "types/ble_address_with_type.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -797,31 +798,22 @@ void BleScannerInterfaceImpl::handle_remote_properties(
                                          device_type);
   }
 
+  auto* storage_module = bluetooth::shim::GetStorage();
   bluetooth::hci::Address address = ToGdAddress(bd_addr);
 
-  std::string device_type_property = "";
   // update device type
-  switch (device_type) {
-    case bluetooth::hci::DeviceType::UNKNOWN:
-      device_type_property = "UNKNOWN";
-      break;
-    case bluetooth::hci::DeviceType::BR_EDR:
-      device_type_property = "BR_EDR";
-      break;
-    case bluetooth::hci::DeviceType::LE:
-      device_type_property = "LE";
-      break;
-    case bluetooth::hci::DeviceType::DUAL:
-      device_type_property = "DUAL";
-      break;
-  }
-  bluetooth::shim::BtifConfigInterface::SetStr(address.ToString(), "DevType",
-                                               device_type_property);
+  auto mutation = storage_module->Modify();
+  bluetooth::storage::Device device =
+      storage_module->GetDeviceByLegacyKey(address);
+  mutation.Add(device.SetDeviceType(device_type));
+  mutation.Commit();
+
   // update address type
-  std::string address_type = bluetooth::hci::AddressTypeText(
-      static_cast<bluetooth::hci::AddressType>(addr_type));
-  bluetooth::shim::BtifConfigInterface::SetStr(address.ToString(), "AddrType",
-                                               address_type);
+  auto mutation2 = storage_module->Modify();
+  bluetooth::storage::LeDevice le_device = device.Le();
+  mutation2.Add(
+      le_device.SetAddressType((bluetooth::hci::AddressType)addr_type));
+  mutation2.Commit();
 }
 
 void BleScannerInterfaceImpl::AddressCache::add(const RawAddress& p_bda) {
