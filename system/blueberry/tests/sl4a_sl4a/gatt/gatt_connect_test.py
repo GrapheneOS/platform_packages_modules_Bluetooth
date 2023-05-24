@@ -63,6 +63,10 @@ class GattConnectTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
     default_timeout = 10
     default_discovery_timeout = 3
 
+    ADDR_TYPE_PUBLIC = 0
+    ADDR_TYPE_RPA = 1
+    ADDR_TYPE_NRPA = 2
+
     def setup_class(self):
         super().setup_class()
         self.central = self.dut
@@ -265,7 +269,7 @@ class GattConnectTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         self.gatt_server_list.append(gatt_server)
         autoconnect = False
         mac_address, adv_callback, scan_callback = (get_mac_address_of_generic_advertisement(
-            self.central, self.peripheral))
+            self.central, self.peripheral, self.ADDR_TYPE_PUBLIC))
         self.adv_instances.append(adv_callback)
         self.central.log.info("Discovered BLE advertisement, connecting GATT with autoConnect={}".format(autoconnect))
         try:
@@ -293,7 +297,7 @@ class GattConnectTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         autoconnect = True
         self.central.log.info("Connecting GATT with autoConnect={}".format(autoconnect))
         bluetooth_gatt = self.central.sl4a.gattClientConnectGatt(gatt_callback, mac_address, autoconnect,
-                                                                 GattTransport.TRANSPORT_AUTO, False,
+                                                                 GattTransport.TRANSPORT_LE, False,
                                                                  GattPhyMask.PHY_LE_1M_MASK)
         self.central.log.info("Waiting for GATt to become connected")
         self.bluetooth_gatt_list.append(bluetooth_gatt)
