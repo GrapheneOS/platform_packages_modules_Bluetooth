@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #include <cstddef>
 #include <cstdio>
@@ -782,5 +783,26 @@ TEST_F(MainShimTest, ticks_to_seconds) {
 
 TEST_F(MainShimTest, DumpConnectionHistory) {
   auto acl = MakeAcl();
-  acl->DumpConnectionHistory(1);
+  acl->DumpConnectionHistory(STDOUT_FILENO);
+}
+
+void DumpsysNeighbor(int fd);
+TEST_F(MainShimTest, DumpsysNeighbor) {
+  btm_cb.neighbor = {};
+
+  btm_cb.neighbor.inquiry_history_->Push({
+      .status = tBTM_INQUIRY_CMPL::CANCELED,
+      .num_resp = 45,
+      .resp_type = {20, 30, 40},
+      .start_time_ms = 0,
+  });
+
+  btm_cb.neighbor.inquiry_history_->Push({
+      .status = tBTM_INQUIRY_CMPL::CANCELED,
+      .num_resp = 123,
+      .resp_type = {50, 60, 70},
+      .start_time_ms = -1,
+  });
+
+  DumpsysNeighbor(STDOUT_FILENO);
 }

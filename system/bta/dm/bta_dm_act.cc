@@ -87,6 +87,7 @@ void BTIF_dm_enable();
 void btm_ble_adv_init(void);
 void btm_ble_scanner_init(void);
 
+static void bta_dm_gatt_disc_complete(uint16_t conn_id, tGATT_STATUS status);
 static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
                                   uint16_t eir_len);
 static void bta_dm_inq_cmpl_cb(void* p_result);
@@ -603,6 +604,16 @@ static void bta_dm_process_remove_device_no_callback(
 void bta_dm_process_remove_device(const RawAddress& bd_addr) {
   bta_dm_process_remove_device_no_callback(bd_addr);
 
+  /* Conclude service search if it was pending */
+  if (bta_dm_search_cb.state == BTA_DM_DISCOVER_ACTIVE &&
+      bta_dm_search_cb.peer_bdaddr == bd_addr) {
+    LOG_INFO(
+        "Device removed while service discovery was pending, "
+        "conclude the service disvovery");
+    bta_dm_gatt_disc_complete((uint16_t)GATT_INVALID_CONN_ID,
+                              (tGATT_STATUS)GATT_ERROR);
+  }
+
   if (bta_dm_cb.p_sec_cback) {
     tBTA_DM_SEC sec_event;
     sec_event.link_down.bd_addr = bd_addr;
@@ -1112,7 +1123,6 @@ static void store_avrcp_profile_feature(tSDP_DISC_REC* sdp_rec) {
                           (const uint8_t*)&avrcp_features,
                           sizeof(avrcp_features))) {
     LOG_INFO("Saving avrcp_features: 0x%x", avrcp_features);
-    btif_config_save();
   } else {
     LOG_INFO("Failed to store avrcp_features 0x%x for %s", avrcp_features,
              ADDRESS_TO_LOGGABLE_CSTR(sdp_rec->remote_bd_addr));
@@ -1153,7 +1163,6 @@ static void bta_dm_store_audio_profiles_version() {
                               audio_profile.profile_key,
                               (const uint8_t*)&profile_version,
                               sizeof(profile_version))) {
-        btif_config_save();
       } else {
         LOG_INFO("Failed to store peer profile version for %s",
                  ADDRESS_TO_LOGGABLE_CSTR(sdp_rec->remote_bd_addr));

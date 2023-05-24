@@ -25,19 +25,19 @@ import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
-import android.bluetooth.IBluetoothHeadset;
 import android.content.Context;
 import android.media.AudioManager;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.telecom.TelecomManager;
+import android.telephony.TelephonyManager;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
@@ -45,7 +45,6 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,6 +85,7 @@ public class HeadsetServiceTest {
     @Mock private HeadsetSystemInterface mSystemInterface;
     @Mock private AudioManager mAudioManager;
     @Mock private HeadsetPhoneState mPhoneState;
+    @Mock private TelecomManager mTelecomManager;
 
     @Before
     public void setUp() throws Exception {
@@ -143,12 +143,15 @@ public class HeadsetServiceTest {
         }).when(mObjectsFactory).makeStateMachine(any(), any(), any(), any(), any(), any());
         doReturn(mSystemInterface).when(mObjectsFactory).makeSystemInterface(any());
         doReturn(mNativeInterface).when(mObjectsFactory).getNativeInterface();
+        doReturn(mTelecomManager).when(mObjectsFactory).getTelecomManager(any());
+
         TestUtils.startService(mServiceRule, HeadsetService.class);
         mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNotNull(mHeadsetService);
         verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
         verify(mObjectsFactory).makeSystemInterface(mHeadsetService);
         verify(mObjectsFactory).getNativeInterface();
+        verify(mObjectsFactory).getTelecomManager(any());
         mHeadsetService.setForceScoAudio(true);
     }
 
@@ -700,6 +703,21 @@ public class HeadsetServiceTest {
                 mHeadsetService.connectAudio(mCurrentDevice));
         verify(mStateMachines.get(mCurrentDevice), never()).sendMessage(
                 eq(HeadsetStateMachine.CONNECT_AUDIO), any());
+    }
+
+    /**
+     * Test to verify that {@link HeadsetService#ShouldCallAudioBeActive()} succeeds even when
+     * {@link HeadsetSystemInterface} has not all call infos.
+     */
+    @Test
+    public void testShouldCallAudioBeActive_missingInfo() {
+        when(mTelecomManager.getCallState()).thenReturn(TelephonyManager.CALL_STATE_IDLE);
+        Assert.assertFalse(mHeadsetService.shouldCallAudioBeActive());
+        when(mTelecomManager.getCallState()).thenReturn(TelephonyManager.CALL_STATE_OFFHOOK);
+        Assert.assertTrue(mHeadsetService.shouldCallAudioBeActive());
+        when(mTelecomManager.getCallState()).thenReturn(TelephonyManager.CALL_STATE_RINGING);
+        Assert.assertTrue(mHeadsetService.shouldCallAudioBeActive());
+        when(mTelecomManager.getCallState()).thenReturn(TelephonyManager.CALL_STATE_IDLE);
     }
 
     /**

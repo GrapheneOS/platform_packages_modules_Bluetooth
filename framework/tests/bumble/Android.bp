@@ -35,7 +35,7 @@ android_test_helper_app {
 
     platform_apis: true,
     test_suites: [
-        "device-tests",
+        "general-tests",
     ],
 }
 
@@ -49,12 +49,13 @@ java_test_host {
     ],
 
     data: [
-        ":BumbleBluetoothTestsApp"
+        ":BumbleBluetoothTestsApp",
+        ":bumble_pandora_server"
     ],
 
     required: ["bumble_pandora_server"],
 
     test_suites: [
-        "device-tests",
+        "general-tests",
     ],
 }

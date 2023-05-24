@@ -159,7 +159,6 @@ cc_defaults {
         "libcrypto",
         "libfmq",
         "libnativehelper",
-        "libtinyxml2",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
@@ -178,7 +177,6 @@ cc_defaults {
     target: {
         android: {
             shared_libs: [
-                "android.hardware.bluetooth.audio-V3-ndk",
                 "android.system.suspend-V1-ndk",
                 "libPlatformProperties",
                 "libaaudio",
@@ -188,30 +186,6 @@ cc_defaults {
             ],
         },
     },
-}
-
-cc_defaults {
-    name: "fluoride_full_defaults",
-    defaults: ["fluoride_basic_defaults"],
-    static_libs: [
-        "avrcp-target-service",
-        "lib-bt-packets-avrcp",
-        "lib-bt-packets-base",
-        "libaudio-a2dp-hw-utils",
-        "libbt-audio-hal-interface",
-        "libbt-bta",
-        "libbt-bta-core",
-        "libbt-common",
-        "libbt-hci",
-        "libbt-stack",
-        "libbt-stack-core",
-        "libbtcore",
-        "libbtdevice",
-        "libbte",
-        "libbtif",
-        "libbtif-core",
-        "libosi",
-    ],
 }
 
 cc_defaults {

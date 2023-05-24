@@ -151,6 +151,12 @@ public class PanServiceTest {
     }
 
     @Test
+    public void onConnectStateChanged_doesNotCrashAfterStop() {
+        mService.stop();
+        mService.onConnectStateChanged(REMOTE_DEVICE_ADDRESS_AS_ARRAY, 1, 2, 3, 4);
+    }
+
+    @Test
     public void onControlStateChanged_doesNotCrash() {
         mService.onControlStateChanged(1, 2, 3, "ifname");
     }
