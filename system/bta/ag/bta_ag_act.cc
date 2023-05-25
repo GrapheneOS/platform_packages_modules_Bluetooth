@@ -40,7 +40,10 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
+#include "stack/include/sdp_api.h"
 #include "types/raw_address.h"
+
+using namespace bluetooth::legacy::stack::sdp;
 
 /*****************************************************************************
  *  Constants
@@ -880,7 +883,8 @@ void bta_ag_handle_collision(tBTA_AG_SCB* p_scb,
                              UNUSED_ATTR const tBTA_AG_DATA& data) {
   /* Cancel SDP if it had been started. */
   if (p_scb->p_disc_db) {
-    SDP_CancelServiceSearch(p_scb->p_disc_db);
+    get_legacy_stack_sdp_api()->service.SDP_CancelServiceSearch(
+        p_scb->p_disc_db);
     bta_ag_free_db(p_scb, tBTA_AG_DATA::kEmpty);
   }
 

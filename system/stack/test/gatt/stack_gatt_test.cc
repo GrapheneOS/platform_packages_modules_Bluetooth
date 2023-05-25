@@ -27,10 +27,26 @@
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/gatt_api.h"
 #include "test/common/mock_functions.h"
+#include "test/mock/mock_stack_sdp_legacy_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
-class StackGattTest : public ::testing::Test {};
+class StackGattTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    test::mock::stack_sdp_legacy::api_.handle.SDP_CreateRecord =
+        ::SDP_CreateRecord;
+    test::mock::stack_sdp_legacy::api_.handle.SDP_AddServiceClassIdList =
+        ::SDP_AddServiceClassIdList;
+    test::mock::stack_sdp_legacy::api_.handle.SDP_AddAttribute =
+        ::SDP_AddAttribute;
+    test::mock::stack_sdp_legacy::api_.handle.SDP_AddProtocolList =
+        ::SDP_AddProtocolList;
+    test::mock::stack_sdp_legacy::api_.handle.SDP_AddUuidSequence =
+        ::SDP_AddUuidSequence;
+  }
+  void TearDown() override { test::mock::stack_sdp_legacy::api_.handle = {}; }
+};
 
 namespace {
 
