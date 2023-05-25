@@ -1,1 +1,0 @@
-../../../../../../external/pandora/avatar/examples/example.py
