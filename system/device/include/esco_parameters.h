@@ -137,6 +137,8 @@ typedef struct {
   esco_packet_types_t packet_types; /* Packet Types */
   esco_retransmission_effort_t
       retransmission_effort; /* 0x00-0x02, 0xFF don't care */
+  esco_coding_format_t
+      coding_format; /* Extra field to store codec when TX/RX is transparent */
 } enh_esco_params_t;
 
 // Get the enhanced eSCO configuration parameters for the provided |codec|
