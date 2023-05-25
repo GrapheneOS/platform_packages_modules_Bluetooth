@@ -35,6 +35,8 @@
 
 #include <base/logging.h>
 
+using namespace bluetooth::legacy::stack::sdp;
+
 /*******************************************************************************
  *
  * Function         bta_hf_client_port_cback
@@ -288,7 +290,8 @@ void bta_hf_client_rfc_do_close(tBTA_HF_CLIENT_DATA* p_data) {
 
     /* Cancel SDP if it had been started. */
     if (client_cb->p_disc_db) {
-      (void)SDP_CancelServiceSearch(client_cb->p_disc_db);
+      (void)get_legacy_stack_sdp_api()->service.SDP_CancelServiceSearch(
+          client_cb->p_disc_db);
       osi_free_and_reset((void**)&client_cb->p_disc_db);
     }
   }

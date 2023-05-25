@@ -36,8 +36,11 @@
 #include "osi/include/log.h"
 #include "sdpdefs.h"
 #include "stack/include/bt_types.h"
+#include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
+
+using namespace bluetooth::legacy::stack::sdp;
 
 using bluetooth::Uuid;
 
@@ -80,7 +83,7 @@ static void a2dp_sdp_cback(tSDP_STATUS status) {
     /* loop through all records we found */
     do {
       /* get next record; if none found, we're done */
-      if ((p_rec = SDP_FindServiceInDb(
+      if ((p_rec = get_legacy_stack_sdp_api()->db.SDP_FindServiceInDb(
                a2dp_cb.find.p_db, a2dp_cb.find.service_uuid, p_rec)) == NULL) {
         break;
       }
@@ -88,27 +91,28 @@ static void a2dp_sdp_cback(tSDP_STATUS status) {
       peer_address = p_rec->remote_bd_addr;
 
       /* get service name */
-      if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) !=
-          NULL) {
+      if ((p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
+               p_rec, ATTR_ID_SERVICE_NAME)) != NULL) {
         a2dp_svc.p_service_name = (char*)p_attr->attr_value.v.array;
         a2dp_svc.service_len = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
       }
 
       /* get provider name */
-      if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_PROVIDER_NAME)) !=
-          NULL) {
+      if ((p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
+               p_rec, ATTR_ID_PROVIDER_NAME)) != NULL) {
         a2dp_svc.p_provider_name = (char*)p_attr->attr_value.v.array;
         a2dp_svc.provider_len = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
       }
 
       /* get supported features */
-      if ((p_attr = SDP_FindAttributeInRec(
+      if ((p_attr = get_legacy_stack_sdp_api()->record.SDP_FindAttributeInRec(
                p_rec, ATTR_ID_SUPPORTED_FEATURES)) != NULL) {
         a2dp_svc.features = p_attr->attr_value.v.u16;
       }
 
       /* get AVDTP version */
-      if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_AVDTP, &elem)) {
+      if (get_legacy_stack_sdp_api()->record.SDP_FindProtocolListElemInRec(
+              p_rec, UUID_PROTOCOL_AVDTP, &elem)) {
         a2dp_svc.avdt_version = elem.params[0];
         LOG_VERBOSE("avdt_version: 0x%x", a2dp_svc.avdt_version);
       }
@@ -190,7 +194,8 @@ tA2DP_STATUS A2DP_AddRecord(uint16_t service_uuid, char* p_service_name,
     return A2DP_INVALID_PARAMS;
 
   /* add service class id list */
-  result &= SDP_AddServiceClassIdList(sdp_handle, 1, &service_uuid);
+  result &= get_legacy_stack_sdp_api()->handle.SDP_AddServiceClassIdList(
+      sdp_handle, 1, &service_uuid);
 
   memset((void*)proto_list, 0,
          A2DP_NUM_PROTO_ELEMS * sizeof(tSDP_PROTOCOL_ELEM));
@@ -203,38 +208,40 @@ tA2DP_STATUS A2DP_AddRecord(uint16_t service_uuid, char* p_service_name,
   proto_list[1].num_params = 1;
   proto_list[1].params[0] = a2dp_cb.avdt_sdp_ver;
 
-  result &= SDP_AddProtocolList(sdp_handle, A2DP_NUM_PROTO_ELEMS, proto_list);
+  result &= get_legacy_stack_sdp_api()->handle.SDP_AddProtocolList(
+      sdp_handle, A2DP_NUM_PROTO_ELEMS, proto_list);
 
   /* add profile descriptor list   */
-  result &= SDP_AddProfileDescriptorList(
+  result &= get_legacy_stack_sdp_api()->handle.SDP_AddProfileDescriptorList(
       sdp_handle, UUID_SERVCLASS_ADV_AUDIO_DISTRIBUTION, A2DP_VERSION);
 
   /* add supported feature */
   if (features != 0) {
     p = temp;
     UINT16_TO_BE_STREAM(p, features);
-    result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES,
-                               UINT_DESC_TYPE, (uint32_t)2, (uint8_t*)temp);
+    result &= get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
+        sdp_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE, (uint32_t)2,
+        (uint8_t*)temp);
   }
 
   /* add provider name */
   if (p_provider_name != NULL) {
-    result &= SDP_AddAttribute(
+    result &= get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
         sdp_handle, ATTR_ID_PROVIDER_NAME, TEXT_STR_DESC_TYPE,
         (uint32_t)(strlen(p_provider_name) + 1), (uint8_t*)p_provider_name);
   }
 
   /* add service name */
   if (p_service_name != NULL) {
-    result &= SDP_AddAttribute(
+    result &= get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
         sdp_handle, ATTR_ID_SERVICE_NAME, TEXT_STR_DESC_TYPE,
         (uint32_t)(strlen(p_service_name) + 1), (uint8_t*)p_service_name);
   }
 
   /* add browse group list */
   browse_list[0] = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-  result &= SDP_AddUuidSequence(sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1,
-                                browse_list);
+  result &= get_legacy_stack_sdp_api()->handle.SDP_AddUuidSequence(
+      sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, browse_list);
 
   return (result ? A2DP_SUCCESS : A2DP_FAIL);
 }
@@ -301,8 +308,9 @@ tA2DP_STATUS A2DP_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
   a2dp_cb.find.p_db = (tSDP_DISCOVERY_DB*)osi_malloc(p_db->db_len);
   Uuid uuid_list = Uuid::From16Bit(service_uuid);
 
-  if (!SDP_InitDiscoveryDb(a2dp_cb.find.p_db, p_db->db_len, 1, &uuid_list,
-                           p_db->num_attr, p_db->p_attrs)) {
+  if (!get_legacy_stack_sdp_api()->service.SDP_InitDiscoveryDb(
+          a2dp_cb.find.p_db, p_db->db_len, 1, &uuid_list, p_db->num_attr,
+          p_db->p_attrs)) {
     osi_free_and_reset((void**)&a2dp_cb.find.p_db);
     LOG_ERROR("Unable to initialize SDP discovery for peer %s UUID 0x%04X",
               ADDRESS_TO_LOGGABLE_CSTR(bd_addr), service_uuid);
@@ -314,8 +322,8 @@ tA2DP_STATUS A2DP_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
   a2dp_cb.find.p_cback = p_cback;
 
   /* perform service search */
-  if (!SDP_ServiceSearchAttributeRequest(bd_addr, a2dp_cb.find.p_db,
-                                         a2dp_sdp_cback)) {
+  if (!get_legacy_stack_sdp_api()->service.SDP_ServiceSearchAttributeRequest(
+          bd_addr, a2dp_cb.find.p_db, a2dp_sdp_cback)) {
     a2dp_cb.find.service_uuid = 0;
     a2dp_cb.find.p_cback = NULL;
     osi_free_and_reset((void**)&a2dp_cb.find.p_db);

@@ -22,7 +22,7 @@ namespace test {
 namespace mock {
 namespace stack_sdp_legacy {
 
-bluetooth::legacy::stack::sdp::tSdpApi api_;
+extern bluetooth::legacy::stack::sdp::tSdpApi api_;
 
 }  // namespace stack_sdp_legacy
 }  // namespace mock

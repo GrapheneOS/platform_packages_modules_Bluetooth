@@ -42,6 +42,11 @@ static bool find_uuid_in_seq(uint8_t* p, uint32_t seq_len,
                              const uint8_t* p_his_uuid, uint16_t his_len,
                              int nest_level);
 
+bool SDP_AddAttribute(uint32_t handle, uint16_t attr_id, uint8_t attr_type,
+                      uint32_t attr_len, uint8_t* p_val);
+
+bool SDP_DeleteAttribute(uint32_t handle, uint16_t attr_id);
+
 /*******************************************************************************
  *
  * Function         sdp_db_service_search
