@@ -798,28 +798,6 @@ class VolumeControlImpl : public VolumeControl {
     StartQueueOperation();
   }
 
-  void ProceedVolumeOperation(int operation_id) {
-    auto op = find_if(ongoing_operations_.begin(), ongoing_operations_.end(),
-                      [operation_id](auto& operation) {
-                        return operation.operation_id_ == operation_id;
-                      });
-
-    DLOG(INFO) << __func__ << " operation_id: " << operation_id;
-
-    if (op == ongoing_operations_.end()) {
-      LOG(ERROR) << __func__
-                 << " Could not find operation_id: " << operation_id;
-      return;
-    }
-
-    DLOG(INFO) << __func__ << " procedure continued for operation_id: "
-               << op->operation_id_;
-
-    alarm_set_on_mloop(op->operation_timeout_, 3000, operation_callback,
-                       INT_TO_PTR(op->operation_id_));
-    devices_control_point_helper(op->devices_, op->opcode_, &(op->arguments_));
-  }
-
   void PrepareVolumeControlOperation(std::vector<RawAddress> devices,
                                      int group_id, bool is_autonomous,
                                      uint8_t opcode,
