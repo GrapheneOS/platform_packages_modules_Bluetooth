@@ -77,6 +77,7 @@ public class ActiveDeviceManagerTest {
     private BluetoothDevice mA2dpHeadsetDevice;
     private BluetoothDevice mHearingAidDevice;
     private BluetoothDevice mLeAudioDevice;
+    private BluetoothDevice mLeAudioDevice2;
     private BluetoothDevice mLeHearingAidDevice;
     private BluetoothDevice mSecondaryAudioDevice;
     private BluetoothDevice mDualModeAudioDevice;
@@ -128,6 +129,7 @@ public class ActiveDeviceManagerTest {
         mLeHearingAidDevice = TestUtils.getTestDevice(mAdapter, 5);
         mSecondaryAudioDevice = TestUtils.getTestDevice(mAdapter, 6);
         mDualModeAudioDevice = TestUtils.getTestDevice(mAdapter, 7);
+        mLeAudioDevice2 = TestUtils.getTestDevice(mAdapter, 8);
         mDeviceConnectionStack = new ArrayList<>();
         mMostRecentDevice = null;
         mOriginalDualModeAudioState = Utils.isDualModeAudioEnabled();
@@ -610,6 +612,79 @@ public class ActiveDeviceManagerTest {
         a2dpDisconnected(mA2dpDevice);
         verify(mA2dpService, timeout(TIMEOUT_MS).atLeast(1)).removeActiveDevice(false);
         verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
+    }
+
+    /**
+     * An LE Audio set connected. The not active bud disconnected.
+     * Then the active device should not change and hasFallback should be set to false.
+     */
+    @Test
+    public void leAudioSetConnectedThenNotActiveOneDisconnected_noFallback() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+
+        leAudioConnected(mLeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
+
+        leAudioConnected(mLeAudioDevice2);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice2);
+
+        Mockito.clearInvocations(mLeAudioService);
+
+        leAudioDisconnected(mLeAudioDevice);
+
+        verify(mLeAudioService, never()).removeActiveDevice(false);
+        verify(mLeAudioService, never()).setActiveDevice(mLeAudioDevice2);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).deviceDisconnected(mLeAudioDevice, false);
+    }
+
+    /**
+     * An LE Audio set connected. The active bud disconnected. Set active device
+     * returns false indicating an issue (the other bud is also disconnected).
+     * Then the active device should be removed and hasFallback should be set to false.
+     */
+    @Test
+    public void leAudioSetConnectedThenActiveOneDisconnected_noFallback() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+
+        leAudioConnected(mLeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
+
+        leAudioConnected(mLeAudioDevice2);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice2);
+
+        Mockito.clearInvocations(mLeAudioService);
+
+        // Return false to indicate an issue when setting new active device
+        // (e.g. the other device disconnected as well).
+        when(mLeAudioService.setActiveDevice(any())).thenReturn(false);
+
+        leAudioDisconnected(mLeAudioDevice2);
+
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).removeActiveDevice(false);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).deviceDisconnected(mLeAudioDevice2, false);
+    }
+
+    /**
+     * An LE Audio set connected. The active bud disconnected. Set active device
+     * returns true indicating the other bud is going to be the active device.
+     * Then the active device should change and hasFallback should be set to true.
+     */
+    @Test
+    public void leAudioSetConnectedThenActiveOneDisconnected_hasFallback() {
+        when(mAudioManager.getMode()).thenReturn(AudioManager.MODE_NORMAL);
+
+        leAudioConnected(mLeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
+
+        leAudioConnected(mLeAudioDevice2);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice2);
+
+        Mockito.clearInvocations(mLeAudioService);
+
+        leAudioDisconnected(mLeAudioDevice2);
+
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).setActiveDevice(mLeAudioDevice);
+        verify(mLeAudioService, timeout(TIMEOUT_MS)).deviceDisconnected(mLeAudioDevice2, true);
     }
 
     /**

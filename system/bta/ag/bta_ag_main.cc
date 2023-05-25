@@ -168,7 +168,7 @@ static tBTA_AG_SCB* bta_ag_scb_alloc(void) {
   if (i == BTA_AG_MAX_NUM_CLIENTS) {
     /* out of scbs */
     p_scb = nullptr;
-    APPL_TRACE_WARNING("%s: Out of scbs", __func__);
+    LOG_WARN("Out of scbs");
   }
   return p_scb;
 }
@@ -317,7 +317,7 @@ bool bta_ag_other_scb_open(tBTA_AG_SCB* p_curr_scb) {
     }
   }
   /* no other scb found */
-  APPL_TRACE_DEBUG("No other ag scb open");
+  LOG_DEBUG("No other ag scb open");
   return false;
 }
 
@@ -402,6 +402,7 @@ void bta_ag_resume_open(tBTA_AG_SCB* p_scb) {
  ******************************************************************************/
 void bta_ag_api_enable(tBTA_AG_CBACK* p_cback) {
   /* initialize control block */
+  LOG_INFO("AG api enable");
   for (tBTA_AG_SCB& scb : bta_ag_cb.scb) {
     alarm_free(scb.ring_timer);
     alarm_free(scb.codec_negotiation_timer);
@@ -474,8 +475,9 @@ void bta_ag_api_register(tBTA_SERVICE_MASK services, tBTA_AG_FEAT features,
                          const std::vector<std::string>& service_names,
                          uint8_t app_id) {
   tBTA_AG_SCB* p_scb = bta_ag_scb_alloc();
+  LOG_DEBUG("bta_ag_api_register: p_scb allocation %s",
+            p_scb == nullptr ? "failed" : "success");
   if (p_scb) {
-    APPL_TRACE_DEBUG("bta_ag_api_register: p_scb 0x%08x ", p_scb);
     tBTA_AG_DATA data = {};
     data.api_register.features = features;
     data.api_register.services = services;

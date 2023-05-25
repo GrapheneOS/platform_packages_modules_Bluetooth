@@ -5226,7 +5226,8 @@ public class AdapterService extends Service {
             OobData remoteP256Data, String callingPackage) {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp != null && deviceProp.getBondState() != BluetoothDevice.BOND_NONE) {
-            return false;
+            // true for BONDING, false for BONDED
+            return deviceProp.getBondState() == BluetoothDevice.BOND_BONDING;
         }
 
         if (!isPackageNameAccurate(this, callingPackage, Binder.getCallingUid())) {
@@ -7115,7 +7116,9 @@ public class AdapterService extends Service {
                 Log.d(TAG, "index=" + i + "uuid=" + uuids[i]);
             }
         }
-        mPhonePolicy.onUuidsDiscovered(device, uuids);
+        if (mPhonePolicy != null) {
+            mPhonePolicy.onUuidsDiscovered(device, uuids);
+        }
     }
 
     static native void classInitNative();

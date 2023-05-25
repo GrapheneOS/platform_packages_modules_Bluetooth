@@ -80,23 +80,26 @@ void SecurityManagerImpl::Init() {
   ASSERT_LOG(storage_module_ != nullptr, "Storage module must not be null!");
   security_database_.LoadRecordsFromStorage();
 
-  storage::AdapterConfig adapter_config = storage_module_->GetAdapterConfig();
-  if (!adapter_config.GetLeIdentityResolvingKey()) {
-    auto mutation = storage_module_->Modify();
-    mutation.Add(adapter_config.SetLeIdentityResolvingKey(bluetooth::os::GenerateRandom<16>()));
-    mutation.Commit();
+  auto irk_prop = storage_module_->GetBin("Adapter", "LE_LOCAL_KEY_IRK");
+  if (!irk_prop.has_value()) {
+    auto rand16 = bluetooth::os::GenerateRandom<16>();
+    std::vector<uint8_t> new_irk{rand16.begin(), rand16.end()};
+    storage_module_->SetBin("Adapter", "LE_LOCAL_KEY_IRK", new_irk);
+    irk_prop = storage_module_->GetBin("Adapter", "LE_LOCAL_KEY_IRK");
   }
 
   Address controllerAddress = controller_->GetMacAddress();
-  if (!adapter_config.GetAddress() || adapter_config.GetAddress().value() != controllerAddress) {
-    auto mutation = storage_module_->Modify();
-    mutation.Add(adapter_config.SetAddress(controllerAddress));
-    mutation.Commit();
+  auto address_prop = storage_module_->GetProperty("Adapter", "Address");
+  if (!address_prop || address_prop.value() != controllerAddress.ToString()) {
+    storage_module_->SetProperty("Adapter", "Address", controllerAddress.ToString());
   }
 
   local_identity_address_ =
-      hci::AddressWithType(adapter_config.GetAddress().value(), hci::AddressType::PUBLIC_DEVICE_ADDRESS);
-  local_identity_resolving_key_ = adapter_config.GetLeIdentityResolvingKey().value().bytes;
+      hci::AddressWithType(controllerAddress, hci::AddressType::PUBLIC_DEVICE_ADDRESS);
+  irk_prop = storage_module_->GetBin("Adapter", "LE_LOCAL_KEY_IRK");
+  ASSERT_LOG(irk_prop.has_value(), "Irk not found in storage");
+  ASSERT_LOG(irk_prop->size() == 16, "Irk corrupted in storage");
+  std::copy(irk_prop->begin(), irk_prop->end(), local_identity_resolving_key_.data());
 
   hci::LeAddressManager::AddressPolicy address_policy = hci::LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS;
   hci::AddressWithType address_with_type(hci::Address{}, hci::AddressType::RANDOM_DEVICE_ADDRESS);

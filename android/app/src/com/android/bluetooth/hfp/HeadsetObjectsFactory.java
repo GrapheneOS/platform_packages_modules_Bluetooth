@@ -17,6 +17,7 @@ package com.android.bluetooth.hfp;
 
 import android.bluetooth.BluetoothDevice;
 import android.os.Looper;
+import android.telecom.TelecomManager;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -103,5 +104,12 @@ public class HeadsetObjectsFactory {
      */
     public HeadsetNativeInterface getNativeInterface() {
         return HeadsetNativeInterface.getInstance();
+    }
+
+    /**
+     * @return an instance of Telecom manager
+     */
+    public TelecomManager getTelecomManager(HeadsetService service) {
+        return service.getSystemService(TelecomManager.class);
     }
 }
