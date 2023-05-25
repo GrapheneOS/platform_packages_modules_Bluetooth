@@ -57,6 +57,7 @@ static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
         .packet_types = (ESCO_PKT_TYPES_MASK_HV1 | ESCO_PKT_TYPES_MASK_HV2 |
                          ESCO_PKT_TYPES_MASK_HV3),
         .retransmission_effort = ESCO_RETRANSMISSION_OFF,
+        .coding_format = ESCO_CODING_FORMAT_CVSD,
     },
     // CVSD S3
     {
@@ -96,6 +97,7 @@ static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
              ESCO_PKT_TYPES_MASK_NO_3_EV3 | ESCO_PKT_TYPES_MASK_NO_2_EV5 |
              ESCO_PKT_TYPES_MASK_NO_3_EV5),
         .retransmission_effort = ESCO_RETRANSMISSION_POWER,
+        .coding_format = ESCO_CODING_FORMAT_CVSD,
     },
     // CVSD S4
     {
@@ -135,6 +137,7 @@ static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
              ESCO_PKT_TYPES_MASK_NO_3_EV3 | ESCO_PKT_TYPES_MASK_NO_2_EV5 |
              ESCO_PKT_TYPES_MASK_NO_3_EV5),
         .retransmission_effort = ESCO_RETRANSMISSION_QUALITY,
+        .coding_format = ESCO_CODING_FORMAT_CVSD,
     },
     // mSBC T1
     {
@@ -172,6 +175,7 @@ static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
              ESCO_PKT_TYPES_MASK_NO_2_EV5 | ESCO_PKT_TYPES_MASK_NO_3_EV5 |
              ESCO_PKT_TYPES_MASK_NO_2_EV3),
         .retransmission_effort = ESCO_RETRANSMISSION_QUALITY,
+        .coding_format = ESCO_CODING_FORMAT_MSBC,
     },
     // mSBC T2
     {
@@ -208,6 +212,7 @@ static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
             (ESCO_PKT_TYPES_MASK_EV3 | ESCO_PKT_TYPES_MASK_NO_3_EV3 |
              ESCO_PKT_TYPES_MASK_NO_2_EV5 | ESCO_PKT_TYPES_MASK_NO_3_EV5),
         .retransmission_effort = ESCO_RETRANSMISSION_QUALITY,
+        .coding_format = ESCO_CODING_FORMAT_MSBC,
     },
     // LC3 T1
     {
@@ -245,6 +250,7 @@ static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
              ESCO_PKT_TYPES_MASK_NO_2_EV5 | ESCO_PKT_TYPES_MASK_NO_3_EV5 |
              ESCO_PKT_TYPES_MASK_NO_2_EV3),
         .retransmission_effort = ESCO_RETRANSMISSION_QUALITY,
+        .coding_format = ESCO_CODING_FORMAT_LC3,
     },
     // LC3 T2
     {
@@ -281,6 +287,7 @@ static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
             (ESCO_PKT_TYPES_MASK_NO_3_EV3 | ESCO_PKT_TYPES_MASK_NO_2_EV5 |
              ESCO_PKT_TYPES_MASK_NO_3_EV5),
         .retransmission_effort = ESCO_RETRANSMISSION_QUALITY,
+        .coding_format = ESCO_CODING_FORMAT_LC3,
     },
 };
 
