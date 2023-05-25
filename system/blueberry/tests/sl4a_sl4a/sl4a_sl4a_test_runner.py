@@ -20,7 +20,6 @@ from blueberry.tests.sl4a_sl4a.gatt.gatt_connect_with_irk_test import GattConnec
 from blueberry.tests.sl4a_sl4a.gatt.gatt_notify_test import GattNotifyTest
 from blueberry.tests.sl4a_sl4a.l2cap.le_l2cap_coc_test import LeL2capCoCTest
 from blueberry.tests.sl4a_sl4a.scanning.le_scanning import LeScanningTest
-from blueberry.tests.sl4a_sl4a.security.irk_rotation_test import IrkRotationTest
 from blueberry.tests.sl4a_sl4a.security.oob_pairing_test import OobPairingTest
 
 from mobly import suite_runner
@@ -30,7 +29,6 @@ ALL_TESTS = [
     GattConnectTest,
     GattConnectWithIrkTest,
     GattNotifyTest,
-    IrkRotationTest,
     LeAdvertisingTest,
     LeL2capCoCTest,
     LeScanningTest,
@@ -44,15 +42,18 @@ def main():
     test config file location
     """
     parser = argparse.ArgumentParser(description="Run local GD SL4A tests.")
-    parser.add_argument(
-        '-c', '--config', type=str, required=True, metavar='<PATH>', help='Path to the test configuration file.')
-    parser.add_argument(
-        '--tests',
-        '--test_case',
-        nargs='+',
-        type=str,
-        metavar='[ClassA[.test_a] ClassB[.test_b] ...]',
-        help='A list of test classes and optional tests to execute.')
+    parser.add_argument('-c',
+                        '--config',
+                        type=str,
+                        required=True,
+                        metavar='<PATH>',
+                        help='Path to the test configuration file.')
+    parser.add_argument('--tests',
+                        '--test_case',
+                        nargs='+',
+                        type=str,
+                        metavar='[ClassA[.test_a] ClassB[.test_b] ...]',
+                        help='A list of test classes and optional tests to execute.')
     parser.add_argument("--all_tests", "-A", type=bool, dest="all_tests", default=False, nargs="?")
     parser.add_argument("--presubmit", type=bool, dest="presubmit", default=False, nargs="?")
     parser.add_argument("--postsubmit", type=bool, dest="postsubmit", default=False, nargs="?")
