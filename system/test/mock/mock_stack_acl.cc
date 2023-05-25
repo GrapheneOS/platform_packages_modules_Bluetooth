@@ -77,7 +77,6 @@ struct acl_set_peer_le_features_from_handle
 struct sco_peer_supports_esco_2m_phy sco_peer_supports_esco_2m_phy;
 struct sco_peer_supports_esco_3m_phy sco_peer_supports_esco_3m_phy;
 struct acl_create_classic_connection acl_create_classic_connection;
-struct IsEprAvailable IsEprAvailable;
 struct acl_get_connection_from_address acl_get_connection_from_address;
 struct btm_acl_for_bda btm_acl_for_bda;
 struct acl_get_connection_from_handle acl_get_connection_from_handle;
@@ -319,10 +318,6 @@ void acl_create_classic_connection(const RawAddress& bd_addr,
   inc_func_call_count(__func__);
   return test::mock::stack_acl::acl_create_classic_connection(
       bd_addr, there_are_high_priority_channels, is_bonding);
-}
-bool IsEprAvailable(const tACL_CONN& p_acl) {
-  inc_func_call_count(__func__);
-  return test::mock::stack_acl::IsEprAvailable(p_acl);
 }
 tACL_CONN* acl_get_connection_from_address(const RawAddress& bd_addr,
                                            tBT_TRANSPORT transport) {
