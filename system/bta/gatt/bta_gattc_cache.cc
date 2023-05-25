@@ -41,8 +41,11 @@
 #include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/gatt_api.h"
+#include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
+
+using namespace bluetooth::legacy::stack::sdp;
 
 using base::StringPrintf;
 using bluetooth::Uuid;
@@ -368,14 +371,18 @@ void bta_gattc_sdp_callback(tSDP_STATUS sdp_status, const void* user_data) {
 
   bool no_pending_disc = !p_srvc_cb->pending_discovery.InProgress();
 
-  tSDP_DISC_REC* p_sdp_rec = SDP_FindServiceInDb(cb_data->p_sdp_db, 0, nullptr);
+  tSDP_DISC_REC* p_sdp_rec = get_legacy_stack_sdp_api()->db.SDP_FindServiceInDb(
+      cb_data->p_sdp_db, 0, nullptr);
   while (p_sdp_rec != nullptr) {
     /* find a service record, report it */
     Uuid service_uuid;
-    if (!SDP_FindServiceUUIDInRec(p_sdp_rec, &service_uuid)) continue;
+    if (!get_legacy_stack_sdp_api()->record.SDP_FindServiceUUIDInRec(
+            p_sdp_rec, &service_uuid))
+      continue;
 
     tSDP_PROTOCOL_ELEM pe;
-    if (!SDP_FindProtocolListElemInRec(p_sdp_rec, UUID_PROTOCOL_ATT, &pe))
+    if (!get_legacy_stack_sdp_api()->record.SDP_FindProtocolListElemInRec(
+            p_sdp_rec, UUID_PROTOCOL_ATT, &pe))
       continue;
 
     uint16_t start_handle = (uint16_t)pe.params[0];
@@ -391,7 +398,8 @@ void bta_gattc_sdp_callback(tSDP_STATUS sdp_status, const void* user_data) {
         !GATT_HANDLE_IS_VALID(end_handle)) {
       LOG(ERROR) << "invalid start_handle=" << loghex(start_handle)
                  << ", end_handle=" << loghex(end_handle);
-      p_sdp_rec = SDP_FindServiceInDb(cb_data->p_sdp_db, 0, p_sdp_rec);
+      p_sdp_rec = get_legacy_stack_sdp_api()->db.SDP_FindServiceInDb(
+          cb_data->p_sdp_db, 0, p_sdp_rec);
       continue;
     }
 
@@ -399,7 +407,8 @@ void bta_gattc_sdp_callback(tSDP_STATUS sdp_status, const void* user_data) {
     p_srvc_cb->pending_discovery.AddService(start_handle, end_handle,
                                             service_uuid, true);
 
-    p_sdp_rec = SDP_FindServiceInDb(cb_data->p_sdp_db, 0, p_sdp_rec);
+    p_sdp_rec = get_legacy_stack_sdp_api()->db.SDP_FindServiceInDb(
+        cb_data->p_sdp_db, 0, p_sdp_rec);
   }
 
   // If discovery is already pending, no need to call
@@ -431,10 +440,10 @@ static tGATT_STATUS bta_gattc_sdp_service_disc(uint16_t conn_id,
   attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
 
   Uuid uuid = Uuid::From16Bit(UUID_PROTOCOL_ATT);
-  SDP_InitDiscoveryDb(cb_data->p_sdp_db, BTA_GATT_SDP_DB_SIZE, 1, &uuid,
-                      num_attrs, attr_list);
+  get_legacy_stack_sdp_api()->service.SDP_InitDiscoveryDb(
+      cb_data->p_sdp_db, BTA_GATT_SDP_DB_SIZE, 1, &uuid, num_attrs, attr_list);
 
-  if (!SDP_ServiceSearchAttributeRequest2(
+  if (!get_legacy_stack_sdp_api()->service.SDP_ServiceSearchAttributeRequest2(
           p_server_cb->server_bda, cb_data->p_sdp_db, &bta_gattc_sdp_callback,
           const_cast<const void*>(static_cast<void*>(cb_data)))) {
     osi_free(cb_data);

@@ -45,6 +45,7 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+using namespace bluetooth::legacy::stack::sdp;
 using bluetooth::Uuid;
 
 tBTA_JV_CB bta_jv_cb;
@@ -811,11 +812,12 @@ static void bta_jv_start_discovery_cback(tSDP_RESULT result,
       tSDP_DISC_REC* p_sdp_rec = NULL;
       tSDP_PROTOCOL_ELEM pe;
       VLOG(2) << __func__ << ": bta_jv_cb.uuid=" << bta_jv_cb.uuid;
-      p_sdp_rec = SDP_FindServiceUUIDInDb(p_bta_jv_cfg->p_sdp_db,
-                                          bta_jv_cb.uuid, p_sdp_rec);
+      p_sdp_rec = get_legacy_stack_sdp_api()->db.SDP_FindServiceUUIDInDb(
+          p_bta_jv_cfg->p_sdp_db, bta_jv_cb.uuid, p_sdp_rec);
       VLOG(2) << __func__ << ": p_sdp_rec=" << p_sdp_rec;
       if (p_sdp_rec &&
-          SDP_FindProtocolListElemInRec(p_sdp_rec, UUID_PROTOCOL_RFCOMM, &pe)) {
+          get_legacy_stack_sdp_api()->record.SDP_FindProtocolListElemInRec(
+              p_sdp_rec, UUID_PROTOCOL_RFCOMM, &pe)) {
         dcomp.scn = (uint8_t)pe.params[0];
         status = BTA_JV_SUCCESS;
       }
@@ -848,8 +850,9 @@ void bta_jv_start_discovery(const RawAddress& bd_addr, uint16_t num_uuid,
 
   /* init the database/set up the filter */
   VLOG(2) << __func__ << ": call SDP_InitDiscoveryDb, num_uuid=" << num_uuid;
-  SDP_InitDiscoveryDb(p_bta_jv_cfg->p_sdp_db, p_bta_jv_cfg->sdp_db_size,
-                      num_uuid, uuid_list, 0, NULL);
+  get_legacy_stack_sdp_api()->service.SDP_InitDiscoveryDb(
+      p_bta_jv_cfg->p_sdp_db, p_bta_jv_cfg->sdp_db_size, num_uuid, uuid_list, 0,
+      NULL);
 
   /* tell SDP to keep the raw data */
   p_bta_jv_cfg->p_sdp_db->raw_data = p_bta_jv_cfg->p_sdp_raw_data;
@@ -863,9 +866,9 @@ void bta_jv_start_discovery(const RawAddress& bd_addr, uint16_t num_uuid,
   uint32_t* rfcomm_slot_id_copy = (uint32_t*)osi_malloc(sizeof(uint32_t));
   *rfcomm_slot_id_copy = rfcomm_slot_id;
 
-  if (!SDP_ServiceSearchAttributeRequest2(bd_addr, p_bta_jv_cfg->p_sdp_db,
-                                          bta_jv_start_discovery_cback,
-                                          (void*)rfcomm_slot_id_copy)) {
+  if (!get_legacy_stack_sdp_api()->service.SDP_ServiceSearchAttributeRequest2(
+          bd_addr, p_bta_jv_cfg->p_sdp_db, bta_jv_start_discovery_cback,
+          (void*)rfcomm_slot_id_copy)) {
     bta_jv_cb.sdp_active = BTA_JV_SDP_ACT_NONE;
     /* failed to start SDP. report the failure right away */
     if (bta_jv_cb.p_dm_cback) {
@@ -895,7 +898,7 @@ void bta_jv_create_record(uint32_t rfcomm_slot_id) {
 void bta_jv_delete_record(uint32_t handle) {
   if (handle) {
     /* this is a record created by btif layer*/
-    SDP_DeleteRecord(handle);
+    get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(handle);
   }
 }
 

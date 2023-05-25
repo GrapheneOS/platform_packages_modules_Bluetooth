@@ -27,8 +27,11 @@
 
 #include "fuzzers/common/commonFuzzHelpers.h"
 #include "osi/include/alarm.h"
+#include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
 #include "types/raw_address.h"
+
+using namespace bluetooth::legacy::stack::sdp;
 
 #define SDP_MAX_NUM_ELEMS 128
 #define SDP_MAX_ELEM_LEN 1024
@@ -76,7 +79,7 @@ void cleanupSdpFuzz() {
   sdp_protolist_elem_vect.clear();
 
   // Delete all records
-  SDP_DeleteRecord(0);
+  get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(0);
   sdp_record_handles.clear();
 
   // Delete Databases
