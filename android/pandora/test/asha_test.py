@@ -49,7 +49,7 @@ class Ear(enum.IntEnum):
     RIGHT = 1
 
 
-class ASHATest(base_test.BaseTestClass):  # type: ignore[misc]
+class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
     devices: Optional[PandoraDevices] = None
 
     # pandora devices.
