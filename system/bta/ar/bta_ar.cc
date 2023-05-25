@@ -28,7 +28,10 @@
 #include "bta/sys/bta_sys.h"
 #include "stack/include/avct_api.h"
 #include "stack/include/avrc_api.h"
+#include "stack/include/sdp_api.h"
 #include "types/raw_address.h"
+
+using namespace bluetooth::legacy::stack::sdp;
 
 /* AV control block */
 tBTA_AR_CB bta_ar_cb;
@@ -167,7 +170,8 @@ void bta_ar_reg_avrc(uint16_t service_uuid, const char* service_name,
   if (service_uuid == UUID_SERVCLASS_AV_REM_CTRL_TARGET) {
     if (bta_ar_cb.sdp_tg_handle == 0) {
       bta_ar_cb.tg_registered = mask;
-      bta_ar_cb.sdp_tg_handle = SDP_CreateRecord();
+      bta_ar_cb.sdp_tg_handle =
+          get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
       AVRC_AddRecord(service_uuid, service_name, provider_name, categories,
                      bta_ar_cb.sdp_tg_handle, browse_supported,
                      profile_version, 0);
@@ -180,7 +184,8 @@ void bta_ar_reg_avrc(uint16_t service_uuid, const char* service_name,
     bta_ar_cb.ct_categories[mask - 1] = categories;
     categories = bta_ar_cb.ct_categories[0] | bta_ar_cb.ct_categories[1];
     if (bta_ar_cb.sdp_ct_handle == 0) {
-      bta_ar_cb.sdp_ct_handle = SDP_CreateRecord();
+      bta_ar_cb.sdp_ct_handle =
+          get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
       AVRC_AddRecord(service_uuid, service_name, provider_name, categories,
                      bta_ar_cb.sdp_ct_handle, browse_supported,
                      profile_version, 0);
@@ -190,8 +195,9 @@ void bta_ar_reg_avrc(uint16_t service_uuid, const char* service_name,
        * Change supported categories on the second one */
       p = temp;
       UINT16_TO_BE_STREAM(p, categories);
-      SDP_AddAttribute(bta_ar_cb.sdp_ct_handle, ATTR_ID_SUPPORTED_FEATURES,
-                       UINT_DESC_TYPE, (uint32_t)2, (uint8_t*)temp);
+      get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
+          bta_ar_cb.sdp_ct_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE,
+          (uint32_t)2, (uint8_t*)temp);
     }
   }
 }
@@ -214,7 +220,8 @@ void bta_ar_dereg_avrc(uint16_t service_uuid) {
   if (service_uuid == UUID_SERVCLASS_AV_REM_CTRL_TARGET) {
     if (bta_ar_cb.sdp_tg_handle && mask == bta_ar_cb.tg_registered) {
       bta_ar_cb.tg_registered = 0;
-      SDP_DeleteRecord(bta_ar_cb.sdp_tg_handle);
+      get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(
+          bta_ar_cb.sdp_tg_handle);
       bta_ar_cb.sdp_tg_handle = 0;
       bta_sys_remove_uuid(service_uuid);
     }
@@ -224,15 +231,17 @@ void bta_ar_dereg_avrc(uint16_t service_uuid) {
       categories = bta_ar_cb.ct_categories[0] | bta_ar_cb.ct_categories[1];
       if (!categories) {
         /* no CT is still registered - cleaup */
-        SDP_DeleteRecord(bta_ar_cb.sdp_ct_handle);
+        get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(
+            bta_ar_cb.sdp_ct_handle);
         bta_ar_cb.sdp_ct_handle = 0;
         bta_sys_remove_uuid(service_uuid);
       } else {
         /* change supported categories to the remaning one */
         p = temp;
         UINT16_TO_BE_STREAM(p, categories);
-        SDP_AddAttribute(bta_ar_cb.sdp_ct_handle, ATTR_ID_SUPPORTED_FEATURES,
-                         UINT_DESC_TYPE, (uint32_t)2, (uint8_t*)temp);
+        get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
+            bta_ar_cb.sdp_ct_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE,
+            (uint32_t)2, (uint8_t*)temp);
       }
     }
   }
