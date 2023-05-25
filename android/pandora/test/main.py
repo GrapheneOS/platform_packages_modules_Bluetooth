@@ -13,21 +13,23 @@ from typing import List, Tuple
 
 _BUMBLE_BTSNOOP_FMT = 'bumble_btsnoop_{pid}_{instance}.log'
 
-# Import test modules.
+# Import test cases modules.
 import asha_test
-import classic_ssp_test
-import example
+import cases.host_test
+import cases.le_host_test
+import cases.le_security_test
+import cases.security_test
 import gatt_test
-import le_advertising_test
 import smp_test
 
 _TEST_CLASSES_LIST = [
-    example.ExampleTest,
-    asha_test.ASHATest,
-    gatt_test.GattTest,
-    le_advertising_test.LeAdvertisingTest,
+    cases.host_test.HostTest,
+    cases.le_host_test.LeHostTest,
+    cases.security_test.SecurityTest,
+    cases.le_security_test.LeSecurityTest,
     smp_test.SmpTest,
-    classic_ssp_test.ClassicSspTest,
+    gatt_test.GattTest,
+    asha_test.AshaTest,
 ]
 
 
