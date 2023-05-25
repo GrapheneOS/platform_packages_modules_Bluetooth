@@ -194,21 +194,24 @@ class BluetoothManagerService {
 
     // Locks are not provided for mName and mAddress.
     // They are accessed in handler or broadcast receiver, same thread context.
-    private String mAddress;
-    private String mName;
+    private String mAddress = null;
+    private String mName = null;
     private final ContentResolver mContentResolver;
-    private final RemoteCallbackList<IBluetoothManagerCallback> mCallbacks;
-    private final RemoteCallbackList<IBluetoothStateChangeCallback> mStateChangeCallbacks;
-    private IBinder mBluetoothBinder;
+    private final RemoteCallbackList<IBluetoothManagerCallback> mCallbacks =
+            new RemoteCallbackList<IBluetoothManagerCallback>();
+    private final RemoteCallbackList<IBluetoothStateChangeCallback> mStateChangeCallbacks =
+            new RemoteCallbackList<IBluetoothStateChangeCallback>();
+    private IBinder mBluetoothBinder = null;
     private final BluetoothServiceBinder mBinder;
 
     private final ReentrantReadWriteLock mBluetoothLock = new ReentrantReadWriteLock();
-    @GuardedBy("mBluetoothLock")
-    private IBluetooth mBluetooth;
 
-    private IBluetoothGatt mBluetoothGatt;
-    private boolean mBinding;
-    private boolean mUnbinding;
+    @GuardedBy("mBluetoothLock")
+    private IBluetooth mBluetooth = null;
+
+    private IBluetoothGatt mBluetoothGatt = null;
+    private boolean mBinding = false;
+    private boolean mUnbinding = false;
     private List<Integer> mSupportedProfileList = new ArrayList<>();
 
     private BluetoothModeChangeHelper mBluetoothModeChangeHelper;
@@ -221,7 +224,7 @@ class BluetoothManagerService {
 
     // used inside handler thread
     private boolean mQuietEnable = false;
-    private boolean mEnable;
+    private boolean mEnable = false;
     private boolean mShutdownInProgress = false;
 
     private static String timeToLog(long timestamp) {
@@ -258,22 +261,23 @@ class BluetoothManagerService {
 
     private final LinkedList<ActiveLog> mActiveLogs = new LinkedList<>();
     private final LinkedList<Long> mCrashTimestamps = new LinkedList<>();
-    private int mCrashes;
+    private int mCrashes = 0;
     private long mLastEnabledTime;
 
     // configuration from external IBinder call which is used to
     // synchronize with broadcast receiver.
-    private boolean mQuietEnableExternal;
-    private boolean mEnableExternal;
+    private boolean mQuietEnableExternal = false;
+    private boolean mEnableExternal = false;
 
     // Map of apps registered to keep BLE scanning on.
     private Map<IBinder, ClientDeathRecipient> mBleApps =
             new ConcurrentHashMap<IBinder, ClientDeathRecipient>();
 
-    private int mState;
-    private final HandlerThread mBluetoothHandlerThread;
-    private final BluetoothHandler mHandler;
-    private int mErrorRecoveryRetryCounter;
+    private int mState = BluetoothAdapter.STATE_OFF;
+    private final HandlerThread mBluetoothHandlerThread =
+            BluetoothServerProxy.getInstance().createHandlerThread("BluetoothManagerService");
+    @VisibleForTesting private final BluetoothHandler mHandler;
+    private int mErrorRecoveryRetryCounter = 0;
 
     private final boolean mIsHearingAidProfileSupported;
 
@@ -615,32 +619,14 @@ class BluetoothManagerService {
                         "UserManager system service cannot be null");
 
         mBinder = new BluetoothServiceBinder(this, context, mUserManager);
-        mBluetoothHandlerThread = BluetoothServerProxy.getInstance()
-                .createHandlerThread("BluetoothManagerService");
         mBluetoothHandlerThread.start();
-
         mHandler = BluetoothServerProxy.getInstance().newBluetoothHandler(
                 new BluetoothHandler(mBluetoothHandlerThread.getLooper()));
 
-        mCrashes = 0;
-        mBluetooth = null;
-        mBluetoothBinder = null;
-        mBluetoothGatt = null;
-        mBinding = false;
-        mUnbinding = false;
-        mEnable = false;
-        mState = BluetoothAdapter.STATE_OFF;
-        mQuietEnableExternal = false;
-        mEnableExternal = false;
-        mAddress = null;
-        mName = null;
-        mErrorRecoveryRetryCounter = 0;
         mContentResolver = context.getContentResolver();
 
         // Observe BLE scan only mode settings change.
         registerForBleScanModeChange();
-        mCallbacks = new RemoteCallbackList<IBluetoothManagerCallback>();
-        mStateChangeCallbacks = new RemoteCallbackList<IBluetoothStateChangeCallback>();
 
         mBluetoothNotificationManager = new BluetoothNotificationManager(mContext);
 
