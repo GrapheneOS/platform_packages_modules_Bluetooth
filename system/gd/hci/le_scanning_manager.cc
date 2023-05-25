@@ -870,7 +870,7 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
         combined_data.push_back((uint8_t)data);
         combined_data.push_back((uint8_t)(data >> 8));
       } else if (uuid_len == Uuid::kNumBytes32) {
-        uint16_t data = uuid.As32Bit();
+        uint32_t data = uuid.As32Bit();
         combined_data.push_back((uint8_t)data);
         combined_data.push_back((uint8_t)(data >> 8));
         combined_data.push_back((uint8_t)(data >> 16));
@@ -889,7 +889,7 @@ struct LeScanningManager::impl : public LeAddressManagerCallback {
           combined_data.push_back((uint8_t)data);
           combined_data.push_back((uint8_t)(data >> 8));
         } else if (uuid_len == Uuid::kNumBytes32) {
-          uint16_t data = uuid_mask.As32Bit();
+          uint32_t data = uuid_mask.As32Bit();
           combined_data.push_back((uint8_t)data);
           combined_data.push_back((uint8_t)(data >> 8));
           combined_data.push_back((uint8_t)(data >> 16));
