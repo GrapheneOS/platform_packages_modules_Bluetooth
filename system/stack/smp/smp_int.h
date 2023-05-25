@@ -404,7 +404,6 @@ void smp_br_send_pair_response(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_br_check_authorization_request(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_br_select_next_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_br_process_link_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
-void smp_key_distribution_by_transport(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 void smp_br_pairing_complete(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 
 /* smp_l2c */
