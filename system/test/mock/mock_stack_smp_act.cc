@@ -124,7 +124,6 @@ struct smp_set_derive_link_key smp_set_derive_link_key;
 struct smp_derive_link_key_from_long_term_key
     smp_derive_link_key_from_long_term_key;
 struct smp_br_process_link_key smp_br_process_link_key;
-struct smp_key_distribution_by_transport smp_key_distribution_by_transport;
 struct smp_br_pairing_complete smp_br_pairing_complete;
 
 }  // namespace stack_smp_act
@@ -416,10 +415,6 @@ void smp_derive_link_key_from_long_term_key(tSMP_CB* p_cb,
 void smp_br_process_link_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   inc_func_call_count(__func__);
   test::mock::stack_smp_act::smp_br_process_link_key(p_cb, p_data);
-}
-void smp_key_distribution_by_transport(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
-  inc_func_call_count(__func__);
-  test::mock::stack_smp_act::smp_key_distribution_by_transport(p_cb, p_data);
 }
 void smp_br_pairing_complete(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   inc_func_call_count(__func__);
