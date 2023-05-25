@@ -40,8 +40,6 @@
  ******************************************************************************/
 tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm);
 
-tBTM_SEC_DEV_REC* btm_sec_find_dev_by_sec_state(uint8_t state);
-
 /*******************************************************************************
  *
  * Function         BTM_SecRegister
@@ -712,18 +710,6 @@ void btm_sec_update_clock_offset(uint16_t handle, uint16_t clock_offset);
 tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm);
 
 bool is_sec_state_equal(void* data, void* context);
-
-/*******************************************************************************
- *
- * Function         btm_sec_find_dev_by_sec_state
- *
- * Description      Look for the record in the device database for the device
- *                  which is being authenticated or encrypted
- *
- * Returns          Pointer to the record or NULL
- *
- ******************************************************************************/
-tBTM_SEC_DEV_REC* btm_sec_find_dev_by_sec_state(uint8_t state);
 
 /*******************************************************************************
  *
