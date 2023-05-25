@@ -359,15 +359,6 @@ struct acl_create_classic_connection {
   };
 };
 extern struct acl_create_classic_connection acl_create_classic_connection;
-// Name: IsEprAvailable
-// Params: const tACL_CONN& p_acl
-// Returns: inline bool
-struct IsEprAvailable {
-  std::function<bool(const tACL_CONN& p_acl)> body{
-      [](const tACL_CONN& p_acl) { return 0; }};
-  inline bool operator()(const tACL_CONN& p_acl) { return body(p_acl); };
-};
-extern struct IsEprAvailable IsEprAvailable;
 // Name: acl_get_connection_from_address
 // Params: const RawAddress& bd_addr, tBT_TRANSPORT transport
 // Returns: tACL_CONN*
