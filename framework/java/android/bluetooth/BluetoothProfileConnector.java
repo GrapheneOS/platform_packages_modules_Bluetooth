@@ -131,7 +131,7 @@ public abstract class BluetoothProfileConnector<T> {
     private boolean doBind() {
         synchronized (mConnection) {
             if (mService == null) {
-                logDebug("Binding service...");
+                logDebug("Binding service for " + mContext.getPackageName());
                 mCloseGuard.open("doUnbind");
                 try {
                     return BluetoothAdapter.getDefaultAdapter().getBluetoothManager()
@@ -148,7 +148,7 @@ public abstract class BluetoothProfileConnector<T> {
     private void doUnbind() {
         synchronized (mConnection) {
             if (mService != null) {
-                logDebug("Unbinding service...");
+                logDebug("Unbinding service for " + mContext.getPackageName());
                 mCloseGuard.close();
                 try {
                     BluetoothAdapter.getDefaultAdapter().getBluetoothManager()
