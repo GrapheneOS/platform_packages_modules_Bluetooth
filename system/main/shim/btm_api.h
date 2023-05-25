@@ -1275,6 +1275,18 @@ void BTM_EScoConnRsp(uint16_t sco_inx, uint8_t hci_status,
  ******************************************************************************/
 uint8_t BTM_GetNumScoLinks(void);
 
+/*******************************************************************************
+ *
+ * Function         BTM_GetScoDebugDump
+ *
+ * Description      Get the status of SCO. This function is only used for
+ *                  testing and debugging purposes.
+ *
+ * Returns          Data with SCO related debug dump.
+ *
+ ******************************************************************************/
+tBTM_SCO_DEBUG_DUMP BTM_GetScoDebugDump(void);
+
 /*****************************************************************************
  *  SECURITY MANAGEMENT FUNCTIONS
  ****************************************************************************/
