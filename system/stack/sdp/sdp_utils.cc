@@ -54,6 +54,16 @@
 #include "types/raw_address.h"
 
 using bluetooth::Uuid;
+
+bool SDP_FindProtocolListElemInRec(const tSDP_DISC_REC* p_rec,
+                                   uint16_t layer_uuid,
+                                   tSDP_PROTOCOL_ELEM* p_elem);
+tSDP_DISC_ATTR* SDP_FindAttributeInRec(const tSDP_DISC_REC* p_rec,
+                                       uint16_t attr_id);
+uint16_t SDP_GetDiRecord(uint8_t getRecordIndex,
+                         tSDP_DI_GET_RECORD* device_info,
+                         const tSDP_DISCOVERY_DB* p_db);
+
 static const uint8_t sdp_base_uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                         0x10, 0x00, 0x80, 0x00, 0x00, 0x80,
                                         0x5F, 0x9B, 0x34, 0xFB};

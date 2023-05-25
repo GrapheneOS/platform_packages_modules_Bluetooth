@@ -43,6 +43,8 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+using namespace bluetooth::legacy::stack::sdp;
+
 using bluetooth::Uuid;
 
 namespace {
@@ -168,7 +170,8 @@ tPAN_RESULT PAN_SetRole(uint8_t role, std::string p_user_name,
     p_desc = PAN_NAP_DEFAULT_DESCRIPTION;
 
     if (pan_cb.pan_nap_sdp_handle != 0)
-      SDP_DeleteRecord(pan_cb.pan_nap_sdp_handle);
+      get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(
+          pan_cb.pan_nap_sdp_handle);
 
     pan_cb.pan_nap_sdp_handle =
         pan_register_with_sdp(UUID_SERVCLASS_NAP, p_nap_name.c_str(), p_desc);
@@ -179,7 +182,8 @@ tPAN_RESULT PAN_SetRole(uint8_t role, std::string p_user_name,
    */
   else if (pan_cb.role & PAN_ROLE_NAP_SERVER) {
     if (pan_cb.pan_nap_sdp_handle != 0) {
-      SDP_DeleteRecord(pan_cb.pan_nap_sdp_handle);
+      get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(
+          pan_cb.pan_nap_sdp_handle);
       pan_cb.pan_nap_sdp_handle = 0;
       bta_sys_remove_uuid(UUID_SERVCLASS_NAP);
       nap_service_name.clear();
@@ -193,7 +197,8 @@ tPAN_RESULT PAN_SetRole(uint8_t role, std::string p_user_name,
     /* Registering for PANU service with SDP */
     p_desc = PAN_PANU_DEFAULT_DESCRIPTION;
     if (pan_cb.pan_user_sdp_handle != 0)
-      SDP_DeleteRecord(pan_cb.pan_user_sdp_handle);
+      get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(
+          pan_cb.pan_user_sdp_handle);
 
     pan_cb.pan_user_sdp_handle =
         pan_register_with_sdp(UUID_SERVCLASS_PANU, p_user_name.c_str(), p_desc);
@@ -204,7 +209,8 @@ tPAN_RESULT PAN_SetRole(uint8_t role, std::string p_user_name,
    */
   else if (pan_cb.role & PAN_ROLE_CLIENT) {
     if (pan_cb.pan_user_sdp_handle != 0) {
-      SDP_DeleteRecord(pan_cb.pan_user_sdp_handle);
+      get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(
+          pan_cb.pan_user_sdp_handle);
       pan_cb.pan_user_sdp_handle = 0;
       bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
       user_service_name.clear();

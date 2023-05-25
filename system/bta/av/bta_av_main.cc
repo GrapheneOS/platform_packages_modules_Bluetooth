@@ -24,6 +24,8 @@
 
 #define LOG_TAG "bt_bta_av"
 
+#include <base/logging.h>
+
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
@@ -41,10 +43,11 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
+#include "stack/include/sdp_api.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 
-#include <base/logging.h>
+using namespace bluetooth::legacy::stack::sdp;
 
 /*****************************************************************************
  * Constants and types
@@ -143,11 +146,13 @@ static void bta_av_api_enable(tBTA_AV_DATA* p_data) {
       return;
     }
     if (bta_av_cb.sdp_a2dp_handle) {
-      SDP_DeleteRecord(bta_av_cb.sdp_a2dp_handle);
+      get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(
+          bta_av_cb.sdp_a2dp_handle);
       bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
     }
     if (bta_av_cb.sdp_a2dp_snk_handle) {
-      SDP_DeleteRecord(bta_av_cb.sdp_a2dp_snk_handle);
+      get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(
+          bta_av_cb.sdp_a2dp_snk_handle);
       bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SINK);
     }
     // deregister from AVDT
@@ -607,12 +612,14 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
       bta_av_cb.sdp_a2dp_snk_handle = 0;
       if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE) {
         /* create the SDP records on the 1st audio channel */
-        bta_av_cb.sdp_a2dp_handle = SDP_CreateRecord();
+        bta_av_cb.sdp_a2dp_handle =
+            get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
         A2DP_AddRecord(UUID_SERVCLASS_AUDIO_SOURCE, p_service_name, NULL,
                        A2DP_SUPF_PLAYER, bta_av_cb.sdp_a2dp_handle);
         bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
       } else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK) {
-        bta_av_cb.sdp_a2dp_snk_handle = SDP_CreateRecord();
+        bta_av_cb.sdp_a2dp_snk_handle =
+            get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
         A2DP_AddRecord(UUID_SERVCLASS_AUDIO_SINK, p_service_name, NULL,
                        A2DP_SUPF_PLAYER, bta_av_cb.sdp_a2dp_snk_handle);
         bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SINK);

@@ -46,6 +46,8 @@
 
 uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr);
 
+using namespace bluetooth::legacy::stack::sdp;
+
 using base::StringPrintf;
 using bluetooth::Uuid;
 using bluetooth::eatt::EattExtension;
@@ -881,13 +883,14 @@ uint32_t gatt_add_sdp_record(const Uuid& uuid, uint16_t start_hdl,
   VLOG(1) << __func__
           << StringPrintf(" s_hdl=0x%x  s_hdl=0x%x", start_hdl, end_hdl);
 
-  uint32_t sdp_handle = SDP_CreateRecord();
+  uint32_t sdp_handle = get_legacy_stack_sdp_api()->handle.SDP_CreateRecord();
   if (sdp_handle == 0) return 0;
 
   switch (uuid.GetShortestRepresentationSize()) {
     case Uuid::kNumBytes16: {
       uint16_t tmp = uuid.As16Bit();
-      SDP_AddServiceClassIdList(sdp_handle, 1, &tmp);
+      get_legacy_stack_sdp_api()->handle.SDP_AddServiceClassIdList(sdp_handle,
+                                                                   1, &tmp);
       break;
     }
 
@@ -895,16 +898,18 @@ uint32_t gatt_add_sdp_record(const Uuid& uuid, uint16_t start_hdl,
       UINT8_TO_BE_STREAM(p, (UUID_DESC_TYPE << 3) | SIZE_FOUR_BYTES);
       uint32_t tmp = uuid.As32Bit();
       UINT32_TO_BE_STREAM(p, tmp);
-      SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_CLASS_ID_LIST,
-                       DATA_ELE_SEQ_DESC_TYPE, (uint32_t)(p - buff), buff);
+      get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
+          sdp_handle, ATTR_ID_SERVICE_CLASS_ID_LIST, DATA_ELE_SEQ_DESC_TYPE,
+          (uint32_t)(p - buff), buff);
       break;
     }
 
     case Uuid::kNumBytes128:
       UINT8_TO_BE_STREAM(p, (UUID_DESC_TYPE << 3) | SIZE_SIXTEEN_BYTES);
       ARRAY_TO_BE_STREAM(p, uuid.To128BitBE().data(), (int)Uuid::kNumBytes128);
-      SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_CLASS_ID_LIST,
-                       DATA_ELE_SEQ_DESC_TYPE, (uint32_t)(p - buff), buff);
+      get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
+          sdp_handle, ATTR_ID_SERVICE_CLASS_ID_LIST, DATA_ELE_SEQ_DESC_TYPE,
+          (uint32_t)(p - buff), buff);
       break;
   }
 
@@ -918,11 +923,13 @@ uint32_t gatt_add_sdp_record(const Uuid& uuid, uint16_t start_hdl,
   proto_elem_list[1].params[0] = start_hdl;
   proto_elem_list[1].params[1] = end_hdl;
 
-  SDP_AddProtocolList(sdp_handle, 2, proto_elem_list);
+  get_legacy_stack_sdp_api()->handle.SDP_AddProtocolList(sdp_handle, 2,
+                                                         proto_elem_list);
 
   /* Make the service browseable */
   uint16_t list = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-  SDP_AddUuidSequence(sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &list);
+  get_legacy_stack_sdp_api()->handle.SDP_AddUuidSequence(
+      sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &list);
 
   return (sdp_handle);
 }

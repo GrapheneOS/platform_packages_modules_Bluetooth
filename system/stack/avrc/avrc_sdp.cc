@@ -25,8 +25,11 @@
 
 #include "avrc_api.h"
 #include "avrc_int.h"
+#include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
+
+using namespace bluetooth::legacy::stack::sdp;
 
 using bluetooth::Uuid;
 
@@ -129,8 +132,8 @@ uint16_t AVRC_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
   }
 
   Uuid uuid_list = Uuid::From16Bit(service_uuid);
-  result = SDP_InitDiscoveryDb(p_db->p_db, p_db->db_len, 1, &uuid_list,
-                               p_db->num_attr, p_db->p_attrs);
+  result = get_legacy_stack_sdp_api()->service.SDP_InitDiscoveryDb(
+      p_db->p_db, p_db->db_len, 1, &uuid_list, p_db->num_attr, p_db->p_attrs);
 
   if (result) {
     /* store service_uuid and discovery db pointer */
@@ -140,7 +143,8 @@ uint16_t AVRC_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
 
     /* perform service search */
     result =
-        SDP_ServiceSearchAttributeRequest(bd_addr, p_db->p_db, avrc_sdp_cback);
+        get_legacy_stack_sdp_api()->service.SDP_ServiceSearchAttributeRequest(
+            bd_addr, p_db->p_db, avrc_sdp_cback);
 
     if (!result) {
       AVRC_TRACE_ERROR("%s: Failed to init SDP for peer %s", __func__,
@@ -158,7 +162,8 @@ uint16_t AVRC_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
  *
  * Description      This function is called to build an AVRCP SDP record.
  *                  Prior to calling this function the application must
- *                  call SDP_CreateRecord() to create an SDP record.
+ *                  call get_legacy_stack_sdp_api()->handle.SDP_CreateRecord()
+ *                  to create an SDP record.
  *
  *                  Input Parameters:
  *                      service_uuid:  Indicates
@@ -166,16 +171,17 @@ uint16_t AVRC_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
  *                                     or CT(UUID_SERVCLASS_AV_REMOTE_CONTROL)
  *
  *                      p_service_name:  Pointer to a null-terminated character
- *                      string containing the service name.
+ *                                       string containing the service name.
  *                      If service name is not used set this to NULL.
  *
  *                      p_provider_name:  Pointer to a null-terminated character
- *                      string containing the provider name.
+ *                                        string containing the provider name.
  *                      If provider name is not used set this to NULL.
  *
  *                      categories:  Supported categories.
  *
- *                      sdp_handle:  SDP handle returned by SDP_CreateRecord().
+ *                      sdp_handle:  SDP handle returned by
+ *                      get_legacy_stack_sdp_api()->handle.SDP_CreateRecord().
  *
  *                      browse_supported:  browse support info.
  *
@@ -219,7 +225,8 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
     class_list[1] = UUID_SERVCLASS_AV_REM_CTRL_CONTROL;
     count = 2;
   }
-  result &= SDP_AddServiceClassIdList(sdp_handle, count, class_list);
+  result &= get_legacy_stack_sdp_api()->handle.SDP_AddServiceClassIdList(
+      sdp_handle, count, class_list);
 
   uint16_t protocol_reported_version;
   /* AVRCP versions 1.3 to 1.5 report (version - 1) in the protocol
@@ -243,8 +250,8 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
     avrc_proto_desc_list[index].params[0] = protocol_reported_version;
     avrc_proto_desc_list[index].params[1] = 0;
   }
-  result &= SDP_AddProtocolList(sdp_handle, AVRC_NUM_PROTO_ELEMS,
-                                &avrc_proto_desc_list[0]);
+  result &= get_legacy_stack_sdp_api()->handle.SDP_AddProtocolList(
+      sdp_handle, AVRC_NUM_PROTO_ELEMS, &avrc_proto_desc_list[0]);
 
   /* additional protocal descriptor, required only for version > 1.3 */
   if (profile_version > AVRC_REV_1_3) {
@@ -296,38 +303,39 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
     if (num_additional_protocols > 0) {
       AVRC_TRACE_API("%s: Add %d additonal protocol descriptor lists",
                      __func__, num_additional_protocols);
-      result &= SDP_AddAdditionProtoLists(sdp_handle, num_additional_protocols,
-                                          avrc_add_proto_desc_lists);
+      result &= get_legacy_stack_sdp_api()->handle.SDP_AddAdditionProtoLists(
+          sdp_handle, num_additional_protocols, avrc_add_proto_desc_lists);
     }
   }
   /* add profile descriptor list   */
-  result &= SDP_AddProfileDescriptorList(
+  result &= get_legacy_stack_sdp_api()->handle.SDP_AddProfileDescriptorList(
       sdp_handle, UUID_SERVCLASS_AV_REMOTE_CONTROL, profile_version);
 
   /* add supported categories */
   p = temp;
   UINT16_TO_BE_STREAM(p, categories);
-  result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES,
-                             UINT_DESC_TYPE, (uint32_t)2, (uint8_t*)temp);
+  result &= get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
+      sdp_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE, (uint32_t)2,
+      (uint8_t*)temp);
 
   /* add provider name */
   if (p_provider_name != NULL) {
-    result &= SDP_AddAttribute(
+    result &= get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
         sdp_handle, ATTR_ID_PROVIDER_NAME, TEXT_STR_DESC_TYPE,
         (uint32_t)(strlen(p_provider_name) + 1), (uint8_t*)p_provider_name);
   }
 
   /* add service name */
   if (p_service_name != NULL) {
-    result &= SDP_AddAttribute(
+    result &= get_legacy_stack_sdp_api()->handle.SDP_AddAttribute(
         sdp_handle, ATTR_ID_SERVICE_NAME, TEXT_STR_DESC_TYPE,
         (uint32_t)(strlen(p_service_name) + 1), (uint8_t*)p_service_name);
   }
 
   /* add browse group list */
   browse_list[0] = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-  result &= SDP_AddUuidSequence(sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1,
-                                browse_list);
+  result &= get_legacy_stack_sdp_api()->handle.SDP_AddUuidSequence(
+      sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, browse_list);
 
   return (result ? AVRC_SUCCESS : AVRC_FAIL);
 }
@@ -347,7 +355,7 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
  *******************************************************************************/
 uint16_t AVRC_RemoveRecord(uint32_t sdp_handle) {
   AVRC_TRACE_API("%s: remove AVRCP SDP record", __func__);
-  bool result = SDP_DeleteRecord(sdp_handle);
+  bool result = get_legacy_stack_sdp_api()->handle.SDP_DeleteRecord(sdp_handle);
   return (result ? AVRC_SUCCESS : AVRC_FAIL);
 }
 
