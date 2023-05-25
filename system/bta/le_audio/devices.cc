@@ -1873,9 +1873,7 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
 
   if (offloader_streams_target_allocation->size() == 0) {
     *is_initial = true;
-  } else if (*is_initial ||
-             CodecManager::GetInstance()->GetAidlVersionInUsed() >=
-                 AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
+  } else if (*is_initial || LeAudioHalVerifier::SupportsStreamActiveApi()) {
     // As multiple CISes phone call case, the target_allocation already have the
     // previous data, but the is_initial flag not be cleared. We need to clear
     // here to avoid make duplicated target allocation stream map.
@@ -1927,8 +1925,7 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
           tag.c_str(), cis_entry.conn_handle, target_allocation,
           current_allocation, is_active);
 
-      if (*is_initial || CodecManager::GetInstance()->GetAidlVersionInUsed() >=
-                             AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
+      if (*is_initial || LeAudioHalVerifier::SupportsStreamActiveApi()) {
         offloader_streams_target_allocation->emplace_back(stream_map_info(
             cis_entry.conn_handle, target_allocation, is_active));
       }

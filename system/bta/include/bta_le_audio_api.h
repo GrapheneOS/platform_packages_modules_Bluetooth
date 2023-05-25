@@ -29,6 +29,7 @@ class LeAudioHalVerifier {
   static bool SupportsLeAudio();
   static bool SupportsLeAudioHardwareOffload();
   static bool SupportsLeAudioBroadcast();
+  static bool SupportsStreamActiveApi();
 };
 
 /* Interface class */

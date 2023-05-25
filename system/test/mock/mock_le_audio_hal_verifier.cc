@@ -33,3 +33,8 @@ bool LeAudioHalVerifier::SupportsLeAudioBroadcast() {
   inc_func_call_count(__func__);
   return true;
 }
+
+bool LeAudioHalVerifier::SupportsStreamActiveApi() {
+  inc_func_call_count(__func__);
+  return true;
+}

@@ -3415,8 +3415,7 @@ class LeAudioClientImpl : public LeAudioClient {
     le_audio_source_hal_client_->UpdateRemoteDelay(remote_delay_ms);
     ConfirmLocalAudioSourceStreamingRequest();
 
-    if (CodecManager::GetInstance()->GetAidlVersionInUsed() <
-        AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
+    if (!LeAudioHalVerifier::SupportsStreamActiveApi()) {
       /* We update the target audio allocation before streamStarted that the
        * offloder would know how to configure offloader encoder. We should check
        * if we need to update the current
@@ -3482,8 +3481,7 @@ class LeAudioClientImpl : public LeAudioClient {
     le_audio_sink_hal_client_->UpdateRemoteDelay(remote_delay_ms);
     ConfirmLocalAudioSinkStreamingRequest();
 
-    if (CodecManager::GetInstance()->GetAidlVersionInUsed() <
-        AIDL_VERSION_SUPPORT_STREAM_ACTIVE) {
+    if (!LeAudioHalVerifier::SupportsStreamActiveApi()) {
       /* We update the target audio allocation before streamStarted that the
        * offloder would know how to configure offloader encoder. We should check
        * if we need to update the current
