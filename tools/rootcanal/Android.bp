@@ -294,6 +294,7 @@ python_test_host {
         "test/LL/CON_/PER/*.py",
         "test/LL/DDI/ADV/*.py",
         "test/LL/DDI/SCN/*.py",
+        "test/LMP/LIH/*.py",
         "test/main.py",
     ],
     data: [
