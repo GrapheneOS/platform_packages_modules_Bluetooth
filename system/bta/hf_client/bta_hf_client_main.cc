@@ -17,6 +17,8 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include <cstdint>
 #include <cstdio>
 
@@ -26,9 +28,10 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
+#include "stack/include/sdp_api.h"
 #include "types/raw_address.h"
 
-#include <base/logging.h>
+using namespace bluetooth::legacy::stack::sdp;
 
 static const char* bta_hf_client_evt_str(uint16_t event);
 static const char* bta_hf_client_state_str(uint8_t state);
@@ -385,7 +388,8 @@ void bta_hf_client_collision_cback(UNUSED_ATTR tBTA_SYS_CONN_STATUS status,
 
     /* Cancel SDP if it had been started. */
     if (client_cb->p_disc_db) {
-      (void)SDP_CancelServiceSearch(client_cb->p_disc_db);
+      get_legacy_stack_sdp_api()->service.SDP_CancelServiceSearch(
+          client_cb->p_disc_db);
       osi_free_and_reset((void**)&client_cb->p_disc_db);
     }
 
