@@ -660,14 +660,14 @@ class BluetoothManagerService {
                         mContext.getSystemService(UserManager.class),
                         "UserManager system service cannot be null");
 
-        mBinder = new BluetoothServiceBinder(this, context, mUserManager);
+        mBinder = new BluetoothServiceBinder(this, mContext, mUserManager);
         mBluetoothHandlerThread.start();
         mHandler =
                 BluetoothServerProxy.getInstance()
                         .newBluetoothHandler(
                                 new BluetoothHandler(mBluetoothHandlerThread.getLooper()));
 
-        mContentResolver = context.getContentResolver();
+        mContentResolver = mContext.getContentResolver();
 
         // Observe BLE scan only mode settings change.
         registerForBleScanModeChange();
@@ -742,13 +742,13 @@ class BluetoothManagerService {
                     new BluetoothAirplaneModeListener(
                             this,
                             mBluetoothHandlerThread.getLooper(),
-                            context,
+                            mContext,
                             mBluetoothNotificationManager);
         }
 
         mBluetoothSatelliteModeListener =
                 new BluetoothSatelliteModeListener(
-                        this, mBluetoothHandlerThread.getLooper(), context);
+                        this, mBluetoothHandlerThread.getLooper(), mContext);
     }
 
     IBluetoothManager.Stub getBinder() {
