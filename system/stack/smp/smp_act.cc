@@ -45,6 +45,9 @@ namespace {
 constexpr char kBtmLogTag[] = "SMP";
 }
 
+static void smp_key_distribution_by_transport(tSMP_CB* p_cb,
+                                              tSMP_INT_DATA* p_data);
+
 #define SMP_KEY_DIST_TYPE_MAX 4
 
 const tSMP_ACT smp_distribute_act[] = {
@@ -2245,7 +2248,8 @@ void smp_br_process_link_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
  * Description  depending on the transport used at the moment calls either
  *              smp_key_distribution(...) or smp_br_key_distribution(...).
  ******************************************************************************/
-void smp_key_distribution_by_transport(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
+static void smp_key_distribution_by_transport(tSMP_CB* p_cb,
+                                              tSMP_INT_DATA* p_data) {
   SMP_TRACE_DEBUG("%s", __func__);
   if (p_cb->smp_over_br) {
     smp_br_select_next_key(p_cb, NULL);
