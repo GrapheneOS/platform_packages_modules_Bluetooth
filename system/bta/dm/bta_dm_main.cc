@@ -90,7 +90,7 @@ void bta_dm_search_sm_disable() { bta_sys_deregister(BTA_ID_DM_SEARCH); }
  * Returns          void
  *
  ******************************************************************************/
-bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
+bool bta_dm_search_sm_execute(const BT_HDR_RIGID* p_msg) {
   const tBTA_DM_EVT event = static_cast<tBTA_DM_EVT>(p_msg->event);
   LOG_INFO("state:%s, event:%s[0x%x]",
            bta_dm_state_text(bta_dm_search_get_state()).c_str(),
