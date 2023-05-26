@@ -49,17 +49,17 @@ public class BluetoothManagerServiceTest {
     static int sTimeout = 3000;
     BluetoothManagerService mManagerService;
     Context mContext;
-    @Mock
-    BluetoothServerProxy mBluetoothServerProxy;
-    @Mock
-    BluetoothManagerService.BluetoothHandler mHandler;
+    @Mock BluetoothServerProxy mBluetoothServerProxy;
+    @Mock BluetoothManagerService.BluetoothHandler mHandler;
     HandlerThread mHandlerThread;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mContext = spy(new ContextWrapper(
-                InstrumentationRegistry.getInstrumentation().getTargetContext()));
+        mContext =
+                spy(
+                        new ContextWrapper(
+                                InstrumentationRegistry.getInstrumentation().getTargetContext()));
         mHandlerThread = new HandlerThread("BluetoothManagerServiceTest");
     }
 
@@ -69,8 +69,9 @@ public class BluetoothManagerServiceTest {
     }
 
     private void createBluetoothManagerService() {
-        doReturn(mock(Intent.class)).when(mContext).registerReceiverForAllUsers(any(), any(),
-                eq(null), eq(null));
+        doReturn(mock(Intent.class))
+                .when(mContext)
+                .registerReceiverForAllUsers(any(), any(), eq(null), eq(null));
         BluetoothServerProxy.setInstanceForTesting(mBluetoothServerProxy);
         // Mock the handler to avoid handle message & to terminate the thread after
         // test
@@ -78,10 +79,12 @@ public class BluetoothManagerServiceTest {
         doReturn(mHandler).when(mBluetoothServerProxy).newBluetoothHandler(any());
 
         // Mock these functions so security errors won't throw
-        doReturn("name").when(mBluetoothServerProxy).settingsSecureGetString(any(),
-                eq(Settings.Secure.BLUETOOTH_NAME));
-        doReturn("00:11:22:33:44:55").when(mBluetoothServerProxy).settingsSecureGetString(any(),
-                eq(Settings.Secure.BLUETOOTH_ADDRESS));
+        doReturn("name")
+                .when(mBluetoothServerProxy)
+                .settingsSecureGetString(any(), eq(Settings.Secure.BLUETOOTH_NAME));
+        doReturn("00:11:22:33:44:55")
+                .when(mBluetoothServerProxy)
+                .settingsSecureGetString(any(), eq(Settings.Secure.BLUETOOTH_ADDRESS));
         mManagerService = new BluetoothManagerService(mContext);
     }
 
@@ -91,10 +94,12 @@ public class BluetoothManagerServiceTest {
         // Spy UserManager so we can mimic the case when restriction settings changed
         UserManager userManager = mock(UserManager.class);
         doReturn(userManager).when(mContext).getSystemService(UserManager.class);
-        doReturn(true).when(userManager).hasUserRestrictionForUser(
-                eq(UserManager.DISALLOW_BLUETOOTH), any());
-        doReturn(false).when(userManager).hasUserRestrictionForUser(
-                eq(UserManager.DISALLOW_BLUETOOTH_SHARING), any());
+        doReturn(true)
+                .when(userManager)
+                .hasUserRestrictionForUser(eq(UserManager.DISALLOW_BLUETOOTH), any());
+        doReturn(false)
+                .when(userManager)
+                .hasUserRestrictionForUser(eq(UserManager.DISALLOW_BLUETOOTH_SHARING), any());
         createBluetoothManagerService();
 
         // Check if disable message sent once for system user only
@@ -102,13 +107,13 @@ public class BluetoothManagerServiceTest {
 
         // test run on user -1, should not turning Bluetooth off
         mManagerService.onUserRestrictionsChanged(UserHandle.CURRENT);
-        verify(mBluetoothServerProxy, timeout(sTimeout).times(0)).handlerSendWhatMessage(mHandler,
-                BluetoothManagerService.MESSAGE_DISABLE);
+        verify(mBluetoothServerProxy, timeout(sTimeout).times(0))
+                .handlerSendWhatMessage(mHandler, BluetoothManagerService.MESSAGE_DISABLE);
 
         // called from SYSTEM user, should try to toggle Bluetooth off
         mManagerService.onUserRestrictionsChanged(UserHandle.SYSTEM);
-        verify(mBluetoothServerProxy, timeout(sTimeout)).handlerSendWhatMessage(mHandler,
-                BluetoothManagerService.MESSAGE_DISABLE);
+        verify(mBluetoothServerProxy, timeout(sTimeout))
+                .handlerSendWhatMessage(mHandler, BluetoothManagerService.MESSAGE_DISABLE);
     }
 
     @Test
@@ -117,14 +122,17 @@ public class BluetoothManagerServiceTest {
         mManagerService.setBluetoothModeChangeHelper(new BluetoothModeChangeHelper(mContext));
 
         // Change the apm enhancement enabled value to 0
-        Settings.Global.putInt(mContext.getContentResolver(),
-                "apm_enhancement_enabled", 0);
-        assertThat(Settings.Global.getInt(mContext.getContentResolver(),
-                "apm_enhancement_enabled",  0)).isEqualTo(0);
+        Settings.Global.putInt(mContext.getContentResolver(), "apm_enhancement_enabled", 0);
+        assertThat(
+                        Settings.Global.getInt(
+                                mContext.getContentResolver(), "apm_enhancement_enabled", 0))
+                .isEqualTo(0);
 
         // Confirm that apm enhancement enabled value has been updated to 1
         mManagerService.loadApmEnhancementStateFromResource();
-        assertThat(Settings.Global.getInt(mContext.getContentResolver(),
-                "apm_enhancement_enabled",  0)).isEqualTo(1);
+        assertThat(
+                        Settings.Global.getInt(
+                                mContext.getContentResolver(), "apm_enhancement_enabled", 0))
+                .isEqualTo(1);
     }
 }
