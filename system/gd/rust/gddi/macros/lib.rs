@@ -116,12 +116,12 @@ impl Parse for ModuleEntry {
             "providers" => {
                 let entries;
                 braced!(entries in input);
-                Ok(ModuleEntry::Providers(entries.parse_terminated(ProviderDef::parse)?))
+                Ok(ModuleEntry::Providers(entries.parse_terminated(ProviderDef::parse, Token![,])?))
             }
             "submodules" => {
                 let entries;
                 braced!(entries in input);
-                Ok(ModuleEntry::Submodules(entries.parse_terminated(Path::parse)?))
+                Ok(ModuleEntry::Submodules(entries.parse_terminated(Path::parse, Token![,])?))
             }
             keyword => {
                 panic!("unexpected keyword: {}", keyword);
@@ -152,7 +152,7 @@ pub fn module(item: TokenStream) -> TokenStream {
         #[allow(missing_docs)]
         pub fn #init_ident(builder: gddi::RegistryBuilder) -> gddi::RegistryBuilder {
             // Register all providers on this module
-            let ret = builder#(.register_provider::<#types>(Box::new(#provider_idents)))*
+            let ret = builder #(.register_provider::<#types>(Box::new(#provider_idents)))*
             // Register all submodules on this module
             #(.register_module(#submodule_idents))*;
 
@@ -195,7 +195,7 @@ pub fn part_out(_attr: TokenStream, item: TokenStream) -> TokenStream {
         #struct_
 
         fn #fn_ident(builder: gddi::RegistryBuilder) -> gddi::RegistryBuilder {
-            builder#(.register_provider::<#field_types>(Box::new(
+            builder #(.register_provider::<#field_types>(Box::new(
                 |registry: std::sync::Arc<gddi::Registry>| -> std::pin::Pin<gddi::ProviderFutureBox> {
                     Box::pin(async move {
                         Box::new(async move {
