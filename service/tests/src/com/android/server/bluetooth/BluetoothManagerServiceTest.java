@@ -57,26 +57,6 @@ public class BluetoothManagerServiceTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mContext =
-                spy(
-                        new ContextWrapper(
-                                InstrumentationRegistry.getInstrumentation().getTargetContext()));
-
-        doReturn(mUserManager).when(mContext).getSystemService(UserManager.class);
-
-        mLooper = new TestLooper();
-        mManagerService = createBluetoothManagerService();
-    }
-
-    @After
-    public void tearDown() {
-    }
-
-    private BluetoothManagerService createBluetoothManagerService() {
-        doReturn(mock(Intent.class))
-                .when(mContext)
-                .registerReceiverForAllUsers(any(), any(), eq(null), eq(null));
-        BluetoothServerProxy.setInstanceForTesting(mBluetoothServerProxy);
 
         // Mock these functions so security errors won't throw
         doReturn("name")
@@ -85,7 +65,27 @@ public class BluetoothManagerServiceTest {
         doReturn("00:11:22:33:44:55")
                 .when(mBluetoothServerProxy)
                 .settingsSecureGetString(any(), eq(Settings.Secure.BLUETOOTH_ADDRESS));
-        return new BluetoothManagerService(mContext, mLooper.getLooper());
+
+        mContext =
+                spy(
+                        new ContextWrapper(
+                                InstrumentationRegistry.getInstrumentation().getTargetContext()));
+
+        doReturn(mUserManager).when(mContext).getSystemService(UserManager.class);
+
+        doReturn(mock(Intent.class))
+                .when(mContext)
+                .registerReceiverForAllUsers(any(), any(), eq(null), eq(null));
+
+        BluetoothServerProxy.setInstanceForTesting(mBluetoothServerProxy);
+
+        mLooper = new TestLooper();
+
+        mManagerService = new BluetoothManagerService(mContext, mLooper.getLooper());
+    }
+
+    @After
+    public void tearDown() {
     }
 
     @Test
