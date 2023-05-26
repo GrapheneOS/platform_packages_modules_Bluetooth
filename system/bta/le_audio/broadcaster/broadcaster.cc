@@ -426,6 +426,10 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         auto stream_context_vec = ltv.Find(
             le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
         if (stream_context_vec) {
+          if (stream_context_vec.value().size() < 2) {
+            LOG_ERROR("kLeAudioMetadataTypeStreamingAudioContext size < 2");
+            return;
+          }
           auto pp = stream_context_vec.value().data();
           UINT16_TO_STREAM(pp, context_type.value());
         }
@@ -434,6 +438,11 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       auto stream_context_vec =
           ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
       if (stream_context_vec) {
+        if (stream_context_vec.value().size() < 2) {
+          LOG_ERROR("kLeAudioMetadataTypeStreamingAudioContext size < 2");
+          return;
+        }
+
         auto pp = stream_context_vec.value().data();
         STREAM_TO_UINT16(context_type.value_ref(), pp);
       }
