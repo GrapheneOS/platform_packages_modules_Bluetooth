@@ -14,7 +14,6 @@ use bt_packets::hci::{
     WriteLeHostSupportBuilder, WriteSimplePairingModeBuilder,
 };
 use gddi::{module, provides, Stoppable};
-use num_traits::ToPrimitive;
 use std::convert::TryFrom;
 use std::sync::Arc;
 
@@ -234,7 +233,7 @@ impl SupportedCommands {
             return false;
         }
 
-        let index = converted.unwrap().to_usize().unwrap();
+        let index = u16::from(converted.unwrap()) as usize;
 
         // OpCodeIndex is encoded as octet * 10 + bit for readability
         self.supported[index / 10] & (1 << (index % 10)) == 1
