@@ -81,23 +81,35 @@ class VolumeControlImpl : public VolumeControl {
  public:
   ~VolumeControlImpl() override = default;
 
-  VolumeControlImpl(bluetooth::vc::VolumeControlCallbacks* callbacks)
+  VolumeControlImpl(bluetooth::vc::VolumeControlCallbacks* callbacks,
+                    const base::Closure& initCb)
       : gatt_if_(0), callbacks_(callbacks), latest_operation_id_(0) {
     BTA_GATTC_AppRegister(
         gattc_callback_static,
-        base::Bind([](uint8_t client_id, uint8_t status) {
-          if (status != GATT_SUCCESS) {
-            LOG(ERROR) << "Can't start Volume Control profile - no gatt "
-                          "clients left!";
-            return;
-          }
-          instance->gatt_if_ = client_id;
-        }),
+        base::Bind(
+            [](const base::Closure& initCb, uint8_t client_id, uint8_t status) {
+              if (status != GATT_SUCCESS) {
+                LOG(ERROR) << "Can't start Volume Control profile - no gatt "
+                              "clients left!";
+                return;
+              }
+              instance->gatt_if_ = client_id;
+              initCb.Run();
+            },
+            initCb),
         true);
   }
 
+  void StartOpportunisticConnect(const RawAddress& address) {
+    /* Oportunistic works only for direct connect,
+     * but in fact this is background connect
+     */
+    LOG_INFO(": %s ", ADDRESS_TO_LOGGABLE_CSTR(address));
+    BTA_GATTC_Open(gatt_if_, address, BTM_BLE_DIRECT_CONNECTION, true);
+  }
+
   void Connect(const RawAddress& address) override {
-    LOG(INFO) << __func__ << " " << ADDRESS_TO_LOGGABLE_STR(address);
+    LOG_INFO(": %s ", ADDRESS_TO_LOGGABLE_CSTR(address));
 
     auto device = volume_control_devices_.FindByAddress(address);
     if (!device) {
@@ -121,19 +133,13 @@ class VolumeControlImpl : public VolumeControl {
       }
     }
 
-    BTA_GATTC_Open(gatt_if_, address, BTM_BLE_DIRECT_CONNECTION, false);
+    StartOpportunisticConnect(address);
   }
 
-  void AddFromStorage(const RawAddress& address, bool auto_connect) {
-    LOG(INFO) << __func__ << " " << ADDRESS_TO_LOGGABLE_STR(address)
-              << ", auto_connect=" << auto_connect;
-
-    if (auto_connect) {
-      volume_control_devices_.Add(address, false);
-
-      /* Add device into BG connection to accept remote initiated connection */
-      BTA_GATTC_Open(gatt_if_, address, BTM_BLE_BKG_CONNECT_ALLOW_LIST, false);
-    }
+  void AddFromStorage(const RawAddress& address) {
+    LOG_INFO("%s ", ADDRESS_TO_LOGGABLE_CSTR(address));
+    volume_control_devices_.Add(address, false);
+    StartOpportunisticConnect(address);
   }
 
   void OnGattConnected(tGATT_STATUS status, uint16_t connection_id,
@@ -157,6 +163,11 @@ class VolumeControlImpl : public VolumeControl {
     }
 
     device->connection_id = connection_id;
+
+    /* Make sure to remove device from background connect.
+     * It will be added back if needed, when device got disconnected
+     */
+    BTA_GATTC_CancelOpen(gatt_if_, address, false);
 
     if (device->IsEncryptionEnabled()) {
       OnEncryptionComplete(address, BTM_SUCCESS);
@@ -627,6 +638,8 @@ class VolumeControlImpl : public VolumeControl {
   }
 
   void Disconnect(const RawAddress& address) override {
+    LOG_INFO(": %s ", ADDRESS_TO_LOGGABLE_CSTR(address));
+
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
@@ -640,6 +653,15 @@ class VolumeControlImpl : public VolumeControl {
               << ADDRESS_TO_LOGGABLE_STR(device->address);
     device->connecting_actively = false;
     device_cleanup_helper(device, true);
+  }
+
+  void Remove(const RawAddress& address) override {
+    LOG_INFO(": %s", ADDRESS_TO_LOGGABLE_CSTR(address));
+
+    /* Removes all registrations for connection. */
+    BTA_GATTC_CancelOpen(gatt_if_, address, false);
+
+    Disconnect(address);
   }
 
   void OnGattDisconnected(uint16_t connection_id, tGATT_IF /*client_if*/,
@@ -665,9 +687,7 @@ class VolumeControlImpl : public VolumeControl {
 
     if (reason != GATT_CONN_TERMINATE_LOCAL_HOST &&
         device->connecting_actively) {
-      /* Add device into BG connection to accept remote initiated connection */
-      BTA_GATTC_Open(gatt_if_, remote_bda, BTM_BLE_BKG_CONNECT_ALLOW_LIST,
-                     false);
+      StartOpportunisticConnect(remote_bda);
     }
   }
 
@@ -1181,15 +1201,15 @@ class VolumeControlImpl : public VolumeControl {
 };
 }  // namespace
 
-void VolumeControl::Initialize(
-    bluetooth::vc::VolumeControlCallbacks* callbacks) {
+void VolumeControl::Initialize(bluetooth::vc::VolumeControlCallbacks* callbacks,
+                               const base::Closure& initCb) {
   std::scoped_lock<std::mutex> lock(instance_mutex);
   if (instance) {
     LOG(ERROR) << "Already initialized!";
     return;
   }
 
-  instance = new VolumeControlImpl(callbacks);
+  instance = new VolumeControlImpl(callbacks, initCb);
 }
 
 bool VolumeControl::IsVolumeControlRunning() { return instance; }
@@ -1199,14 +1219,13 @@ VolumeControl* VolumeControl::Get(void) {
   return instance;
 };
 
-void VolumeControl::AddFromStorage(const RawAddress& address,
-                                   bool auto_connect) {
+void VolumeControl::AddFromStorage(const RawAddress& address) {
   if (!instance) {
     LOG(ERROR) << "Not initialized yet";
     return;
   }
 
-  instance->AddFromStorage(address, auto_connect);
+  instance->AddFromStorage(address);
 };
 
 void VolumeControl::CleanUp() {

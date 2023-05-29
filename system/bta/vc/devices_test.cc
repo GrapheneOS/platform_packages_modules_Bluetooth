@@ -130,7 +130,6 @@ TEST_F(VolumeControlDevicesTest, test_disconnect) {
   test_device_0->connection_id = 0x0005;
   tGATT_IF gatt_if = 8;
   EXPECT_CALL(gatt_interface, Close(test_device_0->connection_id));
-  EXPECT_CALL(gatt_interface, CancelOpen(gatt_if, test_address_1, _));
   devices_->Disconnect(gatt_if);
 }
 
