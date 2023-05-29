@@ -25,6 +25,7 @@
 
 #include "bta_vc_api.h"
 #include "btif_common.h"
+#include "btif_profile_storage.h"
 #include "stack/include/btu.h"
 #include "types/raw_address.h"
 
@@ -45,7 +46,12 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
   void Init(VolumeControlCallbacks* callbacks) override {
     DVLOG(2) << __func__;
     this->callbacks_ = callbacks;
-    do_in_main_thread(FROM_HERE, Bind(&VolumeControl::Initialize, this));
+    do_in_main_thread(
+        FROM_HERE,
+        Bind(&VolumeControl::Initialize, this,
+             jni_thread_wrapper(
+                 FROM_HERE,
+                 Bind(&btif_storage_load_bonded_volume_control_devices))));
 
     /* It might be not yet initialized, but setting this flag here is safe,
      * because other calls will check this and the native instance
@@ -215,11 +221,9 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
     /* RemoveDevice can be called on devices that don't have HA enabled */
     if (VolumeControl::IsVolumeControlRunning()) {
       do_in_main_thread(FROM_HERE,
-                        Bind(&VolumeControl::Disconnect,
+                        Bind(&VolumeControl::Remove,
                              Unretained(VolumeControl::Get()), address));
     }
-
-    /* Placeholder: Remove things from storage here */
   }
 
   void GetExtAudioOutVolumeOffset(const RawAddress& address,
