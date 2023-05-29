@@ -206,6 +206,7 @@
 #define UUID_SERVCLASS_LE_HID 0x1812     /*  HID over LE */
 #define UUID_SERVCLASS_SCAN_PARAM 0x1813 /* Scan Parameter service */
 
+#define UUID_SERVCLASS_VOLUME_CONTROL_SERVER 0x1844
 #define UUID_SERVCLASS_GMCS_SERVER 0x1849 /* Generic Media Control Service */
 #define UUID_SERVCLASS_GTBS_SERVER 0x184c /* Generic Telephony Bearer Service*/
 #define UUID_SERVCLASS_TMAS_SERVER \
