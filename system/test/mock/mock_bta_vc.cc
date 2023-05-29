@@ -40,8 +40,7 @@
 #define UNUSED_ATTR
 #endif
 
-void VolumeControl::AddFromStorage(const RawAddress& address,
-                                   bool auto_connect) {
+void VolumeControl::AddFromStorage(const RawAddress& address) {
   inc_func_call_count(__func__);
 }
 void VolumeControl::CleanUp() { inc_func_call_count(__func__); }
@@ -54,7 +53,7 @@ bool VolumeControl::IsVolumeControlRunning() {
   inc_func_call_count(__func__);
   return false;
 }
-void VolumeControl::Initialize(
-    bluetooth::vc::VolumeControlCallbacks* callbacks) {
+void VolumeControl::Initialize(bluetooth::vc::VolumeControlCallbacks* callbacks,
+                               const base::Closure& initCb) {
   inc_func_call_count(__func__);
 }
