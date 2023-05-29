@@ -25,18 +25,20 @@ class VolumeControl {
  public:
   virtual ~VolumeControl() = default;
 
-  static void Initialize(bluetooth::vc::VolumeControlCallbacks* callbacks);
+  static void Initialize(bluetooth::vc::VolumeControlCallbacks* callbacks,
+                         const base::Closure& initCb);
   static void CleanUp();
   static VolumeControl* Get();
   static void DebugDump(int fd);
 
-  static void AddFromStorage(const RawAddress& address, bool auto_connect);
+  static void AddFromStorage(const RawAddress& address);
 
   static bool IsVolumeControlRunning();
 
   /* Volume Control Server (VCS) */
   virtual void Connect(const RawAddress& address) = 0;
   virtual void Disconnect(const RawAddress& address) = 0;
+  virtual void Remove(const RawAddress& address) = 0;
   virtual void SetVolume(std::variant<RawAddress, int> addr_or_group_id,
                          uint8_t volume) = 0;
   virtual void Mute(std::variant<RawAddress, int> addr_or_group_id) = 0;
