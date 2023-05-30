@@ -874,7 +874,7 @@ cc_library_host_shared {
 genrule {
     name: "gd_hci_packets_python3_gen",
     defaults: ["pdl_python_generator_defaults"],
-    cmd: "$(location :pdl) $(in) |" +
+    cmd: "$(location :pdlc) $(in) |" +
         " $(location :pdl_python_generator)" +
         " --output $(out) --custom-type-location blueberry.utils.bluetooth",
     srcs: [
