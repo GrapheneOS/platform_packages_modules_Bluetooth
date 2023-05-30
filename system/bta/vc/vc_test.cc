@@ -615,6 +615,50 @@ TEST_F(VolumeControlTest, test_reconnect_after_interrupted_discovery) {
   TestAppUnregister();
 }
 
+TEST_F(VolumeControlTest, test_reconnect_after_timeout) {
+  const RawAddress address = GetTestAddress(0);
+
+  // Initial connection
+  SetSampleDatabaseVOCS(1);
+  TestAppRegister();
+
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, address))
+      .Times(0);
+  TestConnect(address);
+
+  // Disconnect not connected device - upper layer times out and needs a
+  // disconnection event to leave the transient Connecting state
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::DISCONNECTED, address));
+  EXPECT_CALL(gatt_interface, CancelOpen(gatt_if, address, false)).Times(0);
+  TestDisconnect(address, 0);
+
+  // Above the device was not connected and we got Disconnect request from the
+  // upper layer - it means it has timed-out but still wants to connect, thus
+  // native is still doing background or opportunistic connect. Let the remote
+  // device reconnect now.
+  ON_CALL(gatt_interface, ServiceSearchRequest(_, _))
+      .WillByDefault(Invoke(
+          [&](uint16_t conn_id, const bluetooth::Uuid* p_srvc_uuid) -> void {
+            if (*p_srvc_uuid == kVolumeControlUuid)
+              GetSearchCompleteEvent(conn_id);
+          }));
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, address));
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(address, 2));
+  GetConnectedEvent(address, 1);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+
+  // Make sure that the upper layer gets the disconnection event even if not
+  // connecting actively anymore due to the mentioned time-out mechanism.
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::DISCONNECTED, address));
+  GetDisconnectedEvent(address, 1);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+  TestAppUnregister();
+}
+
 TEST_F(VolumeControlTest, test_add_from_storage) {
   TestAppRegister();
   TestAddFromStorage(GetTestAddress(0));
