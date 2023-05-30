@@ -48,7 +48,7 @@ bool bta_av_chk_start(tBTA_AV_SCB* p_scb) {
   inc_func_call_count(__func__);
   return false;
 }
-bool bta_av_hdl_event(BT_HDR* p_msg) {
+bool bta_av_hdl_event(const BT_HDR_RIGID* p_msg) {
   inc_func_call_count(__func__);
   return false;
 }
