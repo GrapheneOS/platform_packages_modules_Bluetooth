@@ -189,7 +189,7 @@ cc_library_host_shared {
 genrule {
     name: "link_layer_packets_python3_gen",
     defaults: ["pdl_python_generator_defaults"],
-    cmd: "$(location :pdl) $(in) |" +
+    cmd: "$(location :pdlc) $(in) |" +
         " $(location :pdl_python_generator)" +
         " --output $(out) --custom-type-location py.bluetooth",
     srcs: [
@@ -205,7 +205,7 @@ genrule {
 genrule {
     name: "hci_packets_python3_gen",
     defaults: ["pdl_python_generator_defaults"],
-    cmd: "$(location :pdl) $(in) |" +
+    cmd: "$(location :pdlc) $(in) |" +
         " $(location :pdl_python_generator)" +
         " --output $(out) --custom-type-location py.bluetooth",
     srcs: [
