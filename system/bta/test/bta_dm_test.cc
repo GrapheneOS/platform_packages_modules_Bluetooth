@@ -61,7 +61,7 @@ const DEV_CLASS kDeviceClass = {0x11, 0x22, 0x33};
 
 constexpr char kRemoteName[] = "TheRemoteName";
 
-bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) { return true; }
+bool bta_dm_search_sm_execute(const BT_HDR_RIGID* p_msg) { return true; }
 void bta_dm_search_sm_disable() { bta_sys_deregister(BTA_ID_DM_SEARCH); }
 
 const tBTA_SYS_REG bta_dm_search_reg = {bta_dm_search_sm_execute,
