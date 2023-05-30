@@ -168,7 +168,7 @@ extern tBTA_GATTS_CB bta_gatts_cb;
 /*****************************************************************************
  *  Function prototypes
  ****************************************************************************/
-bool bta_gatts_hdl_event(BT_HDR_RIGID* p_msg);
+bool bta_gatts_hdl_event(const BT_HDR_RIGID* p_msg);
 
 void bta_gatts_api_disable(tBTA_GATTS_CB* p_cb);
 void bta_gatts_api_enable(tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_data);

@@ -1227,7 +1227,7 @@ void bta_av_sm_execute(tBTA_AV_CB* p_cb, uint16_t event, tBTA_AV_DATA* p_data) {
  * Returns          bool
  *
  ******************************************************************************/
-bool bta_av_hdl_event(BT_HDR_RIGID* p_msg) {
+bool bta_av_hdl_event(const BT_HDR_RIGID* p_msg) {
   if (p_msg->event > BTA_AV_LAST_EVT) {
     return true; /* to free p_msg */
   }

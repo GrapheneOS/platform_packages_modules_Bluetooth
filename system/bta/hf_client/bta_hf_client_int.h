@@ -218,7 +218,7 @@ tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_handle(uint16_t handle);
 tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_bda(const RawAddress& bd_addr);
 tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_rfc_handle(uint16_t handle);
 tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_sco_handle(uint16_t handle);
-bool bta_hf_client_hdl_event(BT_HDR_RIGID* p_msg);
+bool bta_hf_client_hdl_event(const BT_HDR_RIGID* p_msg);
 void bta_hf_client_sm_execute(uint16_t event, tBTA_HF_CLIENT_DATA* p_data);
 void bta_hf_client_slc_seq(tBTA_HF_CLIENT_CB* client_cb, bool error);
 bool bta_hf_client_allocate_handle(const RawAddress& bd_addr,

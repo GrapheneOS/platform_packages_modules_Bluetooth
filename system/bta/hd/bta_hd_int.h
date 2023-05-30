@@ -151,7 +151,7 @@ extern tBTA_HD_CB bta_hd_cb;
 /*****************************************************************************
  *  Function prototypes
  ****************************************************************************/
-bool bta_hd_hdl_event(BT_HDR_RIGID* p_msg);
+bool bta_hd_hdl_event(const BT_HDR_RIGID* p_msg);
 
 void bta_hd_api_enable(tBTA_HD_DATA* p_data);
 void bta_hd_api_disable(void);

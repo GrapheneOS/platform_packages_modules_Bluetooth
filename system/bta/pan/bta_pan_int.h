@@ -166,7 +166,7 @@ tBTA_PAN_SCB* bta_pan_scb_alloc(void);
 void bta_pan_scb_dealloc(tBTA_PAN_SCB* p_scb);
 uint8_t bta_pan_scb_to_idx(tBTA_PAN_SCB* p_scb);
 tBTA_PAN_SCB* bta_pan_scb_by_handle(uint16_t handle);
-bool bta_pan_hdl_event(BT_HDR_RIGID* p_msg);
+bool bta_pan_hdl_event(const BT_HDR_RIGID* p_msg);
 
 /* action functions */
 void bta_pan_enable(tBTA_PAN_DATA* p_data);
