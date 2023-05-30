@@ -112,6 +112,8 @@ public class HeadsetService extends ProfileService {
 
     private static final String DISABLE_INBAND_RINGING_PROPERTY =
             "persist.bluetooth.disableinbandringing";
+    private static final String REJECT_SCO_IF_HFPC_CONNECTED_PROPERTY =
+            "bluetooth.hfp.reject_sco_if_hfpc_connected";
     private static final ParcelUuid[] HEADSET_UUIDS = {BluetoothUuid.HSP, BluetoothUuid.HFP};
     private static final int[] CONNECTING_CONNECTED_STATES =
             {BluetoothProfile.STATE_CONNECTING, BluetoothProfile.STATE_CONNECTED};
@@ -2207,6 +2209,11 @@ public class HeadsetService extends ProfileService {
                 Log.w(TAG, "isScoAcceptable: rejected SCO since " + device
                         + " is not the current active device " + mActiveDevice);
                 return BluetoothStatusCodes.ERROR_NOT_ACTIVE_DEVICE;
+            }
+            if (SystemProperties.getBoolean(REJECT_SCO_IF_HFPC_CONNECTED_PROPERTY, false)
+                    && isHeadsetClientConnected()) {
+                Log.w(TAG, "isScoAcceptable: rejected SCO since HFPC is connected!");
+                return BluetoothStatusCodes.ERROR_AUDIO_ROUTE_BLOCKED;
             }
             if (mForceScoAudio) {
                 return BluetoothStatusCodes.SUCCESS;
