@@ -3,7 +3,7 @@ use chrono::NaiveDateTime;
 use num_traits::cast::FromPrimitive;
 use std::convert::TryFrom;
 use std::fs::File;
-use std::io::{Error, ErrorKind, Read, Seek};
+use std::io::{BufRead, BufReader, Error, ErrorKind, Read};
 
 use bt_packets::hci::{AclPacket, CommandPacket, EventPacket};
 
@@ -169,11 +169,11 @@ impl TryFrom<&[u8]> for LinuxSnoopPacket {
 
 /// Reader for Linux snoop files.
 pub struct LinuxSnoopReader<'a> {
-    fd: &'a File,
+    fd: Box<dyn BufRead + 'a>,
 }
 
 impl<'a> LinuxSnoopReader<'a> {
-    fn new(fd: &'a File) -> Self {
+    fn new(fd: Box<dyn BufRead + 'a>) -> Self {
         LinuxSnoopReader { fd }
     }
 }
@@ -183,8 +183,8 @@ impl<'a> Iterator for LinuxSnoopReader<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut data = [0u8; LINUX_SNOOP_PACKET_PREAMBLE_SIZE];
-        let bytes = match self.fd.read(&mut data) {
-            Ok(b) => b,
+        match self.fd.read_exact(&mut data) {
+            Ok(()) => {}
             Err(e) => {
                 // |UnexpectedEof| could be seen since we're trying to read more
                 // data than is available (i.e. end of file).
@@ -195,22 +195,14 @@ impl<'a> Iterator for LinuxSnoopReader<'a> {
             }
         };
 
-        match LinuxSnoopPacket::try_from(&data[0..bytes]) {
+        match LinuxSnoopPacket::try_from(&data[0..LINUX_SNOOP_PACKET_PREAMBLE_SIZE]) {
             Ok(mut p) => {
                 if p.included_length > 0 {
                     let size: usize = p.included_length.try_into().unwrap();
                     let mut rem_data = [0u8; LINUX_SNOOP_MAX_PACKET_SIZE];
-                    match self.fd.read(&mut rem_data[0..size]) {
-                        Ok(b) => {
-                            if b != size {
-                                eprintln!(
-                                    "Size({}) doesn't match bytes read({}). Aborting...",
-                                    size, b
-                                );
-                                return None;
-                            }
-
-                            p.data = rem_data[0..b].to_vec();
+                    match self.fd.read_exact(&mut rem_data[0..size]) {
+                        Ok(()) => {
+                            p.data = rem_data[0..size].to_vec();
                             Some(p)
                         }
                         Err(e) => {
@@ -236,25 +228,30 @@ pub enum LogType {
 
 /// Parses different Bluetooth log types.
 pub struct LogParser {
-    fd: File,
+    fd: Box<dyn BufRead>,
     log_type: Option<LogType>,
 }
 
 impl<'a> LogParser {
     pub fn new(filepath: &str) -> std::io::Result<Self> {
-        Ok(Self { fd: File::open(filepath)?, log_type: None })
+        let fd: Box<dyn BufRead>;
+        if filepath.len() == 0 {
+            fd = Box::new(BufReader::new(std::io::stdin()));
+        } else {
+            fd = Box::new(BufReader::new(File::open(filepath)?));
+        }
+
+        Ok(Self { fd, log_type: None })
     }
 
-    /// Check the log file type for the current log file. This rewinds the position of the file.
+    /// Check the log file type for the current log file. This advances the read pointer.
     /// For a non-intrusive query, use |get_log_type|.
     pub fn read_log_type(&mut self) -> std::io::Result<LogType> {
         let mut buf = [0; LINUX_SNOOP_HEADER_SIZE];
 
-        // First rewind to start of the file.
-        self.fd.rewind()?;
-        let bytes = self.fd.read(&mut buf)?;
+        self.fd.read_exact(&mut buf)?;
 
-        if let Ok(header) = LinuxSnoopHeader::try_from(&buf[0..bytes]) {
+        if let Ok(header) = LinuxSnoopHeader::try_from(&buf[0..LINUX_SNOOP_HEADER_SIZE]) {
             let log_type = LogType::LinuxSnoop(header);
             self.log_type = Some(log_type.clone());
             Ok(log_type)
@@ -274,7 +271,7 @@ impl<'a> LogParser {
             return None;
         }
 
-        Some(LinuxSnoopReader::new(&mut self.fd))
+        Some(LinuxSnoopReader::new(Box::new(BufReader::new(&mut self.fd))))
     }
 }
 
