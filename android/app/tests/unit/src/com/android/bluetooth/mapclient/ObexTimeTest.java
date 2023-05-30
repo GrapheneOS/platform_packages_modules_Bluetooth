@@ -53,11 +53,15 @@ public class ObexTimeTest {
     private static final long VALID_TS_OFFSET_POS = VALID_TS - TS_OFFSET;
     private static final long VALID_TS_OFFSET_NEG = VALID_TS + TS_OFFSET;
 
+    @SuppressWarnings("JavaUtilDate")
+    private static final Date VALID_DATE = new Date(VALID_TS);
+
     private static final Date VALID_DATE_LOCAL_TZ = new Date(VALID_TS_LOCAL_TZ);
     private static final Date VALID_DATE_WITH_OFFSET_POS = new Date(VALID_TS_OFFSET_POS);
     private static final Date VALID_DATE_WITH_OFFSET_NEG = new Date(VALID_TS_OFFSET_NEG);
 
     private static final Instant VALID_INSTANT = Instant.ofEpochMilli(VALID_TS);
+    private static final Instant VALID_INSTANT_LOCAL_TZ = Instant.ofEpochMilli(VALID_TS_LOCAL_TZ);
     private static final Instant VALID_INSTANT_WITH_OFFSET_POS =
             Instant.ofEpochMilli(VALID_TS_OFFSET_POS);
     private static final Instant VALID_INSTANT_WITH_OFFSET_NEG =
@@ -66,7 +70,9 @@ public class ObexTimeTest {
     @Test
     public void createWithValidDateTimeString_TimestampCorrect() {
         ObexTime timestamp = new ObexTime(VALID_TIME_STRING);
-        Assert.assertEquals("Parsed instant must match expected", VALID_INSTANT,
+        Assert.assertEquals(
+                "Parsed instant must match expected",
+                VALID_INSTANT_LOCAL_TZ,
                 timestamp.getInstant());
         Assert.assertEquals("Parsed date must match expected",
                 VALID_DATE_LOCAL_TZ, timestamp.getTime());
@@ -93,19 +99,24 @@ public class ObexTimeTest {
     @Test
     public void createWithValidDate_TimestampCorrect() {
         ObexTime timestamp = new ObexTime(VALID_DATE_LOCAL_TZ);
-        Assert.assertEquals("ObexTime created with a date must return the expected instant",
-                VALID_INSTANT, timestamp.getInstant());
+        Assert.assertEquals(
+                "ObexTime created with a date must return the expected instant",
+                VALID_INSTANT_LOCAL_TZ,
+                timestamp.getInstant());
         Assert.assertEquals("ObexTime created with a date must return the same date",
                 VALID_DATE_LOCAL_TZ, timestamp.getTime());
     }
 
+    @SuppressWarnings("JavaUtilDate")
     @Test
     public void createWithValidInstant_TimestampCorrect() {
         ObexTime timestamp = new ObexTime(VALID_INSTANT);
         Assert.assertEquals("ObexTime created with a instant must return the same instant",
                 VALID_INSTANT, timestamp.getInstant());
-        Assert.assertEquals("ObexTime created with a instant must return the expected date",
-                VALID_DATE_LOCAL_TZ, timestamp.getTime());
+        Assert.assertEquals(
+                "ObexTime created with a instant must return the expected date",
+                VALID_DATE,
+                timestamp.getTime());
     }
 
     @Test
