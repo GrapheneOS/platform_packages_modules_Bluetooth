@@ -683,7 +683,8 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    device_cleanup_helper(device, device->connecting_actively);
+    bool notify = device->IsReady() || device->connecting_actively;
+    device_cleanup_helper(device, notify);
 
     if (reason != GATT_CONN_TERMINATE_LOCAL_HOST &&
         device->connecting_actively) {
