@@ -247,7 +247,7 @@ extern tBTA_HH_CFG* p_bta_hh_cfg;
 /*****************************************************************************
  *  Function prototypes
  ****************************************************************************/
-bool bta_hh_hdl_event(BT_HDR_RIGID* p_msg);
+bool bta_hh_hdl_event(const BT_HDR_RIGID* p_msg);
 void bta_hh_sm_execute(tBTA_HH_DEV_CB* p_cb, uint16_t event,
                        const tBTA_HH_DATA* p_data);
 
