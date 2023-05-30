@@ -44,7 +44,7 @@
 typedef bool(tBTA_SYS_VS_EVT_HDLR)(uint16_t evt, void* p);
 
 /* event handler function type */
-typedef bool(tBTA_SYS_EVT_HDLR)(BT_HDR_RIGID* p_msg);
+typedef bool(tBTA_SYS_EVT_HDLR)(const BT_HDR_RIGID* p_msg);
 static_assert(
     sizeof(BT_HDR) == sizeof(BT_HDR_RIGID),
     "Rigid replacement should be same size struct with flexible member");

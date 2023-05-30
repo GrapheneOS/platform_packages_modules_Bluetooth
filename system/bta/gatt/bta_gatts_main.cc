@@ -41,7 +41,7 @@ tBTA_GATTS_CB bta_gatts_cb;
  * Returns          void
  *
  ******************************************************************************/
-bool bta_gatts_hdl_event(BT_HDR_RIGID* p_msg) {
+bool bta_gatts_hdl_event(const BT_HDR_RIGID* p_msg) {
   tBTA_GATTS_CB* p_cb = &bta_gatts_cb;
 
   switch (p_msg->event) {
