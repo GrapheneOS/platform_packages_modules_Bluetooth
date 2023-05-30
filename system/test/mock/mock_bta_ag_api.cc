@@ -42,7 +42,7 @@ tBTA_STATUS BTA_AgEnable(tBTA_AG_CBACK* p_cback) {
   return BTA_SUCCESS;
 }
 void BTA_AgAudioClose(uint16_t handle) { inc_func_call_count(__func__); }
-void BTA_AgAudioOpen(uint16_t handle, bool force_cvsd) {
+void BTA_AgAudioOpen(uint16_t handle, tBTA_AG_PEER_CODEC disabled_codecs) {
   inc_func_call_count(__func__);
 }
 void BTA_AgClose(uint16_t handle) { inc_func_call_count(__func__); }

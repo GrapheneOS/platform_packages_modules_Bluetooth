@@ -180,7 +180,7 @@ typedef uint8_t tBTM_SCO_TYPE;
 /*******************
  * SCO Codec Types
  *******************/
-// TODO(google) This should use common definitions
+// TODO(b/285458890) This should use common definitions
 #define BTM_SCO_CODEC_NONE 0x0000
 #define BTM_SCO_CODEC_CVSD 0x0001
 #define BTM_SCO_CODEC_MSBC 0x0002
