@@ -506,7 +506,7 @@ extern tBTA_DM_SEARCH_CB bta_dm_search_cb;
 /* DI control block */
 extern tBTA_DM_DI_CB bta_dm_di_cb;
 
-bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg);
+bool bta_dm_search_sm_execute(const BT_HDR_RIGID* p_msg);
 void bta_dm_search_sm_disable(void);
 
 void bta_dm_enable(tBTA_DM_SEC_CBACK*);

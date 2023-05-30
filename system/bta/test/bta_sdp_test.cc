@@ -66,8 +66,8 @@ class BtaSdpRegisteredTest : public BtaSdpTest {
   }
 
   tBTA_SYS_REG bta_sys_reg = {
-      .evt_hdlr = [](BT_HDR_RIGID* p_msg) -> bool {
-        osi_free(p_msg);
+      .evt_hdlr = [](const BT_HDR_RIGID* p_msg) -> bool {
+        osi_free((void*)p_msg);
         return false;
       },
       .disable = []() {},
