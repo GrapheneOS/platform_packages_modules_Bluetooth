@@ -46,9 +46,7 @@ cc_binary {
     static_libs: [
         "async_fd_watcher",
     ],
-    conlyflags: [
-        "-std=c99",
-    ],
+    c_std: "c99",
     init_rc: ["android.hardware.bluetooth@1.1-service.btlinux.rc"],
 }
 
