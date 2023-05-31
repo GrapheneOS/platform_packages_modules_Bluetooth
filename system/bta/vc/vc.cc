@@ -882,18 +882,36 @@ class VolumeControlImpl : public VolumeControl {
       }
 
       auto devices = csis_api->GetDeviceList(group_id);
+      if (devices.empty()) {
+        LOG_ERROR("group id: %d has no devices", group_id);
+        return;
+      }
+
+      bool muteNotChanged = false;
+      bool deviceNotReady = false;
+
       for (auto it = devices.begin(); it != devices.end();) {
         auto dev = volume_control_devices_.FindByAddress(*it);
-        if (!dev || !dev->IsReady() || (dev->mute == mute)) {
+        if (!dev) {
           it = devices.erase(it);
-        } else {
-          it++;
+          continue;
         }
+
+        if (!dev->IsReady() || (dev->mute == mute)) {
+          it = devices.erase(it);
+          muteNotChanged =
+              muteNotChanged ? muteNotChanged : (dev->mute == mute);
+          deviceNotReady = deviceNotReady ? deviceNotReady : !dev->IsReady();
+          continue;
+        }
+        it++;
       }
 
       if (devices.empty()) {
-        LOG(ERROR) << __func__ << " group id : " << group_id
-                   << " is not connected? ";
+        LOG_DEBUG(
+            "No need to update mute for group id: %d . muteNotChanged: %d, "
+            "deviceNotReady: %d",
+            group_id, muteNotChanged, deviceNotReady);
         return;
       }
 
@@ -948,18 +966,37 @@ class VolumeControlImpl : public VolumeControl {
       }
 
       auto devices = csis_api->GetDeviceList(group_id);
+      if (devices.empty()) {
+        LOG_ERROR("group id: %d has no devices", group_id);
+        return;
+      }
+
+      bool volumeNotChanged = false;
+      bool deviceNotReady = false;
+
       for (auto it = devices.begin(); it != devices.end();) {
         auto dev = volume_control_devices_.FindByAddress(*it);
-        if (!dev || !dev->IsReady() || (dev->volume == volume)) {
+        if (!dev) {
           it = devices.erase(it);
-        } else {
-          it++;
+          continue;
         }
+
+        if (!dev->IsReady() || (dev->volume == volume)) {
+          it = devices.erase(it);
+          volumeNotChanged =
+              volumeNotChanged ? volumeNotChanged : (dev->volume == volume);
+          deviceNotReady = deviceNotReady ? deviceNotReady : !dev->IsReady();
+          continue;
+        }
+
+        it++;
       }
 
       if (devices.empty()) {
-        LOG(ERROR) << __func__ << " group id : " << group_id
-                   << " is not connected? ";
+        LOG_DEBUG(
+            "No need to update volume for group id: %d . volumeNotChanged: %d, "
+            "deviceNotReady: %d",
+            group_id, volumeNotChanged, deviceNotReady);
         return;
       }
 
