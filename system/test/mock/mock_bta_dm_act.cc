@@ -78,7 +78,6 @@ struct bta_dm_enable bta_dm_enable;
 struct bta_dm_encrypt_cback bta_dm_encrypt_cback;
 struct bta_dm_execute_queued_request bta_dm_execute_queued_request;
 struct bta_dm_free_sdp_db bta_dm_free_sdp_db;
-struct bta_dm_init_cb bta_dm_init_cb;
 struct bta_dm_inq_cmpl bta_dm_inq_cmpl;
 struct bta_dm_is_search_request_queued bta_dm_is_search_request_queued;
 struct bta_dm_pin_reply bta_dm_pin_reply;
@@ -288,10 +287,6 @@ void bta_dm_execute_queued_request() {
 void bta_dm_free_sdp_db() {
   inc_func_call_count(__func__);
   test::mock::bta_dm_act::bta_dm_free_sdp_db();
-}
-void bta_dm_init_cb(void) {
-  inc_func_call_count(__func__);
-  test::mock::bta_dm_act::bta_dm_init_cb();
 }
 void bta_dm_inq_cmpl(uint8_t num) {
   inc_func_call_count(__func__);
