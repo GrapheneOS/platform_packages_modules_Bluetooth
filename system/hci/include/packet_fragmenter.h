@@ -19,7 +19,6 @@
 #pragma once
 
 #include "device/include/controller.h"
-#include "hci_layer.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
 
