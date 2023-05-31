@@ -38,9 +38,7 @@ cc_defaults {
         "-Wno-unused-result",
         "-fvisibility=hidden",
     ],
-    conlyflags: [
-        "-std=c99",
-    ],
+    c_std: "c99",
     header_libs: ["jni_headers"],
 }
 
