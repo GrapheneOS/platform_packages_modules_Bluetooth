@@ -1,11 +1,14 @@
-use std::rc::Rc;
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 use bluetooth_core::{
     core::uuid::Uuid,
     gatt::{
         self,
         ffi::AttributeBackingType,
-        ids::{AttHandle, ConnectionId, ServerId, TransportIndex},
+        ids::{AdvertiserId, AttHandle, ServerId, TransportIndex},
         mocks::{
             mock_datastore::{MockDatastore, MockDatastoreEvents},
             mock_transport::MockAttTransport,
@@ -15,6 +18,7 @@ use bluetooth_core::{
                 AttPermissions, GattCharacteristicWithHandle, GattDescriptorWithHandle,
                 GattServiceWithHandle, CHARACTERISTIC_UUID, PRIMARY_SERVICE_DECLARATION_UUID,
             },
+            isolation_manager::IsolationManager,
             services::{
                 gap::DEVICE_NAME_UUID,
                 gatt::{
@@ -48,11 +52,11 @@ mod utils;
 
 const TCB_IDX: TransportIndex = TransportIndex(1);
 const SERVER_ID: ServerId = ServerId(2);
-const CONN_ID: ConnectionId = ConnectionId::new(TCB_IDX, SERVER_ID);
+const ADVERTISER_ID: AdvertiserId = AdvertiserId(3);
 
 const ANOTHER_TCB_IDX: TransportIndex = TransportIndex(2);
 const ANOTHER_SERVER_ID: ServerId = ServerId(3);
-const ANOTHER_CONN_ID: ConnectionId = ConnectionId::new(ANOTHER_TCB_IDX, ANOTHER_SERVER_ID);
+const ANOTHER_ADVERTISER_ID: AdvertiserId = AdvertiserId(4);
 
 const SERVICE_HANDLE: AttHandle = AttHandle(6);
 const CHARACTERISTIC_HANDLE: AttHandle = AttHandle(8);
@@ -68,7 +72,8 @@ const ANOTHER_DATA: [u8; 4] = [5, 6, 7, 8];
 fn start_gatt_module() -> (gatt::server::GattModule, UnboundedReceiver<(TransportIndex, AttBuilder)>)
 {
     let (transport, transport_rx) = MockAttTransport::new();
-    let gatt = GattModule::new(Rc::new(transport));
+    let arbiter = IsolationManager::new();
+    let gatt = GattModule::new(Rc::new(transport), Arc::new(Mutex::new(arbiter)));
 
     (gatt, transport_rx)
 }
@@ -99,7 +104,8 @@ fn create_server_and_open_connection(
         datastore,
     )
     .unwrap();
-    gatt.on_le_connect(CONN_ID).unwrap();
+    gatt.get_isolation_manager().associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
+    gatt.on_le_connect(TCB_IDX, Some(ADVERTISER_ID)).unwrap();
     data_rx
 }
 
@@ -400,7 +406,9 @@ fn test_multiple_servers() {
             datastore,
         )
         .unwrap();
-        gatt.on_le_connect(ANOTHER_CONN_ID).unwrap();
+        gatt.get_isolation_manager()
+            .associate_server_with_advertiser(ANOTHER_SERVER_ID, ANOTHER_ADVERTISER_ID);
+        gatt.on_le_connect(ANOTHER_TCB_IDX, Some(ANOTHER_ADVERTISER_ID)).unwrap();
 
         // act: read from both connections
         gatt.get_bearer(TCB_IDX).unwrap().handle_packet(
@@ -611,5 +619,39 @@ fn test_service_change_indication() {
                 end_handle: AttHandle(30).into(),
             })
         );
+    });
+}
+
+#[test]
+fn test_closing_gatt_server_unisolates_advertiser() {
+    start_test(async move {
+        // arrange
+        let (mut gatt, _) = start_gatt_module();
+        gatt.open_gatt_server(SERVER_ID).unwrap();
+        gatt.get_isolation_manager().associate_server_with_advertiser(SERVER_ID, ADVERTISER_ID);
+
+        // act
+        gatt.close_gatt_server(SERVER_ID).unwrap();
+
+        // assert
+        let is_advertiser_isolated =
+            gatt.get_isolation_manager().is_advertiser_isolated(ADVERTISER_ID);
+        assert!(!is_advertiser_isolated);
+    });
+}
+
+#[test]
+fn test_disconnection_unisolates_connection() {
+    start_test(async move {
+        // arrange
+        let (mut gatt, _) = start_gatt_module();
+        create_server_and_open_connection(&mut gatt);
+
+        // act
+        gatt.on_le_disconnect(TCB_IDX).unwrap();
+
+        // assert
+        let is_connection_isolated = gatt.get_isolation_manager().is_connection_isolated(TCB_IDX);
+        assert!(!is_connection_isolated);
     });
 }
