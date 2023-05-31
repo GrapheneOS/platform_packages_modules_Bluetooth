@@ -276,6 +276,7 @@ cc_library_static {
     ],
     generated_headers: [
         "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
     ],
     cflags: [
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
