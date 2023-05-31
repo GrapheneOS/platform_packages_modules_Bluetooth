@@ -1321,9 +1321,7 @@ public class LeAudioService extends ProfileService {
                 volume = getAudioDeviceGroupVolume(groupId);
             }
 
-            final boolean suppressNoisyIntent = hasFallbackDevice || mActiveAudioOutDevice != null
-                    || (getConnectionState(previousActiveOutDevice)
-                    == BluetoothProfile.STATE_CONNECTED);
+            final boolean suppressNoisyIntent = hasFallbackDevice || mActiveAudioOutDevice != null;
 
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
                     previousActiveOutDevice, BluetoothProfileConnectionInfo.createLeAudioOutputInfo(
