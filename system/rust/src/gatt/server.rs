@@ -10,29 +10,36 @@ pub mod services;
 mod transactions;
 
 mod command_handler;
+pub mod isolation_manager;
 #[cfg(test)]
 mod test;
 
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::HashMap,
+    rc::Rc,
+    sync::{Arc, Mutex, MutexGuard},
+};
 
 use crate::{
     core::shared_box::{SharedBox, WeakBox, WeakBoxRef},
-    gatt::{ids::ConnectionId, server::gatt_database::GattDatabase},
+    gatt::server::gatt_database::GattDatabase,
 };
 
 use self::{
     super::ids::ServerId,
     att_server_bearer::AttServerBearer,
     gatt_database::{AttDatabaseImpl, GattServiceWithHandle},
+    isolation_manager::IsolationManager,
     services::register_builtin_services,
 };
 
 use super::{
     callbacks::RawGattDatastore,
     channel::AttTransport,
-    ids::{AttHandle, TransportIndex},
+    ids::{AdvertiserId, AttHandle, TransportIndex},
 };
 use anyhow::{anyhow, bail, Result};
+use bt_common::init_flags::always_use_private_gatt_for_debugging_is_enabled;
 use log::info;
 
 pub use indication_handler::IndicationError;
@@ -42,6 +49,10 @@ pub struct GattModule {
     connections: HashMap<TransportIndex, GattConnection>,
     databases: HashMap<ServerId, SharedBox<GattDatabase>>,
     transport: Rc<dyn AttTransport>,
+    // NOTE: this is logically owned by the GattModule. We share it behind a Mutex just so we
+    // can use it as part of the Arbiter. Once the Arbiter is removed, this should be owned
+    // fully by the GattModule.
+    isolation_manager: Arc<Mutex<IsolationManager>>,
 }
 
 struct GattConnection {
@@ -51,23 +62,34 @@ struct GattConnection {
 
 impl GattModule {
     /// Constructor.
-    pub fn new(transport: Rc<dyn AttTransport>) -> Self {
-        Self { connections: HashMap::new(), databases: HashMap::new(), transport }
+    pub fn new(
+        transport: Rc<dyn AttTransport>,
+        isolation_manager: Arc<Mutex<IsolationManager>>,
+    ) -> Self {
+        Self {
+            connections: HashMap::new(),
+            databases: HashMap::new(),
+            transport,
+            isolation_manager,
+        }
     }
 
     /// Handle LE link connect
-    pub fn on_le_connect(&mut self, conn_id: ConnectionId) -> Result<()> {
-        info!("connected on conn_id {conn_id:?}");
-        let database = self.databases.get(&conn_id.get_server_id());
-        let Some(database) = database else {
-            bail!(
-                "got connection to conn_id {conn_id:?} (server_id {:?}) but this server does not exist!",
-                conn_id.get_server_id(),
-            );
-        };
+    pub fn on_le_connect(
+        &mut self,
+        tcb_idx: TransportIndex,
+        advertiser_id: Option<AdvertiserId>,
+    ) -> Result<()> {
+        info!("connected on tcb_idx {tcb_idx:?}");
+        self.isolation_manager.lock().unwrap().on_le_connect(tcb_idx, advertiser_id);
 
-        // TODO(aryarahul): do not pass in conn_id at all, derive it using the IsolationManager instead
-        let tcb_idx = conn_id.get_tcb_idx();
+        let Some(server_id) = self.isolation_manager.lock().unwrap().get_server_id(tcb_idx) else {
+            bail!("non-isolated servers are not yet supported (b/274945531)")
+        };
+        let database = self.databases.get(&server_id);
+        let Some(database) = database else {
+            bail!("got connection to {server_id:?} but this server does not exist!");
+        };
 
         let transport = self.transport.clone();
         let bearer = SharedBox::new(AttServerBearer::new(
@@ -82,6 +104,7 @@ impl GattModule {
     /// Handle an LE link disconnect
     pub fn on_le_disconnect(&mut self, tcb_idx: TransportIndex) -> Result<()> {
         info!("disconnected conn_id {tcb_idx:?}");
+        self.isolation_manager.lock().unwrap().on_le_disconnect(tcb_idx);
         let connection = self.connections.remove(&tcb_idx);
         let Some(connection) = connection else {
             bail!("got disconnection from {tcb_idx:?} but bearer does not exist");
@@ -134,6 +157,10 @@ impl GattModule {
             bail!("GATT server {server_id:?} did not exist")
         };
 
+        if !always_use_private_gatt_for_debugging_is_enabled() {
+            self.isolation_manager.lock().unwrap().clear_server(server_id);
+        }
+
         Ok(())
     }
 
@@ -143,5 +170,10 @@ impl GattModule {
         tcb_idx: TransportIndex,
     ) -> Option<WeakBoxRef<AttServerBearer<AttDatabaseImpl>>> {
         self.connections.get(&tcb_idx).map(|x| x.bearer.as_ref())
+    }
+
+    /// Get the IsolationManager to manage associations between servers + advertisers
+    pub fn get_isolation_manager(&mut self) -> MutexGuard<'_, IsolationManager> {
+        self.isolation_manager.lock().unwrap()
     }
 }
