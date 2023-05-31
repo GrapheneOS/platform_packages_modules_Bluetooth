@@ -130,7 +130,6 @@ cc_defaults {
         android: {
             shared_libs: [
                 "libPlatformProperties",
-                "libaaudio",
             ],
         },
     },
