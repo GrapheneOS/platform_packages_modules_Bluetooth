@@ -127,12 +127,12 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         packing = 0
         framing = 0
         max_transport_latency_m_to_s = 0
-        max_transport_latency_s_to_m = 0
+        max_transport_latency_s_to_m = 7
         cis_id = 0x01
-        max_sdu_m_to_s = 100
+        max_sdu_m_to_s = 0
         max_sdu_s_to_m = 100
         phy_m_to_s = 0x02
-        phy_s_to_m = 0x00
+        phy_s_to_m = 0x02
         bn_m_to_s = 0
         bn_s_to_m = 2
 
@@ -159,13 +159,13 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         peripherals_clock_accuracy = 0
         packing = 0
         framing = 0
-        max_transport_latency_m_to_s = 0
-        max_transport_latency_s_to_m = 0
+        max_transport_latency_m_to_s = 30
+        max_transport_latency_s_to_m = 30
         cis_id = 0x01
         max_sdu_m_to_s = 100
         max_sdu_s_to_m = 100
         phy_m_to_s = 0x02
-        phy_s_to_m = 0x00
+        phy_s_to_m = 0x02
         bn_m_to_s = 3
         bn_s_to_m = 1
 
@@ -193,12 +193,12 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         packing = 0
         framing = 1
         max_transport_latency_m_to_s = 0
-        max_transport_latency_s_to_m = 0
+        max_transport_latency_s_to_m = 21
         cis_id = 0x01
-        max_sdu_m_to_s = 100
+        max_sdu_m_to_s = 0
         max_sdu_s_to_m = 100
         phy_m_to_s = 0x02
-        phy_s_to_m = 0x00
+        phy_s_to_m = 0x02
         bn_m_to_s = 0
         bn_s_to_m = 2
 
@@ -225,13 +225,13 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         peripherals_clock_accuracy = 0
         packing = 0
         framing = 1
-        max_transport_latency_m_to_s = 0
-        max_transport_latency_s_to_m = 0
+        max_transport_latency_m_to_s = 6
+        max_transport_latency_s_to_m = 6
         cis_id = 0x01
         max_sdu_m_to_s = 100
         max_sdu_s_to_m = 100
         phy_m_to_s = 0x02
-        phy_s_to_m = 0x00
+        phy_s_to_m = 0x02
         bn_m_to_s = 1
         bn_s_to_m = 1
 
