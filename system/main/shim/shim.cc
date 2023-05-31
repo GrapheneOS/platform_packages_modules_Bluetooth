@@ -17,13 +17,33 @@
 #define LOG_TAG "bt_shim"
 
 #include "main/shim/shim.h"
-#include "main/shim/entry.h"
-#include "main/shim/stack.h"
 
+#include "btu.h"
 #include "gd/common/init_flags.h"
 #include "gd/os/log.h"
+#include "main/shim/entry.h"
+#include "main/shim/hci_layer.h"
+#include "main/shim/stack.h"
+
+static const hci_t* hci;
+
+void btu_hci_msg_process(BT_HDR* p_msg);
+
+static void post_to_main_message_loop(const base::Location& from_here,
+                                      BT_HDR* p_msg) {
+  if (do_in_main_thread(from_here, base::Bind(&btu_hci_msg_process, p_msg)) !=
+      BT_STATUS_SUCCESS) {
+    LOG_ERROR(": do_in_main_thread failed from %s",
+              from_here.ToString().c_str());
+  }
+}
 
 future_t* ShimModuleStartUp() {
+  hci = bluetooth::shim::hci_layer_get_interface();
+  ASSERT_LOG(hci, "%s could not get hci layer interface.", __func__);
+
+  hci->set_data_cb(base::Bind(&post_to_main_message_loop));
+
   bluetooth::shim::Stack::GetInstance()->StartEverything();
   return kReturnImmediate;
 }

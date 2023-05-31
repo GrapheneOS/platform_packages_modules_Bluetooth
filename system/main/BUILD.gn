@@ -48,7 +48,6 @@ target(lib_type, "bluetooth") {
     "bte_conf.cc",
     "bte_init_cpp_logging.cc",
     "bte_logmsg.cc",
-    "bte_main.cc",
     "stack_config.cc",
   ]
 
@@ -69,7 +68,6 @@ target(lib_type, "bluetooth") {
     "//bt/system/udrv/include",
     "//bt/system/btif/include",
     "//bt/system/btif/co",
-    "//bt/system/hci/includ",
     "//bt/system/vnd/include",
     "//bt/system/brcm/include",
     "//bt/system/embdrv/sbc/encoder/include",
