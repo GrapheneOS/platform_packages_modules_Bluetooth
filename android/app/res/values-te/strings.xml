@@ -130,9 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB కన్నా పెద్ద ఫైళ్లు బదిలీ చేయబడవు"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"బ్లూటూత్‌కు కనెక్ట్ చేయి"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్ చేయబడింది"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"మీరు బ్లూటూత్‌ను ఆన్‌లో ఉంచినట్లయితే, మీరు తదుపరిసారి విమానం మోడ్‌లో ఉన్నప్పుడు దాన్ని ఆన్‌లో ఉంచాలని మీ ఫోన్ గుర్తుంచుకుంటుంది"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="6168686193308136881">"మీరు బ్లూటూత్‌ను ఆన్‌లో ఉంచినట్లయితే, మీరు తదుపరిసారి విమానం మోడ్‌లో ఉన్నప్పుడు దాన్ని ఆన్‌లో ఉంచాలని మీ పరికరం గుర్తుంచుకుంటుంది"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"బ్లూటూత్ ఆన్‌లో ఉంటుంది"</string>
-    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్‌లో ఉంచాలని మీ ఫోన్ గుర్తుంచుకుంటుంది. బ్లూటూత్ ఆన్‌లో ఉండకూడదనుకుంటే దాన్ని ఆఫ్ చేయండి."</string>
+    <string name="bluetooth_stays_on_message" msgid="3669663452593157737">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్‌లో ఉంచాలని మీ పరికరం గుర్తుంచుకుంటుంది. బ్లూటూత్ ఆన్‌లో ఉండకూడదనుకుంటే దాన్ని ఆఫ్ చేయండి."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi, బ్లూటూత్ ఆన్‌లో ఉంటాయి"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"మీ ఫోన్ విమానం మోడ్‌లో Wi‑Fiని, బ్లూటూత్‌ని ఆన్‌లో ఉంచాలని గుర్తుంచుకుంటుంది. Wi-Fi, బ్లూటూత్ ఆన్‌లో ఉండకూడదనుకుంటే వాటిని ఆఫ్ చేయండి."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="7848565203843882558">"మీ పరికరం విమానం మోడ్‌లో Wi‑Fiని, బ్లూటూత్‌ను ఆన్‌లో ఉంచాలని గుర్తుంచుకుంటుంది. Wi-Fi, బ్లూటూత్ ఆన్‌లో ఉండకూడదనుకుంటే వాటిని ఆఫ్ చేయండి."</string>
 </resources>

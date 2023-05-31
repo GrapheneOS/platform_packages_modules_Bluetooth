@@ -130,9 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"‏לא ניתן להעביר קבצים שגדולים מ-4GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"‏התחברות באמצעות Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"‏חיבור ה-Bluetooth מופעל במצב טיסה"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"‏אם חיבור ה-Bluetooth נשאר מופעל, הטלפון יזכור להשאיר אותו מופעל בפעם הבאה שהוא יועבר למצב טיסה"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="6168686193308136881">"‏אם חיבור ה-Bluetooth נשאר מופעל, המכשיר יזכור להשאיר אותו מופעל בפעם הבאה שהוא יועבר למצב טיסה"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"‏Bluetooth יישאר מופעל"</string>
-    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"‏חיבור ה-Bluetooth בטלפון יישאר מופעל במצב טיסה. אפשר להשבית את ה-Bluetooth אם לא רוצים שהוא יפעל."</string>
+    <string name="bluetooth_stays_on_message" msgid="3669663452593157737">"‏חיבור ה-Bluetooth במכשיר יישאר מופעל במצב טיסה. אפשר להשבית את ה-Bluetooth אם לא רוצים שהוא יפעל."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"‏חיבורי ה-Wi‑Fi וה-Bluetooth יישארו מופעלים"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"‏חיבורי ה-Wi‑Fi וה-Bluetooth בטלפון יישארו מופעלים במצב טיסה. אפשר להשבית את ה-Wi-Fi וה-Bluetooth אם לא רוצים שהם יפעלו."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="7848565203843882558">"‏חיבורי ה-Wi‑Fi וה-Bluetooth במכשיר יישארו מופעלים במצב טיסה. אפשר להשבית את ה-Wi-Fi וה-Bluetooth אם לא רוצים שהם יפעלו."</string>
 </resources>
