@@ -230,6 +230,9 @@ cc_library_static {
         "libbt-audio-hal-interface",
         "libbt-stack-core",
     ],
+    shared_libs: [
+        "libcrypto",
+    ],
     cflags: [
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-DBUILDCFG",
