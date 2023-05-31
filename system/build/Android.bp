@@ -115,9 +115,6 @@ cc_defaults {
         "//apex_available:platform",
         "com.android.btservices",
     ],
-    shared_libs: [
-        "libcrypto",
-    ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
         "libbt-protos-lite",
