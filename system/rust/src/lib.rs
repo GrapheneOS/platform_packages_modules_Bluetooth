@@ -86,15 +86,15 @@ impl GlobalModuleRegistry {
         assert!(prev_registry.is_none());
 
         // First, setup FFI and C++ modules
-        gatt::arbiter::initialize_arbiter();
+        let arbiter = gatt::arbiter::initialize_arbiter();
         connection::register_callbacks();
 
         // Now enter the runtime
-        local.block_on(&rt, async {
+        local.block_on(&rt, async move {
             // Then follow the pure-Rust modules
             let gatt_incoming_callbacks =
                 Rc::new(gatt::callbacks::CallbackTransactionManager::new(gatt_callbacks.clone()));
-            let gatt_module = &mut gatt::server::GattModule::new(att_transport.clone());
+            let gatt_module = &mut gatt::server::GattModule::new(att_transport.clone(), arbiter);
 
             let connection_manager = connection::ConnectionManager::new(le_acl_manager);
 
