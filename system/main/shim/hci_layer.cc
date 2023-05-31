@@ -267,16 +267,11 @@ static bool event_already_registered_in_le_scanning_manager(
 }  // namespace
 
 namespace cpp {
-bluetooth::common::BidiQueueEnd<bluetooth::hci::ScoBuilder,
-                                bluetooth::hci::ScoView>* hci_sco_queue_end =
-    nullptr;
 bluetooth::common::BidiQueueEnd<bluetooth::hci::IsoBuilder,
                                 bluetooth::hci::IsoView>* hci_iso_queue_end =
     nullptr;
 static bluetooth::os::EnqueueBuffer<bluetooth::hci::IsoBuilder>*
     pending_iso_data = nullptr;
-static bluetooth::os::EnqueueBuffer<bluetooth::hci::ScoBuilder>*
-    pending_sco_data = nullptr;
 
 static std::unique_ptr<bluetooth::packet::RawBuilder> MakeUniquePacket(
     const uint8_t* data, size_t len) {
@@ -376,26 +371,6 @@ static void transmit_command(const BT_HDR* command,
   }
 }
 
-static void transmit_sco_fragment(const uint8_t* stream, size_t length) {
-  uint16_t handle_with_flags;
-  STREAM_TO_UINT16(handle_with_flags, stream);
-  uint16_t handle = HCID_GET_HANDLE(handle_with_flags);
-  ASSERT_LOG(handle <= HCI_HANDLE_MAX, "Require handle <= 0x%X, but is 0x%X",
-             HCI_HANDLE_MAX, handle);
-
-  length -= 2;
-  // skip data total length
-  stream += 1;
-  length -= 1;
-  auto payload = std::vector<uint8_t>(stream, stream + length);
-  auto sco_packet = bluetooth::hci::ScoBuilder::Create(
-      handle, bluetooth::hci::PacketStatusFlag::CORRECTLY_RECEIVED,
-      std::move(payload));
-
-  pending_sco_data->Enqueue(std::move(sco_packet),
-                            bluetooth::shim::GetGdShimHandler());
-}
-
 static void transmit_iso_fragment(const uint8_t* stream, size_t length) {
   uint16_t handle_with_flags;
   STREAM_TO_UINT16(handle_with_flags, stream);
@@ -430,23 +405,6 @@ static void register_le_event(bluetooth::hci::SubeventCode subevent_code) {
       subevent_code, handler->Bind(subevent_callback));
 }
 
-static void sco_data_callback() {
-  if (hci_sco_queue_end == nullptr) {
-    return;
-  }
-  auto packet = hci_sco_queue_end->TryDequeue();
-  ASSERT(packet != nullptr);
-  if (!packet->IsValid()) {
-    LOG_INFO("Dropping invalid packet of size %zu", packet->size());
-    return;
-  }
-  if (!send_data_upwards) {
-    return;
-  }
-  auto data = WrapPacketAndCopy(MSG_HC_TO_STACK_HCI_SCO, packet.get());
-  send_data_upwards.Run(FROM_HERE, data);
-}
-
 static void iso_data_callback() {
   if (hci_iso_queue_end == nullptr) {
     return;
@@ -464,16 +422,6 @@ static void iso_data_callback() {
   packet_fragmenter->reassemble_and_dispatch(data);
 }
 
-static void register_for_sco() {
-  hci_sco_queue_end = bluetooth::shim::GetHciLayer()->GetScoQueueEnd();
-  hci_sco_queue_end->RegisterDequeue(
-      bluetooth::shim::GetGdShimHandler(),
-      bluetooth::common::Bind(sco_data_callback));
-  pending_sco_data =
-      new bluetooth::os::EnqueueBuffer<bluetooth::hci::ScoBuilder>(
-          hci_sco_queue_end);
-}
-
 static void register_for_iso() {
   hci_iso_queue_end = bluetooth::shim::GetHciLayer()->GetIsoQueueEnd();
   hci_iso_queue_end->RegisterDequeue(
@@ -485,19 +433,10 @@ static void register_for_iso() {
 }
 
 static void on_shutting_down() {
-  if (pending_sco_data != nullptr) {
-    pending_sco_data->Clear();
-    delete pending_sco_data;
-    pending_sco_data = nullptr;
-  }
   if (pending_iso_data != nullptr) {
     pending_iso_data->Clear();
     delete pending_iso_data;
     pending_iso_data = nullptr;
-  }
-  if (hci_sco_queue_end != nullptr) {
-    hci_sco_queue_end->UnregisterDequeue();
-    hci_sco_queue_end = nullptr;
   }
   if (hci_iso_queue_end != nullptr) {
     hci_iso_queue_end->UnregisterDequeue();
@@ -551,12 +490,6 @@ static const packet_fragmenter_callbacks_t packet_fragmenter_callbacks = {
     transmit_fragment, dispatch_reassembled};
 
 static void transmit_downward(uint16_t type, void* raw_data) {
-  if (type == BT_EVT_TO_LM_HCI_SCO) {
-    BT_HDR* event = static_cast<BT_HDR*>(raw_data);
-    bluetooth::shim::GetGdShimHandler()->Call(
-        cpp::transmit_sco_fragment, event->data + event->offset, event->len);
-    return;
-  }
   bluetooth::shim::GetGdShimHandler()->Call(
       packet_fragmenter->fragment_and_dispatch, static_cast<BT_HDR*>(raw_data));
 }
@@ -608,7 +541,6 @@ void bluetooth::shim::hci_on_reset_complete() {
     cpp::register_le_event(subevent_code);
   }
 
-  cpp::register_for_sco();
   cpp::register_for_iso();
 }
 

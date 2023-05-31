@@ -27,6 +27,7 @@
 
 #include "btif/include/btif_hh.h"
 #include "common/init_flags.h"
+#include "hci/hci_layer_mock.h"
 #include "hci/include/hci_layer.h"
 #include "internal_include/stack_config.h"
 #include "osi/include/allocator.h"
@@ -44,6 +45,7 @@
 #include "stack/l2cap/l2c_int.h"
 #include "test/common/mock_functions.h"
 #include "test/mock/mock_device_iot_config.h"
+#include "test/mock/mock_main_shim_entry.h"
 #include "test/mock/mock_osi_list.h"
 #include "test/mock/mock_stack_hcic_hcicmds.h"
 #include "types/raw_address.h"
@@ -96,20 +98,57 @@ class StackBtmTest : public Test {
   void TearDown() override {}
 };
 
-class StackBtmWithInitFreeTest : public StackBtmTest {
+class StackBtmWithQueuesTest : public StackBtmTest {
  public:
  protected:
   void SetUp() override {
     StackBtmTest::SetUp();
+    up_thread_ = new bluetooth::os::Thread(
+        "up_thread", bluetooth::os::Thread::Priority::NORMAL);
+    up_handler_ = new bluetooth::os::Handler(up_thread_);
+    down_thread_ = new bluetooth::os::Thread(
+        "down_thread", bluetooth::os::Thread::Priority::NORMAL);
+    down_handler_ = new bluetooth::os::Handler(down_thread_);
+    bluetooth::hci::testing::mock_hci_layer_ = &mock_hci_;
+    bluetooth::hci::testing::mock_gd_shim_handler_ = up_handler_;
+  }
+  void TearDown() override {
+    up_handler_->Clear();
+    delete up_handler_;
+    delete up_thread_;
+    down_handler_->Clear();
+    delete down_handler_;
+    delete down_thread_;
+    StackBtmTest::TearDown();
+  }
+  bluetooth::common::BidiQueue<bluetooth::hci::ScoView,
+                               bluetooth::hci::ScoBuilder>
+      sco_queue_{10};
+  bluetooth::hci::testing::MockHciLayer mock_hci_;
+  bluetooth::os::Thread* up_thread_;
+  bluetooth::os::Handler* up_handler_;
+  bluetooth::os::Thread* down_thread_;
+  bluetooth::os::Handler* down_handler_;
+};
+
+class StackBtmWithInitFreeTest : public StackBtmWithQueuesTest {
+ public:
+ protected:
+  void SetUp() override {
+    StackBtmWithQueuesTest::SetUp();
+    EXPECT_CALL(mock_hci_, GetScoQueueEnd())
+        .WillOnce(Return(sco_queue_.GetUpEnd()));
     btm_cb.Init(BTM_SEC_MODE_SC);
   }
   void TearDown() override {
     btm_cb.Free();
-    StackBtmTest::TearDown();
+    StackBtmWithQueuesTest::TearDown();
   }
 };
 
-TEST_F(StackBtmTest, GlobalLifecycle) {
+TEST_F(StackBtmWithQueuesTest, GlobalLifecycle) {
+  EXPECT_CALL(mock_hci_, GetScoQueueEnd())
+      .WillOnce(Return(sco_queue_.GetUpEnd()));
   get_btm_client_interface().lifecycle.btm_init();
   get_btm_client_interface().lifecycle.btm_free();
 }
@@ -119,19 +158,25 @@ TEST_F(StackBtmTest, DynamicLifecycle) {
   delete btm;
 }
 
-TEST_F(StackBtmTest, InitFree) {
+TEST_F(StackBtmWithQueuesTest, InitFree) {
+  EXPECT_CALL(mock_hci_, GetScoQueueEnd())
+      .WillOnce(Return(sco_queue_.GetUpEnd()));
   btm_cb.Init(0x1);
   btm_cb.Free();
 }
 
-TEST_F(StackBtmTest, tSCO_CB) {
+TEST_F(StackBtmWithQueuesTest, tSCO_CB) {
+  EXPECT_CALL(mock_hci_, GetScoQueueEnd())
+      .WillOnce(Return(sco_queue_.GetUpEnd()));
   bluetooth::common::InitFlags::SetAllForTesting();
   tSCO_CB* p_sco = &btm_cb.sco_cb;
   p_sco->Init();
   p_sco->Free();
 }
 
-TEST_F(StackBtmTest, InformClientOnConnectionSuccess) {
+TEST_F(StackBtmWithQueuesTest, InformClientOnConnectionSuccess) {
+  EXPECT_CALL(mock_hci_, GetScoQueueEnd())
+      .WillOnce(Return(sco_queue_.GetUpEnd()));
   get_btm_client_interface().lifecycle.btm_init();
 
   RawAddress bda({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
@@ -142,7 +187,9 @@ TEST_F(StackBtmTest, InformClientOnConnectionSuccess) {
   get_btm_client_interface().lifecycle.btm_free();
 }
 
-TEST_F(StackBtmTest, NoInformClientOnConnectionFail) {
+TEST_F(StackBtmWithQueuesTest, NoInformClientOnConnectionFail) {
+  EXPECT_CALL(mock_hci_, GetScoQueueEnd())
+      .WillOnce(Return(sco_queue_.GetUpEnd()));
   get_btm_client_interface().lifecycle.btm_init();
 
   RawAddress bda({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
@@ -153,7 +200,9 @@ TEST_F(StackBtmTest, NoInformClientOnConnectionFail) {
   get_btm_client_interface().lifecycle.btm_free();
 }
 
-TEST_F(StackBtmTest, default_packet_type) {
+TEST_F(StackBtmWithQueuesTest, default_packet_type) {
+  EXPECT_CALL(mock_hci_, GetScoQueueEnd())
+      .WillOnce(Return(sco_queue_.GetUpEnd()));
   get_btm_client_interface().lifecycle.btm_init();
 
   btm_cb.acl_cb_.SetDefaultPacketTypeMask(0x4321);
@@ -162,7 +211,9 @@ TEST_F(StackBtmTest, default_packet_type) {
   get_btm_client_interface().lifecycle.btm_free();
 }
 
-TEST_F(StackBtmTest, change_packet_type) {
+TEST_F(StackBtmWithQueuesTest, change_packet_type) {
+  EXPECT_CALL(mock_hci_, GetScoQueueEnd())
+      .WillOnce(Return(sco_queue_.GetUpEnd()));
   int cnt = 0;
   get_btm_client_interface().lifecycle.btm_init();
 
@@ -203,21 +254,6 @@ TEST_F(StackBtmTest, change_packet_type) {
   get_btm_client_interface().lifecycle.btm_free();
 }
 
-TEST(ScoTest, make_sco_packet) {
-  std::vector<uint8_t> data = {10, 20, 30};
-  uint16_t handle = 0xab;
-  BT_HDR* p = btm_sco_make_packet(data, handle);
-  ASSERT_EQ(p->event, BT_EVT_TO_LM_HCI_SCO);
-  ASSERT_EQ(p->len, 3 + data.size());
-  ASSERT_EQ(p->data[0], 0xab);
-  ASSERT_EQ(p->data[1], 0);
-  ASSERT_EQ(p->data[2], 3);
-  ASSERT_EQ(p->data[3], 10);
-  ASSERT_EQ(p->data[4], 20);
-  ASSERT_EQ(p->data[5], 30);
-  osi_free(p);
-}
-
 TEST(BtmTest, BTM_EIR_MAX_SERVICES) { ASSERT_EQ(46, BTM_EIR_MAX_SERVICES); }
 
 }  // namespace
@@ -232,9 +268,8 @@ struct {
   tBTM_BD_NAME bd_name;
 } btm_test;
 
-TEST(SecTest, btm_sec_rmt_name_request_complete) {
+TEST_F(StackBtmWithInitFreeTest, btm_sec_rmt_name_request_complete) {
   bluetooth::common::InitFlags::SetAllForTesting();
-  btm_cb.Init(0);
 
   ASSERT_TRUE(BTM_SecAddRmtNameNotifyCallback(
       [](const RawAddress& bd_addr, DEV_CLASS dc, tBTM_BD_NAME bd_name) {
@@ -260,8 +295,6 @@ TEST(SecTest, btm_sec_rmt_name_request_complete) {
   ASSERT_STREQ((const char*)p_bd_name, (const char*)btm_test.bd_name);
   ASSERT_THAT(btm_test.dc, Each(Eq(0)));
   ASSERT_EQ(bd_addr, btm_test.bd_addr);
-
-  btm_cb.Free();
 }
 
 TEST_F(StackBtmWithInitFreeTest, btm_sec_encrypt_change) {
