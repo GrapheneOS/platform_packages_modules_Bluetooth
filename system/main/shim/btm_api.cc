@@ -478,77 +478,10 @@ uint8_t bluetooth::shim::BTM_BleGetSupportedKeySize(const RawAddress& bd_addr) {
   return 0;
 }
 
-/**
- * This function update(add,delete or clear) the adv local name filtering
- * condition.
- */
-void bluetooth::shim::BTM_LE_PF_local_name(tBTM_BLE_SCAN_COND_OP action,
-                                           tBTM_BLE_PF_FILT_INDEX filt_index,
-                                           std::vector<uint8_t> name,
-                                           tBTM_BLE_PF_CFG_CBACK cb) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
-void bluetooth::shim::BTM_LE_PF_srvc_data(tBTM_BLE_SCAN_COND_OP action,
-                                          tBTM_BLE_PF_FILT_INDEX filt_index) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
-void bluetooth::shim::BTM_LE_PF_manu_data(
-    tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_FILT_INDEX filt_index,
-    uint16_t company_id, uint16_t company_id_mask, std::vector<uint8_t> data,
-    std::vector<uint8_t> data_mask, tBTM_BLE_PF_CFG_CBACK cb) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
-void bluetooth::shim::BTM_LE_PF_srvc_data_pattern(
-    tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_FILT_INDEX filt_index,
-    std::vector<uint8_t> data, std::vector<uint8_t> data_mask,
-    tBTM_BLE_PF_CFG_CBACK cb) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
-void bluetooth::shim::BTM_LE_PF_addr_filter(tBTM_BLE_SCAN_COND_OP action,
-                                            tBTM_BLE_PF_FILT_INDEX filt_index,
-                                            tBLE_BD_ADDR addr,
-                                            tBTM_BLE_PF_CFG_CBACK cb) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
-void bluetooth::shim::BTM_LE_PF_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
-                                            tBTM_BLE_PF_FILT_INDEX filt_index,
-                                            tBTM_BLE_PF_COND_TYPE filter_type,
-                                            const bluetooth::Uuid& uuid,
-                                            tBTM_BLE_PF_LOGIC_TYPE cond_logic,
-                                            const bluetooth::Uuid& uuid_mask,
-                                            tBTM_BLE_PF_CFG_CBACK cb) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
-void bluetooth::shim::BTM_LE_PF_set(tBTM_BLE_PF_FILT_INDEX filt_index,
-                                    std::vector<ApcfCommand> commands,
-                                    tBTM_BLE_PF_CFG_CBACK cb) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
-void bluetooth::shim::BTM_LE_PF_clear(tBTM_BLE_PF_FILT_INDEX filt_index,
-                                      tBTM_BLE_PF_CFG_CBACK cb) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
 void bluetooth::shim::BTM_BleAdvFilterParamSetup(
     tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_FILT_INDEX filt_index,
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
     tBTM_BLE_PF_PARAM_CB cb) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
-void bluetooth::shim::BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-}
-
-void bluetooth::shim::BTM_BleEnableDisableFilterFeature(
-    uint8_t enable, tBTM_BLE_PF_STATUS_CBACK p_stat_cback) {
   LOG_INFO("UNIMPLEMENTED %s", __func__);
 }
 

@@ -588,26 +588,6 @@ void BTM_BleAdvFilterParamSetup(
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
     tBTM_BLE_PF_PARAM_CB cb);
 
-/**
- * This functions are called to configure the adv data payload filter condition
- */
-void BTM_LE_PF_set(tBTM_BLE_PF_FILT_INDEX filt_index,
-                   std::vector<ApcfCommand> commands, tBTM_BLE_PF_CFG_CBACK cb);
-void BTM_LE_PF_clear(tBTM_BLE_PF_FILT_INDEX filt_index,
-                     tBTM_BLE_PF_CFG_CBACK cb);
-
-/*******************************************************************************
- *
- * Function         BTM_BleEnableDisableFilterFeature
- *
- * Description      Enable or disable the APCF feature
- *
- * Parameters       enable - true - enables APCF, false - disables APCF
- *
- ******************************************************************************/
-void BTM_BleEnableDisableFilterFeature(uint8_t enable,
-                                       tBTM_BLE_PF_STATUS_CBACK p_stat_cback);
-
 /*******************************************************************************
  *
  * Function         BTM_BleGetEnergyInfo
