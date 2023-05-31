@@ -285,6 +285,9 @@ cc_library_static {
         "libbluetooth_core_rs",
         "libbt-hci",
     ],
+    shared_libs: [
+        "libPlatformProperties",
+    ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
 }

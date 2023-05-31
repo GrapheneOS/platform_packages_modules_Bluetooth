@@ -136,6 +136,7 @@ cc_library_static {
                 "libPlatformProperties",
             ],
             srcs: ["src/btif_avrcp_audio_track.cc"],
+            shared_libs: ["libaaudio"],
         },
         host: {
             srcs: [
@@ -210,6 +211,7 @@ cc_library_static {
     target: {
         android: {
             srcs: ["src/btif_avrcp_audio_track.cc"],
+            shared_libs: ["libaaudio"],
         },
         host: {
             srcs: [
