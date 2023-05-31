@@ -245,6 +245,7 @@ public class LeAudioService extends ProfileService {
             mTmapGattServer.start(mTmapRoleMask);
         } catch (IllegalStateException e) {
             Log.e(TAG, "Fail to start TmapGattServer", e);
+            mTmapGattServer = null;
             return false;
         }
 
