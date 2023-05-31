@@ -35,9 +35,7 @@ cc_defaults {
         // struct BT_HDR is defined as a variable-size header in a struct.
         "-Wno-gnu-variable-sized-type-not-at-end",
     ],
-    conlyflags: [
-        "-std=c99",
-    ],
+    c_std: "c99",
     product_variables: {
         debuggable: {
             cflags: [
