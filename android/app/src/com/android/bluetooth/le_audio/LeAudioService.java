@@ -1715,7 +1715,11 @@ public class LeAudioService extends ProfileService {
             }
         }
 
-        mAudioServersScanner.stopScan(mScanCallback);
+        try {
+            mAudioServersScanner.stopScan(mScanCallback);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Fail to stop scanner, consider it stopped", e);
+        }
 
         /* Callback is the indicator for scanning being enabled */
         mScanCallback = null;
@@ -1765,7 +1769,12 @@ public class LeAudioService extends ProfileService {
                 .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
                 .build();
 
-        mAudioServersScanner.startScan(filterList, settings, mScanCallback);
+        try {
+            mAudioServersScanner.startScan(filterList, settings, mScanCallback);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Fail to start scanner, consider it stopped", e);
+            mScanCallback = null;
+        }
     }
 
     // Suppressed since this is part of a local process
