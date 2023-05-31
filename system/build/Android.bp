@@ -114,40 +114,16 @@ cc_defaults {
         "com.android.btservices",
     ],
     shared_libs: [
-        "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "libbase",
-        "libbinder_ndk",
         "libcrypto",
-        "libfmq",
-        "libnativehelper",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
-        "libFraunhoferAAC",
-        "libbluetooth-dumpsys",
         "libbt-protos-lite",
-        "libbt-sbc-decoder",
-        "libbt-sbc-encoder",
         "libflatbuffers-cpp",
-        "libg722codec",
-        "liblc3",
-        "libopus",
         "libprotobuf-cpp-lite",
-        "libudrv-uipc",
     ],
-    target: {
-        android: {
-            shared_libs: [
-                "android.system.suspend-V1-ndk",
-                "libPlatformProperties",
-                "libaaudio",
-            ],
-            static_libs: [
-                "android.system.suspend.control-V1-ndk",
-            ],
-        },
-    },
 }
 
 cc_defaults {
