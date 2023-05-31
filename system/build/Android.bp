@@ -126,13 +126,6 @@ cc_defaults {
         "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
-    target: {
-        android: {
-            shared_libs: [
-                "libPlatformProperties",
-            ],
-        },
-    },
 }
 
 cc_defaults {
