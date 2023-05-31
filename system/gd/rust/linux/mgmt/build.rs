@@ -1,5 +1,3 @@
-extern crate protoc_rust;
-
 use pkg_config::Config;
 use std::env;
 use std::fs;
