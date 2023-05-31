@@ -39,6 +39,7 @@ rust_defaults {
         "libbt_common_only_init_flags",
         "libcxx",
         "liblog_rust",
+        "libonce_cell",
         "libscopeguard",
 
         // needed to work around duplicate symbols
