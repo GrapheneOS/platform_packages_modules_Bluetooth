@@ -46,17 +46,4 @@ void BTM_BleAdvFilterParamSetup(
     tBTM_BLE_PF_PARAM_CB cb) {
   inc_func_call_count(__func__);
 }
-void BTM_BleEnableDisableFilterFeature(uint8_t enable,
-                                       tBTM_BLE_PF_STATUS_CBACK p_stat_cback) {
-  inc_func_call_count(__func__);
-}
-void BTM_LE_PF_clear(tBTM_BLE_PF_FILT_INDEX filt_index,
-                     tBTM_BLE_PF_CFG_CBACK cb) {
-  inc_func_call_count(__func__);
-}
-void BTM_LE_PF_set(tBTM_BLE_PF_FILT_INDEX filt_index,
-                   std::vector<ApcfCommand> commands,
-                   tBTM_BLE_PF_CFG_CBACK cb) {
-  inc_func_call_count(__func__);
-}
 void btm_ble_adv_filter_init(void) { inc_func_call_count(__func__); }
