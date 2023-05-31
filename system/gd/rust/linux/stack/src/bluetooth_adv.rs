@@ -194,6 +194,9 @@ const SOLICIT_AD_TYPES: [u8; 3] = [
     LIST_128_BIT_SERVICE_SOLICITATION_UUIDS,
 ];
 
+const LEGACY_ADV_DATA_LEN_MAX: usize = 31;
+const EXT_ADV_DATA_LEN_MAX: usize = 254;
+
 // Invalid advertising set id.
 const INVALID_ADV_ID: i32 = 0xff;
 
@@ -249,7 +252,7 @@ impl AdvertiseData {
         let mut uuid128_bytes = Vec::<u8>::new();
 
         // For better transmission efficiency, we generate a compact
-        // advertisement data byconverting UUIDs into shorter binary forms
+        // advertisement data by converting UUIDs into shorter binary forms
         // and then group them by their length in order.
         // The data generated for UUIDs looks like:
         // [16-bit_UUID_LIST, 32-bit_UUID_LIST, 128-bit_UUID_LIST].
@@ -341,6 +344,11 @@ impl AdvertiseData {
         AdvertiseData::append_transport_discovery_data(&mut bytes, &self.transport_discovery_data);
         bytes
     }
+
+    /// Validates the raw data as advertisement data.
+    pub fn validate_raw_data(is_legacy: bool, bytes: &Vec<u8>) -> bool {
+        bytes.len() <= if is_legacy { LEGACY_ADV_DATA_LEN_MAX } else { EXT_ADV_DATA_LEN_MAX }
+    }
 }
 
 impl Into<bt_topshim::profiles::gatt::PeriodicAdvertisingParameters>
@@ -394,10 +402,18 @@ pub(crate) struct AdvertisingSetInfo {
     /// Maximum number of extended advertising events the controller
     /// shall attempt to send before terminating the extended advertising.
     adv_events: u8,
+
+    /// Whether the legacy advertisement will be used.
+    legacy: bool,
 }
 
 impl AdvertisingSetInfo {
-    pub(crate) fn new(callback_id: CallbackId, adv_timeout: u16, adv_events: u8) -> Self {
+    pub(crate) fn new(
+        callback_id: CallbackId,
+        adv_timeout: u16,
+        adv_events: u8,
+        legacy: bool,
+    ) -> Self {
         let mut reg_id = REG_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as RegId;
         if reg_id == INVALID_REG_ID {
             reg_id = REG_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as RegId;
@@ -410,6 +426,7 @@ impl AdvertisingSetInfo {
             paused: false,
             adv_timeout,
             adv_events,
+            legacy,
         }
     }
 
@@ -462,6 +479,11 @@ impl AdvertisingSetInfo {
     /// Gets adv_events.
     pub(crate) fn adv_events(&self) -> u8 {
         self.adv_events
+    }
+
+    /// Returns whether the legacy advertisement will be used.
+    pub(crate) fn is_legacy(&self) -> bool {
+        self.legacy
     }
 }
 

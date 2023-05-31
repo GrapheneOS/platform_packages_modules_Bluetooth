@@ -2012,10 +2012,19 @@ impl IBluetoothGatt for BluetoothGatt {
         }
 
         let device_name = self.get_adapter_name();
+        let is_legacy = parameters.is_legacy;
         let params = parameters.into();
         let adv_bytes = advertise_data.make_with(&device_name);
+        if !AdvertiseData::validate_raw_data(is_legacy, &adv_bytes) {
+            log::warn!("Failed to start advertising set with invalid advertise data");
+            return INVALID_REG_ID;
+        }
         let scan_bytes =
             if let Some(d) = scan_response { d.make_with(&device_name) } else { Vec::<u8>::new() };
+        if !AdvertiseData::validate_raw_data(is_legacy, &scan_bytes) {
+            log::warn!("Failed to start advertising set with invalid scan response");
+            return INVALID_REG_ID;
+        }
         let periodic_params = if let Some(p) = periodic_parameters {
             p.into()
         } else {
@@ -2023,10 +2032,14 @@ impl IBluetoothGatt for BluetoothGatt {
         };
         let periodic_bytes =
             if let Some(d) = periodic_data { d.make_with(&device_name) } else { Vec::<u8>::new() };
+        if !AdvertiseData::validate_raw_data(false, &periodic_bytes) {
+            log::warn!("Failed to start advertising set with invalid periodic data");
+            return INVALID_REG_ID;
+        }
         let adv_timeout = clamp(duration, 0, 0xffff) as u16;
         let adv_events = clamp(max_ext_adv_events, 0, 0xff) as u8;
 
-        let s = AdvertisingSetInfo::new(callback_id, adv_timeout, adv_events);
+        let s = AdvertisingSetInfo::new(callback_id, adv_timeout, adv_events, is_legacy);
         let reg_id = s.reg_id();
         self.advertisers.add(s);
 
@@ -2105,6 +2118,10 @@ impl IBluetoothGatt for BluetoothGatt {
         let bytes = data.make_with(&device_name);
 
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            if !AdvertiseData::validate_raw_data(s.is_legacy(), &bytes) {
+                log::warn!("Advertiser {}: invalid advertise data to update", advertiser_id);
+                return;
+            }
             self.gatt.as_ref().unwrap().lock().unwrap().advertiser.set_data(
                 s.adv_id(),
                 false,
@@ -2119,6 +2136,10 @@ impl IBluetoothGatt for BluetoothGatt {
         }
 
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            if !AdvertiseData::validate_raw_data(s.is_legacy(), &data) {
+                log::warn!("Advertiser {}: invalid raw advertise data to update", advertiser_id);
+                return;
+            }
             self.gatt.as_ref().unwrap().lock().unwrap().advertiser.set_data(
                 s.adv_id(),
                 false,
@@ -2136,6 +2157,10 @@ impl IBluetoothGatt for BluetoothGatt {
         let bytes = data.make_with(&device_name);
 
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            if !AdvertiseData::validate_raw_data(s.is_legacy(), &bytes) {
+                log::warn!("Advertiser {}: invalid scan response to update", advertiser_id);
+                return;
+            }
             self.gatt.as_ref().unwrap().lock().unwrap().advertiser.set_data(
                 s.adv_id(),
                 true,
@@ -2214,6 +2239,10 @@ impl IBluetoothGatt for BluetoothGatt {
         let bytes = data.make_with(&device_name);
 
         if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            if !AdvertiseData::validate_raw_data(false, &bytes) {
+                log::warn!("Advertiser {}: invalid periodic data to update", advertiser_id);
+                return;
+            }
             self.gatt
                 .as_ref()
                 .unwrap()
