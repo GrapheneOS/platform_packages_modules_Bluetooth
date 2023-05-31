@@ -36,6 +36,9 @@ cc_library_static {
             srcs: ["metrics_linux.cc"],
         },
     },
+    shared_libs: [
+        "libcrypto",
+    ],
     min_sdk_version: "Tiramisu",
 }
 
