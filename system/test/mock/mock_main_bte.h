@@ -65,15 +65,6 @@ struct bte_main_init {
   void operator()(void) { body(); };
 };
 extern struct bte_main_init bte_main_init;
-// Name: bte_main_hci_send
-// Params: BT_HDR* p_msg, uint16_t event
-// Returns: void
-struct bte_main_hci_send {
-  std::function<void(BT_HDR* p_msg, uint16_t event)> body{
-      [](BT_HDR* p_msg, uint16_t event) {}};
-  void operator()(BT_HDR* p_msg, uint16_t event) { body(p_msg, event); };
-};
-extern struct bte_main_hci_send bte_main_hci_send;
 
 }  // namespace main_bte
 }  // namespace mock
