@@ -133,6 +133,9 @@ cc_library_static {
         "libbt-bta-core",
         "libcom.android.sysprop.bluetooth",
     ],
+    shared_libs: [
+        "android.hardware.bluetooth.audio@2.1",
+    ],
     generated_headers: [
         "LeAudioSetConfigSchemas_h",
     ],
