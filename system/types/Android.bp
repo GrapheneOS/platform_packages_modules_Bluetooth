@@ -58,7 +58,10 @@ cc_library_static {
 
 cc_test {
     name: "net_test_types",
-    static_libs: ["libchrome"],
+    static_libs: [
+        "libchrome",
+        "libosi", // strlcpy
+    ],
     test_suites: ["device-tests"],
     defaults: [
         "bluetooth_gtest_x86_asan_workaround",
@@ -72,6 +75,7 @@ cc_test {
     srcs: [
         "test/ble_address_with_type_unittest.cc",
         "test/bluetooth/uuid_unittest.cc",
+        "test/bt_name_test.cc",
         "test/class_of_device_unittest.cc",
         "test/raw_address_unittest.cc",
     ],
