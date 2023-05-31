@@ -156,6 +156,9 @@ cc_library_static {
         "libbt-stack-core",
         "libbtif-core",
     ],
+    shared_libs: [
+        "android.hardware.bluetooth.audio@2.1",
+    ],
     cflags: [
         "-DBUILDCFG",
     ],
