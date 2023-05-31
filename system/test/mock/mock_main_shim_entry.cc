@@ -18,6 +18,7 @@
 #include "gd/hci/controller_mock.h"
 #include "gd/hci/distance_measurement_manager_mock.h"
 #include "gd/hci/hci_layer.h"
+#include "gd/hci/hci_layer_mock.h"
 #include "gd/hci/le_advertising_manager_mock.h"
 #include "gd/hci/le_scanning_manager_mock.h"
 #include "gd/neighbor/connectability.h"
@@ -37,6 +38,7 @@ namespace testing {
 
 MockAclManager* mock_acl_manager_{nullptr};
 MockController* mock_controller_{nullptr};
+MockHciLayer* mock_hci_layer_{nullptr};
 os::Handler* mock_gd_shim_handler_{nullptr};
 MockLeAdvertisingManager* mock_le_advertising_manager_{nullptr};
 MockLeScanningManager* mock_le_scanning_manager_{nullptr};
@@ -55,7 +57,7 @@ activity_attribution::ActivityAttribution* GetActivityAttribution() {
 }
 hci::AclManager* GetAclManager() { return hci::testing::mock_acl_manager_; }
 hci::Controller* GetController() { return hci::testing::mock_controller_; }
-hci::HciLayer* GetHciLayer() { return nullptr; }
+hci::HciLayer* GetHciLayer() { return hci::testing::mock_hci_layer_; }
 hci::LeAdvertisingManager* GetAdvertising() {
   return hci::testing::mock_le_advertising_manager_;
 }
