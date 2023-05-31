@@ -429,7 +429,8 @@ void LogMetricBluetoothHalCrashReason(
 }
 
 void LogMetricBluetoothLocalSupportedFeatures(uint32_t page_num, uint64_t features) {
-  int ret = stats_write(BLUETOOTH_LOCAL_SUPPORTED_FEATURES_REPORTED, page_num, features);
+  int ret = stats_write(
+      BLUETOOTH_LOCAL_SUPPORTED_FEATURES_REPORTED, page_num, static_cast<int64_t>(features));
   if (ret < 0) {
     LOG_WARN(
         "Failed for LogMetricBluetoothLocalSupportedFeatures, "
