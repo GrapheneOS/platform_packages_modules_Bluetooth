@@ -253,10 +253,6 @@ void bluetooth::shim::BTM_BleAdvFilterParamSetup(
     tBTM_BLE_PF_PARAM_CB cb) {
   inc_func_call_count(__func__);
 }
-void bluetooth::shim::BTM_BleEnableDisableFilterFeature(
-    uint8_t enable, tBTM_BLE_PF_STATUS_CBACK p_stat_cback) {
-  inc_func_call_count(__func__);
-}
 void bluetooth::shim::BTM_BleLoadLocalKeys(uint8_t key_type,
                                            tBTM_BLE_LOCAL_KEYS* p_key) {
   inc_func_call_count(__func__);
@@ -303,9 +299,6 @@ void bluetooth::shim::BTM_BleTransmitterTest(uint8_t tx_freq,
                                              tBTM_CMPL_CB* p_cmd_cmpl_cback) {
   inc_func_call_count(__func__);
 }
-void bluetooth::shim::BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy) {
-  inc_func_call_count(__func__);
-}
 void bluetooth::shim::BTM_CancelInquiry(void) { inc_func_call_count(__func__); }
 void bluetooth::shim::BTM_ConfirmReqReply(tBTM_STATUS res,
                                           const RawAddress& bd_addr) {
@@ -315,52 +308,6 @@ void bluetooth::shim::BTM_EnableInterlacedInquiryScan() {
   inc_func_call_count(__func__);
 }
 void bluetooth::shim::BTM_EnableInterlacedPageScan() {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_LE_PF_addr_filter(tBTM_BLE_SCAN_COND_OP action,
-                                            tBTM_BLE_PF_FILT_INDEX filt_index,
-                                            tBLE_BD_ADDR addr,
-                                            tBTM_BLE_PF_CFG_CBACK cb) {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_LE_PF_clear(tBTM_BLE_PF_FILT_INDEX filt_index,
-                                      tBTM_BLE_PF_CFG_CBACK cb) {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_LE_PF_local_name(tBTM_BLE_SCAN_COND_OP action,
-                                           tBTM_BLE_PF_FILT_INDEX filt_index,
-                                           std::vector<uint8_t> name,
-                                           tBTM_BLE_PF_CFG_CBACK cb) {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_LE_PF_manu_data(
-    tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_FILT_INDEX filt_index,
-    uint16_t company_id, uint16_t company_id_mask, std::vector<uint8_t> data,
-    std::vector<uint8_t> data_mask, tBTM_BLE_PF_CFG_CBACK cb) {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_LE_PF_set(tBTM_BLE_PF_FILT_INDEX filt_index,
-                                    std::vector<ApcfCommand> commands,
-                                    tBTM_BLE_PF_CFG_CBACK cb) {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_LE_PF_srvc_data(tBTM_BLE_SCAN_COND_OP action,
-                                          tBTM_BLE_PF_FILT_INDEX filt_index) {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_LE_PF_srvc_data_pattern(
-    tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_FILT_INDEX filt_index,
-    std::vector<uint8_t> data, std::vector<uint8_t> data_mask,
-    tBTM_BLE_PF_CFG_CBACK cb) {
-  inc_func_call_count(__func__);
-}
-void bluetooth::shim::BTM_LE_PF_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
-                                            tBTM_BLE_PF_FILT_INDEX filt_index,
-                                            tBTM_BLE_PF_COND_TYPE filter_type,
-                                            const bluetooth::Uuid& uuid,
-                                            tBTM_BLE_PF_LOGIC_TYPE cond_logic,
-                                            const bluetooth::Uuid& uuid_mask,
-                                            tBTM_BLE_PF_CFG_CBACK cb) {
   inc_func_call_count(__func__);
 }
 void bluetooth::shim::BTM_PINCodeReply(const RawAddress& bd_addr,
