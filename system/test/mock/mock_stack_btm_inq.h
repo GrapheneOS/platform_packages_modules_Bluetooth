@@ -182,23 +182,6 @@ struct BTM_HasEirService {
 };
 extern struct BTM_HasEirService BTM_HasEirService;
 
-// Name: BTM_HasInquiryEirService
-// Params: tBTM_INQ_RESULTS* p_results, uint16_t uuid16
-// Return: tBTM_EIR_SEARCH_RESULT
-struct BTM_HasInquiryEirService {
-  static tBTM_EIR_SEARCH_RESULT return_value;
-  std::function<tBTM_EIR_SEARCH_RESULT(tBTM_INQ_RESULTS* p_results,
-                                       uint16_t uuid16)>
-      body{[](tBTM_INQ_RESULTS* p_results, uint16_t uuid16) {
-        return return_value;
-      }};
-  tBTM_EIR_SEARCH_RESULT operator()(tBTM_INQ_RESULTS* p_results,
-                                    uint16_t uuid16) {
-    return body(p_results, uuid16);
-  };
-};
-extern struct BTM_HasInquiryEirService BTM_HasInquiryEirService;
-
 // Name: BTM_InqDbFirst
 // Params: void
 // Return: tBTM_INQ_INFO*

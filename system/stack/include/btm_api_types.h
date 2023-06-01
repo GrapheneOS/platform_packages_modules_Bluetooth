@@ -81,12 +81,6 @@ typedef void(tBTM_VSC_CMPL_CB)(tBTM_VSC_CMPL* p1);
 #define BTM_EIR_MAX_SERVICES 46
 
 /* search result in EIR of inquiry database */
-#define BTM_EIR_FOUND 0
-#define BTM_EIR_NOT_FOUND 1
-#define BTM_EIR_UNKNOWN 2
-
-typedef uint8_t tBTM_EIR_SEARCH_RESULT;
-
 typedef enum : uint8_t {
   BTM_BLE_SEC_NONE = 0,
   /* encrypt the link using current key */
