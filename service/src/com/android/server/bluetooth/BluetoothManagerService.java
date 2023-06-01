@@ -234,7 +234,7 @@ class BluetoothManagerService {
     }
 
     // Used for tracking apps that enabled / disabled Bluetooth.
-    private class ActiveLog {
+    private static class ActiveLog {
         private int mReason;
         private String mPackageName;
         private boolean mEnable;

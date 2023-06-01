@@ -35,6 +35,7 @@ java_defaults {
     errorprone: {
         javacflags: [
             "-Xep:CheckReturnValue:ERROR",
+            "-Xep:ClassCanBeStatic:ERROR",
             "-Xep:EqualsIncompatibleType:ERROR",
             "-Xep:ReferenceEquality:ERROR",
         ],
