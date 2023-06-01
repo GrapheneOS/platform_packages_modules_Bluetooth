@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include "common/init_flags.h"
 #include "device/include/esco_parameters.h"
 #include "osi/include/properties.h"
 
@@ -50,7 +51,8 @@ void init() {
 bool get_wbs_supported() { return !DISABLE_WBS; }
 
 bool get_swb_supported() {
-  return osi_property_get_bool("bluetooth.hfp.swb.supported", false);
+  return osi_property_get_bool("bluetooth.hfp.swb.supported", false) &&
+         bluetooth::common::init_flags::sco_codec_select_lc3_is_enabled();
 }
 
 // Checks the supported codecs
