@@ -1772,31 +1772,6 @@ bool BTM_HasEirService(const uint32_t* p_eir_uuid, uint16_t uuid16) {
 
 /*******************************************************************************
  *
- * Function         BTM_HasInquiryEirService
- *
- * Description      This function is called to know if UUID in bit map of UUID
- *                  list.
- *
- * Parameters       p_results - inquiry results
- *                  uuid16 - UUID 16-bit
- *
- * Returns          BTM_EIR_FOUND - if found
- *                  BTM_EIR_NOT_FOUND - if not found and it is complete list
- *                  BTM_EIR_UNKNOWN - if not found and it is not complete list
- *
- ******************************************************************************/
-tBTM_EIR_SEARCH_RESULT BTM_HasInquiryEirService(tBTM_INQ_RESULTS* p_results,
-                                                uint16_t uuid16) {
-  if (BTM_HasEirService(p_results->eir_uuid, uuid16)) {
-    return BTM_EIR_FOUND;
-  } else if (p_results->eir_complete_list) {
-    return BTM_EIR_NOT_FOUND;
-  } else
-    return BTM_EIR_UNKNOWN;
-}
-
-/*******************************************************************************
- *
  * Function         BTM_AddEirService
  *
  * Description      This function is called to add a service in bit map of UUID
