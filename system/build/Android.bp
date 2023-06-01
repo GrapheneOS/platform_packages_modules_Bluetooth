@@ -139,9 +139,6 @@ cc_defaults {
             enabled: false,
         },
         android: {
-            shared_libs: [
-                "libstatssocket",
-            ],
             sanitize: {
                 misc_undefined: ["bounds"],
             },
