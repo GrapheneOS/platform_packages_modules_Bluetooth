@@ -133,7 +133,6 @@ cc_defaults {
     shared_libs: [
         "libcutils",
         "libhidlbase",
-        "libutils",
     ],
     target: {
         darwin: {
