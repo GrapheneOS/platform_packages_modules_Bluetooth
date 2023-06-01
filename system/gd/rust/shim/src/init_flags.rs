@@ -34,6 +34,8 @@ mod ffi {
         fn get_default_log_level() -> i32;
         fn get_hci_adapter() -> i32;
         fn get_log_level_for_tag(tag: &str) -> i32;
+        fn get_asha_packet_drop_frequency_threshold() -> i32;
+        fn get_asha_phy_update_retry_limit() -> i32;
         fn hfp_dynamic_version_is_enabled() -> bool;
         fn irk_rotation_is_enabled() -> bool;
         fn leaudio_targeted_announcement_reconnection_mode_is_enabled() -> bool;
@@ -45,6 +47,7 @@ mod ffi {
         fn read_encryption_key_size_is_enabled() -> bool;
         fn redact_log_is_enabled() -> bool;
         fn rust_event_loop_is_enabled() -> bool;
+        fn sco_codec_select_lc3_is_enabled() -> bool;
         fn sco_codec_timeout_clear_is_enabled() -> bool;
         fn sdp_serialization_is_enabled() -> bool;
         fn sdp_skip_rnr_if_known_is_enabled() -> bool;
