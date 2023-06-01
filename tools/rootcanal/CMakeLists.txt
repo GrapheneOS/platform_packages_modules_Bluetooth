@@ -259,6 +259,7 @@ android_add_library(
       model/devices/sniffer.cc
       model/hci/h4_data_channel_packetizer.cc
       model/hci/h4_parser.cc
+      model/hci/hci_protocol.cc
       model/hci/hci_sniffer.cc
       model/hci/hci_socket_transport.cc
       model/setup/device_boutique.cc
