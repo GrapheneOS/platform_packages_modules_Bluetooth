@@ -37,6 +37,7 @@
 #include "csis_types.h"
 #include "gap_api.h"
 #include "gatt_api.h"
+#include "gd/common/init_flags.h"
 #include "main/shim/le_scanning_manager.h"
 #include "main/shim/shim.h"
 #include "osi/include/osi.h"
@@ -1374,7 +1375,9 @@ class CsisClientImpl : public CsisClient {
   }
 
   void CsisActiveDiscovery(std::shared_ptr<CsisGroup> csis_group) {
-    CheckForGroupInInqDb(csis_group);
+    if (bluetooth::common::InitFlags::UseRsiFromCachedInquiryResults()) {
+      CheckForGroupInInqDb(csis_group);
+    }
 
     if ((csis_group->GetDiscoveryState() !=
          CsisDiscoveryState::CSIS_DISCOVERY_IDLE)) {
