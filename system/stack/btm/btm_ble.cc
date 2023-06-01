@@ -48,6 +48,7 @@
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_log_history.h"
 #include "stack/include/btu.h"
+#include "stack/include/btu_hcif.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/include/l2cdefs.h"
