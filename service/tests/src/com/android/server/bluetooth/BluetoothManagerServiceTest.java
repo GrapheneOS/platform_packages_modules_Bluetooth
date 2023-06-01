@@ -51,6 +51,7 @@ public class BluetoothManagerServiceTest {
     Context mContext;
     @Mock BluetoothServerProxy mBluetoothServerProxy;
     @Mock BluetoothManagerService.BluetoothHandler mHandler;
+    @Mock UserManager mUserManager;
     HandlerThread mHandlerThread;
 
     @Before
@@ -60,7 +61,12 @@ public class BluetoothManagerServiceTest {
                 spy(
                         new ContextWrapper(
                                 InstrumentationRegistry.getInstrumentation().getTargetContext()));
+
+        doReturn(mUserManager).when(mContext).getSystemService(UserManager.class);
+
         mHandlerThread = new HandlerThread("BluetoothManagerServiceTest");
+
+        mManagerService = createBluetoothManagerService();
     }
 
     @After
@@ -68,7 +74,7 @@ public class BluetoothManagerServiceTest {
         mHandlerThread.quitSafely();
     }
 
-    private void createBluetoothManagerService() {
+    private BluetoothManagerService createBluetoothManagerService() {
         doReturn(mock(Intent.class))
                 .when(mContext)
                 .registerReceiverForAllUsers(any(), any(), eq(null), eq(null));
@@ -85,22 +91,18 @@ public class BluetoothManagerServiceTest {
         doReturn("00:11:22:33:44:55")
                 .when(mBluetoothServerProxy)
                 .settingsSecureGetString(any(), eq(Settings.Secure.BLUETOOTH_ADDRESS));
-        mManagerService = new BluetoothManagerService(mContext);
+        return new BluetoothManagerService(mContext);
     }
 
     @Test
     public void onUserRestrictionsChanged_disallowBluetooth_onlySendDisableMessageOnSystemUser()
             throws InterruptedException {
-        // Spy UserManager so we can mimic the case when restriction settings changed
-        UserManager userManager = mock(UserManager.class);
-        doReturn(userManager).when(mContext).getSystemService(UserManager.class);
         doReturn(true)
-                .when(userManager)
+                .when(mUserManager)
                 .hasUserRestrictionForUser(eq(UserManager.DISALLOW_BLUETOOTH), any());
         doReturn(false)
-                .when(userManager)
+                .when(mUserManager)
                 .hasUserRestrictionForUser(eq(UserManager.DISALLOW_BLUETOOTH_SHARING), any());
-        createBluetoothManagerService();
 
         // Check if disable message sent once for system user only
         // Since Message object is recycled after processed, use proxy function to get what value
@@ -118,7 +120,6 @@ public class BluetoothManagerServiceTest {
 
     @Test
     public void testApmEnhancementEnabled() {
-        createBluetoothManagerService();
         mManagerService.setBluetoothModeChangeHelper(new BluetoothModeChangeHelper(mContext));
 
         // Change the apm enhancement enabled value to 0
