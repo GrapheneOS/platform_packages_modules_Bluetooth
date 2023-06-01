@@ -3175,7 +3175,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
     }
 
     fn congestion_cb(&mut self, conn_id: i32, congested: bool) {
-        if let Some(mut client) = self.context_map.get_client_by_conn_id_mut(conn_id) {
+        if let Some(client) = self.context_map.get_client_by_conn_id_mut(conn_id) {
             client.is_congested = congested;
             if !client.is_congested {
                 let cbid = client.cbid;
@@ -3711,7 +3711,7 @@ impl BtifGattServerCallbacks for BluetoothGatt {
     }
 
     fn congestion_cb(&mut self, conn_id: i32, congested: bool) {
-        if let Some(mut server) = self.server_context_map.get_mut_by_conn_id(conn_id) {
+        if let Some(server) = self.server_context_map.get_mut_by_conn_id(conn_id) {
             server.is_congested = congested;
             if !server.is_congested {
                 let cbid = server.cbid;
