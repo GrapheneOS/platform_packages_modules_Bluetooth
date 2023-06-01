@@ -392,13 +392,6 @@ bool bluetooth::shim::BTM_HasEirService(const uint32_t* p_eir_uuid,
   return false;
 }
 
-tBTM_EIR_SEARCH_RESULT bluetooth::shim::BTM_HasInquiryEirService(
-    tBTM_INQ_RESULTS* p_results, uint16_t uuid16) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-  CHECK(p_results != nullptr);
-  return BTM_EIR_UNKNOWN;
-}
-
 void bluetooth::shim::BTM_AddEirService(uint32_t* p_eir_uuid, uint16_t uuid16) {
   LOG_INFO("UNIMPLEMENTED %s", __func__);
   CHECK(p_eir_uuid != nullptr);
