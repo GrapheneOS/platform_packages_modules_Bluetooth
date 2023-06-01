@@ -264,6 +264,11 @@ class Interface {
    * @param active_device_addr remote device address
    */
   virtual bt_status_t SetActiveDevice(RawAddress* active_device_addr) = 0;
+
+  /**
+   * Trigger a debug dump of the Headset Profile
+   */
+  virtual bt_status_t DebugDump() = 0;
 };
 
 }  // namespace headset
