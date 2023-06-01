@@ -132,11 +132,66 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
         mReceiver = null;
     }
 
-    List<MediaItem> getContents(final String parentMediaId) {
+    /**
+     * BrowseResult is used to return the contents of a node along with a status. The status is
+     * used to indicate success, a pending download, or error conditions. BrowseResult is used in
+     * onLoadChildren() and getContents() in BluetoothMediaBrowserService and in getContents() in
+     * AvrcpControllerService.
+     * The following statuses have been implemented:
+     * 1. SUCCESS - Contents have been retrieved successfully.
+     * 2. DOWNLOAD_PENDING - Download is in progress and may or may not have contents to return.
+     * 3. NO_DEVICE_CONNECTED - If no device is connected there are no contents to be retrieved.
+     * 4. ERROR_MEDIA_ID_INVALID - Contents could not be retrieved as the media ID is invalid.
+     * 5. ERROR_NO_AVRCP_SERVICE - Contents could not be retrieved as AvrcpControllerService is not
+     *                             connected.
+     */
+    public static class BrowseResult {
+        // Possible statuses for onLoadChildren
+        public static final byte SUCCESS = 0x00;
+        public static final byte DOWNLOAD_PENDING = 0x01;
+        public static final byte NO_DEVICE_CONNECTED = 0x02;
+        public static final byte ERROR_MEDIA_ID_INVALID = 0x03;
+        public static final byte ERROR_NO_AVRCP_SERVICE = 0x04;
+
+        private List<MediaItem> mResults;
+        private final byte mStatus;
+
+        List<MediaItem> getResults() {
+            return mResults;
+        }
+
+        byte getStatus() {
+            return mStatus;
+        }
+
+        String getStatusString() {
+            switch (mStatus) {
+                case DOWNLOAD_PENDING:
+                    return "DOWNLOAD_PENDING";
+                case SUCCESS:
+                    return "SUCCESS";
+                case NO_DEVICE_CONNECTED:
+                    return "NO_DEVICE_CONNECTED";
+                case ERROR_MEDIA_ID_INVALID:
+                    return "ERROR_MEDIA_ID_INVALID";
+                case ERROR_NO_AVRCP_SERVICE:
+                    return "ERROR_NO_AVRCP_SERVICE";
+                default:
+                    return "UNDEFINED_ERROR_CASE";
+            }
+        }
+
+        BrowseResult(List<MediaItem> results, byte status) {
+            mResults = results;
+            mStatus = status;
+        }
+    }
+
+    BrowseResult getContents(final String parentMediaId) {
         AvrcpControllerService avrcpControllerService =
                 AvrcpControllerService.getAvrcpControllerService();
         if (avrcpControllerService == null) {
-            return new ArrayList(0);
+            return new BrowseResult(new ArrayList(0), BrowseResult.ERROR_NO_AVRCP_SERVICE);
         } else {
             return avrcpControllerService.getContents(parentMediaId);
         }
@@ -172,12 +227,17 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
     @Override
     public synchronized void onLoadChildren(final String parentMediaId,
             final Result<List<MediaItem>> result) {
-        if (DBG) Log.d(TAG, "onLoadChildren parentMediaId=" + parentMediaId);
-        List<MediaItem> contents = getContents(parentMediaId);
-        if (contents == null) {
+        if (DBG) Log.d(TAG, "onLoadChildren parentMediaId= " + parentMediaId);
+        BrowseResult contents = getContents(parentMediaId);
+        byte status = contents.getStatus();
+        if (status == BrowseResult.DOWNLOAD_PENDING && contents == null) {
+            Log.i(TAG, "Download pending - no contents, id= " + parentMediaId);
             result.detach();
         } else {
-            result.sendResult(contents);
+            if (DBG) {
+                Log.d(TAG, "id= " + parentMediaId + ", status= " + contents.getStatusString());
+            }
+            result.sendResult(contents.getResults());
         }
     }
 
