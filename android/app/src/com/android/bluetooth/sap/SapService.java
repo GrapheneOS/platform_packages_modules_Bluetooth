@@ -49,8 +49,14 @@ public class SapService extends ProfileService {
     private static final String SDP_SAP_SERVICE_NAME = "SIM Access";
     private static final int SDP_SAP_VERSION = 0x0102;
     private static final String TAG = "SapService";
-    public static final boolean DEBUG = false;
-    public static final boolean VERBOSE = false;
+
+    /**
+     * To log debug/verbose in SAP, use the command "setprop log.tag.SapService DEBUG" or
+     * "setprop log.tag.SapService VERBOSE" and then "adb root" + "adb shell "stop; start""
+     **/
+
+    public static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+    public static final boolean VERBOSE = Log.isLoggable(TAG, Log.VERBOSE);
 
     /* Message ID's */
     private static final int START_LISTENER = 1;
