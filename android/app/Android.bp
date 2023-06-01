@@ -113,6 +113,7 @@ cc_library_shared {
         "libbinder_ndk",
         "libcrypto",
         "libfmq",
+        "libhidlbase",
         "libnativehelper",
         "libstatssocket",
         "libutils",
