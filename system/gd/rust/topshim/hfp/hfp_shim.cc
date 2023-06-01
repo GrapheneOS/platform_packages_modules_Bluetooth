@@ -227,6 +227,27 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
              battery, ADDRESS_TO_LOGGABLE_CSTR(*bd_addr));
   }
 
+  void DebugDumpCallback(
+      bool active,
+      bool wbs,
+      int total_num_decoded_frames,
+      double packet_loss_ratio,
+      uint64_t begin_ts,
+      uint64_t end_ts,
+      const char* pkt_status_in_hex,
+      const char* pkt_status_in_binary) override {
+    LOG_WARN(
+        "DebugDumpCallback %d %d %d %f %llu %llu %s %s",
+        active,
+        wbs,
+        total_num_decoded_frames,
+        packet_loss_ratio,
+        (unsigned long long)begin_ts,
+        (unsigned long long)end_ts,
+        pkt_status_in_hex,
+        pkt_status_in_binary);
+  }
+
  private:
   headset::Interface* headset_;
 };

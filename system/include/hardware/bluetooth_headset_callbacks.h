@@ -204,6 +204,24 @@ class Callbacks {
    */
   virtual void AtBiaCallback(bool service, bool roam, bool signal, bool battery,
                              RawAddress* bd_addr) = 0;
+
+  /**
+   * Callback for DebugDump.
+   *
+   * @param active whether the SCO is active
+   * @param wbs whether it is under WBS, false for NBS.
+   * @param total_num_decoded_frames the number of WBS frames decoded.
+   * @param pkt_loss_ratio the ratio of lost frames
+   * @param begin_ts time of the packet status window starts in microseconds.
+   * @param end_ts time of the packet status window ends in microseconds.
+   * @param pkt_status_in_hex recorded WBS packets' status in hex string.
+   * @param pkt_status_in_binary recorde WBS packets' status in binary string.
+   */
+  virtual void DebugDumpCallback(bool active, bool wbs,
+                                 int total_num_decoded_frames,
+                                 double pkt_loss_ratio, uint64_t begin_ts,
+                                 uint64_t end_ts, const char* pkt_status_in_hex,
+                                 const char* pkt_status_in_binary) = 0;
 };
 
 }  // namespace headset
