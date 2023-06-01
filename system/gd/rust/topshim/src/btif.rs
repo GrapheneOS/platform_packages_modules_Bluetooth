@@ -559,7 +559,7 @@ impl BluetoothProperty {
                 // Do an unsafe cast to binding:: type and assign the values
                 // The underlying memory location is provided by |data| which will
                 // have enough space because it uses get_len()
-                let mut record =
+                let record =
                     unsafe { &mut *(data.as_mut_ptr() as *mut bindings::bt_service_record_t) };
                 record.uuid = sr.uuid;
                 record.channel = sr.channel;
