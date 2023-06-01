@@ -131,11 +131,6 @@ const Octet16& bluetooth::shim::BTM_GetDeviceIDRoot() {
   inc_func_call_count(__func__);
   return octet16;
 }
-tBTM_EIR_SEARCH_RESULT bluetooth::shim::BTM_HasInquiryEirService(
-    tBTM_INQ_RESULTS* p_results, uint16_t uuid16) {
-  inc_func_call_count(__func__);
-  return 0;
-}
 tBTM_INQ_INFO* bluetooth::shim::BTM_InqDbFirst(void) {
   inc_func_call_count(__func__);
   return nullptr;
