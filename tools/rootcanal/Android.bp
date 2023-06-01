@@ -89,9 +89,7 @@ cc_library_static {
         "model/devices/scripted_beacon.cc",
         "model/devices/sniffer.cc",
         "model/hci/h4_data_channel_packetizer.cc",
-        "model/hci/h4_packetizer.cc",
         "model/hci/h4_parser.cc",
-        "model/hci/hci_protocol.cc",
         "model/hci/hci_sniffer.cc",
         "model/hci/hci_socket_transport.cc",
         "model/setup/async_manager.cc",
@@ -439,31 +437,4 @@ genrule {
     defaults: ["pdl_rust_generator_defaults"],
     srcs: ["packets/hci/hci_packets.pdl"],
     out: ["hci_packets.rs"],
-}
-
-// bt_vhci_forwarder in cuttlefish depends on this H4Packetizer implementation.
-cc_library_static {
-    name: "h4_packetizer_lib",
-    vendor: true,
-    defaults: [
-        "gd_defaults",
-    ],
-    srcs: [
-        "model/hci/h4_packetizer.cc",
-        "model/hci/h4_parser.cc",
-        "model/hci/hci_protocol.cc",
-    ],
-    header_libs: [
-        "libbase_headers",
-    ],
-    local_include_dirs: [
-        "include",
-    ],
-    export_include_dirs: [
-        ".",
-        "include",
-    ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system/gd",
-    ],
 }
