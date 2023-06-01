@@ -115,10 +115,6 @@ bool bluetooth::shim::BTM_UseLeLink(const RawAddress& raw_address) {
   inc_func_call_count(__func__);
   return false;
 }
-char* bluetooth::shim::BTM_SecReadDevName(const RawAddress& address) {
-  inc_func_call_count(__func__);
-  return nullptr;
-}
 const Octet16& bluetooth::shim::BTM_GetDeviceEncRoot() {
   inc_func_call_count(__func__);
   return octet16;
