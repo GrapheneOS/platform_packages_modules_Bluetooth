@@ -405,6 +405,7 @@ struct tBTM_MSBC_INFO {
   uint8_t num_encoded_msbc_pkts; /* Number of the encoded mSBC packets */
 
   tBTM_MSBC_PLC* plc; /* PLC component to handle the packet loss of input */
+  tBTM_SCO_PKT_STATUS* pkt_status; /* Record of mSBC packet status */
   static size_t get_supported_packet_size(size_t pkt_size,
                                           size_t* buffer_size) {
     int i;
@@ -457,6 +458,11 @@ struct tBTM_MSBC_INFO {
     }
     plc = (tBTM_MSBC_PLC*)osi_calloc(sizeof(*plc));
     plc->init();
+
+    if (pkt_status) osi_free(pkt_status);
+    pkt_status = (tBTM_SCO_PKT_STATUS*)osi_calloc(sizeof(*pkt_status));
+    pkt_status->init();
+
     return packet_size;
   }
 
@@ -467,6 +473,7 @@ struct tBTM_MSBC_INFO {
       plc->deinit();
       osi_free_and_reset((void**)&plc);
     }
+    if (pkt_status) osi_free_and_reset((void**)&pkt_status);
   }
 
   size_t decodable() { return decode_buf_wo - decode_buf_ro; }
@@ -669,12 +676,14 @@ size_t decode(const uint8_t** out_data) {
   }
 
   msbc_info->plc->handle_good_frames(msbc_info->decoded_pcm_buf);
+  msbc_info->pkt_status->update(false);
   *out_data = (const uint8_t*)msbc_info->decoded_pcm_buf;
   msbc_info->mark_pkt_decoded();
   return BTM_MSBC_CODE_SIZE;
 
 packet_loss:
   msbc_info->plc->handle_bad_frames(out_data);
+  msbc_info->pkt_status->update(true);
   msbc_info->mark_pkt_decoded();
   return BTM_MSBC_CODE_SIZE;
 }
@@ -735,6 +744,13 @@ size_t dequeue_packet(const uint8_t** output) {
   }
 
   return msbc_info->mark_pkt_dequeued();
+}
+
+tBTM_SCO_PKT_STATUS* get_pkt_status() {
+  if (msbc_info == nullptr) {
+    return nullptr;
+  }
+  return msbc_info->pkt_status;
 }
 
 }  // namespace wbs
