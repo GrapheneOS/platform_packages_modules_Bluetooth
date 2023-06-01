@@ -409,6 +409,13 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBia, service, roam,
                                  signal, battery, addr.get());
   }
+
+  void DebugDumpCallback(bool active, bool wbs, int total_num_decoded_frames,
+                         double pkt_loss_ratio, uint64_t begin_ts,
+                         uint64_t end_ts, const char* pkt_status_in_hex,
+                         const char* pkt_status_in_binary) override {
+    ALOGE("Not implemented and shouldn't be called");
+  }
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {

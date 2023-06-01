@@ -1662,3 +1662,38 @@ static uint16_t btm_sco_voice_settings_to_legacy(enh_esco_params_t* p_params) {
 
   return (voice_settings);
 }
+/*******************************************************************************
+ *
+ * Function         BTM_GetScoDebugDump
+ *
+ * Description      Get the status of SCO. This function is only used for
+ *                  testing and debugging purposes.
+ *
+ * Returns          Data with SCO related debug dump.
+ *
+ ******************************************************************************/
+tBTM_SCO_DEBUG_DUMP BTM_GetScoDebugDump() {
+  tSCO_CONN* active_sco = btm_get_active_sco();
+  tBTM_SCO_DEBUG_DUMP debug_dump;
+
+  debug_dump.is_active = active_sco != nullptr;
+  if (!debug_dump.is_active) return debug_dump;
+
+  debug_dump.is_wbs = active_sco->is_wbs();
+  if (!debug_dump.is_wbs) return debug_dump;
+
+  if (!bluetooth::audio::sco::wbs::fill_plc_stats(
+          &debug_dump.total_num_decoded_frames, &debug_dump.pkt_loss_ratio))
+    return debug_dump;
+
+  tBTM_SCO_PKT_STATUS* pkt_status =
+      bluetooth::audio::sco::wbs::get_pkt_status();
+  if (pkt_status == nullptr) return debug_dump;
+
+  tBTM_SCO_MSBC_PKT_STATUS_DATA* msbc_data = &debug_dump.latest_msbc_data;
+  msbc_data->begin_ts_raw_us = pkt_status->begin_ts_raw_us();
+  msbc_data->end_ts_raw_us = pkt_status->end_ts_raw_us();
+  msbc_data->status_in_hex = pkt_status->data_to_hex_string();
+  msbc_data->status_in_binary = pkt_status->data_to_binary_string();
+  return debug_dump;
+}
