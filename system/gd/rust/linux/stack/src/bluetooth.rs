@@ -180,6 +180,9 @@ pub trait IBluetooth {
     /// Gets whether the remote device can wake the system.
     fn get_remote_wake_allowed(&self, device: BluetoothDevice) -> bool;
 
+    /// Gets the vendor and product information of the remote device.
+    fn get_remote_vendor_product_info(&self, device: BluetoothDevice) -> BtVendorProductInfo;
+
     /// Returns a list of connected devices.
     fn get_connected_devices(&self) -> Vec<BluetoothDevice>;
 
@@ -2166,6 +2169,13 @@ impl IBluetooth for Bluetooth {
                 });
             }
             _ => false,
+        }
+    }
+
+    fn get_remote_vendor_product_info(&self, device: BluetoothDevice) -> BtVendorProductInfo {
+        match self.get_remote_device_property(&device, &BtPropertyType::VendorProductInfo) {
+            Some(BluetoothProperty::VendorProductInfo(p)) => p.clone(),
+            _ => BtVendorProductInfo { vendor_id_src: 0, vendor_id: 0, product_id: 0, version: 0 },
         }
     }
 
