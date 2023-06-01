@@ -104,3 +104,9 @@ TEST(InitFlagsTest, test_enable_bluetooth_quality_report_callback) {
   InitFlags::Load(input);
   ASSERT_TRUE(InitFlags::IsBluetoothQualityReportCallbackEnabled());
 }
+
+TEST(InitFlagsTest, test_enable_use_rsi_from_cached_inqiry_results) {
+  const char* input[] = {"INIT_use_rsi_from_cached_inqiry_results=true", nullptr};
+  InitFlags::Load(input);
+  ASSERT_TRUE(InitFlags::UseRsiFromCachedInquiryResults());
+}
