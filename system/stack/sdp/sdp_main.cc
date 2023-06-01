@@ -338,19 +338,16 @@ tCONN_CB* sdp_conn_originate(const RawAddress& p_bd_addr) {
   SDP_TRACE_EVENT("%s: SDP - Originate started for peer %s", __func__,
                   ADDRESS_TO_LOGGABLE_CSTR(p_bd_addr));
 
+  /* Look for any active sdp connection on the remote device */
+  cid = sdpu_get_active_ccb_cid(p_bd_addr);
+
   /* We are the originator of this connection */
   p_ccb->con_flags |= SDP_FLAGS_IS_ORIG;
 
-  /* Save the BD Address and Channel ID. */
+  /* Save the BD Address */
   p_ccb->device_address = p_bd_addr;
 
-  /* Transition to the next appropriate state, waiting for connection confirm.
-   */
-  p_ccb->con_state = SDP_STATE_CONN_SETUP;
-
-  // Look for any active sdp connection on the remote device
-  cid = sdpu_get_active_ccb_cid(p_bd_addr);
-
+  /* Transition to the next appropriate state, waiting for connection confirm */
   if (!bluetooth::common::init_flags::sdp_serialization_is_enabled() ||
       cid == 0) {
     p_ccb->con_state = SDP_STATE_CONN_SETUP;
