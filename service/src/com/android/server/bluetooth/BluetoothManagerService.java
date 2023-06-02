@@ -298,10 +298,8 @@ class BluetoothManagerService {
                 @Override
                 public void onBluetoothStateChange(int prevState, int newState)
                         throws RemoteException {
-                    Message msg =
-                            mHandler.obtainMessage(
-                                    MESSAGE_BLUETOOTH_STATE_CHANGE, prevState, newState);
-                    mHandler.sendMessage(msg);
+                    mHandler.obtainMessage(MESSAGE_BLUETOOTH_STATE_CHANGE, prevState, newState)
+                            .sendToTarget();
                 }
             };
 
@@ -617,14 +615,13 @@ class BluetoothManagerService {
                             if ((newValue != null)
                                     && (prevValue != null)
                                     && !prevValue.equals(newValue)) {
-                                Message msg =
-                                        mHandler.obtainMessage(
+                                mHandler.obtainMessage(
                                                 MESSAGE_RESTORE_USER_SETTING,
                                                 newValue.equals("0")
                                                         ? RESTORE_SETTING_TO_OFF
                                                         : RESTORE_SETTING_TO_ON,
-                                                0);
-                                mHandler.sendMessage(msg);
+                                                0)
+                                        .sendToTarget();
                             }
                         }
                     } else if (action.equals(Intent.ACTION_SHUTDOWN)) {
@@ -1551,8 +1548,7 @@ class BluetoothManagerService {
             if (DBG) {
                 Log.d(TAG, "Getting adapter name and address");
             }
-            Message getMsg = mHandler.obtainMessage(MESSAGE_GET_NAME_AND_ADDRESS);
-            mHandler.sendMessage(getMsg);
+            mHandler.sendEmptyMessage(MESSAGE_GET_NAME_AND_ADDRESS);
         }
 
         mBluetoothModeChangeHelper = new BluetoothModeChangeHelper(mContext);
@@ -1636,8 +1632,7 @@ class BluetoothManagerService {
             if (mIntent != null
                     && mService == null
                     && doBind(mIntent, this, 0, USER_HANDLE_CURRENT_OR_SELF)) {
-                Message msg = mHandler.obtainMessage(MESSAGE_BIND_PROFILE_SERVICE);
-                msg.obj = this;
+                Message msg = mHandler.obtainMessage(MESSAGE_BIND_PROFILE_SERVICE, this);
                 msg.arg1 = rebindCount;
                 mHandler.sendMessageDelayed(msg, TIMEOUT_BIND_MS);
                 return true;
@@ -1656,8 +1651,7 @@ class BluetoothManagerService {
                 }
             } else {
                 if (!mHandler.hasMessages(MESSAGE_BIND_PROFILE_SERVICE, this)) {
-                    Message msg = mHandler.obtainMessage(MESSAGE_BIND_PROFILE_SERVICE);
-                    msg.obj = this;
+                    Message msg = mHandler.obtainMessage(MESSAGE_BIND_PROFILE_SERVICE, this);
                     msg.arg1 = DEFAULT_REBIND_COUNT;
                     mHandler.sendMessage(msg);
                 }
@@ -1751,8 +1745,7 @@ class BluetoothManagerService {
             }
             onServiceDisconnected(mClassName);
             // Trigger rebind
-            Message msg = mHandler.obtainMessage(MESSAGE_BIND_PROFILE_SERVICE);
-            msg.obj = this;
+            Message msg = mHandler.obtainMessage(MESSAGE_BIND_PROFILE_SERVICE, this);
             mHandler.sendMessageDelayed(msg, TIMEOUT_BIND_MS);
         }
     }
@@ -1871,7 +1864,7 @@ class BluetoothManagerService {
             if (DBG) {
                 Log.d(TAG, "BluetoothServiceConnection: " + name);
             }
-            Message msg = mHandler.obtainMessage(MESSAGE_BLUETOOTH_SERVICE_CONNECTED);
+            Message msg = mHandler.obtainMessage(MESSAGE_BLUETOOTH_SERVICE_CONNECTED, service);
             if (name.equals("com.android.bluetooth.btservice.AdapterService")) {
                 msg.arg1 = SERVICE_IBLUETOOTH;
             } else if (name.equals("com.android.bluetooth.gatt.GattService")) {
@@ -1880,7 +1873,6 @@ class BluetoothManagerService {
                 Log.e(TAG, "Unknown service connected: " + name);
                 return;
             }
-            msg.obj = service;
             mHandler.sendMessage(msg);
         }
 
@@ -1929,8 +1921,7 @@ class BluetoothManagerService {
                                 Log.d(TAG, "Binding to service to get name and address");
                             }
                             mGetNameAddressOnly = true;
-                            Message timeoutMsg = mHandler.obtainMessage(MESSAGE_TIMEOUT_BIND);
-                            mHandler.sendMessageDelayed(timeoutMsg, TIMEOUT_BIND_MS);
+                            mHandler.sendEmptyMessageDelayed(MESSAGE_TIMEOUT_BIND, TIMEOUT_BIND_MS);
                             Intent i = new Intent(IBluetooth.class.getName());
                             if (!doBind(
                                     i,
@@ -2038,9 +2029,8 @@ class BluetoothManagerService {
                         // continuously failed to turn on itself.
                         //
                         mWaitForEnableRetry = 0;
-                        Message enableDelayedMsg =
-                                mHandler.obtainMessage(MESSAGE_HANDLE_ENABLE_DELAYED);
-                        mHandler.sendMessageDelayed(enableDelayedMsg, ENABLE_DISABLE_DELAY_MS);
+                        mHandler.sendEmptyMessageDelayed(
+                                MESSAGE_HANDLE_ENABLE_DELAYED, ENABLE_DISABLE_DELAY_MS);
                     }
                     break;
 
@@ -2049,8 +2039,7 @@ class BluetoothManagerService {
                             || mBinding
                             || mHandler.hasMessages(MESSAGE_HANDLE_ENABLE_DELAYED)) {
                         // We are handling enable or disable right now, wait for it.
-                        mHandler.sendMessageDelayed(
-                                mHandler.obtainMessage(MESSAGE_DISABLE), ENABLE_DISABLE_DELAY_MS);
+                        mHandler.sendEmptyMessageDelayed(MESSAGE_DISABLE, ENABLE_DISABLE_DELAY_MS);
                         break;
                     }
 
@@ -2063,9 +2052,8 @@ class BluetoothManagerService {
 
                     if (mEnable && mAdapter != null) {
                         mWaitForDisableRetry = 0;
-                        Message disableDelayedMsg =
-                                mHandler.obtainMessage(MESSAGE_HANDLE_DISABLE_DELAYED, 0, 0);
-                        mHandler.sendMessageDelayed(disableDelayedMsg, ENABLE_DISABLE_DELAY_MS);
+                        mHandler.sendEmptyMessageDelayed(
+                                MESSAGE_HANDLE_DISABLE_DELAYED, ENABLE_DISABLE_DELAY_MS);
                     } else {
                         mEnable = false;
                         handleDisable();
@@ -2077,9 +2065,8 @@ class BluetoothManagerService {
                     if (!mState.oneOf(STATE_OFF)) {
                         if (mWaitForEnableRetry < MAX_WAIT_FOR_ENABLE_DISABLE_RETRIES) {
                             mWaitForEnableRetry++;
-                            Message enableDelayedMsg =
-                                    mHandler.obtainMessage(MESSAGE_HANDLE_ENABLE_DELAYED);
-                            mHandler.sendMessageDelayed(enableDelayedMsg, ENABLE_DISABLE_DELAY_MS);
+                            mHandler.sendEmptyMessageDelayed(
+                                    MESSAGE_HANDLE_ENABLE_DELAYED, ENABLE_DISABLE_DELAY_MS);
                             break;
                         } else {
                             Log.e(TAG, "Wait for STATE_OFF timeout");
@@ -2101,11 +2088,8 @@ class BluetoothManagerService {
                         if (!mState.oneOf(STATE_ON)) {
                             if (mWaitForDisableRetry < MAX_WAIT_FOR_ENABLE_DISABLE_RETRIES) {
                                 mWaitForDisableRetry++;
-                                Message disableDelayedMsg =
-                                        mHandler.obtainMessage(
-                                                MESSAGE_HANDLE_DISABLE_DELAYED, 0, 0);
-                                mHandler.sendMessageDelayed(
-                                        disableDelayedMsg, ENABLE_DISABLE_DELAY_MS);
+                                mHandler.sendEmptyMessageDelayed(
+                                        MESSAGE_HANDLE_DISABLE_DELAYED, ENABLE_DISABLE_DELAY_MS);
                                 break;
                             } else {
                                 Log.e(TAG, "Wait for STATE_ON timeout");
@@ -2223,8 +2207,7 @@ class BluetoothManagerService {
                         propagateForegroundUserId(foregroundUserId);
 
                         if (!isNameAndAddressSet()) {
-                            Message getMsg = mHandler.obtainMessage(MESSAGE_GET_NAME_AND_ADDRESS);
-                            mHandler.sendMessage(getMsg);
+                            mHandler.sendEmptyMessage(MESSAGE_GET_NAME_AND_ADDRESS);
                             if (mGetNameAddressOnly) {
                                 return;
                             }
@@ -2529,8 +2512,7 @@ class BluetoothManagerService {
             if (mAdapter == null && !mBinding) {
                 Log.d(TAG, "binding Bluetooth service");
                 // Start bind timeout and bind
-                Message timeoutMsg = mHandler.obtainMessage(MESSAGE_TIMEOUT_BIND);
-                mHandler.sendMessageDelayed(timeoutMsg, TIMEOUT_BIND_MS);
+                mHandler.sendEmptyMessageDelayed(MESSAGE_TIMEOUT_BIND, TIMEOUT_BIND_MS);
                 Intent i = new Intent(IBluetooth.class.getName());
                 if (!doBind(
                         i,
@@ -2737,8 +2719,7 @@ class BluetoothManagerService {
     }
 
     private void sendEnableMsg(boolean quietMode, int reason, String packageName, boolean isBle) {
-        mHandler.sendMessage(
-                mHandler.obtainMessage(MESSAGE_ENABLE, quietMode ? 1 : 0, isBle ? 1 : 0));
+        mHandler.obtainMessage(MESSAGE_ENABLE, quietMode ? 1 : 0, isBle ? 1 : 0).sendToTarget();
         addActiveLog(reason, packageName, true);
         mLastEnabledTime = SystemClock.elapsedRealtime();
     }
