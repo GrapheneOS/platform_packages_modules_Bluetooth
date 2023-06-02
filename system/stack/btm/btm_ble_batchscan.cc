@@ -19,13 +19,15 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <vector>
-#include "bt_target.h"
 
+#include <vector>
+
+#include "bt_target.h"
 #include "btm_ble_api.h"
-#include "btu.h"
 #include "device/include/controller.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/btu.h"
+#include "stack/include/btu_hcif.h"
 
 extern tBTM_CB btm_cb;
 
