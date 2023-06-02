@@ -20,8 +20,7 @@ pub mod socket_manager;
 pub mod suspend;
 pub mod uuid;
 
-use bluetooth_qa::BluetoothQA;
-use bt_topshim::btif::BtDiscMode;
+use bluetooth_qa::{BluetoothQA, IBluetoothQA};
 use log::debug;
 use num_derive::{FromPrimitive, ToPrimitive};
 use std::sync::{Arc, Mutex};
@@ -47,10 +46,17 @@ use crate::suspend::Suspend;
 use bt_topshim::{
     btif::{BaseCallbacks, BtTransport},
     profiles::{
-        a2dp::A2dpCallbacks, avrcp::AvrcpCallbacks, gatt::GattAdvCallbacks,
-        gatt::GattAdvInbandCallbacks, gatt::GattClientCallbacks, gatt::GattScannerCallbacks,
-        gatt::GattScannerInbandCallbacks, gatt::GattServerCallbacks, hfp::HfpCallbacks,
-        hid_host::HHCallbacks, sdp::SdpCallbacks,
+        a2dp::A2dpCallbacks,
+        avrcp::AvrcpCallbacks,
+        gatt::GattAdvCallbacks,
+        gatt::GattAdvInbandCallbacks,
+        gatt::GattClientCallbacks,
+        gatt::GattScannerCallbacks,
+        gatt::GattScannerInbandCallbacks,
+        gatt::GattServerCallbacks,
+        hfp::HfpCallbacks,
+        hid_host::{BthhReportType, HHCallbacks},
+        sdp::SdpCallbacks,
     },
 };
 
@@ -128,9 +134,16 @@ pub enum Message {
     Dis(ServiceCallbacks),
 
     // Qualification Only
+    QaCallbackDisconnected(u32),
     QaAddMediaPlayer(String, bool),
     QaRfcommSendMsc(u8, String),
-    QaOnDiscoverableModeChanged(BtDiscMode),
+    QaFetchDiscoverableMode,
+    QaFetchConnectable,
+    QaSetConnectable(bool),
+    QaFetchAlias,
+    QaGetHidReport(String, BthhReportType, u8),
+    QaSetHidReport(String, BthhReportType, String),
+    QaSendHidData(String, String),
 }
 
 /// Represents suspend mode of a module.
@@ -361,8 +374,44 @@ impl Stack {
                 Message::QaRfcommSendMsc(dlci, addr) => {
                     bluetooth_socketmgr.lock().unwrap().rfcomm_send_msc(dlci, addr);
                 }
-                Message::QaOnDiscoverableModeChanged(mode) => {
-                    bluetooth_qa.lock().unwrap().handle_discoverable_mode_changed(mode);
+                Message::QaCallbackDisconnected(id) => {
+                    bluetooth_qa.lock().unwrap().unregister_qa_callback(id);
+                }
+                Message::QaFetchDiscoverableMode => {
+                    let mode = bluetooth.lock().unwrap().get_discoverable_mode_internal();
+                    bluetooth_qa.lock().unwrap().on_fetch_discoverable_mode_completed(mode);
+                }
+                Message::QaFetchConnectable => {
+                    let connectable = bluetooth.lock().unwrap().get_connectable_internal();
+                    bluetooth_qa.lock().unwrap().on_fetch_connectable_completed(connectable);
+                }
+                Message::QaSetConnectable(mode) => {
+                    let succeed = bluetooth.lock().unwrap().set_connectable_internal(mode);
+                    bluetooth_qa.lock().unwrap().on_set_connectable_completed(succeed);
+                }
+                Message::QaFetchAlias => {
+                    let alias = bluetooth.lock().unwrap().get_alias_internal();
+                    bluetooth_qa.lock().unwrap().on_fetch_alias_completed(alias);
+                }
+                Message::QaGetHidReport(addr, report_type, report_id) => {
+                    let status = bluetooth.lock().unwrap().get_hid_report_internal(
+                        addr,
+                        report_type,
+                        report_id,
+                    );
+                    bluetooth_qa.lock().unwrap().on_get_hid_report_completed(status);
+                }
+                Message::QaSetHidReport(addr, report_type, report) => {
+                    let status = bluetooth.lock().unwrap().set_hid_report_internal(
+                        addr,
+                        report_type,
+                        report,
+                    );
+                    bluetooth_qa.lock().unwrap().on_set_hid_report_completed(status);
+                }
+                Message::QaSendHidData(addr, data) => {
+                    let status = bluetooth.lock().unwrap().send_hid_data_internal(addr, data);
+                    bluetooth_qa.lock().unwrap().on_send_hid_data_completed(status);
                 }
             }
         }
