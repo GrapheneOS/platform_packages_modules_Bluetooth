@@ -1075,6 +1075,54 @@ public class MediaControlGattServiceTest {
     }
 
     @Test
+    public void testCharacteristicNotifyOnAuthorization() {
+        BluetoothGattService service = initAllFeaturesGattService();
+        prepareConnectedDevice();
+
+        // Leave it as unauthorized yet
+        doReturn(BluetoothDevice.ACCESS_REJECTED)
+                .when(mMockMcpService)
+                .getDeviceAuthorization(any(BluetoothDevice.class));
+
+        BluetoothGattCharacteristic characteristic =
+                service.getCharacteristic(MediaControlGattService.UUID_PLAYING_ORDER_SUPPORTED);
+        prepareConnectedDevicesCccVal(
+                characteristic, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE.clone());
+
+        // Assume no update on some of the characteristics
+        BluetoothGattCharacteristic characteristic2 =
+                service.getCharacteristic(MediaControlGattService.UUID_MEDIA_STATE);
+        prepareConnectedDevicesCccVal(
+                characteristic2, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE.clone());
+        characteristic2.setValue((byte[]) null);
+
+        BluetoothGattCharacteristic characteristic3 =
+                service.getCharacteristic(MediaControlGattService.UUID_TRACK_CHANGED);
+        prepareConnectedDevicesCccVal(
+                characteristic3, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE.clone());
+        characteristic3.setValue((byte[]) null);
+
+        // Call it once but expect no notification for the unauthorized device
+        int playing_order_supported =
+                SupportedPlayingOrder.IN_ORDER_REPEAT | SupportedPlayingOrder.NEWEST_ONCE;
+        mMcpService.updatePlayingOrderSupportedChar(playing_order_supported);
+        verify(mMockGattServer, times(0))
+                .notifyCharacteristicChanged(eq(mCurrentDevice), any(), eq(false));
+
+        // Expect a single notification for the just authorized device
+        doReturn(BluetoothDevice.ACCESS_ALLOWED)
+                .when(mMockMcpService)
+                .getDeviceAuthorization(any(BluetoothDevice.class));
+        mMcpService.onDeviceAuthorizationSet(mCurrentDevice);
+        verify(mMockGattServer, times(0))
+                .notifyCharacteristicChanged(eq(mCurrentDevice), eq(characteristic2), eq(false));
+        verify(mMockGattServer, times(0))
+                .notifyCharacteristicChanged(eq(mCurrentDevice), eq(characteristic3), eq(false));
+        verify(mMockGattServer, times(1))
+                .notifyCharacteristicChanged(eq(mCurrentDevice), eq(characteristic), eq(false));
+    }
+
+    @Test
     public void testCharacteristicReadUnknownUnauthorized() {
         BluetoothGattService service = initAllFeaturesGattService();
 
