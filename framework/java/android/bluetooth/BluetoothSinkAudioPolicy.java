@@ -107,6 +107,12 @@ public final class BluetoothSinkAudioPolicy implements Parcelable {
     @SystemApi
     public static final int POLICY_NOT_ALLOWED = 2;
 
+    /**
+     * The feature ID used in the HFP AT command.
+     * @hide
+     */
+    public static final String HFP_SET_SINK_AUDIO_POLICY_ID = "SINKAUDIOPOLICY";
+
     @AudioPolicyValues private final int mCallEstablishPolicy;
     @AudioPolicyValues private final int mConnectingTimePolicy;
     @AudioPolicyValues private final int mInBandRingtonePolicy;
