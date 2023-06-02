@@ -119,6 +119,14 @@ impl BtCallback {
 impl IBluetoothCallback for BtCallback {
     fn on_adapter_property_changed(&mut self, _prop: BtPropertyType) {}
 
+    fn on_device_properties_changed(
+        &mut self,
+        remote_device: BluetoothDevice,
+        props: Vec<BtPropertyType>,
+    ) {
+        print_info!("Bluetooth properties {:?} changed for {:?}", props, remote_device);
+    }
+
     fn on_address_changed(&mut self, addr: String) {
         print_info!("Address changed to {}", &addr);
         self.context.lock().unwrap().adapter_address = Some(addr);
