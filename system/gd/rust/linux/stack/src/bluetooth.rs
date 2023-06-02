@@ -1024,11 +1024,11 @@ impl Bluetooth {
     /// Remove the paused flag to allow clients to begin discovery, and if there is already a
     /// pending request, start discovery.
     fn resume_discovery(&mut self) {
+        self.is_discovery_paused = false;
         if self.pending_discovery {
             self.pending_discovery = false;
             self.start_discovery();
         }
-        self.is_discovery_paused = false;
     }
 }
 
