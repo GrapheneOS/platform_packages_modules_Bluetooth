@@ -2624,28 +2624,26 @@ class BluetoothManagerService {
             return;
         }
         // Notify all proxy objects first of adapter state change
-        if (newState == STATE_BLE_ON || newState == STATE_OFF) {
-            boolean intermediate_off = (prevState == STATE_TURNING_OFF && newState == STATE_BLE_ON);
+        if (newState == STATE_OFF) {
+            // If Bluetooth is off, send service down event to proxy objects, and unbind
+            if (DBG) {
+                Log.d(TAG, "Bluetooth is complete send Service Down");
+            }
+            sendBluetoothServiceDownCallback();
+            unbindAndFinish();
+            sendBleStateChanged(prevState, newState);
 
-            if (newState == STATE_OFF) {
-                // If Bluetooth is off, send service down event to proxy objects, and unbind
-                if (DBG) {
-                    Log.d(TAG, "Bluetooth is complete send Service Down");
-                }
-                sendBluetoothServiceDownCallback();
-                unbindAndFinish();
-                sendBleStateChanged(prevState, newState);
+            /* Currently, the OFF intent is broadcasted externally only when we transition
+             * from TURNING_OFF to BLE_ON state. So if the previous state is a BLE state,
+             * we are guaranteed that the OFF intent has been broadcasted earlier and we
+             * can safely skip it.
+             * Conversely, if the previous state is not a BLE state, it indicates that some
+             * sort of crash has occurred, moving us directly to STATE_OFF without ever
+             * passing through BLE_ON. We should broadcast the OFF intent in this case. */
+            isStandardBroadcast = !isBleState(prevState);
 
-                /* Currently, the OFF intent is broadcasted externally only when we transition
-                 * from TURNING_OFF to BLE_ON state. So if the previous state is a BLE state,
-                 * we are guaranteed that the OFF intent has been broadcasted earlier and we
-                 * can safely skip it.
-                 * Conversely, if the previous state is not a BLE state, it indicates that some
-                 * sort of crash has occurred, moving us directly to STATE_OFF without ever
-                 * passing through BLE_ON. We should broadcast the OFF intent in this case. */
-                isStandardBroadcast = !isBleState(prevState);
-
-            } else if (!intermediate_off) {
+        } else if (newState == STATE_BLE_ON) {
+            if (prevState != STATE_TURNING_OFF) {
                 // connect to GattService
                 if (DBG) {
                     Log.d(TAG, "Bluetooth is in LE only mode");
@@ -2668,10 +2666,9 @@ class BluetoothManagerService {
                 sendBleStateChanged(prevState, newState);
                 // Don't broadcase this as std intent
                 isStandardBroadcast = false;
-
-            } else if (intermediate_off) {
+            } else {
                 if (DBG) {
-                    Log.d(TAG, "Intermediate off, back to LE only mode");
+                    Log.d(TAG, " Back to LE only mode");
                 }
                 // For LE only mode, broadcast as is
                 sendBleStateChanged(prevState, newState);
