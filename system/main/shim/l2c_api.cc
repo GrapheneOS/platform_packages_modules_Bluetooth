@@ -42,6 +42,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"
+#include "stack/include/btu_hcif.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/sco_hci_link_interface.h"
 #include "types/ble_address_with_type.h"
