@@ -2468,19 +2468,6 @@ class BluetoothManagerService {
             boolean didDisableTimeout = !waitForState(STATE_OFF);
 
             bluetoothStateChangeHandler(STATE_TURNING_OFF, STATE_OFF);
-            sendBluetoothServiceDownCallback();
-
-            mAdapterLock.writeLock().lock();
-            try {
-                if (mAdapter != null) {
-                    mAdapter = null;
-                    // Unbind
-                    mContext.unbindService(mConnection);
-                }
-                mBluetoothGatt = null;
-            } finally {
-                mAdapterLock.writeLock().unlock();
-            }
 
             //
             // If disabling Bluetooth times out, wait for an
