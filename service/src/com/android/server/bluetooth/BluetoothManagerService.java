@@ -2353,7 +2353,7 @@ class BluetoothManagerService {
                     UserHandle userTo = (UserHandle) msg.obj;
 
                     /* disable and enable BT when detect a user switch */
-                    if (mAdapter != null && isEnabled()) {
+                    if (mAdapter != null && mState.oneOf(STATE_ON)) {
                         restartForNewUser(userTo);
                     } else if (isBinding() || mAdapter != null) {
                         Message userMsg = Message.obtain(msg);
@@ -2408,24 +2408,8 @@ class BluetoothManagerService {
                 mAdapterLock.readLock().unlock();
             }
 
-            if (mState.oneOf(STATE_TURNING_OFF)) {
-                // MESSAGE_USER_SWITCHED happened right after MESSAGE_ENABLE
-                bluetoothStateChangeHandler(STATE_TURNING_OFF, STATE_OFF);
-                mState.set(STATE_OFF);
-            }
-            if (mState.oneOf(STATE_OFF)) {
-                bluetoothStateChangeHandler(STATE_OFF, STATE_TURNING_ON);
-                mState.set(STATE_TURNING_ON);
-            }
-
-            // TODO(b/285046954): We call unregisterCallback, and yet the code is calling
-            // waitForState(STATE_ON)
-            // This is a non-sense
-            waitForState(STATE_ON);
-
-            if (mState.oneOf(STATE_TURNING_ON)) {
-                bluetoothStateChangeHandler(STATE_TURNING_ON, STATE_ON);
-            }
+            // This method is always called while bluetooth is in STATE_ON
+            assert (mState.oneOf(STATE_ON));
 
             unbindAllBluetoothProfileServices();
             // disable
