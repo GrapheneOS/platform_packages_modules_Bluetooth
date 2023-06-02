@@ -1673,7 +1673,10 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
                                         : "UNKNOWN")));
         ProcessPendingGattOperations(device);
         for (BluetoothGattCharacteristic characteristic : mCharacteristics.values()) {
-            notifyCharacteristic(device, characteristic);
+            // Notify only the updated characteristics
+            if (characteristic.getValue() != null) {
+                notifyCharacteristic(device, characteristic);
+            }
         }
     }
 
