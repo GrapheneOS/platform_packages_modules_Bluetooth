@@ -478,6 +478,8 @@ public class TbsGatt {
 
         private void notifyCharacteristicChanged(BluetoothDevice device,
                 BluetoothGattCharacteristic characteristic, byte[] value) {
+            if (getDeviceAuthorization(device) != BluetoothDevice.ACCESS_ALLOWED) return;
+            if (value == null) return;
             if (mBluetoothGattServer != null) {
                 mBluetoothGattServer.notifyCharacteristicChanged(device, characteristic, false,
                                                                  value);
@@ -487,6 +489,7 @@ public class TbsGatt {
         private void notifyCharacteristicChanged(BluetoothDevice device,
                 BluetoothGattCharacteristic characteristic) {
             if (getDeviceAuthorization(device) != BluetoothDevice.ACCESS_ALLOWED) return;
+
             if (mBluetoothGattServer != null) {
                 mBluetoothGattServer.notifyCharacteristicChanged(device, characteristic, false);
             }
