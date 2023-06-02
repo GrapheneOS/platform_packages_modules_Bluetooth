@@ -22,6 +22,7 @@ android_test {
 
     srcs: [
         "src/**/*.java",
+        "src/**/*.kt",
     ],
 
     dxflags: ["--multi-dex"],
@@ -32,6 +33,7 @@ android_test {
         "androidx.test.rules",
         "frameworks-base-testutils",
         "mockito-target-extended-minus-junit4",
+        "kotlinx_coroutines_test",
         "platform-compat-test-rules",
         "platform-test-annotations",
         "service-bluetooth.change-ids",
