@@ -6,7 +6,7 @@ mod groups;
 mod parser;
 
 use crate::engine::RuleEngine;
-use crate::groups::connections;
+use crate::groups::{collisions, connections};
 use crate::parser::{LinuxSnoopOpcodes, LogParser, LogType, Packet};
 
 fn main() {
@@ -58,6 +58,7 @@ fn main() {
 
     // Create engine with default rule groups.
     let mut engine = RuleEngine::new();
+    engine.add_rule_group("Collisions".into(), collisions::get_collisions_group());
     engine.add_rule_group("Connections".into(), connections::get_connections_group());
 
     // Decide where to write output.
