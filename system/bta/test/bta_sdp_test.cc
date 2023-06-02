@@ -24,6 +24,7 @@
 #include "bta/dm/bta_dm_int.h"
 #include "test/common/main_handler.h"
 #include "test/fake/fake_osi.h"
+#include "test/mock/mock_stack_btm.h"
 #include "test/mock/mock_stack_gatt_api.h"
 
 void BTA_dm_on_hw_on();
@@ -36,6 +37,19 @@ class BtaSdpTest : public testing::Test {
     test::mock::stack_gatt_api::GATT_Register.body =
         [](const bluetooth::Uuid& p_app_uuid128, const std::string name,
            tGATT_CBACK* p_cb_info, bool eatt_support) { return 5; };
+    btm_client_interface = {};
+    btm_client_interface.eir.BTM_GetEirSupportedServices =
+        [](uint32_t* p_eir_uuid, uint8_t** p, uint8_t max_num_uuid16,
+           uint8_t* p_num_uuid16) -> uint8_t { return 0; };
+    btm_client_interface.eir.BTM_WriteEIR = [](BT_HDR* p_buf) -> tBTM_STATUS {
+      osi_free(p_buf);
+      return BTM_SUCCESS;
+    };
+    btm_client_interface.local.BTM_ReadLocalDeviceNameFromController =
+        [](tBTM_CMPL_CB* cb) -> tBTM_STATUS { return BTM_CMD_STARTED; };
+    btm_client_interface.security.BTM_SecRegister =
+        [](const tBTM_APPL_INFO* p_cb_info) -> bool { return true; };
+
     main_thread_start_up();
     sync_main_handler();
 
@@ -49,6 +63,7 @@ class BtaSdpTest : public testing::Test {
     main_thread_shut_down();
 
     test::mock::stack_gatt_api::GATT_Register = {};
+    btm_client_interface = {};
   }
   std::unique_ptr<test::fake::FakeOsi> fake_osi_;
 };
