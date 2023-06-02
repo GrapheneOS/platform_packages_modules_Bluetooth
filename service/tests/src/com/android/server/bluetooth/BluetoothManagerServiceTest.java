@@ -182,17 +182,13 @@ public class BluetoothManagerServiceTest {
                 .hasUserRestrictionForUser(eq(UserManager.DISALLOW_BLUETOOTH_SHARING), any());
 
         // Check if disable message sent once for system user only
-        // Since Message object is recycled after processed, use proxy function to get what value
 
         // test run on user -1, should not turning Bluetooth off
         mManagerService.onUserRestrictionsChanged(UserHandle.CURRENT);
-        verify(mBluetoothServerProxy, times(0))
-                .handlerSendWhatMessage(any(), eq(BluetoothManagerService.MESSAGE_DISABLE));
+        assertThat(mLooper.nextMessage()).isNull();
 
         // called from SYSTEM user, should try to toggle Bluetooth off
         mManagerService.onUserRestrictionsChanged(UserHandle.SYSTEM);
-        verify(mBluetoothServerProxy)
-                .handlerSendWhatMessage(any(), eq(BluetoothManagerService.MESSAGE_DISABLE));
         syncHandler(MESSAGE_DISABLE);
     }
 

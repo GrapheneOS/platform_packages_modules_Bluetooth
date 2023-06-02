@@ -2731,7 +2731,7 @@ class BluetoothManagerService {
     }
 
     private void sendDisableMsg(int reason, String packageName) {
-        BluetoothServerProxy.getInstance().handlerSendWhatMessage(mHandler, MESSAGE_DISABLE);
+        mHandler.sendEmptyMessage(MESSAGE_DISABLE);
         addActiveLog(reason, packageName, false);
     }
 
