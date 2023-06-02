@@ -208,6 +208,18 @@ android_license(TARGET "libbt-rootcanal.headers" LIBNAME None SPDX Apache-2.0
                 LICENSE Apache-2.0 LOCAL "${BT_ROOT}/../NOTICE")
 
 android_add_library(
+  TARGET librootcanal_log
+  LICENSE Apache-2.0
+  SOURCE_DIR ${ROOTCANAL_ROOT}
+  SRC lib/log.cc
+      ${AOSP_ROOT}/external/fmtlib/src/format.cc)
+
+target_include_directories(
+  librootcanal_log PUBLIC
+    ${ROOTCANAL_ROOT}/include
+    ${AOSP_ROOT}/external/fmtlib/include)
+
+android_add_library(
   TARGET BluetoothPacketSources
   LICENSE Apache-2.0
   SOURCE_DIR ${BT_ROOT}/gd/packet
@@ -219,12 +231,11 @@ android_add_library(
       packet_view.cc
       raw_builder.cc
       view.cc
-  DEPS android-emu-base android-emu-base-headers)
+  DEPS android-emu-base android-emu-base-headers librootcanal_log)
 
 target_include_directories(
   BluetoothPacketSources PUBLIC
-    ${ROOTCANAL_ROOT}/emulator
-    ${ROOTCANAL_ROOT}/emulator/include
+    ${ROOTCANAL_ROOT}
     ${ROOTCANAL_ROOT}/include
     ${BT_ROOT}/gd
     ${BT_ROOT})
@@ -238,11 +249,11 @@ android_add_library(
   SOURCE_DIR ${ROOTCANAL_ROOT}
   SRC ${BluetoothGeneratedPackets_h}
       ${RootCanalGeneratedPackets_h}
-      emulator/src/log.cc
       lib/crypto/crypto.cc
       lib/hci/address.cc
       lib/hci/class_of_device.cc
       lib/hci/pcap_filter.cc
+      lib/log.cc
       model/controller/acl_connection.cc
       model/controller/acl_connection_handler.cc
       model/controller/controller_properties.cc
@@ -281,11 +292,13 @@ android_add_library(
        librootcanal_config
        libscriptedbeaconpayload-protos-lite)
 
+target_link_libraries(
+  libbt-rootcanal
+  PUBLIC librootcanal_log)
+
 target_include_directories(
   libbt-rootcanal
-  PUBLIC ${ROOTCANAL_ROOT}/emulator
-         ${ROOTCANAL_ROOT}/emulator/include
-         ${ROOTCANAL_ROOT}/include
+  PUBLIC ${ROOTCANAL_ROOT}/include
          ${ROOTCANAL_ROOT}
          ${BT_ROOT}/gd
          ${BT_ROOT}
