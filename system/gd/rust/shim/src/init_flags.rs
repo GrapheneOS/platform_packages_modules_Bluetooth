@@ -57,6 +57,7 @@ mod ffi {
         fn trigger_advertising_callbacks_on_first_resume_after_pause_is_enabled() -> bool;
         fn use_unified_connection_manager_is_enabled() -> bool;
         fn sdp_return_classic_services_when_le_discovery_fails_is_enabled() -> bool;
+        fn use_rsi_from_cached_inqiry_results_is_enabled() -> bool;
     }
 }
 
