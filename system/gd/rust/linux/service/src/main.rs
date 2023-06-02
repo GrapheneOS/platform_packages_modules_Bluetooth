@@ -416,9 +416,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
 
-        // Initialize the bluetooth_qa
-        bluetooth.lock().unwrap().cache_discoverable_mode_into_qa();
-
         // Serve clients forever.
         future::pending::<()>().await;
         unreachable!()
