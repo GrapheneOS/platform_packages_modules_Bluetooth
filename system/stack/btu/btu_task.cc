@@ -38,6 +38,7 @@
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"
+#include "stack/include/btu_hcif.h"
 
 using bluetooth::common::MessageLoopThread;
 using bluetooth::hci::IsoManager;

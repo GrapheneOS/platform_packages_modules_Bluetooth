@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "bt_target.h"
-#include "btu.h"
 #include "device/include/device_iot_config.h"
 #include "device/include/esco_parameters.h"
 #include "gd/common/init_flags.h"
@@ -39,6 +38,8 @@
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btu.h"
+#include "stack/include/btu_hcif.h"
 #include "types/raw_address.h"
 
 void bte_main_hci_send(BT_HDR* p_msg, uint16_t event);
