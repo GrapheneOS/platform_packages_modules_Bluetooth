@@ -31,6 +31,7 @@
 #include "btm_int_types.h"
 #include "device/include/controller.h"
 #include "osi/include/log.h"
+#include "stack/include/btu_hcif.h"
 #include "types/raw_address.h"
 
 #define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN 8
