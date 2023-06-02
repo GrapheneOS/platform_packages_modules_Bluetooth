@@ -2563,41 +2563,26 @@ class BluetoothManagerService {
             }
             sendBluetoothServiceDownCallback();
             unbindAndFinish();
-        } else if (newState == STATE_BLE_ON) {
-            if (prevState != STATE_TURNING_OFF) {
-                // connect to GattService
-                if (DBG) {
-                    Log.d(TAG, "Bluetooth is in LE only mode");
-                }
-                if (mBluetoothGatt != null
-                        || !mContext.getPackageManager()
-                                .hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-                    continueFromBleOnState();
-                } else {
-                    if (DBG) {
-                        Log.d(TAG, "Binding Bluetooth GATT service");
-                    }
-                    Intent i = new Intent(IBluetoothGatt.class.getName());
-                    doBind(
-                            i,
-                            mConnection,
-                            Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT,
-                            UserHandle.CURRENT);
-                }
+            // connect to GattService
+        } else if (newState == STATE_BLE_ON && prevState == STATE_BLE_TURNING_ON) {
+            if (DBG) {
+                Log.d(TAG, "Bluetooth is in LE only mode");
+            }
+            if (mBluetoothGatt != null
+                    || !mContext.getPackageManager()
+                            .hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+                continueFromBleOnState();
             } else {
                 if (DBG) {
-                    Log.d(TAG, " Back to LE only mode");
+                    Log.d(TAG, "Binding Bluetooth GATT service");
                 }
-                // For LE only mode, broadcast as is
-                sendBluetoothStateCallback(false); // BT is OFF for general users
-                // Broadcast as STATE_OFF
-                sendBrEdrDownCallback(mContext.getAttributionSource());
+                doBind(
+                        new Intent(IBluetoothGatt.class.getName()),
+                        mConnection,
+                        Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT,
+                        UserHandle.CURRENT);
             }
-        } else if (newState == STATE_BLE_TURNING_OFF) {
-            if (prevState == STATE_TURNING_OFF) {
-                sendBrEdrDownCallback(mContext.getAttributionSource());
-            }
-        } // Nothing specific to do for STATE_TURNING_ON | STATE_TURNING_OFF | STATE_BLE_TURNING_ON
+        } // Nothing specific to do for STATE_TURNING_<X>
 
         broadcastIntentStateChange(BluetoothAdapter.ACTION_BLE_STATE_CHANGED, prevState, newState);
 
@@ -2606,6 +2591,10 @@ class BluetoothManagerService {
         final int newBrEdrState = isBleState(newState) ? STATE_OFF : newState;
 
         if (prevBrEdrState != newBrEdrState) { // Only broadcast when there is a BrEdr state change.
+            if (newBrEdrState == STATE_OFF) {
+                sendBluetoothStateCallback(false);
+                sendBrEdrDownCallback(mContext.getAttributionSource());
+            }
             broadcastIntentStateChange(
                     BluetoothAdapter.ACTION_STATE_CHANGED, prevBrEdrState, newBrEdrState);
         }
