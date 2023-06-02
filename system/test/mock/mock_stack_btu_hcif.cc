@@ -29,6 +29,7 @@
 #include <base/location.h>
 
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btu_hcif.h"
 #include "test/common/mock_functions.h"
 
 #ifndef UNUSED_ATTR

@@ -21,6 +21,7 @@
 #include <string>
 
 #include "stack/include/btu.h"
+#include "stack/include/btu_hcif.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hcidefs.h"
 #include "test/common/mock_functions.h"
