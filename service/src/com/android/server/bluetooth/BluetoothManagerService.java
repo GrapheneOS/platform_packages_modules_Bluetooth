@@ -2515,17 +2515,17 @@ class BluetoothManagerService {
         }
     }
 
-    private void sendBleStateChanged(int prevState, int newState) {
+    private void broadcastIntentStateChange(String action, int prevState, int newState) {
         if (DBG) {
             Log.d(
                     TAG,
-                    "Sending BLE State Change: "
-                            + BluetoothAdapter.nameForState(prevState)
-                            + " > "
-                            + BluetoothAdapter.nameForState(newState));
+                    "broadcastIntentStateChange:"
+                            + (" action=" + action.substring(action.lastIndexOf('.') + 1))
+                            + (" prevState=" + BluetoothAdapter.nameForState(prevState))
+                            + (" newState=" + BluetoothAdapter.nameForState(newState)));
         }
         // Send broadcast message to everyone else
-        Intent intent = new Intent(BluetoothAdapter.ACTION_BLE_STATE_CHANGED);
+        Intent intent = new Intent(action);
         intent.putExtra(BluetoothAdapter.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothAdapter.EXTRA_STATE, newState);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
@@ -2549,29 +2549,20 @@ class BluetoothManagerService {
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED,
             })
     private void bluetoothStateChangeHandler(int prevState, int newState) {
-        boolean isStandardBroadcast = true;
         if (prevState == newState) { // No change. Nothing to do.
             return;
         }
+
         // Notify all proxy objects first of adapter state change
-        if (newState == STATE_OFF) {
+        if (newState == STATE_ON) {
+            sendBluetoothStateCallback(true);
+        } else if (newState == STATE_OFF) {
             // If Bluetooth is off, send service down event to proxy objects, and unbind
             if (DBG) {
                 Log.d(TAG, "Bluetooth is complete send Service Down");
             }
             sendBluetoothServiceDownCallback();
             unbindAndFinish();
-            sendBleStateChanged(prevState, newState);
-
-            /* Currently, the OFF intent is broadcasted externally only when we transition
-             * from TURNING_OFF to BLE_ON state. So if the previous state is a BLE state,
-             * we are guaranteed that the OFF intent has been broadcasted earlier and we
-             * can safely skip it.
-             * Conversely, if the previous state is not a BLE state, it indicates that some
-             * sort of crash has occurred, moving us directly to STATE_OFF without ever
-             * passing through BLE_ON. We should broadcast the OFF intent in this case. */
-            isStandardBroadcast = !isBleState(prevState);
-
         } else if (newState == STATE_BLE_ON) {
             if (prevState != STATE_TURNING_OFF) {
                 // connect to GattService
@@ -2593,59 +2584,30 @@ class BluetoothManagerService {
                             Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT,
                             UserHandle.CURRENT);
                 }
-                sendBleStateChanged(prevState, newState);
-                // Don't broadcase this as std intent
-                isStandardBroadcast = false;
             } else {
                 if (DBG) {
                     Log.d(TAG, " Back to LE only mode");
                 }
                 // For LE only mode, broadcast as is
-                sendBleStateChanged(prevState, newState);
                 sendBluetoothStateCallback(false); // BT is OFF for general users
                 // Broadcast as STATE_OFF
-                newState = STATE_OFF;
                 sendBrEdrDownCallback(mContext.getAttributionSource());
             }
-        } else if (newState == STATE_ON) {
-            sendBluetoothStateCallback(true);
-            sendBleStateChanged(prevState, newState);
-
-        } else if (newState == STATE_BLE_TURNING_ON) {
-            sendBleStateChanged(prevState, newState);
-            isStandardBroadcast = false;
         } else if (newState == STATE_BLE_TURNING_OFF) {
-            sendBleStateChanged(prevState, newState);
-            if (prevState != STATE_TURNING_OFF) {
-                isStandardBroadcast = false;
-            } else {
-                // Broadcast as STATE_OFF for app that do not receive BLE update
-                newState = STATE_OFF;
+            if (prevState == STATE_TURNING_OFF) {
                 sendBrEdrDownCallback(mContext.getAttributionSource());
             }
-        } else if (newState == STATE_TURNING_ON || newState == STATE_TURNING_OFF) {
-            sendBleStateChanged(prevState, newState);
-        }
+        } // Nothing specific to do for STATE_TURNING_ON | STATE_TURNING_OFF | STATE_BLE_TURNING_ON
 
-        if (isStandardBroadcast) {
-            if (prevState == STATE_BLE_ON) {
-                // Show prevState of BLE_ON as OFF to standard users
-                prevState = STATE_OFF;
-            }
-            if (DBG) {
-                Log.d(
-                        TAG,
-                        "Sending State Change: "
-                                + BluetoothAdapter.nameForState(prevState)
-                                + " > "
-                                + BluetoothAdapter.nameForState(newState));
-            }
-            Intent intent = new Intent(BluetoothAdapter.ACTION_STATE_CHANGED);
-            intent.putExtra(BluetoothAdapter.EXTRA_PREVIOUS_STATE, prevState);
-            intent.putExtra(BluetoothAdapter.EXTRA_STATE, newState);
-            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-            mContext.sendBroadcastAsUser(
-                    intent, UserHandle.ALL, null, getTempAllowlistBroadcastOptions());
+        broadcastIntentStateChange(BluetoothAdapter.ACTION_BLE_STATE_CHANGED, prevState, newState);
+
+        // BLE state are shown as STATE_OFF for BrEdr users
+        final int prevBrEdrState = isBleState(prevState) ? STATE_OFF : prevState;
+        final int newBrEdrState = isBleState(newState) ? STATE_OFF : newState;
+
+        if (prevBrEdrState != newBrEdrState) { // Only broadcast when there is a BrEdr state change.
+            broadcastIntentStateChange(
+                    BluetoothAdapter.ACTION_STATE_CHANGED, prevBrEdrState, newBrEdrState);
         }
     }
 
