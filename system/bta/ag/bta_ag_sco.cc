@@ -535,7 +535,7 @@ static void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
     /* Bypass voice settings if enhanced SCO setup command is supported */
     if (!(controller_get_interface()
               ->supports_enhanced_setup_synchronous_connection())) {
-      if (esco_codec == BTM_SCO_CODEC_MSBC) {
+      if (esco_codec == UUID_CODEC_MSBC || esco_codec == UUID_CODEC_LC3) {
         BTM_WriteVoiceSettings(BTM_VOICE_SETTING_TRANS);
       } else {
         BTM_WriteVoiceSettings(BTM_VOICE_SETTING_CVSD);

@@ -84,7 +84,7 @@ bool enable_offload(bool enable) {
 }
 
 // On Android, this is a no-op because the settings default to offloaded case.
-void set_codec_datapath(esco_coding_format_t coding_format) {}
+void set_codec_datapath(int codec_uuid) {}
 
 // No packet size limits on Android since it will be offloaded.
 int get_packet_size(int codec) { return kDefaultPacketSize; }
