@@ -29,9 +29,10 @@
 #include "bt_target.h"
 #include "btm_ble_api.h"
 #include "btm_dev.h"
-#include "btu.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/btu.h"
+#include "stack/include/btu_hcif.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
