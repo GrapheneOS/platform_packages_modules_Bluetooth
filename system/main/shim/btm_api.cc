@@ -524,11 +524,6 @@ void bluetooth::shim::BTM_SecClearSecurityFlags(const RawAddress& bd_addr) {
   // TODO(optedoblivion): Call RemoveBond on device address
 }
 
-char* bluetooth::shim::BTM_SecReadDevName(const RawAddress& address) {
-  static char name[] = "TODO: See if this is needed";
-  return name;
-}
-
 bool bluetooth::shim::BTM_SecAddRmtNameNotifyCallback(
     tBTM_RMT_NAME_CALLBACK* p_callback) {
   // TODO(optedoblivion): keep track of callback
