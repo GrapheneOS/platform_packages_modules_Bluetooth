@@ -3,9 +3,9 @@ use crate::dbus_iface::{
     export_admin_policy_callback_dbus_intf, export_advertising_set_callback_dbus_intf,
     export_bluetooth_callback_dbus_intf, export_bluetooth_connection_callback_dbus_intf,
     export_bluetooth_gatt_callback_dbus_intf, export_bluetooth_manager_callback_dbus_intf,
-    export_gatt_server_callback_dbus_intf, export_qa_callback_dbus_intf,
-    export_scanner_callback_dbus_intf, export_socket_callback_dbus_intf,
-    export_suspend_callback_dbus_intf,
+    export_bluetooth_media_callback_dbus_intf, export_gatt_server_callback_dbus_intf,
+    export_qa_callback_dbus_intf, export_scanner_callback_dbus_intf,
+    export_socket_callback_dbus_intf, export_suspend_callback_dbus_intf,
 };
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
@@ -21,6 +21,7 @@ use btstack::bluetooth_gatt::{
     BluetoothGattService, IBluetoothGattCallback, IBluetoothGattServerCallback, IScannerCallback,
     ScanResult,
 };
+use btstack::bluetooth_media::{BluetoothAudioDevice, IBluetoothMediaCallback};
 use btstack::bluetooth_qa::IBluetoothQACallback;
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, IBluetoothSocketManager,
@@ -29,16 +30,22 @@ use btstack::socket_manager::{
 use btstack::suspend::ISuspendCallback;
 use btstack::uuid::UuidWrapper;
 use btstack::{RPCProxy, SuspendMode};
+use chrono::{TimeZone, Utc};
 use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use dbus_projection::DisconnectWatcher;
 use manager_service::iface_bluetooth_manager::IBluetoothManagerCallback;
+use std::convert::TryFrom;
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 const SOCKET_TEST_WRITE: &[u8] =
     b"01234567890123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+// Avoid 32, 40, 64 consecutive hex characters so CrOS feedback redact tool
+// doesn't trim our dump.
+const BINARY_PACKET_STATUS_WRAP: usize = 50;
 
 /// Callback context for manager interface callbacks.
 pub(crate) struct BtManagerCallback {
@@ -1280,6 +1287,106 @@ impl RPCProxy for QACallback {
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
         let iface = export_qa_callback_dbus_intf(
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
+    }
+}
+
+pub(crate) struct MediaCallback {
+    objpath: String,
+
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
+}
+
+impl MediaCallback {
+    pub(crate) fn new(
+        objpath: String,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, dbus_connection, dbus_crossroads }
+    }
+}
+
+fn timestamp_to_string(ts_in_us: u64) -> String {
+    i64::try_from(ts_in_us)
+        .and_then(|ts| Ok(Utc.timestamp_nanos(ts * 1000).to_rfc3339()))
+        .unwrap_or("UNKNOWN".to_string())
+}
+
+impl IBluetoothMediaCallback for MediaCallback {
+    fn on_bluetooth_audio_device_added(&mut self, _device: BluetoothAudioDevice) {}
+    fn on_bluetooth_audio_device_removed(&mut self, _addr: String) {}
+    fn on_absolute_volume_supported_changed(&mut self, _supported: bool) {}
+    fn on_absolute_volume_changed(&mut self, _volume: u8) {}
+    fn on_hfp_volume_changed(&mut self, _volume: u8, _addr: String) {}
+    fn on_hfp_audio_disconnected(&mut self, _addr: String) {}
+    fn on_hfp_debug_dump(
+        &mut self,
+        active: bool,
+        wbs: bool,
+        total_num_decoded_frames: i32,
+        pkt_loss_ratio: f64,
+        begin_ts: u64,
+        end_ts: u64,
+        pkt_status_in_hex: String,
+        pkt_status_in_binary: String,
+    ) {
+        let wbs_dump = if active && wbs {
+            let mut to_split_binary = pkt_status_in_binary.clone();
+            let mut wrapped_binary = String::new();
+            while to_split_binary.len() > BINARY_PACKET_STATUS_WRAP {
+                let remaining = to_split_binary.split_off(BINARY_PACKET_STATUS_WRAP);
+                wrapped_binary.push_str(&to_split_binary);
+                wrapped_binary.push('\n');
+                to_split_binary = remaining;
+            }
+            wrapped_binary.push_str(&to_split_binary);
+
+            format!(
+                "\n--------WBS packet loss--------\n\
+                   Decoded Packets: {}, Packet Loss Ratio: {} \n\
+                   {} [begin]\n\
+                   {} [end]\n\
+                   In Hex format:\n\
+                   {}\n\
+                   In binary format:\n\
+                   {}",
+                total_num_decoded_frames,
+                pkt_loss_ratio,
+                timestamp_to_string(begin_ts),
+                timestamp_to_string(end_ts),
+                pkt_status_in_hex,
+                wrapped_binary
+            )
+        } else {
+            "".to_string()
+        };
+
+        print_info!(
+            "\n--------HFP debug dump---------\n\
+             HFP SCO: {}, Codec: {}\
+             {}
+             ",
+            if active { "active" } else { "inactive" },
+            if wbs { "mSBC" } else { "CVSD" },
+            wbs_dump
+        );
+    }
+}
+
+impl RPCProxy for MediaCallback {
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        let iface = export_bluetooth_media_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
             Arc::new(Mutex::new(DisconnectWatcher::new())),

@@ -1140,6 +1140,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         impl DirectDBus for u32 {}
         impl DirectDBus for i64 {}
         impl DirectDBus for u64 {}
+        impl DirectDBus for f64 {}
         impl DirectDBus for i16 {}
         impl DirectDBus for u16 {}
         impl DirectDBus for u8 {}

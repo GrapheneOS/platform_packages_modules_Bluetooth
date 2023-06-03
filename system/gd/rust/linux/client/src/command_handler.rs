@@ -15,7 +15,7 @@ use bt_topshim::profiles::sdp::{BtSdpMpsRecord, BtSdpRecord};
 use bt_topshim::profiles::{gatt::LePhy, ProfileConnectionState};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth};
 use btstack::bluetooth_gatt::{GattWriteType, IBluetoothGatt, ScanSettings, ScanType};
-use btstack::bluetooth_media::IBluetoothTelephony;
+use btstack::bluetooth_media::{IBluetoothMedia, IBluetoothTelephony};
 use btstack::bluetooth_qa::IBluetoothQA;
 use btstack::socket_manager::{IBluetoothSocketManager, SocketResult};
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
@@ -323,6 +323,14 @@ fn build_commands() -> HashMap<String, CommandOption> {
             ],
             description: String::from("Set device telephony status."),
             function_pointer: CommandHandler::cmd_telephony,
+        },
+    );
+    command_options.insert(
+        String::from("media"),
+        CommandOption {
+            rules: vec![String::from("media log")],
+            description: String::from("Audio tools."),
+            function_pointer: CommandHandler::cmd_media,
         },
     );
     command_options.insert(
@@ -1962,6 +1970,23 @@ impl CommandHandler {
             }
             _ => return Err(CommandError::InvalidArgs),
         };
+
+        Ok(())
+    }
+
+    fn cmd_media(&mut self, args: &Vec<String>) -> CommandResult {
+        if !self.context.lock().unwrap().adapter_ready {
+            return Err(self.adapter_not_ready());
+        }
+
+        match &get_arg(args, 0)?[..] {
+            "log" => {
+                self.context.lock().unwrap().media_dbus.as_mut().unwrap().trigger_debug_dump();
+            }
+            other => {
+                return Err(format!("Invalid argument '{}'", other).into());
+            }
+        }
 
         Ok(())
     }
