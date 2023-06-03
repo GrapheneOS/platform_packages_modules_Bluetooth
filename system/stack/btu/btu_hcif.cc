@@ -27,6 +27,8 @@
 
 #define LOG_TAG "bt_btu_hcif"
 
+#include "stack/include/btu_hcif.h"
+
 #include <base/functional/bind.h>
 #include <base/location.h>
 #include <base/logging.h>
