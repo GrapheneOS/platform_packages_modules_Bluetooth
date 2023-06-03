@@ -441,6 +441,7 @@ cc_test {
     ],
     shared_libs: [
         "libcrypto",
+        "liblog",
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
@@ -484,6 +485,7 @@ cc_test {
     ],
     shared_libs: [
         "libcrypto",
+        "liblog",
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
@@ -538,6 +540,7 @@ cc_test {
     ],
     shared_libs: [
         "libcrypto",
+        "liblog",
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
@@ -844,6 +847,7 @@ cc_test {
     ],
     shared_libs: [
         "libcrypto",
+        "liblog",
     ],
     static_libs: [
         "libbt-common",
@@ -906,6 +910,7 @@ cc_test {
         "libcrypto",
         "libfmq",
         "libhidlbase",
+        "liblog",
     ],
     static_libs: [
         "libbt-audio-hal-interface",
@@ -966,6 +971,7 @@ cc_test {
     ],
     shared_libs: [
         "libcrypto",
+        "liblog",
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
@@ -1031,6 +1037,7 @@ cc_test {
     ],
     shared_libs: [
         "libcrypto",
+        "liblog",
     ],
     static_libs: [
         "crypto_toolbox_for_tests",

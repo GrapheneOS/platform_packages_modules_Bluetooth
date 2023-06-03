@@ -265,6 +265,7 @@ cc_test {
         "libcutils",
         "libfmq",
         "libhidlbase",
+        "liblog",
         "libstatssocket",
         "libutils",
     ],
@@ -347,6 +348,7 @@ cc_test {
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
+    shared_libs: ["liblog"],
 }
 
 // btif avrcp audio track unit tests
@@ -379,6 +381,7 @@ cc_test {
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
+    shared_libs: ["liblog"],
 }
 
 // btif rc unit tests for target
