@@ -124,6 +124,9 @@ pub trait IBluetoothMedia {
     /// copy of the existing CRAS API, hence not following Floss API conventions. PlayerMetadata is
     /// a custom data type that requires special handlng.
     fn set_player_metadata(&mut self, metadata: PlayerMetadata);
+
+    // Trigger a debug log dump.
+    fn trigger_debug_dump(&mut self);
 }
 
 pub trait IBluetoothMediaCallback: RPCProxy {
@@ -154,6 +157,20 @@ pub trait IBluetoothMediaCallback: RPCProxy {
     /// waiting for the audio client to issue a reconnection request. We need
     /// to notify audio client of this event for it to do appropriate handling.
     fn on_hfp_audio_disconnected(&mut self, addr: String);
+
+    /// Triggered when there is a HFP dump is received. This should only be used
+    /// for debugging and testing purpose.
+    fn on_hfp_debug_dump(
+        &mut self,
+        active: bool,
+        wbs: bool,
+        total_num_decoded_frames: i32,
+        pkt_loss_ratio: f64,
+        begin_ts: u64,
+        end_ts: u64,
+        pkt_status_in_hex: String,
+        pkt_status_in_binary: String,
+    );
 }
 
 pub trait IBluetoothTelephony {
@@ -914,6 +931,41 @@ impl BluetoothMedia {
                         command
                     );
                 }
+            }
+            HfpCallbacks::DebugDump(
+                active,
+                wbs,
+                total_num_decoded_frames,
+                pkt_loss_ratio,
+                begin_ts,
+                end_ts,
+                pkt_status_in_hex,
+                pkt_status_in_binary,
+            ) => {
+                debug!("[HFP] DebugDump: active:{} wbs:{}", active, wbs);
+                if wbs {
+                    debug!(
+                        "total_num_decoded_frames:{} pkt_loss_ratio:{}",
+                        total_num_decoded_frames, pkt_loss_ratio
+                    );
+                    debug!("begin_ts:{} end_ts:{}", begin_ts, end_ts);
+                    debug!(
+                        "pkt_status_in_hex:{} pkt_status_in_binary:{}",
+                        pkt_status_in_hex, pkt_status_in_binary
+                    );
+                }
+                self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
+                    callback.on_hfp_debug_dump(
+                        active,
+                        wbs,
+                        total_num_decoded_frames,
+                        pkt_loss_ratio,
+                        begin_ts,
+                        end_ts,
+                        pkt_status_in_hex.clone(),
+                        pkt_status_in_binary.clone(),
+                    );
+                });
             }
         }
     }
@@ -2230,6 +2282,13 @@ impl IBluetoothMedia for BluetoothMedia {
         match self.avrcp.as_mut() {
             Some(avrcp) => avrcp.set_metadata(&metadata),
             None => warn!("Uninitialized AVRCP to set player playback status"),
+        };
+    }
+
+    fn trigger_debug_dump(&mut self) {
+        match self.hfp.as_mut() {
+            Some(hfp) => hfp.debug_dump(),
+            None => warn!("Uninitialized HFP to dump debug log"),
         };
     }
 }
