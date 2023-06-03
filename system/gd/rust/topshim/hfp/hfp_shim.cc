@@ -105,6 +105,26 @@ static headset::bthf_call_state_t from_rust_call_state(rusty::CallState state) {
       ASSERT_LOG(false, "Unhandled enum value from Rust");
   }
 }
+
+static void debug_dump_cb(
+    bool active,
+    bool wbs,
+    int total_num_decoded_frames,
+    double packet_loss_ratio,
+    uint64_t begin_ts,
+    uint64_t end_ts,
+    const char* pkt_status_in_hex,
+    const char* pkt_status_in_binary) {
+  rusty::hfp_debug_dump_callback(
+      active,
+      wbs,
+      total_num_decoded_frames,
+      packet_loss_ratio,
+      begin_ts,
+      end_ts,
+      ::rust::String{pkt_status_in_hex},
+      ::rust::String{pkt_status_in_binary});
+}
 }  // namespace internal
 
 class DBusHeadsetCallbacks : public headset::Callbacks {
@@ -246,6 +266,15 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
         (unsigned long long)end_ts,
         pkt_status_in_hex,
         pkt_status_in_binary);
+    topshim::rust::internal::debug_dump_cb(
+        active,
+        wbs,
+        total_num_decoded_frames,
+        packet_loss_ratio,
+        begin_ts,
+        end_ts,
+        pkt_status_in_hex,
+        pkt_status_in_binary);
   }
 
  private:
@@ -348,6 +377,10 @@ uint32_t HfpIntf::phone_state_change(
 uint32_t HfpIntf::simple_at_response(bool ok, RawAddress addr) {
   return intf_->AtResponse(
       (ok ? headset::BTHF_AT_RESPONSE_OK : headset::BTHF_AT_RESPONSE_ERROR), 0, &addr);
+}
+
+void HfpIntf::debug_dump() {
+  intf_->DebugDump();
 }
 
 void HfpIntf::cleanup() {}

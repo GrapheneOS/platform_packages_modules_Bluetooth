@@ -157,6 +157,7 @@ pub mod ffi {
             addr: RawAddress,
         ) -> u32;
         fn simple_at_response(self: Pin<&mut HfpIntf>, ok: bool, addr: RawAddress) -> u32;
+        fn debug_dump(self: Pin<&mut HfpIntf>);
         fn cleanup(self: Pin<&mut HfpIntf>);
 
     }
@@ -173,6 +174,16 @@ pub mod ffi {
         fn hfp_hangup_call_callback(addr: RawAddress);
         fn hfp_dial_call_callback(number: String, addr: RawAddress);
         fn hfp_call_hold_callback(chld: CallHoldCommand, addr: RawAddress);
+        fn hfp_debug_dump_callback(
+            active: bool,
+            wbs: bool,
+            total_num_decoded_frames: i32,
+            pkt_loss_ratio: f64,
+            begin_ts: u64,
+            end_ts: u64,
+            pkt_status_in_hex: String,
+            pkt_status_in_binary: String,
+        );
     }
 }
 
@@ -208,6 +219,7 @@ pub enum HfpCallbacks {
     HangupCall(RawAddress),
     DialCall(String, RawAddress),
     CallHold(CallHoldCommand, RawAddress),
+    DebugDump(bool, bool, i32, f64, u64, u64, String, String),
 }
 
 pub struct HfpCallbacksDispatcher {
@@ -275,6 +287,11 @@ cb_variant!(
     HfpCb,
     hfp_call_hold_callback -> HfpCallbacks::CallHold,
     CallHoldCommand, RawAddress);
+
+cb_variant!(
+    HfpCb,
+    hfp_debug_dump_callback -> HfpCallbacks::DebugDump,
+    bool, bool, i32, f64, u64, u64, String, String);
 
 pub struct Hfp {
     internal: cxx::UniquePtr<ffi::HfpIntf>,
@@ -401,6 +418,11 @@ impl Hfp {
     #[profile_enabled_or(BtStatus::NotReady)]
     pub fn simple_at_response(&mut self, ok: bool, addr: RawAddress) -> BtStatus {
         BtStatus::from(self.internal.pin_mut().simple_at_response(ok, addr))
+    }
+
+    #[profile_enabled_or]
+    pub fn debug_dump(&mut self) {
+        self.internal.pin_mut().debug_dump();
     }
 
     #[profile_enabled_or(false)]
