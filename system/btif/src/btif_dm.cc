@@ -1840,6 +1840,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       std::set<Uuid> uuids;
       RawAddress& bd_addr = p_data->disc_ble_res.bd_addr;
       RawAddress static_addr_copy = pairing_cb.static_bdaddr;
+      bool lea_supported =
+          is_le_audio_capable_during_service_discovery(bd_addr);
 
       if (event == BTA_DM_GATT_OVER_LE_RES_EVT) {
         LOG_INFO("New GATT over LE UUIDs for %s:",
@@ -1894,7 +1896,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
           return;
         }
 
-        if (is_le_audio_capable_during_service_discovery(bd_addr)) {
+        if (lea_supported) {
           if (bluetooth::common::init_flags::
                   sdp_return_classic_services_when_le_discovery_fails_is_enabled()) {
             LOG_INFO(
@@ -1903,9 +1905,12 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
             // LEA device w/o this flag
             // TODO: we might want to remove bond or do some action on
             // half-discovered device
+            LOG_WARN("No GATT service found for the LE Audio device %s",
+                     ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
             return;
           }
         } else {
+          LOG_INFO("LE audio not supported, no need to report any UUIDs");
           return;
         }
       }
