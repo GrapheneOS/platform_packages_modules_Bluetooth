@@ -49,6 +49,7 @@ class HfpIntf {
   uint32_t phone_state_change(
       PhoneState phone_state, const ::rust::String& number, RawAddress addr);
   uint32_t simple_at_response(bool ok, RawAddress addr);
+  void debug_dump();
   void cleanup();
 
  private:
