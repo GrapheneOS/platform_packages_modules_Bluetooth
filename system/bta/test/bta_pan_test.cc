@@ -96,7 +96,22 @@ class BtaPanTest : public ::testing::Test {
   std::deque<struct UuidPiece> uuids;
 };
 
-TEST_F(BtaPanTest, BTA_PanSetRole_Null) {
+class BtaPanRegisteredTest : public BtaPanTest {
+ protected:
+  void SetUp() {
+    BtaPanTest::SetUp();
+    bta_sys_eir_register(BTA_SYS_EIR_CBACK);
+  }
+
+  void TearDown() {
+    bta_sys_eir_unregister();
+    BtaPanTest::TearDown();
+  }
+};
+
+TEST_F(BtaPanTest, nop) {}
+
+TEST_F(BtaPanRegisteredTest, BTA_PanSetRole_Null) {
   tBTA_PAN_ROLE role = BTA_PAN_ROLE_PANU | BTA_PAN_ROLE_NAP;
   tBTA_PAN_ROLE_INFO user_info = {
       .p_srv_name = std::string(),
@@ -108,7 +123,6 @@ TEST_F(BtaPanTest, BTA_PanSetRole_Null) {
       .app_id = 34,
   };
 
-  bta_sys_eir_register(BTA_SYS_EIR_CBACK);
   BTA_PanSetRole(role, user_info, nap_info);
 
   // Wait for main thread to complete
@@ -125,7 +139,7 @@ TEST_F(BtaPanTest, BTA_PanSetRole_Null) {
   ASSERT_EQ(true, uuids[1].adding);
 }
 
-TEST_F(BtaPanTest, BTA_PanSetRole_WithNames) {
+TEST_F(BtaPanRegisteredTest, BTA_PanSetRole_WithNames) {
   tBTA_PAN_ROLE role = BTA_PAN_ROLE_PANU | BTA_PAN_ROLE_NAP;
   tBTA_PAN_ROLE_INFO user_info = {
       .p_srv_name = "TestPanUser",
@@ -172,7 +186,7 @@ TEST_F(BtaPanTest, BTA_PanSetRole_WithNames) {
 
 constexpr size_t kBtaServiceNameLen = static_cast<size_t>(BTA_SERVICE_NAME_LEN);
 
-TEST_F(BtaPanTest, BTA_PanSetRole_WithLongNames) {
+TEST_F(BtaPanRegisteredTest, BTA_PanSetRole_WithLongNames) {
   tBTA_PAN_ROLE role = BTA_PAN_ROLE_PANU | BTA_PAN_ROLE_NAP;
   tBTA_PAN_ROLE_INFO user_info = {
       .p_srv_name = std::string(200, 'A'),
