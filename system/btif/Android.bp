@@ -162,6 +162,9 @@ cc_library_static {
     cflags: [
         "-DBUILDCFG",
     ],
+    apex_available: [
+        "com.android.btservices",
+    ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
 }
@@ -237,6 +240,9 @@ cc_library_static {
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
         "-DBUILDCFG",
         "-fvisibility=default",
+    ],
+    apex_available: [
+        "com.android.btservices",
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
