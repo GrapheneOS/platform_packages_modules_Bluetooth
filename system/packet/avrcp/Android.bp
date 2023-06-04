@@ -9,7 +9,7 @@ package {
 
 cc_library_static {
     name: "lib-bt-packets-avrcp",
-    defaults: ["fluoride_common_options"],
+    defaults: ["bluetooth_cflags"],
     header_libs: ["avrcp_headers"],
     export_header_lib_headers: ["avrcp_headers"],
     export_include_dirs: ["."],

@@ -45,6 +45,39 @@ filegroup {
     ],
 }
 
+// This default contains properties that should be common to all the cc targets
+// developed by the Bluetooth team.
+//
+// Be careful when adding new properties here:
+//  - The option should not impact negatively any target, for example "-Wno-*"
+//    options should not be added here but instead on every targets needing
+//    them to avoid allowing adding new warnings in targets that didn't contained
+//    them (you can use the bpmodify tool to ease the work of adding this warning
+//    everywhere) and also allows cleaning them one at a time.
+//
+//  - The option should apply to all the c/c++ code developed by the Bluetooth team:
+//    test, tools, fuzzers, etc, not only production targets, if you need to add an option
+//    for a subset of Bluetooth cc targets you should look at the defaults including this
+//    defaults like "fluoride_defaults" and "gd_defaults".
+//
+//  - Try to keep the name as precise as possible to document to the dependent of what
+//    this default contains. This also means that if you add a new option that isn't
+//    documented by the name of this default, rename it.
+//
+//  - Try avoiding adding option that would not fit "future" targets, for exemple dependencies,
+//    even if every modules of Bluetooth depends on a specific dependency it should be left out
+//    from this default to not push it for future targets that might not need it.
+cc_defaults {
+    name: "bluetooth_cflags",
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+        // there are too many unused parameters in all the code.
+        "-Wno-unused-parameter",
+    ],
+}
+
 // Address Sanitizer is flaky on Android x86_64 binaries but it's not on x86
 // binaries.
 // This default workaround the x86_64 ASAN flakyness by running 32bit binaries
