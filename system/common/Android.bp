@@ -75,6 +75,7 @@ cc_test {
     target: {
         android: {
             srcs: ["metrics_unittest.cc"],
+            shared_libs: ["libstatssocket"],
         },
     },
     shared_libs: [

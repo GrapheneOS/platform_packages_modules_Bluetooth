@@ -168,6 +168,13 @@ cc_test {
         "libosi",
         "libprotobuf-cpp-lite",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libstatssocket",
+            ],
+        },
+    },
     cflags: [
         "-DLIB_OSI_INTERNAL",
     ],

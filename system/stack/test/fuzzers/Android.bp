@@ -63,6 +63,7 @@ cc_defaults {
         "libhidlbase",
         "liblog",
         "libprotobuf-cpp-lite",
+        "libstatssocket",
         "libutils",
     ],
 }

@@ -19,6 +19,7 @@ cc_fuzz {
         "libcutils",
         "liblog",
         "libprotobuf-cpp-lite",
+        "libstatssocket",
     ],
     static_libs: [
         "libbt-common",
