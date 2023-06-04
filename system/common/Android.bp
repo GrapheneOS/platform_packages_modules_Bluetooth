@@ -38,6 +38,7 @@ cc_library_static {
     },
     shared_libs: [
         "libcrypto",
+        "libcutils",
     ],
     min_sdk_version: "Tiramisu",
 }

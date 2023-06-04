@@ -129,10 +129,6 @@ cc_defaults {
         "libbluetooth_gd",
         "libstatslog_bt",
     ],
-    shared_libs: [
-        "libcutils",
-        "libhidlbase",
-    ],
     target: {
         darwin: {
             // libstatslog_bt -> libbinder doesn't build on mac
