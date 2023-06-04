@@ -270,6 +270,7 @@ cc_test {
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "libcrypto",
+        "libcutils",
         "liblog",
         "libprotobuf-cpp-lite",
         "libstatssocket",
