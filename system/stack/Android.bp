@@ -328,6 +328,7 @@ cc_test {
         "libfmq",
         "libhidlbase",
         "liblog",
+        "libstatssocket",
         "libutils",
         "libz",
     ],
@@ -437,6 +438,13 @@ cc_test {
         "libosi",
         "libprotobuf-cpp-lite",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libstatssocket",
+            ],
+        },
+    },
     sanitize: {
         cfi: false,
     },
@@ -663,6 +671,13 @@ cc_test {
         "libosi",
         "libosi-AllocationTestHarness",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libstatssocket",
+            ],
+        },
+    },
     sanitize: {
         address: true,
         cfi: true,
@@ -721,6 +736,11 @@ cc_test {
         "libosi-AllocationTestHarness",
         "libprotobuf-cpp-lite",
     ],
+    target: {
+        android: {
+            shared_libs: ["libstatssocket"],
+        },
+    },
     sanitize: {
         address: true,
         cfi: true,
@@ -927,6 +947,11 @@ cc_test {
         "liblog",
         "libosi",
     ],
+    target: {
+        android: {
+            shared_libs: ["libstatssocket"],
+        },
+    },
 }
 
 // Iso manager unit tests
@@ -1030,6 +1055,11 @@ cc_test {
         "libosi",
         "libprotobuf-cpp-lite",
     ],
+    target: {
+        android: {
+            shared_libs: ["libstatssocket"],
+        },
+    },
     sanitize: {
         cfi: false,
     },
@@ -1247,6 +1277,11 @@ cc_test {
     shared_libs: [
         "libcrypto",
     ],
+    target: {
+        android: {
+            shared_libs: ["libstatssocket"],
+        },
+    },
     sanitize: {
         address: true,
         all_undefined: true,
@@ -1397,6 +1432,11 @@ cc_test {
         "libbinder_ndk",
         "libcrypto",
     ],
+    target: {
+        android: {
+            shared_libs: ["libstatssocket"],
+        },
+    },
     sanitize: {
         address: true,
         all_undefined: true,
@@ -1477,6 +1517,7 @@ cc_test {
         android: {
             shared_libs: [
                 "libPlatformProperties",
+                "libstatssocket",
             ],
         },
     },
@@ -1556,6 +1597,11 @@ cc_test {
         "libbinder_ndk",
         "libcrypto",
     ],
+    target: {
+        android: {
+            shared_libs: ["libstatssocket"],
+        },
+    },
     sanitize: {
         address: true,
         all_undefined: true,
