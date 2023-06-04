@@ -22,6 +22,9 @@ cc_test_library {
     include_dirs: [
         "packages/modules/Bluetooth/system",
     ],
+    shared_libs: [
+        "libcutils",
+    ],
     srcs: crypto_toolbox_srcs,
 }
 
@@ -1736,6 +1739,7 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
+        "libcutils",
     ],
     target: {
         android: {
@@ -1817,6 +1821,7 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
+        "libcutils",
     ],
     target: {
         android: {
