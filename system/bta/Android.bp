@@ -272,6 +272,7 @@ cc_test {
         "libcrypto",
         "liblog",
         "libprotobuf-cpp-lite",
+        "libstatssocket",
     ],
     static_libs: [
         "crypto_toolbox_for_tests",
