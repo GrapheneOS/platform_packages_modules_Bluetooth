@@ -99,10 +99,6 @@ cc_defaults {
         "packages/modules/Bluetooth/system/gd/rust/shim",
         "packages/modules/Bluetooth/system/stack/include",
     ],
-    cflags: [
-        // http://b/264549607
-        "-Wno-deprecated-builtins",
-    ],
     fuzz_config: {
         cc: ["android-bluetooth-security@google.com"],
         componentid: 27441,
