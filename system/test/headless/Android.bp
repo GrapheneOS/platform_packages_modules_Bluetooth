@@ -132,6 +132,7 @@ cc_binary {
         "libhidlbase",
         "libjsoncpp",
         "liblog", // __android_log_print
+        "libstatssocket",
         "libutils",
         "libPlatformProperties",
     ],
