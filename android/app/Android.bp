@@ -114,6 +114,7 @@ cc_library_shared {
         "libcrypto",
         "libfmq",
         "libnativehelper",
+        "libstatssocket",
         "libutils",
     ],
     sanitize: {
