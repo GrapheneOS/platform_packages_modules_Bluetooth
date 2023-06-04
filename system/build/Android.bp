@@ -31,8 +31,6 @@ cc_defaults {
         "-Werror",
         // there are too many unused parameters in all the code.
         "-Wno-unused-parameter",
-        // http://b/264549607
-        "-Wno-deprecated-builtins",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/gd",
