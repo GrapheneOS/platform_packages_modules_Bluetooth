@@ -262,6 +262,7 @@ cc_test {
         "libaaudio",
         "libbinder_ndk",
         "libcrypto",
+        "libcutils",
         "libfmq",
         "libhidlbase",
         "libstatssocket",
