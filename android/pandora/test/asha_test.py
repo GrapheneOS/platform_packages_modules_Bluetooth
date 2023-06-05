@@ -33,7 +33,7 @@ from pandora._utils import AioStream
 from pandora.host_pb2 import PUBLIC, RANDOM, AdvertiseResponse, Connection, DataTypes, OwnAddressType, ScanningResponse
 from pandora.security_pb2 import LE_LEVEL3
 from pandora_experimental.asha_grpc_aio import Asha as AioAsha, add_AshaServicer_to_server
-from typing import List, Optional, Tuple
+from typing import ByteString, List, Optional, Tuple
 
 ASHA_UUID = GATT_ASHA_SERVICE.to_hex_str('-')
 HISYCNID: List[int] = [0x01, 0x02, 0x03, 0x04, 0x5, 0x6, 0x7, 0x8]
@@ -201,6 +201,21 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
 
         asha_service.on('stop', stop_command_handler)
         return stop_future
+
+    async def get_audio_data(self, ref_asha: AioAsha, connection: Connection, timeout: int) -> ByteString:
+        audio_data = bytearray()
+        try:
+            captured_data = ref_asha.CaptureAudio(connection=connection, timeout=timeout)
+            async for data in captured_data:
+                audio_data.extend(data.data)
+
+        except grpc.aio.AioRpcError as e:
+            if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
+                pass
+            else:
+                raise
+
+        return audio_data
 
     @avatar.parameterized(
         (RANDOM, Ear.LEFT),
@@ -859,14 +874,10 @@ class AshaTest(base_test.BaseTestClass):  # type: ignore[misc]
         logging.info(f"stop_result:{stop_result}")
         assert_is_not_none(stop_result)
 
-        ref_asha = AioAsha(self.ref_left.aio.channel)
-        try:
-            ref_asha.CaptureAudio(connection=ref_dut, timeout=2)
-        except grpc.aio.AioRpcError as e:
-            if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
-                logging.info("no audio data, work as expected")
-            else:
-                raise e
+        audio_data = await self.get_audio_data(
+            ref_asha=AioAsha(self.ref_left.aio.channel), connection=ref_dut, timeout=10
+        )
+        assert_equal(len(audio_data), 0)
 
     @asynchronous
     async def test_music_restart(self) -> None:
