@@ -18,6 +18,8 @@ use File::Basename;
 
 ## mockcify version
 ##
+## 0.6.1 Add tBTA_SDP_STATUS default value
+##
 ## 0.6.0 Replace `extern` with `include` for mock_function_count_map
 ##
 ## 0.5.0 Add compilation check
@@ -36,7 +38,7 @@ use File::Basename;
 ##
 ## 0.2.0 First version
 ##
-my $VERSION = "0.6.0";
+my $VERSION = "0.6.1";
 
 use strict;
 use warnings;
@@ -561,6 +563,8 @@ sub get_default_return_value_from_type {
     return "nullptr";
   } elsif(/btav_a2dp_codec_index_t/) {
     return "BTAV_A2DP_CODEC_INDEX_SOURCE_MIN";
+  } elsif(/tBTA_SDP_STATUS/) {
+    return "BTA_SDP_SUCCESS";
   } else {
     ## Decay to int type
     return "0";
