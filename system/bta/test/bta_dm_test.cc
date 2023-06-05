@@ -77,6 +77,7 @@ namespace legacy {
 namespace testing {
 
 void bta_dm_init_cb();
+void bta_dm_deinit_cb();
 
 }  // namespace testing
 }  // namespace legacy
@@ -102,7 +103,7 @@ class BtaDmTest : public testing::Test {
   }
   void TearDown() override {
     bta_sys_deregister(BTA_ID_DM_SEARCH);
-    bta_dm_deinit_cb();
+    bluetooth::legacy::testing::bta_dm_deinit_cb();
     post_on_bt_main([]() { LOG_INFO("Main thread shutting down"); });
     main_thread_shut_down();
   }

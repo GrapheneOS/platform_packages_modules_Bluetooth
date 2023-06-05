@@ -67,7 +67,6 @@ struct bta_dm_ci_rmt_oob_act bta_dm_ci_rmt_oob_act;
 struct bta_dm_close_acl bta_dm_close_acl;
 struct bta_dm_close_gatt_conn bta_dm_close_gatt_conn;
 struct bta_dm_confirm bta_dm_confirm;
-struct bta_dm_deinit_cb bta_dm_deinit_cb;
 struct bta_dm_disable bta_dm_disable;
 struct bta_dm_disc_result bta_dm_disc_result;
 struct bta_dm_remote_name_cmpl bta_dm_remote_name_cmpl;
@@ -241,10 +240,6 @@ void bta_dm_close_gatt_conn(tBTA_DM_MSG* p_data) {
 void bta_dm_confirm(const RawAddress& bd_addr, bool accept) {
   inc_func_call_count(__func__);
   test::mock::bta_dm_act::bta_dm_confirm(bd_addr, accept);
-}
-void bta_dm_deinit_cb(void) {
-  inc_func_call_count(__func__);
-  test::mock::bta_dm_act::bta_dm_deinit_cb();
 }
 void bta_dm_disable() {
   inc_func_call_count(__func__);
