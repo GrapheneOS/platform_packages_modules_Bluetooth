@@ -79,6 +79,14 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
     fn on_adapter_property_changed(&mut self, prop: BtPropertyType) {
         dbus_generated!()
     }
+    #[dbus_method("OnDevicePropertiesChanged")]
+    fn on_device_properties_changed(
+        &mut self,
+        remote_device: BluetoothDevice,
+        props: Vec<BtPropertyType>,
+    ) {
+        dbus_generated!()
+    }
     #[dbus_method("OnAddressChanged")]
     fn on_address_changed(&mut self, addr: String) {
         dbus_generated!()
