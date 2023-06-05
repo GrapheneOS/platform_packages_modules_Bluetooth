@@ -57,7 +57,7 @@ tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK* p_cback) {
   }
 
   memset(&bta_sdp_cb, 0, sizeof(tBTA_SDP_CB));
-  do_in_main_thread(FROM_HERE, base::Bind(bta_sdp_enable, p_cback));
+  do_in_main_thread(FROM_HERE, base::BindOnce(bta_sdp_enable, p_cback));
   return BTA_SDP_SUCCESS;
 }
 
@@ -76,7 +76,7 @@ tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK* p_cback) {
  ******************************************************************************/
 tBTA_SDP_STATUS BTA_SdpSearch(const RawAddress& bd_addr,
                               const bluetooth::Uuid& uuid) {
-  do_in_main_thread(FROM_HERE, base::Bind(bta_sdp_search, bd_addr, uuid));
+  do_in_main_thread(FROM_HERE, base::BindOnce(bta_sdp_search, bd_addr, uuid));
   return BTA_SDP_SUCCESS;
 }
 
@@ -93,7 +93,8 @@ tBTA_SDP_STATUS BTA_SdpSearch(const RawAddress& bd_addr,
  *
  ******************************************************************************/
 tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data) {
-  do_in_main_thread(FROM_HERE, base::Bind(bta_sdp_create_record, user_data));
+  do_in_main_thread(FROM_HERE,
+                    base::BindOnce(bta_sdp_create_record, user_data));
   return BTA_SDP_SUCCESS;
 }
 
@@ -110,6 +111,7 @@ tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data) {
  *
  ******************************************************************************/
 tBTA_SDP_STATUS BTA_SdpRemoveRecordByUser(void* user_data) {
-  do_in_main_thread(FROM_HERE, base::Bind(bta_sdp_remove_record, user_data));
+  do_in_main_thread(FROM_HERE,
+                    base::BindOnce(bta_sdp_remove_record, user_data));
   return BTA_SDP_SUCCESS;
 }

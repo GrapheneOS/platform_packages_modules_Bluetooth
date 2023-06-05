@@ -66,7 +66,7 @@ tBTA_STATUS BTA_AgEnable(tBTA_AG_CBACK* p_cback) {
     }
   }
   bta_sys_register(BTA_ID_AG, &bta_ag_reg);
-  do_in_main_thread(FROM_HERE, base::Bind(&bta_ag_api_enable, p_cback));
+  do_in_main_thread(FROM_HERE, base::BindOnce(&bta_ag_api_enable, p_cback));
   return BTA_SUCCESS;
 }
 
@@ -81,7 +81,7 @@ tBTA_STATUS BTA_AgEnable(tBTA_AG_CBACK* p_cback) {
  *
  ******************************************************************************/
 void BTA_AgDisable() {
-  do_in_main_thread(FROM_HERE, base::Bind(&bta_ag_api_disable));
+  do_in_main_thread(FROM_HERE, base::BindOnce(&bta_ag_api_disable));
 }
 
 /*******************************************************************************
@@ -97,8 +97,8 @@ void BTA_AgDisable() {
 void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_AG_FEAT features,
                     const std::vector<std::string>& service_names,
                     uint8_t app_id) {
-  do_in_main_thread(FROM_HERE, base::Bind(&bta_ag_api_register, services,
-                                          features, service_names, app_id));
+  do_in_main_thread(FROM_HERE, base::BindOnce(&bta_ag_api_register, services,
+                                              features, service_names, app_id));
 }
 
 /*******************************************************************************
@@ -112,9 +112,9 @@ void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_AG_FEAT features,
  *
  ******************************************************************************/
 void BTA_AgDeregister(uint16_t handle) {
-  do_in_main_thread(
-      FROM_HERE, base::Bind(&bta_ag_sm_execute_by_handle, handle,
-                            BTA_AG_API_DEREGISTER_EVT, tBTA_AG_DATA::kEmpty));
+  do_in_main_thread(FROM_HERE, base::BindOnce(&bta_ag_sm_execute_by_handle,
+                                              handle, BTA_AG_API_DEREGISTER_EVT,
+                                              tBTA_AG_DATA::kEmpty));
 }
 
 /*******************************************************************************
@@ -133,8 +133,9 @@ void BTA_AgDeregister(uint16_t handle) {
 void BTA_AgOpen(uint16_t handle, const RawAddress& bd_addr) {
   tBTA_AG_DATA data = {};
   data.api_open.bd_addr = bd_addr;
-  do_in_main_thread(FROM_HERE, base::Bind(&bta_ag_sm_execute_by_handle, handle,
-                                          BTA_AG_API_OPEN_EVT, data));
+  do_in_main_thread(FROM_HERE,
+                    base::BindOnce(&bta_ag_sm_execute_by_handle, handle,
+                                   BTA_AG_API_OPEN_EVT, data));
 }
 
 /*******************************************************************************
@@ -150,8 +151,8 @@ void BTA_AgOpen(uint16_t handle, const RawAddress& bd_addr) {
  ******************************************************************************/
 void BTA_AgClose(uint16_t handle) {
   do_in_main_thread(FROM_HERE,
-                    base::Bind(&bta_ag_sm_execute_by_handle, handle,
-                               BTA_AG_API_CLOSE_EVT, tBTA_AG_DATA::kEmpty));
+                    base::BindOnce(&bta_ag_sm_execute_by_handle, handle,
+                                   BTA_AG_API_CLOSE_EVT, tBTA_AG_DATA::kEmpty));
 }
 
 /*******************************************************************************
@@ -171,8 +172,9 @@ void BTA_AgClose(uint16_t handle) {
 void BTA_AgAudioOpen(uint16_t handle, tBTA_AG_PEER_CODEC disabled_codecs) {
   tBTA_AG_DATA data = {};
   data.api_audio_open.disabled_codecs = disabled_codecs;
-  do_in_main_thread(FROM_HERE, base::Bind(&bta_ag_sm_execute_by_handle, handle,
-                                          BTA_AG_API_AUDIO_OPEN_EVT, data));
+  do_in_main_thread(FROM_HERE,
+                    base::BindOnce(&bta_ag_sm_execute_by_handle, handle,
+                                   BTA_AG_API_AUDIO_OPEN_EVT, data));
 }
 
 /*******************************************************************************
@@ -188,8 +190,9 @@ void BTA_AgAudioOpen(uint16_t handle, tBTA_AG_PEER_CODEC disabled_codecs) {
  ******************************************************************************/
 void BTA_AgAudioClose(uint16_t handle) {
   do_in_main_thread(
-      FROM_HERE, base::Bind(&bta_ag_sm_execute_by_handle, handle,
-                            BTA_AG_API_AUDIO_CLOSE_EVT, tBTA_AG_DATA::kEmpty));
+      FROM_HERE,
+      base::BindOnce(&bta_ag_sm_execute_by_handle, handle,
+                     BTA_AG_API_AUDIO_CLOSE_EVT, tBTA_AG_DATA::kEmpty));
 }
 
 /*******************************************************************************
@@ -207,7 +210,7 @@ void BTA_AgAudioClose(uint16_t handle) {
 void BTA_AgResult(uint16_t handle, tBTA_AG_RES result,
                   const tBTA_AG_RES_DATA& data) {
   do_in_main_thread(FROM_HERE,
-                    base::Bind(&bta_ag_api_result, handle, result, data));
+                    base::BindOnce(&bta_ag_api_result, handle, result, data));
 }
 
 /*******************************************************************************
@@ -225,20 +228,21 @@ void BTA_AgResult(uint16_t handle, tBTA_AG_RES result,
 void BTA_AgSetCodec(uint16_t handle, tBTA_AG_PEER_CODEC codec) {
   tBTA_AG_DATA data = {};
   data.api_setcodec.codec = codec;
-  do_in_main_thread(FROM_HERE, base::Bind(&bta_ag_sm_execute_by_handle, handle,
-                                          BTA_AG_API_SETCODEC_EVT, data));
+  do_in_main_thread(FROM_HERE,
+                    base::BindOnce(&bta_ag_sm_execute_by_handle, handle,
+                                   BTA_AG_API_SETCODEC_EVT, data));
 }
 
 void BTA_AgSetScoOffloadEnabled(bool value) {
   do_in_main_thread(FROM_HERE,
-                    base::Bind(&bta_ag_set_sco_offload_enabled, value));
+                    base::BindOnce(&bta_ag_set_sco_offload_enabled, value));
 }
 
 void BTA_AgSetScoAllowed(bool value) {
-  do_in_main_thread(FROM_HERE, base::Bind(&bta_ag_set_sco_allowed, value));
+  do_in_main_thread(FROM_HERE, base::BindOnce(&bta_ag_set_sco_allowed, value));
 }
 
 void BTA_AgSetActiveDevice(const RawAddress& active_device_addr) {
-  do_in_main_thread(
-      FROM_HERE, base::Bind(&bta_ag_api_set_active_device, active_device_addr));
+  do_in_main_thread(FROM_HERE, base::BindOnce(&bta_ag_api_set_active_device,
+                                              active_device_addr));
 }
