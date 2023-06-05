@@ -866,7 +866,7 @@ public class TbsGattTest {
         verify(mMockGattServer, times(0))
                 .notifyCharacteristicChanged(any(), eq(characteristic2), eq(false));
         verify(mMockGattServer, times(1))
-                .notifyCharacteristicChanged(any(), eq(characteristic), eq(false));
+                .notifyCharacteristicChanged(any(), eq(characteristic), eq(false), eq(valueBytes));
     }
 
     @Test
