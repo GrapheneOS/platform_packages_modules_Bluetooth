@@ -709,47 +709,12 @@ void btsnd_hcic_set_conn_encrypt(uint16_t handle, bool enable) {
 void btsnd_hcic_rmt_name_req(const RawAddress& bd_addr,
                              uint8_t page_scan_rep_mode, uint8_t page_scan_mode,
                              uint16_t clock_offset) {
-  if (bluetooth::common::init_flags::gd_remote_name_request_is_enabled()) {
-    bluetooth::shim::ACL_RemoteNameRequest(bd_addr, page_scan_rep_mode,
-                                           page_scan_mode, clock_offset);
-    return;
-  }
-
-  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
-  uint8_t* pp = (uint8_t*)(p + 1);
-
-  p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_RMT_NAME_REQ;
-  p->offset = 0;
-
-  UINT16_TO_STREAM(pp, HCI_RMT_NAME_REQUEST);
-  UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_RMT_NAME_REQ);
-
-  BDADDR_TO_STREAM(pp, bd_addr);
-  UINT8_TO_STREAM(pp, page_scan_rep_mode);
-  UINT8_TO_STREAM(pp, page_scan_mode);
-  UINT16_TO_STREAM(pp, clock_offset);
-
-  btm_acl_paging(p, bd_addr);
+  bluetooth::shim::ACL_RemoteNameRequest(bd_addr, page_scan_rep_mode,
+                                         page_scan_mode, clock_offset);
 }
 
 void btsnd_hcic_rmt_name_req_cancel(const RawAddress& bd_addr) {
-  if (bluetooth::common::init_flags::gd_remote_name_request_is_enabled()) {
-    bluetooth::shim::ACL_CancelRemoteNameRequest(bd_addr);
-    return;
-  }
-
-  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
-  uint8_t* pp = (uint8_t*)(p + 1);
-
-  p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_RMT_NAME_REQ_CANCEL;
-  p->offset = 0;
-
-  UINT16_TO_STREAM(pp, HCI_RMT_NAME_REQUEST_CANCEL);
-  UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_RMT_NAME_REQ_CANCEL);
-
-  BDADDR_TO_STREAM(pp, bd_addr);
-
-  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+  bluetooth::shim::ACL_CancelRemoteNameRequest(bd_addr);
 }
 
 void btsnd_hcic_rmt_ext_features(uint16_t handle, uint8_t page_num) {
