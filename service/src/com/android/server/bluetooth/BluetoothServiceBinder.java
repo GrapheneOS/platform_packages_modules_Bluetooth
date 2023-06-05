@@ -34,7 +34,6 @@ import android.annotation.RequiresPermission;
 import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.IBluetooth;
-import android.bluetooth.IBluetoothGatt;
 import android.bluetooth.IBluetoothManager;
 import android.bluetooth.IBluetoothManagerCallback;
 import android.bluetooth.IBluetoothProfileServiceConnection;
@@ -182,11 +181,6 @@ class BluetoothServiceBinder extends IBluetoothManager.Stub {
         }
 
         return mBluetoothManagerService.getState();
-    }
-
-    @Override
-    public IBluetoothGatt getBluetoothGatt() {
-        return mBluetoothManagerService.getBluetoothGatt();
     }
 
     @Override

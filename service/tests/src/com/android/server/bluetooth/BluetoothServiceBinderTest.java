@@ -245,14 +245,6 @@ public class BluetoothServiceBinderTest {
     }
 
     @Test
-    public void getBluetoothGatt() {
-        // No permission needed for this call
-        mBinder.getBluetoothGatt();
-        verify(mManagerService).getBluetoothGatt();
-        verifyMock();
-    }
-
-    @Test
     public void bindBluetoothProfileService() {
         assertThrows(
                 NullPointerException.class,
