@@ -92,9 +92,7 @@ void Stack::StartEverything() {
   modules.add<hci::Controller>();
   modules.add<hci::acl_manager::AclScheduler>();
   modules.add<hci::AclManager>();
-  if (common::init_flags::gd_remote_name_request_is_enabled()) {
-    modules.add<hci::RemoteNameRequestModule>();
-  }
+  modules.add<hci::RemoteNameRequestModule>();
   if (common::init_flags::gd_l2cap_is_enabled()) {
     modules.add<l2cap::classic::L2capClassicModule>();
     modules.add<l2cap::le::L2capLeModule>();

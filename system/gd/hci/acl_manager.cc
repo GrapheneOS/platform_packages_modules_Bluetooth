@@ -68,9 +68,7 @@ struct AclManager::impl {
     round_robin_scheduler_ = new RoundRobinScheduler(handler_, controller_, hci_layer_->GetAclQueueEnd());
     acl_scheduler_ = acl_manager_.GetDependency<AclScheduler>();
 
-    if (bluetooth::common::init_flags::gd_remote_name_request_is_enabled()) {
-      remote_name_request_module_ = acl_manager_.GetDependency<RemoteNameRequestModule>();
-    }
+    remote_name_request_module_ = acl_manager_.GetDependency<RemoteNameRequestModule>();
 
     bool crash_on_unknown_handle = false;
     {
@@ -426,9 +424,7 @@ void AclManager::ListDependencies(ModuleList* list) const {
   list->add<Controller>();
   list->add<storage::StorageModule>();
   list->add<AclScheduler>();
-  if (bluetooth::common::init_flags::gd_remote_name_request_is_enabled()) {
-    list->add<RemoteNameRequestModule>();
-  }
+  list->add<RemoteNameRequestModule>();
 }
 
 void AclManager::Start() {
