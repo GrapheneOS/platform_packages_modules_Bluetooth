@@ -1554,19 +1554,18 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 Bluetooth::send_metrics_remote_device_info(d);
 
                 let info = d.info.clone();
-                let has_uuids = d
-                    .properties
-                    .get(&BtPropertyType::Uuids)
-                    .and_then(|prop| match prop {
-                        BluetoothProperty::Uuids(uu) => Some(uu.len() > 0),
-                        _ => None,
-                    })
-                    .map_or(false, |v| v);
 
-                // Services are resolved when uuids are fetched.
-                d.services_resolved = has_uuids;
+                if !d.services_resolved {
+                    let has_uuids = properties.iter().any(|prop| match prop {
+                        BluetoothProperty::Uuids(uu) => uu.len() > 0,
+                        _ => false,
+                    });
 
-                if d.wait_to_connect && has_uuids {
+                    // Services are resolved when uuids are fetched.
+                    d.services_resolved |= has_uuids;
+                }
+
+                if d.wait_to_connect && d.services_resolved {
                     d.wait_to_connect = false;
 
                     let sent_info = info.clone();
