@@ -83,29 +83,3 @@ void bte_main_init(void) {
 
   hci->set_data_cb(base::Bind(&post_to_main_message_loop));
 }
-
-/******************************************************************************
- *
- * Function         bte_main_hci_send
- *
- * Description      BTE MAIN API - This function is called by the upper stack to
- *                  send an HCI message. The function displays a protocol trace
- *                  message (if enabled), and then calls the 'transmit' function
- *                  associated with the currently selected HCI transport
- *
- * Returns          None
- *
- *****************************************************************************/
-void bte_main_hci_send(BT_HDR* p_msg, uint16_t event) {
-  uint16_t sub_event = event & BT_SUB_EVT_MASK; /* local controller ID */
-
-  p_msg->event = event;
-
-  if ((sub_event == LOCAL_BR_EDR_CONTROLLER_ID) ||
-      (sub_event == LOCAL_BLE_CONTROLLER_ID)) {
-    hci->transmit_downward(event, p_msg);
-  } else {
-    APPL_TRACE_ERROR("Invalid Controller ID. Discarding message.");
-    osi_free(p_msg);
-  }
-}
