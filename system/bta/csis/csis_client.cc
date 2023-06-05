@@ -644,6 +644,10 @@ class CsisClientImpl : public CsisClient {
 
         // Set grouping and SIRK
         auto csis_group = AssignCsisGroup(addr, gid, true, Uuid::kEmpty);
+        if (csis_group == nullptr) {
+          continue;
+        }
+
         csis_group->SetDesiredSize(size);
         csis_group->SetSirk(sirk);
 
