@@ -511,7 +511,6 @@ void bta_dm_search_sm_disable(void);
 
 void bta_dm_enable(tBTA_DM_SEC_CBACK*);
 void bta_dm_disable();
-void bta_dm_deinit_cb(void);
 void bta_dm_ble_sirk_sec_cb_register(tBTA_DM_SEC_CBACK*);
 void bta_dm_ble_sirk_confirm_device_reply(const RawAddress& bd_addr,
                                           bool accept);
