@@ -420,7 +420,7 @@ static void bta_dm_init_cb(void) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_dm_deinit_cb(void) {
+static void bta_dm_deinit_cb(void) {
   /*
    * TODO: Should alarm_free() the bta_dm_cb timers during graceful
    * shutdown.
@@ -4802,6 +4802,7 @@ tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event, tBTM_SP_EVT_DATA* p_data) {
 void btm_set_local_io_caps(uint8_t io_caps) { ::btm_local_io_caps = io_caps; }
 
 void bta_dm_init_cb() { ::bta_dm_init_cb(); }
+void bta_dm_deinit_cb() { ::bta_dm_deinit_cb(); }
 
 }  // namespace testing
 }  // namespace legacy
