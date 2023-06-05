@@ -12,6 +12,7 @@ use syn::{
 
 /// Defines a provider function, with generated helper that implicitly fetches argument instances from the registry
 #[proc_macro_attribute]
+#[allow(clippy::redundant_clone)]
 pub fn provides(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let function: ItemFn = parse(item).expect("can only be applied to functions");
 
@@ -132,6 +133,7 @@ impl Parse for ModuleEntry {
 
 /// Emits a module function that registers submodules & providers with the registry
 #[proc_macro]
+#[allow(clippy::redundant_clone)]
 pub fn module(item: TokenStream) -> TokenStream {
     let module = parse_macro_input!(item as ModuleDef);
     let init_ident = module.name.clone();
@@ -177,6 +179,7 @@ pub fn derive_nop_stop(item: TokenStream) -> TokenStream {
 
 /// Generates the code necessary to split up a type into its components
 #[proc_macro_attribute]
+#[allow(clippy::redundant_clone)]
 pub fn part_out(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let struct_: ItemStruct = parse(item).expect("can only be applied to struct definitions");
     let struct_ident = struct_.ident.clone();
