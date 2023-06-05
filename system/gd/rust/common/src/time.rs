@@ -1,4 +1,4 @@
-///! Waking timers for Bluetooth. Implemented using timerfd, but supposed to feel similar to
+//! Waking timers for Bluetooth. Implemented using timerfd, but supposed to feel similar to
 ///Tokio's time
 use nix::sys::time::TimeSpec;
 use nix::sys::timerfd::{ClockId, Expiration, TimerFd, TimerFlags, TimerSetTimeFlags};
