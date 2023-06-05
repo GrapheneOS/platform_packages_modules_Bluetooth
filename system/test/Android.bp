@@ -565,6 +565,20 @@ filegroup {
     srcs: ["common/btif_trace_level.cc"],
 }
 
+filegroup {
+    name: "TestFakeThread",
+    srcs: [
+        "fake/fake_thread.cc",
+    ],
+}
+
+filegroup {
+    name: "TestFakeLooper",
+    srcs: [
+        "fake/fake_looper.cc",
+    ],
+}
+
 cc_defaults {
     name: "mts_defaults",
     target: {
