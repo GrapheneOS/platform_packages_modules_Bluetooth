@@ -72,6 +72,16 @@ const tBTA_SYS_REG bta_dm_search_reg = {bta_dm_search_sm_execute,
 
 }  // namespace
 
+namespace bluetooth {
+namespace legacy {
+namespace testing {
+
+void bta_dm_init_cb();
+
+}  // namespace testing
+}  // namespace legacy
+}  // namespace bluetooth
+
 class BtaDmTest : public testing::Test {
  protected:
   void SetUp() override {
@@ -82,7 +92,7 @@ class BtaDmTest : public testing::Test {
     post_on_bt_main([]() { LOG_INFO("Main thread started up"); });
 
     bta_sys_register(BTA_ID_DM_SEARCH, &bta_dm_search_reg);
-    bta_dm_init_cb();
+    bluetooth::legacy::testing::bta_dm_init_cb();
 
     for (int i = 0; i < BTA_DM_NUM_PM_TIMER; i++) {
       for (int j = 0; j < BTA_DM_PM_MODE_TIMER_MAX; j++) {
