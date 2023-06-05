@@ -1157,7 +1157,7 @@ void bta_dm_remote_name_cmpl(const tBTA_DM_MSG* p_data) {
                      PRIVATE_NAME(remote_name_msg.bd_name)));
 
   tBTM_INQ_INFO* p_btm_inq_info = BTM_InqDbRead(remote_name_msg.bd_addr);
-  if (remote_name_msg.bd_name[0] != '\0' && bta_dm_search_cb.p_btm_inq_info) {
+  if (!bd_name_is_empty(remote_name_msg.bd_name) && p_btm_inq_info) {
     p_btm_inq_info->appl_knows_rem_name = true;
   }
 
