@@ -378,6 +378,13 @@ pub trait IBluetoothCallback: RPCProxy {
     /// When any adapter property changes.
     fn on_adapter_property_changed(&mut self, prop: BtPropertyType);
 
+    /// When any device properties change.
+    fn on_device_properties_changed(
+        &mut self,
+        remote_device: BluetoothDevice,
+        props: Vec<BtPropertyType>,
+    );
+
     /// When any of the adapter local address is changed.
     fn on_address_changed(&mut self, addr: String);
 
@@ -1578,6 +1585,14 @@ impl BtifBluetoothCallbacks for Bluetooth {
                             .await;
                     });
                 }
+
+                let info = &d.info.clone();
+                self.callbacks.for_all_callbacks(|callback| {
+                    callback.on_device_properties_changed(
+                        info.clone(),
+                        properties.clone().into_iter().map(|x| x.get_type()).collect(),
+                    );
+                });
 
                 self.bluetooth_admin
                     .lock()
