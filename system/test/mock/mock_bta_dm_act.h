@@ -452,15 +452,6 @@ struct bta_dm_confirm {
 };
 extern struct bta_dm_confirm bta_dm_confirm;
 
-// Name: bta_dm_deinit_cb
-// Params: void
-// Return: void
-struct bta_dm_deinit_cb {
-  std::function<void(void)> body{[](void) {}};
-  void operator()(void) { body(); };
-};
-extern struct bta_dm_deinit_cb bta_dm_deinit_cb;
-
 // Name: bta_dm_disable
 // Params:
 // Return: void
