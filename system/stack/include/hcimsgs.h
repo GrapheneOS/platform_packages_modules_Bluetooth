@@ -31,8 +31,6 @@
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
-void bte_main_hci_send(BT_HDR* p_msg, uint16_t event);
-
 /* Message by message.... */
 
 /* Disconnect */
