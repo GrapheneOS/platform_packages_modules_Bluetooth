@@ -563,15 +563,6 @@ struct bta_dm_free_sdp_db {
 };
 extern struct bta_dm_free_sdp_db bta_dm_free_sdp_db;
 
-// Name: bta_dm_init_cb
-// Params: void
-// Return: void
-struct bta_dm_init_cb {
-  std::function<void(void)> body{[](void) {}};
-  void operator()(void) { body(); };
-};
-extern struct bta_dm_init_cb bta_dm_init_cb;
-
 // Name: bta_dm_inq_cmpl
 // Params: uint8_t num
 // Return: void

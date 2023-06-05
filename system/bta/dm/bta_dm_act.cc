@@ -399,7 +399,7 @@ tBTA_DM_STATE bta_dm_search_get_state() { return bta_dm_search_cb.state; }
  * Returns          void
  *
  ******************************************************************************/
-void bta_dm_init_cb(void) {
+static void bta_dm_init_cb(void) {
   bta_dm_cb = {};
   bta_dm_cb.disable_timer = alarm_new("bta_dm.disable_timer");
   bta_dm_cb.switch_delay_timer = alarm_new("bta_dm.switch_delay_timer");
@@ -4800,6 +4800,8 @@ tBTM_STATUS bta_dm_sp_cback(tBTM_SP_EVT event, tBTM_SP_EVT_DATA* p_data) {
 }
 
 void btm_set_local_io_caps(uint8_t io_caps) { ::btm_local_io_caps = io_caps; }
+
+void bta_dm_init_cb() { ::bta_dm_init_cb(); }
 
 }  // namespace testing
 }  // namespace legacy
