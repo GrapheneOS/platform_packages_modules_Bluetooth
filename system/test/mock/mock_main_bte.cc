@@ -43,7 +43,6 @@ namespace main_bte {
 
 // Function state capture and return values, if needed
 struct bte_main_init bte_main_init;
-struct bte_main_hci_send bte_main_hci_send;
 
 }  // namespace main_bte
 }  // namespace mock
@@ -53,10 +52,6 @@ struct bte_main_hci_send bte_main_hci_send;
 void bte_main_init(void) {
   inc_func_call_count(__func__);
   test::mock::main_bte::bte_main_init();
-}
-void bte_main_hci_send(BT_HDR* p_msg, uint16_t event) {
-  inc_func_call_count(__func__);
-  test::mock::main_bte::bte_main_hci_send(p_msg, event);
 }
 
 // END mockcify generation
