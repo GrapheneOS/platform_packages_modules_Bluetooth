@@ -453,41 +453,11 @@ uint8_t* BTM_ReadDeviceClass(void) {
  ******************************************************************************/
 void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
                                uint8_t* p_param_buf, tBTM_VSC_CMPL_CB* p_cb) {
-  /* Allocate a buffer to hold HCI command plus the callback function */
-  void* p_buf = osi_malloc(sizeof(BT_HDR) + sizeof(tBTM_CMPL_CB*) + param_len +
-                           HCIC_PREAMBLE_SIZE);
-
   BTM_TRACE_EVENT("BTM: %s: Opcode: 0x%04X, ParamLen: %i.", __func__, opcode,
                   param_len);
 
   /* Send the HCI command (opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC) */
-  btsnd_hcic_vendor_spec_cmd(p_buf, opcode, param_len, p_param_buf,
-                             (void*)p_cb);
-}
-
-/*******************************************************************************
- *
- * Function         btm_vsc_complete
- *
- * Description      This function is called when local HCI Vendor Specific
- *                  Command complete message is received from the HCI.
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_vsc_complete(uint8_t* p, uint16_t opcode, uint16_t evt_len,
-                      tBTM_VSC_CMPL_CB* p_vsc_cplt_cback) {
-  tBTM_VSC_CMPL vcs_cplt_params;
-
-  /* If there was a callback address for vcs complete, call it */
-  if (p_vsc_cplt_cback) {
-    /* Pass paramters to the callback function */
-    vcs_cplt_params.opcode = opcode;     /* Number of bytes in return info */
-    vcs_cplt_params.param_len = evt_len; /* Number of bytes in return info */
-    vcs_cplt_params.p_param_buf = p;
-    (*p_vsc_cplt_cback)(
-        &vcs_cplt_params); /* Call the VSC complete callback function */
-  }
+  btsnd_hcic_vendor_spec_cmd(opcode, param_len, p_param_buf, p_cb);
 }
 
 /*******************************************************************************
