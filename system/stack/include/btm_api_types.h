@@ -192,8 +192,6 @@ typedef uint16_t tBTM_SCO_CODEC_TYPE;
 /*******************
  * SCO Data Status
  *******************/
-typedef uint8_t tBTM_SCO_DATA_FLAG;
-
 /***************************
  *  SCO Callback Functions
  ***************************/
