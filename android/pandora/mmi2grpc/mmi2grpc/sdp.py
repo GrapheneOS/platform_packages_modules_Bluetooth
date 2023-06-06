@@ -57,10 +57,27 @@ class SDPProxy(ProfileProxy):
         If necessary take action to accept the SDP channel connection.
         """
 
+        return self.TSC_SDP_mmi_iut_accept_connection(**kwargs)
+
+    @assert_description
+    def TSC_SDP_mmi_iut_accept_connection(self, **kwargs):
+        """
+        If necessary take action to accept the SDP channel connection.
+        """
+
         return "OK"
 
     @assert_description
     def _mmi_6001(self, **kwargs):
+        """
+        If necessary take action to respond to the Service Attribute operation
+        appropriately.
+        """
+
+        return self.TSC_SDP_mmi_iut_accept_service_attribute(**kwargs)
+
+    @assert_description
+    def TSC_SDP_mmi_iut_accept_service_attribute(self, **kwargs):
         """
         If necessary take action to respond to the Service Attribute operation
         appropriately.
@@ -74,10 +91,27 @@ class SDPProxy(ProfileProxy):
         If necessary take action to accept the Service Search operation.
         """
 
+        return self.TSC_SDP_mmi_iut_accept_service_search(**kwargs)
+
+    @assert_description
+    def TSC_SDP_mmi_iut_accept_service_search(self, **kwargs):
+        """
+        If necessary take action to accept the Service Search operation.
+        """
+
         return "OK"
 
     @assert_description
     def _mmi_6003(self, **kwargs):
+        """
+        If necessary take action to respond to the Service Search Attribute
+        operation appropriately.
+        """
+
+        return self.TSC_SDP_mmi_iut_accept_service_search_attribute(**kwargs)
+
+    @assert_description
+    def TSC_SDP_mmi_iut_accept_service_search_attribute(self, **kwargs):
         """
         If necessary take action to respond to the Service Search Attribute
         operation appropriately.
