@@ -44,7 +44,8 @@ import com.android.internal.annotations.VisibleForTesting;
  * </ul>
  */
 class BluetoothAirplaneModeListener extends Handler {
-    private static final String TAG = "BluetoothAirplaneModeListener";
+    private static final String TAG = BluetoothAirplaneModeListener.class.getSimpleName();
+
     @VisibleForTesting static final String TOAST_COUNT = "bluetooth_airplane_toast_count";
 
     // keeps track of whether wifi should remain on in airplane mode
@@ -187,34 +188,7 @@ class BluetoothAirplaneModeListener extends Handler {
                 mAirplaneHelper.setSettingsInt(
                         Settings.Global.BLUETOOTH_ON,
                         BluetoothManagerService.BLUETOOTH_ON_AIRPLANE);
-                if (!isApmEnhancementEnabled() || !isBluetoothToggledOnApm()) {
-                    if (shouldPopToast()) {
-                        mAirplaneHelper.showToastMessage();
-                    }
-                } else {
-                    if (isWifiEnabledOnApm() && isFirstTimeNotification(APM_WIFI_BT_NOTIFICATION)) {
-                        try {
-                            sendApmNotification(
-                                    "bluetooth_and_wifi_stays_on_title",
-                                    "bluetooth_and_wifi_stays_on_message",
-                                    APM_WIFI_BT_NOTIFICATION);
-                        } catch (Exception e) {
-                            Log.e(
-                                    TAG,
-                                    "APM enhancement BT and Wi-Fi stays on notification not shown");
-                        }
-                    } else if (!isWifiEnabledOnApm()
-                            && isFirstTimeNotification(APM_BT_NOTIFICATION)) {
-                        try {
-                            sendApmNotification(
-                                    "bluetooth_stays_on_title",
-                                    "bluetooth_stays_on_message",
-                                    APM_BT_NOTIFICATION);
-                        } catch (Exception e) {
-                            Log.e(TAG, "APM enhancement BT stays on notification not shown");
-                        }
-                    }
-                }
+                displayUserNotificationIfNeeded();
                 return;
             }
         } else {
@@ -232,6 +206,35 @@ class BluetoothAirplaneModeListener extends Handler {
             mUserToggledBluetoothDuringApmWithinMinute = false;
         }
         mBluetoothManager.onAirplaneModeChanged(isAirplaneModeOn);
+    }
+
+    private void displayUserNotificationIfNeeded() {
+        if (!isApmEnhancementEnabled() || !isBluetoothToggledOnApm()) {
+            if (shouldPopToast()) {
+                mAirplaneHelper.showToastMessage();
+            }
+            return;
+        } else {
+            if (isWifiEnabledOnApm() && isFirstTimeNotification(APM_WIFI_BT_NOTIFICATION)) {
+                try {
+                    sendApmNotification(
+                            "bluetooth_and_wifi_stays_on_title",
+                            "bluetooth_and_wifi_stays_on_message",
+                            APM_WIFI_BT_NOTIFICATION);
+                } catch (Exception e) {
+                    Log.e(TAG, "APM enhancement BT and Wi-Fi stays on notification not shown");
+                }
+            } else if (!isWifiEnabledOnApm() && isFirstTimeNotification(APM_BT_NOTIFICATION)) {
+                try {
+                    sendApmNotification(
+                            "bluetooth_stays_on_title",
+                            "bluetooth_stays_on_message",
+                            APM_BT_NOTIFICATION);
+                } catch (Exception e) {
+                    Log.e(TAG, "APM enhancement BT stays on notification not shown");
+                }
+            }
+        }
     }
 
     @VisibleForTesting
