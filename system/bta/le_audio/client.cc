@@ -953,9 +953,14 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
-      LOG_ERROR(", group already stopped: %s",
-                ToString(group->GetState()).c_str());
-
+      if (group->GetTargetState() != AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
+        LOG_WARN(" group %d was about to stream, but got canceled: %s",
+                 group_id, ToString(group->GetTargetState()).c_str());
+        group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+      } else {
+        LOG_WARN(", group %d already stopped: %s", group_id,
+                 ToString(group->GetState()).c_str());
+      }
       return;
     }
 
