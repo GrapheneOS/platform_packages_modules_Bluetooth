@@ -848,6 +848,17 @@ class GATTProxy(ProfileProxy):
         characteristics if needed.
         """
 
+        return self.MMI_IUT_WRITE_SUPPORT_FEATURE_MULTIPLE_HANDLE_VALUE(description, **kwargs)
+
+    def MMI_IUT_WRITE_SUPPORT_FEATURE_MULTIPLE_HANDLE_VALUE(self, description: str, **kwargs):
+        """
+        Please send an ATT_Write_Request to Client Support Features handle =
+        'XXXX'O to enable Multiple Handle Value Notifications.
+
+        Discover all
+        characteristics if needed.
+        """
+
         assert self.connection is not None
         handle = stringHandleToInt(re.findall("'([a0-Z9]*)'O", description)[0])
         data = bytes([4])  # Multiple Handle Value Notifications
