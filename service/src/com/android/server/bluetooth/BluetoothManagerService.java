@@ -67,7 +67,6 @@ import android.database.ContentObserver;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
@@ -142,23 +141,23 @@ class BluetoothManagerService {
     // Delay for retrying enable and disable in msec
     private static final int ENABLE_DISABLE_DELAY_MS = 300;
 
-    private static final int MESSAGE_ENABLE = 1;
+    @VisibleForTesting static final int MESSAGE_ENABLE = 1;
     @VisibleForTesting static final int MESSAGE_DISABLE = 2;
-    private static final int MESSAGE_HANDLE_ENABLE_DELAYED = 3;
-    private static final int MESSAGE_HANDLE_DISABLE_DELAYED = 4;
-    private static final int MESSAGE_REGISTER_STATE_CHANGE_CALLBACK = 30;
-    private static final int MESSAGE_UNREGISTER_STATE_CHANGE_CALLBACK = 31;
-    private static final int MESSAGE_BLUETOOTH_SERVICE_CONNECTED = 40;
-    private static final int MESSAGE_BLUETOOTH_SERVICE_DISCONNECTED = 41;
-    private static final int MESSAGE_RESTART_BLUETOOTH_SERVICE = 42;
-    private static final int MESSAGE_BLUETOOTH_STATE_CHANGE = 60;
-    private static final int MESSAGE_TIMEOUT_BIND = 100;
-    private static final int MESSAGE_GET_NAME_AND_ADDRESS = 200;
-    private static final int MESSAGE_USER_SWITCHED = 300;
-    private static final int MESSAGE_USER_UNLOCKED = 301;
-    private static final int MESSAGE_ADD_PROXY_DELAYED = 400;
-    private static final int MESSAGE_BIND_PROFILE_SERVICE = 401;
-    private static final int MESSAGE_RESTORE_USER_SETTING = 500;
+    @VisibleForTesting static final int MESSAGE_HANDLE_ENABLE_DELAYED = 3;
+    @VisibleForTesting static final int MESSAGE_HANDLE_DISABLE_DELAYED = 4;
+    @VisibleForTesting static final int MESSAGE_REGISTER_STATE_CHANGE_CALLBACK = 30;
+    @VisibleForTesting static final int MESSAGE_UNREGISTER_STATE_CHANGE_CALLBACK = 31;
+    @VisibleForTesting static final int MESSAGE_BLUETOOTH_SERVICE_CONNECTED = 40;
+    @VisibleForTesting static final int MESSAGE_BLUETOOTH_SERVICE_DISCONNECTED = 41;
+    @VisibleForTesting static final int MESSAGE_RESTART_BLUETOOTH_SERVICE = 42;
+    @VisibleForTesting static final int MESSAGE_BLUETOOTH_STATE_CHANGE = 60;
+    @VisibleForTesting static final int MESSAGE_TIMEOUT_BIND = 100;
+    @VisibleForTesting static final int MESSAGE_GET_NAME_AND_ADDRESS = 200;
+    @VisibleForTesting static final int MESSAGE_USER_SWITCHED = 300;
+    @VisibleForTesting static final int MESSAGE_USER_UNLOCKED = 301;
+    @VisibleForTesting static final int MESSAGE_ADD_PROXY_DELAYED = 400;
+    @VisibleForTesting static final int MESSAGE_BIND_PROFILE_SERVICE = 401;
+    @VisibleForTesting static final int MESSAGE_RESTORE_USER_SETTING = 500;
 
     private static final int RESTORE_SETTING_TO_ON = 1;
     private static final int RESTORE_SETTING_TO_OFF = 0;
@@ -284,9 +283,7 @@ class BluetoothManagerService {
 
     private final BluetoothAdapterState mState = new BluetoothAdapterState();
 
-    private final HandlerThread mBluetoothHandlerThread =
-            BluetoothServerProxy.getInstance().createHandlerThread("BluetoothManagerService");
-    @VisibleForTesting private final BluetoothHandler mHandler;
+    private final BluetoothHandler mHandler;
     private int mErrorRecoveryRetryCounter = 0;
 
     private final boolean mIsHearingAidProfileSupported;
@@ -653,19 +650,17 @@ class BluetoothManagerService {
                 }
             };
 
-    BluetoothManagerService(Context context) {
-        mContext = context;
+    BluetoothManagerService(@NonNull Context context, @NonNull Looper looper) {
+        mContext = requireNonNull(context, "Context cannot be null");
+        requireNonNull(looper, "Looper cannot be null");
+
         mUserManager =
                 requireNonNull(
                         mContext.getSystemService(UserManager.class),
                         "UserManager system service cannot be null");
 
         mBinder = new BluetoothServiceBinder(this, mContext, mUserManager);
-        mBluetoothHandlerThread.start();
-        mHandler =
-                BluetoothServerProxy.getInstance()
-                        .newBluetoothHandler(
-                                new BluetoothHandler(mBluetoothHandlerThread.getLooper()));
+        mHandler = new BluetoothHandler(looper);
 
         mContentResolver = mContext.getContentResolver();
 
@@ -740,15 +735,11 @@ class BluetoothManagerService {
                 || airplaneModeRadios.contains(Settings.Global.RADIO_BLUETOOTH)) {
             mBluetoothAirplaneModeListener =
                     new BluetoothAirplaneModeListener(
-                            this,
-                            mBluetoothHandlerThread.getLooper(),
-                            mContext,
-                            mBluetoothNotificationManager);
+                            this, looper, mContext, mBluetoothNotificationManager);
         }
 
         mBluetoothSatelliteModeListener =
-                new BluetoothSatelliteModeListener(
-                        this, mBluetoothHandlerThread.getLooper(), mContext);
+                new BluetoothSatelliteModeListener(this, looper, mContext);
     }
 
     IBluetoothManager.Stub getBinder() {
