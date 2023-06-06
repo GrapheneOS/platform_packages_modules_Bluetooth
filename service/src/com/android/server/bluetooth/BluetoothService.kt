@@ -17,13 +17,21 @@ package com.android.server.bluetooth
 
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
+import android.os.HandlerThread
 import android.os.UserManager
 import com.android.server.SystemService
 import com.android.server.SystemService.TargetUser
 
 class BluetoothService(context: Context) : SystemService(context) {
-    private val mBluetoothManagerService = BluetoothManagerService(context)
+    private val mHandlerThread: HandlerThread
+    private val mBluetoothManagerService: BluetoothManagerService
     private var mInitialized = false
+
+    init {
+        mHandlerThread = HandlerThread("BluetoothManagerService")
+        mHandlerThread.start()
+        mBluetoothManagerService = BluetoothManagerService(context, mHandlerThread.getLooper())
+    }
 
     private fun initialize() {
         if (!mInitialized) {
