@@ -29,9 +29,9 @@ import static org.mockito.Mockito.verify;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
-import android.os.HandlerThread;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.os.test.TestLooper;
 import android.provider.Settings;
 
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -50,39 +50,13 @@ public class BluetoothManagerServiceTest {
     BluetoothManagerService mManagerService;
     Context mContext;
     @Mock BluetoothServerProxy mBluetoothServerProxy;
-    @Mock BluetoothManagerService.BluetoothHandler mHandler;
     @Mock UserManager mUserManager;
-    HandlerThread mHandlerThread;
+
+    TestLooper mLooper;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mContext =
-                spy(
-                        new ContextWrapper(
-                                InstrumentationRegistry.getInstrumentation().getTargetContext()));
-
-        doReturn(mUserManager).when(mContext).getSystemService(UserManager.class);
-
-        mHandlerThread = new HandlerThread("BluetoothManagerServiceTest");
-
-        mManagerService = createBluetoothManagerService();
-    }
-
-    @After
-    public void tearDown() {
-        mHandlerThread.quitSafely();
-    }
-
-    private BluetoothManagerService createBluetoothManagerService() {
-        doReturn(mock(Intent.class))
-                .when(mContext)
-                .registerReceiverForAllUsers(any(), any(), eq(null), eq(null));
-        BluetoothServerProxy.setInstanceForTesting(mBluetoothServerProxy);
-        // Mock the handler to avoid handle message & to terminate the thread after
-        // test
-        doReturn(mHandlerThread).when(mBluetoothServerProxy).createHandlerThread(any());
-        doReturn(mHandler).when(mBluetoothServerProxy).newBluetoothHandler(any());
 
         // Mock these functions so security errors won't throw
         doReturn("name")
@@ -91,7 +65,27 @@ public class BluetoothManagerServiceTest {
         doReturn("00:11:22:33:44:55")
                 .when(mBluetoothServerProxy)
                 .settingsSecureGetString(any(), eq(Settings.Secure.BLUETOOTH_ADDRESS));
-        return new BluetoothManagerService(mContext);
+
+        mContext =
+                spy(
+                        new ContextWrapper(
+                                InstrumentationRegistry.getInstrumentation().getTargetContext()));
+
+        doReturn(mUserManager).when(mContext).getSystemService(UserManager.class);
+
+        doReturn(mock(Intent.class))
+                .when(mContext)
+                .registerReceiverForAllUsers(any(), any(), eq(null), eq(null));
+
+        BluetoothServerProxy.setInstanceForTesting(mBluetoothServerProxy);
+
+        mLooper = new TestLooper();
+
+        mManagerService = new BluetoothManagerService(mContext, mLooper.getLooper());
+    }
+
+    @After
+    public void tearDown() {
     }
 
     @Test
@@ -110,12 +104,12 @@ public class BluetoothManagerServiceTest {
         // test run on user -1, should not turning Bluetooth off
         mManagerService.onUserRestrictionsChanged(UserHandle.CURRENT);
         verify(mBluetoothServerProxy, timeout(sTimeout).times(0))
-                .handlerSendWhatMessage(mHandler, BluetoothManagerService.MESSAGE_DISABLE);
+                .handlerSendWhatMessage(any(), eq(BluetoothManagerService.MESSAGE_DISABLE));
 
         // called from SYSTEM user, should try to toggle Bluetooth off
         mManagerService.onUserRestrictionsChanged(UserHandle.SYSTEM);
         verify(mBluetoothServerProxy, timeout(sTimeout))
-                .handlerSendWhatMessage(mHandler, BluetoothManagerService.MESSAGE_DISABLE);
+                .handlerSendWhatMessage(any(), eq(BluetoothManagerService.MESSAGE_DISABLE));
     }
 
     @Test
