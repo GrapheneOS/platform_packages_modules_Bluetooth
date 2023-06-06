@@ -3884,7 +3884,7 @@ TEST_F(StateMachineTest, BoundedHeadphonesConversationalToMediaChannelCount_1) {
   ASSERT_EQ(1, get_func_call_count("alarm_cancel"));
 }
 
-TEST_F(StateMachineTest, lateCisDisconnectedEvent_ConfiguredByUser) {
+TEST_F(StateMachineTest, lateCisDisconnectedEvent_DuringReconfiguration) {
   const auto context_type = kContextTypeMedia;
   const auto leaudio_group_id = 6;
   const auto num_devices = 1;
@@ -3950,10 +3950,11 @@ TEST_F(StateMachineTest, lateCisDisconnectedEvent_ConfiguredByUser) {
       StatusReportCb(leaudio_group_id,
                      bluetooth::le_audio::GroupStreamStatus::RELEASING));
 
-  EXPECT_CALL(mock_callbacks_,
-              StatusReportCb(
-                  leaudio_group_id,
-                  bluetooth::le_audio::GroupStreamStatus::CONFIGURED_BY_USER))
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS))
       .Times(0);
   LeAudioGroupStateMachine::Get()->StopStream(group);
 
@@ -3961,10 +3962,11 @@ TEST_F(StateMachineTest, lateCisDisconnectedEvent_ConfiguredByUser) {
 
   ASSERT_EQ(0, get_func_call_count("alarm_cancel"));
 
-  EXPECT_CALL(mock_callbacks_,
-              StatusReportCb(
-                  leaudio_group_id,
-                  bluetooth::le_audio::GroupStreamStatus::CONFIGURED_BY_USER));
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS));
 
   // Inject CIS and ACL disconnection of first device
   InjectCisDisconnected(group, leAudioDevice, HCI_ERR_CONN_CAUSE_LOCAL_HOST);
