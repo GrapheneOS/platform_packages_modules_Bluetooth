@@ -215,6 +215,7 @@ class Controller : public Module {
   static constexpr uint64_t kLeEventMask53 = 0x00000007ffffffff;
   static constexpr uint64_t kLeEventMask52 = 0x00000003ffffffff;
   static constexpr uint64_t kLeEventMask51 = 0x0000000000ffffff;
+  static constexpr uint64_t kLeEventMask50 = 0x0000000000ffffff;
   static constexpr uint64_t kLeEventMask42 = 0x00000000000003ff;
   static constexpr uint64_t kLeEventMask41 = 0x000000000000003f;
 
@@ -228,6 +229,8 @@ class Controller : public Module {
       return mask & kLeEventMask52;
     } else if (version >= HciVersion::V_5_1) {
       return mask & kLeEventMask51;
+    } else if (version >= HciVersion::V_5_0) {
+      return mask & kLeEventMask50;
     } else if (version >= HciVersion::V_4_2) {
       return mask & kLeEventMask42;
     } else {
