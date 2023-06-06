@@ -631,3 +631,12 @@ class A2DPProxy(ProfileProxy):
         """
         # TODO: verify
         return "OK"
+
+    @match_description
+    def TSC_A2DP_mmi_iut_reject_set_configuration_error_code(self, **kwargs):
+        """
+        Please prepare the IUT to reject an AVDTP SET CONFIGURATION command with
+        error code (?P<errorcode>[A-Z_]+), then press 'OK' to continue.
+        """
+
+        return "OK"

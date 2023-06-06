@@ -29,6 +29,7 @@ from pandora.host_pb2 import Connection
 from pandora_experimental.mediaplayer_grpc import MediaPlayer
 from pandora_experimental.mediaplayer_pb2 import NONE, ALL, GROUP
 
+
 class AVRCPProxy(ProfileProxy):
     """AVRCP proxy.
 
