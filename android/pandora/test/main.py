@@ -21,6 +21,7 @@ import cases.le_security_test
 import cases.security_test
 import gatt_test
 import smp_test
+import hfpclient_test
 
 _TEST_CLASSES_LIST = [
     cases.host_test.HostTest,
@@ -30,6 +31,7 @@ _TEST_CLASSES_LIST = [
     smp_test.SmpTest,
     gatt_test.GattTest,
     asha_test.AshaTest,
+    hfpclient_test.HfpClientTest,
 ]
 
 
