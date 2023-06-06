@@ -18,7 +18,6 @@ package com.android.server.bluetooth;
 
 import static com.android.server.bluetooth.BluetoothAirplaneModeListener.BLUETOOTH_APM_STATE;
 
-import android.annotation.RequiresPermission;
 import android.app.ActivityManager;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
@@ -112,18 +111,6 @@ public class BluetoothModeChangeHelper {
             return false;
         }
         return adapter.isLeEnabled();
-    }
-
-    @VisibleForTesting
-    public boolean isAirplaneModeOn() {
-        return Settings.Global.getInt(mContext.getContentResolver(),
-                Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
-    }
-
-    @VisibleForTesting
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    public void onAirplaneModeChanged(BluetoothManagerService managerService) {
-        managerService.onAirplaneModeChanged();
     }
 
     @VisibleForTesting
