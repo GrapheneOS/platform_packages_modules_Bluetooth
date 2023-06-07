@@ -985,18 +985,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
               "state, reconfig=%d.",
               group->group_id_, reconfig);
 
-          if (reconfig) {
-            group->ClearPendingConfiguration();
+          /* This is Autonomous change if both, target and current state
+           * is CODEC_CONFIGURED
+           */
+          if (target_state == current_group_state) {
             state_machine_callbacks_->StatusReportCb(
-                group->group_id_, GroupStreamStatus::CONFIGURED_BY_USER);
-          } else {
-            /* This is Autonomous change if both, target and current state
-             * is CODEC_CONFIGURED
-             */
-            if (target_state == current_group_state) {
-              state_machine_callbacks_->StatusReportCb(
-                  group->group_id_, GroupStreamStatus::CONFIGURED_AUTONOMOUS);
-            }
+                group->group_id_, GroupStreamStatus::CONFIGURED_AUTONOMOUS);
           }
         }
         RemoveCigForGroup(group);
