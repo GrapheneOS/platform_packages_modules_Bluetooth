@@ -2934,10 +2934,6 @@ void acl_rcv_acl_data(BT_HDR* p_msg) {
   l2c_rcv_acl_data(p_msg);
 }
 
-void acl_link_segments_xmitted(BT_HDR* p_msg) {
-  l2c_link_segments_xmitted(p_msg);
-}
-
 void acl_packets_completed(uint16_t handle, uint16_t credits) {
   l2c_packets_completed(handle, credits);
   bluetooth::hci::IsoManager::GetInstance()->HandleGdNumComplDataPkts(handle,
