@@ -36,6 +36,7 @@ import android.os.Looper;
 import android.provider.Settings;
 
 import androidx.test.filters.MediumTest;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
 import org.junit.Assert;
@@ -60,6 +61,13 @@ public class BluetoothAirplaneModeListenerTest {
     @Mock private BluetoothNotificationManager mBluetoothNotificationManager;
     @Mock private PackageManager mPackageManager;
     @Mock private Resources mResources;
+
+    static {
+        // Required for reading DeviceConfig during BluetoothManagerService static init
+        InstrumentationRegistry.getInstrumentation()
+                .getUiAutomation()
+                .adoptShellPermissionIdentity(android.Manifest.permission.READ_DEVICE_CONFIG);
+    }
 
     @Before
     public void setUp() throws Exception {
