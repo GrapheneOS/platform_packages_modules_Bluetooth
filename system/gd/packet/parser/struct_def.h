@@ -51,16 +51,6 @@ class StructDef : public ParentDef {
 
   Size GetStructOffsetForField(std::string field_name) const;
 
-  void GenRustDeclarations(std::ostream& s) const;
-
-  void GenRustImpls(std::ostream& s) const;
-
-  void GenRustFieldNameAndType(std::ostream& s, bool include_fixed) const;
-
-  void GenRustFieldNames(std::ostream& s) const;
-
-  void GenRustDef(std::ostream& s) const;
-
  private:
   Size total_size_;
 };

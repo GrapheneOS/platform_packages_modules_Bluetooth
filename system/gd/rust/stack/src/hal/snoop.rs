@@ -2,7 +2,7 @@
 
 use crate::hal::internal::RawHal;
 use bt_common::sys_prop;
-use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, Packet, ScoPacket};
+use bt_packets::hci::{Acl, Command, Event, Iso, Packet, Sco};
 use bytes::{BufMut, Bytes, BytesMut};
 use gddi::{module, part_out, provides, Stoppable};
 use log::error;
@@ -29,36 +29,36 @@ struct Hal {
 #[derive(Clone, Stoppable)]
 pub struct ControlHal {
     /// Transmit end
-    pub tx: Sender<CommandPacket>,
+    pub tx: Sender<Command>,
     /// Receive end
-    pub rx: Arc<Mutex<Receiver<EventPacket>>>,
+    pub rx: Arc<Mutex<Receiver<Event>>>,
 }
 
 /// Acl tx/rx
 #[derive(Clone, Stoppable)]
 pub struct AclHal {
     /// Transmit end
-    pub tx: Sender<AclPacket>,
+    pub tx: Sender<Acl>,
     /// Receive end
-    pub rx: Arc<Mutex<Receiver<AclPacket>>>,
+    pub rx: Arc<Mutex<Receiver<Acl>>>,
 }
 
 /// Sco tx/rx
 #[derive(Clone, Stoppable)]
 pub struct ScoHal {
     /// Transmit end
-    pub tx: Sender<ScoPacket>,
+    pub tx: Sender<Sco>,
     /// Receive end
-    pub rx: Arc<Mutex<Receiver<ScoPacket>>>,
+    pub rx: Arc<Mutex<Receiver<Sco>>>,
 }
 
 /// Iso tx/rx
 #[derive(Clone, Stoppable)]
 pub struct IsoHal {
     /// Transmit end
-    pub tx: Sender<IsoPacket>,
+    pub tx: Sender<Iso>,
     /// Receive end
-    pub rx: Arc<Mutex<Receiver<IsoPacket>>>,
+    pub rx: Arc<Mutex<Receiver<Iso>>>,
 }
 
 /// The different modes snoop logging can be in
@@ -141,14 +141,14 @@ module! {
 
 #[provides]
 async fn provide_snooped_hal(config: SnoopConfig, raw_hal: RawHal, rt: Arc<Runtime>) -> Hal {
-    let (cmd_down_tx, mut cmd_down_rx) = channel::<CommandPacket>(10);
-    let (evt_up_tx, evt_up_rx) = channel::<EventPacket>(10);
-    let (acl_down_tx, mut acl_down_rx) = channel::<AclPacket>(10);
-    let (acl_up_tx, acl_up_rx) = channel::<AclPacket>(10);
-    let (sco_down_tx, mut sco_down_rx) = channel::<ScoPacket>(10);
-    let (sco_up_tx, sco_up_rx) = channel::<ScoPacket>(10);
-    let (iso_down_tx, mut iso_down_rx) = channel::<IsoPacket>(10);
-    let (iso_up_tx, iso_up_rx) = channel::<IsoPacket>(10);
+    let (cmd_down_tx, mut cmd_down_rx) = channel::<Command>(10);
+    let (evt_up_tx, evt_up_rx) = channel::<Event>(10);
+    let (acl_down_tx, mut acl_down_rx) = channel::<Acl>(10);
+    let (acl_up_tx, acl_up_rx) = channel::<Acl>(10);
+    let (sco_down_tx, mut sco_down_rx) = channel::<Sco>(10);
+    let (sco_up_tx, sco_up_rx) = channel::<Sco>(10);
+    let (iso_down_tx, mut iso_down_rx) = channel::<Iso>(10);
+    let (iso_up_tx, iso_up_rx) = channel::<Iso>(10);
 
     rt.spawn(async move {
         let mut logger = SnoopLogger::new(config).await;

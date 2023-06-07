@@ -31,7 +31,5 @@ class EnumGen {
 
   void GenLogging(std::ostream& stream);
 
-  void GenRustDef(std::ostream& stream);
-
   EnumDef e_;
 };

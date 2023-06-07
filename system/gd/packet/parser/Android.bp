@@ -36,7 +36,6 @@ cc_binary_host {
         "fields/variable_length_struct_field.cc",
         "fields/vector_field.cc",
         "gen_cpp.cc",
-        "gen_rust.cc",
         "language_l.ll",
         "language_y.yy",
         "main.cc",
