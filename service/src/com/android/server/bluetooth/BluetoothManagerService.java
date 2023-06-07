@@ -61,7 +61,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.os.Binder;
 import android.os.Bundle;
@@ -183,6 +182,10 @@ class BluetoothManagerService {
 
     private static final int FLAGS_SYSTEM_APP =
             ApplicationInfo.FLAG_SYSTEM | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP;
+
+    // APM enhancement feature is enabled by default
+    // Set this value to 0 to disable the feature
+    private static final int DEFAULT_APM_ENHANCEMENT_STATE = 1;
 
     private final Context mContext;
 
@@ -1559,36 +1562,14 @@ class BluetoothManagerService {
         if (mBluetoothAirplaneModeListener != null) {
             mBluetoothAirplaneModeListener.start(mBluetoothModeChangeHelper);
         }
-        loadApmEnhancementStateFromResource();
+        setApmEnhancementState();
     }
 
-    /** Set BluetoothModeChangeHelper for testing */
+    /** set APM enhancement feature state */
     @VisibleForTesting
-    void setBluetoothModeChangeHelper(BluetoothModeChangeHelper bluetoothModeChangeHelper) {
-        mBluetoothModeChangeHelper = bluetoothModeChangeHelper;
-    }
-
-    /** Load whether APM Enhancement feature should be enabled from overlay */
-    @VisibleForTesting
-    void loadApmEnhancementStateFromResource() {
-        String btPackageName = mBluetoothModeChangeHelper.getBluetoothPackageName();
-        if (btPackageName == null) {
-            Log.e(TAG, "Unable to find Bluetooth package name with APM resources");
-            return;
-        }
-        try {
-            Resources resources =
-                    mContext.getPackageManager().getResourcesForApplication(btPackageName);
-            int apmEnhancement =
-                    resources.getIdentifier(
-                            "config_bluetooth_apm_enhancement_enabled", "bool", btPackageName);
-            Settings.Global.putInt(
-                    mContext.getContentResolver(),
-                    APM_ENHANCEMENT,
-                    resources.getBoolean(apmEnhancement) ? 1 : 0);
-        } catch (Exception e) {
-            Log.e(TAG, "Unable to set whether APM enhancement should be enabled");
-        }
+    void setApmEnhancementState() {
+        Settings.Global.putInt(
+                mContext.getContentResolver(), APM_ENHANCEMENT, DEFAULT_APM_ENHANCEMENT_STATE);
     }
 
     /** Called when switching to a different foreground user. */
