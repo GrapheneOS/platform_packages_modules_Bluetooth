@@ -197,8 +197,6 @@ public class BluetoothManagerServiceTest {
 
     @Test
     public void testApmEnhancementEnabled() {
-        mManagerService.setBluetoothModeChangeHelper(new BluetoothModeChangeHelper(mContext));
-
         // Change the apm enhancement enabled value to 0
         Settings.Global.putInt(mContext.getContentResolver(), "apm_enhancement_enabled", 0);
         assertThat(
@@ -207,7 +205,7 @@ public class BluetoothManagerServiceTest {
                 .isEqualTo(0);
 
         // Confirm that apm enhancement enabled value has been updated to 1
-        mManagerService.loadApmEnhancementStateFromResource();
+        mManagerService.setApmEnhancementState();
         assertThat(
                         Settings.Global.getInt(
                                 mContext.getContentResolver(), "apm_enhancement_enabled", 0))
