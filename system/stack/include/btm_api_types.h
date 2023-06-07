@@ -152,9 +152,6 @@ constexpr uint8_t TX_POWER_NOT_PRESENT = 0x7F;
 /* Define an invalid SCO index and an invalid HCI handle */
 #define BTM_INVALID_SCO_INDEX 0xFFFF
 
-/* Define an invalid SCO disconnect reason */
-#define BTM_INVALID_SCO_DISC_REASON 0xFFFF
-
 #define BTM_SCO_LINK_ONLY_MASK \
   (ESCO_PKT_TYPES_MASK_HV1 | ESCO_PKT_TYPES_MASK_HV2 | ESCO_PKT_TYPES_MASK_HV3)
 
