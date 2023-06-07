@@ -14,7 +14,6 @@ filegroup {
         "bte_conf.cc",
         "bte_init_cpp_logging.cc",
         "bte_logmsg.cc",
-        "bte_main.cc",
         "stack_config.cc",
     ],
 }
@@ -175,6 +174,7 @@ cc_test {
         ":TestCommonMockFunctions",
         ":TestMockBta",
         ":TestMockBtif",
+        ":TestMockBtu",
         ":TestMockLegacyHciCommands",
         ":TestMockLegacyHciInterface",
         ":TestMockMainShimEntry",

@@ -115,7 +115,6 @@ struct HACK_acl_check_sm4 HACK_acl_check_sm4;
 struct acl_accept_connection_request acl_accept_connection_request;
 struct acl_disconnect_after_role_switch acl_disconnect_after_role_switch;
 struct acl_disconnect_from_handle acl_disconnect_from_handle;
-struct acl_link_segments_xmitted acl_link_segments_xmitted;
 struct acl_packets_completed acl_packets_completed;
 struct acl_process_extended_features acl_process_extended_features;
 struct acl_process_supported_features acl_process_supported_features;
@@ -479,10 +478,6 @@ void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason,
                                 std::string comment) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::acl_disconnect_from_handle(handle, reason, comment);
-}
-void acl_link_segments_xmitted(BT_HDR* p_msg) {
-  inc_func_call_count(__func__);
-  test::mock::stack_acl::acl_link_segments_xmitted(p_msg);
 }
 void acl_packets_completed(uint16_t handle, uint16_t credits) {
   inc_func_call_count(__func__);

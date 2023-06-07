@@ -51,23 +51,9 @@ static MessageLoopThread main_thread("bt_main_thread", true);
 void btu_hci_msg_process(BT_HDR* p_msg) {
   /* Determine the input message type. */
   switch (p_msg->event & BT_EVT_MASK) {
-    case BT_EVT_TO_BTU_HCI_ACL:
-      /* All Acl Data goes to ACL */
-      acl_rcv_acl_data(p_msg);
-      break;
-
-    case BT_EVT_TO_BTU_L2C_SEG_XMIT:
-      /* L2CAP segment transmit complete */
-      acl_link_segments_xmitted(p_msg);
-      break;
-
     case BT_EVT_TO_BTU_HCI_EVT:
       btu_hcif_process_event((uint8_t)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
       osi_free(p_msg);
-      break;
-
-    case BT_EVT_TO_BTU_HCI_CMD:
-      btu_hcif_send_cmd((uint8_t)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
       break;
 
     case BT_EVT_TO_BTU_HCI_ISO:
