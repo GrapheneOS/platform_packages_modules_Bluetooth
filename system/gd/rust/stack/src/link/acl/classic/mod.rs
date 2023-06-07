@@ -3,14 +3,15 @@
 use crate::hci::{Address, CommandSender, EventRegistry};
 use crate::link::acl::core;
 use bt_common::Bluetooth;
+use bt_packets::hci;
 use bt_packets::hci::EventChild::{
     AuthenticationComplete, ConnectionComplete, DisconnectionComplete,
 };
 use bt_packets::hci::{
     AcceptConnectionRequestBuilder, AcceptConnectionRequestRole, ClockOffsetValid,
     CreateConnectionBuilder, CreateConnectionCancelBuilder, CreateConnectionRoleSwitch,
-    DisconnectBuilder, DisconnectReason, ErrorCode, EventChild, EventCode, EventPacket,
-    PageScanRepetitionMode, RejectConnectionReason, RejectConnectionRequestBuilder, Role,
+    DisconnectBuilder, DisconnectReason, ErrorCode, EventChild, EventCode, PageScanRepetitionMode,
+    RejectConnectionReason, RejectConnectionRequestBuilder, Role,
 };
 use bytes::Bytes;
 use gddi::{module, provides, Stoppable};
@@ -94,7 +95,7 @@ struct ConnectionInternal {
     addr: Address,
     #[allow(dead_code)]
     shared: Arc<Mutex<ConnectionShared>>,
-    hci_evt_tx: Sender<EventPacket>,
+    hci_evt_tx: Sender<hci::Event>,
 }
 
 #[derive(Debug)]
@@ -261,7 +262,7 @@ fn build_create_connection(bd_addr: Address) -> CreateConnectionBuilder {
 async fn dispatch_to(
     handle: u16,
     connections: &Arc<Mutex<HashMap<u16, ConnectionInternal>>>,
-    event: EventPacket,
+    event: hci::Event,
 ) {
     if let Some(c) = connections.lock().await.get_mut(&handle) {
         c.hci_evt_tx.send(event).await.unwrap();
