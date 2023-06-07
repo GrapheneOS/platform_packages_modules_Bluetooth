@@ -44,7 +44,7 @@ impl From<u32> for BthfAudioState {
 bitflags! {
     #[derive(Default)]
     pub struct HfpCodecCapability: i32 {
-        const UNSUPPORTED = 0b00;
+        const NONE = 0b00;
         const CVSD = 0b01;
         const MSBC = 0b10;
         const LC3 = 0b100;
@@ -128,7 +128,7 @@ pub mod ffi {
             self: Pin<&mut HfpIntf>,
             bt_addr: RawAddress,
             sco_offload: bool,
-            force_cvsd: bool,
+            disabled_codecs: i32,
         ) -> i32;
         fn set_active_device(self: Pin<&mut HfpIntf>, bt_addr: RawAddress) -> i32;
         fn set_volume(self: Pin<&mut HfpIntf>, volume: i8, bt_addr: RawAddress) -> i32;
@@ -349,8 +349,13 @@ impl Hfp {
     }
 
     #[profile_enabled_or(BtStatus::NotReady.into())]
-    pub fn connect_audio(&mut self, addr: RawAddress, sco_offload: bool, force_cvsd: bool) -> i32 {
-        self.internal.pin_mut().connect_audio(addr, sco_offload, force_cvsd)
+    pub fn connect_audio(
+        &mut self,
+        addr: RawAddress,
+        sco_offload: bool,
+        disabled_codecs: i32,
+    ) -> i32 {
+        self.internal.pin_mut().connect_audio(addr, sco_offload, disabled_codecs)
     }
 
     #[profile_enabled_or(BtStatus::NotReady.into())]
