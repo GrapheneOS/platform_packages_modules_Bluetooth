@@ -190,6 +190,7 @@ android_app {
     certificate: ":com.android.bluetooth.certificate",
 
     jarjar_rules: ":bluetooth-jarjar-rules",
+    privapp_allowlist: ":privapp_allowlist_com.android.bluetooth.xml",
 
     jni_uses_platform_apis: true,
     libs: [
