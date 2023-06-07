@@ -1759,9 +1759,8 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         pairing_cb.sdp_attempts = 0;
 
         // Send UUIDs discovered through EIR to Java to unblock pairing intent
-        // when SDP failed or no UUID is discovered
-        if (p_data->disc_res.result != BTA_SUCCESS ||
-            p_data->disc_res.num_uuids == 0) {
+        // when SDP failed
+        if (p_data->disc_res.result != BTA_SUCCESS) {
           auto uuids_iter = eir_uuids_cache.find(bd_addr);
           if (uuids_iter != eir_uuids_cache.end()) {
             num_eir_uuids = uuids_iter->second.size();
