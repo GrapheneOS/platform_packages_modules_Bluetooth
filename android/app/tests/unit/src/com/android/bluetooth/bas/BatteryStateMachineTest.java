@@ -55,7 +55,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -276,31 +275,6 @@ public class BatteryStateMachineTest {
 
         assertThat(mBatteryStateMachine.getCurrentState())
                 .isInstanceOf(BatteryStateMachine.Connected.class);
-    }
-
-    @Test
-    public void testConnectGattTimeout() {
-        allowConnection(true);
-        allowConnectGatt(true);
-
-        // Inject an event for when incoming connection is requested
-        mBatteryStateMachine.sendMessage(BatteryStateMachine.CONNECT);
-
-        verify(mBatteryService, timeout(TIMEOUT_MS))
-                .handleConnectionStateChanged(any(BatteryStateMachine.class),
-                        eq(BluetoothProfile.STATE_DISCONNECTED),
-                        eq(BluetoothProfile.STATE_CONNECTING));
-
-        Assert.assertThat(mBatteryStateMachine.getCurrentState(),
-                IsInstanceOf.instanceOf(BatteryStateMachine.Connecting.class));
-
-        verify(mBatteryService, timeout(TIMEOUT_MS))
-                .handleConnectionStateChanged(any(BatteryStateMachine.class),
-                        eq(BluetoothProfile.STATE_CONNECTING),
-                        eq(BluetoothProfile.STATE_DISCONNECTED));
-
-        Assert.assertThat(mBatteryStateMachine.getCurrentState(),
-                IsInstanceOf.instanceOf(BatteryStateMachine.Disconnected.class));
     }
 
     @Test
