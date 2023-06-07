@@ -382,7 +382,7 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_ON, BluetoothAdapter.STATE_BLE_ON,
                 invocationNumber + 1, NATIVE_INIT_MS);
 
-        mServiceBinder.onLeServiceUp(mAttributionSource);
+        mServiceBinder.startBrEdr(mAttributionSource);
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_TURNING_ON,
                 invocationNumber + 1, CONTEXT_SWITCH_MS);
@@ -435,7 +435,7 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_BLE_ON,
                 invocationNumber + 1, PROFILE_SERVICE_TOGGLE_TIME_MS);
 
-        mServiceBinder.onBrEdrDown(mAttributionSource);
+        mServiceBinder.stopBle(mAttributionSource);
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_BLE_TURNING_OFF,
                 invocationNumber + 1, CONTEXT_SWITCH_MS);
@@ -560,7 +560,7 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_BLE_ON, 1,
                 CONTEXT_SWITCH_MS);
 
-        mServiceBinder.onBrEdrDown(mAttributionSource);
+        mServiceBinder.stopBle(mAttributionSource);
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_BLE_TURNING_OFF, 1,
                 CONTEXT_SWITCH_MS);
@@ -595,7 +595,7 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_ON, BluetoothAdapter.STATE_BLE_ON, 1,
                 NATIVE_INIT_MS);
 
-        mServiceBinder.onLeServiceUp(mAttributionSource);
+        mServiceBinder.startBrEdr(mAttributionSource);
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_TURNING_ON, 1,
                 CONTEXT_SWITCH_MS);
@@ -684,9 +684,12 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_BLE_ON, 1,
                 CONTEXT_SWITCH_MS);
 
-        // Don't call onBrEdrDown().  The Adapter should turn itself off.
+        // Don't call stopBle().  The Adapter should turn itself off.
 
-        verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_BLE_TURNING_OFF, 1,
+        verifyStateChange(
+                BluetoothAdapter.STATE_BLE_ON,
+                BluetoothAdapter.STATE_BLE_TURNING_OFF,
+                1,
                 CONTEXT_SWITCH_MS);
 
         // Stop GATT
