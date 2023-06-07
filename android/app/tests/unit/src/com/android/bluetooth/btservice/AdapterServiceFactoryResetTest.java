@@ -374,7 +374,7 @@ public class AdapterServiceFactoryResetTest {
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_ON, BluetoothAdapter.STATE_BLE_ON,
                 invocationNumber + 1, NATIVE_INIT_MS);
 
-        mServiceBinder.onLeServiceUp(mAttributionSource);
+        mServiceBinder.startBrEdr(mAttributionSource);
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_TURNING_ON,
                 invocationNumber + 1, CONTEXT_SWITCH_MS);
