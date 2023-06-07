@@ -1237,9 +1237,26 @@ void bta_ag_sco_open(tBTA_AG_SCB* p_scb, UNUSED_ATTR const tBTA_AG_DATA& data) {
     return;
   }
 
-  if (data.api_audio_open.force_cvsd) {
-    LOG(INFO) << __func__ << ": set to use fallback codec";
-    p_scb->codec_fallback = true;
+  p_scb->disabled_codecs = data.api_audio_open.disabled_codecs;
+  LOG(INFO) << __func__ << ": disabled_codecs = " << p_scb->disabled_codecs
+            << ", sco_codec = " << p_scb->sco_codec;
+
+  if (p_scb->disabled_codecs & p_scb->sco_codec) {
+    tBTA_AG_PEER_CODEC updated_codec = BTM_SCO_CODEC_NONE;
+
+    if (hfp_hal_interface::get_swb_supported() &&
+        (p_scb->peer_codecs & BTM_SCO_CODEC_LC3) &&
+        !(p_scb->disabled_codecs & BTM_SCO_CODEC_LC3)) {
+      updated_codec = BTM_SCO_CODEC_LC3;
+    } else if ((p_scb->peer_codecs & BTM_SCO_CODEC_MSBC) &&
+               !(p_scb->disabled_codecs & BTM_SCO_CODEC_MSBC)) {
+      updated_codec = BTM_SCO_CODEC_MSBC;
+    } else {
+      updated_codec = BTM_SCO_CODEC_CVSD;
+    }
+
+    p_scb->sco_codec = updated_codec;
+    p_scb->codec_updated = true;
   }
 
   /* if another scb using sco, this is a transfer */

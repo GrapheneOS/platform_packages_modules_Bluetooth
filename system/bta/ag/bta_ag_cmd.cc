@@ -1260,10 +1260,12 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
 
         bool swb_supported = hfp_hal_interface::get_swb_supported();
 
-        if ((p_scb->peer_codecs & BTM_SCO_CODEC_LC3) && swb_supported) {
+        if (swb_supported && (p_scb->peer_codecs & BTM_SCO_CODEC_LC3) &&
+            !(p_scb->disabled_codecs & BTM_SCO_CODEC_LC3)) {
           p_scb->sco_codec = BTM_SCO_CODEC_LC3;
           APPL_TRACE_DEBUG("Received AT+BAC, updating sco codec to LC3");
-        } else if (p_scb->peer_codecs & BTM_SCO_CODEC_MSBC) {
+        } else if ((p_scb->peer_codecs & BTM_SCO_CODEC_MSBC) &&
+                   !(p_scb->disabled_codecs & BTM_SCO_CODEC_MSBC)) {
           p_scb->sco_codec = BTM_SCO_CODEC_MSBC;
           APPL_TRACE_DEBUG("Received AT+BAC, updating sco codec to MSBC");
         } else {
