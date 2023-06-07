@@ -5,7 +5,7 @@ use crate::hci::{ControllerExports, EventRegistry};
 use crate::link::acl::fragment::{fragmenting_stream, Reassembler};
 use bt_common::Bluetooth::{self, Classic, Le};
 use bt_packets::hci::EventChild::{DisconnectionComplete, NumberOfCompletedPackets};
-use bt_packets::hci::{AclPacket, EventCode, EventPacket};
+use bt_packets::hci::{Acl, Event, EventCode};
 use bytes::Bytes;
 use futures::stream::{SelectAll, StreamExt};
 use gddi::{module, provides, Stoppable};
@@ -34,15 +34,15 @@ pub struct Connection {
     handle: u16,
     #[allow(dead_code)]
     requests: Sender<Request>,
-    pub evt_rx: Receiver<EventPacket>,
-    pub evt_tx: Sender<EventPacket>,
+    pub evt_rx: Receiver<Event>,
+    pub evt_tx: Sender<Event>,
 }
 
 struct ConnectionInternal {
     reassembler: Reassembler,
     bt: Bluetooth,
     close_tx: oneshot::Sender<()>,
-    evt_tx: Sender<EventPacket>,
+    evt_tx: Sender<Event>,
 }
 
 /// Manages rx and tx for open ACL connections
@@ -179,6 +179,6 @@ async fn provide_acl_dispatch(
     AclDispatch { requests: req_tx }
 }
 
-async fn consume(rx: &Arc<Mutex<Receiver<AclPacket>>>) -> Option<AclPacket> {
+async fn consume(rx: &Arc<Mutex<Receiver<Acl>>>) -> Option<Acl> {
     rx.lock().await.recv().await
 }

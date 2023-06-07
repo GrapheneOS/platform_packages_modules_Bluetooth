@@ -6,7 +6,7 @@ use bt_facade_helpers::RxAdapter;
 use bt_facade_proto::common::Data;
 use bt_facade_proto::empty::Empty;
 use bt_facade_proto::hal_facade_grpc::{create_hci_hal_facade, HciHalFacade};
-use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, ScoPacket};
+use bt_packets::hci::{Acl, Command, Event, Iso, Sco};
 use gddi::{module, provides, Stoppable};
 use grpcio::*;
 
@@ -39,10 +39,10 @@ async fn provide_facade(
 /// HCI HAL facade service
 #[derive(Clone, Stoppable)]
 pub struct HciHalFacadeService {
-    evt_rx: RxAdapter<EventPacket>,
-    acl_rx: RxAdapter<AclPacket>,
-    iso_rx: RxAdapter<IsoPacket>,
-    sco_rx: RxAdapter<ScoPacket>,
+    evt_rx: RxAdapter<Event>,
+    acl_rx: RxAdapter<Acl>,
+    iso_rx: RxAdapter<Iso>,
+    sco_rx: RxAdapter<Sco>,
     control: ControlHal,
     acl: AclHal,
     iso: IsoHal,
@@ -59,7 +59,7 @@ impl HciHalFacade for HciHalFacadeService {
     fn send_command(&mut self, ctx: RpcContext<'_>, mut data: Data, sink: UnarySink<Empty>) {
         let cmd_tx = self.control.tx.clone();
         ctx.spawn(async move {
-            cmd_tx.send(CommandPacket::parse(&data.take_payload()).unwrap()).await.unwrap();
+            cmd_tx.send(Command::parse(&data.take_payload()).unwrap()).await.unwrap();
             sink.success(Empty::default()).await.unwrap();
         });
     }
@@ -67,7 +67,7 @@ impl HciHalFacade for HciHalFacadeService {
     fn send_acl(&mut self, ctx: RpcContext<'_>, mut data: Data, sink: UnarySink<Empty>) {
         let acl_tx = self.acl.tx.clone();
         ctx.spawn(async move {
-            acl_tx.send(AclPacket::parse(&data.take_payload()).unwrap()).await.unwrap();
+            acl_tx.send(Acl::parse(&data.take_payload()).unwrap()).await.unwrap();
             sink.success(Empty::default()).await.unwrap();
         });
     }
@@ -75,7 +75,7 @@ impl HciHalFacade for HciHalFacadeService {
     fn send_sco(&mut self, ctx: RpcContext<'_>, mut data: Data, sink: UnarySink<Empty>) {
         let sco_tx = self.sco.tx.clone();
         ctx.spawn(async move {
-            sco_tx.send(ScoPacket::parse(&data.take_payload()).unwrap()).await.unwrap();
+            sco_tx.send(Sco::parse(&data.take_payload()).unwrap()).await.unwrap();
             sink.success(Empty::default()).await.unwrap();
         });
     }
@@ -83,7 +83,7 @@ impl HciHalFacade for HciHalFacadeService {
     fn send_iso(&mut self, ctx: RpcContext<'_>, mut data: Data, sink: UnarySink<Empty>) {
         let iso_tx = self.iso.tx.clone();
         ctx.spawn(async move {
-            iso_tx.send(IsoPacket::parse(&data.take_payload()).unwrap()).await.unwrap();
+            iso_tx.send(Iso::parse(&data.take_payload()).unwrap()).await.unwrap();
             sink.success(Empty::default()).await.unwrap();
         });
     }

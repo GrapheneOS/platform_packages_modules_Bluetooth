@@ -139,7 +139,7 @@ REQUIRED_APT_PACKAGES = [
 ]
 
 # List of cargo packages required for linux build
-REQUIRED_CARGO_PACKAGES = ['cxxbridge-cmd']
+REQUIRED_CARGO_PACKAGES = ['cxxbridge-cmd', 'pdl-compiler']
 
 APT_PKG_LIST = ['apt', '-qq', 'list']
 CARGO_PKG_LIST = ['cargo', 'install', '--list']

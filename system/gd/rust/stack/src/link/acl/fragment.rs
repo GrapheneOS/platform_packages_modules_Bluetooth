@@ -4,7 +4,7 @@ use bt_common::Bluetooth;
 use bt_packets::hci::PacketBoundaryFlag::{
     ContinuingFragment, FirstAutomaticallyFlushable, FirstNonAutomaticallyFlushable,
 };
-use bt_packets::hci::{AclBuilder, AclChild, AclPacket, BroadcastFlag};
+use bt_packets::hci::{Acl, AclBuilder, AclChild, BroadcastFlag};
 use bytes::{Buf, Bytes, BytesMut};
 use futures::stream::{self, StreamExt};
 use log::{error, info, warn};
@@ -27,7 +27,7 @@ impl Reassembler {
     }
 
     /// Injest the packet and send out if fully reassembled
-    pub async fn on_packet(&mut self, packet: AclPacket) {
+    pub async fn on_packet(&mut self, packet: Acl) {
         let payload = match packet.specialize() {
             AclChild::Payload(payload) => payload,
             AclChild::None => {
@@ -94,7 +94,7 @@ pub fn fragmenting_stream(
     bt: Bluetooth,
     close_rx: oneshot::Receiver<()>,
 ) -> std::pin::Pin<
-    std::boxed::Box<dyn futures::Stream<Item = bt_packets::hci::AclPacket> + std::marker::Send>,
+    std::boxed::Box<dyn futures::Stream<Item = bt_packets::hci::Acl> + std::marker::Send>,
 > {
     rx.flat_map(move |data| {
         stream::iter(
@@ -113,7 +113,7 @@ pub fn fragmenting_stream(
                     }
                     .build()
                 })
-                .collect::<Vec<AclPacket>>(),
+                .collect::<Vec<Acl>>(),
         )
     })
     .take_until(close_rx)
