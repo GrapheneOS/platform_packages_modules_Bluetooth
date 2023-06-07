@@ -9,18 +9,18 @@ pub mod error;
 /// HCI layer facade service
 pub mod facade;
 
-pub use bt_packets::custom_types::Address;
+pub use bt_packets::hci::Address;
 pub use controller::ControllerExports;
 
 use crate::hal::ControlHal;
 use bt_common::time::Alarm;
+use bt_packets::hci;
 use bt_packets::hci::EventChild::{
     CommandComplete, CommandStatus, LeMetaEvent, MaxSlotsChange, PageScanRepetitionModeChange,
     VendorSpecificEvent,
 };
 use bt_packets::hci::{
-    CommandExpectations, CommandPacket, ErrorCode, EventCode, EventPacket, LeMetaEventPacket,
-    ResetBuilder, SubeventCode,
+    Command, CommandExpectations, ErrorCode, Event, EventCode, ResetBuilder, SubeventCode,
 };
 use error::Result;
 use gddi::{module, part_out, provides, Stoppable};
@@ -80,8 +80,8 @@ async fn provide_hci(control: ControlHal, rt: Arc<Runtime>) -> Hci {
 
 #[derive(Debug)]
 struct QueuedCommand {
-    cmd: CommandPacket,
-    fut: oneshot::Sender<EventPacket>,
+    cmd: Command,
+    fut: oneshot::Sender<Event>,
 }
 
 /// Sends raw commands. Only useful for facades & shims, or wrapped as a CommandSender.
@@ -94,8 +94,8 @@ impl RawCommandSender {
     /// Send a command, but does not automagically associate the expected returning event type.
     ///
     /// Only really useful for facades & shims.
-    pub async fn send(&mut self, cmd: CommandPacket) -> Result<EventPacket> {
-        let (tx, rx) = oneshot::channel::<EventPacket>();
+    pub async fn send(&mut self, cmd: Command) -> Result<Event> {
+        let (tx, rx) = oneshot::channel::<Event>();
         self.cmd_tx.send(QueuedCommand { cmd, fut: tx }).await?;
         let event = rx.await?;
         Ok(event)
@@ -110,7 +110,7 @@ pub struct CommandSender {
 
 impl CommandSender {
     /// Send a command to the controller, getting an expected response back
-    pub async fn send<T: Into<CommandPacket> + CommandExpectations>(
+    pub async fn send<T: Into<Command> + CommandExpectations>(
         &mut self,
         cmd: T,
     ) -> T::ResponseType {
@@ -121,13 +121,13 @@ impl CommandSender {
 /// Provides ability to register and unregister for HCI events
 #[derive(Clone, Stoppable)]
 pub struct EventRegistry {
-    evt_handlers: Arc<Mutex<HashMap<EventCode, Sender<EventPacket>>>>,
-    le_evt_handlers: Arc<Mutex<HashMap<SubeventCode, Sender<LeMetaEventPacket>>>>,
+    evt_handlers: Arc<Mutex<HashMap<EventCode, Sender<Event>>>>,
+    le_evt_handlers: Arc<Mutex<HashMap<SubeventCode, Sender<hci::LeMetaEvent>>>>,
 }
 
 impl EventRegistry {
     /// Indicate interest in specific HCI events
-    pub async fn register(&mut self, code: EventCode, sender: Sender<EventPacket>) {
+    pub async fn register(&mut self, code: EventCode, sender: Sender<Event>) {
         match code {
             EventCode::CommandStatus
             | EventCode::CommandComplete
@@ -151,7 +151,7 @@ impl EventRegistry {
     }
 
     /// Indicate interest in specific LE events
-    pub async fn register_le(&mut self, code: SubeventCode, sender: Sender<LeMetaEventPacket>) {
+    pub async fn register_le(&mut self, code: SubeventCode, sender: Sender<hci::LeMetaEvent>) {
         assert!(
             self.le_evt_handlers.lock().await.insert(code, sender).is_none(),
             "A handler for {:?} is already registered",
@@ -166,10 +166,10 @@ impl EventRegistry {
 }
 
 async fn dispatch(
-    evt_handlers: Arc<Mutex<HashMap<EventCode, Sender<EventPacket>>>>,
-    le_evt_handlers: Arc<Mutex<HashMap<SubeventCode, Sender<LeMetaEventPacket>>>>,
-    evt_rx: Arc<Mutex<Receiver<EventPacket>>>,
-    cmd_tx: Sender<CommandPacket>,
+    evt_handlers: Arc<Mutex<HashMap<EventCode, Sender<Event>>>>,
+    le_evt_handlers: Arc<Mutex<HashMap<SubeventCode, Sender<hci::LeMetaEvent>>>>,
+    evt_rx: Arc<Mutex<Receiver<Event>>>,
+    cmd_tx: Sender<Command>,
     mut cmd_rx: Receiver<QueuedCommand>,
 ) {
     let mut pending: Option<QueuedCommand> = None;
@@ -187,8 +187,8 @@ async fn dispatch(
                                     error!("failure dispatching command status {:?}", e);
                                 }
                             },
-                            Some(QueuedCommand{cmd, ..}) => panic!("Waiting for {}, got {}", cmd.get_op_code(), this_opcode),
-                            None => panic!("Unexpected status event with opcode {}", this_opcode),
+                            Some(QueuedCommand{cmd, ..}) => panic!("Waiting for {:?}, got {:?}", cmd.get_op_code(), this_opcode),
+                            None => panic!("Unexpected status event with opcode {:?}", this_opcode),
                         }
                     },
                     CommandComplete(evt) => {
@@ -200,8 +200,8 @@ async fn dispatch(
                                     error!("failure dispatching command complete {:?}", e);
                                 }
                             },
-                            Some(QueuedCommand{cmd, ..}) => panic!("Waiting for {}, got {}", cmd.get_op_code(), this_opcode),
-                            None => panic!("Unexpected complete event with opcode {}", this_opcode),
+                            Some(QueuedCommand{cmd, ..}) => panic!("Waiting for {:?}, got {:?}", cmd.get_op_code(), this_opcode),
+                            None => panic!("Unexpected complete event with opcode {:?}", this_opcode),
                         }
                     },
                     LeMetaEvent(evt) => {
@@ -239,12 +239,12 @@ async fn dispatch(
                 hci_timeout.reset(Duration::from_secs(2));
                 pending = Some(queued);
             },
-            _ = hci_timeout.expired() => panic!("Timed out waiting for {}", pending.unwrap().cmd.get_op_code()),
+            _ = hci_timeout.expired() => panic!("Timed out waiting for {:?}", pending.unwrap().cmd.get_op_code()),
             else => break,
         }
     }
 }
 
-async fn consume(evt_rx: &Arc<Mutex<Receiver<EventPacket>>>) -> Option<EventPacket> {
+async fn consume(evt_rx: &Arc<Mutex<Receiver<Event>>>) -> Option<Event> {
     evt_rx.lock().await.recv().await
 }

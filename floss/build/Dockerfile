@@ -65,7 +65,7 @@ RUN /tmp/rustup.sh -y --default-toolchain 1.68.2
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install cargo packages required on build image.
-RUN cargo install cxxbridge-cmd --version 1.0.94
+RUN cargo install cxxbridge-cmd@1.0.94 pdl-compiler@0.1.1
 
 # Rename llvm packages. By default, they are named 11vm-ar-13, etc. which won't
 # work properly with the build.

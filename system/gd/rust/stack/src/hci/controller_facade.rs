@@ -10,7 +10,7 @@ use bt_facade_proto::empty::Empty;
 use bt_packets::hci::{OpCode, ReadLocalNameBuilder, WriteLocalNameBuilder};
 use gddi::{module, provides, Stoppable};
 use grpcio::*;
-use num_traits::FromPrimitive;
+use std::convert::TryFrom;
 use std::sync::Arc;
 
 module! {
@@ -49,7 +49,8 @@ impl ControllerFacade for ControllerFacadeService {
         let clone = self.clone();
         ctx.spawn(async move {
             let mut address = BluetoothAddress::new();
-            address.set_address(clone.exports.address.bytes.to_vec());
+            let address_bytes: [u8; 6] = clone.exports.address.into();
+            address.set_address(address_bytes.to_vec());
             sink.success(address).await.unwrap();
         });
     }
@@ -84,7 +85,7 @@ impl ControllerFacade for ControllerFacadeService {
         sink: UnarySink<SupportedMsg>,
     ) {
         let clone = self.clone();
-        let opcode = OpCode::from_u32(op_code_msg.get_op_code()).unwrap();
+        let opcode = OpCode::try_from(u16::try_from(op_code_msg.get_op_code()).unwrap()).unwrap();
         ctx.spawn(async move {
             let mut supported_msg = SupportedMsg::new();
             supported_msg.set_supported(clone.exports.commands.is_supported(opcode));
