@@ -743,14 +743,6 @@ struct acl_disconnect_from_handle {
   };
 };
 extern struct acl_disconnect_from_handle acl_disconnect_from_handle;
-// Name: acl_link_segments_xmitted
-// Params: BT_HDR* p_msg
-// Returns: void
-struct acl_link_segments_xmitted {
-  std::function<void(BT_HDR* p_msg)> body{[](BT_HDR* p_msg) { ; }};
-  void operator()(BT_HDR* p_msg) { body(p_msg); };
-};
-extern struct acl_link_segments_xmitted acl_link_segments_xmitted;
 // Name: acl_packets_completed
 // Params: uint16_t handle, uint16_t credits
 // Returns: void
