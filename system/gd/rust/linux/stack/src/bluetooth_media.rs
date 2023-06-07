@@ -23,7 +23,7 @@ use bt_utils::uinput::UInput;
 use itertools::Itertools;
 use log::{debug, info, warn};
 use std::collections::{HashMap, HashSet};
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -111,7 +111,12 @@ pub trait IBluetoothMedia {
     fn get_presentation_position(&mut self) -> PresentationPosition;
 
     /// Start the SCO setup to connect audio
-    fn start_sco_call(&mut self, address: String, sco_offload: bool, force_cvsd: bool) -> bool;
+    fn start_sco_call(
+        &mut self,
+        address: String,
+        sco_offload: bool,
+        disabled_codecs: HfpCodecCapability,
+    ) -> bool;
     fn stop_sco_call(&mut self, address: String);
 
     /// Set the current playback status: e.g., playing, paused, stopped, etc. The method is a copy
@@ -663,7 +668,11 @@ impl BluetoothMedia {
                         // This is only used for Bluetooth HFP qualification.
                         if self.phone_ops_enabled && self.phone_state.num_active > 0 {
                             debug!("[{}]: Connect SCO due to active call.", DisplayAddress(&addr));
-                            self.start_sco_call_impl(addr.to_string(), false, false);
+                            self.start_sco_call_impl(
+                                addr.to_string(),
+                                false,
+                                HfpCodecCapability::NONE,
+                            );
                         }
                     }
                     BthfConnectionState::Disconnected => {
@@ -869,7 +878,7 @@ impl BluetoothMedia {
                 self.phone_state_change("".into());
 
                 debug!("[{}]: Start SCO call due to ATA", DisplayAddress(&addr));
-                self.start_sco_call_impl(addr.to_string(), false, false);
+                self.start_sco_call_impl(addr.to_string(), false, HfpCodecCapability::NONE);
             }
             HfpCallbacks::HangupCall(addr) => {
                 if !self.hangup_call_impl() {
@@ -1217,7 +1226,7 @@ impl BluetoothMedia {
                     addr.to_string(),
                     name.clone(),
                     cur_a2dp_caps.unwrap_or(&Vec::new()).to_vec(),
-                    *cur_hfp_cap.unwrap_or(&HfpCodecCapability::UNSUPPORTED),
+                    *cur_hfp_cap.unwrap_or(&HfpCodecCapability::NONE),
                     absolute_volume,
                 );
 
@@ -1410,7 +1419,7 @@ impl BluetoothMedia {
         &mut self,
         address: String,
         sco_offload: bool,
-        force_cvsd: bool,
+        disabled_codecs: HfpCodecCapability,
     ) -> bool {
         match (|| -> Result<(), &str> {
             let addr = RawAddress::from_string(address.clone())
@@ -1418,7 +1427,8 @@ impl BluetoothMedia {
             info!("Start sco call for {}", DisplayAddress(&addr));
 
             let hfp = self.hfp.as_mut().ok_or("Uninitialized HFP to start the sco call")?;
-            if hfp.connect_audio(addr, sco_offload, force_cvsd) != 0 {
+            let disabled_codecs = disabled_codecs.try_into().expect("Can't parse disabled_codecs");
+            if hfp.connect_audio(addr, sco_offload, disabled_codecs) != 0 {
                 return Err("SCO connect_audio status failed");
             }
             info!("SCO connect_audio status success");
@@ -2201,8 +2211,13 @@ impl IBluetoothMedia for BluetoothMedia {
         };
     }
 
-    fn start_sco_call(&mut self, address: String, sco_offload: bool, force_cvsd: bool) -> bool {
-        self.start_sco_call_impl(address, sco_offload, force_cvsd)
+    fn start_sco_call(
+        &mut self,
+        address: String,
+        sco_offload: bool,
+        disabled_codecs: HfpCodecCapability,
+    ) -> bool {
+        self.start_sco_call_impl(address, sco_offload, disabled_codecs)
     }
 
     fn stop_sco_call(&mut self, address: String) {
@@ -2415,7 +2430,7 @@ impl IBluetoothTelephony for BluetoothMedia {
             }
         }) {
             info!("Start SCO call due to call answered");
-            self.start_sco_call_impl(addr.to_string(), false, false);
+            self.start_sco_call_impl(addr.to_string(), false, HfpCodecCapability::NONE);
         }
 
         true
@@ -2475,7 +2490,7 @@ impl IBluetoothTelephony for BluetoothMedia {
     }
 
     fn audio_connect(&mut self, address: String) -> bool {
-        self.start_sco_call_impl(address, false, false)
+        self.start_sco_call_impl(address, false, HfpCodecCapability::NONE)
     }
 
     fn audio_disconnect(&mut self, address: String) {

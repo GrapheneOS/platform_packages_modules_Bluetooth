@@ -63,10 +63,11 @@ class Interface {
    * Create an audio connection
    *
    * @param bd_addr remote device address
-   * @param focre_cvsd whether force to use fallback CVSD codec
+   * @param disabled_codecs bitset of disabled BTM_SCO_CODECs
    * @return BT_STATUS_SUCCESS on success
    */
-  virtual bt_status_t ConnectAudio(RawAddress* bd_addr, bool force_cvsd) = 0;
+  virtual bt_status_t ConnectAudio(RawAddress* bd_addr,
+                                   int disabled_codecs) = 0;
 
   /**
    * Close the audio connection
