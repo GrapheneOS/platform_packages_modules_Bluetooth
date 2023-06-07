@@ -208,7 +208,7 @@ message StopSlcResponse {
 message ConnectAudioRequest {
   Connection connection = 1;
   bool is_sco_offload_enabled = 2;
-  bool force_cvsd = 3;
+  int32 disabled_codecs = 3;
 }
 
 message ConnectAudioResponse {

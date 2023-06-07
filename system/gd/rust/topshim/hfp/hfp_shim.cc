@@ -289,9 +289,9 @@ uint32_t HfpIntf::connect(RawAddress addr) {
   return intf_->Connect(&addr);
 }
 
-int HfpIntf::connect_audio(RawAddress addr, bool sco_offload, bool force_cvsd) {
+int HfpIntf::connect_audio(RawAddress addr, bool sco_offload, int disabled_codecs) {
   intf_->SetScoOffloadEnabled(sco_offload);
-  return intf_->ConnectAudio(&addr, force_cvsd);
+  return intf_->ConnectAudio(&addr, disabled_codecs);
 }
 
 int HfpIntf::set_active_device(RawAddress addr) {
