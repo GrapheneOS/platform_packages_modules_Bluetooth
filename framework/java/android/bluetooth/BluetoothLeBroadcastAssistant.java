@@ -582,6 +582,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
                 throw new IllegalArgumentException("no callback was ever registered");
             }
             mCallback.unregister(callback);
+            mCallback = null;
         }
     }
 
