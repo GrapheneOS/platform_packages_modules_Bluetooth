@@ -63,13 +63,13 @@ class HfpClient(AsyncClosable):
             facade_pb2.StopSlcRequest(connection=facade_pb2.Connection(cookie=address.encode())))
         return await self._listen_for_event(facade_pb2.EventType.HFP_CONNECTION_STATE)
 
-    async def connect_audio(self, address, is_sco_offload_enabled=False, force_cvsd=False):
+    async def connect_audio(self, address, is_sco_offload_enabled=False, disabled_codecs=0):
         """
         """
         await self.__hfp_stub.ConnectAudio(
             facade_pb2.ConnectAudioRequest(connection=facade_pb2.Connection(cookie=address.encode()),
                                            is_sco_offload_enabled=is_sco_offload_enabled,
-                                           force_cvsd=force_cvsd))
+                                           disabled_codecs=disabled_codecs))
 
     async def disconnect_audio(self, address):
         """

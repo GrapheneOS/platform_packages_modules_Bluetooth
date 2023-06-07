@@ -111,7 +111,11 @@ impl HfpService for HfpServiceImpl {
             let addr_bytes = &req.connection.unwrap().cookie;
             let bt_addr = from_utf8(addr_bytes).unwrap();
             if let Some(addr) = RawAddress::from_string(bt_addr) {
-                hfp.lock().unwrap().connect_audio(addr, req.is_sco_offload_enabled, req.force_cvsd);
+                hfp.lock().unwrap().connect_audio(
+                    addr,
+                    req.is_sco_offload_enabled,
+                    req.disabled_codecs,
+                );
                 hfp.lock().unwrap().set_active_device(addr);
                 sink.success(Empty::default()).await.unwrap();
             } else {
