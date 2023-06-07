@@ -231,9 +231,9 @@ interface IBluetooth
     oneway void requestActivityInfo(in IBluetoothActivityEnergyInfoListener listener, in AttributionSource attributionSource);
 
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
-    oneway void onLeServiceUp(in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    oneway void startBrEdr(in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
-    oneway void onBrEdrDown(in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    oneway void stopBle(in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
 
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED,android.Manifest.permission.MODIFY_PHONE_STATE})")
     oneway void connectAllEnabledProfiles(in BluetoothDevice device, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
