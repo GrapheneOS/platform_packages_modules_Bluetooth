@@ -259,7 +259,6 @@ static void init_stack_internal(bluetooth::core::CoreInterface* interface) {
 
   module_init(get_local_module(DEVICE_IOT_CONFIG_MODULE));
   module_init(get_local_module(OSI_MODULE));
-  bte_main_init();
   module_start_up(get_local_module(GD_SHIM_MODULE));
   module_init(get_local_module(BTIF_CONFIG_MODULE));
   btif_init_bluetooth();
