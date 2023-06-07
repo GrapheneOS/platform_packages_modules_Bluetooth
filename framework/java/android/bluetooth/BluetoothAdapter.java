@@ -3775,26 +3775,6 @@ public final class BluetoothAdapter {
                         }
                     }
                 }
-
-                public void onBrEdrDown() {
-                    if (VDBG) {
-                        Log.i(TAG, "onBrEdrDown");
-                    }
-
-                    synchronized (sServiceLock) {
-                        for (IBluetoothManagerCallback cb : sProxyServiceStateCallbacks.keySet()) {
-                            try {
-                                if (cb != null) {
-                                    cb.onBrEdrDown();
-                                } else {
-                                    Log.d(TAG, "onBrEdrDown: cb is null!");
-                                }
-                            } catch (Exception e) {
-                                Log.e(TAG, "", e);
-                            }
-                        }
-                    }
-                }
             };
 
     private final IBluetoothManagerCallback mManagerCallback =
@@ -3894,9 +3874,6 @@ public final class BluetoothAdapter {
                     } finally {
                         mServiceLock.writeLock().unlock();
                     }
-                }
-
-                public void onBrEdrDown() {
                 }
             };
 
@@ -4343,9 +4320,6 @@ public final class BluetoothAdapter {
             public void onBluetoothServiceDown() {
                 ServiceLifecycleCallback.this.onBluetoothServiceDown();
             }
-
-            @Override
-            public void onBrEdrDown() {}
         };
     }
 
