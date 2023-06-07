@@ -405,7 +405,7 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
             byte[] broadcastCode = null;
             if (codeLen != -1) {
                 broadcastCode = new byte[codeLen];
-                if (codeLen > 0) {
+                if (codeLen >= 0) {
                     in.readByteArray(broadcastCode);
                 }
             }
