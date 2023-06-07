@@ -26,6 +26,7 @@ import static com.android.server.bluetooth.BluetoothManagerService.MESSAGE_BLUET
 import static com.android.server.bluetooth.BluetoothManagerService.MESSAGE_DISABLE;
 import static com.android.server.bluetooth.BluetoothManagerService.MESSAGE_ENABLE;
 import static com.android.server.bluetooth.BluetoothManagerService.MESSAGE_REGISTER_STATE_CHANGE_CALLBACK;
+import static com.android.server.bluetooth.BluetoothManagerService.MESSAGE_TIMEOUT_BIND;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -212,6 +213,38 @@ public class BluetoothManagerServiceTest {
                 .isEqualTo(1);
     }
 
+    @Test
+    public void enable_bindFailure_removesTimeout() throws Exception {
+        doReturn(false)
+                .when(mContext)
+                .bindServiceAsUser(
+                        any(Intent.class),
+                        any(ServiceConnection.class),
+                        anyInt(),
+                        any(UserHandle.class));
+        mManagerService.enableBle("enable_bindFailure_removesTimeout", mBinder);
+        syncHandler(MESSAGE_ENABLE);
+
+        // TODO(b/280518177): Failed to start should be noted / reported in metrics
+        // Maybe show a popup or a crash notification
+        // Should we attempt to re-bind ?
+    }
+
+    @Test
+    public void enable_bindTimeout() throws Exception {
+        mManagerService.enableBle("enable_bindTimeout", mBinder);
+        syncHandler(MESSAGE_ENABLE);
+
+        mLooper.moveTimeForward(120_000); // 120 seconds
+        syncHandler(MESSAGE_TIMEOUT_BIND);
+        // Force handling the message now without waiting for the timeout to fire
+
+        // TODO(b/280518177): A lot of stuff is wrong here since when a timeout occur:
+        //   * No error is printed to the user
+        //   * Code stop trying to start the bluetooth.
+        //   * if user ask to enable again, it will start a second bind but the first still run
+    }
+
     private void acceptBluetoothBinding(IBinder binder, String name, int n) {
         ComponentName compName = new ComponentName("", "com.android.bluetooth." + name);
 
@@ -271,7 +304,7 @@ public class BluetoothManagerServiceTest {
 
     private IBluetoothCallback transition_offToOn() throws Exception {
         IBluetoothCallback btCallback = transition_offToBleOn();
-        verify(mAdapterBinder, times(1)).onLeServiceUp(any());
+        verify(mAdapterBinder, times(1)).startBrEdr(any());
 
         // AdapterService go to turning_on and start all profile on its own
         btCallback.onBluetoothStateChange(STATE_BLE_ON, STATE_TURNING_ON);
@@ -301,7 +334,7 @@ public class BluetoothManagerServiceTest {
         transition_offToBleOn();
 
         // Check that there was no transition to STATE_ON
-        verify(mAdapterBinder, times(0)).onLeServiceUp(any());
+        verify(mAdapterBinder, times(0)).startBrEdr(any());
         assertThat(mManagerService.getState()).isEqualTo(STATE_BLE_ON);
     }
 
