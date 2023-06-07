@@ -293,6 +293,16 @@ public class PbapClientService extends ProfileService {
             if (DBG) Log.v(TAG, "onReceive" + action);
             if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                int transport =
+                        intent.getIntExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.ERROR);
+
+                Log.i(TAG, "Received ACL disconnection event, device=" + device.toString()
+                        + ", transport=" + transport);
+
+                if (transport != BluetoothDevice.TRANSPORT_BREDR) {
+                    return;
+                }
+
                 if (getConnectionState(device) == BluetoothProfile.STATE_CONNECTED) {
                     disconnect(device);
                 }
