@@ -418,8 +418,9 @@ static void bta_gattc_init_bk_conn(const tBTA_GATTC_API_OPEN* p_data,
                     p_data->connection_type, p_data->transport, false)) {
     LOG_ERROR("Unable to connect to remote bd_addr=%s",
               ADDRESS_TO_LOGGABLE_CSTR(p_data->remote_bda));
-    bta_gattc_send_open_cback(p_clreg, GATT_ERROR, p_data->remote_bda,
-                              GATT_INVALID_CONN_ID, BT_TRANSPORT_LE, 0);
+    bta_gattc_send_open_cback(p_clreg, GATT_ILLEGAL_PARAMETER,
+                              p_data->remote_bda, GATT_INVALID_CONN_ID,
+                              BT_TRANSPORT_LE, 0);
     return;
   }
 
