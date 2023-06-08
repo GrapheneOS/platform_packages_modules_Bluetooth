@@ -336,6 +336,28 @@ cc_defaults {
             ],
         },
     },
+    fuzz_config: {
+        // Options for performance improvement
+        libfuzzer_options: [
+            // This disables the stdout and stderr
+            "close_fd_mask=3",
+            // This limits the maximum corpus size to 4KB
+            "max_len=4096",
+        ],
+        cc: [
+            "android-bluetooth-security@google.com",
+            "android-security-assurance-redteam@google.com",
+        ],
+        componentid: 27441, // Android > Android OS & Apps > Systems > bluetooth
+        hotlists: [
+            "4810445", // ASA Red Team: Bluetooth Engagement Issues
+            "3705175", // ASA Red Team Discovered Issues
+        ],
+        acknowledgement: [
+            "Android Red Team of Google",
+            "Android Bluetooth Team of Google",
+        ],
+    },
 }
 
 cc_fuzz {
@@ -360,21 +382,6 @@ cc_fuzz {
         ":TestMockStackBtm",
         "fuzzers/sdp_fuzzer.cc",
     ],
-    fuzz_config: {
-        cc: [
-            "android-bluetooth-security@google.com",
-            "android-security-assurance-redteam@google.com",
-        ],
-        componentid: 27441,
-        hotlists: [
-            "4810445",
-            "3705175",
-        ],
-        acknowledgement: [
-            "Android Red Team of Google",
-            "Android Bluetooth Team of Google",
-        ],
-    },
 }
 
 // Bluetooth stack unit tests for target
