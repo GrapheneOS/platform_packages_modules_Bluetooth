@@ -26,7 +26,7 @@
 #include "types/raw_address.h"
 
 // Process 'idle' request from the BTIF state machine during initialization.
-void btif_a2dp_on_idle(void);
+void btif_a2dp_on_idle(const RawAddress& peer_addr);
 
 // Process 'start' request from the BTIF state machine to prepare for A2DP
 // streaming.

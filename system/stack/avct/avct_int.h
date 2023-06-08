@@ -92,9 +92,9 @@ typedef struct {
   uint8_t allocated;  /* 0, not allocated. index+1, otherwise. */
   uint8_t state;      /* The state machine state */
   uint8_t ch_state;   /* L2CAP channel state */
-  BT_HDR* p_tx_msg;  /* Message to be sent - in case the browsing channel is not
-                        open when MsgReg is called */
-  uint8_t ch_close;  /* CCB index+1, if CCB initiated channel close */
+  BT_HDR* p_tx_msg; /* Message to be sent - in case the browsing channel is not
+                       open when MsgReg is called */
+  uint8_t ch_close; /* CCB index+1, if CCB initiated channel close */
   RawAddress peer_addr; /* BD address of peer */
 } tAVCT_BCB;
 
@@ -200,6 +200,10 @@ void avct_ccb_dealloc(tAVCT_CCB* p_ccb, uint8_t event, uint16_t result,
                       const RawAddress* bd_addr);
 uint8_t avct_ccb_to_idx(tAVCT_CCB* p_ccb);
 tAVCT_CCB* avct_ccb_by_idx(uint8_t idx);
+
+extern bool avct_msg_ind_for_src_sink_coexist(tAVCT_LCB* p_lcb,
+                                              tAVCT_LCB_EVT* p_data,
+                                              uint8_t label, uint8_t cr_ipid);
 
 /*****************************************************************************
  * global data

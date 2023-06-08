@@ -44,6 +44,8 @@ typedef struct {
   uint8_t tg_registered;
   tBTA_AV_HNDL hndl; /* Handle associated with the stream that rejected the
                         connection. */
+  uint16_t ct_ver;
+  uint16_t tg_categories[2];
 } tBTA_AR_CB;
 
 /*****************************************************************************
