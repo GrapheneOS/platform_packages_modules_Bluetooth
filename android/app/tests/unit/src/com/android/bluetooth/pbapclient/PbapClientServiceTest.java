@@ -23,6 +23,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,7 +49,6 @@ import com.android.bluetooth.x.com.android.modules.utils.SynchronousResultReceiv
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -311,7 +311,7 @@ public class PbapClientServiceTest {
     }
 
     @Test
-    public void broadcastReceiver_withActionAclDisconnected_callsDisconnect() {
+    public void broadcastReceiver_withActionAclDisconnectedNoTransport_doesNotCallDisconnect() {
         int connectionState = BluetoothProfile.STATE_CONNECTED;
         PbapClientStateMachine sm = mock(PbapClientStateMachine.class);
         mService.mPbapClientStateMachineMap.put(mRemoteDevice, sm);
@@ -319,6 +319,36 @@ public class PbapClientServiceTest {
 
         Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+        mService.mPbapBroadcastReceiver.onReceive(mService, intent);
+
+        verify(sm, never()).disconnect(mRemoteDevice);
+    }
+
+    @Test
+    public void broadcastReceiver_withActionAclDisconnectedLeTransport_doesNotCallDisconnect() {
+        int connectionState = BluetoothProfile.STATE_CONNECTED;
+        PbapClientStateMachine sm = mock(PbapClientStateMachine.class);
+        mService.mPbapClientStateMachineMap.put(mRemoteDevice, sm);
+        when(sm.getConnectionState(mRemoteDevice)).thenReturn(connectionState);
+
+        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+        intent.putExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.TRANSPORT_LE);
+        mService.mPbapBroadcastReceiver.onReceive(mService, intent);
+
+        verify(sm, never()).disconnect(mRemoteDevice);
+    }
+
+    @Test
+    public void broadcastReceiver_withActionAclDisconnectedBrEdrTransport_callsDisconnect() {
+        int connectionState = BluetoothProfile.STATE_CONNECTED;
+        PbapClientStateMachine sm = mock(PbapClientStateMachine.class);
+        mService.mPbapClientStateMachineMap.put(mRemoteDevice, sm);
+        when(sm.getConnectionState(mRemoteDevice)).thenReturn(connectionState);
+
+        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+        intent.putExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.TRANSPORT_BREDR);
         mService.mPbapBroadcastReceiver.onReceive(mService, intent);
 
         verify(sm).disconnect(mRemoteDevice);
