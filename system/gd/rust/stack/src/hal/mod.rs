@@ -37,7 +37,7 @@ const H4_HEADER_SIZE: usize = 1;
 pub use snoop::{AclHal, ControlHal, IsoHal, ScoHal};
 
 mod internal {
-    use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, ScoPacket};
+    use bt_packets::hci::{Acl, Command, Event, Iso, Sco};
     use gddi::Stoppable;
     use std::sync::Arc;
     use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
@@ -45,25 +45,25 @@ mod internal {
 
     #[derive(Clone, Stoppable)]
     pub struct RawHal {
-        pub cmd_tx: UnboundedSender<CommandPacket>,
-        pub evt_rx: Arc<Mutex<UnboundedReceiver<EventPacket>>>,
-        pub acl_tx: UnboundedSender<AclPacket>,
-        pub acl_rx: Arc<Mutex<UnboundedReceiver<AclPacket>>>,
-        pub iso_tx: UnboundedSender<IsoPacket>,
-        pub iso_rx: Arc<Mutex<UnboundedReceiver<IsoPacket>>>,
-        pub sco_tx: UnboundedSender<ScoPacket>,
-        pub sco_rx: Arc<Mutex<UnboundedReceiver<ScoPacket>>>,
+        pub cmd_tx: UnboundedSender<Command>,
+        pub evt_rx: Arc<Mutex<UnboundedReceiver<Event>>>,
+        pub acl_tx: UnboundedSender<Acl>,
+        pub acl_rx: Arc<Mutex<UnboundedReceiver<Acl>>>,
+        pub iso_tx: UnboundedSender<Iso>,
+        pub iso_rx: Arc<Mutex<UnboundedReceiver<Iso>>>,
+        pub sco_tx: UnboundedSender<Sco>,
+        pub sco_rx: Arc<Mutex<UnboundedReceiver<Sco>>>,
     }
 
     pub struct InnerHal {
-        pub cmd_rx: UnboundedReceiver<CommandPacket>,
-        pub evt_tx: UnboundedSender<EventPacket>,
-        pub acl_rx: UnboundedReceiver<AclPacket>,
-        pub acl_tx: UnboundedSender<AclPacket>,
-        pub sco_rx: UnboundedReceiver<ScoPacket>,
-        pub sco_tx: UnboundedSender<ScoPacket>,
-        pub iso_rx: UnboundedReceiver<IsoPacket>,
-        pub iso_tx: UnboundedSender<IsoPacket>,
+        pub cmd_rx: UnboundedReceiver<Command>,
+        pub evt_tx: UnboundedSender<Event>,
+        pub acl_rx: UnboundedReceiver<Acl>,
+        pub acl_tx: UnboundedSender<Acl>,
+        pub sco_rx: UnboundedReceiver<Sco>,
+        pub sco_tx: UnboundedSender<Sco>,
+        pub iso_rx: UnboundedReceiver<Iso>,
+        pub iso_tx: UnboundedSender<Iso>,
     }
 
     impl InnerHal {

@@ -54,13 +54,6 @@ bool generate_pybind11_sources_one_file(
     const std::string& root_namespace,
     size_t num_shards);
 
-bool generate_rust_source_one_file(
-    const Declarations& decls,
-    const std::filesystem::path& input_file,
-    const std::filesystem::path& include_dir,
-    const std::filesystem::path& out_dir,
-    const std::string& root_namespace);
-
 bool parse_declarations_one_file(const std::filesystem::path& input_file, Declarations* declarations) {
   void* scanner;
   yylex_init(&scanner);
@@ -135,7 +128,6 @@ int main(int argc, const char** argv) {
   std::string root_namespace = "bluetooth";
   // Number of shards per output pybind11 cc file
   size_t num_shards = 1;
-  bool generate_rust = false;
   bool generate_fuzzing = false;
   bool generate_tests = false;
   std::queue<std::filesystem::path> input_files;
@@ -144,7 +136,6 @@ int main(int argc, const char** argv) {
   const std::string arg_include = "--include=";
   const std::string arg_namespace = "--root_namespace=";
   const std::string arg_num_shards = "--num_shards=";
-  const std::string arg_rust = "--rust";
   const std::string arg_fuzzing = "--fuzzing";
   const std::string arg_testing = "--testing";
   const std::string arg_source_root = "--source_root=";
@@ -168,8 +159,6 @@ int main(int argc, const char** argv) {
       root_namespace = arg.substr(arg_namespace.size());
     } else if (arg.find(arg_num_shards) == 0) {
       num_shards = std::stoul(arg.substr(arg_num_shards.size()));
-    } else if (arg.find(arg_rust) == 0) {
-      generate_rust = true;
     } else if (arg.find(arg_fuzzing) == 0) {
       generate_fuzzing = true;
     } else if (arg.find(arg_testing) == 0) {
@@ -194,30 +183,22 @@ int main(int argc, const char** argv) {
       std::cerr << "Cannot parse " << input_files.front() << " correctly" << std::endl;
       return 2;
     }
-    if (generate_rust) {
-      std::cout << "generating rust" << std::endl;
-      if (!generate_rust_source_one_file(declarations, input_files.front(), include_dir, out_dir, root_namespace)) {
-        std::cerr << "Didn't generate rust source for " << input_files.front() << std::endl;
-        return 5;
-      }
-    } else {
-      std::cout << "generating c++ and pybind11" << std::endl;
-      if (!generate_cpp_headers_one_file(
-              declarations,
-              generate_fuzzing,
-              generate_tests,
-              input_files.front(),
-              include_dir,
-              out_dir,
-              root_namespace)) {
-        std::cerr << "Didn't generate cpp headers for " << input_files.front() << std::endl;
-        return 3;
-      }
-      if (!generate_pybind11_sources_one_file(
-              declarations, input_files.front(), include_dir, out_dir, root_namespace, num_shards)) {
-        std::cerr << "Didn't generate pybind11 sources for " << input_files.front() << std::endl;
-        return 4;
-      }
+    std::cout << "generating c++ and pybind11" << std::endl;
+    if (!generate_cpp_headers_one_file(
+            declarations,
+            generate_fuzzing,
+            generate_tests,
+            input_files.front(),
+            include_dir,
+            out_dir,
+            root_namespace)) {
+      std::cerr << "Didn't generate cpp headers for " << input_files.front() << std::endl;
+      return 3;
+    }
+    if (!generate_pybind11_sources_one_file(
+            declarations, input_files.front(), include_dir, out_dir, root_namespace, num_shards)) {
+      std::cerr << "Didn't generate pybind11 sources for " << input_files.front() << std::endl;
+      return 4;
     }
     input_files.pop();
   }
