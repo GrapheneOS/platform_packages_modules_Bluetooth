@@ -4973,6 +4973,7 @@ static void btm_sec_check_pending_enc_req(tBTM_SEC_DEV_REC* p_dev_rec,
           (*p_e->p_callback)(&p_dev_rec->bd_addr, transport, p_e->p_ref_data,
                              res);
         fixed_queue_try_remove_from_queue(btm_cb.sec_pending_q, (void*)p_e);
+        osi_free(p_e);
       }
     }
   }
