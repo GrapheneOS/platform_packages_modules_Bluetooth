@@ -45,7 +45,7 @@ class BluetoothShellCommand extends BasicShellCommandHandler {
     };
 
     @VisibleForTesting
-    abstract class BluetoothCommand {
+    abstract static class BluetoothCommand {
         final boolean mIsPrivileged;
         final String mName;
 

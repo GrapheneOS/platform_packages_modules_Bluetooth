@@ -165,21 +165,26 @@ public class BluetoothShellCommandTest {
         verify(mBinder).enable(any());
     }
 
+    class TestPrivilegedCmd extends BluetoothCommand {
+        TestPrivilegedCmd() {
+            super(true, TestPrivilegedCmd.class.getSimpleName());
+        }
+
+        @Override
+        int exec(String cmd) throws RemoteException {
+            return 0;
+        }
+
+        @Override
+        public void onHelp(PrintWriter pw) {}
+    }
+
     @Test
     public void onCommand_withPrivilegedCommandName_throwsSecurityException() {
-        final String privilegedCommandName = "test_privileged_cmd_name";
-        BluetoothCommand privilegedCommand =
-                mShellCommand.new BluetoothCommand(true, privilegedCommandName) {
-                    @Override
-                    int exec(String cmd) throws RemoteException {
-                        return 0;
-                    }
-                    @Override
-                    public void onHelp(PrintWriter pw) { }
-        };
-        mShellCommand.mBluetoothCommands[0] = privilegedCommand;
+        mShellCommand.mBluetoothCommands[0] = new TestPrivilegedCmd();
 
-        assertThrows(SecurityException.class,
-                () -> mShellCommand.onCommand(privilegedCommandName));
+        assertThrows(
+                SecurityException.class,
+                () -> mShellCommand.onCommand(TestPrivilegedCmd.class.getSimpleName()));
     }
 }
