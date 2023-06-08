@@ -38,6 +38,35 @@ tBTA_AR_CB bta_ar_cb;
 
 /*******************************************************************************
  *
+ * Function         bta_ar_id
+ *
+ * Description      This function maps sys_id to ar id mask.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+static uint8_t bta_ar_id(tBTA_SYS_ID sys_id) {
+  uint8_t mask = 0;
+  if (sys_id == BTA_ID_AV) {
+    mask = BTA_AR_AV_MASK;
+  } else if (sys_id == BTA_ID_AVK) {
+    mask = BTA_AR_AVK_MASK;
+  }
+  return mask;
+}
+static void bta_ar_avrc_add_cat(uint16_t categories) {
+  uint8_t temp[sizeof(uint16_t)], *p;
+  /* Change supported categories on the second one */
+  if (bta_ar_cb.sdp_tg_handle != 0) {
+    p = temp;
+    UINT16_TO_BE_STREAM(p, categories);
+    SDP_AddAttribute(bta_ar_cb.sdp_tg_handle, ATTR_ID_SUPPORTED_FEATURES,
+                     UINT_DESC_TYPE, sizeof(temp), (uint8_t*)temp);
+  }
+}
+
+/*******************************************************************************
+ *
  * Function         bta_ar_init
  *
  * Description      This function is called to register to AVDTP.
@@ -243,6 +272,82 @@ void bta_ar_dereg_avrc(uint16_t service_uuid) {
             bta_ar_cb.sdp_ct_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE,
             (uint32_t)2, (uint8_t*)temp);
       }
+    }
+  }
+}
+
+/******************************************************************************
+ *
+ * Function         bta_ar_reg_avrc_for_src_sink_coexist
+ *
+ * Description      This function is called to register an SDP record for AVRCP.
+ *                  Add sys_id to distinguish src or sink role and add also save
+ *tg_categories
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
+void bta_ar_reg_avrc_for_src_sink_coexist(
+    uint16_t service_uuid, const char* service_name, const char* provider_name,
+    uint16_t categories, tBTA_SYS_ID sys_id, bool browse_supported,
+    uint16_t profile_version) {
+  uint8_t mask = bta_ar_id(sys_id);
+  uint8_t temp[8], *p;
+  uint16_t class_list[2];
+  uint16_t count = 1;
+  if (!mask || !categories) return;
+  if (service_uuid == UUID_SERVCLASS_AV_REM_CTRL_TARGET) {
+    bta_ar_cb.tg_categories[mask - 1] = categories;
+    categories = bta_ar_cb.tg_categories[0] | bta_ar_cb.tg_categories[1];
+    if (bta_ar_cb.sdp_tg_handle == 0) {
+      bta_ar_cb.tg_registered = mask;
+      bta_ar_cb.sdp_tg_handle = SDP_CreateRecord();
+      AVRC_AddRecord(service_uuid, service_name, provider_name, categories,
+                     bta_ar_cb.sdp_tg_handle, browse_supported, profile_version,
+                     0);
+      bta_sys_add_uuid(service_uuid);
+    }
+    /* Change supported categories on the second one */
+    bta_ar_avrc_add_cat(categories);
+    /* only one TG is allowed (first-come, first-served).
+     * If sdp_tg_handle is non-0, ignore this request */
+  } else if ((service_uuid == UUID_SERVCLASS_AV_REMOTE_CONTROL) ||
+             (service_uuid == UUID_SERVCLASS_AV_REM_CTRL_CONTROL)) {
+    bta_ar_cb.ct_categories[mask - 1] = categories;
+    categories = bta_ar_cb.ct_categories[0] | bta_ar_cb.ct_categories[1];
+    if (bta_ar_cb.sdp_ct_handle == 0) {
+      bta_ar_cb.sdp_ct_handle = SDP_CreateRecord();
+      AVRC_AddRecord(service_uuid, service_name, provider_name, categories,
+                     bta_ar_cb.sdp_ct_handle, browse_supported, profile_version,
+                     0);
+      bta_sys_add_uuid(service_uuid);
+      bta_ar_cb.ct_ver = categories;
+    } else {
+      /* If first reg 1,3 version, reg 1.6 must update class id */
+      if (bta_ar_cb.ct_ver < profile_version) {
+        APPL_TRACE_API("%s ver=0x%x", __FUNCTION__, profile_version);
+        if (bta_ar_cb.ct_ver <= AVRC_REV_1_3 &&
+            profile_version > AVRC_REV_1_3) {
+          bta_ar_cb.ct_ver = profile_version;
+          /* add service class id list */
+          class_list[0] = service_uuid;
+          if (service_uuid == UUID_SERVCLASS_AV_REMOTE_CONTROL) {
+            class_list[1] = UUID_SERVCLASS_AV_REM_CTRL_CONTROL;
+            count = 2;
+          }
+          SDP_AddServiceClassIdList(bta_ar_cb.sdp_ct_handle, count, class_list);
+        } else {
+          bta_ar_cb.ct_ver = profile_version;
+        }
+        SDP_AddProfileDescriptorList(bta_ar_cb.sdp_ct_handle, service_uuid,
+                                     profile_version);
+      }
+      /* multiple CT are allowed.
+       * Change supported categories on the second one */
+      p = temp;
+      UINT16_TO_BE_STREAM(p, categories);
+      SDP_AddAttribute(bta_ar_cb.sdp_ct_handle, ATTR_ID_SUPPORTED_FEATURES,
+                       UINT_DESC_TYPE, (uint32_t)2, (uint8_t*)temp);
     }
   }
 }

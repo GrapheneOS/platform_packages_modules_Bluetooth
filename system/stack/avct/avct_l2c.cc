@@ -21,6 +21,10 @@
  *  This AVCTP module interfaces to L2CAP
  *
  ******************************************************************************/
+#ifdef __ANDROID__
+#include <a2dp.sysprop.h>
+#endif
+#include <base/logging.h>
 
 #include "avct_api.h"
 #include "avct_int.h"
@@ -31,8 +35,6 @@
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 /* callback function declarations */
 void avct_l2c_connect_ind_cback(const RawAddress& bd_addr, uint16_t lcid,
@@ -142,6 +144,20 @@ void avct_l2c_connect_ind_cback(const RawAddress& bd_addr, uint16_t lcid,
 
   /* if result ok, proceed with connection */
   if (result == L2CAP_CONN_OK) {
+#ifdef OS_ANDROID
+    if (android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false)) {
+      tAVCT_CCB* p_ccb = &avct_cb.ccb[0];
+      for (int i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
+        if (p_ccb && p_ccb->allocated && (p_ccb->p_lcb == NULL) &&
+            (p_ccb->cc.role == AVCT_ACP)) {
+          p_ccb->p_lcb = p_lcb;
+          AVCT_TRACE_DEBUG(
+              "ACP bind %d ccb to lcb, alloc %d, lcb %p, role %d, pid 0x%x", i,
+              p_ccb->allocated, p_ccb->p_lcb, p_ccb->cc.role, p_ccb->cc.pid);
+        }
+      }
+    }
+#endif
     /* store LCID */
     p_lcb->ch_lcid = lcid;
 
