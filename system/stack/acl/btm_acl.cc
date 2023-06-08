@@ -2732,11 +2732,6 @@ void btm_connection_request(const RawAddress& bda,
   btm_sec_conn_req(bda, dc);
 }
 
-void btm_acl_connection_request(const RawAddress& bda, uint8_t* dc) {
-  btm_sec_conn_req(bda, dc);
-  l2c_link_hci_conn_req(bda);
-}
-
 void acl_accept_connection_request(const RawAddress& bd_addr, uint8_t role) {
   btsnd_hcic_accept_conn(bd_addr, role);
 }

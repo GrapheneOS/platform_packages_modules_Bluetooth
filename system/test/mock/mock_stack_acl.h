@@ -857,16 +857,7 @@ struct btm_connection_request {
     body(bda, cod);
   };
 };
-extern struct btm_acl_connection_request btm_acl_connection_request;
-// Name: btm_acl_connection_request
-// Params: const RawAddress& bda, uint8_t* dc
-// Returns: void
-struct btm_acl_connection_request {
-  std::function<void(const RawAddress& bda, uint8_t* dc)> body{
-      [](const RawAddress& bda, uint8_t* dc) { ; }};
-  void operator()(const RawAddress& bda, uint8_t* dc) { body(bda, dc); };
-};
-extern struct btm_acl_connection_request btm_acl_connection_request;
+extern struct btm_connection_request btm_connection_request;
 // Name: btm_acl_created
 // Params: const RawAddress& bda, uint16_t hci_handle, tHCI_ROLE link_role,
 // tBT_TRANSPORT transport Returns: void

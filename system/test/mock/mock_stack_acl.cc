@@ -124,7 +124,6 @@ struct acl_send_data_packet_ble acl_send_data_packet_ble;
 struct acl_set_disconnect_reason acl_set_disconnect_reason;
 struct acl_write_automatic_flush_timeout acl_write_automatic_flush_timeout;
 struct btm_acl_connected btm_acl_connected;
-struct btm_acl_connection_request btm_acl_connection_request;
 struct btm_acl_created btm_acl_created;
 struct btm_acl_device_down btm_acl_device_down;
 struct btm_acl_disconnected btm_acl_disconnected;
@@ -519,10 +518,6 @@ void btm_acl_connected(const RawAddress& bda, uint16_t handle,
                        tHCI_STATUS status, uint8_t enc_mode) {
   inc_func_call_count(__func__);
   test::mock::stack_acl::btm_acl_connected(bda, handle, status, enc_mode);
-}
-void btm_acl_connection_request(const RawAddress& bda, uint8_t* dc) {
-  inc_func_call_count(__func__);
-  test::mock::stack_acl::btm_acl_connection_request(bda, dc);
 }
 void btm_acl_created(const RawAddress& bda, uint16_t hci_handle,
                      tHCI_ROLE link_role, tBT_TRANSPORT transport) {

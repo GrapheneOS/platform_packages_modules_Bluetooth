@@ -60,9 +60,6 @@ void l2c_link_hci_conn_comp(tHCI_STATUS status, uint16_t handle,
                             const RawAddress& p_bda) {
   inc_func_call_count(__func__);
 }
-void l2c_link_hci_conn_req(const RawAddress& bd_addr) {
-  inc_func_call_count(__func__);
-}
 void l2c_link_init(const uint16_t acl_buffer_count_classic) {
   inc_func_call_count(__func__);
 }
