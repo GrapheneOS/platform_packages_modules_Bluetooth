@@ -237,7 +237,7 @@ class BluetoothManagerService {
     }
 
     // Used for tracking apps that enabled / disabled Bluetooth.
-    private class ActiveLog {
+    private static class ActiveLog {
         private int mReason;
         private String mPackageName;
         private boolean mEnable;
@@ -323,7 +323,7 @@ class BluetoothManagerService {
 
         // DISALLOW_BLUETOOTH can only be set by DO or PO on the system user.
         // Only trigger once instead of for all users
-        if (userHandle == UserHandle.SYSTEM && newBluetoothDisallowed) {
+        if (UserHandle.SYSTEM.equals(userHandle) && newBluetoothDisallowed) {
             sendDisableMsg(
                     BluetoothProtoEnums.ENABLE_DISABLE_REASON_DISALLOWED,
                     mContext.getPackageName());
