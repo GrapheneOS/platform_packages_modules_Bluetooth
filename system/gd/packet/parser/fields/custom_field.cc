@@ -99,11 +99,3 @@ void CustomField::GenStringRepresentation(std::ostream& s, std::string accessor)
 void CustomField::GenBuilderParameterFromView(std::ostream& s) const {
   s << "*view.Get" << util::UnderscoreToCamelCase(GetName()) << "()";
 }
-
-std::string CustomField::GetRustDataType() const {
-  return type_name_;
-}
-
-void CustomField::GenRustGetter(std::ostream&, Size, Size, std::string) const {}
-
-void CustomField::GenRustWriter(std::ostream&, Size, Size) const {}

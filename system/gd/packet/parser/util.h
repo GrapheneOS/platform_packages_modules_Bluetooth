@@ -159,20 +159,6 @@ inline std::string StringFindAndReplaceAll(std::string text, const std::string& 
   return text;
 }
 
-inline std::string GetRustTypeForSize(int size) {
-  if (size > 64) {
-    ERROR() << __func__ << ": Cannot use a type larger than 64 bits. (" << size << ")\n";
-  }
-
-  if (size <= 8) return "u8";
-
-  if (size <= 16) return "u16";
-
-  if (size <= 32) return "u32";
-
-  return "u64";
-}
-
 inline std::string ToLowerCase(std::string value) {
   if (value[0] < 'A' || value[0] > 'Z') {
     ERROR() << value << " doesn't look like CONSTANT_CASE";

@@ -87,23 +87,3 @@ void StructField::GenValidator(std::ostream&) const {
 void StructField::GenStringRepresentation(std::ostream& s, std::string accessor) const {
   s << accessor << ".ToString()";
 }
-
-std::string StructField::GetRustDataType() const {
-  return GetDataType();
-}
-
-void StructField::GenBoundsCheck(std::ostream&, Size, Size, std::string) const {
-  // implicitly checked by the struct parser
-}
-
-void StructField::GenRustGetter(std::ostream& s, Size start_offset, Size, std::string) const {
-  s << "let " << GetName() << " = ";
-  s << GetRustDataType() << "::parse(&bytes[" << start_offset.bytes() << "..";
-  s << start_offset.bytes() + GetSize().bytes() << "])?;";
-}
-
-void StructField::GenRustWriter(std::ostream& s, Size start_offset, Size) const {
-  s << "let " << GetName() << " = &mut buffer[" << start_offset.bytes();
-  s << ".." << start_offset.bytes() + GetSize().bytes() << "];";
-  s << "self." << GetName() << ".write_to(" << GetName() << ");";
-}
