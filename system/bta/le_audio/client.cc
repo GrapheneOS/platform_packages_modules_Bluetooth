@@ -1897,9 +1897,10 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (status != GATT_SUCCESS) {
       /* autoconnect connection failed, that's ok */
-      if (leAudioDevice->GetConnectionState() ==
-              DeviceConnectState::CONNECTING_AUTOCONNECT ||
-          leAudioDevice->autoconnect_flag_) {
+      if (status != GATT_ILLEGAL_PARAMETER &&
+          (leAudioDevice->GetConnectionState() ==
+               DeviceConnectState::CONNECTING_AUTOCONNECT ||
+           leAudioDevice->autoconnect_flag_)) {
         LOG_INFO("Device not available now, do background connect.");
         leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
         AddToBackgroundConnectCheckGroupConnected(leAudioDevice);
@@ -1908,8 +1909,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
       leAudioDevice->SetConnectionState(DeviceConnectState::DISCONNECTED);
 
-      LOG(ERROR) << "Failed to connect to LeAudio leAudioDevice, status: "
-                 << +status;
+      LOG_ERROR("Failed to connect to LeAudio leAudioDevice, status: 0x%02x",
+                status);
       callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, address);
       le_audio::MetricsCollector::Get()->OnConnectionStateChanged(
           leAudioDevice->group_id_, address, ConnectionState::CONNECTED,
