@@ -130,9 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"File, der er større end 4 GB, kan ikke overføres"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Opret forbindelse til Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth er aktiveret i flytilstand"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Hvis du holder Bluetooth aktiveret, sørger din telefon for, at Bluetooth forbliver aktiveret, næste gang du sætter den til flytilstand"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="6168686193308136881">"Hvis du holder Bluetooth aktiveret, sørger din enhed for, at Bluetooth forbliver aktiveret, næste gang du slår flytilstand til"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth forbliver aktiveret"</string>
-    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Din telefon beholder Bluetooth aktiveret i flytilstand. Deaktiver Bluetooth, hvis du ikke vil have, at det forbliver aktiveret."</string>
+    <string name="bluetooth_stays_on_message" msgid="3669663452593157737">"Din enhed beholder Bluetooth aktiveret i flytilstand. Deaktiver Bluetooth, hvis du ikke vil have, at det forbliver aktiveret."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi og Bluetooth forbliver aktiveret"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Din telefon husker at holde Wi-Fi og Bluetooth aktiveret i flytilstand. Deaktiver Wi-Fi og Bluetooth, hvis du ikke vil have, at de forbliver aktiveret."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="7848565203843882558">"Din enhed beholder Wi-Fi og Bluetooth aktiveret i flytilstand. Deaktiver Wi-Fi og Bluetooth, hvis du ikke vil have, at de forbliver aktiveret."</string>
 </resources>

@@ -53,7 +53,7 @@
     <string name="download_line4" msgid="5234701398884321314"></string>
     <string name="download_line5" msgid="4124272066218470715">"Примање датотеки..."</string>
     <string name="download_cancel" msgid="1705762428762702342">"Запри"</string>
-    <string name="download_ok" msgid="2404442707314575833">"Сокриј"</string>
+    <string name="download_ok" msgid="2404442707314575833">"Скриј"</string>
     <string name="incoming_line1" msgid="6342300988329482408">"Од"</string>
     <string name="incoming_line2" msgid="2199520895444457585">"Име на датотека"</string>
     <string name="incoming_line3" msgid="8630078246326525633">"Големина"</string>
@@ -130,9 +130,9 @@
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Не може да се пренесуваат датотеки поголеми од 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Поврзи се со Bluetooth"</string>
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Вклучен Bluetooth во авионски режим"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="8409900562494838113">"Ако го оставите Bluetooth вклучен, телефонот ќе запомни да го остави вклучен до следниот пат кога ќе бидете во авионски режим"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="6168686193308136881">"Ако го оставите Bluetooth вклучен, уредот ќе запомни да го остави вклучен до следниот пат кога ќе бидете во авионски режим"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth останува вклучен"</string>
-    <string name="bluetooth_stays_on_message" msgid="7142453371222249965">"Телефонот помни да го задржи Bluetooth вклучен во авионски режим. Исклучете го Bluetooth ако не сакате да остане вклучен."</string>
+    <string name="bluetooth_stays_on_message" msgid="3669663452593157737">"Уредот помни да го задржи Bluetooth вклучен во авионски режим. Исклучете го Bluetooth ако не сакате да остане вклучен."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi и Bluetooth остануваат вклучени"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="2390749828997719812">"Телефонот помни да ги задржи Wi‑Fi и Bluetooth вклучени во авионски режим. Исклучете ги Wi-Fi и Bluetooth ако не сакате да бидат вклучени."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="7848565203843882558">"Уредот помни да ги задржи Wi‑Fi и Bluetooth вклучени во авионски режим. Исклучете ги Wi-Fi и Bluetooth ако не сакате да бидат вклучени."</string>
 </resources>
