@@ -36,6 +36,7 @@ java_defaults {
     srcs: [
         ":framework-bluetooth-sources",
         ":libbluetooth-binder-aidl",
+        ":service-bluetooth-binder-aidl",
     ],
 }
 
