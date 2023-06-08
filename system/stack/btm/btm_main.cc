@@ -30,6 +30,7 @@
 #include "osi/include/log.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/btm_client_interface.h"
+#include "stack/include/inq_hci_link_interface.h"
 #include "stack_config.h"
 #include "types/raw_address.h"
 
@@ -53,6 +54,11 @@ void btm_init(void) {
   btm_cb.Init(stack_config_get_interface()->get_pts_secure_only_mode()
                   ? BTM_SEC_MODE_SC
                   : BTM_SEC_MODE_SP);
+#ifdef TARGET_FLOSS
+  // Need to set inquery by rssi flag for Floss since Floss doesn't do
+  // btm_inq_db_init
+  btm_inq_db_set_inq_by_rssi();
+#endif
 }
 
 /** This function is called to free dynamic memory and system resource allocated by btm_init */
