@@ -28,6 +28,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_api_types.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
@@ -287,8 +288,8 @@ void btsnd_hcic_enhanced_accept_synchronous_connection(
 #define HCID_GET_EVENT(u16) \
   (uint8_t)(((u16) >> HCI_DATA_EVENT_OFFSET) & HCI_DATA_EVENT_MASK)
 
-void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode, uint8_t len,
-                                uint8_t* p_data, void* p_cmd_cplt_cback);
+void btsnd_hcic_vendor_spec_cmd(uint16_t opcode, uint8_t len, uint8_t* p_data,
+                                tBTM_VSC_CMPL_CB* p_cmd_cplt_cback);
 
 /*******************************************************************************
  * BLE Commands
