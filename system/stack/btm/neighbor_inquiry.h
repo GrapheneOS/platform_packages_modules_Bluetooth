@@ -156,9 +156,7 @@ typedef struct {
                                duplicate store of inquiry results */
   uint16_t remote_name_len;
   tBTM_BD_NAME remote_name;
-  uint8_t remote_name_state;
   uint8_t remote_name_type;
-
 } tBTM_INQ_INFO;
 
 typedef struct {
