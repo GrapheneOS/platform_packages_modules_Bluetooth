@@ -134,4 +134,20 @@ void bta_ar_reg_avrc(uint16_t service_uuid, const char* p_service_name,
  *****************************************************************************/
 void bta_ar_dereg_avrc(uint16_t service_uuid);
 
+/******************************************************************************
+ *
+ * Function         bta_ar_reg_avrc_for_src_sink_coexist
+ *
+ * Description      This function is called to register an SDP record for AVRCP.
+ *                  Add sys_id to distinguish src or sink role and add also save
+ *tg_categories
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
+extern void bta_ar_reg_avrc_for_src_sink_coexist(
+    uint16_t service_uuid, const char* service_name, const char* provider_name,
+    uint16_t categories, tBTA_SYS_ID sys_id, bool browse_supported,
+    uint16_t profile_version);
+
 #endif /* BTA_AR_API_H */

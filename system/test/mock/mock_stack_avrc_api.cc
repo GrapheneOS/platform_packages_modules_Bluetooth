@@ -60,7 +60,7 @@ uint16_t AVRC_GetProfileVersion() {
   return 0;
 }
 uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
-                     BT_HDR* p_pkt) {
+                     BT_HDR* p_pkt, bool is_new_avrcp) {
   inc_func_call_count(__func__);
   return 0;
 }
@@ -76,6 +76,11 @@ uint16_t AVRC_OpenBrowse(uint8_t handle, uint8_t conn_role) {
 void AVRC_SaveControllerVersion(const RawAddress& bdaddr, uint16_t version) {
   inc_func_call_count(__func__);
 }
+
+void AVRC_UpdateCcb(RawAddress* addr, uint32_t company_id) {
+  inc_func_call_count(__func__);
+}
+
 uint16_t AVRC_PassCmd(uint8_t handle, uint8_t label, tAVRC_MSG_PASS* p_msg) {
   inc_func_call_count(__func__);
   return 0;

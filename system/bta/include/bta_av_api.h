@@ -75,6 +75,9 @@ typedef uint8_t tBTA_AV_STATUS;
 #define BTA_AV_FEAT_NO_SCO_SSPD \
   0x8000 /* Do not suspend av streaming as to AG events(SCO or Call) */
 
+/* it indicates the feature is for source */
+#define BTA_AV_FEAT_SRC 0x4000
+
 typedef uint16_t tBTA_AV_FEAT;
 
 /* AV channel values */
@@ -167,6 +170,7 @@ typedef struct {
   tBTA_AV_HNDL hndl; /* Handle associated with the stream. */
   uint8_t app_id;    /* ID associated with call to BTA_AvRegister() */
   tBTA_AV_STATUS status;
+  uint8_t peer_sep; /* peer sep type */
 } tBTA_AV_REGISTER;
 
 /* data associated with BTA_AV_OPEN_EVT */
@@ -236,6 +240,8 @@ typedef struct {
   uint8_t rc_handle;
   uint16_t cover_art_psm;
   tBTA_AV_FEAT peer_features;
+  tBTA_AV_FEAT peer_ct_features;
+  tBTA_AV_FEAT peer_tg_features;
   RawAddress peer_addr;
   tBTA_AV_STATUS status;
 } tBTA_AV_RC_OPEN;
@@ -263,6 +269,8 @@ typedef struct {
 typedef struct {
   uint8_t rc_handle;
   tBTA_AV_FEAT peer_features;
+  tBTA_AV_FEAT peer_ct_features;
+  tBTA_AV_FEAT peer_tg_features;
   RawAddress peer_addr;
 } tBTA_AV_RC_FEAT;
 
@@ -330,7 +338,7 @@ typedef struct {
 typedef union {
   tBTA_AV_CHNL chnl;
   tBTA_AV_ENABLE enable;
-  tBTA_AV_REGISTER registr;
+  tBTA_AV_REGISTER reg;
   tBTA_AV_OPEN open;
   tBTA_AV_CLOSE close;
   tBTA_AV_START start;
@@ -729,5 +737,15 @@ int BTA_AvObtainPeerChannelIndex(const RawAddress& peer_address);
  * information
  */
 void bta_debug_av_dump(int fd);
+
+/**
+ * Set peer sep in order to delete wrong avrcp handle
+ * there are may be two avrcp handle at start, delete the wrong when a2dp
+ * connected
+ *
+ * @param peer_address the peer address
+ * @param sep the peer sep
+ */
+void BTA_AvSetPeerSep(const RawAddress& bdaddr, uint8_t sep);
 
 #endif /* BTA_AV_API_H */
