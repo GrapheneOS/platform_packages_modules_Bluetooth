@@ -539,6 +539,7 @@ cc_fuzz {
     ],
     static_libs: [
         "libgmock",
+        "libosi",
     ],
     target: {
         android: {
