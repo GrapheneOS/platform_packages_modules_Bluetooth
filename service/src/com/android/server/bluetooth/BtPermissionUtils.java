@@ -43,6 +43,8 @@ import android.os.UserManager;
 import android.permission.PermissionManager;
 import android.util.Log;
 
+import java.util.Objects;
+
 class BtPermissionUtils {
     private static final String TAG = BtPermissionUtils.class.getSimpleName();
 
@@ -287,11 +289,10 @@ class BtPermissionUtils {
         final int callingAppId = UserHandle.getAppId(callingUid);
 
         // TODO(b/280890575): Remove isCallerX() to only check isForegroundUser
-        // TODO(b/280890575): Update equality to use Objects.equals on UserHandle
 
         final boolean valid =
-                callingUser == foregroundUser
-                        || parentUser == foregroundUser
+                Objects.equals(callingUser, foregroundUser)
+                        || Objects.equals(parentUser, foregroundUser)
                         || isCallerNfc(callingAppId)
                         || isCallerSystemUi(callingAppId)
                         || isCallerShell(callingAppId);
