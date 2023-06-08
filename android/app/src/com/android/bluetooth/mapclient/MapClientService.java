@@ -743,16 +743,23 @@ public class MapClientService extends ProfileService {
                 Log.e(TAG, "broadcast has NO device param!");
                 return;
             }
-            if (DBG) {
-                Log.d(TAG, "broadcast has device: (" + device.getAddress() + ")");
-            }
+
             MceStateMachine stateMachine = mMapInstanceMap.get(device);
             if (stateMachine == null) {
-                Log.e(TAG, "No Statemachine found for the device from broadcast");
+                Log.e(TAG, "No Statemachine found for the device=" + device.toString());
                 return;
             }
 
             if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+                int transport =
+                        intent.getIntExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.ERROR);
+                Log.i(TAG, "Received ACL disconnection event, device=" + device.toString()
+                        + ", transport=" + transport);
+
+                if (transport != BluetoothDevice.TRANSPORT_BREDR) {
+                    return;
+                }
+
                 if (stateMachine.getState() == BluetoothProfile.STATE_CONNECTED) {
                     stateMachine.disconnect();
                 }
@@ -761,7 +768,8 @@ public class MapClientService extends ProfileService {
             if (action.equals(BluetoothDevice.ACTION_SDP_RECORD)) {
                 ParcelUuid uuid = intent.getParcelableExtra(BluetoothDevice.EXTRA_UUID);
                 if (DBG) {
-                    Log.d(TAG, "UUID of SDP: " + uuid);
+                    Log.d(TAG, "Received SDP Record event, device=" + device.toString() + ", uuid="
+                            + uuid);
                 }
 
                 if (uuid.equals(BluetoothUuid.MAS)) {
