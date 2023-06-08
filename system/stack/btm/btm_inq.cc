@@ -58,6 +58,10 @@
 namespace {
 constexpr char kBtmLogTag[] = "SCAN";
 
+struct {
+  bool inq_by_rssi{false};
+} internal_;
+
 void btm_log_history_scan_mode(uint8_t scan_mode) {
   static uint8_t scan_mode_cached_ = 0xff;
   if (scan_mode_cached_ == scan_mode) return;
@@ -127,6 +131,10 @@ using bluetooth::Uuid;
 
 #ifndef PROPERTY_INQ_SCAN_WINDOW
 #define PROPERTY_INQ_SCAN_WINDOW "bluetooth.core.classic.inq_scan_window"
+#endif
+
+#ifndef PROPERTY_INQ_BY_RSSI
+#define PROPERTY_INQ_BY_RSSI "persist.bluetooth.inq_by_rssi"
 #endif
 
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION 10
@@ -959,6 +967,7 @@ void btm_inq_db_init(void) {
   btm_cb.btm_inq_vars.remote_name_timer =
       alarm_new("btm_inq.remote_name_timer");
   btm_cb.btm_inq_vars.no_inc_ssp = BTM_NO_SSP_ON_INQUIRY;
+  internal_.inq_by_rssi = osi_property_get_bool(PROPERTY_INQ_BY_RSSI, false);
 }
 
 void btm_inq_db_free(void) {
@@ -1150,6 +1159,7 @@ tINQ_DB_ENT* btm_inq_db_find(const RawAddress& p_bda) {
 tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda) {
   uint16_t xx;
   uint64_t ot = UINT64_MAX;
+  int8_t i_rssi = 0;
 
   std::lock_guard<std::mutex> lock(inq_db_lock_);
   tINQ_DB_ENT* p_ent = inq_db_;
@@ -1164,9 +1174,16 @@ tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda) {
       return (p_ent);
     }
 
-    if (p_ent->time_of_resp < ot) {
-      p_old = p_ent;
-      ot = p_ent->time_of_resp;
+    if (internal_.inq_by_rssi) {
+      if (p_ent->inq_info.results.rssi < i_rssi) {
+        p_old = p_ent;
+        i_rssi = p_ent->inq_info.results.rssi;
+      }
+    } else {
+      if (p_ent->time_of_resp < ot) {
+        p_old = p_ent;
+        ot = p_ent->time_of_resp;
+      }
     }
   }
 
