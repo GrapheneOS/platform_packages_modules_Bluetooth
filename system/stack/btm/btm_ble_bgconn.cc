@@ -166,6 +166,9 @@ bool BTM_BackgroundConnectAddressKnown(const RawAddress& address) {
   if (p_dev_rec == NULL || (p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) == 0)
     return true;
 
+  LOG_WARN("%s, device type not BLE: 0x%02x", ADDRESS_TO_LOGGABLE_CSTR(address),
+           p_dev_rec->device_type);
+
   // bonded device with identity address known
   if (!p_dev_rec->ble.identity_address_with_type.bda.IsEmpty()) {
     return true;
@@ -176,6 +179,9 @@ bool BTM_BackgroundConnectAddressKnown(const RawAddress& address) {
       !BTM_BLE_IS_RESOLVE_BDA(address)) {
     return true;
   }
+
+  LOG_WARN("%s, the address type is 0x%02x", ADDRESS_TO_LOGGABLE_CSTR(address),
+           p_dev_rec->ble.AddressType());
 
   // Only Resolvable Private Address (RPA) is known, we don't allow it into
   // the background connection procedure.
