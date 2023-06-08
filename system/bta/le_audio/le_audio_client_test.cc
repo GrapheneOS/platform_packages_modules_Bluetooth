@@ -2615,6 +2615,136 @@ TEST_F(UnicastTest, ConnectTwoEarbudsCsisGroupUnknownAtConnect) {
   DisconnectLeAudio(test_address1, 2);
 }
 
+TEST_F(UnicastTestNoInit, ConnectFailedDueToInvalidParameters) {
+  // Prepare two devices
+  uint8_t group_size = 2;
+  uint8_t group_id = 2;
+
+  /* Prepare  mock to not inject connect event so the device can stay in
+   * CONNECTING state*/
+  ON_CALL(mock_gatt_interface_, Open(_, _, BTM_BLE_DIRECT_CONNECTION, false))
+      .WillByDefault(DoAll(Return()));
+
+  const RawAddress test_address0 = GetTestAddress(0);
+  SetSampleDatabaseEarbudsValid(
+      1, test_address0, codec_spec_conf::kLeAudioLocationFrontLeft,
+      codec_spec_conf::kLeAudioLocationFrontLeft, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ true, /*add_csis*/
+      true,                                /*add_cas*/
+      true,                                /*add_pacs*/
+      default_ase_cnt,                     /*add_ascs_cnt*/
+      group_size, 1);
+
+  const RawAddress test_address1 = GetTestAddress(1);
+  SetSampleDatabaseEarbudsValid(
+      2, test_address1, codec_spec_conf::kLeAudioLocationFrontRight,
+      codec_spec_conf::kLeAudioLocationFrontRight, default_channel_cnt,
+      default_channel_cnt, 0x0004,
+      /* source sample freq 16khz */ true, /*add_csis*/
+      true,                                /*add_cas*/
+      true,                                /*add_pacs*/
+      default_ase_cnt,                     /*add_ascs_cnt*/
+      group_size, 2);
+
+  // Load devices from the storage when storage API is called
+  bool autoconnect = true;
+
+  /* Common storage values */
+  std::vector<uint8_t> handles;
+  LeAudioClient::GetHandlesForStorage(test_address0, handles);
+
+  std::vector<uint8_t> ases;
+  LeAudioClient::GetAsesForStorage(test_address0, ases);
+
+  std::vector<uint8_t> src_pacs;
+  LeAudioClient::GetSourcePacsForStorage(test_address0, src_pacs);
+
+  std::vector<uint8_t> snk_pacs;
+  LeAudioClient::GetSinkPacsForStorage(test_address0, snk_pacs);
+
+  EXPECT_CALL(mock_storage_load, Call()).WillOnce([&]() {
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&LeAudioClient::AddFromStorage, test_address0, autoconnect,
+                   codec_spec_conf::kLeAudioLocationFrontLeft,
+                   codec_spec_conf::kLeAudioLocationFrontLeft, 0xff, 0xff,
+                   std::move(handles), std::move(snk_pacs), std::move(src_pacs),
+                   std::move(ases)));
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&LeAudioClient::AddFromStorage, test_address1, autoconnect,
+                   codec_spec_conf::kLeAudioLocationFrontRight,
+                   codec_spec_conf::kLeAudioLocationFrontRight, 0xff, 0xff,
+                   std::move(handles), std::move(snk_pacs), std::move(src_pacs),
+                   std::move(ases)));
+  });
+
+  // Expect stored device0 to connect automatically (first directed connection )
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0, BTM_BLE_DIRECT_CONNECTION, _))
+      .Times(1);
+
+  // Expect stored device1 to connect automatically (first direct connection)
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address1, BTM_BLE_DIRECT_CONNECTION, _))
+      .Times(1);
+
+  ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
+      .WillByDefault(DoAll(Return(true)));
+  ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
+      .WillByDefault(DoAll(Return(true)));
+
+  ON_CALL(mock_groups_module_, GetGroupId(_, _))
+      .WillByDefault(DoAll(Return(group_id)));
+
+  ON_CALL(mock_btm_interface_,
+          GetSecurityFlagsByTransport(test_address0, NotNull(), _))
+      .WillByDefault(
+          DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(true)));
+
+  std::vector<::bluetooth::le_audio::btle_audio_codec_config_t>
+      framework_encode_preference;
+
+  // Initialize
+  BtaAppRegisterCallback app_register_callback;
+  ON_CALL(mock_gatt_interface_, AppRegister(_, _, _))
+      .WillByDefault(DoAll(SaveArg<0>(&gatt_callback),
+                           SaveArg<1>(&app_register_callback)));
+  LeAudioClient::Initialize(
+      &mock_audio_hal_client_callbacks_,
+      base::Bind([](MockFunction<void()>* foo) { foo->Call(); },
+                 &mock_storage_load),
+      base::Bind([](MockFunction<bool()>* foo) { return foo->Call(); },
+                 &mock_hal_2_1_verifier),
+      framework_encode_preference);
+  if (app_register_callback) app_register_callback.Run(gatt_if, GATT_SUCCESS);
+
+  // We need to wait for the storage callback before verifying stuff
+  SyncOnMainLoop();
+  ASSERT_TRUE(LeAudioClient::IsLeAudioClientRunning());
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
+  // Simulate connect parameters are invalid and phone does not fallback
+  // to background connect.
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address0,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(0);
+
+  EXPECT_CALL(mock_gatt_interface_,
+              Open(gatt_if, test_address1,
+                   BTM_BLE_BKG_CONNECT_TARGETED_ANNOUNCEMENTS, _))
+      .Times(0);
+
+  // Devices not found
+  InjectConnectedEvent(test_address0, 0, GATT_ILLEGAL_PARAMETER);
+  InjectConnectedEvent(test_address1, 0, GATT_ILLEGAL_PARAMETER);
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+}
+
 TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
   // Prepare two devices
   uint8_t group_size = 2;
