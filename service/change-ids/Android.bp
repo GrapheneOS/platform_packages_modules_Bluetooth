@@ -18,13 +18,16 @@ package {
 
 java_library {
     name: "service-bluetooth.change-ids",
-    defaults: ["service-bluetooth-common-defaults"],
     srcs: [
         "com/android/server/bluetooth/ChangeIds.java",
     ],
     libs: [
         "app-compat-annotations",
     ],
+    apex_available: [
+        "com.android.btservices",
+    ],
+    min_sdk_version: "Tiramisu",
     sdk_version: "system_server_current",
 }
 
