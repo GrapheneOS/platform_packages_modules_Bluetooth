@@ -229,12 +229,12 @@ void BTM_SecClearSecurityFlags(const RawAddress& bd_addr) {
  * Returns          Pointer to the name or NULL
  *
  ******************************************************************************/
-char* BTM_SecReadDevName(const RawAddress& bd_addr) {
-  char* p_name = NULL;
-  tBTM_SEC_DEV_REC* p_srec;
+const char* BTM_SecReadDevName(const RawAddress& bd_addr) {
+  const char* p_name = NULL;
+  const tBTM_SEC_DEV_REC* p_srec;
 
   p_srec = btm_find_dev(bd_addr);
-  if (p_srec != NULL) p_name = (char*)p_srec->sec_bd_name;
+  if (p_srec != NULL) p_name = (const char*)p_srec->sec_bd_name;
 
   return (p_name);
 }
