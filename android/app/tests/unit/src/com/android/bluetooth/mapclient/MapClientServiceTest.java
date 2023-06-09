@@ -26,12 +26,10 @@ import static org.mockito.Mockito.when;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.content.Intent;
 
-import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -42,7 +40,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -278,7 +275,8 @@ public class MapClientServiceTest {
     }
 
     @Test
-    public void broadcastReceiver_withActionAclDisconnected_whenConnected_callsDisconnect() {
+    public void
+            broadcastReceiver_withActionAclDisconnectedNoTransport_whenConnected_doesNotCallDisconnect() {
         int connectionState = BluetoothProfile.STATE_CONNECTED;
         MceStateMachine sm = mock(MceStateMachine.class);
         mService.getInstanceMap().put(mRemoteDevice, sm);
@@ -286,6 +284,38 @@ public class MapClientServiceTest {
 
         Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+        mService.mMapReceiver.onReceive(mService, intent);
+
+        verify(sm, never()).disconnect();
+    }
+
+    @Test
+    public void
+            broadcastReceiver_withActionAclDisconnectedLeTransport_whenConnected_doesNotCallDisconnect() {
+        int connectionState = BluetoothProfile.STATE_CONNECTED;
+        MceStateMachine sm = mock(MceStateMachine.class);
+        mService.getInstanceMap().put(mRemoteDevice, sm);
+        when(sm.getState()).thenReturn(connectionState);
+
+        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+        intent.putExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.TRANSPORT_LE);
+        mService.mMapReceiver.onReceive(mService, intent);
+
+        verify(sm, never()).disconnect();
+    }
+
+    @Test
+    public void
+            broadcastReceiver_withActionAclDisconnectedBrEdrTransport_whenConnected_callsDisconnect() {
+        int connectionState = BluetoothProfile.STATE_CONNECTED;
+        MceStateMachine sm = mock(MceStateMachine.class);
+        mService.getInstanceMap().put(mRemoteDevice, sm);
+        when(sm.getState()).thenReturn(connectionState);
+
+        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+        intent.putExtra(BluetoothDevice.EXTRA_TRANSPORT, BluetoothDevice.TRANSPORT_BREDR);
         mService.mMapReceiver.onReceive(mService, intent);
 
         verify(sm).disconnect();
