@@ -336,11 +336,11 @@ void btsnd_hcic_user_passkey_reply(const RawAddress& bd_addr, uint32_t value) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hcicmds::btsnd_hcic_user_passkey_reply(bd_addr, value);
 }
-void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode, uint8_t len,
-                                uint8_t* p_data, void* p_cmd_cplt_cback) {
+void btsnd_hcic_vendor_spec_cmd(uint16_t opcode, uint8_t len, uint8_t* p_data,
+                                tBTM_VSC_CMPL_CB* p_cmd_cplt_cback) {
   inc_func_call_count(__func__);
   test::mock::stack_hcic_hcicmds::btsnd_hcic_vendor_spec_cmd(
-      buffer, opcode, len, p_data, p_cmd_cplt_cback);
+      opcode, len, p_data, p_cmd_cplt_cback);
 }
 void btsnd_hcic_write_auth_enable(uint8_t flag) {
   inc_func_call_count(__func__);
