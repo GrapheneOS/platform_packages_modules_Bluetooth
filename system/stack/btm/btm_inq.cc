@@ -54,6 +54,7 @@
 #include "stack/include/inq_hci_link_interface.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
+#include "btif/include/btif_config.h"
 
 namespace {
 constexpr char kBtmLogTag[] = "SCAN";
@@ -1596,14 +1597,26 @@ tBTM_STATUS btm_initiate_rem_name(const RawAddress& remote_bda, uint8_t origin,
       tINQ_DB_ENT* p_i = btm_inq_db_find(remote_bda);
       if (p_i && (p_i->inq_info.results.inq_result_type & BTM_INQ_RESULT_BR)) {
         tBTM_INQ_INFO* p_cur = &p_i->inq_info;
+        uint16_t clock_offset = p_cur->results.clock_offset | BTM_CLOCK_OFFSET_VALID;
+        int clock_offset_in_cfg = 0;
+        if (0 == (p_cur->results.clock_offset & BTM_CLOCK_OFFSET_VALID)) {
+          if (btif_get_device_clockoffset(remote_bda, &clock_offset_in_cfg)) {
+            clock_offset = clock_offset_in_cfg;
+          }
+        }
+
         btsnd_hcic_rmt_name_req(
             remote_bda, p_cur->results.page_scan_rep_mode,
-            p_cur->results.page_scan_mode,
-            (uint16_t)(p_cur->results.clock_offset | BTM_CLOCK_OFFSET_VALID));
+            p_cur->results.page_scan_mode, clock_offset);
       } else {
+        uint16_t clock_offset = 0;
+        int clock_offset_in_cfg = 0;
+        if (btif_get_device_clockoffset(remote_bda, &clock_offset_in_cfg)) {
+          clock_offset = clock_offset_in_cfg;
+        }
         /* Otherwise use defaults and mark the clock offset as invalid */
         btsnd_hcic_rmt_name_req(remote_bda, HCI_PAGE_SCAN_REP_MODE_R1,
-                                HCI_MANDATARY_PAGE_SCAN_MODE, 0);
+                                HCI_MANDATARY_PAGE_SCAN_MODE, clock_offset);
       }
 
       p_inq->remname_active = true;
