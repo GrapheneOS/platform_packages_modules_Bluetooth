@@ -23,15 +23,16 @@ filegroup {
         "src/**/*.java",
         "src/**/*.kt",
     ],
-    visibility: [
-        "//frameworks/base/services",
-        "//frameworks/base/services/core",
-    ],
+    visibility: [":__subpackages__"],
 }
 
+// pre-jarjar version of service-bluetooth that builds against pre-jarjar version of framework-bluetooth
 java_defaults {
-    name: "service-bluetooth-common-defaults",
-    defaults: ["bluetooth-module-sdk-version-defaults"],
+    name: "service-bluetooth-pre-jarjar",
+    srcs: [
+        ":services.bluetooth-sources",
+    ],
+
     errorprone: {
         javacflags: [
             "-Xep:AlreadyChecked:ERROR",
@@ -46,23 +47,6 @@ java_defaults {
             enabled: false,
         },
     },
-    apex_available: [
-        "com.android.btservices",
-    ],
-    min_sdk_version: "Tiramisu",
-    defaults_visibility: [
-        ":__subpackages__",
-    ],
-}
-
-// pre-jarjar version of service-bluetooth that builds against pre-jarjar version of framework-bluetooth
-java_library {
-    name: "service-bluetooth-pre-jarjar",
-    installable: false,
-    defaults: ["service-bluetooth-common-defaults"],
-    srcs: [
-        ":services.bluetooth-sources",
-    ],
 
     sdk_version: "system_server_current",
 
@@ -85,23 +69,20 @@ java_library {
         "bluetooth-proto-enums-java-gen",
         "modules-utils-shell-command-handler",
     ],
+
+    visibility: [":__subpackages__"],
 }
 
 // service-bluetooth static library
 // ==============================================================
 java_library {
     name: "service-bluetooth",
-    defaults: ["service-bluetooth-common-defaults"],
+    defaults: ["service-bluetooth-pre-jarjar"],
     installable: true,
-    static_libs: [
-        "androidx.appcompat_appcompat",
-        "service-bluetooth-pre-jarjar",
-    ],
 
     libs: [
         "framework-bluetooth.impl",
     ],
-    sdk_version: "system_server_current",
 
     jarjar_rules: ":bluetooth-jarjar-rules",
 
@@ -113,6 +94,10 @@ java_library {
     visibility: [
         "//packages/modules/Bluetooth/apex",
     ],
+    apex_available: [
+        "com.android.btservices",
+    ],
+    min_sdk_version: "Tiramisu",
 }
 
 java_library {
@@ -136,8 +121,7 @@ java_library {
 
 java_library {
     name: "bluetooth-nano-protos",
-    sdk_version: "system_current",
-    min_sdk_version: "Tiramisu",
+    installable: false,
     proto: {
         type: "nano",
     },
@@ -145,10 +129,12 @@ java_library {
         ":system-messages-proto-src",
     ],
     libs: ["libprotobuf-java-nano"],
-    apex_available: [
-        "com.android.btservices",
-    ],
     lint: {
         strict_updatability_linting: true,
     },
+    sdk_version: "system_current",
+    apex_available: [
+        "com.android.btservices",
+    ],
+    min_sdk_version: "Tiramisu",
 }
