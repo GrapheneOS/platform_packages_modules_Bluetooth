@@ -198,6 +198,22 @@ genrule {
 }
 
 // Generate the python parser+serializer backend for
+// rust/llcp_packets.pdl.
+genrule {
+    name: "llcp_packets_python3_gen",
+    defaults: ["pdl_python_generator_defaults"],
+    cmd: "$(location :pdlc) $(in) |" +
+        " $(location :pdl_python_generator)" +
+        " --output $(out) --custom-type-location py.bluetooth",
+    srcs: [
+        "rust/llcp_packets.pdl",
+    ],
+    out: [
+        "llcp_packets.py",
+    ],
+}
+
+// Generate the python parser+serializer backend for
 // hci_packets.pdl.
 genrule {
     name: "hci_packets_python3_gen",
@@ -285,8 +301,11 @@ python_test_host {
     srcs: [
         ":hci_packets_python3_gen",
         ":link_layer_packets_python3_gen",
+        ":llcp_packets_python3_gen",
         "py/bluetooth.py",
         "py/controller.py",
+        "test/LL/CIS/CEN/*.py",
+        "test/LL/CIS/PER/*.py",
         "test/LL/CON_/CEN/*.py",
         "test/LL/CON_/PER/*.py",
         "test/LL/DDI/ADV/*.py",
