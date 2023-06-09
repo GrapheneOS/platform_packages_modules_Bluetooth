@@ -127,6 +127,8 @@ class ConnectionHandler {
    */
   static void InitForTesting(ConnectionHandler* handler);
 
+  virtual void RegisterVolChanged(const RawAddress& bdaddr);
+
  private:
   AvrcpInterface* avrc_;
   SdpInterface* sdp_;

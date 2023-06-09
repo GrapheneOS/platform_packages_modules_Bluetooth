@@ -37,6 +37,7 @@
 #include "bta/include/bta_ar_api.h"
 #include "bta/include/bta_av_co.h"
 #include "btif/avrcp/avrcp_service.h"
+#include "btif/include/btif_av.h"
 #include "btif/include/btif_av_co.h"
 #include "btif/include/btif_config.h"
 #include "btif/include/btif_storage.h"
@@ -880,6 +881,7 @@ void bta_av_cleanup(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
   p_scb->wait = 0;
   p_scb->num_disc_snks = 0;
   p_scb->coll_mask = 0;
+  p_scb->uuid_int = 0;
   alarm_cancel(p_scb->avrc_ct_timer);
   alarm_cancel(p_scb->link_signalling_timer);
   alarm_cancel(p_scb->accept_signalling_timer);
@@ -1038,7 +1040,9 @@ void bta_av_disconnect_req(tBTA_AV_SCB* p_scb,
   // the same index, it should be safe to use SCB index here.
   if ((bta_av_cb.conn_lcb & (1 << p_scb->hdi)) != 0) {
     p_rcb = bta_av_get_rcb_by_shdl((uint8_t)(p_scb->hdi + 1));
-    if (p_rcb) bta_av_del_rc(p_rcb);
+    if (p_rcb && p_scb->rc_handle != BTA_AV_RC_HANDLE_NONE) {
+      bta_av_del_rc(p_rcb);
+    }
     AVDT_DisconnectReq(p_scb->PeerAddress(), &bta_av_proc_stream_evt);
   } else {
     APPL_TRACE_WARNING("%s: conn_lcb=0x%x bta_handle=0x%x (hdi=%u) no link",
@@ -1165,10 +1169,23 @@ void bta_av_setconfig_rsp(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
 
     /* only in case of local sep as SRC we need to look for other SEPs, In case
      * of SINK we don't */
-    if (local_sep == AVDT_TSEP_SRC) {
-      /* Make sure UUID has been initialized... */
-      if (p_scb->uuid_int == 0) p_scb->uuid_int = p_scb->open_api.uuid;
-      bta_av_next_getcap(p_scb, p_data);
+    if (btif_av_src_sink_coexist_enabled()) {
+      if (local_sep == AVDT_TSEP_SRC) {
+        /* Make sure UUID has been initialized... */
+        /* if local sep is source, uuid_int should be source */
+        p_scb->uuid_int = UUID_SERVCLASS_AUDIO_SOURCE;
+        bta_av_next_getcap(p_scb, p_data);
+      } else {
+        p_scb->uuid_int = UUID_SERVCLASS_AUDIO_SINK;
+      }
+    } else {
+      if (local_sep == AVDT_TSEP_SRC) {
+        /* Make sure UUID has been initialized... */
+        if (p_scb->uuid_int == 0) {
+          p_scb->uuid_int = p_scb->open_api.uuid;
+        }
+        bta_av_next_getcap(p_scb, p_data);
+      }
     }
   }
 }
@@ -1446,17 +1463,45 @@ void bta_av_disc_results(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   /* store number of stream endpoints returned */
   p_scb->num_seps = p_data->str_msg.msg.discover_cfm.num_seps;
 
-  for (i = 0; i < p_scb->num_seps; i++) {
-    /* steam not in use, is a sink, and is audio */
-    if ((!p_scb->sep_info[i].in_use) &&
-        (p_scb->sep_info[i].media_type == p_scb->media_type)) {
-      if ((p_scb->sep_info[i].tsep == AVDT_TSEP_SNK) &&
-          (uuid_int == UUID_SERVCLASS_AUDIO_SOURCE))
-        num_snks++;
+  if (btif_av_src_sink_coexist_enabled()) {
+    for (i = 0; i < p_scb->num_seps; i++) {
+      /* steam not in use, is a sink, and is audio */
+      if ((!p_scb->sep_info[i].in_use) &&
+          (p_scb->sep_info[i].media_type == p_scb->media_type)) {
+        if (p_scb->sep_info[i].tsep == AVDT_TSEP_SNK) num_snks++;
 
-      if ((p_scb->sep_info[i].tsep == AVDT_TSEP_SRC) &&
-          (uuid_int == UUID_SERVCLASS_AUDIO_SINK))
-        num_srcs++;
+        if (p_scb->sep_info[i].tsep == AVDT_TSEP_SRC) num_srcs++;
+      }
+    }
+    APPL_TRACE_DEBUG("both_enable=%d, uuid_int=0x%x, incoming=%d",
+                     btif_av_both_enable(), uuid_int, p_scb->open_api.incoming);
+    if (btif_av_both_enable() && p_scb->open_api.incoming) {
+      if (uuid_int == UUID_SERVCLASS_AUDIO_SOURCE && num_snks == 0 &&
+          num_srcs > 0) {
+        p_scb->uuid_int = UUID_SERVCLASS_AUDIO_SINK;
+        APPL_TRACE_DEBUG(" change UUID to 0x%x, num_snks=%u, num_srcs=%u",
+                         p_scb->uuid_int, num_snks, num_srcs);
+      } else if (uuid_int == UUID_SERVCLASS_AUDIO_SINK && num_srcs == 0 &&
+                 num_snks > 0) {
+        p_scb->uuid_int = UUID_SERVCLASS_AUDIO_SOURCE;
+        APPL_TRACE_DEBUG(" change UUID to 0x%x, num_snks=%u, num_srcs=%u",
+                         p_scb->uuid_int, num_snks, num_srcs);
+      }
+      uuid_int = p_scb->uuid_int;
+    }
+  } else {
+    for (i = 0; i < p_scb->num_seps; i++) {
+      /* steam not in use, is a sink, and is audio */
+      if ((!p_scb->sep_info[i].in_use) &&
+          (p_scb->sep_info[i].media_type == p_scb->media_type)) {
+        if ((p_scb->sep_info[i].tsep == AVDT_TSEP_SNK) &&
+            (uuid_int == UUID_SERVCLASS_AUDIO_SOURCE))
+          num_snks++;
+
+        if ((p_scb->sep_info[i].tsep == AVDT_TSEP_SRC) &&
+            (uuid_int == UUID_SERVCLASS_AUDIO_SINK))
+          num_srcs++;
+      }
     }
   }
 
@@ -2371,7 +2416,7 @@ void bta_av_start_ok(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   {
     /* If sink starts stream, disable sniff mode here */
     if (!initiator) {
-      /* If souce is the central role, disable role switch during streaming.
+      /* If source is the central role, disable role switch during streaming.
        * Otherwise allow role switch, if source is peripheral.
        * Because it would not hurt source, if the peer device wants source to be
        * central.
@@ -3023,7 +3068,26 @@ void bta_av_open_rc(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
       }
     } else {
       /* use main SM for AVRC SDP activities */
-      if (is_new_avrcp_enabled()) {
+      if (btif_av_both_enable()) {
+        /* if peer is sink, it should run new avrcp */
+        if ((p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC) &&
+            is_new_avrcp_enabled()) {
+          APPL_TRACE_WARNING("%s: local src Using the new AVRCP Profile",
+                             __func__);
+          if (bluetooth::avrcp::AvrcpService::Get() != nullptr) {
+            bluetooth::avrcp::AvrcpService::Get()->ConnectDevice(
+                p_scb->PeerAddress());
+            return;
+          }
+        }
+
+        APPL_TRACE_WARNING("%s: local sink Using the legacy AVRCP Profile",
+                           __func__);
+        bta_av_rc_disc((uint8_t)(p_scb->hdi + 1));
+
+        return;
+      }
+      if (btif_av_is_source_enabled() && is_new_avrcp_enabled()) {
         APPL_TRACE_WARNING("%s: Using the new AVRCP Profile", __func__);
         bluetooth::avrcp::AvrcpService::Get()->ConnectDevice(
             p_scb->PeerAddress());
@@ -3339,5 +3403,27 @@ static void bta_av_offload_codec_builder(tBTA_AV_SCB* p_scb,
   p_a2dp_offload->encoded_audio_bitrate = CodecConfig->getTrackBitRate();
   if (!CodecConfig->getCodecSpecificConfig(p_a2dp_offload)) {
     APPL_TRACE_ERROR("%s: not a valid codec info", __func__);
+  }
+}
+void bta_av_api_set_peer_sep(tBTA_AV_DATA* p_data) {
+  APPL_TRACE_DEBUG("%s, bd_addr=%s, sep:%d", __func__,
+                   ADDRESS_TO_LOGGABLE_CSTR(p_data->peer_sep.addr),
+                   p_data->peer_sep.sep);
+  const tBTA_AV_SCB* p_scb = bta_av_addr_to_scb(p_data->peer_sep.addr);
+  if (!p_scb) {
+    APPL_TRACE_WARNING("%s scb not found", __func__);
+    return;
+  }
+  APPL_TRACE_DEBUG("%s, rc_handle:%d", __func__, p_scb->rc_handle);
+  if (btif_av_both_enable()) {
+    if (p_data->peer_sep.sep == AVDT_TSEP_SNK) {
+      // src close legacy cback
+      APPL_TRACE_WARNING("%s: current dut is src", __func__);
+      AVRC_UpdateCcb(&p_data->peer_sep.addr, AVRC_CO_METADATA);
+    } else if (p_data->peer_sep.sep == AVDT_TSEP_SRC) {
+      // sink close new cback
+      APPL_TRACE_WARNING("%s: current dut is sink", __func__);
+      AVRC_UpdateCcb(&p_data->peer_sep.addr, AVRC_CO_GOOGLE);
+    }
   }
 }

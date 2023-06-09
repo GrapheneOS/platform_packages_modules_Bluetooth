@@ -47,6 +47,11 @@ RawAddress btif_av_sink_active_peer(void);
 bool btif_av_is_sink_enabled(void);
 
 /**
+ * Check whether A2DP Source is enabled.
+ */
+bool btif_av_is_source_enabled(void);
+
+/**
  * Start streaming.
  */
 void btif_av_stream_start(void);
@@ -227,6 +232,14 @@ bool btif_av_is_a2dp_offload_running(void);
 bool btif_av_is_peer_silenced(const RawAddress& peer_address);
 
 /**
+ * check the a2dp connect status
+ *
+ * @param address : checked device address
+ *
+ */
+bool btif_av_is_connected_addr(const RawAddress& peer_address);
+
+/**
  * Set the dynamic audio buffer size
  *
  * @param dynamic_audio_buffer_size to set
@@ -240,4 +253,16 @@ void btif_av_set_dynamic_audio_buffer_size(uint8_t dynamic_audio_buffer_size);
  */
 void btif_av_set_low_latency(bool is_low_latency);
 
+/**
+ * Check whether A2DP Source is enabled.
+ */
+extern bool btif_av_is_source_enabled(void);
+extern bool btif_av_both_enable(void);
+extern bool btif_av_src_sink_coexist_enabled(void);
+extern bool btif_av_is_sink_enabled(void);
+extern bool btif_av_is_connected_addr(const RawAddress& peer_address);
+extern bool btif_av_peer_is_connected_sink(const RawAddress& peer_address);
+extern bool btif_av_peer_is_connected_source(const RawAddress& peer_address);
+extern bool btif_av_peer_is_sink(const RawAddress& peer_address);
+extern bool btif_av_peer_is_source(const RawAddress& peer_address);
 #endif /* BTIF_AV_H */

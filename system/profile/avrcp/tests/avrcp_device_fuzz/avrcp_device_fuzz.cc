@@ -7,6 +7,8 @@
 #include "stack_config.h"
 #include "types/raw_address.h"
 
+bool btif_av_src_sink_coexist_enabled(void) { return true; }
+
 namespace bluetooth {
 namespace avrcp {
 class FakeMediaInterface : public MediaInterface {
