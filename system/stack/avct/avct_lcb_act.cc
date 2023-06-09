@@ -21,7 +21,9 @@
  *  This module contains action functions of the link control state machine.
  *
  ******************************************************************************/
-
+#ifdef __ANDROID__
+#include <a2dp.sysprop.h>
+#endif
 #include <string.h>
 
 #include "avct_api.h"
@@ -226,25 +228,80 @@ void avct_lcb_open_ind(tAVCT_LCB* p_lcb, tAVCT_LCB_EVT* p_data) {
   int i;
   bool bind = false;
 
-  for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
-    /* if ccb allocated and */
-    if (p_ccb->allocated) {
-      /* if bound to this lcb send connect confirm event */
-      if (p_ccb->p_lcb == p_lcb) {
-        bind = true;
-        L2CA_SetTxPriority(p_lcb->ch_lcid, L2CAP_CHNL_PRIORITY_HIGH);
-        p_ccb->cc.p_ctrl_cback(avct_ccb_to_idx(p_ccb), AVCT_CONNECT_CFM_EVT, 0,
-                               &p_lcb->peer_addr);
+#ifdef OS_ANDROID
+  if (android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false)) {
+    bool is_originater = false;
+
+    for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
+      if (p_ccb->allocated && (p_ccb->p_lcb == p_lcb) &&
+          p_ccb->cc.role == AVCT_INT) {
+        AVCT_TRACE_DEBUG("%s, find int handle %d", __func__, i);
+        is_originater = true;
       }
-      /* if unbound acceptor and lcb doesn't already have a ccb for this PID */
-      else if ((p_ccb->p_lcb == NULL) && (p_ccb->cc.role == AVCT_ACP) &&
-               (avct_lcb_has_pid(p_lcb, p_ccb->cc.pid) == NULL)) {
-        /* bind ccb to lcb and send connect ind event */
-        bind = true;
-        p_ccb->p_lcb = p_lcb;
-        L2CA_SetTxPriority(p_lcb->ch_lcid, L2CAP_CHNL_PRIORITY_HIGH);
-        p_ccb->cc.p_ctrl_cback(avct_ccb_to_idx(p_ccb), AVCT_CONNECT_IND_EVT, 0,
-                               &p_lcb->peer_addr);
+    }
+
+    p_ccb = &avct_cb.ccb[0];
+    for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
+      /* if ccb allocated and */
+      /** M: to avoid avctp collision, make sure the collision can be checked @{
+       */
+      AVCT_TRACE_DEBUG("%s, %d ccb to lcb, alloc %d, lcb %p, role %d, pid 0x%x",
+                       __func__, i, p_ccb->allocated, p_ccb->p_lcb,
+                       p_ccb->cc.role, p_ccb->cc.pid);
+      if (p_ccb->allocated && (p_ccb->p_lcb == p_lcb)) {
+        /* if bound to this lcb send connect confirm event */
+        if (p_ccb->cc.role == AVCT_INT) {
+          /** @} */
+          bind = true;
+          L2CA_SetTxPriority(p_lcb->ch_lcid, L2CAP_CHNL_PRIORITY_HIGH);
+          p_ccb->cc.p_ctrl_cback(avct_ccb_to_idx(p_ccb), AVCT_CONNECT_CFM_EVT,
+                                 0, &p_lcb->peer_addr);
+        }
+        /* if unbound acceptor and lcb doesn't already have a ccb for this PID
+         */
+        /** M: to avoid avctp collision, make sure the collision can be checked
+           @{ */
+        else if ((p_ccb->cc.role == AVCT_ACP) &&
+                 avct_lcb_has_pid(p_lcb, p_ccb->cc.pid)) {
+          /* bind ccb to lcb and send connect ind event  */
+          if (is_originater) {
+            AVCT_TRACE_ERROR("%s, int exist, unbind acp handle:%d", __func__,
+                             i);
+            p_ccb->p_lcb = NULL;
+          } else {
+            bind = true;
+            p_ccb->p_lcb = p_lcb;
+            L2CA_SetTxPriority(p_lcb->ch_lcid, L2CAP_CHNL_PRIORITY_HIGH);
+            p_ccb->cc.p_ctrl_cback(avct_ccb_to_idx(p_ccb), AVCT_CONNECT_IND_EVT,
+                                   0, &p_lcb->peer_addr);
+          }
+        }
+      }
+    }
+  } else
+#endif
+  {
+    for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
+      /* if ccb allocated and */
+      if (p_ccb->allocated) {
+        /* if bound to this lcb send connect confirm event */
+        if (p_ccb->p_lcb == p_lcb) {
+          bind = true;
+          L2CA_SetTxPriority(p_lcb->ch_lcid, L2CAP_CHNL_PRIORITY_HIGH);
+          p_ccb->cc.p_ctrl_cback(avct_ccb_to_idx(p_ccb), AVCT_CONNECT_CFM_EVT,
+                                 0, &p_lcb->peer_addr);
+        }
+        /* if unbound acceptor and lcb doesn't already have a ccb for this PID
+         */
+        else if ((p_ccb->p_lcb == NULL) && (p_ccb->cc.role == AVCT_ACP) &&
+                 (avct_lcb_has_pid(p_lcb, p_ccb->cc.pid) == NULL)) {
+          /* bind ccb to lcb and send connect ind event */
+          bind = true;
+          p_ccb->p_lcb = p_lcb;
+          L2CA_SetTxPriority(p_lcb->ch_lcid, L2CAP_CHNL_PRIORITY_HIGH);
+          p_ccb->cc.p_ctrl_cback(avct_ccb_to_idx(p_ccb), AVCT_CONNECT_IND_EVT,
+                                 0, &p_lcb->peer_addr);
+        }
       }
     }
   }
@@ -626,16 +683,26 @@ void avct_lcb_msg_ind(tAVCT_LCB* p_lcb, tAVCT_LCB_EVT* p_data) {
     return;
   }
 
-  /* parse and lookup PID */
-  BE_STREAM_TO_UINT16(pid, p);
-  p_ccb = avct_lcb_has_pid(p_lcb, pid);
-  if (p_ccb) {
-    /* PID found; send msg up, adjust bt hdr and call msg callback */
-    p_data->p_buf->offset += AVCT_HDR_LEN_SINGLE;
-    p_data->p_buf->len -= AVCT_HDR_LEN_SINGLE;
-    (*p_ccb->cc.p_msg_cback)(avct_ccb_to_idx(p_ccb), label, cr_ipid,
-                             p_data->p_buf);
-    return;
+#ifdef OS_ANDROID
+  bool bind = false;
+  if (android::sysprop::bluetooth::A2dp::src_sink_coexist().value_or(false)) {
+    bind = avct_msg_ind_for_src_sink_coexist(p_lcb, p_data, label, cr_ipid);
+    osi_free_and_reset((void**)&p_data->p_buf);
+    if (bind) return;
+  } else
+#endif
+  {
+    /* parse and lookup PID */
+    BE_STREAM_TO_UINT16(pid, p);
+    p_ccb = avct_lcb_has_pid(p_lcb, pid);
+    if (p_ccb) {
+      /* PID found; send msg up, adjust bt hdr and call msg callback */
+      p_data->p_buf->offset += AVCT_HDR_LEN_SINGLE;
+      p_data->p_buf->len -= AVCT_HDR_LEN_SINGLE;
+      (*p_ccb->cc.p_msg_cback)(avct_ccb_to_idx(p_ccb), label, cr_ipid,
+                               p_data->p_buf);
+      return;
+    }
   }
 
   /* PID not found; drop message */
@@ -652,4 +719,35 @@ void avct_lcb_msg_ind(tAVCT_LCB* p_lcb, tAVCT_LCB_EVT* p_data) {
     UINT16_TO_BE_STREAM(p, pid);
     L2CA_DataWrite(p_lcb->ch_lcid, p_buf);
   }
+}
+
+bool avct_msg_ind_for_src_sink_coexist(tAVCT_LCB* p_lcb, tAVCT_LCB_EVT* p_data,
+                                       uint8_t label, uint8_t cr_ipid) {
+  bool bind = false;
+  tAVCT_CCB* p_ccb;
+  int p_buf_len;
+  uint8_t* p;
+  uint16_t pid;
+
+  p = (uint8_t*)(p_data->p_buf + 1) + p_data->p_buf->offset;
+
+  BE_STREAM_TO_UINT16(pid, p);
+
+  p_ccb = &avct_cb.ccb[0];
+  p_data->p_buf->offset += AVCT_HDR_LEN_SINGLE;
+  p_data->p_buf->len -= AVCT_HDR_LEN_SINGLE;
+  p_buf_len = BT_HDR_SIZE + p_data->p_buf->offset + p_data->p_buf->len;
+
+  for (int i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
+    if (p_ccb->allocated && (p_ccb->p_lcb == p_lcb) && (p_ccb->cc.pid == pid)) {
+      /* PID found; send msg up, adjust bt hdr and call msg callback */
+      bind = true;
+      BT_HDR* p_tmp_buf = (BT_HDR*)osi_malloc(p_buf_len);
+      memcpy(p_tmp_buf, p_data->p_buf, p_buf_len);
+      (*p_ccb->cc.p_msg_cback)(avct_ccb_to_idx(p_ccb), label, cr_ipid,
+                               p_tmp_buf);
+    }
+  }
+
+  return bind;
 }
