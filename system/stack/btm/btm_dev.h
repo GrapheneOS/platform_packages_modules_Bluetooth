@@ -57,7 +57,7 @@ void BTM_SecClearSecurityFlags(const RawAddress& bd_addr);
  * Returns          Pointer to the name or NULL
  *
  ******************************************************************************/
-char* BTM_SecReadDevName(const RawAddress& bd_addr);
+const char* BTM_SecReadDevName(const RawAddress& bd_addr);
 
 /*******************************************************************************
  *
