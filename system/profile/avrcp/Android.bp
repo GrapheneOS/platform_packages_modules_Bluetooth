@@ -30,6 +30,9 @@ cc_library_static {
         "libbluetooth-types",
         "libosi",
     ],
+    whole_static_libs: [
+        "libcom.android.sysprop.bluetooth",
+    ],
     shared_libs: [
         "liblog",
     ],

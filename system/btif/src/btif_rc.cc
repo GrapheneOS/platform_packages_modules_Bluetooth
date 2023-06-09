@@ -26,6 +26,7 @@
 
 #include "btif_rc.h"
 
+#include <base/logging.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <hardware/bluetooth.h>
@@ -40,6 +41,7 @@
 #include "avrc_defs.h"
 #include "bta_api.h"
 #include "bta_av_api.h"
+#include "btif/avrcp/avrcp_service.h"
 #include "btif_av.h"
 #include "btif_common.h"
 #include "btif_util.h"
@@ -53,8 +55,6 @@
 #include "stack/include/avrc_api.h"
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 #define RC_INVALID_TRACK_ID (0xFFFFFFFFFFFFFFFFULL)
 
@@ -220,7 +220,14 @@ typedef struct {
   uint64_t rc_playing_uid;
   bool rc_procedure_complete;
   rc_transaction_set_t transaction_set;
+  tBTA_AV_FEAT peer_ct_features;
+  tBTA_AV_FEAT peer_tg_features;
+  uint8_t launch_cmd_pending; /* true: getcap/regvolume */
 } btif_rc_device_cb_t;
+
+#define RC_PENDING_ACT_GET_CAP (1 << 0)
+#define RC_PENDING_ACT_REG_VOL (1 << 1)
+#define RC_PENDING_ACT_REPORT_CONN (1 << 2)
 
 typedef struct {
   std::mutex lock;
@@ -402,6 +409,23 @@ static const uint8_t media_attr_list_no_cover_art_size =
  *****************************************************************************/
 bool check_cod(const RawAddress& remote_bdaddr, uint32_t cod);
 
+void btif_rc_get_addr_by_handle(uint8_t handle, RawAddress& rc_addr) {
+  BTIF_TRACE_DEBUG("%s: handle: 0x%x", __func__, handle);
+  for (int idx = 0; idx < BTIF_RC_NUM_CONN; idx++) {
+    if ((btif_rc_cb.rc_multi_cb[idx].rc_state !=
+         BTRC_CONNECTION_STATE_DISCONNECTED) &&
+        (btif_rc_cb.rc_multi_cb[idx].rc_handle == handle)) {
+      BTIF_TRACE_DEBUG("%s: btif_rc_cb.rc_multi_cb[idx].rc_handle: 0x%x",
+                       __func__, btif_rc_cb.rc_multi_cb[idx].rc_handle);
+      rc_addr = btif_rc_cb.rc_multi_cb[idx].rc_addr;
+      return;
+    }
+  }
+  BTIF_TRACE_ERROR("%s: returning NULL", __func__);
+  rc_addr = RawAddress::kEmpty;
+  return;
+}
+
 /*****************************************************************************
  *  Functions
  *****************************************************************************/
@@ -442,6 +466,9 @@ void initialize_device(btif_rc_device_cb_t* p_dev) {
   p_dev->rc_features_processed = false;
   p_dev->rc_playing_uid = 0;
   p_dev->rc_procedure_complete = false;
+  p_dev->peer_ct_features = 0;
+  p_dev->peer_tg_features = 0;
+  p_dev->launch_cmd_pending = 0;
 
   // Leaving the value of the default constructor for the lbllock mutex is fine
   // but we still need to clear out the transaction label set
@@ -531,7 +558,79 @@ void fill_avrc_attr_entry(tAVRC_ATTR_ENTRY* attr_vals, int num_attrs,
 
 void rc_cleanup_sent_cmd(void* p_data) { BTIF_TRACE_DEBUG("%s: ", __func__); }
 
+void handle_rc_ctrl_features_all(btif_rc_device_cb_t* p_dev) {
+  if (!(p_dev->peer_tg_features & BTA_AV_FEAT_RCTG) &&
+      (!(p_dev->peer_tg_features & BTA_AV_FEAT_RCCT) ||
+       !(p_dev->peer_tg_features & BTA_AV_FEAT_ADV_CTRL))) {
+    return;
+  }
+
+  int rc_features = 0;
+
+  BTIF_TRACE_DEBUG(
+      "%s: peer_tg_features: 0x%x, rc_features_processed=%d, connected=%d, "
+      "peer_is_src:%d",
+      __func__, p_dev->peer_tg_features, p_dev->rc_features_processed,
+      btif_av_is_connected_addr(p_dev->rc_addr),
+      btif_av_peer_is_source(p_dev->rc_addr));
+
+  if ((p_dev->peer_tg_features & BTA_AV_FEAT_ADV_CTRL) &&
+      (p_dev->peer_tg_features & BTA_AV_FEAT_RCCT)) {
+    rc_features |= BTRC_FEAT_ABSOLUTE_VOLUME;
+  }
+
+  if ((p_dev->peer_tg_features & BTA_AV_FEAT_METADATA) &&
+      (p_dev->peer_tg_features & BTA_AV_FEAT_VENDOR) &&
+      (p_dev->rc_features_processed != true)) {
+    rc_features |= BTRC_FEAT_METADATA;
+
+    /* Mark rc features processed to avoid repeating
+     * the AVRCP procedure every time on receiving this
+     * update.
+     */
+    p_dev->rc_features_processed = true;
+  }
+
+  if (btif_av_is_connected_addr(p_dev->rc_addr)) {
+    if (btif_av_peer_is_source(p_dev->rc_addr)) {
+      p_dev->rc_features = p_dev->peer_tg_features;
+      if ((p_dev->peer_tg_features & BTA_AV_FEAT_METADATA) &&
+          (p_dev->peer_tg_features & BTA_AV_FEAT_VENDOR)) {
+        getcapabilities_cmd(AVRC_CAP_COMPANY_ID, p_dev);
+      }
+    }
+  } else {
+    BTIF_TRACE_DEBUG("%s: %s is not connected, pending", __func__,
+                     ADDRESS_TO_LOGGABLE_CSTR(p_dev->rc_addr));
+    p_dev->launch_cmd_pending |=
+        (RC_PENDING_ACT_GET_CAP | RC_PENDING_ACT_REG_VOL);
+  }
+
+  /* Add browsing feature capability */
+  if (p_dev->peer_tg_features & BTA_AV_FEAT_BROWSE) {
+    rc_features |= BTRC_FEAT_BROWSE;
+  }
+
+  /* Add cover art feature capability */
+  if (p_dev->peer_tg_features & BTA_AV_FEAT_COVER_ARTWORK) {
+    rc_features |= BTRC_FEAT_COVER_ARTWORK;
+  }
+
+  if (bt_rc_ctrl_callbacks != NULL) {
+    BTIF_TRACE_DEBUG("%s: Update rc features to CTRL: %d", __func__,
+                     rc_features);
+    do_in_jni_thread(FROM_HERE,
+                     base::Bind(bt_rc_ctrl_callbacks->getrcfeatures_cb,
+                                p_dev->rc_addr, rc_features));
+  }
+}
+
 void handle_rc_ctrl_features(btif_rc_device_cb_t* p_dev) {
+  if (btif_av_src_sink_coexist_enabled() && btif_av_both_enable()) {
+    handle_rc_ctrl_features_all(p_dev);
+    return;
+  }
+
   if (!(p_dev->rc_features & BTA_AV_FEAT_RCTG) &&
       (!(p_dev->rc_features & BTA_AV_FEAT_RCCT) ||
        !(p_dev->rc_features & BTA_AV_FEAT_ADV_CTRL))) {
@@ -575,14 +674,52 @@ void handle_rc_ctrl_features(btif_rc_device_cb_t* p_dev) {
   do_in_jni_thread(FROM_HERE, base::Bind(bt_rc_ctrl_callbacks->getrcfeatures_cb,
                                          p_dev->rc_addr, rc_features));
 }
+void btif_rc_check_pending_cmd(const RawAddress& peer_address) {
+  btif_rc_device_cb_t* p_dev = NULL;
+  p_dev = btif_rc_get_device_by_bda(peer_address);
+  if (p_dev == NULL) {
+    BTIF_TRACE_ERROR("%s: p_dev NULL", __func__);
+    return;
+  }
+
+  BTIF_TRACE_DEBUG(
+      "%s: launch_cmd_pending=%d, rc_connected=%d, peer_ct_features=0x%x, "
+      "peer_tg_features=0x%x",
+      __FUNCTION__, p_dev->launch_cmd_pending, p_dev->rc_connected,
+      p_dev->peer_ct_features, p_dev->peer_tg_features);
+  if (p_dev->launch_cmd_pending && p_dev->rc_connected) {
+    if ((p_dev->launch_cmd_pending & RC_PENDING_ACT_REG_VOL) &&
+        btif_av_peer_is_sink(p_dev->rc_addr)) {
+      if (bluetooth::avrcp::AvrcpService::Get() != nullptr) {
+        bluetooth::avrcp::AvrcpService::Get()->RegisterVolChanged(peer_address);
+      }
+    }
+    if ((p_dev->launch_cmd_pending & RC_PENDING_ACT_GET_CAP) &&
+        btif_av_peer_is_source(p_dev->rc_addr)) {
+      p_dev->rc_features = p_dev->peer_tg_features;
+      getcapabilities_cmd(AVRC_CAP_COMPANY_ID, p_dev);
+    }
+    if ((p_dev->launch_cmd_pending & RC_PENDING_ACT_REPORT_CONN) &&
+        btif_av_peer_is_source(p_dev->rc_addr)) {
+      if (bt_rc_ctrl_callbacks != NULL) {
+        do_in_jni_thread(FROM_HERE,
+                         base::Bind(bt_rc_ctrl_callbacks->connection_state_cb,
+                                    true, false, p_dev->rc_addr));
+      }
+    }
+  }
+  p_dev->launch_cmd_pending = 0;
+}
 
 void handle_rc_ctrl_psm(btif_rc_device_cb_t* p_dev) {
   uint16_t cover_art_psm = p_dev->rc_cover_art_psm;
   BTIF_TRACE_DEBUG("%s: Update rc cover art psm to CTRL: %d", __func__,
-      cover_art_psm);
-  do_in_jni_thread(FROM_HERE, base::Bind(
-      bt_rc_ctrl_callbacks->get_cover_art_psm_cb,
-      p_dev->rc_addr, cover_art_psm));
+                   cover_art_psm);
+  if (bt_rc_ctrl_callbacks != NULL) {
+    do_in_jni_thread(FROM_HERE,
+                     base::Bind(bt_rc_ctrl_callbacks->get_cover_art_psm_cb,
+                                p_dev->rc_addr, cover_art_psm));
+  }
 }
 
 void handle_rc_features(btif_rc_device_cb_t* p_dev) {
@@ -640,7 +777,7 @@ void handle_rc_features(btif_rc_device_cb_t* p_dev) {
 }
 
 /***************************************************************************
- *  Function       handle_rc_connect
+ *  Function       handle_rc_browse_connect
  *
  *  - Argument:    tBTA_AV_RC_OPEN  browse RC open data structure
  *
@@ -663,9 +800,22 @@ void handle_rc_browse_connect(tBTA_AV_RC_BROWSE_OPEN* p_rc_br_open) {
    * probably not preferred anyways. */
   if (p_rc_br_open->status == BTA_AV_SUCCESS) {
     p_dev->br_connected = true;
-    do_in_jni_thread(FROM_HERE,
-                     base::Bind(bt_rc_ctrl_callbacks->connection_state_cb, true,
+    if (btif_av_src_sink_coexist_enabled()) {
+      if (btif_av_peer_is_connected_source(p_dev->rc_addr)) {
+        if (bt_rc_ctrl_callbacks != NULL) {
+          do_in_jni_thread(FROM_HERE,
+                           base::Bind(bt_rc_ctrl_callbacks->connection_state_cb,
+                                      true, true, p_dev->rc_addr));
+        }
+      } else {
+        p_dev->launch_cmd_pending |= RC_PENDING_ACT_REPORT_CONN;
+        BTIF_TRACE_API("%s: pending rc browse connection event", __func__);
+      }
+    } else {
+      do_in_jni_thread(
+          FROM_HERE, base::Bind(bt_rc_ctrl_callbacks->connection_state_cb, true,
                                 true, p_dev->rc_addr));
+    }
   }
 }
 
@@ -690,6 +840,16 @@ void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
     BTIF_TRACE_ERROR("%s: Connect failed with error code: %d", __func__,
                      p_rc_open->status);
     p_dev->rc_connected = false;
+    BTA_AvCloseRc(p_rc_open->rc_handle);
+    p_dev->rc_handle = 0;
+    p_dev->rc_state = BTRC_CONNECTION_STATE_DISCONNECTED;
+    p_dev->rc_features = 0;
+    p_dev->peer_ct_features = 0;
+    p_dev->peer_tg_features = 0;
+    p_dev->launch_cmd_pending = 0;
+    p_dev->rc_vol_label = MAX_LABEL;
+    p_dev->rc_volume = MAX_VOLUME;
+    p_dev->rc_addr = RawAddress::kEmpty;
     return;
   }
 
@@ -708,24 +868,31 @@ void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
   }
   p_dev->rc_addr = p_rc_open->peer_addr;
   p_dev->rc_features = p_rc_open->peer_features;
-  BTIF_TRACE_DEBUG("%s: handle_rc_connect in features: 0x%x out features 0x%x",
-                   __func__, p_rc_open->peer_features, p_dev->rc_features);
+  p_dev->peer_ct_features = p_rc_open->peer_ct_features;
+  p_dev->peer_tg_features = p_rc_open->peer_tg_features;
   p_dev->rc_cover_art_psm = p_rc_open->cover_art_psm;
-  BTIF_TRACE_DEBUG("%s: cover art psm: 0x%x",
-                   __func__, p_dev->rc_cover_art_psm);
   p_dev->rc_vol_label = MAX_LABEL;
   p_dev->rc_volume = MAX_VOLUME;
+
+  BTIF_TRACE_DEBUG(
+      "%s: handle_rc_connect in features=%#x, out features=%#x, "
+      "ct_feature=%#x, tg_feature=%#x, cover art psm=%#x",
+      __func__, p_rc_open->peer_features, p_dev->rc_features,
+      p_dev->peer_ct_features, p_dev->peer_tg_features,
+      p_dev->rc_cover_art_psm);
 
   p_dev->rc_connected = true;
   p_dev->rc_handle = p_rc_open->rc_handle;
   p_dev->rc_state = BTRC_CONNECTION_STATE_CONNECTED;
-  /* on locally initiated connection we will get remote features as part of
-   * connect */
-  if (p_dev->rc_features != 0 && bt_rc_callbacks != NULL) {
-    handle_rc_features(p_dev);
-  }
 
   p_dev->rc_playing_uid = RC_INVALID_TRACK_ID;
+
+  if (btif_av_src_sink_coexist_enabled() &&
+      !btif_av_peer_is_connected_source(p_dev->rc_addr)) {
+    p_dev->launch_cmd_pending |= RC_PENDING_ACT_REPORT_CONN;
+    BTIF_TRACE_API("%s: pending rc connection event", __func__);
+    return;
+  }
   if (bt_rc_ctrl_callbacks != NULL) {
     do_in_jni_thread(FROM_HERE,
                      base::Bind(bt_rc_ctrl_callbacks->connection_state_cb, true,
@@ -1009,8 +1176,17 @@ void handle_rc_metamsg_cmd(tBTA_AV_META_MSG* pmeta_msg) {
           pmeta_msg->code);
       p_dev->rc_notif[event_id - 1].bNotify = true;
       p_dev->rc_notif[event_id - 1].label = pmeta_msg->label;
+      /* this is sink(tg) feature, so it should not handle here */
+      if (btif_av_both_enable() && event_id == AVRC_EVT_VOLUME_CHANGE) {
+        return;
+      }
     }
 
+    /* this is sink(tg) feature, so it should not handle here */
+    if (btif_av_both_enable() &&
+        avrc_command.cmd.pdu == AVRC_PDU_SET_ABSOLUTE_VOLUME) {
+      return;
+    }
     BTIF_TRACE_EVENT("%s: Passing received metamsg command to app. pdu: %s",
                      __func__, dump_rc_pdu(avrc_command.cmd.pdu));
 
@@ -1086,7 +1262,19 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV* p_data) {
                          __func__);
         break;
       }
+      BTIF_TRACE_DEBUG("%s peer_ct_features:0x%x, peer_tg_features=0x%x",
+                       __func__, p_data->rc_feat.peer_ct_features,
+                       p_data->rc_feat.peer_tg_features);
+      if (btif_av_src_sink_coexist_enabled() &&
+          (p_dev->peer_ct_features == p_data->rc_feat.peer_ct_features) &&
+          (p_dev->peer_tg_features == p_data->rc_feat.peer_tg_features)) {
+        BTIF_TRACE_ERROR(
+            "do SDP twice, no need callback rc_feature to framework again");
+        break;
+      }
 
+      p_dev->peer_ct_features = p_data->rc_feat.peer_ct_features;
+      p_dev->peer_tg_features = p_data->rc_feat.peer_tg_features;
       p_dev->rc_features = p_data->rc_feat.peer_features;
       if (bt_rc_callbacks != NULL) {
         handle_rc_features(p_dev);
@@ -1792,6 +1980,8 @@ static bt_status_t init(btrc_callbacks_t* callbacks) {
   if (bt_rc_callbacks) return BT_STATUS_DONE;
 
   bt_rc_callbacks = callbacks;
+  if (bt_rc_ctrl_callbacks) return BT_STATUS_SUCCESS;
+
   for (int idx = 0; idx < BTIF_RC_NUM_CONN; idx++) {
     initialize_device(&btif_rc_cb.rc_multi_cb[idx]);
   }
@@ -1815,6 +2005,8 @@ static bt_status_t init_ctrl(btrc_ctrl_callbacks_t* callbacks) {
   if (bt_rc_ctrl_callbacks) return BT_STATUS_DONE;
 
   bt_rc_ctrl_callbacks = callbacks;
+  if (bt_rc_callbacks) return BT_STATUS_SUCCESS;
+
   for (int idx = 0; idx < BTIF_RC_NUM_CONN; idx++) {
     initialize_device(&btif_rc_cb.rc_multi_cb[idx]);
   }
@@ -3105,6 +3297,15 @@ static void handle_notification_response(tBTA_AV_META_MSG* pmeta_msg,
     return;
   }
 
+  if (btif_av_src_sink_coexist_enabled() &&
+      p_rsp->event_id == AVRC_EVT_VOLUME_CHANGE) {
+    BTIF_TRACE_ERROR(
+        "%s: legacy TG don't handle absolute volume change. leave it to new "
+        "avrcp",
+        __func__);
+    return;
+  }
+
   const uint32_t* attr_list = get_requested_attributes_list(p_dev);
   const uint8_t attr_list_size = get_requested_attributes_list_size(p_dev);
 
@@ -4341,6 +4542,14 @@ static void handle_avk_rc_metamsg_cmd(tBTA_AV_META_MSG* pmeta_msg) {
       BTIF_TRACE_WARNING(
           "%s: Error in parsing received metamsg command. status: 0x%02x",
           __func__, status);
+      if (true == btif_av_both_enable()) {
+        if (AVRC_PDU_GET_CAPABILITIES == avrc_cmd.pdu ||
+            AVRC_PDU_GET_ELEMENT_ATTR == avrc_cmd.pdu ||
+            AVRC_PDU_GET_PLAY_STATUS == avrc_cmd.pdu ||
+            AVRC_PDU_GET_FOLDER_ITEMS == avrc_cmd.pdu ||
+            AVRC_PDU_GET_ITEM_ATTRIBUTES == avrc_cmd.pdu)
+          return;
+      }
       send_reject_response(pmeta_msg->rc_handle, pmeta_msg->label, avrc_cmd.pdu,
                            status, pmeta_msg->p_msg->hdr.opcode);
     } else {
