@@ -1615,13 +1615,6 @@ impl BluetoothGatt {
         scanner_id: u8,
         filter: Option<ScanFilter>,
     ) -> BtStatus {
-        let has_active_unfiltered_scanner = self
-            .scanners
-            .lock()
-            .unwrap()
-            .iter()
-            .any(|(_uuid, scanner)| scanner.is_active && scanner.filter.is_none());
-
         let gatt_async = self.gatt_async.clone();
         let scanners = self.scanners.clone();
         let is_msft_supported = self.is_msft_supported();
@@ -1656,6 +1649,12 @@ impl BluetoothGatt {
 
                     log::debug!("Added adv monitor handle = {}", monitor_handle);
                 }
+
+                let has_active_unfiltered_scanner = scanners
+                    .lock()
+                    .unwrap()
+                    .iter()
+                    .any(|(_uuid, scanner)| scanner.is_active && scanner.filter.is_none());
 
                 if !gatt_async
                     .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
@@ -1941,14 +1940,8 @@ impl IBluetoothGatt for BluetoothGatt {
             }
         };
 
-        let has_active_unfiltered_scanner = self
-            .scanners
-            .lock()
-            .unwrap()
-            .iter()
-            .any(|(_uuid, scanner)| scanner.is_active && scanner.filter.is_none());
-
         let gatt_async = self.gatt_async.clone();
+        let scanners = self.scanners.clone();
         let is_msft_supported = self.is_msft_supported();
         tokio::spawn(async move {
             // The two operations below (monitor remove, update scan) happen one after another, and
@@ -1962,6 +1955,12 @@ impl IBluetoothGatt for BluetoothGatt {
                 if let Some(handle) = monitor_handle {
                     let _res = gatt_async.msft_adv_monitor_remove(handle).await;
                 }
+
+                let has_active_unfiltered_scanner = scanners
+                    .lock()
+                    .unwrap()
+                    .iter()
+                    .any(|(_uuid, scanner)| scanner.is_active && scanner.filter.is_none());
 
                 if !gatt_async
                     .msft_adv_monitor_enable(!has_active_unfiltered_scanner)
