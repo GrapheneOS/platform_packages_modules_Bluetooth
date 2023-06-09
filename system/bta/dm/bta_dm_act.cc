@@ -126,7 +126,7 @@ static void bta_dm_disable_conn_down_timer_cback(void* data);
 void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t app_id,
                      const RawAddress& peer_addr);
 static void bta_dm_adjust_roles(bool delay_role_switch);
-static char* bta_dm_get_remname(void);
+static const char* bta_dm_get_remname(void);
 static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result);
 
 static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
@@ -873,7 +873,7 @@ void bta_dm_bond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
             DeviceTypeText(device_type).c_str());
 
   tBTA_DM_SEC sec_event;
-  char* p_name;
+  const char* p_name;
 
   tBTM_STATUS status =
       BTM_SecBond(bd_addr, addr_type, transport, device_type, 0, NULL);
@@ -3160,14 +3160,13 @@ static void bta_dm_adjust_roles(bool delay_role_switch) {
  *
  * Returns          char * - Pointer to the remote device name
  ******************************************************************************/
-static char* bta_dm_get_remname(void) {
-  char* p_name = (char*)bta_dm_search_cb.peer_name;
-  char* p_temp;
+static const char* bta_dm_get_remname(void) {
+  const char* p_name = (const char*)bta_dm_search_cb.peer_name;
 
   /* If the name isn't already stored, try retrieving from BTM */
   if (*p_name == '\0') {
-    p_temp = BTM_SecReadDevName(bta_dm_search_cb.peer_bdaddr);
-    if (p_temp != NULL) p_name = p_temp;
+    const char* p_temp = BTM_SecReadDevName(bta_dm_search_cb.peer_bdaddr);
+    if (p_temp != NULL) p_name = (const char*)p_temp;
   }
 
   return p_name;
@@ -3885,7 +3884,7 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
                                     tBTM_LE_EVT_DATA* p_data) {
   tBTM_STATUS status = BTM_SUCCESS;
   tBTA_DM_SEC sec_event;
-  char* p_name = NULL;
+  const char* p_name = NULL;
 
   if (!bta_dm_cb.p_sec_cback) return BTM_NOT_AUTHORIZED;
 
