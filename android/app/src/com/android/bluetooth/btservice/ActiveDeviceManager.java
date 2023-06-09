@@ -157,6 +157,10 @@ class ActiveDeviceManager {
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            if (DBG) {
+                Log.d(TAG, "Received intent: action=" + intent.getAction() + ", extras="
+                        + intent.getExtras());
+            }
             String action = intent.getAction();
             if (action == null) {
                 Log.e(TAG, "Received intent with null action");
@@ -259,7 +263,9 @@ class ActiveDeviceManager {
                 Log.d(TAG, "handleA2dpConnected: " + device);
             }
             if (mA2dpConnectedDevices.contains(device)) {
-                // The device is already connected
+                if (DBG) {
+                    Log.d(TAG, "This device is already connected: " + device);
+                }
                 return;
             }
             mA2dpConnectedDevices.add(device);
@@ -321,7 +327,10 @@ class ActiveDeviceManager {
                 Log.d(TAG, "handleHfpConnected: " + device);
             }
             if (mHfpConnectedDevices.contains(device)) {
-                return;      // The device is already connected
+                if (DBG) {
+                    Log.d(TAG, "This device is already connected: " + device);
+                }
+                return;
             }
             mHfpConnectedDevices.add(device);
             if (mHearingAidActiveDevices.isEmpty() && mLeHearingAidActiveDevice == null) {
@@ -380,7 +389,10 @@ class ActiveDeviceManager {
                 Log.d(TAG, "handleHearingAidConnected: " + device);
             }
             if (mHearingAidConnectedDevices.contains(device)) {
-                return;      // The device is already connected
+                if (DBG) {
+                    Log.d(TAG, "This device is already connected: " + device);
+                }
+                return;
             }
             mHearingAidConnectedDevices.add(device);
             // New connected device: select it as active
@@ -405,7 +417,10 @@ class ActiveDeviceManager {
             leAudioService.deviceConnected(device);
 
             if (mLeAudioConnectedDevices.contains(device)) {
-                return;      // The device is already connected
+                if (DBG) {
+                    Log.d(TAG, "This device is already connected: " + device);
+                }
+                return;
             }
 
             mLeAudioConnectedDevices.add(device);
@@ -434,7 +449,10 @@ class ActiveDeviceManager {
                 Log.d(TAG, "handleHapConnected: " + device);
             }
             if (mLeHearingAidConnectedDevices.contains(device)) {
-                return;      // The device is already connected
+                if (DBG) {
+                    Log.d(TAG, "This device is already connected: " + device);
+                }
+                return;
             }
             mLeHearingAidConnectedDevices.add(device);
             if (!mLeAudioConnectedDevices.contains(device)) {
@@ -455,7 +473,8 @@ class ActiveDeviceManager {
     private void handleA2dpDisconnected(BluetoothDevice device) {
         synchronized (mLock) {
             if (DBG) {
-                Log.d(TAG, "handleA2dpDisconnected: " + device);
+                Log.d(TAG, "handleA2dpDisconnected: " + device
+                        + ", mA2dpActiveDevice=" + mA2dpActiveDevice);
             }
             mA2dpConnectedDevices.remove(device);
             if (Objects.equals(mA2dpActiveDevice, device)) {
@@ -469,7 +488,8 @@ class ActiveDeviceManager {
     private void handleHfpDisconnected(BluetoothDevice device) {
         synchronized (mLock) {
             if (DBG) {
-                Log.d(TAG, "handleHfpDisconnected: " + device);
+                Log.d(TAG, "handleHfpDisconnected: " + device
+                        + ", mHfpActiveDevice=" + mHfpActiveDevice);
             }
             mHfpConnectedDevices.remove(device);
             if (Objects.equals(mHfpActiveDevice, device)) {
@@ -484,7 +504,8 @@ class ActiveDeviceManager {
     private void handleHearingAidDisconnected(BluetoothDevice device) {
         synchronized (mLock) {
             if (DBG) {
-                Log.d(TAG, "handleHearingAidDisconnected: " + device);
+                Log.d(TAG, "handleHearingAidDisconnected: " + device
+                        + ", mHearingAidActiveDevices=" + mHearingAidActiveDevices);
             }
             mHearingAidConnectedDevices.remove(device);
             if (mHearingAidActiveDevices.remove(device) && mHearingAidActiveDevices.isEmpty()) {
@@ -498,7 +519,8 @@ class ActiveDeviceManager {
     private void handleLeAudioDisconnected(BluetoothDevice device) {
         synchronized (mLock) {
             if (DBG) {
-                Log.d(TAG, "handleLeAudioDisconnected: " + device);
+                Log.d(TAG, "handleLeAudioDisconnected: " + device
+                        + ", mLeAudioActiveDevice=" + mLeAudioActiveDevice);
             }
 
             final LeAudioService leAudioService = mFactory.getLeAudioService();
@@ -523,7 +545,8 @@ class ActiveDeviceManager {
     private void handleHapDisconnected(BluetoothDevice device) {
         synchronized (mLock) {
             if (DBG) {
-                Log.d(TAG, "handleHapDisconnected: " + device);
+                Log.d(TAG, "handleHapDisconnected: " + device
+                        + ", mLeHearingAidActiveDevice=" + mLeHearingAidActiveDevice);
             }
             mLeHearingAidConnectedDevices.remove(device);
             mPendingLeHearingAidActiveDevice.remove(device);
@@ -546,7 +569,8 @@ class ActiveDeviceManager {
     private void handleA2dpActiveDeviceChanged(BluetoothDevice device) {
         synchronized (mLock) {
             if (DBG) {
-                Log.d(TAG, "handleA2dpActiveDeviceChanged: " + device);
+                Log.d(TAG, "handleA2dpActiveDeviceChanged: " + device
+                        + ", mA2dpActiveDevice=" + mA2dpActiveDevice);
             }
             if (!Objects.equals(mA2dpActiveDevice, device)) {
                 if (device != null) {
@@ -580,7 +604,8 @@ class ActiveDeviceManager {
     private void handleHfpActiveDeviceChanged(BluetoothDevice device) {
         synchronized (mLock) {
             if (DBG) {
-                Log.d(TAG, "handleHfpActiveDeviceChanged: " + device);
+                Log.d(TAG, "handleHfpActiveDeviceChanged: " + device
+                        + ", mHfpActiveDevice=" + mHfpActiveDevice);
             }
             if (!Objects.equals(mHfpActiveDevice, device)) {
                 if (device != null) {
@@ -604,7 +629,8 @@ class ActiveDeviceManager {
     private void handleHearingAidActiveDeviceChanged(BluetoothDevice device) {
         synchronized (mLock) {
             if (DBG) {
-                Log.d(TAG, "handleHearingAidActiveDeviceChanged: " + device);
+                Log.d(TAG, "handleHearingAidActiveDeviceChanged: " + device
+                        + ", mHearingAidActiveDevices=" + mHearingAidActiveDevices);
             }
             // Just assign locally the new value
             final HearingAidService hearingAidService = mFactory.getHearingAidService();
@@ -629,7 +655,8 @@ class ActiveDeviceManager {
     private void handleLeAudioActiveDeviceChanged(BluetoothDevice device) {
         synchronized (mLock) {
             if (DBG) {
-                Log.d(TAG, "handleLeAudioActiveDeviceChanged: " + device);
+                Log.d(TAG, "handleLeAudioActiveDeviceChanged: " + device
+                        + ", mLeAudioActiveDevice=" + mLeAudioActiveDevice);
             }
             if (device != null && !mLeAudioConnectedDevices.contains(device)) {
                 mLeAudioConnectedDevices.add(device);
@@ -938,7 +965,7 @@ class ActiveDeviceManager {
             if (device != null) {
                 if (mHearingAidConnectedDevices.contains(device)) {
                     if (DBG) {
-                        Log.d(TAG, "set hearing aid device active: " + device);
+                        Log.d(TAG, "Found a hearing aid fallback device: " + device);
                     }
                     setHearingAidActiveDevice(device);
                     setA2dpActiveDevice(null, true);
@@ -946,7 +973,7 @@ class ActiveDeviceManager {
                     setLeAudioActiveDevice(null, true);
                 } else {
                     if (DBG) {
-                        Log.d(TAG, "set LE hearing aid device active: " + device);
+                        Log.d(TAG, "Found a LE hearing aid fallback device: " + device);
                     }
                     setLeHearingAidActiveDevice(device);
                     setHearingAidActiveDevice(null, true);
@@ -992,7 +1019,7 @@ class ActiveDeviceManager {
             if (mAudioManager.getMode() == AudioManager.MODE_NORMAL) {
                 if (Objects.equals(a2dpFallbackDevice, device)) {
                     if (DBG) {
-                        Log.d(TAG, "set A2DP device active: " + device);
+                        Log.d(TAG, "Found an A2DP fallback device: " + device);
                     }
                     setA2dpActiveDevice(device);
                     if (Objects.equals(headsetFallbackDevice, device)) {
@@ -1008,7 +1035,7 @@ class ActiveDeviceManager {
                     setHearingAidActiveDevice(null, true);
                 } else {
                     if (DBG) {
-                        Log.d(TAG, "set LE audio device active: " + device);
+                        Log.d(TAG, "Found a LE audio fallback device: " + device);
                     }
                     if (!setLeAudioActiveDevice(device)) {
                         return false;
@@ -1023,7 +1050,7 @@ class ActiveDeviceManager {
             } else {
                 if (Objects.equals(headsetFallbackDevice, device)) {
                     if (DBG) {
-                        Log.d(TAG, "set HFP device active: " + device);
+                        Log.d(TAG, "Found a HFP fallback device: " + device);
                     }
                     setHfpActiveDevice(device);
                     if (Objects.equals(a2dpFallbackDevice, device)) {
@@ -1037,7 +1064,7 @@ class ActiveDeviceManager {
                     setHearingAidActiveDevice(null, true);
                 } else {
                     if (DBG) {
-                        Log.d(TAG, "set LE audio device active: " + device);
+                        Log.d(TAG, "Found a LE audio fallback device: " + device);
                     }
                     setLeAudioActiveDevice(device);
                     if (!Utils.isDualModeAudioEnabled()) {
@@ -1050,7 +1077,9 @@ class ActiveDeviceManager {
             return true;
         }
 
-        // No fallback device is found.
+        if (DBG) {
+            Log.d(TAG, "No fallback devices are found");
+        }
         return false;
     }
 
