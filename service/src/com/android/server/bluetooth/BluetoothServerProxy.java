@@ -67,8 +67,4 @@ class BluetoothServerProxy {
     int getBluetoothPersistedState(ContentResolver resolver, int defaultValue) {
         return Settings.Global.getInt(resolver, Settings.Global.BLUETOOTH_ON, defaultValue);
     }
-
-    boolean handlerSendWhatMessage(BluetoothManagerService.BluetoothHandler handler, int what) {
-        return handler.sendMessage(handler.obtainMessage(what));
-    }
 }
