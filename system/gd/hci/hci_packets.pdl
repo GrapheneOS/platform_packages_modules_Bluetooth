@@ -163,6 +163,8 @@ enum OpCode : 16 {
   HOLD_MODE = 0x0801,
   SNIFF_MODE = 0x0803,
   EXIT_SNIFF_MODE = 0x0804,
+  PARK_STATE = 0x0805,
+  EXIT_PARK_STATE = 0x0806,
   QOS_SETUP = 0x0807,
   ROLE_DISCOVERY = 0x0809,
   SWITCH_ROLE = 0x080B,
@@ -477,6 +479,8 @@ enum OpCodeIndex : 16 {
   HOLD_MODE = 41,
   SNIFF_MODE = 42,
   EXIT_SNIFF_MODE = 43,
+  PARK_STATE = 44,
+  EXIT_PARK_STATE = 45,
   QOS_SETUP = 46,
   ROLE_DISCOVERY = 47,
   SWITCH_ROLE = 50,
@@ -1608,7 +1612,6 @@ packet HoldMode : ConnectionManagementCommand (op_code = HOLD_MODE) {
 packet HoldModeStatus : CommandStatus (command_op_code = HOLD_MODE) {
 }
 
-
 packet SniffMode : ConnectionManagementCommand (op_code = SNIFF_MODE) {
   connection_handle : 12,
   _reserved_ : 4,
@@ -1628,6 +1631,26 @@ packet ExitSniffMode : ConnectionManagementCommand (op_code = EXIT_SNIFF_MODE) {
 }
 
 packet ExitSniffModeStatus : CommandStatus (command_op_code = EXIT_SNIFF_MODE) {
+}
+
+// ParkState and ExitParkState are deprecated
+packet ParkState : ConnectionManagementCommand (op_code = PARK_STATE) {
+  connection_handle : 12,
+  _reserved_ : 4,
+  beacon_max_interval: 16, // 0x000E-0x1000 (8.75ms-40.9s)
+  beacon_min_interval: 16, // 0x000E-0x1000 (8.75ms-40.9s)
+}
+
+packet ParkStateStatus : CommandStatus (command_op_code = PARK_STATE) {
+}
+
+
+packet ExitParkState : ConnectionManagementCommand (op_code = EXIT_PARK_STATE) {
+  connection_handle : 12,
+  _reserved_ : 4,
+}
+
+packet ExitParkStateStatus : CommandStatus (command_op_code = EXIT_PARK_STATE) {
 }
 
 enum ServiceType : 8 {
