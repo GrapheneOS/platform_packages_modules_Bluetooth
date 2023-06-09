@@ -173,7 +173,7 @@ struct btm_client_interface_t btm_client_interface = {
         .BTM_SecDeleteDevice = BTM_SecDeleteDevice,
         .BTM_SecDeleteRmtNameNotifyCallback =
             [](tBTM_RMT_NAME_CALLBACK* p_callback) -> bool { return false; },
-        .BTM_SecReadDevName = [](const RawAddress& bd_addr) -> char* {
+        .BTM_SecReadDevName = [](const RawAddress& bd_addr) -> const char* {
           return nullptr;
         },
         .BTM_SecRegister = [](const tBTM_APPL_INFO* p_cb_info) -> bool {
