@@ -2150,6 +2150,7 @@ static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
   result.inq_res.device_type = p_inq->device_type;
   result.inq_res.flag = p_inq->flag;
   result.inq_res.include_rsi = p_inq->include_rsi;
+  result.inq_res.clock_offset = p_inq->clock_offset;
 
   /* application will parse EIR to find out remote device name */
   result.inq_res.p_eir = const_cast<uint8_t*>(p_eir);

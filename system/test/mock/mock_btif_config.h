@@ -43,6 +43,26 @@ namespace mock {
 namespace btif_config {
 
 // Shared state between mocked functions and tests
+// Name: btif_get_device_clockoffset
+// Params: const RawAddress& bda, int* p_clock_offset
+// Returns: bool
+struct btif_get_device_clockoffset {
+  std::function<bool(const RawAddress& bda, int* p_clock_offset)> body{
+      [](const RawAddress& bda, int* p_clock_offset) { return false; }};
+  bool operator()(const RawAddress& bda, int* p_clock_offset) {
+    return body(bda, p_clock_offset);
+  };
+};
+// Name: btif_set_device_clockoffset
+// Params: const RawAddress& bda, int* p_clock_offset
+// Returns: bool
+struct btif_set_device_clockoffset {
+  std::function<bool(const RawAddress& bda, int clock_offset)> body{
+      [](const RawAddress& bda, int clock_offset) { return false; }};
+  bool operator()(const RawAddress& bda, int clock_offset) {
+    return body(bda, clock_offset);
+  };
+};
 // Name: btif_config_exist
 // Params: const std::string& section, const std::string& key
 // Returns: bool
