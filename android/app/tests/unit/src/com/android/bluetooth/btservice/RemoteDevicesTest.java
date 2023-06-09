@@ -635,6 +635,38 @@ public class RemoteDevicesTest {
                 .getHfAudioPolicyForRemoteAg());
     }
 
+    @Test
+    public void testIsCoordinatedSetMemberAsLeAudioEnabled() {
+        doReturn((long) (1 << BluetoothProfile.CSIP_SET_COORDINATOR))
+                .when(mAdapterService)
+                .getSupportedProfilesBitMask();
+
+        // Verify that device property is null initially
+        Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
+        mRemoteDevices.addDeviceProperties(Utils.getBytesFromAddress(TEST_BT_ADDR_1));
+
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(mDevice1);
+        deviceProp.setIsCoordinatedSetMember(true);
+
+        Assert.assertTrue(deviceProp.isCoordinatedSetMember());
+    }
+
+    @Test
+    public void testIsCoordinatedSetMemberAsLeAudioDisabled() {
+        doReturn((long) (0 << BluetoothProfile.CSIP_SET_COORDINATOR))
+                .when(mAdapterService)
+                .getSupportedProfilesBitMask();
+
+        // Verify that device property is null initially
+        Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
+        mRemoteDevices.addDeviceProperties(Utils.getBytesFromAddress(TEST_BT_ADDR_1));
+
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(mDevice1);
+        deviceProp.setIsCoordinatedSetMember(true);
+
+        Assert.assertFalse(deviceProp.isCoordinatedSetMember());
+    }
+
     private static void verifyBatteryLevelChangedIntent(BluetoothDevice device, int batteryLevel,
             ArgumentCaptor<Intent> intentArgument) {
         verifyBatteryLevelChangedIntent(device, batteryLevel, intentArgument.getValue());
