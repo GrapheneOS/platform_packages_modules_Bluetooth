@@ -49,6 +49,8 @@ namespace mock {
 namespace btif_config {
 
 // Function state capture and return values, if needed
+struct btif_get_device_clockoffset btif_get_device_clockoffset;
+struct btif_set_device_clockoffset btif_set_device_clockoffset;
 struct btif_config_exist btif_config_exist;
 struct btif_config_get_int btif_config_get_int;
 struct btif_config_set_int btif_config_set_int;
@@ -69,6 +71,14 @@ struct btif_debug_config_dump btif_debug_config_dump;
 }  // namespace test
 
 // Mocked functions, if any
+bool btif_get_device_clockoffset(const RawAddress& bda, int* p_clock_offset) {
+  inc_func_call_count(__func__);
+  return test::mock::btif_config::btif_get_device_clockoffset(bda, p_clock_offset);
+}
+bool btif_set_device_clockoffset(const RawAddress& bda, int clock_offset) {
+  inc_func_call_count(__func__);
+  return test::mock::btif_config::btif_set_device_clockoffset(bda, clock_offset);
+}
 bool btif_config_exist(const std::string& section, const std::string& key) {
   inc_func_call_count(__func__);
   return test::mock::btif_config::btif_config_exist(section, key);
