@@ -17,6 +17,7 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.bluetooth.BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
 import static android.bluetooth.BluetoothDevice.TRANSPORT_AUTO;
 import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 import static android.text.format.DateUtils.MINUTE_IN_MILLIS;
@@ -7001,7 +7002,11 @@ public class AdapterService extends Service {
      * Sets the battery level of the remote device
      */
     public void setBatteryLevel(BluetoothDevice device, int batteryLevel) {
-        mRemoteDevices.updateBatteryLevel(device, batteryLevel);
+        if (batteryLevel == BATTERY_LEVEL_UNKNOWN) {
+            mRemoteDevices.resetBatteryLevel(device);
+        } else {
+            mRemoteDevices.updateBatteryLevel(device, batteryLevel);
+        }
     }
 
     public boolean interopMatchAddr(InteropFeature feature, String address) {

@@ -1147,6 +1147,7 @@ final class RemoteDevices {
                 }
                 resetBatteryLevel(device);
             }
+
             if (mAdapterService.isAllProfilesUnknown(device)) {
                 DeviceProperties deviceProp = getDeviceProperties(device);
                 if (deviceProp != null) {
