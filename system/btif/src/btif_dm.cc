@@ -1468,6 +1468,12 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
           num_properties++;
         }
 
+        BTIF_TRACE_DEBUG("%s clock_offset is 0x%x", __func__,
+            p_search_data->inq_res.clock_offset);
+        if (p_search_data->inq_res.clock_offset & BTM_CLOCK_OFFSET_VALID) {
+          btif_set_device_clockoffset(bdaddr, (int)p_search_data->inq_res.clock_offset);
+        }
+
         /* DEV_TYPE */
         /* FixMe: Assumption is that bluetooth.h and BTE enums match */
 
