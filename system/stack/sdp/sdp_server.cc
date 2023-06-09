@@ -1083,7 +1083,7 @@ static bool is_device_in_allowlist_for_pbap(RawAddress remote_address,
         return true;
       }
     } else {
-      char* p_name = BTM_SecReadDevName(remote_address);
+      const char* p_name = BTM_SecReadDevName(remote_address);
       if ((p_name != NULL) &&
           interop_match_name(INTEROP_ADV_PBAP_VER_1_2, p_name)) {
         SDP_TRACE_DEBUG(
