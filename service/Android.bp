@@ -34,6 +34,7 @@ java_defaults {
     defaults: ["bluetooth-module-sdk-version-defaults"],
     errorprone: {
         javacflags: [
+            "-Xep:AlreadyChecked:ERROR",
             "-Xep:CheckReturnValue:ERROR",
             "-Xep:ClassCanBeStatic:ERROR",
             "-Xep:EqualsIncompatibleType:ERROR",
