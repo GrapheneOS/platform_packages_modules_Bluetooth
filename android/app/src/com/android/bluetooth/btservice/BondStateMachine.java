@@ -522,7 +522,7 @@ final class BondStateMachine extends StateMachine {
         if (bdDevice == null) {
             mRemoteDevices.addDeviceProperties(address);
         }
-        infoLog("sspRequestCallback: " + Arrays.toString(address)
+        infoLog("sspRequestCallback: " + Utils.getRedactedAddressStringFromByte(address)
                 + " name: " + Arrays.toString(name)
                 + " cod: " + cod
                 + " pairingVariant " + pairingVariant
