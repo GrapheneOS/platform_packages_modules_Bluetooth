@@ -584,9 +584,9 @@ static uint8_t btif_storage_get_io_cap_property(bt_property_type_t type,
  *                  returns BTM_LOCAL_IO_CAPS.
  *
  ******************************************************************************/
-uint8_t btif_storage_get_local_io_caps() {
-  return btif_storage_get_io_cap_property(BT_PROPERTY_LOCAL_IO_CAPS,
-                                          BTM_LOCAL_IO_CAPS);
+tBTM_IO_CAP btif_storage_get_local_io_caps() {
+  return static_cast<tBTM_IO_CAP>(btif_storage_get_io_cap_property(
+      BT_PROPERTY_LOCAL_IO_CAPS, BTM_LOCAL_IO_CAPS));
 }
 
 /** Helper function for fetching a bt_property of the adapter. */

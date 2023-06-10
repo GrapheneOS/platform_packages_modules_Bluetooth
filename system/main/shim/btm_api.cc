@@ -182,7 +182,8 @@ class ShimUi : public bluetooth::security::UI {
       // Call sp_cback for IO_RSP
       tBTM_SP_IO_RSP io_rsp_evt_data;
       io_rsp_evt_data.bd_addr = bluetooth::ToRawAddress(address.GetAddress());
-      io_rsp_evt_data.io_cap = gd_legacy_io_caps_map_[data.GetRemoteIoCaps()];
+      io_rsp_evt_data.io_cap = static_cast<tBTM_IO_CAP>(
+          gd_legacy_io_caps_map_[data.GetRemoteIoCaps()]);
       io_rsp_evt_data.auth_req =
           gd_legacy_auth_reqs_map_[data.GetRemoteAuthReqs()];
       io_rsp_evt_data.auth_req = BTM_AUTH_AP_YES;
