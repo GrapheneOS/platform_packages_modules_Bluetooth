@@ -1272,7 +1272,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
           LOG_INFO("scheduling SDP for %s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
           pairing_cb.sdp_over_classic =
               btif_dm_pairing_cb_t::ServiceDiscoveryState::SCHEDULED;
-          btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
+          btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_BR_EDR);
         }
       }
     }
