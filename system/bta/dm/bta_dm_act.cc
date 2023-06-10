@@ -3858,7 +3858,8 @@ static void ble_io_req(const RawAddress& bd_addr, tBTM_IO_CAP* p_io_cap,
 
   btif_dm_set_oob_for_le_io_req(bd_addr, p_oob_data, p_auth_req);
 
-  if (bte_appl_cfg.ble_io_cap <= 4) *p_io_cap = bte_appl_cfg.ble_io_cap;
+  if (bte_appl_cfg.ble_io_cap <= 4)
+    *p_io_cap = static_cast<tBTM_IO_CAP>(bte_appl_cfg.ble_io_cap);
 
   if (bte_appl_cfg.ble_init_key <= BTM_BLE_INITIATOR_KEY_SIZE)
     *p_init_key = bte_appl_cfg.ble_init_key;

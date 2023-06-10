@@ -24,6 +24,7 @@
 #include <string>
 
 #include "bta/include/bta_hearing_aid_api.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_octets.h"
 #include "test/common/mock_functions.h"
 #include "types/ble_address_with_type.h"
@@ -184,13 +185,13 @@ uint8_t btif_storage_get_gatt_cl_supp_feat(const RawAddress& bd_addr) {
   inc_func_call_count(__func__);
   return 0;
 }
-uint8_t btif_storage_get_local_io_caps() {
+tBTM_IO_CAP btif_storage_get_local_io_caps() {
   inc_func_call_count(__func__);
-  return 0;
+  return BTM_IO_CAP_UNKNOWN;
 }
-uint8_t btif_storage_get_local_io_caps_ble() {
+tBTM_IO_CAP btif_storage_get_local_io_caps_ble() {
   inc_func_call_count(__func__);
-  return 0;
+  return BTM_IO_CAP_UNKNOWN;
 }
 void btif_storage_load_bonded_hearing_aids() { inc_func_call_count(__func__); }
 void btif_storage_remove_gatt_cl_db_hash(const RawAddress& bd_addr) {
