@@ -1436,9 +1436,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     return true;
   }
 
-  static void CisCreateForDevice(LeAudioDevice* leAudioDevice) {
+  static bool CisCreateForDevice(LeAudioDeviceGroup* group,
+                                 LeAudioDevice* leAudioDevice) {
     std::vector<EXT_CIS_CREATE_CFG> conn_pairs;
     struct ase* ase = leAudioDevice->GetFirstActiveAse();
+
+    /* Make sure CIG is there */
+    if (group->GetCigState() != CigState::CREATED) {
+      LOG_ERROR("CIG is not created for group_id %d ", group->group_id_);
+      group->PrintDebugState();
+      return false;
+    }
 
     std::stringstream extra_stream;
     do {
@@ -1472,15 +1480,24 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     IsoManager::GetInstance()->EstablishCis(
         {.conn_pairs = std::move(conn_pairs)});
+
+    return true;
   }
 
-  static void CisCreate(LeAudioDeviceGroup* group) {
+  static bool CisCreate(LeAudioDeviceGroup* group) {
     LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
     struct ase* ase;
     std::vector<EXT_CIS_CREATE_CFG> conn_pairs;
 
     LOG_ASSERT(leAudioDevice)
         << __func__ << " Shouldn't be called without an active device.";
+
+    /* Make sure CIG is there */
+    if (group->GetCigState() != CigState::CREATED) {
+      LOG_ERROR("CIG is not created for group_id %d ", group->group_id_);
+      group->PrintDebugState();
+      return false;
+    }
 
     do {
       ase = leAudioDevice->GetFirstActiveAse();
@@ -1513,6 +1530,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     IsoManager::GetInstance()->EstablishCis(
         {.conn_pairs = std::move(conn_pairs)});
+
+    return true;
   }
 
   static void PrepareDataPath(int group_id, const struct ase* ase) {
@@ -2510,7 +2529,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
           if (ase->data_path_state < AudioStreamDataPathState::CIS_PENDING) {
             /* We are here because of the reconnection of the single device. */
-            CisCreateForDevice(leAudioDevice);
+            if (!CisCreateForDevice(group, leAudioDevice)) {
+              StopStream(group);
+              return;
+            }
           }
 
           if (!leAudioDevice->HaveAllActiveAsesCisEst()) {
@@ -2768,14 +2790,16 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         break;
       }
       case AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED:
-        /* At this point all of the active ASEs within group are released. */
-        RemoveCigForGroup(group);
-
         SetAseState(leAudioDevice, ase,
                     AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
+
         if (group->HaveAllActiveDevicesAsesTheSameState(
-                AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING))
+                AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING)) {
           group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING);
+
+          /* At this point all of the active ASEs within group are released. */
+          RemoveCigForGroup(group);
+        }
 
         break;
 
@@ -2832,12 +2856,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
     }
 
-    if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-      CisCreate(group);
-    } else {
+    if (group->GetTargetState() != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
       LOG_ERROR(", invalid state transition, from: %s , to: %s ",
                 ToString(group->GetState()).c_str(),
                 ToString(group->GetTargetState()).c_str());
+      StopStream(group);
+      return;
+    }
+
+    if (!CisCreate(group)) {
       StopStream(group);
     }
   }
