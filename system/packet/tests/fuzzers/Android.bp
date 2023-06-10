@@ -37,6 +37,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -70,6 +71,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -103,6 +105,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -136,6 +139,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -169,6 +173,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -202,6 +207,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -235,6 +241,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -268,6 +275,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -301,6 +309,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -334,6 +343,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -367,6 +377,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -400,6 +411,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -433,6 +445,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -466,6 +479,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -499,6 +513,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -532,6 +547,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -565,6 +581,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -598,6 +615,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -631,6 +649,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -664,6 +683,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -697,6 +717,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -730,6 +751,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -763,6 +785,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -796,6 +819,7 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }
 
 cc_fuzz {
@@ -829,4 +853,5 @@ cc_fuzz {
     cflags: [
         "-DBUILDCFG",
     ],
+    shared_libs: ["liblog"],
 }

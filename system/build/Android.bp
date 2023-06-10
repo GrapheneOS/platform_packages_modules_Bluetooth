@@ -71,9 +71,6 @@ cc_defaults {
         "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
-    shared_libs: [
-        "liblog",
-    ],
     cpp_std: "c++17",
     min_sdk_version: "current",
 }
