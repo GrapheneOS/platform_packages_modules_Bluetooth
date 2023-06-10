@@ -125,9 +125,10 @@ void BTM_SecAddBleDevice(const RawAddress& bd_addr, tBT_DEVICE_TYPE dev_type,
   tBTM_INQ_INFO* p_info = BTM_InqDbRead(bd_addr);
   if (p_info) {
     p_info->results.ble_addr_type = p_dev_rec->ble.AddressType();
+    p_dev_rec->device_type |= p_info->results.device_type;
+    LOG_DEBUG("InqDb device_type =0x%x addr_type=0x%x", p_dev_rec->device_type,
+              p_info->results.ble_addr_type);
     p_info->results.device_type = p_dev_rec->device_type;
-    LOG_DEBUG("InqDb device_type =0x%x  addr_type=0x%x",
-              p_info->results.device_type, p_info->results.ble_addr_type);
   }
 }
 
