@@ -25,6 +25,7 @@
 #include "bt_target.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_api_types.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
@@ -142,7 +143,7 @@ bt_status_t btif_storage_set_remote_device_property(
  *                  returns BTM_LOCAL_IO_CAPS.
  *
  ******************************************************************************/
-uint8_t btif_storage_get_local_io_caps();
+tBTM_IO_CAP btif_storage_get_local_io_caps();
 
 /*******************************************************************************
  *
