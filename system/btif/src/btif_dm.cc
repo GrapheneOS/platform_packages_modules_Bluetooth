@@ -756,6 +756,28 @@ bool is_device_le_audio_capable(const RawAddress bd_addr) {
   return false;
 }
 
+/* use to check if device is LE Audio Capable during bonding */
+bool is_le_audio_capable_during_service_discovery(const RawAddress& bd_addr) {
+  if (!GetInterfaceToProfiles()
+           ->profileSpecific_HACK->IsLeAudioClientRunning()) {
+    /* If LE Audio profile is not enabled, do nothing. */
+    return false;
+  }
+
+  if (bd_addr != pairing_cb.bd_addr && bd_addr != pairing_cb.static_bdaddr) {
+    return false;
+  }
+
+  if (check_cod_le_audio(bd_addr) ||
+      metadata_cb.le_audio_cache.contains(bd_addr) ||
+      metadata_cb.le_audio_cache.contains(pairing_cb.bd_addr) ||
+      BTA_DmCheckLeAudioCapable(bd_addr)) {
+    return true;
+  }
+
+  return false;
+}
+
 /*******************************************************************************
  *
  * Function         btif_dm_cb_create_bond
@@ -1718,17 +1740,10 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
        * capable of a2dp, and both sides can do LE Audio, and it haven't
        * finished GATT over LE yet, then wait for LE service discovery to finish
        * before before passing services to upper layers. */
-      if ((bd_addr == pairing_cb.bd_addr ||
-           bd_addr == pairing_cb.static_bdaddr) &&
-          a2dp_sink_capable &&
-          GetInterfaceToProfiles()
-              ->profileSpecific_HACK->IsLeAudioClientRunning() &&
+      if (a2dp_sink_capable &&
           pairing_cb.gatt_over_le !=
               btif_dm_pairing_cb_t::ServiceDiscoveryState::FINISHED &&
-          (check_cod_le_audio(bd_addr) ||
-           metadata_cb.le_audio_cache.contains(bd_addr) ||
-           metadata_cb.le_audio_cache.contains(pairing_cb.bd_addr) ||
-           BTA_DmCheckLeAudioCapable(bd_addr))) {
+          is_le_audio_capable_during_service_discovery(bd_addr)) {
         skip_reporting_wait_for_le = true;
       }
 
@@ -1871,7 +1886,28 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
 
       if (uuids.empty()) {
         LOG_INFO("No well known GATT services discovered");
-        return;
+
+        /* If services were returned as part of SDP discovery, we will
+         * immediately send them with rest of SDP results in BTA_DM_DISC_RES_EVT
+         */
+        if (event == BTA_DM_GATT_OVER_SDP_RES_EVT) {
+          return;
+        }
+
+        if (is_le_audio_capable_during_service_discovery(bd_addr)) {
+          if (bluetooth::common::init_flags::
+                  sdp_return_classic_services_when_le_discovery_fails_is_enabled()) {
+            LOG_INFO(
+                "Will return Classic SDP results, if done, to unblock bonding");
+          } else {
+            // LEA device w/o this flag
+            // TODO: we might want to remove bond or do some action on
+            // half-discovered device
+            return;
+          }
+        } else {
+          return;
+        }
       }
 
       Uuid existing_uuids[BT_MAX_NUM_UUIDS] = {};
