@@ -81,6 +81,7 @@ cc_test {
     },
     shared_libs: [
         "libcrypto",
+        "liblog",
     ],
     static_libs: [
         "libbt-common",

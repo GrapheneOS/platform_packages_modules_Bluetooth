@@ -73,6 +73,7 @@ cc_test {
         "libbase",
         "libbinder_ndk",
         "libcrypto",
+        "liblog",
     ],
     static_libs: [
         "lib-bt-packets",
