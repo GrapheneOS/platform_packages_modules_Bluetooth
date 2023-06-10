@@ -24,6 +24,7 @@ cc_test_library {
     ],
     shared_libs: [
         "libcutils",
+        "liblog",
     ],
     srcs: crypto_toolbox_srcs,
 }
@@ -144,6 +145,9 @@ cc_library_static {
         "libcom.android.sysprop.bluetooth",
         "libldacBT_abr",
         "libldacBT_enc",
+    ],
+    apex_available: [
+        "com.android.btservices",
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
@@ -293,6 +297,9 @@ cc_library_static {
         "libPlatformProperties",
         "libcrypto",
     ],
+    apex_available: [
+        "com.android.btservices",
+    ],
     host_supported: true,
     min_sdk_version: "Tiramisu",
 }
@@ -319,6 +326,9 @@ cc_defaults {
     ],
     static_libs: [
         "libchrome",
+    ],
+    shared_libs: [
+        "liblog",
     ],
     target: {
         darwin: {
