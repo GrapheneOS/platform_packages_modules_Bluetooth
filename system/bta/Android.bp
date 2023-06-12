@@ -65,6 +65,7 @@ cc_library_static {
         "ag/bta_ag_rfc.cc",
         "ag/bta_ag_sco.cc",
         "ag/bta_ag_sdp.cc",
+        "ag/bta_ag_swb_aptx.cc",
         "ar/bta_ar.cc",
         "av/bta_av_aact.cc",
         "av/bta_av_act.cc",

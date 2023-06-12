@@ -117,10 +117,12 @@ class Callbacks {
   /**
    * Callback for AT+BCS and event from BAC
    *
+   * @param codec SWB codec
    * @param swb SWB enable, SWB disable
    * @param bd_addr remote device address
    */
-  virtual void SwbCallback(bthf_swb_config_t swb, RawAddress* bd_addr) = 0;
+  virtual void SwbCallback(bthf_swb_codec_t codec, bthf_swb_config_t swb,
+                           RawAddress* bd_addr) = 0;
 
   /**
    * Callback for call hold handling (AT+CHLD)
