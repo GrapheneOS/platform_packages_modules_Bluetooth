@@ -74,6 +74,7 @@ cc_library_shared {
     //
     // The only exception to this is libcrypto because the shared version
     // is required to maintain FIPS compliance.
+    stl: "libc++_static",
     static_libs: [
         "android.hardware.audio.common-V1-ndk",
         "android.hardware.audio.common@5.0",
