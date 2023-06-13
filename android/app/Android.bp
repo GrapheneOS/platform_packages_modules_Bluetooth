@@ -57,6 +57,7 @@ cc_library_shared {
     name: "libbluetooth_jni",
     defaults: ["fluoride_basic_defaults"],
     srcs: ["jni/**/*.cpp"],
+    version_script: "libbluetooth_jni.map",
     header_libs: [
         "jni_headers",
         "libbluetooth_headers",
