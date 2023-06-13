@@ -1754,8 +1754,13 @@ impl IBluetoothMedia for BluetoothMedia {
         self.hfp = Some(Hfp::new(&self.intf.lock().unwrap()));
         self.hfp.as_mut().unwrap().initialize(hfp_dispatcher);
 
-        for profile in self.delay_enable_profiles.clone() {
-            self.enable_profile(&profile);
+        // TODO(b/284811956) A2DP needs to be enabled before AVRCP otherwise AVRCP gets memset'd.
+        // Iterate the delay_enable_profiles hashmap directly when this is fixed.
+        let profile_order = vec![Profile::A2dpSource, Profile::AvrcpTarget, Profile::Hfp];
+        for profile in profile_order {
+            if self.delay_enable_profiles.contains(&profile) {
+                self.enable_profile(&profile);
+            }
         }
         true
     }
