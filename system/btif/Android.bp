@@ -259,7 +259,7 @@ cc_test {
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
-        "android.hardware.audio.common-V1-ndk",
+        "android.hardware.audio.common-V2-ndk",
         "android.hardware.bluetooth.audio-V3-ndk",
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
@@ -593,7 +593,7 @@ cc_test {
     target: {
         android: {
             static_libs: [
-                "android.hardware.audio.common-V1-ndk",
+                "android.hardware.audio.common-V2-ndk",
                 "android.hardware.bluetooth.audio-V3-ndk",
                 "android.hardware.common-V2-ndk",
                 "android.hardware.common.fmq-V1-ndk",
@@ -723,7 +723,7 @@ cc_test {
     target: {
         android: {
             static_libs: [
-                "android.hardware.audio.common-V1-ndk",
+                "android.hardware.audio.common-V2-ndk",
                 "android.hardware.bluetooth.audio-V3-ndk",
                 "android.hardware.common-V2-ndk",
                 "android.hardware.common.fmq-V1-ndk",
