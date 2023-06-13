@@ -1159,6 +1159,20 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
     case HCI_BLE_SET_RAND_PRIV_ADDR_TIMOUT:
       break;
 
+    case HCI_CHANGE_LOCAL_NAME:
+    case HCI_WRITE_SCAN_ENABLE:
+    case HCI_WRITE_PAGESCAN_CFG:
+    case HCI_WRITE_INQUIRYSCAN_CFG:
+    case HCI_WRITE_PAGE_TOUT:
+    case HCI_WRITE_CLASS_OF_DEVICE:
+    case HCI_WRITE_VOICE_SETTINGS:
+    case HCI_WRITE_EXT_INQ_RESPONSE:
+    case HCI_WRITE_INQSCAN_TYPE:
+    case HCI_WRITE_INQUIRY_MODE:
+    case HCI_WRITE_PAGESCAN_TYPE:
+    case HCI_WRITE_DEF_POLICY_SETTINGS:
+      break;
+
     default:
       LOG_ERROR("Command complete for opcode:0x%02x should not be handled here",
                 opcode);
