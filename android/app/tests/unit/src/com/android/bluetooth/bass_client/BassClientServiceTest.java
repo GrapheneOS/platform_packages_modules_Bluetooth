@@ -30,6 +30,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.notNull;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -565,6 +566,49 @@ public class BassClientServiceTest {
         verifyAddSourceForGroup(meta);
     }
 
+
+    /**
+     * Test whether service.addSource() source id can be propagated through callback correctly
+     */
+    @Test
+    public void testAddSourceCallbackForGroup() {
+        prepareConnectedDeviceGroup();
+        BluetoothLeBroadcastMetadata meta = createBroadcastMetadata(TEST_BROADCAST_ID);
+        verifyAddSourceForGroup(meta);
+        for (BassClientStateMachine sm: mStateMachines.values()) {
+            if (sm.getDevice().equals(mCurrentDevice)) {
+                injectRemoteSourceState(sm, meta, TEST_SOURCE_ID,
+                        BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_IDLE,
+                        meta.isEncrypted() ?
+                                BluetoothLeBroadcastReceiveState.BIG_ENCRYPTION_STATE_DECRYPTING :
+                                BluetoothLeBroadcastReceiveState.BIG_ENCRYPTION_STATE_NOT_ENCRYPTED,
+                        null);
+                // verify source id
+                try {
+                    verify(mCallback, timeout(TIMEOUT_MS).atLeastOnce()).
+                            onSourceAdded(eq(mCurrentDevice), eq(TEST_SOURCE_ID),
+                            eq(BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST));
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                }
+            } else if (sm.getDevice().equals(mCurrentDevice1)) {
+                injectRemoteSourceState(sm, meta, TEST_SOURCE_ID + 1,
+                        BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_IDLE,
+                        meta.isEncrypted() ?
+                                BluetoothLeBroadcastReceiveState.BIG_ENCRYPTION_STATE_DECRYPTING :
+                                BluetoothLeBroadcastReceiveState.BIG_ENCRYPTION_STATE_NOT_ENCRYPTED,
+                        null);
+                // verify source id
+                try {
+                    verify(mCallback, timeout(TIMEOUT_MS).atLeastOnce()).
+                            onSourceAdded(eq(mCurrentDevice1), eq(TEST_SOURCE_ID + 1),
+                            eq(BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST));
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                }
+            }
+        }
+    }
    /**
      * Test whether service.modifySource() does send proper messages to all the
      * state machines within the Csip coordinated group
