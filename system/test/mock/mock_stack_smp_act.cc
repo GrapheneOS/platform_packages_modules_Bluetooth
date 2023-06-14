@@ -69,7 +69,6 @@ struct smp_proc_sec_grant smp_proc_sec_grant;
 struct smp_proc_pair_fail smp_proc_pair_fail;
 struct smp_proc_pair_cmd smp_proc_pair_cmd;
 struct smp_proc_confirm smp_proc_confirm;
-struct smp_proc_init smp_proc_init;
 struct smp_proc_rand smp_proc_rand;
 struct smp_process_pairing_public_key smp_process_pairing_public_key;
 struct smp_process_pairing_commitment smp_process_pairing_commitment;
@@ -210,10 +209,6 @@ void smp_proc_pair_cmd(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 void smp_proc_confirm(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   inc_func_call_count(__func__);
   test::mock::stack_smp_act::smp_proc_confirm(p_cb, p_data);
-}
-void smp_proc_init(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
-  inc_func_call_count(__func__);
-  test::mock::stack_smp_act::smp_proc_init(p_cb, p_data);
 }
 void smp_proc_rand(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   inc_func_call_count(__func__);
