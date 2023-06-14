@@ -15,23 +15,23 @@
  */
 package com.android.bluetooth.opp;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
 import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
 
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.R;
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,12 +48,24 @@ public class BluetoothOppServiceTest {
     @Rule
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
+    @Mock BluetoothMethodProxy mBluetoothMethodProxy;
+
     @Mock
     private AdapterService mAdapterService;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+
+        BluetoothMethodProxy.setInstanceForTesting(mBluetoothMethodProxy);
+
+        // BluetoothOppService can create a UpdateThread, which will call
+        // BluetoothOppNotification#updateNotification(), which in turn create a new
+        // NotificationUpdateThread. Both threads may cause the tests to fail because they try to
+        // access to ContentProvider in multiple places (ContentProvider might be disabled & there
+        // is no mocking). Since we have no intention to test those threads, avoid running them
+        doNothing().when(mBluetoothMethodProxy).threadStart(any());
+
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, BluetoothOppService.class);
@@ -66,6 +78,11 @@ public class BluetoothOppServiceTest {
 
     @After
     public void tearDown() throws Exception {
+        // Since the update thread is not run (we mocked it), it will not clean itself on interrupt
+        // (normally, the service will wait for the update thread to clean itself after
+        // being interrupted). We clean it manually here
+        mService.mUpdateThread = null;
+        BluetoothMethodProxy.setInstanceForTesting(null);
         TestUtils.stopService(mServiceRule, BluetoothOppService.class);
         TestUtils.clearAdapterService(mAdapterService);
     }

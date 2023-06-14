@@ -258,4 +258,9 @@ public class BluetoothMethodProxy {
             ContextMap map, GattService service) {
         return new AppAdvertiseStats(appUid, id, name, map, service);
     }
+
+    /** Proxies {@link Thread#start()}. */
+    public void threadStart(Thread thread) {
+        thread.start();
+    }
 }
