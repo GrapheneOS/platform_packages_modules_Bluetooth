@@ -462,6 +462,7 @@ pub struct Bluetooth {
     intf: Arc<Mutex<BluetoothInterface>>,
 
     adapter_index: i32,
+    hci_index: i32,
     bonded_devices: HashMap<String, BluetoothDeviceContext>,
     ble_scanner_id: Option<u8>,
     ble_scanner_uuid: Option<Uuid128Bit>,
@@ -497,6 +498,7 @@ impl Bluetooth {
     /// Constructs the IBluetooth implementation.
     pub fn new(
         adapter_index: i32,
+        hci_index: i32,
         tx: Sender<Message>,
         sig_notifier: Arc<(Mutex<bool>, Condvar)>,
         intf: Arc<Mutex<BluetoothInterface>>,
@@ -506,6 +508,7 @@ impl Bluetooth {
     ) -> Bluetooth {
         Bluetooth {
             adapter_index,
+            hci_index,
             bonded_devices: HashMap::new(),
             callbacks: Callbacks::new(tx.clone(), Message::AdapterCallbackDisconnected),
             connection_callbacks: Callbacks::new(
@@ -600,6 +603,10 @@ impl Bluetooth {
             // Ignore profiles that we don't connect.
             _ => None,
         }
+    }
+
+    pub(crate) fn get_hci_index(&self) -> u16 {
+        self.hci_index as u16
     }
 
     pub fn toggle_enabled_profiles(&mut self, allowed_services: &Vec<Uuid128Bit>) {
