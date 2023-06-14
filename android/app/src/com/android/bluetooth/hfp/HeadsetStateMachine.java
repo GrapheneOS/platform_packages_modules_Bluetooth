@@ -483,7 +483,10 @@ public class HeadsetStateMachine extends StateMachine {
             mHasWbsEnabled = false;
             mHasSwbEnabled = false;
             mHasNrecEnabled = false;
+
             broadcastStateTransitions();
+            logFailureIfNeeded();
+
             // Remove the state machine for unbonded devices
             if (mPrevState != null
                     && mAdapterService.getBondState(mDevice) == BluetoothDevice.BOND_NONE) {
@@ -505,7 +508,9 @@ public class HeadsetStateMachine extends StateMachine {
                     if (!mNativeInterface.connectHfp(device)) {
                         stateLogE("CONNECT failed for connectHfp(" + device + ")");
                         // No state transition is involved, fire broadcast immediately
-                        broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
+                        broadcastConnectionState(
+                                device,
+                                BluetoothProfile.STATE_DISCONNECTED,
                                 BluetoothProfile.STATE_DISCONNECTED);
                         break;
                     }
@@ -576,6 +581,25 @@ public class HeadsetStateMachine extends StateMachine {
                 default:
                     stateLogE("Incorrect state: " + state);
                     break;
+            }
+        }
+
+        private void logFailureIfNeeded() {
+            if (mPrevState == mConnecting || mPrevState == mDisconnected) {
+                // Result for disconnected -> disconnected is unknown as it should
+                // not have occurred.
+                int result =
+                        (mPrevState == mConnecting)
+                                ? BluetoothProtoEnums.RESULT_FAILURE
+                                : BluetoothProtoEnums.RESULT_UNKNOWN;
+
+                BluetoothStatsLog.write(
+                        BluetoothStatsLog.BLUETOOTH_PROFILE_CONNECTION_ATTEMPTED,
+                        BluetoothProfile.A2DP,
+                        result,
+                        mPrevState.getConnectionStateInt(),
+                        BluetoothProfile.STATE_DISCONNECTED,
+                        BluetoothProtoEnums.REASON_UNEXPECTED_STATE);
             }
         }
     }
@@ -1090,7 +1114,9 @@ public class HeadsetStateMachine extends StateMachine {
                 // or the retry count reached MAX_RETRY_DISCONNECT_AUDIO.
                 mAudioDisconnectRetry = 0;
             }
+
             broadcastStateTransitions();
+            logSuccessIfNeeded();
         }
 
         @Override
@@ -1182,6 +1208,18 @@ public class HeadsetStateMachine extends StateMachine {
                 default:
                     stateLogE("processAudioEvent: bad state: " + state);
                     break;
+            }
+        }
+
+        private void logSuccessIfNeeded() {
+            if (mPrevState == mConnecting || mPrevState == mDisconnected) {
+                BluetoothStatsLog.write(
+                        BluetoothStatsLog.BLUETOOTH_PROFILE_CONNECTION_ATTEMPTED,
+                        BluetoothProfile.HEADSET,
+                        BluetoothProtoEnums.RESULT_SUCCESS,
+                        mPrevState.getConnectionStateInt(),
+                        BluetoothProfile.STATE_CONNECTED,
+                        BluetoothProtoEnums.REASON_SUCCESS);
             }
         }
     }
