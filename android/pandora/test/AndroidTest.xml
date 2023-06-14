@@ -35,6 +35,7 @@
     <target_preparer class="com.android.tradefed.targetprep.PythonVirtualenvPreparer">
         <option name="dep-module" value="grpcio==1.51.1" />
         <option name="dep-module" value="cryptography==35" />
+        <option name="dep-module" value="numpy" />
     </target_preparer>
     <test class="com.android.tradefed.testtype.mobly.MoblyBinaryHostTest">
         <option name="mobly-par-file-name" value="avatar" />
