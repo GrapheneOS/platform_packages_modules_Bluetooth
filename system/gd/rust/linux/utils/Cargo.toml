@@ -25,6 +25,7 @@ log = "0.4.14"
 nix = "0.23"
 num-derive = "0.3"
 num-traits = "0.2"
+uhid-virt = "0.0.6"
 
 [lib]
 crate-type = ["rlib"]
