@@ -162,6 +162,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     ))));
     let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(
         adapter_index,
+        hci_index,
         tx.clone(),
         sig_notifier.clone(),
         intf.clone(),

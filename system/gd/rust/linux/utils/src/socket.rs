@@ -76,6 +76,7 @@ impl MgmtPacket {
 #[derive(FromPrimitive, ToPrimitive)]
 pub enum MgmtCommandOpcode {
     ReadIndexList = 0x3,
+    FlossNotifySuspendState = 0x103,
 }
 
 impl From<MgmtCommandOpcode> for u16 {
@@ -97,6 +98,7 @@ impl TryFrom<u16> for MgmtCommandOpcode {
 
 pub enum MgmtCommand {
     ReadIndexList,
+    FlossNotifySuspendState(u16, bool),
 }
 
 impl From<MgmtCommand> for MgmtPacket {
@@ -107,6 +109,12 @@ impl From<MgmtCommand> for MgmtPacket {
                 index: HCI_DEV_NONE,
                 len: 0,
                 data: Vec::new(),
+            },
+            MgmtCommand::FlossNotifySuspendState(hci_index, suspended) => MgmtPacket {
+                opcode: MgmtCommandOpcode::FlossNotifySuspendState.into(),
+                index: HCI_DEV_NONE,
+                len: MGMT_NOTIFY_SUSPEND_STATE_SIZE,
+                data: MgmtCpNotifySuspendState::new(hci_index, u8::from(suspended)).to_data(),
             },
         }
     }
@@ -149,6 +157,27 @@ pub enum MgmtEvent {
 
     /// HCI device was removed.
     IndexRemoved(u16),
+}
+
+#[derive(Debug)]
+pub struct MgmtCpNotifySuspendState {
+    hci_id: u16,
+    suspended: u8,
+}
+
+pub const MGMT_NOTIFY_SUSPEND_STATE_SIZE: u16 = 0x3;
+
+impl MgmtCpNotifySuspendState {
+    pub fn new(hci_id: u16, suspended: u8) -> Self {
+        MgmtCpNotifySuspendState { hci_id, suspended }
+    }
+
+    pub fn to_data(&self) -> Vec<u8> {
+        let mut v: Vec<u8> = Vec::new();
+        v.extend_from_slice(self.hci_id.to_le_bytes().as_slice());
+        v.extend_from_slice(self.suspended.to_le_bytes().as_slice());
+        v
+    }
 }
 
 impl TryFrom<MgmtPacket> for MgmtEvent {
@@ -199,6 +228,9 @@ impl TryFrom<MgmtPacket> for MgmtEvent {
                                     .collect();
 
                                 MgmtCommandResponse::ReadIndexList { num_intf: len, interfaces }
+                            }
+                            MgmtCommandOpcode::FlossNotifySuspendState => {
+                                MgmtCommandResponse::DataUnused
                             }
                         }
                     } else {

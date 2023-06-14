@@ -12,6 +12,8 @@ use num_derive::{FromPrimitive, ToPrimitive};
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::Sender;
 
+use bt_utils::socket::{BtSocket, HciChannels, MgmtCommand, HCI_DEV_NONE};
+
 /// Defines the Suspend/Resume API.
 ///
 /// This API is exposed by `btadapterd` and independent of the suspend/resume detection mechanism
@@ -62,6 +64,44 @@ const MASKED_EVENTS_FOR_SUSPEND: u64 = (1u64 << 4) | (1u64 << 19);
 /// When we resume, we will want to reconnect audio devices that were previously connected.
 /// However, we will need to delay a few seconds to avoid co-ex issues with Wi-Fi reconnection.
 const RECONNECT_AUDIO_ON_RESUME_DELAY_MS: u64 = 3000;
+
+/// Default address for a virtual uhid device.
+const BD_ADDR_DEFAULT: &str = "00:00:00:00:00:00";
+
+/// TODO(b/286268874) Remove after the synchronization issue is resolved.
+/// Delay sending suspend ready signal by some time.
+const LE_RAND_CB_SUSPEND_READY_DELAY_MS: u64 = 100;
+
+fn notify_suspend_state(hci_index: u16, suspended: bool) {
+    log::debug!("Notify kernel suspend status: {} for hci{}", suspended, hci_index);
+    let mut btsock = BtSocket::new();
+    match btsock.open() {
+        -1 => {
+            panic!(
+                "Bluetooth socket unavailable (errno {}). Try loading the kernel module first.",
+                std::io::Error::last_os_error().raw_os_error().unwrap_or(0)
+            );
+        }
+        x => log::debug!("notify suspend Socket open at fd: {}", x),
+    }
+    // Bind to control channel (which is used for mgmt commands). We provide
+    // HCI_DEV_NONE because we don't actually need a valid HCI dev for some MGMT commands.
+    match btsock.bind_channel(HciChannels::Control, HCI_DEV_NONE) {
+        -1 => {
+            panic!(
+                "Failed to bind control channel with errno={}",
+                std::io::Error::last_os_error().raw_os_error().unwrap_or(0)
+            );
+        }
+        _ => (),
+    };
+
+    let command = MgmtCommand::FlossNotifySuspendState(hci_index, suspended);
+    let bytes_written = btsock.write_mgmt_packet(command.into());
+    if bytes_written <= 0 {
+        log::error!("Failed to notify suspend state on hci:{} to {}", hci_index, suspended);
+    }
+}
 
 #[derive(FromPrimitive, ToPrimitive)]
 #[repr(u32)]
@@ -150,6 +190,8 @@ impl Suspend {
     }
 
     pub(crate) fn suspend_ready(&mut self, suspend_id: i32) {
+        let hci_index = self.bt.lock().unwrap().get_hci_index();
+        notify_suspend_state(hci_index, true);
         self.callbacks.for_all_callbacks(|callback| {
             callback.on_suspend_ready(suspend_id);
         });
@@ -254,6 +296,9 @@ impl ISuspend for Suspend {
     }
 
     fn resume(&mut self) -> bool {
+        let hci_index = self.bt.lock().unwrap().get_hci_index();
+        notify_suspend_state(hci_index, false);
+
         self.intf.lock().unwrap().set_default_event_mask_except(0u64, 0u64);
 
         // Restore event filter and accept list to normal.
@@ -345,6 +390,10 @@ impl BtifBluetoothCallbacks for Suspend {
             self.suspend_state.lock().unwrap().suspend_expected = false;
             let tx = self.tx.clone();
             tokio::spawn(async move {
+                tokio::time::sleep(tokio::time::Duration::from_millis(
+                    LE_RAND_CB_SUSPEND_READY_DELAY_MS,
+                ))
+                .await;
                 let _result = tx.send(Message::SuspendReady(suspend_id)).await;
             });
         }
