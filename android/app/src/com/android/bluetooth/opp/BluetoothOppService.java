@@ -135,8 +135,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
     private boolean mUpdateThreadRunning;
 
-    private ArrayList<BluetoothOppShareInfo> mShares;
-    private ArrayList<BluetoothOppBatch> mBatches;
+    @VisibleForTesting ArrayList<BluetoothOppShareInfo> mShares;
+    @VisibleForTesting ArrayList<BluetoothOppBatch> mBatches;
 
     private BluetoothOppTransfer mTransfer;
 
@@ -180,7 +180,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                     + BluetoothShare.USER_CONFIRMATION + "="
                     + BluetoothShare.USER_CONFIRMATION_PENDING;
 
-    private static final String WHERE_INVISIBLE_UNCONFIRMED =
+    @VisibleForTesting
+    static final String WHERE_INVISIBLE_UNCONFIRMED =
             "("
                     + BluetoothShare.STATUS
                     + " > "
@@ -993,7 +994,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     }
 
     /** Removes the local copy of the info about a share. */
-    private void deleteShare(int arrayPos) {
+    @VisibleForTesting
+    void deleteShare(int arrayPos) {
         BluetoothOppShareInfo info = mShares.get(arrayPos);
 
         /*
@@ -1117,7 +1119,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     }
 
     // Run in a background thread at boot.
-    private static void trimDatabase(ContentResolver contentResolver) {
+    @VisibleForTesting
+    static void trimDatabase(ContentResolver contentResolver) {
         // Try-catch is important because trimDatabase can run even when the OPP_PROVIDER is
         // disabled (by OPP service, shell command, etc.).
         // At the sametime, it's ok to retry trimDatabase later when the service restart
