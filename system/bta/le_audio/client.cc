@@ -480,7 +480,7 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     do {
-      if (instance) instance->DisconnectDevice(leAudioDevice, true);
+      if (instance) instance->DisconnectDevice(leAudioDevice, true, true);
       leAudioDevice = group->GetNextActiveDevice(leAudioDevice);
     } while (leAudioDevice);
   }
@@ -1487,30 +1487,37 @@ class LeAudioClientImpl : public LeAudioClient {
           leAudioDevice->autoconnect_flag_ = false;
         }
 
+        /* Make sure ACL is disconnected to avoid reconnecting immediately
+         * when autoconnect with TA reconnection mechanism is used.
+         */
+        bool force_acl_disconnect = leAudioDevice->autoconnect_flag_;
+
         auto group = aseGroups_.FindById(leAudioDevice->group_id_);
-        if (group && remove_from_autoconnect) {
+        if (group) {
           /* Remove devices from auto connect mode */
           for (auto dev = group->GetFirstDevice(); dev;
                dev = group->GetNextDevice(dev)) {
-            if (dev->GetConnectionState() ==
-                DeviceConnectState::CONNECTING_AUTOCONNECT) {
+            if (remove_from_autoconnect &&
+                (dev->GetConnectionState() ==
+                 DeviceConnectState::CONNECTING_AUTOCONNECT)) {
               btif_storage_set_leaudio_autoconnect(dev->address_, false);
               dev->autoconnect_flag_ = false;
               BTA_GATTC_CancelOpen(gatt_if_, dev->address_, false);
               dev->SetConnectionState(DeviceConnectState::DISCONNECTED);
             }
           }
+          if (group->GetState() ==
+              le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+            leAudioDevice->closing_stream_for_disconnection_ = true;
+            groupStateMachine_->StopStream(group);
+            return;
+          }
+          force_acl_disconnect &= group->IsEnabled();
         }
 
-        if (group &&
-            group->GetState() ==
-                le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-          leAudioDevice->closing_stream_for_disconnection_ = true;
-          groupStateMachine_->StopStream(group);
-          return;
-        }
+        DisconnectDevice(leAudioDevice, force_acl_disconnect);
       }
-        [[fallthrough]];
+        return;
       case DeviceConnectState::CONNECTED_BY_USER_GETTING_READY:
         /* Timeout happen on the Java layer before native got ready with the
          * device */
@@ -1541,7 +1548,8 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void DisconnectDevice(LeAudioDevice* leAudioDevice,
-                        bool acl_force_disconnect = false) {
+                        bool acl_force_disconnect = false,
+                        bool recover = false) {
     if (leAudioDevice->conn_id_ == GATT_INVALID_CONN_ID) {
       return;
     }
@@ -1555,8 +1563,10 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Remote in bad state, force ACL Disconnection. */
     if (acl_force_disconnect) {
       leAudioDevice->DisconnectAcl();
-      leAudioDevice->SetConnectionState(
-          DeviceConnectState::DISCONNECTING_AND_RECOVER);
+      if (recover) {
+        leAudioDevice->SetConnectionState(
+            DeviceConnectState::DISCONNECTING_AND_RECOVER);
+      }
     } else {
       BTA_GATTC_Close(leAudioDevice->conn_id_);
     }
@@ -4985,7 +4995,9 @@ class LeAudioClientImpl : public LeAudioClient {
           device->closing_stream_for_disconnection_ = false;
           LOG_INFO("Disconnecting group id: %d, address: %s", group->group_id_,
                    ADDRESS_TO_LOGGABLE_CSTR(device->address_));
-          DisconnectDevice(device);
+          bool force_acl_disconnect =
+              device->autoconnect_flag_ && group->IsEnabled();
+          DisconnectDevice(device, force_acl_disconnect);
         }
         group_remove_node(group, device->address_, true);
       }
@@ -5000,7 +5012,9 @@ class LeAudioClientImpl : public LeAudioClient {
         leAudioDevice->closing_stream_for_disconnection_ = false;
         LOG_DEBUG("Disconnecting group id: %d, address: %s", group->group_id_,
                   ADDRESS_TO_LOGGABLE_CSTR(leAudioDevice->address_));
-        DisconnectDevice(leAudioDevice);
+        bool force_acl_disconnect =
+            leAudioDevice->autoconnect_flag_ && group->IsEnabled();
+        DisconnectDevice(leAudioDevice, force_acl_disconnect);
       }
       leAudioDevice = group->GetNextDevice(leAudioDevice);
     }
