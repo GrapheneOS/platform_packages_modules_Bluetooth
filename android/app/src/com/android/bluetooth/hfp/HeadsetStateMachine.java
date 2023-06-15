@@ -81,7 +81,7 @@ import java.util.Scanner;
 @VisibleForTesting
 public class HeadsetStateMachine extends StateMachine {
     private static final String TAG = "HeadsetStateMachine";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
