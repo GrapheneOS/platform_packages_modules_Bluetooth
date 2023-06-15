@@ -50,12 +50,6 @@ void LEConnectionMetricState::AddStateChangedEvent(
     LeConnectionType connection_type,
     LeConnectionState transaction_state,
     std::vector<std::pair<os::ArgumentType, int>> argument_list) {
-  LOG_INFO(
-      "LEConnectionMetricState:  Origin Type: %s, Connection Type: %s, Transaction State: "
-      "%s",
-      common::ToHexString(origin_type).c_str(),
-      common::ToHexString(connection_type).c_str(),
-      common::ToHexString(transaction_state).c_str());
 
   ClockTimePoint current_timestamp = std::chrono::high_resolution_clock::now();
   state = transaction_state;
@@ -193,7 +187,6 @@ void LEConnectionMetricsRemoteDevice::AddStateChangedEvent(
 
       if (device_metric->IsCancelled() &&
           transaction_state == LeConnectionState::STATE_LE_ACL_END) {
-        LOG_INFO("LEConnectionMetricsRemoteDevice: Session is now complete after cancellation");
         // complete the connection
         device_metric->AddStateChangedEvent(
             origin_type, connection_type, transaction_state, argument_list);
