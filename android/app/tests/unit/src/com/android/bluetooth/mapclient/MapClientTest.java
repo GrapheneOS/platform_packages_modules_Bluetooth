@@ -119,10 +119,11 @@ public class MapClientTest {
         Map<BluetoothDevice, MceStateMachine> map = mService.getInstanceMap();
 
         Assert.assertEquals(1, map.size());
-        Assert.assertNotNull(map.get(device));
-        TestUtils.waitForLooperToFinishScheduledTask(mService.getMainLooper());
+        MceStateMachine sm = map.get(device);
+        Assert.assertNotNull(sm);
+        TestUtils.waitForLooperToFinishScheduledTask(sm.getHandler().getLooper());
 
-        Assert.assertEquals(map.get(device).getState(), BluetoothProfile.STATE_CONNECTING);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, sm.getState());
         mService.cleanupDevice(device);
         Assert.assertNull(mService.getInstanceMap().get(device));
     }
