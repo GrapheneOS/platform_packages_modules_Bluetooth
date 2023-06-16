@@ -265,10 +265,15 @@ PairingState ToPairingState(uint32_t status, uint32_t bond_state, int32_t fail_r
   if ((BtStatus)status == BtStatus::BT_STATUS_SUCCESS && (hci::ErrorCode)fail_reason == hci::ErrorCode::SUCCESS) {
     if ((BtBondState)bond_state == BtBondState::BT_BOND_STATE_BONDED) {
       return PairingState::PAIR_SUCCEED;
-    } else {
-      return PairingState::PAIR_FAIL_CANCELLED;
+    } else {  // must be BtBondState::BT_BOND_STATE_NONE as BT_BOND_STATE_BONDING case has been
+              // checked early
+      // This implies the event is from forgetting a device. Return an absurd value to let caller
+      // know.
+      return PairingState::PAIR_FAIL_END;
     }
   }
+
+  // TODO(b/287392029): Translate cases of bond cancelled into PairingState:PAIR_FAIL_CANCELLED
 
   // When both status and fail reason are provided and disagree with each other, overwrite status with the fail reason
   // as fail reason is generated closer to the HCI and provides a more accurate description.
