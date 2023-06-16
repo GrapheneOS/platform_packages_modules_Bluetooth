@@ -621,16 +621,19 @@ public class TbsGatt {
         public void handleWriteRequest(BluetoothDevice device, int requestId,
                 boolean responseNeeded, byte[] value) {
             int status;
-            if (value.length == 0) {
-                // at least opcode is required
+            if (value.length < 2) {
+                // at least opcode is required and value is at least 1 byte
                 status = BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
             } else {
                 status = BluetoothGatt.GATT_SUCCESS;
             }
 
             if (responseNeeded) {
-                mBluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_FAILURE, 0,
-                        value);
+                mBluetoothGattServer.sendResponse(device, requestId, status, 0, value);
+            }
+
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                return;
             }
 
             int opcode = (int) value[0];
