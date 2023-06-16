@@ -504,6 +504,11 @@ public class AvrcpTargetService extends ProfileService {
      * Called from player callback to indicate new settings to remote device.
      */
     public void sendPlayerSettings(int repeatMode, int shuffleMode) {
+        if (mNativeInterface == null) {
+            Log.i(TAG, "Tried to send Player Settings while native interface is null");
+            return;
+        }
+
         mNativeInterface.sendPlayerSettings(repeatMode, shuffleMode);
     }
 
