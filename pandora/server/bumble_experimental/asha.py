@@ -18,6 +18,7 @@ import logging
 import struct
 
 from bumble.core import AdvertisingData
+from bumble.decoder import G722Decoder
 from bumble.device import Connection, Connection as BumbleConnection, Device
 from bumble.gatt import (
     GATT_ASHA_AUDIO_CONTROL_POINT_CHARACTERISTIC,
@@ -197,6 +198,8 @@ class AshaGattService(TemplateService):
 
 
 class AshaService(AshaServicer):
+    DECODE_FRAME_LENGTH = 80
+
     device: Device
     asha_service: Optional[AshaGattService]
 
@@ -223,6 +226,7 @@ class AshaService(AshaServicer):
         if not (connection := self.device.lookup_connection(connection_handle)):
             raise RuntimeError(f"Unknown connection for connection_handle:{connection_handle}")
 
+        decoder = G722Decoder()
         queue: asyncio.Queue[bytes] = asyncio.Queue()
 
         def on_data(asha_connection: BumbleConnection, data: bytes) -> None:
@@ -233,6 +237,18 @@ class AshaService(AshaServicer):
 
         try:
             while data := await queue.get():
-                yield CaptureAudioResponse(data=data)
+                output_bytes = bytearray()
+                # First byte is sequence number, last 160 bytes are audio payload.
+                audio_payload = data[1:]
+                data_length = int(len(audio_payload) / AshaService.DECODE_FRAME_LENGTH)
+                for i in range(0, data_length):
+                    input_data = audio_payload[
+                        i * AshaService.DECODE_FRAME_LENGTH : i * AshaService.DECODE_FRAME_LENGTH
+                        + AshaService.DECODE_FRAME_LENGTH
+                    ]
+                    decoded_data = decoder.decode_frame(input_data)
+                    output_bytes.extend(decoded_data)
+
+                yield CaptureAudioResponse(data=bytes(output_bytes))
         finally:
             self.asha_service.remove_listener("data", on_data)  # type: ignore
