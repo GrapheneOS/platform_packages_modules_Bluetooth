@@ -842,7 +842,7 @@ impl BluetoothSocketManager {
                                         SocketActions::OnIncomingSocketReady(
                                             cbid,
                                             cloned_socket_info,
-                                            BtStatus::Fail,
+                                            BtStatus::Timeout,
                                         ),
                                     ))
                                     .await;

@@ -105,7 +105,8 @@ typedef enum {
   BT_STATUS_AUTH_REJECTED,
   BT_STATUS_JNI_ENVIRONMENT_ERROR,
   BT_STATUS_JNI_THREAD_ATTACH_ERROR,
-  BT_STATUS_WAKELOCK_ERROR
+  BT_STATUS_WAKELOCK_ERROR,
+  BT_STATUS_TIMEOUT
 } bt_status_t;
 
 inline std::string bt_status_text(const bt_status_t& status) {
@@ -140,6 +141,8 @@ inline std::string bt_status_text(const bt_status_t& status) {
       return std::string("jni_thread_error");
     case BT_STATUS_WAKELOCK_ERROR:
       return std::string("wakelock_error");
+    case BT_STATUS_TIMEOUT:
+      return std::string("timeout_error");
     default:
       return std::string("UNKNOWN");
   }
