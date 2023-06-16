@@ -746,6 +746,11 @@ void btif_a2dp_sink_set_audio_track_gain(float gain) {
 #endif
 }
 
+void * btif_a2dp_sink_get_audio_track(void)
+{
+  return btif_a2dp_sink_cb.audio_track;
+}
+
 static void btif_a2dp_sink_clear_track_event_req() {
   LOG_INFO("%s", __func__);
   BT_HDR_RIGID* p_buf =
