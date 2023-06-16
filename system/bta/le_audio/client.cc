@@ -1494,9 +1494,9 @@ class LeAudioClientImpl : public LeAudioClient {
                dev = group->GetNextDevice(dev)) {
             if (dev->GetConnectionState() ==
                 DeviceConnectState::CONNECTING_AUTOCONNECT) {
-              btif_storage_set_leaudio_autoconnect(address, false);
+              btif_storage_set_leaudio_autoconnect(dev->address_, false);
               dev->autoconnect_flag_ = false;
-              BTA_GATTC_CancelOpen(gatt_if_, address, false);
+              BTA_GATTC_CancelOpen(gatt_if_, dev->address_, false);
               dev->SetConnectionState(DeviceConnectState::DISCONNECTED);
             }
           }
