@@ -31,19 +31,31 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
 #include "os/log_tags.h"
 #include "os/logging/log_adapter.h"
 
-#if defined(__ANDROID__)
+#if defined(FUZZ_TARGET)
 
-#include <log/log.h>
-#include <log/log_event_list.h>
-
-#ifdef FUZZ_TARGET
 #define LOG_VERBOSE(...)
 #define LOG_DEBUG(...)
 #define LOG_INFO(...)
 #define LOG_WARN(...)
-#else
 
-static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
+#define LOG_ERROR(...) do {         \
+  fprintf(stderr, __VA_ARGS__);     \
+} while (false)
+
+// for fuzz targets, we just
+// need to abort in this statement
+// to catch the bug
+#define LOG_ALWAYS_FATAL(...) do {  \
+    fprintf(stderr, __VA_ARGS__);   \
+    abort();                        \
+  } while (false)
+
+#else /* end of defined(FUZZ_TARGET) */
+
+#if defined(__ANDROID__)
+
+#include <log/log.h>
+#include <log/log_event_list.h>
 
 #if __has_include("src/init_flags.rs.h")
 
@@ -66,10 +78,9 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
 
 #define LOG_INFO(fmt, args...) ALOGI("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
 #define LOG_WARN(fmt, args...) ALOGW("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
-#endif /* FUZZ_TARGET */
 #define LOG_ERROR(fmt, args...) ALOGE("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
 
-#elif defined (ANDROID_EMULATOR)
+#elif defined (ANDROID_EMULATOR)  /* end of defined(__ANDROID__) */
 // Log using android emulator logging mechanism
 #include "android/utils/debug.h"
 
@@ -86,7 +97,7 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
     fprintf(stderr, "%s:%d - %s: " fmt "\n", __FILE__, __LINE__, __func__, ##args); \
     abort();                                                                        \
   } while (false)
-#elif defined(TARGET_FLOSS)
+#elif defined(TARGET_FLOSS) /* end of defined (ANDROID_EMULATOR) */
 #include "gd/common/init_flags.h"
 #include "gd/os/syslog.h"
 
@@ -94,12 +105,6 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
 #define LOGWRAPPER(tag, fmt, args...) \
   write_syslog(tag, "%s:%s:%d - %s: " fmt, LOG_TAG, __FILE__, __LINE__, __func__, ##args)
 
-#ifdef FUZZ_TARGET
-#define LOG_VERBOSE(...)
-#define LOG_DEBUG(...)
-#define LOG_INFO(...)
-#define LOG_WARN(...)
-#else
 #define LOG_VERBOSE(...)                                                               \
   do {                                                                                 \
     if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_VERBOSE) { \
@@ -114,7 +119,6 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
   } while (false)
 #define LOG_INFO(...) LOGWRAPPER(LOG_TAG_INFO, __VA_ARGS__)
 #define LOG_WARN(...) LOGWRAPPER(LOG_TAG_WARN, __VA_ARGS__)
-#endif /*FUZZ_TARGET*/
 #define LOG_ERROR(...) LOGWRAPPER(LOG_TAG_ERROR, __VA_ARGS__)
 
 #define LOG_ALWAYS_FATAL(...)               \
@@ -123,7 +127,8 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
     abort();                                \
   } while (false)
 
-#else
+#else  /* end of defined (TARGET_FLOSS) */
+
 /* syslog didn't work well here since we would be redefining LOG_DEBUG. */
 #include <sys/syscall.h>
 #include <sys/types.h>
@@ -157,12 +162,6 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
         ##args);                                                                                                    \
   } while (false)
 
-#ifdef FUZZ_TARGET
-#define LOG_VERBOSE(...)
-#define LOG_DEBUG(...)
-#define LOG_INFO(...)
-#define LOG_WARN(...)
-#else
 #define LOG_VERBOSE(fmt, args...)                                                      \
   do {                                                                                 \
     if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_VERBOSE) { \
@@ -177,7 +176,6 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
   } while (false)
 #define LOG_INFO(...) LOGWRAPPER(__VA_ARGS__)
 #define LOG_WARN(...) LOGWRAPPER(__VA_ARGS__)
-#endif /* FUZZ_TARGET */
 #define LOG_ERROR(...) LOGWRAPPER(__VA_ARGS__)
 
 #ifndef LOG_ALWAYS_FATAL
@@ -189,6 +187,8 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
 #endif
 
 #endif /* defined(__ANDROID__) */
+
+#endif /* defined(FUZZ_TARGET) */
 
 #define ASSERT(condition)                                    \
   do {                                                       \
@@ -209,3 +209,4 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
   case code:                   \
     return #code
 #endif
+
