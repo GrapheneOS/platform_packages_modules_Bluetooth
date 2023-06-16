@@ -102,6 +102,9 @@ void LogMetricsBondStateChanged(
   // Ignore the start of pairing event as its logged separated above.
   if (pairing_state == PairingState::PAIR_STARTING) return;
 
+  // Ignore absurd state.
+  if (pairing_state == PairingState::PAIR_FAIL_END) return;
+
   LOG_DEBUG(
       "PairingStateChanged: %s, %d, %s, %d, %d",
       boot_id.c_str(),
