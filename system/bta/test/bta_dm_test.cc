@@ -261,10 +261,11 @@ TEST_F(BtaDmTest, bta_dm_set_encryption) {
   device->p_encrypt_cback = nullptr;
 
   // Setup a device that fails encryption
-  test::mock::stack_btm_sec::BTM_SetEncryption.body =
+  btm_client_interface.security.BTM_SetEncryption =
       [](const RawAddress& bd_addr, tBT_TRANSPORT transport,
          tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
          tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
+    inc_func_call_count("BTM_SetEncryption");
     return BTM_MODE_UNSUPPORTED;
   };
 
@@ -274,17 +275,19 @@ TEST_F(BtaDmTest, bta_dm_set_encryption) {
   device->p_encrypt_cback = nullptr;
 
   // Setup a device that successfully starts encryption
-  test::mock::stack_btm_sec::BTM_SetEncryption.body =
+  btm_client_interface.security.BTM_SetEncryption =
       [](const RawAddress& bd_addr, tBT_TRANSPORT transport,
          tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
-         tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS { return BTM_CMD_STARTED; };
+         tBTM_BLE_SEC_ACT sec_act) -> tBTM_STATUS {
+    inc_func_call_count("BTM_SetEncryption");
+    return BTM_CMD_STARTED;
+  };
 
   bta_dm_set_encryption(kRawAddress, transport, BTA_DM_ENCRYPT_CBACK, sec_act);
   ASSERT_EQ(2, get_func_call_count("BTM_SetEncryption"));
   ASSERT_EQ(0UL, BTA_DM_ENCRYPT_CBACK_queue.size());
   ASSERT_NE(nullptr, device->p_encrypt_cback);
 
-  test::mock::stack_btm_sec::BTM_SetEncryption = {};
   BTA_DM_ENCRYPT_CBACK_queue = {};
 }
 
@@ -578,6 +581,10 @@ TEST_F(BtaDmTest, bta_dm_remote_name_cmpl) {
 TEST_F(BtaDmTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithName) {
   constexpr uint32_t kNumVal = 1234;
   static bool callback_sent = false;
+  btm_client_interface.peer.BTM_ReadRemoteDeviceName =
+      [](const RawAddress& remote_bda, tBTM_NAME_CMPL_CB* p_cb,
+         tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_CMD_STARTED; };
+
   static tBTA_DM_SP_CFM_REQ cfm_req{};
   bta_dm_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
     callback_sent = true;
@@ -625,9 +632,9 @@ TEST_F(BtaDmTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithName) {
 TEST_F(BtaDmTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRSuccess) {
   constexpr uint32_t kNumVal = 1234;
   static bool callback_sent = false;
-  test::mock::stack_btm_inq::BTM_ReadRemoteDeviceName.body =
+  btm_client_interface.peer.BTM_ReadRemoteDeviceName =
       [](const RawAddress& remote_bda, tBTM_NAME_CMPL_CB* p_cb,
-         tBT_TRANSPORT transport) { return BTM_CMD_STARTED; };
+         tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_CMD_STARTED; };
 
   static tBTA_DM_SP_CFM_REQ cfm_req{};
   bta_dm_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
@@ -659,16 +666,14 @@ TEST_F(BtaDmTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRSuccess) {
                 BTM_SP_CFM_REQ_EVT, &data)));
   ASSERT_EQ(kNumVal, bta_dm_cb.num_val);
   ASSERT_FALSE(callback_sent);
-
-  test::mock::stack_btm_inq::BTM_ReadRemoteDeviceName = {};
 }
 
 TEST_F(BtaDmTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRFail) {
   constexpr uint32_t kNumVal = 1234;
   static bool callback_sent = false;
-  test::mock::stack_btm_inq::BTM_ReadRemoteDeviceName.body =
+  btm_client_interface.peer.BTM_ReadRemoteDeviceName =
       [](const RawAddress& remote_bda, tBTM_NAME_CMPL_CB* p_cb,
-         tBT_TRANSPORT transport) { return BTM_SUCCESS; };
+         tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_SUCCESS; };
 
   static tBTA_DM_SP_CFM_REQ cfm_req{};
   bta_dm_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
@@ -710,13 +715,15 @@ TEST_F(BtaDmTest, bta_dm_sp_cback__BTM_SP_CFM_REQ_EVT_WithoutName_RNRFail) {
   ASSERT_EQ(BTM_AUTH_SP_YES, cfm_req.rmt_auth_req);
   ASSERT_EQ(BTM_IO_CAP_NONE, cfm_req.loc_io_caps);
   ASSERT_EQ(BTM_IO_CAP_NONE, cfm_req.rmt_io_caps);
-
-  test::mock::stack_btm_inq::BTM_ReadRemoteDeviceName = {};
 }
 
 TEST_F(BtaDmTest, bta_dm_sp_cback__BTM_SP_KEY_NOTIF_EVT) {
   constexpr uint32_t kPassKey = 1234;
   static bool callback_sent = false;
+  btm_client_interface.peer.BTM_ReadRemoteDeviceName =
+      [](const RawAddress& remote_bda, tBTM_NAME_CMPL_CB* p_cb,
+         tBT_TRANSPORT transport) -> tBTM_STATUS { return BTM_CMD_STARTED; };
+
   static tBTA_DM_SP_KEY_NOTIF key_notif{};
   bta_dm_enable([](tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data) {
     callback_sent = true;
