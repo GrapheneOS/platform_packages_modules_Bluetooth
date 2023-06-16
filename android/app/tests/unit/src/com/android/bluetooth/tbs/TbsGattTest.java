@@ -555,13 +555,31 @@ public class TbsGattTest {
                 getCharacteristic(TbsGatt.UUID_CALL_CONTROL_POINT);
 
         // Call the internal GATT callback as if peer device accepts the call
-        byte[] value = new byte[] {0x00, /* opcode */ 0x0A, /* argument */ };
+        byte[] value = new byte[] {0x00 /* opcode */, 0x0A /* argument */};
         mTbsGatt.mGattServerCallback.onCharacteristicWriteRequest(mFirstDevice, 1, characteristic,
-                false, false, 0, value);
+                false, true, 0, value);
+
+        verify(mMockGattServer).sendResponse(eq(mFirstDevice), eq(1),
+                eq(BluetoothGatt.GATT_SUCCESS), eq(0), aryEq(new byte[] {0x00, 0x0A}));
 
         // Verify the higher layer callback call
         verify(mMockTbsGattCallback).onCallControlPointRequest(eq(mFirstDevice), eq(0x00),
                 aryEq(new byte[] {0x0A}));
+    }
+
+    @Test
+    public void testHandleControlPointInvalidLengthRequest() {
+        prepareDefaultService();
+        BluetoothGattCharacteristic characteristic =
+                getCharacteristic(TbsGatt.UUID_CALL_CONTROL_POINT);
+
+        // Call the internal GATT callback as if peer device accepts the call
+        byte[] value = new byte[] {0x00 /* opcode */};
+        mTbsGatt.mGattServerCallback.onCharacteristicWriteRequest(mFirstDevice, 1, characteristic,
+                false, true, 0, value);
+
+        verify(mMockGattServer).sendResponse(eq(mFirstDevice), eq(1),
+                eq(BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH), eq(0), aryEq(new byte[] {0x00}));
     }
 
     @Test
