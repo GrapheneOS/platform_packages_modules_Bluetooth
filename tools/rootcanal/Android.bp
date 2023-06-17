@@ -126,6 +126,7 @@ cc_library_static {
     static_libs: [
         "libscriptedbeaconpayload-protos-lite",
     ],
+    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 // This library contains the generated headers for the
@@ -179,6 +180,7 @@ cc_library_host_shared {
     cflags: [
         "-fexceptions",
     ],
+    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 // Generate the python parser+serializer backend for
@@ -292,6 +294,7 @@ cc_test_host {
     static_libs: [
         "libbt-rootcanal",
     ],
+    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 // Implement the Bluetooth official LL test suite for root-canal.
@@ -363,6 +366,7 @@ cc_test_host {
             enabled: false,
         },
     },
+    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 // Linux RootCanal Executable
@@ -408,6 +412,7 @@ cc_binary_host {
             enabled: false,
         },
     },
+    include_dirs: ["packages/modules/Bluetooth/system/gd"],
 }
 
 genrule {
