@@ -16,9 +16,6 @@ cc_defaults {
         // there are too many unused parameters in all the code.
         "-Wno-unused-parameter",
     ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system/gd",
-    ],
 }
 
 // Fuzzable defaults are the subset of defaults that are used in fuzzing, which
