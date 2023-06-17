@@ -107,7 +107,10 @@ cc_library_static {
     ],
     srcs: ["src/hal/ffi/hidl.cc"],
     local_include_dirs: ["src/hal/ffi"],
-    include_dirs: ["packages/modules/Bluetooth/system"],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+    ],
     generated_headers: [
         "cxx-bridge-header",
         "libbt_hidl_hal_bridge_header",

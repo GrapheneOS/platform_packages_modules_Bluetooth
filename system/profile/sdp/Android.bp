@@ -15,6 +15,7 @@ cc_library_static {
     host_supported: true,
     include_dirs: [
         "packages/modules/Bluetooth/system/",
+        "packages/modules/Bluetooth/system/gd",
     ],
     srcs: [
         "common/data_element_reader.cc",
