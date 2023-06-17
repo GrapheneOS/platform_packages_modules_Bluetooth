@@ -21,26 +21,26 @@
 #include "os/log.h"
 
 namespace {
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) && !defined (FUZZ_TARGET)
 
 // Tags for security logging, should be in sync with
 // frameworks/base/core/java/android/app/admin/SecurityLogTags.logtags
 constexpr int SEC_TAG_BLUETOOTH_CONNECTION = 210039;
 
-#endif /* defined(__ANDROID__) */
+#endif /* defined(__ANDROID__) && !defined (FUZZ_TARGET) */
 }  // namespace
 
 namespace bluetooth {
 namespace common {
 
 void LogConnectionAdminAuditEvent(const char* action, const hci::Address& address, hci::ErrorCode status) {
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) && !defined (FUZZ_TARGET)
 
   android_log_event_list(SEC_TAG_BLUETOOTH_CONNECTION)
       << ADDRESS_TO_LOGGABLE_CSTR(address) << /* success */ int32_t(status == hci::ErrorCode::SUCCESS)
       << common::StringFormat("%s: %s", action, ErrorCodeText(status).c_str()).c_str() << LOG_ID_SECURITY;
 
-#endif /* defined(__ANDROID__) */
+#endif /* defined(__ANDROID__) && !defined (FUZZ_TARGET) */
 }
 
 }  // namespace common

@@ -31,99 +31,108 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
 #include "os/log_tags.h"
 #include "os/logging/log_adapter.h"
 
+#if defined(FUZZ_TARGET)
+
+#define LOG_VERBOSE_INT(...)
+#define LOG_DEBUG_INT(...)
+#define LOG_INFO_INT(...)
+#define LOG_WARN_INT(...)
+
+#define LOG_ERROR_INT(...) do {     \
+  fprintf(stderr, __VA_ARGS__);     \
+} while (false)
+
+// for fuzz targets, we just
+// need to abort in this statement
+// to catch the bug
+#define LOG_ALWAYS_FATAL_INT(...) do {  \
+    fprintf(stderr, __VA_ARGS__);       \
+    abort();                            \
+  } while (false)
+
+#else /* end of defined(FUZZ_TARGET) */
+
 #if defined(__ANDROID__)
 
 #include <log/log.h>
 #include <log/log_event_list.h>
 
-#ifdef FUZZ_TARGET
-#define LOG_VERBOSE(...)
-#define LOG_DEBUG(...)
-#define LOG_INFO(...)
-#define LOG_WARN(...)
-#else
-
-static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
-
 #if __has_include("src/init_flags.rs.h")
 
 #include "common/init_flags.h"
 
-#define LOG_VERBOSE(fmt, args...)                                                      \
+#define LOG_VERBOSE_INT(fmt, args...)                                                  \
   do {                                                                                 \
     if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_VERBOSE) { \
-      ALOGV("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args);                   \
+      ALOGV(fmt, ##args);                                                              \
     }                                                                                  \
   } while (false)
 
-#define LOG_DEBUG(fmt, args...)                                                      \
+#define LOG_DEBUG_INT(fmt, args...)                                                  \
   do {                                                                               \
     if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_DEBUG) { \
-      ALOGD("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args);                 \
+      ALOGD(fmt, ##args);                                                            \
     }                                                                                \
   } while (false)
 #endif /* __has_include("src/init_flags.rs.h") */
 
-#define LOG_INFO(fmt, args...) ALOGI("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
-#define LOG_WARN(fmt, args...) ALOGW("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
-#endif /* FUZZ_TARGET */
-#define LOG_ERROR(fmt, args...) ALOGE("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
+#define LOG_INFO_INT(fmt, args...) ALOGI(fmt, ##args)
+#define LOG_WARN_INT(fmt, args...) ALOGW(fmt, ##args)
+#define LOG_ERROR_INT(fmt, args...) ALOGE(fmt, ##args)
+#define LOG_ALWAYS_FATAL_INT(fmt, args...) do { \
+  ALOGE(fmt, ##args);                           \
+  abort();                                      \
+} while (false)
 
-#elif defined (ANDROID_EMULATOR)
+#elif defined (ANDROID_EMULATOR)  /* end of defined(__ANDROID__) */
 // Log using android emulator logging mechanism
 #include "android/utils/debug.h"
 
-#define LOGWRAPPER(fmt, args...) VERBOSE_INFO(bluetooth, "bluetooth: %s:%d - %s: " fmt, \
-                                              __FILE__, __LINE__, __func__, ##args)
+#define LOGWRAPPER(fmt, args...) VERBOSE_INFO(bluetooth, "bluetooth: " fmt, \
+                                               ##args)
 
-#define LOG_VEBOSE(...) LOGWRAPPER(__VA_ARGS__)
-#define LOG_DEBUG(...)  LOGWRAPPER(__VA_ARGS__)
-#define LOG_INFO(...)   LOGWRAPPER(__VA_ARGS__)
-#define LOG_WARN(...)   LOGWRAPPER(__VA_ARGS__)
-#define LOG_ERROR(...)  LOGWRAPPER(__VA_ARGS__)
-#define LOG_ALWAYS_FATAL(fmt, args...)                                              \
+#define LOG_VEBOSE_INT(...) LOGWRAPPER(__VA_ARGS__)
+#define LOG_DEBUG_INT(...)  LOGWRAPPER(__VA_ARGS__)
+#define LOG_INFO_INT(...)   LOGWRAPPER(__VA_ARGS__)
+#define LOG_WARN_INT(...)   LOGWRAPPER(__VA_ARGS__)
+#define LOG_ERROR_INT(...)  LOGWRAPPER(__VA_ARGS__)
+#define LOG_ALWAYS_FATAL_INT(fmt, args...)                                          \
   do {                                                                              \
-    fprintf(stderr, "%s:%d - %s: " fmt "\n", __FILE__, __LINE__, __func__, ##args); \
+    fprintf(stderr, fmt "\n", ##args);                                              \
     abort();                                                                        \
   } while (false)
-#elif defined(TARGET_FLOSS)
+#elif defined(TARGET_FLOSS) /* end of defined (ANDROID_EMULATOR) */
 #include "gd/common/init_flags.h"
 #include "gd/os/syslog.h"
 
 // Prefix the log with tag, file, line and function
 #define LOGWRAPPER(tag, fmt, args...) \
-  write_syslog(tag, "%s:%s:%d - %s: " fmt, LOG_TAG, __FILE__, __LINE__, __func__, ##args)
+  write_syslog(tag, "%s: " fmt, LOG_TAG, ##args)
 
-#ifdef FUZZ_TARGET
-#define LOG_VERBOSE(...)
-#define LOG_DEBUG(...)
-#define LOG_INFO(...)
-#define LOG_WARN(...)
-#else
-#define LOG_VERBOSE(...)                                                               \
+#define LOG_VERBOSE_INT(...)                                                           \
   do {                                                                                 \
     if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_VERBOSE) { \
       LOGWRAPPER(LOG_TAG_VERBOSE, __VA_ARGS__);                                        \
     }                                                                                  \
   } while (false)
-#define LOG_DEBUG(...)                                                               \
+#define LOG_DEBUG_INT(...)                                                           \
   do {                                                                               \
     if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_DEBUG) { \
       LOGWRAPPER(LOG_TAG_DEBUG, __VA_ARGS__);                                        \
     }                                                                                \
   } while (false)
-#define LOG_INFO(...) LOGWRAPPER(LOG_TAG_INFO, __VA_ARGS__)
-#define LOG_WARN(...) LOGWRAPPER(LOG_TAG_WARN, __VA_ARGS__)
-#endif /*FUZZ_TARGET*/
-#define LOG_ERROR(...) LOGWRAPPER(LOG_TAG_ERROR, __VA_ARGS__)
+#define LOG_INFO_INT(...) LOGWRAPPER(LOG_TAG_INFO, __VA_ARGS__)
+#define LOG_WARN_INT(...) LOGWRAPPER(LOG_TAG_WARN, __VA_ARGS__)
+#define LOG_ERROR_INT(...) LOGWRAPPER(LOG_TAG_ERROR, __VA_ARGS__)
 
-#define LOG_ALWAYS_FATAL(...)               \
+#define LOG_ALWAYS_FATAL_INT(...)           \
   do {                                      \
     LOGWRAPPER(LOG_TAG_FATAL, __VA_ARGS__); \
     abort();                                \
   } while (false)
 
-#else
+#else  /* end of defined (TARGET_FLOSS) */
+
 /* syslog didn't work well here since we would be redefining LOG_DEBUG. */
 #include <sys/syscall.h>
 #include <sys/types.h>
@@ -157,38 +166,62 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
         ##args);                                                                                                    \
   } while (false)
 
-#ifdef FUZZ_TARGET
-#define LOG_VERBOSE(...)
-#define LOG_DEBUG(...)
-#define LOG_INFO(...)
-#define LOG_WARN(...)
-#else
-#define LOG_VERBOSE(fmt, args...)                                                      \
+#define LOG_VERBOSE_INT(fmt, args...)                                                  \
   do {                                                                                 \
     if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_VERBOSE) { \
       LOGWRAPPER(fmt, ##args);                                                         \
     }                                                                                  \
   } while (false)
-#define LOG_DEBUG(fmt, args...)                                                      \
+#define LOG_DEBUG_INT(fmt, args...)                                                  \
   do {                                                                               \
     if (bluetooth::common::InitFlags::GetLogLevelForTag(LOG_TAG) >= LOG_TAG_DEBUG) { \
       LOGWRAPPER(fmt, ##args);                                                       \
     }                                                                                \
   } while (false)
-#define LOG_INFO(...) LOGWRAPPER(__VA_ARGS__)
-#define LOG_WARN(...) LOGWRAPPER(__VA_ARGS__)
-#endif /* FUZZ_TARGET */
-#define LOG_ERROR(...) LOGWRAPPER(__VA_ARGS__)
+#define LOG_INFO_INT(...) LOGWRAPPER(__VA_ARGS__)
+#define LOG_WARN_INT(...) LOGWRAPPER(__VA_ARGS__)
+#define LOG_ERROR_INT(...) LOGWRAPPER(__VA_ARGS__)
 
 #ifndef LOG_ALWAYS_FATAL
-#define LOG_ALWAYS_FATAL(...) \
-  do {                        \
-    LOGWRAPPER(__VA_ARGS__);  \
-    abort();                  \
+#define LOG_ALWAYS_FATAL_INT(...) \
+  do {                            \
+    LOGWRAPPER(__VA_ARGS__);      \
+    abort();                      \
   } while (false)
 #endif
 
 #endif /* defined(__ANDROID__) */
+
+#endif /* defined(FUZZ_TARGET) */
+
+#define _LOG_SRC_FMT_STR "%s:%d - %s: "
+
+// ---------------------------------------------------------
+// All MACROs defined above are internal and should *not* be
+// used directly (use LOG_XXX defined below instead).
+// the output of LOG_XXX_INT does not contain the source
+// location of the log emitting statement, so far they are only used by
+// LogMsg, where the source locations is passed in.
+
+#define LOG_VERBOSE(fmt, args...)                                             \
+  LOG_VERBOSE_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+
+#define LOG_DEBUG(fmt, args...)                                               \
+  LOG_DEBUG_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+
+#define LOG_INFO(fmt, args...)                                                \
+  LOG_INFO_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+
+#define LOG_WARN(fmt, args...)                                                \
+  LOG_WARN_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+
+#define LOG_ERROR(fmt, args...)                                               \
+  LOG_ERROR_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+
+#ifndef LOG_ALWAYS_FATAL
+#define LOG_ALWAYS_FATAL(fmt, args...)                                        \
+  LOG_ALWAYS_FATAL_INT(_LOG_SRC_FMT_STR fmt, __FILE__, __LINE__, __func__, ##args)
+#endif
 
 #define ASSERT(condition)                                    \
   do {                                                       \
@@ -209,3 +242,4 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
   case code:                   \
     return #code
 #endif
+
