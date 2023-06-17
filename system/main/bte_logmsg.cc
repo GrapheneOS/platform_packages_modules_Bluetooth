@@ -87,7 +87,9 @@ static const char* const bt_layer_tags[] = {
     "bt_nfa",
 };
 
-void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {
+void LogMsg(uint32_t trace_set_mask,
+            const char* filename, uint32_t linenum, const char* func,
+            const char* fmt_str, ...) {
   char buffer[BTE_LOG_BUF_SIZE];
   int trace_layer = TRACE_GET_LAYER(trace_set_mask);
   if (trace_layer >= TRACE_LAYER_MAX_NUM) trace_layer = 0;
@@ -102,24 +104,26 @@ void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {
 
   switch (TRACE_GET_TYPE(trace_set_mask)) {
     case TRACE_TYPE_ERROR:
-      LOG_ERROR("%s", buffer);
+      LOG_ERROR_INT(_LOG_SRC_FMT_STR "%s", filename, linenum, func, buffer);
       break;
     case TRACE_TYPE_WARNING:
-      LOG_WARN("%s", buffer);
+      LOG_WARN_INT(_LOG_SRC_FMT_STR "%s", filename, linenum, func, buffer);
       break;
     case TRACE_TYPE_API:
     case TRACE_TYPE_EVENT:
-      LOG_INFO("%s", buffer);
+      LOG_INFO_INT(_LOG_SRC_FMT_STR "%s", filename, linenum, func, buffer);
       break;
     case TRACE_TYPE_DEBUG:
-      LOG_INFO("%s", buffer);
+      LOG_DEBUG_INT(_LOG_SRC_FMT_STR "%s", filename, linenum, func, buffer);
       break;
     case TRACE_TYPE_INFO:
-      LOG_INFO("%s", buffer);
+      LOG_INFO_INT(_LOG_SRC_FMT_STR "%s", filename, linenum, func, buffer);
       break;
     default:
       /* we should never get this */
-      LOG_ERROR("!BAD TRACE TYPE! %s", buffer);
+      LOG_ERROR_INT("!BAD TRACE TYPE! " _LOG_SRC_FMT_STR "%s", filename,
+                    linenum, func, buffer);
+
       CHECK(TRACE_GET_TYPE(trace_set_mask) == TRACE_TYPE_ERROR);
       break;
   }
