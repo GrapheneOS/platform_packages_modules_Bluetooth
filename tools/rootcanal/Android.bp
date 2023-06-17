@@ -19,7 +19,6 @@ cc_defaults {
     tidy_checks: [
         "-*",
         "readability-*",
-
         "-readability-function-size",
         "-readability-identifier-length",
         "-readability-implicit-bool-conversion",
@@ -32,12 +31,22 @@ cc_defaults {
     tidy_flags: [
         "--header-filter=^.*tools\\/rootcanal\\/(model|include|net|desktop)\\/(.(?!\\.pb\\.h))*$",
     ],
-    defaults: [
-        "fluoride_common_options",
-        "gd_defaults",
-    ],
+    sanitize: {
+        address: true,
+        all_undefined: true,
+        misc_undefined: ["bounds"],
+    },
+    c_std: "c99",
+    cpp_std: "c++17",
     cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
         "-fvisibility=hidden",
+        "-DGOOGLE_PROTOBUF_NO_RTTI",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/gd",
     ],
     local_include_dirs: [
         "include",
@@ -147,6 +156,9 @@ cc_library_host_shared {
     defaults: [
         "rootcanal_defaults",
     ],
+    sanitize: {
+        address: false,
+    },
     srcs: [
         ":BluetoothPacketSources",
         ":lib_sources",
@@ -391,10 +403,6 @@ cc_binary_host {
         "libprotobuf-cpp-full",
         "libscriptedbeaconpayload-protos-lite",
     ],
-    sanitize: {
-        address: true,
-        all_undefined: true,
-    },
     target: {
         // TODO(b/181290178) remove it when sanitize option is supported by linux_bionic as well
         linux_bionic: {
