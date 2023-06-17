@@ -33,7 +33,9 @@ std::function<void(uint32_t, const char*)> bluetooth::testing::common::log_msg =
     []([[maybe_unused]] uint32_t trace_set_mask,
        [[maybe_unused]] const char* buffer) {};
 
-extern "C" void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {
+void LogMsg(uint32_t trace_set_mask,
+            const char* filename, uint32_t linenum, const char* func,
+            const char* fmt_str, ...) {
   char buffer[kTestBufferLogSize];
 
   va_list ap;
