@@ -1312,6 +1312,7 @@ impl RPCProxy for QACallback {
 
 pub(crate) struct MediaCallback {
     objpath: String,
+    context: Arc<Mutex<ClientContext>>,
 
     dbus_connection: Arc<SyncConnection>,
     dbus_crossroads: Arc<Mutex<Crossroads>>,
@@ -1320,10 +1321,11 @@ pub(crate) struct MediaCallback {
 impl MediaCallback {
     pub(crate) fn new(
         objpath: String,
+        context: Arc<Mutex<ClientContext>>,
         dbus_connection: Arc<SyncConnection>,
         dbus_crossroads: Arc<Mutex<Crossroads>>,
     ) -> Self {
-        Self { objpath, dbus_connection, dbus_crossroads }
+        Self { objpath, context, dbus_connection, dbus_crossroads }
     }
 }
 
@@ -1351,46 +1353,50 @@ impl IBluetoothMediaCallback for MediaCallback {
         pkt_status_in_hex: String,
         pkt_status_in_binary: String,
     ) {
-        let wbs_dump = if active && wbs {
-            let mut to_split_binary = pkt_status_in_binary.clone();
-            let mut wrapped_binary = String::new();
-            while to_split_binary.len() > BINARY_PACKET_STATUS_WRAP {
-                let remaining = to_split_binary.split_off(BINARY_PACKET_STATUS_WRAP);
+        // Invoke run_callback so that the callback can be handled through
+        // ForegroundActions::RunCallback in main.rs.
+        self.context.lock().unwrap().run_callback(Box::new(move |_context| {
+            let wbs_dump = if active && wbs {
+                let mut to_split_binary = pkt_status_in_binary.clone();
+                let mut wrapped_binary = String::new();
+                while to_split_binary.len() > BINARY_PACKET_STATUS_WRAP {
+                    let remaining = to_split_binary.split_off(BINARY_PACKET_STATUS_WRAP);
+                    wrapped_binary.push_str(&to_split_binary);
+                    wrapped_binary.push('\n');
+                    to_split_binary = remaining;
+                }
                 wrapped_binary.push_str(&to_split_binary);
-                wrapped_binary.push('\n');
-                to_split_binary = remaining;
-            }
-            wrapped_binary.push_str(&to_split_binary);
 
-            format!(
-                "\n--------WBS packet loss--------\n\
-                   Decoded Packets: {}, Packet Loss Ratio: {} \n\
-                   {} [begin]\n\
-                   {} [end]\n\
-                   In Hex format:\n\
-                   {}\n\
-                   In binary format:\n\
-                   {}",
-                total_num_decoded_frames,
-                pkt_loss_ratio,
-                timestamp_to_string(begin_ts),
-                timestamp_to_string(end_ts),
-                pkt_status_in_hex,
-                wrapped_binary
-            )
-        } else {
-            "".to_string()
-        };
+                format!(
+                    "\n--------WBS packet loss--------\n\
+                       Decoded Packets: {}, Packet Loss Ratio: {} \n\
+                       {} [begin]\n\
+                       {} [end]\n\
+                       In Hex format:\n\
+                       {}\n\
+                       In binary format:\n\
+                       {}",
+                    total_num_decoded_frames,
+                    pkt_loss_ratio,
+                    timestamp_to_string(begin_ts),
+                    timestamp_to_string(end_ts),
+                    pkt_status_in_hex,
+                    wrapped_binary
+                )
+            } else {
+                "".to_string()
+            };
 
-        print_info!(
-            "\n--------HFP debug dump---------\n\
-             HFP SCO: {}, Codec: {}\
-             {}
-             ",
-            if active { "active" } else { "inactive" },
-            if wbs { "mSBC" } else { "CVSD" },
-            wbs_dump
-        );
+            print_info!(
+                "\n--------HFP debug dump---------\n\
+                 HFP SCO: {}, Codec: {}\
+                 {}
+                 ",
+                if active { "active" } else { "inactive" },
+                if wbs { "mSBC" } else { "CVSD" },
+                wbs_dump
+            );
+        }));
     }
 }
 
