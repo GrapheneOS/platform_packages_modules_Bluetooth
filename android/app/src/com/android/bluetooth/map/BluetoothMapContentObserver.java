@@ -3673,8 +3673,13 @@ public class BluetoothMapContentObserver {
     }
 
     private void removeDeletedMessages() {
-        /* Remove messages from virtual "deleted" folder (thread_id -1) */
-        mResolver.delete(Sms.CONTENT_URI, "thread_id = " + DELETED_THREAD_ID, null);
+        try {
+            /* Remove messages from virtual "deleted" folder (thread_id -1) */
+            mResolver.delete(Sms.CONTENT_URI, "thread_id = " + DELETED_THREAD_ID, null);
+        } catch (SQLiteException e) {
+            // TODO: Include this unexpected exception in Bluetooth metrics
+            Log.w("SQLite exception while removing deleted messages.", e);
+        }
     }
 
     private PhoneStateListener mPhoneListener = new PhoneStateListener() {
