@@ -583,7 +583,7 @@ static jboolean connectAudioNative(JNIEnv* env, jobject object,
   ALOGI("%s: device %s", __func__,
         ADDRESS_TO_LOGGABLE_CSTR(*((RawAddress*)addr)));
   bt_status_t status =
-      sBluetoothHfpInterface->ConnectAudio((RawAddress*)addr, false);
+      sBluetoothHfpInterface->ConnectAudio((RawAddress*)addr, 0);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed HF audio connection, status: %d", status);
   }
