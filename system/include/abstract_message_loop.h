@@ -28,9 +28,9 @@
 #endif
 #include <base/message_loop/message_pump.h>
 #include <base/task/single_thread_task_executor.h>
+#include <base/task/single_thread_task_runner.h>
 #include <base/test/task_environment.h>
 #include <base/threading/thread.h>
-#include <base/threading/thread_task_runner_handle.h>
 #else
 #include <base/message_loop/message_loop.h>
 #include <base/threading/thread.h>
@@ -43,14 +43,14 @@ namespace btbase {
 class AbstractMessageLoop : public base::SingleThreadTaskExecutor {
  public:
   static scoped_refptr<base::SingleThreadTaskRunner> current_task_runner() {
-    return base::ThreadTaskRunnerHandle::Get();
+    return base::SingleThreadTaskRunner::GetCurrentDefault();
   }
 };
 
 class AbstractTestMessageLoop : public base::test::TaskEnvironment {
  public:
   static scoped_refptr<base::SingleThreadTaskRunner> current_task_runner() {
-    return base::ThreadTaskRunnerHandle::Get();
+    return base::SingleThreadTaskRunner::GetCurrentDefault();
   }
 };
 
