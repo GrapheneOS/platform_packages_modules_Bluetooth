@@ -81,6 +81,25 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
         sMediaPlayerListForTesting = mediaPlayerList;
     }
 
+    // Same base feature set as the player item features defined in `avrcp/get_foder_items.cc`
+    private static final long BASE_PLAYER_ACTION_SET =
+            PlaybackState.ACTION_PLAY
+                    | PlaybackState.ACTION_STOP
+                    | PlaybackState.ACTION_PAUSE
+                    | PlaybackState.ACTION_REWIND
+                    | PlaybackState.ACTION_FAST_FORWARD
+                    | PlaybackState.ACTION_SKIP_TO_NEXT
+                    | PlaybackState.ACTION_SKIP_TO_PREVIOUS;
+
+    @VisibleForTesting
+    long getCurrentPlayerSupportedActions() {
+        // Notice: Stay compatible with the currently hard-codded ACRVP supported player features
+        if (mCurrentData != null && mCurrentData.state != null) {
+            return Long.valueOf(mCurrentData.state.getActions() | BASE_PLAYER_ACTION_SET);
+        }
+        return Long.valueOf(BASE_PLAYER_ACTION_SET);
+    }
+
     public class ListCallback implements MediaPlayerList.MediaUpdateCallback {
         @Override
         public void run(MediaData data) {
@@ -152,7 +171,18 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
                 MediaState playback_state = playerState2McsState(mCurrentData.state.getState());
                 state_map.put(PlayerStateField.PLAYBACK_STATE, playback_state);
 
-                int opcodes = playerActions2McsSupportedOpcodes(mCurrentData.state.getActions());
+                if ((mCurrentData.state.getActions() & BASE_PLAYER_ACTION_SET)
+                        != BASE_PLAYER_ACTION_SET) {
+                    mEventLogger.loge(
+                            TAG,
+                            "onCurrentPlayerStateUpdated: base actions not supported, player"
+                                + " actions= "
+                                    + Long.toHexString(mCurrentData.state.getActions())
+                                    + ", expected at least= "
+                                    + Long.toHexString(BASE_PLAYER_ACTION_SET));
+                }
+
+                int opcodes = playerActions2McsSupportedOpcodes(getCurrentPlayerSupportedActions());
                 state_map.put(PlayerStateField.OPCODES_SUPPORTED, opcodes);
 
                 if (playback_state != MediaState.INACTIVE) {
@@ -319,7 +349,7 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
         mEventLogger.logd(DBG, TAG, "GMCS onTrackPositionSetRequest");
 
         if (mMediaPlayerList.getActivePlayer() == null) return;
-        if ((mCurrentData.state.getActions() & PlaybackState.ACTION_SEEK_TO) != 0) {
+        if ((getCurrentPlayerSupportedActions() & PlaybackState.ACTION_SEEK_TO) != 0) {
             mMediaPlayerList.getActivePlayer().seekTo(TrackPositionRelativeToAbsolute(position));
         } else {
             // player does not support seek to command, notify last known track position only
@@ -364,7 +394,6 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
         // TODO: Implement once we have the Object Transfer Service
     }
 
-
     @Override
     public void onMediaControlRequest(Request request) {
         mEventLogger.logd(
@@ -378,7 +407,7 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
             mGMcsService.setMediaControlRequestResult(request, status);
         }
 
-        long actions = mCurrentData.state.getActions();
+        long actions = getCurrentPlayerSupportedActions();
         switch (request.getOpcode()) {
             case Request.Opcodes.PLAY:
                 if ((actions & PlaybackState.ACTION_PLAY) != 0
@@ -618,7 +647,7 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
                         if (mCurrentData.state != null) {
                             int opcodes =
                                     playerActions2McsSupportedOpcodes(
-                                            mCurrentData.state.getActions());
+                                            getCurrentPlayerSupportedActions());
                             handled_request_map.put(settings_field, opcodes);
                             mEventLogger.logd(
                                     DBG,
