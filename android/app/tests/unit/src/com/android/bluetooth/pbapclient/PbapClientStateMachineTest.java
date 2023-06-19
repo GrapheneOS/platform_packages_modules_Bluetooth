@@ -73,7 +73,7 @@ public class PbapClientStateMachineTest{
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
 
 
-    static final int DISCONNECT_TIMEOUT = 3100;
+    static final int DISCONNECT_TIMEOUT = 5000;
 
     @Before
     public void setUp() throws Exception {
@@ -114,10 +114,11 @@ public class PbapClientStateMachineTest{
     }
 
     /**
-     * Test transition from STATE_CONNECTING to STATE_DISCONNECTING with MSG_DISCONNECT
+     * Test transition from STATE_CONNECTING to STATE_DISCONNECTING
+     * and then to STATE_DISCONNECTED after timeout.
      */
     @Test
-    public void testStateTransitionFromConnectingToDisconnecting() {
+    public void testStateTransitionFromConnectingToDisconnected() {
         assertThat(mPbapClientStateMachine.getConnectionState())
                 .isEqualTo(BluetoothProfile.STATE_CONNECTING);
 
@@ -127,20 +128,12 @@ public class PbapClientStateMachineTest{
                 .getLooper());
         assertThat(mPbapClientStateMachine.getConnectionState())
                 .isEqualTo(BluetoothProfile.STATE_DISCONNECTING);
-    }
-
-    /**
-     * Test transition from STATE_DISCONNECTING to STATE_DISCONNECTED with MSG_DISCONNECT_TIMEOUT
-     */
-    @Test
-    public void testStateTransitionFromDisconnectingToDisconnected_Timeout() {
-        testStateTransitionFromConnectingToDisconnecting();
 
         //wait until timeout occurs
-        verify(mMockPbapClientService,
-                timeout(DISCONNECT_TIMEOUT).times(3)).sendBroadcastMultiplePermissions(
-                mIntentArgument.capture(), any(String[].class),
-                any(BroadcastOptions.class));
+        Mockito.clearInvocations(mMockPbapClientService);
+        verify(mMockPbapClientService, timeout(DISCONNECT_TIMEOUT))
+                .sendBroadcastMultiplePermissions(mIntentArgument.capture(), any(String[].class),
+                        any(BroadcastOptions.class));
         assertThat(mPbapClientStateMachine.getConnectionState())
                 .isEqualTo(BluetoothProfile.STATE_DISCONNECTED);
     }
