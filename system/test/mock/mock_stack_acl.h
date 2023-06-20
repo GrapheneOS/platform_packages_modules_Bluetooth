@@ -922,15 +922,6 @@ struct btm_acl_notif_conn_collision {
   void operator()(const RawAddress& bda) { body(bda); };
 };
 extern struct btm_acl_notif_conn_collision btm_acl_notif_conn_collision;
-// Name: btm_acl_paging
-// Params: BT_HDR* p, const RawAddress& bda
-// Returns: void
-struct btm_acl_paging {
-  std::function<void(BT_HDR* p, const RawAddress& bda)> body{
-      [](BT_HDR* p, const RawAddress& bda) { ; }};
-  void operator()(BT_HDR* p, const RawAddress& bda) { body(p, bda); };
-};
-extern struct btm_acl_paging btm_acl_paging;
 // Name: btm_acl_process_sca_cmpl_pkt
 // Params: uint8_t len, uint8_t* data
 // Returns: void
@@ -948,22 +939,6 @@ struct btm_acl_removed {
   void operator()(uint16_t handle) { body(handle); };
 };
 extern struct btm_acl_removed btm_acl_removed;
-// Name: btm_acl_reset_paging
-// Params: void
-// Returns: void
-struct btm_acl_reset_paging {
-  std::function<void(void)> body{[](void) { ; }};
-  void operator()(void) { body(); };
-};
-extern struct btm_acl_reset_paging btm_acl_reset_paging;
-// Name: btm_acl_resubmit_page
-// Params: void
-// Returns: void
-struct btm_acl_resubmit_page {
-  std::function<void(void)> body{[](void) { ; }};
-  void operator()(void) { body(); };
-};
-extern struct btm_acl_resubmit_page btm_acl_resubmit_page;
 // Name: btm_acl_role_changed
 // Params: tHCI_STATUS hci_status, const RawAddress& bd_addr, tHCI_ROLE
 // new_role Returns: void
@@ -978,14 +953,6 @@ struct btm_acl_role_changed {
   };
 };
 extern struct btm_acl_role_changed btm_acl_role_changed;
-// Name: btm_acl_set_paging
-// Params: bool value
-// Returns: void
-struct btm_acl_set_paging {
-  std::function<void(bool value)> body{[](bool value) { ; }};
-  void operator()(bool value) { body(value); };
-};
-extern struct btm_acl_set_paging btm_acl_set_paging;
 // Name: btm_acl_update_conn_addr
 // Params: uint16_t handle, const RawAddress& address
 // Returns: void

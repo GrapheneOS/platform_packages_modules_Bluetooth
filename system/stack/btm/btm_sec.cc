@@ -2289,7 +2289,6 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
        !BTM_IsAclConnectionUp(btm_cb.connecting_bda, BT_TRANSPORT_BR_EDR)) ||
       (p_bd_addr && !BTM_IsAclConnectionUp(*p_bd_addr, BT_TRANSPORT_BR_EDR))) {
     LOG_WARN("Remote read request complete with no underlying link connection");
-    btm_acl_resubmit_page();
   }
 
   /* If remote name request failed, p_bd_addr is null and we need to search */
@@ -3558,8 +3557,6 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
   bool addr_matched;
   uint8_t bit_shift = 0;
 
-  btm_acl_resubmit_page();
-
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
   if (!p_dev_rec) {
     LOG_DEBUG(
@@ -3859,8 +3856,6 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
     LOG_WARN("Got uncommon disconnection reason:%s handle:0x%04x comment:%s",
              hci_error_code_text(reason).c_str(), handle, comment.c_str());
   }
-
-  btm_acl_resubmit_page();
 
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev_by_handle(handle);
   if (p_dev_rec == nullptr) {
