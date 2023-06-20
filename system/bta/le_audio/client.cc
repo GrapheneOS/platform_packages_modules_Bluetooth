@@ -455,11 +455,14 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    bool check_if_recovery_needed =
+        group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
+
     LOG_ERROR(
         " State not achieved on time for group: group id %d, current state %s, "
-        "target state: %s",
+        "target state: %s, check_if_recovery_needed: %d",
         group_id, ToString(group->GetState()).c_str(),
-        ToString(group->GetTargetState()).c_str());
+        ToString(group->GetTargetState()).c_str(), check_if_recovery_needed);
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
     group->CigClearCis();
     group->PrintDebugState();
@@ -479,8 +482,22 @@ class LeAudioClientImpl : public LeAudioClient {
       }
     }
 
+    /* If Timeout happens on stream close and stream is closing just for the
+     * purpose of device disconnection, do not bother with recovery mode
+     */
+    bool recovery = true;
+    if (check_if_recovery_needed) {
+      for (auto tmpDevice = leAudioDevice; tmpDevice != nullptr;
+           tmpDevice = group->GetNextActiveDevice(tmpDevice)) {
+        if (tmpDevice->closing_stream_for_disconnection_) {
+          recovery = false;
+          break;
+        }
+      }
+    }
+
     do {
-      if (instance) instance->DisconnectDevice(leAudioDevice, true, true);
+      DisconnectDevice(leAudioDevice, true, recovery);
       leAudioDevice = group->GetNextActiveDevice(leAudioDevice);
     } while (leAudioDevice);
   }

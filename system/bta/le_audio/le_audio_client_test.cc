@@ -4448,6 +4448,103 @@ TEST_F(UnicastTest, TwoEarbudsStreamingProfileDisconnect) {
   Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
 }
 
+TEST_F(UnicastTest, TwoEarbudsStreamingProfileDisconnectStreamStopTimeout) {
+  uint8_t group_size = 2;
+  int group_id = 2;
+
+  // Report working CSIS
+  ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+      .WillByDefault(Return(true));
+
+  // First earbud
+  const RawAddress test_address0 = GetTestAddress(0);
+  ConnectCsisDevice(test_address0, 1 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontLeft,
+                    codec_spec_conf::kLeAudioLocationFrontLeft, group_size,
+                    group_id, 1 /* rank*/);
+
+  // Second earbud
+  const RawAddress test_address1 = GetTestAddress(1);
+  ConnectCsisDevice(test_address1, 2 /*conn_id*/,
+                    codec_spec_conf::kLeAudioLocationFrontRight,
+                    codec_spec_conf::kLeAudioLocationFrontRight, group_size,
+                    group_id, 2 /* rank*/, true /*connect_through_csis*/);
+
+  ON_CALL(mock_csis_client_module_, GetDesiredSize(group_id))
+      .WillByDefault(Invoke([&](int group_id) { return 2; }));
+
+  // Audio sessions are started only when device gets active
+  EXPECT_CALL(*mock_le_audio_source_hal_client_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_le_audio_sink_hal_client_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  StartStreaming(AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, group_id);
+
+  Mock::VerifyAndClearExpectations(&mock_audio_hal_client_callbacks_);
+  Mock::VerifyAndClearExpectations(&mock_le_audio_source_hal_client_);
+  SyncOnMainLoop();
+
+  // Expect two iso channels to be fed with data
+  uint8_t cis_count_out = 2;
+  uint8_t cis_count_in = 0;
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+
+  // Expect StopStream to be called before Close or ACL Disconnect is called.
+  ON_CALL(mock_state_machine_, StopStream(_))
+      .WillByDefault([](LeAudioDeviceGroup* group) {
+        /* Stub the process of stopping stream, just set the target state.
+         * this simulates issue with stopping the stream
+         */
+        group->SetTargetState(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+      });
+
+  EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(2);
+  EXPECT_CALL(mock_gatt_interface_, Close(_)).Times(0);
+  EXPECT_CALL(mock_btm_interface_, AclDisconnectFromHandle(_, _)).Times(0);
+
+  do_in_main_thread(
+      FROM_HERE,
+      base::Bind(&LeAudioClient::Disconnect,
+                 base::Unretained(LeAudioClient::Get()), test_address0));
+  do_in_main_thread(
+      FROM_HERE,
+      base::Bind(&LeAudioClient::Disconnect,
+                 base::Unretained(LeAudioClient::Get()), test_address1));
+
+  SyncOnMainLoop();
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+  Mock::VerifyAndClearExpectations(&mock_btm_interface_);
+  Mock::VerifyAndClearExpectations(&mock_state_machine_);
+
+  /* Now stream is trying to be stopped and devices are about to be
+   * disconnected. Simulate stop stream failure and timeout fired. Make sure
+   * code will not try to do recovery connect
+   */
+  ON_CALL(mock_btm_interface_, AclDisconnectFromHandle(_, _))
+      .WillByDefault(DoAll(Return()));
+  EXPECT_CALL(mock_gatt_interface_, Close(_)).Times(0);
+  EXPECT_CALL(mock_btm_interface_, AclDisconnectFromHandle(_, _)).Times(2);
+
+  auto group = streaming_groups.at(group_id);
+  ASSERT_TRUE(group != nullptr);
+  ASSERT_TRUE(group->NumOfConnected() > 0);
+
+  state_machine_callbacks_->OnStateTransitionTimeout(group_id);
+  SyncOnMainLoop();
+
+  Mock::VerifyAndClearExpectations(&mock_btm_interface_);
+  Mock::VerifyAndClearExpectations(&mock_gatt_interface_);
+
+  auto device = group->GetFirstDevice();
+  ASSERT_TRUE(device != nullptr);
+  ASSERT_NE(device->GetConnectionState(),
+            DeviceConnectState::DISCONNECTING_AND_RECOVER);
+  device = group->GetNextDevice(device);
+  ASSERT_TRUE(device != nullptr);
+  ASSERT_NE(device->GetConnectionState(),
+            DeviceConnectState::DISCONNECTING_AND_RECOVER);
+}
+
 TEST_F(UnicastTest, EarbudsWithStereoSinkMonoSourceSupporting32kHz) {
   const RawAddress test_address0 = GetTestAddress(0);
   int group_id = 0;
