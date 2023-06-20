@@ -60,26 +60,32 @@ public class BroadcastItemsAdapter
         Integer broadcastId = meta.getBroadcastId();
         Boolean isPlaybackStateKnown = mBroadcastPlaybackMap.containsKey(broadcastId);
 
+        String broadcastText =
+            "ID: " + broadcastId + "(" + String.format("0x%06x", broadcastId) + ")";
+
+        ColorStateList color = ColorStateList.valueOf(Color.WHITE);
+
         if (isPlaybackStateKnown) {
             // Set card color based on the playback state
             Boolean isPlaying = mBroadcastPlaybackMap.getOrDefault(broadcastId, false);
+
             if (isPlaying) {
-                holder.background
-                .setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#92b141")));
-                holder.mTextViewBroadcastId.setText("ID: " + broadcastId
-                        + "(" + String.format("0x%x", broadcastId) + ") ▶️");
+              color = ColorStateList.valueOf(Color.parseColor("#92b141"));
+              broadcastText += " ▶️";
             } else {
-                holder.background.setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
-                holder.mTextViewBroadcastId.setText("ID: " + broadcastId
-                        + "(" + String.format("0x%x", broadcastId) + ") ⏸");
+              broadcastText += " ⏸";
             }
-        } else {
-            holder.background.setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
-            holder.mTextViewBroadcastId.setText("ID: " + broadcastId
-                        + "(" + String.format("0x%x", broadcastId) + ")");
         }
 
-        // TODO: Add additional informations to the card
+        broadcastText += ("\nAddress: " + meta.getSourceDevice().getAddress());
+        broadcastText += ("\nName: " + meta.getSourceDevice().getName());
+        broadcastText += ("\nBroadcastName: " + meta.getBroadcastName());
+        broadcastText += ("\nSID: " + String.valueOf(meta.getSourceAdvertisingSid()));
+        broadcastText += ("\nisPublic: " + String.valueOf(meta.isPublicBroadcast()));
+        broadcastText += ("\nisEncrypted: " + String.valueOf(meta.isEncrypted()));
+
+        holder.background.setCardBackgroundColor(color);
+        holder.mTextViewBroadcastId.setText(broadcastText);
     }
 
     @Override
