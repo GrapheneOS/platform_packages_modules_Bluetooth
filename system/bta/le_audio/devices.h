@@ -384,6 +384,7 @@ class LeAudioDeviceGroup {
       const types::BidirectionalPair<std::vector<uint8_t>>& ccid_lists);
   void CreateStreamVectorForOffloader(uint8_t direction);
   void StreamOffloaderUpdated(uint8_t direction);
+  bool IsConfiguredForContext(types::LeAudioContextType context_type);
 
   inline types::AseState GetState(void) const { return current_state_; }
   void SetState(types::AseState state) {
