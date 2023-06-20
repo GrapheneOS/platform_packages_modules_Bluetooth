@@ -146,9 +146,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
      * Limitation here is that device should be previously in the streaming
      * group and just got reconnected.
      */
-    if (group->GetState() != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-      LOG_ERROR(" group not in the streaming state: %s",
-                ToString(group->GetState()).c_str());
+    if (group->GetState() != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING ||
+        group->GetTargetState() != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+      LOG_ERROR(
+          " group %d no in correct streaming state: %s or target state: %s",
+          group->group_id_, ToString(group->GetState()).c_str(),
+          ToString(group->GetTargetState()).c_str());
       return false;
     }
 
