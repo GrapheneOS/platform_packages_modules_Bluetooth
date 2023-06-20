@@ -514,7 +514,11 @@ public class BluetoothInCallService extends InCallService {
                 }
             }
             if (TextUtils.isEmpty(address)) {
-                address = mTelephonyManager.getLine1Number();
+                if (mTelephonyManager == null) {
+                    address = null;
+                } else {
+                    address = mTelephonyManager.getLine1Number();
+                }
                 if (address == null) address = "";
             }
             return address;
@@ -1436,6 +1440,10 @@ public class BluetoothInCallService extends InCallService {
 
             if (account == null) {
                 // Second, Try to get the label for the default Phone Account.
+                if (mTelecomManager == null) {
+                    Log.w(TAG, "mTelecomManager is null");
+                    return null;
+                }
                 List<PhoneAccountHandle> handles =
                         mTelecomManager.getPhoneAccountsSupportingScheme(PhoneAccount.SCHEME_TEL);
                 while (handles.iterator().hasNext()) {
