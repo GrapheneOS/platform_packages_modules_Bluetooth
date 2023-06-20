@@ -2028,6 +2028,17 @@ void LeAudioDeviceGroup::AddToAllowListNotConnectedGroupMembers(int gatt_if) {
   }
 }
 
+bool LeAudioDeviceGroup::IsConfiguredForContext(
+    types::LeAudioContextType context_type) {
+  /* Check if all connected group members are configured */
+  if (GetConfigurationContextType() != context_type) {
+    return false;
+  }
+
+  /* Check if used configuration is same as the active one.*/
+  return (stream_conf.conf == GetActiveConfiguration());
+}
+
 bool LeAudioDeviceGroup::IsConfigurationSupported(
     LeAudioDevice* leAudioDevice,
     const set_configurations::AudioSetConfiguration* audio_set_conf) {
