@@ -385,6 +385,8 @@ class LeAudioDeviceGroup {
   void CreateStreamVectorForOffloader(uint8_t direction);
   void StreamOffloaderUpdated(uint8_t direction);
   bool IsConfiguredForContext(types::LeAudioContextType context_type);
+  void RemoveCisFromStreamIfNeeded(LeAudioDevice* leAudioDevice,
+                                   uint16_t cis_conn_hdl);
 
   inline types::AseState GetState(void) const { return current_state_; }
   void SetState(types::AseState state) {
@@ -461,6 +463,7 @@ class LeAudioDeviceGroup {
       types::LeAudioContextType context_type,
       types::LeAudioConfigurationStrategy required_snk_strategy);
   uint32_t GetTransportLatencyUs(uint8_t direction);
+  bool IsCisPartOfCurrentStream(uint16_t cis_conn_hdl);
 
   /* Current configuration and metadata context types */
   types::LeAudioContextType configuration_context_type_;
