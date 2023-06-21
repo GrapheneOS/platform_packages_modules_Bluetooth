@@ -87,11 +87,12 @@ public class BluetoothOppReceiverTest {
         Intents.init();
 
         BluetoothOppTestUtils.enableOppActivities(true, mContext);
-        TestUtils.wakeUpAndDismissKeyGuard();
+        TestUtils.setUpUiTest();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
+        TestUtils.tearDownUiTest();
         BluetoothMethodProxy.setInstanceForTesting(null);
 
         Intents.release();
