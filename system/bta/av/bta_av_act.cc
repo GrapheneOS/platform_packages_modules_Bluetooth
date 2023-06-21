@@ -70,6 +70,7 @@ extern bool btif_av_both_enable(void);
 extern bool btif_av_src_sink_coexist_enabled(void);
 extern bool btif_av_is_sink_enabled(void);
 extern bool btif_av_peer_is_connected_sink(const RawAddress& peer_address);
+extern const RawAddress& btif_av_find_by_handle(tBTA_AV_HNDL bta_handle);
 
 /*******************************************************************************
  *
@@ -1541,6 +1542,12 @@ static uint8_t bta_av_find_lcb_index_by_scb_and_address(
       continue;
     }
     if (!p_scb->IsAssigned()) {
+      const RawAddress& btif_addr = btif_av_find_by_handle(p_scb->hndl);
+      if (!btif_addr.IsEmpty() && btif_addr != peer_address) {
+        LOG_DEBUG("%s: btif_addr = %s, index=%d!",
+                         __func__, btif_addr.ToString().c_str(), index);
+        continue;
+      }
       return index;
     }
   }
