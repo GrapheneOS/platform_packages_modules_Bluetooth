@@ -32,7 +32,6 @@
 //
 void btm_connection_request(const RawAddress& bda,
                             const bluetooth::types::ClassOfDevice& cod);
-void btm_acl_connection_request(const RawAddress& bda, uint8_t* dc);
 void btm_acl_connected(const RawAddress& bda, uint16_t handle,
                        tHCI_STATUS status, uint8_t enc_mode);
 void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
