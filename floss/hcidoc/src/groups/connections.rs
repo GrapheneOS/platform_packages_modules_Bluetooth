@@ -11,19 +11,21 @@ use bt_packets::hci::{
     AclCommandChild, AclPacket, CommandChild, CommandStatusPacket,
     ConnectionManagementCommandChild, ErrorCode, EventChild, EventPacket,
     LeConnectionManagementCommandChild, LeMetaEventChild, NumberOfCompletedPacketsPacket, OpCode,
-    ScoConnectionCommandChild, SubeventCode,
+    ScoConnectionCommandChild, SecurityCommandChild, SubeventCode,
 };
 
 enum ConnectionSignal {
-    NocpTimeout,
-    NocpDisconnect,
+    LinkKeyMismatch, // Peer forgets the link key or it mismatches ours
+    NocpDisconnect,  // Peer is disconnected when NOCP packet isn't yet received
+    NocpTimeout,     // Host doesn't receive NOCP packet 5 seconds after ACL is sent
 }
 
 impl Into<&'static str> for ConnectionSignal {
     fn into(self) -> &'static str {
         match self {
-            ConnectionSignal::NocpTimeout => "Nocp",
+            ConnectionSignal::LinkKeyMismatch => "LinkKeyMismatch",
             ConnectionSignal::NocpDisconnect => "Nocp",
+            ConnectionSignal::NocpTimeout => "Nocp",
         }
     }
 }
@@ -229,7 +231,7 @@ impl OddDisconnectionsRule {
             if cs.get_status() != ErrorCode::Success {
                 self.reportable.push((
                     packet.ts,
-                    format!("Failing command status on [{:?}]: {:?}", address, cs),
+                    format!("Failing command status on [{}]: {:?}", address, cs),
                 ));
 
                 // Also remove the connection attempt.
@@ -274,7 +276,7 @@ impl OddDisconnectionsRule {
                             self.reportable.push((
                                 packet.ts,
                                 format!(
-                                    "ConnectionComplete error {:?} for addr {:?} (handle={})",
+                                    "ConnectionComplete error {:?} for addr {} (handle={})",
                                     cc.get_status(),
                                     cc.get_bd_addr(),
                                     cc.get_connection_handle()
@@ -286,7 +288,7 @@ impl OddDisconnectionsRule {
                         self.reportable.push((
                             packet.ts,
                             format!(
-                            "ConnectionComplete with status {:?} for unknown addr {:?} (handle={})",
+                            "ConnectionComplete with status {:?} for unknown addr {} (handle={})",
                             cc.get_status(),
                             cc.get_bd_addr(),
                             cc.get_connection_handle()
@@ -348,7 +350,7 @@ impl OddDisconnectionsRule {
                             self.reportable.push((
                                 packet.ts,
                                 format!(
-                                    "SynchronousConnectionComplete error {:?} for addr {:?} (handle={})",
+                                    "SynchronousConnectionComplete error {:?} for addr {} (handle={})",
                                     scc.get_status(),
                                     scc.get_bd_addr(),
                                     scc.get_connection_handle()
@@ -360,7 +362,7 @@ impl OddDisconnectionsRule {
                         self.reportable.push((
                             packet.ts,
                             format!(
-                            "SynchronousConnectionComplete with status {:?} for unknown addr {:?} (handle={})",
+                            "SynchronousConnectionComplete with status {:?} for unknown addr {} (handle={})",
                             scc.get_status(),
                             scc.get_bd_addr(),
                             scc.get_connection_handle()
@@ -394,14 +396,14 @@ impl OddDisconnectionsRule {
                                 self.reportable.push((
                                     packet.ts,
                                     format!(
-                                        "LeConnectionComplete error {:?} for addr {:?} (handle={})",
+                                        "LeConnectionComplete error {:?} for addr {} (handle={})",
                                         status, address, handle
                                     ),
                                 ));
                             }
                         }
                         None => {
-                            self.reportable.push((packet.ts, format!("LeConnectionComplete with status {:?} for unknown addr {:?} (handle={})", status, address, handle)));
+                            self.reportable.push((packet.ts, format!("LeConnectionComplete with status {:?} for unknown addr {} (handle={})", status, address, handle)));
                         }
                     }
                 }
@@ -538,9 +540,148 @@ impl Rule for OddDisconnectionsRule {
     }
 }
 
+// What state are we in for the LinkKeyMismatchRule state?
+#[derive(Debug, PartialEq)]
+enum LinkKeyMismatchState {
+    Requested, // Controller requested link key to the host
+    Replied,   // Host replied the link key
+}
+
+/// Identifies instances when the peer forgets the link key or it mismatches with ours.
+struct LinkKeyMismatchRule {
+    /// Addresses in authenticating process
+    states: HashMap<Address, LinkKeyMismatchState>,
+
+    /// Active handles
+    handles: HashMap<ConnectionHandle, Address>,
+
+    /// Pre-defined signals discovered in the logs.
+    signals: Vec<Signal>,
+
+    /// Interesting occurrences surfaced by this rule.
+    reportable: Vec<(NaiveDateTime, String)>,
+}
+
+impl LinkKeyMismatchRule {
+    pub fn new() -> Self {
+        LinkKeyMismatchRule {
+            states: HashMap::new(),
+            handles: HashMap::new(),
+            signals: vec![],
+            reportable: vec![],
+        }
+    }
+
+    fn report_address_auth_failure(&mut self, address: &Address, packet: &Packet) {
+        if let Some(LinkKeyMismatchState::Replied) = self.states.get(address) {
+            self.signals.push(Signal {
+                index: packet.index,
+                ts: packet.ts.clone(),
+                tag: ConnectionSignal::LinkKeyMismatch.into(),
+            });
+
+            self.reportable.push((
+                packet.ts,
+                format!("Peer {} forgets the link key, or it mismatches with ours.", address),
+            ));
+        }
+    }
+}
+
+impl Rule for LinkKeyMismatchRule {
+    // Currently this is only for BREDR device.
+    // TODO(apusaka): add LE when logs are available.
+    fn process(&mut self, packet: &Packet) {
+        match &packet.inner {
+            PacketChild::HciEvent(ev) => match ev.specialize() {
+                EventChild::ConnectionComplete(ev) => {
+                    if ev.get_status() == ErrorCode::Success {
+                        self.handles.insert(ev.get_connection_handle(), ev.get_bd_addr());
+                    }
+                }
+
+                EventChild::LinkKeyRequest(ev) => {
+                    self.states.insert(ev.get_bd_addr(), LinkKeyMismatchState::Requested);
+                }
+
+                EventChild::SimplePairingComplete(ev) => {
+                    if ev.get_status() == ErrorCode::AuthenticationFailure {
+                        self.report_address_auth_failure(&ev.get_bd_addr(), &packet);
+                    }
+
+                    self.states.remove(&ev.get_bd_addr());
+                }
+
+                EventChild::AuthenticationComplete(ev) => {
+                    if let Some(address) = self.handles.get(&ev.get_connection_handle()) {
+                        let address = address.clone();
+                        if ev.get_status() == ErrorCode::AuthenticationFailure {
+                            self.report_address_auth_failure(&address, &packet);
+                        }
+                        self.states.remove(&address);
+                    }
+                }
+
+                EventChild::DisconnectionComplete(ev) => {
+                    if let Some(address) = self.handles.get(&ev.get_connection_handle()) {
+                        let address = address.clone();
+                        if ev.get_status() == ErrorCode::AuthenticationFailure {
+                            self.report_address_auth_failure(&address, &packet);
+                        }
+                        self.states.remove(&address);
+                    }
+
+                    self.handles.remove(&ev.get_connection_handle());
+                }
+
+                // PacketChild::HciEvent(ev).specialize()
+                _ => {}
+            },
+
+            PacketChild::HciCommand(cmd) => match cmd.specialize() {
+                CommandChild::SecurityCommand(cmd) => match cmd.specialize() {
+                    SecurityCommandChild::LinkKeyRequestReply(cmd) => {
+                        let address = cmd.get_bd_addr();
+                        if let Some(LinkKeyMismatchState::Requested) = self.states.get(&address) {
+                            self.states.insert(address, LinkKeyMismatchState::Replied);
+                        }
+                    }
+
+                    SecurityCommandChild::LinkKeyRequestNegativeReply(cmd) => {
+                        self.states.remove(&cmd.get_bd_addr());
+                    }
+
+                    // CommandChild::SecurityCommand(cmd).specialize()
+                    _ => {}
+                },
+
+                // PacketChild::HciCommand(cmd).specialize()
+                _ => {}
+            },
+
+            // packet.inner
+            _ => {}
+        }
+    }
+
+    fn report(&self, writer: &mut dyn Write) {
+        if self.reportable.len() > 0 {
+            let _ = writeln!(writer, "LinkKeyMismatchRule report:");
+            for (ts, message) in self.reportable.iter() {
+                let _ = writeln!(writer, "[{:?}] {}", ts, message);
+            }
+        }
+    }
+
+    fn report_signals(&self) -> &[Signal] {
+        self.signals.as_slice()
+    }
+}
+
 /// Get a rule group with connection rules.
 pub fn get_connections_group() -> RuleGroup {
     let mut group = RuleGroup::new();
+    group.add_rule(Box::new(LinkKeyMismatchRule::new()));
     group.add_rule(Box::new(OddDisconnectionsRule::new()));
 
     group
